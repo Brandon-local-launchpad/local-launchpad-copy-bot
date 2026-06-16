@@ -1,0 +1,518 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Local Launchpad — Copy Bot</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #0f1117;
+      --surface: #1a1d27;
+      --border: #2d3148;
+      --accent: #6c63ff;
+      --accent-hover: #7d75ff;
+      --text: #e2e4f0;
+      --muted: #8b90a8;
+      --block: #ff5454;
+      --flag: #f5a623;
+      --success: #3dd68c;
+      --radius: 8px;
+      --font: 'Inter', system-ui, -apple-system, sans-serif;
+      --mono: 'JetBrains Mono', 'Fira Code', ui-monospace, monospace;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--font);
+      font-size: 14px;
+      line-height: 1.6;
+      min-height: 100vh;
+    }
+
+    header {
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      padding: 16px 24px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    header h1 {
+      font-size: 16px;
+      font-weight: 600;
+      letter-spacing: -0.01em;
+    }
+
+    header span {
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .badge {
+      background: var(--accent);
+      color: #fff;
+      font-size: 11px;
+      font-weight: 600;
+      padding: 2px 8px;
+      border-radius: 99px;
+      letter-spacing: 0.04em;
+    }
+
+    main {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 24px;
+      display: grid;
+      grid-template-columns: 420px 1fr;
+      gap: 24px;
+      align-items: start;
+    }
+
+    /* ── Input panel ── */
+    .input-panel {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      position: sticky;
+      top: 24px;
+    }
+
+    .field label {
+      display: block;
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 6px;
+    }
+
+    .field label .required {
+      color: var(--block);
+      margin-left: 2px;
+    }
+
+    .field textarea,
+    .field input[type="text"] {
+      width: 100%;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      color: var(--text);
+      font-family: var(--mono);
+      font-size: 12px;
+      line-height: 1.5;
+      padding: 10px 12px;
+      resize: vertical;
+      transition: border-color 0.15s;
+      outline: none;
+    }
+
+    .field textarea:focus,
+    .field input[type="text"]:focus {
+      border-color: var(--accent);
+    }
+
+    .field textarea {
+      min-height: 110px;
+    }
+
+    .field .hint {
+      font-size: 11px;
+      color: var(--muted);
+      margin-top: 4px;
+    }
+
+    .generate-btn {
+      background: var(--accent);
+      color: #fff;
+      border: none;
+      border-radius: var(--radius);
+      font-family: var(--font);
+      font-size: 14px;
+      font-weight: 600;
+      padding: 12px 20px;
+      cursor: pointer;
+      width: 100%;
+      transition: background 0.15s, opacity 0.15s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+
+    .generate-btn:hover:not(:disabled) { background: var(--accent-hover); }
+    .generate-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+    .spinner {
+      width: 16px;
+      height: 16px;
+      border: 2px solid rgba(255,255,255,0.3);
+      border-top-color: #fff;
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+      display: none;
+    }
+
+    .generate-btn.loading .spinner { display: block; }
+    .generate-btn.loading .btn-text { opacity: 0.7; }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ── Output panel ── */
+    .output-panel {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .empty-state {
+      background: var(--surface);
+      border: 1px dashed var(--border);
+      border-radius: var(--radius);
+      padding: 60px 24px;
+      text-align: center;
+      color: var(--muted);
+    }
+
+    .empty-state p { font-size: 13px; margin-top: 8px; }
+
+    /* ── Issues panel ── */
+    .issues-panel {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      overflow: hidden;
+    }
+
+    .issues-header {
+      padding: 12px 16px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+
+    .count-chip {
+      font-size: 11px;
+      font-weight: 700;
+      padding: 2px 8px;
+      border-radius: 99px;
+    }
+
+    .count-chip.block { background: rgba(255,84,84,0.15); color: var(--block); }
+    .count-chip.flag  { background: rgba(245,166,35,0.15); color: var(--flag); }
+    .count-chip.ok    { background: rgba(61,214,140,0.15); color: var(--success); }
+
+    .issues-list {
+      list-style: none;
+      max-height: 320px;
+      overflow-y: auto;
+    }
+
+    .issues-list li {
+      display: flex;
+      gap: 10px;
+      padding: 10px 16px;
+      border-bottom: 1px solid var(--border);
+      font-size: 12px;
+      align-items: flex-start;
+    }
+
+    .issues-list li:last-child { border-bottom: none; }
+
+    .issue-badge {
+      font-size: 10px;
+      font-weight: 700;
+      padding: 2px 7px;
+      border-radius: 4px;
+      white-space: nowrap;
+      margin-top: 1px;
+      flex-shrink: 0;
+    }
+
+    .issue-badge.BLOCK { background: rgba(255,84,84,0.18); color: var(--block); }
+    .issue-badge.FLAG  { background: rgba(245,166,35,0.18); color: var(--flag); }
+
+    .issue-check {
+      color: var(--muted);
+      font-size: 11px;
+      white-space: nowrap;
+      flex-shrink: 0;
+      margin-top: 2px;
+    }
+
+    .issue-msg { color: var(--text); }
+
+    .no-issues {
+      padding: 16px;
+      text-align: center;
+      color: var(--success);
+      font-size: 13px;
+      font-weight: 500;
+    }
+
+    /* ── Copy output ── */
+    .copy-output {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      overflow: hidden;
+    }
+
+    .copy-output-header {
+      padding: 12px 16px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+
+    .copy-btn {
+      background: transparent;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      color: var(--text);
+      font-family: var(--font);
+      font-size: 12px;
+      font-weight: 500;
+      padding: 5px 12px;
+      cursor: pointer;
+      transition: background 0.15s, border-color 0.15s;
+    }
+
+    .copy-btn:hover { background: var(--border); }
+    .copy-btn.copied { color: var(--success); border-color: var(--success); }
+
+    .copy-output pre {
+      padding: 16px;
+      overflow-x: auto;
+      font-family: var(--mono);
+      font-size: 12px;
+      line-height: 1.7;
+      white-space: pre-wrap;
+      word-break: break-word;
+      color: var(--text);
+      max-height: 70vh;
+      overflow-y: auto;
+    }
+
+    .usage-line {
+      font-size: 11px;
+      color: var(--muted);
+      text-align: right;
+      padding: 4px 0;
+    }
+
+    .error-msg {
+      background: rgba(255,84,84,0.1);
+      border: 1px solid rgba(255,84,84,0.3);
+      border-radius: var(--radius);
+      padding: 14px 16px;
+      color: var(--block);
+      font-size: 13px;
+    }
+
+    @media (max-width: 900px) {
+      main { grid-template-columns: 1fr; }
+      .input-panel { position: static; }
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <h1>Local Launchpad</h1>
+  <span class="badge">Copy Bot</span>
+  <span style="margin-left:auto; color: var(--muted); font-size:12px;">claude-sonnet-4-6</span>
+</header>
+
+<main>
+  <!-- ── Input panel ── -->
+  <div class="input-panel">
+
+    <div class="field">
+      <label>GHL Custom Values <span class="required">*</span></label>
+      <textarea id="customValues" rows="8" placeholder="Paste the client's GHL custom values here.
+One key per line, e.g.:
+company_name: Green Gardens Ltd
+category_1: Landscaper
+biz_area_1: Southampton
+biz_area_2: Eastleigh
+company_phone_functional: 023 8000 0000
+…"></textarea>
+      <p class="hint">Used for placeholder checks. Format: <code>key: value</code> per line.</p>
+    </div>
+
+    <div class="field">
+      <label>Geo Research &amp; Context <span class="required">*</span></label>
+      <textarea id="geoResearch" rows="7" placeholder="Paste the geographical research document here — soil types, property types, seasonal patterns, local neighbourhoods, etc."></textarea>
+    </div>
+
+    <div class="field">
+      <label>H1 (from Ahrefs) <span class="required">*</span></label>
+      <input type="text" id="h1" placeholder="e.g. Landscaper Southampton" />
+      <p class="hint">Used for H1 validation checks and inserted into the copy output.</p>
+    </div>
+
+    <div class="field">
+      <label>Client Onboarding Form <span style="color:var(--muted); font-weight:400; text-transform:none; letter-spacing:0">(optional)</span></label>
+      <textarea id="onboardingForm" rows="5" placeholder="Paste the client's onboarding form answers here — qualifications, founding story, insurance details, review count, opening hours, etc."></textarea>
+    </div>
+
+    <button class="generate-btn" id="generateBtn" onclick="generate()">
+      <div class="spinner"></div>
+      <span class="btn-text">Generate Homepage Copy</span>
+    </button>
+
+  </div>
+
+  <!-- ── Output panel ── -->
+  <div class="output-panel" id="outputPanel">
+    <div class="empty-state" id="emptyState">
+      <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="margin: 0 auto 12px; display:block; opacity:0.3">
+        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+        <polyline points="14 2 14 8 20 8"/>
+        <line x1="16" y1="13" x2="8" y2="13"/>
+        <line x1="16" y1="17" x2="8" y2="17"/>
+        <polyline points="10 9 9 9 8 9"/>
+      </svg>
+      <p>Fill in the fields and click Generate to produce homepage copy.</p>
+    </div>
+  </div>
+</main>
+
+<script>
+  async function generate() {
+    const btn = document.getElementById('generateBtn');
+    const customValues = document.getElementById('customValues').value.trim();
+    const geoResearch = document.getElementById('geoResearch').value.trim();
+    const h1 = document.getElementById('h1').value.trim();
+    const onboardingForm = document.getElementById('onboardingForm').value.trim();
+
+    if (!customValues || !geoResearch || !h1) {
+      alert('Please fill in Custom Values, Geo Research, and H1 before generating.');
+      return;
+    }
+
+    btn.disabled = true;
+    btn.classList.add('loading');
+    btn.querySelector('.btn-text').textContent = 'Generating…';
+
+    const outputPanel = document.getElementById('outputPanel');
+    outputPanel.innerHTML = '<div class="empty-state"><p>Sending to Claude — this usually takes 30–90 seconds…</p></div>';
+
+    try {
+      const res = await fetch('/api/generate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ customValues, geoResearch, h1, onboardingForm }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        outputPanel.innerHTML = `<div class="error-msg"><strong>Error:</strong> ${escapeHtml(data.error || 'Unknown error')}</div>`;
+        return;
+      }
+
+      renderOutput(data, outputPanel);
+    } catch (err) {
+      outputPanel.innerHTML = `<div class="error-msg"><strong>Network error:</strong> ${escapeHtml(err.message)}</div>`;
+    } finally {
+      btn.disabled = false;
+      btn.classList.remove('loading');
+      btn.querySelector('.btn-text').textContent = 'Generate Homepage Copy';
+    }
+  }
+
+  function renderOutput(data, panel) {
+    const { output, issues, usage } = data;
+    const blocks = issues.filter(i => i.type === 'BLOCK');
+    const flags  = issues.filter(i => i.type === 'FLAG');
+
+    let html = '';
+
+    // Issues panel
+    html += '<div class="issues-panel">';
+    html += '<div class="issues-header">Validation';
+
+    if (issues.length === 0) {
+      html += ' <span class="count-chip ok">All clear</span>';
+    } else {
+      if (blocks.length > 0) html += ` <span class="count-chip block">${blocks.length} BLOCK${blocks.length > 1 ? 'S' : ''}</span>`;
+      if (flags.length  > 0) html += ` <span class="count-chip flag">${flags.length} FLAG${flags.length > 1 ? 'S' : ''}</span>`;
+    }
+    html += '</div>';
+
+    if (issues.length === 0) {
+      html += '<p class="no-issues">✓ No issues detected</p>';
+    } else {
+      html += '<ul class="issues-list">';
+      for (const issue of issues) {
+        html += `<li>
+          <span class="issue-badge ${issue.type}">${issue.type}</span>
+          <span class="issue-check">Check ${escapeHtml(issue.check)}</span>
+          <span class="issue-msg">${escapeHtml(issue.message)}</span>
+        </li>`;
+      }
+      html += '</ul>';
+    }
+    html += '</div>';
+
+    // Usage line
+    if (usage) {
+      html += `<p class="usage-line">Tokens — input: ${usage.input_tokens.toLocaleString()} · output: ${usage.output_tokens.toLocaleString()}</p>`;
+    }
+
+    // Copy output
+    html += `<div class="copy-output">
+      <div class="copy-output-header">
+        <span>Generated Copy</span>
+        <button class="copy-btn" id="copyBtn" onclick="copyOutput()">Copy to clipboard</button>
+      </div>
+      <pre id="outputText">${escapeHtml(output)}</pre>
+    </div>`;
+
+    panel.innerHTML = html;
+  }
+
+  function copyOutput() {
+    const text = document.getElementById('outputText')?.textContent;
+    if (!text) return;
+    navigator.clipboard.writeText(text).then(() => {
+      const btn = document.getElementById('copyBtn');
+      btn.textContent = 'Copied!';
+      btn.classList.add('copied');
+      setTimeout(() => {
+        btn.textContent = 'Copy to clipboard';
+        btn.classList.remove('copied');
+      }, 2000);
+    });
+  }
+
+  function escapeHtml(str) {
+    return String(str)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;');
+  }
+</script>
+
+</body>
+</html>

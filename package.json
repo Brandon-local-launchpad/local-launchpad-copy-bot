@@ -1,0 +1,14 @@
+{
+  "name": "local-launchpad-copy-bot",
+  "version": "1.0.0",
+  "description": "Homepage copy generator using Anthropic API",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node --watch server.js"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.36.0",
+    "express": "^4.18.2"
+  }
+}
