@@ -83,6 +83,10 @@ Rules:
 - Maximum 155 characters counting the RESOLVED text the placeholders represent
 - Never use a dash of any kind to connect phrases. Write as complete sentences or comma-separated phrases only.
 
+**Priority order if everything won't fit:** TARGET SERVICE and primary area are mandatory and must never be cut. After that, if the resolved sentence is heading over 155 characters, cut in this order: (1) drop the PARENT CATEGORY reference first, (2) shorten the call to action to 2-3 words instead of a full sentence (e.g. "Call [phone] today" rather than "Call [phone] to book a free site visit"), (3) drop the phone number from the meta description itself if the CTA can stand without it (e.g. "Book your free visit today"). Do not include the business name in the meta description unless it fits naturally after the above cuts — it is not a mandatory element here the way it is in the title tag.
+
+**Stop condition:** Write one version applying the priority order above. Do not draft multiple full attempts or talk through several candidate sentences in your reasoning — pick the cuts needed, write it once, and move on. If it still lands over 155 characters after cutting category, shortening the CTA, and dropping the phone number, output the closest version and let the character-length validation check (run separately) catch and flag it.
+
 ### 3. STICKY BAR
 
 Location text: Format: `{{custom_values.biz_area_1}} & Surrounding Areas`
