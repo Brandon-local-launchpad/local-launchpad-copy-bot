@@ -696,7 +696,7 @@ app.post('/api/generate-category', async (req, res) => {
 
 // ── Serve generate tool at /generate ─────────────────────────────────────────
 
-app.get('/generate', (req, res) => res.sendFile(path.join(__dirname, 'public', 'index.html')));
+app.get('/generate', (req, res) => res.sendFile(path.join(__dirname, 'public', 'generate.html')));
 app.get('/', (req, res) => res.redirect('/clients.html'));
 
 // ── Client API routes ─────────────────────────────────────────────────────────
