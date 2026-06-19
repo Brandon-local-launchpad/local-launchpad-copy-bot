@@ -17,6 +17,8 @@ Wherever a business name, phone number, address, city, area, category, or servic
 
 Only use placeholders that are populated for this client. Do not output empty placeholder slots.
 
+**If you cannot find a populated placeholder for something you need to reference** (a specific service, category, or area that should exist for this client but isn't listed with a clear key in the custom values document), do not guess a key, do not invent placeholder syntax (e.g. do not write something like `{{custom_values.service_[CONFIRM NUMBER]}}`), and do not write copy that assumes a key exists. Stop, and output a single line instead: `[HALTED — no populated custom value found for "X". Provide the correct key before this section can be generated.]`. This applies even if you are confident about what the value should logically be — confidence is not the same as the key being present and populated in the supplied document.
+
 ---
 
 ## Context

@@ -4,7 +4,22 @@
       "PowerShell(Get-ChildItem \"C:\\\\Program Files\\\\nodejs\\\\npm.cmd\" -ErrorAction SilentlyContinue; Get-ChildItem \"$env:APPDATA\\\\npm\\\\npm.cmd\" -ErrorAction SilentlyContinue; Get-ChildItem \"$env:ProgramFiles\\\\nodejs\" -ErrorAction SilentlyContinue | Select-Object -First 5)",
       "PowerShell($env:Path = [System.Environment]::GetEnvironmentVariable\\(\"Path\",\"Machine\"\\) + \";\" + [System.Environment]::GetEnvironmentVariable\\(\"Path\",\"User\"\\); where.exe node; where.exe npm)",
       "PowerShell(Get-Process -Name \"node\" -ErrorAction SilentlyContinue)",
-      "PowerShell(Stop-Process -Force)"
+      "PowerShell(Stop-Process -Force)",
+      "PowerShell(Get-ChildItem \"H:\\\\Local Launchpad\\\\local-launchpad-copy-bot\\\\\" -File | Where-Object { $_.Name -match \"Landscaper\" } | Select-Object Name)",
+      "PowerShell($env:ANTHROPIC_API_KEY = \\(Get-Content \"H:\\\\Local Launchpad\\\\local-launchpad-copy-bot\\\\.env\" | Where-Object { $_ -match \"^ANTHROPIC_API_KEY\" } | ForEach-Object { \\($_ -split \"=\",2\\)[1].Trim\\(\\) }\\); Set-Location \"H:\\\\Local Launchpad\\\\local-launchpad-copy-bot\"; Start-Process powershell -ArgumentList \"-NoExit\", \"-Command\", \"`$env:ANTHROPIC_API_KEY='$env:ANTHROPIC_API_KEY'; node server.js 2>&1\" -PassThru | Out-Null; Write-Host \"Server started in new window\")",
+      "PowerShell(Start-Sleep -Seconds 3; try { $r = Invoke-WebRequest -Uri \"http://localhost:3000\" -TimeoutSec 5 -UseBasicParsing; Write-Host \"Server up: $\\($r.StatusCode\\)\" } catch { Write-Host \"Server not responding: $_\" })",
+      "PowerShell($env:ANTHROPIC_API_KEY = \\(Get-Content \"H:\\\\Local Launchpad\\\\local-launchpad-copy-bot\\\\.env\" | Where-Object { $_ -match \"^ANTHROPIC_API_KEY\" } | ForEach-Object { \\($_ -split \"=\",2\\)[1].Trim\\(\\) }\\); $logFile = \"$env:TEMP\\\\copybot.log\"; $job = Start-Job -ScriptBlock { param\\($key, $dir, $log\\) $env:ANTHROPIC_API_KEY = $key; Set-Location $dir; node server.js 2>&1 | Out-File $log -Encoding utf8 } -ArgumentList $env:ANTHROPIC_API_KEY, \"H:\\\\Local Launchpad\\\\local-launchpad-copy-bot\", $logFile; Write-Host \"Job ID: $\\($job.Id\\), log: $logFile\")",
+      "Bash(pkill -f \"node server.js\")",
+      "Bash(pkill -f \"node \")",
+      "Bash(node server.js)",
+      "Bash(echo \"PID: $!\")",
+      "Read(//tmp/**)",
+      "Bash(curl -s http://localhost:3000/api/trades)",
+      "Bash(npx pm2 *)",
+      "Bash(netstat -ano)",
+      "Bash(findstr :3000)",
+      "Bash(findstr LISTENING)",
+      "Bash(taskkill /PID 32912 /F)"
     ]
   }
 }
