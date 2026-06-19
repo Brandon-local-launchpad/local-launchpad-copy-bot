@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Login — Local Launchpad</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --bg: #0f1117; --surface: #1a1d27; --accent: #6c63ff; --accent2: #5a52e0;
+    --text: #e2e8f0; --muted: #94a3b8; --border: #2d3148; --danger: #f87171;
+    --r: 10px; --font: 'Inter', system-ui, sans-serif;
+  }
+  body { background: var(--bg); color: var(--text); font-family: var(--font); min-height: 100vh; display: flex; align-items: center; justify-content: center; }
+  .card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--r); padding: 2.5rem 2rem; width: 100%; max-width: 380px; }
+  h1 { font-size: 1.25rem; font-weight: 700; margin-bottom: .25rem; }
+  .sub { color: var(--muted); font-size: 13px; margin-bottom: 2rem; }
+  label { display: block; font-size: 13px; color: var(--muted); margin-bottom: 5px; }
+  input[type=password] { width: 100%; background: #0f1117; border: 1px solid var(--border); border-radius: 6px; color: var(--text); font-family: var(--font); font-size: 14px; padding: 10px 12px; margin-bottom: 1.25rem; }
+  input[type=password]:focus { outline: 2px solid var(--accent); border-color: transparent; }
+  button { width: 100%; background: var(--accent); color: #fff; border: none; border-radius: var(--r); font-family: var(--font); font-size: 14px; font-weight: 600; padding: 11px; cursor: pointer; }
+  button:hover { background: var(--accent2); }
+  .error { color: var(--danger); font-size: 13px; margin-bottom: 1rem; }
+</style>
+</head>
+<body>
+<div class="card">
+  <h1>Local Launchpad</h1>
+  <p class="sub">Sign in to continue</p>
+  <form method="POST" action="/auth/login">
+    <label for="password">Password</label>
+    <input type="password" id="password" name="password" autofocus placeholder="Enter password" />
+    <div id="err" class="error" style="display:none">Incorrect password — try again.</div>
+    <button type="submit">Sign In</button>
+  </form>
+</div>
+<script>
+  if (new URLSearchParams(location.search).get('error')) {
+    document.getElementById('err').style.display = 'block';
+  }
+</script>
+</body>
+</html>

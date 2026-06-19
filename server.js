@@ -18,10 +18,62 @@ const multer     = require('multer');
 const Papa       = require('papaparse');
 const JSZip      = require('jszip');
 const { validate } = require('./validate');
+const { pool, initDb } = require('./db');
 
 const app = express();
 app.use(express.json({ limit: '4mb' }));
+
+// ── Auth middleware ───────────────────────────────────────────────────────────
+
+const APP_PASSWORD = process.env.APP_PASSWORD || '';
+const APP_SECRET   = process.env.APP_SECRET   || crypto.randomBytes(32).toString('hex');
+
+function signToken(password) {
+  return crypto.createHmac('sha256', APP_SECRET).update(password).digest('hex');
+}
+
+function parseCookies(req) {
+  const map = {};
+  (req.headers.cookie || '').split(';').forEach(c => {
+    const [k, ...v] = c.trim().split('=');
+    if (k) map[k.trim()] = decodeURIComponent(v.join('='));
+  });
+  return map;
+}
+
+function requireAuth(req, res, next) {
+  if (!APP_PASSWORD) return next(); // no password set — open access
+  const cookies = parseCookies(req);
+  if (cookies.ll_auth === signToken(APP_PASSWORD)) return next();
+  // Allow API calls to return 401 rather than HTML
+  if (req.path.startsWith('/api/')) return res.status(401).json({ error: 'Unauthorised' });
+  res.redirect('/login.html');
+}
+
 app.use(express.static(path.join(__dirname, 'public')));
+
+// Login endpoint
+app.post('/auth/login', express.urlencoded({ extended: false }), (req, res) => {
+  const { password } = req.body;
+  if (password === APP_PASSWORD) {
+    const token   = signToken(APP_PASSWORD);
+    const maxAge  = 30 * 24 * 3600; // 30 days
+    res.setHeader('Set-Cookie', `ll_auth=${token}; Path=/; HttpOnly; Max-Age=${maxAge}; SameSite=Lax`);
+    return res.redirect('/clients.html');
+  }
+  res.redirect('/login.html?error=1');
+});
+
+app.post('/auth/logout', (req, res) => {
+  res.setHeader('Set-Cookie', 'll_auth=; Path=/; HttpOnly; Max-Age=0');
+  res.redirect('/login.html');
+});
+
+// Protect all routes below this point
+app.use((req, res, next) => {
+  // Static files and login page are already served above — only API and page routes hit this
+  requireAuth(req, res, next);
+});
 
 const sleep = ms => new Promise(r => setTimeout(r, ms));
 
@@ -339,7 +391,8 @@ app.get('/api/trades', (_req, res) => res.json({ trades: AVAILABLE_TRADES }));
 app.post('/api/parse-zip', upload.array('files', 30), (req, res) => {
   try {
     if (!req.files || !req.files.length) return res.status(400).json({ error: 'No files uploaded.' });
-    const trade = (req.body.trade || '').trim();
+    const trade    = (req.body.trade    || '').trim();
+    const clientId = (req.body.clientId || '').trim() || null;
     if (!CALIBRATION_PACKS[trade]) {
       return res.status(400).json({ error: `Unknown trade: "${trade}". Available: ${AVAILABLE_TRADES.join(', ')}` });
     }
@@ -375,7 +428,8 @@ app.post('/api/parse-zip', upload.array('files', 30), (req, res) => {
       .map(p => ({ ...p, skipReason: `Status: ${p.status}` }));
 
     const sessionId = crypto.randomUUID();
-    sessions.set(sessionId, { createdAt: Date.now(), trade, jobs, skippedPages, keyValueMap, serviceParentMap, onboardingText, geoResearch });
+    const rawCustomValuesCsvs = identified.customValues.map(readText);
+    sessions.set(sessionId, { createdAt: Date.now(), trade, clientId, jobs, skippedPages, keyValueMap, serviceParentMap, onboardingText, geoResearch, rawCustomValuesCsvs });
 
     const byType = {};
     for (const j of jobs) byType[j.pageType] = (byType[j.pageType] || 0) + 1;
@@ -477,6 +531,40 @@ app.get('/api/generate-site/:sessionId', async (req, res) => {
 
   const doneResults  = results.filter(r => r.status === 'done');
   const pageTypes    = [...new Set(doneResults.map(r => r.pageType))];
+
+  // Save to DB if this session is tied to a client and DB is available
+  if (session.clientId && pool) {
+    try {
+      // Save raw assets so single-page regeneration has everything it needs
+      // Delete and reinsert so re-runs always use the latest uploaded files
+      await pool.query(`DELETE FROM client_assets WHERE client_id = $1`, [session.clientId]);
+      const assetRows = [
+        { type: 'geo_research', content: geoResearch },
+        { type: 'onboarding',   content: onboardingText },
+        ...(session.rawCustomValuesCsvs || []).map(content => ({ type: 'custom_values', content })),
+      ];
+      for (const asset of assetRows) {
+        await pool.query(
+          `INSERT INTO client_assets (client_id, asset_type, content) VALUES ($1, $2, $3)`,
+          [session.clientId, asset.type, asset.content]
+        );
+      }
+      // Upsert each completed page
+      for (const r of doneResults) {
+        await pool.query(
+          `INSERT INTO pages (client_id, page_type, page_title, url_slug, h1, copy_output, issues, generated_at)
+           VALUES ($1,$2,$3,$4,$5,$6,$7,NOW())
+           ON CONFLICT (client_id, url_slug) DO UPDATE
+             SET copy_output = EXCLUDED.copy_output, issues = EXCLUDED.issues,
+                 generated_at = NOW(), edited_at = NULL`,
+          [session.clientId, r.pageType, r.pageTitle, r.urlSlug, r.h1, r.output, JSON.stringify(r.issues)]
+        );
+      }
+      console.log(`[DB] Saved ${doneResults.length} pages for client ${session.clientId}`);
+    } catch (dbErr) {
+      console.error('[DB] Save error:', dbErr.message);
+    }
+  }
 
   send({
     type: 'complete',
@@ -606,7 +694,160 @@ app.post('/api/generate-category', async (req, res) => {
   }
 });
 
+// ── Serve generate tool at /generate ─────────────────────────────────────────
+
+app.get('/generate', (req, res) => res.sendFile(path.join(__dirname, 'public', 'index.html')));
+app.get('/', (req, res) => res.redirect('/clients.html'));
+
+// ── Client API routes ─────────────────────────────────────────────────────────
+
+const dbRequired = (req, res, next) => pool ? next() : res.status(503).json({ error: 'Database not configured.' });
+app.use('/api/clients', dbRequired);
+
+app.get('/api/clients', async (req, res) => {
+  try {
+    const { rows } = await pool.query(`
+      SELECT c.*, COUNT(p.id)::int AS page_count
+      FROM clients c
+      LEFT JOIN pages p ON p.client_id = c.id
+      GROUP BY c.id ORDER BY c.created_at DESC
+    `);
+    res.json({ clients: rows });
+  } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+app.post('/api/clients', async (req, res) => {
+  const { name, trade } = req.body;
+  if (!name || !trade) return res.status(400).json({ error: 'name and trade are required.' });
+  try {
+    const { rows } = await pool.query(
+      'INSERT INTO clients (name, trade) VALUES ($1, $2) RETURNING *',
+      [name.trim(), trade.trim()]
+    );
+    res.json(rows[0]);
+  } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+app.get('/api/clients/:id', async (req, res) => {
+  try {
+    const { rows } = await pool.query('SELECT * FROM clients WHERE id = $1', [req.params.id]);
+    if (!rows.length) return res.status(404).json({ error: 'Client not found.' });
+    res.json(rows[0]);
+  } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+app.delete('/api/clients/:id', async (req, res) => {
+  try {
+    await pool.query('DELETE FROM clients WHERE id = $1', [req.params.id]);
+    res.json({ ok: true });
+  } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+// ── Page API routes ───────────────────────────────────────────────────────────
+
+app.get('/api/clients/:id/pages', async (req, res) => {
+  try {
+    const { rows } = await pool.query(
+      'SELECT * FROM pages WHERE client_id = $1 ORDER BY page_type, page_title',
+      [req.params.id]
+    );
+    res.json({ pages: rows });
+  } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+app.get('/api/clients/:clientId/pages/:pageId', async (req, res) => {
+  try {
+    const { rows } = await pool.query(
+      `SELECT p.*, c.name AS client_name, c.trade
+       FROM pages p JOIN clients c ON c.id = p.client_id
+       WHERE p.id = $1 AND p.client_id = $2`,
+      [req.params.pageId, req.params.clientId]
+    );
+    if (!rows.length) return res.status(404).json({ error: 'Page not found.' });
+    res.json(rows[0]);
+  } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+app.put('/api/clients/:clientId/pages/:pageId', async (req, res) => {
+  const { copy_output } = req.body;
+  try {
+    const { rows } = await pool.query(
+      `UPDATE pages SET copy_output = $1, edited_at = NOW()
+       WHERE id = $2 AND client_id = $3 RETURNING *`,
+      [copy_output, req.params.pageId, req.params.clientId]
+    );
+    if (!rows.length) return res.status(404).json({ error: 'Page not found.' });
+    res.json(rows[0]);
+  } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+app.delete('/api/clients/:clientId/pages/:pageId', async (req, res) => {
+  try {
+    await pool.query('DELETE FROM pages WHERE id = $1 AND client_id = $2', [req.params.pageId, req.params.clientId]);
+    res.json({ ok: true });
+  } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+// ── Single-page regenerate ────────────────────────────────────────────────────
+
+app.post('/api/clients/:clientId/pages/:pageId/regenerate', async (req, res) => {
+  try {
+    // Load page + client assets
+    const { rows: pageRows } = await pool.query(
+      `SELECT p.*, c.trade FROM pages p JOIN clients c ON c.id = p.client_id
+       WHERE p.id = $1 AND p.client_id = $2`,
+      [req.params.pageId, req.params.clientId]
+    );
+    if (!pageRows.length) return res.status(404).json({ error: 'Page not found.' });
+    const page = pageRows[0];
+
+    const { rows: assets } = await pool.query(
+      'SELECT asset_type, content FROM client_assets WHERE client_id = $1',
+      [req.params.clientId]
+    );
+    const getAsset = type => (assets.find(a => a.asset_type === type) || {}).content || '';
+
+    const customValuesCsvs = assets.filter(a => a.asset_type === 'custom_values').map(a => a.content);
+    const { keyValueMap, serviceParentMap } = parseCustomValues(customValuesCsvs);
+    const geoResearch    = getAsset('geo_research');
+    const onboardingText = getAsset('onboarding');
+    const calibrationPack = CALIBRATION_PACKS[page.trade] || Object.values(CALIBRATION_PACKS)[0] || '';
+    const customValuesText = Object.entries(keyValueMap).map(([k, v]) => `${k}: ${v}`).join('\n');
+
+    const job = {
+      pageType:            page.page_type,
+      pageTitle:           page.page_title,
+      urlSlug:             page.url_slug,
+      h1:                  page.h1,
+      locationName:        page.location_name || '',
+      locationCategoryName: page.location_category_name || '',
+    };
+
+    const prompt    = buildSitePrompt(job, calibrationPack, keyValueMap, serviceParentMap, geoResearch, onboardingText);
+    const maxTokens = (job.pageType === 'category' || job.pageType === 'location-category') ? 16000 : 8192;
+    const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
+    const message   = await callClaude(anthropic, prompt, maxTokens);
+    const output    = message.content.filter(b => b.type === 'text').map(b => b.text).join('');
+    const issues    = validate(output, job.h1, customValuesText, job.pageType);
+
+    const { rows: updated } = await pool.query(
+      `UPDATE pages SET copy_output = $1, issues = $2, generated_at = NOW(), edited_at = NULL
+       WHERE id = $3 RETURNING *`,
+      [output, JSON.stringify(issues), page.id]
+    );
+    res.json({ ...updated[0], issues });
+  } catch (err) {
+    console.error('[regenerate]', err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // ── Start ─────────────────────────────────────────────────────────────────────
 
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log(`Copy bot running at http://localhost:${PORT}`));
+initDb().then(() => {
+  app.listen(PORT, () => console.log(`Copy bot running at http://localhost:${PORT}`));
+}).catch(err => {
+  console.error('DB init failed:', err.message);
+  process.exit(1);
+});

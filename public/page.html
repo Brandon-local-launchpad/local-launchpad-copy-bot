@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Page Editor — Local Launchpad</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --bg: #0f1117; --surface: #1a1d27; --surface2: #22263a;
+    --accent: #6c63ff; --accent2: #5a52e0; --success: #4ade80;
+    --danger: #f87171; --warning: #fbbf24; --text: #e2e8f0; --muted: #94a3b8;
+    --border: #2d3148; --r: 10px; --font: 'Inter', system-ui, sans-serif;
+  }
+  body { background: var(--bg); color: var(--text); font-family: var(--font); min-height: 100vh; padding: 2rem; }
+  a { color: var(--accent); text-decoration: none; }
+  .breadcrumb { color: var(--muted); font-size: 13px; margin-bottom: 1.5rem; }
+  .breadcrumb a { color: var(--muted); }
+  .breadcrumb a:hover { color: var(--text); }
+  .header { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 1.5rem; gap: 1rem; flex-wrap: wrap; }
+  h1 { font-size: 1.3rem; font-weight: 700; }
+  .page-meta { color: var(--muted); font-size: 13px; margin-top: 4px; }
+  .actions { display: flex; gap: .6rem; flex-wrap: wrap; }
+  .btn { display: inline-flex; align-items: center; gap: 6px; border: none; border-radius: var(--r); font-family: var(--font); font-size: 14px; font-weight: 600; padding: 10px 18px; cursor: pointer; transition: background 0.15s; }
+  .btn:disabled { opacity: .4; cursor: not-allowed; }
+  .btn-primary  { background: var(--accent); color: #fff; }
+  .btn-primary:hover:not(:disabled)  { background: var(--accent2); }
+  .btn-success  { background: var(--success); color: #0f1117; }
+  .btn-success:hover:not(:disabled)  { filter: brightness(1.08); }
+  .btn-ghost    { background: transparent; color: var(--muted); border: 1px solid var(--border); }
+  .btn-ghost:hover:not(:disabled)    { color: var(--text); }
+  .btn-danger   { background: transparent; color: var(--danger); border: 1px solid var(--danger); }
+  .btn-danger:hover:not(:disabled)   { background: var(--danger); color: #fff; }
+  .issues { margin-bottom: 1rem; }
+  .issue-row { display: flex; gap: .5rem; align-items: flex-start; padding: 8px 12px; border-radius: 6px; margin-bottom: 4px; font-size: 13px; }
+  .issue-block { background: rgba(248,113,113,.1); border: 1px solid rgba(248,113,113,.3); }
+  .issue-flag  { background: rgba(251,191,36,.1);  border: 1px solid rgba(251,191,36,.3); }
+  .issue-type  { font-weight: 700; flex-shrink: 0; }
+  .badge-block { color: var(--danger); }
+  .badge-flag  { color: var(--warning); }
+  .editor-wrap { position: relative; }
+  textarea {
+    width: 100%; min-height: 65vh; background: var(--surface); border: 1px solid var(--border);
+    border-radius: var(--r); color: var(--text); font-family: 'Courier New', monospace;
+    font-size: 13px; line-height: 1.6; padding: 1rem; resize: vertical;
+  }
+  textarea:focus { outline: 2px solid var(--accent); border-color: transparent; }
+  .save-bar { display: flex; align-items: center; justify-content: space-between; margin-top: .75rem; flex-wrap: wrap; gap: .5rem; }
+  .save-status { font-size: 13px; color: var(--muted); }
+  .save-status.saved { color: var(--success); }
+  .regen-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,.7); z-index: 50; align-items: center; justify-content: center; flex-direction: column; gap: 1rem; }
+  .regen-overlay.open { display: flex; }
+  .regen-msg { color: var(--text); font-size: 1rem; font-weight: 600; }
+  .regen-sub { color: var(--muted); font-size: 13px; }
+  .spinner { width: 36px; height: 36px; border: 3px solid var(--border); border-top-color: var(--accent); border-radius: 50%; animation: spin .7s linear infinite; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .no-copy { color: var(--muted); padding: 2rem; text-align: center; font-size: 14px; }
+</style>
+</head>
+<body>
+
+<div class="breadcrumb" id="breadcrumb"><a href="/clients.html">← Clients</a></div>
+
+<div class="header">
+  <div>
+    <h1 id="pageTitle">Loading…</h1>
+    <div class="page-meta" id="pageMeta"></div>
+  </div>
+  <div class="actions">
+    <button class="btn btn-ghost" onclick="regenerate()" id="regenBtn" disabled>↻ Regenerate</button>
+    <button class="btn btn-success" onclick="saveEdits()" id="saveBtn" disabled>Save Edits</button>
+    <button class="btn btn-danger" onclick="deletePage()" id="deleteBtn">Delete Page</button>
+  </div>
+</div>
+
+<div class="issues" id="issues"></div>
+
+<div class="editor-wrap">
+  <textarea id="editor" placeholder="No copy generated yet — use Regenerate to generate this page." spellcheck="false"></textarea>
+</div>
+<div class="save-bar">
+  <span class="save-status" id="saveStatus"></span>
+  <div style="display:flex;gap:.5rem">
+    <button class="btn btn-ghost" onclick="revertEdits()" id="revertBtn" style="display:none">Revert changes</button>
+  </div>
+</div>
+
+<div class="regen-overlay" id="regenOverlay">
+  <div class="spinner"></div>
+  <div class="regen-msg">Regenerating page…</div>
+  <div class="regen-sub">This usually takes 20–40 seconds</div>
+</div>
+
+<script>
+  const params   = new URLSearchParams(location.search);
+  const pageId   = params.get('id');
+  const clientId = params.get('clientId');
+  if (!pageId || !clientId) location.href = '/clients.html';
+
+  let originalCopy = '';
+  let pageData = null;
+
+  async function load() {
+    const res  = await fetch(`/api/clients/${clientId}/pages/${pageId}`);
+    if (!res.ok) { location.href = `/client.html?id=${clientId}`; return; }
+    pageData = await res.json();
+
+    document.title = `${pageData.page_title} — Local Launchpad`;
+    document.getElementById('breadcrumb').innerHTML =
+      `<a href="/clients.html">← Clients</a> / <a href="/client.html?id=${clientId}">${esc(pageData.client_name)}</a>`;
+    document.getElementById('pageTitle').textContent = pageData.page_title;
+
+    const genDate = pageData.generated_at ? `Generated ${fmtDate(pageData.generated_at)}` : 'Not yet generated';
+    const editDate = pageData.edited_at ? ` · Edited ${fmtDate(pageData.edited_at)}` : '';
+    document.getElementById('pageMeta').textContent = `${pageData.page_type} · ${pageData.url_slug || ''} · ${genDate}${editDate}`;
+
+    renderIssues(pageData.issues || []);
+
+    const copy = pageData.copy_output || '';
+    originalCopy = copy;
+    document.getElementById('editor').value = copy;
+    document.getElementById('editor').placeholder = copy ? '' : 'No copy generated yet — use Regenerate to generate this page.';
+
+    document.getElementById('saveBtn').disabled   = false;
+    document.getElementById('regenBtn').disabled  = false;
+    document.getElementById('deleteBtn').disabled = false;
+
+    document.getElementById('editor').addEventListener('input', onEdit);
+  }
+
+  function renderIssues(issues) {
+    const el = document.getElementById('issues');
+    if (!issues.length) { el.innerHTML = ''; return; }
+    el.innerHTML = issues.map(i => `
+      <div class="issue-row ${i.type === 'BLOCK' ? 'issue-block' : 'issue-flag'}">
+        <span class="issue-type ${i.type === 'BLOCK' ? 'badge-block' : 'badge-flag'}">[${i.type}] Check ${i.check}:</span>
+        <span>${esc(i.message)}</span>
+      </div>
+    `).join('');
+  }
+
+  function onEdit() {
+    const changed = document.getElementById('editor').value !== originalCopy;
+    document.getElementById('revertBtn').style.display = changed ? '' : 'none';
+    document.getElementById('saveStatus').textContent = changed ? 'Unsaved changes' : '';
+    document.getElementById('saveStatus').className = 'save-status';
+  }
+
+  function revertEdits() {
+    document.getElementById('editor').value = originalCopy;
+    onEdit();
+  }
+
+  async function saveEdits() {
+    const copy = document.getElementById('editor').value;
+    const res  = await fetch(`/api/clients/${clientId}/pages/${pageId}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ copy_output: copy }),
+    });
+    if (res.ok) {
+      originalCopy = copy;
+      document.getElementById('revertBtn').style.display = 'none';
+      document.getElementById('saveStatus').textContent = 'Saved ✓';
+      document.getElementById('saveStatus').className = 'save-status saved';
+    } else {
+      document.getElementById('saveStatus').textContent = 'Save failed — try again.';
+    }
+  }
+
+  async function regenerate() {
+    if (!confirm('Regenerate this page? The current copy will be replaced with a fresh Claude generation.')) return;
+    document.getElementById('regenOverlay').classList.add('open');
+    try {
+      const res  = await fetch(`/api/clients/${clientId}/pages/${pageId}/regenerate`, { method: 'POST' });
+      const data = await res.json();
+      if (!res.ok) { alert(data.error || 'Regeneration failed.'); return; }
+      originalCopy = data.copy_output;
+      document.getElementById('editor').value = data.copy_output;
+      renderIssues(data.issues || []);
+      document.getElementById('saveStatus').textContent = '';
+      document.getElementById('revertBtn').style.display = 'none';
+      await load();
+    } finally {
+      document.getElementById('regenOverlay').classList.remove('open');
+    }
+  }
+
+  async function deletePage() {
+    if (!confirm(`Delete "${pageData?.page_title}"? This cannot be undone.`)) return;
+    await fetch(`/api/clients/${clientId}/pages/${pageId}`, { method: 'DELETE' });
+    location.href = `/client.html?id=${clientId}`;
+  }
+
+  function esc(s) { return String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+  function fmtDate(s) { return new Date(s).toLocaleDateString('en-GB', { day:'numeric', month:'short', year:'numeric' }); }
+
+  load();
+</script>
+</body>
+</html>

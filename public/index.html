@@ -170,7 +170,11 @@
   <h1>Local Launchpad</h1>
   <span class="badge">Site Generator</span>
   <span class="model-tag">claude-sonnet-4-6</span>
+  <a href="/clients.html" style="margin-left:auto;font-size:13px;color:var(--muted);text-decoration:none;">← Clients</a>
 </header>
+<div id="clientBanner" style="display:none;background:#1a1d27;border-bottom:1px solid #2d3148;padding:.6rem 1.5rem;font-size:13px;color:#94a3b8;">
+  Generating for client: <strong id="clientBannerName" style="color:#e2e8f0"></strong> — pages will be saved automatically.
+</div>
 
 <div class="container">
 
@@ -317,6 +321,17 @@
 <script>
   let uploadedFiles  = [];
   let sessionId      = null;
+  const clientId     = new URLSearchParams(location.search).get('clientId') || null;
+
+  if (clientId) {
+    fetch(`/api/clients/${clientId}`)
+      .then(r => r.json())
+      .then(c => {
+        document.getElementById('clientBannerName').textContent = c.name || clientId;
+        document.getElementById('clientBanner').style.display = 'block';
+      })
+      .catch(() => {});
+  }
   let downloadId     = null;
   let totalJobs      = 0;
   let allJobs        = [];      // full job list from parse response
@@ -377,6 +392,7 @@
       const form = new FormData();
       for (const file of uploadedFiles) form.append('files', file);
       form.append('trade', trade);
+      if (clientId) form.append('clientId', clientId);
       const res  = await fetch('/api/parse-zip', { method: 'POST', body: form });
       const data = await res.json();
       if (!res.ok) { showParseError(data); return; }

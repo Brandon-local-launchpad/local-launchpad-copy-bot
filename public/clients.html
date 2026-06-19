@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Local Launchpad — Clients</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --bg: #0f1117; --surface: #1a1d27; --surface2: #22263a;
+    --accent: #6c63ff; --accent2: #5a52e0; --success: #4ade80;
+    --danger: #f87171; --text: #e2e8f0; --muted: #94a3b8;
+    --border: #2d3148; --r: 10px; --font: 'Inter', system-ui, sans-serif;
+  }
+  body { background: var(--bg); color: var(--text); font-family: var(--font); min-height: 100vh; padding: 2rem; }
+  .header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 2rem; }
+  h1 { font-size: 1.5rem; font-weight: 700; }
+  .btn { display: inline-flex; align-items: center; gap: 6px; border: none; border-radius: var(--r); font-family: var(--font); font-size: 14px; font-weight: 600; padding: 10px 18px; cursor: pointer; transition: background 0.15s; text-decoration: none; }
+  .btn-primary { background: var(--accent); color: #fff; }
+  .btn-primary:hover { background: var(--accent2); }
+  .btn-danger { background: transparent; color: var(--danger); border: 1px solid var(--danger); }
+  .btn-danger:hover { background: var(--danger); color: #fff; }
+  .btn-sm { padding: 6px 12px; font-size: 12px; }
+  .card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--r); padding: 1.25rem 1.5rem; }
+  .client-grid { display: grid; gap: 1rem; }
+  .client-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--r); padding: 1.25rem 1.5rem; display: flex; align-items: center; justify-content: space-between; cursor: pointer; transition: border-color 0.15s; }
+  .client-card:hover { border-color: var(--accent); }
+  .client-name { font-weight: 600; font-size: 1rem; }
+  .client-meta { color: var(--muted); font-size: 13px; margin-top: 3px; }
+  .client-actions { display: flex; gap: .5rem; }
+  .page-count { background: var(--surface2); color: var(--muted); border-radius: 20px; padding: 3px 10px; font-size: 12px; font-weight: 600; }
+  .empty { color: var(--muted); text-align: center; padding: 3rem; }
+  .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,.6); z-index: 100; align-items: center; justify-content: center; }
+  .modal-overlay.open { display: flex; }
+  .modal { background: var(--surface); border: 1px solid var(--border); border-radius: var(--r); padding: 2rem; width: 100%; max-width: 440px; }
+  .modal h2 { margin-bottom: 1.25rem; font-size: 1.1rem; }
+  .field { margin-bottom: 1rem; }
+  label { display: block; font-size: 13px; color: var(--muted); margin-bottom: 5px; }
+  input, select { width: 100%; background: var(--surface2); border: 1px solid var(--border); border-radius: 6px; color: var(--text); font-family: var(--font); font-size: 14px; padding: 9px 12px; }
+  input:focus, select:focus { outline: 2px solid var(--accent); border-color: transparent; }
+  .modal-actions { display: flex; gap: .75rem; justify-content: flex-end; margin-top: 1.5rem; }
+  .btn-ghost { background: transparent; color: var(--muted); border: 1px solid var(--border); }
+  .btn-ghost:hover { color: var(--text); }
+  .error { color: var(--danger); font-size: 13px; margin-top: .5rem; }
+  nav { margin-bottom: 2rem; }
+  nav a { color: var(--muted); text-decoration: none; font-size: 14px; }
+  nav a:hover { color: var(--text); }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div>
+    <h1>Clients</h1>
+  </div>
+  <div style="display:flex;gap:.75rem;align-items:center">
+    <a href="/generate" class="btn btn-ghost btn-sm">Generation Tool</a>
+    <button class="btn btn-primary" onclick="openModal()">+ New Client</button>
+  </div>
+</div>
+
+<div class="client-grid" id="clientGrid">
+  <div class="empty">Loading…</div>
+</div>
+
+<!-- New Client Modal -->
+<div class="modal-overlay" id="modal">
+  <div class="modal">
+    <h2>New Client</h2>
+    <div class="field">
+      <label>Client / Business Name</label>
+      <input type="text" id="clientName" placeholder="e.g. Edens Edge Landscaping" />
+    </div>
+    <div class="field">
+      <label>Trade</label>
+      <select id="clientTrade"></select>
+    </div>
+    <div id="modalError" class="error" style="display:none"></div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeModal()">Cancel</button>
+      <button class="btn btn-primary" onclick="createClient()">Create Client</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  let trades = [];
+
+  async function load() {
+    const [clientsRes, tradesRes] = await Promise.all([
+      fetch('/api/clients'),
+      fetch('/api/trades'),
+    ]);
+    const { clients } = await clientsRes.json();
+    const { trades: t } = await tradesRes.json();
+    trades = t;
+
+    const sel = document.getElementById('clientTrade');
+    sel.innerHTML = trades.map(tr => `<option value="${tr}">${tr}</option>`).join('');
+
+    const grid = document.getElementById('clientGrid');
+    if (!clients.length) {
+      grid.innerHTML = '<div class="empty">No clients yet — create your first one.</div>';
+      return;
+    }
+    grid.innerHTML = clients.map(c => `
+      <div class="client-card" onclick="goToClient('${c.id}')">
+        <div>
+          <div class="client-name">${esc(c.name)}</div>
+          <div class="client-meta">${esc(c.trade)} &middot; Created ${fmtDate(c.created_at)}</div>
+        </div>
+        <div class="client-actions" onclick="event.stopPropagation()">
+          <span class="page-count">${c.page_count} page${c.page_count != 1 ? 's' : ''}</span>
+          <button class="btn btn-danger btn-sm" onclick="deleteClient('${c.id}', '${esc(c.name)}')">Delete</button>
+        </div>
+      </div>
+    `).join('');
+  }
+
+  function goToClient(id) { window.location.href = `/client.html?id=${id}`; }
+
+  function openModal() { document.getElementById('modal').classList.add('open'); document.getElementById('clientName').focus(); }
+  function closeModal() { document.getElementById('modal').classList.remove('open'); document.getElementById('modalError').style.display = 'none'; }
+
+  async function createClient() {
+    const name  = document.getElementById('clientName').value.trim();
+    const trade = document.getElementById('clientTrade').value;
+    if (!name) { showErr('Client name is required.'); return; }
+    const res  = await fetch('/api/clients', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ name, trade }) });
+    const data = await res.json();
+    if (!res.ok) { showErr(data.error || 'Failed to create client.'); return; }
+    closeModal();
+    document.getElementById('clientName').value = '';
+    load();
+  }
+
+  async function deleteClient(id, name) {
+    if (!confirm(`Delete "${name}" and all their pages? This cannot be undone.`)) return;
+    await fetch(`/api/clients/${id}`, { method: 'DELETE' });
+    load();
+  }
+
+  function showErr(msg) { const el = document.getElementById('modalError'); el.textContent = msg; el.style.display = 'block'; }
+  function esc(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+  function fmtDate(s) { return new Date(s).toLocaleDateString('en-GB', { day:'numeric', month:'short', year:'numeric' }); }
+
+  document.getElementById('modal').addEventListener('click', e => { if (e.target === e.currentTarget) closeModal(); });
+
+  load();
+</script>
+</body>
+</html>
