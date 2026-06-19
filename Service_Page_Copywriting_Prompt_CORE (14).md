@@ -70,6 +70,8 @@ Rules:
 - Format: `[TARGET SERVICE placeholder] [primary area placeholder] | [Short Benefit] | [business name placeholder]`
 - The Short Benefit must never contain a hyphen. Write it as two or three plain words: "Same Week Starts" not "Same-Week Starts", "Free Site Visits" not "Free-Site-Visits".
 
+**Long business name fallback:** Before writing, resolve the business name placeholder and count its characters. If the resolved business name is 15 characters or longer, the three-part format above will rarely fit inside 60 characters once the service and area are also resolved — do not spend multiple attempts trying to force a benefit phrase in. Instead, drop the benefit segment entirely and use the two-part format: `[TARGET SERVICE placeholder] [primary area placeholder] | [business name placeholder]`. State which format you used (three-part or two-part fallback) and why in your pre-write reasoning, then write it once. If the two-part format is also at risk of exceeding 60 characters because the resolved service name and area name are themselves long, write the closest compliant version without further iteration and let the character-length validation check (run separately, see Output Validation Checks) catch and flag it — do not loop through multiple rewrites trying to hit the limit exactly.
+
 ### 2. META DESCRIPTION
 
 Write one meta description.

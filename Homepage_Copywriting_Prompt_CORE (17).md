@@ -74,6 +74,8 @@ Rules:
 - Maximum 60 characters, counting the RESOLVED text the placeholders represent (e.g. `{{custom_values.category_2}}` resolving to "Landscape Gardener" counts as 18 characters, not the length of the placeholder syntax itself). If the full formula (category + area + benefit + company name) would exceed 60 characters once resolved, drop the "Key Benefit" portion first — category, area, and company name take priority.
 - Format: `[primary category placeholder] [primary area placeholder] | [Key Benefit] | [Business Name placeholder]`
 
+**Long business name fallback:** Before writing, resolve the business name placeholder and count its characters. If it is 15 characters or longer, the four-part format above will rarely fit inside 60 characters — go straight to the two-part fallback (`[primary category placeholder] [primary area placeholder] | [Business Name placeholder]`, no benefit) rather than attempting the full format first. State which format you used in your pre-write reasoning. If even the two-part format risks exceeding 60 characters because the category or area name is itself long, write the closest compliant version once and let the character-length validation check catch and flag it — do not iterate through multiple rewrites trying to hit the limit exactly.
+
 ### 2. META DESCRIPTION
 
 Write one meta description.

@@ -69,6 +69,8 @@ Rules:
 - Format: `[primary category placeholder] [TARGET LOCATION placeholder] | [Short Benefit] | [business name placeholder]`
 - The Short Benefit must never contain a hyphen. Write it as two or three plain words: "Same Week Starts" not "Same-Week Starts".
 
+**Long business name fallback:** Before writing, resolve the business name placeholder and count its characters. If it is 15 characters or longer, go straight to the two-part fallback (`[primary category placeholder] [TARGET LOCATION placeholder] | [business name placeholder]`, no benefit) rather than attempting the full three-part format first. State which format you used in your pre-write reasoning. If even the two-part format risks exceeding 60 characters, write the closest compliant version once and let the character-length validation check catch and flag it — do not iterate through multiple rewrites trying to hit the limit exactly.
+
 The title tag must lead with the primary category and the location — not the business name. The differentiator should be a real fact from the onboarding form if available. If not, use a positioning statement specific to this location rather than a generic claim.
 
 ### 2. META DESCRIPTION
