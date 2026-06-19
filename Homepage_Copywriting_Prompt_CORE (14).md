@@ -80,6 +80,7 @@ Rules:
 - Must include the primary category placeholder, primary area placeholder, and one secondary category placeholder
 - Include a clear call to action
 - Maximum 155 characters, counting the RESOLVED text the placeholders represent, same as the title tag rule above
+- Never use a dash of any kind to connect phrases. Write as complete sentences or comma-separated phrases only.
 
 ### 3. HERO SECTION
 
@@ -296,9 +297,22 @@ Every section must feel written for this specific business in this specific loca
 
 Draw on geo research for local conditions, property types, seasonal patterns, and buying psychology.
 
-Do not use: "look no further", "your one-stop shop", "we pride ourselves", "we are passionate", "competitive prices", "quality service", "going above and beyond", "state of the art", "cutting edge", "second to none", "bespoke", "tailored", "comprehensive", "wide range of", "full range of", "solutions", "needs", "professional and reliable", "friendly team", "no job too big or too small."
+Do not use: "look no further", "your one-stop shop", "we pride ourselves", "we are passionate", "competitive prices", "quality service", "going above and beyond", "state of the art", "cutting edge", "second to none", "bespoke", "tailored", "comprehensive", "wide range of", "full range of", "solutions", "needs", "professional and reliable", "friendly team", "no job too big or too small", "find out more", "get in touch", "find out how we can help", "click here", "learn more", "explore our service", "see what's included", "getting in touch", "before getting in touch", "once you get in touch", "when you get in touch".
+
+⚠️ "Full range of", "wide range of", and "tailored" are the most commonly missed banned phrases — they appear naturally when describing service scope or customisation in FAQ answers and service card copy, and the model defaults to them even when explicitly told not to. Before finalising, search specifically for these three terms and rewrite any instance found.
+
+Concrete rewrites:
+- "covers the full range of tasks that keep a garden under control" → "covers everything from regular mowing and edging to seasonal cutbacks and border maintenance" (name the actual tasks instead of saying "full range")
+- "a programme tailored to soil type and lawn condition" → "a programme built around the soil type and lawn condition on site" (replace "tailored to" with "built around", "based on", or "matched to")
+- General rule: whenever you're about to write "full range of X" or "wide range of X", stop and list two or three concrete examples of X instead. Whenever you're about to write "tailored to Y", replace it with "built around Y", "matched to Y", or "based on Y".
 
 Short paragraphs. Direct language. Confident and competent tone — skilled local tradesperson, not national franchise.
+
+**Title tag benefit rule:** The short benefit or differentiator in the title tag must never contain a hyphen. Write as plain words only: "Same Week Starts" not "Same-Week Starts", "Free Site Visits" not "Free-Site-Visits".
+
+**Sentence structure rule — applies to every section:** Never join two clauses with a dash (em dash or en dash). Every clause must be its own sentence. If you find yourself writing "X — Y" where X and Y are both meaningful clauses, stop and split them: "X. Y." This applies everywhere — subheadlines, intro paragraphs, FAQ answers, contact sentences, seasonal sections, local knowledge cards. The only dashes permitted anywhere in the output are hyphens inside GHL placeholder keys ({{custom_values.x}}) and hyphens in URL slugs. Everything else must be split into separate sentences.
+
+**Bullet point rule:** Bullet points must never use a dash to add a secondary detail. Never write "• Task — extra detail" or "• Species — explanation". If a bullet needs elaboration, write it as two words or a short phrase without any dash, or move the detail into the following bullet or sentence. Example: wrong: "• Aeration — particularly on clay soils". Right: "• Aeration on clay soils before winter".
 
 Google consistency signals must be satisfied: primary category placeholder + primary area placeholder in H1, secondary categories in subheading, all populated categories covered in the services section with editorial links, FAQ section with editorial links pointing to category pages.
 
@@ -310,11 +324,59 @@ Any figure that appears in more than one section (review counts, founding dates,
 
 ## DASH RULE (HIGHEST PRIORITY)
 
-Before outputting your final result, search the entire text for any em dashes (—), en dashes (–), or hyphens used inside compound words (e.g. "well-maintained", "high-quality"). Replace each with a single space or a comma, whichever reads most naturally. Do not use any form of dash anywhere in the copy, including within compound words. If a compound word requires connection, rewrite it as two separate words instead.
+No em dashes (—), en dashes (–), or hyphens of any kind may appear anywhere in the output. This includes compound adjectives and technical compound nouns, no matter how technical or industry-specific the term is.
+
+**The underlying pattern, not a word list:** Any time you are about to write two words joined by a hyphen — whether it's a time period ("post-war", "mid-autumn"), a material or soil description ("clay-influenced", "free-draining"), a structural description ("close-board", "sub-base"), or any other compound adjective — stop and write it as two separate words instead. This applies to every compound you generate, including ones not listed in the examples below. Do not treat the absence of a specific compound from the example list as permission to hyphenate it. The rule is the pattern: compound adjective → two words. The examples below illustrate the pattern; they are not an exhaustive list of what to check.
+
+**Before / after examples illustrating the pattern (not a complete list):**
+- "post-war semis" → "post war semis"
+- "mid-autumn leaf fall" → "mid autumn leaf fall"
+- "clay-influenced soils" → "clay influenced soils"
+- "free-draining ground" → "free draining ground"
+- "close-board fencing" → "close board fencing"
+- "well-established borders" → "well established borders"
+- "Retaining structures — walls, steps, and tiered beds — are common" → "Retaining structures, including walls, steps, and tiered beds, are common" (rewrite the whole sentence rather than using a dash to insert a parenthetical list)
+
+**Additional common examples (same pattern as above — this list is illustrative, not exhaustive; apply the rule to every compound you write, not just these):**
+- "sub-base" → "sub base"
+- "close-board" → "close board"
+- "post-war" → "post war"
+- "clay-influenced" → "clay influenced"
+- "moisture-retentive" → "moisture retentive"
+- "free-draining" → "free draining"
+- "low-lying" → "low lying"
+- "year-round" → "year round"
+- "in-house" → "in house"
+- "well-maintained" → "well maintained"
+- "high-quality" → "high quality"
+- "no-obligation" → "no obligation"
+- "problem-driven" → "problem driven" (internal classification label only — do not output this label in the final copy)
+- "co-dominant" → "co dominant"
+- "ground-based" → "ground based"
+- "re-establishment" → "re establishment"
+- "mid-autumn" → "mid autumn"
+- "mid-summer" → "mid summer"
+- "mid-winter" → "mid winter"
+- "mid-spring" → "mid spring"
+- "long-term" → "long term"
+- "short-term" → "short term"
+- "add-on" → "add on"
+- "well-established" → "well established"
+- "well-drained" → "well drained"
+- "fast-growing" → "fast growing"
+- "slow-growing" → "slow growing"
+
+For any compound word not in the list above: rewrite as two separate words, or rephrase the sentence entirely to avoid the hyphen.
 
 This rule applies to every part of your output, including any line in this prompt marked "static — do not change." If a static line as written in this prompt contains a dash or a hyphenated compound, output it WITHOUT the dash while preserving its meaning, rather than reproducing the dash because the line is marked static. "Static" means the wording and structure should not be changed creatively, not that a dash in it should be copied through.
 
-Once you have confirmed that no dashes of any kind exist in the output, you may produce your final result. If any are found after checking, rewrite until clean.
+After applying all rewrites, scan the full output one final time. Any remaining hyphen that is not part of a GHL placeholder (`{{custom_values.x}}`) or a URL slug is a violation. Remove it.
+
+Do not produce your final output until this scan is complete and clean.
+
+**Pre-write reasoning notes:** This rule also applies to any pre-write confirmation text, classification notes, or declarations you write before the template block. Do not use hyphens in service type classifications (write "problem driven" not "problem-driven", "desire driven" not "desire-driven", "schedule driven" not "schedule-driven"), pre-write labels ("pre write" not "pre-write"), or any other compound in your reasoning text. The validator scans the full output including reasoning.
+
+**Final re-read gate:** Before producing your final result, read back through the entire output from the first line to the last. Search for every em dash (—), en dash (–), and hyphen used inside a compound word. If any are found, rewrite those lines until clean, then re-read the full output again. Do not stop until the re-read produces zero matches. Only then produce your final result.
 
 ---
 

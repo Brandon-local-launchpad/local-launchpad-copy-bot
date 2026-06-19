@@ -13,19 +13,23 @@ Patterns are written as standard regex (case-insensitive flag `i` assumed unless
 
 ## 1. Dash Rule
 
+**Scope for checks 1a and 1b:** Run these checks ONLY against the content inside the template output block — i.e. the text between the opening ` ``` ` and closing ` ``` ` code fence markers in the copy output. Do NOT run them against the model's pre-write reasoning, classification notes, placeholder declarations, or any text outside the fenced block. The model's reasoning will often contain hyphens (e.g. "schedule-driven", "desire-driven", "pre-write") — these are internal notes, not copy, and should not trigger validation failures.
+
 ### 1a. Em dash / en dash
 
 **Pattern:** `[—–]`
 
 **Classification:** BLOCK
 
-**Action:** Any match fails. Report the matched line with the character highlighted so it's easy to find and rewrite.
+**Action:** Any match inside the template block fails. Report the matched line with the character highlighted so it's easy to find and rewrite.
 
 ### 1b. Hyphenated compound words
 
 **Pattern:** `\b[A-Za-z]+-[A-Za-z]+\b`
 
 **Classification:** FLAG
+
+**Scope:** Template block only (see above). Excludes GHL placeholder strings (`{{custom_values.x}}`), URL slugs, and VA annotation lines beginning with `[VA`.
 
 **Notes:** This will also match things like "Mon-Fri" if they ever appear in generated prose, but opening hours come from the onboarding form as data, not AI prose, so this is unlikely to fire on legitimate content. If it ever flags a genuine non-prose data label, that's fine to dismiss — the rule exists to catch things like "well-maintained," "no-obligation," "construction-grade," "Estate-Experienced," "long-lasting," all of which were found on the live Eden's Edge page.
 
@@ -92,6 +96,8 @@ no job too big or too small
 
 **Classification:** BLOCK
 
+**Whitelist exception:** The string `[INSERT H1 FROM SOP INSTRUCTIONS]` is a valid intentional placeholder instructed by the service page and location page prompts — it is NOT an unresolved leftover. Before running the `\[INSERT` pattern, strip this exact string from the text being checked.
+
 ### 3c. Unknown or unpopulated custom value placeholders
 
 **Scope:** this check applies ONLY to placeholders appearing in freely-generated prose sections — Title Tag, Meta Description, Hero Subheadline, Services Section body copy, FAQ answers, Meet the Team body, and the Schema business description. It does NOT apply to placeholders that are part of fixed template lines (the Map section, VA Implementation Checklist, Footer structure, Schema notes) — these reference keys like `google_map_embed` and `company_address` that are expected by the template regardless of whether they're populated yet for this client. Checking those would produce constant false positives on every client until those fields are filled in during the build, which is a separate step from copy generation.
@@ -154,7 +160,9 @@ Reuse 1a and 1b against the H1 string. **Classification:** BLOCK (1a), FLAG (1b)
 
 ### 6a. Banned link phrases
 
-**List (case-insensitive substring match), checked within the Services Section body copy and FAQ answers:**
+**Scope:** Prose body copy inside the template block only — specifically Services Section body copy and FAQ answers. Do NOT run against section label lines, eyebrow labels, or VA annotation lines.
+
+**List (case-insensitive substring match):**
 
 ```
 find out more
@@ -168,13 +176,26 @@ explore our service
 
 **Classification:** BLOCK
 
+**Implementation note:** Before running this check, remove all lines that:
+- Match the pattern `^[A-Z0-9 /_\-]+:` (template label lines such as `CONTACT — EYEBROW: GET IN TOUCH`, `EYEBROW: FAQ's`, `HEADLINE:`, etc.)
+- Begin with `[VA` (VA annotation lines)
+- Are inside ` ``` ` fenced blocks that contain only template structure labels (not prose)
+
+Then run the banned phrase check only against the remaining prose sentences. This ensures `CONTACT — EYEBROW: GET IN TOUCH` is never flagged, as it is a hardcoded static template label across all page types.
+
 ### 6b. Editorial link presence and specificity
 
 **Logic:** For each Services Section category block (`1 - SERVICES {{custom_values.category_N}}` through however many are populated), check that the body copy text contains, within its last 1-2 sentences, a reference to `{{custom_values.category_N}}` (the same N as the block) AND a reference to `{{custom_values.biz_area_` (any area placeholder). **Classification:** BLOCK if either is missing — this means the block has no editorial link, or the link doesn't name both the category and the area.
 
 ### 6c. FAQ editorial link count
 
-**Logic:** Across FAQ ANSWER 1 through FAQ ANSWER 5, count how many contain at least one `{{custom_values.category_` reference alongside a `{{custom_values.biz_area_` reference (same logic as 6b, applied to FAQ answers). **Classification:** FLAG if the count is less than 2.
+**Logic:** Across FAQ ANSWER 1 through FAQ ANSWER 5, count how many answers contain EITHER:
+- At least one `{{custom_values.category_` reference alongside a `{{custom_values.biz_area_` reference anywhere within the full answer text, OR
+- At least one `{{custom_values.service_` reference alongside a `{{custom_values.biz_area_` reference anywhere within the full answer text
+
+The category/service reference and the area reference do NOT need to be in the same sentence — they just need to both appear somewhere within the answer block for that FAQ. An answer that says "...find out everything covered in our {{custom_values.category_1}} service in {{custom_values.biz_area_1}}" qualifies, even if those placeholders appear in the final sentence of a multi-sentence answer.
+
+**Classification:** FLAG if the qualifying answer count is less than 2.
 
 ### 6d. FAQ self-link (manual note, not automatable here)
 

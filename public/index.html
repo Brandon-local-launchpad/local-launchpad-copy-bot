@@ -3,516 +3,689 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Local Launchpad — Copy Bot</title>
+  <title>Local Launchpad — Site Generator</title>
   <style>
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
     :root {
-      --bg: #0f1117;
+      --bg:      #0f1117;
       --surface: #1a1d27;
-      --border: #2d3148;
-      --accent: #6c63ff;
-      --accent-hover: #7d75ff;
-      --text: #e2e4f0;
-      --muted: #8b90a8;
-      --block: #ff5454;
-      --flag: #f5a623;
+      --border:  #2d3148;
+      --accent:  #6c63ff;
+      --accent2: #7d75ff;
+      --text:    #e2e4f0;
+      --muted:   #8b90a8;
+      --block:   #ff5454;
+      --flag:    #f5a623;
       --success: #3dd68c;
-      --radius: 8px;
-      --font: 'Inter', system-ui, -apple-system, sans-serif;
-      --mono: 'JetBrains Mono', 'Fira Code', ui-monospace, monospace;
+      --r:       8px;
+      --font:    'Inter', system-ui, -apple-system, sans-serif;
+      --mono:    'JetBrains Mono', 'Fira Code', ui-monospace, monospace;
     }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { background: var(--bg); color: var(--text); font-family: var(--font); font-size: 14px; line-height: 1.6; min-height: 100vh; }
 
-    body {
-      background: var(--bg);
-      color: var(--text);
-      font-family: var(--font);
-      font-size: 14px;
-      line-height: 1.6;
-      min-height: 100vh;
-    }
+    /* Header */
+    header { background: var(--surface); border-bottom: 1px solid var(--border); padding: 14px 24px; display: flex; align-items: center; gap: 10px; }
+    header h1 { font-size: 15px; font-weight: 600; }
+    .badge { background: var(--accent); color: #fff; font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 99px; letter-spacing: 0.06em; text-transform: uppercase; }
+    .model-tag { margin-left: auto; color: var(--muted); font-size: 11px; font-family: var(--mono); }
 
-    header {
-      background: var(--surface);
-      border-bottom: 1px solid var(--border);
-      padding: 16px 24px;
-      display: flex;
-      align-items: center;
-      gap: 12px;
-    }
+    /* Layout */
+    .container { max-width: 720px; margin: 0 auto; padding: 28px 20px 60px; }
 
-    header h1 {
-      font-size: 16px;
-      font-weight: 600;
-      letter-spacing: -0.01em;
-    }
+    /* Step indicator */
+    .step-nav { display: flex; align-items: center; gap: 6px; margin-bottom: 24px; font-size: 12px; }
+    .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--border); flex-shrink: 0; }
+    .dot.active { background: var(--accent); }
+    .dot.done   { background: var(--success); }
+    .step-label { color: var(--muted); margin-left: 4px; }
 
-    header span {
-      color: var(--muted);
-      font-size: 13px;
-    }
+    /* Steps */
+    .step { display: none; }
+    .step.active { display: block; }
 
-    .badge {
-      background: var(--accent);
-      color: #fff;
-      font-size: 11px;
-      font-weight: 600;
-      padding: 2px 8px;
-      border-radius: 99px;
-      letter-spacing: 0.04em;
-    }
+    /* Cards */
+    .card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--r); padding: 20px 22px; margin-bottom: 14px; }
+    .card-title { font-size: 11px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); margin-bottom: 14px; }
 
-    main {
-      max-width: 1400px;
-      margin: 0 auto;
-      padding: 24px;
-      display: grid;
-      grid-template-columns: 420px 1fr;
-      gap: 24px;
-      align-items: start;
-    }
+    /* Upload zone */
+    .upload-zone { border: 2px dashed var(--border); border-radius: var(--r); padding: 40px 20px; text-align: center; cursor: pointer; transition: border-color 0.15s, background 0.15s; position: relative; }
+    .upload-zone:hover, .upload-zone.drag-over { border-color: var(--accent); background: rgba(108,99,255,0.04); }
+    .upload-zone.has-file { border-color: var(--success); border-style: solid; }
+    .upload-zone input[type="file"] { position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%; }
+    .upload-icon { font-size: 28px; margin-bottom: 10px; }
+    .upload-hint { color: var(--muted); font-size: 13px; }
+    .upload-hint strong { color: var(--text); }
+    .upload-name { margin-top: 8px; font-size: 12px; color: var(--success); font-family: var(--mono); }
 
-    /* ── Input panel ── */
-    .input-panel {
-      display: flex;
-      flex-direction: column;
-      gap: 16px;
-      position: sticky;
-      top: 24px;
-    }
+    /* Field */
+    .field { margin-bottom: 14px; }
+    .field:last-child { margin-bottom: 0; }
+    label { display: block; font-size: 11px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); margin-bottom: 6px; }
+    select { width: 100%; background: var(--bg); border: 1px solid var(--border); border-radius: var(--r); color: var(--text); font-family: var(--font); font-size: 14px; padding: 10px 12px; outline: none; cursor: pointer; transition: border-color 0.15s; appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' fill='none'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%238b90a8' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 12px center; padding-right: 32px; }
+    select:focus { border-color: var(--accent); }
 
-    .field label {
-      display: block;
-      font-size: 12px;
-      font-weight: 600;
-      letter-spacing: 0.06em;
-      text-transform: uppercase;
-      color: var(--muted);
-      margin-bottom: 6px;
-    }
+    /* Buttons */
+    .btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; border: none; border-radius: var(--r); font-family: var(--font); font-size: 14px; font-weight: 600; padding: 11px 18px; cursor: pointer; transition: background 0.15s, opacity 0.15s; width: 100%; }
+    .btn-primary { background: var(--accent); color: #fff; }
+    .btn-primary:hover:not(:disabled) { background: var(--accent2); }
+    .btn-primary:disabled { opacity: 0.35; cursor: not-allowed; }
+    .btn-success { background: var(--success); color: #0f1117; font-weight: 700; }
+    .btn-success:hover { filter: brightness(1.08); }
+    .btn-secondary { background: var(--surface2); color: var(--text); border: 1px solid var(--border); }
+    .btn-secondary:hover { background: var(--border); }
+    .btn-ghost { background: transparent; border: 1px solid var(--border); color: var(--muted); font-size: 12px; width: auto; padding: 7px 14px; margin-bottom: 18px; }
+    .btn-ghost:hover { background: var(--surface); color: var(--text); }
 
-    .field label .required {
-      color: var(--block);
-      margin-left: 2px;
-    }
-
-    .field textarea,
-    .field input[type="text"] {
-      width: 100%;
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      color: var(--text);
-      font-family: var(--mono);
-      font-size: 12px;
-      line-height: 1.5;
-      padding: 10px 12px;
-      resize: vertical;
-      transition: border-color 0.15s;
-      outline: none;
-    }
-
-    .field textarea:focus,
-    .field input[type="text"]:focus {
-      border-color: var(--accent);
-    }
-
-    .field textarea {
-      min-height: 110px;
-    }
-
-    .field .hint {
-      font-size: 11px;
-      color: var(--muted);
-      margin-top: 4px;
-    }
-
-    .generate-btn {
-      background: var(--accent);
-      color: #fff;
-      border: none;
-      border-radius: var(--radius);
-      font-family: var(--font);
-      font-size: 14px;
-      font-weight: 600;
-      padding: 12px 20px;
-      cursor: pointer;
-      width: 100%;
-      transition: background 0.15s, opacity 0.15s;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 8px;
-    }
-
-    .generate-btn:hover:not(:disabled) { background: var(--accent-hover); }
-    .generate-btn:disabled { opacity: 0.5; cursor: not-allowed; }
-
-    .spinner {
-      width: 16px;
-      height: 16px;
-      border: 2px solid rgba(255,255,255,0.3);
-      border-top-color: #fff;
-      border-radius: 50%;
-      animation: spin 0.7s linear infinite;
-      display: none;
-    }
-
-    .generate-btn.loading .spinner { display: block; }
-    .generate-btn.loading .btn-text { opacity: 0.7; }
-
+    /* Spinner */
+    .spin { width: 14px; height: 14px; border: 2px solid rgba(255,255,255,0.25); border-top-color: #fff; border-radius: 50%; animation: spin 0.65s linear infinite; }
     @keyframes spin { to { transform: rotate(360deg); } }
 
-    /* ── Output panel ── */
-    .output-panel {
-      display: flex;
-      flex-direction: column;
-      gap: 16px;
-    }
+    /* Error banner */
+    .error-box { background: rgba(255,84,84,0.07); border: 1px solid rgba(255,84,84,0.2); border-radius: var(--r); padding: 14px 16px; color: var(--block); font-size: 13px; margin-bottom: 14px; }
+    .error-box ul { margin: 8px 0 0 16px; }
+    .error-box li { margin-bottom: 3px; }
 
-    .empty-state {
-      background: var(--surface);
-      border: 1px dashed var(--border);
-      border-radius: var(--radius);
-      padding: 60px 24px;
-      text-align: center;
-      color: var(--muted);
-    }
+    /* Summary stats */
+    .stat-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(110px, 1fr)); gap: 10px; margin-bottom: 14px; }
+    .stat-box { background: var(--bg); border: 1px solid var(--border); border-radius: var(--r); padding: 12px; text-align: center; }
+    .stat-val { font-size: 22px; font-weight: 700; line-height: 1; margin-bottom: 3px; }
+    .stat-lbl { font-size: 10px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); }
+    .cost-hint { font-size: 12px; color: var(--muted); }
+    .cost-hint strong { color: var(--text); }
 
-    .empty-state p { font-size: 13px; margin-top: 8px; }
+    /* H1 status */
+    .h1-ok { display: flex; align-items: center; gap: 8px; color: var(--success); font-size: 13px; font-weight: 600; }
+    .h1-missing-note { color: var(--block); font-weight: 600; font-size: 13px; margin-bottom: 10px; }
+    .missing-list { list-style: none; }
+    .missing-list li { padding: 7px 10px; border-bottom: 1px solid var(--border); font-family: var(--mono); font-size: 11px; color: var(--block); }
+    .missing-list li:last-child { border-bottom: none; }
+    .tip-box { background: rgba(245,166,35,0.06); border: 1px solid rgba(245,166,35,0.18); border-radius: var(--r); padding: 12px 14px; font-size: 12px; color: var(--flag); margin-top: 12px; }
 
-    /* ── Issues panel ── */
-    .issues-panel {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      overflow: hidden;
-    }
+    /* Skipped list */
+    .skip-scroll { max-height: 180px; overflow-y: auto; }
+    .skip-item { display: flex; gap: 8px; align-items: baseline; padding: 6px 0; border-bottom: 1px solid var(--border); font-size: 12px; }
+    .skip-item:last-child { border-bottom: none; }
+    .skip-title { color: var(--text); }
+    .skip-slug { color: var(--muted); font-family: var(--mono); font-size: 11px; }
+    .skip-reason { color: var(--muted); font-size: 11px; margin-left: auto; flex-shrink: 0; }
 
-    .issues-header {
-      padding: 12px 16px;
-      border-bottom: 1px solid var(--border);
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      font-size: 12px;
-      font-weight: 600;
-      letter-spacing: 0.06em;
-      text-transform: uppercase;
-      color: var(--muted);
-    }
+    /* Progress */
+    .progress-track { background: var(--bg); border: 1px solid var(--border); border-radius: 99px; height: 7px; overflow: hidden; margin-bottom: 8px; }
+    .progress-fill { height: 100%; background: var(--accent); border-radius: 99px; transition: width 0.4s ease; width: 0%; }
+    .progress-text { font-size: 12px; color: var(--muted); text-align: right; }
 
-    .count-chip {
-      font-size: 11px;
-      font-weight: 700;
-      padding: 2px 8px;
-      border-radius: 99px;
-    }
+    /* Live log */
+    .live-log { background: var(--bg); border: 1px solid var(--border); border-radius: var(--r); max-height: 300px; overflow-y: auto; font-family: var(--mono); font-size: 11px; }
+    .log-row { display: flex; align-items: center; gap: 8px; padding: 7px 12px; border-bottom: 1px solid var(--border); }
+    .log-row:last-child { border-bottom: none; }
+    .log-badge { font-size: 9px; font-weight: 700; padding: 2px 5px; border-radius: 3px; flex-shrink: 0; text-transform: uppercase; letter-spacing: 0.04em; }
+    .log-badge.done   { background: rgba(61,214,140,0.12); color: var(--success); }
+    .log-badge.failed { background: rgba(255,84,84,0.12);  color: var(--block); }
+    .log-badge.issues { background: rgba(245,166,35,0.12); color: var(--flag); }
+    .log-type { color: var(--muted); min-width: 62px; flex-shrink: 0; }
+    .log-title { color: var(--text); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .log-slug { color: var(--muted); font-size: 10px; margin-left: auto; flex-shrink: 0; }
 
-    .count-chip.block { background: rgba(255,84,84,0.15); color: var(--block); }
-    .count-chip.flag  { background: rgba(245,166,35,0.15); color: var(--flag); }
-    .count-chip.ok    { background: rgba(61,214,140,0.15); color: var(--success); }
+    /* Selection panel */
+    .btn-link-toggle { background: none; border: none; color: var(--muted); font-family: var(--font); font-size: 12px; cursor: pointer; padding: 4px 8px; transition: color 0.15s; }
+    .btn-link-toggle:hover { color: var(--text); }
+    .btn-link-toggle.open { color: var(--accent); }
+    .sel-toolbar { display: flex; align-items: center; justify-content: space-between; padding: 10px 16px; border-bottom: 1px solid var(--border); background: var(--bg); }
+    .sel-toolbar-btns { display: flex; gap: 6px; }
+    .sel-count { font-size: 12px; color: var(--muted); }
+    .sel-btn { background: transparent; border: 1px solid var(--border); border-radius: 5px; color: var(--muted); font-family: var(--font); font-size: 11px; padding: 4px 10px; cursor: pointer; transition: background 0.12s, color 0.12s; }
+    .sel-btn:hover { background: var(--border); color: var(--text); }
+    .sel-group { border-bottom: 1px solid var(--border); }
+    .sel-group:last-child { border-bottom: none; }
+    .sel-group-header { display: flex; align-items: center; justify-content: space-between; padding: 8px 16px; background: rgba(255,255,255,0.02); }
+    .sel-group-label { font-size: 11px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); }
+    .sel-group-actions { display: flex; gap: 6px; align-items: center; }
+    .sel-group-count { font-size: 11px; color: var(--muted); }
+    .sel-page-list { max-height: 220px; overflow-y: auto; }
+    .sel-row { display: flex; align-items: center; gap: 10px; padding: 6px 16px; border-top: 1px solid var(--border); cursor: pointer; transition: background 0.1s; }
+    .sel-row:hover { background: rgba(108,99,255,0.04); }
+    .sel-row input[type="checkbox"] { width: 14px; height: 14px; accent-color: var(--accent); flex-shrink: 0; cursor: pointer; }
+    .sel-row-title { font-size: 12px; color: var(--text); flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .sel-row-slug { font-size: 11px; color: var(--muted); font-family: var(--mono); flex-shrink: 0; max-width: 200px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
-    .issues-list {
-      list-style: none;
-      max-height: 320px;
-      overflow-y: auto;
-    }
+    /* File confirmation */
+    .file-confirm-row { display: flex; align-items: center; gap: 14px; padding: 10px 0; border-bottom: 1px solid var(--border); }
+    .file-confirm-row:last-child { border-bottom: none; }
+    .file-confirm-icon { font-size: 20px; flex-shrink: 0; width: 28px; text-align: center; }
+    .file-confirm-detail { min-width: 0; }
+    .file-confirm-name { color: var(--text); font-family: var(--mono); font-size: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .file-confirm-type { color: var(--muted); font-size: 11px; margin-top: 2px; }
 
-    .issues-list li {
-      display: flex;
-      gap: 10px;
-      padding: 10px 16px;
-      border-bottom: 1px solid var(--border);
-      font-size: 12px;
-      align-items: flex-start;
-    }
-
-    .issues-list li:last-child { border-bottom: none; }
-
-    .issue-badge {
-      font-size: 10px;
-      font-weight: 700;
-      padding: 2px 7px;
-      border-radius: 4px;
-      white-space: nowrap;
-      margin-top: 1px;
-      flex-shrink: 0;
-    }
-
-    .issue-badge.BLOCK { background: rgba(255,84,84,0.18); color: var(--block); }
-    .issue-badge.FLAG  { background: rgba(245,166,35,0.18); color: var(--flag); }
-
-    .issue-check {
-      color: var(--muted);
-      font-size: 11px;
-      white-space: nowrap;
-      flex-shrink: 0;
-      margin-top: 2px;
-    }
-
-    .issue-msg { color: var(--text); }
-
-    .no-issues {
-      padding: 16px;
-      text-align: center;
-      color: var(--success);
-      font-size: 13px;
-      font-weight: 500;
-    }
-
-    /* ── Copy output ── */
-    .copy-output {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      overflow: hidden;
-    }
-
-    .copy-output-header {
-      padding: 12px 16px;
-      border-bottom: 1px solid var(--border);
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      font-size: 12px;
-      font-weight: 600;
-      letter-spacing: 0.06em;
-      text-transform: uppercase;
-      color: var(--muted);
-    }
-
-    .copy-btn {
-      background: transparent;
-      border: 1px solid var(--border);
-      border-radius: 6px;
-      color: var(--text);
-      font-family: var(--font);
-      font-size: 12px;
-      font-weight: 500;
-      padding: 5px 12px;
-      cursor: pointer;
-      transition: background 0.15s, border-color 0.15s;
-    }
-
-    .copy-btn:hover { background: var(--border); }
-    .copy-btn.copied { color: var(--success); border-color: var(--success); }
-
-    .copy-output pre {
-      padding: 16px;
-      overflow-x: auto;
-      font-family: var(--mono);
-      font-size: 12px;
-      line-height: 1.7;
-      white-space: pre-wrap;
-      word-break: break-word;
-      color: var(--text);
-      max-height: 70vh;
-      overflow-y: auto;
-    }
-
-    .usage-line {
-      font-size: 11px;
-      color: var(--muted);
-      text-align: right;
-      padding: 4px 0;
-    }
-
-    .error-msg {
-      background: rgba(255,84,84,0.1);
-      border: 1px solid rgba(255,84,84,0.3);
-      border-radius: var(--radius);
-      padding: 14px 16px;
-      color: var(--block);
-      font-size: 13px;
-    }
-
-    @media (max-width: 900px) {
-      main { grid-template-columns: 1fr; }
-      .input-panel { position: static; }
-    }
+    /* Complete */
+    .done-banner { background: rgba(61,214,140,0.07); border: 1px solid rgba(61,214,140,0.2); border-radius: var(--r); padding: 18px 20px; text-align: center; margin-bottom: 14px; }
+    .done-banner h2 { color: var(--success); font-size: 17px; margin-bottom: 6px; }
+    .done-banner p { color: var(--muted); font-size: 13px; }
+    .token-stats { display: flex; gap: 20px; justify-content: center; flex-wrap: wrap; margin-top: 12px; font-size: 12px; color: var(--muted); }
+    .token-stats strong { color: var(--text); }
   </style>
 </head>
 <body>
 
 <header>
   <h1>Local Launchpad</h1>
-  <span class="badge">Copy Bot</span>
-  <span style="margin-left:auto; color: var(--muted); font-size:12px;">claude-sonnet-4-6</span>
+  <span class="badge">Site Generator</span>
+  <span class="model-tag">claude-sonnet-4-6</span>
 </header>
 
-<main>
-  <!-- ── Input panel ── -->
-  <div class="input-panel">
+<div class="container">
 
-    <div class="field">
-      <label>GHL Custom Values <span class="required">*</span></label>
-      <textarea id="customValues" rows="8" placeholder="Paste the client's GHL custom values here.
-One key per line, e.g.:
-company_name: Green Gardens Ltd
-category_1: Landscaper
-biz_area_1: Southampton
-biz_area_2: Eastleigh
-company_phone_functional: 023 8000 0000
-…"></textarea>
-      <p class="hint">Used for placeholder checks. Format: <code>key: value</code> per line.</p>
+  <div class="step-nav">
+    <div class="dot active" id="dot1"></div>
+    <div class="dot" id="dot2"></div>
+    <div class="dot" id="dot3"></div>
+    <div class="dot" id="dot4"></div>
+    <span class="step-label" id="stepLabel">Step 1 — Upload</span>
+  </div>
+
+  <!-- Step 1: Upload -->
+  <div class="step active" id="step1">
+
+    <div class="card">
+      <div class="card-title">Client Files (ZIP)</div>
+      <div class="upload-zone" id="uploadZone">
+        <input type="file" id="filesInput" accept=".csv,.txt,.md" multiple onchange="onFileSelect(event)" />
+        <div class="upload-icon">📂</div>
+        <div class="upload-hint"><strong>Drop files here</strong> or click to browse<br><span style="font-size:11px">Select all client CSVs + geo research file at once</span></div>
+        <div class="upload-name" id="uploadName" style="display:none"></div>
+      </div>
+
+      <div class="field" style="margin-top:16px">
+        <label>Trade</label>
+        <select id="tradeSelect" onchange="checkReady()">
+          <option value="">Loading trades…</option>
+        </select>
+      </div>
     </div>
 
-    <div class="field">
-      <label>Geo Research &amp; Context <span class="required">*</span></label>
-      <textarea id="geoResearch" rows="7" placeholder="Paste the geographical research document here — soil types, property types, seasonal patterns, local neighbourhoods, etc."></textarea>
-    </div>
+    <div id="parseError" style="display:none"></div>
 
-    <div class="field">
-      <label>H1 (from Ahrefs) <span class="required">*</span></label>
-      <input type="text" id="h1" placeholder="e.g. Landscaper Southampton" />
-      <p class="hint">Used for H1 validation checks and inserted into the copy output.</p>
-    </div>
-
-    <div class="field">
-      <label>Client Onboarding Form <span style="color:var(--muted); font-weight:400; text-transform:none; letter-spacing:0">(optional)</span></label>
-      <textarea id="onboardingForm" rows="5" placeholder="Paste the client's onboarding form answers here — qualifications, founding story, insurance details, review count, opening hours, etc."></textarea>
-    </div>
-
-    <button class="generate-btn" id="generateBtn" onclick="generate()">
-      <div class="spinner"></div>
-      <span class="btn-text">Generate Homepage Copy</span>
+    <button class="btn btn-primary" id="parseBtn" onclick="parseFiles()" disabled>
+      Parse Files
     </button>
 
   </div>
 
-  <!-- ── Output panel ── -->
-  <div class="output-panel" id="outputPanel">
-    <div class="empty-state" id="emptyState">
-      <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="margin: 0 auto 12px; display:block; opacity:0.3">
-        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
-        <polyline points="14 2 14 8 20 8"/>
-        <line x1="16" y1="13" x2="8" y2="13"/>
-        <line x1="16" y1="17" x2="8" y2="17"/>
-        <polyline points="10 9 9 9 8 9"/>
-      </svg>
-      <p>Fill in the fields and click Generate to produce homepage copy.</p>
+  <!-- Step 2: Confirm Files -->
+  <div class="step" id="step2">
+
+    <button class="btn btn-ghost" onclick="goTo(1)">← Back to upload</button>
+
+    <div class="card">
+      <div class="card-title">Files Identified</div>
+      <div id="fileConfirmList"></div>
     </div>
+
+    <div id="fileConfirmWarning" style="display:none"></div>
+
+    <button class="btn btn-primary" id="confirmBtn" onclick="goTo(3)">
+      Looks Good — Continue
+    </button>
+
   </div>
-</main>
+
+  <!-- Step 3: Review -->
+  <div class="step" id="step3">
+
+    <button class="btn btn-ghost" onclick="goTo(2)">← Back to file confirmation</button>
+
+    <div class="card">
+      <div class="card-title">Pages Found</div>
+      <div class="stat-row" id="statRow"></div>
+      <p class="cost-hint" id="costHint"></p>
+    </div>
+
+    <div class="card">
+      <div class="card-title">H1 Validation</div>
+      <div id="h1Status"></div>
+    </div>
+
+    <div class="card" id="skippedCard" style="display:none">
+      <div class="card-title">Skipped Pages</div>
+      <div class="skip-scroll" id="skippedList"></div>
+    </div>
+
+    <div id="generateError" style="display:none"></div>
+    <button class="btn btn-primary" id="generateBtn" onclick="startGeneration()" style="display:none">
+      Generate All Pages
+    </button>
+
+    <div id="selectionToggleRow" style="display:none; text-align:center; margin-top:10px;">
+      <button class="btn-link-toggle" id="selectionToggleBtn" onclick="toggleSelectionMode()">
+        &#9662; Select Pages to Generate
+      </button>
+    </div>
+
+    <div id="selectionPanel" style="display:none">
+      <div class="card" style="margin-top:14px; padding:0; overflow:hidden;">
+        <div class="sel-toolbar">
+          <span class="sel-count" id="selCount"></span>
+          <div class="sel-toolbar-btns">
+            <button class="sel-btn" onclick="selectAll(true)">Select All</button>
+            <button class="sel-btn" onclick="selectAll(false)">Deselect All</button>
+          </div>
+        </div>
+        <div id="selectionGroups"></div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Step 4: Generation -->
+  <div class="step" id="step4">
+
+    <div class="card">
+      <div class="card-title">Progress</div>
+      <div class="progress-track"><div class="progress-fill" id="progressFill"></div></div>
+      <p class="progress-text" id="progressText">Starting…</p>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Live Log</div>
+      <div class="live-log" id="liveLog"></div>
+    </div>
+
+    <div id="doneSection" style="display:none">
+      <div class="done-banner">
+        <h2>Generation Complete</h2>
+        <p id="doneSubtitle"></p>
+        <div class="token-stats" id="tokenStats"></div>
+      </div>
+
+      <div class="card" style="margin-top:1rem">
+        <div class="card-title">Download All Pages</div>
+        <div style="display:flex;gap:.75rem;flex-wrap:wrap;margin-top:.5rem">
+          <button class="btn btn-success" onclick="downloadOutput()">Full Site Output (all pages)</button>
+          <button class="btn btn-primary" onclick="downloadZip()">Per-Page ZIP (one file per page)</button>
+        </div>
+      </div>
+
+      <div class="card" style="margin-top:1rem" id="byTypeCard">
+        <div class="card-title">Download by Page Type</div>
+        <div id="byTypeButtons" style="display:flex;gap:.75rem;flex-wrap:wrap;margin-top:.5rem"></div>
+      </div>
+    </div>
+
+  </div>
+
+</div>
 
 <script>
-  async function generate() {
-    const btn = document.getElementById('generateBtn');
-    const customValues = document.getElementById('customValues').value.trim();
-    const geoResearch = document.getElementById('geoResearch').value.trim();
-    const h1 = document.getElementById('h1').value.trim();
-    const onboardingForm = document.getElementById('onboardingForm').value.trim();
+  let uploadedFiles  = [];
+  let sessionId      = null;
+  let downloadId     = null;
+  let totalJobs      = 0;
+  let allJobs        = [];      // full job list from parse response
+  let selectedSlugs  = null;   // null = all; Set of slugs when in selection mode
+  let selectionOpen  = false;
 
-    if (!customValues || !geoResearch || !h1) {
-      alert('Please fill in Custom Values, Geo Research, and H1 before generating.');
-      return;
-    }
-
-    btn.disabled = true;
-    btn.classList.add('loading');
-    btn.querySelector('.btn-text').textContent = 'Generating…';
-
-    const outputPanel = document.getElementById('outputPanel');
-    outputPanel.innerHTML = '<div class="empty-state"><p>Sending to Claude — this usually takes 30–90 seconds…</p></div>';
-
-    try {
-      const res = await fetch('/api/generate', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ customValues, geoResearch, h1, onboardingForm }),
-      });
-
-      const data = await res.json();
-
-      if (!res.ok) {
-        outputPanel.innerHTML = `<div class="error-msg"><strong>Error:</strong> ${escapeHtml(data.error || 'Unknown error')}</div>`;
+  // Load trades
+  fetch('/api/trades')
+    .then(r => r.json())
+    .then(({ trades }) => {
+      const sel = document.getElementById('tradeSelect');
+      if (!trades.length) {
+        sel.innerHTML = '<option value="">No calibration packs found</option>';
         return;
       }
-
-      renderOutput(data, outputPanel);
-    } catch (err) {
-      outputPanel.innerHTML = `<div class="error-msg"><strong>Network error:</strong> ${escapeHtml(err.message)}</div>`;
-    } finally {
-      btn.disabled = false;
-      btn.classList.remove('loading');
-      btn.querySelector('.btn-text').textContent = 'Generate Homepage Copy';
-    }
-  }
-
-  function renderOutput(data, panel) {
-    const { output, issues, usage } = data;
-    const blocks = issues.filter(i => i.type === 'BLOCK');
-    const flags  = issues.filter(i => i.type === 'FLAG');
-
-    let html = '';
-
-    // Issues panel
-    html += '<div class="issues-panel">';
-    html += '<div class="issues-header">Validation';
-
-    if (issues.length === 0) {
-      html += ' <span class="count-chip ok">All clear</span>';
-    } else {
-      if (blocks.length > 0) html += ` <span class="count-chip block">${blocks.length} BLOCK${blocks.length > 1 ? 'S' : ''}</span>`;
-      if (flags.length  > 0) html += ` <span class="count-chip flag">${flags.length} FLAG${flags.length > 1 ? 'S' : ''}</span>`;
-    }
-    html += '</div>';
-
-    if (issues.length === 0) {
-      html += '<p class="no-issues">✓ No issues detected</p>';
-    } else {
-      html += '<ul class="issues-list">';
-      for (const issue of issues) {
-        html += `<li>
-          <span class="issue-badge ${issue.type}">${issue.type}</span>
-          <span class="issue-check">Check ${escapeHtml(issue.check)}</span>
-          <span class="issue-msg">${escapeHtml(issue.message)}</span>
-        </li>`;
-      }
-      html += '</ul>';
-    }
-    html += '</div>';
-
-    // Usage line
-    if (usage) {
-      html += `<p class="usage-line">Tokens — input: ${usage.input_tokens.toLocaleString()} · output: ${usage.output_tokens.toLocaleString()}</p>`;
-    }
-
-    // Copy output
-    html += `<div class="copy-output">
-      <div class="copy-output-header">
-        <span>Generated Copy</span>
-        <button class="copy-btn" id="copyBtn" onclick="copyOutput()">Copy to clipboard</button>
-      </div>
-      <pre id="outputText">${escapeHtml(output)}</pre>
-    </div>`;
-
-    panel.innerHTML = html;
-  }
-
-  function copyOutput() {
-    const text = document.getElementById('outputText')?.textContent;
-    if (!text) return;
-    navigator.clipboard.writeText(text).then(() => {
-      const btn = document.getElementById('copyBtn');
-      btn.textContent = 'Copied!';
-      btn.classList.add('copied');
-      setTimeout(() => {
-        btn.textContent = 'Copy to clipboard';
-        btn.classList.remove('copied');
-      }, 2000);
+      sel.innerHTML = '<option value="">Select a trade…</option>' +
+        trades.map(t => `<option value="${h(t)}">${h(t)}</option>`).join('');
+      checkReady();
+    })
+    .catch(() => {
+      document.getElementById('tradeSelect').innerHTML = '<option value="">Failed to load</option>';
     });
+
+  // File upload
+  const zone = document.getElementById('uploadZone');
+  zone.addEventListener('dragover', e => { e.preventDefault(); zone.classList.add('drag-over'); });
+  zone.addEventListener('dragleave', () => zone.classList.remove('drag-over'));
+  zone.addEventListener('drop', e => {
+    e.preventDefault();
+    zone.classList.remove('drag-over');
+    if (e.dataTransfer.files.length) setFiles(Array.from(e.dataTransfer.files));
+  });
+
+  function onFileSelect(e) { if (e.target.files.length) setFiles(Array.from(e.target.files)); }
+
+  function setFiles(files) {
+    uploadedFiles = files;
+    zone.classList.add('has-file');
+    const n = document.getElementById('uploadName');
+    n.textContent = files.length === 1 ? files[0].name : `${files.length} files selected`;
+    n.style.display = 'block';
+    checkReady();
   }
 
-  function escapeHtml(str) {
-    return String(str)
-      .replace(/&/g, '&amp;')
-      .replace(/</g, '&lt;')
-      .replace(/>/g, '&gt;')
-      .replace(/"/g, '&quot;');
+  function checkReady() {
+    const trade = document.getElementById('tradeSelect').value;
+    document.getElementById('parseBtn').disabled = !(uploadedFiles.length && trade);
+  }
+
+  // Parse zip
+  async function parseFiles() {
+    const trade = document.getElementById('tradeSelect').value;
+    const btn   = document.getElementById('parseBtn');
+    setLoading(btn, true, 'Parsing…');
+    document.getElementById('parseError').style.display = 'none';
+
+    try {
+      const form = new FormData();
+      for (const file of uploadedFiles) form.append('files', file);
+      form.append('trade', trade);
+      const res  = await fetch('/api/parse-zip', { method: 'POST', body: form });
+      const data = await res.json();
+      if (!res.ok) { showParseError(data); return; }
+      showFileConfirmation(data);
+    } catch (err) {
+      showParseError({ error: err.message });
+    } finally {
+      setLoading(btn, false, 'Parse Files');
+    }
+  }
+
+  function showParseError(data) {
+    const el = document.getElementById('parseError');
+    let html = `<div class="error-box"><strong>Parse failed:</strong> ${h(data.error || 'Unknown error')}`;
+    if (data.missing && data.missing.length) html += '<ul>' + data.missing.map(m => `<li>${h(m)}</li>`).join('') + '</ul>';
+    el.innerHTML = html + '</div>';
+    el.style.display = 'block';
+  }
+
+  const FILE_TYPE_LABELS = {
+    'Page Map':       { icon: '🗺', desc: 'Page map — drives the generation queue' },
+    'Custom Values':  { icon: '📋', desc: 'Custom values — client data and copy variables' },
+    'Onboarding Form':{ icon: '📝', desc: 'Onboarding form — client background answers' },
+    'Geo Research':   { icon: '📍', desc: 'Geo research — location and market context' },
+  };
+
+  function showFileConfirmation(data) {
+    sessionId = data.sessionId;
+
+    const files = data.filesIdentified || [];
+    const rows  = files.map(f => {
+      const meta = FILE_TYPE_LABELS[f.type] || { icon: '📄', desc: f.type };
+      return `<div class="file-confirm-row">
+        <span class="file-confirm-icon">${meta.icon}</span>
+        <div class="file-confirm-detail">
+          <div class="file-confirm-name">${h(f.name)}</div>
+          <div class="file-confirm-type">${h(meta.desc)}</div>
+        </div>
+      </div>`;
+    }).join('');
+    document.getElementById('fileConfirmList').innerHTML = rows ||
+      '<p style="color:var(--muted);font-size:13px">No file identification data returned.</p>';
+
+    // Store review data so we can render it when the user confirms
+    document.getElementById('confirmBtn').onclick = () => { showReview(data); goTo(3); };
+
+    goTo(2);
+  }
+
+  function showReview(data) {
+    sessionId = data.sessionId;
+
+    const typeLabel = { homepage: 'Homepage', category: 'Category', service: 'Service', location: 'Location' };
+    const byType    = data.summary.byType || {};
+    let statHtml    = `<div class="stat-box"><div class="stat-val">${data.summary.total}</div><div class="stat-lbl">Total</div></div>`;
+    for (const [t, n] of Object.entries(byType)) {
+      statHtml += `<div class="stat-box"><div class="stat-val">${n}</div><div class="stat-lbl">${typeLabel[t] || t}</div></div>`;
+    }
+    if (data.summary.skipped) {
+      statHtml += `<div class="stat-box"><div class="stat-val" style="color:var(--muted)">${data.summary.skipped}</div><div class="stat-lbl">Skipped</div></div>`;
+    }
+    document.getElementById('statRow').innerHTML = statHtml;
+    document.getElementById('costHint').innerHTML = `Estimated cost: <strong>$${h(data.estimatedCost)}</strong> (${data.summary.total} pages &times; $0.06)`;
+
+    // Store jobs for selection panel
+    allJobs = data.jobs || [];
+    selectedSlugs = null;
+    selectionOpen = false;
+
+    const missing = data.missingH1s || [];
+    const h1El    = document.getElementById('h1Status');
+    if (!missing.length) {
+      h1El.innerHTML = `<div class="h1-ok">&#10003; All required H1s present &mdash; service page H1s auto-generated from page title + primary city.</div>`;
+      const btn = document.getElementById('generateBtn');
+      btn.style.display = 'block';
+      btn.textContent   = `Generate All ${data.summary.total} Pages`;
+      document.getElementById('selectionToggleRow').style.display = 'block';
+      document.getElementById('selectionPanel').style.display = 'none';
+      document.getElementById('selectionToggleBtn').textContent = '▾ Select Pages to Generate';
+      document.getElementById('selectionToggleBtn').classList.remove('open');
+    } else {
+      h1El.innerHTML = `<p class="h1-missing-note">&#9888; ${missing.length} page${missing.length > 1 ? 's' : ''} missing required H1:</p>
+        <ul class="missing-list">${missing.map(p => `<li>${h(p.pageTitle)} (${h(p.urlSlug)}) &mdash; ${h(p.pageType)}</li>`).join('')}</ul>
+        <div class="tip-box">Fill in the H1 column for these pages in your page map CSV, repack the zip, and upload again. Service pages do not need an H1 in the CSV &mdash; they are auto-generated.</div>`;
+    }
+
+    const skipped = data.skippedPages || [];
+    if (skipped.length) {
+      document.getElementById('skippedCard').style.display = 'block';
+      document.getElementById('skippedList').innerHTML = skipped
+        .map(p => `<div class="skip-item"><span class="skip-title">${h(p.pageTitle)}</span><span class="skip-slug">${h(p.urlSlug)}</span><span class="skip-reason">${h(p.skipReason)}</span></div>`)
+        .join('');
+    }
+  }
+
+  // ── Selection panel ──────────────────────────────────────────────────────
+
+  const TYPE_LABELS = {
+    homepage:          'Homepage',
+    category:          'Category',
+    service:           'Service',
+    location:          'Location',
+    'location-category': 'Location Category',
+  };
+
+  function toggleSelectionMode() {
+    selectionOpen = !selectionOpen;
+    const panel = document.getElementById('selectionPanel');
+    const btn   = document.getElementById('selectionToggleBtn');
+    if (selectionOpen) {
+      // First open: initialise all checked
+      if (selectedSlugs === null) {
+        selectedSlugs = new Set(allJobs.map(j => j.urlSlug));
+      }
+      renderSelectionGroups();
+      panel.style.display = 'block';
+      btn.textContent = '▴ Select Pages to Generate';
+      btn.classList.add('open');
+    } else {
+      panel.style.display = 'none';
+      btn.textContent = '▾ Select Pages to Generate';
+      btn.classList.remove('open');
+    }
+  }
+
+  function renderSelectionGroups() {
+    // Group jobs by type, preserving TYPE_LABELS order
+    const order  = ['homepage', 'category', 'location-category', 'service', 'location'];
+    const groups  = {};
+    for (const job of allJobs) {
+      (groups[job.pageType] = groups[job.pageType] || []).push(job);
+    }
+
+    const html = order
+      .filter(t => groups[t] && groups[t].length)
+      .map(type => {
+        const pages    = groups[type];
+        const label    = TYPE_LABELS[type] || type;
+        const rows     = pages.map(j => {
+          const checked = selectedSlugs && selectedSlugs.has(j.urlSlug) ? 'checked' : '';
+          return `<label class="sel-row">
+            <input type="checkbox" data-slug="${h(j.urlSlug)}" ${checked} onchange="onCheckChange(this)">
+            <span class="sel-row-title">${h(j.pageTitle)}</span>
+            <span class="sel-row-slug">${h(j.urlSlug)}</span>
+          </label>`;
+        }).join('');
+        return `<div class="sel-group">
+          <div class="sel-group-header">
+            <span class="sel-group-label">${h(label)}</span>
+            <div class="sel-group-actions">
+              <span class="sel-group-count">${pages.length} page${pages.length > 1 ? 's' : ''}</span>
+              <button class="sel-btn" onclick="selectType('${type}', true)">All</button>
+              <button class="sel-btn" onclick="selectType('${type}', false)">None</button>
+            </div>
+          </div>
+          <div class="sel-page-list">${rows}</div>
+        </div>`;
+      }).join('');
+
+    document.getElementById('selectionGroups').innerHTML = html;
+    updateSelectionUI();
+  }
+
+  function onCheckChange(checkbox) {
+    const slug = checkbox.dataset.slug;
+    if (checkbox.checked) selectedSlugs.add(slug);
+    else                  selectedSlugs.delete(slug);
+    updateSelectionUI();
+  }
+
+  function selectAll(checked) {
+    selectedSlugs = checked ? new Set(allJobs.map(j => j.urlSlug)) : new Set();
+    document.querySelectorAll('#selectionGroups input[type="checkbox"]')
+      .forEach(cb => { cb.checked = checked; });
+    updateSelectionUI();
+  }
+
+  function selectType(type, checked) {
+    document.querySelectorAll(`#selectionGroups .sel-group`)
+      .forEach(group => {
+        const label = group.querySelector('.sel-group-label');
+        if (!label || label.textContent.trim() !== (TYPE_LABELS[type] || type)) return;
+        group.querySelectorAll('input[type="checkbox"]').forEach(cb => {
+          cb.checked = checked;
+          const slug = cb.dataset.slug;
+          if (checked) selectedSlugs.add(slug);
+          else         selectedSlugs.delete(slug);
+        });
+      });
+    updateSelectionUI();
+  }
+
+  function updateSelectionUI() {
+    const count     = selectedSlugs ? selectedSlugs.size : allJobs.length;
+    const total     = allJobs.length;
+    const cost      = (count * 0.06).toFixed(2);
+    const isAll     = count === total;
+    const btn       = document.getElementById('generateBtn');
+    btn.textContent = isAll
+      ? `Generate All ${total} Pages`
+      : `Generate ${count} Selected Page${count !== 1 ? 's' : ''}`;
+    btn.disabled    = count === 0;
+    document.getElementById('selCount').textContent =
+      `${count} of ${total} page${total !== 1 ? 's' : ''} selected — est. $${cost}`;
+  }
+
+  // ── Generate ──────────────────────────────────────────────────────────────
+
+  async function startGeneration() {
+    // If a custom selection exists, persist it to the session before streaming
+    if (selectionOpen && selectedSlugs !== null && selectedSlugs.size < allJobs.length) {
+      await fetch(`/api/session/${sessionId}/select`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ slugs: [...selectedSlugs] }),
+      });
+    }
+    goTo(4);
+    const evtSource = new EventSource(`/api/generate-site/${sessionId}`);
+
+    evtSource.onmessage = e => {
+      const d = JSON.parse(e.data);
+
+      if (d.type === 'start') {
+        totalJobs = d.total;
+        document.getElementById('progressText').textContent = `0 / ${totalJobs} pages complete`;
+      }
+
+      if (d.type === 'progress') {
+        const pct = totalJobs > 0 ? Math.round((d.completed / totalJobs) * 100) : 0;
+        document.getElementById('progressFill').style.width = pct + '%';
+        document.getElementById('progressText').textContent = `${d.completed} / ${totalJobs} pages complete`;
+
+        const log        = document.getElementById('liveLog');
+        const hasIssues  = d.issueCount > 0;
+        const badgeClass = d.status === 'failed' ? 'failed' : hasIssues ? 'issues' : 'done';
+        const badgeText  = d.status === 'failed' ? 'FAILED' : hasIssues ? `${d.issueCount} issue${d.issueCount > 1 ? 's' : ''}` : 'DONE';
+        const row        = document.createElement('div');
+        row.className    = 'log-row';
+        row.innerHTML    = `<span class="log-badge ${badgeClass}">${badgeText}</span><span class="log-type">${h(d.pageType)}</span><span class="log-title">${h(d.pageTitle)}</span><span class="log-slug">${h(d.urlSlug)}</span>`;
+        log.appendChild(row);
+        log.scrollTop = log.scrollHeight;
+      }
+
+      if (d.type === 'complete') {
+        downloadId = d.downloadId;
+        const s    = d.summary;
+        document.getElementById('progressFill').style.width = '100%';
+        document.getElementById('progressText').textContent = `${s.done} / ${totalJobs} pages complete`;
+
+        const failNote = s.failed > 0 ? ` &mdash; ${s.failed} failed` : '';
+        document.getElementById('doneSubtitle').innerHTML = `${s.done} pages generated successfully${failNote}`;
+        document.getElementById('tokenStats').innerHTML =
+          `<span><strong>${(s.inputTokens + s.outputTokens).toLocaleString()}</strong> total tokens</span>` +
+          `<span style="color:var(--border)">&#xB7;</span>` +
+          `<span><strong>$${h(s.actualCost)}</strong> actual cost</span>`;
+
+        // Render per-type download buttons
+        const labels = { homepage: 'Homepage', category: 'Category Pages', service: 'Service Pages', location: 'Location Pages', 'location-category': 'Location-Category Pages' };
+        const container = document.getElementById('byTypeButtons');
+        container.innerHTML = '';
+        (d.pageTypes || []).forEach(pt => {
+          const btn = document.createElement('button');
+          btn.className = 'btn btn-secondary';
+          btn.textContent = labels[pt] || pt;
+          btn.onclick = () => downloadByType(pt);
+          container.appendChild(btn);
+        });
+        document.getElementById('byTypeCard').style.display = (d.pageTypes || []).length ? '' : 'none';
+
+        document.getElementById('doneSection').style.display = 'block';
+        evtSource.close();
+      }
+    };
+
+    evtSource.onerror = () => {
+      const log  = document.getElementById('liveLog');
+      const row  = document.createElement('div');
+      row.className = 'log-row';
+      row.innerHTML = `<span class="log-badge failed">ERROR</span><span class="log-title">Connection lost — if generation completed, the download button will appear below.</span>`;
+      log.appendChild(row);
+      evtSource.close();
+    };
+  }
+
+  function downloadOutput()        { if (downloadId) window.location.href = `/api/download/${downloadId}`; }
+  function downloadByType(pt)      { if (downloadId) window.location.href = `/api/download/${downloadId}/type/${pt}`; }
+  function downloadZip()           { if (downloadId) window.location.href = `/api/download/${downloadId}/zip`; }
+
+  // Step navigation
+  function goTo(n) {
+    document.querySelectorAll('.step').forEach((el, i) => el.classList.toggle('active', i + 1 === n));
+    document.getElementById('stepLabel').textContent = ['Step 1 — Upload', 'Step 2 — Confirm Files', 'Step 3 — Review', 'Step 4 — Generating'][n - 1] || '';
+    ['dot1','dot2','dot3','dot4'].forEach((id, i) => {
+      const d = document.getElementById(id);
+      d.className = 'dot' + (i + 1 < n ? ' done' : i + 1 === n ? ' active' : '');
+    });
+    window.scrollTo(0, 0);
+  }
+
+  function h(s) {
+    return String(s == null ? '' : s)
+      .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+
+  function setLoading(btn, on, label) {
+    btn.disabled = on;
+    btn.innerHTML = on ? `<div class="spin"></div>${label}` : label;
   }
 </script>
-
 </body>
 </html>

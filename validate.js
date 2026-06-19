@@ -18,11 +18,39 @@ function parsePopulatedKeys(text) {
   return new Set(Object.keys(parseCustomValuesMap(text)));
 }
 
-function validate(output, h1, customValuesText) {
+function validate(output, h1, customValuesText, pageType = 'homepage') {
   const issues = [];
 
+  // Checks 1a/1b run only against the fenced template block, not the model's reasoning.
+  const templateBlock = extractTemplateBlock(output);
+
   // ── 1a. Em / en dash ────────────────────────────────────────────────────
-  const dashMatches = [...output.matchAll(/[—–]/g)];
+  // Skip template label lines where an em dash is used as a structural separator
+  // (e.g. "SERVICE CARD — HEADLINE:", "LOCAL KNOWLEDGE — BODY:").
+  // Strip VA implementation checklist (same as 1b) before line-level filtering
+  const templateBlock1a = templateBlock.replace(/^VA IMPLEMENTATION CHECKLIST[\s\S]*/im, '');
+  const templateLines = templateBlock1a.split('\n');
+  const proseLines1a = templateLines.filter(line => {
+    const t = line.trim();
+    // Box drawing separator lines (━━━━…, ─────…, ═════…)
+    if (/^[━─═]+$/.test(t)) return false;
+    // Markdown/horizontal rule separator lines (---, ----, etc.)
+    if (/^-{2,}$/.test(t)) return false;
+    // All-caps structural labels: SERVICE CARD —, LOCAL KNOWLEDGE —, IS THIS RIGHT SECTION —, etc.
+    if (/^[A-Z][A-Z0-9 _{}.|]*[—–]/.test(t)) return false;
+    // Mixed-case icon/numbered label lines: "Icon 1 —", "Trust Icon 2 —", etc.
+    if (/^[A-Za-z][\w ]+ \d+ —/.test(t)) return false;
+    // Image instruction lines: "HERO BACKGROUND IMAGE: ... — ..."
+    if (/^HERO BACKGROUND IMAGE:/i.test(t)) return false;
+    // VA annotation lines: [VA — HYPERLINK…], [VA IMPLEMENTATION…], etc.
+    if (/^\[VA/i.test(t)) return false;
+    // Client confirmation flag lines: [CLIENT TO CONFIRM: … — …]
+    if (/^\[CLIENT TO CONFIRM/i.test(t)) return false;
+    return true;
+  });
+  const prose1a = proseLines1a.join('\n');
+  console.log('\n── DEBUG 1a: prose1a after label filter ──\n' + prose1a + '\n──────────────────────────────────────────\n');
+  const dashMatches = [...prose1a.matchAll(/[—–]/g)];
   if (dashMatches.length > 0) {
     issues.push({
       type: 'BLOCK', check: '1a',
@@ -31,7 +59,20 @@ function validate(output, h1, customValuesText) {
   }
 
   // ── 1b. Hyphenated compound words ────────────────────────────────────────
-  const hyphenMatches = [...output.matchAll(/\b[A-Za-z]+-[A-Za-z]+\b/g)].map(m => m[0]);
+  // Exclude [VA annotation lines and the VA implementation checklist (which
+  // contains URL slug examples like /tree-service-winchester that would false-positive).
+  const prose1b = templateBlock
+    .replace(/^VA IMPLEMENTATION CHECKLIST[\s\S]*/im, '')
+    .split('\n')
+    .filter(line => {
+      const t = line.trim();
+      if (/^\[VA/i.test(t)) return false;
+      if (/^[━─═]+$/.test(t)) return false;
+      if (/^-{2,}$/.test(t)) return false;
+      return true;
+    })
+    .join('\n');
+  const hyphenMatches = [...prose1b.matchAll(/\b[A-Za-z]+-[A-Za-z]+\b/g)].map(m => m[0]);
   if (hyphenMatches.length > 0) {
     const unique = [...new Set(hyphenMatches)];
     issues.push({
@@ -50,21 +91,21 @@ function validate(output, h1, customValuesText) {
     'friendly team', 'no job too big or too small',
   ];
   for (const phrase of bannedPhrases) {
-    if (output.toLowerCase().includes(phrase)) {
+    if (templateBlock.toLowerCase().includes(phrase)) {
       issues.push({ type: 'BLOCK', check: '2', message: `Banned phrase: "${phrase}"` });
     }
   }
 
   // ── 2a. solutions / needs ────────────────────────────────────────────────
-  if (/\bsolutions\b/i.test(output)) {
+  if (/\bsolutions\b/i.test(templateBlock)) {
     issues.push({ type: 'FLAG', check: '2a', message: 'Word "solutions" found — verify it is not AI prose.' });
   }
-  if (/\bneeds\b/i.test(output)) {
+  if (/\bneeds\b/i.test(templateBlock)) {
     issues.push({ type: 'FLAG', check: '2a', message: 'Word "needs" found — verify it is not AI prose.' });
   }
 
   // ── 2b. passionate ───────────────────────────────────────────────────────
-  if (/\bpassionate\b/i.test(output)) {
+  if (/\bpassionate\b/i.test(templateBlock)) {
     issues.push({ type: 'BLOCK', check: '2b', message: 'Word "passionate" found (banned in all forms).' });
   }
 
@@ -80,8 +121,11 @@ function validate(output, h1, customValuesText) {
     }
   }
 
-  // ── 3b. Generic template leftovers (excluding expected [INSERT H1 FROM AHREFS]) ──
-  const strippedOutput = output.replace(/\[INSERT H1 FROM AHREFS\]/gi, '');
+  // ── 3b. Generic template leftovers ──────────────────────────────────────
+  // Strip valid intentional placeholders before checking.
+  const strippedOutput = output
+    .replace(/\[INSERT H1 FROM AHREFS\]/gi, '')
+    .replace(/\[INSERT H1 FROM SOP INSTRUCTIONS\]/gi, '');
   if (/(Put your image|Lorem ipsum|\[INSERT|Client copy goes here|\[TODO)/i.test(strippedOutput)) {
     issues.push({ type: 'BLOCK', check: '3b', message: 'Unresolved template placeholder found (e.g. [INSERT…], Lorem ipsum, [TODO]).' });
   }
@@ -168,12 +212,38 @@ function validate(output, h1, customValuesText) {
   }
 
   // ── 6a. Weak link phrases ────────────────────────────────────────────────
+  // Strip template label lines (e.g. "CONTACT — EYEBROW: GET IN TOUCH") and [VA lines
+  // before checking, so static labels aren't flagged as prose.
+  // Drop any line that is a template label (all-caps words followed by a colon,
+  // optionally with content after) or a VA annotation. This covers patterns like:
+  //   EYEBROW: GET IN TOUCH
+  //   CONTACT — EYEBROW: GET IN TOUCH
+  //   SERVICE CARD — HEADLINE: Some text
+  //   [VA note...]
+  const prose6a = output
+    .split('\n')
+    .filter(line => {
+      const t = line.trim();
+      if (!t) return false;
+      if (/^\[VA/i.test(t)) return false;
+      // Drop lines where the content before the first colon is all-caps (label lines)
+      const beforeColon = t.split(':')[0];
+      if (/^[A-Z][A-Z0-9 /_.—–-]+$/.test(beforeColon)) return false;
+      // Drop lines containing EYEBROW: anywhere or ending with GET IN TOUCH
+      if (/EYEBROW:/i.test(t)) return false;
+      if (/GET IN TOUCH\s*$/i.test(t)) return false;
+      // Drop template label lines with em/en dash separator: SERVICE CARD — {{...}}, LOCAL KNOWLEDGE — CARD 1 BODY
+      if (/^[A-Z][A-Z0-9 _]+[—–][A-Z0-9 _{}.|]+/i.test(t)) return false;
+      return true;
+    })
+    .join('\n');
+  console.log('\n── DEBUG 6a: prose6a after label filter ──\n' + prose6a + '\n──────────────────────────────────────────\n');
   const weakPhrases = [
     'find out more', "see what's included", 'get in touch',
     'find out how we can help', 'click here', 'learn more', 'explore our service',
   ];
   for (const phrase of weakPhrases) {
-    if (output.toLowerCase().includes(phrase)) {
+    if (prose6a.toLowerCase().includes(phrase)) {
       issues.push({ type: 'BLOCK', check: '6a', message: `Weak link phrase: "${phrase}"` });
     }
   }
@@ -197,9 +267,16 @@ function validate(output, h1, customValuesText) {
 
   // ── 6c. FAQ editorial link count ─────────────────────────────────────────
   let faqEditorialCount = 0;
-  for (const m of output.matchAll(/FAQ ANSWER \d+:([\s\S]*?)(?=FAQ \d+:|FAQ TEXT:|VIEW ALL|$)/gi)) {
+  const faqMatches = [...output.matchAll(/FAQ — ANSWER \d+:([\s\S]*?)(?=FAQ — |\bVIEW ALL\b|$)/gi)];
+  console.log(`\n── DEBUG 6c: found ${faqMatches.length} FAQ answer block(s) ──`);
+  for (const m of faqMatches) {
+    console.log(`\n  BLOCK:\n${m[1].slice(0, 400)}${m[1].length > 400 ? '\n  ...(truncated)' : ''}`);
+  }
+  console.log('──────────────────────────────────────────\n');
+  for (const m of faqMatches) {
     const ans = m[1];
-    if (/\{\{custom_values\.category_/.test(ans) && /\{\{custom_values\.biz_area_/.test(ans)) {
+    const hasArea = /\{\{custom_values\.biz_area_/.test(ans);
+    if (hasArea && (/\{\{custom_values\.category_/.test(ans) || /\{\{custom_values\.service_/.test(ans))) {
       faqEditorialCount++;
     }
   }
@@ -240,7 +317,7 @@ function validate(output, h1, customValuesText) {
   }
 
   // ── 9. Areas We Cover completeness ───────────────────────────────────────
-  if (customValuesText && customValuesText.trim()) {
+  if (pageType === 'homepage' && customValuesText && customValuesText.trim()) {
     const parsed = parseCustomValuesMap(customValuesText);
     const populatedAreas = [];
     for (let n = 1; n <= 14; n++) {
@@ -298,6 +375,19 @@ function extractProseSections(output) {
   prose = prose.replace(/^CALL BUTTON:.*$/gim, '');
 
   return prose;
+}
+
+/**
+ * Extract the content inside the first ``` fenced block in the output.
+ * Used to scope checks 1a/1b to the template copy only, excluding the model's
+ * pre-write reasoning which legitimately contains hyphens and dashes.
+ * Falls back to the full output if no fences are found.
+ */
+function extractTemplateBlock(output) {
+  // Match from the opening fence to either the closing fence or end of string.
+  // The closing fence may be absent if the output was truncated mid-generation.
+  const m = output.match(/```(?:[^\n]*)?\n([\s\S]*?)(?:```|$)/);
+  return m ? m[1] : output;
 }
 
 module.exports = { validate, parseCustomValuesMap, parsePopulatedKeys };
