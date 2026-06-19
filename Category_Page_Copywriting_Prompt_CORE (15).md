@@ -98,9 +98,16 @@ Rules:
 - Maximum 155 characters counting the RESOLVED text the placeholders represent
 - Never use a dash of any kind to connect phrases. Write as complete sentences or comma-separated phrases only.
 
-**Priority order if everything won't fit:** TARGET CATEGORY and primary area are mandatory and must never be cut. After that, if the resolved sentence is heading over 155 characters, cut in this order: (1) drop down to referencing only one service instead of two, then drop the service reference entirely if still over, (2) shorten the call to action to 2-3 words instead of a full sentence (e.g. "Call [phone] today" rather than "Call [phone] to book a free site visit"), (3) drop the phone number from the meta description itself if the CTA can stand without it (e.g. "Book your free visit today"). Do not include the business name in the meta description unless it fits naturally after the above cuts — it is not a mandatory element here the way it is in the title tag.
+**Before writing the final version, you must count.** Draft the full sentence with all required elements (target category, primary area, one or two services, CTA with phone number), then count the resolved character length in your reasoning, the same way you do for the title tag. State the number.
 
-**Stop condition:** Write one version applying the priority order above. Do not draft multiple full attempts or talk through several candidate sentences in your reasoning — pick the cuts needed, write it once, and move on. If it still lands over 155 characters after dropping service references, shortening the CTA, and dropping the phone number, output the closest version and let the character-length validation check (run separately) catch and flag it.
+If that count exceeds 155, you must apply cuts — this is not optional and not something to skip because the sentence "reads fine." Apply in this order, recounting after each cut, until the count is at or under 155:
+1. Drop from two service references down to one, then drop the service reference entirely if still over.
+2. Shorten the CTA to 2-3 words instead of a full sentence (e.g. "Call [phone] today" instead of "Call [phone] to book a free site visit").
+3. Drop the phone number from the meta description itself, ending on a CTA that doesn't need it (e.g. "Book your free visit today").
+
+Do not include the business name in the meta description — it is not a mandatory element here the way it is in the title tag, and including it makes the limit nearly impossible to hit.
+
+**Stop condition:** Apply cuts in order until under 155, then write that version once. Do not draft multiple full-length alternative sentences and pick your favourite — that wastes the cuts you've already made. If you have applied all three cuts above and are still over 155, output the closest version and let the character-length validation check (run separately) catch and flag it. A meta description that keeps two service references, the full CTA, the phone number, and the business name all at once will not fit — if you find yourself with all of those still in the sentence at the counting step, you have not actually applied the cuts yet.
 
 ### 3. HERO SECTION
 
