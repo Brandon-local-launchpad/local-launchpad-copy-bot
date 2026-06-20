@@ -209,15 +209,34 @@ function parseCustomValues(csvTexts) {
 
   for (const text of csvTexts) {
     const { data, meta } = Papa.parse(text, { header: true, skipEmptyLines: true });
-    console.log('\n── DEBUG parseCustomValues ──');
-    console.log('  Columns found:', meta.fields);
-    console.log('  Row count:', data.length);
-    data.slice(0, 5).forEach((r, i) => console.log(`  Row ${i}:`, JSON.stringify(r)));
-    console.log('────────────────────────────\n');
+
+    // The real column headers are buried in a sub-header row (PapaParse's own
+    // header row is usually a description/instructions line), so detect which
+    // PapaParse-assigned column name actually holds "Value" by scanning row
+    // contents for the literal label text, rather than assuming a fixed column
+    // position. Sheets like "Master Cross-Reference" use the same key column
+    // but put "Appears On (Short)" where other tabs put "Value" — if this tab
+    // has no real Value column, skip it entirely instead of misreading that
+    // column as the value.
+    let keyColumn = null;
+    let valueColumn = null;
     for (const row of data) {
-      // CSVs use category name as col-0 header; GHL key is in the '' column, value in '_1'
-      const rawKey = (row['GHL Custom Value Key'] || row['GHL Key'] || row[''] || '').trim();
-      const value  = (row['Value'] || row['_1'] || '').trim();
+      for (const col of meta.fields) {
+        const cell = (row[col] || '').trim().toLowerCase();
+        if (!keyColumn && (cell === 'ghl custom value key' || cell === 'ghl key')) keyColumn = col;
+        if (!valueColumn && cell === 'value') valueColumn = col;
+      }
+      if (keyColumn && valueColumn) break;
+    }
+    if (!valueColumn) {
+      console.log(`\n── parseCustomValues: skipping a custom values file — no "Value" column found (columns: ${meta.fields.join(', ')}) ──\n`);
+      continue;
+    }
+    keyColumn = keyColumn || '';
+
+    for (const row of data) {
+      const rawKey = (row[keyColumn] || '').trim();
+      const value  = (row[valueColumn] || '').trim();
       // Only accept rows whose key is a GHL placeholder or bare snake_case identifier
       if (!rawKey.startsWith('{{custom_values.') && !/^[a-z_]\w*$/.test(rawKey)) continue;
       if (!value || value.startsWith('← NEEDS FILLING IN')) continue;
