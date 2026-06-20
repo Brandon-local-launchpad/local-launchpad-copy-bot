@@ -25,11 +25,15 @@ function validate(output, h1, customValuesText, pageType = 'homepage', pageConte
   const templateBlock = extractTemplateBlock(output);
 
   // ── 1a. Em / en dash ────────────────────────────────────────────────────
-  // Per spec: only two exclusions apply once scoped to the template block —
-  // (1) structural section-label lines using an em/en dash as a separator
-  //     (e.g. "SIGNS SECTION — EYEBROW:", "CONTACT — EYEBROW: GET IN TOUCH", "HOW IT WORKS — BODY:")
-  // (2) VA annotation lines beginning with "[VA" (the whole line, dash included).
-  const templateLines = templateBlock.split('\n');
+  // Per spec, three exclusions apply once scoped to the template block —
+  // (1) the model's pre-write reasoning before the fenced block (handled by
+  //     extractTemplateBlock above — templateBlock never includes it),
+  // (2) structural section-label lines using an em/en dash as a separator
+  //     (e.g. "SIGNS SECTION — EYEBROW:", "CONTACT — EYEBROW: GET IN TOUCH", "HOW IT WORKS — BODY:"),
+  // (3) VA Implementation Checklist bullet lines that use a dash as a separator
+  //     (e.g. "- Google Maps embed — embed the GBP map using...").
+  const templateBlock1a = templateBlock.replace(/^VA IMPLEMENTATION CHECKLIST[\s\S]*/im, '');
+  const templateLines = templateBlock1a.split('\n');
   const proseLines1a = templateLines.filter(line => {
     const t = line.trim();
     // VA annotation lines: [VA — HYPERLINK…], [VA IMPLEMENTATION…], etc.
