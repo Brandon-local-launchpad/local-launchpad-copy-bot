@@ -19,7 +19,6 @@ function parsePopulatedKeys(text) {
 }
 
 function validate(output, h1, customValuesText, pageType = 'homepage', pageContext = {}) {
-  console.log('VALIDATE.JS VERSION: 1a-fix-applied');
   const issues = [];
 
   // Checks 1a/1b run only against the fenced template block, not the model's reasoning.
