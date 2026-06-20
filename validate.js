@@ -18,38 +18,27 @@ function parsePopulatedKeys(text) {
   return new Set(Object.keys(parseCustomValuesMap(text)));
 }
 
-function validate(output, h1, customValuesText, pageType = 'homepage') {
+function validate(output, h1, customValuesText, pageType = 'homepage', pageContext = {}) {
   const issues = [];
 
   // Checks 1a/1b run only against the fenced template block, not the model's reasoning.
   const templateBlock = extractTemplateBlock(output);
 
   // ── 1a. Em / en dash ────────────────────────────────────────────────────
-  // Skip template label lines where an em dash is used as a structural separator
-  // (e.g. "SERVICE CARD — HEADLINE:", "LOCAL KNOWLEDGE — BODY:").
-  // Strip VA implementation checklist (same as 1b) before line-level filtering
-  const templateBlock1a = templateBlock.replace(/^VA IMPLEMENTATION CHECKLIST[\s\S]*/im, '');
-  const templateLines = templateBlock1a.split('\n');
+  // Per spec: only two exclusions apply once scoped to the template block —
+  // (1) structural section-label lines using an em/en dash as a separator
+  //     (e.g. "SIGNS SECTION — EYEBROW:", "CONTACT — EYEBROW: GET IN TOUCH", "HOW IT WORKS — BODY:")
+  // (2) VA annotation lines beginning with "[VA" (the whole line, dash included).
+  const templateLines = templateBlock.split('\n');
   const proseLines1a = templateLines.filter(line => {
     const t = line.trim();
-    // Box drawing separator lines (━━━━…, ─────…, ═════…)
-    if (/^[━─═]+$/.test(t)) return false;
-    // Markdown/horizontal rule separator lines (---, ----, etc.)
-    if (/^-{2,}$/.test(t)) return false;
-    // All-caps structural labels: SERVICE CARD —, LOCAL KNOWLEDGE —, IS THIS RIGHT SECTION —, etc.
-    if (/^[A-Z][A-Z0-9 _{}.|]*[—–]/.test(t)) return false;
-    // Mixed-case icon/numbered label lines: "Icon 1 —", "Trust Icon 2 —", etc.
-    if (/^[A-Za-z][\w ]+ \d+ —/.test(t)) return false;
-    // Image instruction lines: "HERO BACKGROUND IMAGE: ... — ..."
-    if (/^HERO BACKGROUND IMAGE:/i.test(t)) return false;
     // VA annotation lines: [VA — HYPERLINK…], [VA IMPLEMENTATION…], etc.
     if (/^\[VA/i.test(t)) return false;
-    // Client confirmation flag lines: [CLIENT TO CONFIRM: … — …]
-    if (/^\[CLIENT TO CONFIRM/i.test(t)) return false;
+    // Structural section-label lines: ALPHANUMERIC LABEL — Capitalised continuation
+    if (/^[A-Z0-9 /_-]+ [—–] [A-Z]/.test(t)) return false;
     return true;
   });
   const prose1a = proseLines1a.join('\n');
-  console.log('\n── DEBUG 1a: prose1a after label filter ──\n' + prose1a + '\n──────────────────────────────────────────\n');
   const dashMatches = [...prose1a.matchAll(/[—–]/g)];
   if (dashMatches.length > 0) {
     issues.push({
@@ -131,13 +120,15 @@ function validate(output, h1, customValuesText, pageType = 'homepage') {
   }
 
   // ── 3c. Unknown / unpopulated custom value keys (prose sections only) ───────
-  // Fixed template lines (Map section, VA checklist, Footer, Contact static lines)
-  // use keys like google_map_embed / company_address that are expected by the template
-  // regardless of whether this client has filled them in yet — skip those blocks.
+  // Per spec: scope to an ALLOWLIST of named prose-bearing sections (Title Tag,
+  // Meta Description, Hero Subheadline, Services Section body, FAQ answers,
+  // Meet the Team body, Schema business description) — not an exclusion list of
+  // fixed-template keys. Fixed lines (Map, Footer, VA checklist) are never scanned
+  // because they are simply never included in the extracted text below.
   if (customValuesText && customValuesText.trim()) {
     const populatedKeys = parsePopulatedKeys(customValuesText);
     if (populatedKeys.size > 0) {
-      const prose = extractProseSections(output);
+      const prose = extractProseSections(templateBlock);
       const usedKeys = [...prose.matchAll(/\{\{custom_values\.([^}]+)\}\}/g)].map(m => m[1]);
       const unknown = [...new Set(usedKeys.filter(k => !populatedKeys.has(k)))];
       if (unknown.length > 0) {
@@ -176,11 +167,32 @@ function validate(output, h1, customValuesText, pageType = 'homepage') {
       const area1 = parsed['biz_area_1'];
       const companyName = parsed['company_name'];
 
-      if (category1 && !h1t.toLowerCase().includes(category1.toLowerCase())) {
-        issues.push({ type: 'FLAG', check: '4c', message: `H1 does not contain the primary category "${category1}".` });
+      // 4c: the category/service and area to check against depend on page type —
+      // a service page's H1 should be checked against its OWN service name, not
+      // the primary category, and similarly for location / location-category pages.
+      let subject, subjectLabel, subjectArea, subjectAreaLabel;
+      if (pageType === 'category') {
+        subject = pageContext.pageTitle; subjectLabel = 'this page\'s category';
+        subjectArea = area1; subjectAreaLabel = 'the primary area';
+      } else if (pageType === 'service') {
+        subject = pageContext.pageTitle; subjectLabel = 'this page\'s service';
+        subjectArea = area1; subjectAreaLabel = 'the primary area';
+      } else if (pageType === 'location') {
+        subject = category1; subjectLabel = 'the primary category';
+        subjectArea = pageContext.pageTitle; subjectAreaLabel = 'this page\'s location';
+      } else if (pageType === 'location-category') {
+        subject = pageContext.locationCategoryName || pageContext.pageTitle; subjectLabel = 'this page\'s category';
+        subjectArea = pageContext.locationName; subjectAreaLabel = 'this page\'s location';
+      } else {
+        subject = category1; subjectLabel = 'the primary category';
+        subjectArea = area1; subjectAreaLabel = 'the primary area';
       }
-      if (area1 && !h1t.toLowerCase().includes(area1.toLowerCase())) {
-        issues.push({ type: 'FLAG', check: '4c', message: `H1 does not contain the primary area "${area1}".` });
+
+      if (subject && !h1t.toLowerCase().includes(subject.toLowerCase())) {
+        issues.push({ type: 'FLAG', check: '4c', message: `H1 does not contain ${subjectLabel} "${subject}".` });
+      }
+      if (subjectArea && !h1t.toLowerCase().includes(subjectArea.toLowerCase())) {
+        issues.push({ type: 'FLAG', check: '4c', message: `H1 does not contain ${subjectAreaLabel} "${subjectArea}".` });
       }
       if (companyName && h1t.toLowerCase().includes(companyName.toLowerCase())) {
         issues.push({ type: 'BLOCK', check: '4d', message: `H1 contains the company name "${companyName}" — homepage H1 must be [category] [area] only.` });
@@ -212,32 +224,12 @@ function validate(output, h1, customValuesText, pageType = 'homepage') {
   }
 
   // ── 6a. Weak link phrases ────────────────────────────────────────────────
-  // Strip template label lines (e.g. "CONTACT — EYEBROW: GET IN TOUCH") and [VA lines
-  // before checking, so static labels aren't flagged as prose.
-  // Drop any line that is a template label (all-caps words followed by a colon,
-  // optionally with content after) or a VA annotation. This covers patterns like:
-  //   EYEBROW: GET IN TOUCH
-  //   CONTACT — EYEBROW: GET IN TOUCH
-  //   SERVICE CARD — HEADLINE: Some text
-  //   [VA note...]
-  const prose6a = output
-    .split('\n')
-    .filter(line => {
-      const t = line.trim();
-      if (!t) return false;
-      if (/^\[VA/i.test(t)) return false;
-      // Drop lines where the content before the first colon is all-caps (label lines)
-      const beforeColon = t.split(':')[0];
-      if (/^[A-Z][A-Z0-9 /_.—–-]+$/.test(beforeColon)) return false;
-      // Drop lines containing EYEBROW: anywhere or ending with GET IN TOUCH
-      if (/EYEBROW:/i.test(t)) return false;
-      if (/GET IN TOUCH\s*$/i.test(t)) return false;
-      // Drop template label lines with em/en dash separator: SERVICE CARD — {{...}}, LOCAL KNOWLEDGE — CARD 1 BODY
-      if (/^[A-Z][A-Z0-9 _]+[—–][A-Z0-9 _{}.|]+/i.test(t)) return false;
-      return true;
-    })
-    .join('\n');
-  console.log('\n── DEBUG 6a: prose6a after label filter ──\n' + prose6a + '\n──────────────────────────────────────────\n');
+  // Per spec: scope to the template block, specifically the Services Section body
+  // copy and FAQ answers ONLY — not the model's pre-write reasoning (which often
+  // recites this exact phrase list as a self-check step), and not label/eyebrow/
+  // VA annotation lines. Isolating the exact in-scope text by field label removes
+  // the need to guess at label-line patterns line-by-line.
+  const prose6a = extractServicesAndFaqBody(templateBlock);
   const weakPhrases = [
     'find out more', "see what's included", 'get in touch',
     'find out how we can help', 'click here', 'learn more', 'explore our service',
@@ -350,31 +342,73 @@ function resolvePlaceholders(text, parsedMap) {
   });
 }
 
+// A line is a "field label" boundary if it looks like "LABEL:" or "LABEL — SUBLABEL:",
+// optionally with inline content following the colon on the same line.
+const FIELD_LABEL = /^[A-Z0-9][A-Za-z0-9 /_'{}.—–-]{0,80}:/;
+
 /**
- * Extract only the freely-generated prose sections from the output.
- * Strips fixed template blocks (Map section, Footer, VA checklist, Contact static lines)
- * so check 3c doesn't false-positive on keys like google_map_embed or company_address
- * that are expected by the template regardless of client population state.
+ * Generic allowlist-based section extractor. Walks the template block line by
+ * line; whenever a line matches `isTargetLabel`, starts capturing (including any
+ * inline content after the colon) until the next field-label line of ANY kind is
+ * reached. This isolates exactly the named sections without needing to enumerate
+ * or guess at every fixed/static field that should be excluded.
  */
-function extractProseSections(output) {
-  let prose = output;
+function extractLabeledSections(templateBlock, isTargetLabel) {
+  const lines = templateBlock.split('\n');
+  const collected = [];
+  let capturing = false;
 
-  // Remove MAP SECTION block (static template lines with google_map_embed)
-  prose = prose.replace(/\bMAP SECTION\b[\s\S]*?(?=\bSCHEMA\b|\bCONTACT SECTION\b)/gi, '');
+  for (const raw of lines) {
+    const t = raw.trim();
+    if (!t) { if (capturing) collected.push(''); continue; }
 
-  // Remove FOOTER block (biz_area_1-6, company_twilio_phone, company_email, state, etc.)
-  prose = prose.replace(/\bFOOTER\b[\s\S]*?(?=\bVA IMPLEMENTATION CHECKLIST\b|$)/gi, '');
+    if (FIELD_LABEL.test(t)) {
+      if (isTargetLabel(t)) {
+        capturing = true;
+        const after = t.replace(/^[^:]*:/, '').trim();
+        if (after) collected.push(after);
+      } else {
+        capturing = false;
+      }
+      continue;
+    }
 
-  // Remove VA IMPLEMENTATION CHECKLIST (company_address, company_phone_functional, google_map_embed)
-  prose = prose.replace(/\bVA IMPLEMENTATION CHECKLIST\b[\s\S]*/gi, '');
+    if (capturing) collected.push(raw);
+  }
 
-  // Remove the static MAP: line that may appear outside the MAP SECTION heading
-  prose = prose.replace(/^MAP:.*$/gim, '');
+  return collected.join('\n');
+}
 
-  // Remove Contact Section static lines (company_twilio_phone)
-  prose = prose.replace(/^CALL BUTTON:.*$/gim, '');
+/**
+ * Extract only the freely-generated prose sections from the template block, per
+ * Check 3c's spec: Title Tag, Meta Description, Hero Subheadline, Services Section
+ * body copy, FAQ answers, Meet the Team body, and the Schema business description.
+ * Everything else (Map section, Footer, VA checklist, etc.) is never captured,
+ * so there is no exclusion list to maintain as new fixed-template keys appear.
+ */
+function extractProseSections(templateBlock) {
+  return extractLabeledSections(templateBlock, t => (
+    /^TITLE TAG:/i.test(t) ||
+    /^META DESCRIPTION:/i.test(t) ||
+    /^HERO SUBHEADLINE:/i.test(t) ||
+    /^\d+\s*-\s*SERVICES\b.*:/i.test(t) ||
+    /^FAQ\s*[—–]?\s*ANSWER\s*\d+:/i.test(t) ||
+    /MEET THE TEAM\s*[—–-]*\s*BODY:/i.test(t) ||
+    /^BUSINESS DESCRIPTION:/i.test(t)
+  ));
+}
 
-  return prose;
+/**
+ * Extract only the Services Section body copy and FAQ answers, per Check 6a's
+ * spec scope. Narrower than extractProseSections — excludes Title Tag, Meta
+ * Description, Hero Subheadline, Meet the Team, and Schema, since 6a's weak-link
+ * phrase list is specifically a concern in service descriptions and FAQ answers.
+ */
+function extractServicesAndFaqBody(templateBlock) {
+  return extractLabeledSections(templateBlock, t => (
+    /^\d+\s*-\s*SERVICES\b.*:/i.test(t) ||
+    /^FAQ\s*[—–]?\s*ANSWER\s*\d+:/i.test(t)
+  ));
 }
 
 /**

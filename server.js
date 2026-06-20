@@ -497,7 +497,9 @@ app.get('/api/generate-site/:sessionId', async (req, res) => {
         const maxTokens = (job.pageType === 'category' || job.pageType === 'location-category') ? 16000 : 8192;
         const message = await callClaude(client, prompt, maxTokens);
         const output  = message.content.filter(b => b.type === 'text').map(b => b.text).join('');
-        const issues  = validate(output, job.h1, customValuesText, job.pageType);
+        const issues  = validate(output, job.h1, customValuesText, job.pageType, {
+          pageTitle: job.pageTitle, locationName: job.locationName, locationCategoryName: job.locationCategoryName,
+        });
         result = { ...job, output, issues, usage: message.usage, status: 'done', error: null };
       } catch (err) {
         console.error(`[generate] FAILED ${job.urlSlug} (${job.pageType}):`, err);
@@ -828,7 +830,9 @@ app.post('/api/clients/:clientId/pages/:pageId/regenerate', async (req, res) => 
     const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
     const message   = await callClaude(anthropic, prompt, maxTokens);
     const output    = message.content.filter(b => b.type === 'text').map(b => b.text).join('');
-    const issues    = validate(output, job.h1, customValuesText, job.pageType);
+    const issues    = validate(output, job.h1, customValuesText, job.pageType, {
+      pageTitle: job.pageTitle, locationName: job.locationName, locationCategoryName: job.locationCategoryName,
+    });
 
     const { rows: updated } = await pool.query(
       `UPDATE pages SET copy_output = $1, issues = $2, generated_at = NOW(), edited_at = NULL

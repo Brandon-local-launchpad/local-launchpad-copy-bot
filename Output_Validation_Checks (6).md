@@ -15,6 +15,12 @@ Patterns are written as standard regex (case-insensitive flag `i` assumed unless
 
 **Scope for checks 1a and 1b:** Run these checks ONLY against the content inside the template output block — i.e. the text between the opening ` ``` ` and closing ` ``` ` code fence markers in the copy output. Do NOT run them against the model's pre-write reasoning, classification notes, placeholder declarations, or any text outside the fenced block. The model's reasoning will often contain hyphens (e.g. "schedule-driven", "desire-driven", "pre-write") — these are internal notes, not copy, and should not trigger validation failures.
 
+**Additional exclusion for em dashes specifically (1a):** Within the fenced block, several template structures use an em dash as a structural separator by design rather than as prose punctuation — this is not the violation the rule targets and must not be flagged. Before running 1a, strip these line types the same way Check 6a's implementation note already does:
+- Section label lines matching `^[A-Z0-9 /_\-]+ — [A-Z]` (e.g. `SIGNS SECTION — EYEBROW:`, `CONTACT — EYEBROW: GET IN TOUCH`, `HOW IT WORKS — BODY:`)
+- VA annotation lines beginning with `[VA` (e.g. `[VA — Real photo of ground preparation...]`), including the dash that follows `[VA`
+
+Only after stripping these structural lines should the remaining prose be checked for em/en dashes. An em dash inside a sentence of actual generated copy (Services Section body, FAQ answers, Hero Subheadline, etc.) is the real violation this rule exists to catch — an em dash separating a template label from its field name is not.
+
 ### 1a. Em dash / en dash
 
 **Pattern:** `[—–]`
@@ -102,6 +108,8 @@ no job too big or too small
 
 **Scope:** this check applies ONLY to placeholders appearing in freely-generated prose sections — Title Tag, Meta Description, Hero Subheadline, Services Section body copy, FAQ answers, Meet the Team body, and the Schema business description. It does NOT apply to placeholders that are part of fixed template lines (the Map section, VA Implementation Checklist, Footer structure, Schema notes) — these reference keys like `google_map_embed` and `company_address` that are expected by the template regardless of whether they're populated yet for this client. Checking those would produce constant false positives on every client until those fields are filled in during the build, which is a separate step from copy generation.
 
+**Implementation note — this is currently misfiring, fix before relying on it:** a recent run BLOCKed on `google_map_embed` inside the Map section, which this scope rule explicitly says should never happen. Before extracting placeholders to check, the script must first isolate only the named in-scope sections above by their field labels (e.g. everything under `TITLE TAG:`, `META DESCRIPTION:`, `HERO SUBHEADLINE:`, the Services Section body paragraphs, `FAQ — ANSWER N:`, `MEET THE TEAM` body, `SCHEMA` business description) and discard everything else in the block — including the Map section, VA Implementation Checklist, Footer, and Schema notes block — before running the placeholder-key comparison. If the current implementation is instead scanning the entire fenced block for `{{custom_values.X}}` occurrences and only excluding a few specific keys by name, that approach will keep breaking every time a new fixed-template key is introduced. Scope to the named sections, not an exclusion list of keys.
+
 **Logic (not a single regex):**
 
 1. Extract every `{{custom_values.X}}` occurrence from the in-scope sections only.
@@ -126,7 +134,19 @@ Reuse 1a and 1b against the H1 string. **Classification:** BLOCK (1a), FLAG (1b)
 
 ### 4c. Contains category and area
 
-**Logic:** `H1.toLowerCase()` should contain both the primary category's plain-text name and the primary area's plain-text name as substrings (these are supplied from the custom values sheet as plain text for this check, since H1 itself is plain text not a placeholder). **Classification:** FLAG if either is missing.
+**Logic:** `H1.toLowerCase()` should contain both (a) the plain-text name of this page's own subject category/service and (b) the plain-text name of this page's own subject area, as substrings. **Classification:** FLAG if either is missing.
+
+**Which values to check against — this is page-type dependent, not always the primary category/area:**
+
+| Page type | Category/service value to check | Area value to check |
+|---|---|---|
+| Homepage | Primary category | Primary area |
+| Category page | This page's TARGET CATEGORY | Primary area (unless the category page is also location-specific, see location-category row) |
+| Service page | This page's TARGET SERVICE | Primary area |
+| Location page | Primary category | This page's TARGET LOCATION |
+| Location-category page | This page's TARGET CATEGORY | This page's TARGET LOCATION |
+
+**Why this matters:** A service page for "Grass seeding" correctly has an H1 like "Grass seeding Southampton" — it should never be checked against the primary category name (e.g. "Gardener"), only against its own service name. Checking every page type against the primary category/area unconditionally produces a FLAG on nearly every non-homepage page, which is not a real issue — it is the check applying homepage logic everywhere. Pull "this page's own subject" from the same page-type metadata already used to populate the PAGE TYPE / TARGET SERVICE / TARGET CATEGORY / TARGET LOCATION fields at the top of each page's output block, not from the primary category/area fields used for the homepage.
 
 ### 4d. Does not contain company name
 
@@ -160,7 +180,9 @@ Reuse 1a and 1b against the H1 string. **Classification:** BLOCK (1a), FLAG (1b)
 
 ### 6a. Banned link phrases
 
-**Scope:** Prose body copy inside the template block only — specifically Services Section body copy and FAQ answers. Do NOT run against section label lines, eyebrow labels, or VA annotation lines.
+**Scope:** Run this check ONLY against the content inside the template output block — i.e. the text between the opening ` ``` ` and closing ` ``` ` code fence markers in the copy output — specifically the Services Section body copy and FAQ answers within that block. Do NOT run against the model's pre-write reasoning, classification notes, placeholder declarations, or any text outside the fenced block. Do NOT run against section label lines, eyebrow labels, or VA annotation lines within the block.
+
+**Notes:** The model's pre-write reasoning routinely lists out the banned phrase set as a self-check step (e.g. "After drafting, I will scan for: ... 'find out more', 'get in touch', 'click here' ..."). This is the model reciting the rule, not using the phrase in copy, and must not be matched. This is the same false-positive shape the Dash Rule (Check 1) already excludes reasoning text for — Check 6a needs the identical exclusion. If this scope restriction isn't already implemented, re-run any prior results: a single page's reasoning block can trigger 5-6 simultaneous false BLOCKs from one self-check sentence, which will dominate the BLOCK count and bury genuinely real hits elsewhere in the output.
 
 **List (case-insensitive substring match):**
 
