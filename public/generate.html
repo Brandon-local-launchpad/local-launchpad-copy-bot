@@ -669,12 +669,16 @@
     };
 
     evtSource.onerror = () => {
+      // Don't close() here — EventSource auto-reconnects to the same URL by
+      // default, and the server keeps the job running and replays anything
+      // missed once the new connection attaches. Closing here would kill that
+      // auto-reconnect and strand the user on a dead connection while the job
+      // keeps running (and saving to the DB) in the background.
       const log  = document.getElementById('liveLog');
       const row  = document.createElement('div');
       row.className = 'log-row';
-      row.innerHTML = `<span class="log-badge failed">ERROR</span><span class="log-title">Connection lost — if generation completed, the download button will appear below.</span>`;
+      row.innerHTML = `<span class="log-badge failed">RECONNECTING</span><span class="log-title">Connection dropped — generation is still running on the server, reconnecting…</span>`;
       log.appendChild(row);
-      evtSource.close();
     };
   }
 

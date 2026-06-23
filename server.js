@@ -14,6 +14,7 @@ const Anthropic  = require('@anthropic-ai/sdk');
 const fs         = require('fs');
 const path       = require('path');
 const crypto     = require('crypto');
+const { EventEmitter } = require('events');
 const multer     = require('multer');
 const Papa       = require('papaparse');
 const JSZip      = require('jszip');
@@ -483,16 +484,17 @@ app.post('/api/session/:sessionId/select', (req, res) => {
   res.json({ ok: true, count: session.selectedSlugs ? session.selectedSlugs.size : session.jobs.length });
 });
 
-app.get('/api/generate-site/:sessionId', async (req, res) => {
-  const session = sessions.get(req.params.sessionId);
-  if (!session) return res.status(404).json({ error: 'Session not found or expired.' });
-
-  res.setHeader('Content-Type', 'text/event-stream');
-  res.setHeader('Cache-Control', 'no-cache');
-  res.setHeader('Connection', 'keep-alive');
-  res.flushHeaders();
-
-  const send = data => res.write(`data: ${JSON.stringify(data)}\n\n`);
+// Runs the actual generation work against a session, independent of any HTTP
+// response — so the job survives an SSE client disconnecting mid-run (Railway
+// has been observed dropping the connection after ~27 pages on large batches).
+// Progress is broadcast on session.emitter and buffered in session.eventLog so
+// a reconnecting client can replay everything it missed before subscribing to
+// what's still to come.
+async function runGenerationJob(session) {
+  const emit = data => {
+    session.eventLog.push(data);
+    session.emitter.emit('event', data);
+  };
 
   const { trade, skippedPages, keyValueMap, serviceParentMap, onboardingText, geoResearch, selectedSlugs } = session;
   const jobs = selectedSlugs ? session.jobs.filter(j => selectedSlugs.has(j.urlSlug)) : session.jobs;
@@ -504,7 +506,7 @@ app.get('/api/generate-site/:sessionId', async (req, res) => {
   let completed  = 0;
   const total    = jobs.length;
 
-  send({ type: 'start', total });
+  emit({ type: 'start', total });
 
   for (let i = 0; i < jobs.length; i += 10) {
     const batch = jobs.slice(i, i + 10);
@@ -526,7 +528,7 @@ app.get('/api/generate-site/:sessionId', async (req, res) => {
       }
       results.push(result);
       completed++;
-      send({
+      emit({
         type: 'progress',
         pageTitle:  job.pageTitle,
         pageType:   job.pageType,
@@ -587,7 +589,7 @@ app.get('/api/generate-site/:sessionId', async (req, res) => {
     }
   }
 
-  send({
+  emit({
     type: 'complete',
     downloadId,
     pageTypes,
@@ -600,7 +602,60 @@ app.get('/api/generate-site/:sessionId', async (req, res) => {
     },
   });
 
-  res.end();
+  session.jobStatus = 'complete';
+}
+
+app.get('/api/generate-site/:sessionId', async (req, res) => {
+  const session = sessions.get(req.params.sessionId);
+  if (!session) return res.status(404).json({ error: 'Session not found or expired.' });
+
+  // Start the background job at most once per session — a reconnecting client
+  // (after a dropped SSE connection) must attach as a listener, not restart the run.
+  if (!session.jobStatus) {
+    session.jobStatus = 'running';
+    session.eventLog  = [];
+    session.emitter    = new EventEmitter();
+    runGenerationJob(session).catch(err => {
+      console.error('[generate] Background job crashed:', err);
+      session.jobStatus = 'complete';
+      session.emitter.emit('event', { type: 'error', message: err.message });
+    });
+  }
+
+  res.setHeader('Content-Type', 'text/event-stream');
+  res.setHeader('Cache-Control', 'no-cache');
+  res.setHeader('Connection', 'keep-alive');
+  res.flushHeaders();
+
+  const send = data => res.write(`data: ${JSON.stringify(data)}\n\n`);
+
+  // Replay everything that happened before this connection attached (covers
+  // both a fresh start and a client reconnecting after a drop).
+  for (const event of session.eventLog) send(event);
+
+  // If the job already finished before this connection attached, just end.
+  if (session.jobStatus === 'complete' && session.eventLog.some(e => e.type === 'complete' || e.type === 'error')) {
+    return res.end();
+  }
+
+  // SSE comment line (ignored by EventSource) — keeps Railway's idle timeout
+  // from closing the connection during long gaps between page completions.
+  const keepalive = setInterval(() => res.write(':keepalive\n\n'), 20000);
+
+  const onEvent = data => {
+    send(data);
+    if (data.type === 'complete' || data.type === 'error') {
+      clearInterval(keepalive);
+      session.emitter.off('event', onEvent);
+      res.end();
+    }
+  };
+  session.emitter.on('event', onEvent);
+
+  req.on('close', () => {
+    clearInterval(keepalive);
+    session.emitter.off('event', onEvent);
+  });
 });
 
 app.get('/api/download/:downloadId', (req, res) => {
