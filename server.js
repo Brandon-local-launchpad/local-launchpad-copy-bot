@@ -490,23 +490,45 @@ app.post('/api/session/:sessionId/select', (req, res) => {
 // Progress is broadcast on session.emitter and buffered in session.eventLog so
 // a reconnecting client can replay everything it missed before subscribing to
 // what's still to come.
-async function runGenerationJob(session) {
+async function runGenerationJob(session, startIndex = 0) {
   const emit = data => {
     session.eventLog.push(data);
     session.emitter.emit('event', data);
   };
 
   const { trade, skippedPages, keyValueMap, serviceParentMap, onboardingText, geoResearch, selectedSlugs } = session;
-  const jobs = selectedSlugs ? session.jobs.filter(j => selectedSlugs.has(j.urlSlug)) : session.jobs;
+  const allJobs = selectedSlugs ? session.jobs.filter(j => selectedSlugs.has(j.urlSlug)) : session.jobs;
+  const jobs    = startIndex > 0 ? allJobs.slice(startIndex) : allJobs;
   const calibrationPack  = CALIBRATION_PACKS[trade];
   const client           = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
   const customValuesText = Object.entries(keyValueMap).map(([k, v]) => `${k}: ${v}`).join('\n');
 
-  const results  = [];
-  let completed  = 0;
-  const total    = jobs.length;
+  // Save raw assets up front (not at the end) so single-page regeneration has
+  // what it needs even if this run is later interrupted partway through.
+  if (session.clientId && pool) {
+    try {
+      await pool.query(`DELETE FROM client_assets WHERE client_id = $1`, [session.clientId]);
+      const assetRows = [
+        { type: 'geo_research', content: geoResearch },
+        { type: 'onboarding',   content: onboardingText },
+        ...(session.rawCustomValuesCsvs || []).map(content => ({ type: 'custom_values', content })),
+      ];
+      for (const asset of assetRows) {
+        await pool.query(
+          `INSERT INTO client_assets (client_id, asset_type, content) VALUES ($1, $2, $3)`,
+          [session.clientId, asset.type, asset.content]
+        );
+      }
+    } catch (dbErr) {
+      console.error('[DB] Asset save error:', dbErr.message);
+    }
+  }
 
-  emit({ type: 'start', total });
+  const results    = [];
+  let completed    = startIndex;
+  const total      = allJobs.length;
+
+  emit({ type: 'start', total, startIndex, resuming: startIndex > 0 });
 
   for (let i = 0; i < jobs.length; i += 10) {
     const batch = jobs.slice(i, i + 10);
@@ -528,6 +550,26 @@ async function runGenerationJob(session) {
       }
       results.push(result);
       completed++;
+
+      // Save this page to the DB immediately — not batched at the end — so
+      // progress survives even a full process crash, not just a dropped SSE
+      // connection. This is what makes "resume from page N" actually safe:
+      // every page before N is guaranteed to already be persisted.
+      if (result.status === 'done' && session.clientId && pool) {
+        try {
+          await pool.query(
+            `INSERT INTO pages (client_id, page_type, page_title, url_slug, h1, copy_output, issues, generated_at)
+             VALUES ($1,$2,$3,$4,$5,$6,$7,NOW())
+             ON CONFLICT (client_id, url_slug) DO UPDATE
+               SET copy_output = EXCLUDED.copy_output, issues = EXCLUDED.issues,
+                   generated_at = NOW(), edited_at = NULL`,
+            [session.clientId, result.pageType, result.pageTitle, result.urlSlug, result.h1, result.output, JSON.stringify(result.issues)]
+          );
+        } catch (dbErr) {
+          console.error(`[DB] Page save error for ${result.urlSlug}:`, dbErr.message);
+        }
+      }
+
       emit({
         type: 'progress',
         pageTitle:  job.pageTitle,
@@ -555,38 +597,8 @@ async function runGenerationJob(session) {
   const doneResults  = results.filter(r => r.status === 'done');
   const pageTypes    = [...new Set(doneResults.map(r => r.pageType))];
 
-  // Save to DB if this session is tied to a client and DB is available
   if (session.clientId && pool) {
-    try {
-      // Save raw assets so single-page regeneration has everything it needs
-      // Delete and reinsert so re-runs always use the latest uploaded files
-      await pool.query(`DELETE FROM client_assets WHERE client_id = $1`, [session.clientId]);
-      const assetRows = [
-        { type: 'geo_research', content: geoResearch },
-        { type: 'onboarding',   content: onboardingText },
-        ...(session.rawCustomValuesCsvs || []).map(content => ({ type: 'custom_values', content })),
-      ];
-      for (const asset of assetRows) {
-        await pool.query(
-          `INSERT INTO client_assets (client_id, asset_type, content) VALUES ($1, $2, $3)`,
-          [session.clientId, asset.type, asset.content]
-        );
-      }
-      // Upsert each completed page
-      for (const r of doneResults) {
-        await pool.query(
-          `INSERT INTO pages (client_id, page_type, page_title, url_slug, h1, copy_output, issues, generated_at)
-           VALUES ($1,$2,$3,$4,$5,$6,$7,NOW())
-           ON CONFLICT (client_id, url_slug) DO UPDATE
-             SET copy_output = EXCLUDED.copy_output, issues = EXCLUDED.issues,
-                 generated_at = NOW(), edited_at = NULL`,
-          [session.clientId, r.pageType, r.pageTitle, r.urlSlug, r.h1, r.output, JSON.stringify(r.issues)]
-        );
-      }
-      console.log(`[DB] Saved ${doneResults.length} pages for client ${session.clientId}`);
-    } catch (dbErr) {
-      console.error('[DB] Save error:', dbErr.message);
-    }
+    console.log(`[DB] Saved ${doneResults.length} pages for client ${session.clientId} (this run, starting at index ${startIndex})`);
   }
 
   emit({
@@ -611,11 +623,16 @@ app.get('/api/generate-site/:sessionId', async (req, res) => {
 
   // Start the background job at most once per session — a reconnecting client
   // (after a dropped SSE connection) must attach as a listener, not restart the run.
+  // ?startIndex=N lets a fresh session manually skip the first N pages — for
+  // resuming after a catastrophic restart wiped the original session's memory
+  // entirely, where pages before N are already known-saved in the database.
   if (!session.jobStatus) {
+    const rawStartIndex = parseInt(req.query.startIndex, 10);
+    const startIndex     = Number.isInteger(rawStartIndex) && rawStartIndex > 0 ? rawStartIndex : 0;
     session.jobStatus = 'running';
     session.eventLog  = [];
     session.emitter    = new EventEmitter();
-    runGenerationJob(session).catch(err => {
+    runGenerationJob(session, startIndex).catch(err => {
       console.error('[generate] Background job crashed:', err);
       session.jobStatus = 'complete';
       session.emitter.emit('event', { type: 'error', message: err.message });

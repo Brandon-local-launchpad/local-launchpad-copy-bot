@@ -258,6 +258,12 @@
       Generate All Pages
     </button>
 
+    <div id="resumeRow" style="display:none; align-items:center; gap:10px; justify-content:center; margin-top:10px;">
+      <label for="resumeFromPage" style="font-size:13px;color:var(--muted)">Resume from page #</label>
+      <input type="number" id="resumeFromPage" min="1" placeholder="e.g. 28" style="width:80px;padding:6px 8px;border-radius:6px;border:1px solid var(--border);background:var(--surface2);color:var(--text);font-family:var(--font);font-size:13px;" />
+      <button class="btn btn-ghost" style="width:auto;padding:8px 14px;" onclick="startGeneration(true)">Resume</button>
+    </div>
+
     <div id="selectionToggleRow" style="display:none; text-align:center; margin-top:10px;">
       <button class="btn-link-toggle" id="selectionToggleBtn" onclick="toggleSelectionMode()">
         &#9662; Select Pages to Generate
@@ -469,6 +475,7 @@
       const btn = document.getElementById('generateBtn');
       btn.style.display = 'block';
       btn.textContent   = `Generate All ${data.summary.total} Pages`;
+      document.getElementById('resumeRow').style.display = 'flex';
       document.getElementById('selectionToggleRow').style.display = 'block';
       document.getElementById('selectionPanel').style.display = 'none';
       document.getElementById('selectionToggleBtn').textContent = '▾ Select Pages to Generate';
@@ -601,7 +608,7 @@
 
   // ── Generate ──────────────────────────────────────────────────────────────
 
-  async function startGeneration() {
+  async function startGeneration(isResume) {
     // If a custom selection exists, persist it to the session before streaming
     if (selectionOpen && selectedSlugs !== null && selectedSlugs.size < allJobs.length) {
       await fetch(`/api/session/${sessionId}/select`, {
@@ -611,14 +618,22 @@
       });
     }
     goTo(4);
-    const evtSource = new EventSource(`/api/generate-site/${sessionId}`);
+    let url = `/api/generate-site/${sessionId}`;
+    if (isResume) {
+      const n = parseInt(document.getElementById('resumeFromPage').value, 10);
+      if (Number.isInteger(n) && n > 1) url += `?startIndex=${n - 1}`;
+    }
+    const evtSource = new EventSource(url);
 
     evtSource.onmessage = e => {
       const d = JSON.parse(e.data);
 
       if (d.type === 'start') {
         totalJobs = d.total;
-        document.getElementById('progressText').textContent = `0 / ${totalJobs} pages complete`;
+        const startAt = d.startIndex || 0;
+        document.getElementById('progressText').textContent = d.resuming
+          ? `Resuming from page ${startAt + 1} — ${startAt} / ${totalJobs} pages already complete`
+          : `0 / ${totalJobs} pages complete`;
       }
 
       if (d.type === 'progress') {
