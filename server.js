@@ -14,7 +14,6 @@ const Anthropic  = require('@anthropic-ai/sdk');
 const fs         = require('fs');
 const path       = require('path');
 const crypto     = require('crypto');
-const { EventEmitter } = require('events');
 const multer     = require('multer');
 const Papa       = require('papaparse');
 const JSZip      = require('jszip');
@@ -144,11 +143,16 @@ const CALIBRATION_PACK = CALIBRATION_PACKS[AVAILABLE_TRADES[0]] || '';
 
 const sessions  = new Map();
 const downloads = new Map();
+// Batch jobs can take Anthropic up to 24h to finish — kept in memory as a fast
+// path, with Postgres (batch_jobs table) as the durable fallback so a status
+// check still works after a server restart, as long as DB is configured.
+const batchJobs = new Map();
 
 setInterval(() => {
   const now = Date.now();
-  for (const [id, s] of sessions)  { if (now - s.createdAt > 2 * 3600000) sessions.delete(id); }
-  for (const [id, d] of downloads) { if (now - d.createdAt > 4 * 3600000) downloads.delete(id); }
+  for (const [id, s] of sessions)   { if (now - s.createdAt > 2 * 3600000)  sessions.delete(id); }
+  for (const [id, d] of downloads)  { if (now - d.createdAt > 4 * 3600000)  downloads.delete(id); }
+  for (const [id, b] of batchJobs)  { if (now - b.createdAt > 48 * 3600000) batchJobs.delete(id); }
 }, 3600000);
 
 // ── File upload middleware ────────────────────────────────────────────────────
@@ -499,78 +503,170 @@ app.post('/api/session/:sessionId/select', (req, res) => {
   res.json({ ok: true, count: session.selectedSlugs ? session.selectedSlugs.size : session.jobs.length });
 });
 
-// Runs the actual generation work against a session, independent of any HTTP
-// response — so the job survives an SSE client disconnecting mid-run (Railway
-// has been observed dropping the connection after ~27 pages on large batches).
-// Progress is broadcast on session.emitter and buffered in session.eventLog so
-// a reconnecting client can replay everything it missed before subscribing to
-// what's still to come.
-async function runGenerationJob(session, startIndex = 0) {
-  const emit = data => {
-    session.eventLog.push(data);
-    session.emitter.emit('event', data);
+// ── Batch generation (Anthropic Message Batches API) ──────────────────────────
+//
+// Replaces the old synchronous-loop-over-SSE approach: every page in the run
+// is submitted as one independent request inside a single Anthropic batch.
+// Anthropic processes the whole batch asynchronously (can take minutes to up
+// to 24h) — there is no live per-page progress stream to hold open, which
+// sidesteps the Railway idle-timeout/connection-drop problem entirely rather
+// than working around it. The VA submits once, then polls a status endpoint
+// whenever they want to check in.
+
+async function loadBatchRecord(batchId) {
+  if (batchJobs.has(batchId)) return batchJobs.get(batchId);
+  if (!pool) return null;
+  const { rows } = await pool.query('SELECT * FROM batch_jobs WHERE id = $1', [batchId]);
+  if (!rows.length) return null;
+  const row = rows[0];
+  const record = {
+    id: row.id, clientId: row.client_id, anthropicBatchId: row.anthropic_batch_id,
+    trade: row.trade, jobsMeta: row.jobs_meta, customValuesText: row.custom_values_text,
+    skippedPages: row.skipped_pages, companyName: row.company_name, total: row.total,
+    status: row.status, downloadId: row.download_id, createdAt: new Date(row.created_at).getTime(),
+    finalSummary: row.status === 'complete' ? { downloadId: row.download_id } : null,
   };
+  batchJobs.set(batchId, record);
+  return record;
+}
 
-  const { trade, skippedPages, keyValueMap, serviceParentMap, onboardingText, geoResearch, selectedSlugs } = session;
-  const allJobs = selectedSlugs ? session.jobs.filter(j => selectedSlugs.has(j.urlSlug)) : session.jobs;
-  const jobs    = startIndex > 0 ? allJobs.slice(startIndex) : allJobs;
-  const calibrationPack  = CALIBRATION_PACKS[trade];
-  const client           = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
-  const customValuesText = Object.entries(keyValueMap).map(([k, v]) => `${k}: ${v}`).join('\n');
-
-  // Save raw assets up front (not at the end) so single-page regeneration has
-  // what it needs even if this run is later interrupted partway through.
-  if (session.clientId && pool) {
-    try {
-      await pool.query(`DELETE FROM client_assets WHERE client_id = $1`, [session.clientId]);
-      const assetRows = [
-        { type: 'geo_research', content: geoResearch },
-        { type: 'onboarding',   content: onboardingText },
-        ...(session.rawCustomValuesCsvs || []).map(content => ({ type: 'custom_values', content })),
-      ];
-      for (const asset of assetRows) {
-        await pool.query(
-          `INSERT INTO client_assets (client_id, asset_type, content) VALUES ($1, $2, $3)`,
-          [session.clientId, asset.type, asset.content]
-        );
-      }
-    } catch (dbErr) {
-      console.error('[DB] Asset save error:', dbErr.message);
-    }
+async function persistBatchRecord(record) {
+  if (!pool) return;
+  try {
+    await pool.query(
+      `INSERT INTO batch_jobs (id, client_id, anthropic_batch_id, trade, jobs_meta, custom_values_text, skipped_pages, company_name, total, status, download_id, created_at, completed_at)
+       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,to_timestamp($12/1000.0),CASE WHEN $10 = 'complete' THEN NOW() ELSE NULL END)
+       ON CONFLICT (id) DO UPDATE SET status = EXCLUDED.status, download_id = EXCLUDED.download_id,
+         completed_at = CASE WHEN EXCLUDED.status = 'complete' THEN NOW() ELSE batch_jobs.completed_at END`,
+      [record.id, record.clientId, record.anthropicBatchId, record.trade, JSON.stringify(record.jobsMeta),
+       record.customValuesText, JSON.stringify(record.skippedPages), record.companyName, record.total,
+       record.status, record.downloadId || null, record.createdAt]
+    );
+  } catch (dbErr) {
+    console.error('[DB] Batch record save error:', dbErr.message);
   }
+}
 
-  const results    = [];
-  let completed    = startIndex;
-  const total      = allJobs.length;
+app.post('/api/generate-batch/:sessionId', async (req, res) => {
+  const session = sessions.get(req.params.sessionId);
+  if (!session) return res.status(404).json({ error: 'Session not found or expired.' });
 
-  emit({ type: 'start', total, startIndex, resuming: startIndex > 0 });
+  try {
+    const { trade, skippedPages, keyValueMap, serviceParentMap, onboardingText, geoResearch, selectedSlugs, clientId } = session;
+    const allJobs = selectedSlugs ? session.jobs.filter(j => selectedSlugs.has(j.urlSlug)) : session.jobs;
+    const rawStartIndex = parseInt(req.body.startIndex, 10);
+    const startIndex     = Number.isInteger(rawStartIndex) && rawStartIndex > 0 ? rawStartIndex : 0;
+    const jobs           = startIndex > 0 ? allJobs.slice(startIndex) : allJobs;
+    if (!jobs.length) return res.status(400).json({ error: 'No pages to generate (check startIndex against the total page count).' });
 
-  for (let i = 0; i < jobs.length; i += 10) {
-    const batch = jobs.slice(i, i + 10);
+    const calibrationPack  = CALIBRATION_PACKS[trade];
+    const customValuesText = Object.entries(keyValueMap).map(([k, v]) => `${k}: ${v}`).join('\n');
+    const client            = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
 
-    await Promise.all(batch.map(async job => {
-      let result;
+    const requests = jobs.map((job, i) => {
+      const promptParts = buildSitePrompt(job, calibrationPack, keyValueMap, serviceParentMap, geoResearch, onboardingText);
+      const maxTokens    = (job.pageType === 'category' || job.pageType === 'location-category') ? 16000 : 8192;
+      return {
+        custom_id: `p${i}`,
+        params: {
+          model: 'claude-sonnet-4-6',
+          max_tokens: maxTokens,
+          system: promptParts.system,
+          messages: [{ role: 'user', content: promptParts.userContent }],
+        },
+      };
+    });
+
+    const batch = await client.messages.batches.create({ requests });
+
+    // Save client_assets up front so single-page regeneration works even before
+    // this batch finishes.
+    if (clientId && pool) {
       try {
-        const prompt = buildSitePrompt(job, calibrationPack, keyValueMap, serviceParentMap, geoResearch, onboardingText);
-        const maxTokens = (job.pageType === 'category' || job.pageType === 'location-category') ? 16000 : 8192;
-        const message = await callClaude(client, prompt, maxTokens);
-        const output  = message.content.filter(b => b.type === 'text').map(b => b.text).join('');
-        const issues  = validate(output, job.h1, customValuesText, job.pageType, {
+        await pool.query(`DELETE FROM client_assets WHERE client_id = $1`, [clientId]);
+        const assetRows = [
+          { type: 'geo_research', content: geoResearch },
+          { type: 'onboarding',   content: onboardingText },
+          ...(session.rawCustomValuesCsvs || []).map(content => ({ type: 'custom_values', content })),
+        ];
+        for (const asset of assetRows) {
+          await pool.query(`INSERT INTO client_assets (client_id, asset_type, content) VALUES ($1, $2, $3)`, [clientId, asset.type, asset.content]);
+        }
+      } catch (dbErr) {
+        console.error('[DB] Asset save error:', dbErr.message);
+      }
+    }
+
+    const batchId = crypto.randomUUID();
+    const companyName = keyValueMap['company_name'] || '';
+    const record = {
+      id: batchId,
+      clientId: clientId || null,
+      anthropicBatchId: batch.id,
+      trade,
+      jobsMeta: jobs.map(j => ({ pageType: j.pageType, pageTitle: j.pageTitle, urlSlug: j.urlSlug, h1: j.h1, locationName: j.locationName, locationCategoryName: j.locationCategoryName })),
+      customValuesText,
+      skippedPages: startIndex > 0 ? [] : skippedPages, // avoid double-listing skipped pages across resumed sub-batches
+      companyName,
+      total: jobs.length,
+      status: 'in_progress',
+      downloadId: null,
+      createdAt: Date.now(),
+    };
+    batchJobs.set(batchId, record);
+    await persistBatchRecord(record);
+
+    res.json({ batchId, anthropicBatchId: batch.id, total: jobs.length, startIndex });
+  } catch (err) {
+    console.error('[generate-batch] Submission error:', err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.get('/api/batch-status/:batchId', async (req, res) => {
+  try {
+    const record = await loadBatchRecord(req.params.batchId);
+    if (!record) return res.status(404).json({ error: 'Batch not found or expired.' });
+
+    if (record.status === 'complete') {
+      return res.json({ status: 'complete', downloadId: record.downloadId, total: record.total, summary: record.finalSummary });
+    }
+
+    const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
+    const anthropicBatch = await client.messages.batches.retrieve(record.anthropicBatchId);
+
+    if (anthropicBatch.processing_status !== 'ended') {
+      return res.json({
+        status: 'in_progress',
+        processingStatus: anthropicBatch.processing_status,
+        counts: anthropicBatch.request_counts,
+        total: record.total,
+      });
+    }
+
+    // Batch has ended — pull results, validate each, save to DB, build the download.
+    const results = new Array(record.jobsMeta.length);
+    for await (const line of await client.messages.batches.results(record.anthropicBatchId)) {
+      const idx = parseInt(line.custom_id.slice(1), 10);
+      const job = record.jobsMeta[idx];
+      if (!job) continue;
+
+      if (line.result.type === 'succeeded') {
+        const message = line.result.message;
+        const output   = message.content.filter(b => b.type === 'text').map(b => b.text).join('');
+        const issues   = validate(output, job.h1, record.customValuesText, job.pageType, {
           pageTitle: job.pageTitle, locationName: job.locationName, locationCategoryName: job.locationCategoryName,
         });
-        result = { ...job, output, issues, usage: message.usage, status: 'done', error: null };
-      } catch (err) {
-        console.error(`[generate] FAILED ${job.urlSlug} (${job.pageType}):`, err);
-        result = { ...job, output: '', issues: [], usage: null, status: 'failed', error: err.message };
+        results[idx] = { ...job, output, issues, usage: message.usage, status: 'done', error: null };
+      } else {
+        results[idx] = { ...job, output: '', issues: [], usage: null, status: 'failed', error: `Batch result: ${line.result.type}` };
       }
-      results.push(result);
-      completed++;
+    }
 
-      // Save this page to the DB immediately — not batched at the end — so
-      // progress survives even a full process crash, not just a dropped SSE
-      // connection. This is what makes "resume from page N" actually safe:
-      // every page before N is guaranteed to already be persisted.
-      if (result.status === 'done' && session.clientId && pool) {
+    // Save each completed page to the DB.
+    if (record.clientId && pool) {
+      for (const r of results) {
+        if (!r || r.status !== 'done') continue;
         try {
           await pool.query(
             `INSERT INTO pages (client_id, page_type, page_title, url_slug, h1, copy_output, issues, generated_at)
@@ -578,133 +674,51 @@ async function runGenerationJob(session, startIndex = 0) {
              ON CONFLICT (client_id, url_slug) DO UPDATE
                SET copy_output = EXCLUDED.copy_output, issues = EXCLUDED.issues,
                    generated_at = NOW(), edited_at = NULL`,
-            [session.clientId, result.pageType, result.pageTitle, result.urlSlug, result.h1, result.output, JSON.stringify(result.issues)]
+            [record.clientId, r.pageType, r.pageTitle, r.urlSlug, r.h1, r.output, JSON.stringify(r.issues)]
           );
         } catch (dbErr) {
-          console.error(`[DB] Page save error for ${result.urlSlug}:`, dbErr.message);
+          console.error(`[DB] Page save error for ${r.urlSlug}:`, dbErr.message);
         }
       }
-
-      emit({
-        type: 'progress',
-        pageTitle:  job.pageTitle,
-        pageType:   job.pageType,
-        urlSlug:    job.urlSlug,
-        status:     result.status,
-        issueCount: (result.issues || []).length,
-        completed,
-        total,
-      });
-    }));
-
-    if (i + 10 < jobs.length) await sleep(2000);
-  }
-
-  const companyName   = keyValueMap['company_name'] || '';
-  const outputText    = buildOutputFile(results, skippedPages, companyName);
-  const downloadId    = crypto.randomUUID();
-  const safeClient    = companyName.replace(/[^a-zA-Z0-9_-]/g, '_') || 'output';
-  downloads.set(downloadId, { createdAt: Date.now(), text: outputText, filename: `${safeClient}_copy_bot_output.txt`, results, safeClient });
-
-  // With prompt caching, usage splits into separate fields billed at different
-  // rates: input_tokens (uncached, full price), cache_creation_input_tokens
-  // (first write to cache, 1.25x input price), cache_read_input_tokens (cache
-  // hit, 0.1x input price). Summing only input_tokens+output_tokens would
-  // silently undercount cost once caching is active, since cached tokens are
-  // never included in input_tokens.
-  const inputTokens       = results.reduce((s, r) => s + (r.usage?.input_tokens               || 0), 0);
-  const outputTokens      = results.reduce((s, r) => s + (r.usage?.output_tokens              || 0), 0);
-  const cacheWriteTokens  = results.reduce((s, r) => s + (r.usage?.cache_creation_input_tokens || 0), 0);
-  const cacheReadTokens   = results.reduce((s, r) => s + (r.usage?.cache_read_input_tokens     || 0), 0);
-
-  const doneResults  = results.filter(r => r.status === 'done');
-  const pageTypes    = [...new Set(doneResults.map(r => r.pageType))];
-
-  if (session.clientId && pool) {
-    console.log(`[DB] Saved ${doneResults.length} pages for client ${session.clientId} (this run, starting at index ${startIndex})`);
-  }
-
-  const actualCost = (
-    (inputTokens      / 1e6) * 3 +
-    (cacheWriteTokens / 1e6) * 3.75 +
-    (cacheReadTokens  / 1e6) * 0.30 +
-    (outputTokens     / 1e6) * 15
-  ).toFixed(2);
-
-  emit({
-    type: 'complete',
-    downloadId,
-    pageTypes,
-    summary: {
-      done:         doneResults.length,
-      failed:       results.filter(r => r.status === 'failed').length,
-      inputTokens,
-      outputTokens,
-      cacheWriteTokens,
-      cacheReadTokens,
-      actualCost,
-    },
-  });
-
-  session.jobStatus = 'complete';
-}
-
-app.get('/api/generate-site/:sessionId', async (req, res) => {
-  const session = sessions.get(req.params.sessionId);
-  if (!session) return res.status(404).json({ error: 'Session not found or expired.' });
-
-  // Start the background job at most once per session — a reconnecting client
-  // (after a dropped SSE connection) must attach as a listener, not restart the run.
-  // ?startIndex=N lets a fresh session manually skip the first N pages — for
-  // resuming after a catastrophic restart wiped the original session's memory
-  // entirely, where pages before N are already known-saved in the database.
-  if (!session.jobStatus) {
-    const rawStartIndex = parseInt(req.query.startIndex, 10);
-    const startIndex     = Number.isInteger(rawStartIndex) && rawStartIndex > 0 ? rawStartIndex : 0;
-    session.jobStatus = 'running';
-    session.eventLog  = [];
-    session.emitter    = new EventEmitter();
-    runGenerationJob(session, startIndex).catch(err => {
-      console.error('[generate] Background job crashed:', err);
-      session.jobStatus = 'complete';
-      session.emitter.emit('event', { type: 'error', message: err.message });
-    });
-  }
-
-  res.setHeader('Content-Type', 'text/event-stream');
-  res.setHeader('Cache-Control', 'no-cache');
-  res.setHeader('Connection', 'keep-alive');
-  res.flushHeaders();
-
-  const send = data => res.write(`data: ${JSON.stringify(data)}\n\n`);
-
-  // Replay everything that happened before this connection attached (covers
-  // both a fresh start and a client reconnecting after a drop).
-  for (const event of session.eventLog) send(event);
-
-  // If the job already finished before this connection attached, just end.
-  if (session.jobStatus === 'complete' && session.eventLog.some(e => e.type === 'complete' || e.type === 'error')) {
-    return res.end();
-  }
-
-  // SSE comment line (ignored by EventSource) — keeps Railway's idle timeout
-  // from closing the connection during long gaps between page completions.
-  const keepalive = setInterval(() => res.write(':keepalive\n\n'), 20000);
-
-  const onEvent = data => {
-    send(data);
-    if (data.type === 'complete' || data.type === 'error') {
-      clearInterval(keepalive);
-      session.emitter.off('event', onEvent);
-      res.end();
     }
-  };
-  session.emitter.on('event', onEvent);
 
-  req.on('close', () => {
-    clearInterval(keepalive);
-    session.emitter.off('event', onEvent);
-  });
+    const outputText = buildOutputFile(results.filter(Boolean), record.skippedPages, record.companyName);
+    const downloadId = crypto.randomUUID();
+    const safeClient  = record.companyName.replace(/[^a-zA-Z0-9_-]/g, '_') || 'output';
+    downloads.set(downloadId, { createdAt: Date.now(), text: outputText, filename: `${safeClient}_copy_bot_output.txt`, results: results.filter(Boolean), safeClient });
+
+    // Batch API pricing is 50% off standard rates. Prompt caching discounts
+    // (cache writes 1.25x input, cache reads 0.1x input) still apply on top.
+    const inputTokens      = results.reduce((s, r) => s + (r?.usage?.input_tokens               || 0), 0);
+    const outputTokens     = results.reduce((s, r) => s + (r?.usage?.output_tokens              || 0), 0);
+    const cacheWriteTokens  = results.reduce((s, r) => s + (r?.usage?.cache_creation_input_tokens || 0), 0);
+    const cacheReadTokens   = results.reduce((s, r) => s + (r?.usage?.cache_read_input_tokens     || 0), 0);
+    const doneResults  = results.filter(r => r && r.status === 'done');
+    const pageTypes    = [...new Set(doneResults.map(r => r.pageType))];
+    const actualCost = (
+      (inputTokens      / 1e6) * (3    / 2) +
+      (cacheWriteTokens / 1e6) * (3.75 / 2) +
+      (cacheReadTokens  / 1e6) * (0.30 / 2) +
+      (outputTokens     / 1e6) * (15   / 2)
+    ).toFixed(2);
+
+    const summary = {
+      done:         doneResults.length,
+      failed:       results.filter(r => r && r.status === 'failed').length,
+      inputTokens, outputTokens, cacheWriteTokens, cacheReadTokens, actualCost,
+    };
+
+    record.status      = 'complete';
+    record.downloadId  = downloadId;
+    record.finalSummary = { downloadId, pageTypes, summary };
+    batchJobs.set(record.id, record);
+    await persistBatchRecord(record);
+
+    res.json({ status: 'complete', downloadId, pageTypes, summary, total: record.total });
+  } catch (err) {
+    console.error('[batch-status] Error:', err);
+    res.status(500).json({ error: err.message });
+  }
 });
 
 app.get('/api/download/:downloadId', (req, res) => {

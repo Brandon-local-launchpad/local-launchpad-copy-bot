@@ -38,6 +38,22 @@ async function initDb() {
       edited_at     TIMESTAMPTZ,
       UNIQUE(client_id, url_slug)
     );
+
+    CREATE TABLE IF NOT EXISTS batch_jobs (
+      id                  UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+      client_id           UUID REFERENCES clients(id) ON DELETE SET NULL,
+      anthropic_batch_id  TEXT NOT NULL,
+      trade               TEXT,
+      jobs_meta           JSONB NOT NULL,
+      custom_values_text  TEXT,
+      skipped_pages       JSONB NOT NULL DEFAULT '[]',
+      company_name        TEXT,
+      total               INTEGER NOT NULL,
+      status              TEXT NOT NULL DEFAULT 'in_progress',
+      download_id         TEXT,
+      created_at          TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      completed_at        TIMESTAMPTZ
+    );
   `);
   console.log('DB schema ready');
 }

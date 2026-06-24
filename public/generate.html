@@ -254,14 +254,14 @@
     </div>
 
     <div id="generateError" style="display:none"></div>
-    <button class="btn btn-primary" id="generateBtn" onclick="startGeneration()" style="display:none">
+    <button class="btn btn-primary" id="generateBtn" onclick="submitBatch()" style="display:none">
       Generate All Pages
     </button>
 
     <div id="resumeRow" style="display:none; align-items:center; gap:10px; justify-content:center; margin-top:10px;">
       <label for="resumeFromPage" style="font-size:13px;color:var(--muted)">Resume from page #</label>
       <input type="number" id="resumeFromPage" min="1" placeholder="e.g. 28" style="width:80px;padding:6px 8px;border-radius:6px;border:1px solid var(--border);background:var(--surface2);color:var(--text);font-family:var(--font);font-size:13px;" />
-      <button class="btn btn-ghost" style="width:auto;padding:8px 14px;" onclick="startGeneration(true)">Resume</button>
+      <button class="btn btn-ghost" style="width:auto;padding:8px 14px;" onclick="submitBatch(true)">Resume</button>
     </div>
 
     <div id="selectionToggleRow" style="display:none; text-align:center; margin-top:10px;">
@@ -289,14 +289,18 @@
   <div class="step" id="step4">
 
     <div class="card">
-      <div class="card-title">Progress</div>
-      <div class="progress-track"><div class="progress-fill" id="progressFill"></div></div>
-      <p class="progress-text" id="progressText">Starting…</p>
-    </div>
-
-    <div class="card">
-      <div class="card-title">Live Log</div>
-      <div class="live-log" id="liveLog"></div>
+      <div class="card-title">Batch Status</div>
+      <p id="batchQueuedMsg" style="display:none;color:var(--muted);font-size:14px;margin-bottom:14px;">
+        Batch submitted &mdash; <strong id="batchTotalText"></strong> pages queued with Anthropic. Batches are
+        processed asynchronously and can take anywhere from a few minutes up to 24 hours. Counts below only
+        become accurate once the whole batch finishes &mdash; click Refresh Status any time to check in.
+      </p>
+      <div id="batchCounts" style="display:flex;gap:18px;flex-wrap:wrap;margin-bottom:14px;"></div>
+      <p class="progress-text" id="batchStatusText">Submitting batch…</p>
+      <button class="btn btn-secondary" style="width:auto;padding:9px 16px;margin-top:12px;" id="refreshBtn" onclick="checkBatchStatus()" disabled>
+        &#10227; Refresh Status
+      </button>
+      <p id="batchLink" style="display:none;color:var(--muted);font-size:12px;margin-top:10px;"></p>
     </div>
 
     <div id="doneSection" style="display:none">
@@ -606,10 +610,12 @@
       `${count} of ${total} page${total !== 1 ? 's' : ''} selected — est. $${cost}`;
   }
 
-  // ── Generate ──────────────────────────────────────────────────────────────
+  // ── Generate (Anthropic Batch API) ──────────────────────────────────────────
 
-  async function startGeneration(isResume) {
-    // If a custom selection exists, persist it to the session before streaming
+  let batchId = null;
+
+  async function submitBatch(isResume) {
+    // If a custom selection exists, persist it to the session before submitting
     if (selectionOpen && selectedSlugs !== null && selectedSlugs.size < allJobs.length) {
       await fetch(`/api/session/${sessionId}/select`, {
         method: 'POST',
@@ -618,45 +624,79 @@
       });
     }
     goTo(4);
-    let url = `/api/generate-site/${sessionId}`;
+
+    let startIndex = 0;
     if (isResume) {
       const n = parseInt(document.getElementById('resumeFromPage').value, 10);
-      if (Number.isInteger(n) && n > 1) url += `?startIndex=${n - 1}`;
+      if (Number.isInteger(n) && n > 1) startIndex = n - 1;
     }
-    const evtSource = new EventSource(url);
 
-    evtSource.onmessage = e => {
-      const d = JSON.parse(e.data);
+    document.getElementById('batchStatusText').textContent = 'Submitting batch to Anthropic…';
+    document.getElementById('refreshBtn').disabled = true;
 
-      if (d.type === 'start') {
-        totalJobs = d.total;
-        const startAt = d.startIndex || 0;
-        document.getElementById('progressText').textContent = d.resuming
-          ? `Resuming from page ${startAt + 1} — ${startAt} / ${totalJobs} pages already complete`
-          : `0 / ${totalJobs} pages complete`;
+    try {
+      const res  = await fetch(`/api/generate-batch/${sessionId}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ startIndex }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        document.getElementById('batchStatusText').textContent = `Error: ${data.error || 'Failed to submit batch.'}`;
+        return;
       }
 
-      if (d.type === 'progress') {
-        const pct = totalJobs > 0 ? Math.round((d.completed / totalJobs) * 100) : 0;
-        document.getElementById('progressFill').style.width = pct + '%';
-        document.getElementById('progressText').textContent = `${d.completed} / ${totalJobs} pages complete`;
+      batchId   = data.batchId;
+      totalJobs = data.total;
+      history.replaceState(null, '', `${location.pathname}?batchId=${batchId}`);
 
-        const log        = document.getElementById('liveLog');
-        const hasIssues  = d.issueCount > 0;
-        const badgeClass = d.status === 'failed' ? 'failed' : hasIssues ? 'issues' : 'done';
-        const badgeText  = d.status === 'failed' ? 'FAILED' : hasIssues ? `${d.issueCount} issue${d.issueCount > 1 ? 's' : ''}` : 'DONE';
-        const row        = document.createElement('div');
-        row.className    = 'log-row';
-        row.innerHTML    = `<span class="log-badge ${badgeClass}">${badgeText}</span><span class="log-type">${h(d.pageType)}</span><span class="log-title">${h(d.pageTitle)}</span><span class="log-slug">${h(d.urlSlug)}</span>`;
-        log.appendChild(row);
-        log.scrollTop = log.scrollHeight;
+      document.getElementById('batchQueuedMsg').style.display = 'block';
+      document.getElementById('batchTotalText').textContent = `${totalJobs}`;
+      document.getElementById('batchStatusText').textContent = 'Queued — click Refresh Status to check progress.';
+      document.getElementById('refreshBtn').disabled = false;
+      document.getElementById('batchLink').style.display = 'block';
+      document.getElementById('batchLink').innerHTML = `Bookmark this page to come back later: <code>${location.href}</code>`;
+    } catch (err) {
+      document.getElementById('batchStatusText').textContent = `Error: ${err.message}`;
+    }
+  }
+
+  async function checkBatchStatus() {
+    if (!batchId) return;
+    const btn = document.getElementById('refreshBtn');
+    btn.disabled = true;
+    btn.textContent = 'Checking…';
+
+    try {
+      const res  = await fetch(`/api/batch-status/${batchId}`);
+      const d    = await res.json();
+      if (!res.ok) {
+        document.getElementById('batchStatusText').textContent = `Error: ${d.error || 'Status check failed.'}`;
+        return;
       }
 
-      if (d.type === 'complete') {
+      totalJobs = d.total || totalJobs;
+
+      if (d.status === 'in_progress') {
+        const c = d.counts || {};
+        document.getElementById('batchStatusText').textContent =
+          `Still processing — Anthropic does not report per-page counts until the whole batch finishes.`;
+        document.getElementById('batchCounts').innerHTML = `
+          <span><strong>${c.processing ?? totalJobs}</strong> processing</span>
+          <span><strong>${c.succeeded  ?? 0}</strong> succeeded</span>
+          <span><strong>${c.errored   ?? 0}</strong> errored</span>
+        `;
+        return;
+      }
+
+      if (d.status === 'complete') {
+        const s = d.summary;
         downloadId = d.downloadId;
-        const s    = d.summary;
-        document.getElementById('progressFill').style.width = '100%';
-        document.getElementById('progressText').textContent = `${s.done} / ${totalJobs} pages complete`;
+        document.getElementById('batchStatusText').textContent = 'Batch complete.';
+        document.getElementById('batchCounts').innerHTML = `
+          <span><strong>${s.done}</strong> succeeded</span>
+          <span><strong>${s.failed}</strong> failed</span>
+        `;
 
         const failNote = s.failed > 0 ? ` &mdash; ${s.failed} failed` : '';
         document.getElementById('doneSubtitle').innerHTML = `${s.done} pages generated successfully${failNote}`;
@@ -670,46 +710,48 @@
           `<span><strong>$${h(s.actualCost)}</strong> actual cost</span>` +
           cacheNote;
 
-        // Render per-type download buttons
         const labels = { homepage: 'Homepage', category: 'Category Pages', service: 'Service Pages', location: 'Location Pages', 'location-category': 'Location-Category Pages' };
         const container = document.getElementById('byTypeButtons');
         container.innerHTML = '';
         (d.pageTypes || []).forEach(pt => {
-          const btn = document.createElement('button');
-          btn.className = 'btn btn-secondary';
-          btn.textContent = labels[pt] || pt;
-          btn.onclick = () => downloadByType(pt);
-          container.appendChild(btn);
+          const btn2 = document.createElement('button');
+          btn2.className = 'btn btn-secondary';
+          btn2.textContent = labels[pt] || pt;
+          btn2.onclick = () => downloadByType(pt);
+          container.appendChild(btn2);
         });
         document.getElementById('byTypeCard').style.display = (d.pageTypes || []).length ? '' : 'none';
-
         document.getElementById('doneSection').style.display = 'block';
-        evtSource.close();
       }
-    };
-
-    evtSource.onerror = () => {
-      // Don't close() here — EventSource auto-reconnects to the same URL by
-      // default, and the server keeps the job running and replays anything
-      // missed once the new connection attaches. Closing here would kill that
-      // auto-reconnect and strand the user on a dead connection while the job
-      // keeps running (and saving to the DB) in the background.
-      const log  = document.getElementById('liveLog');
-      const row  = document.createElement('div');
-      row.className = 'log-row';
-      row.innerHTML = `<span class="log-badge failed">RECONNECTING</span><span class="log-title">Connection dropped — generation is still running on the server, reconnecting…</span>`;
-      log.appendChild(row);
-    };
+    } catch (err) {
+      document.getElementById('batchStatusText').textContent = `Error: ${err.message}`;
+    } finally {
+      btn.disabled = false;
+      btn.textContent = '⟲ Refresh Status';
+    }
   }
 
   function downloadOutput()        { if (downloadId) window.location.href = `/api/download/${downloadId}`; }
   function downloadByType(pt)      { if (downloadId) window.location.href = `/api/download/${downloadId}/type/${pt}`; }
   function downloadZip()           { if (downloadId) window.location.href = `/api/download/${downloadId}/zip`; }
 
+  // Reopening a bookmarked status-check link: ?batchId=... jumps straight to
+  // Step 4 and checks status immediately, without needing to re-upload anything.
+  (function resumeFromBatchIdInUrl() {
+    const existingBatchId = new URLSearchParams(location.search).get('batchId');
+    if (!existingBatchId) return;
+    batchId = existingBatchId;
+    goTo(4);
+    document.getElementById('refreshBtn').disabled = false;
+    document.getElementById('batchLink').style.display = 'block';
+    document.getElementById('batchLink').innerHTML = `Bookmark this page to come back later: <code>${location.href}</code>`;
+    checkBatchStatus();
+  })();
+
   // Step navigation
   function goTo(n) {
     document.querySelectorAll('.step').forEach((el, i) => el.classList.toggle('active', i + 1 === n));
-    document.getElementById('stepLabel').textContent = ['Step 1 — Upload', 'Step 2 — Confirm Files', 'Step 3 — Review', 'Step 4 — Generating'][n - 1] || '';
+    document.getElementById('stepLabel').textContent = ['Step 1 — Upload', 'Step 2 — Confirm Files', 'Step 3 — Review', 'Step 4 — Batch Status'][n - 1] || '';
     ['dot1','dot2','dot3','dot4'].forEach((id, i) => {
       const d = document.getElementById(id);
       d.className = 'dot' + (i + 1 < n ? ' done' : i + 1 === n ? ' active' : '');
