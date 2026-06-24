@@ -306,18 +306,25 @@ function processH1s(pages, keyValueMap) {
 
 // ── Prompt assembly ───────────────────────────────────────────────────────────
 
+// Restated on every call outside the cached system blocks. The full dash rule
+// lives in CORE_PROMPTS too, but that text sits inside the cache_control
+// prefix (shared/reused across every page in a batch) — repeating it here, in
+// the part of the prompt that is freshly read on every single request,
+// guarantees it can never be skimmed past as "background" cached context.
+const DASH_RULE_REMINDER = '\n\nREMINDER (HIGHEST PRIORITY): No em dashes (—), en dashes (–), or hyphens of any kind may appear anywhere in the output, including compound adjectives and technical compound nouns. Before producing your final result, re-read the entire output and rewrite any line containing a dash or hyphen until zero remain.';
+
 function buildPageContext(job, keyValueMap, serviceParentMap) {
   const { pageType, pageTitle, h1 } = job;
   if (pageType === 'homepage') {
-    return `TARGET PAGE: Homepage\nH1: ${h1}\nNote: Use this H1 directly in the HERO H1 field. Do not output [INSERT H1 FROM AHREFS].`;
+    return `TARGET PAGE: Homepage\nH1: ${h1}\nNote: Use this H1 directly in the HERO H1 field. Do not output [INSERT H1 FROM AHREFS].${DASH_RULE_REMINDER}`;
   }
   if (pageType === 'category') {
-    return `TARGET PAGE: Category Page\nTARGET CATEGORY: ${pageTitle}\nH1: ${h1}\nNote: Use this H1 directly in the HERO H1 field.`;
+    return `TARGET PAGE: Category Page\nTARGET CATEGORY: ${pageTitle}\nH1: ${h1}\nNote: Use this H1 directly in the HERO H1 field.${DASH_RULE_REMINDER}`;
   }
   if (pageType === 'location-category') {
     const categoryName = job.locationCategoryName || pageTitle;
     const locName      = job.locationName ? `\nTARGET LOCATION: ${job.locationName}` : '';
-    return `TARGET PAGE: Location Category Page\nTARGET CATEGORY: ${categoryName}${locName}\nH1: ${h1}\nNote: Use this H1 directly in the HERO H1 field.`;
+    return `TARGET PAGE: Location Category Page\nTARGET CATEGORY: ${categoryName}${locName}\nH1: ${h1}\nNote: Use this H1 directly in the HERO H1 field.${DASH_RULE_REMINDER}`;
   }
   if (pageType === 'service') {
     const serviceKey = Object.keys(keyValueMap).find(k =>
@@ -326,10 +333,10 @@ function buildPageContext(job, keyValueMap, serviceParentMap) {
     const parentCategory = serviceKey
       ? (serviceParentMap[serviceKey] || keyValueMap['category_1'] || '')
       : (keyValueMap['category_1'] || '');
-    return `TARGET PAGE: Service Page\nTARGET SERVICE: ${pageTitle}\nPARENT CATEGORY: ${parentCategory}\nH1: ${h1}\nNote: Use this H1 directly in the HERO H1 field.`;
+    return `TARGET PAGE: Service Page\nTARGET SERVICE: ${pageTitle}\nPARENT CATEGORY: ${parentCategory}\nH1: ${h1}\nNote: Use this H1 directly in the HERO H1 field.${DASH_RULE_REMINDER}`;
   }
   if (pageType === 'location') {
-    return `TARGET PAGE: Location Page\nTARGET LOCATION: ${pageTitle}\nH1: ${h1}\nNote: Use this H1 directly in the HERO H1 field.`;
+    return `TARGET PAGE: Location Page\nTARGET LOCATION: ${pageTitle}\nH1: ${h1}\nNote: Use this H1 directly in the HERO H1 field.${DASH_RULE_REMINDER}`;
   }
   return '';
 }
