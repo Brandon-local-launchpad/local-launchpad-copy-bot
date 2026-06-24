@@ -332,28 +332,43 @@ function buildPageContext(job, keyValueMap, serviceParentMap) {
 
 const CORE_PROMPTS = { homepage: HOMEPAGE_PROMPT, category: CATEGORY_PROMPT, 'location-category': CATEGORY_PROMPT, service: SERVICE_PROMPT, location: LOCATION_PROMPT };
 
+// Returns { system, userContent } instead of one flat string, so the static
+// portion (core prompt + calibration pack + client custom values/geo/onboarding —
+// identical for every page in this batch) can be sent as cacheable system
+// blocks, while only the per-page TARGET PAGE block varies per call. Anthropic
+// caches the longest prefix ending at a cache_control breakpoint, so the
+// breakpoint sits on the LAST static block — everything before it (core prompt,
+// calibration pack) is covered by the same cache hit.
 function buildSitePrompt(job, calibrationPack, keyValueMap, serviceParentMap, geoResearch, onboardingText) {
   const cvList      = Object.entries(keyValueMap).filter(([, v]) => v).map(([k, v]) => `{{custom_values.${k}}}: ${v}`).join('\n');
   console.log('\n── DEBUG cvList (first 20 lines) ──\n' + cvList.split('\n').slice(0, 20).join('\n') + '\n──────────────────────────────────\n');
   const clientBlock = `## CLIENT PROJECT KNOWLEDGE\n\n### GHL Custom Values\n${cvList}\n\n### Geographical Research and Context\n${geoResearch.trim()}\n\n### Client Onboarding Form\n${onboardingText}`;
-  return [
-    CORE_PROMPTS[job.pageType].trim(),
-    '---\n\n' + calibrationPack.trim(),
-    '---\n\n' + buildPageContext(job, keyValueMap, serviceParentMap),
-    '---\n\n' + clientBlock,
-  ].join('\n\n');
+  return {
+    system: [
+      { type: 'text', text: CORE_PROMPTS[job.pageType].trim() },
+      { type: 'text', text: calibrationPack.trim() },
+      { type: 'text', text: clientBlock, cache_control: { type: 'ephemeral' } },
+    ],
+    userContent: buildPageContext(job, keyValueMap, serviceParentMap),
+  };
 }
 
 // ── Anthropic call with 429 retry ─────────────────────────────────────────────
 
-async function callClaude(client, prompt, maxTokens = 8192) {
-  const params = { model: 'claude-sonnet-4-6', max_tokens: maxTokens, messages: [{ role: 'user', content: prompt }] };
+async function callClaude(client, promptParts, maxTokens = 8192) {
+  const params = {
+    model: 'claude-sonnet-4-6',
+    max_tokens: maxTokens,
+    system: promptParts.system,
+    messages: [{ role: 'user', content: promptParts.userContent }],
+  };
+  const options = { headers: { 'anthropic-beta': 'prompt-caching-2024-07-31' } };
   try {
-    return await client.messages.create(params);
+    return await client.messages.create(params, options);
   } catch (err) {
     if (err.status === 429) {
       await sleep(30000);
-      return await client.messages.create(params);
+      return await client.messages.create(params, options);
     }
     throw err;
   }
@@ -591,8 +606,16 @@ async function runGenerationJob(session, startIndex = 0) {
   const safeClient    = companyName.replace(/[^a-zA-Z0-9_-]/g, '_') || 'output';
   downloads.set(downloadId, { createdAt: Date.now(), text: outputText, filename: `${safeClient}_copy_bot_output.txt`, results, safeClient });
 
-  const inputTokens  = results.reduce((s, r) => s + (r.usage?.input_tokens  || 0), 0);
-  const outputTokens = results.reduce((s, r) => s + (r.usage?.output_tokens || 0), 0);
+  // With prompt caching, usage splits into separate fields billed at different
+  // rates: input_tokens (uncached, full price), cache_creation_input_tokens
+  // (first write to cache, 1.25x input price), cache_read_input_tokens (cache
+  // hit, 0.1x input price). Summing only input_tokens+output_tokens would
+  // silently undercount cost once caching is active, since cached tokens are
+  // never included in input_tokens.
+  const inputTokens       = results.reduce((s, r) => s + (r.usage?.input_tokens               || 0), 0);
+  const outputTokens      = results.reduce((s, r) => s + (r.usage?.output_tokens              || 0), 0);
+  const cacheWriteTokens  = results.reduce((s, r) => s + (r.usage?.cache_creation_input_tokens || 0), 0);
+  const cacheReadTokens   = results.reduce((s, r) => s + (r.usage?.cache_read_input_tokens     || 0), 0);
 
   const doneResults  = results.filter(r => r.status === 'done');
   const pageTypes    = [...new Set(doneResults.map(r => r.pageType))];
@@ -600,6 +623,13 @@ async function runGenerationJob(session, startIndex = 0) {
   if (session.clientId && pool) {
     console.log(`[DB] Saved ${doneResults.length} pages for client ${session.clientId} (this run, starting at index ${startIndex})`);
   }
+
+  const actualCost = (
+    (inputTokens      / 1e6) * 3 +
+    (cacheWriteTokens / 1e6) * 3.75 +
+    (cacheReadTokens  / 1e6) * 0.30 +
+    (outputTokens     / 1e6) * 15
+  ).toFixed(2);
 
   emit({
     type: 'complete',
@@ -610,7 +640,9 @@ async function runGenerationJob(session, startIndex = 0) {
       failed:       results.filter(r => r.status === 'failed').length,
       inputTokens,
       outputTokens,
-      actualCost:   ((inputTokens / 1e6) * 3 + (outputTokens / 1e6) * 15).toFixed(2),
+      cacheWriteTokens,
+      cacheReadTokens,
+      actualCost,
     },
   });
 

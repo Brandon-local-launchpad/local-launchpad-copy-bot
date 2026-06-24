@@ -660,10 +660,15 @@
 
         const failNote = s.failed > 0 ? ` &mdash; ${s.failed} failed` : '';
         document.getElementById('doneSubtitle').innerHTML = `${s.done} pages generated successfully${failNote}`;
+        const totalTokens = s.inputTokens + s.outputTokens + (s.cacheWriteTokens || 0) + (s.cacheReadTokens || 0);
+        const cacheNote = s.cacheReadTokens > 0
+          ? `<span style="color:var(--border)">&#xB7;</span><span><strong>${s.cacheReadTokens.toLocaleString()}</strong> cached (90% cheaper)</span>`
+          : '';
         document.getElementById('tokenStats').innerHTML =
-          `<span><strong>${(s.inputTokens + s.outputTokens).toLocaleString()}</strong> total tokens</span>` +
+          `<span><strong>${totalTokens.toLocaleString()}</strong> total tokens</span>` +
           `<span style="color:var(--border)">&#xB7;</span>` +
-          `<span><strong>$${h(s.actualCost)}</strong> actual cost</span>`;
+          `<span><strong>$${h(s.actualCost)}</strong> actual cost</span>` +
+          cacheNote;
 
         // Render per-type download buttons
         const labels = { homepage: 'Homepage', category: 'Category Pages', service: 'Service Pages', location: 'Location Pages', 'location-category': 'Location-Category Pages' };
