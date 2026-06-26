@@ -672,17 +672,38 @@ app.get('/api/batch-status/:batchId', async (req, res) => {
 
     // ── Check 10: Orphaned Service Page Check (cross-page, runs once the whole
     // batch is in) — every populated service must have a card on at least one
-    // category page in this batch, otherwise its own service page would have
-    // nothing on the site linking to it.
-    // Only meaningful when this run actually included category pages — a
-    // resumed sub-batch of only service/location pages has no category
-    // output to check cards against, so skip rather than false-flag everything.
-    const categoryResults = results.filter(r => r && r.pageType === 'category' && r.status === 'done');
-    const orphanIssues    = categoryResults.length ? checkOrphanedServices(categoryResults, record.customValuesText) : [];
+    // category page, otherwise its own service page would have nothing on the
+    // site linking to it.
+    let categoryResults = results.filter(r => r && r.pageType === 'category' && r.status === 'done');
+    let usedSavedCategoryPages = false;
+
+    // A resumed sub-batch of only service/location pages has no category
+    // output of its own to check cards against. Rather than skip the check
+    // (false negative — an orphan could slip through silently), fall back to
+    // this client's previously saved category pages from the DB, if any.
+    if (!categoryResults.length && record.clientId && pool) {
+      try {
+        const { rows } = await pool.query(
+          `SELECT copy_output AS output FROM pages WHERE client_id = $1 AND page_type = 'category' AND copy_output IS NOT NULL`,
+          [record.clientId]
+        );
+        if (rows.length) { categoryResults = rows; usedSavedCategoryPages = true; }
+      } catch (dbErr) {
+        console.error('[DB] Saved category page fetch error:', dbErr.message);
+      }
+    }
+
+    const orphanIssues = categoryResults.length ? checkOrphanedServices(categoryResults, record.customValuesText) : [];
     if (orphanIssues.length) {
-      // Not specific to any one page — attach to every generated category page
-      // so the issue surfaces wherever a human is most likely to look.
-      for (const r of categoryResults) r.issues = [...r.issues, ...orphanIssues];
+      // Not specific to any one page. If category pages were generated in
+      // THIS run, attach to those so the issue surfaces wherever a human is
+      // most likely to look. If we fell back to saved pages instead, there's
+      // no in-run category page to attach to — attach to every completed
+      // result in this batch instead so it isn't silently dropped.
+      const attachTo = usedSavedCategoryPages
+        ? results.filter(r => r && r.status === 'done')
+        : categoryResults;
+      for (const r of attachTo) r.issues = [...r.issues, ...orphanIssues];
     }
 
     // Save each completed page to the DB.
