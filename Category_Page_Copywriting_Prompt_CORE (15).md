@@ -52,6 +52,12 @@ At the start of every run, identify:
 
 Only write service card copy for services that belong to the TARGET CATEGORY. Do not include services from other categories even if they are vaguely related.
 
+**No orphaned service pages.** Before finalising which services get a card on this category page, cross-check every service belonging to the TARGET CATEGORY against its other category assignments (from the custom values document). A service page is only reachable on the site if at least one category page links to it via a card.
+
+- If a service belongs ONLY to this category — no other category page will ever feature it — it MUST get a card here, regardless of local demand, search volume, or how minor the service seems. Skipping it would leave that service page with no card pointing to it anywhere on the site.
+- If the client holds a direct trade qualification for a service (a named accreditation or certification covering that specific service), that service MUST get a card here, no exceptions, even if it would otherwise be cut for space or relevance.
+- Only omit a service from this category's cards if it (a) is not the client's sole route to a card for that service elsewhere, and (b) is not directly tied to a trade qualification.
+
 ---
 
 ## CALEB'S 8 CONSISTENCY SIGNALS — MANDATORY PAGE ELEMENTS

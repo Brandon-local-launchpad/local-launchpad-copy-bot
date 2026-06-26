@@ -17,7 +17,7 @@ const crypto     = require('crypto');
 const multer     = require('multer');
 const Papa       = require('papaparse');
 const JSZip      = require('jszip');
-const { validate } = require('./validate');
+const { validate, checkOrphanedServices } = require('./validate');
 const { pool, initDb } = require('./db');
 
 const app = express();
@@ -670,6 +670,21 @@ app.get('/api/batch-status/:batchId', async (req, res) => {
       }
     }
 
+    // ── Check 10: Orphaned Service Page Check (cross-page, runs once the whole
+    // batch is in) — every populated service must have a card on at least one
+    // category page in this batch, otherwise its own service page would have
+    // nothing on the site linking to it.
+    // Only meaningful when this run actually included category pages — a
+    // resumed sub-batch of only service/location pages has no category
+    // output to check cards against, so skip rather than false-flag everything.
+    const categoryResults = results.filter(r => r && r.pageType === 'category' && r.status === 'done');
+    const orphanIssues    = categoryResults.length ? checkOrphanedServices(categoryResults, record.customValuesText) : [];
+    if (orphanIssues.length) {
+      // Not specific to any one page — attach to every generated category page
+      // so the issue surfaces wherever a human is most likely to look.
+      for (const r of categoryResults) r.issues = [...r.issues, ...orphanIssues];
+    }
+
     // Save each completed page to the DB.
     if (record.clientId && pool) {
       for (const r of results) {
@@ -712,6 +727,7 @@ app.get('/api/batch-status/:batchId', async (req, res) => {
     const summary = {
       done:         doneResults.length,
       failed:       results.filter(r => r && r.status === 'failed').length,
+      orphanedServices: orphanIssues.length,
       inputTokens, outputTokens, cacheWriteTokens, cacheReadTokens, actualCost,
     };
 

@@ -337,6 +337,40 @@ function validate(output, h1, customValuesText, pageType = 'homepage', pageConte
 }
 
 /**
+ * Check 10 — Orphaned Service Page Check (cross-page, run once per batch after
+ * every category page has been generated). A service is orphaned if it's
+ * populated in the custom values sheet but no category page in the batch wrote
+ * a SERVICE CARD for it — every populated service must get a card on at least
+ * one category page or its service page will have nothing linking to it.
+ *
+ * @param {Array} categoryResults - results entries with pageType 'category' and status 'done'
+ * @param {string} customValuesText - flat "key: value" text, same format passed to validate()
+ * @returns {Array} BLOCK issues, one per orphaned service key
+ */
+function checkOrphanedServices(categoryResults, customValuesText) {
+  if (!customValuesText || !customValuesText.trim()) return [];
+
+  const parsed = parseCustomValuesMap(customValuesText);
+  const populatedServiceKeys = Object.keys(parsed).filter(k => /^service_\d+$/.test(k));
+  if (!populatedServiceKeys.length) return [];
+
+  const cardedKeys = new Set();
+  for (const r of categoryResults) {
+    if (!r || !r.output) continue;
+    for (const match of r.output.matchAll(/SERVICE CARD\s*—\s*\{\{custom_values\.(service_\d+)\}\}/g)) {
+      cardedKeys.add(match[1]);
+    }
+  }
+
+  return populatedServiceKeys
+    .filter(key => !cardedKeys.has(key))
+    .map(key => ({
+      type: 'BLOCK', check: '10',
+      message: `Service {{custom_values.${key}}} ("${parsed[key]}") has no category page card anywhere in this batch — this service page will be orphaned.`,
+    }));
+}
+
+/**
  * Replace every {{custom_values.X}} in a string with its plain-text value from the
  * parsed map, or leave the placeholder as-is if the key isn't found.
  */
@@ -428,4 +462,4 @@ function extractTemplateBlock(output) {
   return m ? m[1] : output;
 }
 
-module.exports = { validate, parseCustomValuesMap, parsePopulatedKeys };
+module.exports = { validate, parseCustomValuesMap, parsePopulatedKeys, checkOrphanedServices };

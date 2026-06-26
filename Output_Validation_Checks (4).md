@@ -227,6 +227,21 @@ Same logic as check 7, applied to the META DESCRIPTION field. **Classification:*
 
 **Notes:** this does not apply to the Footer's service area column, which is explicitly limited to biz_area_1 through biz_area_6 by design. It also doesn't require FAQ answers to list every area — FAQ answers can legitimately say "...and surrounding areas" without enumerating all of them. This check is specifically for the Areas We Cover bar, where the prompt's own rule already requires every populated area to be listed. The highest-numbered area has been dropped from this list in both test generations so far — worth checking this one specifically.
 
+## 10. Orphaned Service Page Check
+
+**Scope:** Cross-page check — run after every category page for this client has been generated, not per-page. A single category page's output cannot be fully validated against this check in isolation, since a service only needs a card on ONE category page to avoid being orphaned.
+
+**Logic (not a regex):**
+
+1. From the custom values input, build the full list of populated `service_X_Y` keys for this client, and which category (or categories) each one belongs to.
+2. From the qualifications data supplied in the onboarding form, identify which `service_X_Y` keys are tied to a direct trade qualification (a named accreditation or certification covering that specific service).
+3. For every category page generated for this client, extract each `SERVICE CARD — {{custom_values.service_X_Y}}:` label to get the set of services that received a card on that page.
+4. Take the union of serviced placeholders across ALL generated category pages for this client.
+5. Compare that union against the full list from step 1. Any populated `service_X_Y` key that does NOT appear as a card on any category page → **BLOCK**, message: "Service `{{custom_values.service_X_Y}}` has no category page card anywhere on the site — this service page will be orphaned."
+6. Separately, for every qualification-linked service identified in step 2, confirm it has a card on at least one category page, regardless of whether step 5 already passed for other reasons → **BLOCK** if missing, message: "Service `{{custom_values.service_X_Y}}` is tied to a client trade qualification and must have a card on at least one category page."
+
+**Notes:** This mirrors check 9 (Areas We Cover Completeness) in that it's a completeness check against the full populated key list rather than a per-field regex. It exists because the category prompt now requires every service to get a card on at least one category page unless it has another category page covering it and carries no trade qualification — this check catches the case where that rule was followed inconsistently across a multi-category-page batch.
+
 ---
 
 ## Summary table
@@ -254,3 +269,4 @@ Same logic as check 7, applied to the META DESCRIPTION field. **Classification:*
 | 7 | Title tag resolved length > 60 | FLAG |
 | 8 | Meta description resolved length > 155 | FLAG |
 | 9 | Areas We Cover missing a populated area | BLOCK |
+| 10 | Orphaned service page (no card on any category page) | BLOCK |
