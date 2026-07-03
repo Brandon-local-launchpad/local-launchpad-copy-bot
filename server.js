@@ -113,6 +113,7 @@ const EXPLICIT_PACK_MAP = {
   'Roofer_Calibration_Pack_v5.md':                'Roofing Company',
   'Dog_Training_Security_Calibration_Pack_v1.md': 'Dog Training & Security Dogs',
   'Drainage_Calibration_Pack_v1.md':              'Drainage Company',
+  'Landscaper_Calibration_Pack_v4.md':            'Landscaper Gardener',
 };
 
 function loadCalibrationPacks() {
