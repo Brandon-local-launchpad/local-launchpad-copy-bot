@@ -105,6 +105,16 @@ const LOCATION_PROMPT = readDoc('Location_Page_Copywriting_Prompt_CORE.md');
 
 // ── Load calibration packs ────────────────────────────────────────────────────
 
+// Explicit filename → trade name map for packs that don't follow the legacy
+// _Calibration_Pack_All_Page_Types.md naming convention.
+const EXPLICIT_PACK_MAP = {
+  'Cleaning_Calibration_Pack_v5.md':              'Cleaning Company',
+  'Builder_Calibration_Pack_v5.md':               'Building Company',
+  'Roofer_Calibration_Pack_v5.md':                'Roofing Company',
+  'Dog_Training_Security_Calibration_Pack_v1.md': 'Dog Training & Security Dogs',
+  'Drainage_Calibration_Pack_v1.md':              'Drainage Company',
+};
+
 function loadCalibrationPacks() {
   const packs = {};
   const searchDirs = [
@@ -116,11 +126,19 @@ function loadCalibrationPacks() {
   for (const dir of searchDirs) {
     if (!fs.existsSync(dir)) continue;
     for (const file of fs.readdirSync(dir)) {
-      if (!/_Calibration_Pack_All_Page_Types\.md$/i.test(file)) continue;
-      const tradeName = file
-        .replace(/_Calibration_Pack_All_Page_Types\.md$/i, '')
-        .replace(/_/g, ' ');
-      if (!(tradeName in packs)) {
+      let tradeName = null;
+
+      // Explicit map takes priority
+      if (EXPLICIT_PACK_MAP[file]) {
+        tradeName = EXPLICIT_PACK_MAP[file];
+      } else if (/_Calibration_Pack_All_Page_Types\.md$/i.test(file)) {
+        // Legacy naming: derive trade name from filename
+        tradeName = file
+          .replace(/_Calibration_Pack_All_Page_Types\.md$/i, '')
+          .replace(/_/g, ' ');
+      }
+
+      if (tradeName && !(tradeName in packs)) {
         packs[tradeName] = fs.readFileSync(path.join(dir, file), 'utf8');
         console.log(`  CALIBRATION PACK: ${file} → trade "${tradeName}"`);
       }
@@ -343,23 +361,70 @@ function buildPageContext(job, keyValueMap, serviceParentMap) {
 
 const CORE_PROMPTS = { homepage: HOMEPAGE_PROMPT, category: CATEGORY_PROMPT, 'location-category': CATEGORY_PROMPT, service: SERVICE_PROMPT, location: LOCATION_PROMPT };
 
+// Trade-specific section overrides injected as an extra system block between the
+// calibration pack and the client block. Only populated for trades that deviate
+// from the standard CORE prompt section structure. The cache_control breakpoint
+// stays on the client block (last block) so the override is always part of the
+// cached prefix for that trade — no extra per-page cost.
+const TRADE_SECTION_OVERRIDES = {
+  'Dog Training & Security Dogs': `## SECTION STRUCTURE OVERRIDES FOR THIS PAGE
+
+The standard CORE prompts define section structures that must be modified for this trade. Apply the following overrides regardless of what the CORE prompt says for the section in question.
+
+### Category page — replace Seasonal Tasks with Training Through the Life Stages
+
+Do NOT write a Seasonal Tasks section for this trade. Dog training demand is driven by the dog's age, not the calendar. Replace that section with a "Training Through the Life Stages" section covering four life stages: Puppy (8 weeks to ~6 months), Adolescence (~6 to 18 months), Adulthood, and Older Dogs. Each entry gives the key training reality of that stage. Security dog pages use neither a seasonal nor a life stage section — coverage timing (nights, weekends, shutdown periods) belongs in the service cards and how it works sections.
+
+In the output template, replace:
+  SEASONAL TASKS — HEADLINE:
+  SEASONAL TASKS — SUBHEADLINE:
+  SEASONAL TASKS — SPRING:
+  SEASONAL TASKS — SUMMER:
+  SEASONAL TASKS — AUTUMN:
+  SEASONAL TASKS — WINTER:
+
+With:
+  TRAINING THROUGH THE LIFE STAGES — INTRO:
+  TRAINING THROUGH THE LIFE STAGES — PUPPY:
+  TRAINING THROUGH THE LIFE STAGES — ADOLESCENCE:
+  TRAINING THROUGH THE LIFE STAGES — ADULTHOOD:
+  TRAINING THROUGH THE LIFE STAGES — OLDER DOGS:
+
+### Service page — replace Signs section based on service type
+
+Before writing the service page, classify the service as one of three types:
+
+1. Problem-driven training service (pulling, recall, reactivity, barking, separation problems): replace the Signs section with a "Why It Isn't Going Away On Its Own" section — three paragraphs, three distinct mechanisms explaining why the behaviour deepens rather than fades and why self-help fails.
+
+2. Life-stage service (puppy training, adolescent dogs, new rescue dogs): replace the Signs section with an "Is This Right For You" section — two or three owner scenarios the reader can recognise themselves in, each describing what the service gives them.
+
+3. Security dog service: replace the Signs section with a "When a Dog Unit Is the Right Call" section — three paragraphs comparing a dog unit against the alternatives the buyer is considering, including an honest third paragraph naming where a dog unit is NOT the right fit.
+
+The calibration pack contains full worked examples for all three section types. Match the length, structure, and standard of those examples.`,
+};
+
 // Returns { system, userContent } instead of one flat string, so the static
 // portion (core prompt + calibration pack + client custom values/geo/onboarding —
 // identical for every page in this batch) can be sent as cacheable system
 // blocks, while only the per-page TARGET PAGE block varies per call. Anthropic
 // caches the longest prefix ending at a cache_control breakpoint, so the
 // breakpoint sits on the LAST static block — everything before it (core prompt,
-// calibration pack) is covered by the same cache hit.
-function buildSitePrompt(job, calibrationPack, keyValueMap, serviceParentMap, geoResearch, onboardingText) {
+// calibration pack, any trade override) is covered by the same cache hit.
+function buildSitePrompt(job, calibrationPack, keyValueMap, serviceParentMap, geoResearch, onboardingText, trade) {
   const cvList      = Object.entries(keyValueMap).filter(([, v]) => v).map(([k, v]) => `{{custom_values.${k}}}: ${v}`).join('\n');
   console.log('\n── DEBUG cvList (first 20 lines) ──\n' + cvList.split('\n').slice(0, 20).join('\n') + '\n──────────────────────────────────\n');
   const clientBlock = `## CLIENT PROJECT KNOWLEDGE\n\n### GHL Custom Values\n${cvList}\n\n### Geographical Research and Context\n${geoResearch.trim()}\n\n### Client Onboarding Form\n${onboardingText}`;
+
+  const systemBlocks = [
+    { type: 'text', text: CORE_PROMPTS[job.pageType].trim() },
+    { type: 'text', text: calibrationPack.trim() },
+  ];
+  const tradeOverride = trade && TRADE_SECTION_OVERRIDES[trade];
+  if (tradeOverride) systemBlocks.push({ type: 'text', text: tradeOverride.trim() });
+  systemBlocks.push({ type: 'text', text: clientBlock, cache_control: { type: 'ephemeral' } });
+
   return {
-    system: [
-      { type: 'text', text: CORE_PROMPTS[job.pageType].trim() },
-      { type: 'text', text: calibrationPack.trim() },
-      { type: 'text', text: clientBlock, cache_control: { type: 'ephemeral' } },
-    ],
+    system: systemBlocks,
     userContent: buildPageContext(job, keyValueMap, serviceParentMap),
   };
 }
@@ -571,7 +636,7 @@ app.post('/api/generate-batch/:sessionId', async (req, res) => {
     const client            = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
 
     const requests = jobs.map((job, i) => {
-      const promptParts = buildSitePrompt(job, calibrationPack, keyValueMap, serviceParentMap, geoResearch, onboardingText);
+      const promptParts = buildSitePrompt(job, calibrationPack, keyValueMap, serviceParentMap, geoResearch, onboardingText, trade);
       const maxTokens    = (job.pageType === 'category' || job.pageType === 'location-category') ? 16000 : 8192;
       return {
         custom_id: `p${i}`,
@@ -1006,7 +1071,7 @@ app.post('/api/clients/:clientId/pages/:pageId/regenerate', async (req, res) => 
       locationCategoryName: page.location_category_name || '',
     };
 
-    const prompt    = buildSitePrompt(job, calibrationPack, keyValueMap, serviceParentMap, geoResearch, onboardingText);
+    const prompt    = buildSitePrompt(job, calibrationPack, keyValueMap, serviceParentMap, geoResearch, onboardingText, page.trade);
     const maxTokens = (job.pageType === 'category' || job.pageType === 'location-category') ? 16000 : 8192;
     const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
     const message   = await callClaude(anthropic, prompt, maxTokens);
