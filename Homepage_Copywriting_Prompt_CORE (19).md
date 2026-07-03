@@ -195,7 +195,7 @@ Rules for each FAQ:
 - **Answer:** 2 to 4 sentences. Specific facts only — pull from the onboarding form and geo research. Do not invent figures.
 - **At least two of the five FAQs must include an editorial link to a category page**, following the same editorial link rules as the Services Section above (link text must name the category placeholder and the primary area placeholder, and describe what the linked page covers).
 - **Editorial links in FAQs must point to a category page — never back to the homepage itself.** An FAQ on the homepage cannot link to "our [category] services in [the same area as this page]" if that phrase describes the homepage itself rather than a distinct category page.
-- **Missing facts:** If a fact needed for an answer (insurance figure, guarantee details, founding date, etc.) is missing from the onboarding form, do not state a figure and do not write a vague sentence that implies the fact exists. Write the answer using only confirmed information first, then append: `[CLIENT TO CONFIRM: describe exactly what's missing]`. The flagged gap must never be the entire answer — there must always be a real, confirmed partial answer in front of it.
+- **Missing facts:** If a fact needed for an answer (insurance figure, guarantee details, founding date, etc.) is missing from the onboarding form, omit it entirely and write the answer using only confirmed information. Do not append a flag inside the copy. If the missing fact is genuinely important to the answer, place a single `[NOTE FOR BRANDON: ...]` line below that FAQ answer — outside the copy block.
 
 > ⚠️ **FAQ display — no accordions, ever.** All FAQ questions and answers must be built in GHL as open, always-visible content — not collapsible accordions. Googlebot renders the page in mobile Chrome and cannot click to expand collapsed elements. Any FAQ content inside a collapsed accordion is largely invisible to Google. If the GHL template uses an accordion component for FAQs by default, the VA must replace it with a static open layout before the page goes live.
 
@@ -238,7 +238,7 @@ Format per item:
 Rules:
 - All four must be different trust dimensions — e.g. social proof, insurance, availability, experience. Do not repeat the same angle twice.
 - Specific numbers always beat vague claims — "£5m cover" beats "fully insured", "since 2009" beats "years of experience".
-- If the onboarding form is missing a fact needed for one of the four slots, do not let the HEADLINE consist solely of a `[CLIENT TO CONFIRM: what's needed]` flag — a bracketed instruction sitting alone in a short headline slot looks broken if it reaches a live page. Instead: write a headline using only confirmed wording for that trust dimension (e.g. "Fully Insured" or "Verified Google Reviews"), and put the flag in the SUB-LINE instead, attached to real surrounding words (e.g. "Based on [CLIENT TO CONFIRM: review count] Google reviews" — not the flag alone). If no confirmed wording exists at all for a dimension, replace that dimension with a different one that IS supported by confirmed facts, rather than leaving an empty headline.
+- If the onboarding form is missing a fact needed for one of the four slots, replace that trust dimension with a different one that IS supported by confirmed facts. Never place a flag or placeholder inside a headline or sub-line — every trust bar item must be publishable as written. If a dimension is genuinely important but currently unconfirmed, skip it here and place a single `[NOTE FOR BRANDON: ...]` line after the Trust Bar output.
 
 > ⚠️ **CRITICAL — do not combine separate facts into one number claim.** A review score (e.g. 4.9) and a review count (e.g. "120+ reviews") can appear together because they both describe the same thing — Google reviews. A jobs-completed or customers-served figure is a DIFFERENT metric and must never be presented alongside a star rating as if it were the review count. For example, never write "4.9 star rated by 800+ customers" if the 800+ figure refers to jobs completed rather than Google reviews — that misrepresents the 800+ figure as the review count. If both a review count and a jobs-completed figure exist in the onboarding form, they may appear as two SEPARATE trust bar items, each correctly labelled, never combined into one claim.
 
@@ -248,11 +248,11 @@ Rules:
 
 **Headline:** Format: "Why `{{custom_values.biz_area_1}}` homeowners choose `{{custom_values.company_name}}`" — use this structure exactly.
 
-**Review score:** Use the figure supplied by the user when running this prompt. If not supplied, write `[CLIENT TO CONFIRM: Google review score]` — use this exact convention, not a different placeholder style like "[INSERT...]", so it's handled consistently with every other missing-fact flag in this prompt.
+**Review score:** Use the figure from the custom values sheet if populated. If not populated, omit the specific score — do not write a placeholder inside the copy.
 
-**Review count:** Use the figure supplied by the user when running this prompt. If not supplied, write `[CLIENT TO CONFIRM: Google review count]`, same convention as above.
+**Review count:** Use the figure from the custom values sheet if populated. If not populated, omit the specific count.
 
-**Sub-line:** "Based on [review count] Google reviews" — static format. If review count is unsupplied, this becomes "Based on `[CLIENT TO CONFIRM: Google review count]` Google reviews" — the flag attached to real surrounding words, same pattern as everywhere else.
+**Sub-line:** "Based on [review count] Google reviews" if the count is confirmed. If not confirmed, write: "Based on verified Google reviews." If either review figure is missing, place a single `[NOTE FOR BRANDON: add review score and count once confirmed]` line below this section.
 
 > 📌 If a review count or review score also appears anywhere in the Trust Bar (Section 9), it must be the exact same figure used here. Do not let two different sections state two different numbers for what is meant to be the same metric.
 
@@ -305,6 +305,21 @@ At the end of the copy output, print the following checklist as a clearly labell
 ---
 
 ## RULES THAT APPLY TO EVERYTHING
+
+### CONFIRMED FACTS RULE
+
+This rule applies only to client-specific claims about this business: prices, guarantee terms, warranty durations, insurance amounts, accreditations, years trading, team size, and specific operational processes.
+
+- **If confirmed** in the onboarding form or custom values: state the fact.
+- **If not confirmed**: omit it entirely and write around it. Never leave a gap, a vague implication, or a bracketed flag inside the copy. The copy must be publishable as written.
+- **Never place `[CLIENT TO CONFIRM]` or any bracketed instruction inside the copy itself** — not inline, not in a sub-line, not inside an FAQ answer.
+- **If a missing fact would meaningfully strengthen the page**, flag it once in a `[NOTE FOR BRANDON: ...]` line placed below the relevant copy block, outside the copy. Use this sparingly — only for genuinely valuable gaps, not as a routine catalogue of everything unconfirmed.
+
+This rule does **NOT** apply to:
+- General trade knowledge: methods, mechanisms, how materials behave, industry-standard timelines and practices — use these fully without confirmation.
+- Local detail drawn from the geo research — use fully. This is what makes the copy locally specific and credible.
+
+---
 
 Every business name, phone number, city, area, category, and service reference must use the correct GHL placeholder from the custom values document — not the actual word.
 

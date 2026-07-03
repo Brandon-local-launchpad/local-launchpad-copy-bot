@@ -125,7 +125,7 @@ Do not include the business name in the meta description — it is not a mandato
 
 Write two short trust icon lines. Max 5 words each. Use specific, checkable facts from the onboarding form — qualifications, accreditations, years of experience, insurance status. Do not use vague claims.
 
-If a specific fact is not available in the project knowledge, write the trust icon using only confirmed information and append `[CLIENT TO CONFIRM: what's needed]` to the second line, not to the icon headline itself. Use 'Line 1:' and 'Line 2:' as output labels, never 'Sub-line:'. An icon headline that is only a bracketed flag reads as broken if it reaches a live page.
+If a specific fact is not available in the project knowledge, write both icon lines using only confirmed information — omit the unconfirmed element entirely and write around it. Do not append a flag inside the icon text. Use 'Line 1:' and 'Line 2:' as output labels, never 'Sub-line:'. If a genuinely important credential is missing, place a single `[NOTE FOR BRANDON: ...]` line below the trust icon output.
 
 > ⚠️ The same conflation rule from the Trust Bar applies here. Do not combine a review score with a jobs completed or customers served figure into one claim. If the only strong figure is a jobs/customers count, use it alone — do not attach a star rating to it.
 
@@ -283,7 +283,7 @@ Rules for each FAQ:
 - **Answer:** 2 to 4 sentences. Specific facts only — pull from the onboarding form and geo research. Do not invent figures.
 - **At least two of the three FAQs must include an editorial link to a service page**, following the same editorial link rules as the service cards above (link text must name the service placeholder and the primary area placeholder, and describe what the linked page covers).
 - **Editorial links in FAQs must point to a service page — never back to this category page or to the homepage.** A FAQ answer on the category page that links back to the same category page passes no SEO value and confuses the visitor.
-- **Missing facts:** If a fact needed for an answer is missing from the onboarding form, write the answer using only confirmed information first, then append: `[CLIENT TO CONFIRM: describe exactly what's missing]`. The flag must never be the entire answer.
+- **Missing facts:** If a fact needed for an answer is missing from the onboarding form, omit it entirely and write the answer using only confirmed information. Do not append a flag inside the copy. If the missing fact is genuinely important to the answer, place a single `[NOTE FOR BRANDON: ...]` line below that FAQ answer — outside the copy block.
 
 > ⚠️ **FAQ display — no accordions, ever.** All FAQ questions and answers must be built in GHL as open, always-visible content. Googlebot cannot click to expand collapsed elements. If the GHL template uses an accordion by default, the VA must replace it with a static open layout.
 
@@ -320,12 +320,27 @@ At the end of the copy output, print the following checklist as a clearly labell
 - Form automation — confirm quote form triggers the correct GHL pipeline.
 - Phone number — confirm `{{custom_values.company_phone_functional}}` matches GBP character for character on this page.
 - Address — confirm `{{custom_values.company_address}}` is visible in the footer and matches GBP character for character.
-- Trust icon details — if the prompt flagged `[CLIENT TO CONFIRM]` on either trust icon, confirm details with client before go-live.
+- Trust icon details — if the output included a `[NOTE FOR BRANDON: ...]` flag about a missing credential, confirm the detail with the client and update the icon before go-live.
 - Em dashes — check all pasted copy for em dashes or hyphens that GHL may have reintroduced. Replace with a space or comma.
 
 ---
 
 ## RULES THAT APPLY TO EVERYTHING
+
+### CONFIRMED FACTS RULE
+
+This rule applies only to client-specific claims about this business: prices, guarantee terms, warranty durations, insurance amounts, accreditations, years trading, team size, and specific operational processes.
+
+- **If confirmed** in the onboarding form or custom values: state the fact.
+- **If not confirmed**: omit it entirely and write around it. Never leave a gap, a vague implication, or a bracketed flag inside the copy. The copy must be publishable as written.
+- **Never place `[CLIENT TO CONFIRM]` or any bracketed instruction inside the copy itself** — not inline, not in a sub-line, not inside an FAQ answer.
+- **If a missing fact would meaningfully strengthen the page**, flag it once in a `[NOTE FOR BRANDON: ...]` line placed below the relevant copy block, outside the copy. Use this sparingly — only for genuinely valuable gaps, not as a routine catalogue of everything unconfirmed.
+
+This rule does **NOT** apply to:
+- General trade knowledge: methods, mechanisms, how materials behave, industry-standard timelines and practices — use these fully without confirmation.
+- Local detail drawn from the geo research — use fully. This is what makes the copy locally specific and credible.
+
+---
 
 Every business name, phone number, city, area, category, and service reference must use the correct GHL placeholder from the custom values document — not the actual word.
 

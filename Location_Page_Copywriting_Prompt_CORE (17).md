@@ -113,7 +113,7 @@ Phone number: `{{custom_values.company_phone_functional}}`
 
 Two short trust icon lines. Max 5 words each. Specific, checkable facts from the onboarding form. No vague claims.
 
-If a fact is not confirmed, write the icon using only confirmed information and append `[CLIENT TO CONFIRM: what's needed]` to the second line, not the headline. Use 'Line 1:' and 'Line 2:' as output labels, never 'Sub-line:'.
+If a fact is not confirmed, write both icon lines using only confirmed information — omit the unconfirmed element and write around it. Do not append a flag inside the icon text. Use 'Line 1:' and 'Line 2:' as output labels, never 'Sub-line:'. If a genuinely important credential is missing, place a single `[NOTE FOR BRANDON: ...]` line below the trust icon output.
 
 **Hero Subheadline:**
 
@@ -221,7 +221,7 @@ Rules for each FAQ:
 - Question phrased the way a homeowner would type it or ask it
 - Answer 50 to 80 words. Must contain at least one named local area, landmark, or local condition from the geo research for this TARGET LOCATION.
 - At least two of the three must include an editorial link to a relevant category or service page. Link text must name the service or category and the location. Not "click here" or "find out more."
-- Missing facts: write the answer using confirmed information first, then append `[CLIENT TO CONFIRM: what's missing]`.
+- Missing facts: omit the missing element entirely and write the answer using only confirmed information. Do not append a flag inside the copy. If the missing fact is genuinely important, place a single `[NOTE FOR BRANDON: ...]` line below that FAQ answer — outside the copy block.
 
 > ⚠️ FAQ answers on location pages must be locally specific — not the same answers as the primary city category page with the location name swapped in. Each answer must contain at least one local detail specific to this TARGET LOCATION.
 
@@ -235,7 +235,7 @@ Rules for each FAQ:
 
 **Headline:** 4 to 6 words. Action-oriented. Not generic.
 
-**Supporting sentence:** One sentence. Must reference the TARGET LOCATION and at least one secondary area placeholder. Include a response time or booking detail if confirmed by the onboarding form. If not: `[CLIENT TO CONFIRM: response time or booking window]`. Do NOT use a dash to connect clauses — use "and" or split into two short sentences instead.
+**Supporting sentence:** One sentence. Must reference the TARGET LOCATION and at least one secondary area placeholder. Include a response time or booking detail if confirmed by the onboarding form — if not confirmed, omit it and write the sentence without it. Do NOT use a dash to connect clauses — use "and" or split into two short sentences instead.
 
 **CTA button label:** 3 to 5 words. References the phone number placeholder. Not "Submit."
 
@@ -274,13 +274,28 @@ Print this as a clearly labelled section at the end of all copy:
 - Phone number — confirm `{{custom_values.company_phone_functional}}` matches GBP character for character.
 - Address — confirm `{{custom_values.company_address}}` in the footer matches GBP character for character.
 - Map embed — replace any placeholder with `{{custom_values.google_map_embed}}`. Confirm pin shows correct business location.
-- Trust icon assets — confirm trust icon images are uploaded and match credentials in the copy. If prompt flagged `[CLIENT TO CONFIRM]`, chase the client first.
+- Trust icon assets — confirm trust icon images are uploaded and match credentials in the copy. If the output included a `[NOTE FOR BRANDON: ...]` flag about a missing credential, chase the client before go-live.
 - Em dashes — check all pasted copy for em dashes or hyphens GHL may have reintroduced. Replace with a space or comma.
 - Replace all `{{custom_values}}` placeholders with correct GHL custom values. Confirm no raw placeholder keys are visible on the live page.
 
 ---
 
 ## RULES THAT APPLY TO EVERYTHING
+
+### CONFIRMED FACTS RULE
+
+This rule applies only to client-specific claims about this business: prices, guarantee terms, warranty durations, insurance amounts, accreditations, years trading, team size, and specific operational processes.
+
+- **If confirmed** in the onboarding form or custom values: state the fact.
+- **If not confirmed**: omit it entirely and write around it. Never leave a gap, a vague implication, or a bracketed flag inside the copy. The copy must be publishable as written.
+- **Never place `[CLIENT TO CONFIRM]` or any bracketed instruction inside the copy itself** — not inline, not in a sub-line, not inside an FAQ answer.
+- **If a missing fact would meaningfully strengthen the page**, flag it once in a `[NOTE FOR BRANDON: ...]` line placed below the relevant copy block, outside the copy. Use this sparingly — only for genuinely valuable gaps, not as a routine catalogue of everything unconfirmed.
+
+This rule does **NOT** apply to:
+- General trade knowledge: methods, mechanisms, how materials behave, industry-standard timelines and practices — use these fully without confirmation.
+- Local detail drawn from the geo research — use fully. This is what makes the copy locally specific and credible.
+
+---
 
 Every business name, phone number, city, area, category, and service reference must use the correct GHL placeholder from the custom values document — not the actual word.
 

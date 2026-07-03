@@ -110,7 +110,7 @@ Phone number: `{{custom_values.company_phone_functional}}`
 
 Two short trust icon lines. Max 5 words each. Specific, checkable facts from the onboarding form — qualifications, accreditations, experience, insurance. No vague claims.
 
-If a fact is not confirmed in the project knowledge, write the icon using only confirmed information and append `[CLIENT TO CONFIRM: what's needed]` to the second line, not to the headline itself. Output trust icon text using 'Line 1:' and 'Line 2:' as labels. Never use 'Sub-line:' as a label.
+If a fact is not confirmed in the project knowledge, write both icon lines using only confirmed information — omit the unconfirmed element and write around it. Do not append a flag inside the icon text. Output trust icon text using 'Line 1:' and 'Line 2:' as labels. Never use 'Sub-line:' as a label. If a genuinely important credential is missing, place a single `[NOTE FOR BRANDON: ...]` line below the trust icon output.
 
 > ⚠️ Do not combine a review score with a jobs completed or customers served figure into one claim. Use each figure independently and label it correctly.
 
@@ -246,7 +246,7 @@ Rules for each FAQ:
 - Question phrased the way a homeowner would type it or ask it out loud
 - Answer 2 to 4 sentences. Specific facts only — from onboarding form and geo research. Do not invent figures.
 - At least two of the five must include an editorial link to a related category or service page. Link text must name the service or category placeholder and the primary area placeholder. Never link back to this page.
-- Missing facts: write the answer using confirmed information first, then append `[CLIENT TO CONFIRM: what's missing]`. The flag must never be the entire answer.
+- Missing facts: omit the missing element entirely and write the answer using only confirmed information. Do not append a flag inside the copy. If the missing fact is genuinely important, place a single `[NOTE FOR BRANDON: ...]` line below that FAQ answer — outside the copy block.
 
 > ⚠️ FAQs must display as flat visible text — not collapsed in an accordion. Googlebot cannot click to expand collapsed elements. If the GHL template defaults to accordion, the VA must override it.
 
@@ -256,7 +256,7 @@ Rules for each FAQ:
 
 **Headline:** 4 to 6 words. Action-oriented and specific to this service — not generic.
 
-**Supporting sentence:** One sentence. Reference the primary area placeholder and at least one secondary area placeholder. Include a response time or booking detail if the onboarding form confirms one. If not confirmed: `[CLIENT TO CONFIRM: response time or booking window]`. Do NOT use a dash to connect clauses in this sentence — write it as one flowing sentence using "and" or a full stop instead. Example: "{{custom_values.company_name}} covers {{custom_values.biz_area_1}}, {{custom_values.biz_area_2}} and {{custom_values.biz_area_3}}. Call {{custom_values.company_phone_functional}} to arrange a free site visit."
+**Supporting sentence:** One sentence. Reference the primary area placeholder and at least one secondary area placeholder. Include a response time or booking detail if the onboarding form confirms one — if not confirmed, omit it and write the sentence without it. Do NOT use a dash to connect clauses in this sentence — write it as one flowing sentence using "and" or a full stop instead. Example: "{{custom_values.company_name}} covers {{custom_values.biz_area_1}}, {{custom_values.biz_area_2}} and {{custom_values.biz_area_3}}. Call {{custom_values.company_phone_functional}} to arrange a free site visit."
 
 **CTA button label:** 3 to 5 words. Not "Submit." Tell the visitor what happens next.
 
@@ -286,13 +286,28 @@ Print this as a clearly labelled section at the end of all copy:
 - Service name cross-check — confirm the service name on this page matches the exact GBP service name character for character.
 - Phone number — confirm `{{custom_values.company_phone_functional}}` matches GBP character for character.
 - Address — confirm `{{custom_values.company_address}}` is visible in the footer and matches GBP character for character.
-- Trust icon assets — confirm trust icon images are uploaded in GHL and match the credentials in the copy. If prompt flagged `[CLIENT TO CONFIRM]`, chase the client first.
+- Trust icon assets — confirm trust icon images are uploaded in GHL and match the credentials in the copy. If the output included a `[NOTE FOR BRANDON: ...]` flag about a missing credential, chase the client before go-live.
 - Placeholder numbering — confirm `{{custom_values.service_[N]}}` and `{{custom_values.category_[N]}}` use the correct numbered placeholders for this service and category.
 - Em dashes — check all pasted copy for em dashes or hyphens GHL may have reintroduced. Replace with a space or comma.
 
 ---
 
 ## RULES THAT APPLY TO EVERYTHING
+
+### CONFIRMED FACTS RULE
+
+This rule applies only to client-specific claims about this business: prices, guarantee terms, warranty durations, insurance amounts, accreditations, years trading, team size, and specific operational processes.
+
+- **If confirmed** in the onboarding form or custom values: state the fact.
+- **If not confirmed**: omit it entirely and write around it. Never leave a gap, a vague implication, or a bracketed flag inside the copy. The copy must be publishable as written.
+- **Never place `[CLIENT TO CONFIRM]` or any bracketed instruction inside the copy itself** — not inline, not in a sub-line, not inside an FAQ answer.
+- **If a missing fact would meaningfully strengthen the page**, flag it once in a `[NOTE FOR BRANDON: ...]` line placed below the relevant copy block, outside the copy. Use this sparingly — only for genuinely valuable gaps, not as a routine catalogue of everything unconfirmed.
+
+This rule does **NOT** apply to:
+- General trade knowledge: methods, mechanisms, how materials behave, industry-standard timelines and practices — use these fully without confirmation.
+- Local detail drawn from the geo research — use fully. This is what makes the copy locally specific and credible.
+
+---
 
 Every business name, phone number, city, area, category, and service reference must use the correct GHL placeholder from the custom values document — not the actual word.
 
