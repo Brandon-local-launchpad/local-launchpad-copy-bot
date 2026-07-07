@@ -650,46 +650,62 @@ app.post('/api/generate-batch/:sessionId', async (req, res) => {
       };
     });
 
-    const batch = await client.messages.batches.create({ requests });
-
-    // Save client_assets up front so single-page regeneration works even before
-    // this batch finishes.
-    if (clientId && pool) {
-      try {
-        await pool.query(`DELETE FROM client_assets WHERE client_id = $1`, [clientId]);
-        const assetRows = [
-          { type: 'geo_research', content: geoResearch },
-          { type: 'onboarding',   content: onboardingText },
-          ...(session.rawCustomValuesCsvs || []).map(content => ({ type: 'custom_values', content })),
-        ];
-        for (const asset of assetRows) {
-          await pool.query(`INSERT INTO client_assets (client_id, asset_type, content) VALUES ($1, $2, $3)`, [clientId, asset.type, asset.content]);
-        }
-      } catch (dbErr) {
-        console.error('[DB] Asset save error:', dbErr.message);
-      }
-    }
-
+    // Respond immediately so Railway's 30s request timeout doesn't kill the
+    // connection while we upload the (potentially large) batch payload to Anthropic.
     const batchId = crypto.randomUUID();
     const companyName = keyValueMap['company_name'] || '';
     const record = {
       id: batchId,
       clientId: clientId || null,
-      anthropicBatchId: batch.id,
+      anthropicBatchId: null, // filled in once Anthropic accepts the batch
       trade,
       jobsMeta: jobs.map(j => ({ pageType: j.pageType, pageTitle: j.pageTitle, urlSlug: j.urlSlug, h1: j.h1, locationName: j.locationName, locationCategoryName: j.locationCategoryName })),
       customValuesText,
-      skippedPages: startIndex > 0 ? [] : skippedPages, // avoid double-listing skipped pages across resumed sub-batches
+      skippedPages: startIndex > 0 ? [] : skippedPages,
       companyName,
       total: jobs.length,
-      status: 'in_progress',
+      status: 'submitting',
       downloadId: null,
       createdAt: Date.now(),
     };
     batchJobs.set(batchId, record);
     await persistBatchRecord(record);
 
-    res.json({ batchId, anthropicBatchId: batch.id, total: jobs.length, startIndex });
+    res.json({ batchId, anthropicBatchId: null, total: jobs.length, startIndex });
+
+    // Background: submit to Anthropic and save assets — client polls /api/batch-status
+    (async () => {
+      try {
+        const batch = await client.messages.batches.create({ requests });
+        record.anthropicBatchId = batch.id;
+        record.status = 'in_progress';
+        batchJobs.set(batchId, record);
+        await persistBatchRecord(record);
+        console.log(`[generate-batch] Batch ${batchId} submitted to Anthropic as ${batch.id}`);
+      } catch (err) {
+        console.error(`[generate-batch] Background submission error for ${batchId}:`, err.message);
+        record.status = 'error';
+        record.error = err.message;
+        batchJobs.set(batchId, record);
+        await persistBatchRecord(record);
+      }
+
+      if (clientId && pool) {
+        try {
+          await pool.query(`DELETE FROM client_assets WHERE client_id = $1`, [clientId]);
+          const assetRows = [
+            { type: 'geo_research', content: geoResearch },
+            { type: 'onboarding',   content: onboardingText },
+            ...(session.rawCustomValuesCsvs || []).map(content => ({ type: 'custom_values', content })),
+          ];
+          for (const asset of assetRows) {
+            await pool.query(`INSERT INTO client_assets (client_id, asset_type, content) VALUES ($1, $2, $3)`, [clientId, asset.type, asset.content]);
+          }
+        } catch (dbErr) {
+          console.error('[DB] Asset save error:', dbErr.message);
+        }
+      }
+    })();
   } catch (err) {
     console.error('[generate-batch] Submission error:', err);
     res.status(500).json({ error: err.message });
@@ -703,6 +719,15 @@ app.get('/api/batch-status/:batchId', async (req, res) => {
 
     if (record.status === 'complete') {
       return res.json({ status: 'complete', downloadId: record.downloadId, total: record.total, summary: record.finalSummary });
+    }
+
+    if (record.status === 'error') {
+      return res.json({ status: 'error', error: record.error || 'Batch submission failed.' });
+    }
+
+    // Still uploading the batch payload to Anthropic — client should keep polling.
+    if (record.status === 'submitting' || !record.anthropicBatchId) {
+      return res.json({ status: 'submitting', total: record.total });
     }
 
     const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });

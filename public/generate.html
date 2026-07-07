@@ -677,6 +677,12 @@
 
       totalJobs = d.total || totalJobs;
 
+      if (d.status === 'submitting') {
+        document.getElementById('batchStatusText').textContent =
+          `Submitting batch to Anthropic — this can take a moment for large sites…`;
+        return;
+      }
+
       if (d.status === 'in_progress') {
         const c = d.counts || {};
         document.getElementById('batchStatusText').textContent =
