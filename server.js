@@ -338,12 +338,32 @@ function buildPageContext(job, keyValueMap, serviceParentMap) {
     return `TARGET PAGE: Homepage\nH1: ${h1}\nNote: Use this H1 directly in the HERO H1 field. Do not output [INSERT H1 FROM AHREFS].${DASH_RULE_REMINDER}`;
   }
   if (pageType === 'category') {
-    return `TARGET PAGE: Category Page\nTARGET CATEGORY: ${pageTitle}\nH1: ${h1}\nNote: Use this H1 directly in the HERO H1 field.${DASH_RULE_REMINDER}`;
+    const myServiceKeys = Object.entries(serviceParentMap)
+      .filter(([, cat]) => cat.toLowerCase() === pageTitle.toLowerCase())
+      .map(([k]) => k)
+      .sort((a, b) => {
+        const na = parseInt(a.replace('service_', ''), 10);
+        const nb = parseInt(b.replace('service_', ''), 10);
+        return na - nb;
+      });
+    const serviceLines = myServiceKeys.length
+      ? '\nSERVICES IN THIS CATEGORY (generate a SERVICE CARD for each):\n' +
+        myServiceKeys.map(k => `  {{custom_values.${k}}}: ${keyValueMap[k] || ''}`).join('\n')
+      : '';
+    return `TARGET PAGE: Category Page\nTARGET CATEGORY: ${pageTitle}\nH1: ${h1}${serviceLines}\nNote: Use this H1 directly in the HERO H1 field.${DASH_RULE_REMINDER}`;
   }
   if (pageType === 'location-category') {
     const categoryName = job.locationCategoryName || pageTitle;
     const locName      = job.locationName ? `\nTARGET LOCATION: ${job.locationName}` : '';
-    return `TARGET PAGE: Location Category Page\nTARGET CATEGORY: ${categoryName}${locName}\nH1: ${h1}\nNote: Use this H1 directly in the HERO H1 field.${DASH_RULE_REMINDER}`;
+    const myServiceKeys = Object.entries(serviceParentMap)
+      .filter(([, cat]) => cat.toLowerCase() === categoryName.toLowerCase())
+      .map(([k]) => k)
+      .sort((a, b) => parseInt(a.replace('service_', ''), 10) - parseInt(b.replace('service_', ''), 10));
+    const serviceLines = myServiceKeys.length
+      ? '\nSERVICES IN THIS CATEGORY (generate a SERVICE CARD for each):\n' +
+        myServiceKeys.map(k => `  {{custom_values.${k}}}: ${keyValueMap[k] || ''}`).join('\n')
+      : '';
+    return `TARGET PAGE: Location Category Page\nTARGET CATEGORY: ${categoryName}${locName}${serviceLines}\nH1: ${h1}\nNote: Use this H1 directly in the HERO H1 field.${DASH_RULE_REMINDER}`;
   }
   if (pageType === 'service') {
     const serviceKey = Object.keys(keyValueMap).find(k =>
