@@ -204,13 +204,42 @@ function parsePageMap(csvText) {
     if (!pageType) continue; // skips section headers like "🏠 Homepage" and empty rows
     const pageTitle = (row['Page Title'] || '').trim();
 
-    // For Location Category pages, extract "Category — Location" from the title
+    // For Location Category pages, extract category name and location name from
+    // the title. Supports both "Category — Location" (dash-separated) and
+    // "Category Location" (space-separated, location appended without a dash).
     let locationCategoryName = null;
     let locationName = null;
     if (pageType === 'location-category') {
       const m = pageTitle.match(/^(.+?)\s+[—–-]+\s+(.+)$/);
-      locationCategoryName = m ? m[1].trim() : pageTitle;
-      locationName         = m ? m[2].trim() : '';
+      if (m) {
+        locationCategoryName = m[1].trim();
+        locationName         = m[2].trim();
+      } else {
+        // No dash — derive by checking the URL slug for a known location segment.
+        // e.g. "/locations/cleethorpes/carpet-cleaning-service" → location "cleethorpes"
+        const urlSlug = (row['URL Slug'] || '').trim();
+        const locSlugMatch = urlSlug.match(/\/locations\/([^/]+)\//);
+        if (locSlugMatch) {
+          // Convert slug to title-case to find it in the page title
+          const locSlug = locSlugMatch[1]; // e.g. "cleethorpes"
+          const locPattern = new RegExp(
+            '\\s+' + locSlug.replace(/-/g, '[\\s-]') + '$',
+            'i'
+          );
+          const stripped = pageTitle.replace(locPattern, '').trim();
+          if (stripped && stripped !== pageTitle) {
+            locationCategoryName = stripped;
+            locationName = pageTitle.slice(stripped.length).trim();
+          } else {
+            // Last resort: keep full title as category name
+            locationCategoryName = pageTitle;
+            locationName = '';
+          }
+        } else {
+          locationCategoryName = pageTitle;
+          locationName = '';
+        }
+      }
     }
 
     pages.push({
