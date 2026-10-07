@@ -614,9 +614,8 @@
         '<p style="color:var(--muted);font-size:13px">No biz_area values found in custom values CSV.</p>';
       return;
     }
-    const rows = bizAreas.map((loc, idx) => {
-      const isPrimary = idx === 0;
-      const runType   = isPrimary ? 'PRIMARY CITY' : 'TOWN';
+    const rows = bizAreas.map((loc) => {
+      const runType = loc.runType || 'TOWN';
       const admin     = isAdminArea(loc.name);
       const norm      = normLocName(loc.name);
       const dosInfo   = existingDossiers.get(norm);
@@ -706,20 +705,26 @@
     }
   }
 
+  function getLocForName(name) {
+    return bizAreas.find(l => l.name === name) || null;
+  }
+
   function getLocationsToRun() {
     const locs = [];
     // Rows without existing dossiers: use main include checkbox
     document.querySelectorAll('.geo-include-check:checked').forEach(cb => {
       const norm = normLocName(cb.dataset.name);
       if (!existingDossiers.has(norm)) {
-        const inp = document.querySelector(`.geo-code-input[data-name="${cb.dataset.name}"]`);
-        locs.push({ name: cb.dataset.name, code: inp ? inp.value.toUpperCase() : cb.dataset.code });
+        const inp     = document.querySelector(`.geo-code-input[data-name="${cb.dataset.name}"]`);
+        const locData = getLocForName(cb.dataset.name);
+        locs.push({ name: cb.dataset.name, code: inp ? inp.value.toUpperCase() : cb.dataset.code, runType: locData ? locData.runType : 'TOWN' });
       }
     });
     // Rows with existing dossiers: use re-run checkbox
     document.querySelectorAll('.geo-refresh-check:checked').forEach(cb => {
-      const inp = document.querySelector(`.geo-code-input[data-name="${cb.dataset.name}"]`);
-      locs.push({ name: cb.dataset.name, code: inp ? inp.value.toUpperCase() : cb.dataset.code });
+      const inp     = document.querySelector(`.geo-code-input[data-name="${cb.dataset.name}"]`);
+      const locData = getLocForName(cb.dataset.name);
+      locs.push({ name: cb.dataset.name, code: inp ? inp.value.toUpperCase() : cb.dataset.code, runType: locData ? locData.runType : 'TOWN' });
     });
     return locs;
   }
@@ -766,13 +771,15 @@
     const moduleName = document.getElementById('researchModuleSelect').value;
     if (!moduleName) { alert('Please select a research module first.'); return; }
     setRowRunning(locCode);
+    const locData  = getLocForName(locName);
+    const runType  = locData ? locData.runType : 'TOWN';
     const includeSecurityAddOn = !!(document.getElementById('securityAddOnCheck').checked);
     try {
       const res  = await fetch('/api/research-rerun', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ jobId: researchJobId, sessionId, clientId,
-          location: { name: locName, code: locCode }, moduleName, includeSecurityAddOn }),
+          location: { name: locName, code: locCode, runType }, moduleName, includeSecurityAddOn }),
       });
       const data = await res.json();
       if (!res.ok) {

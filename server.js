@@ -495,7 +495,9 @@ function validateAndCleanDossier(raw) {
   return { valid: true, text };
 }
 
-function buildResearchPrompt(locationName, code, trade, keyValueMap, serviceParentMap, includeSecurityAddOn = false) {
+// runType must be 'PRIMARY CITY' or 'TOWN' — set on the location object at parse-zip time and
+// passed through every request so re-running a single location always uses the correct value.
+function buildResearchPrompt(locationName, code, runType, trade, keyValueMap, serviceParentMap, includeSecurityAddOn = false) {
   const companyName = keyValueMap['company_name'] || '';
   const primaryCity = keyValueMap['biz_area_1']   || '';
 
@@ -510,7 +512,8 @@ function buildResearchPrompt(locationName, code, trade, keyValueMap, servicePare
     categoryLines.push(`- ${catName}${i === 1 ? ' (primary)' : ''}: ${svcNames}`);
   }
 
-  const cityOrTown = normaliseLocation(locationName) === normaliseLocation(primaryCity) ? 'PRIMARY CITY' : 'TOWN';
+  const cityOrTown = (runType === 'PRIMARY CITY' || runType === 'TOWN') ? runType
+    : (normaliseLocation(locationName) === normaliseLocation(primaryCity) ? 'PRIMARY CITY' : 'TOWN');
 
   const clientBlock = [
     '=== CLIENT ===',
@@ -683,7 +686,7 @@ async function runOneLocation(record, clientId, loc, moduleName, keyValueMap, se
   let lastErr = null;
   for (let attempt = 1; attempt <= 2; attempt++) {
     try {
-      const promptText = buildResearchPrompt(loc.name, code, moduleName, keyValueMap, serviceParentMap, includeSecurityAddOn);
+      const promptText = buildResearchPrompt(loc.name, code, loc.runType || '', moduleName, keyValueMap, serviceParentMap, includeSecurityAddOn);
       const pxRes      = await callPerplexity(promptText);
 
       const rawText  = pxRes.output_text || '';
@@ -993,7 +996,7 @@ app.post('/api/parse-zip', upload.array('files', 30), async (req, res) => {
           }
           usedCodes.add(code);
         }
-        bizAreas.push({ name, norm, code });
+        bizAreas.push({ name, norm, code, runType: i === 1 ? 'PRIMARY CITY' : 'TOWN' });
       }
     }
 
