@@ -164,17 +164,28 @@
     .token-stats strong { color: var(--text); }
 
     /* Geo research step */
-    .geo-loc-row { display: grid; grid-template-columns: 1fr 72px 1fr; align-items: center; gap: 10px; padding: 9px 0; border-bottom: 1px solid var(--border); }
+    .geo-loc-row { display: grid; grid-template-columns: 18px 1fr 72px 1fr; align-items: center; gap: 10px; padding: 9px 0; border-bottom: 1px solid var(--border); }
     .geo-loc-row:last-child { border-bottom: none; }
     .geo-loc-name { font-size: 13px; color: var(--text); }
     .geo-code-input { width: 100%; background: var(--bg); border: 1px solid var(--border); border-radius: 5px; color: var(--text); font-family: var(--mono); font-size: 13px; padding: 6px 8px; text-transform: uppercase; outline: none; text-align: center; transition: border-color 0.15s; }
     .geo-code-input:focus { border-color: var(--accent); }
     .geo-code-input.duplicate { border-color: var(--block); }
-    .geo-loc-status { font-size: 12px; color: var(--muted); display: flex; align-items: center; gap: 6px; }
+    .geo-loc-status { font-size: 12px; color: var(--muted); display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
     .geo-status-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--border); flex-shrink: 0; }
     .geo-status-dot.running { background: var(--accent); animation: spin 1s linear infinite; }
     .geo-status-dot.done    { background: var(--success); }
     .geo-status-dot.failed  { background: var(--block); }
+    .geo-row-actions { display: flex; align-items: center; gap: 5px; flex-wrap: wrap; }
+    .btn-micro { font-size: 10px; padding: 2px 7px; border-radius: 4px; border: 1px solid var(--border); background: transparent; color: var(--muted); cursor: pointer; white-space: nowrap; }
+    .btn-micro:hover { border-color: var(--accent); color: var(--accent); }
+    /* Dossier view modal */
+    .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,.7); z-index: 200; align-items: center; justify-content: center; }
+    .modal-overlay.open { display: flex; }
+    .modal-box { background: var(--surface); border: 1px solid var(--border); border-radius: var(--r); max-width: 700px; width: 92vw; max-height: 80vh; display: flex; flex-direction: column; overflow: hidden; }
+    .modal-header { display: flex; align-items: center; justify-content: space-between; padding: 14px 18px; border-bottom: 1px solid var(--border); }
+    .modal-header h3 { font-size: 14px; font-weight: 600; }
+    .modal-close { background: none; border: none; color: var(--muted); font-size: 18px; cursor: pointer; }
+    .modal-body { overflow-y: auto; padding: 16px 18px; font-size: 12px; font-family: var(--mono); white-space: pre-wrap; line-height: 1.55; color: var(--text); }
   </style>
 </head>
 <body>
@@ -278,9 +289,14 @@
     <div id="geoDupeWarning" style="display:none"></div>
     <div id="geoError" style="display:none"></div>
 
-    <button class="btn btn-primary" id="runResearchBtn" onclick="runResearch()" disabled>
-      Run Research
-    </button>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:4px">
+      <button class="btn btn-primary" id="runResearchBtn" onclick="runResearch()" disabled>
+        Run Research
+      </button>
+      <button class="btn btn-ghost" id="downloadAllBtn" style="display:none" onclick="downloadAllDossiers()">
+        Download All Dossiers (.zip)
+      </button>
+    </div>
     <button class="btn btn-ghost" style="margin-top:8px" onclick="skipGeoResearch()">
       Skip &mdash; Use Existing Dossiers / Uploaded File
     </button>
@@ -288,6 +304,17 @@
       Research Complete &mdash; Continue to Review
     </button>
 
+  </div>
+
+  <!-- Dossier view modal -->
+  <div class="modal-overlay" id="dossierModal" onclick="if(event.target===this)closeDossierModal()">
+    <div class="modal-box">
+      <div class="modal-header">
+        <h3 id="dossierModalTitle">Dossier</h3>
+        <button class="modal-close" onclick="closeDossierModal()">&#10005;</button>
+      </div>
+      <div class="modal-body" id="dossierModalBody"></div>
+    </div>
   </div>
 
   <!-- Step 4: Review (was Step 3) -->
@@ -545,21 +572,78 @@
       document.getElementById('researchModuleSelect').innerHTML = '<option value="">Failed to load</option>';
     });
 
-  function showGeoStep() {
-    const rows = bizAreas.map(loc => `
-      <div class="geo-loc-row" id="geo-row-${h(loc.code)}">
-        <span class="geo-loc-name">${h(loc.name)}</span>
-        <input type="text" class="geo-code-input" maxlength="3" value="${h(loc.code)}"
-          data-name="${h(loc.name)}" data-orig="${h(loc.code)}"
-          oninput="this.value=this.value.toUpperCase();checkCodeDupes();checkRunReady()" />
-        <div class="geo-loc-status" id="geo-status-${h(loc.code)}">
-          <span class="geo-status-dot"></span><span class="geo-status-text">Pending</span>
-        </div>
-      </div>`).join('');
-    document.getElementById('geoLocationRows').innerHTML = rows ||
-      '<p style="color:var(--muted);font-size:13px">No biz_area values found in custom values CSV.</p>';
+  // Map of locationNorm → {id, uploadedAt} for active dossiers loaded from server
+  let existingDossiers = new Map();
+
+  async function showGeoStep() {
+    // Load existing dossiers for this client so we can show status
+    existingDossiers = new Map();
+    if (clientId) {
+      try {
+        const dr = await fetch(`/api/clients/${encodeURIComponent(clientId)}/dossiers`);
+        if (dr.ok) {
+          const { dossiers } = await dr.json();
+          for (const d of dossiers) {
+            existingDossiers.set(d.locationNorm, d);
+          }
+        }
+      } catch (_) {}
+    }
+    renderGeoRows();
     checkCodeDupes();
     checkRunReady();
+    // Show Download All if any dossiers exist
+    document.getElementById('downloadAllBtn').style.display = existingDossiers.size > 0 ? 'inline-flex' : 'none';
+  }
+
+  function normLocName(s) {
+    return String(s || '').toLowerCase().replace(/[-_]/g, ' ').replace(/[^a-z0-9 ]/g, '').replace(/\s+/g, ' ').trim();
+  }
+
+  function renderGeoRows() {
+    if (!bizAreas.length) {
+      document.getElementById('geoLocationRows').innerHTML =
+        '<p style="color:var(--muted);font-size:13px">No biz_area values found in custom values CSV.</p>';
+      return;
+    }
+    const rows = bizAreas.map(loc => {
+      const norm    = normLocName(loc.name);
+      const dosInfo = existingDossiers.get(norm);
+      const hasDos  = !!dosInfo;
+      const dateStr = hasDos ? new Date(dosInfo.uploadedAt).toLocaleDateString('en-GB', { day:'numeric', month:'short', year:'numeric' }) : '';
+      const statusHtml = hasDos
+        ? `<span style="color:var(--success);font-size:11px">&#10003; dossier exists (${dateStr})</span>`
+        : `<span class="geo-status-dot" id="geo-dot-${h(loc.code)}"></span><span class="geo-status-text" id="geo-txt-${h(loc.code)}" style="color:var(--muted)">Pending</span>`;
+      const actionsHtml = hasDos
+        ? `<span class="geo-row-actions" id="geo-actions-${h(loc.code)}">
+            <button class="btn-micro" onclick="viewDossier('${h(dosInfo.id)}','${h(loc.name)}')">View</button>
+            <button class="btn-micro" onclick="downloadDossier('${h(dosInfo.id)}','${h(loc.name)}')">Download</button>
+            <label style="display:flex;align-items:center;gap:4px;cursor:pointer;font-size:11px;color:var(--muted)">
+              <input type="checkbox" class="geo-refresh-check" data-code="${h(loc.code)}" data-name="${h(loc.name)}"
+                style="width:12px;height:12px;accent-color:var(--accent)" onchange="checkRunReady()"> Re-run
+            </label>
+           </span>`
+        : `<span class="geo-row-actions" id="geo-actions-${h(loc.code)}"></span>`;
+      return `
+        <div class="geo-loc-row" id="geo-row-${h(loc.code)}">
+          <input type="checkbox" class="geo-include-check" data-code="${h(loc.code)}" data-name="${h(loc.name)}"
+            ${hasDos ? '' : 'checked'} style="width:13px;height:13px;accent-color:var(--accent)" onchange="checkRunReady()" title="${hasDos ? 'Include in run (re-buy)' : 'Include in run'}">
+          <span class="geo-loc-name">${h(loc.name)}</span>
+          <input type="text" class="geo-code-input" maxlength="3" value="${h(loc.code)}"
+            data-name="${h(loc.name)}" data-orig="${h(loc.code)}"
+            oninput="this.value=this.value.toUpperCase();checkCodeDupes();checkRunReady()" />
+          <div class="geo-loc-status" id="geo-status-${h(loc.code)}">
+            ${statusHtml}
+            ${actionsHtml}
+          </div>
+        </div>`;
+    }).join('');
+    document.getElementById('geoLocationRows').innerHTML = rows;
+    // Uncheck include-checkboxes for rows that already have dossiers (only run missing by default)
+    document.querySelectorAll('.geo-include-check').forEach(cb => {
+      const norm = normLocName(cb.dataset.name);
+      if (existingDossiers.has(norm)) cb.checked = false;
+    });
   }
 
   function checkCodeDupes() {
@@ -595,22 +679,47 @@
   function checkRunReady() {
     const hasDupes  = document.querySelectorAll('.geo-code-input.duplicate').length > 0;
     const hasModule = !!document.getElementById('researchModuleSelect').value;
-    const hasLocs   = bizAreas.length > 0;
-    const btn       = document.getElementById('runResearchBtn');
-    btn.disabled    = hasDupes || !hasModule || !hasLocs;
+    // Count locations checked to include (main checkbox or re-run checkbox on existing-dossier rows)
+    const checkedCount = getLocationsToRun().length;
+    const btn          = document.getElementById('runResearchBtn');
+    btn.disabled       = hasDupes || !hasModule || checkedCount === 0;
+    btn.textContent    = checkedCount > 0 ? `Run Research (${checkedCount} location${checkedCount > 1 ? 's' : ''})` : 'Run Research';
     if (!clientId) {
-      btn.disabled  = true;
-      btn.title     = 'A client must be selected to save dossiers. Open this page from a client record.';
+      btn.disabled = true;
+      btn.title    = 'A client must be selected to save dossiers. Open this page from a client record.';
     }
+  }
+
+  function getLocationsToRun() {
+    const locs = [];
+    // Rows without existing dossiers: use main include checkbox
+    document.querySelectorAll('.geo-include-check:checked').forEach(cb => {
+      const norm = normLocName(cb.dataset.name);
+      if (!existingDossiers.has(norm)) {
+        const inp = document.querySelector(`.geo-code-input[data-name="${cb.dataset.name}"]`);
+        locs.push({ name: cb.dataset.name, code: inp ? inp.value.toUpperCase() : cb.dataset.code });
+      }
+    });
+    // Rows with existing dossiers: use re-run checkbox
+    document.querySelectorAll('.geo-refresh-check:checked').forEach(cb => {
+      const inp = document.querySelector(`.geo-code-input[data-name="${cb.dataset.name}"]`);
+      locs.push({ name: cb.dataset.name, code: inp ? inp.value.toUpperCase() : cb.dataset.code });
+    });
+    return locs;
   }
 
   async function runResearch() {
     const moduleName = document.getElementById('researchModuleSelect').value;
-    const inputs     = [...document.querySelectorAll('.geo-code-input')];
-    const locations  = inputs.map(inp => ({ name: inp.dataset.name, code: inp.value.toUpperCase() }));
+    const locations  = getLocationsToRun();
+    if (!locations.length) return;
 
     document.getElementById('runResearchBtn').disabled = true;
     document.getElementById('geoError').style.display  = 'none';
+
+    // Mark selected rows as running
+    for (const loc of locations) {
+      setRowRunning(loc.code);
+    }
 
     const includeSecurityAddOn = !!(document.getElementById('securityAddOnCheck').checked);
     try {
@@ -637,6 +746,49 @@
     }
   }
 
+  async function rerunLocation(locName, locCode) {
+    const moduleName = document.getElementById('researchModuleSelect').value;
+    if (!moduleName) { alert('Please select a research module first.'); return; }
+    setRowRunning(locCode);
+    const includeSecurityAddOn = !!(document.getElementById('securityAddOnCheck').checked);
+    try {
+      const res  = await fetch('/api/research-rerun', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ jobId: researchJobId, sessionId, clientId,
+          location: { name: locName, code: locCode }, moduleName, includeSecurityAddOn }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setRowStatus(locCode, 'failed', data.error || 'Rerun failed');
+        return;
+      }
+      if (!researchJobId) researchJobId = data.jobId;
+      startResearchPolling([{ name: locName, code: locCode }]);
+    } catch (err) {
+      setRowStatus(locCode, 'failed', err.message);
+    }
+  }
+
+  function setRowRunning(code) {
+    const dot  = document.getElementById(`geo-dot-${code}`);
+    const txt  = document.getElementById(`geo-txt-${code}`);
+    const acts = document.getElementById(`geo-actions-${code}`);
+    if (dot) { dot.className = 'geo-status-dot running'; }
+    if (txt) { txt.textContent = 'Running…'; txt.style.color = 'var(--accent)'; }
+    if (acts) acts.innerHTML = '';
+  }
+
+  function setRowStatus(code, status, msg) {
+    const dot = document.getElementById(`geo-dot-${code}`);
+    const txt = document.getElementById(`geo-txt-${code}`);
+    if (dot) dot.className = `geo-status-dot ${status}`;
+    if (txt) {
+      txt.textContent = status === 'done' ? 'Done' : `Failed: ${msg || ''}`;
+      txt.style.color = status === 'done' ? 'var(--success)' : 'var(--block)';
+    }
+  }
+
   function startResearchPolling(locations) {
     if (researchPollTimer) clearInterval(researchPollTimer);
     researchPollTimer = setInterval(async () => {
@@ -658,23 +810,71 @@
   }
 
   function updateResearchUI(locationsData) {
+    let anyDone = false;
     for (const [code, loc] of Object.entries(locationsData)) {
-      const el    = document.getElementById(`geo-status-${code}`);
-      if (!el) continue;
-      const dot   = el.querySelector('.geo-status-dot');
-      const text  = el.querySelector('.geo-status-text');
+      const statusEl = document.getElementById(`geo-status-${code}`);
+      if (!statusEl) continue;
+      const dot  = document.getElementById(`geo-dot-${code}`);
+      const text = document.getElementById(`geo-txt-${code}`);
+      const acts = document.getElementById(`geo-actions-${code}`);
+      if (!dot) continue; // row may have been replaced after a rerun
       dot.className = `geo-status-dot ${loc.status}`;
       if (loc.status === 'done') {
         text.textContent = 'Done';
         text.style.color = 'var(--success)';
+        anyDone = true;
+        // Refresh dossier map for this location so actions appear
+        if (loc.assetId && acts) {
+          const locName = loc.name || code;
+          acts.innerHTML =
+            `<button class="btn-micro" onclick="viewDossier('${h(loc.assetId)}','${h(locName)}')">View</button>` +
+            `<button class="btn-micro" onclick="downloadDossier('${h(loc.assetId)}','${h(locName)}')">Download</button>` +
+            `<button class="btn-micro" onclick="rerunLocation('${h(locName)}','${h(code)}')">Re-run</button>`;
+        }
       } else if (loc.status === 'failed') {
         text.textContent = `Failed: ${loc.error || 'unknown error'}`;
         text.style.color = 'var(--block)';
+        if (acts) {
+          const locName = loc.name || code;
+          acts.innerHTML = `<button class="btn-micro" onclick="rerunLocation('${h(locName)}','${h(code)}')">Re-run</button>`;
+        }
       } else if (loc.status === 'running') {
         text.textContent = 'Running…';
         text.style.color = 'var(--accent)';
       }
     }
+    if (anyDone) {
+      document.getElementById('downloadAllBtn').style.display = 'inline-flex';
+    }
+  }
+
+  async function viewDossier(assetId, locName) {
+    try {
+      const res  = await fetch(`/api/clients/${encodeURIComponent(clientId)}/dossiers/${encodeURIComponent(assetId)}`);
+      const data = await res.json();
+      if (!res.ok) { alert(data.error || 'Failed to load dossier.'); return; }
+      document.getElementById('dossierModalTitle').textContent = `${locName} — Dossier`;
+      document.getElementById('dossierModalBody').textContent  = data.content;
+      document.getElementById('dossierModal').classList.add('open');
+    } catch (err) { alert(err.message); }
+  }
+
+  function closeDossierModal() {
+    document.getElementById('dossierModal').classList.remove('open');
+    document.getElementById('dossierModalBody').textContent = '';
+  }
+
+  function downloadDossier(assetId, locName) {
+    const a = document.createElement('a');
+    a.href  = `/api/clients/${encodeURIComponent(clientId)}/dossiers/${encodeURIComponent(assetId)}/download`;
+    a.download = `${(locName || 'dossier').replace(/\s+/g, '_')}_Dossier.md`;
+    a.click();
+  }
+
+  function downloadAllDossiers() {
+    const a = document.createElement('a');
+    a.href  = `/api/clients/${encodeURIComponent(clientId)}/dossiers/download-all`;
+    a.click();
   }
 
   function skipGeoResearch() {
