@@ -600,17 +600,36 @@
     return String(s || '').toLowerCase().replace(/[-_]/g, ' ').replace(/[^a-z0-9 ]/g, '').replace(/\s+/g, ' ').trim();
   }
 
+  // Words that indicate an administrative area rather than a serviceable town/city.
+  // Rows matching any of these get an amber warning and are unticked by default.
+  const ADMIN_AREA_WORDS = ['district', 'county', 'borough', 'region', 'national park'];
+  function isAdminArea(name) {
+    const lower = name.toLowerCase();
+    return ADMIN_AREA_WORDS.some(w => lower.includes(w));
+  }
+
   function renderGeoRows() {
     if (!bizAreas.length) {
       document.getElementById('geoLocationRows').innerHTML =
         '<p style="color:var(--muted);font-size:13px">No biz_area values found in custom values CSV.</p>';
       return;
     }
-    const rows = bizAreas.map(loc => {
-      const norm    = normLocName(loc.name);
-      const dosInfo = existingDossiers.get(norm);
-      const hasDos  = !!dosInfo;
-      const dateStr = hasDos ? new Date(dosInfo.uploadedAt).toLocaleDateString('en-GB', { day:'numeric', month:'short', year:'numeric' }) : '';
+    const rows = bizAreas.map((loc, idx) => {
+      const isPrimary = idx === 0;
+      const runType   = isPrimary ? 'PRIMARY CITY' : 'TOWN';
+      const admin     = isAdminArea(loc.name);
+      const norm      = normLocName(loc.name);
+      const dosInfo   = existingDossiers.get(norm);
+      const hasDos    = !!dosInfo;
+      const dateStr   = hasDos ? new Date(dosInfo.uploadedAt).toLocaleDateString('en-GB', { day:'numeric', month:'short', year:'numeric' }) : '';
+
+      // Default checked: not if it already has a dossier OR is an admin area
+      const defaultChecked = !hasDos && !admin;
+
+      const runTypeBadge = `<span style="font-size:10px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:${isPrimary ? 'var(--accent)' : 'var(--muted)'}">${runType}</span>`;
+      const adminWarning = admin
+        ? `<span style="font-size:11px;color:var(--flag)" title="This looks like an administrative area, not a serviceable town. Geo research is written for towns/cities. Untick unless intended.">&#9888; admin area</span>`
+        : '';
       const statusHtml = hasDos
         ? `<span style="color:var(--success);font-size:11px">&#10003; dossier exists (${dateStr})</span>`
         : `<span class="geo-status-dot" id="geo-dot-${h(loc.code)}"></span><span class="geo-status-text" id="geo-txt-${h(loc.code)}" style="color:var(--muted)">Pending</span>`;
@@ -625,25 +644,22 @@
            </span>`
         : `<span class="geo-row-actions" id="geo-actions-${h(loc.code)}"></span>`;
       return `
-        <div class="geo-loc-row" id="geo-row-${h(loc.code)}">
+        <div class="geo-loc-row" id="geo-row-${h(loc.code)}" ${admin ? 'style="background:rgba(245,166,35,.05)"' : ''}>
           <input type="checkbox" class="geo-include-check" data-code="${h(loc.code)}" data-name="${h(loc.name)}"
-            ${hasDos ? '' : 'checked'} style="width:13px;height:13px;accent-color:var(--accent)" onchange="checkRunReady()" title="${hasDos ? 'Include in run (re-buy)' : 'Include in run'}">
+            ${defaultChecked ? 'checked' : ''} style="width:13px;height:13px;accent-color:var(--accent)" onchange="checkRunReady()">
           <span class="geo-loc-name">${h(loc.name)}</span>
           <input type="text" class="geo-code-input" maxlength="3" value="${h(loc.code)}"
             data-name="${h(loc.name)}" data-orig="${h(loc.code)}"
             oninput="this.value=this.value.toUpperCase();checkCodeDupes();checkRunReady()" />
           <div class="geo-loc-status" id="geo-status-${h(loc.code)}">
+            ${runTypeBadge}${adminWarning ? '&ensp;' + adminWarning : ''}
+            <span style="color:var(--border)">|</span>
             ${statusHtml}
             ${actionsHtml}
           </div>
         </div>`;
     }).join('');
     document.getElementById('geoLocationRows').innerHTML = rows;
-    // Uncheck include-checkboxes for rows that already have dossiers (only run missing by default)
-    document.querySelectorAll('.geo-include-check').forEach(cb => {
-      const norm = normLocName(cb.dataset.name);
-      if (existingDossiers.has(norm)) cb.checked = false;
-    });
   }
 
   function checkCodeDupes() {

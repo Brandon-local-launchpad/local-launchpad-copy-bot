@@ -249,12 +249,14 @@ function readGeoDoc(name) {
 
 const RESEARCH_MODULES           = loadResearchModules();
 const AVAILABLE_RESEARCH_MODULES = Object.keys(RESEARCH_MODULES);
+console.log(`Research modules loaded: ${AVAILABLE_RESEARCH_MODULES.length}`);
 // Security dog add-on: appended to Dog Training prompts when toggled in UI
 const SECURITY_ADDON_PATH   = path.join(GEO_RESEARCH_DIR, 'Modules', 'Dog_Training_Security_AddOn_Research_Module.md');
 const SECURITY_ADDON_MODULE = fs.existsSync(SECURITY_ADDON_PATH)
   ? fs.readFileSync(SECURITY_ADDON_PATH, 'utf8')
   : null;
 const GEO_RESEARCH_CORE          = readGeoDoc('Geo_Research_CORE') || '';
+console.log(`Geo research core loaded: ${GEO_RESEARCH_CORE ? 'yes' : 'no'}`);
 const GEO_CLIENT_BLOCK_TEMPLATE  = (() => {
   const p = path.join(GEO_RESEARCH_DIR, 'Client_Block_Template.md');
   return fs.existsSync(p) ? fs.readFileSync(p, 'utf8') : '';
