@@ -823,10 +823,24 @@
         if (data.status === 'done' || data.status === 'failed') {
           clearInterval(researchPollTimer);
           researchPollTimer = null;
-          // Show Continue button
           document.getElementById('runResearchBtn').style.display = 'none';
+          const locs    = Object.values(data.locations || {});
+          const nDone   = locs.filter(l => l.status === 'done').length;
+          const nFailed = locs.filter(l => l.status === 'failed').length;
           const contBtn = document.getElementById('geoContBtn');
-          if (contBtn) { contBtn.style.display = 'block'; }
+          const errEl   = document.getElementById('geoError');
+          if (nFailed === 0) {
+            // All succeeded
+            if (contBtn) contBtn.style.display = 'block';
+          } else {
+            // Some or all failed — show warning, still offer continue
+            errEl.innerHTML = `<div class="error-box" style="border-color:var(--flag);color:var(--flag)">`
+              + `&#9888; ${nFailed} location${nFailed > 1 ? 's' : ''} failed`
+              + (nDone > 0 ? ` (${nDone} succeeded)` : '') + `. Review errors above, then re-run failed rows or continue without them.`
+              + `</div>`;
+            errEl.style.display = 'block';
+            if (contBtn) { contBtn.style.display = 'block'; contBtn.textContent = 'Continue (some locations failed)'; }
+          }
         }
       } catch (_) {}
     }, 10000);

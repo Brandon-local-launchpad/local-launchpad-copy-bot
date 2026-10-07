@@ -533,29 +533,53 @@ function buildResearchPrompt(locationName, code, runType, trade, keyValueMap, se
   return parts.join('\n\n---\n\n');
 }
 
+// Submit to Perplexity in background mode (returns immediately with status "queued"),
+// then poll GET /v1/agent/{id} until the job reaches a terminal status.
+// This avoids holding a long-lived HTTP connection which Node's undici closes after
+// its default bodyTimeout (~300 s) regardless of our AbortController timeout.
 async function callPerplexity(promptText) {
   const apiKey = process.env.PERPLEXITY_API_KEY;
   if (!apiKey) throw new Error('PERPLEXITY_API_KEY environment variable is not set');
 
-  const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), PERPLEXITY_TIMEOUT_MS);
+  const deadline = Date.now() + PERPLEXITY_TIMEOUT_MS;
+  const headers  = { 'Content-Type': 'application/json', 'Authorization': `Bearer ${apiKey}` };
 
-  try {
-    const res = await fetch('https://api.perplexity.ai/v1/agent', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${apiKey}` },
-      body: JSON.stringify({ preset: PERPLEXITY_PRESET, input: promptText }),
-      signal: controller.signal,
-    });
+  // Step 1: submit job in background mode
+  const submitRes = await fetch('https://api.perplexity.ai/v1/agent', {
+    method: 'POST',
+    headers,
+    body: JSON.stringify({ preset: PERPLEXITY_PRESET, input: promptText, background: true }),
+  });
+  if (!submitRes.ok) {
+    const errText = await submitRes.text().catch(() => '');
+    throw new Error(`Perplexity submit error ${submitRes.status}: ${errText.slice(0, 300)}`);
+  }
+  const submitted  = await submitRes.json();
+  const responseId = submitted.id;
+  if (!responseId) throw new Error('Perplexity submit returned no response id');
+  console.log(`[research] Perplexity job queued: ${responseId}`);
 
-    if (!res.ok) {
-      const errText = await res.text().catch(() => '');
-      throw new Error(`Perplexity API error ${res.status}: ${errText.slice(0, 300)}`);
+  // Step 2: poll until terminal
+  const POLL_MS = 15000;
+  while (true) {
+    if (Date.now() > deadline) {
+      throw new Error(`Perplexity timeout after ${PERPLEXITY_TIMEOUT_MS / 60000} min waiting for ${responseId}`);
     }
+    await new Promise(r => setTimeout(r, POLL_MS));
 
-    return await res.json();
-  } finally {
-    clearTimeout(timer);
+    const pollRes = await fetch(`https://api.perplexity.ai/v1/agent/${responseId}`, { headers: { 'Authorization': `Bearer ${apiKey}` } });
+    if (!pollRes.ok) {
+      const errText = await pollRes.text().catch(() => '');
+      throw new Error(`Perplexity poll error ${pollRes.status} for ${responseId}: ${errText.slice(0, 300)}`);
+    }
+    const pxRes = await pollRes.json();
+    console.log(`[research] ${responseId} status: ${pxRes.status}`);
+    if (pxRes.status === 'completed') return pxRes;
+    if (['failed', 'incomplete', 'cancelled'].includes(pxRes.status)) {
+      const detail = pxRes.error && pxRes.error.message ? pxRes.error.message : pxRes.status;
+      throw new Error(`Perplexity job ${pxRes.status}: ${detail}`);
+    }
+    // queued or in_progress — keep polling
   }
 }
 
@@ -739,11 +763,13 @@ async function runOneLocation(record, clientId, loc, moduleName, keyValueMap, se
       return;
     } catch (err) {
       lastErr = err;
-      if (attempt === 1) console.warn(`[research] "${loc.name}" attempt 1 failed — retrying: ${err.message}`);
+      const causeStr = err.cause ? ` | cause: ${err.cause}` : '';
+      if (attempt === 1) console.warn(`[research] "${loc.name}" attempt 1 failed — retrying: ${err.message}${causeStr}`);
+      else               console.error(`[research] "${loc.name}" attempt 2 failed: ${err.message}${causeStr}`);
     }
   }
 
-  console.error(`[research] "${loc.name}" failed after retry:`, lastErr.message);
+  console.error(`[research] "${loc.name}" failed after retry:`, lastErr.message, lastErr.cause || '');
   await updateResearchLocation(record, code, {
     status: 'failed', finishedAt: new Date().toISOString(), error: lastErr.message,
   });
