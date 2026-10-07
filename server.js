@@ -533,46 +533,46 @@ function buildResearchPrompt(locationName, code, runType, trade, keyValueMap, se
   return parts.join('\n\n---\n\n');
 }
 
-// Submit to Perplexity in background mode (returns immediately with status "queued"),
-// then poll GET /v1/agent/{id} until the job reaches a terminal status.
-// This avoids holding a long-lived HTTP connection which Node's undici closes after
-// its default bodyTimeout (~300 s) regardless of our AbortController timeout.
-async function callPerplexity(promptText) {
+// Submit to Perplexity in background mode. Returns the Perplexity response id immediately.
+async function submitPerplexity(promptText) {
   const apiKey = process.env.PERPLEXITY_API_KEY;
   if (!apiKey) throw new Error('PERPLEXITY_API_KEY environment variable is not set');
 
-  const deadline = Date.now() + PERPLEXITY_TIMEOUT_MS;
-  const headers  = { 'Content-Type': 'application/json', 'Authorization': `Bearer ${apiKey}` };
-
-  // Step 1: submit job in background mode
-  const submitRes = await fetch('https://api.perplexity.ai/v1/agent', {
+  const res = await fetch('https://api.perplexity.ai/v1/agent', {
     method: 'POST',
-    headers,
+    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${apiKey}` },
     body: JSON.stringify({ preset: PERPLEXITY_PRESET, input: promptText, background: true }),
   });
-  if (!submitRes.ok) {
-    const errText = await submitRes.text().catch(() => '');
-    throw new Error(`Perplexity submit error ${submitRes.status}: ${errText.slice(0, 300)}`);
+  if (!res.ok) {
+    const errText = await res.text().catch(() => '');
+    throw new Error(`Perplexity submit error ${res.status}: ${errText.slice(0, 300)}`);
   }
-  const submitted  = await submitRes.json();
-  const responseId = submitted.id;
-  if (!responseId) throw new Error('Perplexity submit returned no response id');
-  console.log(`[research] Perplexity job queued: ${responseId}`);
+  const submitted = await res.json();
+  if (!submitted.id) throw new Error('Perplexity submit returned no response id');
+  console.log(`[research] Perplexity job queued: ${submitted.id}`);
+  return submitted.id;
+}
 
-  // Step 2: poll until terminal
-  const POLL_MS = 15000;
+// Poll GET /v1/agent/{id} until terminal. deadline is a Date.now() timestamp.
+const PERPLEXITY_POLL_MS = 15000;
+async function pollPerplexity(responseId, deadline) {
+  const apiKey = process.env.PERPLEXITY_API_KEY;
+  if (!apiKey) throw new Error('PERPLEXITY_API_KEY environment variable is not set');
+
   while (true) {
     if (Date.now() > deadline) {
       throw new Error(`Perplexity timeout after ${PERPLEXITY_TIMEOUT_MS / 60000} min waiting for ${responseId}`);
     }
-    await new Promise(r => setTimeout(r, POLL_MS));
+    await new Promise(r => setTimeout(r, PERPLEXITY_POLL_MS));
 
-    const pollRes = await fetch(`https://api.perplexity.ai/v1/agent/${responseId}`, { headers: { 'Authorization': `Bearer ${apiKey}` } });
-    if (!pollRes.ok) {
-      const errText = await pollRes.text().catch(() => '');
-      throw new Error(`Perplexity poll error ${pollRes.status} for ${responseId}: ${errText.slice(0, 300)}`);
+    const res = await fetch(`https://api.perplexity.ai/v1/agent/${responseId}`, {
+      headers: { 'Authorization': `Bearer ${apiKey}` },
+    });
+    if (!res.ok) {
+      const errText = await res.text().catch(() => '');
+      throw new Error(`Perplexity poll error ${res.status} for ${responseId}: ${errText.slice(0, 300)}`);
     }
-    const pxRes = await pollRes.json();
+    const pxRes = await res.json();
     console.log(`[research] ${responseId} status: ${pxRes.status}`);
     if (pxRes.status === 'completed') return pxRes;
     if (['failed', 'incomplete', 'cancelled'].includes(pxRes.status)) {
@@ -629,23 +629,56 @@ async function updateResearchLocation(record, code, patch) {
 async function recoverInterruptedResearchJobs() {
   if (!pool) return;
   try {
-    await pool.query(`
-      UPDATE research_jobs
-      SET
-        locations = (
-          SELECT jsonb_object_agg(
-            key,
-            CASE
-              WHEN value->>'status' = 'running'
-              THEN value || '{"status":"failed","error":"interrupted: server restarted"}'::jsonb
-              ELSE value
-            END
-          )
-          FROM jsonb_each(locations)
-        ),
-        status = CASE WHEN status = 'running' THEN 'failed' ELSE status END
-      WHERE status = 'running'
-    `);
+    // Find all research_jobs that were still running when the server stopped
+    const { rows: runningJobs } = await pool.query(
+      `SELECT id, client_id, session_id, preset, locations, created_at FROM research_jobs WHERE status = 'running'`
+    );
+    if (!runningJobs.length) { console.log('Research job recovery: no interrupted jobs'); return; }
+
+    console.log(`Research job recovery: ${runningJobs.length} interrupted job(s) — resuming where possible`);
+
+    for (const row of runningJobs) {
+      const record = {
+        id: row.id, sessionId: row.session_id, clientId: row.client_id,
+        status: 'running', preset: row.preset,
+        locations: row.locations || {},
+        createdAt: new Date(row.created_at).getTime(),
+      };
+      researchJobs.set(record.id, record);
+
+      for (const [code, loc] of Object.entries(record.locations)) {
+        if (loc.status !== 'running') continue;
+
+        if (loc.pxJobId) {
+          // Perplexity job was submitted — check if it's still within the timeout window
+          const elapsed  = Date.now() - new Date(loc.startedAt || row.created_at).getTime();
+          const remaining = PERPLEXITY_TIMEOUT_MS - elapsed;
+          if (remaining <= 0) {
+            await updateResearchLocation(record, code, { status: 'failed', error: 'interrupted: timed out while server was restarting', finishedAt: new Date().toISOString() });
+            console.log(`[recovery] ${record.id}/${code}: timed out — marking failed`);
+          } else {
+            // Resume polling in the background
+            const deadline = Date.now() + remaining;
+            console.log(`[recovery] ${record.id}/${code}: resuming poll of ${loc.pxJobId} (${Math.round(remaining / 60000)} min remaining)`);
+            (async () => {
+              try {
+                const pxRes = await pollPerplexity(loc.pxJobId, deadline);
+                // Process the completed result the same way runOneLocation does
+                await finishLocation(record, record.clientId, code, loc, pxRes);
+              } catch (err) {
+                const causeStr = err.cause ? ` | cause: ${err.cause}` : '';
+                console.error(`[recovery] ${record.id}/${code} poll failed: ${err.message}${causeStr}`);
+                await updateResearchLocation(record, code, { status: 'failed', error: err.message, finishedAt: new Date().toISOString() });
+              }
+            })();
+          }
+        } else {
+          // No job id — never reached Perplexity; mark failed immediately
+          await updateResearchLocation(record, code, { status: 'failed', error: 'interrupted: server restarted before job was submitted', finishedAt: new Date().toISOString() });
+          console.log(`[recovery] ${record.id}/${code}: no pxJobId — marking failed`);
+        }
+      }
+    }
     console.log('Research job recovery complete');
   } catch (err) {
     console.warn('[DB] Research job recovery error:', err.message);
@@ -701,6 +734,56 @@ function selectDossierForJob(dossierMap, job, primaryGeo) {
   return { dossierText, skipReason: null };
 }
 
+// Process a completed Perplexity response: validate, save dossier asset, update record.
+// Shared by runOneLocation and recovery path.
+async function finishLocation(record, clientId, code, loc, pxRes) {
+  const rawText  = pxRes.output_text || '';
+  const rawUsage = pxRes.usage || null;
+  const usage    = rawUsage || {};
+  const inputTok = usage.input_tokens  || 0;
+  const outputTok= usage.output_tokens || 0;
+  const searchCnt= (usage.tool_calls_details && usage.tool_calls_details.search_count) || null;
+
+  let cost;
+  if (rawUsage && rawUsage.cost && rawUsage.cost.total_cost != null) {
+    cost = rawUsage.cost.total_cost;
+  } else {
+    console.warn(`[research] No cost in Perplexity response for "${loc.name}" — using fallback rate constants. Verify PERPLEXITY_RATES match current pricing.`);
+    cost = (inputTok / 1e6) * PERPLEXITY_RATES.inputPerMToken + (outputTok / 1e6) * PERPLEXITY_RATES.outputPerMToken;
+  }
+
+  const { valid, text: cleanText, error: valErr } = validateAndCleanDossier(rawText);
+  if (!valid) throw new Error(`Dossier validation failed: ${valErr}`);
+
+  let assetId = null;
+  if (pool) {
+    try {
+      await pool.query(
+        `UPDATE client_assets SET metadata = COALESCE(metadata,'{}') || '{"superseded":true}'
+         WHERE client_id = $1 AND asset_type = 'geo_dossier'
+         AND metadata->>'location_name' = $2
+         AND NOT (metadata->>'superseded')::boolean`,
+        [clientId, loc.name]
+      );
+      const { rows: assetRows } = await pool.query(
+        `INSERT INTO client_assets (client_id, asset_type, filename, content, metadata)
+         VALUES ($1,'geo_dossier',$2,$3,$4::jsonb) RETURNING id`,
+        [clientId,
+         `${loc.name.replace(/\s+/g, '_')}_dossier.md`,
+         cleanText,
+         JSON.stringify({ location_name: loc.name, location_norm: normaliseLocation(loc.name), preset: PERPLEXITY_PRESET, superseded: false })]
+      );
+      assetId = assetRows[0].id;
+    } catch (dbErr) { console.error('[DB] Dossier asset save error:', dbErr.message); }
+  }
+
+  await updateResearchLocation(record, code, {
+    status: 'done', finishedAt: new Date().toISOString(),
+    inputTokens: inputTok, outputTokens: outputTok, searchCount: searchCnt,
+    rawUsage, cost: parseFloat(cost.toFixed(6)), preset: PERPLEXITY_PRESET, assetId, error: null,
+  });
+}
+
 // ── Standalone per-location Perplexity runner (shared by research-start and research-rerun) ──
 
 async function runOneLocation(record, clientId, loc, moduleName, keyValueMap, serviceParentMap, includeSecurityAddOn) {
@@ -711,55 +794,12 @@ async function runOneLocation(record, clientId, loc, moduleName, keyValueMap, se
   for (let attempt = 1; attempt <= 2; attempt++) {
     try {
       const promptText = buildResearchPrompt(loc.name, code, loc.runType || '', moduleName, keyValueMap, serviceParentMap, includeSecurityAddOn);
-      const pxRes      = await callPerplexity(promptText);
-
-      const rawText  = pxRes.output_text || '';
-      const rawUsage = pxRes.usage || null;
-      const usage    = rawUsage || {};
-      const inputTok = usage.input_tokens  || 0;
-      const outputTok= usage.output_tokens || 0;
-      // search_count is not in the published usage schema; may appear in tool_calls_details
-      const searchCnt= (usage.tool_calls_details && usage.tool_calls_details.search_count) || null;
-
-      // usage.cost is an object: { currency, input_cost, output_cost, total_cost, ... }
-      let cost;
-      if (rawUsage && rawUsage.cost && rawUsage.cost.total_cost != null) {
-        cost = rawUsage.cost.total_cost;
-      } else {
-        console.warn(`[research] No cost in Perplexity response for "${loc.name}" — using fallback rate constants. Verify PERPLEXITY_RATES match current pricing.`);
-        cost = (inputTok / 1e6) * PERPLEXITY_RATES.inputPerMToken + (outputTok / 1e6) * PERPLEXITY_RATES.outputPerMToken;
-      }
-
-      const { valid, text: cleanText, error: valErr } = validateAndCleanDossier(rawText);
-      if (!valid) throw new Error(`Dossier validation failed: ${valErr}`);
-
-      let assetId = null;
-      if (pool) {
-        try {
-          await pool.query(
-            `UPDATE client_assets SET metadata = COALESCE(metadata,'{}') || '{"superseded":true}'
-             WHERE client_id = $1 AND asset_type = 'geo_dossier'
-             AND metadata->>'location_name' = $2
-             AND NOT (metadata->>'superseded')::boolean`,
-            [clientId, loc.name]
-          );
-          const { rows: assetRows } = await pool.query(
-            `INSERT INTO client_assets (client_id, asset_type, filename, content, metadata)
-             VALUES ($1,'geo_dossier',$2,$3,$4::jsonb) RETURNING id`,
-            [clientId,
-             `${loc.name.replace(/\s+/g, '_')}_dossier.md`,
-             cleanText,
-             JSON.stringify({ location_name: loc.name, location_norm: normaliseLocation(loc.name), preset: PERPLEXITY_PRESET, superseded: false })]
-          );
-          assetId = assetRows[0].id;
-        } catch (dbErr) { console.error('[DB] Dossier asset save error:', dbErr.message); }
-      }
-
-      await updateResearchLocation(record, code, {
-        status: 'done', finishedAt: new Date().toISOString(),
-        inputTokens: inputTok, outputTokens: outputTok, searchCount: searchCnt,
-        rawUsage, cost: parseFloat(cost.toFixed(6)), preset: PERPLEXITY_PRESET, assetId, error: null,
-      });
+      const deadline   = Date.now() + PERPLEXITY_TIMEOUT_MS;
+      const pxJobId    = await submitPerplexity(promptText);
+      // Persist job id before polling — recovery on restart can resume polling rather than failing the row
+      await updateResearchLocation(record, code, { pxJobId });
+      const pxRes      = await pollPerplexity(pxJobId, deadline);
+      await finishLocation(record, clientId, code, loc, pxRes);
       return;
     } catch (err) {
       lastErr = err;
