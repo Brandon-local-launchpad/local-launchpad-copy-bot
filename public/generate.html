@@ -625,7 +625,7 @@
       // Default checked: not if it already has a dossier OR is an admin area
       const defaultChecked = !hasDos && !admin;
 
-      const runTypeBadge = `<span style="font-size:10px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:${isPrimary ? 'var(--accent)' : 'var(--muted)'}">${runType}</span>`;
+      const runTypeBadge = `<span style="font-size:10px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:${runType === 'PRIMARY CITY' ? 'var(--accent)' : 'var(--muted)'}">${runType}</span>`;
       const adminWarning = admin
         ? `<span style="font-size:11px;color:var(--flag)" title="This looks like an administrative area, not a serviceable town. Geo research is written for towns/cities. Untick unless intended.">&#9888; admin area</span>`
         : '';
