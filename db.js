@@ -54,6 +54,28 @@ async function initDb() {
       created_at          TIMESTAMPTZ NOT NULL DEFAULT NOW(),
       completed_at        TIMESTAMPTZ
     );
+
+    ALTER TABLE client_assets ADD COLUMN IF NOT EXISTS metadata JSONB;
+
+    CREATE TABLE IF NOT EXISTS client_locations (
+      id                    UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+      client_id             UUID NOT NULL REFERENCES clients(id) ON DELETE CASCADE,
+      location_name_norm    TEXT NOT NULL,
+      location_name_display TEXT NOT NULL,
+      code                  TEXT NOT NULL,
+      created_at            TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      UNIQUE(client_id, location_name_norm)
+    );
+
+    CREATE TABLE IF NOT EXISTS research_jobs (
+      id          UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+      session_id  TEXT NOT NULL,
+      client_id   UUID NOT NULL REFERENCES clients(id) ON DELETE CASCADE,
+      created_at  TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      status      TEXT NOT NULL DEFAULT 'pending',
+      preset      TEXT NOT NULL DEFAULT 'medium',
+      locations   JSONB NOT NULL DEFAULT '{}'::jsonb
+    );
   `);
   console.log('DB schema ready');
 }

@@ -158,20 +158,109 @@ if (AVAILABLE_TRADES.length === 0) {
 // Alias for legacy single-page routes (uses first loaded pack)
 const CALIBRATION_PACK = CALIBRATION_PACKS[AVAILABLE_TRADES[0]] || '';
 
+// ── Geo research config and modules ───────────────────────────────────────────
+
+// Single config value — swap to 'high' for deeper research, 'low' for faster/cheaper.
+// Preset tiers: fast → low → medium (deep-research) → high → xhigh
+const PERPLEXITY_PRESET = process.env.PERPLEXITY_PRESET || 'medium';
+
+// Rate constants for cost estimation when the API response omits cost fields.
+const PERPLEXITY_RATES = { inputPerMToken: 0.25, outputPerMToken: 2.50 };
+
+const RESEARCH_MODULE_MAP = {
+  'Blinds_Curtains_Research_Module.md':            'Blinds & Curtains',
+  'Builder_Research_Module.md':                    'Building Company',
+  'Carpenter_Research_Module.md':                  'Carpenter',
+  'Cleaning_Research_Module.md':                   'Cleaning Company',
+  'Dog_Grooming_Research_Module.md':               'Dog Grooming',
+  'Dog_Training_Research_Module.md':               'Dog Training',
+  'Dog_Training_Security_AddOn_Research_Module.md': 'Dog Training & Security Dogs',
+  'Dog_Walker_Research_Module.md':                 'Dog Walker',
+  'Drainage_Research_Module.md':                   'Drainage Company',
+  'Driveways_Paving_Research_Module.md':           'Driveways & Paving',
+  'Electrician_Research_Module.md':                'Electrician',
+  'Fencing_Research_Module.md':                    'Fencing',
+  'Flooring_Research_Module.md':                   'Flooring',
+  'Garage_Doors_Research_Module.md':               'Garage Doors',
+  'Guttering_Fascias_Research_Module.md':          'Guttering & Fascias',
+  'HVAC_Research_Module.md':                       'HVAC',
+  'Kitchen_Bathroom_Research_Module.md':           'Kitchen & Bathroom',
+  'Landscaper_Gardener_Research_Module.md':        'Landscaper Gardener',
+  'Locksmith_Research_Module.md':                  'Locksmith',
+  'Loft_Extensions_Research_Module.md':            'Loft Extensions',
+  'Painter_Decorator_Research_Module.md':          'Painter & Decorator',
+  'Pest_Control_Research_Module.md':               'Pest Control',
+  'Plasterer_Research_Module.md':                  'Plasterer',
+  'Plumbing_Heating_Research_Module.md':           'Plumbing & Heating',
+  'Pressure_Washing_Research_Module.md':           'Pressure Washing',
+  'Removals_Research_Module.md':                   'Removals',
+  'Roofer_Research_Module.md':                     'Roofing Company',
+  'Scaffolding_Research_Module.md':                'Scaffolding',
+  'Skip_Hire_Research_Module.md':                  'Skip Hire',
+  'Tiling_Research_Module.md':                     'Tiling',
+  'Tree_Surgeon_Research_Module.md':               'Tree Surgeon',
+  'Window_Cleaning_Research_Module.md':            'Window Cleaning',
+};
+
+const GEO_RESEARCH_DIR = path.join(__dirname, 'Geo Research');
+
+function loadResearchModules() {
+  const modules = {};
+  const modulesDir = path.join(GEO_RESEARCH_DIR, 'Modules');
+  if (!fs.existsSync(modulesDir)) {
+    console.warn('WARNING: Geo Research/Modules directory not found — geo research unavailable');
+    return modules;
+  }
+  console.log('Loading research modules...');
+  for (const file of fs.readdirSync(modulesDir)) {
+    if (RESEARCH_MODULE_MAP[file]) {
+      modules[RESEARCH_MODULE_MAP[file]] = fs.readFileSync(path.join(modulesDir, file), 'utf8');
+      console.log(`  RESEARCH MODULE: ${file} → "${RESEARCH_MODULE_MAP[file]}"`);
+    }
+  }
+  return modules;
+}
+
+function readGeoDoc(name) {
+  if (!fs.existsSync(GEO_RESEARCH_DIR)) return null;
+  const base  = name.replace(/\.md$/, '');
+  const files = fs.readdirSync(GEO_RESEARCH_DIR);
+  let best = null, bestN = -1;
+  for (const f of files) {
+    if (f === `${base}.md`) { if (bestN < 0) { best = f; bestN = 0; } }
+    const m = f.match(new RegExp(`^${base.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')} \\((\\d+)\\)\\.md$`));
+    if (m) { const n = parseInt(m[1], 10); if (n > bestN) { best = f; bestN = n; } }
+  }
+  if (best) { console.log(`  LOADED: Geo Research/${best}`); return fs.readFileSync(path.join(GEO_RESEARCH_DIR, best), 'utf8'); }
+  return null;
+}
+
+const RESEARCH_MODULES           = loadResearchModules();
+const AVAILABLE_RESEARCH_MODULES = Object.keys(RESEARCH_MODULES);
+const GEO_RESEARCH_CORE          = readGeoDoc('Geo_Research_CORE') || '';
+const GEO_CLIENT_BLOCK_TEMPLATE  = (() => {
+  const p = path.join(GEO_RESEARCH_DIR, 'Client_Block_Template.md');
+  return fs.existsSync(p) ? fs.readFileSync(p, 'utf8') : '';
+})();
+
 // ── In-memory session / download stores ──────────────────────────────────────
 
-const sessions  = new Map();
-const downloads = new Map();
+const sessions     = new Map();
+const downloads    = new Map();
 // Batch jobs can take Anthropic up to 24h to finish — kept in memory as a fast
 // path, with Postgres (batch_jobs table) as the durable fallback so a status
 // check still works after a server restart, as long as DB is configured.
-const batchJobs = new Map();
+const batchJobs    = new Map();
+// Research jobs can take hours (Perplexity deep-research per location).
+// Same pattern: in-memory fast path + research_jobs Postgres table.
+const researchJobs = new Map();
 
 setInterval(() => {
   const now = Date.now();
-  for (const [id, s] of sessions)   { if (now - s.createdAt > 2 * 3600000)  sessions.delete(id); }
-  for (const [id, d] of downloads)  { if (now - d.createdAt > 4 * 3600000)  downloads.delete(id); }
-  for (const [id, b] of batchJobs)  { if (now - b.createdAt > 48 * 3600000) batchJobs.delete(id); }
+  for (const [id, s] of sessions)      { if (now - s.createdAt > 2 * 3600000)   sessions.delete(id); }
+  for (const [id, d] of downloads)     { if (now - d.createdAt > 4 * 3600000)   downloads.delete(id); }
+  for (const [id, b] of batchJobs)     { if (now - b.createdAt > 48 * 3600000)  batchJobs.delete(id); }
+  for (const [id, r] of researchJobs)  { if (now - r.createdAt > 48 * 3600000)  researchJobs.delete(id); }
 }, 3600000);
 
 // ── File upload middleware ────────────────────────────────────────────────────
@@ -332,7 +421,7 @@ function identifyFiles(files) {
   if (!identified.pageMap)             missing.push('Page map (filename must contain "page" and "map")');
   if (!identified.customValues.length) missing.push('Custom values (filename must contain "cat"/"custom" and "value")');
   if (!identified.onboarding)          missing.push('Onboarding form (filename must contain "onboard" or "form")');
-  if (!identified.geo)                 missing.push('Geo research (filename must contain "geo" or "research")');
+  // Geo file is optional — dossiers from a prior research run can serve as the source.
   return { identified, missing };
 }
 
@@ -360,6 +449,152 @@ function processH1s(pages, keyValueMap) {
 // the part of the prompt that is freshly read on every single request,
 // guarantees it can never be skimmed past as "background" cached context.
 const DASH_RULE_REMINDER = '\n\nREMINDER (HIGHEST PRIORITY): No em dashes (—), en dashes (–), or hyphens of any kind may appear anywhere in the output, including compound adjectives and technical compound nouns. Before producing your final result, re-read the entire output and rewrite any line containing a dash or hyphen until zero remain.';
+
+// ── Geo research helpers ──────────────────────────────────────────────────────
+
+// Normalise a location name for matching: lowercase, hyphens/underscores to
+// spaces, strip non-alphanumeric (except spaces), collapse spaces, trim.
+function normaliseLocation(s) {
+  return String(s || '')
+    .toLowerCase()
+    .replace(/[-_]/g, ' ')
+    .replace(/[^a-z0-9 ]/g, '')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+function validateAndCleanDossier(raw) {
+  let text = raw.replace(/<think>[\s\S]*?<\/think>/gi, '').trim();
+  const startIdx = text.indexOf('## 1.');
+  if (startIdx > 0) text = text.slice(startIdx);
+  const endIdx = text.indexOf('END OF DOSSIER');
+  if (endIdx >= 0) text = text.slice(0, endIdx + 'END OF DOSSIER'.length);
+  for (let n = 1; n <= 8; n++) {
+    if (!text.includes(`## ${n}.`)) return { valid: false, error: `Missing section ## ${n}. in dossier` };
+  }
+  if (!text.includes('END OF DOSSIER')) return { valid: false, error: 'Missing END OF DOSSIER marker' };
+  return { valid: true, text };
+}
+
+function buildResearchPrompt(locationName, code, trade, keyValueMap, serviceParentMap) {
+  const companyName = keyValueMap['company_name'] || '';
+  const primaryCity = keyValueMap['biz_area_1']   || '';
+
+  const categoryLines = [];
+  for (let i = 1; keyValueMap[`category_${i}`]; i++) {
+    const catName = keyValueMap[`category_${i}`];
+    const svcKeys = Object.entries(serviceParentMap)
+      .filter(([, cat]) => cat.toLowerCase() === catName.toLowerCase())
+      .map(([k]) => k)
+      .sort((a, b) => parseInt(a.replace('service_', ''), 10) - parseInt(b.replace('service_', ''), 10));
+    const svcNames = svcKeys.map(k => keyValueMap[k]).filter(Boolean).join(', ');
+    categoryLines.push(`- ${catName}${i === 1 ? ' (primary)' : ''}: ${svcNames}`);
+  }
+
+  const cityOrTown = normaliseLocation(locationName) === normaliseLocation(primaryCity) ? 'PRIMARY CITY' : 'TOWN';
+
+  const clientBlock = [
+    '=== CLIENT ===',
+    `Business: ${companyName}`,
+    `Niche: ${trade}`,
+    `Primary city: ${primaryCity}`,
+    'GBP categories and their services (exact GBP names):',
+    ...categoryLines,
+    '',
+    '=== RUN FOR ===',
+    `${locationName} | ${code} | ${cityOrTown}`,
+  ].join('\n');
+
+  const moduleText = RESEARCH_MODULES[trade] || '';
+  return [GEO_RESEARCH_CORE.trim(), clientBlock, moduleText.trim()].filter(Boolean).join('\n\n---\n\n');
+}
+
+async function callPerplexity(promptText) {
+  const apiKey = process.env.PERPLEXITY_API_KEY;
+  if (!apiKey) throw new Error('PERPLEXITY_API_KEY environment variable is not set');
+
+  const res = await fetch('https://api.perplexity.ai/v1/responses', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${apiKey}` },
+    body: JSON.stringify({ preset: PERPLEXITY_PRESET, input: promptText }),
+  });
+
+  if (!res.ok) {
+    const errText = await res.text().catch(() => '');
+    throw new Error(`Perplexity API error ${res.status}: ${errText.slice(0, 300)}`);
+  }
+
+  return await res.json();
+}
+
+async function loadResearchRecord(jobId) {
+  if (researchJobs.has(jobId)) return researchJobs.get(jobId);
+  if (!pool) return null;
+  const { rows } = await pool.query('SELECT * FROM research_jobs WHERE id = $1', [jobId]);
+  if (!rows.length) return null;
+  const row = rows[0];
+  const record = { id: row.id, sessionId: row.session_id, clientId: row.client_id, status: row.status, preset: row.preset, locations: row.locations, createdAt: new Date(row.created_at).getTime() };
+  researchJobs.set(jobId, record);
+  return record;
+}
+
+async function persistResearchRecord(record) {
+  if (!pool) return;
+  try {
+    await pool.query(
+      `INSERT INTO research_jobs (id, session_id, client_id, status, preset, locations, created_at)
+       VALUES ($1,$2,$3,$4,$5,$6,to_timestamp($7/1000.0))
+       ON CONFLICT (id) DO UPDATE
+         SET status = EXCLUDED.status, locations = EXCLUDED.locations`,
+      [record.id, record.sessionId, record.clientId, record.status, record.preset, JSON.stringify(record.locations), record.createdAt]
+    );
+  } catch (dbErr) {
+    console.error('[DB] Research record save error:', dbErr.message);
+  }
+}
+
+async function updateResearchLocation(record, code, patch) {
+  record.locations[code] = { ...record.locations[code], ...patch };
+  const allStatuses = Object.values(record.locations).map(l => l.status);
+  if (allStatuses.every(s => s === 'done'))                            record.status = 'done';
+  else if (allStatuses.every(s => s === 'done' || s === 'failed'))    record.status = 'failed';
+  else                                                                  record.status = 'running';
+  researchJobs.set(record.id, record);
+  if (pool) {
+    try {
+      await pool.query(
+        `UPDATE research_jobs SET locations = locations || $1::jsonb, status = $2 WHERE id = $3`,
+        [JSON.stringify({ [code]: record.locations[code] }), record.status, record.id]
+      );
+    } catch (dbErr) { console.error('[DB] Research location update error:', dbErr.message); }
+  }
+}
+
+async function recoverInterruptedResearchJobs() {
+  if (!pool) return;
+  try {
+    await pool.query(`
+      UPDATE research_jobs
+      SET
+        locations = (
+          SELECT jsonb_object_agg(
+            key,
+            CASE
+              WHEN value->>'status' = 'running'
+              THEN value || '{"status":"failed","error":"interrupted: server restarted"}'::jsonb
+              ELSE value
+            END
+          )
+          FROM jsonb_each(locations)
+        ),
+        status = CASE WHEN status = 'running' THEN 'failed' ELSE status END
+      WHERE status = 'running'
+    `);
+    console.log('Research job recovery complete');
+  } catch (err) {
+    console.warn('[DB] Research job recovery error:', err.message);
+  }
+}
 
 function buildPageContext(job, keyValueMap, serviceParentMap) {
   const { pageType, pageTitle, h1 } = job;
@@ -549,7 +784,7 @@ function buildOutputFile(results, skippedPages, companyName) {
 
 app.get('/api/trades', (_req, res) => res.json({ trades: AVAILABLE_TRADES }));
 
-app.post('/api/parse-zip', upload.array('files', 30), (req, res) => {
+app.post('/api/parse-zip', upload.array('files', 30), async (req, res) => {
   try {
     if (!req.files || !req.files.length) return res.status(400).json({ error: 'No files uploaded.' });
     const trade    = (req.body.trade    || '').trim();
@@ -570,7 +805,47 @@ app.post('/api/parse-zip', upload.array('files', 30), (req, res) => {
       .slice(0, 20).join('\n');
     console.log(`\n── DEBUG keyValueMap after parse (${Object.keys(keyValueMap).length} keys total) ──\n${cvPreview || '(empty)'}\n──────────────────────────────────────────\n`);
     const onboardingText  = parseOnboardingForm(readText(identified.onboarding));
-    const geoResearch     = readText(identified.geo);
+    const geoResearch     = identified.geo ? readText(identified.geo) : '';
+
+    // Build bizAreas list: biz_area_1, biz_area_2, … in order, with stable codes.
+    const bizAreas = [];
+    {
+      let existingCodes = {};
+      if (clientId && pool) {
+        try {
+          const { rows: lcRows } = await pool.query(
+            'SELECT location_name_norm, code FROM client_locations WHERE client_id = $1',
+            [clientId]
+          );
+          for (const r of lcRows) existingCodes[r.location_name_norm] = r.code;
+        } catch (_) {}
+      }
+      const usedCodes = new Set(Object.values(existingCodes));
+      for (let i = 1; keyValueMap[`biz_area_${i}`]; i++) {
+        const name = keyValueMap[`biz_area_${i}`];
+        const norm = normaliseLocation(name);
+        let code = existingCodes[norm] || null;
+        if (!code) {
+          // Auto-generate: first 3 chars uppercased, deduplicate within this list
+          const base = name.replace(/[^a-zA-Z]/g, '').slice(0, 3).toUpperCase().padEnd(3, 'X');
+          if (!usedCodes.has(base)) { code = base; }
+          else {
+            let found = false;
+            for (let d = 2; d <= 9; d++) {
+              const candidate = base.slice(0, 2) + d;
+              if (!usedCodes.has(candidate)) { code = candidate; found = true; break; }
+            }
+            if (!found) {
+              let seq = 1;
+              while (usedCodes.has(`L${String(seq).padStart(2, '0')}`)) seq++;
+              code = `L${String(seq).padStart(2, '0')}`;
+            }
+          }
+          usedCodes.add(code);
+        }
+        bizAreas.push({ name, norm, code });
+      }
+    }
 
     const missingH1s = processH1s(pages, keyValueMap);
 
@@ -599,7 +874,7 @@ app.post('/api/parse-zip', upload.array('files', 30), (req, res) => {
       { name: identified.pageMap.originalname,         type: 'Page Map' },
       ...identified.customValues.map(f => ({ name: f.originalname, type: 'Custom Values' })),
       { name: identified.onboarding.originalname,      type: 'Onboarding Form' },
-      { name: identified.geo.originalname,             type: 'Geo Research' },
+      ...(identified.geo ? [{ name: identified.geo.originalname, type: 'Geo Research' }] : []),
     ];
 
     res.json({
@@ -609,6 +884,8 @@ app.post('/api/parse-zip', upload.array('files', 30), (req, res) => {
       summary: { total: jobs.length, byType, skipped: skippedPages.length },
       missingH1s,
       skippedPages,
+      bizAreas,
+      hasGeoFile: !!identified.geo,
       estimatedCost: (jobs.length * 0.06).toFixed(2),
     });
   } catch (err) {
@@ -685,8 +962,72 @@ app.post('/api/generate-batch/:sessionId', async (req, res) => {
     const customValuesText = Object.entries(keyValueMap).map(([k, v]) => `${k}: ${v}`).join('\n');
     const client            = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
 
-    const requests = jobs.map((job, i) => {
-      const promptParts = buildSitePrompt(job, calibrationPack, keyValueMap, serviceParentMap, geoResearch, onboardingText, trade);
+    // Load dossiers from client_assets (active geo_dossier rows only).
+    // Dossiers persist across sessions — generation days later uses the same ones.
+    const dossierMap = new Map(); // normalisedLocationName → dossierText
+    if (clientId && pool) {
+      try {
+        const { rows: dossierRows } = await pool.query(
+          `SELECT content, metadata FROM client_assets
+           WHERE client_id = $1 AND asset_type = 'geo_dossier'
+           AND (metadata IS NULL OR NOT (metadata->>'superseded')::boolean)`,
+          [clientId]
+        );
+        for (const row of dossierRows) {
+          const locName = row.metadata && row.metadata.location_name;
+          if (locName) dossierMap.set(normaliseLocation(locName), row.content);
+        }
+        console.log(`[generate-batch] Loaded ${dossierMap.size} dossiers for client ${clientId}`);
+      } catch (dbErr) {
+        console.warn('[generate-batch] Dossier load error:', dbErr.message);
+      }
+    }
+
+    const primaryCityNorm = normaliseLocation(keyValueMap['biz_area_1'] || '');
+    // Dossier wins over uploaded geo file for the primary city.
+    const primaryGeo = dossierMap.get(primaryCityNorm) || geoResearch || null;
+
+    const requestJobs = [];
+    const geoSkipped  = [];
+
+    for (const job of jobs) {
+      let dossierText = null;
+
+      if (job.pageType === 'homepage' || job.pageType === 'category' || job.pageType === 'service') {
+        dossierText = primaryGeo;
+        if (!dossierText) {
+          console.warn(`[generate-batch] No geo data for primary city — skipping "${job.pageTitle}"`);
+          geoSkipped.push({ ...job, skipReason: 'no geo data for primary city' });
+          continue;
+        }
+      } else {
+        // location / location-category: must have a dossier — no fallback to geo file
+        const locName = job.locationName || job.pageTitle;
+        let normKey   = normaliseLocation(locName);
+        dossierText   = dossierMap.get(normKey);
+
+        if (!dossierText) {
+          // Try deriving from URL slug (e.g. /locations/birmingham/ → "birmingham")
+          const slugParts = (job.urlSlug || '').split('/').filter(Boolean);
+          const locIdx    = slugParts.indexOf('locations');
+          if (locIdx >= 0 && slugParts[locIdx + 1]) {
+            normKey     = normaliseLocation(slugParts[locIdx + 1]);
+            dossierText = dossierMap.get(normKey);
+          }
+        }
+
+        if (!dossierText) {
+          console.warn(`[generate-batch] No dossier for location "${locName}" — skipping "${job.pageTitle}"`);
+          geoSkipped.push({ ...job, skipReason: `no dossier for ${locName}` });
+          continue;
+        }
+      }
+
+      requestJobs.push({ job, dossierText });
+    }
+
+    const requests = requestJobs.map(({ job, dossierText }, i) => {
+      const promptParts = buildSitePrompt(job, calibrationPack, keyValueMap, serviceParentMap, dossierText, onboardingText, trade);
       const maxTokens    = (job.pageType === 'category' || job.pageType === 'location-category') ? 16000 : 8192;
       return {
         custom_id: `p${i}`,
@@ -699,20 +1040,25 @@ app.post('/api/generate-batch/:sessionId', async (req, res) => {
       };
     });
 
+    if (!requestJobs.length) {
+      return res.status(400).json({ error: 'No pages to generate — all were skipped due to missing dossiers.' });
+    }
+
     // Respond immediately so Railway's 30s request timeout doesn't kill the
     // connection while we upload the (potentially large) batch payload to Anthropic.
     const batchId = crypto.randomUUID();
     const companyName = keyValueMap['company_name'] || '';
+    const allSkipped  = startIndex > 0 ? geoSkipped : [...skippedPages, ...geoSkipped];
     const record = {
       id: batchId,
       clientId: clientId || null,
       anthropicBatchId: null, // filled in once Anthropic accepts the batch
       trade,
-      jobsMeta: jobs.map(j => ({ pageType: j.pageType, pageTitle: j.pageTitle, urlSlug: j.urlSlug, h1: j.h1, locationName: j.locationName, locationCategoryName: j.locationCategoryName })),
+      jobsMeta: requestJobs.map(({ job: j }) => ({ pageType: j.pageType, pageTitle: j.pageTitle, urlSlug: j.urlSlug, h1: j.h1, locationName: j.locationName, locationCategoryName: j.locationCategoryName })),
       customValuesText,
-      skippedPages: startIndex > 0 ? [] : skippedPages,
+      skippedPages: allSkipped,
       companyName,
-      total: jobs.length,
+      total: requestJobs.length,
       status: 'submitting',
       downloadId: null,
       createdAt: Date.now(),
@@ -720,7 +1066,7 @@ app.post('/api/generate-batch/:sessionId', async (req, res) => {
     batchJobs.set(batchId, record);
     await persistBatchRecord(record);
 
-    res.json({ batchId, anthropicBatchId: null, total: jobs.length, startIndex });
+    res.json({ batchId, anthropicBatchId: null, total: requestJobs.length, startIndex, geoSkipped: geoSkipped.length });
 
     // Background: submit to Anthropic and save assets — client polls /api/batch-status
     (async () => {
@@ -1017,6 +1363,138 @@ app.post('/api/generate-category', async (req, res) => {
   }
 });
 
+// ── Geo research routes ───────────────────────────────────────────────────────
+
+app.get('/api/research-modules', (_req, res) => {
+  res.json({ modules: AVAILABLE_RESEARCH_MODULES });
+});
+
+app.post('/api/research-start', async (req, res) => {
+  const { sessionId, clientId, locations, moduleName } = req.body;
+
+  if (!clientId) return res.status(400).json({ error: 'clientId is required for geo research.' });
+  if (!Array.isArray(locations) || !locations.length) return res.status(400).json({ error: 'locations array is required.' });
+  if (!moduleName || !RESEARCH_MODULES[moduleName]) {
+    return res.status(400).json({ error: `Unknown module "${moduleName}". Available: ${AVAILABLE_RESEARCH_MODULES.join(', ')}` });
+  }
+
+  const session = sessions.get(sessionId);
+  if (!session) return res.status(404).json({ error: 'Session not found or expired.' });
+
+  // Validate codes are unique (case-insensitive) among active rows
+  const codesSeen = new Set();
+  const dupes     = [];
+  for (const loc of locations) {
+    const upper = (loc.code || '').toUpperCase();
+    if (codesSeen.has(upper)) dupes.push(upper);
+    codesSeen.add(upper);
+  }
+  if (dupes.length) return res.status(400).json({ error: 'duplicate_codes', codes: [...new Set(dupes)] });
+
+  const jobId = crypto.randomUUID();
+  const initialLocations = {};
+  for (const loc of locations) {
+    initialLocations[loc.code.toUpperCase()] = {
+      name: loc.name, status: 'pending', startedAt: null, finishedAt: null,
+      inputTokens: null, outputTokens: null, searchCount: null, cost: null,
+      preset: PERPLEXITY_PRESET, assetId: null, error: null,
+    };
+  }
+
+  const record = {
+    id: jobId, sessionId: sessionId || '', clientId,
+    status: 'running', preset: PERPLEXITY_PRESET,
+    locations: initialLocations, createdAt: Date.now(),
+  };
+  researchJobs.set(jobId, record);
+  await persistResearchRecord(record);
+
+  // Respond immediately — research runs in background
+  res.json({ jobId, total: locations.length });
+
+  // Background: persist codes, then run each location sequentially
+  (async () => {
+    const { keyValueMap, serviceParentMap, trade } = session;
+
+    // Persist new codes to client_locations for stability across future runs
+    if (pool) {
+      for (const loc of locations) {
+        try {
+          await pool.query(
+            `INSERT INTO client_locations (client_id, location_name_norm, location_name_display, code)
+             VALUES ($1,$2,$3,$4) ON CONFLICT (client_id, location_name_norm) DO NOTHING`,
+            [clientId, normaliseLocation(loc.name), loc.name, loc.code.toUpperCase()]
+          );
+        } catch (dbErr) { console.error('[DB] client_locations upsert error:', dbErr.message); }
+      }
+    }
+
+    for (const loc of locations) {
+      const code = loc.code.toUpperCase();
+      await updateResearchLocation(record, code, { status: 'running', startedAt: new Date().toISOString() });
+
+      try {
+        const promptText = buildResearchPrompt(loc.name, code, moduleName, keyValueMap, serviceParentMap);
+        const pxRes      = await callPerplexity(promptText);
+
+        const rawText    = pxRes.output_text || '';
+        const usage      = pxRes.usage || {};
+        const inputTok   = usage.input_tokens  || 0;
+        const outputTok  = usage.output_tokens || 0;
+        const searchCnt  = usage.search_count  || null;
+        const cost       = usage.cost != null
+          ? usage.cost
+          : ((inputTok / 1e6) * PERPLEXITY_RATES.inputPerMToken + (outputTok / 1e6) * PERPLEXITY_RATES.outputPerMToken);
+
+        const { valid, text: cleanText, error: valErr } = validateAndCleanDossier(rawText);
+        if (!valid) throw new Error(`Dossier validation failed: ${valErr}`);
+
+        // Save dossier to client_assets; mark previous version superseded
+        let assetId = null;
+        if (pool) {
+          try {
+            await pool.query(
+              `UPDATE client_assets SET metadata = COALESCE(metadata,'{}') || '{"superseded":true}'
+               WHERE client_id = $1 AND asset_type = 'geo_dossier'
+               AND metadata->>'location_name' = $2
+               AND NOT (metadata->>'superseded')::boolean`,
+              [clientId, loc.name]
+            );
+            const { rows: assetRows } = await pool.query(
+              `INSERT INTO client_assets (client_id, asset_type, filename, content, metadata)
+               VALUES ($1,'geo_dossier',$2,$3,$4::jsonb) RETURNING id`,
+              [clientId, `${loc.name.replace(/\s+/g,'_')}_dossier.md`, cleanText,
+               JSON.stringify({ location_name: loc.name, location_norm: normaliseLocation(loc.name), preset: PERPLEXITY_PRESET, superseded: false })]
+            );
+            assetId = assetRows[0].id;
+          } catch (dbErr) { console.error('[DB] Dossier asset save error:', dbErr.message); }
+        }
+
+        await updateResearchLocation(record, code, {
+          status: 'done', finishedAt: new Date().toISOString(),
+          inputTokens: inputTok, outputTokens: outputTok, searchCount: searchCnt,
+          cost: parseFloat(cost.toFixed(6)), preset: PERPLEXITY_PRESET, assetId, error: null,
+        });
+      } catch (err) {
+        console.error(`[research] Location "${loc.name}" failed:`, err.message);
+        await updateResearchLocation(record, code, {
+          status: 'failed', finishedAt: new Date().toISOString(), error: err.message,
+        });
+      }
+    }
+  })();
+});
+
+app.get('/api/research-status/:jobId', async (req, res) => {
+  try {
+    const record = await loadResearchRecord(req.params.jobId);
+    if (!record) return res.status(404).json({ error: 'Research job not found or expired.' });
+    res.json({ jobId: record.id, status: record.status, preset: record.preset, locations: record.locations });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // ── Serve generate tool at /generate ─────────────────────────────────────────
 
 app.get('/generate', (req, res) => res.sendFile(path.join(__dirname, 'public', 'generate.html')));
@@ -1170,7 +1648,8 @@ app.post('/api/clients/:clientId/pages/:pageId/regenerate', async (req, res) => 
 // ── Start ─────────────────────────────────────────────────────────────────────
 
 const PORT = process.env.PORT || 3000;
-initDb().then(() => {
+initDb().then(async () => {
+  await recoverInterruptedResearchJobs();
   app.listen(PORT, () => console.log(`Copy bot running at http://localhost:${PORT}`));
 }).catch(err => {
   console.error('DB init failed:', err.message);

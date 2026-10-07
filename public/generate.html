@@ -162,6 +162,19 @@
     .done-banner p { color: var(--muted); font-size: 13px; }
     .token-stats { display: flex; gap: 20px; justify-content: center; flex-wrap: wrap; margin-top: 12px; font-size: 12px; color: var(--muted); }
     .token-stats strong { color: var(--text); }
+
+    /* Geo research step */
+    .geo-loc-row { display: grid; grid-template-columns: 1fr 72px 1fr; align-items: center; gap: 10px; padding: 9px 0; border-bottom: 1px solid var(--border); }
+    .geo-loc-row:last-child { border-bottom: none; }
+    .geo-loc-name { font-size: 13px; color: var(--text); }
+    .geo-code-input { width: 100%; background: var(--bg); border: 1px solid var(--border); border-radius: 5px; color: var(--text); font-family: var(--mono); font-size: 13px; padding: 6px 8px; text-transform: uppercase; outline: none; text-align: center; transition: border-color 0.15s; }
+    .geo-code-input:focus { border-color: var(--accent); }
+    .geo-code-input.duplicate { border-color: var(--block); }
+    .geo-loc-status { font-size: 12px; color: var(--muted); display: flex; align-items: center; gap: 6px; }
+    .geo-status-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--border); flex-shrink: 0; }
+    .geo-status-dot.running { background: var(--accent); animation: spin 1s linear infinite; }
+    .geo-status-dot.done    { background: var(--success); }
+    .geo-status-dot.failed  { background: var(--block); }
   </style>
 </head>
 <body>
@@ -183,6 +196,7 @@
     <div class="dot" id="dot2"></div>
     <div class="dot" id="dot3"></div>
     <div class="dot" id="dot4"></div>
+    <div class="dot" id="dot5"></div>
     <span class="step-label" id="stepLabel">Step 1 — Upload</span>
   </div>
 
@@ -200,7 +214,7 @@
 
       <div class="field" style="margin-top:16px">
         <label>Trade</label>
-        <select id="tradeSelect" onchange="checkReady()">
+        <select id="tradeSelect" onchange="checkReady();syncModuleToTrade()">
           <option value="">Loading trades…</option>
         </select>
       </div>
@@ -226,16 +240,54 @@
 
     <div id="fileConfirmWarning" style="display:none"></div>
 
-    <button class="btn btn-primary" id="confirmBtn" onclick="goTo(3)">
+    <button class="btn btn-primary" id="confirmBtn">
       Looks Good — Continue
     </button>
 
   </div>
 
-  <!-- Step 3: Review -->
+  <!-- Step 3: Geo Research -->
   <div class="step" id="step3">
 
-    <button class="btn btn-ghost" onclick="goTo(2)">← Back to file confirmation</button>
+    <button class="btn btn-ghost" onclick="goTo(2)">&#8592; Back to file confirmation</button>
+
+    <div class="card">
+      <div class="card-title">Geo Research</div>
+      <p style="color:var(--muted);font-size:13px;margin-bottom:16px;">Run Perplexity deep research for each location. Dossiers are saved to this client and reused on future runs — you only need to re-run when you want fresh data.</p>
+      <div class="field">
+        <label>Research Module (trade)</label>
+        <select id="researchModuleSelect" onchange="checkRunReady()">
+          <option value="">Loading modules&hellip;</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="card" id="geoLocationsCard">
+      <div class="card-title">Locations</div>
+      <div id="geoLocationRows">
+        <p style="color:var(--muted);font-size:13px">No locations found in custom values (biz_area_1, biz_area_2&hellip;).</p>
+      </div>
+    </div>
+
+    <div id="geoDupeWarning" style="display:none"></div>
+    <div id="geoError" style="display:none"></div>
+
+    <button class="btn btn-primary" id="runResearchBtn" onclick="runResearch()" disabled>
+      Run Research
+    </button>
+    <button class="btn btn-ghost" style="margin-top:8px" onclick="skipGeoResearch()">
+      Skip &mdash; Use Existing Dossiers / Uploaded File
+    </button>
+    <button class="btn btn-success" id="geoContBtn" style="display:none;margin-top:8px" onclick="showReview(parseData);goTo(4);">
+      Research Complete &mdash; Continue to Review
+    </button>
+
+  </div>
+
+  <!-- Step 4: Review (was Step 3) -->
+  <div class="step" id="step4">
+
+    <button class="btn btn-ghost" onclick="goTo(3)">&#8592; Back to geo research</button>
 
     <div class="card">
       <div class="card-title">Pages Found</div>
@@ -285,8 +337,8 @@
 
   </div>
 
-  <!-- Step 4: Generation -->
-  <div class="step" id="step4">
+  <!-- Step 5: Batch Status (was Step 4) -->
+  <div class="step" id="step5">
 
     <div class="card">
       <div class="card-title">Batch Status</div>
@@ -331,6 +383,10 @@
 <script>
   let uploadedFiles  = [];
   let sessionId      = null;
+  let parseData      = null;   // full response from /api/parse-zip
+  let bizAreas       = [];     // [{name, norm, code}] from parse response
+  let researchJobId  = null;
+  let researchPollTimer = null;
   const clientId     = new URLSearchParams(location.search).get('clientId') || null;
 
   if (clientId) {
@@ -431,6 +487,8 @@
 
   function showFileConfirmation(data) {
     sessionId = data.sessionId;
+    parseData = data;
+    bizAreas  = data.bizAreas || [];
 
     const files = data.filesIdentified || [];
     const rows  = files.map(f => {
@@ -446,10 +504,166 @@
     document.getElementById('fileConfirmList').innerHTML = rows ||
       '<p style="color:var(--muted);font-size:13px">No file identification data returned.</p>';
 
-    // Store review data so we can render it when the user confirms
-    document.getElementById('confirmBtn').onclick = () => { showReview(data); goTo(3); };
+    // Warn if no geo file and no clientId (nowhere to get dossiers from)
+    const warnEl = document.getElementById('fileConfirmWarning');
+    if (!data.hasGeoFile && !clientId) {
+      warnEl.innerHTML = '<div class="tip-box">No geo research file uploaded. You can run Perplexity research in the next step, or pages without geo data will be skipped.</div>';
+      warnEl.style.display = 'block';
+    } else {
+      warnEl.style.display = 'none';
+    }
 
+    document.getElementById('confirmBtn').onclick = () => { showGeoStep(); goTo(3); };
     goTo(2);
+  }
+
+  // ── Geo Research step ──────────────────────────────────────────────────────
+
+  // Load research modules into dropdown (once)
+  fetch('/api/research-modules')
+    .then(r => r.json())
+    .then(({ modules }) => {
+      const sel = document.getElementById('researchModuleSelect');
+      if (!modules.length) {
+        sel.innerHTML = '<option value="">No research modules found</option>';
+        return;
+      }
+      sel.innerHTML = '<option value="">Select a research module…</option>' +
+        modules.map(m => `<option value="${h(m)}">${h(m)}</option>`).join('');
+      // Pre-select if it matches the chosen trade
+      const trade = document.getElementById('tradeSelect').value;
+      if (trade && modules.includes(trade)) sel.value = trade;
+      checkRunReady();
+    })
+    .catch(() => {
+      document.getElementById('researchModuleSelect').innerHTML = '<option value="">Failed to load</option>';
+    });
+
+  function showGeoStep() {
+    const rows = bizAreas.map(loc => `
+      <div class="geo-loc-row" id="geo-row-${h(loc.code)}">
+        <span class="geo-loc-name">${h(loc.name)}</span>
+        <input type="text" class="geo-code-input" maxlength="3" value="${h(loc.code)}"
+          data-name="${h(loc.name)}" data-orig="${h(loc.code)}"
+          oninput="this.value=this.value.toUpperCase();checkCodeDupes();checkRunReady()" />
+        <div class="geo-loc-status" id="geo-status-${h(loc.code)}">
+          <span class="geo-status-dot"></span><span class="geo-status-text">Pending</span>
+        </div>
+      </div>`).join('');
+    document.getElementById('geoLocationRows').innerHTML = rows ||
+      '<p style="color:var(--muted);font-size:13px">No biz_area values found in custom values CSV.</p>';
+    checkCodeDupes();
+    checkRunReady();
+  }
+
+  function checkCodeDupes() {
+    const inputs = [...document.querySelectorAll('.geo-code-input')];
+    const codes  = inputs.map(i => i.value.toUpperCase());
+    const dupes  = codes.filter((c, i) => c && codes.indexOf(c) !== i);
+    inputs.forEach(inp => inp.classList.toggle('duplicate', dupes.includes(inp.value.toUpperCase())));
+    const warnEl = document.getElementById('geoDupeWarning');
+    if (dupes.length) {
+      warnEl.innerHTML = `<div class="error-box">Duplicate codes: ${[...new Set(dupes)].map(h).join(', ')} — fix before running.</div>`;
+      warnEl.style.display = 'block';
+    } else {
+      warnEl.style.display = 'none';
+    }
+  }
+
+  function syncModuleToTrade() {
+    const trade = document.getElementById('tradeSelect').value;
+    const sel   = document.getElementById('researchModuleSelect');
+    if (trade && sel && [...sel.options].some(o => o.value === trade)) sel.value = trade;
+    checkRunReady();
+  }
+
+  function checkRunReady() {
+    const hasDupes  = document.querySelectorAll('.geo-code-input.duplicate').length > 0;
+    const hasModule = !!document.getElementById('researchModuleSelect').value;
+    const hasLocs   = bizAreas.length > 0;
+    const btn       = document.getElementById('runResearchBtn');
+    btn.disabled    = hasDupes || !hasModule || !hasLocs;
+    if (!clientId) {
+      btn.disabled  = true;
+      btn.title     = 'A client must be selected to save dossiers. Open this page from a client record.';
+    }
+  }
+
+  async function runResearch() {
+    const moduleName = document.getElementById('researchModuleSelect').value;
+    const inputs     = [...document.querySelectorAll('.geo-code-input')];
+    const locations  = inputs.map(inp => ({ name: inp.dataset.name, code: inp.value.toUpperCase() }));
+
+    document.getElementById('runResearchBtn').disabled = true;
+    document.getElementById('geoError').style.display  = 'none';
+
+    try {
+      const res  = await fetch('/api/research-start', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ sessionId, clientId, locations, moduleName }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        document.getElementById('geoError').innerHTML =
+          `<div class="error-box">${h(data.error || 'Research start failed.')}</div>`;
+        document.getElementById('geoError').style.display = 'block';
+        document.getElementById('runResearchBtn').disabled = false;
+        return;
+      }
+      researchJobId = data.jobId;
+      startResearchPolling(locations);
+    } catch (err) {
+      document.getElementById('geoError').innerHTML =
+        `<div class="error-box">${h(err.message)}</div>`;
+      document.getElementById('geoError').style.display = 'block';
+      document.getElementById('runResearchBtn').disabled = false;
+    }
+  }
+
+  function startResearchPolling(locations) {
+    if (researchPollTimer) clearInterval(researchPollTimer);
+    researchPollTimer = setInterval(async () => {
+      try {
+        const res  = await fetch(`/api/research-status/${researchJobId}`);
+        const data = await res.json();
+        if (!res.ok) return;
+        updateResearchUI(data.locations);
+        if (data.status === 'done' || data.status === 'failed') {
+          clearInterval(researchPollTimer);
+          researchPollTimer = null;
+          // Show Continue button
+          document.getElementById('runResearchBtn').style.display = 'none';
+          const contBtn = document.getElementById('geoContBtn');
+          if (contBtn) { contBtn.style.display = 'block'; }
+        }
+      } catch (_) {}
+    }, 10000);
+  }
+
+  function updateResearchUI(locationsData) {
+    for (const [code, loc] of Object.entries(locationsData)) {
+      const el    = document.getElementById(`geo-status-${code}`);
+      if (!el) continue;
+      const dot   = el.querySelector('.geo-status-dot');
+      const text  = el.querySelector('.geo-status-text');
+      dot.className = `geo-status-dot ${loc.status}`;
+      if (loc.status === 'done') {
+        text.textContent = 'Done';
+        text.style.color = 'var(--success)';
+      } else if (loc.status === 'failed') {
+        text.textContent = `Failed: ${loc.error || 'unknown error'}`;
+        text.style.color = 'var(--block)';
+      } else if (loc.status === 'running') {
+        text.textContent = 'Running…';
+        text.style.color = 'var(--accent)';
+      }
+    }
+  }
+
+  function skipGeoResearch() {
+    showReview(parseData);
+    goTo(4);
   }
 
   function showReview(data) {
@@ -623,7 +837,7 @@
         body: JSON.stringify({ slugs: [...selectedSlugs] }),
       });
     }
-    goTo(4);
+    goTo(5);
 
     let startIndex = 0;
     if (isResume) {
@@ -742,12 +956,12 @@
   function downloadZip()           { if (downloadId) window.location.href = `/api/download/${downloadId}/zip`; }
 
   // Reopening a bookmarked status-check link: ?batchId=... jumps straight to
-  // Step 4 and checks status immediately, without needing to re-upload anything.
+  // Step 5 and checks status immediately, without needing to re-upload anything.
   (function resumeFromBatchIdInUrl() {
     const existingBatchId = new URLSearchParams(location.search).get('batchId');
     if (!existingBatchId) return;
     batchId = existingBatchId;
-    goTo(4);
+    goTo(5);
     document.getElementById('refreshBtn').disabled = false;
     document.getElementById('batchLink').style.display = 'block';
     document.getElementById('batchLink').innerHTML = `Bookmark this page to come back later: <code>${location.href}</code>`;
@@ -757,10 +971,11 @@
   // Step navigation
   function goTo(n) {
     document.querySelectorAll('.step').forEach((el, i) => el.classList.toggle('active', i + 1 === n));
-    document.getElementById('stepLabel').textContent = ['Step 1 — Upload', 'Step 2 — Confirm Files', 'Step 3 — Review', 'Step 4 — Batch Status'][n - 1] || '';
-    ['dot1','dot2','dot3','dot4'].forEach((id, i) => {
+    document.getElementById('stepLabel').textContent =
+      ['Step 1 — Upload', 'Step 2 — Confirm Files', 'Step 3 — Geo Research', 'Step 4 — Review', 'Step 5 — Batch Status'][n - 1] || '';
+    ['dot1','dot2','dot3','dot4','dot5'].forEach((id, i) => {
       const d = document.getElementById(id);
-      d.className = 'dot' + (i + 1 < n ? ' done' : i + 1 === n ? ' active' : '');
+      if (d) d.className = 'dot' + (i + 1 < n ? ' done' : i + 1 === n ? ' active' : '');
     });
     window.scrollTo(0, 0);
   }
