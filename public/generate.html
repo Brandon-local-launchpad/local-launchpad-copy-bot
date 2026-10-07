@@ -256,9 +256,15 @@
       <p style="color:var(--muted);font-size:13px;margin-bottom:16px;">Run Perplexity deep research for each location. Dossiers are saved to this client and reused on future runs — you only need to re-run when you want fresh data.</p>
       <div class="field">
         <label>Research Module (trade)</label>
-        <select id="researchModuleSelect" onchange="checkRunReady()">
+        <select id="researchModuleSelect" onchange="onModuleChange()">
           <option value="">Loading modules&hellip;</option>
         </select>
+      </div>
+      <div id="securityAddOnRow" style="display:none;margin-top:10px">
+        <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:13px;text-transform:none;letter-spacing:0;color:var(--text)">
+          <input type="checkbox" id="securityAddOnCheck" style="width:14px;height:14px;accent-color:var(--accent)">
+          Include Security Dog Services add-on module
+        </label>
       </div>
     </div>
 
@@ -574,6 +580,15 @@
     const trade = document.getElementById('tradeSelect').value;
     const sel   = document.getElementById('researchModuleSelect');
     if (trade && sel && [...sel.options].some(o => o.value === trade)) sel.value = trade;
+    onModuleChange();
+  }
+
+  function onModuleChange() {
+    const mod    = document.getElementById('researchModuleSelect').value;
+    const addRow = document.getElementById('securityAddOnRow');
+    // Show add-on toggle only for Dog Training module
+    addRow.style.display = mod === 'Dog Training' ? 'block' : 'none';
+    if (mod !== 'Dog Training') document.getElementById('securityAddOnCheck').checked = false;
     checkRunReady();
   }
 
@@ -597,11 +612,12 @@
     document.getElementById('runResearchBtn').disabled = true;
     document.getElementById('geoError').style.display  = 'none';
 
+    const includeSecurityAddOn = !!(document.getElementById('securityAddOnCheck').checked);
     try {
       const res  = await fetch('/api/research-start', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ sessionId, clientId, locations, moduleName }),
+        body: JSON.stringify({ sessionId, clientId, locations, moduleName, includeSecurityAddOn }),
       });
       const data = await res.json();
       if (!res.ok) {

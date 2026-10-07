@@ -162,7 +162,11 @@ const CALIBRATION_PACK = CALIBRATION_PACKS[AVAILABLE_TRADES[0]] || '';
 
 // Single config value — swap to 'high' for deeper research, 'low' for faster/cheaper.
 // Preset tiers: fast → low → medium (deep-research) → high → xhigh
-const PERPLEXITY_PRESET = process.env.PERPLEXITY_PRESET || 'medium';
+const PERPLEXITY_PRESET       = process.env.PERPLEXITY_PRESET || 'medium';
+// Max parallel Perplexity calls. Default 5; lower if you hit rate-limit 429s.
+const RESEARCH_CONCURRENCY    = Math.max(1, parseInt(process.env.RESEARCH_CONCURRENCY, 10) || 5);
+// Per-call HTTP timeout. Perplexity deep-research can take up to 15 min; 30 min is safe.
+const PERPLEXITY_TIMEOUT_MS   = parseInt(process.env.PERPLEXITY_TIMEOUT_MS, 10) || 30 * 60 * 1000;
 
 // Rate constants for cost estimation when the API response omits cost fields.
 const PERPLEXITY_RATES = { inputPerMToken: 0.25, outputPerMToken: 2.50 };
@@ -174,7 +178,8 @@ const RESEARCH_MODULE_MAP = {
   'Cleaning_Research_Module.md':                   'Cleaning Company',
   'Dog_Grooming_Research_Module.md':               'Dog Grooming',
   'Dog_Training_Research_Module.md':               'Dog Training',
-  'Dog_Training_Security_AddOn_Research_Module.md': 'Dog Training & Security Dogs',
+  // Add-on loaded separately when includeSecurityAddOn flag is set — not a standalone trade.
+  // 'Dog_Training_Security_AddOn_Research_Module.md': handled via SECURITY_ADDON_MODULE below
   'Dog_Walker_Research_Module.md':                 'Dog Walker',
   'Drainage_Research_Module.md':                   'Drainage Company',
   'Driveways_Paving_Research_Module.md':           'Driveways & Paving',
@@ -237,6 +242,11 @@ function readGeoDoc(name) {
 
 const RESEARCH_MODULES           = loadResearchModules();
 const AVAILABLE_RESEARCH_MODULES = Object.keys(RESEARCH_MODULES);
+// Security dog add-on: appended to Dog Training prompts when toggled in UI
+const SECURITY_ADDON_PATH   = path.join(GEO_RESEARCH_DIR, 'Modules', 'Dog_Training_Security_AddOn_Research_Module.md');
+const SECURITY_ADDON_MODULE = fs.existsSync(SECURITY_ADDON_PATH)
+  ? fs.readFileSync(SECURITY_ADDON_PATH, 'utf8')
+  : null;
 const GEO_RESEARCH_CORE          = readGeoDoc('Geo_Research_CORE') || '';
 const GEO_CLIENT_BLOCK_TEMPLATE  = (() => {
   const p = path.join(GEO_RESEARCH_DIR, 'Client_Block_Template.md');
@@ -476,7 +486,7 @@ function validateAndCleanDossier(raw) {
   return { valid: true, text };
 }
 
-function buildResearchPrompt(locationName, code, trade, keyValueMap, serviceParentMap) {
+function buildResearchPrompt(locationName, code, trade, keyValueMap, serviceParentMap, includeSecurityAddOn = false) {
   const companyName = keyValueMap['company_name'] || '';
   const primaryCity = keyValueMap['biz_area_1']   || '';
 
@@ -505,26 +515,36 @@ function buildResearchPrompt(locationName, code, trade, keyValueMap, servicePare
     `${locationName} | ${code} | ${cityOrTown}`,
   ].join('\n');
 
-  const moduleText = RESEARCH_MODULES[trade] || '';
-  return [GEO_RESEARCH_CORE.trim(), clientBlock, moduleText.trim()].filter(Boolean).join('\n\n---\n\n');
+  const moduleText  = RESEARCH_MODULES[trade] || '';
+  const addOnText   = includeSecurityAddOn && SECURITY_ADDON_MODULE ? SECURITY_ADDON_MODULE.trim() : '';
+  const parts = [GEO_RESEARCH_CORE.trim(), clientBlock, moduleText.trim(), addOnText].filter(Boolean);
+  return parts.join('\n\n---\n\n');
 }
 
 async function callPerplexity(promptText) {
   const apiKey = process.env.PERPLEXITY_API_KEY;
   if (!apiKey) throw new Error('PERPLEXITY_API_KEY environment variable is not set');
 
-  const res = await fetch('https://api.perplexity.ai/v1/responses', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${apiKey}` },
-    body: JSON.stringify({ preset: PERPLEXITY_PRESET, input: promptText }),
-  });
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), PERPLEXITY_TIMEOUT_MS);
 
-  if (!res.ok) {
-    const errText = await res.text().catch(() => '');
-    throw new Error(`Perplexity API error ${res.status}: ${errText.slice(0, 300)}`);
+  try {
+    const res = await fetch('https://api.perplexity.ai/v1/responses', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${apiKey}` },
+      body: JSON.stringify({ preset: PERPLEXITY_PRESET, input: promptText }),
+      signal: controller.signal,
+    });
+
+    if (!res.ok) {
+      const errText = await res.text().catch(() => '');
+      throw new Error(`Perplexity API error ${res.status}: ${errText.slice(0, 300)}`);
+    }
+
+    return await res.json();
+  } finally {
+    clearTimeout(timer);
   }
-
-  return await res.json();
 }
 
 async function loadResearchRecord(jobId) {
@@ -1377,6 +1397,10 @@ app.post('/api/research-start', async (req, res) => {
   if (!moduleName || !RESEARCH_MODULES[moduleName]) {
     return res.status(400).json({ error: `Unknown module "${moduleName}". Available: ${AVAILABLE_RESEARCH_MODULES.join(', ')}` });
   }
+  const includeSecurityAddOn = !!(req.body.includeSecurityAddOn) && moduleName === 'Dog Training';
+  if (req.body.includeSecurityAddOn && !SECURITY_ADDON_MODULE) {
+    console.warn('[research-start] Security add-on requested but module file not found — ignoring');
+  }
 
   const session = sessions.get(sessionId);
   if (!session) return res.status(404).json({ error: 'Session not found or expired.' });
@@ -1412,9 +1436,10 @@ app.post('/api/research-start', async (req, res) => {
   // Respond immediately — research runs in background
   res.json({ jobId, total: locations.length });
 
-  // Background: persist codes, then run each location sequentially
+  // Background: persist codes, then run locations in parallel (capped at RESEARCH_CONCURRENCY)
   (async () => {
     const { keyValueMap, serviceParentMap, trade } = session;
+    const includeSecurityAddOn = !!(req.body.includeSecurityAddOn);
 
     // Persist new codes to client_locations for stability across future runs
     if (pool) {
@@ -1429,59 +1454,88 @@ app.post('/api/research-start', async (req, res) => {
       }
     }
 
-    for (const loc of locations) {
+    // Single-location runner with one retry on API error, timeout or validation failure
+    async function runOneLocation(loc) {
       const code = loc.code.toUpperCase();
       await updateResearchLocation(record, code, { status: 'running', startedAt: new Date().toISOString() });
 
-      try {
-        const promptText = buildResearchPrompt(loc.name, code, moduleName, keyValueMap, serviceParentMap);
-        const pxRes      = await callPerplexity(promptText);
+      let lastErr = null;
+      for (let attempt = 1; attempt <= 2; attempt++) {
+        try {
+          const promptText = buildResearchPrompt(loc.name, code, moduleName, keyValueMap, serviceParentMap, includeSecurityAddOn);
+          const pxRes      = await callPerplexity(promptText);
 
-        const rawText    = pxRes.output_text || '';
-        const usage      = pxRes.usage || {};
-        const inputTok   = usage.input_tokens  || 0;
-        const outputTok  = usage.output_tokens || 0;
-        const searchCnt  = usage.search_count  || null;
-        const cost       = usage.cost != null
-          ? usage.cost
-          : ((inputTok / 1e6) * PERPLEXITY_RATES.inputPerMToken + (outputTok / 1e6) * PERPLEXITY_RATES.outputPerMToken);
+          const rawText   = pxRes.output_text || '';
+          const usage     = pxRes.usage || {};
+          const inputTok  = usage.input_tokens  || 0;
+          const outputTok = usage.output_tokens || 0;
+          const searchCnt = usage.search_count  || null;
+          const cost      = usage.cost != null
+            ? usage.cost
+            : ((inputTok / 1e6) * PERPLEXITY_RATES.inputPerMToken + (outputTok / 1e6) * PERPLEXITY_RATES.outputPerMToken);
 
-        const { valid, text: cleanText, error: valErr } = validateAndCleanDossier(rawText);
-        if (!valid) throw new Error(`Dossier validation failed: ${valErr}`);
+          const { valid, text: cleanText, error: valErr } = validateAndCleanDossier(rawText);
+          if (!valid) throw new Error(`Dossier validation failed: ${valErr}`);
 
-        // Save dossier to client_assets; mark previous version superseded
-        let assetId = null;
-        if (pool) {
-          try {
-            await pool.query(
-              `UPDATE client_assets SET metadata = COALESCE(metadata,'{}') || '{"superseded":true}'
-               WHERE client_id = $1 AND asset_type = 'geo_dossier'
-               AND metadata->>'location_name' = $2
-               AND NOT (metadata->>'superseded')::boolean`,
-              [clientId, loc.name]
-            );
-            const { rows: assetRows } = await pool.query(
-              `INSERT INTO client_assets (client_id, asset_type, filename, content, metadata)
-               VALUES ($1,'geo_dossier',$2,$3,$4::jsonb) RETURNING id`,
-              [clientId, `${loc.name.replace(/\s+/g,'_')}_dossier.md`, cleanText,
-               JSON.stringify({ location_name: loc.name, location_norm: normaliseLocation(loc.name), preset: PERPLEXITY_PRESET, superseded: false })]
-            );
-            assetId = assetRows[0].id;
-          } catch (dbErr) { console.error('[DB] Dossier asset save error:', dbErr.message); }
+          // Save dossier; mark previous version superseded
+          let assetId = null;
+          if (pool) {
+            try {
+              await pool.query(
+                `UPDATE client_assets SET metadata = COALESCE(metadata,'{}') || '{"superseded":true}'
+                 WHERE client_id = $1 AND asset_type = 'geo_dossier'
+                 AND metadata->>'location_name' = $2
+                 AND NOT (metadata->>'superseded')::boolean`,
+                [clientId, loc.name]
+              );
+              const { rows: assetRows } = await pool.query(
+                `INSERT INTO client_assets (client_id, asset_type, filename, content, metadata)
+                 VALUES ($1,'geo_dossier',$2,$3,$4::jsonb) RETURNING id`,
+                [clientId, `${loc.name.replace(/\s+/g,'_')}_dossier.md`, cleanText,
+                 JSON.stringify({ location_name: loc.name, location_norm: normaliseLocation(loc.name), preset: PERPLEXITY_PRESET, superseded: false })]
+              );
+              assetId = assetRows[0].id;
+            } catch (dbErr) { console.error('[DB] Dossier asset save error:', dbErr.message); }
+          }
+
+          await updateResearchLocation(record, code, {
+            status: 'done', finishedAt: new Date().toISOString(),
+            inputTokens: inputTok, outputTokens: outputTok, searchCount: searchCnt,
+            cost: parseFloat(cost.toFixed(6)), preset: PERPLEXITY_PRESET, assetId, error: null,
+          });
+          return; // success
+        } catch (err) {
+          lastErr = err;
+          if (attempt === 1) {
+            console.warn(`[research] Location "${loc.name}" attempt 1 failed — retrying. Error: ${err.message}`);
+          }
         }
-
-        await updateResearchLocation(record, code, {
-          status: 'done', finishedAt: new Date().toISOString(),
-          inputTokens: inputTok, outputTokens: outputTok, searchCount: searchCnt,
-          cost: parseFloat(cost.toFixed(6)), preset: PERPLEXITY_PRESET, assetId, error: null,
-        });
-      } catch (err) {
-        console.error(`[research] Location "${loc.name}" failed:`, err.message);
-        await updateResearchLocation(record, code, {
-          status: 'failed', finishedAt: new Date().toISOString(), error: err.message,
-        });
       }
+
+      console.error(`[research] Location "${loc.name}" failed after retry:`, lastErr.message);
+      await updateResearchLocation(record, code, {
+        status: 'failed', finishedAt: new Date().toISOString(), error: lastErr.message,
+      });
     }
+
+    // Concurrency-limited parallel execution
+    const queue      = [...locations];
+    const inFlight   = new Set();
+    await new Promise(resolve => {
+      function next() {
+        while (inFlight.size < RESEARCH_CONCURRENCY && queue.length) {
+          const loc = queue.shift();
+          const p   = runOneLocation(loc).finally(() => {
+            inFlight.delete(p);
+            if (queue.length === 0 && inFlight.size === 0) resolve();
+            else next();
+          });
+          inFlight.add(p);
+        }
+        if (queue.length === 0 && inFlight.size === 0) resolve();
+      }
+      next();
+    });
   })();
 });
 
