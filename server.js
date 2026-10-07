@@ -536,7 +536,7 @@ async function callPerplexity(promptText) {
   const timer = setTimeout(() => controller.abort(), PERPLEXITY_TIMEOUT_MS);
 
   try {
-    const res = await fetch('https://api.perplexity.ai/v1/responses', {
+    const res = await fetch('https://api.perplexity.ai/v1/agent', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${apiKey}` },
       body: JSON.stringify({ preset: PERPLEXITY_PRESET, input: promptText }),
@@ -689,11 +689,13 @@ async function runOneLocation(record, clientId, loc, moduleName, keyValueMap, se
       const usage    = rawUsage || {};
       const inputTok = usage.input_tokens  || 0;
       const outputTok= usage.output_tokens || 0;
-      const searchCnt= usage.search_count  || null;
+      // search_count is not in the published usage schema; may appear in tool_calls_details
+      const searchCnt= (usage.tool_calls_details && usage.tool_calls_details.search_count) || null;
 
+      // usage.cost is an object: { currency, input_cost, output_cost, total_cost, ... }
       let cost;
-      if (rawUsage && rawUsage.cost != null) {
-        cost = rawUsage.cost;
+      if (rawUsage && rawUsage.cost && rawUsage.cost.total_cost != null) {
+        cost = rawUsage.cost.total_cost;
       } else {
         console.warn(`[research] No cost in Perplexity response for "${loc.name}" — using fallback rate constants. Verify PERPLEXITY_RATES match current pricing.`);
         cost = (inputTok / 1e6) * PERPLEXITY_RATES.inputPerMToken + (outputTok / 1e6) * PERPLEXITY_RATES.outputPerMToken;
