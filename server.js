@@ -570,67 +570,24 @@ function testCitationStrategies(pairs, maps) {
 }
 
 // Resolve [web:N] citation markers in text.
-// Rule (c): when [URL][web:N] appears, always keep the real URL and drop the marker.
-// For standalone [web:N] markers: use the best-match strategy if it meets the 95% threshold,
-// otherwise strip the marker.
-// Returns { text, strategy, matchRate, resolved, unresolved, stripped, sourceCount }.
-function resolveCitations(text, pxRes) {
-  const maps = buildCitationMaps(pxRes);
+// When [URL][web:N] appears together, keep the real URL and drop the marker.
+// All other [web:N] markers are stripped — number-based lookup is unreliable.
+// Returns { text, kept, stripped, sourceCount }.
+function resolveCitations(text) {
+  let kept = 0, stripped = 0;
 
-  // Determine best strategy from inline calibration pairs in THIS response
-  const pairs = extractInlinePairs(text);
-  let chosenStrategy = null, chosenMap = {}, chosenMatchRate = 0;
-
-  if (pairs.length >= 3) {
-    const results = testCitationStrategies(pairs, maps);
-    const best = results[0];
-    if (best.matchRate >= 0.95) {
-      chosenStrategy = best.strategy;
-      chosenMap = maps[best.strategy];
-      chosenMatchRate = best.matchRate;
-      console.log(`[citations] strategy "${chosenStrategy}" matches ${(best.matchRate * 100).toFixed(0)}% of ${pairs.length} calibration pairs`);
-    } else {
-      console.warn(`[citations] No strategy reached 95% threshold (best: "${best.strategy}" at ${(best.matchRate * 100).toFixed(0)}%). Stripping markers, keeping inline URLs only.`);
-    }
-  } else if (pairs.length === 0) {
-    // No inline pairs to calibrate against — try id-based (most semantically correct)
-    const idMap = maps.idBased;
-    if (Object.keys(idMap).length > 0) {
-      chosenStrategy = 'idBased';
-      chosenMap = idMap;
-      chosenMatchRate = null; // uncalibrated
-      console.log(`[citations] No inline pairs to calibrate; using id-based map (${Object.keys(idMap).length} entries), uncalibrated`);
-    }
-  } else {
-    // Too few pairs for reliable calibration — use id-based
-    const results = testCitationStrategies(pairs, maps);
-    const best = results[0];
-    if (best.matchRate >= 0.95) {
-      chosenStrategy = best.strategy;
-      chosenMap = maps[best.strategy];
-      chosenMatchRate = best.matchRate;
-    }
-  }
-
-  let resolved = 0, unresolved = 0, stripped = 0;
-
-  // Step 1: remove [web:N] from inline pairs [URL][web:N] — keep the URL, drop the marker
+  // Step 1: [URL][web:N] — keep the URL, drop the marker
   let out = text.replace(/(\[https?:\/\/[^\]]+\])\[web:\d+\]/g, (_, url) => {
-    resolved++;
+    kept++;
     return url;
   });
 
-  // Step 2: resolve or strip remaining standalone [web:N] markers
-  out = out.replace(/\[web:(\d+)\]/g, (_match, n) => {
-    const url = chosenMap[parseInt(n, 10)];
-    if (url) { resolved++; return `[${url}]`; }
-    stripped++;
-    return '';
-  });
+  // Step 2: strip any remaining standalone [web:N] markers
+  out = out.replace(/\[web:\d+\]/g, () => { stripped++; return ''; });
 
   const sourceCount = (out.match(/\[https?:\/\//g) || []).length;
-  console.log(`[citations] resolved: ${resolved}, stripped: ${stripped}, sourceCount: ${sourceCount}, strategy: ${chosenStrategy || 'none'}`);
-  return { text: out, strategy: chosenStrategy, matchRate: chosenMatchRate, resolved, unresolved, stripped, sourceCount };
+  console.log(`[citations] kept inline: ${kept}, stripped: ${stripped}, sourceCount: ${sourceCount}`);
+  return { text: out, kept, stripped, sourceCount };
 }
 
 function validateAndCleanDossier(raw) {
@@ -663,7 +620,11 @@ function validateAndCleanDossier(raw) {
   const warnings = [];
   if (!text.includes('END OF DOSSIER')) warnings.push('Missing END OF DOSSIER marker');
 
-  return { valid: true, text, warnings };
+  // Flag any [web:N] markers that survived citation resolution — v6 should never produce these
+  const unresolvedMarkers = (text.match(/\[web:\d+\]/g) || []);
+  if (unresolvedMarkers.length) warnings.push(`contains_unresolved_markers:${unresolvedMarkers.length}`);
+
+  return { valid: true, text, warnings, hasUnresolvedMarkers: unresolvedMarkers.length > 0 };
 }
 
 // runType must be 'PRIMARY CITY' or 'TOWN' — set on the location object at parse-zip time and
@@ -950,9 +911,8 @@ async function finishLocation(record, clientId, code, loc, pxRes, preserveOrigin
   }
 
   // Resolve [web:N] citation markers before validation
-  const { text: resolvedText, resolved, unresolved, sourceCount: rawSourceCount } = resolveCitations(rawText, pxRes);
-  if (unresolved > 0) console.warn(`[research] "${loc.name}" citation resolution: ${resolved} resolved, ${unresolved} unresolved (stripped)`);
-  else console.log(`[research] "${loc.name}" citation resolution: ${resolved} resolved`);
+  const { text: resolvedText, kept, stripped, sourceCount: rawSourceCount } = resolveCitations(rawText);
+  if (stripped > 0) console.log(`[research] "${loc.name}" citations: kept ${kept} inline URLs, stripped ${stripped} bare markers`);
 
   let cost;
   if (rawUsage && rawUsage.cost && rawUsage.cost.total_cost != null) {
@@ -963,7 +923,7 @@ async function finishLocation(record, clientId, code, loc, pxRes, preserveOrigin
   }
   const costVal = parseFloat(cost.toFixed(6));
 
-  const { valid, text: cleanText, error: valErr, warnings } = validateAndCleanDossier(resolvedText);
+  const { valid, text: cleanText, error: valErr, warnings, hasUnresolvedMarkers } = validateAndCleanDossier(resolvedText);
   if (warnings && warnings.length) console.warn(`[research] "${loc.name}" validation warnings: ${warnings.join('; ')}`);
 
   if (!valid) {
@@ -1017,9 +977,9 @@ async function finishLocation(record, clientId, code, loc, pxRes, preserveOrigin
     searchCount: searchCnt,
     rawUsage, cost: preserveOriginal ? preserveOriginal.cost : costVal,
     preset: PERPLEXITY_PRESET, assetId, error: null,
-    sourceCount, lowSources,
+    sourceCount, lowSources, hasUnresolvedMarkers: hasUnresolvedMarkers || false,
   });
-  return { validationFailed: false, sourceCount, lowSources };
+  return { validationFailed: false, sourceCount, lowSources, hasUnresolvedMarkers: hasUnresolvedMarkers || false };
 }
 
 // ── Standalone per-location Perplexity runner (shared by research-start and research-rerun) ──
@@ -2363,13 +2323,32 @@ app.post('/api/admin/reprocess-location', async (req, res) => {
       lowSources:  result && result.lowSources  != null ? result.lowSources  : updatedLoc.lowSources,
       status: updatedLoc.status,
       error:  updatedLoc.error || null,
-      source, citationSourcesAvailable: citationSources.length,
+      source,
       assetId: updatedLoc.assetId || null,
       cost:    updatedLoc.cost    || null,
     });
   } catch (err) {
     return res.status(500).json({ error: err.message });
   }
+});
+
+// POST /api/admin/supersede-dossier { clientId, locationName }
+// Marks the active dossier for a location as superseded so the row reverts to pending/re-runnable.
+app.post('/api/admin/supersede-dossier', async (req, res) => {
+  if (!pool) return res.status(503).json({ error: 'Database not configured.' });
+  const { clientId, locationName } = req.body || {};
+  if (!clientId || !locationName) return res.status(400).json({ error: 'clientId and locationName required.' });
+  const targetNorm = normaliseLocation(locationName);
+  try {
+    const { rowCount } = await pool.query(
+      `UPDATE client_assets SET metadata = COALESCE(metadata,'{}') || '{"superseded":true}'
+       WHERE client_id = $1 AND asset_type = 'geo_dossier'
+       AND metadata->>'location_norm' = $2
+       AND NOT (metadata->>'superseded')::boolean`,
+      [clientId, targetNorm]
+    );
+    res.json({ superseded: rowCount, locationName });
+  } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
 // Raw output viewer — returns saved rawOutputText for a validation_failed or failed location
@@ -2432,9 +2411,10 @@ app.get('/api/clients/:clientId/geo-location-status', async (req, res) => {
           inputTokens: loc.inputTokens || null,
           outputTokens:loc.outputTokens|| null,
           error:       loc.error        || null,
-          pxJobId:     loc.pxJobId      || null,
-          sourceCount: loc.sourceCount  ?? null,
-          lowSources:  loc.lowSources   ?? null,
+          pxJobId:              loc.pxJobId              || null,
+          sourceCount:          loc.sourceCount           ?? null,
+          lowSources:           loc.lowSources            ?? null,
+          hasUnresolvedMarkers: loc.hasUnresolvedMarkers  ?? false,
         };
       }
     }
