@@ -1723,56 +1723,61 @@ app.get('/api/research-status/:jobId', async (req, res) => {
 });
 
 // One-off recovery: re-fetch stored Perplexity job IDs for a location and re-process them.
-// POST /api/admin/recover-location { clientId, locationCode, extraJobIds?: string[] }
-// Finds every pxJobId stored in research_jobs for clientId+locationCode,
-// optionally adds extra IDs from the request body (e.g. from logs),
-// fetches each from Perplexity, validates, and saves the best passing result
-// (or saves raw output if none pass).
+// POST /api/admin/recover-location { clientId, locationName, extraJobIds?: string[] }
+// Finds every pxJobId stored in research_jobs for clientId, matched by normalised location name.
+// Reads the actual code from the stored record — never trusts the caller to supply it.
 app.post('/api/admin/recover-location', async (req, res) => {
   if (!pool) return res.status(503).json({ error: 'Database not configured.' });
-  const { clientId, locationCode, extraJobIds } = req.body || {};
-  if (!clientId || !locationCode) return res.status(400).json({ error: 'clientId and locationCode required.' });
-  const code = locationCode.toUpperCase();
+  const { clientId, locationName, extraJobIds } = req.body || {};
+  if (!clientId || !locationName) return res.status(400).json({ error: 'clientId and locationName required.' });
+  const targetNorm = normaliseLocation(locationName);
 
-  // Collect all pxJobIds stored in research_jobs for this client+location
+  // Scan all research_jobs for this client, find entries whose normalised name matches
   const { rows: jobRows } = await pool.query(
-    `SELECT id, locations FROM research_jobs WHERE client_id = $1`,
+    `SELECT id, locations FROM research_jobs WHERE client_id = $1 ORDER BY created_at DESC`,
     [clientId]
   );
+
   const seen = new Set();
-  const candidates = []; // { pxJobId, jobId, locName, loc }
+  const candidates = []; // { pxJobId, jobId, code, locName, loc }
   for (const row of jobRows) {
     const locs = row.locations || {};
-    const loc = locs[code];
-    if (loc && loc.pxJobId) {
-      if (!seen.has(loc.pxJobId)) {
+    for (const [storedCode, loc] of Object.entries(locs)) {
+      if (normaliseLocation(loc.name || '') !== targetNorm) continue;
+      if (loc.pxJobId && !seen.has(loc.pxJobId)) {
         seen.add(loc.pxJobId);
-        candidates.push({ pxJobId: loc.pxJobId, jobId: row.id, locName: loc.name || code, loc });
+        candidates.push({ pxJobId: loc.pxJobId, jobId: row.id, code: storedCode, locName: loc.name || locationName, loc });
       }
     }
   }
-  // Add any extra IDs from the request (e.g. from logs)
+
+  // Add any extra IDs from the request (e.g. from logs that were overwritten in the DB)
+  const baseEntry = candidates[0];
   for (const id of (extraJobIds || [])) {
     if (id && !seen.has(id)) {
       seen.add(id);
-      // Use name from first found loc, or fall back to code
-      const baseLoc = candidates[0] ? candidates[0].loc : { name: code, runType: '' };
-      candidates.push({ pxJobId: id, jobId: null, locName: baseLoc.name, loc: baseLoc });
+      candidates.push({
+        pxJobId: id,
+        jobId: baseEntry ? baseEntry.jobId : null,
+        code:   baseEntry ? baseEntry.code  : null,
+        locName: baseEntry ? baseEntry.locName : locationName,
+        loc:    baseEntry ? baseEntry.loc    : { name: locationName, runType: '' },
+      });
     }
   }
 
   if (!candidates.length) {
-    return res.json({ message: 'No pxJobId found for this location in any research job.', results: [] });
+    return res.json({ message: `No pxJobId found for "${locationName}" in any research job.`, results: [] });
   }
 
   const apiKey = process.env.PERPLEXITY_API_KEY;
   if (!apiKey) return res.status(500).json({ error: 'PERPLEXITY_API_KEY not set.' });
 
   const results = [];
-  const passing = []; // { pxJobId, text, cost, inputTok, outputTok, pxRes }
+  const passing = [];
 
-  for (const { pxJobId, jobId, locName, loc } of candidates) {
-    console.log(`[recovery-admin] Fetching ${pxJobId} from Perplexity`);
+  for (const { pxJobId, jobId, code, locName, loc } of candidates) {
+    console.log(`[recovery-admin] Fetching ${pxJobId} for "${locName}" (code: ${code})`);
     let pxRes;
     try {
       const fetchRes = await fetch(`https://api.perplexity.ai/v1/agent/${pxJobId}`, {
@@ -1782,17 +1787,17 @@ app.post('/api/admin/recover-location', async (req, res) => {
         const errText = await fetchRes.text().catch(() => '');
         const msg = `Perplexity returned ${fetchRes.status}: ${errText.slice(0, 200)}`;
         console.warn(`[recovery-admin] ${pxJobId}: ${msg}`);
-        results.push({ pxJobId, jobId, found: false, reason: msg });
+        results.push({ pxJobId, jobId, code, found: false, reason: msg });
         continue;
       }
       pxRes = await fetchRes.json();
     } catch (err) {
-      results.push({ pxJobId, jobId, found: false, reason: err.message });
+      results.push({ pxJobId, jobId, code, found: false, reason: err.message });
       continue;
     }
 
     if (pxRes.status !== 'completed') {
-      results.push({ pxJobId, jobId, found: true, status: pxRes.status, reason: `Job not completed (status: ${pxRes.status})` });
+      results.push({ pxJobId, jobId, code, found: true, status: pxRes.status, reason: `Job not completed (status: ${pxRes.status})` });
       continue;
     }
 
@@ -1801,9 +1806,9 @@ app.post('/api/admin/recover-location', async (req, res) => {
     const { valid, text: cleanText, error: valErr, warnings } = validateAndCleanDossier(rawText);
 
     const rawUsage = pxRes.usage || null;
-    const usage = rawUsage || {};
-    const inputTok = usage.input_tokens || 0;
-    const outputTok = usage.output_tokens || 0;
+    const usage    = rawUsage || {};
+    const inputTok = usage.input_tokens  || 0;
+    const outputTok= usage.output_tokens || 0;
     let cost = 0;
     if (rawUsage && rawUsage.cost && rawUsage.cost.total_cost != null) {
       cost = rawUsage.cost.total_cost;
@@ -1812,15 +1817,13 @@ app.post('/api/admin/recover-location', async (req, res) => {
     }
 
     results.push({
-      pxJobId, jobId, found: true, status: pxRes.status,
-      textLength: rawText.length,
-      valid, valErr: valid ? null : valErr,
-      warnings: warnings || [],
-      inputTok, outputTok, cost: parseFloat(cost.toFixed(6)),
+      pxJobId, jobId, code, found: true, status: pxRes.status,
+      textLength: rawText.length, valid, valErr: valid ? null : valErr,
+      warnings: warnings || [], inputTok, outputTok, cost: parseFloat(cost.toFixed(6)),
     });
 
     if (valid) {
-      passing.push({ pxJobId, jobId, locName, loc, cleanText, rawText, cost, inputTok, outputTok, pxRes, rawUsage });
+      passing.push({ pxJobId, jobId, code, locName, loc, cleanText, cost, inputTok, outputTok, rawUsage });
     }
   }
 
@@ -1830,7 +1833,6 @@ app.post('/api/admin/recover-location', async (req, res) => {
     const best = passing[0];
     console.log(`[recovery-admin] Saving best result from ${best.pxJobId} (${best.cleanText.length} chars)`);
 
-    // Supersede old dossiers
     await pool.query(
       `UPDATE client_assets SET metadata = COALESCE(metadata,'{}') || '{"superseded":true}'
        WHERE client_id = $1 AND asset_type = 'geo_dossier'
@@ -1838,7 +1840,6 @@ app.post('/api/admin/recover-location', async (req, res) => {
        AND NOT (metadata->>'superseded')::boolean`,
       [clientId, normaliseLocation(best.locName)]
     );
-
     const { rows: assetRows } = await pool.query(
       `INSERT INTO client_assets (client_id, asset_type, filename, content, metadata)
        VALUES ($1,'geo_dossier',$2,$3,$4::jsonb) RETURNING id`,
@@ -1849,11 +1850,10 @@ app.post('/api/admin/recover-location', async (req, res) => {
     );
     const assetId = assetRows[0].id;
 
-    // Update the research_jobs record that holds this pxJobId to done
-    if (best.jobId) {
+    if (best.jobId && best.code) {
       const record = await loadResearchRecord(best.jobId);
       if (record) {
-        await updateResearchLocation(record, code, {
+        await updateResearchLocation(record, best.code, {
           status: 'done', finishedAt: new Date().toISOString(),
           inputTokens: best.inputTok, outputTokens: best.outputTok,
           rawUsage: best.rawUsage, cost: parseFloat(best.cost.toFixed(6)),
@@ -1863,26 +1863,26 @@ app.post('/api/admin/recover-location', async (req, res) => {
     }
 
     return res.json({
-      saved: true, assetId, chosenJobId: best.pxJobId,
+      saved: true, assetId, chosenJobId: best.pxJobId, code: best.code,
       textLength: best.cleanText.length, cost: parseFloat(best.cost.toFixed(6)),
-      passing: passing.map(p => p.pxJobId),
-      results,
+      passing: passing.map(p => p.pxJobId), results,
     });
   }
 
-  // No passing result — save raw output from the longest response as validation_failed
-  const longest = results.filter(r => r.found && r.status === 'completed' && r.textLength > 0)
+  // No passing result — save raw output from longest completed response as validation_failed
+  const longest = results
+    .filter(r => r.found && r.status === 'completed' && r.textLength > 0)
     .sort((a, b) => b.textLength - a.textLength)[0];
   if (longest) {
-    const matchCand = candidates.find(c => c.pxJobId === longest.pxJobId);
-    if (matchCand && matchCand.jobId) {
-      const record = await loadResearchRecord(matchCand.jobId);
+    const cand = candidates.find(c => c.pxJobId === longest.pxJobId);
+    if (cand && cand.jobId && cand.code) {
+      const record = await loadResearchRecord(cand.jobId);
       if (record) {
         const rawPxRes = await fetch(`https://api.perplexity.ai/v1/agent/${longest.pxJobId}`, {
           headers: { 'Authorization': `Bearer ${apiKey}` },
         }).then(r => r.json()).catch(() => null);
         if (rawPxRes) {
-          await updateResearchLocation(record, code, {
+          await updateResearchLocation(record, cand.code, {
             status: 'validation_failed', finishedAt: new Date().toISOString(),
             error: `Validation failed: ${longest.valErr}`,
             rawOutputText: extractPerplexityText(rawPxRes),

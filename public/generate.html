@@ -875,6 +875,7 @@
           const locName = loc.name || code;
           acts.innerHTML =
             `<button class="btn-micro" onclick="viewRawOutput('${h(researchJobId)}','${h(code)}','${h(locName)}')">View Raw</button>` +
+            `<button class="btn-micro" onclick="recoverPaidRuns('${h(code)}','${h(locName)}')">Recover paid runs</button>` +
             `<button class="btn-micro" onclick="rerunLocation('${h(locName)}','${h(code)}')">Re-run</button>`;
         }
       } else if (loc.status === 'failed') {
@@ -882,7 +883,9 @@
         text.style.color = 'var(--block)';
         if (acts) {
           const locName = loc.name || code;
-          acts.innerHTML = `<button class="btn-micro" onclick="rerunLocation('${h(locName)}','${h(code)}')">Re-run</button>`;
+          const recoverBtn = loc.pxJobId
+            ? `<button class="btn-micro" onclick="recoverPaidRuns('${h(code)}','${h(locName)}')">Recover paid runs</button>` : '';
+          acts.innerHTML = recoverBtn + `<button class="btn-micro" onclick="rerunLocation('${h(locName)}','${h(code)}')">Re-run</button>`;
         }
       } else if (loc.status === 'running') {
         text.textContent = 'Running…';
@@ -903,6 +906,50 @@
       document.getElementById('dossierModalBody').textContent  = data.content;
       document.getElementById('dossierModal').classList.add('open');
     } catch (err) { alert(err.message); }
+  }
+
+  async function recoverPaidRuns(code, locName, extraJobIds) {
+    const statusEl = document.getElementById(`geo-status-${code}`);
+    const text = statusEl ? statusEl.querySelector(`#geo-txt-${code}`) : null;
+    const txtEl = document.getElementById(`geo-txt-${code}`);
+    if (txtEl) { txtEl.textContent = 'Recovering…'; txtEl.style.color = 'var(--accent)'; }
+    try {
+      const res  = await fetch('/api/admin/recover-location', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ clientId, locationName: locName, extraJobIds: extraJobIds || [] }),
+      });
+      const data = await res.json();
+      if (!res.ok) { alert(data.error || 'Recovery failed.'); if (txtEl) txtEl.textContent = 'Recovery failed'; return; }
+
+      // Build a human-readable summary
+      const lines = (data.results || []).map(r => {
+        if (!r.found) return `${r.pxJobId}: not found — ${r.reason}`;
+        if (r.status !== 'completed') return `${r.pxJobId}: ${r.reason}`;
+        return `${r.pxJobId}: ${r.textLength} chars, validation ${r.valid ? 'passed' : `failed (${r.valErr})`}`;
+      });
+      const summary = lines.join('\n');
+
+      if (data.saved) {
+        alert(`Saved! Chosen job: ${data.chosenJobId}\n\nAll results:\n${summary}`);
+        // Refresh the research status so the row updates to 'done'
+        if (researchJobId) {
+          const statusRes = await fetch(`/api/research-status/${encodeURIComponent(researchJobId)}`);
+          if (statusRes.ok) { const d = await statusRes.json(); updateResearchUI(d.locations || {}); }
+        }
+      } else {
+        alert(`No result passed validation.\n\nAll results:\n${summary}\n\n${data.message || ''}`);
+        if (txtEl) { txtEl.textContent = 'Recovery: no valid result'; txtEl.style.color = 'var(--block)'; }
+        // Refresh so View Raw button appears if validation_failed was saved
+        if (researchJobId) {
+          const statusRes = await fetch(`/api/research-status/${encodeURIComponent(researchJobId)}`);
+          if (statusRes.ok) { const d = await statusRes.json(); updateResearchUI(d.locations || {}); }
+        }
+      }
+    } catch (err) {
+      alert(`Recovery error: ${err.message}`);
+      if (txtEl) { txtEl.textContent = 'Recovery error'; txtEl.style.color = 'var(--block)'; }
+    }
   }
 
   async function viewRawOutput(jobId, code, locName) {
