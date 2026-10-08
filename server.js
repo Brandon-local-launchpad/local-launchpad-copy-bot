@@ -507,10 +507,33 @@ function makeSectionRegex(n, name) {
   );
 }
 
+// Resolve [web:N] citation markers to [URL] using search_results/citations from pxRes.
+// Strips markers that can't be resolved. Returns { text, resolved, unresolved, sourceCount }.
+function resolveCitations(text, pxRes) {
+  // Build 1-based index → URL from whichever field Perplexity returns
+  const sources = pxRes.search_results || pxRes.citations || [];
+  const urlMap = {};
+  for (let i = 0; i < sources.length; i++) {
+    const s = sources[i];
+    const url = typeof s === 'string' ? s : (s.url || s.link || null);
+    if (url) urlMap[i + 1] = url;
+  }
+
+  let resolved = 0, unresolved = 0;
+  const resolved_text = text.replace(/\[web:(\d+)\]/g, (_match, n) => {
+    const url = urlMap[parseInt(n, 10)];
+    if (url) { resolved++; return `[${url}]`; }
+    unresolved++;
+    return '';
+  });
+
+  const sourceCount = (resolved_text.match(/\[https?:\/\//g) || []).length;
+  return { text: resolved_text, resolved, unresolved, sourceCount };
+}
+
 function validateAndCleanDossier(raw) {
   let text = raw
     .replace(/<think>[\s\S]*?<\/think>/gi, '')
-    .replace(/\[web:\d+\]/g, '')   // strip Perplexity internal citation tags; leave [URL] intact
     .trim();
 
   // Try to start from first recognisable section heading
@@ -822,6 +845,11 @@ async function finishLocation(record, clientId, code, loc, pxRes) {
     return { validationFailed: true };
   }
 
+  // Resolve [web:N] citation markers before validation
+  const { text: resolvedText, resolved, unresolved, sourceCount: rawSourceCount } = resolveCitations(rawText, pxRes);
+  if (unresolved > 0) console.warn(`[research] "${loc.name}" citation resolution: ${resolved} resolved, ${unresolved} unresolved (stripped)`);
+  else console.log(`[research] "${loc.name}" citation resolution: ${resolved} resolved`);
+
   let cost;
   if (rawUsage && rawUsage.cost && rawUsage.cost.total_cost != null) {
     cost = rawUsage.cost.total_cost;
@@ -831,7 +859,7 @@ async function finishLocation(record, clientId, code, loc, pxRes) {
   }
   const costVal = parseFloat(cost.toFixed(6));
 
-  const { valid, text: cleanText, error: valErr, warnings } = validateAndCleanDossier(rawText);
+  const { valid, text: cleanText, error: valErr, warnings } = validateAndCleanDossier(resolvedText);
   if (warnings && warnings.length) console.warn(`[research] "${loc.name}" validation warnings: ${warnings.join('; ')}`);
 
   if (!valid) {
@@ -839,12 +867,18 @@ async function finishLocation(record, clientId, code, loc, pxRes) {
     await updateResearchLocation(record, code, {
       status: 'validation_failed', finishedAt: new Date().toISOString(),
       error: `Validation failed: ${valErr}`,
-      rawOutputText: rawText, rawOutputJson: JSON.stringify(pxRes),
+      rawOutputText: resolvedText, rawOutputJson: JSON.stringify(pxRes),
       inputTokens: inputTok, outputTokens: outputTok, searchCount: searchCnt,
       rawUsage, cost: costVal, preset: PERPLEXITY_PRESET,
     });
     return { validationFailed: true };
   }
+
+  // Count source URLs in the final saved text
+  const sourceCount = (cleanText.match(/\[https?:\/\//g) || []).length;
+  const lowSources  = sourceCount < 10;
+  if (lowSources) console.warn(`[research] "${loc.name}" low source count: ${sourceCount} URLs`);
+  else            console.log(`[research] "${loc.name}" source count: ${sourceCount} URLs`);
 
   let assetId = null;
   if (pool) {
@@ -872,8 +906,9 @@ async function finishLocation(record, clientId, code, loc, pxRes) {
     status: 'done', finishedAt: new Date().toISOString(),
     inputTokens: inputTok, outputTokens: outputTok, searchCount: searchCnt,
     rawUsage, cost: costVal, preset: PERPLEXITY_PRESET, assetId, error: null,
+    sourceCount, lowSources,
   });
-  return { validationFailed: false };
+  return { validationFailed: false, sourceCount, lowSources };
 }
 
 // ── Standalone per-location Perplexity runner (shared by research-start and research-rerun) ──
@@ -1905,6 +1940,87 @@ app.post('/api/admin/recover-location', async (req, res) => {
   res.json({ saved: false, results, message: 'No result passed validation; raw output saved as validation_failed where possible.' });
 });
 
+// Re-process a location's stored (or re-fetched) raw Perplexity response with current logic.
+// POST /api/admin/reprocess-location { clientId, locationName }
+// Uses stored rawOutputJson if present (validation_failed rows), otherwise re-fetches via pxJobId.
+// Returns { sourceCount, lowSources, saved, status, ... } per attempt.
+app.post('/api/admin/reprocess-location', async (req, res) => {
+  if (!pool) return res.status(503).json({ error: 'Database not configured.' });
+  const { clientId, locationName } = req.body || {};
+  if (!clientId || !locationName) return res.status(400).json({ error: 'clientId and locationName required.' });
+  const targetNorm = normaliseLocation(locationName);
+
+  // Find the most recent research_job entry for this location
+  const { rows: jobRows } = await pool.query(
+    `SELECT id, locations FROM research_jobs WHERE client_id = $1 ORDER BY created_at DESC`,
+    [clientId]
+  );
+
+  let record = null, code = null, loc = null, jobId = null;
+  outer: for (const row of jobRows) {
+    for (const [c, l] of Object.entries(row.locations || {})) {
+      if (normaliseLocation(l.name || '') === targetNorm) {
+        jobId = row.id; code = c; loc = l;
+        record = { id: row.id, sessionId: row.session_id || null, clientId,
+                   status: row.status, preset: row.preset,
+                   locations: row.locations || {}, createdAt: new Date(row.created_at || 0).getTime() };
+        break outer;
+      }
+    }
+  }
+  if (!record) return res.status(404).json({ error: `No research record found for "${locationName}".` });
+
+  const apiKey = process.env.PERPLEXITY_API_KEY;
+  if (!apiKey) return res.status(500).json({ error: 'PERPLEXITY_API_KEY not set.' });
+
+  // Get pxRes: prefer stored rawOutputJson, fall back to re-fetching
+  let pxRes = null;
+  let source = 'stored';
+  if (loc.rawOutputJson) {
+    try { pxRes = JSON.parse(loc.rawOutputJson); } catch (_) {}
+  }
+  if (!pxRes) {
+    if (!loc.pxJobId) return res.status(404).json({ error: 'No stored response and no pxJobId to re-fetch from.' });
+    source = 're-fetched';
+    console.log(`[reprocess] Re-fetching ${loc.pxJobId} from Perplexity for "${locationName}"`);
+    const fetchRes = await fetch(`https://api.perplexity.ai/v1/agent/${loc.pxJobId}`, {
+      headers: { 'Authorization': `Bearer ${apiKey}` },
+    });
+    if (!fetchRes.ok) {
+      const errText = await fetchRes.text().catch(() => '');
+      return res.status(502).json({ error: `Perplexity returned ${fetchRes.status}: ${errText.slice(0, 200)}` });
+    }
+    pxRes = await fetchRes.json();
+    if (pxRes.status !== 'completed') {
+      return res.json({ saved: false, reason: `Perplexity job not completed (status: ${pxRes.status})` });
+    }
+  }
+
+  // Log citation map size for debugging
+  const citationSources = pxRes.search_results || pxRes.citations || [];
+  console.log(`[reprocess] "${locationName}": ${citationSources.length} citation sources available (${source})`);
+
+  // Run through full current finishLocation logic (mutates record in-memory + DB)
+  researchJobs.set(record.id, record);
+  try {
+    const result = await finishLocation(record, clientId, code, loc, pxRes);
+    const updatedLoc = record.locations[code] || {};
+    return res.json({
+      saved: result && !result.validationFailed,
+      validationFailed: result && result.validationFailed,
+      sourceCount: result && result.sourceCount != null ? result.sourceCount : updatedLoc.sourceCount,
+      lowSources:  result && result.lowSources  != null ? result.lowSources  : updatedLoc.lowSources,
+      status: updatedLoc.status,
+      error:  updatedLoc.error || null,
+      source, citationSourcesAvailable: citationSources.length,
+      assetId: updatedLoc.assetId || null,
+      cost:    updatedLoc.cost    || null,
+    });
+  } catch (err) {
+    return res.status(500).json({ error: err.message });
+  }
+});
+
 // Raw output viewer — returns saved rawOutputText for a validation_failed or failed location
 app.get('/api/research/:jobId/location/:code/raw', async (req, res) => {
   try {
@@ -1964,8 +2080,10 @@ app.get('/api/clients/:clientId/geo-location-status', async (req, res) => {
           finishedAt:  loc.finishedAt  || null,
           inputTokens: loc.inputTokens || null,
           outputTokens:loc.outputTokens|| null,
-          error:       loc.error       || null,
-          pxJobId:     loc.pxJobId     || null,
+          error:       loc.error        || null,
+          pxJobId:     loc.pxJobId      || null,
+          sourceCount: loc.sourceCount  ?? null,
+          lowSources:  loc.lowSources   ?? null,
         };
       }
     }

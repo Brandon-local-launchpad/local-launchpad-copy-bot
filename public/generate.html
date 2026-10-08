@@ -648,10 +648,16 @@
         const dur      = saved ? fmtDuration(saved.startedAt, saved.finishedAt) : '';
         const costStr  = saved && saved.cost != null ? ` · $${Number(saved.cost).toFixed(4)}` : '';
         const durStr   = dur ? ` · ${dur}` : '';
-        statusHtml = `<span style="color:var(--success);font-size:11px">&#10003; dossier exists (${dateStr}${costStr}${durStr})</span>`;
+        const srcCount = saved && saved.sourceCount != null ? saved.sourceCount : null;
+        const lowSrc   = saved && saved.lowSources;
+        const srcStr   = srcCount != null
+          ? (lowSrc ? ` · <span style="color:var(--flag)">&#9888; low sources: ${srcCount}</span>` : ` · ${srcCount} sources`)
+          : '';
+        statusHtml = `<span style="color:${lowSrc ? 'var(--flag)' : 'var(--success)'};font-size:11px">&#10003; dossier exists (${dateStr}${costStr}${durStr})</span>${srcStr}`;
         actionsHtml = `<span class="geo-row-actions" id="geo-actions-${h(loc.code)}">
             <button class="btn-micro" onclick="viewDossier('${h(dosInfo.id)}','${h(loc.name)}')">View</button>
             <button class="btn-micro" onclick="downloadDossier('${h(dosInfo.id)}','${h(loc.name)}')">Download</button>
+            <button class="btn-micro" onclick="reprocessLocation('${h(loc.code)}','${h(loc.name)}')">Re-process</button>
             <label style="display:flex;align-items:center;gap:4px;cursor:pointer;font-size:11px;color:var(--muted)">
               <input type="checkbox" class="geo-refresh-check" data-code="${h(loc.code)}" data-name="${h(loc.name)}"
                 style="width:12px;height:12px;accent-color:var(--accent)" onchange="checkRunReady()"> Re-run
@@ -667,8 +673,10 @@
           ? `<button class="btn-micro" onclick="viewRawOutput('${h(saved.jobId || '')}','${h(loc.code)}','${h(loc.name)}')">View Raw</button>` : '';
         const recoverBtn = saved.pxJobId
           ? `<button class="btn-micro" onclick="recoverPaidRuns('${h(loc.code)}','${h(loc.name)}')">Recover paid runs</button>` : '';
+        const reprocessBtn = (saved.rawOutputJson || saved.pxJobId)
+          ? `<button class="btn-micro" onclick="reprocessLocation('${h(loc.code)}','${h(loc.name)}')">Re-process</button>` : '';
         actionsHtml = `<span class="geo-row-actions" id="geo-actions-${h(loc.code)}">`
-          + viewRawBtn + recoverBtn
+          + viewRawBtn + reprocessBtn + recoverBtn
           + `<button class="btn-micro" onclick="rerunLocation('${h(loc.name)}','${h(loc.code)}')">Re-run</button>`
           + `</span>`;
       } else {
@@ -893,8 +901,10 @@
       if (!dot) continue; // row may have been replaced after a rerun
       dot.className = `geo-status-dot ${loc.status}`;
       if (loc.status === 'done') {
-        text.textContent = 'Done';
-        text.style.color = 'var(--success)';
+        const srcTxt = loc.sourceCount != null
+          ? (loc.lowSources ? ` ⚠ low sources: ${loc.sourceCount}` : ` · ${loc.sourceCount} sources`) : '';
+        text.textContent = `Done${srcTxt}`;
+        text.style.color = loc.lowSources ? 'var(--flag)' : 'var(--success)';
         anyDone = true;
         // Refresh dossier map for this location so actions appear
         if (loc.assetId && acts) {
@@ -942,6 +952,37 @@
       document.getElementById('dossierModalBody').textContent  = data.content;
       document.getElementById('dossierModal').classList.add('open');
     } catch (err) { alert(err.message); }
+  }
+
+  async function reprocessLocation(code, locName) {
+    const txtEl = document.getElementById(`geo-txt-${code}`);
+    if (txtEl) { txtEl.textContent = 'Re-processing…'; txtEl.style.color = 'var(--accent)'; }
+    try {
+      const res  = await fetch('/api/admin/reprocess-location', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ clientId, locationName: locName }),
+      });
+      const data = await res.json();
+      if (!res.ok) { alert(data.error || 'Re-process failed.'); if (txtEl) txtEl.textContent = 'Re-process failed'; return; }
+
+      const srcInfo = data.sourceCount != null
+        ? `\nSource URLs: ${data.sourceCount}${data.lowSources ? ' ⚠ LOW' : ''}`
+        : '';
+      const citInfo = `\nCitation sources available: ${data.citationSourcesAvailable ?? 'unknown'} (${data.source || 'unknown'})`;
+      const msg = data.saved
+        ? `Saved as ${data.status}.\nCost: $${data.cost ? Number(data.cost).toFixed(4) : '?'}${srcInfo}${citInfo}`
+        : `Not saved. Status: ${data.status || 'unknown'}.\nError: ${data.error || 'none'}${srcInfo}${citInfo}`;
+      alert(msg);
+
+      // Refresh row
+      if (researchJobId) {
+        const sr = await fetch(`/api/research-status/${encodeURIComponent(researchJobId)}`);
+        if (sr.ok) { const d = await sr.json(); updateResearchUI(d.locations || {}); }
+      }
+      // Also refresh dossier data
+      await showGeoStep();
+    } catch (err) { alert(`Re-process error: ${err.message}`); }
   }
 
   async function recoverPaidRuns(code, locName, extraJobIds) {
