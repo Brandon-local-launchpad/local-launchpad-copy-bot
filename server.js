@@ -1314,6 +1314,17 @@ const VIRTUAL_TRADES = {
   'Dog Training & Security Dogs': { researchModule: 'Dog Training', securityDefault: true },
 };
 
+// Canonical name map: if a research module or calibration pack produces one of these names
+// (e.g. a legacy filename derives 'Builder' or 'Roofer'), remap it to the canonical trade name.
+// This prevents the same niche appearing twice under two names.
+const TRADE_NAME_ALIASES = {
+  'Builder':    'Building Company',
+  'Roofer':     'Roofing Company',
+  'Landscaper': 'Landscaper Gardener',
+  'Drainage':   'Drainage Company',
+  'Cleaning':   'Cleaning Company',
+};
+
 // Map from trade name → research module name (for trades that share a name with their module,
 // the mapping is identity; for virtual trades it's explicit above).
 function tradeToResearchModule(tradeName) {
@@ -1324,35 +1335,47 @@ function tradeToResearchModule(tradeName) {
 
 // Full trade list: all research modules + virtual trades, sorted alphabetically.
 // Each entry: { name, hasCalibrationPack, calibrationPackTrade, researchModule, securityDefault }
+function canonicalTradeName(name) {
+  return TRADE_NAME_ALIASES[name] || name;
+}
+
 function buildTradeCatalogue() {
   const entries = {};
 
-  // All research module names become trades
-  for (const moduleName of Object.keys(RESEARCH_MODULES)) {
-    const hasPack = !!CALIBRATION_PACKS[moduleName];
-    entries[moduleName] = {
-      name: moduleName,
-      hasCalibrationPack: hasPack,
-      calibrationPackTrade: hasPack ? moduleName : null,
-      researchModule: moduleName,
-      securityDefault: false,
-    };
+  // All research module names become trades (apply alias to catch legacy names)
+  for (const rawName of Object.keys(RESEARCH_MODULES)) {
+    const moduleName = canonicalTradeName(rawName);
+    const hasPack = !!(CALIBRATION_PACKS[moduleName] || CALIBRATION_PACKS[rawName]);
+    if (!entries[moduleName]) {
+      entries[moduleName] = {
+        name: moduleName,
+        hasCalibrationPack: hasPack,
+        calibrationPackTrade: hasPack ? moduleName : null,
+        researchModule: rawName, // keep original module key for lookup
+        securityDefault: false,
+      };
+    } else {
+      // Merge: mark pack presence if newly confirmed
+      if (hasPack) { entries[moduleName].hasCalibrationPack = true; entries[moduleName].calibrationPackTrade = moduleName; }
+    }
   }
 
   // Virtual trades (e.g. "Dog Training & Security Dogs")
   for (const [name, cfg] of Object.entries(VIRTUAL_TRADES)) {
-    const hasPack = !!CALIBRATION_PACKS[name];
-    entries[name] = {
-      name,
+    const canonName = canonicalTradeName(name);
+    const hasPack = !!(CALIBRATION_PACKS[canonName] || CALIBRATION_PACKS[name]);
+    entries[canonName] = {
+      name: canonName,
       hasCalibrationPack: hasPack,
-      calibrationPackTrade: hasPack ? name : null,
+      calibrationPackTrade: hasPack ? canonName : null,
       researchModule: cfg.researchModule,
       securityDefault: cfg.securityDefault || false,
     };
   }
 
-  // Trades with calibration packs that have no research module (keep them accessible)
-  for (const packTrade of Object.keys(CALIBRATION_PACKS)) {
+  // Calibration-pack trades that have no research module entry (keep them accessible)
+  for (const rawPack of Object.keys(CALIBRATION_PACKS)) {
+    const packTrade = canonicalTradeName(rawPack);
     if (!entries[packTrade]) {
       entries[packTrade] = {
         name: packTrade,
@@ -1361,6 +1384,9 @@ function buildTradeCatalogue() {
         researchModule: null,
         securityDefault: false,
       };
+    } else if (!entries[packTrade].hasCalibrationPack) {
+      entries[packTrade].hasCalibrationPack = true;
+      entries[packTrade].calibrationPackTrade = packTrade;
     }
   }
 
