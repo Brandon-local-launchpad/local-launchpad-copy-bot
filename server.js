@@ -573,21 +573,46 @@ function testCitationStrategies(pairs, maps) {
 // When [URL][web:N] appears together, keep the real URL and drop the marker.
 // All other [web:N] markers are stripped — number-based lookup is unreliable.
 // Returns { text, kept, stripped, sourceCount }.
-function resolveCitations(text) {
-  let kept = 0, stripped = 0;
+// Build an id→url map from search_results items using the authoritative id field.
+// Docs confirm: search_results[].id is the number used in [web:N] markers.
+function buildIdMap(pxRes) {
+  const map = {};
+  if (!Array.isArray(pxRes.output)) return map;
+  for (const item of pxRes.output) {
+    if (item.type === 'search_results' && Array.isArray(item.results)) {
+      for (const r of item.results) {
+        if (r.id != null && r.url) map[r.id] = r.url;
+      }
+    }
+  }
+  return map;
+}
 
-  // Step 1: [URL][web:N] — keep the URL, drop the marker
+// Resolve [web:N] citation markers in text using the id-based map.
+// Step 1: [URL][web:N] — keep the inline URL, drop the marker (inline URL is authoritative).
+// Step 2: standalone [web:N] — replace with [URL] if id found in map, otherwise strip.
+// Returns { text, kept, resolved, unmatched, sourceCount }.
+function resolveCitations(text, pxRes) {
+  const idMap = buildIdMap(pxRes);
+  let kept = 0, resolved = 0, unmatched = 0;
+
+  // Step 1: keep inline URL, drop marker
   let out = text.replace(/(\[https?:\/\/[^\]]+\])\[web:\d+\]/g, (_, url) => {
     kept++;
     return url;
   });
 
-  // Step 2: strip any remaining standalone [web:N] markers
-  out = out.replace(/\[web:\d+\]/g, () => { stripped++; return ''; });
+  // Step 2: id-based lookup for standalone markers
+  out = out.replace(/\[web:(\d+)\]/g, (_match, n) => {
+    const url = idMap[parseInt(n, 10)];
+    if (url) { resolved++; return `[${url}]`; }
+    unmatched++;
+    return '';
+  });
 
   const sourceCount = (out.match(/\[https?:\/\//g) || []).length;
-  console.log(`[citations] kept inline: ${kept}, stripped: ${stripped}, sourceCount: ${sourceCount}`);
-  return { text: out, kept, stripped, sourceCount };
+  console.log(`[citations] idMap size: ${Object.keys(idMap).length}, kept inline: ${kept}, resolved: ${resolved}, unmatched: ${unmatched}`);
+  return { text: out, kept, resolved, unmatched, sourceCount };
 }
 
 // Build a "## 9. SOURCES CONSULTED" section from all search_results and fetch_url_results
@@ -941,8 +966,8 @@ async function finishLocation(record, clientId, code, loc, pxRes, preserveOrigin
   }
 
   // Resolve [web:N] citation markers before validation
-  const { text: resolvedText, kept, stripped, sourceCount: rawSourceCount } = resolveCitations(rawText);
-  if (stripped > 0) console.log(`[research] "${loc.name}" citations: kept ${kept} inline URLs, stripped ${stripped} bare markers`);
+  const { text: resolvedText, kept, resolved, unmatched } = resolveCitations(rawText, pxRes);
+  console.log(`[research] "${loc.name}" citations: kept ${kept} inline, resolved ${resolved} by id, unmatched ${unmatched}`);
 
   let cost;
   if (rawUsage && rawUsage.cost && rawUsage.cost.total_cost != null) {
@@ -1014,6 +1039,8 @@ async function finishLocation(record, clientId, code, loc, pxRes, preserveOrigin
     preset: PERPLEXITY_PRESET, assetId, error: null,
     sourceCount, lowSources, hasUnresolvedMarkers: hasUnresolvedMarkers || false,
     hasTables: hasTables || false,
+    rawOutputJson: JSON.stringify(pxRes),
+    citationStats: { kept, resolved, unmatched },
   });
   return { validationFailed: false, sourceCount, lowSources, hasUnresolvedMarkers: hasUnresolvedMarkers || false, hasTables: hasTables || false };
 }
