@@ -558,9 +558,12 @@
   // ── Geo Research step ──────────────────────────────────────────────────────
 
   // Load research modules into dropdown (once)
+  let researchConcurrency = 5; // updated from server on load
+
   fetch('/api/research-modules')
     .then(r => r.json())
-    .then(({ modules }) => {
+    .then(({ modules, concurrency }) => {
+      if (concurrency) researchConcurrency = concurrency;
       const sel = document.getElementById('researchModuleSelect');
       if (!modules.length) {
         sel.innerHTML = '<option value="">No research modules found</option>';
@@ -762,13 +765,13 @@
       : 1.00;
     const estCost = (avgCost * checkedCount).toFixed(2);
 
-    // Estimate time: slowest recorded run duration in seconds, fall back to 7 min
+    // Estimate time: ceil(selected / concurrency) × slowest recent run
     const durations = Object.values(savedLocStatus)
       .filter(l => l.startedAt && l.finishedAt)
       .map(l => (new Date(l.finishedAt) - new Date(l.startedAt)) / 1000);
-    const maxDur = durations.length ? Math.max(...durations) : 420;
-    const estSecs = maxDur * checkedCount;
-    const estMin  = Math.ceil(estSecs / 60);
+    const maxDur  = durations.length ? Math.max(...durations) : 420;
+    const batches = Math.ceil(checkedCount / researchConcurrency);
+    const estMin  = Math.ceil(batches * maxDur / 60);
 
     summaryEl.textContent = `${checkedCount} of ${totalEligible} selected · est. ~$${estCost} · ~${estMin} min`;
   }

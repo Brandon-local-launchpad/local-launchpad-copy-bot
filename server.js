@@ -1665,7 +1665,7 @@ app.post('/api/generate-category', async (req, res) => {
 // ── Geo research routes ───────────────────────────────────────────────────────
 
 app.get('/api/research-modules', (_req, res) => {
-  res.json({ modules: AVAILABLE_RESEARCH_MODULES });
+  res.json({ modules: AVAILABLE_RESEARCH_MODULES, concurrency: RESEARCH_CONCURRENCY });
 });
 
 app.post('/api/research-start', async (req, res) => {
