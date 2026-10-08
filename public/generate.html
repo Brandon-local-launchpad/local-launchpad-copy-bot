@@ -662,9 +662,9 @@
           ? (lowSrc ? ` · <span style="color:var(--flag)">&#9888; low sources: ${srcCount}</span>` : ` · ${srcCount} sources`)
           : '';
         statusHtml = `<span style="color:${lowSrc ? 'var(--flag)' : 'var(--success)'};font-size:11px">&#10003; dossier exists (${dateStr}${costStr}${durStr})</span>${srcStr}`;
-        const debugBtn1 = (saved && saved.pxJobId && saved.jobId)
+        const debugBtn1 = (saved && saved.pxJobId)
           ? `<button class="btn-micro" onclick="debugPxResponse('${h(saved.jobId)}','${h(loc.code)}','${h(loc.name)}')">Debug response</button>` : '';
-        const calibBtn1 = saved && saved.rawOutputJson
+        const calibBtn1 = (saved && saved.pxJobId)
           ? `<button class="btn-micro" onclick="calibrateCitations('${h(loc.code)}','${h(loc.name)}')">Calibrate</button>` : '';
         actionsHtml = `<span class="geo-row-actions" id="geo-actions-${h(loc.code)}">
             <button class="btn-micro" onclick="viewDossier('${h(dosInfo.id)}','${h(loc.name)}')">View</button>
@@ -688,9 +688,9 @@
           ? `<button class="btn-micro" onclick="recoverPaidRuns('${h(loc.code)}','${h(loc.name)}')">Recover paid runs</button>` : '';
         const reprocessBtn = (saved.rawOutputJson || saved.pxJobId)
           ? `<button class="btn-micro" onclick="reprocessLocation('${h(loc.code)}','${h(loc.name)}')">Re-process</button>` : '';
-        const calibBtn2 = saved.rawOutputJson
+        const calibBtn2 = saved.pxJobId
           ? `<button class="btn-micro" onclick="calibrateCitations('${h(loc.code)}','${h(loc.name)}')">Calibrate</button>` : '';
-        const debugBtn2 = (saved.pxJobId && saved.jobId)
+        const debugBtn2 = saved.pxJobId
           ? `<button class="btn-micro" onclick="debugPxResponse('${h(saved.jobId)}','${h(loc.code)}','${h(loc.name)}')">Debug response</button>` : '';
         actionsHtml = `<span class="geo-row-actions" id="geo-actions-${h(loc.code)}">`
           + viewRawBtn + reprocessBtn + calibBtn2 + recoverBtn + debugBtn2

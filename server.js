@@ -2194,19 +2194,55 @@ app.post('/api/admin/calibrate-citations', async (req, res) => {
     [clientId]
   );
 
-  let loc = null;
+  let loc = null, record = null, locCode = null;
   for (const row of jobRows) {
-    for (const l of Object.values(row.locations || {})) {
-      if (normaliseLocation(l.name || '') === targetNorm) { loc = l; break; }
+    for (const [c, l] of Object.entries(row.locations || {})) {
+      if (normaliseLocation(l.name || '') === targetNorm) {
+        loc = l; locCode = c;
+        record = { id: row.id, locations: row.locations };
+        break;
+      }
     }
     if (loc) break;
   }
   if (!loc) return res.status(404).json({ error: `No research record found for "${locationName}".` });
-  if (!loc.rawOutputJson) return res.status(404).json({ error: 'No rawOutputJson stored for this location. Run it or re-fetch first.' });
 
-  let pxRes;
-  try { pxRes = JSON.parse(loc.rawOutputJson); } catch (e) {
-    return res.status(500).json({ error: `Failed to parse rawOutputJson: ${e.message}` });
+  const apiKey = process.env.PERPLEXITY_API_KEY;
+  let pxRes, source = 'stored';
+
+  if (loc.rawOutputJson) {
+    try { pxRes = JSON.parse(loc.rawOutputJson); } catch (e) {
+      return res.status(500).json({ error: `Failed to parse rawOutputJson: ${e.message}` });
+    }
+  } else if (loc.pxJobId) {
+    if (!apiKey) return res.status(500).json({ error: 'PERPLEXITY_API_KEY not set — cannot re-fetch.' });
+    source = 're-fetched';
+    console.log(`[calibrate] Re-fetching ${loc.pxJobId} from Perplexity for "${locationName}"`);
+    const fetchRes = await fetch(`https://api.perplexity.ai/v1/agent/${loc.pxJobId}`, {
+      headers: { 'Authorization': `Bearer ${apiKey}` },
+    });
+    if (!fetchRes.ok) {
+      const t = await fetchRes.text().catch(() => '');
+      return res.status(502).json({ error: `Perplexity returned ${fetchRes.status}: ${t.slice(0, 200)}` });
+    }
+    pxRes = await fetchRes.json();
+    if (pxRes.status !== 'completed') {
+      return res.json({ error: `Perplexity job not completed (status: ${pxRes.status})` });
+    }
+    // Save rawOutputJson so future calibrations / reprocesses don't need to re-fetch
+    try {
+      const updatedLoc = { ...loc, rawOutputJson: JSON.stringify(pxRes) };
+      const updatedLocs = { ...record.locations, [locCode]: updatedLoc };
+      await pool.query(
+        `UPDATE research_jobs SET locations = $1 WHERE id = $2`,
+        [JSON.stringify(updatedLocs), record.id]
+      );
+      console.log(`[calibrate] Saved rawOutputJson for "${locationName}"`);
+    } catch (saveErr) {
+      console.warn(`[calibrate] Failed to save rawOutputJson: ${saveErr.message}`);
+    }
+  } else {
+    return res.status(404).json({ error: 'No rawOutputJson and no pxJobId stored for this location.' });
   }
 
   const rawText = extractPerplexityText(pxRes);
@@ -2232,6 +2268,7 @@ app.post('/api/admin/calibrate-citations', async (req, res) => {
 
   res.json({
     locationName,
+    source,
     rawTextLength: rawText.length,
     calibrationPairs: pairs.length,
     pairSample,
