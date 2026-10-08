@@ -507,16 +507,43 @@ function makeSectionRegex(n, name) {
   );
 }
 
-// Resolve [web:N] citation markers to [URL] using search_results/citations from pxRes.
+// Resolve [web:N] citation markers to [URL] using the Perplexity Responses API structure.
+// URLs live in output[].results[].url on search_results items, as a flat 1-based list.
+// Annotations on the message content item (output[].content[].annotations) may also carry
+// direct url_citation mappings — used as a cross-check / fallback.
 // Strips markers that can't be resolved. Returns { text, resolved, unresolved, sourceCount }.
 function resolveCitations(text, pxRes) {
-  // Build 1-based index → URL from whichever field Perplexity returns
-  const sources = pxRes.search_results || pxRes.citations || [];
-  const urlMap = {};
-  for (let i = 0; i < sources.length; i++) {
-    const s = sources[i];
-    const url = typeof s === 'string' ? s : (s.url || s.link || null);
-    if (url) urlMap[i + 1] = url;
+  const urlMap = {}; // 1-based web index → URL
+
+  // Primary: flatten output[].results[].url across all search_results items in order
+  if (Array.isArray(pxRes.output)) {
+    let idx = 1;
+    for (const item of pxRes.output) {
+      if (item.type === 'search_results' && Array.isArray(item.results)) {
+        for (const r of item.results) {
+          if (r.url) urlMap[idx] = r.url;
+          idx++;
+        }
+      }
+    }
+
+    // Secondary: scan annotations on message content items for url_citation entries
+    // These may carry the canonical mapping when the primary index is off
+    for (const item of pxRes.output) {
+      if (item.type === 'message' && Array.isArray(item.content)) {
+        for (const c of item.content) {
+          if (Array.isArray(c.annotations)) {
+            for (const ann of c.annotations) {
+              // annotation shape: { type: 'url_citation', url_citation: { url, title, ... }, start_index, end_index }
+              // or sometimes: { type: 'url_citation', url, start_index, end_index }
+              const annUrl = (ann.url_citation && ann.url_citation.url) || ann.url || null;
+              const annIdx = ann.index != null ? ann.index : null;
+              if (annUrl && annIdx != null && !urlMap[annIdx]) urlMap[annIdx] = annUrl;
+            }
+          }
+        }
+      }
+    }
   }
 
   let resolved = 0, unresolved = 0;
@@ -528,6 +555,7 @@ function resolveCitations(text, pxRes) {
   });
 
   const sourceCount = (resolved_text.match(/\[https?:\/\//g) || []).length;
+  console.log(`[citations] urlMap size: ${Object.keys(urlMap).length}, resolved: ${resolved}, unresolved: ${unresolved}, sourceCount: ${sourceCount}`);
   return { text: resolved_text, resolved, unresolved, sourceCount };
 }
 
@@ -2027,6 +2055,37 @@ app.get('/api/admin/debug-px-response', async (req, res) => {
   const httpPaths = [];
   findHttpPaths(pxRes, 'root', httpPaths, 3);
 
+  // Simulate resolveCitations urlMap to show what we'd actually build
+  let urlMapSize = 0;
+  const urlMapSample = {};
+  if (Array.isArray(pxRes.output)) {
+    let idx = 1;
+    for (const item of pxRes.output) {
+      if (item.type === 'search_results' && Array.isArray(item.results)) {
+        for (const r of item.results) {
+          if (r.url) { if (idx <= 3) urlMapSample[idx] = r.url; urlMapSize++; }
+          idx++;
+        }
+      }
+    }
+  }
+
+  // Show annotation structure from first message content item
+  let annotationSample = null;
+  if (Array.isArray(pxRes.output)) {
+    for (const item of pxRes.output) {
+      if (item.type === 'message' && Array.isArray(item.content)) {
+        for (const c of item.content) {
+          if (Array.isArray(c.annotations) && c.annotations.length) {
+            annotationSample = c.annotations.slice(0, 2);
+            break;
+          }
+        }
+        if (annotationSample) break;
+      }
+    }
+  }
+
   res.json({
     pxJobId,
     status: pxRes.status,
@@ -2034,6 +2093,7 @@ app.get('/api/admin/debug-px-response', async (req, res) => {
     outputSummary,
     topLevelArrays: arraySummaries,
     firstHttpPaths: httpPaths,
+    citationResolution: { urlMapSize, urlMapSample, annotationSample },
   });
 });
 
