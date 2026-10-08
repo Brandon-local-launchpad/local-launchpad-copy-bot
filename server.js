@@ -1677,19 +1677,7 @@ app.post('/api/generate-batch/:sessionId', async (req, res) => {
         await persistBatchRecord(record);
       }
 
-      // client_file rows are saved at parse time. Clean up any stale legacy asset rows
-      // (custom_values / onboarding / geo_research) left by older code. Never touches
-      // geo_dossier or client_file rows.
-      if (clientId && pool) {
-        try {
-          await pool.query(
-            `DELETE FROM client_assets WHERE client_id = $1 AND asset_type IN ('custom_values','onboarding','geo_research')`,
-            [clientId]
-          );
-        } catch (dbErr) {
-          console.error('[DB] legacy asset cleanup error:', dbErr.message);
-        }
-      }
+      // client_file rows are saved at parse time; nothing extra needed here.
     })();
   } catch (err) {
     console.error('[generate-batch] Submission error:', err);
@@ -3014,20 +3002,48 @@ app.post('/api/clients/:clientId/pages/:pageId/regenerate', async (req, res) => 
     if (!pageRows.length) return res.status(404).json({ error: 'Page not found.' });
     const page = pageRows[0];
 
-    // Fetch the newest row per legacy asset type; ignore geo_dossier and client_file.
-    const { rows: assets } = await pool.query(
-      `SELECT DISTINCT ON (asset_type) asset_type, content
-       FROM client_assets
-       WHERE client_id = $1 AND asset_type IN ('custom_values','onboarding','geo_research')
-       ORDER BY asset_type, uploaded_at DESC`,
+    // Load client files: prefer client_file rows (saved at Step 1 upload).
+    // Fall back to legacy asset types for older clients that pre-date Step 1 saving.
+    const { rows: clientFileRows } = await pool.query(
+      `SELECT filename, content, metadata FROM client_assets
+       WHERE client_id = $1 AND asset_type = 'client_file'
+       ORDER BY uploaded_at DESC`,
       [req.params.clientId]
     );
-    const getAsset = type => (assets.find(a => a.asset_type === type) || {}).content || '';
 
-    const customValuesCsvs = assets.filter(a => a.asset_type === 'custom_values').map(a => a.content);
-    const { keyValueMap, serviceParentMap } = parseCustomValues(customValuesCsvs);
-    const legacyGeoText   = getAsset('geo_research');
-    const onboardingText  = getAsset('onboarding');
+    let keyValueMap, serviceParentMap, legacyGeoText, onboardingText;
+
+    if (clientFileRows.length) {
+      // Parse from client_file rows using the same path as parse-saved-files
+      const fileObjs = clientFileRows.map(r => ({
+        originalname: r.filename || 'file',
+        buffer: Buffer.from(r.content, 'utf8'),
+      }));
+      const { identified, missing } = identifyFiles(fileObjs);
+      if (missing.length) {
+        return res.status(422).json({ error: `Saved files incomplete (${missing.join(', ')}) — re-upload in Step 1.` });
+      }
+      const readText = f => f.buffer.toString('utf8');
+      ({ keyValueMap, serviceParentMap } = parseCustomValues(identified.customValues.map(readText)));
+      legacyGeoText  = identified.geo ? readText(identified.geo) : '';
+      onboardingText = identified.onboarding ? readText(identified.onboarding) : '';
+    } else {
+      // Legacy fallback: custom_values may be multiple rows; onboarding/geo_research take newest
+      const { rows: legacyAssets } = await pool.query(
+        `SELECT asset_type, content FROM client_assets
+         WHERE client_id = $1 AND asset_type IN ('custom_values','onboarding','geo_research')
+         ORDER BY uploaded_at DESC`,
+        [req.params.clientId]
+      );
+      if (!legacyAssets.length) {
+        return res.status(422).json({ error: 'No saved files for this client — upload them in Step 1.' });
+      }
+      const getNewest = type => (legacyAssets.find(a => a.asset_type === type) || {}).content || '';
+      const customValuesCsvs = legacyAssets.filter(a => a.asset_type === 'custom_values').map(a => a.content);
+      ({ keyValueMap, serviceParentMap } = parseCustomValues(customValuesCsvs));
+      legacyGeoText  = getNewest('geo_research');
+      onboardingText = getNewest('onboarding');
+    }
     const calibrationPack = CALIBRATION_PACKS[page.trade] || Object.values(CALIBRATION_PACKS)[0] || '';
     const customValuesText = Object.entries(keyValueMap).map(([k, v]) => `${k}: ${v}`).join('\n');
 
