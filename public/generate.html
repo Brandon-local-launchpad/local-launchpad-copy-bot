@@ -281,6 +281,11 @@
 
     <div class="card" id="geoLocationsCard">
       <div class="card-title">Locations</div>
+      <div id="geoBulkControls" style="display:none;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:12px;padding-bottom:12px;border-bottom:1px solid var(--border)">
+        <button class="btn btn-primary btn-sm" id="selectMissingBtn" onclick="selectMissing()" style="font-size:12px;padding:4px 10px">Select only missing</button>
+        <button class="btn btn-ghost btn-sm" id="selectAllBtn" onclick="selectAll()" style="font-size:12px;padding:4px 10px">Select all</button>
+        <span id="geoSelectionSummary" style="font-size:12px;color:var(--muted);margin-left:4px"></span>
+      </div>
       <div id="geoLocationRows">
         <p style="color:var(--muted);font-size:13px">No locations found in custom values (biz_area_1, biz_area_2&hellip;).</p>
       </div>
@@ -633,8 +638,8 @@
       const hasDos  = !!dosInfo;
       const saved   = savedLocStatus[loc.code] || null;
 
-      // Default checked: not if it already has a dossier OR is an admin area
-      const defaultChecked = !hasDos && !admin;
+      // Default unchecked — user selects deliberately via bulk controls or individually
+      const defaultChecked = false;
 
       const runTypeBadge = `<span style="font-size:10px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:${runType === 'PRIMARY CITY' ? 'var(--accent)' : 'var(--muted)'}">${runType}</span>`;
       const adminWarning = admin
@@ -703,6 +708,69 @@
         </div>`;
     }).join('');
     document.getElementById('geoLocationRows').innerHTML = rows;
+    const bulkEl = document.getElementById('geoBulkControls');
+    if (bulkEl) bulkEl.style.display = bizAreas.length ? 'flex' : 'none';
+    updateBulkSummary();
+  }
+
+  // Returns all geo-include-check inputs whose row is eligible for bulk selection
+  // (not an admin area, not a row that only has a dossier — those use a separate re-run checkbox)
+  function eligibleIncludeChecks() {
+    return [...document.querySelectorAll('.geo-include-check')].filter(cb => {
+      const loc = getLocForName(cb.dataset.name);
+      return loc && !isAdminArea(loc.name);
+    });
+  }
+
+  function selectAll() {
+    const checks = eligibleIncludeChecks();
+    const allChecked = checks.every(cb => cb.checked);
+    checks.forEach(cb => { cb.checked = !allChecked; });
+    checkRunReady();
+  }
+
+  function selectMissing() {
+    eligibleIncludeChecks().forEach(cb => {
+      const norm = normLocName(cb.dataset.name);
+      cb.checked = !existingDossiers.has(norm);
+    });
+    checkRunReady();
+  }
+
+  function updateBulkSummary() {
+    const allChecks = eligibleIncludeChecks();
+    const checkedCount = getLocationsToRun().length;
+    const totalEligible = allChecks.length;
+
+    // Update select-all button label
+    const allBtn = document.getElementById('selectAllBtn');
+    if (allBtn) {
+      const allChecked = allChecks.length > 0 && allChecks.every(cb => cb.checked);
+      allBtn.textContent = allChecked ? 'Deselect all' : 'Select all';
+    }
+
+    const summaryEl = document.getElementById('geoSelectionSummary');
+    if (!summaryEl) return;
+    if (checkedCount === 0) { summaryEl.textContent = `0 of ${totalEligible} selected`; return; }
+
+    // Estimate cost: average of completed dossiers' recorded costs, fall back to $1
+    const completedCosts = Object.values(savedLocStatus)
+      .filter(l => l.status === 'done' && l.cost != null)
+      .map(l => Number(l.cost));
+    const avgCost = completedCosts.length
+      ? completedCosts.reduce((a, b) => a + b, 0) / completedCosts.length
+      : 1.00;
+    const estCost = (avgCost * checkedCount).toFixed(2);
+
+    // Estimate time: slowest recorded run duration in seconds, fall back to 7 min
+    const durations = Object.values(savedLocStatus)
+      .filter(l => l.startedAt && l.finishedAt)
+      .map(l => (new Date(l.finishedAt) - new Date(l.startedAt)) / 1000);
+    const maxDur = durations.length ? Math.max(...durations) : 420;
+    const estSecs = maxDur * checkedCount;
+    const estMin  = Math.ceil(estSecs / 60);
+
+    summaryEl.textContent = `${checkedCount} of ${totalEligible} selected · est. ~$${estCost} · ~${estMin} min`;
   }
 
   function checkCodeDupes() {
@@ -738,7 +806,6 @@
   function checkRunReady() {
     const hasDupes  = document.querySelectorAll('.geo-code-input.duplicate').length > 0;
     const hasModule = !!document.getElementById('researchModuleSelect').value;
-    // Count locations checked to include (main checkbox or re-run checkbox on existing-dossier rows)
     const checkedCount = getLocationsToRun().length;
     const btn          = document.getElementById('runResearchBtn');
     btn.disabled       = hasDupes || !hasModule || checkedCount === 0;
@@ -747,6 +814,7 @@
       btn.disabled = true;
       btn.title    = 'A client must be selected to save dossiers. Open this page from a client record.';
     }
+    updateBulkSummary();
   }
 
   function getLocForName(name) {
