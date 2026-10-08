@@ -243,7 +243,11 @@ function readGeoDoc(name) {
     const m = f.match(new RegExp(`^${base.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')} \\((\\d+)\\)\\.md$`));
     if (m) { const n = parseInt(m[1], 10); if (n > bestN) { best = f; bestN = n; } }
   }
-  if (best) { console.log(`  LOADED: Geo Research/${best}`); return fs.readFileSync(path.join(GEO_RESEARCH_DIR, best), 'utf8'); }
+  if (best) {
+    const versionStr = bestN > 0 ? ` (v${bestN})` : '';
+    console.log(`  LOADED: Geo Research/${best}${versionStr}`);
+    return fs.readFileSync(path.join(GEO_RESEARCH_DIR, best), 'utf8');
+  }
   return null;
 }
 
@@ -504,7 +508,10 @@ function makeSectionRegex(n, name) {
 }
 
 function validateAndCleanDossier(raw) {
-  let text = raw.replace(/<think>[\s\S]*?<\/think>/gi, '').trim();
+  let text = raw
+    .replace(/<think>[\s\S]*?<\/think>/gi, '')
+    .replace(/\[web:\d+\]/g, '')   // strip Perplexity internal citation tags; leave [URL] intact
+    .trim();
 
   // Try to start from first recognisable section heading
   const firstMatch = makeSectionRegex(1, DOSSIER_SECTIONS[0]).exec(text);
@@ -1910,6 +1917,74 @@ app.get('/api/research/:jobId/location/:code/raw', async (req, res) => {
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
+});
+
+// Merged location status for the geo step UI.
+// Returns one entry per location found in the most-recent research_job for this client,
+// merged with active dossier data from client_assets.
+// Shape per location: { code, name, status, assetId, uploadedAt, cost, startedAt, finishedAt,
+//   inputTokens, outputTokens, error, pxJobId, jobId }
+app.get('/api/clients/:clientId/geo-location-status', async (req, res) => {
+  if (!pool) return res.status(503).json({ error: 'Database not configured.' });
+  try {
+    const clientId = req.params.clientId;
+
+    // Active dossiers: norm → { id, uploadedAt }
+    const { rows: assetRows } = await pool.query(
+      `SELECT id, metadata, uploaded_at FROM client_assets
+       WHERE client_id = $1 AND asset_type = 'geo_dossier'
+       AND (metadata IS NULL OR NOT (metadata->>'superseded')::boolean)`,
+      [clientId]
+    );
+    const dossierByNorm = {};
+    for (const r of assetRows) {
+      const norm = (r.metadata && r.metadata.location_norm) || '';
+      if (norm) dossierByNorm[norm] = { id: r.id, uploadedAt: r.uploaded_at, locationName: r.metadata && r.metadata.location_name || '' };
+    }
+
+    // Most-recent research_job for this client (by created_at)
+    const { rows: jobRows } = await pool.query(
+      `SELECT id, locations FROM research_jobs WHERE client_id = $1 ORDER BY created_at DESC LIMIT 1`,
+      [clientId]
+    );
+
+    const locations = {};
+    if (jobRows.length) {
+      const { id: jobId, locations: locs } = jobRows[0];
+      for (const [code, loc] of Object.entries(locs || {})) {
+        const norm = normaliseLocation(loc.name || '');
+        const dos  = dossierByNorm[norm];
+        locations[code] = {
+          code, name: loc.name || code, jobId,
+          status:      dos ? 'done' : (loc.status || 'pending'),
+          assetId:     dos ? dos.id : (loc.assetId || null),
+          uploadedAt:  dos ? dos.uploadedAt : null,
+          cost:        loc.cost        || null,
+          startedAt:   loc.startedAt   || null,
+          finishedAt:  loc.finishedAt  || null,
+          inputTokens: loc.inputTokens || null,
+          outputTokens:loc.outputTokens|| null,
+          error:       loc.error       || null,
+          pxJobId:     loc.pxJobId     || null,
+        };
+      }
+    }
+
+    // Also include any locations that only have a dossier (no research_job entry)
+    for (const [norm, dos] of Object.entries(dossierByNorm)) {
+      const alreadyPresent = Object.values(locations).some(l => normaliseLocation(l.name) === norm);
+      if (!alreadyPresent) {
+        locations[`_dos_${norm}`] = {
+          code: null, name: dos.locationName || norm, jobId: null,
+          status: 'done', assetId: dos.id, uploadedAt: dos.uploadedAt,
+          cost: null, startedAt: null, finishedAt: null,
+          inputTokens: null, outputTokens: null, error: null, pxJobId: null,
+        };
+      }
+    }
+
+    res.json({ locations });
+  } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
 // ── Dossier management routes ─────────────────────────────────────────────────

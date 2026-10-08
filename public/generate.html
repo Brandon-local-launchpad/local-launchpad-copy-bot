@@ -572,19 +572,24 @@
       document.getElementById('researchModuleSelect').innerHTML = '<option value="">Failed to load</option>';
     });
 
-  // Map of locationNorm → {id, uploadedAt} for active dossiers loaded from server
-  let existingDossiers = new Map();
+  // Map of normLocName → saved location status object from server
+  let existingDossiers = new Map(); // kept for getLocationsToRun compat: norm → {id, uploadedAt}
+  let savedLocStatus   = {};        // code → full status object from geo-location-status
 
   async function showGeoStep() {
-    // Load existing dossiers for this client so we can show status
     existingDossiers = new Map();
+    savedLocStatus   = {};
     if (clientId) {
       try {
-        const dr = await fetch(`/api/clients/${encodeURIComponent(clientId)}/dossiers`);
-        if (dr.ok) {
-          const { dossiers } = await dr.json();
-          for (const d of dossiers) {
-            existingDossiers.set(d.locationNorm, d);
+        const r = await fetch(`/api/clients/${encodeURIComponent(clientId)}/geo-location-status`);
+        if (r.ok) {
+          const { locations } = await r.json();
+          for (const loc of Object.values(locations || {})) {
+            savedLocStatus[loc.code || ''] = loc;
+            if (loc.status === 'done' && loc.assetId) {
+              const norm = normLocName(loc.name);
+              existingDossiers.set(norm, { id: loc.assetId, uploadedAt: loc.uploadedAt });
+            }
           }
         }
       } catch (_) {}
@@ -592,7 +597,6 @@
     renderGeoRows();
     checkCodeDupes();
     checkRunReady();
-    // Show Download All if any dossiers exist
     document.getElementById('downloadAllBtn').style.display = existingDossiers.size > 0 ? 'inline-flex' : 'none';
   }
 
@@ -608,6 +612,13 @@
     return ADMIN_AREA_WORDS.some(w => lower.includes(w));
   }
 
+  function fmtDuration(startedAt, finishedAt) {
+    if (!startedAt || !finishedAt) return '';
+    const secs = Math.round((new Date(finishedAt) - new Date(startedAt)) / 1000);
+    if (secs < 60) return `${secs}s`;
+    return `${Math.floor(secs / 60)}m ${secs % 60}s`;
+  }
+
   function renderGeoRows() {
     if (!bizAreas.length) {
       document.getElementById('geoLocationRows').innerHTML =
@@ -616,11 +627,11 @@
     }
     const rows = bizAreas.map((loc) => {
       const runType = loc.runType || 'TOWN';
-      const admin     = isAdminArea(loc.name);
-      const norm      = normLocName(loc.name);
-      const dosInfo   = existingDossiers.get(norm);
-      const hasDos    = !!dosInfo;
-      const dateStr   = hasDos ? new Date(dosInfo.uploadedAt).toLocaleDateString('en-GB', { day:'numeric', month:'short', year:'numeric' }) : '';
+      const admin   = isAdminArea(loc.name);
+      const norm    = normLocName(loc.name);
+      const dosInfo = existingDossiers.get(norm);
+      const hasDos  = !!dosInfo;
+      const saved   = savedLocStatus[loc.code] || null;
 
       // Default checked: not if it already has a dossier OR is an admin area
       const defaultChecked = !hasDos && !admin;
@@ -629,19 +640,44 @@
       const adminWarning = admin
         ? `<span style="font-size:11px;color:var(--flag)" title="This looks like an administrative area, not a serviceable town. Geo research is written for towns/cities. Untick unless intended.">&#9888; admin area</span>`
         : '';
-      const statusHtml = hasDos
-        ? `<span style="color:var(--success);font-size:11px">&#10003; dossier exists (${dateStr})</span>`
-        : `<span class="geo-status-dot" id="geo-dot-${h(loc.code)}"></span><span class="geo-status-text" id="geo-txt-${h(loc.code)}" style="color:var(--muted)">Pending</span>`;
-      const actionsHtml = hasDos
-        ? `<span class="geo-row-actions" id="geo-actions-${h(loc.code)}">
+
+      let statusHtml, actionsHtml;
+
+      if (hasDos) {
+        const dateStr  = new Date(dosInfo.uploadedAt).toLocaleDateString('en-GB', { day:'numeric', month:'short', year:'numeric' });
+        const dur      = saved ? fmtDuration(saved.startedAt, saved.finishedAt) : '';
+        const costStr  = saved && saved.cost != null ? ` · $${Number(saved.cost).toFixed(4)}` : '';
+        const durStr   = dur ? ` · ${dur}` : '';
+        statusHtml = `<span style="color:var(--success);font-size:11px">&#10003; dossier exists (${dateStr}${costStr}${durStr})</span>`;
+        actionsHtml = `<span class="geo-row-actions" id="geo-actions-${h(loc.code)}">
             <button class="btn-micro" onclick="viewDossier('${h(dosInfo.id)}','${h(loc.name)}')">View</button>
             <button class="btn-micro" onclick="downloadDossier('${h(dosInfo.id)}','${h(loc.name)}')">Download</button>
             <label style="display:flex;align-items:center;gap:4px;cursor:pointer;font-size:11px;color:var(--muted)">
               <input type="checkbox" class="geo-refresh-check" data-code="${h(loc.code)}" data-name="${h(loc.name)}"
                 style="width:12px;height:12px;accent-color:var(--accent)" onchange="checkRunReady()"> Re-run
             </label>
-           </span>`
-        : `<span class="geo-row-actions" id="geo-actions-${h(loc.code)}"></span>`;
+           </span>`;
+      } else if (saved && (saved.status === 'failed' || saved.status === 'validation_failed')) {
+        const errShort = (saved.error || 'unknown error').slice(0, 120);
+        const label    = saved.status === 'validation_failed' ? 'Validation failed' : 'Failed';
+        const costStr  = saved.cost != null ? ` · $${Number(saved.cost).toFixed(4)}` : '';
+        statusHtml = `<span class="geo-status-dot ${saved.status}" id="geo-dot-${h(loc.code)}"></span>`
+          + `<span id="geo-txt-${h(loc.code)}" style="color:var(--block);font-size:11px">${label}: ${h(errShort)}${costStr}</span>`;
+        const viewRawBtn = saved.status === 'validation_failed' || saved.pxJobId
+          ? `<button class="btn-micro" onclick="viewRawOutput('${h(saved.jobId || '')}','${h(loc.code)}','${h(loc.name)}')">View Raw</button>` : '';
+        const recoverBtn = saved.pxJobId
+          ? `<button class="btn-micro" onclick="recoverPaidRuns('${h(loc.code)}','${h(loc.name)}')">Recover paid runs</button>` : '';
+        actionsHtml = `<span class="geo-row-actions" id="geo-actions-${h(loc.code)}">`
+          + viewRawBtn + recoverBtn
+          + `<button class="btn-micro" onclick="rerunLocation('${h(loc.name)}','${h(loc.code)}')">Re-run</button>`
+          + `</span>`;
+      } else {
+        // Pending or running (no saved record yet, or status=running from a prior session)
+        statusHtml = `<span class="geo-status-dot" id="geo-dot-${h(loc.code)}"></span>`
+          + `<span class="geo-status-text" id="geo-txt-${h(loc.code)}" style="color:var(--muted)">Pending</span>`;
+        actionsHtml = `<span class="geo-row-actions" id="geo-actions-${h(loc.code)}"></span>`;
+      }
+
       return `
         <div class="geo-loc-row" id="geo-row-${h(loc.code)}" ${admin ? 'style="background:rgba(245,166,35,.05)"' : ''}>
           <input type="checkbox" class="geo-include-check" data-code="${h(loc.code)}" data-name="${h(loc.name)}"
