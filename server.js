@@ -1481,6 +1481,29 @@ app.post('/api/parse-zip', upload.array('files', 30), async (req, res) => {
     const rawCustomValuesCsvs = identified.customValues.map(readText);
     sessions.set(sessionId, { createdAt: Date.now(), trade, clientId, jobs, skippedPages, keyValueMap, serviceParentMap, onboardingText, geoResearch, rawCustomValuesCsvs });
 
+    // Persist uploaded files to client_assets so they can be reloaded next session.
+    // Only replaces client_file rows — dossiers and other asset types are untouched.
+    if (clientId && pool) {
+      try {
+        const filesToSave = [
+          { fileType: 'page_map',    filename: identified.pageMap.originalname,    content: readText(identified.pageMap) },
+          ...identified.customValues.map(f => ({ fileType: 'custom_values', filename: f.originalname, content: readText(f) })),
+          { fileType: 'onboarding',  filename: identified.onboarding.originalname, content: readText(identified.onboarding) },
+          ...(identified.geo ? [{ fileType: 'geo_research', filename: identified.geo.originalname, content: readText(identified.geo) }] : []),
+        ];
+        // Delete only previous client_file rows for this client, not dossiers
+        await pool.query(`DELETE FROM client_assets WHERE client_id = $1 AND asset_type = 'client_file'`, [clientId]);
+        for (const f of filesToSave) {
+          await pool.query(
+            `INSERT INTO client_assets (client_id, asset_type, filename, content, metadata) VALUES ($1, 'client_file', $2, $3, $4)`,
+            [clientId, f.filename, f.content, JSON.stringify({ fileType: f.fileType, trade })]
+          );
+        }
+      } catch (dbErr) {
+        console.error('[DB] client_file save error:', dbErr.message);
+      }
+    }
+
     const byType = {};
     for (const j of jobs) byType[j.pageType] = (byType[j.pageType] || 0) + 1;
 
@@ -1654,21 +1677,7 @@ app.post('/api/generate-batch/:sessionId', async (req, res) => {
         await persistBatchRecord(record);
       }
 
-      if (clientId && pool) {
-        try {
-          await pool.query(`DELETE FROM client_assets WHERE client_id = $1`, [clientId]);
-          const assetRows = [
-            { type: 'geo_research', content: geoResearch },
-            { type: 'onboarding',   content: onboardingText },
-            ...(session.rawCustomValuesCsvs || []).map(content => ({ type: 'custom_values', content })),
-          ];
-          for (const asset of assetRows) {
-            await pool.query(`INSERT INTO client_assets (client_id, asset_type, content) VALUES ($1, $2, $3)`, [clientId, asset.type, asset.content]);
-          }
-        } catch (dbErr) {
-          console.error('[DB] Asset save error:', dbErr.message);
-        }
-      }
+      // client_file rows are already saved at parse time; nothing extra needed here.
     })();
   } catch (err) {
     console.error('[generate-batch] Submission error:', err);
@@ -2574,6 +2583,121 @@ app.get('/api/research/:jobId/location/:code/raw', async (req, res) => {
     if (!loc.rawOutputText) return res.status(404).json({ error: 'No raw output saved for this location.' });
     res.json({ text: loc.rawOutputText, error: loc.error || null, status: loc.status });
   } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// ── Saved client files ────────────────────────────────────────────────────────
+
+// Returns metadata (no content) for the saved client_file rows for a client.
+app.get('/api/clients/:clientId/saved-files', async (req, res) => {
+  if (!pool) return res.json({ files: [] });
+  try {
+    const { rows } = await pool.query(
+      `SELECT id, filename, metadata, uploaded_at FROM client_assets
+       WHERE client_id = $1 AND asset_type = 'client_file'
+       ORDER BY uploaded_at DESC`,
+      [req.params.clientId]
+    );
+    res.json({ files: rows.map(r => ({
+      id: r.id,
+      filename: r.filename,
+      fileType: r.metadata && r.metadata.fileType,
+      trade:    r.metadata && r.metadata.trade,
+      uploadedAt: r.uploaded_at,
+    })) });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Re-parse using the saved client_file content from the DB (no upload required).
+app.post('/api/clients/:clientId/parse-saved-files', async (req, res) => {
+  if (!pool) return res.status(503).json({ error: 'Database not configured.' });
+  try {
+    const clientId = req.params.clientId;
+    const trade    = (req.body.trade || '').trim();
+    const tradeEntry = TRADE_CATALOGUE.find(t => t.name === trade);
+    if (!tradeEntry) return res.status(400).json({ error: `Unknown trade: "${trade}"` });
+
+    const { rows } = await pool.query(
+      `SELECT filename, content, metadata FROM client_assets
+       WHERE client_id = $1 AND asset_type = 'client_file'
+       ORDER BY uploaded_at DESC`,
+      [clientId]
+    );
+    if (!rows.length) return res.status(404).json({ error: 'No saved files found for this client.' });
+
+    // Reconstruct file-like objects
+    const files = rows.map(r => ({
+      originalname: r.filename || 'file',
+      buffer: Buffer.from(r.content, 'utf8'),
+      _fileType: r.metadata && r.metadata.fileType,
+    }));
+
+    const { identified, missing } = identifyFiles(files);
+    if (missing.length) return res.status(400).json({ error: 'Saved files incomplete', missing });
+
+    const readText = file => file.buffer.toString('utf8');
+    const pages           = parsePageMap(readText(identified.pageMap));
+    const { keyValueMap, serviceParentMap } = parseCustomValues(identified.customValues.map(readText));
+    const onboardingText  = identified.onboarding ? readText(identified.onboarding) : '';
+    const geoResearch     = identified.geo        ? readText(identified.geo)        : '';
+
+    const usedCodes = new Set();
+    const bizAreas  = [];
+    for (let i = 1; keyValueMap[`biz_area_${i}`]; i++) {
+      const name = keyValueMap[`biz_area_${i}`];
+      const norm = normaliseLocation(name);
+      let code   = name.split(/[\s,]+/).filter(Boolean).map(w => w[0].toUpperCase()).join('').slice(0, 3).padEnd(3, 'X');
+      if (usedCodes.has(code)) {
+        let seq = 1;
+        while (usedCodes.has(`L${String(seq).padStart(2, '0')}`)) seq++;
+        code = `L${String(seq).padStart(2, '0')}`;
+      }
+      usedCodes.add(code);
+      bizAreas.push({ name, norm, code, runType: i === 1 ? 'PRIMARY CITY' : 'TOWN' });
+    }
+
+    const missingH1s = processH1s(pages, keyValueMap);
+    const primaryArea = (keyValueMap['biz_area_1'] || '').toLowerCase().trim();
+    const jobs = pages.filter(p => {
+      if (['done', 'live'].includes(p.status.toLowerCase())) return false;
+      if (p.pageType === 'location-category' && primaryArea) {
+        const loc = (p.locationName || '').toLowerCase().trim() || p.pageTitle.toLowerCase().trim();
+        if (loc === primaryArea || loc.endsWith(' ' + primaryArea)) return false;
+      }
+      return true;
+    });
+    const skippedPages = pages
+      .filter(p => ['done', 'live'].includes(p.status.toLowerCase()))
+      .map(p => ({ ...p, skipReason: `Status: ${p.status}` }));
+
+    const sessionId = crypto.randomUUID();
+    const rawCustomValuesCsvs = identified.customValues.map(readText);
+    sessions.set(sessionId, { createdAt: Date.now(), trade, clientId, jobs, skippedPages, keyValueMap, serviceParentMap, onboardingText, geoResearch, rawCustomValuesCsvs });
+
+    const byType = {};
+    for (const j of jobs) byType[j.pageType] = (byType[j.pageType] || 0) + 1;
+
+    const filesIdentified = [
+      { name: identified.pageMap.originalname,    type: 'Page Map' },
+      ...identified.customValues.map(f => ({ name: f.originalname, type: 'Custom Values' })),
+      { name: identified.onboarding.originalname, type: 'Onboarding Form' },
+      ...(identified.geo ? [{ name: identified.geo.originalname, type: 'Geo Research' }] : []),
+    ];
+
+    res.json({
+      sessionId, filesIdentified,
+      jobs: jobs.map(j => ({ pageType: j.pageType, pageTitle: j.pageTitle, urlSlug: j.urlSlug })),
+      summary: { total: jobs.length, byType, skipped: skippedPages.length },
+      missingH1s, skippedPages, bizAreas,
+      bizCounty: keyValueMap['biz_county'] || '',
+      hasGeoFile: !!identified.geo,
+      estimatedCost: (jobs.length * 0.06).toFixed(2),
+    });
+  } catch (err) {
+    console.error('[parse-saved-files]', err);
     res.status(500).json({ error: err.message });
   }
 });

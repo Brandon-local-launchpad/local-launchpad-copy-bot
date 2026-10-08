@@ -214,7 +214,19 @@
   <!-- Step 1: Upload -->
   <div class="step active" id="step1">
 
-    <div class="card">
+    <!-- Saved-files panel: shown when saved files exist for this client -->
+    <div id="savedFilesCard" style="display:none" class="card">
+      <div class="card-title">Client Files</div>
+      <div id="savedFilesList" style="font-size:13px;line-height:1.8"></div>
+      <div id="savedFilesAge" style="font-size:12px;margin-top:6px"></div>
+      <div style="display:flex;gap:8px;margin-top:14px;flex-wrap:wrap">
+        <button class="btn btn-primary" id="continueWithSavedBtn" onclick="continueWithSavedFiles()">Continue with these files</button>
+        <button class="btn btn-ghost" id="replaceFilesBtn" onclick="showUploadZone()">Replace files</button>
+      </div>
+    </div>
+
+    <!-- Upload panel: shown when no saved files or replacing -->
+    <div id="uploadCard" class="card">
       <div class="card-title">Client Files (ZIP)</div>
       <div class="upload-zone" id="uploadZone">
         <input type="file" id="filesInput" accept=".csv,.txt,.md" multiple onchange="onFileSelect(event)" />
@@ -222,8 +234,10 @@
         <div class="upload-hint"><strong>Drop files here</strong> or click to browse<br><span style="font-size:11px">Select all client CSVs + geo research file at once</span></div>
         <div class="upload-name" id="uploadName" style="display:none"></div>
       </div>
+    </div>
 
-      <div class="field" style="margin-top:16px">
+    <div class="card" style="margin-top:0">
+      <div class="field">
         <label>Trade</label>
         <select id="tradeSelect" onchange="checkReady();syncModuleToTrade();updateTradeInfo()">
           <option value="">Loading trades…</option>
@@ -234,7 +248,7 @@
 
     <div id="parseError" style="display:none"></div>
 
-    <button class="btn btn-primary" id="parseBtn" onclick="parseFiles()" disabled>
+    <button class="btn btn-primary" id="parseBtn" onclick="parseFiles()" disabled style="display:none">
       Parse Files
     </button>
 
@@ -243,7 +257,7 @@
   <!-- Step 2: Confirm Files -->
   <div class="step" id="step2">
 
-    <button class="btn btn-ghost" onclick="goTo(1)">← Back to upload</button>
+    <button class="btn btn-ghost" onclick="onBackToStep1();goTo(1)">← Back to upload</button>
 
     <div class="card">
       <div class="card-title">Files Identified</div>
@@ -433,6 +447,7 @@
   let researchJobId  = null;
   let researchPollTimer = null;
   let researchPollingLocations = null; // set of codes being polled
+  let savedFilesInfo = null; // [{filename, fileType, trade, uploadedAt}] from /saved-files
   const clientId     = new URLSearchParams(location.search).get('clientId') || null;
   const debugMode    = new URLSearchParams(location.search).get('debug') === '1';
 
@@ -454,6 +469,126 @@
   // Load trades
   let tradeCatalogue = []; // [{name, hasCalibrationPack, researchModule, securityDefault}]
 
+  // ── Saved files ──────────────────────────────────────────────────────────────
+
+  const FILE_TYPE_ORDER = ['page_map', 'custom_values', 'onboarding', 'geo_research'];
+  const FILE_TYPE_LABELS_SAVED = {
+    page_map:     'Page Map',
+    custom_values: 'Custom Values',
+    onboarding:   'Onboarding Form',
+    geo_research: 'Geo Research',
+  };
+
+  async function loadSavedFiles() {
+    if (!clientId) { showUploadZone(); return; }
+    try {
+      const r = await fetch(`/api/clients/${encodeURIComponent(clientId)}/saved-files`);
+      if (!r.ok) { showUploadZone(); return; }
+      const { files } = await r.json();
+      if (!files || !files.length) { showUploadZone(); return; }
+      savedFilesInfo = files;
+      showSavedFilesPanel(files);
+    } catch (_) {
+      showUploadZone();
+    }
+  }
+
+  function showSavedFilesPanel(files) {
+    const card = document.getElementById('savedFilesCard');
+    const uploadCard = document.getElementById('uploadCard');
+    const parseBtn = document.getElementById('parseBtn');
+    card.style.display = 'block';
+    uploadCard.style.display = 'none';
+    parseBtn.style.display = 'none';
+
+    // Deduplicate by fileType (keep first/newest)
+    const seen = new Set();
+    const unique = files.filter(f => { if (seen.has(f.fileType)) return false; seen.add(f.fileType); return true; });
+    // Sort by canonical order
+    unique.sort((a, b) => FILE_TYPE_ORDER.indexOf(a.fileType) - FILE_TYPE_ORDER.indexOf(b.fileType));
+
+    const listEl = document.getElementById('savedFilesList');
+    listEl.innerHTML = unique.map(f =>
+      `<div style="display:flex;align-items:center;gap:6px">` +
+      `<span style="font-size:11px;color:var(--muted);min-width:100px">${h(FILE_TYPE_LABELS_SAVED[f.fileType] || f.fileType)}</span>` +
+      `<span>${h(f.filename || '—')}</span></div>`
+    ).join('');
+
+    // Age info — all files share the same upload time (same parse run)
+    const uploadedAt = files[0] && files[0].uploadedAt ? new Date(files[0].uploadedAt) : null;
+    const ageEl = document.getElementById('savedFilesAge');
+    if (uploadedAt) {
+      const daysSince = Math.floor((Date.now() - uploadedAt) / (1000 * 60 * 60 * 24));
+      const dateStr   = uploadedAt.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
+      const trade     = files[0] && files[0].trade ? files[0].trade : '';
+      let msg = `Uploaded ${dateStr}`;
+      if (trade) msg += ` &middot; ${h(trade)}`;
+      if (daysSince > 30) {
+        msg += ` <span style="color:var(--flag)">&#9888; ${daysSince} days old &mdash; replace if the client&rsquo;s details have changed</span>`;
+      }
+      ageEl.innerHTML = `<span style="color:var(--muted)">${msg}</span>`;
+      // Pre-select trade if stored
+      if (trade) {
+        const sel = document.getElementById('tradeSelect');
+        if (sel && [...sel.options].some(o => o.value === trade)) {
+          sel.value = trade;
+          syncModuleToTrade();
+          updateTradeInfo();
+        }
+      }
+    } else {
+      ageEl.textContent = '';
+    }
+    checkReadySaved();
+  }
+
+  function checkReadySaved() {
+    const trade  = document.getElementById('tradeSelect').value;
+    const btn    = document.getElementById('continueWithSavedBtn');
+    if (btn) btn.disabled = !trade;
+  }
+
+  function showUploadZone() {
+    document.getElementById('savedFilesCard').style.display = 'none';
+    document.getElementById('uploadCard').style.display = 'block';
+    document.getElementById('parseBtn').style.display = 'block';
+    checkReady();
+  }
+
+  async function continueWithSavedFiles() {
+    const trade = document.getElementById('tradeSelect').value;
+    if (!trade) return;
+    const btn = document.getElementById('continueWithSavedBtn');
+    setLoading(btn, true, 'Loading…');
+    document.getElementById('parseError').style.display = 'none';
+    try {
+      const res  = await fetch(`/api/clients/${encodeURIComponent(clientId)}/parse-saved-files`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ trade }),
+      });
+      const data = await res.json();
+      if (!res.ok) { showParseError(data); return; }
+      showFileConfirmation(data);
+    } catch (err) {
+      showParseError({ error: err.message });
+    } finally {
+      setLoading(btn, false, 'Continue with these files');
+    }
+  }
+
+  // When navigating back to Step 1: if parseData is already loaded, show the
+  // saved-files panel (or, if no clientId, just show that files are still loaded).
+  function onBackToStep1() {
+    if (parseData && clientId && savedFilesInfo) {
+      showSavedFilesPanel(savedFilesInfo);
+    } else if (parseData && !clientId) {
+      // Files still in memory — show brief summary in upload zone
+      showUploadZone();
+    }
+    // No need to re-load; just switch panel state
+  }
+
   fetch('/api/trades')
     .then(r => r.json())
     .then(({ trades }) => {
@@ -468,10 +603,13 @@
           const label = t.hasCalibrationPack ? t.name : `${t.name} (research only)`;
           return `<option value="${h(t.name)}">${h(label)}</option>`;
         }).join('');
+      // Load saved files now that trades are populated (needed for trade pre-fill)
+      loadSavedFiles();
       checkReady();
     })
     .catch(() => {
       document.getElementById('tradeSelect').innerHTML = '<option value="">Failed to load</option>';
+      loadSavedFiles();
     });
 
   function getTradeEntry(name) {
@@ -512,7 +650,9 @@
 
   function checkReady() {
     const trade = document.getElementById('tradeSelect').value;
-    document.getElementById('parseBtn').disabled = !(uploadedFiles.length && trade);
+    const parseBtn = document.getElementById('parseBtn');
+    if (parseBtn) parseBtn.disabled = !(uploadedFiles.length && trade);
+    checkReadySaved();
   }
 
   // Parse zip
