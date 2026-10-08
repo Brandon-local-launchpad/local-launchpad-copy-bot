@@ -507,56 +507,130 @@ function makeSectionRegex(n, name) {
   );
 }
 
-// Resolve [web:N] citation markers to [URL] using the Perplexity Responses API structure.
-// URLs live in output[].results[].url on search_results items, as a flat 1-based list.
-// Annotations on the message content item (output[].content[].annotations) may also carry
-// direct url_citation mappings — used as a cross-check / fallback.
-// Strips markers that can't be resolved. Returns { text, resolved, unresolved, sourceCount }.
-function resolveCitations(text, pxRes) {
-  const urlMap = {}; // 1-based web index → URL
+// Build candidate URL maps from a Perplexity response for citation resolution testing.
+// Returns an object keyed by strategy name, each value a map of {N → url}.
+function buildCitationMaps(pxRes) {
+  const maps = {
+    idBased:            {}, // result.id → url (search_results only)
+    flatSearchResults:  {}, // 1-based flat across search_results items in order
+    flatAllResults:     {}, // 1-based flat across all output items that have results
+  };
 
-  // Primary: flatten output[].results[].url across all search_results items in order
-  if (Array.isArray(pxRes.output)) {
-    let idx = 1;
-    for (const item of pxRes.output) {
-      if (item.type === 'search_results' && Array.isArray(item.results)) {
-        for (const r of item.results) {
-          if (r.url) urlMap[idx] = r.url;
-          idx++;
-        }
-      }
-    }
+  if (!Array.isArray(pxRes.output)) return maps;
 
-    // Secondary: scan annotations on message content items for url_citation entries
-    // These may carry the canonical mapping when the primary index is off
-    for (const item of pxRes.output) {
-      if (item.type === 'message' && Array.isArray(item.content)) {
-        for (const c of item.content) {
-          if (Array.isArray(c.annotations)) {
-            for (const ann of c.annotations) {
-              // annotation shape: { type: 'url_citation', url_citation: { url, title, ... }, start_index, end_index }
-              // or sometimes: { type: 'url_citation', url, start_index, end_index }
-              const annUrl = (ann.url_citation && ann.url_citation.url) || ann.url || null;
-              const annIdx = ann.index != null ? ann.index : null;
-              if (annUrl && annIdx != null && !urlMap[annIdx]) urlMap[annIdx] = annUrl;
-            }
-          }
-        }
+  let srIdx = 1, allIdx = 1;
+  for (const item of pxRes.output) {
+    const resultArr = item.results || item.contents || null;
+    if (!resultArr) continue;
+    for (const r of resultArr) {
+      const url = r.url || null;
+      if (!url) { if (item.results) srIdx++; allIdx++; continue; }
+
+      // id-based (search_results only)
+      if (item.type === 'search_results' && r.id != null) {
+        maps.idBased[r.id] = url;
       }
+      // flat search_results
+      if (item.type === 'search_results') {
+        if (!maps.flatSearchResults[srIdx]) maps.flatSearchResults[srIdx] = url;
+        srIdx++;
+      }
+      // flat all results
+      if (!maps.flatAllResults[allIdx]) maps.flatAllResults[allIdx] = url;
+      allIdx++;
     }
   }
 
-  let resolved = 0, unresolved = 0;
-  const resolved_text = text.replace(/\[web:(\d+)\]/g, (_match, n) => {
-    const url = urlMap[parseInt(n, 10)];
+  return maps;
+}
+
+// Extract calibration pairs from raw text: [URL][web:N] → {n, url}.
+// These are the ground truth — the inline URL is authoritative.
+function extractInlinePairs(text) {
+  const pairs = [];
+  const re = /\[(https?:\/\/[^\]]+)\]\[web:(\d+)\]/g;
+  let m;
+  while ((m = re.exec(text)) !== null) {
+    pairs.push({ url: m[1], n: parseInt(m[2], 10) });
+  }
+  return pairs;
+}
+
+// Test all candidate maps against calibration pairs. Returns array of {strategy, matchRate, matched, total}.
+function testCitationStrategies(pairs, maps) {
+  return Object.entries(maps).map(([strategy, map]) => {
+    let matched = 0;
+    for (const { url, n } of pairs) {
+      const mapped = map[n];
+      // Match if the mapped URL starts the same as the inline URL (handles trailing params/fragments)
+      if (mapped && (mapped === url || mapped.startsWith(url) || url.startsWith(mapped))) matched++;
+    }
+    return { strategy, matched, total: pairs.length, matchRate: pairs.length ? matched / pairs.length : 0 };
+  }).sort((a, b) => b.matchRate - a.matchRate);
+}
+
+// Resolve [web:N] citation markers in text.
+// Rule (c): when [URL][web:N] appears, always keep the real URL and drop the marker.
+// For standalone [web:N] markers: use the best-match strategy if it meets the 95% threshold,
+// otherwise strip the marker.
+// Returns { text, strategy, matchRate, resolved, unresolved, stripped, sourceCount }.
+function resolveCitations(text, pxRes) {
+  const maps = buildCitationMaps(pxRes);
+
+  // Determine best strategy from inline calibration pairs in THIS response
+  const pairs = extractInlinePairs(text);
+  let chosenStrategy = null, chosenMap = {}, chosenMatchRate = 0;
+
+  if (pairs.length >= 3) {
+    const results = testCitationStrategies(pairs, maps);
+    const best = results[0];
+    if (best.matchRate >= 0.95) {
+      chosenStrategy = best.strategy;
+      chosenMap = maps[best.strategy];
+      chosenMatchRate = best.matchRate;
+      console.log(`[citations] strategy "${chosenStrategy}" matches ${(best.matchRate * 100).toFixed(0)}% of ${pairs.length} calibration pairs`);
+    } else {
+      console.warn(`[citations] No strategy reached 95% threshold (best: "${best.strategy}" at ${(best.matchRate * 100).toFixed(0)}%). Stripping markers, keeping inline URLs only.`);
+    }
+  } else if (pairs.length === 0) {
+    // No inline pairs to calibrate against — try id-based (most semantically correct)
+    const idMap = maps.idBased;
+    if (Object.keys(idMap).length > 0) {
+      chosenStrategy = 'idBased';
+      chosenMap = idMap;
+      chosenMatchRate = null; // uncalibrated
+      console.log(`[citations] No inline pairs to calibrate; using id-based map (${Object.keys(idMap).length} entries), uncalibrated`);
+    }
+  } else {
+    // Too few pairs for reliable calibration — use id-based
+    const results = testCitationStrategies(pairs, maps);
+    const best = results[0];
+    if (best.matchRate >= 0.95) {
+      chosenStrategy = best.strategy;
+      chosenMap = maps[best.strategy];
+      chosenMatchRate = best.matchRate;
+    }
+  }
+
+  let resolved = 0, unresolved = 0, stripped = 0;
+
+  // Step 1: remove [web:N] from inline pairs [URL][web:N] — keep the URL, drop the marker
+  let out = text.replace(/(\[https?:\/\/[^\]]+\])\[web:\d+\]/g, (_, url) => {
+    resolved++;
+    return url;
+  });
+
+  // Step 2: resolve or strip remaining standalone [web:N] markers
+  out = out.replace(/\[web:(\d+)\]/g, (_match, n) => {
+    const url = chosenMap[parseInt(n, 10)];
     if (url) { resolved++; return `[${url}]`; }
-    unresolved++;
+    stripped++;
     return '';
   });
 
-  const sourceCount = (resolved_text.match(/\[https?:\/\//g) || []).length;
-  console.log(`[citations] urlMap size: ${Object.keys(urlMap).length}, resolved: ${resolved}, unresolved: ${unresolved}, sourceCount: ${sourceCount}`);
-  return { text: resolved_text, resolved, unresolved, sourceCount };
+  const sourceCount = (out.match(/\[https?:\/\//g) || []).length;
+  console.log(`[citations] resolved: ${resolved}, stripped: ${stripped}, sourceCount: ${sourceCount}, strategy: ${chosenStrategy || 'none'}`);
+  return { text: out, strategy: chosenStrategy, matchRate: chosenMatchRate, resolved, unresolved, stripped, sourceCount };
 }
 
 function validateAndCleanDossier(raw) {
@@ -854,7 +928,9 @@ function extractPerplexityText(pxRes) {
 // Shared by runOneLocation and recovery path.
 // Returns { validationFailed: true } if the dossier didn't pass validation (caller should NOT retry).
 // Throws on DB/infrastructure errors (caller may retry).
-async function finishLocation(record, clientId, code, loc, pxRes) {
+// preserveOriginal: { cost, startedAt, finishedAt, inputTokens, outputTokens } — when set,
+// the reprocess path keeps original timing/cost rather than overwriting with new values.
+async function finishLocation(record, clientId, code, loc, pxRes, preserveOriginal = null) {
   const rawText  = extractPerplexityText(pxRes);
   const rawUsage = pxRes.usage || null;
   const usage    = rawUsage || {};
@@ -893,11 +969,14 @@ async function finishLocation(record, clientId, code, loc, pxRes) {
   if (!valid) {
     console.error(`[research] "${loc.name}" validation failed: ${valErr} — saving raw output, not retrying`);
     await updateResearchLocation(record, code, {
-      status: 'validation_failed', finishedAt: new Date().toISOString(),
+      status: 'validation_failed',
+      finishedAt: preserveOriginal ? preserveOriginal.finishedAt : new Date().toISOString(),
       error: `Validation failed: ${valErr}`,
       rawOutputText: resolvedText, rawOutputJson: JSON.stringify(pxRes),
-      inputTokens: inputTok, outputTokens: outputTok, searchCount: searchCnt,
-      rawUsage, cost: costVal, preset: PERPLEXITY_PRESET,
+      inputTokens: preserveOriginal ? preserveOriginal.inputTokens : inputTok,
+      outputTokens: preserveOriginal ? preserveOriginal.outputTokens : outputTok,
+      searchCount: searchCnt,
+      rawUsage, cost: preserveOriginal ? preserveOriginal.cost : costVal, preset: PERPLEXITY_PRESET,
     });
     return { validationFailed: true };
   }
@@ -931,9 +1010,13 @@ async function finishLocation(record, clientId, code, loc, pxRes) {
   }
 
   await updateResearchLocation(record, code, {
-    status: 'done', finishedAt: new Date().toISOString(),
-    inputTokens: inputTok, outputTokens: outputTok, searchCount: searchCnt,
-    rawUsage, cost: costVal, preset: PERPLEXITY_PRESET, assetId, error: null,
+    status: 'done',
+    finishedAt: preserveOriginal ? preserveOriginal.finishedAt : new Date().toISOString(),
+    inputTokens: preserveOriginal ? preserveOriginal.inputTokens : inputTok,
+    outputTokens: preserveOriginal ? preserveOriginal.outputTokens : outputTok,
+    searchCount: searchCnt,
+    rawUsage, cost: preserveOriginal ? preserveOriginal.cost : costVal,
+    preset: PERPLEXITY_PRESET, assetId, error: null,
     sourceCount, lowSources,
   });
   return { validationFailed: false, sourceCount, lowSources };
@@ -2097,6 +2180,75 @@ app.get('/api/admin/debug-px-response', async (req, res) => {
   });
 });
 
+// POST /api/admin/calibrate-citations { clientId, locationName }
+// Reads the stored rawOutputJson for a location, extracts inline [URL][web:N] calibration pairs,
+// tests all candidate mapping strategies and reports match rates.
+app.post('/api/admin/calibrate-citations', async (req, res) => {
+  if (!pool) return res.status(503).json({ error: 'Database not configured.' });
+  const { clientId, locationName } = req.body || {};
+  if (!clientId || !locationName) return res.status(400).json({ error: 'clientId and locationName required.' });
+  const targetNorm = normaliseLocation(locationName);
+
+  const { rows: jobRows } = await pool.query(
+    `SELECT id, locations FROM research_jobs WHERE client_id = $1 ORDER BY created_at DESC`,
+    [clientId]
+  );
+
+  let loc = null;
+  for (const row of jobRows) {
+    for (const l of Object.values(row.locations || {})) {
+      if (normaliseLocation(l.name || '') === targetNorm) { loc = l; break; }
+    }
+    if (loc) break;
+  }
+  if (!loc) return res.status(404).json({ error: `No research record found for "${locationName}".` });
+  if (!loc.rawOutputJson) return res.status(404).json({ error: 'No rawOutputJson stored for this location. Run it or re-fetch first.' });
+
+  let pxRes;
+  try { pxRes = JSON.parse(loc.rawOutputJson); } catch (e) {
+    return res.status(500).json({ error: `Failed to parse rawOutputJson: ${e.message}` });
+  }
+
+  const rawText = extractPerplexityText(pxRes);
+  const pairs = extractInlinePairs(rawText);
+  const maps = buildCitationMaps(pxRes);
+
+  // Summarise each map
+  const mapSummaries = {};
+  for (const [name, map] of Object.entries(maps)) {
+    const keys = Object.keys(map).map(Number).sort((a, b) => a - b);
+    mapSummaries[name] = { entryCount: keys.length, minKey: keys[0] ?? null, maxKey: keys[keys.length - 1] ?? null, sample: Object.fromEntries(keys.slice(0, 3).map(k => [k, map[k]])) };
+  }
+
+  const strategies = pairs.length > 0 ? testCitationStrategies(pairs, maps) : [];
+
+  // Show first 5 calibration pairs for manual verification
+  const pairSample = pairs.slice(0, 5).map(({ n, url }) => {
+    const idMatch  = maps.idBased[n];
+    const srMatch  = maps.flatSearchResults[n];
+    const allMatch = maps.flatAllResults[n];
+    return { n, inlineUrl: url, idBased: idMatch || null, flatSR: srMatch || null, flatAll: allMatch || null };
+  });
+
+  res.json({
+    locationName,
+    rawTextLength: rawText.length,
+    calibrationPairs: pairs.length,
+    pairSample,
+    mapSummaries,
+    strategyResults: strategies.map(s => ({
+      strategy: s.strategy,
+      matched: s.matched,
+      total: s.total,
+      matchRate: (s.matchRate * 100).toFixed(1) + '%',
+      meetsThreshold: s.matchRate >= 0.95,
+    })),
+    recommendation: strategies.length > 0
+      ? (strategies[0].matchRate >= 0.95 ? `Use "${strategies[0].strategy}" (${(strategies[0].matchRate * 100).toFixed(1)}% match rate)` : `No strategy meets 95% threshold (best: "${strategies[0].strategy}" at ${(strategies[0].matchRate * 100).toFixed(1)}%) — strip markers, keep inline URLs only`)
+      : (pairs.length === 0 ? 'No inline calibration pairs found in raw text — id-based mapping will be used uncalibrated' : 'Too few pairs to calibrate'),
+  });
+});
+
 // Re-process a location's stored (or re-fetched) raw Perplexity response with current logic.
 // POST /api/admin/reprocess-location { clientId, locationName }
 // Uses stored rawOutputJson if present (validation_failed rows), otherwise re-fetches via pxJobId.
@@ -2153,14 +2305,19 @@ app.post('/api/admin/reprocess-location', async (req, res) => {
     }
   }
 
-  // Log citation map size for debugging
-  const citationSources = pxRes.search_results || pxRes.citations || [];
-  console.log(`[reprocess] "${locationName}": ${citationSources.length} citation sources available (${source})`);
+  // Preserve original timing and cost so reprocessing doesn't overwrite them
+  const preserveOriginal = {
+    cost:         loc.cost         || null,
+    startedAt:    loc.startedAt    || null,
+    finishedAt:   loc.finishedAt   || null,
+    inputTokens:  loc.inputTokens  || null,
+    outputTokens: loc.outputTokens || null,
+  };
 
   // Run through full current finishLocation logic (mutates record in-memory + DB)
   researchJobs.set(record.id, record);
   try {
-    const result = await finishLocation(record, clientId, code, loc, pxRes);
+    const result = await finishLocation(record, clientId, code, loc, pxRes, preserveOriginal);
     const updatedLoc = record.locations[code] || {};
     return res.json({
       saved: result && !result.validationFailed,
