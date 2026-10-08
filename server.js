@@ -2400,10 +2400,12 @@ app.get('/api/clients/:clientId/geo-location-status', async (req, res) => {
       for (const [code, loc] of Object.entries(locs || {})) {
         const norm = normaliseLocation(loc.name || '');
         const dos  = dossierByNorm[norm];
+        // If no active dossier exists, the location is pending regardless of what research_jobs says
+        const effectiveStatus = dos ? 'done' : (loc.status === 'done' ? 'pending' : (loc.status || 'pending'));
         locations[code] = {
           code, name: loc.name || code, jobId,
-          status:      dos ? 'done' : (loc.status || 'pending'),
-          assetId:     dos ? dos.id : (loc.assetId || null),
+          status:      effectiveStatus,
+          assetId:     dos ? dos.id : null,
           uploadedAt:  dos ? dos.uploadedAt : null,
           cost:        loc.cost        || null,
           startedAt:   loc.startedAt   || null,
