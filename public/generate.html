@@ -868,6 +868,15 @@
             `<button class="btn-micro" onclick="downloadDossier('${h(loc.assetId)}','${h(locName)}')">Download</button>` +
             `<button class="btn-micro" onclick="rerunLocation('${h(locName)}','${h(code)}')">Re-run</button>`;
         }
+      } else if (loc.status === 'validation_failed') {
+        text.textContent = `Validation failed: ${loc.error || 'unknown error'}`;
+        text.style.color = 'var(--block)';
+        if (acts) {
+          const locName = loc.name || code;
+          acts.innerHTML =
+            `<button class="btn-micro" onclick="viewRawOutput('${h(researchJobId)}','${h(code)}','${h(locName)}')">View Raw</button>` +
+            `<button class="btn-micro" onclick="rerunLocation('${h(locName)}','${h(code)}')">Re-run</button>`;
+        }
       } else if (loc.status === 'failed') {
         text.textContent = `Failed: ${loc.error || 'unknown error'}`;
         text.style.color = 'var(--block)';
@@ -892,6 +901,17 @@
       if (!res.ok) { alert(data.error || 'Failed to load dossier.'); return; }
       document.getElementById('dossierModalTitle').textContent = `${locName} — Dossier`;
       document.getElementById('dossierModalBody').textContent  = data.content;
+      document.getElementById('dossierModal').classList.add('open');
+    } catch (err) { alert(err.message); }
+  }
+
+  async function viewRawOutput(jobId, code, locName) {
+    try {
+      const res  = await fetch(`/api/research/${encodeURIComponent(jobId)}/location/${encodeURIComponent(code)}/raw`);
+      const data = await res.json();
+      if (!res.ok) { alert(data.error || 'Failed to load raw output.'); return; }
+      document.getElementById('dossierModalTitle').textContent = `${locName} — Raw Output (${data.status})`;
+      document.getElementById('dossierModalBody').textContent  = data.text || '(empty)';
       document.getElementById('dossierModal').classList.add('open');
     } catch (err) { alert(err.message); }
   }

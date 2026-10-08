@@ -482,17 +482,56 @@ function normaliseLocation(s) {
     .trim();
 }
 
+const DOSSIER_SECTIONS = [
+  'LOCATION OVERVIEW',
+  'NEIGHBOURHOOD PROFILES',
+  'LOCAL ISSUES',
+  'SYMPTOMS',
+  'RULES & COUNCIL',
+  'DEMAND BY AREA',
+  'NEARBY CONTRAST',
+  'GAPS',
+];
+
+// Matches: # / ## / ### heading OR **bold line**, followed by the section number and name.
+// Case-insensitive, tolerant of extra whitespace.
+function makeSectionRegex(n, name) {
+  const escaped = name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  return new RegExp(
+    `(?:^#{1,3}\\s*${n}\\.\\s*${escaped}|^\\*\\*\\s*${n}\\.\\s*${escaped}[^\\n]*)`,
+    'im'
+  );
+}
+
 function validateAndCleanDossier(raw) {
   let text = raw.replace(/<think>[\s\S]*?<\/think>/gi, '').trim();
-  const startIdx = text.indexOf('## 1.');
-  if (startIdx > 0) text = text.slice(startIdx);
+
+  // Try to start from first recognisable section heading
+  const firstMatch = makeSectionRegex(1, DOSSIER_SECTIONS[0]).exec(text);
+  if (firstMatch && firstMatch.index > 0) text = text.slice(firstMatch.index);
+
+  // Trim to END OF DOSSIER if present
   const endIdx = text.indexOf('END OF DOSSIER');
   if (endIdx >= 0) text = text.slice(0, endIdx + 'END OF DOSSIER'.length);
+
+  // Check all 8 sections exist
+  const missing = [];
   for (let n = 1; n <= 8; n++) {
-    if (!text.includes(`## ${n}.`)) return { valid: false, error: `Missing section ## ${n}. in dossier` };
+    if (!makeSectionRegex(n, DOSSIER_SECTIONS[n - 1]).test(text)) {
+      missing.push(`${n}. ${DOSSIER_SECTIONS[n - 1]}`);
+    }
   }
-  if (!text.includes('END OF DOSSIER')) return { valid: false, error: 'Missing END OF DOSSIER marker' };
-  return { valid: true, text };
+  if (missing.length) return { valid: false, error: `Missing sections: ${missing.join(', ')}` };
+
+  // Normalise any non-standard headings to ## N. NAME
+  for (let n = 1; n <= 8; n++) {
+    text = text.replace(makeSectionRegex(n, DOSSIER_SECTIONS[n - 1]), `## ${n}. ${DOSSIER_SECTIONS[n - 1]}`);
+  }
+
+  const warnings = [];
+  if (!text.includes('END OF DOSSIER')) warnings.push('Missing END OF DOSSIER marker');
+
+  return { valid: true, text, warnings };
 }
 
 // runType must be 'PRIMARY CITY' or 'TOWN' — set on the location object at parse-zip time and
@@ -734,15 +773,47 @@ function selectDossierForJob(dossierMap, job, primaryGeo) {
   return { dossierText, skipReason: null };
 }
 
+// Extract the final text from a Perplexity polled response.
+// Background-mode GET responses may have the text in output_text OR assembled from output[].content[].text.
+function extractPerplexityText(pxRes) {
+  if (pxRes.output_text && pxRes.output_text.trim()) return pxRes.output_text;
+  if (Array.isArray(pxRes.output)) {
+    const parts = [];
+    for (const item of pxRes.output) {
+      if (item.type === 'message' && Array.isArray(item.content)) {
+        for (const c of item.content) {
+          if (c.type === 'output_text' && c.text) parts.push(c.text);
+          else if (c.type === 'text' && c.text) parts.push(c.text);
+        }
+      }
+    }
+    if (parts.length) return parts.join('\n');
+  }
+  return '';
+}
+
 // Process a completed Perplexity response: validate, save dossier asset, update record.
 // Shared by runOneLocation and recovery path.
+// Returns { validationFailed: true } if the dossier didn't pass validation (caller should NOT retry).
+// Throws on DB/infrastructure errors (caller may retry).
 async function finishLocation(record, clientId, code, loc, pxRes) {
-  const rawText  = pxRes.output_text || '';
+  const rawText  = extractPerplexityText(pxRes);
   const rawUsage = pxRes.usage || null;
   const usage    = rawUsage || {};
   const inputTok = usage.input_tokens  || 0;
   const outputTok= usage.output_tokens || 0;
   const searchCnt= (usage.tool_calls_details && usage.tool_calls_details.search_count) || null;
+
+  console.log(`[research] "${loc.name}" extracted text length: ${rawText.length}`);
+  if (!rawText.trim()) {
+    console.warn(`[research] "${loc.name}" — empty output from Perplexity (saving raw response)`);
+    await updateResearchLocation(record, code, {
+      status: 'failed', finishedAt: new Date().toISOString(),
+      error: 'empty output from Perplexity',
+      rawOutputText: rawText, rawOutputJson: JSON.stringify(pxRes),
+    });
+    return { validationFailed: true };
+  }
 
   let cost;
   if (rawUsage && rawUsage.cost && rawUsage.cost.total_cost != null) {
@@ -751,9 +822,22 @@ async function finishLocation(record, clientId, code, loc, pxRes) {
     console.warn(`[research] No cost in Perplexity response for "${loc.name}" — using fallback rate constants. Verify PERPLEXITY_RATES match current pricing.`);
     cost = (inputTok / 1e6) * PERPLEXITY_RATES.inputPerMToken + (outputTok / 1e6) * PERPLEXITY_RATES.outputPerMToken;
   }
+  const costVal = parseFloat(cost.toFixed(6));
 
-  const { valid, text: cleanText, error: valErr } = validateAndCleanDossier(rawText);
-  if (!valid) throw new Error(`Dossier validation failed: ${valErr}`);
+  const { valid, text: cleanText, error: valErr, warnings } = validateAndCleanDossier(rawText);
+  if (warnings && warnings.length) console.warn(`[research] "${loc.name}" validation warnings: ${warnings.join('; ')}`);
+
+  if (!valid) {
+    console.error(`[research] "${loc.name}" validation failed: ${valErr} — saving raw output, not retrying`);
+    await updateResearchLocation(record, code, {
+      status: 'validation_failed', finishedAt: new Date().toISOString(),
+      error: `Validation failed: ${valErr}`,
+      rawOutputText: rawText, rawOutputJson: JSON.stringify(pxRes),
+      inputTokens: inputTok, outputTokens: outputTok, searchCount: searchCnt,
+      rawUsage, cost: costVal, preset: PERPLEXITY_PRESET,
+    });
+    return { validationFailed: true };
+  }
 
   let assetId = null;
   if (pool) {
@@ -780,8 +864,9 @@ async function finishLocation(record, clientId, code, loc, pxRes) {
   await updateResearchLocation(record, code, {
     status: 'done', finishedAt: new Date().toISOString(),
     inputTokens: inputTok, outputTokens: outputTok, searchCount: searchCnt,
-    rawUsage, cost: parseFloat(cost.toFixed(6)), preset: PERPLEXITY_PRESET, assetId, error: null,
+    rawUsage, cost: costVal, preset: PERPLEXITY_PRESET, assetId, error: null,
   });
+  return { validationFailed: false };
 }
 
 // ── Standalone per-location Perplexity runner (shared by research-start and research-rerun) ──
@@ -799,7 +884,9 @@ async function runOneLocation(record, clientId, loc, moduleName, keyValueMap, se
       // Persist job id before polling — recovery on restart can resume polling rather than failing the row
       await updateResearchLocation(record, code, { pxJobId });
       const pxRes      = await pollPerplexity(pxJobId, deadline);
-      await finishLocation(record, clientId, code, loc, pxRes);
+      const result     = await finishLocation(record, clientId, code, loc, pxRes);
+      // Validation failures are final — raw output already saved, do not retry
+      if (result && result.validationFailed) return;
       return;
     } catch (err) {
       lastErr = err;
@@ -1630,6 +1717,20 @@ app.get('/api/research-status/:jobId', async (req, res) => {
     const record = await loadResearchRecord(req.params.jobId);
     if (!record) return res.status(404).json({ error: 'Research job not found or expired.' });
     res.json({ jobId: record.id, status: record.status, preset: record.preset, locations: record.locations });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Raw output viewer — returns saved rawOutputText for a validation_failed or failed location
+app.get('/api/research/:jobId/location/:code/raw', async (req, res) => {
+  try {
+    const record = await loadResearchRecord(req.params.jobId);
+    if (!record) return res.status(404).json({ error: 'Research job not found.' });
+    const loc = record.locations[req.params.code.toUpperCase()];
+    if (!loc) return res.status(404).json({ error: 'Location not found in job.' });
+    if (!loc.rawOutputText) return res.status(404).json({ error: 'No raw output saved for this location.' });
+    res.json({ text: loc.rawOutputText, error: loc.error || null, status: loc.status });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
