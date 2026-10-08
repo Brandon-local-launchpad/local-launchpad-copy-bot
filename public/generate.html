@@ -662,10 +662,13 @@
           ? (lowSrc ? ` · <span style="color:var(--flag)">&#9888; low sources: ${srcCount}</span>` : ` · ${srcCount} sources`)
           : '';
         statusHtml = `<span style="color:${lowSrc ? 'var(--flag)' : 'var(--success)'};font-size:11px">&#10003; dossier exists (${dateStr}${costStr}${durStr})</span>${srcStr}`;
+        const debugBtn1 = (saved && saved.pxJobId && saved.jobId)
+          ? `<button class="btn-micro" onclick="debugPxResponse('${h(saved.jobId)}','${h(loc.code)}','${h(loc.name)}')">Debug response</button>` : '';
         actionsHtml = `<span class="geo-row-actions" id="geo-actions-${h(loc.code)}">
             <button class="btn-micro" onclick="viewDossier('${h(dosInfo.id)}','${h(loc.name)}')">View</button>
             <button class="btn-micro" onclick="downloadDossier('${h(dosInfo.id)}','${h(loc.name)}')">Download</button>
             <button class="btn-micro" onclick="reprocessLocation('${h(loc.code)}','${h(loc.name)}')">Re-process</button>
+            ${debugBtn1}
             <label style="display:flex;align-items:center;gap:4px;cursor:pointer;font-size:11px;color:var(--muted)">
               <input type="checkbox" class="geo-refresh-check" data-code="${h(loc.code)}" data-name="${h(loc.name)}"
                 style="width:12px;height:12px;accent-color:var(--accent)" onchange="checkRunReady()"> Re-run
@@ -683,8 +686,10 @@
           ? `<button class="btn-micro" onclick="recoverPaidRuns('${h(loc.code)}','${h(loc.name)}')">Recover paid runs</button>` : '';
         const reprocessBtn = (saved.rawOutputJson || saved.pxJobId)
           ? `<button class="btn-micro" onclick="reprocessLocation('${h(loc.code)}','${h(loc.name)}')">Re-process</button>` : '';
+        const debugBtn2 = (saved.pxJobId && saved.jobId)
+          ? `<button class="btn-micro" onclick="debugPxResponse('${h(saved.jobId)}','${h(loc.code)}','${h(loc.name)}')">Debug response</button>` : '';
         actionsHtml = `<span class="geo-row-actions" id="geo-actions-${h(loc.code)}">`
-          + viewRawBtn + reprocessBtn + recoverBtn
+          + viewRawBtn + reprocessBtn + recoverBtn + debugBtn2
           + `<button class="btn-micro" onclick="rerunLocation('${h(loc.name)}','${h(loc.code)}')">Re-run</button>`
           + `</span>`;
       } else {
@@ -1021,6 +1026,17 @@
       if (!res.ok) { alert(data.error || 'Failed to load dossier.'); return; }
       document.getElementById('dossierModalTitle').textContent = `${locName} — Dossier`;
       document.getElementById('dossierModalBody').textContent  = data.content;
+      document.getElementById('dossierModal').classList.add('open');
+    } catch (err) { alert(err.message); }
+  }
+
+  async function debugPxResponse(jobId, code, locName) {
+    try {
+      const res  = await fetch(`/api/admin/debug-px-response?jobId=${encodeURIComponent(jobId)}&code=${encodeURIComponent(code)}&clientId=${encodeURIComponent(clientId)}`);
+      const data = await res.json();
+      if (!res.ok) { alert(data.error || 'Debug fetch failed.'); return; }
+      document.getElementById('dossierModalTitle').textContent = `${locName} — Perplexity response structure`;
+      document.getElementById('dossierModalBody').textContent  = JSON.stringify(data, null, 2);
       document.getElementById('dossierModal').classList.add('open');
     } catch (err) { alert(err.message); }
   }

@@ -1940,6 +1940,103 @@ app.post('/api/admin/recover-location', async (req, res) => {
   res.json({ saved: false, results, message: 'No result passed validation; raw output saved as validation_failed where possible.' });
 });
 
+// Debug: fetch a pxJobId from Perplexity and return a structure summary (no dossier text).
+// GET /api/admin/debug-px-response?jobId=xxx&code=SOU&clientId=yyy
+app.get('/api/admin/debug-px-response', async (req, res) => {
+  const { jobId, code, clientId } = req.query;
+  if (!jobId || !code || !clientId) return res.status(400).json({ error: 'jobId, code, clientId required.' });
+  if (!pool) return res.status(503).json({ error: 'Database not configured.' });
+
+  const apiKey = process.env.PERPLEXITY_API_KEY;
+  if (!apiKey) return res.status(500).json({ error: 'PERPLEXITY_API_KEY not set.' });
+
+  // Look up pxJobId from DB
+  const { rows } = await pool.query(
+    `SELECT id, locations FROM research_jobs WHERE id = $1 AND client_id = $2 LIMIT 1`,
+    [jobId, clientId]
+  );
+  if (!rows.length) return res.status(404).json({ error: 'Research job not found.' });
+  const loc = (rows[0].locations || {})[code.toUpperCase()];
+  if (!loc || !loc.pxJobId) return res.status(404).json({ error: 'No pxJobId for this location.' });
+
+  const pxJobId = loc.pxJobId;
+  const fetchRes = await fetch(`https://api.perplexity.ai/v1/agent/${pxJobId}`, {
+    headers: { 'Authorization': `Bearer ${apiKey}` },
+  });
+  if (!fetchRes.ok) {
+    const t = await fetchRes.text().catch(() => '');
+    return res.status(502).json({ error: `Perplexity ${fetchRes.status}: ${t.slice(0, 200)}` });
+  }
+  const pxRes = await fetchRes.json();
+
+  // --- Structure summary ---
+  function describeKeys(obj) {
+    if (!obj || typeof obj !== 'object') return typeof obj;
+    if (Array.isArray(obj)) return `Array[${obj.length}]`;
+    return Object.keys(obj);
+  }
+
+  function describeArray(arr, label) {
+    if (!Array.isArray(arr) || !arr.length) return null;
+    const sample = arr[0];
+    const itemKeys = (sample && typeof sample === 'object' && !Array.isArray(sample))
+      ? Object.keys(sample) : ['(primitive)'];
+    // Recurse one more level for nested arrays
+    const nested = {};
+    for (const k of itemKeys) {
+      if (Array.isArray(sample[k]) && sample[k].length) {
+        const s2 = sample[k][0];
+        nested[k] = Array.isArray(s2) ? `Array[${sample[k].length}]`
+          : (s2 && typeof s2 === 'object' ? Object.keys(s2) : typeof s2);
+      }
+    }
+    return { label, length: arr.length, itemKeys, nested: Object.keys(nested).length ? nested : undefined };
+  }
+
+  // Find first N occurrences of "http" anywhere in JSON, with their path
+  function findHttpPaths(obj, path, results, max) {
+    if (results.length >= max) return;
+    if (typeof obj === 'string' && obj.includes('http')) {
+      results.push({ path, snippet: obj.slice(0, 120) });
+    } else if (Array.isArray(obj)) {
+      for (let i = 0; i < obj.length && results.length < max; i++) {
+        findHttpPaths(obj[i], `${path}[${i}]`, results, max);
+      }
+    } else if (obj && typeof obj === 'object') {
+      for (const k of Object.keys(obj)) {
+        if (results.length >= max) break;
+        findHttpPaths(obj[k], `${path}.${k}`, results, max);
+      }
+    }
+  }
+
+  const topKeys = Object.keys(pxRes);
+  const outputSummary = Array.isArray(pxRes.output) ? pxRes.output.map((item, i) => ({
+    index: i,
+    type: item.type,
+    keys: item && typeof item === 'object' ? Object.keys(item) : [],
+    contentSummary: Array.isArray(item.content) ? describeArray(item.content, 'content') : null,
+  })) : null;
+
+  const arraySummaries = [];
+  for (const k of topKeys) {
+    const s = describeArray(pxRes[k], k);
+    if (s) arraySummaries.push(s);
+  }
+
+  const httpPaths = [];
+  findHttpPaths(pxRes, 'root', httpPaths, 3);
+
+  res.json({
+    pxJobId,
+    status: pxRes.status,
+    topKeys,
+    outputSummary,
+    topLevelArrays: arraySummaries,
+    firstHttpPaths: httpPaths,
+  });
+});
+
 // Re-process a location's stored (or re-fetched) raw Perplexity response with current logic.
 // POST /api/admin/reprocess-location { clientId, locationName }
 // Uses stored rawOutputJson if present (validation_failed rows), otherwise re-fetches via pxJobId.
