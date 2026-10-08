@@ -726,6 +726,8 @@
         actionsHtml = `<span class="geo-row-actions" id="geo-actions-${h(loc.code)}"></span>`;
       }
 
+      const runForName = county ? `${loc.name}, ${county}` : loc.name;
+      const runForLine = `${runForName} | ${loc.code} | ${runType}`;
       return `
         <div class="geo-loc-row" id="geo-row-${h(loc.code)}" ${admin ? 'style="background:rgba(245,166,35,.05)"' : ''}>
           <input type="checkbox" class="geo-include-check" data-code="${h(loc.code)}" data-name="${h(loc.name)}"
@@ -740,6 +742,7 @@
             ${statusHtml}
             ${actionsHtml}
           </div>
+          <div style="font-size:11px;color:var(--muted);margin-top:2px;grid-column:2/-1">RUN FOR: ${h(runForLine)}</div>
         </div>`;
     }).join('');
     document.getElementById('geoLocationRows').innerHTML = rows;
@@ -858,20 +861,21 @@
 
   function getLocationsToRun() {
     const locs = [];
+    const county = getCounty();
     // Rows without existing dossiers: use main include checkbox
     document.querySelectorAll('.geo-include-check:checked').forEach(cb => {
       const norm = normLocName(cb.dataset.name);
       if (!existingDossiers.has(norm)) {
         const inp     = document.querySelector(`.geo-code-input[data-name="${cb.dataset.name}"]`);
         const locData = getLocForName(cb.dataset.name);
-        locs.push({ name: cb.dataset.name, code: inp ? inp.value.toUpperCase() : cb.dataset.code, runType: locData ? locData.runType : 'TOWN' });
+        locs.push({ name: cb.dataset.name, code: inp ? inp.value.toUpperCase() : cb.dataset.code, runType: locData ? locData.runType : 'TOWN', county });
       }
     });
     // Rows with existing dossiers: use re-run checkbox
     document.querySelectorAll('.geo-refresh-check:checked').forEach(cb => {
       const inp     = document.querySelector(`.geo-code-input[data-name="${cb.dataset.name}"]`);
       const locData = getLocForName(cb.dataset.name);
-      locs.push({ name: cb.dataset.name, code: inp ? inp.value.toUpperCase() : cb.dataset.code, runType: locData ? locData.runType : 'TOWN' });
+      locs.push({ name: cb.dataset.name, code: inp ? inp.value.toUpperCase() : cb.dataset.code, runType: locData ? locData.runType : 'TOWN', county });
     });
     return locs;
   }
@@ -920,13 +924,14 @@
     setRowRunning(locCode);
     const locData  = getLocForName(locName);
     const runType  = locData ? locData.runType : 'TOWN';
+    const county   = getCounty();
     const includeSecurityAddOn = !!(document.getElementById('securityAddOnCheck').checked);
     try {
       const res  = await fetch('/api/research-rerun', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ jobId: researchJobId, sessionId, clientId,
-          location: { name: locName, code: locCode, runType }, moduleName, includeSecurityAddOn }),
+          location: { name: locName, code: locCode, runType, county }, moduleName, includeSecurityAddOn }),
       });
       const data = await res.json();
       if (!res.ok) {

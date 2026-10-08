@@ -1093,7 +1093,8 @@ async function runOneLocation(record, clientId, loc, moduleName, keyValueMap, se
   let lastErr = null;
   for (let attempt = 1; attempt <= 2; attempt++) {
     try {
-      const promptText = buildResearchPrompt(loc.name, code, loc.runType || '', moduleName, keyValueMap, serviceParentMap, includeSecurityAddOn);
+      const locationName = loc.county ? `${loc.name}, ${loc.county}` : loc.name;
+      const promptText = buildResearchPrompt(locationName, code, loc.runType || '', moduleName, keyValueMap, serviceParentMap, includeSecurityAddOn);
       const deadline   = Date.now() + PERPLEXITY_TIMEOUT_MS;
       const onWaiting  = (delaySec) => updateResearchLocation(record, code, {
         status: 'running', statusDetail: `waiting (rate limit) — retrying in ${delaySec}s`,
