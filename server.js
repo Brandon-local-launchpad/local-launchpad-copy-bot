@@ -728,9 +728,12 @@ async function submitPerplexity(promptText, onWaiting) {
   const apiKey = process.env.PERPLEXITY_API_KEY;
   if (!apiKey) throw new Error('PERPLEXITY_API_KEY environment variable is not set');
 
-  const BACKOFF_DELAYS_MS = [30000, 60000, 120000, 240000, 480000]; // 30s 1m 2m 4m 8m
-  const MAX_WAIT_MS = 10 * 60 * 1000; // 10 minutes total
+  // Schedule: 30s, 60s, 120s, 240s, then repeat 240s indefinitely up to 20 min total.
+  const BACKOFF_DELAYS_MS = [30000, 60000, 120000, 240000];
+  const MAX_WAIT_MS = 20 * 60 * 1000; // 20 minutes total
+  const MAX_RETRY_AFTER_MS = 5 * 60 * 1000; // cap Retry-After at 5 min
   let totalWaited = 0;
+  let rateLimitAttempt = 0; // separate counter so 429 retries don't count against outer attempts
 
   for (let attempt = 0; ; attempt++) {
     const res = await fetch('https://api.perplexity.ai/v1/agent', {
@@ -740,20 +743,25 @@ async function submitPerplexity(promptText, onWaiting) {
     });
 
     if (res.status === 429) {
-      // Honour Retry-After header if present, otherwise use exponential schedule
+      // Honour Retry-After header if present (capped), otherwise use exponential schedule
       const retryAfterSec = parseInt(res.headers.get('Retry-After') || '', 10);
-      const delayMs = !isNaN(retryAfterSec) && retryAfterSec > 0
-        ? retryAfterSec * 1000
-        : (BACKOFF_DELAYS_MS[attempt] || BACKOFF_DELAYS_MS[BACKOFF_DELAYS_MS.length - 1]);
+      const scheduledDelay = BACKOFF_DELAYS_MS[Math.min(rateLimitAttempt, BACKOFF_DELAYS_MS.length - 1)];
+      const delayMs = (!isNaN(retryAfterSec) && retryAfterSec > 0)
+        ? Math.min(retryAfterSec * 1000, MAX_RETRY_AFTER_MS)
+        : scheduledDelay;
 
-      totalWaited += delayMs;
-      if (totalWaited > MAX_WAIT_MS) {
+      // Check before sleeping — if we've already waited long enough, give up now
+      if (totalWaited + delayMs > MAX_WAIT_MS) {
         const errText = await res.text().catch(() => '');
-        throw new Error(`Perplexity 429 rate limit — gave up after ${Math.round(totalWaited / 1000)}s: ${errText.slice(0, 200)}`);
+        throw new Error(`Perplexity 429 rate limit — gave up after ${Math.round(totalWaited / 1000)}s waiting: ${errText.slice(0, 200)}`);
       }
 
+      totalWaited += delayMs;
+      rateLimitAttempt++;
+      attempt--; // don't consume the outer retry slot for rate-limit waits
+
       const delaySec = Math.round(delayMs / 1000);
-      console.warn(`[research] 429 rate limit — waiting ${delaySec}s before retry (total waited: ${Math.round(totalWaited / 1000)}s)`);
+      console.warn(`[research] 429 rate limit — waiting ${delaySec}s before retry (total waited: ${Math.round(totalWaited / 1000)}s, attempt ${rateLimitAttempt})`);
       if (onWaiting) onWaiting(delaySec);
       await new Promise(r => setTimeout(r, delayMs));
       continue;
@@ -1401,6 +1409,7 @@ app.post('/api/parse-zip', upload.array('files', 30), async (req, res) => {
       missingH1s,
       skippedPages,
       bizAreas,
+      bizCounty: keyValueMap['biz_county'] || '',
       hasGeoFile: !!identified.geo,
       estimatedCost: (jobs.length * 0.06).toFixed(2),
     });
@@ -1899,6 +1908,12 @@ app.post('/api/research-start', async (req, res) => {
           );
         } catch (dbErr) { console.error('[DB] client_locations upsert error:', dbErr.message); }
       }
+    }
+
+    // Pre-mark all locations beyond the first batch as 'queued' so the UI shows Queued, not Pending
+    for (let i = RESEARCH_CONCURRENCY; i < locations.length; i++) {
+      const code = locations[i].code.toUpperCase();
+      await updateResearchLocation(record, code, { status: 'queued' }).catch(() => {});
     }
 
     // Concurrency-limited parallel execution with 2s stagger between each submission start

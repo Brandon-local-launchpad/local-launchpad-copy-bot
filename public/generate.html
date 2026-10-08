@@ -277,6 +277,12 @@
           Include Security Dog Services add-on module
         </label>
       </div>
+      <div id="countyRow" style="margin-top:10px">
+        <label style="font-size:13px;color:var(--muted);display:block;margin-bottom:4px">County (appended to location names for disambiguation)</label>
+        <input type="text" id="countyInput" placeholder="e.g. Hampshire"
+          style="width:220px;font-size:13px;padding:5px 8px;border:1px solid var(--border);border-radius:4px;background:var(--bg);color:var(--text)"
+          oninput="renderGeoRows()">
+      </div>
     </div>
 
     <div class="card" id="geoLocationsCard">
@@ -425,6 +431,7 @@
   let bizAreas       = [];     // [{name, norm, code}] from parse response
   let researchJobId  = null;
   let researchPollTimer = null;
+  let researchPollingLocations = null; // set of codes being polled
   const clientId     = new URLSearchParams(location.search).get('clientId') || null;
   const debugMode    = new URLSearchParams(location.search).get('debug') === '1';
 
@@ -528,6 +535,9 @@
     sessionId = data.sessionId;
     parseData = data;
     bizAreas  = data.bizAreas || [];
+    // Pre-fill county from biz_county custom value if present
+    const countyEl = document.getElementById('countyInput');
+    if (countyEl && data.bizCounty) countyEl.value = data.bizCounty;
 
     const files = data.filesIdentified || [];
     const rows  = files.map(f => {
@@ -628,12 +638,18 @@
     return `${Math.floor(secs / 60)}m ${secs % 60}s`;
   }
 
+  function getCounty() {
+    const el = document.getElementById('countyInput');
+    return el ? el.value.trim() : '';
+  }
+
   function renderGeoRows() {
     if (!bizAreas.length) {
       document.getElementById('geoLocationRows').innerHTML =
         '<p style="color:var(--muted);font-size:13px">No biz_area values found in custom values CSV.</p>';
       return;
     }
+    const county = getCounty();
     const rows = bizAreas.map((loc) => {
       const runType = loc.runType || 'TOWN';
       const admin   = isAdminArea(loc.name);
@@ -714,7 +730,7 @@
         <div class="geo-loc-row" id="geo-row-${h(loc.code)}" ${admin ? 'style="background:rgba(245,166,35,.05)"' : ''}>
           <input type="checkbox" class="geo-include-check" data-code="${h(loc.code)}" data-name="${h(loc.name)}"
             ${defaultChecked ? 'checked' : ''} style="width:13px;height:13px;accent-color:var(--accent)" onchange="checkRunReady()">
-          <span class="geo-loc-name">${h(loc.name)}</span>
+          <span class="geo-loc-name">${h(loc.name)}${county ? `, ${h(county)}` : ''}</span>
           <input type="text" class="geo-code-input" maxlength="3" value="${h(loc.code)}"
             data-name="${h(loc.name)}" data-orig="${h(loc.code)}"
             oninput="this.value=this.value.toUpperCase();checkCodeDupes();checkRunReady()" />
@@ -943,38 +959,59 @@
     }
   }
 
+  const FINAL_STATUSES = new Set(['done', 'failed', 'validation_failed']);
+
+  function allLocationsFinal(locsData) {
+    const vals = Object.values(locsData || {});
+    return vals.length > 0 && vals.every(l => FINAL_STATUSES.has(l.status));
+  }
+
+  function onResearchFinished(locsData) {
+    clearInterval(researchPollTimer);
+    researchPollTimer = null;
+    document.removeEventListener('visibilitychange', onVisibilityChange);
+    document.getElementById('runResearchBtn').style.display = 'none';
+    const locs    = Object.values(locsData || {});
+    const nDone   = locs.filter(l => l.status === 'done').length;
+    const nFailed = locs.filter(l => FINAL_STATUSES.has(l.status) && l.status !== 'done').length;
+    const contBtn = document.getElementById('geoContBtn');
+    const errEl   = document.getElementById('geoError');
+    if (nFailed === 0) {
+      if (contBtn) contBtn.style.display = 'block';
+    } else {
+      errEl.innerHTML = `<div class="error-box" style="border-color:var(--flag);color:var(--flag)">`
+        + `&#9888; ${nFailed} location${nFailed > 1 ? 's' : ''} failed`
+        + (nDone > 0 ? ` (${nDone} succeeded)` : '') + `. Review errors above, then re-run failed rows or continue without them.`
+        + `</div>`;
+      errEl.style.display = 'block';
+      if (contBtn) { contBtn.style.display = 'block'; contBtn.textContent = 'Continue (some locations failed)'; }
+    }
+  }
+
+  async function pollOnce() {
+    if (!researchJobId) return;
+    try {
+      const res  = await fetch(`/api/research-status/${researchJobId}`);
+      const data = await res.json();
+      if (!res.ok) return;
+      updateResearchUI(data.locations);
+      if (allLocationsFinal(data.locations)) {
+        onResearchFinished(data.locations);
+      }
+    } catch (_) {}
+  }
+
+  function onVisibilityChange() {
+    if (document.visibilityState === 'visible' && researchJobId && researchPollTimer) {
+      pollOnce(); // catch up immediately on tab focus
+    }
+  }
+
   function startResearchPolling(locations) {
     if (researchPollTimer) clearInterval(researchPollTimer);
-    researchPollTimer = setInterval(async () => {
-      try {
-        const res  = await fetch(`/api/research-status/${researchJobId}`);
-        const data = await res.json();
-        if (!res.ok) return;
-        updateResearchUI(data.locations);
-        if (data.status === 'done' || data.status === 'failed') {
-          clearInterval(researchPollTimer);
-          researchPollTimer = null;
-          document.getElementById('runResearchBtn').style.display = 'none';
-          const locs    = Object.values(data.locations || {});
-          const nDone   = locs.filter(l => l.status === 'done').length;
-          const nFailed = locs.filter(l => l.status === 'failed').length;
-          const contBtn = document.getElementById('geoContBtn');
-          const errEl   = document.getElementById('geoError');
-          if (nFailed === 0) {
-            // All succeeded
-            if (contBtn) contBtn.style.display = 'block';
-          } else {
-            // Some or all failed — show warning, still offer continue
-            errEl.innerHTML = `<div class="error-box" style="border-color:var(--flag);color:var(--flag)">`
-              + `&#9888; ${nFailed} location${nFailed > 1 ? 's' : ''} failed`
-              + (nDone > 0 ? ` (${nDone} succeeded)` : '') + `. Review errors above, then re-run failed rows or continue without them.`
-              + `</div>`;
-            errEl.style.display = 'block';
-            if (contBtn) { contBtn.style.display = 'block'; contBtn.textContent = 'Continue (some locations failed)'; }
-          }
-        }
-      } catch (_) {}
-    }, 10000);
+    document.removeEventListener('visibilitychange', onVisibilityChange);
+    researchPollTimer = setInterval(pollOnce, 10000);
+    document.addEventListener('visibilitychange', onVisibilityChange);
   }
 
   function updateResearchUI(locationsData) {
@@ -1023,6 +1060,9 @@
       } else if (loc.status === 'running') {
         text.textContent = loc.statusDetail || 'Running…';
         text.style.color = 'var(--accent)';
+      } else if (loc.status === 'queued') {
+        text.textContent = 'Queued';
+        text.style.color = 'var(--muted)';
       }
     }
     if (anyDone) {
