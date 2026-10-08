@@ -225,9 +225,10 @@
 
       <div class="field" style="margin-top:16px">
         <label>Trade</label>
-        <select id="tradeSelect" onchange="checkReady();syncModuleToTrade()">
+        <select id="tradeSelect" onchange="checkReady();syncModuleToTrade();updateTradeInfo()">
           <option value="">Loading trades…</option>
         </select>
+        <div id="tradeInfo" style="font-size:11px;color:var(--muted);margin-top:4px;line-height:1.5"></div>
       </div>
     </div>
 
@@ -451,21 +452,42 @@
   let selectionOpen  = false;
 
   // Load trades
+  let tradeCatalogue = []; // [{name, hasCalibrationPack, researchModule, securityDefault}]
+
   fetch('/api/trades')
     .then(r => r.json())
     .then(({ trades }) => {
+      tradeCatalogue = trades || [];
       const sel = document.getElementById('tradeSelect');
-      if (!trades.length) {
-        sel.innerHTML = '<option value="">No calibration packs found</option>';
+      if (!tradeCatalogue.length) {
+        sel.innerHTML = '<option value="">No trades found</option>';
         return;
       }
       sel.innerHTML = '<option value="">Select a trade…</option>' +
-        trades.map(t => `<option value="${h(t)}">${h(t)}</option>`).join('');
+        tradeCatalogue.map(t => {
+          const label = t.hasCalibrationPack ? t.name : `${t.name} (research only)`;
+          return `<option value="${h(t.name)}">${h(label)}</option>`;
+        }).join('');
       checkReady();
     })
     .catch(() => {
       document.getElementById('tradeSelect').innerHTML = '<option value="">Failed to load</option>';
     });
+
+  function getTradeEntry(name) {
+    return tradeCatalogue.find(t => t.name === name) || null;
+  }
+
+  function updateTradeInfo() {
+    const trade = document.getElementById('tradeSelect').value;
+    const el    = document.getElementById('tradeInfo');
+    if (!el) return;
+    const entry = getTradeEntry(trade);
+    if (!entry) { el.textContent = ''; return; }
+    const packLine   = entry.hasCalibrationPack ? `Calibration pack: ${h(entry.name)}` : 'Calibration pack: none (research only)';
+    const moduleLine = entry.researchModule ? `Research module: ${h(entry.researchModule)}` : 'Research module: none';
+    el.innerHTML = `${packLine}<br>${moduleLine}`;
+  }
 
   // File upload
   const zone = document.getElementById('uploadZone');
@@ -828,7 +850,15 @@
   function syncModuleToTrade() {
     const trade = document.getElementById('tradeSelect').value;
     const sel   = document.getElementById('researchModuleSelect');
-    if (trade && sel && [...sel.options].some(o => o.value === trade)) sel.value = trade;
+    const entry = getTradeEntry(trade);
+    const targetModule = entry && entry.researchModule ? entry.researchModule : trade;
+    if (sel && targetModule && [...sel.options].some(o => o.value === targetModule)) {
+      sel.value = targetModule;
+    }
+    // Apply security add-on default for the trade
+    if (entry && entry.securityDefault) {
+      document.getElementById('securityAddOnCheck').checked = true;
+    }
     onModuleChange();
   }
 
@@ -1287,16 +1317,37 @@
 
     const missing = data.missingH1s || [];
     const h1El    = document.getElementById('h1Status');
+    // Check calibration pack availability
+    const reviewTrade     = document.getElementById('tradeSelect').value;
+    const reviewTradeEntry = getTradeEntry(reviewTrade);
+    const noCalibPack     = reviewTradeEntry && !reviewTradeEntry.hasCalibrationPack;
+
     if (!missing.length) {
       h1El.innerHTML = `<div class="h1-ok">&#10003; All required H1s present &mdash; service page H1s auto-generated from page title + primary city.</div>`;
       const btn = document.getElementById('generateBtn');
-      btn.style.display = 'block';
-      btn.textContent   = `Generate All ${data.summary.total} Pages`;
-      document.getElementById('resumeRow').style.display = 'flex';
-      document.getElementById('selectionToggleRow').style.display = 'block';
-      document.getElementById('selectionPanel').style.display = 'none';
-      document.getElementById('selectionToggleBtn').textContent = '▾ Select Pages to Generate';
-      document.getElementById('selectionToggleBtn').classList.remove('open');
+      if (noCalibPack) {
+        btn.style.display = 'none';
+        const noPackEl = document.getElementById('noCalibPackNotice') || (() => {
+          const el = document.createElement('div');
+          el.id = 'noCalibPackNotice';
+          h1El.parentNode.insertBefore(el, h1El.nextSibling);
+          return el;
+        })();
+        noPackEl.innerHTML = `<div class="tip-box" style="margin-top:8px;border-color:var(--flag);color:var(--flag)">&#9888; No calibration pack for <strong>${h(reviewTrade)}</strong> yet. Research is saved; copy generation will be available once the pack is added.</div>`;
+        noPackEl.style.display = 'block';
+        document.getElementById('resumeRow').style.display = 'none';
+        document.getElementById('selectionToggleRow').style.display = 'none';
+      } else {
+        const noPackEl = document.getElementById('noCalibPackNotice');
+        if (noPackEl) noPackEl.style.display = 'none';
+        btn.style.display = 'block';
+        btn.textContent   = `Generate All ${data.summary.total} Pages`;
+        document.getElementById('resumeRow').style.display = 'flex';
+        document.getElementById('selectionToggleRow').style.display = 'block';
+        document.getElementById('selectionPanel').style.display = 'none';
+        document.getElementById('selectionToggleBtn').textContent = '▾ Select Pages to Generate';
+        document.getElementById('selectionToggleBtn').classList.remove('open');
+      }
     } else {
       h1El.innerHTML = `<p class="h1-missing-note">&#9888; ${missing.length} page${missing.length > 1 ? 's' : ''} missing required H1:</p>
         <ul class="missing-list">${missing.map(p => `<li>${h(p.pageTitle)} (${h(p.urlSlug)}) &mdash; ${h(p.pageType)}</li>`).join('')}</ul>

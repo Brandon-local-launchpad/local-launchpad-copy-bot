@@ -1307,15 +1307,78 @@ function buildOutputFile(results, skippedPages, companyName) {
 
 // ── New site-generation routes ────────────────────────────────────────────────
 
-app.get('/api/trades', (_req, res) => res.json({ trades: AVAILABLE_TRADES }));
+// ── Trade catalogue (all trades with research modules, not just those with calibration packs) ──
+
+// Virtual trades: map to a research module and optionally default the security add-on.
+const VIRTUAL_TRADES = {
+  'Dog Training & Security Dogs': { researchModule: 'Dog Training', securityDefault: true },
+};
+
+// Map from trade name → research module name (for trades that share a name with their module,
+// the mapping is identity; for virtual trades it's explicit above).
+function tradeToResearchModule(tradeName) {
+  if (VIRTUAL_TRADES[tradeName]) return VIRTUAL_TRADES[tradeName].researchModule;
+  if (RESEARCH_MODULES[tradeName]) return tradeName;
+  return null;
+}
+
+// Full trade list: all research modules + virtual trades, sorted alphabetically.
+// Each entry: { name, hasCalibrationPack, calibrationPackTrade, researchModule, securityDefault }
+function buildTradeCatalogue() {
+  const entries = {};
+
+  // All research module names become trades
+  for (const moduleName of Object.keys(RESEARCH_MODULES)) {
+    const hasPack = !!CALIBRATION_PACKS[moduleName];
+    entries[moduleName] = {
+      name: moduleName,
+      hasCalibrationPack: hasPack,
+      calibrationPackTrade: hasPack ? moduleName : null,
+      researchModule: moduleName,
+      securityDefault: false,
+    };
+  }
+
+  // Virtual trades (e.g. "Dog Training & Security Dogs")
+  for (const [name, cfg] of Object.entries(VIRTUAL_TRADES)) {
+    const hasPack = !!CALIBRATION_PACKS[name];
+    entries[name] = {
+      name,
+      hasCalibrationPack: hasPack,
+      calibrationPackTrade: hasPack ? name : null,
+      researchModule: cfg.researchModule,
+      securityDefault: cfg.securityDefault || false,
+    };
+  }
+
+  // Trades with calibration packs that have no research module (keep them accessible)
+  for (const packTrade of Object.keys(CALIBRATION_PACKS)) {
+    if (!entries[packTrade]) {
+      entries[packTrade] = {
+        name: packTrade,
+        hasCalibrationPack: true,
+        calibrationPackTrade: packTrade,
+        researchModule: null,
+        securityDefault: false,
+      };
+    }
+  }
+
+  return Object.values(entries).sort((a, b) => a.name.localeCompare(b.name));
+}
+
+const TRADE_CATALOGUE = buildTradeCatalogue();
+
+app.get('/api/trades', (_req, res) => res.json({ trades: TRADE_CATALOGUE }));
 
 app.post('/api/parse-zip', upload.array('files', 30), async (req, res) => {
   try {
     if (!req.files || !req.files.length) return res.status(400).json({ error: 'No files uploaded.' });
     const trade    = (req.body.trade    || '').trim();
     const clientId = (req.body.clientId || '').trim() || null;
-    if (!CALIBRATION_PACKS[trade]) {
-      return res.status(400).json({ error: `Unknown trade: "${trade}". Available: ${AVAILABLE_TRADES.join(', ')}` });
+    const tradeEntry = TRADE_CATALOGUE.find(t => t.name === trade);
+    if (!tradeEntry) {
+      return res.status(400).json({ error: `Unknown trade: "${trade}". Available: ${TRADE_CATALOGUE.map(t => t.name).join(', ')}` });
     }
 
     const { identified, missing } = identifyFiles(req.files);
@@ -1485,6 +1548,9 @@ app.post('/api/generate-batch/:sessionId', async (req, res) => {
     if (!jobs.length) return res.status(400).json({ error: 'No pages to generate (check startIndex against the total page count).' });
 
     const calibrationPack  = CALIBRATION_PACKS[trade];
+    if (!calibrationPack) {
+      return res.status(400).json({ error: `No calibration pack for "${trade}" yet. Research is saved; copy generation will be available once the pack is added.` });
+    }
     const customValuesText = Object.entries(keyValueMap).map(([k, v]) => `${k}: ${v}`).join('\n');
     const client            = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
 
