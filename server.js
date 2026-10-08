@@ -1677,7 +1677,19 @@ app.post('/api/generate-batch/:sessionId', async (req, res) => {
         await persistBatchRecord(record);
       }
 
-      // client_file rows are already saved at parse time; nothing extra needed here.
+      // client_file rows are saved at parse time. Clean up any stale legacy asset rows
+      // (custom_values / onboarding / geo_research) left by older code. Never touches
+      // geo_dossier or client_file rows.
+      if (clientId && pool) {
+        try {
+          await pool.query(
+            `DELETE FROM client_assets WHERE client_id = $1 AND asset_type IN ('custom_values','onboarding','geo_research')`,
+            [clientId]
+          );
+        } catch (dbErr) {
+          console.error('[DB] legacy asset cleanup error:', dbErr.message);
+        }
+      }
     })();
   } catch (err) {
     console.error('[generate-batch] Submission error:', err);
@@ -3002,8 +3014,12 @@ app.post('/api/clients/:clientId/pages/:pageId/regenerate', async (req, res) => 
     if (!pageRows.length) return res.status(404).json({ error: 'Page not found.' });
     const page = pageRows[0];
 
+    // Fetch the newest row per legacy asset type; ignore geo_dossier and client_file.
     const { rows: assets } = await pool.query(
-      'SELECT asset_type, content FROM client_assets WHERE client_id = $1',
+      `SELECT DISTINCT ON (asset_type) asset_type, content
+       FROM client_assets
+       WHERE client_id = $1 AND asset_type IN ('custom_values','onboarding','geo_research')
+       ORDER BY asset_type, uploaded_at DESC`,
       [req.params.clientId]
     );
     const getAsset = type => (assets.find(a => a.asset_type === type) || {}).content || '';
