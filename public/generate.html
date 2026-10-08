@@ -660,11 +660,14 @@
         const srcCount = saved && saved.sourceCount != null ? saved.sourceCount : null;
         const lowSrc   = saved && saved.lowSources;
         const hasUnresolved = saved && saved.hasUnresolvedMarkers;
+        const hasTables     = saved && saved.hasTables;
         const srcStr   = srcCount != null
           ? (lowSrc ? ` · <span style="color:var(--flag)">&#9888; low sources: ${srcCount}</span>` : ` · ${srcCount} sources`)
           : '';
-        const unresolvedStr = hasUnresolved ? ` · <span style="color:var(--flag)">&#9888; contains unresolved markers</span>` : '';
-        statusHtml = `<span style="color:${lowSrc || hasUnresolved ? 'var(--flag)' : 'var(--success)'};font-size:11px">&#10003; dossier exists (${dateStr}${costStr}${durStr})</span>${srcStr}${unresolvedStr}`;
+        const unresolvedStr = hasUnresolved ? ` · <span style="color:var(--flag)">&#9888; unresolved markers</span>` : '';
+        const tablesStr     = hasTables ? ` · <span style="color:var(--flag)">&#9888; format: tables</span>` : '';
+        const anyFlag = lowSrc || hasUnresolved || hasTables;
+        statusHtml = `<span style="color:${anyFlag ? 'var(--flag)' : 'var(--success)'};font-size:11px">&#10003; dossier exists (${dateStr}${costStr}${durStr})</span>${srcStr}${unresolvedStr}${tablesStr}`;
         const debugBtn1 = debugMode && (saved && saved.pxJobId)
           ? `<button class="btn-micro" onclick="debugPxResponse('${h(saved.jobId)}','${h(loc.code)}','${h(loc.name)}')">Debug response</button>` : '';
         const calibBtn1 = debugMode && (saved && saved.pxJobId)

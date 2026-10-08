@@ -590,6 +590,32 @@ function resolveCitations(text) {
   return { text: out, kept, stripped, sourceCount };
 }
 
+// Build a "## 9. SOURCES CONSULTED" section from all search_results and fetch_url_results
+// items in a Perplexity response. Deduplicates by URL. Returns the markdown string, or ''.
+function buildSourcesSection(pxRes) {
+  if (!Array.isArray(pxRes.output)) return '';
+  const seen = new Set();
+  const entries = [];
+  for (const item of pxRes.output) {
+    const isSearch = item.type === 'search_results';
+    const isFetch  = item.type === 'fetch_url_results';
+    if (!isSearch && !isFetch) continue;
+    const resultArr = item.results || item.contents || [];
+    for (const r of resultArr) {
+      const url   = r.url   || null;
+      const title = r.title || r.source || null;
+      if (!url || seen.has(url)) continue;
+      seen.add(url);
+      entries.push({ url, title });
+    }
+  }
+  if (!entries.length) return '';
+  const lines = entries.map(({ url, title }) =>
+    title ? `- [${title}](${url})` : `- ${url}`
+  );
+  return `\n\n## 9. SOURCES CONSULTED\n\n${lines.join('\n')}`;
+}
+
 function validateAndCleanDossier(raw) {
   let text = raw
     .replace(/<think>[\s\S]*?<\/think>/gi, '')
@@ -624,7 +650,11 @@ function validateAndCleanDossier(raw) {
   const unresolvedMarkers = (text.match(/\[web:\d+\]/g) || []);
   if (unresolvedMarkers.length) warnings.push(`contains_unresolved_markers:${unresolvedMarkers.length}`);
 
-  return { valid: true, text, warnings, hasUnresolvedMarkers: unresolvedMarkers.length > 0 };
+  // Detect markdown table format (| header | ... rows)
+  const hasTables = /^\|.+\|/m.test(text);
+  if (hasTables) warnings.push('format:tables');
+
+  return { valid: true, text, warnings, hasUnresolvedMarkers: unresolvedMarkers.length > 0, hasTables };
 }
 
 // runType must be 'PRIMARY CITY' or 'TOWN' — set on the location object at parse-zip time and
@@ -923,7 +953,7 @@ async function finishLocation(record, clientId, code, loc, pxRes, preserveOrigin
   }
   const costVal = parseFloat(cost.toFixed(6));
 
-  const { valid, text: cleanText, error: valErr, warnings, hasUnresolvedMarkers } = validateAndCleanDossier(resolvedText);
+  const { valid, text: cleanText, error: valErr, warnings, hasUnresolvedMarkers, hasTables } = validateAndCleanDossier(resolvedText);
   if (warnings && warnings.length) console.warn(`[research] "${loc.name}" validation warnings: ${warnings.join('; ')}`);
 
   if (!valid) {
@@ -941,8 +971,13 @@ async function finishLocation(record, clientId, code, loc, pxRes, preserveOrigin
     return { validationFailed: true };
   }
 
-  // Count source URLs in the final saved text
-  const sourceCount = (cleanText.match(/\[https?:\/\//g) || []).length;
+  // Append sources section from Perplexity search/fetch results
+  const sourcesSection = buildSourcesSection(pxRes);
+  const finalText = sourcesSection ? cleanText + sourcesSection : cleanText;
+
+  // Count source URLs in the final saved text (inline [URL] links + sources section links)
+  const sourceCount = (finalText.match(/\[https?:\/\//g) || []).length
+                    + (finalText.match(/\(https?:\/\//g) || []).length;
   const lowSources  = sourceCount < 10;
   if (lowSources) console.warn(`[research] "${loc.name}" low source count: ${sourceCount} URLs`);
   else            console.log(`[research] "${loc.name}" source count: ${sourceCount} URLs`);
@@ -962,7 +997,7 @@ async function finishLocation(record, clientId, code, loc, pxRes, preserveOrigin
          VALUES ($1,'geo_dossier',$2,$3,$4::jsonb) RETURNING id`,
         [clientId,
          `${loc.name.replace(/\s+/g, '_')}_dossier.md`,
-         cleanText,
+         finalText,
          JSON.stringify({ location_name: loc.name, location_norm: normaliseLocation(loc.name), preset: PERPLEXITY_PRESET, superseded: false })]
       );
       assetId = assetRows[0].id;
@@ -978,8 +1013,9 @@ async function finishLocation(record, clientId, code, loc, pxRes, preserveOrigin
     rawUsage, cost: preserveOriginal ? preserveOriginal.cost : costVal,
     preset: PERPLEXITY_PRESET, assetId, error: null,
     sourceCount, lowSources, hasUnresolvedMarkers: hasUnresolvedMarkers || false,
+    hasTables: hasTables || false,
   });
-  return { validationFailed: false, sourceCount, lowSources, hasUnresolvedMarkers: hasUnresolvedMarkers || false };
+  return { validationFailed: false, sourceCount, lowSources, hasUnresolvedMarkers: hasUnresolvedMarkers || false, hasTables: hasTables || false };
 }
 
 // ── Standalone per-location Perplexity runner (shared by research-start and research-rerun) ──
@@ -2417,6 +2453,7 @@ app.get('/api/clients/:clientId/geo-location-status', async (req, res) => {
           sourceCount:          loc.sourceCount           ?? null,
           lowSources:           loc.lowSources            ?? null,
           hasUnresolvedMarkers: loc.hasUnresolvedMarkers  ?? false,
+          hasTables:            loc.hasTables             ?? false,
         };
       }
     }
