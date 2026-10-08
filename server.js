@@ -164,7 +164,7 @@ const CALIBRATION_PACK = CALIBRATION_PACKS[AVAILABLE_TRADES[0]] || '';
 // Preset tiers: fast → low → medium (deep-research) → high → xhigh
 const PERPLEXITY_PRESET       = process.env.PERPLEXITY_PRESET || 'medium';
 // Max parallel Perplexity calls. Default 5; lower if you hit rate-limit 429s.
-const RESEARCH_CONCURRENCY    = Math.max(1, parseInt(process.env.RESEARCH_CONCURRENCY, 10) || 5);
+const RESEARCH_CONCURRENCY    = Math.max(1, parseInt(process.env.RESEARCH_CONCURRENCY, 10) || 3);
 // Per-call HTTP timeout. Perplexity deep-research can take up to 15 min; 30 min is safe.
 const PERPLEXITY_TIMEOUT_MS   = parseInt(process.env.PERPLEXITY_TIMEOUT_MS, 10) || 30 * 60 * 1000;
 
@@ -721,23 +721,54 @@ function buildResearchPrompt(locationName, code, runType, trade, keyValueMap, se
 }
 
 // Submit to Perplexity in background mode. Returns the Perplexity response id immediately.
-async function submitPerplexity(promptText) {
+// Submit to Perplexity with exponential backoff on 429. 429 retries are separate from
+// the outer attempt loop in runOneLocation and never count against it.
+// onWaiting(delaySec) is called so the caller can update the UI status.
+async function submitPerplexity(promptText, onWaiting) {
   const apiKey = process.env.PERPLEXITY_API_KEY;
   if (!apiKey) throw new Error('PERPLEXITY_API_KEY environment variable is not set');
 
-  const res = await fetch('https://api.perplexity.ai/v1/agent', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${apiKey}` },
-    body: JSON.stringify({ preset: PERPLEXITY_PRESET, input: promptText, background: true }),
-  });
-  if (!res.ok) {
-    const errText = await res.text().catch(() => '');
-    throw new Error(`Perplexity submit error ${res.status}: ${errText.slice(0, 300)}`);
+  const BACKOFF_DELAYS_MS = [30000, 60000, 120000, 240000, 480000]; // 30s 1m 2m 4m 8m
+  const MAX_WAIT_MS = 10 * 60 * 1000; // 10 minutes total
+  let totalWaited = 0;
+
+  for (let attempt = 0; ; attempt++) {
+    const res = await fetch('https://api.perplexity.ai/v1/agent', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${apiKey}` },
+      body: JSON.stringify({ preset: PERPLEXITY_PRESET, input: promptText, background: true }),
+    });
+
+    if (res.status === 429) {
+      // Honour Retry-After header if present, otherwise use exponential schedule
+      const retryAfterSec = parseInt(res.headers.get('Retry-After') || '', 10);
+      const delayMs = !isNaN(retryAfterSec) && retryAfterSec > 0
+        ? retryAfterSec * 1000
+        : (BACKOFF_DELAYS_MS[attempt] || BACKOFF_DELAYS_MS[BACKOFF_DELAYS_MS.length - 1]);
+
+      totalWaited += delayMs;
+      if (totalWaited > MAX_WAIT_MS) {
+        const errText = await res.text().catch(() => '');
+        throw new Error(`Perplexity 429 rate limit — gave up after ${Math.round(totalWaited / 1000)}s: ${errText.slice(0, 200)}`);
+      }
+
+      const delaySec = Math.round(delayMs / 1000);
+      console.warn(`[research] 429 rate limit — waiting ${delaySec}s before retry (total waited: ${Math.round(totalWaited / 1000)}s)`);
+      if (onWaiting) onWaiting(delaySec);
+      await new Promise(r => setTimeout(r, delayMs));
+      continue;
+    }
+
+    if (!res.ok) {
+      const errText = await res.text().catch(() => '');
+      throw new Error(`Perplexity submit error ${res.status}: ${errText.slice(0, 300)}`);
+    }
+
+    const submitted = await res.json();
+    if (!submitted.id) throw new Error('Perplexity submit returned no response id');
+    console.log(`[research] Perplexity job queued: ${submitted.id}`);
+    return submitted.id;
   }
-  const submitted = await res.json();
-  if (!submitted.id) throw new Error('Perplexity submit returned no response id');
-  console.log(`[research] Perplexity job queued: ${submitted.id}`);
-  return submitted.id;
 }
 
 // Poll GET /v1/agent/{id} until terminal. deadline is a Date.now() timestamp.
@@ -1056,9 +1087,12 @@ async function runOneLocation(record, clientId, loc, moduleName, keyValueMap, se
     try {
       const promptText = buildResearchPrompt(loc.name, code, loc.runType || '', moduleName, keyValueMap, serviceParentMap, includeSecurityAddOn);
       const deadline   = Date.now() + PERPLEXITY_TIMEOUT_MS;
-      const pxJobId    = await submitPerplexity(promptText);
+      const onWaiting  = (delaySec) => updateResearchLocation(record, code, {
+        status: 'running', statusDetail: `waiting (rate limit) — retrying in ${delaySec}s`,
+      }).catch(() => {});
+      const pxJobId    = await submitPerplexity(promptText, onWaiting);
       // Persist job id before polling — recovery on restart can resume polling rather than failing the row
-      await updateResearchLocation(record, code, { pxJobId });
+      await updateResearchLocation(record, code, { pxJobId, statusDetail: null });
       const pxRes      = await pollPerplexity(pxJobId, deadline);
       const result     = await finishLocation(record, clientId, code, loc, pxRes);
       // Validation failures are final — raw output already saved, do not retry
@@ -1867,14 +1901,22 @@ app.post('/api/research-start', async (req, res) => {
       }
     }
 
-    // Concurrency-limited parallel execution using shared runOneLocation
+    // Concurrency-limited parallel execution with 2s stagger between each submission start
+    const SUBMIT_STAGGER_MS = 2000;
     const queue    = [...locations];
     const inFlight = new Set();
     await new Promise(resolve => {
+      let staggerDebt = 0;
       function next() {
         while (inFlight.size < RESEARCH_CONCURRENCY && queue.length) {
-          const loc = queue.shift();
-          const p   = runOneLocation(record, clientId, loc, moduleName, keyValueMap, serviceParentMap, includeSecurityAddOn).finally(() => {
+          const loc   = queue.shift();
+          const delay = staggerDebt;
+          staggerDebt += SUBMIT_STAGGER_MS;
+          const p = (delay > 0
+            ? new Promise(r => setTimeout(r, delay)).then(() =>
+                runOneLocation(record, clientId, loc, moduleName, keyValueMap, serviceParentMap, includeSecurityAddOn))
+            : runOneLocation(record, clientId, loc, moduleName, keyValueMap, serviceParentMap, includeSecurityAddOn)
+          ).finally(() => {
             inFlight.delete(p);
             if (queue.length === 0 && inFlight.size === 0) resolve();
             else next();

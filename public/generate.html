@@ -1021,7 +1021,7 @@
           acts.innerHTML = recoverBtn + `<button class="btn-micro" onclick="rerunLocation('${h(locName)}','${h(code)}')">Re-run</button>`;
         }
       } else if (loc.status === 'running') {
-        text.textContent = 'Running…';
+        text.textContent = loc.statusDetail || 'Running…';
         text.style.color = 'var(--accent)';
       }
     }
