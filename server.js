@@ -1722,6 +1722,182 @@ app.get('/api/research-status/:jobId', async (req, res) => {
   }
 });
 
+// One-off recovery: re-fetch stored Perplexity job IDs for a location and re-process them.
+// POST /api/admin/recover-location { clientId, locationCode, extraJobIds?: string[] }
+// Finds every pxJobId stored in research_jobs for clientId+locationCode,
+// optionally adds extra IDs from the request body (e.g. from logs),
+// fetches each from Perplexity, validates, and saves the best passing result
+// (or saves raw output if none pass).
+app.post('/api/admin/recover-location', async (req, res) => {
+  if (!pool) return res.status(503).json({ error: 'Database not configured.' });
+  const { clientId, locationCode, extraJobIds } = req.body || {};
+  if (!clientId || !locationCode) return res.status(400).json({ error: 'clientId and locationCode required.' });
+  const code = locationCode.toUpperCase();
+
+  // Collect all pxJobIds stored in research_jobs for this client+location
+  const { rows: jobRows } = await pool.query(
+    `SELECT id, locations FROM research_jobs WHERE client_id = $1`,
+    [clientId]
+  );
+  const seen = new Set();
+  const candidates = []; // { pxJobId, jobId, locName, loc }
+  for (const row of jobRows) {
+    const locs = row.locations || {};
+    const loc = locs[code];
+    if (loc && loc.pxJobId) {
+      if (!seen.has(loc.pxJobId)) {
+        seen.add(loc.pxJobId);
+        candidates.push({ pxJobId: loc.pxJobId, jobId: row.id, locName: loc.name || code, loc });
+      }
+    }
+  }
+  // Add any extra IDs from the request (e.g. from logs)
+  for (const id of (extraJobIds || [])) {
+    if (id && !seen.has(id)) {
+      seen.add(id);
+      // Use name from first found loc, or fall back to code
+      const baseLoc = candidates[0] ? candidates[0].loc : { name: code, runType: '' };
+      candidates.push({ pxJobId: id, jobId: null, locName: baseLoc.name, loc: baseLoc });
+    }
+  }
+
+  if (!candidates.length) {
+    return res.json({ message: 'No pxJobId found for this location in any research job.', results: [] });
+  }
+
+  const apiKey = process.env.PERPLEXITY_API_KEY;
+  if (!apiKey) return res.status(500).json({ error: 'PERPLEXITY_API_KEY not set.' });
+
+  const results = [];
+  const passing = []; // { pxJobId, text, cost, inputTok, outputTok, pxRes }
+
+  for (const { pxJobId, jobId, locName, loc } of candidates) {
+    console.log(`[recovery-admin] Fetching ${pxJobId} from Perplexity`);
+    let pxRes;
+    try {
+      const fetchRes = await fetch(`https://api.perplexity.ai/v1/agent/${pxJobId}`, {
+        headers: { 'Authorization': `Bearer ${apiKey}` },
+      });
+      if (!fetchRes.ok) {
+        const errText = await fetchRes.text().catch(() => '');
+        const msg = `Perplexity returned ${fetchRes.status}: ${errText.slice(0, 200)}`;
+        console.warn(`[recovery-admin] ${pxJobId}: ${msg}`);
+        results.push({ pxJobId, jobId, found: false, reason: msg });
+        continue;
+      }
+      pxRes = await fetchRes.json();
+    } catch (err) {
+      results.push({ pxJobId, jobId, found: false, reason: err.message });
+      continue;
+    }
+
+    if (pxRes.status !== 'completed') {
+      results.push({ pxJobId, jobId, found: true, status: pxRes.status, reason: `Job not completed (status: ${pxRes.status})` });
+      continue;
+    }
+
+    const rawText = extractPerplexityText(pxRes);
+    console.log(`[recovery-admin] ${pxJobId}: extracted ${rawText.length} chars`);
+    const { valid, text: cleanText, error: valErr, warnings } = validateAndCleanDossier(rawText);
+
+    const rawUsage = pxRes.usage || null;
+    const usage = rawUsage || {};
+    const inputTok = usage.input_tokens || 0;
+    const outputTok = usage.output_tokens || 0;
+    let cost = 0;
+    if (rawUsage && rawUsage.cost && rawUsage.cost.total_cost != null) {
+      cost = rawUsage.cost.total_cost;
+    } else if (inputTok || outputTok) {
+      cost = (inputTok / 1e6) * PERPLEXITY_RATES.inputPerMToken + (outputTok / 1e6) * PERPLEXITY_RATES.outputPerMToken;
+    }
+
+    results.push({
+      pxJobId, jobId, found: true, status: pxRes.status,
+      textLength: rawText.length,
+      valid, valErr: valid ? null : valErr,
+      warnings: warnings || [],
+      inputTok, outputTok, cost: parseFloat(cost.toFixed(6)),
+    });
+
+    if (valid) {
+      passing.push({ pxJobId, jobId, locName, loc, cleanText, rawText, cost, inputTok, outputTok, pxRes, rawUsage });
+    }
+  }
+
+  // Pick best passing result: longest clean text
+  if (passing.length) {
+    passing.sort((a, b) => b.cleanText.length - a.cleanText.length);
+    const best = passing[0];
+    console.log(`[recovery-admin] Saving best result from ${best.pxJobId} (${best.cleanText.length} chars)`);
+
+    // Supersede old dossiers
+    await pool.query(
+      `UPDATE client_assets SET metadata = COALESCE(metadata,'{}') || '{"superseded":true}'
+       WHERE client_id = $1 AND asset_type = 'geo_dossier'
+       AND metadata->>'location_norm' = $2
+       AND NOT (metadata->>'superseded')::boolean`,
+      [clientId, normaliseLocation(best.locName)]
+    );
+
+    const { rows: assetRows } = await pool.query(
+      `INSERT INTO client_assets (client_id, asset_type, filename, content, metadata)
+       VALUES ($1,'geo_dossier',$2,$3,$4::jsonb) RETURNING id`,
+      [clientId,
+       `${best.locName.replace(/\s+/g, '_')}_dossier.md`,
+       best.cleanText,
+       JSON.stringify({ location_name: best.locName, location_norm: normaliseLocation(best.locName), preset: PERPLEXITY_PRESET, superseded: false })]
+    );
+    const assetId = assetRows[0].id;
+
+    // Update the research_jobs record that holds this pxJobId to done
+    if (best.jobId) {
+      const record = await loadResearchRecord(best.jobId);
+      if (record) {
+        await updateResearchLocation(record, code, {
+          status: 'done', finishedAt: new Date().toISOString(),
+          inputTokens: best.inputTok, outputTokens: best.outputTok,
+          rawUsage: best.rawUsage, cost: parseFloat(best.cost.toFixed(6)),
+          preset: PERPLEXITY_PRESET, assetId, error: null,
+        });
+      }
+    }
+
+    return res.json({
+      saved: true, assetId, chosenJobId: best.pxJobId,
+      textLength: best.cleanText.length, cost: parseFloat(best.cost.toFixed(6)),
+      passing: passing.map(p => p.pxJobId),
+      results,
+    });
+  }
+
+  // No passing result — save raw output from the longest response as validation_failed
+  const longest = results.filter(r => r.found && r.status === 'completed' && r.textLength > 0)
+    .sort((a, b) => b.textLength - a.textLength)[0];
+  if (longest) {
+    const matchCand = candidates.find(c => c.pxJobId === longest.pxJobId);
+    if (matchCand && matchCand.jobId) {
+      const record = await loadResearchRecord(matchCand.jobId);
+      if (record) {
+        const rawPxRes = await fetch(`https://api.perplexity.ai/v1/agent/${longest.pxJobId}`, {
+          headers: { 'Authorization': `Bearer ${apiKey}` },
+        }).then(r => r.json()).catch(() => null);
+        if (rawPxRes) {
+          await updateResearchLocation(record, code, {
+            status: 'validation_failed', finishedAt: new Date().toISOString(),
+            error: `Validation failed: ${longest.valErr}`,
+            rawOutputText: extractPerplexityText(rawPxRes),
+            rawOutputJson: JSON.stringify(rawPxRes),
+            inputTokens: longest.inputTok, outputTokens: longest.outputTok,
+            cost: longest.cost, preset: PERPLEXITY_PRESET,
+          });
+        }
+      }
+    }
+  }
+
+  res.json({ saved: false, results, message: 'No result passed validation; raw output saved as validation_failed where possible.' });
+});
+
 // Raw output viewer — returns saved rawOutputText for a validation_failed or failed location
 app.get('/api/research/:jobId/location/:code/raw', async (req, res) => {
   try {
