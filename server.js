@@ -19,6 +19,7 @@ const Papa       = require('papaparse');
 const JSZip      = require('jszip');
 const { validate, checkOrphanedServices } = require('./validate');
 const { pool, initDb } = require('./db');
+const { computeDecisions } = require('./decisions');
 
 const app = express();
 app.use(express.json({ limit: '4mb' }));
@@ -3126,6 +3127,46 @@ app.put('/api/clients/:clientId/v20-settings', async (req, res) => {
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
+});
+
+app.post('/api/clients/:clientId/decisions-preview', async (req, res) => {
+  const { sessionId } = req.body;
+  const { clientId } = req.params;
+
+  // Load client values from DB
+  let cv = { ...CLIENT_VALUES_TEMPLATE };
+  if (pool) {
+    try {
+      const { rows } = await pool.query(
+        `SELECT content FROM client_assets WHERE client_id=$1 AND asset_type='client_values' LIMIT 1`, [clientId]
+      );
+      if (rows.length) cv = { ...CLIENT_VALUES_TEMPLATE, ...JSON.parse(rows[0].content) };
+    } catch (_) {}
+  }
+
+  // Load v20 settings
+  let v20TestMode = false;
+  if (pool) {
+    try {
+      const { rows } = await pool.query(`SELECT v20_test_mode FROM clients WHERE id=$1`, [clientId]);
+      if (rows.length) v20TestMode = !!rows[0].v20_test_mode;
+    } catch (_) {}
+  }
+
+  // Load niche
+  const session = sessions.get(sessionId);
+  const trade = session ? session.trade : (cv.primary_category || '');
+  const { niche, error: nicheErr } = loadNiche(trade);
+  if (nicheErr) return res.status(400).json({ error: `G-NICHE: ${nicheErr}` });
+
+  // Build pages list from session
+  const pages = session
+    ? [...(session.jobs || []), ...(session.skippedPages || [])]
+    : [];
+  const keyValueMap = session ? (session.keyValueMap || {}) : {};
+
+  const result = computeDecisions({ cv, niche, pages, keyValueMap, v20TestMode, allocationData: null });
+  res.json(result);
 });
 
 // ── Client API routes ─────────────────────────────────────────────────────────
