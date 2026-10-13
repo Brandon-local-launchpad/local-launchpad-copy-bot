@@ -2247,6 +2247,12 @@
     }
   }
 
+  function cvStatusError(st, label, err) {
+    console.error(label, err);
+    st.textContent = label + ': ' + (err && err.message ? err.message : String(err));
+    st.style.color = 'var(--block,#b71c1c)';
+  }
+
   async function loadClientValues() {
     if (!cvRendered) renderCvForm();
     const st = document.getElementById('cvSaveStatus');
@@ -2257,24 +2263,35 @@
       st.style.color = 'var(--muted)';
       return;
     }
+
+    // Step A: fetch and apply saved client values
+    let values = null;
     try {
-      const [cvRes, catRes] = await Promise.all([
-        fetch(`/api/clients/${encodeURIComponent(clientId)}/client-values`),
-        fetch(`/api/clients/${encodeURIComponent(clientId)}/gbp-categories`),
-      ]);
-      if (!cvRes.ok) return;
-      const { found, values } = await cvRes.json();
+      const cvRes = await fetch(`/api/clients/${encodeURIComponent(clientId)}/client-values`);
+      if (!cvRes.ok) throw new Error(`HTTP ${cvRes.status}`);
+      const { found, values: v } = await cvRes.json();
+      values = v;
       if (values) cvSetValues(values);
       if (found) { st.textContent = 'Saved values loaded.'; st.style.color = 'var(--success)'; }
+    } catch (e) { cvStatusError(st, "Couldn't load client values", e); }
+
+    // Step B: GBP categories — independent of Step A
+    try {
+      const catRes = await fetch(`/api/clients/${encodeURIComponent(clientId)}/gbp-categories`);
       const catData = catRes.ok ? await catRes.json() : { categories: [] };
       cvApplyGbpCategories(catData.categories);
       cvRestoreMulticheck();
-      // Load materials from Step 1 trade (authoritative); fall back to primary_category
+    } catch (e) { console.error("Couldn't load GBP categories", e); }
+
+    // Step C: materials from Step 1 trade — independent of Steps A & B
+    try {
       const stepTrade = document.getElementById('tradeSelect') && document.getElementById('tradeSelect').value;
       const matCategory = stepTrade || (values && values.primary_category) || '';
-      if (matCategory) cvLoadNicheMaterials(matCategory);
-      loadV20Settings();
-    } catch (e) { console.error('loadClientValues', e); }
+      if (matCategory) await cvLoadNicheMaterials(matCategory);
+    } catch (e) { console.error("Couldn't load materials", e); }
+
+    // Step D: v20 settings — independent
+    loadV20Settings();
   }
 
   async function prefillClientValues() {
@@ -2321,12 +2338,12 @@
     if (!clientId) return;
     try {
       const r = await fetch(`/api/clients/${encodeURIComponent(clientId)}/v20-settings`);
-      if (!r.ok) return;
+      if (!r.ok) throw new Error(`HTTP ${r.status}`);
       const { use_v20_homepage, v20_test_mode } = await r.json();
       document.getElementById('cvUseV20').checked = !!use_v20_homepage;
       document.getElementById('cvTestMode').checked = !!v20_test_mode;
       document.getElementById('cvV20Card').style.display = '';
-    } catch {}
+    } catch (e) { console.error("Couldn't load v20 settings", e); }
   }
 
   async function saveV20Settings() {
