@@ -178,6 +178,24 @@
     .geo-row-actions { display: flex; align-items: center; gap: 5px; flex-wrap: wrap; }
     .btn-micro { font-size: 10px; padding: 2px 7px; border-radius: 4px; border: 1px solid var(--border); background: transparent; color: var(--muted); cursor: pointer; white-space: nowrap; }
     .btn-micro:hover { border-color: var(--accent); color: var(--accent); }
+    /* Client Values step */
+    .cv-row { display:grid; grid-template-columns:155px 1fr 26px; gap:8px; align-items:start; padding:8px 0; border-bottom:1px solid var(--border); }
+    .cv-row:last-child { border-bottom:none; }
+    .cv-row-label { font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:.07em; color:var(--muted); padding-top:10px; line-height:1.3; }
+    .cv-input { width:100%; background:var(--bg); border:1px solid var(--border); border-radius:5px; color:var(--text); font-family:var(--font); font-size:13px; padding:8px 10px; outline:none; transition:border-color .15s; }
+    .cv-input:focus { border-color:var(--accent); }
+    .cv-input.standin { border-color:var(--flag) !important; }
+    textarea.cv-input { resize:vertical; min-height:52px; }
+    select.cv-input { appearance:none; background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' fill='none'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%238b90a8' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E"); background-repeat:no-repeat; background-position:right 10px center; padding-right:28px; }
+    .cv-sub { margin-top:5px; display:flex; align-items:center; gap:6px; }
+    .cv-sub label { font-size:11px; color:var(--muted); text-transform:none; letter-spacing:0; font-weight:400; margin:0; cursor:pointer; }
+    .cv-sub input[type="checkbox"] { width:13px; height:13px; cursor:pointer; accent-color:var(--success); flex-shrink:0; }
+    .cv-si { padding-top:9px; text-align:center; }
+    .cv-si input[type="checkbox"] { width:13px; height:13px; accent-color:var(--flag); cursor:pointer; }
+    .cv-si-hdr { display:grid; grid-template-columns:155px 1fr 26px; gap:8px; padding-bottom:5px; border-bottom:1px solid var(--border); margin-bottom:2px; }
+    .cv-si-hdr-label { font-size:9px; font-weight:700; text-transform:uppercase; letter-spacing:.07em; color:var(--flag); text-align:center; }
+    .cv-section-hdr { font-size:10px; font-weight:700; letter-spacing:.1em; text-transform:uppercase; color:var(--accent); margin-bottom:10px; }
+
     /* Dossier view modal */
     .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,.7); z-index: 200; align-items: center; justify-content: center; }
     .modal-overlay.open { display: flex; }
@@ -208,6 +226,7 @@
     <div class="dot" id="dot3"></div>
     <div class="dot" id="dot4"></div>
     <div class="dot" id="dot5"></div>
+    <div class="dot" id="dot6"></div>
     <span class="step-label" id="stepLabel">Step 1 — Upload</span>
   </div>
 
@@ -272,10 +291,45 @@
 
   </div>
 
-  <!-- Step 3: Geo Research -->
-  <div class="step" id="step3">
+  <!-- Step 3: Client Values (v20) -->
+  <div class="step" id="step3cv">
 
     <button class="btn btn-ghost" onclick="goTo(2)">&#8592; Back to file confirmation</button>
+
+    <div class="card">
+      <div class="card-title">Client Values</div>
+      <p style="font-size:13px;color:var(--muted);margin-bottom:14px">Review every field before running. Click <strong style="color:var(--text)">Prefill from Files</strong> to load from your uploaded documents — then check and correct each value.</p>
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        <button class="btn btn-secondary" style="width:auto;padding:9px 16px;font-size:13px" id="cvPrefillBtn" onclick="prefillClientValues()">Prefill from Files</button>
+        <button class="btn btn-primary" style="width:auto;padding:9px 16px;font-size:13px" id="cvSaveBtn" onclick="saveClientValues()">Save</button>
+      </div>
+      <div id="cvSaveStatus" style="font-size:12px;margin-top:10px;min-height:18px;color:var(--muted)"></div>
+    </div>
+
+    <div id="cvForm"><!-- rendered by renderCvForm() --></div>
+
+    <div class="card" id="cvV20Card" style="display:none">
+      <div class="card-title">v20 Settings (this client)</div>
+      <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:13px;text-transform:none;letter-spacing:0;color:var(--text);margin-bottom:10px">
+        <input type="checkbox" id="cvUseV20" style="width:14px;height:14px;accent-color:var(--accent)" onchange="saveV20Settings()">
+        Use new homepage (v20) for this client
+      </label>
+      <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:13px;text-transform:none;letter-spacing:0;color:var(--text)">
+        <input type="checkbox" id="cvTestMode" style="width:14px;height:14px;accent-color:var(--flag)" onchange="saveV20Settings()">
+        Test mode — bypass G-MAP gate (testing without a live map embed)
+      </label>
+    </div>
+
+    <button class="btn btn-success" id="cvContBtn" onclick="showGeoStep();goTo(4);">
+      Continue to Geo Research
+    </button>
+
+  </div>
+
+  <!-- Step 4: Geo Research -->
+  <div class="step" id="step3">
+
+    <button class="btn btn-ghost" onclick="goTo(3)">&#8592; Back to client values</button>
 
     <div class="card">
       <div class="card-title">Geo Research</div>
@@ -326,7 +380,7 @@
     <button class="btn btn-ghost" style="margin-top:8px" onclick="skipGeoResearch()">
       Skip &mdash; Use Existing Dossiers / Uploaded File
     </button>
-    <button class="btn btn-success" id="geoContBtn" style="display:none;margin-top:8px" onclick="showReview(parseData);goTo(4);">
+    <button class="btn btn-success" id="geoContBtn" style="display:none;margin-top:8px" onclick="showReview(parseData);goTo(5);">
       Research Complete &mdash; Continue to Review
     </button>
 
@@ -346,7 +400,7 @@
   <!-- Step 4: Review (was Step 3) -->
   <div class="step" id="step4">
 
-    <button class="btn btn-ghost" onclick="goTo(3)">&#8592; Back to geo research</button>
+    <button class="btn btn-ghost" onclick="goTo(4)">&#8592; Back to geo research</button>
 
     <div class="card">
       <div class="card-title">Pages Found</div>
@@ -724,7 +778,7 @@
       warnEl.style.display = 'none';
     }
 
-    document.getElementById('confirmBtn').onclick = () => { showGeoStep(); goTo(3); };
+    document.getElementById('confirmBtn').onclick = () => { loadClientValues(); goTo(3); };
     goTo(2);
   }
 
@@ -1432,7 +1486,7 @@
 
   function skipGeoResearch() {
     showReview(parseData);
-    goTo(4);
+    goTo(5);
   }
 
   function showReview(data) {
@@ -1627,7 +1681,7 @@
         body: JSON.stringify({ slugs: [...selectedSlugs] }),
       });
     }
-    goTo(5);
+    goTo(6);
 
     let startIndex = 0;
     if (isResume) {
@@ -1751,7 +1805,7 @@
     const existingBatchId = new URLSearchParams(location.search).get('batchId');
     if (!existingBatchId) return;
     batchId = existingBatchId;
-    goTo(5);
+    goTo(6);
     document.getElementById('refreshBtn').disabled = false;
     document.getElementById('batchLink').style.display = 'block';
     document.getElementById('batchLink').innerHTML = `Bookmark this page to come back later: <code>${location.href}</code>`;
@@ -1762,12 +1816,274 @@
   function goTo(n) {
     document.querySelectorAll('.step').forEach((el, i) => el.classList.toggle('active', i + 1 === n));
     document.getElementById('stepLabel').textContent =
-      ['Step 1 — Upload', 'Step 2 — Confirm Files', 'Step 3 — Geo Research', 'Step 4 — Review', 'Step 5 — Batch Status'][n - 1] || '';
-    ['dot1','dot2','dot3','dot4','dot5'].forEach((id, i) => {
+      ['Step 1 — Upload', 'Step 2 — Confirm Files', 'Step 3 — Client Values', 'Step 4 — Geo Research', 'Step 5 — Review', 'Step 6 — Batch Status'][n - 1] || '';
+    ['dot1','dot2','dot3','dot4','dot5','dot6'].forEach((id, i) => {
       const d = document.getElementById(id);
       if (d) d.className = 'dot' + (i + 1 < n ? ' done' : i + 1 === n ? ' active' : '');
     });
     window.scrollTo(0, 0);
+  }
+
+  // ── Client Values step ────────────────────────────────────────────────────
+
+  const CV_SECTIONS = [
+    { title: 'Business Identity', fields: [
+      { key: 'company_name', label: 'Company name', type: 'text', placeholder: 'Exact GBP name (capitals & apostrophes)',
+        sub: [{ key: 'company_name_gbp_checked', label: 'Checked against GBP ✓' }] },
+      { key: 'phone',            label: 'Phone',           type: 'text' },
+      { key: 'email',            label: 'Email',           type: 'text' },
+      { key: 'address',          label: 'Address',         type: 'textarea', rows: 2 },
+      { key: 'gbp_address_type', label: 'GBP address type',type: 'select', options: ['','storefront','service_area'] },
+      { key: 'hours',            label: 'Hours',           type: 'text', placeholder: 'e.g. Mon–Sat 8am–6pm' },
+      { key: 'primary_category', label: 'Primary category',type: 'text', placeholder: 'e.g. Landscaper' },
+      { key: 'year_founded',     label: 'Year founded',    type: 'text', placeholder: '4 digits only' },
+    ]},
+    { title: 'Proof & Cover', fields: [
+      { key: 'jobs_completed',       label: 'Jobs completed',      type: 'text', placeholder: 'Number only, e.g. 150' },
+      { key: 'rating',               label: 'Rating',              type: 'text', placeholder: 'e.g. 4.9' },
+      { key: 'review_count',         label: 'Review count',        type: 'text', placeholder: 'Number only' },
+      { key: 'guarantee_years',      label: 'Guarantee years',     type: 'text', placeholder: 'Number only, e.g. 10' },
+      { key: 'guarantee_scope',      label: 'Guarantee scope',     type: 'textarea', rows: 2, placeholder: 'e.g. new roofs 10 yrs, repairs 2 yrs' },
+      { key: 'manufacturer_warranty',label: 'Manufacturer warranty',type: 'text', placeholder: 'e.g. 25 year manufacturer warranty' },
+      { key: 'insurance_cover',      label: 'Insurance cover',     type: 'text', placeholder: 'Figure without £, e.g. 5m' },
+    ]},
+    { title: 'Quotes & Timing', fields: [
+      { key: 'free_quotes',            label: 'Free quotes',         type: 'select', options: ['','yes','no'] },
+      { key: 'quote_method',           label: 'Quote method',        type: 'text', placeholder: 'e.g. written quote on site visit' },
+      { key: 'price_list',             label: 'Price list',          type: 'text', placeholder: 'URL or blank' },
+      { key: 'response_time',          label: 'Response time',       type: 'text', placeholder: 'e.g. within 24 hours' },
+      { key: 'same_day_available',     label: 'Same day available',  type: 'select', options: ['','yes','no'] },
+      { key: 'out_of_hours_available', label: 'Out of hours',        type: 'select', options: ['','yes','no','24/7'] },
+      { key: 'start_time',             label: 'Start time',          type: 'text', placeholder: 'e.g. same week' },
+    ]},
+    { title: 'Differentiators', fields: [
+      { key: 'differentiator_1', label: 'Diff 1 (title)', type: 'text', placeholder: 'e.g. Fixed Prices With No Hidden Costs',
+        sub: [{ key: 'differentiator_1_confirmed', label: 'Confirmed ✓' }] },
+      { key: 'differentiator_1_sentence', label: 'Diff 1 (sentence)', type: 'text', placeholder: 'e.g. fixed prices with no hidden costs' },
+      { key: 'differentiator_2', label: 'Diff 2 (title)', type: 'text', placeholder: 'e.g. Family Run and Independent',
+        sub: [{ key: 'differentiator_2_confirmed', label: 'Confirmed ✓' }] },
+      { key: 'differentiator_2_sentence', label: 'Diff 2 (sentence)', type: 'text', placeholder: 'e.g. family run and independent' },
+    ]},
+    { title: 'Owner & Business', fields: [
+      { key: 'owner_name',          label: 'Owner name',       type: 'text', placeholder: 'First name only' },
+      { key: 'owner_name_2',        label: 'Second owner',     type: 'text' },
+      { key: 'owner_qualification', label: 'Qualification',    type: 'text', placeholder: 'e.g. NVQ Level 3' },
+      { key: 'owner_why',           label: 'Why they do it',   type: 'textarea', rows: 2 },
+      { key: 'owner_promise',       label: 'Owner promise',    type: 'textarea', rows: 2 },
+      { key: 'owner_pronoun',       label: 'Owner pronoun',    type: 'select', options: ['','he','she','they'] },
+      { key: 'owner_photo',         label: 'Owner photo',      type: 'select', options: ['no','yes'] },
+      { key: 'business_type',       label: 'Business type',    type: 'select', options: ['A','B','C','D','split'] },
+      { key: 'team_size',           label: 'Team size',        type: 'text', placeholder: 'Number only' },
+    ]},
+    { title: 'Services & Coverage', fields: [
+      { key: 'materials_methods', label: 'Materials / methods', type: 'textarea', rows: 2, placeholder: 'Comma-separated, e.g. porcelain, block paving, resin', arrayMode: true },
+      { key: 'typical_jobs',      label: 'Typical jobs',       type: 'textarea', rows: 3, placeholder: 'One per line: Job name | from price | duration', jsonMode: 'jobs' },
+      { key: 'jobs_wanted',       label: 'Jobs wanted',        type: 'textarea', rows: 2, placeholder: 'Comma-separated job types', arrayMode: true },
+      { key: 'area_wide',         label: 'Area wide',          type: 'text', placeholder: 'e.g. Hampshire' },
+      { key: 'travel_distance',   label: 'Travel distance',    type: 'text', placeholder: 'e.g. 20 miles' },
+    ]},
+    { title: 'Page Settings', fields: [
+      { key: 'map_embed',          label: 'Map embed',         type: 'textarea', rows: 2, placeholder: 'Full Google Maps embed URL' },
+      { key: 'emergency_primary',  label: 'Emergency primary', type: 'select', options: ['','yes','no'] },
+      { key: 'handles_planning',   label: 'Handles planning',  type: 'select', options: ['','yes','no'] },
+      { key: 'finance_options',    label: 'Finance options',   type: 'text' },
+      { key: 'complaints_process', label: 'Complaints process',type: 'textarea', rows: 2 },
+    ]},
+    { title: 'Marketing Intelligence', fields: [
+      { key: 'review_themes',  label: 'Review themes',  type: 'textarea', rows: 2, placeholder: 'Comma-separated, e.g. tidied up every day, came in on budget', arrayMode: true },
+      { key: 'verified_logos', label: 'Verified logos', type: 'textarea', rows: 3, placeholder: '[{"name":"BALI","tier":"tier1","register_url":"","caption":""}]', jsonMode: 'logos' },
+    ]},
+  ];
+
+  let cvRendered = false;
+
+  function renderCvForm() {
+    const container = document.getElementById('cvForm');
+    container.innerHTML = CV_SECTIONS.map(section => `
+      <div class="card">
+        <div class="cv-section-hdr">${section.title}</div>
+        <div class="cv-si-hdr"><div></div><div></div><div class="cv-si-hdr-label" title="Stand-in value">S</div></div>
+        ${section.fields.map(f => {
+          let input = '';
+          if (f.type === 'textarea') {
+            input = `<textarea class="cv-input" id="cv_${f.key}" rows="${f.rows || 2}" placeholder="${h(f.placeholder || '')}"></textarea>`;
+          } else if (f.type === 'select') {
+            const opts = f.options.map(o => `<option value="${h(o)}">${o || '—'}</option>`).join('');
+            input = `<select class="cv-input" id="cv_${f.key}">${opts}</select>`;
+          } else {
+            input = `<input class="cv-input" id="cv_${f.key}" type="text" placeholder="${h(f.placeholder || '')}">`;
+          }
+          const subs = (f.sub || []).map(s =>
+            `<div class="cv-sub"><input type="checkbox" id="cv_${s.key}"><label for="cv_${s.key}">${h(s.label)}</label></div>`
+          ).join('');
+          return `<div class="cv-row">
+            <div class="cv-row-label">${h(f.label)}</div>
+            <div>${input}${subs}</div>
+            <div class="cv-si"><input type="checkbox" class="cv-standin-cb" data-field="${f.key}" title="Stand-in value"></div>
+          </div>`;
+        }).join('')}
+      </div>`).join('');
+
+    // Update stand-in highlight on change
+    document.querySelectorAll('.cv-standin-cb').forEach(cb => {
+      cb.addEventListener('change', () => {
+        const el = document.getElementById('cv_' + cb.dataset.field);
+        if (el) el.classList.toggle('standin', cb.checked);
+      });
+    });
+    cvRendered = true;
+  }
+
+  function cvGetValues() {
+    const v = {};
+    for (const section of CV_SECTIONS) {
+      for (const f of section.fields) {
+        const el = document.getElementById('cv_' + f.key);
+        if (!el) continue;
+        if (f.type === 'select' || f.type === 'text') {
+          v[f.key] = el.value.trim();
+        } else if (f.type === 'textarea') {
+          if (f.arrayMode) {
+            v[f.key] = el.value.split(',').map(s => s.trim()).filter(Boolean);
+          } else if (f.jsonMode === 'jobs') {
+            v[f.key] = el.value.split('\n').filter(s => s.trim()).map(line => {
+              const [job, price, duration] = line.split('|').map(s => s.trim());
+              return { job: job || '', price: price || '', duration: duration || '' };
+            }).filter(r => r.job);
+          } else if (f.jsonMode === 'logos') {
+            try { v[f.key] = JSON.parse(el.value || 'null'); } catch { v[f.key] = el.value || null; }
+          } else {
+            v[f.key] = el.value.trim();
+          }
+        }
+        for (const s of (f.sub || [])) {
+          const subEl = document.getElementById('cv_' + s.key);
+          if (subEl) v[s.key] = subEl.checked;
+        }
+      }
+    }
+    v.stand_ins = [];
+    document.querySelectorAll('.cv-standin-cb').forEach(cb => { if (cb.checked) v.stand_ins.push(cb.dataset.field); });
+    return v;
+  }
+
+  function cvSetValues(data) {
+    for (const section of CV_SECTIONS) {
+      for (const f of section.fields) {
+        const el = document.getElementById('cv_' + f.key);
+        if (!el) continue;
+        const val = data[f.key];
+        if (f.type === 'select' || f.type === 'text') {
+          el.value = val != null ? val : '';
+        } else if (f.type === 'textarea') {
+          if (f.arrayMode) {
+            el.value = Array.isArray(val) ? val.join(', ') : (val || '');
+          } else if (f.jsonMode === 'jobs') {
+            el.value = Array.isArray(val) ? val.map(r => [r.job, r.price, r.duration].filter(Boolean).join(' | ')).join('\n') : '';
+          } else if (f.jsonMode === 'logos') {
+            el.value = val != null ? JSON.stringify(val, null, 2) : '';
+          } else {
+            el.value = val != null ? val : '';
+          }
+        }
+        for (const s of (f.sub || [])) {
+          const subEl = document.getElementById('cv_' + s.key);
+          if (subEl) subEl.checked = !!data[s.key];
+        }
+      }
+    }
+    const standIns = new Set(data.stand_ins || []);
+    document.querySelectorAll('.cv-standin-cb').forEach(cb => {
+      cb.checked = standIns.has(cb.dataset.field);
+      const el = document.getElementById('cv_' + cb.dataset.field);
+      if (el) el.classList.toggle('standin', cb.checked);
+    });
+  }
+
+  async function loadClientValues() {
+    if (!cvRendered) renderCvForm();
+    const st = document.getElementById('cvSaveStatus');
+    if (!clientId) {
+      document.getElementById('cvPrefillBtn').disabled = true;
+      document.getElementById('cvSaveBtn').disabled = true;
+      st.textContent = 'No client ID — values are not saved to the database in standalone mode.';
+      st.style.color = 'var(--muted)';
+      return;
+    }
+    try {
+      const r = await fetch(`/api/clients/${encodeURIComponent(clientId)}/client-values`);
+      if (!r.ok) return;
+      const { found, values } = await r.json();
+      if (values) cvSetValues(values);
+      if (found) { st.textContent = 'Saved values loaded.'; st.style.color = 'var(--success)'; }
+      loadV20Settings();
+    } catch (e) { console.error('loadClientValues', e); }
+  }
+
+  async function prefillClientValues() {
+    if (!clientId) { alert('No client selected.'); return; }
+    const btn = document.getElementById('cvPrefillBtn');
+    setLoading(btn, true, 'Prefilling…');
+    try {
+      const r = await fetch(`/api/clients/${encodeURIComponent(clientId)}/prefill-client-values`, { method: 'POST' });
+      const data = await r.json();
+      if (!r.ok) { alert(data.error || 'Prefill failed.'); return; }
+      cvSetValues(data.prefilled);
+      const st = document.getElementById('cvSaveStatus');
+      st.textContent = 'Prefilled — review each value, then click Save.';
+      st.style.color = 'var(--flag)';
+    } catch (e) { alert('Prefill error: ' + e.message); }
+    finally { setLoading(btn, false, 'Prefill from Files'); }
+  }
+
+  async function saveClientValues() {
+    const st = document.getElementById('cvSaveStatus');
+    const btn = document.getElementById('cvSaveBtn');
+    setLoading(btn, true, 'Saving…');
+    if (!clientId) {
+      st.textContent = 'No client ID — values not saved.';
+      st.style.color = 'var(--flag)';
+      setLoading(btn, false, 'Save');
+      return;
+    }
+    try {
+      const r = await fetch(`/api/clients/${encodeURIComponent(clientId)}/client-values`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(cvGetValues()),
+      });
+      const data = await r.json();
+      if (!r.ok) { st.textContent = 'Save failed: ' + (data.error || r.status); st.style.color = 'var(--block)'; return; }
+      st.textContent = 'Saved ✓';
+      st.style.color = 'var(--success)';
+    } catch (e) { st.textContent = 'Save error: ' + e.message; st.style.color = 'var(--block)'; }
+    finally { setLoading(btn, false, 'Save'); }
+  }
+
+  async function loadV20Settings() {
+    if (!clientId) return;
+    try {
+      const r = await fetch(`/api/clients/${encodeURIComponent(clientId)}/v20-settings`);
+      if (!r.ok) return;
+      const { use_v20_homepage, v20_test_mode } = await r.json();
+      document.getElementById('cvUseV20').checked = !!use_v20_homepage;
+      document.getElementById('cvTestMode').checked = !!v20_test_mode;
+      document.getElementById('cvV20Card').style.display = '';
+    } catch {}
+  }
+
+  async function saveV20Settings() {
+    if (!clientId) return;
+    try {
+      await fetch(`/api/clients/${encodeURIComponent(clientId)}/v20-settings`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          use_v20_homepage: document.getElementById('cvUseV20').checked,
+          v20_test_mode:    document.getElementById('cvTestMode').checked,
+        }),
+      });
+    } catch {}
   }
 
   function h(s) {
