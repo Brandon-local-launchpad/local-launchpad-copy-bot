@@ -1,0 +1,172 @@
+{
+  "_source": "Niche_Library_Landscaper (2).md",
+
+  "trade": "Landscaping",
+  "trade_lower": "landscaping",
+  "trade_person": "landscaper",
+  "trade_person_plural": "landscapers",
+  "customer_type": "homeowners",
+  "unit_of_work": "jobs",
+  "emergency_niche": false,
+  "big_ticket": true,
+  "big_ticket_examples": ["full garden makeovers", "patios", "driveways"],
+  "schema_subtype": "HomeAndConstructionBusiness",
+
+  "words_use": ["garden", "back garden", "front garden", "lawn", "patio", "driveway", "path", "hedge", "border", "fence", "decking"],
+  "words_avoid": ["plot", "site", "property", "grounds", "hardscape", "softscape", "outdoor living space", "green space", "curb appeal"],
+
+  "buttons": {
+    "primary_action": "Get My [QUOTE_FREE] Quote",
+    "meta_cta": "Get your [QUOTE_FREE_LOWER] quote today.",
+    "process_h2": "Your [QUOTE_FREE] Quote in 3 Simple Steps",
+    "final_h2": "Get a [QUOTE_FREE] Quote From a Local [CATEGORY] in [CITY]",
+    "final_h2_emergency": null
+  },
+
+  "business_type_default": "A",
+  "business_type_notes": "Mostly installs → A. Mostly maintenance → B. Mixed → A with schedule line in step 3.",
+
+  "priority_services": [],
+
+  "steps": [
+    {
+      "title": "Tell Us About Your Garden",
+      "brief": "How to get in touch and what is useful to send first (rough size, what they want, photos if they have them). No promise of a reply time unless [CV: response_time] is set."
+    },
+    {
+      "title": "We Visit and Price the Job",
+      "brief": "The visit and what gets looked at on site (levels, drainage, access, what stays and what goes). Follows [CV: quote_method]; only say the quote is written if quote_method says so. Never restates 'free' (FAQ 5 owns it)."
+    },
+    {
+      "title": "We Start on a Date That Suits You",
+      "brief": "The start date is agreed in advance and the job runs to the agreed plan. Never restates the start time (FAQ 4 owns it). Mixed A/B clients add one line on ongoing maintenance visits."
+    }
+  ],
+
+  "cover_chain": ["guarantee", "manufacturer_warranty", "insurance"],
+
+  "fears": [
+    "a firm that has not done this kind of garden before",
+    "groundwork that fails later (patios that sink or hold water, fences that lean)",
+    "a price that grows once the job starts",
+    "being left with a half finished garden and no idea what happens next"
+  ],
+
+  "logo_tiers": {
+    "ratings": ["Google (needs review_count 5+)", "Checkatrade", "Trustpilot", "Which? Trusted Traders"],
+    "tier1": ["BALI (British Association of Landscape Industries)", "APL (Association of Professional Landscapers)", "TrustMark"],
+    "tier2": ["Marshalls Register", "Bradstone Assured", "Brett Approved Installer"],
+    "tier3": "chamber of commerce, local press features, local awards — Ray's call per client"
+  },
+
+  "faq_fixed_doubts": {
+    "Q1_cost": "Price",
+    "Q6_areas": "Fit"
+  },
+
+  "faq_slots": [
+    {
+      "slot": "faq_2",
+      "question": "Are you insured?",
+      "answer_brief": "The cover figure and what it means for the customer if something is damaged during the job.",
+      "symptom_based": false,
+      "doubt": "Trust"
+    },
+    {
+      "slot": "faq_2_fallback",
+      "question": "What happens if something goes wrong?",
+      "answer_brief": "From [CV: complaints_process] only.",
+      "symptom_based": false,
+      "doubt": "Trust"
+    },
+    {
+      "slot": "faq_3",
+      "question": "Do you guarantee your work?",
+      "answer_brief": "Used only when a guarantee or manufacturer warranty is confirmed. Start with yes, then the terms.",
+      "symptom_based": false,
+      "doubt": "Trust"
+    },
+    {
+      "slot": "faq_3_none",
+      "question": "What happens if something isn't right after the job?",
+      "answer_brief": "Used when nothing in cover_chain other than insurance is confirmed. Answer from the 'reasonable care and skill' standard every trade works to, and how to raise it. Never invent a guarantee.",
+      "symptom_based": false,
+      "doubt": "Trust"
+    },
+    {
+      "slot": "faq_4",
+      "question": "How soon can you start?",
+      "answer_brief": "From [CV: start_time]. Bigger projects are booked further ahead.",
+      "symptom_based": false,
+      "doubt": "Timing"
+    },
+    {
+      "slot": "faq_5_free",
+      "question": "Is the quote free and no obligation?",
+      "answer_brief": "From [QUOTE_FREE] and [CV: quote_method].",
+      "symptom_based": false,
+      "doubt": "Price"
+    },
+    {
+      "slot": "faq_5_not_free",
+      "question": "How do your quotes work?",
+      "answer_brief": "From [CV: quote_method] only.",
+      "symptom_based": false,
+      "doubt": "Price"
+    },
+    {
+      "slot": "faq_A",
+      "question": "How long does a garden landscaping project take?",
+      "answer_brief": "Depends on size, groundwork and materials. Give the factors, not a number unless confirmed. Weather can move hard landscaping days.",
+      "symptom_based": false,
+      "doubt": "Timing"
+    },
+    {
+      "slot": "faq_B",
+      "question": "Why does water sit on my patio or lawn after rain?",
+      "answer_brief": "Use the assigned symptom's meaning and its linked local issue. Three genuinely different causes in plain words: ground underneath that drains slowly, a surface that falls the wrong way, no drain or soakaway to take the water. Then what the local ground adds, then the fix.",
+      "symptom_based": true,
+      "doubt": "Process"
+    },
+    {
+      "slot": "faq_C",
+      "question": "Is it better to lay turf or sow grass seed?",
+      "answer_brief": "Turf gives a usable lawn sooner; seed costs less and suits larger areas but takes longer to establish. Timing matters for both.",
+      "symptom_based": false,
+      "is_fallback": true,
+      "doubt": "Process"
+    },
+    {
+      "slot": "faq_D",
+      "question": "What is the best time of year to landscape a garden?",
+      "answer_brief": "Hard landscaping runs most of the year in dry spells; planting and turfing do best in autumn and spring. Booking ahead for spring.",
+      "symptom_based": false,
+      "is_fallback": true,
+      "doubt": "Timing"
+    },
+    {
+      "slot": "faq_planning",
+      "question": "Do I need planning permission for a patio or driveway?",
+      "answer_brief": "Most back garden patios do not. Front driveways over 5 square metres need permeable paving or drainage into the garden, otherwise permission. Conservation areas add controls.",
+      "symptom_based": false,
+      "condition": "big_ticket AND [CV: handles_planning] confirmed",
+      "doubt": "Process"
+    }
+  ],
+
+  "materials_tick_list": {
+    "Paving": ["porcelain", "natural stone", "concrete slabs", "block paving", "resin bound", "gravel"],
+    "Base": ["MOT Type 1 sub base", "permeable base", "concrete"],
+    "Lawns": ["rolled turf", "seed", "artificial grass"],
+    "Fencing": ["close board", "panel", "featherboard", "posts in concrete", "concrete spurs", "metal posts"],
+    "Decking": ["softwood", "hardwood", "composite"],
+    "Other": ["green waste taken away", "mini digger on site", "design drawings provided"]
+  },
+
+  "why_titles_alt": [
+    "Local Experience Behind Every Job",
+    "Covered If Something Goes Wrong"
+  ],
+
+  "do_not_reuse": []
+}

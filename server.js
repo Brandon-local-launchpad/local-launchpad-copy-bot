@@ -81,24 +81,80 @@ const sleep = ms => new Promise(r => setTimeout(r, ms));
 
 function readDoc(name) {
   const base = name.replace(/\.md$/, '');
-  // Scan directory for all numbered copies, pick the highest
-  const files = fs.readdirSync(__dirname);
+  // Search root and prompts/ subdirectory; pick the highest-numbered copy across both.
+  const searchDirs = [__dirname, path.join(__dirname, 'prompts')];
   let best = null;
   let bestN = -1;
-  for (const f of files) {
-    if (f === `${base}.md`) { if (bestN < 0) { best = f; bestN = 0; } }
-    const m = f.match(new RegExp(`^${base.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')} \\((\\d+)\\)\\.md$`));
-    if (m) { const n = parseInt(m[1], 10); if (n > bestN) { best = f; bestN = n; } }
+  let bestDir = null;
+  for (const dir of searchDirs) {
+    if (!fs.existsSync(dir)) continue;
+    for (const f of fs.readdirSync(dir)) {
+      if (f === `${base}.md`) { if (bestN < 0) { best = f; bestN = 0; bestDir = dir; } }
+      const m = f.match(new RegExp(`^${base.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')} \\((\\d+)\\)\\.md$`));
+      if (m) { const n = parseInt(m[1], 10); if (n > bestN) { best = f; bestN = n; bestDir = dir; } }
+    }
   }
   if (best) {
     console.log(`  LOADED: ${best}`);
-    return fs.readFileSync(path.join(__dirname, best), 'utf8');
+    return fs.readFileSync(path.join(bestDir, best), 'utf8');
   }
-  throw new Error(`Cannot find ${name} (or numbered copies) in ${__dirname}`);
+  throw new Error(`Cannot find ${name} (or numbered copies) in ${__dirname} or prompts/`);
+}
+
+// ── Niche library ─────────────────────────────────────────────────────────────
+
+const NICHE_DIR = path.join(__dirname, 'niche-library');
+
+// Required top-level keys in every niche JSON. G-NICHE fires if any are missing or empty.
+const NICHE_REQUIRED_KEYS = [
+  'trade', 'trade_lower', 'trade_person', 'trade_person_plural',
+  'customer_type', 'unit_of_work', 'emergency_niche', 'big_ticket',
+  'schema_subtype', 'words_use', 'words_avoid', 'buttons', 'steps',
+  'cover_chain', 'fears', 'faq_slots', 'materials_tick_list', 'why_titles_alt',
+];
+
+// Map from primary_category (case-insensitive) to niche JSON filename stem.
+// Extend this when new niche files are added.
+const NICHE_FILE_MAP = {
+  'landscaper':          'landscaper',
+  'landscaper gardener': 'landscaper',
+  'landscaping':         'landscaper',
+  'roofing company':     'roofer',
+  'roofing contractor':  'roofer',
+  'roofer':              'roofer',
+};
+
+function loadNiche(primaryCategory) {
+  const key = (primaryCategory || '').toLowerCase().trim();
+  const stem = NICHE_FILE_MAP[key];
+  if (!stem) {
+    return { niche: null, error: `G-NICHE: no niche file for trade "${primaryCategory}". Add one to niche-library/.` };
+  }
+  const filePath = path.join(NICHE_DIR, `${stem}.json`);
+  if (!fs.existsSync(filePath)) {
+    return { niche: null, error: `G-NICHE: niche file ${stem}.json not found in niche-library/.` };
+  }
+  let niche;
+  try {
+    niche = JSON.parse(fs.readFileSync(filePath, 'utf8'));
+  } catch (e) {
+    return { niche: null, error: `G-NICHE: failed to parse ${stem}.json — ${e.message}` };
+  }
+  const missing = NICHE_REQUIRED_KEYS.filter(k => {
+    const v = niche[k];
+    if (v === undefined || v === null) return true;
+    if (Array.isArray(v) && v.length === 0) return true;
+    if (typeof v === 'string' && v.trim() === '') return true;
+    return false;
+  });
+  if (missing.length) {
+    return { niche: null, error: `G-NICHE: niche file ${stem}.json is missing required slots: ${missing.join(', ')}` };
+  }
+  return { niche, error: null };
 }
 
 console.log('Loading prompt files...');
-const HOMEPAGE_PROMPT = readDoc('Homepage_Copywriting_Prompt_CORE.md');
+const HOMEPAGE_PROMPT = readDoc('Homepage_Copywriting_Prompt_CORE (19).md'); // old path pins to (19); v20 path loads (20) lazily
 const CATEGORY_PROMPT = readDoc('Category_Page_Copywriting_Prompt_CORE.md');
 const SERVICE_PROMPT  = readDoc('Service_Page_Copywriting_Prompt_CORE.md');
 const LOCATION_PROMPT = readDoc('Location_Page_Copywriting_Prompt_CORE.md');
@@ -1396,6 +1452,14 @@ function buildTradeCatalogue() {
 const TRADE_CATALOGUE = buildTradeCatalogue();
 
 app.get('/api/trades', (_req, res) => res.json({ trades: TRADE_CATALOGUE }));
+
+// Return the parsed niche JSON for a given primary_category value.
+// Used by the v20 homepage path to verify G-NICHE before generation.
+app.get('/api/niche/:trade', (req, res) => {
+  const { niche, error } = loadNiche(req.params.trade);
+  if (error) return res.status(404).json({ error });
+  res.json(niche);
+});
 
 app.post('/api/parse-zip', upload.array('files', 30), async (req, res) => {
   try {

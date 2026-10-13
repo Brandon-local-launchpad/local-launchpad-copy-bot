@@ -1,0 +1,189 @@
+{
+  "_source": "Niche_Library_Roofer (2).md",
+
+  "trade": "Roofing",
+  "trade_lower": "roofing",
+  "trade_person": "roofer",
+  "trade_person_plural": "roofers",
+  "customer_type": "homeowners",
+  "unit_of_work": "jobs",
+  "emergency_niche": true,
+  "emergency_niche_note": "storm damage and active leaks — layout only switches on when [CV: emergency_primary] is yes",
+  "big_ticket": true,
+  "big_ticket_examples": ["full roof replacements"],
+  "schema_subtype": "RoofingContractor",
+
+  "words_use": ["roof", "tiles", "slates", "ridge", "chimney", "flat roof", "gutters", "leak", "damp patch", "flashing", "house", "home"],
+  "words_avoid": ["roofing system", "building envelope", "property", "structure", "solutions", "membrane", "top quality"],
+  "words_avoid_exceptions": { "membrane": "allowed when naming EPDM or a specific product" },
+
+  "buttons": {
+    "primary_action": "Get My [QUOTE_FREE] Quote",
+    "meta_cta": "Get your [QUOTE_FREE_LOWER] quote today.",
+    "process_h2": "Your [QUOTE_FREE] Quote in 3 Simple Steps",
+    "final_h2": "Get a [QUOTE_FREE] Quote From a Local [CATEGORY] in [CITY]",
+    "final_h2_emergency": "Need a Roofer in [CITY] Now? Call [CV: phone]"
+  },
+
+  "business_type_default": "A",
+
+  "priority_services": ["Emergency Roof Repair", "Roof Repair"],
+
+  "steps": [
+    {
+      "title": "Tell Us What's Wrong",
+      "brief": "What to tell them (what they've noticed, roughly where) and that ground level photos help. Never encourage the customer to go up a ladder."
+    },
+    {
+      "title": "We Inspect and Show You the Problem",
+      "brief": "A proper inspection, and the customer is shown what was found. Follows [CV: quote_method]. Never restates 'free'."
+    },
+    {
+      "title": "We Fix It on a Date That Suits You",
+      "brief": "Date agreed once the quote is accepted; the work follows the quote. Never restates the start time."
+    }
+  ],
+
+  "steps_emergency": [
+    { "title": "Call Us" },
+    { "title": "We Give You a Price and an Arrival Time" },
+    { "title": "We Fix It on the Spot" }
+  ],
+
+  "cover_chain": ["guarantee", "manufacturer_warranty", "insurance"],
+
+  "fears": [
+    "a cold caller or cowboy who invents problems",
+    "a repair that doesn't stop the leak, so they pay twice",
+    "scaffolding and extras added to the price",
+    "a roof left open or a job left half done"
+  ],
+
+  "logo_tiers": {
+    "ratings": ["Google (5+ reviews)", "Checkatrade", "Trustpilot", "Which? Trusted Traders"],
+    "tier1": ["NFRC (National Federation of Roofing Contractors)", "CompetentRoofer", "TrustMark"],
+    "tier2": ["Marley", "Sika Liquid Plastics", "Firestone (EPDM)", "Redland"],
+    "tier3": "local press and chambers — Ray's call"
+  },
+
+  "faq_fixed_doubts": {
+    "Q1_cost": "Price",
+    "Q6_areas": "Fit"
+  },
+
+  "faq_slots": [
+    {
+      "slot": "faq_2",
+      "question": "Are you insured?",
+      "answer_brief": "Cover figure and what it's for, with a plausible roofing example that doesn't suggest carelessness.",
+      "symptom_based": false,
+      "doubt": "Trust"
+    },
+    {
+      "slot": "faq_2_fallback",
+      "question": "What happens if something goes wrong?",
+      "answer_brief": "From [CV: complaints_process] only.",
+      "symptom_based": false,
+      "doubt": "Trust"
+    },
+    {
+      "slot": "faq_3",
+      "question": "Do you guarantee your work?",
+      "answer_brief": "Yes, then the confirmed terms.",
+      "symptom_based": false,
+      "doubt": "Trust"
+    },
+    {
+      "slot": "faq_3_none",
+      "question": "What happens if the roof leaks again after a repair?",
+      "answer_brief": "'Reasonable care and skill' standard; never invent a guarantee.",
+      "symptom_based": false,
+      "doubt": "Trust"
+    },
+    {
+      "slot": "faq_4",
+      "question": "How soon can you start?",
+      "answer_brief": "From [CV: start_time]; if same_day_available is yes, say how urgent leaks are handled differently.",
+      "symptom_based": false,
+      "doubt": "Timing"
+    },
+    {
+      "slot": "faq_5_free",
+      "question": "Are the inspection and quote free?",
+      "answer_brief": "From [QUOTE_FREE] and [CV: quote_method].",
+      "symptom_based": false,
+      "doubt": "Price"
+    },
+    {
+      "slot": "faq_5_not_free",
+      "question": "How do your quotes work?",
+      "answer_brief": "From [CV: quote_method].",
+      "symptom_based": false,
+      "doubt": "Price"
+    },
+    {
+      "slot": "faq_A",
+      "question": "Do I need scaffolding for a roof repair?",
+      "answer_brief": "Not always: gutters, fascias and small tile repairs on two storey houses often from ladders or a tower; single storey flat roofs rarely; full re-roofs and most chimney work on two storeys usually do. Say access is settled at the quote.",
+      "symptom_based": false,
+      "doubt": "Process"
+    },
+    {
+      "slot": "faq_B",
+      "question": "Why are my gutters overflowing when it rains?",
+      "answer_brief": "Use the assigned symptom and issue. Three distinct causes: blocked outlet or downpipe, a run that has dropped out of level, an opened joint. Then the local factor.",
+      "symptom_based": true,
+      "doubt": "Fit"
+    },
+    {
+      "slot": "faq_C",
+      "question": "How long does a new roof last?",
+      "answer_brief": "By material, as ranges with the reason; slate and clay outlast concrete; workmanship and underlay matter.",
+      "symptom_based": false,
+      "is_fallback": true,
+      "doubt": "Timing"
+    },
+    {
+      "slot": "faq_D",
+      "question": "Can my roof be repaired or does it need replacing?",
+      "answer_brief": "The honest test: how widespread the faults are and the state of underlay and battens.",
+      "symptom_based": false,
+      "is_fallback": true,
+      "doubt": "Fit"
+    },
+    {
+      "slot": "faq_planning",
+      "question": "Do I need planning permission for a new roof?",
+      "answer_brief": "Like for like on an unlisted house usually no; conservation areas and listed buildings can need consent, especially changing materials or chimneys. If an allocated neighbourhood is a conservation area, name it.",
+      "symptom_based": false,
+      "condition": "big_ticket AND [CV: handles_planning] confirmed",
+      "doubt": "Process"
+    },
+    {
+      "slot": "faq_E",
+      "question": "Does a new roof need building regulations approval?",
+      "answer_brief": "Replacing more than about a quarter of a roof's covering is normally treated as a renovation that has to meet current insulation standards and be signed off. Roofers in a competent person scheme can self certify; otherwise it goes through building control.",
+      "answer_brief_note": "Have a roofer check this wording before it ships.",
+      "symptom_based": false,
+      "is_fallback": true,
+      "doubt": "Process"
+    }
+  ],
+
+  "materials_tick_list": {
+    "Pitched roof coverings": ["natural slate", "clay tile", "concrete tile", "fibre cement slate"],
+    "Underlay": ["breathable membrane", "traditional felt"],
+    "Flat roofs": ["EPDM rubber", "GRP fibreglass", "torch on felt", "liquid applied coating"],
+    "Roofline": ["uPVC", "timber", "aluminium guttering", "cast iron guttering"],
+    "Leadwork": ["dressed on site", "lead alternatives"],
+    "Ridges and hips": ["dry fix", "mortar bedded"],
+    "Other": ["scaffolding included in quotes", "photos provided", "roof left watertight each night", "competent person scheme member"]
+  },
+
+  "why_titles_alt": [
+    "Local Experience Behind Every Job",
+    "Covered If Something Goes Wrong"
+  ],
+
+  "do_not_reuse": []
+}
