@@ -3029,7 +3029,7 @@ app.put('/api/clients/:clientId/client-values', async (req, res) => {
     if (!values || typeof values !== 'object') return res.status(400).json({ error: 'Body must be a JSON object.' });
     const content = JSON.stringify(values);
     const { rows } = await pool.query(
-      `SELECT id FROM client_assets WHERE client_id = $1 AND asset_type = 'client_values' LIMIT 1`,
+      `SELECT id FROM client_assets WHERE client_id = $1 AND asset_type = 'client_values' ORDER BY uploaded_at DESC LIMIT 1`,
       [clientId]
     );
     if (rows.length) {
@@ -3209,6 +3209,7 @@ app.post('/api/clients/:clientId/decisions-preview', async (req, res) => {
 
   const result = computeDecisions({ cv, niche, pages, keyValueMap, v20TestMode, allocationData: null });
   if (cvLoadError) result.cvLoadError = cvLoadError;
+  result._debug_h1_override = cv.h1_override || '(blank)';
   res.json(result);
 });
 
