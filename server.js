@@ -2964,6 +2964,170 @@ app.post('/api/research-rerun', async (req, res) => {
 app.get('/generate', (req, res) => res.sendFile(path.join(__dirname, 'public', 'generate.html')));
 app.get('/', (req, res) => res.redirect('/clients.html'));
 
+// ── v20 client values ─────────────────────────────────────────────────────────
+
+const CLIENT_VALUES_TEMPLATE = {
+  company_name: '', company_name_gbp_checked: false,
+  phone: '', email: '', address: '', gbp_address_type: '', hours: '',
+  primary_category: '', year_founded: '', jobs_completed: '',
+  rating: '', review_count: '',
+  guarantee_years: '', manufacturer_warranty: '', insurance_cover: '',
+  differentiator_1: '', differentiator_1_confirmed: false, differentiator_1_sentence: '',
+  differentiator_2: '', differentiator_2_confirmed: false, differentiator_2_sentence: '',
+  verified_logos: null,
+  free_quotes: '', quote_method: '', price_list: '', response_time: '',
+  same_day_available: '', out_of_hours_available: '', start_time: '',
+  owner_name: '', owner_name_2: '', owner_qualification: '',
+  owner_why: '', owner_promise: '', owner_pronoun: '',
+  owner_photo: 'no', business_type: 'A',
+  materials_methods: [], guarantee_scope: '', team_size: '',
+  typical_jobs: [],
+  emergency_primary: '', handles_planning: '', finance_options: '',
+  complaints_process: '', area_wide: '', travel_distance: '',
+  review_themes: [], jobs_wanted: [], map_embed: '',
+  stand_ins: [],
+};
+
+app.get('/api/clients/:clientId/client-values', async (req, res) => {
+  if (!pool) return res.json({ found: false, values: { ...CLIENT_VALUES_TEMPLATE } });
+  try {
+    const { rows } = await pool.query(
+      `SELECT content FROM client_assets WHERE client_id = $1 AND asset_type = 'client_values' ORDER BY uploaded_at DESC LIMIT 1`,
+      [req.params.clientId]
+    );
+    if (!rows.length) return res.json({ found: false, values: { ...CLIENT_VALUES_TEMPLATE } });
+    const saved = JSON.parse(rows[0].content);
+    // Merge with template so new keys added later are always present
+    res.json({ found: true, values: { ...CLIENT_VALUES_TEMPLATE, ...saved } });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.put('/api/clients/:clientId/client-values', async (req, res) => {
+  if (!pool) return res.status(503).json({ error: 'Database not configured.' });
+  try {
+    const clientId = req.params.clientId;
+    const values = req.body;
+    if (!values || typeof values !== 'object') return res.status(400).json({ error: 'Body must be a JSON object.' });
+    const content = JSON.stringify(values);
+    const { rows } = await pool.query(
+      `SELECT id FROM client_assets WHERE client_id = $1 AND asset_type = 'client_values' LIMIT 1`,
+      [clientId]
+    );
+    if (rows.length) {
+      await pool.query(
+        `UPDATE client_assets SET content = $1, uploaded_at = NOW() WHERE id = $2`,
+        [content, rows[0].id]
+      );
+    } else {
+      await pool.query(
+        `INSERT INTO client_assets (client_id, asset_type, filename, content) VALUES ($1, 'client_values', 'client_values.json', $2)`,
+        [clientId, content]
+      );
+    }
+    res.json({ saved: true, values });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.post('/api/clients/:clientId/prefill-client-values', async (req, res) => {
+  if (!pool) return res.status(503).json({ error: 'Database not configured.' });
+  try {
+    const clientId = req.params.clientId;
+    // Load all raw-data assets
+    const { rows } = await pool.query(
+      `SELECT asset_type, filename, content FROM client_assets
+       WHERE client_id = $1 AND asset_type IN ('client_file','custom_values','onboarding')
+       ORDER BY uploaded_at ASC`,
+      [clientId]
+    );
+    // Separate by type (same logic as identifyFiles / parse-saved-files)
+    const fakeFiles = rows.map(r => ({ originalname: r.filename || r.asset_type, buffer: Buffer.from(r.content, 'utf8') }));
+    const identified = identifyFiles(fakeFiles);
+    const customCsvTexts = identified.customValues.map(readText);
+    const onboardingText = identified.onboarding ? parseOnboardingForm(readText(identified.onboarding)) : '';
+    const { keyValueMap } = parseCustomValues(customCsvTexts);
+
+    // Build a prefilled object from parsed sources (no Claude call for pure mappings)
+    const prefilled = { ...CLIENT_VALUES_TEMPLATE };
+    const cv = keyValueMap;
+    if (cv.company_name)         prefilled.company_name         = cv.company_name;
+    if (cv.company_phone_functional) prefilled.phone             = cv.company_phone_functional;
+    else if (cv.company_phone)   prefilled.phone                 = cv.company_phone;
+    if (cv.company_email)        prefilled.email                 = cv.company_email;
+    if (cv.company_address)      prefilled.address               = cv.company_address;
+    if (cv.google_map_embed)     prefilled.map_embed             = cv.google_map_embed;
+    if (cv.category_1)           prefilled.primary_category      = cv.category_1;
+
+    // Small Claude call to extract free-text onboarding answers into structured fields
+    if (onboardingText && client) {
+      const extractPrompt = `You are extracting structured data from a business onboarding form.\n\nExtract the following fields from the Q&A below. Return ONLY a JSON object with these exact keys. If a field is not mentioned or the answer is unusable (vague, unclear, non-committal), return an empty string "" for that field. Never invent values.\n\nFields to extract:\n- year_founded (4-digit year only, e.g. "2015"; blank if vague like "a few years ago")\n- jobs_completed (number only, e.g. "150"; blank if a range or vague)\n- guarantee_years (number only; blank if "no guarantee" or not mentioned)\n- manufacturer_warranty (e.g. "25 years manufacturer warranty"; blank if not mentioned)\n- insurance_cover (figure without £ symbol, e.g. "5m" or "2000000"; blank if not mentioned)\n- free_quotes ("yes" or "no"; blank if not mentioned)\n- start_time (short phrase, e.g. "same week" or "within 2 weeks"; blank if vague)\n- hours (e.g. "Monday to Saturday, 8am to 6pm"; blank if not mentioned or unusable)\n- gbp_address_type ("storefront" or "service_area"; blank if unclear)\n- travel_distance (short phrase or miles, e.g. "20 miles"; blank if not mentioned)\n- team_size (number only; blank if not mentioned)\n- owner_name (first name only; blank if not mentioned)\n- same_day_available ("yes" or "no"; blank if not mentioned)\n- out_of_hours_available ("yes", "no", or "24/7"; blank if not mentioned)\n- handles_planning ("yes" or "no"; blank if not mentioned)\n- jobs_wanted (array of up to 3 job types the business wants more of; [] if not mentioned)\n- differentiator_1 (the most prominent thing that makes them stand out, in title-case short-phrase form, e.g. "Fixed Prices With No Hidden Costs"; blank if nothing specific)\n- differentiator_2 (second most prominent differentiator, same format; blank if not present)\n\nReturn ONLY a raw JSON object, no markdown, no explanation.\n\n--- ONBOARDING Q&A ---\n${onboardingText}\n\n--- CUSTOM VALUES ---\n${Object.entries(cv).map(([k,v]) => `${k}: ${v}`).join('\n')}`;
+
+      try {
+        const extractResult = await client.messages.create({
+          model: 'claude-sonnet-4-6',
+          max_tokens: 1024,
+          messages: [{ role: 'user', content: extractPrompt }],
+        });
+        const raw = extractResult.content[0].text.trim();
+        const jsonStr = raw.startsWith('{') ? raw : raw.replace(/^```(?:json)?\n?/, '').replace(/\n?```$/, '');
+        const extracted = JSON.parse(jsonStr);
+        const strFields = ['year_founded','jobs_completed','guarantee_years','manufacturer_warranty',
+          'insurance_cover','free_quotes','start_time','hours','gbp_address_type','travel_distance',
+          'team_size','owner_name','same_day_available','out_of_hours_available','handles_planning',
+          'differentiator_1','differentiator_2'];
+        for (const k of strFields) {
+          if (extracted[k] !== undefined && extracted[k] !== '') prefilled[k] = String(extracted[k]);
+        }
+        if (Array.isArray(extracted.jobs_wanted) && extracted.jobs_wanted.length) prefilled.jobs_wanted = extracted.jobs_wanted;
+      } catch (e) {
+        console.error('prefill Claude extract error:', e.message);
+      }
+    }
+
+    res.json({ prefilled });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.get('/api/clients/:clientId/v20-settings', async (req, res) => {
+  if (!pool) return res.json({ use_v20_homepage: false, v20_test_mode: false });
+  try {
+    const { rows } = await pool.query(
+      `SELECT use_v20_homepage, v20_test_mode FROM clients WHERE id = $1`,
+      [req.params.clientId]
+    );
+    if (!rows.length) return res.status(404).json({ error: 'Client not found.' });
+    res.json({ use_v20_homepage: rows[0].use_v20_homepage, v20_test_mode: rows[0].v20_test_mode });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.put('/api/clients/:clientId/v20-settings', async (req, res) => {
+  if (!pool) return res.status(503).json({ error: 'Database not configured.' });
+  try {
+    const { use_v20_homepage, v20_test_mode } = req.body;
+    const updates = [];
+    const params = [];
+    if (use_v20_homepage !== undefined) { updates.push(`use_v20_homepage = $${params.length + 1}`); params.push(!!use_v20_homepage); }
+    if (v20_test_mode   !== undefined) { updates.push(`v20_test_mode = $${params.length + 1}`);   params.push(!!v20_test_mode); }
+    if (!updates.length) return res.status(400).json({ error: 'No fields to update.' });
+    params.push(req.params.clientId);
+    const { rowCount } = await pool.query(
+      `UPDATE clients SET ${updates.join(', ')} WHERE id = $${params.length}`,
+      params
+    );
+    if (!rowCount) return res.status(404).json({ error: 'Client not found.' });
+    res.json({ updated: true });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // ── Client API routes ─────────────────────────────────────────────────────────
 
 const dbRequired = (req, res, next) => pool ? next() : res.status(503).json({ error: 'Database not configured.' });

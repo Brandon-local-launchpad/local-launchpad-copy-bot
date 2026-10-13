@@ -57,6 +57,11 @@ async function initDb() {
 
     ALTER TABLE client_assets ADD COLUMN IF NOT EXISTS metadata JSONB;
 
+    ALTER TABLE pages ADD COLUMN IF NOT EXISTS structure_version TEXT;
+
+    ALTER TABLE clients ADD COLUMN IF NOT EXISTS use_v20_homepage BOOLEAN NOT NULL DEFAULT FALSE;
+    ALTER TABLE clients ADD COLUMN IF NOT EXISTS v20_test_mode BOOLEAN NOT NULL DEFAULT FALSE;
+
     CREATE TABLE IF NOT EXISTS client_locations (
       id                    UUID PRIMARY KEY DEFAULT gen_random_uuid(),
       client_id             UUID NOT NULL REFERENCES clients(id) ON DELETE CASCADE,
