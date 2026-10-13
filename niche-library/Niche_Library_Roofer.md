@@ -79,7 +79,7 @@ Fixed homepage questions and their doubts: Q1 cost = Price; Q6 areas = Fit.
 | faq_C | How long does a new roof last? | By material, as ranges with the reason; slate and clay outlast concrete; workmanship and underlay matter. | no | Timing |
 | faq_D | Can my roof be repaired or does it need replacing? | The honest test: how widespread the faults are and the state of underlay and battens. | no | Fit |
 | faq_planning | Do I need planning permission for a new roof? | Like for like on an unlisted house usually no; conservation areas and listed buildings can need consent, especially changing materials or chimneys. If an allocated neighbourhood is a conservation area, name it. | no | Process |
-| faq_E (fallback) | Does a new roof need building regulations approval? | Replacing more than about a quarter of a roof's covering is normally treated as a renovation that has to meet current insulation standards and be signed off. Roofers in a competent person scheme can self certify; otherwise it goes through building control. **Have a roofer check this wording before it ships.** | no | Process |
+| faq_E (fallback) | Does a new roof need building regulations approval? | Usually yes. Replacing the covering on more than half of a roof's surface (or a quarter of the whole building's outer surface) means the roof's insulation has to be brought up to current standards and signed off by building control. Changing to a much heavier or lighter covering can also mean the roof structure needs checking or strengthening. Roofers registered with a competent person scheme such as CompetentRoofer can self certify the work instead of going through building control. | no | Process |
 
 ## Materials and methods tick list (onboarding)
 

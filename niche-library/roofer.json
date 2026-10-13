@@ -162,8 +162,8 @@
     {
       "slot": "faq_E",
       "question": "Does a new roof need building regulations approval?",
-      "answer_brief": "Replacing more than about a quarter of a roof's covering is normally treated as a renovation that has to meet current insulation standards and be signed off. Roofers in a competent person scheme can self certify; otherwise it goes through building control.",
-      "answer_brief_note": "Have a roofer check this wording before it ships.",
+      "answer_brief": "Usually yes. Replacing the covering on more than half of a roof's surface (or a quarter of the whole building's outer surface) means the roof's insulation has to be brought up to current standards and signed off by building control. Changing to a much heavier or lighter covering can also mean the roof structure needs checking or strengthening. Roofers registered with a competent person scheme such as CompetentRoofer can self certify the work instead of going through building control.",
+      "needs_trade_check": true,
       "symptom_based": false,
       "is_fallback": true,
       "doubt": "Process"
