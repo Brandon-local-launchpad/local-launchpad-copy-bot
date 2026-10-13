@@ -2987,6 +2987,7 @@ const CLIENT_VALUES_TEMPLATE = {
   complaints_process: '', area_wide: '', travel_distance: '',
   review_themes: [], jobs_wanted: [], map_embed: '',
   stand_ins: [],
+  h1_override: '',
 };
 
 app.get('/api/clients/:clientId/gbp-categories', async (req, res) => {
@@ -3150,13 +3151,17 @@ app.post('/api/clients/:clientId/decisions-preview', async (req, res) => {
 
   // Load client values from DB
   let cv = { ...CLIENT_VALUES_TEMPLATE };
+  let cvLoadError = null;
   if (pool) {
     try {
       const { rows } = await pool.query(
-        `SELECT content FROM client_assets WHERE client_id=$1 AND asset_type='client_values' LIMIT 1`, [clientId]
+        `SELECT content FROM client_assets WHERE client_id=$1 AND asset_type='client_values' ORDER BY uploaded_at DESC LIMIT 1`, [clientId]
       );
       if (rows.length) cv = { ...CLIENT_VALUES_TEMPLATE, ...JSON.parse(rows[0].content) };
-    } catch (_) {}
+    } catch (err) {
+      cvLoadError = err.message;
+      console.error('[decisions-preview] Failed to load client values for', clientId, err);
+    }
   }
 
   // Load v20 settings
@@ -3165,7 +3170,9 @@ app.post('/api/clients/:clientId/decisions-preview', async (req, res) => {
     try {
       const { rows } = await pool.query(`SELECT v20_test_mode FROM clients WHERE id=$1`, [clientId]);
       if (rows.length) v20TestMode = !!rows[0].v20_test_mode;
-    } catch (_) {}
+    } catch (err) {
+      console.error('[decisions-preview] Failed to load v20 settings for', clientId, err);
+    }
   }
 
   // Load niche
@@ -3195,10 +3202,13 @@ app.post('/api/clients/:clientId/decisions-preview', async (req, res) => {
           keyValueMap = parsed.keyValueMap || {};
         }
       }
-    } catch (_) {}
+    } catch (err) {
+      console.error('[decisions-preview] Failed to load pages/keyValueMap for', clientId, err);
+    }
   }
 
   const result = computeDecisions({ cv, niche, pages, keyValueMap, v20TestMode, allocationData: null });
+  if (cvLoadError) result.cvLoadError = cvLoadError;
   res.json(result);
 });
 
