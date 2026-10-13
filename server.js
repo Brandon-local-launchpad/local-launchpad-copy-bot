@@ -2989,6 +2989,21 @@ const CLIENT_VALUES_TEMPLATE = {
   stand_ins: [],
 };
 
+app.get('/api/clients/:clientId/gbp-categories', async (req, res) => {
+  if (!pool) return res.json({ categories: [] });
+  try {
+    const { rows } = await pool.query(
+      `SELECT content FROM client_assets WHERE client_id=$1 AND asset_type='client_file' AND metadata->>'fileType'='custom_values' ORDER BY uploaded_at`,
+      [req.params.clientId]
+    );
+    if (!rows.length) return res.json({ categories: [] });
+    const { keyValueMap } = parseCustomValues(rows.map(r => r.content));
+    const categories = [];
+    for (let i = 1; keyValueMap[`category_${i}`]; i++) categories.push(keyValueMap[`category_${i}`]);
+    res.json({ categories });
+  } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
 app.get('/api/clients/:clientId/client-values', async (req, res) => {
   if (!pool) return res.json({ found: false, values: { ...CLIENT_VALUES_TEMPLATE } });
   try {
@@ -3159,11 +3174,29 @@ app.post('/api/clients/:clientId/decisions-preview', async (req, res) => {
   const { niche, error: nicheErr } = loadNiche(trade);
   if (nicheErr) return res.status(400).json({ error: `G-NICHE: ${nicheErr}` });
 
-  // Build pages list from session
-  const pages = session
-    ? [...(session.jobs || []), ...(session.skippedPages || [])]
-    : [];
-  const keyValueMap = session ? (session.keyValueMap || {}) : {};
+  // Build pages list: prefer active session; fall back to stored client_file rows in DB
+  let pages = [];
+  let keyValueMap = {};
+  if (session) {
+    pages = [...(session.jobs || []), ...(session.skippedPages || [])];
+    keyValueMap = session.keyValueMap || {};
+  } else if (pool) {
+    try {
+      const { rows: fileRows } = await pool.query(
+        `SELECT filename, content, metadata FROM client_assets WHERE client_id=$1 AND asset_type='client_file' ORDER BY uploaded_at`,
+        [clientId]
+      );
+      const pageMapRow    = fileRows.find(r => (r.metadata?.fileType === 'page_map'));
+      const cvRows        = fileRows.filter(r => r.metadata?.fileType === 'custom_values');
+      if (pageMapRow) {
+        pages = parsePageMap(pageMapRow.content);
+        if (cvRows.length) {
+          const parsed = parseCustomValues(cvRows.map(r => r.content));
+          keyValueMap = parsed.keyValueMap || {};
+        }
+      }
+    } catch (_) {}
+  }
 
   const result = computeDecisions({ cv, niche, pages, keyValueMap, v20TestMode, allocationData: null });
   res.json(result);

@@ -1852,7 +1852,7 @@
       { key: 'address',          label: 'Address',         type: 'textarea', rows: 2 },
       { key: 'gbp_address_type', label: 'GBP address type',type: 'select', options: ['','storefront','service_area'] },
       { key: 'hours',            label: 'Hours',           type: 'text', placeholder: 'e.g. Mon–Sat 8am–6pm' },
-      { key: 'primary_category', label: 'Primary category',type: 'text', placeholder: 'e.g. Landscaper' },
+      { key: 'primary_category', label: 'Primary category', type: 'gbp-select' },
       { key: 'year_founded',     label: 'Year founded',    type: 'text', placeholder: '4 digits only' },
     ]},
     { title: 'Proof & Cover', fields: [
@@ -1893,9 +1893,9 @@
       { key: 'team_size',           label: 'Team size',        type: 'text', placeholder: 'Number only' },
     ]},
     { title: 'Services & Coverage', fields: [
-      { key: 'materials_methods', label: 'Materials / methods', type: 'textarea', rows: 2, placeholder: 'Comma-separated, e.g. porcelain, block paving, resin', arrayMode: true },
-      { key: 'typical_jobs',      label: 'Typical jobs',       type: 'textarea', rows: 3, placeholder: 'One per line: Job name | from price | duration', jsonMode: 'jobs' },
-      { key: 'jobs_wanted',       label: 'Jobs wanted',        type: 'textarea', rows: 2, placeholder: 'Comma-separated job types', arrayMode: true },
+      { key: 'materials_methods', label: 'Materials / methods', type: 'checkboxes' },
+      { key: 'typical_jobs',      label: 'Typical jobs',       type: 'job-rows' },
+      { key: 'jobs_wanted',       label: 'Jobs wanted',        type: 'gbp-multicheck' },
       { key: 'area_wide',         label: 'Area wide',          type: 'text', placeholder: 'e.g. Hampshire' },
       { key: 'travel_distance',   label: 'Travel distance',    type: 'text', placeholder: 'e.g. 20 miles' },
     ]},
@@ -1907,48 +1907,185 @@
       { key: 'complaints_process', label: 'Complaints process',type: 'textarea', rows: 2 },
     ]},
     { title: 'Marketing Intelligence', fields: [
-      { key: 'review_themes',  label: 'Review themes',  type: 'textarea', rows: 2, placeholder: 'Comma-separated, e.g. tidied up every day, came in on budget', arrayMode: true },
-      { key: 'verified_logos', label: 'Verified logos', type: 'textarea', rows: 3, placeholder: '[{"name":"BALI","tier":"tier1","register_url":"","caption":""}]', jsonMode: 'logos' },
+      { key: 'review_themes',  label: 'Review themes',  type: 'theme-rows' },
+      { key: 'verified_logos', label: 'Verified logos', type: 'logo-rows' },
     ]},
   ];
 
   let cvRendered = false;
+  let _gbpCategories = []; // populated after client load
+
+  // ── Custom field renderers ───────────────────────────────────────────────────
+
+  function renderFieldInput(f) {
+    if (f.type === 'textarea') {
+      return `<textarea class="cv-input" id="cv_${f.key}" rows="${f.rows || 2}" placeholder="${h(f.placeholder || '')}"></textarea>`;
+    }
+    if (f.type === 'select') {
+      const opts = f.options.map(o => `<option value="${h(o)}">${o || '—'}</option>`).join('');
+      return `<select class="cv-input" id="cv_${f.key}">${opts}</select>`;
+    }
+    if (f.type === 'gbp-select') {
+      return `<select class="cv-input" id="cv_${f.key}"><option value="">— select —</option></select>`;
+    }
+    if (f.type === 'checkboxes') {
+      return `<div id="cv_${f.key}" class="cv-checkboxes"><span style="color:var(--muted);font-size:11px">Select primary category first</span></div>`;
+    }
+    if (f.type === 'gbp-multicheck') {
+      return `<div id="cv_${f.key}" class="cv-checkboxes"><span style="color:var(--muted);font-size:11px">Load client to see GBP categories</span></div>`;
+    }
+    if (f.type === 'job-rows') {
+      return `<div id="cv_${f.key}" class="cv-job-rows">${[0,1,2].map(i => `
+        <div class="cv-job-row" style="display:grid;grid-template-columns:1fr 80px 80px;gap:4px;margin-bottom:4px">
+          <input class="cv-input cv-job-name" type="text" placeholder="Job name">
+          <input class="cv-input cv-job-price" type="text" placeholder="From £">
+          <input class="cv-input cv-job-dur" type="text" placeholder="Duration">
+        </div>`).join('')}</div>`;
+    }
+    if (f.type === 'theme-rows') {
+      return `<div id="cv_${f.key}" class="cv-theme-rows">
+        ${renderThemeRow({theme:'',approved:false})}
+        <button type="button" class="btn btn-ghost" style="font-size:11px;padding:3px 8px;margin-top:4px" onclick="cvAddThemeRow('${f.key}')">+ Add theme</button>
+      </div>`;
+    }
+    if (f.type === 'logo-rows') {
+      return `<div id="cv_${f.key}" class="cv-logo-rows" data-saved="false"></div>
+        <button type="button" class="btn btn-ghost" style="font-size:11px;padding:3px 8px;margin-top:4px" onclick="cvAddLogoRow('${f.key}')">+ Add logo</button>`;
+    }
+    return `<input class="cv-input" id="cv_${f.key}" type="text" placeholder="${h(f.placeholder || '')}">`;
+  }
+
+  function renderThemeRow(t) {
+    return `<div class="cv-theme-row" style="display:flex;gap:6px;align-items:center;margin-bottom:4px">
+      <input class="cv-input cv-theme-text" type="text" placeholder="e.g. tidied up every day" value="${h(t.theme || '')}" style="flex:1">
+      <label style="font-size:11px;white-space:nowrap;display:flex;align-items:center;gap:3px">
+        <input type="checkbox" class="cv-theme-approved" ${t.approved ? 'checked' : ''}> Approved by client
+      </label>
+      <button type="button" style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:14px;padding:0 2px" onclick="this.closest('.cv-theme-row').remove()">×</button>
+    </div>`;
+  }
+
+  function renderLogoRow(logo) {
+    const tierOpts = ['ratings','tier1','tier2','tier3'].map(t =>
+      `<option value="${t}" ${logo.tier===t?'selected':''}>${t}</option>`).join('');
+    return `<div class="cv-logo-row" style="display:grid;grid-template-columns:1fr 80px 1fr 1fr 22px;gap:4px;align-items:center;margin-bottom:4px">
+      <input class="cv-input cv-logo-name" type="text" placeholder="Name" value="${h(logo.name||'')}">
+      <select class="cv-input cv-logo-tier">${tierOpts}</select>
+      <input class="cv-input cv-logo-url" type="text" placeholder="Register URL" value="${h(logo.register_url||'')}">
+      <input class="cv-input cv-logo-caption" type="text" placeholder="Caption" value="${h(logo.caption||'')}">
+      <button type="button" style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:14px;padding:0" onclick="this.closest('.cv-logo-row').remove()">×</button>
+    </div>`;
+  }
+
+  function cvAddThemeRow(key) {
+    const container = document.getElementById('cv_' + key);
+    const btn = container.querySelector('button');
+    const row = document.createElement('div');
+    row.innerHTML = renderThemeRow({theme:'',approved:false});
+    container.insertBefore(row.firstElementChild, btn);
+  }
+
+  function cvAddLogoRow(key) {
+    const container = document.getElementById('cv_' + key);
+    const row = document.createElement('div');
+    row.innerHTML = renderLogoRow({name:'',tier:'tier1',register_url:'',caption:''});
+    container.appendChild(row.firstElementChild);
+    container.dataset.saved = 'true';
+  }
 
   function renderCvForm() {
     const container = document.getElementById('cvForm');
     container.innerHTML = CV_SECTIONS.map(section => `
       <div class="card">
         <div class="cv-section-hdr">${section.title}</div>
-        <div class="cv-si-hdr"><div></div><div></div><div class="cv-si-hdr-label" title="Stand-in value">S</div></div>
+        <div class="cv-si-hdr"><div></div><div></div><div class="cv-si-hdr-label" title="Test or placeholder data. Blocks the page being marked Done.">Stand-in</div></div>
         ${section.fields.map(f => {
-          let input = '';
-          if (f.type === 'textarea') {
-            input = `<textarea class="cv-input" id="cv_${f.key}" rows="${f.rows || 2}" placeholder="${h(f.placeholder || '')}"></textarea>`;
-          } else if (f.type === 'select') {
-            const opts = f.options.map(o => `<option value="${h(o)}">${o || '—'}</option>`).join('');
-            input = `<select class="cv-input" id="cv_${f.key}">${opts}</select>`;
-          } else {
-            input = `<input class="cv-input" id="cv_${f.key}" type="text" placeholder="${h(f.placeholder || '')}">`;
-          }
+          const input = renderFieldInput(f);
           const subs = (f.sub || []).map(s =>
             `<div class="cv-sub"><input type="checkbox" id="cv_${s.key}"><label for="cv_${s.key}">${h(s.label)}</label></div>`
           ).join('');
           return `<div class="cv-row">
             <div class="cv-row-label">${h(f.label)}</div>
             <div>${input}${subs}</div>
-            <div class="cv-si"><input type="checkbox" class="cv-standin-cb" data-field="${f.key}" title="Stand-in value"></div>
+            <div class="cv-si"><input type="checkbox" class="cv-standin-cb" data-field="${f.key}" title="Test or placeholder data. Blocks the page being marked Done."></div>
           </div>`;
         }).join('')}
       </div>`).join('');
 
-    // Update stand-in highlight on change
+    // Stand-in highlight on change
     document.querySelectorAll('.cv-standin-cb').forEach(cb => {
       cb.addEventListener('change', () => {
         const el = document.getElementById('cv_' + cb.dataset.field);
         if (el) el.classList.toggle('standin', cb.checked);
       });
     });
+
+    // primary_category change → reload materials checkboxes
+    const catEl = document.getElementById('cv_primary_category');
+    if (catEl) catEl.addEventListener('change', () => cvLoadNicheMaterials(catEl.value));
+
     cvRendered = true;
+  }
+
+  // Populate primary_category and jobs_wanted from GBP categories list
+  function cvApplyGbpCategories(categories) {
+    _gbpCategories = categories || [];
+
+    // primary_category: keep current value, add options
+    const catEl = document.getElementById('cv_primary_category');
+    if (catEl) {
+      const cur = catEl.value;
+      catEl.innerHTML = '<option value="">— select —</option>' +
+        _gbpCategories.map(c => `<option value="${h(c)}" ${c===cur?'selected':''}>${h(c)}</option>`).join('');
+      if (cur && !_gbpCategories.includes(cur)) {
+        catEl.innerHTML += `<option value="${h(cur)}" selected>${h(cur)} (saved)</option>`;
+      }
+    }
+
+    // jobs_wanted: render checkboxes
+    const jwEl = document.getElementById('cv_jobs_wanted');
+    if (jwEl) {
+      const saved = jwEl.dataset.savedValues ? new Set(JSON.parse(jwEl.dataset.savedValues)) : new Set();
+      jwEl.innerHTML = _gbpCategories.length
+        ? _gbpCategories.map(c => `<label style="display:flex;align-items:center;gap:5px;margin-bottom:3px;font-size:12px">
+            <input type="checkbox" class="cv-jw-cb" value="${h(c)}" ${saved.has(c)?'checked':''}> ${h(c)}
+          </label>`).join('')
+        : '<span style="color:var(--muted);font-size:11px">No GBP categories found</span>';
+    }
+  }
+
+  function cvGetJobsWanted() {
+    const el = document.getElementById('cv_jobs_wanted');
+    if (!el) return [];
+    return Array.from(el.querySelectorAll('.cv-jw-cb:checked')).map(cb => cb.value);
+  }
+
+  async function cvLoadNicheMaterials(category) {
+    const el = document.getElementById('cv_materials_methods');
+    if (!el) return;
+    if (!category) {
+      el.innerHTML = '<span style="color:var(--muted);font-size:11px">Select primary category first</span>';
+      return;
+    }
+    el.innerHTML = '<span style="color:var(--muted);font-size:11px">Loading…</span>';
+    try {
+      const r = await fetch('/api/niche/' + encodeURIComponent(category));
+      if (!r.ok) { el.innerHTML = '<span style="color:var(--muted);font-size:11px">No materials list for this category</span>'; return; }
+      const niche = await r.json();
+      const tickList = niche.materials_tick_list;
+      if (!tickList || !Object.keys(tickList).length) {
+        el.innerHTML = '<span style="color:var(--muted);font-size:11px">No materials list in niche</span>';
+        return;
+      }
+      const checked = new Set(el.dataset.savedValues ? JSON.parse(el.dataset.savedValues) : []);
+      el.innerHTML = Object.entries(tickList).map(([heading, items]) => `
+        <div style="margin-bottom:6px">
+          <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);margin-bottom:3px">${h(heading)}</div>
+          ${items.map(item => `<label style="display:flex;align-items:center;gap:5px;margin-bottom:2px;font-size:12px">
+            <input type="checkbox" class="cv-mat-cb" value="${h(item)}" ${checked.has(item)?'checked':''}> ${h(item)}
+          </label>`).join('')}
+        </div>`).join('');
+    } catch { el.innerHTML = '<span style="color:var(--muted);font-size:11px">Could not load materials list</span>'; }
   }
 
   function cvGetValues() {
@@ -1957,22 +2094,49 @@
       for (const f of section.fields) {
         const el = document.getElementById('cv_' + f.key);
         if (!el) continue;
-        if (f.type === 'select' || f.type === 'text') {
+
+        if (f.type === 'select') {
+          v[f.key] = el.value.trim();
+        } else if (f.type === 'text') {
+          v[f.key] = el.value.trim();
+        } else if (f.type === 'gbp-select') {
           v[f.key] = el.value.trim();
         } else if (f.type === 'textarea') {
           if (f.arrayMode) {
             v[f.key] = el.value.split(',').map(s => s.trim()).filter(Boolean);
-          } else if (f.jsonMode === 'jobs') {
-            v[f.key] = el.value.split('\n').filter(s => s.trim()).map(line => {
-              const [job, price, duration] = line.split('|').map(s => s.trim());
-              return { job: job || '', price: price || '', duration: duration || '' };
-            }).filter(r => r.job);
-          } else if (f.jsonMode === 'logos') {
-            try { v[f.key] = JSON.parse(el.value || 'null'); } catch { v[f.key] = el.value || null; }
           } else {
             v[f.key] = el.value.trim();
           }
+        } else if (f.type === 'checkboxes') {
+          v[f.key] = Array.from(el.querySelectorAll('.cv-mat-cb:checked')).map(cb => cb.value);
+        } else if (f.type === 'gbp-multicheck') {
+          v[f.key] = cvGetJobsWanted();
+        } else if (f.type === 'job-rows') {
+          v[f.key] = Array.from(el.querySelectorAll('.cv-job-row')).map(row => ({
+            job:      row.querySelector('.cv-job-name').value.trim(),
+            price:    row.querySelector('.cv-job-price').value.trim(),
+            duration: row.querySelector('.cv-job-dur').value.trim(),
+          })).filter(r => r.job);
+        } else if (f.type === 'theme-rows') {
+          v[f.key] = Array.from(el.querySelectorAll('.cv-theme-row')).map(row => ({
+            theme:    row.querySelector('.cv-theme-text').value.trim(),
+            approved: row.querySelector('.cv-theme-approved').checked,
+          })).filter(r => r.theme);
+        } else if (f.type === 'logo-rows') {
+          const rows = Array.from(el.querySelectorAll('.cv-logo-row'));
+          // null = never saved; [] = saved empty; [...] = has logos
+          if (el.dataset.saved === 'false' && rows.length === 0) {
+            v[f.key] = null;
+          } else {
+            v[f.key] = rows.map(row => ({
+              name:         row.querySelector('.cv-logo-name').value.trim(),
+              tier:         row.querySelector('.cv-logo-tier').value,
+              register_url: row.querySelector('.cv-logo-url').value.trim(),
+              caption:      row.querySelector('.cv-logo-caption').value.trim(),
+            })).filter(r => r.name);
+          }
         }
+
         for (const s of (f.sub || [])) {
           const subEl = document.getElementById('cv_' + s.key);
           if (subEl) v[s.key] = subEl.checked;
@@ -1990,19 +2154,74 @@
         const el = document.getElementById('cv_' + f.key);
         if (!el) continue;
         const val = data[f.key];
-        if (f.type === 'select' || f.type === 'text') {
+
+        if (f.type === 'select') {
           el.value = val != null ? val : '';
+        } else if (f.type === 'text') {
+          el.value = val != null ? val : '';
+        } else if (f.type === 'gbp-select') {
+          // Store value; options populated later in cvApplyGbpCategories
+          el.value = val != null ? val : '';
+          // Add a temporary option so the value isn't lost before categories load
+          if (val && !Array.from(el.options).some(o => o.value === val)) {
+            const opt = document.createElement('option');
+            opt.value = val; opt.textContent = val; opt.selected = true;
+            el.appendChild(opt);
+          }
+          // Trigger materials load immediately with saved value
+          if (val) cvLoadNicheMaterials(val);
         } else if (f.type === 'textarea') {
           if (f.arrayMode) {
             el.value = Array.isArray(val) ? val.join(', ') : (val || '');
-          } else if (f.jsonMode === 'jobs') {
-            el.value = Array.isArray(val) ? val.map(r => [r.job, r.price, r.duration].filter(Boolean).join(' | ')).join('\n') : '';
-          } else if (f.jsonMode === 'logos') {
-            el.value = val != null ? JSON.stringify(val, null, 2) : '';
           } else {
             el.value = val != null ? val : '';
           }
+        } else if (f.type === 'checkboxes') {
+          // Save the values so cvLoadNicheMaterials can pre-check them
+          const arr = Array.isArray(val) ? val : (typeof val === 'string' ? val.split(',').map(s=>s.trim()).filter(Boolean) : []);
+          el.dataset.savedValues = JSON.stringify(arr);
+          // Checkboxes rendered async after niche loads — no-op here
+        } else if (f.type === 'gbp-multicheck') {
+          // Applied later in cvApplyGbpCategories once options are known
+          // Store so cvApplyGbpCategories can pick them up
+          el.dataset.savedValues = JSON.stringify(Array.isArray(val) ? val : []);
+        } else if (f.type === 'job-rows') {
+          const rows = el.querySelectorAll('.cv-job-row');
+          const arr = Array.isArray(val) ? val : [];
+          rows.forEach((row, i) => {
+            const r = arr[i] || {};
+            row.querySelector('.cv-job-name').value  = r.job      || '';
+            row.querySelector('.cv-job-price').value = r.price    || '';
+            row.querySelector('.cv-job-dur').value   = r.duration || '';
+          });
+        } else if (f.type === 'theme-rows') {
+          // Normalise: old string[] → [{theme,approved:false}]
+          let themes = [];
+          if (Array.isArray(val)) {
+            themes = val.map(t => typeof t === 'string' ? { theme: t, approved: false } : t);
+          }
+          const btn = el.querySelector('button');
+          Array.from(el.querySelectorAll('.cv-theme-row')).forEach(r => r.remove());
+          if (themes.length === 0) themes = [{ theme: '', approved: false }];
+          themes.forEach(t => {
+            const div = document.createElement('div');
+            div.innerHTML = renderThemeRow(t);
+            el.insertBefore(div.firstElementChild, btn);
+          });
+        } else if (f.type === 'logo-rows') {
+          Array.from(el.querySelectorAll('.cv-logo-row')).forEach(r => r.remove());
+          if (val === null || val === undefined) {
+            el.dataset.saved = 'false';
+          } else {
+            el.dataset.saved = 'true';
+            (Array.isArray(val) ? val : []).forEach(logo => {
+              const div = document.createElement('div');
+              div.innerHTML = renderLogoRow(logo);
+              el.appendChild(div.firstElementChild);
+            });
+          }
         }
+
         for (const s of (f.sub || [])) {
           const subEl = document.getElementById('cv_' + s.key);
           if (subEl) subEl.checked = !!data[s.key];
@@ -2017,6 +2236,15 @@
     });
   }
 
+  // After cvSetValues, re-apply saved multicheck values now that checkboxes exist
+  function cvRestoreMulticheck() {
+    const jwEl = document.getElementById('cv_jobs_wanted');
+    if (jwEl && jwEl.dataset.savedValues) {
+      const saved = new Set(JSON.parse(jwEl.dataset.savedValues));
+      jwEl.querySelectorAll('.cv-jw-cb').forEach(cb => { cb.checked = saved.has(cb.value); });
+    }
+  }
+
   async function loadClientValues() {
     if (!cvRendered) renderCvForm();
     const st = document.getElementById('cvSaveStatus');
@@ -2028,11 +2256,17 @@
       return;
     }
     try {
-      const r = await fetch(`/api/clients/${encodeURIComponent(clientId)}/client-values`);
-      if (!r.ok) return;
-      const { found, values } = await r.json();
+      const [cvRes, catRes] = await Promise.all([
+        fetch(`/api/clients/${encodeURIComponent(clientId)}/client-values`),
+        fetch(`/api/clients/${encodeURIComponent(clientId)}/gbp-categories`),
+      ]);
+      if (!cvRes.ok) return;
+      const { found, values } = await cvRes.json();
       if (values) cvSetValues(values);
       if (found) { st.textContent = 'Saved values loaded.'; st.style.color = 'var(--success)'; }
+      const catData = catRes.ok ? await catRes.json() : { categories: [] };
+      cvApplyGbpCategories(catData.categories);
+      cvRestoreMulticheck();
       loadV20Settings();
     } catch (e) { console.error('loadClientValues', e); }
   }

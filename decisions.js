@@ -9,6 +9,13 @@ const FALLBACK_ORDER = ['faq_C', 'faq_D', 'faq_E'];
 
 function cap(s) { return (s && s.length) ? s[0].toUpperCase() + s.slice(1) : (s || ''); }
 function titleCase(s) { return (s || '').replace(/\w\S*/g, w => w[0].toUpperCase() + w.slice(1)); }
+// Handle both old string[] and new {theme,approved}[] formats
+function approvedThemes(arr) {
+  if (!Array.isArray(arr)) return [];
+  return arr
+    .filter(t => typeof t === 'string' ? true : t.approved)
+    .map(t => typeof t === 'string' ? t : t.theme);
+}
 
 // Strip admin suffixes so "New Forest District" → "New Forest"
 function stripAdmin(name) {
@@ -103,8 +110,9 @@ function buildWhyPoints(cv, niche, yearsTrading, trustProof, ctx) {
   }
 
   // P4: first approved review theme; else differentiator_2 if confirmed
-  if (Array.isArray(cv.review_themes) && cv.review_themes.length > 0) {
-    points.push({ key: 'review_theme', title: cv.review_themes[0], proof: 'theme' });
+  const themes = approvedThemes(cv.review_themes);
+  if (themes.length > 0) {
+    points.push({ key: 'review_theme', title: themes[0], proof: 'theme' });
   } else if (cv.differentiator_2_confirmed && cv.differentiator_2) {
     points.push({ key: 'differentiator_2', title: cv.differentiator_2, proof: 'diff2' });
   }
