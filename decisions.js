@@ -8,6 +8,7 @@ const CURRENT_YEAR = new Date().getFullYear();
 const FALLBACK_ORDER = ['faq_C', 'faq_D', 'faq_E'];
 
 function cap(s) { return (s && s.length) ? s[0].toUpperCase() + s.slice(1) : (s || ''); }
+function titleCase(s) { return (s || '').replace(/\w\S*/g, w => w[0].toUpperCase() + w.slice(1)); }
 
 // Strip admin suffixes so "New Forest District" → "New Forest"
 function stripAdmin(name) {
@@ -26,7 +27,7 @@ function ph(text, ctx) {
     .replace(/\[QUOTE_FREE_LOWER\] /g,   qf ? qf.toLowerCase() + ' ' : '')
     .replace(/\[QUOTE_FREE_LOWER\]/g,    qf ? qf.toLowerCase() : '')
     .replace(/\[KW_PHRASE\]/g,           ctx.kwPhrase || '')
-    .replace(/\[CATEGORY\]/g,            ctx.category || '')
+    .replace(/\[CATEGORY\]/g,            titleCase(ctx.category || ''))
     .replace(/\[CITY\]/g,                ctx.city || '')
     .replace(/\[TRADE\]/g,               ctx.trade || '')
     .replace(/\[TRADE_LOWER\]/g,         ctx.tradeLower || '')
@@ -43,6 +44,8 @@ function ph(text, ctx) {
 function getLinkStatus(page) {
   const s = (page.status || '').toLowerCase();
   if (s === 'live' || s === 'done') return 'Live';
+  // Explicitly marked not-built, or no URL slug → Not built
+  if (s === 'not built' || s === 'not_built' || !(page.urlSlug || '').trim()) return 'Not built';
   // Location pages with admin-area title keywords → Not built
   if (page.pageType === 'location' && /\b(District|Borough|Council|Authority)\b/i.test(page.pageTitle || '')) return 'Not built';
   return 'Launching';
@@ -145,10 +148,10 @@ function buildFaq(cv, niche, ctx, emergencyOn) {
     if (fb) questions.push({ ...fb, slot: 'Q2' });
   }
 
-  // Q3 guarantee / business_type / fallback
+  // Q3 guarantee / faq_3_none (all business types) / fallback
   if ((cv.guarantee_years && parseInt(cv.guarantee_years, 10) > 0) || cv.manufacturer_warranty) {
     questions.push({ ...faqMap['faq_3'], slot: 'Q3' });
-  } else if (cv.business_type === 'A') {
+  } else if (faqMap['faq_3_none']) {
     questions.push({ ...faqMap['faq_3_none'], slot: 'Q3' });
   } else {
     const fb = nextFallback();
@@ -202,18 +205,23 @@ function buildWhyH2(cv, niche, ctx) {
 
 // ── Build service cards (D9) ─────────────────────────────────────────────────
 function buildServiceCards(pages, niche) {
-  const categoryPages = pages.filter(p => p.pageType === 'category');
+  // Includes both secondary-category pages AND primary-category service pages
+  const categoryPages = pages.filter(p => p.pageType === 'category' || p.pageType === 'service');
   const prioritySet = new Set((niche.priority_services || []).map(s => s.toLowerCase()));
 
-  // Sort: priority first → linkable first → page-map order
-  const sorted = [...categoryPages].sort((a, b) => {
-    const aPri = prioritySet.has((a.pageTitle || '').toLowerCase()) ? 0 : 1;
-    const bPri = prioritySet.has((b.pageTitle || '').toLowerCase()) ? 0 : 1;
-    if (aPri !== bPri) return aPri - bPri;
-    const aLink = isLinkable(a) ? 0 : 1;
-    const bLink = isLinkable(b) ? 0 : 1;
-    return aLink - bLink;
-  });
+  // Sort: priority order first, then linkable before not-linkable, then page-map order (stable)
+  const priorityList = (niche.priority_services || []).map(s => s.toLowerCase());
+  const priorityIdx = p => {
+    const i = priorityList.indexOf((p.pageTitle || '').toLowerCase());
+    return i === -1 ? priorityList.length : i;
+  };
+  const sorted = categoryPages.map((p, i) => ({ p, i })).sort((a, b) => {
+    const pa = priorityIdx(a.p), pb = priorityIdx(b.p);
+    if (pa !== pb) return pa - pb;                      // priority order
+    const la = isLinkable(a.p) ? 0 : 1, lb = isLinkable(b.p) ? 0 : 1;
+    if (la !== lb) return la - lb;                      // linkable first
+    return a.i - b.i;                                   // page-map order
+  }).map(x => x.p);
 
   const main = sorted.slice(0, 8).map(p => ({
     name:    p.pageTitle,
