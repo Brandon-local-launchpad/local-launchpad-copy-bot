@@ -2253,6 +2253,19 @@
     st.style.color = 'var(--block,#b71c1c)';
   }
 
+  function cvInlineError(containerId, msg, err) {
+    console.error(msg, err);
+    const el = document.getElementById(containerId);
+    if (!el) return;
+    const existing = el.querySelector('.cv-inline-err');
+    if (existing) existing.remove();
+    const div = document.createElement('div');
+    div.className = 'cv-inline-err';
+    div.style.cssText = 'color:var(--block,#b71c1c);font-size:11px;margin-top:4px;';
+    div.textContent = msg + ': ' + (err && err.message ? err.message : String(err));
+    el.appendChild(div);
+  }
+
   async function loadClientValues() {
     if (!cvRendered) renderCvForm();
     const st = document.getElementById('cvSaveStatus');
@@ -2281,14 +2294,14 @@
       const catData = catRes.ok ? await catRes.json() : { categories: [] };
       cvApplyGbpCategories(catData.categories);
       cvRestoreMulticheck();
-    } catch (e) { console.error("Couldn't load GBP categories", e); }
+    } catch (e) { cvInlineError('cv_primary_category', "Couldn't load GBP categories", e); }
 
     // Step C: materials from Step 1 trade — independent of Steps A & B
     try {
       const stepTrade = document.getElementById('tradeSelect') && document.getElementById('tradeSelect').value;
       const matCategory = stepTrade || (values && values.primary_category) || '';
       if (matCategory) await cvLoadNicheMaterials(matCategory);
-    } catch (e) { console.error("Couldn't load materials", e); }
+    } catch (e) { cvInlineError('cv_materials_methods', `Couldn't load materials for trade '${(document.getElementById('tradeSelect') || {}).value || ''}'`, e); }
 
     // Step D: v20 settings — independent
     loadV20Settings();
@@ -2343,7 +2356,10 @@
       document.getElementById('cvUseV20').checked = !!use_v20_homepage;
       document.getElementById('cvTestMode').checked = !!v20_test_mode;
       document.getElementById('cvV20Card').style.display = '';
-    } catch (e) { console.error("Couldn't load v20 settings", e); }
+    } catch (e) {
+      document.getElementById('cvV20Card').style.display = '';
+      cvInlineError('cvV20Card', "Couldn't load v20 settings", e);
+    }
   }
 
   async function saveV20Settings() {
