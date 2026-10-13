@@ -2020,9 +2020,12 @@
       });
     });
 
-    // primary_category change → reload materials checkboxes
+    // primary_category change → reload materials only when no Step 1 trade is set
     const catEl = document.getElementById('cv_primary_category');
-    if (catEl) catEl.addEventListener('change', () => cvLoadNicheMaterials(catEl.value));
+    if (catEl) catEl.addEventListener('change', () => {
+      const stepTrade = document.getElementById('tradeSelect') && document.getElementById('tradeSelect').value;
+      cvLoadNicheMaterials(stepTrade || catEl.value);
+    });
 
     cvRendered = true;
   }
@@ -2168,8 +2171,7 @@
             opt.value = val; opt.textContent = val; opt.selected = true;
             el.appendChild(opt);
           }
-          // Trigger materials load immediately with saved value
-          if (val) cvLoadNicheMaterials(val);
+          // Materials load is triggered from loadClientValues (uses Step 1 trade, not primary_category)
         } else if (f.type === 'textarea') {
           if (f.arrayMode) {
             el.value = Array.isArray(val) ? val.join(', ') : (val || '');
@@ -2267,6 +2269,10 @@
       const catData = catRes.ok ? await catRes.json() : { categories: [] };
       cvApplyGbpCategories(catData.categories);
       cvRestoreMulticheck();
+      // Load materials from Step 1 trade (authoritative); fall back to primary_category
+      const stepTrade = document.getElementById('tradeSelect') && document.getElementById('tradeSelect').value;
+      const matCategory = stepTrade || (values && values.primary_category) || '';
+      if (matCategory) cvLoadNicheMaterials(matCategory);
       loadV20Settings();
     } catch (e) { console.error('loadClientValues', e); }
   }
