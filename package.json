@@ -5,7 +5,8 @@
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
-    "dev": "node --watch server.js"
+    "dev": "node --watch server.js",
+    "test:fixtures": "node tests/run-fixtures.js"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.36.0",

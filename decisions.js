@@ -215,9 +215,6 @@ function buildWhyH2(cv, niche, ctx) {
 function buildServiceCards(pages, niche) {
   // Includes both secondary-category pages AND primary-category service pages
   const categoryPages = pages.filter(p => p.pageType === 'category' || p.pageType === 'service');
-  const prioritySet = new Set((niche.priority_services || []).map(s => s.toLowerCase()));
-
-  // Sort: priority order first, then linkable before not-linkable, then page-map order (stable)
   const priorityList = (niche.priority_services || []).map(s => s.toLowerCase());
   const priorityIdx = p => {
     const i = priorityList.indexOf((p.pageTitle || '').toLowerCase());
@@ -238,7 +235,16 @@ function buildServiceCards(pages, niche) {
     h1:      p.h1 || '',
     status:  getLinkStatus(p),
   }));
-  const alsoOffer = sorted.slice(8).map(p => p.pageTitle);
+
+  // "We also offer": overflow beyond card slot 8.
+  // - Secondary-category pages (pageType=category): always included — they must appear somewhere.
+  // - Primary-category services (pageType=service): included but capped at 6.
+  // Secondary-category services (services that belong under a category layer) never appear here;
+  // those are already represented by their category page.
+  const overflow = sorted.slice(8);
+  const overflowCategories = overflow.filter(p => p.pageType === 'category').map(p => p.pageTitle);
+  const overflowServices   = overflow.filter(p => p.pageType === 'service').map(p => p.pageTitle).slice(0, 6);
+  const alsoOffer = [...overflowCategories, ...overflowServices];
 
   return { main, alsoOffer };
 }
@@ -292,13 +298,49 @@ function buildD13Links(pages, cv) {
 }
 
 // ── Build D14 hero intro town ────────────────────────────────────────────────
-function buildD14Town(pages) {
-  const locPages = pages.filter(p => p.pageType === 'location');
-  // Prefer linkable; pick first by page-map order
-  const linkable = locPages.find(isLinkable);
-  if (linkable) return { name: stripAdmin(linkable.pageTitle), url: linkable.urlSlug || '' };
-  const any = locPages[0];
-  return any ? { name: stripAdmin(any.pageTitle), url: '' } : null;
+// Picks the first GBP area (by biz_area_N order, skipping primary city and plain-text areas)
+// that has a linkable Location page. Falls back to any eligible area with a location page.
+function buildD14Town(pages, keyValueMap) {
+  const locMap = {};
+  for (const p of pages.filter(p => p.pageType === 'location')) {
+    locMap[normArea(p.pageTitle)] = p;
+    locMap[normArea(stripAdmin(p.pageTitle))] = p;
+  }
+
+  const primaryCity = normArea((keyValueMap['biz_area_1'] || '').trim());
+  const areaList = buildAreaList(pages, keyValueMap);
+  const plainSet = new Set(areaList.plain.map(n => normArea(n)));
+
+  const gbpAreas = [];
+  for (let i = 2; keyValueMap[`biz_area_${i}`]; i++) {
+    gbpAreas.push(keyValueMap[`biz_area_${i}`].trim());
+  }
+
+  function getPage(area) {
+    return locMap[normArea(area)] || locMap[normArea(stripAdmin(area))];
+  }
+
+  function eligible(area) {
+    const n = normArea(area);
+    const s = normArea(stripAdmin(area));
+    if (n === primaryCity || s === primaryCity) return false;
+    if (plainSet.has(n) || plainSet.has(s)) return false;
+    return true;
+  }
+
+  // First pass: linkable page in GBP area order
+  for (const area of gbpAreas) {
+    if (!eligible(area)) continue;
+    const page = getPage(area);
+    if (page && isLinkable(page)) return { name: stripAdmin(area), url: page.urlSlug || '' };
+  }
+  // Second pass: any eligible area with a location page (even not yet linkable)
+  for (const area of gbpAreas) {
+    if (!eligible(area)) continue;
+    const page = getPage(area);
+    if (page) return { name: stripAdmin(area), url: '' };
+  }
+  return null;
 }
 
 // ── Main entry point ─────────────────────────────────────────────────────────
@@ -313,8 +355,12 @@ function computeDecisions({ cv, niche, pages, keyValueMap, v20TestMode, allocati
   const kwPhrase    = homepage ? (homepage.h1 || '').trim() : '';
 
   const btnBase = niche.buttons || {};
+  // h1_override / d2_h1 resolved before ctx so kwPhrase in ctx uses the effective H1
+  const h1Override = (cv.h1_override || '').trim();
+  const d2_h1 = h1Override || kwPhrase;
+
   const ctx = {
-    kwPhrase,
+    kwPhrase:          d2_h1,
     category:          cv.primary_category || '',
     city:              primaryCity,
     trade:             niche.trade || '',
@@ -333,7 +379,15 @@ function computeDecisions({ cv, niche, pages, keyValueMap, v20TestMode, allocati
   // ── Gates ──
 
   // G-H1
-  if (!kwPhrase) gates.push({ code: 'G-H1', msg: 'Homepage H1 is blank in the page map.' });
+  if (!kwPhrase && !h1Override) {
+    gates.push({ code: 'G-H1', msg: 'Homepage H1 is blank in the page map.' });
+  } else {
+    const h1ToCheck = h1Override || kwPhrase;
+    const oldFormat = h1ToCheck.includes('|') || (cv.company_name && h1ToCheck.toLowerCase().includes(cv.company_name.toLowerCase()));
+    if (oldFormat && !h1Override) {
+      gates.push({ code: 'G-H1', msg: `H1 is in the old format: set the H1 override. (H1: "${h1ToCheck}")` });
+    }
+  }
 
   // G-MAP
   if (!cv.map_embed) {
@@ -369,11 +423,11 @@ function computeDecisions({ cv, niche, pages, keyValueMap, v20TestMode, allocati
 
   let d3_title;
   if (titleModifier) {
-    const withMod = `${kwPhrase} | ${titleModifier} | ${cv.company_name}`;
+    const withMod = `${d2_h1} | ${titleModifier} | ${cv.company_name}`;
     if (withMod.length <= 60) { d3_title = withMod; }
-    else { d3_title = `${kwPhrase} | ${cv.company_name}`; titleModifier = null; }
+    else { d3_title = `${d2_h1} | ${cv.company_name}`; titleModifier = null; }
   } else {
-    d3_title = `${kwPhrase} | ${cv.company_name}`;
+    d3_title = `${d2_h1} | ${cv.company_name}`;
     if (d3_title.length > 60) flags.push({ code: 'F-LEN-TITLE', msg: `Title is ${d3_title.length} chars (max 60).` });
   }
 
@@ -393,11 +447,11 @@ function computeDecisions({ cv, niche, pages, keyValueMap, v20TestMode, allocati
 
   let d4_meta = null;
   for (const proof of proofOpts) {
-    const candidate = `${kwPhrase} from ${cv.company_name}. ${proof}. ${metaCta}`.trim();
+    const candidate = `${d2_h1} from ${cv.company_name}. ${proof}. ${metaCta}`.trim();
     if (candidate.length <= 155) { d4_meta = candidate; break; }
   }
   if (!d4_meta) {
-    const bare = `${kwPhrase} from ${cv.company_name}. ${metaCta}`.trim();
+    const bare = `${d2_h1} from ${cv.company_name}. ${metaCta}`.trim();
     if (bare.length > 155) flags.push({ code: 'F-LEN-META', msg: `Meta is ${bare.length} chars (max 155).` });
     d4_meta = bare;
   }
@@ -454,7 +508,8 @@ function computeDecisions({ cv, niche, pages, keyValueMap, v20TestMode, allocati
     why:       buildWhyH2(cv, niche, ctx),
     reviews:   reviewCount >= 20 ? `${reviewCount}+ Google Reviews From ${ctx.city} ${cap(ctx.customerType)}` : `What ${ctx.city} ${cap(ctx.customerType)} Say About Us`,
     process:   ph(btnBase.process_h2 || '', ctx),
-    cta_band:  `Ready to talk to a local ${tradePersonCap}?`,
+    // CTA band is a sentence, not a heading — trade_person stays lower case
+    cta_band:  `Ready to talk to a local ${ctx.tradePerson}?`,
     owner:     sec9 ? (cv.owner_name_2
       ? `Meet ${cv.owner_name} & ${cv.owner_name_2}, the ${tradePersonPlurCap} Behind ${cv.company_name}`
       : `Meet ${cv.owner_name}, the ${tradePersonCap} Behind ${cv.company_name}`)
@@ -466,6 +521,14 @@ function computeDecisions({ cv, niche, pages, keyValueMap, v20TestMode, allocati
 
   // ── D9 service cards ──
   const d9 = buildServiceCards(pages, niche);
+  {
+    // Count overflow services (capped at 6 in alsoOffer); flag if any were cut
+    const overflow = [...pages.filter(p => p.pageType === 'category' || p.pageType === 'service')].slice(8);
+    const overflowServiceCount = overflow.filter(p => p.pageType === 'service').length;
+    if (overflowServiceCount > 6) {
+      flags.push({ code: 'F-MORE-SERVICES', msg: `${overflowServiceCount} primary-category services overflow; only the first 6 are shown in "We also offer".` });
+    }
+  }
 
   // ── D11 FAQ ──
   const d11 = buildFaq(cv, niche, ctx, emergencyOn);
@@ -482,12 +545,15 @@ function computeDecisions({ cv, niche, pages, keyValueMap, v20TestMode, allocati
   const d13 = buildD13Links(pages, cv);
 
   // ── D14 hero intro town ──
-  const d14 = buildD14Town(pages);
+  const d14 = buildD14Town(pages, keyValueMap);
 
   // ── D15 button order ──
   const d15 = emergencyOn
     ? [`Call ${cv.phone}`, ctx.primaryAction]
     : [ctx.primaryAction, cv.phone ? `Call ${cv.phone}` : null].filter(Boolean);
+
+  // F-ALLOC: allocation pass not yet built
+  flags.push({ code: 'F-ALLOC', msg: 'Allocation pass not yet built — ALLOCATED ITEMS will be empty until Stage 5 is complete.' });
 
   // ── D16 thin page check ──
   let thinCount = 0;
@@ -506,9 +572,24 @@ function computeDecisions({ cv, niche, pages, keyValueMap, v20TestMode, allocati
     flags.push({ code: 'F-THIN', msg: `Thin page: ${thinCount}/5 indicators — ${thinParts.join(', ')}.` });
   }
 
+  // Content block expands when D13 has the full set of 4 links
+  const contentBlockExpands = d13.length === 4;
+
+  // Pair Why points with niche fears (cycled if fewer fears than points)
+  const fears = niche.fears || [];
+  const whyWithFears = whyPoints.map((p, i) => ({
+    ...p,
+    fear: fears.length > 0 ? fears[i % fears.length] : null,
+  }));
+
+  // Build linkable pages list (Live or Launching)
+  const linkablePages = pages
+    .filter(p => isLinkable(p) && (p.urlSlug || '').trim())
+    .map(p => ({ type: p.pageType, url: p.urlSlug, h1: p.h1 || '' }));
+
   const decisions = {
-    d1_years_trading: yearsTrading,
-    d2_h1:            kwPhrase,
+    d1_years_trading:    yearsTrading,
+    d2_h1,
     d3_title,
     d4_meta,
     d5_trust,
@@ -516,12 +597,15 @@ function computeDecisions({ cv, niche, pages, keyValueMap, v20TestMode, allocati
     d7: { sec2: sec2 ? 'SHOWN' : 'HIDDEN', sec6: sec6 ? 'SHOWN' : 'HIDDEN', sec9: sec9 ? 'SHOWN' : 'HIDDEN' },
     d8,
     d9,
-    d10_why: whyPoints,
-    d11_faq: d11,
-    d12_areas: d12,
-    d13_links: d13,
-    d14_town:  d14,
-    d15_buttons: d15,
+    d10_why:             whyWithFears,
+    d11_faq:             d11,
+    d12_areas:           d12,
+    d13_links:           d13,
+    d13_expands:         contentBlockExpands,
+    d14_town:            d14,
+    d15_buttons:         d15,
+    linkablePages,
+    niche_steps:         niche.steps || [],
     emergencyOn,
     quoteFree,
   };
@@ -554,31 +638,42 @@ function formatDecisionsBlock(D, cv, niche, ctx) {
   push(`Why H2: ${D.d8.why}`);
   push(`Reviews H2: ${D.d8.reviews}`);
   push(`Process H2: ${D.d8.process}`);
-  push(`CTA band H2: ${D.d8.cta_band}`);
+  push(`CTA band: ${D.d8.cta_band}`);
   push(`Owner H2: ${D.d8.owner}`);
   push(`Areas H2: ${D.d8.areas}`);
   push(`FAQ H2: ${D.d8.faq}`);
   push(`Final CTA H2: ${D.d8.final_cta}`);
   push('');
+  push(`Content block: ${D.d13_expands ? 'EXPANDING (up to 300 words)' : 'standard (up to 250 words)'}`);
+  push('');
   push('--- D13 CONTENT BLOCK LINK SET ---');
   for (const l of D.d13_links) push(`  ${l.name} → ${l.url}`);
   push('');
-  push(`D14 Hero intro town: ${D.d14_town ? D.d14_town.name : 'none'}`);
+  push(`D14 Hero intro town: ${D.d14_town ? `${D.d14_town.name}${D.d14_town.url ? ' (' + D.d14_town.url + ')' : ''}` : 'none'}`);
   push('');
   push('--- D9 SERVICE CARDS ---');
   for (let i = 0; i < D.d9.main.length; i++) {
     const c = D.d9.main[i];
-    push(`  ${i + 1}. ${c.name} [${c.status}${c.url ? ' ' + c.url : ''}]`);
+    push(`  ${i + 1}. ${c.name} [${c.status}${c.url ? ' ' + c.url : ''}${c.h1 ? ' | H1: ' + c.h1 : ''}]`);
   }
   if (D.d9.alsoOffer.length) push(`  We also offer: ${D.d9.alsoOffer.join(', ')}`);
   push('');
   push('--- D10 WHY CHOOSE US POINTS ---');
-  for (const p of D.d10_why) push(`  ${p.title}`);
+  for (const p of D.d10_why) {
+    push(`  ${p.title}`);
+    if (p.fear) push(`    Fear addressed: ${p.fear}`);
+  }
+  push('');
+  push('--- PROCESS STEPS ---');
+  for (const s of (D.niche_steps || [])) {
+    push(`  ${s.title}`);
+    push(`    Brief: ${ph(s.brief || '', ctx)}`);
+  }
   push('');
   push('--- D11 FAQ QUESTIONS ---');
   for (const q of D.d11_faq) {
     push(`  ${q.slot}: ${q.question} [${q.doubt}${q.symptom_based ? ', symptom' : ''}]`);
-    if (q.answer_brief) push(`    → ${q.answer_brief}`);
+    if (q.answer_brief) push(`    → ${ph(q.answer_brief, ctx)}`);
   }
   push('');
   push('--- D12 AREA LIST ---');
@@ -589,6 +684,31 @@ function formatDecisionsBlock(D, cv, niche, ctx) {
   push(`D15 Buttons: ${D.d15_buttons.join(' | ')}`);
   push(`Emergency layout: ${D.emergencyOn ? 'ON' : 'off'}`);
   push(`[QUOTE_FREE]: ${D.quoteFree || '(blank — paid quotes)'}`);
+  push('');
+  push('--- LINKABLE PAGES ---');
+  for (const p of D.linkablePages) push(`  [${p.type}] ${p.url} | H1: ${p.h1}`);
+  push('');
+  push('--- MODEL FIELDS ---');
+  const modelFields = [
+    'home_hero_intro',
+    `home_trusted_logos${D.d7.sec2 === 'HIDDEN' ? ' (HIDDEN)' : ''}`,
+    'home_content_block_body',
+    'home_services_intro',
+    ...D.d9.main.map((c, i) => `card_${i + 1}_text: ${c.name}${c.linked ? '' : ' (HIDDEN — unlinked card)'}`),
+    ...(D.d9.alsoOffer.length ? ['home_services_more_line'] : []),
+    ...D.d10_why.map((p, i) => `why_point_${i + 1}_body: ${p.title}`),
+    `home_reviews_h2${D.d7.sec6 === 'HIDDEN' ? ' (HIDDEN)' : ''}`,
+    `home_reviews_body${D.d7.sec6 === 'HIDDEN' ? ' (HIDDEN)' : ''}`,
+    ...D.niche_steps.map((s, i) => `step_${i + 1}_body: ${s.title}`),
+    `home_owner_body${D.d7.sec9 === 'HIDDEN' ? ' (HIDDEN)' : ''}`,
+    'home_areas_intro',
+    ...D.d11_faq.map(q => `faq_${q.slot}_answer: ${q.question}`),
+    'home_final_cta_body',
+  ];
+  for (const f of modelFields) push(`  ${f}`);
+  push('');
+  push('--- ALLOCATED ITEMS ---');
+  push('  none');
 
   return lines.join('\n');
 }
