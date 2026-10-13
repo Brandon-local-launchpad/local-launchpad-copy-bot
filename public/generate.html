@@ -1979,7 +1979,7 @@
 
   function cvAddThemeRow(key) {
     const container = document.getElementById('cv_' + key);
-    const btn = container.querySelector('button');
+    const btn = container.querySelector(':scope > button');
     const row = document.createElement('div');
     row.innerHTML = renderThemeRow({theme:'',approved:false});
     container.insertBefore(row.firstElementChild, btn);
@@ -2202,7 +2202,7 @@
           if (Array.isArray(val)) {
             themes = val.map(t => typeof t === 'string' ? { theme: t, approved: false } : t);
           }
-          const btn = el.querySelector('button');
+          const btn = el.querySelector(':scope > button'); // direct-child add button, not the × inside rows
           Array.from(el.querySelectorAll('.cv-theme-row')).forEach(r => r.remove());
           if (themes.length === 0) themes = [{ theme: '', approved: false }];
           themes.forEach(t => {
