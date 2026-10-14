@@ -833,7 +833,9 @@ async function recoverInterruptedResearchJobs() {
               try {
                 const pxRes = await pollPerplexity(loc.pxJobId, deadline);
                 // Process the completed result the same way runOneLocation does
-                await finishLocation(record, record.clientId, code, loc, pxRes);
+                // (the FAQ research row the way faq-service.js does)
+                if (loc.kind === 'faq' && faqService) await faqService.finishResearch(record, record.clientId, pxRes);
+                else await finishLocation(record, record.clientId, code, loc, pxRes);
               } catch (err) {
                 const causeStr = err.cause ? ` | cause: ${err.cause}` : '';
                 console.error(`[recovery] ${record.id}/${code} poll failed: ${err.message}${causeStr}`);
@@ -1958,6 +1960,9 @@ app.post('/api/research-start', async (req, res) => {
   // Respond immediately — research runs in background
   res.json({ jobId, total: locations.length });
 
+  // Same click: the client's FAQ question research, once, if it has none yet
+  if (faqService) faqService.maybeAutoResearch(clientId, sessionId);
+
   // Background: persist codes, then run locations in parallel (capped at RESEARCH_CONCURRENCY)
   (async () => {
     const { keyValueMap, serviceParentMap, trade } = session;
@@ -2878,6 +2883,7 @@ const CLIENT_VALUES_TEMPLATE = {
   differentiator_2: '', differentiator_2_confirmed: false, differentiator_2_sentence: '',
   verified_logos: null,
   free_quotes: '', free_inspection: '', quote_method: '', price_list: '', response_time: '',
+  quote_includes: '', deposit_terms: '', waste_carrier_registered: '',
   confirmed_practices: [], coastal_city: '',
   same_day_available: '', out_of_hours_available: '', start_time: '',
   owner_name: '', owner_name_2: '', owner_qualification: '',
@@ -2982,7 +2988,7 @@ app.post('/api/clients/:clientId/prefill-client-values', async (req, res) => {
 
     // Small Claude call to extract free-text onboarding answers into structured fields
     if (onboardingText && client) {
-      const extractPrompt = `You are extracting structured data from a business onboarding form.\n\nExtract the following fields from the Q&A below. Return ONLY a JSON object with these exact keys. If a field is not mentioned or the answer is unusable (vague, unclear, non-committal), return an empty string "" for that field. Never invent values.\n\nFields to extract:\n- year_founded (4-digit year only, e.g. "2015"; blank if vague like "a few years ago")\n- jobs_completed (number only, e.g. "150"; blank if a range or vague)\n- guarantee_years (number only; blank if "no guarantee" or not mentioned)\n- manufacturer_warranty (e.g. "25 years manufacturer warranty"; blank if not mentioned)\n- insurance_cover (figure without £ symbol, e.g. "5m" or "2000000"; blank if not mentioned)\n- free_quotes ("yes" or "no"; blank if not mentioned)\n- start_time (short phrase, e.g. "same week" or "within 2 weeks"; blank if vague)\n- hours (e.g. "Monday to Saturday, 8am to 6pm"; blank if not mentioned or unusable)\n- gbp_address_type ("storefront" or "service_area"; blank if unclear)\n- travel_distance (short phrase or miles, e.g. "20 miles"; blank if not mentioned)\n- team_size (number only; blank if not mentioned)\n- owner_name (first name only; blank if not mentioned)\n- same_day_available ("yes" or "no"; blank if not mentioned)\n- out_of_hours_available ("yes", "no", or "24/7"; blank if not mentioned)\n- handles_planning ("yes" or "no"; blank if not mentioned)\n- jobs_wanted (array of up to 3 job types the business wants more of; [] if not mentioned)\n- differentiator_1 (the most prominent thing that makes them stand out, in title-case short-phrase form, e.g. "Fixed Prices With No Hidden Costs"; blank if nothing specific)\n- differentiator_2 (second most prominent differentiator, same format; blank if not present)\n- confirmed_practices (array of keys from this list, only where an answer clearly says yes; [] if none or unclear): ${PRACTICES.map(p => `${p.key} = "${p.question}"`).join('; ')}\n\nReturn ONLY a raw JSON object, no markdown, no explanation.\n\n--- ONBOARDING Q&A ---\n${onboardingText}\n\n--- CUSTOM VALUES ---\n${Object.entries(cv).map(([k,v]) => `${k}: ${v}`).join('\n')}`;
+      const extractPrompt = `You are extracting structured data from a business onboarding form.\n\nExtract the following fields from the Q&A below. Return ONLY a JSON object with these exact keys. If a field is not mentioned or the answer is unusable (vague, unclear, non-committal), return an empty string "" for that field. Never invent values.\n\nFields to extract:\n- year_founded (4-digit year only, e.g. "2015"; blank if vague like "a few years ago")\n- jobs_completed (number only, e.g. "150"; blank if a range or vague)\n- guarantee_years (number only; blank if "no guarantee" or not mentioned)\n- manufacturer_warranty (e.g. "25 years manufacturer warranty"; blank if not mentioned)\n- insurance_cover (figure without £ symbol, e.g. "5m" or "2000000"; blank if not mentioned)\n- free_quotes ("yes" or "no"; blank if not mentioned)\n- start_time (short phrase, e.g. "same week" or "within 2 weeks"; blank if vague)\n- hours (e.g. "Monday to Saturday, 8am to 6pm"; blank if not mentioned or unusable)\n- gbp_address_type ("storefront" or "service_area"; blank if unclear)\n- travel_distance (short phrase or miles, e.g. "20 miles"; blank if not mentioned)\n- team_size (number only; blank if not mentioned)\n- owner_name (first name only; blank if not mentioned)\n- same_day_available ("yes" or "no"; blank if not mentioned)\n- out_of_hours_available ("yes", "no", or "24/7"; blank if not mentioned)\n- handles_planning ("yes" or "no"; blank if not mentioned)\n- quote_includes (what the quote covers, in the client's words, e.g. "materials, labour and taking the waste away"; blank if not mentioned)\n- deposit_terms (deposit and when payments are due, e.g. "20% deposit, balance on completion"; blank if not mentioned)\n- waste_carrier_registered ("yes" or "no"; blank if not mentioned)\n- jobs_wanted (array of up to 3 job types the business wants more of; [] if not mentioned)\n- differentiator_1 (the most prominent thing that makes them stand out, in title-case short-phrase form, e.g. "Fixed Prices With No Hidden Costs"; blank if nothing specific)\n- differentiator_2 (second most prominent differentiator, same format; blank if not present)\n- confirmed_practices (array of keys from this list, only where an answer clearly says yes; [] if none or unclear): ${PRACTICES.map(p => `${p.key} = "${p.question}"`).join('; ')}\n\nReturn ONLY a raw JSON object, no markdown, no explanation.\n\n--- ONBOARDING Q&A ---\n${onboardingText}\n\n--- CUSTOM VALUES ---\n${Object.entries(cv).map(([k,v]) => `${k}: ${v}`).join('\n')}`;
 
       try {
         const extractResult = await client.messages.create({
@@ -2996,7 +3002,7 @@ app.post('/api/clients/:clientId/prefill-client-values', async (req, res) => {
         const strFields = ['year_founded','jobs_completed','guarantee_years','manufacturer_warranty',
           'insurance_cover','free_quotes','start_time','hours','gbp_address_type','travel_distance',
           'team_size','owner_name','same_day_available','out_of_hours_available','handles_planning',
-          'differentiator_1','differentiator_2'];
+          'differentiator_1','differentiator_2','quote_includes','deposit_terms','waste_carrier_registered'];
         for (const k of strFields) {
           if (extracted[k] !== undefined && extracted[k] !== '') prefilled[k] = String(extracted[k]);
         }
@@ -3269,13 +3275,109 @@ app.post('/api/clients/:clientId/decisions-preview', async (req, res) => {
     }
   }
 
+  const { faqResearch, flags: faqFlags } = await resolveHomepageFaq(clientId, ctx, niche);
+
   const result = computeDecisions({
     cv: ctx.cv, niche, pages: ctx.pages, keyValueMap: ctx.keyValueMap, serviceParentMap: ctx.serviceParentMap,
-    v20TestMode: ctx.v20TestMode, allocationData,
+    v20TestMode: ctx.v20TestMode, allocationData, faqResearch,
   });
-  result.flags = [...(result.flags || []), ...allocFlags];
+  result.flags = [...(result.flags || []), ...allocFlags, ...faqFlags];
   if (ctx.cvLoadError) result.cvLoadError = ctx.cvLoadError;
   res.json(result);
+});
+
+// ── FAQ research and sorting (F1 to F3) ──────────────────────────────────────
+// faq-service.js does the work; these are thin routes. The research is one
+// research_jobs record with one row (code FAQ), so it shares the Perplexity
+// submit, poll and restart recovery with the area research.
+const faqSort = require('./faq-sort');
+const { createFaqService } = require('./faq-service');
+const faqService = pool ? createFaqService({
+  pool,
+  loadContext: loadV20Context,
+  loadNiche,
+  perplexity: {
+    submit: submitPerplexity, poll: pollPerplexity, text: extractPerplexityText, resolveCitations,
+    timeoutMs: PERPLEXITY_TIMEOUT_MS, preset: PERPLEXITY_PRESET,
+  },
+  jobs: {
+    create: async record => { researchJobs.set(record.id, record); await persistResearchRecord(record); },
+    update: updateResearchLocation,
+    load: loadResearchRecord,
+  },
+  callSortModel: async (system, message) => {
+    const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
+    const r = await client.messages.create({ model: faqSort.FAQ_SORT_MODEL, max_tokens: 8000, system, messages: [{ role: 'user', content: message }] });
+    return r.content.map(c => c.text || '').join('');
+  },
+  // The questions on the latest saved version of each v20 page keep their page
+  latestPageQuestions: async clientId => {
+    const found = v20Store ? await v20Store.latest(clientId, HOMEPAGE) : null;
+    return found ? { 'homepage:homepage': (found.record.faq_items || []).map(f => f.faq_question) } : {};
+  },
+  homepageDecisions: (ctx, niche, faqResearch) => computeDecisions({
+    cv: ctx.cv, niche, pages: ctx.pages, keyValueMap: ctx.keyValueMap, serviceParentMap: ctx.serviceParentMap,
+    v20TestMode: ctx.v20TestMode, allocationData: null, faqResearch,
+  }),
+}) : null;
+
+// The approved research questions the homepage may use. Never throws: on a
+// failure the homepage falls back to the niche questions and the flag says why.
+async function resolveHomepageFaq(clientId, ctx, niche) {
+  if (!faqService) return { faqResearch: [], flags: [] };
+  try {
+    return await faqService.homepageFaq(clientId, ctx, niche);
+  } catch (err) {
+    console.error('[faq] Failed to load the FAQ questions for', clientId, err);
+    return { faqResearch: [], flags: [{ code: 'F-FAQ', msg: `Couldn't load the FAQ questions: ${err.message}. The homepage uses the niche questions.` }] };
+  }
+}
+
+app.get('/api/clients/:clientId/faq', async (req, res) => {
+  if (!faqService) return res.status(503).json({ error: 'Database not configured.' });
+  try {
+    const out = await faqService.view(req.params.clientId, req.query.sessionId || null);
+    if (out.error) return res.status(400).json(out);
+    res.json(out);
+  } catch (err) {
+    console.error('[faq] view failed for', req.params.clientId, err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.post('/api/clients/:clientId/faq/research', async (req, res) => {
+  if (!faqService) return res.status(503).json({ error: 'Database not configured.' });
+  try {
+    const sessionId = (req.body && req.body.sessionId) || null;
+    await faqService.startResearch(req.params.clientId, sessionId);
+    res.json(await faqService.view(req.params.clientId, sessionId));
+  } catch (err) {
+    console.error('[faq] research start failed for', req.params.clientId, err);
+    res.status(400).json({ error: err.message });
+  }
+});
+
+app.post('/api/clients/:clientId/faq/sort', async (req, res) => {
+  if (!faqService) return res.status(503).json({ error: 'Database not configured.' });
+  try {
+    const sessionId = (req.body && req.body.sessionId) || null;
+    await faqService.runSort(req.params.clientId, sessionId);
+    res.json(await faqService.view(req.params.clientId, sessionId));
+  } catch (err) {
+    console.error('[faq] sorting failed for', req.params.clientId, err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.put('/api/clients/:clientId/faq/questions', async (req, res) => {
+  if (!faqService) return res.status(503).json({ error: 'Database not configured.' });
+  try {
+    const { updates, sessionId } = req.body || {};
+    res.json(await faqService.updateQuestions(req.params.clientId, updates, sessionId || null));
+  } catch (err) {
+    if (err.status !== 400) console.error('[faq] question update failed for', req.params.clientId, err);
+    res.status(err.status || 500).json({ error: err.message });
+  }
 });
 
 // ── Allocation routes ────────────────────────────────────────────────────────
@@ -3378,9 +3480,10 @@ async function v20HomepageInputs(clientId, sessionId) {
   const { niche, error: nicheErr } = loadNiche(ctx.trade);
   if (nicheErr) { const e = new Error(nicheErr); e.status = 400; throw e; }
   const { allocationData, flags: allocFlags, view } = await resolveHomepageAllocation(clientId, ctx, niche);
+  const { faqResearch } = await resolveHomepageFaq(clientId, ctx, niche);
   const decisionsResult = computeDecisions({
     cv: ctx.cv, niche, pages: ctx.pages, keyValueMap: ctx.keyValueMap, serviceParentMap: ctx.serviceParentMap,
-    v20TestMode: ctx.v20TestMode, allocationData,
+    v20TestMode: ctx.v20TestMode, allocationData, faqResearch,
   });
   return { ctx, niche, allocFlags, view, decisionsResult };
 }

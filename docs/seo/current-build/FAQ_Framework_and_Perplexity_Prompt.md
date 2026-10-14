@@ -25,7 +25,7 @@ Every question a customer asks before booking comes from one of five doubts. Eve
 
 Every question is written the way a customer would type or say it, never as a marketing headline.
 
-**Rank by search data.** Forum questions show what people discuss; search data shows what they type. Before questions are assigned to pages, each is checked against the Ahrefs questions report and AlsoAsked (Google's People also ask, UK) for the page keyword. Questions with search volume win the slots; forum-only questions fill gaps. Each one is then rewritten into search wording: short, with the service and town where it reads naturally ("Is this roofing quote reasonable?" becomes "How much does a new roof cost in Bournemouth?").
+**Rank by search data.** Forum questions show what people discuss; search data shows what they type. Before questions are assigned to pages, each is checked against the Ahrefs questions report and AlsoAsked (Google's People also ask, UK) for the page keyword. Questions with search volume win the slots; forum-only questions fill gaps. Until there is an Ahrefs API (decision, 14 Oct 2026), Copybot ranks by the research's own most asked list and "seen" counts. Each one is then rewritten into search wording: short, with the service and town where it reads naturally ("Is this roofing quote reasonable?" becomes "How much does a new roof cost in Bournemouth?").
 
 **Promote the biggest questions.** A question with real search volume (usually cost) is too valuable for the bottom of a page. It becomes a section in the page body, or its own page such as a cost guide, and the FAQ block covers the long tail.
 
@@ -35,17 +35,29 @@ No question appears on two pages of the same site.
 
 | Page | Owns | Example |
 |---|---|---|
-| Homepage | The general questions about the business: cost overview, insurance, guarantee, start time, quotes, areas, plus 2 niche questions | "Are you insured?" |
+| Homepage | The general questions about the business: cost overview, insurance, guarantee, start time, quotes, areas, plus the client's researched questions in Q7 and any empty fallback slot (niche questions when it has none) | "Are you insured?" |
 | Category page | Questions about that category of work | "What's the difference between EPDM and felt?" |
 | Service page | Questions about that one job: what's involved, how long, signs you need it, what affects the cost | "How long does a ridge repair take?" |
 | Location page | Questions about that town: local rules, local problems from the dossier, coverage | "Do I need permission for a new drive in Talbot Woods?" |
 
 ## 3b. How it runs in Copybot
 
-1. **Research:** the dossiers (per location) plus the FAQ question research (once per client), in the same click.
-2. **Sorting:** one step per client hands out neighbourhoods, symptoms and FAQ questions to every page, using each question's page type, the service it matches and its doubt. A question marked "needs client fact" is only used once the client has supplied that fact. Nothing repeats across the site.
-3. **Writing:** each page answers only its own questions. The answer rules live in one shared FAQ block that every page prompt loads, so a change is made once.
-4. **Checking:** per page, plus a site wide check that no question or neighbourhood repeats.
+1. **Research, once per client.** The first "Run Research" on the Geo Research step also starts the client's FAQ question research (Perplexity, the same agent and preset as the dossiers). It can be run again from the FAQ questions card. The prompt is `prompts/FAQ_Research_CORE.md`; code adds the client's trade, primary city, other towns, and its services by GBP category in homeowner words. The reply is stored against the client; a new run replaces the old one.
+2. **Sorting, per client.** Runs by itself when new research is saved, or from the card.
+   - One model call tidies the questions: merges near duplicates, marks questions the fixed homepage questions already answer, names the client fact each answer needs, picks the service and town, and rewrites each question in search wording (14 words at most, no dashes or hyphens, no banned phrases). Code checks every answer and retries once.
+   - **Approval:** a person approves the wording once per client on the card before any question is used. An edited wording needs approving again.
+   - **Where each question goes** is worked out by code, each time, from the client's values and page map as they are now:
+     - by page type, service and town; a question about the primary city goes to the homepage;
+     - a question that needs a client fact is held until the fact is on the Client Values step (a client value filled in, or a practice ticked); facts Copybot doesn't collect yet keep it waiting;
+     - big cost questions ("How much does…") are held for a Cost Guide page, even though the homepage's Q1 covers cost in general;
+     - a question for a page the client doesn't have moves up to that service's category page; with no category page either, it is dropped;
+     - each question is used on one page only, ranked by the research's most asked list, then its "seen" count (no Ahrefs data yet);
+     - a person can move or remove any question on the card; questions on a page's saved version stay on that page.
+   - The questions waiting on a fact, grouped by fact with its onboarding question, are the client's onboarding list.
+3. **Writing.** The homepage uses the sorted questions first: they take Q7 and any fallback slot (Q2 to Q4 when the client value is missing). The fixed homepage questions stay. Q7 prefers a doubt the fixed questions leave uncovered; a fallback slot takes a research question only with its own doubt or an uncovered one. Code writes each answer brief: from the client value's token, from the confirmed practice, or a general answer with no claims. Other page types use their questions when they are migrated.
+4. **Checking.** Per page, plus a site wide check that no question or neighbourhood repeats.
+
+Client facts an answer can rest on: `niche-library/client-facts.json` (client values) and `niche-library/practices.json` (practices). Added for every trade on 14 Oct 2026: deposit and stage payments (`deposit_terms`), what the quote includes (`quote_includes`), registered waste carrier (`waste_carrier_registered`, yes or no), and the practices for pricing extra work (`extra_work_agreed_first`), weather delays (`weather_delays_rebooked`) and protecting the house and access (`property_protected`).
 
 ## 4. How every answer is written
 
@@ -76,7 +88,9 @@ At onboarding, the client approves one answer to each core question: price guide
 
 - Every doubt is covered on the page.
 - The first sentence of each answer is 15 words or fewer and answers the question.
-- No question is repeated across pages of the same site.
+- No question is repeated across pages of the same site (the sorting step places each question once; the site check compares the pages).
+- A question's wording follows the copy rules before it can be approved (no dashes or hyphens, no banned phrases, 14 words at most).
+- Deposits and waste carrier registration are only mentioned when the client values confirm them.
 - Word counts, banned phrases and claims, as for all copy.
 
 ## 6b. After launch
@@ -93,64 +107,9 @@ Each month, Search Console shows the exact searches a live site appears for, inc
 
 # Perplexity prompt: FAQ question research (run once per client)
 
-Run **once per client**, not once per trade: the questions are stored against that client and never reused for another. The test runs in `faq-research/` added a `Page: Location` option and a `Local: Y/N` column for the client's towns. The version below is v3 and still reads as trade only. The per client version (v4), which Copybot sends with the client's trade, services and towns the way the area research does, replaces it when the automatic run is built.
+Run **once per client**, not once per trade: the questions are stored against that client and never reused for another. The prompt is `prompts/FAQ_Research_CORE.md` (v4), the only copy. Copybot sends it with the client's trade, services and towns, the way the area research does. v4 is the v3 trade prompt plus `Page: Location`, `Local` (both from the 14 Oct test runs in `faq-research/`), and `Service` and `Town`, chosen from the client's own lists. The dossier research has no separate local questions section: the per client run covers the towns.
 
-```
-RUN FOR: [TRADE, e.g. roofer]
-
-You are researching the questions UK homeowners ask before hiring a [TRADE] and while the work is being done. Cover every common service a [TRADE] offers, from small repairs to the largest jobs. Your job is to FIND QUESTIONS, not to write marketing copy or published answers.
-
-WHERE TO LOOK
-Search for questions people genuinely ask, in their own words:
-- Reddit (r/DIYUK, r/HousingUK, r/UKPersonalFinance)
-- Mumsnet, MoneySavingExpert forums, Which? guides and community questions
-- Google "People also ask" style questions for "[TRADE]" and each main service of a [TRADE]
-- Q&A sections on Checkatrade, MyBuilder, Rated People and Bark
-- Government and trade body pages for questions about rules, permissions and certificates in England
-Use UK sources only. Ignore questions that only apply to the US, Australia or elsewhere.
-
-WHAT TO RETURN
-
-## 1. QUESTIONS
-30 to 50 distinct questions. Merge near duplicates into one. Spread them across the trade's services, not just the most common job. For each, one line in exactly this format:
-- [Q-N] | "question as a customer would type it" | Doubt: Price / Trust / Fit / Process / Timing | Page: Homepage / Category / Service | Service: which service it's about, or General | Needs client fact: Y/N | Seen: where you saw it and roughly how often (e.g. "Reddit x4, Mumsnet") | [source URL on the same line]
-
-"Needs client fact" is Y when only the business itself can answer it (its prices, deposit, VAT, guarantee, what its quote includes, its process).
-
-Doubt means what the customer is really worried about:
-- Price: cost, value, extras, free quotes
-- Trust: insurance, guarantees, accreditation, cowboys, what if it goes wrong
-- Fit: coverage area, job size, whether this is the right service for their problem
-- Process: what happens, disruption, mess, permissions, what they need to do
-- Timing: how soon, how long, best time of year
-
-Page means where the question best belongs: Homepage for general questions about choosing and hiring a [TRADE]; Category for a type of work; Service for one specific job.
-
-Then list the 15 most asked questions in rank order, by ID only.
-
-## 2. RANGES FOUND (for the client to confirm, never to publish)
-Any UK price or timescale ranges you find for common [TRADE] jobs, one line each:
-- Job | price range or timescale | UK average or region | (dated: month year) | [source URL]
-Keep a maximum of 15, covering the trade's main jobs.
-
-## 3. RULES THAT CUSTOMERS ASK ABOUT
-Any planning, building regulations, certification or permission questions you found, with the rule as stated on an official source:
-- Question | what the official source says, in one sentence | [official source URL]
-Official sources only (gov.uk, Planning Portal, trade body or scheme sites). Rules for England; note where Scotland or Wales differ. If you can't find an official source, say so rather than answering.
-
-## 4. GAPS
-Anything you looked for and couldn't find, or questions where sources disagree.
-
-RULES
-- Put the full source URL after every question, range and rule, on the same line. Never use [1] or [web:3] style markers.
-- Prefer forums, Q&A sites, consumer guides and official pages as sources. Use a local competitor's website only when it is the only place a question appears, and say so in Seen.
-- Do not write answers to the questions in section 1.
-- Do not invent questions. If you only find 20 real ones, return 20.
-- Mark anything older than 2 years as (dated: month year).
-- No marketing language, no intro, no summary. Start with "## 1. QUESTIONS" and end after section 4.
-```
-
-## How to judge a dry run
+## How to judge a run
 
 A good run gives you:
 - 30+ questions that sound like real people, not SEO headings;
@@ -159,17 +118,4 @@ A good run gives you:
 - a source URL after every line;
 - ranges labelled as UK average or regional, with dates.
 
-A bad run gives you questions that are really headings ("The benefits of EPDM roofing"), answers instead of questions, or no sources. If that happens, send me the output and I'll tighten the prompt.
-
----
-
-# Local questions: add to the dossier research
-
-Add this section to the Geo Research CORE prompt (before GAPS), so local questions arrive with each location's dossier:
-
-```
-## LOCAL QUESTIONS
-Up to 8 questions a homeowner in [LOCATION] would ask a [TRADE] that depend on something specific to [LOCATION]: council or conservation area rules, local ground or water, coastal or storm exposure, local building types, access or parking. One line each:
-- [CODE-Q01] | "question as a homeowner would type it" | Doubt: Price / Trust / Fit / Process / Timing | Linked: issue or rule ID | [source URL]
-Only questions you found asked, or that follow directly from a sourced local issue or rule. Don't invent questions to fill the list.
-```
+A bad run gives you questions that are really headings ("The benefits of EPDM roofing"), answers instead of questions, or no sources. Copybot refuses a reply with fewer than 10 readable questions and keeps the saved research. If runs keep coming back weak, send me the output and I'll tighten the prompt.

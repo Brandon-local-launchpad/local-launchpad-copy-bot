@@ -92,6 +92,14 @@
     "label": "Quote method"
   },
   {
+    "key": "quote_includes",
+    "label": "Quote includes"
+  },
+  {
+    "key": "deposit_terms",
+    "label": "Deposit terms"
+  },
+  {
     "key": "price_list",
     "label": "Price list"
   },
@@ -182,6 +190,10 @@
   {
     "key": "jobs_wanted",
     "label": "Jobs wanted"
+  },
+  {
+    "key": "waste_carrier_registered",
+    "label": "Waste carrier registered"
   },
   {
     "key": "map_embed",

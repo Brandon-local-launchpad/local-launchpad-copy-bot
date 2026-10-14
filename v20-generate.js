@@ -26,12 +26,12 @@ const CV_KEYS = [
   'year_founded', 'years_trading', 'jobs_completed', 'rating', 'review_count',
   'guarantee_years', 'guarantee_scope', 'manufacturer_warranty', 'insurance_cover',
   'differentiator_1', 'differentiator_1_sentence', 'differentiator_2', 'differentiator_2_sentence',
-  'free_quotes', 'free_inspection', 'quote_method', 'price_list', 'response_time',
+  'free_quotes', 'free_inspection', 'quote_method', 'quote_includes', 'deposit_terms', 'price_list', 'response_time',
   'same_day_available', 'out_of_hours_available', 'start_time',
   'owner_name', 'owner_name_2', 'owner_qualification', 'owner_why', 'owner_promise', 'owner_pronoun',
   'business_type', 'materials_methods', 'team_size', 'typical_jobs',
   'emergency_primary', 'handles_planning', 'finance_options', 'complaints_process',
-  'area_wide', 'travel_distance', 'review_themes', 'jobs_wanted',
+  'area_wide', 'travel_distance', 'review_themes', 'jobs_wanted', 'waste_carrier_registered',
 ];
 
 function cvValue(key, cv, yearsTrading) {

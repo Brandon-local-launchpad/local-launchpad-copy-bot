@@ -121,12 +121,17 @@ function buildWhyPoints(cv, niche, yearsTrading, trustProof, ctx) {
 }
 
 // ── Build FAQ (D11) ──────────────────────────────────────────────────────────
-function buildFaq(cv, niche, ctx, emergencyOn) {
+// faqResearch: the client's approved research questions for the homepage, in order
+// (faq-sort.js homepageQuestions). They take Q7 and any fallback slot (Q2 to Q4
+// when the client value is missing) before the niche's own questions. Q7 prefers a
+// doubt the fixed questions don't cover; a fallback slot takes a research question
+// only with its own doubt or one still uncovered, so the page keeps all five doubts.
+function buildFaq(cv, niche, ctx, emergencyOn, faqResearch = []) {
   const faqMap = {};
   for (const f of (niche.faq_slots || [])) faqMap[f.slot] = f;
 
   const usedFallbacks = [];
-  function nextFallback() {
+  function nicheFallback() {
     for (const slot of FALLBACK_ORDER) {
       if (!usedFallbacks.includes(slot) && faqMap[slot]) {
         usedFallbacks.push(slot);
@@ -135,6 +140,36 @@ function buildFaq(cv, niche, ctx, emergencyOn) {
     }
     return null;
   }
+
+  const guaranteed = (cv.guarantee_years && parseInt(cv.guarantee_years, 10) > 0) || !!cv.manufacturer_warranty;
+  const need = {
+    Q2: !cv.insurance_cover && !cv.complaints_process,
+    Q3: !guaranteed && !faqMap['faq_3_none'],
+    Q4: !cv.start_time,
+  };
+  const SLOT_DOUBT = { Q2: 'Trust', Q3: 'Trust', Q4: 'Timing' };
+  const covered = new Set(['Price', 'Fit']); // Q1 and Q5, Q6
+  if (!need.Q2 || !need.Q3) covered.add('Trust');
+  if (!need.Q4) covered.add('Timing');
+  if (faqMap['faq_B']) covered.add(faqMap['faq_B'].doubt);
+  if (niche.big_ticket && cv.handles_planning === 'yes' && faqMap['faq_planning']) covered.add(faqMap['faq_planning'].doubt);
+
+  const pool = [...(faqResearch || [])];
+  function takeResearch(prefer, strict = false) {
+    if (!pool.length) return null;
+    let i = -1;
+    for (const d of prefer) { i = pool.findIndex(q => q.doubt === d); if (i >= 0) break; }
+    if (i < 0 && strict) return null;
+    const q = pool.splice(i >= 0 ? i : 0, 1)[0];
+    covered.add(q.doubt);
+    return { question: q.question, doubt: q.doubt, answer_brief: q.answer_brief, research_id: q.research_id, source: 'research' };
+  }
+  const uncovered = () => ['Price', 'Trust', 'Fit', 'Process', 'Timing'].filter(d => !covered.has(d));
+  const research = {};
+  research.Q7 = takeResearch(uncovered());
+  for (const s of ['Q2', 'Q3', 'Q4']) if (need[s]) research[s] = takeResearch([SLOT_DOUBT[s], ...uncovered()], true);
+  // A slot no research question fits takes the niche fallback, or failing that any research question left
+  const nextFallback = slot => research[slot] || nicheFallback() || takeResearch([]);
 
   const questions = [];
 
@@ -152,7 +187,7 @@ function buildFaq(cv, niche, ctx, emergencyOn) {
   } else if (cv.complaints_process) {
     questions.push({ ...faqMap['faq_2_fallback'], slot: 'Q2' });
   } else {
-    const fb = nextFallback();
+    const fb = nextFallback('Q2');
     if (fb) questions.push({ ...fb, slot: 'Q2' });
   }
 
@@ -162,7 +197,7 @@ function buildFaq(cv, niche, ctx, emergencyOn) {
   } else if (faqMap['faq_3_none']) {
     questions.push({ ...faqMap['faq_3_none'], slot: 'Q3' });
   } else {
-    const fb = nextFallback();
+    const fb = nextFallback('Q3');
     if (fb) questions.push({ ...fb, slot: 'Q3' });
   }
 
@@ -177,7 +212,7 @@ function buildFaq(cv, niche, ctx, emergencyOn) {
         (booked ? 'Bigger projects are booked further ahead (confirmed).' : 'Never mention bigger projects taking longer to book.'),
     });
   } else {
-    const fb = nextFallback();
+    const fb = nextFallback('Q4');
     if (fb) questions.push({ ...fb, slot: 'Q4' });
   }
 
@@ -206,8 +241,9 @@ function buildFaq(cv, niche, ctx, emergencyOn) {
     doubt: 'Fit',
   });
 
-  // Q7 faq_A
-  if (faqMap['faq_A']) questions.push({ ...faqMap['faq_A'], slot: 'Q7' });
+  // Q7: a research question, else faq_A
+  if (research.Q7) questions.push({ ...research.Q7, slot: 'Q7' });
+  else if (faqMap['faq_A']) questions.push({ ...faqMap['faq_A'], slot: 'Q7' });
 
   // Q8 faq_B
   if (faqMap['faq_B']) questions.push({ ...faqMap['faq_B'], slot: 'Q8' });
@@ -393,7 +429,7 @@ function stepsFor(niche, cv, emergencyOn) {
 }
 
 // ── Main entry point ─────────────────────────────────────────────────────────
-function computeDecisions({ cv, niche, pages, keyValueMap, serviceParentMap, v20TestMode, allocationData }) {
+function computeDecisions({ cv, niche, pages, keyValueMap, serviceParentMap, v20TestMode, allocationData, faqResearch = [] }) {
   const gates = [];
   const flags = [];
 
@@ -577,7 +613,7 @@ function computeDecisions({ cv, niche, pages, keyValueMap, serviceParentMap, v20
   }
 
   // ── D11 FAQ ──
-  const d11 = buildFaq(cv, niche, ctx, emergencyOn);
+  const d11 = buildFaq(cv, niche, ctx, emergencyOn, faqResearch);
 
   // N25: all 5 doubts covered
   const doubtsCovered = new Set(d11.map(q => q.doubt).filter(Boolean));

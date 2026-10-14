@@ -12,7 +12,7 @@ Copybot writes website copy for UK tradespeople (Local Launchpad clients) using 
 | Niche data (trade words, steps, fears, FAQ slots) | `niche-library/Niche_Library_Landscaper.md`, `niche-library/Niche_Library_Roofer.md`. The code reads `niche-library/landscaper.json` and `roofer.json`, which are kept by hand. Any change to a niche `.md` must be made in its `.json` too, in the same commit. |
 | v20 page types (homepage now, category pages next): what each type's fields, validator, reader view and WordPress mapping are | `page-types/index.js` (the registry) and `page-types/homepage.js`; records are stored by type and key in `v20-store.js` |
 | Allocation pass (neighbourhoods and symptoms per page) | `prompts/Allocation_Pass_CORE.md`, `allocation.js` (checks and resolving), `geo-dossier.js` (dossier parser) |
-| FAQs: choosing, assigning, answering, checking | `docs/seo/current-build/FAQ_Framework_and_Perplexity_Prompt.md` |
+| FAQs: choosing, assigning, answering, checking | `docs/seo/current-build/FAQ_Framework_and_Perplexity_Prompt.md`. Code: `faq-research.js` (per client research prompt and parser), `faq-sort.js` (tidy call, approval, which page each question goes to), `faq-service.js` (storage, research job, the FAQ questions card); prompts `prompts/FAQ_Research_CORE.md` and `prompts/FAQ_Sorting_CORE.md`; client facts in `niche-library/client-facts.json` and `practices.json` |
 | Category/service custom values and the test client | `docs/seo/reference/Edens_Edge_Custom_Values_HOW_TO_USE.csv` |
 | The old GHL delivery process | `docs/seo/reference/Website_Delivery_SOP.txt` (OUTDATED, reference only) |
 

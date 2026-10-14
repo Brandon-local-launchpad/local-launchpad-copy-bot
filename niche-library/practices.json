@@ -244,6 +244,46 @@
       "detect": [
         "\\bscaffold(ing)? (is )?(included|in the (quote|price))"
       ]
+    },
+    {
+      "key": "extra_work_agreed_first",
+      "trades": [
+        "all"
+      ],
+      "label": "Extra work is priced and agreed before it is done",
+      "claim": "any extra work found during the job is priced and agreed with the customer before it is done",
+      "question": "If you find extra work once the job has started, how do you price it, and do you agree it with the customer before you do it?",
+      "detect": [
+        "\\bextra (work|costs?)\\b[^.]{0,60}\\b(agree|agreed|approve|approved|before we|price it|priced)\\b",
+        "\\b(agree|approve)\\b[^.]{0,30}\\b(any )?extra (work|costs?)\\b",
+        "\\bnothing extra\\b[^.]{0,40}\\bwithout\\b"
+      ]
+    },
+    {
+      "key": "weather_delays_rebooked",
+      "trades": [
+        "all"
+      ],
+      "label": "Weather delays: the customer is told and the work is rebooked",
+      "claim": "if the weather stops the work, the customer is told and the work is rebooked",
+      "question": "If rain or wind stops the work, what do you do: do you tell the customer and rebook, and does it change the price?",
+      "detect": [
+        "\\b(weather|rain|wind|storm)s?\\b[^.]{0,60}\\b(rebook|rebooked|reschedule|rescheduled|next dry|let you know|tell you|call you)\\b",
+        "\\b(rebook|reschedule)\\b[^.]{0,40}\\b(weather|rain|wind)\\b"
+      ]
+    },
+    {
+      "key": "property_protected",
+      "trades": [
+        "all"
+      ],
+      "label": "The house, drive and access are protected during the work",
+      "claim": "the house, drive and paths are protected and access is kept clear during the work",
+      "question": "How do you get materials and machinery to the job, and how do you protect the house, drive, paths and neighbours' access while you work?",
+      "detect": [
+        "\\b(protect|protected|protecting|cover|covered|covering|sheet|sheeted|board|boarded)\\b[^.]{0,40}\\b(house|home|drive|driveway|paths?|floors?|lawn|neighbours?)\\b",
+        "\\b(keep|kept|keeping) (the )?(access|drive|driveway|paths?) clear\\b"
+      ]
     }
   ]
 }
