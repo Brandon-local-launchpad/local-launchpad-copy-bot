@@ -3372,19 +3372,28 @@ function v20CalibrationPack(ctx, niche) {
   return { name: null, text: '' };
 }
 
+// The client's context, niche and code decisions for the homepage, as they stand now
+async function v20HomepageInputs(clientId, sessionId) {
+  const ctx = await loadV20Context(clientId, sessionId);
+  const { niche, error: nicheErr } = loadNiche(ctx.trade);
+  if (nicheErr) { const e = new Error(nicheErr); e.status = 400; throw e; }
+  const { allocationData, flags: allocFlags, view } = await resolveHomepageAllocation(clientId, ctx, niche);
+  const decisionsResult = computeDecisions({
+    cv: ctx.cv, niche, pages: ctx.pages, keyValueMap: ctx.keyValueMap, serviceParentMap: ctx.serviceParentMap,
+    v20TestMode: ctx.v20TestMode, allocationData,
+  });
+  return { ctx, niche, allocFlags, view, decisionsResult };
+}
+
 app.post('/api/clients/:clientId/v20/homepage/generate', async (req, res) => {
   if (!pool) return res.status(503).json({ error: 'Database not configured.' });
   const { clientId } = req.params;
   const sessionId = req.body && req.body.sessionId;
   try {
-    const ctx = await loadV20Context(clientId, sessionId);
-    const { niche, error: nicheErr } = loadNiche(ctx.trade);
-    if (nicheErr) return res.status(400).json({ error: nicheErr });
-    const { allocationData, flags: allocFlags, view } = await resolveHomepageAllocation(clientId, ctx, niche);
-    const decisionsResult = computeDecisions({
-      cv: ctx.cv, niche, pages: ctx.pages, keyValueMap: ctx.keyValueMap, serviceParentMap: ctx.serviceParentMap,
-      v20TestMode: ctx.v20TestMode, allocationData,
-    });
+    let inputs;
+    try { inputs = await v20HomepageInputs(clientId, sessionId); }
+    catch (e) { if (e.status === 400) return res.status(400).json({ error: e.message }); throw e; }
+    const { ctx, niche, allocFlags, view, decisionsResult } = inputs;
     const pack = v20CalibrationPack(ctx, niche);
     const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
     const callModel = async ({ system, message, maxTokens }) => {
@@ -3449,16 +3458,16 @@ const wpService = pool ? createWpService({
     if (!found) throw new Error('No v20 homepage has been generated for this client yet.');
     return found;
   },
-  // Put a claims review result on a saved record (CLAIMS sits after VALIDATION)
-  saveRecordClaims: async (clientId, recordId, CLAIMS) => {
-    const { rows } = await pool.query(`SELECT content FROM client_assets WHERE id=$1 AND client_id=$2 AND asset_type='v20_page_record'`, [recordId, clientId]);
-    if (!rows.length) throw new Error('Record not found.');
-    const { CLAIMS: _old, ...rec } = JSON.parse(rows[0].content);
-    const out = {};
-    for (const [k, v] of Object.entries(rec)) { out[k] = v; if (k === 'VALIDATION') out.CLAIMS = CLAIMS; }
-    await pool.query(`UPDATE client_assets SET content=$1 WHERE id=$2`, [JSON.stringify(out), recordId]);
-  },
+  saveRecordClaims: saveV20RecordClaims,
 }) : null;
+
+// Put a claims result on a saved record (CLAIMS sits after VALIDATION)
+async function saveV20RecordClaims(clientId, recordId, CLAIMS) {
+  const { rows } = await pool.query(`SELECT content FROM client_assets WHERE id=$1 AND client_id=$2 AND asset_type='v20_page_record'`, [recordId, clientId]);
+  if (!rows.length) throw new Error('Record not found.');
+  const out = require('./v20-edit').placeClaims(JSON.parse(rows[0].content), CLAIMS);
+  await pool.query(`UPDATE client_assets SET content=$1 WHERE id=$2`, [JSON.stringify(out), recordId]);
+}
 
 function wpRoute(handler) {
   return async (req, res) => {
@@ -3481,6 +3490,52 @@ app.post('/api/clients/:clientId/wp/dry-run', wpRoute(req => wpService.dryRun(re
 app.post('/api/clients/:clientId/wp/push', wpRoute(req => wpService.push(req.params.clientId, req.body || {})));
 app.post('/api/clients/:clientId/wp/rollback', wpRoute(req => wpService.rollback(req.params.clientId, req.body || {})));
 app.get('/api/clients/:clientId/wp/log', wpRoute(req => wpService.log(req.params.clientId)));
+app.put('/api/clients/:clientId/wp/claims-accepted', wpRoute(req => wpService.acceptClaims(req.params.clientId, req.body || {})));
+
+// ── v20 hand edits (slice 5) ─────────────────────────────────────────────────
+// The editable fields of the latest version, and saving an edit as a new version
+// (validated and claims-reviewed; see v20-edit.js)
+const v20Edit = require('./v20-edit');
+async function latestV20Id(clientId) {
+  const { rows } = await pool.query(`SELECT id FROM client_assets WHERE client_id=$1 AND asset_type='v20_page_record' ORDER BY uploaded_at DESC LIMIT 1`, [clientId]);
+  return rows.length ? rows[0].id : null;
+}
+
+app.get('/api/clients/:clientId/v20/homepage/fields', wpRoute(async req => {
+  const found = await loadV20Download(req.params.clientId, req.query.id || null);
+  if (!found) throw new Error('No v20 homepage has been generated for this client yet.');
+  return { recordId: found.id, fields: v20Edit.editableFields(found.record) };
+}));
+
+app.put('/api/clients/:clientId/v20/homepage/fields', wpRoute(async req => {
+  const { clientId } = req.params;
+  const { recordId, edits, accepted, sessionId } = req.body || {};
+  if (!recordId) throw new Error('Which version? recordId is missing.');
+  const { rows } = await pool.query(`SELECT content FROM client_assets WHERE id=$1 AND client_id=$2 AND asset_type='v20_page_record'`, [recordId, clientId]);
+  if (!rows.length) throw new Error('Version not found.');
+  const record = JSON.parse(rows[0].content);
+  const { ctx, niche, decisionsResult } = await v20HomepageInputs(clientId, sessionId);
+  const D = decisionsResult.decisions;
+  if (!D) throw new Error('The page decisions can\'t be made right now (a gate is failing). Fix that first.');
+  const current = {
+    V: v20.validationContextFor({ cv: ctx.cv, niche, decisions: D, keyValueMap: ctx.keyValueMap, serviceParentMap: ctx.serviceParentMap }),
+    clientValues: v20.clientValueMap(ctx.cv, D.d1_years_trading),
+    decisionsBlock: decisionsResult.decisionsBlock || null,
+  };
+  const { runClaimsReview, factsFromRecord } = require('./wp/claims-review');
+  const out = await v20Edit.editRecord({
+    record, isLatest: (await latestV20Id(clientId)) === recordId, edits, accepted, current,
+    review: rec => runClaimsReview(rec, factsFromRecord(rec), v20CallModel),
+  });
+  // The previous version keeps the acceptances made on it; the edit is a new version
+  if (out.previous.CLAIMS !== record.CLAIMS) await saveV20RecordClaims(clientId, recordId, out.previous.CLAIMS);
+  const ins = await pool.query(
+    `INSERT INTO client_assets (client_id, asset_type, filename, content) VALUES ($1, 'v20_page_record', 'homepage_v20.json', $2) RETURNING id`,
+    [clientId, JSON.stringify(out.record)]
+  );
+  console.log(`[v20] hand edit for ${clientId}: ${out.changed.length} field(s); ${out.record.VALIDATION.block} BLOCK, ${out.record.VALIDATION.flag} FLAG; claims ${out.record.CLAIMS.status}`);
+  return { recordId: ins.rows[0].id, record: out.record, changed: out.changed };
+}));
 
 app.get('/api/clients/:clientId/v20/homepage/download', async (req, res) => {
   if (!pool) return res.status(503).send('Database not configured.');
@@ -3708,3 +3763,6 @@ initDb().then(async () => {
   console.error('DB init failed:', err.message);
   process.exit(1);
 });
+
+// For the local demo (tests/ui/demo-server.js), which seeds a record from the demo client's own context
+module.exports = { v20HomepageInputs };

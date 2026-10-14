@@ -6,6 +6,7 @@
 //     never returned)
 //   test: is the site ready (plugin, ACF Pro, SEO plugin, field groups)?
 //   reviewClaims: run the claims review on a record that has none yet
+//   acceptClaims: save which findings a person has ticked on a version
 //   dryRun, push, rollback, log
 // A push needs: confirm: true (the button), reviewed: true when FLAGs remain, and
 // every remaining claims finding listed in acceptedClaims (by its quote).
@@ -17,6 +18,7 @@ const { push, rollback } = require('./push');
 const { wpGet } = require('./client');
 const { SEO_ADAPTERS } = require('./homepage-map');
 const { runClaimsReview, factsFromRecord } = require('./claims-review');
+const { withAccepted } = require('../v20-edit');
 
 const isLocal = host => ['localhost', '127.0.0.1', '[::1]'].includes(host);
 
@@ -67,6 +69,15 @@ function createWpService({ pool, loadRecord, saveRecordClaims, secretKey = proce
       return CLAIMS;
     },
 
+    // Save which findings a person has accepted on a version (the screen calls this on
+    // each tick), so a hand edit can carry them over to the next version
+    async acceptClaims(clientId, { recordId, quotes = [] } = {}) {
+      const { record, id } = await loadRecord(clientId, recordId);
+      const { CLAIMS } = withAccepted(record, quotes);
+      await saveRecordClaims(clientId, id, CLAIMS);
+      return CLAIMS;
+    },
+
     async dryRun(clientId, { recordId, reviewed = false } = {}) {
       const s = await site(clientId);
       const { record, values } = await loadRecord(clientId, recordId);
@@ -81,6 +92,7 @@ function createWpService({ pool, loadRecord, saveRecordClaims, secretKey = proce
       const left = (record.CLAIMS && record.CLAIMS.findings) || [];
       const accepted = new Set((acceptedClaims || []).map(String));
       const acceptClaims = left.length > 0 && left.every(f => accepted.has(f.quote));
+      if (acceptClaims) await saveRecordClaims(clientId, id, withAccepted(record, left.map(f => f.quote)).CLAIMS);
       const store = createDbStore(pool, clientId);
       const r = await push({ record, recordId: id, site: s, store, reviewed, seo: s.seo, clientValues: values, acceptClaims });
       return { ...r, dry: r.dry ? { ...r.dry, payload: undefined } : undefined };

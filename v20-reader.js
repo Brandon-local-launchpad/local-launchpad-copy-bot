@@ -86,7 +86,7 @@ function buildReaderView(record, values = {}) {
   const V = record.VALIDATION || {};
   push('---', '', '## Review notes (not part of the page)', '');
   if (V.status === 'run') {
-    push(`Validation after retries: **${V.block} BLOCK, ${V.flag} FLAG**.`, '');
+    push(`Validation ${V.source === 'hand edit' ? 'after the hand edit' : 'after retries'}: **${V.block} BLOCK, ${V.flag} FLAG**.`, '');
     for (const i of V.issues || []) push(`- ${i.type} ${i.check} · ${i.field}: ${i.message}`);
     if ((V.issues || []).length) push('');
   } else {
@@ -96,8 +96,9 @@ function buildReaderView(record, values = {}) {
   if (C) {
     if (C.status === 'failed') push(`Claims review: failed (${C.error}). Run it again before pushing.`, '');
     else {
-      push(`Claims review: ${C.first_review ?? '?'} found, ${C.findings.length} left after rewrites${C.findings.length ? ' (a person must accept these before a push)' : ''}.`, '');
-      for (const f of C.findings) push(`- ${f.field}: "${f.quote}" (${f.why})`);
+      if (C.source === 'hand edit') push(`Claims review after the hand edit: ${C.findings.length} found${C.findings.length ? `, ${(C.accepted || []).length} already accepted on the previous version` : ''}.`, '');
+      else push(`Claims review: ${C.first_review ?? '?'} found, ${C.findings.length} left after rewrites${C.findings.length ? ' (a person must accept these before a push)' : ''}.`, '');
+      for (const f of C.findings) push(`- ${f.field}: "${f.quote}" (${f.why})${f.carried ? ' [accepted on the previous version]' : ''}${f.note ? ` [${f.note}]` : ''}`);
       if (C.findings.length) push('');
     }
   }
@@ -110,6 +111,7 @@ function buildReaderView(record, values = {}) {
   const unresolved = [...new Set((L.join('\n').match(/\[CV: [a-z0-9_]+\]/g) || []))];
   if (unresolved.length) push(`Tokens with no value on file: ${unresolved.join(', ')}`, '');
   if (record.meta && record.meta.generated_at) push(`Generated ${record.meta.generated_at} with ${record.meta.model || ''}.`);
+  for (const e of (record.meta && record.meta.edit_history) || []) push(`Edited by hand ${e.at}: ${e.fields.join(', ')}.`);
   return L.join('\n').replace(/\n{3,}/g, '\n\n') + '\n';
 }
 

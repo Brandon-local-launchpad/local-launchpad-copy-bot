@@ -2540,31 +2540,89 @@
   async function wpLoadRecord() {
     const panel = document.getElementById('wpPushPanel');
     try {
-      const { record } = await wpApi('/v20/homepage');
-      wpState = { record, dry: null };
+      const { record, history } = await wpApi('/v20/homepage');
+      wpState = { record, dry: null, recordId: history && history[0] ? history[0].id : null };
       if (!record) { panel.innerHTML = '<span style="color:var(--muted)">No v20 homepage generated yet.</span>'; return; }
       const V = record.VALIDATION || {}, C = record.CLAIMS;
+      const accepted = new Set(((C && C.accepted) || []).map(a => a.quote));
+      const tag = (text, colour) => ` <span style="font-size:11px;padding:1px 6px;border-radius:8px;border:1px solid ${colour};color:${colour}">${text}</span>`;
       const claims = !C ? `<div style="margin:8px 0">No claims review on this version yet. <button class="btn btn-ghost btn-sm" style="width:auto;padding:4px 10px" onclick="wpReviewClaims()">Run claims review</button></div>`
         : C.status === 'failed' ? `<div style="margin:8px 0;color:var(--error,#b71c1c)">Claims review failed (${h(C.error)}). <button class="btn btn-ghost btn-sm" style="width:auto;padding:4px 10px" onclick="wpReviewClaims()">Run it again</button></div>`
         : !C.findings.length ? '<div style="margin:8px 0">Claims review: clear.</div>'
-        : `<div style="margin:8px 0">Claims review: ${C.findings.length} statement(s) the facts on file don't support. Tick each one you accept, or fix and regenerate:</div>` +
-          C.findings.map((f, i) => `<label style="display:flex;gap:8px;align-items:flex-start;margin:4px 0;text-transform:none;letter-spacing:0;color:var(--text)"><input type="checkbox" class="wp-claim" data-i="${i}" style="width:14px;height:14px;margin-top:2px"><span><strong>${h(f.field)}</strong>: "${h(f.quote)}"<br><span style="color:var(--muted)">${h(f.why)}</span></span></label>`).join('');
+        : `<div style="margin:8px 0">Claims review: ${C.findings.length} statement(s) the facts on file don't support. Tick each one you accept, or edit the field below:</div>` +
+          C.findings.map((f, i) => `<label style="display:flex;gap:8px;align-items:flex-start;margin:4px 0;text-transform:none;letter-spacing:0;color:var(--text)"><input type="checkbox" class="wp-claim" data-i="${i}" ${accepted.has(f.quote) ? 'checked' : ''} style="width:14px;height:14px;margin-top:2px"><span><strong>${h(f.field)}</strong>: "${h(f.quote)}"${f.carried ? tag('accepted on the previous version', 'var(--success)') : ''}${f.note ? tag(h(f.note), 'var(--flag)') : ''}${f.on_edited_field ? tag('on a field you edited', 'var(--muted)') : ''}<br><span style="color:var(--muted)">${h(f.why)}</span></span></label>`).join('');
+      const m = record.meta || {};
+      const made = m.edited_at ? `edited by hand ${h(new Date(m.edited_at).toLocaleString())} (${h((m.edited_fields || []).join(', '))})` : `generated ${h(new Date(m.generated_at).toLocaleString())}`;
       panel.innerHTML = `
-        <div>Latest version: generated ${h(new Date(record.meta.generated_at).toLocaleString())} · validation <strong>${V.block} BLOCK</strong>, ${V.flag} FLAG${record.watermark ? ` · <span style="color:var(--flag)">${h(record.watermark)}</span>` : ''}
+        <div>Latest version: ${made} · validation <strong>${V.block} BLOCK</strong>, ${V.flag} FLAG${record.watermark ? ` · <span style="color:var(--flag)">${h(record.watermark)}</span>` : ''}
           · <a href="/api/clients/${encodeURIComponent(clientId)}/v20/homepage/download?format=md">reader view</a></div>
+        <div id="wpEditResult"></div>
         ${claims}
+        <details id="wpEditor" style="margin:8px 0" ontoggle="if (this.open) wpLoadEditor()"><summary style="cursor:pointer">Edit fields</summary><div id="wpEditorBody" style="margin-top:8px"></div></details>
         ${V.flag ? `<label style="display:flex;gap:8px;align-items:center;margin:8px 0;text-transform:none;letter-spacing:0;color:var(--text)"><input type="checkbox" id="wpReviewed" style="width:14px;height:14px"> I've read the reader view, including its ${V.flag} FLAG(s), and it's fit to push</label>` : ''}
         <div style="display:flex;gap:8px;margin-top:8px">
           <button class="btn btn-ghost btn-sm" style="width:auto;padding:6px 14px" onclick="wpDryRun()">Dry run</button>
           <button class="btn btn-primary btn-sm" id="wpPushBtn" style="width:auto;padding:6px 14px" disabled onclick="wpPush()">Push to WordPress</button>
         </div>
         <div id="wpDryResult" style="margin-top:10px"></div>`;
-      panel.onchange = wpUpdatePushButton;
+      panel.onchange = e => {
+        // Ticks are saved on the version, so a hand edit can carry them over
+        if (e.target.classList.contains('wp-claim')) wpApi('/wp/claims-accepted', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ recordId: wpState.recordId, quotes: wpAccepted() }) }).catch(err => wpError(`Couldn't save the tick: ${err.message}`));
+        wpUpdatePushButton();
+      };
     } catch (e) { panel.innerHTML = ''; wpError(`Couldn't load the latest v20 homepage: ${e.message}`); }
   }
 
   const wpReviewed = () => { const el = document.getElementById('wpReviewed'); return el ? el.checked : false; };
   const wpAccepted = () => Array.from(document.querySelectorAll('.wp-claim:checked')).map(cb => wpState.record.CLAIMS.findings[+cb.dataset.i].quote);
+
+  // ── Field editor (slice 5): the model's prose only; a save is a new version,
+  // validated and claims-reviewed on the server ──
+  const wpWords = t => { const s = String(t || '').replace(/\[CV: [a-z0-9_]+\]/g, 'X').replace(/\[([^\]]+)\]\([^)]+\)/g, '$1').trim(); return s ? s.split(/\s+/).length : 0; };
+  function wpWordNote(el) {
+    const n = wpWords(el.value), r = JSON.parse(el.dataset.range || 'null');
+    const out = r && ((r.min && n < r.min) || n > r.max);
+    const note = el.parentElement.querySelector('.wp-words');
+    note.textContent = `${n} words${r ? ` (${r.label})` : ''}${el.value !== el.dataset.orig ? ' · changed' : ''}`;
+    note.style.color = out ? 'var(--flag)' : 'var(--muted)';
+  }
+  async function wpLoadEditor() {
+    const body = document.getElementById('wpEditorBody');
+    body.innerHTML = '<span style="color:var(--muted)">Loading…</span>';
+    try {
+      const { recordId, fields } = await wpApi(`/v20/homepage/fields?id=${encodeURIComponent(wpState.recordId)}`);
+      const rec = wpState.record, issues = (rec.VALIDATION && rec.VALIDATION.issues) || [], findings = (rec.CLAIMS && rec.CLAIMS.findings) || [];
+      body.innerHTML = `<div style="color:var(--muted);margin-bottom:8px">Headings, FAQ questions, card names, buttons and links are set by code: to change those, change the client values and regenerate. Saving makes a new version and runs the validator and the claims review on the whole page (one model call).</div>` +
+        fields.map((f, i) => {
+          const notes = [
+            ...issues.filter(x => x.field === f.field).map(x => `<div style="color:${x.type === 'BLOCK' ? 'var(--error,#b71c1c)' : 'var(--flag)'}">${h(x.type)} ${h(x.check)}: ${h(x.message)}</div>`),
+            ...findings.filter(x => x.field === f.field).map(x => `<div style="color:var(--flag)">Claim: "${h(x.quote)}" (${h(x.why)})</div>`),
+          ].join('');
+          return `<div style="margin:10px 0"><div style="font-weight:600">${h(f.field)}</div>${notes}
+            <textarea class="wp-edit" data-field="${h(f.field)}" data-i="${i}" data-range="${h(JSON.stringify(f.range))}" rows="${Math.min(12, Math.max(3, Math.ceil(f.text.length / 75) + 1))}" style="width:100%;font-size:13px;font-family:inherit;line-height:1.45;margin-top:4px" oninput="wpWordNote(this)">${h(f.text)}</textarea>
+            <div class="wp-words" style="font-size:11px"></div></div>`;
+        }).join('') +
+        `<button class="btn btn-primary btn-sm" id="wpEditSave" style="width:auto;padding:6px 14px" onclick="wpSaveEdits()">Save and re-check</button>`;
+      body.querySelectorAll('.wp-edit').forEach((el, i) => { el.dataset.orig = fields[i].text; wpWordNote(el); });
+      wpState.editFor = recordId;
+    } catch (e) { body.innerHTML = ''; wpError(`Couldn't load the fields: ${e.message}`); }
+  }
+  async function wpSaveEdits() {
+    wpError('');
+    const edits = Array.from(document.querySelectorAll('.wp-edit')).filter(el => el.value !== el.dataset.orig).map(el => ({ field: el.dataset.field, text: el.value }));
+    if (!edits.length) { wpError('Nothing changed.'); return; }
+    const btn = document.getElementById('wpEditSave');
+    setLoading(btn, true, 'Checking…');
+    try {
+      const accepted = (wpState.record.CLAIMS && Array.isArray(wpState.record.CLAIMS.findings)) ? wpAccepted() : undefined;
+      const r = await wpApi('/v20/homepage/fields', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ recordId: wpState.editFor, edits, accepted, sessionId }) });
+      await wpLoadRecord();
+      const V = r.record.VALIDATION, C = r.record.CLAIMS;
+      const open = C.status === 'failed' ? 'the claims review failed, run it again' : `${C.findings.length} claim(s), ${(C.accepted || []).length} carried over`;
+      document.getElementById('wpEditResult').innerHTML = `<div style="color:${V.block ? 'var(--error,#b71c1c)' : 'var(--success)'};margin:6px 0">Saved as a new version: ${r.changed.length} field(s) changed · ${V.block} BLOCK, ${V.flag} FLAG · ${open}. Run a dry run before pushing.</div>`;
+      document.getElementById('wpEditResult').scrollIntoView({ block: 'nearest' });
+    } catch (e) { wpError(e.message); setLoading(btn, false, 'Save and re-check'); }
+  }
 
   async function wpReviewClaims() {
     wpError('');

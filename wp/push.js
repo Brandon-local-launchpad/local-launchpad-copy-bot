@@ -13,6 +13,7 @@
 const { dryRun, diffFields } = require('./dry-run');
 const { findHomepage, wpGet, wpPost } = require('./client');
 const { HOMEPAGE_FIELDS, SEO_ADAPTERS } = require('./homepage-map');
+const { versionOf } = require('../v20-record');
 
 const EMPTY = { text: '', html: '', bool: false, repeater: [] };
 
@@ -20,7 +21,7 @@ const EMPTY = { text: '', html: '', bool: false, repeater: [] };
 function claimsRefusals(record, claims, acceptClaims) {
   if (!claims) return ['Run the claims review on this record before pushing.'];
   if (claims.status === 'failed') return [`The claims review failed (${claims.error || 'no result'}). Run it again before pushing.`];
-  if (claims.for !== (record.meta && record.meta.generated_at)) return ['The claims review on file is for a different version of the page. Run it again.'];
+  if (claims.for !== versionOf(record)) return ['The claims review on file is for a different version of the page. Run it again.'];
   if (claims.findings.length && !acceptClaims) {
     return [`The claims review found ${claims.findings.length} statement(s) the facts on file don't support. Fix them, or read them and accept before pushing.`];
   }

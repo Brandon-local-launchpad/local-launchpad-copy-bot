@@ -10,6 +10,7 @@ const fs = require('fs');
 const path = require('path');
 const { modelFields } = require('../validate-v20');
 const { extractJsonObject } = require('../json-extract');
+const { versionOf } = require('../v20-record');
 
 const CLAIMS_MODEL = 'claude-sonnet-4-6';
 
@@ -59,7 +60,7 @@ async function runClaimsReview(record, facts, callModel) {
   const r = await callModel({ system: loadClaimsPrompt(), message: buildClaimsMessage(record, facts), maxTokens: 2048 });
   const { findings, dropped } = parseFindings(r.text, record);
   // `for` ties the review to this version of the page; the push refuses a review of another version
-  return { for: record.meta && record.meta.generated_at, at: new Date().toISOString(), model: CLAIMS_MODEL, findings, dropped: dropped.length, usage: r.usage || null };
+  return { for: versionOf(record), at: new Date().toISOString(), model: CLAIMS_MODEL, findings, dropped: dropped.length, usage: r.usage || null };
 }
 
 // From the decisions block the page was written with: the allocated research, and

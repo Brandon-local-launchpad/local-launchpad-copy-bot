@@ -137,6 +137,16 @@
   - Tested in the browser against the fake WordPress, end to end: save, test, dry run, accept, push (2 writes, H1 "Landscaper Southampton"), log, roll back (original H1 back), push again. Bug fixed while testing: the old dry-run result stayed on screen after a push; it's now replaced by the push or rollback result, and another push needs a new dry run.
   - `npm run demo:wp` starts the app on an in-memory Postgres (pg-mem) with a demo client and the fake WordPress, for trying the card locally.
   - Fixtures: 16 files, 391 checks, all pass (`wp-service.js` adds 21).
+- Stage 10, slice 5 (part 1), the field editor (14 Oct, Brandon's decisions):
+  - "Edit fields" in the WordPress card's push panel: one box per prose field the model wrote, with a live word count against its range and that field's BLOCK/FLAG and claims shown above it. Code-made parts (H1, title, headings, FAQ questions, card names, buttons, links) can't be edited: change the client values and regenerate.
+  - "Save and re-check" saves a **new version** (the old one is never changed), then runs the full validator and the claims review on the whole page (one model call). No automatic retries on hand edits. The new version gets its own VALIDATION and CLAIMS, so the push rules are unchanged: any BLOCK refuses, every claim must be ticked, the reviewed tick, a new dry run.
+  - A claim accepted on the previous version carries over when its field wasn't edited and the quote is the same ("accepted on the previous version"). A finding on an untouched field that the previous version didn't have is marked "new on unchanged text". Findings on edited fields always need a new tick. Ticks are now saved on the version as they're made (and by a push), so they survive a reload.
+  - An edit is refused when the client values or the page decisions have changed since the version was written (the edit can't be checked against the page's own facts; regenerate instead), on an older version, or on a gated record.
+  - Each version has `meta.edited_at`, `edited_fields` and `edit_history`; claims reviews and the push match on the version (`versionOf`: edited_at, else generated_at). The reader view lists the hand edits and marks carried and new findings.
+  - Code: `v20-edit.js`; routes `GET/PUT /api/clients/:id/v20/homepage/fields`, `PUT wp/claims-accepted`. `npm run demo:wp` now seeds the demo client's values and files and uses a canned claims review (`DEMO_REAL_MODEL=1` for the real one).
+  - Tested in the browser: tick saved and kept after reload; an edit adding a dash gave its BLOCK, both claims carried, a new hero finding marked; edits cleared the BLOCKs; dry run, push of the edited version (2 writes), reader view notes.
+  - Found while testing: an old record's stored VALIDATION reflects the rules when it was generated. The demo's 14 Oct record showed 0 BLOCK but 5 under today's rules (visits before quoting, figures). An edited version is always checked with today's rules; an unedited one still pushes on its stored result.
+  - Fixtures: 17 files, 424 checks, all pass (`v20-edit.js` 28; `wp-service.js` now 26).
 - Docs: CLAUDE.md at repo root. The files the code reads (`prompts/`, `niche-library/`) are the only copies.
 
 ## Waiting on
@@ -150,7 +160,7 @@
 ## Next
 1. Check the live Stage 4 previews (expect 7 category cards and the final CTA H2 "Get a Free Quote From a Local Landscaper in Southampton").
 2. Stage 5 finish: run the allocation in the app for Edens Edge; run Bournemouth geo research for Kestrel Ridge (the allocation then runs by itself).
-3. WordPress push: slice 5, a first push to a staging site (needs Given's staging site, the plugin installed, and the field groups imported). Set `COPYBOT_SECRET_KEY` on Railway first. Field editing in the screens would let a person fix a surviving BLOCK or claim without regenerating.
+3. WordPress push: slice 5 part 2, a first push to a staging site (needs Given's staging site, the plugin installed, and the field groups imported). Set `COPYBOT_SECRET_KEY` on Railway first.
 4. Run Perplexity v3 for landscaper (trade only).
 5. Then: FAQ question bank + sorting step stages, humanizer decision, emergency and regulated group tests, category page.
 

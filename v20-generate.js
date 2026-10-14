@@ -159,12 +159,19 @@ function nicheContext(cv, niche, keyValueMap) {
   };
 }
 
+// What the validator checks a page against (generation and hand edits use the same)
+function validationContextFor({ cv, niche, decisions, keyValueMap, serviceParentMap = {} }) {
+  const { buildValidationContext } = require('./validate-v20');
+  const populatedCvKeys = new Set([...buildClientValues(cv, decisions.d1_years_trading).matchAll(/^\[CV: ([a-z0-9_]+)\]/gm)].map(m => m[1]));
+  return buildValidationContext({ cv, niche, decisions, keyValueMap, serviceParentMap, populatedCvKeys });
+}
+
 // Generate the homepage record. `callModel({ system, message, maxTokens })` returns
 // { text, usage }. With a failed gate there is no call: the record holds the gates.
 async function generateV20Homepage({ cv, niche, keyValueMap, serviceParentMap = {}, decisionsResult, calibrationPack, calibrationPackName, callModel, extraFlags = [], allocationSource = null, retries = true, claimsReview = true }) {
   const { buildPageRecord, expectedFromDecisions } = require('./v20-record');
   const { parseV20Output } = require('./v20-parse');
-  const { validateV20, buildValidationContext } = require('./validate-v20');
+  const { validateV20 } = require('./validate-v20');
   const { runRetries, loadRetryPrompt, validationSummary } = require('./v20-retry');
   const meta = {
     generated_at: new Date().toISOString(),
@@ -194,8 +201,7 @@ async function generateV20Homepage({ cv, niche, keyValueMap, serviceParentMap = 
   const record = buildPageRecord({ cv, decisionsResult, parsed, meta, extraFlags });
 
   // Stage 7: validate, then rewrite failing fields one at a time (brief §6b)
-  const populatedCvKeys = new Set([...buildClientValues(cv, D.d1_years_trading).matchAll(/^\[CV: ([a-z0-9_]+)\]/gm)].map(m => m[1]));
-  const V = buildValidationContext({ cv, niche, decisions: D, keyValueMap, serviceParentMap, populatedCvKeys });
+  const V = validationContextFor({ cv, niche, decisions: D, keyValueMap, serviceParentMap });
   record.meta.first_draft_validation = (() => { const i = validateV20(record, V); return { block: i.filter(x => x.type === 'BLOCK').length, flag: i.filter(x => x.type === 'FLAG').length }; })();
   if (retries) {
     const retrySystem = [
@@ -239,5 +245,5 @@ async function generateV20Homepage({ cv, niche, keyValueMap, serviceParentMap = 
 
 module.exports = {
   V20_MODEL, V20_PROMPT_FILE, V20_MAX_TOKENS,
-  CV_KEYS, buildV20Request, buildClientValues, clientValueMap, buildNicheEntry, buildServiceList, buildPracticeList, nicheContext, loadCore20, generateV20Homepage,
+  CV_KEYS, buildV20Request, buildClientValues, clientValueMap, buildNicheEntry, buildServiceList, buildPracticeList, nicheContext, loadCore20, generateV20Homepage, validationContextFor,
 };

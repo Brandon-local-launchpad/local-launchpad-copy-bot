@@ -100,4 +100,9 @@ function buildPageRecord({ cv, decisionsResult, parsed, meta, extraFlags = [] })
   return record;
 }
 
-module.exports = { buildPageRecord, expectedFromDecisions };
+// Which version of the page a review belongs to: a hand edit is a new version
+function versionOf(record) {
+  return (record && record.meta && (record.meta.edited_at || record.meta.generated_at)) || null;
+}
+
+module.exports = { buildPageRecord, expectedFromDecisions, versionOf };

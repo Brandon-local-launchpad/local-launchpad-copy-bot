@@ -100,6 +100,27 @@ console.log('\n=== FIXTURE: WordPress push service (pg-mem + fake WordPress) ===
     const rb = await svc.rollback(clientId, { snapshotId: p.snapshotId, confirm: true });
     chk('Rollback: restored from the database snapshot', rb.ok && fake.state.pages.get(7).acf.home_hero_h1 === 'Gardener Southampton | Edens Edge', JSON.stringify(rb), 'restored');
     chk('Rollback of another client\'s or a made-up snapshot: refused', !(await svc.rollback(clientId, { snapshotId: crypto.randomUUID(), confirm: true })).ok, '', 'refused');
+
+    // ── Accepted claims are kept on the version (slice 5) ──
+    const claimsOf = async id => JSON.parse((await pool.query(`SELECT content FROM client_assets WHERE id=$1`, [id])).rows[0].content).CLAIMS;
+    chk('The push saved its accepted claims on the version', ((await claimsOf(claimsId)).accepted || []).map(a => a.quote).join() === left.quote, JSON.stringify((await claimsOf(claimsId)).accepted), left.quote);
+    chk('Ticking a quote that isn\'t a finding: refused', /Not a finding/.test(await throwsMsg(() => svc.acceptClaims(clientId, { recordId: claimsId, quotes: ['made up'] }))), '', 'refused');
+    await svc.acceptClaims(clientId, { recordId: claimsId, quotes: [] });
+    chk('Unticking saves too', (await claimsOf(claimsId)).accepted.length === 0, '', '0');
+
+    // ── An edited version pushes its own text ──
+    const Ed = require(path.join(root, 'v20-edit.js'));
+    const { versionOf } = require(path.join(root, 'v20-record.js'));
+    const { next } = Ed.applyEdits(withClaims, [{ field: 'home_final_cta_body', text: 'Send us a few photos of your garden and we will price the job for you.' }]);
+    next.meta = { ...next.meta, edited_at: new Date().toISOString(), edited_fields: ['home_final_cta_body'] };
+    const edited = Ed.placeClaims(next, { for: versionOf(next), status: 'needs acceptance', source: 'hand edit', findings: [left], accepted: [] });
+    const editedId = await insert(edited);
+    p = await svc.push(clientId, { recordId: editedId, reviewed: true, confirm: true, acceptedClaims: [left.quote] });
+    chk('Edited version: pushed, and the site holds the edited text', p.ok && /Send us a few photos/.test(fake.state.pages.get(7).acf.home_final_cta_body), JSON.stringify({ result: p.result, refusals: p.refusals }), 'pushed');
+    const stale = { ...edited, CLAIMS: withClaims.CLAIMS };
+    const staleId = await insert(stale);
+    p = await svc.push(clientId, { recordId: staleId, reviewed: true, confirm: true, acceptedClaims: [left.quote] });
+    chk('Edited version carrying the old version\'s review: refused', !p.ok && p.refusals.some(x => /different version/.test(x)), JSON.stringify(p.refusals), 'refused');
   } finally { await new Promise(res => server.close(res)); }
 
   console.log(`\n${pass + fail} checks: ${pass} passed, ${fail} failed`);
