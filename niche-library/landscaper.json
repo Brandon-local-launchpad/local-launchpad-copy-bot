@@ -45,6 +45,10 @@
     }
   ],
 
+  "step_2_no_visit": {
+    "title": "We Price the Job From Your Photos or a Call",
+    "brief": "How the price is worked out from the photos and details they send, or a short call. Never mention a visit before the quote. Follows [CV: quote_method]; only say the quote is written if quote_method says so. Never restates 'free' (FAQ 5 owns it)."
+  },
   "cover_chain": ["guarantee", "manufacturer_warranty", "insurance"],
 
   "fears": [

@@ -9,6 +9,7 @@
 const fs = require('fs');
 const path = require('path');
 const { modelFields } = require('../validate-v20');
+const { extractJsonObject } = require('../json-extract');
 
 const CLAIMS_MODEL = 'claude-sonnet-4-6';
 
@@ -40,10 +41,7 @@ function buildClaimsMessage(record, facts) {
 const norm = s => String(s || '').replace(/[‘’]/g, "'").replace(/[“”]/g, '"').replace(/\s+/g, ' ').trim().toLowerCase();
 
 function parseFindings(text, record) {
-  const s = String(text || '').trim().replace(/^```(?:json)?\s*|\s*```$/g, '');
-  const start = s.indexOf('{'), end = s.lastIndexOf('}');
-  if (start < 0) throw new Error('no JSON in the claims review reply');
-  const raw = JSON.parse(s.slice(start, end + 1)).findings || [];
+  const raw = extractJsonObject(text).findings || [];
   const fields = Object.fromEntries(modelFields(record).map(f => [f.label, f.text]));
   const kept = [], dropped = [];
   // A finding the model cleared itself ("no issue", "supported") isn't a finding

@@ -2613,6 +2613,9 @@
         </div>`}
         ${rec.VALIDATION && rec.VALIDATION.status === 'run' ? `<div style="margin-bottom:10px;font-size:13px">Validation after retries: <strong>${rec.VALIDATION.block} BLOCK</strong>, ${rec.VALIDATION.flag} FLAG · first draft ${meta.first_draft_validation ? `${meta.first_draft_validation.block} BLOCK, ${meta.first_draft_validation.flag} FLAG` : 'n/a'} · ${(rec.VALIDATION.retries || []).length} retries, ${(rec.VALIDATION.retries || []).filter(r => r.kept).length} kept</div>
           ${(rec.VALIDATION.issues || []).map(i => `<div style="font-size:12px;color:${i.type === 'BLOCK' ? 'var(--error,#b71c1c)' : 'var(--muted)'}">${h(i.type)} ${h(i.check)} · ${h(i.field)}: ${h(i.message)}</div>`).join('')}` : ''}
+        ${rec.CLAIMS ? `<div style="margin:10px 0;font-size:13px">Claims review: ${rec.CLAIMS.status === 'failed' ? `<span style="color:var(--error,#b71c1c)">failed (${h(rec.CLAIMS.error)})</span>` :
+          `${h(rec.CLAIMS.first_review)} found, <strong>${rec.CLAIMS.findings.length} left</strong> after rewrites${rec.CLAIMS.findings.length ? ' (to accept before a push)' : ''}`}</div>
+          ${(rec.CLAIMS.findings || []).map(f => `<div style="font-size:12px;color:var(--flag)">${h(f.field)}: "${h(f.quote)}" (${h(f.why)})</div>`).join('')}` : ''}
         ${flags ? `<div style="margin:10px 0">${flags}</div>` : ''}
         ${meta.raw_output ? `<p style="font-weight:600;margin:8px 0 4px">Raw model output</p><pre style="${pre}">${h(meta.raw_output)}</pre>` : ''}
         <p style="font-weight:600;margin:12px 0 4px">Page record</p><pre style="${pre}">${h(JSON.stringify(fields, null, 2))}</pre>

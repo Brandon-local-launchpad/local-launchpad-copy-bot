@@ -122,6 +122,13 @@
   - Real runs: Ethan's page had 3 findings ("100+ jobs across Southampton's varied gardens", "we will confirm availability when we come to look at the job", "we'll come out, take a look, and give you a price"); a second run found only the middle one, so the review varies between runs. The acceptance page had 6, including FAQ 4's "That applies to every job".
   - The client block now lists the GBP categories, so a category whose services all sit elsewhere (Ethan's lawn care) still counts as confirmed.
   - Fixtures: 15 files, 357 checks, all pass (`wp-push-write.js` adds 21).
+- Site visits and claims retries (14 Oct, Brandon's decisions):
+  - New practice `site_visit_before_quote` ("We visit before quoting"). Its patterns catch visits before a quote ("we'll come out, take a look and give you a price", "site visit", "visit your garden") but not maintenance visits. Step 2 is the visit step only when the practice is ticked. Without it, both niches use `step_2_no_visit`: "We Price the Job From Your Photos or a Call" (`.md` and JSON). The FAQ 5 brief says "Never describe a visit before the quote" without it.
+  - Bug fixed: the roofer's emergency steps were never used; the emergency layout now uses them.
+  - Claims findings now feed the per-field retries during generation: review, rewrite each field with findings (kept only if every quoted claim is gone and the field gained no BLOCK), review again, for up to 2 rounds. What's left is saved as `CLAIMS` at the top of the record (status `clear`, `needs acceptance` or `failed`). The push uses the record's own CLAIMS, so no second review is needed, and a person accepts only what's left. A failed review never loses the page, but the push refuses until it's run again. The reader view and the v20 output view show the result.
+  - Bug fixed: model replies with text after the JSON broke the claims parser (and could break the allocation parser); `json-extract.js` now reads the first complete JSON object.
+  - Real Edens Edge run: the first review found 4 claims and 2 were rewritten away. The 2 left are cautious calls about clay in the north of the city, which the research marks as inferred for individual gardens. The review still has false positives: it flagged "We can usually start within the same week" (the confirmed start_time) and the photo or call pricing wording. A person has the last word on anything left.
+  - In the same run, 1 BLOCK survived both validation retries ("Get in touch" in the final CTA), so this page would be refused at push. Field editing in the screens, or a regenerate, is the way out.
 - Docs: CLAUDE.md at repo root. The files the code reads (`prompts/`, `niche-library/`) are the only copies.
 
 ## Waiting on

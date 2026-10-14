@@ -52,6 +52,10 @@
     { "title": "We Fix It on the Spot" }
   ],
 
+  "step_2_no_visit": {
+    "title": "We Price the Job From Your Photos or a Call",
+    "brief": "How the price is worked out from the ground level photos and details they send, or a short call. Never mention an inspection visit or going on the roof before the quote. Follows [CV: quote_method]. Never restates 'free'."
+  },
   "cover_chain": ["guarantee", "manufacturer_warranty", "insurance"],
 
   "fears": [

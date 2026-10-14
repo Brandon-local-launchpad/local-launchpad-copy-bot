@@ -44,8 +44,10 @@ Each step has a fixed title and a one line brief the model writes to.
 
 1. **Tell Us About Your Garden**
    Brief: how to get in touch and what is useful to send first (rough size, what they want, photos if they have them). No promise of a reply time unless [CV: response_time] is set.
-2. **We Visit and Price the Job**
+2. **We Visit and Price the Job** (only when the `site_visit_before_quote` practice is confirmed)
    Brief: the visit and what gets looked at on site (levels, drainage, access, what stays and what goes). Follows [CV: quote_method]; only say the quote is written if quote_method says so. Never restates "free" (FAQ 5 owns it).
+   Without the practice (`step_2_no_visit`): **We Price the Job From Your Photos or a Call**
+   Brief: how the price is worked out from the photos and details they send, or a short call. Never mention a visit before the quote. Follows [CV: quote_method]; only say the quote is written if quote_method says so. Never restates "free" (FAQ 5 owns it).
 3. **We Start on a Date That Suits You**
    Brief: the start date is agreed in advance and the job runs to the agreed plan. Never restates the start time (FAQ 4 owns it). Mixed A/B clients add one line on ongoing maintenance visits.
 

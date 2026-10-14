@@ -161,7 +161,7 @@ function nicheContext(cv, niche, keyValueMap) {
 
 // Generate the homepage record. `callModel({ system, message, maxTokens })` returns
 // { text, usage }. With a failed gate there is no call: the record holds the gates.
-async function generateV20Homepage({ cv, niche, keyValueMap, serviceParentMap = {}, decisionsResult, calibrationPack, calibrationPackName, callModel, extraFlags = [], allocationSource = null, retries = true }) {
+async function generateV20Homepage({ cv, niche, keyValueMap, serviceParentMap = {}, decisionsResult, calibrationPack, calibrationPackName, callModel, extraFlags = [], allocationSource = null, retries = true, claimsReview = true }) {
   const { buildPageRecord, expectedFromDecisions } = require('./v20-record');
   const { parseV20Output } = require('./v20-parse');
   const { validateV20, buildValidationContext } = require('./validate-v20');
@@ -205,10 +205,36 @@ async function generateV20Homepage({ cv, niche, keyValueMap, serviceParentMap = 
     const callRetry = ({ message }) => callModel({ system: retrySystem, message, maxTokens: 2048 });
     const { log, usage: retryUsage, finalIssues } = await runRetries({ record, V, callRetry });
     record.VALIDATION = validationSummary(finalIssues, log, retryUsage);
+
+    // Claims review: findings go back through the per-field retries, the page is
+    // reviewed again, and only what's left needs a person to accept it
+    if (claimsReview) {
+      const { runClaimRetries } = require('./v20-retry');
+      const { runClaimsReview, factsFromRecord } = require('./wp/claims-review');
+      const review = rec => runClaimsReview(rec, factsFromRecord(rec), callModel);
+      try {
+        const { claims, rounds, first } = await runClaimRetries({ record, V, callRetry, review });
+        record.CLAIMS = {
+          for: meta.generated_at, at: claims.at,
+          status: claims.findings.length ? 'needs acceptance' : 'clear',
+          first_review: first, findings: claims.findings, rounds,
+        };
+        // The claim rewrites changed fields: validate the page as it now stands
+        record.VALIDATION = validationSummary(validateV20(record, V), [...log, ...rounds.flatMap(r => r.retries.map(x => ({ ...x, problems: x.claims, source: 'claims' })))], retryUsage);
+      } catch (e) {
+        // A failed review never loses the page: it's saved, and the push asks for the review again
+        record.CLAIMS = { for: meta.generated_at, status: 'failed', error: e.message, findings: [] };
+      }
+    }
   } else {
     record.VALIDATION = validationSummary(validateV20(record, V), [], null);
   }
-  return record;
+  // CLAIMS sits with FLAGS and VALIDATION at the top of the record
+  if (!record.CLAIMS) return record;
+  const { CLAIMS, ...rest } = record;
+  const out = {};
+  for (const [k, v] of Object.entries(rest)) { out[k] = v; if (k === 'VALIDATION') out.CLAIMS = CLAIMS; }
+  return out;
 }
 
 module.exports = {

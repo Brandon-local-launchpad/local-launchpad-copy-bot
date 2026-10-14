@@ -124,6 +124,21 @@ chk('PRACTICE: "one person sees the job through"', acc.some(i => i.check === 'PR
 chk("NUM: \"a single day's work\"", acc.some(i => i.check === 'NUM' && /single day/.test(i.message)), acc.filter(i => i.check === 'NUM').map(i => i.message).join(' | '), 'BLOCK');
 chk('RESEARCH-LANG: "slowly permeable"', acc.some(i => i.check === 'RESEARCH-LANG' && /permeable/.test(i.message)), '', 'FLAG');
 
+// Site visit practice (14 Oct): step 2 and visit wording depend on it
+const step2 = c => computeDecisions({ cv: c, niche: landscaper, pages, keyValueMap, serviceParentMap, v20TestMode: true, allocationData }).decisions.niche_steps[1].title;
+chk('Step 2 without the visit practice: price from photos or a call', step2(cv) === 'We Price the Job From Your Photos or a Call', step2(cv), 'no-visit step');
+chk('Step 2 with the visit practice: the visit step', step2({ ...cv, confirmed_practices: ['site_visit_before_quote'] }) === 'We Visit and Price the Job', '', 'visit step');
+const roofer = require(path.join(root, 'niche-library/roofer.json'));
+const rPages = [{ pageType: 'homepage', pageTitle: 'K', urlSlug: '/', h1: 'Roofer Bournemouth', status: 'live' }, { pageType: 'service', pageTitle: 'Roof Repair', urlSlug: '/roof-repair', h1: 'Roof Repair Bournemouth', status: 'live' }];
+const rCv = { ...cv, company_name: 'Kestrel Ridge Roofing', primary_category: 'Roofing contractor', h1_override: '', jobs_completed: '1200', differentiator_1_confirmed: true };
+const rSteps = c => computeDecisions({ cv: c, niche: roofer, pages: rPages, keyValueMap: { biz_area_1: 'Bournemouth' }, serviceParentMap: {}, v20TestMode: true, allocationData: null }).decisions.niche_steps.map(s => s.title).join(' / ');
+chk('Roofer step 2 without the visit practice: no inspection step', /We Price the Job From Your Photos or a Call/.test(rSteps(rCv)) && !/Inspect/.test(rSteps(rCv)), rSteps(rCv), 'no-visit');
+chk('Roofer emergency layout uses the emergency steps (was ignored before)', rSteps({ ...rCv, emergency_primary: 'yes' }) === 'Call Us / We Give You a Price and an Arrival Time / We Fix It on the Spot', rSteps({ ...rCv, emergency_primary: 'yes' }), 'emergency steps');
+const q5v = computeDecisions({ cv, niche: landscaper, pages, keyValueMap, serviceParentMap, v20TestMode: true, allocationData }).decisions.d11_faq.find(q => q.slot === 'Q5');
+chk('FAQ 5 brief: never describe a visit without the practice', /Never describe a visit before the quote/.test(q5v.answer_brief), q5v.answer_brief, 'no visit');
+const vis = run(r => { r.home_final_cta_body = "Drop us a message and we'll come out, take a look, and give you a price before any work begins."; });
+chk('PRACTICE: "we\'ll come out, take a look, and give you a price" without the practice', vis.some(i => i.check === 'PRACTICE' && /visit before quoting/.test(i.message)), vis.filter(i => i.check === 'PRACTICE').map(i => i.message).join(' | '), 'BLOCK');
+
 const baseIssues = validateV20(base, V);
 chk('The last real run had unconfirmed practices and a compass-direction travel line (caught now)',
   baseIssues.some(i => i.check === 'PRACTICE') && baseIssues.some(i => i.check === 'COAST'), baseIssues.filter(i => /PRACTICE|COAST/.test(i.check)).map(i => i.message).join(' | '), 'both');

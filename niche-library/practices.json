@@ -54,6 +54,24 @@
       ]
     },
     {
+      "key": "site_visit_before_quote",
+      "trades": [
+        "all"
+      ],
+      "label": "We visit before quoting",
+      "claim": "the business visits the site before giving a quote",
+      "question": "Do you visit the property before giving a quote?",
+      "detect": [
+        "\\bsite visits?\\b",
+        "\\b(come|comes|coming|pop|head) (out|round|over)\\b[^.]{0,40}\\b(look|see|price|quote|measure|assess|check)",
+        "\\bvisit (the|your) (garden|property|home|house|roof|site|job)\\b",
+        "\\bwe('ll| will)? visit\\b",
+        "\\b(look at|see|check|inspect|assess) (the|your) (garden|roof|job|property) in person\\b",
+        "\\bon site\\b[^.]{0,30}\\b(before|to) (we )?(price|quote|pricing|quoting)\\b",
+        "\\binspect(ion)? (of )?(the|your) roof\\b[^.]{0,40}\\b(before|then|and) (we )?(price|quote)"
+      ]
+    },
+    {
       "key": "bigger_projects_booked_ahead",
       "trades": [
         "all"

@@ -16,8 +16,10 @@ const { HOMEPAGE_FIELDS, SEO_ADAPTERS } = require('./homepage-map');
 
 const EMPTY = { text: '', html: '', bool: false, repeater: [] };
 
+// claims: a review result, or the record's own CLAIMS (from generation) when none is given
 function claimsRefusals(record, claims, acceptClaims) {
   if (!claims) return ['Run the claims review on this record before pushing.'];
+  if (claims.status === 'failed') return [`The claims review failed (${claims.error || 'no result'}). Run it again before pushing.`];
   if (claims.for !== (record.meta && record.meta.generated_at)) return ['The claims review on file is for a different version of the page. Run it again.'];
   if (claims.findings.length && !acceptClaims) {
     return [`The claims review found ${claims.findings.length} statement(s) the facts on file don't support. Fix them, or read them and accept before pushing.`];
@@ -38,6 +40,7 @@ async function verify(site, pageId, payload, clientValues) {
 }
 
 async function push({ record, recordId = null, site, store, reviewed = false, seo = 'rankmath', clientValues = null, claims = null, acceptClaims = false }) {
+  claims = claims || record.CLAIMS || null;
   const dry = await dryRun({ record, site, reviewed, seo, clientValues });
   const refusals = [...dry.refusals, ...claimsRefusals(record, claims, acceptClaims)];
   const base = { action: 'push', site: site.url, page: dry.page && dry.page.id, recordId, generatedAt: record.meta && record.meta.generated_at };

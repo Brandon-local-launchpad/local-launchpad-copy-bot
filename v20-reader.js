@@ -92,6 +92,15 @@ function buildReaderView(record, values = {}) {
   } else {
     push('Validation not run.', '');
   }
+  const C = record.CLAIMS;
+  if (C) {
+    if (C.status === 'failed') push(`Claims review: failed (${C.error}). Run it again before pushing.`, '');
+    else {
+      push(`Claims review: ${C.first_review ?? '?'} found, ${C.findings.length} left after rewrites${C.findings.length ? ' (a person must accept these before a push)' : ''}.`, '');
+      for (const f of C.findings) push(`- ${f.field}: "${f.quote}" (${f.why})`);
+      if (C.findings.length) push('');
+    }
+  }
   const flags = record.FLAGS || [];
   if (flags.length) {
     push('Flags:');

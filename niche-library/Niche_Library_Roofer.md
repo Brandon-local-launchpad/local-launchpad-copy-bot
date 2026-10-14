@@ -44,7 +44,8 @@ Placed before other homepage cards when the client offers them: Emergency Roof R
 
 Standard (type A):
 1. **Tell Us What's Wrong.** Brief: what to tell them (what they've noticed, roughly where) and that ground level photos help. Never encourage the customer to go up a ladder.
-2. **We Inspect and Show You the Problem.** Brief: a proper inspection, and the customer is shown what was found. Follows [CV: quote_method]. Never restates "free".
+2. **We Inspect and Show You the Problem.** (only when the `site_visit_before_quote` practice is confirmed) Brief: a proper inspection, and the customer is shown what was found. Follows [CV: quote_method]. Never restates "free".
+   Without the practice (`step_2_no_visit`): **We Price the Job From Your Photos or a Call.** Brief: how the price is worked out from the ground level photos and details they send, or a short call. Never mention an inspection visit or going on the roof before the quote. Follows [CV: quote_method]. Never restates "free".
 3. **We Fix It on a Date That Suits You.** Brief: date agreed once the quote is accepted; the work follows the quote. Never restates the start time.
 
 Emergency (only when the emergency layout is on): Call Us / We Give You a Price and an Arrival Time / We Fix It on the Spot.

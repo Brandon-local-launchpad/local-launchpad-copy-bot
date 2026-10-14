@@ -101,10 +101,7 @@ function buildAllocationMessage({ parsed, eligible, cv, niche, city, categories,
 }
 
 function parseModelJson(raw) {
-  const s = (raw || '').trim().replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/, '');
-  const start = s.indexOf('{'), end = s.lastIndexOf('}');
-  if (start < 0 || end < start) throw new Error('no JSON object in the reply');
-  return JSON.parse(s.slice(start, end + 1));
+  return require('./json-extract').extractJsonObject(raw);
 }
 
 // Code is the gate. Returns the valid picks and a plain-words error per bad pick.

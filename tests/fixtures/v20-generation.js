@@ -123,7 +123,7 @@ chk('Fenced and multi-line output still parses',
     extraFlags: [], allocationSource: 'model',
   });
   const order = Object.keys(rec).filter(k => k !== 'meta');
-  const want = ['page', 'watermark', 'can_mark_done', 'FLAGS', 'VALIDATION', 'seo_title', 'meta_description', 'home_hero_h1', 'home_hero_trust_line', 'home_hero_intro',
+  const want = ['page', 'watermark', 'can_mark_done', 'FLAGS', 'VALIDATION', 'CLAIMS', 'seo_title', 'meta_description', 'home_hero_h1', 'home_hero_trust_line', 'home_hero_intro',
     'home_hero_rating_line', 'buttons', 'home_trusted_logos', 'home_content_block_h2', 'home_content_block_body', 'home_services_h2',
     'home_services_intro', 'cards', 'home_services_more_line', 'home_why_h2', 'points', 'home_reviews_show', 'home_reviews_h2',
     'home_process_h2', 'steps', 'cta_band', 'home_owner_show', 'home_owner_h2', 'home_owner_body', 'home_areas_h2', 'home_areas_intro',

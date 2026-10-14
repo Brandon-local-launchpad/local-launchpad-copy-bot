@@ -35,9 +35,55 @@ const reply = JSON.stringify({ findings: [
 const pf = parseFindings('```json\n' + reply + '\n```', record);
 chk('Claims parse: keeps a real quote, drops an invented quote and an unknown field', pf.findings.length === 1 && pf.dropped.length === 2, JSON.stringify(pf), '1 kept, 2 dropped');
 const cm = buildClaimsMessage(record, { clientBlock: 'CLIENT VALUES\n[CV: start_time] = same week', research: 'ALLOCATED ITEMS:\n  Neighbourhood: Bassett Heath' });
+const trailing = parseFindings(reply + '\n\nNote: I also checked {other} things and they are fine.', record);
+chk('Claims parse: text after the JSON (with braces) is ignored', trailing.findings.length === 1, JSON.stringify(trailing), '1 kept');
 chk('Claims message: facts, research and every model field', /FACTS ON FILE:\nCLIENT VALUES/.test(cm) && /Bassett Heath/.test(cm) && /home_final_cta_body: /.test(cm) && /faq_answer \(How soon can you start\?\): /.test(cm), '', 'all parts');
 
 (async () => {
+  // ── Claims findings through the per-field retries ──
+  const { runClaimRetries } = require(path.join(root, 'v20-retry.js'));
+  const { buildValidationContext } = require(path.join(root, 'validate-v20.js'));
+  const { computeDecisions } = require(path.join(root, 'decisions.js'));
+  const landscaper = require(path.join(root, 'niche-library/landscaper.json'));
+  const DR = computeDecisions({ cv: E.ethanValues(), niche: landscaper, pages: E.pages, keyValueMap: E.keyValueMap, serviceParentMap: {}, v20TestMode: true, allocationData: null });
+  const V = buildValidationContext({ cv: E.ethanValues(), niche: landscaper, decisions: DR.decisions, keyValueMap: E.keyValueMap, populatedCvKeys: new Set(Object.keys(record.meta.client_values)) });
+  const ctaQuote = "we'll come out, take a look, and give you a price";
+  const stuckQuote = 'We can usually start the same week.';
+  const has = (rec, field, q) => { const t = field === 'cta' ? rec.home_final_cta_body : rec.faq_items[3].faq_answer; return t.toLowerCase().includes(q.toLowerCase()); };
+  const reviews = [];
+  const review = async rec => {
+    const findings = [];
+    if (has(rec, 'cta', ctaQuote)) findings.push({ field: 'home_final_cta_body', quote: ctaQuote, why: 'visit not confirmed' });
+    if (has(rec, 'faq', stuckQuote)) findings.push({ field: 'faq_answer (How soon can you start?)', quote: stuckQuote, why: 'test' });
+    reviews.push(findings.length);
+    return { for: at, at: 'now', findings };
+  };
+  const calls = [];
+  const callRetry = async ({ message }) => {
+    const field = message.match(/^FIELD: (.+?)(?: \((?:\d+ to \d+|under \d+) words\))?$/m)[1];
+    calls.push(field);
+    if (field === 'home_final_cta_body') return { text: "home_final_cta_body: Send us a few photos of your garden and we'll get back to you with a price for the work." };
+    return { text: 'faq_answer: We can usually start the same week. Call [CV: phone] or send a message and we will let you know what is free for your job and when.' }; // claim kept
+  };
+  const rec2 = JSON.parse(JSON.stringify(record));
+  const out = await runClaimRetries({ record: rec2, V, callRetry, review });
+  chk('Claims retries: the fixable claim is rewritten away and kept', !has(rec2, 'cta', ctaQuote) && out.rounds[0].retries.some(x => x.field === 'home_final_cta_body' && x.kept), rec2.home_final_cta_body, 'rewritten');
+  chk('Claims retries: a rewrite that keeps the claim is not kept', out.rounds.every(r => r.retries.filter(x => /How soon/.test(x.field)).every(x => !x.kept && x.error === 'the claim is still there')), JSON.stringify(out.rounds.map(r => r.retries.map(x => x.error))), 'not kept');
+  chk('Claims retries: 2 rounds, then a final review; only the stuck claim is left', out.rounds.length === 2 && reviews.join() === '2,1,1' && out.claims.findings.length === 1 && out.claims.findings[0].quote === stuckQuote, `reviews ${reviews.join()}`, '2,1,1');
+  chk('Claims retries: first review count kept for the record', out.first === 2, out.first, 2);
+
+  // A failed review: the push asks for it again
+  const failed = { ...record, CLAIMS: { for: at, status: 'failed', error: 'no JSON in the claims review reply', findings: [] } };
+  const f0 = createFakeWp({ pages: [seedHomepage()] });
+  const l0 = await listen(f0.app);
+  try {
+    const r0 = await push({ record: failed, site: { url: l0.url, user: 'copybot', appPassword: 'test-app-password-not-real' }, store: createMemoryStore(), reviewed: true });
+    chk('Record whose claims review failed: push refused until it is run again', !r0.ok && r0.refusals.some(x => /claims review failed/.test(x)) && f0.state.writes === 0, r0.refusals.join(' | '), 'refused');
+    const clear = { ...record, CLAIMS: { for: at, status: 'clear', findings: [] } };
+    const r1 = await push({ record: clear, site: { url: l0.url, user: 'copybot', appPassword: 'test-app-password-not-real' }, store: createMemoryStore(), reviewed: true });
+    chk('Record with its own clear claims review (from generation): pushes without another review', r1.ok && r1.result === 'pushed', JSON.stringify(r1.refusals || r1.result), 'pushed');
+  } finally { await new Promise(res => l0.server.close(res)); }
+
   const fake = createFakeWp({ pages: [seedHomepage()] });
   const { server, url } = await listen(fake.app);
   const site = { url, user: 'copybot', appPassword: 'test-app-password-not-real' };

@@ -183,9 +183,11 @@ function buildFaq(cv, niche, ctx, emergencyOn) {
 
   // Q5 free/not-free. The niche brief ("From [QUOTE_FREE] and [CV: quote_method]")
   // reads as "From Free and ..." once resolved, so code writes the brief from the values.
-  const quoteHow = cv.quote_method
+  const visits = (cv.confirmed_practices || []).includes('site_visit_before_quote');
+  const quoteHow = (cv.quote_method
     ? 'Say how quotes work from [CV: quote_method] only.'
-    : 'quote_method is blank: do not describe how quotes are given, a visit, or a turnaround time.';
+    : 'quote_method is blank: do not describe how quotes are given or a turnaround time.') +
+    (visits ? ' A visit before the quote is confirmed.' : ' Never describe a visit before the quote.');
   // A niche may offer faq_5_free_inspection (roofer); it replaces faq_5_free only
   // when the client has confirmed free inspections as well as free quotes.
   if (ctx.quoteFree && cv.free_inspection === 'yes' && faqMap['faq_5_free_inspection']) {
@@ -376,6 +378,18 @@ function buildD14Town(pages, keyValueMap) {
     if (page) return { name: stripAdmin(area), url: '' };
   }
   return null;
+}
+
+// ── Process steps ────────────────────────────────────────────────────────────
+// The emergency layout uses the niche's emergency steps. Otherwise step 2 is the
+// visit step only when the client confirms visiting before quoting; without it,
+// the niche's step_2_no_visit (price from photos or a call).
+function stepsFor(niche, cv, emergencyOn) {
+  if (emergencyOn && Array.isArray(niche.steps_emergency) && niche.steps_emergency.length) return niche.steps_emergency;
+  const steps = niche.steps || [];
+  const visits = (cv.confirmed_practices || []).includes('site_visit_before_quote');
+  if (!visits && niche.step_2_no_visit && steps.length > 1) return steps.map((s, i) => (i === 1 ? niche.step_2_no_visit : s));
+  return steps;
 }
 
 // ── Main entry point ─────────────────────────────────────────────────────────
@@ -685,7 +699,7 @@ function computeDecisions({ cv, niche, pages, keyValueMap, serviceParentMap, v20
     d14_town:            d14,
     d15_buttons:         d15,
     linkablePages,
-    niche_steps:         niche.steps || [],
+    niche_steps:         stepsFor(niche, cv, emergencyOn),
     emergencyOn,
     quoteFree,
     allocated,
