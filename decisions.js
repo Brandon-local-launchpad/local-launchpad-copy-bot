@@ -577,8 +577,31 @@ function computeDecisions({ cv, niche, pages, keyValueMap, serviceParentMap, v20
     ? [`Call ${cv.phone}`, ctx.primaryAction]
     : [ctx.primaryAction, cv.phone ? `Call ${cv.phone}` : null].filter(Boolean);
 
-  // F-ALLOC: allocation pass not yet built
-  flags.push({ code: 'F-ALLOC', msg: 'Allocation pass not yet built — ALLOCATED ITEMS will be empty until Stage 5 is complete.' });
+  // ── Allocated items (Stage 5). allocationData is already resolved to names and
+  // cleaned text by allocation.resolveAllocatedItems; null when nothing is saved.
+  const symptomSlotOf = q => {
+    const f = (niche.faq_slots || []).find(s => s.symptom_based && s.question === q.question);
+    return f ? f.slot : null;
+  };
+  const allocated = allocationData || { neighbourhoods: [], symptoms: {} };
+  if (!allocationData) {
+    flags.push({ code: 'F-ALLOC', msg: 'No allocation saved: run the allocation pass on the Geo Research step.' });
+  } else {
+    if (allocated.neighbourhoods.length < 2) {
+      flags.push({ code: 'F-ALLOC', msg: `Only ${allocated.neighbourhoods.length} allocated neighbourhood(s); the content block needs 2.` });
+    }
+    const missingSym = d11.map(symptomSlotOf).filter(slot => slot && !allocated.symptoms[slot]);
+    if (missingSym.length) flags.push({ code: 'F-ALLOC', msg: `No allocated symptom for ${missingSym.join(', ')}.` });
+  }
+  // The planning FAQ must name any allocated conservation area
+  const conservationNames = allocated.neighbourhoods.filter(n => n.conservation).map(n => n.name);
+  for (const q of d11) {
+    if (q.slot === 'Q9' && conservationNames.length) {
+      q.answer_brief = `${q.answer_brief || ''} Allocated conservation area to name: ${conservationNames.join(', ')}.`.trim();
+    }
+    const symSlot = symptomSlotOf(q);
+    if (symSlot) q.allocatedSymptom = allocated.symptoms[symSlot] ? symSlot : null;
+  }
 
   // ── D16 thin page check ──
   let thinCount = 0;
@@ -638,6 +661,7 @@ function computeDecisions({ cv, niche, pages, keyValueMap, serviceParentMap, v20
     niche_steps:         niche.steps || [],
     emergencyOn,
     quoteFree,
+    allocated,
   };
 
   const decisionsBlock = formatDecisionsBlock(decisions, cv, niche, ctx);
@@ -723,7 +747,19 @@ function formatDecisionsBlock(D, cv, niche, ctx) {
   for (const p of D.linkablePages) push(`  [${p.type}] ${p.url} | H1: ${p.h1}`);
   push('');
   push('ALLOCATED ITEMS:');
-  push('  none');
+  const A = D.allocated || { neighbourhoods: [], symptoms: {} };
+  if (!A.neighbourhoods.length && !Object.keys(A.symptoms).length) push('  none');
+  for (const n of A.neighbourhoods) {
+    push(`  Neighbourhood: ${n.name}${n.conservation ? ' (conservation area)' : ''}`);
+    for (const line of n.profile.split('\n')) if (line.trim()) push(`    ${line.trim()}`);
+  }
+  for (const q of D.d11_faq) {
+    if (!q.allocatedSymptom) continue;
+    const s = A.symptoms[q.allocatedSymptom];
+    push(`  Symptom for ${q.slot} (${q.question}): "${s.text}"`);
+    push(`    Linked issue: ${s.issueTitle}`);
+    for (const line of s.issueText.split('\n')) if (line.trim()) push(`    ${line.trim()}`);
+  }
   push('');
   // Field names and list keys match the CORE (20) OUTPUT block exactly.
   push('MODEL FIELDS:');

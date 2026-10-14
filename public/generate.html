@@ -366,6 +366,17 @@
       </div>
     </div>
 
+    <div class="card" id="allocationCard" style="display:none">
+      <div class="card-title">Homepage allocation</div>
+      <p style="color:var(--muted);font-size:13px;margin-bottom:12px;">The 2 neighbourhoods and the symptoms the v20 homepage may use, picked from the primary city dossier. Runs once by itself when that dossier is saved. Swap a pick here without re-running.</p>
+      <div id="allocationBody" style="font-size:13px"></div>
+      <div id="allocationError" style="display:none;color:var(--flag);font-size:13px;margin-top:8px"></div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:12px">
+        <button class="btn btn-ghost btn-sm" id="allocationRunBtn" style="width:auto;padding:6px 14px" onclick="runAllocationPass()">Run allocation</button>
+        <button class="btn btn-primary btn-sm" id="allocationSaveBtn" style="width:auto;padding:6px 14px;display:none" onclick="saveAllocation()">Save picks</button>
+      </div>
+    </div>
+
     <div id="geoDupeWarning" style="display:none"></div>
     <div id="geoError" style="display:none"></div>
 
@@ -852,6 +863,102 @@
     checkCodeDupes();
     checkRunReady();
     document.getElementById('downloadAllBtn').style.display = existingDossiers.size > 0 ? 'inline-flex' : 'none';
+    loadAllocation();
+  }
+
+  // ── Homepage allocation (v20 Stage 5) ─────────────────────────────────────
+  function allocationError(msg) {
+    const el = document.getElementById('allocationError');
+    el.textContent = msg || '';
+    el.style.display = msg ? 'block' : 'none';
+  }
+
+  async function loadAllocation() {
+    const card = document.getElementById('allocationCard');
+    if (!clientId) { card.style.display = 'none'; return; }
+    card.style.display = '';
+    allocationError('');
+    try {
+      const r = await fetch(`/api/clients/${encodeURIComponent(clientId)}/allocation${sessionId ? '?sessionId=' + encodeURIComponent(sessionId) : ''}`);
+      const data = await r.json();
+      if (!r.ok) throw new Error(data.error || r.statusText);
+      renderAllocation(data);
+    } catch (e) {
+      document.getElementById('allocationBody').innerHTML = '';
+      allocationError(`Couldn't load the allocation: ${e.message}`);
+    }
+  }
+
+  function renderAllocation(data) {
+    const body = document.getElementById('allocationBody');
+    const saveBtn = document.getElementById('allocationSaveBtn');
+    const runBtn = document.getElementById('allocationRunBtn');
+    const v = data.view;
+    const flagLines = (data.flags || []).map(f => `<div style="color:var(--flag)">${h(f.code)}: ${h(f.msg)}</div>`).join('');
+    if (!v) {
+      body.innerHTML = flagLines || '<span style="color:var(--muted)">No primary city dossier yet.</span>';
+      saveBtn.style.display = 'none';
+      runBtn.disabled = true;
+      return;
+    }
+    runBtn.disabled = !!data.running;
+    runBtn.textContent = data.running ? 'Running…' : (v.saved ? 'Re-run allocation' : 'Run allocation');
+    const eff = v.effective || { neighbourhoods: [], symptoms: {}, conservation_areas: [] };
+    const cons = new Set(eff.conservation_areas || []);
+    const lock = v.fromPageMap ? 'disabled title="Set by the page map Assigned columns"' : '';
+    const nOpts = sel => '<option value="">(none)</option>' + v.neighbourhoods.map(n =>
+      `<option value="${h(n.id)}" ${n.id === sel ? 'selected' : ''} ${n.eligible ? '' : 'disabled'}>${h(n.name)} (${h(n.type || 'area')})${n.eligible ? '' : ': no sourced detail'}${cons.has(n.id) ? ' · conservation area' : ''}</option>`).join('');
+    const nSel = i => `<select class="cv-input alloc-n" ${lock} style="margin-bottom:6px">${nOpts((eff.neighbourhoods || [])[i])}</select>`;
+    const sSel = slot => `<select class="cv-input alloc-s" data-slot="${h(slot.slot)}" ${lock}><option value="">(none)</option>` +
+      slot.options.map(o => `<option value="${h(o.id)}" ${(eff.symptoms || {})[slot.slot] === o.id ? 'selected' : ''}>${h(o.text)}</option>`).join('') + '</select>';
+    const src = v.fromPageMap ? 'page map Assigned columns' : (v.saved ? (v.saved.source === 'manual' ? 'manual picks' : 'allocation pass') : 'nothing saved yet');
+    body.innerHTML = `
+      <div style="color:var(--muted);margin-bottom:8px">Dossier: ${h(v.dossierLocation)} · Source: ${h(src)}${v.updatedAt ? ' · ' + h(new Date(v.updatedAt).toLocaleString()) : ''}</div>
+      <label style="display:block;margin-bottom:4px">Neighbourhoods</label>${nSel(0)}${nSel(1)}
+      ${v.slots.map(s => `<label style="display:block;margin:8px 0 4px">Symptom for ${h(s.slot)}: ${h(s.question)}</label>${sSel(s)}`).join('')}
+      ${v.saved && v.saved.reasons ? `<div style="margin-top:10px;white-space:pre-wrap;color:var(--muted)">${h(v.saved.reasons)}</div>` : ''}
+      ${flagLines ? `<div style="margin-top:10px">${flagLines}</div>` : ''}
+      ${(v.parseWarnings || []).length ? `<div style="margin-top:6px;color:var(--flag)">Dossier read warnings: ${h(v.parseWarnings.join('; '))}</div>` : ''}`;
+    saveBtn.style.display = v.fromPageMap ? 'none' : '';
+  }
+
+  async function runAllocationPass() {
+    const btn = document.getElementById('allocationRunBtn');
+    setLoading(btn, true, 'Running…');
+    allocationError('');
+    try {
+      const r = await fetch(`/api/clients/${encodeURIComponent(clientId)}/allocation/run`, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ sessionId }),
+      });
+      const data = await r.json();
+      if (!r.ok) throw new Error(data.error || r.statusText);
+      renderAllocation(data);
+    } catch (e) {
+      allocationError(`Allocation failed: ${e.message}`);
+      btn.disabled = false;
+      btn.textContent = 'Run allocation';
+    }
+  }
+
+  async function saveAllocation() {
+    const neighbourhoods = [...document.querySelectorAll('#allocationBody .alloc-n')].map(s => s.value).filter(Boolean);
+    const symptoms = {};
+    for (const s of document.querySelectorAll('#allocationBody .alloc-s')) if (s.value) symptoms[s.dataset.slot] = s.value;
+    const btn = document.getElementById('allocationSaveBtn');
+    setLoading(btn, true, 'Saving…');
+    allocationError('');
+    try {
+      const r = await fetch(`/api/clients/${encodeURIComponent(clientId)}/allocation`, {
+        method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ neighbourhoods, symptoms, sessionId }),
+      });
+      const data = await r.json();
+      if (!r.ok) throw new Error(data.error || r.statusText);
+      renderAllocation(data);
+    } catch (e) {
+      allocationError(`Couldn't save: ${e.message}`);
+    } finally {
+      setLoading(btn, false, 'Save picks');
+    }
   }
 
   function normLocName(s) {

@@ -20,6 +20,8 @@ const JSZip      = require('jszip');
 const { validate, checkOrphanedServices } = require('./validate');
 const { pool, initDb } = require('./db');
 const { computeDecisions } = require('./decisions');
+const allocation = require('./allocation');
+const { parseDossier } = require('./geo-dossier');
 
 const app = express();
 app.use(express.json({ limit: '4mb' }));
@@ -424,6 +426,11 @@ function parsePageMap(csvText) {
       urlSlug:              (row['URL Slug']    || '').trim(),
       h1:                   (row['H1 (Ahrefs)'] || '').trim(),
       status:               (row['Status']      || '').trim(),
+      // Optional allocation columns: "SOU-N07, SOU-N14" and "faq_B=SOU-S02, faq_X=SOU-S05"
+      assignedNeighbourhoods: ((row['Assigned neighbourhoods'] || '').match(/[A-Z]{2,4}-N\d{2,3}/g) || []),
+      assignedSymptoms: Object.fromEntries(
+        (row['Assigned symptoms'] || '').split(/[,;\n]/).map(s => s.split('=').map(x => x.trim()))
+          .filter(([slot, id]) => slot && /^[A-Z]{2,4}-S\d{2,3}$/.test(id || ''))),
       locationCategoryName,
       locationName,
     });
@@ -1130,6 +1137,7 @@ async function finishLocation(record, clientId, code, loc, pxRes, preserveOrigin
          JSON.stringify({ location_name: loc.name, location_norm: normaliseLocation(loc.name), preset: PERPLEXITY_PRESET, superseded: false })]
       );
       assetId = assetRows[0].id;
+      maybeAutoAllocate(clientId, loc.name); // primary city only, first time; runs in the background
     } catch (dbErr) { console.error('[DB] Dossier asset save error:', dbErr.message); }
   }
 
@@ -2258,6 +2266,7 @@ app.post('/api/admin/recover-location', async (req, res) => {
        JSON.stringify({ location_name: best.locName, location_norm: normaliseLocation(best.locName), preset: PERPLEXITY_PRESET, superseded: false })]
     );
     const assetId = assetRows[0].id;
+    maybeAutoAllocate(clientId, best.locName); // primary city only, first time; runs in the background
 
     if (best.jobId && best.code) {
       const record = await loadResearchRecord(best.jobId);
@@ -3155,13 +3164,14 @@ app.put('/api/clients/:clientId/v20-settings', async (req, res) => {
   }
 });
 
-app.post('/api/clients/:clientId/decisions-preview', async (req, res) => {
-  const { sessionId } = req.body;
-  const { clientId } = req.params;
-
-  // Load client values from DB
+// ── v20 client context (shared by decisions preview and allocation) ──────────
+// Client values, test mode, trade, and the page map / custom values: from the
+// active session when there is one, else from the stored client_file rows.
+async function loadV20Context(clientId, sessionId) {
   let cv = { ...CLIENT_VALUES_TEMPLATE };
   let cvLoadError = null;
+  let v20TestMode = false;
+  let clientTrade = '';
   if (pool) {
     try {
       const { rows } = await pool.query(
@@ -3170,28 +3180,19 @@ app.post('/api/clients/:clientId/decisions-preview', async (req, res) => {
       if (rows.length) cv = { ...CLIENT_VALUES_TEMPLATE, ...JSON.parse(rows[0].content) };
     } catch (err) {
       cvLoadError = err.message;
-      console.error('[decisions-preview] Failed to load client values for', clientId, err);
+      console.error('[v20] Failed to load client values for', clientId, err);
     }
-  }
-
-  // Load v20 settings
-  let v20TestMode = false;
-  if (pool) {
     try {
-      const { rows } = await pool.query(`SELECT v20_test_mode FROM clients WHERE id=$1`, [clientId]);
-      if (rows.length) v20TestMode = !!rows[0].v20_test_mode;
+      const { rows } = await pool.query(`SELECT v20_test_mode, trade FROM clients WHERE id=$1`, [clientId]);
+      if (rows.length) { v20TestMode = !!rows[0].v20_test_mode; clientTrade = rows[0].trade || ''; }
     } catch (err) {
-      console.error('[decisions-preview] Failed to load v20 settings for', clientId, err);
+      console.error('[v20] Failed to load v20 settings for', clientId, err);
     }
   }
 
-  // Load niche
-  const session = sessions.get(sessionId);
-  const trade = session ? session.trade : (cv.primary_category || '');
-  const { niche, error: nicheErr } = loadNiche(trade);
-  if (nicheErr) return res.status(400).json({ error: `G-NICHE: ${nicheErr}` });
+  const session = sessionId ? sessions.get(sessionId) : null;
+  const trade = session ? session.trade : (cv.primary_category || clientTrade);
 
-  // Build pages list: prefer active session; fall back to stored client_file rows in DB
   let pages = [];
   let keyValueMap = {};
   let serviceParentMap = {};
@@ -3205,8 +3206,8 @@ app.post('/api/clients/:clientId/decisions-preview', async (req, res) => {
         `SELECT filename, content, metadata FROM client_assets WHERE client_id=$1 AND asset_type='client_file' ORDER BY uploaded_at`,
         [clientId]
       );
-      const pageMapRow    = fileRows.find(r => (r.metadata?.fileType === 'page_map'));
-      const cvRows        = fileRows.filter(r => r.metadata?.fileType === 'custom_values');
+      const pageMapRow = fileRows.find(r => (r.metadata?.fileType === 'page_map'));
+      const cvRows     = fileRows.filter(r => r.metadata?.fileType === 'custom_values');
       if (pageMapRow) {
         pages = parsePageMap(pageMapRow.content);
         if (cvRows.length) {
@@ -3216,13 +3217,260 @@ app.post('/api/clients/:clientId/decisions-preview', async (req, res) => {
         }
       }
     } catch (err) {
-      console.error('[decisions-preview] Failed to load pages/keyValueMap for', clientId, err);
+      console.error('[v20] Failed to load pages/keyValueMap for', clientId, err);
+    }
+  }
+  return { cv, cvLoadError, v20TestMode, trade, pages, keyValueMap, serviceParentMap };
+}
+
+// ── Allocation storage (Stage 5) ─────────────────────────────────────────────
+// One client_assets row (asset_type 'allocation') per client:
+// { version, dossier_asset_id, dossier_location, updated_at, pages: { homepage: {...} } }
+
+async function loadPrimaryDossier(clientId, keyValueMap) {
+  const primary = normaliseLocation(keyValueMap['biz_area_1'] || '');
+  if (!pool || !primary) return null;
+  const { rows } = await pool.query(
+    `SELECT id, content, metadata FROM client_assets
+     WHERE client_id = $1 AND asset_type = 'geo_dossier'
+     AND (metadata IS NULL OR NOT (metadata->>'superseded')::boolean)
+     ORDER BY uploaded_at DESC`,
+    [clientId]
+  );
+  const row = rows.find(r => normaliseLocation((r.metadata && r.metadata.location_name) || '') === primary);
+  return row ? { id: row.id, text: row.content, locationName: row.metadata.location_name } : null;
+}
+
+async function loadAllocationRecord(clientId) {
+  if (!pool) return null;
+  const { rows } = await pool.query(
+    `SELECT id, content FROM client_assets WHERE client_id=$1 AND asset_type='allocation' ORDER BY uploaded_at DESC LIMIT 1`, [clientId]
+  );
+  return rows.length ? { id: rows[0].id, record: JSON.parse(rows[0].content) } : null;
+}
+
+async function saveAllocationRecord(clientId, record) {
+  const content = JSON.stringify(record);
+  const existing = await loadAllocationRecord(clientId);
+  if (existing) {
+    await pool.query(`UPDATE client_assets SET content = $1, uploaded_at = NOW() WHERE id = $2`, [content, existing.id]);
+  } else {
+    await pool.query(
+      `INSERT INTO client_assets (client_id, asset_type, filename, content) VALUES ($1, 'allocation', 'allocation.json', $2)`,
+      [clientId, content]
+    );
+  }
+}
+
+const allocationRunning = new Set();
+
+async function runAllocationForClient(clientId, sessionId) {
+  if (allocationRunning.has(clientId)) throw new Error('An allocation run is already in progress for this client.');
+  allocationRunning.add(clientId);
+  try {
+    const ctx = await loadV20Context(clientId, sessionId);
+    const { niche, error: nicheErr } = loadNiche(ctx.trade);
+    if (nicheErr) throw new Error(nicheErr);
+    const dossier = await loadPrimaryDossier(clientId, ctx.keyValueMap);
+    if (!dossier) throw new Error(`No saved dossier for the primary city (${ctx.keyValueMap['biz_area_1'] || 'biz_area_1 blank'}). Run geo research first.`);
+
+    const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
+    const callModel = async (system, message) => {
+      const r = await client.messages.create({
+        model: allocation.ALLOCATION_MODEL, max_tokens: 2048, system,
+        messages: [{ role: 'user', content: message }],
+      });
+      return r.content.map(c => c.text || '').join('');
+    };
+    const homepage = await allocation.runAllocation({
+      dossierText: dossier.text, cv: ctx.cv, niche, keyValueMap: ctx.keyValueMap, pages: ctx.pages, callModel,
+    });
+    const existing = await loadAllocationRecord(clientId);
+    const record = {
+      ...(existing ? existing.record : {}),
+      version: 1,
+      dossier_asset_id: dossier.id,
+      dossier_location: dossier.locationName,
+      updated_at: new Date().toISOString(),
+      model: allocation.ALLOCATION_MODEL,
+      pages: { ...((existing && existing.record.pages) || {}), homepage },
+    };
+    await saveAllocationRecord(clientId, record);
+    console.log(`[allocation] ${clientId}: ${homepage.neighbourhoods.join(', ') || 'no neighbourhoods'}; symptoms ${JSON.stringify(homepage.symptoms)}; ${homepage.attempts.length} attempt(s)`);
+    return record;
+  } finally {
+    allocationRunning.delete(clientId);
+  }
+}
+
+// After a dossier is saved: run the pass once if it is the primary city and the
+// client has no allocation yet. Never throws.
+async function maybeAutoAllocate(clientId, locationName) {
+  try {
+    if (!pool || !clientId) return;
+    const ctx = await loadV20Context(clientId, null);
+    if (normaliseLocation(locationName) !== normaliseLocation(ctx.keyValueMap['biz_area_1'] || '')) return;
+    const existing = await loadAllocationRecord(clientId);
+    if (existing && existing.record.pages && existing.record.pages.homepage) return;
+    await runAllocationForClient(clientId, null);
+  } catch (err) {
+    console.error('[allocation] auto-run failed for', clientId, err.message);
+  }
+}
+
+// Saved homepage allocation → resolved ALLOCATED ITEMS for computeDecisions, with
+// Page Map Assigned columns applied. Returns { allocationData, flags, view }.
+async function resolveHomepageAllocation(clientId, ctx, niche) {
+  const flags = [];
+  const dossier = await loadPrimaryDossier(clientId, ctx.keyValueMap);
+  if (!dossier) {
+    flags.push({ code: 'F-ALLOC', msg: `No saved dossier for the primary city (${ctx.keyValueMap['biz_area_1'] || 'biz_area_1 blank'}).` });
+    return { allocationData: null, flags, view: null };
+  }
+  const parsed = parseDossier(dossier.text);
+  const saved = await loadAllocationRecord(clientId);
+  const hp = saved && saved.record.pages && saved.record.pages.homepage;
+  const stale = !!(saved && saved.record.dossier_asset_id !== dossier.id);
+  if (stale) flags.push({ code: 'F-ALLOC', msg: 'The allocation was made from an older dossier for the primary city. Re-run the allocation pass.' });
+
+  const homepageRow = ctx.pages.find(p => p.pageType === 'homepage');
+  const hasAssigned = !!(homepageRow && ((homepageRow.assignedNeighbourhoods || []).length || Object.keys(homepageRow.assignedSymptoms || {}).length));
+  let picks = hp || null;
+  if (hasAssigned) {
+    const applied = allocation.applyAssigned(hp, homepageRow, parsed);
+    picks = applied.allocation;
+    flags.push(...applied.flags);
+  }
+  const categories = allocation.clientCategories(ctx.cv, ctx.keyValueMap, ctx.pages);
+  const eligible = allocation.eligibleItems(parsed, { emergencyNiche: !!niche.emergency_niche, categories });
+  const view = {
+    dossierLocation: dossier.locationName,
+    stale,
+    updatedAt: saved ? saved.record.updated_at : null,
+    saved: hp || null,
+    effective: picks,
+    fromPageMap: hasAssigned,
+    parseWarnings: parsed.warnings,
+    excluded: eligible.excluded,
+    neighbourhoods: parsed.neighbourhoods.map(n => ({
+      id: n.id, name: n.name, type: n.type, eligible: eligible.neighbourhoods.some(e => e.id === n.id),
+    })),
+    slots: allocation.symptomSlots(niche).map(s => ({
+      ...s,
+      options: eligible.symptoms.map(e => ({ id: e.id, text: e.text, issueId: e.issueId })),
+    })),
+  };
+  return { allocationData: picks ? allocation.resolveAllocatedItems(picks, parsed) : null, flags, view };
+}
+
+app.post('/api/clients/:clientId/decisions-preview', async (req, res) => {
+  const { sessionId } = req.body;
+  const { clientId } = req.params;
+  const ctx = await loadV20Context(clientId, sessionId);
+  const { niche, error: nicheErr } = loadNiche(ctx.trade);
+  if (nicheErr) return res.status(400).json({ error: nicheErr });
+
+  let allocationData = null;
+  let allocFlags = [];
+  if (pool) {
+    try {
+      ({ allocationData, flags: allocFlags } = await resolveHomepageAllocation(clientId, ctx, niche));
+    } catch (err) {
+      console.error('[decisions-preview] Failed to load allocation for', clientId, err);
+      allocFlags = [{ code: 'F-ALLOC', msg: `Couldn't load the allocation: ${err.message}` }];
     }
   }
 
-  const result = computeDecisions({ cv, niche, pages, keyValueMap, serviceParentMap, v20TestMode, allocationData: null });
-  if (cvLoadError) result.cvLoadError = cvLoadError;
+  const result = computeDecisions({
+    cv: ctx.cv, niche, pages: ctx.pages, keyValueMap: ctx.keyValueMap, serviceParentMap: ctx.serviceParentMap,
+    v20TestMode: ctx.v20TestMode, allocationData,
+  });
+  result.flags = [...(result.flags || []), ...allocFlags];
+  if (ctx.cvLoadError) result.cvLoadError = ctx.cvLoadError;
   res.json(result);
+});
+
+// ── Allocation routes ────────────────────────────────────────────────────────
+async function allocationView(clientId, sessionId) {
+  const ctx = await loadV20Context(clientId, sessionId);
+  const { niche, error } = loadNiche(ctx.trade);
+  if (error) return { error };
+  const { view, flags } = await resolveHomepageAllocation(clientId, ctx, niche);
+  return { view, flags, running: allocationRunning.has(clientId) };
+}
+
+app.get('/api/clients/:clientId/allocation', async (req, res) => {
+  if (!pool) return res.status(503).json({ error: 'Database not configured.' });
+  try {
+    const out = await allocationView(req.params.clientId, req.query.sessionId);
+    if (out.error) return res.status(400).json({ error: out.error });
+    res.json(out);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.post('/api/clients/:clientId/allocation/run', async (req, res) => {
+  if (!pool) return res.status(503).json({ error: 'Database not configured.' });
+  const sessionId = req.body && req.body.sessionId;
+  try {
+    await runAllocationForClient(req.params.clientId, sessionId);
+    res.json(await allocationView(req.params.clientId, sessionId));
+  } catch (err) {
+    res.status(400).json({ error: err.message });
+  }
+});
+
+// Manual swap from the Geo Research step: { neighbourhoods: [id, id], symptoms: { slot: id } }
+app.put('/api/clients/:clientId/allocation', async (req, res) => {
+  if (!pool) return res.status(503).json({ error: 'Database not configured.' });
+  try {
+    const { clientId } = req.params;
+    const { neighbourhoods = [], symptoms = {}, sessionId } = req.body || {};
+    const ctx = await loadV20Context(clientId, sessionId);
+    const { niche, error } = loadNiche(ctx.trade);
+    if (error) return res.status(400).json({ error });
+    const dossier = await loadPrimaryDossier(clientId, ctx.keyValueMap);
+    if (!dossier) return res.status(400).json({ error: 'No saved dossier for the primary city.' });
+    const parsed = parseDossier(dossier.text);
+    const categories = allocation.clientCategories(ctx.cv, ctx.keyValueMap, ctx.pages);
+    const eligible = allocation.eligibleItems(parsed, { emergencyNiche: !!niche.emergency_niche, categories });
+    const slots = allocation.symptomSlots(niche);
+    const { picks, errors } = allocation.checkPicks(
+      { homepage: { neighbourhoods, symptoms, conservation_areas: [] } }, { eligible, slots }
+    );
+    const hardErrors = errors.filter(e => !/^pick exactly 2/.test(e));
+    if (hardErrors.length) return res.status(400).json({ error: hardErrors.join('; ') });
+
+    const existing = await loadAllocationRecord(clientId);
+    const prev = existing && existing.record.pages && existing.record.pages.homepage;
+    const homepage = {
+      ...(prev || {}),
+      neighbourhoods: picks.neighbourhoods,
+      symptoms: picks.symptoms,
+      conservation_areas: [...new Set([
+        ...((prev && prev.conservation_areas) || []).filter(id => picks.neighbourhoods.includes(id)),
+        ...allocation.conservationFromRules(parsed, picks.neighbourhoods),
+      ])],
+      source: 'manual',
+      flags: [],
+    };
+    if (picks.neighbourhoods.length < 2) homepage.flags.push({ code: 'F-ALLOC', msg: `Only ${picks.neighbourhoods.length} neighbourhood(s) picked.` });
+    const missing = slots.filter(s => !picks.symptoms[s.slot]).map(s => s.slot);
+    if (missing.length) homepage.flags.push({ code: 'F-ALLOC', msg: `No symptom for ${missing.join(', ')}.` });
+
+    await saveAllocationRecord(clientId, {
+      ...((existing && existing.record) || {}),
+      version: 1,
+      dossier_asset_id: dossier.id,
+      dossier_location: dossier.locationName,
+      updated_at: new Date().toISOString(),
+      pages: { ...((existing && existing.record.pages) || {}), homepage },
+    });
+    res.json(await allocationView(clientId, sessionId));
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 });
 
 // ── Client API routes ─────────────────────────────────────────────────────────
