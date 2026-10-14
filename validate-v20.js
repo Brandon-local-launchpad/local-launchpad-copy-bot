@@ -219,6 +219,8 @@ function validateV20(record, V) {
     if (!D.quoteFree && /\bfree\b(?![\s-]draining| of| from)/i.test(s)) flag('BLOCK', 'N5', '"Free" used but free quotes are not confirmed.');
     if (cv.same_day_available !== 'yes' && /\bsame[\s-]day\b/i.test(s)) flag('BLOCK', 'N5', '"Same day" used but same day is not confirmed.');
     if (cv.out_of_hours_available !== '24/7' && /24\/7/.test(s)) flag('BLOCK', 'N5', '"24/7" used but 24/7 cover is not confirmed.');
+    if (cv.waste_carrier_registered !== 'yes' && /\bwaste carriers?\b/i.test(s)) flag('BLOCK', 'N5', 'Waste carrier registration is mentioned but not confirmed.');
+    if (!cv.deposit_terms && /\bdeposits?\b/i.test(s)) flag('BLOCK', 'N5', 'A deposit is mentioned but deposit_terms is blank.');
     const fixedConfirmed = /fixed\s+price/i.test(`${cv.differentiator_1_confirmed ? cv.differentiator_1 : ''} ${cv.differentiator_2_confirmed ? cv.differentiator_2 : ''} ${cv.quote_method || ''}`);
     if (!fixedConfirmed && /\bfixed[\s-]price/i.test(s)) flag('BLOCK', 'N5', '"Fixed price" used but it is not confirmed.');
     // Claim words; "the best chance/time/way" and "leading to" aren't claims about the business
@@ -536,4 +538,4 @@ function summarise(issues) {
   };
 }
 
-module.exports = { validateV20, buildValidationContext, modelFields, getField, setField, summarise, wordCount, RANGES, RETRY_FLAGS };
+module.exports = { validateV20, buildValidationContext, modelFields, getField, setField, summarise, wordCount, RANGES, RETRY_FLAGS, BANNED, STOCK };

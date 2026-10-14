@@ -365,6 +365,21 @@
       </div>
     </div>
 
+    <div class="card" id="faqCard" style="display:none">
+      <div class="card-title">FAQ questions</div>
+      <p style="color:var(--muted);font-size:13px;margin-bottom:12px;">Questions for every page, researched once per client. It runs by itself after Run Research finishes, using the dossiers, the onboarding answers, the client values and the customers' own questions (those come first). Approve the wording before a question is used.</p>
+      <div id="faqStatus" style="font-size:13px;margin-bottom:8px"></div>
+      <div id="faqError" style="display:none;color:var(--flag);font-size:13px;margin:8px 0;white-space:pre-wrap"></div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px">
+        <button class="btn btn-ghost btn-sm" id="faqResearchBtn" style="width:auto;padding:6px 14px" onclick="runFaqResearch()">Research</button>
+        <button class="btn btn-ghost btn-sm" id="faqSortBtn" style="width:auto;padding:6px 14px;display:none" onclick="runFaqSort()">Re-run sorting</button>
+      </div>
+      <div id="faqBody" style="font-size:13px"></div>
+      <div id="faqActions" style="display:none;gap:8px;flex-wrap:wrap;margin-top:12px">
+        <button class="btn btn-primary btn-sm" id="faqSaveBtn" style="width:auto;padding:6px 14px" onclick="saveFaqQuestions()">Save changes</button>
+      </div>
+    </div>
+
     <div id="geoDupeWarning" style="display:none"></div>
     <div id="geoError" style="display:none"></div>
 
@@ -853,6 +868,254 @@
     checkRunReady();
     document.getElementById('downloadAllBtn').style.display = existingDossiers.size > 0 ? 'inline-flex' : 'none';
     loadAllocation();
+    loadFaq();
+  }
+
+  // ── FAQ questions (per client research, sorting, approval) ────────────────
+  let faqData = null;
+  let faqPollTimer = null;
+
+  function faqError(msg) {
+    const el = document.getElementById('faqError');
+    el.textContent = msg || '';
+    el.style.display = msg ? 'block' : 'none';
+  }
+
+  function faqQuery() { return sessionId ? '?sessionId=' + encodeURIComponent(sessionId) : ''; }
+
+  async function loadFaq() {
+    const card = document.getElementById('faqCard');
+    if (!clientId) { card.style.display = 'none'; return; }
+    card.style.display = '';
+    try {
+      const r = await fetch(`/api/clients/${encodeURIComponent(clientId)}/faq${faqQuery()}`);
+      const data = await r.json();
+      if (!r.ok) throw new Error(data.error || r.statusText);
+      faqError('');
+      renderFaq(data);
+    } catch (e) {
+      console.error('FAQ card failed to load', e);
+      document.getElementById('faqBody').innerHTML = '';
+      faqError(`Couldn't load the FAQ questions: ${e.message}`);
+    }
+  }
+
+  // Groups on the card: one per page (homepage first), then the questions not used
+  const FAQ_HELD = {
+    costGuide: 'Kept for a Cost Guide page',
+    noPage: 'No page for these',
+    covered: 'Answered by the fixed homepage questions',
+    duplicate: 'Duplicates',
+    dropped: 'Removed',
+  };
+  const faqOpen = new Set();
+
+  function faqGroups(data) {
+    const groups = new Map();
+    const typeOrder = { homepage: 0, category: 1, service: 2, location: 3 };
+    for (const q of data.questions) {
+      const p = q.placement || { held: 'noPage' };
+      let key, title, order, page = !!p.page;
+      if (p.page) {
+        key = p.page;
+        title = p.page === 'homepage:homepage' ? 'Homepage' : p.pageTitle;
+        order = typeOrder[p.page.split(':')[0]] ?? 4;
+      } else {
+        key = 'held:' + p.held;
+        title = FAQ_HELD[p.held] || p.held;
+        order = 9 + Object.keys(FAQ_HELD).indexOf(p.held);
+      }
+      if (!groups.has(key)) groups.set(key, { key, title, order, page, questions: [] });
+      groups.get(key).questions.push(q);
+    }
+    return [...groups.values()].sort((a, b) => a.order - b.order || a.title.localeCompare(b.title));
+  }
+
+  function faqQuestionHtml(q, data) {
+    const opts = ['<option value="">Auto</option>', ...data.pageOptions.map(o => `<option value="${h(o.id)}" ${o.id === q.page_override ? 'selected' : ''}>${h(o.label)}</option>`),
+      `<option value="drop" ${q.page_override === 'drop' ? 'selected' : ''}>Remove</option>`].join('');
+    const p = q.placement || {};
+    const waiting = p.page && p.usable === false && (q.fact || q.new_fact);
+    const needs = q.fact || q.new_fact
+      ? `Needs: ${h([q.fact, q.new_fact].filter(Boolean).join(' and '))}${waiting ? ' <span style="color:var(--flag)">(waiting for it)</span>' : ''}`
+      : 'Needs no client fact';
+    const from = q.source === 'client'
+      ? `<strong>From the client's customers</strong>: ${h(q.original)}`
+      : `Research: ${h(q.original)}${q.seen ? ' · seen ' + h(q.seen) : ''}`;
+    const why = p.held && p.reason ? ` · ${h(p.reason)}` : (p.note ? ` · ${h(p.note)}` : '') + (p.pinned ? ' · kept: on the saved page' : '');
+    return `<div class="faq-q" data-id="${h(q.id)}" style="border-top:1px solid var(--border);padding:8px 0">
+      <div style="display:flex;gap:8px;align-items:center">
+        <input class="cv-input faq-wording" value="${h(q.wording)}" data-orig="${h(q.wording)}" style="flex:1;min-width:0">
+        <label style="display:flex;gap:4px;align-items:center;white-space:nowrap;text-transform:none;letter-spacing:0;font-size:12px">
+          <input type="checkbox" class="faq-approve" data-orig="${q.approved ? '1' : ''}" ${q.approved ? 'checked' : ''} ${q.wording_errors.length ? 'disabled title="Fix the wording first"' : ''}> Approved</label>
+      </div>
+      ${q.wording_errors.length ? `<div style="color:var(--block)">${h(q.wording_errors.join('; '))}</div>` : ''}
+      <div style="color:var(--muted);margin-top:4px">${h(q.id)} · ${h(q.doubt || '?')} · ${from}</div>
+      <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:4px;color:var(--muted)">
+        <span>${needs}${why}</span>
+        <select class="cv-input faq-move" data-orig="${h(q.page_override || '')}" style="width:auto;max-width:260px">${opts}</select>
+      </div>
+    </div>`;
+  }
+
+  function renderFaq(data) {
+    faqData = data;
+    const status = document.getElementById('faqStatus');
+    const body = document.getElementById('faqBody');
+    const resBtn = document.getElementById('faqResearchBtn');
+    const sortBtn = document.getElementById('faqSortBtn');
+    const actions = document.getElementById('faqActions');
+
+    const job = data.job;
+    const lines = [];
+    if (data.running.research || (job && ['running', 'pending', 'queued'].includes(job.status))) lines.push('<span style="color:var(--accent)">FAQ research running on Perplexity (this can take a while).</span>');
+    else if (job && job.status && job.status !== 'done') lines.push(`<span style="color:var(--block)">Last FAQ research ${h(job.status.replace('_', ' '))}: ${h(job.error || '')}</span>`);
+    if (data.research) lines.push(`Research saved ${h(new Date(data.research.savedAt).toLocaleString())}: ${data.research.questionCount} questions.`);
+    if (data.running.sort) lines.push('<span style="color:var(--accent)">Sorting the questions…</span>');
+    else if (data.sort) {
+      lines.push(`Sorted ${h(new Date(data.sort.updatedAt).toLocaleString())}.`);
+      if (data.sort.stale) lines.push('<span style="color:var(--flag)">Sorted from an older research run: re-run the sorting.</span>');
+      if (data.sort.customersChanged) lines.push('<span style="color:var(--flag)">The customers\' questions on Client Values changed since sorting: re-run the sorting.</span>');
+    } else if (data.research) lines.push('<span style="color:var(--flag)">Not sorted yet: run the sorting.</span>');
+    if (!data.research && !job) {
+      const i = data.inputs || { dossiers: [] };
+      lines.push('No FAQ research yet for this client. It runs by itself after Run Research finishes, or click Research.');
+      lines.push(`<span style="color:var(--muted)">It will use: ${i.customerQuestions} of the customers' own questions, ${i.onboarding} onboarding answers, ${i.facts} client values, and ${i.dossiers.length ? 'the dossiers for ' + h(i.dossiers.join(', ')) : 'no dossiers yet (run the area research first for local questions)'}.</span>`);
+    }
+    status.innerHTML = lines.map(l => `<div>${l}</div>`).join('');
+
+    const busy = data.running.research || data.running.sort;
+    resBtn.disabled = !!data.running.research;
+    resBtn.textContent = data.running.research ? 'Research running…' : (data.research ? 'Re-run research' : 'Research');
+    sortBtn.style.display = data.research ? '' : 'none';
+    sortBtn.disabled = !!data.running.sort;
+    sortBtn.textContent = data.running.sort ? 'Sorting…' : (data.sort ? 'Re-run sorting' : 'Run sorting');
+
+    if (faqPollTimer) { clearTimeout(faqPollTimer); faqPollTimer = null; }
+    if (busy) faqPollTimer = setTimeout(loadFaq, 15000);
+
+    if (!data.questions.length) { body.innerHTML = ''; actions.style.display = 'none'; return; }
+
+    const used = data.homepageUsed;
+    const usedHtml = used === null
+      ? '<div style="color:var(--muted)">Which questions the homepage uses shows here once its gates pass (Preview v20 Decisions shows why not).</div>'
+      : used.length
+        ? used.map(u => `<div>${h(u.slot)}: ${h(u.question)}</div>`).join('')
+        : '<div style="color:var(--muted)">None yet: the homepage uses the niche questions until a question here is approved and its fact supplied.</div>';
+
+    const groupsHtml = faqGroups(data).map(g => {
+      const n = g.questions.length;
+      const approved = g.questions.filter(q => q.approved).length;
+      const waiting = g.questions.filter(q => q.placement && q.placement.page && q.placement.usable === false && (q.fact || q.new_fact)).length;
+      const toApprove = g.questions.filter(q => !q.approved && !q.wording_errors.length).length;
+      const counts = g.page ? ` · ${approved} of ${n} approved${waiting ? ` · ${waiting} waiting for a fact` : ''}` : ` · ${n}`;
+      const btn = g.page && toApprove ? ` <button type="button" class="btn btn-ghost btn-sm" style="width:auto;padding:2px 10px;margin-left:8px" onclick="approveFaqGroup(event, '${h(g.key)}')">Approve all</button>` : '';
+      return `<details class="faq-group" data-group="${h(g.key)}" ${faqOpen.has(g.key) ? 'open' : ''} ontoggle="faqToggle(this)" style="border:1px solid var(--border);border-radius:6px;padding:6px 10px;margin-bottom:8px">
+        <summary style="cursor:pointer"><strong>${h(g.title)}</strong><span style="color:var(--muted)">${counts}</span>${btn}</summary>
+        ${g.key === 'homepage:homepage' ? `<div style="margin:8px 0"><strong>Homepage FAQ now</strong>${usedHtml}</div>` : ''}
+        ${g.questions.map(q => faqQuestionHtml(q, data)).join('')}
+      </details>`;
+    }).join('');
+
+    const waiting = (data.waitingByFact || []).map(w => `<li style="margin-bottom:6px"><strong>${h(w.label)}</strong>${w.kind === 'not collected yet' ? ' <span style="color:var(--flag)">(not a client value or practice yet)</span>' : ''}${w.question ? `<div>Ask: ${h(w.question)}</div>` : ''}<div style="color:var(--muted)">${w.questions.map(q => h(q.wording)).join(' · ')}</div></li>`).join('');
+    const r = data.research || { ranges: [], rules: [], gaps: [] };
+    const repeats = (data.siteRepeats || []).map(x => `<div style="color:var(--block)">Repeated on two pages: ${h(x.question)}</div>`).join('');
+
+    body.innerHTML = `
+      ${repeats}
+      ${groupsHtml}
+      ${waiting ? `<details style="margin-top:12px"><summary>Waiting on a client fact (ask at onboarding)</summary><ul style="margin:8px 0 0 18px">${waiting}</ul></details>` : ''}
+      <details style="margin-top:8px"><summary>Ranges, rules and gaps from the research (for onboarding only, never published)</summary>
+        ${r.ranges.length ? `<div style="margin-top:6px"><strong>Ranges to confirm with the client</strong>${r.ranges.map(x => `<div>${h(x.job)}: ${h(x.range)} <span style="color:var(--muted)">${h(x.area)}${x.dated ? ', ' + h(x.dated) : ''}</span></div>`).join('')}</div>` : ''}
+        ${r.rules.length ? `<div style="margin-top:6px"><strong>Rules customers ask about</strong>${r.rules.map(x => `<div>${h(x.question)}: <span style="color:var(--muted)">${h(x.rule)}</span></div>`).join('')}</div>` : ''}
+        ${r.gaps.length ? `<div style="margin-top:6px"><strong>Gaps</strong>${r.gaps.map(x => `<div style="color:var(--muted)">${h(x)}</div>`).join('')}</div>` : ''}
+      </details>`;
+    actions.style.display = 'flex';
+  }
+
+  function faqToggle(el) {
+    if (el.open) faqOpen.add(el.dataset.group); else faqOpen.delete(el.dataset.group);
+  }
+
+  async function runFaqResearch() {
+    if (faqData && faqData.research && !confirm('Run the FAQ research again for this client? It replaces the saved questions after it finishes; approvals carry over where a question is unchanged.')) return;
+    const btn = document.getElementById('faqResearchBtn');
+    setLoading(btn, true, 'Starting…');
+    faqError('');
+    try {
+      const r = await fetch(`/api/clients/${encodeURIComponent(clientId)}/faq/research`, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ sessionId }),
+      });
+      const data = await r.json();
+      if (!r.ok) throw new Error(data.error || r.statusText);
+      renderFaq(data);
+    } catch (e) {
+      console.error('FAQ research start failed', e);
+      faqError(`FAQ research didn't start: ${e.message}`);
+      setLoading(btn, false, faqData && faqData.research ? 'Re-run research' : 'Research');
+    }
+  }
+
+  async function runFaqSort() {
+    const btn = document.getElementById('faqSortBtn');
+    setLoading(btn, true, 'Sorting…');
+    faqError('');
+    try {
+      const r = await fetch(`/api/clients/${encodeURIComponent(clientId)}/faq/sort`, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ sessionId }),
+      });
+      const data = await r.json();
+      if (!r.ok) throw new Error(data.error || r.statusText);
+      renderFaq(data);
+    } catch (e) {
+      console.error('FAQ sorting failed', e);
+      faqError(`Sorting failed: ${e.message}`);
+      setLoading(btn, false, 'Re-run sorting');
+    }
+  }
+
+  // "Approve all" on a page: ticks every clean question in that group and saves
+  // (with any other changes made on the card)
+  function approveFaqGroup(event, key) {
+    event.preventDefault();
+    event.stopPropagation();
+    const group = [...document.querySelectorAll('#faqBody .faq-group')].find(g => g.dataset.group === key);
+    if (!group) return;
+    for (const cb of group.querySelectorAll('.faq-approve')) if (!cb.disabled) cb.checked = true;
+    saveFaqQuestions();
+  }
+
+  async function saveFaqQuestions() {
+    const updates = [];
+    for (const row of document.querySelectorAll('#faqBody .faq-q[data-id]')) {
+      const u = { id: row.dataset.id };
+      const w = row.querySelector('.faq-wording');
+      const m = row.querySelector('.faq-move');
+      const a = row.querySelector('.faq-approve');
+      if (w.value.trim() !== w.dataset.orig) u.wording = w.value;
+      if (m.value !== m.dataset.orig) u.page_override = m.value || null;
+      if (a.checked !== !!a.dataset.orig) u.approved = a.checked;
+      // An edited wording needs approving again: send the tick with it
+      if (u.wording !== undefined && a.checked) u.approved = true;
+      if (Object.keys(u).length > 1) updates.push(u);
+    }
+    if (!updates.length) { faqError('Nothing changed.'); return; }
+    const btn = document.getElementById('faqSaveBtn');
+    setLoading(btn, true, 'Saving…');
+    faqError('');
+    try {
+      const r = await fetch(`/api/clients/${encodeURIComponent(clientId)}/faq/questions`, {
+        method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ updates, sessionId }),
+      });
+      const data = await r.json();
+      if (!r.ok) throw new Error(data.error || r.statusText);
+      renderFaq(data);
+    } catch (e) {
+      console.error('FAQ save failed', e);
+      faqError(`Couldn't save:\n${e.message}`);
+    } finally {
+      setLoading(btn, false, 'Save changes');
+    }
   }
 
   // ── Homepage allocation (v20 Stage 5) ─────────────────────────────────────
@@ -1968,11 +2231,14 @@
       { key: 'guarantee_scope',      label: 'Guarantee scope',     type: 'textarea', rows: 2, placeholder: 'e.g. new roofs 10 yrs, repairs 2 yrs' },
       { key: 'manufacturer_warranty',label: 'Manufacturer warranty',type: 'text', placeholder: 'e.g. 25 year manufacturer warranty' },
       { key: 'insurance_cover',      label: 'Insurance cover',     type: 'text', placeholder: 'Figure without £, e.g. 5m' },
+      { key: 'waste_carrier_registered', label: 'Registered waste carrier', type: 'select', options: ['','yes','no'] },
     ]},
     { title: 'Quotes & Timing', fields: [
       { key: 'free_quotes',            label: 'Free quotes',         type: 'select', options: ['','yes','no'] },
       { key: 'free_inspection',        label: 'Free inspection',     type: 'select', options: ['','yes','no'] },
       { key: 'quote_method',           label: 'Quote method',        type: 'text', placeholder: 'e.g. written quote on site visit' },
+      { key: 'quote_includes',         label: 'Quote includes',      type: 'textarea', rows: 2, placeholder: 'e.g. materials, labour, VAT and taking the waste away' },
+      { key: 'deposit_terms',          label: 'Deposit and payments', type: 'textarea', rows: 2, placeholder: 'e.g. 20% deposit, balance on completion' },
       { key: 'price_list',             label: 'Price list',          type: 'text', placeholder: 'URL or blank' },
       { key: 'response_time',          label: 'Response time',       type: 'text', placeholder: 'e.g. within 24 hours' },
       { key: 'same_day_available',     label: 'Same day available',  type: 'select', options: ['','yes','no'] },
@@ -1997,6 +2263,9 @@
       { key: 'owner_photo',         label: 'Owner photo',      type: 'select', options: ['no','yes'] },
       { key: 'business_type',       label: 'Business type',    type: 'select', options: ['A','B','C','D','split'] },
       { key: 'team_size',           label: 'Team size',        type: 'text', placeholder: 'Number only' },
+    ]},
+    { title: 'FAQ', fields: [
+      { key: 'customer_questions', label: 'What customers ask before they book', type: 'textarea', rows: 4, lineMode: true, placeholder: 'One question per line, in the customer’s words' },
     ]},
     { title: 'Services & Coverage', fields: [
       { key: 'materials_methods', label: 'Materials / methods', type: 'checkboxes' },
@@ -2231,7 +2500,9 @@
         } else if (f.type === 'gbp-select') {
           v[f.key] = el.value.trim();
         } else if (f.type === 'textarea') {
-          if (f.arrayMode) {
+          if (f.lineMode) {
+            v[f.key] = el.value.split('\n').map(s => s.trim()).filter(Boolean);
+          } else if (f.arrayMode) {
             v[f.key] = el.value.split(',').map(s => s.trim()).filter(Boolean);
           } else {
             v[f.key] = el.value.trim();
@@ -2304,7 +2575,9 @@
           }
           // Materials load is triggered from loadClientValues (uses Step 1 trade, not primary_category)
         } else if (f.type === 'textarea') {
-          if (f.arrayMode) {
+          if (f.lineMode) {
+            el.value = Array.isArray(val) ? val.join('\n') : (val || '');
+          } else if (f.arrayMode) {
             el.value = Array.isArray(val) ? val.join(', ') : (val || '');
           } else {
             el.value = val != null ? val : '';

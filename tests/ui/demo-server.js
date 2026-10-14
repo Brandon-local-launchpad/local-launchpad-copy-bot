@@ -16,6 +16,8 @@ const root = path.join(__dirname, '../..');
 const { newDb, DataType } = require('pg-mem');
 const mem = newDb();
 mem.public.registerFunction({ name: 'gen_random_uuid', returns: DataType.uuid, implementation: () => crypto.randomUUID(), impure: true });
+// research_jobs rows are written with to_timestamp(ms / 1000.0)
+mem.public.registerFunction({ name: 'to_timestamp', args: [DataType.float], returns: DataType.timestamptz, implementation: s => new Date(s * 1000) });
 const pgAdapter = mem.adapters.createPg();
 // Every require('pg') in the app gets pg-mem
 const realResolve = Module._resolveFilename;
@@ -30,6 +32,7 @@ const SDK_ID = '__fake_anthropic__';
 if (process.env.DEMO_REAL_MODEL !== '1') {
   const realResolve2 = Module._resolveFilename;
   Module._resolveFilename = function (request, ...rest) { return request === '@anthropic-ai/sdk' ? SDK_ID : realResolve2.call(this, request, ...rest); };
+  // (The FAQ sorting step needs the real model: run with DEMO_REAL_MODEL=1 to try it.)
   class FakeAnthropic {
     constructor() {
       this.messages = { create: async () => ({ stop_reason: 'end_turn', usage: { input_tokens: 0, output_tokens: 0 }, content: [{ type: 'text', text: JSON.stringify({ findings: [
@@ -69,6 +72,13 @@ process.env.APP_PASSWORD = '';
   for (const f of fs.readdirSync(realDir)) {
     await asset('client_file', f, fs.readFileSync(path.join(realDir, f), 'utf8'), { fileType: f === 'page-map.csv' ? 'page_map' : 'custom_values' });
   }
+  // Ethan's 14 service areas (the client sheet isn't in the repo; see tests/fixtures/data/edens-edge-real.js)
+  const { AREAS } = require(path.join(root, 'tests/fixtures/data/edens-edge-real.js'));
+  const areasCsv = ['Client,,,', 'Name,GHL Custom Value Key,Value,Notes', ...AREAS.map((a, i) => `Service area ${i + 1},{{custom_values.biz_area_${i + 1}}},${a},`)].join('\n');
+  await asset('client_file', 'client-areas.csv', areasCsv, { fileType: 'custom_values' });
+  // The real Southampton dossier (saved 8 Oct), as the area research would have saved it
+  await asset('geo_dossier', 'Southampton_dossier.md', fs.readFileSync(path.join(root, 'tests/fixtures/southampton-dossier.md'), 'utf8'),
+    { location_name: 'Southampton', location_norm: 'southampton', superseded: false });
   const { ctx, decisionsResult } = await v20HomepageInputs(clientId, null);
   const D = decisionsResult.decisions;
   if (!D) throw new Error('Demo client fails the gates: ' + JSON.stringify(decisionsResult.gates));
@@ -82,6 +92,8 @@ process.env.APP_PASSWORD = '';
       findings: [{ field: 'faq_answer (How soon can you start?)', quote: 'We can usually start the same week.', why: '"usually" qualifies the confirmed start time' }] };
   }
   await asset('v20_page_record', 'homepage_v20.json', JSON.stringify(ordered));
+
+  // No FAQ research or sorted questions: the FAQ questions card shows the real empty state
 
   console.log('\nDEMO READY');
   console.log(`  Client:       http://localhost:${PORT}/client.html?id=${clientId}`);

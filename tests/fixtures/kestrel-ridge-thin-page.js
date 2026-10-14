@@ -6,77 +6,7 @@ const path = require('path');
 const { computeDecisions } = require(path.join(__dirname, '../../decisions.js'));
 const roofer = require(path.join(__dirname, '../../niche-library/roofer.json'));
 
-const cv = {
-  company_name: 'Kestrel Ridge Roofing',
-  company_name_gbp_checked: true,
-  phone: '01202 000000',
-  email: '',
-  address: '',
-  gbp_address_type: 'service_area',
-  hours: '',
-  primary_category: 'Roofing contractor',
-  year_founded: '2023',
-  jobs_completed: '40',
-  rating: '',
-  review_count: '',
-  guarantee_years: '',
-  manufacturer_warranty: '',
-  insurance_cover: '2m',
-  differentiator_1: 'Photos of Every Fault Before We Quote',
-  differentiator_1_confirmed: true,
-  differentiator_1_sentence: 'We photograph every fault before we quote',
-  differentiator_2: 'Family Run and Independent',
-  differentiator_2_confirmed: false,
-  differentiator_2_sentence: '',
-  verified_logos: [],
-  free_quotes: 'yes',
-  free_inspection: '',
-  quote_method: '',
-  price_list: '',
-  response_time: '',
-  same_day_available: '',
-  out_of_hours_available: '',
-  start_time: '',
-  owner_name: 'Sarah',
-  owner_name_2: '',
-  owner_qualification: '',
-  owner_why: '',
-  owner_promise: '',
-  owner_pronoun: '',
-  owner_photo: 'no',
-  business_type: 'A',
-  materials_methods: [],
-  guarantee_scope: '',
-  team_size: '',
-  typical_jobs: [],
-  emergency_primary: '',
-  handles_planning: '',
-  finance_options: '',
-  complaints_process: '',
-  area_wide: '',
-  travel_distance: '10 miles',
-  review_themes: [],
-  jobs_wanted: [],
-  map_embed: '',
-  stand_ins: [],
-  h1_override: '',
-};
-
-const pages = [
-  { pageType: 'homepage',      pageTitle: 'Kestrel Ridge Roofing', urlSlug: '/',                        h1: 'Roofer Bournemouth',            status: 'live' },
-  { pageType: 'service',       pageTitle: 'Roof Repair',           urlSlug: '/services/roof-repair',    h1: 'Roof Repair Bournemouth',       status: 'launching' },
-  { pageType: 'service',       pageTitle: 'Flat Roofing',          urlSlug: '/services/flat-roofing',   h1: 'Flat Roofing Bournemouth',      status: 'launching' },
-  { pageType: 'service',       pageTitle: 'Gutter Repair',         urlSlug: '',                         h1: '',                              status: 'not built' },
-  { pageType: 'location',      pageTitle: 'Poole',                 urlSlug: '/locations/poole',         h1: 'Roofer Poole',                  status: 'launching' },
-  { pageType: 'location',      pageTitle: 'Christchurch',          urlSlug: '',                         h1: '',                              status: 'not built' },
-  { pageType: 'locations-hub', pageTitle: 'Areas We Cover',        urlSlug: '/locations',               h1: 'Areas We Cover',                status: 'live' },
-  { pageType: 'cost-guide',    pageTitle: 'Roofing Costs',         urlSlug: '/roofing-costs',           h1: 'Roofing Costs in Bournemouth',  status: 'launching' },
-  { pageType: 'about',         pageTitle: 'About Us',              urlSlug: '',                         h1: '',                              status: 'not built' },
-];
-
-const keyValueMap = {
-  biz_area_1: 'Bournemouth', biz_area_2: 'Poole', biz_area_3: 'Christchurch',
-};
+const { cv, pages, keyValueMap } = require(path.join(__dirname, 'data/kestrel-ridge-thin-page.js'));
 
 const result = computeDecisions({
   cv, niche: roofer, pages, keyValueMap, v20TestMode: true, allocationData: null,

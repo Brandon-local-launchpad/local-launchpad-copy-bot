@@ -2,7 +2,7 @@
 
 ## Done
 - Homepage CORE (20) prompt, Landscaper and Roofer niche entries, Claude Code brief: final, tested on paper (Edens Edge thin, Edens Edge with reviews, Kestrel Ridge roofer rich and thin).
-- FAQ framework + Perplexity trade question bank prompt (v3). Roofer runs done twice.
+- FAQ framework + Perplexity question research prompt (v3). Roofer runs done twice. Decision (14 Oct): the question research runs once per client, not per trade; manual test runs for Edens Edge and the Bournemouth roofer are in `docs/seo/current-build/faq-research/`. The framework doc says per client.
 - Claude Code: Stage 1 (niche JSON, CORE 19 pinned for old path), Stage 2 (client values storage), Stage 3 (Client Values screen), Stage 4 (decisions engine) built.
 - Stage 4 fixes (14 Oct), all covered by `npm run test:fixtures` (3 fixtures, 59 checks, all pass):
   - Cards: with a category layer, only primary category services become cards; secondary category services stay under their category page. Edens Edge gives 7 category cards.
@@ -161,6 +161,26 @@
   - Records are stored by page type and key (`v20-store.js`; `client_assets.metadata`); old rows without metadata are the homepage. Routes: `/api/clients/:id/v20/pages/:type/:key` (record, `/download`, `/fields` GET and PUT), with `/v20/homepage` kept as the same routes. Today's facts are looked up per page type (the homepage's now; the category page's come in C2). The page screen uses the new routes (`?type=&key=`).
   - Fixture `page-types.js` (23 checks): a made-up second type goes through edits, re-validation, retries, claims parsing, dry run, push and rollback on the fake WordPress without touching the homepage, and the store keeps each page's versions apart. Fixtures: 18 files, 457 checks, all pass.
   - Waiting on: `docs/seo/reference/Category_Page_Structure_v2.md` (Brandon's category template) is not in the repo or on GitHub yet. C2 needs it.
+- FAQ per client, F1 to F3 (14 Oct, Brandon's decisions: research once per client; research questions take Q7 and the fallback slots only; wording approved once per client; new facts for every trade; a missing service page moves up to its category page, else dropped; big cost questions held for a Cost Guide page; rank by "seen" counts, no Ahrefs yet; the dossier LOCAL QUESTIONS add-on dropped). Branch `faq/per-client-research`.
+  - F1 research: `prompts/FAQ_Research_CORE.md` (v4, per client: adds Service and Town, chosen from the client's own lists) and `faq-research.js` (client block, parser, check). It runs on Perplexity as a research_jobs record with one row, code FAQ, so it shares submit, poll and restart recovery with the dossiers. It starts by itself with the first Run Research for a client that has none; re-run from the card. A reply with fewer than 10 readable questions is refused and the saved research kept. Stored as `client_assets` `faq_research`; a new run supersedes the old.
+  - F2 sorting: `faq-sort.js` + `prompts/FAQ_Sorting_CORE.md`. One Sonnet call tidies the questions (duplicates, covered by a fixed homepage question, the client fact needed, service, town, search wording), checked by code, one retry, best answer per question kept. Placement is code, worked out on every read from today's values and page map. Saved as `client_assets` `faq_sort` with approvals, hand edits and moves; a re-sort carries them over where the research text is unchanged.
+  - New client facts (`niche-library/client-facts.json`): client values `deposit_terms`, `quote_includes`, `waste_carrier_registered` (on the Client Values screen, in the onboarding prefill, in CV_KEYS and the plugin's key list); practices `extra_work_agreed_first`, `weather_delays_rebooked`, `property_protected` (Claude's draft wording and detect patterns). New N5 checks: a deposit or waste carrier registration mentioned without the value is a BLOCK.
+  - F3 homepage: `computeDecisions` takes `faqResearch`; Q7 prefers an uncovered doubt, a fallback slot takes a research question only with its own or an uncovered doubt (otherwise the niche fallback), so all five doubts stay. Answer briefs come from code. Decisions preview, generation and today's facts all use the client's approved questions; with none, the homepage is exactly as before. F-FAQ flags in the preview only (not stored on records).
+  - FAQ questions card on the Geo Research step (`faq-service.js`; routes `GET /api/clients/:id/faq`, `POST …/faq/research`, `POST …/faq/sort`, `PUT …/faq/questions`): research and sorting status, the homepage FAQ as it stands, every question with its research text, editable wording, page (Auto, any page, or Remove), the fact it needs and an approval tick, the waiting list grouped by fact with its onboarding question, and the ranges, rules and gaps for onboarding.
+  - Real tidy runs (local, 14 Oct): Edens Edge and the Bournemouth roofer run, about 60s and 2 calls each (the first reply had 3 and 2 wording problems). Saved in `tests/fixtures/faq-sort-replies/` (`node tests/acceptance/faq-sort.js` replaces them). Known variation: Edens Edge's "What is included in your quote?" came back as covered by Q5 in one run and needing quote_includes in the other; move it by hand on the card if it matters.
+  - Tested in the browser on `npm run demo:wp` (seeded with the Edens Edge run and its sorted questions): approve all, save, reload (kept), a wording with a dash refused with the reason, a clean edit saved and used at Q7, Remove, a deposit value saved on Client Values releasing the deposit question to Q7.
+  - Fixture data: the Kestrel Ridge rich and thin values moved to `tests/fixtures/data/` so the FAQ fixtures share them. Fixtures: 22 files, 587 checks, all pass (`faq-research.js` 26, `faq-sort.js` 53, `faq-homepage.js` 22, `faq-service.js` 29).
+  - Not run: a real Perplexity FAQ research call (no key locally). Expected homepage lists in `faq-homepage.js`: approved by Brandon (14 Oct).
+- FAQ per client, Brandon's feedback (14 Oct, same branch, not merged):
+  - The research uses everything known about the client: trade, towns and services; the customers' own questions; confirmed client values (stand-ins, contact and identity values left out); onboarding answers (contact details, links and uploads left out); and the saved dossiers' local problems, rules, conservation areas and homeowner symptoms (no URLs or IDs). `loadV20Context` now returns the onboarding answers.
+  - One click, after the dossiers: Run Research starts the FAQ research when the location queue has finished (only when the client has none yet), so the dossiers are there. The card's "Research" runs it on its own with whatever dossiers are saved.
+  - The customers' own questions come first: the onboarding form doesn't ask "What do customers always ask you before they book?" (checked against the 47 questions in the Master Context Document), so it is in `client-facts.json` and is the new client value `customer_questions` (Client Values screen, FAQ section, one per line; onboarding prefill extracts it when an answer gives them). They go into the research as already known and into sorting first as C-1, C-2…; the tidy call (Sorting CORE (2)) gives them a doubt and page. If they change after sorting, the card and the preview (F-FAQ) say to re-run the sorting.
+  - The card: collapsed groups by page, homepage first (with the homepage FAQ as it stands), "Approve all" per page, then the questions not used. Empty state: "Research" and a line on what it will use.
+  - Demo: no seeded FAQ. It now has Ethan's 14 service areas and the real Southampton dossier, so Research builds the full prompt; it needs `PERPLEXITY_API_KEY` in `.env` (and `DEMO_REAL_MODEL=1` for the sorting call). Without a key the card shows "Last FAQ research failed: PERPLEXITY_API_KEY environment variable is not set". Found on the way: the demo's pg-mem couldn't save research_jobs rows (no `to_timestamp`), now registered; and the service keeps each client's last job in memory, so a failure shows even if its row couldn't be saved.
+  - `.env.example` lists `PERPLEXITY_API_KEY`.
+  - Fixtures: 22 files, 615 checks, all pass (`faq-research.js` 39, `faq-sort.js` 60, `faq-service.js` 37).
+  - Tested in the browser on the demo: empty state, Research with no key (failure shown), grouped card from a real sorted view (homepage first, groups collapsed, Approve all ticks a whole page and saves).
+  - Not run: a real Perplexity call; Run Research → FAQ research in the app (the demo client has no onboarding form, so step 1 stops; covered by reading the code only).
 - Docs: CLAUDE.md at repo root. The files the code reads (`prompts/`, `niche-library/`) are the only copies.
 
 ## Waiting on
@@ -176,8 +196,8 @@
 1. Check the live Stage 4 previews (expect 7 category cards and the final CTA H2 "Get a Free Quote From a Local Landscaper in Southampton").
 2. Stage 5 finish: run the allocation in the app for Edens Edge; run Bournemouth geo research for Kestrel Ridge (the allocation then runs by itself).
 3. WordPress push: slice 5 part 2, a first push to a staging site (needs Given's staging site, the plugin installed, and the field groups imported). Set `COPYBOT_SECRET_KEY` on Railway first.
-4. Run Perplexity v3 for landscaper (trade only).
-5. Then: FAQ question bank + sorting step stages, humanizer decision, emergency and regulated group tests, category page.
+4. FAQ per client: built on `faq/per-client-research`, not merged into main yet (pull request). After merging: a real FAQ research run for Edens Edge on the live app (Research on the FAQ questions card), approve per page, Preview v20 Decisions.
+5. Then: humanizer decision, emergency and regulated group tests, category page.
 
 ## Open decisions
 - Company name: Ethan's custom values say "Edens Edge landscaping" (lower case l); the brief's test uses "Edens Edge Landscaping". Brandon is checking the GBP.
@@ -188,6 +208,8 @@
 - Separate Southampton location page: drop it (homepage is that page).
 - Update the homepage structure doc with the changed rules (title keeps brand, H1 trade word allowed, area links = town names, no rating figure in logo row).
 - Building regulations wording in the roofer entry: get a roofer to check.
+- FAQ: is the Bournemouth roofer run Kestrel Ridge's? (Answered "is / isn't" twice.)
+- FAQ (Brandon, 14 Oct): the four expected homepage lists, the three new practices and the onboarding questions in `client-facts.json` are approved (practice wording for now; Brandon flags changes); the amount of client information sent to Perplexity is right. Brandon is adding "What do customers always ask you before they book?" to the Fillout form; until then, type the answers into Client Values → FAQ.
 
 ## Don't
 - Click "Generate All" on a v20 client until the other page types are migrated.
