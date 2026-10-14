@@ -163,6 +163,15 @@ function checkTidy(reply, { research, niche, keyValueMap, serviceParentMap, page
     if (!svc || /^general$/i.test(svc)) it.service = '';
     else if (names.has(norm(svc))) it.service = names.get(norm(svc));
     else problems.push(`service "${svc}" is not a category or service word from CLIENT`);
+    // A problem word ("drainage") is not the service when the question names the job
+    // ("before a new driveway or patio"): the job's page answers it
+    const pageType = it.page || byId[id].page;
+    if (it.service && pageType !== 'Location' && (niche.problem_service_words || []).some(w => norm(w) === norm(it.service))) {
+      const stem = w => norm(w).replace(/s\b/g, '');
+      const text = stem(byId[id].text);
+      const jobs = [...names.values()].filter(w => norm(w) !== norm(it.service) && !(niche.problem_service_words || []).some(p => norm(p) === norm(w)) && stem(w).length > 3 && new RegExp(`\\b${stem(w).replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`).test(text));
+      if (jobs.length) problems.push(`service "${it.service}" is the problem, not the job: the question is about ${jobs.slice(0, 3).join(' or ')}, so choose that job's service word`);
+    }
     const town = String(r.town || '').trim();
     if (town) { if (towns.has(norm(town))) it.town = towns.get(norm(town)); else problems.push(`town "${town}" is not a town from CLIENT`); }
     // The customers' own questions arrive without a doubt or page: the reply gives them
@@ -175,6 +184,10 @@ function checkTidy(reply, { research, niche, keyValueMap, serviceParentMap, page
       if (p) it.page = p; else problems.push(`page "${r.page || ''}" must be one of ${PAGES.join(', ')}`);
     }
     it.wording = String(r.wording || '').trim();
+    // A question about one of the client's other towns names that town, so two location
+    // pages never carry the same wording
+    const qTown = it.town || byId[id].town;
+    if (qTown && (it.page || byId[id].page) === 'Location' && norm(qTown) !== norm(clientTowns(keyValueMap)[0] || '') && it.wording && !norm(it.wording).includes(norm(qTown))) problems.push(`wording "${it.wording}": it must name the town (${qTown})`);
     for (const e of checkWording(it.wording)) problems.push(`wording "${it.wording}": ${e}`);
     if (problems.length) errors.push(...problems.map(p => `${id}: ${p}`));
     it.problems = problems;
@@ -253,16 +266,32 @@ function clientQuestionItems(cv = {}) {
   }));
 }
 
-// Re-tidy keeps a person's work: approvals, hand edits and moves carry over for a
-// question whose research text is unchanged.
+// Re-tidy keeps a person's work for a question whose research text is unchanged:
+// hand edits, moves, and approvals with the wording that was approved (a re-sort
+// never swaps approved wording for new wording nobody has seen).
 function carryOver(newQuestions, oldQuestions = []) {
   const old = new Map(oldQuestions.map(q => [norm(q.text), q]));
   return newQuestions.map(q => {
     const o = old.get(norm(q.text));
     if (!o) return q;
-    return { ...q, wording: o.edited ? o.wording : q.wording, wording_errors: checkWording(o.edited ? o.wording : q.wording),
-      edited: !!o.edited, approved: !!o.approved && (o.edited || o.wording === q.wording), page_override: o.page_override || null };
+    const keepOld = !!(o.edited || o.approved);
+    const wording = keepOld ? o.wording : q.wording;
+    return { ...q, wording, wording_errors: checkWording(wording),
+      edited: !!o.edited, approved: !!o.approved, page_override: o.page_override || null };
   });
+}
+
+// The fixed homepage questions this client's homepage actually shows (decisions.js
+// buildFaq): a research question is only "answered by" one of these.
+function shownFixedSlots(cv, niche) {
+  const slot = Object.fromEntries((niche.faq_slots || []).map(f => [f.slot, f]));
+  const shown = new Set(['Q1', 'Q5', 'Q6']);
+  if (cv.insurance_cover || cv.complaints_process) shown.add('Q2');
+  if ((parseInt(cv.guarantee_years, 10) > 0) || cv.manufacturer_warranty || slot.faq_3_none) shown.add('Q3');
+  if (cv.start_time) shown.add('Q4');
+  if (slot.faq_B) shown.add('Q8');
+  if (niche.big_ticket && cv.handles_planning === 'yes' && slot.faq_planning) shown.add('Q9');
+  return shown;
 }
 
 // ── Assignment (code) ────────────────────────────────────────────────────────
@@ -292,8 +321,28 @@ function assignQuestions({ questions, cv, pages, keyValueMap, serviceParentMap, 
     for (const o of owners(service)) { const p = findTitle('service', o.gbp); if (p) return p; }
     return null;
   }
-  function categoryPage(service) {
-    const names = isCategory(service) ? [service] : [...new Set(owners(service).map(o => o.category))];
+  // How many of a category's service words the question names ("a new driveway or
+  // patio" names two Paving contractor services and one Landscape Gardener one)
+  const stemOf = w => norm(w).replace(/s\b/g, '');
+  const escRe = s => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  function textScore(category, text) {
+    const c = cats.find(x => norm(x.category) === norm(category));
+    if (!c || !text) return 0;
+    const said = stemOf(text);
+    const problems = new Set((niche.problem_service_words || []).map(stemOf)); // "drainage" names the problem, not the job
+    return new Set(c.services.map(s => stemOf(s.say)).filter(w => w.length > 3 && !problems.has(w) && new RegExp(`\\b${escRe(w)}\\b`).test(said))).size;
+  }
+  function categoryPage(service, text = '') {
+    // A category named for the word comes first ("lawn care" → Lawn care service), then
+    // the categories whose services carry it, in GBP order. When the question names
+    // jobs, the category with the most of them wins.
+    const named = cats.filter(c => norm(c.category) !== norm(service) && norm(c.category).startsWith(norm(service) + ' ')).map(c => c.category);
+    let names = isCategory(service) ? [service] : [...new Set([...named, ...owners(service).map(o => o.category)])];
+    if (!isCategory(service) && text) {
+      const scored = [...new Set([...names, ...cats.map(c => c.category)])].map((n, i) => ({ n, i, s: textScore(n, text) }));
+      const best = Math.max(0, ...scored.map(x => x.s));
+      if (best > 0) names = [...scored.filter(x => x.s === best).sort((x, y) => x.i - y.i).map(x => x.n), ...names];
+    }
     for (const n of names) { const p = findTitle('category', n); if (p) return p; }
     return null;
   }
@@ -308,9 +357,12 @@ function assignQuestions({ questions, cv, pages, keyValueMap, serviceParentMap, 
     }
     if (q.page === 'Category' || q.page === 'Service') {
       if (!q.service) return { why: 'not about one service or category' };
-      const asService = q.page === 'Service' && !isCategory(q.service);
+      // A general word ("garden makeovers", "landscaping") is the category's subject,
+      // not the narrow service page that happens to carry it ("Garden decorating")
+      const general = (niche.general_service_words || []).some(w => norm(w) === norm(q.service));
+      const asService = q.page === 'Service' && !isCategory(q.service) && !general;
       if (asService) { const sp = servicePage(q.service); if (sp) return { page: sp }; }
-      const cp = categoryPage(q.service);
+      const cp = categoryPage(q.service, q.text);
       if (cp) return { page: cp, note: asService ? `no ${q.service} page: moved up to its category page` : '' };
       return { why: `no page for ${q.service} or its category` };
     }
@@ -328,6 +380,8 @@ function assignQuestions({ questions, cv, pages, keyValueMap, serviceParentMap, 
   const ordered = [...questions].sort((a, b) =>
     (a.source === 'client' ? 0 : 1) - (b.source === 'client' ? 0 : 1) || (a.rank || 999) - (b.rank || 999) || (b.seenCount || 0) - (a.seenCount || 0) || idNum(a.id) - idNum(b.id));
   const usedWording = new Set();
+  const shown = shownFixedSlots(cv, niche);
+  const byId = new Map(questions.map(q => [q.id, q]));
 
   for (const q0 of ordered) {
     const q = { ...q0 };
@@ -343,8 +397,15 @@ function assignQuestions({ questions, cv, pages, keyValueMap, serviceParentMap, 
     // A move by hand wins over the tidy step's covered and duplicate calls
     const moved = q.page_override && q.page_override !== 'drop';
     if (q.page_override === 'drop') { out.held.dropped.push(q); continue; }
-    if (q.covered_by && !moved)   { out.held.covered.push(q); continue; }
-    if (q.duplicate_of && !moved) { out.held.duplicate.push(q); continue; }
+    // "Answered by" a fixed homepage question only when that question is shown, and
+    // never for a question about another town (its location page answers it)
+    const otherTown = q.town && norm(q.town) !== norm(city);
+    if (q.covered_by && !moved && shown.has(q.covered_by) && !otherTown) { out.held.covered.push(q); continue; }
+    if (q.covered_by && !shown.has(q.covered_by)) q.route_note = `its homepage question ${q.covered_by} isn't shown`;
+    // The same question about a different town is not a duplicate: each location page keeps its own
+    const orig = q.duplicate_of ? byId.get(q.duplicate_of) : null;
+    const otherTownDup = orig && q.town && orig.town && norm(q.town) !== norm(orig.town);
+    if (q.duplicate_of && !moved && !otherTownDup) { out.held.duplicate.push(q); continue; }
 
     let target = null;
     const pin = pins[norm(q.wording)];
@@ -354,7 +415,7 @@ function assignQuestions({ questions, cv, pages, keyValueMap, serviceParentMap, 
       const r = route(q);
       if (!r.page) { q.held_reason = r.why; out.held.noPage.push(q); continue; }
       target = r.page;
-      q.route_note = r.note || '';
+      q.route_note = [q.route_note, r.note].filter(Boolean).join('; ');
     }
     q.pinned = !!pin && pageId(target) === pin;
     // No question twice on the site, even if two IDs end up with the same wording
@@ -423,5 +484,5 @@ module.exports = {
   FAQ_SORT_MODEL, CLIENT_FACTS,
   loadSortPrompt, factList, factSupplied, fixedHomepageQuestions, checkWording,
   buildSortMessage, checkTidy, runTidy, carryOver, clientQuestionItems,
-  isCostQuestion, assignQuestions, siteRepeats, answerBrief, homepageQuestions, pageId, normWording: norm,
+  isCostQuestion, assignQuestions, shownFixedSlots, siteRepeats, answerBrief, homepageQuestions, pageId, normWording: norm,
 };

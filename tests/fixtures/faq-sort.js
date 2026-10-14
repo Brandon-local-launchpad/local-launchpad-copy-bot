@@ -108,13 +108,15 @@ const ids = list => list.map(q => q.id).join(' ');
   const eThin = assign(edens, eQs, 'thin');
   const eRich = assign(edens, eQs, 'rich');
   const hpIds = a => ids((a.pages['homepage:homepage'] || { questions: [] }).questions);
-  chk('Edens Edge homepage questions, in research order: Q-4 Q-11 Q-40 Q-5 Q-12 Q-37 Q-7', hpIds(eThin) === 'Q-4 Q-11 Q-40 Q-5 Q-12 Q-37 Q-7', hpIds(eThin), 'Q-4 Q-11 Q-40 Q-5 Q-12 Q-37 Q-7');
+  // Ethan shows no insurance question (Q2) and no planning question (Q9), so Q-6 (insurance)
+  // and Q-24 (dropped kerb or council permission) are not "answered" by them (15 Oct rule)
+  chk('Edens Edge homepage questions, in research order: Q-4 Q-11 Q-40 Q-5 Q-6 Q-12 Q-37 Q-24 Q-7', hpIds(eThin) === 'Q-4 Q-11 Q-40 Q-5 Q-6 Q-12 Q-37 Q-24 Q-7', hpIds(eThin), 'Q-4 Q-11 Q-40 Q-5 Q-6 Q-12 Q-37 Q-24 Q-7');
   chk('Q-37 (Location, Southampton) goes to the homepage, as the primary city', eThin.pages['homepage:homepage'].questions.some(q => q.id === 'Q-37' && /primary city/.test(q.route_note)), '', 'on the homepage');
-  chk('Thin (Ethan): only Q-37 is usable; the others wait for their facts', ids(S.homepageQuestions(eThin, edens.niche).map(q => ({ id: q.research_id }))) === 'Q-37', ids(S.homepageQuestions(eThin, edens.niche).map(q => ({ id: q.research_id }))), 'Q-37');
-  chk('Rich: the facts are supplied, so all but Q-7 are usable', ids(S.homepageQuestions(eRich, edens.niche).map(q => ({ id: q.research_id }))) === 'Q-4 Q-11 Q-40 Q-5 Q-12 Q-37',
-    ids(S.homepageQuestions(eRich, edens.niche).map(q => ({ id: q.research_id }))), 'Q-4 Q-11 Q-40 Q-5 Q-12 Q-37');
+  chk('Thin (Ethan): only Q-37 and Q-24 are usable; the others wait for their facts', ids(S.homepageQuestions(eThin, edens.niche).map(q => ({ id: q.research_id }))) === 'Q-37 Q-24', ids(S.homepageQuestions(eThin, edens.niche).map(q => ({ id: q.research_id }))), 'Q-37 Q-24');
+  chk('Rich: the facts are supplied, so all but Q-7 are usable (Q-6 is answered by the shown insurance question)', ids(S.homepageQuestions(eRich, edens.niche).map(q => ({ id: q.research_id }))) === 'Q-4 Q-11 Q-40 Q-5 Q-12 Q-37 Q-24',
+    ids(S.homepageQuestions(eRich, edens.niche).map(q => ({ id: q.research_id }))), 'Q-4 Q-11 Q-40 Q-5 Q-12 Q-37 Q-24');
   chk('Big cost questions are held for a Cost Guide page, even when Q1 covers cost', ids(eThin.held.costGuide) === 'Q-1 Q-16 Q-20 Q-28 Q-33', ids(eThin.held.costGuide), 'Q-1 Q-16 Q-20 Q-28 Q-33');
-  chk('Covered questions are never placed', eThin.held.covered.length === 12 && !Object.values(eThin.pages).some(p => p.questions.some(q => q.covered_by)), eThin.held.covered.length, 12);
+  chk('Covered questions are never placed (12 marked; 5 of them point at Q2 or Q9, which Ethan\'s homepage doesn\'t show)', eThin.held.covered.length === 7 && Object.values(eThin.pages).every(p => p.questions.every(q => !q.covered_by || /isn.t shown/.test(q.route_note))), eThin.held.covered.length, 7);
   chk('Service questions go to the service page (Q-30 fencing → Fencing installation)',
     (eThin.pages['service:/services/fencing-installation'] || { questions: [] }).questions.some(q => q.id === 'Q-30'), '', 'on /services/fencing-installation');
   chk('Category questions go to the category page (Q-21 driveways → Landscape Gardener)',
@@ -175,6 +177,49 @@ const ids = list => list.map(q => q.id).join(' ');
   chk('Re-tidy: a hand edit and its approval carry over', a4.wording === 'Do you take a deposit?' && a4.approved && a4.edited, JSON.stringify({ w: a4.wording, a: a4.approved }), 'kept');
   chk('Re-tidy: an approval carries over when the wording is the same', after.find(q => q.id === 'Q-11').approved, '', 'approved');
   chk('Re-tidy: a removal carries over', after.find(q => q.id === 'Q-37').page_override === 'drop', '', 'drop');
+
+  // ── 15 Oct sorting rules, on the live Edens Edge reply and its real tidy replies ──
+  // (tests/fixtures/faq-research-replies/edens-edge-live-2026-10-14.md; replies from
+  // node tests/acceptance/faq-sort.js style run, saved in faq-sort-replies/edens-edge-live.json)
+  const liveResearch = R.parseFaqResearch(fs.readFileSync(path.join(__dirname, 'faq-research-replies/edens-edge-live-2026-10-14.md'), 'utf8'));
+  const liveReplies = JSON.parse(fs.readFileSync(path.join(__dirname, 'faq-sort-replies/edens-edge-live.json'), 'utf8')).replies;
+  const liveCv = { ...edens.cvThin, primary_category: 'Gardener', insurance_cover: '5m', differentiator_2_confirmed: true };
+  let li = 0;
+  const liveTidy = await S.runTidy({ research: liveResearch, niche: edens.niche, keyValueMap: edens.keyValueMap, serviceParentMap: edens.serviceParentMap, pages: edens.pages, cv: liveCv, callModel: async () => liveReplies[li++] });
+  const liveA = S.assignQuestions({ questions: approveAll(liveTidy.questions), cv: liveCv, pages: edens.pages, keyValueMap: edens.keyValueMap, serviceParentMap: edens.serviceParentMap, niche: edens.niche });
+  const placedAt = id => { for (const p of Object.values(liveA.pages)) if (p.questions.some(q => q.id === id)) return p.title; for (const [k, l] of Object.entries(liveA.held)) if (l.some(q => q.id === id)) return `held ${k}`; return '?'; };
+  const expectAt = { 'Q-10': 'Patio paving', 'Q-29': 'Brick paver installation', 'Q-38': 'Deck installation', 'Q-40': 'Edens Edge landscaping Homepage',
+    'Q-7': 'Landscape Gardener', 'Q-32': 'Paving Contractor', 'Q-19': 'Lawn Care Service', 'Q-15': 'Artificial turf installation',
+    'Q-43': 'Winchester', 'Q-44': 'Chandlers Ford', 'Q-46': 'Hedge End', 'Q-3': 'Edens Edge landscaping Homepage' };
+  for (const [id, page] of Object.entries(expectAt)) chk(`Live: ${id} goes to ${page}`, placedAt(id) === page, placedAt(id), page);
+  chk('Live: nothing is held as answered by a homepage question Ethan doesn\'t show (no Q9)', !liveA.held.covered.some(q => !S.shownFixedSlots(liveCv, edens.niche).has(q.covered_by)), liveA.held.covered.map(q => `${q.id}:${q.covered_by}`).join(' '), 'none');
+
+  // The code rules on their own
+  const base = { doubt: 'Process', page: 'Service', service: 'patios', local: false, town: '', needsFact: false, seen: '', seenCount: 1, url: '', rank: null, approved: true, wording_errors: [], fact: '', new_fact: '', page_override: null };
+  const mk = (id, extra) => ({ ...base, id, text: extra.wording || 'Q?', wording: extra.wording || 'Q?', ...extra });
+  const place = (qs, cv) => S.assignQuestions({ questions: qs, cv, pages: edens.pages, keyValueMap: edens.keyValueMap, serviceParentMap: edens.serviceParentMap, niche: edens.niche });
+  const planQ = mk('Q-1', { wording: 'Do I need planning permission to terrace for a patio?', covered_by: 'Q9' });
+  chk('Covered by Q9 counts only when Q9 is shown (handles planning)', place([planQ], { ...edens.cvThin, handles_planning: 'yes' }).held.covered.length === 1 && place([planQ], edens.cvThin).held.covered.length === 0, '', 'held with planning, placed without');
+  const winQ = mk('Q-2', { page: 'Location', town: 'Winchester', wording: 'Is my Winchester tree protected?' });
+  const cfQ = mk('Q-3', { page: 'Location', town: 'Chandlers Ford', wording: 'Is my Chandlers Ford tree protected?', duplicate_of: 'Q-2' });
+  const sameTown = mk('Q-4', { page: 'Location', town: 'Winchester', wording: 'Is a Winchester tree protected?', duplicate_of: 'Q-2' });
+  const dupA = place([winQ, cfQ, sameTown], edens.cvThin);
+  chk('The same question for another town is not a duplicate; for the same town it is', dupA.held.duplicate.map(q => q.id).join(' ') === 'Q-4' && Object.values(dupA.pages).some(p => p.title === 'Chandlers Ford'), dupA.held.duplicate.map(q => q.id).join(' '), 'Q-4 only');
+  const townCov = mk('Q-5', { page: 'Location', town: 'Romsey', wording: 'Does water sit on lawns in Romsey after rain?', covered_by: 'Q8' });
+  chk('A question about another town is never answered by a homepage question', place([townCov], edens.cvThin).held.covered.length === 0, '', 'placed on Romsey');
+  const generalQ = mk('Q-6', { service: 'garden makeovers', wording: 'Does narrow access make a makeover dearer?' });
+  chk('A general service word goes to its category page, not a narrow service page', Object.values(place([generalQ], edens.cvThin).pages)[0].title === 'Landscape Gardener', Object.values(place([generalQ], edens.cvThin).pages)[0].title, 'Landscape Gardener');
+  const probCheck = S.checkTidy({ questions: liveResearch.questions.map(q => ({ id: q.id, service: q.id === 'Q-32' ? 'drainage' : 'General', wording: q.text.replace(/[—–-]/g, ' ').split(/\s+/).slice(0, 12).join(' ').replace(/\??$/, '?'), fact: q.needsFact ? 'quote_includes' : '' })) },
+    { research: liveResearch, niche: edens.niche, keyValueMap: edens.keyValueMap, serviceParentMap: edens.serviceParentMap, pages: edens.pages, cv: liveCv });
+  chk('Checks: "drainage" as the service for a driveway or patio question is sent back', probCheck.errors.some(e => /^Q-32: service "drainage" is the problem, not the job/.test(e)), probCheck.errors.filter(e => /^Q-32/.test(e)).join(' | '), 'problem, not the job');
+  chk('Checks: a question about another town must name it', probCheck.errors.some(e => /^Q-4\d: wording .*it must name the town/.test(e)) || liveResearch.questions.filter(q => q.page === 'Location').every(q => !q.town || q.town === 'Southampton' || q.text.includes(q.town)), '', 'checked');
+  const named = S.checkTidy({ questions: [{ id: 'Q-43', service: 'tree pruning', town: 'Winchester', wording: 'How do I check whether my tree has a TPO?' }] },
+    { research: liveResearch, niche: edens.niche, keyValueMap: edens.keyValueMap, serviceParentMap: edens.serviceParentMap, pages: edens.pages, cv: liveCv });
+  chk('Checks: a Winchester question worded without "Winchester" is sent back', named.errors.some(e => /Q-43: wording .*it must name the town \(Winchester\)/.test(e)), named.errors.filter(e => /^Q-43/.test(e)).join(' | '), 'must name the town');
+  const reSort = S.carryOver([{ ...base, id: 'Q-9', text: 'Is this quote fair?', wording: 'Is my quote fair for the work?', wording_errors: [], approved: false }],
+    [{ ...base, id: 'Q-9', text: 'Is this quote fair?', wording: 'Is this landscaping quote reasonable?', approved: true }]);
+  chk('Re-sort: an approved question keeps the wording that was approved', reSort[0].wording === 'Is this landscaping quote reasonable?' && reSort[0].approved, JSON.stringify([reSort[0].wording, reSort[0].approved]), 'approved wording kept');
+  chk('Council areas are not towns: New Forest District left out of the research towns and listed', !R.clientTowns(edens.keyValueMap).includes('New Forest District') && R.adminAreas(edens.keyValueMap).join() === 'New Forest District', R.adminAreas(edens.keyValueMap).join(), 'New Forest District');
 
   // Answer briefs
   const facts = Object.fromEntries(S.factList(edens.niche).map(f => [f.key, f]));

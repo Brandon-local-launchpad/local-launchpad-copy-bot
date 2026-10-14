@@ -1241,12 +1241,11 @@
     return String(s || '').toLowerCase().replace(/[-_]/g, ' ').replace(/[^a-z0-9 ]/g, '').replace(/\s+/g, ' ').trim();
   }
 
-  // Words that indicate an administrative area rather than a serviceable town/city.
-  // Rows matching any of these get an amber warning and are unticked by default.
-  const ADMIN_AREA_WORDS = ['district', 'county', 'borough', 'region', 'national park'];
+  // Council or administrative areas ("New Forest District") are not towns. They're listed
+  // above the locations as skipped, never offered for research (same rule as client-files.js).
+  const ADMIN_AREA_RE = /\b(district|county|borough|region|national park|council|authority)\b/i;
   function isAdminArea(name) {
-    const lower = name.toLowerCase();
-    return ADMIN_AREA_WORDS.some(w => lower.includes(w));
+    return ADMIN_AREA_RE.test(String(name || ''));
   }
 
   function fmtDuration(startedAt, finishedAt) {
@@ -1268,7 +1267,8 @@
       return;
     }
     const county = getCounty();
-    const rows = bizAreas.map((loc) => {
+    const skipped = bizAreas.filter(loc => isAdminArea(loc.name));
+    const rows = bizAreas.filter(loc => !isAdminArea(loc.name)).map((loc) => {
       const runType = loc.runType || 'TOWN';
       const admin   = isAdminArea(loc.name);
       const norm    = normLocName(loc.name);
@@ -1363,7 +1363,10 @@
           <div style="font-size:11px;color:var(--muted);margin-top:2px;grid-column:2/-1">RUN FOR: ${h(runForLine)}</div>
         </div>`;
     }).join('');
-    document.getElementById('geoLocationRows').innerHTML = rows;
+    const skippedNote = skipped.length
+      ? `<div style="font-size:12px;color:var(--flag);margin-bottom:10px">&#9888; Skipped, not researched: ${skipped.map(l => h(l.name)).join(', ')}. ${skipped.length > 1 ? 'These are council areas' : 'This is a council area'}, not ${skipped.length > 1 ? 'towns' : 'a town'}. Add the towns in ${skipped.length > 1 ? 'them' : 'it'} that the client covers to their service areas instead.</div>`
+      : '';
+    document.getElementById('geoLocationRows').innerHTML = skippedNote + rows;
     const bulkEl = document.getElementById('geoBulkControls');
     if (bulkEl) bulkEl.style.display = bizAreas.length ? 'flex' : 'none';
     updateBulkSummary();

@@ -9,6 +9,7 @@
 const fs   = require('fs');
 const path = require('path');
 const { sayFor } = require('./service-words');
+const { isAdminArea } = require('./client-files');
 
 const FAQ_RESEARCH_PROMPT = 'FAQ_Research_CORE.md';
 const DOUBTS = ['Price', 'Trust', 'Fit', 'Process', 'Timing'];
@@ -23,12 +24,22 @@ function loadFaqResearchPrompt() {
   return (cut >= 0 ? lf.slice(cut + 5) : lf).trim();
 }
 
-// The client's towns from biz_area_N, primary city first
+// The client's towns from biz_area_N, primary city first. Council areas ("New Forest
+// District") are not towns and are left out; adminAreas() lists them.
 function clientTowns(keyValueMap = {}) {
   const out = [];
   for (let i = 1; keyValueMap[`biz_area_${i}`] !== undefined; i++) {
     const t = String(keyValueMap[`biz_area_${i}`] || '').trim();
-    if (t && !out.includes(t)) out.push(t);
+    if (t && !out.includes(t) && !(i > 1 && isAdminArea(t))) out.push(t);
+  }
+  return out;
+}
+
+function adminAreas(keyValueMap = {}) {
+  const out = [];
+  for (let i = 1; keyValueMap[`biz_area_${i}`] !== undefined; i++) {
+    const t = String(keyValueMap[`biz_area_${i}`] || '').trim();
+    if (t && isAdminArea(t) && !out.includes(t)) out.push(t);
   }
   return out;
 }
@@ -426,7 +437,7 @@ function validateFaqResearch(parsed) {
 
 module.exports = {
   FAQ_RESEARCH_PROMPT, DOUBTS, PAGE_TYPES,
-  loadFaqResearchPrompt, clientTowns, clientServicesByCategory, buildClientBlock, buildFaqResearchPrompt,
+  loadFaqResearchPrompt, clientTowns, adminAreas, clientServicesByCategory, buildClientBlock, buildFaqResearchPrompt,
   customerQuestions, onboardingAnswers, confirmedFacts, localKnowledge,
   parseFaqResearch, parseQuestionLine, parseQuestionTable, validateFaqResearch, seenCount, cleanReply,
 };

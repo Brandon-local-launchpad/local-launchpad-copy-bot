@@ -123,7 +123,7 @@ console.log('\n=== FIXTURE: FAQ service (pg-mem, fake Perplexity, replayed tidy 
   const q1 = v.questions.find(q => q.id === 'Q-1');
   chk('Card: Q-1 held for a Cost Guide page', q1.placement && q1.placement.held === 'costGuide', JSON.stringify(q1.placement), 'costGuide');
   hp = await svc.homepageFaq(clientId, await loadContext(), edens.niche);
-  chk('F-FAQ flag: a homepage question waits for its wording to be approved', hp.flags.some(f => /1 homepage FAQ question\(s\) are waiting for their wording to be approved/.test(f.msg)), hp.flags.map(f => f.msg).join('; '), '1 waiting');
+  chk('F-FAQ flag: a homepage question waits for its wording to be approved', hp.flags.some(f => /2 homepage FAQ question\(s\) are waiting for their wording to be approved/.test(f.msg)), hp.flags.map(f => f.msg).join('; '), '2 waiting (Q-37, and Q-24 since Q9 is not shown)');
 
   // ── Approval and hand edits ──
   const bad = await throwsMsg(() => svc.updateQuestions(clientId, [{ id: 'Q-37', wording: 'Is my tree protected — and how do I check?' }], null));
@@ -134,11 +134,11 @@ console.log('\n=== FIXTURE: FAQ service (pg-mem, fake Perplexity, replayed tidy 
   chk('Approve all clean wording: the homepage now uses Q-37 at Q7', v.homepageUsed.length === 1 && v.homepageUsed[0].slot === 'Q7' && v.homepageUsed[0].id === 'Q-37', JSON.stringify(v.homepageUsed), 'Q7 Q-37');
   v = await svc.updateQuestions(clientId, [{ id: 'Q-37', wording: 'Is my tree protected by a preservation order?' }], null);
   const e37 = v.questions.find(q => q.id === 'Q-37');
-  chk('An edited wording is saved and needs approving again', e37.wording === 'Is my tree protected by a preservation order?' && e37.edited && !e37.approved && v.homepageUsed.length === 0, JSON.stringify({ w: e37.wording, a: e37.approved }), 'edited, not approved');
+  chk('An edited wording is saved and needs approving again', e37.wording === 'Is my tree protected by a preservation order?' && e37.edited && !e37.approved && !v.homepageUsed.some(u => u.id === 'Q-37'), JSON.stringify({ w: e37.wording, a: e37.approved }), 'edited, not approved');
   v = await svc.updateQuestions(clientId, [{ id: 'Q-37', approved: true }], null);
   chk('Approved again: the edited wording reaches the homepage', v.homepageUsed[0] && v.homepageUsed[0].question === 'Is my tree protected by a preservation order?', JSON.stringify(v.homepageUsed), 'edited wording');
   v = await svc.updateQuestions(clientId, [{ id: 'Q-37', page_override: 'drop' }], null);
-  chk('Removed by hand: off the homepage', v.homepageUsed.length === 0 && v.questions.find(q => q.id === 'Q-37').placement.held === 'dropped', JSON.stringify(v.homepageUsed), '[]');
+  chk('Removed by hand: off the homepage', !v.homepageUsed.some(u => u.id === 'Q-37') && v.questions.find(q => q.id === 'Q-37').placement.held === 'dropped', JSON.stringify(v.homepageUsed), '[]');
   v = await svc.updateQuestions(clientId, [{ id: 'Q-37', page_override: null }], null);
   chk('Back to Auto: on the homepage again', v.homepageUsed.length === 1, JSON.stringify(v.homepageUsed), '1');
   chk('A move to a page the client does not have is refused', /no such page/.test(await throwsMsg(() => svc.updateQuestions(clientId, [{ id: 'Q-4', page_override: 'service:/nowhere' }], null))), '', 'refused');
@@ -146,7 +146,7 @@ console.log('\n=== FIXTURE: FAQ service (pg-mem, fake Perplexity, replayed tidy 
   // Facts supplied on the Client Values step release the waiting questions
   cv = { ...edens.cvRich };
   hp = await svc.homepageFaq(clientId, await loadContext(), edens.niche);
-  chk('Rich values: the approved homepage questions waiting on facts are released (Q-4 first)', hp.faqResearch.map(q => q.research_id).join(' ') === 'Q-4 Q-11 Q-40 Q-5 Q-12 Q-37', hp.faqResearch.map(q => q.research_id).join(' '), 'Q-4 Q-11 Q-40 Q-5 Q-12 Q-37');
+  chk('Rich values: the approved homepage questions waiting on facts are released (Q-4 first)', hp.faqResearch.map(q => q.research_id).join(' ') === 'Q-4 Q-11 Q-40 Q-5 Q-12 Q-37 Q-24', hp.faqResearch.map(q => q.research_id).join(' '), 'Q-4 Q-11 Q-40 Q-5 Q-12 Q-37 Q-24');
 
   // A saved homepage keeps its questions
   placed = { 'homepage:homepage': ['Is my tree protected by a preservation order?'] };

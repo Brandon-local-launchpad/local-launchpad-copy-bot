@@ -160,4 +160,9 @@ function onboardingQA(text) {
   return /^Q: /m.test(t) ? t : parseOnboardingForm(t);
 }
 
-module.exports = { PAGE_TYPE_MAP, LINK_ONLY_PAGE_TYPES, parsePageMap, parseCustomValues, parseOnboardingForm, onboardingQA };
+// A council or administrative area ("New Forest District", "Hampshire County"), not a
+// town: never researched as a location and never offered to the FAQ research as a town
+const ADMIN_AREA_RE = /\b(district|county|borough|region|national park|council|authority)\b/i;
+const isAdminArea = name => ADMIN_AREA_RE.test(String(name || ''));
+
+module.exports = { PAGE_TYPE_MAP, LINK_ONLY_PAGE_TYPES, parsePageMap, parseCustomValues, parseOnboardingForm, onboardingQA, isAdminArea };

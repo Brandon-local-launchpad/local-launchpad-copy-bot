@@ -354,7 +354,7 @@ const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 50 
 
 // ── CSV / zip parsing ─────────────────────────────────────────────────────────
 
-const { PAGE_TYPE_MAP, LINK_ONLY_PAGE_TYPES, parsePageMap, parseCustomValues, parseOnboardingForm, onboardingQA } = require('./client-files');
+const { PAGE_TYPE_MAP, LINK_ONLY_PAGE_TYPES, parsePageMap, parseCustomValues, parseOnboardingForm, onboardingQA, isAdminArea } = require('./client-files');
 
 function identifyFiles(files) {
   const identified = { pageMap: null, customValues: [], onboarding: null, geo: null };
@@ -1906,6 +1906,13 @@ app.post('/api/research-start', async (req, res) => {
 
   if (!clientId) return res.status(400).json({ error: 'clientId is required for geo research.' });
   if (!Array.isArray(locations) || !locations.length) return res.status(400).json({ error: 'locations array is required.' });
+  // Council areas ("New Forest District") are not towns: never researched as a location
+  const skippedAdmin = [];
+  for (let i = locations.length - 1; i >= 0; i--) {
+    if (isAdminArea(locations[i] && locations[i].name)) skippedAdmin.unshift(locations.splice(i, 1)[0].name);
+  }
+  if (skippedAdmin.length) console.log(`[research-start] skipped council areas for ${clientId}: ${skippedAdmin.join(', ')}`);
+  if (!locations.length) return res.status(400).json({ error: `Only council areas were selected (${skippedAdmin.join(', ')}). Research the towns in them instead.`, skippedAdmin });
   if (!moduleName || !RESEARCH_MODULES[moduleName]) {
     return res.status(400).json({ error: `Unknown module "${moduleName}". Available: ${AVAILABLE_RESEARCH_MODULES.join(', ')}` });
   }
@@ -1946,7 +1953,7 @@ app.post('/api/research-start', async (req, res) => {
   await persistResearchRecord(record);
 
   // Respond immediately — research runs in background
-  res.json({ jobId, total: locations.length });
+  res.json({ jobId, total: locations.length, skippedAdmin });
 
   // Background: persist codes, then run locations in parallel (capped at RESEARCH_CONCURRENCY)
   (async () => {
@@ -2827,6 +2834,7 @@ app.post('/api/research-rerun', async (req, res) => {
 
   if (!clientId) return res.status(400).json({ error: 'clientId is required.' });
   if (!location || !location.name || !location.code) return res.status(400).json({ error: 'location {name, code} is required.' });
+  if (isAdminArea(location.name)) return res.status(400).json({ error: `${location.name} is a council area, not a town: research the towns in it instead.` });
   if (!moduleName || !RESEARCH_MODULES[moduleName]) {
     return res.status(400).json({ error: `Unknown module "${moduleName}".` });
   }
