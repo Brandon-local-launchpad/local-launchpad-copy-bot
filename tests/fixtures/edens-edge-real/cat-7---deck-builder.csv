@@ -1,0 +1,20 @@
+Category 7: Deck Builder,,,
+"Secondary GBP category   |   Yellow rows = cross-category duplicates — reuse the key shown, do NOT create a new one",,,
+Category Name (Service Name),GHL Custom Value Key,Value,Notes
+Category 7: Deck Builder,{{custom_values.category_7}},Deck builder,
+Composite decks,{{custom_values.service_63}},Composite decks,Unique to this category
+Deck cleaning,{{custom_values.service_64}},Deck cleaning,Unique to this category
+Deck design,{{custom_values.service_65}},Deck design,Unique to this category
+Deck installation,{{custom_values.service_66}},Deck installation,Unique to this category
+Deck painting,{{custom_values.service_67}},Deck painting,Unique to this category
+Deck railing repair,{{custom_values.service_68}},Deck railing repair,Unique to this category
+Deck refinishing,{{custom_values.service_69}},Deck refinishing,Unique to this category
+Deck remodelling,{{custom_values.service_70}},Deck remodelling,Unique to this category
+Deck repair,{{custom_values.service_71}},Deck repair,Unique to this category
+Deck replacement,{{custom_values.service_72}},Deck replacement,Unique to this category
+Fence building,{{custom_values.service_73}},Fence building,Unique to this category
+Patio decks,{{custom_values.service_74}},Patio decks,Unique to this category
+Patio enclosure construction,{{custom_values.service_75}},Patio enclosure construction,Unique to this category
+Pergola construction,{{custom_values.service_76}},Pergola construction,Unique to this category
+Wood staining,{{custom_values.service_77}},Wood staining,Unique to this category
+Wood deck construction,{{custom_values.service_78}},Wood deck construction,Unique to this category

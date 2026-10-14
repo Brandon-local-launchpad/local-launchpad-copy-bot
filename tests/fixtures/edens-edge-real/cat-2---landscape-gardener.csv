@@ -1,0 +1,36 @@
+Category 2: Landscape Gardener,,,
+"Secondary GBP category   |   Yellow rows = cross-category duplicates — reuse the key shown, do NOT create a new one",,,
+Category Name (Service Name),GHL Custom Value Key,Value,Notes
+Category 2: Landscape Gardener,{{custom_values.category_2}},Landscape Gardener,
+Artificial turf installation,{{custom_values.service_9}},Artificial turf installation,DUPLICATE — also on Cat 3
+Concrete masonry,{{custom_values.service_10}},Concrete masonry,DUPLICATE — also on Cat 3
+Desert landscaping,{{custom_values.service_11}},Desert landscaping,DUPLICATE — also on Cat 3
+Driveway landscaping,{{custom_values.service_12}},Driveway landscaping,DUPLICATE — also on Cat 3
+Driveway or path paving,{{custom_values.service_13}},Driveway or path paving,DUPLICATE — also on Cat 3
+Garden decorating,{{custom_values.service_14}},Garden decorating,DUPLICATE — also on Cat 3
+Garden design,{{custom_values.service_15}},Garden design,DUPLICATE — also on Cat 3
+Gardening services,{{custom_values.service_16}},Gardening services,DUPLICATE — also on Cat 3
+Grading and resloping,{{custom_values.service_17}},Grading and resloping,DUPLICATE — also on Cat 3
+Green landscaping,{{custom_values.service_18}},Green landscaping,Unique to this category
+Groundskeeping,{{custom_values.service_19}},Groundskeeping,Unique to this category
+Hardscaping,{{custom_values.service_20}},Hardscaping,Unique to this category
+Landscape installations,{{custom_values.service_21}},Landscape installations,DUPLICATE — also on Cat 3
+Landscape management,{{custom_values.service_22}},Landscape management,Unique to this category
+Landscaping design,{{custom_values.service_23}},Landscaping design,Unique to this category
+Landscaping maintenance,{{custom_values.service_24}},Landscaping maintenance,Unique to this category
+Lawn care,{{custom_values.service_25}},Lawn care,DUPLICATE — also on Cat 3
+Lawn landscaping,{{custom_values.service_26}},Lawn landscaping,Unique to this category
+Outdoor step construction,{{custom_values.service_27}},Outdoor step construction,DUPLICATE — also on Cat 3
+Outdoor water feature design,{{custom_values.service_28}},Outdoor water feature design,DUPLICATE — also on Cat 3
+Pool landscaping,{{custom_values.service_29}},Pool landscaping,Unique to this category
+Retaining walls,{{custom_values.service_30}},Retaining walls,Unique to this category
+Rock landscaping,{{custom_values.service_31}},Rock landscaping,Unique to this category
+Grass seeding,{{custom_values.service_4}},Grass seeding,"DUPLICATE — also on Cat 1, 3, 4 → use service_4"
+Sod installation,{{custom_values.service_32}},Sod installation,"DUPLICATE — also on Cat 3, 4"
+Stone landscaping,{{custom_values.service_33}},Stone landscaping,Unique to this category
+Stonemasonry,{{custom_values.service_34}},Stonemasonry,DUPLICATE — also on Cat 3
+Path landscaping,{{custom_values.service_35}},Path landscaping,DUPLICATE — also on Cat 3
+Garden drainage,{{custom_values.service_36}},Garden drainage,DUPLICATE — also on Cat 3
+Garden levelling,{{custom_values.service_37}},Garden levelling,Unique to this category
+Garden landscaping,{{custom_values.service_38}},Garden landscaping,DUPLICATE — also on Cat 3
+Landscape design,{{custom_values.service_6}},Landscape design,"DUPLICATE — also on Cat 1, 4 → use service_6"

@@ -1,0 +1,32 @@
+Category 3: Landscape Designer,,,
+"Secondary GBP category   |   Yellow rows = cross-category duplicates — reuse the key shown, do NOT create a new one",,,
+Category Name (Service Name),GHL Custom Value Key,Value,Notes
+Category 3: Landscape Designer,{{custom_values.category_3}},Landscape Designer,
+Custom landscape design,{{custom_values.service_39}},Custom landscape design,Unique to this category
+Drainage solutions,{{custom_values.service_40}},Drainage solutions,Unique to this category
+Landscape architecture services,{{custom_values.service_41}},Landscape architecture services,Unique to this category
+Landscape design construction,{{custom_values.service_42}},Landscape design construction,Unique to this category
+Patio design,{{custom_values.service_43}},Patio design,Unique to this category
+Pond maintenance,{{custom_values.service_44}},Pond maintenance,Unique to this category
+Retaining wall design,{{custom_values.service_45}},Retaining wall design,Unique to this category
+Turf management,{{custom_values.service_46}},Turf management,Unique to this category
+Garden designs,{{custom_values.service_47}},Garden designs,Unique to this category
+Artificial turf installation,{{custom_values.service_9}},Artificial turf installation,DUPLICATE — also on Cat 2 → use service_9
+Garden landscaping,{{custom_values.service_38}},Garden landscaping,DUPLICATE — also on Cat 2 → use service_38
+Concrete masonry,{{custom_values.service_10}},Concrete masonry,DUPLICATE — also on Cat 2 → use service_10
+Desert landscaping,{{custom_values.service_11}},Desert landscaping,DUPLICATE — also on Cat 2 → use service_11
+Driveway landscaping,{{custom_values.service_12}},Driveway landscaping,DUPLICATE — also on Cat 2 → use service_12
+Driveway or path paving,{{custom_values.service_13}},Driveway or path paving,DUPLICATE — also on Cat 2 → use service_13
+Garden decorating,{{custom_values.service_14}},Garden decorating,DUPLICATE — also on Cat 2 → use service_14
+Garden design,{{custom_values.service_15}},Garden design,DUPLICATE — also on Cat 2 → use service_15
+Gardening services,{{custom_values.service_16}},Gardening services,DUPLICATE — also on Cat 2 → use service_16
+Grading and resloping,{{custom_values.service_17}},Grading and resloping,DUPLICATE — also on Cat 2 → use service_17
+Landscape installations,{{custom_values.service_21}},Landscape installations,DUPLICATE — also on Cat 2 → use service_21
+Lawn care,{{custom_values.service_25}},Lawn care,DUPLICATE — also on Cat 2 → use service_25
+Outdoor step construction,{{custom_values.service_27}},Outdoor step construction,DUPLICATE — also on Cat 2 → use service_27
+Outdoor water feature design,{{custom_values.service_28}},Outdoor water feature design,DUPLICATE — also on Cat 2 → use service_28
+Grass seeding,{{custom_values.service_4}},Grass seeding,"DUPLICATE — also on Cat 1, 2 → use service_4"
+Sod installation,{{custom_values.service_32}},Sod installation,DUPLICATE — also on Cat 2 → use service_32
+Stonemasonry,{{custom_values.service_34}},Stonemasonry,DUPLICATE — also on Cat 2 → use service_34
+Path landscaping,{{custom_values.service_35}},Path landscaping,DUPLICATE — also on Cat 2 → use service_35
+Garden drainage,{{custom_values.service_36}},Garden drainage,DUPLICATE — also on Cat 2 → use service_36

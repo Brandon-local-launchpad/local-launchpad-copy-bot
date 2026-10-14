@@ -1,0 +1,891 @@
+{
+  "page": "homepage",
+  "watermark": "TEST: CONTAINS STAND-IN VALUES",
+  "can_mark_done": false,
+  "FLAGS": [
+    {
+      "code": "F-MAP-TEST",
+      "msg": "map_embed blank — G-MAP bypassed (test mode on).",
+      "source": "code"
+    },
+    {
+      "code": "F-REVIEWS",
+      "msg": "Reviews hidden (review_count=blank, needs 3+).",
+      "source": "code"
+    },
+    {
+      "code": "F-THIN",
+      "msg": "Thin page: 2/5 indicators — section 2 hidden (logos), section 6 hidden (reviews).",
+      "source": "code"
+    }
+  ],
+  "VALIDATION": {
+    "status": "run",
+    "block": 0,
+    "flag": 10,
+    "issues": [
+      {
+        "type": "FLAG",
+        "check": "N7",
+        "field": "card_text (Landscape Designer)",
+        "message": "A sentence of 29 words (soft cap 25): \"Our landscape designer work covers garden design and drainag…\". Split it.",
+        "retry": true
+      },
+      {
+        "type": "FLAG",
+        "check": "N7",
+        "field": "card_text (Lawn Care Service)",
+        "message": "59 words: it must be 40 to 55.",
+        "retry": true
+      },
+      {
+        "type": "FLAG",
+        "check": "CARD-COUNT",
+        "field": "card_text (Paving Contractor)",
+        "message": "Names 6 services (block paving, concrete bases, new driveways, driveway replacement, groundwork and levelling, patios). Name 2 or 3, in a sentence, not a list.",
+        "retry": true
+      },
+      {
+        "type": "FLAG",
+        "check": "N7",
+        "field": "home_areas_intro",
+        "message": "A sentence of 27 words (soft cap 25): \"Jobs take us across the city and out to towns and villages n…\". Split it.",
+        "retry": true
+      },
+      {
+        "type": "FLAG",
+        "check": "N7",
+        "field": "faq_answer (Why does water sit on my patio or lawn after rain?)",
+        "message": "89 words: it must be 30 to 70.",
+        "retry": true
+      },
+      {
+        "type": "FLAG",
+        "check": "N18",
+        "field": "faq_answer (Why does water sit on my patio or lawn after rain?)",
+        "message": "Back to back sentences start with \"the\".",
+        "retry": true
+      },
+      {
+        "type": "FLAG",
+        "check": "N21",
+        "field": "card_text (Landscape Gardener)",
+        "message": "Repeats \"new lawns paving and walling\" from home_content_block_body. Reword it.",
+        "retry": true
+      },
+      {
+        "type": "FLAG",
+        "check": "N21",
+        "field": "card_text (Tree Service)",
+        "message": "Repeats \"pruning removal and stump grinding\" from home_content_block_body. Reword it.",
+        "retry": true
+      },
+      {
+        "type": "FLAG",
+        "check": "N21",
+        "field": "faq_answer (Are you insured?)",
+        "message": "Repeats \"insurance process to deal with\" from point_body (Insured up to £5m). Reword it.",
+        "retry": true
+      },
+      {
+        "type": "FLAG",
+        "check": "N21",
+        "field": "faq_answer (Which areas do you cover?)",
+        "message": "Repeats \"travel up to 20 miles\" from home_areas_intro. Reword it.",
+        "retry": true
+      }
+    ],
+    "retries": [
+      {
+        "round": 1,
+        "field": "home_content_block_body",
+        "problems": [
+          "Hyphenated words: tidy-ups, quarter-acre, tree-root, late-Victorian, mid-job. Write them without the hyphen, or rephrase if that reads like a typo.",
+          "A sentence of 33 words (soft cap 25): \"In Bassett Heath, the long, often quarter-acre plots along r…\". Split it.",
+          "A sentence of 42 words (soft cap 25): \"In Woolston, the hilly streets rising away from the Itchen i…\". Split it.",
+          "Back to back sentences start with \"in\".",
+          "\"subcontract\" states a practice (\"No subcontractors: our own team does every job\") that the client hasn't confirmed. Remove it.",
+          "The category page /tree-service isn't linked in the content block, a card or the more line.",
+          "The jobs figure is the hero trust line, so leave it out of the content block."
+        ],
+        "before": "We're a family run landscaper in Southampton, covering gardens of every shape and size across the city and the towns nearby. Our team of four has completed over 100 jobs in the area, from quick tidy-ups to full garden makeovers.\n\nTwo neighbourhoods that keep us busy are Bassett Heath and Woolston. In Bassett Heath, the long, often quarter-acre plots along roads like Saxholm Way and Pinehurst Road mean garden layout and tree-root management play a much bigger role than in a compact terraced street. In Woolston, the hilly streets rising away from the Itchen include some substantial late-Victorian gardens on Oak and Obelisk roads, where level changes and mature trees like lime, oak and beech mean retaining features and careful boundary work matter alongside the planting.\n\nFor regular garden upkeep, our [gardener](/gardener/) and [lawn care service](/lawn-care-service/) cover everything from mowing and hedge trimming to weed control and seeding. Bigger projects go through our [landscape gardener](/landscape-gardener/) team, who handle driveways, new lawns, paving and walling, garden steps and full garden makeovers. Where the design comes first, our [landscape designer](/landscape-designer/) service covers garden design, drainage and design and build projects.\n\nA concern we hear often is that a job will creep in price once it's underway. We quote every job in full before we start, and what we quote is what you pay. We've also heard from customers who had a previous contractor leave mid-job. Being family run means [CV: owner_name] is involved in every job and there's no subcontracting out work to people you've never met.\n\nWe work across Southampton and into [landscaping in Romsey](/locations/romsey/), [landscaping in Winchester](/locations/winchester/) and [landscaping in Eastleigh](/locations/eastleigh/), and everywhere in between. Call [CV: phone] to talk through what your garden needs.",
+        "after": "We're a family run landscaper in Southampton, covering gardens of every shape and size across the city and the towns nearby.\n\nTwo neighbourhoods that keep us busy are Bassett Heath and Old Woolston. In Bassett Heath, the plots along roads like Saxholm Way and Pinehurst Road are long, often around a quarter of an acre. That scale means garden layout and tree root management play a much bigger role than in a compact terraced street. Old Woolston is hilly, with streets rising away from the Itchen. The substantial gardens on parts of Oak and Obelisk roads include mature lime, oak and beech, so level changes, retaining features and careful boundary work matter alongside the planting.\n\nFor regular upkeep, our [gardener](/gardener/) and [lawn care service](/lawn-care-service/) cover mowing, hedge trimming, weed control and seeding. Bigger projects go through our [landscape gardener](/landscape-gardener/) team, who handle driveways, new lawns, paving and walling, garden steps and full garden makeovers. Where the design comes first, our [landscape designer](/landscape-designer/) service covers garden design, drainage and design and build projects. We also carry out tree work through our [tree service](/tree-service/) for pruning, removal and stump grinding.\n\nA concern we hear often is that a price will grow once the job starts. We quote every job in full before we start, and what we agree is what you pay. Being family run means [CV: owner_name] stays involved throughout, so there's always one person to talk to if anything needs adjusting.\n\nWe work across Southampton and into [landscaping in Romsey](/locations/romsey/), [landscaping in Winchester](/locations/winchester/) and [landscaping in Eastleigh](/locations/eastleigh/), and everywhere in between. Call [CV: phone] to talk through what your garden needs.",
+        "kept": true,
+        "score_before": 205,
+        "score_after": 1
+      },
+      {
+        "round": 1,
+        "field": "home_services_intro",
+        "problems": [
+          "[CV: company_name] appears outside the hero intro. Start with \"We\", the customer or the subject."
+        ],
+        "before": "From lawn care and hedge trimming to full garden redesigns, driveways and tree work, [CV: company_name] covers the landscaping jobs that Southampton homeowners need most. We work with private gardens of all sizes, from compact terraced plots to larger detached properties.",
+        "after": "From lawn care and hedge trimming to full garden redesigns, driveways and tree work, our landscaping covers the jobs Southampton homeowners need most. We work with private gardens of all sizes, from compact terraced plots to larger detached properties across the city and nearby towns.",
+        "kept": true,
+        "score_before": 1,
+        "score_after": 0
+      },
+      {
+        "round": 1,
+        "field": "card_text (Gardener)",
+        "problems": [
+          "Claim word \"best\" with no proof on file. Say \"local\" or the concrete thing.",
+          "Claim word \"reliable\" with no proof on file. Say \"local\" or the concrete thing.",
+          "57 words: it must be 40 to 55.",
+          "\"schedule\" states a practice (\"Regular visits on an agreed schedule\") that the client hasn't confirmed. Remove it.",
+          "Names 6 services (lawn mowing, fencing, seeding lawns, hedge trimming, mulching, weed control). Name 2 or 3, in a sentence, not a list."
+        ],
+        "before": "Keeping a garden looking its best week to week takes consistent, reliable visits. Our [gardener](/gardener/) work covers lawn mowing, hedge trimming, weed control, mulching, fencing and seeding lawns for homes across Southampton. Whether your garden needs a regular schedule or a seasonal tidy, we'll tell you what it actually needs rather than sell you visits it doesn't.",
+        "after": "Keeping a garden tidy from one month to the next takes more than an occasional visit. Our [gardener](/gardener/) work covers lawn mowing, hedge trimming and weed control for homes across Southampton. We'll tell you what your garden actually needs rather than suggest work it doesn't.",
+        "kept": true,
+        "score_before": 302,
+        "score_after": 100
+      },
+      {
+        "round": 1,
+        "field": "card_text (Landscape Gardener)",
+        "problems": [
+          "57 words: it must be 40 to 55.",
+          "Names 7 services (driveways and paths, garden makeovers, paving and walling, new lawns, garden steps, retaining walls, turf laying). Name 2 or 3, in a sentence, not a list."
+        ],
+        "before": "Ready to change what your garden looks like from the ground up? Our [landscape gardener](/landscape-gardener/) team handles driveways and paths, paving and walling, new lawns, turf laying, garden steps, retaining walls and full garden makeovers. Each job is planned before it starts and completed to the agreed scope, so there are no loose ends when we leave.",
+        "after": "A full garden transformation starts with solid groundwork. Our [landscape gardener](/landscape-gardener/) team carries out garden makeovers, new lawns and retaining walls for Southampton homes. Each project is planned in full before work begins, so the job runs to the agreed scope from start to finish.",
+        "kept": false,
+        "score_before": 2,
+        "score_after": 100
+      },
+      {
+        "round": 1,
+        "field": "card_text (Landscape Designer)",
+        "problems": [
+          "A sentence of 27 words (soft cap 25): \"If a garden has awkward levels, a drainage issue or a layout…\". Split it.",
+          "Names 4 services (garden design, drainage, design and build, patio design). Name 2 or 3, in a sentence, not a list.",
+          "Repeats \"our landscape designer service covers\" from home_content_block_body. Reword it."
+        ],
+        "before": "Good design solves problems before the groundwork begins. Our [landscape designer](/landscape-designer/) service covers garden design, drainage, patio design and design and build projects for Southampton homes. If a garden has awkward levels, a drainage issue or a layout that has never quite worked, getting the plan right first saves money and rework later.",
+        "after": "Getting the plan right before groundwork starts prevents expensive mistakes later. Our [landscape designer](/landscape-designer/) work covers garden design and drainage planning for Southampton homes where awkward levels or a layout that has never quite worked need thinking through properly first. Good design means the build goes smoothly and the result lasts.",
+        "kept": true,
+        "score_before": 3,
+        "score_after": 1
+      },
+      {
+        "round": 1,
+        "field": "card_text (Lawn Care Service)",
+        "problems": [
+          "59 words: it must be 40 to 55."
+        ],
+        "before": "A lawn that stays green and even through the year needs more than regular mowing. Our [lawn care service](/lawn-care-service/) covers seeding, turf laying and ongoing lawn maintenance to get grass into good shape and keep it there. For gardens where the lawn is the centrepiece, we treat it as a project in its own right rather than an afterthought.",
+        "after": "Seeding, turf laying and ongoing lawn maintenance all sit within our [lawn care service](/lawn-care-service/). A lawn that holds its colour and shape through the year needs the right groundwork from the start, and we treat it as a project in its own right. Good for gardens where the lawn does most of the work.",
+        "kept": false,
+        "score_before": 1,
+        "score_after": 1
+      },
+      {
+        "round": 1,
+        "field": "card_text (Tree Service)",
+        "problems": [
+          "Names 5 services (stump removal, tree planting, tree removal, stump grinding, tree pruning). Name 2 or 3, in a sentence, not a list.",
+          "This card must link to its page /tree-service inside a sentence, e.g. \"our [tree service](/tree-service) work\"."
+        ],
+        "before": "Mature trees need handling carefully, whether the job is routine pruning or a full removal. Our tree service covers tree pruning, tree removal, stump grinding, stump removal and tree planting for Southampton gardens. Large trees on sloping plots or near walls and structures get assessed properly before any work starts.",
+        "after": "Trees need the right assessment before any work starts, especially on sloping ground or where roots are close to walls. Our [tree service](/tree-service/) covers pruning, removal and stump grinding for Southampton gardens, with every job looked at properly on site before we touch anything.",
+        "kept": true,
+        "score_before": 101,
+        "score_after": 0
+      },
+      {
+        "round": 1,
+        "field": "card_text (Paving Contractor)",
+        "problems": [
+          "Names 6 services (block paving, concrete bases, new driveways, driveway replacement, groundwork and levelling, patios). Name 2 or 3, in a sentence, not a list."
+        ],
+        "before": "A patio or driveway is only as good as what's underneath it. Our [paving contractor](/paving-contractor/) team carries out block paving, new driveways, driveway replacement, concrete bases, patios and groundwork and levelling. We handle everything from breaking out the old surface to finishing the edges, so the job is complete when we leave.",
+        "after": "Front drives and back patios both stand or fall on the groundwork beneath them. Our [paving contractor](/paving-contractor/) team carries out block paving, new driveways and concrete bases, handling everything from levelling the ground to finishing the edges so the surface stays solid for years.",
+        "kept": false,
+        "score_before": 1,
+        "score_after": 2
+      },
+      {
+        "round": 1,
+        "field": "card_text (Deck Builder)",
+        "problems": [
+          "Names 7 services (fencing, composite decking, deck installation, deck restoration, deck repair, pergolas, timber decking). Name 2 or 3, in a sentence, not a list."
+        ],
+        "before": "Autumn and winter take a toll on outdoor timber that's been left untreated. Our [deck builder](/deck-builder/) work covers deck installation, deck repair, deck restoration, composite decking, timber decking, pergolas and fencing. New builds are designed and installed to last, and repair work always looks at the cause before replacing sections.",
+        "after": "Decking that's built well is low maintenance for years. Our [deck builder](/deck-builder/) service covers new deck installation, composite decking and pergolas for Southampton gardens. Where an existing deck needs attention, we look at what's caused the problem before we start replacing sections.",
+        "kept": true,
+        "score_before": 1,
+        "score_after": 0
+      },
+      {
+        "round": 1,
+        "field": "point_body (Local Experience Behind Every Job)",
+        "problems": [
+          "Hyphenated words: clay-heavy. Write them without the hyphen, or rephrase if that reads like a typo.",
+          "46 words: it must be 25 to 40.",
+          "A sentence of 46 words (soft cap 25): \"With over 100 jobs completed across Southampton and the surr…\". Split it."
+        ],
+        "before": "With over 100 jobs completed across Southampton and the surrounding towns, we've worked on the kinds of gardens that come up here: long sloping plots, mature trees close to boundaries, clay-heavy ground in the north of the city and tighter terraced gardens closer to the water.",
+        "after": "Over 100 jobs completed across Southampton means we've worked on the kinds of gardens that come up here: long sloping plots, mature trees near boundaries, clay heavy ground in the north and tighter terraced gardens closer to the water.",
+        "kept": true,
+        "score_before": 3,
+        "score_after": 1
+      },
+      {
+        "round": 1,
+        "field": "point_body (Insured up to £5m)",
+        "problems": [
+          "54 words: it must be 25 to 40.",
+          "A sentence of 46 words (soft cap 25): \"That cover is in place for accidental damage to your propert…\". Split it."
+        ],
+        "before": "We carry public liability insurance up to £5m. That cover is in place for accidental damage to your property or injury to others while the work is going on, so if a branch comes down during tree work and catches a fence panel or a wall, there's a proper process to deal with it.",
+        "after": "We carry public liability insurance up to £5m, covering accidental damage to your property and injury to others while work is underway. If something is caught during tree work or groundwork, there's a proper insurance process to deal with it.",
+        "kept": true,
+        "score_before": 2,
+        "score_after": 0
+      },
+      {
+        "round": 1,
+        "field": "point_body (Family Run and Independent)",
+        "problems": [
+          "47 words: it must be 25 to 40.",
+          "Repeats \"is involved in every job\" from home_content_block_body. Reword it."
+        ],
+        "before": "[CV: owner_name] is involved in every job we take on. Being family run means there's one point of contact from the first conversation to the last day on site. If anything is unclear or needs adjusting, you're talking to the person making the decisions, not a call centre.",
+        "after": "Being family run means one person sees the job through from quote to completion. You'll always reach someone who knows your garden, can answer questions directly and has the authority to sort anything that needs sorting.",
+        "kept": true,
+        "score_before": 2,
+        "score_after": 0
+      },
+      {
+        "round": 1,
+        "field": "step_body (Tell Us About Your Garden)",
+        "problems": [
+          "37 words: it must be 20 to 30."
+        ],
+        "before": "Call us on [CV: phone] or send a message with a rough idea of your garden size, what you'd like done, and any photos you have. The more we know upfront, the more useful the visit will be.",
+        "after": "Call us or drop a message with a rough idea of your garden size, what you'd like done, and any photos you have.",
+        "kept": true,
+        "score_before": 1,
+        "score_after": 0
+      },
+      {
+        "round": 1,
+        "field": "step_body (We Start on a Date That Suits You)",
+        "problems": [
+          "32 words: it must be 20 to 30."
+        ],
+        "before": "Once you're happy with the quote, we agree a start date that works for you. The job runs to the agreed plan, so you know what's happening and when from day one.",
+        "after": "Once you're happy with the quote, we agree a start date that works for you. The job runs to the plan we've agreed, so you know what's happening and when.",
+        "kept": true,
+        "score_before": 1,
+        "score_after": 0
+      },
+      {
+        "round": 1,
+        "field": "home_owner_body",
+        "problems": [
+          "85 words: it must be 60 to 80.",
+          "A sentence of 27 words (soft cap 25): \"I started CVTOKEN after years working on other people's gard…\". Split it.",
+          "A sentence of 42 words (soft cap 25): \"My CVTOKEN gives me the grounding to handle everything we ta…\". Split it.",
+          "[CV: company_name] appears outside the hero intro. Start with \"We\", the customer or the subject."
+        ],
+        "before": "I started [CV: company_name] after years working on other people's gardens and realising I wanted to run jobs the way I'd want them run on my own home. My [CV: owner_qualification] gives me the grounding to handle everything we take on across Southampton, but the thing I'm most straightforward about is this: if a job isn't worth doing the way a customer imagines it, I'll say so before anything gets agreed. You'll always get an honest view from me, not a quote for work you don't need.",
+        "after": "After years working on other people's gardens, I decided to run jobs the way I'd want them run on my own home. My [CV: owner_qualification] gives me the grounding to handle what we take on across Southampton. The part I'm most straightforward about: if a job isn't worth doing the way you've imagined it, I'll tell you before anything is agreed. You'll get an honest view, not a quote for work you don't need.",
+        "kept": true,
+        "score_before": 4,
+        "score_after": 0
+      },
+      {
+        "round": 1,
+        "field": "home_areas_intro",
+        "problems": [
+          "A sentence of 30 words (soft cap 25): \"We cover the city itself and a wide stretch of towns and vil…\". Split it.",
+          "[CV: company_name] appears outside the hero intro. Start with \"We\", the customer or the subject."
+        ],
+        "before": "[CV: company_name] is based in Southampton and travels up to 20 miles inland and along the coast to reach customers. We cover the city itself and a wide stretch of towns and villages nearby, taking on jobs from the New Forest edge to the Eastleigh corridor and out towards Winchester.",
+        "after": "Based in Southampton, we travel up to 20 miles inland and along the coast. Jobs take us across the city and out to towns and villages nearby, from the New Forest edge to the Eastleigh corridor and as far as Winchester.",
+        "kept": true,
+        "score_before": 2,
+        "score_after": 1
+      },
+      {
+        "round": 1,
+        "field": "faq_answer (How much does landscaping cost in Southampton?)",
+        "problems": [
+          "80 words: it must be 30 to 70.",
+          "A sentence of 31 words (soft cap 25): \"A new lawn on a flat, clear plot in Eastleigh is a different…\". Split it.",
+          "A sentence of 29 words (soft cap 25): \"CVTOKEN doesn't charge for quotes, so the most useful starti…\". Split it.",
+          "[CV: company_name] appears outside the hero intro. Start with \"We\", the customer or the subject.",
+          "Superlative or unprovable comparison: \"the most\".",
+          "The first sentence is 20 words. Answer the question first, in 15 words or fewer."
+        ],
+        "before": "Landscaping costs vary depending on what the job involves, how large the garden is and what the ground is like. A new lawn on a flat, clear plot in Eastleigh is a different job to a garden makeover on a sloping Woolston garden with mature trees and level changes to manage. [CV: company_name] doesn't charge for quotes, so the most useful starting point is a site visit where we can look at what's actually there and give you a proper figure.",
+        "after": "Landscaping costs vary with garden size, ground conditions and what the job involves. A flat, clear plot is a different job to a sloping Woolston garden with mature trees and level changes to manage. Quotes are free, so a site visit is the right starting point for a proper figure.",
+        "kept": true,
+        "score_before": 6,
+        "score_after": 0
+      },
+      {
+        "round": 1,
+        "field": "faq_answer (Are you insured?)",
+        "problems": [
+          "A sentence of 38 words (soft cap 25): \"That cover applies while work is underway, so if something i…\". Split it.",
+          "\"site\" is on the words to avoid list and already used twice on the page.",
+          "Repeats \"we carry public liability insurance\" from point_body (Insured up to £5m). Reword it."
+        ],
+        "before": "Yes. We carry public liability insurance up to £5m. That cover applies while work is underway, so if something is accidentally damaged during the job, such as a wall or a structure caught during tree work, there's an insurance process in place to deal with it properly. It also covers accidental injury to others on site during the work.",
+        "after": "Yes. We're covered up to £5m in public liability insurance. That cover applies while the job is underway. If something is accidentally damaged during the work, such as a branch coming down during tree pruning and catching a nearby structure, there's an insurance process to handle it. The cover also applies to accidental injury to others during the job.",
+        "kept": true,
+        "score_before": 3,
+        "score_after": 1
+      },
+      {
+        "round": 1,
+        "field": "faq_answer (What happens if something isn't right after the job?)",
+        "problems": [
+          "A sentence of 29 words (soft cap 25): \"Every trade in the UK works to a standard of reasonable care…\". Split it.",
+          "A sentence of 28 words (soft cap 25): \"If something doesn't meet that standard, the right step is t…\". Split it.",
+          "\"come back and put\" states a practice (\"We come back to put right anything that isn't right\") that the client hasn't confirmed. Remove it."
+        ],
+        "before": "Call us and tell us what the issue is. Every trade in the UK works to a standard of reasonable care and skill, which means the job should be done properly and to a standard that holds up. If something doesn't meet that standard, the right step is to raise it with us directly and give us the chance to come back and put it right. We'd always sooner know.",
+        "after": "Call us and tell us what the issue is. Every trade in the UK works to a standard of reasonable care and skill. That means the job should be done properly and to a standard that holds up. If something doesn't meet that standard, raise it with us directly. We'd always sooner know and have the chance to make it right than leave a customer unhappy.",
+        "kept": true,
+        "score_before": 102,
+        "score_after": 0
+      },
+      {
+        "round": 1,
+        "field": "faq_answer (How soon can you start?)",
+        "problems": [
+          "Banned phrase \"get in touch\".",
+          "20 words: it must be 30 to 70."
+        ],
+        "before": "We can usually start within the same week. Call [CV: phone] and we'll confirm what's available when you get in touch.",
+        "after": "We can usually start within the same week. That's true for most jobs, whether it's a single day's work or the beginning of a larger project. Call us on [CV: phone] or send a message and we'll let you know what's available once we've had a chance to talk through what you need.",
+        "kept": true,
+        "score_before": 101,
+        "score_after": 2
+      },
+      {
+        "round": 1,
+        "field": "faq_answer (Which areas do you cover?)",
+        "problems": [
+          "A sentence of 33 words (soft cap 25): \"We cover Southampton and the towns and villages within rough…\". Split it.",
+          "Back to back sentences start with \"we\".",
+          "The first sentence is 33 words. Answer the question first, in 15 words or fewer.",
+          "The city is on the coast: write the travel distance as \"inland and along the coast\", never compass directions."
+        ],
+        "before": "We cover Southampton and the towns and villages within roughly 20 miles, including [Romsey](/locations/romsey/), [Winchester](/locations/winchester/), [Eastleigh](/locations/eastleigh/), [Chandlers Ford](/locations/chandlers-ford/), [Hedge End](/locations/hedge-end/), [Lyndhurst](/locations/lyndhurst/), [Stockbridge](/locations/stockbridge/) and further out towards [Lockerley](/locations/lockerley/), [Awbridge](/locations/awbridge/), [Chilworth](/locations/chilworth/), [Ampfield](/locations/ampfield/) and [Kings Worthy](/locations/kings-worthy/). We also cover the New Forest edge. Call [CV: phone] if you're not sure whether we reach you.",
+        "after": "Yes, we cover Southampton and travel up to 20 miles inland and along the coast. Towns and villages in our area include [Romsey](/locations/romsey/), [Winchester](/locations/winchester/), [Eastleigh](/locations/eastleigh/), [Chandlers Ford](/locations/chandlers-ford/), [Hedge End](/locations/hedge-end/), [Lyndhurst](/locations/lyndhurst/), [Stockbridge](/locations/stockbridge/), [Lockerley](/locations/lockerley/), [Awbridge](/locations/awbridge/), [Chilworth](/locations/chilworth/), [Ampfield](/locations/ampfield/) and [Kings Worthy](/locations/kings-worthy/). Not sure if you're in range? Call [CV: phone] and we'll let you know.",
+        "kept": true,
+        "score_before": 4,
+        "score_after": 1
+      },
+      {
+        "round": 1,
+        "field": "faq_answer (How long does a garden landscaping project take?)",
+        "problems": [
+          "Hyphenated words: clay-rich. Write them without the hyphen, or rephrase if that reads like a typo.",
+          "81 words: it must be 30 to 70.",
+          "Back to back sentences start with \"a\".",
+          "The timescale \"a few days\" is not in the client values. Give the factors that decide it, without a time.",
+          "Repeats \"on what the job involves\" from faq_answer (How much does landscaping cost in Southampton?). Reword it."
+        ],
+        "before": "It depends on what the job involves. A straightforward turf laying or patio installation might take a few days. A full garden makeover with groundwork, drainage, paving, planting and fencing will take longer. Ground conditions can add time too, particularly on wetter, clay-rich plots in the north of the city where preparation takes more care. Weather can push hard landscaping days if conditions make it impractical to lay or compact materials properly. We'll give you a realistic timeframe when we quote.",
+        "after": "The time depends on the scale of the job and what the ground needs before anything else can happen. Straightforward planting or turfing wraps up faster than a project that involves drainage, levelling, paving and fencing together. Ground preparation can add time on wetter or more slowly permeable plots in the north of the city. Weather can also move hard landscaping days if conditions make it impractical to lay or compact materials. We'll give you a realistic timeframe when we quote.",
+        "kept": true,
+        "score_before": 104,
+        "score_after": 3
+      },
+      {
+        "round": 1,
+        "field": "faq_answer (Why does water sit on my patio or lawn after rain?)",
+        "problems": [
+          "Hyphenated words: surface-level. Write them without the hyphen, or rephrase if that reads like a typo.",
+          "157 words: it must be 30 to 70.",
+          "A sentence of 33 words (soft cap 25): \"Ground in the north tends to be more slowly permeable, and a…\". Split it.",
+          "A sentence of 33 words (soft cap 25): \"Sorting it properly means identifying which of those causes …\". Split it.",
+          "Back to back sentences start with \"the\".",
+          "Names \"soakaway\", which isn't one of the client's confirmed services. Name a confirmed service instead."
+        ],
+        "before": "Persistent standing water usually comes down to one of three separate problems. The ground beneath the surface may drain too slowly to absorb what falls on it. The surface itself may fall the wrong way, so water collects rather than running clear. Or there's simply no drain or soakaway to take the water away once it's there. In Southampton, this is worth taking seriously because the geology varies considerably across the city. Ground in the north tends to be more slowly permeable, and areas closer to the rivers and reclaimed land near the Itchen and Test can sit with higher groundwater through the wetter months. That means a lawn that drains adequately in summer can stay soggy for days after autumn or winter rain. Sorting it properly means identifying which of those causes is actually at play, because the fix for a surface-level fall is different from the fix for ground that simply can't take the water.",
+        "after": "A soggy lawn usually has one of three causes. The ground beneath may drain too slowly to absorb what falls on it. The surface may fall the wrong way, pooling water rather than shedding it. Or there's nowhere for the water to go once it's there. Southampton's geology varies across the city. Ground in the north is often more slowly permeable. Near the rivers and reclaimed land, groundwater can stay high through the wetter months. Drainage work or regrading through our [landscape designer](/landscape-designer/) service can address all three causes.",
+        "kept": true,
+        "score_before": 6,
+        "score_after": 2
+      },
+      {
+        "round": 1,
+        "field": "home_hero_intro",
+        "problems": [
+          "Sentence 1: the keyword \"landscaper in Southampton\" isn't there as a phrase."
+        ],
+        "before": "[CV: company_name] is a landscaper in Romsey and the surrounding areas. Every job comes with fixed prices and no hidden costs, so the figure you agree is the figure you pay.",
+        "after": "[CV: company_name] is a landscaper in Southampton, covering Romsey and the surrounding areas. Every job comes with fixed prices and no hidden costs, so the figure you agree is the figure you pay.",
+        "kept": true,
+        "score_before": 100,
+        "score_after": 0
+      },
+      {
+        "round": 1,
+        "field": "point_body (Fixed Prices With No Hidden Costs)",
+        "problems": [
+          "Repeats \"in full before we start\" from home_content_block_body. Reword it."
+        ],
+        "before": "Every job is quoted in full before we start. The price we agree covers the work as described, and it doesn't change unless the scope changes and you've agreed to that. No additions quietly added to the final invoice.",
+        "after": "The price we quote covers the job as described. It doesn't change once work is underway unless the scope changes and you've agreed to that first. What you see on the quote is what appears on the final invoice.",
+        "kept": true,
+        "score_before": 1,
+        "score_after": 0
+      },
+      {
+        "round": 1,
+        "field": "faq_answer (Is the quote free and no obligation?)",
+        "problems": [
+          "Repeats \"a full price for the\" from step_body (We Visit and Price the Job). Reword it."
+        ],
+        "before": "Yes, the quote is free and there's no obligation to go ahead. You'll get a full price for the job before anything is agreed, and you're under no pressure to commit on the day.",
+        "after": "Yes, the quote is free and there's no obligation to go ahead. You'll see the price for every element of the job before anything is agreed, and you're under no pressure to commit on the day.",
+        "kept": true,
+        "score_before": 1,
+        "score_after": 0
+      },
+      {
+        "round": 2,
+        "field": "home_content_block_body",
+        "problems": [
+          "A sentence of 29 words (soft cap 25): \"The substantial gardens on parts of Oak and Obelisk roads in…\". Split it."
+        ],
+        "before": "We're a family run landscaper in Southampton, covering gardens of every shape and size across the city and the towns nearby.\n\nTwo neighbourhoods that keep us busy are Bassett Heath and Old Woolston. In Bassett Heath, the plots along roads like Saxholm Way and Pinehurst Road are long, often around a quarter of an acre. That scale means garden layout and tree root management play a much bigger role than in a compact terraced street. Old Woolston is hilly, with streets rising away from the Itchen. The substantial gardens on parts of Oak and Obelisk roads include mature lime, oak and beech, so level changes, retaining features and careful boundary work matter alongside the planting.\n\nFor regular upkeep, our [gardener](/gardener/) and [lawn care service](/lawn-care-service/) cover mowing, hedge trimming, weed control and seeding. Bigger projects go through our [landscape gardener](/landscape-gardener/) team, who handle driveways, new lawns, paving and walling, garden steps and full garden makeovers. Where the design comes first, our [landscape designer](/landscape-designer/) service covers garden design, drainage and design and build projects. We also carry out tree work through our [tree service](/tree-service/) for pruning, removal and stump grinding.\n\nA concern we hear often is that a price will grow once the job starts. We quote every job in full before we start, and what we agree is what you pay. Being family run means [CV: owner_name] stays involved throughout, so there's always one person to talk to if anything needs adjusting.\n\nWe work across Southampton and into [landscaping in Romsey](/locations/romsey/), [landscaping in Winchester](/locations/winchester/) and [landscaping in Eastleigh](/locations/eastleigh/), and everywhere in between. Call [CV: phone] to talk through what your garden needs.",
+        "after": "We're a family run landscaper in Southampton, covering gardens of every shape and size across the city and the towns nearby.\n\nTwo neighbourhoods that keep us busy are Bassett Heath and Old Woolston. In Bassett Heath, the plots along roads like Saxholm Way and Pinehurst Road are long, often around a quarter of an acre. That scale means garden layout and tree root management play a much bigger role than in a compact terraced street. Old Woolston is hilly, with streets rising away from the Itchen. The gardens on parts of Oak and Obelisk roads include mature lime, oak and beech. Level changes, retaining features and careful boundary work matter alongside the planting on those plots.\n\nFor regular upkeep, our [gardener](/gardener/) and [lawn care service](/lawn-care-service/) cover mowing, hedge trimming, weed control and seeding. Bigger projects go through our [landscape gardener](/landscape-gardener/) team, who handle driveways, new lawns, paving and walling, garden steps and full garden makeovers. Where the design comes first, our [landscape designer](/landscape-designer/) service covers garden design, drainage and design and build projects. We also carry out tree work through our [tree service](/tree-service/) for pruning, removal and stump grinding.\n\nA concern we hear often is that a price will grow once the job starts. We quote every job in full before we start, and what we agree is what you pay. Being family run means [CV: owner_name] stays involved throughout, so there's always one person to talk to if anything needs adjusting.\n\nWe work across Southampton and into [landscaping in Romsey](/locations/romsey/), [landscaping in Winchester](/locations/winchester/) and [landscaping in Eastleigh](/locations/eastleigh/), and everywhere in between. Call [CV: phone] to talk through what your garden needs.",
+        "kept": true,
+        "score_before": 1,
+        "score_after": 0
+      },
+      {
+        "round": 2,
+        "field": "card_text (Gardener)",
+        "problems": [
+          "The timescale \"one month\" is not in the client values. Give the factors that decide it, without a time."
+        ],
+        "before": "Keeping a garden tidy from one month to the next takes more than an occasional visit. Our [gardener](/gardener/) work covers lawn mowing, hedge trimming and weed control for homes across Southampton. We'll tell you what your garden actually needs rather than suggest work it doesn't.",
+        "after": "Keeping a garden looking right takes consistent attention, but how often that means a visit depends on what's growing and how fast. Our [gardener](/gardener/) work covers lawn mowing, hedge trimming and weed control for homes across Southampton. We'll tell you what your garden actually needs rather than suggest work it doesn't.",
+        "kept": true,
+        "score_before": 100,
+        "score_after": 0
+      },
+      {
+        "round": 2,
+        "field": "card_text (Landscape Gardener)",
+        "problems": [
+          "57 words: it must be 40 to 55.",
+          "Names 7 services (driveways and paths, garden makeovers, paving and walling, new lawns, garden steps, retaining walls, turf laying). Name 2 or 3, in a sentence, not a list."
+        ],
+        "before": "Ready to change what your garden looks like from the ground up? Our [landscape gardener](/landscape-gardener/) team handles driveways and paths, paving and walling, new lawns, turf laying, garden steps, retaining walls and full garden makeovers. Each job is planned before it starts and completed to the agreed scope, so there are no loose ends when we leave.",
+        "after": "A full garden makeover takes the garden you have and replaces it with one that works. Our [landscape gardener](/landscape-gardener/) team handles new lawns, paving and walling, and retaining walls for Southampton homes. Every job is scoped in full before groundwork starts, so the finished garden matches what was agreed.",
+        "kept": true,
+        "score_before": 2,
+        "score_after": 1
+      },
+      {
+        "round": 2,
+        "field": "card_text (Landscape Designer)",
+        "problems": [
+          "A sentence of 29 words (soft cap 25): \"Our landscape designer work covers garden design and drainag…\". Split it."
+        ],
+        "before": "Getting the plan right before groundwork starts prevents expensive mistakes later. Our [landscape designer](/landscape-designer/) work covers garden design and drainage planning for Southampton homes where awkward levels or a layout that has never quite worked need thinking through properly first. Good design means the build goes smoothly and the result lasts.",
+        "after": "Getting the plan right before groundwork starts prevents costly mistakes. Our [landscape designer](/landscape-designer/) covers garden design and drainage for Southampton homes where awkward levels or a layout that has never quite worked need thinking through first. A clear design means the build runs to plan and the result holds up.",
+        "kept": false,
+        "score_before": 1,
+        "score_after": 1
+      },
+      {
+        "round": 2,
+        "field": "card_text (Lawn Care Service)",
+        "problems": [
+          "59 words: it must be 40 to 55."
+        ],
+        "before": "A lawn that stays green and even through the year needs more than regular mowing. Our [lawn care service](/lawn-care-service/) covers seeding, turf laying and ongoing lawn maintenance to get grass into good shape and keep it there. For gardens where the lawn is the centrepiece, we treat it as a project in its own right rather than an afterthought.",
+        "after": "Turf laying, seeding and ongoing lawn maintenance all sit within our [lawn care service](/lawn-care-service/). Whether a lawn needs starting from scratch or just consistent care through the growing season, we look at what the grass actually needs rather than applying the same approach to every garden.",
+        "kept": false,
+        "score_before": 1,
+        "score_after": 1
+      },
+      {
+        "round": 2,
+        "field": "card_text (Paving Contractor)",
+        "problems": [
+          "Names 6 services (block paving, concrete bases, new driveways, driveway replacement, groundwork and levelling, patios). Name 2 or 3, in a sentence, not a list."
+        ],
+        "before": "A patio or driveway is only as good as what's underneath it. Our [paving contractor](/paving-contractor/) team carries out block paving, new driveways, driveway replacement, concrete bases, patios and groundwork and levelling. We handle everything from breaking out the old surface to finishing the edges, so the job is complete when we leave.",
+        "after": "Driveways and patios fail when the base underneath isn't prepared properly. Our [paving contractor](/paving-contractor/) team handles new driveways, concrete bases and patios for Southampton homes, managing everything from groundwork and levelling to the finished surface so the job holds up for years.",
+        "kept": false,
+        "score_before": 1,
+        "score_after": 2
+      },
+      {
+        "round": 2,
+        "field": "point_body (Local Experience Behind Every Job)",
+        "problems": [
+          "A sentence of 39 words (soft cap 25): \"Over 100 jobs completed across Southampton means we've worke…\". Split it."
+        ],
+        "before": "Over 100 jobs completed across Southampton means we've worked on the kinds of gardens that come up here: long sloping plots, mature trees near boundaries, clay heavy ground in the north and tighter terraced gardens closer to the water.",
+        "after": "Over 100 jobs across Southampton means we've worked on what comes up here. Long sloping plots, mature trees near boundaries, clay heavy ground in the north and tighter terraced gardens closer to the water.",
+        "kept": true,
+        "score_before": 1,
+        "score_after": 0
+      },
+      {
+        "round": 2,
+        "field": "home_areas_intro",
+        "problems": [
+          "A sentence of 27 words (soft cap 25): \"Jobs take us across the city and out to towns and villages n…\". Split it."
+        ],
+        "before": "Based in Southampton, we travel up to 20 miles inland and along the coast. Jobs take us across the city and out to towns and villages nearby, from the New Forest edge to the Eastleigh corridor and as far as Winchester.",
+        "after": "Based in Southampton, we travel up to 20 miles inland and along the coast. Jobs take us across the city and out to towns and villages nearby — from the New Forest edge to Winchester and the Eastleigh corridor.\n\nWait — no dashes allowed. Let me rewrite.\n\nhome_areas_intro: Based in Southampton, we travel up to 20 miles inland and along the coast. Our work takes us across the city and into the towns nearby. That includes the New Forest edge, the Eastleigh corridor and as far as Winchester.",
+        "kept": false,
+        "score_before": 1,
+        "score_after": 102
+      },
+      {
+        "round": 2,
+        "field": "faq_answer (Are you insured?)",
+        "problems": [
+          "A sentence of 29 words (soft cap 25): \"If something is accidentally damaged during the work, such a…\". Split it.",
+          "Repeats \"is underway if something is\" from point_body (Insured up to £5m). Reword it."
+        ],
+        "before": "Yes. We're covered up to £5m in public liability insurance. That cover applies while the job is underway. If something is accidentally damaged during the work, such as a branch coming down during tree pruning and catching a nearby structure, there's an insurance process to handle it. The cover also applies to accidental injury to others during the job.",
+        "after": "Yes. We're covered up to £5m in public liability insurance. That cover is active throughout the job. If a branch comes down during tree pruning and catches a nearby structure, there's an insurance process to deal with it. The cover also extends to accidental injury to others while work is in progress.",
+        "kept": true,
+        "score_before": 2,
+        "score_after": 1
+      },
+      {
+        "round": 2,
+        "field": "faq_answer (How soon can you start?)",
+        "problems": [
+          "A sentence of 26 words (soft cap 25): \"Call us on CVTOKEN or send a message and we'll let you know …\". Split it."
+        ],
+        "before": "We can usually start within the same week. That's true for most jobs, whether it's a single day's work or the beginning of a larger project. Call us on [CV: phone] or send a message and we'll let you know what's available once we've had a chance to talk through what you need.",
+        "after": "We can usually start within the same week. That applies to every job, whether it's a single day's work or the beginning of something larger. Call us on [CV: phone] or send a message. We'll let you know what's available once we've talked through what you need.",
+        "kept": true,
+        "score_before": 1,
+        "score_after": 0
+      },
+      {
+        "round": 2,
+        "field": "faq_answer (How long does a garden landscaping project take?)",
+        "problems": [
+          "81 words: it must be 30 to 70.",
+          "The first sentence is 19 words. Answer the question first, in 15 words or fewer."
+        ],
+        "before": "The time depends on the scale of the job and what the ground needs before anything else can happen. Straightforward planting or turfing wraps up faster than a project that involves drainage, levelling, paving and fencing together. Ground preparation can add time on wetter or more slowly permeable plots in the north of the city. Weather can also move hard landscaping days if conditions make it impractical to lay or compact materials. We'll give you a realistic timeframe when we quote.",
+        "after": "It depends on the scale and what the ground needs before other work can start. Planting or turfing finishes faster than a project combining drainage, levelling, paving and fencing. Ground preparation can add time on more slowly permeable plots. Weather can also move hard landscaping days. We'll give you a realistic timeframe when we quote.",
+        "kept": true,
+        "score_before": 2,
+        "score_after": 0
+      },
+      {
+        "round": 2,
+        "field": "faq_answer (Why does water sit on my patio or lawn after rain?)",
+        "problems": [
+          "89 words: it must be 30 to 70.",
+          "Back to back sentences start with \"the\"."
+        ],
+        "before": "A soggy lawn usually has one of three causes. The ground beneath may drain too slowly to absorb what falls on it. The surface may fall the wrong way, pooling water rather than shedding it. Or there's nowhere for the water to go once it's there. Southampton's geology varies across the city. Ground in the north is often more slowly permeable. Near the rivers and reclaimed land, groundwater can stay high through the wetter months. Drainage work or regrading through our [landscape designer](/landscape-designer/) service can address all three causes.",
+        "after": "A soggy lawn or patio usually comes down to one of three things: ground that drains too slowly to absorb what falls on it, a surface pitched the wrong way, or nowhere for the water to go once it arrives. Southampton's geology varies, and ground near the rivers and reclaimed land can hold water longer. Our [landscape designer](/landscape-designer/) service covers drainage as part of any project.",
+        "kept": false,
+        "score_before": 2,
+        "score_after": 3
+      },
+      {
+        "round": 2,
+        "field": "card_text (Tree Service)",
+        "problems": [
+          "Repeats \"pruning removal and stump grinding\" from home_content_block_body. Reword it."
+        ],
+        "before": "Trees need the right assessment before any work starts, especially on sloping ground or where roots are close to walls. Our [tree service](/tree-service/) covers pruning, removal and stump grinding for Southampton gardens, with every job looked at properly on site before we touch anything.",
+        "after": "Trees in Southampton gardens often sit close to boundaries, walls or structures that need protecting during any work. Our [tree service](/tree-service/) covers stump removal, tree planting and tree pruning, with every job assessed on site first so we understand exactly what we're dealing with before we begin.",
+        "kept": false,
+        "score_before": 1,
+        "score_after": 1
+      },
+      {
+        "round": 2,
+        "field": "faq_answer (Which areas do you cover?)",
+        "problems": [
+          "Repeats \"travel up to 20 miles\" from home_areas_intro. Reword it."
+        ],
+        "before": "Yes, we cover Southampton and travel up to 20 miles inland and along the coast. Towns and villages in our area include [Romsey](/locations/romsey/), [Winchester](/locations/winchester/), [Eastleigh](/locations/eastleigh/), [Chandlers Ford](/locations/chandlers-ford/), [Hedge End](/locations/hedge-end/), [Lyndhurst](/locations/lyndhurst/), [Stockbridge](/locations/stockbridge/), [Lockerley](/locations/lockerley/), [Awbridge](/locations/awbridge/), [Chilworth](/locations/chilworth/), [Ampfield](/locations/ampfield/) and [Kings Worthy](/locations/kings-worthy/). Not sure if you're in range? Call [CV: phone] and we'll let you know.",
+        "after": "Southampton and the towns and villages nearby, yes. Our work takes us to [Romsey](/locations/romsey/), [Winchester](/locations/winchester/), [Eastleigh](/locations/eastleigh/), [Chandlers Ford](/locations/chandlers-ford/), [Hedge End](/locations/hedge-end/), [Lyndhurst](/locations/lyndhurst/), [Stockbridge](/locations/stockbridge/), [Lockerley](/locations/lockerley/), [Awbridge](/locations/awbridge/), [Chilworth](/locations/chilworth/), [Ampfield](/locations/ampfield/) and [Kings Worthy](/locations/kings-worthy/). Not sure if you're in range? Call [CV: phone] and we'll let you know.",
+        "kept": false,
+        "score_before": 1,
+        "score_after": 1
+      }
+    ],
+    "retry_usage": {
+      "calls": 40,
+      "input_tokens": 113750,
+      "output_tokens": 3859,
+      "cache_read_input_tokens": 719920
+    }
+  },
+  "seo_title": "Landscaper Southampton | Edens Edge Landscaping",
+  "meta_description": "Landscaper Southampton from Edens Edge Landscaping. Fixed prices with no hidden costs. Get your free quote today.",
+  "home_hero_h1": "Landscaper Southampton",
+  "home_hero_trust_line": "100+ Jobs Completed",
+  "home_hero_intro": "[CV: company_name] is a landscaper in Southampton, covering Romsey and the surrounding areas. Every job comes with fixed prices and no hidden costs, so the figure you agree is the figure you pay.",
+  "home_hero_rating_line": "",
+  "buttons": [
+    "Get My Free Quote",
+    "Call [CV: phone]"
+  ],
+  "home_trusted_logos": "HIDDEN",
+  "home_content_block_h2": "Local Landscaping in Southampton and Nearby Towns",
+  "home_content_block_body": "We're a family run landscaper in Southampton, covering gardens of every shape and size across the city and the towns nearby.\n\nTwo neighbourhoods that keep us busy are Bassett Heath and Old Woolston. In Bassett Heath, the plots along roads like Saxholm Way and Pinehurst Road are long, often around a quarter of an acre. That scale means garden layout and tree root management play a much bigger role than in a compact terraced street. Old Woolston is hilly, with streets rising away from the Itchen. The gardens on parts of Oak and Obelisk roads include mature lime, oak and beech. Level changes, retaining features and careful boundary work matter alongside the planting on those plots.\n\nFor regular upkeep, our [gardener](/gardener/) and [lawn care service](/lawn-care-service/) cover mowing, hedge trimming, weed control and seeding. Bigger projects go through our [landscape gardener](/landscape-gardener/) team, who handle driveways, new lawns, paving and walling, garden steps and full garden makeovers. Where the design comes first, our [landscape designer](/landscape-designer/) service covers garden design, drainage and design and build projects. We also carry out tree work through our [tree service](/tree-service/) for pruning, removal and stump grinding.\n\nA concern we hear often is that a price will grow once the job starts. We quote every job in full before we start, and what we agree is what you pay. Being family run means [CV: owner_name] stays involved throughout, so there's always one person to talk to if anything needs adjusting.\n\nWe work across Southampton and into [landscaping in Romsey](/locations/romsey/), [landscaping in Winchester](/locations/winchester/) and [landscaping in Eastleigh](/locations/eastleigh/), and everywhere in between. Call [CV: phone] to talk through what your garden needs.",
+  "home_services_h2": "Our Landscaping Services in Southampton",
+  "home_services_intro": "From lawn care and hedge trimming to full garden redesigns, driveways and tree work, our landscaping covers the jobs Southampton homeowners need most. We work with private gardens of all sizes, from compact terraced plots to larger detached properties across the city and nearby towns.",
+  "cards": [
+    {
+      "card_name": "Gardener",
+      "card_text": "Keeping a garden looking right takes consistent attention, but how often that means a visit depends on what's growing and how fast. Our [gardener](/gardener/) work covers lawn mowing, hedge trimming and weed control for homes across Southampton. We'll tell you what your garden actually needs rather than suggest work it doesn't.",
+      "card_url": "/gardener"
+    },
+    {
+      "card_name": "Landscape Gardener",
+      "card_text": "A full garden makeover takes the garden you have and replaces it with one that works. Our [landscape gardener](/landscape-gardener/) team handles new lawns, paving and walling, and retaining walls for Southampton homes. Every job is scoped in full before groundwork starts, so the finished garden matches what was agreed.",
+      "card_url": "/landscape-gardener"
+    },
+    {
+      "card_name": "Landscape Designer",
+      "card_text": "Getting the plan right before groundwork starts prevents expensive mistakes later. Our [landscape designer](/landscape-designer/) work covers garden design and drainage planning for Southampton homes where awkward levels or a layout that has never quite worked need thinking through properly first. Good design means the build goes smoothly and the result lasts.",
+      "card_url": "/landscape-designer"
+    },
+    {
+      "card_name": "Lawn Care Service",
+      "card_text": "A lawn that stays green and even through the year needs more than regular mowing. Our [lawn care service](/lawn-care-service/) covers seeding, turf laying and ongoing lawn maintenance to get grass into good shape and keep it there. For gardens where the lawn is the centrepiece, we treat it as a project in its own right rather than an afterthought.",
+      "card_url": "/lawn-care-service"
+    },
+    {
+      "card_name": "Tree Service",
+      "card_text": "Trees need the right assessment before any work starts, especially on sloping ground or where roots are close to walls. Our [tree service](/tree-service/) covers pruning, removal and stump grinding for Southampton gardens, with every job looked at properly on site before we touch anything.",
+      "card_url": "/tree-service"
+    },
+    {
+      "card_name": "Paving Contractor",
+      "card_text": "A patio or driveway is only as good as what's underneath it. Our [paving contractor](/paving-contractor/) team carries out block paving, new driveways, driveway replacement, concrete bases, patios and groundwork and levelling. We handle everything from breaking out the old surface to finishing the edges, so the job is complete when we leave.",
+      "card_url": "/paving-contractor"
+    },
+    {
+      "card_name": "Deck Builder",
+      "card_text": "Decking that's built well is low maintenance for years. Our [deck builder](/deck-builder/) service covers new deck installation, composite decking and pergolas for Southampton gardens. Where an existing deck needs attention, we look at what's caused the problem before we start replacing sections.",
+      "card_url": "/deck-builder"
+    }
+  ],
+  "home_services_more_line": "HIDDEN",
+  "home_why_h2": "Why Southampton Homeowners Choose Edens Edge Landscaping",
+  "points": [
+    {
+      "point_title": "Local Experience Behind Every Job",
+      "point_body": "Over 100 jobs across Southampton means we've worked on what comes up here. Long sloping plots, mature trees near boundaries, clay heavy ground in the north and tighter terraced gardens closer to the water."
+    },
+    {
+      "point_title": "Insured up to £5m",
+      "point_body": "We carry public liability insurance up to £5m, covering accidental damage to your property and injury to others while work is underway. If something is caught during tree work or groundwork, there's a proper insurance process to deal with it."
+    },
+    {
+      "point_title": "Fixed Prices With No Hidden Costs",
+      "point_body": "The price we quote covers the job as described. It doesn't change once work is underway unless the scope changes and you've agreed to that first. What you see on the quote is what appears on the final invoice."
+    },
+    {
+      "point_title": "Family Run and Independent",
+      "point_body": "Being family run means one person sees the job through from quote to completion. You'll always reach someone who knows your garden, can answer questions directly and has the authority to sort anything that needs sorting."
+    }
+  ],
+  "home_reviews_show": false,
+  "home_reviews_h2": "HIDDEN",
+  "home_process_h2": "Your Free Quote in 3 Simple Steps",
+  "steps": [
+    {
+      "step_title": "Tell Us About Your Garden",
+      "step_body": "Call us or drop a message with a rough idea of your garden size, what you'd like done, and any photos you have."
+    },
+    {
+      "step_title": "We Visit and Price the Job",
+      "step_body": "We come out to look at the garden in person, checking levels, drainage, access and what's staying or going. From that we put together a full price for the job."
+    },
+    {
+      "step_title": "We Start on a Date That Suits You",
+      "step_body": "Once you're happy with the quote, we agree a start date that works for you. The job runs to the plan we've agreed, so you know what's happening and when."
+    }
+  ],
+  "cta_band": {
+    "heading": "Ready to talk to a local landscaper?",
+    "line": "Tell us about your garden and we'll get back to you.",
+    "buttons": [
+      "Get My Free Quote",
+      "Call [CV: phone]"
+    ]
+  },
+  "home_owner_show": true,
+  "home_owner_h2": "Meet Test Owner, the Landscaper Behind Edens Edge Landscaping",
+  "home_owner_body": "After years working on other people's gardens, I decided to run jobs the way I'd want them run on my own home. My [CV: owner_qualification] gives me the grounding to handle what we take on across Southampton. The part I'm most straightforward about: if a job isn't worth doing the way you've imagined it, I'll tell you before anything is agreed. You'll get an honest view, not a quote for work you don't need.",
+  "home_areas_h2": "Where Our Landscapers Work Around Southampton",
+  "home_areas_intro": "Based in Southampton, we travel up to 20 miles inland and along the coast. Jobs take us across the city and out to towns and villages nearby, from the New Forest edge to the Eastleigh corridor and as far as Winchester.",
+  "home_areas_links": [
+    {
+      "name": "Southampton",
+      "url": null
+    },
+    {
+      "name": "Ampfield",
+      "url": "/locations/ampfield"
+    },
+    {
+      "name": "Awbridge",
+      "url": "/locations/awbridge"
+    },
+    {
+      "name": "Chandlers Ford",
+      "url": "/locations/chandlers-ford"
+    },
+    {
+      "name": "Chilworth",
+      "url": "/locations/chilworth"
+    },
+    {
+      "name": "Eastleigh",
+      "url": "/locations/eastleigh"
+    },
+    {
+      "name": "Hedge End",
+      "url": "/locations/hedge-end"
+    },
+    {
+      "name": "Kings Worthy",
+      "url": "/locations/kings-worthy"
+    },
+    {
+      "name": "Lockerley",
+      "url": "/locations/lockerley"
+    },
+    {
+      "name": "Lyndhurst",
+      "url": "/locations/lyndhurst"
+    },
+    {
+      "name": "Romsey",
+      "url": "/locations/romsey"
+    },
+    {
+      "name": "Stockbridge",
+      "url": "/locations/stockbridge"
+    },
+    {
+      "name": "Winchester",
+      "url": "/locations/winchester"
+    },
+    {
+      "name": "New Forest",
+      "url": null
+    }
+  ],
+  "home_faq_h2": "Your Landscaping Questions Answered",
+  "faq_items": [
+    {
+      "faq_question": "How much does landscaping cost in Southampton?",
+      "faq_answer": "Landscaping costs vary with garden size, ground conditions and what the job involves. A flat, clear plot is a different job to a sloping Woolston garden with mature trees and level changes to manage. Quotes are free, so a site visit is the right starting point for a proper figure."
+    },
+    {
+      "faq_question": "Are you insured?",
+      "faq_answer": "Yes. We're covered up to £5m in public liability insurance. That cover is active throughout the job. If a branch comes down during tree pruning and catches a nearby structure, there's an insurance process to deal with it. The cover also extends to accidental injury to others while work is in progress."
+    },
+    {
+      "faq_question": "What happens if something isn't right after the job?",
+      "faq_answer": "Call us and tell us what the issue is. Every trade in the UK works to a standard of reasonable care and skill. That means the job should be done properly and to a standard that holds up. If something doesn't meet that standard, raise it with us directly. We'd always sooner know and have the chance to make it right than leave a customer unhappy."
+    },
+    {
+      "faq_question": "How soon can you start?",
+      "faq_answer": "We can usually start within the same week. That applies to every job, whether it's a single day's work or the beginning of something larger. Call us on [CV: phone] or send a message. We'll let you know what's available once we've talked through what you need."
+    },
+    {
+      "faq_question": "Is the quote free and no obligation?",
+      "faq_answer": "Yes, the quote is free and there's no obligation to go ahead. You'll see the price for every element of the job before anything is agreed, and you're under no pressure to commit on the day."
+    },
+    {
+      "faq_question": "Which areas do you cover?",
+      "faq_answer": "Yes, we cover Southampton and travel up to 20 miles inland and along the coast. Towns and villages in our area include [Romsey](/locations/romsey/), [Winchester](/locations/winchester/), [Eastleigh](/locations/eastleigh/), [Chandlers Ford](/locations/chandlers-ford/), [Hedge End](/locations/hedge-end/), [Lyndhurst](/locations/lyndhurst/), [Stockbridge](/locations/stockbridge/), [Lockerley](/locations/lockerley/), [Awbridge](/locations/awbridge/), [Chilworth](/locations/chilworth/), [Ampfield](/locations/ampfield/) and [Kings Worthy](/locations/kings-worthy/). Not sure if you're in range? Call [CV: phone] and we'll let you know."
+    },
+    {
+      "faq_question": "How long does a garden landscaping project take?",
+      "faq_answer": "It depends on the scale and what the ground needs before other work can start. Planting or turfing finishes faster than a project combining drainage, levelling, paving and fencing. Ground preparation can add time on more slowly permeable plots. Weather can also move hard landscaping days. We'll give you a realistic timeframe when we quote."
+    },
+    {
+      "faq_question": "Why does water sit on my patio or lawn after rain?",
+      "faq_answer": "A soggy lawn usually has one of three causes. The ground beneath may drain too slowly to absorb what falls on it. The surface may fall the wrong way, pooling water rather than shedding it. Or there's nowhere for the water to go once it's there. Southampton's geology varies across the city. Ground in the north is often more slowly permeable. Near the rivers and reclaimed land, groundwater can stay high through the wetter months. Drainage work or regrading through our [landscape designer](/landscape-designer/) service can address all three causes."
+    }
+  ],
+  "home_final_cta_h2": "Get a Free Quote From a Local Landscaper in Southampton",
+  "home_final_cta_body": "Share a few details about your garden and we'll arrange a visit, give you a full price and answer any questions before anything is agreed.",
+  "home_final_cta_trust_lines": [
+    "[CV: hours]"
+  ],
+  "meta": {
+    "generated_at": "2026-10-14T10:22:46.246Z",
+    "model": "claude-sonnet-4-6",
+    "prompt": "Homepage_Copywriting_Prompt_CORE (20).md",
+    "niche": "Niche_Library_Landscaper (2).md",
+    "calibration_pack": "Landscaper Gardener",
+    "allocation_source": "model",
+    "stand_ins": [
+      "owner_why",
+      "owner_promise",
+      "owner_photo",
+      "hours"
+    ],
+    "decisions_block": "PAGE: homepage, slug /, keyword: Landscaper Southampton\n\nDECISIONS:\n\nH1: Landscaper Southampton\nSEO title: Landscaper Southampton | Edens Edge Landscaping\nMeta description: Landscaper Southampton from Edens Edge Landscaping. Fixed prices with no hidden costs. Get your free quote today.\nTrust line: 100+ Jobs Completed\nRating line: none\n\nSection 2 (Trusted logos): HIDDEN\nSection 6 (Reviews): HIDDEN\nSection 9 (Owner): SHOWN\n\n--- HEADINGS ---\nContent block H2: Local Landscaping in Southampton and Nearby Towns\nServices H2: Our Landscaping Services in Southampton\nWhy H2: Why Southampton Homeowners Choose Edens Edge Landscaping\nReviews H2: What Southampton Homeowners Say About Us\nProcess H2: Your Free Quote in 3 Simple Steps\nCTA band: Ready to talk to a local landscaper?\nCTA band line (code, fixed): Tell us about your garden and we'll get back to you.\nOwner H2: Meet Test Owner, the Landscaper Behind Edens Edge Landscaping\nAreas H2: Where Our Landscapers Work Around Southampton\nFAQ H2: Your Landscaping Questions Answered\nFinal CTA H2: Get a Free Quote From a Local Landscaper in Southampton\n\nContent block: EXPANDING (up to 300 words)\n\n--- D13 CONTENT BLOCK LINK SET ---\n  Gardener → /gardener\n  Landscape Gardener → /landscape-gardener\n  Landscape Designer → /landscape-designer\n  Lawn Care Service → /lawn-care-service\n\nD14 Hero intro town: Romsey (/locations/romsey)\n\n--- D9 SERVICE CARDS ---\n  1. Gardener [Launching /gardener | H1: Gardener Southampton]\n  2. Landscape Gardener [Launching /landscape-gardener | H1: Landscape Gardener Southampton]\n  3. Landscape Designer [Launching /landscape-designer | H1: Landscape Designer Southampton]\n  4. Lawn Care Service [Launching /lawn-care-service | H1: Lawn Care Service Southampton]\n  5. Tree Service [Launching /tree-service | H1: Tree Service Southampton]\n  6. Paving Contractor [Launching /paving-contractor | H1: Paving Contractor Southampton]\n  7. Deck Builder [Launching /deck-builder | H1: Deck Builder Southampton]\n\n--- D10 WHY CHOOSE US POINTS ---\n  Local Experience Behind Every Job\n    Fear addressed: a firm that has not done this kind of garden before\n  Insured up to £5m\n    Fear addressed: groundwork that fails later (patios that sink or hold water, fences that lean)\n  Fixed Prices With No Hidden Costs\n    Fear addressed: a price that grows once the job starts\n  Family Run and Independent\n    Fear addressed: being left with a half finished garden and no idea what happens next\n\n--- PROCESS STEPS ---\n  Tell Us About Your Garden\n    Brief: How to get in touch and what is useful to send first (rough size, what they want, photos if they have them). No promise of a reply time unless [CV: response_time] is set.\n  We Visit and Price the Job\n    Brief: The visit and what gets looked at on site (levels, drainage, access, what stays and what goes). Follows [CV: quote_method]; only say the quote is written if quote_method says so. Never restates 'free' (FAQ 5 owns it).\n  We Start on a Date That Suits You\n    Brief: The start date is agreed in advance and the job runs to the agreed plan. Never restates the start time (FAQ 4 owns it). Mixed A/B clients add one line on ongoing maintenance visits.\n\n--- D11 FAQ QUESTIONS ---\n  Q1: How much does landscaping cost in Southampton? [Price]\n  Q2: Are you insured? [Trust]\n    → The cover figure and what it means for the customer if something is damaged during the job.\n  Q3: What happens if something isn't right after the job? [Trust]\n    → Used when nothing in cover_chain other than insurance is confirmed. Answer from the 'reasonable care and skill' standard every trade works to, and how to raise it. Never invent a guarantee.\n  Q4: How soon can you start? [Timing]\n    → From [CV: start_time] only, as given. Say the start time exactly as [CV: start_time] gives it: never narrow it to \"smaller jobs\" or \"most jobs\". Never mention bigger projects taking longer to book.\n  Q5: Is the quote free and no obligation? [Price]\n    → Yes: quotes are free (confirmed). quote_method is blank: do not describe how quotes are given, a visit, or a turnaround time.\n  Q6: Which areas do you cover? [Fit]\n  Q7: How long does a garden landscaping project take? [Timing]\n    → Depends on size, groundwork and materials. Give the factors, not a number unless confirmed. Weather can move hard landscaping days.\n  Q8: Why does water sit on my patio or lawn after rain? [Process, symptom]\n    → Use the assigned symptom's meaning and its linked local issue. Three genuinely different causes in plain words: ground underneath that drains slowly, a surface that falls the wrong way, no drain or soakaway to take the water. Then what the local ground adds, then the fix.\n\n--- D12 AREA LIST ---\n  Primary: Southampton (plain text)\n  Ampfield (linked: /locations/ampfield)\n  Awbridge (linked: /locations/awbridge)\n  Chandlers Ford (linked: /locations/chandlers-ford)\n  Chilworth (linked: /locations/chilworth)\n  Eastleigh (linked: /locations/eastleigh)\n  Hedge End (linked: /locations/hedge-end)\n  Kings Worthy (linked: /locations/kings-worthy)\n  Lockerley (linked: /locations/lockerley)\n  Lyndhurst (linked: /locations/lyndhurst)\n  Romsey (linked: /locations/romsey)\n  Stockbridge (linked: /locations/stockbridge)\n  Winchester (linked: /locations/winchester)\n  New Forest (plain text)\n\nD15 Buttons: Get My Free Quote | Call 023 0000 0000\nEmergency layout: off\n[QUOTE_FREE]: Free\nPrimary city coastal: yes. Write the travel distance as \"inland and along the coast\", never compass directions or \"in each direction\"\nLocations hub: none (the areas FAQ links no hub)\n\nLINKABLE PAGES:\n  [category] /gardener | H1: Gardener Southampton\n  [category] /landscape-gardener | H1: Landscape Gardener Southampton\n  [category] /landscape-designer | H1: Landscape Designer Southampton\n  [category] /lawn-care-service | H1: Lawn Care Service Southampton\n  [category] /tree-service | H1: Tree Service Southampton\n  [category] /paving-contractor | H1: Paving Contractor Southampton\n  [category] /deck-builder | H1: Deck Builder Southampton\n  [location] /locations/romsey | H1: Landscaper Romsey\n  [location] /locations/winchester | H1: Landscaper Winchester\n  [location] /locations/eastleigh | H1: Landscaper Eastleigh\n  [location] /locations/chandlers-ford | H1: Landscaper Chandlers Ford\n  [location] /locations/ampfield | H1: Landscaper Ampfield\n  [location] /locations/stockbridge | H1: Landscaper Stockbridge\n  [location] /locations/awbridge | H1: Landscaper Awbridge\n  [location] /locations/chilworth | H1: Landscaper Chilworth\n  [location] /locations/hedge-end | H1: Landscaper Hedge End\n  [location] /locations/lyndhurst | H1: Landscaper Lyndhurst\n  [location] /locations/lockerley | H1: Landscaper Lockerley\n  [location] /locations/kings-worthy | H1: Landscaper Kings Worthy\n\nALLOCATED ITEMS:\n  Neighbourhood: Bassett Heath\n    Bassett Heath Avenue and nearby Bassett Dale, Saxholm Way, Saxholm Dale and Pinehurst Road contain large detached family houses, many on approximately quarter-acre plots. The neighbourhood plan identifies long, narrow plots in several of these roads and describes Bassett’s undulating, tree-rich setting. Long plots and mature planting give landscape layout and tree-root protection a more substantial role than in compact terraced streets (inferred). The council’s city-wide geology places London Clay principally in northern Southampton, but the available evidence does not prove the soil beneath each Bassett Heath garden is clay.\n  Neighbourhood: Old Woolston (conservation area)\n    Old Woolston’s conservation-area appraisal records large late-Victorian villas with generous private gardens on parts of Oak and Obelisk roads, alongside later subdivision into smaller plots. It names lime, acacia, oak, beech and sycamore as prominent trees in the Oak Road area. The suburb is slightly hilly; the Portsmouth Road conservation-area plots rise fairly steeply away from the Itchen and include mature trees and substantial front gardens. That combination links tree work, level changes, retaining features and sympathetic boundary treatment to particular streets, rather than to Woolston uniformly (inferred).\n  Symptom for Q8 (Why does water sit on my patio or lawn after rain?): \"The lawn stays soggy for days after rain.\"\n    Linked issue: Mixed geology and locally slow-draining ground\n    Detail: Southampton cannot accurately be described as having one garden soil. Council SuDS guidance maps London Clay predominantly in the north, Wittering Formation predominantly in the south, river-terrace material on higher ground and tidal-flat deposits by the Test and Itchen. It explicitly says urban soils are largely unsurveyed, although investigated sites include slowly permeable, seasonally waterlogged ground, particularly towards the coast and reclaimed land. Thus Bassett Heath and Hollybrook lie in the broad northern geological zone, while Bitterne Manor’s frontage, Millbrook and Northam illustrate lower waterside settings; assigning a soil type to an individual garden from that zone is (inferred).\n    The practical distinction is between a surface that lets water through and ground that can receive it. The council says impermeable soils and high groundwater can make infiltration drainage unsuitable; it discusses shallow, lined or above-ground attenuation where those constraints occur. It specifies that a soakaway base should be at least one metre above the maximum likely groundwater level and five metres from foundations and subsurface structures. For lawns, paths, patios and driveway landscaping, persistent wet patches and the destination of runoff are therefore separate physical questions (inferred). Shirley’s recorded groundwater incidents and Townhill Park’s identified susceptibility strengthen the local relevance without proving every plot there is waterlogged.\n    Angles:\n    - Cause: A permeable paving surface does not, by itself, establish that the soil beneath can absorb its stored water (inferred).\n    - Timing: The council identifies seasonal waterlogging and groundwater levels that vary through the year.\n    - Property type: Reclaimed and riverside land has a different documented groundwater setting from higher river-terrace ground.\n    Condition question: Why does water remain beneath my lawn or paving after rain?\n    Answer material: Southampton’s mapped geology varies, and the council reports slowly permeable soils at some investigated sites rather than across every neighbourhood. Groundwater can also be high close to the rivers and watercourses, so persistent wetness can have more than one local cause.\n\nMODEL FIELDS:\n  home_hero_intro\n  home_content_block_body (expand: up to 300 words)\n  home_services_intro\n  home_services_cards\n    - card_name: Gardener | card_text\n    - card_name: Landscape Gardener | card_text\n    - card_name: Landscape Designer | card_text\n    - card_name: Lawn Care Service | card_text\n    - card_name: Tree Service | card_text\n    - card_name: Paving Contractor | card_text\n    - card_name: Deck Builder | card_text\n  home_services_more_line (HIDDEN)\n  home_why_points\n    - point_title: Local Experience Behind Every Job | point_body\n    - point_title: Insured up to £5m | point_body\n    - point_title: Fixed Prices With No Hidden Costs | point_body\n    - point_title: Family Run and Independent | point_body\n  home_process_steps\n    - step_title: Tell Us About Your Garden | step_body\n    - step_title: We Visit and Price the Job | step_body\n    - step_title: We Start on a Date That Suits You | step_body\n  home_owner_body\n  home_areas_intro\n  home_faq_items\n    - faq_question: How much does landscaping cost in Southampton? | faq_answer\n    - faq_question: Are you insured? | faq_answer\n    - faq_question: What happens if something isn't right after the job? | faq_answer\n    - faq_question: How soon can you start? | faq_answer\n    - faq_question: Is the quote free and no obligation? | faq_answer\n    - faq_question: Which areas do you cover? | faq_answer\n    - faq_question: How long does a garden landscaping project take? | faq_answer\n    - faq_question: Why does water sit on my patio or lawn after rain? | faq_answer\n  home_final_cta_body\n  MODEL_FLAGS",
+    "raw_output": "```\n=== MODEL OUTPUT: homepage ===\n\nhome_hero_intro:\n[CV: company_name] is a landscaper in Romsey and the surrounding areas. Every job comes with fixed prices and no hidden costs, so the figure you agree is the figure you pay.\n\nhome_content_block_body:\nWe're a family run landscaper in Southampton, covering gardens of every shape and size across the city and the towns nearby. Our team of four has completed over 100 jobs in the area, from quick tidy-ups to full garden makeovers.\\n\\nTwo neighbourhoods that keep us busy are Bassett Heath and Woolston. In Bassett Heath, the long, often quarter-acre plots along roads like Saxholm Way and Pinehurst Road mean garden layout and tree-root management play a much bigger role than in a compact terraced street. In Woolston, the hilly streets rising away from the Itchen include some substantial late-Victorian gardens on Oak and Obelisk roads, where level changes and mature trees like lime, oak and beech mean retaining features and careful boundary work matter alongside the planting.\\n\\nFor regular garden upkeep, our [gardener](/gardener/) and [lawn care service](/lawn-care-service/) cover everything from mowing and hedge trimming to weed control and seeding. Bigger projects go through our [landscape gardener](/landscape-gardener/) team, who handle driveways, new lawns, paving and walling, garden steps and full garden makeovers. Where the design comes first, our [landscape designer](/landscape-designer/) service covers garden design, drainage and design and build projects.\\n\\nA concern we hear often is that a job will creep in price once it's underway. We quote every job in full before we start, and what we quote is what you pay. We've also heard from customers who had a previous contractor leave mid-job. Being family run means [CV: owner_name] is involved in every job and there's no subcontracting out work to people you've never met.\\n\\nWe work across Southampton and into [landscaping in Romsey](/locations/romsey/), [landscaping in Winchester](/locations/winchester/) and [landscaping in Eastleigh](/locations/eastleigh/), and everywhere in between. Call [CV: phone] to talk through what your garden needs.\n\nhome_services_intro:\nFrom lawn care and hedge trimming to full garden redesigns, driveways and tree work, [CV: company_name] covers the landscaping jobs that Southampton homeowners need most. We work with private gardens of all sizes, from compact terraced plots to larger detached properties.\n\nhome_services_cards:\n  - card_name: Gardener | card_text: Keeping a garden looking its best week to week takes consistent, reliable visits. Our [gardener](/gardener/) work covers lawn mowing, hedge trimming, weed control, mulching, fencing and seeding lawns for homes across Southampton. Whether your garden needs a regular schedule or a seasonal tidy, we'll tell you what it actually needs rather than sell you visits it doesn't.\n  - card_name: Landscape Gardener | card_text: Ready to change what your garden looks like from the ground up? Our [landscape gardener](/landscape-gardener/) team handles driveways and paths, paving and walling, new lawns, turf laying, garden steps, retaining walls and full garden makeovers. Each job is planned before it starts and completed to the agreed scope, so there are no loose ends when we leave.\n  - card_name: Landscape Designer | card_text: Good design solves problems before the groundwork begins. Our [landscape designer](/landscape-designer/) service covers garden design, drainage, patio design and design and build projects for Southampton homes. If a garden has awkward levels, a drainage issue or a layout that has never quite worked, getting the plan right first saves money and rework later.\n  - card_name: Lawn Care Service | card_text: A lawn that stays green and even through the year needs more than regular mowing. Our [lawn care service](/lawn-care-service/) covers seeding, turf laying and ongoing lawn maintenance to get grass into good shape and keep it there. For gardens where the lawn is the centrepiece, we treat it as a project in its own right rather than an afterthought.\n  - card_name: Tree Service | card_text: Mature trees need handling carefully, whether the job is routine pruning or a full removal. Our tree service covers tree pruning, tree removal, stump grinding, stump removal and tree planting for Southampton gardens. Large trees on sloping plots or near walls and structures get assessed properly before any work starts.\n  - card_name: Paving Contractor | card_text: A patio or driveway is only as good as what's underneath it. Our [paving contractor](/paving-contractor/) team carries out block paving, new driveways, driveway replacement, concrete bases, patios and groundwork and levelling. We handle everything from breaking out the old surface to finishing the edges, so the job is complete when we leave.\n  - card_name: Deck Builder | card_text: Autumn and winter take a toll on outdoor timber that's been left untreated. Our [deck builder](/deck-builder/) work covers deck installation, deck repair, deck restoration, composite decking, timber decking, pergolas and fencing. New builds are designed and installed to last, and repair work always looks at the cause before replacing sections.\n\nhome_services_more_line:\nHIDDEN\n\nhome_why_points:\n  - point_title: Local Experience Behind Every Job | point_body: With over 100 jobs completed across Southampton and the surrounding towns, we've worked on the kinds of gardens that come up here: long sloping plots, mature trees close to boundaries, clay-heavy ground in the north of the city and tighter terraced gardens closer to the water.\n  - point_title: Insured up to £5m | point_body: We carry public liability insurance up to £5m. That cover is in place for accidental damage to your property or injury to others while the work is going on, so if a branch comes down during tree work and catches a fence panel or a wall, there's a proper process to deal with it.\n  - point_title: Fixed Prices With No Hidden Costs | point_body: Every job is quoted in full before we start. The price we agree covers the work as described, and it doesn't change unless the scope changes and you've agreed to that. No additions quietly added to the final invoice.\n  - point_title: Family Run and Independent | point_body: [CV: owner_name] is involved in every job we take on. Being family run means there's one point of contact from the first conversation to the last day on site. If anything is unclear or needs adjusting, you're talking to the person making the decisions, not a call centre.\n\nhome_process_steps:\n  - step_title: Tell Us About Your Garden | step_body: Call us on [CV: phone] or send a message with a rough idea of your garden size, what you'd like done, and any photos you have. The more we know upfront, the more useful the visit will be.\n  - step_title: We Visit and Price the Job | step_body: We come out to look at the garden in person, checking levels, drainage, access and what's staying or going. From that we put together a full price for the job.\n  - step_title: We Start on a Date That Suits You | step_body: Once you're happy with the quote, we agree a start date that works for you. The job runs to the agreed plan, so you know what's happening and when from day one.\n\nhome_owner_body:\nI started [CV: company_name] after years working on other people's gardens and realising I wanted to run jobs the way I'd want them run on my own home. My [CV: owner_qualification] gives me the grounding to handle everything we take on across Southampton, but the thing I'm most straightforward about is this: if a job isn't worth doing the way a customer imagines it, I'll say so before anything gets agreed. You'll always get an honest view from me, not a quote for work you don't need.\n\nhome_areas_intro:\n[CV: company_name] is based in Southampton and travels up to 20 miles inland and along the coast to reach customers. We cover the city itself and a wide stretch of towns and villages nearby, taking on jobs from the New Forest edge to the Eastleigh corridor and out towards Winchester.\n\nhome_faq_items:\n  - faq_question: How much does landscaping cost in Southampton? | faq_answer: Landscaping costs vary depending on what the job involves, how large the garden is and what the ground is like. A new lawn on a flat, clear plot in Eastleigh is a different job to a garden makeover on a sloping Woolston garden with mature trees and level changes to manage. [CV: company_name] doesn't charge for quotes, so the most useful starting point is a site visit where we can look at what's actually there and give you a proper figure.\n  - faq_question: Are you insured? | faq_answer: Yes. We carry public liability insurance up to £5m. That cover applies while work is underway, so if something is accidentally damaged during the job, such as a wall or a structure caught during tree work, there's an insurance process in place to deal with it properly. It also covers accidental injury to others on site during the work.\n  - faq_question: What happens if something isn't right after the job? | faq_answer: Call us and tell us what the issue is. Every trade in the UK works to a standard of reasonable care and skill, which means the job should be done properly and to a standard that holds up. If something doesn't meet that standard, the right step is to raise it with us directly and give us the chance to come back and put it right. We'd always sooner know.\n  - faq_question: How soon can you start? | faq_answer: We can usually start within the same week. Call [CV: phone] and we'll confirm what's available when you get in touch.\n  - faq_question: Is the quote free and no obligation? | faq_answer: Yes, the quote is free and there's no obligation to go ahead. You'll get a full price for the job before anything is agreed, and you're under no pressure to commit on the day.\n  - faq_question: Which areas do you cover? | faq_answer: We cover Southampton and the towns and villages within roughly 20 miles, including [Romsey](/locations/romsey/), [Winchester](/locations/winchester/), [Eastleigh](/locations/eastleigh/), [Chandlers Ford](/locations/chandlers-ford/), [Hedge End](/locations/hedge-end/), [Lyndhurst](/locations/lyndhurst/), [Stockbridge](/locations/stockbridge/) and further out towards [Lockerley](/locations/lockerley/), [Awbridge](/locations/awbridge/), [Chilworth](/locations/chilworth/), [Ampfield](/locations/ampfield/) and [Kings Worthy](/locations/kings-worthy/). We also cover the New Forest edge. Call [CV: phone] if you're not sure whether we reach you.\n  - faq_question: How long does a garden landscaping project take? | faq_answer: It depends on what the job involves. A straightforward turf laying or patio installation might take a few days. A full garden makeover with groundwork, drainage, paving, planting and fencing will take longer. Ground conditions can add time too, particularly on wetter, clay-rich plots in the north of the city where preparation takes more care. Weather can push hard landscaping days if conditions make it impractical to lay or compact materials properly. We'll give you a realistic timeframe when we quote.\n  - faq_question: Why does water sit on my patio or lawn after rain? | faq_answer: Persistent standing water usually comes down to one of three separate problems. The ground beneath the surface may drain too slowly to absorb what falls on it. The surface itself may fall the wrong way, so water collects rather than running clear. Or there's simply no drain or soakaway to take the water away once it's there. In Southampton, this is worth taking seriously because the geology varies considerably across the city. Ground in the north tends to be more slowly permeable, and areas closer to the rivers and reclaimed land near the Itchen and Test can sit with higher groundwater through the wetter months. That means a lawn that drains adequately in summer can stay soggy for days after autumn or winter rain. Sorting it properly means identifying which of those causes is actually at play, because the fix for a surface-level fall is different from the fix for ground that simply can't take the water.\n\nhome_final_cta_body:\nShare a few details about your garden and we'll arrange a visit, give you a full price and answer any questions before anything is agreed.\n\nMODEL_FLAGS:\nnone\n```",
+    "usage": {
+      "input_tokens": 3265,
+      "cache_creation_input_tokens": 14695,
+      "cache_read_input_tokens": 0,
+      "cache_creation": {
+        "ephemeral_5m_input_tokens": 14695,
+        "ephemeral_1h_input_tokens": 0
+      },
+      "output_tokens": 2983,
+      "service_tier": "standard",
+      "inference_geo": "global",
+      "stop_reason": "end_turn"
+    },
+    "client_block": "CLIENT VALUES\n[CV: company_name] = Edens Edge Landscaping\n[CV: phone] = 023 0000 0000\n[CV: gbp_address_type] = service_area\n[CV: hours] = Monday to Saturday, 7am to 6pm\n[CV: primary_category] = Landscaper\n[CV: jobs_completed] = 100\n[CV: insurance_cover] = 5m\n[CV: differentiator_1] = Fixed Prices With No Hidden Costs\n[CV: differentiator_1_sentence] = Fixed prices with no hidden costs\n[CV: differentiator_2] = Family Run and Independent\n[CV: differentiator_2_sentence] = Family run and independent\n[CV: free_quotes] = yes\n[CV: start_time] = same week\n[CV: owner_name] = Test Owner\n[CV: owner_qualification] = test qualification\n[CV: owner_why] = Started the business after years working on other people's gardens\n[CV: owner_promise] = I will always tell you if a job is not worth doing\n[CV: business_type] = A\n[CV: team_size] = 4\n[CV: travel_distance] = 20 miles\n\nCONFIRMED SERVICES (by category, in the words to use). Name only these, in these words. A card names 2 or 3 of them, never a list:\nGardener: lawn mowing, fencing, gardening, seeding lawns, hedge trimming, garden design, mulching, weed control\nLandscape Gardener: artificial grass, concrete and block work, driveways, driveways and paths, garden makeovers, garden design, gardening, levelling, planting, garden maintenance, paving and walling, new gardens, lawn care, new lawns, garden steps, water features, retaining walls, rockeries, turf laying, stone features, stone walling, paths, drainage, landscaping\nLandscape Designer: garden design, drainage, design and build, patio design, pond care, retaining walls, lawn care\nTree service: tree bracing, stump removal, tree planting, tree removal, stump grinding, moving trees, tree pruning\nPaving contractor: block paving, concrete bases, new driveways, driveway replacement, groundwork and levelling, patios\nDeck builder: composite decking, deck cleaning, deck design, deck installation, deck painting, deck railing repair, deck restoration, deck makeovers, deck repair, deck replacement, fencing, patio decking, covered patios, pergolas, deck staining, timber decking\n\nCONFIRMED PRACTICES (how the business works). State only these:\n(none confirmed: never describe how the business works, beyond what CLIENT VALUES say)\n\nNICHE ENTRY\nTrade: Landscaping | trade (lower case): landscaping | trade person: landscaper / landscapers\nCustomers: homeowners | unit of work: jobs\nEmergency niche: no | big ticket: yes (full garden makeovers, patios, driveways)\nWords customers use: garden, back garden, front garden, lawn, patio, driveway, path, hedge, border, fence, decking\nWords to avoid (twice on the page at most): plot, site, property, grounds, hardscape, softscape, outdoor living space, green space, curb appeal\nCustomer fears:\n  - a firm that has not done this kind of garden before\n  - groundwork that fails later (patios that sink or hold water, fences that lean)\n  - a price that grows once the job starts\n  - being left with a half finished garden and no idea what happens next\nMaterials and methods list (name one only if it is in [CV: materials_methods]):\n  - Paving: porcelain, natural stone, concrete slabs, block paving, resin bound, gravel\n  - Base: MOT Type 1 sub base, permeable base, concrete\n  - Lawns: rolled turf, seed, artificial grass\n  - Fencing: close board, panel, featherboard, posts in concrete, concrete spurs, metal posts\n  - Decking: softwood, hardwood, composite\n  - Other: green waste taken away, mini digger on site, design drawings provided\nDo not reuse these sentences:\n  (none)\n\nCALIBRATION PACK\n# Landscaper / Gardener Calibration Pack (UK) — All Page Types\n\nUse this alongside the relevant CORE copywriting prompt. This pack covers all four page types: homepage, category page, service page, and location page, plus the location category page variant.\n\nThis pack contains two things: the rules that define what good copy looks like for this trade, and worked examples drawn from real bot output that show what those rules look like in practice.\n\nThe examples use `{{custom_values.X}}` placeholders exactly as the bot outputs them. The local detail in the examples — soil types, weed species, named streets, seasonal patterns — is drawn from geo research for that specific client. When writing for a different client in a different area, the same format and depth applies, but the local detail comes from the geo research for that client's area.\n\nDo not copy the examples. Use them to understand the required length, structure, and level of specificity, then write to the same standard for the actual client.\n\n---\n\n## TRADE FRAMING (all page types)\n\nDerive the trade framing from the client's onboarding form. Use the services they have confirmed, not a generic landscaping description.\n\nFormat: `\"a UK landscaping and gardening business carrying out [CLIENT'S CONFIRMED SERVICES]\"`\n\nExamples of correct trade framing by specialism:\n- General landscaper: `\"a UK landscaping and gardening business carrying out garden maintenance, lawn care, hedge trimming, turfing, fencing, paving, and tree surgery\"`\n- Garden maintenance operator: `\"a UK gardening business carrying out lawn mowing, hedge trimming, border maintenance, weed control, and seasonal garden clearance\"`\n- Landscape designer: `\"a UK landscape design company carrying out bespoke garden design, hard landscaping, planting schemes, and drainage installation\"`\n- Hard landscaping specialist: `\"a UK landscaping company specialising in patio and driveway installation, retaining walls, fencing, and garden drainage\"`\n\nNever use a trade framing line that includes services the client has not confirmed on their onboarding form.\n\n---\n\n## RULES — what every piece of copy in this trade must achieve\n\n**Rule 1: Name the specific service, not the category**\nDo not write \"garden maintenance.\" Write \"fortnightly lawn mowing, edging, and border weeding\" or \"crown reduction and deadwooding on mature garden trees\" or \"close board fence installation on pressure-treated posts set in concrete.\" The specific service is what the customer searched for.\n\n**Rule 2: Connect every service to a local condition**\nEvery service card, local knowledge paragraph, and FAQ must contain a local soil type, weed species, property type, or growing condition from the geo research. Copy that contains no local detail is a failure regardless of how well it is written in other respects.\n\n**Rule 3: Use accurate horticultural and trade terminology**\nNamed weed species, grass varieties, soil conditions, timing rationale, and material specifications must be accurate and relevant to the UK and to the specific region. Do not name species that do not grow in the area. Do not invent soil conditions not supported by the geo research.\n\n**Rule 4: Explain what goes wrong when the service is skipped or done poorly**\nEvery service card should include one consequence of inaction or poor execution. This is not a scare tactic — it is the specific horticultural or structural reason why the service matters.\n\n**Rule 5: No em dashes, no en dashes, no hyphenated compounds**\nWrite \"salt laden\" not \"salt-laden.\" Write \"free draining\" not \"free-draining.\" Write \"in house\" not \"in-house.\" Write \"low lying\" not \"low-lying.\" No exceptions. GHL will reintroduce them — the VA checks for this before publishing.\n\n**Rule 6: Use only confirmed services and trust signals**\nNever write about services the client has not confirmed. Never claim accreditations, insurance levels, years of trading, or job counts not confirmed on the onboarding form.\n\n**Rule 7: Omit unconfirmed facts entirely — never flag them in copy**\nIf a fact is not confirmed in the onboarding form (a price, a guarantee duration, warranty terms, insurance details, visit frequency options), the copy does not mention it at all. Write the answer around what IS confirmed and stop there. Never place [CLIENT TO CONFIRM] or any bracketed placeholder inside copy. If it is useful to flag missing information, do it as a separate [NOTE FOR BRANDON: ...] line below the copy block, formatted like the VA notes. The copy itself must always be complete and publishable exactly as written.\n\n**Rule 8: Never assert operational processes as fact unless the onboarding form confirms them**\nVisit frequencies, whether green waste removal is included, whether the first visit is free, crew sizes, and equipment specifics vary by company. Do not present them as this company's fixed process unless the client has confirmed them. Describe the principle instead; the specifics are only true if confirmed.\n\n---\n\n## HOMEPAGE — WHAT GOOD LOOKS LIKE\n\n### Category block example 1\n\n```\nSERVICES {{custom_values.category_1}}:\nH2: {{custom_values.category_1}}\n\n{{custom_values.company_name}} covers everything from regular lawn mowing and edging to hedge trimming, weed control, mulching and seasonal border clearance for homes across {{custom_values.biz_area_1}}. Sandy soils near the seafront dry out quickly in summer and need regular mulching to hold moisture at root level. Properties a little further inland on heavier loamy ground build up weed pressure fast. Bindweed and dock move into disturbed beds quickly in these conditions. Staying on top of them needs consistent, regular visits rather than one off clearances.\n\nFind out everything that is covered in our {{custom_values.category_1}} service in {{custom_values.biz_area_1}}.\n\nIMAGE: Photo of garden maintenance work in progress. Lawn mowing, hedge trimming, or border clearance preferred.\n```\n\n**Why this works:**\n- Opens with a list of specific sub-services rather than a generic description of the category\n- Names two distinct local soil types and the specific consequence each creates — not just \"local conditions vary\"\n- Names actual weed species (bindweed, dock) that are real problems in this area\n- Explains why regular visits matter more than one-off clearances — a consequence of inaction\n- Editorial link names the category and the primary location\n\n### Category block example 2\n\n```\nSERVICES {{custom_values.category_5}}:\nH2: {{custom_values.category_5}}\n\n{{custom_values.company_name}} carries out tree pruning, removal, stump grinding, stump removal, planting, transplanting, cabling and bracing across {{custom_values.biz_area_1}} and the Lincolnshire coast. The team are fully qualified tree surgeons. Trees in {{custom_values.biz_area_1}} face repeated wind stress from North Sea gales, which causes crown dieback, leaning trunks and branch failure in exposed gardens and caravan parks. Storm damage callouts after winter gales are common along the seafront and open stretches of the coast. Planned reduction and crown thinning before the winter months reduces risk and the likelihood of emergency work.\n\nFind out everything covered in our {{custom_values.category_5}} service in {{custom_values.biz_area_1}}.\n\nIMAGE: Photo of tree surgery, stump removal, or tree work in progress.\n```\n\n**Why this works:**\n- Lists specific sub-services within the category at the start\n- States the trust signal (fully qualified tree surgeons) as a fact, not a claim\n- Names the specific local wind stress condition and its three consequences: crown dieback, leaning trunks, branch failure\n- Distinguishes between reactive callouts and planned preventative work — two distinct demand types\n- The consequence of poor timing (emergency work) is the logical conclusion of the local condition described\n\n---\n\n## CATEGORY PAGE — WHAT GOOD LOOKS LIKE\n\n### Service card example 1\n\n```\nSERVICE CARD — {{custom_values.service_83}}:\n\n{{custom_values.service_83}} is one of the most practical choices for {{custom_values.biz_area_1}} gardens. Timber boards split, fade and require regular retreatment under the salt air and UV exposure that comes with a coastal Lincolnshire location. Composite boards do not absorb moisture the same way, resist fading and hold their surface finish year on year without annual oiling or staining. {{custom_values.company_name}} supplies and installs composite decking boards, sets the frame level on sandy ground, and handles all edging and finishing work. Find out everything covered in our {{custom_values.service_83}} service in {{custom_values.biz_area_1}}.\n\n[VA — HYPERLINK THE TEXT ABOVE. Link this to the service page for {{custom_values.service_83}} in {{custom_values.biz_area_1}}. Delete this note before publishing.]\n```\n\n**Why this works:**\n- Opens with a local condition (salt air and UV exposure specific to coastal Lincolnshire) that drives the material choice\n- Explains the failure mode of the alternative material (timber splitting, fading, requiring retreatment) before stating why composite is better\n- Names what the company actually does in practical terms: supplies boards, sets the frame on sandy ground, handles edging\n- The sandy ground reference is a local condition — different for a different client area\n- 95 words — correct length for a service card\n\n### Service card example 2\n\n```\nSERVICE CARD — {{custom_values.service_93}}:\n\nBoundary fencing in {{custom_values.biz_area_1}} fails faster than in most UK locations. Coastal wind puts direct pressure on panels, posts loosen in sandy ground after repeated wet and dry cycles, and salt in the air degrades timber finish year on year. {{custom_values.company_name}} carries out {{custom_values.service_93}} from post setting to panel fitting, using pressure treated timber and concrete spurs where ground conditions require them to keep posts solid for the long term. Close board, featherboard and panel systems are all within scope. Find out how our {{custom_values.service_93}} approach works in {{custom_values.biz_area_1}}.\n\n[VA — HYPERLINK THE TEXT ABOVE. Link this to the service page for {{custom_values.service_93}} in {{custom_values.biz_area_1}}. Delete this note before publishing.]\n```\n\n**Why this works:**\n- Three distinct failure causes named immediately: wind pressure, sandy ground, salt degradation\n- Material specifications stated: pressure treated timber, concrete spurs — not generic \"quality materials\"\n- Names specific fence types within scope: close board, featherboard, panel\n- The \"long term\" framing connects the installation method to the consequence of getting it wrong\n- 100 words — correct length for a service card\n\n### Service card example 3 (reactive/repair service)\n\n```\nSERVICE CARD — {{custom_values.service_91}}:\n\nDeck faults in {{custom_values.biz_area_1}} are often weather driven. Boards split along the grain after cycles of coastal drying and wet weather. Joists rot at the bearing points where moisture sits. Posts shift on ground that has moved through a wet winter. {{custom_values.company_name}} carries out {{custom_values.service_91}} covering boards, joists, bearers and posts, identifying the root cause before replacing damaged sections so the same fault does not reappear. Individual board replacements, joist sistering and post resetting are all part of the repair scope. Find out everything covered in our {{custom_values.service_91}} service in {{custom_values.biz_area_1}}.\n\n[VA — HYPERLINK THE TEXT ABOVE. Link this to the service page for {{custom_values.service_91}} in {{custom_values.biz_area_1}}. Delete this note before publishing.]\n```\n\n**Why this works:**\n- Opens by naming three specific weather-driven fault types, each with a different mechanism\n- States the correct diagnostic approach: identify root cause before replacing sections\n- Names specific repair types the customer may not know to ask for: joist sistering, post resetting\n- The \"so the same fault does not reappear\" line addresses the customer's real fear with repair services\n- 103 words — correct length\n\n### Seasonal tasks example\n\n```\nSEASONAL TASKS — SPRING:\n\nMarch to May in {{custom_values.biz_area_7}} brings the first dry spells after winter, when decks and timber structures that have been sitting in cold, wet conditions start to dry out and show what the season has done to them. This is the right window to inspect, repair and treat before outdoor use begins.\n\nKey tasks this season:\n• Full deck inspection after winter, checking board movement, fixings, and post bases for moisture damage\n• Replacement of boards that have split, cupped or softened through repeated freezing and thawing\n• Pressure washing and drying of deck surfaces before any treatment or stain is applied\n• Post base checks on fences and pergolas, particularly on lower-lying plots in central {{custom_values.biz_area_7}} where soil stays wet longest\n• New deck and pergola installation booked and started before the main summer outdoor season\n• Wood staining and treatment on decks that are structurally sound but showing surface greying from the winter\n```\n\n**Why this works:**\n- The intro paragraph explains what spring means for this specific material in this specific location — not a generic \"spring is a busy time\"\n- Tasks are specific enough that a homeowner reading them understands the reason, not just the action\n- The post base check task names a specific local sub-area condition (lower-lying plots where soil stays wet longest)\n- Tasks are from the client's actual confirmed service list — no invented services\n- Each task is one sentence, specific and actionable\n\n### Neighbourhood card example\n\n```\nLOCAL KNOWLEDGE — CARD: Seafront and Promenade Streets\n\nProperties within a few streets of the seafront face the harshest conditions for outdoor timber anywhere in {{custom_values.biz_area_1}}. Salt carried on sea air works into timber finish, fixing points and joints throughout the year. Timber decks in this zone need more frequent staining and inspection than those further inland, and composite materials are often the more practical choice for new builds here because they resist salt penetration and do not need annual retreatment. Post and railing fixings should always be stainless steel or fully galvanised on seafront plots.\n```\n\n**Why this works:**\n- The named area is genuinely distinct from other sub-areas in the town — not just a different postcode\n- The specific condition (salt in sea air) is named with three specific consequences: timber finish, fixing points, joints\n- A practical recommendation follows from the condition: composite over timber, stainless or galvanised fixings\n- The buying psychology implication is clear: clients in this zone need to invest in better materials and more frequent maintenance\n- 88 words — correct length for a neighbourhood card\n\n### FAQ example (category page)\n\n```\nFAQ — Q: Does the coastal weather in {{custom_values.biz_area_1}} really make that much difference to which decking material I should choose?\n\nFAQ — A: Yes, and it is one of the most important decisions for a {{custom_values.biz_area_1}} deck. Salt air from the North Sea works into timber finish throughout the year, stripping sealant and opening the grain to moisture far faster than in an inland garden. Timber decks in {{custom_values.biz_area_1}} typically need staining or oiling every one to two years to stay in good condition, and boards facing west or directly into the prevailing wind tend to degrade first. Composite boards avoid most of these problems because they do not absorb moisture the same way and hold their surface without annual retreatment. Find out everything covered in our {{custom_values.service_83}} service in {{custom_values.biz_area_1}} to see how composite installation works and what the material costs against timber over a five year period.\n\n[VA — HYPERLINK THE EDITORIAL LINK TEXT ABOVE. Link this to the service page for {{custom_values.service_83}} in {{custom_values.biz_area_1}}. Delete this note before publishing.]\n```\n\n**Why this works:**\n- Answers \"yes\" immediately — no hedging\n- Names the mechanism (salt air stripping sealant, opening grain) not just the outcome\n- Gives a specific maintenance frequency: every one to two years — not \"regular maintenance\"\n- Names the specific boards most at risk: those facing west or into the prevailing wind\n- Editorial link names a specific service and sets up a practical next step (comparison over five years)\n- 130 words — correct length for a FAQ with technical detail\n\n---\n\n## SERVICE PAGE — WHAT GOOD LOOKS LIKE\n\n### Maintenance section example (schedule-driven services)\n\nServices that are schedule driven rather than problem driven — lawn mowing, hedge trimming, regular garden maintenance — use a maintenance section instead of a signs section. The maintenance section explains what happens when the schedule slips, not symptoms of an existing problem.\n\n```\nMAINTENANCE SECTION — HEADLINE: Miss the Window and the Work Gets Harder\n\nMAINTENANCE SECTION — BODY:\n\nThe most important trim of the year in {{custom_values.biz_area_1}} is the one that happens in late spring, once nesting season risk has been assessed and before summer growth takes hold. Hedges on the Lincolnshire coast respond quickly to longer days and the mild maritime climate. Privet, laurel, and leylandii in particular can put on significant new growth between May and July. Leave that growth unchecked and you are no longer trimming a hedge. You are cutting back into woody material, which takes longer, creates more waste, and puts the overall shape at risk. Getting in during the right window keeps the hedge manageable and means each visit builds on clean, consistent growth rather than fighting against it.\n\nThe second critical point is early autumn, before the first strong gales come in off the North Sea. Skegness and the surrounding coastal strip are exposed to some of the most direct wind in Lincolnshire, and an overgrown, top heavy hedge behaves differently in a storm than a well trimmed one. Excess growth at the top increases wind resistance. Posts, root zones, and the hedge base take more strain. The worst outcomes include whole sections leaning or sections of a mixed native hedge losing structural integrity along a fence line after a gale. A trim in September or early October reduces that load and takes the hedge into winter in the best possible condition. Clients around caravan parks and open seafront streets in {{custom_values.biz_area_1}} see this difference most clearly, because their hedges face wind from the most exposed angle.\n\nThrough winter, {{custom_values.biz_area_1}} hedges need little cutting but still need watching. Sandy coastal soils dry out faster than inland clay, which means root zones can become shallow over time without regular feeding and mulching, and this can affect how well a hedge responds come spring. Leylandii in particular, common along boundary lines in the post war housing on the outskirts of Skegness and in caravan park settings, can look fine through December but show brown patches on the windward face come February, where salt spray has burned the foliage. That is not a cutting issue. It is an exposure and soil health issue that a knowledgeable trimming visit can identify and flag before it becomes a replacement job.\n```\n\n**Why this works:**\n- Three paragraphs, three genuinely distinct timing windows: late spring, early autumn, winter\n- Each paragraph names a specific local consequence of missing the window — not generic advice\n- Named hedge species (privet, laurel, leylandii) are accurate for the region\n- The winter paragraph names a problem that looks like a cutting issue but is not — showing genuine expertise\n- Named local sub-areas where each consequence is most relevant: caravan parks, seafront streets, post war housing\n- No paragraph could appear on a landscaping website in a different part of the UK without changing multiple specific details\n\n### How it works section example\n\n```\nHOW IT WORKS — PARAGRAPH 1:\n\nEvery visit starts with a check of the hedge before any cutting begins. In {{custom_values.biz_area_1}}, where salt laden air from the North Sea is a constant factor, the windward face of a hedge often shows different growth and condition from the sheltered side. A laurel hedge facing the sea may have thicker, tougher foliage on the exposed side and thinner, more vulnerable growth behind it. A leylandii screen along a caravan park boundary may have wind burn on one face that affects how far back it is safe to cut without exposing dead brown material underneath. Taking a minute to read the hedge before cutting means the trim is matched to the actual condition, not just the silhouette.\n\nHOW IT WORKS — PARAGRAPH 2:\n\nCutting follows a consistent method that keeps the hedge healthy rather than just tidy. The top is cut first, then the sides, working downward so clippings fall clear of sections already trimmed. For hedges that have been left longer between visits, or that have been allowed to widen significantly, the cut is taken back in stages rather than all at once. Hard cutting a hedge that has been starved of attention can stress the root system, particularly in the sandy soils common near the {{custom_values.biz_area_1}} seafront, where roots are already working harder to find moisture. A measured approach protects the hedge while still achieving a clean, defined shape. For species like privet and native mixed hedges, which respond well to harder work, the approach can be more direct. For laurel and leylandii, which do not regenerate from bare brown wood, the cut stays within the green growth at all times.\n\nHOW IT WORKS — PARAGRAPH 3:\n\nAll cuttings are cleared and removed as part of the service. This matters more than it might seem. Leaving a heavy volume of clippings at the base of a hedge, particularly one sitting on the sandy, low organic matter soils found in coastal {{custom_values.biz_area_1}} gardens, creates a moisture trap that encourages fungal growth at the stem base. It also creates a habitat for slugs and other pests that can work back into the hedge base and affect regrowth. {{custom_values.company_name}} removes all green waste from site so the hedge base is left clean and the garden is ready to use immediately after the visit.\n\nHOW IT WORKS — PARAGRAPH 4:\n\nFrequency is set based on species, location, and how the hedge is used. A fast growing leylandii screen along an exposed boundary in {{custom_values.biz_area_1}} will need at least two cuts a year to stay manageable and structurally sound as a windbreak. A slower growing native hedge or a well established privet on a sheltered domestic boundary may be fine with a single cut in late summer. {{custom_values.company_name}} advises on the right frequency for each hedge at the first visit, so clients are not paying for more visits than the hedge needs or finding themselves with overgrowth between appointments.\n```\n\n**Why this works:**\n- Four paragraphs, four genuinely distinct aspects of the job: assessment, cutting method, clearance, frequency\n- Each paragraph contains a local condition that shapes the approach described in that paragraph\n- Named species appear in the correct context: laurel and leylandii need different treatment to privet and native hedges — accurate\n- The clearance paragraph explains WHY clearance matters (fungal growth, slugs, moisture trap) not just that it is done\n- The frequency paragraph gives specific numbers: two cuts a year for leylandii, possibly one for slower species\n- Each paragraph ends with a consequence: misread hedge leads to exposed dead material; wrong cutting method stresses roots; clippings left create pest habitat; wrong frequency leads to overgrowth or overspend\n\n---\n\n## LOCATION PAGE — WHAT GOOD LOOKS LIKE\n\n### Hero subheadline example\n\n```\nHERO SUBHEADLINE:\n\nBoston gardens sit on heavy fenland soil that holds water long after the rain stops. Lawns on low lying plots near the River Witham stay soft well into spring, and poorly drained beds can sit saturated from November through to March. Left unmanaged, that kind of ground compacts hard underfoot and becomes difficult to work without causing real damage to the root zone. Call {{custom_values.company_phone_functional}} to book a free site visit.\n```\n\n**Why this works:**\n- Opens with the specific soil condition in this location — not a company claim\n- Names a local landmark (River Witham) with a specific consequence rather than just mentioning it\n- Gives a specific timeline: November through to March — not \"winter months\"\n- The consequence of leaving the problem (ground compacts hard, difficult to work without causing damage) is horticultural and specific\n- Ends with a direct call to action — no preamble\n- 68 words — correct length\n\n### Services intro example\n\n```\nSERVICES INTRO — PARAGRAPH:\n\nBoston gardens are not the same as gardens further up the coast. The fenland around the town sits low and flat, and the soil holds moisture in a way that most people underestimate until they have had a lawn churned up in February or borders that stay waterlogged from one wet week to the next. {{custom_values.company_name}} works across {{custom_values.biz_area_2}} and out into the surrounding villages and fenland parishes. The approach here always starts with understanding what the ground is actually doing before any work begins.\n```\n\n**Why this works:**\n- Opens by distinguishing this location from the surrounding area — not generic \"we cover this area\"\n- The fenland moisture observation is specific and locally accurate\n- Two concrete consequences named: lawn churned up in February, borders waterlogged from one wet week\n- Ends with a positioning statement about the client's approach that is grounded in the local condition just described\n- 85 words — correct length\n\n### Service category card example (location page)\n\n```\nSERVICE CARD — {{custom_values.category_1}}:\n\nBoston's fenland soils are fertile but they stay wet. In inner town streets near the historic core around St Botolph's Church, rear gardens in terraced houses can be small and access constrained, which makes proper soil management and seasonal timing more important than raw power. In outer estates and fenland villages, the ground is more open but waterlogging can be severe after winter rain. {{custom_values.company_name}} covers {{custom_values.service_1}}, {{custom_values.service_5}}, {{custom_values.service_8}}, and {{custom_values.service_3}} across {{custom_values.biz_area_2}} and the surrounding parishes. The timing and approach are matched to what the ground is actually doing on the day.\n\nSERVICE CARD — {{custom_values.category_1}} EDITORIAL LINK: See everything covered in our {{custom_values.category_1}} service in {{custom_values.biz_area_2}}, including what to expect on a first visit.\n\n[VA — HYPERLINK THE TEXT ABOVE. Link this to the location-specific category page for {{custom_values.category_1}} in {{custom_values.biz_area_2}}. Confirm this links to the location-specific page, NOT the primary city category page. Delete this note before publishing.]\n```\n\n**Why this works:**\n- Opens with a soil observation specific to Boston (fenland, fertile, stays wet) — not copied from another location\n- Distinguishes two distinct sub-areas of the town: inner terraced streets versus outer estates and fenland villages\n- Names a local landmark (St Botolph's Church) to anchor the inner town reference\n- Lists actual services using {{custom_values.X}} placeholders — not generic service names\n- The editorial link names the specific service and location together\n- The VA note confirms the link must go to the location-specific page, not the primary city page\n\n### Local knowledge section example\n\n```\nLOCAL KNOWLEDGE — PARAGRAPH 1:\n\nInner Boston is dense. Streets of Victorian and Edwardian terraces close to the historic quay and near St Botolph's Church have small rear gardens that often get accessed through the house or via a narrow back passage. Heavy machinery does not go in. That changes how the work is done. Manual clearance, compact equipment and careful timing matter here more than anywhere else in the town. These gardens are also some of the most neglected, particularly in streets with high tenant turnover, where beds can go several seasons without proper attention and weed pressure builds fast in the fertile, damp soil.\n\nLOCAL KNOWLEDGE — PARAGRAPH 2:\n\nMove out to the post war estates on the edge of Boston and the gardens open up. Standard suburban plots with side access, mid-sized lawns and room to manoeuvre equipment properly. The ground here is still heavy and sits low. After a wet winter, lawns on these estates can stay soft into April, and working on them too early causes compaction damage that lasts through the growing season. Moss builds up quickly on poorly draining turf, and the borders can sit saturated long enough to rot root systems in shrubs that were planted in better-draining soil than this. Timing the first cuts and treatments of the year to the actual ground condition, not the calendar, is what separates a good result from one that looks fine in April and falls apart by June.\n\nLOCAL KNOWLEDGE — PARAGRAPH 3:\n\nFenland villages around Boston — Fishtoft, Wyberton, Frampton, Kirton — sit on low lying agricultural land with deep, nutrient rich soil that grows things fast. Gardens in these villages tend to be larger than in town, and hedges and shelterbelts that have gone a few seasons without attention become serious work. Drainage channels and dykes run close to many of these properties, and the groundwater in summer can be surprisingly high even after a dry spell. Trees in these locations need assessing properly for root stability before any major pruning or removal, particularly where ground has been repeatedly saturated.\n```\n\n**Why this works:**\n- Three paragraphs, three genuinely distinct parts of the area: inner Victorian terraces, post-war estates, fenland villages\n- Each paragraph could not be swapped with a paragraph from another location page — all detail is Boston-specific\n- Named streets and landmarks in the first paragraph (historic quay, St Botolph's Church)\n- Named villages in the third paragraph (Fishtoft, Wyberton, Frampton, Kirton)\n- Each paragraph identifies a specific gardening or landscaping challenge that follows from the property type described\n- The buying psychology is implied: inner city tenanted stock is neglected and access-constrained; outer estates need timing expertise; fenland villages have larger scale work and specific structural considerations\n\n### Location page FAQ examples\n\n```\nFAQ — Q1: How much does a gardener cost in Boston, Lincolnshire?\n\nFAQ — A1: Costs depend on garden size, ground condition and how often visits are needed. A small terraced garden near the town centre in a street off Wide Bargate or close to the river is a different job to a larger plot in Fishtoft or Wyberton, where lawns are bigger and hedges have often had years of unchecked growth. {{custom_values.company_name}} offers a free first visit to look at the garden and give an honest quote before any work is agreed. Find out what our {{custom_values.category_1}} service covers for Boston properties and the surrounding villages.\n\nFAQ — Q2: Do you cover villages around Boston?\n\nFAQ — A2: {{custom_values.company_name}} covers {{custom_values.biz_area_2}} and the surrounding fenland villages including Fishtoft, Wyberton, Frampton, Kirton and Swineshead. Gardens in these villages tend to be larger, with heavier soil and higher groundwater than in town. Hedges, shelterbelts and mature trees in these areas often need more substantial work than a standard town garden, and drainage is a real consideration on many of these plots. See the areas we cover across {{custom_values.biz_area_2}} and {{custom_values.state}}.\n\nFAQ — Q3: How often should I have my garden maintained in Boston?\n\nFAQ — A3: Most Boston gardens need fortnightly visits from April through to September when growth is at its fastest on fertile fenland soil. Through autumn the schedule typically drops to monthly, with leaf clearance and border cutbacks taking priority. Through winter, visits become less frequent but do not stop entirely. Fenland gardens left unmanaged through the wet months can suffer significant weed re-establishment, particularly dock and creeping buttercup in borders, and lawns on heavy ground can compact badly if not monitored through the cold period. Find out how our {{custom_values.category_1}} service works across {{custom_values.biz_area_2}} and surrounding villages.\n```\n\n**Why this works:**\n- Q1 names specific local streets (Wide Bargate) and specific villages (Fishtoft, Wyberton) to contrast two price scenarios\n- Q2 names five specific villages and explains what makes village gardens different from town gardens in this area\n- Q3 gives specific maintenance frequencies with local reasons: fortnightly through growing season because fenland soil grows fast, monthly in autumn, continued through winter because of dock and creeping buttercup\n- Named weed species in Q3 (dock, creeping buttercup) are accurate for fenland conditions\n- All three answers end with editorial links to a relevant service or area page\n- No answer says \"it depends\" without explaining exactly what it depends on and why\n\n---\n\n## LOCATION CATEGORY PAGE — WHAT GOOD LOOKS LIKE\n\nThe location category page combines the structure of a category page with location-specific content throughout. Every service card must reference the specific location and its conditions, not the primary city.\n\n### Service card example (location category page)\n\n```\nSERVICE CARD — {{custom_values.service_99}}:\n\n{{custom_values.service_99}} is the core offer for homeowners in {{custom_values.biz_area_7}} who want a proper outdoor space built to last. The process covers every element: ground assessment, footings, bearer and joist frame, decking board installation, and the finishing details that make a deck functional over many years rather than just good-looking when new. {{custom_values.company_name}} works in hardwood and softwood, matching the species to the budget and the conditions on site. Decks near lower-lying, wetter ground in central {{custom_values.biz_area_7}} are built with greater clearance above soil level and closer attention to joist ventilation than those on the freer-draining Wolds edge plots further out.\n\nSee everything covered in our {{custom_values.service_99}} in {{custom_values.biz_area_7}}.\n\n[VA — HYPERLINK THE TEXT ABOVE. Link this to the service page for {{custom_values.service_99}} in {{custom_values.biz_area_7}}. Delete this note before publishing.]\n```\n\n**Why this works:**\n- The location placeholder ({{custom_values.biz_area_7}}) is used throughout — this is not a generic service card with the location name inserted at the end\n- Two distinct soil conditions within the location are named: lower-lying wetter ground in central town versus freer-draining Wolds edge plots\n- The structural specification changes between the two soil types: greater clearance, closer attention to joist ventilation\n- Lists the process stages in practical terms: ground assessment, footings, bearer and joist frame, boards, finishing\n- 125 words — correct length for a location category service card\n\n---\n\n## WHAT MAKES COPY FAIL IN THIS TRADE\n\n- Any sentence that contains no local detail from the geo research — if it could appear on any landscaping website anywhere in the UK, rewrite it\n- Named species or soil types not found in the geo research for this specific area\n- Services not confirmed on the client's onboarding form\n- Em dashes, en dashes, or hyphenated compound adjectives — these are prohibited throughout\n- Signs or maintenance section paragraphs that describe the same thing three different ways instead of three genuinely distinct points\n- How it works sections that describe what happens without explaining why the order and method matter\n- FAQ answers that say \"it depends\" without specifying what it depends on\n- Trust claims not confirmed on the onboarding form\n- Copy that implies design capability if the client only does maintenance, or vice versa\n- Price ranges without confirmed figures: omit if not confirmed, and flag as a [NOTE FOR BRANDON: ...] line below the copy block if genuinely valuable\n- [CLIENT TO CONFIRM] or any bracketed placeholder inside copy\n- Operational processes asserted as fact without confirmation: visit frequencies, free first visits, waste removal inclusion, or crew and equipment specifics",
+    "client_values": {
+      "company_name": "Edens Edge Landscaping",
+      "phone": "023 0000 0000",
+      "gbp_address_type": "service_area",
+      "hours": "Monday to Saturday, 7am to 6pm",
+      "primary_category": "Landscaper",
+      "jobs_completed": "100",
+      "insurance_cover": "5m",
+      "differentiator_1": "Fixed Prices With No Hidden Costs",
+      "differentiator_1_sentence": "Fixed prices with no hidden costs",
+      "differentiator_2": "Family Run and Independent",
+      "differentiator_2_sentence": "Family run and independent",
+      "free_quotes": "yes",
+      "start_time": "same week",
+      "owner_name": "Test Owner",
+      "owner_qualification": "test qualification",
+      "owner_why": "Started the business after years working on other people's gardens",
+      "owner_promise": "I will always tell you if a job is not worth doing",
+      "business_type": "A",
+      "team_size": "4",
+      "travel_distance": "20 miles"
+    },
+    "first_draft_validation": {
+      "block": 10,
+      "flag": 60
+    }
+  }
+}

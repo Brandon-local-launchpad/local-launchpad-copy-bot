@@ -39,7 +39,8 @@ const RETRY_FLAGS = new Set(['N7', 'N13', 'N14', 'N15', 'N17', 'N18', 'N19', 'N2
 //   LINK-TEXT     FLAG   a category link whose text drops the category's words
 const RESEARCH_WORDS = ['investigated sites?', 'records? shows?', 'recorded (at|in|by)', 'council (guidance|records|data|maps?|says)',
   'strategic flood', 'flood (risk )?assessments?', 'suds', 'according to', 'research', 'dossier', 'data (shows|suggests)',
-  'mapped', 'appraisal', 'neighbourhood plan', 'evidence base', 'studies show', 'surveys? (show|found)'];
+  'mapped', 'appraisal', 'neighbourhood plan', 'evidence base', 'studies show', 'surveys? (show|found)',
+  '(slowly |more slowly |less )?permeable', 'groundwater', 'water table', 'tidal-flat', 'river-terrace'];
 const STOPWORDS = new Set('a an the and or of to in on for with at by from as is are be it its this that we our you your they their there here so if not no but more than can will has have'.split(' '));
 
 const NUM_WORDS = { one: 1, two: 2, three: 3, four: 4, five: 5, six: 6, seven: 7, eight: 8, nine: 9, ten: 10, eleven: 11, twelve: 12 };
@@ -295,7 +296,7 @@ function validateV20(record, V) {
 
     // WORKED: claims of work in allocated places
     for (const sen of sentences(t)) {
-      if (!/\b(we|we've|we have|our)\b[^.]{0,50}\b(work|worked|working|do|did|done|carry out|carried out|complete|completed|build|built|lay|laid|transform|transformed|install|installed|look after|looked after)\b|\bour work (in|on|across)\b/i.test(sen)) continue;
+      if (!/\b(we|we've|we have|our)\b[^.]{0,50}\b(work|worked|working|do|did|done|carry out|carried out|complete|completed|build|built|lay|laid|transform|transformed|install|installed|look after|looked after)\b|\bour work (in|on|across)\b|\bkeeps? us busy\b|\b(much|most|a lot) of our work\b|\bwe(?:'re| are) (often|regularly|always) (in|on|out in)\b|\bour (customers|clients) in\b/i.test(sen)) continue;
       const hit = V.places.find(p => new RegExp(`\\b${esc(p)}\\b`).test(sen));
       if (hit) flag('BLOCK', 'WORKED', `Implies the business has worked in or on ${hit}. Use the local detail as a fact about the area, not as a job they've done.`);
     }
@@ -308,7 +309,7 @@ function validateV20(record, V) {
     for (const m of s.matchAll(/\b(?:in|within|for|after|over)\s+(?:a\s+(?:few|couple\s+of)\s+|just\s+|only\s+)?(?:days|weeks|months)\b/gi)) {
       if (!V.cvText.includes(lc(m[0])) && !V.researchText.includes(lc(m[0]))) flag('BLOCK', 'NUM', `The timescale "${m[0]}" is not in the client values. Give the factors that decide it, without a time.`);
     }
-    const timeRe = /\b(?:a|one|two|three|four|five|six|seven|eight|nine|ten|eleven|twelve|a couple of|a few|several)[\s-]+(?:(?:or|to)\s+(?:one|two|three|four|five|six|seven|eight|nine|ten|eleven|twelve)[\s-]+)?(?:minute|hour|day|week|fortnight|month|year)(?:s|'s|’s)?\b(?:\s+or\s+(?:two|three))?|\b(?:same|next)[\s-](?:day|week)\b|\bovernight\b/gi;
+    const timeRe = /\b(?:a(?: single| full| whole| half)?|one|two|three|four|five|six|seven|eight|nine|ten|eleven|twelve|a couple of|a few|several)[\s-]+(?:(?:or|to)\s+(?:one|two|three|four|five|six|seven|eight|nine|ten|eleven|twelve)[\s-]+)?(?:minute|hour|day|week|fortnight|month|year)(?:s|'s|’s)?\b(?:\s+or\s+(?:two|three))?|\b(?:same|next)[\s-](?:day|week)\b|\bovernight\b/gi;
     for (const m of s.matchAll(timeRe)) {
       const phrase = lc(m[0]);
       if (/^(a|every)\s+(day|week|month|year)$/.test(phrase) && !/\bor\b/.test(phrase)) continue; // "a day" as frequency/idiom

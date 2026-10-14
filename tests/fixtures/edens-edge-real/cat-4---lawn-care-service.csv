@@ -1,0 +1,12 @@
+Category 4: Lawn Care Service,,,
+"Secondary GBP category — all reused keys from other categories   |   Yellow rows = cross-category duplicates — reuse the key shown, do NOT create a new one",,,
+Category Name (Service Name),GHL Custom Value Key,Value,Notes
+Category 4: Lawn Care Service,{{custom_values.category_4}},Lawn care service,
+Fencing installation,{{custom_values.service_2}},Fencing installation,DUPLICATE — also on Cat 1 → use service_2
+Landscape design,{{custom_values.service_6}},Landscape design,"DUPLICATE — also on Cat 1, 2 → use service_6"
+Lawn mowing and maintenance,{{custom_values.service_1}},Lawn mowing and maintenance,DUPLICATE — also on Cat 1 → use service_1
+Mulching,{{custom_values.service_7}},Mulching,DUPLICATE — also on Cat 1 → use service_7
+Grass seeding,{{custom_values.service_4}},Grass seeding,"DUPLICATE — also on Cat 1, 2, 3 → use service_4"
+Sod installation,{{custom_values.service_32}},Sod installation,"DUPLICATE — also on Cat 2, 3 → use service_32"
+Weed control,{{custom_values.service_8}},Weed control,DUPLICATE — also on Cat 1 → use service_8
+Garden work,{{custom_values.service_3}},Garden work,DUPLICATE — also on Cat 1 → use service_3

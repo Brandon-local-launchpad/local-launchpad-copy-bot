@@ -6,7 +6,8 @@
   "scripts": {
     "start": "node server.js",
     "dev": "node --watch server.js",
-    "test:fixtures": "node tests/run-fixtures.js"
+    "test:fixtures": "node tests/run-fixtures.js",
+    "test:acceptance": "node tests/acceptance/edens-edge.js"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.36.0",

@@ -112,6 +112,18 @@ chk('Retry message carries earlier problems so they are not brought back', /ALRE
 const co3 = run(r => { r.home_areas_intro = 'We take on garden work across Southampton and up to [CV: travel_distance] inland and along the coast, from Romsey in the north to Lyndhurst and the New Forest to the south and west.'; });
 chk('COAST: compass directions after the travel_distance token', co3.some(i => i.check === 'COAST' && i.field === 'home_areas_intro'), '', 'FLAG');
 
+// Wording that got through the Stage 9 acceptance run (14 Oct)
+const acc = run(r => {
+  r.home_content_block_body = r.home_content_block_body.replace(/^[^\n]+/, 'Two neighbourhoods that keep us busy are Bassett Heath and Old Woolston, each with long plots and mature trees.');
+  r.points[0].point_body = 'Being family run means one person sees the job through from quote to completion, so you always know who to call.';
+  r.faq_items[3].faq_answer = "We can usually start within the same week. That applies whether it's a single day's work or the start of something larger.";
+  r.faq_items[6].faq_answer = 'It depends on the scale and the ground. Preparation can add time on more slowly permeable plots, and weather can move hard landscaping days.';
+});
+chk('WORKED: "neighbourhoods that keep us busy are Bassett Heath…"', acc.some(i => i.check === 'WORKED' && /Bassett Heath/.test(i.message)), '', 'BLOCK');
+chk('PRACTICE: "one person sees the job through"', acc.some(i => i.check === 'PRACTICE' && /sees/.test(i.message)), acc.filter(i => i.check === 'PRACTICE').map(i => i.message).join(' | '), 'BLOCK');
+chk("NUM: \"a single day's work\"", acc.some(i => i.check === 'NUM' && /single day/.test(i.message)), acc.filter(i => i.check === 'NUM').map(i => i.message).join(' | '), 'BLOCK');
+chk('RESEARCH-LANG: "slowly permeable"', acc.some(i => i.check === 'RESEARCH-LANG' && /permeable/.test(i.message)), '', 'FLAG');
+
 const baseIssues = validateV20(base, V);
 chk('The last real run had unconfirmed practices and a compass-direction travel line (caught now)',
   baseIssues.some(i => i.check === 'PRACTICE') && baseIssues.some(i => i.check === 'COAST'), baseIssues.filter(i => /PRACTICE|COAST/.test(i.check)).map(i => i.message).join(' | '), 'both');

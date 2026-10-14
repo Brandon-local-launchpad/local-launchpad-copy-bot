@@ -83,6 +83,14 @@
   - Route `GET /api/clients/:id/v20/homepage/download?format=md|json[&id=]`. The two download buttons are in the v20 output view, and the Step 6 "Download all" zip adds `homepage__v20.json` and `.md` when the client has a v20 record.
   - N16: records carry `can_mark_done: false` with stand-ins. Copybot has no "Done" step yet; the WordPress push must refuse those records.
   - Fixtures: 10 files, 245 checks, all pass (`v20-reader.js` adds 16).
+- Stage 9, acceptance test (14 Oct): **PASS.**
+  - `npm run test:acceptance` (`tests/acceptance/edens-edge.js`) runs the brief §7 test live and end to end: allocation, decisions, generation, validation and retries, reader view. It uses the real Southampton dossier and Edens Edge's real page map and GBP sheets (`tests/fixtures/edens-edge-real/`, no personal data) with the §7 client values. It writes the DECISIONS block, raw model output, VALIDATION, reader view, record and table to `tests/acceptance/output/edens-edge/` (git-ignored).
+  - Result: all 14 rows of the §7 table match. The live allocation picked Bassett Heath and Old Woolston, with faq_B "The lawn stays soggy for days after rain."; the first draft had 10 BLOCK and 60 FLAG, and after retries it had **0 BLOCK and 10 FLAG**. The record is watermarked (stand-ins). 42 calls, about 83 US cents, 140s. Saved as `tests/fixtures/v20-outputs/edens-edge-2026-10-14-acceptance-*`.
+  - Two rows differ only in form: D13 lists the same four pages in GBP category order (Gardener is category 1), and the card headings use the page map's title case. Both follow the brief's own rules.
+  - `tests/fixtures/edens-edge-acceptance-decisions.js` checks the same table offline (no API) on every `npm run test:fixtures`.
+  - From reading the acceptance page, now caught by the validator: "neighbourhoods that keep us busy" (WORKED), "one person sees the job through" and "stays involved throughout" (PRACTICE), "a single day's work" (NUM), "slowly permeable" (RESEARCH-LANG). Not caught by any rule: FAQ 4 adding "That applies to every job" to the start time.
+  - The page map and custom values parsers moved from server.js to `client-files.js` (unchanged), so tests and the WordPress push can use them.
+  - Fixtures: 11 files, 263 checks, all pass.
 - Docs: CLAUDE.md at repo root. The files the code reads (`prompts/`, `niche-library/`) are the only copies.
 
 ## Waiting on
@@ -95,7 +103,7 @@
 ## Next
 1. Check the live Stage 4 previews (expect 7 category cards and the final CTA H2 "Get a Free Quote From a Local Landscaper in Southampton").
 2. Stage 5 finish: run the allocation in the app for Edens Edge; run Bournemouth geo research for Kestrel Ridge (the allocation then runs by itself).
-3. Stage 9: acceptance test (brief §7), then the WordPress push plan.
+3. WordPress push: plan written, waiting for approval and the answers it asks for.
 4. Run Perplexity v3 for landscaper (trade only).
 5. Then: FAQ question bank + sorting step stages, humanizer decision, emergency and regulated group tests, category page.
 

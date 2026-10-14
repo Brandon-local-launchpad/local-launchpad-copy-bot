@@ -1,0 +1,11 @@
+Category 5: Tree Service,,,
+"Secondary GBP category   |   Yellow rows = cross-category duplicates — reuse the key shown, do NOT create a new one",,,
+Category Name (Service Name),GHL Custom Value Key,Value,Notes
+Category 5: Tree Service,{{custom_values.category_5}},Tree service,
+Cabling and bracing,{{custom_values.service_48}},Cabling and bracing,Unique to this category
+Tree stump removal,{{custom_values.service_49}},Tree stump removal,Unique to this category
+Tree planting,{{custom_values.service_50}},Tree planting,Unique to this category
+Tree removal,{{custom_values.service_51}},Tree removal,Unique to this category
+Tree stump grinding,{{custom_values.service_52}},Tree stump grinding,Unique to this category
+Tree transplanting,{{custom_values.service_53}},Tree transplanting,Unique to this category
+Tree trimming and pruning,{{custom_values.service_54}},Tree trimming and pruning,Unique to this category

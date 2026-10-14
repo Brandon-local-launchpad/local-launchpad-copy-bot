@@ -1,0 +1,12 @@
+Category 6: Paving Contractor,,,
+"Secondary GBP category   |   Yellow rows = cross-category duplicates — reuse the key shown, do NOT create a new one",,,
+Category Name (Service Name),GHL Custom Value Key,Value,Notes
+Category 6: Paving Contractor,{{custom_values.category_6}},Paving contractor,
+Brick paver installation,{{custom_values.service_55}},Brick paver installation,Unique to this category
+Bumper block and post installation,{{custom_values.service_56}},Bumper block and post installation,Unique to this category
+Concrete work,{{custom_values.service_57}},Concrete work,Unique to this category
+General construction,{{custom_values.service_58}},General construction,Unique to this category
+Driveway installation,{{custom_values.service_59}},Driveway installation,Unique to this category
+Driveway replacement,{{custom_values.service_60}},Driveway replacement,Unique to this category
+Excavation & grading,{{custom_values.service_61}},Excavation & grading,Unique to this category
+Patio paving,{{custom_values.service_62}},Patio paving,Unique to this category
