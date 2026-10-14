@@ -208,8 +208,7 @@
 - Separate Southampton location page: drop it (homepage is that page).
 - Update the homepage structure doc with the changed rules (title keeps brand, H1 trade word allowed, area links = town names, no rating figure in logo row).
 - Building regulations wording in the roofer entry: get a roofer to check.
-- FAQ: is the Bournemouth roofer run Kestrel Ridge's? (Answered "is / isn't" twice.)
-- FAQ (Brandon, 14 Oct): the four expected homepage lists, the three new practices and the onboarding questions in `client-facts.json` are approved (practice wording for now; Brandon flags changes); the amount of client information sent to Perplexity is right. Brandon is adding "What do customers always ask you before they book?" to the Fillout form; until then, type the answers into Client Values → FAQ.
+- FAQ (Brandon, 14 Oct): the Bournemouth roofer run is Kestrel Ridge's. The four expected homepage lists, the three new practices and the onboarding questions in `client-facts.json` are approved (practice wording for now; Brandon flags changes); the amount of client information sent to Perplexity is right. Brandon is adding "What do customers always ask you before they book?" to the Fillout form; until then, type the answers into Client Values → FAQ.
 
 ## Don't
 - Click "Generate All" on a v20 client until the other page types are migrated.

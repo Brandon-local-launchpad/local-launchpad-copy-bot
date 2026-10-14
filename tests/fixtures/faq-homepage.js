@@ -6,7 +6,7 @@
 //
 // EXPECTED LISTS: approved by Brandon, 14 Oct 2026. Claude drafted them from the
 // two manual research runs, the real tidy replies and the rules. Kestrel Ridge uses
-// the Bournemouth roofer run: whether that run is Kestrel Ridge's is not confirmed yet.
+// the Bournemouth roofer run, which is Kestrel Ridge's (Brandon, 14 Oct).
 const fs = require('fs');
 const path = require('path');
 const root = path.join(__dirname, '../..');
