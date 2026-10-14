@@ -2545,11 +2545,47 @@
       ).join('');
 
       body.innerHTML = `
+        <div style="display:flex;gap:8px;align-items:center;margin-bottom:12px">
+          <button class="btn btn-primary btn-sm" id="v20GenerateBtn" style="width:auto;padding:6px 14px" onclick="generateV20Homepage()">Generate v20 homepage</button>
+          <span style="font-size:12px;color:var(--muted)">One model call. Saved to this client; earlier runs are kept.</span>
+        </div>
+        <div id="v20Result"></div>
         ${flagList ? `<div style="margin-bottom:16px;">${flagList}</div>` : ''}
         <pre style="white-space:pre-wrap;font-family:var(--font);font-size:12px;line-height:1.6;background:var(--surface2);padding:16px;border-radius:8px;overflow-x:auto;">${h(data.decisionsBlock || '')}</pre>
       `;
     } catch (e) {
       body.innerHTML = `<p style="color:var(--error,red)">Error: ${h(String(e))}</p>`;
+    }
+  }
+
+  // ── v20 homepage generation (Stage 6) ─────────────────────────────────────
+  async function generateV20Homepage() {
+    const btn = document.getElementById('v20GenerateBtn');
+    const out = document.getElementById('v20Result');
+    setLoading(btn, true, 'Generating…');
+    out.innerHTML = '';
+    try {
+      const r = await fetch(`/api/clients/${encodeURIComponent(clientId)}/v20/homepage/generate`, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ sessionId }),
+      });
+      const rec = await r.json();
+      if (!r.ok) throw new Error(rec.error || r.statusText);
+      const pre = 'white-space:pre-wrap;font-family:var(--font);font-size:12px;line-height:1.6;background:var(--surface2);padding:12px;border-radius:8px;overflow-x:auto;max-height:420px;overflow-y:auto;';
+      const flags = (rec.FLAGS || []).map(f =>
+        `<div style="font-size:12px;color:${f.source === 'gate' ? 'var(--error,#b71c1c)' : 'var(--flag)'}">${h(f.code)} (${h(f.source)}): ${h(f.msg)}</div>`).join('');
+      const { meta = {}, ...fields } = rec;
+      const u = meta.usage || {};
+      out.innerHTML = `
+        <div style="margin-bottom:10px;font-size:12px;color:var(--muted)">${rec.blocked ? 'Blocked by a gate: no model call.' :
+          `Generated ${h(new Date(meta.generated_at).toLocaleString())} · ${h(meta.model)} · in ${u.input_tokens || 0} (cache read ${u.cache_read_input_tokens || 0}) · out ${u.output_tokens || 0}`}</div>
+        ${flags ? `<div style="margin-bottom:10px">${flags}</div>` : ''}
+        ${meta.raw_output ? `<p style="font-weight:600;margin:8px 0 4px">Raw model output</p><pre style="${pre}">${h(meta.raw_output)}</pre>` : ''}
+        <p style="font-weight:600;margin:12px 0 4px">Page record</p><pre style="${pre}">${h(JSON.stringify(fields, null, 2))}</pre>
+        <hr style="border:none;border-top:1px solid var(--border);margin:16px 0">`;
+    } catch (e) {
+      out.innerHTML = `<p style="color:var(--error,red);font-size:13px">Generation failed: ${h(e.message)}</p>`;
+    } finally {
+      setLoading(btn, false, 'Generate v20 homepage');
     }
   }
 </script>

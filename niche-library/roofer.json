@@ -22,7 +22,9 @@
     "meta_cta": "Get your [QUOTE_FREE_LOWER] quote today.",
     "process_h2": "Your [QUOTE_FREE] Quote in 3 Simple Steps",
     "final_h2": "Get a [QUOTE_FREE] Quote From a Local [CATEGORY] in [CITY]",
-    "final_h2_emergency": "Need a Roofer in [CITY] Now? Call [CV: phone]"
+    "final_h2_emergency": "Need a Roofer in [CITY] Now? Call [CV: phone]",
+    "cta_band_line": "Tell us what's wrong with your roof and we'll get back to you within [CV: response_time].",
+    "cta_band_line_no_response": "Tell us what's wrong with your roof and we'll get back to you."
   },
 
   "business_type_default": "A",

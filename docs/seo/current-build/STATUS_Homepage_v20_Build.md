@@ -30,6 +30,27 @@
   - Allocation prompt CORE (2) (14 Oct): neighbourhoods are chosen first, on their own merits (the most concrete detail for the trade: plot sizes, garden types, build era, ground), in parts of the city that don't share a border. Symptoms come second and only have to fit their question. The model also gets the dossier's Location Overview so it can judge borders.
   - Edens Edge real runs on CORE (2), 3 runs: Bassett Heath every time, plus Portswood Residents' Gardens (2 runs) or Old Woolston (1 run). faq_B = "The lawn stays soggy for days after rain." every time. Both second picks are conservation areas. Two real replies are saved in `tests/fixtures/allocation-replies/` and replayed by the fixture. Runs locally cost about 3p each; none are saved to the app yet.
   - Fixtures: 6 files, 130 checks, all pass. `southampton-allocation.js` runs on the real dossier and the real replies. `allocation-logic.js` runs on the synthetic `parser-drift-sample.md` (format drift and the retry path).
+- Stage 6, v20 generation (14 Oct), built and run once for real:
+  - CTA band is code only: the heading, one fixed niche line (`cta_band_line`, or `cta_band_line_no_response` when response_time is blank), then the D15 buttons. The line is in both niche entries, `.md` and JSON. The roofer line is Claude's wording ("Tell us what's wrong with your roof…") and needs checking.
+  - Final CTA trust lines: `[CV: hours]`, then the rating line. No response time, because the CTA band is its only home.
+  - `v20-generate.js`: CORE (20) as the system prompt, plus a cached client block. The client block has CLIENT VALUES (confirmed and filled only, years_trading worked out, no internal fields), NICHE ENTRY (from the JSON, placeholders filled) and CALIBRATION PACK. The message is the decisions block. With a failed gate there's no call.
+  - `v20-parse.js`: reads the CORE (20) OUTPUT by label. P-MISSING, P-COUNT, P-TITLE (the given title is kept), P-HIDDEN, P-EMPTY, P-FORMAT and P-TRUNCATED become flags; MODEL_FLAGS are captured.
+  - `v20-record.js`: the page record in brief §5 order, with FLAGS and VALIDATION ("not run (Stage 7)") at the top and meta holding the raw output, usage, stand-ins and the decisions block.
+  - Route `POST /api/clients/:id/v20/homepage/generate`. Each run is saved as a `v20_page_record` row; `GET` returns the latest and the history. There's a "Generate v20 homepage" button in the v20 Decisions Preview modal.
+  - Fixtures: 7 files, 160 checks, all pass (`v20-generation.js` adds 30).
+  - First real Edens Edge run (local, 14 Oct): clean parse, no model flags, 64s, about 10p (14k cached client block, 3k message, 2.8k output). The output is saved in `tests/fixtures/v20-outputs/` as test data for Stage 7.
+  - Rule breaks found in that run, for Stage 7 to catch:
+    - word counts over range (all 4 Why points, 2 steps, 3 FAQ answers, the final CTA at 27 words)
+    - "fixed price" appears 5 times
+    - the content block repeats "100 jobs", which is already the trust line
+    - "we work on … roads like Saxholm Way", which implies work on those streets
+    - hyphenated compounds ("four-person", "mid-job", "slower-draining")
+    - a literal company name in the services intro
+    - "no surprises" (a stock phrase)
+    - "property" and "site" (on the avoid list)
+    - "north, east and west" for a coastal city
+    - few contractions
+    - the hero says "landscaper in Romsey, Southampton"
 - Docs: CLAUDE.md at repo root. The files the code reads (`prompts/`, `niche-library/`) are the only copies.
 
 ## Waiting on
@@ -42,9 +63,10 @@
 ## Next
 1. Check the live Stage 4 previews (expect 7 category cards and the final CTA H2 "Get a Free Quote From a Local Landscaper in Southampton").
 2. Stage 5 finish: run the allocation in the app for Edens Edge; run Bournemouth geo research for Kestrel Ridge (the allocation then runs by itself).
-3. Stages 6 to 9: v20 generation, validator + retries, downloads, acceptance test.
-4. Run Perplexity v3 for landscaper (trade only).
-5. Then: FAQ question bank + sorting step stages, humanizer decision, emergency and regulated group tests, category page.
+3. Stage 7: validator (brief §6) and per-field retries (§6b), built against `tests/fixtures/v20-outputs/`.
+4. Stages 8 and 9: downloads (.json and the .md reader view), acceptance test.
+5. Run Perplexity v3 for landscaper (trade only).
+6. Then: FAQ question bank + sorting step stages, humanizer decision, emergency and regulated group tests, category page.
 
 ## Open decisions
 - Which humanizer (tool or prompt) Brandon wants.

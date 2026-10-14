@@ -22,6 +22,7 @@ const { pool, initDb } = require('./db');
 const { computeDecisions } = require('./decisions');
 const allocation = require('./allocation');
 const { parseDossier } = require('./geo-dossier');
+const v20 = require('./v20-generate');
 
 const app = express();
 app.use(express.json({ limit: '4mb' }));
@@ -3220,7 +3221,7 @@ async function loadV20Context(clientId, sessionId) {
       console.error('[v20] Failed to load pages/keyValueMap for', clientId, err);
     }
   }
-  return { cv, cvLoadError, v20TestMode, trade, pages, keyValueMap, serviceParentMap };
+  return { cv, cvLoadError, v20TestMode, trade, clientTrade, pages, keyValueMap, serviceParentMap };
 }
 
 // ── Allocation storage (Stage 5) ─────────────────────────────────────────────
@@ -3468,6 +3469,83 @@ app.put('/api/clients/:clientId/allocation', async (req, res) => {
       pages: { ...((existing && existing.record.pages) || {}), homepage },
     });
     res.json(await allocationView(clientId, sessionId));
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// ── v20 homepage generation (Stage 6) ────────────────────────────────────────
+// Calibration pack for a v20 run: the Step 1 trade, else the client's trade,
+// else the pack that matches the niche.
+const NICHE_PACK_TRADE = { landscaper: 'Landscaper Gardener', roofer: 'Roofing Company' };
+function v20CalibrationPack(ctx, niche) {
+  for (const t of [ctx.trade, ctx.clientTrade, NICHE_PACK_TRADE[(niche.trade_person || '').toLowerCase()]]) {
+    if (t && CALIBRATION_PACKS[t]) return { name: t, text: CALIBRATION_PACKS[t] };
+  }
+  return { name: null, text: '' };
+}
+
+app.post('/api/clients/:clientId/v20/homepage/generate', async (req, res) => {
+  if (!pool) return res.status(503).json({ error: 'Database not configured.' });
+  const { clientId } = req.params;
+  const sessionId = req.body && req.body.sessionId;
+  try {
+    const ctx = await loadV20Context(clientId, sessionId);
+    const { niche, error: nicheErr } = loadNiche(ctx.trade);
+    if (nicheErr) return res.status(400).json({ error: nicheErr });
+    const { allocationData, flags: allocFlags, view } = await resolveHomepageAllocation(clientId, ctx, niche);
+    const decisionsResult = computeDecisions({
+      cv: ctx.cv, niche, pages: ctx.pages, keyValueMap: ctx.keyValueMap, serviceParentMap: ctx.serviceParentMap,
+      v20TestMode: ctx.v20TestMode, allocationData,
+    });
+    const pack = v20CalibrationPack(ctx, niche);
+    const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
+    const callModel = async ({ system, message, maxTokens }) => {
+      const r = await callClaude(client, { system, userContent: message }, maxTokens);
+      return {
+        text: r.content.map(c => c.text || '').join(''),
+        usage: {
+          input_tokens: r.usage.input_tokens, output_tokens: r.usage.output_tokens,
+          cache_read_input_tokens: r.usage.cache_read_input_tokens || 0,
+          cache_creation_input_tokens: r.usage.cache_creation_input_tokens || 0,
+          stop_reason: r.stop_reason,
+        },
+      };
+    };
+    const record = await v20.generateV20Homepage({
+      cv: ctx.cv, niche, keyValueMap: ctx.keyValueMap, decisionsResult,
+      calibrationPack: pack.text, calibrationPackName: pack.name, callModel,
+      extraFlags: allocFlags.map(f => ({ ...f, source: 'allocation' })),
+      allocationSource: view && view.effective ? view.effective.source || 'model' : null,
+    });
+    if (record.meta && record.meta.usage && record.meta.usage.stop_reason === 'max_tokens') {
+      record.FLAGS.push({ code: 'P-TRUNCATED', msg: 'The model hit the output limit; the last fields may be cut off.', source: 'parse' });
+    }
+    await pool.query(
+      `INSERT INTO client_assets (client_id, asset_type, filename, content) VALUES ($1, 'v20_page_record', 'homepage_v20.json', $2)`,
+      [clientId, JSON.stringify(record)]
+    );
+    console.log(`[v20] homepage for ${clientId}: ${record.blocked ? 'blocked by gates' : 'generated'}; ${record.FLAGS.length} flag(s)`);
+    res.json(record);
+  } catch (err) {
+    console.error('[v20] homepage generation failed for', clientId, err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Latest saved v20 homepage record, plus the dates of earlier runs
+app.get('/api/clients/:clientId/v20/homepage', async (req, res) => {
+  if (!pool) return res.status(503).json({ error: 'Database not configured.' });
+  try {
+    const { rows } = await pool.query(
+      `SELECT id, content, uploaded_at FROM client_assets WHERE client_id=$1 AND asset_type='v20_page_record' ORDER BY uploaded_at DESC LIMIT 20`,
+      [req.params.clientId]
+    );
+    if (!rows.length) return res.json({ record: null, history: [] });
+    res.json({
+      record: JSON.parse(rows[0].content),
+      history: rows.map(r => ({ id: r.id, generatedAt: r.uploaded_at })),
+    });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }

@@ -577,6 +577,24 @@ function computeDecisions({ cv, niche, pages, keyValueMap, serviceParentMap, v20
     ? [`Call ${cv.phone}`, ctx.primaryAction]
     : [ctx.primaryAction, cv.phone ? `Call ${cv.phone}` : null].filter(Boolean);
 
+  // ── CTA band (code only): heading, one fixed niche line, the D15 buttons.
+  // The response time lives here and nowhere else on the page.
+  const ctaBand = {
+    heading: d8.cta_band,
+    line: ph(cv.response_time ? (btnBase.cta_band_line || '') : (btnBase.cta_band_line_no_response || ''), ctx),
+    buttons: d15,
+  };
+
+  // ── Final CTA trust lines (build spec section 11): hours, then the rating line.
+  // No response time here: the CTA band is its only home.
+  const finalCtaTrustLines = [cv.hours ? '[CV: hours]' : null, d6_rating].filter(Boolean);
+
+  // ── Trusted & Rated By logos (section 2): Google with 5+ reviews, plus verified logos
+  const trustedLogos = sec2 ? [
+    ...(googleQualifies ? [{ name: 'Google', caption: 'Google reviews' }] : []),
+    ...(Array.isArray(cv.verified_logos) ? cv.verified_logos.filter(l => l && l.name && !/^google$/i.test(l.name)) : []),
+  ] : [];
+
   // ── Allocated items (Stage 5). allocationData is already resolved to names and
   // cleaned text by allocation.resolveAllocatedItems; null when nothing is saved.
   const symptomSlotOf = q => {
@@ -662,6 +680,9 @@ function computeDecisions({ cv, niche, pages, keyValueMap, serviceParentMap, v20
     emergencyOn,
     quoteFree,
     allocated,
+    cta_band:             ctaBand,
+    final_cta_trust_lines: finalCtaTrustLines,
+    trusted_logos:        trustedLogos,
   };
 
   const decisionsBlock = formatDecisionsBlock(decisions, cv, niche, ctx);
@@ -697,6 +718,7 @@ function formatDecisionsBlock(D, cv, niche, ctx) {
   push(`Reviews H2: ${D.d8.reviews}`);
   push(`Process H2: ${D.d8.process}`);
   push(`CTA band: ${D.d8.cta_band}`);
+  push(`CTA band line (code, fixed): ${D.cta_band.line}`);
   push(`Owner H2: ${D.d8.owner}`);
   push(`Areas H2: ${D.d8.areas}`);
   push(`FAQ H2: ${D.d8.faq}`);
@@ -783,4 +805,4 @@ function formatDecisionsBlock(D, cv, niche, ctx) {
   return lines.join('\n');
 }
 
-module.exports = { computeDecisions };
+module.exports = { computeDecisions, ph };

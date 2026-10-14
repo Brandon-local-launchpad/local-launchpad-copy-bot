@@ -34,6 +34,8 @@ Business type defaults to **A (project trade)**. Landscaping is a split niche: s
 | meta_cta | Get your [QUOTE_FREE_LOWER] quote today. |
 | process_h2 | Your [QUOTE_FREE] Quote in 3 Simple Steps |
 | final_h2 | Get a [QUOTE_FREE] Quote From a Local [CATEGORY] in [CITY] |
+| cta_band_line | Tell us about your garden and we'll get back to you within [CV: response_time]. |
+| cta_band_line_no_response | Tell us about your garden and we'll get back to you. |
 | steps_emergency / final_h2_emergency | not used (emergency_niche = no) |
 
 ## Steps (type A)
