@@ -91,6 +91,17 @@
   - From reading the acceptance page, now caught by the validator: "neighbourhoods that keep us busy" (WORKED), "one person sees the job through" and "stays involved throughout" (PRACTICE), "a single day's work" (NUM), "slowly permeable" (RESEARCH-LANG). Not caught by any rule: FAQ 4 adding "That applies to every job" to the start time.
   - The page map and custom values parsers moved from server.js to `client-files.js` (unchanged), so tests and the WordPress push can use them.
   - Fixtures: 11 files, 263 checks, all pass.
+- Stage 10, WordPress push, slice 1 (14 Oct): payload, safety checks, dry run against a fake WordPress.
+  - Decisions (Brandon, 14 Oct): tokens are replaced on the WordPress side; the plugin's ACF JSON is the master copy, which Given imports; drafts and staging only until Brandon says otherwise. The plan is approved.
+  - `wp/homepage-map.js`: record → ACF fields (the build spec's names) + SEO meta. Rank Math is the default; a Yoast adapter exists, and another plugin needs only a new adapter. The payload needs five fields the spec doesn't have yet: `home_trusted_show`, `home_reviews_show`, `home_services_more_line`, `home_cta_band_heading`/`_line` and `home_final_cta_body`. Not pushed: images (Given), buttons, the rating line and the final CTA trust lines (the site's Client Values). Tokens stay as `[CV: key]` for the site to resolve. `wp/markdown.js` turns links and paragraph breaks into HTML.
+  - `wp/safety.js` refuses a push when:
+    - a gate failed, the record isn't validated, or it has any BLOCK
+    - it uses stand-in values (N16)
+    - FLAGs remain without a person's "reviewed" tick
+    - the homepage is published and the site isn't marked staging
+  - `wp/dry-run.js` + `npm run wp:dry-run -- <record.json> [--reviewed] [--fake]`: finds the homepage (front page setting or slug), compares every field and repeater row, and says whether a push would be allowed and why not. It writes nothing. Application Passwords need https except on localhost.
+  - `tests/fake-wp/fake-wp.js`: a fake site with the REST endpoints, Basic auth, ACF and meta, and a write counter. `tests/fixtures/wp-push.js` adds 29 checks; 12 fixtures pass.
+  - Next slices: (2) the companion plugin: Client Values settings page, token resolver, REST access to the SEO meta, ACF JSON master including the five new fields; (3) the real push: snapshot, write, rollback, push log, and the model-judged claims review before any push; (4) Copybot screens: site address and Application Password (stored encrypted), "reviewed" tick, dry run / push / roll back buttons; (5) a first push to a staging site.
 - Docs: CLAUDE.md at repo root. The files the code reads (`prompts/`, `niche-library/`) are the only copies.
 
 ## Waiting on
@@ -103,7 +114,7 @@
 ## Next
 1. Check the live Stage 4 previews (expect 7 category cards and the final CTA H2 "Get a Free Quote From a Local Landscaper in Southampton").
 2. Stage 5 finish: run the allocation in the app for Edens Edge; run Bournemouth geo research for Kestrel Ridge (the allocation then runs by itself).
-3. WordPress push: plan written, waiting for approval and the answers it asks for.
+3. WordPress push: slice 2 (companion plugin), then the real push, the Copybot screens, and a staging push.
 4. Run Perplexity v3 for landscaper (trade only).
 5. Then: FAQ question bank + sorting step stages, humanizer decision, emergency and regulated group tests, category page.
 
