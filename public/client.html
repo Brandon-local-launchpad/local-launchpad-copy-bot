@@ -46,6 +46,8 @@
   .btn-danger-sm:hover { border-color: var(--danger); }
   .empty { color: var(--muted); padding: 2rem; text-align: center; }
   .gen-date { color: var(--muted); font-size: 11px; }
+  .badge-v20  { background: rgba(108,99,255,.15); color: var(--accent); }
+    @media (max-width: 640px) { body { padding: 1rem; } .page-row { flex-wrap: wrap; } }
 </style>
 </head>
 <body>
@@ -57,7 +59,10 @@
     <h1 id="clientName">Loading…</h1>
     <div class="client-meta" id="clientMeta"></div>
   </div>
-  <a id="generateLink" href="#" class="btn btn-primary">Generate Pages</a>
+  <div style="display:flex;gap:.5rem;flex-wrap:wrap">
+    <a id="settingsLink" href="#" class="btn btn-ghost">Settings</a>
+    <a id="generateLink" href="#" class="btn btn-primary">Generate Pages</a>
+  </div>
 </div>
 
 <div class="tabs" id="tabs"></div>
@@ -75,18 +80,27 @@
   let activeType = null;
 
   async function load() {
-    const [clientRes, pagesRes] = await Promise.all([
+    const [clientRes, pagesRes, v20Res] = await Promise.all([
       fetch(`/api/clients/${clientId}`),
       fetch(`/api/clients/${clientId}/pages`),
+      fetch(`/api/clients/${clientId}/v20/homepage`).catch(() => null),
     ]);
     if (!clientRes.ok) { location.href = '/clients.html'; return; }
     const client = await clientRes.json();
     allPages = (await pagesRes.json()).pages || [];
+    // v20 pages open on their own page screen (v20-page.html), listed first in their tab
+    const v20 = v20Res && v20Res.ok ? await v20Res.json() : null;
+    if (v20 && v20.record) {
+      const r = v20.record, V = r.VALIDATION || {}, m = r.meta || {};
+      allPages.unshift({ v20: true, page_type: 'homepage', page_title: 'Homepage (v20)', url_slug: '/', generated_at: m.edited_at || m.generated_at,
+        edited: !!m.edited_at, block: V.block, flag: V.flag, claims: r.CLAIMS && r.CLAIMS.findings ? r.CLAIMS.findings.length - ((r.CLAIMS.accepted || []).length) : null });
+    }
 
     document.title = `${client.name} — Local Launchpad`;
     document.getElementById('clientName').textContent = client.name;
     document.getElementById('clientMeta').textContent = `${client.trade} · Created ${fmtDate(client.created_at)}`;
     document.getElementById('generateLink').href = `/generate?clientId=${clientId}`;
+    document.getElementById('settingsLink').href = `/client-settings.html?id=${clientId}`;
 
     const types = PAGE_TYPE_ORDER.filter(t => allPages.some(p => p.page_type === t));
     if (!activeType || !types.includes(activeType)) activeType = types[0] || null;
@@ -110,6 +124,21 @@
     const pages = allPages.filter(p => p.page_type === activeType);
     if (!pages.length) { list.innerHTML = '<div class="empty">No pages yet.</div>'; return; }
     list.innerHTML = pages.map(p => {
+      if (p.v20) {
+        // No validation badge here: the stored result can be out of date, and the page screen's dry run checks with today's rules
+        const v = '';
+        const c = p.claims ? `<span class="badge badge-warn">${p.claims} claim${p.claims > 1 ? 's' : ''} to accept</span>` : '';
+        return `<div class="page-row" onclick="location.href='/v20-page.html?clientId=${clientId}&type=homepage'">
+          <div>
+            <div class="page-title">${esc(p.page_title)} <span class="badge badge-v20">v20</span></div>
+            <div class="page-slug">Reader view, edit fields, claims, push to WordPress, push log</div>
+          </div>
+          <div class="page-actions">
+            <span class="gen-date">${p.edited ? 'Edited' : 'Generated'} ${fmtDate(p.generated_at)}</span>
+            ${v}${c}
+          </div>
+        </div>`;
+      }
       const issueCount = (p.issues || []).length;
       const badge = !p.generated_at
         ? `<span class="badge badge-none">Not generated</span>`

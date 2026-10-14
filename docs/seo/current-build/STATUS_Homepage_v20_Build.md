@@ -149,6 +149,12 @@
 - Today's rules at every dry run and push (14 Oct, Brandon's decision): the service re-runs the validator on the page with the client's facts as they are now, and the push checks use that result, never the stored one. The dry run shows "Validation with today's rules", says when it differs from the stored result (with the new and cleared issues), and says when the client values or decisions have changed since the version was written. If today's check can't run (a gate failing), dry run and push refuse. The field editor shows today's issues too. The stored record is never changed by the check. The "reviewed" tick is always shown and is needed when today's result has FLAGs.
   - Code: `revalidate` and `sameFacts` in `v20-edit.js`; `currentFacts` (server `v20CurrentFacts`) is required by `createWpService`.
   - Fixtures: 17 files, 434 checks, all pass (`v20-edit.js` 33; `wp-service.js` 31).
+- Screens reorganised (14 Oct, Brandon's decision):
+  - Client settings (`client-settings.html`, a Settings button on the client screen): the WordPress connection, set up once per client, and the v20 switches (use v20 homepage, test mode) that used to sit on the Client Values step.
+  - Page screen (`v20-page.html?clientId=…&type=homepage`), opened from the "Homepage (v20)" row in the client's page list or from the generate screen's v20 output: tabs for Reader view (the .md shown on screen), Edit fields, Claims and push (claims ticks, reviewed tick, dry run, push) and Push log (with Roll back), plus .md/.json downloads. The logic is in `public/js/v20-page.js`; a page type is one entry in `PAGE_TYPES` (its API routes), so category pages can use the same screen.
+  - Client Values is back to just client values. The generate screen still reads the v20 switch (Generate All warning, decisions preview).
+  - Neither the page list nor the page header shows the stored validation result; only the dry run's check with today's rules is shown.
+  - Tested in the browser on the demo: settings save and test, page list row, reader view, an edit clearing 5 BLOCKs, dry run, push, rollback, Client Values without the cards.
 - Docs: CLAUDE.md at repo root. The files the code reads (`prompts/`, `niche-library/`) are the only copies.
 
 ## Waiting on

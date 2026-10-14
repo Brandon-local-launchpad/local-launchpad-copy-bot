@@ -186,8 +186,6 @@
     .cv-input:focus { border-color:var(--accent); }
     .cv-input.standin { border-color:var(--flag) !important; }
     textarea.cv-input { resize:vertical; min-height:52px; }
-    .wp-lbl { display:flex; flex-direction:column; gap:4px; font-size:11px; color:var(--muted); text-transform:none; letter-spacing:0; }
-    @media (max-width: 640px) { #wpCard > div[style*="grid-template-columns"] { grid-template-columns: 1fr !important; } }
     select.cv-input { appearance:none; background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' fill='none'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%238b90a8' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E"); background-repeat:no-repeat; background-position:right 10px center; padding-right:28px; }
     .cv-sub { margin-top:5px; display:flex; align-items:center; gap:6px; }
     .cv-sub label { font-size:11px; color:var(--muted); text-transform:none; letter-spacing:0; font-weight:400; margin:0; cursor:pointer; }
@@ -309,41 +307,6 @@
     </div>
 
     <div id="cvForm"><!-- rendered by renderCvForm() --></div>
-
-    <div class="card" id="cvV20Card" style="display:none">
-      <div class="card-title">v20 Settings (this client)</div>
-      <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:13px;text-transform:none;letter-spacing:0;color:var(--text);margin-bottom:10px">
-        <input type="checkbox" id="cvUseV20" style="width:14px;height:14px;accent-color:var(--accent)" onchange="saveV20Settings()">
-        Use new homepage (v20) for this client
-      </label>
-      <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:13px;text-transform:none;letter-spacing:0;color:var(--text)">
-        <input type="checkbox" id="cvTestMode" style="width:14px;height:14px;accent-color:var(--flag)" onchange="saveV20Settings()">
-        Test mode — bypass G-MAP gate (testing without a live map embed)
-      </label>
-    </div>
-
-    <div class="card" id="wpCard" style="display:none">
-      <div class="card-title">WordPress (v20 homepage)</div>
-      <p style="color:var(--muted);font-size:13px;margin-bottom:12px">Pushes the latest v20 homepage to this client's site. Drafts and staging sites only for now. The site needs the Local Launchpad Copybot plugin and ACF Pro.</p>
-
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px">
-        <label class="wp-lbl">Site address<input class="cv-input" id="wpUrl" type="url" placeholder="https://example.co.uk"></label>
-        <label class="wp-lbl">WordPress username<input class="cv-input" id="wpUser" type="text" placeholder="copybot"></label>
-        <label class="wp-lbl">Application Password<input class="cv-input" id="wpPassword" type="password" autocomplete="new-password" placeholder="xxxx xxxx xxxx xxxx xxxx xxxx"></label>
-        <label class="wp-lbl">SEO plugin<select class="cv-input" id="wpSeo"><option value="rankmath">Rank Math</option><option value="yoast">Yoast</option></select></label>
-        <label class="wp-lbl">Homepage slug (optional)<input class="cv-input" id="wpSlug" type="text" placeholder="Leave blank to use the site's front page"></label>
-        <label class="wp-lbl" style="flex-direction:row;align-items:center;gap:8px;margin-top:18px"><input type="checkbox" id="wpStaging" style="width:14px;height:14px"> This is a staging site</label>
-      </div>
-      <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:6px">
-        <button class="btn btn-ghost btn-sm" style="width:auto;padding:6px 14px" onclick="wpSaveConnection()">Save connection</button>
-        <button class="btn btn-ghost btn-sm" style="width:auto;padding:6px 14px" onclick="wpTest()">Test connection</button>
-        <span id="wpConnStatus" style="font-size:12px;color:var(--muted)"></span>
-      </div>
-
-      <div id="wpPushPanel" style="border-top:1px solid var(--border);margin-top:12px;padding-top:12px;font-size:13px"></div>
-      <div id="wpError" style="display:none;color:var(--error,#b71c1c);font-size:13px;margin-top:8px"></div>
-      <div id="wpLog" style="border-top:1px solid var(--border);margin-top:12px;padding-top:12px;font-size:12px"></div>
-    </div>
 
     <button class="btn btn-success" id="cvContBtn" onclick="showGeoStep();goTo(4);">
       Continue to Geo Research
@@ -558,6 +521,7 @@
   let researchPollingLocations = null; // set of codes being polled
   let savedFilesInfo = null; // [{filename, fileType, trade, uploadedAt}] from /saved-files
   const clientId     = new URLSearchParams(location.search).get('clientId') || null;
+  if (clientId) setTimeout(() => loadV20Settings(), 0);
   const debugMode    = new URLSearchParams(location.search).get('debug') === '1';
 
   if (clientId) {
@@ -1687,7 +1651,7 @@
         if (noPackEl) noPackEl.style.display = 'none';
         btn.style.display = 'block';
         btn.textContent   = `Generate All ${data.summary.total} Pages`;
-        const v20On = clientId && document.getElementById('cvUseV20') && document.getElementById('cvUseV20').checked;
+        const v20On = clientId && v20Settings.use_v20_homepage;
         document.getElementById('decisionsPreviewRow').style.display = v20On ? 'block' : 'none';
         document.getElementById('v20GenerateWarning').style.display = v20On ? 'block' : 'none';
         document.getElementById('resumeRow').style.display = 'flex';
@@ -1828,7 +1792,7 @@
 
   async function submitBatch(isResume) {
     // v20 clients: Generate All still runs the old prompts, so make the user confirm
-    const v20On = clientId && document.getElementById('cvUseV20') && document.getElementById('cvUseV20').checked;
+    const v20On = clientId && v20Settings.use_v20_homepage;
     if (v20On && !confirm('This client uses the v20 homepage.\n\nGenerate All still runs the old prompts for every page, including the homepage, and the other page types are not migrated yet.\n\nGenerate anyway?')) return;
 
     // If a custom selection exists, persist it to the session before submitting
@@ -2476,252 +2440,6 @@
 
     // Step D: v20 settings — independent
     loadV20Settings();
-    // Step E: WordPress card — independent
-    wpLoad();
-  }
-
-  // ── WordPress push (v20 homepage) ─────────────────────────────────────────
-  let wpState = { record: null, dry: null };
-  const wpApi = (p, opts) => fetch(`/api/clients/${encodeURIComponent(clientId)}${p}`, opts).then(async r => {
-    const d = await r.json().catch(() => ({}));
-    if (!r.ok) throw new Error(d.error || r.statusText);
-    return d;
-  });
-  const wpPost = (p, body) => wpApi(p, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body || {}) });
-  function wpError(msg) { const el = document.getElementById('wpError'); el.textContent = msg || ''; el.style.display = msg ? 'block' : 'none'; }
-
-  async function wpLoad() {
-    const card = document.getElementById('wpCard');
-    if (!clientId) { card.style.display = 'none'; return; }
-    card.style.display = '';
-    wpError('');
-    try {
-      const c = await wpApi('/wp/connection');
-      if (c) {
-        document.getElementById('wpUrl').value = c.url;
-        document.getElementById('wpUser').value = c.user;
-        document.getElementById('wpSeo').value = c.seo;
-        document.getElementById('wpSlug').value = c.homepageSlug || '';
-        document.getElementById('wpStaging').checked = !!c.staging;
-        document.getElementById('wpPassword').placeholder = c.hasPassword ? 'Stored (leave blank to keep)' : 'xxxx xxxx xxxx xxxx xxxx xxxx';
-        document.getElementById('wpConnStatus').textContent = `Saved ${new Date(c.updatedAt).toLocaleString()}`;
-      }
-    } catch (e) { wpError(`Couldn't load the WordPress connection: ${e.message}`); }
-    await wpLoadRecord();
-    await wpLoadLog();
-  }
-
-  async function wpSaveConnection() {
-    wpError('');
-    try {
-      const c = await wpApi('/wp/connection', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({
-        url: document.getElementById('wpUrl').value, user: document.getElementById('wpUser').value,
-        appPassword: document.getElementById('wpPassword').value, seo: document.getElementById('wpSeo').value,
-        homepageSlug: document.getElementById('wpSlug').value, staging: document.getElementById('wpStaging').checked,
-      }) });
-      document.getElementById('wpPassword').value = '';
-      document.getElementById('wpPassword').placeholder = 'Stored (leave blank to keep)';
-      document.getElementById('wpConnStatus').textContent = `Saved ${new Date(c.updatedAt).toLocaleString()}`;
-    } catch (e) { wpError(e.message); }
-  }
-
-  async function wpTest() {
-    wpError('');
-    const st = document.getElementById('wpConnStatus');
-    st.textContent = 'Testing…';
-    try {
-      const t = await wpPost('/wp/test');
-      const s = t.status || {};
-      st.textContent = s.error ? `Can't reach the plugin: ${s.error}` :
-        `Connected${t.staging ? ' (staging)' : ''}: plugin ${s.plugin}, ACF Pro ${s.acf_pro ? 'yes' : 'NO'}, SEO ${s.seo}, ${(s.field_groups || []).length} homepage field groups`;
-    } catch (e) { st.textContent = ''; wpError(e.message); }
-  }
-
-  async function wpLoadRecord() {
-    const panel = document.getElementById('wpPushPanel');
-    try {
-      const { record, history } = await wpApi('/v20/homepage');
-      wpState = { record, dry: null, recordId: history && history[0] ? history[0].id : null };
-      if (!record) { panel.innerHTML = '<span style="color:var(--muted)">No v20 homepage generated yet.</span>'; return; }
-      const V = record.VALIDATION || {}, C = record.CLAIMS;
-      const accepted = new Set(((C && C.accepted) || []).map(a => a.quote));
-      const tag = (text, colour) => ` <span style="font-size:11px;padding:1px 6px;border-radius:8px;border:1px solid ${colour};color:${colour}">${text}</span>`;
-      const claims = !C ? `<div style="margin:8px 0">No claims review on this version yet. <button class="btn btn-ghost btn-sm" style="width:auto;padding:4px 10px" onclick="wpReviewClaims()">Run claims review</button></div>`
-        : C.status === 'failed' ? `<div style="margin:8px 0;color:var(--error,#b71c1c)">Claims review failed (${h(C.error)}). <button class="btn btn-ghost btn-sm" style="width:auto;padding:4px 10px" onclick="wpReviewClaims()">Run it again</button></div>`
-        : !C.findings.length ? '<div style="margin:8px 0">Claims review: clear.</div>'
-        : `<div style="margin:8px 0">Claims review: ${C.findings.length} statement(s) the facts on file don't support. Tick each one you accept, or edit the field below:</div>` +
-          C.findings.map((f, i) => `<label style="display:flex;gap:8px;align-items:flex-start;margin:4px 0;text-transform:none;letter-spacing:0;color:var(--text)"><input type="checkbox" class="wp-claim" data-i="${i}" ${accepted.has(f.quote) ? 'checked' : ''} style="width:14px;height:14px;margin-top:2px"><span><strong>${h(f.field)}</strong>: "${h(f.quote)}"${f.carried ? tag('accepted on the previous version', 'var(--success)') : ''}${f.note ? tag(h(f.note), 'var(--flag)') : ''}${f.on_edited_field ? tag('on a field you edited', 'var(--muted)') : ''}<br><span style="color:var(--muted)">${h(f.why)}</span></span></label>`).join('');
-      const m = record.meta || {};
-      const made = m.edited_at ? `edited by hand ${h(new Date(m.edited_at).toLocaleString())} (${h((m.edited_fields || []).join(', '))})` : `generated ${h(new Date(m.generated_at).toLocaleString())}`;
-      panel.innerHTML = `
-        <div>Latest version: ${made} · validation when saved <strong>${V.block} BLOCK</strong>, ${V.flag} FLAG (the dry run checks it again with today's rules)${record.watermark ? ` · <span style="color:var(--flag)">${h(record.watermark)}</span>` : ''}
-          · <a href="/api/clients/${encodeURIComponent(clientId)}/v20/homepage/download?format=md">reader view</a></div>
-        <div id="wpEditResult"></div>
-        ${claims}
-        <details id="wpEditor" style="margin:8px 0" ontoggle="if (this.open) wpLoadEditor()"><summary style="cursor:pointer">Edit fields</summary><div id="wpEditorBody" style="margin-top:8px"></div></details>
-        <label style="display:flex;gap:8px;align-items:center;margin:8px 0;text-transform:none;letter-spacing:0;color:var(--text)"><input type="checkbox" id="wpReviewed" style="width:14px;height:14px"> I've read the reader view, including its FLAGs, and it's fit to push</label>
-        <div style="display:flex;gap:8px;margin-top:8px">
-          <button class="btn btn-ghost btn-sm" style="width:auto;padding:6px 14px" onclick="wpDryRun()">Dry run</button>
-          <button class="btn btn-primary btn-sm" id="wpPushBtn" style="width:auto;padding:6px 14px" disabled onclick="wpPush()">Push to WordPress</button>
-        </div>
-        <div id="wpDryResult" style="margin-top:10px"></div>`;
-      panel.onchange = e => {
-        // Ticks are saved on the version, so a hand edit can carry them over
-        if (e.target.classList.contains('wp-claim')) wpApi('/wp/claims-accepted', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ recordId: wpState.recordId, quotes: wpAccepted() }) }).catch(err => wpError(`Couldn't save the tick: ${err.message}`));
-        wpUpdatePushButton();
-      };
-    } catch (e) { panel.innerHTML = ''; wpError(`Couldn't load the latest v20 homepage: ${e.message}`); }
-  }
-
-  const wpReviewed = () => { const el = document.getElementById('wpReviewed'); return el ? el.checked : false; };
-  const wpAccepted = () => Array.from(document.querySelectorAll('.wp-claim:checked')).map(cb => wpState.record.CLAIMS.findings[+cb.dataset.i].quote);
-
-  // ── Field editor (slice 5): the model's prose only; a save is a new version,
-  // validated and claims-reviewed on the server ──
-  const wpWords = t => { const s = String(t || '').replace(/\[CV: [a-z0-9_]+\]/g, 'X').replace(/\[([^\]]+)\]\([^)]+\)/g, '$1').trim(); return s ? s.split(/\s+/).length : 0; };
-  function wpWordNote(el) {
-    const n = wpWords(el.value), r = JSON.parse(el.dataset.range || 'null');
-    const out = r && ((r.min && n < r.min) || n > r.max);
-    const note = el.parentElement.querySelector('.wp-words');
-    note.textContent = `${n} words${r ? ` (${r.label})` : ''}${el.value !== el.dataset.orig ? ' · changed' : ''}`;
-    note.style.color = out ? 'var(--flag)' : 'var(--muted)';
-  }
-  async function wpLoadEditor() {
-    const body = document.getElementById('wpEditorBody');
-    body.innerHTML = '<span style="color:var(--muted)">Loading…</span>';
-    try {
-      const { recordId, fields, issues: today, issuesError } = await wpApi(`/v20/homepage/fields?id=${encodeURIComponent(wpState.recordId)}&sessionId=${encodeURIComponent(sessionId || '')}`);
-      const rec = wpState.record, issues = today || (rec.VALIDATION && rec.VALIDATION.issues) || [], findings = (rec.CLAIMS && rec.CLAIMS.findings) || [];
-      body.innerHTML = `<div style="color:var(--muted);margin-bottom:8px">Headings, FAQ questions, card names, buttons and links are set by code: to change those, change the client values and regenerate. Saving makes a new version and runs the validator and the claims review on the whole page (one model call). The issues shown are ${today ? "today's" : `the stored ones (today's check couldn't run: ${h(issuesError)})`}.</div>` +
-        fields.map((f, i) => {
-          const notes = [
-            ...issues.filter(x => x.field === f.field).map(x => `<div style="color:${x.type === 'BLOCK' ? 'var(--error,#b71c1c)' : 'var(--flag)'}">${h(x.type)} ${h(x.check)}: ${h(x.message)}</div>`),
-            ...findings.filter(x => x.field === f.field).map(x => `<div style="color:var(--flag)">Claim: "${h(x.quote)}" (${h(x.why)})</div>`),
-          ].join('');
-          return `<div style="margin:10px 0"><div style="font-weight:600">${h(f.field)}</div>${notes}
-            <textarea class="wp-edit" data-field="${h(f.field)}" data-i="${i}" data-range="${h(JSON.stringify(f.range))}" rows="${Math.min(12, Math.max(3, Math.ceil(f.text.length / 75) + 1))}" style="width:100%;font-size:13px;font-family:inherit;line-height:1.45;margin-top:4px" oninput="wpWordNote(this)">${h(f.text)}</textarea>
-            <div class="wp-words" style="font-size:11px"></div></div>`;
-        }).join('') +
-        `<button class="btn btn-primary btn-sm" id="wpEditSave" style="width:auto;padding:6px 14px" onclick="wpSaveEdits()">Save and re-check</button>`;
-      body.querySelectorAll('.wp-edit').forEach((el, i) => { el.dataset.orig = fields[i].text; wpWordNote(el); });
-      wpState.editFor = recordId;
-    } catch (e) { body.innerHTML = ''; wpError(`Couldn't load the fields: ${e.message}`); }
-  }
-  async function wpSaveEdits() {
-    wpError('');
-    const edits = Array.from(document.querySelectorAll('.wp-edit')).filter(el => el.value !== el.dataset.orig).map(el => ({ field: el.dataset.field, text: el.value }));
-    if (!edits.length) { wpError('Nothing changed.'); return; }
-    const btn = document.getElementById('wpEditSave');
-    setLoading(btn, true, 'Checking…');
-    try {
-      const accepted = (wpState.record.CLAIMS && Array.isArray(wpState.record.CLAIMS.findings)) ? wpAccepted() : undefined;
-      const r = await wpApi('/v20/homepage/fields', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ recordId: wpState.editFor, edits, accepted, sessionId }) });
-      await wpLoadRecord();
-      const V = r.record.VALIDATION, C = r.record.CLAIMS;
-      const open = C.status === 'failed' ? 'the claims review failed, run it again' : `${C.findings.length} claim(s), ${(C.accepted || []).length} carried over`;
-      document.getElementById('wpEditResult').innerHTML = `<div style="color:${V.block ? 'var(--error,#b71c1c)' : 'var(--success)'};margin:6px 0">Saved as a new version: ${r.changed.length} field(s) changed · ${V.block} BLOCK, ${V.flag} FLAG · ${open}. Run a dry run before pushing.</div>`;
-      document.getElementById('wpEditResult').scrollIntoView({ block: 'nearest' });
-    } catch (e) { wpError(e.message); setLoading(btn, false, 'Save and re-check'); }
-  }
-
-  async function wpReviewClaims() {
-    wpError('');
-    document.getElementById('wpPushPanel').insertAdjacentHTML('afterbegin', '<div id="wpClaimsRunning" style="color:var(--muted)">Running the claims review…</div>');
-    try { await wpPost('/wp/claims-review', {}); await wpLoadRecord(); }
-    catch (e) { wpError(e.message); const r = document.getElementById('wpClaimsRunning'); if (r) r.remove(); }
-  }
-
-  async function wpDryRun() {
-    wpError('');
-    const out = document.getElementById('wpDryResult');
-    out.innerHTML = '<span style="color:var(--muted)">Reading the site…</span>';
-    try {
-      const d = await wpPost('/wp/dry-run', { reviewed: wpReviewed(), sessionId });
-      wpState.dry = d;
-      const changed = d.changes.filter(c => c.change !== 'same');
-      const clip = s => (s && s.length > 140 ? s.slice(0, 137) + '…' : (s || '(empty)'));
-      out.innerHTML = `
-        <div>Dry run on ${h(d.site)}: page ${d.page ? `${d.page.id} (${h(d.page.status)})` : 'not found'} · ${d.summary.added} added, ${d.summary.changed} changed, ${d.summary.removed} removed. Nothing was written.</div>
-        ${wpValidationNote(d.validation)}
-        ${d.refusals.length ? `<div style="color:var(--error,#b71c1c);margin-top:6px">A push would be refused:<ul style="margin:4px 0 0 18px">${d.refusals.map(x => `<li>${h(x)}</li>`).join('')}</ul></div>` : '<div style="color:var(--success);margin-top:6px">The site is ready: a push would be allowed once every claim is accepted.</div>'}
-        <details style="margin-top:6px"><summary>${changed.length} field change(s)</summary>
-          <table style="width:100%;font-size:12px;border-collapse:collapse;margin-top:6px">${changed.map(c => `<tr style="border-top:1px solid var(--border)"><td style="padding:4px;vertical-align:top;white-space:nowrap">${h(c.change)}</td><td style="padding:4px;vertical-align:top">${h(c.field)}</td><td style="padding:4px;vertical-align:top;color:var(--muted)">${h(clip(c.current))}</td><td style="padding:4px;vertical-align:top">${h(clip(c.next))}</td></tr>`).join('')}</table>
-        </details>`;
-      wpUpdatePushButton();
-    } catch (e) { out.innerHTML = ''; wpError(e.message); }
-  }
-
-  // Today's validation (the dry run re-checks every page), and how it differs from the stored result
-  function wpValidationNote(v) {
-    if (!v || v.error) return '';
-    const issue = i => `<li><span style="color:${i.type === 'BLOCK' ? 'var(--error,#b71c1c)' : 'var(--flag)'}">${h(i.type)} ${h(i.check)}</span> · ${h(i.field)}: ${h(i.message)}</li>`;
-    const list = (title, items) => items.length ? `<details style="margin-top:4px"><summary>${title} (${items.length})</summary><ul style="margin:4px 0 0 18px">${items.map(issue).join('')}</ul></details>` : '';
-    return `<div style="margin-top:6px">Validation with today's rules: <strong>${v.fresh.block} BLOCK</strong>, ${v.fresh.flag} FLAG.
-      ${v.differs ? `<span style="color:var(--flag)">This differs from the result stored when this version was saved (${v.stored.block ?? '?'} BLOCK, ${v.stored.flag ?? '?'} FLAG).</span>` : '<span style="color:var(--muted)">Same as the stored result.</span>'}
-      ${v.factsChanged ? `<div style="color:var(--flag)">The client values or page decisions have changed since this version was written, so it was checked against today's facts. Regenerate if the page should reflect them.</div>` : ''}
-      ${list('New under today\'s rules', v.added || [])}${list('No longer found', v.cleared || [])}${list('All issues today', v.fresh.issues || [])}</div>`;
-  }
-
-  // Push is allowed after a dry run with no refusals (other than the review tick,
-  // which can be ticked afterwards) and with every claim accepted
-  function wpUpdatePushButton() {
-    const btn = document.getElementById('wpPushBtn');
-    const d = wpState.dry, rec = wpState.record;
-    if (!btn || !d || !rec) return;
-    const findings = (rec.CLAIMS && rec.CLAIMS.findings) || [];
-    const claimsOk = wpAccepted().length === findings.length;
-    const otherRefusals = d.refusals.filter(x => !/tick "reviewed"/.test(x));
-    const todayFlags = d.validation && d.validation.fresh ? d.validation.fresh.flag : (rec.VALIDATION && rec.VALIDATION.flag);
-    const reviewOk = !todayFlags || wpReviewed();
-    btn.disabled = !(otherRefusals.length === 0 && claimsOk && reviewOk);
-  }
-
-  async function wpPush() {
-    const d = wpState.dry;
-    if (!d || !confirm(`Push the v20 homepage to ${d.site} (page ${d.page.id}, ${d.page.status})?\n\nA snapshot is taken first, so you can roll it back.`)) return;
-    wpError('');
-    const btn = document.getElementById('wpPushBtn');
-    setLoading(btn, true, 'Pushing…');
-    try {
-      const r = await wpPost('/wp/push', { reviewed: wpReviewed(), acceptedClaims: wpAccepted(), confirm: true, sessionId });
-      if (r.refusals && r.refusals.length) wpError('Push refused: ' + r.refusals.join(' '));
-      else if (r.error) wpError(`Push failed: ${r.error}`);
-      else {
-        // The dry run is out of date once the site has changed: show the push result instead, and ask for a new dry run before another push
-        wpState.dry = null;
-        document.getElementById('wpDryResult').innerHTML = `<div style="color:${r.ok ? 'var(--success)' : 'var(--flag)'}">Push: ${h(r.result)}${r.mismatches && r.mismatches.length ? ` (read-back differs: ${h(r.mismatches.join(', '))})` : ''}. Run a new dry run before pushing again.</div>`;
-      }
-    } catch (e) { wpError(e.message); }
-    finally { setLoading(btn, false, 'Push to WordPress'); if (!wpState.dry) btn.disabled = true; wpLoadLog(); }
-  }
-
-  async function wpLoadLog() {
-    const el = document.getElementById('wpLog');
-    try {
-      const log = await wpApi('/wp/log');
-      el.innerHTML = log.length ? '<div style="font-weight:600;margin-bottom:4px">Push log</div>' + log.map(l => `
-        <div style="display:flex;gap:8px;align-items:center;padding:3px 0;border-top:1px solid var(--border)">
-          <span style="color:var(--muted);white-space:nowrap">${h(new Date(l.at).toLocaleString())}</span>
-          <span>${h(l.action)} → <strong>${h(l.result)}</strong>${l.refusals ? `: ${h(l.refusals.join(' '))}` : ''}${l.error ? `: ${h(l.error)}` : ''}</span>
-          ${l.action === 'push' && l.snapshotId && /pushed|written/.test(l.result) ? `<button class="btn btn-ghost btn-sm" style="width:auto;padding:2px 8px;margin-left:auto" onclick="wpRollback('${h(l.snapshotId)}')">Roll back</button>` : ''}
-        </div>`).join('') : '<span style="color:var(--muted)">No pushes yet.</span>';
-    } catch (e) { el.innerHTML = ''; }
-  }
-
-  async function wpRollback(snapshotId) {
-    if (!confirm('Roll the site back to what it held before this push?')) return;
-    wpError('');
-    try {
-      const r = await wpPost('/wp/rollback', { snapshotId, confirm: true });
-      if (!r.ok) wpError(`Rollback: ${r.error || 'read-back differs: ' + (r.mismatches || []).join(', ')}`);
-      else {
-        wpState.dry = null;
-        const out = document.getElementById('wpDryResult'), btn = document.getElementById('wpPushBtn');
-        if (out) out.innerHTML = '<div style="color:var(--success)">Rolled back: the site holds what it had before that push.</div>';
-        if (btn) btn.disabled = true;
-      }
-    } catch (e) { wpError(e.message); }
-    wpLoadLog();
   }
 
   async function prefillClientValues() {
@@ -2764,33 +2482,15 @@
     finally { setLoading(btn, false, 'Save'); }
   }
 
+  // The client's v20 switches (set on the client settings screen); this screen only reads them
+  let v20Settings = { use_v20_homepage: false, v20_test_mode: false };
   async function loadV20Settings() {
     if (!clientId) return;
     try {
       const r = await fetch(`/api/clients/${encodeURIComponent(clientId)}/v20-settings`);
       if (!r.ok) throw new Error(`HTTP ${r.status}`);
-      const { use_v20_homepage, v20_test_mode } = await r.json();
-      document.getElementById('cvUseV20').checked = !!use_v20_homepage;
-      document.getElementById('cvTestMode').checked = !!v20_test_mode;
-      document.getElementById('cvV20Card').style.display = '';
-    } catch (e) {
-      document.getElementById('cvV20Card').style.display = '';
-      cvInlineError('cvV20Card', "Couldn't load v20 settings", e);
-    }
-  }
-
-  async function saveV20Settings() {
-    if (!clientId) return;
-    try {
-      await fetch(`/api/clients/${encodeURIComponent(clientId)}/v20-settings`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          use_v20_homepage: document.getElementById('cvUseV20').checked,
-          v20_test_mode:    document.getElementById('cvTestMode').checked,
-        }),
-      });
-    } catch {}
+      v20Settings = await r.json();
+    } catch (e) { console.error("Couldn't load v20 settings", e); }
   }
 
   function h(s) {
@@ -2879,6 +2579,7 @@
           `Generated ${h(new Date(meta.generated_at).toLocaleString())} · ${h(meta.model)} · in ${u.input_tokens || 0} (cache read ${u.cache_read_input_tokens || 0}) · out ${u.output_tokens || 0}`}</div>
         ${rec.watermark ? `<div style="margin-bottom:8px;font-weight:600;color:var(--flag)">${h(rec.watermark)}</div>` : ''}
         ${rec.blocked ? '' : `<div style="display:flex;gap:8px;margin-bottom:10px">
+          <a class="btn btn-primary btn-sm" style="width:auto;padding:6px 14px" href="/v20-page.html?clientId=${encodeURIComponent(clientId)}&type=homepage">Open the page screen (edit, claims, push)</a>
           <a class="btn btn-ghost btn-sm" style="width:auto;padding:6px 14px" href="/api/clients/${encodeURIComponent(clientId)}/v20/homepage/download?format=md">Download reader view (.md)</a>
           <a class="btn btn-ghost btn-sm" style="width:auto;padding:6px 14px" href="/api/clients/${encodeURIComponent(clientId)}/v20/homepage/download?format=json">Download record (.json)</a>
         </div>`}

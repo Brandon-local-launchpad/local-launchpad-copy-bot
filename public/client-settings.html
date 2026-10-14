@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Client settings — Local Launchpad</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --bg: #0f1117; --surface: #1a1d27; --surface2: #22263a;
+    --accent: #6c63ff; --accent2: #5a52e0; --success: #4ade80;
+    --danger: #f87171; --warning: #fbbf24; --text: #e2e8f0; --muted: #94a3b8;
+    --border: #2d3148; --r: 10px; --font: 'Inter', system-ui, sans-serif;
+  }
+  body { background: var(--bg); color: var(--text); font-family: var(--font); min-height: 100vh; padding: 2rem; font-size: 14px; line-height: 1.5; }
+  @media (max-width: 640px) { body { padding: 1rem; } }
+  a { color: var(--accent); text-decoration: none; }
+  .breadcrumb { color: var(--muted); font-size: 13px; margin-bottom: 1.5rem; }
+  .breadcrumb a { color: var(--muted); }
+  h1 { font-size: 1.5rem; font-weight: 700; margin-bottom: 1.5rem; }
+  .card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--r); padding: 1.25rem; max-width: 760px; margin-bottom: 1rem; }
+  .card-title { font-size: 1rem; font-weight: 700; margin-bottom: .25rem; }
+  .card p { color: var(--muted); font-size: 13px; margin-bottom: 1rem; }
+  .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  @media (max-width: 640px) { .grid { grid-template-columns: 1fr; } }
+  label.f { display: flex; flex-direction: column; gap: 4px; font-size: 12px; color: var(--muted); }
+  input[type=text], input[type=url], input[type=password], select { background: var(--bg); color: var(--text); border: 1px solid var(--border); border-radius: 8px; padding: 9px 10px; font-family: var(--font); font-size: 14px; }
+  input:focus, select:focus { outline: 2px solid var(--accent); border-color: transparent; }
+  label.c { display: flex; align-items: center; gap: 8px; font-size: 13px; margin-top: 22px; }
+  label.c input { width: 15px; height: 15px; accent-color: var(--accent); }
+  .bar { display: flex; gap: .5rem; flex-wrap: wrap; align-items: center; margin-top: 1rem; }
+  .btn { display: inline-flex; align-items: center; border: none; border-radius: var(--r); font-family: var(--font); font-size: 14px; font-weight: 600; padding: 9px 16px; cursor: pointer; }
+  .btn:disabled { opacity: .4; cursor: not-allowed; }
+  .btn-primary { background: var(--accent); color: #fff; }
+  .btn-ghost { background: transparent; color: var(--muted); border: 1px solid var(--border); }
+  .status { font-size: 13px; color: var(--muted); }
+  .status.ok { color: var(--success); } .status.bad { color: var(--danger); }
+</style>
+</head>
+<body>
+
+<div class="breadcrumb"><a href="/clients.html">Clients</a> / <a id="crumbClient" href="#">…</a> / Settings</div>
+<h1 id="title">Client settings</h1>
+
+<div class="card">
+  <div class="card-title">Homepage (v20)</div>
+  <p>Which homepage pipeline this client uses. Saved as soon as you tick.</p>
+  <label class="c" style="margin-top:0"><input type="checkbox" id="useV20" onchange="saveV20()"> Use the new homepage (v20) for this client</label>
+  <label class="c" style="margin-top:10px"><input type="checkbox" id="testMode" onchange="saveV20()"> Test mode: bypass the G-MAP gate (testing without a live map embed)</label>
+  <div class="bar" style="margin-top:.5rem"><span class="status" id="v20Status"></span></div>
+</div>
+
+<div class="card">
+  <div class="card-title">WordPress site</div>
+  <p>Set this up once per client. Every page's push uses it. The site needs the Local Launchpad Copybot plugin and ACF Pro. Pushes go to drafts and staging sites only for now. The Application Password is stored encrypted and never shown again.</p>
+  <div class="grid">
+    <label class="f">Site address<input id="wpUrl" type="url" placeholder="https://example.co.uk"></label>
+    <label class="f">WordPress username<input id="wpUser" type="text" placeholder="copybot"></label>
+    <label class="f">Application Password<input id="wpPassword" type="password" autocomplete="new-password" placeholder="xxxx xxxx xxxx xxxx xxxx xxxx"></label>
+    <label class="f">SEO plugin<select id="wpSeo"><option value="rankmath">Rank Math</option><option value="yoast">Yoast</option></select></label>
+    <label class="f">Homepage slug (optional)<input id="wpSlug" type="text" placeholder="Leave blank to use the site's front page"></label>
+    <label class="c"><input type="checkbox" id="wpStaging"> This is a staging site</label>
+  </div>
+  <div class="bar">
+    <button class="btn btn-primary" id="saveBtn" onclick="saveConnection()">Save connection</button>
+    <button class="btn btn-ghost" id="testBtn" onclick="testConnection()">Test connection</button>
+    <span class="status" id="connStatus"></span>
+  </div>
+</div>
+
+<script>
+  const clientId = new URLSearchParams(location.search).get('id');
+  if (!clientId) location.href = '/clients.html';
+  const api = (p, opts) => fetch(`/api/clients/${encodeURIComponent(clientId)}${p}`, opts).then(async r => {
+    const d = await r.json().catch(() => ({}));
+    if (!r.ok) throw new Error(d.error || r.statusText);
+    return d;
+  });
+  const $ = id => document.getElementById(id);
+  function status(text, cls = '') { const s = $('connStatus'); s.textContent = text; s.className = `status ${cls}`; }
+
+  async function load() {
+    const client = await fetch(`/api/clients/${encodeURIComponent(clientId)}`).then(r => r.ok ? r.json() : null);
+    if (!client) { location.href = '/clients.html'; return; }
+    document.title = `Settings · ${client.name} — Local Launchpad`;
+    $('crumbClient').textContent = client.name;
+    $('crumbClient').href = `/client.html?id=${encodeURIComponent(clientId)}`;
+    $('title').textContent = `${client.name}: settings`;
+    try {
+      const v = await api('/v20-settings');
+      $('useV20').checked = !!v.use_v20_homepage; $('testMode').checked = !!v.v20_test_mode;
+    } catch (e) { $('v20Status').textContent = `Couldn't load: ${e.message}`; $('v20Status').className = 'status bad'; }
+    try {
+      const c = await api('/wp/connection');
+      if (c) {
+        $('wpUrl').value = c.url; $('wpUser').value = c.user; $('wpSeo').value = c.seo;
+        $('wpSlug').value = c.homepageSlug || ''; $('wpStaging').checked = !!c.staging;
+        $('wpPassword').placeholder = c.hasPassword ? 'Stored (leave blank to keep)' : 'xxxx xxxx xxxx xxxx xxxx xxxx';
+        status(`Saved ${new Date(c.updatedAt).toLocaleString('en-GB')}`);
+      } else status('No site connected yet.');
+    } catch (e) { status(`Couldn't load the connection: ${e.message}`, 'bad'); }
+  }
+
+  async function saveV20() {
+    const s = $('v20Status');
+    try {
+      await api('/v20-settings', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ use_v20_homepage: $('useV20').checked, v20_test_mode: $('testMode').checked }) });
+      s.textContent = 'Saved'; s.className = 'status ok';
+    } catch (e) { s.textContent = e.message; s.className = 'status bad'; }
+  }
+
+  async function saveConnection() {
+    try {
+      const c = await api('/wp/connection', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({
+        url: $('wpUrl').value, user: $('wpUser').value, appPassword: $('wpPassword').value, seo: $('wpSeo').value,
+        homepageSlug: $('wpSlug').value, staging: $('wpStaging').checked,
+      }) });
+      $('wpPassword').value = '';
+      $('wpPassword').placeholder = 'Stored (leave blank to keep)';
+      status(`Saved ${new Date(c.updatedAt).toLocaleString('en-GB')}`, 'ok');
+    } catch (e) { status(e.message, 'bad'); }
+  }
+
+  async function testConnection() {
+    status('Testing…');
+    try {
+      const t = await api('/wp/test', { method: 'POST' });
+      const s = t.status || {};
+      if (s.error) status(`Can't reach the plugin: ${s.error}`, 'bad');
+      else status(`Connected${t.staging ? ' (staging)' : ''}: plugin ${s.plugin}, ACF Pro ${s.acf_pro ? 'yes' : 'NO'}, SEO ${s.seo}, ${(s.field_groups || []).length} homepage field groups`, s.acf_pro ? 'ok' : 'bad');
+    } catch (e) { status(e.message, 'bad'); }
+  }
+
+  load();
+</script>
+</body>
+</html>

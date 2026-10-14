@@ -5,7 +5,7 @@
 //   - a fake WordPress site (tests/fake-wp) with a draft homepage
 //   - one demo client with a v20 homepage record (Ethan's values; one claims
 //     finding left to accept)
-// Run: node tests/ui/demo-server.js   then open the URL it prints.
+// Run: npm run demo:wp   then open the URLs it prints.
 // Test credentials only (the fake site's), never real ones.
 
 const path = require('path');
@@ -84,7 +84,10 @@ process.env.APP_PASSWORD = '';
   await asset('v20_page_record', 'homepage_v20.json', JSON.stringify(ordered));
 
   console.log('\nDEMO READY');
-  console.log(`  App:          http://localhost:${PORT}/generate?clientId=${clientId}`);
+  console.log(`  Client:       http://localhost:${PORT}/client.html?id=${clientId}`);
+  console.log(`  Settings:     http://localhost:${PORT}/client-settings.html?id=${clientId}`);
+  console.log(`  Page screen:  http://localhost:${PORT}/v20-page.html?clientId=${clientId}&type=homepage`);
+  console.log(`  Generate:     http://localhost:${PORT}/generate?clientId=${clientId}`);
   console.log(`  Fake WP site: ${wp.url}  (user copybot, Application Password test-app-password-not-real)`);
   console.log(`  Fake site writes so far: GET ${wp.url}/__writes`);
   fake.app.get('/__writes', (req, res) => res.json({ writes: fake.state.writes, h1: fake.state.pages.get(7).acf.home_hero_h1 }));
