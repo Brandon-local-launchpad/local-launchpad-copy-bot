@@ -4,10 +4,9 @@
 // questions stay. Q7 prefers a doubt the fixed questions don't cover; a fallback
 // slot takes a research question only with its own doubt or one still uncovered.
 //
-// EXPECTED LISTS: DRAFT, 14 Oct 2026. Claude drafted them from the two manual
-// research runs, the real tidy replies and the rules (Brandon's instruction);
-// they are waiting for Brandon's approval. Kestrel Ridge uses the Bournemouth roofer
-// run: whether that run is Kestrel Ridge's is not confirmed yet.
+// EXPECTED LISTS: approved by Brandon, 14 Oct 2026. Claude drafted them from the
+// two manual research runs, the real tidy replies and the rules. Kestrel Ridge uses
+// the Bournemouth roofer run: whether that run is Kestrel Ridge's is not confirmed yet.
 const fs = require('fs');
 const path = require('path');
 const root = path.join(__dirname, '../..');
@@ -22,7 +21,7 @@ const chk = (label, ok, got, want) => {
   if (ok) { console.log('✓ ' + label); pass++; }
   else    { console.log('✗ ' + label + '\n  got:  ' + got + '\n  want: ' + want); fail++; }
 };
-console.log('\n=== FIXTURE: homepage FAQ from the sorted questions (expected lists: DRAFT) ===\n');
+console.log('\n=== FIXTURE: homepage FAQ from the sorted questions (expected lists approved 14 Oct) ===\n');
 
 const EXPECTED = {
   'edens-edge thin': [
@@ -94,7 +93,7 @@ const lines = D => D.d11_faq.map(q => `${q.slot} ${q.research_id ? `[${q.researc
       const { result } = decide(c, qs, state);
       if (result.gates.length) { chk(`${name}: gates pass`, false, result.gates.map(g => g.code).join(', '), 'none'); continue; }
       const got = lines(result.decisions);
-      chk(`${name}: homepage FAQ matches the draft list`, JSON.stringify(got) === JSON.stringify(EXPECTED[name]), '\n    ' + got.join('\n    '), '\n    ' + EXPECTED[name].join('\n    '));
+      chk(`${name}: homepage FAQ matches the approved list`, JSON.stringify(got) === JSON.stringify(EXPECTED[name]), '\n    ' + got.join('\n    '), '\n    ' + EXPECTED[name].join('\n    '));
       const doubts = new Set(result.decisions.d11_faq.map(q => q.doubt));
       chk(`${name}: all five doubts covered`, ['Price', 'Trust', 'Fit', 'Process', 'Timing'].every(d => doubts.has(d)), [...doubts].join(', '), 'all five');
       const texts = result.decisions.d11_faq.map(q => S.normWording(q.question));
