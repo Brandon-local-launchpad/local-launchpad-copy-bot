@@ -170,7 +170,7 @@
   - Real tidy runs (local, 14 Oct): Edens Edge and the Bournemouth roofer run, about 60s and 2 calls each (the first reply had 3 and 2 wording problems). Saved in `tests/fixtures/faq-sort-replies/` (`node tests/acceptance/faq-sort.js` replaces them). Known variation: Edens Edge's "What is included in your quote?" came back as covered by Q5 in one run and needing quote_includes in the other; move it by hand on the card if it matters.
   - Tested in the browser on `npm run demo:wp` (seeded with the Edens Edge run and its sorted questions): approve all, save, reload (kept), a wording with a dash refused with the reason, a clean edit saved and used at Q7, Remove, a deposit value saved on Client Values releasing the deposit question to Q7.
   - Fixture data: the Kestrel Ridge rich and thin values moved to `tests/fixtures/data/` so the FAQ fixtures share them. Fixtures: 22 files, 587 checks, all pass (`faq-research.js` 26, `faq-sort.js` 53, `faq-homepage.js` 22, `faq-service.js` 29).
-  - Not run: a real Perplexity FAQ research call (no key locally). Expected homepage lists in `faq-homepage.js` are Claude's draft, waiting for Brandon.
+  - Not run: a real Perplexity FAQ research call (no key locally). Expected homepage lists in `faq-homepage.js`: approved by Brandon (14 Oct).
 - FAQ per client, Brandon's feedback (14 Oct, same branch, not merged):
   - The research uses everything known about the client: trade, towns and services; the customers' own questions; confirmed client values (stand-ins, contact and identity values left out); onboarding answers (contact details, links and uploads left out); and the saved dossiers' local problems, rules, conservation areas and homeowner symptoms (no URLs or IDs). `loadV20Context` now returns the onboarding answers.
   - One click, after the dossiers: Run Research starts the FAQ research when the location queue has finished (only when the client has none yet), so the dossiers are there. The card's "Research" runs it on its own with whatever dossiers are saved.
@@ -196,8 +196,7 @@
 1. Check the live Stage 4 previews (expect 7 category cards and the final CTA H2 "Get a Free Quote From a Local Landscaper in Southampton").
 2. Stage 5 finish: run the allocation in the app for Edens Edge; run Bournemouth geo research for Kestrel Ridge (the allocation then runs by itself).
 3. WordPress push: slice 5 part 2, a first push to a staging site (needs Given's staging site, the plugin installed, and the field groups imported). Set `COPYBOT_SECRET_KEY` on Railway first.
-4. FAQ per client: built on `faq/per-client-research` with Brandon's feedback; not merged. Next: Brandon approves the draft homepage FAQ lists, adds the customers' questions to the onboarding form, then a real FAQ research run for Edens Edge (Research on the FAQ questions card), approve per page, Preview v20 Decisions.
-5. Then: humanizer decision, emergency and regulated group tests, category page.
+4. FAQ per4. FAQ per client: built on `faq/per-client-research`, not merged into main yet (pull request). After merging: a real FAQ research run for Edens Edge on the live app (Research on the FAQ questions card), approve per page, Preview v20 Decisions.humanizer decision, emergency and regulated group tests, category page.
 
 ## Open decisions
 - Company name: Ethan's custom values say "Edens Edge landscaping" (lower case l); the brief's test uses "Edens Edge Landscaping". Brandon is checking the GBP.
@@ -208,9 +207,8 @@
 - Separate Southampton location page: drop it (homepage is that page).
 - Update the homepage structure doc with the changed rules (title keeps brand, H1 trade word allowed, area links = town names, no rating figure in logo row).
 - Building regulations wording in the roofer entry: get a roofer to check.
-- FAQ: approve the draft expected homepage FAQ lists in `tests/fixtures/faq-homepage.js` (Edens Edge and Kestrel Ridge, thin and rich). Is the Bournemouth roofer run Kestrel Ridge's?
-- FAQ: review Claude's drafts of the three new practices (labels, claims, onboarding questions, detect patterns) and the onboarding questions in `niche-library/client-facts.json`; add them to the onboarding form itself.
-- FAQ: add "What do customers always ask you before they book?" to the onboarding form (Fillout). Until then, type the answers into Client Values → FAQ.
+- FAQ: is the Bournemouth roofer run Kestrel Ridge's? (Answered "is / isn't" twice.)
+- FAQ (Brandon, 14 Oct): the four expected homepage lists, the three new practices and the onboarding questions in `client-facts.json` are approved (practice wording for now; Brandon flags changes); the amount of client information sent to Perplexity is right. Brandon is adding "What do customers always ask you before they book?" to the Fillout form; until then, type the answers into Client Values → FAQ.
 
 ## Don't
 - Click "Generate All" on a v20 client until the other page types are migrated.
