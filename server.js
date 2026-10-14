@@ -3459,7 +3459,20 @@ const wpService = pool ? createWpService({
     return found;
   },
   saveRecordClaims: saveV20RecordClaims,
+  currentFacts: (clientId, { sessionId } = {}) => v20CurrentFacts(clientId, sessionId),
 }) : null;
+
+// The client's facts as they are now, for checking a saved page with today's rules
+async function v20CurrentFacts(clientId, sessionId) {
+  const { ctx, niche, decisionsResult } = await v20HomepageInputs(clientId, sessionId);
+  const D = decisionsResult.decisions;
+  if (!D) throw new Error("the page decisions can't be made right now (a gate is failing)");
+  return {
+    V: v20.validationContextFor({ cv: ctx.cv, niche, decisions: D, keyValueMap: ctx.keyValueMap, serviceParentMap: ctx.serviceParentMap }),
+    clientValues: v20.clientValueMap(ctx.cv, D.d1_years_trading),
+    decisionsBlock: decisionsResult.decisionsBlock || null,
+  };
+}
 
 // Put a claims result on a saved record (CLAIMS sits after VALIDATION)
 async function saveV20RecordClaims(clientId, recordId, CLAIMS) {
@@ -3504,7 +3517,11 @@ async function latestV20Id(clientId) {
 app.get('/api/clients/:clientId/v20/homepage/fields', wpRoute(async req => {
   const found = await loadV20Download(req.params.clientId, req.query.id || null);
   if (!found) throw new Error('No v20 homepage has been generated for this client yet.');
-  return { recordId: found.id, fields: v20Edit.editableFields(found.record) };
+  // The issues shown beside each field are today's, not the stored ones
+  let issues = null, issuesError = null;
+  try { issues = v20Edit.revalidate(found.record, await v20CurrentFacts(req.params.clientId, req.query.sessionId || null)).VALIDATION.issues; }
+  catch (e) { issuesError = e.message; }
+  return { recordId: found.id, fields: v20Edit.editableFields(found.record), issues, issuesError };
 }));
 
 app.put('/api/clients/:clientId/v20/homepage/fields', wpRoute(async req => {
@@ -3514,14 +3531,7 @@ app.put('/api/clients/:clientId/v20/homepage/fields', wpRoute(async req => {
   const { rows } = await pool.query(`SELECT content FROM client_assets WHERE id=$1 AND client_id=$2 AND asset_type='v20_page_record'`, [recordId, clientId]);
   if (!rows.length) throw new Error('Version not found.');
   const record = JSON.parse(rows[0].content);
-  const { ctx, niche, decisionsResult } = await v20HomepageInputs(clientId, sessionId);
-  const D = decisionsResult.decisions;
-  if (!D) throw new Error('The page decisions can\'t be made right now (a gate is failing). Fix that first.');
-  const current = {
-    V: v20.validationContextFor({ cv: ctx.cv, niche, decisions: D, keyValueMap: ctx.keyValueMap, serviceParentMap: ctx.serviceParentMap }),
-    clientValues: v20.clientValueMap(ctx.cv, D.d1_years_trading),
-    decisionsBlock: decisionsResult.decisionsBlock || null,
-  };
+  const current = await v20CurrentFacts(clientId, sessionId);
   const { runClaimsReview, factsFromRecord } = require('./wp/claims-review');
   const out = await v20Edit.editRecord({
     record, isLatest: (await latestV20Id(clientId)) === recordId, edits, accepted, current,

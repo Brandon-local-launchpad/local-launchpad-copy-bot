@@ -107,6 +107,17 @@ console.log('\n=== FIXTURE: v20 hand edits ===\n');
   r = await Ed.editRecord({ record: base, isLatest: true, edits: [{ field: CB, text: newCb }], current, review: async () => { throw new Error('overloaded'); } });
   chk('Claims review fails: the edit is kept, CLAIMS failed', r.record.home_content_block_body === newCb && r.record.CLAIMS.status === 'failed' && /overloaded/.test(r.record.CLAIMS.error), JSON.stringify(r.record.CLAIMS), 'failed');
 
+  // ── Today's rules on a saved version (dry run and push) ──
+  const fresh = Ed.revalidate(base, current);
+  chk('Re-check of the 14 Oct page: today\'s rules find BLOCKs the stored result didn\'t (visits before quoting), and it says they differ',
+    base.VALIDATION.block === 0 && fresh.VALIDATION.block > 0 && fresh.differs && fresh.added.some(i => i.check === 'PRACTICE') && fresh.stored.block === 0 && fresh.VALIDATION.source === 'today',
+    JSON.stringify({ stored: fresh.stored, now: fresh.VALIDATION.block, added: fresh.added.length }), 'differs');
+  chk('Same facts as the page was written from: factsChanged false', fresh.factsChanged === false, '', 'false');
+  chk('Re-check after the client values changed: factsChanged true', Ed.revalidate(base, { ...current, clientValues: { ...current.clientValues, start_time: 'next month' } }).factsChanged === true, '', 'true');
+  const again = Ed.revalidate({ ...base, VALIDATION: fresh.VALIDATION }, current);
+  chk('A stored result that matches today\'s: differs false, nothing added or cleared', !again.differs && !again.added.length && !again.cleared.length, JSON.stringify({ a: again.added.length, c: again.cleared.length }), 'same');
+  chk('The re-check never changes the stored record', JSON.stringify(base) === frozen, '', 'same');
+
   // ── The push's claims check on an edited version ──
   r = await Ed.editRecord({ record: base, isLatest: true, edits: [{ field: CB, text: newCb }], current, review: async () => ({ findings: [{ field: FAQ4, quote: qFaq4, why: 'u' }] }) });
   chk('Push check: the edited version\'s own review is accepted when ticked', claimsRefusals(r.record, r.record.CLAIMS, true).length === 0, JSON.stringify(claimsRefusals(r.record, r.record.CLAIMS, true)), 'none');

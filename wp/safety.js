@@ -14,7 +14,8 @@ function checkRecord(record, { reviewed = false } = {}) {
   const refusals = [];
   const V = record.VALIDATION || {};
   if (record.blocked) refusals.push('A gate failed, so there is no page to push.');
-  if (V.status !== 'run') refusals.push('The record has not been validated.');
+  if (V.status === 'failed') refusals.push(`Couldn't check the page with today's rules: ${V.error}`);
+  else if (V.status !== 'run') refusals.push('The record has not been validated.');
   else if (V.block > 0) refusals.push(`Validation left ${V.block} BLOCK issue(s). Fix or regenerate before pushing.`);
   const standIns = (record.meta && record.meta.stand_ins) || [];
   if (record.watermark || record.can_mark_done === false || standIns.length) {

@@ -10,6 +10,9 @@
 //   dryRun, push, rollback, log
 // A push needs: confirm: true (the button), reviewed: true when FLAGs remain, and
 // every remaining claims finding listed in acceptedClaims (by its quote).
+// Dry run and push re-run the validator with today's rules on the page
+// (currentFacts gives the client's facts as they are now) and use that result,
+// not the one stored at generation; the reply says when the two differ.
 
 const { encrypt, decrypt } = require('./secrets');
 const { createDbStore, getConnectionRow, saveConnectionRow } = require('./db-store');
@@ -18,11 +21,25 @@ const { push, rollback } = require('./push');
 const { wpGet } = require('./client');
 const { SEO_ADAPTERS } = require('./homepage-map');
 const { runClaimsReview, factsFromRecord } = require('./claims-review');
-const { withAccepted } = require('../v20-edit');
+const { withAccepted, revalidate } = require('../v20-edit');
 
 const isLocal = host => ['localhost', '127.0.0.1', '[::1]'].includes(host);
 
-function createWpService({ pool, loadRecord, saveRecordClaims, secretKey = process.env.COPYBOT_SECRET_KEY }) {
+function createWpService({ pool, loadRecord, saveRecordClaims, currentFacts, revalidateRecord = revalidate, secretKey = process.env.COPYBOT_SECRET_KEY }) {
+  if (typeof currentFacts !== 'function') throw new Error("createWpService needs currentFacts, to validate with today's rules.");
+
+  // The record with today's validation in place of the stored one, and the comparison
+  async function withFreshValidation(clientId, record, sessionId) {
+    if (record.blocked) return { record, validation: null };
+    try {
+      const r = revalidateRecord(record, await currentFacts(clientId, { sessionId }));
+      const { VALIDATION, ...validation } = r;
+      return { record: { ...record, VALIDATION }, validation: { ...validation, fresh: { block: VALIDATION.block, flag: VALIDATION.flag, issues: VALIDATION.issues } } };
+    } catch (e) {
+      return { record: { ...record, VALIDATION: { status: 'failed', error: e.message } }, validation: { error: e.message } };
+    }
+  }
+
   async function site(clientId) {
     const row = await getConnectionRow(pool, clientId);
     if (!row) throw new Error('This client has no WordPress site connected yet.');
@@ -78,24 +95,27 @@ function createWpService({ pool, loadRecord, saveRecordClaims, secretKey = proce
       return CLAIMS;
     },
 
-    async dryRun(clientId, { recordId, reviewed = false } = {}) {
+    async dryRun(clientId, { recordId, reviewed = false, sessionId = null } = {}) {
       const s = await site(clientId);
-      const { record, values } = await loadRecord(clientId, recordId);
-      const r = await dryRun({ record, site: s, reviewed, seo: s.seo, clientValues: values });
-      return { ...r, payload: undefined, claims: record.CLAIMS || null };
+      const loaded = await loadRecord(clientId, recordId);
+      const { record, validation } = await withFreshValidation(clientId, loaded.record, sessionId);
+      const r = await dryRun({ record, site: s, reviewed, seo: s.seo, clientValues: loaded.values });
+      return { ...r, payload: undefined, claims: record.CLAIMS || null, validation };
     },
 
-    async push(clientId, { recordId, reviewed = false, acceptedClaims = [], confirm = false } = {}) {
+    async push(clientId, { recordId, reviewed = false, acceptedClaims = [], confirm = false, sessionId = null } = {}) {
       if (confirm !== true) throw new Error('A push needs confirming.');
       const s = await site(clientId);
-      const { record, id, values } = await loadRecord(clientId, recordId);
+      const loaded = await loadRecord(clientId, recordId);
+      const { id, values } = loaded;
+      const { record, validation } = await withFreshValidation(clientId, loaded.record, sessionId);
       const left = (record.CLAIMS && record.CLAIMS.findings) || [];
       const accepted = new Set((acceptedClaims || []).map(String));
       const acceptClaims = left.length > 0 && left.every(f => accepted.has(f.quote));
       if (acceptClaims) await saveRecordClaims(clientId, id, withAccepted(record, left.map(f => f.quote)).CLAIMS);
       const store = createDbStore(pool, clientId);
       const r = await push({ record, recordId: id, site: s, store, reviewed, seo: s.seo, clientValues: values, acceptClaims });
-      return { ...r, dry: r.dry ? { ...r.dry, payload: undefined } : undefined };
+      return { ...r, dry: r.dry ? { ...r.dry, payload: undefined } : undefined, validation };
     },
 
     async rollback(clientId, { snapshotId, confirm = false } = {}) {

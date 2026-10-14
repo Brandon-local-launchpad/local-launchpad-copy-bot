@@ -145,8 +145,10 @@
   - Each version has `meta.edited_at`, `edited_fields` and `edit_history`; claims reviews and the push match on the version (`versionOf`: edited_at, else generated_at). The reader view lists the hand edits and marks carried and new findings.
   - Code: `v20-edit.js`; routes `GET/PUT /api/clients/:id/v20/homepage/fields`, `PUT wp/claims-accepted`. `npm run demo:wp` now seeds the demo client's values and files and uses a canned claims review (`DEMO_REAL_MODEL=1` for the real one).
   - Tested in the browser: tick saved and kept after reload; an edit adding a dash gave its BLOCK, both claims carried, a new hero finding marked; edits cleared the BLOCKs; dry run, push of the edited version (2 writes), reader view notes.
-  - Found while testing: an old record's stored VALIDATION reflects the rules when it was generated. The demo's 14 Oct record showed 0 BLOCK but 5 under today's rules (visits before quoting, figures). An edited version is always checked with today's rules; an unedited one still pushes on its stored result.
-  - Fixtures: 17 files, 424 checks, all pass (`v20-edit.js` 28; `wp-service.js` now 26).
+  - Found while testing: an old record's stored VALIDATION reflects the rules when it was generated. The demo's 14 Oct record showed 0 BLOCK but 5 under today's rules (visits before quoting, figures).
+- Today's rules at every dry run and push (14 Oct, Brandon's decision): the service re-runs the validator on the page with the client's facts as they are now, and the push checks use that result, never the stored one. The dry run shows "Validation with today's rules", says when it differs from the stored result (with the new and cleared issues), and says when the client values or decisions have changed since the version was written. If today's check can't run (a gate failing), dry run and push refuse. The field editor shows today's issues too. The stored record is never changed by the check. The "reviewed" tick is always shown and is needed when today's result has FLAGs.
+  - Code: `revalidate` and `sameFacts` in `v20-edit.js`; `currentFacts` (server `v20CurrentFacts`) is required by `createWpService`.
+  - Fixtures: 17 files, 434 checks, all pass (`v20-edit.js` 33; `wp-service.js` 31).
 - Docs: CLAUDE.md at repo root. The files the code reads (`prompts/`, `niche-library/`) are the only copies.
 
 ## Waiting on

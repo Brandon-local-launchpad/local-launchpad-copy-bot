@@ -53,7 +53,15 @@ console.log('\n=== FIXTURE: WordPress push service (pg-mem + fake WordPress) ===
     const { rows } = await pool.query(`SELECT content FROM client_assets WHERE id=$1`, [id]);
     await pool.query(`UPDATE client_assets SET content=$1 WHERE id=$2`, [JSON.stringify({ ...JSON.parse(rows[0].content), CLAIMS }), id]);
   };
-  const svc = createWpService({ pool, loadRecord, saveRecordClaims, secretKey: key });
+  // Today's rules: the real check is tested in v20-edit.js against real facts. Here a
+  // stub returns the stored result, or `todays` when a test sets it.
+  let todays = null, factsError = null;
+  const currentFacts = async () => { if (factsError) throw new Error(factsError); return {}; };
+  const revalidateRecord = record => {
+    const V = todays || record.VALIDATION;
+    return { VALIDATION: { ...V, source: 'today' }, stored: { block: record.VALIDATION.block, flag: record.VALIDATION.flag }, differs: !!todays, added: todays ? todays.issues : [], cleared: [], factsChanged: false };
+  };
+  const svc = createWpService({ pool, loadRecord, saveRecordClaims, currentFacts, revalidateRecord, secretKey: key });
 
   const fake = createFakeWp({ pages: [seedHomepage()] });
   const { server, url } = await listen(fake.app);
@@ -64,7 +72,8 @@ console.log('\n=== FIXTURE: WordPress push service (pg-mem + fake WordPress) ===
     chk('Missing user refused', /username/.test(await throwsMsg(() => svc.saveConnection(clientId, { url, appPassword: 'x' }))), '', 'refused');
     chk('Missing password on first save refused', /Application Password/.test(await throwsMsg(() => svc.saveConnection(clientId, { url, user: 'copybot' }))), '', 'refused');
     chk('Unknown SEO plugin refused', /SEO plugin/.test(await throwsMsg(() => svc.saveConnection(clientId, { url, user: 'copybot', appPassword: 'x', seo: 'aioseo' }))), '', 'refused');
-    const noKey = createWpService({ pool, loadRecord, saveRecordClaims, secretKey: '' });
+    chk('The service refuses to start without currentFacts (today’s rules)', /currentFacts/.test(await throwsMsg(async () => createWpService({ pool, loadRecord, saveRecordClaims }))), '', 'refused');
+    const noKey = createWpService({ pool, loadRecord, saveRecordClaims, currentFacts, revalidateRecord, secretKey: '' });
     chk('No COPYBOT_SECRET_KEY: refuses to store a password', /COPYBOT_SECRET_KEY/.test(await throwsMsg(() => noKey.saveConnection(clientId, { url, user: 'copybot', appPassword: 'test-app-password-not-real' }))), '', 'refused');
     const saved = await svc.saveConnection(clientId, { url: url + '/some/path', user: 'copybot', appPassword: 'test-app-password-not-real', seo: 'rankmath' });
     chk('Saved: origin only, password never returned', saved.url === url && saved.hasPassword === true && !('appPassword' in saved) && !JSON.stringify(saved).includes('test-app-password'), JSON.stringify(saved), 'no password');
@@ -79,12 +88,27 @@ console.log('\n=== FIXTURE: WordPress push service (pg-mem + fake WordPress) ===
     const reviewed = await svc.reviewClaims(clientId, { recordId: noClaimsId }, async () => ({ text: JSON.stringify({ findings: [{ field: 'home_final_cta_body', quote: rec.home_final_cta_body.slice(0, 30), why: 'test' }] }) }));
     const stored = JSON.parse((await pool.query(`SELECT content FROM client_assets WHERE id=$1`, [noClaimsId])).rows[0].content);
     chk('Claims review on a record without one: saved onto the record', reviewed.status === 'needs acceptance' && stored.CLAIMS && stored.CLAIMS.findings.length === 1 && stored.CLAIMS.for === rec.meta.generated_at, JSON.stringify(stored.CLAIMS).slice(0, 120), 'saved');
+    let p;
     const d = await svc.dryRun(clientId, { recordId: claimsId, reviewed: true });
     chk('Dry run through the service: pushable checks pass, no payload sent to the browser, nothing written', d.pushable && d.payload === undefined && fake.state.writes === 0 && d.claims.findings.length === 1, JSON.stringify({ pushable: d.pushable, refusals: d.refusals }), 'ok');
 
+    chk('Dry run reports today’s validation next to the stored one (same here)', d.validation && d.validation.fresh.block === rec.VALIDATION.block && d.validation.stored.block === rec.VALIDATION.block && d.validation.differs === false, JSON.stringify(d.validation).slice(0, 120), 'same');
+
+    // ── Today's rules find more than the stored result ──
+    todays = { status: 'run', block: 2, flag: 5, issues: [{ type: 'BLOCK', check: 'PRACTICE', field: 'home_final_cta_body', message: 'x' }, { type: 'BLOCK', check: 'NUM', field: 'home_content_block_body', message: 'y' }] };
+    const d2 = await svc.dryRun(clientId, { recordId: claimsId, reviewed: true });
+    chk('Today’s rules differ: the dry run uses the fresh result, refuses, and says it differs', !d2.pushable && d2.refusals.some(x => /2 BLOCK/.test(x)) && d2.validation.differs && d2.validation.stored.block === 0 && d2.validation.fresh.block === 2, JSON.stringify({ r: d2.refusals, v: d2.validation.fresh }), 'refused, differs');
+    p = await svc.push(clientId, { recordId: claimsId, reviewed: true, confirm: true, acceptedClaims: [left.quote] });
+    chk('… and the push is refused on the fresh result, nothing written', !p.ok && p.refusals.some(x => /2 BLOCK/.test(x)) && fake.state.writes === 0 && p.validation.differs, JSON.stringify(p.refusals), 'refused');
+    todays = null; factsError = 'a gate is failing';
+    const d3 = await svc.dryRun(clientId, { recordId: claimsId, reviewed: true });
+    p = await svc.push(clientId, { recordId: claimsId, reviewed: true, confirm: true, acceptedClaims: [left.quote] });
+    chk('Today’s check can’t run: dry run and push refused', !d3.pushable && d3.refusals.some(x => /today's rules: a gate is failing/.test(x)) && !p.ok && fake.state.writes === 0, JSON.stringify(d3.refusals), 'refused');
+    factsError = null;
+
     // ── Push ──
     chk('Push without confirm: error', /confirming/.test(await throwsMsg(() => svc.push(clientId, { recordId: claimsId, reviewed: true }))), '', 'error');
-    let p = await svc.push(clientId, { recordId: claimsId, reviewed: true, confirm: true });
+    p = await svc.push(clientId, { recordId: claimsId, reviewed: true, confirm: true });
     chk('Push with a claim not accepted: refused, nothing written', !p.ok && p.refusals.some(x => /claims review found 1/.test(x)) && fake.state.writes === 0, JSON.stringify(p.refusals), 'refused');
     p = await svc.push(clientId, { recordId: claimsId, reviewed: true, confirm: true, acceptedClaims: ['something else'] });
     chk('Push accepting a different quote: still refused', !p.ok && fake.state.writes === 0, '', 'refused');
@@ -93,7 +117,7 @@ console.log('\n=== FIXTURE: WordPress push service (pg-mem + fake WordPress) ===
     p = await svc.push(clientId, { recordId: claimsId, reviewed: true, confirm: true, acceptedClaims: [left.quote] });
     chk('Push with the tick and the claim accepted: pushed and verified', p.ok && p.result === 'pushed' && fake.state.writes === 2 && fake.state.pages.get(7).acf.home_hero_h1 === 'Landscaper Southampton', JSON.stringify({ result: p.result, refusals: p.refusals }), 'pushed');
     const log = await svc.log(clientId);
-    chk('Push log in the database, newest first: pushed, then 3 refusals', log.length === 4 && log[0].result === 'pushed' && log[0].snapshotId === p.snapshotId && log.slice(1).every(l => l.result === 'refused'), JSON.stringify(log.map(l => l.result)), 'pushed, refused x3');
+    chk('Push log in the database, newest first: pushed, then 5 refusals', log.length === 6 && log[0].result === 'pushed' && log[0].snapshotId === p.snapshotId && log.slice(1).every(l => l.result === 'refused'), JSON.stringify(log.map(l => l.result)), 'pushed, refused x5');
 
     // ── Rollback ──
     chk('Rollback without confirm: error', /confirming/.test(await throwsMsg(() => svc.rollback(clientId, { snapshotId: p.snapshotId }))), '', 'error');

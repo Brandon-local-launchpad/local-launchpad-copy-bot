@@ -2554,12 +2554,12 @@
       const m = record.meta || {};
       const made = m.edited_at ? `edited by hand ${h(new Date(m.edited_at).toLocaleString())} (${h((m.edited_fields || []).join(', '))})` : `generated ${h(new Date(m.generated_at).toLocaleString())}`;
       panel.innerHTML = `
-        <div>Latest version: ${made} · validation <strong>${V.block} BLOCK</strong>, ${V.flag} FLAG${record.watermark ? ` · <span style="color:var(--flag)">${h(record.watermark)}</span>` : ''}
+        <div>Latest version: ${made} · validation when saved <strong>${V.block} BLOCK</strong>, ${V.flag} FLAG (the dry run checks it again with today's rules)${record.watermark ? ` · <span style="color:var(--flag)">${h(record.watermark)}</span>` : ''}
           · <a href="/api/clients/${encodeURIComponent(clientId)}/v20/homepage/download?format=md">reader view</a></div>
         <div id="wpEditResult"></div>
         ${claims}
         <details id="wpEditor" style="margin:8px 0" ontoggle="if (this.open) wpLoadEditor()"><summary style="cursor:pointer">Edit fields</summary><div id="wpEditorBody" style="margin-top:8px"></div></details>
-        ${V.flag ? `<label style="display:flex;gap:8px;align-items:center;margin:8px 0;text-transform:none;letter-spacing:0;color:var(--text)"><input type="checkbox" id="wpReviewed" style="width:14px;height:14px"> I've read the reader view, including its ${V.flag} FLAG(s), and it's fit to push</label>` : ''}
+        <label style="display:flex;gap:8px;align-items:center;margin:8px 0;text-transform:none;letter-spacing:0;color:var(--text)"><input type="checkbox" id="wpReviewed" style="width:14px;height:14px"> I've read the reader view, including its FLAGs, and it's fit to push</label>
         <div style="display:flex;gap:8px;margin-top:8px">
           <button class="btn btn-ghost btn-sm" style="width:auto;padding:6px 14px" onclick="wpDryRun()">Dry run</button>
           <button class="btn btn-primary btn-sm" id="wpPushBtn" style="width:auto;padding:6px 14px" disabled onclick="wpPush()">Push to WordPress</button>
@@ -2590,9 +2590,9 @@
     const body = document.getElementById('wpEditorBody');
     body.innerHTML = '<span style="color:var(--muted)">Loading…</span>';
     try {
-      const { recordId, fields } = await wpApi(`/v20/homepage/fields?id=${encodeURIComponent(wpState.recordId)}`);
-      const rec = wpState.record, issues = (rec.VALIDATION && rec.VALIDATION.issues) || [], findings = (rec.CLAIMS && rec.CLAIMS.findings) || [];
-      body.innerHTML = `<div style="color:var(--muted);margin-bottom:8px">Headings, FAQ questions, card names, buttons and links are set by code: to change those, change the client values and regenerate. Saving makes a new version and runs the validator and the claims review on the whole page (one model call).</div>` +
+      const { recordId, fields, issues: today, issuesError } = await wpApi(`/v20/homepage/fields?id=${encodeURIComponent(wpState.recordId)}&sessionId=${encodeURIComponent(sessionId || '')}`);
+      const rec = wpState.record, issues = today || (rec.VALIDATION && rec.VALIDATION.issues) || [], findings = (rec.CLAIMS && rec.CLAIMS.findings) || [];
+      body.innerHTML = `<div style="color:var(--muted);margin-bottom:8px">Headings, FAQ questions, card names, buttons and links are set by code: to change those, change the client values and regenerate. Saving makes a new version and runs the validator and the claims review on the whole page (one model call). The issues shown are ${today ? "today's" : `the stored ones (today's check couldn't run: ${h(issuesError)})`}.</div>` +
         fields.map((f, i) => {
           const notes = [
             ...issues.filter(x => x.field === f.field).map(x => `<div style="color:${x.type === 'BLOCK' ? 'var(--error,#b71c1c)' : 'var(--flag)'}">${h(x.type)} ${h(x.check)}: ${h(x.message)}</div>`),
@@ -2636,18 +2636,30 @@
     const out = document.getElementById('wpDryResult');
     out.innerHTML = '<span style="color:var(--muted)">Reading the site…</span>';
     try {
-      const d = await wpPost('/wp/dry-run', { reviewed: wpReviewed() });
+      const d = await wpPost('/wp/dry-run', { reviewed: wpReviewed(), sessionId });
       wpState.dry = d;
       const changed = d.changes.filter(c => c.change !== 'same');
       const clip = s => (s && s.length > 140 ? s.slice(0, 137) + '…' : (s || '(empty)'));
       out.innerHTML = `
         <div>Dry run on ${h(d.site)}: page ${d.page ? `${d.page.id} (${h(d.page.status)})` : 'not found'} · ${d.summary.added} added, ${d.summary.changed} changed, ${d.summary.removed} removed. Nothing was written.</div>
+        ${wpValidationNote(d.validation)}
         ${d.refusals.length ? `<div style="color:var(--error,#b71c1c);margin-top:6px">A push would be refused:<ul style="margin:4px 0 0 18px">${d.refusals.map(x => `<li>${h(x)}</li>`).join('')}</ul></div>` : '<div style="color:var(--success);margin-top:6px">The site is ready: a push would be allowed once every claim is accepted.</div>'}
         <details style="margin-top:6px"><summary>${changed.length} field change(s)</summary>
           <table style="width:100%;font-size:12px;border-collapse:collapse;margin-top:6px">${changed.map(c => `<tr style="border-top:1px solid var(--border)"><td style="padding:4px;vertical-align:top;white-space:nowrap">${h(c.change)}</td><td style="padding:4px;vertical-align:top">${h(c.field)}</td><td style="padding:4px;vertical-align:top;color:var(--muted)">${h(clip(c.current))}</td><td style="padding:4px;vertical-align:top">${h(clip(c.next))}</td></tr>`).join('')}</table>
         </details>`;
       wpUpdatePushButton();
     } catch (e) { out.innerHTML = ''; wpError(e.message); }
+  }
+
+  // Today's validation (the dry run re-checks every page), and how it differs from the stored result
+  function wpValidationNote(v) {
+    if (!v || v.error) return '';
+    const issue = i => `<li><span style="color:${i.type === 'BLOCK' ? 'var(--error,#b71c1c)' : 'var(--flag)'}">${h(i.type)} ${h(i.check)}</span> · ${h(i.field)}: ${h(i.message)}</li>`;
+    const list = (title, items) => items.length ? `<details style="margin-top:4px"><summary>${title} (${items.length})</summary><ul style="margin:4px 0 0 18px">${items.map(issue).join('')}</ul></details>` : '';
+    return `<div style="margin-top:6px">Validation with today's rules: <strong>${v.fresh.block} BLOCK</strong>, ${v.fresh.flag} FLAG.
+      ${v.differs ? `<span style="color:var(--flag)">This differs from the result stored when this version was saved (${v.stored.block ?? '?'} BLOCK, ${v.stored.flag ?? '?'} FLAG).</span>` : '<span style="color:var(--muted)">Same as the stored result.</span>'}
+      ${v.factsChanged ? `<div style="color:var(--flag)">The client values or page decisions have changed since this version was written, so it was checked against today's facts. Regenerate if the page should reflect them.</div>` : ''}
+      ${list('New under today\'s rules', v.added || [])}${list('No longer found', v.cleared || [])}${list('All issues today', v.fresh.issues || [])}</div>`;
   }
 
   // Push is allowed after a dry run with no refusals (other than the review tick,
@@ -2659,7 +2671,8 @@
     const findings = (rec.CLAIMS && rec.CLAIMS.findings) || [];
     const claimsOk = wpAccepted().length === findings.length;
     const otherRefusals = d.refusals.filter(x => !/tick "reviewed"/.test(x));
-    const reviewOk = !(rec.VALIDATION && rec.VALIDATION.flag) || wpReviewed();
+    const todayFlags = d.validation && d.validation.fresh ? d.validation.fresh.flag : (rec.VALIDATION && rec.VALIDATION.flag);
+    const reviewOk = !todayFlags || wpReviewed();
     btn.disabled = !(otherRefusals.length === 0 && claimsOk && reviewOk);
   }
 
@@ -2670,7 +2683,7 @@
     const btn = document.getElementById('wpPushBtn');
     setLoading(btn, true, 'Pushing…');
     try {
-      const r = await wpPost('/wp/push', { reviewed: wpReviewed(), acceptedClaims: wpAccepted(), confirm: true });
+      const r = await wpPost('/wp/push', { reviewed: wpReviewed(), acceptedClaims: wpAccepted(), confirm: true, sessionId });
       if (r.refusals && r.refusals.length) wpError('Push refused: ' + r.refusals.join(' '));
       else if (r.error) wpError(`Push failed: ${r.error}`);
       else {

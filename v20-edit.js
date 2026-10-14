@@ -20,6 +20,12 @@ const claimKey = (field, quote) => `${field}\u0000${norm(quote)}`;
 const tidy = t => String(t == null ? '' : t).replace(/\r\n?/g, '\n').replace(/[ \t]+\n/g, '\n').trim();
 const stable = o => JSON.stringify(Object.keys(o || {}).sort().map(k => [k, o[k]]));
 
+// Was this version written from the client values and decisions as they are now?
+function sameFacts(record, current) {
+  const meta = (record && record.meta) || {};
+  return !!meta.client_values && stable(meta.client_values) === stable(current.clientValues) && (meta.decisions_block || null) === (current.decisionsBlock || null);
+}
+
 // The fields a person can edit, in page order, with their word ranges
 function editableFields(record) {
   if (!record || record.blocked) return [];
@@ -101,7 +107,7 @@ async function editRecord({ record, isLatest, edits, accepted, current, review, 
   if (!record || record.blocked) throw new Error('This version was blocked by the gates, so there is nothing to edit. Fix the gates and regenerate.');
   if (!isLatest) throw new Error('A newer version of this page exists. Edit the latest version.');
   const meta = record.meta || {};
-  if (!meta.client_values || stable(meta.client_values) !== stable(current.clientValues) || (meta.decisions_block || null) !== (current.decisionsBlock || null)) {
+  if (!sameFacts(record, current)) {
     throw new Error('The client values or the page decisions have changed since this version was written, so the edit can\'t be checked against the facts the page was written from. Regenerate the page instead.');
   }
   const previous = accepted && record.CLAIMS && Array.isArray(record.CLAIMS.findings) ? withAccepted(record, accepted, now) : record;
@@ -123,4 +129,24 @@ async function editRecord({ record, isLatest, edits, accepted, current, review, 
   return { previous, record: placeClaims(next, CLAIMS), changed };
 }
 
-module.exports = { editableFields, withAccepted, applyEdits, carryClaims, placeClaims, editRecord, NEW_ON_UNCHANGED };
+// The validator with today's rules on a saved version, next to its stored result.
+// `current` as for editRecord. Returns the fresh VALIDATION and what changed.
+function revalidate(record, current) {
+  const issues = validateV20(record, current.V);
+  const VALIDATION = { ...validationSummary(issues, [], null), source: 'today' };
+  const stored = record.VALIDATION || {};
+  const key = i => `${i.type}|${i.check}|${i.field}|${i.message}`;
+  const before = new Set((stored.issues || []).map(key));
+  const now = new Set(VALIDATION.issues.map(key));
+  const added = VALIDATION.issues.filter(i => !before.has(key(i)));
+  const cleared = (stored.issues || []).filter(i => !now.has(key(i)));
+  return {
+    VALIDATION,
+    stored: { block: stored.block ?? null, flag: stored.flag ?? null, status: stored.status || null },
+    differs: stored.block !== VALIDATION.block || stored.flag !== VALIDATION.flag || added.length > 0 || cleared.length > 0,
+    added, cleared,
+    factsChanged: !sameFacts(record, current),
+  };
+}
+
+module.exports = { sameFacts, revalidate, editableFields, withAccepted, applyEdits, carryClaims, placeClaims, editRecord, NEW_ON_UNCHANGED };
