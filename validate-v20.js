@@ -35,7 +35,7 @@ const { confirmedServiceList } = require('./service-words');
 const RETRY_FLAGS = new Set(['N7', 'N13', 'N14', 'N15', 'N17', 'N18', 'N19', 'N21', 'N22', 'N23', 'N24',
   '1b', 'HERO', 'SERVICE', 'TRUST-REPEAT', 'PROOF-REPEAT', 'RAW-GBP', 'CARD-COUNT', 'COAST', 'HUB-LINK', 'RESEARCH-LANG', 'REPEAT-IN',
   'FINAL-CTA', 'CARD-FILLER', 'MORE-REPEAT', 'CB-SERVICES',
-  'CARD-LOCAL', 'LINK-TEXT', 'CARD-PICK', 'REPEAT-PAGE']);
+  'CARD-LOCAL', 'LINK-TEXT', 'CARD-PICK', 'REPEAT-PAGE', 'CARD-PATTERN', 'OUTCOME', 'AREA-ADMIN']);
 //   INSURANCE     BLOCK  insurance mentioned with no insurance_cover on file
 //   RIVALS        BLOCK  (15 Oct) the copy tells the reader to get other quotes, compare firms or shop around
 //   (15 Oct, second Edens Edge review)
@@ -57,6 +57,12 @@ const RETRY_FLAGS = new Set(['N7', 'N13', 'N14', 'N15', 'N17', 'N18', 'N19', 'N2
 //   CAT-TEAM      BLOCK  a category used as a job title ("our deck builder team")
 //   FAQ-YES       BLOCK  an answer to a which/what/how/why question opening "Yes" or "No"
 //   CB-PARA       BLOCK  a content block paragraph of more than 4 sentences
+//   (16 Oct, Brandon's round 3 review)
+//   CARD-PATTERN  FLAG   two cards sharing a sentence pattern (same normalised opener); "we also handle" more than once on the page
+//   SELF-REF      BLOCK  copy pointing at another part of the page ("see the areas section", "the full list below")
+//   OUTCOME       FLAG   an outcome promise ("won't crack", "stays green") not in the client values
+//   EXPERIENCE    BLOCK  a claim about the kinds of property or job worked on ("large rural properties") not in the client values
+//   AREA-ADMIN    FLAG   a council area named in the areas intro or the areas FAQ
 const RESEARCH_WORDS = ['investigated sites?', 'records? shows?', 'recorded (at|in|by)', 'council (guidance|records|data|maps?|says)',
   'strategic flood', 'flood (risk )?assessments?', 'suds', 'according to', 'research', 'dossier', 'data (shows|suggests)',
   'mapped', 'appraisal', 'neighbourhood plan', 'evidence base', 'studies show', 'surveys? (show|found)',
@@ -78,6 +84,12 @@ const STOCK = ['before you decide', 'in between', 'from the start', 'no surprise
 const SUPERLATIVES = ['more than almost anything', 'the most', 'the only', 'unbeatable', 'like no other'];
 const DATED = ['currently', 'at the moment', 'right now', 'this year'];
 // Insurance described as an outcome for the customer (15 Oct: "pays out", "covers you")
+// Copy that points at another part of the page (SELF-REF)
+const SELF_REF_RE = /\b(?:see|listed|shown|set out|find|found|included|detailed)\b[^.]{0,30}\b(?:below|above)\b|\b(?:list|section|links?|map) (?:below|above)\b|\b(?:areas?|services?|faq|questions?|reviews?|locations?) section\b|\b(?:on|of|further down|up|elsewhere on) this page\b|\bthe full list\b|\bscroll (?:down|up)\b/i;
+// Outcome promises about the finished work (OUTCOME)
+const OUTCOME_RE = /\b(?:won't|will not|wouldn't|never|doesn't|does not|don't|do not)\s+(?:ever\s+)?(?:crack|settle|sink|rot|fade|leak|move|shift|lift|warp|split|sag|flood|puddle|pool|fail|need (?:annual |any )?(?:treatment|maintenance|painting|staining))\w*\b|\bstay(?:s|ing)? (?:green|level|flat|watertight|dry|healthy|weed free|looking (?:good|new|great))\b|\b(?:last|lasts) (?:for )?(?:years|decades|a lifetime)\b|\bbuilt to last\b|\bfor years to come\b|\bproblem free\b|\bmaintenance free\b/i;
+// Claims about the kinds of property or job the business has worked on (EXPERIENCE)
+const EXPERIENCE_RE = /\b(?:we've|we have|we|our team|our work)\b[^.]{0,120}\b(?:worked|completed|done|covered|covering|handled|tackled|seen|experience)\b[^.]{0,70}\b(rural|country|estate|period|listed|commercial|heritage|historic|large|grand|luxury|acre)\w*\b/i;
 const OVERPROMISE = ['never by you', 'fully covered', 'pays for everything', "won't cost you", 'nothing to pay',
   'pays out', 'pay out', 'paid out', 'covers you', "you're covered", 'you are covered', 'you will be covered', 'will cover the cost', 'will pay for',
   'the cover applies', 'cover will apply', 'cover kicks in'];
@@ -169,6 +181,8 @@ function buildValidationContext({ cv, niche, decisions, keyValueMap = {}, servic
     cv, niche, D, keyValueMap, serviceParentMap, populatedCvKeys: populatedCvKeys || new Set(),
     cvNumbers, cvText: cvText.join(' | '), researchText, researchNumbers, places: [...places],
     confirmedServices, serviceList, linkable, linkableCategories, towns,
+    // Council areas, by their short name too ("New Forest" for "New Forest District")
+    adminAreas: [...new Set(towns.filter(isAdminArea).flatMap(a => [a, a.replace(/\s+\b(District|Borough|Council|County|Authority|Region|National Park)\b.*$/i, '').trim()]).filter(a => a.length > 3))],
     neighbourhoodNames: allocated.neighbourhoods.map(n => n.name.split(/[\s,’']/)[0]).filter(n => n.length > 3),
     city: (keyValueMap.biz_area_1 || '').trim(),
     categoryNames: [...new Set([...Object.entries(keyValueMap).filter(([k]) => /^category_\d+$/.test(k)).map(([, v]) => v),
@@ -383,6 +397,21 @@ function validateV20(record, V) {
         if (extra.length) flag('FLAG', 'CARD-PICK', `Names ${extra.join(', ')}, which this card wasn't given.${picks.length ? ` Its services are ${picks.join(', ')}.` : ' Describe the work without naming services.'}`);
       }
     }
+    // SELF-REF: the page never points at itself; each section stands on its own (16 Oct, round 3)
+    { const m = s.match(SELF_REF_RE); if (m) flag('BLOCK', 'SELF-REF', `"${m[0]}" points at another part of the page. Say the thing itself, or leave it out.`); }
+    // OUTCOME: promises about how the finished work behaves are claims (16 Oct, round 3)
+    for (const m of s.matchAll(new RegExp(OUTCOME_RE.source, 'gi'))) {
+      if (!V.cvText.includes(lc(m[0]))) flag('FLAG', 'OUTCOME', `"${m[0]}" promises an outcome the client hasn't confirmed. Say what the work involves, not how it will perform.`);
+    }
+    // EXPERIENCE: kinds of property or job worked on need a client value (16 Oct, round 3)
+    for (const sen of sentences(t)) {
+      const m = scanText(sen).match(EXPERIENCE_RE);
+      if (m && !V.cvText.includes(lc(m[1]))) flag('BLOCK', 'EXPERIENCE', `"${scanText(sen).slice(0, 90)}…" claims experience with ${lc(m[1])} properties or jobs, which isn't in the client values. Leave the kind of job out.`);
+    }
+    // AREA-ADMIN: council areas aren't places a customer lives (16 Oct)
+    if (f.label === 'home_areas_intro' || /^faq_answer \(Which areas/i.test(f.label)) {
+      for (const a of V.adminAreas) if (new RegExp(`\\b${esc(a)}\\b`, 'i').test(s)) flag('FLAG', 'AREA-ADMIN', `Names "${a}", a council area. Name towns and villages from the area list instead.`);
+    }
     // CAT-TEAM: a category name is never a job title for the team ("our deck builder team") (16 Oct)
     for (const cat of [...new Set(V.categoryNames.map(lc))]) {
       const m = s.match(new RegExp(`\\b(?:our|the|a|your)\\s+${esc(cat)}\\s+(team|crew|staff|people|guys|lads)\\b`, 'i'));
@@ -539,6 +568,24 @@ function validateV20(record, V) {
     }
   });
 
+  // CARD-PATTERN: no two cards share a sentence pattern; "we also handle" once on the page (16 Oct, round 3)
+  {
+    const catRe = new RegExp(`\\b(?:${[...new Set(V.categoryNames.map(lc))].map(esc).join('|') || '\\u0000'})\\b`, 'gi');
+    const opener = sen => lc(scanText(sen)).replace(catRe, 'CAT').replace(/[^a-z' ]+/gi, ' ').split(/\s+/).filter(Boolean).slice(0, 3).join(' ');
+    const seenOpen = new Map();
+    for (const f of fields.filter(x => x.ref.sub === 'card_text')) {
+      const mine = new Set(sentences(f.text).map(opener).filter(o => o.split(' ').length === 3));
+      const shared = [...mine].find(o => seenOpen.has(o));
+      if (shared) issue('FLAG', 'CARD-PATTERN', f.label, `A sentence opens "${shared.replace('CAT', '[category]')}…" like one in ${seenOpen.get(shared)}. Give each card its own sentence shapes.`, f.ref);
+      for (const o of mine) if (!seenOpen.has(o)) seenOpen.set(o, f.label);
+    }
+    let also = 0;
+    for (const f of fields) {
+      const n = (lc(scanText(f.text)).match(/\bwe also (?:handle|offer|cover|do|carry out|provide|take on)\b/g) || []).length;
+      also += n;
+      if (n && also > 1) issue('FLAG', 'CARD-PATTERN', f.label, '"We also handle" (or "we also offer", "we also cover") is already used once on the page. Say it another way.', f.ref);
+    }
+  }
   // N13: two cards opening with the same three words
   const cardFields = fields.filter(f => f.ref.sub === 'card_text');
   const openers = new Map();

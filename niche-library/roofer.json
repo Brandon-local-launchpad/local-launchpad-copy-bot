@@ -30,6 +30,15 @@
   "business_type_default": "A",
 
   "priority_services": ["Emergency Roof Repair", "Roof Repair"],
+  "core_services": {
+    "roofing contractor": ["roof repairs", "new roofs", "flat roofs"],
+    "roofer": ["roof repairs", "new roofs", "flat roofs"],
+    "chimney services": ["chimney repairs", "leadwork"],
+    "gutter cleaning service": ["gutter cleaning", "guttering", "fascias and soffits"],
+    "guttering service": ["guttering", "gutter cleaning", "fascias and soffits"],
+    "waterproofing service": ["flat roofs", "roof coatings"],
+    "skylight contractor": ["roof windows"]
+  },
 
   "steps": [
     {

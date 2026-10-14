@@ -323,32 +323,58 @@ function buildServiceCards(pages, niche, cardServices) {
   return { main, alsoOffer, overflowServiceCount: allOverflowServices.length };
 }
 
-// The 2 or 3 services each card names (16 Oct, Brandon). Code picks them: the
-// client's jobs_wanted first, then GBP order (service_N). The model sees only these
-// for a card, never the category's full list. A service card names itself.
+// The 2 or 3 services each card names (Brandon, 16 Oct; round 3). Code picks them:
+// 1. the client's jobs_wanted, 2. the niche's core services for the card's category
+// (core_services), 3. only to reach two, the card's other GBP services. A card never
+// leads with a specialist service (tree bracing, artificial grass) unless it's wanted.
+// Each service sits in one card: the first card whose core list names it, else the
+// card of its GBP category (lawn mowing goes to Lawn Care Service, not Gardener).
+// The model sees only these for a card, never the category's full list.
 function pickCardServices(main, cv, keyValueMap, serviceParentMap, niche) {
   const { sayFor } = require('./service-words');
-  const wanted = (cv.jobs_wanted || []).map(j => String(j).toLowerCase().trim()).filter(Boolean);
-  const isWanted = (gbp, say) => wanted.some(w => gbp.includes(w) || (say && (say.includes(w) || w.includes(say))));
-  const services = Object.entries(keyValueMap)
+  const lc = s => String(s || '').toLowerCase().trim();
+  const wanted = (cv.jobs_wanted || []).map(lc).filter(Boolean);
+  const wantRank = s => {
+    const i = wanted.findIndex(w => w === s.say || w === lc(s.gbp) || (w.length > 3 && (s.say.includes(w) || w.includes(s.say) || lc(s.gbp).includes(w))));
+    return i < 0 ? Infinity : i;
+  };
+  const core = Object.fromEntries(Object.entries(niche.core_services || {}).map(([k, v]) => [lc(k), v.map(lc)]));
+  // One entry per homeowner word, in GBP order (service_N), with every GBP category it's filed under
+  const bySay = new Map();
+  Object.entries(keyValueMap)
     .filter(([k, v]) => /^service_\d+$/.test(k) && v)
-    .map(([k, v]) => ({ n: parseInt(k.split('_')[1], 10), gbp: v, say: sayFor(v, niche), category: serviceParentMap[k] || keyValueMap.category_1 || '' }))
-    .filter(s => s.say)
-    .sort((a, b) => a.n - b.n);
+    .map(([k, v]) => ({ n: parseInt(k.split('_')[1], 10), gbp: v, say: lc(sayFor(v, niche)), category: lc(serviceParentMap[k] || keyValueMap.category_1 || '') }))
+    .filter(s => s.say && s.say !== 'null')
+    .sort((a, b) => a.n - b.n)
+    .forEach(s => {
+      const e = bySay.get(s.say);
+      if (e) e.categories.push(s.category);
+      else bySay.set(s.say, { ...s, categories: [s.category] });
+    });
+  const services = [...bySay.values()];
+  const names = main.map(c => lc(c.name));
+  const home = s => {
+    const byCore = names.find(n => (core[n] || []).includes(s.say));
+    if (byCore) return byCore;
+    return s.categories.find(c => names.includes(c)) || null;
+  };
+  const stem = w => w.replace(/[^a-z]/g, '').replace(/(ing|er|ers|s)$/, '');
   for (const card of main) {
-    const name = (card.name || '').toLowerCase();
-    const own = services.find(s => s.gbp.toLowerCase() === name);
+    const name = lc(card.name);
+    const own = services.find(s => lc(s.gbp) === name);
     if (own) { card.services = [own.say]; continue; }
-    const mine = services.filter(s => s.category.toLowerCase() === name);
-    const ranked = [...mine.filter(s => isWanted(s.gbp.toLowerCase(), s.say.toLowerCase())), ...mine.filter(s => !isWanted(s.gbp.toLowerCase(), s.say.toLowerCase()))];
-    // Different GBP names can share homeowner words ("Lawn care", "Lawn care service")
-    const says = [];
-    // ...and a service that only restates the category ("gardening" on the Gardener card) names nothing
-    const stem = w => w.replace(/[^a-z]/g, '').replace(/(ing|er|ers|s)$/, '');
+    // A service that only restates the category ("gardening" on the Gardener card) names nothing
     const catStems = new Set(name.split(/\s+/).map(stem));
     const restates = say => say.split(/\s+/).every(w => catStems.has(stem(w)));
-    for (const s of ranked) if (!says.includes(s.say) && s.say !== name && !restates(s.say)) says.push(s.say);
-    card.services = says.slice(0, 3);
+    const mine = services.filter(s => home(s) === name && s.say !== name && !restates(s.say));
+    const coreList = core[name] || [];
+    const want = mine.filter(s => wantRank(s) < Infinity).sort((a, b) => wantRank(a) - wantRank(b));
+    const fromCore = coreList.map(w => mine.find(s => s.say === w)).filter(Boolean);
+    const picks = [];
+    for (const s of [...want, ...fromCore]) if (!picks.includes(s.say)) picks.push(s.say);
+    // Top up to two from the card's other services, never as the lead
+    if (picks.length === 1) { const extra = mine.find(s => !picks.includes(s.say)); if (extra) picks.push(extra.say); }
+    card.services = picks.slice(0, 3);
   }
   return main;
 }
