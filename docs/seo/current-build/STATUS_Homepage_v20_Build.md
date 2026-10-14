@@ -164,7 +164,7 @@
 - Docs: CLAUDE.md at repo root. The files the code reads (`prompts/`, `niche-library/`) are the only copies.
 
 ## Waiting on
-- Brandon: add `docs/seo/reference/Category_Page_Structure_v2.md` (the category template). It isn't in the repo, on GitHub, or anywhere under H:ocal launchpad. c2 starts from it.
+- Brandon: add `docs/seo/reference/Category_Page_Structure_v2.md` (the category template). It isn't in the repo, on GitHub, or anywhere under H:\Local Launchpad. C2 starts from it.
 - Brandon: set `COPYBOT_SECRET_KEY` on Railway (64 hex characters, e.g. from `node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"`). Keep a copy somewhere safe; losing it means re-entering each site's Application Password.
 - Brandon: on the deployed app, click Run allocation for Edens Edge on the Geo Research step. Expect Bassett Heath plus Portswood Residents' Gardens or Old Woolston; swap the second pick by hand if you prefer the other.
 - Kestrel Ridge allocation: no Bournemouth dossier exists yet. Run geo research for Bournemouth first.
