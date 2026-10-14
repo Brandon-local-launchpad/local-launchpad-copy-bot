@@ -3209,7 +3209,6 @@ app.post('/api/clients/:clientId/decisions-preview', async (req, res) => {
 
   const result = computeDecisions({ cv, niche, pages, keyValueMap, v20TestMode, allocationData: null });
   if (cvLoadError) result.cvLoadError = cvLoadError;
-  result._debug_h1_override = cv.h1_override || '(blank)';
   res.json(result);
 });
 

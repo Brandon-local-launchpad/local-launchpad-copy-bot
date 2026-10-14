@@ -2,3 +2,6 @@ node_modules/
 .env
 *.output
 docs/**/*.pdf
+.claude/settings.local.json
+copy-bot-export/
+copy-bot-export.zip
