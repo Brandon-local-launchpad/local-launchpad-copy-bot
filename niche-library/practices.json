@@ -113,7 +113,7 @@
         "\\bhand-?offs?\\b",
         "\\bpassing (jobs|work) (along|on)\\b",
         "\\bown team (does|on) every\\b",
-        "\\bhand(?:ed|s|ing)? (?:it |them |the job |the work |work )?off\\b",
+        "\\bhand(?:ed|s|ing)? (?:\\w+ ){0,2}off\\b",
         "\\bhanded on\\b"
       ]
     },
@@ -131,7 +131,8 @@
         "\\bon site for every job\\b",
         "\\bstays? (involved|on the job) (throughout|from start)",
         "\\bone person (sees|handles|runs|oversees)\\b",
-        "\\bstays? involved (?:with|in|on) every job\\b"
+        "\\bstays? involved (?:with|in|on) every job\\b",
+        "\\b(?:speak|talk|deal) (?:to|with) someone who knows your\\b"
       ]
     },
     {
