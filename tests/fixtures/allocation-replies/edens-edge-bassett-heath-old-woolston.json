@@ -1,0 +1,16 @@
+{
+  "_note": "Real claude-sonnet-4-6 reply, Allocation_Pass_CORE (2), Edens Edge on tests/fixtures/southampton-dossier.md, 14 Oct 2026. Replayed by southampton-allocation.js; no API call.",
+  "homepage": {
+    "neighbourhoods": [
+      "SOU-N07",
+      "SOU-N14"
+    ],
+    "symptoms": {
+      "faq_B": "SOU-S01"
+    },
+    "conservation_areas": [
+      "SOU-N14"
+    ],
+    "reasons": "SOU-N07 (Bassett Heath): chosen for documented quarter-acre plots, long narrow gardens, undulating tree-rich setting and large detached houses in the north — the most concrete plot-form detail available for landscaping work in Southampton\nSOU-N14 (Old Woolston): chosen for documented late-Victorian villa gardens, named mature tree species, steep riverside plots and subdivision history in the eastern suburb — genuinely different part of the city from Bassett Heath with no shared border\nfaq_B → SOU-S01: 'The lawn stays soggy for days after rain' is a direct match to the slot question about water sitting on lawn or patio after rain\nSOU-N14 listed as conservation area: the Old Woolston conservation area appraisal is the primary source document for that neighbourhood's profile, confirming the designation"
+  }
+}

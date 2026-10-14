@@ -27,11 +27,13 @@
     - Conservation areas are now only taken from rules *named* as a conservation area or Article 4 direction. Before this, the Bassett Neighbourhood Plan wrongly marked Bassett Heath.
     - Inline "[SOU-N07]" tags are dropped instead of being turned into a doubled name.
     - Bold markdown is stripped.
-  - Fixtures: 6 files, 119 checks, all pass. `southampton-allocation.js` runs on the real dossier. `allocation-logic.js` runs on the synthetic `parser-drift-sample.md` (format drift and the retry path).
+  - Allocation prompt CORE (2) (14 Oct): neighbourhoods are chosen first, on their own merits (the most concrete detail for the trade: plot sizes, garden types, build era, ground), in parts of the city that don't share a border. Symptoms come second and only have to fit their question. The model also gets the dossier's Location Overview so it can judge borders.
+  - Edens Edge real runs on CORE (2), 3 runs: Bassett Heath every time, plus Portswood Residents' Gardens (2 runs) or Old Woolston (1 run). faq_B = "The lawn stays soggy for days after rain." every time. Both second picks are conservation areas. Two real replies are saved in `tests/fixtures/allocation-replies/` and replayed by the fixture. Runs locally cost about 3p each; none are saved to the app yet.
+  - Fixtures: 6 files, 130 checks, all pass. `southampton-allocation.js` runs on the real dossier and the real replies. `allocation-logic.js` runs on the synthetic `parser-drift-sample.md` (format drift and the retry path).
 - Docs: CLAUDE.md at repo root. The files the code reads (`prompts/`, `niche-library/`) are the only copies.
 
 ## Waiting on
-- Brandon: decide on the Edens Edge allocation picks (see Open decisions). The first real run (14 Oct, local, approved prompt) picked Shirley and Hollybrook and Dale Valley for drainage, not large plot areas.
+- Brandon: on the deployed app, click Run allocation for Edens Edge on the Geo Research step. Expect Bassett Heath plus Portswood Residents' Gardens or Old Woolston; swap the second pick by hand if you prefer the other.
 - Kestrel Ridge allocation: no Bournemouth dossier exists yet. Run geo research for Bournemouth first.
 - Brandon: open "Preview v20 Decisions" for Edens Edge and Kestrel Ridge on the deployed app and check against the fixture previews. The real client data is only in the Railway database, so live previews can't run locally.
 - Brandon: set primary_category = Landscaper for Edens Edge in Client Values (if not done yet).
@@ -39,13 +41,12 @@
 
 ## Next
 1. Check the live Stage 4 previews (expect 7 category cards and the final CTA H2 "Get a Free Quote From a Local Landscaper in Southampton").
-2. Stage 5 finish: real dossier fixture, push, then run the allocation on Edens Edge (expect 2 large plot neighbourhoods such as Bassett and Woolston, plus a faq_B symptom) and Kestrel Ridge.
+2. Stage 5 finish: run the allocation in the app for Edens Edge; run Bournemouth geo research for Kestrel Ridge (the allocation then runs by itself).
 3. Stages 6 to 9: v20 generation, validator + retries, downloads, acceptance test.
 4. Run Perplexity v3 for landscaper (trade only).
 5. Then: FAQ question bank + sorting step stages, humanizer decision, emergency and regulated group tests, category page.
 
 ## Open decisions
-- Allocation picks for Edens Edge. The first real run chose Shirley and Hollybrook and Dale Valley (both strong on drainage, which suits the faq_B symptom). The brief expects large plot areas such as Bassett Heath and Old Woolston. Shirley and Hollybrook also sit next to each other, which bends the "different parts of the city" rule. Options: tighten the prompt (choose neighbourhoods on their own merits before symptoms; say what counts as different parts), set `jobs_wanted`, or accept the picks.
 - Which humanizer (tool or prompt) Brandon wants.
 - Hero "doubt strip" under the buttons: yes or no.
 - Separate Southampton location page: drop it (homepage is that page).

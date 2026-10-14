@@ -101,6 +101,29 @@ chk('Cleaned text keeps (inferred) markers', /\(inferred\)/.test(cleaned), 'no (
     ai.slice(0, 400), 'both neighbourhoods and the Q8 symptom');
   chk('ALLOCATED ITEMS carries no URLs or reference IDs', !/https?:|SOU-[NISR]\d\d/.test(ai), (ai.match(/https?:\S+|SOU-[NISR]\d\d/g) || []).join(' '), 'none');
 
+  // ── Real model replies (Allocation_Pass_CORE (2)), replayed ──
+  // Three live runs on 14 Oct picked Bassett Heath every time, with Portswood
+  // Residents' Gardens (2 runs) or Old Woolston (1 run). Both are accepted results.
+  const repliesDir = path.join(__dirname, 'allocation-replies');
+  for (const file of fs.readdirSync(repliesDir).filter(f => f.startsWith('edens-edge-')).sort()) {
+    const recorded = JSON.parse(fs.readFileSync(path.join(repliesDir, file), 'utf8'));
+    const real = await A.runAllocation({ dossierText, cv, niche: landscaper, keyValueMap, pages, callModel: async () => JSON.stringify(recorded) });
+    const second = real.neighbourhoods[1];
+    chk(`${file}: passes code checks first time, no flags`, real.attempts.length === 1 && !real.attempts[0].errors.length && !real.flags.length,
+      JSON.stringify(real.attempts) + ' ' + real.flags.map(f => f.msg).join('; '), '1 attempt, no errors or flags');
+    chk(`${file}: Bassett Heath plus Portswood Residents' Gardens or Old Woolston`,
+      real.neighbourhoods[0] === 'SOU-N07' && ['SOU-N11', 'SOU-N14'].includes(second), real.neighbourhoods.join(','), 'SOU-N07 + SOU-N11|SOU-N14');
+    chk(`${file}: faq_B = "The lawn stays soggy for days after rain."`, real.symptoms.faq_B === 'SOU-S01', JSON.stringify(real.symptoms), 'faq_B=SOU-S01');
+    chk(`${file}: second pick marked as a conservation area`, real.conservation_areas.includes(second), real.conservation_areas.join(','), second);
+    const realItems = A.resolveAllocatedItems(real, parsed);
+    chk(`${file}: resolved text has no URLs or IDs`, !/https?:|SOU-[NISR]\d\d/.test(JSON.stringify(realItems)), 'see items', 'none');
+  }
+  // Portswood's conservation status comes from its own rule, even if a reply leaves it out
+  const noCons = await A.runAllocation({ dossierText, cv, niche: landscaper, keyValueMap, pages,
+    callModel: async () => JSON.stringify({ homepage: { neighbourhoods: ['SOU-N07', 'SOU-N11'], symptoms: { faq_B: 'SOU-S01' }, conservation_areas: [], reasons: '' } }) });
+  chk('Code marks Portswood Residents\' Gardens from its conservation area rule', noCons.conservation_areas.join(',') === 'SOU-N11',
+    noCons.conservation_areas.join(','), 'SOU-N11');
+
   console.log('\n' + ai);
   console.log(`\n${pass + fail} checks: ${pass} passed, ${fail} failed`);
   if (fail > 0) process.exit(1);

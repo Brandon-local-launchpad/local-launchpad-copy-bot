@@ -68,6 +68,9 @@ function buildAllocationMessage({ parsed, eligible, cv, niche, city, categories,
   L.push('');
   L.push('PAGE: homepage');
   L.push('');
+  L.push('LOCATION OVERVIEW:');
+  L.push(`  ${(parsed.overview || '(none)').replace(/\n+/g, ' ')}`);
+  L.push('');
   L.push('SYMPTOM SLOTS:');
   for (const s of slots) L.push(`  ${s.slot}: ${s.question}`);
   if (!slots.length) L.push('  none');
