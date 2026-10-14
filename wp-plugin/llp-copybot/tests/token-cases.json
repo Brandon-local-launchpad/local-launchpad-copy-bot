@@ -1,0 +1,25 @@
+{
+  "_note": "Shared test cases for token replacement. wp/token-resolve.js (tested in tests/fixtures/wp-plugin.js) and the plugin's llp_copybot_resolve() must both give `want` for each case. year is fixed so years_trading cases are stable.",
+  "values": {
+    "company_name": "Edens Edge Landscaping",
+    "phone": "023 0000 0000",
+    "travel_distance": "20 miles",
+    "year_founded": "2016",
+    "hours": "Mon to Sat, 7am to 6pm",
+    "tricky": "Fish & <b>Chips</b> \"Ltd\""
+  },
+  "year": 2026,
+  "cases": [
+    { "mode": "text", "in": "[CV: company_name] is a landscaper in Southampton.", "want": "Edens Edge Landscaping is a landscaper in Southampton." },
+    { "mode": "text", "in": "Call [CV: phone] today.", "want": "Call 023 0000 0000 today." },
+    { "mode": "text", "in": "Up to [CV: travel_distance] inland and along the coast.", "want": "Up to 20 miles inland and along the coast." },
+    { "mode": "text", "in": "Open [CV: hours].", "want": "Open Mon to Sat, 7am to 6pm." },
+    { "mode": "text", "in": "[CV: years_trading]+ years", "want": "10+ years" },
+    { "mode": "text", "in": "Rated [CV: rating] by locals.", "want": "Rated  by locals." },
+    { "mode": "text", "in": "No tokens here.", "want": "No tokens here." },
+    { "mode": "text", "in": "[CV: Company_Name] stays as written (keys are lower case).", "want": "[CV: Company_Name] stays as written (keys are lower case)." },
+    { "mode": "text", "in": "[CV: tricky]", "want": "Fish & Chips \"Ltd\"" },
+    { "mode": "html", "in": "<p>[CV: tricky]</p>", "want": "<p>Fish &amp; &lt;b&gt;Chips&lt;/b&gt; &quot;Ltd&quot;</p>" },
+    { "mode": "html", "in": "<p>Call <a href=\"/contact/\">[CV: phone]</a></p>", "want": "<p>Call <a href=\"/contact/\">023 0000 0000</a></p>" }
+  ]
+}

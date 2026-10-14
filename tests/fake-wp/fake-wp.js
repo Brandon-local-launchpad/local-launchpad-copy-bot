@@ -5,8 +5,12 @@
 // would return them. Counts writes, so tests can prove a dry run writes nothing.
 const express = require('express');
 
-function createFakeWp({ user = 'copybot', appPassword = 'test-app-password-not-real', frontId = 7, pages = [] } = {}) {
-  const state = { writes: 0, pages: new Map(pages.map(p => [p.id, JSON.parse(JSON.stringify(p))])), frontId };
+const ALL_GROUPS = require('../../wp/acf-schema').GROUPS.map(g => `group_llp_${g.name}`);
+
+// plugin: false → the companion plugin isn't installed (its routes 404)
+function createFakeWp({ user = 'copybot', appPassword = 'test-app-password-not-real', frontId = 7, pages = [],
+  plugin = true, acfPro = true, seo = 'rankmath', fieldGroups = ALL_GROUPS, clientValues = {} } = {}) {
+  const state = { writes: 0, pages: new Map(pages.map(p => [p.id, JSON.parse(JSON.stringify(p))])), frontId, clientValues: { ...clientValues } };
   const app = express();
   app.use(express.json({ limit: '2mb' }));
 
@@ -16,6 +20,11 @@ function createFakeWp({ user = 'copybot', appPassword = 'test-app-password-not-r
     next();
   });
   app.get('/wp-json/wp/v2/settings', (req, res) => res.json({ title: 'Fake site', page_on_front: state.frontId }));
+  if (plugin) {
+    app.get('/wp-json/llp-copybot/v1/status', (req, res) => res.json({ plugin: '0.1.0', acf_pro: acfPro, seo, front_page: state.frontId, field_groups: fieldGroups }));
+    app.get('/wp-json/llp-copybot/v1/client-values', (req, res) => res.json(state.clientValues));
+    app.post('/wp-json/llp-copybot/v1/client-values', (req, res) => { state.writes++; Object.assign(state.clientValues, req.body); res.json(state.clientValues); });
+  }
   app.get('/wp-json/wp/v2/pages', (req, res) => {
     res.json([...state.pages.values()].filter(p => !req.query.slug || p.slug === req.query.slug));
   });
@@ -33,6 +42,7 @@ function createFakeWp({ user = 'copybot', appPassword = 'test-app-password-not-r
     if (req.body.status) p.status = req.body.status;
     res.json(p);
   });
+  app.use('/wp-json', (req, res) => res.status(404).json({ code: 'rest_no_route', message: 'No route was found matching the URL and request method.' }));
   return { app, state };
 }
 

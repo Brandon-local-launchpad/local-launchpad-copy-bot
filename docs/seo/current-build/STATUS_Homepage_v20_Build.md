@@ -102,6 +102,17 @@
   - `wp/dry-run.js` + `npm run wp:dry-run -- <record.json> [--reviewed] [--fake]`: finds the homepage (front page setting or slug), compares every field and repeater row, and says whether a push would be allowed and why not. It writes nothing. Application Passwords need https except on localhost.
   - `tests/fake-wp/fake-wp.js`: a fake site with the REST endpoints, Basic auth, ACF and meta, and a write counter. `tests/fixtures/wp-push.js` adds 29 checks; 12 fixtures pass.
   - Next slices: (2) the companion plugin: Client Values settings page, token resolver, REST access to the SEO meta, ACF JSON master including the five new fields; (3) the real push: snapshot, write, rollback, push log, and the model-judged claims review before any push; (4) Copybot screens: site address and Application Password (stored encrypted), "reviewed" tick, dry run / push / roll back buttons; (5) a first push to a staging site.
+- Stage 10, slice 2, companion plugin (14 Oct): `wp-plugin/llp-copybot/` (install through MainWP; see its README).
+  - It adds a Settings → Client Values page (one value per `[CV: key]`, plus map embed, Google review link, primary button label and rating line).
+  - It replaces tokens in ACF fields and the Rank Math or Yoast title and description when a page is shown, but not in the editor or the REST API. A key with no value shows nothing, and years_trading is worked out from year_founded.
+  - It adds the `[llp_cv key="…"]` shortcode and `llp_cv()` for the template.
+  - It provides the REST routes `llp-copybot/v1/client-values` (GET/POST) and `/status`, and makes the SEO meta writable through `/wp/v2/pages`.
+  - It loads the homepage ACF field groups from `acf-json/` (12 groups on the front page, REST on).
+  - `wp/acf-schema.js` is the master copy of the field groups: build spec names, the five NEW fields, and template-only fields (images, reviews widget) marked as not pushed. `npm run wp:plugin-data` writes the plugin's `acf-json/` and `client-value-keys.json` from it and from `wp/client-values.js`. A fixture fails if they're out of date or don't match the payload.
+  - **The PHP has not been run.** PHP isn't available in this environment. It is checked statically (routes, hooks, meta keys, brackets), and its token rules are pinned by `tests/token-cases.json`, which the JavaScript copy (`wp/token-resolve.js`) passes. Its first real run is on a WordPress site.
+  - The dry run now refuses when the plugin isn't active, ACF Pro is missing, the site's SEO plugin differs from the push setting, or a homepage field group is missing. It also refuses a record made before 14 Oct (no stored client values) unless current values are passed in. It now compares the Client Values too.
+  - Fixtures: 13 files, 317 checks, all pass (`wp-plugin.js` adds 25).
+  - Waiting on Given: a staging site, and whether she has already built homepage field groups (if so, they are deleted in favour of the plugin's). SEO plugin: Rank Math assumed until Brandon confirms.
 - Docs: CLAUDE.md at repo root. The files the code reads (`prompts/`, `niche-library/`) are the only copies.
 
 ## Waiting on
@@ -114,7 +125,7 @@
 ## Next
 1. Check the live Stage 4 previews (expect 7 category cards and the final CTA H2 "Get a Free Quote From a Local Landscaper in Southampton").
 2. Stage 5 finish: run the allocation in the app for Edens Edge; run Bournemouth geo research for Kestrel Ridge (the allocation then runs by itself).
-3. WordPress push: slice 2 (companion plugin), then the real push, the Copybot screens, and a staging push.
+3. WordPress push: slice 3 (the real push: snapshot, write, rollback, push log, claims review), then the Copybot screens and a staging push.
 4. Run Perplexity v3 for landscaper (trade only).
 5. Then: FAQ question bank + sorting step stages, humanizer decision, emergency and regulated group tests, category page.
 

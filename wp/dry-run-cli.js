@@ -21,7 +21,7 @@ const { dryRun, formatDryRun } = require('./dry-run');
     const fake = createFakeWp({ pages: [seedHomepage()] });
     const { server, url } = await listen(fake.app);
     site = { url, user: 'copybot', appPassword: 'test-app-password-not-real', staging: false };
-    close = () => { console.log(`\n(fake site writes: ${fake.state.writes})`); server.close(); };
+    close = () => new Promise(r => { console.log(`\n(fake site writes: ${fake.state.writes})`); server.close(r); });
   } else {
     if (!process.env.WP_URL) { console.error('Set WP_URL, WP_USER and WP_APP_PASSWORD, or use --fake.'); process.exit(2); }
     site = { url: process.env.WP_URL, user: process.env.WP_USER, appPassword: process.env.WP_APP_PASSWORD, staging: process.env.WP_STAGING === 'yes' };
@@ -29,5 +29,5 @@ const { dryRun, formatDryRun } = require('./dry-run');
   try {
     const r = await dryRun({ record, site, reviewed: args.includes('--reviewed'), seo });
     console.log(formatDryRun(r, { showSame: args.includes('--all') }));
-  } finally { close(); }
+  } finally { await close(); }
 })().catch(e => { console.error('Dry run failed:', e.message); process.exit(1); });

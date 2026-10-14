@@ -210,5 +210,5 @@ async function generateV20Homepage({ cv, niche, keyValueMap, serviceParentMap = 
 
 module.exports = {
   V20_MODEL, V20_PROMPT_FILE, V20_MAX_TOKENS,
-  buildV20Request, buildClientValues, clientValueMap, buildNicheEntry, buildServiceList, buildPracticeList, nicheContext, loadCore20, generateV20Homepage,
+  CV_KEYS, buildV20Request, buildClientValues, clientValueMap, buildNicheEntry, buildServiceList, buildPracticeList, nicheContext, loadCore20, generateV20Homepage,
 };

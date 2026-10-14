@@ -16,7 +16,11 @@ const chk = (label, ok, got, want) => {
 };
 console.log('\n=== FIXTURE: WordPress push (payload, safety, dry run) ===\n');
 
-const clean = require(path.join(__dirname, 'v20-outputs/edens-edge-2026-10-14-stage7b-record.json'));      // 0 BLOCK, 5 FLAG, no stand-ins
+// 0 BLOCK, 5 FLAG, no stand-ins. It predates meta.client_values (Stage 8), so give it Ethan's values as a newer record carries them.
+const G = require(path.join(root, 'v20-generate.js'));
+const E = require(path.join(__dirname, 'data/edens-edge-acceptance.js'));
+const oldClean = require(path.join(__dirname, 'v20-outputs/edens-edge-2026-10-14-stage7b-record.json'));
+const clean = { ...oldClean, meta: { ...oldClean.meta, client_values: G.clientValueMap({ ...E.ethanValues(), phone: '023 0000 0000' }, null) } };
 const acceptance = require(path.join(__dirname, 'v20-outputs/edens-edge-2026-10-14-acceptance-record.json')); // stand-ins
 
 // ── Markdown → HTML ──
@@ -78,7 +82,7 @@ chk('Published page: refused unless the site is staging', checkTarget({ status: 
     let httpErr = '';
     try { await dryRun({ record: clean, site: { ...site, url: 'http://example.com' } }); } catch (e) { httpErr = e.message; }
     chk('Plain http to a real host is refused (https needed)', /need https/.test(httpErr), httpErr, 'https');
-  } finally { server.close(); }
+  } finally { await new Promise(r => server.close(r)); }
 
   console.log(`\n${pass + fail} checks: ${pass} passed, ${fail} failed`);
   if (fail > 0) process.exit(1);

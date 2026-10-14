@@ -6,7 +6,9 @@
 
 const { buildHomepagePayload, HOMEPAGE_FIELDS } = require('./homepage-map');
 const { checkRecord, checkTarget } = require('./safety');
-const { findHomepage } = require('./client');
+const { findHomepage, wpGet } = require('./client');
+const { GROUPS } = require('./acf-schema');
+const { buildClientValuesPayload } = require('./client-values');
 const { htmlToText } = require('./markdown');
 
 const show = (kind, v) => {
@@ -38,8 +40,34 @@ function diffFields(current, next) {
   return changes;
 }
 
-async function dryRun({ record, site, reviewed = false, seo = 'rankmath' }) {
+// The companion plugin's report: is the site ready to take a push?
+async function checkSite(site, seo) {
+  let status;
+  try {
+    status = await wpGet(site, '/llp-copybot/v1/status');
+  } catch (e) {
+    if (/→ 404/.test(e.message)) return { status: null, refusals: ['The Local Launchpad Copybot plugin is not active on the site.'] };
+    throw e;
+  }
+  const refusals = [];
+  if (!status.acf_pro) refusals.push('ACF Pro is not active on the site.');
+  if (status.seo !== seo) refusals.push(`The site's SEO plugin is ${status.seo}, but the push is set for ${seo}.`);
+  const want = GROUPS.map(g => `group_llp_${g.name}`);
+  const missing = want.filter(k => !(status.field_groups || []).includes(k));
+  if (missing.length) refusals.push(`Homepage field groups missing on the site: ${missing.join(', ')}.`);
+  return { status, refusals };
+}
+
+// clientValues: the values to push, when the record doesn't carry its own
+// (records made before 14 Oct; the server passes the client's current values).
+async function dryRun({ record, site, reviewed = false, seo = 'rankmath', clientValues: fallbackValues = null }) {
   const refusals = checkRecord(record, { reviewed });
+  const recordValues = record.meta && record.meta.client_values;
+  if (!recordValues && !fallbackValues && !record.blocked) {
+    refusals.push('The record does not carry its client values (made before 14 Oct). Regenerate it, or push with the client\'s current values.');
+  }
+  const siteCheck = await checkSite(site, seo);
+  refusals.push(...siteCheck.refusals);
   const page = await findHomepage(site);
   refusals.push(...checkTarget(page, site));
   const payload = record.blocked ? null : buildHomepagePayload(record, { seo });
@@ -50,8 +78,19 @@ async function dryRun({ record, site, reviewed = false, seo = 'rankmath' }) {
       return { field: `meta.${k}`, change: same(a, b) ? 'same' : (a ? 'changed' : 'added'), current: a, next: b };
     }),
   ] : [];
+  // Client Values the site would hold after the push
+  const clientValues = payload ? buildClientValuesPayload(recordValues ? record : { ...record, meta: { ...record.meta, client_values: fallbackValues || {} } }) : null;
+  if (clientValues && siteCheck.status) {
+    const current = await wpGet(site, '/llp-copybot/v1/client-values');
+    for (const [k, v] of Object.entries(clientValues)) {
+      const a = show('text', current[k]), b = show('text', v);
+      changes.push({ field: `client_values.${k}`, change: same(a, b) ? 'same' : (a ? (b ? 'changed' : 'removed') : 'added'), current: a, next: b });
+    }
+  }
   return {
     site: site.url,
+    plugin: siteCheck.status,
+    clientValues,
     page: page ? { id: page.id, status: page.status, title: (page.title && (page.title.raw || page.title.rendered)) || '' } : null,
     pushable: refusals.length === 0,
     refusals,

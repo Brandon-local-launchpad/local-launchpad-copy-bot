@@ -1,0 +1,47 @@
+{
+  "key": "group_llp_home_final_cta",
+  "title": "Homepage: Final CTA",
+  "fields": [
+    {
+      "key": "field_llp_home_final_cta_h2",
+      "label": "H2",
+      "name": "home_final_cta_h2",
+      "type": "text",
+      "instructions": "Written by Copybot. Edits here are overwritten by the next push.",
+      "required": 0,
+      "conditional_logic": 0,
+      "show_in_rest": 1
+    },
+    {
+      "key": "field_llp_home_final_cta_body",
+      "label": "Body",
+      "name": "home_final_cta_body",
+      "type": "wysiwyg",
+      "instructions": "Written by Copybot. Edits here are overwritten by the next push.",
+      "required": 0,
+      "conditional_logic": 0,
+      "show_in_rest": 1,
+      "tabs": "all",
+      "toolbar": "basic",
+      "media_upload": 0
+    }
+  ],
+  "location": [
+    [
+      {
+        "param": "page_type",
+        "operator": "==",
+        "value": "front_page"
+      }
+    ]
+  ],
+  "menu_order": 11,
+  "position": "normal",
+  "style": "default",
+  "label_placement": "top",
+  "instruction_placement": "label",
+  "hide_on_screen": "",
+  "active": true,
+  "description": "Local Launchpad homepage (master copy in the Copybot repo).",
+  "show_in_rest": 1
+}

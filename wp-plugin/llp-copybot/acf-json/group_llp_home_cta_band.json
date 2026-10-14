@@ -1,0 +1,44 @@
+{
+  "key": "group_llp_home_cta_band",
+  "title": "Homepage: CTA band",
+  "fields": [
+    {
+      "key": "field_llp_home_cta_band_heading",
+      "label": "Heading",
+      "name": "home_cta_band_heading",
+      "type": "text",
+      "instructions": "Written by Copybot. Edits here are overwritten by the next push.",
+      "required": 0,
+      "conditional_logic": 0,
+      "show_in_rest": 1
+    },
+    {
+      "key": "field_llp_home_cta_band_line",
+      "label": "Line",
+      "name": "home_cta_band_line",
+      "type": "text",
+      "instructions": "Written by Copybot. Edits here are overwritten by the next push.",
+      "required": 0,
+      "conditional_logic": 0,
+      "show_in_rest": 1
+    }
+  ],
+  "location": [
+    [
+      {
+        "param": "page_type",
+        "operator": "==",
+        "value": "front_page"
+      }
+    ]
+  ],
+  "menu_order": 7,
+  "position": "normal",
+  "style": "default",
+  "label_placement": "top",
+  "instruction_placement": "label",
+  "hide_on_screen": "",
+  "active": true,
+  "description": "Local Launchpad homepage (master copy in the Copybot repo).",
+  "show_in_rest": 1
+}

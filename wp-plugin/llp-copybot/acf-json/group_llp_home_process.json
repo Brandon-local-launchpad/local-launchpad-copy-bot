@@ -1,0 +1,71 @@
+{
+  "key": "group_llp_home_process",
+  "title": "Homepage: Process",
+  "fields": [
+    {
+      "key": "field_llp_home_process_h2",
+      "label": "H2",
+      "name": "home_process_h2",
+      "type": "text",
+      "instructions": "Written by Copybot. Edits here are overwritten by the next push.",
+      "required": 0,
+      "conditional_logic": 0,
+      "show_in_rest": 1
+    },
+    {
+      "key": "field_llp_home_process_steps",
+      "label": "Steps",
+      "name": "home_process_steps",
+      "type": "repeater",
+      "instructions": "Written by Copybot. Edits here are overwritten by the next push.",
+      "required": 0,
+      "conditional_logic": 0,
+      "show_in_rest": 1,
+      "layout": "block",
+      "button_label": "Add row",
+      "sub_fields": [
+        {
+          "key": "field_llp_home_process_steps_step_title",
+          "label": "Title",
+          "name": "step_title",
+          "type": "text",
+          "instructions": "Written by Copybot. Edits here are overwritten by the next push.",
+          "required": 0,
+          "conditional_logic": 0,
+          "show_in_rest": 1
+        },
+        {
+          "key": "field_llp_home_process_steps_step_body",
+          "label": "Body",
+          "name": "step_body",
+          "type": "wysiwyg",
+          "instructions": "Written by Copybot. Edits here are overwritten by the next push.",
+          "required": 0,
+          "conditional_logic": 0,
+          "show_in_rest": 1,
+          "tabs": "all",
+          "toolbar": "basic",
+          "media_upload": 0
+        }
+      ]
+    }
+  ],
+  "location": [
+    [
+      {
+        "param": "page_type",
+        "operator": "==",
+        "value": "front_page"
+      }
+    ]
+  ],
+  "menu_order": 6,
+  "position": "normal",
+  "style": "default",
+  "label_placement": "top",
+  "instruction_placement": "label",
+  "hide_on_screen": "",
+  "active": true,
+  "description": "Local Launchpad homepage (master copy in the Copybot repo).",
+  "show_in_rest": 1
+}

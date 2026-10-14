@@ -1,0 +1,202 @@
+[
+  {
+    "key": "company_name",
+    "label": "Company name"
+  },
+  {
+    "key": "phone",
+    "label": "Phone"
+  },
+  {
+    "key": "email",
+    "label": "Email"
+  },
+  {
+    "key": "address",
+    "label": "Address"
+  },
+  {
+    "key": "gbp_address_type",
+    "label": "Gbp address type"
+  },
+  {
+    "key": "hours",
+    "label": "Hours"
+  },
+  {
+    "key": "primary_category",
+    "label": "Primary category"
+  },
+  {
+    "key": "year_founded",
+    "label": "Year founded"
+  },
+  {
+    "key": "years_trading",
+    "label": "Years trading"
+  },
+  {
+    "key": "jobs_completed",
+    "label": "Jobs completed"
+  },
+  {
+    "key": "rating",
+    "label": "Rating"
+  },
+  {
+    "key": "review_count",
+    "label": "Review count"
+  },
+  {
+    "key": "guarantee_years",
+    "label": "Guarantee years"
+  },
+  {
+    "key": "guarantee_scope",
+    "label": "Guarantee scope"
+  },
+  {
+    "key": "manufacturer_warranty",
+    "label": "Manufacturer warranty"
+  },
+  {
+    "key": "insurance_cover",
+    "label": "Insurance cover"
+  },
+  {
+    "key": "differentiator_1",
+    "label": "Differentiator 1"
+  },
+  {
+    "key": "differentiator_1_sentence",
+    "label": "Differentiator 1 sentence"
+  },
+  {
+    "key": "differentiator_2",
+    "label": "Differentiator 2"
+  },
+  {
+    "key": "differentiator_2_sentence",
+    "label": "Differentiator 2 sentence"
+  },
+  {
+    "key": "free_quotes",
+    "label": "Free quotes"
+  },
+  {
+    "key": "free_inspection",
+    "label": "Free inspection"
+  },
+  {
+    "key": "quote_method",
+    "label": "Quote method"
+  },
+  {
+    "key": "price_list",
+    "label": "Price list"
+  },
+  {
+    "key": "response_time",
+    "label": "Response time"
+  },
+  {
+    "key": "same_day_available",
+    "label": "Same day available"
+  },
+  {
+    "key": "out_of_hours_available",
+    "label": "Out of hours available"
+  },
+  {
+    "key": "start_time",
+    "label": "Start time"
+  },
+  {
+    "key": "owner_name",
+    "label": "Owner name"
+  },
+  {
+    "key": "owner_name_2",
+    "label": "Owner name 2"
+  },
+  {
+    "key": "owner_qualification",
+    "label": "Owner qualification"
+  },
+  {
+    "key": "owner_why",
+    "label": "Owner why"
+  },
+  {
+    "key": "owner_promise",
+    "label": "Owner promise"
+  },
+  {
+    "key": "owner_pronoun",
+    "label": "Owner pronoun"
+  },
+  {
+    "key": "business_type",
+    "label": "Business type"
+  },
+  {
+    "key": "materials_methods",
+    "label": "Materials methods"
+  },
+  {
+    "key": "team_size",
+    "label": "Team size"
+  },
+  {
+    "key": "typical_jobs",
+    "label": "Typical jobs"
+  },
+  {
+    "key": "emergency_primary",
+    "label": "Emergency primary"
+  },
+  {
+    "key": "handles_planning",
+    "label": "Handles planning"
+  },
+  {
+    "key": "finance_options",
+    "label": "Finance options"
+  },
+  {
+    "key": "complaints_process",
+    "label": "Complaints process"
+  },
+  {
+    "key": "area_wide",
+    "label": "Area wide"
+  },
+  {
+    "key": "travel_distance",
+    "label": "Travel distance"
+  },
+  {
+    "key": "review_themes",
+    "label": "Review themes"
+  },
+  {
+    "key": "jobs_wanted",
+    "label": "Jobs wanted"
+  },
+  {
+    "key": "map_embed",
+    "label": "Google map embed URL"
+  },
+  {
+    "key": "review_url",
+    "label": "Google review link"
+  },
+  {
+    "key": "primary_action",
+    "label": "Primary button label"
+  },
+  {
+    "key": "rating_line",
+    "label": "Rating line (hero and final CTA)"
+  }
+]

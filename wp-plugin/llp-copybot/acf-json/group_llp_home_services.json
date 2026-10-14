@@ -1,0 +1,120 @@
+{
+  "key": "group_llp_home_services",
+  "title": "Homepage: Services",
+  "fields": [
+    {
+      "key": "field_llp_home_services_h2",
+      "label": "H2",
+      "name": "home_services_h2",
+      "type": "text",
+      "instructions": "Written by Copybot. Edits here are overwritten by the next push.",
+      "required": 0,
+      "conditional_logic": 0,
+      "show_in_rest": 1
+    },
+    {
+      "key": "field_llp_home_services_intro",
+      "label": "Intro",
+      "name": "home_services_intro",
+      "type": "wysiwyg",
+      "instructions": "Written by Copybot. Edits here are overwritten by the next push.",
+      "required": 0,
+      "conditional_logic": 0,
+      "show_in_rest": 1,
+      "tabs": "all",
+      "toolbar": "basic",
+      "media_upload": 0
+    },
+    {
+      "key": "field_llp_home_services_cards",
+      "label": "Cards",
+      "name": "home_services_cards",
+      "type": "repeater",
+      "instructions": "Written by Copybot. Edits here are overwritten by the next push.",
+      "required": 0,
+      "conditional_logic": 0,
+      "show_in_rest": 1,
+      "layout": "block",
+      "button_label": "Add row",
+      "sub_fields": [
+        {
+          "key": "field_llp_home_services_cards_card_name",
+          "label": "Name",
+          "name": "card_name",
+          "type": "text",
+          "instructions": "Written by Copybot. Edits here are overwritten by the next push.",
+          "required": 0,
+          "conditional_logic": 0,
+          "show_in_rest": 1
+        },
+        {
+          "key": "field_llp_home_services_cards_card_text",
+          "label": "Text",
+          "name": "card_text",
+          "type": "wysiwyg",
+          "instructions": "Written by Copybot. Edits here are overwritten by the next push.",
+          "required": 0,
+          "conditional_logic": 0,
+          "show_in_rest": 1,
+          "tabs": "all",
+          "toolbar": "basic",
+          "media_upload": 0
+        },
+        {
+          "key": "field_llp_home_services_cards_card_image",
+          "label": "Image",
+          "name": "card_image",
+          "type": "image",
+          "instructions": "Filled on the site, not by Copybot.",
+          "required": 0,
+          "conditional_logic": 0,
+          "show_in_rest": 1,
+          "return_format": "array",
+          "preview_size": "medium",
+          "library": "all"
+        },
+        {
+          "key": "field_llp_home_services_cards_card_url",
+          "label": "Page URL",
+          "name": "card_url",
+          "type": "text",
+          "instructions": "Written by Copybot. Edits here are overwritten by the next push.",
+          "required": 0,
+          "conditional_logic": 0,
+          "show_in_rest": 1
+        }
+      ]
+    },
+    {
+      "key": "field_llp_home_services_more_line",
+      "label": "\"We also offer\" line",
+      "name": "home_services_more_line",
+      "type": "wysiwyg",
+      "instructions": "Written by Copybot. Edits here are overwritten by the next push.",
+      "required": 0,
+      "conditional_logic": 0,
+      "show_in_rest": 1,
+      "tabs": "all",
+      "toolbar": "basic",
+      "media_upload": 0
+    }
+  ],
+  "location": [
+    [
+      {
+        "param": "page_type",
+        "operator": "==",
+        "value": "front_page"
+      }
+    ]
+  ],
+  "menu_order": 3,
+  "position": "normal",
+  "style": "default",
+  "label_placement": "top",
+  "instruction_placement": "label",
+  "hide_on_screen": "",
+  "active": true,
+  "description": "Local Launchpad homepage (master copy in the Copybot repo).",
+  "show_in_rest": 1
+}
