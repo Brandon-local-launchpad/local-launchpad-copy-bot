@@ -29,6 +29,17 @@
   "business_type_notes": "Mostly installs → A. Mostly maintenance → B. Mixed → A with schedule line in step 3.",
 
   "priority_services": [],
+  "core_services": {
+    "landscaper": ["garden makeovers", "patios", "planting"],
+    "landscape gardener": ["garden makeovers", "patios", "planting", "new gardens", "paving and walling", "retaining walls", "garden steps"],
+    "landscape designer": ["garden design", "design and build", "patio design", "planting"],
+    "gardener": ["garden maintenance", "hedge trimming", "weed control", "mulching"],
+    "lawn care service": ["lawn mowing", "seeding lawns", "new lawns", "turf laying", "lawn care"],
+    "tree service": ["tree pruning", "tree removal", "stump grinding", "tree planting"],
+    "paving contractor": ["block paving", "new driveways", "driveway replacement", "groundwork and levelling"],
+    "deck builder": ["timber decking", "composite decking", "deck installation", "deck repair"],
+    "fence contractor": ["fencing", "gates"]
+  },
 
   "steps": [
     {

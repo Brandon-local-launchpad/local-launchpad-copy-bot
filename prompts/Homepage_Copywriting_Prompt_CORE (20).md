@@ -6,6 +6,8 @@ Replaces Homepage_Copywriting_Prompt_CORE (19). Built from the Homepage Structur
 
 16 Oct 2026, round 2 review of Edens Edge: each card names only the services DECISIONS gives it (code picks 2 or 3); the fixed price appears three times at most counting the meta description, and never in a step; content block paragraphs are 4 sentences at most; a category name is never followed by "team"; an answer to a "which", "what", "how" or "why" question never opens "Yes"; a phrase such as "before any work begins" is used twice on the page at most.
 
+16 Oct 2026, round 3 review of Edens Edge: cards never share a sentence pattern and "we also handle" appears once on the page; no field points at another part of the page; outcome promises ("won't crack", "stays green") only when confirmed; the kinds of property or job worked on only when the client values say so.
+
 ---
 
 ## HOW THIS PROMPT IS USED
@@ -61,9 +63,10 @@ Never state the guarantee length or the insurance figure here. Section 5 owns th
 One `card_text` per card in DECISIONS → card list, in the order given. Card names are given; never rewrite them.
 - **Linked card:** 40 to 55 words. What the customer gets from this category, naming the services DECISIONS lists for this card ("Services:"), in those words, and no others. Never list more than 3 services in a card. The link to the card's page goes inside a sentence (see Category names in prose, below). Word each card differently from the content block's sentence about the same category.
 - **No filler place names.** Name the city in two cards at most ("across [city]", "for [city] homes" adds nothing when every card says it).
-- **No shared skeleton.** Cards are read one after another, so no two may open the same way or follow the same order. Vary the opening: a customer problem, a question, the result, a time of year, a material. "Our [category] service covers..." may appear on one card at most, and "As a [category], we..." on none.
+- **No shared skeleton.** Cards are read one after another, so no two may open the same way, follow the same order or share a sentence pattern ("We also handle X", "Our [category] work covers X" in two cards). "We also handle" appears once on the page at most. Vary the opening: a customer problem, a question, the result, a time of year, a material. "Our [category] service covers..." may appear on one card at most, and "As a [category], we..." on none.
 - **Unlinked card:** 40 to 55 words, no link. Same rule: only the services DECISIONS lists for it.
 - No local conditions in cards. No neighbourhoods. Local detail lives on the category pages.
+- Say what the work involves, never how it will perform: "won't crack", "stays green", "won't settle", "won't rot", "built to last" are promises, allowed only when the client values confirm them.
 - Where two categories overlap (a gardener and a lawn care category both covering mowing), give each card a different angle: regular visits versus a single job, maintenance versus a new build.
 
 ### home_services_more_line
@@ -83,7 +86,7 @@ One `step_body` per step title given. 20 to 30 words each, following the step br
 Only if DECISIONS shows the owner section. 60 to 80 words in the first person ("I"). One qualification or experience fact, one personal detail and one personal promise, all from the owner values. Owner values are often typed casually; reword them so they read naturally for the trade ("took over my dad's roofing business", not "round"), without changing the meaning. The city goes here. Never repeat the content block's story. If the section is hidden, write HIDDEN.
 
 ### home_areas_intro
-40 to 60 words. Where the business is based and how far it travels, from the client values. No neighbourhoods. No links (code places the area list). When DECISIONS says the primary city is coastal, name no compass direction (north, south, east, west) anywhere in this field: say "inland and along the coast" and name places.
+40 to 60 words. Where the business is based and how far it travels, from the client values. No neighbourhoods. No council areas or districts (Test Valley, New Forest District): name towns and villages. Never point at the list ("the full list is below"). No links (code places the area list). When DECISIONS says the primary city is coastal, name no compass direction (north, south, east, west) anywhere in this field: say "inland and along the coast" and name places.
 
 ### home_faq_items
 One `faq_answer` per question given, in order. 50 to 70 words each, or 30 to 70 when the answer rests on one confirmed fact. Never pad.
@@ -128,7 +131,8 @@ Never write source names, URLs, reference codes such as SOU-N07, or the words "d
 - Anything about how quotes work comes only from `[CV: quote_method]`. "Fixed price" only if confirmed. Prices only from `[CV: price_list]`.
 - **Materials, products and methods:** name one only if it appears in `[CV: materials_methods]` (EPDM, GRP, uPVC, breathable underlay, porcelain paving, a named manufacturer, "dressed on site"). Trade standard detail still counts as a claim about this business. When it isn't listed, describe the result the customer gets ("one seamless surface with no joins to fail", "boards that won't rot") instead of the product.
 - Claim words need proof on file: "best", "#1", "leading", "trusted", "expert", "specialist", "reliable", "fully insured". Use "local" instead. "Insured up to £[CV: insurance_cover]" is allowed when the figure is set.
-- Never assert a working practice, visit frequency, crew size, product or timescale the client has not confirmed. A missing fact uses its fallback. Never write [CLIENT TO CONFIRM] or any bracketed note into the copy.
+- Never assert a working practice, visit frequency, crew size, product or timescale the client has not confirmed. That includes who quotes and who does the work ("the people who quote the job are the ones who carry it out").
+- Never claim experience with a kind of property or job ("large rural properties", "period homes", "commercial sites") unless the client values say so. A jobs count is stated on its own. A missing fact uses its fallback. Never write [CLIENT TO CONFIRM] or any bracketed note into the copy.
 
 **Review themes**
 When `[CV: review_themes]` is set, its points (recurring things customers say, already approved by the client) count as confirmed proof. Why choose us bodies and the content block may use them, paraphrased in your own words. Never quote a review, never name a reviewer, and never invent a theme.
@@ -158,6 +162,9 @@ Each confirmed proof is headlined once on the page at most. Its home is where it
 - When dropping the hyphen leaves something that looks like a typo ("one off", "follow up", "top up", "sub base"), rewrite the phrase instead: "a single job", "a second visit", "the base".
 - Never "passionate". None of these: look no further, one stop shop, we pride ourselves, competitive prices, quality service, going above and beyond, state of the art, cutting edge, second to none, bespoke, tailored, comprehensive, wide range of, full range of, solutions, "your needs" (or "needs" as a noun; the verb is fine), professional and reliable, friendly team, no job too big or too small, find out more, get in touch, find out how we can help, click here, learn more, explore our service, see what's included.
 - Whenever you would write "full range of X" or "wide range of X", name two or three real examples of X instead. Replace "tailored to" with "built around" or "matched to".
+
+**The page never points at itself**
+Every section stands on its own. Never write "see the areas section", "the full list is below", "as mentioned above" or "on this page": say the thing, or leave it out.
 
 **Links**
 - Link only to URLs on LINKABLE PAGES. A sentence that needs a page that is not on the list is rewritten without the link.

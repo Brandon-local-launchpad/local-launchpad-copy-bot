@@ -180,6 +180,18 @@ GBP service names are shown to the model in the words a homeowner uses. The firs
 
 ## General service words (FAQ page matching)
 
+Core services per category (homepage cards). The services a homepage card names for each GBP category, in the words a homeowner uses, in the order code picks them (after the client's jobs_wanted). A card never leads with a specialist service (tree bracing, artificial grass) unless it is in jobs_wanted. A service listed under one category goes in that category's card, never another card, even when GBP files it elsewhere (lawn mowing and seeding go under Lawn Care Service, not Gardener). JSON slot: core_services.
+
+- Landscaper: garden makeovers, patios, planting
+- Landscape Gardener: garden makeovers, patios, planting, new gardens, paving and walling, retaining walls, garden steps
+- Landscape Designer: garden design, design and build, patio design, planting
+- Gardener: garden maintenance, hedge trimming, weed control, mulching
+- Lawn Care Service: lawn mowing, seeding lawns, new lawns, turf laying, lawn care
+- Tree Service: tree pruning, tree removal, stump grinding, tree planting
+- Paving Contractor: block paving, new driveways, driveway replacement, groundwork and levelling
+- Deck Builder: timber decking, composite decking, deck installation, deck repair
+- Fence Contractor: fencing, gates
+
 Service words for the whole job rather than one service: landscaping, garden makeovers, gardening, garden maintenance, new gardens, design and build. An FAQ question about one of these goes to the category page that carries the word, never to a narrow service page that happens to share it (for example a garden makeover question goes to Landscape Gardener, not Garden decorating). JSON slot: general_service_words.
 
 Problem words: drainage. When an FAQ question names the job as well as the problem ("What drainage is needed before a new driveway or patio?"), it goes to the job's page (paving), not the problem's. JSON slot: problem_service_words.

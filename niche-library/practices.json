@@ -148,7 +148,9 @@
       "detect": [
         "\\bsame (people|team|faces)\\b[^.]{0,30}\\b(throughout|from|every|each|whole)\\b",
         "\\bsees? (the|every|each) job through\\b",
-        "\\bthe people you (?:speak|talk) to are the (?:people|ones)\\b"
+        "\\bthe people you (?:speak|talk) to are the (?:people|ones)\\b",
+        "\\bthe (?:people|person|ones?|team) who (?:quotes?|prices?|visits?|plans?|measures?)\\b[^.]{0,50}\\b(?:carry|carries|do|does|build|builds|deliver|delivers|fit|fits|lay|lays)\\b",
+        "\\b(?:quote|price) (?:the|your) job and (?:then )?(?:carry|do|build)\\b"
       ]
     },
     {

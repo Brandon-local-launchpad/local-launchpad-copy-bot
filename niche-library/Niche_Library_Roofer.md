@@ -126,6 +126,16 @@ GBP service names are shown to the model in the words a homeowner uses. The firs
 
 ## General service words (FAQ page matching)
 
+Core services per category (homepage cards). The services a homepage card names for each GBP category, in the words a homeowner uses, in the order code picks them (after the client's jobs_wanted). A card never leads with a specialist service (tree bracing, artificial grass) unless it is in jobs_wanted. A service listed under one category goes in that category's card, never another card, even when GBP files it elsewhere (lawn mowing and seeding go under Lawn Care Service, not Gardener). JSON slot: core_services.
+
+- Roofing Contractor: roof repairs, new roofs, flat roofs
+- Roofer: roof repairs, new roofs, flat roofs
+- Chimney Services: chimney repairs, leadwork
+- Gutter Cleaning Service: gutter cleaning, guttering, fascias and soffits
+- Guttering Service: guttering, gutter cleaning, fascias and soffits
+- Waterproofing Service: flat roofs, roof coatings
+- Skylight Contractor: roof windows
+
 Service words for the whole job rather than one service: roofing. An FAQ question about one of these goes to the category page that carries the word, never to a narrow service page that happens to share it (for example a garden makeover question goes to Landscape Gardener, not Garden decorating). JSON slot: general_service_words.
 
 ## Confirmed practices (onboarding)

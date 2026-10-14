@@ -221,6 +221,11 @@
   - CORE (20) rules for all of the above; the "our [paving contractor] team" example is gone.
   - Item 1 ("Local Gardener" heading and the "Lawn mowing and maintenance" card): both come from primary_category. With Landscaper the final CTA reads "Local Landscaper" and the cards are the 7 categories; the 15 Oct decision kept Gardener. Live value to be checked.
   - Fixtures: new `homepage-round-2.js` (19 checks); 25 files pass.
+  - Live (16 Oct): primary_category set to Landscaper (Brandon left the choice to me); regenerated 2026-10-14T17:42:54Z: 1 BLOCK (CB-PARA), 17 FLAG, 1 claims finding. Reader view in `docs/seo/homepage-runs/Edens_Edge_Homepage_Round_2_Regen.md`.
+- Round 3 review of Edens Edge (16 Oct, Brandon, 8/10; branch `fix/homepage-round-3`):
+  - `core_services` per GBP category in landscaper.json and roofer.json (and their .md files). Card picks: jobs_wanted, then core services, then (only to reach two) the card's other services; never a specialist lead unless wanted. A service sits in the first card whose core list names it, else its GBP category's card (lawn mowing and seeding go to Lawn Care Service).
+  - New checks: CARD-PATTERN (FLAG) for two cards sharing a sentence opener (category names folded) and "we also handle" more than once; SELF-REF (BLOCK) for "see the areas section", "the full list below"; OUTCOME (FLAG) for "won't crack", "stays green" and the like unless in client values; EXPERIENCE (BLOCK) for kinds of property or job worked on ("large rural properties") not in client values; AREA-ADMIN (FLAG) for a council area in the areas intro or areas FAQ. Practice pattern: "the people who quote … carry it out" (same_team_throughout).
+  - CORE (20) rules for all of the above. Fixtures: new `homepage-round-3.js` (19 checks); 26 files pass.
 - Docs: CLAUDE.md at repo root. The files the code reads (`prompts/`, `niche-library/`) are the only copies.
 
 ## Waiting on
