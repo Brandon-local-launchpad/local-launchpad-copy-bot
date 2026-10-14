@@ -132,7 +132,9 @@
         "\\bstays? (involved|on the job) (throughout|from start)",
         "\\bone person (sees|handles|runs|oversees)\\b",
         "\\bstays? involved (?:with|in|on) every job\\b",
-        "\\b(?:speak|talk|deal) (?:to|with) someone who knows your\\b"
+        "\\b(?:speak|talk|deal) (?:to|with) someone who knows your\\b",
+        "\\b(?:full|personal|undivided|complete) attention\\b",
+        "\\bevery (?:job|garden|customer|project) gets? (?:our|my|the owner's|personal)\\b"
       ]
     },
     {

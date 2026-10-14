@@ -4,6 +4,8 @@ Replaces Homepage_Copywriting_Prompt_CORE (19). Built from the Homepage Structur
 
 15 Oct 2026, from two reviews of the Edens Edge page: the services are described once (the content block carries the category links with a reason each, the cards describe, "We also offer" only names what no card names); the final CTA body is one plain sentence without the phone number; step 2 names no quote method unless one is given; insurance is never described as paying out or covering the customer; a coastal city's areas intro names no compass direction; the city appears in two cards at most.
 
+16 Oct 2026, round 2 review of Edens Edge: each card names only the services DECISIONS gives it (code picks 2 or 3); the fixed price appears three times at most counting the meta description, and never in a step; content block paragraphs are 4 sentences at most; a category name is never followed by "team"; an answer to a "which", "what", "how" or "why" question never opens "Yes"; a phrase such as "before any work begins" is used twice on the page at most.
+
 ---
 
 ## HOW THIS PROMPT IS USED
@@ -43,7 +45,7 @@ Two sentences, under 50 words in total.
 - Sentence 2: lead with the strongest confirmed proof that neither the trust line nor the rating line has used (usually a differentiator such as fixed pricing), said the way the owner would say it. When the rating line shows, never restate the star rating or review count in words. Never a generic line about what they do.
 
 ### home_content_block_body
-200 to 250 words (up to 300 only if DECISIONS says expand). 3 to 4 short paragraphs, then one closing line.
+200 to 250 words (up to 300 only if DECISIONS says expand). 3 to 4 short paragraphs, then one closing line. Each paragraph is 4 sentences at most.
 1. **Who and where.** The keyword in the first sentence, without opening on the company name (the hero already does). Openers that work (landscaping examples; match the trade): "Gardens in Southampton range from...", "Most of our work as a landscaper in Southampton is...", "We're a family run landscaper in Southampton...". Both allocated neighbourhoods, each with one concrete detail taken from its profile (a size, a street, a type of home or garden), and what that detail means for the work, not just the geography. One confirmed differentiator that is not already in the hero intro. Jobs completed or years trading in passing, never tied to a place, and left out entirely when that figure is already the hero trust line (it then lives in Why choose us point 1). Optionally one sentence of confirmed community involvement.
 2. **What they do.** One or two sentences carrying an inline link to every page in DECISIONS → section 3 link set, never more than two links in one sentence, each link with a reason (what that kind of work does for the customer). Name the categories only: never list individual services here. The cards below describe the services, so the page says what is offered once, not three times. Only say what most of their work is if the client values say so.
 3. **Optional: the worries.** One or two of the niche fears and how this business handles them, using confirmed practices only.
@@ -57,10 +59,10 @@ Never state the guarantee length or the insurance figure here. Section 5 owns th
 
 ### home_services_cards
 One `card_text` per card in DECISIONS → card list, in the order given. Card names are given; never rewrite them.
-- **Linked card:** 40 to 55 words. What the customer gets from this category, with 2 or 3 of the client's confirmed services inside it named in plain words. The link to the card's page goes inside a sentence (see Category names in prose, below). Word each card differently from the content block's sentence about the same category.
+- **Linked card:** 40 to 55 words. What the customer gets from this category, naming the services DECISIONS lists for this card ("Services:"), in those words, and no others. Never list more than 3 services in a card. The link to the card's page goes inside a sentence (see Category names in prose, below). Word each card differently from the content block's sentence about the same category.
 - **No filler place names.** Name the city in two cards at most ("across [city]", "for [city] homes" adds nothing when every card says it).
 - **No shared skeleton.** Cards are read one after another, so no two may open the same way or follow the same order. Vary the opening: a customer problem, a question, the result, a time of year, a material. "Our [category] service covers..." may appear on one card at most, and "As a [category], we..." on none.
-- **Unlinked card:** 40 to 55 words, no link.
+- **Unlinked card:** 40 to 55 words, no link. Same rule: only the services DECISIONS lists for it.
 - No local conditions in cards. No neighbourhoods. Local detail lives on the category pages.
 - Where two categories overlap (a gardener and a lawn care category both covering mowing), give each card a different angle: regular visits versus a single job, maintenance versus a new build.
 
@@ -75,7 +77,7 @@ One `point_body` per point title given, in order. 25 to 40 words each.
 - **Insurance is described, never promised.** Say what the cover is for (accidental damage to the customer's property, injury to others, while the work is going on). Never say the customer will pay nothing, is fully covered, or that every problem will be paid for, and never say the cover "pays out" or "covers you": excesses, exclusions and liability all apply. Any example of what the cover is for must be plausible for the trade and must never suggest the business is careless (a branch falling during tree work, yes; tools left lying around, no).
 
 ### home_process_steps
-One `step_body` per step title given. 20 to 30 words each, following the step brief in the niche entry. Step 2 follows `[CV: quote_method]` if set; when it is blank, never say how the price is worked out (no photos, call, video or visit). Never restate the free quote or the start time.
+One `step_body` per step title given. 20 to 30 words each, following the step brief in the niche entry. Step 2 follows `[CV: quote_method]` if set; when it is blank, never say how the price is worked out (no photos, call, video or visit). Never restate the free quote, the fixed price or the start time: those have their homes elsewhere.
 
 ### home_owner_body
 Only if DECISIONS shows the owner section. 60 to 80 words in the first person ("I"). One qualification or experience fact, one personal detail and one personal promise, all from the owner values. Owner values are often typed casually; reword them so they read naturally for the trade ("took over my dad's roofing business", not "round"), without changing the meaning. The city goes here. Never repeat the content block's story. If the section is hidden, write HIDDEN.
@@ -85,13 +87,13 @@ Only if DECISIONS shows the owner section. 60 to 80 words in the first person ("
 
 ### home_faq_items
 One `faq_answer` per question given, in order. 50 to 70 words each, or 30 to 70 when the answer rests on one confirmed fact. Never pad.
-- **Answer first.** The first sentence answers the question directly in 15 words or fewer: a yes or no, a figure, or the one thing it depends on. Then two or three sentences of context: why, what it depends on, a local detail if one fits, and a link where it helps. Google and AI answers lift that first line as the snippet.
+- **Answer first.** The first sentence answers the question directly in 15 words or fewer: a yes or no (only when the question is a yes or no question), a figure, or the one thing it depends on. Then two or three sentences of context: why, what it depends on, a local detail if one fits, and a link where it helps. Google and AI answers lift that first line as the snippet.
 - Each question arrives with its doubt (Price, Trust, Fit, Process or Timing). Answer the doubt behind the question, not just its words.
 - **Q1 cost:** prices only from `[CV: price_list]`. With no price list, explain what affects the price for this trade in this city. Link the cost guide if it is on LINKABLE PAGES.
 - **Q2 insurance:** the figure and what the cover is for, in different words from Why choose us. Same rule as above: describe the cover, never promise an outcome. When there is no insurance figure but a complaints process is on file, code swaps in the niche's faq_2_fallback ("What happens if something goes wrong?"); answer it from `[CV: complaints_process]` only.
 - **Q3:** answer the question exactly as given. When a guarantee is confirmed, the question is "Do you guarantee your work?" and the answer starts with yes and the terms. When nothing is confirmed, code swaps in the niche's "what if something isn't right" question; answer it from the "reasonable care and skill" standard. Never invent a guarantee.
 - **Q4 start:** from `[CV: start_time]`. **Q5 quote:** from `[QUOTE_FREE]` and `[CV: quote_method]`.
-- **Q6 areas:** the primary city and 3 or 4 towns. Link the Locations hub if it is on LINKABLE PAGES.
+- **Q6 areas:** the primary city and 3 or 4 towns. "Which areas" is not a yes or no question: open with the place, never "Yes". Link the Locations hub if it is on LINKABLE PAGES.
 - **Q7 onwards:** follow the niche answer brief. A symptom based question uses the assigned symptom and its linked local issue from ALLOCATED ITEMS, but the answer must answer the question as asked. Use the symptom's meaning, not its exact quote, when its wording does not match the question (a symptom about paving does not open an answer to a question about patios and lawns). Each cause you list must be genuinely different from the others.
 - An answer that has to say "it depends" must name what it depends on, give the visitor something concrete (which jobs are quicker, which cost more and why), and stop. Never pad it.
 - At least one answer carries a link (the cost guide or the Locations hub when either is linkable; otherwise a category page).
@@ -132,7 +134,7 @@ Never write source names, URLs, reference codes such as SOU-N07, or the words "d
 When `[CV: review_themes]` is set, its points (recurring things customers say, already approved by the client) count as confirmed proof. Why choose us bodies and the content block may use them, paraphrased in your own words. Never quote a review, never name a reviewer, and never invent a theme.
 
 **One home per proof**
-Each confirmed proof is headlined once on the page at most. Its home is where it is explained: years, jobs, cover and differentiators in Why choose us; the quote method and free quote in FAQ 5; the start time in FAQ 4; the response time in the CTA band. A proof may be mentioned once more in body copy, never as a second headline. In total, a proof appears at most three times on the page in the fields you write (its headline, its explanation and one mention); the SEO title and meta description do not count. If a field cannot be filled without repeating a proof, write it shorter. Never repeat a proof to fill space.
+Each confirmed proof is headlined once on the page at most. Its home is where it is explained: years, jobs, cover and differentiators in Why choose us; the quote method and free quote in FAQ 5; the start time in FAQ 4; the response time in the CTA band. A proof may be mentioned once more in body copy, never as a second headline. In total, a proof appears at most three times on the page, counting the meta description and the Why choose us point titles that code writes (so a fixed price in the meta, the hero and its Why choose us point is already three: never again in the steps, the final CTA or anywhere else). The SEO title does not count. If a field cannot be filled without repeating a proof, write it shorter. Never repeat a proof to fill space.
 
 **Voice**
 - "We" throughout. The owner section is "I".
@@ -143,6 +145,7 @@ Each confirmed proof is headlined once on the page at most. Its home is where it
 - Never repeat a distinctive word or phrase within one field ("for years" twice in one card), or the same connecting word in back to back sentences ("also... also"). Never open two CTAs or closing lines on the page with the same words.
 - `[CV: company_name]` opens a sentence once on the page at most, and only the hero intro uses the "[company] is a [trade person] in [city]" pattern. Everywhere else, start with "We", the customer, or the subject of the sentence.
 - No superlatives or unprovable comparisons ("more than almost anything else", "the most important"). Say the concrete thing instead.
+- A phrase that carries a reassurance ("before any work begins", "before anything is agreed", "so you know where you stand") appears twice on the page at most, in any wording.
 - Stock phrases the model leans on ("before you decide", "in between", "from the start", "no surprises", "peace of mind", "take a look") appear once on the page at most, in any wording.
 - Travel distances from a coastal town are written "inland and along the coast", never "in each direction".
 - **One home per idea.** A technical point (drainage, the base under paving, tree roots, timing) is made in one place on the page, plus one FAQ at most. Other cards and paragraphs find a different angle, even if the point is the strongest material available.
@@ -162,7 +165,7 @@ Each confirmed proof is headlined once on the page at most. Its home is where it
 - Never link the homepage to itself.
 
 **Category names in prose**
-Card headings use the exact GBP name; code sets them. In running text, a category name is written in lower case and used the way a person would say it: "our [landscape gardener](/landscape-gardener/) work", "a [tree service](/tree-service/) visit", "our [paving contractor](/paving-contractor/) team". Link text must contain the category's words in order, so Google still reads the match. Never build a sentence around the label ("As a Paving contractor, we...", "our Landscape Gardener service"). If a category name will not sit naturally in a sentence, link the closest natural phrase that still contains its words.
+Card headings use the exact GBP name; code sets them. In running text, a category name is written in lower case and used the way a person would say it: "our [landscape gardener](/landscape-gardener/) work", "a [tree service](/tree-service/) visit", "our [paving contractor](/paving-contractor/) work". Never follow a category name with "team", "crew" or "staff" ("our deck builder team" reads as a job title): write "our [deck builder](/deck-builder/) work" or start with "we". Link text must contain the category's words in order, so Google still reads the match. Never build a sentence around the label ("As a Paving contractor, we...", "our Landscape Gardener service"). If a category name will not sit naturally in a sentence, link the closest natural phrase that still contains its words.
 
 **Custom values**
 Write every business name, phone number, email and owner name as its `[CV: key]` token, never the actual words. Use only keys present in CLIENT VALUES. Live figures (`[CV: rating]`, `[CV: review_count]`, `[CV: years_trading]`) are always tokens.

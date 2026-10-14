@@ -323,6 +323,36 @@ function buildServiceCards(pages, niche, cardServices) {
   return { main, alsoOffer, overflowServiceCount: allOverflowServices.length };
 }
 
+// The 2 or 3 services each card names (16 Oct, Brandon). Code picks them: the
+// client's jobs_wanted first, then GBP order (service_N). The model sees only these
+// for a card, never the category's full list. A service card names itself.
+function pickCardServices(main, cv, keyValueMap, serviceParentMap, niche) {
+  const { sayFor } = require('./service-words');
+  const wanted = (cv.jobs_wanted || []).map(j => String(j).toLowerCase().trim()).filter(Boolean);
+  const isWanted = (gbp, say) => wanted.some(w => gbp.includes(w) || (say && (say.includes(w) || w.includes(say))));
+  const services = Object.entries(keyValueMap)
+    .filter(([k, v]) => /^service_\d+$/.test(k) && v)
+    .map(([k, v]) => ({ n: parseInt(k.split('_')[1], 10), gbp: v, say: sayFor(v, niche), category: serviceParentMap[k] || keyValueMap.category_1 || '' }))
+    .filter(s => s.say)
+    .sort((a, b) => a.n - b.n);
+  for (const card of main) {
+    const name = (card.name || '').toLowerCase();
+    const own = services.find(s => s.gbp.toLowerCase() === name);
+    if (own) { card.services = [own.say]; continue; }
+    const mine = services.filter(s => s.category.toLowerCase() === name);
+    const ranked = [...mine.filter(s => isWanted(s.gbp.toLowerCase(), s.say.toLowerCase())), ...mine.filter(s => !isWanted(s.gbp.toLowerCase(), s.say.toLowerCase()))];
+    // Different GBP names can share homeowner words ("Lawn care", "Lawn care service")
+    const says = [];
+    // ...and a service that only restates the category ("gardening" on the Gardener card) names nothing
+    const stem = w => w.replace(/[^a-z]/g, '').replace(/(ing|er|ers|s)$/, '');
+    const catStems = new Set(name.split(/\s+/).map(stem));
+    const restates = say => say.split(/\s+/).every(w => catStems.has(stem(w)));
+    for (const s of ranked) if (!says.includes(s.say) && s.say !== name && !restates(s.say)) says.push(s.say);
+    card.services = says.slice(0, 3);
+  }
+  return main;
+}
+
 // ── Build area list (D12) ────────────────────────────────────────────────────
 function buildAreaList(pages, keyValueMap) {
   const locationPages = pages.filter(p => p.pageType === 'location');
@@ -629,6 +659,7 @@ function computeDecisions({ cv, niche, pages, keyValueMap, serviceParentMap, v20
   const primaryCategory = cv.primary_category || keyValueMap['category_1'] || '';
   const cardServices = homepageServicePages(pages, primaryCategory, keyValueMap, serviceParentMap || {});
   const d9 = buildServiceCards(pages, niche, cardServices);
+  pickCardServices(d9.main, cv, keyValueMap, serviceParentMap || {}, niche);
   if (d9.overflowServiceCount > 6) {
     flags.push({ code: 'F-MORE-SERVICES', msg: `${d9.overflowServiceCount} primary-category services overflow; only the first 6 are shown in "We also offer".` });
   }
@@ -817,6 +848,7 @@ function formatDecisionsBlock(D, cv, niche, ctx) {
   for (let i = 0; i < D.d9.main.length; i++) {
     const c = D.d9.main[i];
     push(`  ${i + 1}. ${c.name} [${c.status}${c.url ? ' ' + c.url : ''}${c.h1 ? ' | H1: ' + c.h1 : ''}]`);
+    if (c.services) push(`     Services: ${c.services.length ? c.services.join(', ') : '(none: describe the work without naming services)'}`);
   }
   if (D.d9.alsoOffer.length) push(`  We also offer: ${D.d9.alsoOffer.join(', ')}`);
   push('');
@@ -873,7 +905,7 @@ function formatDecisionsBlock(D, cv, niche, ctx) {
   push(`  home_content_block_body${D.d13_expands ? ' (expand: up to 300 words)' : ''}`);
   push('  home_services_intro');
   push('  home_services_cards');
-  for (const c of D.d9.main) push(`    - card_name: ${c.name} | card_text${c.linked ? '' : ' (unlinked: no link)'}`);
+  for (const c of D.d9.main) push(`    - card_name: ${c.name} | card_text${c.linked ? '' : ' (unlinked: no link)'}${c.services && c.services.length ? ` (names: ${c.services.join(', ')})` : ''}`);
   push(`  home_services_more_line${D.d9.alsoOffer.length ? '' : ' (HIDDEN)'}`);
   push('  home_why_points');
   for (const p of D.d10_why) push(`    - point_title: ${p.title} | point_body`);

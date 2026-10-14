@@ -49,7 +49,10 @@ chk('DECISIONS: coastal line and hub line', /Primary city coastal: yes\. Write t
 
 // ── Client block ──
 const req = G.buildV20Request({ cv, niche: landscaper, decisions: D, decisionsBlock: DR.decisionsBlock, calibrationPack: '', ctx: G.nicheContext(cv, landscaper, keyValueMap), keyValueMap, serviceParentMap });
-chk('Services in homeowner words: turf laying, paving and walling, block paving', /turf laying/.test(req.clientBlock) && /paving and walling/.test(req.clientBlock) && /block paving/.test(req.clientBlock), '', 'homeowner words');
+// 16 Oct: the full list goes to the claims review only (meta.services_on_file); cards get code-picked services
+const onFile = G.buildServiceList(keyValueMap, serviceParentMap, landscaper);
+chk('Services in homeowner words: turf laying, paving and walling, block paving', /turf laying/.test(onFile) && /paving and walling/.test(onFile) && /block paving/.test(onFile), '', 'homeowner words');
+chk('Card services in DECISIONS are homeowner words', (DR.decisionsBlock.match(/Services: .*/g) || []).length > 0 && !/Services: .*Composite decks/.test(DR.decisionsBlock), (DR.decisionsBlock.match(/Services: .*/g) || []).join(' | '), 'homeowner words');
 chk('No raw GBP names and no never-named services in the client block', !/Sod installation|Hardscaping|Brick paver|Desert landscaping|desert landscaping/i.test(req.clientBlock), (req.clientBlock.match(/Sod installation|Hardscaping|Brick paver|Desert landscaping/gi) || []).join(','), 'none');
 chk('No practices confirmed: the block says so', /CONFIRMED PRACTICES[^\n]*\n\(none confirmed/.test(req.clientBlock), '', '(none confirmed …)');
 const req2 = G.buildV20Request({ cv: { ...cv, confirmed_practices: ['written_quote', 'waste_removal'] }, niche: landscaper, decisions: D, decisionsBlock: DR.decisionsBlock, calibrationPack: '', ctx: G.nicheContext(cv, landscaper, keyValueMap), keyValueMap, serviceParentMap });

@@ -95,7 +95,10 @@ function decisionsFromRecord(record) {
   return [part('--- HEADINGS ---', '\n\n'), part('--- PROCESS STEPS ---', '\n\n'), part('--- D11 FAQ QUESTIONS ---', '\n\n'), coastal].filter(Boolean).join('\n\n');
 }
 function factsFromRecord(record) {
-  return { clientBlock: record.meta && record.meta.client_block, research: researchFromRecord(record), decisions: decisionsFromRecord(record) };
+  const meta = record.meta || {};
+  // The generation block no longer lists every service (16 Oct): the review gets them all
+  const clientBlock = meta.services_on_file ? `${meta.client_block || ''}\n\nCONFIRMED SERVICES (by category):\n${meta.services_on_file}` : meta.client_block;
+  return { clientBlock, research: researchFromRecord(record), decisions: decisionsFromRecord(record) };
 }
 
 module.exports = { runClaimsReview, buildClaimsMessage, parseFindings, researchFromRecord, decisionsFromRecord, factsFromRecord, loadClaimsPrompt, CLAIMS_MODEL };

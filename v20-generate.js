@@ -108,6 +108,11 @@ function buildServiceList(keyValueMap = {}, serviceParentMap = {}, niche = {}) {
   return lines.length ? lines.join('\n') : '(none on file: name only what the card names and categories say)';
 }
 
+function buildCategoryLine(keyValueMap = {}) {
+  const cats = Object.entries(keyValueMap).filter(([k, v]) => /^category_\d+$/.test(k) && v).map(([, v]) => v);
+  return cats.length ? cats.join(', ') : '(none on file)';
+}
+
 // Working practices the client has confirmed. The copy may state these and no others.
 function buildPracticeList(cv, niche) {
   const { confirmedPractices } = require('./practices');
@@ -122,8 +127,11 @@ function buildV20Request({ cv, niche, decisions, decisionsBlock, calibrationPack
     'CLIENT VALUES',
     buildClientValues(cv, decisions.d1_years_trading),
     '',
-    'CONFIRMED SERVICES (by category, in the words to use). Name only these, in these words. A card names 2 or 3 of them, never a list:',
-    buildServiceList(keyValueMap, serviceParentMap, niche),
+    // 16 Oct (Brandon): the model never sees a category's full service list. Code
+    // picks each card's 2 or 3 services (DECISIONS → D9 "Services:"); the claims
+    // review still gets the full list (meta.services_on_file)
+    'GBP CATEGORIES (the services each card names are in DECISIONS → D9 SERVICE CARDS; name no other services in a card):',
+    buildCategoryLine(keyValueMap),
     '',
     'CONFIRMED PRACTICES (how the business works). State only these:',
     buildPracticeList(cv, niche),
@@ -197,6 +205,7 @@ async function generateV20Homepage({ cv, niche, keyValueMap, serviceParentMap = 
   meta.raw_output = text;
   meta.usage = usage || null;
   meta.client_block = req.clientBlock;
+  meta.services_on_file = buildServiceList(keyValueMap, serviceParentMap, niche);
   // The values the tokens stood for when this page was written (the reader view uses these)
   meta.client_values = clientValueMap(cv, D.d1_years_trading);
   const record = buildPageRecord({ cv, decisionsResult, parsed, meta, extraFlags });
