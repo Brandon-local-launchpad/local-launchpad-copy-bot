@@ -2,7 +2,7 @@
 
 ## Done
 - Homepage CORE (20) prompt, Landscaper and Roofer niche entries, Claude Code brief: final, tested on paper (Edens Edge thin, Edens Edge with reviews, Kestrel Ridge roofer rich and thin).
-- FAQ framework + Perplexity trade question bank prompt (v3). Roofer runs done twice.
+- FAQ framework + Perplexity question research prompt (v3). Roofer runs done twice. Decision (14 Oct): the question research runs once per client, not per trade; manual test runs for Edens Edge and the Bournemouth roofer are in `docs/seo/current-build/faq-research/`. The framework doc says per client.
 - Claude Code: Stage 1 (niche JSON, CORE 19 pinned for old path), Stage 2 (client values storage), Stage 3 (Client Values screen), Stage 4 (decisions engine) built.
 - Stage 4 fixes (14 Oct), all covered by `npm run test:fixtures` (3 fixtures, 59 checks, all pass):
   - Cards: with a category layer, only primary category services become cards; secondary category services stay under their category page. Edens Edge gives 7 category cards.
@@ -176,8 +176,8 @@
 1. Check the live Stage 4 previews (expect 7 category cards and the final CTA H2 "Get a Free Quote From a Local Landscaper in Southampton").
 2. Stage 5 finish: run the allocation in the app for Edens Edge; run Bournemouth geo research for Kestrel Ridge (the allocation then runs by itself).
 3. WordPress push: slice 5 part 2, a first push to a staging site (needs Given's staging site, the plugin installed, and the field groups imported). Set `COPYBOT_SECRET_KEY` on Railway first.
-4. Run Perplexity v3 for landscaper (trade only).
-5. Then: FAQ question bank + sorting step stages, humanizer decision, emergency and regulated group tests, category page.
+4. FAQ per client: plan written (F1 automatic research, F2 sorting, F3 homepage use), waiting on approval.
+5. Then: humanizer decision, emergency and regulated group tests, category page.
 
 ## Open decisions
 - Company name: Ethan's custom values say "Edens Edge landscaping" (lower case l); the brief's test uses "Edens Edge Landscaping". Brandon is checking the GBP.

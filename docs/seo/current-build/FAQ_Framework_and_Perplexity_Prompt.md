@@ -20,9 +20,7 @@ Every question a customer asks before booking comes from one of five doubts. Eve
 
 1. **The client's own customers.** Onboarding asks: "What do customers always ask you before they book?" These beat everything else.
 2. **Real search questions:** Google People Also Ask and the Ahrefs questions report for the page's keyword.
-3. **Perplexity question research,** split in two because we only take one client per trade per town:
-   - a **trade question bank**, run once per trade with the prompt below and reused for every client in that trade, anywhere. Refreshed about once a year. In the Bournemouth roofer dry runs, 34 to 38 of 40 questions weren't local at all;
-   - **local questions** per client, from the dossier's symptoms and condition questions plus a short local section in the dossier research.
+3. **Perplexity question research, run once per client** (decision, 14 Oct 2026). One run per client with the prompt below, using the client's trade, services and towns, the same way the area research runs. It covers the general questions about hiring the trade and the local ones for the client's towns, and its questions are stored against that client only. It is not shared between clients in the same trade. The dossier's symptoms and condition questions add to it. Manual test runs: `docs/seo/current-build/faq-research/` (Edens Edge, Southampton; roofer, Bournemouth).
 4. **The niche entry's default questions,** used when nothing better exists.
 
 Every question is written the way a customer would type or say it, never as a marketing headline.
@@ -44,7 +42,7 @@ No question appears on two pages of the same site.
 
 ## 3b. How it runs in Copybot
 
-1. **Research:** the dossiers (per location) plus the trade question bank (once per trade), in the same click.
+1. **Research:** the dossiers (per location) plus the FAQ question research (once per client), in the same click.
 2. **Sorting:** one step per client hands out neighbourhoods, symptoms and FAQ questions to every page, using each question's page type, the service it matches and its doubt. A question marked "needs client fact" is only used once the client has supplied that fact. Nothing repeats across the site.
 3. **Writing:** each page answers only its own questions. The answer rules live in one shared FAQ block that every page prompt loads, so a change is made once.
 4. **Checking:** per page, plus a site wide check that no question or neighbourhood repeats.
@@ -93,9 +91,9 @@ Each month, Search Console shows the exact searches a live site appears for, inc
 
 ---
 
-# Perplexity prompt: FAQ question research (v3: trade question bank, run once per trade)
+# Perplexity prompt: FAQ question research (run once per client)
 
-Use Deep Research. Run **once per trade** (not per town); the questions are reused for every client in that trade. Replace the value in the first line, nothing else. Local questions come from the dossier research, not this prompt.
+Run **once per client**, not once per trade: the questions are stored against that client and never reused for another. The test runs in `faq-research/` added a `Page: Location` option and a `Local: Y/N` column for the client's towns. The version below is v3 and still reads as trade only. The per client version (v4), which Copybot sends with the client's trade, services and towns the way the area research does, replaces it when the automatic run is built.
 
 ```
 RUN FOR: [TRADE, e.g. roofer]
