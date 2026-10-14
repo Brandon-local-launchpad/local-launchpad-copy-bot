@@ -2909,10 +2909,18 @@ app.get('/api/clients/:clientId/client-values', async (req, res) => {
       `SELECT content FROM client_assets WHERE client_id = $1 AND asset_type = 'client_values' ORDER BY uploaded_at DESC LIMIT 1`,
       [req.params.clientId]
     );
-    if (!rows.length) return res.json({ found: false, values: { ...CLIENT_VALUES_TEMPLATE } });
+    // Values worked out from the research, shown beside the field (a set value still wins)
+    let derived = {};
+    try {
+      const ctx = await loadV20Context(req.params.clientId, req.query.sessionId || null);
+      if (ctx.coastalFromResearch) derived.coastal_city = ctx.coastalFromResearch;
+    } catch (err) {
+      console.error('[client-values] research values not loaded for', req.params.clientId, err);
+    }
+    if (!rows.length) return res.json({ found: false, values: { ...CLIENT_VALUES_TEMPLATE }, derived });
     const saved = JSON.parse(rows[0].content);
     // Merge with template so new keys added later are always present
-    res.json({ found: true, values: { ...CLIENT_VALUES_TEMPLATE, ...saved } });
+    res.json({ found: true, values: { ...CLIENT_VALUES_TEMPLATE, ...saved }, derived });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -3125,12 +3133,30 @@ async function loadV20Context(clientId, sessionId) {
       console.error('[v20] Failed to load the onboarding form for', clientId, err);
     }
   }
-  return { cv, cvLoadError, v20TestMode, trade, clientTrade, pages, keyValueMap, serviceParentMap, onboardingText };
+  // Coastal: a value set on Client Values wins; left blank, the primary city's dossier
+  // answers it ("Coastal: Yes/No", Geo Research CORE v7 on)
+  const coastalFromResearch = await researchCoastal(clientId, keyValueMap);
+  if (!cv.coastal_city && coastalFromResearch) cv = { ...cv, coastal_city: coastalFromResearch.value };
+  return { cv, cvLoadError, v20TestMode, trade, clientTrade, pages, keyValueMap, serviceParentMap, onboardingText, coastalFromResearch };
 }
 
 // ── Allocation storage (Stage 5) ─────────────────────────────────────────────
 // One client_assets row (asset_type 'allocation') per client:
 // { version, dossier_asset_id, dossier_location, updated_at, pages: { homepage: {...} } }
+
+// What the primary city's dossier says about the coast: { value: 'yes'|'no', location, source }
+// or null (no dossier, or one from before Geo Research CORE v7). Never throws.
+async function researchCoastal(clientId, keyValueMap) {
+  try {
+    const dossier = await loadPrimaryDossier(clientId, keyValueMap);
+    if (!dossier) return null;
+    const { coastal, coastalSource } = parseDossier(dossier.text);
+    return coastal ? { value: coastal, location: dossier.locationName, source: coastalSource } : null;
+  } catch (err) {
+    console.error('[v20] Failed to read the coastal line for', clientId, err);
+    return null;
+  }
+}
 
 async function loadPrimaryDossier(clientId, keyValueMap) {
   const primary = normaliseLocation(keyValueMap['biz_area_1'] || '');

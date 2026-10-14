@@ -130,6 +130,15 @@ function parseRules(sectionText, warnings) {
   return out;
 }
 
+// "Coastal: Yes [https://…]" in the Location Overview (Geo Research CORE v7 on).
+// null when the dossier doesn't say (dossiers from before v7).
+function coastalLine(overview) {
+  const m = String(overview).match(/^[ \t]*[-*]?[ \t]*(?:\*\*)?Coastal(?:\*\*)?[ \t]*:[ \t]*(?:\*\*)?[ \t]*(yes|no)\b([^\n]*)/im);
+  if (!m) return { coastal: null, coastalSource: '' };
+  const url = (m[2].match(/https?:\/\/[^\s\])]+/) || [''])[0];
+  return { coastal: m[1].toLowerCase(), coastalSource: url };
+}
+
 function parseDossier(text) {
   const warnings = [];
   const s = splitSections(text || '');
@@ -139,6 +148,7 @@ function parseDossier(text) {
     issues:         parseIssues(s[3], warnings),
     symptoms:       parseSymptoms(s[4], warnings),
     rules:          parseRules(s[5], warnings),
+    ...coastalLine(s[1] || ''),
     warnings,
   };
   if (!parsed.neighbourhoods.length) warnings.push('No neighbourhood profiles found (section 2).');
@@ -168,4 +178,4 @@ function cleanForCopy(text, nameById = {}) {
     .trim();
 }
 
-module.exports = { parseDossier, cleanForCopy };
+module.exports = { parseDossier, cleanForCopy, coastalLine };
