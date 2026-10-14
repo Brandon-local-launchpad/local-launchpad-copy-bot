@@ -154,7 +154,11 @@ function cleanForCopy(text, nameById = {}) {
     .replace(/\s*\[(?:https?:\/\/)[^\]]*\]/g, '')                    // [https://...]
     .replace(/\s*\((?:https?:\/\/)[^)]*\)/g, '')                     // (https://...)
     .replace(/https?:\/\/\S+/g, '')                                  // bare URLs
-    .replace(/\[?([A-Z]{2,4}-[NISR]\d{2,3})\]?/g, (m, id) => nameById[id] || '')
+    .replace(/\*\*([^*]+)\*\*/g, '$1').replace(/__([^_]+)__/g, '$1')   // bold markdown
+    // "Bassett Heath [SOU-N07]": a bracketed ID follows the name it tags, so drop it.
+    // A bare ID ("affects SOU-N01 and SOU-N02") stands in for the name, so swap it.
+    .replace(/\s*[\[(][A-Z]{2,4}-[NISR]\d{2,3}[\])]/g, '')
+    .replace(/[A-Z]{2,4}-[NISR]\d{2,3}/g, id => nameById[id] || '')
     .replace(/^\s*(?:Linked issues|Scope|Category tags|Service tags)\s*:.*$/gim, '')
     .replace(/\(\s*(?:see|ref|cf\.?)?\s*[,;\s]*\)/gi, '')            // emptied brackets, "(see )"
     .replace(/\s+([,.;:])/g, '$1')

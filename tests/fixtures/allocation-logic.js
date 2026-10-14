@@ -1,5 +1,7 @@
 'use strict';
-// Fixture: allocation pass (Stage 5) against the synthetic sample dossier.
+// Fixture: allocation pass logic (Stage 5) on a synthetic dossier built to test
+// parser drift (unbracketed IDs, table rows, unsourced profiles) and the retry path.
+// The real-dossier test is southampton-allocation.js.
 // No API calls: the model is replaced by canned replies.
 const path = require('path');
 const fs = require('fs');
@@ -8,7 +10,7 @@ const A = require(path.join(__dirname, '../../allocation.js'));
 const { computeDecisions } = require(path.join(__dirname, '../../decisions.js'));
 const landscaper = require(path.join(__dirname, '../../niche-library/landscaper.json'));
 
-const dossierText = fs.readFileSync(path.join(__dirname, 'dossiers/sample-primary-city.md'), 'utf8');
+const dossierText = fs.readFileSync(path.join(__dirname, 'dossiers/parser-drift-sample.md'), 'utf8');
 const parsed = parseDossier(dossierText);
 
 let pass = 0, fail = 0;
@@ -17,7 +19,7 @@ const chk = (label, ok, got, want) => {
   else    { console.log('✗ ' + label + '\n  got:  ' + got + '\n  want: ' + want); fail++; }
 };
 
-console.log('\n=== FIXTURE: Allocation pass (sample dossier) ===\n');
+console.log('\n=== FIXTURE: Allocation logic (synthetic drift dossier) ===\n');
 
 // ── Parser ──
 chk('Parser: 5 neighbourhoods, 3 issues, 5 symptoms, 2 rules, no warnings',

@@ -138,11 +138,14 @@ function checkPicks(reply, { eligible, slots }) {
   return { picks: { neighbourhoods, symptoms, conservation_areas, reasons: String(hp.reasons || '') }, errors };
 }
 
-// Rules that name a conservation area or Article 4 direction and apply to a pick
+// Rules whose name is a conservation area or Article 4 direction and that apply
+// to a pick. Only the name counts: other rules (e.g. a neighbourhood plan) often
+// mention a nearby conservation area in passing, which doesn't designate the
+// whole area they apply to. The model still judges the profile text.
 function conservationFromRules(parsed, ids) {
   const out = new Set();
   for (const r of parsed.rules) {
-    if (!CONSERVATION_RE.test(`${r.name} ${r.detail}`)) continue;
+    if (!CONSERVATION_RE.test(r.name)) continue;
     for (const id of r.appliesTo) if (ids.includes(id)) out.add(id);
   }
   return [...out];
