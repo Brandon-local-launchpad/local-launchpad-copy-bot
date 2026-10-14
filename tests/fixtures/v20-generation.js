@@ -119,16 +119,16 @@ chk('Fenced and multi-line output still parses',
   let sent = null;
   const rec = await G.generateV20Homepage({
     cv, niche: landscaper, keyValueMap, decisionsResult: DR, calibrationPack: 'PACK', calibrationPackName: 'Landscaper Gardener',
-    callModel: async (r) => { sent = r; return { text: good, usage: { input_tokens: 1, output_tokens: 2 } }; },
+    callModel: async (r) => { if (!sent) { sent = r; return { text: good, usage: { input_tokens: 1, output_tokens: 2 } }; } return { text: '', usage: {} }; }, // retries get an empty reply
     extraFlags: [], allocationSource: 'model',
   });
   const order = Object.keys(rec).filter(k => k !== 'meta');
-  const want = ['page', 'FLAGS', 'VALIDATION', 'seo_title', 'meta_description', 'home_hero_h1', 'home_hero_trust_line', 'home_hero_intro',
+  const want = ['page', 'watermark', 'can_mark_done', 'FLAGS', 'VALIDATION', 'seo_title', 'meta_description', 'home_hero_h1', 'home_hero_trust_line', 'home_hero_intro',
     'home_hero_rating_line', 'buttons', 'home_trusted_logos', 'home_content_block_h2', 'home_content_block_body', 'home_services_h2',
     'home_services_intro', 'cards', 'home_services_more_line', 'home_why_h2', 'points', 'home_reviews_show', 'home_reviews_h2',
     'home_process_h2', 'steps', 'cta_band', 'home_owner_show', 'home_owner_h2', 'home_owner_body', 'home_areas_h2', 'home_areas_intro',
     'home_areas_links', 'home_faq_h2', 'faq_items', 'home_final_cta_h2', 'home_final_cta_body', 'home_final_cta_trust_lines'];
-  chk('Record fields in page order (brief §5)', order.join(',') === want.join(','), order.join(','), want.join(','));
+  chk('Record fields in page order (brief §5), stand-in watermark on top', order.join(',') === want.join(','), order.join(','), want.join(','));
   chk('Model called with max tokens 8192 and the cached system blocks', sent && sent.maxTokens === 8192 && sent.system.length === 2, sent && sent.maxTokens, 8192);
   chk('Hidden sections marked: logos HIDDEN, reviews false/HIDDEN', rec.home_trusted_logos === 'HIDDEN' && rec.home_reviews_show === false && rec.home_reviews_h2 === 'HIDDEN',
     `${rec.home_trusted_logos} ${rec.home_reviews_show} ${rec.home_reviews_h2}`, 'HIDDEN false HIDDEN');
@@ -137,7 +137,7 @@ chk('Fenced and multi-line output still parses',
     JSON.stringify(rec.cta_band), 'heading + Tell us line + 2 buttons');
   chk('Cards carry name, text and URL', rec.cards[0].card_url === '/landscape-gardener' && rec.cards[0].card_text.startsWith('Text for'), JSON.stringify(rec.cards[0]), 'url + text');
   chk('Areas: Southampton first, plain', rec.home_areas_links[0].name === 'Southampton' && rec.home_areas_links[0].url === null, JSON.stringify(rec.home_areas_links[0]), 'Southampton, null');
-  chk('VALIDATION placeholder until Stage 7', rec.VALIDATION.status === 'not run (Stage 7)', rec.VALIDATION.status, 'not run (Stage 7)');
+  chk('VALIDATION has run (Stage 7)', rec.VALIDATION.status === 'run', rec.VALIDATION.status, 'run');
   chk('Meta keeps raw output, stand-ins and the calibration pack name',
     rec.meta.raw_output === good && rec.meta.stand_ins.length === 2 && rec.meta.calibration_pack === 'Landscaper Gardener', JSON.stringify({ ...rec.meta, raw_output: '…', decisions_block: '…', client_block: '…' }), 'all present');
 

@@ -189,6 +189,8 @@
     "Other": ["scaffolding included in quotes", "photos provided", "roof left watertight each night", "competent person scheme member"]
   },
 
+  "service_terms": ["re-roofing", "new roof", "roof replacement", "roof repair", "flat roofing", "flat roof", "leadwork", "lead flashing", "chimney repointing", "chimney repair", "chimney removal", "gutter cleaning", "guttering", "gutter repair", "fascias", "soffits", "ridge repair", "dry ridge", "dry verge", "valley repair", "skylight", "roof window", "roof inspection", "roof survey", "moss removal", "roof cleaning", "emergency repair", "storm damage", "loft insulation", "tile replacement", "slate replacement"],
+
   "why_titles_alt": [
     "Local Experience Behind Every Job",
     "Covered If Something Goes Wrong"

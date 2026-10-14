@@ -84,11 +84,27 @@ function buildNicheEntry(niche, ctx) {
   return ph(L.join('\n'), ctx);
 }
 
+// The client's confirmed GBP services, grouped by category. CORE (20) cards name
+// "2 or 3 of the client's confirmed services", so the model needs the list.
+function buildServiceList(keyValueMap = {}, serviceParentMap = {}) {
+  const byCat = {};
+  for (const [k, v] of Object.entries(keyValueMap)) {
+    if (!/^service_\d+$/.test(k) || !v) continue;
+    const cat = serviceParentMap[k] || keyValueMap.category_1 || 'Other';
+    (byCat[cat] = byCat[cat] || []).push(v);
+  }
+  const lines = Object.entries(byCat).map(([cat, list]) => `${cat}: ${[...new Set(list)].join(', ')}`);
+  return lines.length ? lines.join('\n') : '(none on file: name only what the card names and categories say)';
+}
+
 // The request: system blocks (CORE (20), then the cached client block) and the message
-function buildV20Request({ cv, niche, decisions, decisionsBlock, calibrationPack, ctx }) {
+function buildV20Request({ cv, niche, decisions, decisionsBlock, calibrationPack, ctx, keyValueMap, serviceParentMap }) {
   const clientBlock = [
     'CLIENT VALUES',
     buildClientValues(cv, decisions.d1_years_trading),
+    '',
+    'CONFIRMED SERVICES (GBP, by category). Name only these, in plain words:',
+    buildServiceList(keyValueMap, serviceParentMap),
     '',
     'NICHE ENTRY',
     buildNicheEntry(niche, ctx),
@@ -123,9 +139,11 @@ function nicheContext(cv, niche, keyValueMap) {
 
 // Generate the homepage record. `callModel({ system, message, maxTokens })` returns
 // { text, usage }. With a failed gate there is no call: the record holds the gates.
-async function generateV20Homepage({ cv, niche, keyValueMap, decisionsResult, calibrationPack, calibrationPackName, callModel, extraFlags = [], allocationSource = null }) {
+async function generateV20Homepage({ cv, niche, keyValueMap, serviceParentMap = {}, decisionsResult, calibrationPack, calibrationPackName, callModel, extraFlags = [], allocationSource = null, retries = true }) {
   const { buildPageRecord, expectedFromDecisions } = require('./v20-record');
   const { parseV20Output } = require('./v20-parse');
+  const { validateV20, buildValidationContext } = require('./validate-v20');
+  const { runRetries, loadRetryPrompt, validationSummary } = require('./v20-retry');
   const meta = {
     generated_at: new Date().toISOString(),
     model: V20_MODEL,
@@ -140,15 +158,33 @@ async function generateV20Homepage({ cv, niche, keyValueMap, decisionsResult, ca
     return buildPageRecord({ cv, decisionsResult, parsed: null, meta, extraFlags });
   }
   const ctx = nicheContext(cv, niche, keyValueMap);
+  const D = decisionsResult.decisions;
   const req = buildV20Request({
-    cv, niche, decisions: decisionsResult.decisions, decisionsBlock: decisionsResult.decisionsBlock, calibrationPack, ctx,
+    cv, niche, decisions: D, decisionsBlock: decisionsResult.decisionsBlock, calibrationPack, ctx, keyValueMap, serviceParentMap,
   });
   const { text, usage } = await callModel({ system: req.system, message: req.message, maxTokens: V20_MAX_TOKENS });
-  const parsed = parseV20Output(text, expectedFromDecisions(decisionsResult.decisions));
+  const parsed = parseV20Output(text, expectedFromDecisions(D));
   meta.raw_output = text;
   meta.usage = usage || null;
   meta.client_block = req.clientBlock;
-  return buildPageRecord({ cv, decisionsResult, parsed, meta, extraFlags });
+  const record = buildPageRecord({ cv, decisionsResult, parsed, meta, extraFlags });
+
+  // Stage 7: validate, then rewrite failing fields one at a time (brief §6b)
+  const populatedCvKeys = new Set([...buildClientValues(cv, D.d1_years_trading).matchAll(/^\[CV: ([a-z0-9_]+)\]/gm)].map(m => m[1]));
+  const V = buildValidationContext({ cv, niche, decisions: D, keyValueMap, serviceParentMap, populatedCvKeys });
+  record.meta.first_draft_validation = (() => { const i = validateV20(record, V); return { block: i.filter(x => x.type === 'BLOCK').length, flag: i.filter(x => x.type === 'FLAG').length }; })();
+  if (retries) {
+    const retrySystem = [
+      req.system[0], req.system[1],
+      { type: 'text', text: `${loadRetryPrompt()}\n\nTHE PAGE'S MESSAGE (PAGE, DECISIONS, LINKABLE PAGES, ALLOCATED ITEMS, MODEL FIELDS):\n\n${decisionsResult.decisionsBlock}`, cache_control: { type: 'ephemeral' } },
+    ];
+    const callRetry = ({ message }) => callModel({ system: retrySystem, message, maxTokens: 2048 });
+    const { log, usage: retryUsage, finalIssues } = await runRetries({ record, V, callRetry });
+    record.VALIDATION = validationSummary(finalIssues, log, retryUsage);
+  } else {
+    record.VALIDATION = validationSummary(validateV20(record, V), [], null);
+  }
+  return record;
 }
 
 module.exports = {

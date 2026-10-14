@@ -33,10 +33,13 @@ function buildPageRecord({ cv, decisionsResult, parsed, meta, extraFlags = [] })
     ...(parsed ? parsed.flags.map(f => ({ ...f, source: 'parse' })) : []),
     ...(parsed ? parsed.modelFlags.map(f => ({ ...f, source: 'model' })) : []),
   ];
+  const standIns = (cv.stand_ins || []).filter(Boolean);
   const record = {
     page: 'homepage',
+    // N16: any stand-in value watermarks the record and it can't be marked Done
+    ...(standIns.length ? { watermark: 'TEST: CONTAINS STAND-IN VALUES', can_mark_done: false } : {}),
     FLAGS: allFlags,
-    VALIDATION: { status: 'not run (Stage 7)' },
+    VALIDATION: { status: 'not run' },
   };
   if (gates.length || !D) {
     record.blocked = true;

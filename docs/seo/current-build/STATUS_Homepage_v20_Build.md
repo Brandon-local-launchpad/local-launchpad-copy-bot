@@ -51,6 +51,23 @@
     - "north, east and west" for a coastal city
     - few contractions
     - the hero says "landscaper in Romsey, Southampton"
+- Stage 7, validator and retries (14 Oct), built and run for real:
+  - `validate-v20.js` runs on the page record. It has every brief §6 check (1a, 1b, 2, 2b, 3a, 3b, 3c, 4a to 4d, 5a, 6a, 6c, 7, 8, 9, N1 to N25; N16 is a watermark), plus these additions:
+    - WORKED (BLOCK): "we work on [allocated street or area]".
+    - NUM (BLOCK): a number or timescale not in the client values. Allocated research figures such as build dates are allowed. Catches "3 weeks", "two-week", "a day's work" and "in weeks".
+    - SERVICE (FLAG): a service not among the client's GBP services, categories or ticked materials. It checks every model field, not just cards and FAQs, and uses the new niche `service_terms` slot (Claude's draft list, needs review).
+    - HERO (BLOCK if the keyword is lost or the town is listed beside the city; otherwise FLAG).
+    - CVLIT (BLOCK): a client value written out instead of its token.
+    - TOKEN-UNIT (BLOCK): "[CV: travel_distance] miles" when the value is "20 miles".
+    - CARD-LINK (BLOCK): a linked card without its own link.
+    - TRUST-REPEAT and PROOF-REPEAT (FLAG): one home per proof.
+    - Banned list additions: "range of materials", "start to finish", "needs" as a noun, sentences opening "As your/a [category]", and "the form below" (the homepage has no form).
+  - `v20-retry.js` + `prompts/Field_Retry_CORE.md`: one call per failing field, at most 2 retries each, best version kept, every attempt logged in VALIDATION.retries. Replies that contain other fields' labels or fall far outside the field's range are rejected. Besides the brief's list, 1b, HERO, SERVICE, TRUST-REPEAT and PROOF-REPEAT flags also get a retry.
+  - The client block now lists the client's CONFIRMED SERVICES by category. CORE (20) cards need them, and the first run invented services without them.
+  - The page shows the validation summary and the issues; the stand-in watermark (N16) is on the record.
+  - Fixtures: 8 files, 200 checks, all pass. `tests/fixtures/data/edens-edge-acceptance.js` holds the §7 inputs and Ethan's documented values.
+  - Real Edens Edge run (local, 14 Oct), with Ethan's documented values (no insurance, no hours, owner section hidden), his real page map and his 78 GBP services: the first draft had 11 BLOCK and 52 FLAG; after 40 retry calls (31 kept) it had 0 BLOCK and 7 FLAG (long sentences, two FAQ first sentences, one repeat). It took about 110s and cost about 65p (5p first call, 60p retries). The output is saved in `tests/fixtures/v20-outputs/`. The first draft varies a lot between runs (10 to 12 BLOCK).
+  - What the validator can't catch, seen in the real runs: working practices Ethan never gave ("we put the full cost in writing", "we'll set a schedule", "no subcontracting"), "Edwardian" for a 1908 to 1930 estate, and "compact terraced gardens in Portswood" (not in the research).
 - Docs: CLAUDE.md at repo root. The files the code reads (`prompts/`, `niche-library/`) are the only copies.
 
 ## Waiting on
@@ -63,12 +80,16 @@
 ## Next
 1. Check the live Stage 4 previews (expect 7 category cards and the final CTA H2 "Get a Free Quote From a Local Landscaper in Southampton").
 2. Stage 5 finish: run the allocation in the app for Edens Edge; run Bournemouth geo research for Kestrel Ridge (the allocation then runs by itself).
-3. Stage 7: validator (brief §6) and per-field retries (§6b), built against `tests/fixtures/v20-outputs/`.
-4. Stages 8 and 9: downloads (.json and the .md reader view), acceptance test.
-5. Run Perplexity v3 for landscaper (trade only).
-6. Then: FAQ question bank + sorting step stages, humanizer decision, emergency and regulated group tests, category page.
+3. Stages 8 and 9: downloads (.json and the .md reader view), acceptance test.
+4. Run Perplexity v3 for landscaper (trade only).
+5. Then: FAQ question bank + sorting step stages, humanizer decision, emergency and regulated group tests, category page.
 
 ## Open decisions
+- FAQ 4 "How soon can you start?": Ethan's answer is "same week" with no qualification, but the niche faq_4 brief adds "Bigger projects are booked further ahead", so the copy says "for most/smaller jobs". Keep that line in the niche brief, or answer strictly from start_time?
+- Company name: Ethan's custom values say "Edens Edge landscaping" (lower case l); the brief's test uses "Edens Edge Landscaping". It must match the GBP exactly.
+- The real page map has a Southampton location page, and the copy links to it ("list of areas we cover"). STATUS already proposes dropping it. If it goes, the areas link needs a Locations Hub row.
+- Unconfirmed working practices ("written quote", "schedule", "no subcontracting") need a check beyond regex: a model-judged claims check, or a confirmed-practices client value.
+- Review the niche `service_terms` lists (landscaper and roofer) and the roofer CTA band line.
 - Which humanizer (tool or prompt) Brandon wants.
 - Hero "doubt strip" under the buttons: yes or no.
 - Separate Southampton location page: drop it (homepage is that page).

@@ -165,6 +165,8 @@
     "Other": ["green waste taken away", "mini digger on site", "design drawings provided"]
   },
 
+  "service_terms": ["turfing", "turf laying", "artificial grass", "lawn mowing", "scarification", "scarifying", "aeration", "lawn feeding", "overseeding", "lawn treatment", "hedge trimming", "hedge cutting", "weeding", "weed control", "mulching", "planting", "border planting", "garden clearance", "seasonal clearance", "crown reduction", "crown lifting", "pollarding", "pruning", "tree felling", "tree removal", "stump grinding", "stump removal", "fencing", "fence installation", "decking", "pergola", "patio laying", "block paving", "resin bound", "driveway", "retaining wall", "raised bed", "water feature", "pond", "garden design", "3D design", "drainage", "soakaway", "levelling", "irrigation", "garden lighting", "jet washing", "pressure washing"],
+
   "why_titles_alt": [
     "Local Experience Behind Every Job",
     "Covered If Something Goes Wrong"

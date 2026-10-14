@@ -2578,7 +2578,10 @@
       out.innerHTML = `
         <div style="margin-bottom:10px;font-size:12px;color:var(--muted)">${rec.blocked ? 'Blocked by a gate: no model call.' :
           `Generated ${h(new Date(meta.generated_at).toLocaleString())} · ${h(meta.model)} · in ${u.input_tokens || 0} (cache read ${u.cache_read_input_tokens || 0}) · out ${u.output_tokens || 0}`}</div>
-        ${flags ? `<div style="margin-bottom:10px">${flags}</div>` : ''}
+        ${rec.watermark ? `<div style="margin-bottom:8px;font-weight:600;color:var(--flag)">${h(rec.watermark)}</div>` : ''}
+        ${rec.VALIDATION && rec.VALIDATION.status === 'run' ? `<div style="margin-bottom:10px;font-size:13px">Validation after retries: <strong>${rec.VALIDATION.block} BLOCK</strong>, ${rec.VALIDATION.flag} FLAG · first draft ${meta.first_draft_validation ? `${meta.first_draft_validation.block} BLOCK, ${meta.first_draft_validation.flag} FLAG` : 'n/a'} · ${(rec.VALIDATION.retries || []).length} retries, ${(rec.VALIDATION.retries || []).filter(r => r.kept).length} kept</div>
+          ${(rec.VALIDATION.issues || []).map(i => `<div style="font-size:12px;color:${i.type === 'BLOCK' ? 'var(--error,#b71c1c)' : 'var(--muted)'}">${h(i.type)} ${h(i.check)} · ${h(i.field)}: ${h(i.message)}</div>`).join('')}` : ''}
+        ${flags ? `<div style="margin:10px 0">${flags}</div>` : ''}
         ${meta.raw_output ? `<p style="font-weight:600;margin:8px 0 4px">Raw model output</p><pre style="${pre}">${h(meta.raw_output)}</pre>` : ''}
         <p style="font-weight:600;margin:12px 0 4px">Page record</p><pre style="${pre}">${h(JSON.stringify(fields, null, 2))}</pre>
         <hr style="border:none;border-top:1px solid var(--border);margin:16px 0">`;

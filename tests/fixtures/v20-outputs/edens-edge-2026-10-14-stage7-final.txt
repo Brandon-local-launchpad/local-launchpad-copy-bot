@@ -1,0 +1,85 @@
+home_hero_intro:
+[CV: company_name] is a landscaper in Southampton, covering Romsey and the surrounding areas. We work to fixed prices with no hidden costs, so the figure you agree before work starts is the figure you pay.
+
+home_content_block_body:
+Gardens in Southampton vary enormously. Compact terraced back gardens in Portswood sit at one end of the scale. Bassett Heath sits at the other, with large detached plots, some close to a quarter acre. Mature trees shape how a garden can be laid out, and long plots with established planting mean structural decisions carry more weight than in a smaller suburban garden.
+
+Portswood's conservation area brings a different set of considerations. The Edwardian frontages on roads like Brookvale Road are generous, but paving and fencing changes to front gardens face conservation area and Article 4 controls. Getting the planning right before any ground is broken saves trouble later. Those layout decisions matter more than they might in a standard residential street.
+
+We're a family run team of four. Our [gardener](/gardener/) work covers lawns, hedges, borders and fencing. [Landscape gardener](/landscape-gardener/) projects run from new patios and paths through to full garden redesigns. The [landscape designer](/landscape-designer/) service is for homeowners who want a clear plan before anything is agreed. And our [lawn care service](/lawn-care-service/) is there when the grass itself needs proper attention rather than just a cut.
+
+One concern we hear often is about groundwork that fails later. Every job we price accounts for what is actually underneath: the levels, the drainage and the access, before a figure goes anywhere near a customer.
+
+We work across [landscaping in Romsey](/locations/romsey/), [landscaping in Winchester](/locations/winchester/) and [landscaping in Eastleigh](/locations/eastleigh/), and the villages in between. Call us on [CV: phone] if you want to check whether we cover your area.
+
+home_services_intro:
+From lawn care and hedge trimming to full garden redesigns, new patios, driveways and tree work, we cover the full scope of landscaping and gardening for homeowners across Southampton and the surrounding area.
+
+card_text (Gardener):
+Keeping a garden looking right through the seasons takes consistent, timely attention. Our [gardener](/gardener/) work covers lawn mowing and edging, hedge trimming, weed control, mulching, grass seeding and fencing installation. We'll look at what the garden needs and match the visits to it.
+
+card_text (Landscape Gardener):
+Full garden transformations start with understanding what's underneath. New layouts, paving and paths, retaining walls, drainage and turfing all depend on getting that right first. Our [landscape gardener](/landscape-gardener/) work covers garden levelling and grading, hardscaping, sod installation, water features and pool landscaping. One team, one plan, one agreed price.
+
+card_text (Landscape Designer):
+Good design removes the guesswork before a spade goes in. Our [landscape designer](/landscape-designer/) service covers custom garden design, patio and pathway layouts and retaining wall design. Drainage planning and planting schemes are included too, so every decision is reasoned and agreed before the build begins.
+
+card_text (Lawn Care Service):
+A lawn that stays soggy after rain, builds up moss or struggles to establish needs more than a regular mow. Our [lawn care service](/lawn-care-service/) covers turf management, grass seeding, weed control, mulching, sod installation and artificial turf. We check the ground conditions first and work from there.
+
+card_text (Tree Service):
+Mature trees need proper care to stay safe and healthy through the seasons. Our [tree service](/tree-service/) covers tree trimming and pruning, tree removal, stump grinding, stump removal, and tree planting and transplanting. We look at the tree in its surroundings before recommending any work, so nothing is taken further than it needs to be.
+
+card_text (Paving Contractor):
+Patios and driveways that hold water or start to settle point to problems underneath, not just the surface. Our [paving contractor](/paving-contractor/) work covers driveway installation and replacement, patio paving, concrete work and brick paver installation. The base is prepared properly so the surface stays level and drains as it should.
+
+card_text (Deck Builder):
+Decking adds a usable outdoor space without the groundwork a patio sometimes requires. Our [deck builder](/deck-builder/) service covers deck design, installation and construction in wood and composite, along with pergola construction, patio enclosures, fencing, deck repair and refinishing. We design around the garden and build it to last through the seasons.
+
+point_body (Local Experience Behind Every Job):
+We're a team of four with over 100 jobs completed across Southampton. Large plots with mature trees present different challenges to a compact terraced garden. We plan around what we actually find on site.
+
+point_body (Fixed Prices With No Hidden Costs):
+Every quote sets out the full cost before we start. Nothing is added once work is underway unless you ask for something different. The price we agree is the price you pay.
+
+point_body (Family Run and Independent):
+We're not a franchise or a large contractor. We take on work we can do properly, price it honestly and see it through without passing jobs along a chain or adding work a garden doesn't need.
+
+step_body (Tell Us About Your Garden):
+Drop us a message or call [CV: phone] with a rough idea of what you'd like done and the garden size. Photos help if you have them.
+
+step_body (We Visit and Price the Job):
+We visit, look at the levels, drainage and access, and give you a clear price covering everything we've discussed. Nothing is left vague.
+
+step_body (We Start on a Date That Suits You):
+The start date is agreed in advance and the job runs to the plan we've priced. For ongoing maintenance, we'll set a schedule that suits you.
+
+home_areas_intro:
+We're based in Southampton and travel up to 20 miles to take on work. That covers the city itself and a wide ring of towns to the north, east and west. From the New Forest edge to the Hampshire downland and the Itchen valley, most of the area falls within reach.
+
+faq_answer (How much does landscaping cost in Southampton?):
+Landscaping costs vary depending on the size of the job, the type of work and the ground conditions. A larger plot in Bassett Heath with mature trees is a different undertaking to a compact back garden. Bigger projects with drainage or levelling involved add groundwork that isn't always obvious until we visit. We put the full cost in writing before anything starts.
+
+faq_answer (Is it better to lay turf or sow grass seed?):
+Turf gives you a usable lawn sooner; seed costs less and suits larger areas. Both need the right timing. Spring and early autumn are the right windows in Southampton, when the ground is warm enough to encourage establishment. For larger gardens, seed is often the practical choice; if you need the lawn in use quickly, turf gets you there faster. We'll advise when we visit.
+
+faq_answer (What happens if something isn't right after the job?):
+If something isn't right, call us and we'll come back to look at it. Every job we carry out is done to the standard of reasonable care and skill all trades are required to meet. We'd rather put something right than leave you with a problem, so raise it with us directly on [CV: phone] as soon as you notice it.
+
+faq_answer (How soon can you start?):
+For most jobs, we can get started the same week. Larger projects take longer to book in. Full garden redesigns, significant paving or drainage work all need a confirmed start date agreed at quote stage. We'll set that with you before anything is scheduled.
+
+faq_answer (Is the quote free and no obligation?):
+Yes, the quote is completely free and there's no obligation to go ahead. We'll look at the garden and give you a price for what we've discussed. If you decide not to proceed, that's fine.
+
+faq_answer (Which areas do you cover?):
+We cover Southampton and travel up to 20 miles around it. That includes [Romsey](/locations/romsey/), [Winchester](/locations/winchester/), [Eastleigh](/locations/eastleigh/), [Chandlers Ford](/locations/chandlers-ford/), [Hedge End](/locations/hedge-end/), [Lyndhurst](/locations/lyndhurst/) and [Stockbridge](/locations/stockbridge/), among others. Check the full [list of areas we cover](/locations/southampton/) to see whether we reach you.
+
+faq_answer (How long does a garden landscaping project take?):
+It depends on the size, the groundwork involved and which materials are needed. A patio on a straightforward garden differs from a larger project with drainage, new levels and planting. Weather can shift hard landscaping days if ground conditions change. We'll give you a realistic timescale when we price the job and let you know if anything changes it.
+
+faq_answer (Why does water sit on my patio or lawn after rain?):
+Persistent wet patches usually have one of three causes: the ground beneath may drain slowly, a paved surface may fall the wrong way and pool water rather than shed it, or there is simply nowhere for the water to go once it reaches the lowest point. Southampton's soils vary, and some investigated sites show seasonally waterlogged conditions. We look at all three before recommending any drainage or paving work.
+
+home_final_cta_body:
+Call [CV: phone] or send us a message and we'll come out, price the job and get you a clear answer.

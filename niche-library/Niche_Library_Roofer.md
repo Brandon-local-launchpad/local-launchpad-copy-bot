@@ -95,6 +95,12 @@ The model may only name what the client ticks (`[CV: materials_methods]`).
 - Ridges and hips: dry fix / mortar bedded
 - Other: scaffolding included in quotes / photos provided / roof left watertight each night / competent person scheme member
 
+## Service terms (validator)
+
+Services the validator looks for in cards and FAQ answers. Each one it finds must match one of the client's GBP services, categories or ticked materials, or it is flagged.
+
+re-roofing, new roof, roof replacement, roof repair, flat roofing, flat roof, leadwork, lead flashing, chimney repointing, chimney repair, chimney removal, gutter cleaning, guttering, gutter repair, fascias, soffits, ridge repair, dry ridge, dry verge, valley repair, skylight, roof window, roof inspection, roof survey, moss removal, roof cleaning, emergency repair, storm damage, loft insulation, tile replacement, slate replacement
+
 ## Onboarding questions this niche needs
 
 From the Bournemouth FAQ research, customers most often ask about these, and the answers can only come from the client:

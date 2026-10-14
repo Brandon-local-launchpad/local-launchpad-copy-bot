@@ -98,6 +98,12 @@ The model may only name what the client ticks (`[CV: materials_methods]`).
 - Decking: softwood / hardwood / composite
 - Other: green waste taken away / mini digger on site / design drawings provided
 
+## Service terms (validator)
+
+Services the validator looks for in cards and FAQ answers. Each one it finds must match one of the client's GBP services, categories or ticked materials, or it is flagged.
+
+turfing, turf laying, artificial grass, lawn mowing, scarification, scarifying, aeration, lawn feeding, overseeding, lawn treatment, hedge trimming, hedge cutting, weeding, weed control, mulching, planting, border planting, garden clearance, seasonal clearance, crown reduction, crown lifting, pollarding, pruning, tree felling, tree removal, stump grinding, stump removal, fencing, fence installation, decking, pergola, patio laying, block paving, resin bound, driveway, retaining wall, raised bed, water feature, pond, garden design, 3D design, drainage, soakaway, levelling, irrigation, garden lighting, jet washing, pressure washing
+
 ## Onboarding questions this niche needs
 
 The cost and "how long" FAQs can only say what affects the answer unless the client gives figures. Ask every landscaping client for:

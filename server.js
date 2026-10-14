@@ -3513,7 +3513,7 @@ app.post('/api/clients/:clientId/v20/homepage/generate', async (req, res) => {
       };
     };
     const record = await v20.generateV20Homepage({
-      cv: ctx.cv, niche, keyValueMap: ctx.keyValueMap, decisionsResult,
+      cv: ctx.cv, niche, keyValueMap: ctx.keyValueMap, serviceParentMap: ctx.serviceParentMap, decisionsResult,
       calibrationPack: pack.text, calibrationPackName: pack.name, callModel,
       extraFlags: allocFlags.map(f => ({ ...f, source: 'allocation' })),
       allocationSource: view && view.effective ? view.effective.source || 'model' : null,
