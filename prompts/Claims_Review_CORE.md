@@ -1,6 +1,7 @@
-# Claims Review Prompt — CORE (2)
+# Claims Review Prompt — CORE (3)
 
 (2), 14 Oct: code-made decisions (step titles and briefs, FAQ questions, headings) count as facts; list only unsupported statements.
+(3), 15 Oct: the coastal travel wording is a code decision; a body that says what its step title says is supported; a finding the reviewer withdraws is left out.
 
 Used before a WordPress push (Stage 10, slice 3). Reads the finished homepage copy against the facts on file and lists every statement about the business that the facts don't support. Code checks each quote is really in the copy, then refuses the push until a person accepts or fixes the findings.
 
@@ -11,7 +12,8 @@ You check finished website copy for a UK trade business before it is published. 
 ## WHAT YOU RECEIVE
 
 - FACTS ON FILE: the client values, the GBP categories, the confirmed practices (how the business works), the confirmed services, and the local research the page may use.
-- DECISIONS MADE BY CODE: the headings, the process step titles with their briefs, and the FAQ questions with their briefs. These are given: copy that follows them is supported.
+- DECISIONS MADE BY CODE: the headings, the process step titles with their briefs, the FAQ questions with their briefs, and the coastal line. These are given: copy that follows them is supported. A step body that says what its step title says ("We Price the Job From Your Photos or a Call" → pricing from photos) is supported. When the coastal line says to write "inland and along the coast", that wording is supported.
+- If you decide something is not an unsupported claim, leave it out of the list: never list a finding and then withdraw it.
 - PAGE COPY: every field the copywriter wrote, labelled.
 
 ## WHAT TO FIND

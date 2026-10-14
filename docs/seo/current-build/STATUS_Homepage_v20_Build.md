@@ -202,6 +202,11 @@
   - Council areas ("New Forest District") are never research locations: skipped on the Geo Research step with a notice naming them, refused by research-start and research-rerun, and left out of the FAQ research towns (`isAdminArea` in `client-files.js`). Edens Edge's service areas include New Forest District.
   - Replayed result: all of Brandon's examples land as asked (Q-10 Patio paving, Q-29 Brick paver installation, Q-38 Deck installation, Q-40 homepage, Q-7 Landscape Gardener, Q-32 Paving Contractor, Q-44 Chandlers Ford). Fixtures: 23 files, 674 checks, all pass (`faq-sort.js` 82).
   - Not seen in the browser: the Geo Research notice (the demo can't open a Step 1 session).
+- Live Edens Edge run after the sorting fixes (15 Oct): re-sort only (approvals kept: Q-1, Q-2, Q-3, Q-41; Q7 = "How do I know if a landscaping quote is reasonable?"), then a homepage regenerate (2 BLOCK, 21 FLAG). Hand edits on the live page (Brandon: "do whatever you need"): Q7's "Get two or three quotes for the same job description" removed, "reliable" out of the Gardener card, "hand-offs" out of the Family Run point, Q5 reworded without a reply process, over-long FAQ answers trimmed (Q7, Q8), repeats reworded, insurance copy limited to the cover level, "in Southampton" off the jobs count, the lawn mowing card without scheduled visits. Result: 0 BLOCK, 13 FLAG.
+- Copy rules after that run (15 Oct, branch `fix/claims-and-competitor-advice`):
+  - RIVALS (BLOCK): copy that tells the reader to get other quotes, compare firms or shop around; the general FAQ answer brief says to answer as the business.
+  - Claims review CORE (3): the coastal line is sent as a code decision, a step body that follows its step title is supported, and a finding the reviewer withdraws in its own reason is dropped (two live findings ended "Withdrawing this finding.").
+  - Fixture `copy-rules-live.js` (12 checks). Fixtures: 24 files, 686 checks, all pass.
 - Docs: CLAUDE.md at repo root. The files the code reads (`prompts/`, `niche-library/`) are the only copies.
 
 ## Waiting on
