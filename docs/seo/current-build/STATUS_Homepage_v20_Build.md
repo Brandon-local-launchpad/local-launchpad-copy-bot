@@ -186,6 +186,7 @@
   - Parser: reads question tables by their header row, as well as one line per question, numbered or bold lines; drops `<think>` sections; accepts any heading style; strips `[3]`/`[web:7]` markers; reads dates in the Seen column and the ranges table's Dated column; counts sources separated by ";". The live reply gives 48 questions, the 15 most asked, 15 ranges, 15 rules and 6 gaps, no warnings. When nothing can be read, the error says what the reply looked like.
   - The reply as sent (text and full JSON) is now kept on the job whether it is read or not. `GET /api/clients/:id/faq/raw` shows it as text; `POST /api/clients/:id/faq/reread` reads the saved reply again with no new Perplexity run. The card shows "Open the raw reply" and "Read the saved reply again" after a failed run.
   - Found: without a session the FAQ card and decisions preview couldn't load for this client ("G-NICHE: no niche file for trade Gardener"). Fixed (15 Oct, branch `fix/niche-from-client-trade`): the niche now comes from the primary category only when it names a niche, else from the client's trade (Step 1), as it already did with a session. The primary category stays the client's real GBP primary (it feeds the copy); "Landscaper" isn't one of Ethan's GBP categories. Checked on the demo with Gardener, Landscape Gardener and Landscaper: card and preview load.
+  - Live (15 Oct): "Read the saved reply again" on the Edens Edge card saved the 48 questions from the refused run and sorted them, with no new Perplexity run. Homepage group: Q-1, Q-2, Q-3 and Q-41 (Portswood front walls, about Southampton), none needing a client fact; nothing approved yet.
   - Fixtures: 22 files, 642 checks, all pass (`faq-research.js` 64, `faq-service.js` 39).
 - Docs: CLAUDE.md at repo root. The files the code reads (`prompts/`, `niche-library/`) are the only copies.
 
@@ -201,7 +202,7 @@
 1. Check the live Stage 4 previews (expect 7 category cards and the final CTA H2 "Get a Free Quote From a Local Landscaper in Southampton").
 2. Stage 5 finish: run the allocation in the app for Edens Edge; run Bournemouth geo research for Kestrel Ridge (the allocation then runs by itself).
 3. WordPress push: slice 5 part 2, a first push to a staging site (needs Given's staging site, the plugin installed, and the field groups imported). Set `COPYBOT_SECRET_KEY` on Railway first.
-4. FAQ per client: built on `faq/per-client-research`, not merged into main yet (pull request). After merging: a real FAQ research run for Edens Edge on the live app (Research on the FAQ questions card), approve per page, Preview v20 Decisions.
+4. FAQ per client: live for Edens Edge, 48 questions sorted. Next: Brandon approves the wording (homepage first), then Preview v20 Decisions to see Q7.
 5. Then: humanizer decision, emergency and regulated group tests, category page.
 
 ## Open decisions
