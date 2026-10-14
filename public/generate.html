@@ -433,6 +433,10 @@
       <button class="btn btn-ghost" style="width:auto;padding:8px 18px;" onclick="previewDecisions()">Preview v20 Decisions</button>
     </div>
 
+    <div id="v20GenerateWarning" style="display:none; color:var(--flag); font-size:13px; text-align:center; margin-bottom:10px;">
+      ⚠ This client uses the v20 homepage. Generate All still runs the old prompts for every page, including the homepage. Don't use it until the other page types are migrated.
+    </div>
+
     <div id="generateError" style="display:none"></div>
     <button class="btn btn-primary" id="generateBtn" onclick="submitBatch()" style="display:none">
       Generate All Pages
@@ -1553,6 +1557,7 @@
         btn.textContent   = `Generate All ${data.summary.total} Pages`;
         const v20On = clientId && document.getElementById('cvUseV20') && document.getElementById('cvUseV20').checked;
         document.getElementById('decisionsPreviewRow').style.display = v20On ? 'block' : 'none';
+        document.getElementById('v20GenerateWarning').style.display = v20On ? 'block' : 'none';
         document.getElementById('resumeRow').style.display = 'flex';
         document.getElementById('selectionToggleRow').style.display = 'block';
         document.getElementById('selectionPanel').style.display = 'none';
@@ -1690,6 +1695,10 @@
   let batchId = null;
 
   async function submitBatch(isResume) {
+    // v20 clients: Generate All still runs the old prompts, so make the user confirm
+    const v20On = clientId && document.getElementById('cvUseV20') && document.getElementById('cvUseV20').checked;
+    if (v20On && !confirm('This client uses the v20 homepage.\n\nGenerate All still runs the old prompts for every page, including the homepage, and the other page types are not migrated yet.\n\nGenerate anyway?')) return;
+
     // If a custom selection exists, persist it to the session before submitting
     if (selectionOpen && selectedSlugs !== null && selectedSlugs.size < allJobs.length) {
       await fetch(`/api/session/${sessionId}/select`, {

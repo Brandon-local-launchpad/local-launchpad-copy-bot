@@ -155,7 +155,7 @@ function loadNiche(primaryCategory) {
 }
 
 console.log('Loading prompt files...');
-const HOMEPAGE_PROMPT = readDoc('Homepage_Copywriting_Prompt_CORE (19).md'); // old path pins to (19); v20 path loads (20) lazily
+const HOMEPAGE_PROMPT = readDoc('Homepage_Copywriting_Prompt_CORE (19).md'); // old path pins to (19); CORE (20) is loaded by v20 generation (Stage 6, not built yet)
 const CATEGORY_PROMPT = readDoc('Category_Page_Copywriting_Prompt_CORE.md');
 const SERVICE_PROMPT  = readDoc('Service_Page_Copywriting_Prompt_CORE.md');
 const LOCATION_PROMPT = readDoc('Location_Page_Copywriting_Prompt_CORE.md');
@@ -3184,9 +3184,11 @@ app.post('/api/clients/:clientId/decisions-preview', async (req, res) => {
   // Build pages list: prefer active session; fall back to stored client_file rows in DB
   let pages = [];
   let keyValueMap = {};
+  let serviceParentMap = {};
   if (session) {
     pages = [...(session.jobs || []), ...(session.skippedPages || [])];
     keyValueMap = session.keyValueMap || {};
+    serviceParentMap = session.serviceParentMap || {};
   } else if (pool) {
     try {
       const { rows: fileRows } = await pool.query(
@@ -3200,6 +3202,7 @@ app.post('/api/clients/:clientId/decisions-preview', async (req, res) => {
         if (cvRows.length) {
           const parsed = parseCustomValues(cvRows.map(r => r.content));
           keyValueMap = parsed.keyValueMap || {};
+          serviceParentMap = parsed.serviceParentMap || {};
         }
       }
     } catch (err) {
@@ -3207,7 +3210,7 @@ app.post('/api/clients/:clientId/decisions-preview', async (req, res) => {
     }
   }
 
-  const result = computeDecisions({ cv, niche, pages, keyValueMap, v20TestMode, allocationData: null });
+  const result = computeDecisions({ cv, niche, pages, keyValueMap, serviceParentMap, v20TestMode, allocationData: null });
   if (cvLoadError) result.cvLoadError = cvLoadError;
   res.json(result);
 });

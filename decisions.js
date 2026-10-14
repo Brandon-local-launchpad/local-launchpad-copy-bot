@@ -174,11 +174,15 @@ function buildFaq(cv, niche, ctx, emergencyOn) {
     if (fb) questions.push({ ...fb, slot: 'Q4' });
   }
 
-  // Q5 free/not-free
+  // Q5 free/not-free. The niche brief ("From [QUOTE_FREE] and [CV: quote_method]")
+  // reads as "From Free and ..." once resolved, so code writes the brief from the values.
+  const quoteHow = cv.quote_method
+    ? 'Say how quotes work from [CV: quote_method] only.'
+    : 'quote_method is blank: do not describe how quotes are given, a visit, or a turnaround time.';
   if (ctx.quoteFree) {
-    questions.push({ ...faqMap['faq_5_free'], slot: 'Q5' });
+    questions.push({ ...faqMap['faq_5_free'], slot: 'Q5', answer_brief: `Yes: quotes are free (confirmed). ${quoteHow}` });
   } else {
-    questions.push({ ...faqMap['faq_5_not_free'], slot: 'Q5' });
+    questions.push({ ...faqMap['faq_5_not_free'], slot: 'Q5', answer_brief: `Quotes are not free: never say free. ${quoteHow}` });
   }
 
   // Q6 areas (fixed)
@@ -211,10 +215,31 @@ function buildWhyH2(cv, niche, ctx) {
   return nameHasTradeWord ? base : `${base} for ${ctx.trade}`;
 }
 
+// ── Service parentage ───────────────────────────────────────────────────────
+// Parent category of a service page, from the custom values (service_N under
+// category_N). Falls back to category_1, as buildPageContext does.
+function serviceParent(page, keyValueMap, serviceParentMap) {
+  const title = (page.pageTitle || '').toLowerCase();
+  const key = Object.keys(keyValueMap).find(k => /^service_\d+$/.test(k) && (keyValueMap[k] || '').toLowerCase() === title);
+  return (key && serviceParentMap[key]) || keyValueMap['category_1'] || '';
+}
+
+// Service pages that can be homepage cards. With a category layer, only services
+// in the primary category; secondary-category services sit under their category
+// page. Without parentage data (no service_N custom values), keep every service.
+function homepageServicePages(pages, primaryCategory, keyValueMap, serviceParentMap) {
+  const services = pages.filter(p => p.pageType === 'service');
+  const hasCategoryLayer = pages.some(p => p.pageType === 'category');
+  if (!hasCategoryLayer || !Object.keys(serviceParentMap).length) return services;
+  const primary = (primaryCategory || '').toLowerCase();
+  return services.filter(p => serviceParent(p, keyValueMap, serviceParentMap).toLowerCase() === primary);
+}
+
 // ── Build service cards (D9) ─────────────────────────────────────────────────
-function buildServiceCards(pages, niche) {
-  // Includes both secondary-category pages AND primary-category service pages
-  const categoryPages = pages.filter(p => p.pageType === 'category' || p.pageType === 'service');
+function buildServiceCards(pages, niche, cardServices) {
+  // Secondary-category pages plus primary-category service pages
+  const categoryPages = [...pages.filter(p => p.pageType === 'category'), ...cardServices]
+    .sort((a, b) => pages.indexOf(a) - pages.indexOf(b));
   const priorityList = (niche.priority_services || []).map(s => s.toLowerCase());
   const priorityIdx = p => {
     const i = priorityList.indexOf((p.pageTitle || '').toLowerCase());
@@ -239,14 +264,13 @@ function buildServiceCards(pages, niche) {
   // "We also offer": overflow beyond card slot 8.
   // - Secondary-category pages (pageType=category): always included — they must appear somewhere.
   // - Primary-category services (pageType=service): included but capped at 6.
-  // Secondary-category services (services that belong under a category layer) never appear here;
-  // those are already represented by their category page.
+  // Secondary-category services never reach this list (filtered out by homepageServicePages).
   const overflow = sorted.slice(8);
   const overflowCategories = overflow.filter(p => p.pageType === 'category').map(p => p.pageTitle);
-  const overflowServices   = overflow.filter(p => p.pageType === 'service').map(p => p.pageTitle).slice(0, 6);
-  const alsoOffer = [...overflowCategories, ...overflowServices];
+  const allOverflowServices = overflow.filter(p => p.pageType === 'service').map(p => p.pageTitle);
+  const alsoOffer = [...overflowCategories, ...allOverflowServices.slice(0, 6)];
 
-  return { main, alsoOffer };
+  return { main, alsoOffer, overflowServiceCount: allOverflowServices.length };
 }
 
 // ── Build area list (D12) ────────────────────────────────────────────────────
@@ -344,7 +368,7 @@ function buildD14Town(pages, keyValueMap) {
 }
 
 // ── Main entry point ─────────────────────────────────────────────────────────
-function computeDecisions({ cv, niche, pages, keyValueMap, v20TestMode, allocationData }) {
+function computeDecisions({ cv, niche, pages, keyValueMap, serviceParentMap, v20TestMode, allocationData }) {
   const gates = [];
   const flags = [];
 
@@ -520,14 +544,11 @@ function computeDecisions({ cv, niche, pages, keyValueMap, v20TestMode, allocati
   };
 
   // ── D9 service cards ──
-  const d9 = buildServiceCards(pages, niche);
-  {
-    // Count overflow services (capped at 6 in alsoOffer); flag if any were cut
-    const overflow = [...pages.filter(p => p.pageType === 'category' || p.pageType === 'service')].slice(8);
-    const overflowServiceCount = overflow.filter(p => p.pageType === 'service').length;
-    if (overflowServiceCount > 6) {
-      flags.push({ code: 'F-MORE-SERVICES', msg: `${overflowServiceCount} primary-category services overflow; only the first 6 are shown in "We also offer".` });
-    }
+  const primaryCategory = cv.primary_category || keyValueMap['category_1'] || '';
+  const cardServices = homepageServicePages(pages, primaryCategory, keyValueMap, serviceParentMap || {});
+  const d9 = buildServiceCards(pages, niche, cardServices);
+  if (d9.overflowServiceCount > 6) {
+    flags.push({ code: 'F-MORE-SERVICES', msg: `${d9.overflowServiceCount} primary-category services overflow; only the first 6 are shown in "We also offer".` });
   }
 
   // ── D11 FAQ ──
@@ -582,9 +603,14 @@ function computeDecisions({ cv, niche, pages, keyValueMap, v20TestMode, allocati
     fear: fears.length > 0 ? fears[i % fears.length] : null,
   }));
 
-  // Build linkable pages list (Live or Launching)
+  // Build linkable pages list (Live or Launching), trimmed to pages the homepage
+  // can link: never itself, never location-category pages, and only the services
+  // that can be cards (secondary-category services sit under their category page).
+  const cardServiceSet = new Set(cardServices);
   const linkablePages = pages
     .filter(p => isLinkable(p) && (p.urlSlug || '').trim())
+    .filter(p => p.pageType !== 'homepage' && p.pageType !== 'location-category')
+    .filter(p => p.pageType !== 'service' || cardServiceSet.has(p))
     .map(p => ({ type: p.pageType, url: p.urlSlug, h1: p.h1 || '' }));
 
   const decisions = {
@@ -620,7 +646,11 @@ function formatDecisionsBlock(D, cv, niche, ctx) {
   const lines = [];
   const push = s => lines.push(s);
 
-  push('DECISIONS');
+  // Five blocks in the brief's order: PAGE, DECISIONS, LINKABLE PAGES,
+  // ALLOCATED ITEMS, MODEL FIELDS.
+  push(`PAGE: homepage, slug /, keyword: ${D.d2_h1}`);
+  push('');
+  push('DECISIONS:');
   push('');
   push(`H1: ${D.d2_h1}`);
   push(`SEO title: ${D.d3_title}`);
@@ -685,30 +715,30 @@ function formatDecisionsBlock(D, cv, niche, ctx) {
   push(`Emergency layout: ${D.emergencyOn ? 'ON' : 'off'}`);
   push(`[QUOTE_FREE]: ${D.quoteFree || '(blank — paid quotes)'}`);
   push('');
-  push('--- LINKABLE PAGES ---');
+  push('LINKABLE PAGES:');
   for (const p of D.linkablePages) push(`  [${p.type}] ${p.url} | H1: ${p.h1}`);
   push('');
-  push('--- MODEL FIELDS ---');
-  const modelFields = [
-    'home_hero_intro',
-    `home_trusted_logos${D.d7.sec2 === 'HIDDEN' ? ' (HIDDEN)' : ''}`,
-    'home_content_block_body',
-    'home_services_intro',
-    ...D.d9.main.map((c, i) => `card_${i + 1}_text: ${c.name}${c.linked ? '' : ' (HIDDEN — unlinked card)'}`),
-    ...(D.d9.alsoOffer.length ? ['home_services_more_line'] : []),
-    ...D.d10_why.map((p, i) => `why_point_${i + 1}_body: ${p.title}`),
-    `home_reviews_h2${D.d7.sec6 === 'HIDDEN' ? ' (HIDDEN)' : ''}`,
-    `home_reviews_body${D.d7.sec6 === 'HIDDEN' ? ' (HIDDEN)' : ''}`,
-    ...D.niche_steps.map((s, i) => `step_${i + 1}_body: ${s.title}`),
-    `home_owner_body${D.d7.sec9 === 'HIDDEN' ? ' (HIDDEN)' : ''}`,
-    'home_areas_intro',
-    ...D.d11_faq.map(q => `faq_${q.slot}_answer: ${q.question}`),
-    'home_final_cta_body',
-  ];
-  for (const f of modelFields) push(`  ${f}`);
-  push('');
-  push('--- ALLOCATED ITEMS ---');
+  push('ALLOCATED ITEMS:');
   push('  none');
+  push('');
+  // Field names and list keys match the CORE (20) OUTPUT block exactly.
+  push('MODEL FIELDS:');
+  push('  home_hero_intro');
+  push(`  home_content_block_body${D.d13_expands ? ' (expand: up to 300 words)' : ''}`);
+  push('  home_services_intro');
+  push('  home_services_cards');
+  for (const c of D.d9.main) push(`    - card_name: ${c.name} | card_text${c.linked ? '' : ' (unlinked: no link)'}`);
+  push(`  home_services_more_line${D.d9.alsoOffer.length ? '' : ' (HIDDEN)'}`);
+  push('  home_why_points');
+  for (const p of D.d10_why) push(`    - point_title: ${p.title} | point_body`);
+  push('  home_process_steps');
+  for (const s of D.niche_steps) push(`    - step_title: ${s.title} | step_body`);
+  push(`  home_owner_body${D.d7.sec9 === 'HIDDEN' ? ' (HIDDEN)' : ''}`);
+  push('  home_areas_intro');
+  push('  home_faq_items');
+  for (const q of D.d11_faq) push(`    - faq_question: ${q.question} | faq_answer`);
+  push('  home_final_cta_body');
+  push('  MODEL_FLAGS');
 
   return lines.join('\n');
 }

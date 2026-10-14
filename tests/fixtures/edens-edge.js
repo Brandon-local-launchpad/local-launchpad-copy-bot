@@ -78,7 +78,13 @@ const pages = [
   { pageType: 'location',  pageTitle: 'West End',                 urlSlug: '/locations/west-end',        h1: 'Landscaper West End',            status: 'live' },
   { pageType: 'location',  pageTitle: 'Winchester',               urlSlug: '/locations/winchester',      h1: 'Landscaper Winchester',          status: 'live' },
   { pageType: 'location',  pageTitle: 'New Forest District',      urlSlug: '',                           h1: '',                               status: 'not built' },
+  // Secondary-category services: these sit under their category page, never homepage cards
+  { pageType: 'service',   pageTitle: 'Hedge Trimming',           urlSlug: '/gardener/hedge-trimming',   h1: 'Hedge Trimming Southampton',     status: 'live' },
+  { pageType: 'service',   pageTitle: 'Patio Laying',             urlSlug: '/paving-contractor/patio-laying', h1: 'Patio Laying Southampton', status: 'live' },
+  { pageType: 'location-category', pageTitle: 'Gardener Romsey',  urlSlug: '/locations/romsey/gardener', h1: 'Gardener Romsey',              status: 'live' },
 ];
+
+const serviceParentMap = { service_1: 'Gardener', service_2: 'Paving contractor' };
 
 const keyValueMap = {
   biz_area_1: 'Southampton',
@@ -92,10 +98,13 @@ const keyValueMap = {
   biz_area_9: 'Totton',
   biz_area_10: 'Winchester',
   biz_area_11: 'New Forest District',
+  category_1: 'Landscaper',
+  service_1: 'Hedge Trimming',
+  service_2: 'Patio Laying',
 };
 
 const result = computeDecisions({
-  cv, niche: landscaper, pages, keyValueMap, v20TestMode: true, allocationData: null,
+  cv, niche: landscaper, pages, keyValueMap, serviceParentMap, v20TestMode: true, allocationData: null,
 });
 
 console.log('\n=== FIXTURE: Edens Edge Landscaping ===\n');
@@ -185,6 +194,37 @@ chk('Q3 = faq_3_none (no guarantee, type A)',
 chk('New Forest is plain text in area list',
   D.d12_areas.plain.includes('New Forest'),
   D.d12_areas.plain.join(', '), 'includes New Forest');
+
+chk('Cards = the 7 categories, no secondary-category services',
+  D.d9.main.map(c => c.name).join(',') === 'Landscape Gardener,Landscape Designer,Gardener,Lawn care service,Tree service,Paving contractor,Deck builder',
+  D.d9.main.map(c => c.name).join(', '), '7 categories');
+
+const linkUrls = D.linkablePages.map(p => p.url);
+chk('LINKABLE PAGES excludes homepage, secondary services, location-category pages',
+  !linkUrls.includes('/') && !linkUrls.includes('/gardener/hedge-trimming') && !linkUrls.includes('/locations/romsey/gardener'),
+  linkUrls.join(', '), 'no /, no hedge-trimming, no romsey/gardener');
+
+const q5 = faq.find(q => q.slot === 'Q5');
+chk('Q5 brief reads cleanly (no "From Free")',
+  q5 && !/From Free/.test(q5.answer_brief) && /free \(confirmed\)/.test(q5.answer_brief),
+  q5 && q5.answer_brief, 'Yes: quotes are free (confirmed). ...');
+
+const blk = result.decisionsBlock;
+const order = ['PAGE:', 'DECISIONS:', 'LINKABLE PAGES:', 'ALLOCATED ITEMS:', 'MODEL FIELDS:'].map(s => blk.indexOf('\n' + s) + (blk.startsWith(s) ? 1 : 0));
+chk('Blocks in order PAGE, DECISIONS, LINKABLE PAGES, ALLOCATED ITEMS, MODEL FIELDS',
+  order.every((v, i) => v >= 0 && (i === 0 || v > order[i - 1])), order.join(','), 'ascending');
+
+const mf = blk.slice(blk.indexOf('MODEL FIELDS:'));
+const core20Fields = ['home_hero_intro', 'home_content_block_body', 'home_services_intro', 'home_services_cards',
+  'home_services_more_line', 'home_why_points', 'home_process_steps', 'home_owner_body', 'home_areas_intro',
+  'home_faq_items', 'home_final_cta_body', 'MODEL_FLAGS'];
+const mfNames = [...mf.matchAll(/^  (\w+)/gm)].map(m => m[1]);
+chk('MODEL FIELDS names match CORE (20) OUTPUT exactly',
+  mfNames.join(',') === core20Fields.join(','), mfNames.join(','), core20Fields.join(','));
+chk('MODEL FIELDS list keys match CORE (20)',
+  /- card_name: .+ \| card_text/.test(mf) && /- point_title: .+ \| point_body/.test(mf) &&
+  /- step_title: .+ \| step_body/.test(mf) && /- faq_question: .+ \| faq_answer/.test(mf),
+  'see block', 'card_name/card_text, point_title/point_body, step_title/step_body, faq_question/faq_answer');
 
 chk('F-THIN flag present', (result.flags||[]).some(f => f.code === 'F-THIN'), 'none', 'F-THIN');
 chk('F-MAP-TEST flag present', (result.flags||[]).some(f => f.code === 'F-MAP-TEST'), 'none', 'F-MAP-TEST');
