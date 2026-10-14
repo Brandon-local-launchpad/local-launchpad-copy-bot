@@ -61,6 +61,23 @@ const ids = list => list.map(q => q.id).join(' ');
   chk('Checks: "needs client fact: Y" without a fact', /Q-11: it needs a client fact/.test(errs), errs, 'Q-11 error');
   chk('Checks: every missing ID is listed', /Q-1 is missing/.test(errs) && /Q-40 is missing/.test(errs), '', 'Q-1 and Q-40 missing');
 
+  // ── The client's own customers' questions ──
+  const own = S.clientQuestionItems({ customer_questions: ['Will you take the old patio away?', 'Do I need to be in?'] });
+  chk("Customers' questions become C-1, C-2, marked as the client's", own.map(q => q.id).join(' ') === 'C-1 C-2' && own.every(q => q.source === 'client' && !q.doubt && !q.page), JSON.stringify(own.map(q => [q.id, q.source])), 'C-1 C-2, client');
+  const withOwn = { questions: [...own, ...research.questions] };
+  const msg = S.buildSortMessage({ ...ctx, research: withOwn });
+  chk("The tidy message lists them first, with ? for doubt and page, marked FROM THE CLIENT'S CUSTOMERS",
+    /QUESTIONS:\n  C-1 \| Will you take the old patio away\? \| \? \| page: \? \| local: N \| needs client fact: \? \| FROM THE CLIENT'S CUSTOMERS/.test(msg), (msg.match(/QUESTIONS:\n.*/) || [''])[0], 'C-1 first');
+  const ownChecked = S.checkTidy({ questions: [
+    { id: 'C-1', doubt: 'Process', page: 'Homepage', fact: 'waste_removal', wording: 'Will you take the old patio away?' },
+    { id: 'C-2', doubt: 'Worry', wording: 'Do I need to be in during the work?' },
+  ] }, { ...ctx, research: withOwn });
+  chk("Checks: a customer's question needs a valid doubt and page", /C-2: doubt "Worry" must be one of/.test(ownChecked.errors.join('\n')) && /C-2: page "" must be one of/.test(ownChecked.errors.join('\n')) && !/C-1: (doubt|page)/.test(ownChecked.errors.join('\n')),
+    ownChecked.errors.filter(e => /^C-/.test(e)).join(' | '), 'C-2 doubt and page errors only');
+  chk("Checks: a research question needs no doubt or page from the reply", !/Q-4: (doubt|page)/.test(ownChecked.errors.join('\n')), '', 'none');
+  const ownTidy = await S.runTidy({ ...ctx, research: { questions: own.slice(0, 1) }, callModel: async () => JSON.stringify({ questions: [{ id: 'C-1', doubt: 'Process', page: 'Homepage', fact: 'waste_removal', wording: 'Will you take the old patio away?' }] }) });
+  chk("Tidy: the customer's question takes the reply's doubt and page", ownTidy.questions[0].doubt === 'Process' && ownTidy.questions[0].page === 'Homepage', JSON.stringify([ownTidy.questions[0].doubt, ownTidy.questions[0].page]), 'Process, Homepage');
+
   // ── The real replies ──
   const E = await replayTidy(edens);
   const K = await replayTidy(kestrel);
@@ -114,6 +131,13 @@ const ids = list => list.map(q => q.id).join(' ');
   chk('Each waiting fact carries its onboarding question', dep && /Do you take a deposit\?/.test(dep.question), dep && dep.question, 'Do you take a deposit? …');
   chk('A fact Copybot does not collect is marked so', eThin.waitingByFact.some(w => w.label === 'references from past customers' && w.kind === 'not collected yet'), '', 'references: not collected yet');
   chk('Rich: the new facts no longer wait', !eRich.waitingByFact.some(w => ['deposit_terms', 'waste_carrier_registered', 'weather_delays_rebooked'].includes(w.fact)), eRich.waitingByFact.map(w => w.label).join('; '), 'no deposit, waste carrier or weather');
+
+  // The customers' own questions come first, ahead of the research
+  const c1 = { ...ownTidy.questions[0], approved: true };
+  const firstA = S.assignQuestions({ questions: [...eQs, c1], cv: { ...edens.cvRich, confirmed_practices: [...edens.cvRich.confirmed_practices, 'waste_removal'] }, pages: edens.pages,
+    keyValueMap: edens.keyValueMap, serviceParentMap: edens.serviceParentMap, niche: edens.niche });
+  chk("A customer's question goes first on its page, ahead of the research", hpIds(firstA).startsWith('C-1 Q-4'), hpIds(firstA), 'C-1 Q-4 …');
+  chk("…and first to the homepage FAQ", S.homepageQuestions(firstA, edens.niche)[0].research_id === 'C-1', S.homepageQuestions(firstA, edens.niche)[0].research_id, 'C-1');
 
   // Unapproved questions are placed but not usable
   const eUnapproved = assign(edens, E.tidy.questions, 'rich');

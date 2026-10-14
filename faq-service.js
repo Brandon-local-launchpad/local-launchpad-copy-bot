@@ -22,6 +22,7 @@ function createFaqService({
   latestPageQuestions = async () => ({}), homepageDecisions = null, log = console,
 }) {
   const researchRunning = new Map(); // clientId → jobId
+  const lastJob = new Map();         // clientId → jobId, so a failure shows even if the job row couldn't be saved
   const sortRunning = new Set();
 
   // ── Storage ──
@@ -58,7 +59,7 @@ function createFaqService({
   }
 
   async function latestJob(clientId) {
-    const id = researchRunning.get(clientId);
+    const id = researchRunning.get(clientId) || lastJob.get(clientId);
     if (id) { const r = await jobs.load(id); if (r) return r; }
     const { rows } = await pool.query(`SELECT id, locations FROM research_jobs WHERE client_id=$1 ORDER BY created_at DESC LIMIT 50`, [clientId]);
     const row = rows.find(r => ((typeof r.locations === 'string' ? JSON.parse(r.locations) : r.locations) || {})[FAQ_CODE]);
@@ -66,12 +67,49 @@ function createFaqService({
   }
 
   // ── F1: research ──
-  async function promptFor(clientId, sessionId) {
+  // The client's saved area dossiers (not superseded), primary city first
+  async function dossiersFor(clientId, keyValueMap) {
+    const { rows } = await pool.query(
+      `SELECT content, metadata FROM client_assets WHERE client_id=$1 AND asset_type='geo_dossier' ORDER BY uploaded_at DESC`, [clientId]);
+    const seen = new Set();
+    const out = [];
+    for (const r of rows) {
+      const m = (typeof r.metadata === 'string' ? JSON.parse(r.metadata) : r.metadata) || {};
+      const loc = m.location_name || '';
+      if (m.superseded || !loc || seen.has(loc.toLowerCase())) continue;
+      seen.add(loc.toLowerCase());
+      out.push({ location: loc, text: r.content });
+    }
+    const city = String(keyValueMap.biz_area_1 || '').toLowerCase();
+    return out.sort((a, b) => (b.location.toLowerCase().startsWith(city) ? 1 : 0) - (a.location.toLowerCase().startsWith(city) ? 1 : 0));
+  }
+
+  // Everything known about the client goes into the research: trade, towns and
+  // services, the customers' own questions, confirmed client values, the onboarding
+  // answers and the area dossiers.
+  async function researchInput(clientId, sessionId) {
     const ctx = await loadContext(clientId, sessionId);
     const { niche, error } = loadNiche(ctx.trade);
     if (error) throw new Error(error);
+    const dossiers = await dossiersFor(clientId, ctx.keyValueMap);
+    return { ctx, niche, dossiers, input: { niche, keyValueMap: ctx.keyValueMap, serviceParentMap: ctx.serviceParentMap, pages: ctx.pages, cv: ctx.cv, onboardingText: ctx.onboardingText || '', dossiers } };
+  }
+
+  async function promptFor(clientId, sessionId) {
+    const { ctx, input } = await researchInput(clientId, sessionId);
     if (!(ctx.keyValueMap.biz_area_1 || '').trim()) throw new Error('The primary city (biz_area_1) is blank in the custom values.');
-    return R.buildFaqResearchPrompt({ niche, keyValueMap: ctx.keyValueMap, serviceParentMap: ctx.serviceParentMap, pages: ctx.pages, cv: ctx.cv });
+    return R.buildFaqResearchPrompt(input);
+  }
+
+  // What the research will use, in plain words for the card
+  function inputsSummary(ctx, dossiers) {
+    return {
+      customerQuestions: R.customerQuestions(ctx.cv).length,
+      onboarding: R.onboardingAnswers(ctx.onboardingText || '').length,
+      facts: R.confirmedFacts(ctx.cv).length,
+      dossiers: dossiers.map(d => d.location),
+      primaryCity: ctx.keyValueMap.biz_area_1 || '',
+    };
   }
 
   // Reads a finished Perplexity reply, saves it, then runs the sorting step. Also
@@ -110,6 +148,7 @@ function createFaqService({
     };
     await jobs.create(record);
     researchRunning.set(clientId, record.id);
+    lastJob.set(clientId, record.id);
     (async () => {
       let lastErr = null;
       for (let attempt = 1; attempt <= 2; attempt++) {
@@ -156,8 +195,10 @@ function createFaqService({
       const ctx = await loadContext(clientId, sessionId);
       const { niche, error } = loadNiche(ctx.trade);
       if (error) throw new Error(error);
+      // The client's own customers' questions go in ahead of the research
+      const own = S.clientQuestionItems(ctx.cv);
       const tidy = await S.runTidy({
-        research: research.parsed, niche, keyValueMap: ctx.keyValueMap, serviceParentMap: ctx.serviceParentMap,
+        research: { questions: [...own, ...research.parsed.questions] }, niche, keyValueMap: ctx.keyValueMap, serviceParentMap: ctx.serviceParentMap,
         pages: ctx.pages, cv: ctx.cv, callModel: callSortModel,
       });
       const old = await loadSort(clientId);
@@ -167,6 +208,7 @@ function createFaqService({
         updated_at: new Date().toISOString(),
         model: tidy.model,
         attempts: tidy.attempts,
+        customer_questions: own.map(q => q.text),
         questions: S.carryOver(tidy.questions, old ? old.record.questions : []),
       };
       await saveSort(clientId, record);
@@ -176,6 +218,8 @@ function createFaqService({
       sortRunning.delete(clientId);
     }
   }
+
+  const customersChanged = (sort, cv) => JSON.stringify(sort.record.customer_questions || []) !== JSON.stringify(R.customerQuestions(cv));
 
   // ── Assignment for the client as it is now ──
   async function assignmentFor(clientId, ctx, niche) {
@@ -201,6 +245,7 @@ function createFaqService({
     }
     const research = await latestResearch(clientId);
     if (research && research.id !== sort.record.research_asset_id) flags.push({ code: 'F-FAQ', msg: 'The FAQ questions were sorted from an older research run. Re-run the sorting step.' });
+    if (customersChanged(sort, ctx.cv)) flags.push({ code: 'F-FAQ', msg: "The customers' questions on Client Values changed since the FAQ questions were sorted. Re-run the sorting step." });
     const hp = (assignment.pages['homepage:homepage'] || { questions: [] }).questions;
     const unapproved = hp.filter(q => !q.approved && q.fact_supplied).length;
     if (unapproved) flags.push({ code: 'F-FAQ', msg: `${unapproved} homepage FAQ question(s) are waiting for their wording to be approved on the FAQ questions card.` });
@@ -244,9 +289,10 @@ function createFaqService({
         id: research.id, savedAt: research.savedAt, questionCount: research.parsed.questions.length,
         ranges: research.parsed.ranges, rules: research.parsed.rules, gaps: research.parsed.gaps, warnings: research.parsed.warnings,
       } : null,
-      sort: sort ? { updatedAt: sort.record.updated_at, stale: !!(research && research.id !== sort.record.research_asset_id), attempts: sort.record.attempts } : null,
+      sort: sort ? { updatedAt: sort.record.updated_at, stale: !!(research && research.id !== sort.record.research_asset_id), customersChanged: customersChanged(sort, ctx.cv), attempts: sort.record.attempts } : null,
+      inputs: inputsSummary(ctx, await dossiersFor(clientId, ctx.keyValueMap)),
       questions: sort ? sort.record.questions.map(q => ({
-        id: q.id, original: q.text, wording: q.wording, wording_errors: q.wording_errors, edited: !!q.edited, approved: !!q.approved,
+        id: q.id, source: q.source || 'research', original: q.text, wording: q.wording, wording_errors: q.wording_errors, edited: !!q.edited, approved: !!q.approved,
         doubt: q.doubt, page: q.page, service: q.service, town: q.town, seen: q.seen, seenCount: q.seenCount, rank: q.rank, url: q.url,
         fact: q.fact ? (facts[q.fact] || {}).label || q.fact : '', new_fact: q.new_fact || '', page_override: q.page_override || null,
         placement: placement[q.id] || null,

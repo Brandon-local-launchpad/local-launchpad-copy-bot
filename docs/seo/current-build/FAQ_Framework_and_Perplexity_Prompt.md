@@ -18,7 +18,7 @@ Every question a customer asks before booking comes from one of five doubts. Eve
 
 ## 2. Where the questions come from (best first)
 
-1. **The client's own customers.** Onboarding asks: "What do customers always ask you before they book?" These beat everything else.
+1. **The client's own customers.** "What do customers always ask you before they book?" These beat everything else. The onboarding form doesn't ask it yet (14 Oct 2026): it is in `niche-library/client-facts.json` to be added, and the answers go in the client value `customer_questions` (Client Values screen, FAQ section, one per line; the onboarding prefill fills it when an answer gives them). They go into the research as already known, and into the sorting step first, as C-1, C-2…, ahead of every researched question.
 2. **Real search questions:** Google People Also Ask and the Ahrefs questions report for the page's keyword.
 3. **Perplexity question research, run once per client** (decision, 14 Oct 2026). One run per client with the prompt below, using the client's trade, services and towns, the same way the area research runs. It covers the general questions about hiring the trade and the local ones for the client's towns, and its questions are stored against that client only. It is not shared between clients in the same trade. The dossier's symptoms and condition questions add to it. Manual test runs: `docs/seo/current-build/faq-research/` (Edens Edge, Southampton; roofer, Bournemouth).
 4. **The niche entry's default questions,** used when nothing better exists.
@@ -42,7 +42,7 @@ No question appears on two pages of the same site.
 
 ## 3b. How it runs in Copybot
 
-1. **Research, once per client.** The first "Run Research" on the Geo Research step also starts the client's FAQ question research (Perplexity, the same agent and preset as the dossiers). It can be run again from the FAQ questions card. The prompt is `prompts/FAQ_Research_CORE.md`; code adds the client's trade, primary city, other towns, and its services by GBP category in homeowner words. The reply is stored against the client; a new run replaces the old one.
+1. **Research, once per client.** One click: when "Run Research" on the Geo Research step has finished the dossiers, the client's FAQ question research starts by itself (only if the client has none yet). It can be run again from the FAQ questions card ("Research"). Perplexity, the same agent, key (`PERPLEXITY_API_KEY`) and preset as the dossiers. The prompt is `prompts/FAQ_Research_CORE.md`; code adds everything known about the client: trade, primary city, other towns and services; the customers' own questions; the confirmed client values that matter to customers (stand-ins and contact details left out); the onboarding answers (contact details, links and uploads left out); and the saved dossiers' local problems, rules, conservation areas and the problems homeowners describe. The reply is stored against the client; a new run replaces the old one.
 2. **Sorting, per client.** Runs by itself when new research is saved, or from the card.
    - One model call tidies the questions: merges near duplicates, marks questions the fixed homepage questions already answer, names the client fact each answer needs, picks the service and town, and rewrites each question in search wording (14 words at most, no dashes or hyphens, no banned phrases). Code checks every answer and retries once.
    - **Approval:** a person approves the wording once per client on the card before any question is used. An edited wording needs approving again.
@@ -51,9 +51,10 @@ No question appears on two pages of the same site.
      - a question that needs a client fact is held until the fact is on the Client Values step (a client value filled in, or a practice ticked); facts Copybot doesn't collect yet keep it waiting;
      - big cost questions ("How much does…") are held for a Cost Guide page, even though the homepage's Q1 covers cost in general;
      - a question for a page the client doesn't have moves up to that service's category page; with no category page either, it is dropped;
-     - each question is used on one page only, ranked by the research's most asked list, then its "seen" count (no Ahrefs data yet);
+     - each question is used on one page only; the customers' own questions come first, then the research's most asked list, then its "seen" count (no Ahrefs data yet);
      - a person can move or remove any question on the card; questions on a page's saved version stay on that page.
    - The questions waiting on a fact, grouped by fact with its onboarding question, are the client's onboarding list.
+   - The card groups the questions by page, collapsed, homepage first, with "Approve all" per page; then the questions not used (Cost Guide, no page, answered by the fixed homepage questions, duplicates, removed). When the customers' questions change on Client Values, the card and the decisions preview say to re-run the sorting.
 3. **Writing.** The homepage uses the sorted questions first: they take Q7 and any fallback slot (Q2 to Q4 when the client value is missing). The fixed homepage questions stay. Q7 prefers a doubt the fixed questions leave uncovered; a fallback slot takes a research question only with its own doubt or an uncovered one. Code writes each answer brief: from the client value's token, from the confirmed practice, or a general answer with no claims. Other page types use their questions when they are migrated.
 4. **Checking.** Per page, plus a site wide check that no question or neighbourhood repeats.
 

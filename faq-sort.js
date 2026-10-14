@@ -17,7 +17,7 @@ const fs   = require('fs');
 const path = require('path');
 const { practicesFor } = require('./practices');
 const { BANNED, STOCK } = require('./validate-v20');
-const { clientTowns, clientServicesByCategory } = require('./faq-research');
+const { clientTowns, clientServicesByCategory, customerQuestions, DOUBTS, PAGE_TYPES: PAGES } = require('./faq-research');
 
 const FAQ_SORT_MODEL  = 'claude-sonnet-4-6';
 const FAQ_SORT_PROMPT = 'FAQ_Sorting_CORE.md';
@@ -39,7 +39,7 @@ function loadSortPrompt() {
 // Every fact an answer can rest on: client values, then this niche's practices
 function factList(niche) {
   return [
-    ...CLIENT_FACTS.map(f => ({ key: f.key, kind: 'value', label: f.label, question: f.question, supplied: f.supplied, isNew: !!f.new })),
+    ...CLIENT_FACTS.filter(f => f.use !== 'questions').map(f => ({ key: f.key, kind: 'value', label: f.label, question: f.question, supplied: f.supplied, isNew: !!f.new })),
     ...practicesFor(niche).map(p => ({ key: p.key, kind: 'practice', label: p.label, question: p.question, claim: p.claim })),
   ];
 }
@@ -121,7 +121,7 @@ function buildSortMessage({ research, niche, keyValueMap, serviceParentMap, page
   L.push('');
   L.push('QUESTIONS:');
   for (const q of research.questions) {
-    L.push(`  ${q.id} | ${q.text} | ${q.doubt} | page: ${q.page} | local: ${q.local ? 'Y' : 'N'}${q.town ? ' ' + q.town : ''} | needs client fact: ${q.needsFact ? 'Y' : 'N'}`);
+    L.push(`  ${q.id} | ${q.text} | ${q.doubt || '?'} | page: ${q.page || '?'} | local: ${q.local ? 'Y' : 'N'}${q.town ? ' ' + q.town : ''} | needs client fact: ${q.source === 'client' ? '?' : q.needsFact ? 'Y' : 'N'}${q.source === 'client' ? " | FROM THE CLIENT'S CUSTOMERS" : ''}`);
   }
   return L.join('\n');
 }
@@ -143,7 +143,7 @@ function checkTidy(reply, { research, niche, keyValueMap, serviceParentMap, page
     const id = String(r.id || '').toUpperCase();
     if (!byId[id]) { errors.push(`${r.id || '(no id)'} is not one of the QUESTIONS`); continue; }
     if (items[id]) { errors.push(`${id} appears twice`); continue; }
-    const it = { duplicate_of: '', covered_by: '', fact: '', new_fact: '', service: '', town: '', wording: '' };
+    const it = { duplicate_of: '', covered_by: '', fact: '', new_fact: '', service: '', town: '', wording: '', doubt: '', page: '' };
     const problems = [];
     const dup = String(r.duplicate_of || '').toUpperCase();
     if (dup) {
@@ -163,6 +163,15 @@ function checkTidy(reply, { research, niche, keyValueMap, serviceParentMap, page
     else problems.push(`service "${svc}" is not a category or service word from CLIENT`);
     const town = String(r.town || '').trim();
     if (town) { if (towns.has(norm(town))) it.town = towns.get(norm(town)); else problems.push(`town "${town}" is not a town from CLIENT`); }
+    // The customers' own questions arrive without a doubt or page: the reply gives them
+    if (!byId[id].doubt) {
+      const d = DOUBTS.find(x => x.toLowerCase() === String(r.doubt || '').trim().toLowerCase());
+      if (d) it.doubt = d; else problems.push(`doubt "${r.doubt || ''}" must be one of ${DOUBTS.join(', ')}`);
+    }
+    if (!byId[id].page) {
+      const p = PAGES.find(x => x.toLowerCase() === String(r.page || '').trim().toLowerCase());
+      if (p) it.page = p; else problems.push(`page "${r.page || ''}" must be one of ${PAGES.join(', ')}`);
+    }
     it.wording = String(r.wording || '').trim();
     for (const e of checkWording(it.wording)) problems.push(`wording "${it.wording}": ${e}`);
     if (problems.length) errors.push(...problems.map(p => `${id}: ${p}`));
@@ -219,6 +228,8 @@ async function runTidy({ research, niche, keyValueMap, serviceParentMap, pages =
       covered_by: it.covered_by,
       fact: it.fact,
       new_fact: it.new_fact,
+      doubt: q.doubt || it.doubt || '',
+      page: q.page || it.page || '',
       service: it.service || '',
       town: it.town || q.town || '',
       wording: wordingErrors.length ? q.text : it.wording,
@@ -229,6 +240,15 @@ async function runTidy({ research, niche, keyValueMap, serviceParentMap, pages =
     };
   });
   return { questions, attempts, model: FAQ_SORT_MODEL };
+}
+
+// The client's own customers' questions (client value customer_questions) as
+// questions for the sorting step: IDs C-1, C-2…, placed ahead of the research.
+function clientQuestionItems(cv = {}) {
+  return customerQuestions(cv).map((text, i) => ({
+    id: `C-${i + 1}`, text, source: 'client', doubt: '', page: '', service: '', local: false, town: '',
+    needsFact: false, seen: "the client's customers", seenCount: 0, url: '', dated: '', rank: null,
+  }));
 }
 
 // Re-tidy keeps a person's work: approvals, hand edits and moves carry over for a
@@ -302,8 +322,9 @@ function assignQuestions({ questions, cv, pages, keyValueMap, serviceParentMap, 
     if (!out.pages[id]) out.pages[id] = { id, type: p.pageType, key: p.pageType === 'homepage' ? 'homepage' : p.urlSlug, title: p.pageTitle, questions: [] };
     out.pages[id].questions.push(q);
   };
+  // The client's own customers' questions first (FAQ Framework section 2), then the research order
   const ordered = [...questions].sort((a, b) =>
-    (a.rank || 999) - (b.rank || 999) || (b.seenCount || 0) - (a.seenCount || 0) || idNum(a.id) - idNum(b.id));
+    (a.source === 'client' ? 0 : 1) - (b.source === 'client' ? 0 : 1) || (a.rank || 999) - (b.rank || 999) || (b.seenCount || 0) - (a.seenCount || 0) || idNum(a.id) - idNum(b.id));
   const usedWording = new Set();
 
   for (const q0 of ordered) {
@@ -399,6 +420,6 @@ function homepageQuestions(assignment, niche) {
 module.exports = {
   FAQ_SORT_MODEL, CLIENT_FACTS,
   loadSortPrompt, factList, factSupplied, fixedHomepageQuestions, checkWording,
-  buildSortMessage, checkTidy, runTidy, carryOver,
+  buildSortMessage, checkTidy, runTidy, carryOver, clientQuestionItems,
   isCostQuestion, assignQuestions, siteRepeats, answerBrief, homepageQuestions, pageId, normWording: norm,
 };

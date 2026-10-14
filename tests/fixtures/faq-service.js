@@ -35,7 +35,8 @@ console.log('\n=== FIXTURE: FAQ service (pg-mem, fake Perplexity, replayed tidy 
 
   const edens = C.byId['edens-edge'];
   let cv = { ...edens.cvThin };
-  const loadContext = async () => ({ cv, pages: edens.pages, keyValueMap: edens.keyValueMap, serviceParentMap: edens.serviceParentMap, trade: 'Landscaper', v20TestMode: true });
+  const onboardingText = 'Q: Full Name\nA: Test Person\n\nQ: How quickly can you typically get started on a new job?\nA: Usually the same week';
+  const loadContext = async () => ({ cv, pages: edens.pages, keyValueMap: edens.keyValueMap, serviceParentMap: edens.serviceParentMap, trade: 'Landscaper', v20TestMode: true, onboardingText });
   const loadNiche = () => ({ niche: edens.niche });
 
   // research_jobs as server.js keeps them
@@ -62,7 +63,16 @@ console.log('\n=== FIXTURE: FAQ service (pg-mem, fake Perplexity, replayed tidy 
   };
   const replies = JSON.parse(fs.readFileSync(path.join(__dirname, 'faq-sort-replies/edens-edge.json'), 'utf8')).replies;
   let sortCalls = 0;
-  const callSortModel = async () => replies[(sortCalls++) % replies.length];
+  // The saved real replies; when the client has customers' questions, a C- answer is
+  // added in front of the saved reply (only to drive the code path, not as expected output)
+  const callSortModel = async (system, message) => {
+    const raw = replies[(sortCalls++) % replies.length];
+    const ids = [...message.matchAll(/^  (C-\d+) \| /gm)].map(m => m[1]);
+    if (!ids.length) return raw;
+    const reply = JSON.parse(raw.slice(raw.indexOf('{'), raw.lastIndexOf('}') + 1));
+    reply.questions.unshift(...ids.map(id => ({ id, doubt: 'Process', page: 'Homepage', wording: 'Will you take the old patio away?', fact: '', service: 'General' })));
+    return JSON.stringify(reply);
+  };
   let placed = {};
   const svc = createFaqService({
     pool, loadContext, loadNiche, perplexity, jobs, callSortModel,
@@ -74,6 +84,14 @@ console.log('\n=== FIXTURE: FAQ service (pg-mem, fake Perplexity, replayed tidy 
   // ── Before anything ──
   let v = await svc.view(clientId, null);
   chk('Card before any research: no job, no research, no questions', !v.job && !v.research && !v.questions.length, JSON.stringify({ job: v.job, research: !!v.research }), 'empty');
+  chk('Card before any research: says what the research will use (no dossiers yet)', v.inputs && v.inputs.dossiers.length === 0 && v.inputs.onboarding === 1 && v.inputs.facts > 0, JSON.stringify(v.inputs), '0 dossiers, 1 onboarding answer');
+  // The area research saves the Southampton dossier first
+  await pool.query(`INSERT INTO client_assets (client_id, asset_type, filename, content, metadata) VALUES ($1, 'geo_dossier', 'Southampton_dossier.md', $2, $3)`,
+    [clientId, fs.readFileSync(path.join(__dirname, 'southampton-dossier.md'), 'utf8'), JSON.stringify({ location_name: 'Southampton', superseded: false })]);
+  await pool.query(`INSERT INTO client_assets (client_id, asset_type, filename, content, metadata) VALUES ($1, 'geo_dossier', 'Romsey_dossier.md', 'old', $2)`,
+    [clientId, JSON.stringify({ location_name: 'Romsey', superseded: true })]);
+  v = await svc.view(clientId, null);
+  chk('Card: the saved dossier is listed; a superseded one is not', JSON.stringify(v.inputs.dossiers) === '["Southampton"]', JSON.stringify(v.inputs.dossiers), '["Southampton"]');
   let hp = await svc.homepageFaq(clientId, await loadContext(), edens.niche);
   chk('Homepage without sorted questions: niche questions, with an F-FAQ flag', !hp.faqResearch.length && hp.flags.some(f => f.code === 'F-FAQ' && /No FAQ questions sorted/.test(f.msg)), hp.flags.map(f => f.msg).join('; '), 'F-FAQ');
 
@@ -84,6 +102,8 @@ console.log('\n=== FIXTURE: FAQ service (pg-mem, fake Perplexity, replayed tidy 
   await until(async () => !svc.isResearchRunning(clientId));
   await until(async () => !!(await svc.loadSort(clientId)));
   chk('The prompt sent has the client block (Southampton, turf laying)', /Primary city: Southampton/.test(prompts[0]) && /turf laying/.test(prompts[0]), prompts[0].slice(-300), 'client block');
+  chk('The prompt has the local knowledge from the saved dossier', /=== LOCAL KNOWLEDGE FROM THE AREA RESEARCH ===\nSouthampton:\n  Local problems: Mixed geology/.test(prompts[0]) && /Conservation areas: Portswood/.test(prompts[0]), '', 'Southampton local knowledge');
+  chk('The prompt has the onboarding answers, without the name', /Usually the same week/.test(prompts[0]) && !/Test Person/.test(prompts[0]), '', 'start time answer, no name');
   const research = await svc.latestResearch(clientId);
   chk('Research saved against the client (40 questions, cost kept)', research && research.parsed.questions.length === 40 && research.meta.cost === 0.42, research && research.meta.question_count, 40);
   const job = (await pool.query(`SELECT status, locations FROM research_jobs WHERE client_id=$1`, [clientId])).rows[0];
@@ -133,6 +153,22 @@ console.log('\n=== FIXTURE: FAQ service (pg-mem, fake Perplexity, replayed tidy 
   hp = await svc.homepageFaq(clientId, await loadContext(), edens.niche);
   chk('A question on the saved homepage comes first', hp.faqResearch[0].research_id === 'Q-37', hp.faqResearch.map(q => q.research_id).join(' '), 'Q-37 first');
   placed = {};
+
+  // ── The customers' own questions go in first ──
+  cv = { ...edens.cvRich, customer_questions: ['Will you take the old patio away?'] };
+  v = await svc.view(clientId, null);
+  chk("Customers' questions added on Client Values: the card says to re-run the sorting", v.sort.customersChanged === true, v.sort.customersChanged, true);
+  hp = await svc.homepageFaq(clientId, await loadContext(), edens.niche);
+  chk('…and so does the decisions preview (F-FAQ)', hp.flags.some(f => /customers' questions on Client Values changed/.test(f.msg)), hp.flags.map(f => f.msg).join('; '), 'F-FAQ');
+  await svc.runSort(clientId, null);
+  v = await svc.view(clientId, null);
+  const own1 = v.questions.find(q => q.id === 'C-1');
+  chk("After sorting: C-1 is the client's, first in the list, on the homepage", v.questions[0].id === 'C-1' && own1.source === 'client' && own1.placement && own1.placement.page === 'homepage:homepage' && !v.sort.customersChanged,
+    JSON.stringify({ first: v.questions[0].id, src: own1 && own1.source, place: own1 && own1.placement }), 'C-1 first, homepage');
+  v = await svc.updateQuestions(clientId, [{ id: 'C-1', approved: true }], null);
+  hp = await svc.homepageFaq(clientId, await loadContext(), edens.niche);
+  chk("Approved: the customer's question is the homepage's first research question", hp.faqResearch[0] && hp.faqResearch[0].research_id === 'C-1', hp.faqResearch.map(q => q.research_id).join(' '), 'C-1 first');
+  cv = { ...edens.cvThin };
 
   // ── A refused research reply keeps the saved research ──
   pxReply = { output_text: 'I could not find any questions.', usage: {} };

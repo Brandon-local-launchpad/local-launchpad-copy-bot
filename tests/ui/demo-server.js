@@ -16,6 +16,8 @@ const root = path.join(__dirname, '../..');
 const { newDb, DataType } = require('pg-mem');
 const mem = newDb();
 mem.public.registerFunction({ name: 'gen_random_uuid', returns: DataType.uuid, implementation: () => crypto.randomUUID(), impure: true });
+// research_jobs rows are written with to_timestamp(ms / 1000.0)
+mem.public.registerFunction({ name: 'to_timestamp', args: [DataType.float], returns: DataType.timestamptz, implementation: s => new Date(s * 1000) });
 const pgAdapter = mem.adapters.createPg();
 // Every require('pg') in the app gets pg-mem
 const realResolve = Module._resolveFilename;
@@ -30,14 +32,10 @@ const SDK_ID = '__fake_anthropic__';
 if (process.env.DEMO_REAL_MODEL !== '1') {
   const realResolve2 = Module._resolveFilename;
   Module._resolveFilename = function (request, ...rest) { return request === '@anthropic-ai/sdk' ? SDK_ID : realResolve2.call(this, request, ...rest); };
-  // The FAQ sorting step's tidy call gets the saved real Edens Edge replies, in turn
-  const faqReplies = require(path.join(root, 'tests/fixtures/faq-sort-replies/edens-edge.json')).replies;
-  let faqCall = 0;
+  // (The FAQ sorting step needs the real model: run with DEMO_REAL_MODEL=1 to try it.)
   class FakeAnthropic {
     constructor() {
-      this.messages = { create: async req => /You tidy a list of researched customer questions/.test(req.system || '')
-        ? { stop_reason: 'end_turn', usage: { input_tokens: 0, output_tokens: 0 }, content: [{ type: 'text', text: faqReplies[(faqCall++) % faqReplies.length] }] }
-        : ({ stop_reason: 'end_turn', usage: { input_tokens: 0, output_tokens: 0 }, content: [{ type: 'text', text: JSON.stringify({ findings: [
+      this.messages = { create: async () => ({ stop_reason: 'end_turn', usage: { input_tokens: 0, output_tokens: 0 }, content: [{ type: 'text', text: JSON.stringify({ findings: [
         { field: 'faq_answer (How soon can you start?)', quote: 'We can usually start the same week.', why: '"usually" qualifies the confirmed start time' },
         { field: 'home_hero_intro', quote: 'is a landscaper in Southampton', why: 'demo: a made-up finding on text nobody touched' },
       ] }) }] }) };
@@ -74,6 +72,13 @@ process.env.APP_PASSWORD = '';
   for (const f of fs.readdirSync(realDir)) {
     await asset('client_file', f, fs.readFileSync(path.join(realDir, f), 'utf8'), { fileType: f === 'page-map.csv' ? 'page_map' : 'custom_values' });
   }
+  // Ethan's 14 service areas (the client sheet isn't in the repo; see tests/fixtures/data/edens-edge-real.js)
+  const { AREAS } = require(path.join(root, 'tests/fixtures/data/edens-edge-real.js'));
+  const areasCsv = ['Client,,,', 'Name,GHL Custom Value Key,Value,Notes', ...AREAS.map((a, i) => `Service area ${i + 1},{{custom_values.biz_area_${i + 1}}},${a},`)].join('\n');
+  await asset('client_file', 'client-areas.csv', areasCsv, { fileType: 'custom_values' });
+  // The real Southampton dossier (saved 8 Oct), as the area research would have saved it
+  await asset('geo_dossier', 'Southampton_dossier.md', fs.readFileSync(path.join(root, 'tests/fixtures/southampton-dossier.md'), 'utf8'),
+    { location_name: 'Southampton', location_norm: 'southampton', superseded: false });
   const { ctx, decisionsResult } = await v20HomepageInputs(clientId, null);
   const D = decisionsResult.decisions;
   if (!D) throw new Error('Demo client fails the gates: ' + JSON.stringify(decisionsResult.gates));
@@ -88,17 +93,7 @@ process.env.APP_PASSWORD = '';
   }
   await asset('v20_page_record', 'homepage_v20.json', JSON.stringify(ordered));
 
-  // FAQ questions: the manual Edens Edge research run, sorted with the saved real tidy replies
-  const R = require(path.join(root, 'faq-research.js'));
-  const S = require(path.join(root, 'faq-sort.js'));
-  const runText = fs.readFileSync(path.join(root, 'docs/seo/current-build/faq-research/landscaper-southampton-edens-edge.md'), 'utf8');
-  const research = R.parseFaqResearch(runText);
-  const researchId = (await pool.query(`INSERT INTO client_assets (client_id, asset_type, filename, content, metadata) VALUES ($1, 'faq_research', 'faq_research.md', $2, $3) RETURNING id`,
-    [clientId, runText, JSON.stringify({ question_count: research.questions.length, superseded: false, demo: true })])).rows[0].id;
-  const saved = require(path.join(root, 'tests/fixtures/faq-sort-replies/edens-edge.json')).replies;
-  let n = 0;
-  const tidy = await S.runTidy({ research, niche: require(path.join(root, 'niche-library/landscaper.json')), keyValueMap: ctx.keyValueMap, serviceParentMap: ctx.serviceParentMap, pages: ctx.pages, cv: ctx.cv, callModel: async () => saved[n++] });
-  await asset('faq_sort', 'faq_sort.json', JSON.stringify({ version: 1, research_asset_id: researchId, updated_at: new Date().toISOString(), model: tidy.model, attempts: tidy.attempts, questions: tidy.questions }));
+  // No FAQ research or sorted questions: the FAQ questions card shows the real empty state
 
   console.log('\nDEMO READY');
   console.log(`  Client:       http://localhost:${PORT}/client.html?id=${clientId}`);

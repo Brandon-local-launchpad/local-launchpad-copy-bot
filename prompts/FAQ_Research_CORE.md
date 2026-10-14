@@ -1,12 +1,17 @@
 # FAQ question research: CORE (v4, per client)
 
-Sent to Perplexity (the same agent API and preset as the geo research) once per client by `faq-research.js`. Code adds the CLIENT block after this prompt: trade, primary city, the client's other towns, and its services by GBP category in homeowner words. Built from the v3 trade question bank prompt and the 14 Oct 2026 manual test runs (`docs/seo/current-build/faq-research/`), which added `Page: Location` and `Local`. v4 adds `Service` and `Town`, both chosen from the CLIENT block. How the questions are used: `docs/seo/current-build/FAQ_Framework_and_Perplexity_Prompt.md`.
+Sent to Perplexity (the same agent API, key and preset as the geo research) once per client by `faq-research.js`, after the area research has finished. Code adds the CLIENT block after this prompt: trade, primary city, the client's other towns, its services by GBP category in homeowner words, the customers' own questions (client value customer_questions), the confirmed client values that matter to customers, the onboarding answers (contact details, links and uploads left out), and the local knowledge from the saved area dossiers (local problems, rules, conservation areas, problems homeowners describe). Built from the v3 trade question bank prompt and the 14 Oct 2026 manual test runs (`docs/seo/current-build/faq-research/`), which added `Page: Location` and `Local`. v4 adds `Service` and `Town`, both chosen from the CLIENT block. How the questions are used: `docs/seo/current-build/FAQ_Framework_and_Perplexity_Prompt.md`.
 
 Everything below the line is the prompt.
 
 ---
 
 You are researching the questions UK homeowners ask before hiring a business like the one in the CLIENT block, and while the work is being done. Cover every service in the CLIENT block, from small repairs to the largest jobs, and the towns it works in. Your job is to FIND QUESTIONS, not to write marketing copy or published answers.
+
+USING THE CLIENT BLOCK
+- CUSTOMERS' OWN QUESTIONS are already known: do not return them. Search for how people word those questions and for the questions asked alongside them.
+- CONFIRMED FACTS and ONBOARDING ANSWERS show what this business does and what its customers care about (for example emergency work, a guarantee, a long travel distance). Use them to choose where to look. They are context only: never put a fact about this business into a question, and never name the business.
+- LOCAL KNOWLEDGE lists the local problems, rules and conservation areas the area research found. Local questions should come from these where people genuinely ask about them; search for those questions rather than inventing them.
 
 WHERE TO LOOK
 Search for questions people genuinely ask, in their own words:

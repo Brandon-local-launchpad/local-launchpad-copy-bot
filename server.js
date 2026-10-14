@@ -1960,9 +1960,6 @@ app.post('/api/research-start', async (req, res) => {
   // Respond immediately — research runs in background
   res.json({ jobId, total: locations.length });
 
-  // Same click: the client's FAQ question research, once, if it has none yet
-  if (faqService) faqService.maybeAutoResearch(clientId, sessionId);
-
   // Background: persist codes, then run locations in parallel (capped at RESEARCH_CONCURRENCY)
   (async () => {
     const { keyValueMap, serviceParentMap, trade } = session;
@@ -2013,6 +2010,10 @@ app.post('/api/research-start', async (req, res) => {
       }
       next();
     });
+
+    // Same click: once the dossiers are saved, the client's FAQ question research
+    // (only when it has none yet), so it can use them
+    if (faqService) await faqService.maybeAutoResearch(clientId, sessionId);
   })();
 });
 
@@ -2883,7 +2884,7 @@ const CLIENT_VALUES_TEMPLATE = {
   differentiator_2: '', differentiator_2_confirmed: false, differentiator_2_sentence: '',
   verified_logos: null,
   free_quotes: '', free_inspection: '', quote_method: '', price_list: '', response_time: '',
-  quote_includes: '', deposit_terms: '', waste_carrier_registered: '',
+  quote_includes: '', deposit_terms: '', waste_carrier_registered: '', customer_questions: [],
   confirmed_practices: [], coastal_city: '',
   same_day_available: '', out_of_hours_available: '', start_time: '',
   owner_name: '', owner_name_2: '', owner_qualification: '',
@@ -2988,7 +2989,7 @@ app.post('/api/clients/:clientId/prefill-client-values', async (req, res) => {
 
     // Small Claude call to extract free-text onboarding answers into structured fields
     if (onboardingText && client) {
-      const extractPrompt = `You are extracting structured data from a business onboarding form.\n\nExtract the following fields from the Q&A below. Return ONLY a JSON object with these exact keys. If a field is not mentioned or the answer is unusable (vague, unclear, non-committal), return an empty string "" for that field. Never invent values.\n\nFields to extract:\n- year_founded (4-digit year only, e.g. "2015"; blank if vague like "a few years ago")\n- jobs_completed (number only, e.g. "150"; blank if a range or vague)\n- guarantee_years (number only; blank if "no guarantee" or not mentioned)\n- manufacturer_warranty (e.g. "25 years manufacturer warranty"; blank if not mentioned)\n- insurance_cover (figure without £ symbol, e.g. "5m" or "2000000"; blank if not mentioned)\n- free_quotes ("yes" or "no"; blank if not mentioned)\n- start_time (short phrase, e.g. "same week" or "within 2 weeks"; blank if vague)\n- hours (e.g. "Monday to Saturday, 8am to 6pm"; blank if not mentioned or unusable)\n- gbp_address_type ("storefront" or "service_area"; blank if unclear)\n- travel_distance (short phrase or miles, e.g. "20 miles"; blank if not mentioned)\n- team_size (number only; blank if not mentioned)\n- owner_name (first name only; blank if not mentioned)\n- same_day_available ("yes" or "no"; blank if not mentioned)\n- out_of_hours_available ("yes", "no", or "24/7"; blank if not mentioned)\n- handles_planning ("yes" or "no"; blank if not mentioned)\n- quote_includes (what the quote covers, in the client's words, e.g. "materials, labour and taking the waste away"; blank if not mentioned)\n- deposit_terms (deposit and when payments are due, e.g. "20% deposit, balance on completion"; blank if not mentioned)\n- waste_carrier_registered ("yes" or "no"; blank if not mentioned)\n- jobs_wanted (array of up to 3 job types the business wants more of; [] if not mentioned)\n- differentiator_1 (the most prominent thing that makes them stand out, in title-case short-phrase form, e.g. "Fixed Prices With No Hidden Costs"; blank if nothing specific)\n- differentiator_2 (second most prominent differentiator, same format; blank if not present)\n- confirmed_practices (array of keys from this list, only where an answer clearly says yes; [] if none or unclear): ${PRACTICES.map(p => `${p.key} = "${p.question}"`).join('; ')}\n\nReturn ONLY a raw JSON object, no markdown, no explanation.\n\n--- ONBOARDING Q&A ---\n${onboardingText}\n\n--- CUSTOM VALUES ---\n${Object.entries(cv).map(([k,v]) => `${k}: ${v}`).join('\n')}`;
+      const extractPrompt = `You are extracting structured data from a business onboarding form.\n\nExtract the following fields from the Q&A below. Return ONLY a JSON object with these exact keys. If a field is not mentioned or the answer is unusable (vague, unclear, non-committal), return an empty string "" for that field. Never invent values.\n\nFields to extract:\n- year_founded (4-digit year only, e.g. "2015"; blank if vague like "a few years ago")\n- jobs_completed (number only, e.g. "150"; blank if a range or vague)\n- guarantee_years (number only; blank if "no guarantee" or not mentioned)\n- manufacturer_warranty (e.g. "25 years manufacturer warranty"; blank if not mentioned)\n- insurance_cover (figure without £ symbol, e.g. "5m" or "2000000"; blank if not mentioned)\n- free_quotes ("yes" or "no"; blank if not mentioned)\n- start_time (short phrase, e.g. "same week" or "within 2 weeks"; blank if vague)\n- hours (e.g. "Monday to Saturday, 8am to 6pm"; blank if not mentioned or unusable)\n- gbp_address_type ("storefront" or "service_area"; blank if unclear)\n- travel_distance (short phrase or miles, e.g. "20 miles"; blank if not mentioned)\n- team_size (number only; blank if not mentioned)\n- owner_name (first name only; blank if not mentioned)\n- same_day_available ("yes" or "no"; blank if not mentioned)\n- out_of_hours_available ("yes", "no", or "24/7"; blank if not mentioned)\n- handles_planning ("yes" or "no"; blank if not mentioned)\n- quote_includes (what the quote covers, in the client's words, e.g. "materials, labour and taking the waste away"; blank if not mentioned)\n- deposit_terms (deposit and when payments are due, e.g. "20% deposit, balance on completion"; blank if not mentioned)\n- waste_carrier_registered ("yes" or "no"; blank if not mentioned)\n- customer_questions (array of the questions the client says customers ask before they book, each as a question in the customer's words; [] if the form doesn't say)\n- jobs_wanted (array of up to 3 job types the business wants more of; [] if not mentioned)\n- differentiator_1 (the most prominent thing that makes them stand out, in title-case short-phrase form, e.g. "Fixed Prices With No Hidden Costs"; blank if nothing specific)\n- differentiator_2 (second most prominent differentiator, same format; blank if not present)\n- confirmed_practices (array of keys from this list, only where an answer clearly says yes; [] if none or unclear): ${PRACTICES.map(p => `${p.key} = "${p.question}"`).join('; ')}\n\nReturn ONLY a raw JSON object, no markdown, no explanation.\n\n--- ONBOARDING Q&A ---\n${onboardingText}\n\n--- CUSTOM VALUES ---\n${Object.entries(cv).map(([k,v]) => `${k}: ${v}`).join('\n')}`;
 
       try {
         const extractResult = await client.messages.create({
@@ -3007,6 +3008,7 @@ app.post('/api/clients/:clientId/prefill-client-values', async (req, res) => {
           if (extracted[k] !== undefined && extracted[k] !== '') prefilled[k] = String(extracted[k]);
         }
         if (Array.isArray(extracted.jobs_wanted) && extracted.jobs_wanted.length) prefilled.jobs_wanted = extracted.jobs_wanted;
+        if (Array.isArray(extracted.customer_questions)) prefilled.customer_questions = extracted.customer_questions.map(q => String(q).trim()).filter(Boolean).slice(0, 20);
         // Suggested from the onboarding answers; a person confirms the ticks on the Client Values screen
         if (Array.isArray(extracted.confirmed_practices)) {
           const known = new Set(PRACTICES.map(p => p.key));
@@ -3090,10 +3092,12 @@ async function loadV20Context(clientId, sessionId) {
   let pages = [];
   let keyValueMap = {};
   let serviceParentMap = {};
+  let onboardingText = '';
   if (session) {
     pages = [...(session.jobs || []), ...(session.skippedPages || [])];
     keyValueMap = session.keyValueMap || {};
     serviceParentMap = session.serviceParentMap || {};
+    onboardingText = session.onboardingText || '';
   } else if (pool) {
     try {
       const { rows: fileRows } = await pool.query(
@@ -3102,6 +3106,8 @@ async function loadV20Context(clientId, sessionId) {
       );
       const pageMapRow = fileRows.find(r => (r.metadata?.fileType === 'page_map'));
       const cvRows     = fileRows.filter(r => r.metadata?.fileType === 'custom_values');
+      const onboardRow = fileRows.find(r => r.metadata?.fileType === 'onboarding');
+      if (onboardRow) onboardingText = parseOnboardingForm(onboardRow.content);
       if (pageMapRow) {
         pages = parsePageMap(pageMapRow.content);
         if (cvRows.length) {
@@ -3114,7 +3120,7 @@ async function loadV20Context(clientId, sessionId) {
       console.error('[v20] Failed to load pages/keyValueMap for', clientId, err);
     }
   }
-  return { cv, cvLoadError, v20TestMode, trade, clientTrade, pages, keyValueMap, serviceParentMap };
+  return { cv, cvLoadError, v20TestMode, trade, clientTrade, pages, keyValueMap, serviceParentMap, onboardingText };
 }
 
 // ── Allocation storage (Stage 5) ─────────────────────────────────────────────

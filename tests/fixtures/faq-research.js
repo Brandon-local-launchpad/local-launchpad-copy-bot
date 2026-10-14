@@ -34,6 +34,38 @@ chk('No GBP sheets: categories and services come from the page map (Kestrel Ridg
   /- Roofing contractor: roof repair, new roofs, flat roofs, leadwork, fascias and soffits, emergency roof repairs/.test(kBlock) && /- Chimney Services/.test(kBlock),
   kBlock.split('\n').filter(l => l.startsWith('- ')).join(' / '), 'Roofing contractor: roof repair, new roofs, …; Chimney Services');
 
+// ── Everything known about the client goes into the research ──
+const dossier = fs.readFileSync(path.join(__dirname, 'southampton-dossier.md'), 'utf8');
+const onboarding = [
+  'Q: Full Name\nA: Test Person',
+  'Q: Business/Primary Email\nA: test@example.org',
+  'Q: Business Phone Number\nA: 023 0000 0000',
+  'Q: How quickly can you typically get started on a new job? (think an average job)\nA: Usually the same week',
+  'Q: Do you accept emergency appointments? If so is it 24/7 callouts or different?\nA: No',
+].join('\n\n');
+const full = R.buildClientBlock({
+  niche: edens.niche, keyValueMap: edens.keyValueMap, serviceParentMap: edens.serviceParentMap, pages: edens.pages,
+  cv: { ...edens.cvRich, customer_questions: ['Will you take the old patio away?', '', 'Will you take the old patio away?', 'Do I need to be in?'] },
+  onboardingText: onboarding, dossiers: [{ location: 'Southampton', text: dossier }],
+});
+const sec = name => (full.split(`=== ${name}`)[1] || '').split('\n=== ')[0];
+chk("Customers' own questions listed, blanks and repeats dropped", /- Will you take the old patio away\?\n- Do I need to be in\?/.test(sec("CUSTOMERS' OWN QUESTIONS")) && (sec("CUSTOMERS' OWN QUESTIONS").match(/old patio/g) || []).length === 1,
+  sec("CUSTOMERS' OWN QUESTIONS"), 'two questions');
+chk('Confirmed facts: real values in (free quotes, start time, insured)', /Free quotes: yes/.test(sec('CONFIRMED FACTS')) && /How soon work can start: same week/.test(sec('CONFIRMED FACTS')) && /Insured: yes/.test(sec('CONFIRMED FACTS')), sec('CONFIRMED FACTS'), 'free quotes, start, insured');
+chk('Confirmed facts: stand-in (test) values left out', !/TEST/.test(sec('CONFIRMED FACTS')) && !/Deposit and payments/.test(sec('CONFIRMED FACTS')), sec('CONFIRMED FACTS'), 'no TEST values');
+chk('Confirmed facts: no identity or contact values', !/023 0000|Edens Edge|Test Owner/.test(sec('CONFIRMED FACTS')), '', 'none');
+chk('Onboarding answers: useful ones in', /How quickly can you typically get started on a new job\? \(think an average job\): Usually the same week/.test(sec("THE CLIENT'S ONBOARDING")) && /emergency appointments/.test(sec("THE CLIENT'S ONBOARDING")), sec("THE CLIENT'S ONBOARDING"), 'start time and emergency answers');
+chk('Onboarding answers: name, email and phone left out', !/Test Person|example\.org|023 0000/.test(full), '', 'none in the prompt');
+const local = sec('LOCAL KNOWLEDGE');
+chk('Local knowledge: the Southampton dossier problems', /^Southampton:/m.test(local) && /Local problems: Mixed geology and locally slow-draining ground/.test(local), local.slice(0, 200), 'Southampton, local problems');
+chk('Local knowledge: rules, with the places they apply to', /Rules and council: Southampton Tree Preservation Orders and conservation-area tree controls \(whole area\)/.test(local), '', 'TPO rule');
+chk('Local knowledge: conservation areas named', /Conservation areas: Portswood Residents’ Gardens, Oakmount Triangle/.test(local), (local.match(/Conservation areas: .*/) || [''])[0], 'Portswood…, Oakmount Triangle…');
+chk('Local knowledge: problems homeowners describe', /"The lawn stays soggy for days after rain\."/.test(local), '', 'soggy lawn');
+chk('Local knowledge: no URLs or dossier IDs', !/https?:\/\/|SOU-[NISR]\d/.test(local), (local.match(/https?:\/\/\S+|SOU-[NISR]\d+/) || [''])[0], 'none');
+const bare = R.buildClientBlock({ niche: edens.niche, keyValueMap: edens.keyValueMap, serviceParentMap: edens.serviceParentMap, pages: edens.pages, cv: {} });
+chk('With nothing known yet, each section says so', /OWN QUESTIONS[^\n]*\nnone given/.test(bare) && /CONFIRMED FACTS[^\n]*\nnone confirmed yet/.test(bare) && /ONBOARDING ANSWERS[^\n]*\nnone/.test(bare) && /AREA RESEARCH ===\nnone yet/.test(bare), '', 'none given / none confirmed yet / none / none yet');
+chk('The prompt tells Perplexity how to use the client block', /USING THE CLIENT BLOCK/.test(prompt) && /CUSTOMERS' OWN QUESTIONS are already known: do not return them/.test(prompt), '', 'present');
+
 // ── Parsing the manual runs ──
 const e = read(edens);
 const k = read(kestrel);

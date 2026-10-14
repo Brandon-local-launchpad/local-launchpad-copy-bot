@@ -1,6 +1,9 @@
 {
   "_note": "Client facts an FAQ answer can rest on (FAQ sorting step, faq-sort.js). A question that needs one of these is held back until the client has supplied it. 'supplied' says when a value counts as given: filled (not blank), yes (the value is yes), answered (any answer), guarantee (guarantee_years above 0 or a manufacturer warranty). Working practices (niche-library/practices.json) are facts too, supplied when ticked in confirmed_practices. 'question' is the onboarding form question. The three marked new were added 14 Oct 2026 (Brandon's decision: they come up for every trade).",
   "facts": [
+    { "key": "customer_questions", "label": "What customers ask before they book", "supplied": "filled", "new": true, "use": "questions",
+      "question": "What do customers always ask you before they book?",
+      "note": "Not a fact an answer rests on: the client's own customers' questions, one per line. They come first in the FAQ sorting, ahead of the Perplexity research (FAQ Framework section 2). The onboarding form doesn't ask this yet (checked 14 Oct 2026 against the Master Context Document's list of its 47 questions)." },
     { "key": "insurance_cover", "label": "Insurance cover", "supplied": "filled",
       "question": "What public liability insurance do you hold, and for how much?" },
     { "key": "guarantee_years", "label": "Guarantee", "supplied": "guarantee",

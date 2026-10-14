@@ -367,16 +367,15 @@
 
     <div class="card" id="faqCard" style="display:none">
       <div class="card-title">FAQ questions</div>
-      <p style="color:var(--muted);font-size:13px;margin-bottom:12px;">Researched once per client (it starts with Run Research the first time), then sorted: each question gets one page, questions that need a client fact wait until it's on the Client Values step, and big cost questions are kept for a Cost Guide page. Approve the wording here before any question is used.</p>
+      <p style="color:var(--muted);font-size:13px;margin-bottom:12px;">Questions for every page, researched once per client. It runs by itself after Run Research finishes, using the dossiers, the onboarding answers, the client values and the customers' own questions (those come first). Approve the wording before a question is used.</p>
       <div id="faqStatus" style="font-size:13px;margin-bottom:8px"></div>
       <div id="faqError" style="display:none;color:var(--flag);font-size:13px;margin:8px 0;white-space:pre-wrap"></div>
       <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px">
-        <button class="btn btn-ghost btn-sm" id="faqResearchBtn" style="width:auto;padding:6px 14px" onclick="runFaqResearch()">Run FAQ research</button>
+        <button class="btn btn-ghost btn-sm" id="faqResearchBtn" style="width:auto;padding:6px 14px" onclick="runFaqResearch()">Research</button>
         <button class="btn btn-ghost btn-sm" id="faqSortBtn" style="width:auto;padding:6px 14px;display:none" onclick="runFaqSort()">Re-run sorting</button>
       </div>
       <div id="faqBody" style="font-size:13px"></div>
       <div id="faqActions" style="display:none;gap:8px;flex-wrap:wrap;margin-top:12px">
-        <button class="btn btn-ghost btn-sm" style="width:auto;padding:6px 14px" onclick="approveAllFaq()">Tick all clean wording</button>
         <button class="btn btn-primary btn-sm" id="faqSaveBtn" style="width:auto;padding:6px 14px" onclick="saveFaqQuestions()">Save changes</button>
       </div>
     </div>
@@ -901,14 +900,62 @@
     }
   }
 
-  function faqPlacementText(q) {
-    const p = q.placement;
-    if (!p) return '<span style="color:var(--muted)">not placed</span>';
-    if (p.held) {
-      const label = { covered: 'Covered', duplicate: 'Duplicate', costGuide: 'Cost Guide', noPage: 'No page', dropped: 'Removed' }[p.held] || p.held;
-      return `<span style="color:var(--muted)">${h(label)}${p.reason ? ': ' + h(p.reason) : ''}</span>`;
+  // Groups on the card: one per page (homepage first), then the questions not used
+  const FAQ_HELD = {
+    costGuide: 'Kept for a Cost Guide page',
+    noPage: 'No page for these',
+    covered: 'Answered by the fixed homepage questions',
+    duplicate: 'Duplicates',
+    dropped: 'Removed',
+  };
+  const faqOpen = new Set();
+
+  function faqGroups(data) {
+    const groups = new Map();
+    const typeOrder = { homepage: 0, category: 1, service: 2, location: 3 };
+    for (const q of data.questions) {
+      const p = q.placement || { held: 'noPage' };
+      let key, title, order, page = !!p.page;
+      if (p.page) {
+        key = p.page;
+        title = p.page === 'homepage:homepage' ? 'Homepage' : p.pageTitle;
+        order = typeOrder[p.page.split(':')[0]] ?? 4;
+      } else {
+        key = 'held:' + p.held;
+        title = FAQ_HELD[p.held] || p.held;
+        order = 9 + Object.keys(FAQ_HELD).indexOf(p.held);
+      }
+      if (!groups.has(key)) groups.set(key, { key, title, order, page, questions: [] });
+      groups.get(key).questions.push(q);
     }
-    return `${h(p.pageTitle)}${p.pinned ? ' (kept: on the saved page)' : ''}${p.note ? `<div style="color:var(--muted)">${h(p.note)}</div>` : ''}`;
+    return [...groups.values()].sort((a, b) => a.order - b.order || a.title.localeCompare(b.title));
+  }
+
+  function faqQuestionHtml(q, data) {
+    const opts = ['<option value="">Auto</option>', ...data.pageOptions.map(o => `<option value="${h(o.id)}" ${o.id === q.page_override ? 'selected' : ''}>${h(o.label)}</option>`),
+      `<option value="drop" ${q.page_override === 'drop' ? 'selected' : ''}>Remove</option>`].join('');
+    const p = q.placement || {};
+    const waiting = p.page && p.usable === false && (q.fact || q.new_fact);
+    const needs = q.fact || q.new_fact
+      ? `Needs: ${h([q.fact, q.new_fact].filter(Boolean).join(' and '))}${waiting ? ' <span style="color:var(--flag)">(waiting for it)</span>' : ''}`
+      : 'Needs no client fact';
+    const from = q.source === 'client'
+      ? `<strong>From the client's customers</strong>: ${h(q.original)}`
+      : `Research: ${h(q.original)}${q.seen ? ' · seen ' + h(q.seen) : ''}`;
+    const why = p.held && p.reason ? ` · ${h(p.reason)}` : (p.note ? ` · ${h(p.note)}` : '') + (p.pinned ? ' · kept: on the saved page' : '');
+    return `<div class="faq-q" data-id="${h(q.id)}" style="border-top:1px solid var(--border);padding:8px 0">
+      <div style="display:flex;gap:8px;align-items:center">
+        <input class="cv-input faq-wording" value="${h(q.wording)}" data-orig="${h(q.wording)}" style="flex:1;min-width:0">
+        <label style="display:flex;gap:4px;align-items:center;white-space:nowrap;text-transform:none;letter-spacing:0;font-size:12px">
+          <input type="checkbox" class="faq-approve" data-orig="${q.approved ? '1' : ''}" ${q.approved ? 'checked' : ''} ${q.wording_errors.length ? 'disabled title="Fix the wording first"' : ''}> Approved</label>
+      </div>
+      ${q.wording_errors.length ? `<div style="color:var(--block)">${h(q.wording_errors.join('; '))}</div>` : ''}
+      <div style="color:var(--muted);margin-top:4px">${h(q.id)} · ${h(q.doubt || '?')} · ${from}</div>
+      <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:4px;color:var(--muted)">
+        <span>${needs}${why}</span>
+        <select class="cv-input faq-move" data-orig="${h(q.page_override || '')}" style="width:auto;max-width:260px">${opts}</select>
+      </div>
+    </div>`;
   }
 
   function renderFaq(data) {
@@ -924,15 +971,22 @@
     if (data.running.research || (job && ['running', 'pending', 'queued'].includes(job.status))) lines.push('<span style="color:var(--accent)">FAQ research running on Perplexity (this can take a while).</span>');
     else if (job && job.status && job.status !== 'done') lines.push(`<span style="color:var(--block)">Last FAQ research ${h(job.status.replace('_', ' '))}: ${h(job.error || '')}</span>`);
     if (data.research) lines.push(`Research saved ${h(new Date(data.research.savedAt).toLocaleString())}: ${data.research.questionCount} questions.`);
-    else if (!job) lines.push('<span style="color:var(--muted)">No FAQ research yet for this client.</span>');
     if (data.running.sort) lines.push('<span style="color:var(--accent)">Sorting the questions…</span>');
-    else if (data.sort) lines.push(`Sorted ${h(new Date(data.sort.updatedAt).toLocaleString())}${data.sort.stale ? ' <span style="color:var(--flag)">from an older research run: re-run the sorting</span>' : ''}.`);
-    else if (data.research) lines.push('<span style="color:var(--flag)">Not sorted yet: run the sorting.</span>');
+    else if (data.sort) {
+      lines.push(`Sorted ${h(new Date(data.sort.updatedAt).toLocaleString())}.`);
+      if (data.sort.stale) lines.push('<span style="color:var(--flag)">Sorted from an older research run: re-run the sorting.</span>');
+      if (data.sort.customersChanged) lines.push('<span style="color:var(--flag)">The customers\' questions on Client Values changed since sorting: re-run the sorting.</span>');
+    } else if (data.research) lines.push('<span style="color:var(--flag)">Not sorted yet: run the sorting.</span>');
+    if (!data.research && !job) {
+      const i = data.inputs || { dossiers: [] };
+      lines.push('No FAQ research yet for this client. It runs by itself after Run Research finishes, or click Research.');
+      lines.push(`<span style="color:var(--muted)">It will use: ${i.customerQuestions} of the customers' own questions, ${i.onboarding} onboarding answers, ${i.facts} client values, and ${i.dossiers.length ? 'the dossiers for ' + h(i.dossiers.join(', ')) : 'no dossiers yet (run the area research first for local questions)'}.</span>`);
+    }
     status.innerHTML = lines.map(l => `<div>${l}</div>`).join('');
 
     const busy = data.running.research || data.running.sort;
     resBtn.disabled = !!data.running.research;
-    resBtn.textContent = data.running.research ? 'Research running…' : (data.research ? 'Re-run FAQ research' : 'Run FAQ research');
+    resBtn.textContent = data.running.research ? 'Research running…' : (data.research ? 'Re-run research' : 'Research');
     sortBtn.style.display = data.research ? '' : 'none';
     sortBtn.disabled = !!data.running.sort;
     sortBtn.textContent = data.running.sort ? 'Sorting…' : (data.sort ? 'Re-run sorting' : 'Run sorting');
@@ -946,26 +1000,21 @@
     const usedHtml = used === null
       ? '<div style="color:var(--muted)">Which questions the homepage uses shows here once its gates pass (Preview v20 Decisions shows why not).</div>'
       : used.length
-        ? used.map(u => `<div>${h(u.slot)}: ${h(u.question)} <span style="color:var(--muted)">(${h(u.id)})</span></div>`).join('')
-        : '<div style="color:var(--muted)">None yet: the homepage uses the niche questions. Approve wording, or supply the facts below.</div>';
+        ? used.map(u => `<div>${h(u.slot)}: ${h(u.question)}</div>`).join('')
+        : '<div style="color:var(--muted)">None yet: the homepage uses the niche questions until a question here is approved and its fact supplied.</div>';
 
-    const opts = sel => ['<option value="">Auto</option>', ...data.pageOptions.map(o => `<option value="${h(o.id)}" ${o.id === sel ? 'selected' : ''}>${h(o.label)}</option>`),
-      `<option value="drop" ${sel === 'drop' ? 'selected' : ''}>Remove</option>`].join('');
-    const order = q => { const p = q.placement || {}; return p.page === 'homepage:homepage' ? 0 : p.page ? 1 : p.held === 'noPage' ? 2 : p.held === 'costGuide' ? 3 : 4; };
-    const qs = [...data.questions].sort((a, b) => order(a) - order(b) || (a.placement && a.placement.page || '').localeCompare(b.placement && b.placement.page || ''));
-    const rows = qs.map(q => {
-      const wait = q.placement && q.placement.page && q.placement.usable === false && (q.fact || q.new_fact);
-      return `<tr data-id="${h(q.id)}" style="border-top:1px solid var(--border);vertical-align:top">
-        <td style="padding:6px 6px 6px 0;white-space:nowrap">${h(q.id)}<div style="color:var(--muted)">${h(q.doubt)}</div></td>
-        <td style="padding:6px 6px;min-width:260px">
-          <input class="cv-input faq-wording" value="${h(q.wording)}" data-orig="${h(q.wording)}" style="width:100%">
-          ${q.wording_errors.length ? `<div style="color:var(--block)">${h(q.wording_errors.join('; '))}</div>` : ''}
-          <div style="color:var(--muted)" title="${h(q.url || '')}">Research: ${h(q.original)}${q.seen ? ' · seen: ' + h(q.seen) : ''}</div>
-        </td>
-        <td style="padding:6px 6px;min-width:160px">${faqPlacementText(q)}<select class="cv-input faq-move" data-orig="${h(q.page_override || '')}" style="margin-top:4px">${opts(q.page_override || '')}</select></td>
-        <td style="padding:6px 6px">${q.fact || q.new_fact ? `${h([q.fact, q.new_fact].filter(Boolean).join(' and '))}${wait ? '<div style="color:var(--flag)">waiting for this fact</div>' : ''}` : '<span style="color:var(--muted)">none</span>'}</td>
-        <td style="padding:6px 0 6px 6px;text-align:center"><input type="checkbox" class="faq-approve" data-orig="${q.approved ? '1' : ''}" ${q.approved ? 'checked' : ''} ${q.wording_errors.length ? 'disabled title="Fix the wording first"' : ''}></td>
-      </tr>`;
+    const groupsHtml = faqGroups(data).map(g => {
+      const n = g.questions.length;
+      const approved = g.questions.filter(q => q.approved).length;
+      const waiting = g.questions.filter(q => q.placement && q.placement.page && q.placement.usable === false && (q.fact || q.new_fact)).length;
+      const toApprove = g.questions.filter(q => !q.approved && !q.wording_errors.length).length;
+      const counts = g.page ? ` · ${approved} of ${n} approved${waiting ? ` · ${waiting} waiting for a fact` : ''}` : ` · ${n}`;
+      const btn = g.page && toApprove ? ` <button type="button" class="btn btn-ghost btn-sm" style="width:auto;padding:2px 10px;margin-left:8px" onclick="approveFaqGroup(event, '${h(g.key)}')">Approve all</button>` : '';
+      return `<details class="faq-group" data-group="${h(g.key)}" ${faqOpen.has(g.key) ? 'open' : ''} ontoggle="faqToggle(this)" style="border:1px solid var(--border);border-radius:6px;padding:6px 10px;margin-bottom:8px">
+        <summary style="cursor:pointer"><strong>${h(g.title)}</strong><span style="color:var(--muted)">${counts}</span>${btn}</summary>
+        ${g.key === 'homepage:homepage' ? `<div style="margin:8px 0"><strong>Homepage FAQ now</strong>${usedHtml}</div>` : ''}
+        ${g.questions.map(q => faqQuestionHtml(q, data)).join('')}
+      </details>`;
     }).join('');
 
     const waiting = (data.waitingByFact || []).map(w => `<li style="margin-bottom:6px"><strong>${h(w.label)}</strong>${w.kind === 'not collected yet' ? ' <span style="color:var(--flag)">(not a client value or practice yet)</span>' : ''}${w.question ? `<div>Ask: ${h(w.question)}</div>` : ''}<div style="color:var(--muted)">${w.questions.map(q => h(q.wording)).join(' · ')}</div></li>`).join('');
@@ -973,18 +1022,19 @@
     const repeats = (data.siteRepeats || []).map(x => `<div style="color:var(--block)">Repeated on two pages: ${h(x.question)}</div>`).join('');
 
     body.innerHTML = `
-      <div style="margin-bottom:10px"><strong>Homepage FAQ now</strong>${usedHtml}</div>
       ${repeats}
-      <div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse">
-        <thead><tr style="text-align:left;color:var(--muted)"><th>ID</th><th>Question (search wording)</th><th>Page</th><th>Needs</th><th>Approved</th></tr></thead>
-        <tbody>${rows}</tbody></table></div>
-      ${waiting ? `<details style="margin-top:12px" open><summary>Waiting on a client fact (ask at onboarding)</summary><ul style="margin:8px 0 0 18px">${waiting}</ul></details>` : ''}
-      <details style="margin-top:12px"><summary>Ranges, rules and gaps from the research (for onboarding only, never published)</summary>
+      ${groupsHtml}
+      ${waiting ? `<details style="margin-top:12px"><summary>Waiting on a client fact (ask at onboarding)</summary><ul style="margin:8px 0 0 18px">${waiting}</ul></details>` : ''}
+      <details style="margin-top:8px"><summary>Ranges, rules and gaps from the research (for onboarding only, never published)</summary>
         ${r.ranges.length ? `<div style="margin-top:6px"><strong>Ranges to confirm with the client</strong>${r.ranges.map(x => `<div>${h(x.job)}: ${h(x.range)} <span style="color:var(--muted)">${h(x.area)}${x.dated ? ', ' + h(x.dated) : ''}</span></div>`).join('')}</div>` : ''}
         ${r.rules.length ? `<div style="margin-top:6px"><strong>Rules customers ask about</strong>${r.rules.map(x => `<div>${h(x.question)}: <span style="color:var(--muted)">${h(x.rule)}</span></div>`).join('')}</div>` : ''}
         ${r.gaps.length ? `<div style="margin-top:6px"><strong>Gaps</strong>${r.gaps.map(x => `<div style="color:var(--muted)">${h(x)}</div>`).join('')}</div>` : ''}
       </details>`;
     actions.style.display = 'flex';
+  }
+
+  function faqToggle(el) {
+    if (el.open) faqOpen.add(el.dataset.group); else faqOpen.delete(el.dataset.group);
   }
 
   async function runFaqResearch() {
@@ -1002,7 +1052,7 @@
     } catch (e) {
       console.error('FAQ research start failed', e);
       faqError(`FAQ research didn't start: ${e.message}`);
-      setLoading(btn, false, 'Run FAQ research');
+      setLoading(btn, false, faqData && faqData.research ? 'Re-run research' : 'Research');
     }
   }
 
@@ -1024,13 +1074,20 @@
     }
   }
 
-  function approveAllFaq() {
-    for (const cb of document.querySelectorAll('#faqBody .faq-approve')) if (!cb.disabled) cb.checked = true;
+  // "Approve all" on a page: ticks every clean question in that group and saves
+  // (with any other changes made on the card)
+  function approveFaqGroup(event, key) {
+    event.preventDefault();
+    event.stopPropagation();
+    const group = [...document.querySelectorAll('#faqBody .faq-group')].find(g => g.dataset.group === key);
+    if (!group) return;
+    for (const cb of group.querySelectorAll('.faq-approve')) if (!cb.disabled) cb.checked = true;
+    saveFaqQuestions();
   }
 
   async function saveFaqQuestions() {
     const updates = [];
-    for (const row of document.querySelectorAll('#faqBody tr[data-id]')) {
+    for (const row of document.querySelectorAll('#faqBody .faq-q[data-id]')) {
       const u = { id: row.dataset.id };
       const w = row.querySelector('.faq-wording');
       const m = row.querySelector('.faq-move');
@@ -2207,6 +2264,9 @@
       { key: 'business_type',       label: 'Business type',    type: 'select', options: ['A','B','C','D','split'] },
       { key: 'team_size',           label: 'Team size',        type: 'text', placeholder: 'Number only' },
     ]},
+    { title: 'FAQ', fields: [
+      { key: 'customer_questions', label: 'What customers ask before they book', type: 'textarea', rows: 4, lineMode: true, placeholder: 'One question per line, in the customer’s words' },
+    ]},
     { title: 'Services & Coverage', fields: [
       { key: 'materials_methods', label: 'Materials / methods', type: 'checkboxes' },
       { key: 'confirmed_practices', label: 'Confirmed practices (the copy states only these)', type: 'practices' },
@@ -2440,7 +2500,9 @@
         } else if (f.type === 'gbp-select') {
           v[f.key] = el.value.trim();
         } else if (f.type === 'textarea') {
-          if (f.arrayMode) {
+          if (f.lineMode) {
+            v[f.key] = el.value.split('\n').map(s => s.trim()).filter(Boolean);
+          } else if (f.arrayMode) {
             v[f.key] = el.value.split(',').map(s => s.trim()).filter(Boolean);
           } else {
             v[f.key] = el.value.trim();
@@ -2513,7 +2575,9 @@
           }
           // Materials load is triggered from loadClientValues (uses Step 1 trade, not primary_category)
         } else if (f.type === 'textarea') {
-          if (f.arrayMode) {
+          if (f.lineMode) {
+            el.value = Array.isArray(val) ? val.join('\n') : (val || '');
+          } else if (f.arrayMode) {
             el.value = Array.isArray(val) ? val.join(', ') : (val || '');
           } else {
             el.value = val != null ? val : '';

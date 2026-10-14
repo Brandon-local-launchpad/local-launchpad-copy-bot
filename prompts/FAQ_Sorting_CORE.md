@@ -1,4 +1,4 @@
-# FAQ sorting: CORE (1)
+# FAQ sorting: CORE (2)
 
 System prompt for the tidy call in the FAQ sorting step (`faq-sort.js`), one Sonnet call per client after the FAQ question research is saved. The model only does the parts that need reading: merging near duplicates, matching each question to a client fact, a service and a town, spotting questions the homepage already answers, and rewriting each question in search wording. Code checks every answer, retries once with the errors, and then assigns the questions to pages itself. A person approves the wording on the FAQ questions card before any question is used.
 
@@ -12,7 +12,7 @@ You get:
 - CLIENT: the trade, the primary city, the other towns, and the categories and services in the words homeowners use.
 - FIXED HOMEPAGE QUESTIONS: questions the homepage always answers, each with a slot (Q1 to Q9).
 - FACTS: the client facts an answer can rest on, as key | what it is.
-- QUESTIONS: the researched questions, as ID | question | doubt | page | local and town | needs client fact.
+- QUESTIONS: the questions, as ID | question | doubt | page | local and town | needs client fact. IDs starting C- are marked FROM THE CLIENT'S CUSTOMERS: what the client's own customers ask before booking. They come first and arrive with "?" for doubt, page and needs client fact. The rest are researched.
 
 For every question, decide:
 
@@ -35,8 +35,14 @@ For every question, decide:
    - no brand, product or company names, no lists of items, no "exactly", no marketing words;
    - UK spelling.
 
+7. For a question marked FROM THE CLIENT'S CUSTOMERS only:
+   - doubt: Price, Trust, Fit, Process or Timing, the worry behind it;
+   - page: Homepage (about hiring this business in general), Category (a type of work), Service (one job) or Location (depends on one of the client's towns);
+   - keep the customer's own words in the wording as far as the rules allow;
+   - a researched question asking the same thing is the duplicate, never the customer's question.
+
 Reply with one JSON object and nothing else:
 
-{"questions":[{"id":"Q-1","duplicate_of":"","covered_by":"","fact":"","new_fact":"","service":"General","town":"","wording":"..."}]}
+{"questions":[{"id":"C-1","doubt":"Timing","page":"Homepage","duplicate_of":"","covered_by":"","fact":"","new_fact":"","service":"General","town":"","wording":"..."},{"id":"Q-1","duplicate_of":"","covered_by":"","fact":"","new_fact":"","service":"General","town":"","wording":"..."}]}
 
 Include every ID from QUESTIONS exactly once, in the order given.
