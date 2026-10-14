@@ -8,13 +8,13 @@ Copybot writes website copy for UK tradespeople (Local Launchpad clients) using 
 |---|---|
 | Anything about the business, clients, onboarding or Core 30 | `docs/seo/reference/Master_Context_Document.txt` (sections 11, 12, 15, 17 matter most for code) |
 | Where the build is right now, and what's next | `docs/seo/current-build/STATUS_Homepage_v20_Build.md` |
-| Homepage generation (v20) | `docs/seo/prompts/Homepage_Copywriting_Prompt_CORE_20.md` and `docs/seo/reference/Homepage_Template_v2_Core_30_Build_Spec.txt` |
-| Niche data (trade words, steps, fears, FAQ slots) | `docs/seo/current-build/Niche_Library_Landscaper.md`, `docs/seo/current-build/Niche_Library_Roofer.md` |
+| Homepage generation (v20) | `prompts/Homepage_Copywriting_Prompt_CORE (20).md`, `niche-library/Claude_Code_Brief_Homepage_v20.md` and `docs/seo/reference/Homepage_Template_v2_Core_30_Build_Spec.txt` |
+| Niche data (trade words, steps, fears, FAQ slots) | `niche-library/Niche_Library_Landscaper.md`, `niche-library/Niche_Library_Roofer.md`. The code reads `niche-library/landscaper.json` and `roofer.json`, which are kept by hand. Any change to a niche `.md` must be made in its `.json` too, in the same commit. |
 | FAQs: choosing, assigning, answering, checking | `docs/seo/current-build/FAQ_Framework_and_Perplexity_Prompt.md` |
 | Category/service custom values and the test client | `docs/seo/reference/Edens_Edge_Custom_Values_HOW_TO_USE.csv` |
 | The old GHL delivery process | `docs/seo/reference/Website_Delivery_SOP.txt` (OUTDATED, reference only) |
 
-Where two sources disagree, the Master Context Document (3 Oct 2026) and anything newer in `docs/seo/current-build/` win.
+The file the code reads is the only copy. Don't keep duplicates in `docs/`. On business rules, the Master Context Document (3 Oct 2026) and anything newer in `docs/seo/current-build/` win over older docs.
 
 ## Rules that are easy to break
 
@@ -31,3 +31,11 @@ Where two sources disagree, the Master Context Document (3 Oct 2026) and anythin
 - Before a stage, write a short plan and wait for approval.
 - After building, review your own work against the relevant doc above and list anything that doesn't match before saying it's done.
 - When a decision is open (see STATUS "Open decisions"), ask rather than pick one.
+
+## Decide yourself, don't ask me
+
+- Housekeeping is yours: git, gitignore, commits, pushes, duplicate or stale files, paths, debug cleanup. Do it and tell me in one line.
+- The file the code reads is the source of truth. Fix drift yourself, using the newest version.
+- Fix bugs and mismatches with the docs without asking.
+- Only stop and ask me about how the copy reads, client facts, pricing or business rules, STATUS "Open decisions", or anything that can't be undone.
+- Update the STATUS doc whenever you finish a piece of work.

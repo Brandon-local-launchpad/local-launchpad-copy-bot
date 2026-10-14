@@ -162,7 +162,7 @@
     {
       "slot": "faq_E",
       "question": "Does a new roof need building regulations approval?",
-      "answer_brief": "Usually yes. Replacing the covering on more than half of a roof's surface (or a quarter of the whole building's outer surface) means the roof's insulation has to be brought up to current standards and signed off by building control. Changing to a much heavier or lighter covering can also mean the roof structure needs checking or strengthening. Roofers registered with a competent person scheme such as CompetentRoofer can self certify the work instead of going through building control.",
+      "answer_brief": "Usually yes for a full re-roof. The Planning Portal says an application isn't normally needed only when less than 25% of the building's whole outer envelope and less than 50% of the roof is affected; a change to a significantly heavier or lighter covering (around 15% or more) needs approval anyway, and re-covering should improve the insulation. A roofer in a competent person scheme (e.g. NFRC CPS) can self certify; otherwise it goes through building control. Source: planningportal.co.uk (building regulations, work to an existing roof).",
       "needs_trade_check": true,
       "symptom_based": false,
       "is_fallback": true,

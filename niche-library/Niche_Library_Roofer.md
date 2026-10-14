@@ -79,7 +79,7 @@ Fixed homepage questions and their doubts: Q1 cost = Price; Q6 areas = Fit.
 | faq_C | How long does a new roof last? | By material, as ranges with the reason; slate and clay outlast concrete; workmanship and underlay matter. | no | Timing |
 | faq_D | Can my roof be repaired or does it need replacing? | The honest test: how widespread the faults are and the state of underlay and battens. | no | Fit |
 | faq_planning | Do I need planning permission for a new roof? | Like for like on an unlisted house usually no; conservation areas and listed buildings can need consent, especially changing materials or chimneys. If an allocated neighbourhood is a conservation area, name it. | no | Process |
-| faq_E (fallback) | Does a new roof need building regulations approval? | Usually yes. Replacing the covering on more than half of a roof's surface (or a quarter of the whole building's outer surface) means the roof's insulation has to be brought up to current standards and signed off by building control. Changing to a much heavier or lighter covering can also mean the roof structure needs checking or strengthening. Roofers registered with a competent person scheme such as CompetentRoofer can self certify the work instead of going through building control. | no | Process |
+| faq_E (fallback) | Does a new roof need building regulations approval? | Usually yes for a full re-roof. The Planning Portal says an application isn't normally needed only when less than 25% of the building's whole outer envelope **and** less than 50% of the roof is affected; a change to a significantly heavier or lighter covering (around 15% or more) needs approval anyway, and re-covering should improve the insulation. A roofer in a competent person scheme (e.g. NFRC CPS) can self certify; otherwise it goes through building control. Source: planningportal.co.uk (building regulations, work to an existing roof). | no | Process |
 
 ## Materials and methods tick list (onboarding)
 
@@ -93,6 +93,21 @@ The model may only name what the client ticks (`[CV: materials_methods]`).
 - Other: scaffolding included in quotes / photos provided / roof left watertight each night / competent person scheme member
 
 ## Onboarding questions this niche needs
+
+From the Bournemouth FAQ research, customers most often ask about these, and the answers can only come from the client:
+- Is your price a fixed quote or an estimate?
+- Does the quote include VAT, scaffolding and taking away the old tiles?
+- What deposit do you take, and when is the balance due?
+- What happens if you find rotten battens, boards or rafters once work starts?
+- What paperwork does the customer get at the end (invoice, guarantee, building regulations certificate)?
+- Is the guarantee insurance backed, and does it cover repairs as well as new roofs?
+- Do you charge for inspections or call outs, and is there an out of hours surcharge for emergencies?
+- Do you take on small jobs (one slipped tile, a leaking gutter joint)?
+- Can you match existing tiles or slates on older houses?
+- Do you check inside the loft before recommending a new roof?
+- Will you provide photos and an itemised report for a storm damage insurance claim?
+- Who notifies building control, and does the customer get a compliance certificate?
+- How do you keep the house dry and secure while the roof is open?
 
 "From" prices and typical durations for 3 jobs (e.g. ridge repair, garage flat roof, full re-roof); whether the guarantee covers repairs as well as new roofs, and for how long; quote format and turnaround; same day callouts; manufacturer approvals.
 
