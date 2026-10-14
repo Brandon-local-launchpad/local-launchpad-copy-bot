@@ -203,6 +203,7 @@
     ["roof coating", "roof coatings"], ["roofing contractor", "roofing"]
   ],
 
+  "general_service_words": ["roofing"],
   "why_titles_alt": [
     "Local Experience Behind Every Job",
     "Covered If Something Goes Wrong"

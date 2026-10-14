@@ -177,6 +177,13 @@ GBP service names are shown to the model in the words a homeowner uses. The firs
 | gardening services | gardening |
 | garden work | gardening |
 
+
+## General service words (FAQ page matching)
+
+Service words for the whole job rather than one service: landscaping, garden makeovers, gardening, garden maintenance, new gardens, design and build. An FAQ question about one of these goes to the category page that carries the word, never to a narrow service page that happens to share it (for example a garden makeover question goes to Landscape Gardener, not Garden decorating). JSON slot: general_service_words.
+
+Problem words: drainage. When an FAQ question names the job as well as the problem ("What drainage is needed before a new driveway or patio?"), it goes to the job's page (paving), not the problem's. JSON slot: problem_service_words.
+
 ## Confirmed practices (onboarding)
 
 The copy may only state a working practice the client has ticked in confirmed_practices. The list and the onboarding question for each practice are in niche-library/practices.json (shared by all niches; some are roofer only).

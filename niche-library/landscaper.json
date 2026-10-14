@@ -195,6 +195,8 @@
     ["gardening services", "gardening"], ["garden work", "gardening"]
   ],
 
+  "general_service_words": ["landscaping", "garden makeovers", "gardening", "garden maintenance", "new gardens", "design and build"],
+  "problem_service_words": ["drainage"],
   "why_titles_alt": [
     "Local Experience Behind Every Job",
     "Covered If Something Goes Wrong"
