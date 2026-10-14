@@ -186,6 +186,8 @@
     .cv-input:focus { border-color:var(--accent); }
     .cv-input.standin { border-color:var(--flag) !important; }
     textarea.cv-input { resize:vertical; min-height:52px; }
+    .wp-lbl { display:flex; flex-direction:column; gap:4px; font-size:11px; color:var(--muted); text-transform:none; letter-spacing:0; }
+    @media (max-width: 640px) { #wpCard > div[style*="grid-template-columns"] { grid-template-columns: 1fr !important; } }
     select.cv-input { appearance:none; background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' fill='none'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%238b90a8' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E"); background-repeat:no-repeat; background-position:right 10px center; padding-right:28px; }
     .cv-sub { margin-top:5px; display:flex; align-items:center; gap:6px; }
     .cv-sub label { font-size:11px; color:var(--muted); text-transform:none; letter-spacing:0; font-weight:400; margin:0; cursor:pointer; }
@@ -318,6 +320,29 @@
         <input type="checkbox" id="cvTestMode" style="width:14px;height:14px;accent-color:var(--flag)" onchange="saveV20Settings()">
         Test mode — bypass G-MAP gate (testing without a live map embed)
       </label>
+    </div>
+
+    <div class="card" id="wpCard" style="display:none">
+      <div class="card-title">WordPress (v20 homepage)</div>
+      <p style="color:var(--muted);font-size:13px;margin-bottom:12px">Pushes the latest v20 homepage to this client's site. Drafts and staging sites only for now. The site needs the Local Launchpad Copybot plugin and ACF Pro.</p>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px">
+        <label class="wp-lbl">Site address<input class="cv-input" id="wpUrl" type="url" placeholder="https://example.co.uk"></label>
+        <label class="wp-lbl">WordPress username<input class="cv-input" id="wpUser" type="text" placeholder="copybot"></label>
+        <label class="wp-lbl">Application Password<input class="cv-input" id="wpPassword" type="password" autocomplete="new-password" placeholder="xxxx xxxx xxxx xxxx xxxx xxxx"></label>
+        <label class="wp-lbl">SEO plugin<select class="cv-input" id="wpSeo"><option value="rankmath">Rank Math</option><option value="yoast">Yoast</option></select></label>
+        <label class="wp-lbl">Homepage slug (optional)<input class="cv-input" id="wpSlug" type="text" placeholder="Leave blank to use the site's front page"></label>
+        <label class="wp-lbl" style="flex-direction:row;align-items:center;gap:8px;margin-top:18px"><input type="checkbox" id="wpStaging" style="width:14px;height:14px"> This is a staging site</label>
+      </div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:6px">
+        <button class="btn btn-ghost btn-sm" style="width:auto;padding:6px 14px" onclick="wpSaveConnection()">Save connection</button>
+        <button class="btn btn-ghost btn-sm" style="width:auto;padding:6px 14px" onclick="wpTest()">Test connection</button>
+        <span id="wpConnStatus" style="font-size:12px;color:var(--muted)"></span>
+      </div>
+
+      <div id="wpPushPanel" style="border-top:1px solid var(--border);margin-top:12px;padding-top:12px;font-size:13px"></div>
+      <div id="wpError" style="display:none;color:var(--error,#b71c1c);font-size:13px;margin-top:8px"></div>
+      <div id="wpLog" style="border-top:1px solid var(--border);margin-top:12px;padding-top:12px;font-size:12px"></div>
     </div>
 
     <button class="btn btn-success" id="cvContBtn" onclick="showGeoStep();goTo(4);">
@@ -2451,6 +2476,181 @@
 
     // Step D: v20 settings — independent
     loadV20Settings();
+    // Step E: WordPress card — independent
+    wpLoad();
+  }
+
+  // ── WordPress push (v20 homepage) ─────────────────────────────────────────
+  let wpState = { record: null, dry: null };
+  const wpApi = (p, opts) => fetch(`/api/clients/${encodeURIComponent(clientId)}${p}`, opts).then(async r => {
+    const d = await r.json().catch(() => ({}));
+    if (!r.ok) throw new Error(d.error || r.statusText);
+    return d;
+  });
+  const wpPost = (p, body) => wpApi(p, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body || {}) });
+  function wpError(msg) { const el = document.getElementById('wpError'); el.textContent = msg || ''; el.style.display = msg ? 'block' : 'none'; }
+
+  async function wpLoad() {
+    const card = document.getElementById('wpCard');
+    if (!clientId) { card.style.display = 'none'; return; }
+    card.style.display = '';
+    wpError('');
+    try {
+      const c = await wpApi('/wp/connection');
+      if (c) {
+        document.getElementById('wpUrl').value = c.url;
+        document.getElementById('wpUser').value = c.user;
+        document.getElementById('wpSeo').value = c.seo;
+        document.getElementById('wpSlug').value = c.homepageSlug || '';
+        document.getElementById('wpStaging').checked = !!c.staging;
+        document.getElementById('wpPassword').placeholder = c.hasPassword ? 'Stored (leave blank to keep)' : 'xxxx xxxx xxxx xxxx xxxx xxxx';
+        document.getElementById('wpConnStatus').textContent = `Saved ${new Date(c.updatedAt).toLocaleString()}`;
+      }
+    } catch (e) { wpError(`Couldn't load the WordPress connection: ${e.message}`); }
+    await wpLoadRecord();
+    await wpLoadLog();
+  }
+
+  async function wpSaveConnection() {
+    wpError('');
+    try {
+      const c = await wpApi('/wp/connection', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({
+        url: document.getElementById('wpUrl').value, user: document.getElementById('wpUser').value,
+        appPassword: document.getElementById('wpPassword').value, seo: document.getElementById('wpSeo').value,
+        homepageSlug: document.getElementById('wpSlug').value, staging: document.getElementById('wpStaging').checked,
+      }) });
+      document.getElementById('wpPassword').value = '';
+      document.getElementById('wpPassword').placeholder = 'Stored (leave blank to keep)';
+      document.getElementById('wpConnStatus').textContent = `Saved ${new Date(c.updatedAt).toLocaleString()}`;
+    } catch (e) { wpError(e.message); }
+  }
+
+  async function wpTest() {
+    wpError('');
+    const st = document.getElementById('wpConnStatus');
+    st.textContent = 'Testing…';
+    try {
+      const t = await wpPost('/wp/test');
+      const s = t.status || {};
+      st.textContent = s.error ? `Can't reach the plugin: ${s.error}` :
+        `Connected${t.staging ? ' (staging)' : ''}: plugin ${s.plugin}, ACF Pro ${s.acf_pro ? 'yes' : 'NO'}, SEO ${s.seo}, ${(s.field_groups || []).length} homepage field groups`;
+    } catch (e) { st.textContent = ''; wpError(e.message); }
+  }
+
+  async function wpLoadRecord() {
+    const panel = document.getElementById('wpPushPanel');
+    try {
+      const { record } = await wpApi('/v20/homepage');
+      wpState = { record, dry: null };
+      if (!record) { panel.innerHTML = '<span style="color:var(--muted)">No v20 homepage generated yet.</span>'; return; }
+      const V = record.VALIDATION || {}, C = record.CLAIMS;
+      const claims = !C ? `<div style="margin:8px 0">No claims review on this version yet. <button class="btn btn-ghost btn-sm" style="width:auto;padding:4px 10px" onclick="wpReviewClaims()">Run claims review</button></div>`
+        : C.status === 'failed' ? `<div style="margin:8px 0;color:var(--error,#b71c1c)">Claims review failed (${h(C.error)}). <button class="btn btn-ghost btn-sm" style="width:auto;padding:4px 10px" onclick="wpReviewClaims()">Run it again</button></div>`
+        : !C.findings.length ? '<div style="margin:8px 0">Claims review: clear.</div>'
+        : `<div style="margin:8px 0">Claims review: ${C.findings.length} statement(s) the facts on file don't support. Tick each one you accept, or fix and regenerate:</div>` +
+          C.findings.map((f, i) => `<label style="display:flex;gap:8px;align-items:flex-start;margin:4px 0;text-transform:none;letter-spacing:0;color:var(--text)"><input type="checkbox" class="wp-claim" data-i="${i}" style="width:14px;height:14px;margin-top:2px"><span><strong>${h(f.field)}</strong>: "${h(f.quote)}"<br><span style="color:var(--muted)">${h(f.why)}</span></span></label>`).join('');
+      panel.innerHTML = `
+        <div>Latest version: generated ${h(new Date(record.meta.generated_at).toLocaleString())} · validation <strong>${V.block} BLOCK</strong>, ${V.flag} FLAG${record.watermark ? ` · <span style="color:var(--flag)">${h(record.watermark)}</span>` : ''}
+          · <a href="/api/clients/${encodeURIComponent(clientId)}/v20/homepage/download?format=md">reader view</a></div>
+        ${claims}
+        ${V.flag ? `<label style="display:flex;gap:8px;align-items:center;margin:8px 0;text-transform:none;letter-spacing:0;color:var(--text)"><input type="checkbox" id="wpReviewed" style="width:14px;height:14px"> I've read the reader view, including its ${V.flag} FLAG(s), and it's fit to push</label>` : ''}
+        <div style="display:flex;gap:8px;margin-top:8px">
+          <button class="btn btn-ghost btn-sm" style="width:auto;padding:6px 14px" onclick="wpDryRun()">Dry run</button>
+          <button class="btn btn-primary btn-sm" id="wpPushBtn" style="width:auto;padding:6px 14px" disabled onclick="wpPush()">Push to WordPress</button>
+        </div>
+        <div id="wpDryResult" style="margin-top:10px"></div>`;
+      panel.onchange = wpUpdatePushButton;
+    } catch (e) { panel.innerHTML = ''; wpError(`Couldn't load the latest v20 homepage: ${e.message}`); }
+  }
+
+  const wpReviewed = () => { const el = document.getElementById('wpReviewed'); return el ? el.checked : false; };
+  const wpAccepted = () => Array.from(document.querySelectorAll('.wp-claim:checked')).map(cb => wpState.record.CLAIMS.findings[+cb.dataset.i].quote);
+
+  async function wpReviewClaims() {
+    wpError('');
+    document.getElementById('wpPushPanel').insertAdjacentHTML('afterbegin', '<div id="wpClaimsRunning" style="color:var(--muted)">Running the claims review…</div>');
+    try { await wpPost('/wp/claims-review', {}); await wpLoadRecord(); }
+    catch (e) { wpError(e.message); const r = document.getElementById('wpClaimsRunning'); if (r) r.remove(); }
+  }
+
+  async function wpDryRun() {
+    wpError('');
+    const out = document.getElementById('wpDryResult');
+    out.innerHTML = '<span style="color:var(--muted)">Reading the site…</span>';
+    try {
+      const d = await wpPost('/wp/dry-run', { reviewed: wpReviewed() });
+      wpState.dry = d;
+      const changed = d.changes.filter(c => c.change !== 'same');
+      const clip = s => (s && s.length > 140 ? s.slice(0, 137) + '…' : (s || '(empty)'));
+      out.innerHTML = `
+        <div>Dry run on ${h(d.site)}: page ${d.page ? `${d.page.id} (${h(d.page.status)})` : 'not found'} · ${d.summary.added} added, ${d.summary.changed} changed, ${d.summary.removed} removed. Nothing was written.</div>
+        ${d.refusals.length ? `<div style="color:var(--error,#b71c1c);margin-top:6px">A push would be refused:<ul style="margin:4px 0 0 18px">${d.refusals.map(x => `<li>${h(x)}</li>`).join('')}</ul></div>` : '<div style="color:var(--success);margin-top:6px">The site is ready: a push would be allowed once every claim is accepted.</div>'}
+        <details style="margin-top:6px"><summary>${changed.length} field change(s)</summary>
+          <table style="width:100%;font-size:12px;border-collapse:collapse;margin-top:6px">${changed.map(c => `<tr style="border-top:1px solid var(--border)"><td style="padding:4px;vertical-align:top;white-space:nowrap">${h(c.change)}</td><td style="padding:4px;vertical-align:top">${h(c.field)}</td><td style="padding:4px;vertical-align:top;color:var(--muted)">${h(clip(c.current))}</td><td style="padding:4px;vertical-align:top">${h(clip(c.next))}</td></tr>`).join('')}</table>
+        </details>`;
+      wpUpdatePushButton();
+    } catch (e) { out.innerHTML = ''; wpError(e.message); }
+  }
+
+  // Push is allowed after a dry run with no refusals (other than the review tick,
+  // which can be ticked afterwards) and with every claim accepted
+  function wpUpdatePushButton() {
+    const btn = document.getElementById('wpPushBtn');
+    const d = wpState.dry, rec = wpState.record;
+    if (!btn || !d || !rec) return;
+    const findings = (rec.CLAIMS && rec.CLAIMS.findings) || [];
+    const claimsOk = wpAccepted().length === findings.length;
+    const otherRefusals = d.refusals.filter(x => !/tick "reviewed"/.test(x));
+    const reviewOk = !(rec.VALIDATION && rec.VALIDATION.flag) || wpReviewed();
+    btn.disabled = !(otherRefusals.length === 0 && claimsOk && reviewOk);
+  }
+
+  async function wpPush() {
+    const d = wpState.dry;
+    if (!d || !confirm(`Push the v20 homepage to ${d.site} (page ${d.page.id}, ${d.page.status})?\n\nA snapshot is taken first, so you can roll it back.`)) return;
+    wpError('');
+    const btn = document.getElementById('wpPushBtn');
+    setLoading(btn, true, 'Pushing…');
+    try {
+      const r = await wpPost('/wp/push', { reviewed: wpReviewed(), acceptedClaims: wpAccepted(), confirm: true });
+      if (r.refusals && r.refusals.length) wpError('Push refused: ' + r.refusals.join(' '));
+      else if (r.error) wpError(`Push failed: ${r.error}`);
+      else {
+        // The dry run is out of date once the site has changed: show the push result instead, and ask for a new dry run before another push
+        wpState.dry = null;
+        document.getElementById('wpDryResult').innerHTML = `<div style="color:${r.ok ? 'var(--success)' : 'var(--flag)'}">Push: ${h(r.result)}${r.mismatches && r.mismatches.length ? ` (read-back differs: ${h(r.mismatches.join(', '))})` : ''}. Run a new dry run before pushing again.</div>`;
+      }
+    } catch (e) { wpError(e.message); }
+    finally { setLoading(btn, false, 'Push to WordPress'); if (!wpState.dry) btn.disabled = true; wpLoadLog(); }
+  }
+
+  async function wpLoadLog() {
+    const el = document.getElementById('wpLog');
+    try {
+      const log = await wpApi('/wp/log');
+      el.innerHTML = log.length ? '<div style="font-weight:600;margin-bottom:4px">Push log</div>' + log.map(l => `
+        <div style="display:flex;gap:8px;align-items:center;padding:3px 0;border-top:1px solid var(--border)">
+          <span style="color:var(--muted);white-space:nowrap">${h(new Date(l.at).toLocaleString())}</span>
+          <span>${h(l.action)} → <strong>${h(l.result)}</strong>${l.refusals ? `: ${h(l.refusals.join(' '))}` : ''}${l.error ? `: ${h(l.error)}` : ''}</span>
+          ${l.action === 'push' && l.snapshotId && /pushed|written/.test(l.result) ? `<button class="btn btn-ghost btn-sm" style="width:auto;padding:2px 8px;margin-left:auto" onclick="wpRollback('${h(l.snapshotId)}')">Roll back</button>` : ''}
+        </div>`).join('') : '<span style="color:var(--muted)">No pushes yet.</span>';
+    } catch (e) { el.innerHTML = ''; }
+  }
+
+  async function wpRollback(snapshotId) {
+    if (!confirm('Roll the site back to what it held before this push?')) return;
+    wpError('');
+    try {
+      const r = await wpPost('/wp/rollback', { snapshotId, confirm: true });
+      if (!r.ok) wpError(`Rollback: ${r.error || 'read-back differs: ' + (r.mismatches || []).join(', ')}`);
+      else {
+        wpState.dry = null;
+        const out = document.getElementById('wpDryResult'), btn = document.getElementById('wpPushBtn');
+        if (out) out.innerHTML = '<div style="color:var(--success)">Rolled back: the site holds what it had before that push.</div>';
+        if (btn) btn.disabled = true;
+      }
+    } catch (e) { wpError(e.message); }
+    wpLoadLog();
   }
 
   async function prefillClientValues() {

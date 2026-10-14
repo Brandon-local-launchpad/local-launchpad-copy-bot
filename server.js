@@ -3437,8 +3437,50 @@ async function loadV20Download(clientId, recordId) {
     const ctx = await loadV20Context(clientId, null);
     values = v20.clientValueMap(ctx.cv, null);
   }
-  return { record, values };
+  return { record, values, id: rows[0].id };
 }
+
+// ── WordPress push routes (slice 4) ──────────────────────────────────────────
+const { createWpService } = require('./wp/service');
+const wpService = pool ? createWpService({
+  pool,
+  loadRecord: async (clientId, recordId) => {
+    const found = await loadV20Download(clientId, recordId || null);
+    if (!found) throw new Error('No v20 homepage has been generated for this client yet.');
+    return found;
+  },
+  // Put a claims review result on a saved record (CLAIMS sits after VALIDATION)
+  saveRecordClaims: async (clientId, recordId, CLAIMS) => {
+    const { rows } = await pool.query(`SELECT content FROM client_assets WHERE id=$1 AND client_id=$2 AND asset_type='v20_page_record'`, [recordId, clientId]);
+    if (!rows.length) throw new Error('Record not found.');
+    const { CLAIMS: _old, ...rec } = JSON.parse(rows[0].content);
+    const out = {};
+    for (const [k, v] of Object.entries(rec)) { out[k] = v; if (k === 'VALIDATION') out.CLAIMS = CLAIMS; }
+    await pool.query(`UPDATE client_assets SET content=$1 WHERE id=$2`, [JSON.stringify(out), recordId]);
+  },
+}) : null;
+
+function wpRoute(handler) {
+  return async (req, res) => {
+    if (!wpService) return res.status(503).json({ error: 'Database not configured.' });
+    try { res.json(await handler(req)); }
+    catch (err) { res.status(400).json({ error: err.message }); }
+  };
+}
+const v20CallModel = async ({ system, message, maxTokens }) => {
+  const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
+  const r = await callClaude(client, { system, userContent: message }, maxTokens);
+  return { text: r.content.map(c => c.text || '').join(''), usage: r.usage };
+};
+
+app.get('/api/clients/:clientId/wp/connection', wpRoute(req => wpService.connection(req.params.clientId)));
+app.put('/api/clients/:clientId/wp/connection', wpRoute(req => wpService.saveConnection(req.params.clientId, req.body || {})));
+app.post('/api/clients/:clientId/wp/test', wpRoute(req => wpService.test(req.params.clientId)));
+app.post('/api/clients/:clientId/wp/claims-review', wpRoute(req => wpService.reviewClaims(req.params.clientId, req.body || {}, v20CallModel)));
+app.post('/api/clients/:clientId/wp/dry-run', wpRoute(req => wpService.dryRun(req.params.clientId, req.body || {})));
+app.post('/api/clients/:clientId/wp/push', wpRoute(req => wpService.push(req.params.clientId, req.body || {})));
+app.post('/api/clients/:clientId/wp/rollback', wpRoute(req => wpService.rollback(req.params.clientId, req.body || {})));
+app.get('/api/clients/:clientId/wp/log', wpRoute(req => wpService.log(req.params.clientId)));
 
 app.get('/api/clients/:clientId/v20/homepage/download', async (req, res) => {
   if (!pool) return res.status(503).send('Database not configured.');

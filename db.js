@@ -82,6 +82,8 @@ async function initDb() {
       locations   JSONB NOT NULL DEFAULT '{}'::jsonb
     );
   `);
+  // WordPress push: connections, snapshots, push log (wp/db-store.js)
+  await require('./wp/db-store').ensureWpTables(pool);
   console.log('DB schema ready');
 }
 

@@ -129,9 +129,18 @@
   - Bug fixed: model replies with text after the JSON broke the claims parser (and could break the allocation parser); `json-extract.js` now reads the first complete JSON object.
   - Real Edens Edge run: the first review found 4 claims and 2 were rewritten away. The 2 left are cautious calls about clay in the north of the city, which the research marks as inferred for individual gardens. The review still has false positives: it flagged "We can usually start within the same week" (the confirmed start_time) and the photo or call pricing wording. A person has the last word on anything left.
   - In the same run, 1 BLOCK survived both validation retries ("Get in touch" in the final CTA), so this page would be refused at push. Field editing in the screens, or a regenerate, is the way out.
+- Stage 10, slice 4, Copybot screens (14 Oct):
+  - A WordPress card on the Client Values step: site address, WordPress username, Application Password, SEO plugin, optional homepage slug, staging tick. Save connection, then Test connection (plugin version, ACF Pro, SEO plugin, how many of the 12 homepage field groups are there).
+  - The Application Password is stored encrypted (AES-256-GCM, `wp/secrets.js`) and never sent back to the browser. Saving without a password keeps the stored one. Only https addresses are accepted (localhost aside), and only the origin is kept. **The `COPYBOT_SECRET_KEY` env var must be set on Railway** (64 hex characters); without it the app refuses to store a password. Changing the key later means re-entering every site's password.
+  - The push panel shows the latest version (validation counts, reader view link), the claims left with a tick box each (or a button to run the review on older records), and the "I've read the reader view" tick when there are FLAGs. Dry run shows refusals and every field change. Push is enabled only after a dry run with no other refusals, every claim ticked and the review tick; it asks for confirmation, and the server checks all of it again. Push log with Roll back on each push.
+  - Connections, snapshots and the push log are in Postgres (`wp/db-store.js`: `wp_connections`, `wp_snapshots`, `wp_push_log`, created by `initDb`). Routes: `/api/clients/:id/wp/connection` (GET, PUT), `wp/test`, `wp/claims-review`, `wp/dry-run`, `wp/push`, `wp/rollback`, `wp/log`.
+  - Tested in the browser against the fake WordPress, end to end: save, test, dry run, accept, push (2 writes, H1 "Landscaper Southampton"), log, roll back (original H1 back), push again. Bug fixed while testing: the old dry-run result stayed on screen after a push; it's now replaced by the push or rollback result, and another push needs a new dry run.
+  - `npm run demo:wp` starts the app on an in-memory Postgres (pg-mem) with a demo client and the fake WordPress, for trying the card locally.
+  - Fixtures: 16 files, 391 checks, all pass (`wp-service.js` adds 21).
 - Docs: CLAUDE.md at repo root. The files the code reads (`prompts/`, `niche-library/`) are the only copies.
 
 ## Waiting on
+- Brandon: set `COPYBOT_SECRET_KEY` on Railway (64 hex characters, e.g. from `node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"`). Keep a copy somewhere safe; losing it means re-entering each site's Application Password.
 - Brandon: on the deployed app, click Run allocation for Edens Edge on the Geo Research step. Expect Bassett Heath plus Portswood Residents' Gardens or Old Woolston; swap the second pick by hand if you prefer the other.
 - Kestrel Ridge allocation: no Bournemouth dossier exists yet. Run geo research for Bournemouth first.
 - Brandon: open "Preview v20 Decisions" for Edens Edge and Kestrel Ridge on the deployed app and check against the fixture previews. The real client data is only in the Railway database, so live previews can't run locally.
@@ -141,7 +150,7 @@
 ## Next
 1. Check the live Stage 4 previews (expect 7 category cards and the final CTA H2 "Get a Free Quote From a Local Landscaper in Southampton").
 2. Stage 5 finish: run the allocation in the app for Edens Edge; run Bournemouth geo research for Kestrel Ridge (the allocation then runs by itself).
-3. WordPress push: slice 4 (Copybot screens: site connection, reviewed tick, claims review, dry run, push, roll back, push log in the database), then a staging push.
+3. WordPress push: slice 5, a first push to a staging site (needs Given's staging site, the plugin installed, and the field groups imported). Set `COPYBOT_SECRET_KEY` on Railway first. Field editing in the screens would let a person fix a surviving BLOCK or claim without regenerating.
 4. Run Perplexity v3 for landscaper (trade only).
 5. Then: FAQ question bank + sorting step stages, humanizer decision, emergency and regulated group tests, category page.
 
