@@ -3364,6 +3364,33 @@ app.post('/api/clients/:clientId/faq/research', async (req, res) => {
   }
 });
 
+// The latest FAQ research reply as Perplexity sent it, as plain text (read or not)
+app.get('/api/clients/:clientId/faq/raw', async (req, res) => {
+  if (!faqService) return res.status(503).json({ error: 'Database not configured.' });
+  try {
+    const { job, row, text } = await faqService.rawReply(req.params.clientId);
+    if (!job) return res.status(404).type('text/plain').send('No FAQ research has run for this client.');
+    if (!text) return res.status(404).type('text/plain').send(`No reply was saved for the last FAQ research (status: ${row.status || 'unknown'}${row.error ? `, error: ${row.error}` : ''}).`);
+    res.type('text/plain; charset=utf-8').send(text);
+  } catch (err) {
+    console.error('[faq] raw reply failed for', req.params.clientId, err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Read the saved reply again (after a parser fix) without a new Perplexity run
+app.post('/api/clients/:clientId/faq/reread', async (req, res) => {
+  if (!faqService) return res.status(503).json({ error: 'Database not configured.' });
+  try {
+    const sessionId = (req.body && req.body.sessionId) || null;
+    const result = await faqService.rereadResearch(req.params.clientId);
+    res.json({ ...(await faqService.view(req.params.clientId, sessionId)), reread: result });
+  } catch (err) {
+    console.error('[faq] reread failed for', req.params.clientId, err);
+    res.status(400).json({ error: err.message });
+  }
+});
+
 app.post('/api/clients/:clientId/faq/sort', async (req, res) => {
   if (!faqService) return res.status(503).json({ error: 'Database not configured.' });
   try {

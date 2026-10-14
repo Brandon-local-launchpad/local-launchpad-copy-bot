@@ -185,16 +185,51 @@ function buildFaqResearchPrompt(input) {
 }
 
 // ── Parsing ──────────────────────────────────────────────────────────────────
+// Perplexity's agent replies vary: a <think> section first, headings as "#",
+// "###" or bold, questions as one line each or as a table, numbered lists, and
+// citation markers ([1], [web:3]). The parser accepts all of these; when it still
+// finds no questions, validateFaqResearch says what it saw.
 
-const stripMd = s => String(s || '').replace(/\*\*/g, '').trim();
+const stripMd = s => String(s || '').replace(/\*\*|__/g, '').trim();
+// Citation markers that aren't links: [1], [12], [web:3]. Links like [https://…] stay.
+const stripMarkers = s => String(s || '').replace(/\s*\[(?:web:)?\d+\](?!\()/g, '');
+
+const SECTION_NAMES = { 1: 'QUESTIONS', 2: 'RANGES', 3: 'RULES', 4: 'GAPS' };
+
+// Thinking sections out; an unclosed <think> at the start is dropped up to the first section
+function cleanReply(text) {
+  let t = String(text || '').replace(/\r\n/g, '\n').replace(/<think>[\s\S]*?<\/think>/gi, '');
+  if (/^\s*<think>/i.test(t)) {
+    const h = headingRe(1).exec(t);
+    t = h ? t.slice(h.index) : t.replace(/^\s*<think>/i, '');
+  }
+  return t.trim();
+}
+
+// A heading line for section n, however it's marked: "## 1. QUESTIONS",
+// "# 1) Questions", "**1. QUESTIONS**", "Section 1: Questions"
+function headingRe(n) {
+  return new RegExp(`^[ \\t]*(?:#{1,6}[ \\t]*)?(?:\\*\\*|__)?[ \\t]*(?:section[ \\t]*)?${n}[ \\t]*[.):][ \\t]*(?:\\*\\*|__)?[ \\t]*${SECTION_NAMES[n]}[^\\n]*$`, 'im');
+}
+const ANY_SECTION = /^[ \t]*(?:#{1,6}[ \t]*)?(?:\*\*|__)?[ \t]*(?:section[ \t]*)?[1-4][ \t]*[.):][ \t]*(?:\*\*|__)?[ \t]*(?:QUESTIONS|RANGES|RULES|GAPS)\b[^\n]*$/im;
+
+function sectionText(text, n) {
+  const m = headingRe(n).exec(text);
+  if (!m) return null;
+  const rest = text.slice(m.index + m[0].length);
+  const next = ANY_SECTION.exec(rest);
+  return next ? rest.slice(0, next.index) : rest;
+}
 
 // "Reddit x6, Mumsnet x3, Citizens Advice; opinions vary" → 10
+// "Reddit x4; Which?" (the live agent reply separates sources with ";") → 5.
+// Notes rather than sources ("opinions vary", "no forum version found") don't count.
 function seenCount(seen) {
-  const main = String(seen || '').split(';')[0];
+  const main = String(seen || '').replace(/\(dated:[^)]*\)/gi, '');
   let n = 0;
-  for (const part of main.split(',')) {
+  for (const part of main.split(/[,;]/)) {
     const p = part.trim();
-    if (!p) continue;
+    if (!p || /\b(opinions|answers|disagree|vary|varies|found|not found)\b|^no\b/i.test(p)) continue;
     const m = p.match(/\bx\s?(\d+)\b/i);
     n += m ? parseInt(m[1], 10) : 1;
   }
@@ -202,67 +237,140 @@ function seenCount(seen) {
 }
 
 function firstUrl(s) {
-  const m = String(s || '').match(/https?:\/\/[^\s)\]|]+/);
-  return m ? m[0] : '';
+  const m = String(s || '').match(/https?:\/\/[^\s)\]|>]+/);
+  return m ? m[0].replace(/[.,;]+$/, '') : '';
 }
 
-function sectionText(text, n) {
-  const re = new RegExp(`^##\\s*${n}\\.[^\\n]*$`, 'm');
-  const m = re.exec(text);
-  if (!m) return null;
-  const rest = text.slice(m.index + m[0].length);
-  const next = /^##\s*\d+\./m.exec(rest);
-  return next ? rest.slice(0, next.index) : rest;
-}
-
-function parseQuestionLine(line) {
-  const body = line.replace(/^\s*[-*]\s*/, '');
-  const parts = body.split(/\s+\|\s+/);
-  const idm = parts[0].match(/\[?\s*(Q-\d+)\s*\]?/i);
-  if (!idm || parts.length < 3) return null;
-  const q = {
-    id: idm[1].toUpperCase(),
-    text: stripMd(parts[1]).replace(/^["“]|["”]$/g, '').trim(),
+function blankQuestion(id, text) {
+  return {
+    id, text: stripMd(stripMarkers(text)).replace(/^["“']+|["”']+$/g, '').trim(),
     doubt: '', page: '', service: '', local: false, town: '', needsFact: false,
     seen: '', seenCount: 0, url: '', dated: '',
   };
-  for (const p of parts.slice(2)) {
-    const kv = p.match(/^\s*([A-Za-z ]+?)\s*:\s*(.*)$/);
-    const key = kv && !/^https?$/i.test(kv[1]) ? kv[1].toLowerCase() : null;
-    const val = kv ? stripMd(kv[2]) : '';
-    if (key === 'doubt') q.doubt = DOUBTS.find(d => d.toLowerCase() === val.toLowerCase()) || val;
-    else if (key === 'page') q.page = PAGE_TYPES.find(d => d.toLowerCase() === val.toLowerCase()) || val;
-    else if (key === 'service') q.service = /^general$/i.test(val) ? '' : val;
-    else if (key === 'local') q.local = /^y/i.test(val);
-    else if (key === 'town') q.town = val === '-' ? '' : val;
-    else if (key === 'needs client fact') q.needsFact = /^y/i.test(val);
-    else if (key === 'seen') { q.seen = val; q.seenCount = seenCount(val); }
-    else {
-      if (!q.url) q.url = firstUrl(p);
-      const d = p.match(/\(dated:\s*([^)]+)\)/i);
-      if (d) q.dated = d[1].trim();
-    }
+}
+
+// One labelled value onto a question: key is the label in lower case
+function applyField(q, key, rawVal) {
+  const val = stripMd(stripMarkers(rawVal));
+  if (key === 'doubt') q.doubt = DOUBTS.find(d => d.toLowerCase() === val.toLowerCase()) || val;
+  else if (key === 'page') q.page = PAGE_TYPES.find(d => d.toLowerCase() === val.toLowerCase()) || val;
+  else if (key === 'service') q.service = /^(general|-|none)?$/i.test(val) ? '' : val;
+  else if (key === 'local') q.local = /^y/i.test(val);
+  else if (key === 'town') q.town = /^(-|none|n\/a)?$/i.test(val) ? '' : val;
+  else if (/needs( client)? fact|client fact/.test(key)) q.needsFact = /^y/i.test(val);
+  else if (key === 'seen') {
+    // The live reply puts the date in the Seen column: "MyBuilder x1 (dated: November 2020)"
+    const d = val.match(/\(dated:\s*([^)]+)\)/i);
+    if (d) q.dated = d[1].trim();
+    q.seen = val.replace(/\s*\(dated:[^)]*\)/gi, '').trim();
+    q.seenCount = seenCount(q.seen);
+  }
+  else return false;
+  return true;
+}
+function applyRest(q, part) {
+  if (!q.url) q.url = firstUrl(part);
+  const d = part.match(/\(dated:\s*([^)]+)\)/i);
+  if (d) q.dated = d[1].trim();
+}
+
+const ID_AT_START = /^\[?\s*(?:\*\*|__)?\s*Q\s*-?\s*(\d+)\s*(?:\*\*|__)?\s*\]?/i;
+
+// One question per line: "- [Q-1] | "question" | Doubt: Price | Page: …"
+function parseQuestionLine(line) {
+  const body = line.trim().replace(/^(?:[-*•]|\d+[.)])\s+/, '').replace(/^(?:\*\*|__)(?=\s*\[?\s*Q)/i, '');
+  const idm = body.match(ID_AT_START);
+  if (!idm) return null;
+  const parts = body.slice(idm[0].length).replace(/^\s*(?:\*\*|__)?\s*[|:.\-–—]?\s*/, '').split(/\s*\|\s*/);
+  if (!parts[0] || parts.length < 2) return null;
+  const q = blankQuestion(`Q-${parseInt(idm[1], 10)}`, parts[0]);
+  for (const p of parts.slice(1)) {
+    const kv = p.match(/^\s*(?:\*\*)?\s*([A-Za-z][A-Za-z ]*?)\s*(?:\*\*)?\s*:\s*(.*)$/);
+    const key = kv && !/^https?$/i.test(kv[1]) ? kv[1].toLowerCase().trim() : null;
+    if (!(key && applyField(q, key, kv[2]))) applyRest(q, p);
   }
   return q;
 }
 
-function bullets(sec) {
-  return (sec || '').split('\n').map(l => l.trim()).filter(l => /^[-*]\s+/.test(l)).map(l => l.replace(/^[-*]\s+/, ''));
+// Markdown table rows → questions, using the header row's column names
+const COLUMN_KEYS = [
+  [/^(id|#|q|no\.?|ref)$/, 'id'], [/question/, 'question'], [/doubt/, 'doubt'], [/^page/, 'page'],
+  [/service/, 'service'], [/^local/, 'local'], [/town/, 'town'], [/fact/, 'needs client fact'],
+  [/seen/, 'seen'], [/source|url|link/, 'source'],
+];
+const cellsOf = line => line.trim().replace(/^\|/, '').replace(/\|$/, '').split('|').map(c => c.trim());
+function parseQuestionTable(lines, warnings) {
+  const out = [];
+  let cols = null;
+  for (const line of lines) {
+    if (!/^\s*\|/.test(line)) { cols = cols && line.trim() === '' ? cols : (line.trim() ? null : cols); continue; }
+    const cells = cellsOf(line);
+    if (cells.every(c => /^:?-{2,}:?$/.test(c) || c === '')) continue; // separator row
+    const names = cells.map(c => stripMd(c).toLowerCase());
+    if (names.some(n => /question/.test(n)) && !cells.some(c => ID_AT_START.test(stripMd(c)) && /\d/.test(c))) {
+      cols = names.map(n => (COLUMN_KEYS.find(([re]) => re.test(n)) || [null, null])[1]);
+      continue;
+    }
+    if (!cols) continue;
+    const idCell = cells[cols.indexOf('id')] || cells[0];
+    const idm = stripMd(idCell).match(ID_AT_START);
+    const qText = cells[cols.indexOf('question')];
+    if (!idm || !qText) { warnings.push(`Couldn't read table row: ${line.trim().slice(0, 80)}`); continue; }
+    const q = blankQuestion(`Q-${parseInt(idm[1], 10)}`, qText);
+    cols.forEach((key, i) => {
+      if (!key || key === 'id' || key === 'question' || cells[i] === undefined) return;
+      if (key === 'source') applyRest(q, cells[i]);
+      else applyField(q, key, cells[i]);
+    });
+    if (!q.url) for (const c of cells) applyRest(q, c);
+    out.push(q);
+  }
+  return out;
+}
+
+// Section lines as items: bullets, numbered lines or table rows (header and separator skipped)
+function items(sec) {
+  const out = [];
+  for (const raw of (sec || '').split('\n')) {
+    const l = raw.trim();
+    if (/^\|/.test(l)) {
+      const cells = cellsOf(l);
+      if (cells.every(c => /^:?-{2,}:?$/.test(c) || c === '')) continue;
+      if (/^(job|question|rule|gap|item)s?$/i.test(stripMd(cells[0]))) continue; // header row
+      out.push(cells.join(' | '));
+    } else if (/^(?:[-*•]|\d+[.)])\s+/.test(l)) {
+      out.push(l.replace(/^(?:[-*•]|\d+[.)])\s+/, ''));
+    }
+  }
+  return out.map(stripMarkers);
 }
 
 function parseFaqResearch(text) {
-  const t = String(text || '').replace(/\r\n/g, '\n');
+  const t = cleanReply(text);
   const warnings = [];
-  const qSec = sectionText(t, 1);
-  if (qSec === null) warnings.push('No "## 1. QUESTIONS" section.');
+  let qSec = sectionText(t, 1);
+  if (qSec === null) {
+    warnings.push('No "1. QUESTIONS" heading: the whole reply was searched for questions.');
+    qSec = t;
+  }
+
+  const lines = qSec.split('\n');
+  const found = [];
+  for (const line of lines) {
+    if (/^\s*\|/.test(line)) continue;
+    if (!/^\s*(?:[-*•]|\d+[.)])?\s*(?:\*\*|__)?\s*\[?\s*(?:\*\*|__)?\s*Q\s*-?\s*\d+/i.test(line)) continue;
+    // A line of IDs only (the most asked list, "1. Q-5") is not a question
+    if (/^[\s\-*•\d.)\[\]Q,|*_]*$/i.test(line.replace(/Q\s*-?\s*\d+/gi, ''))) continue;
+    const q = parseQuestionLine(line);
+    if (q) found.push(q); else warnings.push(`Couldn't read: ${line.trim().slice(0, 80)}`);
+  }
+  if (lines.some(l => /^\s*\|/.test(l))) found.push(...parseQuestionTable(lines, warnings));
 
   const questions = [];
   const seenIds = new Set();
-  for (const line of (qSec || '').split('\n')) {
-    if (!/^\s*[-*]\s*\[?\s*Q-\d+/i.test(line)) continue;
-    const q = parseQuestionLine(line);
-    if (!q) { warnings.push(`Couldn't read: ${line.trim().slice(0, 80)}`); continue; }
+  for (const q of found) {
     if (seenIds.has(q.id)) { warnings.push(`${q.id} appears twice; the second is ignored.`); continue; }
+    if (!q.text) { warnings.push(`${q.id}: no question text.`); continue; }
     seenIds.add(q.id);
     if (!DOUBTS.includes(q.doubt)) warnings.push(`${q.id}: unknown doubt "${q.doubt}".`);
     if (!PAGE_TYPES.includes(q.page)) warnings.push(`${q.id}: unknown page "${q.page}".`);
@@ -270,29 +378,49 @@ function parseFaqResearch(text) {
     questions.push(q);
   }
 
-  // "### 15 most asked" (v4) or "### 10 most asked" (the manual runs)
+  // "### 15 most asked" (v4) or "### 10 most asked" (the manual runs), in any heading style
   const top = [];
-  const tm = /^#{2,4}\s*\d*\s*most asked[^\n]*\n([\s\S]*?)(?=^#{2,4}\s|$(?![\s\S]))/im.exec(qSec || '');
-  if (tm) for (const m of tm[1].matchAll(/Q-\d+/gi)) { const id = m[0].toUpperCase(); if (seenIds.has(id) && !top.includes(id)) top.push(id); }
+  const tm = /^[ \t]*(?:#{1,6}[ \t]*)?(?:\*\*|__)?[ \t]*(?:the[ \t]+)?\d*[ \t]*most[ \t]+asked[^\n]*\n([\s\S]*?)(?=\n[ \t]*\n[ \t]*(?:#|\*\*)|\n[ \t]*#|$(?![\s\S]))/im.exec(t);
+  if (tm) for (const m of tm[1].matchAll(/Q\s*-?\s*(\d+)/gi)) { const id = `Q-${parseInt(m[1], 10)}`; if (seenIds.has(id) && !top.includes(id)) top.push(id); }
   questions.forEach(q => { q.rank = top.includes(q.id) ? top.indexOf(q.id) + 1 : null; });
 
-  const ranges = bullets(sectionText(t, 2)).map(l => {
-    const p = l.split(/\s+\|\s+/);
-    return { job: stripMd(p[0]), range: stripMd(p[1] || ''), area: stripMd(p[2] || ''), dated: ((l.match(/\(dated:\s*([^)]+)\)/i) || [])[1] || ''), url: firstUrl(l) };
+  const ranges = items(sectionText(t, 2)).map(l => {
+    const p = l.split(/\s*\|\s*/);
+    // A line's "(dated: …)", or the table's own Dated column (the live reply)
+    const datedCol = p[3] && !/https?:\/\//.test(p[3]) ? stripMd(p[3]) : '';
+    return { job: stripMd(p[0]), range: stripMd(p[1] || ''), area: stripMd(p[2] || ''), dated: ((l.match(/\(dated:\s*([^)]+)\)/i) || [])[1] || datedCol), url: firstUrl(l) };
   });
-  const rules = bullets(sectionText(t, 3)).map(l => {
-    const p = l.split(/\s+\|\s+/);
-    return { question: stripMd(p[0]), rule: stripMd(p[1] || ''), url: firstUrl(l) };
+  const rules = items(sectionText(t, 3)).map(l => {
+    const p = l.split(/\s*\|\s*/);
+    return { question: stripMd(p[0]).replace(/^["“]+|["”]+$/g, ''), rule: stripMd(p[1] || ''), url: firstUrl(l) };
   });
-  const gaps = bullets(sectionText(t, 4)).map(stripMd);
+  const gaps = items(sectionText(t, 4)).map(stripMd);
 
-  return { questions, top, ranges, rules, gaps, warnings };
+  // What the reply looked like, for the message when nothing could be read
+  const shape = {
+    chars: t.length,
+    think: /<think>/i.test(String(text || '')),
+    questionsHeading: headingRe(1).test(t),
+    idLines: (t.match(/\bQ\s*-?\s*\d+\b/gi) || []).length,
+    tableRows: (t.match(/^\s*\|/gm) || []).length,
+    firstLine: t.split('\n').find(l => l.trim()) || '',
+  };
+  return { questions, top, ranges, rules, gaps, warnings, shape };
 }
 
-// A run is kept when it has a questions section with at least MIN_QUESTIONS readable questions.
+// A run is kept when it has at least MIN_QUESTIONS readable questions. The error says
+// what the reply looked like, so a new format can be recognised from the card.
 function validateFaqResearch(parsed) {
-  if (!parsed.questions.length) return { valid: false, error: 'No questions could be read from the reply.' };
-  if (parsed.questions.length < MIN_QUESTIONS) return { valid: false, error: `Only ${parsed.questions.length} questions could be read (at least ${MIN_QUESTIONS} needed).` };
+  const s = parsed.shape || {};
+  const seen = [
+    s.questionsHeading ? 'a "1. QUESTIONS" heading' : 'no "1. QUESTIONS" heading',
+    `${s.idLines || 0} mentions of a question ID (Q-1…)`,
+    `${s.tableRows || 0} table rows`,
+    s.think ? 'a <think> section' : null,
+    s.firstLine ? `first line "${s.firstLine.trim().slice(0, 60)}"` : 'an empty reply',
+  ].filter(Boolean).join(', ');
+  if (!parsed.questions.length) return { valid: false, error: `No questions could be read from the reply (it had ${seen}).` };
+  if (parsed.questions.length < MIN_QUESTIONS) return { valid: false, error: `Only ${parsed.questions.length} questions could be read (at least ${MIN_QUESTIONS} needed; the reply had ${seen}).` };
   return { valid: true, error: null };
 }
 
@@ -300,5 +428,5 @@ module.exports = {
   FAQ_RESEARCH_PROMPT, DOUBTS, PAGE_TYPES,
   loadFaqResearchPrompt, clientTowns, clientServicesByCategory, buildClientBlock, buildFaqResearchPrompt,
   customerQuestions, onboardingAnswers, confirmedFacts, localKnowledge,
-  parseFaqResearch, parseQuestionLine, validateFaqResearch, seenCount,
+  parseFaqResearch, parseQuestionLine, parseQuestionTable, validateFaqResearch, seenCount, cleanReply,
 };

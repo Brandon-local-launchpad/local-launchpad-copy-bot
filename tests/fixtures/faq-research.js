@@ -128,12 +128,50 @@ chk('v4 line: Service and Town read', v4.service === 'driveways' && v4.town === 
 const v4g = R.parseQuestionLine('- [Q-8] | "Are you insured?" | Doubt: Trust | Page: Homepage | Service: General | Local: N | Town: - | Needs client fact: Y | Seen: Reddit | https://example.org/b');
 chk('v4 line: Service General and Town - read as blank', v4g.service === '' && v4g.town === '', JSON.stringify(v4g), 'blank, blank');
 
+// ── The real live reply (Edens Edge, 14 Oct 2026, Perplexity agent API) ──
+// The first live run was refused ("No questions could be read"): the agent laid every
+// section out as a markdown table. Saved byte for byte from the live job
+// (SHA-256 d2537557…c6ae65, 28,193 characters).
+const live = R.parseFaqResearch(fs.readFileSync(path.join(__dirname, 'faq-research-replies/edens-edge-live-2026-10-14.md'), 'utf8'));
+const lq = id => live.questions.find(q => q.id === id) || {};
+chk('Live reply: 48 questions read from the table, no warnings', live.questions.length === 48 && !live.warnings.length && R.validateFaqResearch(live).valid, `${live.questions.length}; ${live.warnings.slice(0, 3).join('; ')}`, '48, none');
+chk('Live reply: the 15 most asked, from its Rank | ID table', live.top.join(',') === 'Q-3,Q-6,Q-19,Q-29,Q-17,Q-34,Q-28,Q-15,Q-8,Q-9,Q-38,Q-20,Q-26,Q-32,Q-35', live.top.join(','), 'Q-3,Q-6,Q-19,…,Q-35');
+chk('Live reply: Q-1 columns, curly quotes off the question', lq('Q-1').text === 'Do I need a garden designer, a landscaper, or both?' && lq('Q-1').doubt === 'Fit' && lq('Q-1').page === 'Homepage' && lq('Q-1').service === 'garden design' && !lq('Q-1').local && !lq('Q-1').needsFact,
+  JSON.stringify(lq('Q-1')), 'Fit, Homepage, garden design');
+chk('Live reply: the date inside the Seen column is read and taken out of Seen', lq('Q-1').dated === 'November 2020' && lq('Q-1').seen === 'MyBuilder x1' && lq('Q-1').seenCount === 1, JSON.stringify([lq('Q-1').seen, lq('Q-1').dated]), 'MyBuilder x1, November 2020');
+chk('Live reply: sources separated by ";" all count (Q-17: Reddit x4; Which? = 5)', lq('Q-17').seenCount === 5, lq('Q-17').seenCount, 5);
+chk('Live reply: the source URL is the plain link, not the bracketed copy', lq('Q-3').url === 'https://www.reddit.com/r/DIYUK/comments/1jszcbw/5k_for_some_landscaping_is_this_quote_fair/', lq('Q-3').url, 'reddit link');
+chk('Live reply: needs client fact Y read (Q-4, Q-21, Q-26, Q-35)', ['Q-4', 'Q-21', 'Q-26', 'Q-35'].every(id => lq(id).needsFact) && live.questions.filter(q => q.needsFact).length === 4, live.questions.filter(q => q.needsFact).map(q => q.id).join(' '), 'Q-4 Q-21 Q-26 Q-35');
+chk('Live reply: local questions with their towns (Q-40 Southampton, Q-48 Stockbridge), bold date in the source cell', lq('Q-40').local && lq('Q-40').town === 'Southampton' && lq('Q-40').dated === 'July 2023' && lq('Q-48').town === 'Stockbridge' && live.questions.filter(q => q.local).length === 9,
+  JSON.stringify([lq('Q-40').town, lq('Q-40').dated, lq('Q-48').town, live.questions.filter(q => q.local).length]), 'Southampton, July 2023, Stockbridge, 9');
+chk('Live reply: 15 ranges with the table\'s Dated column', live.ranges.length === 15 && live.ranges[0].job === 'Small garden design and landscaping, under 100m²' && live.ranges[0].range === '£5,000–£12,000' && live.ranges[0].dated === 'August 2025' && live.ranges[0].url.startsWith('https://www.checkatrade.com/'),
+  JSON.stringify(live.ranges[0]), 'job, range, August 2025, URL');
+chk('Live reply: 15 rules, quotes off the question', live.rules.length === 15 && live.rules[0].question === 'Do I need permission to pave my front garden?' && /permeable surface/.test(live.rules[0].rule), JSON.stringify(live.rules[0]).slice(0, 120), 'pave my front garden');
+chk('Live reply: 6 gaps, header row skipped', live.gaps.length === 6 && /qualitative ranking/.test(live.gaps[0]), live.gaps[0], 'qualitative ranking…');
+
+// ── Reply formats the agent API can send (the same questions, laid out differently) ──
+const sample = e.questions.slice(0, 12);
+const asLine = q => `- [${q.id}] | "${q.text}" | Doubt: ${q.doubt} | Page: ${q.page} | Local: ${q.local ? 'Y' : 'N'} | Needs client fact: ${q.needsFact ? 'Y' : 'N'} | Seen: ${q.seen} | [${q.url}]`;
+const sameAs = (p, label) => chk(label, p.questions.length === 12 && p.questions.every((q, i) => q.id === sample[i].id && q.text === sample[i].text && q.doubt === sample[i].doubt && q.page === sample[i].page && q.url === sample[i].url),
+  JSON.stringify(p.questions.slice(0, 2).map(q => [q.id, q.text, q.doubt, q.page, q.url])) + ` (${p.questions.length}) ${p.warnings.slice(0, 3).join('; ')}`, '12 questions, same as the run');
+sameAs(R.parseFaqResearch(`<think>\nThe user wants questions. ## 1. QUESTIONS might be…\n</think>\n## 1. QUESTIONS\n${sample.map(asLine).join('\n')}\n## 2. RANGES FOUND\n`), 'A <think> section first is dropped');
+sameAs(R.parseFaqResearch(`<think>\nplanning the search, never closed\n# 1. QUESTIONS\n${sample.map(asLine).join('\n')}`), 'An unclosed <think> at the start is dropped up to the questions');
+sameAs(R.parseFaqResearch(`**1. QUESTIONS**\n\n${sample.map(asLine).join('\n')}\n\n**2. RANGES FOUND**`), 'A bold heading');
+sameAs(R.parseFaqResearch(`### 1) Questions\n${sample.map((q, i) => `${i + 1}. **[${q.id}]** | "${q.text}" [3][web:7] | Doubt: ${q.doubt} | Page: ${q.page} | Seen: ${q.seen} | [${q.url}]`).join('\n')}`),
+  'A numbered list with bold IDs and citation markers ([3], [web:7])');
+sameAs(R.parseFaqResearch(`## 1. QUESTIONS\n\n| ID | Question | Doubt | Page | Service | Local | Town | Needs client fact | Seen | Source |\n|---|---|---|---|---|---|---|---|---|---|\n${sample.map(q => `| ${q.id} | ${q.text} | ${q.doubt} | ${q.page} | General | ${q.local ? 'Y' : 'N'} | - | ${q.needsFact ? 'Y' : 'N'} | ${q.seen} | [link](${q.url}) |`).join('\n')}\n\n## 2. RANGES FOUND`),
+  'A markdown table with a header row');
+const tableNeeds = R.parseFaqResearch(`## 1. QUESTIONS\n| # | Question | Doubt | Page | Needs client fact |\n|:-:|---|---|---|---|\n| Q-4 | How much deposit do you need? | Trust | Homepage | Y |`).questions[0];
+chk('Table: "#" as the ID column and the fact column read', tableNeeds && tableNeeds.id === 'Q-4' && tableNeeds.needsFact === true && tableNeeds.doubt === 'Trust', JSON.stringify(tableNeeds), 'Q-4, Trust, needs a fact');
+const shape = R.validateFaqResearch(R.parseFaqResearch('<think>hmm</think>\nHere are some questions people ask:\n* How much is a patio?')).error;
+chk('Nothing readable: the error says what the reply looked like', /no "1\. QUESTIONS" heading, 0 mentions of a question ID \(Q-1…\), 0 table rows, a <think> section, first line "Here are some questions people ask:"/.test(shape), shape, 'heading, IDs, table rows, think, first line');
+
 // ── Validation ──
 chk('A run with 40 questions is valid', R.validateFaqResearch(e).valid, R.validateFaqResearch(e).error, 'valid');
 const short = R.parseFaqResearch('## 1. QUESTIONS\n- [Q-1] | "How much?" | Doubt: Price | Page: Homepage | Local: N | Needs client fact: Y | Seen: Reddit | https://x.org\n## 2. RANGES FOUND\n');
 chk('A run with 1 question is refused, with the reason', !R.validateFaqResearch(short).valid && /Only 1 questions/.test(R.validateFaqResearch(short).error), R.validateFaqResearch(short).error, 'Only 1 questions…');
 const none = R.parseFaqResearch('Sorry, I could not find anything.');
-chk('A reply with no questions section is refused and warned', !R.validateFaqResearch(none).valid && none.warnings.some(w => /No "## 1. QUESTIONS"/.test(w)), none.warnings.join('; '), 'refused, warned');
+chk('A reply with no questions section is refused and warned', !R.validateFaqResearch(none).valid && none.warnings.some(w => /No "1. QUESTIONS" heading/.test(w)) && /it had no "1\. QUESTIONS" heading, 0 mentions of a question ID/.test(R.validateFaqResearch(none).error), R.validateFaqResearch(none).error, 'refused, saying what it saw');
 
 console.log(`\n${pass + fail} checks: ${pass} passed, ${fail} failed`);
 if (fail) process.exit(1);

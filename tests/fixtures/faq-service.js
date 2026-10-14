@@ -177,6 +177,20 @@ console.log('\n=== FIXTURE: FAQ service (pg-mem, fake Perplexity, replayed tidy 
   v = await svc.view(clientId, null);
   chk('A reply with no questions: job validation_failed with the reason; the saved research is kept',
     v.job.status === 'validation_failed' && /No questions could be read/.test(v.job.error) && v.research.id === research.id, `${v.job.status}: ${v.job.error}`, 'validation_failed');
+  const raw1 = await svc.rawReply(clientId);
+  chk('The refused reply is kept as sent (text and full JSON), and the card offers it', raw1.text === 'I could not find any questions.' && raw1.row.rawOutputJson && v.job.hasRaw === true, JSON.stringify({ text: raw1.text, json: !!raw1.row.rawOutputJson, hasRaw: v.job.hasRaw }), 'kept');
+  // A job from before 15 Oct kept only the reply's text; once the parser can read it, it can be read again
+  // (on a second client: the service remembers this client's refused run as its latest)
+  const client2 = (await pool.query(`INSERT INTO clients (name, trade) VALUES ('Edens Edge (old job)', 'Landscaper') RETURNING id`)).rows[0].id;
+  const oldJob = { id: crypto.randomUUID(), sessionId: '', clientId: client2, status: 'failed', preset: 'medium', createdAt: Date.now(),
+    locations: { FAQ: { name: 'FAQ questions', kind: 'faq', status: 'validation_failed', error: 'No questions could be read from the reply.', rawOutputText: runText } } };
+  await jobs.create(oldJob);
+  const sortsBefore = sortCalls;
+  const rr = await svc.rereadResearch(client2);
+  await until(async () => sortCalls >= sortsBefore + 2 && !(await svc.view(client2, null)).running.sort);
+  v = await svc.view(client2, null);
+  chk('Read again: the saved reply becomes the research without a new Perplexity run, and is sorted', rr.saved && v.research.id === rr.assetId && v.job.status === 'done' && prompts.length === 2 && !v.sort.stale,
+    JSON.stringify({ saved: rr.saved, status: v.job.status, perplexityCalls: prompts.length }), 'saved, done, still 2 Perplexity calls');
 
   // ── Restart recovery path, and approvals carried over to a new run ──
   pxReply = { output_text: runText, usage: {} };

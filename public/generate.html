@@ -969,7 +969,11 @@
     const job = data.job;
     const lines = [];
     if (data.running.research || (job && ['running', 'pending', 'queued'].includes(job.status))) lines.push('<span style="color:var(--accent)">FAQ research running on Perplexity (this can take a while).</span>');
-    else if (job && job.status && job.status !== 'done') lines.push(`<span style="color:var(--block)">Last FAQ research ${h(job.status.replace('_', ' '))}: ${h(job.error || '')}</span>`);
+    else if (job && job.status && job.status !== 'done') {
+      lines.push(`<span style="color:var(--block)">Last FAQ research ${h(job.status.replace('_', ' '))}: ${h(job.error || '')}</span>`);
+      if (job.hasRaw) lines.push(`<a href="/api/clients/${encodeURIComponent(clientId)}/faq/raw" target="_blank" rel="noopener">Open the raw reply</a> · <button type="button" class="btn btn-ghost btn-sm" id="faqRereadBtn" style="width:auto;padding:2px 10px" onclick="rereadFaq()">Read the saved reply again</button> <span style="color:var(--muted)">(no new Perplexity run)</span>`);
+    }
+    if (job && job.status === 'done' && job.hasRaw) lines.push(`<a href="/api/clients/${encodeURIComponent(clientId)}/faq/raw" target="_blank" rel="noopener" style="color:var(--muted)">Open the raw reply</a>`);
     if (data.research) lines.push(`Research saved ${h(new Date(data.research.savedAt).toLocaleString())}: ${data.research.questionCount} questions.`);
     if (data.running.sort) lines.push('<span style="color:var(--accent)">Sorting the questions…</span>');
     else if (data.sort) {
@@ -1053,6 +1057,26 @@
       console.error('FAQ research start failed', e);
       faqError(`FAQ research didn't start: ${e.message}`);
       setLoading(btn, false, faqData && faqData.research ? 'Re-run research' : 'Research');
+    }
+  }
+
+  // Reads the last saved Perplexity reply again (after a parser fix); no new research run
+  async function rereadFaq() {
+    const btn = document.getElementById('faqRereadBtn');
+    if (btn) setLoading(btn, true, 'Reading…');
+    faqError('');
+    try {
+      const r = await fetch(`/api/clients/${encodeURIComponent(clientId)}/faq/reread`, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ sessionId }),
+      });
+      const data = await r.json();
+      if (!r.ok) throw new Error(data.error || r.statusText);
+      if (data.reread && !data.reread.saved) faqError(`The saved reply still couldn't be read: ${data.reread.error}`);
+      renderFaq(data);
+    } catch (e) {
+      console.error('FAQ reread failed', e);
+      faqError(`Couldn't read the saved reply: ${e.message}`);
+      if (btn) setLoading(btn, false, 'Read the saved reply again');
     }
   }
 
