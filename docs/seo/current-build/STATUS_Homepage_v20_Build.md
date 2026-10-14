@@ -199,7 +199,7 @@
 - Brandon: add Locations Hub, About and Cost Guide rows to the page map template (Page Type spelled exactly as given), then re-upload the page maps for Edens Edge and Kestrel Ridge.
 
 ## Next
-1. Check the live Stage 4 previews (expect 7 category cards and the final CTA H2 "Get a Free Quote From a Local Landscaper in Southampton").
+1. Live Stage 4 preview checked (15 Oct): primary category Gardener (Ethan's GBP primary) gives the final CTA H2 "Get a Free Quote From a Local Gardener in Southampton" and 8 cards (7 categories plus one Gardener service). Brandon's decision: keep both.
 2. Stage 5 finish: run the allocation in the app for Edens Edge; run Bournemouth geo research for Kestrel Ridge (the allocation then runs by itself).
 3. WordPress push: slice 5 part 2, a first push to a staging site (needs Given's staging site, the plugin installed, and the field groups imported). Set `COPYBOT_SECRET_KEY` on Railway first.
 4. FAQ per client: live for Edens Edge, 48 questions sorted. Next: Brandon approves the wording (homepage first), then Preview v20 Decisions to see Q7.
@@ -207,7 +207,7 @@
 
 ## Open decisions
 - Company name: Ethan's custom values say "Edens Edge landscaping" (lower case l); the brief's test uses "Edens Edge Landscaping". Brandon is checking the GBP.
-- "Family run" (differentiator_2) and the team of four: Brandon is confirming with Ethan. Until then they're left out of his values.
+- "Family run" (differentiator_2) and insurance £5m: not confirmed by Ethan. Brandon's decision (15 Oct): treat both as confirmed for this test run. Confirm with Ethan before anything goes live. Team of four still left out.
 - Review Claude's drafts: `niche-library/practices.json` (practices, labels and onboarding questions) and the landscaper and roofer `service_words` mappings. Add the practice questions to the onboarding form itself, which isn't in this repo.
 - Which humanizer (tool or prompt) Brandon wants.
 - Hero "doubt strip" under the buttons: yes or no.
