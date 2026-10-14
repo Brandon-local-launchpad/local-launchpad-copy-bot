@@ -385,7 +385,9 @@ function validateV20(record, V) {
     if (f.ref.sub === 'card_text') {
       const hits = [...new Set(V.serviceList.filter(sv => sv.say && new RegExp(`\\b${esc(sv.say)}\\b`, 'i').test(s)).map(sv => sv.say))];
       // "driveways" inside "new driveways" is one service, not two
-      const named = new Set(hits.filter(h => !hits.some(o => o !== h && o.includes(h))));
+      // The card's own category name ("our lawn care service") isn't a service it names (16 Oct)
+      const cardCat = lc(((record.cards || [])[f.ref.index] || {}).card_name || '');
+      const named = new Set(hits.filter(h => !hits.some(o => o !== h && o.includes(h)) && !(cardCat && cardCat.includes(lc(h)))));
       // A BLOCK since 16 Oct (Brandon); code gives each card its 2 or 3 services
       const picks = ((D.d9.main || [])[f.ref.index] || {}).services;
       const allowed = picks && picks.length ? ` Name only ${picks.join(', ')}.` : ' Name 2 or 3, in a sentence, not a list.';

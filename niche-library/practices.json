@@ -94,7 +94,9 @@
       "claim": "regular visits run to an agreed schedule",
       "question": "Do regular maintenance customers get an agreed visit schedule?",
       "detect": [
-        "\\bschedules?\\b",
+        "\\b(?:visit|visiting|maintenance|regular|agreed|set|fixed|seasonal|weekly|fortnightly|monthly) schedules?\\b",
+        "\\bon an? (?:regular |agreed |set |fixed )?schedule\\b",
+        "\\b(?:set|sets|agree|agrees|plan|plans|arrange|arranges|work out|keep to|stick to) (?:a|an|the|your) (?:\\w+ )?schedule\\b",
         "\\bscheduled visits?\\b",
         "\\bvisits? (every|each) (week|fortnight|month)\\b",
         "\\bvisits? (?:are |is )?(?:timed|planned|booked|set) (?:to|around|by)\\b"

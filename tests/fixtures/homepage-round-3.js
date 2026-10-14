@@ -84,6 +84,13 @@ chk('5: "the people who quote the job are the ones who carry it out" is a practi
 const adm = checks(page({ home_areas_intro: 'We travel up to 20 miles inland and along the coast, out to the New Forest and Romsey.' }), 'AREA-ADMIN');
 chk('Council area "New Forest" in the areas intro is flagged', adm.length === 1, adm.map(i => i.message).join(' | '), 'flagged');
 
+// False BLOCKs on the live run of 2026-10-14T18:48:48Z, word for word
+const lawn = checks(withCards({ "Lawn Care Service": "A good lawn takes more than mowing. Our [lawn care service](/lawn-care-service/) covers lawn mowing, seeding lawns where the coverage has thinned, and laying new lawns from scratch." }), "CARD-COUNT");
+chk("CARD-COUNT: the card's own category (\"our lawn care service\") is not a fourth service", lawn.length === 0, lawn.map(i => i.message).join(" | "), "none");
+const sched = practiceClaims("The exact date is agreed with you when the job is booked, and we'll confirm it before we schedule anything.", landscaper);
+chk("PRACTICE: \"before we schedule anything\" is not a visit schedule claim", !sched.some(c => c.practice.key === "maintenance_schedule"), sched.map(c => c.match).join(", "), "none");
+chk("PRACTICE: \"visits on an agreed schedule\" still is", practiceClaims("Regular customers get visits on an agreed schedule.", landscaper).some(c => c.practice.key === "maintenance_schedule"), "", "caught");
+
 // The prompt says it
 const core = require('fs').readFileSync(path.join(root, 'prompts/Homepage_Copywriting_Prompt_CORE (20).md'), 'utf8');
 chk('CORE (20) carries the round 3 rules', /"We also handle" appears once on the page at most/.test(core) && /The page never points at itself/.test(core) && /won't crack", "stays green"/.test(core) && /large rural properties/.test(core), '', 'all rules');

@@ -226,6 +226,7 @@
   - `core_services` per GBP category in landscaper.json and roofer.json (and their .md files). Card picks: jobs_wanted, then core services, then (only to reach two) the card's other services; never a specialist lead unless wanted. A service sits in the first card whose core list names it, else its GBP category's card (lawn mowing and seeding go to Lawn Care Service).
   - New checks: CARD-PATTERN (FLAG) for two cards sharing a sentence opener (category names folded) and "we also handle" more than once; SELF-REF (BLOCK) for "see the areas section", "the full list below"; OUTCOME (FLAG) for "won't crack", "stays green" and the like unless in client values; EXPERIENCE (BLOCK) for kinds of property or job worked on ("large rural properties") not in client values; AREA-ADMIN (FLAG) for a council area in the areas intro or areas FAQ. Practice pattern: "the people who quote … carry it out" (same_team_throughout).
   - CORE (20) rules for all of the above. Fixtures: new `homepage-round-3.js` (19 checks); 26 files pass.
+  - Live regenerate 2026-10-14T18:48:48Z: 2 BLOCK, 17 FLAG, 2 claims findings. Both BLOCKs were false (CARD-COUNT counted the card's own category "lawn care service"; PRACTICE read "before we schedule anything" as a visit schedule). Fixed on `fix/round-3-false-blocks` (maintenance_schedule detect narrowed to schedule phrases). Reader view in `docs/seo/homepage-runs/Edens_Edge_Homepage_Round_3_Regen.md`.
 - Docs: CLAUDE.md at repo root. The files the code reads (`prompts/`, `niche-library/`) are the only copies.
 
 ## Waiting on
