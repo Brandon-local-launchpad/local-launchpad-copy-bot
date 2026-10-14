@@ -196,7 +196,8 @@
 1. Check the live Stage 4 previews (expect 7 category cards and the final CTA H2 "Get a Free Quote From a Local Landscaper in Southampton").
 2. Stage 5 finish: run the allocation in the app for Edens Edge; run Bournemouth geo research for Kestrel Ridge (the allocation then runs by itself).
 3. WordPress push: slice 5 part 2, a first push to a staging site (needs Given's staging site, the plugin installed, and the field groups imported). Set `COPYBOT_SECRET_KEY` on Railway first.
-4. FAQ per4. FAQ per client: built on `faq/per-client-research`, not merged into main yet (pull request). After merging: a real FAQ research run for Edens Edge on the live app (Research on the FAQ questions card), approve per page, Preview v20 Decisions.humanizer decision, emergency and regulated group tests, category page.
+4. FAQ per client: built on `faq/per-client-research`, not merged into main yet (pull request). After merging: a real FAQ research run for Edens Edge on the live app (Research on the FAQ questions card), approve per page, Preview v20 Decisions.
+5. Then: humanizer decision, emergency and regulated group tests, category page.
 
 ## Open decisions
 - Company name: Ethan's custom values say "Edens Edge landscaping" (lower case l); the brief's test uses "Edens Edge Landscaping". Brandon is checking the GBP.
