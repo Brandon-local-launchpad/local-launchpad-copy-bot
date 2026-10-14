@@ -211,17 +211,14 @@
 
 ## Waiting on
 - Brandon: add `docs/seo/reference/Category_Page_Structure_v2.md` (the category template). It isn't in the repo, on GitHub, or anywhere under H:\Local Launchpad. C2 starts from it.
-- Brandon: set `COPYBOT_SECRET_KEY` on Railway (64 hex characters, e.g. from `node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"`). Keep a copy somewhere safe; losing it means re-entering each site's Application Password.
-- Brandon: on the deployed app, click Run allocation for Edens Edge on the Geo Research step. Expect Bassett Heath plus Portswood Residents' Gardens or Old Woolston; swap the second pick by hand if you prefer the other.
-- Kestrel Ridge allocation: no Bournemouth dossier exists yet. Run geo research for Bournemouth first.
-- Brandon: open "Preview v20 Decisions" for Edens Edge and Kestrel Ridge on the deployed app and check against the fixture previews. The real client data is only in the Railway database, so live previews can't run locally.
+- Brandon: set `COPYBOT_SECRET_KEY` on Railway before the first push (Given's staging site is ready; Brandon, 15 Oct: not pushing yet) (64 hex characters, e.g. from `node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"`). Keep a copy somewhere safe; losing it means re-entering each site's Application Password.
 - Brandon: add Locations Hub, About and Cost Guide rows to the page map template (Page Type spelled exactly as given), then re-upload the page maps for Edens Edge and Kestrel Ridge.
 
 ## Next
 1. Live Stage 4 preview checked (15 Oct): primary category Gardener (Ethan's GBP primary) gives the final CTA H2 "Get a Free Quote From a Local Gardener in Southampton" and 8 cards (7 categories plus one Gardener service). Brandon's decision: keep both.
-2. Stage 5 finish: run the allocation in the app for Edens Edge; run Bournemouth geo research for Kestrel Ridge (the allocation then runs by itself).
-3. WordPress push: slice 5 part 2, a first push to a staging site (needs Given's staging site, the plugin installed, and the field groups imported). Set `COPYBOT_SECRET_KEY` on Railway first.
-4. FAQ per client: live for Edens Edge, 48 questions sorted. Next: Brandon approves the wording (homepage first), then Preview v20 Decisions to see Q7.
+2. Stage 5: done for Edens Edge (live allocation: Bassett Heath and Portswood Residents' Gardens, symptom "Water sits under the paving instead of disappearing."). Kestrel Ridge stays a test client only: no Bournemouth research (Brandon, 15 Oct: not a real client).
+3. WordPress push: slice 5 part 2, a first push to Given's staging site (the site is ready; Brandon, 15 Oct: not yet). Needs the plugin installed, the field groups imported and `COPYBOT_SECRET_KEY` on Railway. The Edens Edge homepage has 0 BLOCK and its claims accepted.
+4. FAQ per client: done for the homepage (live for Edens Edge: research, sorting, approval, Q7 in the generated page). The other page types use their sorted questions when they are built.
 5. Then: humanizer decision, emergency and regulated group tests, category page.
 
 ## Open decisions
@@ -231,10 +228,10 @@
 - Which humanizer (tool or prompt) Brandon wants.
 - Hero "doubt strip" under the buttons: yes or no.
 - Separate Southampton location page: drop it (homepage is that page).
+- Service areas (Brandon, 15 Oct): from now on each client's areas are set and ticked before the files are uploaded to Copybot. Ethan's list still includes New Forest District; left as it is (Copybot skips council areas).
 - Update the homepage structure doc with the changed rules (title keeps brand, H1 trade word allowed, area links = town names, no rating figure in logo row).
 - Building regulations wording in the roofer entry: get a roofer to check.
-- FAQ: is the Bournemouth roofer run Kestrel Ridge's? (Answered "is / isn't" twice.)
-- FAQ (Brandon, 14 Oct): the four expected homepage lists, the three new practices and the onboarding questions in `client-facts.json` are approved (practice wording for now; Brandon flags changes); the amount of client information sent to Perplexity is right. Brandon is adding "What do customers always ask you before they book?" to the Fillout form; until then, type the answers into Client Values → FAQ.
+- FAQ (Brandon, 14 Oct): the Bournemouth roofer run is Kestrel Ridge's. The four expected homepage lists, the three new practices and the onboarding questions in `client-facts.json` are approved (practice wording for now; Brandon flags changes); the amount of client information sent to Perplexity is right. Brandon is adding "What do customers always ask you before they book?" to the Fillout form; until then, type the answers into Client Values → FAQ.
 
 ## Don't
 - Click "Generate All" on a v20 client until the other page types are migrated.
