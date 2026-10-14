@@ -104,5 +104,18 @@ const core = require('fs').readFileSync(path.join(root, 'prompts/Homepage_Copywr
 chk('CORE (20): content block names categories only; cards describe; "We also offer" only what no card names; final CTA one plain sentence without the phone',
   /Name the categories only: never list individual services here/.test(core) && /naming only the items that no card has named/.test(core) && /with "we" or the customer as its subject/.test(core) && /Never the phone number/.test(core), '', 'all four rules');
 
+// ── After the fresh Edens Edge run (15 Oct), live sentences word for word ──
+const liveCb = 'We carry out [landscape gardener](/landscape-gardener) work covering garden makeovers, new lawns and retaining walls. Alongside that, our [landscape designer](/landscape-designer) projects handle drainage, patio design and build, and structural planting planned before anything goes in the ground. Our [gardener](/gardener) covers the ongoing side: regular mowing, weed control, mulching and hedge trimming.';
+const cbIssues = checks(page({ home_content_block_body: `Gardens in Southampton vary a lot.\n\n${liveCb}\n\nWe cover Romsey and everywhere in between.` }), 'CB-SERVICES');
+chk('CB-SERVICES: the live services paragraph that lists services is flagged', cbIssues.length === 1 && /mulching|hedge trimming|garden makeovers/.test(cbIssues[0].message), cbIssues.map(i => i.message).join(' | '), 'flagged');
+const cbGood = checks(page({ home_content_block_body: 'Gardens in Southampton vary a lot.\n\nOur [landscape gardener](/landscape-gardener) work turns a tired garden into one you use, and our [gardener](/gardener) visits keep it that way.\n\nWe cover Romsey and everywhere in between.' }), 'CB-SERVICES');
+chk('CB-SERVICES: category links with a reason each pass', cbGood.length === 0, JSON.stringify(cbGood), 'none');
+const prac = validateV20(page({ steps: CD.niche_steps.map((s, i) => ({ step_title: s.title, step_body: i === 0 ? "Nothing gets handed off or forgotten, and we stay involved with every job until it's finished properly." : 'A short body for this step that is long enough to count here.' })) }), CV2).filter(i => i.check === 'PRACTICE');
+chk('PRACTICE: "nothing gets handed off… we stay involved with every job" is caught (no confirmed practice)', prac.length >= 1 && prac.every(i => i.type === 'BLOCK'), prac.map(i => i.message).join(' | '), 'BLOCK');
+const ins = validateV20(page({ faq_items: CD.d11_faq.map((q, i) => ({ faq_question: q.question, faq_answer: i === 1 ? 'If something is accidentally damaged during a groundworks job, for example, the cover applies.' : 'An answer that is long enough to count.' })) }), CV2).filter(i => i.check === 'N11');
+chk('N11: "the cover applies" is a BLOCK', ins.some(i => i.type === 'BLOCK'), ins.map(i => i.message).join(' | '), 'BLOCK');
+const areaRec = page({ home_areas_links: [{ name: CD.d12_areas.primaryCity }, ...CD.d12_areas.linked.map(a => ({ name: a.name, url: a.url })), ...CD.d12_areas.plain.map(n => ({ name: n }))] });
+chk('Check 9: the area list without New Forest District is not missing anything', checks(areaRec, '9').length === 0, checks(areaRec, '9').map(i => i.message).join(' | '), 'none');
+
 console.log(`\n${pass + fail} checks: ${pass} passed, ${fail} failed`);
 if (fail) process.exit(1);

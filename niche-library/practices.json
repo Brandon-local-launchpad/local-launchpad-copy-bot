@@ -96,7 +96,8 @@
       "detect": [
         "\\bschedules?\\b",
         "\\bscheduled visits?\\b",
-        "\\bvisits? (every|each) (week|fortnight|month)\\b"
+        "\\bvisits? (every|each) (week|fortnight|month)\\b",
+        "\\bvisits? (?:are |is )?(?:timed|planned|booked|set) (?:to|around|by)\\b"
       ]
     },
     {
@@ -111,7 +112,9 @@
         "\\bsub-?contract",
         "\\bhand-?offs?\\b",
         "\\bpassing (jobs|work) (along|on)\\b",
-        "\\bown team (does|on) every\\b"
+        "\\bown team (does|on) every\\b",
+        "\\bhand(?:ed|s|ing)? (?:it |them |the job |the work |work )?off\\b",
+        "\\bhanded on\\b"
       ]
     },
     {
@@ -127,7 +130,8 @@
         "\\bpersonally\\b",
         "\\bon site for every job\\b",
         "\\bstays? (involved|on the job) (throughout|from start)",
-        "\\bone person (sees|handles|runs|oversees)\\b"
+        "\\bone person (sees|handles|runs|oversees)\\b",
+        "\\bstays? involved (?:with|in|on) every job\\b"
       ]
     },
     {
@@ -140,7 +144,8 @@
       "question": "Does the same team stay on a job from start to end?",
       "detect": [
         "\\bsame (people|team|faces)\\b[^.]{0,30}\\b(throughout|from|every|each|whole)\\b",
-        "\\bsees? (the|every|each) job through\\b"
+        "\\bsees? (the|every|each) job through\\b",
+        "\\bthe people you (?:speak|talk) to are the (?:people|ones)\\b"
       ]
     },
     {
