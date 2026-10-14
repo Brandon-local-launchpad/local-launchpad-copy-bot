@@ -9,7 +9,8 @@
     "test:fixtures": "node tests/run-fixtures.js",
     "test:acceptance": "node tests/acceptance/edens-edge.js",
     "wp:dry-run": "node wp/dry-run-cli.js",
-    "wp:plugin-data": "node wp/build-plugin-data.js"
+    "wp:plugin-data": "node wp/build-plugin-data.js",
+    "wp:push": "node wp/push-cli.js"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.36.0",

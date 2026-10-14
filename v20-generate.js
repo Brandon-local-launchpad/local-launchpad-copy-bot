@@ -102,6 +102,9 @@ function buildServiceList(keyValueMap = {}, serviceParentMap = {}, niche = {}) {
     (byCat[s.category] = byCat[s.category] || new Set()).add(s.say);
   }
   const lines = Object.entries(byCat).map(([cat, set]) => `${cat}: ${[...set].join(', ')}`);
+  // Every GBP category, including one whose services all sit under other categories
+  const cats = Object.entries(keyValueMap).filter(([k, v]) => /^category_\d+$/.test(k) && v).map(([, v]) => v);
+  if (cats.length) lines.unshift(`GBP categories: ${cats.join(', ')}`);
   return lines.length ? lines.join('\n') : '(none on file: name only what the card names and categories say)';
 }
 

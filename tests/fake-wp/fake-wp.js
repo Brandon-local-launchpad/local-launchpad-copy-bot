@@ -9,7 +9,9 @@ const ALL_GROUPS = require('../../wp/acf-schema').GROUPS.map(g => `group_llp_${g
 
 // plugin: false → the companion plugin isn't installed (its routes 404)
 function createFakeWp({ user = 'copybot', appPassword = 'test-app-password-not-real', frontId = 7, pages = [],
-  plugin = true, acfPro = true, seo = 'rankmath', fieldGroups = ALL_GROUPS, clientValues = {} } = {}) {
+  plugin = true, acfPro = true, seo = 'rankmath', fieldGroups = ALL_GROUPS, clientValues = {},
+  failWrites = false, ignoreAcf = [] } = {}) {
+  // failWrites: page writes return 500; ignoreAcf: fields the site doesn't save (e.g. a field group that isn't there)
   const state = { writes: 0, pages: new Map(pages.map(p => [p.id, JSON.parse(JSON.stringify(p))])), frontId, clientValues: { ...clientValues } };
   const app = express();
   app.use(express.json({ limit: '2mb' }));
@@ -37,7 +39,8 @@ function createFakeWp({ user = 'copybot', appPassword = 'test-app-password-not-r
     const p = state.pages.get(Number(req.params.id));
     if (!p) return res.status(404).json({ code: 'rest_post_invalid_id', message: 'Invalid post ID.' });
     state.writes++;
-    if (req.body.acf) p.acf = { ...p.acf, ...req.body.acf };
+    if (failWrites) return res.status(500).json({ code: 'internal_server_error', message: 'There has been a critical error on this website.' });
+    if (req.body.acf) p.acf = { ...p.acf, ...Object.fromEntries(Object.entries(req.body.acf).filter(([k]) => !ignoreAcf.includes(k))) };
     if (req.body.meta) p.meta = { ...p.meta, ...req.body.meta };
     if (req.body.status) p.status = req.body.status;
     res.json(p);

@@ -6,3 +6,4 @@ docs/**/*.pdf
 copy-bot-export/
 copy-bot-export.zip
 tests/acceptance/output/
+.wp-push/

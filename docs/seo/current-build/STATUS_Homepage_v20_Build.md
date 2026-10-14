@@ -113,6 +113,15 @@
   - The dry run now refuses when the plugin isn't active, ACF Pro is missing, the site's SEO plugin differs from the push setting, or a homepage field group is missing. It also refuses a record made before 14 Oct (no stored client values) unless current values are passed in. It now compares the Client Values too.
   - Fixtures: 13 files, 317 checks, all pass (`wp-plugin.js` adds 25).
   - Waiting on Given: a staging site, and whether she has already built homepage field groups (if so, they are deleted in favour of the plugin's). SEO plugin: Rank Math assumed until Brandon confirms.
+- Stage 10, slice 3, the real push (14 Oct), against the fake WordPress:
+  - `wp/push.js` runs the dry run's checks first, then requires a claims review for this exact version of the page; findings refuse the push until a person accepts them. Only then does it snapshot what the site holds (page fields, SEO meta, Client Values), write the page then the Client Values, read everything back to verify, and log the result. Refusals and failures are logged too. It never changes the page status.
+  - `rollback()` writes a snapshot back exactly, clears Client Values the site didn't have before, verifies, logs, and refuses a snapshot from another site.
+  - Snapshots and the log live in `wp/push-store.js` (memory for tests, files in `.wp-push/` for the command line; the database comes with the screens in slice 4).
+  - `npm run wp:push -- <record.json> [--reviewed] [--accept-claims] [--fake]` and `--rollback <snapshotId>`. On `--fake` it shows the whole cycle.
+  - The claims review is `wp/claims-review.js` + `prompts/Claims_Review_CORE.md` (CORE (2)), one Sonnet call at about 2p. It reads the copy against the client block (values, GBP categories, confirmed practices and services), the allocated research, and code-made decisions (headings, steps, FAQ questions with briefs, which count as given). Code keeps only findings whose quote is really in the named field and that the model didn't clear itself.
+  - Real runs: Ethan's page had 3 findings ("100+ jobs across Southampton's varied gardens", "we will confirm availability when we come to look at the job", "we'll come out, take a look, and give you a price"); a second run found only the middle one, so the review varies between runs. The acceptance page had 6, including FAQ 4's "That applies to every job".
+  - The client block now lists the GBP categories, so a category whose services all sit elsewhere (Ethan's lawn care) still counts as confirmed.
+  - Fixtures: 15 files, 357 checks, all pass (`wp-push-write.js` adds 21).
 - Docs: CLAUDE.md at repo root. The files the code reads (`prompts/`, `niche-library/`) are the only copies.
 
 ## Waiting on
@@ -125,7 +134,7 @@
 ## Next
 1. Check the live Stage 4 previews (expect 7 category cards and the final CTA H2 "Get a Free Quote From a Local Landscaper in Southampton").
 2. Stage 5 finish: run the allocation in the app for Edens Edge; run Bournemouth geo research for Kestrel Ridge (the allocation then runs by itself).
-3. WordPress push: slice 3 (the real push: snapshot, write, rollback, push log, claims review), then the Copybot screens and a staging push.
+3. WordPress push: slice 4 (Copybot screens: site connection, reviewed tick, claims review, dry run, push, roll back, push log in the database), then a staging push.
 4. Run Perplexity v3 for landscaper (trade only).
 5. Then: FAQ question bank + sorting step stages, humanizer decision, emergency and regulated group tests, category page.
 

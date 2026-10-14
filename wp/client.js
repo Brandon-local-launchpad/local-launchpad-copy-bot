@@ -23,6 +23,18 @@ async function wpGet(site, path) {
   return JSON.parse(body);
 }
 
+async function wpPost(site, path, body) {
+  assertSafeUrl(site.url);
+  const r = await fetch(new URL(`/wp-json${path}`, site.url), {
+    method: 'POST',
+    headers: { Authorization: authHeader(site), Accept: 'application/json', 'Content-Type': 'application/json' },
+    body: JSON.stringify(body),
+  });
+  const text = await r.text();
+  if (!r.ok) throw new Error(`POST ${path} → ${r.status}: ${text.slice(0, 200)}`);
+  return JSON.parse(text);
+}
+
 // The homepage, with its ACF fields and meta (context=edit returns raw values)
 async function findHomepage(site) {
   if (site.homepageSlug) {
@@ -34,4 +46,4 @@ async function findHomepage(site) {
   return wpGet(site, `/wp/v2/pages/${settings.page_on_front}?context=edit`);
 }
 
-module.exports = { findHomepage, wpGet, authHeader };
+module.exports = { findHomepage, wpGet, wpPost, authHeader };
