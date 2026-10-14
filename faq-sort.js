@@ -459,7 +459,7 @@ function siteRepeats(pagesQuestions) {
 
 // ── Homepage use (F3) ────────────────────────────────────────────────────────
 
-const GENERAL_BRIEF = 'A general answer: say what it depends on and give one concrete example. No prices, timescales, guarantees or working practices, and never say what this business does or offers. For planning, building regulations or permissions, say it depends on the property and to check with the council; give no rule details.';
+const GENERAL_BRIEF = 'A general answer: say what it depends on and give one concrete example. No prices, timescales, guarantees or working practices, and never say what this business does or offers. For planning, building regulations or permissions, say it depends on the property and to check with the council; give no rule details. Answer as this business: never tell the reader to get other quotes, compare firms or shop around.';
 
 function answerBrief(q, facts) {
   const f = q.fact ? facts[q.fact] : null;

@@ -48,7 +48,8 @@ function parseFindings(text, record) {
   const fields = Object.fromEntries(modelFields(record).map(f => [f.label, f.text]));
   const kept = [], dropped = [];
   // A finding the model cleared itself ("no issue", "supported") isn't a finding
-  const selfCleared = w => /\bno issue\b|\bnot a claim about (the|this) business\b|\bis supported\b|\bfine as is\b|\bnothing to flag\b/i.test(w || '');
+  // (also "Withdrawing this finding." and "not an unsupported claim", seen live 15 Oct)
+  const selfCleared = w => /\bno issue\b|\bnot a claim about (the|this) business\b|\bis supported\b|\bfine as is\b|\bnothing to flag\b|\bwithdraw(?:ing|n)?\s+(?:this|the)\s+finding\b|\bnot an unsupported (?:factual )?claim\b|\brather than an unsupported (?:factual )?claim\b/i.test(w || '');
   for (const f of raw) {
     const fieldText = fields[f.field];
     if (fieldText && f.quote && norm(fieldText).includes(norm(f.quote)) && !selfCleared(f.why)) kept.push({ field: f.field, quote: f.quote, why: f.why || '' });
@@ -75,7 +76,9 @@ function researchFromRecord(record) {
 function decisionsFromRecord(record) {
   const block = (record.meta && record.meta.decisions_block) || '';
   const part = (from, to) => { const a = block.indexOf(from); if (a < 0) return ''; const b = block.indexOf(to, a + from.length); return block.slice(a, b > a ? b : undefined).trim(); };
-  return [part('--- HEADINGS ---', '\n\n'), part('--- PROCESS STEPS ---', '\n\n'), part('--- D11 FAQ QUESTIONS ---', '\n\n')].filter(Boolean).join('\n\n');
+  // The coastal line is a code decision too ("inland and along the coast")
+  const coastal = (block.match(/^Primary city coastal:.*$/m) || [''])[0];
+  return [part('--- HEADINGS ---', '\n\n'), part('--- PROCESS STEPS ---', '\n\n'), part('--- D11 FAQ QUESTIONS ---', '\n\n'), coastal].filter(Boolean).join('\n\n');
 }
 function factsFromRecord(record) {
   return { clientBlock: record.meta && record.meta.client_block, research: researchFromRecord(record), decisions: decisionsFromRecord(record) };
