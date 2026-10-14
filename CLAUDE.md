@@ -38,5 +38,6 @@ The file the code reads is the only copy. Don't keep duplicates in `docs/`. On b
 - Housekeeping is yours: git, gitignore, commits, pushes, duplicate or stale files, paths, debug cleanup. Do it and tell me in one line.
 - The file the code reads is the source of truth. Fix drift yourself, using the newest version.
 - Fix bugs and mismatches with the docs without asking.
+- Small dev-only tooling choices are yours: test helpers, dev dependencies, local runners (e.g. a PHP runner for the plugin tests). Say what you added in one line.
 - Only stop and ask me about how the copy reads, client facts, pricing or business rules, STATUS "Open decisions", or anything that can't be undone.
 - Update the STATUS doc whenever you finish a piece of work.
