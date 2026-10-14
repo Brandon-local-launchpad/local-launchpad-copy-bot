@@ -222,12 +222,14 @@ function sectionText(text, n) {
 }
 
 // "Reddit x6, Mumsnet x3, Citizens Advice; opinions vary" → 10
+// "Reddit x4; Which?" (the live agent reply separates sources with ";") → 5.
+// Notes rather than sources ("opinions vary", "no forum version found") don't count.
 function seenCount(seen) {
-  const main = String(seen || '').split(';')[0];
+  const main = String(seen || '').replace(/\(dated:[^)]*\)/gi, '');
   let n = 0;
-  for (const part of main.split(',')) {
+  for (const part of main.split(/[,;]/)) {
     const p = part.trim();
-    if (!p) continue;
+    if (!p || /\b(opinions|answers|disagree|vary|varies|found|not found)\b|^no\b/i.test(p)) continue;
     const m = p.match(/\bx\s?(\d+)\b/i);
     n += m ? parseInt(m[1], 10) : 1;
   }
@@ -256,7 +258,13 @@ function applyField(q, key, rawVal) {
   else if (key === 'local') q.local = /^y/i.test(val);
   else if (key === 'town') q.town = /^(-|none|n\/a)?$/i.test(val) ? '' : val;
   else if (/needs( client)? fact|client fact/.test(key)) q.needsFact = /^y/i.test(val);
-  else if (key === 'seen') { q.seen = val; q.seenCount = seenCount(val); }
+  else if (key === 'seen') {
+    // The live reply puts the date in the Seen column: "MyBuilder x1 (dated: November 2020)"
+    const d = val.match(/\(dated:\s*([^)]+)\)/i);
+    if (d) q.dated = d[1].trim();
+    q.seen = val.replace(/\s*\(dated:[^)]*\)/gi, '').trim();
+    q.seenCount = seenCount(q.seen);
+  }
   else return false;
   return true;
 }
@@ -378,11 +386,13 @@ function parseFaqResearch(text) {
 
   const ranges = items(sectionText(t, 2)).map(l => {
     const p = l.split(/\s*\|\s*/);
-    return { job: stripMd(p[0]), range: stripMd(p[1] || ''), area: stripMd(p[2] || ''), dated: ((l.match(/\(dated:\s*([^)]+)\)/i) || [])[1] || ''), url: firstUrl(l) };
+    // A line's "(dated: …)", or the table's own Dated column (the live reply)
+    const datedCol = p[3] && !/https?:\/\//.test(p[3]) ? stripMd(p[3]) : '';
+    return { job: stripMd(p[0]), range: stripMd(p[1] || ''), area: stripMd(p[2] || ''), dated: ((l.match(/\(dated:\s*([^)]+)\)/i) || [])[1] || datedCol), url: firstUrl(l) };
   });
   const rules = items(sectionText(t, 3)).map(l => {
     const p = l.split(/\s*\|\s*/);
-    return { question: stripMd(p[0]), rule: stripMd(p[1] || ''), url: firstUrl(l) };
+    return { question: stripMd(p[0]).replace(/^["“]+|["”]+$/g, ''), rule: stripMd(p[1] || ''), url: firstUrl(l) };
   });
   const gaps = items(sectionText(t, 4)).map(stripMd);
 
