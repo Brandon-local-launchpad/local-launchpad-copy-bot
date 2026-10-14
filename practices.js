@@ -20,10 +20,13 @@ function confirmedPractices(cv, niche) {
 function practiceClaims(text, niche) {
   const out = [];
   for (const p of practicesFor(niche)) {
+    // Every phrase that states the practice, so a rewrite removes them all (16 Oct)
+    const hits = [];
     for (const src of p.detect) {
       const m = (text || '').match(new RegExp(src, 'i'));
-      if (m) { out.push({ practice: p, match: m[0] }); break; }
+      if (m && !hits.some(h => h.includes(m[0]) || m[0].includes(h))) hits.push(m[0]);
     }
+    if (hits.length) out.push({ practice: p, match: hits.join('" and "') });
   }
   return out;
 }

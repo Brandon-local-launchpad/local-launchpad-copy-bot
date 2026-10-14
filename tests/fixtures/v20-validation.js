@@ -42,7 +42,8 @@ chk('2: "wide range of"', has('2', 'areas_intro', 'wide range of'), '', 'banned'
 chk('NUM: "a day or two" and "one or two weeks" (no typical_jobs on file)', has('NUM', 'How long', 'a day or two') && has('NUM', 'How long', 'one or two weeks'), '', 'both');
 chk('HERO: keyword missing and "Romsey, Southampton"', has('HERO', 'hero', 'listing Romsey beside Southampton'), '', 'HERO');
 chk('TRUST-REPEAT: 100 jobs in the content block', has('TRUST-REPEAT', 'content_block'), '', 'TRUST-REPEAT');
-chk('PROOF-REPEAT: a 4th "fixed price"', has('PROOF-REPEAT', 'final_cta', 'fixed price'), '', 'PROOF-REPEAT on final CTA');
+// 16 Oct: the fixed price has its own check (PROOF-FIXED, a BLOCK, counting the meta and its Why point)
+chk('PROOF-FIXED: a 4th "fixed price"', has('PROOF-FIXED', 'final_cta', 'fixed price'), '', 'PROOF-FIXED on final CTA');
 chk('1b: "four-person", "mid-job", "slower-draining"', has('1b', 'content_block', 'four-person') && has('1b', 'Fixed Prices', 'mid-job') && has('1b', 'Why does water', 'slower-draining'), '', 'all three');
 chk('N7: Why point over 40 words', has('N7', 'Insured up to', '50 words'), '', 'N7');
 chk('N24: FAQ 6 first sentence 22 words', has('N24', 'Which areas', '22 words'), '', 'N24');

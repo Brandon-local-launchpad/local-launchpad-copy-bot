@@ -35,7 +35,7 @@ const { confirmedServiceList } = require('./service-words');
 const RETRY_FLAGS = new Set(['N7', 'N13', 'N14', 'N15', 'N17', 'N18', 'N19', 'N21', 'N22', 'N23', 'N24',
   '1b', 'HERO', 'SERVICE', 'TRUST-REPEAT', 'PROOF-REPEAT', 'RAW-GBP', 'CARD-COUNT', 'COAST', 'HUB-LINK', 'RESEARCH-LANG', 'REPEAT-IN',
   'FINAL-CTA', 'CARD-FILLER', 'MORE-REPEAT', 'CB-SERVICES',
-  'CARD-LOCAL', 'LINK-TEXT']);
+  'CARD-LOCAL', 'LINK-TEXT', 'CARD-PICK', 'REPEAT-PAGE']);
 //   INSURANCE     BLOCK  insurance mentioned with no insurance_cover on file
 //   RIVALS        BLOCK  (15 Oct) the copy tells the reader to get other quotes, compare firms or shop around
 //   (15 Oct, second Edens Edge review)
@@ -49,6 +49,14 @@ const RETRY_FLAGS = new Set(['N7', 'N13', 'N14', 'N15', 'N17', 'N18', 'N19', 'N2
 //   9             council areas are left out of the area list check
 //   CARD-LOCAL    FLAG   a neighbourhood or allocated place in a card
 //   LINK-TEXT     FLAG   a category link whose text drops the category's words
+//   (16 Oct, Brandon's round 2 review of Edens Edge)
+//   CARD-COUNT    BLOCK  more than 3 services in a card (was a FLAG)
+//   CARD-PICK     FLAG   a card names a service code didn't give it (D9 Services)
+//   PROOF-FIXED   BLOCK  the fixed price more than 3 times (meta, its Why point, then page order), or in a step
+//   REPEAT-PAGE   FLAG   a three word phrase (articles dropped, start/begin folded) in more than two fields
+//   CAT-TEAM      BLOCK  a category used as a job title ("our deck builder team")
+//   FAQ-YES       BLOCK  an answer to a which/what/how/why question opening "Yes" or "No"
+//   CB-PARA       BLOCK  a content block paragraph of more than 4 sentences
 const RESEARCH_WORDS = ['investigated sites?', 'records? shows?', 'recorded (at|in|by)', 'council (guidance|records|data|maps?|says)',
   'strategic flood', 'flood (risk )?assessments?', 'suds', 'according to', 'research', 'dossier', 'data (shows|suggests)',
   'mapped', 'appraisal', 'neighbourhood plan', 'evidence base', 'studies show', 'surveys? (show|found)',
@@ -73,6 +81,8 @@ const DATED = ['currently', 'at the moment', 'right now', 'this year'];
 const OVERPROMISE = ['never by you', 'fully covered', 'pays for everything', "won't cost you", 'nothing to pay',
   'pays out', 'pay out', 'paid out', 'covers you', "you're covered", 'you are covered', 'you will be covered', 'will cover the cost', 'will pay for',
   'the cover applies', 'cover will apply', 'cover kicks in'];
+// The fixed price in any wording (PROOF-FIXED)
+const FIXED_RE = /\bfixed[\s-]prices?\b|\b(?:price|figure|quote|cost)s?\b[^.]{0,30}\b(?:is|are|stays?|remains?) fixed\b|\bfigure (?:you|we) (?:agree|pay)\b|\bfinal invoice\b|\bwhat we quote is what you pay\b|\bno hidden costs\b|\bnothing (?:is |gets |will be )?added\b|\bfixed (?:quote|figure|cost)s?\b/i;
 const CONNECTORS = ['also', 'so', 'then'];
 const GENERIC_SERVICE_WORDS = new Set(['install', 'installation', 'lay', 'laying', 'fitting', 'fit', 'work', 'service', 'services', 'and', 'or', 'the']);
 
@@ -362,7 +372,35 @@ function validateV20(record, V) {
       const hits = [...new Set(V.serviceList.filter(sv => sv.say && new RegExp(`\\b${esc(sv.say)}\\b`, 'i').test(s)).map(sv => sv.say))];
       // "driveways" inside "new driveways" is one service, not two
       const named = new Set(hits.filter(h => !hits.some(o => o !== h && o.includes(h))));
-      if (named.size > 3) flag('FLAG', 'CARD-COUNT', `Names ${named.size} services (${[...named].join(', ')}). Name 2 or 3, in a sentence, not a list.`);
+      // A BLOCK since 16 Oct (Brandon); code gives each card its 2 or 3 services
+      const picks = ((D.d9.main || [])[f.ref.index] || {}).services;
+      const allowed = picks && picks.length ? ` Name only ${picks.join(', ')}.` : ' Name 2 or 3, in a sentence, not a list.';
+      if (named.size > 3) flag('BLOCK', 'CARD-COUNT', `Names ${named.size} services (${[...named].join(', ')}).${allowed}`);
+      // CARD-PICK: a service the card wasn't given (category names don't count)
+      if (picks) {
+        const cats = new Set(V.categoryNames.map(lc));
+        const extra = [...named].filter(n => !picks.some(p => lc(p) === lc(n) || lc(p).includes(lc(n)) || lc(n).includes(lc(p))) && !cats.has(lc(n)) && ![...cats].some(c => c.includes(lc(n))));
+        if (extra.length) flag('FLAG', 'CARD-PICK', `Names ${extra.join(', ')}, which this card wasn't given.${picks.length ? ` Its services are ${picks.join(', ')}.` : ' Describe the work without naming services.'}`);
+      }
+    }
+    // CAT-TEAM: a category name is never a job title for the team ("our deck builder team") (16 Oct)
+    for (const cat of [...new Set(V.categoryNames.map(lc))]) {
+      const m = s.match(new RegExp(`\\b(?:our|the|a|your)\\s+${esc(cat)}\\s+(team|crew|staff|people|guys|lads)\\b`, 'i'));
+      if (m) flag('BLOCK', 'CAT-TEAM', `"${m[0]}" uses the category as a job title. Write "our ${lc(cat)} work" or start with "we".`);
+    }
+    // FAQ-YES: an answer to a which/what/how/why question never opens "Yes" or "No" (16 Oct)
+    if (f.ref.sub === 'faq_answer') {
+      const q = (f.label.match(/^faq_answer \((.*)\)$/) || [])[1] || '';
+      if (/^(which|what|how|why|when|where|who)\b/i.test(q.trim()) && /^\s*(yes|no)\b/i.test(s)) {
+        flag('BLOCK', 'FAQ-YES', `"${q}" isn't a yes or no question, so the answer can't open "${s.trim().split(/[\s,]/)[0]}". Open with the answer itself.`);
+      }
+    }
+    // CB-PARA: content block paragraphs are 4 sentences at most (16 Oct)
+    if (f.ref.key === 'home_content_block_body') {
+      t.split(/\n\s*\n/).forEach((para, i) => {
+        const n = sentences(para).length;
+        if (n > 4) flag('BLOCK', 'CB-PARA', `Paragraph ${i + 1} has ${n} sentences. Keep each paragraph to 4 at most: split it or cut a sentence.`);
+      });
     }
     // COAST: a coastal city's travel distance reads "inland and along the coast"
     if (D.coastal && (/\btravel/i.test(s) || /\[CV: travel_distance\]/.test(t) || (cv.travel_distance && l.includes(lc(cv.travel_distance))))) {
@@ -455,8 +493,24 @@ function validateV20(record, V) {
   const tokenCount = {};
   for (const f of fields) for (const m of f.text.matchAll(/\[CV: (insurance_cover|jobs_completed|years_trading|guarantee_years)\]/g)) tokenCount[m[1]] = (tokenCount[m[1]] || 0) + 1;
   for (const [k, n] of Object.entries(tokenCount)) if (n > 2) issue('FLAG', 'N4', 'page', `[CV: ${k}] appears ${n} times in the model fields.`);
+  // PROOF-FIXED (16 Oct, Brandon): the fixed price appears 3 times at most, counting the
+  // meta description and its Why point (title and body as one), in any wording; never in a step
+  if (/fixed\s+price/i.test(`${cv.differentiator_1 || ''} ${cv.differentiator_2 || ''}`)) {
+    const isFixed = x => FIXED_RE.test(scanText(x || ''));
+    let count = isFixed(record.meta_description) ? 1 : 0;
+    const homes = [count ? 'the meta description' : null];
+    const whyIdx = (record.points || []).findIndex(p => isFixed(p.point_title));
+    if (whyIdx >= 0) { count++; homes.push(`the "${record.points[whyIdx].point_title}" point`); }
+    for (const f of fields) {
+      if (f.ref.key === 'points' && f.ref.index === whyIdx) continue;
+      if (!isFixed(f.text)) continue;
+      if (f.ref.key === 'steps') { issue('BLOCK', 'PROOF-FIXED', f.label, 'A step never repeats the fixed price: it has its homes in the hero and Why choose us. Say what happens at this step.', f.ref); continue; }
+      count++;
+      if (count <= 3) { homes.push(f.label); continue; }
+      issue('BLOCK', 'PROOF-FIXED', f.label, `The fixed price is already on the page 3 times (${homes.filter(Boolean).join(', ')}). Leave it out here, in any wording.`, f.ref);
+    }
+  }
   const proofs = [];
-  if (/fixed\s+price/i.test(`${cv.differentiator_1 || ''} ${cv.differentiator_2 || ''}`)) proofs.push({ name: 'fixed price', re: /\bfixed[\s-]prices?\b/gi });
   if (cv.jobs_completed) proofs.push({ name: `${cv.jobs_completed} jobs`, re: new RegExp(`\\b${esc(String(cv.jobs_completed))}\\b\\+?`, 'g') });
   if (cv.insurance_cover) proofs.push({ name: 'the insurance figure', re: new RegExp(`£?\\s?${esc(String(cv.insurance_cover))}\\b`, 'gi') });
   for (const p of proofs) {
@@ -545,6 +599,31 @@ function validateV20(record, V) {
     const shared = [...g].find(x => seenGrams.has(x));
     if (shared) issue('FLAG', 'N21', f.label, `Repeats "${shared}" from ${seenGrams.get(shared)}. Reword it.`, f.ref);
     for (const x of g) if (!seenGrams.has(x)) seenGrams.set(x, f.label);
+  }
+  // REPEAT-PAGE (16 Oct): a four word phrase ("before any work begins") in more than two
+  // fields. Word forms are folded so "before work starts" and "before any work begins" match.
+  {
+    const FOLD = { starts: 'begins', start: 'begins', started: 'begins', begin: 'begins', began: 'begins', starting: 'begins',
+      commences: 'begins', agreed: 'agree', agrees: 'agree', booked: 'book', confirmed: 'confirm' };
+    const DROP = new Set(['any', 'the', 'a', 'an']);
+    const seenIn = new Map();
+    const flagged = new Set();
+    for (const f of fields) {
+      const toks = lc(scanText(f.text)).replace(/cvtoken/g, ' ').replace(/[^a-z0-9£' ]+/g, ' ').split(/\s+/)
+        .filter(w => w && !DROP.has(w)).map(w => FOLD[w] || w);
+      const mine = new Set();
+      for (let i = 0; i + 3 <= toks.length; i++) {
+        const g = toks.slice(i, i + 3);
+        if (g.filter(w => !STOPWORDS.has(w)).length < 2) continue;
+        mine.add(g.join(' '));
+      }
+      for (const g of mine) {
+        const list = seenIn.get(g) || [];
+        list.push(f.label);
+        seenIn.set(g, list);
+        if (list.length === 3 && !flagged.has(f.label) && flagged.add(f.label)) issue('FLAG', 'REPEAT-PAGE', f.label, `"${g}" (or a close form of it) is already in ${list.slice(0, 2).join(' and ')}. A phrase is used twice on the page at most: say it differently or leave it out.`, f.ref);
+      }
+    }
   }
   // N23: stock phrases more than once on the page
   for (const p of STOCK) {
