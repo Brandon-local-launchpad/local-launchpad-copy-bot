@@ -53,8 +53,8 @@
   ],
 
   "step_2_no_visit": {
-    "title": "We Price the Job From Your Photos or a Call",
-    "brief": "How the price is worked out from the ground level photos and details they send, or a short call. Never mention an inspection visit or going on the roof before the quote. Follows [CV: quote_method]. Never restates 'free'."
+    "title": "We Price Your Job",
+    "brief": "Say a price is agreed before any work starts. Describe how the price is reached only from [CV: quote_method]; when quote_method is blank, name no method at all (no photos, call, video, inspection or visit). Never mention going on the roof before the quote. Never restates 'free'."
   },
   "cover_chain": ["guarantee", "manufacturer_warranty", "insurance"],
 

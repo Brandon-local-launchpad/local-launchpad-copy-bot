@@ -191,9 +191,10 @@ chk('Q3 = faq_3_none (no guarantee, type A)',
   q3 && q3.doubt === 'Trust',
   q3 && q3.question, 'faq_3_none question');
 
-chk('New Forest is plain text in area list',
-  D.d12_areas.plain.includes('New Forest'),
-  D.d12_areas.plain.join(', '), 'includes New Forest');
+// 15 Oct (Brandon): a council area is not a town, so New Forest District is left out
+chk('New Forest District (a council area) is left out of the area list',
+  !D.d12_areas.plain.some(a => /New Forest/.test(a)) && !D.d12_areas.linked.some(a => /New Forest/.test(a.name)),
+  D.d12_areas.plain.join(', '), 'no New Forest');
 
 chk('Cards = the 7 categories, no secondary-category services',
   D.d9.main.map(c => c.name).join(',') === 'Landscape Gardener,Landscape Designer,Gardener,Lawn care service,Tree service,Paving contractor,Deck builder',

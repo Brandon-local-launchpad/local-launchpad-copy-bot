@@ -33,9 +33,17 @@ const { confirmedServiceList } = require('./service-words');
 
 const RETRY_FLAGS = new Set(['N7', 'N13', 'N14', 'N15', 'N17', 'N18', 'N19', 'N21', 'N22', 'N23', 'N24',
   '1b', 'HERO', 'SERVICE', 'TRUST-REPEAT', 'PROOF-REPEAT', 'RAW-GBP', 'CARD-COUNT', 'COAST', 'HUB-LINK', 'RESEARCH-LANG', 'REPEAT-IN',
+  'FINAL-CTA', 'CARD-FILLER', 'MORE-REPEAT',
   'CARD-LOCAL', 'LINK-TEXT']);
 //   INSURANCE     BLOCK  insurance mentioned with no insurance_cover on file
 //   RIVALS        BLOCK  (15 Oct) the copy tells the reader to get other quotes, compare firms or shop around
+//   (15 Oct, second Edens Edge review)
+//   N11           BLOCK  insurance described as an outcome ("pays out", "covers you"); was a FLAG
+//   COAST-DIR     BLOCK  a compass direction in the areas intro of a coastal city
+//   QUOTE-METHOD  BLOCK  the neutral step 2 names a quote method (photos, a call, a visit) with none confirmed
+//   FINAL-CTA     BLOCK  the phone number in the final CTA body; FLAG for more than one sentence or no "we"/"you"
+//   CARD-FILLER   FLAG   the city named in more than two cards
+//   MORE-REPEAT   FLAG   "We also offer" names a service a card already names
 //   CARD-LOCAL    FLAG   a neighbourhood or allocated place in a card
 //   LINK-TEXT     FLAG   a category link whose text drops the category's words
 const RESEARCH_WORDS = ['investigated sites?', 'records? shows?', 'recorded (at|in|by)', 'council (guidance|records|data|maps?|says)',
@@ -58,7 +66,9 @@ const CLAIM_WORDS = ['best', '#1', 'leading', 'trusted', 'expert', 'specialist',
 const STOCK = ['before you decide', 'in between', 'from the start', 'no surprises', 'peace of mind', 'take a look'];
 const SUPERLATIVES = ['more than almost anything', 'the most', 'the only', 'unbeatable', 'like no other'];
 const DATED = ['currently', 'at the moment', 'right now', 'this year'];
-const OVERPROMISE = ['never by you', 'fully covered', 'pays for everything', "won't cost you", 'nothing to pay'];
+// Insurance described as an outcome for the customer (15 Oct: "pays out", "covers you")
+const OVERPROMISE = ['never by you', 'fully covered', 'pays for everything', "won't cost you", 'nothing to pay',
+  'pays out', 'pay out', 'paid out', 'covers you', "you're covered", 'you are covered', 'you will be covered', 'will cover the cost', 'will pay for'];
 const CONNECTORS = ['also', 'so', 'then'];
 const GENERIC_SERVICE_WORDS = new Set(['install', 'installation', 'lay', 'laying', 'fitting', 'fit', 'work', 'service', 'services', 'and', 'or', 'the']);
 
@@ -251,7 +261,7 @@ function validateV20(record, V) {
     for (const w of DATED) if (new RegExp(`\\b${esc(w)}\\b`, 'i').test(s)) flag('FLAG', 'N9', `"${w}" presents a dated fact as current.`);
     if (/\b[A-Z]{2,4}-[NISR]\d{2}\b/.test(t)) flag('BLOCK', 'N10', 'Contains a research reference ID.');
     if (/https?:\/\//.test(stripLinks(t).replace(/\]\([^)]*\)/g, ''))) flag('BLOCK', 'N10', 'Contains a URL that is not a Markdown link.');
-    for (const w of OVERPROMISE) if (l.includes(w)) flag('FLAG', 'N11', `Insurance overpromise: "${w}". Describe what the cover is for, never the outcome.`);
+    for (const w of OVERPROMISE) if (new RegExp(`\\b${esc(w)}\\b`).test(l)) flag('BLOCK', 'N11', `Insurance overpromise: "${w}" promises an outcome. Describe what the cover is for, never what it pays or who it covers.`);
     // N12 team/crew
     if ((!cv.team_size || parseInt(cv.team_size, 10) <= 1) && /\b(team|crew)\b/i.test(s)) flag('FLAG', 'N12', '"Team" or "crew" used but the team size is not above 1.');
     // N15 pronouns
@@ -355,6 +365,24 @@ function validateV20(record, V) {
       if (/\bin (each|every) direction\b|\b(to the )?(north|south|east|west)(,| and)\s+(north|south|east|west)\b/i.test(s) || !/inland and along the coast/i.test(s)) {
         flag('FLAG', 'COAST', 'The city is on the coast: write the travel distance as "inland and along the coast", never compass directions.');
       }
+    }
+    // COAST-DIR: on a coastal city the areas intro names no compass direction (15 Oct)
+    if (D.coastal && f.label === 'home_areas_intro') {
+      const plain = s.replace(/\[CV: [a-z0-9_]+\]/g, ' ').replace(new RegExp(esc(cv.area_wide || '\u0000'), 'gi'), ' ');
+      const dir = plain.match(/\b(north|south|east|west)(?:ern|wards?|\s*east|\s*west)?\b/i);
+      if (dir) flag('BLOCK', 'COAST-DIR', `"${dir[0]}": the city is on the coast, so the areas intro names no compass direction. Write "inland and along the coast" and name places instead.`);
+    }
+    // QUOTE-METHOD: the neutral step 2 (no visit before quoting) names no quote method
+    // unless quote_method gives one (15 Oct)
+    if (f.ref.sub === 'step_body' && f.ref.index === 1 && !cv.quote_method && niche.step_2_no_visit && (D.niche_steps || [])[1] && D.niche_steps[1].title === niche.step_2_no_visit.title) {
+      const m = s.match(/\b(photos?|pictures?|images?|videos?|phone call|a call|calls?|visits?|survey|inspect\w*|site visit)\b/i);
+      if (m) flag('BLOCK', 'QUOTE-METHOD', `"${m[0]}" names a way of pricing the job, but no quote method is confirmed. Say a price is agreed before work starts, without saying how.`);
+    }
+    // FINAL-CTA: one normal sentence, "we" or the customer as the subject, never the phone number (15 Oct)
+    if (f.label === 'home_final_cta_body') {
+      if (/\[CV: phone\]/.test(t) || (cv.phone && digits.includes(cv.phone.replace(/\D/g, '')))) flag('BLOCK', 'FINAL-CTA', 'The final CTA body never gives the phone number: the buttons carry it.');
+      if (sentences(t).length > 1) flag('FLAG', 'FINAL-CTA', 'The final CTA body is one sentence.');
+      if (!/\b(we|we'll|we're|you|you'll|your)\b/i.test(s)) flag('FLAG', 'FINAL-CTA', 'Make "we" or the customer the subject of the sentence.');
     }
     // RESEARCH-LANG: the copy never sounds like the research it came from
     for (const w of RESEARCH_WORDS) {
@@ -460,6 +488,18 @@ function validateV20(record, V) {
     const k = words(f.text).slice(0, 3).map(w => lc(w).replace(/\W/g, '')).join(' ');
     if (openers.has(k)) issue('FLAG', 'N13', f.label, `Opens with the same three words as ${openers.get(k)}. Start differently.`, f.ref);
     else openers.set(k, f.label);
+  }
+  // CARD-FILLER: the city in more than two cards reads as filler ("across Southampton") (15 Oct)
+  if (V.city) {
+    const withCity = cardFields.filter(f => new RegExp(`\\b${esc(lc(V.city))}\\b`).test(lc(scanText(f.text))));
+    withCity.slice(2).forEach(f => issue('FLAG', 'CARD-FILLER', f.label, `${withCity.length} cards mention ${V.city} ("across ${V.city}"). Keep it to two at most; cards say what the service does, not where.`, f.ref));
+  }
+  // MORE-REPEAT: "We also offer" names only services no card names (15 Oct)
+  const moreLine = fields.find(f => f.label === 'home_services_more_line');
+  if (moreLine) {
+    const inCards = new Set(V.serviceList.filter(sv => sv.say && cardFields.some(c => new RegExp(`\\b${esc(sv.say)}\\b`, 'i').test(scanText(c.text)))).map(sv => lc(sv.say)));
+    const repeated = [...new Set(V.serviceList.filter(sv => sv.say && inCards.has(lc(sv.say)) && new RegExp(`\\b${esc(sv.say)}\\b`, 'i').test(scanText(moreLine.text))).map(sv => sv.say))];
+    if (repeated.length) issue('FLAG', 'MORE-REPEAT', moreLine.label, `"We also offer" names ${repeated.join(', ')}, already in a card. Name only services no card names, or write HIDDEN.`, moreLine.ref);
   }
   // N14: words to avoid more than twice; closing lines starting the same way
   for (const w of (niche.words_avoid || [])) {
