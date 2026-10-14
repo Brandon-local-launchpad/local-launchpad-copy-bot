@@ -52,7 +52,7 @@
     },
     {
       "title": "We Start on a Date That Suits You",
-      "brief": "The start date is agreed in advance and the job runs to the agreed plan. Never restates the start time (FAQ 4 owns it). Mixed A/B clients add one line on ongoing maintenance visits."
+      "brief": "The start date is agreed in advance, to suit the customer. Never mention the price, the quote or changes to the plan (step 2 and Why choose us own them). Never restates the start time (FAQ 4 owns it). Mixed A/B clients add one line on ongoing maintenance visits."
     }
   ],
 
@@ -106,7 +106,7 @@
     {
       "slot": "faq_3_none",
       "question": "What happens if something isn't right after the job?",
-      "answer_brief": "Used when nothing in cover_chain other than insurance is confirmed. Answer from the 'reasonable care and skill' standard every trade works to, and how to raise it. Never invent a guarantee.",
+      "answer_brief": "Used when nothing in cover_chain other than insurance is confirmed. Open with what the customer does: tell us what isn't right and we'll look at it. Then the 'reasonable care and skill' standard every trade works to, as the standard the work is held to, never as a defence. No promise to come back or put it right for free. Never invent a guarantee.",
       "symptom_based": false,
       "doubt": "Trust"
     },

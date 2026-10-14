@@ -49,7 +49,7 @@ Each step has a fixed title and a one line brief the model writes to.
    Without the practice (`step_2_no_visit`): **We Price Your Job**
    Brief: a price is agreed before any work starts. Describe how the price is reached only from [CV: quote_method]; when quote_method is blank, name no method at all (no photos, call, video or visit). Only say the quote is written if quote_method says so. Never restates "free" (FAQ 5 owns it).
 3. **We Start on a Date That Suits You**
-   Brief: the start date is agreed in advance and the job runs to the agreed plan. Never restates the start time (FAQ 4 owns it). Mixed A/B clients add one line on ongoing maintenance visits.
+   Brief: the start date is agreed in advance, to suit the customer. Never mention the price, the quote or changes to the plan (step 2 and Why choose us own them). Never restates the start time (FAQ 4 owns it). Mixed A/B clients add one line on ongoing maintenance visits.
 
 Type B wording (maintenance led landscapers) uses the B defaults from the Homepage Structure, section 3.
 
@@ -78,7 +78,7 @@ Fixed homepage questions and their doubts: Q1 cost = Price; Q6 areas = Fit.
 | faq_2 | Are you insured? | The cover figure and what it means for the customer if something is damaged during the job. | no | Trust |
 | faq_2_fallback | What happens if something goes wrong? | From [CV: complaints_process] only. | no | Trust |
 | faq_3 | Do you guarantee your work? | Used only when a guarantee or manufacturer warranty is confirmed. Start with yes, then the terms. | no | Trust |
-| faq_3_none | What happens if something isn't right after the job? | Used when nothing in cover_chain other than insurance is confirmed. Answer from the "reasonable care and skill" standard every trade works to, and how to raise it. Never invent a guarantee. | no | Trust |
+| faq_3_none | What happens if something isn't right after the job? | Used when nothing in cover_chain other than insurance is confirmed. Open with what the customer does: tell us what isn't right and we'll look at it. Then the "reasonable care and skill" standard every trade works to, as the standard the work is held to, never as a defence. No promise to come back or put it right for free. Never invent a guarantee. | no | Trust |
 | faq_4 | How soon can you start? | From [CV: start_time] only, as given. Code adds "bigger projects are booked further ahead" only when that practice is confirmed. | no | Timing |
 | faq_5_free | Is the quote free and no obligation? | From [QUOTE_FREE] and [CV: quote_method]. | no | Price |
 | faq_5_not_free | How do your quotes work? | From [CV: quote_method] only. | no | Price |

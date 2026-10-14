@@ -46,7 +46,7 @@ Standard (type A):
 1. **Tell Us What's Wrong.** Brief: what to tell them (what they've noticed, roughly where) and that ground level photos help. Never encourage the customer to go up a ladder.
 2. **We Inspect and Show You the Problem.** (only when the `site_visit_before_quote` practice is confirmed) Brief: a proper inspection, and the customer is shown what was found. Follows [CV: quote_method]. Never restates "free".
    Without the practice (`step_2_no_visit`): **We Price Your Job.** Brief: a price is agreed before any work starts. Describe how the price is reached only from [CV: quote_method]; when it is blank, name no method at all (no photos, call, video, inspection or visit). Never mention going on the roof before the quote. Never restates "free".
-3. **We Fix It on a Date That Suits You.** Brief: date agreed once the quote is accepted; the work follows the quote. Never restates the start time.
+3. **We Fix It on a Date That Suits You.** Brief: date agreed once the quote is accepted, to suit the customer. Never mention the price or changes to the work (step 2 and Why choose us own them). Never restates the start time.
 
 Emergency (only when the emergency layout is on): Call Us / We Give You a Price and an Arrival Time / We Fix It on the Spot.
 
@@ -73,7 +73,7 @@ Fixed homepage questions and their doubts: Q1 cost = Price; Q6 areas = Fit.
 | faq_2 | Are you insured? | Cover figure and what it's for, with a plausible roofing example that doesn't suggest carelessness. | no | Trust |
 | faq_2_fallback | What happens if something goes wrong? | From [CV: complaints_process] only. | no | Trust |
 | faq_3 | Do you guarantee your work? | Yes, then the confirmed terms. | no | Trust |
-| faq_3_none | What happens if the roof leaks again after a repair? | "Reasonable care and skill" standard; never invent a guarantee. | no | Trust |
+| faq_3_none | What happens if the roof leaks again after a repair? | Open with what the customer does: tell us and we'll look at it. Then the "reasonable care and skill" standard, as the standard the work is held to, never as a defence. No promise to come back or put it right for free. Never invent a guarantee. | no | Trust |
 | faq_4 | How soon can you start? | From [CV: start_time] only, as given; if same_day_available is yes, say how urgent leaks are handled differently. | no | Timing |
 | faq_5_free | Is the quote free and no obligation? | From [QUOTE_FREE] and [CV: quote_method]. | no | Price |
 | faq_5_free_inspection | Are the inspection and quote free? | Used instead of faq_5_free only when free_quotes = yes and free_inspection = yes. From [QUOTE_FREE], [CV: free_inspection] and [CV: quote_method]. | no | Price |

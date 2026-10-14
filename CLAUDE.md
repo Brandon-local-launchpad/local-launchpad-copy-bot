@@ -13,6 +13,7 @@ Copybot writes website copy for UK tradespeople (Local Launchpad clients) using 
 | v20 page types (homepage now, category pages next): what each type's fields, validator, reader view and WordPress mapping are | `page-types/index.js` (the registry) and `page-types/homepage.js`; records are stored by type and key in `v20-store.js` |
 | Allocation pass (neighbourhoods and symptoms per page) | `prompts/Allocation_Pass_CORE.md`, `allocation.js` (checks and resolving), `geo-dossier.js` (dossier parser) |
 | FAQs: choosing, assigning, answering, checking | `docs/seo/current-build/FAQ_Framework_and_Perplexity_Prompt.md`. Code: `faq-research.js` (per client research prompt and parser), `faq-sort.js` (tidy call, approval, which page each question goes to), `faq-service.js` (storage, research job, the FAQ questions card); prompts `prompts/FAQ_Research_CORE.md` and `prompts/FAQ_Sorting_CORE.md`; client facts in `niche-library/client-facts.json` and `practices.json` |
+| Copy quality: what a good page is, and the review step | `docs/seo/COPY_QUALITY_RUBRIC.md`, `quality-review.js`, `tools/quality-loop.js` |
 | Category/service custom values and the test client | `docs/seo/reference/Edens_Edge_Custom_Values_HOW_TO_USE.csv` |
 | The old GHL delivery process | `docs/seo/reference/Website_Delivery_SOP.txt` (OUTDATED, reference only) |
 
@@ -33,6 +34,17 @@ The file the code reads is the only copy. Don't keep duplicates in `docs/`. On b
 - Before a stage, write a short plan and wait for approval.
 - After building, review your own work against the relevant doc above and list anything that doesn't match before saying it's done.
 - When a decision is open (see STATUS "Open decisions"), ask rather than pick one.
+
+## Copy quality: run the loop yourself
+
+Brandon is not in the loop for copy quality (16 Oct 2026).
+
+- The bar is `docs/seo/COPY_QUALITY_RUBRIC.md`: every item passes and the review scores 8.5 or more.
+- The review step is `quality-review.js` (code checks plus a reviewer model, `prompts/Copy_Quality_Review_CORE.md`). Run it locally with `node tools/quality-loop.js <edens-edge|kestrel-rich|kestrel-thin>`; it uses the API key in `.env` and real data (Edens Edge: the real files plus `tests/live-snapshots/edens-edge.json`, taken from the live app and not committed).
+- Loop: generate, review, fix the rules, prompt or code, regenerate, until Edens Edge and Kestrel Ridge both pass. Then give Brandon one merge link and the final reader view.
+- Every new copy problem found (by you, the reviewer or Brandon) becomes a rubric item with a pass/fail test, and a check where code can test it.
+- A missing client fact never stops the loop: the copy leaves the claim out, and the fact goes under "What I need from Brandon".
+- Don't ask Brandon about anything the rubric or this file already answers.
 
 ## Decide yourself, don't ask me
 

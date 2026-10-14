@@ -35,7 +35,7 @@ const { confirmedServiceList } = require('./service-words');
 const RETRY_FLAGS = new Set(['N7', 'N13', 'N14', 'N15', 'N17', 'N18', 'N19', 'N21', 'N22', 'N23', 'N24',
   '1b', 'HERO', 'SERVICE', 'TRUST-REPEAT', 'PROOF-REPEAT', 'RAW-GBP', 'CARD-COUNT', 'COAST', 'HUB-LINK', 'RESEARCH-LANG', 'REPEAT-IN',
   'FINAL-CTA', 'CARD-FILLER', 'MORE-REPEAT', 'CB-SERVICES',
-  'CARD-LOCAL', 'LINK-TEXT', 'CARD-PICK', 'REPEAT-PAGE', 'CARD-PATTERN', 'OUTCOME', 'AREA-ADMIN']);
+  'CARD-LOCAL', 'LINK-TEXT', 'CARD-PICK', 'REPEAT-PAGE', 'CARD-PATTERN', 'OUTCOME', 'AREA-ADMIN', 'PRICE-FIRST']);
 //   INSURANCE     BLOCK  insurance mentioned with no insurance_cover on file
 //   RIVALS        BLOCK  (15 Oct) the copy tells the reader to get other quotes, compare firms or shop around
 //   (15 Oct, second Edens Edge review)
@@ -63,6 +63,11 @@ const RETRY_FLAGS = new Set(['N7', 'N13', 'N14', 'N15', 'N17', 'N18', 'N19', 'N2
 //   OUTCOME       FLAG   an outcome promise ("won't crack", "stays green") not in the client values
 //   EXPERIENCE    BLOCK  a claim about the kinds of property or job worked on ("large rural properties") not in the client values
 //   AREA-ADMIN    FLAG   a council area named in the areas intro or the areas FAQ
+//   (16 Oct, copy quality loop)
+//   SELF-REF      also "visit our [x] page"; N11 also "a clear route if something goes wrong"
+//   N5            a fixed price in any wording, or a manufacturer warranty, when not confirmed
+//   HERO          BLOCK  sentence 1 says the business is based somewhere other than the city
+//   PRICE-FIRST   FLAG   "a price agreed before work starts" outside step 2 more than once
 const RESEARCH_WORDS = ['investigated sites?', 'records? shows?', 'recorded (at|in|by)', 'council (guidance|records|data|maps?|says)',
   'strategic flood', 'flood (risk )?assessments?', 'suds', 'according to', 'research', 'dossier', 'data (shows|suggests)',
   'mapped', 'appraisal', 'neighbourhood plan', 'evidence base', 'studies show', 'surveys? (show|found)',
@@ -78,6 +83,9 @@ const BANNED = [
   'click here', 'learn more', 'explore our service', "see what's included", 'passionate',
   // The homepage has no form (build spec section 11)
   'form below', 'the form', 'contact form', 'enquiry form',
+  // Padding a reviewer reads as stock (16 Oct, copy quality loop)
+  "there's a service", 'there is a service', 'a service that fits', 'a service to match', 'whatever stage', 'we can help',
+  'something for everyone', 'bring that experience', 'every job we take on', 'whatever your garden needs', 'whatever your roof needs',
 ];
 const CLAIM_WORDS = ['best', '#1', 'leading', 'trusted', 'expert', 'specialist', 'reliable', 'fully insured'];
 const STOCK = ['before you decide', 'in between', 'from the start', 'no surprises', 'peace of mind', 'take a look'];
@@ -85,16 +93,18 @@ const SUPERLATIVES = ['more than almost anything', 'the most', 'the only', 'unbe
 const DATED = ['currently', 'at the moment', 'right now', 'this year'];
 // Insurance described as an outcome for the customer (15 Oct: "pays out", "covers you")
 // Copy that points at another part of the page (SELF-REF)
-const SELF_REF_RE = /\b(?:see|listed|shown|set out|find|found|included|detailed)\b[^.]{0,30}\b(?:below|above)\b|\b(?:list|section|links?|map) (?:below|above)\b|\b(?:areas?|services?|faq|questions?|reviews?|locations?) section\b|\b(?:on|of|further down|up|elsewhere on) this page\b|\bthe full list\b|\bscroll (?:down|up)\b/i;
+const SELF_REF_RE = /\b(?:see|listed|shown|set out|find|found|included|detailed)\b[^.]{0,30}\b(?:below|above)\b|\b(?:list|section|links?|map) (?:below|above)\b|\b(?:areas?|services?|faq|questions?|reviews?|locations?) section\b|\b(?:on|of|further down|up|elsewhere on) this page\b|\bthe full list\b|\bscroll (?:down|up)\b|\b(?:visit|see|check|read|head to|take a look at) (?:our|the) (?:\[[^\]]+\]\([^)]*\) |[a-z ]{0,30})?page\b/i;
 // Outcome promises about the finished work (OUTCOME)
-const OUTCOME_RE = /\b(?:won't|will not|wouldn't|never|doesn't|does not|don't|do not)\s+(?:ever\s+)?(?:crack|settle|sink|rot|fade|leak|move|shift|lift|warp|split|sag|flood|puddle|pool|fail|need (?:annual |any )?(?:treatment|maintenance|painting|staining))\w*\b|\bstay(?:s|ing)? (?:green|level|flat|watertight|dry|healthy|weed free|looking (?:good|new|great))\b|\b(?:last|lasts) (?:for )?(?:years|decades|a lifetime)\b|\bbuilt to last\b|\bfor years to come\b|\bproblem free\b|\bmaintenance free\b/i;
+const OUTCOME_RE = /\b(?:won't|will not|wouldn't|never|doesn't|does not|don't|do not)\s+(?:ever\s+)?(?:crack|settle|sink|rot|fade|leak|move|shift|lift|warp|split|sag|flood|puddle|pool|fail|need (?:annual |any )?(?:treatment|maintenance|painting|staining))\w*\b|\bstay(?:s|ing)? (?:green|level|flat|watertight|dry|healthy|weed free|looking (?:good|new|great))\b|\b(?:last|lasts) (?:for )?(?:years|decades|a lifetime)\b|\bbuilt to last\b|\bfor years to come\b|\bproblem free\b|\bmaintenance free\b|\bwithout (?:cracking|leaking|lifting|sagging|rotting|splitting)\b|\bfor the long term\b|\bstay(?:s|ing)? (?:sound|dry and sound)\b/i;
 // Claims about the kinds of property or job the business has worked on (EXPERIENCE)
 const EXPERIENCE_RE = /\b(?:we've|we have|we|our team|our work)\b[^.]{0,120}\b(?:worked|completed|done|covered|covering|handled|tackled|seen|experience)\b[^.]{0,70}\b(rural|country|estate|period|listed|commercial|heritage|historic|large|grand|luxury|acre)\w*\b/i;
 const OVERPROMISE = ['never by you', 'fully covered', 'pays for everything', "won't cost you", 'nothing to pay',
   'pays out', 'pay out', 'paid out', 'covers you', "you're covered", 'you are covered', 'you will be covered', 'will cover the cost', 'will pay for',
-  'the cover applies', 'cover will apply', 'cover kicks in'];
+  'the cover applies', 'cover will apply', 'cover kicks in', 'clear route if something goes wrong', 'left to deal with it yourself', 'you won\'t be left', 'protects you'];
 // The fixed price in any wording (PROOF-FIXED)
-const FIXED_RE = /\bfixed[\s-]prices?\b|\b(?:price|figure|quote|cost)s?\b[^.]{0,30}\b(?:is|are|stays?|remains?) fixed\b|\bfigure (?:you|we) (?:agree|pay)\b|\bfinal invoice\b|\bwhat we quote is what you pay\b|\bno hidden costs\b|\bnothing (?:is |gets |will be )?added\b|\bfixed (?:quote|figure|cost)s?\b/i;
+const FIXED_RE = /\bfixed[\s-]prices?\b|\b(?:price|figure|quote|cost)s?\b[^.]{0,30}\b(?:is|are|stays?|remains?) fixed\b|\bfigure (?:you|we) (?:agree|pay)\b|\bfinal invoice\b|\bwhat we quote is what you pay\b|\bno hidden costs\b|\bnothing (?:is |gets |will be )?added\b|\bfixed (?:quote|figure|cost)s?\b|\bno (?:additions|extras|surprise costs)\b|\bwithout (?:any )?(?:changes|additions) (?:made )?(?:along the way|once)\b|\bnothing extra\b/i;
+// "A price agreed before work starts" (PRICE-FIRST): step 2's idea, said once elsewhere at most
+const PRICE_FIRST_RE = /\b(?:price|figure|cost|quote)d?\b[^.]{0,40}\b(?:before (?:any|the|a|anything|work|we|you|it)|upfront|up front|in advance)\b|\b(?:priced|agreed|agree a price)\b[^.]{0,30}\bbefore\b/i;
 const CONNECTORS = ['also', 'so', 'then'];
 const GENERIC_SERVICE_WORDS = new Set(['install', 'installation', 'lay', 'laying', 'fitting', 'fit', 'work', 'service', 'services', 'and', 'or', 'the']);
 
@@ -223,6 +233,14 @@ function validateV20(record, V) {
       if (new RegExp(`(?:^|[.!?]\\s+|\\n)As (?:your|a|an)\\s+(?:${esc(cat)})\\b`, 'i').test(s)) flag('BLOCK', '2', `A sentence opens "As your/a ${cat}". Write the category the way a person would say it inside a sentence.`);
     }
 
+    // LEAK (16 Oct, copy quality loop): a field label or the data behind the copy shows on the
+    // page ("card_text (Lawn Care Service): …", "Because yes is confirmed for urgent leaks")
+    {
+      const lab = s.match(/^\s*(?:card_text|card_name|faq_answer|faq_question|point_body|point_title|step_body|step_title|home_[a-z_]+)\b[^:\n]{0,60}:/i);
+      if (lab) flag('BLOCK', 'LEAK', `The text starts with a field label ("${lab[0].trim()}"). Write only the copy.`);
+      const data = s.match(/\b(?:is|are|isn't|aren't|been|as) confirmed\b|\byes is\b|\bon file\b|\bclient values?\b|\bcustom values?\b|\bCVTOKEN\s*=/i);
+      if (data) flag('BLOCK', 'LEAK', `"${data[0]}" talks about the data behind the page. Say the fact itself, the way the owner would.`);
+    }
     // 3a, 3b, 3c
     if (/\[CLIENT TO CONFIRM/i.test(t)) flag('BLOCK', '3a', '[CLIENT TO CONFIRM] in the copy.');
     const bracketsLeft = t.replace(/\[CV: [a-z0-9_]+\]/g, '').replace(/\[[^\]]+\]\([^)]+\)/g, '');
@@ -264,7 +282,8 @@ function validateV20(record, V) {
     const rivals = s.match(/\b(?:get|getting|ask for|asking for|collect|obtain|request)\s+(?:at least\s+)?(?:two|three|four|several|a few|multiple|more|other|\d+)(?:\s+or\s+(?:two|three|four|more))?\s+(?:\w+\s+)?quotes?\b|\bcompare\s+(?:\w+\s+)?(?:quotes|firms|companies|businesses|landscapers|gardeners|roofers|tradespeople|traders)\b|\bshop(?:ping)? around\b|\bother (?:firms|companies|landscapers|gardeners|roofers|tradespeople|traders|contractors)\b/i);
     if (rivals) flag('BLOCK', 'RIVALS', `"${rivals[0]}" sends the reader to other businesses. Answer as this business; leave it out.`);
     const fixedConfirmed = /fixed\s+price/i.test(`${cv.differentiator_1_confirmed ? cv.differentiator_1 : ''} ${cv.differentiator_2_confirmed ? cv.differentiator_2 : ''} ${cv.quote_method || ''}`);
-    if (!fixedConfirmed && /\bfixed[\s-]price/i.test(s)) flag('BLOCK', 'N5', '"Fixed price" used but it is not confirmed.');
+    if (!fixedConfirmed && FIXED_RE.test(s)) flag('BLOCK', 'N5', `"${s.match(FIXED_RE)[0]}" promises a fixed price, which isn't confirmed.`);
+    if (!cv.manufacturer_warranty && /\bmanufacturer(?:'s)?\s+(?:warrant|guarant|terms|cover)/i.test(s)) flag('BLOCK', 'N5', 'A manufacturer warranty is mentioned but none is confirmed.');
     // Claim words; "the best chance/time/way" and "leading to" aren't claims about the business
     const claimText = s.replace(/\b(the )?best (chance|time|way|option|choice|results?|thing|approach|fit|suited|for (you|your))\b|\bat best\b/gi, ' ')
       .replace(/\bleading (to|up|into)\b/gi, ' ');
@@ -490,6 +509,7 @@ function validateV20(record, V) {
         if (!new RegExp(`\\b${esc(term)}`, 'i').test(s)) continue;
         const need = lc(term).split(/[^a-z0-9]+/).filter(w => w && !GENERIC_SERVICE_WORDS.has(w)).map(stem);
         if (!need.length || V.confirmedServices.some(set => need.every(w => set.has(w)))) continue;
+        if (V.cvText.includes(lc(term))) continue; // the client values name it (a guarantee scope, typical jobs)
         flag('FLAG', 'SERVICE', `Names "${term}", which isn't one of the client's confirmed services. Name a confirmed service instead.`);
       }
     }
@@ -508,6 +528,8 @@ function validateV20(record, V) {
     if (town && city && (new RegExp(`\\b${esc(lc(town))},?\\s+${city}\\b`).test(lc(s1)) || new RegExp(`\\bin\\s+${city},\\s+${esc(lc(town))}\\b`).test(lc(s1)))) {
       blockers.push(`listing ${town} beside ${V.city} reads as if the business is based in both; say "${niche.trade_person} in ${V.city}", then ${town} as a place it works (e.g. "covering ${town} and the surrounding areas")`);
     }
+    const basedIn = lc(s1).match(/\bbased (?:in|at|near|around) ([a-z' ]+?)(?:,| and\b|\.|$)/);
+    if (basedIn && city && !new RegExp(`^${city}\\b`).test(basedIn[1].trim())) blockers.push(`it says the business is based in ${basedIn[1].trim()}; it is based in ${V.city}, and ${town || 'other towns'} is where it works ("covering ${town || '[town]'} and the surrounding areas")`);
     if (blockers.length) issue('BLOCK', 'HERO', hero.label, `Sentence 1: ${blockers.join('; ')}.`, hero.ref);
     if (town && !new RegExp(`\\b${esc(town)}\\b`, 'i').test(s1)) problems.push(`it doesn't mention the hero town ${town}`);
     if (!/and the surrounding areas\.?$/i.test(s1.trim())) problems.push('it doesn\'t end "and the surrounding areas"');
@@ -541,15 +563,28 @@ function validateV20(record, V) {
       issue('BLOCK', 'PROOF-FIXED', f.label, `The fixed price is already on the page 3 times (${homes.filter(Boolean).join(', ')}). Leave it out here, in any wording.`, f.ref);
     }
   }
+  // PRICE-FIRST (16 Oct, loop): "a price agreed before work starts" is step 2's idea; once more elsewhere at most
+  {
+    const others = fields.filter(f => !(f.ref.key === 'steps' && f.ref.index === 1) && f.ref.key !== 'points' && PRICE_FIRST_RE.test(scanText(f.text)));
+    others.slice(1).forEach(f => issue('FLAG', 'PRICE-FIRST', f.label, `"A price agreed before work starts" is already said in ${others[0].label} (and it is step 2's point). Make a different point here.`, f.ref));
+  }
   const proofs = [];
   if (cv.jobs_completed) proofs.push({ name: `${cv.jobs_completed} jobs`, re: new RegExp(`\\b${esc(String(cv.jobs_completed))}\\b\\+?`, 'g') });
   if (cv.insurance_cover) proofs.push({ name: 'the insurance figure', re: new RegExp(`£?\\s?${esc(String(cv.insurance_cover))}\\b`, 'gi') });
+  // A confirmed differentiator other than the fixed price (PROOF-FIXED has that), by its
+  // most distinctive word: "photo" for "Photos of Every Fault Before We Quote" (16 Oct, loop)
+  const GENERIC = new Set('every before with quote quotes quoted job jobs work our and the no hidden costs price prices run local'.split(' '));
+  for (const k of ['differentiator_1', 'differentiator_2']) {
+    if (!cv[`${k}_confirmed`] || !cv[k] || /fixed\s+price/i.test(cv[k])) continue;
+    const word = lc(cv[k]).split(/[^a-z]+/).find(w => w.length > 3 && !GENERIC.has(w) && !STOPWORDS.has(w));
+    if (word) proofs.push({ name: cv[k], re: new RegExp(`\\b${esc(word.replace(/(s|es)$/, ''))}`, 'gi'), perField: true });
+  }
   for (const p of proofs) {
     let seen = 0;
     for (const f of fields) {
       const n = (scanText(f.text).match(p.re) || []).length;
       if (!n) continue;
-      seen += n;
+      seen += p.perField ? 1 : n;
       if (seen > 3) issue('FLAG', 'PROOF-REPEAT', f.label, `"${p.name}" already appears 3 times earlier on the page. Leave it out here.`, f.ref);
     }
   }
@@ -637,11 +672,13 @@ function validateV20(record, V) {
 
   // N21: a five word run shared by two fields (the later field is rewritten)
   const grams = f => {
-    const w = scanText(f.text).replace(/CVTOKEN/g, ' ').toLowerCase().replace(/[^a-z0-9£ ]+/g, ' ').split(/\s+/).filter(Boolean);
+    const w = scanText(f.text).replace(REQUIRED, ' ').replace(/CVTOKEN/g, ' ').toLowerCase().replace(/[^a-z0-9£ ]+/g, ' ').split(/\s+/).filter(Boolean);
     const out = new Set();
     for (let i = 0; i + 5 <= w.length; i++) out.add(w.slice(i, i + 5).join(' '));
     return out;
   };
+  // Wording the rules require in several places isn't a repeat (16 Oct)
+  const REQUIRED = /inland and along the coast|reasonable care and skill/g;
   const seenGrams = new Map();
   for (const f of fields) {
     const g = grams(f);
@@ -658,7 +695,7 @@ function validateV20(record, V) {
     const seenIn = new Map();
     const flagged = new Set();
     for (const f of fields) {
-      const toks = lc(scanText(f.text)).replace(/cvtoken/g, ' ').replace(/[^a-z0-9£' ]+/g, ' ').split(/\s+/)
+      const toks = lc(scanText(f.text)).replace(/inland and along the coast|reasonable care and skill/g, ' ').replace(/cvtoken/g, ' ').replace(/[^a-z0-9£' ]+/g, ' ').split(/\s+/)
         .filter(w => w && !DROP.has(w)).map(w => FOLD[w] || w);
       const mine = new Set();
       for (let i = 0; i + 3 <= toks.length; i++) {

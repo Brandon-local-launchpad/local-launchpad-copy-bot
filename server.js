@@ -11,6 +11,7 @@ try {
 
 const express   = require('express');
 const Anthropic  = require('@anthropic-ai/sdk');
+const { makeCallModel } = require('./anthropic-call');
 const fs         = require('fs');
 const path       = require('path');
 const crypto     = require('crypto');
@@ -3571,23 +3572,17 @@ app.post('/api/clients/:clientId/v20/homepage/generate', async (req, res) => {
     const { ctx, niche, allocFlags, view, decisionsResult } = inputs;
     const pack = v20CalibrationPack(ctx, niche);
     const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
-    const callModel = async ({ system, message, maxTokens }) => {
-      const r = await callClaude(client, { system, userContent: message }, maxTokens);
-      return {
-        text: r.content.map(c => c.text || '').join(''),
-        usage: {
-          input_tokens: r.usage.input_tokens, output_tokens: r.usage.output_tokens,
-          cache_read_input_tokens: r.usage.cache_read_input_tokens || 0,
-          cache_creation_input_tokens: r.usage.cache_creation_input_tokens || 0,
-          stop_reason: r.stop_reason,
-        },
-      };
-    };
+    // One call helper for every model the generation uses (the writer, the claims and
+    // quality reviewers): anthropic-call.js handles the 5.5 models' effort and fallback
+    const callModel = makeCallModel(client, v20.V20_MODEL);
     const record = await v20.generateV20Homepage({
       cv: ctx.cv, niche, keyValueMap: ctx.keyValueMap, serviceParentMap: ctx.serviceParentMap, decisionsResult,
       calibrationPack: pack.text, calibrationPackName: pack.name, callModel,
       extraFlags: allocFlags.map(f => ({ ...f, source: 'allocation' })),
       allocationSource: view && view.effective ? view.effective.source || 'model' : null,
+      // The rubric review round (quality-review.js) is off live until it is tested on Railway:
+      // it takes generation from about 3 to 6 or 7 minutes (16 Oct, copy quality loop paused)
+      qualityReview: false,
     });
     if (record.meta && record.meta.usage && record.meta.usage.stop_reason === 'max_tokens') {
       record.FLAGS.push({ code: 'P-TRUNCATED', msg: 'The model hit the output limit; the last fields may be cut off.', source: 'parse' });

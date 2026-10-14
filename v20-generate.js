@@ -108,6 +108,15 @@ function buildServiceList(keyValueMap = {}, serviceParentMap = {}, niche = {}) {
   return lines.length ? lines.join('\n') : '(none on file: name only what the card names and categories say)';
 }
 
+// What the business offers, for the claims review: the GBP services by category, or,
+// when the custom values carry none, the categories and services in the page map
+function servicesOnFile(keyValueMap, serviceParentMap, niche, D) {
+  const list = buildServiceList(keyValueMap, serviceParentMap, niche);
+  if (Object.keys(keyValueMap || {}).some(k => /^service_d+$/.test(k))) return list;
+  const names = [...(D.d9.main || []).map(c => c.name), ...(D.d9.alsoOffer || [])];
+  return names.length ? `Categories and services on the client's site (page map): ${names.join(', ')}` : list;
+}
+
 function buildCategoryLine(keyValueMap = {}) {
   const cats = Object.entries(keyValueMap).filter(([k, v]) => /^category_\d+$/.test(k) && v).map(([, v]) => v);
   return cats.length ? cats.join(', ') : '(none on file)';
@@ -133,6 +142,10 @@ function buildV20Request({ cv, niche, decisions, decisionsBlock, calibrationPack
     'GBP CATEGORIES (the services each card names are in DECISIONS → D9 SERVICE CARDS; name no other services in a card):',
     buildCategoryLine(keyValueMap),
     '',
+    // What a yes/no value means, so neither the writer nor the claims review has to guess (16 Oct, loop)
+    ...(cv.free_inspection === 'yes' ? ['CONFIRMED BY [CV: free_inspection]: the business inspects the job, free, before it quotes.', ''] : []),
+    // Verified logos are confirmed proof the page shows (16 Oct, copy quality loop)
+    ...((decisions.trusted_logos || []).length ? ['VERIFIED LOGOS SHOWN ON THE PAGE (confirmed memberships; name only these):', decisions.trusted_logos.map(l => l.name).join(', '), ''] : []),
     'CONFIRMED PRACTICES (how the business works). State only these:',
     buildPracticeList(cv, niche),
     '',
@@ -176,7 +189,7 @@ function validationContextFor({ cv, niche, decisions, keyValueMap, serviceParent
 
 // Generate the homepage record. `callModel({ system, message, maxTokens })` returns
 // { text, usage }. With a failed gate there is no call: the record holds the gates.
-async function generateV20Homepage({ cv, niche, keyValueMap, serviceParentMap = {}, decisionsResult, calibrationPack, calibrationPackName, callModel, extraFlags = [], allocationSource = null, retries = true, claimsReview = true }) {
+async function generateV20Homepage({ cv, niche, keyValueMap, serviceParentMap = {}, decisionsResult, calibrationPack, calibrationPackName, callModel, extraFlags = [], allocationSource = null, retries = true, claimsReview = true, qualityReview = false }) {
   const { buildPageRecord, expectedFromDecisions } = require('./v20-record');
   const { parseV20Output } = require('./v20-parse');
   const { validateV20 } = require('./validate-v20');
@@ -205,7 +218,7 @@ async function generateV20Homepage({ cv, niche, keyValueMap, serviceParentMap = 
   meta.raw_output = text;
   meta.usage = usage || null;
   meta.client_block = req.clientBlock;
-  meta.services_on_file = buildServiceList(keyValueMap, serviceParentMap, niche);
+  meta.services_on_file = servicesOnFile(keyValueMap, serviceParentMap, niche, D);
   // The values the tokens stood for when this page was written (the reader view uses these)
   meta.client_values = clientValueMap(cv, D.d1_years_trading);
   const record = buildPageRecord({ cv, decisionsResult, parsed, meta, extraFlags });
@@ -235,11 +248,41 @@ async function generateV20Homepage({ cv, niche, keyValueMap, serviceParentMap = 
           status: claims.findings.length ? 'needs acceptance' : 'clear',
           first_review: first, findings: claims.findings, rounds,
         };
-        // The claim rewrites changed fields: validate the page as it now stands
-        record.VALIDATION = validationSummary(validateV20(record, V), [...log, ...rounds.flatMap(r => r.retries.map(x => ({ ...x, problems: x.claims, source: 'claims' })))], retryUsage);
+        // The claim rewrites changed fields: one more round of field retries on what they
+        // broke (16 Oct, copy quality loop), then validate the page as it now stands
+        const after = rounds.some(r => r.retries.some(x => x.kept)) ? await runRetries({ record, V, callRetry, maxRetries: 1 }) : { log: [] };
+        record.VALIDATION = validationSummary(validateV20(record, V), [...log, ...rounds.flatMap(r => r.retries.map(x => ({ ...x, problems: x.claims, source: 'claims' }))), ...after.log.map(x => ({ ...x, round: `after claims ${x.round}` }))], retryUsage);
       } catch (e) {
         // A failed review never loses the page: it's saved, and the push asks for the review again
         record.CLAIMS = { for: meta.generated_at, status: 'failed', error: e.message, findings: [] };
+      }
+    }
+
+    // Quality review (16 Oct, docs/seo/COPY_QUALITY_RUBRIC.md): the rubric reviewer reads the
+    // page, the fields it quotes are rewritten and the page is reviewed again; then the
+    // claims check runs once more on what the rewrites changed
+    if (qualityReview) {
+      const { runQualityRetries, runClaimRetries } = require('./v20-retry');
+      const Q = require('./quality-review');
+      try {
+        const { review: rv, rounds: qRounds } = await runQualityRetries({ record, V, callRetry, review: rec => Q.reviewPage({ record: rec, V, D, cv, niche, callModel }) });
+        record.QUALITY = {
+          at: rv.at, model: rv.model, score: rv.score, done: rv.done, failed: rv.failed,
+          failures: rv.items.filter(i => !i.pass), other_problems: rv.other_problems, missing_facts: rv.missing_facts, rounds: qRounds,
+        };
+        if (claimsReview && qRounds.some(r => r.retries.some(x => x.kept))) {
+          const { runClaimsReview, factsFromRecord } = require('./wp/claims-review');
+          const { claims, rounds } = await runClaimRetries({ record, V, callRetry, review: rec => runClaimsReview(rec, factsFromRecord(rec), callModel), maxRounds: 1 });
+          record.CLAIMS = {
+            ...(record.CLAIMS || {}), at: claims.at,
+            status: claims.findings.length ? 'needs acceptance' : 'clear',
+            findings: claims.findings, rounds: [...((record.CLAIMS || {}).rounds || []), ...rounds.map(r => ({ ...r, round: `after quality ${r.round}` }))],
+          };
+        }
+        const earlier = (record.VALIDATION && record.VALIDATION.retries) || [];
+        record.VALIDATION = validationSummary(validateV20(record, V), [...earlier, ...qRounds.flatMap(r => r.retries.map(x => ({ ...x, round: `quality ${x.round}`, source: 'quality' })))], retryUsage);
+      } catch (e) {
+        record.QUALITY = { status: 'failed', error: e.message };
       }
     }
   } else {

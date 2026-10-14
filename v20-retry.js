@@ -15,7 +15,8 @@ const { pageTypeOf } = require('./page-types');
 const validateV20 = (record, V) => pageTypeOf(record).validate(record, V);
 const rangesFor = record => pageTypeOf(record).ranges || {};
 
-const MAX_RETRIES = 2;
+// 3 since 16 Oct (copy quality loop: flags were left after 2)
+const MAX_RETRIES = 3;
 const CONCURRENCY = 4;
 
 function loadRetryPrompt() {
@@ -61,7 +62,8 @@ function buildRetryMessage(f, problems, record, D, earlier = []) {
 function parseRetryReply(text, ref) {
   let t = (text || '').trim().replace(/^```[a-z]*\s*|\s*```$/g, '').trim();
   const label = returnLabel(ref);
-  const m = t.match(new RegExp(`(?:^|\\n)\\s*\\**${label}\\**\\s*:\\s*([\\s\\S]*)$`));
+  // "card_text (Lawn Care Service): …" too: the label can carry the field's name (16 Oct)
+  const m = t.match(new RegExp(`(?:^|\\n)\\s*\\**${label}\\**\\s*(?:\\([^)\\n]*\\))?\\s*:\\s*([\\s\\S]*)$`));
   if (m) t = m[1].trim();
   return t.replace(/\\n/g, '\n').replace(/\n{3,}/g, '\n\n').trim();
 }
@@ -192,6 +194,65 @@ async function runClaimRetries({ record, V, callRetry, review, maxRounds = 2, co
   return { claims, rounds, first };
 }
 
+// ── Quality review into the retries (16 Oct, copy quality loop) ───────────────
+// review(record) → the quality review (quality-review.js): failed judge items and other
+// problems, each quoting the page. Each round: rewrite every field a quote is in, keep a
+// rewrite only when its quotes are gone and the field has no more BLOCKs or FLAGs than
+// before, then review again. Returns the last review, which scores the page as it stands.
+async function runQualityRetries({ record, V, callRetry, review, maxRounds = 3, concurrency = CONCURRENCY }) {
+  const rounds = [];
+  let rv = await review(record);
+  for (let round = 1; round <= maxRounds && !rv.done; round++) {
+    const fields = modelFields(record);
+    const found = [
+      ...rv.items.filter(i => !i.pass && i.by === 'judge').flatMap(i => i.reasons.map(r => {
+        const m = r.match(/^"([\s\S]*?)": ([\s\S]*)$/);
+        return m ? { quote: m[1], why: `${i.title} ${m[2]}` } : null;
+      })).filter(Boolean),
+      ...(rv.other_problems || []).map(p => ({ quote: p.quote, why: p.why })),
+    ].filter(p => p.quote && p.quote.length > 3);
+    const byField = new Map();
+    for (const p of found) {
+      // The reviewer quotes the page with tokens filled in: match on the field's filled text
+      const f = fields.find(x => normq(fillTokens(x.text, record)).includes(normq(p.quote)) || normq(stripLinksText(fillTokens(x.text, record))).includes(normq(p.quote)));
+      if (!f) continue;
+      if (!byField.has(f.label)) byField.set(f.label, { f, problems: [] });
+      byField.get(f.label).problems.push(p);
+    }
+    if (!byField.size) break;
+    const base = clone(record);
+    const fieldIssues = (rec, label) => validateV20(rec, V).filter(i => i.field === label);
+    const results = await mapLimit([...byField.values()], concurrency, async g => {
+      const problems = [
+        ...g.problems.map(p => `A reviewer flagged "${p.quote}": ${p.why} Rewrite it so the problem is gone.`),
+        ...fieldIssues(base, g.f.label).map(i => i.message),
+      ];
+      try {
+        const r = await callRetry({ message: buildRetryMessage(g.f, [...new Set(problems)], base, V.D) });
+        return { g, raw: r.text || '', after: parseRetryReply(r.text, g.f.ref) };
+      } catch (e) { return { g, error: e.message }; }
+    });
+    const log = [];
+    for (const r of results) {
+      const entry = { round, field: r.g.f.label, problems: r.g.problems.map(p => p.quote), before: r.g.f.text, after: r.after || null, kept: false };
+      if (r.error || !r.after) { entry.error = r.error || 'empty reply'; log.push(entry); continue; }
+      if (notSingleField(r.raw, r.after, r.g.f, record)) { entry.error = 'reply was not a single field'; log.push(entry); continue; }
+      const cand = clone(base);
+      setField(cand, r.g.f.ref, r.after);
+      const gone = r.g.problems.every(p => !normq(fillTokens(r.after, record)).includes(normq(p.quote)));
+      const was = score(fieldIssues(base, r.g.f.label)), now = score(fieldIssues(cand, r.g.f.label));
+      if (gone && now <= was) { setField(record, r.g.f.ref, r.after); entry.kept = true; }
+      else entry.error = !gone ? 'the flagged words are still there' : 'the rewrite added validator issues';
+      log.push(entry);
+    }
+    rounds.push({ round, score: rv.score, failed: rv.failed, retries: log });
+    rv = await review(record);
+  }
+  return { review: rv, rounds };
+}
+const fillTokens = (t, record) => String(t || '').replace(/\[CV: ([a-z0-9_]+)\]/g, (m, k) => ((record.meta && record.meta.client_values) || {})[k] || m);
+const stripLinksText = t => String(t || '').replace(/\[([^\]]+)\]\([^)]+\)/g, '$1');
+
 function validationSummary(issues, log, usage) {
   return {
     status: 'run',
@@ -202,4 +263,4 @@ function validationSummary(issues, log, usage) {
   };
 }
 
-module.exports = { runRetries, runClaimRetries, buildRetryMessage, parseRetryReply, loadRetryPrompt, validationSummary, MAX_RETRIES };
+module.exports = { runRetries, runClaimRetries, runQualityRetries, buildRetryMessage, parseRetryReply, loadRetryPrompt, validationSummary, MAX_RETRIES };

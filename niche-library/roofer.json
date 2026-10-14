@@ -51,7 +51,7 @@
     },
     {
       "title": "We Fix It on a Date That Suits You",
-      "brief": "Date agreed once the quote is accepted; the work follows the quote. Never restates the start time."
+      "brief": "Date agreed once the quote is accepted, to suit the customer. Never mention the price or changes to the work (step 2 and Why choose us own them). Never restates the start time."
     }
   ],
 
@@ -111,7 +111,7 @@
     {
       "slot": "faq_3_none",
       "question": "What happens if the roof leaks again after a repair?",
-      "answer_brief": "'Reasonable care and skill' standard; never invent a guarantee.",
+      "answer_brief": "Open with what the customer does: tell us and we'll look at it. Then the 'reasonable care and skill' standard, as the standard the work is held to, never as a defence. No promise to come back or put it right for free. Never invent a guarantee.",
       "symptom_based": false,
       "doubt": "Trust"
     },

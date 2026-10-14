@@ -123,7 +123,7 @@ chk('2: "the form below" (no form on the page)', i5.some(i => i.check === '2' &&
   chk('Final CTA rewrite fixed its issues and was kept', r2.home_final_cta_body.startsWith('Send a few photos') && out.log.some(l => l.field === 'home_final_cta_body' && l.kept), r2.home_final_cta_body, 'kept');
   chk('A worse rewrite is not kept', r2.faq_items[6].faq_answer === rec.faq_items[6].faq_answer && out.log.some(l => l.field.startsWith('faq_answer (How long') && !l.kept), '', 'original kept');
   const perField = calls.reduce((m, f) => (m[f] = (m[f] || 0) + 1, m), {});
-  chk('At most 2 retries per field', Math.max(...Object.values(perField)) <= 2, JSON.stringify(perField).slice(0, 200), '<= 2');
+  chk('At most 3 retries per field (MAX_RETRIES, 3 since 16 Oct)', Math.max(...Object.values(perField)) <= 3, JSON.stringify(perField).slice(0, 200), '<= 3');
   chk('A whole-page reply is rejected as not a single field', await (async () => { const r9 = JSON.parse(JSON.stringify(rec)); const o9 = await runRetries({ record: r9, V, maxRetries: 1, callRetry: async () => ({ text: 'home_hero_intro: x\nhome_services_intro: y', usage: {} }) }); return o9.log.every(l => !l.kept) && o9.log.some(l => l.error === 'reply was not a single field'); })(), '', 'rejected');
   chk('Empty replies are logged, not applied', out.log.some(l => l.error === 'empty reply'), '', 'logged');
   chk('Final issues returned after retries', Array.isArray(out.finalIssues) && out.finalIssues.length < issues.length, `${out.finalIssues.length} vs ${issues.length}`, 'fewer');

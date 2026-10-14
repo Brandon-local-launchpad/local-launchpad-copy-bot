@@ -37,7 +37,8 @@
       "claim": "the quote covers materials, labour and taking the waste away",
       "question": "Does your quote include materials, labour and waste removal?",
       "detect": [
-        "\\b(quote|price)s? (covers?|includes?)\\b[^.]{0,40}\\b(materials|labour|clearance|waste|rubbish)\\b"
+        "\\b(quote|price)s? (covers?|includes?)\\b[^.]{0,40}\\b(materials|labour|clearance|waste|rubbish)\\b",
+        "\\b(?:quote|price)s? (?:covers?|includes?) (?:access|the full job|the whole job|everything)\\b"
       ]
     },
     {
@@ -99,7 +100,8 @@
         "\\b(?:set|sets|agree|agrees|plan|plans|arrange|arranges|work out|keep to|stick to) (?:a|an|the|your) (?:\\w+ )?schedule\\b",
         "\\bscheduled visits?\\b",
         "\\bvisits? (every|each) (week|fortnight|month)\\b",
-        "\\bvisits? (?:are |is )?(?:timed|planned|booked|set) (?:to|around|by)\\b"
+        "\\bvisits? (?:are |is )?(?:timed|planned|booked|set) (?:to|around|by)\\b",
+        "\\bset up a (?:\\w+ )?schedule\\b"
       ]
     },
     {
@@ -116,7 +118,9 @@
         "\\bpassing (jobs|work) (along|on)\\b",
         "\\bown team (does|on) every\\b",
         "\\bhand(?:ed|s|ing)? (?:\\w+ ){0,2}off\\b",
-        "\\bhanded on\\b"
+        "\\bhanded on\\b",
+        "\\b(?:handed|passed|given) (?:over )?to someone\\b",
+        "\\bpassed between\\b"
       ]
     },
     {
@@ -128,7 +132,7 @@
       "claim": "the owner works on or oversees every job",
       "question": "Do you (the owner) work on or oversee every job yourself?",
       "detect": [
-        "\\b(runs|oversees|is on|works on) every job\\b",
+        "\\b(runs?|oversees?|is on|works? on|are on|handles?) every job\\b",
         "\\bpersonally\\b",
         "\\bon site for every job\\b",
         "\\bstays? (involved|on the job) (throughout|from start)",
@@ -148,7 +152,7 @@
       "claim": "the same people work on the job from start to end",
       "question": "Does the same team stay on a job from start to end?",
       "detect": [
-        "\\bsame (people|team|faces)\\b[^.]{0,30}\\b(throughout|from|every|each|whole)\\b",
+        "\\bsame (?:\\w+ )?(people|team|faces|crew)\\b[^.]{0,30}\\b(throughout|from|every|each|whole)\\b",
         "\\bsees? (the|every|each) job through\\b",
         "\\bthe people you (?:speak|talk) to are the (?:people|ones)\\b",
         "\\bthe (?:people|person|ones?|team) who (?:quotes?|prices?|visits?|plans?|measures?)\\b[^.]{0,50}\\b(?:carry|carries|do|does|build|builds|deliver|delivers|fit|fits|lay|lays)\\b",
@@ -268,7 +272,8 @@
       "detect": [
         "\\bextra (work|costs?)\\b[^.]{0,60}\\b(agree|agreed|approve|approved|before we|price it|priced)\\b",
         "\\b(agree|approve)\\b[^.]{0,30}\\b(any )?extra (work|costs?)\\b",
-        "\\bnothing extra\\b[^.]{0,40}\\bwithout\\b"
+        "\\bnothing extra\\b[^.]{0,40}\\bwithout\\b",
+        "\\b(?:something|anything) (?:unexpected|extra|else)\\b[^.]{0,60}\\b(?:talk|agree|discuss|check|ask)\\w*\\b[^.]{0,40}\\b(?:with you|first|before)\\b"
       ]
     },
     {
