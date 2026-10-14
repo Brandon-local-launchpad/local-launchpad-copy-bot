@@ -30,8 +30,10 @@ const idNum = id => parseInt(String(id).replace(/\D/g, ''), 10) || 0;
 
 function loadSortPrompt() {
   const text = fs.readFileSync(path.join(__dirname, 'prompts', FAQ_SORT_PROMPT), 'utf8');
-  const cut = text.indexOf('\n---\n');
-  return (cut >= 0 ? text.slice(cut + 5) : text).trim();
+  // Windows checkouts can have CRLF line endings
+  const lf = text.replace(/\r\n/g, '\n');
+  const cut = lf.indexOf('\n---\n');
+  return (cut >= 0 ? lf.slice(cut + 5) : lf).trim();
 }
 
 // ── Facts ────────────────────────────────────────────────────────────────────

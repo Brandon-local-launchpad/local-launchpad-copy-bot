@@ -20,8 +20,10 @@ const CONCURRENCY = 4;
 
 function loadRetryPrompt() {
   const text = fs.readFileSync(path.join(__dirname, 'prompts', 'Field_Retry_CORE.md'), 'utf8');
-  const cut = text.indexOf('\n---\n');
-  return (cut >= 0 ? text.slice(cut + 5) : text).trim();
+  // Windows checkouts can have CRLF line endings
+  const lf = text.replace(/\r\n/g, '\n');
+  const cut = lf.indexOf('\n---\n');
+  return (cut >= 0 ? lf.slice(cut + 5) : lf).trim();
 }
 
 const score = issues => issues.reduce((n, i) => n + (i.type === 'BLOCK' ? 100 : 1), 0);

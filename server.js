@@ -354,19 +354,7 @@ const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 50 
 
 // ── CSV / zip parsing ─────────────────────────────────────────────────────────
 
-const { PAGE_TYPE_MAP, LINK_ONLY_PAGE_TYPES, parsePageMap, parseCustomValues } = require('./client-files');
-
-function parseOnboardingForm(csvText) {
-  const { data } = Papa.parse(csvText, { header: false });
-  if (data.length < 2) return '';
-  const questions = data[0];
-  const answers   = data[1];
-  return questions
-    .map((q, i) => ({ q: (q || '').trim(), a: (answers[i] || '').trim() }))
-    .filter(({ q, a }) => q && a)
-    .map(({ q, a }) => `Q: ${q}\nA: ${a}`)
-    .join('\n\n');
-}
+const { PAGE_TYPE_MAP, LINK_ONLY_PAGE_TYPES, parsePageMap, parseCustomValues, parseOnboardingForm, onboardingQA } = require('./client-files');
 
 function identifyFiles(files) {
   const identified = { pageMap: null, customValues: [], onboarding: null, geo: null };
@@ -3097,7 +3085,8 @@ async function loadV20Context(clientId, sessionId) {
     pages = [...(session.jobs || []), ...(session.skippedPages || [])];
     keyValueMap = session.keyValueMap || {};
     serviceParentMap = session.serviceParentMap || {};
-    onboardingText = session.onboardingText || '';
+    // The saved-files route keeps the raw CSV in the session: parse it here
+    onboardingText = onboardingQA(session.onboardingText);
   } else if (pool) {
     try {
       const { rows: fileRows } = await pool.query(
@@ -3106,8 +3095,11 @@ async function loadV20Context(clientId, sessionId) {
       );
       const pageMapRow = fileRows.find(r => (r.metadata?.fileType === 'page_map'));
       const cvRows     = fileRows.filter(r => r.metadata?.fileType === 'custom_values');
-      const onboardRow = fileRows.find(r => r.metadata?.fileType === 'onboarding');
-      if (onboardRow) onboardingText = parseOnboardingForm(onboardRow.content);
+      // The newest onboarding file: by its file type, else by its name (as Step 1 finds it)
+      const onboardRows = fileRows.filter(r => r.metadata?.fileType === 'onboarding');
+      const byName = fileRows.filter(r => !r.metadata?.fileType && /onboard|form/i.test(r.filename || ''));
+      const onboardRow = [...byName, ...onboardRows].pop();
+      if (onboardRow) onboardingText = onboardingQA(onboardRow.content);
       if (pageMapRow) {
         pages = parsePageMap(pageMapRow.content);
         if (cvRows.length) {
@@ -3118,6 +3110,15 @@ async function loadV20Context(clientId, sessionId) {
       }
     } catch (err) {
       console.error('[v20] Failed to load pages/keyValueMap for', clientId, err);
+    }
+  }
+  // Older clients may have their onboarding form stored as asset_type 'onboarding'
+  if (!onboardingText && pool) {
+    try {
+      const { rows } = await pool.query(`SELECT content FROM client_assets WHERE client_id=$1 AND asset_type='onboarding' ORDER BY uploaded_at DESC LIMIT 1`, [clientId]);
+      if (rows.length) onboardingText = onboardingQA(rows[0].content);
+    } catch (err) {
+      console.error('[v20] Failed to load the onboarding form for', clientId, err);
     }
   }
   return { cv, cvLoadError, v20TestMode, trade, clientTrade, pages, keyValueMap, serviceParentMap, onboardingText };

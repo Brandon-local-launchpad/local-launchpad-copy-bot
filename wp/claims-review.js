@@ -16,8 +16,10 @@ const CLAIMS_MODEL = 'claude-sonnet-4-6';
 
 function loadClaimsPrompt() {
   const text = fs.readFileSync(path.join(__dirname, '..', 'prompts', 'Claims_Review_CORE.md'), 'utf8');
-  const cut = text.indexOf('\n---\n');
-  return (cut >= 0 ? text.slice(cut + 5) : text).trim();
+  // Windows checkouts can have CRLF line endings
+  const lf = text.replace(/\r\n/g, '\n');
+  const cut = lf.indexOf('\n---\n');
+  return (cut >= 0 ? lf.slice(cut + 5) : lf).trim();
 }
 
 // facts: { clientBlock?: string, research?: string } — the client block the page was

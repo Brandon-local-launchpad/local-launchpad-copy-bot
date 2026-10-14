@@ -66,6 +66,37 @@ const bare = R.buildClientBlock({ niche: edens.niche, keyValueMap: edens.keyValu
 chk('With nothing known yet, each section says so', /OWN QUESTIONS[^\n]*\nnone given/.test(bare) && /CONFIRMED FACTS[^\n]*\nnone confirmed yet/.test(bare) && /ONBOARDING ANSWERS[^\n]*\nnone/.test(bare) && /AREA RESEARCH ===\nnone yet/.test(bare), '', 'none given / none confirmed yet / none / none yet');
 chk('The prompt tells Perplexity how to use the client block', /USING THE CLIENT BLOCK/.test(prompt) && /CUSTOMERS' OWN QUESTIONS are already known: do not return them/.test(prompt), '', 'present');
 
+// ── The onboarding form as the app stores it ──
+// The form's 47 questions as the Master Context Document lists them (section 8), with
+// placeholder answers. The saved-files route keeps the raw CSV in the session; the
+// upload route keeps it parsed. Both must reach the research (bug found 14 Oct: the
+// live card counted 0 onboarding answers for Edens Edge).
+const { onboardingQA, parseOnboardingForm } = require(path.join(root, 'client-files.js'));
+const Papa = require('papaparse');
+const mcd = fs.readFileSync(path.join(root, 'docs/seo/reference/Master_Context_Document.txt'), 'utf8').split('\n');
+const formAt = mcd.findIndex(l => /8\. Current onboarding form: every question as it stands/.test(l));
+const formQs = [];
+for (let i = formAt + 1; i < formAt + 200 && formQs.length < 47; i++) {
+  const m = mcd[i].match(/^\s+(\d+)\.\s+(.*)$/);
+  if (m && +m[1] === formQs.length + 1) {
+    let q = m[2];
+    for (let j = i + 1; mcd[j] && /^\s{5,}\S/.test(mcd[j]) && !/^\s+\d+\.\s/.test(mcd[j]); j++) q += ' ' + mcd[j].trim();
+    formQs.push(q.trim());
+  }
+}
+const formCsv = Papa.unparse([formQs, formQs.map((q, i) => `answer ${i + 1}`)]);
+chk('The form has 47 questions (Master Context Document)', formQs.length === 47, formQs.length, 47);
+chk('Raw CSV straight into the research counts 0 answers (the bug)', R.onboardingAnswers(formCsv).length === 0, R.onboardingAnswers(formCsv).length, 0);
+const fromRaw = R.onboardingAnswers(onboardingQA(formCsv));
+const fromParsed = R.onboardingAnswers(onboardingQA(parseOnboardingForm(formCsv)));
+chk('Raw CSV read through onboardingQA: the answers are counted', fromRaw.length > 20, fromRaw.length, 'over 20');
+chk('Already parsed Q/A gives the same answers', JSON.stringify(fromRaw) === JSON.stringify(fromParsed), `${fromRaw.length} vs ${fromParsed.length}`, 'same');
+chk('Contact, link and upload questions are left out (name, email, phone, GBP link, socials, photos)',
+  !fromRaw.some(l => /Full Name|Email|Phone Number|Google Business Profile|Instagram|Facebook|YouTube|Photos do/i.test(l)), fromRaw.filter(l => /Full Name|Email|Phone|Google Business|Instagram|Photos/i.test(l)).join(' | '), 'none');
+chk('Useful answers are kept (start time, free quotes, emergency, guarantees)',
+  ['How quickly can you typically get started', 'free quotes / free site visits', 'emergency appointments', 'workmanship guarantees'].every(s => fromRaw.some(l => l.includes(s))), '', 'all four');
+chk('Empty onboarding stays empty', onboardingQA('') === '' && onboardingQA(null) === '', '', "''");
+
 // ── Parsing the manual runs ──
 const e = read(edens);
 const k = read(kestrel);
