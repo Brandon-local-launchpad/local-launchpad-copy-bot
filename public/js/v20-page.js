@@ -1,24 +1,29 @@
 // ── v20 page screen ─────────────────────────────────────────────────────────
 // Everything about one generated page: reader view, field editor, claims, dry run,
-// push, push log and rollback. The page type picks the API routes, so category
-// pages can use this screen by adding an entry to PAGE_TYPES.
+// push, push log and rollback. The URL names the page (?type=…&key=…); the page
+// routes are /v20/pages/:type/:key for every type, and the WordPress routes work
+// on the version shown. A new type needs an entry in PAGE_TYPES.
 'use strict';
 
 const PAGE_TYPES = {
-  homepage: {
-    label: 'Homepage',
-    api: {
-      record: '/v20/homepage', fields: '/v20/homepage/fields', download: '/v20/homepage/download',
-      claimsReview: '/wp/claims-review', accept: '/wp/claims-accepted',
-      dryRun: '/wp/dry-run', push: '/wp/push', rollback: '/wp/rollback', log: '/wp/log',
-    },
-  },
+  homepage: { label: 'Homepage', singleKey: 'homepage' },
 };
 
 const params = new URLSearchParams(location.search);
 const clientId = params.get('clientId');
 const pageType = params.get('type') || 'homepage';
-const PT = PAGE_TYPES[pageType];
+const PT = PAGE_TYPES[pageType] && (() => {
+  const key = params.get('key') || PAGE_TYPES[pageType].singleKey;
+  const page = `/v20/pages/${encodeURIComponent(pageType)}/${encodeURIComponent(key)}`;
+  return {
+    ...PAGE_TYPES[pageType], key,
+    api: {
+      record: page, fields: `${page}/fields`, download: `${page}/download`,
+      claimsReview: '/wp/claims-review', accept: '/wp/claims-accepted',
+      dryRun: '/wp/dry-run', push: '/wp/push', rollback: '/wp/rollback', log: '/wp/log',
+    },
+  };
+})();
 let state = { record: null, recordId: null, dry: null, editFor: null, connection: null };
 
 function h(s) { return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;'); }

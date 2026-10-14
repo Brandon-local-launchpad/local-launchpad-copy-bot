@@ -87,22 +87,10 @@ const sentences = t => scanText(t).split(/\n\n+|(?<=[.!?])\s+(?=["“A-Z0-9£])/
 const lc = s => (s || '').toLowerCase();
 const stem = w => lc(w).replace(/[^a-z0-9]/g, '').replace(/(ations?|ions?|ings?|ed|es|s|e)$/, '');
 
-// Model fields of a record, in page order, with a ref to write a rewrite back
+// Model fields of a record, in page order, with a ref to write a rewrite back.
+// Each page type lists its own (page-types/).
 function modelFields(record) {
-  const out = [];
-  const add = (label, ref, text, rangeKey) => out.push({ label, ref, text: text || '', rangeKey });
-  add('home_hero_intro', { key: 'home_hero_intro' }, record.home_hero_intro, 'home_hero_intro');
-  add('home_content_block_body', { key: 'home_content_block_body' }, record.home_content_block_body, 'home_content_block_body');
-  add('home_services_intro', { key: 'home_services_intro' }, record.home_services_intro, 'home_services_intro');
-  (record.cards || []).forEach((c, i) => add(`card_text (${c.card_name})`, { key: 'cards', index: i, sub: 'card_text' }, c.card_text, 'card_text'));
-  if (record.home_services_more_line !== 'HIDDEN') add('home_services_more_line', { key: 'home_services_more_line' }, record.home_services_more_line, null);
-  (record.points || []).forEach((p, i) => add(`point_body (${p.point_title})`, { key: 'points', index: i, sub: 'point_body' }, p.point_body, 'point_body'));
-  (record.steps || []).forEach((s, i) => add(`step_body (${s.step_title})`, { key: 'steps', index: i, sub: 'step_body' }, s.step_body, 'step_body'));
-  if (record.home_owner_body !== 'HIDDEN') add('home_owner_body', { key: 'home_owner_body' }, record.home_owner_body, 'home_owner_body');
-  add('home_areas_intro', { key: 'home_areas_intro' }, record.home_areas_intro, 'home_areas_intro');
-  (record.faq_items || []).forEach((f, i) => add(`faq_answer (${f.faq_question})`, { key: 'faq_items', index: i, sub: 'faq_answer' }, f.faq_answer, 'faq_answer'));
-  add('home_final_cta_body', { key: 'home_final_cta_body' }, record.home_final_cta_body, 'home_final_cta_body');
-  return out;
+  return require('./page-types').pageTypeOf(record).modelFields(record);
 }
 
 function getField(record, ref) {

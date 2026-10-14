@@ -10,7 +10,11 @@
 // touched and the quote is the same; a finding on an untouched field that the
 // previous version didn't have is marked "new on unchanged text".
 
-const { validateV20, modelFields, setField, wordCount, RANGES } = require('./validate-v20');
+const { modelFields, setField, wordCount } = require('./validate-v20');
+const { pageTypeOf } = require('./page-types');
+
+// The record's own page type validates it and gives its word ranges
+const validateV20 = (record, V) => pageTypeOf(record).validate(record, V);
 const { validationSummary } = require('./v20-retry');
 const { versionOf } = require('./v20-record');
 
@@ -29,8 +33,9 @@ function sameFacts(record, current) {
 // The fields a person can edit, in page order, with their word ranges
 function editableFields(record) {
   if (!record || record.blocked) return [];
+  const ranges = pageTypeOf(record).ranges || {};
   return modelFields(record).map(f => {
-    const r = RANGES[f.rangeKey] || null;
+    const r = ranges[f.rangeKey] || null;
     return { field: f.label, text: f.text, words: wordCount(f.text), range: r ? { min: r.min || 0, max: r.max, label: r.label } : null };
   });
 }

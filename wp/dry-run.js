@@ -1,13 +1,13 @@
 'use strict';
 
 // ── WordPress dry run ───────────────────────────────────────────────────────
-// Reads the site's homepage, builds the payload, and compares them field by field.
-// Writes nothing. Says whether a real push would be allowed, and why not.
+// Reads the record's page on the site, builds the payload, and compares them field
+// by field. Writes nothing. Says whether a real push would be allowed, and why not.
+// The record's page type (page-types/) gives the fields, payload and target page.
 
-const { buildHomepagePayload, HOMEPAGE_FIELDS } = require('./homepage-map');
+const { pageTypeOf, getPageType } = require('../page-types');
 const { checkRecord, checkTarget } = require('./safety');
-const { findHomepage, wpGet } = require('./client');
-const { GROUPS } = require('./acf-schema');
+const { wpGet } = require('./client');
 const { buildClientValuesPayload } = require('./client-values');
 const { htmlToText } = require('./markdown');
 
@@ -18,9 +18,10 @@ const show = (kind, v) => {
 };
 const same = (a, b) => a.replace(/\s+/g, ' ').trim() === b.replace(/\s+/g, ' ').trim();
 
-function diffFields(current, next) {
+// fields: the page type's [name, kind, subs] list (the homepage's by default)
+function diffFields(current, next, fields = getPageType('homepage').wp.fields) {
   const changes = [];
-  for (const [name, kind, subs] of HOMEPAGE_FIELDS) {
+  for (const [name, kind, subs] of fields) {
     if (kind !== 'repeater') {
       const a = show(kind, current[name]), b = show(kind, next[name]);
       changes.push({ field: name, change: same(a, b) ? 'same' : (a ? 'changed' : 'added'), current: a, next: b });
@@ -41,7 +42,7 @@ function diffFields(current, next) {
 }
 
 // The companion plugin's report: is the site ready to take a push?
-async function checkSite(site, seo) {
+async function checkSite(site, seo, wp = getPageType('homepage').wp) {
   let status;
   try {
     status = await wpGet(site, '/llp-copybot/v1/status');
@@ -52,27 +53,28 @@ async function checkSite(site, seo) {
   const refusals = [];
   if (!status.acf_pro) refusals.push('ACF Pro is not active on the site.');
   if (status.seo !== seo) refusals.push(`The site's SEO plugin is ${status.seo}, but the push is set for ${seo}.`);
-  const want = GROUPS.map(g => `group_llp_${g.name}`);
+  const want = wp.groups.map(g => `group_llp_${g.name}`);
   const missing = want.filter(k => !(status.field_groups || []).includes(k));
-  if (missing.length) refusals.push(`Homepage field groups missing on the site: ${missing.join(', ')}.`);
+  if (missing.length) refusals.push(`${wp.label[0].toUpperCase()}${wp.label.slice(1)} field groups missing on the site: ${missing.join(', ')}.`);
   return { status, refusals };
 }
 
 // clientValues: the values to push, when the record doesn't carry its own
 // (records made before 14 Oct; the server passes the client's current values).
 async function dryRun({ record, site, reviewed = false, seo = 'rankmath', clientValues: fallbackValues = null }) {
+  const wp = pageTypeOf(record).wp;
   const refusals = checkRecord(record, { reviewed });
   const recordValues = record.meta && record.meta.client_values;
   if (!recordValues && !fallbackValues && !record.blocked) {
     refusals.push('The record does not carry its client values (made before 14 Oct). Regenerate it, or push with the client\'s current values.');
   }
-  const siteCheck = await checkSite(site, seo);
+  const siteCheck = await checkSite(site, seo, wp);
   refusals.push(...siteCheck.refusals);
-  const page = await findHomepage(site);
-  refusals.push(...checkTarget(page, site));
-  const payload = record.blocked ? null : buildHomepagePayload(record, { seo });
+  const page = await wp.findPage(site, record);
+  refusals.push(...checkTarget(page, site, wp.label));
+  const payload = record.blocked ? null : wp.buildPayload(record, { seo });
   const changes = page && payload ? [
-    ...diffFields(page.acf || {}, payload.acf),
+    ...diffFields(page.acf || {}, payload.acf, wp.fields),
     ...Object.entries(payload.meta).map(([k, v]) => {
       const a = show('text', (page.meta || {})[k]), b = show('text', v);
       return { field: `meta.${k}`, change: same(a, b) ? 'same' : (a ? 'changed' : 'added'), current: a, next: b };
@@ -89,6 +91,7 @@ async function dryRun({ record, site, reviewed = false, seo = 'rankmath', client
   }
   return {
     site: site.url,
+    pageType: pageTypeOf(record).id,
     plugin: siteCheck.status,
     clientValues,
     page: page ? { id: page.id, status: page.status, title: (page.title && (page.title.raw || page.title.rendered)) || '' } : null,
@@ -102,8 +105,9 @@ async function dryRun({ record, site, reviewed = false, seo = 'rankmath', client
 
 function formatDryRun(r, { showSame = false } = {}) {
   const L = [];
-  L.push(`DRY RUN: homepage on ${r.site} (nothing was written)`);
-  L.push(r.page ? `Page ${r.page.id} "${r.page.title}", status ${r.page.status}` : 'Homepage not found');
+  const label = getPageType(r.pageType || 'homepage').wp.label;
+  L.push(`DRY RUN: ${label} on ${r.site} (nothing was written)`);
+  L.push(r.page ? `Page ${r.page.id} "${r.page.title}", status ${r.page.status}` : `The ${label} was not found`);
   L.push(r.pushable ? 'A real push WOULD be allowed.' : 'A real push would be REFUSED:');
   for (const x of r.refusals) L.push(`  - ${x}`);
   L.push(`Changes: ${r.summary.added || 0} added, ${r.summary.changed || 0} changed, ${r.summary.removed || 0} removed, ${r.summary.same || 0} unchanged`);

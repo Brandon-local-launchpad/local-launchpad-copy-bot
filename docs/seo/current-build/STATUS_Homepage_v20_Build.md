@@ -155,9 +155,16 @@
   - Client Values is back to just client values. The generate screen still reads the v20 switch (Generate All warning, decisions preview).
   - Neither the page list nor the page header shows the stored validation result; only the dry run's check with today's rules is shown.
   - Tested in the browser on the demo: settings save and test, page list row, reader view, an edit clearing 5 BLOCKs, dry run, push, rollback, Client Values without the cards.
+- Category pages, C1: the pipeline handles more than one page type (14 Oct). No change to how the homepage behaves (all 434 earlier checks unchanged).
+  - `page-types/` is a registry; the homepage is its first entry (model fields, word ranges, validator, reader view, WordPress fields, payload, target page, field groups, retry reply labels). A record names its type in `meta.page_type`; records from before C1 are homepages.
+  - Edits, re-validation, retries, the claims parser, dry run, push and rollback all follow the record's own type. Push log entries and snapshots carry the type.
+  - Records are stored by page type and key (`v20-store.js`; `client_assets.metadata`); old rows without metadata are the homepage. Routes: `/api/clients/:id/v20/pages/:type/:key` (record, `/download`, `/fields` GET and PUT), with `/v20/homepage` kept as the same routes. Today's facts are looked up per page type (the homepage's now; the category page's come in C2). The page screen uses the new routes (`?type=&key=`).
+  - Fixture `page-types.js` (23 checks): a made-up second type goes through edits, re-validation, retries, claims parsing, dry run, push and rollback on the fake WordPress without touching the homepage, and the store keeps each page's versions apart. Fixtures: 18 files, 457 checks, all pass.
+  - Waiting on: `docs/seo/reference/Category_Page_Structure_v2.md` (Brandon's category template) is not in the repo or on GitHub yet. C2 needs it.
 - Docs: CLAUDE.md at repo root. The files the code reads (`prompts/`, `niche-library/`) are the only copies.
 
 ## Waiting on
+- Brandon: add `docs/seo/reference/Category_Page_Structure_v2.md` (the category template). It isn't in the repo, on GitHub, or anywhere under H:ocal launchpad. c2 starts from it.
 - Brandon: set `COPYBOT_SECRET_KEY` on Railway (64 hex characters, e.g. from `node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"`). Keep a copy somewhere safe; losing it means re-entering each site's Application Password.
 - Brandon: on the deployed app, click Run allocation for Edens Edge on the Geo Research step. Expect Bassett Heath plus Portswood Residents' Gardens or Old Woolston; swap the second pick by hand if you prefer the other.
 - Kestrel Ridge allocation: no Bournemouth dossier exists yet. Run geo research for Bournemouth first.

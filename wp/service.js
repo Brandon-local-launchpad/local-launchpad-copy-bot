@@ -32,7 +32,7 @@ function createWpService({ pool, loadRecord, saveRecordClaims, currentFacts, rev
   async function withFreshValidation(clientId, record, sessionId) {
     if (record.blocked) return { record, validation: null };
     try {
-      const r = revalidateRecord(record, await currentFacts(clientId, { sessionId }));
+      const r = revalidateRecord(record, await currentFacts(clientId, { sessionId, record }));
       const { VALIDATION, ...validation } = r;
       return { record: { ...record, VALIDATION }, validation: { ...validation, fresh: { block: VALIDATION.block, flag: VALIDATION.flag, issues: VALIDATION.issues } } };
     } catch (e) {

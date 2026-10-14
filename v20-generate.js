@@ -174,6 +174,7 @@ async function generateV20Homepage({ cv, niche, keyValueMap, serviceParentMap = 
   const { validateV20 } = require('./validate-v20');
   const { runRetries, loadRetryPrompt, validationSummary } = require('./v20-retry');
   const meta = {
+    page_type: 'homepage',
     generated_at: new Date().toISOString(),
     model: V20_MODEL,
     prompt: V20_PROMPT_FILE,

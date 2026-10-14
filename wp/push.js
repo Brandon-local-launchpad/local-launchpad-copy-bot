@@ -11,8 +11,9 @@
 // rollback(): writes a snapshot back, checks it, and logs it.
 
 const { dryRun, diffFields } = require('./dry-run');
-const { findHomepage, wpGet, wpPost } = require('./client');
-const { HOMEPAGE_FIELDS, SEO_ADAPTERS } = require('./homepage-map');
+const { wpGet, wpPost } = require('./client');
+const { SEO_ADAPTERS } = require('./homepage-map');
+const { pageTypeOf, getPageType } = require('../page-types');
 const { versionOf } = require('../v20-record');
 
 const EMPTY = { text: '', html: '', bool: false, repeater: [] };
@@ -29,9 +30,9 @@ function claimsRefusals(record, claims, acceptClaims) {
 }
 
 // Read back and compare with what was sent
-async function verify(site, pageId, payload, clientValues) {
+async function verify(site, pageId, payload, clientValues, fields) {
   const page = await wpGet(site, `/wp/v2/pages/${pageId}?context=edit`);
-  const mismatches = diffFields(page.acf || {}, payload.acf).filter(c => c.change !== 'same').map(c => c.field);
+  const mismatches = diffFields(page.acf || {}, payload.acf, fields).filter(c => c.change !== 'same').map(c => c.field);
   for (const [k, v] of Object.entries(payload.meta)) if (String((page.meta || {})[k] || '') !== String(v || '')) mismatches.push(`meta.${k}`);
   if (clientValues) {
     const cv = await wpGet(site, '/llp-copybot/v1/client-values');
@@ -41,21 +42,22 @@ async function verify(site, pageId, payload, clientValues) {
 }
 
 async function push({ record, recordId = null, site, store, reviewed = false, seo = 'rankmath', clientValues = null, claims = null, acceptClaims = false }) {
+  const type = pageTypeOf(record);
   claims = claims || record.CLAIMS || null;
   const dry = await dryRun({ record, site, reviewed, seo, clientValues });
   const refusals = [...dry.refusals, ...claimsRefusals(record, claims, acceptClaims)];
-  const base = { action: 'push', site: site.url, page: dry.page && dry.page.id, recordId, generatedAt: record.meta && record.meta.generated_at };
+  const base = { action: 'push', pageType: type.id, site: site.url, page: dry.page && dry.page.id, recordId, generatedAt: record.meta && record.meta.generated_at };
   if (refusals.length) {
     await store.appendLog({ ...base, result: 'refused', refusals });
     return { ok: false, refusals, dry };
   }
 
   // 1. Snapshot
-  const page = await findHomepage(site);
+  const page = await type.wp.findPage(site, record);
   const metaKeys = Object.keys(dry.payload.meta);
   const before = {
-    site: site.url, pageId: page.id, seo,
-    acf: Object.fromEntries(HOMEPAGE_FIELDS.map(([name, kind]) => [name, page.acf && name in page.acf ? page.acf[name] : EMPTY[kind]])),
+    site: site.url, pageId: page.id, pageType: type.id, seo,
+    acf: Object.fromEntries(type.wp.fields.map(([name, kind]) => [name, page.acf && name in page.acf ? page.acf[name] : EMPTY[kind]])),
     meta: Object.fromEntries(metaKeys.map(k => [k, (page.meta || {})[k] || ''])),
     clientValues: await wpGet(site, '/llp-copybot/v1/client-values'),
   };
@@ -71,7 +73,7 @@ async function push({ record, recordId = null, site, store, reviewed = false, se
   }
 
   // 3. Verify, 4. log
-  const mismatches = await verify(site, page.id, dry.payload, dry.clientValues);
+  const mismatches = await verify(site, page.id, dry.payload, dry.clientValues, type.wp.fields);
   const result = mismatches.length ? 'written, read-back differs' : 'pushed';
   await store.appendLog({ ...base, result, snapshotId, summary: dry.summary, mismatches, claims: claims.findings.length, acceptedClaims: !!acceptClaims });
   return { ok: !mismatches.length, result, snapshotId, mismatches, dry };
@@ -86,8 +88,8 @@ async function rollback({ snapshotId, site, store }) {
   const now = await wpGet(site, '/llp-copybot/v1/client-values');
   const restore = { ...Object.fromEntries(Object.keys(now).map(k => [k, ''])), ...snap.clientValues };
   await wpPost(site, '/llp-copybot/v1/client-values', restore);
-  const mismatches = await verify(site, snap.pageId, { acf: snap.acf, meta: snap.meta }, restore);
-  await store.appendLog({ action: 'rollback', site: site.url, page: snap.pageId, snapshotId, result: mismatches.length ? 'restored, read-back differs' : 'restored', mismatches });
+  const mismatches = await verify(site, snap.pageId, { acf: snap.acf, meta: snap.meta }, restore, getPageType(snap.pageType || 'homepage').wp.fields);
+  await store.appendLog({ action: 'rollback', pageType: snap.pageType || 'homepage', site: site.url, page: snap.pageId, snapshotId, result: mismatches.length ? 'restored, read-back differs' : 'restored', mismatches });
   return { ok: !mismatches.length, mismatches };
 }
 

@@ -3417,10 +3417,7 @@ app.post('/api/clients/:clientId/v20/homepage/generate', async (req, res) => {
     if (record.meta && record.meta.usage && record.meta.usage.stop_reason === 'max_tokens') {
       record.FLAGS.push({ code: 'P-TRUNCATED', msg: 'The model hit the output limit; the last fields may be cut off.', source: 'parse' });
     }
-    await pool.query(
-      `INSERT INTO client_assets (client_id, asset_type, filename, content) VALUES ($1, 'v20_page_record', 'homepage_v20.json', $2)`,
-      [clientId, JSON.stringify(record)]
-    );
+    await v20Store.insert(clientId, record, HOMEPAGE);
     console.log(`[v20] homepage for ${clientId}: ${record.blocked ? 'blocked by gates' : 'generated'}; ${record.FLAGS.length} flag(s)`);
     res.json(record);
   } catch (err) {
@@ -3429,24 +3426,37 @@ app.post('/api/clients/:clientId/v20/homepage/generate', async (req, res) => {
   }
 });
 
+// ── v20 page records (C1: by page type and key) ─────────────────────────────
+// Each version of each v20 page is stored with its page type and key (v20-store.js).
+// The homepage's key is fixed; category pages will use their slug.
+const { createV20Store } = require('./v20-store');
+const { getPageType, pageTypeOf, pageTypeId } = require('./page-types');
+const v20Store = pool ? createV20Store(pool) : null;
+const HOMEPAGE = { type: 'homepage', key: 'homepage' };
+
+// The page a request is about: /v20/homepage, or /v20/pages/:type/:key
+function v20PageOf(req) {
+  if (!req.params.type) return HOMEPAGE;
+  const t = getPageType(req.params.type);
+  const key = String(req.params.key || t.singleKey || '');
+  if (t.singleKey && key !== t.singleKey) throw new Error(`A client has one ${t.label.toLowerCase()}; its key is "${t.singleKey}", not "${key}".`);
+  if (!key) throw new Error(`Which ${t.label.toLowerCase()} page? The key is missing.`);
+  return { type: t.id, key };
+}
+
 // ── v20 downloads (Stage 8) ──────────────────────────────────────────────────
-// A saved record (latest, or one run by id) and the token values it was written with.
-async function loadV20Download(clientId, recordId) {
-  const { rows } = await pool.query(
-    recordId
-      ? `SELECT id, content FROM client_assets WHERE client_id=$1 AND asset_type='v20_page_record' AND id=$2`
-      : `SELECT id, content FROM client_assets WHERE client_id=$1 AND asset_type='v20_page_record' ORDER BY uploaded_at DESC LIMIT 1`,
-    recordId ? [clientId, recordId] : [clientId]
-  );
-  if (!rows.length) return null;
-  const record = JSON.parse(rows[0].content);
+// A saved version (one by id, or a page's latest) and the token values it was written with.
+async function loadV20Download(clientId, recordId, page = HOMEPAGE) {
+  const found = recordId ? await v20Store.byId(clientId, recordId) : await v20Store.latest(clientId, page);
+  if (!found) return null;
+  const { record } = found;
   let values = record.meta && record.meta.client_values;
   if (!values) {
     // Records from before 14 Oct don't carry their values: use the client's current ones
     const ctx = await loadV20Context(clientId, null);
     values = v20.clientValueMap(ctx.cv, null);
   }
-  return { record, values, id: rows[0].id };
+  return { record, values, id: found.id, page: { type: found.type, key: found.key } };
 }
 
 // ── WordPress push routes (slice 4) ──────────────────────────────────────────
@@ -3458,28 +3468,28 @@ const wpService = pool ? createWpService({
     if (!found) throw new Error('No v20 homepage has been generated for this client yet.');
     return found;
   },
-  saveRecordClaims: saveV20RecordClaims,
-  currentFacts: (clientId, { sessionId } = {}) => v20CurrentFacts(clientId, sessionId),
+  saveRecordClaims: (clientId, recordId, CLAIMS) => v20Store.saveClaims(clientId, recordId, CLAIMS),
+  currentFacts: (clientId, { sessionId, record } = {}) => v20CurrentFacts(clientId, sessionId, record),
 }) : null;
 
-// The client's facts as they are now, for checking a saved page with today's rules
-async function v20CurrentFacts(clientId, sessionId) {
-  const { ctx, niche, decisionsResult } = await v20HomepageInputs(clientId, sessionId);
-  const D = decisionsResult.decisions;
-  if (!D) throw new Error("the page decisions can't be made right now (a gate is failing)");
-  return {
-    V: v20.validationContextFor({ cv: ctx.cv, niche, decisions: D, keyValueMap: ctx.keyValueMap, serviceParentMap: ctx.serviceParentMap }),
-    clientValues: v20.clientValueMap(ctx.cv, D.d1_years_trading),
-    decisionsBlock: decisionsResult.decisionsBlock || null,
-  };
-}
-
-// Put a claims result on a saved record (CLAIMS sits after VALIDATION)
-async function saveV20RecordClaims(clientId, recordId, CLAIMS) {
-  const { rows } = await pool.query(`SELECT content FROM client_assets WHERE id=$1 AND client_id=$2 AND asset_type='v20_page_record'`, [recordId, clientId]);
-  if (!rows.length) throw new Error('Record not found.');
-  const out = require('./v20-edit').placeClaims(JSON.parse(rows[0].content), CLAIMS);
-  await pool.query(`UPDATE client_assets SET content=$1 WHERE id=$2`, [JSON.stringify(out), recordId]);
+// The client's facts as they are now, for checking a saved page with today's
+// rules. Each page type has its own (category pages add theirs in C2).
+const V20_FACTS = {
+  homepage: async (clientId, sessionId) => {
+    const { ctx, niche, decisionsResult } = await v20HomepageInputs(clientId, sessionId);
+    const D = decisionsResult.decisions;
+    if (!D) throw new Error("the page decisions can't be made right now (a gate is failing)");
+    return {
+      V: v20.validationContextFor({ cv: ctx.cv, niche, decisions: D, keyValueMap: ctx.keyValueMap, serviceParentMap: ctx.serviceParentMap }),
+      clientValues: v20.clientValueMap(ctx.cv, D.d1_years_trading),
+      decisionsBlock: decisionsResult.decisionsBlock || null,
+    };
+  },
+};
+async function v20CurrentFacts(clientId, sessionId, record = null) {
+  const id = pageTypeId(record);
+  if (!V20_FACTS[id]) throw new Error(`today's facts for ${getPageType(id).label.toLowerCase()} pages aren't built yet`);
+  return V20_FACTS[id](clientId, sessionId);
 }
 
 function wpRoute(handler) {
@@ -3505,80 +3515,72 @@ app.post('/api/clients/:clientId/wp/rollback', wpRoute(req => wpService.rollback
 app.get('/api/clients/:clientId/wp/log', wpRoute(req => wpService.log(req.params.clientId)));
 app.put('/api/clients/:clientId/wp/claims-accepted', wpRoute(req => wpService.acceptClaims(req.params.clientId, req.body || {})));
 
-// ── v20 hand edits (slice 5) ─────────────────────────────────────────────────
-// The editable fields of the latest version, and saving an edit as a new version
-// (validated and claims-reviewed; see v20-edit.js)
+// ── v20 page routes ──────────────────────────────────────────────────────────
+// The same routes serve /v20/homepage (kept for the screens and links that use it)
+// and /v20/pages/:type/:key, for every page type.
 const v20Edit = require('./v20-edit');
-async function latestV20Id(clientId) {
-  const { rows } = await pool.query(`SELECT id FROM client_assets WHERE client_id=$1 AND asset_type='v20_page_record' ORDER BY uploaded_at DESC LIMIT 1`, [clientId]);
-  return rows.length ? rows[0].id : null;
-}
+const V20_PAGE_BASES = ['/api/clients/:clientId/v20/homepage', '/api/clients/:clientId/v20/pages/:type/:key'];
 
-app.get('/api/clients/:clientId/v20/homepage/fields', wpRoute(async req => {
-  const found = await loadV20Download(req.params.clientId, req.query.id || null);
-  if (!found) throw new Error('No v20 homepage has been generated for this client yet.');
-  // The issues shown beside each field are today's, not the stored ones
-  let issues = null, issuesError = null;
-  try { issues = v20Edit.revalidate(found.record, await v20CurrentFacts(req.params.clientId, req.query.sessionId || null)).VALIDATION.issues; }
-  catch (e) { issuesError = e.message; }
-  return { recordId: found.id, fields: v20Edit.editableFields(found.record), issues, issuesError };
-}));
+for (const base of V20_PAGE_BASES) {
+  // Latest saved version, plus the dates of earlier ones
+  app.get(base, wpRoute(async req => {
+    const versions = await v20Store.versions(req.params.clientId, v20PageOf(req), 20);
+    if (!versions.length) return { record: null, history: [] };
+    return { record: versions[0].record, history: versions.map(v => ({ id: v.id, generatedAt: v.at })) };
+  }));
 
-app.put('/api/clients/:clientId/v20/homepage/fields', wpRoute(async req => {
-  const { clientId } = req.params;
-  const { recordId, edits, accepted, sessionId } = req.body || {};
-  if (!recordId) throw new Error('Which version? recordId is missing.');
-  const { rows } = await pool.query(`SELECT content FROM client_assets WHERE id=$1 AND client_id=$2 AND asset_type='v20_page_record'`, [recordId, clientId]);
-  if (!rows.length) throw new Error('Version not found.');
-  const record = JSON.parse(rows[0].content);
-  const current = await v20CurrentFacts(clientId, sessionId);
-  const { runClaimsReview, factsFromRecord } = require('./wp/claims-review');
-  const out = await v20Edit.editRecord({
-    record, isLatest: (await latestV20Id(clientId)) === recordId, edits, accepted, current,
-    review: rec => runClaimsReview(rec, factsFromRecord(rec), v20CallModel),
+  app.get(`${base}/download`, async (req, res) => {
+    if (!pool) return res.status(503).send('Database not configured.');
+    try {
+      const page = v20PageOf(req);
+      const found = await loadV20Download(req.params.clientId, req.query.id || null, page);
+      if (!found) return res.status(404).send(`No v20 ${getPageType(page.type).label.toLowerCase()} has been generated for this client yet.`);
+      const md = req.query.format === 'md';
+      const body = md ? pageTypeOf(found.record).readerView(found.record, found.values) : reader.buildJsonDownload(found.record);
+      const name = found.page.type === 'homepage' ? reader.downloadName(found.values, md ? 'md' : 'json')
+        : reader.downloadName(found.values, md ? 'md' : 'json').replace('_homepage_', `_${found.page.type}_${found.page.key}_`.replace(/[^a-zA-Z0-9_-]+/g, '_'));
+      res.setHeader('Content-Type', md ? 'text/markdown; charset=utf-8' : 'application/json; charset=utf-8');
+      res.setHeader('Content-Disposition', `attachment; filename="${name}"`);
+      res.send(body);
+    } catch (err) {
+      res.status(500).send(err.message);
+    }
   });
-  // The previous version keeps the acceptances made on it; the edit is a new version
-  if (out.previous.CLAIMS !== record.CLAIMS) await saveV20RecordClaims(clientId, recordId, out.previous.CLAIMS);
-  const ins = await pool.query(
-    `INSERT INTO client_assets (client_id, asset_type, filename, content) VALUES ($1, 'v20_page_record', 'homepage_v20.json', $2) RETURNING id`,
-    [clientId, JSON.stringify(out.record)]
-  );
-  console.log(`[v20] hand edit for ${clientId}: ${out.changed.length} field(s); ${out.record.VALIDATION.block} BLOCK, ${out.record.VALIDATION.flag} FLAG; claims ${out.record.CLAIMS.status}`);
-  return { recordId: ins.rows[0].id, record: out.record, changed: out.changed };
-}));
 
-app.get('/api/clients/:clientId/v20/homepage/download', async (req, res) => {
-  if (!pool) return res.status(503).send('Database not configured.');
-  try {
-    const found = await loadV20Download(req.params.clientId, req.query.id || null);
-    if (!found) return res.status(404).send('No v20 homepage has been generated for this client yet.');
-    const md = req.query.format === 'md';
-    const body = md ? reader.buildReaderView(found.record, found.values) : reader.buildJsonDownload(found.record);
-    res.setHeader('Content-Type', md ? 'text/markdown; charset=utf-8' : 'application/json; charset=utf-8');
-    res.setHeader('Content-Disposition', `attachment; filename="${reader.downloadName(found.values, md ? 'md' : 'json')}"`);
-    res.send(body);
-  } catch (err) {
-    res.status(500).send(err.message);
-  }
-});
+  // The editable fields of a version, with today's issues beside them
+  app.get(`${base}/fields`, wpRoute(async req => {
+    const page = v20PageOf(req);
+    const found = await loadV20Download(req.params.clientId, req.query.id || null, page);
+    if (!found) throw new Error(`No v20 ${getPageType(page.type).label.toLowerCase()} has been generated for this client yet.`);
+    let issues = null, issuesError = null;
+    try { issues = v20Edit.revalidate(found.record, await v20CurrentFacts(req.params.clientId, req.query.sessionId || null, found.record)).VALIDATION.issues; }
+    catch (e) { issuesError = e.message; }
+    return { recordId: found.id, fields: v20Edit.editableFields(found.record), issues, issuesError };
+  }));
 
-// Latest saved v20 homepage record, plus the dates of earlier runs
-app.get('/api/clients/:clientId/v20/homepage', async (req, res) => {
-  if (!pool) return res.status(503).json({ error: 'Database not configured.' });
-  try {
-    const { rows } = await pool.query(
-      `SELECT id, content, uploaded_at FROM client_assets WHERE client_id=$1 AND asset_type='v20_page_record' ORDER BY uploaded_at DESC LIMIT 20`,
-      [req.params.clientId]
-    );
-    if (!rows.length) return res.json({ record: null, history: [] });
-    res.json({
-      record: JSON.parse(rows[0].content),
-      history: rows.map(r => ({ id: r.id, generatedAt: r.uploaded_at })),
+  // Save an edit as a new version (validated and claims-reviewed; see v20-edit.js)
+  app.put(`${base}/fields`, wpRoute(async req => {
+    const { clientId } = req.params;
+    const { recordId, edits, accepted, sessionId } = req.body || {};
+    if (!recordId) throw new Error('Which version? recordId is missing.');
+    const page = v20PageOf(req);
+    const found = await v20Store.byId(clientId, recordId);
+    if (!found) throw new Error('Version not found.');
+    if (found.type !== page.type || found.key !== page.key) throw new Error('That version belongs to another page.');
+    const current = await v20CurrentFacts(clientId, sessionId, found.record);
+    const latest = await v20Store.latest(clientId, page);
+    const { runClaimsReview, factsFromRecord } = require('./wp/claims-review');
+    const out = await v20Edit.editRecord({
+      record: found.record, isLatest: !!latest && latest.id === recordId, edits, accepted, current,
+      review: rec => runClaimsReview(rec, factsFromRecord(rec), v20CallModel),
     });
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-});
+    // The previous version keeps the acceptances made on it; the edit is a new version
+    if (out.previous.CLAIMS !== found.record.CLAIMS) await v20Store.saveClaims(clientId, recordId, out.previous.CLAIMS);
+    const id = await v20Store.insert(clientId, out.record, page);
+    console.log(`[v20] hand edit for ${clientId} (${page.type} ${page.key}): ${out.changed.length} field(s); ${out.record.VALIDATION.block} BLOCK, ${out.record.VALIDATION.flag} FLAG; claims ${out.record.CLAIMS.status}`);
+    return { recordId: id, record: out.record, changed: out.changed };
+  }));
+}
 
 // ── Client API routes ─────────────────────────────────────────────────────────
 

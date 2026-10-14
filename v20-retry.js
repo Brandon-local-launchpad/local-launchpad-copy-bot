@@ -8,7 +8,12 @@
 
 const fs   = require('fs');
 const path = require('path');
-const { validateV20, modelFields, getField, setField, summarise, wordCount, RANGES } = require('./validate-v20');
+const { modelFields, getField, setField, summarise, wordCount } = require('./validate-v20');
+const { pageTypeOf } = require('./page-types');
+
+// The record's own page type validates it and gives its word ranges
+const validateV20 = (record, V) => pageTypeOf(record).validate(record, V);
+const rangesFor = record => pageTypeOf(record).ranges || {};
 
 const MAX_RETRIES = 2;
 const CONCURRENCY = 4;
@@ -24,8 +29,8 @@ const clone = o => JSON.parse(JSON.stringify(o));
 
 // The label the model must return, and the range it must hit
 function returnLabel(ref) { return ref.sub || ref.key; }
-function rangeText(f, D) {
-  const r = RANGES[f.rangeKey];
+function rangeText(f, D, record) {
+  const r = rangesFor(record)[f.rangeKey];
   if (!r) return '';
   if (f.rangeKey === 'home_content_block_body' && D.d13_expands) return '200 to 300 words';
   return `${r.label} words`;
@@ -35,7 +40,7 @@ function buildRetryMessage(f, problems, record, D, earlier = []) {
   const others = modelFields(record).filter(o => o.label !== f.label).map(o => `${o.label}: ${o.text.replace(/\n\n/g, '\\n\\n')}`);
   const stillAvoid = earlier.filter(p => !problems.includes(p));
   return [
-    `FIELD: ${f.label}${rangeText(f, D) ? ` (${rangeText(f, D)})` : ''}`,
+    `FIELD: ${f.label}${rangeText(f, D, record) ? ` (${rangeText(f, D, record)})` : ''}`,
     '',
     'CURRENT TEXT:',
     f.text.replace(/\n\n/g, '\\n\\n'),
@@ -60,10 +65,10 @@ function parseRetryReply(text, ref) {
 }
 
 // A reply that carries other fields' labels, or is far outside the field's range, isn't one field
-function notSingleField(raw, after, f) {
-  const range = RANGES[f.rangeKey];
+function notSingleField(raw, after, f, record) {
+  const range = rangesFor(record)[f.rangeKey];
   const own = returnLabel(f.ref);
-  const labels = [...(raw || '').matchAll(/^\s*[-*]?\s*(home_[a-z_]+|card_name|card_text|point_title|point_body|step_title|step_body|faq_question|faq_answer|MODEL_FLAGS)\s*:/gm)].map(m => m[1]);
+  const labels = [...(raw || '').matchAll(new RegExp(`^\\s*[-*]?\\s*(${pageTypeOf(record).replyLabels.source})\\s*:`, 'gm'))].map(m => m[1]);
   return labels.some(l => l !== own) || /=== MODEL OUTPUT/.test(after) ||
     !!(range && (wordCount(after) > range.max * 2.5 || (range.min && wordCount(after) < range.min * 0.5)));
 }
@@ -118,7 +123,7 @@ async function runRetries({ record, V, callRetry, maxRetries = MAX_RETRIES, conc
     for (const r of results) {
       const entry = { round, field: r.label, problems: r.problems, before: r.before, after: r.after, kept: false };
       if (r.error || !r.after) { entry.error = r.error || 'empty reply'; log.push(entry); continue; }
-      if (notSingleField(r.raw, r.after, r.f)) { entry.error = 'reply was not a single field'; log.push(entry); continue; }
+      if (notSingleField(r.raw, r.after, r.f, record)) { entry.error = 'reply was not a single field'; log.push(entry); continue; }
       const cand = clone(base);
       setField(cand, r.f.ref, r.after);
       const was = fieldScore(base, r.label);
@@ -170,7 +175,7 @@ async function runClaimRetries({ record, V, callRetry, review, maxRounds = 2, co
     for (const r of results) {
       const entry = { round, field: r.g.f.label, claims: r.g.findings.map(c => c.quote), before: r.g.f.text, after: r.after || null, kept: false };
       if (r.error || !r.after) { entry.error = r.error || 'empty reply'; log.push(entry); continue; }
-      if (notSingleField(r.raw, r.after, r.g.f)) { entry.error = 'reply was not a single field'; log.push(entry); continue; }
+      if (notSingleField(r.raw, r.after, r.g.f, record)) { entry.error = 'reply was not a single field'; log.push(entry); continue; }
       const cand = clone(base);
       setField(cand, r.g.f.ref, r.after);
       const gone = r.g.findings.every(c => !normq(r.after).includes(normq(c.quote)));

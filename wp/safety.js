@@ -27,11 +27,11 @@ function checkRecord(record, { reviewed = false } = {}) {
   return refusals;
 }
 
-function checkTarget(page, site) {
+function checkTarget(page, site, label = 'homepage') {
   const refusals = [];
-  if (!page) return ['The homepage was not found on the site.'];
+  if (!page) return [`The ${label} was not found on the site.`];
   if (page.status === 'publish' && !site.staging) {
-    refusals.push(`The homepage on ${site.url} is published. Pushes go to drafts and staging sites only for now.`);
+    refusals.push(`The ${label} on ${site.url} is published. Pushes go to drafts and staging sites only for now.`);
   }
   return refusals;
 }
