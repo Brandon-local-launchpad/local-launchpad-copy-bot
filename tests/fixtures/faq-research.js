@@ -128,12 +128,29 @@ chk('v4 line: Service and Town read', v4.service === 'driveways' && v4.town === 
 const v4g = R.parseQuestionLine('- [Q-8] | "Are you insured?" | Doubt: Trust | Page: Homepage | Service: General | Local: N | Town: - | Needs client fact: Y | Seen: Reddit | https://example.org/b');
 chk('v4 line: Service General and Town - read as blank', v4g.service === '' && v4g.town === '', JSON.stringify(v4g), 'blank, blank');
 
+// ── Reply formats the agent API can send (the same questions, laid out differently) ──
+const sample = e.questions.slice(0, 12);
+const asLine = q => `- [${q.id}] | "${q.text}" | Doubt: ${q.doubt} | Page: ${q.page} | Local: ${q.local ? 'Y' : 'N'} | Needs client fact: ${q.needsFact ? 'Y' : 'N'} | Seen: ${q.seen} | [${q.url}]`;
+const sameAs = (p, label) => chk(label, p.questions.length === 12 && p.questions.every((q, i) => q.id === sample[i].id && q.text === sample[i].text && q.doubt === sample[i].doubt && q.page === sample[i].page && q.url === sample[i].url),
+  JSON.stringify(p.questions.slice(0, 2).map(q => [q.id, q.text, q.doubt, q.page, q.url])) + ` (${p.questions.length}) ${p.warnings.slice(0, 3).join('; ')}`, '12 questions, same as the run');
+sameAs(R.parseFaqResearch(`<think>\nThe user wants questions. ## 1. QUESTIONS might be…\n</think>\n## 1. QUESTIONS\n${sample.map(asLine).join('\n')}\n## 2. RANGES FOUND\n`), 'A <think> section first is dropped');
+sameAs(R.parseFaqResearch(`<think>\nplanning the search, never closed\n# 1. QUESTIONS\n${sample.map(asLine).join('\n')}`), 'An unclosed <think> at the start is dropped up to the questions');
+sameAs(R.parseFaqResearch(`**1. QUESTIONS**\n\n${sample.map(asLine).join('\n')}\n\n**2. RANGES FOUND**`), 'A bold heading');
+sameAs(R.parseFaqResearch(`### 1) Questions\n${sample.map((q, i) => `${i + 1}. **[${q.id}]** | "${q.text}" [3][web:7] | Doubt: ${q.doubt} | Page: ${q.page} | Seen: ${q.seen} | [${q.url}]`).join('\n')}`),
+  'A numbered list with bold IDs and citation markers ([3], [web:7])');
+sameAs(R.parseFaqResearch(`## 1. QUESTIONS\n\n| ID | Question | Doubt | Page | Service | Local | Town | Needs client fact | Seen | Source |\n|---|---|---|---|---|---|---|---|---|---|\n${sample.map(q => `| ${q.id} | ${q.text} | ${q.doubt} | ${q.page} | General | ${q.local ? 'Y' : 'N'} | - | ${q.needsFact ? 'Y' : 'N'} | ${q.seen} | [link](${q.url}) |`).join('\n')}\n\n## 2. RANGES FOUND`),
+  'A markdown table with a header row');
+const tableNeeds = R.parseFaqResearch(`## 1. QUESTIONS\n| # | Question | Doubt | Page | Needs client fact |\n|:-:|---|---|---|---|\n| Q-4 | How much deposit do you need? | Trust | Homepage | Y |`).questions[0];
+chk('Table: "#" as the ID column and the fact column read', tableNeeds && tableNeeds.id === 'Q-4' && tableNeeds.needsFact === true && tableNeeds.doubt === 'Trust', JSON.stringify(tableNeeds), 'Q-4, Trust, needs a fact');
+const shape = R.validateFaqResearch(R.parseFaqResearch('<think>hmm</think>\nHere are some questions people ask:\n* How much is a patio?')).error;
+chk('Nothing readable: the error says what the reply looked like', /no "1\. QUESTIONS" heading, 0 mentions of a question ID \(Q-1…\), 0 table rows, a <think> section, first line "Here are some questions people ask:"/.test(shape), shape, 'heading, IDs, table rows, think, first line');
+
 // ── Validation ──
 chk('A run with 40 questions is valid', R.validateFaqResearch(e).valid, R.validateFaqResearch(e).error, 'valid');
 const short = R.parseFaqResearch('## 1. QUESTIONS\n- [Q-1] | "How much?" | Doubt: Price | Page: Homepage | Local: N | Needs client fact: Y | Seen: Reddit | https://x.org\n## 2. RANGES FOUND\n');
 chk('A run with 1 question is refused, with the reason', !R.validateFaqResearch(short).valid && /Only 1 questions/.test(R.validateFaqResearch(short).error), R.validateFaqResearch(short).error, 'Only 1 questions…');
 const none = R.parseFaqResearch('Sorry, I could not find anything.');
-chk('A reply with no questions section is refused and warned', !R.validateFaqResearch(none).valid && none.warnings.some(w => /No "## 1. QUESTIONS"/.test(w)), none.warnings.join('; '), 'refused, warned');
+chk('A reply with no questions section is refused and warned', !R.validateFaqResearch(none).valid && none.warnings.some(w => /No "1. QUESTIONS" heading/.test(w)) && /it had no "1\. QUESTIONS" heading, 0 mentions of a question ID/.test(R.validateFaqResearch(none).error), R.validateFaqResearch(none).error, 'refused, saying what it saw');
 
 console.log(`\n${pass + fail} checks: ${pass} passed, ${fail} failed`);
 if (fail) process.exit(1);

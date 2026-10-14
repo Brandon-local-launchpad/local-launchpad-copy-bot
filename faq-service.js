@@ -121,8 +121,11 @@ function createFaqService({
     const cost = usage.cost && usage.cost.total_cost != null ? usage.cost.total_cost : null;
     const parsed = R.parseFaqResearch(text);
     const { valid, error } = text ? R.validateFaqResearch(parsed) : { valid: false, error: 'empty output from Perplexity' };
+    // The reply as Perplexity sent it is always kept on the job, read or not, so it can
+    // be checked (the card links it) and read again without a new Perplexity run
+    const rawKept = { rawOutputText: raw, rawOutputJson: JSON.stringify(pxRes) };
     if (!valid) {
-      await jobs.update(record, FAQ_CODE, { status: 'validation_failed', finishedAt: new Date().toISOString(), error, rawOutputText: text || raw, cost });
+      await jobs.update(record, FAQ_CODE, { status: 'validation_failed', finishedAt: new Date().toISOString(), error, cost, ...rawKept });
       researchRunning.delete(clientId);
       return { saved: false, error };
     }
@@ -131,11 +134,37 @@ function createFaqService({
       status: 'done', finishedAt: new Date().toISOString(), assetId, cost, error: null,
       questionCount: parsed.questions.length, warnings: parsed.warnings.length,
       inputTokens: usage.input_tokens || null, outputTokens: usage.output_tokens || null,
+      ...rawKept,
     });
     researchRunning.delete(clientId);
     // Sorting runs by itself on new research; a failure shows on the card
     runSort(clientId, null).catch(e => log.error(`[faq] sorting after research failed for ${clientId}:`, e.message));
     return { saved: true, assetId };
+  }
+
+  // The latest job's saved reply, as Perplexity sent it
+  async function rawReply(clientId) {
+    const job = await latestJob(clientId);
+    const row = job ? job.locations[FAQ_CODE] || {} : {};
+    let pxRes = null;
+    try { pxRes = row.rawOutputJson ? JSON.parse(row.rawOutputJson) : null; } catch (e) { log.error('[faq] saved reply JSON could not be read:', e.message); }
+    // Jobs from before 15 Oct kept only the text (citations already resolved)
+    if (!pxRes && row.rawOutputText) pxRes = { output_text: row.rawOutputText };
+    return { job, row, pxRes, text: pxRes ? perplexity.text(pxRes) : '' };
+  }
+
+  // Read the latest saved reply again (after a parser fix), without a new Perplexity run
+  async function rereadResearch(clientId) {
+    if (researchRunning.has(clientId)) throw new Error('FAQ research is running for this client; wait for it to finish.');
+    const { job, pxRes } = await rawReply(clientId);
+    if (!pxRes) throw new Error('No saved FAQ research reply to read for this client.');
+    researchRunning.set(clientId, job.id);
+    lastJob.set(clientId, job.id);
+    try {
+      return await finishResearch(job, clientId, pxRes);
+    } finally {
+      researchRunning.delete(clientId);
+    }
   }
 
   async function startResearch(clientId, sessionId) {
@@ -284,7 +313,7 @@ function createFaqService({
 
     return {
       running: { research: researchRunning.has(clientId), sort: sortRunning.has(clientId) },
-      job: job ? { id: job.id, status: jobRow.status, error: jobRow.error || null, startedAt: jobRow.startedAt, finishedAt: jobRow.finishedAt, cost: jobRow.cost ?? null } : null,
+      job: job ? { id: job.id, status: jobRow.status, error: jobRow.error || null, startedAt: jobRow.startedAt, finishedAt: jobRow.finishedAt, cost: jobRow.cost ?? null, hasRaw: !!(jobRow.rawOutputText || jobRow.rawOutputJson) } : null,
       research: research ? {
         id: research.id, savedAt: research.savedAt, questionCount: research.parsed.questions.length,
         ranges: research.parsed.ranges, rules: research.parsed.rules, gaps: research.parsed.gaps, warnings: research.parsed.warnings,
@@ -337,7 +366,7 @@ function createFaqService({
   }
 
   return {
-    FAQ_CODE, startResearch, finishResearch, maybeAutoResearch, runSort, homepageFaq, view, updateQuestions,
+    FAQ_CODE, startResearch, finishResearch, rereadResearch, rawReply, maybeAutoResearch, runSort, homepageFaq, view, updateQuestions,
     latestResearch, loadSort, isResearchRunning: id => researchRunning.has(id),
   };
 }
