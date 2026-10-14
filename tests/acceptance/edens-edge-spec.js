@@ -22,7 +22,8 @@ function checkDecisions(result) {
   const flags = (result.flags || []).map(f => f.code);
 
   row('Title', 'Landscaper Southampton | Edens Edge Landscaping', D.d3_title, D.d3_title === 'Landscaper Southampton | Edens Edge Landscaping');
-  const meta = 'Landscaper Southampton from Edens Edge Landscaping. Fixed prices with no hidden costs. Get your free quote today.';
+  // 15 Oct (Brandon): a natural sentence, no "[keyword] from [company]" opener
+  const meta = 'Edens Edge Landscaping is a landscaper in Southampton offering fixed prices with no hidden costs. Get your free quote today.';
   row('Meta', meta, D.d4_meta, D.d4_meta === meta);
   row('Trust line', '100+ Jobs Completed', D.d5_trust, D.d5_trust === '100+ Jobs Completed');
   row('Rating line', 'none', D.d6_rating || 'none', !D.d6_rating);
@@ -47,8 +48,8 @@ function checkDecisions(result) {
   row('FAQ', '8 questions: cost, insured, "What happens if something isn\'t right after the job?", start, free quote, areas, how long, water on patio or lawn (symptom)', faq.join(' / '), faqOk);
   const A = D.d12_areas;
   const areasOk = A.primaryCity === 'Southampton' && A.linked.length === 12 && A.linked[0].name === 'Ampfield' && A.linked[11].name === 'Winchester' &&
-    A.plain.length === 1 && A.plain[0] === 'New Forest';
-  row('Area list', 'Southampton, then 12 linked town names A to Z (Ampfield … Winchester), then New Forest as plain text',
+    A.plain.length === 0; // 15 Oct (Brandon): council areas (New Forest District) are left out
+  row('Area list', 'Southampton, then 12 linked town names A to Z (Ampfield … Winchester); no council areas (New Forest District left out)',
     `${A.primaryCity}; ${A.linked.length} linked (${A.linked.map(a => a.name).join(', ')}); plain: ${A.plain.join(', ')}`, areasOk);
   const allocNames = (D.allocated.neighbourhoods || []).map(n => n.name);
   row('Allocation', '2 primary city neighbourhoods, e.g. Bassett Heath and Old Woolston or similar large plot areas', allocNames.join(', ') || 'none',

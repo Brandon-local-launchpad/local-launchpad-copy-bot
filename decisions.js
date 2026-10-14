@@ -5,6 +5,7 @@
 // No model calls. Returns { gates, flags, decisions, decisionsBlock }.
 
 const CURRENT_YEAR = new Date().getFullYear();
+const { isAdminArea } = require('./client-files');
 const FALLBACK_ORDER = ['faq_C', 'faq_D', 'faq_E'];
 
 function cap(s) { return (s && s.length) ? s[0].toUpperCase() + s.slice(1) : (s || ''); }
@@ -341,6 +342,7 @@ function buildAreaList(pages, keyValueMap) {
 
   for (const area of allAreas) {
     if (area === primaryCity) continue; // primary city handled separately
+    if (isAdminArea(area)) continue;    // a council area ("New Forest District") is not a town
     const norm = normArea(area);
     const page = locMap[norm] || locMap[normArea(stripAdmin(area))];
     const displayName = stripAdmin(area);
@@ -419,7 +421,7 @@ function buildD14Town(pages, keyValueMap) {
 // ── Process steps ────────────────────────────────────────────────────────────
 // The emergency layout uses the niche's emergency steps. Otherwise step 2 is the
 // visit step only when the client confirms visiting before quoting; without it,
-// the niche's step_2_no_visit (price from photos or a call).
+// the niche's step_2_no_visit, which names no quote method (15 Oct).
 function stepsFor(niche, cv, emergencyOn) {
   if (emergencyOn && Array.isArray(niche.steps_emergency) && niche.steps_emergency.length) return niche.steps_emergency;
   const steps = niche.steps || [];
@@ -530,13 +532,32 @@ function computeDecisions({ cv, niche, pages, keyValueMap, serviceParentMap, v20
   if (cv.differentiator_1_confirmed && cv.differentiator_1_sentence)
     proofOpts.push(cv.differentiator_1_sentence);
 
+  // A natural sentence, never "[keyword] from [company]" (15 Oct): "Edens Edge Landscaping
+  // is a landscaper in Southampton offering fixed prices with no hidden costs." Only
+  // confirmed proofs; the keyword reads with a joining "in".
+  const kwNatural = primaryCity && new RegExp(`\\s${primaryCity.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}$`, 'i').test(d2_h1)
+    ? `${d2_h1.slice(0, d2_h1.length - primaryCity.length).trim().toLowerCase()} in ${primaryCity}`
+    : d2_h1;
+  const lowerFirst = s => s ? s[0].toLowerCase() + s.slice(1) : s;
+  const metaSentence = proof => {
+    const base = `${cv.company_name} is a ${kwNatural}`;
+    if (!proof) return `${base}.`;
+    if (/^Rated /.test(proof)) return `${base}, ${lowerFirst(proof)}.`;
+    if (/year workmanship guarantee$/.test(proof)) return `${base} with a ${proof}.`;
+    if (/^Established in /.test(proof)) return `${base}, ${lowerFirst(proof)}.`;
+    // A differentiator: a "We ..." sentence stands alone; a description of the business
+    // ("Family run and independent") goes before the trade; anything else is offered
+    if (/^we\b/i.test(proof)) return `${base}. ${proof.replace(/[.!]?$/, '.')}`;
+    if (/^(family|independent|local|owner|small|award)/i.test(proof)) return `${cv.company_name} is a ${lowerFirst(proof)} ${kwNatural}.`;
+    return `${base} offering ${lowerFirst(proof)}.`;
+  };
   let d4_meta = null;
   for (const proof of proofOpts) {
-    const candidate = `${d2_h1} from ${cv.company_name}. ${proof}. ${metaCta}`.trim();
+    const candidate = `${metaSentence(proof)} ${metaCta}`.trim();
     if (candidate.length <= 155) { d4_meta = candidate; break; }
   }
   if (!d4_meta) {
-    const bare = `${d2_h1} from ${cv.company_name}. ${metaCta}`.trim();
+    const bare = `${metaSentence(null)} ${metaCta}`.trim();
     if (bare.length > 155) flags.push({ code: 'F-LEN-META', msg: `Meta is ${bare.length} chars (max 155).` });
     d4_meta = bare;
   }

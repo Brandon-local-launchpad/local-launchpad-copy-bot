@@ -207,6 +207,12 @@
   - RIVALS (BLOCK): copy that tells the reader to get other quotes, compare firms or shop around; the general FAQ answer brief says to answer as the business.
   - Claims review CORE (3): the coastal line is sent as a code decision, a step body that follows its step title is supported, and a finding the reviewer withdraws in its own reason is dropped (two live findings ended "Withdrawing this finding.").
   - Fixture `copy-rules-live.js` (12 checks). Fixtures: 24 files, 686 checks, all pass.
+- Homepage fixes from two reviews of Edens Edge (15 Oct, Brandon, branch `fix/homepage-review-edens`):
+  - CORE (20), edited in place with a dated note: the content block's services paragraph carries the category links in one or two sentences, a reason each, and lists no individual services; cards describe (2 or 3 services, worded differently from the content block, the city in two cards at most); "We also offer" names only what no card names, else HIDDEN; the final CTA body is one plain sentence with "we" or the customer as subject, never the phone number; step 2 names no quote method when quote_method is blank; insurance never "pays out" or "covers you"; a coastal areas intro names no compass direction.
+  - Code: the meta description is a natural sentence from confirmed proofs ("Edens Edge Landscaping is a landscaper in Southampton offering fixed prices with no hidden costs. Get your free quote today."), never "[keyword] from [company]". Council areas are left out of the area list (no "New Forest"). The neutral step 2 is now "We Price Your Job" in both niches (`.md` and `.json`), its brief naming no method.
+  - Validator: N11 insurance overpromise is now a BLOCK and catches "pays out" and "covers you"; COAST-DIR (BLOCK) compass directions in a coastal areas intro; QUOTE-METHOD (BLOCK) a method named in the neutral step 2; FINAL-CTA (BLOCK for the phone number, FLAG for more than one sentence or no "we"/"you"); CARD-FILLER (FLAG) the city in more than two cards; MORE-REPEAT (FLAG) "We also offer" naming a card's service.
+  - Claims review: wording the rules require ("inland and along the coast" when the city is coastal, "reasonable care and skill" for Q3) is approved in code, whatever the reviewer says.
+  - The brief §7 acceptance table updated to Brandon's decisions (new meta, no New Forest). Fixtures: 24 files, 700 checks, all pass (`copy-rules-live.js` 26).
 - Docs: CLAUDE.md at repo root. The files the code reads (`prompts/`, `niche-library/`) are the only copies.
 
 ## Waiting on

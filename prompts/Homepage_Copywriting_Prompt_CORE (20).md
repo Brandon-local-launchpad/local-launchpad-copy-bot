@@ -2,6 +2,8 @@
 
 Replaces Homepage_Copywriting_Prompt_CORE (19). Built from the Homepage Structure doc (Layer 2, sections 2 to 9) and the Homepage revisions doc.
 
+15 Oct 2026, from two reviews of the Edens Edge page: the services are described once (the content block carries the category links with a reason each, the cards describe, "We also offer" only names what no card names); the final CTA body is one plain sentence without the phone number; step 2 names no quote method unless one is given; insurance is never described as paying out or covering the customer; a coastal city's areas intro names no compass direction; the city appears in two cards at most.
+
 ---
 
 ## HOW THIS PROMPT IS USED
@@ -43,7 +45,7 @@ Two sentences, under 50 words in total.
 ### home_content_block_body
 200 to 250 words (up to 300 only if DECISIONS says expand). 3 to 4 short paragraphs, then one closing line.
 1. **Who and where.** The keyword in the first sentence, without opening on the company name (the hero already does). Openers that work (landscaping examples; match the trade): "Gardens in Southampton range from...", "Most of our work as a landscaper in Southampton is...", "We're a family run landscaper in Southampton...". Both allocated neighbourhoods, each with one concrete detail taken from its profile (a size, a street, a type of home or garden), and what that detail means for the work, not just the geography. One confirmed differentiator that is not already in the hero intro. Jobs completed or years trading in passing, never tied to a place, and left out entirely when that figure is already the hero trust line (it then lives in Why choose us point 1). Optionally one sentence of confirmed community involvement.
-2. **What they do.** Inline links to every page in DECISIONS → section 3 link set. Spread them over two paragraphs, never more than two links in one sentence, and give each link a reason (what that service does for the customer) so the paragraph never reads as a list of links. Only say what most of their work is if the client values say so.
+2. **What they do.** One or two sentences carrying an inline link to every page in DECISIONS → section 3 link set, never more than two links in one sentence, each link with a reason (what that kind of work does for the customer). Name the categories only: never list individual services here. The cards below describe the services, so the page says what is offered once, not three times. Only say what most of their work is if the client values say so.
 3. **Optional: the worries.** One or two of the niche fears and how this business handles them, using confirmed practices only.
 4. **Where they work.** Inline links to 2 or 3 Location pages from LINKABLE PAGES, written as the town name or "[trade_lower] in [town]" (e.g. "landscaping in Romsey"), never the bare H1. Close with something other than "and the surrounding areas", which the hero already uses ("and the villages in between", "and everywhere in between"). If fewer than 2 Location pages are linkable, name the towns as plain text.
 5. **Closing line.** A soft push to the primary action or a call to `[CV: phone]`. Never open it with the same words as the final CTA body or the CTA band ("Tell us...").
@@ -55,30 +57,31 @@ Never state the guarantee length or the insurance figure here. Section 5 owns th
 
 ### home_services_cards
 One `card_text` per card in DECISIONS → card list, in the order given. Card names are given; never rewrite them.
-- **Linked card:** 40 to 55 words. What the customer gets from this category, with 2 or 3 of the client's confirmed services inside it named in plain words. The link to the card's page goes inside a sentence (see Category names in prose, below).
+- **Linked card:** 40 to 55 words. What the customer gets from this category, with 2 or 3 of the client's confirmed services inside it named in plain words. The link to the card's page goes inside a sentence (see Category names in prose, below). Word each card differently from the content block's sentence about the same category.
+- **No filler place names.** Name the city in two cards at most ("across [city]", "for [city] homes" adds nothing when every card says it).
 - **No shared skeleton.** Cards are read one after another, so no two may open the same way or follow the same order. Vary the opening: a customer problem, a question, the result, a time of year, a material. "Our [category] service covers..." may appear on one card at most, and "As a [category], we..." on none.
 - **Unlinked card:** 40 to 55 words, no link.
 - No local conditions in cards. No neighbourhoods. Local detail lives on the category pages.
 - Where two categories overlap (a gardener and a lawn care category both covering mowing), give each card a different angle: regular visits versus a single job, maintenance versus a new build.
 
 ### home_services_more_line
-Only when DECISIONS lists "We also offer" items. One sentence naming them, linking any that are on LINKABLE PAGES. Otherwise write HIDDEN.
+Only when DECISIONS lists "We also offer" items. One sentence naming only the items that no card has named; link any that are on LINKABLE PAGES. If every item is already named in a card, or there are none, write HIDDEN.
 
 ### home_why_points
 One `point_body` per point title given, in order. 25 to 40 words each.
 - Each body is the proof of how the business keeps the promise in the title, and it removes the matching fear from the niche entry.
 - The years, jobs, guarantee and insurance figures are explained here, once. If a point title is an alternative title (because the proof is already in the trust line), the body may state that figure once in different words.
 - Point 1 may name the team size if confirmed. Insurance goes in point 2's body when it is not its own point.
-- **Insurance is described, never promised.** Say what the cover is for (accidental damage to the customer's property, injury to others, while the work is going on). Never say the customer will pay nothing, is fully covered, or that every problem will be paid for: excesses, exclusions and liability all apply. Any example of what the cover is for must be plausible for the trade and must never suggest the business is careless (a branch falling during tree work, yes; tools left lying around, no).
+- **Insurance is described, never promised.** Say what the cover is for (accidental damage to the customer's property, injury to others, while the work is going on). Never say the customer will pay nothing, is fully covered, or that every problem will be paid for, and never say the cover "pays out" or "covers you": excesses, exclusions and liability all apply. Any example of what the cover is for must be plausible for the trade and must never suggest the business is careless (a branch falling during tree work, yes; tools left lying around, no).
 
 ### home_process_steps
-One `step_body` per step title given. 20 to 30 words each, following the step brief in the niche entry. Step 2 follows `[CV: quote_method]` if set. Never restate the free quote or the start time.
+One `step_body` per step title given. 20 to 30 words each, following the step brief in the niche entry. Step 2 follows `[CV: quote_method]` if set; when it is blank, never say how the price is worked out (no photos, call, video or visit). Never restate the free quote or the start time.
 
 ### home_owner_body
 Only if DECISIONS shows the owner section. 60 to 80 words in the first person ("I"). One qualification or experience fact, one personal detail and one personal promise, all from the owner values. Owner values are often typed casually; reword them so they read naturally for the trade ("took over my dad's roofing business", not "round"), without changing the meaning. The city goes here. Never repeat the content block's story. If the section is hidden, write HIDDEN.
 
 ### home_areas_intro
-40 to 60 words. Where the business is based and how far it travels, from the client values. No neighbourhoods. No links (code places the area list).
+40 to 60 words. Where the business is based and how far it travels, from the client values. No neighbourhoods. No links (code places the area list). When DECISIONS says the primary city is coastal, name no compass direction (north, south, east, west) anywhere in this field: say "inland and along the coast" and name places.
 
 ### home_faq_items
 One `faq_answer` per question given, in order. 50 to 70 words each, or 30 to 70 when the answer rests on one confirmed fact. Never pad.
@@ -94,7 +97,7 @@ One `faq_answer` per question given, in order. 50 to 70 words each, or 30 to 70 
 - At least one answer carries a link (the cost guide or the Locations hub when either is linkable; otherwise a category page).
 
 ### home_final_cta_body
-One sentence, 15 to 25 words. What happens when they get in touch, from confirmed material. Never restate a proof that has its home elsewhere. Never open with "Tell us" (the CTA band already does).
+One normal sentence, 15 to 25 words, with "we" or the customer as its subject. What happens when they get in touch, from confirmed material. Never the phone number (the buttons carry it). Never restate a proof that has its home elsewhere. Never open with "Tell us" (the CTA band already does).
 
 ### MODEL_FLAGS
 Anything you could not do from confirmed material, one code per line, or "none". Use F-ALLOC when you had fewer than 2 neighbourhoods or a missing symptom.
