@@ -17,7 +17,7 @@ Needs ACF Pro. Works with Rank Math (default) or Yoast.
 1. Install and activate the plugin and ACF Pro.
 2. Set the homepage as the front page (Settings → Reading).
 3. Create a WordPress user for Copybot (role: Administrator, because it writes Client Values). In that user's profile, add an Application Password named "Copybot".
-4. Enter the site address, the username and the Application Password in Copybot. Never send them by email or chat.
+4. Enter the site address, the username and the Application Password on the client's Settings screen in Copybot, then click Test connection. Never send them by email or chat.
 
 ## Don't edit on a site
 

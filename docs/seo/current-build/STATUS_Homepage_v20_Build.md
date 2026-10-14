@@ -161,6 +161,7 @@
   - Records are stored by page type and key (`v20-store.js`; `client_assets.metadata`); old rows without metadata are the homepage. Routes: `/api/clients/:id/v20/pages/:type/:key` (record, `/download`, `/fields` GET and PUT), with `/v20/homepage` kept as the same routes. Today's facts are looked up per page type (the homepage's now; the category page's come in C2). The page screen uses the new routes (`?type=&key=`).
   - Fixture `page-types.js` (23 checks): a made-up second type goes through edits, re-validation, retries, claims parsing, dry run, push and rollback on the fake WordPress without touching the homepage, and the store keeps each page's versions apart. Fixtures: 18 files, 457 checks, all pass.
   - Waiting on: `docs/seo/reference/Category_Page_Structure_v2.md` (Brandon's category template) is not in the repo or on GitHub yet. C2 needs it.
+- Onboarding (14 Oct, for Ray joining): `ONBOARDING.md` (what Copybot does, running it locally, the v20 pipeline, the plugin, tests); `HANDOVER.md` marked outdated (old path only); `.env.example` lists every variable. New rule in CLAUDE.md: `main` deploys live, so work goes on a branch and into `main` through a pull request.
 - Docs: CLAUDE.md at repo root. The files the code reads (`prompts/`, `niche-library/`) are the only copies.
 
 ## Waiting on

@@ -1,5 +1,7 @@
 # Local Launchpad Copy Bot — Developer Handover
 
+> **Outdated (written 2 October 2026).** This describes the old GoHighLevel path only: CORE (15) to (19), `.txt` output, `{{custom_values.X}}` placeholders. It doesn't cover the v20 pipeline, page types, the WordPress plugin and push, client settings or the page screen. Start with `ONBOARDING.md`, then `CLAUDE.md` and `docs/seo/current-build/STATUS_Homepage_v20_Build.md`. Sections 2 to 7 and 9 still describe how the old path works; section 8 (WordPress) and the file tree are out of date.
+
 Written for someone who has never seen this codebase. Everything below is derived directly from reading the source — no assumptions.
 
 ---

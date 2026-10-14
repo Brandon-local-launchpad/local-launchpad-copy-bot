@@ -6,6 +6,7 @@ Copybot writes website copy for UK tradespeople (Local Launchpad clients) using 
 
 | If the task touches... | Read first |
 |---|---|
+| New to the repo: what it does, running it locally, the v20 pipeline, the plugin, tests | `ONBOARDING.md` (`HANDOVER.md` is outdated: old path only) |
 | Anything about the business, clients, onboarding or Core 30 | `docs/seo/reference/Master_Context_Document.txt` (sections 11, 12, 15, 17 matter most for code) |
 | Where the build is right now, and what's next | `docs/seo/current-build/STATUS_Homepage_v20_Build.md` |
 | Homepage generation (v20) | `prompts/Homepage_Copywriting_Prompt_CORE (20).md`, `niche-library/Claude_Code_Brief_Homepage_v20.md` and `docs/seo/reference/Homepage_Template_v2_Core_30_Build_Spec.txt` |
@@ -20,6 +21,7 @@ The file the code reads is the only copy. Don't keep duplicates in `docs/`. On b
 
 ## Rules that are easy to break
 
+- **`main` deploys live (Railway).** Work happens on a branch, merged through a pull request into `main`. Never commit or push straight to `main`. Fixtures must pass before a pull request.
 - **Don't click or wire "Generate All" for a v20 client** until the other page types are migrated.
 - CORE (19) stays pinned for the old path. CORE (20) is the v20 homepage path. Don't merge them.
 - Code makes the decisions (H1, title, headings, which sections show, FAQ questions, card list, linkable pages, allocated neighbourhoods). The model only writes the prose fields listed in CORE (20). Keep that split.
@@ -36,7 +38,7 @@ The file the code reads is the only copy. Don't keep duplicates in `docs/`. On b
 
 ## Decide yourself, don't ask me
 
-- Housekeeping is yours: git, gitignore, commits, pushes, duplicate or stale files, paths, debug cleanup. Do it and tell me in one line.
+- Housekeeping is yours: git, gitignore, branches, commits, pushing your branch, opening the pull request, duplicate or stale files, paths, debug cleanup. Do it and tell me in one line. Merging into `main` (going live) is not housekeeping: say the pull request is ready.
 - The file the code reads is the source of truth. Fix drift yourself, using the newest version.
 - Fix bugs and mismatches with the docs without asking.
 - Small dev-only tooling choices are yours: test helpers, dev dependencies, local runners (e.g. a PHP runner for the plugin tests). Say what you added in one line.
