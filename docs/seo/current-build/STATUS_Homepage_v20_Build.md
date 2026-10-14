@@ -188,6 +188,12 @@
   - Found: without a session the FAQ card and decisions preview couldn't load for this client ("G-NICHE: no niche file for trade Gardener"). Fixed (15 Oct, branch `fix/niche-from-client-trade`): the niche now comes from the primary category only when it names a niche, else from the client's trade (Step 1), as it already did with a session. The primary category stays the client's real GBP primary (it feeds the copy); "Landscaper" isn't one of Ethan's GBP categories. Checked on the demo with Gardener, Landscape Gardener and Landscaper: card and preview load.
   - Live (15 Oct): "Read the saved reply again" on the Edens Edge card saved the 48 questions from the refused run and sorted them, with no new Perplexity run. Homepage group: Q-1, Q-2, Q-3 and Q-41 (Portswood front walls, about Southampton), none needing a client fact; nothing approved yet.
   - Fixtures: 22 files, 642 checks, all pass (`faq-research.js` 64, `faq-service.js` 39).
+- Coastal from the area research (15 Oct, Brandon's decision, branch `feat/coastal-from-research`): "Primary city is coastal" no longer has to be looked up by hand.
+  - Geo Research CORE (7) (was (6), renamed in place): the Location Overview ends with "Coastal: Yes [source]" or "Coastal: No [source]" (yes when the location's own boundary meets the sea or a tidal estuary).
+  - `geo-dossier.js` reads it (`coastalLine`; `parseDossier` returns `coastal` and `coastalSource`). `loadV20Context` fills a blank coastal_city from the primary city's dossier; a value set on Client Values wins. Client Values shows what the research says beside the field, and "(they differ)" when a hand value disagrees.
+  - Existing dossiers (before v7) have no line and keep the hand value until their next research run (Brandon's decision: leave them). Edens Edge is set to yes by hand.
+  - Demo: coastal blank, and the Southampton dossier carries the v7 line (labelled), so the research path shows. Checked in the browser: blank gives "From the area research: yes" and the coastal instruction; "no" by hand is saved, kept after reload, wins, and is marked as differing.
+  - Fixture `geo-coastal.js` (10 checks). Fixtures: 23 files, 652 checks, all pass. The line from a real v7 run is not seen yet.
 - Docs: CLAUDE.md at repo root. The files the code reads (`prompts/`, `niche-library/`) are the only copies.
 
 ## Waiting on

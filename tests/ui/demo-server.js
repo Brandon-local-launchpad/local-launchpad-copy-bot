@@ -67,7 +67,8 @@ process.env.APP_PASSWORD = '';
   const clientId = (await pool.query(`INSERT INTO clients (name, trade, use_v20_homepage, v20_test_mode) VALUES ('Edens Edge (demo)', 'Landscaper Gardener', true, true) RETURNING id`)).rows[0].id;
   // Client values, page map and category files, so the field editor can rebuild the page's facts
   const asset = (type, filename, content, metadata = null) => pool.query(`INSERT INTO client_assets (client_id, asset_type, filename, content, metadata) VALUES ($1, $2, $3, $4, $5)`, [clientId, type, filename, content, metadata && JSON.stringify(metadata)]);
-  await asset('client_values', 'client_values.json', JSON.stringify({ ...E.ethanValues(), phone: '023 0000 0000' }));
+  // coastal_city left blank, so the area research answers it (see the dossier below)
+  await asset('client_values', 'client_values.json', JSON.stringify({ ...E.ethanValues(), phone: '023 0000 0000', coastal_city: '' }));
   const realDir = path.join(root, 'tests/fixtures/edens-edge-real');
   for (const f of fs.readdirSync(realDir)) {
     await asset('client_file', f, fs.readFileSync(path.join(realDir, f), 'utf8'), { fileType: f === 'page-map.csv' ? 'page_map' : 'custom_values' });
@@ -76,8 +77,11 @@ process.env.APP_PASSWORD = '';
   const { AREAS } = require(path.join(root, 'tests/fixtures/data/edens-edge-real.js'));
   const areasCsv = ['Client,,,', 'Name,GHL Custom Value Key,Value,Notes', ...AREAS.map((a, i) => `Service area ${i + 1},{{custom_values.biz_area_${i + 1}}},${a},`)].join('\n');
   await asset('client_file', 'client-areas.csv', areasCsv, { fileType: 'custom_values' });
-  // The real Southampton dossier (saved 8 Oct), as the area research would have saved it
-  await asset('geo_dossier', 'Southampton_dossier.md', fs.readFileSync(path.join(root, 'tests/fixtures/southampton-dossier.md'), 'utf8'),
+  // The real Southampton dossier (saved 8 Oct), as the area research would have saved it,
+  // plus the "Coastal:" line Geo Research CORE v7 adds (the 8 Oct run predates it)
+  const dossierText = fs.readFileSync(path.join(root, 'tests/fixtures/southampton-dossier.md'), 'utf8')
+    .replace(/(## 1\. LOCATION OVERVIEW[^\n]*\n[\s\S]*?)(\n## 2\.)/, '$1\nCoastal: Yes [https://www.southampton.gov.uk/media/f2hbzwte/6-environment.pdf]\n$2');
+  await asset('geo_dossier', 'Southampton_dossier.md', dossierText,
     { location_name: 'Southampton', location_norm: 'southampton', superseded: false });
   const { ctx, decisionsResult } = await v20HomepageInputs(clientId, null);
   const D = decisionsResult.decisions;

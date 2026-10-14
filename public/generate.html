@@ -2294,7 +2294,7 @@
     { title: 'Services & Coverage', fields: [
       { key: 'materials_methods', label: 'Materials / methods', type: 'checkboxes' },
       { key: 'confirmed_practices', label: 'Confirmed practices (the copy states only these)', type: 'practices' },
-      { key: 'coastal_city',      label: 'Primary city is coastal', type: 'select', options: ['','yes','no'] },
+      { key: 'coastal_city',      label: 'Primary city is coastal (blank: the area research decides)', type: 'select', options: ['','yes','no'] },
       { key: 'typical_jobs',      label: 'Typical jobs',       type: 'job-rows' },
       { key: 'jobs_wanted',       label: 'Jobs wanted',        type: 'gbp-multicheck' },
       { key: 'area_wide',         label: 'Area wide',          type: 'text', placeholder: 'e.g. Hampshire' },
@@ -2479,6 +2479,29 @@
           <input type="checkbox" class="cv-prac-cb" value="${h(p.key)}" ${checked.has(p.key) ? 'checked' : ''}> ${h(p.label)}
         </label>`).join('')
       : '<span style="color:var(--muted);font-size:11px">No practices list for this niche</span>';
+  }
+
+  // Beside "Primary city is coastal": what the primary city's dossier says
+  // ("Coastal: Yes/No", Geo Research CORE v7 on). A value chosen here wins.
+  function cvShowCoastalNote(values, fromResearch) {
+    const sel = document.getElementById('cv_coastal_city');
+    if (!sel) return;
+    let note = document.getElementById('cv_coastal_city_note');
+    if (!note) {
+      note = document.createElement('div');
+      note.id = 'cv_coastal_city_note';
+      note.style.cssText = 'color:var(--muted);font-size:11px;margin-top:4px';
+      sel.insertAdjacentElement('afterend', note);
+    }
+    const set = (values && values.coastal_city) || '';
+    if (!fromResearch) {
+      note.textContent = set ? 'Set by hand. The area research has no coastal answer yet (dossiers from before 15 Oct don\'t say).' : 'Blank and no answer from the area research yet: treated as not coastal. Set it by hand, or re-run the primary city\'s research.';
+    } else {
+      const said = `${fromResearch.location} dossier says ${fromResearch.value}`;
+      note.innerHTML = set
+        ? `Set by hand to ${h(set)}. The ${h(said)}${set !== fromResearch.value ? ' <span style="color:var(--flag)">(they differ)</span>' : ''}.`
+        : `From the area research: ${h(fromResearch.value)} (${h(said)}${fromResearch.source ? `, <a href="${h(fromResearch.source)}" target="_blank" rel="noopener">source</a>` : ''}).`;
+    }
   }
 
   async function cvLoadNicheMaterials(category) {
@@ -2714,9 +2737,10 @@
     try {
       const cvRes = await fetch(`/api/clients/${encodeURIComponent(clientId)}/client-values`);
       if (!cvRes.ok) throw new Error(`HTTP ${cvRes.status}`);
-      const { found, values: v } = await cvRes.json();
+      const { found, values: v, derived } = await cvRes.json();
       values = v;
       if (values) cvSetValues(values);
+      cvShowCoastalNote(values, (derived || {}).coastal_city);
       if (found) { st.textContent = 'Saved values loaded.'; st.style.color = 'var(--success)'; }
     } catch (e) { cvStatusError(st, "Couldn't load client values", e); }
 
