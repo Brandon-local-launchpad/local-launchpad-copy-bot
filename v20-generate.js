@@ -53,6 +53,13 @@ function cvValue(key, cv, yearsTrading) {
   return v === null || v === undefined ? '' : String(v).trim();
 }
 
+// { key: value } for every filled client value, as the [CV: key] tokens resolve
+function clientValueMap(cv, yearsTrading) {
+  const out = {};
+  for (const k of CV_KEYS) { const v = cvValue(k, cv, yearsTrading); if (v) out[k] = v; }
+  return out;
+}
+
 function buildClientValues(cv, yearsTrading) {
   return CV_KEYS
     .map(k => [k, cvValue(k, cv, yearsTrading)])
@@ -179,6 +186,8 @@ async function generateV20Homepage({ cv, niche, keyValueMap, serviceParentMap = 
   meta.raw_output = text;
   meta.usage = usage || null;
   meta.client_block = req.clientBlock;
+  // The values the tokens stood for when this page was written (the reader view uses these)
+  meta.client_values = clientValueMap(cv, D.d1_years_trading);
   const record = buildPageRecord({ cv, decisionsResult, parsed, meta, extraFlags });
 
   // Stage 7: validate, then rewrite failing fields one at a time (brief §6b)
@@ -201,5 +210,5 @@ async function generateV20Homepage({ cv, niche, keyValueMap, serviceParentMap = 
 
 module.exports = {
   V20_MODEL, V20_PROMPT_FILE, V20_MAX_TOKENS,
-  buildV20Request, buildClientValues, buildNicheEntry, buildServiceList, buildPracticeList, nicheContext, loadCore20, generateV20Homepage,
+  buildV20Request, buildClientValues, clientValueMap, buildNicheEntry, buildServiceList, buildPracticeList, nicheContext, loadCore20, generateV20Homepage,
 };

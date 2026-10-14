@@ -76,6 +76,13 @@
   - Gaps found on the way and fixed: INSURANCE (BLOCK: insurance mentioned with none on file; a run wrote "Public liability insurance covers…"), CARD-LOCAL (neighbourhoods in cards), LINK-TEXT (category link text must hold the category words), "the best chance" and "leading to" no longer read as claims, retries now carry every earlier problem so a later round can't bring one back, and typical_jobs prices now reach the client block (it read `from_price`; the screen saves `price`).
   - Real Edens Edge run (Ethan's values; family run and team of four left out pending Ethan): the first draft had 8 BLOCK and 64 FLAG; after 39 retries (32 kept) it had **0 BLOCK and 5 FLAG** (two cards naming 4 services, two long sentences, FAQ 4 at 27 words). About 100s and 60p. Saved as `tests/fixtures/v20-outputs/edens-edge-2026-10-14-stage7b-*`. After the run, COAST was extended to catch compass directions after the travel_distance token ("to the south and west" got through).
   - Fixtures: 9 files, 229 checks, all pass.
+- Stage 8, downloads (14 Oct):
+  - `v20-reader.js` builds the .md reader view: page order, headings, hidden sections left out, `[CV: key]` tokens resolved, links kept as Markdown, and review notes (validation result, flags, any token with no value) at the end.
+  - The .json is the record itself. Both files start with "TEST: CONTAINS STAND-IN VALUES" when stand-ins are used.
+  - Records now store `meta.client_values`, the values the tokens stood for when the page was written. Older records fall back to the client's current values.
+  - Route `GET /api/clients/:id/v20/homepage/download?format=md|json[&id=]`. The two download buttons are in the v20 output view, and the Step 6 "Download all" zip adds `homepage__v20.json` and `.md` when the client has a v20 record.
+  - N16: records carry `can_mark_done: false` with stand-ins. Copybot has no "Done" step yet; the WordPress push must refuse those records.
+  - Fixtures: 10 files, 245 checks, all pass (`v20-reader.js` adds 16).
 - Docs: CLAUDE.md at repo root. The files the code reads (`prompts/`, `niche-library/`) are the only copies.
 
 ## Waiting on
@@ -88,7 +95,7 @@
 ## Next
 1. Check the live Stage 4 previews (expect 7 category cards and the final CTA H2 "Get a Free Quote From a Local Landscaper in Southampton").
 2. Stage 5 finish: run the allocation in the app for Edens Edge; run Bournemouth geo research for Kestrel Ridge (the allocation then runs by itself).
-3. Stages 8 and 9: downloads (.json and the .md reader view), acceptance test.
+3. Stage 9: acceptance test (brief §7), then the WordPress push plan.
 4. Run Perplexity v3 for landscaper (trade only).
 5. Then: FAQ question bank + sorting step stages, humanizer decision, emergency and regulated group tests, category page.
 

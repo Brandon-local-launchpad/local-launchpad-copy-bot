@@ -2607,6 +2607,10 @@
         <div style="margin-bottom:10px;font-size:12px;color:var(--muted)">${rec.blocked ? 'Blocked by a gate: no model call.' :
           `Generated ${h(new Date(meta.generated_at).toLocaleString())} · ${h(meta.model)} · in ${u.input_tokens || 0} (cache read ${u.cache_read_input_tokens || 0}) · out ${u.output_tokens || 0}`}</div>
         ${rec.watermark ? `<div style="margin-bottom:8px;font-weight:600;color:var(--flag)">${h(rec.watermark)}</div>` : ''}
+        ${rec.blocked ? '' : `<div style="display:flex;gap:8px;margin-bottom:10px">
+          <a class="btn btn-ghost btn-sm" style="width:auto;padding:6px 14px" href="/api/clients/${encodeURIComponent(clientId)}/v20/homepage/download?format=md">Download reader view (.md)</a>
+          <a class="btn btn-ghost btn-sm" style="width:auto;padding:6px 14px" href="/api/clients/${encodeURIComponent(clientId)}/v20/homepage/download?format=json">Download record (.json)</a>
+        </div>`}
         ${rec.VALIDATION && rec.VALIDATION.status === 'run' ? `<div style="margin-bottom:10px;font-size:13px">Validation after retries: <strong>${rec.VALIDATION.block} BLOCK</strong>, ${rec.VALIDATION.flag} FLAG · first draft ${meta.first_draft_validation ? `${meta.first_draft_validation.block} BLOCK, ${meta.first_draft_validation.flag} FLAG` : 'n/a'} · ${(rec.VALIDATION.retries || []).length} retries, ${(rec.VALIDATION.retries || []).filter(r => r.kept).length} kept</div>
           ${(rec.VALIDATION.issues || []).map(i => `<div style="font-size:12px;color:${i.type === 'BLOCK' ? 'var(--error,#b71c1c)' : 'var(--muted)'}">${h(i.type)} ${h(i.check)} · ${h(i.field)}: ${h(i.message)}</div>`).join('')}` : ''}
         ${flags ? `<div style="margin:10px 0">${flags}</div>` : ''}

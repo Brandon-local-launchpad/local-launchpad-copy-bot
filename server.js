@@ -23,6 +23,7 @@ const { computeDecisions } = require('./decisions');
 const allocation = require('./allocation');
 const { parseDossier } = require('./geo-dossier');
 const v20 = require('./v20-generate');
+const reader = require('./v20-reader');
 const { practicesFor, PRACTICES } = require('./practices');
 
 const app = express();
@@ -1877,7 +1878,7 @@ app.get('/api/batch-status/:batchId', async (req, res) => {
     const outputText = buildOutputFile(results.filter(Boolean), record.skippedPages, record.companyName);
     const downloadId = crypto.randomUUID();
     const safeClient  = record.companyName.replace(/[^a-zA-Z0-9_-]/g, '_') || 'output';
-    downloads.set(downloadId, { createdAt: Date.now(), text: outputText, filename: `${safeClient}_copy_bot_output.txt`, results: results.filter(Boolean), safeClient });
+    downloads.set(downloadId, { createdAt: Date.now(), text: outputText, filename: `${safeClient}_copy_bot_output.txt`, results: results.filter(Boolean), safeClient, clientId: record.clientId || null });
 
     // Batch API pricing is 50% off standard rates. Prompt caching discounts
     // (cache writes 1.25x input, cache reads 0.1x input) still apply on top.
@@ -1948,6 +1949,16 @@ app.get('/api/download/:downloadId/zip', async (req, res) => {
     const slug     = (r.urlSlug || r.pageTitle || 'page').replace(/[^a-zA-Z0-9_-]/g, '_').slice(0, 80);
     const filename = `${r.pageType}__${slug}.txt`;
     zip.file(filename, buildOutputFile([r], [], dl.safeClient));
+  }
+  // v20 homepage (Stage 8): the latest record and its reader view, when the client has one
+  if (dl.clientId && pool) {
+    try {
+      const found = await loadV20Download(dl.clientId, null);
+      if (found) {
+        zip.file('homepage__v20.json', reader.buildJsonDownload(found.record));
+        zip.file('homepage__v20.md', reader.buildReaderView(found.record, found.values));
+      }
+    } catch (err) { console.error('[zip] v20 homepage not added:', err.message); }
   }
 
   const buffer = await zip.generateAsync({ type: 'nodebuffer', compression: 'DEFLATE' });
@@ -3538,6 +3549,41 @@ app.post('/api/clients/:clientId/v20/homepage/generate', async (req, res) => {
   } catch (err) {
     console.error('[v20] homepage generation failed for', clientId, err);
     res.status(500).json({ error: err.message });
+  }
+});
+
+// ── v20 downloads (Stage 8) ──────────────────────────────────────────────────
+// A saved record (latest, or one run by id) and the token values it was written with.
+async function loadV20Download(clientId, recordId) {
+  const { rows } = await pool.query(
+    recordId
+      ? `SELECT id, content FROM client_assets WHERE client_id=$1 AND asset_type='v20_page_record' AND id=$2`
+      : `SELECT id, content FROM client_assets WHERE client_id=$1 AND asset_type='v20_page_record' ORDER BY uploaded_at DESC LIMIT 1`,
+    recordId ? [clientId, recordId] : [clientId]
+  );
+  if (!rows.length) return null;
+  const record = JSON.parse(rows[0].content);
+  let values = record.meta && record.meta.client_values;
+  if (!values) {
+    // Records from before 14 Oct don't carry their values: use the client's current ones
+    const ctx = await loadV20Context(clientId, null);
+    values = v20.clientValueMap(ctx.cv, null);
+  }
+  return { record, values };
+}
+
+app.get('/api/clients/:clientId/v20/homepage/download', async (req, res) => {
+  if (!pool) return res.status(503).send('Database not configured.');
+  try {
+    const found = await loadV20Download(req.params.clientId, req.query.id || null);
+    if (!found) return res.status(404).send('No v20 homepage has been generated for this client yet.');
+    const md = req.query.format === 'md';
+    const body = md ? reader.buildReaderView(found.record, found.values) : reader.buildJsonDownload(found.record);
+    res.setHeader('Content-Type', md ? 'text/markdown; charset=utf-8' : 'application/json; charset=utf-8');
+    res.setHeader('Content-Disposition', `attachment; filename="${reader.downloadName(found.values, md ? 'md' : 'json')}"`);
+    res.send(body);
+  } catch (err) {
+    res.status(500).send(err.message);
   }
 });
 
