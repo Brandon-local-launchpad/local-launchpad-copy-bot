@@ -29,11 +29,12 @@
 //   REPEAT-IN     FLAG   a point repeated inside one field
 
 const { practiceClaims } = require('./practices');
+const { isAdminArea } = require('./client-files');
 const { confirmedServiceList } = require('./service-words');
 
 const RETRY_FLAGS = new Set(['N7', 'N13', 'N14', 'N15', 'N17', 'N18', 'N19', 'N21', 'N22', 'N23', 'N24',
   '1b', 'HERO', 'SERVICE', 'TRUST-REPEAT', 'PROOF-REPEAT', 'RAW-GBP', 'CARD-COUNT', 'COAST', 'HUB-LINK', 'RESEARCH-LANG', 'REPEAT-IN',
-  'FINAL-CTA', 'CARD-FILLER', 'MORE-REPEAT',
+  'FINAL-CTA', 'CARD-FILLER', 'MORE-REPEAT', 'CB-SERVICES',
   'CARD-LOCAL', 'LINK-TEXT']);
 //   INSURANCE     BLOCK  insurance mentioned with no insurance_cover on file
 //   RIVALS        BLOCK  (15 Oct) the copy tells the reader to get other quotes, compare firms or shop around
@@ -44,6 +45,8 @@ const RETRY_FLAGS = new Set(['N7', 'N13', 'N14', 'N15', 'N17', 'N18', 'N19', 'N2
 //   FINAL-CTA     BLOCK  the phone number in the final CTA body; FLAG for more than one sentence or no "we"/"you"
 //   CARD-FILLER   FLAG   the city named in more than two cards
 //   MORE-REPEAT   FLAG   "We also offer" names a service a card already names
+//   CB-SERVICES   FLAG   the content block's services paragraph lists services instead of linking categories with a reason
+//   9             council areas are left out of the area list check
 //   CARD-LOCAL    FLAG   a neighbourhood or allocated place in a card
 //   LINK-TEXT     FLAG   a category link whose text drops the category's words
 const RESEARCH_WORDS = ['investigated sites?', 'records? shows?', 'recorded (at|in|by)', 'council (guidance|records|data|maps?|says)',
@@ -68,7 +71,8 @@ const SUPERLATIVES = ['more than almost anything', 'the most', 'the only', 'unbe
 const DATED = ['currently', 'at the moment', 'right now', 'this year'];
 // Insurance described as an outcome for the customer (15 Oct: "pays out", "covers you")
 const OVERPROMISE = ['never by you', 'fully covered', 'pays for everything', "won't cost you", 'nothing to pay',
-  'pays out', 'pay out', 'paid out', 'covers you', "you're covered", 'you are covered', 'you will be covered', 'will cover the cost', 'will pay for'];
+  'pays out', 'pay out', 'paid out', 'covers you', "you're covered", 'you are covered', 'you will be covered', 'will cover the cost', 'will pay for',
+  'the cover applies', 'cover will apply', 'cover kicks in'];
 const CONNECTORS = ['also', 'so', 'then'];
 const GENERIC_SERVICE_WORDS = new Set(['install', 'installation', 'lay', 'laying', 'fitting', 'fit', 'work', 'service', 'services', 'and', 'or', 'the']);
 
@@ -489,6 +493,18 @@ function validateV20(record, V) {
     if (openers.has(k)) issue('FLAG', 'N13', f.label, `Opens with the same three words as ${openers.get(k)}. Start differently.`, f.ref);
     else openers.set(k, f.label);
   }
+  // CB-SERVICES: the content block's category links come with a reason each, never a list
+  // of the services inside them: the cards describe those (15 Oct)
+  const cbField = fields.find(f => f.label === 'home_content_block_body');
+  if (cbField) {
+    const catWords = new Set(cardFields.map(f => lc(f.label.replace(/^card_text \(|\)$/g, ''))));
+    for (const para of String(cbField.text).split(/\n\s*\n/)) {
+      if (!linkUrls(para).length) continue;
+      const named = [...new Set(V.serviceList.filter(sv => sv.say && !catWords.has(lc(sv.say)) && new RegExp(`\\b${esc(sv.say)}\\b`, 'i').test(scanText(para))).map(sv => lc(sv.say)))]
+        .filter((w, _, all) => !all.some(o => o !== w && o.includes(w)));
+      if (named.length >= 2) issue('FLAG', 'CB-SERVICES', cbField.label, `The services paragraph lists services (${named.join(', ')}). Link each category with a reason instead: the cards describe the services.`, cbField.ref);
+    }
+  }
   // CARD-FILLER: the city in more than two cards reads as filler ("across Southampton") (15 Oct)
   if (V.city) {
     const withCity = cardFields.filter(f => new RegExp(`\\b${esc(lc(V.city))}\\b`).test(lc(scanText(f.text))));
@@ -568,6 +584,7 @@ function validateV20(record, V) {
   }
   const areaNames = new Set((record.home_areas_links || []).map(a => lc(a.name)));
   for (const t of V.towns) {
+    if (isAdminArea(t)) continue; // a council area is left out of the area list (15 Oct)
     const short = lc(t.replace(/\s+\b(District|Borough|Council|County|Authority)\b.*$/i, '').trim());
     if (!areaNames.has(lc(t)) && !areaNames.has(short)) issue('BLOCK', '9', 'home_areas_links', `The area list is missing "${t}".`);
   }
