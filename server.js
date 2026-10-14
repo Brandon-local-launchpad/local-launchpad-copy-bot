@@ -3075,7 +3075,11 @@ async function loadV20Context(clientId, sessionId) {
   }
 
   const session = sessionId ? sessions.get(sessionId) : null;
-  const trade = session ? session.trade : (cv.primary_category || clientTrade);
+  // The niche comes from the trade. Without a session: the primary category when it
+  // names a niche, else the client's trade (Step 1). The primary category is the
+  // client's real GBP category ("Gardener", "Landscape Gardener"), which often isn't one.
+  const primaryIsNiche = !!NICHE_FILE_MAP[(cv.primary_category || '').toLowerCase().trim()];
+  const trade = session ? session.trade : (primaryIsNiche ? cv.primary_category : (clientTrade || cv.primary_category));
 
   let pages = [];
   let keyValueMap = {};

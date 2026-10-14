@@ -185,7 +185,7 @@
 - FAQ research reply fix (15 Oct, branch `fix/faq-reply-parser`): the first live FAQ research for Edens Edge (client "ednes edge testing", 97p) was refused with "No questions could be read from the reply". The reply was saved on the job (rawOutputText) and was fetched from the live app: the Perplexity agent laid every section out as a markdown table (no thinking section, citations as plain URLs). It is now a fixture, byte for byte (`tests/fixtures/faq-research-replies/edens-edge-live-2026-10-14.md`).
   - Parser: reads question tables by their header row, as well as one line per question, numbered or bold lines; drops `<think>` sections; accepts any heading style; strips `[3]`/`[web:7]` markers; reads dates in the Seen column and the ranges table's Dated column; counts sources separated by ";". The live reply gives 48 questions, the 15 most asked, 15 ranges, 15 rules and 6 gaps, no warnings. When nothing can be read, the error says what the reply looked like.
   - The reply as sent (text and full JSON) is now kept on the job whether it is read or not. `GET /api/clients/:id/faq/raw` shows it as text; `POST /api/clients/:id/faq/reread` reads the saved reply again with no new Perplexity run. The card shows "Open the raw reply" and "Read the saved reply again" after a failed run.
-  - Found: without a session the FAQ card can't load for this client ("G-NICHE: no niche file for trade Gardener"): its primary_category is Gardener. With a session (Step 1 trade) it loads.
+  - Found: without a session the FAQ card and decisions preview couldn't load for this client ("G-NICHE: no niche file for trade Gardener"). Fixed (15 Oct, branch `fix/niche-from-client-trade`): the niche now comes from the primary category only when it names a niche, else from the client's trade (Step 1), as it already did with a session. The primary category stays the client's real GBP primary (it feeds the copy); "Landscaper" isn't one of Ethan's GBP categories. Checked on the demo with Gardener, Landscape Gardener and Landscaper: card and preview load.
   - Fixtures: 22 files, 642 checks, all pass (`faq-research.js` 64, `faq-service.js` 39).
 - Docs: CLAUDE.md at repo root. The files the code reads (`prompts/`, `niche-library/`) are the only copies.
 
@@ -195,7 +195,6 @@
 - Brandon: on the deployed app, click Run allocation for Edens Edge on the Geo Research step. Expect Bassett Heath plus Portswood Residents' Gardens or Old Woolston; swap the second pick by hand if you prefer the other.
 - Kestrel Ridge allocation: no Bournemouth dossier exists yet. Run geo research for Bournemouth first.
 - Brandon: open "Preview v20 Decisions" for Edens Edge and Kestrel Ridge on the deployed app and check against the fixture previews. The real client data is only in the Railway database, so live previews can't run locally.
-- Brandon: set primary_category = Landscaper for Edens Edge in Client Values (if not done yet).
 - Brandon: add Locations Hub, About and Cost Guide rows to the page map template (Page Type spelled exactly as given), then re-upload the page maps for Edens Edge and Kestrel Ridge.
 
 ## Next
