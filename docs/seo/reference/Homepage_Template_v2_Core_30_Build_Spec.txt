@@ -1,0 +1,1758 @@
+Homepage Template v2 — Core 30 Build Spec
+
+
+
+
+  Homepage Template v2 — Core 30 Build Spec
+    Oct 2, 2026       · ​@Brandon Bradford
+
+
+  What changed from v1
+  This is the Build Work homepage spec rebuilt on the design brief's section order, with the
+  contradictions fixed and the gaps closed so the copy bot and the builder stop guessing.
+  The design brief's structure is kept as it stands; where the brief and the v1 spec
+  disagreed, the brief wins and this doc says why.
+
+       Section order follows the design brief: Hero, Trusted & Rated By, Content block,
+       Services, Why choose us, Reviews, Process, Meet the owner, Service areas, FAQ, Final
+       CTA and footer. The v1 CTA band (old section 8) is dropped, because the brief says we
+       don't need the green CTA band.
+       H1 is the clean keyword only, with no modifier. The modifier moves to the SEO title, and
+       the trust line under the H1 says what the visitor gets. This matches Core 30 (H1 =
+       primary category + city) and removes the v1 contradiction between the H1 rule and
+       section 1.
+       The ownership rule now restricts phrasing, not facts. The guarantee and years can be
+       stated on inner pages; only the homepage story, owner bio, general process and
+       general FAQs are homepage-only.
+       FAQ is visible, not an accordion. The brief says accordion; Core 30 says Google reads
+       the rendered mobile page and ignores collapsed content. We keep the accordion look
+       (bordered rows) but every answer renders open.
+       Why choose us is 4 across on desktop, 2x2 on tablet, stacked on mobile. The brief's
+       heading says 2x2 and its body says 4 across; this resolves it.
+       Reviews cards show name, stars and text, not town. Google reviews have no town field,
+       so the brief's town line is dropped.
+       Secondary categories get an inline editorial link in body copy (Caleb's homepage rule),
+       inside each service card's copy and in content block paragraph 2, not as a separate
+       card link.
+       Visible name, address and phone are specced in the footer, character for character
+       with the GBP, with a hidden-address rule. v1 only had them in schema.
+       Every custom value has an empty-value fallback. Rating display, review-count H2 and
+       [COUNTY] now have thresholds and truth checks.
+
+
+
+                                                                                          Page 1 of 36
+Homepage Template v2 — Core 30 Build Spec
+
+
+
+
+       Voice is set: "we" throughout, "I" in the owner section, natural sentences, no fragments,
+       soft cap of 25 words a sentence.
+       Examples are marked do-not-reuse. Hero image default is a frosted real photo, with the
+       illustration as the fallback.
+       Emergency niches get a call-first button order and process wording.
+       Niche count references the Niche Library, not a fixed 28 (the onboarding form caps at
+       26).
+
+
+  Scope, ownership and site-wide rules
+  Every client gets one homepage, and it is the GBP landing page: the URL in the GBP
+  website field. It targets the primary GBP category plus the primary city, e.g. Roofer Bristol.
+  Google uses this page to check that the website and the GBP are the same business, so
+  the 8 consistency signals (below) are non-negotiable.
+
+  Keyword protection
+
+       The Page Map never creates a Location page for the primary city. The homepage is that
+       city's page.
+       No Category page H1 may equal the homepage H1. If the highest-volume Ahrefs result
+       for the homepage matches a category exactly, broaden the homepage to the trade
+       umbrella term (Core 30 rule).
+
+  What the homepage owns (copy that no other page repeats)
+
+       The business story (section 3).
+       The owner bio (section 8).
+       The general process (section 7).
+       The general FAQs: cost overview, insurance, guarantee, start time, quotes, areas
+       (section 10).
+
+  What the homepage does not own
+
+  Facts are not duplicate content. The guarantee length, insurance figure, years trading and
+  jobs completed may be stated on any page where they help a visitor decide. The rule is:
+  never copy the homepage sentence, write a new one. Inner pages pull the figure from the
+  custom value and phrase it for that page.
+
+  Within the homepage
+
+
+
+
+                                                                                          Page 2 of 36
+Homepage Template v2 — Core 30 Build Spec
+
+
+
+
+       Section 5 is the one place the numbers are explained (years, guarantee, insurance).
+       Section 3 may mention the year founded in passing but never the guarantee length or
+       insurance figure.
+       Section 8 never repeats the story in section 3.
+       Section 1 never states years trading or jobs completed, because section 5 leads with
+       those (see the trust line rules).
+
+  Voice
+
+       First person plural ("we") everywhere, except section 8 which is first person singular
+       ("I").
+       Natural sentences. No fragments ("Landscaper in Southampton, Eastleigh and the
+       surrounding areas." is not a sentence).
+       Soft cap of 25 words a sentence. Paragraphs of 2 to 4 sentences. No em dashes, en
+       dashes or hyphenated compounds ("free draining", not "free-draining"), per the
+       Calibration Pack rule; the VA checks for reintroduced dashes before publishing.
+       Every paragraph carries at least one concrete, checkable detail (a place, a number, a
+       named product, a named process). No paragraph of pure reassurance.
+       Talks to the visitor's situation, not about the business. Lead with the problem they
+       have, then what we do about it.
+       Business name appears in body copy at least once in the hero intro and once in section
+       3.
+
+  Examples in this doc
+
+  Every example is marked do-not-reuse. The copy bot writes fresh phrasing from the
+  client's confirmed data. If a sentence in a draft matches an example here, it fails QA.
+
+  Global elements on every page
+
+       Header: logo (links to /), click-to-call phone number as text, and a "
+       [PRIMARY_ACTION]" button linking to /contact/. Emergency niches: the header
+       button is "Call [CV: phone]" and the quote link sits in the nav.
+       Breadcrumbs: none on the homepage. Every other page shows a visible Rank Math trail
+       starting with "Home".
+       Mobile sticky bar: Call and [PRIMARY_ACTION]. Emergency niches: Call first.
+       No form on the homepage. The form lives on /contact/ only (design brief decision:
+       cleaner on mobile).
+
+  Image budget
+
+
+
+                                                                                              Page 3 of 36
+Homepage Template v2 — Core 30 Build Spec
+
+
+
+
+  The brief targets an average of 2 images a page across the site. The homepage is the
+  exception at 3 to 4: hero background, content block photo, owner photo, and service card
+  photos only where the client supplied them. Icons replace missing card photos. Never
+  stock, anywhere on the page.
+
+  Components defined here and reused
+
+       Header, sticky bar, footer: every page.
+       Hero: Category, Service, Location and Category location pages.
+       Content block (text left, image right): the same pages.
+       Review card: every page with reviews (live widget here, static hand-picked on inner
+       pages).
+       Process steps: Service page.
+       Service areas block with map: Location and Category location pages.
+       Visible FAQ list: every page with an FAQ.
+       Final CTA: every page. Confirm with the builder whether the Service page's map-in-
+       CTA is a variant of this component or its own.
+
+
+  Business-type layer and niche swap-outs
+  The sections below are written once. What changes per niche is decided here, by
+  business type, so a dog trainer's page is built from the same template as a roofer's but
+  never reads like one. Every niche in the Niche Library maps to one type, plus an optional
+  emergency overlay. The copy bot reads the type from [CV: business_type] and the niche's
+  Calibration Pack supplies the specifics.
+
+  The four types
+
+
+
+
+                                                                                        Page 4 of 36
+Homepage Template v2 — Core 30 Build Spec
+
+
+
+
+     Type                               What the customer is buying        Niches
+
+     A. Project trade                   A one-off job on their property,   Landscapers (install work),
+                                        quoted after a survey, started     Roofers, HVAC, Plumbing &
+                                        on a date                          Heating, Electricians, Tree
+                                                                           Surgeons, Fencing, Drainage,
+                                                                           Garage Doors, Guttering & Fascias,
+                                                                           Scaffolding, Driveways & Paving,
+                                                                           Builders, Kitchen/Bathroom
+                                                                           Fitters, Loft Conversions &
+                                                                           Extensions, Painters & Decorators,
+                                                                           Flooring Fitters, Tiling, Blinds &
+                                                                           Curtains
+
+     B. Recurring                       A visit, repeated on a schedule    Cleaning Companies, Window
+     property service                   or booked as needed, priced        Cleaning, Pressure Washing &
+                                        per visit or per job               Exterior Cleaning, Pest Control,
+                                                                           Landscapers (maintenance work),
+                                                                           Guttering (cleaning)
+
+     C. Pet service                     Care or training of their animal   Dog Walkers, Dog Training, Dog
+                                        by a person they must trust,       Grooming
+                                        sold as sessions, walks or plans
+
+     D. Move                            A dated event with their           Removals
+                                        belongings in someone else's
+                                        hands
+
+
+  Emergency overlay (applies on top of A or B when [CV: emergency_primary] is yes,
+  meaning the client confirmed on onboarding that most of their enquiries are urgent call
+  outs): Locksmith, Drainage, Plumbing & Heating, Electricians, Pest Control, Roofers (storm
+  damage), Garage Doors (stuck door), Tree Surgeons (storm damage). Locksmith is A plus
+  overlay by default. Out of hours availability alone doesn't trigger it. A roofer who takes
+  storm calls but mostly quotes roof replacements keeps the standard layout and covers
+  call outs in a section 4 card.
+
+  A2 marker within type A for big-ticket projects (Builders, Lofts & Extensions,
+  Kitchen/Bathroom, Driveways, full roof replacements): adds the planning, timeline,
+  disruption and payment-stage fears to section 5 and FAQ.
+
+  Landscapers and Guttering split by what the client confirmed on onboarding: mostly
+  installs → A; mostly maintenance → B. Mixed → A with the section 7 B-variant.
+
+
+                                                                                                            Page 5 of 36
+Homepage Template v2 — Core 30 Build Spec
+
+
+
+
+  Type-specific placeholders
+
+  These replace the trade-shaped placeholders from v1 so no wording assumes a van and a
+  quote. [PRIMARY_ACTION] is the button text everywhere on the page: header, sticky bar,
+  hero, section 5 and final CTA. Where a section below shows type A wording, the matching
+  row in these tables replaces it for types B, C and D.
+
+
+     Placeholder                            A. Project trade       B. Recurring          C. Pet service     D. Move
+                                                                   service
+
+     [PRIMARY_ACTION]                       Get My                 Get My                Book a             Get My
+     (button)                               [QUOTE_FREE]           [QUOTE_FREE]          [QUOTE_FREE]       [QUOTE_FREE]
+                                            Quote                  Price                 Consultation       Moving Quote
+                                                                                         (training), Book
+                                                                                         a Meet and
+                                                                                         Greet (walking),
+                                                                                         Book a Groom
+                                                                                         (grooming)
+
+     [UNIT_OF_WORK]                         jobs                   visits / cleans       dogs / walks /     moves
+                                                                                         sessions
+
+     [CUSTOMER_TYPE]                        homeowners             homeowners,           dog owners         families and
+                                            (landlords,            landlords,                               businesses
+                                            businesses where       businesses
+                                            confirmed)
+
+     [PROJECT_WORD]                         home / roof /          home / windows        dog                move
+                                            garden                 / property
+
+     [QUALIFICATION_BODY]                   Gas Safe, NICEIC,      BPCA, NPTA            IMDT, APDT,        BAR, Which?
+     examples                               NAPIT, TrustMark,      (pest),               ABTC, PACT,        Trusted Trader,
+                                            FMB, NFRC,             Federation of         ICAN (training);   goods in transit
+                                            CompetentRoofer,       Window                City & Guilds /    insurance figure
+                                            FENSA, HETAS,          Cleaners,             iPET grooming
+                                            OFTEC, MPBA, Arb       SafeContractor,       diploma, Pet
+                                            Association            DBS for               First Aid, DBS
+                                                                   domestic              (walking)
+                                                                   cleaners
+
+     Process verb (section 7)               survey, quote, start   price, first visit,   meet, plan,        survey, fixed
+                                                                   regular               sessions begin     quote, moving
+                                                                   schedule                                 day
+
+
+  Section swap-outs by type
+
+
+
+
+                                                                                                                       Page 6 of 36
+Homepage Template v2 — Core 30 Build Spec
+
+
+
+
+     Section                 A. Project trade   B. Recurring        C. Pet service      D. Move
+                                                service
+
+     1. Trust line           Fixed written      Clear price         Free meet and       Fixed quote
+     order                   quote; free        before the first    greet or first      after a survey;
+                             quote; reply       visit; same         call; method        goods in transit
+                             time; guarantee    person or team      (force free,        cover figure;
+                                                each visit; DBS     reward based);      packing and
+                                                checked team        maximum dogs        storage offered
+                                                                    per walk
+
+     1. Intro                Job type range     Visit type plus     The owner's goal    Move type range
+     sentence 2              plus quote and     how pricing         plus the method     plus fixed quote
+                             start date         works               (e.g. force free,   after survey
+                                                                    reward based)
+
+     2. Logo tiers           Regulatory         Trade               Training or         BAR; insurer;
+                             scheme;            association;        grooming body;      Which? Trusted
+                             manufacturer       product or eco      pet first aid;      Trader; local
+                             approvals; local   certifications;     insurer with pet
+                                                DBS; local          cover; local
+                                                                    (rescue partner,
+                                                                    vet referral)
+
+     3. Paragraph            Price creep,       Reliability, same   Safety, what        Damage, hidden
+     3 (visitor              unfinished work,   person each         happens if my       extras, turning
+     worries)                no answer          time, access and    dog doesn't         up late, access
+                                                key holding,        settle, who else    at both ends
+                                                products used       is on the walk,
+                                                                    methods
+
+     4. Cards                Categories         Service types or    Programmes          Move types
+                                                packages            (puppy, 1 to 1,     (home, flat,
+                                                (weekly,            reactive dog),      office, student,
+                                                fortnightly, one-   walk types (solo,   single item) plus
+                                                off, end of         group, puppy        packing and
+                                                tenancy)            visits), groom      storage
+                                                                    types
+
+
+
+
+                                                                                                     Page 7 of 36
+Homepage Template v2 — Core 30 Build Spec
+
+
+
+
+     Section                 A. Project trade   B. Recurring        C. Pet service       D. Move
+                                                service
+
+     5. Four fears           Inexperience;      Unreliability;      Will it work for     Damage; hidden
+                             bad work; cost;    poor standard;      my dog; is it safe   costs; lateness;
+                             communication      trust in my         and kind; cost       stress of the day
+                                                home;               and
+                                                inflexibility       commitment;
+                                                                    reliability and
+                                                                    communication
+
+     5. H3 2                 Guarantee →        Satisfaction re-    Qualification        Goods in transit
+     fallback                manufacturer       clean policy →      plus method →        figure → BAR →
+     chain                   warranty →         insurance → DBS     insurance → pet      public liability
+                             insurance          checked             first aid
+
+     7. Three                Tell us what you   Tell us what you    Book a free call     Tell us about the
+     steps                   need; we visit     need; we price it   (or meet and         move; we survey
+                             and give a         and book the        greet); we build     and give a fixed
+                             written quote;     first visit; we     a plan for your      quote; moving
+                             we start on a      come back on a      dog; sessions (or    day runs to plan
+                             date that suits    schedule you set    walks) begin
+                             you
+
+     10. FAQ 2               Are you            Are you insured     Are you insured      Are my
+     (insurance)             insured?           and DBS             to look after my     belongings
+                                                checked?            dog?                 insured during
+                                                                                         the move?
+
+     10. FAQ 3               Do you             What if I'm not     What if the          What if
+     (guarantee)             guarantee your     happy with a        training doesn't     something gets
+                             work?              visit?              work for my          damaged?
+                                                                    dog? (training);
+                                                                    What if my dog
+                                                                    doesn't settle?
+                                                                    (walking,
+                                                                    grooming)
+
+     10. FAQ 4               How soon can       How soon can        Do you have          How far ahead
+     (start)                 you start?         you fit me in?      availability for     should I book?
+                                                                    new dogs?
+
+
+
+
+                                                                                                      Page 8 of 36
+Homepage Template v2 — Core 30 Build Spec
+
+
+
+
+     Section                 A. Project trade     B. Recurring        C. Pet service       D. Move
+                                                  service
+
+     10. FAQ 5               Is the quote         How is the price    What does the        Is the moving
+     (quote)                 free? / How do       worked out?         first session        quote fixed?
+                             quotes work?                             cost? / Is the
+                                                                      meet and greet
+                                                                      free?
+
+     11. Final H2            Get a                Get a               Book a               Get a
+                             [QUOTE_FREE]         [QUOTE_FREE]        [QUOTE_FREE]         [QUOTE_FREE]
+                             Quote From a         Price From a        Consultation         Moving Quote
+                             Local                Local               With a Local         From a Local
+                             [CATEGORY] in        [CATEGORY] in       [CATEGORY] in        [CATEGORY] in
+                             [CITY]               [CITY]              [CITY]               [CITY]
+
+
+  Anything not listed in this table is identical across types. The A2 marker adds to section 5
+  a fifth candidate fear (planning and building regs handled; staged payments) that
+  replaces H3 3 when [CV: finance_options] or [CV: handles_planning] is confirmed, and
+  adds FAQ 9: "Do I need planning permission?" answered only from confirmed material.
+
+  The local condition anchor, niche by niche
+
+  This is the dog-trainer equivalent of local soils. The Landscaper Calibration Pack's rule 2
+  (connect every service to a local condition) applies to every niche in the Niche Library;
+  what changes is what counts as a local condition. Geo research for each client gathers the
+  anchors in the right column. Section 3 paragraph 1, section 4 cards and the niche FAQ slots
+  draw from them. A homepage paragraph that could run on the same niche's site in another
+  town fails.
+
+
+     Niche                                      Local condition anchors the geo research must
+                                                collect
+
+     Landscapers / Gardeners                    Soil type by area, dominant weed and hedge
+                                                species, wind exposure, plot sizes by housing era,
+                                                waterlogging zones
+
+     Cleaning Companies                         Housing stock mix (new build flats, Victorian
+                                                terraces, HMOs), landlord and student let density,
+                                                water hardness (limescale), commercial districts
+
+
+
+
+                                                                                                       Page 9 of 36
+Homepage Template v2 — Core 30 Build Spec
+
+
+
+
+     Niche                                  Local condition anchors the geo research must
+                                            collect
+
+     Roofers                                Roof types by housing era (slate on pre 1920,
+                                            concrete tile post war, flat roof extensions), wind
+                                            and rain exposure, conservation areas, chimney
+                                            stock
+
+     Dog Walkers                            Parks and off lead areas, PSPO lead rules, seasonal
+                                            beach bans, commuter and working household
+                                            areas, walking terrain (mud, sand, salt)
+
+     Dog Training                           Training venues and parks, local distractions
+                                            (livestock, seafront, busy centres), puppy class
+                                            demand areas, rescue centre partnerships, PSPO
+                                            rules
+
+     Dog Grooming                           Coat challenges from local terrain (mud, sand, salt
+                                            water), seasonal shedding, mobile coverage area,
+                                            parking for mobile vans, common breeds only if
+                                            confirmed by the client
+
+     HVAC                                   Heating fuel by area (mains gas, oil, LPG off grid),
+                                            housing era and insulation, heat pump grant
+                                            uptake, flats and offices needing air con
+
+     Plumbing & Heating                     Water hardness, lead pipework in older stock,
+                                            boiler types by era, off grid fuel, low pressure or
+                                            flood prone areas
+
+     Electricians                           Rewire age of housing, consumer unit era, EV
+                                            charger demand (driveways vs terraces), landlord
+                                            EICR and HMO density
+
+     Tree Surgeons                          Common species, TPOs and conservation areas,
+                                            council rules, wind exposure, storm damage history
+
+     Fencing                                Wind exposure, soil for post setting, boundary
+                                            styles by estate, close board vs panel norms
+
+     Drainage                               Clay soil and root intrusion, Victorian combined
+                                            sewers, pitch fibre pipes on 1960s estates, low
+                                            lying flood zones, water company boundary
+
+
+
+
+                                                                                                   Page 10 of 36
+Homepage Template v2 — Core 30 Build Spec
+
+
+
+
+     Niche                                  Local condition anchors the geo research must
+                                            collect
+
+     Locksmith                              Lock types by housing era, uPVC door density,
+                                            rental and student turnover, insurer BS3621
+                                            requirements, car park and commercial stock
+
+     Garage Doors                           Integral garage estates (1970s to 1990s), door
+                                            types, coastal corrosion, up and over vs sectional
+                                            norms
+
+     Pressure Washing                       Algae and moss from shade and damp, block
+                                            paving estates, render types, coastal salt,
+                                            commercial frontages
+
+     Guttering & Fascias                    Tree cover and leaf fall, cast iron vs uPVC by era,
+                                            rainfall exposure, moss shedding roofs
+
+     Pest Control                           Local pests by setting (rats near rivers and
+                                            takeaway strips, wasps, gulls on coast, bed bugs in
+                                            HMOs, mice at the agricultural edge), whether the
+                                            council still offers a service
+
+     Scaffolding                            Building heights by era, conservation areas, council
+                                            pavement licence rules, commercial and roofing
+                                            demand
+
+     Window Cleaning                        Conservatories and dormers by estate, water
+                                            hardness, coastal salt, commercial frontage,
+                                            access (terraces, flats)
+
+     Driveways & Paving                     Clay heave, SuDS drainage rules, front garden
+                                            planning rules, estate styles, existing surface types
+
+     Builders                               Housing era, local planning authority habits,
+                                            conservation areas, party wall density in terraces
+
+     Kitchen / Bathroom Fitters             Galley kitchens in terraces, upstairs bathroom
+                                            conversions, water hardness, flat access and lifts
+
+     Loft Conversions / Extensions          Trussed vs purlin roofs by era, permitted
+                                            development limits, local planning authority,
+                                            conservation areas, party walls
+
+     Painters & Decorators                  Lime plaster and render by era, coastal exposure
+                                            for exteriors, damp prone stock, listed buildings
+
+
+
+                                                                                                    Page 11 of 36
+Homepage Template v2 — Core 30 Build Spec
+
+
+
+
+     Niche                                  Local condition anchors the geo research must
+                                            collect
+
+     Flooring Fitters                       Floorboards vs concrete subfloors by era, damp,
+                                            flat noise rules, underfloor heating uptake
+
+     Tiling                                 Water hardness and limescale, wall construction by
+                                            era, wet room demand, flat access
+
+     Blinds & Curtains                      Window types by era (bays, bifolds,
+                                            conservatories, Velux), sun orientation, coastal
+                                            fading
+
+     Removals                               Terraced street access and parking permits, flats
+                                            without lifts, common move corridors, student and
+                                            military move seasons, storage demand
+
+
+  What every Calibration Pack must now carry for the homepage
+
+  The Landscaper pack covers category blocks and the inner pages. For the homepage to
+  build without guesswork, each pack adds a homepage block with:
+
+       The business type and A2 or emergency marker.
+       The trust line order and the logo tiers for that niche, with the real body names.
+       The four fears for section 5 with two example H3s each.
+       The three process steps, in both the quote and the emergency variant where relevant.
+       Four niche FAQ slots (FAQ A, FAQ B and the two fallbacks, FAQ C and FAQ D),
+       reworded from People Also Ask.
+       The local condition anchor list from the table above, as the brief for the geo research.
+       One full worked homepage section 3 and section 5 at the required length, marked do
+       not reuse.
+
+  Until a niche has its pack, that niche is not built. Packs are the gate.
+
+  Onboarding form additions needed for this spec
+
+  The current form covers the A-type fields well. These are missing or need a type-
+  conditional branch:
+
+       Owner block (all types): qualifications, why you started, what you personally promise
+       every customer. Without these section 8 can't be written.
+       Quote method (A, D): phone estimate, site survey, video survey, fixed written quote.
+       The current free quotes question only gives yes or no.
+
+
+                                                                                                 Page 12 of 36
+Homepage Template v2 — Core 30 Build Spec
+
+
+
+
+       Response time (all): how quickly do you reply to an enquiry.
+       Type C: training body or grooming qualification, methods used (force free, reward
+       based), pet first aid, DBS, maximum dogs per walk, where walks happen, insurance that
+       covers animals in care, meet and greet policy.
+       Type B: visit frequencies offered, minimum visit, key holding and DBS, products used
+       (eco, pet safe), re-clean or satisfaction policy, domestic vs commercial split.
+       Type D: BAR membership, goods in transit cover figure, packing and storage offered,
+       access limits (floors, parking).
+       A2: planning handled in house, staged payments, typical project length.
+       Emergency overlay: typical response time to an emergency, callout fee or pricing
+       method, and whether most enquiries are urgent call outs (sets [CV:
+       emergency_primary]).
+       Community involvement: sponsorships, local clubs, charity work (the awards question
+       doesn't capture this).
+       Customer split: percentage domestic, landlord, commercial, so [CUSTOMER_TYPE]
+       isn't a guess.
+
+  Fields already on the form that the spec should use and v1 didn't: team size (section 5
+  point 1 body: "A team of [CV: team_size] across [CITY]"), finance or payment plans (A2
+  section 5 and FAQ), cancellation policy (B and C FAQ), discounts for return customers
+  (final CTA line for B and C only).
+
+
+  Placeholders, claim rules and empty-value fallbacks
+  All placeholders come from the Placeholder Glossary (Tab 9). The ones this page uses,
+  plus the new definitions v1 was missing:
+
+       [KW] / [KW_PHRASE]: from the Page Map "H1 (Ahrefs)" cell for the homepage row, e.g.
+       Roofer Bristol. One unbroken phrase in the H1 and SEO title. In body copy it may take
+       joining words so it reads as a sentence ("roofer in Bristol" for Roofer Bristol), with the
+       same words in the same order.
+       [CATEGORY]: the primary GBP category, e.g. Roofer.
+       [TRADE] / [TRADE_LOWER]: the activity form, e.g. Roofing / roofing.
+       [TRADE_PERSON] / [TRADE_PERSON_PLURAL]: the person form from the Niche
+       Library, e.g. roofer / roofers. Used wherever a heading talks about people, because a
+       GBP category isn't always a person ("Lawn Care Service").
+
+
+
+
+                                                                                           Page 13 of 36
+Homepage Template v2 — Core 30 Build Spec
+
+
+
+
+       [CUSTOMER_TYPE]: homeowners / dog owners / local businesses, from the Niche
+       Library.
+       [PROJECT_WORD]: garden / home / roof / dog.
+       [GBP_CAT_1…n], [GBP_SVC_1…n], [GBP_AREA_1…n]: exactly as spelt on the GBP.
+       [GBP_CAT_n_DISPLAY] is the readable heading form of a GBP category, held in the
+       Niche Library (Roofing contractor becomes Roofing, Gutter cleaning service becomes
+       Gutter Cleaning). It is used in headings only.
+       [CITY]: the primary city, as spelt on the GBP address or service area.
+       [AREA_WIDE]: replaces v1's [COUNTY]. The wider area the client actually covers,
+       taken from geo research, e.g. North Somerset, North East Lincolnshire, the Humber
+       area. Truth check: it must be an area the GBP service areas substantially cover. "Bristol
+       & Somerset" fails (Bristol isn't in Somerset); "Grimsby & Lincolnshire" fails for a client
+       covering one corner of it. If no honest wider area exists, [AREA_WIDE] is blank and
+       headings use "[CITY] and the Surrounding Areas".
+       [H1_MODIFIER]: now used only in the SEO title, never in the H1 or the trust line.
+       [META_PROOF], [QUOTE_FREE] / [QUOTE_FREE_LOWER]: as in v1, below.
+       Niche slots: [NICHE_SLOT: steps], [NICHE_SLOT: FAQ A], [NICHE_SLOT: FAQ B], and
+       the fallbacks [NICHE_SLOT: FAQ C] and [NICHE_SLOT: FAQ D]. Written per niche in the
+       Niche Library, always at the same length. The number of niches is whatever the Niche
+       Library holds; the onboarding form caps at 26.
+
+  Quote and availability claims
+
+       [QUOTE_FREE] = "Free" only if [CV: free_quotes] is yes, meaning every quote is free
+       with no callout, survey or visit fee. Otherwise blank, and the copy bot removes the
+       word and the space after it.
+       "Same Day" only if [CV: same_day_available] is yes. "24/7" only if [CV:
+       out_of_hours_available] is "24/7".
+       Any sentence about how quotes work uses only [CV: quote_method]. "Fixed price"
+       only if confirmed.
+
+  Claim words (UK ASA)
+
+  "best", "#1", "leading", "trusted", "expert", "specialist", "reliable" and "fully insured" need
+  proof on file. Use "local" instead. Two scoped exceptions: the section 2 label "Trusted &
+  Rated By" is allowed because every logo under it links to the register that proves it, and
+  "insured up to £[CV: insurance_cover]" is allowed when the current certificate is on file.
+  "Fully insured" with no figure is not.
+
+
+
+
+                                                                                             Page 14 of 36
+Homepage Template v2 — Core 30 Build Spec
+
+
+
+
+  Years trading
+
+  Always calculated as the current year minus [CV: year_founded]. Never a separate value,
+  so the two can't drift.
+
+  Empty-value fallbacks
+
+  The copy bot applies these before writing. A blank value never reaches the page as a
+  placeholder, an empty bracket or a dangling sentence.
+
+       [CV: rating] below 4.5, or [CV: review_count] under 10: no rating line in the hero and no
+       rating in the final CTA. The reviews section still shows, with the H2 fallback in section 6.
+       [CV: review_count] under 20: reviews H2 uses the no-count version.
+       [CV: guarantee_years] blank: section 5 point 2 falls back to manufacturer warranty,
+       then insurance. FAQ 3 ("Do you guarantee your work?") is replaced by the niche FAQ C
+       slot from the Niche Library.
+       [CV: insurance_cover] blank: insurance is not mentioned anywhere. FAQ 2 is replaced
+       by "What happens if something goes wrong?", answered from [CV: guarantee_years]
+       or the complaints process confirmed in onboarding. If both are blank, flag in the Page
+       Map.
+       [CV: jobs_completed] blank: section 5 uses the years heading. Under 5 years trading it
+       is required by the minimum data gate.
+       [CV: response_time] blank: "We reply within [CV: response_time]" lines are removed
+       everywhere.
+       [CV: start_time] blank: FAQ 4 becomes "How soon can you come out?" answered from
+       [CV: quote_method] and typical survey timing confirmed in onboarding. If that's blank
+       too, the question is dropped and the niche FAQ D slot is used.
+       [CV: hours] blank: the hours line is removed from the final CTA and footer.
+       [CV: differentiator_2] blank: section 5 runs with 3 points. [CV: differentiator_1] is
+       required by the minimum data gate. Never invent a fourth.
+       [CV: owner_name] or owner photo blank: section 8 is hidden (home_owner_show =
+       false).
+       [CV: map_embed] blank: build stops. The map is a consistency signal, not optional.
+       Fewer than 2 assigned neighbourhoods: use what there is, then allow reuse of
+       neighbourhoods already used on inner pages. Flag in the Page Map but don't block the
+       build.
+
+  Minimum data gate
+
+
+
+
+                                                                                               Page 15 of 36
+Homepage Template v2 — Core 30 Build Spec
+
+
+
+
+  The fallbacks handle one blank at a time. Several blanks at once produce a page that reads
+  like a template, so the build doesn't start until onboarding has supplied all of these:
+
+       A track record figure: 5 or more years trading, or [CV: jobs_completed].
+       One form of cover: [CV: guarantee_years], a verified manufacturer warranty, or [CV:
+       insurance_cover] with the certificate on file.
+       [CV: differentiator_1], a working practice the client confirms they actually do.
+       One real photo good enough for the content block.
+       [CV: map_embed] and a verified GBP.
+
+  With the gate met, section 5 never runs below 3 points and section 3 always has a real
+  image.
+
+  Floors and thin page check
+
+       [CV: review_count] under 3: the widget shows what there is under "What Our
+       Customers Say", and the build is flagged so review requests start before launch. Zero
+       reviews: the section is hidden until the first review lands, and the page is flagged as
+       missing consistency signal 5.
+       [CV: rating] below 4.5, or [CV: review_count] under 10: the Google rating logo is left out
+       of section 2 and the row leads with Tier 1. Footer column 4 links to the GBP without
+       showing the number.
+       Thin page check: if the page has no trust line, no rating line, no owner section and fewer
+       than 3 logos all at once, it goes to the lead before publishing.
+
+  Numbers that change
+
+  The rating, the review count and years trading must not go stale beside a live review
+  widget. The review count is always rounded down to the nearest 10 and shown with a plus,
+  in the hero as well as the reviews H2. The VA refreshes [CV: rating] and [CV:
+  review_count] from the GBP once a month, and every heading or line that uses them is
+  updated in the same pass. Headings that use years trading are updated each January.
+  Section 2 memberships and the insurance certificate are rechecked on their expiry date,
+  or every 12 months where there isn't one.
+
+  Final sanity check (from the QA lessons)
+
+  Before handoff, search the rendered page for "[", "CV:", "Lorem", the template client's
+  name and the template client's city. Any hit fails.
+
+
+
+
+                                                                                           Page 16 of 36
+Homepage Template v2 — Core 30 Build Spec
+
+
+
+
+  Page-level SEO
+  URL: /
+
+  Focus keyword (Rank Math): [KW]
+
+  SEO title: [KW_PHRASE] | [H1_MODIFIER] | [CV: company_name]. Maximum 60
+  characters. Over length: drop the company name first, then shorten the modifier. The
+  keyword always comes first. Caleb's example shape: "Houston Plumber | Same Day
+  Service | Brand Name".
+
+  [H1_MODIFIER] order (first that's true; the Category page and every SEO title follow the
+  same order):
+
+   1. Emergency niche with [CV: out_of_hours_available] = "24/7" → "Available 24/7"
+   2. Trading 5+ years → "Established [CV: year_founded]"
+   3. Guarantee of 5+ years → "[CV: guarantee_years] Year Guarantee"
+   4. Rating 4.8+ with 20+ reviews → "Rated [CV: rating]★"
+   5. None → "Local [TRADE_PERSON_PLURAL]"
+
+  Meta description: "[KW_PHRASE] from [CV: company_name]. [META_PROOF]. Get your
+  [QUOTE_FREE_LOWER] quote today." Maximum 155 characters. Types B, C and D end
+  with their own action: "Get your [QUOTE_FREE_LOWER] price today.", "Book your
+  [QUOTE_FREE_LOWER] consultation today." or "Get your [QUOTE_FREE_LOWER]
+  moving quote today."
+
+  [META_PROOF] is the first that's true, and must differ from the SEO title modifier:
+
+   1. Rated [CV: rating]★ by local [CUSTOMER_TYPE] (4.8+ and 20+ reviews)
+   2. [CV: guarantee_years] year workmanship guarantee
+   3. Established in [CV: year_founded]
+   4. [CV: differentiator_1] (confirmed in onboarding)
+
+  Rules: none true → drop [META_PROOF] and its full stop. Over 155 → move to the next
+  true option; none fits → drop it. Never shorten [KW_PHRASE] or the company name; still
+  over → flag in the Page Map. The meta description is a snippet, not page copy, so repeating
+  a proof here is fine.
+
+  Schema
+
+       LocalBusiness, using the subtype mapped once per niche in the master kit (Plumber,
+       Electrician, Locksmith, RoofingContractor, HomeAndConstructionBusiness, etc).
+       Name, address and phone exactly as on the GBP. This is the one place the entity is
+
+
+                                                                                        Page 17 of 36
+Homepage Template v2 — Core 30 Build Spec
+
+
+
+
+       defined; every other page references it by @id and never adds a second LocalBusiness
+       block.
+       FAQPage: generated from home_faq_items only, so it always matches the visible
+       answers. Neither Rank Math nor Elementor adds a second FAQPage.
+       No BreadcrumbList on the homepage.
+       Hidden-address businesses (GBP shows service area only): schema uses address with
+       addressLocality and addressRegion only, no streetAddress, plus areaServed from
+       [GBP_AREA_1…n].
+
+  Schema build step, once per site: publish the homepage, run it through
+  validator.schema.org, copy the LocalBusiness @id into [CV: business_schema_id], confirm
+  name, address and phone match the GBP, confirm exactly one FAQPage. Then run one
+  inner page and confirm the same @id appears. If not, stop and flag to the lead before
+  building another page.
+
+  Keyword placement
+
+       [KW_PHRASE] in the H1, exact.
+       [KW_PHRASE] in the first sentence of the hero intro, in its body copy form.
+       [KW_PHRASE] in the first sentence of section 3, in its body copy form.
+       Each secondary category name ([GBP_CAT_2…n]) in at least one H2 or H3 and once in
+       body copy with an inline link (consistency signal 4).
+       [CATEGORY] and [CITY] in the final H2 (section 11).
+       No density target. A Rank Math density warning is expected.
+
+  Length
+
+  1,100 to 2,000 words depending on the number of categories, services and FAQs. Under
+  1,100: expand in this order, confirmed material only: section 3 to 300 words; section 5
+  points to 40 words each; section 10 answers to 70 words each. Never pad. Still short →
+  publish and flag in the Page Map.
+
+  Images
+
+  Hero background, content block photo, owner photo (if any), service card photos (client's
+  own only). Never stock. Alt text rules sit in each section.
+
+  Links out
+
+       Category pages (or service pages when there's no category layer): inline in section 3
+       paragraph 2 and inside each section 4 card.
+
+
+
+
+                                                                                         Page 18 of 36
+Homepage Template v2 — Core 30 Build Spec
+
+
+
+
+       Location pages: inline in section 3 paragraph 4, and the area list in section 9.
+       Locations hub: section 9 and FAQ 6.
+       About Us: section 8.
+       Contact: every quote button.
+       Homepage cost guide (Page Map "Homepage cost guide URL"): FAQ 1, only if it exists.
+       Outbound: the registers in section 2, the GBP in section 6 and the footer.
+
+  Links in: every page via the logo and the first breadcrumb item.
+
+
+  The 8 consistency signals
+  These are Caleb's GBP landing page checks. If any one is missing, the page fails QA
+  regardless of how good the copy is.
+
+
+     Signal                                 Where it lives on this page           Source
+
+     1. Title tag has primary category +    SEO title, keyword first              Page Map
+     city
+
+     2. H1 has primary category + city      Section 1 H1, exact [KW_PHRASE]       Page Map
+
+     3. Google Maps embed of the GBP        Section 9                             [CV:
+     pin                                                                          map_embed]
+
+     4. Secondary categories named in       Section 4 H2 (up to 3) or H3 cards,   GBP
+     a subheading                           plus inline links in body
+
+     5. Google review widget                Section 6, live Trustindex feed       GBP
+
+     6. Address matches the GBP             Footer, and schema                    GBP
+     character for character
+
+     7. Phone matches the GBP               Header, hero button, final CTA,       GBP
+     character for character                footer, schema
+
+     8. LocalBusiness schema                Page-level SEO, one entity            Master kit
+
+
+  Hidden-address businesses: the footer shows "[CV: company_name], serving [CITY] and
+  [AREA_WIDE]" with no street address, and the schema omits streetAddress. Never
+  publish a street address the GBP hides.
+
+
+
+
+                                                                                               Page 19 of 36
+Homepage Template v2 — Core 30 Build Spec
+
+
+
+
+  Local elements
+  Every local detail comes from the geo research or onboarding. The copy bot never invents
+  a place, a condition or a story.
+
+       Specific neighbourhoods: minimum 2, in section 3 paragraph 1, from this page's
+       "Assigned neighbourhoods" (primary city only). Example: "We look after homes from
+       Clifton to Bedminster."
+       Seasonal or area issues: not used on the homepage. Category and Location pages own
+       them.
+       Symptoms: only if a niche FAQ slot is symptom-based, in section 10, from this page's
+       "Assigned symptoms".
+       Community involvement: optional. A Tier 3 logo in section 2 (verified) and at most one
+       sentence in section 3 paragraph 1. Example: "We've sponsored Clifton Rangers' under
+       12s since 2021."
+
+  Rules:
+
+       The homepage, Category and Service pages draw neighbourhoods from the primary
+       city only.
+       A neighbourhood named here is not used on another page while unused ones remain.
+       Once the list is exhausted, reuse is allowed. Flag in the Page Map; don't block the build.
+       Each symptom is used in one place on the whole site.
+       Lists too short to allocate are flagged in the Page Map before writing.
+
+
+  Section 1. Hero
+  Design brief: H1, short intro, rating line, call button, no quote form. Background is a frosted
+  photo or a flat-vector illustration.
+
+  ACF field group: home_hero. Fields: home_hero_h1, home_hero_trust_line,
+  home_hero_intro, home_hero_background_image. Rating line and buttons come from
+  custom values.
+
+  H1: [KW_PHRASE], exactly as the Page Map holds it, nothing added. E.g. "Roofer Bristol" or
+  "Roofers in Bristol" if that's the Ahrefs phrasing. One line on desktop, two on mobile
+  where it fits and never more than three.
+
+
+
+
+                                                                                           Page 20 of 36
+Homepage Template v2 — Core 30 Build Spec
+
+
+
+
+  Why no modifier: the H1 is a ranking element and Core 30 keeps it a clean keyword.
+  Everything persuasive sits in the two lines under it, where it can change without touching
+  the H1.
+
+  Trust line (styled text under the H1, not a heading): one line of 10 words or fewer that tells
+  the visitor what they get. It never states years trading or jobs completed, because section
+  5 leads with those. Use the first option that's confirmed, skipping any that repeats the
+  SEO title modifier. Types B, C and D use their row in the swap-out table.
+
+   1. Emergency overlay only: "Out to you the same day" ([CV: same_day_available] is yes)
+   2. "Fixed written quotes before any work starts" ([CV: quote_method] confirmed as fixed
+      and written)
+   3. "Free quotes with no call out or survey fee" ([CV: free_quotes] is yes)
+   4. "A reply within [CV: response_time]" ([CV: response_time] is set)
+   5. "Every job covered for [CV: guarantee_years] years" (guarantee confirmed)
+   6. None confirmed → no trust line.
+
+  Intro (under 50 words, two sentences, goal completion):
+
+       Sentence 1: [KW_PHRASE] in a full sentence, with one nearby town from the Page Map
+       location rows, preferably one with a Location page. The sentence states who we are
+       and where, e.g. "[CV: company_name] is a local roofer in Bristol, covering Keynsham
+       and the surrounding areas."
+       Sentence 2: the visitor's situation plus one proof or action that the trust line hasn't
+       already used. E.g. "Whether it's a slipped tile or a full roof replacement, you'll get a free
+       quote and a start date you can plan around." Uses only [CV: quote_method] for
+       anything about quotes.
+
+  Rating line: ★★★★★ [CV: rating] from [CV: review_count]+ Google Reviews. Shows only
+  when rating is 4.5+ and count is 10+. Stars render as a static graphic matching the rating,
+  not a hard-coded five.
+
+  Buttons: "[PRIMARY_ACTION]" (to /contact/) then "Call [CV: phone]". Emergency niches:
+  Call first.
+
+  Background image
+
+       Default: a frosted (softly blurred) real photo from the client, in the style of the
+       Cloudways examples. A real job or van photo frosted still reads as this business, not a
+       template.
+
+
+
+
+                                                                                              Page 21 of 36
+Homepage Template v2 — Core 30 Build Spec
+
+
+
+
+       Fallback: the dark flat-vector illustration from the ChatGPT prompt in the design brief,
+       when the client has no usable wide photo.
+       Built as an image tag with high fetch priority, so the browser finds it early. A CSS
+       background is found late and slows the mobile load. The tag carries alt="" (decorative),
+       never a missing alt.
+       The copy-safe area must stay calm. If the image competes with the text, it fails.
+
+  Amount: H1 + trust line + 40 to 50 words.
+
+  Source: Page Map, copy bot, custom values.
+
+  SEO purpose: keyword in the H1 and the first sentence. Conversion purpose: confirms the
+  visitor is in the right place, one proof, one action.
+
+  Design: headline, intro and buttons in the clear area of the background. Quote button has
+  the Volt Vikings hover (colour shift, slight lift). Hero ends high enough that the trust row is
+  visible on first load on desktop.
+
+  Example (do not reuse):
+
+      Roofer Bristol Fixed written quotes before any work starts Harlow Roofing is a local
+      roofer in Bristol, covering Keynsham, Portishead and the surrounding areas. From a
+      single slipped tile to a full roof replacement, we'll visit, survey the roof and give you a
+      start date you can plan around.
+
+
+
+  Section 2. Trusted & Rated By
+  Design brief: a slim row under the hero in the Neal RFG "As seen on" style, scrolling
+  sideways on mobile. The solid background colour starts here and runs to near the bottom
+  of the services section.
+
+  ACF field group: home_trusted. Fields: home_trusted_logos (repeater: logo_image,
+  logo_caption, logo_url, logo_tier).
+
+  Label: "Trusted & Rated By", styled text, not an H2. Allowed as the one exception to the
+  claim-word rule because every logo links to the register that proves it.
+
+  Logos in this order:
+
+   1. Ratings, first when the Google rating clears the hero threshold (4.5 and 10 reviews): the
+      Google rating, plus Checkatrade, Trustpilot or Which? Trusted Traders where the client
+      has them.
+
+
+
+                                                                                              Page 22 of 36
+Homepage Template v2 — Core 30 Build Spec
+
+
+
+
+   2. Tier 1, trade scheme or regulatory membership: Gas Safe, NICEIC, NAPIT, OFTEC,
+      HETAS, FENSA, CERTASS, TrustMark, NFRC, CompetentRoofer, FMB. For gas and
+      electrical this is mandatory; a heating engineer without Gas Safe front and centre
+      looks dodgy.
+   3. Tier 2, manufacturer approvals: Worcester Bosch, Vaillant, Marley, Sika Liquid Plastics,
+      Kingspan. Underused and they usually unlock longer warranties, which section 5 then
+      references.
+   4. Tier 3, local credibility: a sponsored local team, a local business award, local press,
+      Chamber of Commerce. The small-business version of "As seen on".
+
+  Each logo links to the client's profile on that register (or the source of the local mention)
+  and has a 3 to 6 word caption, e.g. "Gas Safe Registered: 123456".
+
+  Not included here: insurance, guarantee, "Local and Owner Run", any generic trust badge.
+  Those are claims, not third-party proof.
+
+  Rules:
+
+       Minimum: Google rating plus 2 other logos. Fewer than that → show the Google rating
+       plus any verified Tier 1 logo, in a narrower row, not a padded one. A Tier 1 membership is
+       never hidden.
+       Every membership is checked on the official register before go-live. Caption includes
+       the registration number where the register shows one.
+       Only schemes relevant to the niche are asked about, using the accreditation lookup
+       table.
+       This list is the single source of logos for the site. Inner page hero proof rows take their
+       top 2 to 3 from here.
+
+  Amount: 3 to 6 logos with captions.
+
+  Source: onboarding form, verified by the VA.
+
+  SEO purpose: outbound links to authoritative registers, E-E-A-T. Conversion purpose:
+  proof the visitor can check for themselves.
+
+  Design: one slim row, logos at a consistent height, captions underneath, sideways scroll on
+  mobile. Not the Matt the Driveway Guy style badge strip.
+
+
+
+
+                                                                                             Page 23 of 36
+Homepage Template v2 — Core 30 Build Spec
+
+
+
+
+  Section 3. Content block
+  Design brief: image, heading and paragraph, text left, static image right with the Driveway
+  Guy drop shadow. Must fit 250 words comfortably (300 when expanded).
+
+  ACF field group: home_content_block. Fields: home_content_block_h2,
+  home_content_block_body, home_content_block_image, home_content_block_image_alt.
+
+  H2: Local [TRADE_PERSON_PLURAL] Covering [CITY] and [AREA_WIDE], e.g. "Local
+  Roofers Covering Bristol and North Somerset". With [AREA_WIDE] blank: "Local Roofers
+  Covering Bristol and the Surrounding Areas".
+
+  Body: 200 to 250 words in 3 to 4 short paragraphs, plus a closing line.
+
+       Paragraph 1, who and where: [KW_PHRASE] in the first sentence; the year founded or
+       jobs completed; one confirmed differentiator; the 2 neighbourhoods allocated to this
+       section; optionally one sentence of confirmed community involvement. Business name
+       appears here.
+       Paragraph 2, what they do: 3 to 4 inline links to category pages (or service pages with
+       no category layer), written into natural sentences. Each secondary category gets its
+       link here or in its section 4 card, so every category page receives at least one editorial
+       link from the homepage. Say what most of their work is only if onboarding or job
+       records show it.
+       Paragraph 3, the visitor's worries and how the client handles them: only working
+       practices confirmed in onboarding. This is the goal-completion paragraph; it talks
+       about the visitor's situation, not the business.
+       Paragraph 4, where they work: 2 to 3 inline links to Location pages, plus "and the
+       surrounding areas".
+       Closing line: a soft push to the quote button or phone number.
+
+  Ownership: this section tells the story. It may say "since [CV: year_founded]" but never
+  the guarantee length or the insurance figure; those are section 5's.
+
+  Image: a real job photo or the team with the van. Never stock. Alt text describes the photo
+  and where it was taken, including the trade, e.g. "Roofer replacing a tiled roof in Clifton,
+  Bristol". Unknown location → name no place.
+
+  Amount: 200 to 250 words (300 when expanding).
+
+  Source: copy bot, custom values, Page Map, geo research (allocated items only).
+
+
+
+
+                                                                                            Page 24 of 36
+Homepage Template v2 — Core 30 Build Spec
+
+
+
+
+  SEO purpose: secondary keyword angle in the H2, keyword early in the body, the page's
+  main editorial links into categories and locations, image alt. Conversion purpose:
+  introduces the business and names the worries it solves.
+
+  Internal links: 3 to 4 category or service pages and 2 to 3 Location pages, inline, with
+  descriptive link text (the page's H1 keyword where it reads naturally).
+
+  Design: text left, image right with a soft drop shadow, no sliding animation. Comfortable at
+  300 words without the image looking stranded.
+
+  Example, roofer (do not reuse; round brackets mark what must be confirmed first):
+
+
+      Local Roofers Covering Bristol and North Somerset
+
+      If you're looking for a roofer in Bristol, Harlow Roofing has been repairing and
+      replacing roofs here since 2009. We look after homes from Clifton to Bedminster,
+      from Victorian terraces with slate roofs to post war semis with concrete tiles (roof
+      types from the geo research). The same crew runs your job from the first day to the
+      last (only if confirmed). We've also sponsored Clifton Rangers' under 12s since 2021
+      (only if confirmed).
+
+      Most of our work is <u>roof replacements</u>, <u>flat roofing</u> and
+      <u>emergency roof repairs</u>, but we'll take on anything from a single slipped tile
+      upwards. We also fit and repair <u>guttering and fascias</u>, often on the same visit
+      as a roof repair (only if confirmed). As Marley approved installers we fit the products
+      we know (only if verified in section 2).
+
+      We know what puts people off calling a roofer. It's a price that creeps up, a job left
+      half done and a phone that stops being answered. So we walk you through every
+      stage before we start, and nothing gets added to the job without your say so. At the
+      end of each day you'll hear from us with what's been done (only confirmed
+      practices).
+
+      Based in Bristol, we cover <u>Keynsham</u>, <u>Portishead</u>, <u>Clevedon</u>
+      and the surrounding areas. Most surveys are booked within a few days of your call
+      (only if confirmed).
+
+      Get your free quote today, or call us on 0117 000 0000.
+
+
+
+
+                                                                                               Page 25 of 36
+Homepage Template v2 — Core 30 Build Spec
+
+
+
+
+  Section 4. Services
+  Design brief: card grid (image, heading, one line, link), 3 to 8 cards, in the Cloudways
+  home-old-2 style. Solid background continues through this section and changes colour at
+  its bottom. No green CTA band after it.
+
+  ACF field group: home_services. Fields: home_services_h2, home_services_intro,
+  home_services_cards (repeater: card_name, card_text, card_image, card_url).
+
+  H2: with 2 or 3 categories, name them in display form: "[GBP_CAT_1_DISPLAY],
+  [GBP_CAT_2_DISPLAY] and [GBP_CAT_3_DISPLAY] in [CITY]", e.g. "Roofing, Guttering
+  and Flat Roofing in Bristol". This satisfies consistency signal 4 (secondary categories in a
+  subheading). With 4 or more categories, or no category layer: "Our [TRADE] Services in
+  [CITY]". Never "[TRADE] Services" when [TRADE] already ends in "Services".
+
+  Intro: two sentences, 30 to 40 words, saying what the business covers and who it's for. No
+  links here. Each category's editorial link sits inside its own card copy, which is how Caleb's
+  homepage rule is met: a subheading per category, 50 to 100 words under it, and the link in
+  that paragraph.
+
+  Cards (H3):
+
+       With a category layer: one card per [GBP_CAT_1…n], each linking to its category page.
+       Without one: every [GBP_SVC_1…n]. Services that passed the Entity Test link to their
+       service page. Services that failed get an unlinked card, and because that card is the
+       service's only coverage on the site, it runs 80 to 100 words instead of 50 to 80.
+       Up to 8 cards. More than 8 → show linked cards first and flag the rest in the Page Map.
+       Category card headings use [GBP_CAT_n_DISPLAY], and the exact GBP category name
+       appears once in that card's body. Service card headings use the GBP service name
+       exactly.
+
+  Each card: the client's own photo, or an icon when there isn't one (never stock); 50 to 80
+  words that name 2 to 3 specific services inside the category, one local condition from the
+  geo research and one consequence of leaving it, in the Calibration Pack category block
+  style. Where the card has a page, the link sits inside the copy as inline link text (that
+  page's H1 keyword where it reads naturally), not as a separate "See" link. The design
+  brief's one line card is overruled: Caleb's rule is 50 to 100 words per category with the link
+  in the paragraph, and one line can't carry a local condition. The card design must fit 100
+  words without looking stretched.
+
+  Amount: intro + 50 to 80 words per linked card (80 to 100 per unlinked card).
+
+
+
+
+                                                                                           Page 26 of 36
+Homepage Template v2 — Core 30 Build Spec
+
+
+
+
+  Source: GBP, Entity Test results from the Page Map, copy bot.
+
+  SEO purpose: categories and city in the H2, GBP names in the H3s, editorial links in the
+  card copy, link authority to category and service pages. Conversion purpose: sends each
+  visitor to the page for their job.
+
+  Internal links: one inline link inside each linked card's copy, pointing to that card's page.
+  Never a link to a service without a page.
+
+  Design: cards with photo or icon, heading and text, working at 3 to 8 cards (3 across,
+  wrapping) and at up to 100 words a card. Linked cards carry their link inside the text;
+  unlinked cards look the same with no link. Icons are a consistent set per niche so a client
+  with no photos doesn't look unfinished.
+
+
+  Section 5. Why choose us
+  Design brief: 4 points (icon, heading, paragraph) plus a button. The brief's heading says
+  2x2 and the body says 4 across; resolved as 4 across on desktop, 2x2 on tablet, stacked
+  on mobile. H2 at normal size, not the oversized Volt Vikings treatment.
+
+  ACF field group: home_why. Fields: home_why_h2, home_why_points (repeater:
+  point_title, point_body, point_icon).
+
+  H2: Why [CITY] [CUSTOMER_TYPE] Choose [CV: company_name], e.g. "Why Bristol
+  Homeowners Choose Harlow Roofing". The trade is dropped from the H2 because the
+  company name usually carries it and "Harlow Roofing for Roofing Services" reads as
+  padding. If the company name doesn't contain the trade (e.g. "JDM Services"), use "Why
+  [CITY] [CUSTOMER_TYPE] Choose [CV: company_name] for [TRADE]".
+
+  Structure: the H3 is the promise; the body is the proof of how they deliver it. Each point
+  removes one specific fear.
+
+       H3 1, track record: "[years]+ Years [TRADE] in [CITY]" if trading 5+ years; otherwise "
+       [CV: jobs_completed]+ Jobs Completed in [CITY]". Neither available → the build is
+       blocked at the minimum data gate. Never invent a track record. Fear removed:
+       inexperience.
+       H3 2, cover if something goes wrong: "[CV: guarantee_years] Year Workmanship
+       Guarantee". No guarantee → manufacturer warranty from a verified Tier 2 approval.
+       Neither → "Insured up to £[CV: insurance_cover]". Insurance otherwise goes in this
+       body text, not as its own point. Fear removed: bad work.
+
+
+
+
+                                                                                            Page 27 of 36
+Homepage Template v2 — Core 30 Build Spec
+
+
+
+
+       H3 3, price certainty or reliability: [CV: differentiator_1] from onboarding question 4,
+       e.g. "Fixed Quotes, No Surprises" (only with [CV: quote_method] confirmed as fixed)
+       or "We Turn Up When We Say". Fear removed: hidden costs, no-shows.
+       H3 4, how the job is run: [CV: differentiator_2], mined from recurring themes in the
+       client's Google reviews by the Copybot review-mining step, approved by the client in
+       the onboarding review pass. E.g. "Same Crew Start to Finish", "Daily Photo Updates".
+       Fear removed: poor communication, mess.
+
+  Button: "[PRIMARY_ACTION]" to /contact/.
+
+  Amount: 4 × 25 to 40 words.
+
+  Source: custom values for H3s 1 and 2; onboarding plus the review-mining step (client
+  approved) for H3s 3 and 4.
+
+  Ownership: this is the one place on the homepage where the numbers are explained.
+  Section 3 doesn't repeat the guarantee or insurance figure.
+
+  SEO purpose: city in the H2. Conversion purpose: each point answers an objection the
+  visitor hasn't typed yet.
+
+  Design: 4 across on desktop with an icon per point, stacking as above. With 3 points the
+  grid runs 3 across. Button centred under the grid.
+
+  Example, established roofer (do not reuse):
+
+      Why Bristol Homeowners Choose Harlow Roofing
+
+      17+ Years Roofing in Bristol. Since 2009 we've completed over 1,800 roofs across
+      Bristol and North Somerset, from Victorian terraces in Clifton to new builds in
+      Portishead. Whatever your roof, we've almost certainly fixed one like it.
+
+      10 Year Workmanship Guarantee. Every job is covered by our 10 year guarantee, and
+      new roofs also carry Marley's 15 year manufacturer warranty. We're insured up to
+      £5m, so your home is protected from the moment the first tile comes off.
+
+      Fixed Quotes, No Surprises. After a survey you'll get a written, itemised quote. The
+      price we agree is the price you pay, with nothing added halfway through.
+
+      Daily Photo Updates. It's the thing customers mention most in reviews. At the end of
+      every day you'll get photos of what's been done, so you can see progress while you're
+      at work.
+
+  Example, newer electrician with no formal guarantee (do not reuse):
+
+
+
+                                                                                           Page 28 of 36
+Homepage Template v2 — Core 30 Build Spec
+
+
+
+
+      650+ Jobs Completed in Leeds. From full rewires in Headingley to EV chargers in
+      Horsforth, our NICEIC approved team has completed over 650 jobs for homeowners
+      and landlords across Leeds.
+
+      Up to 5 Year Hager Backed Warranty. As Hager registered installers we can extend
+      the warranty on new consumer units to 5 years. We're also insured up to £2m, so
+      you're covered if anything goes wrong.
+
+      We Turn Up When We Say. You'll get a confirmed arrival window the day before and a
+      text when we're on our way. If we're running late, you'll hear it from us first.
+
+      We Leave It Cleaner Than We Found It. Dust sheets down before we start, and a
+      hoover round before we leave. Customers mention it in review after review.
+
+
+
+  Section 6. Reviews
+  Design brief: 3 to 6 review cards in the Cloudways home-old-2 layout. The brief lists name,
+  town and text; town is dropped because Google reviews don't carry one and we won't
+  invent it.
+
+  ACF field group: home_reviews. Fields: home_reviews_h2, home_reviews_widget,
+  home_reviews_gbp_link.
+
+  H2: with [CV: review_count] 20+: "Rated [CV: rating]★ Across [CV: review_count]+
+  Google Reviews", e.g. "Rated 4.9★ Across 120+ Google Reviews". Under 20: "What Our
+  Customers Say".
+
+  Content: Trustindex widget showing 3 to 6 Google reviews, each with the reviewer's
+  name, stars and review text. The homepage keeps the live feed so new reviews appear
+  automatically. Inner pages use hand-picked static reviews in the same card style, chosen
+  for the service or town that page targets. Update the QA checklist: live widget on the
+  homepage, static cards elsewhere.
+
+  Link: "Read all our reviews on Google", pointing to the GBP.
+
+  Amount: 3 to 6 reviews.
+
+  Source: GBP, via Trustindex.
+
+  SEO purpose: consistency signal 5; review text adds real mentions of services and towns
+  if Trustindex puts it in the rendered page (check the rendered HTML in Search Console
+  URL Inspection on the first build; if the review text isn't there, switch widget or add 3
+
+
+
+
+                                                                                         Page 29 of 36
+Homepage Template v2 — Core 30 Build Spec
+
+
+
+
+  static cards alongside). Outbound link to the GBP.
+
+  Conversion purpose: proof from nearby customers, and obviously recognisable as Google
+  reviews, which Caleb calls out as the thing that works.
+
+  Design: review cards with stars, text and reviewer name; 3 across on desktop, carousel or
+  stacked on mobile. This is the master review card, reused on inner pages. Phone and quote
+  buttons under the cards as in the reference.
+
+
+  Section 7. Process
+  Design brief: 3 steps plus a button, in the shape shared by the three reference sites.
+  Design not critical.
+
+  ACF field group: home_process. Fields: home_process_h2, home_process_steps
+  (repeater: step_title, step_body).
+
+  H2: "How It Works in 3 Simple Steps".
+
+  H3 × 3: [NICHE_SLOT: steps] from the Niche Library.
+
+       Trades: Tell Us What You Need; We Visit and Give You a Written Quote; We Start on a
+       Date That Suits You. Step 2 wording follows [CV: quote_method]; "fixed price" only if
+       confirmed.
+       Emergency niches (locksmith, emergency plumber, drain unblocking): Call Us; We Give
+       You a Price and an Arrival Time; We Fix It on the Spot. Step 2 only if phone pricing is
+       confirmed in onboarding.
+       Dog walking: Meet and Greet; Choose Your Walk Plan; Walks Begin.
+
+  Button: "Start Step 1" linking to /contact/ (emergency niches: "Call [CV: phone]"). This is
+  the one deliberate exception to the standard quote button wording, because it continues
+  the steps.
+
+  Amount: 3 × 20 to 30 words.
+
+  Source: Niche Library, onboarding (quote method).
+
+  Ownership: this is the general process. Service pages reuse the component with service-
+  specific steps, never these three verbatim.
+
+  SEO purpose: light. Conversion purpose: removes uncertainty about what happens after
+  they enquire.
+
+  Design: 3 numbered steps side by side, stacked on mobile. Master process component.
+
+
+
+                                                                                           Page 30 of 36
+Homepage Template v2 — Core 30 Build Spec
+
+
+
+
+  Section 8. Meet the owner
+  Design brief: photo, short paragraph, link to About Us. Photo on one side, text on the
+  other; photo on top on mobile.
+
+  ACF field group: home_owner. Fields: home_owner_h2, home_owner_body,
+  home_owner_photo, home_owner_photo_alt, home_owner_show (true/false).
+
+  H2: Meet [CV: owner_name], the [TRADE_PERSON] Behind [CV: company_name]. Two
+  owners: "Meet [Name] & [Name], the [TRADE_PERSON_PLURAL] Behind [CV:
+  company_name]". The city goes in the body, not the H2.
+
+  Photo: the owner on site or with the van, in workwear. No selfies. No usable photo → hide
+  the section (home_owner_show = false); the page then relies on the expansion order in
+  Length. Alt text: "[CV: owner_name], owner of [CV: company_name], [TRADE_PERSON]
+  in [CITY]".
+
+  Body: 60 to 80 words, first person singular, containing one qualification or experience
+  fact, one personal detail, and one personal promise.
+
+  Link: "More about [CV: company_name]", pointing to About Us.
+
+  Ownership: doesn't repeat the story told in section 3. Section 3 is the business; this is the
+  person.
+
+  Source: onboarding form, three questions: qualifications, why they started, what they
+  personally promise every customer.
+
+  SEO purpose: E-E-A-T, and a link to About Us. Conversion purpose: a real face and a
+  personal promise.
+
+  Example (do not reuse):
+
+      Meet Dan, the Roofer Behind Harlow Roofing
+
+      I've been roofing since I left school at 16, and I'm still on the tools most days. I'm NFRC
+      registered and trained in heritage slate work, which I love on Bristol's older terraces.
+      My promise is simple: I check every job myself before we sign it off, and if anything's
+      ever not right, you'll have my mobile number.
+
+      More about Harlow Roofing →
+
+
+
+
+                                                                                             Page 31 of 36
+Homepage Template v2 — Core 30 Build Spec
+
+
+
+
+  Section 9. Service areas
+  Design brief: area links in columns beside a map, closest to Matt the Driveway Guy, minus
+  the truck. 5 to 15 areas.
+
+  ACF field group: home_areas. Fields: home_areas_h2, home_areas_intro,
+  home_areas_links (repeater: area_name, link_text, page_url). The map is not a page field;
+  it pulls [CV: map_embed].
+
+  H2: [TRADE] Across [CITY] and [AREA_WIDE], e.g. "Electrical Work Across Leeds and
+  West Yorkshire". With [AREA_WIDE] blank: "[TRADE] Across [CITY] and the Surrounding
+  Areas".
+
+  Intro: 40 to 60 words. Says where the client is based and how far they travel, from
+  onboarding. No neighbourhoods here; they belong to section 3.
+
+  Area list: [GBP_AREA_1…n], exactly as listed on the GBP, as links in columns (not
+  headings):
+
+       Towns with a Location page link to it, for single- and multi-category clients alike. Link
+       text matches that page's H1 keyword exactly, e.g. "Landscaper Romsey".
+       Towns without a page (failed the Entity Test or not yet built) are plain text.
+       The primary city is plain text, because the homepage is its page.
+       Order: the primary city first, then towns with pages, then the rest, alphabetical within
+       each group.
+
+  "View all areas we cover" link to the Locations hub.
+
+  Map: [CV: map_embed], the GBP pin, lazy loaded. The same embed is used on every page.
+  Consistency signal 3.
+
+  Amount: 40 to 60 words + area names.
+
+  Source: GBP service areas, Page Map location rows, custom values.
+
+  SEO purpose: trade and area in the H2, the map embed, and the main route for link
+  authority into the Location pages. Conversion purpose: answers "do they come to me?"
+
+  Design: links in 2 to 3 columns on the left, map on the right, stacked on mobile with the
+  map under the list. Works at 5 to 15 areas. Master service areas block, reused on Location
+  and Category location pages.
+
+
+
+
+                                                                                             Page 32 of 36
+Homepage Template v2 — Core 30 Build Spec
+
+
+
+
+  Section 10. FAQ
+  Design brief: 8 questions, accordion, Volt Vikings style. This is the one place the brief is
+  overridden: Core 30 says Google reads the rendered mobile page and largely ignores
+  collapsed content, and this has been flagged on Edens Edge and the Louth client already.
+  Keep the bordered-row look, but every answer renders open on load. No toggle, no
+  collapsed state, no "click to expand". Template-level fix, not per page.
+
+  ACF field group: home_faq. Fields: home_faq_h2, home_faq_items (repeater:
+  faq_question, faq_answer).
+
+  H2: Your [TRADE] Questions Answered, e.g. "Your Roofing Questions Answered".
+
+  8 questions (H3 each, in this order; the A2 marker adds a ninth):
+
+   1. How much does [TRADE_LOWER] cost in [CITY]? Always first. Prices come only from
+      custom values; none → the answer explains what affects the price. Links to the
+       homepage cost guide only if the Page Map has its URL.
+   2. Are you insured? Answered with the figure ("insured up to £[CV: insurance_cover]")
+      and what that means for the customer, not section 5's wording. No figure → replaced
+       by "What happens if something goes wrong?" (see fallbacks).
+   3. Do you guarantee your work? Same rule. No guarantee → replaced by [NICHE_SLOT:
+      FAQ C].
+   4. How soon can you start? From [CV: start_time]; never guessed. Blank → see fallbacks.
+   5. The quote question: [QUOTE_FREE] filled → "Is the quote free and no obligation?";
+       blank → "How do your quotes work?", answered from [CV: quote_method].
+   6. Which areas do you cover? Names the primary city and 3 to 4 towns, links to the
+       Locations hub.
+   7. [NICHE_SLOT: FAQ A]
+   8. [NICHE_SLOT: FAQ B]
+
+  Niche FAQ slots that are symptom-based use a symptom allocated to the homepage in
+  the Page Map. Questions are reworded from People Also Ask, never copied word for word
+  (Caleb's rule: Google has caught on to verbatim PAA copying).
+
+  These general questions belong to the homepage. No other page repeats them; inner
+  pages carry service- or location-specific questions.
+
+  Amount: 8 × 50 to 70 words (about 400 to 560 words).
+
+  Source: copy bot, custom values, onboarding, Niche Library.
+
+
+
+
+                                                                                           Page 33 of 36
+Homepage Template v2 — Core 30 Build Spec
+
+
+
+
+  SEO purpose: FAQPage schema from this single source; trade and city in the first
+  question; internal links. Conversion purpose: answers the last objections before the final
+  CTA.
+
+  Internal links: the Locations hub, plus the homepage cost guide where one exists.
+
+  Design: H3 question, answer paragraph beneath, every item visible. Master FAQ
+  component reused on every page with an FAQ.
+
+
+  Section 11. Final CTA and footer
+  Design brief: simple, in the Cloudways and Volt Vikings shape, with opening hours, rating
+  and reply time. No form on the page.
+
+  Final CTA
+
+  ACF field group: home_final_cta. Fields: home_final_cta_h2 (buttons, response time,
+  hours and rating come from custom values).
+
+       H2: Get a [QUOTE_FREE] Quote From a Local [CATEGORY] in [CITY], e.g. "Get a Free
+       Quote From a Local Roofer in Bristol". Emergency niches: "Need a [CATEGORY] in
+       [CITY] Now? Call [CV: phone]".
+       Buttons: "[PRIMARY_ACTION]" (to /contact/) and "Call [CV: phone]". Emergency
+       niches: Call first.
+       Trust lines as text, not headings, each dropped when its value is blank: "We reply within
+       [CV: response_time]"; [CV: hours]; the rating line (same 4.5 / 10 threshold as the hero).
+       Amount: 30 to 40 words.
+       SEO purpose: category and city in the final H2. Conversion purpose: the last ask with
+       trust signals beside it.
+       Design: simple centred section, buttons, three trust lines beneath. Master final CTA
+       reused on every page.
+
+  Footer (every page, defined here)
+
+  The footer is where consistency signals 6 and 7 are met in visible text, so it's specced, not
+  left to the builder.
+
+       Column 1: logo, then [CV: company_name], the address exactly as on the GBP (or
+       "Serving [CITY] and [AREA_WIDE]" for hidden-address businesses), phone as click-to-
+       call text exactly as on the GBP, email.
+
+
+
+
+                                                                                           Page 34 of 36
+Homepage Template v2 — Core 30 Build Spec
+
+
+
+
+       Column 2: opening hours from [CV: hours], matching the GBP hours exactly. Blank →
+       column removed.
+       Column 3: links to the category pages (or top services with no category layer), the
+       Locations hub, About Us, Contact.
+       Column 4: Google rating with a link to the GBP, plus the top 2 register logos from
+       section 2 with their links.
+       Bottom bar: © [CV: company_name] [current year], company number if a limited
+       company, privacy policy link, and the Local Launchpad credit (one line, nofollow).
+
+  No social links unless the client confirms an active profile. No "areas we cover" text block
+  in the footer; that's section 9's job and a footer version would compete with it.
+
+
+  Pre-publish QA checklist
+  Run on the live page in mobile Chrome, because that's what Google renders.
+
+       SEO title starts with [KW_PHRASE], under 60 characters
+       H1 is [KW_PHRASE] exactly, no modifier, only one H1 on the page
+       [KW_PHRASE] in the first sentence of the hero intro and of section 3 (body copy form
+       allowed)
+       Every secondary category named in an H2 or H3 and linked inline in body copy
+       Map embed shows the GBP pin
+       Review widget renders Google reviews, and the review text is present in the rendered
+       HTML (URL Inspection, not view source)
+       Footer address and phone match the GBP character for character; hidden-address rule
+       applied where relevant
+       One LocalBusiness entity, one FAQPage, no BreadcrumbList, validated at
+       validator.schema.org; @id saved to [CV: business_schema_id]
+       Every FAQ answer visible on load, no collapsed content
+       All section 2 logos verified on their register and linked to it
+       No claim word without proof; no "Free", "Same Day" or "24/7" without the custom value
+       confirming it
+       No placeholder residue: page search for "[", "CV:", "Lorem", template client name,
+       template client city
+       No sentence matching an example in this doc
+       Every empty custom value handled by its fallback, no dangling lines
+
+
+
+                                                                                            Page 35 of 36
+Homepage Template v2 — Core 30 Build Spec
+
+
+
+
+       No stock images; every image has correct alt (or alt="" for the hero background)
+       Word count 1,100 to 2,000, or expanded in the set order and flagged if still short
+       Neighbourhoods and symptoms used only as allocated in the Page Map
+       Section 3 doesn't state the guarantee length or insurance figure; section 8 doesn't
+       repeat section 3
+       Owner section hidden if no usable photo
+       Emergency niche: Call button first in header, hero, sticky bar and final CTA
+       Mobile: H1 on 3 lines maximum, no sideways scroll except the logo row, sticky bar works
+
+
+
+
+                                                                                            Page 36 of 36
+

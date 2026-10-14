@@ -1,0 +1,3405 @@
+Local Launchpad — Master Context Document
+
+
+
+
+  Local Launchpad — Master Context
+  Document
+    Oct 3, 2026       · ​@Brandon Bradford
+
+
+  1. How to use this document
+  This is the single context file for the Local Launchpad AI: the one that writes copy, gets
+  the homepage and other page structures right, and answers questions on onboarding,
+  process and strategy. It is also the handover for Ray.
+
+       Everything Brandon has said or written is kept here, including scripts in full. Nothing
+       has been trimmed.
+       Sections 13 and 14 describe how delivery used to run on GoHighLevel. They are marked
+       OUTDATED. They are included so the AI knows how the copy bot and SOP were run
+       before, because all of it needs updating for WordPress.
+       Where a separate document is needed alongside this one (a calibration pack, a prompt
+       file, the validator spec), it is referenced by file name, not linked. Section 18 lists every
+       file to upload with this document.
+       Nothing in this document is invented. Where a fact is missing, it says so.
+       Where two sources disagree, the Local Launchpad Context Document (Brandon's
+       brain dump, 3 October 2026) and Brandon's corrections of the same day win over
+       anything older.
+
+
+  2. The business at a glance
+  Local Launchpad is a UK done-for-you local SEO and website delivery service for
+  tradespeople, sold on a recurring membership.
+
+
+    Item                                    Detail
+
+    What it delivers                        Website build, Google Business Profile
+                                            optimisation, review system, missed call text-back,
+                                            repeat customer and referral systems, ongoing
+                                            support
+
+
+
+
+                                                                                                  Page 1 of 74
+Local Launchpad — Master Context Document
+
+
+
+
+    Item                                    Detail
+
+    Who it serves                           UK local service businesses and tradespeople, in
+                                            the 28 niches below
+
+    Price                                   £97 per month today. Changing to £291 per quarter
+
+    Launched                                June 2026
+
+    Paying clients                          4 as of 3 October 2026 (9 signed in the first 3
+                                            weeks, 5 since left)
+
+    Exclusivity                             One trade per area. Once a client is in for a trade in
+                                            an area, no direct competitor in that area is taken
+                                            on
+
+    Methodology                             Core 30, from Caleb Ulku
+
+    Build platform                          WordPress (moved off GoHighLevel)
+
+    Copy engine                             Copybot, a custom AI copywriting tool on the
+                                            Anthropic API, hosted on Railway
+
+    Founder's role                          Sales, ads, content and onboarding. Technical
+                                            delivery is delegated
+
+    Proof-of-concept client                 Edens Edge Landscaping (owner Ethan),
+                                            Southampton / Hampshire
+
+    Clients after Edens Edge                A landscaper client, a builder client and a roofer
+                                            client
+
+    UK clients only                         No toll-free numbers, no +1 dialling. All phone
+                                            numbers in UK format
+
+
+
+  Niches served
+  28 niches. All are property or pet services.
+
+       Landscapers / gardeners
+       Cleaning companies
+       Roofers
+       Pet care (dog walkers)
+       Dog training
+
+
+
+
+                                                                                                     Page 2 of 74
+Local Launchpad — Master Context Document
+
+
+
+
+       Dog grooming
+       HVAC
+       Plumbing and heating
+       Electricians
+       Tree surgeons
+       Fencing
+       Drainage
+       Locksmiths
+       Garage door installs
+       Pressure washing / exterior cleaning
+       Guttering and fascias
+       Pest control
+       Scaffolding
+       Window cleaning
+       Driveways and paving
+       Builders
+       Kitchen / bathroom fitters
+       Loft conversions / extensions
+       Painters and decorators
+       Flooring fitters
+       Tiling
+       Blinds and curtains fitters
+       Removals
+
+  Each niche gets its own distinct templatable elements, not one design reskinned.
+
+
+  Who is turned away
+       Anyone outside those 28 niches. Example: a security company comes to us, we do not
+       accept them, for now at least.
+       National-scope businesses.
+       New domains with unrealistic short-term targets. A new domain needs 6+ months
+       minimum for realistic SEO results; paid ads are the short-term lever.
+
+
+
+
+                                                                                       Page 3 of 74
+Local Launchpad — Master Context Document
+
+
+
+
+  3. Founder and team
+  The team is three people: Brandon on sales and growth, Ray on SEO and Google Business
+  Profile, Given on WordPress design and build.
+
+
+  Brandon (founder)
+       Based in the UK.
+       Core strengths: sales, content and marketing. Ads, content and sales are his bread and
+       butter. He does not see getting clients being a problem in the near term.
+       Previously scaled a content agency to around £10,000 a month (with a collaborator,
+       Cam).
+       Owns an ads agency with Yasin. Yasin is the owner of VVC and has 630,000 Instagram
+       followers, about a million across all platforms. The ads agency is effective.
+       Works a part-time office job Monday to Thursday. He leaves it on 22 December 2026.
+       Rates himself about 2/10 on websites, SEO and GBP knowledge against strong sales
+       and marketing skills. That gap is why Ray is in the business.
+       Handles all client communication. All client contact goes through Brandon.
+       Handles GBP access, domains and sign-off decisions.
+
+
+  Ray (also Rayson)
+       The SEO guy, the Google Business Profile guy and the ops guy.
+       Owns all SEO: strategy, off-page and on-page.
+       Gets the copy working and everything pushed to WordPress as it needs to be.
+       Does all the Google Business Profile work: optimisation of which categories and
+       services should be on there, the client's hours, that kind of thing. Brandon says he is
+       very, very good at it.
+       This document is his handover.
+
+
+  Given
+       WordPress designer and builder. She is the one who puts it all together and makes it
+       look pretty.
+       Once copy is pushed to WordPress, Given adds the relevant images, fonts, colours and
+       branding to the client's website.
+       Ray and Given between them check the site over and launch it.
+
+
+
+                                                                                            Page 4 of 74
+Local Launchpad — Master Context Document
+
+
+
+
+  Caleb Ulku
+       External. Author of the Core 30 methodology. His YouTube transcripts (ten files) are
+       the source of section 11.
+
+
+  Who has left
+       Girlie (VA, build execution) and her husband Errol (images) are no longer with us.
+       Brandon's words: they weren't great team members.
+       Richmond is no longer with us. He was the technical lead and contractor.
+       Any SOP, Asana board or document naming Girlie, Errol or Richmond is referring to
+       people who have gone. Where those documents describe a task, the task now belongs
+       to Ray or Given.
+       Earlier hiring plans (a separate REST API specialist, an SEO Lead, a designer / builder
+       role) are superseded. The team is Ray and Given.
+
+
+  4. Origin story and market
+  The offer was built from one to two months of cold calling local businesses to find their
+  pain points.
+
+
+  The research
+  Brandon spent the best part of a month, two months, cold calling plumbers, electricians,
+  drainage companies, HVAC companies and more. Two patterns emerged:
+
+   1. They all hate Checkatrade. It has turned from a fair platform into a pay-to-win platform.
+   2. There is a massive gap between those at the top of Google and those who are not.
+
+  Example: an electrician in Bournemouth ranked number 2 on Google gets about 100 calls a
+  week. On page 5 or 6, someone gets 5 calls a month, mostly scrapers and price shoppers,
+  so he never gets the jobs he wants and has to take on jobs he does not want. That is what
+  the offer was built around.
+
+
+  Early results (launch, June 2026)
+  The product was not there. The aim was to test demand, and there was demand.
+
+
+
+
+                                                                                            Page 5 of 74
+Local Launchpad — Master Context Document
+
+
+
+
+    Metric                                  Figure
+
+    Clients signed in the first 3 weeks     9
+
+    Cost per booked call                    About £35
+
+    Close rate towards the end              About 40%
+
+    Show rate                               About 90%
+
+
+  This was with no proof, testimonials or social posts. The funnel was: ad, then a landing
+  page with a headline, the VSL, a short image description of the product and a booking
+  calendar link. The calendar asked for about 7 details (trade, why they want to rank on
+  Google, that type of thing). Then a sales call.
+
+  If a prospect watched the VSL in its entirety before the call, they were much more likely
+  to buy. It answers the questions and pre-qualifies them.
+
+
+  Target market
+       Boomers. They do not understand the tech side, so calls moved from Google Meet to
+       WhatsApp phone calls.
+       TAM: roughly 500,000 to 750,000 businesses in the served niches across the UK
+       (Brandon's estimate). Not going for all of them, but it is huge.
+       Brandon does not expect ads to be limited even at £500,000 a day in spend. The
+       constraint is delivery, not demand.
+       Expansion to the US and Australia is possible once the UK is right.
+
+
+  The constraint
+  We are geared up on the getting-clients side. We are not geared up on delivery, because
+  the product is not built yet. Many WordPress, website and local SEO agencies cap
+  themselves at their supply constraint. Local Launchpad must not. To sign, say, 100 clients a
+  month, a lot of delivery has to be automated.
+
+
+
+  5. The VSL script (in full)
+  This is the 7-minute explainer video on the landing page. It covers what Local Launchpad
+  is, what it isn't, who it's for and what's included. Brandon's words: this is probably the best
+  thing you can actually see, and this is what was actually selling us clients. The video is
+
+
+
+                                                                                           Page 6 of 74
+Local Launchpad — Master Context Document
+
+
+
+
+  hosted at locallaunchpad.wistia.com/s/do80vinmstoyfub.
+
+
+
+
+                                                           Page 7 of 74
+Local Launchpad — Master Context Document
+
+
+
+
+      If you're a local service business who's tired of relying on referrals that dry up,
+      Checkatrade or pay per leads that cost a fortune, and a phone that goes quiet for
+      weeks, I'm going to show you exactly how to fix that.
+
+      See right now there are thousands of people every single month searching for the
+      service you offer in your local area, and every one of those searches is someone
+      there, behind a phone or laptop, ready to spend money.
+
+      The problem? When someone searches 'your service near me' you don't show up,
+      and even if you do there are hundreds of studies showing that the top 3 companies
+      on Google get more than 50% of the clicks.
+
+      So if 3000 people a month search for your service, in your area, and half of that traffic
+      clicks and spends with one of the businesses at the top, you do the math.
+
+      Now unfortunately, the problem goes deeper. When someone does eventually click
+      and therefore calls, you don't answer. And I tested this for myself, ringing hundreds of
+      local businesses just to have 78% of you not pick up.
+
+      Now I don't know about you but when someone needs a service business, they don't
+      sit around waiting and wondering if you'll actually get back to them, instead they just
+      call the next few numbers until someone answers.
+
+      So just by missing one call it could literally cost you hundreds if not thousands, and
+      across the month that missed call here and there really does add up.
+
+      Now I could keep throwing stats at you but that's not why you're here. You're here for
+      the simple hands off fix, and that fix is otherwise known as the Local Launchpad
+      system. And the system is built in a couple stages.
+
+      First, we fix how you show up on Google. When someone needs what you do, they
+      don't go scrolling through Instagram. They go straight to Google. And what shows up
+      there is your Google Business Profile.
+
+      Now you probably set it up once, got a few reviews, and haven't touched it since. And
+      that's exactly why you're not showing up. So right now, when someone searches for
+      what you do, you're either buried, or just not there at all. Which means you're losing
+      jobs every single day to competitors you're probably better than.
+
+      So we go through your entire Google Business Profile and position you properly. That
+      way, when someone searches 'electrician near me' or 'Patio Installation Poole', you
+      actually show up, at the exact moment they're ready to call and book you in.
+
+
+
+
+                                                                                            Page 8 of 74
+Local Launchpad — Master Context Document
+
+
+
+
+      Then we fix your website. And this is where most companies get it completely wrong.
+      They build one page, or maybe two, and hope that's enough. It's not. Because Google
+      doesn't rank websites, it ranks specific pages for specific searches.
+
+      So instead of one generic page, we build out pages for everything you actually do.
+      Every service and every area gets one. That way you're no longer hoping to show up,
+      instead you start appearing for all the jobs you actually want.
+
+      And when you combine those two together, that's when everything shifts. You stop
+      relying on referrals and start showing up exactly when people are searching for what
+      you do.
+
+      Now I could sit here and walk you through every detail, but the reality's simple: even
+      when businesses do start showing up, they still lose. Because calls come in and get
+      missed. Enquiries come through and no one follows up. And customers use you once
+      and disappear. So we fix that entire side of the business too.
+
+      Then we layer in your review engine. Because ranking is one thing, but getting picked
+      is another. So after every job, your customers are prompted to leave a review. Which
+      means more five-star reviews, more trust, and more people are choosing you. But
+      don't worry, if a customer tries to leave you anything less than 4 stars, it gets handled
+      away from Google so your reputation doesn't get stung.
+
+      Next, we unlock the easiest money in your business. Your existing customers. Now
+      these people who've already paid you, likely already trust you, and would happily use
+      you again if you just stayed in front of them. So we reactivate your database, with
+      reminders, offers, and follow-ups. So instead of constantly chasing new work, you
+      start generating revenue from work you've already done and the relationship you
+      already have.
+
+      Then we turn that into a referral engine. So instead of hoping word of mouth happens,
+      you've got a system that drives it. Consistent, warm leads, coming in without you
+      chasing them.
+
+      That way you've got one system doing three things: bringing in demand, capturing
+      every enquiry, and turning it into booked jobs consistently.
+
+      Ok, now let's talk about everyone's favourite part, the price. And while I could charge
+      thousands per month, this isn't. It's £97 per month and I can promise you it'll never be
+      cheaper than that. And the reason it's that low is because we're rolling this out right
+      now to a small number of businesses first. So right now, you're in early.
+
+
+
+
+                                                                                            Page 9 of 74
+Local Launchpad — Master Context Document
+
+
+
+
+      And at £97 a month you don't need this to overhaul your entire business overnight.
+      You just need it to do one thing: bring in a couple of extra jobs here and there, capture
+      a few enquiries you would've missed, and it's already paid for itself. Everything after
+      that is revenue you weren't making before. And more importantly, you're no longer
+      relying on referrals or hoping the phone rings. You've actually got a system behind
+      the business.
+
+      Now let me be straight with you about who this is built for. The Local Launchpad
+      system is for local service businesses who are ready to stop being buried on Google
+      and start being the first call in their area. For tradespeople who are sick of referrals
+      drying up and want a predictable pipeline they control. If that's you, brilliant. This will
+      work.
+
+      But if you're not ready to commit to being found online. If you think a website alone is
+      going to fix things. If you're not willing to let a system handle the stuff you've been
+      dropping, this isn't going to be the right fit. And I'd rather tell you that now than
+      waste your time.
+
+      Oh and because we only want you to win, the second you snatch up your business
+      type for your area, that's it, none of your competitors will ever be allowed in because
+      we want you, and you alone, to win.
+
+      So if you wanna be the only local service business in your area with a system behind
+      it that actually brings in work, then click the button below and book a call time that
+      suits. On the call, we'll take a look at what you've currently got set up, show you
+      exactly where you're losing jobs, and if we can help, we'll get you up and running. If
+      not, we'll tell you straight without wasting your time. I look forward to speaking with
+      you soon!
+
+  Note: the price line in the VSL says £97 per month. The price is changing to £291 per
+  quarter, so the VSL will need re-recording or editing when that lands.
+
+
+  6. Sales process
+  The sale is one WhatsApp call, run from a script, with a decision pushed for on the call. No
+  proposal stage.
+
+
+
+
+                                                                                             Page 10 of 74
+Local Launchpad — Master Context Document
+
+
+
+
+  The funnel
+   1. Meta ad. Winning creatives on record: Ad 6 Hook variants and Video Ad 2 Hook 4. CBO
+       campaign. Full Meta Pixel and Conversions API tracking through Stape.
+   2. Landing page: headline, VSL, short image description of the product, booking calendar
+      link.
+   3. Booking calendar asks for about 7 details (trade, why they want to rank on Google, that
+       kind of thing).
+   4. Pre-call WhatsApp sequence (below). All manual. Show rate about 90%.
+   5. Sales call on WhatsApp phone call, not Google Meet. The market is boomers.
+   6. Payment link sent on the call.
+   7. Onboarding form sent after payment.
+
+  Some calls take an hour, some five minutes, some buy as soon as they get on. Brandon
+  tries to get a decision on the call.
+
+  Other lead generation on record: a cold outreach direct mail campaign, a landing page
+  split test, and a Google Apps Script "Industry Normaliser" that maps Apollo lead exports
+  to CRM sectors through the Anthropic API.
+
+
+  Pre-call WhatsApp sequence (in full)
+  Message 1, as soon as they book in:
+
+
+      Hi {{name}},
+
+      It's Brandon from Local Launchpad.
+
+      Thanks for booking in for [DATE & TIME].
+
+      I'll call you directly on this number, when it's time for our call so there's no need to join
+      a meeting link.
+
+      Before our call, can I ask one favour?? Please watch this short 7-minute video:
+      https://locallaunchpad.wistia.com/s/do80vinmstoyfub
+
+      It explains how the system works so we can spend our call looking at your business
+      specifically rather than covering the basics.
+
+      Once you've watched it, let me know.
+
+  Message 1.1, no reply to the above:
+
+
+
+
+                                                                                              Page 11 of 74
+Local Launchpad — Master Context Document
+
+
+
+
+      Just checking you got the video above? It's worth a watch before we speak as it'll
+      answer most of the common questions people have.
+
+  Message 2, personalised video message, night before or morning of the call:
+
+
+      Hey {{name}}, it's Brandon from Local Launchpad. Just wanted to quickly introduce
+      myself before we speak later at 6pm.
+
+      I'll give you a ring on this number when it's time for the call, but before then I thought
+      I'd give you a little sneak peek at what we've been working on. [FLIPS CAMERA
+      ROUND] [Accidentally show stacked calendar]
+
+      So… Oops... that's actually our demo calendar 😂 Anyway... [Switch to website]
+
+      Soo here's that preview of how your website is starting to take shape. And of course
+      I'll show you the full thing when we speak later. But in essence everything you see
+      here is done so when someone types in 'Roofer in Bournemouth' you actually show
+      up instead of these guys who are currently nicking 50-60% of the calls.
+
+      Anddddd before I forget… We've also got a few goodies we send out to the people
+      that get started, including these. I've got them in red and blue, so just let me know
+      which colour you'd prefer and I'll put one aside for you.
+
+      Anyway, I'll give you a ring at 6pm. Speak soon!
+
+
+  The sales script (in full)
+  The script follows C L O S E R: Clarify, Label, Overview, Sell the vacation, Explain away
+  concerns, Reinforce. It is modelled on Brandon's prior high-ticket experience, adapted for
+  the £97/month offer.
+
+  Before the call, have these open: their booking form; their website / Google Business
+  Profile; your preview website; the diagnosis chart; payment link; onboarding form link.
+
+  Goal of the call: Do not "pitch a website." Diagnose why they are not getting consistent
+  work, show the gaps in what they have already tried, then position Local Launchpad as
+  the simple system that fills those gaps.
+
+  C, Clarify
+
+
+
+
+                                                                                             Page 12 of 74
+Local Launchpad — Master Context Document
+
+
+
+
+      Hey NAME, it's Brandon here from Local Launchpad, how are you doing? (Let them
+      answer.) Awesome, good to hear / Perfect. Is now still a good time to chat, yeah?
+
+      If yes: Ok cool, so this won't be an overly formal call. I just want to understand a bit
+      more about the business, what made you book in in the first place, and if I think we
+      can help, I'll show you what we've got going on over here. Does that sound fair
+      enough?
+
+      Just a quick one before we jump in… did you get a chance to watch the 7-minute
+      video I sent over? The one that was on the website?
+
+      If yes: Perfect. What stood out to you from that?
+
+      If no: No worries. I'll keep it simple then. The short version is, and we'll dive into it
+      properly later is: we help local service businesses get found on Google, turn more of
+      that attention into calls, and then put follow-up systems in place so you're not relying
+      purely on referrals, word of mouth or hoping the phone rings.
+
+  Clarify why they are there:
+
+
+      So what made you book in?
+
+      Then one of: What was it in the ad/video that caught your attention? / What are you
+      hoping to improve from this? / Why now? What's made you look at this properly now?
+
+      If they say "I just wanted more information": Yeah, for sure. I probably asked that
+      badly. Just so I know how to best help you, what are you hoping this could actually
+      improve for the business if it was a fit?
+
+  L, Label
+
+
+
+
+                                                                                             Page 13 of 74
+Local Launchpad — Master Context Document
+
+
+
+
+      So if I've got this right, the issue isn't really the quality of your work. It's more that you
+      want more people finding you, more calls coming in, and for it to be a bit more
+      consistent rather than relying on referrals or random quiet/busy patches. Is that fair?
+
+      Then quantify: Ok and from the form, you said you're currently getting around
+      {{CURRENT CALLS/JOBS}} a month, and ideally you'd like that closer to {{TARGET
+      CALLS/JOBS}}. So really, we're looking at adding roughly {{GAP}} extra calls/jobs a
+      month. Does that sound about right?
+
+      Perfect. So if we could help you close that gap, you're not gonna be mad at me for
+      making your phone ringing like nuts. (Light laugh. Move on.)
+
+
+  O, Overview
+
+      Great. So I know where you are now and where you're trying to get to. What have you
+      tried so far to get more calls and jobs?
+
+  For each thing they mention, run this cycle: How long did you do that for / rely on that for?
+  How did that work for you? What did you like about it? What was missing? What else have
+  you tried?
+
+  While they answer, fill out the diagnosis chart live (Canva link:
+  canva.link/lc4onwfv9hw7ftn, opened on Brandon's personal Google profile). Only keep
+  the rows they mention: Word of mouth; Checkatrade / lead gen sites; SEO agency;
+  Existing website; Paid ads.
+
+  Once complete: "Interesting." Pause. "I'm just going to send over a quick visual of what I'm
+  seeing based on what you've told me." Send screenshot of chart. Then: "Looking at
+  everything you've tried so far, every one of them seems to have gaps." Walk through only
+  the rows they mentioned:
+
+
+
+
+                                                                                                Page 14 of 74
+Local Launchpad — Master Context Document
+
+
+
+
+      Word of mouth: Word of mouth is great when it happens. The problem is you're
+      relying on other people talking about you. You can't really turn it up whenever you
+      want more work. So it gets you some calls, but it's not very predictable, and you don't
+      really own it.
+
+      Checkatrade / lead gen sites: Checkatrade can definitely get you found and it can
+      definitely get you calls. The problem is you're renting those leads. The moment you
+      stop paying, it stops. And you're competing against ten other guys on the same
+      platform.
+
+      Existing website: Having a website is definitely better than not having one. The issue
+      is most trade websites are basically online brochures. They look alright, but they
+      don't actually bring in consistent calls. So technically you own it, but it's not really
+      doing the job it should be doing.
+
+      SEO agency: An SEO agency can absolutely improve visibility. The issue is visibility
+      alone doesn't necessarily mean enquiries. And even when enquiries do come in, most
+      SEO agencies stop there. They don't fix missed calls, reviews, follow-up, repeat work,
+      or referrals.
+
+      Paid ads: Paid ads can definitely generate calls. The problem is you're effectively
+      renting attention. As soon as you stop spending, the calls stop. So it can work, but it's
+      not really an asset you own.
+
+      Diagnosis line: So based on all of that, I think I understand why some of the things
+      you've tried haven't produced the consistent result you were after. And honestly,
+      after hearing that, it makes complete sense why we're speaking today.
+
+
+  S, Sell them the vacation
+
+      Because what you actually need isn't just a website. You need a system that does
+      four things at the same time. Gets you found. Gets you calls. Makes the work more
+      predictable. And gives you something you actually own. (Pause.) That's basically what
+      Local Launchpad is built to do.
+
+      Rather than just doing one piece of it, we set up three main parts.
+
+  Pillar 1, Get you found:
+
+
+
+
+                                                                                             Page 15 of 74
+Local Launchpad — Master Context Document
+
+
+
+
+      The first thing we fix is how you show up when people search for what you do. And
+      before our call I pulled some numbers together. Across LOCATION X, Y & Z, there are
+      roughly ABC searches every month for X SERVICES. (SEND OVER THE AHREFS
+      SEARCH VOLUME IMAGE) And I've just sent over a screenshot on WhatsApp so you
+      can see the numbers I'm looking at.
+
+      Now the good news is that means the demand already exists. We don't need to
+      convince people they need X SERVICE. They're already searching for it. The problem
+      is they're currently finding somebody else. So for example, when I type those
+      searches into Google, these are the businesses showing up first. (SEND OVER THE
+      SCREENSHOT OF THE TOP 3 ON GOOGLE) And that's important because the
+      businesses in the top 3 of Google get around 60% of the leads and calls. (SEND
+      OVER THE TOP 3 ON GOOGLE GET 50-60% OF THE CALLS IMAGE)
+
+      So the demand is there. The goal is simply to make sure more of the people already
+      looking end up finding you instead.
+
+      Actually, before I move on, let me show you something. So I've put together a quick
+      example of what this could look like for your business. Obviously it's not finished, but
+      it'll give you a good idea of the sort of thing we'd be building.
+
+  Pillar 2, Turn searches into calls:
+
+
+
+
+                                                                                          Page 16 of 74
+Local Launchpad — Master Context Document
+
+
+
+
+      Now getting found is only half the battle. Just because somebody finds your
+      business doesn't mean they actually call you. And this is where most websites fall
+      down. They're built to look nice. They're not built to generate enquiries.
+
+      So when somebody lands on the site they're asking themselves a few questions: 1,
+      Can these guys actually do what I need? 2, Have they done it before? 3, Can I trust
+      them? 4, And how do I get in touch? If the website doesn't answer those questions
+      quickly, people leave and go to the next company.
+
+      That's why your website that I sent you isn't just designed to rank on Google. It's
+      designed to convert visitors into phone calls. You've got clear service pages. Clear
+      areas covered. Reviews. Photos. Examples of work. Strong calls to action. So
+      everything is built around one goal: turning somebody who's interested into
+      somebody who actually picks up the phone. I've just sent over a quick image that
+      explains the process.
+
+      So before we even talk about missed calls or follow-up systems, this alone usually
+      increases the number of enquiries businesses get because more people choose them
+      once they land on the site. Does that make sense?
+
+  Pillar 3, Never miss an opportunity:
+
+
+
+
+                                                                                           Page 17 of 74
+Local Launchpad — Master Context Document
+
+
+
+
+      Now even if we get you found and even if more people choose you, there's still one
+      massive leak that most businesses have. Missed opportunities. And I don't mean
+      because you're doing anything wrong. I mean because you're busy. You're on a job.
+      You're driving between jobs. You're with a customer. You're quoting. You're running
+      the business you know… And while that's happening, the phone rings. Nobody
+      answers. And that customer simply calls the next company on the list. I've just sent
+      over a quick image that explains what I mean. (SEND PHASE 3 IMAGE)
+
+      The reality is most customers don't leave voicemails anymore. They don't sit around
+      waiting for a callback. They just move on. So one of the first things we install is a
+      missed call text-back system. That means if somebody calls and you can't answer,
+      they instantly receive a text letting them know you've got their enquiry and you'll be
+      in touch. So rather than losing the opportunity completely, the conversation stays
+      alive.
+
+      For businesses that want to go a step further, we can also add an AI receptionist. That
+      gives you a few seconds to answer the call yourself, but if you can't, it picks up,
+      answers basic questions, qualifies the enquiry and can even help book the job into
+      your diary.
+
+      The goal is really simple. If somebody is ready to spend money with you, we want to
+      make sure they don't disappear simply because you were busy doing the work. Does
+      that make sense?
+
+
+  Pillar 4, Reviews and referrals:
+
+
+
+
+                                                                                         Page 18 of 74
+Local Launchpad — Master Context Document
+
+
+
+
+      Now the final piece of the pie is probably the easiest money in your entire business.
+      Your existing customers. Because most businesses spend all their time chasing new
+      work while completely ignoring the people who've already paid them. The job gets
+      finished. The invoice gets paid. And the customer disappears. No review. No referral.
+      No follow-up. No repeat business. I've just sent over a quick image that explains what
+      I mean. (SEND PHASE 4 IMAGE)
+
+      The first thing we install is a review engine. Now a lot of people tell me they've
+      already got plenty of reviews. And that's great. But the issue isn't necessarily how
+      many reviews you've got. It's how consistently they're coming in. Because from
+      Google's point of view, fresh reviews are a signal that you're still actively doing work
+      and still providing a good service. So the goal isn't just more reviews. It's making sure
+      fresh reviews are coming in consistently month after month. That helps build trust
+      with customers and strengthens your position on Google over time.
+
+      The second thing we do is encourage referrals. Most businesses get referrals by
+      accident. We simply put a system in place that helps generate more of them.
+
+      And finally, we stay in touch with past customers. Because most businesses are
+      sitting on hundreds of people who've already trusted them once and would happily
+      use them again if they stayed front of mind. So instead of constantly chasing new
+      work, we help you generate more value from the customers you've already got.
+
+      And when you combine that with everything we've already discussed... People can
+      find you. More people choose you. Fewer opportunities slip through the cracks. And
+      every customer becomes more valuable. That's when you've got a real system behind
+      the business.
+
+  Simple summary:
+
+      So the whole thing is designed to give you one system that gets you found, gets you
+      calls, makes it more predictable, and gives you an asset you actually own. And that's
+      why it's different from just building a website, paying for leads, or trying a bit of SEO.
+
+
+  E, Explain away concerns
+
+
+
+
+                                                                                             Page 19 of 74
+Local Launchpad — Master Context Document
+
+
+
+
+      Soft temperature check: So, based on everything we've gone through, what's your
+      initial reaction? (If positive: "Yeah, makes sense," move forward. If hesitant: "What's
+      the main thing you're unsure about?" then handle.)
+
+      Investment: The way it works is simple. We're currently doing this for £97 per month.
+      That includes the website build, Google profile optimisation, review system, missed
+      call text-back, repeat customer/referral systems, and the ongoing support. The only
+      thing to know is we only work with one trade per area. So if we take you on for
+      {{TRADE}} in {{AREA}}, we won't then go and do the same thing for your direct
+      competitor. (Then silence.)
+
+
+  Common concerns:
+
+
+
+
+                                                                                            Page 20 of 74
+Local Launchpad — Master Context Document
+
+
+
+
+      "Why is it so cheap?" Completely fair question. The honest answer is we're rolling this
+      out in the UK right now and I'd rather get strong local examples, testimonials, and
+      results than charge a big setup fee upfront. It won't stay at £97 forever, but for the
+      first group of businesses we bring on, that's where it is.
+
+      "I need to think about it." Yeah, of course. When you say think about it, what
+      specifically do you feel you need to think through? (Let them answer.) Completely
+      fair. Just so I understand, is it the price, whether it'll work, or whether now is the right
+      time? (Handle the real answer. If vague:) Totally. The only reason I ask is because
+      usually when someone says they need to think about it, there's normally one specific
+      thing underneath it. I'd rather talk through that properly with you now than have you
+      go away with unanswered questions.
+
+      "I need to speak to my partner/wife/business partner." Yeah, that makes sense. Just
+      so I know, what do you think they'd be unsure about? (Let them answer.) Got it. So it
+      sounds less like they'd be against the idea and more like they'd want to understand
+      {{CONCERN}}. Is that fair? (Handle that concern.) If they were comfortable with
+      that, would you want to go ahead?
+
+      "Will this definitely get me jobs?" I'd never sit here and promise an exact number of
+      jobs, because that wouldn't be honest. What I can say is this: right now there are
+      clear gaps in how you're being found, how enquiries are being captured, and how
+      follow-up is being handled. What we're doing is fixing those gaps. So the question
+      isn't 'can anyone guarantee X jobs?' The question is: would your business be in a
+      better position with all of this installed than without it?
+
+      "I already have a website." Yeah, and that's actually a good thing. It means you already
+      understand you need some sort of online presence. The issue is most websites are
+      built to exist, not to generate work. So the question isn't really 'do you have a
+      website?' It's 'is the website actually getting you found, getting you calls, and making
+      work more predictable?' From what we've gone through, it doesn't sound like it's
+      doing that yet.
+
+      "I already tried SEO." Yeah, and SEO can work. The issue is most SEO only solves one
+      part of the problem. It might help you get found, but it doesn't necessarily fix the
+      website, the calls, the reviews, the missed enquiries, or the repeat/referral side.
+      That's why this is more of a complete local system rather than just SEO.
+
+      "Can you send me the link and I'll pay later?" I can send it over, but what I'd rather do
+      is get it sorted while we're on the phone. Only because if anything doesn't work or
+      you've got a question, I'm here to help. And once it's done, I can secure your area and
+
+
+                                                                                              Page 21 of 74
+Local Launchpad — Master Context Document
+
+
+
+
+      get the onboarding sent over straight away.
+
+
+  R, Reinforce their decision
+
+      Once they say yes: Good decision. I genuinely think this makes a lot of sense based
+      on what you've told me. I'll send the payment link over now. (Send payment link.)
+
+      Once that's done, I'll send over the onboarding form. That'll collect everything we
+      need from you: business details, services, areas, Google profile access, domain
+      details, photos, reviews, all of that. Then we'll start getting the Google side sorted
+      and building the full version from the preview I showed you. And just to confirm, once
+      you're in for {{TRADE}} in {{AREA}}, we won't take on another direct competitor in
+      that same area.
+
+      After payment: Nice one, you're all set. What happens now is really simple. First, I'll
+      send the onboarding form. Then we'll get the Google Business Profile and website
+      structure sorted. Then we'll build out the core pages. Then we'll get the review and
+      follow-up systems in place. You'll also get the review card pack sent out, and I'll make
+      sure we put aside the {{RED/BLUE}} one you chose. Good move. I think you'll be really
+      happy once this is all up and running.
+
+
+  Note: the price lines in the script say £97 per month. Update when the £291 per quarter
+  price lands.
+
+
+  7. Client onboarding: welcome video, launchpad box, review and
+  discount cards
+  Onboarding opens with a welcome video, runs through a series of short videos and
+  questions over 15 to 20 minutes, and every client gets a physical launchpad box.
+
+
+
+
+                                                                                          Page 22 of 74
+Local Launchpad — Master Context Document
+
+
+
+
+  The welcome video script (in full)
+
+      Hello and welcome to Local Launchpad!
+
+      Firstly, I just want to say thank you. The fact you've chosen us to help grow your
+      business genuinely, it means a lot, and we're incredibly excited to get started.
+
+      Now from today onwards, you've got a team behind you that only wants to see your
+      business succeed and grow. So whether you've got a question about your website,
+      Google, marketing, or you simply want a second opinion on something, don't ever
+      hesitate to reach out. I'm only ever a WhatsApp message away, and I'm always happy
+      and here to help.
+
+      As you're watching this, you're officially one step closer to your new website being
+      built, and we're going to do everything we can to put your business in the best
+      possible position to generate more enquiries.
+
+      Now, I also want to set one expectation from the very beginning. SEO isn't an
+      overnight game. As much as we'd all love your phone ringing off the hook the day your
+      website goes live, that's just not how this works. Google rewards businesses that
+      consistently prove they're the best choice for their customers. So every page we
+      build... every review you collect... and every optimisation we make… it all builds
+      momentum. The businesses that dominate Google aren't usually the ones with the
+      biggest budgets, they're the ones that consistently do the right things over time.
+      That's the journey we're about to go on together. Because from today as I said…
+      we're on the same team.
+
+      Now, depending on how much the team or I gave away when we first spoke, this next
+      bit might not be a surprise… But every Local Launchpad client receives one of
+      these… (Hold up the onboarding box.) This is your launchpad box, and it's packed
+      with resources to help you generate more enquiries consistently.
+
+      The first, and probably the most important thing you'll find when you open it up, are
+      your review cards. These are designed to help you collect more Google reviews from
+      happy customers, because reviews are one of the biggest ranking factors for local
+      businesses like yours. A little later in this onboarding, we'll ask you to upload your
+      logo so we can personalise these cards with your own branding before they're sent
+      out.
+
+      There's of course a few other goodies inside the box as well… but I'm going to keep
+      those a surprise so I don't spoil the unboxing fun when it arrives at your doorstep.
+
+
+
+
+                                                                                           Page 23 of 74
+Local Launchpad — Master Context Document
+
+
+
+
+      Now, the video you're watching right now is actually just the first step. Over the next
+      15 to 20 minutes I'll guide you through the rest of your onboarding. There'll be a series
+      of short videos and questions, and by the end of it we'll have everything we need to
+      start building your website, optimising your Google Business Profile, and getting the
+      ball rolling.
+
+      And don't worry if you don't know every answer to every onboarding question. If
+      you're unsure about anything, skip it, and we'll work through it together later on.
+
+      Once again, thank you for putting your trust in Local Launchpad. We genuinely can't
+      wait to see where your business is in the next 6, 9, 12 months and beyond. Let's build
+      something incredible together. I'll see you in the next video.
+
+
+  The launchpad box
+       Every client receives one. It is positive reinforcement and it is mentioned on the sales
+       call ("goodies", red or blue, the client picks a colour).
+       Contents on record: an A5 review card with a QR code to the client's Review Us page,
+       and discount business cards with a QR code to their Discount Funnel. Other goodies
+       are kept a surprise.
+       Cards are personalised with the client's logo, which is why the onboarding form asks
+       for the logo upload.
+       The QR codes are dynamic. The destination URL can be changed later without
+       reprinting.
+       Brandon generates the QR codes, sends them to print and includes them in the box.
+       Because client domains can take days to connect, the QR pages used to be built inside
+       the Local Launchpad GHL sub-account first, so the box could be printed and posted
+       immediately after signup. Where those pages live on WordPress is not yet decided.
+
+
+  The review funnel (how review cards work)
+       A landscaper client hands a review card to a customer after, say, a pergola build.
+       The customer scans the QR code. It opens a funnel with 1 to 5 stars.
+       4 or 5 stars goes straight to Google.
+       1, 2 or 3 stars goes to a private feedback form where the customer can vent.
+       This protects the client's GBP from anything under 4 stars. People could still go straight
+       to Google, but it adds a layer of protection.
+
+
+
+
+                                                                                            Page 24 of 74
+Local Launchpad — Master Context Document
+
+
+
+
+  Onboarding tooling
+       The current onboarding form is built in Fillout ("Local Launchpad Onboarding"), with
+       pages: Welcome, Business Information, Niche Type Flow, several Services & Locations
+       pages (one per niche branch), and a final page. Conditional logic routes clients to their
+       niche's services page.
+       Earlier material described a six-page custom HTML onboarding funnel with a dark
+       design system, Fillout for the forms, and Leadsie for OAuth access to GBP, GoDaddy,
+       Squarespace and WordPress.
+       VideoAsk was used for onboarding earlier. Its 26-option multiple-choice limit was what
+       capped the niche list at 26 at the time. It is unclear whether VideoAsk is still live.
+       Domain registrar access flows were researched for IONOS, 123 Reg, Fasthosts,
+       Namecheap and Wix.
+       Older GHL-era onboarding used Google Forms per niche ("Gardener/Landscaper Local
+       Launchpad Onboarding Form"; plumber and electrician were TBC).
+       The form deliberately omits duplicate GBP services to reduce client confusion.
+       Brandon maps ticked services to the correct GBP categories on the back end.
+       A client-facing guidebook exists, working title "Not a Secret, a System", written chapter
+       by chapter from dictated notes in the style of Hormozi's $100M Offers.
+
+
+  8. Current onboarding form: every question as it stands
+  Taken from the Fillout editor screenshots dated 2 October 2026 and the two form images.
+  Required questions are marked with an asterisk. Help text is in italics.
+
+
+  Page: Business Information
+   1. Full Name *
+   2. Your Official Business Name *
+   3. Business/Primary Email * (The email that should be receiving enquiries)
+   4. Business Phone Number * (Wherever you want to be notified when you have a new
+       lead)
+   5. Link to your current website (if you have one)
+   6. Who currently manages your website (if you have one) * (For example: built by a local
+      web designer)
+
+
+
+
+                                                                                                Page 25 of 74
+Local Launchpad — Master Context Document
+
+
+
+
+   7. Do you have access to your domain (website address)? * (Your domain is usually
+       managed through a provider like GoDaddy, Namecheap, 123-reg, or similar. If yes, please
+       confirm which provider below. If you're unsure, write "not sure")
+   8. Do you already have a Google Business Profile? (If yes, please paste the link below)
+   9. Do you currently have Google Analytics or Google Search Console set up on your
+       website? (If yes, please paste the email address that has access below. If you're unsure,
+       just write "not sure")
+ 10. Do you have a UK registered limited company? * (If so, please provide your registered
+       company number below. UK limited companies are legally required to display their
+       registered company number on their website, and we will include this in your website
+       footer)
+ 11. Postal Address * (This should be the address where you receive business
+     correspondence and mail)
+ 12. Business Address * (Please provide your business address below. Where possible, we
+       recommend displaying your address on your Google Business Profile to help strengthen
+       your local presence. If this is not currently set up, we'll guide you through the process. If
+       you would prefer not to display your address publicly on Google, please let us know
+       below and we can set your profile up as a service area business instead)
+ 13. Do you offer any workmanship guarantees or warranties? * (If yes please provide
+       details)
+ 14. Do you offer finance or payment plans for larger jobs? (If yes, please provide details
+     below)
+ 15. Are you fully insured and licensed for the services you provide? * (If yes please provide
+       details)
+ 16. Do you have public liability insurance? If yes, what is your cover amount? *
+ 17. Are there any certifications, accreditations, or memberships you'd like displayed? *
+       (Examples: Gas Safe, NICEIC etc)
+ 18. Do you currently have cancellation policies or service terms? (If yes please provide
+     them below)
+
+
+  Page: Services & Locations
+ 19. Please list the locations you serve * (Please start by entering the town or city where
+     your business is based. Then list all the surrounding towns, cities, villages, suburbs and
+       areas where you'd like to win more work. We'll use this information when building your
+
+
+
+
+                                                                                             Page 26 of 74
+Local Launchpad — Master Context Document
+
+
+
+
+       website and optimising your Google Business Profile. Example: Primary Location:
+       Southampton. Other Areas Covered: Romsey, Eastleigh, Hedge End, Chandlers Ford,
+       Totton, Hythe, Fareham)
+ 20. Are there any nearby locations you do NOT want to cover? * (Please list any towns,
+       cities, villages, or areas within approximately 20 miles of your primary location where
+       you do not want to receive enquiries)
+ 21. What is the maximum distance you're realistically willing to travel for work? * (This
+       helps us set up your Google Business Profile service area correctly. Keep in mind that
+       Google typically ranks businesses within 10-15 miles of their location, so we'll focus your
+       profile on areas where you're most likely to actually appear in search results)
+ 22. What makes your business stand out? * (Tick anything that applies): Family-run
+     business; Same-day quotes; Fixed pricing / no hidden costs; Finance options available;
+       Manufacturer approved / accredited; No subcontractors (all in-house team); Award-
+       winning business; Environmentally conscious / sustainable practices; Other (please
+       specify in next question)
+ 23. Is there anything else that makes your business stand out that wasn't covered above?
+ 24. What's your business's hours of operations (e.g. 9 am to 5 pm Monday - Saturday) *
+ 25. Approximate monthly number of enquiries you currently receive *: 0-10; 10-25; 25-50;
+       50+
+
+  (Note shown on the form: the service options below come directly from Google Business
+  Profile and are often quite limited. Don't worry if some of your main services aren't listed.
+  On the next question, you'll be able to select from a much more comprehensive list of
+  additional services we commonly see in your industry, and after that you'll have the
+  opportunity to add anything we've still missed.)
+
+ 26. GBP category tick boxes, one block per category. Tick every service you currently offer
+     or actively want more work from. For the landscaper branch the blocks are:
+            Gardener: Lawn mowing and maintenance; Fencing installation; Garden work; Grass
+            seeding; Hedge trimming; Landscape design; Lawn pest control; Mulching; Weed
+            control
+            Landscape Gardener: Artificial turf installation; Concrete masonry; Desert
+            landscaping; Driveway landscaping; Driveway or path paving; Garden decorating;
+            Garden design; Gardening services; Grading and resloping; Green landscaping;
+            Groundskeeping; Hardscaping; Hydroseeding; Landscape installations; Landscape
+            management; Landscaping design; Landscaping maintenance; Lawn care; Lawn
+            landscaping; Outdoor step construction; Outdoor water feature design; Pool
+
+
+
+
+                                                                                            Page 27 of 74
+Local Launchpad — Master Context Document
+
+
+
+
+            landscaping; Retaining walls; Rock landscaping; Sod installation; Stone landscaping;
+            Stonemasonry; Tree landscaping; Path landscaping; Garden drainage; Garden
+            levelling; Garden landscaping
+            Landscape Designer: Custom landscape design; Drainage solutions; Landscape
+            architecture services; Landscape design construction; Patio design; Pond
+            maintenance; Retaining wall design; Turf management; Garden designs
+            Lawn Care Service: Irrigation system repair and maintenance
+            Tree Service: Cabling and bracing; Tree stump removal; Tree planting; Tree removal;
+            Tree stump grinding; Tree transplanting; Tree trimming and pruning
+            Paving Contractor: Asphalt milling; Asphalt paving & repair; Asphalt recycling;
+            Asphalt resurfacing; Brick paver installation; Bumper block and post installation;
+            Concrete work; General construction; Pavement crack filling and sealing; Paving-
+            related drainage; Driveway installation; Driveway repairs; Driveway replacement;
+            Driveway sealing; Excavation & grading; Hauling; Paving line striping; Car park repair
+            and maintenance; Car park striping; Patio paving; Paver installation; Paver sealing;
+            Road materials recycling; Road construction; Sealcoating; Paving job site
+            preparation; Street maintenance
+            Deck Builder: Composite decks; Deck cleaning; Deck design; Deck installation; Deck
+            painting; Deck railing repair; Deck refinishing; Deck remodeling; Deck repair; Deck
+            replacement; Fence building; Patio decks; Patio enclosure construction; Pergola
+            construction; Porch construction; Wood staining; Wood deck construction
+ 27. Landscaper Additional Services (popular services not available as GBP options):
+       Garden clearance; Planting; Garden edging; Bark chipping; Decorative bark installation;
+       Decorative gravel installation; Garden lighting installation; Outdoor lighting; Sleeper
+       installation; Raised flower beds; Garden office bases; Shed installation; Greenhouse
+       installation; Garden maintenance for commercial properties; Commercial grounds
+       maintenance
+ 28. Any Other Services? (If you offer any services that weren't included in either of the
+       previous sections, please list them below. Be as specific as possible. Rather than writing
+       broad terms like "roofing" or "landscaping", break your services down into the individual
+       jobs you carry out. Even if it's a service you only provide occasionally, please include it)
+ 29. Which types of jobs would you like MORE of? * (Please list up to 5 services that are
+     most valuable to your business)
+ 30. Are there any types of jobs you DO NOT want?
+
+
+
+
+                                                                                              Page 28 of 74
+Local Launchpad — Master Context Document
+
+
+
+
+  Page: business background and photos
+ 31. When did you start trading? Ideally the day, month & year *
+ 32. Are you family run / independent? *
+ 33. How many people are currently in your team? *
+ 34. Roughly how many jobs have you completed in the business since it started? *
+ 35. How quickly can you typically get started on a new job? (think an average job) *
+ 36. Do you offer free quotes / free site visits? *
+ 37. Do you accept emergency appointments? If so is it 24/7 callouts or different? please
+     specify (If yes, please provide details, including operating hours)
+ 38. Photos do a LOT of the heavy lifting on your website. * (Once you've completed this
+       form, please WhatsApp me as many photos as possible, including: your company logo;
+       completed projects; before & after photos; work in progress; vehicles; equipment; a
+       photo of you and/or your team (a quick selfie is perfectly fine). The more photos you
+       can provide, the better.) Option: "Ok I'll WhatsApp them to you!"
+ 39. Please upload your logo and any brand assets here (If you don't have a logo yet, let us
+       know and we'll flag it for design. Please still WhatsApp us project/team photos
+       separately as before)
+
+
+  Page: social, reviews and resources
+ 40. Your business Instagram page (please copy and paste the link)
+ 41. Your business Facebook page
+ 42. Your business YouTube page
+ 43. Please provide links to any review platforms, directories, or trade association profiles
+       your business is listed on (Examples: Checkatrade, TrustATrader, MyBuilder, Yell,
+       Trustpilot etc)
+ 44. Do you currently have customer reviews on any platforms? (Examples: Google,
+       Facebook, Checkatrade, TrustATrader. Please paste links if possible)
+ 45. Do you have any customer testimonials or short success stories you'd like featured? (If
+     so please detail below or provide links)
+ 46. Have you won any awards, or been featured in local press, trade publications, or
+       industry lists?
+ 47. Do you have any resources you'd like us to feature or reference on your website?
+     (Examples: brochures or service guides; PDF downloads; news articles or press
+       coverage; awards or accreditations; case studies; videos; useful customer resources.
+
+
+
+                                                                                           Page 29 of 74
+Local Launchpad — Master Context Document
+
+
+
+
+       Please provide links or upload any relevant files below)
+ 48. Is There Anything Else We Should Know? (Please provide any additional information
+       that may help us build your website more accurately. Examples: things that make your
+       business different; services not mentioned elsewhere in this form; important
+       information about your customers; competitors whose websites you like; common
+       customer questions; sales materials, price lists, or internal documents; anything you feel
+       we've missed)
+
+  Only the landscaper services branch was captured in the screenshots. The other niche
+  branches follow the same pattern (GBP category blocks, additional services, any other
+  services) with their own lists.
+
+
+  9. Onboarding questions we do not ask yet but need to
+  The copy is only as good as the onboarding answers. The Edens Edge test run of the v2
+  homepage spec found only three usable facts on the whole form (free quote, fixed price,
+  same week start), and they repeated across the hero, three sections and three FAQs.
+  These are the gaps on record, from the Homepage Template v2 work and the Edens Edge
+  test. They are recommendations, not yet added to the form.
+
+
+  Blocks the homepage from being written at all
+       Owner block, all niches: qualifications; why you started the business; what you
+       personally promise every customer. Section 8 (Meet the owner) cannot be written
+       without these.
+       Quote method: phone estimate, site survey, video survey or fixed written quote. The
+       current free quotes question only gives yes or no.
+       Response time: how quickly do you reply to an enquiry. (The form asks how quickly you
+       can start a job, which is different.)
+
+
+  Per business type
+       Pet services (dog walking, training, grooming): training body or grooming qualification;
+       methods used (force free, reward based); pet first aid; DBS; maximum dogs per walk;
+       where walks happen; insurance that covers animals in care; meet and greet policy.
+       Recurring property services (cleaning, window cleaning, pressure washing, pest
+       control, maintenance): visit frequencies offered; minimum visit; key holding and DBS;
+       products used (eco, pet safe); re-clean or satisfaction policy; domestic versus
+
+
+
+
+                                                                                          Page 30 of 74
+Local Launchpad — Master Context Document
+
+
+
+
+       commercial split.
+       Removals: BAR membership; goods in transit cover figure; packing and storage offered;
+       access limits (floors, parking).
+       Big-ticket projects (extensions, lofts, kitchens, large landscaping): planning handled in
+       house; staged payments; typical project length.
+       Emergency overlay (locksmiths, drainage, plumbing, electricians, pest control, roofers,
+       garage doors, tree surgeons): typical response time to an emergency; callout fee or
+       pricing method. (The form asks whether emergency appointments are accepted, not
+       the response time or fee.)
+
+
+  All niches
+       Community involvement: sponsorships, local clubs, charity work. The awards question
+       does not capture this.
+       Customer split: percentage domestic, landlord, commercial, so [CUSTOMER_TYPE] is
+       not a guess.
+       Working practices generally. The tick boxes produce claims with nothing behind them.
+       The form needs questions that surface how the business actually works.
+
+
+  Fields already on the form that the copy should use and did not
+       Team size: trust line candidate "A team of [team_size] across [CITY]".
+       Finance or payment plans: big-ticket section 5 and FAQ.
+       Cancellation policy: recurring and pet FAQ.
+       Discounts for return customers: final CTA line for recurring and pet niches only.
+
+
+  Answer quality
+       Unusable answers come back as text, not blank. Examples from Edens Edge: hours as
+       "baso light till light", founding year as "few years back".
+       Recommendation on record: add a step where someone turns form answers into clean
+       custom values before the copy bot runs. Anything unusable becomes blank. With Girlie
+       gone, this step needs an owner.
+       Edens Edge answers were sourced from screenshots and WhatsApp when the
+       uploaded xlsx could not be read. Insurance was explicitly excluded by Ethan. Sunday
+       hours were unconfirmed. Google rating and count were blank (no reviews yet).
+
+
+
+
+                                                                                           Page 31 of 74
+Local Launchpad — Master Context Document
+
+
+
+
+  10. The scaling plan (Brandon, 3 October 2026)
+  The plan is to automate a large chunk of delivery so the business is never supply-
+  constrained. This section is Brandon's plan in his own structure.
+
+
+  Why GoHighLevel was dropped
+       A previous team did everything in GHL. The issue: there is not a ton that can be
+       automated in GHL.
+       All website pages were templatised, but creating them was manual. A client with 40
+       services needing 42 service pages meant 42 manual copy-and-paste jobs. Even at half
+       an hour, that is half an hour lost.
+       GHL could not take large text blocks pushed by automation.
+
+
+  What the copy bot produces
+  A copywriting bot hosted on Railway outputs every piece of copy per page:
+
+       H1s
+       H2s
+       H3s
+       Meta descriptions
+       Meta titles
+       Schema
+       The entire website copy
+       What the internal linking should be
+       The whole lot
+
+  It takes about 20 minutes to feed the bot, including the client's onboarding form and all
+  the information. The sitemap is fed into the Railway copy bot. It determines how many
+  pages are needed from the sitemap and creates all the copy.
+
+
+  How it will work on WordPress
+   1. Templates are built in WordPress (say a service page template).
+   2. A client needs 42 service pages. Railway and WordPress talk to each other over the
+      REST API and create those 42 pages from the template.
+   3. The bot pushes the copy to each section of each of those 42 pages, and all the other
+       pages needed.
+
+
+
+                                                                                          Page 32 of 74
+Local Launchpad — Master Context Document
+
+
+
+
+   4. Within a matter of hours, every bit of website copy is pushed and in WordPress, almost
+      ready to go.
+
+
+  The manual part
+       Ray: gets the copy working and everything pushed to WordPress as it needs to be. Also
+       all the Google Business Profile work.
+       Given: once everything is pushed, gets the relevant images, fonts, colours and
+       branding into the client's website.
+       Ray and Given between them check it over and launch it.
+
+
+  Existing website versus no website (unresolved)
+       Some clients join with no website at all. Some join with a website that has been live for
+       10 years.
+       For the second group, we do not want to crash and tank the authority the domain has.
+       What happens if they do have one versus if they don't is a defined area of work. No
+       website is easier. With a website, the transfer process needs working out. Brandon
+       does not have the answer yet.
+
+
+  Google Business Profile
+       GBP is just as important as the website, or can be.
+       Ray does everything from optimisation of which categories and services should be on
+       there, to the client's hours, that kind of thing.
+       LeadSnap will be used to auto-post onto the GBP and to do review management. A 5-
+       star or a 1-star review gets an AI-generated response, to show we are engaged with
+       customers.
+       The LeadSnap decision was logged earlier as an open decision (LeadSnap or
+       alternatives). The brain dump says LeadSnap. Treat LeadSnap as the plan.
+
+
+  SOPs
+       Brandon has been trying to SOP everything out from the start.
+       The current SOP (section 13) has been inactive since July, so a lot of it is not right.
+       Everything relating to GHL is outdated. GHL custom values do not apply to WordPress;
+       a different form of custom values is needed.
+       The sitemap example in the SOP material has errors for the same reason.
+
+
+
+                                                                                           Page 33 of 74
+Local Launchpad — Master Context Document
+
+
+
+
+       It still shows what the process could and should look like. It is a base, with a lot of work
+       to do.
+
+
+  11. Core 30 methodology (Caleb Ulku)
+  Core 30 is a site structure of about 30 pages that mirror the client's GBP categories and
+  services exactly, linked by editorial links, sitting on a fully optimised GBP.
+
+
+  Caleb's framing
+  Three glasses to fill: proximity, relevance and authority. Core 30 fills relevance. Links fill
+  authority. Proximity is where the business is.
+
+
+  The GBP audit
+       Categories: a primary category plus secondary categories. Services sit under
+       categories.
+       Fill every box. An empty profile signals the business may not exist, be spam, or not
+       care.
+       Business description: target the full 750 characters.
+       Photos: at least 20 (exterior, interior, team, work in progress). Phone photos are
+       geotagged automatically.
+       Attributes: check every one that applies; if it does not apply, still check it and say no.
+       The audit takes about half an hour and puts a business ahead of 90% of local
+       competitors.
+       Management automation through LeadSnap: scheduled GBP posts, geotagged photo
+       uploads, AI review responses (about 25 seconds to set up), and citations to Apple
+       Maps, Bing for Business, Yelp and the major directories. Set up once, GBP stays active
+       all year.
+
+
+  Where the 30 comes from
+  A GBP with three to four categories and 20 to 30 services gives one homepage, three to
+  four category pages and 25 to 30 service pages. These 30 pages create the topical
+  relevance Google needs before it ranks a business in a competitive market. Caleb's
+  example: a Plano plumber went from position 17 to 2.35 average.
+
+
+
+
+                                                                                             Page 34 of 74
+Local Launchpad — Master Context Document
+
+
+
+
+  Page types and the H1 formula
+  The H1 is a clean keyword only. No persuasion copy, no embellishment. Non-negotiable in
+  Local Launchpad's version.
+
+
+    Page type                         H1 and target keyword             What the page does
+
+    Homepage                          Primary GBP category + primary    The GBP landing page (the URL in
+                                      city                              the GBP website field). Each
+                                                                        secondary category gets an H2,
+                                                                        50 to 100 words (what it is, why
+                                                                        customers need it, what services
+                                                                        fall under it, how good you are at
+                                                                        it) and an editorial link to its
+                                                                        category page. Three to four
+                                                                        editorial links out
+
+    Category page                     Category name + city (e.g.        Lists the services most relevant to
+                                      drainage service Houston)         that category. Each gets an H2, 50
+                                                                        to 100 words and an editorial link
+                                                                        to its service page. Five to ten
+                                                                        links out
+
+    Service page                      Service name + city (e.g. water   Detailed, specific content about
+                                      heater replacement Houston)       that service in that city: why
+                                                                        customers need it, what it
+                                                                        includes, how long it takes, what
+                                                                        to expect. Not generic advice
+
+    Location page                     Category name + location          Geographical relevance,
+                                                                        expanding outward from the
+                                                                        business address
+
+    Location +                        Category + town                   Secondary template. A cap of 3 to
+    category page                                                       5 strongest-evidence pages per
+                                                                        client at launch was
+                                                                        recommended
+
+
+       The homepage H1 must be the broadest trade umbrella term.
+       If the highest-volume Ahrefs result matches a category page H1 exactly, broaden the
+       homepage to a trade-level term to avoid keyword cannibalisation.
+
+
+
+
+                                                                                                      Page 35 of 74
+Local Launchpad — Master Context Document
+
+
+
+
+       Category pages are essential, not optional. They are the middle layer between
+       homepage and service pages and mirror GBP structure.
+       Homepage links to category pages, category pages link to service pages. It mirrors the
+       GBP exactly.
+       Open decision on record (28 Sept): Caleb's SEO In Real Life episodes also describe an
+       H1 of primary category + city + a reason for goal completion. Local Launchpad has gone
+       with the clean keyword rule; it is flagged as still up for debate.
+       On the Edens Edge run the system generated 191 pages across the five page types (198
+       before primary-city duplicates were filtered).
+
+
+  Editorial links versus navigation links
+       Navigation and footer links barely pass authority. Google knows they are site structure,
+       not endorsements.
+       Editorial links, links inside the content, pass real authority. Google reads them as this
+       page recommending that page.
+       In Local Launchpad templates, editorial links are inline hyperlinked text inside body
+       copy, never standalone buttons or card-level links. Every template needs at least one
+       paragraph-level body copy field to carry them.
+
+
+  The 8 consistency signals
+  Google checks that the website and the GBP belong to the same business. Fail this and
+  you do not rank in a competitive market. Caleb lists seven plus a bonus eighth. Local
+  Launchpad treats all eight as mandatory on every page.
+
+   1. Title tag includes the primary category and the city (e.g. Houston plumber same day
+       service brand name). Over 60% of local businesses have "Home" or just the business
+       name.
+   2. H1 matches: primary category and city.
+   3. Google Maps embed of the GBP location.
+   4. Secondary categories and core services mentioned, ideally in subheadings.
+   5. Review widget displaying Google Business reviews. Live, not static.
+   6. Address matches the GBP character for character.
+   7. Phone number matches the GBP character for character.
+   8. LocalBusiness schema.
+
+
+
+
+                                                                                            Page 36 of 74
+Local Launchpad — Master Context Document
+
+
+
+
+  Caleb's note: ChatGPT and other AI tools check very similar consistency signals when
+  recommending a business. Consistency serves both.
+
+
+  Mandatory page rules (Local Launchpad house rules)
+       FAQ sections never use collapsed accordions. Googlebot cannot expand them, so the
+       content is invisible. This appeared on Edens Edge and on a Louth client and needs a
+       template fix, not per-page correction. Styled question bars are fine; collapsing is not.
+       Static placeholder copy and wrong-location custom values are a recurring QA failure. A
+       final custom-values sanity check is mandatory before handoff.
+       Design differentiation lives in real photography, written copy, page architecture and
+       SEO structure, not homepage layout alone. Template fingerprinting across clients in
+       the same niche and region is a real risk: photography, copy and ideally some structural
+       variation must be real.
+
+
+  Writing the 30 pages
+       Google does not care whether content is AI or human. It cares whether it is helpful.
+       Most AI content is generic, vague, walls of text.
+       Build with AI, then a human editor adds real business personality and voice, images
+       (client photos best, AI-generated works), callouts, tables, headers, bullet points, short
+       paragraphs and internal links.
+       Google evaluates pages on the latest mobile Chrome. A wall of AI slop with no images
+       and no formatting reads as a wall of AI slop.
+
+
+  GBP handling (Local Launchpad rules)
+       Duplicate services in GBP are selected under every applicable category. Each instance
+       is an independent relevance signal.
+       Categories to avoid or handle carefully: Landscape Architect (protected title in the
+       UK), nationally dominated niches (e.g. solar with MCS accreditation), overly broad
+       mixed-intent categories (e.g. "Builders").
+
+
+  Authority: two types of links
+       "This is not AI slop" links: medium-quality external links that validate the content. They
+       need not be local or powerful. Each Core 30 page needs one; each supporting content
+       page needs one too.
+
+
+
+
+                                                                                           Page 37 of 74
+Local Launchpad — Master Context Document
+
+
+
+
+       Local trust links: chambers of commerce (join several; Caleb has joined 10 for one
+       client, each a couple of hundred a year), youth sports sponsorships, local charities,
+       community events, any local organisation with a website that will link to a sponsor.
+       These cost money but build real community connections.
+
+
+  After launch: the decision loop
+   1. 30 days after the Core 30 launches, run a rank map for the target keyword (primary
+      category or a core service plus city).
+   2. Calculate the top 3 percentage: the share of the map in positions 1 to 3. Position 4 and
+       worse is invisible. LeadSnap gives this automatically.
+   3. Below threshold: build supporting topical content. FAQs come from People Also Ask
+       and from Reddit (a prompt crawls Reddit for real local questions). Add the question to
+       the relevant Core 30 page, answer it in a couple dozen words, add an editorial link to a
+       new in-depth supporting page. Keep going until the threshold is hit.
+   4. At threshold: switch to geographical content. Build location pages, expanding outward
+       from the address. Watch the green zone grow on the rank map.
+   5. Dominating everywhere: maintain and defend. Keep GBP active, respond to every
+       review, add services as the business evolves, consider another GBP location, monitor
+       competitors.
+   6. Repeat monthly. A second location gets a new GBP and a new Core 30.
+
+
+  Hard-won delivery lessons
+       New domain SEO timelines are a hard constraint: 6+ months minimum. Paid ads are the
+       short-term lever.
+       Prefer root-cause fixes over symptomatic patches, in the tech stack and in the SOP
+       layer.
+       When debugging Copybot or Claude Code, get raw file contents or debug log output
+       before prescribing a fix. Fixes prescribed without seeing runtime code consistently
+       failed.
+       Caleb's preferred AI tool is Claude. His prompts live in his Skool community.
+
+
+  12. Copybot and the delivery platform: current state
+  Copybot works today as a GHL-era text generator. The WordPress push does not exist yet
+  in its code.
+
+
+
+                                                                                            Page 38 of 74
+Local Launchpad — Master Context Document
+
+
+
+
+  Platform decisions on record
+       WordPress is the build platform. GoHighLevel is no longer used for website builds.
+       Individual WordPress installs per client, not Multisite, managed centrally through WP
+       Remote / MainWP.
+       ACF Pro and the REST API for programmatic content delivery.
+       The homepage mockup reviewed in August 2026 was from the previous developer.
+       Outstanding QA items from it: at least one paragraph-level body copy field per
+       template for inline editorial links; a live Google Reviews widget rather than static text;
+       the placeholder stat block ("110% Improved Property") removed; decorative niche
+       assets scoped per niche template; FAQ accordions fixed at template level.
+
+
+  What Copybot is (from the developer handover, HANDOVER.md)
+       A Node.js app hosted on Railway: server.js, validate.js, db.js, a Postgres database and a
+       password-gated web UI (generate.html, clients.html, client.html, page.html, login.html).
+       Uses the Anthropic API. The model claude-sonnet-4-6 is hardcoded in four places in
+       server.js.
+       Built with Claude Code. Per-page cost was cut by about 93% through the Batch API,
+       prompt caching and resume-from-page logic.
+       Login: local-launchpad-copy-bot-production.up.railway.app/login.html. The password is
+       in the legacy SOP (section 13, Phase 7).
+
+
+  What it takes in
+  The VA uploads files identified by filename keyword:
+
+
+    Input                                   Identified by              What is read
+
+    Page Map CSV                            filename contains "page"   Page Type, Page Title, URL
+                                            and "map"                  Slug, H1 (Ahrefs), Status. Rows
+                                                                       with status done or live are
+                                                                       skipped
+
+
+
+
+                                                                                                 Page 39 of 74
+Local Launchpad — Master Context Document
+
+
+
+
+    Input                                   Identified by                 What is read
+
+    Custom values CSVs (one                 filename contains "cat" or    Key column must be headed
+    per category tab)                       "custom" plus "value"         "GHL Custom Value Key" or
+                                                                          "GHL Key". Value column must
+                                                                          be headed "Value". Rows
+                                                                          starting "← NEEDS FILLING
+                                                                          IN" are skipped. Order
+                                                                          matters: services must follow
+                                                                          their category row
+
+    Onboarding form CSV                     filename contains "onboard"   Two rows, questions then
+                                            or "form"                     answers, zipped into Q/A pairs
+
+    Geo research                            filename contains "geo" or    Plain text or Markdown,
+                                            "research"                    passed straight into the
+                                                                          system prompt
+
+
+
+  What it does
+   1. Maps Page Type to one of five internal types: homepage, category, service, location,
+       location-category (the last uses the Category prompt).
+   2. Skips location-category pages whose location matches biz_area_1, because the main
+       category page already covers the primary city.
+   3. Builds service H1s automatically as page title plus biz_area_1. All other H1s come from
+      the Page Map's H1 (Ahrefs) column. Missing H1s are reported and the VA must fill them
+       before the batch runs.
+   4. Assembles the prompt: CORE prompt for the page type, the trade's calibration pack, a
+      trade override for dog training, then a cached client block (custom values, geo
+       research, onboarding Q/A). The client block is cached so the big prompt is sent once
+       per batch.
+   5. Sends per-page user messages (target page, target category or service, H1, services in
+       this category) with the dash rule restated every time.
+   6. Max tokens: 16,000 for category and location-category, 8,192 for everything else.
+   7. Runs validation (section 14) and saves each page as plain labelled text with a validation
+      issues block at the top.
+   8. Downloads: one full batch txt, per-type txt, or a per-page zip named
+       pageType__slug.txt.
+
+
+
+
+                                                                                                     Page 40 of 74
+Local Launchpad — Master Context Document
+
+
+
+
+  Database
+  Four Postgres tables: clients, client_assets (geo research, onboarding, custom values per
+  client), pages (one row per page, upserts on re-run), batch_jobs. The database is optional;
+  without it the bot runs in memory with sessions expiring after 2 hours.
+
+
+  Calibration packs registered
+
+    File                                                Trade name in dropdown
+
+    Cleaning_Calibration_Pack_v5.md                     Cleaning Company
+
+    Builder_Calibration_Pack_v5.md                      Building Company
+
+    Roofer_Calibration_Pack_v5.md                       Roofing Company
+
+    Dog_Training_Security_Calibration_Pack_v1.md        Dog Training & Security Dogs
+
+    Drainage_Calibration_Pack_v1.md                     Drainage Company
+
+    Landscaper_Calibration_Pack_v4.md                   Landscaper Gardener
+
+
+  To add a trade: drop the .md in the project root and add one line to EXPLICIT_PACK_MAP
+  in server.js. The loader picks the highest-numbered copy of each prompt file
+  automatically.
+
+
+  WordPress status: not started
+  The handover is explicit. There is no WordPress code anywhere in the codebase: no REST
+  API calls, no ACF field mappings, no wp-json endpoints, no WordPress environment
+  variables, no TODOs mentioning WordPress. The bot produces labelled .txt files and
+  stores copy in Postgres. Any WordPress or ACF push has to be built from scratch.
+
+  This contradicts earlier notes that said the REST API integration was "in hand" and the
+  WordPress copy bot was "partially built". Go with the handover.
+
+
+  GHL hardcoding that has to change for WordPress
+       The custom values CSV parser looks for the exact header strings "ghl custom value
+       key" or "ghl key". A different header skips the file.
+       The system prompt labels the client block "GHL Custom Values" (cosmetic).
+
+
+
+
+                                                                                       Page 41 of 74
+Local Launchpad — Master Context Document
+
+
+
+
+       Every {{custom_values.X}} placeholder in the output is GHL syntax. GHL resolves
+       them at render. The bot never resolves them except for title and meta length checks.
+       Porting to WordPress means updating the placeholder syntax in every prompt
+       template and every calibration pack.
+       Four keys are output verbatim in the homepage template regardless of client:
+       google_map_embed, company_twilio_phone, company_email, state. Nothing checks
+       they are populated.
+
+
+  Placeholder keys the prompts use
+
+    Key                                             Where
+
+    biz_area_1                                      Service H1 build, location-category skip,
+                                                    everywhere the primary city appears
+
+    biz_area_2 to biz_area_14                       Areas We Cover bar (1 to 14), footer (1 to 6),
+                                                    FAQs, services headline
+
+    category_1 to category_9                        Services section blocks, subheadings, FAQ
+                                                    text, footer
+
+    service_1 to service_N (also service_X_Y in     Category and location-category service
+    older sheets)                                   cards
+
+    company_name, company_owner_first_name          Reviews headline, footer, Meet the Team
+
+    company_phone_functional                        Sticky bar, VA checklist
+
+    company_twilio_phone                            Contact call button, footer
+
+    company_email, company_address, state           Footer, VA checklist
+
+    google_map_embed                                Map section
+
+
+
+  Planned platform features (not built)
+       Persistent multi-client database on Railway + Postgres (the tables now exist), per-
+       client dashboards, per-page editing and regeneration, shared VA visibility.
+       Work out which pages a client needs, auto-create them in WordPress, push copy to
+       each.
+
+
+
+
+                                                                                             Page 42 of 74
+Local Launchpad — Master Context Document
+
+
+
+
+  Copy spec direction
+       Moving Copybot copy from third person, 10 to 12 word sentences to first person,
+       natural sentences. The legacy prompts still say third person and grade 5 reading level
+       with 10 to 12 word sentences.
+       Homepage Template v2 says a soft cap of 25 words a sentence, paragraphs of 2 to 4
+       sentences, no dashes.
+
+
+  Debugging rule
+  When debugging Copybot or Claude Code, get the raw file contents or debug log output
+  before prescribing a fix. Fixes prescribed without seeing runtime code consistently failed.
+  The placeholder key bug in June 2026 was a CSV header mismatch ("GHL Custom Value
+  Key" versus "GHL Key"), fixed by accepting both.
+
+
+  Tool stack
+
+    Tool                                      Use
+
+    WordPress, ACF Pro, REST API              Client sites and programmatic content
+                                              (integration to be built)
+
+    WP Remote / MainWP                        Central management of client installs
+
+    Railway + Postgres                        Copybot hosting and database
+
+    Anthropic API (claude-sonnet-4-6)         Copybot generation; Industry Normaliser
+
+    Ahrefs (Starter plan), UK country         Keyword research for H1s
+    setting
+
+    Google Business Profile                   Core of the ranking strategy
+
+    LeadSnap                                  GBP posting, review management, rank maps
+                                              (planned)
+
+    Fillout                                   Onboarding form
+
+    Leadsie                                   OAuth access to client GBP, registrar and site
+                                              accounts
+
+    Perplexity                                Geo research
+
+    Google Drive / Docs / Sheets              Client folders (Shared drives > Local Launchpad >
+                                              Clients), SOPs, custom values sheets
+
+
+
+                                                                                           Page 43 of 74
+Local Launchpad — Master Context Document
+
+
+
+
+    Tool                                    Use
+
+    Google Apps Script                      Custom values sheet builder, Page Map
+                                            Generator, Industry Normaliser
+
+    Asana                                   Delivery tracking (GHL era)
+
+    WhatsApp                                All client and team communication
+
+    Canva and Squoosh                       Image resize and compression
+
+    Envato Elements, Unsplash, Pexels       Stock images
+
+    Stape                                   Meta Pixel and Conversions API
+
+    Wistia                                  VSL hosting
+
+    Apollo                                  Lead exports
+
+    OnlineJobs.ph                           VA hiring
+
+    GoHighLevel                             Retired for websites. Still referenced in old SOPs.
+                                            The missed call text-back, chat widget, pipelines
+                                            and review funnels on record were GHL features;
+                                            where those live now is not decided
+
+
+
+
+  13. Legacy delivery SOP (GHL era, July master copy): OUTDATED
+  This is the Website Delivery SOP as it stood in July 2026, phase by phase. Everything
+  specific to GHL is outdated. The sequence, the inputs, the H1 rules, the geo research, the
+  image rules and the QA checks still show what the process should look like on WordPress.
+
+
+  Scope of the VA role (as written)
+  Covered: building and configuring the GHL website; filling custom values; running copy
+  prompts; running geo research in Perplexity; finding H1s in Ahrefs; setting up automations
+  and the chat widget; testing before marking complete.
+
+  Not covered: Google Business Profile (Brandon handled it then; Ray now); domain
+  purchase (confirm with Brandon first); client communication (all through Brandon). UK
+  clients only. Login details sent by WhatsApp.
+
+  Tools: GHL; Claude (Brandon's login); Perplexity (shared account); Ahrefs (Keywords
+  Explorer); Google Drive (client assets); Google Docs (page SOPs and prompts).
+
+
+
+                                                                                          Page 44 of 74
+Local Launchpad — Master Context Document
+
+
+
+
+  Phase 0: before you start
+  Confirm: client Drive folder shared; custom values spreadsheet complete and shared;
+  onboarding form complete; Claude and Perplexity access; whether the domain has been
+  purchased; the client's trade type (it decides the snapshot and prompts).
+
+
+  Phase 1: GHL sub-account setup
+  Create a sub-account from the trade's Local Launchpad snapshot (e.g. Landscaper
+  Snapshot), fill in from the onboarding form, disable all reselling options, switch into the
+  sub-account.
+
+
+  Phase 2: custom values
+  Custom values are the backbone of the site. Every placeholder on every page is driven by
+  them.
+
+   1. Copy the template custom values sheet, name it "[Client Company Name] Custom
+       Values Sheet", save in Shared drives > Local Launchpad > Clients > client folder. Never
+       edit the master.
+   2. Open the client's onboarding form response (Google Forms, per niche).
+   3. Screenshot every section of the response. Upload to Claude with the "What Good
+      Looks Like" reference PDF and the niche's "All Cats & Services" and "Tick Box
+       Categories & Services" PDFs. Run the prompt. Claude generates a client-specific Apps
+       Script.
+   4. Paste the script into Extensions > Apps Script on the client's sheet, run it, allow
+       permissions. 20 to 30 seconds. It builds all tabs, populates all services and applies
+       formatting. Never run it twice on the same sheet; it rebuilds everything and wipes
+       manual changes.
+   5. Run the Page Map Generator script (generatePageMap). It creates a PAGE MAP tab
+      listing every page the site needs: Homepage, Category Pages, Location Pages, Location
+       Category Pages. This replaced the old Copywriting Doc Generator. Never re-run after
+       H1s are entered.
+   6. Enter every value into GHL Settings > Custom Values, row by row, matching key names.
+       Never rename, delete or create fields.
+   7. Send the sheet to Brandon for sign-off, flagging blank fields so he can chase the client.
+
+
+
+
+                                                                                            Page 45 of 74
+Local Launchpad — Master Context Document
+
+
+
+
+  The custom values sheet structure (from the Edens Edge HOW TO USE tab): each tab is
+  one category page; every service in a tab must appear on that category page including
+  yellow duplicate rows; yellow rows are cross-category duplicates where the custom value
+  is defined once and the same key reused; a MASTER CROSS-REF tab is the lookup for
+  services on multiple pages; all services per category tab are added to the GBP including
+  duplicates. For Edens Edge, Cat 4 (Lawn Care) was skipped by Ethan and populated from
+  the duplicate tracking doc.
+
+
+  Phase 3: Ahrefs keyword research (H1s)
+  The H1 is not a creative decision. It is the highest-volume relevant keyword for the page's
+  topic and location. Always set the country to United Kingdom. Want monthly volume
+  above 0 to 10.
+
+
+    Page type                               Rule
+
+    Homepage                                Search [primary category] [primary city]. Pick the
+                                            highest-volume variant
+
+    Category and location-category          Search [category name] [primary city]. If volume is
+    pages                                   0 to 10, remove "services" and retry (lawn care
+                                            services Southampton → lawn care Southampton,
+                                            volume 70). Apply the winning format to every
+                                            location by swapping the location name; no need to
+                                            re-run Ahrefs per location
+
+    Service pages                           H1 = exact GBP service name + primary city. No
+                                            Ahrefs check. Always the primary location, never
+                                            the location the page is linked from
+
+    Location pages                          Search [primary category] [location name]. Pick
+                                            the highest-volume variant
+
+
+  Paste every H1 into the Page Map's H1 (Ahrefs) column. The Copy Bot reads it from there.
+  A blank row means that page cannot be generated.
+
+
+  Phase 4: Google Map embed
+  Google Maps > search the exact business name > Share > Embed a map > default Medium
+  size > Copy HTML. Paste the full iframe (not just the URL) into the Google Map Embed
+  row of the custom values sheet and into GHL. Verify the map renders. Common mistakes:
+
+
+
+                                                                                          Page 46 of 74
+Local Launchpad — Master Context Document
+
+
+
+
+  copying the address bar URL, clicking Send a link, picking the wrong business, forgetting
+  to save.
+
+
+  Phase 5: geo research (Perplexity)
+  Run the Local Intelligence Profile prompt (Geographical Research & Context prompt) for
+  every service area before writing any copy. Without it the copy is generic.
+
+       Run in Perplexity, not Claude. 2 to 3 locations per session; quality degrades beyond
+       that.
+       Fill in trade type, business name, business type. Upload screenshots of every tab of
+       the custom values sheet. Add: "Please run this for [2 locations] only. Please go in order
+       of the service areas listed on the CLIENT CUSTOM VALUES tab."
+       Save the output into a Google Doc named "[CLIENT NAME] Geographical Research &
+       Context" in the client folder. Repeat for every location in the same session.
+       Download as PDF (and later as Markdown for the bot). It must be loaded before any
+       copy prompt runs.
+
+
+  Phase 6: Review Us and Discount funnels (QR code pages)
+  Built inside the Local Launchpad sub-account (Websites > Client Webpages (QR Code)),
+  never the client's, so Brandon can print the QR codes immediately. Duplicate the Review
+  Us Template and Discount Funnel Template, rename "Review Us - [Business]" and
+  "Discount Funnel - [Business]", update business name, logo, colours, Google Review link,
+  offer wording, contact details, images. Publish, test in Incognito, send Brandon both URLs.
+  Do not wait for the client's domain.
+
+
+  Phase 7: copy generation (Railway)
+  Replaced the manual Claude process and the separate homepage, category, service and
+  location build phases. One run generates every page type.
+
+  Before you start: Page Map has an H1 in every row; geo research is complete; custom
+  values sheet is signed off.
+
+   1. Create a local folder "Local Launchpad Copy Generator" and inside it "[CLIENT] - Copy
+      Generator Documents".
+   2. Download the geo research Google Doc as Markdown into that folder.
+   3. From the niche Google Form, View in Sheets, delete every other client's row, download
+       as CSV, undo to restore the sheet. Put the CSV in the folder.
+
+
+
+                                                                                           Page 47 of 74
+Local Launchpad — Master Context Document
+
+
+
+
+   4. Download every tab of the custom values sheet except HOW TO USE as CSV (CLIENT
+       CUSTOM VALUES, every Cat tab, Master cross ref, Page Map).
+   5. Log into the bot (local-launchpad-copy-bot-production.up.railway.app/login.html,
+      password LLP19-06.7.k-10owtfitq23!). New Client, name and trade, Create Client.
+       Generate Pages. Drop all files into the drop zone. Select trade, Parse Files.
+   6. The bot confirms which pages it sees and which H1s are missing. It will not generate
+      pages without H1s.
+   7. Mini test batch: deselect all, select the homepage, 1 category, 1 location category, 1
+      service, 1 location page. Generate. Download the full site output txt.
+   8. Drop the txt into Claude with the review prompt (below). Flag real issues to Brandon
+       on WhatsApp. Ignore em dash flags. Do not run the full batch until serious issues are
+       fixed.
+   9. Delete the test pages, generate all pages. Download as Per-Page Zip, extract, copy into
+       "[CLIENT] website copy from copy generator railway" in the client's Drive folder.
+ 10. The VA pastes each page's copy into its GHL page, adds a task to the client's Asana
+     board under the matching "COPY Added to GHL" section, assigns it to the images
+       person. The images person works 10 to 20 pages behind adding images, then moves the
+       task to "IMAGES Added to GHL". Problem pages go to "FLAGGED PAGES" and the
+       WhatsApp group.
+ 11. Copybot generates the meta title and description; those must be added in Phase 10.
+
+  The mini-batch review prompt (in full):
+
+
+
+
+                                                                                           Page 48 of 74
+Local Launchpad — Master Context Document
+
+
+
+
+      I've just run a mini-test batch from the Local Launchpad Copy Bot (homepage, 1
+      category, 1 location category, 1 service, 1 location page). Review this output and tell
+      me if it's safe to run the full batch for this client, or if something needs fixing first.
+
+      I only care about real problems that would mean the full batch comes out broken or
+      unusable, not routine validation noise. Specifically check for:
+
+       1. Any page that shows [HALTED], this means a custom value the bot needed wasn't
+           found. Tell me which page and which value.
+       2. Any page that looks unusually short or empty compared to the others, or is
+          missing entire sections that the other pages have.
+       3. Any placeholder that looks invented or wrong, e.g. {{custom_values.service_X}}, a
+           number that looks guessed, or text like [CONFIRM NUMBER] sitting inside the
+           actual copy rather than in a clearly marked note.
+       4. Any [BLOCK] validation issue. These are meant to stop a page from going live, so
+           flag every one of these specifically, by page and by what it says.
+       5. Repeated identical content across different pages, e.g. the same paragraph
+           appearing on two pages that should be different, which would suggest something
+           didn't generate properly.
+
+      Do NOT flag [FLAG] items like hyphenated compound words, the word "needs" or
+      "solutions" appearing, or FAQ editorial link count being low. These are expected and
+      don't need fixing before a full run.
+
+      Give me a simple verdict at the end: "Safe to run full batch" or "Stop, fix X before
+      running the full batch."
+
+
+  Phase 7.1: homepage checklist (in full)
+  Completed on every homepage before review. Nine sections:
+
+   1. Logos and branding: client's own logo top left on every page (not Local Launchpad's,
+       not a placeholder, not a previous client's), checked across five pages; chat widget
+       shows the client's logo; Meet the Team image is the client's own photo or their van,
+       never stock or another client.
+   2. Navigation (on the homepage and three other pages): Home goes to this client's
+       homepage; Contact scrolls to the Send Us a Message form; Projects button removed
+       everywhere; Services goes to this client's services; footer Quick Links show only Home
+       and Contact.
+
+
+
+                                                                                                   Page 49 of 74
+Local Launchpad — Master Context Document
+
+
+
+
+   3. Hero and forms: Google rating image shows in the Check Availability form; test
+       submission goes to this client's thank you page; Get a Free Quote (top right) scrolls to
+       the message form.
+   4. Buttons: Get Started (was View All Services) scrolls to the message form; View All
+       FAQs and View All Locations buttons removed; every button does something
+       expected, no 404s.
+   5. FAQ: no [CLIENT TO CONFIRM] text; no [SOURCE NEEDED] flags; no raw
+       {{custom_values.x}}; all questions and answers visible on load, no accordion.
+   6. Send Us a Message form: submits to this client's thank you page; triggers the correct
+      GHL pipeline.
+   7. Custom values: business name correct everywhere, no previous client's name; phone
+       matches GBP character for character in sticky bar, footer and CTAs; address matches;
+       no raw placeholders; primary category correct in hero, services intro and footer;
+       service areas match.
+   8. Map and footer: map pin on the right address; footer column 1 details correct; opening
+       hours match the form; Privacy Policy and Terms links go to real pages; social icons go to
+       this client's profiles.
+   9. Final sense check: every piece of text refers to the right client; images appropriate (no
+       non-UK stock, watermarks, wrong trade); no typos in headings and first paragraphs; no
+       broken images.
+
+
+  Phase 8: images
+  Always use the client's own photos first (Drive > Shared Drives > Local Launchpad >
+  Clients > client > Images from [Client]). Stock only if no suitable client image. Primary
+  stock library: Envato Elements (login brandon@locallaunchpad.co.uk, password
+  !b5VGVdCDM2scG$). Fallbacks: Unsplash, Pexels. Search the broadest form of the
+  service term ("lawn mowing" not "lawn mowing and maintenance").
+
+  Stock image rules. The image should look like it could have been taken by the client. The
+  quick test: could this photo have been taken at a job in the client's town?
+
+       Properties must look British: red brick, pebble driveways, terraced or semi-detached,
+       modest back gardens. No American open lawns or timber frames, no tropical settings,
+       no Asian, Australian or continental European settings, no show gardens unless the
+       client targets that market.
+       Workers look like UK tradespeople: practical workwear, hi-vis where appropriate, not
+       corporate, not posed, actually working.
+
+
+
+                                                                                           Page 50 of 74
+Local Launchpad — Master Context Document
+
+
+
+
+       Equipment modern and maintained, not showroom new, not outdated.
+       UK grass and plants; seasons that make sense; no sun-scorched lawns or exotic
+       species.
+       No watermarks, no baked-in text, no catalogue compositions, no heavy filters.
+
+  Processing before upload (never skip; raw images slow the site and hurt rankings):
+
+   1. Resize in Canva to the target width, download as JPG. If over 50 MB, resize first.
+   2. Compress in Squoosh to WebP, within the target size. Do not go below quality 65.
+   3. Quality check: sharp, natural colours, no artefacts.
+   4. Rename as [service]-[location] (lawn-mowing-southampton, numbered if several).
+       Never IMG_4821.jpg.
+
+
+    Image type                              Width             Target file size
+
+    Hero background                         1600 to 2000 px   150 to 350 KB
+
+    Regular section image                   800 to 1200 px    80 to 200 KB
+
+    Small cards and icons                   400 to 800 px     20 to 80 KB
+
+
+
+  Phase 9: domain and sitemap
+  Confirm with Brandon before touching the domain. Connect the domain in GHL under the
+  homepage's page details. Generate the sitemap from the non-www domain, unselect
+  unused service and area pages and always unselect the Review + Referral Followup Form
+  page.
+
+
+  Phase 10: SEO metadata, schema and sitemap
+  Meta title and description: pre-written by Copybot. Copy TITLE TAG and META
+  DESCRIPTION exactly into the GHL SEO panel. If Check 7 flagged, the title is over 60
+  characters, trim (shorten the company name or drop the benefit first). If Check 8 flagged,
+  the description is over 155, trim. Every description unique. Keywords field blank. Author
+  blank. Language en.
+
+  Schema:
+
+
+
+
+                                                                                           Page 51 of 74
+Local Launchpad — Master Context Document
+
+
+
+
+    Page type                                   Schema
+
+    Homepage                                    Local Business
+                                                (HomeAndConstructionBusiness) + FAQ
+
+    Category, service, location, location-      FAQ only
+    category pages
+
+
+  Only the homepage gets Local Business schema; adding it to every page creates
+  duplicates. (Note: the Homepage Template v2 spec and Core 30 house rules take a
+  different view: full LocalBusiness on the homepage referenced by @id on every other
+  page, and local business schema as a signal on every page. This is unresolved.)
+
+  Local Business fields: business name, address, city, county, postcode from custom values;
+  country "United Kingdom" never GB or UK; phone company_twilio_phone; email; website
+  with https://; social profiles; opening hours Mon-Fri and Saturday; three business images
+  including one of the team or owner; rating value, best rating, worst rating, rating count all
+  blank until the client has real verified reviews; price range, coordinates, service area
+  blank. Never click Create with AI and save unchecked: GHL's AI invents fake reviews from
+  training data, which is a Google guideline violation.
+
+  FAQ schema: on every page with an FAQ section, let the GHL AI build it, but every
+  question and answer must match the page copy exactly. 200 character limit in form view;
+  use JSON view for longer answers. No empty FAQ schema.
+
+  Validate with Google's Rich Results Test on the homepage and at least two other page
+  types. Warnings acceptable, errors must be fixed.
+
+  Sitemap: generate after the domain is connected and all pages are live. Exclude the
+  Review + Referral Followup Form page, inactive pages, placeholder and test pages.
+  Regenerate when pages or slugs change. Check yourdomain.co.uk/sitemap.xml lists every
+  active page once. No Search Console submission unless Brandon asks.
+
+
+  Phase 11: completion checklist
+  Meta title on every page under 70 characters (the Copybot check says 60); meta
+  description on every page, unique, under 155, no banned phrases; keywords blank;
+  language en; Local Business schema on the homepage with no fake reviews; FAQ schema
+  on every page with FAQs; all schema validated; sitemap generated after domain
+  connection; form page excluded; sitemap checked in browser.
+
+
+
+
+                                                                                             Page 52 of 74
+Local Launchpad — Master Context Document
+
+
+
+
+  Phase 12: testing (final QA)
+  On the live domain, not the GHL preview, after every other phase.
+
+       Desktop: click through every page; all text filled, all images present, no placeholders; all
+       buttons respond; social icons correct; all editorial links in service cards resolve; no raw
+       {{custom_values.x}}.
+       Mobile: Chrome DevTools device emulation; nav, hero, cards, footer render correctly.
+       Forms and automation: quote form submits and triggers the GHL pipeline; texts send;
+       chat widget message reaches GHL.
+       Final admin: rename the GHL system number contact to "Do Not Text This Number".
+
+
+  Phase 13: complete and handover
+  WhatsApp Brandon with: the live URL; confirmation all QA passed; any [CLIENT TO
+  CONFIRM] items still to chase; any images where stock was used instead of the client's.
+  Never mark complete with an outstanding checklist item.
+
+
+  Quick reference: banned copy phrases (SOP version)
+  Never appear on any page. If seen in output, re-run the prompt; do not edit the copy by
+  hand.
+
+  Look no further · Your one-stop shop · We pride ourselves · We are passionate ·
+  Competitive prices · Quality service · Going above and beyond · State of the art · Cutting
+  edge · Second to none · Bespoke / Tailored · Comprehensive / Wide range of / Full range of ·
+  Solutions / Needs · Professional and reliable · Friendly team · No job too big or too small ·
+  Amazing results / Stunning gardens · Unparalleled / Precision and care / Dedicated team
+
+  No em dashes, en dashes or hyphens in compound words anywhere. GHL sometimes
+  reintroduces them after pasting; check the live page.
+
+
+  14. Legacy copy bot inputs: prompts, validator, calibration packs:
+  OUTDATED
+  These twelve files are how the copy bot was run on GHL. They are outdated because
+  every placeholder is GHL syntax and every output template matches a GHL snapshot, but
+  they carry the rules and the standard the WordPress version needs to keep. Each file is
+  referenced by name here, not reproduced; section 18 lists them for upload.
+
+
+
+
+                                                                                             Page 53 of 74
+Local Launchpad — Master Context Document
+
+
+
+
+  The four CORE prompts
+  One prompt per page type, trade-agnostic. The location-category page uses the Category
+  prompt. Each prompt was written to run inside a Claude project holding the onboarding
+  form, the geo research, the custom values sheet and the trade's calibration pack; the bot
+  now injects those as system blocks.
+
+  Shared mechanics in every prompt:
+
+       Placeholders, not values. Every business name, phone, address, city, area, category and
+       service is written as the GHL key ({{custom_values.X}}). Only populated keys. If a
+       needed key cannot be found, the bot does not guess: it outputs "[HALTED, no
+       populated custom value found for X]".
+       [TRADE FRAMING] is substituted from the calibration pack ("a UK landscaping and
+       gardening business carrying out…").
+       Caleb's 8 consistency signals are split into what the prompt writes (title tag, H1
+       formula, secondary categories in subheadings, FAQ editorial links) and what the VA
+       implements (map embed, live review widget, address, phone, schema), flagged in a VA
+       Implementation Checklist at the end of every output.
+       H1 is never written by the bot. Homepage outputs "[INSERT H1 FROM AHREFS]"; other
+       pages "[INSERT H1 FROM SOP INSTRUCTIONS]". The bot's code now fills service H1s
+       and reads the rest from the Page Map.
+       Title tag: [category or service] [area] | [benefit] | [business name], maximum 60
+       characters resolved. If the business name is 15+ characters, go straight to the two-part
+       fallback without the benefit. The benefit never contains a hyphen.
+       Meta description: maximum 155 characters resolved, with a counted draft and a fixed
+       cut order (drop the secondary reference, shorten the CTA, drop the phone). Never the
+       business name. Never a dash.
+       Confirmed facts rule: client-specific claims (prices, guarantees, insurance,
+       accreditations, years, team size, processes) only if confirmed on the form or custom
+       values; otherwise omitted entirely, never flagged inside copy. Valuable gaps go in one "
+       [NOTE FOR BRANDON: …]" line under the block. General trade knowledge and geo
+       research detail are used freely.
+       Conflation rule: never combine a star rating with a jobs or customers figure in one
+       claim. Review counts must match across sections.
+       Editorial links: strong link text names the category or service placeholder and the area
+       and says what the linked page covers. Weak link text (find out more, see what's
+       included, get in touch, click here, learn more, explore our service, find out how we can
+
+
+
+                                                                                             Page 54 of 74
+Local Launchpad — Master Context Document
+
+
+
+
+       help) is banned. A link never points back to the page it sits on.
+       Category placeholder grammar: never append "services" after a category placeholder
+       ("Lawn care service services"). Treat the placeholder as a complete noun phrase.
+       Dash rule, highest priority: no em dashes, en dashes or hyphenated compounds
+       anywhere, including static lines, pre-write reasoning and classification labels.
+       Compound adjectives become two words ("free draining", "post war", "sub base", "in
+       house", "year round"). A final re-read gate before output.
+       Sentence structure: never join two clauses with a dash; each clause is its own
+       sentence. Bullets never use a dash for a secondary detail.
+       Reading level: grade 5 or below, 10 to 12 word sentences, everyday vocabulary.
+       (Superseded in direction by first person, natural sentences; see section 12.)
+       Banned phrases (prompt version): look no further, your one-stop shop, we pride
+       ourselves, we are passionate, competitive prices, quality service, going above and
+       beyond, state of the art, cutting edge, second to none, bespoke, tailored,
+       comprehensive, wide range of, full range of, solutions, needs, professional and reliable,
+       friendly team, no job too big or too small, find out more, get in touch, find out how we
+       can help, click here, learn more, explore our service, see what's included, getting in
+       touch, before getting in touch, once you get in touch, when you get in touch. "Full range
+       of", "wide range of" and "tailored" are the most commonly missed; concrete rewrites:
+       list two or three actual tasks instead of "full range", and "built around", "matched to" or
+       "based on" instead of "tailored to".
+       Output is a fixed labelled template the VA copies straight into GHL. No commentary.
+       Final copy only.
+
+  Homepage_Copywriting_Prompt_CORE (19).md output sections, in order: title tag; meta
+  description; hero (H1 placeholder, subheadline naming at least two secondary categories,
+  three category pills, two trust badge lines of max 5 words); services section (eyebrow
+  WHAT WE DO, headline "Our {{category_1}} services in {{biz_area_1}}", one block per
+  category with H2, 50 to 100 words including a geo-research local condition, and an
+  editorial link to the category page, up to 9 blocks, button View All Services); FAQ (5 items
+  in a fixed order: areas covered, specialisms and job scope, qualifications and experience,
+  insurance and guarantees, how to get a quote; questions from People Also Ask or Reddit
+  or tagged [SOURCE NEEDED]; at least two with editorial links to category pages; no
+  accordions); contact form button label (3 to 5 words, not Submit, different from the form
+  title); sticky bar ("{{biz_area_1}} & Surrounding Areas" plus company_phone_functional);
+  form title (4 to 6 words, e.g. "Check Availability in {{biz_area_1}}"); trust bar (4 items,
+  headline 2 to 4 words plus sub-line 3 to 6 words, four different trust dimensions, specific
+
+
+
+                                                                                                Page 55 of 74
+Local Launchpad — Master Context Document
+
+
+
+
+  numbers over vague claims); Google reviews section (headline "Why {{biz_area_1}}
+  homeowners choose {{company_name}}", score and count only if populated); Meet the
+  Team (headline 4 to 8 words, 2 paragraphs in third person naming
+  company_owner_first_name, company_name and biz_area_1, real photo instruction);
+  Areas We Cover bar (biz_area_1 to 14, only populated, count must match); schema
+  business description (one sentence, under 200 characters); VA Implementation Checklist.
+  Fixed template lines: map section ("Find us on Google", google_map_embed), contact
+  section ("Ready to get started?" / "Get your free no obligation quote today, most jobs
+  booked within the week."), footer with four columns (details with state and twilio phone
+  and email; quick links Home, Services, Projects, Service Areas, About Us, Contact; service
+  areas 1 to 6; opening hours Mon-Fri, Saturday, Sunday from the form).
+
+  Category_Page_Copywriting_Prompt_CORE (15).md (also used for location-category
+  pages) output sections: title tag; meta description; hero (H1 placeholder with slug rule e.g.
+  /gardener-southampton, two trust icon lines, subheadline of 2 to 3 sentences naming the
+  category, the area, one local condition and a phone CTA, four trust pills of 3 to 5 words);
+  services intro (WHAT WE DO, "Our {{category}} services in {{biz_area_1}}", 2 to 3
+  sentences naming at least two secondary areas); service cards (one per service in the
+  category, 60 to 100 words, local detail, specific sub-tasks, editorial link to the service page,
+  a VA hyperlink annotation to delete before publishing, image instruction; unused card
+  slots noted); real work section (headline referencing category and area, three real job
+  photos, no stock, no AI); seasonal tasks (headline 5 to 9 words, subheadline from geo
+  research, Spring Summer Autumn Winter each with a 1 to 2 sentence scene-setter and 3
+  to 5 specific task bullets); local knowledge (eyebrow "We Know {{biz_area_1}} Gardens",
+  headline 6 to 10 words, two intro paragraphs on property variation and soil or drainage
+  variation, four neighbourhood cards each naming a real area with a real condition and a
+  consequence); reviews section ("Trusted by {{biz_area_1}} Homeowners", live widget
+  only); FAQ (3 items: scope of work, a locally specific concern, pricing or booking; at least
+  two with editorial links to service pages); contact section (GET IN TOUCH, headline 5 to 8
+  words, supporting sentence naming the primary and two or three secondary areas, call
+  button, form title "Send us a message"); footer inherited from the homepage snapshot; VA
+  Implementation Checklist (slug, homepage editorial link in, service card links out, three
+  real photos, live widget, seasonal image, four neighbourhood cards, flat FAQs, form
+  automation, phone, address, trust icon notes, em dash check).
+
+  No orphaned service pages rule: a service page is only reachable if at least one category
+  page links to it via a card. A service that belongs only to this category must get a card
+  regardless of demand. A service tied to a client trade qualification must get a card, no
+
+
+
+
+                                                                                           Page 56 of 74
+Local Launchpad — Master Context Document
+
+
+
+
+  exceptions. Overlapping categories (general gardening versus lawn care) take distinct
+  angles rather than the same scope statement.
+
+  Service_Page_Copywriting_Prompt_CORE (16).md output sections: title tag (service +
+  area + benefit + name); meta description referencing the parent category; sticky bar; hero
+  (H1 placeholder, always the primary location; two trust icon lines; subheadline of 2 to 3
+  sentences with a local condition, not repeating the H1; three category pills of 3 to 6 words
+  stating scope); intro paragraph (60 to 90 words, opens with a local problem or scenario
+  from geo research, not with "we"); middle section chosen by service type (problem-
+  driven services such as clearance, drainage, fence repair, lawn renovation, weed control,
+  mulching get a SIGNS section: three paragraphs, each a sign the customer can observe, its
+  local cause, why it matters; maintenance services such as mowing, hedge trimming,
+  pruning get a MAINTENANCE section: three timing scenarios, what happens if missed,
+  the right approach; desire-driven services such as patio, decking, pond, garden design,
+  turfing get an IS THIS RIGHT section: three situations and how the service answers them);
+  How It Works ("How Our {{service}} Service Works", 3 to 4 paragraphs, one stage each,
+  with the reasoning and what goes wrong if skipped, no numbering, no "getting started is
+  straightforward"); FAQ (5 items: scope, a local concern, timing or frequency, what affects
+  cost without stating prices, what happens next; at least two editorial links to a category or
+  service page); contact section; form title; VA Implementation Checklist.
+
+  Location_Page_Copywriting_Prompt_CORE (17).md output sections: title tag (primary
+  category + TARGET LOCATION + benefit + name); meta description naming two services;
+  sticky bar ("[TARGET LOCATION] & Surrounding Areas"); hero (H1 placeholder, two trust
+  icon lines, subheadline of 3 to 4 sentences opening with a local condition the homeowner
+  would recognise, naming a landmark, street, village or neighbourhood, attaching a
+  consequence, ending with a phone CTA; four trust pills); services intro (OUR SERVICES,
+  "Our {{category_1}} services in [TARGET LOCATION]", 50 to 70 words on why work here
+  differs from the primary city); service category cards (one per category with real Ahrefs
+  volume in this location, 60 to 80 words, each on a distinct local condition, editorial link to
+  the location-specific category page with a VA annotation confirming it is not the primary
+  city page); local knowledge ("[trade] in [location], what we see on the ground", three
+  paragraphs of 50 to 70 words each on a distinct aspect, naming streets and landmarks,
+  not swappable with another location's page); real work ("Real work, real [trade noun],
+  [location]", three photos from this location, primary-city photos not a substitute); FAQ (3
+  items from People Also Ask, answers 50 to 80 words each with a named local area, two
+  with editorial links); contact; VA checklist.
+
+
+
+
+                                                                                            Page 57 of 74
+Local Launchpad — Master Context Document
+
+
+
+
+  The validator: Output_Validation_Checks (4).md and validate.js
+  Runs on the raw output before any paste. BLOCK must be resolved before a page is done;
+  FLAG is a quick human look. Checks 1a and 1b run only inside the template code fence, not
+  on pre-write reasoning.
+
+
+    #          Check                                       Class
+
+    1a         Em or en dash in copy                       BLOCK
+
+    1b         Hyphenated compound (word-word)             FLAG
+
+    2          Banned phrase list (18 phrases)             BLOCK
+
+    2a         "solutions" or "needs"                      FLAG (category names can legitimately
+                                                           contain them)
+
+    2b         "passionate" in any form                    BLOCK
+
+    3a         [CLIENT TO CONFIRM] as the entire           BLOCK (FLAG if appended to real
+               answer                                      content)
+
+    3b         Template leftovers: [INSERT, Lorem          BLOCK
+               ipsum, [TODO, Put your image, Client
+               copy goes here (except the intentional
+               [INSERT H1 FROM SOP INSTRUCTIONS])
+
+    3c         A custom value key used in prose that is    BLOCK
+               not populated for this client
+
+    4a         H1 dash                                     BLOCK (em/en), FLAG (hyphen)
+
+    4b         H1 over 45 characters                       FLAG
+
+    4c         H1 missing category or area                 FLAG
+
+    4d         H1 contains the company name                BLOCK
+
+    5a         Star rating and customer or jobs count in   BLOCK
+               one sentence
+
+    5b         Review count differs between sections       BLOCK
+
+    6a         Weak link phrase in service or FAQ prose    BLOCK
+
+    6b         Category block missing an editorial link    BLOCK
+               naming category and area
+
+
+
+
+                                                                                             Page 58 of 74
+Local Launchpad — Master Context Document
+
+
+
+
+    #          Check                                     Class
+
+    6c         Fewer than 2 FAQ answers with editorial   FLAG
+               links
+
+    6d         FAQ self-link                             Manual VA check only
+
+    7          Title tag over 60 characters after        FLAG
+               resolving placeholders
+
+    8          Meta description over 155 characters      FLAG
+               resolved
+
+    9          A populated biz_area_N missing from the   BLOCK
+               Areas We Cover list (the highest-
+               numbered area was dropped in both early
+               tests)
+
+    10         Orphaned service page: no card on any     BLOCK
+               category page in the batch, or a
+               qualification-linked service without a
+               card
+
+
+  Checks 7 and 8 are code-side on purpose: models count characters unreliably and
+  produced a 76-character title twice when told 60. HALT is a model instruction, not a
+  validator class; it surfaces as a 3b BLOCK.
+
+  The live Edens Edge page, before the validator, had: "well-maintained", "no-obligation",
+  "construction-grade", "Estate-Experienced" and "long-lasting" in copy; "genuinely
+  passionate" in the Meet the Team headline; an insurance FAQ whose entire answer was a
+  [CLIENT TO CONFIRM] flag; "4.9 star rated by 800+ customers" in the hero badges; and a
+  78-character H1 "Edens Edge landscaping Gardening Services in Southampton – built &
+  maintained". Each check exists because of one of those.
+
+
+  Calibration packs
+  One per trade, used alongside the CORE prompts. Each has the same shape: a TRADE
+  FRAMING line derived from the client's confirmed services (never services they have not
+  confirmed); a numbered RULES section; worked examples for every page type using
+  {{custom_values.X}} placeholders (homepage category blocks, category service cards,
+  seasonal tasks, neighbourhood cards and FAQs, service page middle sections and How It
+  Works, location page hero, services intro, cards, local knowledge and FAQs); and a WHAT
+
+
+
+
+                                                                                         Page 59 of 74
+Local Launchpad — Master Context Document
+
+
+
+
+  MAKES COPY FAIL IN THIS TRADE list. The examples are not to be copied; they set the
+  depth and specificity to match. Rules shared by all packs: omit unconfirmed facts entirely,
+  never assert operational processes unless confirmed, no dashes. The pack is the gate: a
+  niche without a pack is not built. Six exist; 22 of the 28 niches have none.
+
+  Landscaper_Calibration_Pack_v4.md (Landscaper Gardener). Framing: "a UK
+  landscaping and gardening business carrying out [confirmed services]". Rules: name the
+  specific service not the category ("fortnightly lawn mowing, edging, and border weeding",
+  "close board fence installation on pressure treated posts set in concrete"); connect every
+  service to a local soil type, weed species, property type or growing condition from the geo
+  research, copy with no local detail is a failure; accurate UK horticultural terminology, no
+  species that do not grow in the area; one consequence of inaction per card; use only
+  confirmed services and trust signals; never assert visit frequencies, green waste
+  inclusion, free first visits, crew sizes or equipment unless confirmed. Fails: any sentence
+  that could appear on any UK landscaping site; same point described three ways; How It
+  Works that describes without explaining why the order matters; FAQ answers that say "it
+  depends" without saying on what; implying design capability for a maintenance-only
+  client.
+
+  Builder_Calibration_Pack_v5.md (Building Company). Local detail is rich and verifiable
+  here: property eras (1960s estates with hip roofs needing hip to gable conversions, solid
+  versus cavity walls, shallow Victorian foundations), planning context (the local planning
+  authority, conservation areas, permitted development, Article 4, green belt) and ground
+  conditions (clay bearing soil and foundation depth). Rules: name the project type and
+  structural reality ("single storey rear extensions with a steel beam spanning the
+  knockout"); planning information locally accurate or absent (standard permitted
+  development: 3 m rear single storey on semis and terraces, 4 m on detached, larger via
+  prior approval; a wrong council name is instantly fatal); one structural detail per card a
+  homeowner can follow; classify every service as desire driven (extensions, lofts, kitchens,
+  bathrooms, garden rooms get "Is This Right For You") or problem driven (structural
+  repairs, subsidence, damp get Signs); respect the months-long research cycle,
+  information beats marketing; address the trade's fears (hidden costs, overruns, the
+  builder disappearing, failed inspections) with confirmed specifics only. Fails: wrong
+  planning facts; interior condition claims across an area; catastrophising seasonal clay
+  movement and hairline cracks; trust filler.
+
+  Cleaning_Calibration_Pack_v5.md (Cleaning Company). Critical: a cleaning company
+  cannot say what is inside homes across an area (carpet types, floor ages). Legitimate
+  anchors are tenure patterns (rental stock, HMOs, student lets), letting agent checkout
+
+
+
+                                                                                          Page 60 of 74
+Local Launchpad — Master Context Document
+
+
+
+
+  standards, demographics, commercial premises mix, seasonal demand cycles (academic
+  year handovers, pre-Christmas, post-summer commercial), and local situations (a
+  university, a holiday let market, a new development). Rules: name the method not the
+  category (hot water extraction, low moisture cleaning); plain customer language for the
+  problem (stains, smells, grime) and trade terms only for the method (enzymatic
+  treatment, extraction, agitation); explain why the customer's own attempts failed
+  (supermarket stain remover, rented machine); vary the local anchor between cards;
+  match register to demand type (urgent flood extraction and same-day tenancy cleans
+  versus planned contracts); address the in-home trust barrier with confirmed signals only
+  (insurance, DBS, named operative consistency). Fails: drying times that do not match the
+  client's equipment; sequences or durations asserted as this company's process;
+  commercial capability implied for a domestic-only operator.
+
+  Roofer_Calibration_Pack_v5.md (Roofing Company). Critical: era claims yes, current-
+  state claims no. "The estates built in the 1960s and 70s were built with concrete
+  interlocking tiles and flat roofed garages" and "the UPVC roofline fitted in the 1990s
+  improvement wave is now over thirty years old" are facts; "roofs here are failing" is not.
+  Other anchors: wind exposure, tree cover (moss, gutter loading), tenure, verifiable storm
+  history. Rules: name the material and system (EPDM, GRP, torch on felt, ridge tile
+  rebedding, slipped slate refixing, lead flashing renewal); explain the failure mode the
+  customer is living with (felt fails at the laps as bitumen stiffens, ridge mortar carbonates
+  and cracks, UPVC brackets fail and gutters sag); one accurate technical detail per card;
+  match register to reactive (leaks, storm damage) or planned (replacements, roofline
+  programmes); address the rogue trader trust gap with confirmed specifics
+  (accreditations, years, review counts, manufacturer-backed guarantees, staged photos).
+  A flat roofing specialist must never have slate, tile or chimney copy written for them. Fails:
+  scaremongering and weather drama; lifespan or warranty figures not confirmed; scaffold-
+  included or in-house-team claims not confirmed.
+
+  Drainage_Calibration_Pack_v1.md (Drainage Company). Critical: property era predicts
+  pipework (a Victorian terrace almost always still has original clay pipework and shared
+  drain runs); soil is real (clay moves and cracks rigid pipe, free draining ground washes out
+  joints, high water tables push groundwater in); tree-lined streets mean root ingress; the
+  water company boundary is a fact (since 2011 homeowners own drains inside their
+  boundary, lateral drains and sewers beyond belong to the water company, name the local
+  company from the geo research). The two registers are extreme: emergency customers
+  reading on a phone in distress need speed, a number and a clear price; planned customers
+  (homebuyer surveys, landlords, relining) compare calmly. Rules: name the method (high
+  pressure water jetting, mechanical root cutting, CCTV survey, no dig relining, excavation);
+
+
+
+                                                                                            Page 61 of 74
+Local Launchpad — Master Context Document
+
+
+
+
+  evidence is the trust currency, every recommendation routed through camera footage
+  shown to the customer; explain the mechanism behind the symptom (a gurgling plughole
+  is air pulled through a partial blockage; a recurring blockage in one spot is a displaced
+  joint, root mass or belly, not bad luck); telling a customer when they do not need to pay
+  you is the strongest trust move. Fails: overselling relining or excavation; invented flood
+  events or scare statistics; same-day or fixed-price claims not confirmed; septic and
+  soakaway copy for clients who do not offer it.
+
+  Dog_Training_Security_Calibration_Pack_v1.md (Dog Training & Security Dogs). Critical:
+  two markets that never blur. Dog owners (consumer, emotionally invested, have already
+  tried self-help; warm, plain copy) and commercial buyers (site managers, facilities
+  managers, event organisers comparing a dog unit against static guards or CCTV; direct,
+  capability-led copy). No property stock angle. Training anchors: walking environments
+  (parks, beaches, woodland), livestock proximity, urban distraction, demographics
+  (families, rescue owners, commuters), seasonal patterns (puppy season, fireworks, dark
+  winter walks). Security anchors: construction activity, industrial estates, retail parks,
+  vacant premises, event venues; never invented crime statistics. Rules: identify the market
+  before writing; plain owner language (pulling, barking, jumping up, not coming back) with
+  trainer terms (reactivity, resource guarding, desensitisation) only in explaining the
+  approach; address what the owner already tried (YouTube methods, a gadget lead,
+  treats); sell the capability not the dog; never guarantee behavioural outcomes or
+  timelines. Section structure differs: problem training services get "Why It Isn't Going
+  Away On Its Own" instead of Signs; life-stage services (puppy, adolescent, rescue) get "Is
+  This Right For You"; security services get "When a Dog Unit Is the Right Call"; seasonal
+  tasks become "Training Through the Life Stages" (puppy, adolescent, adult, senior) on
+  training pages and nothing on security pages. The bot injects this as a trade override
+  block.
+
+
+  The custom values sheet
+  Edens_Edge_Custom_Values - HOW TO USE.csv is the HOW TO USE tab of a GHL-era
+  client sheet: each tab is one category page; every service in a tab appears on that page
+  including yellow duplicate rows; a duplicate's custom value is defined once and the key
+  reused; MASTER CROSS-REF is the lookup for services on multiple pages; all services per
+  tab go on the GBP including duplicates. Older sheets keyed services as service_X_Y
+  (category X, service Y); the bot's code reads service_N and maps it to the preceding
+  category_N row.
+
+
+
+
+                                                                                           Page 62 of 74
+Local Launchpad — Master Context Document
+
+
+
+
+  15. Page templates and Homepage Template v2 (under debate)
+  The homepage is specified in "Homepage Template v2: Core 30 Build Spec", built on 2
+  October 2026 from Brandon's own design brief. Brandon's note: still up for debate, still
+  being tweaked, adapted and changed. Treat every decision below as current but not final.
+
+
+  Why Brandon wrote the brief himself
+  Fixes delegated to the previous developer were not getting done, so Brandon wrote the
+  homepage design brief and built the v2 spec from it with Claude.
+
+
+  Homepage section order (from the design brief)
+   1. Hero
+   2. Trust row
+   3. Content block
+   4. Services
+   5. Why choose us
+   6. Reviews
+   7. Process
+   8. Meet the owner
+   9. Service areas
+ 10. FAQ
+ 11. Final CTA
+
+  No quote form on the page. Every CTA routes to /contact/.
+
+
+  Decisions on record (28 September and 2 October)
+
+    Area                           Decision                             Why
+
+    Trust row                      Accreditations merged into a         The slim badge strip was
+                                   "Trusted & rated by" logo row.       replaced
+                                   Hidden when there is no rating and
+                                   no logos
+
+
+
+
+                                                                                                   Page 63 of 74
+Local Launchpad — Master Context Document
+
+
+
+
+    Area                           Decision                                 Why
+
+    Content block                  Combined framework blending
+                                   Brandon's original template with a
+                                   real example from Matt the Driveway
+                                   Guy
+
+    Services cards                 50 to 80 words each: 2 to 3 specific     The design brief said one line
+                                   services, one local condition from       per card; a one-liner cannot
+                                   geo research, one consequence of         carry a local condition. The
+                                   leaving it. Client's own photo or an     landscaper pack says 80 to 100.
+                                   icon, never stock. "See [name]" link     The design must fit 80 words.
+                                   where the card has a page                Open decision
+
+    Why choose us                  Fear-to-proof format, four across,       Three of four old points were
+                                   divider-line layout. Six-box card grid   table stakes
+                                   rejected as padding-prone and too
+                                   like the services section
+
+    Reviews and                    Reviews before Process                   Social proof lands better before
+    Process                                                                 the process ask
+
+    Local topic                    200 to 250 words total, H2 formula       Removes ambiguity for Copybot
+                                   fixed
+
+    Meet the owner                 Person-focused H2, three required        Better conversion, less keyword
+                                   content elements, photo rules,           stuffing
+                                   fallback
+
+    Service areas                  Only areas with a live location page,    Prevents broken links
+                                   maximum 15, plus a "Don't see your
+                                   town?" line
+
+    FAQs                           Open Q&A, all answers visible.           Core 30 accordion rule
+                                   Styled question bars fine, collapsing
+                                   not. Four fixed FAQs plus niche slots
+
+    Keyword use                    Exact keyword in 6 fixed places,         15 to 25 exact matches reads as
+                                   variants elsewhere. A ceiling, not a     stuffed
+                                   target
+
+    Schema                         Full LocalBusiness on the homepage,      Core 30 lists schema as a signal
+                                   referenced by @id on every other         on every page
+                                   page
+
+
+
+
+                                                                                                        Page 64 of 74
+Local Launchpad — Master Context Document
+
+
+
+
+    Area                           Decision                               Why
+
+    Footer                         Map embed plus Services and            Map signal on every page, crawl
+                                   Locations columns                      paths
+
+    Mobile                         Sticky Call + Quote bar                No form in the hero
+
+    SEO title                      "[KW] | Trusted Since
+                                   [year_founded] | [company_name]",
+                                   max 60, drop the company name
+                                   first; under 5 years trading use "
+                                   [KW] | Rated [rating]★ |
+                                   [company_name]"
+
+    Meta                           "[CATEGORY] in [CITY] rated
+    description                    [rating]★ by [review_count]+ local
+                                   [CUSTOMER_TYPE]. Fully insured,
+                                   [guarantee_years] year guarantee.
+                                   Get your free quote today." Max 155.
+                                   Under 20 reviews drop the count
+
+    Voice                          Soft cap of 25 words a sentence,       Calibration pack rule
+                                   paragraphs of 2 to 4 sentences, no
+                                   dashes or hyphenated compounds
+
+    Homepage                       [KW] from the Page Map (Ahrefs),       Core 30
+    keyword                        e.g. "Landscaper Southampton": the
+                                   broadest trade umbrella term, must
+                                   not match a category page H1
+
+
+
+  Business-type layer (added 2 October)
+  The sections are written once. What changes per niche is decided by business type. A dog
+  trainer's page is built from the same template as a roofer's but never reads like one.
+  Copybot reads the type from [CV: business_type]; the niche's calibration pack supplies
+  the specifics.
+
+
+
+
+                                                                                                     Page 65 of 74
+Local Launchpad — Master Context Document
+
+
+
+
+    Type                                What the customer buys             Niches
+
+    A. Project trade                    A one-off job on their property,   Landscapers (install work),
+                                        quoted after a survey, started     roofers, HVAC, plumbing and
+                                        on a date                          heating, electricians, tree
+                                                                           surgeons, fencing, drainage,
+                                                                           garage doors, guttering and
+                                                                           fascias, scaffolding, driveways
+                                                                           and paving, builders, kitchen and
+                                                                           bathroom fitters, loft conversions
+                                                                           and extensions, painters and
+                                                                           decorators, flooring fitters, tiling,
+                                                                           blinds and curtains
+
+    B. Recurring                        A visit repeated on a schedule     Cleaning companies, window
+    property service                    or booked as needed, priced        cleaning, pressure washing and
+                                        per visit or job                   exterior cleaning, pest control,
+                                                                           landscapers (maintenance),
+                                                                           guttering (cleaning)
+
+    C. Pet service                      Care or training of their animal   Dog walkers, dog training, dog
+                                        by a person they must trust,       grooming
+                                        sold as sessions, walks or plans
+
+    D. Move                             A dated event with their           Removals
+                                        belongings in someone else's
+                                        hands
+
+
+       Emergency overlay on top of A or B when [CV: out_of_hours_available] is set:
+       locksmiths, drainage, plumbing and heating, electricians, pest control, roofers (storm
+       damage), garage doors (stuck door), tree surgeons (storm damage).
+       A2 big-ticket marker for projects with planning, staged payments and long timelines.
+       The type swaps button wording, trust line order, logo tiers, the four fears in section 5,
+       the three process steps (quote and emergency variants) and the four general FAQs. A
+       dog trainer's "guarantee" FAQ becomes "What if the training doesn't work for my dog?"
+       A 28-row table of local-condition anchors per niche tells geo research what to collect.
+       Dog training: training venues, local distractions like livestock or the seafront, PSPO lead
+       rules. Removals: terraced-street access, lifts, parking permits, student move seasons.
+       Mixed landscaper (install plus maintenance) uses the type A steps with a schedule line
+       in step 3.
+
+
+
+                                                                                                           Page 66 of 74
+Local Launchpad — Master Context Document
+
+
+
+
+       Each pack needs a homepage block: business type and A2 or emergency marker; trust
+       line order and logo tiers with real body names; four fears for section 5 with two
+       example H3s each; three process steps in quote and emergency variants; three niche
+       FAQ slots reworded from People Also Ask; the local condition anchor list; one full
+       worked section 3 and section 5, marked do not reuse. Until a niche has its pack, that
+       niche is not built.
+       Suggested order for the next packs: dog training, dog walking and cleaning first, as the
+       non-trade types.
+
+
+  What a 10/10 requires (Brandon's standard)
+  The structure was rated a 10 for all 28 niches. The copy quality on any client is capped by
+  two gates: the calibration pack and the onboarding answers. Brandon rejects any
+  assessment that settles for "good enough" when the goal is 10/10, and does not accept
+  out-of-scope items (page speed, say) as an excuse for a lower score on in-scope items.
+  Business-type differences must be designed for explicitly, not assumed to generalise
+  from a trades template.
+
+
+  The Edens Edge test of the v2 spec
+  Running the spec on the real Edens Edge inputs found:
+
+       The title fell to "Local Gardeners" and dropped the brand to fit 60 characters. Fix: when
+       the modifier is the last fallback, drop the modifier and keep the brand ("Gardener
+       Southampton | Edens Edge Landscaping", 45 characters).
+       The spec reads assigned neighbourhoods, symptoms, Entity Test results, the cost
+       guide URL and the Locations hub from the Page Map, and none of them are in it. Add
+       those columns.
+       The calibration pack and master kit were not in the inputs, so the trade word, display
+       names, three FAQ slots, steps and schema subtype were guessed. List the full input
+       set at the top of the spec; a run without all of it does not start.
+       Only three usable facts existed: free quote, fixed price, same week start. They
+       repeated in the hero, sections 3, 5 and 7 and three FAQs.
+       Unusable answers are not blank ("baso light till light", "few years back"). Add a VA step
+       to clean form answers into custom values before the bot runs.
+       Section 2 had nothing to show and no rule for it. Hide the row when it has no rating and
+       no logos.
+       The final CTA lost all three trust lines and has no body field. Add one sentence of copy.
+
+
+
+                                                                                            Page 67 of 74
+Local Launchpad — Master Context Document
+
+
+
+
+       The thin page check needs four things missing at once; this page lost three whole
+       sections. Fire it when any two sections are hidden.
+       Cards must name a local condition, but "Local elements" says area issues are not used
+       on the homepage. Remove that line or limit it to symptoms.
+       The jobs heading adds "in [CITY]" but the 100 jobs are not confirmed as all in
+       Southampton. Drop the city.
+       With no wider area, sections 3 and 9 headings end in the same words. Give section 9 its
+       own fallback.
+       Two FAQ answers cannot reach 50 words without padding. Lower the minimum to 30
+       when the source is a single fact.
+       Outside the spec: the GBP primary category is Gardener, the location pages target
+       Landscaper, and Ethan wants garden makeovers over £2k and large estates, not small
+       gardening jobs. The site pulls in two directions. This is a category and keyword decision
+       for Brandon before the Page Map is corrected.
+
+
+  The other four templates (reviewed 2 October)
+
+    Template                                Rating
+
+    Service page                            8.5/10
+
+    Category page                           8/10
+
+    Homepage                                7.5/10
+
+    Location page                           7.5/10
+
+    Location + category page                7/10
+
+
+  Recurring problems across all five: FAQ accordions reappear in every template against the
+  Core 30 rule; schema approaches conflict with "LocalBusiness on every page"; meta
+  descriptions hardcode claims such as "fixed quotes on every job" that will not hold for
+  every business; word count floors are not reachable from the stated section minimums;
+  templates request more town-specific local facts than geo research can source, risking
+  invented claims; stray formatting artefacts, alt text and meta length details.
+  Recommended fixes: a single global rules tab every template cites rather than restates,
+  and a Page Map step that pre-allocates neighbourhoods, symptoms and FAQ topics
+  across pages before generation. For the location + category page, cap rollout at 3 to 5
+  strongest-evidence pages per client at launch rather than the full category × town matrix.
+
+
+
+                                                                                           Page 68 of 74
+Local Launchpad — Master Context Document
+
+
+
+
+  Earlier homepage work
+       28 September: two Google Docs, a combined spec (copy, SEO and design) and a copy-
+       and-SEO-only doc in the design brief's order. Design references: Neal Roofing, Volt
+       Vikings, Matt the Driveway Guy, several Cloudways demo pages. A four-column
+       divider-line layout was approved for Why choose us; a six-box card grid rejected.
+       September: a 15-section homepage template with per-section copy formulas and a
+       production HTML demo build for a demo business, "GreenScape Gardens", Leeds.
+       August: review of the previous developer's WordPress homepage mockup. Verdict: a
+       reasonable landscaping v1, but as a 28-niche foundation it had structural gaps. Punch
+       list in section 12.
+       July: review of a designer's homepage. Verdict: structurally templaty (repeated service
+       cards, placeholder benefits grid, standard trust badge row). Differentiation lives in
+       photography, copy, architecture and SEO structure, not layout.
+
+
+  Multi-location duplication rule
+  Service cards cannot be reused verbatim across location pages. Only the local anchor
+  detail inside each card needs to change, not a full rewrite. The agreed VA workflow on
+  Edens Edge: take the Southampton category page as the master and swap the local geo
+  references for each of the seven locations.
+
+
+  16. Ways of working
+  Every step is governed by an SOP, Brandon runs the prompts as the quality gate, and
+  feedback is blunt.
+
+
+  Delivery control
+       Brandon ran the Copybot prompts himself and handed outputs to VAs. VAs did not get
+       direct prompt access, because of earlier quality issues. With Ray in place, who runs the
+       bot is to be confirmed.
+       The delivery pipeline ran Copy, then QA, then Images, tracked in Asana.
+       A mandatory final custom-values sanity check sits before handoff.
+       Whoever pastes copy checks for reintroduced dashes before publishing.
+       Per-client Claude projects: each client gets their own project with geo research, GBP
+       data, onboarding form and custom values swapped in. Prompts stay client-agnostic.
+
+
+
+
+                                                                                           Page 69 of 74
+Local Launchpad — Master Context Document
+
+
+
+
+       If an uploaded xlsx cannot be read, get the data as screenshots or pasted text rather
+       than trying more parsers.
+       Google Apps Script is more reliable than the Drive connector for formatted multi-tab
+       sheets.
+
+
+  SOP format standard
+       Phase-by-phase structure, not simple checklists.
+       Plain Arial body text.
+       Double-line section dividers.
+       Dash-style bullets.
+       Inline warning lines (               ⚠️) and note lines (📌) in italics.
+       No tables and no coloured shading.
+       Must be Google Docs-compatible.
+       Video explainers linked per phase (Drive links in the July SOP).
+
+
+  Working with Brandon
+       Direct and concise. Impatient with over-explanation. Wants brutal honesty over
+       diplomatic hedging.
+       Pushes back clearly when a response misses the point or overcomplicates. Strong
+       language when frustrated is normal and not a signal to soften.
+       Prefers detailed, specific documents over stripped-back versions. Do not turn a 20-
+       page document into 5.
+       Do not make things up. Do not remove things. Only use what has been given.
+       Copy-first thinking: content drives design.
+       When the goal is 10/10, "good enough" is rejected.
+       Rules must be tight enough that VAs and Copybot cannot make a bad decision by
+       default.
+       Reference supporting documents by name; do not link them inside a context
+       document.
+       Communication with the team and clients is WhatsApp. Client contact goes through
+       Brandon only.
+
+
+
+
+                                                                                        Page 70 of 74
+Local Launchpad — Master Context Document
+
+
+
+
+  17. Current state, open decisions and what's next
+  As of 3 October 2026: 4 paying clients, a new team of Ray and Given, a copy bot that
+  works for GHL, and a WordPress delivery system still to be built.
+
+
+  Where things stand
+       Sales is proven. Delivery is the constraint. The product is not built.
+       Copybot generates every page type and validates output, but it outputs text files with
+       GHL placeholders. No WordPress code exists.
+       Homepage Template v2 is written and under debate. The other four templates are
+       rated but need the global rules tab and Page Map fixes.
+       Six calibration packs exist out of 28 niches.
+       The July SOP is inactive and GHL-specific.
+       The onboarding form is live in Fillout with the questions in section 8.
+       Clients on the books: Edens Edge Landscaping (proof of concept), then a landscaper, a
+       builder and a roofer.
+
+
+  Open decisions
+       Pricing: £97 per month to £291 per quarter. The VSL, landing page, sales script and
+       payment link all say £97.
+       Homepage H1: clean keyword (Core 30 rule) or category + city + reason (Caleb's SEO In
+       Real Life formula).
+       Service card length: 50 to 80 words or one line.
+       Homepage schema: LocalBusiness on the homepage only (July SOP) or referenced by
+       @id on every page (v2 spec and Core 30 house rules).
+       Edens Edge direction: GBP primary category Gardener versus location pages targeting
+       Landscaper versus Ethan wanting £2k+ makeovers.
+       Existing-website clients: the transfer process that protects domain authority. Brandon
+       does not have the answer yet.
+       GBP automation: LeadSnap is the plan per the brain dump; earlier notes had it open.
+       CRM.
+       Where the GHL-era features live now: missed call text-back, AI receptionist, chat
+       widget, form pipelines, review and discount QR funnels, the Review + Referral
+       Followup Form, the thank you pages. All were sold in the VSL and script.
+
+
+
+
+                                                                                           Page 71 of 74
+Local Launchpad — Master Context Document
+
+
+
+
+       Who runs the copy bot now that Girlie has gone, and who cleans form answers into
+       custom values.
+       WordPress custom values: the new placeholder syntax replacing {{custom_values.X}}.
+       Onboarding tooling: VideoAsk versus the Fillout form versus the earlier six-page HTML
+       funnel with Leadsie. Which is live.
+       Contractors versus a business partner for delivery and product (weighed earlier).
+
+
+  What's next
+       Build the WordPress integration: Railway creates pages from templates over the REST
+       API and pushes copy into ACF fields. Ray's task.
+       Port the prompts and calibration packs to WordPress placeholder syntax. Update the
+       custom values CSV parser headers.
+       Rewrite the delivery SOP for WordPress, in the SOP format standard, with Ray and
+       Given in the roles.
+       Write calibration packs for the remaining 22 niches, with a homepage block in each.
+       Dog training, dog walking and cleaning first.
+       Add the onboarding questions in section 9.
+       Settle the open decisions above, starting with H1 and schema because they change
+       every template.
+       Add the Page Map columns the v2 spec reads (neighbourhoods, symptoms, Entity Test,
+       cost guide URL, Locations hub).
+       Build the global rules tab the five templates cite.
+       Finish the master company plans document consolidating the operational threads.
+       Scale Copybot and WordPress delivery across every niche beyond Edens Edge.
+       Build the Copybot platform features: per-client dashboards, per-page editing and
+       regeneration, shared visibility.
+       Re-record or edit the VSL when the price changes.
+       Reintroduce the pet niche split if pipeline volume justifies it.
+       Brandon leaves his part-time job on 22 December 2026.
+
+
+  18. Referenced documents to upload alongside this one
+  These files are referenced in this document by name and not reproduced. Upload them
+  with this document when building the AI.
+
+
+
+                                                                                        Page 72 of 74
+Local Launchpad — Master Context Document
+
+
+
+
+  Copy bot prompts (outdated, GHL syntax)
+       Homepage_Copywriting_Prompt_CORE (19).md
+       Category_Page_Copywriting_Prompt_CORE (15).md
+       Service_Page_Copywriting_Prompt_CORE (16).md
+       Location_Page_Copywriting_Prompt_CORE (17).md
+
+
+  Validator
+       Output_Validation_Checks (4).md
+
+
+  Calibration packs (outdated, GHL syntax)
+       Landscaper_Calibration_Pack_v4.md
+       Builder_Calibration_Pack_v5.md
+       Cleaning_Calibration_Pack_v5.md
+       Roofer_Calibration_Pack_v5.md
+       Drainage_Calibration_Pack_v1.md
+       Dog_Training_Security_Calibration_Pack_v1.md
+
+
+  Copy bot developer handover
+       HANDOVER.md
+
+
+  Custom values
+       Edens_Edge_Custom_Values - HOW TO USE.csv
+
+
+  Delivery SOP (outdated, GHL era)
+       July MASTER COPY - Local Launchpad Website Delivery SOP (PDF)
+
+
+  Brain dump and onboarding
+       Local Launchpad Context Document (PDF, 3 October 2026). Sections 4 to 7 and 10 of
+       this document reproduce it in full, so it is optional.
+       Fillout onboarding form screenshots (two PDFs and two images, 2 October 2026).
+       Section 8 reproduces the questions, so these are optional.
+
+
+
+
+                                                                                     Page 73 of 74
+Local Launchpad — Master Context Document
+
+
+
+
+  Page templates
+       Homepage Template v2: Core 30 Build Spec (Claude Doc, under debate). Section 15
+       summarises its decisions; the full spec is needed for copy work.
+       Category, service, location and location + category page templates (not uploaded here;
+       referenced in the 2 October review).
+
+
+  Caleb Ulku transcripts
+  Ten files in this project: SEO In Real Life episodes 1 to 5, Change THIS to Rank FAST, Do
+  THIS Now to Rank FAST, Easy SEO Strategy to Rank FAST, Just Change THIS to Rank Fast,
+  and The BEST Local SEO Tutorial for Beginners 2026. Section 11 draws on them.
+
+
+  Other documents on record but not uploaded
+       Sales call diagnosis chart (Canva).
+       Geographical Research & Context prompt (Google Doc).
+       Custom values template sheet and the "What Good Looks Like" reference (Google
+       Sheets and PDF).
+       All Cats & Services and Tick Box Categories & Services per niche (Google Doc).
+       Custom values Apps Script prompt and Page Map Generator script (Google Docs).
+       Client guidebook "Not a Secret, a System".
+       Sales call script (reproduced in section 6).
+       Show-rate improvement sequence.
+       Meta ad creatives.
+       Master company plans document (in progress).
+       The 15-section homepage DOCX template and GreenScape Gardens HTML demo.
+
+
+
+
+                                                                                         Page 74 of 74
+
