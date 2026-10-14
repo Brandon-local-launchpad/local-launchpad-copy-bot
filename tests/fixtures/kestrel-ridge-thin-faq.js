@@ -1,5 +1,5 @@
 'use strict';
-// Fixture: Kestrel Ridge Roofing (b) — thin version: insurance_cover, guarantee_years, start_time blank; business_type B
+// Fixture: Kestrel Ridge Roofing (b) — thin FAQ inputs only (page sections are rich; see kestrel-ridge-thin-page.js): insurance_cover, guarantee_years, start_time blank; business_type B
 const path = require('path');
 const { computeDecisions } = require(path.join(__dirname, '../../decisions.js'));
 const roofer = require(path.join(__dirname, '../../niche-library/roofer.json'));
@@ -97,7 +97,7 @@ const result = computeDecisions({
   cv, niche: roofer, pages, keyValueMap, v20TestMode: true, allocationData: null,
 });
 
-console.log('\n=== FIXTURE: Kestrel Ridge Thin ===\n');
+console.log('\n=== FIXTURE: Kestrel Ridge Thin FAQ ===\n');
 if (result.gates && result.gates.length) {
   console.log('GATE FAILURES:');
   result.gates.forEach(g => console.log('  ' + g.code + ': ' + g.msg));

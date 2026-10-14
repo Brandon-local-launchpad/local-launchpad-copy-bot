@@ -109,8 +109,15 @@
     },
     {
       "slot": "faq_5_free",
-      "question": "Are the inspection and quote free?",
+      "question": "Is the quote free and no obligation?",
       "answer_brief": "From [QUOTE_FREE] and [CV: quote_method].",
+      "symptom_based": false,
+      "doubt": "Price"
+    },
+    {
+      "slot": "faq_5_free_inspection",
+      "question": "Are the inspection and quote free?",
+      "answer_brief": "Used instead of faq_5_free only when free_quotes = yes and free_inspection = yes. From [QUOTE_FREE], [CV: free_inspection] and [CV: quote_method].",
       "symptom_based": false,
       "doubt": "Price"
     },

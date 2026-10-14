@@ -12,11 +12,15 @@
   - Generate All: warning line and a confirm box for v20 clients.
   - F-MORE-SERVICES now counts the real overflow.
 - Roofer niche entry: Planning Portal building regs wording for faq_E and 13 onboarding questions from the Bournemouth FAQ research. roofer.json synced.
+- Roofer Q5 (14 Oct): the default is quote only, "Is the quote free and no obligation?". The new `faq_5_free_inspection` slot ("Are the inspection and quote free?") is used only when free_quotes = yes and the new `free_inspection` client value = yes. The field is on the Client Values screen under Quotes & Timing.
+- Page map (14 Oct): the parser reads the Page Types "Locations Hub", "About" and "Cost Guide". They're link-only: they appear in LINKABLE PAGES when Live or Launching, but never become generation jobs and are never flagged for a missing H1.
+- Fixtures: 4 files, 78 checks, all pass. `kestrel-ridge-thin-page.js` is a truly thin roofer (no reviews, no logos, no owner section). The old thin fixture is renamed `kestrel-ridge-thin-faq.js`.
 - Docs: CLAUDE.md at repo root. The files the code reads (`prompts/`, `niche-library/`) are the only copies.
 
 ## Waiting on
 - Brandon: open "Preview v20 Decisions" for Edens Edge and Kestrel Ridge on the deployed app and check against the fixture previews. The real client data is only in the Railway database, so live previews can't run locally.
 - Brandon: set primary_category = Landscaper for Edens Edge in Client Values (if not done yet).
+- Brandon: add Locations Hub, About and Cost Guide rows to the page map template (Page Type spelled exactly as given), then re-upload the page maps for Edens Edge and Kestrel Ridge.
 
 ## Next
 1. Check the live Stage 4 previews (expect 7 category cards and the final CTA H2 "Get a Free Quote From a Local Landscaper in Southampton").
@@ -24,17 +28,12 @@
 3. Run Perplexity v3 for landscaper (trade only).
 4. Then: FAQ question bank + sorting step stages, humanizer decision, emergency and regulated group tests, category page.
 
-## Known gaps (code, to fix when the stage needs them)
-- The page map parser only knows Homepage, Category, Service, Location and Location Category rows. Locations hub, About and cost guide rows are dropped, so they can never be linkable yet. This needs the Page Type labels those rows use.
-- The "Kestrel Ridge thin" fixture only thins the FAQ inputs. It still has 112 reviews, logos, an owner and a trust line, so the page side of a thin roofer client is untested.
-
 ## Open decisions
 - Which humanizer (tool or prompt) Brandon wants.
 - Hero "doubt strip" under the buttons: yes or no.
 - Separate Southampton location page: drop it (homepage is that page).
 - Update the homepage structure doc with the changed rules (title keeps brand, H1 trade word allowed, area links = town names, no rating figure in logo row).
 - Building regulations wording in the roofer entry: get a roofer to check.
-- Roofer Q5 asks "Are the inspection and quote free?" but free_quotes only confirms the quote. Either reword the question or add a confirmed "free inspection" value.
 
 ## Don't
 - Click "Generate All" on a v20 client until the other page types are migrated.

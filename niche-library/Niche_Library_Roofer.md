@@ -72,7 +72,8 @@ Fixed homepage questions and their doubts: Q1 cost = Price; Q6 areas = Fit.
 | faq_3 | Do you guarantee your work? | Yes, then the confirmed terms. | no | Trust |
 | faq_3_none | What happens if the roof leaks again after a repair? | "Reasonable care and skill" standard; never invent a guarantee. | no | Trust |
 | faq_4 | How soon can you start? | From [CV: start_time]; if same_day_available is yes, say how urgent leaks are handled differently. | no | Timing |
-| faq_5_free | Are the inspection and quote free? | From [QUOTE_FREE] and [CV: quote_method]. | no | Price |
+| faq_5_free | Is the quote free and no obligation? | From [QUOTE_FREE] and [CV: quote_method]. | no | Price |
+| faq_5_free_inspection | Are the inspection and quote free? | Used instead of faq_5_free only when free_quotes = yes and free_inspection = yes. From [QUOTE_FREE], [CV: free_inspection] and [CV: quote_method]. | no | Price |
 | faq_5_not_free | How do your quotes work? | From [CV: quote_method]. | no | Price |
 | faq_A | Do I need scaffolding for a roof repair? | Not always: gutters, fascias and small tile repairs on two storey houses often from ladders or a tower; single storey flat roofs rarely; full re-roofs and most chimney work on two storeys usually do. Say access is settled at the quote. | no | Process |
 | faq_B | Why are my gutters overflowing when it rains? | Use the assigned symptom and issue. Three distinct causes: blocked outlet or downpipe, a run that has dropped out of level, an opened joint. Then the local factor. | **yes** | Fit |

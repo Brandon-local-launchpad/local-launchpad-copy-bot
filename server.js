@@ -355,7 +355,14 @@ const PAGE_TYPE_MAP = {
   'Service':           'service',
   'Location':          'location',
   'Location Category': 'location-category',
+  'Locations Hub':     'locations-hub',
+  'About':             'about',
+  'Cost Guide':        'cost-guide',
 };
+
+// Page types read only so the homepage can link to them. Copybot has no prompt
+// for these, so they never become generation jobs.
+const LINK_ONLY_PAGE_TYPES = new Set(['locations-hub', 'about', 'cost-guide']);
 
 function parsePageMap(csvText) {
   // CSVs often have preamble rows (title, subtitle, blank) before the real header.
@@ -512,6 +519,7 @@ function processH1s(pages, keyValueMap) {
   const missing = [];
   for (const page of pages) {
     if (['done', 'live'].includes(page.status.toLowerCase())) continue;
+    if (LINK_ONLY_PAGE_TYPES.has(page.pageType)) continue;
     if (page.pageType === 'service') {
       page.h1 = `${page.pageTitle} ${biz_area_1}`.trim();
     } else if (!page.h1) {
@@ -1531,6 +1539,7 @@ app.post('/api/parse-zip', upload.array('files', 30), async (req, res) => {
     const primaryArea  = (keyValueMap['biz_area_1'] || '').toLowerCase().trim();
     const jobs         = pages.filter(p => {
       if (['done', 'live'].includes(p.status.toLowerCase())) return false;
+      if (LINK_ONLY_PAGE_TYPES.has(p.pageType)) return false;
       // Location-category pages for the primary city are served by the category page — skip them
       if (p.pageType === 'location-category' && primaryArea) {
         const loc = (p.locationName || '').toLowerCase().trim() || p.pageTitle.toLowerCase().trim();
@@ -1539,8 +1548,8 @@ app.post('/api/parse-zip', upload.array('files', 30), async (req, res) => {
       return true;
     });
     const skippedPages = pages
-      .filter(p => ['done', 'live'].includes(p.status.toLowerCase()))
-      .map(p => ({ ...p, skipReason: `Status: ${p.status}` }));
+      .filter(p => ['done', 'live'].includes(p.status.toLowerCase()) || LINK_ONLY_PAGE_TYPES.has(p.pageType))
+      .map(p => ({ ...p, skipReason: LINK_ONLY_PAGE_TYPES.has(p.pageType) && !['done', 'live'].includes(p.status.toLowerCase()) ? 'Link only (no prompt for this page type)' : `Status: ${p.status}` }));
 
     const sessionId = crypto.randomUUID();
     const rawCustomValuesCsvs = identified.customValues.map(readText);
@@ -2728,6 +2737,7 @@ app.post('/api/clients/:clientId/parse-saved-files', async (req, res) => {
     const primaryArea = (keyValueMap['biz_area_1'] || '').toLowerCase().trim();
     const jobs = pages.filter(p => {
       if (['done', 'live'].includes(p.status.toLowerCase())) return false;
+      if (LINK_ONLY_PAGE_TYPES.has(p.pageType)) return false;
       if (p.pageType === 'location-category' && primaryArea) {
         const loc = (p.locationName || '').toLowerCase().trim() || p.pageTitle.toLowerCase().trim();
         if (loc === primaryArea || loc.endsWith(' ' + primaryArea)) return false;
@@ -2735,8 +2745,8 @@ app.post('/api/clients/:clientId/parse-saved-files', async (req, res) => {
       return true;
     });
     const skippedPages = pages
-      .filter(p => ['done', 'live'].includes(p.status.toLowerCase()))
-      .map(p => ({ ...p, skipReason: `Status: ${p.status}` }));
+      .filter(p => ['done', 'live'].includes(p.status.toLowerCase()) || LINK_ONLY_PAGE_TYPES.has(p.pageType))
+      .map(p => ({ ...p, skipReason: LINK_ONLY_PAGE_TYPES.has(p.pageType) && !['done', 'live'].includes(p.status.toLowerCase()) ? 'Link only (no prompt for this page type)' : `Status: ${p.status}` }));
 
     const sessionId = crypto.randomUUID();
     const rawCustomValuesCsvs = identified.customValues.map(readText);
@@ -2976,7 +2986,7 @@ const CLIENT_VALUES_TEMPLATE = {
   differentiator_1: '', differentiator_1_confirmed: false, differentiator_1_sentence: '',
   differentiator_2: '', differentiator_2_confirmed: false, differentiator_2_sentence: '',
   verified_logos: null,
-  free_quotes: '', quote_method: '', price_list: '', response_time: '',
+  free_quotes: '', free_inspection: '', quote_method: '', price_list: '', response_time: '',
   same_day_available: '', out_of_hours_available: '', start_time: '',
   owner_name: '', owner_name_2: '', owner_qualification: '',
   owner_why: '', owner_promise: '', owner_pronoun: '',

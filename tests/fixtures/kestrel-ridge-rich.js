@@ -32,6 +32,7 @@ const cv = {
     { name: 'TrustMark', tier: 'tier1' },
   ],
   free_quotes: 'yes',
+  free_inspection: 'yes',
   quote_method: 'written quote within 48 hours',
   price_list: '',
   response_time: 'one working day',
@@ -153,6 +154,11 @@ chk('Rating line present',
   D.d6_rating, '★★★★★ 4.8 from 112+ Google Reviews');
 
 chk('9 FAQ questions', D.d11_faq.length === 9, D.d11_faq.length, 9);
+
+const q5 = D.d11_faq.find(q => q.slot === 'Q5');
+chk('Q5 = inspection and quote (free_inspection confirmed yes)',
+  q5 && q5.question === 'Are the inspection and quote free?' && /inspection and the quote are both free/.test(q5.answer_brief),
+  q5 && `${q5.question} → ${q5.answer_brief}`, 'Are the inspection and quote free? → inspection and quote both free');
 
 chk('Why P4 = first approved review theme',
   D.d10_why[3] && D.d10_why[3].title === 'On Site When We Say We\'ll Be',

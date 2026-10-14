@@ -179,7 +179,11 @@ function buildFaq(cv, niche, ctx, emergencyOn) {
   const quoteHow = cv.quote_method
     ? 'Say how quotes work from [CV: quote_method] only.'
     : 'quote_method is blank: do not describe how quotes are given, a visit, or a turnaround time.';
-  if (ctx.quoteFree) {
+  // A niche may offer faq_5_free_inspection (roofer); it replaces faq_5_free only
+  // when the client has confirmed free inspections as well as free quotes.
+  if (ctx.quoteFree && cv.free_inspection === 'yes' && faqMap['faq_5_free_inspection']) {
+    questions.push({ ...faqMap['faq_5_free_inspection'], slot: 'Q5', answer_brief: `Yes: the inspection and the quote are both free (confirmed). ${quoteHow}` });
+  } else if (ctx.quoteFree) {
     questions.push({ ...faqMap['faq_5_free'], slot: 'Q5', answer_brief: `Yes: quotes are free (confirmed). ${quoteHow}` });
   } else {
     questions.push({ ...faqMap['faq_5_not_free'], slot: 'Q5', answer_brief: `Quotes are not free: never say free. ${quoteHow}` });
