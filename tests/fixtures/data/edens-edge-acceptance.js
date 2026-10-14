@@ -36,12 +36,16 @@ const keyValueMap = { biz_area_1: 'Southampton', category_1: 'Landscaper' };
 // Ethan's documented answers (Master Context Document, 3 Oct 2026): free quote,
 // fixed price and same week start are the usable facts; 100 jobs; insurance
 // excluded; hours and founding year unusable; no reviews; no owner photo or story.
-// team_size, travel_distance and differentiator_2 come from the brief's §7 list.
+// travel_distance comes from the brief's §7 list. "Family run" (differentiator_2)
+// and the team of four are waiting on Ethan (14 Oct, second pass), so they're left out. No
+// practices are confirmed yet. Southampton is coastal.
 function ethanValues() {
   return {
     ...cv,
     insurance_cover: '', hours: '',
     owner_name: 'Ethan', owner_qualification: '', owner_why: '', owner_promise: '', owner_photo: 'no',
+    differentiator_2_confirmed: false, team_size: '',
+    confirmed_practices: [], coastal_city: 'yes',
     stand_ins: [],
   };
 }

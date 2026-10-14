@@ -166,9 +166,16 @@ function buildFaq(cv, niche, ctx, emergencyOn) {
     if (fb) questions.push({ ...fb, slot: 'Q3' });
   }
 
-  // Q4 start_time / fallback
+  // Q4 start_time / fallback. Answered strictly from start_time; "bigger projects
+  // are booked further ahead" only when that practice is confirmed.
   if (cv.start_time) {
-    questions.push({ ...faqMap['faq_4'], slot: 'Q4' });
+    const base = (faqMap['faq_4'].answer_brief || '').replace(/\s*Code adds[^.]*\.\s*$/, '').trim();
+    const booked = (cv.confirmed_practices || []).includes('bigger_projects_booked_ahead');
+    questions.push({
+      ...faqMap['faq_4'], slot: 'Q4',
+      answer_brief: `${base} Say the start time exactly as [CV: start_time] gives it: never narrow it to "smaller jobs" or "most jobs". ` +
+        (booked ? 'Bigger projects are booked further ahead (confirmed).' : 'Never mention bigger projects taking longer to book.'),
+    });
   } else {
     const fb = nextFallback();
     if (fb) questions.push({ ...fb, slot: 'Q4' });
@@ -651,10 +658,12 @@ function computeDecisions({ cv, niche, pages, keyValueMap, serviceParentMap, v20
   // Build linkable pages list (Live or Launching), trimmed to pages the homepage
   // can link: never itself, never location-category pages, and only the services
   // that can be cards (secondary-category services sit under their category page).
+  // The primary city's own location page is left out too: the homepage is that page.
   const cardServiceSet = new Set(cardServices);
   const linkablePages = pages
     .filter(p => isLinkable(p) && (p.urlSlug || '').trim())
     .filter(p => p.pageType !== 'homepage' && p.pageType !== 'location-category')
+    .filter(p => !(p.pageType === 'location' && normArea(stripAdmin(p.pageTitle)) === normArea(primaryCity)))
     .filter(p => p.pageType !== 'service' || cardServiceSet.has(p))
     .map(p => ({ type: p.pageType, url: p.urlSlug, h1: p.h1 || '' }));
 
@@ -680,6 +689,8 @@ function computeDecisions({ cv, niche, pages, keyValueMap, serviceParentMap, v20
     emergencyOn,
     quoteFree,
     allocated,
+    coastal:              cv.coastal_city === 'yes',
+    locations_hub:        (linkablePages.find(p => p.type === 'locations-hub') || {}).url || null,
     cta_band:             ctaBand,
     final_cta_trust_lines: finalCtaTrustLines,
     trusted_logos:        trustedLogos,
@@ -764,6 +775,8 @@ function formatDecisionsBlock(D, cv, niche, ctx) {
   push(`D15 Buttons: ${D.d15_buttons.join(' | ')}`);
   push(`Emergency layout: ${D.emergencyOn ? 'ON' : 'off'}`);
   push(`[QUOTE_FREE]: ${D.quoteFree || '(blank — paid quotes)'}`);
+  push(`Primary city coastal: ${D.coastal ? 'yes. Write the travel distance as "inland and along the coast", never compass directions or "in each direction"' : 'no'}`);
+  push(`Locations hub: ${D.locations_hub ? `${D.locations_hub} (FAQ "Which areas do you cover?" links it)` : 'none (the areas FAQ links no hub)'}`);
   push('');
   push('LINKABLE PAGES:');
   for (const p of D.linkablePages) push(`  [${p.type}] ${p.url} | H1: ${p.h1}`);

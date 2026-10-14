@@ -31,8 +31,9 @@ function rangeText(f, D) {
   return `${r.label} words`;
 }
 
-function buildRetryMessage(f, problems, record, D) {
+function buildRetryMessage(f, problems, record, D, earlier = []) {
   const others = modelFields(record).filter(o => o.label !== f.label).map(o => `${o.label}: ${o.text.replace(/\n\n/g, '\\n\\n')}`);
+  const stillAvoid = earlier.filter(p => !problems.includes(p));
   return [
     `FIELD: ${f.label}${rangeText(f, D) ? ` (${rangeText(f, D)})` : ''}`,
     '',
@@ -41,6 +42,7 @@ function buildRetryMessage(f, problems, record, D) {
     '',
     'PROBLEMS:',
     ...problems.map(p => `- ${p}`),
+    ...(stillAvoid.length ? ['', 'ALREADY FIXED IN AN EARLIER VERSION (don\'t bring these back):', ...stillAvoid.map(p => `- ${p}`)] : []),
     '',
     'OTHER FIELDS ON THE PAGE (already written; never reuse their wording):',
     ...others,
@@ -71,6 +73,7 @@ async function mapLimit(items, limit, fn) {
 async function runRetries({ record, V, callRetry, maxRetries = MAX_RETRIES, concurrency = CONCURRENCY }) {
   const log = [];
   const attempts = {};
+  const history = {}; // every problem a field has had, so a later round doesn't bring one back
   const usage = { calls: 0, input_tokens: 0, output_tokens: 0, cache_read_input_tokens: 0 };
 
   for (let round = 1; round <= maxRetries; round++) {
@@ -89,8 +92,10 @@ async function runRetries({ record, V, callRetry, maxRetries = MAX_RETRIES, conc
       const f = modelFields(base).find(x => x.label === label);
       attempts[label] = (attempts[label] || 0) + 1;
       const problems = [...new Set(g.issues.map(i => i.message))];
+      const earlier = history[label] || [];
+      history[label] = [...new Set([...earlier, ...problems])];
       try {
-        const r = await callRetry({ message: buildRetryMessage(f, problems, base, V.D) });
+        const r = await callRetry({ message: buildRetryMessage(f, problems, base, V.D, earlier) });
         usage.calls++;
         for (const k of ['input_tokens', 'output_tokens', 'cache_read_input_tokens']) usage[k] += (r.usage && r.usage[k]) || 0;
         return { label, f, problems, before: f.text, after: parseRetryReply(r.text, f.ref), raw: r.text || '' };

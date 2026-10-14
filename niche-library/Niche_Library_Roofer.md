@@ -73,7 +73,7 @@ Fixed homepage questions and their doubts: Q1 cost = Price; Q6 areas = Fit.
 | faq_2_fallback | What happens if something goes wrong? | From [CV: complaints_process] only. | no | Trust |
 | faq_3 | Do you guarantee your work? | Yes, then the confirmed terms. | no | Trust |
 | faq_3_none | What happens if the roof leaks again after a repair? | "Reasonable care and skill" standard; never invent a guarantee. | no | Trust |
-| faq_4 | How soon can you start? | From [CV: start_time]; if same_day_available is yes, say how urgent leaks are handled differently. | no | Timing |
+| faq_4 | How soon can you start? | From [CV: start_time] only, as given; if same_day_available is yes, say how urgent leaks are handled differently. | no | Timing |
 | faq_5_free | Is the quote free and no obligation? | From [QUOTE_FREE] and [CV: quote_method]. | no | Price |
 | faq_5_free_inspection | Are the inspection and quote free? | Used instead of faq_5_free only when free_quotes = yes and free_inspection = yes. From [QUOTE_FREE], [CV: free_inspection] and [CV: quote_method]. | no | Price |
 | faq_5_not_free | How do your quotes work? | From [CV: quote_method]. | no | Price |
@@ -100,6 +100,31 @@ The model may only name what the client ticks (`[CV: materials_methods]`).
 Services the validator looks for in cards and FAQ answers. Each one it finds must match one of the client's GBP services, categories or ticked materials, or it is flagged.
 
 re-roofing, new roof, roof replacement, roof repair, flat roofing, flat roof, leadwork, lead flashing, chimney repointing, chimney repair, chimney removal, gutter cleaning, guttering, gutter repair, fascias, soffits, ridge repair, dry ridge, dry verge, valley repair, skylight, roof window, roof inspection, roof survey, moss removal, roof cleaning, emergency repair, storm damage, loft insulation, tile replacement, slate replacement
+
+## Service words (validator and client block)
+
+GBP service names are shown to the model in the words a homeowner uses. The first row whose text appears in the GBP name wins; with no match, the GBP name is used in lower case. Cards name 2 or 3 services in these words, never the raw GBP list.
+
+| GBP name contains | Say |
+|---|---|
+| fascia | fascias and soffits |
+| soffit | fascias and soffits |
+| skylight | roof windows |
+| gutter cleaning | gutter cleaning |
+| gutter | guttering |
+| roof inspection | roof checks |
+| re-roofing | new roofs |
+| roof replacement | new roofs |
+| flat roof | flat roofs |
+| emergency roof repair | emergency roof repairs |
+| lead | leadwork |
+| chimney | chimney repairs |
+| roof coating | roof coatings |
+| roofing contractor | roofing |
+
+## Confirmed practices (onboarding)
+
+The copy may only state a working practice the client has ticked in confirmed_practices. The list and the onboarding question for each practice are in niche-library/practices.json (shared by all niches; some are roofer only).
 
 ## Onboarding questions this niche needs
 

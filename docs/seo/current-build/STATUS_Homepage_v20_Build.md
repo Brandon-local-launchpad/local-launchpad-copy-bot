@@ -68,6 +68,14 @@
   - Fixtures: 8 files, 200 checks, all pass. `tests/fixtures/data/edens-edge-acceptance.js` holds the §7 inputs and Ethan's documented values.
   - Real Edens Edge run (local, 14 Oct), with Ethan's documented values (no insurance, no hours, owner section hidden), his real page map and his 78 GBP services: the first draft had 11 BLOCK and 52 FLAG; after 40 retry calls (31 kept) it had 0 BLOCK and 7 FLAG (long sentences, two FAQ first sentences, one repeat). It took about 110s and cost about 65p (5p first call, 60p retries). The output is saved in `tests/fixtures/v20-outputs/`. The first draft varies a lot between runs (10 to 12 BLOCK).
   - What the validator can't catch, seen in the real runs: working practices Ethan never gave ("we put the full cost in writing", "we'll set a schedule", "no subcontracting"), "Edwardian" for a 1908 to 1930 estate, and "compact terraced gardens in Portswood" (not in the research).
+- Stage 7 second pass (14 Oct), after Brandon's review of the first run:
+  - FAQ 4 is answered strictly from start_time. "Bigger projects are booked further ahead" appears only when the `bigger_projects_booked_ahead` practice is confirmed (niche faq_4 briefs updated).
+  - `confirmed_practices` client value: a tick list on the Client Values screen, from `niche-library/practices.json` (17 practices, each with an onboarding question; 3 are roofer only). The onboarding prefill suggests ticks only where an answer clearly says yes. The client block lists the confirmed practices as the only ones the copy may state. New check PRACTICE (BLOCK).
+  - Services in homeowner words: niche `service_words` maps GBP names to UK homeowner words (sod installation → turf laying, hardscaping → paving and walling, brick paver → block paving; desert and pool landscaping are never named). The model sees only these words. New checks RAW-GBP and CARD-COUNT (2 or 3 services per card).
+  - Fixes: `coastal_city` client value and COAST check ("inland and along the coast"); the primary city's own location page is no longer linkable; the areas FAQ links the Locations Hub when there is one (HUB-LINK); RESEARCH-LANG ("investigated sites", "records show"…); REPEAT-IN (points repeated within a field, or a neighbourhood across content block paragraphs).
+  - Gaps found on the way and fixed: INSURANCE (BLOCK: insurance mentioned with none on file; a run wrote "Public liability insurance covers…"), CARD-LOCAL (neighbourhoods in cards), LINK-TEXT (category link text must hold the category words), "the best chance" and "leading to" no longer read as claims, retries now carry every earlier problem so a later round can't bring one back, and typical_jobs prices now reach the client block (it read `from_price`; the screen saves `price`).
+  - Real Edens Edge run (Ethan's values; family run and team of four left out pending Ethan): the first draft had 8 BLOCK and 64 FLAG; after 39 retries (32 kept) it had **0 BLOCK and 5 FLAG** (two cards naming 4 services, two long sentences, FAQ 4 at 27 words). About 100s and 60p. Saved as `tests/fixtures/v20-outputs/edens-edge-2026-10-14-stage7b-*`. After the run, COAST was extended to catch compass directions after the travel_distance token ("to the south and west" got through).
+  - Fixtures: 9 files, 229 checks, all pass.
 - Docs: CLAUDE.md at repo root. The files the code reads (`prompts/`, `niche-library/`) are the only copies.
 
 ## Waiting on
@@ -85,11 +93,9 @@
 5. Then: FAQ question bank + sorting step stages, humanizer decision, emergency and regulated group tests, category page.
 
 ## Open decisions
-- FAQ 4 "How soon can you start?": Ethan's answer is "same week" with no qualification, but the niche faq_4 brief adds "Bigger projects are booked further ahead", so the copy says "for most/smaller jobs". Keep that line in the niche brief, or answer strictly from start_time?
-- Company name: Ethan's custom values say "Edens Edge landscaping" (lower case l); the brief's test uses "Edens Edge Landscaping". It must match the GBP exactly.
-- The real page map has a Southampton location page, and the copy links to it ("list of areas we cover"). STATUS already proposes dropping it. If it goes, the areas link needs a Locations Hub row.
-- Unconfirmed working practices ("written quote", "schedule", "no subcontracting") need a check beyond regex: a model-judged claims check, or a confirmed-practices client value.
-- Review the niche `service_terms` lists (landscaper and roofer) and the roofer CTA band line.
+- Company name: Ethan's custom values say "Edens Edge landscaping" (lower case l); the brief's test uses "Edens Edge Landscaping". Brandon is checking the GBP.
+- "Family run" (differentiator_2) and the team of four: Brandon is confirming with Ethan. Until then they're left out of his values.
+- Review Claude's drafts: `niche-library/practices.json` (practices, labels and onboarding questions) and the landscaper and roofer `service_words` mappings. Add the practice questions to the onboarding form itself, which isn't in this repo.
 - Which humanizer (tool or prompt) Brandon wants.
 - Hero "doubt strip" under the buttons: yes or no.
 - Separate Southampton location page: drop it (homepage is that page).

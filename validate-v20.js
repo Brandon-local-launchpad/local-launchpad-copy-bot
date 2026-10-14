@@ -17,8 +17,30 @@
 //   2        BLOCK  banned list also has "range of materials", "start to finish",
 //                   "needs" as a noun and "As your/a/an [category]" openers
 
+//   (14 Oct, second pass)
+//   PRACTICE      BLOCK  a working practice (written quote, schedule, no subcontractors…)
+//                        not in confirmed_practices (niche-library/practices.json)
+//   RAW-GBP       FLAG   a raw GBP service name where the homeowner word should be used
+//                        (niche service_words), or a service that is never named
+//   CARD-COUNT    FLAG   a card naming more than 3 services
+//   COAST         FLAG   coastal city: travel distance not written "inland and along the coast"
+//   HUB-LINK      FLAG   the areas FAQ doesn't link the Locations Hub when there is one
+//   RESEARCH-LANG FLAG   research wording in the copy ("investigated sites", "records show"…)
+//   REPEAT-IN     FLAG   a point repeated inside one field
+
+const { practiceClaims } = require('./practices');
+const { confirmedServiceList } = require('./service-words');
+
 const RETRY_FLAGS = new Set(['N7', 'N13', 'N14', 'N15', 'N17', 'N18', 'N19', 'N21', 'N22', 'N23', 'N24',
-  '1b', 'HERO', 'SERVICE', 'TRUST-REPEAT', 'PROOF-REPEAT']);
+  '1b', 'HERO', 'SERVICE', 'TRUST-REPEAT', 'PROOF-REPEAT', 'RAW-GBP', 'CARD-COUNT', 'COAST', 'HUB-LINK', 'RESEARCH-LANG', 'REPEAT-IN',
+  'CARD-LOCAL', 'LINK-TEXT']);
+//   INSURANCE     BLOCK  insurance mentioned with no insurance_cover on file
+//   CARD-LOCAL    FLAG   a neighbourhood or allocated place in a card
+//   LINK-TEXT     FLAG   a category link whose text drops the category's words
+const RESEARCH_WORDS = ['investigated sites?', 'records? shows?', 'recorded (at|in|by)', 'council (guidance|records|data|maps?|says)',
+  'strategic flood', 'flood (risk )?assessments?', 'suds', 'according to', 'research', 'dossier', 'data (shows|suggests)',
+  'mapped', 'appraisal', 'neighbourhood plan', 'evidence base', 'studies show', 'surveys? (show|found)'];
+const STOPWORDS = new Set('a an the and or of to in on for with at by from as is are be it its this that we our you your they their there here so if not no but more than can will has have'.split(' '));
 
 const NUM_WORDS = { one: 1, two: 2, three: 3, four: 4, five: 5, six: 6, seven: 7, eight: 8, nine: 9, ten: 10, eleven: 11, twelve: 12 };
 const BANNED = [
@@ -118,8 +140,10 @@ function buildValidationContext({ cv, niche, decisions, keyValueMap = {}, servic
     for (const m of n.profile.matchAll(/\b((?:[A-Z][a-z’']+\s){1,3}(?:Road|Avenue|Way|Close|Lane|Street|Drive|Gardens|Crescent|Dale|Hill|Place|Terrace|Green|Park))\b/g)) places.add(m[1].trim());
   }
 
+  const serviceList = confirmedServiceList(keyValueMap, serviceParentMap, niche);
   const confirmedServices = [
     ...Object.entries(keyValueMap).filter(([k]) => /^(service|category)_\d+$/.test(k)).map(([, v]) => v),
+    ...serviceList.map(s => s.say).filter(Boolean),
     ...(D.d9.main || []).map(c => c.name), ...(D.d9.alsoOffer || []),
     cv.primary_category, ...(cv.materials_methods || []),
   ].filter(Boolean).map(s => new Set(lc(s).split(/[^a-z0-9]+/).filter(Boolean).map(stem)));
@@ -130,7 +154,8 @@ function buildValidationContext({ cv, niche, decisions, keyValueMap = {}, servic
   return {
     cv, niche, D, keyValueMap, serviceParentMap, populatedCvKeys: populatedCvKeys || new Set(),
     cvNumbers, cvText: cvText.join(' | '), researchText, researchNumbers, places: [...places],
-    confirmedServices, linkable, linkableCategories, towns,
+    confirmedServices, serviceList, linkable, linkableCategories, towns,
+    neighbourhoodNames: allocated.neighbourhoods.map(n => n.name.split(/[\s,’']/)[0]).filter(n => n.length > 3),
     city: (keyValueMap.biz_area_1 || '').trim(),
     categoryNames: [...new Set([...Object.entries(keyValueMap).filter(([k]) => /^category_\d+$/.test(k)).map(([, v]) => v),
       ...(D.d9.main || []).map(c => c.name)])],
@@ -207,7 +232,10 @@ function validateV20(record, V) {
     if (cv.out_of_hours_available !== '24/7' && /24\/7/.test(s)) flag('BLOCK', 'N5', '"24/7" used but 24/7 cover is not confirmed.');
     const fixedConfirmed = /fixed\s+price/i.test(`${cv.differentiator_1_confirmed ? cv.differentiator_1 : ''} ${cv.differentiator_2_confirmed ? cv.differentiator_2 : ''} ${cv.quote_method || ''}`);
     if (!fixedConfirmed && /\bfixed[\s-]price/i.test(s)) flag('BLOCK', 'N5', '"Fixed price" used but it is not confirmed.');
-    for (const w of CLAIM_WORDS) if (new RegExp(`(^|\\W)${esc(w)}(\\W|$)`, 'i').test(s)) flag('BLOCK', 'N5', `Claim word "${w}" with no proof on file. Say "local" or the concrete thing.`);
+    // Claim words; "the best chance/time/way" and "leading to" aren't claims about the business
+    const claimText = s.replace(/\b(the )?best (chance|time|way|option|choice|results?|thing|approach|fit|suited|for (you|your))\b|\bat best\b/gi, ' ')
+      .replace(/\bleading (to|up|into)\b/gi, ' ');
+    for (const w of CLAIM_WORDS) if (new RegExp(`(^|\\W)${esc(w)}(\\W|$)`, 'i').test(claimText)) flag('BLOCK', 'N5', `Claim word "${w}" with no proof on file. Say "local" or the concrete thing.`);
 
     // N7: word ranges and long sentences
     const r = RANGES[f.rangeKey];
@@ -287,6 +315,75 @@ function validateV20(record, V) {
       const asDigits = phrase.replace(/\b(one|two|three|four|five|six|seven|eight|nine|ten|eleven|twelve)\b/g, w => String(NUM_WORDS[w]));
       if (V.cvText.includes(phrase) || V.cvText.includes(asDigits) || V.researchText.includes(phrase)) continue;
       flag('BLOCK', 'NUM', `The timescale "${m[0]}" is not in the client values. Give the factors that decide it, without a time.`);
+    }
+
+    // PRACTICE: working practices only from confirmed_practices
+    const confirmedKeys = new Set(cv.confirmed_practices || []);
+    for (const c of practiceClaims(s, niche)) {
+      if (!confirmedKeys.has(c.practice.key)) flag('BLOCK', 'PRACTICE', `"${c.match}" states a practice ("${c.practice.label}") that the client hasn't confirmed. Remove it.`);
+    }
+
+    // RAW-GBP: homeowner words, never the raw GBP name; never-named services stay out
+    for (const sv of V.serviceList) {
+      if (!new RegExp(`\\b${esc(sv.gbp)}\\b`, 'i').test(s)) continue;
+      if (sv.say === null) flag('FLAG', 'RAW-GBP', `Names "${sv.gbp}", which is never named on the page. Leave it out.`);
+      else if (lc(sv.say) !== lc(sv.gbp)) flag('FLAG', 'RAW-GBP', `Uses the GBP name "${sv.gbp}". Say "${sv.say}" instead.`);
+    }
+    // INSURANCE: no insurance on file means no insurance in the copy (N5 only covers "fully insured")
+    if (!cv.insurance_cover && /\b(insured|insurance|public liability|liability cover)\b/i.test(s)) {
+      flag('BLOCK', 'INSURANCE', 'Mentions insurance, but no insurance cover is confirmed for this client. Remove it.');
+    }
+    // CARD-LOCAL: no neighbourhoods or local conditions in cards (CORE (20) cards rule)
+    if (f.ref.sub === 'card_text') {
+      const local = [...V.places, ...V.neighbourhoodNames].find(p => new RegExp(`\\b${esc(p)}`, 'i').test(s));
+      if (local) flag('FLAG', 'CARD-LOCAL', `Mentions ${local}. Cards carry no neighbourhoods or local conditions; local detail lives on the category pages.`);
+    }
+    // LINK-TEXT: a category link's text holds the category's words, in order
+    for (const m of t.matchAll(/\[([^\]]+)\]\(([^)]+)\)/g)) {
+      const card = (D.d9.main || []).find(c => c.url && normUrl(c.url) === normUrl(m[2]));
+      if (!card) continue;
+      const want = lc(card.name).split(/\s+/);
+      const have = lc(m[1]).split(/[^a-z0-9]+/);
+      let i = 0;
+      for (const w of have) if (i < want.length && w === want[i]) i++;
+      if (i < want.length) flag('FLAG', 'LINK-TEXT', `The link to ${card.url} reads "${m[1]}". Link text must contain "${lc(card.name)}" in order, e.g. "our [${lc(card.name)}](${card.url}) work".`);
+    }
+    // CARD-COUNT: a card names 2 or 3 services, never a list
+    if (f.ref.sub === 'card_text') {
+      const hits = [...new Set(V.serviceList.filter(sv => sv.say && new RegExp(`\\b${esc(sv.say)}\\b`, 'i').test(s)).map(sv => sv.say))];
+      // "driveways" inside "new driveways" is one service, not two
+      const named = new Set(hits.filter(h => !hits.some(o => o !== h && o.includes(h))));
+      if (named.size > 3) flag('FLAG', 'CARD-COUNT', `Names ${named.size} services (${[...named].join(', ')}). Name 2 or 3, in a sentence, not a list.`);
+    }
+    // COAST: a coastal city's travel distance reads "inland and along the coast"
+    if (D.coastal && (/\btravel/i.test(s) || /\[CV: travel_distance\]/.test(t) || (cv.travel_distance && l.includes(lc(cv.travel_distance))))) {
+      if (/\bin (each|every) direction\b|\b(to the )?(north|south|east|west)(,| and)\s+(north|south|east|west)\b/i.test(s) || !/inland and along the coast/i.test(s)) {
+        flag('FLAG', 'COAST', 'The city is on the coast: write the travel distance as "inland and along the coast", never compass directions.');
+      }
+    }
+    // RESEARCH-LANG: the copy never sounds like the research it came from
+    for (const w of RESEARCH_WORDS) {
+      const m = s.match(new RegExp(`\\b${w}\\b`, 'i'));
+      if (m) flag('FLAG', 'RESEARCH-LANG', `"${m[0]}" is research wording. Say what it means for the garden in plain words.`);
+    }
+    // REPEAT-IN: one point made once inside a field
+    {
+      const toks = lc(s).replace(/cvtoken/g, ' ').replace(/[^a-z0-9£' ]+/g, ' ').split(/\s+/).filter(Boolean);
+      const seen = new Map();
+      for (let i = 0; i + 4 <= toks.length; i++) {
+        const g = toks.slice(i, i + 4);
+        if (g.filter(w => !STOPWORDS.has(w)).length < 2) continue;
+        const k = g.join(' ');
+        if (seen.has(k) && i - seen.get(k) >= 4) { flag('FLAG', 'REPEAT-IN', `"${k}" appears twice in this field. Make each point once.`); break; }
+        if (!seen.has(k)) seen.set(k, i);
+      }
+      if (f.ref.key === 'home_content_block_body') {
+        const paras = t.split(/\n\n+/);
+        for (const n of V.neighbourhoodNames) {
+          const inParas = paras.filter(p => new RegExp(`\\b${esc(n)}`, 'i').test(p)).length;
+          if (inParas > 1) flag('FLAG', 'REPEAT-IN', `${n} comes up in ${inParas} paragraphs. Make the point about it in one place.`);
+        }
+      }
     }
 
     // SERVICE: services named in the copy must be confirmed. Asked for cards and
@@ -407,6 +504,14 @@ function validateV20(record, V) {
       if (n && seen > 1) issue('FLAG', 'N23', f.label, `"${p}" is already used once on the page.`, f.ref);
     }
   }
+  // HUB-LINK: the areas FAQ links the Locations Hub when there is one
+  if (D.locations_hub) {
+    const areasFaq = fields.find(f => f.ref.sub === 'faq_answer' && /which areas/i.test(f.label));
+    if (areasFaq && !linkUrls(areasFaq.text).some(u => normUrl(u) === normUrl(D.locations_hub))) {
+      issue('FLAG', 'HUB-LINK', areasFaq.label, `Link the Locations Hub (${D.locations_hub}) in this answer.`, areasFaq.ref);
+    }
+  }
+
   // 6c: at least one FAQ answer carries a link
   if (!fields.some(f => f.ref.sub === 'faq_answer' && linkUrls(f.text).length)) issue('FLAG', '6c', 'faq_items', 'No FAQ answer carries a link.');
 

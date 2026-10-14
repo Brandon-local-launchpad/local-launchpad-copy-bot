@@ -105,7 +105,7 @@
     {
       "slot": "faq_4",
       "question": "How soon can you start?",
-      "answer_brief": "From [CV: start_time]; if same_day_available is yes, say how urgent leaks are handled differently.",
+      "answer_brief": "From [CV: start_time] only, as given; if same_day_available is yes, say how urgent leaks are handled differently.",
       "symptom_based": false,
       "doubt": "Timing"
     },
@@ -190,6 +190,14 @@
   },
 
   "service_terms": ["re-roofing", "new roof", "roof replacement", "roof repair", "flat roofing", "flat roof", "leadwork", "lead flashing", "chimney repointing", "chimney repair", "chimney removal", "gutter cleaning", "guttering", "gutter repair", "fascias", "soffits", "ridge repair", "dry ridge", "dry verge", "valley repair", "skylight", "roof window", "roof inspection", "roof survey", "moss removal", "roof cleaning", "emergency repair", "storm damage", "loft insulation", "tile replacement", "slate replacement"],
+
+  "service_words": [
+    ["fascia", "fascias and soffits"], ["soffit", "fascias and soffits"], ["skylight", "roof windows"],
+    ["gutter cleaning", "gutter cleaning"], ["gutter", "guttering"], ["roof inspection", "roof checks"],
+    ["re-roofing", "new roofs"], ["roof replacement", "new roofs"], ["flat roof", "flat roofs"],
+    ["emergency roof repair", "emergency roof repairs"], ["lead", "leadwork"], ["chimney", "chimney repairs"],
+    ["roof coating", "roof coatings"], ["roofing contractor", "roofing"]
+  ],
 
   "why_titles_alt": [
     "Local Experience Behind Every Job",

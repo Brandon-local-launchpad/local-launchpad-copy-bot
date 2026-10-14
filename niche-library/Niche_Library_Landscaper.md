@@ -77,7 +77,7 @@ Fixed homepage questions and their doubts: Q1 cost = Price; Q6 areas = Fit.
 | faq_2_fallback | What happens if something goes wrong? | From [CV: complaints_process] only. | no | Trust |
 | faq_3 | Do you guarantee your work? | Used only when a guarantee or manufacturer warranty is confirmed. Start with yes, then the terms. | no | Trust |
 | faq_3_none | What happens if something isn't right after the job? | Used when nothing in cover_chain other than insurance is confirmed. Answer from the "reasonable care and skill" standard every trade works to, and how to raise it. Never invent a guarantee. | no | Trust |
-| faq_4 | How soon can you start? | From [CV: start_time]. Bigger projects are booked further ahead. | no | Timing |
+| faq_4 | How soon can you start? | From [CV: start_time] only, as given. Code adds "bigger projects are booked further ahead" only when that practice is confirmed. | no | Timing |
 | faq_5_free | Is the quote free and no obligation? | From [QUOTE_FREE] and [CV: quote_method]. | no | Price |
 | faq_5_not_free | How do your quotes work? | From [CV: quote_method] only. | no | Price |
 | faq_A | How long does a garden landscaping project take? | Depends on size, groundwork and materials. Give the factors, not a number unless confirmed. Weather can move hard landscaping days. | no | Timing |
@@ -103,6 +103,81 @@ The model may only name what the client ticks (`[CV: materials_methods]`).
 Services the validator looks for in cards and FAQ answers. Each one it finds must match one of the client's GBP services, categories or ticked materials, or it is flagged.
 
 turfing, turf laying, artificial grass, lawn mowing, scarification, scarifying, aeration, lawn feeding, overseeding, lawn treatment, hedge trimming, hedge cutting, weeding, weed control, mulching, planting, border planting, garden clearance, seasonal clearance, crown reduction, crown lifting, pollarding, pruning, tree felling, tree removal, stump grinding, stump removal, fencing, fence installation, decking, pergola, patio laying, block paving, resin bound, driveway, retaining wall, raised bed, water feature, pond, garden design, 3D design, drainage, soakaway, levelling, irrigation, garden lighting, jet washing, pressure washing
+
+## Service words (validator and client block)
+
+GBP service names are shown to the model in the words a homeowner uses. The first row whose text appears in the GBP name wins; with no match, the GBP name is used in lower case. Cards name 2 or 3 services in these words, never the raw GBP list.
+
+| GBP name contains | Say |
+|---|---|
+| desert landscaping | (never named) |
+| pool landscaping | (never named) |
+| bumper block | (never named) |
+| general construction | (never named) |
+| artificial turf | artificial grass |
+| sod installation | turf laying |
+| turf management | lawn care |
+| lawn mowing | lawn mowing |
+| grass seeding | seeding lawns |
+| lawn landscaping | new lawns |
+| lawn care | lawn care |
+| hardscaping | paving and walling |
+| brick paver | block paving |
+| concrete masonry | concrete and block work |
+| concrete work | concrete bases |
+| stonemasonry | stone walling |
+| stone landscaping | stone features |
+| rock landscaping | rockeries |
+| driveway or path paving | driveways and paths |
+| driveway landscaping | driveways |
+| driveway installation | new driveways |
+| driveway replacement | driveway replacement |
+| patio paving | patios |
+| patio design | patio design |
+| patio enclosure | covered patios |
+| patio decks | patio decking |
+| grading and resloping | levelling |
+| excavation | groundwork and levelling |
+| garden levelling | levelling |
+| drainage | drainage |
+| retaining wall | retaining walls |
+| outdoor step | garden steps |
+| water feature | water features |
+| pond | pond care |
+| green landscaping | planting |
+| groundskeeping | garden maintenance |
+| landscape management | garden maintenance |
+| landscaping maintenance | garden maintenance |
+| landscape installations | new gardens |
+| landscape design construction | design and build |
+| landscape architecture | garden design |
+| custom landscape design | garden design |
+| landscaping design | garden design |
+| landscape design | garden design |
+| garden design | garden design |
+| garden decorating | garden makeovers |
+| cabling and bracing | tree bracing |
+| tree trimming | tree pruning |
+| stump grinding | stump grinding |
+| stump removal | stump removal |
+| tree transplanting | moving trees |
+| tree planting | tree planting |
+| tree removal | tree removal |
+| composite deck | composite decking |
+| wood deck | timber decking |
+| deck refinishing | deck restoration |
+| wood staining | deck staining |
+| deck remodel | deck makeovers |
+| pergola | pergolas |
+| fenc | fencing |
+| path landscaping | paths |
+| garden landscaping | landscaping |
+| gardening services | gardening |
+| garden work | gardening |
+
+## Confirmed practices (onboarding)
+
+The copy may only state a working practice the client has ticked in confirmed_practices. The list and the onboarding question for each practice are in niche-library/practices.json (shared by all niches; some are roofer only).
 
 ## Onboarding questions this niche needs
 

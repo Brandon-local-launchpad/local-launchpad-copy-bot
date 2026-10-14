@@ -2011,6 +2011,8 @@
     ]},
     { title: 'Services & Coverage', fields: [
       { key: 'materials_methods', label: 'Materials / methods', type: 'checkboxes' },
+      { key: 'confirmed_practices', label: 'Confirmed practices (the copy states only these)', type: 'practices' },
+      { key: 'coastal_city',      label: 'Primary city is coastal', type: 'select', options: ['','yes','no'] },
       { key: 'typical_jobs',      label: 'Typical jobs',       type: 'job-rows' },
       { key: 'jobs_wanted',       label: 'Jobs wanted',        type: 'gbp-multicheck' },
       { key: 'area_wide',         label: 'Area wide',          type: 'text', placeholder: 'e.g. Hampshire' },
@@ -2051,6 +2053,9 @@
     }
     if (f.type === 'gbp-multicheck') {
       return `<div id="cv_${f.key}" class="cv-checkboxes"><span style="color:var(--muted);font-size:11px">Load client to see GBP categories</span></div>`;
+    }
+    if (f.type === 'practices') {
+      return `<div id="cv_${f.key}" class="cv-checkboxes"><span style="color:var(--muted);font-size:11px">Select primary category first</span></div>`;
     }
     if (f.type === 'job-rows') {
       return `<div id="cv_${f.key}" class="cv-job-rows">${[0,1,2].map(i => `
@@ -2181,6 +2186,19 @@
     return Array.from(el.querySelectorAll('.cv-jw-cb:checked')).map(cb => cb.value);
   }
 
+  // Confirmed practices: tick only what the client has confirmed. The copy may state
+  // these practices and no others (validator check PRACTICE).
+  function cvRenderPractices(practices) {
+    const el = document.getElementById('cv_confirmed_practices');
+    if (!el) return;
+    const checked = new Set(el.dataset.savedValues ? JSON.parse(el.dataset.savedValues) : []);
+    el.innerHTML = practices.length
+      ? practices.map(p => `<label style="display:flex;align-items:center;gap:5px;margin-bottom:2px;font-size:12px" title="${h(p.question)}">
+          <input type="checkbox" class="cv-prac-cb" value="${h(p.key)}" ${checked.has(p.key) ? 'checked' : ''}> ${h(p.label)}
+        </label>`).join('')
+      : '<span style="color:var(--muted);font-size:11px">No practices list for this niche</span>';
+  }
+
   async function cvLoadNicheMaterials(category) {
     const el = document.getElementById('cv_materials_methods');
     if (!el) return;
@@ -2193,6 +2211,7 @@
       const r = await fetch('/api/niche/' + encodeURIComponent(category));
       if (!r.ok) { el.innerHTML = '<span style="color:var(--muted);font-size:11px">No materials list for this category</span>'; return; }
       const niche = await r.json();
+      cvRenderPractices(niche.practices || []);
       const tickList = niche.materials_tick_list;
       if (!tickList || !Object.keys(tickList).length) {
         el.innerHTML = '<span style="color:var(--muted);font-size:11px">No materials list in niche</span>';
@@ -2230,6 +2249,11 @@
           }
         } else if (f.type === 'checkboxes') {
           v[f.key] = Array.from(el.querySelectorAll('.cv-mat-cb:checked')).map(cb => cb.value);
+        } else if (f.type === 'practices') {
+          const boxes = el.querySelectorAll('.cv-prac-cb');
+          v[f.key] = boxes.length
+            ? Array.from(el.querySelectorAll('.cv-prac-cb:checked')).map(cb => cb.value)
+            : (el.dataset.savedValues ? JSON.parse(el.dataset.savedValues) : []);
         } else if (f.type === 'gbp-multicheck') {
           v[f.key] = cvGetJobsWanted();
         } else if (f.type === 'job-rows') {
@@ -2301,6 +2325,10 @@
           const arr = Array.isArray(val) ? val : (typeof val === 'string' ? val.split(',').map(s=>s.trim()).filter(Boolean) : []);
           el.dataset.savedValues = JSON.stringify(arr);
           // Checkboxes rendered async after niche loads — no-op here
+        } else if (f.type === 'practices') {
+          // Pre-checked when the niche's practice list renders (cvRenderPractices)
+          el.dataset.savedValues = JSON.stringify(Array.isArray(val) ? val : []);
+          el.querySelectorAll('.cv-prac-cb').forEach(cb => { cb.checked = (Array.isArray(val) ? val : []).includes(cb.value); });
         } else if (f.type === 'gbp-multicheck') {
           // Applied later in cvApplyGbpCategories once options are known
           // Store so cvApplyGbpCategories can pick them up

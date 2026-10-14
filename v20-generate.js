@@ -46,7 +46,7 @@ function cvValue(key, cv, yearsTrading) {
   }
   if (key === 'typical_jobs') {
     return (Array.isArray(v) ? v : [])
-      .map(j => [j.job, j.from_price && `from ${j.from_price}`, j.duration && `typically ${j.duration}`].filter(Boolean).join(', '))
+      .map(j => [j.job, (j.price || j.from_price) && `from ${j.price || j.from_price}`, j.duration && `typically ${j.duration}`].filter(Boolean).join(', '))
       .filter(Boolean).join('; ');
   }
   if (Array.isArray(v)) return v.filter(Boolean).join(', ');
@@ -84,17 +84,26 @@ function buildNicheEntry(niche, ctx) {
   return ph(L.join('\n'), ctx);
 }
 
-// The client's confirmed GBP services, grouped by category. CORE (20) cards name
-// "2 or 3 of the client's confirmed services", so the model needs the list.
-function buildServiceList(keyValueMap = {}, serviceParentMap = {}) {
+// The client's confirmed GBP services by category, in the words a homeowner uses
+// (niche service_words). CORE (20) cards name "2 or 3 of the client's confirmed
+// services", so the model needs the list; it never sees the raw GBP names.
+function buildServiceList(keyValueMap = {}, serviceParentMap = {}, niche = {}) {
+  const { confirmedServiceList } = require('./service-words');
   const byCat = {};
-  for (const [k, v] of Object.entries(keyValueMap)) {
-    if (!/^service_\d+$/.test(k) || !v) continue;
-    const cat = serviceParentMap[k] || keyValueMap.category_1 || 'Other';
-    (byCat[cat] = byCat[cat] || []).push(v);
+  for (const s of confirmedServiceList(keyValueMap, serviceParentMap, niche)) {
+    if (s.say === null) continue;
+    (byCat[s.category] = byCat[s.category] || new Set()).add(s.say);
   }
-  const lines = Object.entries(byCat).map(([cat, list]) => `${cat}: ${[...new Set(list)].join(', ')}`);
+  const lines = Object.entries(byCat).map(([cat, set]) => `${cat}: ${[...set].join(', ')}`);
   return lines.length ? lines.join('\n') : '(none on file: name only what the card names and categories say)';
+}
+
+// Working practices the client has confirmed. The copy may state these and no others.
+function buildPracticeList(cv, niche) {
+  const { confirmedPractices } = require('./practices');
+  const list = confirmedPractices(cv, niche);
+  return list.length ? list.map(p => `- ${p.claim}`).join('\n')
+    : '(none confirmed: never describe how the business works, beyond what CLIENT VALUES say)';
 }
 
 // The request: system blocks (CORE (20), then the cached client block) and the message
@@ -103,8 +112,11 @@ function buildV20Request({ cv, niche, decisions, decisionsBlock, calibrationPack
     'CLIENT VALUES',
     buildClientValues(cv, decisions.d1_years_trading),
     '',
-    'CONFIRMED SERVICES (GBP, by category). Name only these, in plain words:',
-    buildServiceList(keyValueMap, serviceParentMap),
+    'CONFIRMED SERVICES (by category, in the words to use). Name only these, in these words. A card names 2 or 3 of them, never a list:',
+    buildServiceList(keyValueMap, serviceParentMap, niche),
+    '',
+    'CONFIRMED PRACTICES (how the business works). State only these:',
+    buildPracticeList(cv, niche),
     '',
     'NICHE ENTRY',
     buildNicheEntry(niche, ctx),
@@ -189,5 +201,5 @@ async function generateV20Homepage({ cv, niche, keyValueMap, serviceParentMap = 
 
 module.exports = {
   V20_MODEL, V20_PROMPT_FILE, V20_MAX_TOKENS,
-  buildV20Request, buildClientValues, buildNicheEntry, nicheContext, loadCore20, generateV20Homepage,
+  buildV20Request, buildClientValues, buildNicheEntry, buildServiceList, buildPracticeList, nicheContext, loadCore20, generateV20Homepage,
 };
