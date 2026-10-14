@@ -17,8 +17,10 @@ const MIN_QUESTIONS = 10;
 
 function loadFaqResearchPrompt() {
   const text = fs.readFileSync(path.join(__dirname, 'prompts', FAQ_RESEARCH_PROMPT), 'utf8');
-  const cut = text.indexOf('\n---\n');
-  return (cut >= 0 ? text.slice(cut + 5) : text).trim();
+  // Windows checkouts can have CRLF line endings
+  const lf = text.replace(/\r\n/g, '\n');
+  const cut = lf.indexOf('\n---\n');
+  return (cut >= 0 ? lf.slice(cut + 5) : lf).trim();
 }
 
 // The client's towns from biz_area_N, primary city first
@@ -75,7 +77,7 @@ function customerQuestions(cv = {}) {
 // Onboarding answers worth researching from. Contact details, links, logins and
 // uploads are left out: they say nothing about what customers ask, and they're
 // personal data Perplexity doesn't need.
-const ONBOARDING_SKIP = /full name|business name|email|phone|website|domain|analytics|search console|limited company|postal address|business address|instagram|facebook|youtube|logo|photos|review platforms|links? to|enquiries you currently receive|testimonials|awards/i;
+const ONBOARDING_SKIP = /full name|business name|email|phone|website|domain|analytics|search console|google business profile|limited company|postal address|business address|instagram|facebook|youtube|logo|photos|review platforms|links? to|enquiries you currently receive|testimonials|awards/i;
 function onboardingAnswers(onboardingText = '', maxChars = 4000) {
   const out = [];
   let used = 0;

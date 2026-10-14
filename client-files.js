@@ -139,4 +139,25 @@ function parseCustomValues(csvTexts) {
   return { keyValueMap, serviceParentMap };
 }
 
-module.exports = { PAGE_TYPE_MAP, LINK_ONLY_PAGE_TYPES, parsePageMap, parseCustomValues };
+// Onboarding form CSV (two rows: questions, then answers) → "Q: …\nA: …" blocks
+function parseOnboardingForm(csvText) {
+  const { data } = Papa.parse(csvText, { header: false });
+  if (data.length < 2) return '';
+  const questions = data[0];
+  const answers   = data[1];
+  return questions
+    .map((q, i) => ({ q: (q || '').trim(), a: (answers[i] || '').trim() }))
+    .filter(({ q, a }) => q && a)
+    .map(({ q, a }) => `Q: ${q}\nA: ${a}`)
+    .join('\n\n');
+}
+
+// The onboarding answers as Q/A blocks, whichever form they arrive in: the upload
+// route keeps them parsed, the saved-files route keeps the raw CSV.
+function onboardingQA(text) {
+  const t = String(text || '');
+  if (!t.trim()) return '';
+  return /^Q: /m.test(t) ? t : parseOnboardingForm(t);
+}
+
+module.exports = { PAGE_TYPE_MAP, LINK_ONLY_PAGE_TYPES, parsePageMap, parseCustomValues, parseOnboardingForm, onboardingQA };
