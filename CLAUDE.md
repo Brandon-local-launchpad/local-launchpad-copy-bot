@@ -49,6 +49,7 @@ Brandon is not in the loop for copy quality (16 Oct 2026).
 ## Decide yourself, don't ask me
 
 - Housekeeping is yours: git, gitignore, commits, pushes, duplicate or stale files, paths, debug cleanup. Do it and tell me in one line.
+- Going live is yours too (Brandon, 16 Oct 2026): when the fixtures pass, merge your branch into `main` and push it yourself (Railway deploys from `main`). Don't send merge links. Tell Brandon in one line what went live, and ask him to log in again only when you need the live app. Still ask first for anything that can't be undone (a WordPress push, deleting data).
 - The file the code reads is the source of truth. Fix drift yourself, using the newest version.
 - Fix bugs and mismatches with the docs without asking.
 - Small dev-only tooling choices are yours: test helpers, dev dependencies, local runners (e.g. a PHP runner for the plugin tests). Say what you added in one line.
