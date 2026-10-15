@@ -7,3 +7,5 @@ copy-bot-export/
 copy-bot-export.zip
 tests/acceptance/output/
 .wp-push/
+tests/live-snapshots/
+tests/quality-runs/

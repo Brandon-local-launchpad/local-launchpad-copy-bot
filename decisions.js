@@ -379,6 +379,28 @@ function pickCardServices(main, cv, keyValueMap, serviceParentMap, niche) {
   return main;
 }
 
+// Each card gets its own sentence shape, so no two cards read alike (16 Oct, copy
+// quality loop: cards kept sharing "Our [category] work covers…" and "We also handle…")
+const CARD_SHAPES = [
+  'Open with the problem the customer has; name the services in the next sentence.',
+  'Open with a short question the customer would ask; answer it with the services.',
+  'Open with the services themselves as the subject of the sentence ("Block paving and new driveways…").',
+  'Open with when people need this (a time of year or a moment in the life of a home); then the services.',
+  'Open with what goes wrong when this work is done badly; then what we do instead.',
+  'Open with the result the customer is after; then how the services get there.',
+  'Open with who this suits (a new homeowner, a busy family, a garden that has been left); then the services.',
+  'Open with the material or method that matters most; then what the customer gets.',
+];
+// ...and its own way of linking its page, so cards don't all read "Our [category] work…"
+const LINK_PHRASES = ['our [X] work', 'a [X] visit', '[X] work from us', 'what a [X] does', 'booking a [X]', 'the [X] side of what we do', 'a [X] job', 'our [X] jobs'];
+function assignCardShapes(main) {
+  main.forEach((c, i) => {
+    c.shape = CARD_SHAPES[i % CARD_SHAPES.length];
+    if (c.linked) c.link_phrase = LINK_PHRASES[i % LINK_PHRASES.length].replace('X', (c.name || '').toLowerCase());
+  });
+  return main;
+}
+
 // ── Build area list (D12) ────────────────────────────────────────────────────
 function buildAreaList(pages, keyValueMap) {
   const locationPages = pages.filter(p => p.pageType === 'location');
@@ -686,6 +708,7 @@ function computeDecisions({ cv, niche, pages, keyValueMap, serviceParentMap, v20
   const cardServices = homepageServicePages(pages, primaryCategory, keyValueMap, serviceParentMap || {});
   const d9 = buildServiceCards(pages, niche, cardServices);
   pickCardServices(d9.main, cv, keyValueMap, serviceParentMap || {}, niche);
+  assignCardShapes(d9.main);
   if (d9.overflowServiceCount > 6) {
     flags.push({ code: 'F-MORE-SERVICES', msg: `${d9.overflowServiceCount} primary-category services overflow; only the first 6 are shown in "We also offer".` });
   }
@@ -875,6 +898,8 @@ function formatDecisionsBlock(D, cv, niche, ctx) {
     const c = D.d9.main[i];
     push(`  ${i + 1}. ${c.name} [${c.status}${c.url ? ' ' + c.url : ''}${c.h1 ? ' | H1: ' + c.h1 : ''}]`);
     if (c.services) push(`     Services: ${c.services.length ? c.services.join(', ') : '(none: describe the work without naming services)'}`);
+    if (c.shape) push(`     Shape: ${c.shape}`);
+    if (c.link_phrase) push(`     Link as: "${c.link_phrase}" (the link inside a sentence, not at its start)`);
   }
   if (D.d9.alsoOffer.length) push(`  We also offer: ${D.d9.alsoOffer.join(', ')}`);
   push('');

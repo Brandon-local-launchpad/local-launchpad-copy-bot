@@ -8,6 +8,8 @@ Replaces Homepage_Copywriting_Prompt_CORE (19). Built from the Homepage Structur
 
 16 Oct 2026, round 3 review of Edens Edge: cards never share a sentence pattern and "we also handle" appears once on the page; no field points at another part of the page; outcome promises ("won't crack", "stays green") only when confirmed; the kinds of property or job worked on only when the client values say so.
 
+16 Oct 2026, copy quality loop (docs/seo/COPY_QUALITY_RUBRIC.md): each card follows the Shape DECISIONS gives it; the hero never says the business is based anywhere but the city; nothing sends the reader to another page; "a price agreed before work starts" is step 2's point; research detail is said in plain words, never pasted; no padding sentences.
+
 ---
 
 ## HOW THIS PROMPT IS USED
@@ -43,7 +45,7 @@ Word counts are hard ranges. Count before you finish.
 
 ### home_hero_intro
 Two sentences, under 50 words in total.
-- Sentence 1: the keyword from PAGE in a full natural sentence, with `[CV: company_name]` and the hero intro town from DECISIONS, ending "and the surrounding areas". The keyword may take joining words ("a landscaper in Southampton") but should stay recognisable.
+- Sentence 1: the keyword from PAGE in a full natural sentence, with `[CV: company_name]` and the hero intro town from DECISIONS, ending "and the surrounding areas". The business is based in the city; the hero town is where it works ("covering Romsey and the surrounding areas"), never "based in Romsey". The keyword may take joining words ("a landscaper in Southampton") but should stay recognisable.
 - Sentence 2: lead with the strongest confirmed proof that neither the trust line nor the rating line has used (usually a differentiator such as fixed pricing), said the way the owner would say it. When the rating line shows, never restate the star rating or review count in words. Never a generic line about what they do.
 
 ### home_content_block_body
@@ -57,10 +59,10 @@ Two sentences, under 50 words in total.
 Never state the guarantee length or the insurance figure here. Section 5 owns them.
 
 ### home_services_intro
-30 to 60 words, 2 sentences. What the business covers and who it is for. No links.
+30 to 60 words, 2 sentences. What the business covers and who it is for. No links. Sentence 2 says something specific to this business or the city's homes; never "whatever you need", "there's a service for you" or "we can help".
 
 ### home_services_cards
-One `card_text` per card in DECISIONS → card list, in the order given. Card names are given; never rewrite them.
+One `card_text` per card in DECISIONS → card list, in the order given. Card names are given; never rewrite them. Each card follows its own **Shape** from DECISIONS, so no two cards open or run the same way, and links its page with its own **Link as** phrase from DECISIONS.
 - **Linked card:** 40 to 55 words. What the customer gets from this category, naming the services DECISIONS lists for this card ("Services:"), in those words, and no others. Never list more than 3 services in a card. The link to the card's page goes inside a sentence (see Category names in prose, below). Word each card differently from the content block's sentence about the same category.
 - **No filler place names.** Name the city in two cards at most ("across [city]", "for [city] homes" adds nothing when every card says it).
 - **No shared skeleton.** Cards are read one after another, so no two may open the same way, follow the same order or share a sentence pattern ("We also handle X", "Our [category] work covers X" in two cards). "We also handle" appears once on the page at most. Vary the opening: a customer problem, a question, the result, a time of year, a material. "Our [category] service covers..." may appear on one card at most, and "As a [category], we..." on none.
@@ -73,7 +75,7 @@ One `card_text` per card in DECISIONS → card list, in the order given. Card na
 Only when DECISIONS lists "We also offer" items. One sentence naming only the items that no card has named; link any that are on LINKABLE PAGES. If every item is already named in a card, or there are none, write HIDDEN.
 
 ### home_why_points
-One `point_body` per point title given, in order. 25 to 40 words each.
+One `point_body` per point title given, in order. 25 to 40 words each: count them, and never go over 40.
 - Each body is the proof of how the business keeps the promise in the title, and it removes the matching fear from the niche entry.
 - The years, jobs, guarantee and insurance figures are explained here, once. If a point title is an alternative title (because the proof is already in the trust line), the body may state that figure once in different words.
 - Point 1 may name the team size if confirmed. Insurance goes in point 2's body when it is not its own point.
@@ -92,8 +94,8 @@ Only if DECISIONS shows the owner section. 60 to 80 words in the first person ("
 One `faq_answer` per question given, in order. 50 to 70 words each, or 30 to 70 when the answer rests on one confirmed fact. Never pad.
 - **Answer first.** The first sentence answers the question directly in 15 words or fewer: a yes or no (only when the question is a yes or no question), a figure, or the one thing it depends on. Then two or three sentences of context: why, what it depends on, a local detail if one fits, and a link where it helps. Google and AI answers lift that first line as the snippet.
 - Each question arrives with its doubt (Price, Trust, Fit, Process or Timing). Answer the doubt behind the question, not just its words.
-- **Q1 cost:** prices only from `[CV: price_list]`. With no price list, explain what affects the price for this trade in this city. Link the cost guide if it is on LINKABLE PAGES.
-- **Q2 insurance:** the figure and what the cover is for, in different words from Why choose us. Same rule as above: describe the cover, never promise an outcome. When there is no insurance figure but a complaints process is on file, code swaps in the niche's faq_2_fallback ("What happens if something goes wrong?"); answer it from `[CV: complaints_process]` only.
+- **Q1 cost:** prices only from `[CV: price_list]`. With no price list, explain what affects the price for this trade in this city, then end with how to get a real figure (the free quote, or a call). Link the cost guide if it is on LINKABLE PAGES.
+- **Q2 insurance:** the figure and what the cover is for (accidental damage, injury to others). When insurance is also a Why choose us point, that point says the figure and why it matters when choosing a trader (an uninsured firm leaves the risk with you), never what the cover is for: Q2 is the one place that explains it. Same rule as above: describe the cover, never promise an outcome. When there is no insurance figure but a complaints process is on file, code swaps in the niche's faq_2_fallback ("What happens if something goes wrong?"); answer it from `[CV: complaints_process]` only.
 - **Q3:** answer the question exactly as given. When a guarantee is confirmed, the question is "Do you guarantee your work?" and the answer starts with yes and the terms. When nothing is confirmed, code swaps in the niche's "what if something isn't right" question; answer it from the "reasonable care and skill" standard. Never invent a guarantee.
 - **Q4 start:** from `[CV: start_time]`. **Q5 quote:** from `[QUOTE_FREE]` and `[CV: quote_method]`.
 - **Q6 areas:** the primary city and 3 or 4 towns. "Which areas" is not a yes or no question: open with the place, never "Yes". Link the Locations hub if it is on LINKABLE PAGES.
@@ -164,7 +166,13 @@ Each confirmed proof is headlined once on the page at most. Its home is where it
 - Whenever you would write "full range of X" or "wide range of X", name two or three real examples of X instead. Replace "tailored to" with "built around" or "matched to".
 
 **The page never points at itself**
-Every section stands on its own. Never write "see the areas section", "the full list is below", "as mentioned above" or "on this page": say the thing, or leave it out.
+Every section stands on its own. Never write "see the areas section", "the full list is below", "as mentioned above" or "on this page": say the thing, or leave it out. Never send the reader to another page in words ("visit our paving contractor page"): a link inside a sentence that says what the work does is enough.
+
+**One home per idea, and no padding**
+- "A price agreed before work starts" is step 2's point. Say it once more on the page at most (the hero or the free quote answer), never in cards.
+- Research detail goes in plain words that say what it means for the garden or roof. Never paste dates, measurements or survey wording ("gardens that date mostly from 1908 to 1930", "the geology varies widely").
+- No sentence that could sit on any website: "there's a service here for you", "we bring that experience to every job", "whatever your needs". Every sentence carries something specific to this business or this place.
+- Insurance: say what the cover is for, never what it does for the customer ("a clear route if something goes wrong", "you won't be left to deal with it").
 
 **Links**
 - Link only to URLs on LINKABLE PAGES. A sentence that needs a page that is not on the list is rewritten without the link.
