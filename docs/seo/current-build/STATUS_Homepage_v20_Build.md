@@ -232,7 +232,7 @@
   - Reviewer calibrated on Brandon's own ratings: round 3 page 7.8 (Brandon 8.0), round 2 page 7.4 (Brandon 7.5).
   - Best scores so far: Edens Edge 7.6, Kestrel Ridge 7.6 (reviewer scale). Not yet 8.5 with every item passing.
   - Changes from the loop: cards get code-picked shapes and link phrases; checks LEAK, PRICE-FIRST, HERO "based in", N5 fixed price in any wording and manufacturer warranty, SELF-REF "visit our page", padding phrases banned, differentiator repeat count; more practice and outcome patterns; claims review CORE (4) stops flagging ordinary wording; 3 field retry rounds plus one after claims; a reviewer driven rewrite round in generation (`qualityReview`, OFF in the live app until tested on Railway: about 6 to 7 minutes per page).
-  - Next when resumed: decide the writer (Sonnet 5.5 broke far fewer rules than Sonnet 4.6 and is cheaper; Opus 5.5 scored best on Kestrel but took 12 minutes), test the review round against Railway's request time, then keep looping.
+  - Writer decided (Brandon, 16 Oct): Sonnet 5.5 (`V20_MODEL`, branch `feat/writer-sonnet-5-5`), medium effort, through anthropic-call.js. Next when resumed: test the review round against Railway's request time, then keep looping.
 - Docs: CLAUDE.md at repo root. The files the code reads (`prompts/`, `niche-library/`) are the only copies.
 
 ## Waiting on

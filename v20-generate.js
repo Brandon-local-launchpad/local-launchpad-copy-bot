@@ -11,7 +11,9 @@ const fs   = require('fs');
 const path = require('path');
 const { ph } = require('./decisions');
 
-const V20_MODEL       = 'claude-sonnet-4-6';
+// Sonnet 5.5 since 16 Oct (Brandon): far fewer copy rule breaks than Sonnet 4.6 in the quality loop,
+// and cheaper. anthropic-call.js gives it an effort, room to think and the refusal fallback.
+const V20_MODEL       = 'claude-sonnet-5-5';
 const V20_PROMPT_FILE = 'Homepage_Copywriting_Prompt_CORE (20).md';
 const V20_MAX_TOKENS  = 8192;
 
