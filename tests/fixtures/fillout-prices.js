@@ -203,27 +203,53 @@ const T3 = "Emergency call outs are forty five pounds an hour. Full rewires are 
     replies.push('I cannot help with that.');
     const c8 = await submit('p-0008', 'Bad Reply Ltd', T1);
     v = await view(c8);
-    chk('A reply with no JSON → extraction_failed, no rows', v.prices.state.status === 'extraction_failed' && v.prices.rows.length === 0, JSON.stringify(v.prices.state), 'extraction_failed');
+    chk('A reply with no JSON → extraction_failed with the plain message, no rows', v.prices.state.status === 'extraction_failed' && v.prices.rows.length === 0 && /Reply too long or unreadable/.test(v.prices.state.error), JSON.stringify(v.prices.state), 'extraction_failed');
 
     // ── A reply cut off at the output limit ──
     chk('Extraction asks the model for 4096 output tokens', calls.every(c => c.maxTokens === 4096), [...new Set(calls.map(c => c.maxTokens))].join(','), '4096');
     replies.push({ text: '{"rows":[{"service":"Typical plumbing job","from_gbp":50,"up_to_gbp":100},{"service":"Bathroom inst', stop_reason: 'max_tokens' });
     const c10 = await submit('p-0010', 'Long Winded Plumbing', T1);
     v = await view(c10);
-    chk('Truncated reply (stop reason max_tokens): extraction_failed with "reply too long, retry or split the recording", no rows', v.prices.state.status === 'extraction_failed' && v.prices.state.error === 'reply too long, retry or split the recording' && v.prices.rows.length === 0, JSON.stringify(v.prices.state), 'reply too long');
+    const TOO_LONG = 'Reply too long or unreadable. Retry, or split the recording.';
+    chk('Truncated reply (stop reason max_tokens): extraction_failed with the plain message, no rows', v.prices.state.status === 'extraction_failed' && v.prices.state.error === TOO_LONG && v.prices.rows.length === 0, JSON.stringify(v.prices.state), TOO_LONG);
     replies.push({ text: '{"rows":[', stop_reason: 'end_turn' });
     r = await req('POST', `/api/clients/${c10}/prices/extract`);
     v = await view(c10);
-    chk('A broken reply that was not cut off keeps the parse error, not the too-long message', v.prices.state.status === 'extraction_failed' && !/too long/.test(v.prices.state.error) && /JSON|rows/.test(v.prices.state.error), v.prices.state.error, 'parse error');
+    chk('A complete but unreadable reply gets the same message', v.prices.state.status === 'extraction_failed' && v.prices.state.error === TOO_LONG, v.prices.state.error, TOO_LONG);
     replies.push(reply([{ service: 'Boiler repair', typical_gbp: 300 }]));
     r = await req('POST', `/api/clients/${c10}/prices/extract`);
     v = await view(c10);
     chk('Retry after a truncated reply works', v.prices.state.status === 'done' && v.prices.rows.length === 1, JSON.stringify(v.prices.state), 'done');
 
+    // ── A failed re-extraction never touches existing rows ──
+    // c1 has transcript rows from its last good run plus manual rows (Boiler repair edited, Stopcock added)
+    const before = (await view(c1)).prices.rows;
+    const snapshot = rows => JSON.stringify(rows.map(x => [x.id, x.service, x.from_gbp, x.up_to_gbp, x.typical_gbp, x.unit, x.what_moves_price, x.source]));
+    chk('Setup: c1 holds transcript and manual rows', before.some(x => x.source === 'transcript') && before.some(x => x.source === 'manual'), before.map(x => x.source).join(','), 'both');
+    replies.push({ text: '{"rows":[{"service":"Typical plumbing job","from_gbp":50,"up_to', stop_reason: 'max_tokens' });
+    r = await req('POST', `/api/clients/${c1}/prices/extract`);
+    v = await view(c1);
+    chk('Truncated re-extraction: state extraction_failed with the message, Retry available', r.status === 200 && v.prices.state.status === 'extraction_failed' && v.prices.state.error === TOO_LONG, JSON.stringify(v.prices.state), TOO_LONG);
+    chk('Truncated re-extraction: every existing row unchanged, transcript and manual', snapshot(v.prices.rows) === snapshot(before), snapshot(v.prices.rows), snapshot(before));
+    chk('Truncated re-extraction: hidden tombstone still there', (await pool.query(`SELECT COUNT(*)::int AS n FROM client_price_rows WHERE client_id = $1 AND deleted = true`, [c1])).rows[0].n === 1, '', 1);
+    replies.push('not json at all');
+    await req('POST', `/api/clients/${c1}/prices/extract`);
+    v = await view(c1);
+    chk('Unreadable re-extraction: rows still unchanged', snapshot(v.prices.rows) === snapshot(before) && v.prices.state.error === TOO_LONG, '', '');
+    replies.push(new Error('model down'));
+    await req('POST', `/api/clients/${c1}/prices/extract`);
+    v = await view(c1);
+    chk('Model error on re-extraction: rows still unchanged', snapshot(v.prices.rows) === snapshot(before) && /model down/.test(v.prices.state.error), '', '');
+    replies.push(reply([{ service: 'Bathroom installation', from_gbp: 500, up_to_gbp: 5000 }, { service: 'Boiler repair', typical_gbp: 300 }]));
+    await req('POST', `/api/clients/${c1}/prices/extract`);
+    v = await view(c1);
+    const afterGood = Object.fromEntries(v.prices.rows.map(x => [x.service, x]));
+    chk('Then a good re-extraction replaces transcript rows only: manual Boiler repair (320) and Stopcock kept, old transcript rows gone', v.prices.state.status === 'done' && afterGood['Boiler repair'].typical_gbp === 320 && afterGood['Boiler repair'].source === 'manual' && afterGood['Stopcock replacement'] && afterGood['Bathroom installation'].source === 'transcript' && !afterGood['Wet room installation'] && v.prices.rows.length === 3, Object.keys(afterGood).join(' | '), 'Bathroom installation | Boiler repair | Stopcock replacement');
+
     // ── No voice answer at all ──
     const c9 = await submit('p-0009', 'Silent Plumbing', null);
     v = await view(c9);
-    chk('No recording: state no_transcript, no model call, record fine', v.prices.state.status === 'no_transcript' && v.prices.rows.length === 0 && calls.length === 11, JSON.stringify([v.prices.state.status, calls.length]), '["no_transcript",11]');
+    chk('No recording: state no_transcript, no model call, record fine', v.prices.state.status === 'no_transcript' && v.prices.rows.length === 0 && calls.length === 15, JSON.stringify([v.prices.state.status, calls.length]), '["no_transcript",15]');
   } finally {
     srv.close();
   }
