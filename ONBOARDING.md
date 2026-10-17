@@ -43,7 +43,18 @@ there: no extraction, no page generation from these records yet.
 - Each field has a value, a status (`filled` / `blank`) and a source (`form` /
   `transcript` / `manual`). A field typed in on the record page becomes `manual`
   and is never overwritten by a later submission or a re-run.
-- Completeness = filled fields ÷ fields we use for that niche.
+- Completeness counts units, not fields, and the headline is filled ÷ expected:
+  - a voice answer and its typed twin (same `group` in the map) are one unit,
+    filled if either is filled;
+  - the five accreditation triples are one optional group;
+  - optional-by-design fields (`optional: true` in the map: Town 1 to 3, "anything
+    else we should know", "words to avoid", "jobs you do NOT want", "anything else
+    that makes you stand out", the "areas, anything else" voice answer, the
+    accreditations) are left out of the expected count and shown as "optional
+    filled".
+  For the sample form: 73 expected, 9 optional units, 103 fields.
+- Reprocess on an inbox row rebuilds the record from the stored payload (after a
+  field map change, for instance). Hand-typed fields are kept.
 - A niche with no field map yet is accepted: the universal fields are stored and
   the inbox and record say "No field map for this niche".
 
@@ -110,8 +121,9 @@ record queries never touch the bytes table.
 - "Plumbing" and "Plumbing Additional Services" (no suffix) sit in the Drainage
   block, not the Plumbing & Heating one, which uses "Plumber" and "Plumbing
   Additional Services (1)".
-- "Property types you mostly work on." appears once, inside the Plumbing & Heating
-  page; it is treated as universal.
+- "Property types you mostly work on." (gbsoP3SSTnGFW5PdJ1U7zY) appears in the
+  sample but was removed from the form; it is not in the map. Reprocess older
+  submissions after a map change like this so their records match the map.
 - The long "Additional Services. If you offer any services that weren't included…"
   question sits in the Guttering & Fascias block (that block's "any other services").
 - The voice prompts with generic names ("Record your answer…") are labelled from

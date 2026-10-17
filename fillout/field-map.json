@@ -1,5 +1,5 @@
 {
-  "_about": "Which Fillout questions become client fields. Keyed by question id (names repeat and carry suffixes). niche is \"all\" or a label from niches. Adding a niche: add its label under niches and its questions under fields.",
+  "_about": "Which Fillout questions become client fields. Keyed by question id (names repeat and carry suffixes). niche is \"all\" or a label from niches. Adding a niche: add its label under niches and its questions under fields. Completeness: fields sharing a group count as one unit (filled if any is filled); optional fields and groups are left out of the expected count and shown as optional filled.",
   "niche_question_id": "q_niche_select",
   "business_name_question_id": "bwUuvaZTmChegZekppzNNv",
   "business_email_question_id": "5EHeuZ2pntQwCaoADHRRrJ",
@@ -154,7 +154,8 @@
       "label": "Is there anything else that makes your business stand out that wasn't covered above?",
       "section": "Business Information",
       "type": "LongAnswer",
-      "niche": "all"
+      "niche": "all",
+      "optional": true
     },
     {
       "id": "gRbng5fQ2nDYgLwKWAMLtP",
@@ -306,15 +307,8 @@
       "label": "Are there any types of jobs you DO NOT want?",
       "section": "Services & Locations",
       "type": "LongAnswer",
-      "niche": "Plumbing & Heating"
-    },
-    {
-      "id": "gbsoP3SSTnGFW5PdJ1U7zY",
-      "key": "property_types",
-      "label": "Property types you mostly work on.",
-      "section": "Services & Locations",
-      "type": "MultiSelect",
-      "niche": "all"
+      "niche": "Plumbing & Heating",
+      "optional": true
     },
     {
       "id": "tuDBpxPb1nUucBBrSQcjTh",
@@ -354,7 +348,8 @@
       "label": "Areas, anything else (voice)",
       "section": "Your Areas",
       "type": "AudioRecording",
-      "niche": "all"
+      "niche": "all",
+      "optional": true
     },
     {
       "id": "38XUThDiXkkqb782RWjFXy",
@@ -362,7 +357,8 @@
       "label": "Town 1",
       "section": "Your Areas",
       "type": "LongAnswer",
-      "niche": "all"
+      "niche": "all",
+      "optional": true
     },
     {
       "id": "aqVJoDX5zNJhmqn3tiowhE",
@@ -370,7 +366,8 @@
       "label": "Town 2",
       "section": "Your Areas",
       "type": "LongAnswer",
-      "niche": "all"
+      "niche": "all",
+      "optional": true
     },
     {
       "id": "kZiwoHi5h6UyQvsXyteyK5",
@@ -378,7 +375,8 @@
       "label": "Town 3",
       "section": "Your Areas",
       "type": "LongAnswer",
-      "niche": "all"
+      "niche": "all",
+      "optional": true
     },
     {
       "id": "hk6pHzA1N5vcciNvnpVyRD",
@@ -434,7 +432,9 @@
       "label": "Accreditation 1: scheme name",
       "section": "Social Media & Proof",
       "type": "ShortAnswer",
-      "niche": "all"
+      "niche": "all",
+      "group": "accreditations",
+      "optional": true
     },
     {
       "id": "uVpirkfhqENkRq9TygyVjs",
@@ -442,7 +442,9 @@
       "label": "Accreditation 1: membership or registration number",
       "section": "Social Media & Proof",
       "type": "ShortAnswer",
-      "niche": "all"
+      "niche": "all",
+      "group": "accreditations",
+      "optional": true
     },
     {
       "id": "6VNn5aWqdQjuUPSFZBoMW5",
@@ -450,7 +452,9 @@
       "label": "Accreditation 1: link to listing",
       "section": "Social Media & Proof",
       "type": "URLInput",
-      "niche": "all"
+      "niche": "all",
+      "group": "accreditations",
+      "optional": true
     },
     {
       "id": "13cPy55767AkywhxMgd3NX",
@@ -458,7 +462,9 @@
       "label": "Accreditation 2: scheme name",
       "section": "Social Media & Proof",
       "type": "ShortAnswer",
-      "niche": "all"
+      "niche": "all",
+      "group": "accreditations",
+      "optional": true
     },
     {
       "id": "ux2kMePHo9jR1Q77Sd1HHE",
@@ -466,7 +472,9 @@
       "label": "Accreditation 2: membership or registration number",
       "section": "Social Media & Proof",
       "type": "ShortAnswer",
-      "niche": "all"
+      "niche": "all",
+      "group": "accreditations",
+      "optional": true
     },
     {
       "id": "vRnVJ9p2nfnhSqCiuihNgt",
@@ -474,7 +482,9 @@
       "label": "Accreditation 2: link to listing",
       "section": "Social Media & Proof",
       "type": "URLInput",
-      "niche": "all"
+      "niche": "all",
+      "group": "accreditations",
+      "optional": true
     },
     {
       "id": "x77c1xW5poH2ukrifqEjWv",
@@ -482,7 +492,9 @@
       "label": "Accreditation 3: scheme name",
       "section": "Social Media & Proof",
       "type": "ShortAnswer",
-      "niche": "all"
+      "niche": "all",
+      "group": "accreditations",
+      "optional": true
     },
     {
       "id": "urDPPLdChHn82PXZQWsGGe",
@@ -490,7 +502,9 @@
       "label": "Accreditation 3: membership or registration number",
       "section": "Social Media & Proof",
       "type": "ShortAnswer",
-      "niche": "all"
+      "niche": "all",
+      "group": "accreditations",
+      "optional": true
     },
     {
       "id": "4iWDQBNCkR4N6SaygJP9Pd",
@@ -498,7 +512,9 @@
       "label": "Accreditation 3: link to listing",
       "section": "Social Media & Proof",
       "type": "URLInput",
-      "niche": "all"
+      "niche": "all",
+      "group": "accreditations",
+      "optional": true
     },
     {
       "id": "cfmNbgU97fzGNYpWpA67Uv",
@@ -506,7 +522,9 @@
       "label": "Accreditation 4: scheme name",
       "section": "Social Media & Proof",
       "type": "ShortAnswer",
-      "niche": "all"
+      "niche": "all",
+      "group": "accreditations",
+      "optional": true
     },
     {
       "id": "effGUksyU11VgyHNFsmavE",
@@ -514,7 +532,9 @@
       "label": "Accreditation 4: membership or registration number",
       "section": "Social Media & Proof",
       "type": "ShortAnswer",
-      "niche": "all"
+      "niche": "all",
+      "group": "accreditations",
+      "optional": true
     },
     {
       "id": "uro4wvi9MudxP6gNjB82Vm",
@@ -522,7 +542,9 @@
       "label": "Accreditation 4: link to listing",
       "section": "Social Media & Proof",
       "type": "URLInput",
-      "niche": "all"
+      "niche": "all",
+      "group": "accreditations",
+      "optional": true
     },
     {
       "id": "3YnfUbdMMKRhj7mENMC6UP",
@@ -530,7 +552,9 @@
       "label": "Accreditation 5: scheme name",
       "section": "Social Media & Proof",
       "type": "ShortAnswer",
-      "niche": "all"
+      "niche": "all",
+      "group": "accreditations",
+      "optional": true
     },
     {
       "id": "eqTLAoUfvzvoe8ePKvMSFw",
@@ -538,7 +562,9 @@
       "label": "Accreditation 5: membership or registration number",
       "section": "Social Media & Proof",
       "type": "ShortAnswer",
-      "niche": "all"
+      "niche": "all",
+      "group": "accreditations",
+      "optional": true
     },
     {
       "id": "bVRoC6LFEYyEV7SmsfLS2z",
@@ -546,7 +572,9 @@
       "label": "Accreditation 5: link to listing",
       "section": "Social Media & Proof",
       "type": "URLInput",
-      "niche": "all"
+      "niche": "all",
+      "group": "accreditations",
+      "optional": true
     },
     {
       "id": "sp_proud_audio",
@@ -554,7 +582,8 @@
       "label": "What you are proud of (voice)",
       "section": "Social Media & Proof",
       "type": "AudioRecording",
-      "niche": "all"
+      "niche": "all",
+      "group": "proud_of"
     },
     {
       "id": "sp_proud_text",
@@ -562,7 +591,8 @@
       "label": "What you are proud of (typed)",
       "section": "Social Media & Proof",
       "type": "LongAnswer",
-      "niche": "all"
+      "niche": "all",
+      "group": "proud_of"
     },
     {
       "id": "uqbB",
@@ -570,7 +600,8 @@
       "label": "Is there anything else we should know? (optional)",
       "section": "Social Media & Proof",
       "type": "LongAnswer",
-      "niche": "all"
+      "niche": "all",
+      "optional": true
     },
     {
       "id": "bvM3MppDbfpHkZW3mBxKe3",
@@ -610,7 +641,8 @@
       "label": "Your story: the trade (voice)",
       "section": "Your Story",
       "type": "AudioRecording",
-      "niche": "all"
+      "niche": "all",
+      "group": "story_trade"
     },
     {
       "id": "ys_trade_text",
@@ -618,7 +650,8 @@
       "label": "Your story: the trade (typed)",
       "section": "Your Story",
       "type": "LongAnswer",
-      "niche": "all"
+      "niche": "all",
+      "group": "story_trade"
     },
     {
       "id": "ys_team_audio",
@@ -626,7 +659,8 @@
       "label": "Your story: the team (voice)",
       "section": "Your Story",
       "type": "AudioRecording",
-      "niche": "all"
+      "niche": "all",
+      "group": "story_team"
     },
     {
       "id": "ys_team_text",
@@ -634,7 +668,8 @@
       "label": "Your story: the team (typed)",
       "section": "Your Story",
       "type": "LongAnswer",
-      "niche": "all"
+      "niche": "all",
+      "group": "story_team"
     },
     {
       "id": "uSQWuH2jTgabJuz9LWQ3NN",
@@ -658,7 +693,8 @@
       "label": "Words or phrases to avoid. (optional)",
       "section": "Your Story",
       "type": "ShortAnswer",
-      "niche": "all"
+      "niche": "all",
+      "optional": true
     },
     {
       "id": "vvv6B1CJ9K5yHG1ugN73PN",
@@ -682,7 +718,8 @@
       "label": "What customers say in reviews (voice)",
       "section": "Your Customers and Their Problems",
       "type": "AudioRecording",
-      "niche": "all"
+      "niche": "all",
+      "group": "customer_reviews"
     },
     {
       "id": "cust_reviews_text",
@@ -690,7 +727,8 @@
       "label": "What customers say in reviews (typed)",
       "section": "Your Customers and Their Problems",
       "type": "LongAnswer",
-      "niche": "all"
+      "niche": "all",
+      "group": "customer_reviews"
     },
     {
       "id": "1JkK3W6oabgAamauK716oq",
@@ -706,7 +744,8 @@
       "label": "The jobs people ring about most (voice)",
       "section": "Your Customers and Their Problems",
       "type": "AudioRecording",
-      "niche": "all"
+      "niche": "all",
+      "group": "common_jobs"
     },
     {
       "id": "tDvwLeaB5LKt3rzFybATLK",
@@ -714,7 +753,8 @@
       "label": "The jobs people ring about most (typed)",
       "section": "Your Customers and Their Problems",
       "type": "LongAnswer",
-      "niche": "all"
+      "niche": "all",
+      "group": "common_jobs"
     },
     {
       "id": "o8Xiw8JQ1qTygzH8bvaTV6",
@@ -722,7 +762,8 @@
       "label": "Questions you get asked all the time (voice)",
       "section": "Your Customers and Their Problems",
       "type": "AudioRecording",
-      "niche": "all"
+      "niche": "all",
+      "group": "common_questions"
     },
     {
       "id": "ku3Yt1gqbyEjZKbQEgdC81",
@@ -730,7 +771,8 @@
       "label": "Questions you get asked all the time (typed)",
       "section": "Your Customers and Their Problems",
       "type": "LongAnswer",
-      "niche": "all"
+      "niche": "all",
+      "group": "common_questions"
     },
     {
       "id": "nXmJ",
@@ -786,7 +828,8 @@
       "label": "How a quote usually goes (voice)",
       "section": "Quotes Process and Response",
       "type": "AudioRecording",
-      "niche": "all"
+      "niche": "all",
+      "group": "quote_journey"
     },
     {
       "id": "qp_journey_text",
@@ -794,7 +837,8 @@
       "label": "How a quote usually goes (typed)",
       "section": "Quotes Process and Response",
       "type": "LongAnswer",
-      "niche": "all"
+      "niche": "all",
+      "group": "quote_journey"
     },
     {
       "id": "u2853cBeQycd9SRLb7jguz",
