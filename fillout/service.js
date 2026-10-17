@@ -398,6 +398,7 @@ function createFilloutService({ pool, audioStore, fetchAudio = defaultFetchAudio
   }
 
   const priceRunning = new Set();
+  const UNREADABLE_REPLY = 'Reply too long or unreadable. Retry, or split the recording.';
   // Runs the model on the transcript. Skipped when the transcript hash hasn't changed since the
   // last successful run, unless force (Re-extract / Retry). Replaces transcript rows only.
   async function extractPrices(clientId, { force = false, submissionId = null } = {}) {
@@ -422,9 +423,11 @@ function createFilloutService({ pool, audioStore, fetchAudio = defaultFetchAudio
       let rows;
       try { rows = P.parseReply(reply.text); }
       catch (err) {
-        // Cut off at the output limit: say so, rather than a parse error on half a JSON object
-        if (reply.usage && reply.usage.stop_reason === 'max_tokens') throw new Error('reply too long, retry or split the recording');
-        throw err;
+        // Cut off at the output limit, or not readable as rows: one plain message for the
+        // record (the parser's detail goes to the log). Existing rows are untouched.
+        const cut = reply.usage && reply.usage.stop_reason === 'max_tokens';
+        log.error(`[fillout] price reply ${cut ? 'cut off at the token limit' : 'unreadable'} for ${clientId}: ${err.message}`);
+        throw new Error(UNREADABLE_REPLY);
       }
       P.verifyRows(rows, transcript);
       const fields = rec.sections.flatMap(s => s.fields);
@@ -434,12 +437,23 @@ function createFilloutService({ pool, audioStore, fetchAudio = defaultFetchAudio
       const { rows: existing } = await pool.query(`SELECT id, service, source, deleted FROM client_price_rows WHERE client_id = $1`, [clientId]);
       const manualServices = new Set(existing.filter(r => r.source === 'manual').map(r => r.service.toLowerCase().trim()));
       rows = rows.filter(r => !manualServices.has(r.service.toLowerCase().trim()));
-      await pool.query(`DELETE FROM client_price_rows WHERE client_id = $1 AND source = 'transcript'`, [clientId]);
-      let i = 0;
-      for (const r of rows) {
-        await pool.query(`INSERT INTO client_price_rows (client_id, submission_id, niche, service, from_gbp, up_to_gbp, typical_gbp, unit, what_moves_price, quote_only, inferred, inferred_note, unverified, matched_to, source, transcript_hash, sort_order)
-          VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,'transcript',$15,$16)`,
-          [clientId, submissionId, niche, r.service, r.from_gbp, r.up_to_gbp, r.typical_gbp, r.unit, r.what_moves_price, r.quote_only, r.inferred, r.inferred_note, r.unverified, r.matched_to ? JSON.stringify(r.matched_to) : null, hash, i++]);
+      // Transcript rows are swapped in one transaction: a failure part way leaves the old set
+      const tx = await pool.connect();
+      try {
+        await tx.query('BEGIN');
+        await tx.query(`DELETE FROM client_price_rows WHERE client_id = $1 AND source = 'transcript'`, [clientId]);
+        let i = 0;
+        for (const r of rows) {
+          await tx.query(`INSERT INTO client_price_rows (client_id, submission_id, niche, service, from_gbp, up_to_gbp, typical_gbp, unit, what_moves_price, quote_only, inferred, inferred_note, unverified, matched_to, source, transcript_hash, sort_order)
+            VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,'transcript',$15,$16)`,
+            [clientId, submissionId, niche, r.service, r.from_gbp, r.up_to_gbp, r.typical_gbp, r.unit, r.what_moves_price, r.quote_only, r.inferred, r.inferred_note, r.unverified, r.matched_to ? JSON.stringify(r.matched_to) : null, hash, i++]);
+        }
+        await tx.query('COMMIT');
+      } catch (err) {
+        await tx.query('ROLLBACK').catch(() => {});
+        throw err;
+      } finally {
+        tx.release();
       }
       await savePriceState(clientId, { status: 'done', transcript_hash: hash, transcript, error: null, model: (reply.usage && reply.usage.model) || modelName, extracted_at: new Date() });
       return { rows: rows.length, unverified: rows.filter(r => r.unverified).length };
