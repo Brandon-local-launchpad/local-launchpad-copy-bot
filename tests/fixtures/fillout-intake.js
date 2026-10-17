@@ -117,6 +117,7 @@ const quiet = { info() {}, warn() {}, error() {} };
     const fieldRows = (await pool.query(`SELECT field_key, status, source, value FROM client_fields WHERE client_id = $1`, [clientId])).rows;
     const byKey = Object.fromEntries(fieldRows.map(f => [f.key = f.field_key, f]));
     chk('Only mapped fields stored (universal + niche), not 372', fieldRows.length === rec.fields.length && fieldRows.length < 120, fieldRows.length, rec.fields.length);
+    chk('No field from another niche block stored, even though the map now covers all 28', !fieldRows.some(f => /^[a-z_]+\./.test(f.field_key)), fieldRows.filter(f => /^[a-z_]+\./.test(f.field_key)).map(f => f.field_key).join(','), 'none');
     chk('Blank fields stored as blank, filled as filled, all source form', byKey.current_website.status === 'blank' && byKey.business_phone.status === 'filled' && fieldRows.every(f => f.source === 'form'), '', '');
     chk('No field from another niche stored', !fieldRows.some(f => ['cat_roofer', 'cat_gardener'].includes(f.field_key)) && !fieldRows.some(f => otherNicheIds.includes(f.question_id)), '', '');
 
@@ -150,7 +151,7 @@ const quiet = { info() {}, warn() {}, error() {} };
     chk('Record shows every field we use for Plumbing & Heating', allFields.length === rec.fields.length && allFields.some(f => f.key === 'cat_gas_engineer'), allFields.length, rec.fields.length);
     // Completeness: units, not fields. Pairs count once, the accreditations are one optional group, optional fields leave the denominator.
     const k = record.completeness;
-    chk('Completeness headline = filled / expected units (pairs once, optional out)', k.expected === 74 && k.filled === 50 && k.pct === 68 && k.optionalTotal === 9 && k.optionalFilled === 1 && k.fields === rec.fields.length, JSON.stringify(k), '50 of 74, 1 of 9 optional');
+    chk('Completeness headline = filled / expected units (pairs once, optional out)', k.expected === 69 && k.filled === 46 && k.pct === 67 && k.optionalTotal === 10 && k.optionalFilled === 1 && k.fields === rec.fields.length, JSON.stringify(k), '46 of 69, 1 of 10 optional');
     const unitTest = (fs, want, label) => { const c = I.completeness(fs); chk(label, JSON.stringify([c.filled, c.expected, c.optionalFilled, c.optionalTotal]) === JSON.stringify(want), JSON.stringify([c.filled, c.expected, c.optionalFilled, c.optionalTotal]), JSON.stringify(want)); };
     unitTest([{ key: 'a_voice', group: 'a', status: 'filled' }, { key: 'a_text', group: 'a', status: 'blank' }], [1, 1, 0, 0], 'Voice filled, typed blank → one unit, filled');
     unitTest([{ key: 'a_voice', group: 'a', status: 'blank' }, { key: 'a_text', group: 'a', status: 'filled' }], [1, 1, 0, 0], 'Voice blank, typed filled → one unit, filled');
@@ -325,17 +326,17 @@ const quiet = { info() {}, warn() {}, error() {} };
     chk('Not matched by text: a different label in the same slot still resolves', (() => { const p = withFee('Call-out fee', '£40'); p.submission.questions.find(q => q.id === FEE_ID).name = 'Renamed'; return feeField(p).id === FEE_ID && feeField(p).value === '£40'; })(), '', '');
     chk('A question that is not directly between the two anchors is not taken', (() => { const p = withFee('Call-out fee', '£40'); const qs = p.submission.questions; const at = qs.findIndex(q => q.id === FEE_ID); qs.splice(at + 1, 0, { id: 'q_extra', name: 'Extra', type: 'ShortAnswer', value: 'z' }); const f = feeField(p); return f.id === null && f.status === 'blank'; })(), '', '');
     const c1 = I.completeness(I.buildRecord(withFee('Call-out fee', '£60, taken off the job'), map).fields);
-    chk('1. Call-out fee, fee answered → counted as filled (51 of 74)', c1.expected === 74 && c1.filled === 51 && feeField(withFee('Call-out fee', '£60')).applicable === true, JSON.stringify([c1.filled, c1.expected]), '[51,74]');
+    chk('1. Call-out fee, fee answered → counted as filled (47 of 69)', c1.expected === 69 && c1.filled === 47 && feeField(withFee('Call-out fee', '£60')).applicable === true, JSON.stringify([c1.filled, c1.expected]), '[47,69]');
     const c2 = I.completeness(I.buildRecord(withFee('Survey fee', null), map).fields);
-    chk('2. Survey fee, fee blank → expected and missing (50 of 74)', c2.expected === 74 && c2.filled === 50 && feeField(withFee('Survey fee', '')).status === 'blank' && feeField(withFee('Survey fee', '')).applicable === true, JSON.stringify([c2.filled, c2.expected]), '[50,74]');
+    chk('2. Survey fee, fee blank → expected and missing (46 of 69)', c2.expected === 69 && c2.filled === 46 && feeField(withFee('Survey fee', '')).status === 'blank' && feeField(withFee('Survey fee', '')).applicable === true, JSON.stringify([c2.filled, c2.expected]), '[50,74]');
     const c3 = I.completeness(I.buildRecord(withFee('Yes, no call-out or survey fee', null), map).fields);
-    chk('3. Yes, no call-out or survey fee → not in the denominator (50 of 73, 1 not applicable)', c3.expected === 73 && c3.filled === 50 && c3.notApplicable === 1 && feeField(withFee('Yes, no call-out or survey fee', null)).applicable === false, JSON.stringify([c3.filled, c3.expected, c3.notApplicable]), '[50,73,1]');
+    chk('3. Yes, no call-out or survey fee → not in the denominator (46 of 68, 1 not applicable)', c3.expected === 68 && c3.filled === 46 && c3.notApplicable === 1 && feeField(withFee('Yes, no call-out or survey fee', null)).applicable === false, JSON.stringify([c3.filled, c3.expected, c3.notApplicable]), '[46,68,1]');
     const c3b = I.completeness(I.buildRecord(withFee('Not Applicable', null), map).fields);
-    chk('3b. Not Applicable → not in the denominator either', c3b.expected === 73 && feeField(withFee('Not Applicable', null)).applicable === false, c3b.expected, 73);
-    chk('3c. Fee answered anyway when the quote is free: value kept, still not counted', (() => { const f = feeField(withFee('Yes, no call-out or survey fee', '£20')); return f.value === '£20' && f.status === 'filled' && f.applicable === false; })() && I.completeness(I.buildRecord(withFee('Yes, no call-out or survey fee', '£20'), map).fields).expected === 73, '', '');
+    chk('3b. Not Applicable → not in the denominator either', c3b.expected === 68 && feeField(withFee('Not Applicable', null)).applicable === false, c3b.expected, 68);
+    chk('3c. Fee answered anyway when the quote is free: value kept, still not counted', (() => { const f = feeField(withFee('Yes, no call-out or survey fee', '£20')); return f.value === '£20' && f.status === 'filled' && f.applicable === false; })() && I.completeness(I.buildRecord(withFee('Yes, no call-out or survey fee', '£20'), map).fields).expected === 68, '', '');
     const c4 = I.completeness(I.buildRecord(sample, map).fields);
-    chk('4. A submission from before the question existed still builds; fee blank, expected because the sample says Survey fee', c4.expected === 74 && c4.filled === 50 && feeField(sample).present === false && feeField(sample).status === 'blank', JSON.stringify([c4.filled, c4.expected]), '[50,74]');
-    chk('4b. Same old submission with a free quote: fee not applicable, 73 expected', (() => { const p = clone(sample); p.submission.questions.find(q => q.id === 'q_quote_free').value = 'Yes, no call-out or survey fee'; const c = I.completeness(I.buildRecord(p, map).fields); return c.expected === 73 && feeField(p).applicable === false; })(), '', '');
+    chk('4. A submission from before the question existed still builds; fee blank, expected because the sample says Survey fee', c4.expected === 69 && c4.filled === 46 && feeField(sample).present === false && feeField(sample).status === 'blank', JSON.stringify([c4.filled, c4.expected]), '[46,69]');
+    chk('4b. Same old submission with a free quote: fee not applicable, 68 expected', (() => { const p = clone(sample); p.submission.questions.find(q => q.id === 'q_quote_free').value = 'Yes, no call-out or survey fee'; const c = I.completeness(I.buildRecord(p, map).fields); return c.expected === 68 && feeField(p).applicable === false; })(), '', '');
     // Through the webhook: the resolved id is what gets stored, and the record and inbox follow the rule
     const feeSub = withFee('Call-out fee', '£60, taken off the job'); feeSub.submission.submissionId = 'fee-0001';
     feeSub.submission.questions.find(q => q.id === 'bwUuvaZTmChegZekppzNNv').value = 'Fee Plumbing'; feeSub.submission.questions.find(q => q.id === '5EHeuZ2pntQwCaoADHRRrJ').value = 'fee@example.com';
@@ -345,7 +346,7 @@ const quiet = { info() {}, warn() {}, error() {} };
     chk('Stored with the payload question id and value', feeRow && feeRow.question_id === FEE_ID && feeRow.value === '£60, taken off the job' && feeRow.status === 'filled', JSON.stringify(feeRow), FEE_ID);
     const feeRec = await (await get(`/api/clients/${feeRow.client_id}/record`)).json();
     const feeShown = feeRec.sections.find(s => s.name === 'Quotes Process and Response').fields;
-    chk('Record: fee directly after Is the quote free, applicable, 51 of 74', feeShown[feeShown.findIndex(f => f.key === 'quote_free') + 1].key === 'quote_call_out_fee' && feeShown.find(f => f.key === 'quote_call_out_fee').applicable === true && feeRec.completeness.filled === 51 && feeRec.completeness.expected === 74, JSON.stringify(feeRec.completeness), '51 of 74');
+    chk('Record: fee directly after Is the quote free, applicable, 47 of 69', feeShown[feeShown.findIndex(f => f.key === 'quote_free') + 1].key === 'quote_call_out_fee' && feeShown.find(f => f.key === 'quote_call_out_fee').applicable === true && feeRec.completeness.filled === 47 && feeRec.completeness.expected === 69, JSON.stringify(feeRec.completeness), '47 of 69');
     const freeSub = withFee('Yes, no call-out or survey fee', null); freeSub.submission.submissionId = 'free-0001';
     freeSub.submission.questions.find(q => q.id === 'bwUuvaZTmChegZekppzNNv').value = 'Free Quotes Ltd'; freeSub.submission.questions.find(q => q.id === '5EHeuZ2pntQwCaoADHRRrJ').value = 'free@example.com';
     await post(`/api/webhooks/fillout?token=${SECRET}`, freeSub);
@@ -353,7 +354,96 @@ const quiet = { info() {}, warn() {}, error() {} };
     const freeClient = (await pool.query(`SELECT client_id FROM fillout_submissions WHERE submission_id = 'free-0001'`)).rows[0].client_id;
     const freeRec = await (await get(`/api/clients/${freeClient}/record`)).json();
     const freeInbox = (await (await get('/api/fillout/submissions')).json()).submissions.find(s => s.submissionId === 'free-0001');
-    chk('Record and inbox: free quote → fee not applicable, 73 expected in both', freeRec.sections.flatMap(s => s.fields).find(f => f.key === 'quote_call_out_fee').applicable === false && freeRec.completeness.expected === 73 && freeInbox.completeness.expected === 73, JSON.stringify([freeRec.completeness.expected, freeInbox.completeness.expected]), '[73,73]');
+    chk('Record and inbox: free quote → fee not applicable, 68 expected in both', freeRec.sections.flatMap(s => s.fields).find(f => f.key === 'quote_call_out_fee').applicable === false && freeRec.completeness.expected === 68 && freeInbox.completeness.expected === 68, JSON.stringify([freeRec.completeness.expected, freeInbox.completeness.expected]), '[68,68]');
+
+    // ── All 28 niche blocks mapped (tools/fillout-niche-blocks.js) ──
+    const B = require(path.join(root, 'tools/fillout-niche-blocks.js'));
+    const nicheLabels = Object.keys(map.niches);
+    chk('28 niches in the map, in payload order, with the exact dropdown labels', nicheLabels.length === 28 && JSON.stringify(nicheLabels) === JSON.stringify(B.LABELS_IN_PAYLOAD_ORDER.map(x => x[0])), nicheLabels.length, 28);
+    const shape = nicheLabels.map(label => {
+      const fs = map.fields.filter(f => f.niche === label);
+      const key = map.niches[label].key;
+      const pre = label === 'Plumbing & Heating' ? '' : key + '.';
+      const cats = fs.filter(f => f.group === 'services');
+      const mw = [1, 2, 3].map(n => fs.find(f => f.key === (pre ? `${pre}most_wanted_${n}` : `most_wanted_job_${n}`)));
+      const voice = fs.filter(f => f.type === 'AudioRecording');
+      const other = fs.find(f => f.key === pre + 'other_services');
+      const jnw = fs.find(f => f.key === pre + 'jobs_not_wanted');
+      const ok = cats.length >= 1 && cats.every(f => f.type === 'Checkboxes' && !f.optional) && mw.every(f => f && f.type === 'ShortAnswer' && !f.optional && !f.group)
+        && voice.length === 1 && voice[0].key === pre + 'prices_voice' && !voice[0].optional && other && other.optional && (label === 'Guttering & Fascias' ? !jnw : (jnw && jnw.optional))
+        && fs.every(f => label === 'Plumbing & Heating' || f.key.startsWith(pre)) && fs.every(f => f.section === 'Services & Locations');
+      return { label, ok, cats: cats.length, voice: voice.length, mw: mw.filter(Boolean).length };
+    });
+    chk('Every block: services group, most_wanted_1-3, one prices_voice, optional other_services, optional jobs_not_wanted (none for Guttering), keys namespaced', shape.every(x => x.ok), JSON.stringify(shape.filter(x => !x.ok)), '[]');
+    chk('Every block has exactly 3 most-wanted and 1 voice field', shape.every(x => x.mw === 3 && x.voice === 1), '', '');
+    const allIds = map.fields.filter(f => f.id).map(f => f.id);
+    chk('No question id is mapped twice across the 28 blocks', new Set(allIds).size === allIds.length, allIds.length - new Set(allIds).size, 0);
+    chk('Plumbing & Heating keys unchanged (existing records keep working)', ['cat_central_heating_service', 'cat_plumber', 'cat_gas_engineer', 'additional_heating_services', 'additional_plumbing_services', 'most_wanted_job_1', 'most_wanted_job_2', 'most_wanted_job_3', 'prices_voice', 'other_services', 'jobs_not_wanted'].every(k => map.fields.some(f => f.niche === 'Plumbing & Heating' && f.key === k)), '', '');
+    chk('Tiling: other services is the "Additional Services" question', (map.fields.find(f => f.key === 'tiling.other_services') || {}).id === 'g4wB2wwLUzLNm1PzYysDyT', (map.fields.find(f => f.key === 'tiling.other_services') || {}).id, 'g4wB2wwLUzLNm1PzYysDyT');
+    chk('Guttering: other services is the long "Additional Services..." question, labelled short, and no jobs_not_wanted', (map.fields.find(f => f.key === 'guttering.other_services') || {}).id === 'xxcMTQhLyeiHJXGt8KzJMF' && (map.fields.find(f => f.key === 'guttering.other_services') || {}).label.length < 60 && !map.fields.some(f => f.key === 'guttering.jobs_not_wanted'), '', '');
+    chk('Category labels have no numeric suffix', map.fields.filter(f => f.group === 'services').every(f => !/\(\d+\)\s*$/.test(f.label)), map.fields.filter(f => f.group === 'services' && /\(\d+\)\s*$/.test(f.label)).map(f => f.label).join(','), 'none');
+
+    // A synthetic submission for one niche: the sample with the niche switched and that block's questions answered by id
+    const forNiche = (label, sid, name, email, answers = {}) => {
+      const p = clone(sample);
+      const qs = p.submission.questions;
+      p.submission.submissionId = sid;
+      qs.find(q => q.id === 'q_niche_select').value = label;
+      qs.find(q => q.id === 'bwUuvaZTmChegZekppzNNv').value = name;
+      qs.find(q => q.id === '5EHeuZ2pntQwCaoADHRRrJ').value = email;
+      for (const f of map.fields.filter(f => f.niche === label)) {
+        const q = qs.find(q => q.id === f.id);
+        if (!q) throw new Error('fixture lacks ' + f.id);
+        if (f.key in answers) q.value = answers[f.key];
+        else if (f.type === 'Checkboxes') q.value = ['Tick A for ' + f.key];
+        else if (f.type === 'ShortAnswer') q.value = 'Answer for ' + f.key;
+        else if (f.type === 'AudioRecording') q.value = { url: audioUrl, filename: f.key + '.mp3', transcription: 'Transcript for ' + f.key, duration: 5 };
+        else q.value = 'Text for ' + f.key;
+      }
+      return p;
+    };
+    const deliver = async p => { await post(`/api/webhooks/fillout?token=${SECRET}`, p); const st = await waitDone(p.submission.submissionId); const sub = (await pool.query(`SELECT client_id, status, error FROM fillout_submissions WHERE submission_id = $1`, [p.submission.submissionId])).rows[0]; return { st, sub, rec: sub.client_id ? await (await get(`/api/clients/${sub.client_id}/record`)).json() : null }; };
+    const keysOf = rec => rec.sections.flatMap(s => s.fields).map(f => f.key);
+
+    // (2) Landscapers/Gardeners
+    const land = await deliver(forNiche('Landscapers/Gardeners', 'niche-land-0001', 'Green Fingers', 'green@example.com', { 'landscapers.cat.gardener': ['Lawn mowing and maintenance', 'Hedge trimming'] }));
+    chk('(2) Landscapers: processed, niche known, the landscaper block on the record', land.sub.status === 'processed' && land.rec.niche === 'Landscapers/Gardeners' && land.rec.nicheKnown && keysOf(land.rec).includes('landscapers.cat.gardener') && keysOf(land.rec).includes('landscapers.prices_voice'), land.sub.error || land.rec.niche, 'Landscapers/Gardeners');
+    const landF = land.rec.sections.flatMap(s => s.fields);
+    chk('(2) Landscapers: values by id, suffix-free label, P&H answers (still in the payload) ignored', JSON.stringify(landF.find(f => f.key === 'landscapers.cat.gardener').value) === JSON.stringify(['Lawn mowing and maintenance', 'Hedge trimming']) && landF.find(f => f.key === 'landscapers.cat.gardener').label === 'Gardener' && !keysOf(land.rec).some(k => k === 'cat_plumber' || k.startsWith('cleaning.') || k.startsWith('fencing.')), keysOf(land.rec).filter(k => k === 'cat_plumber' || k.startsWith('fencing.')).join(','), 'none');
+    chk('(2) Landscapers: stored fields are the landscaper block only, none from P&H though answered', !(await pool.query(`SELECT field_key FROM client_fields WHERE client_id = $1`, [land.sub.client_id])).rows.some(r => r.field_key === 'cat_plumber' || r.field_key === 'most_wanted_job_1'), '', '');
+    chk('(2) Landscapers: voice answer copied with its transcript, like Plumbing & Heating', landF.find(f => f.key === 'landscapers.prices_voice').audio && landF.find(f => f.key === 'landscapers.prices_voice').audio.playable && landF.find(f => f.key === 'landscapers.prices_voice').audio.transcription === 'Transcript for landscapers.prices_voice', JSON.stringify(landF.find(f => f.key === 'landscapers.prices_voice').audio), 'playable');
+    // 8 checkbox groups + 3 most wanted + voice = 5 units, the same 5 the sample's Plumbing & Heating block fills
+    chk('(2) Landscapers: completeness counts the 8 groups as one services unit (46 of 69, like the sample)', land.rec.completeness.expected === 69 && land.rec.completeness.filled === 46 && land.rec.completeness.optionalFilled === 2, JSON.stringify(land.rec.completeness), '46 of 69, 2 optional');
+
+    // (3) Window Cleaning: "Window Cleaning Service" and "Pressure Washing Service" also exist in the Cleaning and Pressure Washing blocks, with other ids
+    const wcIds = map.fields.filter(f => f.niche === 'Window Cleaning' && f.group === 'services').map(f => f.id);
+    const clashIds = map.fields.filter(f => ['Cleaning Companies', 'Pressure Washing / Exterior Cleaning'].includes(f.niche) && /window cleaning service|pressure washing service/i.test(f.label)).map(f => f.id);
+    chk('(3) The clashing category names have different ids in the three blocks', clashIds.length === 4 && !clashIds.some(id => wcIds.includes(id)), JSON.stringify({ wcIds, clashIds }), 'disjoint');
+    const wcPayload = forNiche('Window Cleaning', 'niche-wc-0001', 'Crystal Panes', 'panes@example.com', { 'window_cleaning.cat.window_cleaning_service': ['Window cleaning for Crystal Panes'] });
+    // Answer the Cleaning and Pressure Washing twins too; none of that must land on the record
+    for (const id of clashIds) wcPayload.submission.questions.find(q => q.id === id).value = ['WRONG BLOCK'];
+    const wc = await deliver(wcPayload);
+    const wcF = wc.rec.sections.flatMap(s => s.fields);
+    chk('(3) Window Cleaning: its own block, by its own ids', wc.sub.status === 'processed' && wc.rec.nicheKnown && JSON.stringify(wcF.find(f => f.key === 'window_cleaning.cat.window_cleaning_service').value) === JSON.stringify(['Window cleaning for Crystal Panes']) && wcF.find(f => f.key === 'window_cleaning.cat.pressure_washing_service').label === 'Pressure Washing Service', JSON.stringify(wcF.filter(f => f.group === 'services').map(f => [f.key, f.value])), 'own ids');
+    chk('(3) Window Cleaning: nothing from the Cleaning or Pressure Washing blocks, no WRONG BLOCK value anywhere', !keysOf(wc.rec).some(k => k.startsWith('cleaning.') || k.startsWith('pressure_washing.')) && !JSON.stringify(wc.rec).includes('WRONG BLOCK') && !(await pool.query(`SELECT field_key, value FROM client_fields WHERE client_id = $1`, [wc.sub.client_id])).rows.some(r => JSON.stringify(r.value).includes('WRONG BLOCK')), '', '');
+
+    // (4) Guttering and Tiling exceptions
+    const gut = await deliver(forNiche('Guttering & Fascias', 'niche-gut-0001', 'Gutter Guys', 'gutter@example.com', { 'guttering.other_services': 'Soffit repairs' }));
+    const gutF = gut.rec.sections.flatMap(s => s.fields);
+    chk('(4) Guttering: processed, other services from the long question, no jobs_not_wanted field', gut.sub.status === 'processed' && gutF.find(f => f.key === 'guttering.other_services').value === 'Soffit repairs' && !gutF.some(f => f.key === 'guttering.jobs_not_wanted') && gutF.filter(f => f.niche === 'Guttering & Fascias').length === 6, gutF.filter(f => f.niche === 'Guttering & Fascias').map(f => f.key).join(','), '6 guttering keys');
+    const til = await deliver(forNiche('Tiling', 'niche-til-0001', 'Top Tiles', 'tiles@example.com', { 'tiling.other_services': 'Mosaic work' }));
+    const tilF = til.rec.sections.flatMap(s => s.fields);
+    chk('(4) Tiling: "Additional Services" is the other-services field, jobs_not_wanted present', til.sub.status === 'processed' && tilF.find(f => f.key === 'tiling.other_services').value === 'Mosaic work' && tilF.some(f => f.key === 'tiling.jobs_not_wanted') && tilF.filter(f => f.niche === 'Tiling').length === 7, tilF.filter(f => f.niche === 'Tiling').map(f => f.key).join(','), '7 tiling keys');
+
+    // (5) A label that matches nothing (exact string equality: a near miss is unknown)
+    const nearMiss = clone(sample); nearMiss.submission.submissionId = 'niche-near-0001';
+    nearMiss.submission.questions.find(q => q.id === 'q_niche_select').value = 'Roofers ';
+    nearMiss.submission.questions.find(q => q.id === 'bwUuvaZTmChegZekppzNNv').value = 'Near Miss Roofing';
+    nearMiss.submission.questions.find(q => q.id === '5EHeuZ2pntQwCaoADHRRrJ').value = 'near@example.com';
+    const near = await deliver(nearMiss);
+    const nearInbox = (await (await get('/api/fillout/submissions')).json()).submissions.find(s => s.submissionId === 'niche-near-0001');
+    chk('(5) "Roofers " (trailing space) matches no niche: processed, universal fields only, banner flag on inbox and record', near.sub.status === 'processed' && near.rec.nicheKnown === false && near.rec.niche === 'Roofers ' && keysOf(near.rec).every(k => !k.includes('.') && !['cat_plumber', 'prices_voice'].includes(k)) && nearInbox.nicheKnown === false, JSON.stringify([near.rec.niche, near.rec.nicheKnown, nearInbox.nicheKnown]), '["Roofers ",false,false]');
+    chk('(5) Exact label "Roofers" is known', I.fieldsForNiche(map, 'Roofers').some(f => f.key === 'roofers.cat.roofer') && !I.fieldsForNiche(map, 'roofers').some(f => f.niche === 'Roofers'), '', '');
 
     // ── The fixture's real audio URL is untouched in what we commit ──
     chk('Fixture still carries the real Fillout audio URL', /prod-fillout-oregon-s3/.test(realUrl), realUrl, 'fillout s3');

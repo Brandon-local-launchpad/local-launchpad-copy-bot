@@ -16,7 +16,172 @@
   ],
   "niches": {
     "Plumbing & Heating": {
-      "key": "plumbing_heating"
+      "key": "plumbing_heating",
+      "block": 1,
+      "first_question_id": "g1srZPr9BN8b7PC2AJWEuH",
+      "last_question_id": "vvbZ771APyWSvvJmXNhQdE"
+    },
+    "Landscapers/Gardeners": {
+      "key": "landscapers",
+      "block": 2,
+      "first_question_id": "4btycSyHtCXZuuMSnT2vfZ",
+      "last_question_id": "7NoVoLy6SXyruKJja5L5cu"
+    },
+    "Cleaning Companies": {
+      "key": "cleaning",
+      "block": 3,
+      "first_question_id": "oTApMTSkUCVyeMYnSdNcwy",
+      "last_question_id": "8FWUC33GHNfLschJh2G4z3"
+    },
+    "Roofers": {
+      "key": "roofers",
+      "block": 4,
+      "first_question_id": "umEWXt1wquhCASeJ4ZLKJk",
+      "last_question_id": "2HEjzDAX7MBkuck9yRS36j"
+    },
+    "Pet Care Services (Dog Walkers)": {
+      "key": "dog_walkers",
+      "block": 5,
+      "first_question_id": "pHFY1hv3oz26JBqLfZyd44",
+      "last_question_id": "hDzgGfEBAqicTAtD7LED3s"
+    },
+    "Dog Training": {
+      "key": "dog_training",
+      "block": 6,
+      "first_question_id": "49LcZJkZLYN2BjtkdHnHxp",
+      "last_question_id": "eYvw32ofcihnUZDH18b2sb"
+    },
+    "Dog Grooming": {
+      "key": "dog_grooming",
+      "block": 7,
+      "first_question_id": "ubcfWaoM2tzpm85uceomTn",
+      "last_question_id": "rSRtw1D8ktoeUWUvZFnEkS"
+    },
+    "HVAC": {
+      "key": "hvac",
+      "block": 8,
+      "first_question_id": "wRuGCztFaA1HnXxgqBHwpz",
+      "last_question_id": "a2jckh9uzGvYSK1EseQGQZ"
+    },
+    "Electricians": {
+      "key": "electricians",
+      "block": 9,
+      "first_question_id": "o6mzXXy7qnvNHN2AUa75kV",
+      "last_question_id": "de8hgxugdKW3y46gt8TRcb"
+    },
+    "Tree Surgeons": {
+      "key": "tree_surgeons",
+      "block": 10,
+      "first_question_id": "8NuQ4HuLJdUA8mnCGpVriK",
+      "last_question_id": "4DXvZrnWKjwmsZKRUoEhZR"
+    },
+    "Fencing": {
+      "key": "fencing",
+      "block": 11,
+      "first_question_id": "wQV5LREiRLpu8mAN294KvR",
+      "last_question_id": "mP4cJaQ9Z484FrGswUBRz4"
+    },
+    "Drainage": {
+      "key": "drainage",
+      "block": 12,
+      "first_question_id": "85p75ZDC38GUMGYo1GhGWV",
+      "last_question_id": "sPP6yWSQMyL2sod4NGrunm"
+    },
+    "Locksmith": {
+      "key": "locksmith",
+      "block": 13,
+      "first_question_id": "mwg3HthJSJjrYqk9hpTizE",
+      "last_question_id": "tdpHZrNEL8ppceagqT78Mp"
+    },
+    "Garage Doors Installs": {
+      "key": "garage_doors",
+      "block": 14,
+      "first_question_id": "gbMH56nFMkM1CnXqLnoN4B",
+      "last_question_id": "iJuspM37hFNw6DG4ahZ6fb"
+    },
+    "Pressure Washing / Exterior Cleaning": {
+      "key": "pressure_washing",
+      "block": 15,
+      "first_question_id": "8LvWrBB9ywh39TvzeQimVH",
+      "last_question_id": "jHMqGbZYjfJKA5VWtPxGED"
+    },
+    "Guttering & Fascias": {
+      "key": "guttering",
+      "block": 16,
+      "first_question_id": "iZHHtmwGSDJrrxgAc4TtLj",
+      "last_question_id": "xxcMTQhLyeiHJXGt8KzJMF"
+    },
+    "Pest Control": {
+      "key": "pest_control",
+      "block": 17,
+      "first_question_id": "5GB9NsjYHXUMRYCiPRcvNJ",
+      "last_question_id": "nSFqjhnpjrA9vSpFURLTxu"
+    },
+    "Scaffolding": {
+      "key": "scaffolding",
+      "block": 18,
+      "first_question_id": "sUHDmzaBcie3B7C8JZi8vm",
+      "last_question_id": "nsJWAuDD3gHWhCKoCxnjFS"
+    },
+    "Window Cleaning": {
+      "key": "window_cleaning",
+      "block": 19,
+      "first_question_id": "74pJruv3AahRePrysHK8YD",
+      "last_question_id": "dAorAxKdt9ScTgL6rWcXy2"
+    },
+    "Driveways & Paving": {
+      "key": "driveways_paving",
+      "block": 20,
+      "first_question_id": "b5CxsLzL4wdSBfXKPnbDDU",
+      "last_question_id": "d9wucWzRhR1T4NLxu8yjPU"
+    },
+    "Builders": {
+      "key": "builders",
+      "block": 21,
+      "first_question_id": "4XKXzEFMNHcS9K8cN73dC4",
+      "last_question_id": "kqeshgqLT4BytPhD1byU3y"
+    },
+    "Kitchen/Bathroom Fitters": {
+      "key": "kitchen_bathroom",
+      "block": 22,
+      "first_question_id": "jjX6d3c1DAAKoz1VpJ5ieJ",
+      "last_question_id": "duriHLt94rwtKTeHnsgYeY"
+    },
+    "Loft Conversions / Extensions": {
+      "key": "loft_extensions",
+      "block": 23,
+      "first_question_id": "52EUT6RyxM4rYwkGebjt5R",
+      "last_question_id": "nsLGh9YVooRNmka3dGANXv"
+    },
+    "Painters & Decorators": {
+      "key": "painters_decorators",
+      "block": 24,
+      "first_question_id": "xfGu3mHCCJqAyCSWX1uEvV",
+      "last_question_id": "25tCgfwTXVReehgLEedeGv"
+    },
+    "Flooring Fitters (carpet/laminate/LVT)": {
+      "key": "flooring",
+      "block": 25,
+      "first_question_id": "jvXHPEvL8daeKm1Bona6os",
+      "last_question_id": "fxUdidAyQnRQs1b6uXWWf9"
+    },
+    "Tiling": {
+      "key": "tiling",
+      "block": 26,
+      "first_question_id": "sRt2b5VoHUP8CGQviidUnL",
+      "last_question_id": "qeuf"
+    },
+    "Blinds & Curtains Fitters": {
+      "key": "blinds_curtains",
+      "block": 27,
+      "first_question_id": "t2ww5t1HgPxVbKLC16ebAx",
+      "last_question_id": "aN2XVgYyvZwLbdcADxN4bX"
+    },
+    "Removals Company": {
+      "key": "removals",
+      "block": 28,
+      "first_question_id": "x6PtaD17KqFTGMuAvzBUna",
+      "last_question_id": "p2XPeoGGfD511JQsbDNne6"
     }
   },
   "fields": [
@@ -220,95 +385,6 @@
       "section": "Services & Locations",
       "type": "Dropdown",
       "niche": "all"
-    },
-    {
-      "id": "g1srZPr9BN8b7PC2AJWEuH",
-      "key": "cat_central_heating_service",
-      "label": "Central Heating Service",
-      "section": "Services & Locations",
-      "type": "Checkboxes",
-      "niche": "Plumbing & Heating"
-    },
-    {
-      "id": "gqxtq1j4uhHwztHQCyzptu",
-      "key": "cat_plumber",
-      "label": "Plumber",
-      "section": "Services & Locations",
-      "type": "Checkboxes",
-      "niche": "Plumbing & Heating"
-    },
-    {
-      "id": "u2zpmZXK49pDwmS9Tu4RRs",
-      "key": "cat_gas_engineer",
-      "label": "Gas Engineer",
-      "section": "Services & Locations",
-      "type": "Checkboxes",
-      "niche": "Plumbing & Heating"
-    },
-    {
-      "id": "q7EY1xVvi3fMPHUGhwXX6z",
-      "key": "additional_heating_services",
-      "label": "Heating Additional Services",
-      "section": "Services & Locations",
-      "type": "Checkboxes",
-      "niche": "Plumbing & Heating"
-    },
-    {
-      "id": "1wjFss56TDJosHkbiw5XKx",
-      "key": "additional_plumbing_services",
-      "label": "Plumbing Additional Services",
-      "section": "Services & Locations",
-      "type": "Checkboxes",
-      "niche": "Plumbing & Heating"
-    },
-    {
-      "id": "wRxFDYrMJbfr88Y9rLdmX2",
-      "key": "most_wanted_job_1",
-      "label": "Most wanted job 1",
-      "section": "Services & Locations",
-      "type": "ShortAnswer",
-      "niche": "Plumbing & Heating"
-    },
-    {
-      "id": "62NXtm2Nzq6NqwfXuPXt4J",
-      "key": "most_wanted_job_2",
-      "label": "Most wanted job 2",
-      "section": "Services & Locations",
-      "type": "ShortAnswer",
-      "niche": "Plumbing & Heating"
-    },
-    {
-      "id": "dJr1hD9w8yY8CxxpuExfUX",
-      "key": "most_wanted_job_3",
-      "label": "Most wanted job 3",
-      "section": "Services & Locations",
-      "type": "ShortAnswer",
-      "niche": "Plumbing & Heating"
-    },
-    {
-      "id": "rygW9ALYDsZ1d5f2K5pRHg",
-      "key": "prices_voice",
-      "label": "Prices for your services (voice)",
-      "section": "Services & Locations",
-      "type": "AudioRecording",
-      "niche": "Plumbing & Heating"
-    },
-    {
-      "id": "ugsSP2dTbNrjVH1vzuFeSw",
-      "key": "other_services",
-      "label": "Any Other Services?",
-      "section": "Services & Locations",
-      "type": "LongAnswer",
-      "niche": "Plumbing & Heating"
-    },
-    {
-      "id": "vvbZ771APyWSvvJmXNhQdE",
-      "key": "jobs_not_wanted",
-      "label": "Are there any types of jobs you DO NOT want?",
-      "section": "Services & Locations",
-      "type": "LongAnswer",
-      "niche": "Plumbing & Heating",
-      "optional": true
     },
     {
       "id": "tuDBpxPb1nUucBBrSQcjTh",
@@ -915,6 +991,2408 @@
       "section": "Look and Feel",
       "type": "MultipleChoice",
       "niche": "all"
+    },
+    {
+      "id": "g1srZPr9BN8b7PC2AJWEuH",
+      "key": "cat_central_heating_service",
+      "label": "Central Heating Service",
+      "section": "Services & Locations",
+      "type": "Checkboxes",
+      "niche": "Plumbing & Heating",
+      "group": "services"
+    },
+    {
+      "id": "gqxtq1j4uhHwztHQCyzptu",
+      "key": "cat_plumber",
+      "label": "Plumber",
+      "section": "Services & Locations",
+      "type": "Checkboxes",
+      "niche": "Plumbing & Heating",
+      "group": "services"
+    },
+    {
+      "id": "u2zpmZXK49pDwmS9Tu4RRs",
+      "key": "cat_gas_engineer",
+      "label": "Gas Engineer",
+      "section": "Services & Locations",
+      "type": "Checkboxes",
+      "niche": "Plumbing & Heating",
+      "group": "services"
+    },
+    {
+      "id": "q7EY1xVvi3fMPHUGhwXX6z",
+      "key": "additional_heating_services",
+      "label": "Heating Additional Services",
+      "section": "Services & Locations",
+      "type": "Checkboxes",
+      "niche": "Plumbing & Heating",
+      "group": "services"
+    },
+    {
+      "id": "1wjFss56TDJosHkbiw5XKx",
+      "key": "additional_plumbing_services",
+      "label": "Plumbing Additional Services",
+      "section": "Services & Locations",
+      "type": "Checkboxes",
+      "niche": "Plumbing & Heating",
+      "group": "services"
+    },
+    {
+      "id": "wRxFDYrMJbfr88Y9rLdmX2",
+      "key": "most_wanted_job_1",
+      "label": "Most wanted job 1",
+      "section": "Services & Locations",
+      "type": "ShortAnswer",
+      "niche": "Plumbing & Heating"
+    },
+    {
+      "id": "62NXtm2Nzq6NqwfXuPXt4J",
+      "key": "most_wanted_job_2",
+      "label": "Most wanted job 2",
+      "section": "Services & Locations",
+      "type": "ShortAnswer",
+      "niche": "Plumbing & Heating"
+    },
+    {
+      "id": "dJr1hD9w8yY8CxxpuExfUX",
+      "key": "most_wanted_job_3",
+      "label": "Most wanted job 3",
+      "section": "Services & Locations",
+      "type": "ShortAnswer",
+      "niche": "Plumbing & Heating"
+    },
+    {
+      "id": "rygW9ALYDsZ1d5f2K5pRHg",
+      "key": "prices_voice",
+      "label": "Prices for your services (voice)",
+      "section": "Services & Locations",
+      "type": "AudioRecording",
+      "niche": "Plumbing & Heating"
+    },
+    {
+      "id": "ugsSP2dTbNrjVH1vzuFeSw",
+      "key": "other_services",
+      "label": "Any Other Services?",
+      "section": "Services & Locations",
+      "type": "LongAnswer",
+      "niche": "Plumbing & Heating",
+      "optional": true
+    },
+    {
+      "id": "vvbZ771APyWSvvJmXNhQdE",
+      "key": "jobs_not_wanted",
+      "label": "Are there any types of jobs you DO NOT want?",
+      "section": "Services & Locations",
+      "type": "LongAnswer",
+      "niche": "Plumbing & Heating",
+      "optional": true
+    },
+    {
+      "id": "4btycSyHtCXZuuMSnT2vfZ",
+      "key": "landscapers.cat.gardener",
+      "label": "Gardener",
+      "section": "Services & Locations",
+      "type": "Checkboxes",
+      "niche": "Landscapers/Gardeners",
+      "group": "services"
+    },
+    {
+      "id": "jNv8XqDAjLAsi6zFgWBddR",
+      "key": "landscapers.cat.landscape_gardener",
+      "label": "Landscape Gardener",
+      "section": "Services & Locations",
+      "type": "Checkboxes",
+      "niche": "Landscapers/Gardeners",
+      "group": "services"
+    },
+    {
+      "id": "1pfCg77Mhvgz5PiRzpA6nH",
+      "key": "landscapers.cat.landscape_designer",
+      "label": "Landscape Designer",
+      "section": "Services & Locations",
+      "type": "Checkboxes",
+      "niche": "Landscapers/Gardeners",
+      "group": "services"
+    },
+    {
+      "id": "iv2gJGQkiLRuZFruNYi5cJ",
+      "key": "landscapers.cat.lawn_care_service",
+      "label": "Lawn Care Service",
+      "section": "Services & Locations",
+      "type": "Checkboxes",
+      "niche": "Landscapers/Gardeners",
+      "group": "services"
+    },
+    {
+      "id": "uH7dsGdYznMGrV8TZwJ8tY",
+      "key": "landscapers.cat.tree_service",
+      "label": "Tree Service",
+      "section": "Services & Locations",
+      "type": "Checkboxes",
+      "niche": "Landscapers/Gardeners",
+      "group": "services"
+    },
+    {
+      "id": "cNAkA5n8bXdXbCJTuifRi6",
+      "key": "landscapers.cat.paving_contractor",
+      "label": "Paving Contractor",
+      "section": "Services & Locations",
+      "type": "Checkboxes",
+      "niche": "Landscapers/Gardeners",
+      "group": "services"
+    },
+    {
+      "id": "6Bn3UnYDMtH4SSj1Yeb3yA",
+      "key": "landscapers.cat.deck_builder",
+      "label": "Deck Builder",
+      "section": "Services & Locations",
+      "type": "Checkboxes",
+      "niche": "Landscapers/Gardeners",
+      "group": "services"
+    },
+    {
+      "id": "tbVSXjQEfzfqCY6HnZYWwY",
+      "key": "landscapers.cat.landscaper_additional_services",
+      "label": "Landscaper Additional Services",
+      "section": "Services & Locations",
+      "type": "Checkboxes",
+      "niche": "Landscapers/Gardeners",
+      "group": "services"
+    },
+    {
+      "id": "beV62kwi6LXqrJHoHvfqzb",
+      "key": "landscapers.most_wanted_1",
+      "label": "Most wanted job 1",
+      "section": "Services & Locations",
+      "type": "ShortAnswer",
+      "niche": "Landscapers/Gardeners"
+    },
+    {
+      "id": "u1hvPPhDGP4bn8Vc3WKcFa",
+      "key": "landscapers.most_wanted_2",
+      "label": "Most wanted job 2",
+      "section": "Services & Locations",
+      "type": "ShortAnswer",
+      "niche": "Landscapers/Gardeners"
+    },
+    {
+      "id": "6mm5twmGeC4uUNpjA7mqTT",
+      "key": "landscapers.most_wanted_3",
+      "label": "Most wanted job 3",
+      "section": "Services & Locations",
+      "type": "ShortAnswer",
+      "niche": "Landscapers/Gardeners"
+    },
+    {
+      "id": "aCpx",
+      "key": "landscapers.prices_voice",
+      "label": "Prices for your services (voice)",
+      "section": "Services & Locations",
+      "type": "AudioRecording",
+      "niche": "Landscapers/Gardeners"
+    },
+    {
+      "id": "ezr2bq2i9AApBpXoC2hELZ",
+      "key": "landscapers.other_services",
+      "label": "Any Other Services?",
+      "section": "Services & Locations",
+      "type": "LongAnswer",
+      "niche": "Landscapers/Gardeners",
+      "optional": true
+    },
+    {
+      "id": "7NoVoLy6SXyruKJja5L5cu",
+      "key": "landscapers.jobs_not_wanted",
+      "label": "Are there any types of jobs you DO NOT want?",
+      "section": "Services & Locations",
+      "type": "LongAnswer",
+      "niche": "Landscapers/Gardeners",
+      "optional": true
+    },
+    {
+      "id": "oTApMTSkUCVyeMYnSdNcwy",
+      "key": "cleaning.cat.carpet_cleaning_service",
+      "label": "Carpet Cleaning Service",
+      "section": "Services & Locations",
+      "type": "Checkboxes",
+      "niche": "Cleaning Companies",
+      "group": "services"
+    },
+    {
+      "id": "me12Q4Khqcd1z8hPLtWLuj",
+      "key": "cleaning.cat.gutter_cleaning_service",
+      "label": "Gutter Cleaning Service",
+      "section": "Services & Locations",
+      "type": "Checkboxes",
+      "niche": "Cleaning Companies",
+      "group": "services"
+    },
+    {
+      "id": "3b2GZ7KyLiBnVsfWLr5TeS",
+      "key": "cleaning.cat.house_cleaning_service",
+      "label": "House Cleaning Service",
+      "section": "Services & Locations",
+      "type": "Checkboxes",
+      "niche": "Cleaning Companies",
+      "group": "services"
+    },
+    {
+      "id": "sjLVk1zDN7UFFNZQAteUNk",
+      "key": "cleaning.cat.janitorial_service",
+      "label": "Janitorial Service",
+      "section": "Services & Locations",
+      "type": "Checkboxes",
+      "niche": "Cleaning Companies",
+      "group": "services"
+    },
+    {
+      "id": "xj1cBfHDeYByX1Lmv2iXpp",
+      "key": "cleaning.cat.pressure_washing_service",
+      "label": "Pressure Washing Service",
+      "section": "Services & Locations",
+      "type": "Checkboxes",
+      "niche": "Cleaning Companies",
+      "group": "services"
+    },
+    {
+      "id": "oBhenyJPFKCFg8GZSPxkEB",
+      "key": "cleaning.cat.window_cleaning_service",
+      "label": "Window Cleaning Service",
+      "section": "Services & Locations",
+      "type": "Checkboxes",
+      "niche": "Cleaning Companies",
+      "group": "services"
+    },
+    {
+      "id": "qmExLjderWM1hzUxDF2rqC",
+      "key": "cleaning.cat.air_duct_cleaning_service",
+      "label": "Air Duct Cleaning Service",
+      "section": "Services & Locations",
+      "type": "Checkboxes",
+      "niche": "Cleaning Companies",
+      "group": "services"
+    },
+    {
+      "id": "vAesFXSCWpAQHag87T3wDw",
+      "key": "cleaning.cat.blast_cleaning_service",
+      "label": "Blast Cleaning Service",
+      "section": "Services & Locations",
+      "type": "Checkboxes",
+      "niche": "Cleaning Companies",
+      "group": "services"
+    },
+    {
+      "id": "sAPUbM8QAhkf9NaF72akwk",
+      "key": "cleaning.cat.cleaning_additional_services",
+      "label": "Cleaning Additional Services",
+      "section": "Services & Locations",
+      "type": "Checkboxes",
+      "niche": "Cleaning Companies",
+      "group": "services"
+    },
+    {
+      "id": "gJAyk2ne6NBnp6ZQiwXMq8",
+      "key": "cleaning.most_wanted_1",
+      "label": "Most wanted job 1",
+      "section": "Services & Locations",
+      "type": "ShortAnswer",
+      "niche": "Cleaning Companies"
+    },
+    {
+      "id": "jwG8U9Qkagpg6HDbAjau2u",
+      "key": "cleaning.most_wanted_2",
+      "label": "Most wanted job 2",
+      "section": "Services & Locations",
+      "type": "ShortAnswer",
+      "niche": "Cleaning Companies"
+    },
+    {
+      "id": "aapzJ7etq7afdHMrppMhUy",
+      "key": "cleaning.most_wanted_3",
+      "label": "Most wanted job 3",
+      "section": "Services & Locations",
+      "type": "ShortAnswer",
+      "niche": "Cleaning Companies"
+    },
+    {
+      "id": "t9cN2iaMPiVpGUcUNU6M5W",
+      "key": "cleaning.prices_voice",
+      "label": "Prices for your services (voice)",
+      "section": "Services & Locations",
+      "type": "AudioRecording",
+      "niche": "Cleaning Companies"
+    },
+    {
+      "id": "5aHgWpN9T6pCDhc5YbDV1b",
+      "key": "cleaning.other_services",
+      "label": "Any Other Services?",
+      "section": "Services & Locations",
+      "type": "LongAnswer",
+      "niche": "Cleaning Companies",
+      "optional": true
+    },
+    {
+      "id": "8FWUC33GHNfLschJh2G4z3",
+      "key": "cleaning.jobs_not_wanted",
+      "label": "Are there any types of jobs you DO NOT want?",
+      "section": "Services & Locations",
+      "type": "LongAnswer",
+      "niche": "Cleaning Companies",
+      "optional": true
+    },
+    {
+      "id": "umEWXt1wquhCASeJ4ZLKJk",
+      "key": "roofers.cat.roofer",
+      "label": "Roofer",
+      "section": "Services & Locations",
+      "type": "Checkboxes",
+      "niche": "Roofers",
+      "group": "services"
+    },
+    {
+      "id": "c4Qpm67V6pS16wNXw6ghkL",
+      "key": "roofers.cat.roofer_additional_services",
+      "label": "Roofer Additional Services",
+      "section": "Services & Locations",
+      "type": "Checkboxes",
+      "niche": "Roofers",
+      "group": "services"
+    },
+    {
+      "id": "st4L1BcSceRC66SAfMqpLP",
+      "key": "roofers.most_wanted_1",
+      "label": "Most wanted job 1",
+      "section": "Services & Locations",
+      "type": "ShortAnswer",
+      "niche": "Roofers"
+    },
+    {
+      "id": "mgDQQfWjAAvVu9CuP7JVoH",
+      "key": "roofers.most_wanted_2",
+      "label": "Most wanted job 2",
+      "section": "Services & Locations",
+      "type": "ShortAnswer",
+      "niche": "Roofers"
+    },
+    {
+      "id": "6pB4A79vv2S4yNV65zczRv",
+      "key": "roofers.most_wanted_3",
+      "label": "Most wanted job 3",
+      "section": "Services & Locations",
+      "type": "ShortAnswer",
+      "niche": "Roofers"
+    },
+    {
+      "id": "7MzbraEvsFtb2RL8M25nvT",
+      "key": "roofers.prices_voice",
+      "label": "Prices for your services (voice)",
+      "section": "Services & Locations",
+      "type": "AudioRecording",
+      "niche": "Roofers"
+    },
+    {
+      "id": "ga2iSBG6dVtqRY3rrj2Szw",
+      "key": "roofers.other_services",
+      "label": "Any Other Services?",
+      "section": "Services & Locations",
+      "type": "LongAnswer",
+      "niche": "Roofers",
+      "optional": true
+    },
+    {
+      "id": "2HEjzDAX7MBkuck9yRS36j",
+      "key": "roofers.jobs_not_wanted",
+      "label": "Are there any types of jobs you DO NOT want?",
+      "section": "Services & Locations",
+      "type": "LongAnswer",
+      "niche": "Roofers",
+      "optional": true
+    },
+    {
+      "id": "pHFY1hv3oz26JBqLfZyd44",
+      "key": "dog_walkers.cat.dog_walker",
+      "label": "Dog Walker",
+      "section": "Services & Locations",
+      "type": "Checkboxes",
+      "niche": "Pet Care Services (Dog Walkers)",
+      "group": "services"
+    },
+    {
+      "id": "x65FBaiumJMSAW2udqdijP",
+      "key": "dog_walkers.cat.dog_walker_additional_services",
+      "label": "Dog Walker Additional Services",
+      "section": "Services & Locations",
+      "type": "Checkboxes",
+      "niche": "Pet Care Services (Dog Walkers)",
+      "group": "services"
+    },
+    {
+      "id": "hEt92rZvz4mdP4mpsbyeb1",
+      "key": "dog_walkers.most_wanted_1",
+      "label": "Most wanted job 1",
+      "section": "Services & Locations",
+      "type": "ShortAnswer",
+      "niche": "Pet Care Services (Dog Walkers)"
+    },
+    {
+      "id": "7hXoGi5WA2LCeXpLW5oPTx",
+      "key": "dog_walkers.most_wanted_2",
+      "label": "Most wanted job 2",
+      "section": "Services & Locations",
+      "type": "ShortAnswer",
+      "niche": "Pet Care Services (Dog Walkers)"
+    },
+    {
+      "id": "mWDx3CDk7aQ1qfRV8fb3iU",
+      "key": "dog_walkers.most_wanted_3",
+      "label": "Most wanted job 3",
+      "section": "Services & Locations",
+      "type": "ShortAnswer",
+      "niche": "Pet Care Services (Dog Walkers)"
+    },
+    {
+      "id": "pFUADYFGw5F7Gh4xu9eizB",
+      "key": "dog_walkers.prices_voice",
+      "label": "Prices for your services (voice)",
+      "section": "Services & Locations",
+      "type": "AudioRecording",
+      "niche": "Pet Care Services (Dog Walkers)"
+    },
+    {
+      "id": "q1SYVpKZ4VQLdnCECF2Lpm",
+      "key": "dog_walkers.other_services",
+      "label": "Any Other Services?",
+      "section": "Services & Locations",
+      "type": "LongAnswer",
+      "niche": "Pet Care Services (Dog Walkers)",
+      "optional": true
+    },
+    {
+      "id": "hDzgGfEBAqicTAtD7LED3s",
+      "key": "dog_walkers.jobs_not_wanted",
+      "label": "Are there any types of jobs you DO NOT want?",
+      "section": "Services & Locations",
+      "type": "LongAnswer",
+      "niche": "Pet Care Services (Dog Walkers)",
+      "optional": true
+    },
+    {
+      "id": "49LcZJkZLYN2BjtkdHnHxp",
+      "key": "dog_training.cat.dog_trainer",
+      "label": "Dog Trainer",
+      "section": "Services & Locations",
+      "type": "Checkboxes",
+      "niche": "Dog Training",
+      "group": "services"
+    },
+    {
+      "id": "gUqkbPPWPz9seyMKyHzUcu",
+      "key": "dog_training.cat.dog_trainer_additional_services",
+      "label": "Dog Trainer Additional Services",
+      "section": "Services & Locations",
+      "type": "Checkboxes",
+      "niche": "Dog Training",
+      "group": "services"
+    },
+    {
+      "id": "8Z27YLiVUECCzAV3sdQdxL",
+      "key": "dog_training.most_wanted_1",
+      "label": "Most wanted job 1",
+      "section": "Services & Locations",
+      "type": "ShortAnswer",
+      "niche": "Dog Training"
+    },
+    {
+      "id": "d2DDuthN5dETuF3fSfQx2j",
+      "key": "dog_training.most_wanted_2",
+      "label": "Most wanted job 2",
+      "section": "Services & Locations",
+      "type": "ShortAnswer",
+      "niche": "Dog Training"
+    },
+    {
+      "id": "6DKm7bTTiCF4J3hVpQ34sa",
+      "key": "dog_training.most_wanted_3",
+      "label": "Most wanted job 3",
+      "section": "Services & Locations",
+      "type": "ShortAnswer",
+      "niche": "Dog Training"
+    },
+    {
+      "id": "cCzrGmEq4eLUNMhY4BGhZw",
+      "key": "dog_training.prices_voice",
+      "label": "Prices for your services (voice)",
+      "section": "Services & Locations",
+      "type": "AudioRecording",
+      "niche": "Dog Training"
+    },
+    {
+      "id": "vU6ANQq6Ttb6r7dTY2tvuA",
+      "key": "dog_training.other_services",
+      "label": "Any Other Services?",
+      "section": "Services & Locations",
+      "type": "LongAnswer",
+      "niche": "Dog Training",
+      "optional": true
+    },
+    {
+      "id": "eYvw32ofcihnUZDH18b2sb",
+      "key": "dog_training.jobs_not_wanted",
+      "label": "Are there any types of jobs you DO NOT want?",
+      "section": "Services & Locations",
+      "type": "LongAnswer",
+      "niche": "Dog Training",
+      "optional": true
+    },
+    {
+      "id": "ubcfWaoM2tzpm85uceomTn",
+      "key": "dog_grooming.cat.pet_groomer",
+      "label": "Pet Groomer",
+      "section": "Services & Locations",
+      "type": "Checkboxes",
+      "niche": "Dog Grooming",
+      "group": "services"
+    },
+    {
+      "id": "kCMNgRk4GgrYjVQxcrLmwG",
+      "key": "dog_grooming.cat.pet_sitter",
+      "label": "Pet Sitter",
+      "section": "Services & Locations",
+      "type": "Checkboxes",
+      "niche": "Dog Grooming",
+      "group": "services"
+    },
+    {
+      "id": "u7jsW3y2fgjCDrqYH3DPCg",
+      "key": "dog_grooming.cat.dog_groomer_additional_services",
+      "label": "Dog Groomer Additional Services",
+      "section": "Services & Locations",
+      "type": "Checkboxes",
+      "niche": "Dog Grooming",
+      "group": "services"
+    },
+    {
+      "id": "iRMiesUhnxtAJrGZgyvrwe",
+      "key": "dog_grooming.most_wanted_1",
+      "label": "Most wanted job 1",
+      "section": "Services & Locations",
+      "type": "ShortAnswer",
+      "niche": "Dog Grooming"
+    },
+    {
+      "id": "t1qFv21JpgV5eMAhbDSH1S",
+      "key": "dog_grooming.most_wanted_2",
+      "label": "Most wanted job 2",
+      "section": "Services & Locations",
+      "type": "ShortAnswer",
+      "niche": "Dog Grooming"
+    },
+    {
+      "id": "jqF7agxkQLZ42vk83XoZkN",
+      "key": "dog_grooming.most_wanted_3",
+      "label": "Most wanted job 3",
+      "section": "Services & Locations",
+      "type": "ShortAnswer",
+      "niche": "Dog Grooming"
+    },
+    {
+      "id": "dNthac3oyvutoSPDCaqbTL",
+      "key": "dog_grooming.prices_voice",
+      "label": "Prices for your services (voice)",
+      "section": "Services & Locations",
+      "type": "AudioRecording",
+      "niche": "Dog Grooming"
+    },
+    {
+      "id": "veWocYwyGgXQFnGikLPgeN",
+      "key": "dog_grooming.other_services",
+      "label": "Any Other Services?",
+      "section": "Services & Locations",
+      "type": "LongAnswer",
+      "niche": "Dog Grooming",
+      "optional": true
+    },
+    {
+      "id": "rSRtw1D8ktoeUWUvZFnEkS",
+      "key": "dog_grooming.jobs_not_wanted",
+      "label": "Are there any types of jobs you DO NOT want?",
+      "section": "Services & Locations",
+      "type": "LongAnswer",
+      "niche": "Dog Grooming",
+      "optional": true
+    },
+    {
+      "id": "wRuGCztFaA1HnXxgqBHwpz",
+      "key": "hvac.cat.hvac_contractor",
+      "label": "HVAC Contractor",
+      "section": "Services & Locations",
+      "type": "Checkboxes",
+      "niche": "HVAC",
+      "group": "services"
+    },
+    {
+      "id": "73jzJa4tKCpTg4NdAUzZCu",
+      "key": "hvac.cat.air_conditioning_contractor",
+      "label": "Air Conditioning Contractor",
+      "section": "Services & Locations",
+      "type": "Checkboxes",
+      "niche": "HVAC",
+      "group": "services"
+    },
+    {
+      "id": "4r5PxiSfwJZFnyRXsFy19M",
+      "key": "hvac.cat.air_conditioning_repair_shop",
+      "label": "Air Conditioning Repair Shop",
+      "section": "Services & Locations",
+      "type": "Checkboxes",
+      "niche": "HVAC",
+      "group": "services"
+    },
+    {
+      "id": "6UWB2FuHVCwN3LFAxQJSiW",
+      "key": "hvac.cat.hvac_additional_services",
+      "label": "HVAC Additional Services",
+      "section": "Services & Locations",
+      "type": "Checkboxes",
+      "niche": "HVAC",
+      "group": "services"
+    },
+    {
+      "id": "rz4b4LjDKQLXe38LYtTfv2",
+      "key": "hvac.most_wanted_1",
+      "label": "Most wanted job 1",
+      "section": "Services & Locations",
+      "type": "ShortAnswer",
+      "niche": "HVAC"
+    },
+    {
+      "id": "hHavzYtzf3xCn82MduqeE6",
+      "key": "hvac.most_wanted_2",
+      "label": "Most wanted job 2",
+      "section": "Services & Locations",
+      "type": "ShortAnswer",
+      "niche": "HVAC"
+    },
+    {
+      "id": "2rgscE6JchjFuqpULMU2o1",
+      "key": "hvac.most_wanted_3",
+      "label": "Most wanted job 3",
+      "section": "Services & Locations",
+      "type": "ShortAnswer",
+      "niche": "HVAC"
+    },
+    {
+      "id": "9V5Dto33FbAvmFcBi1wT8e",
+      "key": "hvac.prices_voice",
+      "label": "Prices for your services (voice)",
+      "section": "Services & Locations",
+      "type": "AudioRecording",
+      "niche": "HVAC"
+    },
+    {
+      "id": "rzZfH1Wdw8MHC2c4E8DgB5",
+      "key": "hvac.other_services",
+      "label": "Any Other Services?",
+      "section": "Services & Locations",
+      "type": "LongAnswer",
+      "niche": "HVAC",
+      "optional": true
+    },
+    {
+      "id": "a2jckh9uzGvYSK1EseQGQZ",
+      "key": "hvac.jobs_not_wanted",
+      "label": "Are there any types of jobs you DO NOT want?",
+      "section": "Services & Locations",
+      "type": "LongAnswer",
+      "niche": "HVAC",
+      "optional": true
+    },
+    {
+      "id": "o6mzXXy7qnvNHN2AUa75kV",
+      "key": "electricians.cat.electrician",
+      "label": "Electrician",
+      "section": "Services & Locations",
+      "type": "Checkboxes",
+      "niche": "Electricians",
+      "group": "services"
+    },
+    {
+      "id": "6htvfnTb83E6k8kgTCHReK",
+      "key": "electricians.cat.security_system_supplier",
+      "label": "Security System Supplier",
+      "section": "Services & Locations",
+      "type": "Checkboxes",
+      "niche": "Electricians",
+      "group": "services"
+    },
+    {
+      "id": "d7q65GVopbuaUBiuoCuV8s",
+      "key": "electricians.cat.electrician_additional_services",
+      "label": "Electrician Additional Services",
+      "section": "Services & Locations",
+      "type": "Checkboxes",
+      "niche": "Electricians",
+      "group": "services"
+    },
+    {
+      "id": "2hahX7YDzsyxh44P41AbAd",
+      "key": "electricians.most_wanted_1",
+      "label": "Most wanted job 1",
+      "section": "Services & Locations",
+      "type": "ShortAnswer",
+      "niche": "Electricians"
+    },
+    {
+      "id": "go27vijoFAVNi8xhhc75o5",
+      "key": "electricians.most_wanted_2",
+      "label": "Most wanted job 2",
+      "section": "Services & Locations",
+      "type": "ShortAnswer",
+      "niche": "Electricians"
+    },
+    {
+      "id": "dqsvayt3fg1SseTiD4wqrw",
+      "key": "electricians.most_wanted_3",
+      "label": "Most wanted job 3",
+      "section": "Services & Locations",
+      "type": "ShortAnswer",
+      "niche": "Electricians"
+    },
+    {
+      "id": "fXL6QkiUyAtkfhyrTs2Cod",
+      "key": "electricians.prices_voice",
+      "label": "Prices for your services (voice)",
+      "section": "Services & Locations",
+      "type": "AudioRecording",
+      "niche": "Electricians"
+    },
+    {
+      "id": "mi9HUxcza75Tpbbx8h6eCg",
+      "key": "electricians.other_services",
+      "label": "Any Other Services?",
+      "section": "Services & Locations",
+      "type": "LongAnswer",
+      "niche": "Electricians",
+      "optional": true
+    },
+    {
+      "id": "de8hgxugdKW3y46gt8TRcb",
+      "key": "electricians.jobs_not_wanted",
+      "label": "Are there any types of jobs you DO NOT want?",
+      "section": "Services & Locations",
+      "type": "LongAnswer",
+      "niche": "Electricians",
+      "optional": true
+    },
+    {
+      "id": "8NuQ4HuLJdUA8mnCGpVriK",
+      "key": "tree_surgeons.cat.tree_service",
+      "label": "Tree Service",
+      "section": "Services & Locations",
+      "type": "Checkboxes",
+      "niche": "Tree Surgeons",
+      "group": "services"
+    },
+    {
+      "id": "kevv6eQzaoAW6N9jWv2PcM",
+      "key": "tree_surgeons.cat.tree_surgeon_additional_services",
+      "label": "Tree Surgeon Additional Services",
+      "section": "Services & Locations",
+      "type": "Checkboxes",
+      "niche": "Tree Surgeons",
+      "group": "services"
+    },
+    {
+      "id": "9TQEyrXcPPYhARajUKMSpD",
+      "key": "tree_surgeons.most_wanted_1",
+      "label": "Most wanted job 1",
+      "section": "Services & Locations",
+      "type": "ShortAnswer",
+      "niche": "Tree Surgeons"
+    },
+    {
+      "id": "onNfK1cnV1orPZ8yFd3Tbu",
+      "key": "tree_surgeons.most_wanted_2",
+      "label": "Most wanted job 2",
+      "section": "Services & Locations",
+      "type": "ShortAnswer",
+      "niche": "Tree Surgeons"
+    },
+    {
+      "id": "6uHYQQ3dmLFVqtmZDzgnnr",
+      "key": "tree_surgeons.most_wanted_3",
+      "label": "Most wanted job 3",
+      "section": "Services & Locations",
+      "type": "ShortAnswer",
+      "niche": "Tree Surgeons"
+    },
+    {
+      "id": "qXqaN4XaY1gq4eTdN1fT9U",
+      "key": "tree_surgeons.prices_voice",
+      "label": "Prices for your services (voice)",
+      "section": "Services & Locations",
+      "type": "AudioRecording",
+      "niche": "Tree Surgeons"
+    },
+    {
+      "id": "dfi6KcJPcVPSWLeMcag31k",
+      "key": "tree_surgeons.other_services",
+      "label": "Any Other Services?",
+      "section": "Services & Locations",
+      "type": "LongAnswer",
+      "niche": "Tree Surgeons",
+      "optional": true
+    },
+    {
+      "id": "4DXvZrnWKjwmsZKRUoEhZR",
+      "key": "tree_surgeons.jobs_not_wanted",
+      "label": "Are there any types of jobs you DO NOT want?",
+      "section": "Services & Locations",
+      "type": "LongAnswer",
+      "niche": "Tree Surgeons",
+      "optional": true
+    },
+    {
+      "id": "wQV5LREiRLpu8mAN294KvR",
+      "key": "fencing.cat.fence_contractor",
+      "label": "Fence Contractor",
+      "section": "Services & Locations",
+      "type": "Checkboxes",
+      "niche": "Fencing",
+      "group": "services"
+    },
+    {
+      "id": "99iK1mwnRazsBTjrkUFyKB",
+      "key": "fencing.cat.deck_builder",
+      "label": "Deck Builder",
+      "section": "Services & Locations",
+      "type": "Checkboxes",
+      "niche": "Fencing",
+      "group": "services"
+    },
+    {
+      "id": "xkcaQ8EAEF6ETX8ehJYPBb",
+      "key": "fencing.cat.gardener",
+      "label": "Gardener",
+      "section": "Services & Locations",
+      "type": "Checkboxes",
+      "niche": "Fencing",
+      "group": "services"
+    },
+    {
+      "id": "2xyE7fGHYyMXZAGeWMqcUW",
+      "key": "fencing.cat.landscape_gardener",
+      "label": "Landscape Gardener",
+      "section": "Services & Locations",
+      "type": "Checkboxes",
+      "niche": "Fencing",
+      "group": "services"
+    },
+    {
+      "id": "5HH9Mm1N8YmCSPnpr3LQKz",
+      "key": "fencing.cat.landscape_designer",
+      "label": "Landscape Designer",
+      "section": "Services & Locations",
+      "type": "Checkboxes",
+      "niche": "Fencing",
+      "group": "services"
+    },
+    {
+      "id": "eWuRyr7gZqcyLrpj6wccFi",
+      "key": "fencing.cat.lawn_care_service",
+      "label": "Lawn Care Service",
+      "section": "Services & Locations",
+      "type": "Checkboxes",
+      "niche": "Fencing",
+      "group": "services"
+    },
+    {
+      "id": "aFecHvq1jjQ7sEDdbRzrCk",
+      "key": "fencing.cat.tree_service",
+      "label": "Tree Service",
+      "section": "Services & Locations",
+      "type": "Checkboxes",
+      "niche": "Fencing",
+      "group": "services"
+    },
+    {
+      "id": "11Yze74ass37bj6CnyqKoc",
+      "key": "fencing.cat.paving_contractor",
+      "label": "Paving Contractor",
+      "section": "Services & Locations",
+      "type": "Checkboxes",
+      "niche": "Fencing",
+      "group": "services"
+    },
+    {
+      "id": "9KLbdYNPZj9a2uQghU85mW",
+      "key": "fencing.cat.fencing_additional_services",
+      "label": "Fencing Additional Services",
+      "section": "Services & Locations",
+      "type": "Checkboxes",
+      "niche": "Fencing",
+      "group": "services"
+    },
+    {
+      "id": "bJnrQbooYkv9H8YfXEvjQu",
+      "key": "fencing.most_wanted_1",
+      "label": "Most wanted job 1",
+      "section": "Services & Locations",
+      "type": "ShortAnswer",
+      "niche": "Fencing"
+    },
+    {
+      "id": "vTkfz3tnwJVCZKoX2igtLq",
+      "key": "fencing.most_wanted_2",
+      "label": "Most wanted job 2",
+      "section": "Services & Locations",
+      "type": "ShortAnswer",
+      "niche": "Fencing"
+    },
+    {
+      "id": "gTdPhSRV7oqXxRD1LC85uR",
+      "key": "fencing.most_wanted_3",
+      "label": "Most wanted job 3",
+      "section": "Services & Locations",
+      "type": "ShortAnswer",
+      "niche": "Fencing"
+    },
+    {
+      "id": "6xX83kqk9NoNWLS58oNi98",
+      "key": "fencing.prices_voice",
+      "label": "Prices for your services (voice)",
+      "section": "Services & Locations",
+      "type": "AudioRecording",
+      "niche": "Fencing"
+    },
+    {
+      "id": "7Co3dZ8KMJoZZWqCG3EjEd",
+      "key": "fencing.other_services",
+      "label": "Any Other Services?",
+      "section": "Services & Locations",
+      "type": "LongAnswer",
+      "niche": "Fencing",
+      "optional": true
+    },
+    {
+      "id": "mP4cJaQ9Z484FrGswUBRz4",
+      "key": "fencing.jobs_not_wanted",
+      "label": "Are there any types of jobs you DO NOT want?",
+      "section": "Services & Locations",
+      "type": "LongAnswer",
+      "niche": "Fencing",
+      "optional": true
+    },
+    {
+      "id": "85p75ZDC38GUMGYo1GhGWV",
+      "key": "drainage.cat.drainage_service",
+      "label": "Drainage Service",
+      "section": "Services & Locations",
+      "type": "Checkboxes",
+      "niche": "Drainage",
+      "group": "services"
+    },
+    {
+      "id": "ji5LGTRtHFiBt4HxuKMFVP",
+      "key": "drainage.cat.sewage_disposal_service",
+      "label": "Sewage Disposal Service",
+      "section": "Services & Locations",
+      "type": "Checkboxes",
+      "niche": "Drainage",
+      "group": "services"
+    },
+    {
+      "id": "aXSBh51vwMJL8EvjimvZFR",
+      "key": "drainage.cat.septic_tank_service",
+      "label": "Septic Tank Service",
+      "section": "Services & Locations",
+      "type": "Checkboxes",
+      "niche": "Drainage",
+      "group": "services"
+    },
+    {
+      "id": "wkbeKWighNC5wM5tV4JjZ9",
+      "key": "drainage.cat.plumbing",
+      "label": "Plumbing",
+      "section": "Services & Locations",
+      "type": "Checkboxes",
+      "niche": "Drainage",
+      "group": "services"
+    },
+    {
+      "id": "4DeyKDsLrfyzt9a4X42zps",
+      "key": "drainage.cat.drainage_additional_services",
+      "label": "Drainage Additional Services",
+      "section": "Services & Locations",
+      "type": "Checkboxes",
+      "niche": "Drainage",
+      "group": "services"
+    },
+    {
+      "id": "kykqFJxacEUTL6YZyN3pNN",
+      "key": "drainage.cat.plumbing_additional_services",
+      "label": "Plumbing Additional Services",
+      "section": "Services & Locations",
+      "type": "Checkboxes",
+      "niche": "Drainage",
+      "group": "services"
+    },
+    {
+      "id": "iQhQdoB6vRHgTHoTGJXnhM",
+      "key": "drainage.most_wanted_1",
+      "label": "Most wanted job 1",
+      "section": "Services & Locations",
+      "type": "ShortAnswer",
+      "niche": "Drainage"
+    },
+    {
+      "id": "fGuP5JWwaXHzZhrVCRd8FL",
+      "key": "drainage.most_wanted_2",
+      "label": "Most wanted job 2",
+      "section": "Services & Locations",
+      "type": "ShortAnswer",
+      "niche": "Drainage"
+    },
+    {
+      "id": "fPxtUebzGFT1RWJt4M4nii",
+      "key": "drainage.most_wanted_3",
+      "label": "Most wanted job 3",
+      "section": "Services & Locations",
+      "type": "ShortAnswer",
+      "niche": "Drainage"
+    },
+    {
+      "id": "ey7qfUFK4NtK2T9WBFmFGi",
+      "key": "drainage.prices_voice",
+      "label": "Prices for your services (voice)",
+      "section": "Services & Locations",
+      "type": "AudioRecording",
+      "niche": "Drainage"
+    },
+    {
+      "id": "ksaz8EiYC7LK1uUU1rXDSf",
+      "key": "drainage.other_services",
+      "label": "Any Other Services?",
+      "section": "Services & Locations",
+      "type": "LongAnswer",
+      "niche": "Drainage",
+      "optional": true
+    },
+    {
+      "id": "sPP6yWSQMyL2sod4NGrunm",
+      "key": "drainage.jobs_not_wanted",
+      "label": "Are there any types of jobs you DO NOT want?",
+      "section": "Services & Locations",
+      "type": "LongAnswer",
+      "niche": "Drainage",
+      "optional": true
+    },
+    {
+      "id": "mwg3HthJSJjrYqk9hpTizE",
+      "key": "locksmith.cat.locksmith",
+      "label": "Locksmith",
+      "section": "Services & Locations",
+      "type": "Checkboxes",
+      "niche": "Locksmith",
+      "group": "services"
+    },
+    {
+      "id": "qNQ6GGpG7exURN6zpbt3DX",
+      "key": "locksmith.cat.security_system_supplier",
+      "label": "Security System Supplier",
+      "section": "Services & Locations",
+      "type": "Checkboxes",
+      "niche": "Locksmith",
+      "group": "services"
+    },
+    {
+      "id": "p94i6rj4aVzTo45KmgycjK",
+      "key": "locksmith.cat.locksmith_additional_services",
+      "label": "Locksmith Additional Services",
+      "section": "Services & Locations",
+      "type": "Checkboxes",
+      "niche": "Locksmith",
+      "group": "services"
+    },
+    {
+      "id": "mJeeTC3y2sZ9DEbKbdE9ev",
+      "key": "locksmith.most_wanted_1",
+      "label": "Most wanted job 1",
+      "section": "Services & Locations",
+      "type": "ShortAnswer",
+      "niche": "Locksmith"
+    },
+    {
+      "id": "67inyaXsuBz7QSoUVcxbcA",
+      "key": "locksmith.most_wanted_2",
+      "label": "Most wanted job 2",
+      "section": "Services & Locations",
+      "type": "ShortAnswer",
+      "niche": "Locksmith"
+    },
+    {
+      "id": "pvtrNqTZqYMqaJfidmYGi2",
+      "key": "locksmith.most_wanted_3",
+      "label": "Most wanted job 3",
+      "section": "Services & Locations",
+      "type": "ShortAnswer",
+      "niche": "Locksmith"
+    },
+    {
+      "id": "fMKLTQzzQevxdhtUTrJzoU",
+      "key": "locksmith.prices_voice",
+      "label": "Prices for your services (voice)",
+      "section": "Services & Locations",
+      "type": "AudioRecording",
+      "niche": "Locksmith"
+    },
+    {
+      "id": "vwn7x9pSKGatuwYMo2dNPi",
+      "key": "locksmith.other_services",
+      "label": "Any Other Services?",
+      "section": "Services & Locations",
+      "type": "LongAnswer",
+      "niche": "Locksmith",
+      "optional": true
+    },
+    {
+      "id": "tdpHZrNEL8ppceagqT78Mp",
+      "key": "locksmith.jobs_not_wanted",
+      "label": "Are there any types of jobs you DO NOT want?",
+      "section": "Services & Locations",
+      "type": "LongAnswer",
+      "niche": "Locksmith",
+      "optional": true
+    },
+    {
+      "id": "gbMH56nFMkM1CnXqLnoN4B",
+      "key": "garage_doors.cat.garage_door_supplier",
+      "label": "Garage door supplier",
+      "section": "Services & Locations",
+      "type": "Checkboxes",
+      "niche": "Garage Doors Installs",
+      "group": "services"
+    },
+    {
+      "id": "7xPKWKtWjdF3dTu1XtqQVd",
+      "key": "garage_doors.cat.garage_door_additional_services",
+      "label": "Garage Door Additional Services",
+      "section": "Services & Locations",
+      "type": "Checkboxes",
+      "niche": "Garage Doors Installs",
+      "group": "services"
+    },
+    {
+      "id": "sVohGDthvBKE4GTqPEcV8J",
+      "key": "garage_doors.most_wanted_1",
+      "label": "Most wanted job 1",
+      "section": "Services & Locations",
+      "type": "ShortAnswer",
+      "niche": "Garage Doors Installs"
+    },
+    {
+      "id": "g1Gyiw8TL8CXPQeioBn1sR",
+      "key": "garage_doors.most_wanted_2",
+      "label": "Most wanted job 2",
+      "section": "Services & Locations",
+      "type": "ShortAnswer",
+      "niche": "Garage Doors Installs"
+    },
+    {
+      "id": "o79yXDYsg3UdSfho1FKpTS",
+      "key": "garage_doors.most_wanted_3",
+      "label": "Most wanted job 3",
+      "section": "Services & Locations",
+      "type": "ShortAnswer",
+      "niche": "Garage Doors Installs"
+    },
+    {
+      "id": "mJ4emhEmrsLZq7Ej5ftyQ8",
+      "key": "garage_doors.prices_voice",
+      "label": "Prices for your services (voice)",
+      "section": "Services & Locations",
+      "type": "AudioRecording",
+      "niche": "Garage Doors Installs"
+    },
+    {
+      "id": "9WDPhsShdKSGmt2cFaFUgq",
+      "key": "garage_doors.other_services",
+      "label": "Any Other Services?",
+      "section": "Services & Locations",
+      "type": "LongAnswer",
+      "niche": "Garage Doors Installs",
+      "optional": true
+    },
+    {
+      "id": "iJuspM37hFNw6DG4ahZ6fb",
+      "key": "garage_doors.jobs_not_wanted",
+      "label": "Are there any types of jobs you DO NOT want?",
+      "section": "Services & Locations",
+      "type": "LongAnswer",
+      "niche": "Garage Doors Installs",
+      "optional": true
+    },
+    {
+      "id": "8LvWrBB9ywh39TvzeQimVH",
+      "key": "pressure_washing.cat.pressure_washing_service",
+      "label": "Pressure Washing Service",
+      "section": "Services & Locations",
+      "type": "Checkboxes",
+      "niche": "Pressure Washing / Exterior Cleaning",
+      "group": "services"
+    },
+    {
+      "id": "ibGSt4GBag3WPZkM4poYZp",
+      "key": "pressure_washing.cat.window_cleaning_service",
+      "label": "Window Cleaning Service",
+      "section": "Services & Locations",
+      "type": "Checkboxes",
+      "niche": "Pressure Washing / Exterior Cleaning",
+      "group": "services"
+    },
+    {
+      "id": "po1NXjG6uB4bMeFADcSDzb",
+      "key": "pressure_washing.cat.pressure_washing_exterior_cleaning_additional_services",
+      "label": "Pressure Washing / Exterior Cleaning Additional Services",
+      "section": "Services & Locations",
+      "type": "Checkboxes",
+      "niche": "Pressure Washing / Exterior Cleaning",
+      "group": "services"
+    },
+    {
+      "id": "ucEXcKMMceR72Bxt1Y2AWb",
+      "key": "pressure_washing.most_wanted_1",
+      "label": "Most wanted job 1",
+      "section": "Services & Locations",
+      "type": "ShortAnswer",
+      "niche": "Pressure Washing / Exterior Cleaning"
+    },
+    {
+      "id": "f5WiKCLVYBHjQaiPXa7FNt",
+      "key": "pressure_washing.most_wanted_2",
+      "label": "Most wanted job 2",
+      "section": "Services & Locations",
+      "type": "ShortAnswer",
+      "niche": "Pressure Washing / Exterior Cleaning"
+    },
+    {
+      "id": "xBaxAR4m1rvwaCAQdawPpk",
+      "key": "pressure_washing.most_wanted_3",
+      "label": "Most wanted job 3",
+      "section": "Services & Locations",
+      "type": "ShortAnswer",
+      "niche": "Pressure Washing / Exterior Cleaning"
+    },
+    {
+      "id": "veDVbpmSnEYLSJZ2A6Ncn7",
+      "key": "pressure_washing.prices_voice",
+      "label": "Prices for your services (voice)",
+      "section": "Services & Locations",
+      "type": "AudioRecording",
+      "niche": "Pressure Washing / Exterior Cleaning"
+    },
+    {
+      "id": "kBGpFq44aTCh3NwPmdwTBz",
+      "key": "pressure_washing.other_services",
+      "label": "Any Other Services?",
+      "section": "Services & Locations",
+      "type": "LongAnswer",
+      "niche": "Pressure Washing / Exterior Cleaning",
+      "optional": true
+    },
+    {
+      "id": "jHMqGbZYjfJKA5VWtPxGED",
+      "key": "pressure_washing.jobs_not_wanted",
+      "label": "Are there any types of jobs you DO NOT want?",
+      "section": "Services & Locations",
+      "type": "LongAnswer",
+      "niche": "Pressure Washing / Exterior Cleaning",
+      "optional": true
+    },
+    {
+      "id": "iZHHtmwGSDJrrxgAc4TtLj",
+      "key": "guttering.cat.select_the_guttering_and_fascias_services_you_offer",
+      "label": "Select the Guttering & Fascias services you offer",
+      "section": "Services & Locations",
+      "type": "Checkboxes",
+      "niche": "Guttering & Fascias",
+      "group": "services"
+    },
+    {
+      "id": "muWaG8CoYxoBYpCt9BvUa8",
+      "key": "guttering.most_wanted_1",
+      "label": "Most wanted job 1",
+      "section": "Services & Locations",
+      "type": "ShortAnswer",
+      "niche": "Guttering & Fascias"
+    },
+    {
+      "id": "af8HaY1xaP4XKoGXiDNGj9",
+      "key": "guttering.most_wanted_2",
+      "label": "Most wanted job 2",
+      "section": "Services & Locations",
+      "type": "ShortAnswer",
+      "niche": "Guttering & Fascias"
+    },
+    {
+      "id": "fZt8a4rmkJ2YbtmyVm185U",
+      "key": "guttering.most_wanted_3",
+      "label": "Most wanted job 3",
+      "section": "Services & Locations",
+      "type": "ShortAnswer",
+      "niche": "Guttering & Fascias"
+    },
+    {
+      "id": "tA7cmdJW4g89Dxxze9uQFn",
+      "key": "guttering.prices_voice",
+      "label": "Prices for your services (voice)",
+      "section": "Services & Locations",
+      "type": "AudioRecording",
+      "niche": "Guttering & Fascias"
+    },
+    {
+      "id": "xxcMTQhLyeiHJXGt8KzJMF",
+      "key": "guttering.other_services",
+      "label": "Additional services not listed above",
+      "section": "Services & Locations",
+      "type": "LongAnswer",
+      "niche": "Guttering & Fascias",
+      "optional": true
+    },
+    {
+      "id": "5GB9NsjYHXUMRYCiPRcvNJ",
+      "key": "pest_control.cat.pest_control_service",
+      "label": "Pest control service",
+      "section": "Services & Locations",
+      "type": "Checkboxes",
+      "niche": "Pest Control",
+      "group": "services"
+    },
+    {
+      "id": "wWmMsVs87J97TD61SXvnRa",
+      "key": "pest_control.cat.pest_control_additional_services",
+      "label": "Pest Control Additional Services",
+      "section": "Services & Locations",
+      "type": "Checkboxes",
+      "niche": "Pest Control",
+      "group": "services"
+    },
+    {
+      "id": "vwGtbjA6gnBi7x6GjyW4MD",
+      "key": "pest_control.most_wanted_1",
+      "label": "Most wanted job 1",
+      "section": "Services & Locations",
+      "type": "ShortAnswer",
+      "niche": "Pest Control"
+    },
+    {
+      "id": "p7AdEM9JKS1f2aMY6E9Nyb",
+      "key": "pest_control.most_wanted_2",
+      "label": "Most wanted job 2",
+      "section": "Services & Locations",
+      "type": "ShortAnswer",
+      "niche": "Pest Control"
+    },
+    {
+      "id": "kwvWBJrnwgs7WEXYTAhcAL",
+      "key": "pest_control.most_wanted_3",
+      "label": "Most wanted job 3",
+      "section": "Services & Locations",
+      "type": "ShortAnswer",
+      "niche": "Pest Control"
+    },
+    {
+      "id": "oymGpZx1pFU6WpwERSURVQ",
+      "key": "pest_control.prices_voice",
+      "label": "Prices for your services (voice)",
+      "section": "Services & Locations",
+      "type": "AudioRecording",
+      "niche": "Pest Control"
+    },
+    {
+      "id": "6ETi5RcYzWUVbSAXSRRiJT",
+      "key": "pest_control.other_services",
+      "label": "Any Other Services?",
+      "section": "Services & Locations",
+      "type": "LongAnswer",
+      "niche": "Pest Control",
+      "optional": true
+    },
+    {
+      "id": "nSFqjhnpjrA9vSpFURLTxu",
+      "key": "pest_control.jobs_not_wanted",
+      "label": "Are there any types of jobs you DO NOT want?",
+      "section": "Services & Locations",
+      "type": "LongAnswer",
+      "niche": "Pest Control",
+      "optional": true
+    },
+    {
+      "id": "sUHDmzaBcie3B7C8JZi8vm",
+      "key": "scaffolding.cat.scaffolding_service",
+      "label": "Scaffolding Service",
+      "section": "Services & Locations",
+      "type": "Checkboxes",
+      "niche": "Scaffolding",
+      "group": "services"
+    },
+    {
+      "id": "pYhSHf3dr4dpBuPEcGfepu",
+      "key": "scaffolding.cat.scaffolding_additional_services",
+      "label": "Scaffolding Additional Services",
+      "section": "Services & Locations",
+      "type": "Checkboxes",
+      "niche": "Scaffolding",
+      "group": "services"
+    },
+    {
+      "id": "fjPkS3Rhcc3yFg9Vpn3hAW",
+      "key": "scaffolding.most_wanted_1",
+      "label": "Most wanted job 1",
+      "section": "Services & Locations",
+      "type": "ShortAnswer",
+      "niche": "Scaffolding"
+    },
+    {
+      "id": "9FNRFnc7n5cVwVShpXDwoo",
+      "key": "scaffolding.most_wanted_2",
+      "label": "Most wanted job 2",
+      "section": "Services & Locations",
+      "type": "ShortAnswer",
+      "niche": "Scaffolding"
+    },
+    {
+      "id": "fGmYtSLVDwi7Up7SEvVZcc",
+      "key": "scaffolding.most_wanted_3",
+      "label": "Most wanted job 3",
+      "section": "Services & Locations",
+      "type": "ShortAnswer",
+      "niche": "Scaffolding"
+    },
+    {
+      "id": "cx2Etpwx4uVF2R8346YMc4",
+      "key": "scaffolding.prices_voice",
+      "label": "Prices for your services (voice)",
+      "section": "Services & Locations",
+      "type": "AudioRecording",
+      "niche": "Scaffolding"
+    },
+    {
+      "id": "bKALYURVYSvunbhLevcB5Z",
+      "key": "scaffolding.other_services",
+      "label": "Any Other Services?",
+      "section": "Services & Locations",
+      "type": "LongAnswer",
+      "niche": "Scaffolding",
+      "optional": true
+    },
+    {
+      "id": "nsJWAuDD3gHWhCKoCxnjFS",
+      "key": "scaffolding.jobs_not_wanted",
+      "label": "Are there any types of jobs you DO NOT want?",
+      "section": "Services & Locations",
+      "type": "LongAnswer",
+      "niche": "Scaffolding",
+      "optional": true
+    },
+    {
+      "id": "74pJruv3AahRePrysHK8YD",
+      "key": "window_cleaning.cat.window_cleaning_service",
+      "label": "Window Cleaning Service",
+      "section": "Services & Locations",
+      "type": "Checkboxes",
+      "niche": "Window Cleaning",
+      "group": "services"
+    },
+    {
+      "id": "wkZDZHqJXoiwcwCQPYSb7D",
+      "key": "window_cleaning.cat.pressure_washing_service",
+      "label": "Pressure Washing Service",
+      "section": "Services & Locations",
+      "type": "Checkboxes",
+      "niche": "Window Cleaning",
+      "group": "services"
+    },
+    {
+      "id": "aCsr4qcP9GFJKNURsAVzvs",
+      "key": "window_cleaning.cat.window_cleaning_additional_services",
+      "label": "Window Cleaning Additional Services",
+      "section": "Services & Locations",
+      "type": "Checkboxes",
+      "niche": "Window Cleaning",
+      "group": "services"
+    },
+    {
+      "id": "3WnqEyLBGvCQrx81DuaFPJ",
+      "key": "window_cleaning.most_wanted_1",
+      "label": "Most wanted job 1",
+      "section": "Services & Locations",
+      "type": "ShortAnswer",
+      "niche": "Window Cleaning"
+    },
+    {
+      "id": "wHMBBZo21NDQBqs3cJ6Fyy",
+      "key": "window_cleaning.most_wanted_2",
+      "label": "Most wanted job 2",
+      "section": "Services & Locations",
+      "type": "ShortAnswer",
+      "niche": "Window Cleaning"
+    },
+    {
+      "id": "c5dW6aHZNiNnZJkD9do81B",
+      "key": "window_cleaning.most_wanted_3",
+      "label": "Most wanted job 3",
+      "section": "Services & Locations",
+      "type": "ShortAnswer",
+      "niche": "Window Cleaning"
+    },
+    {
+      "id": "3dcUaSQtB5EjnHuXdMZNPC",
+      "key": "window_cleaning.prices_voice",
+      "label": "Prices for your services (voice)",
+      "section": "Services & Locations",
+      "type": "AudioRecording",
+      "niche": "Window Cleaning"
+    },
+    {
+      "id": "arUZoGQbgVYQHShEN6skAS",
+      "key": "window_cleaning.other_services",
+      "label": "Any Other Services?",
+      "section": "Services & Locations",
+      "type": "LongAnswer",
+      "niche": "Window Cleaning",
+      "optional": true
+    },
+    {
+      "id": "dAorAxKdt9ScTgL6rWcXy2",
+      "key": "window_cleaning.jobs_not_wanted",
+      "label": "Are there any types of jobs you DO NOT want?",
+      "section": "Services & Locations",
+      "type": "LongAnswer",
+      "niche": "Window Cleaning",
+      "optional": true
+    },
+    {
+      "id": "b5CxsLzL4wdSBfXKPnbDDU",
+      "key": "driveways_paving.cat.paving_contractor",
+      "label": "Paving Contractor",
+      "section": "Services & Locations",
+      "type": "Checkboxes",
+      "niche": "Driveways & Paving",
+      "group": "services"
+    },
+    {
+      "id": "eSpJRFDu9L4LJ2HkMtkfoW",
+      "key": "driveways_paving.cat.concrete_contractor",
+      "label": "Concrete Contractor",
+      "section": "Services & Locations",
+      "type": "Checkboxes",
+      "niche": "Driveways & Paving",
+      "group": "services"
+    },
+    {
+      "id": "cUigBAUEw8d83V15QFCoj2",
+      "key": "driveways_paving.cat.road_construction_company",
+      "label": "Road Construction Company",
+      "section": "Services & Locations",
+      "type": "Checkboxes",
+      "niche": "Driveways & Paving",
+      "group": "services"
+    },
+    {
+      "id": "tCRUmFtqxvu1Qx7pN5uDHG",
+      "key": "driveways_paving.cat.driveways_and_paving_additional_services",
+      "label": "Driveways & Paving Additional Services",
+      "section": "Services & Locations",
+      "type": "Checkboxes",
+      "niche": "Driveways & Paving",
+      "group": "services"
+    },
+    {
+      "id": "3wyuSUXMZhkvn2SoiDQGJJ",
+      "key": "driveways_paving.most_wanted_1",
+      "label": "Most wanted job 1",
+      "section": "Services & Locations",
+      "type": "ShortAnswer",
+      "niche": "Driveways & Paving"
+    },
+    {
+      "id": "uHmCdv2HDvuLgkxP8dRBFz",
+      "key": "driveways_paving.most_wanted_2",
+      "label": "Most wanted job 2",
+      "section": "Services & Locations",
+      "type": "ShortAnswer",
+      "niche": "Driveways & Paving"
+    },
+    {
+      "id": "rN2d4KjpQD8bWheGD56ewx",
+      "key": "driveways_paving.most_wanted_3",
+      "label": "Most wanted job 3",
+      "section": "Services & Locations",
+      "type": "ShortAnswer",
+      "niche": "Driveways & Paving"
+    },
+    {
+      "id": "1fH1kgTMCr5U8njU4KZSjk",
+      "key": "driveways_paving.prices_voice",
+      "label": "Prices for your services (voice)",
+      "section": "Services & Locations",
+      "type": "AudioRecording",
+      "niche": "Driveways & Paving"
+    },
+    {
+      "id": "4jvyK2PQtNtKPydLSZWBj2",
+      "key": "driveways_paving.other_services",
+      "label": "Any Other Services?",
+      "section": "Services & Locations",
+      "type": "LongAnswer",
+      "niche": "Driveways & Paving",
+      "optional": true
+    },
+    {
+      "id": "d9wucWzRhR1T4NLxu8yjPU",
+      "key": "driveways_paving.jobs_not_wanted",
+      "label": "Are there any types of jobs you DO NOT want?",
+      "section": "Services & Locations",
+      "type": "LongAnswer",
+      "niche": "Driveways & Paving",
+      "optional": true
+    },
+    {
+      "id": "4XKXzEFMNHcS9K8cN73dC4",
+      "key": "builders.cat.building_firm",
+      "label": "Building Firm",
+      "section": "Services & Locations",
+      "type": "Checkboxes",
+      "niche": "Builders",
+      "group": "services"
+    },
+    {
+      "id": "77YW3MBzCPVJPmz3DY6pcz",
+      "key": "builders.cat.construction_company",
+      "label": "Construction Company",
+      "section": "Services & Locations",
+      "type": "Checkboxes",
+      "niche": "Builders",
+      "group": "services"
+    },
+    {
+      "id": "wbZvR7UweG1wtjtvzPFyJM",
+      "key": "builders.cat.contractor",
+      "label": "Contractor",
+      "section": "Services & Locations",
+      "type": "Checkboxes",
+      "niche": "Builders",
+      "group": "services"
+    },
+    {
+      "id": "rxPGXd1hpiAwFYLzshJCLc",
+      "key": "builders.cat.general_contractor",
+      "label": "General Contractor",
+      "section": "Services & Locations",
+      "type": "Checkboxes",
+      "niche": "Builders",
+      "group": "services"
+    },
+    {
+      "id": "xiwZuHd4rHztgA2HakK6zj",
+      "key": "builders.cat.property_developer",
+      "label": "Property Developer",
+      "section": "Services & Locations",
+      "type": "Checkboxes",
+      "niche": "Builders",
+      "group": "services"
+    },
+    {
+      "id": "qrEyCZQq3oDY4Kuc9iXhtT",
+      "key": "builders.cat.kitchen_renovator",
+      "label": "Kitchen Renovator",
+      "section": "Services & Locations",
+      "type": "Checkboxes",
+      "niche": "Builders",
+      "group": "services"
+    },
+    {
+      "id": "3XZDZZep8tQ8yGcDUyVEiN",
+      "key": "builders.cat.carpenter",
+      "label": "Carpenter",
+      "section": "Services & Locations",
+      "type": "Checkboxes",
+      "niche": "Builders",
+      "group": "services"
+    },
+    {
+      "id": "nYkxweECFohDgZY4YqvfZr",
+      "key": "builders.cat.flooring_contractor",
+      "label": "Flooring Contractor",
+      "section": "Services & Locations",
+      "type": "Checkboxes",
+      "niche": "Builders",
+      "group": "services"
+    },
+    {
+      "id": "9jehRGx6Vc5JcPWzupoXcK",
+      "key": "builders.cat.bathroom_renovator",
+      "label": "Bathroom Renovator",
+      "section": "Services & Locations",
+      "type": "Checkboxes",
+      "niche": "Builders",
+      "group": "services"
+    },
+    {
+      "id": "nF5v5QvABWPBaHEaDLZShA",
+      "key": "builders.cat.deck_builder",
+      "label": "Deck Builder",
+      "section": "Services & Locations",
+      "type": "Checkboxes",
+      "niche": "Builders",
+      "group": "services"
+    },
+    {
+      "id": "pMjMLPKSuxhPYbNXf2AEGs",
+      "key": "builders.cat.home_builder",
+      "label": "Home Builder",
+      "section": "Services & Locations",
+      "type": "Checkboxes",
+      "niche": "Builders",
+      "group": "services"
+    },
+    {
+      "id": "6XDsavfJdReBfnk7qEmkPp",
+      "key": "builders.cat.builder_additional_services",
+      "label": "Builder Additional Services",
+      "section": "Services & Locations",
+      "type": "Checkboxes",
+      "niche": "Builders",
+      "group": "services"
+    },
+    {
+      "id": "6yYsoz3iRUHzErZLi4TnuM",
+      "key": "builders.most_wanted_1",
+      "label": "Most wanted job 1",
+      "section": "Services & Locations",
+      "type": "ShortAnswer",
+      "niche": "Builders"
+    },
+    {
+      "id": "fzj1F745pdrTPAM4ypRJuT",
+      "key": "builders.most_wanted_2",
+      "label": "Most wanted job 2",
+      "section": "Services & Locations",
+      "type": "ShortAnswer",
+      "niche": "Builders"
+    },
+    {
+      "id": "9EroAZK6TLAuyoZmyfiPVn",
+      "key": "builders.most_wanted_3",
+      "label": "Most wanted job 3",
+      "section": "Services & Locations",
+      "type": "ShortAnswer",
+      "niche": "Builders"
+    },
+    {
+      "id": "aDyfJLASnfjmqSdG6gWpSh",
+      "key": "builders.prices_voice",
+      "label": "Prices for your services (voice)",
+      "section": "Services & Locations",
+      "type": "AudioRecording",
+      "niche": "Builders"
+    },
+    {
+      "id": "7BRck5wfbbBpMxCTMeRSh7",
+      "key": "builders.other_services",
+      "label": "Any Other Services?",
+      "section": "Services & Locations",
+      "type": "LongAnswer",
+      "niche": "Builders",
+      "optional": true
+    },
+    {
+      "id": "kqeshgqLT4BytPhD1byU3y",
+      "key": "builders.jobs_not_wanted",
+      "label": "Are there any types of jobs you DO NOT want?",
+      "section": "Services & Locations",
+      "type": "LongAnswer",
+      "niche": "Builders",
+      "optional": true
+    },
+    {
+      "id": "jjX6d3c1DAAKoz1VpJ5ieJ",
+      "key": "kitchen_bathroom.cat.kitchen_renovator_services",
+      "label": "Kitchen Renovator Services",
+      "section": "Services & Locations",
+      "type": "Checkboxes",
+      "niche": "Kitchen/Bathroom Fitters",
+      "group": "services"
+    },
+    {
+      "id": "rGk84WZEaxzrV8AqCbU8Lo",
+      "key": "kitchen_bathroom.cat.bathroom_renovator_services",
+      "label": "Bathroom Renovator Services",
+      "section": "Services & Locations",
+      "type": "Checkboxes",
+      "niche": "Kitchen/Bathroom Fitters",
+      "group": "services"
+    },
+    {
+      "id": "iTAUTiWJ8JQTi464srszyE",
+      "key": "kitchen_bathroom.cat.construction_company_services",
+      "label": "Construction Company Services",
+      "section": "Services & Locations",
+      "type": "Checkboxes",
+      "niche": "Kitchen/Bathroom Fitters",
+      "group": "services"
+    },
+    {
+      "id": "m7he8EXs693RgqHMyHM5qM",
+      "key": "kitchen_bathroom.cat.additional_kitchen_bathroom_fitting_services",
+      "label": "Additional Kitchen / Bathroom Fitting Services",
+      "section": "Services & Locations",
+      "type": "Checkboxes",
+      "niche": "Kitchen/Bathroom Fitters",
+      "group": "services"
+    },
+    {
+      "id": "3Wq6BQaiS6tt2WrpSJApAm",
+      "key": "kitchen_bathroom.most_wanted_1",
+      "label": "Most wanted job 1",
+      "section": "Services & Locations",
+      "type": "ShortAnswer",
+      "niche": "Kitchen/Bathroom Fitters"
+    },
+    {
+      "id": "cc6u9WQzePDv9kcx5srhVc",
+      "key": "kitchen_bathroom.most_wanted_2",
+      "label": "Most wanted job 2",
+      "section": "Services & Locations",
+      "type": "ShortAnswer",
+      "niche": "Kitchen/Bathroom Fitters"
+    },
+    {
+      "id": "aZfHS7i3kUnS2cDvmjHghS",
+      "key": "kitchen_bathroom.most_wanted_3",
+      "label": "Most wanted job 3",
+      "section": "Services & Locations",
+      "type": "ShortAnswer",
+      "niche": "Kitchen/Bathroom Fitters"
+    },
+    {
+      "id": "x8SqGLgNNwkP1wR6vpFRNa",
+      "key": "kitchen_bathroom.prices_voice",
+      "label": "Prices for your services (voice)",
+      "section": "Services & Locations",
+      "type": "AudioRecording",
+      "niche": "Kitchen/Bathroom Fitters"
+    },
+    {
+      "id": "6AzY94jdrEPVuuZRZSjAJp",
+      "key": "kitchen_bathroom.other_services",
+      "label": "Any Other Services?",
+      "section": "Services & Locations",
+      "type": "LongAnswer",
+      "niche": "Kitchen/Bathroom Fitters",
+      "optional": true
+    },
+    {
+      "id": "duriHLt94rwtKTeHnsgYeY",
+      "key": "kitchen_bathroom.jobs_not_wanted",
+      "label": "Are there any types of jobs you DO NOT want?",
+      "section": "Services & Locations",
+      "type": "LongAnswer",
+      "niche": "Kitchen/Bathroom Fitters",
+      "optional": true
+    },
+    {
+      "id": "52EUT6RyxM4rYwkGebjt5R",
+      "key": "loft_extensions.cat.building_firm_services",
+      "label": "Building Firm Services",
+      "section": "Services & Locations",
+      "type": "Checkboxes",
+      "niche": "Loft Conversions / Extensions",
+      "group": "services"
+    },
+    {
+      "id": "jTxMaTnikWZvcpbb63GsDv",
+      "key": "loft_extensions.cat.construction_company_services",
+      "label": "Construction Company Services",
+      "section": "Services & Locations",
+      "type": "Checkboxes",
+      "niche": "Loft Conversions / Extensions",
+      "group": "services"
+    },
+    {
+      "id": "wgH4KWMB6v6bLXHAffypDr",
+      "key": "loft_extensions.cat.contractor_services",
+      "label": "Contractor Services",
+      "section": "Services & Locations",
+      "type": "Checkboxes",
+      "niche": "Loft Conversions / Extensions",
+      "group": "services"
+    },
+    {
+      "id": "nto87vTaQAj1GPRttwGaDg",
+      "key": "loft_extensions.cat.general_contractor_services",
+      "label": "General Contractor Services",
+      "section": "Services & Locations",
+      "type": "Checkboxes",
+      "niche": "Loft Conversions / Extensions",
+      "group": "services"
+    },
+    {
+      "id": "qJ7fwJd9deHdiEZ3KuvoPy",
+      "key": "loft_extensions.cat.carpenter_services",
+      "label": "Carpenter Services",
+      "section": "Services & Locations",
+      "type": "Checkboxes",
+      "niche": "Loft Conversions / Extensions",
+      "group": "services"
+    },
+    {
+      "id": "qvWCmF2MAhUiCoTdvS9VwN",
+      "key": "loft_extensions.cat.home_builder_services",
+      "label": "Home Builder Services",
+      "section": "Services & Locations",
+      "type": "Checkboxes",
+      "niche": "Loft Conversions / Extensions",
+      "group": "services"
+    },
+    {
+      "id": "cSb9rgMbwSdkPh8iFSN7CT",
+      "key": "loft_extensions.cat.additional_loft_conversion_extension_services",
+      "label": "Additional Loft Conversion / Extension Services",
+      "section": "Services & Locations",
+      "type": "Checkboxes",
+      "niche": "Loft Conversions / Extensions",
+      "group": "services"
+    },
+    {
+      "id": "r2YeW2YXBhEfpk3nBDigh9",
+      "key": "loft_extensions.most_wanted_1",
+      "label": "Most wanted job 1",
+      "section": "Services & Locations",
+      "type": "ShortAnswer",
+      "niche": "Loft Conversions / Extensions"
+    },
+    {
+      "id": "e9upX9r4myyoY3mjnYYK2T",
+      "key": "loft_extensions.most_wanted_2",
+      "label": "Most wanted job 2",
+      "section": "Services & Locations",
+      "type": "ShortAnswer",
+      "niche": "Loft Conversions / Extensions"
+    },
+    {
+      "id": "f1FPqVtWMQ1b31YjVrXoNw",
+      "key": "loft_extensions.most_wanted_3",
+      "label": "Most wanted job 3",
+      "section": "Services & Locations",
+      "type": "ShortAnswer",
+      "niche": "Loft Conversions / Extensions"
+    },
+    {
+      "id": "qtPUoSofFwTr7GoVRNPTHt",
+      "key": "loft_extensions.prices_voice",
+      "label": "Prices for your services (voice)",
+      "section": "Services & Locations",
+      "type": "AudioRecording",
+      "niche": "Loft Conversions / Extensions"
+    },
+    {
+      "id": "ifEeGh62mMgV56wHJpgJBa",
+      "key": "loft_extensions.other_services",
+      "label": "Any Other Services?",
+      "section": "Services & Locations",
+      "type": "LongAnswer",
+      "niche": "Loft Conversions / Extensions",
+      "optional": true
+    },
+    {
+      "id": "nsLGh9YVooRNmka3dGANXv",
+      "key": "loft_extensions.jobs_not_wanted",
+      "label": "Are there any types of jobs you DO NOT want?",
+      "section": "Services & Locations",
+      "type": "LongAnswer",
+      "niche": "Loft Conversions / Extensions",
+      "optional": true
+    },
+    {
+      "id": "xfGu3mHCCJqAyCSWX1uEvV",
+      "key": "painters_decorators.cat.painter_services",
+      "label": "Painter Services",
+      "section": "Services & Locations",
+      "type": "Checkboxes",
+      "niche": "Painters & Decorators",
+      "group": "services"
+    },
+    {
+      "id": "8zo2v27LTmYLrEhYZkU3MN",
+      "key": "painters_decorators.cat.painter_and_decorator_services",
+      "label": "Painter and Decorator Services",
+      "section": "Services & Locations",
+      "type": "Checkboxes",
+      "niche": "Painters & Decorators",
+      "group": "services"
+    },
+    {
+      "id": "j3knj7syvJBNtTGQr3amGj",
+      "key": "painters_decorators.cat.additional_painting_and_decorating_services",
+      "label": "Additional Painting & Decorating Services",
+      "section": "Services & Locations",
+      "type": "Checkboxes",
+      "niche": "Painters & Decorators",
+      "group": "services"
+    },
+    {
+      "id": "voBBfqkcgYgRudiBb4wiYq",
+      "key": "painters_decorators.most_wanted_1",
+      "label": "Most wanted job 1",
+      "section": "Services & Locations",
+      "type": "ShortAnswer",
+      "niche": "Painters & Decorators"
+    },
+    {
+      "id": "sBxcuf6uwqiXE6bvHNrrio",
+      "key": "painters_decorators.most_wanted_2",
+      "label": "Most wanted job 2",
+      "section": "Services & Locations",
+      "type": "ShortAnswer",
+      "niche": "Painters & Decorators"
+    },
+    {
+      "id": "p43vUU3QBFXku6kqYSVu7j",
+      "key": "painters_decorators.most_wanted_3",
+      "label": "Most wanted job 3",
+      "section": "Services & Locations",
+      "type": "ShortAnswer",
+      "niche": "Painters & Decorators"
+    },
+    {
+      "id": "q2kQo7s5nNSRtWKpUfhRJS",
+      "key": "painters_decorators.prices_voice",
+      "label": "Prices for your services (voice)",
+      "section": "Services & Locations",
+      "type": "AudioRecording",
+      "niche": "Painters & Decorators"
+    },
+    {
+      "id": "oZ16mHtsQuQHkP1E9JJXh9",
+      "key": "painters_decorators.other_services",
+      "label": "Any Other Services?",
+      "section": "Services & Locations",
+      "type": "LongAnswer",
+      "niche": "Painters & Decorators",
+      "optional": true
+    },
+    {
+      "id": "25tCgfwTXVReehgLEedeGv",
+      "key": "painters_decorators.jobs_not_wanted",
+      "label": "Are there any types of jobs you DO NOT want?",
+      "section": "Services & Locations",
+      "type": "LongAnswer",
+      "niche": "Painters & Decorators",
+      "optional": true
+    },
+    {
+      "id": "jvXHPEvL8daeKm1Bona6os",
+      "key": "flooring.cat.flooring_contractor_services",
+      "label": "Flooring Contractor Services",
+      "section": "Services & Locations",
+      "type": "Checkboxes",
+      "niche": "Flooring Fitters (carpet/laminate/LVT)",
+      "group": "services"
+    },
+    {
+      "id": "4KuM15Szap4kZujyXaTtNK",
+      "key": "flooring.cat.wood_floor_installation_service_services",
+      "label": "Wood Floor Installation Service Services",
+      "section": "Services & Locations",
+      "type": "Checkboxes",
+      "niche": "Flooring Fitters (carpet/laminate/LVT)",
+      "group": "services"
+    },
+    {
+      "id": "1YJXT3tk45DX4wgqpte9vD",
+      "key": "flooring.cat.additional_flooring_services",
+      "label": "Additional Flooring Services",
+      "section": "Services & Locations",
+      "type": "Checkboxes",
+      "niche": "Flooring Fitters (carpet/laminate/LVT)",
+      "group": "services"
+    },
+    {
+      "id": "qpigiQfUeAmMn3eFQ8WwPT",
+      "key": "flooring.most_wanted_1",
+      "label": "Most wanted job 1",
+      "section": "Services & Locations",
+      "type": "ShortAnswer",
+      "niche": "Flooring Fitters (carpet/laminate/LVT)"
+    },
+    {
+      "id": "jJf85UuTcsKXxHKNrzurw5",
+      "key": "flooring.most_wanted_2",
+      "label": "Most wanted job 2",
+      "section": "Services & Locations",
+      "type": "ShortAnswer",
+      "niche": "Flooring Fitters (carpet/laminate/LVT)"
+    },
+    {
+      "id": "2BgNgrP3Vp2z571bmumT52",
+      "key": "flooring.most_wanted_3",
+      "label": "Most wanted job 3",
+      "section": "Services & Locations",
+      "type": "ShortAnswer",
+      "niche": "Flooring Fitters (carpet/laminate/LVT)"
+    },
+    {
+      "id": "f5NESmtZG1aB9TND6yRu8A",
+      "key": "flooring.prices_voice",
+      "label": "Prices for your services (voice)",
+      "section": "Services & Locations",
+      "type": "AudioRecording",
+      "niche": "Flooring Fitters (carpet/laminate/LVT)"
+    },
+    {
+      "id": "cf6q2pPzNQTPiseiKJ9CrW",
+      "key": "flooring.other_services",
+      "label": "Any Other Services?",
+      "section": "Services & Locations",
+      "type": "LongAnswer",
+      "niche": "Flooring Fitters (carpet/laminate/LVT)",
+      "optional": true
+    },
+    {
+      "id": "fxUdidAyQnRQs1b6uXWWf9",
+      "key": "flooring.jobs_not_wanted",
+      "label": "Are there any types of jobs you DO NOT want?",
+      "section": "Services & Locations",
+      "type": "LongAnswer",
+      "niche": "Flooring Fitters (carpet/laminate/LVT)",
+      "optional": true
+    },
+    {
+      "id": "sRt2b5VoHUP8CGQviidUnL",
+      "key": "tiling.cat.select_the_tiling_services_you_offer",
+      "label": "Select the Tiling services you offer",
+      "section": "Services & Locations",
+      "type": "Checkboxes",
+      "niche": "Tiling",
+      "group": "services"
+    },
+    {
+      "id": "jPAGm7LShKMFoHM6RwgN91",
+      "key": "tiling.most_wanted_1",
+      "label": "Most wanted job 1",
+      "section": "Services & Locations",
+      "type": "ShortAnswer",
+      "niche": "Tiling"
+    },
+    {
+      "id": "7GeBz8PZJ5qFCxtKkbEjF1",
+      "key": "tiling.most_wanted_2",
+      "label": "Most wanted job 2",
+      "section": "Services & Locations",
+      "type": "ShortAnswer",
+      "niche": "Tiling"
+    },
+    {
+      "id": "cJoigNd8XjqiPLHC4o9Zpy",
+      "key": "tiling.most_wanted_3",
+      "label": "Most wanted job 3",
+      "section": "Services & Locations",
+      "type": "ShortAnswer",
+      "niche": "Tiling"
+    },
+    {
+      "id": "5ydqTUDtExS8UJrZSKN9oA",
+      "key": "tiling.prices_voice",
+      "label": "Prices for your services (voice)",
+      "section": "Services & Locations",
+      "type": "AudioRecording",
+      "niche": "Tiling"
+    },
+    {
+      "id": "g4wB2wwLUzLNm1PzYysDyT",
+      "key": "tiling.other_services",
+      "label": "Additional Services",
+      "section": "Services & Locations",
+      "type": "LongAnswer",
+      "niche": "Tiling",
+      "optional": true
+    },
+    {
+      "id": "qeuf",
+      "key": "tiling.jobs_not_wanted",
+      "label": "Are there any types of jobs you DO NOT want?",
+      "section": "Services & Locations",
+      "type": "LongAnswer",
+      "niche": "Tiling",
+      "optional": true
+    },
+    {
+      "id": "t2ww5t1HgPxVbKLC16ebAx",
+      "key": "blinds_curtains.cat.curtain_shop_services",
+      "label": "Curtain Shop Services",
+      "section": "Services & Locations",
+      "type": "Checkboxes",
+      "niche": "Blinds & Curtains Fitters",
+      "group": "services"
+    },
+    {
+      "id": "bFj3RQbqx1j3sDsMjT7vXb",
+      "key": "blinds_curtains.cat.blind_shop_services",
+      "label": "Blind Shop Services",
+      "section": "Services & Locations",
+      "type": "Checkboxes",
+      "niche": "Blinds & Curtains Fitters",
+      "group": "services"
+    },
+    {
+      "id": "5XkzfKmdadSUSeF3ACeGBM",
+      "key": "blinds_curtains.cat.additional_curtain_and_blind_fitting_services",
+      "label": "Additional Curtain & Blind Fitting Services",
+      "section": "Services & Locations",
+      "type": "Checkboxes",
+      "niche": "Blinds & Curtains Fitters",
+      "group": "services"
+    },
+    {
+      "id": "6w6xnbQKSCe9VEfTtFy45v",
+      "key": "blinds_curtains.most_wanted_1",
+      "label": "Most wanted job 1",
+      "section": "Services & Locations",
+      "type": "ShortAnswer",
+      "niche": "Blinds & Curtains Fitters"
+    },
+    {
+      "id": "9o7GCTtMorzkoieusJ8fRE",
+      "key": "blinds_curtains.most_wanted_2",
+      "label": "Most wanted job 2",
+      "section": "Services & Locations",
+      "type": "ShortAnswer",
+      "niche": "Blinds & Curtains Fitters"
+    },
+    {
+      "id": "xmtMprBsqMh4e1nDsUUy3z",
+      "key": "blinds_curtains.most_wanted_3",
+      "label": "Most wanted job 3",
+      "section": "Services & Locations",
+      "type": "ShortAnswer",
+      "niche": "Blinds & Curtains Fitters"
+    },
+    {
+      "id": "kAmTKEjifQX7wi1Kg8gSN3",
+      "key": "blinds_curtains.prices_voice",
+      "label": "Prices for your services (voice)",
+      "section": "Services & Locations",
+      "type": "AudioRecording",
+      "niche": "Blinds & Curtains Fitters"
+    },
+    {
+      "id": "qPcHeqNeRbey4rPVnZF5L2",
+      "key": "blinds_curtains.other_services",
+      "label": "Any Other Services?",
+      "section": "Services & Locations",
+      "type": "LongAnswer",
+      "niche": "Blinds & Curtains Fitters",
+      "optional": true
+    },
+    {
+      "id": "aN2XVgYyvZwLbdcADxN4bX",
+      "key": "blinds_curtains.jobs_not_wanted",
+      "label": "Are there any types of jobs you DO NOT want?",
+      "section": "Services & Locations",
+      "type": "LongAnswer",
+      "niche": "Blinds & Curtains Fitters",
+      "optional": true
+    },
+    {
+      "id": "x6PtaD17KqFTGMuAvzBUna",
+      "key": "removals.cat.removals_company_services",
+      "label": "Removals Company Services",
+      "section": "Services & Locations",
+      "type": "Checkboxes",
+      "niche": "Removals Company",
+      "group": "services"
+    },
+    {
+      "id": "pCQBZKrebc87VFmpMWqnVp",
+      "key": "removals.cat.removals_service_services",
+      "label": "Removals Service Services",
+      "section": "Services & Locations",
+      "type": "Checkboxes",
+      "niche": "Removals Company",
+      "group": "services"
+    },
+    {
+      "id": "ojLmLEYP7NhG7wAzSqiy58",
+      "key": "removals.cat.self_storage_facility_services",
+      "label": "Self Storage Facility Services",
+      "section": "Services & Locations",
+      "type": "Checkboxes",
+      "niche": "Removals Company",
+      "group": "services"
+    },
+    {
+      "id": "w6ujnWNDRbaRajPVTUXJw1",
+      "key": "removals.cat.additional_removals_and_storage_services",
+      "label": "Additional Removals & Storage Services",
+      "section": "Services & Locations",
+      "type": "Checkboxes",
+      "niche": "Removals Company",
+      "group": "services"
+    },
+    {
+      "id": "cvrAiep2aj34PhfCjubDxH",
+      "key": "removals.most_wanted_1",
+      "label": "Most wanted job 1",
+      "section": "Services & Locations",
+      "type": "ShortAnswer",
+      "niche": "Removals Company"
+    },
+    {
+      "id": "3HZy7sSX63fDD4LERZUg8W",
+      "key": "removals.most_wanted_2",
+      "label": "Most wanted job 2",
+      "section": "Services & Locations",
+      "type": "ShortAnswer",
+      "niche": "Removals Company"
+    },
+    {
+      "id": "6N7U8t3bME84nNW5k4wH7N",
+      "key": "removals.most_wanted_3",
+      "label": "Most wanted job 3",
+      "section": "Services & Locations",
+      "type": "ShortAnswer",
+      "niche": "Removals Company"
+    },
+    {
+      "id": "rqrDfue7MQVkQ47gjgT7Va",
+      "key": "removals.prices_voice",
+      "label": "Prices for your services (voice)",
+      "section": "Services & Locations",
+      "type": "AudioRecording",
+      "niche": "Removals Company"
+    },
+    {
+      "id": "75YcpA4sxRbrmDsqGEAqp3",
+      "key": "removals.other_services",
+      "label": "Any Other Services?",
+      "section": "Services & Locations",
+      "type": "LongAnswer",
+      "niche": "Removals Company",
+      "optional": true
+    },
+    {
+      "id": "p2XPeoGGfD511JQsbDNne6",
+      "key": "removals.jobs_not_wanted",
+      "label": "Are there any types of jobs you DO NOT want?",
+      "section": "Services & Locations",
+      "type": "LongAnswer",
+      "niche": "Removals Company",
+      "optional": true
     }
-  ]
+  ],
+  "_generated": {
+    "niche_blocks": "tools/fillout-niche-blocks.js, from fixtures/fillout-sample.json (17 Oct 2026). Re-run with --write after a form change; universal entries and Plumbing & Heating keys are kept as they are."
+  }
 }
