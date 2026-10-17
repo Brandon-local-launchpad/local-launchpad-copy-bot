@@ -136,7 +136,9 @@ from and up to, a single price gets typical, no usable prices gives no rows).
   name). `matched_to` holds the field key and value, or null.
 - Storage: `client_price_rows` and `client_price_state` (`fillout/prices.js`).
   State: `pending`, `done`, `extraction_failed` (with the reason and a Retry
-  button), `no_transcript`, `not_applicable` (set by the VA).
+  button), `no_transcript`, `not_applicable` (set by the VA). The model gets
+  4096 output tokens; a reply cut off at that limit fails with "reply too
+  long, retry or split the recording".
 - A re-run happens only when the transcript hash changes or on Re-extract. It
   replaces rows with source `transcript` only. Any hand edit, add or delete makes
   a row `manual`, and a deleted transcript row is kept as a hidden tombstone so
