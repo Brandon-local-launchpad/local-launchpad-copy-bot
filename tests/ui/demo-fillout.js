@@ -37,7 +37,13 @@ if (process.env.DEMO_REAL_MODEL !== '1') {
     { service: 'Boiler replacement', typical_gbp: 600 },
     { service: 'Boiler repair', typical_gbp: 350 },
   ] });
-  const reply = async () => ({ stop_reason: 'end_turn', model: 'demo-fake-model', usage: { input_tokens: 0, output_tokens: 0 }, content: [{ type: 'text', text: canned }] });
+  // The parent-category prompt (additional services) gets a canned answer too, keyed on the system prompt
+  const parents = JSON.stringify({ services: [
+    { service: 'Pond installation', category_key: 'landscape_designer', reason: 'ponds are designed garden features' },
+    { service: 'Raised beds', category_key: 'unsure', reason: 'could sit under Gardener or Landscape Gardener' },
+    { service: 'Water features', category_key: 'landscape_designer', reason: 'water features are designed garden features' },
+  ] });
+  const reply = async params => ({ stop_reason: 'end_turn', model: 'demo-fake-model', usage: { input_tokens: 0, output_tokens: 0 }, content: [{ type: 'text', text: /Parent category for an additional service/.test(String(params && params.system)) ? parents : canned }] });
   class FakeAnthropic { constructor() { this.messages = { create: reply }; this.beta = { messages: { create: reply } }; } }
   require.cache[SDK_ID] = { id: SDK_ID, filename: SDK_ID, loaded: true, exports: FakeAnthropic };
   process.env.ANTHROPIC_API_KEY = process.env.ANTHROPIC_API_KEY || 'demo-fake-key'; // so the server wires the (fake) model in
@@ -81,6 +87,18 @@ process.env.APP_PASSWORD = '';
   dup.submission.questions.find(q => q.id === '5EHeuZ2pntQwCaoADHRRrJ').value = 'other@example.com';
   dup.submission.questions.find(q => q.id === 'rygW9ALYDsZ1d5f2K5pRHg').value = null;
   await send(dup, 'same name, other email (new client, flagged)');
+  // A landscaper with Edens Edge's ticks and typed additional services, for the Categories & services section
+  const land = clone(first); land.submission.submissionId = 'demo-edens-edge';
+  const ticks = require(path.join(root, 'tests/fixtures/data/edens-edge-ticks.js'));
+  const fieldMap = require(path.join(root, 'fillout/field-map.json'));
+  land.submission.questions.find(q => q.id === 'q_niche_select').value = 'Landscapers/Gardeners';
+  land.submission.questions.find(q => q.id === 'bwUuvaZTmChegZekppzNNv').value = 'Edens Edge Landscaping';
+  land.submission.questions.find(q => q.id === '5EHeuZ2pntQwCaoADHRRrJ').value = 'ethan@example.com';
+  for (const f of fieldMap.fields.filter(f => f.niche === 'Landscapers/Gardeners')) {
+    const q = land.submission.questions.find(q => q.id === f.id);
+    q.value = ticks[f.key] !== undefined ? ticks[f.key] : f.key === 'landscapers.other_services' ? 'Pond installation\nRaised beds\nGarden clearance\nWater features' : f.key === 'landscapers.most_wanted_1' ? 'Patio paving' : f.type === 'ShortAnswer' ? 'Garden design' : f.type === 'AudioRecording' ? { url: audioUrl, filename: 'p.mp3', transcription: 'A patio starts at about three thousand.', duration: 5 } : null;
+  }
+  await send(land, 'Edens Edge landscaper (ticks from the example sheet)');
   const unknown = clone(first); unknown.submission.submissionId = 'demo-unknown-niche';
   unknown.submission.questions.find(q => q.id === 'q_niche_select').value = 'Roofing';
   unknown.submission.questions.find(q => q.id === 'bwUuvaZTmChegZekppzNNv').value = 'Demo Roofing Co';

@@ -205,6 +205,7 @@
     const res = await fetch(`/api/clients/${clientId}/record`);
     if (!res.ok) { document.getElementById('main').innerHTML = `<div class="empty">Could not load: ${esc((await res.json().catch(() => ({}))).error || res.status)}</div>`; return; }
     rec = await res.json();
+    await loadServices();
     const c = rec.client;
     document.title = `${c.name} — Onboarding record`;
     document.getElementById('crumbClient').textContent = c.name; document.getElementById('crumbClient').href = `/client.html?id=${c.id}`;
@@ -291,6 +292,7 @@
       <div class="pc">${p.needed.total ? `Needed ${p.needed.filled} of ${p.needed.total}` : 'Nothing needed here'}${p.chase.total ? ` · worth chasing ${p.chase.filled} of ${p.chase.total}` : ''}${p.optional.total ? ` · optional ${p.optional.filled} of ${p.optional.total}` : ''}${p.notApplicable ? ` · ${p.notApplicable} not applicable` : ''}</div></div>`;
     let body = '';
     if (p.key === 'prices') body += renderPrices(rec.prices);
+    if (p.key === 'services') body += renderServices(services);
     body += `<div class="fields">${renderFieldList(p.key, fields)}</div>`;
     return `<div class="panel">${head}${body}</div>`;
   }
@@ -502,6 +504,69 @@
   async function pricesNotApplicable(value) {
     await fetch(`/api/clients/${clientId}/prices/not-applicable`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ value }) });
     await load();
+  }
+
+  // ── Categories & services: the resolver's tabs, flags, primary selector, additional services ──
+  let services = null;        // GET /api/clients/:id/services
+  let svcTab = null;          // open category tab
+  let changing = null;        // additional row id whose category is being changed
+  async function loadServices() {
+    try { const res = await fetch(`/api/clients/${clientId}/services`); services = res.ok ? await res.json() : null; } catch (_) { services = null; }
+  }
+  function renderServices(s) {
+    if (!s) return '';
+    if (!s.hasConfig) return `<div class="prices"><div class="prices-head"><h3>Categories &amp; services</h3></div><div class="pnote">No categories file for ${esc(s.niche || 'this niche')} yet (fillout/services/). The tick boxes below are still stored.</div></div>`;
+    const r = s.resolved;
+    const flags = r.flags.filter(f => !f.code.startsWith('config_'));
+    const configNotes = r.flags.filter(f => f.code.startsWith('config_'));
+    const flagHtml = flags.map(f => `<span class="badge ${f.severity === 'bad' ? 'b-bad' : 'b-warn'}">${esc(f.msg)}</span>`).join('') + (configNotes.length ? `<span class="badge b-muted" title="${esc(configNotes.map(f => f.msg).join('\n'))}">${configNotes.length} note${configNotes.length === 1 ? '' : 's'} on the categories file</span>` : '');
+    const primarySel = `<label class="pnote">Primary category <select onchange="setPrimary(this.value)"><option value=""${!s.primaryOverride ? ' selected' : ''}>Default (${esc((s.allCategories.find(c => c.key === s.primaryDefault) || {}).name || s.primaryDefault)})</option>${s.allCategories.map(c => `<option value="${esc(c.key)}"${s.primaryOverride === c.key ? ' selected' : ''}>${esc(c.name)}</option>`).join('')}</select>${s.primaryOverride ? ' <span class="src manual">set by hand</span>' : ''}</label>`;
+    if (!svcTab || !r.categories.some(c => c.key === svcTab)) svcTab = r.primary || (r.categories[0] && r.categories[0].key) || null;
+    const tabs = r.categories.map(c => `<button class="btn ${c.key === svcTab ? 'btn-primary' : 'btn-ghost'} btn-xs" onclick="svcTab='${c.key}';render()">${esc(c.name)}${c.primary ? ' ★' : ''} <span class="pnote" style="color:inherit">${c.rows.length}</span></button>`).join(' ');
+    const cur = r.categories.find(c => c.key === svcTab);
+    const rows = cur ? cur.rows.map(row => `<tr><td class="num">${esc(row.legacyKey)}</td><td>${esc(row.name)}${row.kind === 'additional' ? ' <span class="rb badge b-ok">additional</span>' : ''}</td><td>${row.kind === 'duplicate' ? `<span class="badge b-warn">duplicate</span> <span class="pnote">also on ${esc(row.alsoOn.map(a => a.name + (a.hasTab ? '' : ' (no tab)')).join(', '))}</span>` : row.kind === 'unique' ? '<span class="badge b-ok">unique</span>' : ''}</td></tr>`).join('') : '';
+    const table = cur ? `<table class="t"><thead><tr><th>Key</th><th>Service</th><th>On this tab</th></tr></thead><tbody>${rows || '<tr><td colspan="3" class="val blank">No services on this tab</td></tr>'}</tbody></table>` : '<div class="val blank">No category tabs: nothing ticked yet.</div>';
+    const addRows = (s.additional.rows || []).map(a => {
+      const cat = key => (s.allCategories.find(c => c.key === key) || {}).name || key;
+      const tabsOpts = r.categories.map(c => `<option value="${esc(c.key)}">${esc(c.name)}</option>`).join('');
+      let right;
+      if (a.status === 'covered') right = `<span class="badge b-muted">already covered</span>`;
+      else if (a.status === 'confirmed') right = `<span class="badge b-ok">confirmed: ${esc(cat(a.confirmedCategoryKey))}</span> <button class="btn btn-ghost btn-xs" onclick="changing='${a.id}';render()">Change</button>`;
+      else if (a.status === 'rejected' || a.status === 'skipped') right = `<span class="badge b-muted">${esc(a.status)}</span> <button class="btn btn-ghost btn-xs" onclick="changing='${a.id}';render()">Change</button>`;
+      else if (a.status === 'extraction_failed') right = `<span class="badge b-bad">no proposal</span> <button class="btn btn-ghost btn-xs" onclick="changing='${a.id}';render()">Pick a category</button>`;
+      else right = `${a.proposedCategoryKey ? `<span class="pnote">Proposed: <strong>${esc(cat(a.proposedCategoryKey))}</strong> · ${esc(a.reason || '')}</span> <button class="btn btn-primary btn-xs" onclick="decideAdditional('${a.id}', 'confirmed', '${esc(a.proposedCategoryKey)}')">Confirm</button>` : `<span class="pnote">Unsure${a.reason ? ' · ' + esc(a.reason) : ''}</span>`} <button class="btn btn-ghost btn-xs" onclick="changing='${a.id}';render()">Change</button> <button class="btn btn-ghost btn-xs" onclick="decideAdditional('${a.id}', 'skipped')">Skip</button>`;
+      if (changing === a.id) right = `<select id="chg_${a.id}">${tabsOpts}</select> <button class="btn btn-primary btn-xs" onclick="decideAdditional('${a.id}', 'confirmed', document.getElementById('chg_${a.id}').value)">Confirm</button> <button class="btn btn-ghost btn-xs" onclick="changing=null;render()">Cancel</button>`;
+      return `<tr class="${a.source === 'manual' ? 'manual' : ''}"><td>${esc(a.service)}</td><td>${right}</td></tr>`;
+    }).join('');
+    const st = s.additional.state || {};
+    const addHead = `<div class="prices-head" style="margin-top:1rem"><h3>Additional services (typed on the form)</h3><div class="pt-actions">${s.additionalText ? `<button class="btn btn-ghost btn-xs" onclick="proposeAdditional()">${st.status === 'extraction_failed' ? 'Retry proposals' : 'Re-propose'}</button>` : ''}</div></div>`;
+    const addState = st.status === 'extraction_failed' ? `<span class="badge b-bad">Proposal failed</span> <span class="pnote">${esc(st.error || '')}</span>` : st.status === 'pending' && s.additionalText ? '<span class="badge b-muted">Proposing…</span>' : '';
+    const addTable = s.additionalText ? `<table class="t"><thead><tr><th>Service</th><th>Parent category</th></tr></thead><tbody>${addRows || '<tr><td colspan="2" class="val blank">Nothing parsed yet</td></tr>'}</tbody></table>` : '<div class="val blank">No additional services typed on the form.</div>';
+    return `<div class="prices" id="f_services_resolved"><div class="prices-head"><h3>Categories &amp; services</h3><div class="pt-actions">${primarySel}</div></div>
+      <div class="prices-flags">${flagHtml}</div>
+      <div class="pt-actions" style="margin-bottom:.5rem">${tabs}</div>${table}
+      ${r.crossRef.length ? `<div class="pnote" style="margin-top:.4rem">${r.crossRef.length} service${r.crossRef.length === 1 ? '' : 's'} on more than one tab: ${esc(r.crossRef.map(x => `${x.name} (${x.short})`).join('; '))}</div>` : ''}
+      ${addHead}<div class="prices-flags">${addState}</div>${addTable}</div>`;
+  }
+  async function setPrimary(key) {
+    setSaved('Saving…');
+    const res = await fetch(`/api/clients/${clientId}/services/primary`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ category_key: key || null }) });
+    if (!res.ok) { setSaved('Not saved', 'bad'); return; }
+    services = await res.json(); setSaved('Saved', 'ok'); setTimeout(() => setSaved(''), 1500); render();
+  }
+  async function decideAdditional(id, status, categoryKey) {
+    setSaved('Saving…');
+    const res = await fetch(`/api/clients/${clientId}/services/additional/${id}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ status, category_key: categoryKey || null }) });
+    const r = await res.json().catch(() => ({}));
+    if (!res.ok) { setSaved('Not saved: ' + (r.error || res.status), 'bad'); return; }
+    services = r; changing = null; setSaved('Saved', 'ok'); setTimeout(() => setSaved(''), 1500); render();
+  }
+  async function proposeAdditional() {
+    setSaved('Asking for proposals…');
+    const res = await fetch(`/api/clients/${clientId}/services/additional/propose`, { method: 'POST' });
+    const r = await res.json().catch(() => ({}));
+    if (r.view) services = r.view;
+    setSaved(r.error ? 'Proposal failed: ' + r.error : 'Proposals updated', r.error ? 'bad' : 'ok'); setTimeout(() => setSaved(''), 3000); render();
   }
 
   // ── Header actions ──

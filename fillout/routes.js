@@ -81,6 +81,11 @@ function mountApi(app, svc) {
     res.end(a.buffer);
   }));
   // Price rows (fillout/prices.js): re-extract or retry, edit, add, delete, not applicable
+  // Categories and services: the resolver's view, the primary override, additional services
+  app.get('/api/clients/:clientId/services', wrap(async (req, res) => res.json(await svc.servicesView(req.params.clientId, { categoryTabRule: req.query.rule || 'ticked_only' }))));
+  app.put('/api/clients/:clientId/services/primary', wrap(async (req, res) => res.json(await svc.setPrimaryCategory(req.params.clientId, (req.body || {}).category_key || null))));
+  app.post('/api/clients/:clientId/services/additional/propose', wrap(async (req, res) => { const r = await svc.proposeAdditional(req.params.clientId, { force: true }); res.json({ ...r, view: await svc.servicesView(req.params.clientId) }); }));
+  app.put('/api/clients/:clientId/services/additional/:rowId', wrap(async (req, res) => res.json(await svc.decideAdditional(req.params.clientId, req.params.rowId, req.body || {}))));
   app.post('/api/clients/:clientId/prices/extract', wrap(async (req, res) => { const r = await svc.extractPrices(req.params.clientId, { force: true }); res.json({ ...r, prices: await svc.priceView(req.params.clientId) }); }));
   app.put('/api/clients/:clientId/prices/not-applicable', wrap(async (req, res) => { await svc.setPricesNotApplicable(req.params.clientId, !!(req.body && req.body.value)); res.json(await svc.priceView(req.params.clientId)); }));
   app.post('/api/clients/:clientId/prices', wrap(async (req, res) => res.json(await svc.addPriceRow(req.params.clientId, req.body || {}))));

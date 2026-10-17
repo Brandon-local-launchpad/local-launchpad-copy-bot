@@ -1,0 +1,519 @@
+{
+  "_about": "Categories and services for one niche, from the \"All Categories & Services\" PDF (services in its order, with its duplicate notes) and the tick box form PDF (ticks = the services a category shows on the form, its \"home\" services). Adding a niche = adding a file like this one. Service ids are the normalised name (lower case, single spaces); no fuzzy matching.",
+  "niche": "Landscapers/Gardeners",
+  "nicheKey": "landscapers",
+  "primaryDefault": "gardener",
+  "additionalServicesField": "landscapers.other_services",
+  "additionalTickGroup": {
+    "field": "landscapers.cat.landscaper_additional_services",
+    "services": [
+      "Garden clearance",
+      "Planting",
+      "Garden edging",
+      "Bark chipping",
+      "Decorative bark installation",
+      "Decorative gravel installation",
+      "Garden lighting installation",
+      "Outdoor lighting",
+      "Sleeper installation",
+      "Raised flower beds",
+      "Garden office bases",
+      "Shed installation",
+      "Greenhouse installation",
+      "Garden maintenance for commercial properties",
+      "Commercial grounds maintenance"
+    ]
+  },
+  "categories": [
+    {
+      "key": "gardener",
+      "name": "Gardener",
+      "tickGroup": "landscapers.cat.gardener",
+      "ticks": [
+        "Lawn mowing and maintenance",
+        "Fencing installation",
+        "Garden work",
+        "Grass seeding",
+        "Hedge trimming",
+        "Landscape design",
+        "Lawn pest control",
+        "Mulching",
+        "Weed control"
+      ],
+      "services": [
+        "Lawn mowing and maintenance",
+        "Fencing installation",
+        "Garden work",
+        "Grass seeding",
+        "Hedge trimming",
+        "Landscape design",
+        "Lawn pest control",
+        "Mulching",
+        "Weed control"
+      ],
+      "duplicateNotes": {
+        "Grass seeding": [
+          "Landscape Gardener",
+          "Landscape Designer",
+          "Lawn care service"
+        ],
+        "Landscape design": [
+          "Landscape Gardener",
+          "Lawn care service"
+        ],
+        "Lawn pest control": [
+          "Lawn care service"
+        ],
+        "Mulching": [
+          "Lawn care service"
+        ],
+        "Weed control": [
+          "Lawn care service"
+        ]
+      }
+    },
+    {
+      "key": "landscape_gardener",
+      "name": "Landscape Gardener",
+      "tickGroup": "landscapers.cat.landscape_gardener",
+      "ticks": [
+        "Artificial turf installation",
+        "Concrete masonry",
+        "Desert landscaping",
+        "Driveway landscaping",
+        "Driveway or path paving",
+        "Garden decorating",
+        "Garden design",
+        "Gardening services",
+        "Grading and resloping",
+        "Green landscaping",
+        "Groundskeeping",
+        "Hardscaping",
+        "Hydroseeding",
+        "Landscape installations",
+        "Landscape management",
+        "Landscaping design",
+        "Landscaping maintenance",
+        "Lawn care",
+        "Lawn landscaping",
+        "Outdoor step construction",
+        "Outdoor water feature design",
+        "Pool landscaping",
+        "Retaining walls",
+        "Rock landscaping",
+        "Sod installation",
+        "Stone landscaping",
+        "Stonemasonry",
+        "Tree landscaping",
+        "Path landscaping",
+        "Garden drainage",
+        "Garden levelling",
+        "Garden landscaping"
+      ],
+      "services": [
+        "Artificial turf installation",
+        "Concrete masonry",
+        "Desert landscaping",
+        "Driveway landscaping",
+        "Driveway or path paving",
+        "Garden decorating",
+        "Garden design",
+        "Gardening services",
+        "Grading and resloping",
+        "Green landscaping",
+        "Groundskeeping",
+        "Hardscaping",
+        "Hydroseeding",
+        "Landscape design",
+        "Landscape installations",
+        "Landscape management",
+        "Landscaping design",
+        "Landscaping maintenance",
+        "Lawn care",
+        "Lawn landscaping",
+        "Outdoor step construction",
+        "Outdoor water feature design",
+        "Pool landscaping",
+        "Retaining walls",
+        "Rock landscaping",
+        "Grass seeding",
+        "Sod installation",
+        "Stone landscaping",
+        "Stonemasonry",
+        "Tree landscaping",
+        "Path landscaping",
+        "Garden drainage",
+        "Garden levelling",
+        "Garden landscaping"
+      ],
+      "duplicateNotes": {
+        "Artificial turf installation": [
+          "Landscape Designer"
+        ],
+        "Concrete masonry": [
+          "Landscape Designer"
+        ],
+        "Desert landscaping": [
+          "Landscape Designer"
+        ],
+        "Driveway landscaping": [
+          "Landscape Designer"
+        ],
+        "Driveway or path paving": [
+          "Landscape Designer"
+        ],
+        "Garden decorating": [
+          "Landscape Designer"
+        ],
+        "Garden design": [
+          "Landscape Designer"
+        ],
+        "Gardening services": [
+          "Landscape Designer"
+        ],
+        "Grading and resloping": [
+          "Landscape Designer"
+        ],
+        "Hardscaping": [
+          "Paving contractor"
+        ],
+        "Landscape design": [
+          "Gardener",
+          "Lawn care service"
+        ],
+        "Landscape installations": [
+          "Landscape Designer"
+        ],
+        "Lawn care": [
+          "Landscape Designer"
+        ],
+        "Outdoor step construction": [
+          "Landscape Designer"
+        ],
+        "Outdoor water feature design": [
+          "Landscape Designer"
+        ],
+        "Grass seeding": [
+          "Gardener",
+          "Landscape Designer",
+          "Lawn care service"
+        ],
+        "Sod installation": [
+          "Landscape Designer",
+          "Lawn care service"
+        ],
+        "Stonemasonry": [
+          "Landscape Designer"
+        ],
+        "Path landscaping": [
+          "Landscape Designer"
+        ],
+        "Garden drainage": [
+          "Landscape Designer"
+        ],
+        "Garden landscaping": [
+          "Landscape Designer"
+        ]
+      }
+    },
+    {
+      "key": "landscape_designer",
+      "name": "Landscape Designer",
+      "tickGroup": "landscapers.cat.landscape_designer",
+      "ticks": [
+        "Custom landscape design",
+        "Drainage solutions",
+        "Landscape architecture services",
+        "Landscape design construction",
+        "Patio design",
+        "Pond maintenance",
+        "Retaining wall design",
+        "Turf management",
+        "Garden designs"
+      ],
+      "services": [
+        "Artificial turf installation",
+        "Garden landscaping",
+        "Concrete masonry",
+        "Custom landscape design",
+        "Desert landscaping",
+        "Drainage solutions",
+        "Driveway landscaping",
+        "Driveway or path paving",
+        "Garden decorating",
+        "Garden design",
+        "Garden landscaping",
+        "Gardening services",
+        "Grading and resloping",
+        "Landscape architecture services",
+        "Landscape design construction",
+        "Landscape installations",
+        "Lawn care",
+        "Outdoor step construction",
+        "Outdoor water feature design",
+        "Patio design",
+        "Pond maintenance",
+        "Retaining wall design",
+        "Grass seeding",
+        "Sod installation",
+        "Stonemasonry",
+        "Turf management",
+        "Path landscaping",
+        "Garden designs",
+        "Garden drainage"
+      ],
+      "duplicateNotes": {
+        "Artificial turf installation": [
+          "Landscape Gardener"
+        ],
+        "Garden landscaping": [
+          "Landscape Gardener"
+        ],
+        "Concrete masonry": [
+          "Landscape Gardener"
+        ],
+        "Desert landscaping": [
+          "Landscape Gardener"
+        ],
+        "Driveway landscaping": [
+          "Landscape Gardener"
+        ],
+        "Driveway or path paving": [
+          "Landscape Gardener"
+        ],
+        "Garden decorating": [
+          "Landscape Gardener"
+        ],
+        "Garden design": [
+          "Landscape Gardener"
+        ],
+        "Gardening services": [
+          "Landscape Gardener"
+        ],
+        "Grading and resloping": [
+          "Landscape Gardener"
+        ],
+        "Landscape installations": [
+          "Landscape Gardener"
+        ],
+        "Lawn care": [
+          "Landscape Gardener"
+        ],
+        "Outdoor step construction": [
+          "Landscape Gardener"
+        ],
+        "Outdoor water feature design": [
+          "Landscape Gardener"
+        ],
+        "Grass seeding": [
+          "Gardener",
+          "Landscape Gardener",
+          "Lawn care service"
+        ],
+        "Sod installation": [
+          "Landscape Gardener",
+          "Lawn care service"
+        ],
+        "Stonemasonry": [
+          "Landscape Gardener"
+        ],
+        "Path landscaping": [
+          "Landscape Gardener"
+        ],
+        "Garden drainage": [
+          "Landscape Gardener"
+        ]
+      }
+    },
+    {
+      "key": "lawn_care_service",
+      "name": "Lawn Care Service",
+      "tickGroup": "landscapers.cat.lawn_care_service",
+      "ticks": [
+        "Irrigation system repair and maintenance"
+      ],
+      "services": [
+        "Fencing installation",
+        "Irrigation system repair and maintenance",
+        "Landscape design",
+        "Lawn mowing and maintenance",
+        "Lawn pest control",
+        "Mulching",
+        "Grass seeding",
+        "Sod installation",
+        "Weed control",
+        "Garden work"
+      ],
+      "duplicateNotes": {
+        "Fencing installation": [
+          "Gardener"
+        ],
+        "Landscape design": [
+          "Gardener",
+          "Landscape Gardener"
+        ],
+        "Lawn mowing and maintenance": [
+          "Gardener"
+        ],
+        "Lawn pest control": [
+          "Gardener"
+        ],
+        "Mulching": [
+          "Gardener"
+        ],
+        "Grass seeding": [
+          "Gardener",
+          "Landscape Gardener",
+          "Landscape Designer"
+        ],
+        "Sod installation": [
+          "Landscape Gardener",
+          "Landscape Designer"
+        ],
+        "Weed control": [
+          "Gardener"
+        ],
+        "Garden work": [
+          "Gardener"
+        ]
+      }
+    },
+    {
+      "key": "tree_service",
+      "name": "Tree Service",
+      "tickGroup": "landscapers.cat.tree_service",
+      "ticks": [
+        "Cabling and bracing",
+        "Tree stump removal",
+        "Tree planting",
+        "Tree removal",
+        "Tree stump grinding",
+        "Tree transplanting",
+        "Tree trimming and pruning"
+      ],
+      "services": [
+        "Cabling and bracing",
+        "Tree stump removal",
+        "Tree planting",
+        "Tree removal",
+        "Tree stump grinding",
+        "Tree transplanting",
+        "Tree trimming and pruning"
+      ],
+      "duplicateNotes": {}
+    },
+    {
+      "key": "paving_contractor",
+      "name": "Paving Contractor",
+      "tickGroup": "landscapers.cat.paving_contractor",
+      "ticks": [
+        "Asphalt milling",
+        "Asphalt paving & repair",
+        "Asphalt recycling",
+        "Asphalt resurfacing",
+        "Brick paver installation",
+        "Bumper block and post installation",
+        "Concrete work",
+        "General construction",
+        "Pavement crack filling and sealing",
+        "Paving-related drainage",
+        "Driveway installation",
+        "Driveway repairs",
+        "Driveway replacement",
+        "Driveway sealing",
+        "Excavation & grading",
+        "Hauling",
+        "Paving line striping",
+        "Car park repair and maintenance",
+        "Car park striping",
+        "Patio paving",
+        "Paver installation",
+        "Paver sealing",
+        "Road materials recycling",
+        "Road construction",
+        "Sealcoating",
+        "Paving job site preparation",
+        "Street maintenance"
+      ],
+      "services": [
+        "Asphalt milling",
+        "Asphalt paving & repair",
+        "Asphalt recycling",
+        "Asphalt resurfacing",
+        "Brick paver installation",
+        "Bumper block and post installation",
+        "Concrete work",
+        "General construction",
+        "Pavement crack filling and sealing",
+        "Paving-related drainage",
+        "Driveway installation",
+        "Driveway repairs",
+        "Driveway replacement",
+        "Driveway sealing",
+        "Excavation & grading",
+        "Hardscaping",
+        "Hauling",
+        "Paving line striping",
+        "Car park repair and maintenance",
+        "Car park striping",
+        "Patio paving",
+        "Paver installation",
+        "Paver sealing",
+        "Road materials recycling",
+        "Road construction",
+        "Sealcoating",
+        "Paving job site preparation",
+        "Street maintenance"
+      ],
+      "duplicateNotes": {
+        "Hardscaping": [
+          "Landscape Gardener"
+        ]
+      }
+    },
+    {
+      "key": "deck_builder",
+      "name": "Deck Builder",
+      "tickGroup": "landscapers.cat.deck_builder",
+      "ticks": [
+        "Composite decks",
+        "Deck cleaning",
+        "Deck design",
+        "Deck installation",
+        "Deck painting",
+        "Deck railing repair",
+        "Deck refinishing",
+        "Deck remodelling",
+        "Deck repair",
+        "Deck replacement",
+        "Fence building",
+        "Patio decks",
+        "Patio enclosure construction",
+        "Pergola construction",
+        "Porch construction",
+        "Wood staining",
+        "Wood deck construction"
+      ],
+      "services": [
+        "Composite decks",
+        "Deck cleaning",
+        "Deck design",
+        "Deck installation",
+        "Deck painting",
+        "Deck railing repair",
+        "Deck refinishing",
+        "Deck remodelling",
+        "Deck repair",
+        "Deck replacement",
+        "Fence building",
+        "Patio decks",
+        "Patio enclosure construction",
+        "Pergola construction",
+        "Porch construction",
+        "Wood staining",
+        "Wood deck construction"
+      ],
+      "duplicateNotes": {}
+    }
+  ]
+}
