@@ -116,7 +116,8 @@ const submissionId = payload => (payload && payload.submission && payload.submis
 function detectNiche(payload, map) {
   const q = questionsById(payload).get(map.niche_question_id);
   const v = q ? q.value : null;
-  return isBlank(v) ? null : String(v).trim();
+  // Exactly as Fillout sent it: the map's niche labels are matched by string equality
+  return isBlank(v) ? null : String(v);
 }
 
 // Universal fields plus the chosen niche's block. An unknown niche gets the universal fields only.
