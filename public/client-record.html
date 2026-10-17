@@ -120,14 +120,16 @@
     document.getElementById('complete').style.display = '';
     document.getElementById('pct').textContent = k.pct + '%';
     document.getElementById('pctBar').style.width = k.pct + '%';
-    document.getElementById('pctText').textContent = `${k.filled} of ${k.total} fields filled for ${rec.niche || 'this niche'}. Blank fields can be typed in here; a typed value is kept when the form is submitted again.`;
+    document.getElementById('pctText').textContent = `${k.filled} of ${k.expected} expected answers for ${rec.niche || 'this niche'}`
+      + (k.optionalTotal ? `, plus ${k.optionalFilled} of ${k.optionalTotal} optional` : '')
+      + `. A voice and typed pair counts once; the accreditations count once. Blank fields can be typed in here; a typed value is kept when the form is submitted again.`;
     render();
   }
 
   function render() {
     document.getElementById('sections').innerHTML = rec.sections.map(s => {
       const filled = s.fields.filter(f => f.status === 'filled').length;
-      return `<div class="section"><h2>${esc(s.name)}<span>${filled} of ${s.fields.length}</span></h2>${s.fields.map(renderField).join('')}</div>`;
+      return `<div class="section"><h2>${esc(s.name)}<span>${filled} of ${s.fields.length} fields</span></h2>${s.fields.map(renderField).join('')}</div>`;
     }).join('');
   }
 
@@ -153,7 +155,7 @@
         else if (a && a.downloadStatus === 'failed') body += `<div class="audio-meta bad">Download failed (${esc(a.downloadError || 'unknown')}). Fillout link kept: <a href="${esc(a.filloutUrl)}" target="_blank" rel="noopener">open</a>. Re-run from the inbox to retry.</div>`;
         else if (a && a.filloutUrl) body += `<div class="audio-meta">Not yet copied. Fillout link: <a href="${esc(a.filloutUrl)}" target="_blank" rel="noopener">open</a></div>`;
       }
-      return `<div class="field"><div class="label">${esc(f.label)}<small>voice answer</small></div><div>${body}</div>${src}</div>`;
+      return `<div class="field"><div class="label">${esc(f.label)}<small>voice answer${f.optional ? ', optional' : ''}</small></div><div>${body}</div>${src}</div>`;
     }
     if (editing === f.key) {
       const multi = f.type === 'LongAnswer' || Array.isArray(f.value) || f.type === 'Checkboxes' || f.type === 'MultiSelect';
@@ -164,7 +166,7 @@
         <div class="editbar"><button class="btn btn-primary" onclick="save('${f.key}', ${multi && hint ? 'true' : 'false'})">Save</button><button class="btn btn-ghost" onclick="editing=null;render()">Cancel</button><span class="hint">${hint}</span></div>
       </div>${src}</div>`;
     }
-    return `<div class="field"><div class="label">${esc(f.label)}</div><div class="edit" title="Click to edit" onclick="editing='${f.key}';render();setTimeout(()=>{const e=document.getElementById('ed');if(e)e.focus()},0)">${showValue(f)}</div>${src}</div>`;
+    return `<div class="field"><div class="label">${esc(f.label)}${f.optional ? '<small>optional</small>' : ''}</div><div class="edit" title="Click to edit" onclick="editing='${f.key}';render();setTimeout(()=>{const e=document.getElementById('ed');if(e)e.focus()},0)">${showValue(f)}</div>${src}</div>`;
   }
 
   async function save(key, asList) {

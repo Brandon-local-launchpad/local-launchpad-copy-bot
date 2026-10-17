@@ -101,6 +101,7 @@ function buildRecord(payload, map) {
     const blank = isBlank(value);
     return {
       key: f.key, id: f.id, label: f.label || stripSuffix(q && q.name), section: f.section, type: f.type, niche: f.niche,
+      group: f.group || null, optional: !!f.optional,
       value: blank ? null : value, status: blank ? 'blank' : 'filled', present: !!q,
     };
   });
@@ -119,10 +120,29 @@ function buildRecord(payload, map) {
 
 const isAudioField = f => f.type === 'AudioRecording';
 
+// Completeness counts units, not fields: fields that share a `group` (a voice
+// and typed pair, the five accreditation triples) are one unit, filled if any of
+// them is. Units whose fields are all `optional` are left out of the expected
+// count and reported as optional filled. Headline = filled / expected.
 function completeness(fields) {
-  const total = fields.length;
-  const filled = fields.filter(f => f.status === 'filled').length;
-  return { filled, total, pct: total ? Math.round((filled / total) * 100) : 0 };
+  const units = new Map();
+  fields.forEach((f, i) => {
+    const id = f.group || `field:${f.key || i}`;
+    const u = units.get(id) || { optional: true, filled: false, keys: [] };
+    if (!f.optional) u.optional = false;
+    if (f.status === 'filled') u.filled = true;
+    u.keys.push(f.key);
+    units.set(id, u);
+  });
+  const all = [...units.values()];
+  const expected = all.filter(u => !u.optional);
+  const optional = all.filter(u => u.optional);
+  const filled = expected.filter(u => u.filled).length;
+  return {
+    filled, expected: expected.length, pct: expected.length ? Math.round((filled / expected.length) * 100) : 0,
+    optionalFilled: optional.filter(u => u.filled).length, optionalTotal: optional.length,
+    fields: fields.length,
+  };
 }
 
 module.exports = {
