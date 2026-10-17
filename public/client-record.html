@@ -10,15 +10,16 @@
   :root {
     --bg: #f4f5f9; --surface: #ffffff; --surface2: #eef0f6; --surface3: #e3e6ef;
     --text: #161a2b; --muted: #5b6478; --border: #d8dce8; --accent: #5b52e6; --accent2: #4a42cc; --on-accent: #fff;
-    --success: #15803d; --success-bg: rgba(21,128,61,.12); --warning: #b45309; --warning-bg: rgba(180,83,9,.12);
+    --success: #166534; --success-bg: rgba(22,101,52,.12); --warning: #9a3f06; --warning-bg: rgba(154,63,6,.12);
     --danger: #b91c1c; --danger-bg: rgba(185,28,28,.12); --focus: #5b52e6;
     --r: 10px; --font: 'Inter', system-ui, sans-serif; --shadow: 0 1px 2px rgba(20,24,40,.06);
   }
   :root[data-theme="dark"] {
     --bg: #0f1117; --surface: #1a1d27; --surface2: #22263a; --surface3: #2b3047;
-    --text: #e2e8f0; --muted: #94a3b8; --border: #2d3148; --accent: #6c63ff; --accent2: #5a52e0; --on-accent: #fff;
+    /* Dark accent is lighter than the brand purple so links and buttons clear 4.5:1 on the dark surfaces */
+    --text: #e2e8f0; --muted: #94a3b8; --border: #2d3148; --accent: #a5a0ff; --accent2: #bcb8ff; --on-accent: #0f1117;
     --success: #4ade80; --success-bg: rgba(74,222,128,.15); --warning: #fbbf24; --warning-bg: rgba(251,191,36,.15);
-    --danger: #f87171; --danger-bg: rgba(248,113,113,.15); --focus: #8b84ff; --shadow: none;
+    --danger: #f87171; --danger-bg: rgba(248,113,113,.15); --focus: #a5a0ff; --shadow: none;
   }
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
   html { color-scheme: light; } html[data-theme="dark"] { color-scheme: dark; }
@@ -56,7 +57,13 @@
   .mi:hover { background: var(--surface2); } .mi.active { background: var(--surface); box-shadow: var(--shadow); border: 1px solid var(--border); font-weight: 600; }
   .mi .lbl { flex: 1; } .mi .cnt { color: var(--muted); font-size: 11px; white-space: nowrap; }
   .dot { width: 9px; height: 9px; border-radius: 50%; flex: none; background: var(--surface3); border: 1px solid var(--border); }
-  .dot.missing { background: var(--danger); border-color: var(--danger); } .dot.complete { background: var(--success); border-color: var(--success); } .dot.none { background: transparent; }
+  .dot.missing { background: var(--danger); border-color: var(--danger); } .dot.chase { background: var(--warning); border-color: var(--warning); } .dot.complete { background: var(--success); border-color: var(--success); } .dot.none { background: transparent; }
+  .score .ring2 { margin-left: .5rem; color: var(--muted); font-weight: 500; font-size: 12px; }
+  .att-group { font-size: 12px; font-weight: 700; letter-spacing: .05em; text-transform: uppercase; color: var(--muted); margin: .9rem 0 .4rem; }
+  .ai.chase .sev { background: var(--warning); }
+  .compact { display: flex; align-items: center; justify-content: space-between; gap: .75rem; flex-wrap: wrap; }
+  .compact .val { margin: 0; }
+  .tick { display: inline-flex; align-items: center; gap: 8px; cursor: pointer; margin-top: .4rem; } .tick input { width: 16px; height: 16px; accent-color: var(--accent); }
   details.orig { margin-top: 1rem; } details.orig summary { cursor: pointer; color: var(--muted); font-size: 12px; padding: 6px 10px; list-style: none; } details.orig summary::before { content: '▸ '; } details.orig[open] summary::before { content: '▾ '; }
   @media (max-width: 900px) {
     .wrap { grid-template-columns: 1fr; padding: 1rem; gap: 1rem; }
@@ -212,9 +219,12 @@
       if (last) document.getElementById('reprocessBtn').style.display = '';
     }
     const k = rec.completeness;
-    document.getElementById('score').style.display = ''; document.getElementById('ring').style.setProperty('--p', k.pct); document.getElementById('scoreText').textContent = `${k.pct}% · ${k.filled} of ${k.expected}`;
+    document.getElementById('score').style.display = ''; document.getElementById('ring').style.setProperty('--p', k.pct);
+    document.getElementById('scoreText').innerHTML = `Ready to build ${k.needed.filled} of ${k.needed.total}<span class="ring2">Worth chasing ${k.chase.filled} of ${k.chase.total}</span>`;
     render();
   }
+  // Notes written by the model are read by a person: field names become plain words (the API does this too)
+  const human = s => String(s == null ? '' : s).replace(/\bfrom_gbp\b/gi, 'lowest price').replace(/\bup_to_gbp\b/gi, 'highest price').replace(/\btypical_gbp\b/gi, 'single price');
 
   // ── Menu ──
   function renderMenu() {
@@ -223,16 +233,17 @@
     const groups = [];
     for (const p of rec.panels) { let g = groups.find(x => x.name === p.group); if (!g) { g = { name: p.group, items: [] }; groups.push(g); } g.items.push(p); }
     const item = (key, label, cnt, dot) => `<div class="mi${cur === key ? ' active' : ''}" onclick="go('${key}')"><span class="dot ${dot}"></span><span class="lbl">${esc(label)}</span><span class="cnt">${cnt}</span></div>`;
-    const ovDot = att.some(a => a.severity === 'bad') ? 'missing' : att.length ? 'none' : 'complete';
+    const ovDot = att.some(a => a.group === 'blocks') ? 'missing' : att.length ? 'chase' : 'complete';
+    const counts = p => p.needed.total ? `${p.needed.filled} of ${p.needed.total}` : p.chase.total ? `${p.chase.filled} of ${p.chase.total} chase` : (p.optional.total ? `${p.optional.filled} of ${p.optional.total} opt` : '');
     let html = item('overview', 'Overview', att.length ? `${att.length} to check` : 'ready', ovDot);
     for (const g of groups) {
       html += `<div class="mg">${esc(g.name)}</div>`;
-      for (const p of g.items) html += item(p.key, p.label, p.expected ? `${p.filled} of ${p.expected}` : (p.optionalTotal ? `${p.optionalFilled} of ${p.optionalTotal} opt` : ''), p.status);
+      for (const p of g.items) html += item(p.key, p.label, counts(p), p.status);
     }
     html += `<details class="orig"${cur === 'original' ? ' open' : ''}><summary>Original answers</summary>${item('original', 'By form page', `${allFields().length} fields`, 'none')}</details>`;
     document.getElementById('menu').innerHTML = html;
     const sel = document.getElementById('menuSelect');
-    sel.innerHTML = `<option value="overview">Overview</option>` + groups.map(g => `<optgroup label="${esc(g.name)}">${g.items.map(p => `<option value="${p.key}">${esc(p.label)} (${p.expected ? `${p.filled} of ${p.expected}` : 'optional'})</option>`).join('')}</optgroup>`).join('') + `<option value="original">Original answers</option>`;
+    sel.innerHTML = `<option value="overview">Overview</option>` + groups.map(g => `<optgroup label="${esc(g.name)}">${g.items.map(p => `<option value="${p.key}">${esc(p.label)} (${counts(p) || 'optional'})</option>`).join('')}</optgroup>`).join('') + `<option value="original">Original answers</option>`;
     sel.value = cur;
   }
 
@@ -253,20 +264,23 @@
     const att = rec.attention || [];
     const dup = rec.duplicateOf ? `<div class="stat"><div class="k">Possible duplicate</div><div class="v small">of ${esc(rec.duplicateOf.name || 'another client')}</div></div>` : '';
     const stats = `<div class="stats">
-      <div class="stat"><div class="k">Score</div><div class="v">${k.pct}%</div></div>
-      <div class="stat"><div class="k">Filled / expected</div><div class="v">${k.filled} of ${k.expected}</div></div>
-      <div class="stat"><div class="k">Optional filled</div><div class="v">${k.optionalFilled} of ${k.optionalTotal}</div></div>
+      <div class="stat"><div class="k">Ready to build</div><div class="v">${k.needed.filled} of ${k.needed.total}</div><div class="pnote">needed answers · ${k.pct}%</div></div>
+      <div class="stat"><div class="k">Worth chasing</div><div class="v">${k.chase.filled} of ${k.chase.total}</div></div>
+      <div class="stat"><div class="k">Optional filled</div><div class="v">${k.optional.filled} of ${k.optional.total}</div></div>
       <div class="stat"><div class="k">Submitted</div><div class="v small">${last ? esc(fmt(last.receivedAt)) : '—'}</div></div>
       <div class="stat"><div class="k">Submission id</div><div class="v small">${last ? esc(last.submissionId) : '—'}</div></div>
       ${dup}</div>`;
-    let list;
-    if (!att.length) list = `<div class="ready">✓ Ready to build. Nothing needs attention; mark the record reviewed when you have read it.</div>`;
-    else list = att.map(a => {
+    const item = a => {
       const to = a.field ? `${a.panel}:${a.field}` : a.panel;
       const fields = a.fields ? `<div class="sub">${a.fields.map(f => `<a href="#${a.panel}:${esc(f.key)}">${esc(f.label)}</a>`).join(' · ')}</div>` : '';
       const action = a.action === 'retry' ? ` <button class="btn btn-ghost btn-xs" onclick="extractPrices()">Retry</button>` : a.code === 'submission_error' ? ` <a class="btn btn-ghost btn-xs" href="/submissions.html">Open inbox</a>` : '';
-      return `<div class="ai ${a.severity}"><span class="sev"></span><div class="m"><a href="#${esc(to)}">${esc(a.msg)}</a>${action}${fields}</div></div>`;
-    }).join('');
+      return `<div class="ai ${a.group === 'blocks' ? 'bad' : 'chase'}"><span class="sev"></span><div class="m"><a href="#${esc(to)}">${esc(human(a.msg))}</a>${action}${fields}</div></div>`;
+    };
+    const blocks = att.filter(a => a.group === 'blocks'), chase = att.filter(a => a.group !== 'blocks');
+    let list;
+    if (!att.length) list = `<div class="ready">✓ Ready to build. Nothing needs attention; mark the record reviewed when you have read it.</div>`;
+    else list = (blocks.length ? `<div class="att-group">Blocks the build</div>${blocks.map(item).join('')}` : `<div class="ready">✓ Ready to build: every needed answer is in.</div>`)
+      + (chase.length ? `<div class="att-group">Worth chasing</div>${chase.map(item).join('')}` : '');
     return `<div class="panel"><div class="ph"><h2>Overview</h2><p>Where this record stands and what still needs a person.</p></div>${stats}<div class="att"><h3>Needs attention</h3>${list}</div></div>`;
   }
 
@@ -274,7 +288,7 @@
   function renderPanel(p) {
     const fields = allFields().filter(f => f.panel === p.key);
     const head = `<div class="ph"><h2>${esc(p.label)} <span class="tag ${p.tag.toLowerCase()}">${p.tag}</span></h2><p>${esc(p.description)}</p>
-      <div class="pc">${p.expected ? `${p.filled} of ${p.expected} expected filled` : 'No expected answers here'}${p.optionalTotal ? ` · ${p.optionalFilled} of ${p.optionalTotal} optional` : ''}${p.notApplicable ? ` · ${p.notApplicable} not applicable` : ''}</div></div>`;
+      <div class="pc">${p.needed.total ? `Needed ${p.needed.filled} of ${p.needed.total}` : 'Nothing needed here'}${p.chase.total ? ` · worth chasing ${p.chase.filled} of ${p.chase.total}` : ''}${p.optional.total ? ` · optional ${p.optional.filled} of ${p.optional.total}` : ''}${p.notApplicable ? ` · ${p.notApplicable} not applicable` : ''}</div></div>`;
     let body = '';
     if (p.key === 'prices') body += renderPrices(rec.prices);
     body += `<div class="fields">${renderFieldList(p.key, fields)}</div>`;
@@ -325,12 +339,14 @@
   }
   const isList = f => f.type === 'Checkboxes' || f.type === 'MultiSelect' || Array.isArray(f.value);
 
+  const tierTag = f => f.tier === 'needed' ? 'needed' : f.tier === 'optional' ? 'optional' : 'worth chasing';
   function renderField(f, opts = {}) {
     const label = opts.label || f.label;
-    const flags = [f.optional ? 'optional' : f.applicable === false ? 'not applicable' : '', srcTag(f)].filter(Boolean).join(' · ');
+    const flags = [f.applicable === false ? 'not applicable' : tierTag(f), srcTag(f)].filter(Boolean).join(' · ');
     const help = f.help ? `<div class="help">${esc(f.help)}</div>` : '';
     let body;
-    if (editing === f.key) body = renderEditor(f);
+    if (f.type === 'Checkbox') body = `<label class="tick"><input type="checkbox" ${f.value === true ? 'checked' : ''} onchange="saveField('${f.key}', this.checked)"> <span>${f.value === true ? 'Received' : 'Not yet received'}</span></label>`;
+    else if (editing === f.key) body = renderEditor(f);
     else if (f.group === 'services' && f.status === 'filled' && Array.isArray(f.value)) body = `<div class="chips" onclick="startEdit('${f.key}')" title="Click to edit">${f.value.map(x => `<span class="chip">${esc(x)}</span>`).join('')}</div>`;
     else if (f.type === 'Dropdown' && f.key === 'niche') body = `<div class="chips"><span class="chip">${esc(f.value || 'Not given')}</span></div>`;
     else body = `<div onclick="startEdit('${f.key}')" title="Click to edit">${showValue(f)}</div>`;
@@ -375,6 +391,11 @@
     const hasTyped = typed && typed.status === 'filled';
     const open = openTranscript.has(voice.key) || !hasTyped;
     const transcript = (a && a.transcription) || (voice.value && voice.value.transcription) || '';
+    // Nothing recorded and nothing typed: one compact row instead of an empty card
+    if (voice.status !== 'filled' && !a && (!typed || typed.status !== 'filled') && !(typed && editing === typed.key)) {
+      const tag = [voice.optional ? 'optional' : tierTag(voice)].join('');
+      return `<div class="f compact" id="f_${esc(voice.key)}"><div><div class="lab"><span>${esc(label)}</span></div><div class="val blank">Not provided <small>· voice or typed · ${tag}</small></div></div>${typed ? `<button class="btn btn-ghost btn-xs" onclick="startEdit('${typed.key}')">Type an answer</button>` : ''}</div>`;
+    }
     let inner = '';
     if (voice.status !== 'filled' && !a) inner = `<div class="vm">No recording</div>`;
     else {
@@ -432,7 +453,7 @@
   function priceBadges(r) {
     const b = [];
     if (r.quote_only) b.push('<span class="rb badge b-muted">quote only</span>');
-    if (r.inferred) b.push(`<span class="rb badge b-warn" title="${esc(r.inferred_note || '')}">inferred</span>`);
+    if (r.inferred) b.push(`<span class="rb badge b-warn" title="${esc(human(r.inferred_note || ''))}">inferred</span>`);
     if (r.unverified) b.push('<span class="rb badge b-bad" title="This number could not be traced to the transcript">unverified</span>');
     if (r.matched_to) b.push(`<span class="rb badge b-ok">matches ${esc(/most_wanted_(job_)?(\d)/.test(r.matched_to.key) ? 'your most-wanted job ' + r.matched_to.key.match(/(\d)$/)[1] : 'a ticked service')}: ${esc(r.matched_to.value)}</span>`);
     if (r.source === 'manual') b.push('<span class="rb badge b-warn">edited by hand</span>');
@@ -441,8 +462,8 @@
   function renderPriceRow(r) {
     const upto = r.up_to_gbp != null ? gbp(r.up_to_gbp) : r.typical_gbp != null ? `${gbp(r.typical_gbp)} <span class="pnote">typical</span>` : '';
     return `<tr class="${r.source === 'manual' ? 'manual' : ''}">
-      <td>${esc(r.service)}${priceBadges(r)}${r.inferred && r.inferred_note ? `<div class="pnote">${esc(r.inferred_note)}</div>` : ''}</td>
-      <td class="num">${gbp(r.from_gbp)}</td><td class="num">${upto}</td><td>${esc(r.unit || '')}</td><td>${esc(r.what_moves_price || '')}</td>
+      <td>${esc(r.service)}${priceBadges(r)}${r.inferred && r.inferred_note ? `<div class="pnote">${esc(human(r.inferred_note))}</div>` : ''}</td>
+      <td class="num">${gbp(r.from_gbp)}</td><td class="num">${upto}</td><td>${esc(r.unit || '')}</td><td>${esc(human(r.what_moves_price || ''))}</td>
       <td class="pt-actions"><button class="btn btn-ghost btn-xs" onclick="priceEdit='${r.id}';render()">Edit</button><button class="btn btn-ghost btn-xs" onclick="deletePriceRow('${r.id}')">Delete</button></td></tr>`;
   }
   function renderPriceEditor(r) {

@@ -28,3 +28,4 @@ Fields:
 - One row per service, in the order spoken. Keep the speaker's own service wording. Do not merge two services into one row or split one service into two.
 - Two prices for the same service (for example "£50 per big letter and £20 per small letter"): keep ONE row, from_gbp the lower figure and up_to_gbp the higher, the unit in unit ("per letter"), and the split in what_moves_price ("big letter £50, small letter £20"). Mark inferred true. Both figures must be ones the speaker said.
 - Say nothing about services the speaker did not mention.
+- inferred_note and what_moves_price are read by a non-technical person on a web page. Write them in plain words ("read ten as ten thousand, in line with the other figures"; "big letter £50, small letter £20"). Never put field names in them: not from_gbp, up_to_gbp, typical_gbp, quote_only or any other key.

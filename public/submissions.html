@@ -73,7 +73,8 @@
         if (s.niche && !s.nicheKnown) flags.push(`<span class="badge b-warn" title="Only the universal fields were read">No field map for this niche</span>`);
         if (s.archived) flags.push(`<span class="badge b-received">Archived</span>`);
         const c = s.completeness;
-        const pct = c ? `<div class="pct"><div class="bar"><div style="width:${c.pct}%"></div></div><span>${c.pct}%</span></div><div class="meta">${c.filled} of ${c.expected} expected${c.optionalTotal ? ` · ${c.optionalFilled} of ${c.optionalTotal} optional` : ''}</div>` : '<span class="meta">—</span>';
+        // Ready to build = needed answers filled / needed; worth chasing shown underneath
+        const pct = c ? `<div class="pct"><div class="bar"><div style="width:${c.pct}%"></div></div><span>${c.pct}%</span></div><div class="meta">Ready ${c.needed.filled} of ${c.needed.total}${c.chase && c.chase.total ? ` · chase ${c.chase.filled} of ${c.chase.total}` : ''}</div>` : '<span class="meta">—</span>';
         const open = s.clientId ? `onclick="location.href='/client-record.html?id=${s.clientId}'"` : '';
         // Reprocess rebuilds the record from the stored payload (after a field map change, a failed run or a failed audio download)
         const canRerun = s.status !== 'rejected';

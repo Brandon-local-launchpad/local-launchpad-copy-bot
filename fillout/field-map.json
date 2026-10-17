@@ -1,5 +1,5 @@
 {
-  "_about": "Which Fillout questions become client fields. Keyed by question id (names repeat and carry suffixes). niche is \"all\" or a label from niches. Adding a niche: add its label under niches and its questions under fields. Completeness: fields sharing a group count as one unit (filled if any is filled); optional fields and groups are left out of the expected count and shown as optional filled. An entry may give position {after, before} instead of id (the question directly between two known ids). expectedWhen {field, in} makes a field count only when another field holds one of those values; otherwise it is Not applicable. panel groups fields for the client record page (fillout/field-map.json \"panels\"); section stays the original form page.",
+  "_about": "Which Fillout questions become client fields. Keyed by question id (names repeat and carry suffixes). niche is \"all\" or a label from niches. Adding a niche: add its label under niches and its questions under fields. Completeness: fields sharing a group count as one unit (filled if any is filled); optional fields and groups are left out of the expected count and shown as optional filled. An entry may give position {after, before} instead of id (the question directly between two known ids). expectedWhen {field, in} makes a field count only when another field holds one of those values; otherwise it is Not applicable. panel groups fields for the client record page (fillout/field-map.json \"panels\"); section stays the original form page. tier is needed, chase or optional (map.tiers); optional:true mirrors tier optional. manual:true marks a field with no Fillout question, set only on the record page.",
   "niche_question_id": "q_niche_select",
   "business_name_question_id": "bwUuvaZTmChegZekppzNNv",
   "business_email_question_id": "5EHeuZ2pntQwCaoADHRRrJ",
@@ -192,7 +192,8 @@
       "section": "Business Information",
       "type": "ShortAnswer",
       "niche": "all",
-      "panel": "business_information"
+      "panel": "business_information",
+      "tier": "chase"
     },
     {
       "id": "bwUuvaZTmChegZekppzNNv",
@@ -202,7 +203,8 @@
       "type": "ShortAnswer",
       "niche": "all",
       "panel": "business_information",
-      "help": "Exactly as it should appear on the website and Google Business Profile."
+      "help": "Exactly as it should appear on the website and Google Business Profile.",
+      "tier": "needed"
     },
     {
       "id": "5EHeuZ2pntQwCaoADHRRrJ",
@@ -212,7 +214,8 @@
       "type": "EmailInput",
       "niche": "all",
       "panel": "business_information",
-      "help": "Where enquiries from the website go."
+      "help": "Where enquiries from the website go.",
+      "tier": "needed"
     },
     {
       "id": "pt3n5TwXdkoJZKXjAQQBS1",
@@ -222,7 +225,8 @@
       "type": "PhoneNumber",
       "niche": "all",
       "panel": "business_information",
-      "help": "Shown in the header and every call button."
+      "help": "Shown in the header and every call button.",
+      "tier": "needed"
     },
     {
       "id": "qiSfB8XCPXYmvUe49Sh8mU",
@@ -232,7 +236,9 @@
       "type": "URLInput",
       "niche": "all",
       "panel": "business_information",
-      "help": "If there is one; it shapes what we migrate."
+      "help": "If there is one; it shapes what we migrate.",
+      "tier": "optional",
+      "optional": true
     },
     {
       "id": "aq57",
@@ -241,7 +247,9 @@
       "section": "Business Information",
       "type": "LongAnswer",
       "niche": "all",
-      "panel": "business_information"
+      "panel": "business_information",
+      "tier": "optional",
+      "optional": true
     },
     {
       "id": "mRrU",
@@ -251,7 +259,8 @@
       "type": "LongAnswer",
       "niche": "all",
       "panel": "business_information",
-      "help": "Provider name, or \"not sure\"."
+      "help": "Provider name, or \"not sure\".",
+      "tier": "chase"
     },
     {
       "id": "7rHhBRjenkjAjowjBRKaYH",
@@ -261,7 +270,8 @@
       "type": "LongAnswer",
       "niche": "all",
       "panel": "business_information",
-      "help": "Link to the profile if it exists."
+      "help": "Link to the profile if it exists.",
+      "tier": "chase"
     },
     {
       "id": "oLCK",
@@ -270,7 +280,9 @@
       "section": "Business Information",
       "type": "LongAnswer",
       "niche": "all",
-      "panel": "business_information"
+      "panel": "business_information",
+      "tier": "optional",
+      "optional": true
     },
     {
       "id": "nvc7",
@@ -280,7 +292,8 @@
       "type": "LongAnswer",
       "niche": "all",
       "panel": "business_information",
-      "help": "Companies House number goes in the footer by law."
+      "help": "Companies House number goes in the footer by law.",
+      "tier": "chase"
     },
     {
       "id": "kn5rnXkQ9VekruWV3fAjhq",
@@ -289,7 +302,8 @@
       "section": "Business Information",
       "type": "ShortAnswer",
       "niche": "all",
-      "panel": "business_information"
+      "panel": "business_information",
+      "tier": "chase"
     },
     {
       "id": "ktyj6cenA7Fa62UqyeBPaX",
@@ -299,7 +313,8 @@
       "type": "LongAnswer",
       "niche": "all",
       "panel": "business_information",
-      "help": "Shown on the site unless they want a service-area profile."
+      "help": "Shown on the site unless they want a service-area profile.",
+      "tier": "needed"
     },
     {
       "id": "oV3fdxPzw2vPCbXacUnVis",
@@ -308,7 +323,8 @@
       "section": "Business Information",
       "type": "MultipleChoice",
       "niche": "all",
-      "panel": "business_information"
+      "panel": "business_information",
+      "tier": "needed"
     },
     {
       "id": "q9Fft3D9HAkZdfRu6uyPsW",
@@ -318,7 +334,8 @@
       "type": "ShortAnswer",
       "niche": "all",
       "panel": "business_information",
-      "help": "First name and role, used in the Meet the owner section."
+      "help": "First name and role, used in the Meet the owner section.",
+      "tier": "needed"
     },
     {
       "id": "j3ddAZnSddo9PuKv1aPVUD",
@@ -327,7 +344,8 @@
       "section": "Business Information",
       "type": "MultipleChoice",
       "niche": "all",
-      "panel": "business_information"
+      "panel": "business_information",
+      "tier": "chase"
     },
     {
       "id": "k5G4F2uTPcU5S4t1kLE5GU",
@@ -337,7 +355,8 @@
       "type": "Checkboxes",
       "niche": "all",
       "panel": "about_business",
-      "help": "Each tick becomes a claim, so it must be true."
+      "help": "Each tick becomes a claim, so it must be true.",
+      "tier": "chase"
     },
     {
       "id": "qDs4rsxrQLV3PeG3ak6t97",
@@ -347,7 +366,8 @@
       "type": "LongAnswer",
       "niche": "all",
       "optional": true,
-      "panel": "about_business"
+      "panel": "about_business",
+      "tier": "optional"
     },
     {
       "id": "gRbng5fQ2nDYgLwKWAMLtP",
@@ -357,7 +377,8 @@
       "type": "LongAnswer",
       "niche": "all",
       "panel": "business_information",
-      "help": "Used in the footer, schema and Google Business Profile."
+      "help": "Used in the footer, schema and Google Business Profile.",
+      "tier": "needed"
     },
     {
       "id": "ue8vE98ZS4utYR9errfBDn",
@@ -366,7 +387,9 @@
       "section": "Business Information",
       "type": "Checkboxes",
       "niche": "all",
-      "panel": "business_information"
+      "panel": "business_information",
+      "tier": "optional",
+      "optional": true
     },
     {
       "id": "5yBS2vaqoCCapSkqMy5Zn3",
@@ -376,7 +399,8 @@
       "type": "LongAnswer",
       "niche": "all",
       "panel": "business_information",
-      "help": "Only what they really offer; it becomes a claim on the site."
+      "help": "Only what they really offer; it becomes a claim on the site.",
+      "tier": "chase"
     },
     {
       "id": "1VAYPLsJfgpcKyPJxkDH82",
@@ -385,7 +409,8 @@
       "section": "Business Information",
       "type": "LongAnswer",
       "niche": "all",
-      "panel": "business_information"
+      "panel": "business_information",
+      "tier": "chase"
     },
     {
       "id": "qd9WBnbQwPjJXYF1ENz9dF",
@@ -395,7 +420,8 @@
       "type": "LongAnswer",
       "niche": "all",
       "panel": "business_information",
-      "help": "Details, not just yes."
+      "help": "Details, not just yes.",
+      "tier": "chase"
     },
     {
       "id": "isx2GtdYsRqBnRHmcsi2P3",
@@ -405,7 +431,8 @@
       "type": "LongAnswer",
       "niche": "all",
       "panel": "business_information",
-      "help": "The cover amount is quoted on trust sections."
+      "help": "The cover amount is quoted on trust sections.",
+      "tier": "chase"
     },
     {
       "id": "hbhQyXhY5DNy3N58sLPRVE",
@@ -414,7 +441,8 @@
       "section": "Business Information",
       "type": "LongAnswer",
       "niche": "all",
-      "panel": "business_information"
+      "panel": "business_information",
+      "tier": "chase"
     },
     {
       "id": "q_niche_select",
@@ -423,7 +451,8 @@
       "section": "Services & Locations",
       "type": "Dropdown",
       "niche": "all",
-      "panel": "services"
+      "panel": "services",
+      "tier": "needed"
     },
     {
       "id": "tuDBpxPb1nUucBBrSQcjTh",
@@ -433,7 +462,8 @@
       "type": "ShortAnswer",
       "niche": "all",
       "panel": "areas",
-      "help": "The town the homepage targets first."
+      "help": "The town the homepage targets first.",
+      "tier": "needed"
     },
     {
       "id": "vXGJtLWSghpQzbuTmZq4LW",
@@ -443,7 +473,8 @@
       "type": "LongAnswer",
       "niche": "all",
       "panel": "areas",
-      "help": "One per line, up to 20; these become area pages."
+      "help": "One per line, up to 20; these become area pages.",
+      "tier": "needed"
     },
     {
       "id": "kCiDBA4m6W1eMBrnTwZ8yr",
@@ -452,7 +483,9 @@
       "section": "Your Areas",
       "type": "LongAnswer",
       "niche": "all",
-      "panel": "areas"
+      "panel": "areas",
+      "tier": "optional",
+      "optional": true
     },
     {
       "id": "bXpoUqJ3nFvMDMzAgpFNxx",
@@ -462,7 +495,8 @@
       "type": "MultipleChoice",
       "niche": "all",
       "panel": "areas",
-      "help": "Sets the Google Business Profile service area."
+      "help": "Sets the Google Business Profile service area.",
+      "tier": "needed"
     },
     {
       "id": "xABg",
@@ -472,7 +506,8 @@
       "type": "AudioRecording",
       "niche": "all",
       "optional": true,
-      "panel": "areas"
+      "panel": "areas",
+      "tier": "optional"
     },
     {
       "id": "38XUThDiXkkqb782RWjFXy",
@@ -482,7 +517,8 @@
       "type": "LongAnswer",
       "niche": "all",
       "optional": true,
-      "panel": "areas"
+      "panel": "areas",
+      "tier": "optional"
     },
     {
       "id": "aqVJoDX5zNJhmqn3tiowhE",
@@ -492,7 +528,8 @@
       "type": "LongAnswer",
       "niche": "all",
       "optional": true,
-      "panel": "areas"
+      "panel": "areas",
+      "tier": "optional"
     },
     {
       "id": "kZiwoHi5h6UyQvsXyteyK5",
@@ -502,7 +539,8 @@
       "type": "LongAnswer",
       "niche": "all",
       "optional": true,
-      "panel": "areas"
+      "panel": "areas",
+      "tier": "optional"
     },
     {
       "id": "hk6pHzA1N5vcciNvnpVyRD",
@@ -511,7 +549,9 @@
       "section": "Social Media & Proof",
       "type": "URLInput",
       "niche": "all",
-      "panel": "reviews_social"
+      "panel": "reviews_social",
+      "tier": "optional",
+      "optional": true
     },
     {
       "id": "pJr8mk87WbMLZy85hEbGPT",
@@ -520,7 +560,9 @@
       "section": "Social Media & Proof",
       "type": "URLInput",
       "niche": "all",
-      "panel": "reviews_social"
+      "panel": "reviews_social",
+      "tier": "optional",
+      "optional": true
     },
     {
       "id": "jnoYxaBGQqUxjm1LKarS9M",
@@ -529,7 +571,9 @@
       "section": "Social Media & Proof",
       "type": "URLInput",
       "niche": "all",
-      "panel": "reviews_social"
+      "panel": "reviews_social",
+      "tier": "optional",
+      "optional": true
     },
     {
       "id": "tQVz68rVPSsWJhBsXzZBmT",
@@ -539,7 +583,9 @@
       "type": "LongAnswer",
       "niche": "all",
       "panel": "reviews_social",
-      "help": "Checkatrade, TrustATrader, Yell and similar."
+      "help": "Checkatrade, TrustATrader, Yell and similar.",
+      "tier": "optional",
+      "optional": true
     },
     {
       "id": "sY49c6PZw3wJXY71RUHr1n",
@@ -549,7 +595,9 @@
       "type": "LongAnswer",
       "niche": "all",
       "panel": "reviews_social",
-      "help": "Where reviews live today; links if possible."
+      "help": "Where reviews live today; links if possible.",
+      "tier": "optional",
+      "optional": true
     },
     {
       "id": "uK5V",
@@ -559,7 +607,9 @@
       "type": "LongAnswer",
       "niche": "all",
       "panel": "credentials",
-      "help": "Awards, press and industry lists, for the trust section."
+      "help": "Awards, press and industry lists, for the trust section.",
+      "tier": "optional",
+      "optional": true
     },
     {
       "id": "mFEThsRaGkuTv6ar7VFgAX",
@@ -570,7 +620,8 @@
       "niche": "all",
       "group": "accreditations",
       "optional": true,
-      "panel": "credentials"
+      "panel": "credentials",
+      "tier": "optional"
     },
     {
       "id": "uVpirkfhqENkRq9TygyVjs",
@@ -581,7 +632,8 @@
       "niche": "all",
       "group": "accreditations",
       "optional": true,
-      "panel": "credentials"
+      "panel": "credentials",
+      "tier": "optional"
     },
     {
       "id": "6VNn5aWqdQjuUPSFZBoMW5",
@@ -592,7 +644,8 @@
       "niche": "all",
       "group": "accreditations",
       "optional": true,
-      "panel": "credentials"
+      "panel": "credentials",
+      "tier": "optional"
     },
     {
       "id": "13cPy55767AkywhxMgd3NX",
@@ -603,7 +656,8 @@
       "niche": "all",
       "group": "accreditations",
       "optional": true,
-      "panel": "credentials"
+      "panel": "credentials",
+      "tier": "optional"
     },
     {
       "id": "ux2kMePHo9jR1Q77Sd1HHE",
@@ -614,7 +668,8 @@
       "niche": "all",
       "group": "accreditations",
       "optional": true,
-      "panel": "credentials"
+      "panel": "credentials",
+      "tier": "optional"
     },
     {
       "id": "vRnVJ9p2nfnhSqCiuihNgt",
@@ -625,7 +680,8 @@
       "niche": "all",
       "group": "accreditations",
       "optional": true,
-      "panel": "credentials"
+      "panel": "credentials",
+      "tier": "optional"
     },
     {
       "id": "x77c1xW5poH2ukrifqEjWv",
@@ -636,7 +692,8 @@
       "niche": "all",
       "group": "accreditations",
       "optional": true,
-      "panel": "credentials"
+      "panel": "credentials",
+      "tier": "optional"
     },
     {
       "id": "urDPPLdChHn82PXZQWsGGe",
@@ -647,7 +704,8 @@
       "niche": "all",
       "group": "accreditations",
       "optional": true,
-      "panel": "credentials"
+      "panel": "credentials",
+      "tier": "optional"
     },
     {
       "id": "4iWDQBNCkR4N6SaygJP9Pd",
@@ -658,7 +716,8 @@
       "niche": "all",
       "group": "accreditations",
       "optional": true,
-      "panel": "credentials"
+      "panel": "credentials",
+      "tier": "optional"
     },
     {
       "id": "cfmNbgU97fzGNYpWpA67Uv",
@@ -669,7 +728,8 @@
       "niche": "all",
       "group": "accreditations",
       "optional": true,
-      "panel": "credentials"
+      "panel": "credentials",
+      "tier": "optional"
     },
     {
       "id": "effGUksyU11VgyHNFsmavE",
@@ -680,7 +740,8 @@
       "niche": "all",
       "group": "accreditations",
       "optional": true,
-      "panel": "credentials"
+      "panel": "credentials",
+      "tier": "optional"
     },
     {
       "id": "uro4wvi9MudxP6gNjB82Vm",
@@ -691,7 +752,8 @@
       "niche": "all",
       "group": "accreditations",
       "optional": true,
-      "panel": "credentials"
+      "panel": "credentials",
+      "tier": "optional"
     },
     {
       "id": "3YnfUbdMMKRhj7mENMC6UP",
@@ -702,7 +764,8 @@
       "niche": "all",
       "group": "accreditations",
       "optional": true,
-      "panel": "credentials"
+      "panel": "credentials",
+      "tier": "optional"
     },
     {
       "id": "eqTLAoUfvzvoe8ePKvMSFw",
@@ -713,7 +776,8 @@
       "niche": "all",
       "group": "accreditations",
       "optional": true,
-      "panel": "credentials"
+      "panel": "credentials",
+      "tier": "optional"
     },
     {
       "id": "bVRoC6LFEYyEV7SmsfLS2z",
@@ -724,7 +788,8 @@
       "niche": "all",
       "group": "accreditations",
       "optional": true,
-      "panel": "credentials"
+      "panel": "credentials",
+      "tier": "optional"
     },
     {
       "id": "sp_proud_audio",
@@ -734,7 +799,8 @@
       "type": "AudioRecording",
       "niche": "all",
       "group": "proud_of",
-      "panel": "about_business"
+      "panel": "about_business",
+      "tier": "chase"
     },
     {
       "id": "sp_proud_text",
@@ -744,7 +810,8 @@
       "type": "LongAnswer",
       "niche": "all",
       "group": "proud_of",
-      "panel": "about_business"
+      "panel": "about_business",
+      "tier": "chase"
     },
     {
       "id": "uqbB",
@@ -754,7 +821,8 @@
       "type": "LongAnswer",
       "niche": "all",
       "optional": true,
-      "panel": "about_business"
+      "panel": "about_business",
+      "tier": "optional"
     },
     {
       "id": "bvM3MppDbfpHkZW3mBxKe3",
@@ -764,7 +832,8 @@
       "type": "ShortAnswer",
       "niche": "all",
       "panel": "about_business",
-      "help": "Day, month and year if they have it; years in business is derived from this."
+      "help": "Day, month and year if they have it; years in business is derived from this.",
+      "tier": "chase"
     },
     {
       "id": "cmdCB4WREP87TFSYKRpUCk",
@@ -773,7 +842,8 @@
       "section": "Your Story",
       "type": "ShortAnswer",
       "niche": "all",
-      "panel": "about_business"
+      "panel": "about_business",
+      "tier": "chase"
     },
     {
       "id": "erroGGUPEgr7tEQqemjQ98",
@@ -783,7 +853,8 @@
       "type": "ShortAnswer",
       "niche": "all",
       "panel": "about_business",
-      "help": "A number."
+      "help": "A number.",
+      "tier": "chase"
     },
     {
       "id": "ofHYxJVkxt7mDnR9ZoVBoC",
@@ -793,7 +864,8 @@
       "type": "ShortAnswer",
       "niche": "all",
       "panel": "about_business",
-      "help": "Rough figure is fine."
+      "help": "Rough figure is fine.",
+      "tier": "chase"
     },
     {
       "id": "ys_trade_audio",
@@ -803,7 +875,8 @@
       "type": "AudioRecording",
       "niche": "all",
       "group": "story_trade",
-      "panel": "about_business"
+      "panel": "about_business",
+      "tier": "chase"
     },
     {
       "id": "ys_trade_text",
@@ -813,7 +886,8 @@
       "type": "LongAnswer",
       "niche": "all",
       "group": "story_trade",
-      "panel": "about_business"
+      "panel": "about_business",
+      "tier": "chase"
     },
     {
       "id": "ys_team_audio",
@@ -823,7 +897,8 @@
       "type": "AudioRecording",
       "niche": "all",
       "group": "story_team",
-      "panel": "about_business"
+      "panel": "about_business",
+      "tier": "chase"
     },
     {
       "id": "ys_team_text",
@@ -833,7 +908,8 @@
       "type": "LongAnswer",
       "niche": "all",
       "group": "story_team",
-      "panel": "about_business"
+      "panel": "about_business",
+      "tier": "chase"
     },
     {
       "id": "uSQWuH2jTgabJuz9LWQ3NN",
@@ -843,7 +919,8 @@
       "type": "LongAnswer",
       "niche": "all",
       "panel": "voice_tone",
-      "help": "Hard rules for the copy: facts to get right and claims never to make."
+      "help": "Hard rules for the copy: facts to get right and claims never to make.",
+      "tier": "chase"
     },
     {
       "id": "kQnYtuxNTkXL9HiHHVpHr9",
@@ -853,7 +930,8 @@
       "type": "MultiSelect",
       "niche": "all",
       "panel": "voice_tone",
-      "help": "How the copy should sound."
+      "help": "How the copy should sound.",
+      "tier": "chase"
     },
     {
       "id": "dzJLheRkqpxV3sBYogf3qx",
@@ -864,7 +942,8 @@
       "niche": "all",
       "optional": true,
       "panel": "voice_tone",
-      "help": "Words the client never wants on their site."
+      "help": "Words the client never wants on their site.",
+      "tier": "optional"
     },
     {
       "id": "vvv6B1CJ9K5yHG1ugN73PN",
@@ -874,7 +953,8 @@
       "type": "MultiSelect",
       "niche": "all",
       "panel": "target_audience",
-      "help": "Who the copy speaks to."
+      "help": "Who the copy speaks to.",
+      "tier": "chase"
     },
     {
       "id": "dg8EHAqeQEzAVtB5e9qXth",
@@ -883,7 +963,8 @@
       "section": "Your Customers and Their Problems",
       "type": "MultipleChoice",
       "niche": "all",
-      "panel": "target_audience"
+      "panel": "target_audience",
+      "tier": "chase"
     },
     {
       "id": "cust_reviews_audio",
@@ -893,7 +974,8 @@
       "type": "AudioRecording",
       "niche": "all",
       "group": "customer_reviews",
-      "panel": "target_audience"
+      "panel": "target_audience",
+      "tier": "chase"
     },
     {
       "id": "cust_reviews_text",
@@ -903,7 +985,8 @@
       "type": "LongAnswer",
       "niche": "all",
       "group": "customer_reviews",
-      "panel": "target_audience"
+      "panel": "target_audience",
+      "tier": "chase"
     },
     {
       "id": "1JkK3W6oabgAamauK716oq",
@@ -913,7 +996,8 @@
       "type": "ShortAnswer",
       "niche": "all",
       "panel": "target_audience",
-      "help": "One sentence; it often becomes the hero promise."
+      "help": "One sentence; it often becomes the hero promise.",
+      "tier": "chase"
     },
     {
       "id": "eDjFcgZywiKd1KPZAvs1Up",
@@ -923,7 +1007,8 @@
       "type": "AudioRecording",
       "niche": "all",
       "group": "common_jobs",
-      "panel": "target_audience"
+      "panel": "target_audience",
+      "tier": "chase"
     },
     {
       "id": "tDvwLeaB5LKt3rzFybATLK",
@@ -933,7 +1018,8 @@
       "type": "LongAnswer",
       "niche": "all",
       "group": "common_jobs",
-      "panel": "target_audience"
+      "panel": "target_audience",
+      "tier": "chase"
     },
     {
       "id": "o8Xiw8JQ1qTygzH8bvaTV6",
@@ -943,7 +1029,8 @@
       "type": "AudioRecording",
       "niche": "all",
       "group": "common_questions",
-      "panel": "target_audience"
+      "panel": "target_audience",
+      "tier": "chase"
     },
     {
       "id": "ku3Yt1gqbyEjZKbQEgdC81",
@@ -953,7 +1040,8 @@
       "type": "LongAnswer",
       "niche": "all",
       "group": "common_questions",
-      "panel": "target_audience"
+      "panel": "target_audience",
+      "tier": "chase"
     },
     {
       "id": "nXmJ",
@@ -963,7 +1051,21 @@
       "type": "MultipleChoice",
       "niche": "all",
       "panel": "look_feel",
-      "help": "Photos and logo arrive by WhatsApp after the form."
+      "help": "Photos and logo arrive by WhatsApp after the form.",
+      "tier": "optional",
+      "optional": true
+    },
+    {
+      "id": null,
+      "manual": true,
+      "key": "photos_received",
+      "label": "Photos and logo received (tick when they arrive by WhatsApp)",
+      "section": "Photos and Logo",
+      "panel": "look_feel",
+      "type": "Checkbox",
+      "niche": "all",
+      "tier": "chase",
+      "help": "Not a form question: tick it here when the photos and logo have come through. It survives resubmission and Reprocess."
     },
     {
       "id": "uKAxvaxW6t5RRXoro4TyoL",
@@ -972,7 +1074,8 @@
       "section": "Quotes Process and Response",
       "type": "MultiSelect",
       "niche": "all",
-      "panel": "quotes_process"
+      "panel": "quotes_process",
+      "tier": "chase"
     },
     {
       "id": "q_quote_free",
@@ -982,7 +1085,8 @@
       "type": "MultipleChoice",
       "niche": "all",
       "panel": "quotes_process",
-      "help": "Drives the quote wording on every page."
+      "help": "Drives the quote wording on every page.",
+      "tier": "needed"
     },
     {
       "id": null,
@@ -1004,7 +1108,8 @@
       },
       "_note": "id not yet seen in a payload (17 Oct 2026): found by position, the question directly between q_quote_free and the written quotes question. Set id once a submission with it is in hand; position stays as the fallback.",
       "panel": "prices",
-      "help": "Only asked when there is a call-out or survey fee."
+      "help": "Only asked when there is a call-out or survey fee.",
+      "tier": "needed"
     },
     {
       "id": "eHt6ipCmD9PZXGfmX3wTEZ",
@@ -1013,7 +1118,8 @@
       "section": "Quotes Process and Response",
       "type": "ShortAnswer",
       "niche": "all",
-      "panel": "quotes_process"
+      "panel": "quotes_process",
+      "tier": "chase"
     },
     {
       "id": "oCxMFu4Q5DK5V3sK8V2o4e",
@@ -1023,7 +1129,8 @@
       "type": "MultipleChoice",
       "niche": "all",
       "panel": "quotes_process",
-      "help": "Only promised on the site if confirmed here."
+      "help": "Only promised on the site if confirmed here.",
+      "tier": "chase"
     },
     {
       "id": "jitnTjoC25yUBLCbC58ucL",
@@ -1033,7 +1140,8 @@
       "type": "MultipleChoice",
       "niche": "all",
       "panel": "quotes_process",
-      "help": "Only promised on the site if confirmed here."
+      "help": "Only promised on the site if confirmed here.",
+      "tier": "chase"
     },
     {
       "id": "qp_journey_audio",
@@ -1043,7 +1151,8 @@
       "type": "AudioRecording",
       "niche": "all",
       "group": "quote_journey",
-      "panel": "quotes_process"
+      "panel": "quotes_process",
+      "tier": "chase"
     },
     {
       "id": "qp_journey_text",
@@ -1053,7 +1162,8 @@
       "type": "LongAnswer",
       "niche": "all",
       "group": "quote_journey",
-      "panel": "quotes_process"
+      "panel": "quotes_process",
+      "tier": "chase"
     },
     {
       "id": "u2853cBeQycd9SRLb7jguz",
@@ -1062,7 +1172,8 @@
       "section": "Quotes Process and Response",
       "type": "MultiSelect",
       "niche": "all",
-      "panel": "quotes_process"
+      "panel": "quotes_process",
+      "tier": "chase"
     },
     {
       "id": "sfrQC4QToGCf4GLA9C8o6U",
@@ -1071,7 +1182,8 @@
       "section": "Quotes Process and Response",
       "type": "MultipleChoice",
       "niche": "all",
-      "panel": "quotes_process"
+      "panel": "quotes_process",
+      "tier": "chase"
     },
     {
       "id": "upvGiwpADLXrLrvndNt79r",
@@ -1080,7 +1192,8 @@
       "section": "Quotes Process and Response",
       "type": "MultipleChoice",
       "niche": "all",
-      "panel": "quotes_process"
+      "panel": "quotes_process",
+      "tier": "chase"
     },
     {
       "id": "q_emergency",
@@ -1090,7 +1203,8 @@
       "type": "MultipleChoice",
       "niche": "all",
       "panel": "quotes_process",
-      "help": "Only claimed on the site if confirmed here."
+      "help": "Only claimed on the site if confirmed here.",
+      "tier": "chase"
     },
     {
       "id": "qEYymWzUQE5qpJs1oyeAc6",
@@ -1100,7 +1214,8 @@
       "type": "ShortAnswer",
       "niche": "all",
       "panel": "prices",
-      "help": "Used in the returning customer line if given."
+      "help": "Used in the returning customer line if given.",
+      "tier": "chase"
     },
     {
       "id": "1dB2GMJJmVj1bmW1NV3sU2",
@@ -1110,7 +1225,8 @@
       "type": "MultipleChoice",
       "niche": "all",
       "panel": "look_feel",
-      "help": "Real photo or illustration for the top of the homepage."
+      "help": "Real photo or illustration for the top of the homepage.",
+      "tier": "chase"
     },
     {
       "id": "eWpFgiwJk292nFZQ1fJgGt",
@@ -1120,7 +1236,8 @@
       "type": "MultipleChoice",
       "niche": "all",
       "panel": "look_feel",
-      "help": "Logo colours or a palette we choose."
+      "help": "Logo colours or a palette we choose.",
+      "tier": "chase"
     },
     {
       "id": "g1srZPr9BN8b7PC2AJWEuH",
@@ -1130,7 +1247,8 @@
       "type": "Checkboxes",
       "niche": "Plumbing & Heating",
       "group": "services",
-      "panel": "services"
+      "panel": "services",
+      "tier": "needed"
     },
     {
       "id": "gqxtq1j4uhHwztHQCyzptu",
@@ -1140,7 +1258,8 @@
       "type": "Checkboxes",
       "niche": "Plumbing & Heating",
       "group": "services",
-      "panel": "services"
+      "panel": "services",
+      "tier": "needed"
     },
     {
       "id": "u2zpmZXK49pDwmS9Tu4RRs",
@@ -1150,7 +1269,8 @@
       "type": "Checkboxes",
       "niche": "Plumbing & Heating",
       "group": "services",
-      "panel": "services"
+      "panel": "services",
+      "tier": "needed"
     },
     {
       "id": "q7EY1xVvi3fMPHUGhwXX6z",
@@ -1160,7 +1280,8 @@
       "type": "Checkboxes",
       "niche": "Plumbing & Heating",
       "group": "services",
-      "panel": "services"
+      "panel": "services",
+      "tier": "needed"
     },
     {
       "id": "1wjFss56TDJosHkbiw5XKx",
@@ -1170,7 +1291,8 @@
       "type": "Checkboxes",
       "niche": "Plumbing & Heating",
       "group": "services",
-      "panel": "services"
+      "panel": "services",
+      "tier": "needed"
     },
     {
       "id": "wRxFDYrMJbfr88Y9rLdmX2",
@@ -1179,7 +1301,8 @@
       "section": "Services & Locations",
       "type": "ShortAnswer",
       "niche": "Plumbing & Heating",
-      "panel": "services"
+      "panel": "services",
+      "tier": "needed"
     },
     {
       "id": "62NXtm2Nzq6NqwfXuPXt4J",
@@ -1188,7 +1311,8 @@
       "section": "Services & Locations",
       "type": "ShortAnswer",
       "niche": "Plumbing & Heating",
-      "panel": "services"
+      "panel": "services",
+      "tier": "needed"
     },
     {
       "id": "dJr1hD9w8yY8CxxpuExfUX",
@@ -1197,7 +1321,8 @@
       "section": "Services & Locations",
       "type": "ShortAnswer",
       "niche": "Plumbing & Heating",
-      "panel": "services"
+      "panel": "services",
+      "tier": "needed"
     },
     {
       "id": "rygW9ALYDsZ1d5f2K5pRHg",
@@ -1206,7 +1331,8 @@
       "section": "Services & Locations",
       "type": "AudioRecording",
       "niche": "Plumbing & Heating",
-      "panel": "services"
+      "panel": "services",
+      "tier": "chase"
     },
     {
       "id": "ugsSP2dTbNrjVH1vzuFeSw",
@@ -1216,7 +1342,8 @@
       "type": "LongAnswer",
       "niche": "Plumbing & Heating",
       "optional": true,
-      "panel": "services"
+      "panel": "services",
+      "tier": "optional"
     },
     {
       "id": "vvbZ771APyWSvvJmXNhQdE",
@@ -1226,7 +1353,8 @@
       "type": "LongAnswer",
       "niche": "Plumbing & Heating",
       "optional": true,
-      "panel": "services"
+      "panel": "services",
+      "tier": "optional"
     },
     {
       "id": "4btycSyHtCXZuuMSnT2vfZ",
@@ -1236,7 +1364,8 @@
       "type": "Checkboxes",
       "niche": "Landscapers/Gardeners",
       "group": "services",
-      "panel": "services"
+      "panel": "services",
+      "tier": "needed"
     },
     {
       "id": "jNv8XqDAjLAsi6zFgWBddR",
@@ -1246,7 +1375,8 @@
       "type": "Checkboxes",
       "niche": "Landscapers/Gardeners",
       "group": "services",
-      "panel": "services"
+      "panel": "services",
+      "tier": "needed"
     },
     {
       "id": "1pfCg77Mhvgz5PiRzpA6nH",
@@ -1256,7 +1386,8 @@
       "type": "Checkboxes",
       "niche": "Landscapers/Gardeners",
       "group": "services",
-      "panel": "services"
+      "panel": "services",
+      "tier": "needed"
     },
     {
       "id": "iv2gJGQkiLRuZFruNYi5cJ",
@@ -1266,7 +1397,8 @@
       "type": "Checkboxes",
       "niche": "Landscapers/Gardeners",
       "group": "services",
-      "panel": "services"
+      "panel": "services",
+      "tier": "needed"
     },
     {
       "id": "uH7dsGdYznMGrV8TZwJ8tY",
@@ -1276,7 +1408,8 @@
       "type": "Checkboxes",
       "niche": "Landscapers/Gardeners",
       "group": "services",
-      "panel": "services"
+      "panel": "services",
+      "tier": "needed"
     },
     {
       "id": "cNAkA5n8bXdXbCJTuifRi6",
@@ -1286,7 +1419,8 @@
       "type": "Checkboxes",
       "niche": "Landscapers/Gardeners",
       "group": "services",
-      "panel": "services"
+      "panel": "services",
+      "tier": "needed"
     },
     {
       "id": "6Bn3UnYDMtH4SSj1Yeb3yA",
@@ -1296,7 +1430,8 @@
       "type": "Checkboxes",
       "niche": "Landscapers/Gardeners",
       "group": "services",
-      "panel": "services"
+      "panel": "services",
+      "tier": "needed"
     },
     {
       "id": "tbVSXjQEfzfqCY6HnZYWwY",
@@ -1306,7 +1441,8 @@
       "type": "Checkboxes",
       "niche": "Landscapers/Gardeners",
       "group": "services",
-      "panel": "services"
+      "panel": "services",
+      "tier": "needed"
     },
     {
       "id": "beV62kwi6LXqrJHoHvfqzb",
@@ -1315,7 +1451,8 @@
       "section": "Services & Locations",
       "type": "ShortAnswer",
       "niche": "Landscapers/Gardeners",
-      "panel": "services"
+      "panel": "services",
+      "tier": "needed"
     },
     {
       "id": "u1hvPPhDGP4bn8Vc3WKcFa",
@@ -1324,7 +1461,8 @@
       "section": "Services & Locations",
       "type": "ShortAnswer",
       "niche": "Landscapers/Gardeners",
-      "panel": "services"
+      "panel": "services",
+      "tier": "needed"
     },
     {
       "id": "6mm5twmGeC4uUNpjA7mqTT",
@@ -1333,7 +1471,8 @@
       "section": "Services & Locations",
       "type": "ShortAnswer",
       "niche": "Landscapers/Gardeners",
-      "panel": "services"
+      "panel": "services",
+      "tier": "needed"
     },
     {
       "id": "aCpx",
@@ -1342,7 +1481,8 @@
       "section": "Services & Locations",
       "type": "AudioRecording",
       "niche": "Landscapers/Gardeners",
-      "panel": "services"
+      "panel": "services",
+      "tier": "chase"
     },
     {
       "id": "ezr2bq2i9AApBpXoC2hELZ",
@@ -1352,7 +1492,8 @@
       "type": "LongAnswer",
       "niche": "Landscapers/Gardeners",
       "optional": true,
-      "panel": "services"
+      "panel": "services",
+      "tier": "optional"
     },
     {
       "id": "7NoVoLy6SXyruKJja5L5cu",
@@ -1362,7 +1503,8 @@
       "type": "LongAnswer",
       "niche": "Landscapers/Gardeners",
       "optional": true,
-      "panel": "services"
+      "panel": "services",
+      "tier": "optional"
     },
     {
       "id": "oTApMTSkUCVyeMYnSdNcwy",
@@ -1372,7 +1514,8 @@
       "type": "Checkboxes",
       "niche": "Cleaning Companies",
       "group": "services",
-      "panel": "services"
+      "panel": "services",
+      "tier": "needed"
     },
     {
       "id": "me12Q4Khqcd1z8hPLtWLuj",
@@ -1382,7 +1525,8 @@
       "type": "Checkboxes",
       "niche": "Cleaning Companies",
       "group": "services",
-      "panel": "services"
+      "panel": "services",
+      "tier": "needed"
     },
     {
       "id": "3b2GZ7KyLiBnVsfWLr5TeS",
@@ -1392,7 +1536,8 @@
       "type": "Checkboxes",
       "niche": "Cleaning Companies",
       "group": "services",
-      "panel": "services"
+      "panel": "services",
+      "tier": "needed"
     },
     {
       "id": "sjLVk1zDN7UFFNZQAteUNk",
@@ -1402,7 +1547,8 @@
       "type": "Checkboxes",
       "niche": "Cleaning Companies",
       "group": "services",
-      "panel": "services"
+      "panel": "services",
+      "tier": "needed"
     },
     {
       "id": "xj1cBfHDeYByX1Lmv2iXpp",
@@ -1412,7 +1558,8 @@
       "type": "Checkboxes",
       "niche": "Cleaning Companies",
       "group": "services",
-      "panel": "services"
+      "panel": "services",
+      "tier": "needed"
     },
     {
       "id": "oBhenyJPFKCFg8GZSPxkEB",
@@ -1422,7 +1569,8 @@
       "type": "Checkboxes",
       "niche": "Cleaning Companies",
       "group": "services",
-      "panel": "services"
+      "panel": "services",
+      "tier": "needed"
     },
     {
       "id": "qmExLjderWM1hzUxDF2rqC",
@@ -1432,7 +1580,8 @@
       "type": "Checkboxes",
       "niche": "Cleaning Companies",
       "group": "services",
-      "panel": "services"
+      "panel": "services",
+      "tier": "needed"
     },
     {
       "id": "vAesFXSCWpAQHag87T3wDw",
@@ -1442,7 +1591,8 @@
       "type": "Checkboxes",
       "niche": "Cleaning Companies",
       "group": "services",
-      "panel": "services"
+      "panel": "services",
+      "tier": "needed"
     },
     {
       "id": "sAPUbM8QAhkf9NaF72akwk",
@@ -1452,7 +1602,8 @@
       "type": "Checkboxes",
       "niche": "Cleaning Companies",
       "group": "services",
-      "panel": "services"
+      "panel": "services",
+      "tier": "needed"
     },
     {
       "id": "gJAyk2ne6NBnp6ZQiwXMq8",
@@ -1461,7 +1612,8 @@
       "section": "Services & Locations",
       "type": "ShortAnswer",
       "niche": "Cleaning Companies",
-      "panel": "services"
+      "panel": "services",
+      "tier": "needed"
     },
     {
       "id": "jwG8U9Qkagpg6HDbAjau2u",
@@ -1470,7 +1622,8 @@
       "section": "Services & Locations",
       "type": "ShortAnswer",
       "niche": "Cleaning Companies",
-      "panel": "services"
+      "panel": "services",
+      "tier": "needed"
     },
     {
       "id": "aapzJ7etq7afdHMrppMhUy",
@@ -1479,7 +1632,8 @@
       "section": "Services & Locations",
       "type": "ShortAnswer",
       "niche": "Cleaning Companies",
-      "panel": "services"
+      "panel": "services",
+      "tier": "needed"
     },
     {
       "id": "t9cN2iaMPiVpGUcUNU6M5W",
@@ -1488,7 +1642,8 @@
       "section": "Services & Locations",
       "type": "AudioRecording",
       "niche": "Cleaning Companies",
-      "panel": "services"
+      "panel": "services",
+      "tier": "chase"
     },
     {
       "id": "5aHgWpN9T6pCDhc5YbDV1b",
@@ -1498,7 +1653,8 @@
       "type": "LongAnswer",
       "niche": "Cleaning Companies",
       "optional": true,
-      "panel": "services"
+      "panel": "services",
+      "tier": "optional"
     },
     {
       "id": "8FWUC33GHNfLschJh2G4z3",
@@ -1508,7 +1664,8 @@
       "type": "LongAnswer",
       "niche": "Cleaning Companies",
       "optional": true,
-      "panel": "services"
+      "panel": "services",
+      "tier": "optional"
     },
     {
       "id": "umEWXt1wquhCASeJ4ZLKJk",
@@ -1518,7 +1675,8 @@
       "type": "Checkboxes",
       "niche": "Roofers",
       "group": "services",
-      "panel": "services"
+      "panel": "services",
+      "tier": "needed"
     },
     {
       "id": "c4Qpm67V6pS16wNXw6ghkL",
@@ -1528,7 +1686,8 @@
       "type": "Checkboxes",
       "niche": "Roofers",
       "group": "services",
-      "panel": "services"
+      "panel": "services",
+      "tier": "needed"
     },
     {
       "id": "st4L1BcSceRC66SAfMqpLP",
@@ -1537,7 +1696,8 @@
       "section": "Services & Locations",
       "type": "ShortAnswer",
       "niche": "Roofers",
-      "panel": "services"
+      "panel": "services",
+      "tier": "needed"
     },
     {
       "id": "mgDQQfWjAAvVu9CuP7JVoH",
@@ -1546,7 +1706,8 @@
       "section": "Services & Locations",
       "type": "ShortAnswer",
       "niche": "Roofers",
-      "panel": "services"
+      "panel": "services",
+      "tier": "needed"
     },
     {
       "id": "6pB4A79vv2S4yNV65zczRv",
@@ -1555,7 +1716,8 @@
       "section": "Services & Locations",
       "type": "ShortAnswer",
       "niche": "Roofers",
-      "panel": "services"
+      "panel": "services",
+      "tier": "needed"
     },
     {
       "id": "7MzbraEvsFtb2RL8M25nvT",
@@ -1564,7 +1726,8 @@
       "section": "Services & Locations",
       "type": "AudioRecording",
       "niche": "Roofers",
-      "panel": "services"
+      "panel": "services",
+      "tier": "chase"
     },
     {
       "id": "ga2iSBG6dVtqRY3rrj2Szw",
@@ -1574,7 +1737,8 @@
       "type": "LongAnswer",
       "niche": "Roofers",
       "optional": true,
-      "panel": "services"
+      "panel": "services",
+      "tier": "optional"
     },
     {
       "id": "2HEjzDAX7MBkuck9yRS36j",
@@ -1584,7 +1748,8 @@
       "type": "LongAnswer",
       "niche": "Roofers",
       "optional": true,
-      "panel": "services"
+      "panel": "services",
+      "tier": "optional"
     },
     {
       "id": "pHFY1hv3oz26JBqLfZyd44",
@@ -1594,7 +1759,8 @@
       "type": "Checkboxes",
       "niche": "Pet Care Services (Dog Walkers)",
       "group": "services",
-      "panel": "services"
+      "panel": "services",
+      "tier": "needed"
     },
     {
       "id": "x65FBaiumJMSAW2udqdijP",
@@ -1604,7 +1770,8 @@
       "type": "Checkboxes",
       "niche": "Pet Care Services (Dog Walkers)",
       "group": "services",
-      "panel": "services"
+      "panel": "services",
+      "tier": "needed"
     },
     {
       "id": "hEt92rZvz4mdP4mpsbyeb1",
@@ -1613,7 +1780,8 @@
       "section": "Services & Locations",
       "type": "ShortAnswer",
       "niche": "Pet Care Services (Dog Walkers)",
-      "panel": "services"
+      "panel": "services",
+      "tier": "needed"
     },
     {
       "id": "7hXoGi5WA2LCeXpLW5oPTx",
@@ -1622,7 +1790,8 @@
       "section": "Services & Locations",
       "type": "ShortAnswer",
       "niche": "Pet Care Services (Dog Walkers)",
-      "panel": "services"
+      "panel": "services",
+      "tier": "needed"
     },
     {
       "id": "mWDx3CDk7aQ1qfRV8fb3iU",
@@ -1631,7 +1800,8 @@
       "section": "Services & Locations",
       "type": "ShortAnswer",
       "niche": "Pet Care Services (Dog Walkers)",
-      "panel": "services"
+      "panel": "services",
+      "tier": "needed"
     },
     {
       "id": "pFUADYFGw5F7Gh4xu9eizB",
@@ -1640,7 +1810,8 @@
       "section": "Services & Locations",
       "type": "AudioRecording",
       "niche": "Pet Care Services (Dog Walkers)",
-      "panel": "services"
+      "panel": "services",
+      "tier": "chase"
     },
     {
       "id": "q1SYVpKZ4VQLdnCECF2Lpm",
@@ -1650,7 +1821,8 @@
       "type": "LongAnswer",
       "niche": "Pet Care Services (Dog Walkers)",
       "optional": true,
-      "panel": "services"
+      "panel": "services",
+      "tier": "optional"
     },
     {
       "id": "hDzgGfEBAqicTAtD7LED3s",
@@ -1660,7 +1832,8 @@
       "type": "LongAnswer",
       "niche": "Pet Care Services (Dog Walkers)",
       "optional": true,
-      "panel": "services"
+      "panel": "services",
+      "tier": "optional"
     },
     {
       "id": "49LcZJkZLYN2BjtkdHnHxp",
@@ -1670,7 +1843,8 @@
       "type": "Checkboxes",
       "niche": "Dog Training",
       "group": "services",
-      "panel": "services"
+      "panel": "services",
+      "tier": "needed"
     },
     {
       "id": "gUqkbPPWPz9seyMKyHzUcu",
@@ -1680,7 +1854,8 @@
       "type": "Checkboxes",
       "niche": "Dog Training",
       "group": "services",
-      "panel": "services"
+      "panel": "services",
+      "tier": "needed"
     },
     {
       "id": "8Z27YLiVUECCzAV3sdQdxL",
@@ -1689,7 +1864,8 @@
       "section": "Services & Locations",
       "type": "ShortAnswer",
       "niche": "Dog Training",
-      "panel": "services"
+      "panel": "services",
+      "tier": "needed"
     },
     {
       "id": "d2DDuthN5dETuF3fSfQx2j",
@@ -1698,7 +1874,8 @@
       "section": "Services & Locations",
       "type": "ShortAnswer",
       "niche": "Dog Training",
-      "panel": "services"
+      "panel": "services",
+      "tier": "needed"
     },
     {
       "id": "6DKm7bTTiCF4J3hVpQ34sa",
@@ -1707,7 +1884,8 @@
       "section": "Services & Locations",
       "type": "ShortAnswer",
       "niche": "Dog Training",
-      "panel": "services"
+      "panel": "services",
+      "tier": "needed"
     },
     {
       "id": "cCzrGmEq4eLUNMhY4BGhZw",
@@ -1716,7 +1894,8 @@
       "section": "Services & Locations",
       "type": "AudioRecording",
       "niche": "Dog Training",
-      "panel": "services"
+      "panel": "services",
+      "tier": "chase"
     },
     {
       "id": "vU6ANQq6Ttb6r7dTY2tvuA",
@@ -1726,7 +1905,8 @@
       "type": "LongAnswer",
       "niche": "Dog Training",
       "optional": true,
-      "panel": "services"
+      "panel": "services",
+      "tier": "optional"
     },
     {
       "id": "eYvw32ofcihnUZDH18b2sb",
@@ -1736,7 +1916,8 @@
       "type": "LongAnswer",
       "niche": "Dog Training",
       "optional": true,
-      "panel": "services"
+      "panel": "services",
+      "tier": "optional"
     },
     {
       "id": "ubcfWaoM2tzpm85uceomTn",
@@ -1746,7 +1927,8 @@
       "type": "Checkboxes",
       "niche": "Dog Grooming",
       "group": "services",
-      "panel": "services"
+      "panel": "services",
+      "tier": "needed"
     },
     {
       "id": "kCMNgRk4GgrYjVQxcrLmwG",
@@ -1756,7 +1938,8 @@
       "type": "Checkboxes",
       "niche": "Dog Grooming",
       "group": "services",
-      "panel": "services"
+      "panel": "services",
+      "tier": "needed"
     },
     {
       "id": "u7jsW3y2fgjCDrqYH3DPCg",
@@ -1766,7 +1949,8 @@
       "type": "Checkboxes",
       "niche": "Dog Grooming",
       "group": "services",
-      "panel": "services"
+      "panel": "services",
+      "tier": "needed"
     },
     {
       "id": "iRMiesUhnxtAJrGZgyvrwe",
@@ -1775,7 +1959,8 @@
       "section": "Services & Locations",
       "type": "ShortAnswer",
       "niche": "Dog Grooming",
-      "panel": "services"
+      "panel": "services",
+      "tier": "needed"
     },
     {
       "id": "t1qFv21JpgV5eMAhbDSH1S",
@@ -1784,7 +1969,8 @@
       "section": "Services & Locations",
       "type": "ShortAnswer",
       "niche": "Dog Grooming",
-      "panel": "services"
+      "panel": "services",
+      "tier": "needed"
     },
     {
       "id": "jqF7agxkQLZ42vk83XoZkN",
@@ -1793,7 +1979,8 @@
       "section": "Services & Locations",
       "type": "ShortAnswer",
       "niche": "Dog Grooming",
-      "panel": "services"
+      "panel": "services",
+      "tier": "needed"
     },
     {
       "id": "dNthac3oyvutoSPDCaqbTL",
@@ -1802,7 +1989,8 @@
       "section": "Services & Locations",
       "type": "AudioRecording",
       "niche": "Dog Grooming",
-      "panel": "services"
+      "panel": "services",
+      "tier": "chase"
     },
     {
       "id": "veWocYwyGgXQFnGikLPgeN",
@@ -1812,7 +2000,8 @@
       "type": "LongAnswer",
       "niche": "Dog Grooming",
       "optional": true,
-      "panel": "services"
+      "panel": "services",
+      "tier": "optional"
     },
     {
       "id": "rSRtw1D8ktoeUWUvZFnEkS",
@@ -1822,7 +2011,8 @@
       "type": "LongAnswer",
       "niche": "Dog Grooming",
       "optional": true,
-      "panel": "services"
+      "panel": "services",
+      "tier": "optional"
     },
     {
       "id": "wRuGCztFaA1HnXxgqBHwpz",
@@ -1832,7 +2022,8 @@
       "type": "Checkboxes",
       "niche": "HVAC",
       "group": "services",
-      "panel": "services"
+      "panel": "services",
+      "tier": "needed"
     },
     {
       "id": "73jzJa4tKCpTg4NdAUzZCu",
@@ -1842,7 +2033,8 @@
       "type": "Checkboxes",
       "niche": "HVAC",
       "group": "services",
-      "panel": "services"
+      "panel": "services",
+      "tier": "needed"
     },
     {
       "id": "4r5PxiSfwJZFnyRXsFy19M",
@@ -1852,7 +2044,8 @@
       "type": "Checkboxes",
       "niche": "HVAC",
       "group": "services",
-      "panel": "services"
+      "panel": "services",
+      "tier": "needed"
     },
     {
       "id": "6UWB2FuHVCwN3LFAxQJSiW",
@@ -1862,7 +2055,8 @@
       "type": "Checkboxes",
       "niche": "HVAC",
       "group": "services",
-      "panel": "services"
+      "panel": "services",
+      "tier": "needed"
     },
     {
       "id": "rz4b4LjDKQLXe38LYtTfv2",
@@ -1871,7 +2065,8 @@
       "section": "Services & Locations",
       "type": "ShortAnswer",
       "niche": "HVAC",
-      "panel": "services"
+      "panel": "services",
+      "tier": "needed"
     },
     {
       "id": "hHavzYtzf3xCn82MduqeE6",
@@ -1880,7 +2075,8 @@
       "section": "Services & Locations",
       "type": "ShortAnswer",
       "niche": "HVAC",
-      "panel": "services"
+      "panel": "services",
+      "tier": "needed"
     },
     {
       "id": "2rgscE6JchjFuqpULMU2o1",
@@ -1889,7 +2085,8 @@
       "section": "Services & Locations",
       "type": "ShortAnswer",
       "niche": "HVAC",
-      "panel": "services"
+      "panel": "services",
+      "tier": "needed"
     },
     {
       "id": "9V5Dto33FbAvmFcBi1wT8e",
@@ -1898,7 +2095,8 @@
       "section": "Services & Locations",
       "type": "AudioRecording",
       "niche": "HVAC",
-      "panel": "services"
+      "panel": "services",
+      "tier": "chase"
     },
     {
       "id": "rzZfH1Wdw8MHC2c4E8DgB5",
@@ -1908,7 +2106,8 @@
       "type": "LongAnswer",
       "niche": "HVAC",
       "optional": true,
-      "panel": "services"
+      "panel": "services",
+      "tier": "optional"
     },
     {
       "id": "a2jckh9uzGvYSK1EseQGQZ",
@@ -1918,7 +2117,8 @@
       "type": "LongAnswer",
       "niche": "HVAC",
       "optional": true,
-      "panel": "services"
+      "panel": "services",
+      "tier": "optional"
     },
     {
       "id": "o6mzXXy7qnvNHN2AUa75kV",
@@ -1928,7 +2128,8 @@
       "type": "Checkboxes",
       "niche": "Electricians",
       "group": "services",
-      "panel": "services"
+      "panel": "services",
+      "tier": "needed"
     },
     {
       "id": "6htvfnTb83E6k8kgTCHReK",
@@ -1938,7 +2139,8 @@
       "type": "Checkboxes",
       "niche": "Electricians",
       "group": "services",
-      "panel": "services"
+      "panel": "services",
+      "tier": "needed"
     },
     {
       "id": "d7q65GVopbuaUBiuoCuV8s",
@@ -1948,7 +2150,8 @@
       "type": "Checkboxes",
       "niche": "Electricians",
       "group": "services",
-      "panel": "services"
+      "panel": "services",
+      "tier": "needed"
     },
     {
       "id": "2hahX7YDzsyxh44P41AbAd",
@@ -1957,7 +2160,8 @@
       "section": "Services & Locations",
       "type": "ShortAnswer",
       "niche": "Electricians",
-      "panel": "services"
+      "panel": "services",
+      "tier": "needed"
     },
     {
       "id": "go27vijoFAVNi8xhhc75o5",
@@ -1966,7 +2170,8 @@
       "section": "Services & Locations",
       "type": "ShortAnswer",
       "niche": "Electricians",
-      "panel": "services"
+      "panel": "services",
+      "tier": "needed"
     },
     {
       "id": "dqsvayt3fg1SseTiD4wqrw",
@@ -1975,7 +2180,8 @@
       "section": "Services & Locations",
       "type": "ShortAnswer",
       "niche": "Electricians",
-      "panel": "services"
+      "panel": "services",
+      "tier": "needed"
     },
     {
       "id": "fXL6QkiUyAtkfhyrTs2Cod",
@@ -1984,7 +2190,8 @@
       "section": "Services & Locations",
       "type": "AudioRecording",
       "niche": "Electricians",
-      "panel": "services"
+      "panel": "services",
+      "tier": "chase"
     },
     {
       "id": "mi9HUxcza75Tpbbx8h6eCg",
@@ -1994,7 +2201,8 @@
       "type": "LongAnswer",
       "niche": "Electricians",
       "optional": true,
-      "panel": "services"
+      "panel": "services",
+      "tier": "optional"
     },
     {
       "id": "de8hgxugdKW3y46gt8TRcb",
@@ -2004,7 +2212,8 @@
       "type": "LongAnswer",
       "niche": "Electricians",
       "optional": true,
-      "panel": "services"
+      "panel": "services",
+      "tier": "optional"
     },
     {
       "id": "8NuQ4HuLJdUA8mnCGpVriK",
@@ -2014,7 +2223,8 @@
       "type": "Checkboxes",
       "niche": "Tree Surgeons",
       "group": "services",
-      "panel": "services"
+      "panel": "services",
+      "tier": "needed"
     },
     {
       "id": "kevv6eQzaoAW6N9jWv2PcM",
@@ -2024,7 +2234,8 @@
       "type": "Checkboxes",
       "niche": "Tree Surgeons",
       "group": "services",
-      "panel": "services"
+      "panel": "services",
+      "tier": "needed"
     },
     {
       "id": "9TQEyrXcPPYhARajUKMSpD",
@@ -2033,7 +2244,8 @@
       "section": "Services & Locations",
       "type": "ShortAnswer",
       "niche": "Tree Surgeons",
-      "panel": "services"
+      "panel": "services",
+      "tier": "needed"
     },
     {
       "id": "onNfK1cnV1orPZ8yFd3Tbu",
@@ -2042,7 +2254,8 @@
       "section": "Services & Locations",
       "type": "ShortAnswer",
       "niche": "Tree Surgeons",
-      "panel": "services"
+      "panel": "services",
+      "tier": "needed"
     },
     {
       "id": "6uHYQQ3dmLFVqtmZDzgnnr",
@@ -2051,7 +2264,8 @@
       "section": "Services & Locations",
       "type": "ShortAnswer",
       "niche": "Tree Surgeons",
-      "panel": "services"
+      "panel": "services",
+      "tier": "needed"
     },
     {
       "id": "qXqaN4XaY1gq4eTdN1fT9U",
@@ -2060,7 +2274,8 @@
       "section": "Services & Locations",
       "type": "AudioRecording",
       "niche": "Tree Surgeons",
-      "panel": "services"
+      "panel": "services",
+      "tier": "chase"
     },
     {
       "id": "dfi6KcJPcVPSWLeMcag31k",
@@ -2070,7 +2285,8 @@
       "type": "LongAnswer",
       "niche": "Tree Surgeons",
       "optional": true,
-      "panel": "services"
+      "panel": "services",
+      "tier": "optional"
     },
     {
       "id": "4DXvZrnWKjwmsZKRUoEhZR",
@@ -2080,7 +2296,8 @@
       "type": "LongAnswer",
       "niche": "Tree Surgeons",
       "optional": true,
-      "panel": "services"
+      "panel": "services",
+      "tier": "optional"
     },
     {
       "id": "wQV5LREiRLpu8mAN294KvR",
@@ -2090,7 +2307,8 @@
       "type": "Checkboxes",
       "niche": "Fencing",
       "group": "services",
-      "panel": "services"
+      "panel": "services",
+      "tier": "needed"
     },
     {
       "id": "99iK1mwnRazsBTjrkUFyKB",
@@ -2100,7 +2318,8 @@
       "type": "Checkboxes",
       "niche": "Fencing",
       "group": "services",
-      "panel": "services"
+      "panel": "services",
+      "tier": "needed"
     },
     {
       "id": "xkcaQ8EAEF6ETX8ehJYPBb",
@@ -2110,7 +2329,8 @@
       "type": "Checkboxes",
       "niche": "Fencing",
       "group": "services",
-      "panel": "services"
+      "panel": "services",
+      "tier": "needed"
     },
     {
       "id": "2xyE7fGHYyMXZAGeWMqcUW",
@@ -2120,7 +2340,8 @@
       "type": "Checkboxes",
       "niche": "Fencing",
       "group": "services",
-      "panel": "services"
+      "panel": "services",
+      "tier": "needed"
     },
     {
       "id": "5HH9Mm1N8YmCSPnpr3LQKz",
@@ -2130,7 +2351,8 @@
       "type": "Checkboxes",
       "niche": "Fencing",
       "group": "services",
-      "panel": "services"
+      "panel": "services",
+      "tier": "needed"
     },
     {
       "id": "eWuRyr7gZqcyLrpj6wccFi",
@@ -2140,7 +2362,8 @@
       "type": "Checkboxes",
       "niche": "Fencing",
       "group": "services",
-      "panel": "services"
+      "panel": "services",
+      "tier": "needed"
     },
     {
       "id": "aFecHvq1jjQ7sEDdbRzrCk",
@@ -2150,7 +2373,8 @@
       "type": "Checkboxes",
       "niche": "Fencing",
       "group": "services",
-      "panel": "services"
+      "panel": "services",
+      "tier": "needed"
     },
     {
       "id": "11Yze74ass37bj6CnyqKoc",
@@ -2160,7 +2384,8 @@
       "type": "Checkboxes",
       "niche": "Fencing",
       "group": "services",
-      "panel": "services"
+      "panel": "services",
+      "tier": "needed"
     },
     {
       "id": "9KLbdYNPZj9a2uQghU85mW",
@@ -2170,7 +2395,8 @@
       "type": "Checkboxes",
       "niche": "Fencing",
       "group": "services",
-      "panel": "services"
+      "panel": "services",
+      "tier": "needed"
     },
     {
       "id": "bJnrQbooYkv9H8YfXEvjQu",
@@ -2179,7 +2405,8 @@
       "section": "Services & Locations",
       "type": "ShortAnswer",
       "niche": "Fencing",
-      "panel": "services"
+      "panel": "services",
+      "tier": "needed"
     },
     {
       "id": "vTkfz3tnwJVCZKoX2igtLq",
@@ -2188,7 +2415,8 @@
       "section": "Services & Locations",
       "type": "ShortAnswer",
       "niche": "Fencing",
-      "panel": "services"
+      "panel": "services",
+      "tier": "needed"
     },
     {
       "id": "gTdPhSRV7oqXxRD1LC85uR",
@@ -2197,7 +2425,8 @@
       "section": "Services & Locations",
       "type": "ShortAnswer",
       "niche": "Fencing",
-      "panel": "services"
+      "panel": "services",
+      "tier": "needed"
     },
     {
       "id": "6xX83kqk9NoNWLS58oNi98",
@@ -2206,7 +2435,8 @@
       "section": "Services & Locations",
       "type": "AudioRecording",
       "niche": "Fencing",
-      "panel": "services"
+      "panel": "services",
+      "tier": "chase"
     },
     {
       "id": "7Co3dZ8KMJoZZWqCG3EjEd",
@@ -2216,7 +2446,8 @@
       "type": "LongAnswer",
       "niche": "Fencing",
       "optional": true,
-      "panel": "services"
+      "panel": "services",
+      "tier": "optional"
     },
     {
       "id": "mP4cJaQ9Z484FrGswUBRz4",
@@ -2226,7 +2457,8 @@
       "type": "LongAnswer",
       "niche": "Fencing",
       "optional": true,
-      "panel": "services"
+      "panel": "services",
+      "tier": "optional"
     },
     {
       "id": "85p75ZDC38GUMGYo1GhGWV",
@@ -2236,7 +2468,8 @@
       "type": "Checkboxes",
       "niche": "Drainage",
       "group": "services",
-      "panel": "services"
+      "panel": "services",
+      "tier": "needed"
     },
     {
       "id": "ji5LGTRtHFiBt4HxuKMFVP",
@@ -2246,7 +2479,8 @@
       "type": "Checkboxes",
       "niche": "Drainage",
       "group": "services",
-      "panel": "services"
+      "panel": "services",
+      "tier": "needed"
     },
     {
       "id": "aXSBh51vwMJL8EvjimvZFR",
@@ -2256,7 +2490,8 @@
       "type": "Checkboxes",
       "niche": "Drainage",
       "group": "services",
-      "panel": "services"
+      "panel": "services",
+      "tier": "needed"
     },
     {
       "id": "wkbeKWighNC5wM5tV4JjZ9",
@@ -2266,7 +2501,8 @@
       "type": "Checkboxes",
       "niche": "Drainage",
       "group": "services",
-      "panel": "services"
+      "panel": "services",
+      "tier": "needed"
     },
     {
       "id": "4DeyKDsLrfyzt9a4X42zps",
@@ -2276,7 +2512,8 @@
       "type": "Checkboxes",
       "niche": "Drainage",
       "group": "services",
-      "panel": "services"
+      "panel": "services",
+      "tier": "needed"
     },
     {
       "id": "kykqFJxacEUTL6YZyN3pNN",
@@ -2286,7 +2523,8 @@
       "type": "Checkboxes",
       "niche": "Drainage",
       "group": "services",
-      "panel": "services"
+      "panel": "services",
+      "tier": "needed"
     },
     {
       "id": "iQhQdoB6vRHgTHoTGJXnhM",
@@ -2295,7 +2533,8 @@
       "section": "Services & Locations",
       "type": "ShortAnswer",
       "niche": "Drainage",
-      "panel": "services"
+      "panel": "services",
+      "tier": "needed"
     },
     {
       "id": "fGuP5JWwaXHzZhrVCRd8FL",
@@ -2304,7 +2543,8 @@
       "section": "Services & Locations",
       "type": "ShortAnswer",
       "niche": "Drainage",
-      "panel": "services"
+      "panel": "services",
+      "tier": "needed"
     },
     {
       "id": "fPxtUebzGFT1RWJt4M4nii",
@@ -2313,7 +2553,8 @@
       "section": "Services & Locations",
       "type": "ShortAnswer",
       "niche": "Drainage",
-      "panel": "services"
+      "panel": "services",
+      "tier": "needed"
     },
     {
       "id": "ey7qfUFK4NtK2T9WBFmFGi",
@@ -2322,7 +2563,8 @@
       "section": "Services & Locations",
       "type": "AudioRecording",
       "niche": "Drainage",
-      "panel": "services"
+      "panel": "services",
+      "tier": "chase"
     },
     {
       "id": "ksaz8EiYC7LK1uUU1rXDSf",
@@ -2332,7 +2574,8 @@
       "type": "LongAnswer",
       "niche": "Drainage",
       "optional": true,
-      "panel": "services"
+      "panel": "services",
+      "tier": "optional"
     },
     {
       "id": "sPP6yWSQMyL2sod4NGrunm",
@@ -2342,7 +2585,8 @@
       "type": "LongAnswer",
       "niche": "Drainage",
       "optional": true,
-      "panel": "services"
+      "panel": "services",
+      "tier": "optional"
     },
     {
       "id": "mwg3HthJSJjrYqk9hpTizE",
@@ -2352,7 +2596,8 @@
       "type": "Checkboxes",
       "niche": "Locksmith",
       "group": "services",
-      "panel": "services"
+      "panel": "services",
+      "tier": "needed"
     },
     {
       "id": "qNQ6GGpG7exURN6zpbt3DX",
@@ -2362,7 +2607,8 @@
       "type": "Checkboxes",
       "niche": "Locksmith",
       "group": "services",
-      "panel": "services"
+      "panel": "services",
+      "tier": "needed"
     },
     {
       "id": "p94i6rj4aVzTo45KmgycjK",
@@ -2372,7 +2618,8 @@
       "type": "Checkboxes",
       "niche": "Locksmith",
       "group": "services",
-      "panel": "services"
+      "panel": "services",
+      "tier": "needed"
     },
     {
       "id": "mJeeTC3y2sZ9DEbKbdE9ev",
@@ -2381,7 +2628,8 @@
       "section": "Services & Locations",
       "type": "ShortAnswer",
       "niche": "Locksmith",
-      "panel": "services"
+      "panel": "services",
+      "tier": "needed"
     },
     {
       "id": "67inyaXsuBz7QSoUVcxbcA",
@@ -2390,7 +2638,8 @@
       "section": "Services & Locations",
       "type": "ShortAnswer",
       "niche": "Locksmith",
-      "panel": "services"
+      "panel": "services",
+      "tier": "needed"
     },
     {
       "id": "pvtrNqTZqYMqaJfidmYGi2",
@@ -2399,7 +2648,8 @@
       "section": "Services & Locations",
       "type": "ShortAnswer",
       "niche": "Locksmith",
-      "panel": "services"
+      "panel": "services",
+      "tier": "needed"
     },
     {
       "id": "fMKLTQzzQevxdhtUTrJzoU",
@@ -2408,7 +2658,8 @@
       "section": "Services & Locations",
       "type": "AudioRecording",
       "niche": "Locksmith",
-      "panel": "services"
+      "panel": "services",
+      "tier": "chase"
     },
     {
       "id": "vwn7x9pSKGatuwYMo2dNPi",
@@ -2418,7 +2669,8 @@
       "type": "LongAnswer",
       "niche": "Locksmith",
       "optional": true,
-      "panel": "services"
+      "panel": "services",
+      "tier": "optional"
     },
     {
       "id": "tdpHZrNEL8ppceagqT78Mp",
@@ -2428,7 +2680,8 @@
       "type": "LongAnswer",
       "niche": "Locksmith",
       "optional": true,
-      "panel": "services"
+      "panel": "services",
+      "tier": "optional"
     },
     {
       "id": "gbMH56nFMkM1CnXqLnoN4B",
@@ -2438,7 +2691,8 @@
       "type": "Checkboxes",
       "niche": "Garage Doors Installs",
       "group": "services",
-      "panel": "services"
+      "panel": "services",
+      "tier": "needed"
     },
     {
       "id": "7xPKWKtWjdF3dTu1XtqQVd",
@@ -2448,7 +2702,8 @@
       "type": "Checkboxes",
       "niche": "Garage Doors Installs",
       "group": "services",
-      "panel": "services"
+      "panel": "services",
+      "tier": "needed"
     },
     {
       "id": "sVohGDthvBKE4GTqPEcV8J",
@@ -2457,7 +2712,8 @@
       "section": "Services & Locations",
       "type": "ShortAnswer",
       "niche": "Garage Doors Installs",
-      "panel": "services"
+      "panel": "services",
+      "tier": "needed"
     },
     {
       "id": "g1Gyiw8TL8CXPQeioBn1sR",
@@ -2466,7 +2722,8 @@
       "section": "Services & Locations",
       "type": "ShortAnswer",
       "niche": "Garage Doors Installs",
-      "panel": "services"
+      "panel": "services",
+      "tier": "needed"
     },
     {
       "id": "o79yXDYsg3UdSfho1FKpTS",
@@ -2475,7 +2732,8 @@
       "section": "Services & Locations",
       "type": "ShortAnswer",
       "niche": "Garage Doors Installs",
-      "panel": "services"
+      "panel": "services",
+      "tier": "needed"
     },
     {
       "id": "mJ4emhEmrsLZq7Ej5ftyQ8",
@@ -2484,7 +2742,8 @@
       "section": "Services & Locations",
       "type": "AudioRecording",
       "niche": "Garage Doors Installs",
-      "panel": "services"
+      "panel": "services",
+      "tier": "chase"
     },
     {
       "id": "9WDPhsShdKSGmt2cFaFUgq",
@@ -2494,7 +2753,8 @@
       "type": "LongAnswer",
       "niche": "Garage Doors Installs",
       "optional": true,
-      "panel": "services"
+      "panel": "services",
+      "tier": "optional"
     },
     {
       "id": "iJuspM37hFNw6DG4ahZ6fb",
@@ -2504,7 +2764,8 @@
       "type": "LongAnswer",
       "niche": "Garage Doors Installs",
       "optional": true,
-      "panel": "services"
+      "panel": "services",
+      "tier": "optional"
     },
     {
       "id": "8LvWrBB9ywh39TvzeQimVH",
@@ -2514,7 +2775,8 @@
       "type": "Checkboxes",
       "niche": "Pressure Washing / Exterior Cleaning",
       "group": "services",
-      "panel": "services"
+      "panel": "services",
+      "tier": "needed"
     },
     {
       "id": "ibGSt4GBag3WPZkM4poYZp",
@@ -2524,7 +2786,8 @@
       "type": "Checkboxes",
       "niche": "Pressure Washing / Exterior Cleaning",
       "group": "services",
-      "panel": "services"
+      "panel": "services",
+      "tier": "needed"
     },
     {
       "id": "po1NXjG6uB4bMeFADcSDzb",
@@ -2534,7 +2797,8 @@
       "type": "Checkboxes",
       "niche": "Pressure Washing / Exterior Cleaning",
       "group": "services",
-      "panel": "services"
+      "panel": "services",
+      "tier": "needed"
     },
     {
       "id": "ucEXcKMMceR72Bxt1Y2AWb",
@@ -2543,7 +2807,8 @@
       "section": "Services & Locations",
       "type": "ShortAnswer",
       "niche": "Pressure Washing / Exterior Cleaning",
-      "panel": "services"
+      "panel": "services",
+      "tier": "needed"
     },
     {
       "id": "f5WiKCLVYBHjQaiPXa7FNt",
@@ -2552,7 +2817,8 @@
       "section": "Services & Locations",
       "type": "ShortAnswer",
       "niche": "Pressure Washing / Exterior Cleaning",
-      "panel": "services"
+      "panel": "services",
+      "tier": "needed"
     },
     {
       "id": "xBaxAR4m1rvwaCAQdawPpk",
@@ -2561,7 +2827,8 @@
       "section": "Services & Locations",
       "type": "ShortAnswer",
       "niche": "Pressure Washing / Exterior Cleaning",
-      "panel": "services"
+      "panel": "services",
+      "tier": "needed"
     },
     {
       "id": "veDVbpmSnEYLSJZ2A6Ncn7",
@@ -2570,7 +2837,8 @@
       "section": "Services & Locations",
       "type": "AudioRecording",
       "niche": "Pressure Washing / Exterior Cleaning",
-      "panel": "services"
+      "panel": "services",
+      "tier": "chase"
     },
     {
       "id": "kBGpFq44aTCh3NwPmdwTBz",
@@ -2580,7 +2848,8 @@
       "type": "LongAnswer",
       "niche": "Pressure Washing / Exterior Cleaning",
       "optional": true,
-      "panel": "services"
+      "panel": "services",
+      "tier": "optional"
     },
     {
       "id": "jHMqGbZYjfJKA5VWtPxGED",
@@ -2590,7 +2859,8 @@
       "type": "LongAnswer",
       "niche": "Pressure Washing / Exterior Cleaning",
       "optional": true,
-      "panel": "services"
+      "panel": "services",
+      "tier": "optional"
     },
     {
       "id": "iZHHtmwGSDJrrxgAc4TtLj",
@@ -2600,7 +2870,8 @@
       "type": "Checkboxes",
       "niche": "Guttering & Fascias",
       "group": "services",
-      "panel": "services"
+      "panel": "services",
+      "tier": "needed"
     },
     {
       "id": "muWaG8CoYxoBYpCt9BvUa8",
@@ -2609,7 +2880,8 @@
       "section": "Services & Locations",
       "type": "ShortAnswer",
       "niche": "Guttering & Fascias",
-      "panel": "services"
+      "panel": "services",
+      "tier": "needed"
     },
     {
       "id": "af8HaY1xaP4XKoGXiDNGj9",
@@ -2618,7 +2890,8 @@
       "section": "Services & Locations",
       "type": "ShortAnswer",
       "niche": "Guttering & Fascias",
-      "panel": "services"
+      "panel": "services",
+      "tier": "needed"
     },
     {
       "id": "fZt8a4rmkJ2YbtmyVm185U",
@@ -2627,7 +2900,8 @@
       "section": "Services & Locations",
       "type": "ShortAnswer",
       "niche": "Guttering & Fascias",
-      "panel": "services"
+      "panel": "services",
+      "tier": "needed"
     },
     {
       "id": "tA7cmdJW4g89Dxxze9uQFn",
@@ -2636,7 +2910,8 @@
       "section": "Services & Locations",
       "type": "AudioRecording",
       "niche": "Guttering & Fascias",
-      "panel": "services"
+      "panel": "services",
+      "tier": "chase"
     },
     {
       "id": "xxcMTQhLyeiHJXGt8KzJMF",
@@ -2646,7 +2921,8 @@
       "type": "LongAnswer",
       "niche": "Guttering & Fascias",
       "optional": true,
-      "panel": "services"
+      "panel": "services",
+      "tier": "optional"
     },
     {
       "id": "5GB9NsjYHXUMRYCiPRcvNJ",
@@ -2656,7 +2932,8 @@
       "type": "Checkboxes",
       "niche": "Pest Control",
       "group": "services",
-      "panel": "services"
+      "panel": "services",
+      "tier": "needed"
     },
     {
       "id": "wWmMsVs87J97TD61SXvnRa",
@@ -2666,7 +2943,8 @@
       "type": "Checkboxes",
       "niche": "Pest Control",
       "group": "services",
-      "panel": "services"
+      "panel": "services",
+      "tier": "needed"
     },
     {
       "id": "vwGtbjA6gnBi7x6GjyW4MD",
@@ -2675,7 +2953,8 @@
       "section": "Services & Locations",
       "type": "ShortAnswer",
       "niche": "Pest Control",
-      "panel": "services"
+      "panel": "services",
+      "tier": "needed"
     },
     {
       "id": "p7AdEM9JKS1f2aMY6E9Nyb",
@@ -2684,7 +2963,8 @@
       "section": "Services & Locations",
       "type": "ShortAnswer",
       "niche": "Pest Control",
-      "panel": "services"
+      "panel": "services",
+      "tier": "needed"
     },
     {
       "id": "kwvWBJrnwgs7WEXYTAhcAL",
@@ -2693,7 +2973,8 @@
       "section": "Services & Locations",
       "type": "ShortAnswer",
       "niche": "Pest Control",
-      "panel": "services"
+      "panel": "services",
+      "tier": "needed"
     },
     {
       "id": "oymGpZx1pFU6WpwERSURVQ",
@@ -2702,7 +2983,8 @@
       "section": "Services & Locations",
       "type": "AudioRecording",
       "niche": "Pest Control",
-      "panel": "services"
+      "panel": "services",
+      "tier": "chase"
     },
     {
       "id": "6ETi5RcYzWUVbSAXSRRiJT",
@@ -2712,7 +2994,8 @@
       "type": "LongAnswer",
       "niche": "Pest Control",
       "optional": true,
-      "panel": "services"
+      "panel": "services",
+      "tier": "optional"
     },
     {
       "id": "nSFqjhnpjrA9vSpFURLTxu",
@@ -2722,7 +3005,8 @@
       "type": "LongAnswer",
       "niche": "Pest Control",
       "optional": true,
-      "panel": "services"
+      "panel": "services",
+      "tier": "optional"
     },
     {
       "id": "sUHDmzaBcie3B7C8JZi8vm",
@@ -2732,7 +3016,8 @@
       "type": "Checkboxes",
       "niche": "Scaffolding",
       "group": "services",
-      "panel": "services"
+      "panel": "services",
+      "tier": "needed"
     },
     {
       "id": "pYhSHf3dr4dpBuPEcGfepu",
@@ -2742,7 +3027,8 @@
       "type": "Checkboxes",
       "niche": "Scaffolding",
       "group": "services",
-      "panel": "services"
+      "panel": "services",
+      "tier": "needed"
     },
     {
       "id": "fjPkS3Rhcc3yFg9Vpn3hAW",
@@ -2751,7 +3037,8 @@
       "section": "Services & Locations",
       "type": "ShortAnswer",
       "niche": "Scaffolding",
-      "panel": "services"
+      "panel": "services",
+      "tier": "needed"
     },
     {
       "id": "9FNRFnc7n5cVwVShpXDwoo",
@@ -2760,7 +3047,8 @@
       "section": "Services & Locations",
       "type": "ShortAnswer",
       "niche": "Scaffolding",
-      "panel": "services"
+      "panel": "services",
+      "tier": "needed"
     },
     {
       "id": "fGmYtSLVDwi7Up7SEvVZcc",
@@ -2769,7 +3057,8 @@
       "section": "Services & Locations",
       "type": "ShortAnswer",
       "niche": "Scaffolding",
-      "panel": "services"
+      "panel": "services",
+      "tier": "needed"
     },
     {
       "id": "cx2Etpwx4uVF2R8346YMc4",
@@ -2778,7 +3067,8 @@
       "section": "Services & Locations",
       "type": "AudioRecording",
       "niche": "Scaffolding",
-      "panel": "services"
+      "panel": "services",
+      "tier": "chase"
     },
     {
       "id": "bKALYURVYSvunbhLevcB5Z",
@@ -2788,7 +3078,8 @@
       "type": "LongAnswer",
       "niche": "Scaffolding",
       "optional": true,
-      "panel": "services"
+      "panel": "services",
+      "tier": "optional"
     },
     {
       "id": "nsJWAuDD3gHWhCKoCxnjFS",
@@ -2798,7 +3089,8 @@
       "type": "LongAnswer",
       "niche": "Scaffolding",
       "optional": true,
-      "panel": "services"
+      "panel": "services",
+      "tier": "optional"
     },
     {
       "id": "74pJruv3AahRePrysHK8YD",
@@ -2808,7 +3100,8 @@
       "type": "Checkboxes",
       "niche": "Window Cleaning",
       "group": "services",
-      "panel": "services"
+      "panel": "services",
+      "tier": "needed"
     },
     {
       "id": "wkZDZHqJXoiwcwCQPYSb7D",
@@ -2818,7 +3111,8 @@
       "type": "Checkboxes",
       "niche": "Window Cleaning",
       "group": "services",
-      "panel": "services"
+      "panel": "services",
+      "tier": "needed"
     },
     {
       "id": "aCsr4qcP9GFJKNURsAVzvs",
@@ -2828,7 +3122,8 @@
       "type": "Checkboxes",
       "niche": "Window Cleaning",
       "group": "services",
-      "panel": "services"
+      "panel": "services",
+      "tier": "needed"
     },
     {
       "id": "3WnqEyLBGvCQrx81DuaFPJ",
@@ -2837,7 +3132,8 @@
       "section": "Services & Locations",
       "type": "ShortAnswer",
       "niche": "Window Cleaning",
-      "panel": "services"
+      "panel": "services",
+      "tier": "needed"
     },
     {
       "id": "wHMBBZo21NDQBqs3cJ6Fyy",
@@ -2846,7 +3142,8 @@
       "section": "Services & Locations",
       "type": "ShortAnswer",
       "niche": "Window Cleaning",
-      "panel": "services"
+      "panel": "services",
+      "tier": "needed"
     },
     {
       "id": "c5dW6aHZNiNnZJkD9do81B",
@@ -2855,7 +3152,8 @@
       "section": "Services & Locations",
       "type": "ShortAnswer",
       "niche": "Window Cleaning",
-      "panel": "services"
+      "panel": "services",
+      "tier": "needed"
     },
     {
       "id": "3dcUaSQtB5EjnHuXdMZNPC",
@@ -2864,7 +3162,8 @@
       "section": "Services & Locations",
       "type": "AudioRecording",
       "niche": "Window Cleaning",
-      "panel": "services"
+      "panel": "services",
+      "tier": "chase"
     },
     {
       "id": "arUZoGQbgVYQHShEN6skAS",
@@ -2874,7 +3173,8 @@
       "type": "LongAnswer",
       "niche": "Window Cleaning",
       "optional": true,
-      "panel": "services"
+      "panel": "services",
+      "tier": "optional"
     },
     {
       "id": "dAorAxKdt9ScTgL6rWcXy2",
@@ -2884,7 +3184,8 @@
       "type": "LongAnswer",
       "niche": "Window Cleaning",
       "optional": true,
-      "panel": "services"
+      "panel": "services",
+      "tier": "optional"
     },
     {
       "id": "b5CxsLzL4wdSBfXKPnbDDU",
@@ -2894,7 +3195,8 @@
       "type": "Checkboxes",
       "niche": "Driveways & Paving",
       "group": "services",
-      "panel": "services"
+      "panel": "services",
+      "tier": "needed"
     },
     {
       "id": "eSpJRFDu9L4LJ2HkMtkfoW",
@@ -2904,7 +3206,8 @@
       "type": "Checkboxes",
       "niche": "Driveways & Paving",
       "group": "services",
-      "panel": "services"
+      "panel": "services",
+      "tier": "needed"
     },
     {
       "id": "cUigBAUEw8d83V15QFCoj2",
@@ -2914,7 +3217,8 @@
       "type": "Checkboxes",
       "niche": "Driveways & Paving",
       "group": "services",
-      "panel": "services"
+      "panel": "services",
+      "tier": "needed"
     },
     {
       "id": "tCRUmFtqxvu1Qx7pN5uDHG",
@@ -2924,7 +3228,8 @@
       "type": "Checkboxes",
       "niche": "Driveways & Paving",
       "group": "services",
-      "panel": "services"
+      "panel": "services",
+      "tier": "needed"
     },
     {
       "id": "3wyuSUXMZhkvn2SoiDQGJJ",
@@ -2933,7 +3238,8 @@
       "section": "Services & Locations",
       "type": "ShortAnswer",
       "niche": "Driveways & Paving",
-      "panel": "services"
+      "panel": "services",
+      "tier": "needed"
     },
     {
       "id": "uHmCdv2HDvuLgkxP8dRBFz",
@@ -2942,7 +3248,8 @@
       "section": "Services & Locations",
       "type": "ShortAnswer",
       "niche": "Driveways & Paving",
-      "panel": "services"
+      "panel": "services",
+      "tier": "needed"
     },
     {
       "id": "rN2d4KjpQD8bWheGD56ewx",
@@ -2951,7 +3258,8 @@
       "section": "Services & Locations",
       "type": "ShortAnswer",
       "niche": "Driveways & Paving",
-      "panel": "services"
+      "panel": "services",
+      "tier": "needed"
     },
     {
       "id": "1fH1kgTMCr5U8njU4KZSjk",
@@ -2960,7 +3268,8 @@
       "section": "Services & Locations",
       "type": "AudioRecording",
       "niche": "Driveways & Paving",
-      "panel": "services"
+      "panel": "services",
+      "tier": "chase"
     },
     {
       "id": "4jvyK2PQtNtKPydLSZWBj2",
@@ -2970,7 +3279,8 @@
       "type": "LongAnswer",
       "niche": "Driveways & Paving",
       "optional": true,
-      "panel": "services"
+      "panel": "services",
+      "tier": "optional"
     },
     {
       "id": "d9wucWzRhR1T4NLxu8yjPU",
@@ -2980,7 +3290,8 @@
       "type": "LongAnswer",
       "niche": "Driveways & Paving",
       "optional": true,
-      "panel": "services"
+      "panel": "services",
+      "tier": "optional"
     },
     {
       "id": "4XKXzEFMNHcS9K8cN73dC4",
@@ -2990,7 +3301,8 @@
       "type": "Checkboxes",
       "niche": "Builders",
       "group": "services",
-      "panel": "services"
+      "panel": "services",
+      "tier": "needed"
     },
     {
       "id": "77YW3MBzCPVJPmz3DY6pcz",
@@ -3000,7 +3312,8 @@
       "type": "Checkboxes",
       "niche": "Builders",
       "group": "services",
-      "panel": "services"
+      "panel": "services",
+      "tier": "needed"
     },
     {
       "id": "wbZvR7UweG1wtjtvzPFyJM",
@@ -3010,7 +3323,8 @@
       "type": "Checkboxes",
       "niche": "Builders",
       "group": "services",
-      "panel": "services"
+      "panel": "services",
+      "tier": "needed"
     },
     {
       "id": "rxPGXd1hpiAwFYLzshJCLc",
@@ -3020,7 +3334,8 @@
       "type": "Checkboxes",
       "niche": "Builders",
       "group": "services",
-      "panel": "services"
+      "panel": "services",
+      "tier": "needed"
     },
     {
       "id": "xiwZuHd4rHztgA2HakK6zj",
@@ -3030,7 +3345,8 @@
       "type": "Checkboxes",
       "niche": "Builders",
       "group": "services",
-      "panel": "services"
+      "panel": "services",
+      "tier": "needed"
     },
     {
       "id": "qrEyCZQq3oDY4Kuc9iXhtT",
@@ -3040,7 +3356,8 @@
       "type": "Checkboxes",
       "niche": "Builders",
       "group": "services",
-      "panel": "services"
+      "panel": "services",
+      "tier": "needed"
     },
     {
       "id": "3XZDZZep8tQ8yGcDUyVEiN",
@@ -3050,7 +3367,8 @@
       "type": "Checkboxes",
       "niche": "Builders",
       "group": "services",
-      "panel": "services"
+      "panel": "services",
+      "tier": "needed"
     },
     {
       "id": "nYkxweECFohDgZY4YqvfZr",
@@ -3060,7 +3378,8 @@
       "type": "Checkboxes",
       "niche": "Builders",
       "group": "services",
-      "panel": "services"
+      "panel": "services",
+      "tier": "needed"
     },
     {
       "id": "9jehRGx6Vc5JcPWzupoXcK",
@@ -3070,7 +3389,8 @@
       "type": "Checkboxes",
       "niche": "Builders",
       "group": "services",
-      "panel": "services"
+      "panel": "services",
+      "tier": "needed"
     },
     {
       "id": "nF5v5QvABWPBaHEaDLZShA",
@@ -3080,7 +3400,8 @@
       "type": "Checkboxes",
       "niche": "Builders",
       "group": "services",
-      "panel": "services"
+      "panel": "services",
+      "tier": "needed"
     },
     {
       "id": "pMjMLPKSuxhPYbNXf2AEGs",
@@ -3090,7 +3411,8 @@
       "type": "Checkboxes",
       "niche": "Builders",
       "group": "services",
-      "panel": "services"
+      "panel": "services",
+      "tier": "needed"
     },
     {
       "id": "6XDsavfJdReBfnk7qEmkPp",
@@ -3100,7 +3422,8 @@
       "type": "Checkboxes",
       "niche": "Builders",
       "group": "services",
-      "panel": "services"
+      "panel": "services",
+      "tier": "needed"
     },
     {
       "id": "6yYsoz3iRUHzErZLi4TnuM",
@@ -3109,7 +3432,8 @@
       "section": "Services & Locations",
       "type": "ShortAnswer",
       "niche": "Builders",
-      "panel": "services"
+      "panel": "services",
+      "tier": "needed"
     },
     {
       "id": "fzj1F745pdrTPAM4ypRJuT",
@@ -3118,7 +3442,8 @@
       "section": "Services & Locations",
       "type": "ShortAnswer",
       "niche": "Builders",
-      "panel": "services"
+      "panel": "services",
+      "tier": "needed"
     },
     {
       "id": "9EroAZK6TLAuyoZmyfiPVn",
@@ -3127,7 +3452,8 @@
       "section": "Services & Locations",
       "type": "ShortAnswer",
       "niche": "Builders",
-      "panel": "services"
+      "panel": "services",
+      "tier": "needed"
     },
     {
       "id": "aDyfJLASnfjmqSdG6gWpSh",
@@ -3136,7 +3462,8 @@
       "section": "Services & Locations",
       "type": "AudioRecording",
       "niche": "Builders",
-      "panel": "services"
+      "panel": "services",
+      "tier": "chase"
     },
     {
       "id": "7BRck5wfbbBpMxCTMeRSh7",
@@ -3146,7 +3473,8 @@
       "type": "LongAnswer",
       "niche": "Builders",
       "optional": true,
-      "panel": "services"
+      "panel": "services",
+      "tier": "optional"
     },
     {
       "id": "kqeshgqLT4BytPhD1byU3y",
@@ -3156,7 +3484,8 @@
       "type": "LongAnswer",
       "niche": "Builders",
       "optional": true,
-      "panel": "services"
+      "panel": "services",
+      "tier": "optional"
     },
     {
       "id": "jjX6d3c1DAAKoz1VpJ5ieJ",
@@ -3166,7 +3495,8 @@
       "type": "Checkboxes",
       "niche": "Kitchen/Bathroom Fitters",
       "group": "services",
-      "panel": "services"
+      "panel": "services",
+      "tier": "needed"
     },
     {
       "id": "rGk84WZEaxzrV8AqCbU8Lo",
@@ -3176,7 +3506,8 @@
       "type": "Checkboxes",
       "niche": "Kitchen/Bathroom Fitters",
       "group": "services",
-      "panel": "services"
+      "panel": "services",
+      "tier": "needed"
     },
     {
       "id": "iTAUTiWJ8JQTi464srszyE",
@@ -3186,7 +3517,8 @@
       "type": "Checkboxes",
       "niche": "Kitchen/Bathroom Fitters",
       "group": "services",
-      "panel": "services"
+      "panel": "services",
+      "tier": "needed"
     },
     {
       "id": "m7he8EXs693RgqHMyHM5qM",
@@ -3196,7 +3528,8 @@
       "type": "Checkboxes",
       "niche": "Kitchen/Bathroom Fitters",
       "group": "services",
-      "panel": "services"
+      "panel": "services",
+      "tier": "needed"
     },
     {
       "id": "3Wq6BQaiS6tt2WrpSJApAm",
@@ -3205,7 +3538,8 @@
       "section": "Services & Locations",
       "type": "ShortAnswer",
       "niche": "Kitchen/Bathroom Fitters",
-      "panel": "services"
+      "panel": "services",
+      "tier": "needed"
     },
     {
       "id": "cc6u9WQzePDv9kcx5srhVc",
@@ -3214,7 +3548,8 @@
       "section": "Services & Locations",
       "type": "ShortAnswer",
       "niche": "Kitchen/Bathroom Fitters",
-      "panel": "services"
+      "panel": "services",
+      "tier": "needed"
     },
     {
       "id": "aZfHS7i3kUnS2cDvmjHghS",
@@ -3223,7 +3558,8 @@
       "section": "Services & Locations",
       "type": "ShortAnswer",
       "niche": "Kitchen/Bathroom Fitters",
-      "panel": "services"
+      "panel": "services",
+      "tier": "needed"
     },
     {
       "id": "x8SqGLgNNwkP1wR6vpFRNa",
@@ -3232,7 +3568,8 @@
       "section": "Services & Locations",
       "type": "AudioRecording",
       "niche": "Kitchen/Bathroom Fitters",
-      "panel": "services"
+      "panel": "services",
+      "tier": "chase"
     },
     {
       "id": "6AzY94jdrEPVuuZRZSjAJp",
@@ -3242,7 +3579,8 @@
       "type": "LongAnswer",
       "niche": "Kitchen/Bathroom Fitters",
       "optional": true,
-      "panel": "services"
+      "panel": "services",
+      "tier": "optional"
     },
     {
       "id": "duriHLt94rwtKTeHnsgYeY",
@@ -3252,7 +3590,8 @@
       "type": "LongAnswer",
       "niche": "Kitchen/Bathroom Fitters",
       "optional": true,
-      "panel": "services"
+      "panel": "services",
+      "tier": "optional"
     },
     {
       "id": "52EUT6RyxM4rYwkGebjt5R",
@@ -3262,7 +3601,8 @@
       "type": "Checkboxes",
       "niche": "Loft Conversions / Extensions",
       "group": "services",
-      "panel": "services"
+      "panel": "services",
+      "tier": "needed"
     },
     {
       "id": "jTxMaTnikWZvcpbb63GsDv",
@@ -3272,7 +3612,8 @@
       "type": "Checkboxes",
       "niche": "Loft Conversions / Extensions",
       "group": "services",
-      "panel": "services"
+      "panel": "services",
+      "tier": "needed"
     },
     {
       "id": "wgH4KWMB6v6bLXHAffypDr",
@@ -3282,7 +3623,8 @@
       "type": "Checkboxes",
       "niche": "Loft Conversions / Extensions",
       "group": "services",
-      "panel": "services"
+      "panel": "services",
+      "tier": "needed"
     },
     {
       "id": "nto87vTaQAj1GPRttwGaDg",
@@ -3292,7 +3634,8 @@
       "type": "Checkboxes",
       "niche": "Loft Conversions / Extensions",
       "group": "services",
-      "panel": "services"
+      "panel": "services",
+      "tier": "needed"
     },
     {
       "id": "qJ7fwJd9deHdiEZ3KuvoPy",
@@ -3302,7 +3645,8 @@
       "type": "Checkboxes",
       "niche": "Loft Conversions / Extensions",
       "group": "services",
-      "panel": "services"
+      "panel": "services",
+      "tier": "needed"
     },
     {
       "id": "qvWCmF2MAhUiCoTdvS9VwN",
@@ -3312,7 +3656,8 @@
       "type": "Checkboxes",
       "niche": "Loft Conversions / Extensions",
       "group": "services",
-      "panel": "services"
+      "panel": "services",
+      "tier": "needed"
     },
     {
       "id": "cSb9rgMbwSdkPh8iFSN7CT",
@@ -3322,7 +3667,8 @@
       "type": "Checkboxes",
       "niche": "Loft Conversions / Extensions",
       "group": "services",
-      "panel": "services"
+      "panel": "services",
+      "tier": "needed"
     },
     {
       "id": "r2YeW2YXBhEfpk3nBDigh9",
@@ -3331,7 +3677,8 @@
       "section": "Services & Locations",
       "type": "ShortAnswer",
       "niche": "Loft Conversions / Extensions",
-      "panel": "services"
+      "panel": "services",
+      "tier": "needed"
     },
     {
       "id": "e9upX9r4myyoY3mjnYYK2T",
@@ -3340,7 +3687,8 @@
       "section": "Services & Locations",
       "type": "ShortAnswer",
       "niche": "Loft Conversions / Extensions",
-      "panel": "services"
+      "panel": "services",
+      "tier": "needed"
     },
     {
       "id": "f1FPqVtWMQ1b31YjVrXoNw",
@@ -3349,7 +3697,8 @@
       "section": "Services & Locations",
       "type": "ShortAnswer",
       "niche": "Loft Conversions / Extensions",
-      "panel": "services"
+      "panel": "services",
+      "tier": "needed"
     },
     {
       "id": "qtPUoSofFwTr7GoVRNPTHt",
@@ -3358,7 +3707,8 @@
       "section": "Services & Locations",
       "type": "AudioRecording",
       "niche": "Loft Conversions / Extensions",
-      "panel": "services"
+      "panel": "services",
+      "tier": "chase"
     },
     {
       "id": "ifEeGh62mMgV56wHJpgJBa",
@@ -3368,7 +3718,8 @@
       "type": "LongAnswer",
       "niche": "Loft Conversions / Extensions",
       "optional": true,
-      "panel": "services"
+      "panel": "services",
+      "tier": "optional"
     },
     {
       "id": "nsLGh9YVooRNmka3dGANXv",
@@ -3378,7 +3729,8 @@
       "type": "LongAnswer",
       "niche": "Loft Conversions / Extensions",
       "optional": true,
-      "panel": "services"
+      "panel": "services",
+      "tier": "optional"
     },
     {
       "id": "xfGu3mHCCJqAyCSWX1uEvV",
@@ -3388,7 +3740,8 @@
       "type": "Checkboxes",
       "niche": "Painters & Decorators",
       "group": "services",
-      "panel": "services"
+      "panel": "services",
+      "tier": "needed"
     },
     {
       "id": "8zo2v27LTmYLrEhYZkU3MN",
@@ -3398,7 +3751,8 @@
       "type": "Checkboxes",
       "niche": "Painters & Decorators",
       "group": "services",
-      "panel": "services"
+      "panel": "services",
+      "tier": "needed"
     },
     {
       "id": "j3knj7syvJBNtTGQr3amGj",
@@ -3408,7 +3762,8 @@
       "type": "Checkboxes",
       "niche": "Painters & Decorators",
       "group": "services",
-      "panel": "services"
+      "panel": "services",
+      "tier": "needed"
     },
     {
       "id": "voBBfqkcgYgRudiBb4wiYq",
@@ -3417,7 +3772,8 @@
       "section": "Services & Locations",
       "type": "ShortAnswer",
       "niche": "Painters & Decorators",
-      "panel": "services"
+      "panel": "services",
+      "tier": "needed"
     },
     {
       "id": "sBxcuf6uwqiXE6bvHNrrio",
@@ -3426,7 +3782,8 @@
       "section": "Services & Locations",
       "type": "ShortAnswer",
       "niche": "Painters & Decorators",
-      "panel": "services"
+      "panel": "services",
+      "tier": "needed"
     },
     {
       "id": "p43vUU3QBFXku6kqYSVu7j",
@@ -3435,7 +3792,8 @@
       "section": "Services & Locations",
       "type": "ShortAnswer",
       "niche": "Painters & Decorators",
-      "panel": "services"
+      "panel": "services",
+      "tier": "needed"
     },
     {
       "id": "q2kQo7s5nNSRtWKpUfhRJS",
@@ -3444,7 +3802,8 @@
       "section": "Services & Locations",
       "type": "AudioRecording",
       "niche": "Painters & Decorators",
-      "panel": "services"
+      "panel": "services",
+      "tier": "chase"
     },
     {
       "id": "oZ16mHtsQuQHkP1E9JJXh9",
@@ -3454,7 +3813,8 @@
       "type": "LongAnswer",
       "niche": "Painters & Decorators",
       "optional": true,
-      "panel": "services"
+      "panel": "services",
+      "tier": "optional"
     },
     {
       "id": "25tCgfwTXVReehgLEedeGv",
@@ -3464,7 +3824,8 @@
       "type": "LongAnswer",
       "niche": "Painters & Decorators",
       "optional": true,
-      "panel": "services"
+      "panel": "services",
+      "tier": "optional"
     },
     {
       "id": "jvXHPEvL8daeKm1Bona6os",
@@ -3474,7 +3835,8 @@
       "type": "Checkboxes",
       "niche": "Flooring Fitters (carpet/laminate/LVT)",
       "group": "services",
-      "panel": "services"
+      "panel": "services",
+      "tier": "needed"
     },
     {
       "id": "4KuM15Szap4kZujyXaTtNK",
@@ -3484,7 +3846,8 @@
       "type": "Checkboxes",
       "niche": "Flooring Fitters (carpet/laminate/LVT)",
       "group": "services",
-      "panel": "services"
+      "panel": "services",
+      "tier": "needed"
     },
     {
       "id": "1YJXT3tk45DX4wgqpte9vD",
@@ -3494,7 +3857,8 @@
       "type": "Checkboxes",
       "niche": "Flooring Fitters (carpet/laminate/LVT)",
       "group": "services",
-      "panel": "services"
+      "panel": "services",
+      "tier": "needed"
     },
     {
       "id": "qpigiQfUeAmMn3eFQ8WwPT",
@@ -3503,7 +3867,8 @@
       "section": "Services & Locations",
       "type": "ShortAnswer",
       "niche": "Flooring Fitters (carpet/laminate/LVT)",
-      "panel": "services"
+      "panel": "services",
+      "tier": "needed"
     },
     {
       "id": "jJf85UuTcsKXxHKNrzurw5",
@@ -3512,7 +3877,8 @@
       "section": "Services & Locations",
       "type": "ShortAnswer",
       "niche": "Flooring Fitters (carpet/laminate/LVT)",
-      "panel": "services"
+      "panel": "services",
+      "tier": "needed"
     },
     {
       "id": "2BgNgrP3Vp2z571bmumT52",
@@ -3521,7 +3887,8 @@
       "section": "Services & Locations",
       "type": "ShortAnswer",
       "niche": "Flooring Fitters (carpet/laminate/LVT)",
-      "panel": "services"
+      "panel": "services",
+      "tier": "needed"
     },
     {
       "id": "f5NESmtZG1aB9TND6yRu8A",
@@ -3530,7 +3897,8 @@
       "section": "Services & Locations",
       "type": "AudioRecording",
       "niche": "Flooring Fitters (carpet/laminate/LVT)",
-      "panel": "services"
+      "panel": "services",
+      "tier": "chase"
     },
     {
       "id": "cf6q2pPzNQTPiseiKJ9CrW",
@@ -3540,7 +3908,8 @@
       "type": "LongAnswer",
       "niche": "Flooring Fitters (carpet/laminate/LVT)",
       "optional": true,
-      "panel": "services"
+      "panel": "services",
+      "tier": "optional"
     },
     {
       "id": "fxUdidAyQnRQs1b6uXWWf9",
@@ -3550,7 +3919,8 @@
       "type": "LongAnswer",
       "niche": "Flooring Fitters (carpet/laminate/LVT)",
       "optional": true,
-      "panel": "services"
+      "panel": "services",
+      "tier": "optional"
     },
     {
       "id": "sRt2b5VoHUP8CGQviidUnL",
@@ -3560,7 +3930,8 @@
       "type": "Checkboxes",
       "niche": "Tiling",
       "group": "services",
-      "panel": "services"
+      "panel": "services",
+      "tier": "needed"
     },
     {
       "id": "jPAGm7LShKMFoHM6RwgN91",
@@ -3569,7 +3940,8 @@
       "section": "Services & Locations",
       "type": "ShortAnswer",
       "niche": "Tiling",
-      "panel": "services"
+      "panel": "services",
+      "tier": "needed"
     },
     {
       "id": "7GeBz8PZJ5qFCxtKkbEjF1",
@@ -3578,7 +3950,8 @@
       "section": "Services & Locations",
       "type": "ShortAnswer",
       "niche": "Tiling",
-      "panel": "services"
+      "panel": "services",
+      "tier": "needed"
     },
     {
       "id": "cJoigNd8XjqiPLHC4o9Zpy",
@@ -3587,7 +3960,8 @@
       "section": "Services & Locations",
       "type": "ShortAnswer",
       "niche": "Tiling",
-      "panel": "services"
+      "panel": "services",
+      "tier": "needed"
     },
     {
       "id": "5ydqTUDtExS8UJrZSKN9oA",
@@ -3596,7 +3970,8 @@
       "section": "Services & Locations",
       "type": "AudioRecording",
       "niche": "Tiling",
-      "panel": "services"
+      "panel": "services",
+      "tier": "chase"
     },
     {
       "id": "g4wB2wwLUzLNm1PzYysDyT",
@@ -3606,7 +3981,8 @@
       "type": "LongAnswer",
       "niche": "Tiling",
       "optional": true,
-      "panel": "services"
+      "panel": "services",
+      "tier": "optional"
     },
     {
       "id": "qeuf",
@@ -3616,7 +3992,8 @@
       "type": "LongAnswer",
       "niche": "Tiling",
       "optional": true,
-      "panel": "services"
+      "panel": "services",
+      "tier": "optional"
     },
     {
       "id": "t2ww5t1HgPxVbKLC16ebAx",
@@ -3626,7 +4003,8 @@
       "type": "Checkboxes",
       "niche": "Blinds & Curtains Fitters",
       "group": "services",
-      "panel": "services"
+      "panel": "services",
+      "tier": "needed"
     },
     {
       "id": "bFj3RQbqx1j3sDsMjT7vXb",
@@ -3636,7 +4014,8 @@
       "type": "Checkboxes",
       "niche": "Blinds & Curtains Fitters",
       "group": "services",
-      "panel": "services"
+      "panel": "services",
+      "tier": "needed"
     },
     {
       "id": "5XkzfKmdadSUSeF3ACeGBM",
@@ -3646,7 +4025,8 @@
       "type": "Checkboxes",
       "niche": "Blinds & Curtains Fitters",
       "group": "services",
-      "panel": "services"
+      "panel": "services",
+      "tier": "needed"
     },
     {
       "id": "6w6xnbQKSCe9VEfTtFy45v",
@@ -3655,7 +4035,8 @@
       "section": "Services & Locations",
       "type": "ShortAnswer",
       "niche": "Blinds & Curtains Fitters",
-      "panel": "services"
+      "panel": "services",
+      "tier": "needed"
     },
     {
       "id": "9o7GCTtMorzkoieusJ8fRE",
@@ -3664,7 +4045,8 @@
       "section": "Services & Locations",
       "type": "ShortAnswer",
       "niche": "Blinds & Curtains Fitters",
-      "panel": "services"
+      "panel": "services",
+      "tier": "needed"
     },
     {
       "id": "xmtMprBsqMh4e1nDsUUy3z",
@@ -3673,7 +4055,8 @@
       "section": "Services & Locations",
       "type": "ShortAnswer",
       "niche": "Blinds & Curtains Fitters",
-      "panel": "services"
+      "panel": "services",
+      "tier": "needed"
     },
     {
       "id": "kAmTKEjifQX7wi1Kg8gSN3",
@@ -3682,7 +4065,8 @@
       "section": "Services & Locations",
       "type": "AudioRecording",
       "niche": "Blinds & Curtains Fitters",
-      "panel": "services"
+      "panel": "services",
+      "tier": "chase"
     },
     {
       "id": "qPcHeqNeRbey4rPVnZF5L2",
@@ -3692,7 +4076,8 @@
       "type": "LongAnswer",
       "niche": "Blinds & Curtains Fitters",
       "optional": true,
-      "panel": "services"
+      "panel": "services",
+      "tier": "optional"
     },
     {
       "id": "aN2XVgYyvZwLbdcADxN4bX",
@@ -3702,7 +4087,8 @@
       "type": "LongAnswer",
       "niche": "Blinds & Curtains Fitters",
       "optional": true,
-      "panel": "services"
+      "panel": "services",
+      "tier": "optional"
     },
     {
       "id": "x6PtaD17KqFTGMuAvzBUna",
@@ -3712,7 +4098,8 @@
       "type": "Checkboxes",
       "niche": "Removals Company",
       "group": "services",
-      "panel": "services"
+      "panel": "services",
+      "tier": "needed"
     },
     {
       "id": "pCQBZKrebc87VFmpMWqnVp",
@@ -3722,7 +4109,8 @@
       "type": "Checkboxes",
       "niche": "Removals Company",
       "group": "services",
-      "panel": "services"
+      "panel": "services",
+      "tier": "needed"
     },
     {
       "id": "ojLmLEYP7NhG7wAzSqiy58",
@@ -3732,7 +4120,8 @@
       "type": "Checkboxes",
       "niche": "Removals Company",
       "group": "services",
-      "panel": "services"
+      "panel": "services",
+      "tier": "needed"
     },
     {
       "id": "w6ujnWNDRbaRajPVTUXJw1",
@@ -3742,7 +4131,8 @@
       "type": "Checkboxes",
       "niche": "Removals Company",
       "group": "services",
-      "panel": "services"
+      "panel": "services",
+      "tier": "needed"
     },
     {
       "id": "cvrAiep2aj34PhfCjubDxH",
@@ -3751,7 +4141,8 @@
       "section": "Services & Locations",
       "type": "ShortAnswer",
       "niche": "Removals Company",
-      "panel": "services"
+      "panel": "services",
+      "tier": "needed"
     },
     {
       "id": "3HZy7sSX63fDD4LERZUg8W",
@@ -3760,7 +4151,8 @@
       "section": "Services & Locations",
       "type": "ShortAnswer",
       "niche": "Removals Company",
-      "panel": "services"
+      "panel": "services",
+      "tier": "needed"
     },
     {
       "id": "6N7U8t3bME84nNW5k4wH7N",
@@ -3769,7 +4161,8 @@
       "section": "Services & Locations",
       "type": "ShortAnswer",
       "niche": "Removals Company",
-      "panel": "services"
+      "panel": "services",
+      "tier": "needed"
     },
     {
       "id": "rqrDfue7MQVkQ47gjgT7Va",
@@ -3778,7 +4171,8 @@
       "section": "Services & Locations",
       "type": "AudioRecording",
       "niche": "Removals Company",
-      "panel": "services"
+      "panel": "services",
+      "tier": "chase"
     },
     {
       "id": "75YcpA4sxRbrmDsqGEAqp3",
@@ -3788,7 +4182,8 @@
       "type": "LongAnswer",
       "niche": "Removals Company",
       "optional": true,
-      "panel": "services"
+      "panel": "services",
+      "tier": "optional"
     },
     {
       "id": "p2XPeoGGfD511JQsbDNne6",
@@ -3798,7 +4193,8 @@
       "type": "LongAnswer",
       "niche": "Removals Company",
       "optional": true,
-      "panel": "services"
+      "panel": "services",
+      "tier": "optional"
     }
   ],
   "_generated": {
@@ -3871,5 +4267,10 @@
       "group": "Trust & proof",
       "description": "Social profiles, directories and where reviews live today."
     }
-  ]
+  ],
+  "tiers": {
+    "needed": "CopyBot cannot build a correct page without it",
+    "chase": "Worth chasing: the copy is better with it",
+    "optional": "Never counted; shown when given"
+  }
 }

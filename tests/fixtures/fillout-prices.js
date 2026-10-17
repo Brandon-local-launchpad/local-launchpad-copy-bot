@@ -119,24 +119,24 @@ const T3 = "Emergency call outs are forty five pounds an hour. Full rewires are 
     chk('1. Boiler replacement and repair typical only', by['Boiler replacement'].typical_gbp === 600 && by['Boiler replacement'].from_gbp === null && by['Boiler repair'].typical_gbp === 300 && by['Boiler repair'].up_to_gbp === null, '', '');
     chk('1. Every number traced to the transcript: nothing unverified; all rows source transcript', v.prices.rows.every(r => r.unverified === false && r.source === 'transcript'), JSON.stringify(v.prices.rows.map(r => [r.service, r.unverified])), 'all verified');
     chk('1. Transcript shown beside the rows; "Inferred value" flag; no "No prices given"', v.prices.transcript === T1 && v.prices.flags.some(f => f.code === 'inferred') && !v.prices.flags.some(f => f.code === 'no_prices'), JSON.stringify(v.prices.flags), '');
-    chk('1. Prices unit filled: 47 of 70 (46 fields + prices)', v.completeness.expected === 70 && v.completeness.filled === 47, JSON.stringify(v.completeness), '47 of 70');
+    chk('1. Prices unit filled: needed 17 of 18 (fee blank, prices filled)', v.completeness.needed.filled === 17 && v.completeness.needed.total === 18, JSON.stringify(v.completeness.needed), '17/18');
 
     // ── 6. Most-wanted matching ──
     chk('6. "Boiler repair" row matched to most-wanted job 1 "Boiler repairs"', by['Boiler repair'].matched_to && by['Boiler repair'].matched_to.key === 'most_wanted_job_1' && by['Boiler repair'].matched_to.value === 'Boiler repairs', JSON.stringify(by['Boiler repair'].matched_to), 'most_wanted_job_1');
     const mwFlags = v.prices.flags.filter(f => f.code === 'most_wanted_no_price');
     chk('6. Most-wanted jobs 2 and 3 flagged as having no price; job 1 not', mwFlags.length === 2 && mwFlags.every(f => ['most_wanted_job_2', 'most_wanted_job_3'].includes(f.key)) && v.warnings.mostWantedWithoutPrice === 2, JSON.stringify(mwFlags), '2 flags');
     const inbox1 = (await json(await req('GET', '/api/fillout/submissions'))).submissions.find(s => s.submissionId === 'p-0001');
-    chk('6. Inbox carries the warning count outside the score and the prices state', inbox1.prices.status === 'done' && inbox1.prices.rows === 5 && inbox1.prices.warnings.mostWantedWithoutPrice === 2 && inbox1.completeness.filled === 47, JSON.stringify(inbox1.prices), '');
+    chk('6. Inbox carries the warning count outside the score and the prices state', inbox1.prices.status === 'done' && inbox1.prices.rows === 5 && inbox1.prices.warnings.mostWantedWithoutPrice === 2 && inbox1.completeness.needed.filled === 17 && inbox1.completeness.pct === 94, JSON.stringify([inbox1.prices, inbox1.completeness]), '');
 
     // ── 2. No usable prices ──
     replies.push(reply([]));
     const c2 = await submit('p-0002', 'Vague Plumbing', T2);
     v = await view(c2);
     chk('2. Zero rows, "No prices given" flag, submission processed', v.prices.state.status === 'done' && v.prices.rows.length === 0 && v.prices.flags.some(f => f.code === 'no_prices') && (await pool.query(`SELECT status FROM fillout_submissions WHERE submission_id = 'p-0002'`)).rows[0].status === 'processed', JSON.stringify(v.prices), 'no_prices');
-    chk('2. Prices unit blank: 46 of 70', v.completeness.expected === 70 && v.completeness.filled === 46, JSON.stringify(v.completeness), '46 of 70');
+    chk('2. Prices unit blank: needed 16 of 18', v.completeness.needed.filled === 16 && v.completeness.needed.total === 18, JSON.stringify(v.completeness.needed), '16/18');
     await req('PUT', `/api/clients/${c2}/prices/not-applicable`, { value: true });
     v = await view(c2);
-    chk('2. Marked not applicable by the VA: prices unit filled, state not_applicable', v.prices.state.status === 'not_applicable' && v.completeness.filled === 47 && !v.prices.flags.some(f => f.code === 'no_prices'), JSON.stringify([v.prices.state.status, v.completeness.filled]), '["not_applicable",47]');
+    chk('2. Marked not applicable by the VA: prices unit filled, state not_applicable', v.prices.state.status === 'not_applicable' && v.completeness.needed.filled === 17 && !v.prices.flags.some(f => f.code === 'no_prices'), JSON.stringify([v.prices.state.status, v.completeness.needed]), '["not_applicable",17]');
 
     // ── 3. Quote only and per hour ──
     replies.push(reply([{ service: 'Emergency call outs', typical_gbp: 45, unit: 'per hour' }, { service: 'Full rewires', quote_only: true, what_moves_price: 'every house is different' }]));
@@ -191,7 +191,7 @@ const T3 = "Emergency call outs are forty five pounds an hour. Full rewires are 
     const c7 = await submit('p-0007', 'Failing Plumbing', T1);
     v = await view(c7);
     chk('7. Model failure: state extraction_failed with the reason; submission still processed', v.prices.state.status === 'extraction_failed' && /model down/.test(v.prices.state.error) && (await pool.query(`SELECT status FROM fillout_submissions WHERE submission_id = 'p-0007'`)).rows[0].status === 'processed', JSON.stringify(v.prices.state), 'extraction_failed');
-    chk('7. Prices unit blank while failed', v.completeness.filled === 46, v.completeness.filled, 46);
+    chk('7. Prices unit blank while failed', v.completeness.needed.filled === 16, v.completeness.needed.filled, 16);
     replies.push(reply([{ service: 'Boiler repair', typical_gbp: 300 }]));
     r = await req('POST', `/api/clients/${c7}/prices/extract`);
     const retried = await json(r);

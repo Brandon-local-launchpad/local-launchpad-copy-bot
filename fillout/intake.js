@@ -15,6 +15,7 @@ const path = require('path');
 const crypto = require('crypto');
 
 const MAP_PATH = path.join(__dirname, 'field-map.json');
+const TIERS = ['needed', 'chase', 'optional'];
 
 function loadFieldMap(file = MAP_PATH) {
   const map = JSON.parse(fs.readFileSync(file, 'utf8'));
@@ -24,7 +25,12 @@ function loadFieldMap(file = MAP_PATH) {
     // An entry is found by id, or by position (the question directly between two known ids)
     // when its id isn't known yet; see resolveQuestion
     const positioned = f.position && f.position.after && f.position.before;
-    if ((!f.id && !positioned) || !f.key || !f.section || !f.niche) throw new Error(`field map: entry missing id (or position), key, section or niche: ${JSON.stringify(f)}`);
+    // manual: a field with no Fillout question, set only on the record page (photos_received)
+    if ((!f.id && !positioned && !f.manual) || !f.key || !f.section || !f.niche) throw new Error(`field map: entry missing id (or position), key, section or niche: ${JSON.stringify(f)}`);
+    // tier: needed (CopyBot can't build without it), chase (worth chasing), optional (never counted)
+    if (!TIERS.includes(f.tier)) throw new Error(`field map: ${f.key} has no tier (needed, chase or optional): ${f.tier}`);
+    if (/\(optional\)/i.test(f.label || '') && f.tier !== 'optional') throw new Error(`field map: ${f.key} is labelled "(optional)" so its tier must be optional, not ${f.tier}`);
+    if (!!f.optional !== (f.tier === 'optional')) throw new Error(`field map: ${f.key} has optional ${!!f.optional} but tier ${f.tier}; keep them in step`);
     // panel: where the record page shows the field (map.panels); section stays the form page
     if (!f.panel || !(map.panels || []).some(p => p.key === f.panel)) throw new Error(`field map: ${f.key} has no panel, or one not listed under panels: ${f.panel}`);
     // expectedWhen: {field, in: [...]} makes the field count only when another field holds one of those values
@@ -133,13 +139,14 @@ function buildRecord(payload, map) {
   const byId = questionsById(payload);
   const niche = detectNiche(payload, map);
   const nicheKnown = !!(niche && map.niches[niche]);
-  const fields = fieldsForNiche(map, niche).map(f => {
+  // Manual-only fields (no Fillout question) are never read from a submission
+  const fields = fieldsForNiche(map, niche).filter(f => !f.manual).map(f => {
     const q = resolveQuestion(payload, f);
     const value = q ? q.value : null;
     const blank = isBlank(value);
     return {
       key: f.key, id: q ? q.id : f.id, label: f.label || stripSuffix(q && q.name), section: f.section, type: f.type, niche: f.niche,
-      group: f.group || null, optional: !!f.optional, expectedWhen: f.expectedWhen || null,
+      group: f.group || null, optional: !!f.optional, tier: f.tier, expectedWhen: f.expectedWhen || null,
       value: blank ? null : value, status: blank ? 'blank' : 'filled', present: !!q,
     };
   });
@@ -170,33 +177,48 @@ function markApplicable(fields) {
 }
 
 // Completeness counts units, not fields: fields that share a `group` (a voice
-// and typed pair, the five accreditation triples) are one unit, filled if any of
-// them is. Units whose fields are all `optional` are left out of the expected
-// count and reported as optional filled. Headline = filled / expected.
+// and typed pair, the five accreditation triples, a niche's service ticks) are one
+// unit, filled if any of them is. A unit's tier is the strongest of its fields'
+// (needed over chase over optional). Two scores: Ready to build = needed units
+// filled / needed units; Worth chasing = chase units filled / chase units.
+// Optional units are counted separately and never score. Not-applicable fields
+// (expectedWhen unmet) are left out altogether.
+const TIER_RANK = { needed: 0, chase: 1, optional: 2 };
+const tierOf = f => (TIERS.includes(f.tier) ? f.tier : f.optional ? 'optional' : 'chase');
+
 function completeness(fields) {
   const units = new Map();
   fields.forEach((f, i) => {
-    if (f.applicable === false) return; // not applicable: neither expected nor optional
+    if (f.applicable === false) return;
     const id = f.group || `field:${f.key || i}`;
-    const u = units.get(id) || { optional: true, filled: false, keys: [] };
-    if (!f.optional) u.optional = false;
+    const u = units.get(id) || { tier: 'optional', filled: false, keys: [] };
+    const t = tierOf(f);
+    if (TIER_RANK[t] < TIER_RANK[u.tier]) u.tier = t;
     if (f.status === 'filled') u.filled = true;
     u.keys.push(f.key);
     units.set(id, u);
   });
   const all = [...units.values()];
-  const expected = all.filter(u => !u.optional);
-  const optional = all.filter(u => u.optional);
-  const filled = expected.filter(u => u.filled).length;
+  const count = tier => { const us = all.filter(u => u.tier === tier); return { filled: us.filter(u => u.filled).length, total: us.length }; };
+  const needed = count('needed'), chase = count('chase'), optional = count('optional');
   return {
-    filled, expected: expected.length, pct: expected.length ? Math.round((filled / expected.length) * 100) : 0,
-    optionalFilled: optional.filter(u => u.filled).length, optionalTotal: optional.length,
+    needed, chase, optional,
+    pct: needed.total ? Math.round((needed.filled / needed.total) * 100) : 100,
     notApplicable: fields.filter(f => f.applicable === false).length,
     fields: fields.filter(f => !f.synthetic).length, // units added by code (prices) are not form fields
   };
 }
 
+// Dot colour for a set of fields: red = a needed unit missing; amber = needed done, a
+// chase unit missing; green = needed and chase done; grey = only optional units
+function status(c) {
+  if (c.needed.filled < c.needed.total) return 'missing';
+  if (c.chase.filled < c.chase.total) return 'chase';
+  if (c.needed.total || c.chase.total) return 'complete';
+  return 'none';
+}
+
 module.exports = {
   MAP_PATH, loadFieldMap, stripSuffix, isBlank, norm, secretMatches, secretFromRequest,
-  questionsById, resolveQuestion, applies, markApplicable, submissionId, detectNiche, fieldsForNiche, buildRecord, isAudioField, completeness,
+  questionsById, resolveQuestion, applies, markApplicable, submissionId, detectNiche, fieldsForNiche, buildRecord, isAudioField, completeness, status, tierOf, TIERS,
 };
