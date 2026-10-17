@@ -3774,30 +3774,9 @@ for (const base of V20_PAGE_BASES) {
 const dbRequired = (req, res, next) => pool ? next() : res.status(503).json({ error: 'Database not configured.' });
 app.use('/api/clients', dbRequired);
 
-app.get('/api/clients', async (req, res) => {
-  try {
-    const { rows } = await pool.query(`
-      SELECT * FROM clients ORDER BY created_at DESC
-    `);
-    const { rows: counts } = await pool.query(`SELECT client_id, COUNT(*)::int AS n FROM pages GROUP BY client_id`);
-    const pageCount = new Map(counts.map(r => [r.client_id, r.n]));
-    // Archived clients (Fillout intake) are left out unless asked for
-    const showArchived = req.query.archived === '1';
-    res.json({ clients: rows.filter(c => showArchived || !c.archived_at).map(c => ({ ...c, page_count: pageCount.get(c.id) || 0 })) });
-  } catch (err) { res.status(500).json({ error: err.message }); }
-});
-
-app.post('/api/clients', async (req, res) => {
-  const { name, trade } = req.body;
-  if (!name || !trade) return res.status(400).json({ error: 'name and trade are required.' });
-  try {
-    const { rows } = await pool.query(
-      'INSERT INTO clients (name, trade) VALUES ($1, $2) RETURNING *',
-      [name.trim(), trade.trim()]
-    );
-    res.json(rows[0]);
-  } catch (err) { res.status(500).json({ error: err.message }); }
-});
+// Clients list and create, niche tabs and allocation: fillout/client-routes.js
+// (GET /api/niches, GET/POST /api/clients, POST /api/clients/:id/allocate and /move)
+require('./fillout/client-routes').mountClientRoutes(app, pool);
 
 app.get('/api/clients/:id', async (req, res) => {
   try {
@@ -3958,6 +3937,8 @@ app.post('/api/clients/:clientId/pages/:pageId/regenerate', async (req, res) => 
 const PORT = process.env.PORT || 3000;
 initDb().then(async () => {
   await recoverInterruptedResearchJobs();
+  // One-off, idempotent: existing hand-made clients get their niche tab; Fillout clients wait in New Clients
+  if (pool) await require('./fillout/allocation').migrateAllocations(pool).catch(err => console.error('[clients] allocation migration failed:', err));
   if (filloutService) {
     const n = await filloutService.recoverPending().catch(err => { console.error('[fillout] recovery failed:', err); return 0; });
     if (n) console.log(`[fillout] processed ${n} submission(s) left waiting by a restart`);

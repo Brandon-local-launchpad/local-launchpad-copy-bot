@@ -5,79 +5,99 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Local Launchpad — Clients</title>
 <style>
-  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  /* Same variables as the record page: light base, dark override on <html data-theme> */
   :root {
-    --bg: #0f1117; --surface: #1a1d27; --surface2: #22263a;
-    --accent: #6c63ff; --accent2: #5a52e0; --success: #4ade80;
-    --danger: #f87171; --text: #e2e8f0; --muted: #94a3b8;
-    --border: #2d3148; --r: 10px; --font: 'Inter', system-ui, sans-serif;
+    --bg: #f4f5f9; --surface: #ffffff; --surface2: #eef0f6; --surface3: #e3e6ef;
+    --text: #161a2b; --muted: #5b6478; --border: #d8dce8; --accent: #5b52e6; --accent2: #4a42cc; --on-accent: #fff;
+    --success: #166534; --success-bg: rgba(22,101,52,.12); --warning: #9a3f06; --warning-bg: rgba(154,63,6,.12);
+    --danger: #b91c1c; --danger-bg: rgba(185,28,28,.12); --focus: #5b52e6; --r: 10px; --font: 'Inter', system-ui, sans-serif;
   }
-  body { background: var(--bg); color: var(--text); font-family: var(--font); min-height: 100vh; padding: 2rem; }
-  .header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 2rem; }
+  :root[data-theme="dark"] {
+    --bg: #0f1117; --surface: #1a1d27; --surface2: #22263a; --surface3: #2b3047;
+    --text: #e2e8f0; --muted: #94a3b8; --border: #2d3148; --accent: #a5a0ff; --accent2: #bcb8ff; --on-accent: #0f1117;
+    --success: #4ade80; --success-bg: rgba(74,222,128,.15); --warning: #fbbf24; --warning-bg: rgba(251,191,36,.15);
+    --danger: #f87171; --danger-bg: rgba(248,113,113,.15); --focus: #a5a0ff;
+  }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html { color-scheme: light; } html[data-theme="dark"] { color-scheme: dark; }
+  body { background: var(--bg); color: var(--text); font-family: var(--font); min-height: 100vh; padding: 1.5rem; font-size: 14px; line-height: 1.5; }
+  @media (max-width: 640px) { body { padding: 1rem; } }
+  a { color: var(--accent); text-decoration: none; }
+  button, input, select { font-family: var(--font); }
+  :focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+  .header { display: flex; align-items: center; justify-content: space-between; gap: 1rem; flex-wrap: wrap; margin-bottom: 1rem; }
   h1 { font-size: 1.5rem; font-weight: 700; }
-  .btn { display: inline-flex; align-items: center; gap: 6px; border: none; border-radius: var(--r); font-family: var(--font); font-size: 14px; font-weight: 600; padding: 10px 18px; cursor: pointer; transition: background 0.15s; text-decoration: none; }
-  .btn-primary { background: var(--accent); color: #fff; }
-  .btn-primary:hover { background: var(--accent2); }
-  .btn-danger { background: transparent; color: var(--danger); border: 1px solid var(--danger); }
-  .btn-danger:hover { background: var(--danger); color: #fff; }
-  .btn-sm { padding: 6px 12px; font-size: 12px; }
-  .card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--r); padding: 1.25rem 1.5rem; }
-  .client-grid { display: grid; gap: 1rem; }
-  .client-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--r); padding: 1.25rem 1.5rem; display: flex; align-items: center; justify-content: space-between; cursor: pointer; transition: border-color 0.15s; }
-  .client-card:hover { border-color: var(--accent); }
-  .client-name { font-weight: 600; font-size: 1rem; }
-  .client-meta { color: var(--muted); font-size: 13px; margin-top: 3px; }
-  .client-actions { display: flex; gap: .5rem; }
-  .page-count { background: var(--surface2); color: var(--muted); border-radius: 20px; padding: 3px 10px; font-size: 12px; font-weight: 600; }
-  .badge-fillout { display: inline-block; vertical-align: middle; margin-left: 6px; background: rgba(251,191,36,.15); color: #fbbf24; border: 1px solid rgba(251,191,36,.4); border-radius: 20px; padding: 2px 9px; font-size: 11px; font-weight: 600; }
-  .badge-fillout.ok { background: rgba(74,222,128,.12); color: var(--success); border-color: rgba(74,222,128,.4); }
+  .btn { display: inline-flex; align-items: center; gap: 6px; border: 1px solid transparent; border-radius: var(--r); font-size: 13px; font-weight: 600; padding: 8px 14px; cursor: pointer; background: var(--surface2); color: var(--text); text-decoration: none; }
+  .btn:hover { background: var(--surface3); }
+  .btn-primary { background: var(--accent); color: var(--on-accent); } .btn-primary:hover { background: var(--accent2); }
+  .btn-ghost { background: transparent; border-color: var(--border); color: var(--muted); } .btn-ghost:hover { color: var(--text); background: var(--surface2); }
+  .btn-danger { background: transparent; color: var(--danger); border-color: var(--danger); } .btn-danger:hover { background: var(--danger); color: #fff; }
+  .btn-sm { padding: 5px 10px; font-size: 12px; } .btn:disabled { opacity: .5; cursor: not-allowed; }
+  .tools { display: flex; gap: .75rem; align-items: center; flex-wrap: wrap; margin-bottom: .9rem; }
+  .search { flex: 1; min-width: 220px; max-width: 420px; background: var(--surface); color: var(--text); border: 1px solid var(--border); border-radius: 8px; padding: 9px 12px; font-size: 14px; }
+  label.c { display: inline-flex; align-items: center; gap: 6px; color: var(--muted); font-size: 13px; cursor: pointer; } label.c input { accent-color: var(--accent); }
+  /* Tab bar: one line, scrolls sideways on narrow screens */
+  .tabs { display: flex; gap: 6px; overflow-x: auto; white-space: nowrap; padding-bottom: 6px; margin-bottom: 1rem; border-bottom: 1px solid var(--border); scrollbar-width: thin; }
+  .tab { flex: none; display: inline-flex; align-items: center; gap: 6px; padding: 7px 12px; border-radius: 8px 8px 0 0; color: var(--muted); font-size: 13px; font-weight: 600; border: 1px solid transparent; border-bottom: none; }
+  .tab:hover { color: var(--text); background: var(--surface2); }
+  .tab.active { color: var(--text); background: var(--surface); border-color: var(--border); }
+  .tab .n { background: var(--surface2); color: var(--muted); border-radius: 20px; padding: 1px 8px; font-size: 11px; }
+  .tab.active .n { background: var(--surface3); color: var(--text); }
+  .tab.hot { color: var(--warning); } .tab.hot .n { background: var(--warning-bg); color: var(--warning); }
+  .section-title { color: var(--muted); font-size: 12px; text-transform: uppercase; letter-spacing: .05em; margin: .6rem 0 .5rem; }
+  .grid { display: grid; gap: .75rem; }
+  .card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--r); padding: 1rem 1.25rem; }
+  .row { display: flex; align-items: center; justify-content: space-between; gap: 1rem; cursor: pointer; flex-wrap: wrap; }
+  .row:hover { border-color: var(--accent); }
+  .name { font-weight: 600; font-size: 1rem; } .meta { color: var(--muted); font-size: 13px; margin-top: 3px; }
+  .acts { display: flex; gap: .5rem; flex-wrap: wrap; align-items: center; }
+  .count { background: var(--surface2); color: var(--muted); border-radius: 20px; padding: 3px 10px; font-size: 12px; font-weight: 600; }
+  .badge { display: inline-block; vertical-align: middle; margin-left: 6px; border-radius: 20px; padding: 2px 9px; font-size: 11px; font-weight: 700; white-space: nowrap; }
+  .b-warn { background: var(--warning-bg); color: var(--warning); } .b-ok { background: var(--success-bg); color: var(--success); } .b-bad { background: var(--danger-bg); color: var(--danger); } .b-muted { background: var(--surface2); color: var(--muted); }
+  select, input[type=date], input[type=text] { background: var(--surface); color: var(--text); border: 1px solid var(--border); border-radius: 8px; padding: 7px 10px; font-size: 13px; }
+  .newc { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 1rem; align-items: start; }
+  @media (max-width: 760px) { .newc { grid-template-columns: 1fr; } }
+  .ask { background: var(--surface2); border-radius: 8px; padding: .75rem .9rem; display: flex; gap: .6rem; flex-wrap: wrap; align-items: center; }
+  .ask .q { font-weight: 600; width: 100%; }
+  .ask label { color: var(--muted); font-size: 12px; display: inline-flex; flex-direction: column; gap: 3px; }
   .empty { color: var(--muted); text-align: center; padding: 3rem; }
-  .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,.6); z-index: 100; align-items: center; justify-content: center; }
+  .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,.55); z-index: 100; align-items: center; justify-content: center; padding: 1rem; }
   .modal-overlay.open { display: flex; }
-  .modal { background: var(--surface); border: 1px solid var(--border); border-radius: var(--r); padding: 2rem; width: 100%; max-width: 440px; }
-  .modal h2 { margin-bottom: 1.25rem; font-size: 1.1rem; }
-  .field { margin-bottom: 1rem; }
-  label { display: block; font-size: 13px; color: var(--muted); margin-bottom: 5px; }
-  input, select { width: 100%; background: var(--surface2); border: 1px solid var(--border); border-radius: 6px; color: var(--text); font-family: var(--font); font-size: 14px; padding: 9px 12px; }
-  input:focus, select:focus { outline: 2px solid var(--accent); border-color: transparent; }
-  .modal-actions { display: flex; gap: .75rem; justify-content: flex-end; margin-top: 1.5rem; }
-  .btn-ghost { background: transparent; color: var(--muted); border: 1px solid var(--border); }
-  .btn-ghost:hover { color: var(--text); }
+  .modal { background: var(--surface); border: 1px solid var(--border); border-radius: var(--r); padding: 1.5rem; width: 100%; max-width: 460px; }
+  .modal h2 { margin-bottom: 1rem; font-size: 1.1rem; }
+  .field { margin-bottom: .9rem; } .field label { display: block; font-size: 12px; color: var(--muted); margin-bottom: 4px; } .field input, .field select { width: 100%; }
+  .modal-actions { display: flex; gap: .6rem; justify-content: flex-end; margin-top: 1.2rem; }
   .error { color: var(--danger); font-size: 13px; margin-top: .5rem; }
-  nav { margin-bottom: 2rem; }
-  nav a { color: var(--muted); text-decoration: none; font-size: 14px; }
-  nav a:hover { color: var(--text); }
+  .saved { font-size: 12px; color: var(--muted); } .saved.ok { color: var(--success); } .saved.bad { color: var(--danger); }
 </style>
 </head>
 <body>
 
 <div class="header">
-  <div>
-    <h1>Clients</h1>
-  </div>
-  <div style="display:flex;gap:.75rem;align-items:center">
+  <h1>Clients</h1>
+  <div class="acts">
+    <span class="saved" id="saved"></span>
     <a href="/submissions.html" class="btn btn-ghost btn-sm">Submissions</a>
     <a href="/generate" class="btn btn-ghost btn-sm">Generation Tool</a>
     <button class="btn btn-primary" onclick="openModal()">+ New Client</button>
+    <button class="btn btn-ghost btn-sm" id="themeBtn" onclick="toggleTheme()" title="Light or dark">◐</button>
   </div>
 </div>
 
-<div class="client-grid" id="clientGrid">
-  <div class="empty">Loading…</div>
+<div class="tools">
+  <input class="search" id="search" type="search" placeholder="Search name or email across all niches" oninput="render()">
+  <label class="c"><input type="checkbox" id="showArchived" onchange="load()"> Show archived</label>
 </div>
 
-<!-- New Client Modal -->
+<div class="tabs" id="tabs"></div>
+<div id="content"><div class="empty">Loading…</div></div>
+
 <div class="modal-overlay" id="modal">
   <div class="modal">
     <h2>New Client</h2>
-    <div class="field">
-      <label>Client / Business Name</label>
-      <input type="text" id="clientName" placeholder="e.g. Edens Edge Landscaping" />
-    </div>
-    <div class="field">
-      <label>Trade</label>
-      <select id="clientTrade"></select>
-    </div>
+    <div class="field"><label>Client / Business Name</label><input type="text" id="clientName" placeholder="e.g. Edens Edge Landscaping"></div>
+    <div class="field"><label>Niche</label><select id="clientNiche"></select></div>
+    <div class="field"><label>Date they signed on</label><input type="date" id="clientSigned"></div>
     <div id="modalError" class="error" style="display:none"></div>
     <div class="modal-actions">
       <button class="btn btn-ghost" onclick="closeModal()">Cancel</button>
@@ -87,76 +107,183 @@
 </div>
 
 <script>
-  let trades = [];
+  // ── Theme (shared contract with the record page) ──
+  const THEME_KEY = 'll_theme';
+  function readTheme() { try { return localStorage.getItem(THEME_KEY); } catch (_) { return null; } }
+  function applyTheme(t) { document.documentElement.setAttribute('data-theme', t); const b = document.getElementById('themeBtn'); if (b) b.textContent = t === 'dark' ? '☾' : '☀'; }
+  function systemTheme() { try { return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'; } catch (_) { return 'light'; } }
+  applyTheme(readTheme() || systemTheme());
+  function toggleTheme() { const next = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark'; applyTheme(next); try { localStorage.setItem(THEME_KEY, next); } catch (_) {} }
+
+  const TAB_KEY = 'll_clients_tab';
+  let data = { clients: [], tabs: [], niches: [] };
+  const esc = s => String(s == null ? '' : s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  const fmtDate = s => s ? new Date(s).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }) : '';
+  const isoDate = s => s ? new Date(s).toISOString().slice(0, 10) : '';
+  const setSaved = (t, cls) => { const el = document.getElementById('saved'); el.textContent = t || ''; el.className = 'saved ' + (cls || ''); if (t) setTimeout(() => { el.textContent = ''; }, 2500); };
+
+  // ── Which tab: ?tab= in the URL, else New Clients when it has any, else the last used, else All ──
+  function currentTab() {
+    const want = new URLSearchParams(location.search).get('tab');
+    const keys = data.tabs.map(t => t.key);
+    if (want && keys.includes(want)) return want;
+    if (want === 'new') return 'new';
+    const newTab = data.tabs.find(t => t.key === 'new');
+    if (!want && newTab && newTab.count > 0) return 'new';
+    let last = null; try { last = localStorage.getItem(TAB_KEY); } catch (_) {}
+    return last && keys.includes(last) ? last : 'all';
+  }
+  function go(key, push = true) {
+    const url = new URL(location.href); url.searchParams.set('tab', key);
+    if (push) history.pushState({}, '', url); else history.replaceState({}, '', url);
+    try { localStorage.setItem(TAB_KEY, key); } catch (_) {}
+    render();
+  }
+  window.addEventListener('popstate', render);
 
   async function load() {
-    const [clientsRes, tradesRes] = await Promise.all([
-      fetch('/api/clients'),
-      fetch('/api/trades'),
-    ]);
-    const { clients } = await clientsRes.json();
-    const { trades: t } = await tradesRes.json();
-    trades = t;
-
-    const sel = document.getElementById('clientTrade');
-    sel.innerHTML = trades.map(tr => `<option value="${tr}">${tr}</option>`).join('');
-
-    const grid = document.getElementById('clientGrid');
-    if (!clients.length) {
-      grid.innerHTML = '<div class="empty">No clients yet — create your first one.</div>';
-      return;
-    }
-    grid.innerHTML = clients.map(c => `
-      <div class="client-card" onclick="goToClient('${c.id}')">
-        <div>
-          <div class="client-name">${esc(c.name)}${c.source === 'fillout' && !c.reviewed_at ? ' <span class="badge-fillout">From Fillout, unreviewed</span>' : c.source === 'fillout' ? ' <span class="badge-fillout ok">From Fillout</span>' : ''}</div>
-          <div class="client-meta">${esc(c.trade)} &middot; Created ${fmtDate(c.created_at)}</div>
-        </div>
-        <div class="client-actions" onclick="event.stopPropagation()">
-          <span class="page-count">${c.page_count} page${c.page_count != 1 ? 's' : ''}</span>
-          ${c.source === 'fillout' ? `<a class="btn btn-ghost btn-sm" href="/client-record.html?id=${c.id}">Onboarding record</a>
-          <button class="btn btn-ghost btn-sm" onclick="archiveClient('${c.id}', '${esc(c.name)}')">Archive</button>` : ''}
-          <button class="btn btn-danger btn-sm" onclick="deleteClient('${c.id}', '${esc(c.name)}')">Delete</button>
-        </div>
-      </div>
-    `).join('');
+    const archived = document.getElementById('showArchived').checked ? '1' : '0';
+    const res = await fetch(`/api/clients?archived=${archived}`);
+    if (!res.ok) { document.getElementById('content').innerHTML = `<div class="empty">Could not load: ${esc((await res.json().catch(() => ({}))).error || res.status)}</div>`; return; }
+    data = await res.json();
+    const sel = document.getElementById('clientNiche');
+    sel.innerHTML = data.niches.map(n => `<option value="${esc(n.key)}">${esc(n.label)}</option>`).join('');
+    if (!document.getElementById('clientSigned').value) document.getElementById('clientSigned').value = new Date().toISOString().slice(0, 10);
+    if (!new URLSearchParams(location.search).get('tab')) go(currentTab(), false); else render();
   }
 
-  // Fillout clients are archived, not deleted: the submission and its fields stay, the card goes
-  async function archiveClient(id, name) {
-    if (!confirm(`Archive "${name}"? It leaves this list; the onboarding record is kept and can be unarchived from the Submissions inbox.`)) return;
-    await fetch(`/api/clients/${id}/archive`, { method: 'POST' });
-    load();
+  function renderTabs(active) {
+    // Counts exclude archived clients (the API computes them that way)
+    document.getElementById('tabs').innerHTML = data.tabs.map(t =>
+      `<a class="tab${t.key === active ? ' active' : ''}${t.key === 'new' && t.count > 0 ? ' hot' : ''}" href="?tab=${esc(t.key)}" onclick="event.preventDefault();go('${esc(t.key)}')">${esc(t.label)} <span class="n">${t.count}</span></a>`).join('');
+    // With 30 tabs the active one can sit off-screen: bring it into view
+    const el = document.querySelector('.tab.active');
+    if (el && el.scrollIntoView) el.scrollIntoView({ block: 'nearest', inline: 'center' });
+  }
+
+  function render() {
+    const active = currentTab();
+    renderTabs(active);
+    const q = document.getElementById('search').value.trim().toLowerCase();
+    const content = document.getElementById('content');
+    if (q) {
+      // Search spans every niche, whatever tab is open
+      const hits = data.clients.filter(c => (c.name || '').toLowerCase().includes(q) || (c.email || '').toLowerCase().includes(q) || (c.fillout_email || '').toLowerCase().includes(q));
+      content.innerHTML = `<div class="section-title">Search: ${hits.length} match${hits.length === 1 ? '' : 'es'} across all niches</div>` + (hits.length ? `<div class="grid">${hits.map(c => c.allocated ? clientRow(c, true) : newClientCard(c)).join('')}</div>` : '<div class="empty">No client matches.</div>');
+      return;
+    }
+    if (active === 'new') {
+      const list = data.clients.filter(c => !c.allocated && !c.archived_at).sort((a, b) => new Date(b.submitted_at || b.created_at) - new Date(a.submitted_at || a.created_at));
+      content.innerHTML = list.length ? `<div class="grid">${list.map(newClientCard).join('')}</div>` : '<div class="empty">No new clients waiting.</div>';
+      return;
+    }
+    let list = data.clients.filter(c => c.allocated || c.archived_at);
+    if (active !== 'all') list = list.filter(c => (c.niche_key || 'other') === active);
+    list.sort((a, b) => new Date(b.signed_on || b.created_at) - new Date(a.signed_on || a.created_at));
+    content.innerHTML = list.length ? `<div class="grid">${list.map(c => clientRow(c, active === 'all')).join('')}</div>` : '<div class="empty">No clients here yet.</div>';
+  }
+
+  function badges(c) {
+    let b = '';
+    if (c.source === 'fillout') b += c.reviewed_at ? '<span class="badge b-ok">From Fillout</span>' : '<span class="badge b-warn">From Fillout, unreviewed</span>';
+    if (c.archived_at) b += '<span class="badge b-muted">Archived</span>';
+    if (c.duplicate_of) b += `<span class="badge b-warn" title="Name or email matched another client, but not both">Possible duplicate of ${esc(c.duplicate_of.name || 'another client')}</span>`;
+    return b;
+  }
+  const nicheOptions = (selected) => data.niches.map(n => `<option value="${esc(n.key)}"${n.key === selected ? ' selected' : ''}>${esc(n.label)}</option>`).join('');
+
+  // A client in its niche tab: the row as before, plus the signed date and Move to another niche
+  function clientRow(c, showNiche) {
+    return `<div class="card row" onclick="goToClient('${c.id}')">
+      <div>
+        <div class="name">${esc(c.name)}${badges(c)}</div>
+        <div class="meta">${showNiche && c.niche_label ? esc(c.niche_label) + ' &middot; ' : ''}Signed ${esc(fmtDate(c.signed_on || c.created_at))}${c.allocation_source === 'auto' ? ' <span title="Placed by the migration from the old trade name">(auto)</span>' : ''}</div>
+      </div>
+      <div class="acts" onclick="event.stopPropagation()">
+        <span class="count">${c.page_count} page${c.page_count != 1 ? 's' : ''}</span>
+        ${c.source === 'fillout' ? `<a class="btn btn-ghost btn-sm" href="/client-record.html?id=${c.id}">Onboarding record</a>` : ''}
+        <select class="btn-sm" title="Move to another niche" onchange="moveClient('${c.id}', this.value, this)"><option value="">Move to…</option>${nicheOptions(null)}</select>
+        ${c.archived_at ? `<button class="btn btn-ghost btn-sm" onclick="unarchiveClient('${c.id}')">Unarchive</button>` : `<button class="btn btn-ghost btn-sm" onclick="archiveClient('${c.id}', '${esc(c.name)}')">Archive</button>`}
+        <button class="btn btn-danger btn-sm" onclick="deleteClient('${c.id}', '${esc(c.name)}')">Delete</button>
+      </div>
+    </div>`;
+  }
+
+  // New Clients: the question, a Yes button, a dropdown for a different niche, the date pre-filled from the form
+  function newClientCard(c) {
+    const sug = c.suggested_niche_key ? data.niches.find(n => n.key === c.suggested_niche_key) : null;
+    const date = isoDate(c.submitted_at || c.created_at);
+    const q = sug ? `Is this client a <strong>${esc(sug.label)}</strong>?` : `No suggestion, pick a niche${c.fillout_niche ? ` (the form said "${esc(c.fillout_niche)}")` : ''}`;
+    return `<div class="card newc" id="nc_${c.id}">
+      <div>
+        <div class="name"><a href="/client-record.html?id=${c.id}">${esc(c.name)}</a>${badges(c)}</div>
+        <div class="meta">Form came in ${esc(fmtDate(c.submitted_at || c.created_at))}${c.fillout_niche ? ` &middot; form niche: ${esc(c.fillout_niche)}` : ''}</div>
+        <div class="ask" style="margin-top:.7rem">
+          <div class="q">${q}</div>
+          ${sug ? `<button class="btn btn-primary btn-sm" onclick="allocate('${c.id}', '${esc(sug.key)}')">Yes, allocate</button>` : ''}
+          <label>${sug ? 'Or a different niche' : 'Niche'}<select id="nk_${c.id}" onchange="onPick('${c.id}')">${sug ? '' : '<option value="">Choose…</option>'}${nicheOptions(sug ? sug.key : null)}</select></label>
+          <label>Date they came in<input type="date" id="dt_${c.id}" value="${esc(date)}"></label>
+          <button class="btn btn-ghost btn-sm" id="al_${c.id}" ${sug ? '' : 'disabled'} onclick="allocate('${c.id}', document.getElementById('nk_${c.id}').value)">${sug ? 'Allocate to chosen niche' : 'Allocate'}</button>
+        </div>
+      </div>
+      <div class="acts">
+        <a class="btn btn-ghost btn-sm" href="/client-record.html?id=${c.id}">Onboarding record</a>
+        <button class="btn btn-ghost btn-sm" onclick="archiveClient('${c.id}', '${esc(c.name)}')">Archive</button>
+      </div>
+    </div>`;
+  }
+  function onPick(id) { const sel = document.getElementById('nk_' + id); document.getElementById('al_' + id).disabled = !sel.value; }
+
+  async function allocate(id, nicheKey) {
+    if (!nicheKey) return;
+    const signed = document.getElementById('dt_' + id).value;
+    const res = await fetch(`/api/clients/${id}/allocate`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ niche_key: nicheKey, signed_on: signed }) });
+    const r = await res.json().catch(() => ({}));
+    if (!res.ok) { setSaved('Not allocated: ' + (r.error || res.status), 'bad'); return; }
+    // Move the client in memory and refresh the tab counts, no full reload
+    const c = data.clients.find(x => x.id === id);
+    if (c) Object.assign(c, { niche_key: r.niche_key, niche_label: r.niche_label, signed_on: r.signed_on, allocated_at: r.allocated_at, allocation_source: r.allocation_source, allocated: true, suggested_niche_key: null });
+    if (r.tabs) data.tabs = r.tabs;
+    setSaved(`${c ? c.name : 'Client'} allocated to ${r.niche_label}`, 'ok');
+    render();
+  }
+  async function moveClient(id, nicheKey, sel) {
+    if (!nicheKey) return;
+    const res = await fetch(`/api/clients/${id}/move`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ niche_key: nicheKey }) });
+    const r = await res.json().catch(() => ({}));
+    if (!res.ok) { setSaved('Not moved: ' + (r.error || res.status), 'bad'); sel.value = ''; return; }
+    const c = data.clients.find(x => x.id === id);
+    if (c) Object.assign(c, { niche_key: r.niche_key, niche_label: r.niche_label, allocation_source: r.allocation_source });
+    if (r.tabs) data.tabs = r.tabs;
+    setSaved(`Moved to ${r.niche_label}`, 'ok');
+    render();
   }
 
   function goToClient(id) { window.location.href = `/client.html?id=${id}`; }
+  async function archiveClient(id, name) {
+    if (!confirm(`Archive "${name}"? It leaves this list; the onboarding record is kept.`)) return;
+    await fetch(`/api/clients/${id}/archive`, { method: 'POST' }); load();
+  }
+  async function unarchiveClient(id) { await fetch(`/api/clients/${id}/unarchive`, { method: 'POST' }); load(); }
+  async function deleteClient(id, name) {
+    if (!confirm(`Delete "${name}" and all their pages? This cannot be undone.`)) return;
+    await fetch(`/api/clients/${id}`, { method: 'DELETE' }); load();
+  }
 
   function openModal() { document.getElementById('modal').classList.add('open'); document.getElementById('clientName').focus(); }
   function closeModal() { document.getElementById('modal').classList.remove('open'); document.getElementById('modalError').style.display = 'none'; }
-
   async function createClient() {
-    const name  = document.getElementById('clientName').value.trim();
-    const trade = document.getElementById('clientTrade').value;
-    if (!name) { showErr('Client name is required.'); return; }
-    const res  = await fetch('/api/clients', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ name, trade }) });
-    const data = await res.json();
-    if (!res.ok) { showErr(data.error || 'Failed to create client.'); return; }
-    closeModal();
-    document.getElementById('clientName').value = '';
-    load();
+    const name = document.getElementById('clientName').value.trim();
+    const niche_key = document.getElementById('clientNiche').value;
+    const signed_on = document.getElementById('clientSigned').value;
+    const err = document.getElementById('modalError');
+    if (!name) { err.textContent = 'Please enter a client name.'; err.style.display = 'block'; return; }
+    const res = await fetch('/api/clients', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ name, niche_key, signed_on }) });
+    const r = await res.json().catch(() => ({}));
+    if (!res.ok) { err.textContent = r.error || 'Could not create client.'; err.style.display = 'block'; return; }
+    closeModal(); document.getElementById('clientName').value = '';
+    await load(); go(niche_key);
   }
-
-  async function deleteClient(id, name) {
-    if (!confirm(`Delete "${name}" and all their pages? This cannot be undone.`)) return;
-    await fetch(`/api/clients/${id}`, { method: 'DELETE' });
-    load();
-  }
-
-  function showErr(msg) { const el = document.getElementById('modalError'); el.textContent = msg; el.style.display = 'block'; }
-  function esc(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
-  function fmtDate(s) { return new Date(s).toLocaleDateString('en-GB', { day:'numeric', month:'short', year:'numeric' }); }
-
-  document.getElementById('modal').addEventListener('click', e => { if (e.target === e.currentTarget) closeModal(); });
 
   load();
 </script>

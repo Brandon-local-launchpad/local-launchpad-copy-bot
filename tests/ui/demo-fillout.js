@@ -89,6 +89,16 @@ process.env.APP_PASSWORD = '';
   await new Promise(r => setTimeout(r, 500));
   const { rows } = await pool.query(`SELECT client_id FROM fillout_submissions WHERE submission_id = $1`, [sample.submission.submissionId]);
 
+  // Clients landing page: hand-made clients across every niche (so the tab bar has 30+
+  // tabs), one in Other / unsorted, and a pre-migration client with an old trade name
+  const niches = (await (await fetch(base + '/api/clients')).json()).niches.filter(n => n.key !== 'other');
+  let day = 1;
+  for (const n of niches) {
+    await fetch(base + '/api/clients', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ name: `${n.label} Demo Ltd`, niche_key: n.key, signed_on: `2026-09-${String(day++).padStart(2, '0')}` }) });
+  }
+  await fetch(base + '/api/clients', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ name: 'Chips Carpentry', trade: 'Carpenter' }) });
+  await fetch(base + '/api/clients', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ name: 'Edens Edge (demo)', trade: 'Landscaper Gardener' }) });
+
   console.log('\nDEMO READY');
   console.log(`  Webhook:  POST ${base}/api/webhooks/fillout?token=${SECRET}`);
   console.log(`  Inbox:    ${base}/submissions.html`);

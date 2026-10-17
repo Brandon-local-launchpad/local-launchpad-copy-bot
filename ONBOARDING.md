@@ -185,6 +185,39 @@ from and up to, a single price gets typical, no usable prices gives no rows).
 - Tests: `tests/fixtures/fillout-prices.js` with a mocked model; the real API is
   never called in tests.
 
+## The Clients landing page: niche tabs and allocation
+
+- Niches come from `fillout/field-map.json` through `fillout/niches.js`: 28 entries,
+  each with a stable key (`window-cleaning`) and the Fillout label as display name,
+  plus `other` ("Other / unsorted"). `nicheKeyFor(trade)` maps a Fillout label or an
+  old trade catalogue name ("Roofing Company", "Roofer", "Landscaper Gardener") to a
+  key; Carpenter, Plasterer, Skip Hire and anything unknown go to `other`.
+- `clients` has `niche_key`, `signed_on` (date), `allocated_at`, `allocation_source`
+  (`auto` from the migration, `confirmed` from New Clients, `manual` from the New
+  Client form or Move to another niche). No `allocated_at` = new, waiting in New
+  Clients. `fillout/allocation.js` adds the columns and runs the idempotent
+  migration at startup: hand-made clients (and archived Fillout ones) are placed
+  by their trade with `signed_on = created date`; live Fillout clients are left
+  for New Clients. A resubmission never touches these columns.
+- `/clients.html`: search (name and email, across all niches), Show archived,
+  a scrolling tab bar (`?tab=key`, remembered in localStorage; lands on New
+  Clients when it has any): New Clients (n), one tab per niche with a client
+  (alphabetical, with counts), Other / unsorted, All clients. Counts exclude
+  archived. Niche tabs list the usual rows plus the signed date and a Move to
+  another niche dropdown. New Clients shows each unallocated client with its
+  badges, the form date, the suggested niche from the Fillout answer and the
+  question "Is this client a …?" with Yes, a dropdown and an editable date;
+  allocating saves the four columns (`confirmed`) and moves the client without a
+  reload. No suggestion → "No suggestion, pick a niche", Allocate disabled until
+  one is chosen. New Client asks for niche and signed date and allocates at once
+  (`manual`).
+- API: `GET /api/clients` (now also `tabs` and `niches`, and per client
+  `niche_key`, `niche_label`, `signed_on`, `allocated`, `allocation_source`,
+  `submitted_at`, `fillout_niche`, `suggested_niche_key`, `duplicate_of`),
+  `GET /api/niches`, `POST /api/clients` (`name`, `niche_key`, `signed_on`; old
+  callers sending `trade` still work), `POST /api/clients/:id/allocate`,
+  `POST /api/clients/:id/move`. Tests: `tests/fixtures/clients-niches.js`.
+
 ## Pages and API
 
 - `/submissions.html`: every submission, newest first: business name, niche,

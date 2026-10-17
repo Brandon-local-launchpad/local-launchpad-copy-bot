@@ -88,6 +88,8 @@ async function initDb() {
   await require('./fillout/service').ensureFilloutTables(pool);
   await require('./fillout/audio-store').ensureAudioBlobTable(pool);
   await require('./fillout/prices').ensurePriceTables(pool);
+  // Clients landing page: niche_key, signed_on, allocated_at, allocation_source (fillout/allocation.js)
+  await require('./fillout/allocation').ensureAllocationColumns(pool);
   console.log('DB schema ready');
 }
 
