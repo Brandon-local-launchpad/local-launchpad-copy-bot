@@ -13,6 +13,7 @@ const root = path.join(__dirname, '../..');
 const { newDb, DataType } = require('pg-mem');
 const { ensureFilloutTables, createFilloutService } = require(path.join(root, 'fillout/service.js'));
 const { ensureAudioBlobTable, createPgAudioStore } = require(path.join(root, 'fillout/audio-store.js'));
+const { ensurePriceTables } = require(path.join(root, 'fillout/prices.js'));
 const routes = require(path.join(root, 'fillout/routes.js'));
 const I = require(path.join(root, 'fillout/intake.js'));
 const sample = require(path.join(root, 'fixtures/fillout-sample.json'));
@@ -38,6 +39,7 @@ const quiet = { info() {}, warn() {}, error() {} };
   await pool.query(`CREATE TABLE clients (id UUID PRIMARY KEY DEFAULT gen_random_uuid(), name TEXT NOT NULL, trade TEXT NOT NULL, created_at TIMESTAMPTZ NOT NULL DEFAULT NOW());`);
   await ensureFilloutTables(pool);
   await ensureAudioBlobTable(pool);
+  await ensurePriceTables(pool);
 
   // ── A stand-in for Fillout's audio host: the fixture's mp3 URL is rewritten to it ──
   const MP3 = Buffer.concat([Buffer.from('ID3'), crypto.randomBytes(2000)]);
@@ -151,7 +153,7 @@ const quiet = { info() {}, warn() {}, error() {} };
     chk('Record shows every field we use for Plumbing & Heating', allFields.length === rec.fields.length && allFields.some(f => f.key === 'cat_gas_engineer'), allFields.length, rec.fields.length);
     // Completeness: units, not fields. Pairs count once, the accreditations are one optional group, optional fields leave the denominator.
     const k = record.completeness;
-    chk('Completeness headline = filled / expected units (pairs once, optional out)', k.expected === 69 && k.filled === 46 && k.pct === 67 && k.optionalTotal === 10 && k.optionalFilled === 1 && k.fields === rec.fields.length, JSON.stringify(k), '46 of 69, 1 of 10 optional');
+    chk('Completeness headline = filled / expected units (pairs once, optional out)', k.expected === 70 && k.filled === 46 && k.pct === 66 && k.optionalTotal === 10 && k.optionalFilled === 1 && k.fields === rec.fields.length, JSON.stringify(k), '46 of 70, 1 of 10 optional (prices unit blank)');
     const unitTest = (fs, want, label) => { const c = I.completeness(fs); chk(label, JSON.stringify([c.filled, c.expected, c.optionalFilled, c.optionalTotal]) === JSON.stringify(want), JSON.stringify([c.filled, c.expected, c.optionalFilled, c.optionalTotal]), JSON.stringify(want)); };
     unitTest([{ key: 'a_voice', group: 'a', status: 'filled' }, { key: 'a_text', group: 'a', status: 'blank' }], [1, 1, 0, 0], 'Voice filled, typed blank → one unit, filled');
     unitTest([{ key: 'a_voice', group: 'a', status: 'blank' }, { key: 'a_text', group: 'a', status: 'filled' }], [1, 1, 0, 0], 'Voice blank, typed filled → one unit, filled');
@@ -346,7 +348,7 @@ const quiet = { info() {}, warn() {}, error() {} };
     chk('Stored with the payload question id and value', feeRow && feeRow.question_id === FEE_ID && feeRow.value === '£60, taken off the job' && feeRow.status === 'filled', JSON.stringify(feeRow), FEE_ID);
     const feeRec = await (await get(`/api/clients/${feeRow.client_id}/record`)).json();
     const feeShown = feeRec.sections.find(s => s.name === 'Quotes Process and Response').fields;
-    chk('Record: fee directly after Is the quote free, applicable, 47 of 69', feeShown[feeShown.findIndex(f => f.key === 'quote_free') + 1].key === 'quote_call_out_fee' && feeShown.find(f => f.key === 'quote_call_out_fee').applicable === true && feeRec.completeness.filled === 47 && feeRec.completeness.expected === 69, JSON.stringify(feeRec.completeness), '47 of 69');
+    chk('Record: fee directly after Is the quote free, applicable, 47 of 70', feeShown[feeShown.findIndex(f => f.key === 'quote_free') + 1].key === 'quote_call_out_fee' && feeShown.find(f => f.key === 'quote_call_out_fee').applicable === true && feeRec.completeness.filled === 47 && feeRec.completeness.expected === 70, JSON.stringify(feeRec.completeness), '47 of 70');
     const freeSub = withFee('Yes, no call-out or survey fee', null); freeSub.submission.submissionId = 'free-0001';
     freeSub.submission.questions.find(q => q.id === 'bwUuvaZTmChegZekppzNNv').value = 'Free Quotes Ltd'; freeSub.submission.questions.find(q => q.id === '5EHeuZ2pntQwCaoADHRRrJ').value = 'free@example.com';
     await post(`/api/webhooks/fillout?token=${SECRET}`, freeSub);
@@ -354,7 +356,7 @@ const quiet = { info() {}, warn() {}, error() {} };
     const freeClient = (await pool.query(`SELECT client_id FROM fillout_submissions WHERE submission_id = 'free-0001'`)).rows[0].client_id;
     const freeRec = await (await get(`/api/clients/${freeClient}/record`)).json();
     const freeInbox = (await (await get('/api/fillout/submissions')).json()).submissions.find(s => s.submissionId === 'free-0001');
-    chk('Record and inbox: free quote → fee not applicable, 68 expected in both', freeRec.sections.flatMap(s => s.fields).find(f => f.key === 'quote_call_out_fee').applicable === false && freeRec.completeness.expected === 68 && freeInbox.completeness.expected === 68, JSON.stringify([freeRec.completeness.expected, freeInbox.completeness.expected]), '[68,68]');
+    chk('Record and inbox: free quote → fee not applicable, 69 expected in both', freeRec.sections.flatMap(s => s.fields).find(f => f.key === 'quote_call_out_fee').applicable === false && freeRec.completeness.expected === 69 && freeInbox.completeness.expected === 69, JSON.stringify([freeRec.completeness.expected, freeInbox.completeness.expected]), '[69,69]');
 
     // ── All 28 niche blocks mapped (tools/fillout-niche-blocks.js) ──
     const B = require(path.join(root, 'tools/fillout-niche-blocks.js'));
@@ -413,7 +415,7 @@ const quiet = { info() {}, warn() {}, error() {} };
     chk('(2) Landscapers: stored fields are the landscaper block only, none from P&H though answered', !(await pool.query(`SELECT field_key FROM client_fields WHERE client_id = $1`, [land.sub.client_id])).rows.some(r => r.field_key === 'cat_plumber' || r.field_key === 'most_wanted_job_1'), '', '');
     chk('(2) Landscapers: voice answer copied with its transcript, like Plumbing & Heating', landF.find(f => f.key === 'landscapers.prices_voice').audio && landF.find(f => f.key === 'landscapers.prices_voice').audio.playable && landF.find(f => f.key === 'landscapers.prices_voice').audio.transcription === 'Transcript for landscapers.prices_voice', JSON.stringify(landF.find(f => f.key === 'landscapers.prices_voice').audio), 'playable');
     // 8 checkbox groups + 3 most wanted + voice = 5 units, the same 5 the sample's Plumbing & Heating block fills
-    chk('(2) Landscapers: completeness counts the 8 groups as one services unit (46 of 69, like the sample)', land.rec.completeness.expected === 69 && land.rec.completeness.filled === 46 && land.rec.completeness.optionalFilled === 2, JSON.stringify(land.rec.completeness), '46 of 69, 2 optional');
+    chk('(2) Landscapers: completeness counts the 8 groups as one services unit (46 of 70, like the sample)', land.rec.completeness.expected === 70 && land.rec.completeness.filled === 46 && land.rec.completeness.optionalFilled === 2, JSON.stringify(land.rec.completeness), '46 of 70, 2 optional');
 
     // (3) Window Cleaning: "Window Cleaning Service" and "Pressure Washing Service" also exist in the Cleaning and Pressure Washing blocks, with other ids
     const wcIds = map.fields.filter(f => f.niche === 'Window Cleaning' && f.group === 'services').map(f => f.id);

@@ -24,6 +24,25 @@ const PG_ID = '__pgmem__';
 Module._resolveFilename = function (request, ...rest) { return request === 'pg' ? PG_ID : realResolve.call(this, request, ...rest); };
 require.cache[PG_ID] = { id: PG_ID, filename: PG_ID, loaded: true, exports: pgAdapter };
 
+// The model, unless DEMO_REAL_MODEL=1: price extraction gets a canned reply for the
+// sample's prices transcript (five rows), so the demo never spends on the API
+const SDK_ID = '__fake_anthropic__';
+if (process.env.DEMO_REAL_MODEL !== '1') {
+  const realResolve2 = Module._resolveFilename;
+  Module._resolveFilename = function (request, ...rest) { return request === '@anthropic-ai/sdk' ? SDK_ID : realResolve2.call(this, request, ...rest); };
+  const canned = JSON.stringify({ rows: [
+    { service: 'Typical plumbing job', from_gbp: 50, up_to_gbp: 100, unit: 'per job' },
+    { service: 'Bathroom installation', from_gbp: 500, up_to_gbp: 5000 },
+    { service: 'Wet room installation', from_gbp: 2000, up_to_gbp: 10000, inferred: true, inferred_note: '"as expensive as ten" read as ten thousand, in line with the other figures' },
+    { service: 'Boiler replacement', typical_gbp: 600 },
+    { service: 'Boiler repair', typical_gbp: 350 },
+  ] });
+  const reply = async () => ({ stop_reason: 'end_turn', model: 'demo-fake-model', usage: { input_tokens: 0, output_tokens: 0 }, content: [{ type: 'text', text: canned }] });
+  class FakeAnthropic { constructor() { this.messages = { create: reply }; this.beta = { messages: { create: reply } }; } }
+  require.cache[SDK_ID] = { id: SDK_ID, filename: SDK_ID, loaded: true, exports: FakeAnthropic };
+  process.env.ANTHROPIC_API_KEY = process.env.ANTHROPIC_API_KEY || 'demo-fake-key'; // so the server wires the (fake) model in
+}
+
 const PORT = process.env.DEMO_PORT || 3992;
 const SECRET = 'demo-secret-' + crypto.randomBytes(4).toString('hex');
 process.env.PORT = String(PORT);

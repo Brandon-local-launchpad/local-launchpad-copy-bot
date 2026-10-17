@@ -190,7 +190,7 @@ function completeness(fields) {
     filled, expected: expected.length, pct: expected.length ? Math.round((filled / expected.length) * 100) : 0,
     optionalFilled: optional.filter(u => u.filled).length, optionalTotal: optional.length,
     notApplicable: fields.filter(f => f.applicable === false).length,
-    fields: fields.length,
+    fields: fields.filter(f => !f.synthetic).length, // units added by code (prices) are not form fields
   };
 }
 

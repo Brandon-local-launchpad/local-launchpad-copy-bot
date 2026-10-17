@@ -36,7 +36,9 @@ const app = express();
 const filloutRoutes = require('./fillout/routes');
 const { createFilloutService } = require('./fillout/service');
 const { createPgAudioStore } = require('./fillout/audio-store');
-const filloutService = pool ? createFilloutService({ pool, audioStore: createPgAudioStore(pool) }) : null;
+// Price extraction uses the same model and call helper as v20 generation (V20_MODEL via anthropic-call.js)
+const filloutCallModel = process.env.ANTHROPIC_API_KEY ? makeCallModel(new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY }), v20.V20_MODEL) : null;
+const filloutService = pool ? createFilloutService({ pool, audioStore: createPgAudioStore(pool), callModel: filloutCallModel, modelName: v20.V20_MODEL }) : null;
 if (filloutService) filloutRoutes.mountWebhook(app, filloutService, { secret: process.env.FILLOUT_WEBHOOK_SECRET || '' });
 else app.post('/api/webhooks/fillout', (_req, res) => res.status(503).json({ error: 'Database not configured.' }));
 

@@ -87,6 +87,7 @@ async function initDb() {
   // Fillout onboarding intake: submissions, client fields, audio (fillout/service.js, fillout/audio-store.js)
   await require('./fillout/service').ensureFilloutTables(pool);
   await require('./fillout/audio-store').ensureAudioBlobTable(pool);
+  await require('./fillout/prices').ensurePriceTables(pool);
   console.log('DB schema ready');
 }
 
