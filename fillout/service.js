@@ -19,6 +19,8 @@ const crypto = require('crypto');
 const I = require('./intake');
 const P = require('./prices');
 const A = require('./attention');
+const R = require('./services/resolver');
+const { createAdditionalServices } = require('./additional-services');
 
 async function ensureFilloutTables(pool) {
   await pool.query(`
@@ -179,6 +181,8 @@ function createFilloutService({ pool, audioStore, fetchAudio = defaultFetchAudio
       if (audio.failed) log.warn(`[fillout] ${sub.submission_id}: ${audio.failed} audio download(s) failed; reprocess to retry`);
       // Price rows from the prices voice answer: in the background, never holding up intake
       setImmediate(() => extractPrices(clientId, { submissionId: sub.submission_id }).catch(err => log.error('[fillout] price extraction failed to start:', err)));
+      // Parent categories for the typed additional services: also in the background, hash-gated
+      setImmediate(() => proposeAdditional(clientId).catch(err => log.error('[fillout] additional services proposal failed to start:', err)));
       return { clientId, niche: rec.niche, nicheKnown: rec.nicheKnown, fields: written, audio, duplicateOf };
     } catch (err) {
       log.error(`[fillout] processing failed for row ${submissionRowId}:`, err);
@@ -591,7 +595,53 @@ function createFilloutService({ pool, audioStore, fetchAudio = defaultFetchAudio
     return rows[0] || null;
   }
 
+  // ── Categories and services (fillout/services/resolver.js, fillout/additional-services.js) ──
+  const additional = createAdditionalServices({ pool, callModel, modelName, log });
+
+  // The niche config for a client, its ticks and primary override, resolved
+  async function servicesView(clientId, { categoryTabRule = 'ticked_only' } = {}) {
+    const rec = await record(clientId);
+    if (!rec) throw Object.assign(new Error('Client not found'), { status: 404 });
+    const config = rec.niche ? R.configFor(rec.niche) : null;
+    const { rows: cs } = await pool.query(`SELECT primary_category_key FROM clients WHERE id = $1`, [clientId]);
+    const primaryOverride = (cs[0] && cs[0].primary_category_key) || null;
+    const add = await additional.view(clientId);
+    if (!config) return { niche: rec.niche, hasConfig: false, categoryTabRule, primaryOverride, resolved: null, additional: add, additionalText: '' };
+    const fields = rec.sections.flatMap(s => s.fields);
+    const ticks = R.ticksFromFields(fields, config);
+    const resolved = R.resolve(ticks, config, { categoryTabRule, primaryOverride, additional: add.confirmed });
+    const textField = fields.find(f => f.key === config.additionalServicesField);
+    return {
+      niche: rec.niche, hasConfig: true, categoryTabRule, primaryOverride, primaryDefault: config.primaryDefault,
+      allCategories: config.categories.map(c => ({ key: c.key, name: c.name })),
+      resolved, additional: add, additionalText: textField && typeof textField.value === 'string' ? textField.value : '',
+    };
+  }
+
+  async function setPrimaryCategory(clientId, key) {
+    const v = await servicesView(clientId);
+    if (key && (!v.hasConfig || !v.allCategories.some(c => c.key === key))) throw Object.assign(new Error(`Not a category for this niche: ${key}`), { status: 400 });
+    await pool.query(`UPDATE clients SET primary_category_key = $2 WHERE id = $1`, [clientId, key || null]);
+    return servicesView(clientId);
+  }
+
+  async function proposeAdditional(clientId, { force = false } = {}) {
+    const v = await servicesView(clientId);
+    if (!v.hasConfig) return { skipped: 'no config for this niche' };
+    const config = R.configFor(v.niche);
+    const tabs = v.resolved.categories.map(c => ({ key: c.key, name: c.name }));
+    return additional.propose(clientId, { text: v.additionalText, tabs, config, force });
+  }
+
+  async function decideAdditional(clientId, rowId, body) {
+    const v = await servicesView(clientId);
+    const tabs = v.resolved ? v.resolved.categories.map(c => ({ key: c.key, name: c.name })) : [];
+    await additional.decide(clientId, rowId, { status: body.status, categoryKey: body.category_key || null, tabs });
+    return servicesView(clientId);
+  }
+
   return { map, receive, saveRejected, process, recoverPending, listSubmissions, record, setField, audio, setClientFlags,
+    servicesView, setPrimaryCategory, proposeAdditional, decideAdditional,
     extractPrices, priceView: clientId => record(clientId).then(r => r && r.prices), setPriceRow, addPriceRow, deletePriceRow, setPricesNotApplicable };
 }
 

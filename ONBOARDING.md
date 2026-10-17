@@ -185,6 +185,43 @@ from and up to, a single price gets typical, no usable prices gives no rows).
 - Tests: `tests/fixtures/fillout-prices.js` with a mocked model; the real API is
   never called in tests.
 
+## Categories and services (the resolver)
+
+- One file per niche in `fillout/services/` (`landscapers-gardeners.json` so far;
+  adding a niche = adding a file): categories in order, each with its key, name,
+  `tickGroup` (the field map key of its tick box group), `ticks` (what the form
+  shows for it, its home services) and `services` in the "All Categories &
+  Services" PDF order, with the PDF's duplicate notes kept as `duplicateNotes`;
+  `primaryDefault`; `additionalServicesField` (the free-text answer) and
+  `additionalTickGroup` (the form's extra tick list, no category of its own).
+- `fillout/services/resolver.js` is pure, no AI. A service id is its normalised
+  name (lower case, single spaces; no fuzzy matching). A ticked service appears
+  as a row on every category that lists it: unique or duplicate (with alsoOn).
+  Tabs: `ticked_only` (default; a category needs a tick in its own group) or
+  `ticked_or_propagated`. Rows stay in PDF order, interleaved. Legacy keys:
+  category_N in tab order, service_N by first appearance walking the tabs in
+  order (reused later). Primary = config default unless the client overrides it
+  (`clients.primary_category_key`); no tab for it is a flag. Flags: more than 10
+  tabs, an unmatched tick, primary missing, and the config checks (a category
+  repeating a service, inconsistent casing, a tick box service missing from the
+  All list, a duplicate note that disagrees with the lists). `validateConfig`
+  reports; nothing is silently fixed. crossRef lists every service on 2+ tabs.
+- Additional services (`fillout/additional-services.js`): the free-text answer is
+  split one service per line, bullet or comma, tidied, deduped against known
+  services ("already covered"), and each new one gets a proposed parent from the
+  model (`prompts/Additional_Service_Parent.md`: only the client's tabs or
+  "unsure", never a new category, never a renamed service, a plain reason).
+  Hash-gated on the answer text; a bad reply marks `extraction_failed` for a
+  person. Rows: proposed / confirmed / rejected / skipped / covered; confirmed or
+  manual rows are never overwritten by a re-run; confirmed ones become
+  "additional" rows in their parent tab, numbered after the config services.
+- Record page, Services panel, "Categories & services": the tabs with unique /
+  duplicate rows and legacy keys, the flags, the primary selector, and the
+  additional services with Confirm, Change and Skip. API: `GET
+  /api/clients/:id/services?rule=`, `PUT …/services/primary`, `POST
+  …/services/additional/propose`, `PUT …/services/additional/:rowId`.
+  Tests: `tests/fixtures/service-resolver.js` (Edens Edge, both rules).
+
 ## The Clients landing page: niche tabs and allocation
 
 - Niches come from `fillout/field-map.json` through `fillout/niches.js`: 28 entries,
