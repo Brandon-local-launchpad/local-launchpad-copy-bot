@@ -132,8 +132,15 @@ from and up to, a single price gets typical, no usable prices gives no rows).
   "grand", number words). A number it cannot trace keeps its row but is marked
   **unverified** and flagged; nothing is dropped or fixed silently.
 - Each row is matched, conservatively, to the ticked services and the three
-  most-wanted jobs (case and plurals ignored; a lone word never matches a longer
-  name). `matched_to` holds the field key and value, or null.
+  most-wanted jobs: both sides lower-cased, punctuation dropped, each word cut
+  to a simple stem (s, es, ing, ed, er endings off), then equal stems, or one
+  side's words all present in the other's ("Patio clean" matches "Patio
+  cleaning" and "Patio cleaner", not "Decking cleaning"; a lone word never
+  matches a longer name). `matched_to` holds the field key and value, or null.
+- Two prices for one service ("£50 per big letter and £20 per small letter")
+  become one row: from the lower, up to the higher, the unit, the split in
+  what_moves_price, inferred true. The prompt asks the model for this, and the
+  code merges any duplicate-service rows the model still returns.
 - Storage: `client_price_rows` and `client_price_state` (`fillout/prices.js`).
   State: `pending`, `done`, `extraction_failed` (with the reason and a Retry
   button), `no_transcript`, `not_applicable` (set by the VA). The model gets

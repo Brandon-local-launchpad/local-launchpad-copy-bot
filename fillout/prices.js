@@ -157,21 +157,34 @@ function verifyRows(rows, transcript) {
 }
 
 // ── Matching a row's service to the form: ticked services and the three most-wanted jobs ──
-const normService = s => String(s || '').toLowerCase().replace(/[^a-z0-9\s]/g, ' ').split(/\s+/).filter(Boolean)
-  .map(w => w.replace(/(ies)$/, 'y').replace(/(sses|shes|ches|xes)$/, m => m.slice(0, -2)).replace(/s$/, '')).join(' ');
-const wholeWordContains = (a, b) => a === b || a.split(' ').join(' ').includes(' ' + b + ' ') || a.startsWith(b + ' ') || a.endsWith(' ' + b);
+// A word cut to a simple stem: "cleaning", "cleaner", "cleaned", "cleans" → "clean";
+// "fences", "fencing", "fence" → "fenc"; short words are left alone.
+function stem(word) {
+  let w = word;
+  if (w.length > 4 && /ies$/.test(w)) w = w.slice(0, -3) + 'y';
+  else if (w.length > 5 && /(ss|sh|ch|x|z)es$/.test(w)) w = w.slice(0, -2);
+  else if (w.length > 5 && /ing$/.test(w)) w = w.slice(0, -3);
+  else if (w.length > 4 && /(ed|er)$/.test(w)) w = w.slice(0, -2);
+  else if (w.length > 3 && /s$/.test(w) && !/ss$/.test(w)) w = w.slice(0, -1);
+  if (w.length > 3 && /e$/.test(w)) w = w.slice(0, -1); // "fence" and "fenc(ing)" meet
+  return w;
+}
+const stemWords = s => String(s || '').toLowerCase().replace(/[^a-z0-9\s]/g, ' ').split(/\s+/).filter(Boolean).map(stem);
+const normService = s => stemWords(s).join(' ');
+const allIn = (small, big) => small.every(w => big.includes(w));
 
-// candidates: [{key, value}] with most-wanted jobs first
+// candidates: [{key, value}] with most-wanted jobs first. Equal stems, or one side's
+// words all present in the other's as whole stems ("patio clean" in "patio cleaning").
+// A lone word never matches a longer name ("repair" is not "boiler repair").
 function matchService(service, candidates) {
-  const s = normService(service);
-  if (!s) return null;
-  for (const c of candidates) { if (normService(c.value) === s) return { key: c.key, value: c.value }; }
-  // Containment only when the shorter side is itself at least two words ("wet room" in
-  // "wet room installation"), never a lone word like "repair" in "boiler repair"
+  const s = stemWords(service);
+  if (!s.length) return null;
+  const sKey = s.join(' ');
+  for (const c of candidates) { if (normService(c.value) === sKey) return { key: c.key, value: c.value }; }
   for (const c of candidates) {
-    const v = normService(c.value);
+    const v = stemWords(c.value);
     const shorter = v.length <= s.length ? v : s, longer = shorter === v ? s : v;
-    if (shorter.split(' ').length >= 2 && wholeWordContains(longer, shorter)) return { key: c.key, value: c.value };
+    if (shorter.length >= 2 && allIn(shorter, longer)) return { key: c.key, value: c.value };
   }
   return null;
 }
@@ -179,6 +192,42 @@ function matchService(service, candidates) {
 function matchRows(rows, candidates) {
   for (const r of rows) r.matched_to = matchService(r.service, candidates);
   return rows;
+}
+
+// Two (or more) rows for one service, as when the speaker gives two prices ("£50 per
+// big letter and £20 per small letter"): one row, from the lowest figure up to the
+// highest, the split kept in what_moves_price, inferred true. Only numbers the rows
+// already carry are used.
+function mergeDuplicateServices(rows) {
+  const groups = new Map();
+  for (const r of rows) {
+    const k = normService(r.service);
+    if (!groups.has(k)) groups.set(k, []);
+    groups.get(k).push(r);
+  }
+  const out = [];
+  for (const group of groups.values()) {
+    if (group.length === 1) { out.push(group[0]); continue; }
+    const nums = group.flatMap(r => [r.from_gbp, r.up_to_gbp, r.typical_gbp]).filter(n => n !== null && n !== undefined);
+    const first = group[0];
+    const parts = group.map(r => {
+      const n = [r.typical_gbp, r.from_gbp, r.up_to_gbp].find(x => x !== null && x !== undefined);
+      const what = r.what_moves_price || r.unit || r.service;
+      return n === undefined ? what : `${what} £${n}`;
+    });
+    out.push({
+      ...first,
+      from_gbp: nums.length ? Math.min(...nums) : null,
+      up_to_gbp: nums.length > 1 ? Math.max(...nums) : null,
+      typical_gbp: nums.length === 1 ? nums[0] : null,
+      unit: group.map(r => r.unit).find(Boolean) || null,
+      what_moves_price: parts.join(', '),
+      quote_only: group.every(r => r.quote_only),
+      inferred: true,
+      inferred_note: [`${group.length} prices given for one service, kept as one row`, ...group.map(r => r.inferred_note).filter(Boolean)].join('; '),
+    });
+  }
+  return out.map((r, i) => ({ ...r, sort_order: i }));
 }
 
 // The form answers a row can match: most-wanted jobs first, then every tick
@@ -206,4 +255,4 @@ function priceFlags(rows, fields, state) {
   return { flags, warnings: { mostWantedWithoutPrice: unpriced.length } };
 }
 
-module.exports = { ensurePriceTables, hashTranscript, buildPrompt, parseReply, transcriptNumbers, verifyRows, matchService, matchRows, candidatesFrom, priceFlags, UNITS, ROW_FIELDS, PROMPT_PATH };
+module.exports = { ensurePriceTables, hashTranscript, buildPrompt, parseReply, transcriptNumbers, verifyRows, stem, normService, matchService, matchRows, mergeDuplicateServices, candidatesFrom, priceFlags, UNITS, ROW_FIELDS, PROMPT_PATH };

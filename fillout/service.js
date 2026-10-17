@@ -429,6 +429,7 @@ function createFilloutService({ pool, audioStore, fetchAudio = defaultFetchAudio
         log.error(`[fillout] price reply ${cut ? 'cut off at the token limit' : 'unreadable'} for ${clientId}: ${err.message}`);
         throw new Error(UNREADABLE_REPLY);
       }
+      rows = P.mergeDuplicateServices(rows); // two prices for one service → one row, as a range
       P.verifyRows(rows, transcript);
       const fields = rec.sections.flatMap(s => s.fields);
       P.matchRows(rows, P.candidatesFrom(fields));
