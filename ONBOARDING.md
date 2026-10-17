@@ -169,9 +169,31 @@ from and up to, a single price gets typical, no usable prices gives no rows).
   received, status (received / processed / error / rejected), completeness, flags.
   Click a row for the record. `GET /api/fillout/submissions`,
   `POST /api/fillout/submissions/:id/reprocess`.
-- `/client-record.html?id=<clientId>`: every field for the niche grouped by form
-  section, "Not provided" for blanks, click to edit, transcript and player for
-  voice answers, completeness at the top. `GET /api/clients/:id/record`,
+- `/client-record.html?id=<clientId>`: one panel at a time. Left menu (a dropdown
+  on narrow screens) with "filled of expected" counts and a dot per panel: red
+  when an expected answer is missing, green when all are filled, grey when the
+  panel has nothing expected. Panels come from `panels` in
+  `fillout/field-map.json` and each field's `panel` (its `section` is still the
+  form page and drives the "Original answers" view at the bottom of the menu):
+  Business Information, About Business, Target Audience, Areas & Local Details |
+  Services, Prices, Quotes & Process | Voice & Tone, Look & Feel | Credentials,
+  Reviews & Social. Each panel carries a Required / Recommended / Optional tag and
+  a line on what it is used for. Deep links by hash (`#services`,
+  `#services:landscapers.cat.gardener`). Fields: label over value, help line
+  where the map has one, source tag (from form / from recording / edited by
+  hand), click to edit with autosave and a "Saved" note by the header. Blank
+  expected fields stay visible; blank optional fields collapse into one line per
+  panel. Voice + typed pairs are one card (player, transcript toggle, typed twin
+  beneath); service ticks are chips; the five accreditations are one table.
+  Overview (the landing page) shows the score, counts, submission, a duplicate
+  warning, and the "Needs attention" list from `fillout/attention.js`
+  (`attention` on the record API): blank expected answers by panel, one "No
+  prices given" or one line per unpriced most-wanted job, inferred or unverified
+  price rows, a failed extraction with Retry, failed audio copies, no field map,
+  an errored submission; empty means "Ready to build". Light and dark themes via
+  CSS variables, system default, the choice kept in localStorage when allowed.
+  The record API also returns `panels` (counts by the same unit rules as the
+  headline, so they add up) and `duplicateOf`; nothing else about it changed. `GET /api/clients/:id/record`,
   `PUT /api/clients/:id/record/:key` `{value}`, `GET /api/clients/:id/audio/:audioId`,
   `POST /api/clients/:id/archive | unarchive | reviewed`.
 

@@ -167,6 +167,20 @@ const quiet = { info() {}, warn() {}, error() {} };
     chk('jobs_not_wanted is filled ("nope") but counted as optional, not expected', allFields.find(f => f.key === 'jobs_not_wanted').status === 'filled' && k.optionalFilled === 1, '', '');
     chk('Property types question (removed from the form) is not in the map or the record', !map.fields.some(f => f.id === 'gbsoP3SSTnGFW5PdJ1U7zY') && !allFields.some(f => f.key === 'property_types'), '', '');
 
+    // ── Record page panels (fillout/field-map.json "panels") ──
+    const panelKeys = new Set(map.panels.map(p => p.key));
+    chk('Every field in the map has a panel listed under panels', map.fields.every(f => f.panel && panelKeys.has(f.panel)), map.fields.filter(f => !f.panel || !panelKeys.has(f.panel)).map(f => f.key).join(','), 'none missing');
+    chk('A map entry without a panel is refused by loadFieldMap', (() => { const fs2 = require('fs'); const tmp = path.join(require('os').tmpdir(), 'fm-nopanel.json'); const m2 = JSON.parse(JSON.stringify(map)); delete m2.fields[3].panel; fs2.writeFileSync(tmp, JSON.stringify(m2)); try { I.loadFieldMap(tmp); return false; } catch (e) { return /panel/.test(e.message); } })(), '', '');
+    chk('Every record field carries its panel', allFields.every(f => f.panel && panelKeys.has(f.panel)), '', '');
+    chk('Record has 11 panels with group, tag, description and counts', record.panels.length === 11 && record.panels.every(p => p.group && p.description && ['Required', 'Recommended', 'Optional'].includes(p.tag) && typeof p.filled === 'number' && ['missing', 'complete', 'none'].includes(p.status)), JSON.stringify(record.panels.map(p => [p.key, p.tag, p.status])), '');
+    const sum = k => record.panels.reduce((n, p) => n + p[k], 0);
+    chk('Panel counts add up to the headline: filled, expected, optional', sum('filled') === record.completeness.filled && sum('expected') === record.completeness.expected && sum('optionalFilled') === record.completeness.optionalFilled && sum('optionalTotal') === record.completeness.optionalTotal, JSON.stringify([sum('filled'), sum('expected'), sum('optionalFilled'), sum('optionalTotal')]), JSON.stringify([record.completeness.filled, record.completeness.expected, record.completeness.optionalFilled, record.completeness.optionalTotal]));
+    chk('Panel fields add up to every field once', sum('fields') === allFields.length, sum('fields'), allFields.length);
+    const pricesPanel = record.panels.find(p => p.key === 'prices');
+    chk('The prices unit sits on the Prices panel (2 fields + prices unit = 3 expected at most)', pricesPanel.expected === 3 || pricesPanel.expected === 2, pricesPanel.expected, '2 or 3');
+    chk('Record carries a needs-attention list', Array.isArray(record.attention) && record.attention.some(a => a.code === 'blank_expected' && a.panel === 'business_information'), JSON.stringify((record.attention || []).map(a => a.code)), 'blank_expected…');
+    chk('Record carries duplicateOf (null for the first client)', 'duplicateOf' in record && record.duplicateOf === null, JSON.stringify(record.duplicateOf), 'null');
+
     const pv = allFields.find(f => f.key === 'prices_voice');
     chk('Audio field carries transcript and a playable copy', pv.audio && pv.audio.playable && /boiler repair/.test(pv.audio.transcription), JSON.stringify(pv.audio), 'playable');
     chk('Labels have no numeric suffix', allFields.every(f => !/\(\d+\)\s*$/.test(f.label)), allFields.filter(f => /\(\d+\)\s*$/.test(f.label)).map(f => f.label).join(','), 'none');

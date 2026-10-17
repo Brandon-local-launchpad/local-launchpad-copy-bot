@@ -140,7 +140,8 @@ function entriesFor(block, label, nicheKey) {
   for (const q of block.audio) out.push({ id: q.id, key: `${nicheKey}.prices_voice`, label: 'Prices for your services (voice)', section: SL, type: q.type, niche: label });
   if (block.otherServices) out.push({ id: block.otherServices.id, key: `${nicheKey}.other_services`, label: strip(block.otherServices.name).length > 60 ? 'Additional services not listed above' : strip(block.otherServices.name), section: SL, type: block.otherServices.type, niche: label, optional: true });
   if (block.jobsNotWanted) out.push({ id: block.jobsNotWanted.id, key: `${nicheKey}.jobs_not_wanted`, label: strip(block.jobsNotWanted.name), section: SL, type: block.jobsNotWanted.type, niche: label, optional: true });
-  return out;
+  // Every niche field sits on the Services panel of the record page (prices_voice too; the Prices panel reads it through the prices card)
+  return out.map(e => ({ ...e, panel: 'services' }));
 }
 
 function updateMap(blocks) {
