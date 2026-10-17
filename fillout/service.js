@@ -291,7 +291,7 @@ function createFilloutService({ pool, audioStore, fetchAudio = defaultFetchAudio
     return rows.map(r => {
       const used = I.fieldsForNiche(map, r.niche);
       const have = new Map((byClient.get(r.client_id) || []).map(f => [f.field_key, f.status]));
-      const c = I.completeness(used.map(f => ({ status: have.get(f.key) || 'blank' })));
+      const c = I.completeness(used.map(f => ({ key: f.key, group: f.group, optional: f.optional, status: have.get(f.key) || 'blank' })));
       return {
         id: r.id, receivedAt: r.received_at, submissionId: r.submission_id, status: r.status, error: r.error || null, processedAt: r.processed_at,
         clientId: r.client_id, clientName: r.client_name || null, archived: !!r.archived_at, reviewed: !!r.reviewed_at,
@@ -319,7 +319,7 @@ function createFilloutService({ pool, audioStore, fetchAudio = defaultFetchAudio
       const h = have.get(f.key);
       const a = f.type === 'AudioRecording' ? audioByKey.get(f.key) : null;
       return {
-        key: f.key, label: f.label, section: f.section, type: f.type, niche: f.niche, questionId: f.id,
+        key: f.key, label: f.label, section: f.section, type: f.type, niche: f.niche, questionId: f.id, group: f.group || null, optional: !!f.optional,
         value: h ? h.value : null, status: h ? h.status : 'blank', source: h ? h.source : 'form', updatedAt: h ? h.updated_at : null,
         audio: a ? { id: a.id, filloutUrl: a.fillout_url, filename: a.filename, transcription: a.transcription, duration: a.duration,
                      downloadStatus: a.download_status, downloadError: a.download_error, size: a.size_bytes,

@@ -73,9 +73,11 @@
         if (s.niche && !s.nicheKnown) flags.push(`<span class="badge b-warn" title="Only the universal fields were read">No field map for this niche</span>`);
         if (s.archived) flags.push(`<span class="badge b-received">Archived</span>`);
         const c = s.completeness;
-        const pct = c ? `<div class="pct"><div class="bar"><div style="width:${c.pct}%"></div></div><span>${c.pct}%</span></div><div class="meta">${c.filled} of ${c.total} fields</div>` : '<span class="meta">—</span>';
+        const pct = c ? `<div class="pct"><div class="bar"><div style="width:${c.pct}%"></div></div><span>${c.pct}%</span></div><div class="meta">${c.filled} of ${c.expected} expected${c.optionalTotal ? ` · ${c.optionalFilled} of ${c.optionalTotal} optional` : ''}</div>` : '<span class="meta">—</span>';
         const open = s.clientId ? `onclick="location.href='/client-record.html?id=${s.clientId}'"` : '';
-        const canRerun = s.status === 'error' || s.audioFailed || s.status === 'received';
+        // Reprocess rebuilds the record from the stored payload (after a field map change, a failed run or a failed audio download)
+        const canRerun = s.status !== 'rejected';
+        const rerunLabel = s.status === 'error' || s.audioFailed || s.status === 'received' ? 'Re-run' : 'Reprocess';
         return `<div class="row" ${open}>
           <div><div class="name">${esc(s.businessName || '(no business name)')}</div><div class="meta">${esc(s.submissionId)}${flags.length ? '<br>' + flags.join(' ') : ''}</div></div>
           <div>${esc(s.niche || '—')}</div>
@@ -83,7 +85,7 @@
           <div><span class="badge b-${esc(s.status)}">${esc(s.status)}</span>${s.error ? `<div class="err" title="${esc(s.error)}">${esc(s.error.split('\n')[0])}</div>` : ''}</div>
           <div>${pct}</div>
           <div onclick="event.stopPropagation()" style="display:flex;gap:6px;flex-wrap:wrap">
-            ${canRerun && s.status !== 'rejected' ? `<button class="btn btn-ghost" onclick="rerun('${s.id}')">Re-run</button>` : ''}
+            ${canRerun ? `<button class="btn btn-ghost" title="Rebuild the client record from the stored submission. Fields typed in by hand are kept." onclick="rerun('${s.id}')">${rerunLabel}</button>` : ''}
             ${s.archived && s.clientId ? `<button class="btn btn-ghost" onclick="unarchive('${s.clientId}')">Unarchive</button>` : ''}
           </div>
         </div>`;
