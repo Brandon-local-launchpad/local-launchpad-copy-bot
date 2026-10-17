@@ -117,7 +117,10 @@
   .prices { padding: 1rem 1.4rem; border-bottom: 1px solid var(--border); }
   .prices-head { display: flex; align-items: center; justify-content: space-between; gap: .75rem; flex-wrap: wrap; margin-bottom: .5rem; } .prices-head h3 { font-size: .95rem; }
   .prices-flags { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: .6rem; }
+  .prices-flags .badge { white-space: normal; text-align: left; }
   .prices-grid { display: grid; grid-template-columns: minmax(0, 3fr) minmax(220px, 1.2fr); gap: 1rem; align-items: start; }
+  .prices-grid > .ptable { overflow-x: auto; -webkit-overflow-scrolling: touch; } /* the table scrolls inside the card on narrow screens */
+  .prices-grid > .ptable table { min-width: 560px; }
   @media (max-width: 900px) { .prices-grid { grid-template-columns: 1fr; } }
   .ptranscript { background: var(--surface2); border-radius: 8px; padding: .7rem .9rem; font-size: 13px; line-height: 1.55; white-space: pre-wrap; }
   .ptranscript h4 { font-size: 11px; text-transform: uppercase; letter-spacing: .04em; color: var(--muted); margin-bottom: .4rem; }
@@ -424,7 +427,7 @@
     const rows = p.rows.map(r => priceEdit === r.id ? renderPriceEditor(r) : renderPriceRow(r)).join('') + (priceEdit === 'new' ? renderPriceEditor({ id: 'new', service: '', unit: '' }) : '');
     const table = `<table class="t"><thead><tr><th>Service</th><th>From</th><th>Up to / typical</th><th>Unit</th><th>What moves the price</th><th></th></tr></thead><tbody>${rows || `<tr><td colspan="6" class="val blank">${st.status === 'done' ? 'No prices given' : 'No rows yet'}</td></tr>`}</tbody></table>`;
     const transcript = `<div class="ptranscript"><h4>Transcript</h4>${p.transcript ? esc(p.transcript) : '<span class="val blank">No recording</span>'}</div>`;
-    return `<div class="prices" id="f_prices">${head}<div class="prices-flags">${stateLine}${flags}</div><div class="prices-grid"><div>${table}</div>${transcript}</div></div>`;
+    return `<div class="prices" id="f_prices">${head}<div class="prices-flags">${stateLine}${flags}</div><div class="prices-grid"><div class="ptable">${table}</div>${transcript}</div></div>`;
   }
   function priceBadges(r) {
     const b = [];
