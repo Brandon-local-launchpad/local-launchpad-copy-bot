@@ -25,6 +25,8 @@ function loadFieldMap(file = MAP_PATH) {
     // when its id isn't known yet; see resolveQuestion
     const positioned = f.position && f.position.after && f.position.before;
     if ((!f.id && !positioned) || !f.key || !f.section || !f.niche) throw new Error(`field map: entry missing id (or position), key, section or niche: ${JSON.stringify(f)}`);
+    // panel: where the record page shows the field (map.panels); section stays the form page
+    if (!f.panel || !(map.panels || []).some(p => p.key === f.panel)) throw new Error(`field map: ${f.key} has no panel, or one not listed under panels: ${f.panel}`);
     // expectedWhen: {field, in: [...]} makes the field count only when another field holds one of those values
     if (f.expectedWhen) {
       const w = f.expectedWhen;

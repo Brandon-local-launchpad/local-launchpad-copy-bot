@@ -5,172 +5,419 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Onboarding record — Local Launchpad</title>
 <style>
-  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  /* Theme: every colour is a variable; light is the base, dark overrides. The theme is set
+     on <html data-theme> from the saved choice, else the system preference. */
   :root {
-    --bg: #0f1117; --surface: #1a1d27; --surface2: #22263a;
-    --accent: #6c63ff; --accent2: #5a52e0; --success: #4ade80;
-    --danger: #f87171; --warning: #fbbf24; --text: #e2e8f0; --muted: #94a3b8;
-    --border: #2d3148; --r: 10px; --font: 'Inter', system-ui, sans-serif;
+    --bg: #f4f5f9; --surface: #ffffff; --surface2: #eef0f6; --surface3: #e3e6ef;
+    --text: #161a2b; --muted: #5b6478; --border: #d8dce8; --accent: #5b52e6; --accent2: #4a42cc; --on-accent: #fff;
+    --success: #15803d; --success-bg: rgba(21,128,61,.12); --warning: #b45309; --warning-bg: rgba(180,83,9,.12);
+    --danger: #b91c1c; --danger-bg: rgba(185,28,28,.12); --focus: #5b52e6;
+    --r: 10px; --font: 'Inter', system-ui, sans-serif; --shadow: 0 1px 2px rgba(20,24,40,.06);
   }
-  body { background: var(--bg); color: var(--text); font-family: var(--font); min-height: 100vh; padding: 2rem; font-size: 14px; line-height: 1.5; }
-  @media (max-width: 640px) { body { padding: 1rem; } }
+  :root[data-theme="dark"] {
+    --bg: #0f1117; --surface: #1a1d27; --surface2: #22263a; --surface3: #2b3047;
+    --text: #e2e8f0; --muted: #94a3b8; --border: #2d3148; --accent: #6c63ff; --accent2: #5a52e0; --on-accent: #fff;
+    --success: #4ade80; --success-bg: rgba(74,222,128,.15); --warning: #fbbf24; --warning-bg: rgba(251,191,36,.15);
+    --danger: #f87171; --danger-bg: rgba(248,113,113,.15); --focus: #8b84ff; --shadow: none;
+  }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html { color-scheme: light; } html[data-theme="dark"] { color-scheme: dark; }
+  body { background: var(--bg); color: var(--text); font-family: var(--font); min-height: 100vh; font-size: 14px; line-height: 1.5; }
   a { color: var(--accent); text-decoration: none; }
-  .breadcrumb { color: var(--muted); font-size: 13px; margin-bottom: 1.5rem; }
-  .breadcrumb a { color: var(--muted); }
-  .header { display: flex; align-items: flex-start; justify-content: space-between; gap: 1rem; flex-wrap: wrap; margin-bottom: 1.5rem; }
-  h1 { font-size: 1.5rem; font-weight: 700; }
-  .sub { color: var(--muted); font-size: 13px; margin-top: 3px; }
-  .btn { display: inline-flex; align-items: center; gap: 6px; border: none; border-radius: var(--r); font-family: var(--font); font-size: 13px; font-weight: 600; padding: 8px 14px; cursor: pointer; text-decoration: none; }
-  .btn-primary { background: var(--accent); color: #fff; }
-  .btn-ghost { background: transparent; color: var(--muted); border: 1px solid var(--border); }
-  .btn-ghost:hover { color: var(--text); }
-  .badge { display: inline-block; border-radius: 20px; padding: 3px 10px; font-size: 11px; font-weight: 700; vertical-align: middle; margin-left: 6px; white-space: nowrap; }
-  .badge-warn { background: rgba(251,191,36,.15); color: var(--warning); }
-  .badge-ok { background: rgba(74,222,128,.15); color: var(--success); }
-  .badge-none { background: var(--surface2); color: var(--muted); }
-  .complete { background: var(--surface); border: 1px solid var(--border); border-radius: var(--r); padding: 1rem 1.25rem; margin-bottom: 1.5rem; display: flex; align-items: center; gap: 1rem; flex-wrap: wrap; }
-  .complete .n { font-size: 1.6rem; font-weight: 700; }
-  .bar { flex: 1; min-width: 160px; height: 8px; background: var(--surface2); border-radius: 4px; overflow: hidden; }
-  .bar > div { height: 100%; background: var(--accent); }
-  .section { background: var(--surface); border: 1px solid var(--border); border-radius: var(--r); margin-bottom: 1rem; overflow: hidden; }
-  .section h2 { font-size: 1rem; font-weight: 700; padding: .9rem 1.25rem; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
-  .section h2 span { color: var(--muted); font-size: 12px; font-weight: 500; }
-  .field { display: grid; grid-template-columns: minmax(180px, 1fr) 2fr auto; gap: 1rem; padding: .75rem 1.25rem; border-bottom: 1px solid var(--border); align-items: start; }
-  .field:last-child { border-bottom: none; }
-  @media (max-width: 760px) { .field { grid-template-columns: 1fr; gap: .4rem; } }
-  .label { color: var(--muted); font-size: 13px; }
-  .label small { display: block; color: var(--muted); opacity: .7; font-size: 11px; }
-  .value { white-space: pre-wrap; word-break: break-word; }
-  .value.blank { color: var(--muted); font-style: italic; }
-  .value ul { margin: 0; padding-left: 1.1rem; }
-  .src { font-size: 11px; color: var(--muted); white-space: nowrap; text-align: right; }
-  .src.manual { color: var(--warning); }
-  .edit { cursor: pointer; }
-  .edit:hover { outline: 1px dashed var(--border); outline-offset: 4px; border-radius: 4px; }
-  textarea, input[type=text] { width: 100%; background: var(--bg); color: var(--text); border: 1px solid var(--border); border-radius: 8px; padding: 8px 10px; font-family: var(--font); font-size: 14px; }
-  textarea { min-height: 80px; resize: vertical; }
-  textarea:focus, input:focus { outline: 2px solid var(--accent); border-color: transparent; }
-  .editbar { display: flex; gap: .5rem; margin-top: .5rem; align-items: center; }
-  .hint { font-size: 12px; color: var(--muted); }
-  audio { width: 100%; max-width: 420px; margin-top: .5rem; display: block; }
-  .transcript { background: var(--surface2); border-radius: 8px; padding: .6rem .8rem; margin-top: .4rem; font-size: 13px; }
-  .audio-meta { font-size: 12px; color: var(--muted); margin-top: .3rem; }
-  .audio-meta.bad { color: var(--danger); }
-  .empty { color: var(--muted); text-align: center; padding: 3rem; }
-  .status { font-size: 13px; color: var(--muted); }
-  .status.ok { color: var(--success); } .status.bad { color: var(--danger); }
-  /* Service prices card (fillout/prices.js) */
-  .prices { padding: .9rem 1.25rem 1.1rem; border-bottom: 1px solid var(--border); }
-  .prices-head { display: flex; align-items: center; justify-content: space-between; gap: .75rem; flex-wrap: wrap; margin-bottom: .5rem; }
-  .prices-head h3 { font-size: .95rem; font-weight: 700; }
-  .prices-flags { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: .6rem; }
-  .pflag { display: inline-block; border-radius: 20px; padding: 3px 10px; font-size: 11px; font-weight: 700; }
-  .pflag.warn { background: rgba(251,191,36,.15); color: var(--warning); }
-  .pflag.bad { background: rgba(248,113,113,.15); color: var(--danger); }
-  .pflag.ok { background: rgba(74,222,128,.15); color: var(--success); }
-  .pflag.muted { background: var(--surface2); color: var(--muted); }
-  .prices-grid { display: grid; grid-template-columns: minmax(0, 3fr) minmax(220px, 1.2fr); gap: 1rem; align-items: start; }
-  @media (max-width: 900px) { .prices-grid { grid-template-columns: 1fr; } }
-  table.pt { width: 100%; border-collapse: collapse; font-size: 13px; }
-  table.pt th { text-align: left; color: var(--muted); font-weight: 600; font-size: 11px; text-transform: uppercase; letter-spacing: .04em; padding: 4px 6px; border-bottom: 1px solid var(--border); }
-  table.pt td { padding: 6px; border-bottom: 1px solid var(--border); vertical-align: top; }
-  table.pt td.num { white-space: nowrap; }
-  table.pt tr.manual td:first-child { border-left: 2px solid var(--warning); }
-  table.pt input[type=text], table.pt input[type=number] { width: 100%; min-width: 60px; padding: 5px 7px; font-size: 13px; }
-  table.pt .rb { display: inline-block; margin: 2px 4px 0 0; border-radius: 20px; padding: 1px 8px; font-size: 10px; font-weight: 700; }
+  button, input, select, textarea { font-family: var(--font); }
+  :focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+
+  /* Header */
+  .top { background: var(--surface); border-bottom: 1px solid var(--border); padding: .9rem 1.5rem; position: sticky; top: 0; z-index: 20; }
+  .crumbs { color: var(--muted); font-size: 12px; margin-bottom: .4rem; } .crumbs a { color: var(--muted); }
+  .head { display: flex; align-items: center; justify-content: space-between; gap: 1rem; flex-wrap: wrap; }
+  .head h1 { font-size: 1.25rem; font-weight: 700; display: inline; }
+  .head .sub { color: var(--muted); font-size: 13px; margin-top: 2px; }
+  .score { display: inline-flex; align-items: center; gap: .5rem; background: var(--surface2); border-radius: 20px; padding: 4px 12px 4px 6px; font-weight: 700; }
+  .score .ring { width: 26px; height: 26px; border-radius: 50%; background: conic-gradient(var(--accent) calc(var(--p) * 1%), var(--surface3) 0); display: grid; place-items: center; }
+  .score .ring::after { content: ''; width: 18px; height: 18px; border-radius: 50%; background: var(--surface2); }
+  .actions { display: flex; gap: .5rem; flex-wrap: wrap; align-items: center; }
+  .btn { display: inline-flex; align-items: center; gap: 6px; border: 1px solid transparent; border-radius: var(--r); font-size: 13px; font-weight: 600; padding: 7px 13px; cursor: pointer; background: var(--surface2); color: var(--text); }
+  .btn:hover { background: var(--surface3); }
+  .btn-primary { background: var(--accent); color: var(--on-accent); } .btn-primary:hover { background: var(--accent2); }
+  .btn-ghost { background: transparent; border-color: var(--border); color: var(--muted); } .btn-ghost:hover { color: var(--text); background: var(--surface2); }
+  .btn-xs { padding: 4px 9px; font-size: 12px; } .btn:disabled { opacity: .5; cursor: not-allowed; }
+  .saved { font-size: 12px; color: var(--muted); min-width: 60px; } .saved.ok { color: var(--success); } .saved.bad { color: var(--danger); }
+  .badge { display: inline-block; border-radius: 20px; padding: 2px 9px; font-size: 11px; font-weight: 700; vertical-align: middle; white-space: nowrap; }
+  .b-warn { background: var(--warning-bg); color: var(--warning); } .b-ok { background: var(--success-bg); color: var(--success); }
+  .b-bad { background: var(--danger-bg); color: var(--danger); } .b-muted { background: var(--surface2); color: var(--muted); } .b-accent { background: var(--accent); color: var(--on-accent); }
+
+  /* Layout */
+  .wrap { display: grid; grid-template-columns: 260px minmax(0, 1fr); gap: 1.5rem; padding: 1.5rem; max-width: 1400px; margin: 0 auto; }
+  aside { position: sticky; top: 92px; align-self: start; max-height: calc(100vh - 110px); overflow: auto; }
+  .menu-select { display: none; width: 100%; padding: 9px 10px; border: 1px solid var(--border); border-radius: 8px; background: var(--surface); color: var(--text); font-size: 14px; }
+  .mg { color: var(--muted); font-size: 11px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; margin: 1rem 0 .35rem .6rem; }
+  .mi { display: flex; align-items: center; gap: .6rem; padding: 7px 10px; border-radius: 8px; color: var(--text); cursor: pointer; font-size: 13px; }
+  .mi:hover { background: var(--surface2); } .mi.active { background: var(--surface); box-shadow: var(--shadow); border: 1px solid var(--border); font-weight: 600; }
+  .mi .lbl { flex: 1; } .mi .cnt { color: var(--muted); font-size: 11px; white-space: nowrap; }
+  .dot { width: 9px; height: 9px; border-radius: 50%; flex: none; background: var(--surface3); border: 1px solid var(--border); }
+  .dot.missing { background: var(--danger); border-color: var(--danger); } .dot.complete { background: var(--success); border-color: var(--success); } .dot.none { background: transparent; }
+  details.orig { margin-top: 1rem; } details.orig summary { cursor: pointer; color: var(--muted); font-size: 12px; padding: 6px 10px; list-style: none; } details.orig summary::before { content: '▸ '; } details.orig[open] summary::before { content: '▾ '; }
+  @media (max-width: 900px) {
+    .wrap { grid-template-columns: 1fr; padding: 1rem; gap: 1rem; }
+    aside { position: static; max-height: none; } .menu-list { display: none; } .menu-select { display: block; }
+    .top { padding: .75rem 1rem; }
+  }
+
+  /* Panels */
+  .panel { background: var(--surface); border: 1px solid var(--border); border-radius: var(--r); box-shadow: var(--shadow); }
+  .ph { padding: 1.1rem 1.4rem .9rem; border-bottom: 1px solid var(--border); }
+  .ph h2 { font-size: 1.15rem; font-weight: 700; display: flex; align-items: center; gap: .6rem; flex-wrap: wrap; }
+  .ph p { color: var(--muted); font-size: 13px; margin-top: .3rem; }
+  .ph .pc { color: var(--muted); font-size: 12px; margin-top: .35rem; }
+  .tag { font-size: 10px; font-weight: 700; letter-spacing: .05em; text-transform: uppercase; border-radius: 4px; padding: 2px 6px; }
+  .tag.required { background: var(--danger-bg); color: var(--danger); } .tag.recommended { background: var(--warning-bg); color: var(--warning); } .tag.optional { background: var(--surface2); color: var(--muted); }
+  .fields { padding: .25rem 1.4rem .9rem; }
+  .f { padding: .85rem 0; border-bottom: 1px solid var(--border); } .f:last-child { border-bottom: none; }
+  .f .lab { font-size: 13px; font-weight: 600; display: flex; align-items: baseline; justify-content: space-between; gap: .75rem; }
+  .f .lab small { font-weight: 500; color: var(--muted); font-size: 11px; white-space: nowrap; }
+  .f .help { color: var(--muted); font-size: 12px; margin-top: 1px; }
+  .f .val { margin-top: .4rem; white-space: pre-wrap; word-break: break-word; cursor: text; border-radius: 6px; padding: 2px 4px; margin-left: -4px; }
+  .f .val:hover { background: var(--surface2); } .f .val.blank { color: var(--muted); font-style: italic; }
+  .f .val ul { margin: 0; padding-left: 1.1rem; }
+  textarea, input[type=text], input[type=number] { width: 100%; background: var(--surface); color: var(--text); border: 1px solid var(--border); border-radius: 8px; padding: 8px 10px; font-size: 14px; margin-top: .4rem; }
+  textarea { min-height: 84px; resize: vertical; }
+  .ehint { font-size: 11px; color: var(--muted); margin-top: 4px; }
+  .chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: .4rem; }
+  .chip { background: var(--surface2); border: 1px solid var(--border); border-radius: 20px; padding: 3px 10px; font-size: 12px; }
+  .opt-line { padding: .7rem 0; color: var(--muted); font-size: 13px; cursor: pointer; } .opt-line:hover { color: var(--text); }
+  .src { font-size: 11px; color: var(--muted); } .src.manual { color: var(--warning); }
+
+  /* Voice cards */
+  .voice { background: var(--surface2); border: 1px solid var(--border); border-radius: 8px; padding: .7rem .9rem; margin-top: .5rem; }
+  .voice audio { width: 100%; max-width: 440px; display: block; margin: .3rem 0; }
+  .voice .vm { font-size: 11px; color: var(--muted); display: flex; gap: .75rem; flex-wrap: wrap; align-items: center; }
+  .voice .tr { margin-top: .5rem; font-size: 13px; white-space: pre-wrap; border-left: 3px solid var(--border); padding-left: .7rem; }
+  .voice .typed { margin-top: .6rem; }
+  .voice .typed .tl { font-size: 11px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: .05em; }
+  .linkish { background: none; border: none; color: var(--accent); cursor: pointer; font-size: 12px; padding: 0; }
+
+  /* Overview */
+  .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: .75rem; padding: 1rem 1.4rem; }
+  .stat { background: var(--surface2); border-radius: 8px; padding: .7rem .9rem; } .stat .k { color: var(--muted); font-size: 11px; text-transform: uppercase; letter-spacing: .05em; } .stat .v { font-size: 1.2rem; font-weight: 700; margin-top: 2px; word-break: break-all; } .stat .v.small { font-size: .85rem; font-weight: 500; }
+  .att { padding: .5rem 1.4rem 1.2rem; } .att h3 { font-size: .95rem; margin: .6rem 0 .5rem; }
+  .ai { display: flex; gap: .7rem; align-items: flex-start; padding: .55rem .7rem; border-radius: 8px; border: 1px solid var(--border); margin-bottom: .45rem; background: var(--surface); }
+  .ai .sev { width: 9px; height: 9px; border-radius: 50%; margin-top: 6px; flex: none; } .ai.bad .sev { background: var(--danger); } .ai.warn .sev { background: var(--warning); }
+  .ai .m { flex: 1; } .ai .m a { font-weight: 600; } .ai .sub { color: var(--muted); font-size: 12px; margin-top: 2px; }
+  .ready { display: flex; align-items: center; gap: .6rem; background: var(--success-bg); color: var(--success); border-radius: 8px; padding: .8rem 1rem; font-weight: 600; }
+
+  /* Credentials table and price table */
+  table.t { width: 100%; border-collapse: collapse; font-size: 13px; margin-top: .4rem; }
+  table.t th { text-align: left; color: var(--muted); font-weight: 600; font-size: 11px; text-transform: uppercase; letter-spacing: .04em; padding: 5px 6px; border-bottom: 1px solid var(--border); }
+  table.t td { padding: 6px; border-bottom: 1px solid var(--border); vertical-align: top; }
+  table.t td.num { white-space: nowrap; } table.t tr.manual td:first-child { border-left: 2px solid var(--warning); }
+  table.t input { margin-top: 0; padding: 5px 7px; font-size: 13px; min-width: 60px; }
+  .t .rb { display: inline-block; margin: 2px 4px 0 0; border-radius: 20px; padding: 1px 8px; font-size: 10px; font-weight: 700; }
   .pt-actions { display: flex; gap: 4px; flex-wrap: wrap; }
-  .btn-xs { padding: 4px 9px; font-size: 12px; }
+  .prices { padding: 1rem 1.4rem; border-bottom: 1px solid var(--border); }
+  .prices-head { display: flex; align-items: center; justify-content: space-between; gap: .75rem; flex-wrap: wrap; margin-bottom: .5rem; } .prices-head h3 { font-size: .95rem; }
+  .prices-flags { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: .6rem; }
+  .prices-flags .badge { white-space: normal; text-align: left; }
+  .prices-grid { display: grid; grid-template-columns: minmax(0, 3fr) minmax(220px, 1.2fr); gap: 1rem; align-items: start; }
+  .prices-grid > .ptable { overflow-x: auto; -webkit-overflow-scrolling: touch; } /* the table scrolls inside the card on narrow screens */
+  .prices-grid > .ptable table { min-width: 560px; }
+  @media (max-width: 900px) { .prices-grid { grid-template-columns: 1fr; } }
   .ptranscript { background: var(--surface2); border-radius: 8px; padding: .7rem .9rem; font-size: 13px; line-height: 1.55; white-space: pre-wrap; }
   .ptranscript h4 { font-size: 11px; text-transform: uppercase; letter-spacing: .04em; color: var(--muted); margin-bottom: .4rem; }
   .pnote { font-size: 11px; color: var(--muted); margin-top: 2px; }
+  .empty { color: var(--muted); text-align: center; padding: 3rem; }
+  .orig-section { margin-bottom: 1rem; } .orig-section h2 { font-size: 1rem; padding: .8rem 1.4rem; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; } .orig-section h2 span { color: var(--muted); font-size: 12px; font-weight: 500; }
+  .hl { animation: hl 1.6s ease-out; } @keyframes hl { from { background: var(--warning-bg); } to { background: transparent; } }
 </style>
 </head>
 <body>
 
-<div class="breadcrumb"><a href="/clients.html">Clients</a> / <a href="/submissions.html">Submissions</a> / <a id="crumbClient" href="#">…</a> / Onboarding record</div>
-
-<div class="header">
-  <div>
-    <h1 id="title">Onboarding record</h1>
-    <div class="sub" id="sub"></div>
-  </div>
-  <div style="display:flex;gap:.5rem;flex-wrap:wrap;align-items:center">
-    <span class="status" id="status"></span>
-    <a id="clientLink" class="btn btn-ghost" href="#">Client page</a>
-    <button class="btn btn-ghost" id="reviewBtn" onclick="toggleReviewed()" style="display:none"></button>
-    <button class="btn btn-ghost" id="archiveBtn" onclick="toggleArchived()" style="display:none"></button>
+<div class="top">
+  <div class="crumbs"><a href="/clients.html">Clients</a> / <a href="/submissions.html">Submissions</a> / <a id="crumbClient" href="#">…</a> / Onboarding record</div>
+  <div class="head">
+    <div>
+      <h1 id="title">Onboarding record</h1> <span id="badges"></span>
+      <div class="sub" id="sub"></div>
+    </div>
+    <div class="actions">
+      <span class="saved" id="saved"></span>
+      <span class="score" id="score" style="display:none"><span class="ring" id="ring"></span><span id="scoreText"></span></span>
+      <a id="clientLink" class="btn btn-ghost" href="#">Client page</a>
+      <button class="btn btn-ghost" id="reviewBtn" onclick="toggleReviewed()" style="display:none"></button>
+      <button class="btn btn-ghost" id="reprocessBtn" onclick="reprocess()" style="display:none" title="Rebuild this record from the stored submission. Typed-in fields are kept.">Reprocess</button>
+      <button class="btn btn-ghost" id="archiveBtn" onclick="toggleArchived()" style="display:none"></button>
+      <button class="btn btn-ghost" id="themeBtn" onclick="toggleTheme()" title="Light or dark">◐</button>
+    </div>
   </div>
 </div>
 
-<div class="complete" id="complete" style="display:none">
-  <div class="n" id="pct">0%</div>
-  <div class="bar"><div id="pctBar" style="width:0"></div></div>
-  <div class="hint" id="pctText"></div>
+<div class="wrap">
+  <aside>
+    <select class="menu-select" id="menuSelect" onchange="go(this.value)"></select>
+    <div class="menu-list" id="menu"></div>
+  </aside>
+  <main id="main"><div class="empty">Loading…</div></main>
 </div>
-
-<div id="sections"><div class="empty">Loading…</div></div>
 
 <script>
+  // ── Theme: saved choice, else the system preference; storage may be blocked ──
+  const THEME_KEY = 'll_theme';
+  function readTheme() { try { return localStorage.getItem(THEME_KEY); } catch (_) { return null; } }
+  function applyTheme(t) { document.documentElement.setAttribute('data-theme', t); const b = document.getElementById('themeBtn'); if (b) b.textContent = t === 'dark' ? '☾' : '☀'; }
+  function systemTheme() { try { return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'; } catch (_) { return 'light'; } }
+  applyTheme(readTheme() || systemTheme());
+  function toggleTheme() { const next = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark'; applyTheme(next); try { localStorage.setItem(THEME_KEY, next); } catch (_) {} }
+  try { window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', e => { if (!readTheme()) applyTheme(e.matches ? 'dark' : 'light'); }); } catch (_) {}
+
   const params = new URLSearchParams(location.search);
   const clientId = params.get('id');
   if (!clientId) location.href = '/submissions.html';
   let rec = null;
-  let editing = null; // field key being edited
+  let editing = null;          // field key being edited
+  let priceEdit = null;        // price row id being edited, or 'new'
+  const openOptional = new Set();  // panels whose optional blanks are expanded
+  const openTranscript = new Set();
 
   const esc = s => String(s == null ? '' : s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
   const fmt = s => s ? new Date(s).toLocaleString('en-GB', { day:'numeric', month:'short', year:'numeric', hour:'2-digit', minute:'2-digit' }) : '';
-  const setStatus = (t, cls) => { const el = document.getElementById('status'); el.textContent = t || ''; el.className = 'status ' + (cls || ''); };
+  const setSaved = (t, cls) => { const el = document.getElementById('saved'); el.textContent = t || ''; el.className = 'saved ' + (cls || ''); };
+  const gbp = n => n == null ? '' : '£' + Number(n).toLocaleString('en-GB');
+  const allFields = () => rec.sections.flatMap(s => s.fields);
+  const byKey = k => allFields().find(f => f.key === k);
+  // Render units: a voice+typed pair and the accreditations show as one block. The service
+  // tick groups share the completeness group "services" but each shows on its own.
+  const unitFields = f => f.group && f.group !== 'services' ? allFields().filter(x => x.group === f.group) : [f];
+
+  // ── Routing: #panel or #panel:field_key ──
+  const PANEL_KEYS = () => ['overview', ...rec.panels.map(p => p.key), 'original'];
+  function current() { const h = (location.hash || '#overview').slice(1); const [p, field] = h.split(':'); return { panel: PANEL_KEYS().includes(p) ? p : 'overview', field: field || null }; }
+  function go(target) { location.hash = '#' + target; }
+  window.addEventListener('hashchange', () => { editing = null; priceEdit = null; render(); });
 
   async function load() {
     const res = await fetch(`/api/clients/${clientId}/record`);
-    if (!res.ok) { document.getElementById('sections').innerHTML = `<div class="empty">Could not load: ${esc((await res.json().catch(() => ({}))).error || res.status)}</div>`; return; }
+    if (!res.ok) { document.getElementById('main').innerHTML = `<div class="empty">Could not load: ${esc((await res.json().catch(() => ({}))).error || res.status)}</div>`; return; }
     rec = await res.json();
     const c = rec.client;
     document.title = `${c.name} — Onboarding record`;
-    document.getElementById('crumbClient').textContent = c.name;
-    document.getElementById('crumbClient').href = `/client.html?id=${c.id}`;
+    document.getElementById('crumbClient').textContent = c.name; document.getElementById('crumbClient').href = `/client.html?id=${c.id}`;
     document.getElementById('clientLink').href = `/client.html?id=${c.id}`;
-    const marker = c.source === 'fillout' ? (c.reviewedAt ? '<span class="badge badge-ok">From Fillout</span>' : '<span class="badge badge-warn">From Fillout, unreviewed</span>') : '';
-    const archived = c.archivedAt ? '<span class="badge badge-none">Archived</span>' : '';
-    document.getElementById('title').innerHTML = esc(c.name) + marker + archived;
+    document.getElementById('title').textContent = c.name;
+    document.getElementById('badges').innerHTML = (c.source === 'fillout' ? (c.reviewedAt ? '<span class="badge b-ok">From Fillout</span> ' : '<span class="badge b-warn">From Fillout, unreviewed</span> ') : '') + (c.archivedAt ? '<span class="badge b-muted">Archived</span>' : '');
     const last = rec.submissions[0];
-    document.getElementById('sub').innerHTML = `${esc(rec.niche || 'Niche not given')}${rec.niche && !rec.nicheKnown ? ' <span class="badge badge-warn">No field map for this niche: universal fields only</span>' : ''}`
-      + (last ? ` &middot; ${rec.submissions.length} submission${rec.submissions.length > 1 ? 's' : ''}, last ${fmt(last.receivedAt)}` : '');
+    document.getElementById('sub').innerHTML = `${esc(rec.niche || 'Niche not given')}${rec.niche && !rec.nicheKnown ? ' <span class="badge b-warn">No field map for this niche</span>' : ''}` + (last ? ` · ${rec.submissions.length} submission${rec.submissions.length > 1 ? 's' : ''}, last ${fmt(last.receivedAt)}` : '');
     if (c.source === 'fillout') {
       const rb = document.getElementById('reviewBtn'); rb.style.display = ''; rb.textContent = c.reviewedAt ? 'Mark unreviewed' : 'Mark reviewed';
       const ab = document.getElementById('archiveBtn'); ab.style.display = ''; ab.textContent = c.archivedAt ? 'Unarchive' : 'Archive';
+      if (last) document.getElementById('reprocessBtn').style.display = '';
     }
     const k = rec.completeness;
-    document.getElementById('complete').style.display = '';
-    document.getElementById('pct').textContent = k.pct + '%';
-    document.getElementById('pctBar').style.width = k.pct + '%';
-    document.getElementById('pctText').textContent = `${k.filled} of ${k.expected} expected answers for ${rec.niche || 'this niche'}`
-      + (k.optionalTotal ? `, plus ${k.optionalFilled} of ${k.optionalTotal} optional` : '')
-      + `. A voice and typed pair counts once; the accreditations count once. Blank fields can be typed in here; a typed value is kept when the form is submitted again.`;
+    document.getElementById('score').style.display = ''; document.getElementById('ring').style.setProperty('--p', k.pct); document.getElementById('scoreText').textContent = `${k.pct}% · ${k.filled} of ${k.expected}`;
     render();
   }
 
-  function render() {
-    document.getElementById('sections').innerHTML = rec.sections.map(s => {
-      const counted = s.fields.filter(f => f.applicable !== false);
-      const filled = counted.filter(f => f.status === 'filled').length;
-      const prices = s.name === 'Services & Locations' && rec.prices ? renderPrices(rec.prices) : '';
-      return `<div class="section"><h2>${esc(s.name)}<span>${filled} of ${counted.length} fields</span></h2>${prices}${s.fields.map(renderField).join('')}</div>`;
-    }).join('');
+  // ── Menu ──
+  function renderMenu() {
+    const cur = current().panel;
+    const att = rec.attention || [];
+    const groups = [];
+    for (const p of rec.panels) { let g = groups.find(x => x.name === p.group); if (!g) { g = { name: p.group, items: [] }; groups.push(g); } g.items.push(p); }
+    const item = (key, label, cnt, dot) => `<div class="mi${cur === key ? ' active' : ''}" onclick="go('${key}')"><span class="dot ${dot}"></span><span class="lbl">${esc(label)}</span><span class="cnt">${cnt}</span></div>`;
+    const ovDot = att.some(a => a.severity === 'bad') ? 'missing' : att.length ? 'none' : 'complete';
+    let html = item('overview', 'Overview', att.length ? `${att.length} to check` : 'ready', ovDot);
+    for (const g of groups) {
+      html += `<div class="mg">${esc(g.name)}</div>`;
+      for (const p of g.items) html += item(p.key, p.label, p.expected ? `${p.filled} of ${p.expected}` : (p.optionalTotal ? `${p.optionalFilled} of ${p.optionalTotal} opt` : ''), p.status);
+    }
+    html += `<details class="orig"${cur === 'original' ? ' open' : ''}><summary>Original answers</summary>${item('original', 'By form page', `${allFields().length} fields`, 'none')}</details>`;
+    document.getElementById('menu').innerHTML = html;
+    const sel = document.getElementById('menuSelect');
+    sel.innerHTML = `<option value="overview">Overview</option>` + groups.map(g => `<optgroup label="${esc(g.name)}">${g.items.map(p => `<option value="${p.key}">${esc(p.label)} (${p.expected ? `${p.filled} of ${p.expected}` : 'optional'})</option>`).join('')}</optgroup>`).join('') + `<option value="original">Original answers</option>`;
+    sel.value = cur;
   }
 
-  // ── Service prices: rows the model read from the prices voice answer, every cell editable ──
-  let priceEdit = null;   // row id being edited, or 'new'
-  const gbp = n => n == null ? '' : '£' + Number(n).toLocaleString('en-GB');
+  function render() {
+    renderMenu();
+    const { panel, field } = current();
+    const main = document.getElementById('main');
+    if (panel === 'overview') main.innerHTML = renderOverview();
+    else if (panel === 'original') main.innerHTML = renderOriginal();
+    else main.innerHTML = renderPanel(rec.panels.find(p => p.key === panel));
+    if (field) { const el = document.getElementById('f_' + CSS.escape(field)); if (el) { el.scrollIntoView({ block: 'center' }); el.classList.add('hl'); } }
+    const ed = document.getElementById('ed'); if (ed) ed.focus();
+  }
+
+  // ── Overview ──
+  function renderOverview() {
+    const k = rec.completeness, last = rec.submissions[0];
+    const att = rec.attention || [];
+    const dup = rec.duplicateOf ? `<div class="stat"><div class="k">Possible duplicate</div><div class="v small">of ${esc(rec.duplicateOf.name || 'another client')}</div></div>` : '';
+    const stats = `<div class="stats">
+      <div class="stat"><div class="k">Score</div><div class="v">${k.pct}%</div></div>
+      <div class="stat"><div class="k">Filled / expected</div><div class="v">${k.filled} of ${k.expected}</div></div>
+      <div class="stat"><div class="k">Optional filled</div><div class="v">${k.optionalFilled} of ${k.optionalTotal}</div></div>
+      <div class="stat"><div class="k">Submitted</div><div class="v small">${last ? esc(fmt(last.receivedAt)) : '—'}</div></div>
+      <div class="stat"><div class="k">Submission id</div><div class="v small">${last ? esc(last.submissionId) : '—'}</div></div>
+      ${dup}</div>`;
+    let list;
+    if (!att.length) list = `<div class="ready">✓ Ready to build. Nothing needs attention; mark the record reviewed when you have read it.</div>`;
+    else list = att.map(a => {
+      const to = a.field ? `${a.panel}:${a.field}` : a.panel;
+      const fields = a.fields ? `<div class="sub">${a.fields.map(f => `<a href="#${a.panel}:${esc(f.key)}">${esc(f.label)}</a>`).join(' · ')}</div>` : '';
+      const action = a.action === 'retry' ? ` <button class="btn btn-ghost btn-xs" onclick="extractPrices()">Retry</button>` : a.code === 'submission_error' ? ` <a class="btn btn-ghost btn-xs" href="/submissions.html">Open inbox</a>` : '';
+      return `<div class="ai ${a.severity}"><span class="sev"></span><div class="m"><a href="#${esc(to)}">${esc(a.msg)}</a>${action}${fields}</div></div>`;
+    }).join('');
+    return `<div class="panel"><div class="ph"><h2>Overview</h2><p>Where this record stands and what still needs a person.</p></div>${stats}<div class="att"><h3>Needs attention</h3>${list}</div></div>`;
+  }
+
+  // ── A panel ──
+  function renderPanel(p) {
+    const fields = allFields().filter(f => f.panel === p.key);
+    const head = `<div class="ph"><h2>${esc(p.label)} <span class="tag ${p.tag.toLowerCase()}">${p.tag}</span></h2><p>${esc(p.description)}</p>
+      <div class="pc">${p.expected ? `${p.filled} of ${p.expected} expected filled` : 'No expected answers here'}${p.optionalTotal ? ` · ${p.optionalFilled} of ${p.optionalTotal} optional` : ''}${p.notApplicable ? ` · ${p.notApplicable} not applicable` : ''}</div></div>`;
+    let body = '';
+    if (p.key === 'prices') body += renderPrices(rec.prices);
+    body += `<div class="fields">${renderFieldList(p.key, fields)}</div>`;
+    return `<div class="panel">${head}${body}</div>`;
+  }
+
+  // Fields of a panel: units (pairs, the accreditations) rendered once; optional blanks collapsed
+  function renderFieldList(panelKey, fields) {
+    const done = new Set();
+    const shown = [], optionalBlank = [];
+    for (const f of fields) {
+      if (done.has(f.key)) continue;
+      const unit = unitFields(f).filter(x => fields.includes(x));
+      unit.forEach(x => done.add(x.key));
+      const filled = unit.some(x => x.status === 'filled');
+      const optional = unit.every(x => x.optional);
+      if (optional && !filled && f.group !== 'accreditations') optionalBlank.push(unit);
+      else shown.push(unit);
+    }
+    let html = shown.map(u => renderUnit(u)).join('');
+    if (optionalBlank.length) {
+      const open = openOptional.has(panelKey);
+      html += `<div class="opt-line" onclick="toggleOptional('${panelKey}')">${open ? '▾' : '▸'} ${optionalBlank.length} optional field${optionalBlank.length === 1 ? '' : 's'} not provided</div>`;
+      if (open) html += optionalBlank.map(u => renderUnit(u)).join('');
+    }
+    return html || '<div class="empty">No fields on this panel.</div>';
+  }
+  function toggleOptional(k) { if (openOptional.has(k)) openOptional.delete(k); else openOptional.add(k); render(); }
+
+  function renderUnit(unit) {
+    if (unit[0].group === 'accreditations') return renderAccreditations(unit);
+    const voice = unit.find(f => f.type === 'AudioRecording');
+    if (voice) return renderVoice(voice, unit.find(f => f !== voice) || null);
+    return renderField(unit[0]);
+  }
+
+  const srcTag = f => f.source === 'manual' ? '<small class="src manual">edited by hand</small>' : f.source === 'transcript' ? '<small class="src">from recording</small>' : f.status === 'filled' ? '<small class="src">from form</small>' : '';
+  const stripVT = l => String(l).replace(/\s*\((voice|typed)\)\s*$/, '');
+
+  function showValue(f) {
+    if (f.applicable === false && f.status !== 'filled') return '<div class="val blank">Not applicable</div>';
+    if (f.status !== 'filled') return '<div class="val blank">Not provided — click to add</div>';
+    const v = f.value;
+    if (Array.isArray(v)) return `<div class="val"><ul>${v.map(x => `<li>${esc(x)}</li>`).join('')}</ul></div>`;
+    if (v && typeof v === 'object') return `<div class="val">${esc(JSON.stringify(v))}</div>`;
+    if (f.type === 'URLInput' && /^https?:\/\//i.test(String(v))) return `<div class="val"><a href="${esc(v)}" target="_blank" rel="noopener">${esc(v)}</a></div>`;
+    return `<div class="val">${esc(v)}</div>`;
+  }
+  const isList = f => f.type === 'Checkboxes' || f.type === 'MultiSelect' || Array.isArray(f.value);
+
+  function renderField(f, opts = {}) {
+    const label = opts.label || f.label;
+    const flags = [f.optional ? 'optional' : f.applicable === false ? 'not applicable' : '', srcTag(f)].filter(Boolean).join(' · ');
+    const help = f.help ? `<div class="help">${esc(f.help)}</div>` : '';
+    let body;
+    if (editing === f.key) body = renderEditor(f);
+    else if (f.group === 'services' && f.status === 'filled' && Array.isArray(f.value)) body = `<div class="chips" onclick="startEdit('${f.key}')" title="Click to edit">${f.value.map(x => `<span class="chip">${esc(x)}</span>`).join('')}</div>`;
+    else if (f.type === 'Dropdown' && f.key === 'niche') body = `<div class="chips"><span class="chip">${esc(f.value || 'Not given')}</span></div>`;
+    else body = `<div onclick="startEdit('${f.key}')" title="Click to edit">${showValue(f)}</div>`;
+    return `<div class="f" id="f_${esc(f.key)}"><div class="lab"><span>${esc(label)}</span><small>${flags}</small></div>${help}${body}</div>`;
+  }
+  function renderEditor(f) {
+    const multi = f.type === 'LongAnswer' || isList(f);
+    const cur = Array.isArray(f.value) ? f.value.join('\n') : (f.value == null || typeof f.value === 'object' ? '' : String(f.value));
+    const hint = isList(f) ? 'One item per line. ' : '';
+    return `${multi ? `<textarea id="ed" data-key="${esc(f.key)}" data-list="${isList(f) ? 1 : 0}" onkeydown="edKey(event)" onblur="edBlur(event)">${esc(cur)}</textarea>` : `<input type="text" id="ed" data-key="${esc(f.key)}" data-list="0" value="${esc(cur)}" onkeydown="edKey(event)" onblur="edBlur(event)">`}
+      <div class="ehint">${hint}${multi ? 'Click away to save' : 'Enter to save'}, Escape to cancel.</div>`;
+  }
+  function startEdit(key) { const f = byKey(key); if (!f || f.type === 'AudioRecording' || f.key === 'niche') return; editing = key; render(); }
+  let cancelling = false;
+  function edKey(e) {
+    if (e.key === 'Escape') { cancelling = true; editing = null; render(); cancelling = false; }
+    else if (e.key === 'Enter' && e.target.tagName === 'INPUT') { e.preventDefault(); e.target.blur(); }
+  }
+  async function edBlur(e) {
+    if (cancelling) return;
+    const el = e.target, key = el.dataset.key, f = byKey(key);
+    let value = el.value;
+    if (el.dataset.list === '1') value = value.split('\n').map(s => s.trim()).filter(Boolean);
+    const before = Array.isArray(f.value) ? f.value.join('\n') : (f.value == null || typeof f.value === 'object' ? '' : String(f.value));
+    const after = Array.isArray(value) ? value.join('\n') : value;
+    if (after.trim() === before.trim()) { editing = null; render(); return; }
+    await saveField(key, value);
+  }
+  async function saveField(key, value) {
+    setSaved('Saving…');
+    const res = await fetch(`/api/clients/${clientId}/record/${encodeURIComponent(key)}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ value }) });
+    const r = await res.json().catch(() => ({}));
+    if (!res.ok) { setSaved('Not saved: ' + (r.error || res.status), 'bad'); return; }
+    setSaved('Saved', 'ok'); setTimeout(() => setSaved(''), 1800);
+    editing = null; await load();
+  }
+
+  // Voice card: player, transcript toggle (open when there is no typed twin), the typed twin beneath
+  function renderVoice(voice, typed) {
+    const a = voice.audio;
+    const label = stripVT(voice.label);
+    const hasTyped = typed && typed.status === 'filled';
+    const open = openTranscript.has(voice.key) || !hasTyped;
+    const transcript = (a && a.transcription) || (voice.value && voice.value.transcription) || '';
+    let inner = '';
+    if (voice.status !== 'filled' && !a) inner = `<div class="vm">No recording</div>`;
+    else {
+      if (a && a.playable) inner += `<audio controls preload="none" src="/api/clients/${clientId}/audio/${a.id}"></audio><div class="vm"><span>Our copy${a.duration ? `, ${a.duration}s` : ''}${a.size ? `, ${Math.round(a.size / 1024)} KB` : ''}</span>${transcript ? `<button class="linkish" onclick="toggleTranscript('${voice.key}')">${open ? 'Hide' : 'Show'} transcript</button>` : '<span>No transcript</span>'}</div>`;
+      else if (a && a.downloadStatus === 'failed') inner += `<div class="vm"><span class="badge b-bad">Audio copy failed</span><span>${esc(a.downloadError || '')}</span>${a.filloutUrl ? `<a href="${esc(a.filloutUrl)}" target="_blank" rel="noopener">Fillout link</a>` : ''}${transcript ? `<button class="linkish" onclick="toggleTranscript('${voice.key}')">${open ? 'Hide' : 'Show'} transcript</button>` : ''}</div>`;
+      else inner += `<div class="vm"><span>Not yet copied</span>${a && a.filloutUrl ? `<a href="${esc(a.filloutUrl)}" target="_blank" rel="noopener">Fillout link</a>` : ''}${transcript ? `<button class="linkish" onclick="toggleTranscript('${voice.key}')">${open ? 'Hide' : 'Show'} transcript</button>` : ''}</div>`;
+      if (open && transcript) inner += `<div class="tr">${esc(transcript)}</div>`;
+    }
+    if (typed) {
+      const tBody = editing === typed.key ? renderEditor(typed) : `<div onclick="startEdit('${typed.key}')" title="Click to edit">${showValue(typed)}</div>`;
+      inner += `<div class="typed" id="f_${esc(typed.key)}"><div class="tl">Typed answer ${srcTag(typed)}</div>${tBody}</div>`;
+    }
+    const flags = [voice.optional ? 'optional' : '', srcTag(voice)].filter(Boolean).join(' · ');
+    return `<div class="f" id="f_${esc(voice.key)}"><div class="lab"><span>${esc(label)}</span><small>voice answer${flags ? ' · ' + flags : ''}</small></div>${voice.help ? `<div class="help">${esc(voice.help)}</div>` : ''}<div class="voice">${inner}</div></div>`;
+  }
+  function toggleTranscript(k) { if (openTranscript.has(k)) openTranscript.delete(k); else openTranscript.add(k); render(); }
+
+  // The five accreditation triples as one table; each cell editable
+  function renderAccreditations(unit) {
+    const rows = [1, 2, 3, 4, 5].map(n => ({ n, scheme: unit.find(f => f.key === `accreditation_${n}_scheme`), number: unit.find(f => f.key === `accreditation_${n}_number`), link: unit.find(f => f.key === `accreditation_${n}_link`) }));
+    const cell = f => !f ? '<td></td>' : editing === f.key ? `<td>${renderEditor(f)}</td>` : `<td id="f_${esc(f.key)}" onclick="startEdit('${f.key}')" title="Click to edit">${f.status === 'filled' ? (f.type === 'URLInput' ? `<a href="${esc(f.value)}" target="_blank" rel="noopener">${esc(f.value)}</a>` : esc(f.value)) : '<span class="val blank">—</span>'}${f.source === 'manual' ? ' <small class="src manual">edited</small>' : ''}</td>`;
+    const any = unit.some(f => f.status === 'filled');
+    return `<div class="f" id="f_accreditation_1_scheme"><div class="lab"><span>Accreditations and memberships</span><small>optional · ${any ? 'from form' : 'none given'}</small></div><div class="help">Gas Safe, NICEIC, Checkatrade and similar: scheme, membership number and a link to the listing.</div>
+      <table class="t"><thead><tr><th>#</th><th>Scheme</th><th>Membership or registration number</th><th>Link to listing</th></tr></thead><tbody>${rows.map(r => `<tr><td class="num">${r.n}</td>${cell(r.scheme)}${cell(r.number)}${cell(r.link)}</tr>`).join('')}</tbody></table></div>`;
+  }
+
+  // ── Original answers: the fields as the form pages hold them ──
+  function renderOriginal() {
+    return `<div class="panel"><div class="ph"><h2>Original answers <span class="tag optional">By form page</span></h2><p>Every field we use for ${esc(rec.niche || 'this niche')}, in the order of the Fillout form pages.</p></div>` +
+      rec.sections.map(s => `<div class="orig-section"><h2>${esc(s.name)}<span>${s.fields.filter(f => f.applicable !== false && f.status === 'filled').length} of ${s.fields.filter(f => f.applicable !== false).length} fields</span></h2><div class="fields">${renderFieldList('orig:' + s.name, s.fields)}</div></div>`).join('') + `</div>`;
+  }
+
+  // ── Service prices card (fillout/prices.js) ──
   function renderPrices(p) {
+    if (!p) return '';
     const st = p.state || {};
-    const flags = p.flags.map(f => `<span class="pflag ${f.code === 'no_prices' ? 'muted' : f.code === 'unverified' ? 'bad' : 'warn'}">${esc(f.msg)}</span>`).join('');
+    const flags = p.flags.map(f => `<span class="badge ${f.code === 'no_prices' ? 'b-muted' : f.code === 'unverified' ? 'b-bad' : 'b-warn'}">${esc(f.msg)}</span>`).join('');
     let stateLine = '';
-    if (st.status === 'extraction_failed') stateLine = `<span class="pflag bad">Extraction failed</span> <span class="pnote">${esc(st.error || '')}</span>`;
-    else if (st.status === 'pending') stateLine = `<span class="pflag muted">Extracting…</span>`;
-    else if (st.status === 'no_transcript') stateLine = `<span class="pflag muted">No prices recording</span>`;
-    else if (st.status === 'not_applicable') stateLine = `<span class="pflag ok">Prices marked not applicable</span>`;
-    else if (st.transcriptChanged) stateLine = `<span class="pflag warn">Transcript changed since extraction</span>`;
+    if (st.status === 'extraction_failed') stateLine = `<span class="badge b-bad">Extraction failed</span> <span class="pnote">${esc(st.error || '')}</span>`;
+    else if (st.status === 'pending') stateLine = `<span class="badge b-muted">Extracting…</span>`;
+    else if (st.status === 'no_transcript') stateLine = `<span class="badge b-muted">No prices recording</span>`;
+    else if (st.status === 'not_applicable') stateLine = `<span class="badge b-ok">Prices marked not applicable</span>`;
+    else if (st.transcriptChanged) stateLine = `<span class="badge b-warn">Transcript changed since extraction</span>`;
     const canExtract = p.transcript && p.transcript.trim();
     const head = `<div class="prices-head"><h3>Service prices</h3><div class="pt-actions">
       ${canExtract ? `<button class="btn btn-ghost btn-xs" onclick="extractPrices()">${st.status === 'extraction_failed' ? 'Retry' : 'Re-extract'}</button>` : ''}
@@ -178,17 +425,17 @@
       <button class="btn btn-ghost btn-xs" onclick="pricesNotApplicable(${st.status === 'not_applicable' ? 'false' : 'true'})">${st.status === 'not_applicable' ? 'Clear not applicable' : 'Mark not applicable'}</button>
     </div></div>`;
     const rows = p.rows.map(r => priceEdit === r.id ? renderPriceEditor(r) : renderPriceRow(r)).join('') + (priceEdit === 'new' ? renderPriceEditor({ id: 'new', service: '', unit: '' }) : '');
-    const table = `<table class="pt"><thead><tr><th>Service</th><th>From</th><th>Up to / typical</th><th>Unit</th><th>What moves the price</th><th></th></tr></thead><tbody>${rows || `<tr><td colspan="6" class="value blank">${st.status === 'done' ? 'No prices given' : 'No rows yet'}</td></tr>`}</tbody></table>`;
-    const transcript = `<div class="ptranscript"><h4>Transcript</h4>${p.transcript ? esc(p.transcript) : '<span class="value blank">No recording</span>'}</div>`;
-    return `<div class="prices">${head}<div class="prices-flags">${stateLine}${flags}</div><div class="prices-grid"><div>${table}</div>${transcript}</div></div>`;
+    const table = `<table class="t"><thead><tr><th>Service</th><th>From</th><th>Up to / typical</th><th>Unit</th><th>What moves the price</th><th></th></tr></thead><tbody>${rows || `<tr><td colspan="6" class="val blank">${st.status === 'done' ? 'No prices given' : 'No rows yet'}</td></tr>`}</tbody></table>`;
+    const transcript = `<div class="ptranscript"><h4>Transcript</h4>${p.transcript ? esc(p.transcript) : '<span class="val blank">No recording</span>'}</div>`;
+    return `<div class="prices" id="f_prices">${head}<div class="prices-flags">${stateLine}${flags}</div><div class="prices-grid"><div class="ptable">${table}</div>${transcript}</div></div>`;
   }
   function priceBadges(r) {
     const b = [];
-    if (r.quote_only) b.push('<span class="rb pflag muted">quote only</span>');
-    if (r.inferred) b.push(`<span class="rb pflag warn" title="${esc(r.inferred_note || '')}">inferred</span>`);
-    if (r.unverified) b.push('<span class="rb pflag bad" title="This number could not be traced to the transcript">unverified</span>');
-    if (r.matched_to) b.push(`<span class="rb pflag ok">matches ${esc(/most_wanted_(job_)?(\d)/.test(r.matched_to.key) ? 'your most-wanted job ' + r.matched_to.key.match(/(\d)$/)[1] : 'a ticked service')}: ${esc(r.matched_to.value)}</span>`);
-    if (r.source === 'manual') b.push('<span class="rb pflag warn">edited by hand</span>');
+    if (r.quote_only) b.push('<span class="rb badge b-muted">quote only</span>');
+    if (r.inferred) b.push(`<span class="rb badge b-warn" title="${esc(r.inferred_note || '')}">inferred</span>`);
+    if (r.unverified) b.push('<span class="rb badge b-bad" title="This number could not be traced to the transcript">unverified</span>');
+    if (r.matched_to) b.push(`<span class="rb badge b-ok">matches ${esc(/most_wanted_(job_)?(\d)/.test(r.matched_to.key) ? 'your most-wanted job ' + r.matched_to.key.match(/(\d)$/)[1] : 'a ticked service')}: ${esc(r.matched_to.value)}</span>`);
+    if (r.source === 'manual') b.push('<span class="rb badge b-warn">edited by hand</span>');
     return b.length ? `<div>${b.join('')}</div>` : '';
   }
   function renderPriceRow(r) {
@@ -199,7 +446,7 @@
       <td class="pt-actions"><button class="btn btn-ghost btn-xs" onclick="priceEdit='${r.id}';render()">Edit</button><button class="btn btn-ghost btn-xs" onclick="deletePriceRow('${r.id}')">Delete</button></td></tr>`;
   }
   function renderPriceEditor(r) {
-    const v = (k) => r[k] == null ? '' : esc(r[k]);
+    const v = k => r[k] == null ? '' : esc(r[k]);
     return `<tr class="manual"><td><input type="text" id="pe_service" value="${v('service')}" placeholder="Service as spoken"><label class="pnote"><input type="checkbox" id="pe_quote_only" ${r.quote_only ? 'checked' : ''}> quote only</label></td>
       <td><input type="number" id="pe_from" value="${v('from_gbp')}" placeholder="from"></td>
       <td><input type="number" id="pe_upto" value="${v('up_to_gbp')}" placeholder="up to"><input type="number" id="pe_typical" value="${v('typical_gbp')}" placeholder="typical" style="margin-top:4px"></td>
@@ -211,24 +458,24 @@
   async function savePriceRow(id) {
     const body = { service: document.getElementById('pe_service').value, from_gbp: numOrNull('pe_from'), up_to_gbp: numOrNull('pe_upto'), typical_gbp: numOrNull('pe_typical'),
       unit: document.getElementById('pe_unit').value, what_moves_price: document.getElementById('pe_moves').value, quote_only: document.getElementById('pe_quote_only').checked };
-    setStatus('Saving…');
+    setSaved('Saving…');
     const res = await fetch(id === 'new' ? `/api/clients/${clientId}/prices` : `/api/clients/${clientId}/prices/${id}`, { method: id === 'new' ? 'POST' : 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
     const r = await res.json().catch(() => ({}));
-    if (!res.ok) { setStatus('Not saved: ' + (r.error || res.status), 'bad'); return; }
-    setStatus('Saved', 'ok'); setTimeout(() => setStatus(''), 1500);
+    if (!res.ok) { setSaved('Not saved: ' + (r.error || res.status), 'bad'); return; }
+    setSaved('Saved', 'ok'); setTimeout(() => setSaved(''), 1800);
     priceEdit = null; await load();
   }
   async function deletePriceRow(id) {
     if (!confirm('Delete this price row? A re-extraction will not bring it back.')) return;
     const res = await fetch(`/api/clients/${clientId}/prices/${id}`, { method: 'DELETE' });
-    if (!res.ok) { setStatus('Not deleted', 'bad'); return; }
+    if (!res.ok) { setSaved('Not deleted', 'bad'); return; }
     await load();
   }
   async function extractPrices() {
-    setStatus('Extracting prices…');
+    setSaved('Extracting prices…');
     const res = await fetch(`/api/clients/${clientId}/prices/extract`, { method: 'POST' });
     const r = await res.json().catch(() => ({}));
-    setStatus(r.error ? 'Extraction failed: ' + r.error : `Extracted ${r.rows || 0} row(s)`, r.error ? 'bad' : 'ok'); setTimeout(() => setStatus(''), 3000);
+    setSaved(r.error ? 'Extraction failed: ' + r.error : `Extracted ${r.rows || 0} row(s)`, r.error ? 'bad' : 'ok'); setTimeout(() => setSaved(''), 3000);
     await load();
   }
   async function pricesNotApplicable(value) {
@@ -236,57 +483,7 @@
     await load();
   }
 
-  function showValue(f) {
-    // A field that doesn't apply (expectedWhen in the map, e.g. the call-out fee when the quote is free)
-    if (f.applicable === false && f.status !== 'filled') return '<div class="value blank">Not applicable</div>';
-    if (f.status !== 'filled') return '<div class="value blank">Not provided</div>';
-    const v = f.value;
-    if (Array.isArray(v)) return `<div class="value"><ul>${v.map(x => `<li>${esc(x)}</li>`).join('')}</ul></div>`;
-    if (v && typeof v === 'object') return `<div class="value">${esc(JSON.stringify(v))}</div>`;
-    if (f.type === 'URLInput' && /^https?:\/\//i.test(String(v))) return `<div class="value"><a href="${esc(v)}" target="_blank" rel="noopener">${esc(v)}</a></div>`;
-    return `<div class="value">${esc(v)}</div>`;
-  }
-
-  function renderField(f) {
-    const src = f.source === 'manual' ? '<div class="src manual">typed in here</div>' : f.source === 'transcript' ? '<div class="src">from transcript</div>' : f.status === 'filled' ? '<div class="src">from form</div>' : '<div class="src"></div>';
-    if (f.type === 'AudioRecording') {
-      const a = f.audio;
-      let body;
-      if (!a && f.status !== 'filled') body = '<div class="value blank">Not provided</div>';
-      else {
-        const t = (a && a.transcription) || (f.value && f.value.transcription) || '';
-        body = t ? `<div class="transcript">${esc(t)}</div>` : '<div class="value blank">No transcript</div>';
-        if (a && a.playable) body += `<audio controls preload="none" src="/api/clients/${clientId}/audio/${a.id}"></audio><div class="audio-meta">Our copy${a.duration ? `, ${a.duration}s` : ''}${a.size ? `, ${Math.round(a.size / 1024)} KB` : ''}</div>`;
-        else if (a && a.downloadStatus === 'failed') body += `<div class="audio-meta bad">Download failed (${esc(a.downloadError || 'unknown')}). Fillout link kept: <a href="${esc(a.filloutUrl)}" target="_blank" rel="noopener">open</a>. Re-run from the inbox to retry.</div>`;
-        else if (a && a.filloutUrl) body += `<div class="audio-meta">Not yet copied. Fillout link: <a href="${esc(a.filloutUrl)}" target="_blank" rel="noopener">open</a></div>`;
-      }
-      return `<div class="field"><div class="label">${esc(f.label)}<small>voice answer${f.optional ? ', optional' : ''}</small></div><div>${body}</div>${src}</div>`;
-    }
-    if (editing === f.key) {
-      const multi = f.type === 'LongAnswer' || Array.isArray(f.value) || f.type === 'Checkboxes' || f.type === 'MultiSelect';
-      const cur = Array.isArray(f.value) ? f.value.join('\n') : (f.value == null ? '' : String(f.value));
-      const hint = (f.type === 'Checkboxes' || f.type === 'MultiSelect' || Array.isArray(f.value)) ? 'One item per line.' : '';
-      return `<div class="field"><div class="label">${esc(f.label)}</div><div>
-        ${multi ? `<textarea id="ed">${esc(cur)}</textarea>` : `<input type="text" id="ed" value="${esc(cur)}">`}
-        <div class="editbar"><button class="btn btn-primary" onclick="save('${f.key}', ${multi && hint ? 'true' : 'false'})">Save</button><button class="btn btn-ghost" onclick="editing=null;render()">Cancel</button><span class="hint">${hint}</span></div>
-      </div>${src}</div>`;
-    }
-    return `<div class="field"><div class="label">${esc(f.label)}${f.optional ? '<small>optional</small>' : f.applicable === false ? '<small>not applicable</small>' : ''}</div><div class="edit" title="Click to edit" onclick="editing='${f.key}';render();setTimeout(()=>{const e=document.getElementById('ed');if(e)e.focus()},0)">${showValue(f)}</div>${src}</div>`;
-  }
-
-  async function save(key, asList) {
-    const el = document.getElementById('ed');
-    let value = el.value;
-    if (asList) value = value.split('\n').map(s => s.trim()).filter(Boolean);
-    setStatus('Saving…');
-    const res = await fetch(`/api/clients/${clientId}/record/${encodeURIComponent(key)}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ value }) });
-    const r = await res.json().catch(() => ({}));
-    if (!res.ok) { setStatus('Not saved: ' + (r.error || res.status), 'bad'); return; }
-    setStatus('Saved', 'ok'); setTimeout(() => setStatus(''), 1500);
-    editing = null;
-    await load();
-  }
-
+  // ── Header actions ──
   async function toggleReviewed() {
     await fetch(`/api/clients/${clientId}/reviewed`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ reviewed: !rec.client.reviewedAt }) });
     load();
@@ -295,6 +492,14 @@
     if (!rec.client.archivedAt && !confirm(`Archive "${rec.client.name}"? It leaves the Clients list; this record is kept.`)) return;
     await fetch(`/api/clients/${clientId}/${rec.client.archivedAt ? 'unarchive' : 'archive'}`, { method: 'POST' });
     load();
+  }
+  async function reprocess() {
+    const last = rec.submissions[0]; if (!last) return;
+    setSaved('Reprocessing…');
+    const res = await fetch(`/api/fillout/submissions/${last.id}/reprocess`, { method: 'POST' });
+    const r = await res.json().catch(() => ({}));
+    setSaved(res.ok && !r.error ? 'Reprocessed' : 'Reprocess failed: ' + (r.error || res.status), res.ok && !r.error ? 'ok' : 'bad'); setTimeout(() => setSaved(''), 3000);
+    await load();
   }
 
   load();

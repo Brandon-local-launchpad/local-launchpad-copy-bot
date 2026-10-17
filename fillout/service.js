@@ -18,6 +18,7 @@
 const crypto = require('crypto');
 const I = require('./intake');
 const P = require('./prices');
+const A = require('./attention');
 
 async function ensureFilloutTables(pool) {
   await pool.query(`
@@ -346,7 +347,7 @@ function createFilloutService({ pool, audioStore, fetchAudio = defaultFetchAudio
       const h = have.get(f.key);
       const a = f.type === 'AudioRecording' ? audioByKey.get(f.key) : null;
       return {
-        key: f.key, label: f.label, section: f.section, type: f.type, niche: f.niche, questionId: (h && h.question_id) || f.id || null,
+        key: f.key, label: f.label, section: f.section, panel: f.panel, help: f.help || null, type: f.type, niche: f.niche, questionId: (h && h.question_id) || f.id || null,
         group: f.group || null, optional: !!f.optional, expectedWhen: f.expectedWhen || null,
         value: h ? h.value : null, status: h ? h.status : 'blank', source: h ? h.source : 'form', updatedAt: h ? h.updated_at : null,
         audio: a ? { id: a.id, filloutUrl: a.fillout_url, filename: a.filename, transcription: a.transcription, duration: a.duration,
@@ -356,14 +357,38 @@ function createFilloutService({ pool, audioStore, fetchAudio = defaultFetchAudio
     });
     I.markApplicable(fields);
     const sections = map.sections.map(name => ({ name, fields: fields.filter(f => f.section === name) })).filter(s => s.fields.length);
-    const { rows: subs } = await pool.query(`SELECT id, submission_id, received_at, status FROM fillout_submissions WHERE client_id = $1 ORDER BY received_at DESC`, [clientId]);
+    const { rows: subs } = await pool.query(
+      `SELECT s.id, s.submission_id, s.received_at, s.status, s.duplicate_of, d.name AS duplicate_of_name
+         FROM fillout_submissions s LEFT JOIN clients d ON d.id = s.duplicate_of WHERE s.client_id = $1 ORDER BY s.received_at DESC`, [clientId]);
+    const dupSub = subs.find(s => s.duplicate_of);
     const prices = await priceView(clientId, fields);
-    return {
+    const out = {
       client: { id: client.id, name: client.name, trade: client.trade, createdAt: client.created_at, source: client.source, reviewedAt: client.reviewed_at, archivedAt: client.archived_at },
       niche, nicheKnown: !!(niche && map.niches[niche]), completeness: I.completeness([...fields, pricesUnit(prices)]), sections, prices,
       warnings: prices.warnings,
       submissions: subs.map(s => ({ id: s.id, submissionId: s.submission_id, receivedAt: s.received_at, status: s.status })),
+      // "Possible duplicate of": name or email matched another client, but not both (service.findClient)
+      duplicateOf: dupSub ? { id: dupSub.duplicate_of, name: dupSub.duplicate_of_name || null } : null,
+      // The record page's panels (fillout/field-map.json "panels"): counts by the same unit
+      // rules as the headline, so the panels add up to it. The prices unit sits on Prices.
+      panels: panelSummary(fields, prices),
     };
+    out.attention = A.needsAttention(out);
+    return out;
+  }
+
+  function panelSummary(fields, prices) {
+    return (map.panels || []).map(p => {
+      const own = fields.filter(f => f.panel === p.key);
+      const units = p.key === 'prices' ? [...own, pricesUnit(prices)] : own;
+      const c = I.completeness(units);
+      const status = c.expected === 0 ? 'none' : c.filled === c.expected ? 'complete' : 'missing';
+      // Required when CopyBot needs an answer here; Recommended when the panel is only optional
+      // answers that still shape the copy; Optional when nothing on it is counted at all
+      const tag = c.expected > 0 ? 'Required' : c.optionalTotal > 0 ? 'Recommended' : 'Optional';
+      return { key: p.key, label: p.label, group: p.group, description: p.description, tag, status, fields: own.length,
+        filled: c.filled, expected: c.expected, optionalFilled: c.optionalFilled, optionalTotal: c.optionalTotal, notApplicable: c.notApplicable };
+    });
   }
 
   // ── Price rows from the prices voice answer (fillout/prices.js) ──
