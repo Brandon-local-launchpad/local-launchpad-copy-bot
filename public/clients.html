@@ -29,6 +29,8 @@
   .client-meta { color: var(--muted); font-size: 13px; margin-top: 3px; }
   .client-actions { display: flex; gap: .5rem; }
   .page-count { background: var(--surface2); color: var(--muted); border-radius: 20px; padding: 3px 10px; font-size: 12px; font-weight: 600; }
+  .badge-fillout { display: inline-block; vertical-align: middle; margin-left: 6px; background: rgba(251,191,36,.15); color: #fbbf24; border: 1px solid rgba(251,191,36,.4); border-radius: 20px; padding: 2px 9px; font-size: 11px; font-weight: 600; }
+  .badge-fillout.ok { background: rgba(74,222,128,.12); color: var(--success); border-color: rgba(74,222,128,.4); }
   .empty { color: var(--muted); text-align: center; padding: 3rem; }
   .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,.6); z-index: 100; align-items: center; justify-content: center; }
   .modal-overlay.open { display: flex; }
@@ -54,6 +56,7 @@
     <h1>Clients</h1>
   </div>
   <div style="display:flex;gap:.75rem;align-items:center">
+    <a href="/submissions.html" class="btn btn-ghost btn-sm">Submissions</a>
     <a href="/generate" class="btn btn-ghost btn-sm">Generation Tool</a>
     <button class="btn btn-primary" onclick="openModal()">+ New Client</button>
   </div>
@@ -106,15 +109,24 @@
     grid.innerHTML = clients.map(c => `
       <div class="client-card" onclick="goToClient('${c.id}')">
         <div>
-          <div class="client-name">${esc(c.name)}</div>
+          <div class="client-name">${esc(c.name)}${c.source === 'fillout' && !c.reviewed_at ? ' <span class="badge-fillout">From Fillout, unreviewed</span>' : c.source === 'fillout' ? ' <span class="badge-fillout ok">From Fillout</span>' : ''}</div>
           <div class="client-meta">${esc(c.trade)} &middot; Created ${fmtDate(c.created_at)}</div>
         </div>
         <div class="client-actions" onclick="event.stopPropagation()">
           <span class="page-count">${c.page_count} page${c.page_count != 1 ? 's' : ''}</span>
+          ${c.source === 'fillout' ? `<a class="btn btn-ghost btn-sm" href="/client-record.html?id=${c.id}">Onboarding record</a>
+          <button class="btn btn-ghost btn-sm" onclick="archiveClient('${c.id}', '${esc(c.name)}')">Archive</button>` : ''}
           <button class="btn btn-danger btn-sm" onclick="deleteClient('${c.id}', '${esc(c.name)}')">Delete</button>
         </div>
       </div>
     `).join('');
+  }
+
+  // Fillout clients are archived, not deleted: the submission and its fields stay, the card goes
+  async function archiveClient(id, name) {
+    if (!confirm(`Archive "${name}"? It leaves this list; the onboarding record is kept and can be unarchived from the Submissions inbox.`)) return;
+    await fetch(`/api/clients/${id}/archive`, { method: 'POST' });
+    load();
   }
 
   function goToClient(id) { window.location.href = `/client.html?id=${id}`; }

@@ -4,8 +4,20 @@
     {
       "name": "demo",
       "runtimeExecutable": "npm",
-      "runtimeArgs": ["run", "demo:wp"],
+      "runtimeArgs": [
+        "run",
+        "demo:wp"
+      ],
       "port": 3991
+    },
+    {
+      "name": "demo-fillout",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": [
+        "run",
+        "demo:fillout"
+      ],
+      "port": 3992
     }
   ]
 }

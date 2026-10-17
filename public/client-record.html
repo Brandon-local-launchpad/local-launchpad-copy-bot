@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Onboarding record — Local Launchpad</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --bg: #0f1117; --surface: #1a1d27; --surface2: #22263a;
+    --accent: #6c63ff; --accent2: #5a52e0; --success: #4ade80;
+    --danger: #f87171; --warning: #fbbf24; --text: #e2e8f0; --muted: #94a3b8;
+    --border: #2d3148; --r: 10px; --font: 'Inter', system-ui, sans-serif;
+  }
+  body { background: var(--bg); color: var(--text); font-family: var(--font); min-height: 100vh; padding: 2rem; font-size: 14px; line-height: 1.5; }
+  @media (max-width: 640px) { body { padding: 1rem; } }
+  a { color: var(--accent); text-decoration: none; }
+  .breadcrumb { color: var(--muted); font-size: 13px; margin-bottom: 1.5rem; }
+  .breadcrumb a { color: var(--muted); }
+  .header { display: flex; align-items: flex-start; justify-content: space-between; gap: 1rem; flex-wrap: wrap; margin-bottom: 1.5rem; }
+  h1 { font-size: 1.5rem; font-weight: 700; }
+  .sub { color: var(--muted); font-size: 13px; margin-top: 3px; }
+  .btn { display: inline-flex; align-items: center; gap: 6px; border: none; border-radius: var(--r); font-family: var(--font); font-size: 13px; font-weight: 600; padding: 8px 14px; cursor: pointer; text-decoration: none; }
+  .btn-primary { background: var(--accent); color: #fff; }
+  .btn-ghost { background: transparent; color: var(--muted); border: 1px solid var(--border); }
+  .btn-ghost:hover { color: var(--text); }
+  .badge { display: inline-block; border-radius: 20px; padding: 3px 10px; font-size: 11px; font-weight: 700; vertical-align: middle; margin-left: 6px; white-space: nowrap; }
+  .badge-warn { background: rgba(251,191,36,.15); color: var(--warning); }
+  .badge-ok { background: rgba(74,222,128,.15); color: var(--success); }
+  .badge-none { background: var(--surface2); color: var(--muted); }
+  .complete { background: var(--surface); border: 1px solid var(--border); border-radius: var(--r); padding: 1rem 1.25rem; margin-bottom: 1.5rem; display: flex; align-items: center; gap: 1rem; flex-wrap: wrap; }
+  .complete .n { font-size: 1.6rem; font-weight: 700; }
+  .bar { flex: 1; min-width: 160px; height: 8px; background: var(--surface2); border-radius: 4px; overflow: hidden; }
+  .bar > div { height: 100%; background: var(--accent); }
+  .section { background: var(--surface); border: 1px solid var(--border); border-radius: var(--r); margin-bottom: 1rem; overflow: hidden; }
+  .section h2 { font-size: 1rem; font-weight: 700; padding: .9rem 1.25rem; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
+  .section h2 span { color: var(--muted); font-size: 12px; font-weight: 500; }
+  .field { display: grid; grid-template-columns: minmax(180px, 1fr) 2fr auto; gap: 1rem; padding: .75rem 1.25rem; border-bottom: 1px solid var(--border); align-items: start; }
+  .field:last-child { border-bottom: none; }
+  @media (max-width: 760px) { .field { grid-template-columns: 1fr; gap: .4rem; } }
+  .label { color: var(--muted); font-size: 13px; }
+  .label small { display: block; color: var(--muted); opacity: .7; font-size: 11px; }
+  .value { white-space: pre-wrap; word-break: break-word; }
+  .value.blank { color: var(--muted); font-style: italic; }
+  .value ul { margin: 0; padding-left: 1.1rem; }
+  .src { font-size: 11px; color: var(--muted); white-space: nowrap; text-align: right; }
+  .src.manual { color: var(--warning); }
+  .edit { cursor: pointer; }
+  .edit:hover { outline: 1px dashed var(--border); outline-offset: 4px; border-radius: 4px; }
+  textarea, input[type=text] { width: 100%; background: var(--bg); color: var(--text); border: 1px solid var(--border); border-radius: 8px; padding: 8px 10px; font-family: var(--font); font-size: 14px; }
+  textarea { min-height: 80px; resize: vertical; }
+  textarea:focus, input:focus { outline: 2px solid var(--accent); border-color: transparent; }
+  .editbar { display: flex; gap: .5rem; margin-top: .5rem; align-items: center; }
+  .hint { font-size: 12px; color: var(--muted); }
+  audio { width: 100%; max-width: 420px; margin-top: .5rem; display: block; }
+  .transcript { background: var(--surface2); border-radius: 8px; padding: .6rem .8rem; margin-top: .4rem; font-size: 13px; }
+  .audio-meta { font-size: 12px; color: var(--muted); margin-top: .3rem; }
+  .audio-meta.bad { color: var(--danger); }
+  .empty { color: var(--muted); text-align: center; padding: 3rem; }
+  .status { font-size: 13px; color: var(--muted); }
+  .status.ok { color: var(--success); } .status.bad { color: var(--danger); }
+</style>
+</head>
+<body>
+
+<div class="breadcrumb"><a href="/clients.html">Clients</a> / <a href="/submissions.html">Submissions</a> / <a id="crumbClient" href="#">…</a> / Onboarding record</div>
+
+<div class="header">
+  <div>
+    <h1 id="title">Onboarding record</h1>
+    <div class="sub" id="sub"></div>
+  </div>
+  <div style="display:flex;gap:.5rem;flex-wrap:wrap;align-items:center">
+    <span class="status" id="status"></span>
+    <a id="clientLink" class="btn btn-ghost" href="#">Client page</a>
+    <button class="btn btn-ghost" id="reviewBtn" onclick="toggleReviewed()" style="display:none"></button>
+    <button class="btn btn-ghost" id="archiveBtn" onclick="toggleArchived()" style="display:none"></button>
+  </div>
+</div>
+
+<div class="complete" id="complete" style="display:none">
+  <div class="n" id="pct">0%</div>
+  <div class="bar"><div id="pctBar" style="width:0"></div></div>
+  <div class="hint" id="pctText"></div>
+</div>
+
+<div id="sections"><div class="empty">Loading…</div></div>
+
+<script>
+  const params = new URLSearchParams(location.search);
+  const clientId = params.get('id');
+  if (!clientId) location.href = '/submissions.html';
+  let rec = null;
+  let editing = null; // field key being edited
+
+  const esc = s => String(s == null ? '' : s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  const fmt = s => s ? new Date(s).toLocaleString('en-GB', { day:'numeric', month:'short', year:'numeric', hour:'2-digit', minute:'2-digit' }) : '';
+  const setStatus = (t, cls) => { const el = document.getElementById('status'); el.textContent = t || ''; el.className = 'status ' + (cls || ''); };
+
+  async function load() {
+    const res = await fetch(`/api/clients/${clientId}/record`);
+    if (!res.ok) { document.getElementById('sections').innerHTML = `<div class="empty">Could not load: ${esc((await res.json().catch(() => ({}))).error || res.status)}</div>`; return; }
+    rec = await res.json();
+    const c = rec.client;
+    document.title = `${c.name} — Onboarding record`;
+    document.getElementById('crumbClient').textContent = c.name;
+    document.getElementById('crumbClient').href = `/client.html?id=${c.id}`;
+    document.getElementById('clientLink').href = `/client.html?id=${c.id}`;
+    const marker = c.source === 'fillout' ? (c.reviewedAt ? '<span class="badge badge-ok">From Fillout</span>' : '<span class="badge badge-warn">From Fillout, unreviewed</span>') : '';
+    const archived = c.archivedAt ? '<span class="badge badge-none">Archived</span>' : '';
+    document.getElementById('title').innerHTML = esc(c.name) + marker + archived;
+    const last = rec.submissions[0];
+    document.getElementById('sub').innerHTML = `${esc(rec.niche || 'Niche not given')}${rec.niche && !rec.nicheKnown ? ' <span class="badge badge-warn">No field map for this niche: universal fields only</span>' : ''}`
+      + (last ? ` &middot; ${rec.submissions.length} submission${rec.submissions.length > 1 ? 's' : ''}, last ${fmt(last.receivedAt)}` : '');
+    if (c.source === 'fillout') {
+      const rb = document.getElementById('reviewBtn'); rb.style.display = ''; rb.textContent = c.reviewedAt ? 'Mark unreviewed' : 'Mark reviewed';
+      const ab = document.getElementById('archiveBtn'); ab.style.display = ''; ab.textContent = c.archivedAt ? 'Unarchive' : 'Archive';
+    }
+    const k = rec.completeness;
+    document.getElementById('complete').style.display = '';
+    document.getElementById('pct').textContent = k.pct + '%';
+    document.getElementById('pctBar').style.width = k.pct + '%';
+    document.getElementById('pctText').textContent = `${k.filled} of ${k.total} fields filled for ${rec.niche || 'this niche'}. Blank fields can be typed in here; a typed value is kept when the form is submitted again.`;
+    render();
+  }
+
+  function render() {
+    document.getElementById('sections').innerHTML = rec.sections.map(s => {
+      const filled = s.fields.filter(f => f.status === 'filled').length;
+      return `<div class="section"><h2>${esc(s.name)}<span>${filled} of ${s.fields.length}</span></h2>${s.fields.map(renderField).join('')}</div>`;
+    }).join('');
+  }
+
+  function showValue(f) {
+    if (f.status !== 'filled') return '<div class="value blank">Not provided</div>';
+    const v = f.value;
+    if (Array.isArray(v)) return `<div class="value"><ul>${v.map(x => `<li>${esc(x)}</li>`).join('')}</ul></div>`;
+    if (v && typeof v === 'object') return `<div class="value">${esc(JSON.stringify(v))}</div>`;
+    if (f.type === 'URLInput' && /^https?:\/\//i.test(String(v))) return `<div class="value"><a href="${esc(v)}" target="_blank" rel="noopener">${esc(v)}</a></div>`;
+    return `<div class="value">${esc(v)}</div>`;
+  }
+
+  function renderField(f) {
+    const src = f.source === 'manual' ? '<div class="src manual">typed in here</div>' : f.source === 'transcript' ? '<div class="src">from transcript</div>' : f.status === 'filled' ? '<div class="src">from form</div>' : '<div class="src"></div>';
+    if (f.type === 'AudioRecording') {
+      const a = f.audio;
+      let body;
+      if (!a && f.status !== 'filled') body = '<div class="value blank">Not provided</div>';
+      else {
+        const t = (a && a.transcription) || (f.value && f.value.transcription) || '';
+        body = t ? `<div class="transcript">${esc(t)}</div>` : '<div class="value blank">No transcript</div>';
+        if (a && a.playable) body += `<audio controls preload="none" src="/api/clients/${clientId}/audio/${a.id}"></audio><div class="audio-meta">Our copy${a.duration ? `, ${a.duration}s` : ''}${a.size ? `, ${Math.round(a.size / 1024)} KB` : ''}</div>`;
+        else if (a && a.downloadStatus === 'failed') body += `<div class="audio-meta bad">Download failed (${esc(a.downloadError || 'unknown')}). Fillout link kept: <a href="${esc(a.filloutUrl)}" target="_blank" rel="noopener">open</a>. Re-run from the inbox to retry.</div>`;
+        else if (a && a.filloutUrl) body += `<div class="audio-meta">Not yet copied. Fillout link: <a href="${esc(a.filloutUrl)}" target="_blank" rel="noopener">open</a></div>`;
+      }
+      return `<div class="field"><div class="label">${esc(f.label)}<small>voice answer</small></div><div>${body}</div>${src}</div>`;
+    }
+    if (editing === f.key) {
+      const multi = f.type === 'LongAnswer' || Array.isArray(f.value) || f.type === 'Checkboxes' || f.type === 'MultiSelect';
+      const cur = Array.isArray(f.value) ? f.value.join('\n') : (f.value == null ? '' : String(f.value));
+      const hint = (f.type === 'Checkboxes' || f.type === 'MultiSelect' || Array.isArray(f.value)) ? 'One item per line.' : '';
+      return `<div class="field"><div class="label">${esc(f.label)}</div><div>
+        ${multi ? `<textarea id="ed">${esc(cur)}</textarea>` : `<input type="text" id="ed" value="${esc(cur)}">`}
+        <div class="editbar"><button class="btn btn-primary" onclick="save('${f.key}', ${multi && hint ? 'true' : 'false'})">Save</button><button class="btn btn-ghost" onclick="editing=null;render()">Cancel</button><span class="hint">${hint}</span></div>
+      </div>${src}</div>`;
+    }
+    return `<div class="field"><div class="label">${esc(f.label)}</div><div class="edit" title="Click to edit" onclick="editing='${f.key}';render();setTimeout(()=>{const e=document.getElementById('ed');if(e)e.focus()},0)">${showValue(f)}</div>${src}</div>`;
+  }
+
+  async function save(key, asList) {
+    const el = document.getElementById('ed');
+    let value = el.value;
+    if (asList) value = value.split('\n').map(s => s.trim()).filter(Boolean);
+    setStatus('Saving…');
+    const res = await fetch(`/api/clients/${clientId}/record/${encodeURIComponent(key)}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ value }) });
+    const r = await res.json().catch(() => ({}));
+    if (!res.ok) { setStatus('Not saved: ' + (r.error || res.status), 'bad'); return; }
+    setStatus('Saved', 'ok'); setTimeout(() => setStatus(''), 1500);
+    editing = null;
+    await load();
+  }
+
+  async function toggleReviewed() {
+    await fetch(`/api/clients/${clientId}/reviewed`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ reviewed: !rec.client.reviewedAt }) });
+    load();
+  }
+  async function toggleArchived() {
+    if (!rec.client.archivedAt && !confirm(`Archive "${rec.client.name}"? It leaves the Clients list; this record is kept.`)) return;
+    await fetch(`/api/clients/${clientId}/${rec.client.archivedAt ? 'unarchive' : 'archive'}`, { method: 'POST' });
+    load();
+  }
+
+  load();
+</script>
+</body>
+</html>

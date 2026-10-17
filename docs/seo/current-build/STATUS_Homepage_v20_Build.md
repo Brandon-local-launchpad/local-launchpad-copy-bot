@@ -235,7 +235,10 @@
   - Writer decided (Brandon, 16 Oct): Sonnet 5.5 (`V20_MODEL`, branch `feat/writer-sonnet-5-5`), medium effort, through anthropic-call.js. Next when resumed: test the review round against Railway's request time, then keep looping.
 - Docs: CLAUDE.md at repo root. The files the code reads (`prompts/`, `niche-library/`) are the only copies.
 
+- Fillout onboarding intake, stage 1 (17 Oct), branch `fillout-intake`, see `ONBOARDING.md`: `POST /api/webhooks/fillout` (shared secret `FILLOUT_WEBHOOK_SECRET`, raw body kept, dedupe on submissionId, background processing, failures kept and re-runnable), `fillout/field-map.json` (universal fields plus Plumbing & Heating; a new niche is a config change), client fields with filled/blank status and form/manual source (manual edits survive resubmission), audio copied into Postgres behind `fillout/audio-store.js`, merge only on name AND email, "From Fillout, unreviewed" marker and archive, Submissions inbox (`/submissions.html`) and client record page (`/client-record.html`). Fixture `tests/fixtures/fillout-intake.js`, 69 checks. No extraction or generation from these records yet.
+
 ## Waiting on
+- Brandon: set `FILLOUT_WEBHOOK_SECRET` on Railway and point the Fillout webhook at `/api/webhooks/fillout?token=<secret>` (ONBOARDING.md).
 - Brandon: add `docs/seo/reference/Category_Page_Structure_v2.md` (the category template). It isn't in the repo, on GitHub, or anywhere under H:\Local Launchpad. C2 starts from it.
 - Brandon: set `COPYBOT_SECRET_KEY` on Railway before the first push (Given's staging site is ready; Brandon, 15 Oct: not pushing yet) (64 hex characters, e.g. from `node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"`). Keep a copy somewhere safe; losing it means re-entering each site's Application Password.
 - Brandon: add Locations Hub, About and Cost Guide rows to the page map template (Page Type spelled exactly as given), then re-upload the page maps for Edens Edge and Kestrel Ridge.
@@ -246,6 +249,7 @@
 3. WordPress push: slice 5 part 2, a first push to Given's staging site (the site is ready; Brandon, 15 Oct: not yet). Needs the plugin installed, the field groups imported and `COPYBOT_SECRET_KEY` on Railway. The Edens Edge homepage has 0 BLOCK and its claims accepted.
 4. FAQ per client: done for the homepage (live for Edens Edge: research, sorting, approval, Q7 in the generated page). The other page types use their sorted questions when they are built.
 5. Then: humanizer decision, emergency and regulated group tests, category page.
+6. Fillout intake stage 2: the niche → trade mapping, the other 27 niche blocks in `fillout/field-map.json`, extraction from the record into client values, and moving the audio bytes out of Postgres (ONBOARDING.md, "Audio storage").
 
 ## Open decisions
 - Company name: Ethan's custom values say "Edens Edge landscaping" (lower case l); the brief's test uses "Edens Edge Landscaping". Brandon is checking the GBP.

@@ -28,6 +28,18 @@ const reader = require('./v20-reader');
 const { practicesFor, PRACTICES } = require('./practices');
 
 const app = express();
+
+// ── Fillout onboarding webhook ───────────────────────────────────────────────
+// Mounted before the app-wide JSON parser and before the login middleware:
+// Fillout authenticates with FILLOUT_WEBHOOK_SECRET (header or ?token=), and the
+// route has its own 2 MB body limit. fillout/routes.js, fillout/service.js.
+const filloutRoutes = require('./fillout/routes');
+const { createFilloutService } = require('./fillout/service');
+const { createPgAudioStore } = require('./fillout/audio-store');
+const filloutService = pool ? createFilloutService({ pool, audioStore: createPgAudioStore(pool) }) : null;
+if (filloutService) filloutRoutes.mountWebhook(app, filloutService, { secret: process.env.FILLOUT_WEBHOOK_SECRET || '' });
+else app.post('/api/webhooks/fillout', (_req, res) => res.status(503).json({ error: 'Database not configured.' }));
+
 app.use(express.json({ limit: '4mb' }));
 
 // ── Auth middleware ───────────────────────────────────────────────────────────
@@ -3675,6 +3687,9 @@ const v20CallModel = async ({ system, message, maxTokens }) => {
   return { text: r.content.map(c => c.text || '').join(''), usage: r.usage };
 };
 
+// Fillout intake: inbox, client record, audio, archive (fillout/routes.js)
+if (filloutService) filloutRoutes.mountApi(app, filloutService);
+
 app.get('/api/clients/:clientId/wp/connection', wpRoute(req => wpService.connection(req.params.clientId)));
 app.put('/api/clients/:clientId/wp/connection', wpRoute(req => wpService.saveConnection(req.params.clientId, req.body || {})));
 app.post('/api/clients/:clientId/wp/test', wpRoute(req => wpService.test(req.params.clientId)));
@@ -3760,12 +3775,13 @@ app.use('/api/clients', dbRequired);
 app.get('/api/clients', async (req, res) => {
   try {
     const { rows } = await pool.query(`
-      SELECT c.*, COUNT(p.id)::int AS page_count
-      FROM clients c
-      LEFT JOIN pages p ON p.client_id = c.id
-      GROUP BY c.id ORDER BY c.created_at DESC
+      SELECT * FROM clients ORDER BY created_at DESC
     `);
-    res.json({ clients: rows });
+    const { rows: counts } = await pool.query(`SELECT client_id, COUNT(*)::int AS n FROM pages GROUP BY client_id`);
+    const pageCount = new Map(counts.map(r => [r.client_id, r.n]));
+    // Archived clients (Fillout intake) are left out unless asked for
+    const showArchived = req.query.archived === '1';
+    res.json({ clients: rows.filter(c => showArchived || !c.archived_at).map(c => ({ ...c, page_count: pageCount.get(c.id) || 0 })) });
   } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
@@ -3940,6 +3956,10 @@ app.post('/api/clients/:clientId/pages/:pageId/regenerate', async (req, res) => 
 const PORT = process.env.PORT || 3000;
 initDb().then(async () => {
   await recoverInterruptedResearchJobs();
+  if (filloutService) {
+    const n = await filloutService.recoverPending().catch(err => { console.error('[fillout] recovery failed:', err); return 0; });
+    if (n) console.log(`[fillout] processed ${n} submission(s) left waiting by a restart`);
+  }
   app.listen(PORT, () => console.log(`Copy bot running at http://localhost:${PORT}`));
 }).catch(err => {
   console.error('DB init failed:', err.message);
