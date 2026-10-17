@@ -17,6 +17,7 @@
 
 const crypto = require('crypto');
 const I = require('./intake');
+const P = require('./prices');
 
 async function ensureFilloutTables(pool) {
   await pool.query(`
@@ -90,7 +91,9 @@ async function defaultFetchAudio(url) {
   } finally { clearTimeout(timer); }
 }
 
-function createFilloutService({ pool, audioStore, fetchAudio = defaultFetchAudio, fieldMap = null, log = console }) {
+// callModel: anthropic-call.js makeCallModel(client, V20_MODEL), or null when there is no
+// API key (price extraction then records extraction_failed and waits for Retry)
+function createFilloutService({ pool, audioStore, fetchAudio = defaultFetchAudio, fieldMap = null, log = console, callModel = null, modelName = null }) {
   if (!pool) throw new Error('fillout service needs a pool');
   if (!audioStore) throw new Error('fillout service needs an audioStore');
   const map = fieldMap || I.loadFieldMap();
@@ -173,6 +176,8 @@ function createFilloutService({ pool, audioStore, fetchAudio = defaultFetchAudio
            business_name = $4, business_name_norm = $5, business_email_norm = $6, duplicate_of = $7, audio_failed = $8 WHERE id = $1`,
         [sub.id, clientId, rec.niche, rec.businessName || null, nameNorm || null, emailNorm || null, duplicateOf, audio.failed]);
       if (audio.failed) log.warn(`[fillout] ${sub.submission_id}: ${audio.failed} audio download(s) failed; reprocess to retry`);
+      // Price rows from the prices voice answer: in the background, never holding up intake
+      setImmediate(() => extractPrices(clientId, { submissionId: sub.submission_id }).catch(err => log.error('[fillout] price extraction failed to start:', err)));
       return { clientId, niche: rec.niche, nicheKnown: rec.nicheKnown, fields: written, audio, duplicateOf };
     } catch (err) {
       log.error(`[fillout] processing failed for row ${submissionRowId}:`, err);
@@ -235,7 +240,11 @@ function createFilloutService({ pool, audioStore, fetchAudio = defaultFetchAudio
       const v = f.value || {};
       const { rows } = await pool.query(`SELECT * FROM client_audio WHERE client_id = $1 AND field_key = $2`, [clientId, f.key]);
       let row = rows[0];
-      if (row && row.download_status === 'stored' && row.fillout_url === (v.url || null)) { kept++; continue; }
+      if (row && row.download_status === 'stored' && row.fillout_url === (v.url || null)) {
+        // Same file: no download, but Fillout may have re-transcribed it
+        if ((row.transcription || null) !== (v.transcription || null)) await pool.query(`UPDATE client_audio SET transcription = $2, updated_at = NOW() WHERE id = $1`, [row.id, v.transcription || null]);
+        kept++; continue;
+      }
       if (!row) {
         const ins = await pool.query(
           `INSERT INTO client_audio (client_id, field_key, question_id, fillout_url, filename, transcription, duration) VALUES ($1,$2,$3,$4,$5,$6,$7) RETURNING id`,
@@ -288,14 +297,29 @@ function createFilloutService({ pool, audioStore, fetchAudio = defaultFetchAudio
       const { rows: fr } = await pool.query(`SELECT client_id, field_key, status, value FROM client_fields WHERE client_id IN (${ph})`, clientIds);
       for (const f of fr) { if (!byClient.has(f.client_id)) byClient.set(f.client_id, []); byClient.get(f.client_id).push(f); }
     }
+    // Price state and rows per client, for the prices unit and the most-wanted warning
+    const stateBy = new Map(), rowsBy = new Map();
+    if (clientIds.length) {
+      const ph = clientIds.map((_, i) => `$${i + 1}`).join(',');
+      for (const s of (await pool.query(`SELECT * FROM client_price_state WHERE client_id IN (${ph})`, clientIds)).rows) stateBy.set(s.client_id, s);
+      for (const p of (await pool.query(`SELECT client_id, service, matched_to, deleted, inferred, unverified FROM client_price_rows WHERE client_id IN (${ph})`, clientIds)).rows) {
+        if (!rowsBy.has(p.client_id)) rowsBy.set(p.client_id, []);
+        rowsBy.get(p.client_id).push({ ...p, matched_to: p.matched_to && typeof p.matched_to === 'string' ? JSON.parse(p.matched_to) : p.matched_to });
+      }
+    }
     return rows.map(r => {
       const used = I.fieldsForNiche(map, r.niche);
       const have = new Map((byClient.get(r.client_id) || []).map(f => [f.field_key, f]));
-      const c = I.completeness(I.markApplicable(used.map(f => {
+      const fieldsNow = I.markApplicable(used.map(f => {
         const h = have.get(f.key);
         return { key: f.key, group: f.group, optional: f.optional, expectedWhen: f.expectedWhen, status: h ? h.status : 'blank', value: h ? h.value : null };
-      })));
+      }));
+      const pstate = stateBy.get(r.client_id) || null;
+      const prows = rowsBy.get(r.client_id) || [];
+      const pflags = P.priceFlags(prows, fieldsNow, pstate);
+      const c = I.completeness([...fieldsNow, pricesUnit({ rows: prows, state: pstate })]);
       return {
+        prices: r.client_id ? { status: pstate ? pstate.status : 'pending', rows: prows.filter(p => !p.deleted).length, warnings: pflags.warnings } : null,
         id: r.id, receivedAt: r.received_at, submissionId: r.submission_id, status: r.status, error: r.error || null, processedAt: r.processed_at,
         clientId: r.client_id, clientName: r.client_name || null, archived: !!r.archived_at, reviewed: !!r.reviewed_at,
         businessName: r.business_name || r.client_name || null, niche: r.niche || null, nicheKnown: !!(r.niche && map.niches[r.niche]),
@@ -333,11 +357,159 @@ function createFilloutService({ pool, audioStore, fetchAudio = defaultFetchAudio
     I.markApplicable(fields);
     const sections = map.sections.map(name => ({ name, fields: fields.filter(f => f.section === name) })).filter(s => s.fields.length);
     const { rows: subs } = await pool.query(`SELECT id, submission_id, received_at, status FROM fillout_submissions WHERE client_id = $1 ORDER BY received_at DESC`, [clientId]);
+    const prices = await priceView(clientId, fields);
     return {
       client: { id: client.id, name: client.name, trade: client.trade, createdAt: client.created_at, source: client.source, reviewedAt: client.reviewed_at, archivedAt: client.archived_at },
-      niche, nicheKnown: !!(niche && map.niches[niche]), completeness: I.completeness(fields), sections,
+      niche, nicheKnown: !!(niche && map.niches[niche]), completeness: I.completeness([...fields, pricesUnit(prices)]), sections, prices,
+      warnings: prices.warnings,
       submissions: subs.map(s => ({ id: s.id, submissionId: s.submission_id, receivedAt: s.received_at, status: s.status })),
     };
+  }
+
+  // ── Price rows from the prices voice answer (fillout/prices.js) ──
+  // One expected completeness unit: filled once a row exists or the VA has marked prices not applicable
+  const pricesUnit = prices => ({ key: 'prices', synthetic: true, status: (prices.rows.some(r => !r.deleted) || (prices.state && prices.state.status === 'not_applicable')) ? 'filled' : 'blank' });
+
+  const pricesVoiceKey = niche => { const f = I.fieldsForNiche(map, niche).find(f => f.type === 'AudioRecording' && /(^|\.)prices_voice$/.test(f.key)); return f ? f.key : null; };
+
+  // The transcript for the niche's prices voice answer: our audio row first, else the stored field value
+  async function priceTranscript(clientId, niche) {
+    const key = pricesVoiceKey(niche);
+    if (!key) return { key: null, transcript: '' };
+    const { rows: a } = await pool.query(`SELECT transcription FROM client_audio WHERE client_id = $1 AND field_key = $2`, [clientId, key]);
+    if (a.length && a[0].transcription) return { key, transcript: a[0].transcription };
+    const { rows: f } = await pool.query(`SELECT value FROM client_fields WHERE client_id = $1 AND field_key = $2`, [clientId, key]);
+    const v = f.length ? f[0].value : null;
+    return { key, transcript: v && typeof v === 'object' && v.transcription ? String(v.transcription) : '' };
+  }
+
+  async function priceState(clientId) {
+    const { rows } = await pool.query(`SELECT * FROM client_price_state WHERE client_id = $1`, [clientId]);
+    return rows[0] || null;
+  }
+  async function savePriceState(clientId, patch) {
+    const cur = await priceState(clientId);
+    const next = { status: 'pending', transcript_hash: null, transcript: null, error: null, model: null, extracted_at: null, ...(cur || {}), ...patch };
+    if (cur) await pool.query(`UPDATE client_price_state SET status=$2, transcript_hash=$3, transcript=$4, error=$5, model=$6, extracted_at=$7, updated_at=NOW() WHERE client_id=$1`,
+      [clientId, next.status, next.transcript_hash, next.transcript, next.error, next.model, next.extracted_at]);
+    else await pool.query(`INSERT INTO client_price_state (client_id, status, transcript_hash, transcript, error, model, extracted_at) VALUES ($1,$2,$3,$4,$5,$6,$7)`,
+      [clientId, next.status, next.transcript_hash, next.transcript, next.error, next.model, next.extracted_at]);
+    return next;
+  }
+
+  const priceRunning = new Set();
+  // Runs the model on the transcript. Skipped when the transcript hash hasn't changed since the
+  // last successful run, unless force (Re-extract / Retry). Replaces transcript rows only.
+  async function extractPrices(clientId, { force = false, submissionId = null } = {}) {
+    if (priceRunning.has(clientId)) return { skipped: 'running' };
+    priceRunning.add(clientId);
+    try {
+      const rec = await record(clientId);
+      if (!rec) throw new Error('Client not found');
+      const niche = rec.niche;
+      const { transcript } = await priceTranscript(clientId, niche);
+      const hash = transcript.trim() ? P.hashTranscript(transcript) : null;
+      const cur = await priceState(clientId);
+      if (!transcript.trim()) {
+        if (!cur || cur.status !== 'not_applicable') await savePriceState(clientId, { status: 'no_transcript', transcript_hash: null, transcript: '' });
+        return { skipped: 'no transcript' };
+      }
+      if (!force && cur && cur.status === 'done' && cur.transcript_hash === hash) return { skipped: 'unchanged' };
+      if (!force && cur && cur.status === 'not_applicable') return { skipped: 'not applicable' };
+      if (!callModel) throw new Error('No model available: ANTHROPIC_API_KEY is not set');
+      const { system, message } = P.buildPrompt(transcript, niche);
+      const reply = await callModel({ system, message, maxTokens: 2048, effort: 'low' });
+      let rows = P.parseReply(reply.text);
+      P.verifyRows(rows, transcript);
+      const fields = rec.sections.flatMap(s => s.fields);
+      P.matchRows(rows, P.candidatesFrom(fields));
+      // Hand work wins: a model row for a service that has a manual row (edited, added, or
+      // deleted and kept as a tombstone) is not written again, so nothing is duplicated or revived
+      const { rows: existing } = await pool.query(`SELECT id, service, source, deleted FROM client_price_rows WHERE client_id = $1`, [clientId]);
+      const manualServices = new Set(existing.filter(r => r.source === 'manual').map(r => r.service.toLowerCase().trim()));
+      rows = rows.filter(r => !manualServices.has(r.service.toLowerCase().trim()));
+      await pool.query(`DELETE FROM client_price_rows WHERE client_id = $1 AND source = 'transcript'`, [clientId]);
+      let i = 0;
+      for (const r of rows) {
+        await pool.query(`INSERT INTO client_price_rows (client_id, submission_id, niche, service, from_gbp, up_to_gbp, typical_gbp, unit, what_moves_price, quote_only, inferred, inferred_note, unverified, matched_to, source, transcript_hash, sort_order)
+          VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,'transcript',$15,$16)`,
+          [clientId, submissionId, niche, r.service, r.from_gbp, r.up_to_gbp, r.typical_gbp, r.unit, r.what_moves_price, r.quote_only, r.inferred, r.inferred_note, r.unverified, r.matched_to ? JSON.stringify(r.matched_to) : null, hash, i++]);
+      }
+      await savePriceState(clientId, { status: 'done', transcript_hash: hash, transcript, error: null, model: (reply.usage && reply.usage.model) || modelName, extracted_at: new Date() });
+      return { rows: rows.length, unverified: rows.filter(r => r.unverified).length };
+    } catch (err) {
+      log.error(`[fillout] price extraction failed for ${clientId}:`, err.message);
+      await savePriceState(clientId, { status: 'extraction_failed', error: String(err.message || err).slice(0, 2000) }).catch(e => log.error('[fillout] could not record the price failure:', e));
+      return { error: err.message };
+    } finally {
+      priceRunning.delete(clientId);
+    }
+  }
+
+  async function priceRows(clientId) {
+    const { rows } = await pool.query(`SELECT * FROM client_price_rows WHERE client_id = $1 ORDER BY sort_order, created_at`, [clientId]);
+    return rows.map(r => ({ ...r, matched_to: r.matched_to && typeof r.matched_to === 'string' ? JSON.parse(r.matched_to) : r.matched_to }));
+  }
+
+  async function priceView(clientId, fields) {
+    const [state, rows, { transcript }] = await Promise.all([priceState(clientId), priceRows(clientId), priceTranscript(clientId, fields.find(f => f.key === 'niche') && fields.find(f => f.key === 'niche').value)]);
+    const { flags, warnings } = P.priceFlags(rows, fields, state);
+    return {
+      state: state ? { status: state.status, error: state.error, model: state.model, extractedAt: state.extracted_at, transcriptChanged: !!(state.transcript_hash && transcript.trim() && P.hashTranscript(transcript) !== state.transcript_hash) } : { status: 'pending', error: null },
+      rows: rows.filter(r => !r.deleted).map(r => ({ id: r.id, service: r.service, from_gbp: r.from_gbp, up_to_gbp: r.up_to_gbp, typical_gbp: r.typical_gbp, unit: r.unit, what_moves_price: r.what_moves_price,
+        quote_only: r.quote_only, inferred: r.inferred, inferred_note: r.inferred_note, unverified: r.unverified, matched_to: r.matched_to, source: r.source, sort_order: r.sort_order })),
+      transcript, flags, warnings,
+    };
+  }
+
+  const PRICE_EDITABLE = ['service', 'from_gbp', 'up_to_gbp', 'typical_gbp', 'unit', 'what_moves_price', 'quote_only', 'inferred', 'inferred_note'];
+  const cleanRowPatch = patch => {
+    const out = {};
+    for (const k of PRICE_EDITABLE) {
+      if (!(k in patch)) continue;
+      const v = patch[k];
+      if (['from_gbp', 'up_to_gbp', 'typical_gbp'].includes(k)) { const s = v === null || v === '' ? null : Number(String(v).replace(/[£,\s]/g, '')); if (s !== null && !Number.isFinite(s)) throw new Error(`${k} must be a number`); out[k] = s === null ? null : Math.round(s); }
+      else if (['quote_only', 'inferred'].includes(k)) out[k] = v === true || v === 'true';
+      else out[k] = v == null ? null : String(v).trim() || null;
+    }
+    return out;
+  };
+
+  // A hand edit: the row becomes manual and a re-run leaves it alone
+  async function setPriceRow(clientId, rowId, patch) {
+    const p = cleanRowPatch(patch || {});
+    if (!Object.keys(p).length) throw new Error('Nothing to change');
+    const sets = Object.keys(p).map((k, i) => `${k} = $${i + 3}`);
+    const { rowCount } = await pool.query(`UPDATE client_price_rows SET ${sets.join(', ')}, source = 'manual', updated_at = NOW() WHERE id = $1 AND client_id = $2 AND deleted = false`, [rowId, clientId, ...Object.values(p)]);
+    if (!rowCount) throw new Error('Price row not found');
+    const rows = await priceRows(clientId);
+    return rows.find(r => r.id === rowId);
+  }
+
+  async function addPriceRow(clientId, patch) {
+    const p = cleanRowPatch(patch || {});
+    if (!p.service) throw new Error('A service name is needed');
+    const rec = await record(clientId);
+    const fields = rec.sections.flatMap(s => s.fields);
+    const matched = P.matchService(p.service, P.candidatesFrom(fields));
+    const { rows: mx } = await pool.query(`SELECT COALESCE(MAX(sort_order), -1) AS m FROM client_price_rows WHERE client_id = $1`, [clientId]);
+    const { rows } = await pool.query(`INSERT INTO client_price_rows (client_id, niche, service, from_gbp, up_to_gbp, typical_gbp, unit, what_moves_price, quote_only, inferred, inferred_note, unverified, matched_to, source, sort_order)
+      VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,false,$12,'manual',$13) RETURNING id`,
+      [clientId, rec.niche, p.service, p.from_gbp ?? null, p.up_to_gbp ?? null, p.typical_gbp ?? null, p.unit ?? null, p.what_moves_price ?? null, !!p.quote_only, !!p.inferred, p.inferred_note ?? null, matched ? JSON.stringify(matched) : null, Number(mx[0].m) + 1]);
+    return (await priceRows(clientId)).find(r => r.id === rows[0].id);
+  }
+
+  // Deleting is a hand edit too: a transcript row is kept as a hidden manual tombstone so a re-run can't bring it back
+  async function deletePriceRow(clientId, rowId) {
+    const { rowCount } = await pool.query(`UPDATE client_price_rows SET deleted = true, source = 'manual', updated_at = NOW() WHERE id = $1 AND client_id = $2`, [rowId, clientId]);
+    if (!rowCount) throw new Error('Price row not found');
+    return { deleted: true };
+  }
+
+  async function setPricesNotApplicable(clientId, value) {
+    const cur = await priceState(clientId);
+    if (value) return savePriceState(clientId, { status: 'not_applicable', error: null });
+    return savePriceState(clientId, { status: cur && cur.transcript_hash ? 'done' : 'pending' });
   }
 
   // A hand edit. Survives every later submission and re-run.
@@ -374,7 +546,8 @@ function createFilloutService({ pool, audioStore, fetchAudio = defaultFetchAudio
     return rows[0] || null;
   }
 
-  return { map, receive, saveRejected, process, recoverPending, listSubmissions, record, setField, audio, setClientFlags };
+  return { map, receive, saveRejected, process, recoverPending, listSubmissions, record, setField, audio, setClientFlags,
+    extractPrices, priceView: clientId => record(clientId).then(r => r && r.prices), setPriceRow, addPriceRow, deletePriceRow, setPricesNotApplicable };
 }
 
 module.exports = { ensureFilloutTables, createFilloutService, defaultFetchAudio };

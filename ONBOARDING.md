@@ -118,6 +118,40 @@ before volume grows** (a few hundred clients): write a second store with the sam
 three methods and swap it in `server.js`. Nothing else needs to change; list and
 record queries never touch the bytes table.
 
+## Service prices from the voice answer
+
+After a submission is processed, the niche's "Prices for your services" transcript
+goes to the model once, in the background (never holding up intake), and comes
+back as price rows: service, from, up to, typical, unit, what moves the price,
+quote only, inferred (+ note). Model: `V20_MODEL` through `anthropic-call.js`,
+the same as v20 generation; prompt `prompts/Price_Extraction_CORE.md` (only
+numbers spoken, never invent or round, spoken forms converted, a range gets
+from and up to, a single price gets typical, no usable prices gives no rows).
+
+- The code then traces every number back to the transcript (digits, "k",
+  "grand", number words). A number it cannot trace keeps its row but is marked
+  **unverified** and flagged; nothing is dropped or fixed silently.
+- Each row is matched, conservatively, to the ticked services and the three
+  most-wanted jobs (case and plurals ignored; a lone word never matches a longer
+  name). `matched_to` holds the field key and value, or null.
+- Storage: `client_price_rows` and `client_price_state` (`fillout/prices.js`).
+  State: `pending`, `done`, `extraction_failed` (with the reason and a Retry
+  button), `no_transcript`, `not_applicable` (set by the VA).
+- A re-run happens only when the transcript hash changes or on Re-extract. It
+  replaces rows with source `transcript` only. Any hand edit, add or delete makes
+  a row `manual`, and a deleted transcript row is kept as a hidden tombstone so
+  the model cannot bring it back.
+- Record page: the "Service prices" card at the top of Services & Locations,
+  transcript beside the table, inline edit, Add row, Delete, Re-extract, "Mark
+  not applicable". Flags: No prices given, Most-wanted job has no price (one per
+  job), Inferred value, a number not traced to the transcript.
+- Completeness: `prices` is one expected unit, filled when a row exists or the
+  state is not applicable. The count of most-wanted jobs without a price is a
+  separate warning (`warnings.mostWantedWithoutPrice`) on the record and inbox,
+  not part of the score.
+- Tests: `tests/fixtures/fillout-prices.js` with a mocked model; the real API is
+  never called in tests.
+
 ## Pages and API
 
 - `/submissions.html`: every submission, newest first: business name, niche,

@@ -80,6 +80,12 @@ function mountApi(app, svc) {
     res.setHeader('Cache-Control', 'private, max-age=3600');
     res.end(a.buffer);
   }));
+  // Price rows (fillout/prices.js): re-extract or retry, edit, add, delete, not applicable
+  app.post('/api/clients/:clientId/prices/extract', wrap(async (req, res) => { const r = await svc.extractPrices(req.params.clientId, { force: true }); res.json({ ...r, prices: await svc.priceView(req.params.clientId) }); }));
+  app.put('/api/clients/:clientId/prices/not-applicable', wrap(async (req, res) => { await svc.setPricesNotApplicable(req.params.clientId, !!(req.body && req.body.value)); res.json(await svc.priceView(req.params.clientId)); }));
+  app.post('/api/clients/:clientId/prices', wrap(async (req, res) => res.json(await svc.addPriceRow(req.params.clientId, req.body || {}))));
+  app.put('/api/clients/:clientId/prices/:rowId', wrap(async (req, res) => res.json(await svc.setPriceRow(req.params.clientId, req.params.rowId, req.body || {}))));
+  app.delete('/api/clients/:clientId/prices/:rowId', wrap(async (req, res) => res.json(await svc.deletePriceRow(req.params.clientId, req.params.rowId))));
   app.post('/api/clients/:clientId/archive', wrap(async (req, res) => res.json(await svc.setClientFlags(req.params.clientId, { archived: true }))));
   app.post('/api/clients/:clientId/unarchive', wrap(async (req, res) => res.json(await svc.setClientFlags(req.params.clientId, { archived: false }))));
   app.post('/api/clients/:clientId/reviewed', wrap(async (req, res) => res.json(await svc.setClientFlags(req.params.clientId, { reviewed: req.body && req.body.reviewed === false ? false : true }))));

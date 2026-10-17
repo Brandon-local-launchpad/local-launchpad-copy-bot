@@ -59,6 +59,30 @@
   .empty { color: var(--muted); text-align: center; padding: 3rem; }
   .status { font-size: 13px; color: var(--muted); }
   .status.ok { color: var(--success); } .status.bad { color: var(--danger); }
+  /* Service prices card (fillout/prices.js) */
+  .prices { padding: .9rem 1.25rem 1.1rem; border-bottom: 1px solid var(--border); }
+  .prices-head { display: flex; align-items: center; justify-content: space-between; gap: .75rem; flex-wrap: wrap; margin-bottom: .5rem; }
+  .prices-head h3 { font-size: .95rem; font-weight: 700; }
+  .prices-flags { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: .6rem; }
+  .pflag { display: inline-block; border-radius: 20px; padding: 3px 10px; font-size: 11px; font-weight: 700; }
+  .pflag.warn { background: rgba(251,191,36,.15); color: var(--warning); }
+  .pflag.bad { background: rgba(248,113,113,.15); color: var(--danger); }
+  .pflag.ok { background: rgba(74,222,128,.15); color: var(--success); }
+  .pflag.muted { background: var(--surface2); color: var(--muted); }
+  .prices-grid { display: grid; grid-template-columns: minmax(0, 3fr) minmax(220px, 1.2fr); gap: 1rem; align-items: start; }
+  @media (max-width: 900px) { .prices-grid { grid-template-columns: 1fr; } }
+  table.pt { width: 100%; border-collapse: collapse; font-size: 13px; }
+  table.pt th { text-align: left; color: var(--muted); font-weight: 600; font-size: 11px; text-transform: uppercase; letter-spacing: .04em; padding: 4px 6px; border-bottom: 1px solid var(--border); }
+  table.pt td { padding: 6px; border-bottom: 1px solid var(--border); vertical-align: top; }
+  table.pt td.num { white-space: nowrap; }
+  table.pt tr.manual td:first-child { border-left: 2px solid var(--warning); }
+  table.pt input[type=text], table.pt input[type=number] { width: 100%; min-width: 60px; padding: 5px 7px; font-size: 13px; }
+  table.pt .rb { display: inline-block; margin: 2px 4px 0 0; border-radius: 20px; padding: 1px 8px; font-size: 10px; font-weight: 700; }
+  .pt-actions { display: flex; gap: 4px; flex-wrap: wrap; }
+  .btn-xs { padding: 4px 9px; font-size: 12px; }
+  .ptranscript { background: var(--surface2); border-radius: 8px; padding: .7rem .9rem; font-size: 13px; line-height: 1.55; white-space: pre-wrap; }
+  .ptranscript h4 { font-size: 11px; text-transform: uppercase; letter-spacing: .04em; color: var(--muted); margin-bottom: .4rem; }
+  .pnote { font-size: 11px; color: var(--muted); margin-top: 2px; }
 </style>
 </head>
 <body>
@@ -130,8 +154,86 @@
     document.getElementById('sections').innerHTML = rec.sections.map(s => {
       const counted = s.fields.filter(f => f.applicable !== false);
       const filled = counted.filter(f => f.status === 'filled').length;
-      return `<div class="section"><h2>${esc(s.name)}<span>${filled} of ${counted.length} fields</span></h2>${s.fields.map(renderField).join('')}</div>`;
+      const prices = s.name === 'Services & Locations' && rec.prices ? renderPrices(rec.prices) : '';
+      return `<div class="section"><h2>${esc(s.name)}<span>${filled} of ${counted.length} fields</span></h2>${prices}${s.fields.map(renderField).join('')}</div>`;
     }).join('');
+  }
+
+  // ── Service prices: rows the model read from the prices voice answer, every cell editable ──
+  let priceEdit = null;   // row id being edited, or 'new'
+  const gbp = n => n == null ? '' : '£' + Number(n).toLocaleString('en-GB');
+  function renderPrices(p) {
+    const st = p.state || {};
+    const flags = p.flags.map(f => `<span class="pflag ${f.code === 'no_prices' ? 'muted' : f.code === 'unverified' ? 'bad' : 'warn'}">${esc(f.msg)}</span>`).join('');
+    let stateLine = '';
+    if (st.status === 'extraction_failed') stateLine = `<span class="pflag bad">Extraction failed</span> <span class="pnote">${esc(st.error || '')}</span>`;
+    else if (st.status === 'pending') stateLine = `<span class="pflag muted">Extracting…</span>`;
+    else if (st.status === 'no_transcript') stateLine = `<span class="pflag muted">No prices recording</span>`;
+    else if (st.status === 'not_applicable') stateLine = `<span class="pflag ok">Prices marked not applicable</span>`;
+    else if (st.transcriptChanged) stateLine = `<span class="pflag warn">Transcript changed since extraction</span>`;
+    const canExtract = p.transcript && p.transcript.trim();
+    const head = `<div class="prices-head"><h3>Service prices</h3><div class="pt-actions">
+      ${canExtract ? `<button class="btn btn-ghost btn-xs" onclick="extractPrices()">${st.status === 'extraction_failed' ? 'Retry' : 'Re-extract'}</button>` : ''}
+      <button class="btn btn-ghost btn-xs" onclick="priceEdit='new';render()">Add row</button>
+      <button class="btn btn-ghost btn-xs" onclick="pricesNotApplicable(${st.status === 'not_applicable' ? 'false' : 'true'})">${st.status === 'not_applicable' ? 'Clear not applicable' : 'Mark not applicable'}</button>
+    </div></div>`;
+    const rows = p.rows.map(r => priceEdit === r.id ? renderPriceEditor(r) : renderPriceRow(r)).join('') + (priceEdit === 'new' ? renderPriceEditor({ id: 'new', service: '', unit: '' }) : '');
+    const table = `<table class="pt"><thead><tr><th>Service</th><th>From</th><th>Up to / typical</th><th>Unit</th><th>What moves the price</th><th></th></tr></thead><tbody>${rows || `<tr><td colspan="6" class="value blank">${st.status === 'done' ? 'No prices given' : 'No rows yet'}</td></tr>`}</tbody></table>`;
+    const transcript = `<div class="ptranscript"><h4>Transcript</h4>${p.transcript ? esc(p.transcript) : '<span class="value blank">No recording</span>'}</div>`;
+    return `<div class="prices">${head}<div class="prices-flags">${stateLine}${flags}</div><div class="prices-grid"><div>${table}</div>${transcript}</div></div>`;
+  }
+  function priceBadges(r) {
+    const b = [];
+    if (r.quote_only) b.push('<span class="rb pflag muted">quote only</span>');
+    if (r.inferred) b.push(`<span class="rb pflag warn" title="${esc(r.inferred_note || '')}">inferred</span>`);
+    if (r.unverified) b.push('<span class="rb pflag bad" title="This number could not be traced to the transcript">unverified</span>');
+    if (r.matched_to) b.push(`<span class="rb pflag ok">matches ${esc(/most_wanted_(job_)?(\d)/.test(r.matched_to.key) ? 'your most-wanted job ' + r.matched_to.key.match(/(\d)$/)[1] : 'a ticked service')}: ${esc(r.matched_to.value)}</span>`);
+    if (r.source === 'manual') b.push('<span class="rb pflag warn">edited by hand</span>');
+    return b.length ? `<div>${b.join('')}</div>` : '';
+  }
+  function renderPriceRow(r) {
+    const upto = r.up_to_gbp != null ? gbp(r.up_to_gbp) : r.typical_gbp != null ? `${gbp(r.typical_gbp)} <span class="pnote">typical</span>` : '';
+    return `<tr class="${r.source === 'manual' ? 'manual' : ''}">
+      <td>${esc(r.service)}${priceBadges(r)}${r.inferred && r.inferred_note ? `<div class="pnote">${esc(r.inferred_note)}</div>` : ''}</td>
+      <td class="num">${gbp(r.from_gbp)}</td><td class="num">${upto}</td><td>${esc(r.unit || '')}</td><td>${esc(r.what_moves_price || '')}</td>
+      <td class="pt-actions"><button class="btn btn-ghost btn-xs" onclick="priceEdit='${r.id}';render()">Edit</button><button class="btn btn-ghost btn-xs" onclick="deletePriceRow('${r.id}')">Delete</button></td></tr>`;
+  }
+  function renderPriceEditor(r) {
+    const v = (k) => r[k] == null ? '' : esc(r[k]);
+    return `<tr class="manual"><td><input type="text" id="pe_service" value="${v('service')}" placeholder="Service as spoken"><label class="pnote"><input type="checkbox" id="pe_quote_only" ${r.quote_only ? 'checked' : ''}> quote only</label></td>
+      <td><input type="number" id="pe_from" value="${v('from_gbp')}" placeholder="from"></td>
+      <td><input type="number" id="pe_upto" value="${v('up_to_gbp')}" placeholder="up to"><input type="number" id="pe_typical" value="${v('typical_gbp')}" placeholder="typical" style="margin-top:4px"></td>
+      <td><input type="text" id="pe_unit" value="${v('unit')}" placeholder="per job"></td>
+      <td><input type="text" id="pe_moves" value="${v('what_moves_price')}" placeholder="only if they said"></td>
+      <td class="pt-actions"><button class="btn btn-primary btn-xs" onclick="savePriceRow('${r.id}')">Save</button><button class="btn btn-ghost btn-xs" onclick="priceEdit=null;render()">Cancel</button></td></tr>`;
+  }
+  const numOrNull = id => { const s = document.getElementById(id).value.trim(); return s === '' ? null : Number(s); };
+  async function savePriceRow(id) {
+    const body = { service: document.getElementById('pe_service').value, from_gbp: numOrNull('pe_from'), up_to_gbp: numOrNull('pe_upto'), typical_gbp: numOrNull('pe_typical'),
+      unit: document.getElementById('pe_unit').value, what_moves_price: document.getElementById('pe_moves').value, quote_only: document.getElementById('pe_quote_only').checked };
+    setStatus('Saving…');
+    const res = await fetch(id === 'new' ? `/api/clients/${clientId}/prices` : `/api/clients/${clientId}/prices/${id}`, { method: id === 'new' ? 'POST' : 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+    const r = await res.json().catch(() => ({}));
+    if (!res.ok) { setStatus('Not saved: ' + (r.error || res.status), 'bad'); return; }
+    setStatus('Saved', 'ok'); setTimeout(() => setStatus(''), 1500);
+    priceEdit = null; await load();
+  }
+  async function deletePriceRow(id) {
+    if (!confirm('Delete this price row? A re-extraction will not bring it back.')) return;
+    const res = await fetch(`/api/clients/${clientId}/prices/${id}`, { method: 'DELETE' });
+    if (!res.ok) { setStatus('Not deleted', 'bad'); return; }
+    await load();
+  }
+  async function extractPrices() {
+    setStatus('Extracting prices…');
+    const res = await fetch(`/api/clients/${clientId}/prices/extract`, { method: 'POST' });
+    const r = await res.json().catch(() => ({}));
+    setStatus(r.error ? 'Extraction failed: ' + r.error : `Extracted ${r.rows || 0} row(s)`, r.error ? 'bad' : 'ok'); setTimeout(() => setStatus(''), 3000);
+    await load();
+  }
+  async function pricesNotApplicable(value) {
+    await fetch(`/api/clients/${clientId}/prices/not-applicable`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ value }) });
+    await load();
   }
 
   function showValue(f) {
