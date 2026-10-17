@@ -128,12 +128,15 @@
 
   function render() {
     document.getElementById('sections').innerHTML = rec.sections.map(s => {
-      const filled = s.fields.filter(f => f.status === 'filled').length;
-      return `<div class="section"><h2>${esc(s.name)}<span>${filled} of ${s.fields.length} fields</span></h2>${s.fields.map(renderField).join('')}</div>`;
+      const counted = s.fields.filter(f => f.applicable !== false);
+      const filled = counted.filter(f => f.status === 'filled').length;
+      return `<div class="section"><h2>${esc(s.name)}<span>${filled} of ${counted.length} fields</span></h2>${s.fields.map(renderField).join('')}</div>`;
     }).join('');
   }
 
   function showValue(f) {
+    // A field that doesn't apply (expectedWhen in the map, e.g. the call-out fee when the quote is free)
+    if (f.applicable === false && f.status !== 'filled') return '<div class="value blank">Not applicable</div>';
     if (f.status !== 'filled') return '<div class="value blank">Not provided</div>';
     const v = f.value;
     if (Array.isArray(v)) return `<div class="value"><ul>${v.map(x => `<li>${esc(x)}</li>`).join('')}</ul></div>`;
@@ -166,7 +169,7 @@
         <div class="editbar"><button class="btn btn-primary" onclick="save('${f.key}', ${multi && hint ? 'true' : 'false'})">Save</button><button class="btn btn-ghost" onclick="editing=null;render()">Cancel</button><span class="hint">${hint}</span></div>
       </div>${src}</div>`;
     }
-    return `<div class="field"><div class="label">${esc(f.label)}${f.optional ? '<small>optional</small>' : ''}</div><div class="edit" title="Click to edit" onclick="editing='${f.key}';render();setTimeout(()=>{const e=document.getElementById('ed');if(e)e.focus()},0)">${showValue(f)}</div>${src}</div>`;
+    return `<div class="field"><div class="label">${esc(f.label)}${f.optional ? '<small>optional</small>' : f.applicable === false ? '<small>not applicable</small>' : ''}</div><div class="edit" title="Click to edit" onclick="editing='${f.key}';render();setTimeout(()=>{const e=document.getElementById('ed');if(e)e.focus()},0)">${showValue(f)}</div>${src}</div>`;
   }
 
   async function save(key, asList) {

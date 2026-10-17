@@ -53,6 +53,17 @@ there: no extraction, no page generation from these records yet.
     accreditations) are left out of the expected count and shown as "optional
     filled".
   For the sample form: 73 expected, 9 optional units, 103 fields.
+  - a field with `expectedWhen: {field, in: [...]}` counts only when that other
+    field holds one of those values; otherwise it is neither expected nor optional
+    and the record shows "Not applicable". Used for the call-out or survey fee
+    question, expected only when "Is the quote free?" is "Call-out fee" or
+    "Survey fee".
+- A map entry may give `position: {after, before}` instead of (or as well as) an
+  `id`: the question directly between those two ids in the payload. That is how
+  the call-out fee question is found until its id has been seen in a real
+  submission (`node tools/fillout-find-question.js q_quote_free eHt6ipCmD9PZXGfmX3wTEZ`
+  prints it; then set `id` on the entry). A payload without the question still
+  processes; the field is simply blank or not applicable.
 - Reprocess on an inbox row rebuilds the record from the stored payload (after a
   field map change, for instance). Hand-typed fields are kept.
 - A niche with no field map yet is accepted: the universal fields are stored and
