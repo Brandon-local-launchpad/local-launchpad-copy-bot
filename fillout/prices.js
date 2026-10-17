@@ -242,6 +242,16 @@ function candidatesFrom(fields) {
   return out;
 }
 
+// Notes are read by a non-technical person: field names the model may still write are
+// replaced with plain words before the record shows them
+const TOKEN_WORDS = [[/\bfrom_gbp\b/gi, 'lowest price'], [/\bup_to_gbp\b/gi, 'highest price'], [/\btypical_gbp\b/gi, 'single price'], [/\bquote_only\b/gi, 'quote only'], [/\bwhat_moves_price\b/gi, 'what moves the price'], [/\binferred_note\b/gi, 'note']];
+function humaniseNote(text) {
+  if (text == null) return text;
+  let s = String(text);
+  for (const [re, word] of TOKEN_WORDS) s = s.replace(re, word);
+  return s;
+}
+
 // Flags above the table and the warning count that stays out of the score
 function priceFlags(rows, fields, state) {
   const live = rows.filter(r => !r.deleted);
@@ -255,4 +265,4 @@ function priceFlags(rows, fields, state) {
   return { flags, warnings: { mostWantedWithoutPrice: unpriced.length } };
 }
 
-module.exports = { ensurePriceTables, hashTranscript, buildPrompt, parseReply, transcriptNumbers, verifyRows, stem, normService, matchService, matchRows, mergeDuplicateServices, candidatesFrom, priceFlags, UNITS, ROW_FIELDS, PROMPT_PATH };
+module.exports = { ensurePriceTables, hashTranscript, buildPrompt, parseReply, transcriptNumbers, verifyRows, stem, normService, matchService, matchRows, mergeDuplicateServices, candidatesFrom, priceFlags, humaniseNote, UNITS, ROW_FIELDS, PROMPT_PATH };

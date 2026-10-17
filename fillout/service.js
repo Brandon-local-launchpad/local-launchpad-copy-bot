@@ -313,7 +313,7 @@ function createFilloutService({ pool, audioStore, fetchAudio = defaultFetchAudio
       const have = new Map((byClient.get(r.client_id) || []).map(f => [f.field_key, f]));
       const fieldsNow = I.markApplicable(used.map(f => {
         const h = have.get(f.key);
-        return { key: f.key, group: f.group, optional: f.optional, expectedWhen: f.expectedWhen, status: h ? h.status : 'blank', value: h ? h.value : null };
+        return { key: f.key, group: f.group, optional: f.optional, tier: f.tier, expectedWhen: f.expectedWhen, status: h ? h.status : 'blank', value: h ? h.value : null };
       }));
       const pstate = stateBy.get(r.client_id) || null;
       const prows = rowsBy.get(r.client_id) || [];
@@ -348,7 +348,7 @@ function createFilloutService({ pool, audioStore, fetchAudio = defaultFetchAudio
       const a = f.type === 'AudioRecording' ? audioByKey.get(f.key) : null;
       return {
         key: f.key, label: f.label, section: f.section, panel: f.panel, help: f.help || null, type: f.type, niche: f.niche, questionId: (h && h.question_id) || f.id || null,
-        group: f.group || null, optional: !!f.optional, expectedWhen: f.expectedWhen || null,
+        group: f.group || null, optional: !!f.optional, tier: f.tier, manual: !!f.manual, expectedWhen: f.expectedWhen || null,
         value: h ? h.value : null, status: h ? h.status : 'blank', source: h ? h.source : 'form', updatedAt: h ? h.updated_at : null,
         audio: a ? { id: a.id, filloutUrl: a.fillout_url, filename: a.filename, transcription: a.transcription, duration: a.duration,
                      downloadStatus: a.download_status, downloadError: a.download_error, size: a.size_bytes,
@@ -382,18 +382,16 @@ function createFilloutService({ pool, audioStore, fetchAudio = defaultFetchAudio
       const own = fields.filter(f => f.panel === p.key);
       const units = p.key === 'prices' ? [...own, pricesUnit(prices)] : own;
       const c = I.completeness(units);
-      const status = c.expected === 0 ? 'none' : c.filled === c.expected ? 'complete' : 'missing';
-      // Required when CopyBot needs an answer here; Recommended when the panel is only optional
-      // answers that still shape the copy; Optional when nothing on it is counted at all
-      const tag = c.expected > 0 ? 'Required' : c.optionalTotal > 0 ? 'Recommended' : 'Optional';
-      return { key: p.key, label: p.label, group: p.group, description: p.description, tag, status, fields: own.length,
-        filled: c.filled, expected: c.expected, optionalFilled: c.optionalFilled, optionalTotal: c.optionalTotal, notApplicable: c.notApplicable };
+      // Required when a needed answer lives here; Recommended when only chase answers do; Optional otherwise
+      const tag = c.needed.total > 0 ? 'Required' : c.chase.total > 0 ? 'Recommended' : 'Optional';
+      return { key: p.key, label: p.label, group: p.group, description: p.description, tag, status: I.status(c), fields: own.length,
+        needed: c.needed, chase: c.chase, optional: c.optional, notApplicable: c.notApplicable };
     });
   }
 
   // ── Price rows from the prices voice answer (fillout/prices.js) ──
   // One expected completeness unit: filled once a row exists or the VA has marked prices not applicable
-  const pricesUnit = prices => ({ key: 'prices', synthetic: true, status: (prices.rows.some(r => !r.deleted) || (prices.state && prices.state.status === 'not_applicable')) ? 'filled' : 'blank' });
+  const pricesUnit = prices => ({ key: 'prices', synthetic: true, tier: 'needed', status: (prices.rows.some(r => !r.deleted) || (prices.state && prices.state.status === 'not_applicable')) ? 'filled' : 'blank' });
 
   const pricesVoiceKey = niche => { const f = I.fieldsForNiche(map, niche).find(f => f.type === 'AudioRecording' && /(^|\.)prices_voice$/.test(f.key)); return f ? f.key : null; };
 
@@ -502,8 +500,8 @@ function createFilloutService({ pool, audioStore, fetchAudio = defaultFetchAudio
     const { flags, warnings } = P.priceFlags(rows, fields, state);
     return {
       state: state ? { status: state.status, error: state.error, model: state.model, extractedAt: state.extracted_at, transcriptChanged: !!(state.transcript_hash && transcript.trim() && P.hashTranscript(transcript) !== state.transcript_hash) } : { status: 'pending', error: null },
-      rows: rows.filter(r => !r.deleted).map(r => ({ id: r.id, service: r.service, from_gbp: r.from_gbp, up_to_gbp: r.up_to_gbp, typical_gbp: r.typical_gbp, unit: r.unit, what_moves_price: r.what_moves_price,
-        quote_only: r.quote_only, inferred: r.inferred, inferred_note: r.inferred_note, unverified: r.unverified, matched_to: r.matched_to, source: r.source, sort_order: r.sort_order })),
+      rows: rows.filter(r => !r.deleted).map(r => ({ id: r.id, service: r.service, from_gbp: r.from_gbp, up_to_gbp: r.up_to_gbp, typical_gbp: r.typical_gbp, unit: r.unit, what_moves_price: P.humaniseNote(r.what_moves_price),
+        quote_only: r.quote_only, inferred: r.inferred, inferred_note: P.humaniseNote(r.inferred_note), unverified: r.unverified, matched_to: r.matched_to, source: r.source, sort_order: r.sort_order })),
       transcript, flags, warnings,
     };
   }
@@ -565,8 +563,9 @@ function createFilloutService({ pool, audioStore, fetchAudio = defaultFetchAudio
     const f = rec.sections.flatMap(s => s.fields).find(x => x.key === key);
     if (!f) throw new Error(`Not a field for this client's niche: ${key}`);
     if (f.type === 'AudioRecording') throw new Error('Voice answers are not edited here; edit the typed field beside it');
-    const blank = I.isBlank(value);
-    const stored = blank ? null : value;
+    // A checkbox (the manual photos_received field) is filled only when ticked
+    const blank = f.type === 'Checkbox' ? !(value === true || value === 'true') : I.isBlank(value);
+    const stored = blank ? null : (f.type === 'Checkbox' ? true : value);
     const { rowCount } = await pool.query(
       `UPDATE client_fields SET value = $3, status = $4, source = 'manual', updated_at = NOW() WHERE client_id = $1 AND field_key = $2`,
       [clientId, key, jsonb(stored), blank ? 'blank' : 'filled']);

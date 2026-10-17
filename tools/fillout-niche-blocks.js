@@ -140,8 +140,15 @@ function entriesFor(block, label, nicheKey) {
   for (const q of block.audio) out.push({ id: q.id, key: `${nicheKey}.prices_voice`, label: 'Prices for your services (voice)', section: SL, type: q.type, niche: label });
   if (block.otherServices) out.push({ id: block.otherServices.id, key: `${nicheKey}.other_services`, label: strip(block.otherServices.name).length > 60 ? 'Additional services not listed above' : strip(block.otherServices.name), section: SL, type: block.otherServices.type, niche: label, optional: true });
   if (block.jobsNotWanted) out.push({ id: block.jobsNotWanted.id, key: `${nicheKey}.jobs_not_wanted`, label: strip(block.jobsNotWanted.name), section: SL, type: block.jobsNotWanted.type, niche: label, optional: true });
-  // Every niche field sits on the Services panel of the record page (prices_voice too; the Prices panel reads it through the prices card)
-  return out.map(e => ({ ...e, panel: 'services' }));
+  // Every niche field sits on the Services panel of the record page (prices_voice too; the Prices
+  // panel reads it through the prices card). Tiers: ticks and most-wanted jobs are needed, the
+  // prices recording is worth chasing, other services and jobs not wanted are optional.
+  return out.map(e => {
+    const tier = e.group === 'services' || /\.most_wanted_\d$/.test(e.key) ? 'needed' : /\.prices_voice$/.test(e.key) ? 'chase' : 'optional';
+    const entry = { ...e, panel: 'services', tier };
+    if (tier === 'optional') entry.optional = true; else delete entry.optional;
+    return entry;
+  });
 }
 
 function updateMap(blocks) {
@@ -161,8 +168,10 @@ function updateMap(blocks) {
     for (const e of entriesFor(b, label, key)) {
       const old = existingById.get(e.id);
       if (old) {
-        // keep the old key and label; take the conventions (group, optional) from the generator
-        nicheFields.push({ ...old, group: e.group || old.group, optional: e.optional || old.optional });
+        // keep the old key and label; take the conventions (group, tier, optional, panel) from the generator
+        const kept = { ...old, group: e.group || old.group, tier: e.tier, panel: e.panel };
+        if (e.tier === 'optional') kept.optional = true; else delete kept.optional;
+        nicheFields.push(kept);
         existingById.delete(e.id);
       } else nicheFields.push(e);
     }

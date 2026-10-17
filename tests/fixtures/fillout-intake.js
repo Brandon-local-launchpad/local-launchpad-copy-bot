@@ -150,21 +150,21 @@ const quiet = { info() {}, warn() {}, error() {} };
     const record = await r.json();
     chk('Record grouped by the form sections, niche known', r.status === 200 && record.sections.length >= 8 && record.sections[0].name === 'Business Information' && record.nicheKnown, record.sections.map(s => s.name).join(', '), 'sections');
     const allFields = record.sections.flatMap(s => s.fields);
-    chk('Record shows every field we use for Plumbing & Heating', allFields.length === rec.fields.length && allFields.some(f => f.key === 'cat_gas_engineer'), allFields.length, rec.fields.length);
+    chk('Record shows every field we use for Plumbing & Heating, plus the manual photos_received field', allFields.length === rec.fields.length + 1 && allFields.some(f => f.key === 'cat_gas_engineer') && allFields.some(f => f.key === 'photos_received' && f.manual && f.tier === 'chase'), allFields.length, rec.fields.length + 1);
     // Completeness: units, not fields. Pairs count once, the accreditations are one optional group, optional fields leave the denominator.
     const k = record.completeness;
-    chk('Completeness headline = filled / expected units (pairs once, optional out)', k.expected === 70 && k.filled === 46 && k.pct === 66 && k.optionalTotal === 10 && k.optionalFilled === 1 && k.fields === rec.fields.length, JSON.stringify(k), '46 of 70, 1 of 10 optional (prices unit blank)');
-    const unitTest = (fs, want, label) => { const c = I.completeness(fs); chk(label, JSON.stringify([c.filled, c.expected, c.optionalFilled, c.optionalTotal]) === JSON.stringify(want), JSON.stringify([c.filled, c.expected, c.optionalFilled, c.optionalTotal]), JSON.stringify(want)); };
-    unitTest([{ key: 'a_voice', group: 'a', status: 'filled' }, { key: 'a_text', group: 'a', status: 'blank' }], [1, 1, 0, 0], 'Voice filled, typed blank → one unit, filled');
-    unitTest([{ key: 'a_voice', group: 'a', status: 'blank' }, { key: 'a_text', group: 'a', status: 'filled' }], [1, 1, 0, 0], 'Voice blank, typed filled → one unit, filled');
-    unitTest([{ key: 'a_voice', group: 'a', status: 'blank' }, { key: 'a_text', group: 'a', status: 'blank' }, { key: 'b', status: 'filled' }], [1, 2, 0, 0], 'Both blank → one unit, blank');
+    chk('Scores: Ready to build 16 of 18 needed (fee and prices blank), Worth chasing 28 of 41, 3 of 22 optional', k.needed.filled === 16 && k.needed.total === 18 && k.chase.filled === 28 && k.chase.total === 41 && k.optional.filled === 3 && k.optional.total === 22 && k.pct === 89 && k.fields === rec.fields.length + 1, JSON.stringify(k), '16/18, 28/41, 3/22');
+    const unitTest = (fs, want, label) => { const c = I.completeness(fs); const got = [c.needed.filled, c.needed.total, c.chase.filled, c.chase.total, c.optional.filled, c.optional.total]; chk(label, JSON.stringify(got) === JSON.stringify(want), JSON.stringify(got), JSON.stringify(want)); };
+    unitTest([{ key: 'a_voice', group: 'a', tier: 'chase', status: 'filled' }, { key: 'a_text', group: 'a', tier: 'chase', status: 'blank' }], [0, 0, 1, 1, 0, 0], 'Voice filled, typed blank → one chase unit, filled');
+    unitTest([{ key: 'a_voice', group: 'a', tier: 'chase', status: 'blank' }, { key: 'a_text', group: 'a', tier: 'chase', status: 'filled' }], [0, 0, 1, 1, 0, 0], 'Voice blank, typed filled → one chase unit, filled');
+    unitTest([{ key: 'a_voice', group: 'a', tier: 'chase', status: 'blank' }, { key: 'a_text', group: 'a', tier: 'chase', status: 'blank' }, { key: 'b', tier: 'needed', status: 'filled' }], [1, 1, 0, 1, 0, 0], 'Both blank → one chase unit, blank; a needed field counts in its own score');
     const accs = allFields.filter(f => f.group === 'accreditations');
     chk('The 15 accreditation fields are one optional group', accs.length === 15 && accs.every(f => f.optional), accs.length, 15);
-    unitTest([...accs.map(f => ({ ...f, status: 'blank' })), { key: 'x', status: 'filled' }], [1, 1, 0, 1], 'Accreditations all blank → 0 of 1 optional, not 15 expected');
-    unitTest([...accs.map((f, i) => ({ ...f, status: i === 0 ? 'filled' : 'blank' }))], [0, 0, 1, 1], 'One accreditation filled → 1 of 1 optional');
+    unitTest([...accs.map(f => ({ ...f, status: 'blank' })), { key: 'x', tier: 'needed', status: 'filled' }], [1, 1, 0, 0, 0, 1], 'Accreditations all blank → 0 of 1 optional, never scored');
+    unitTest([...accs.map((f, i) => ({ ...f, status: i === 0 ? 'filled' : 'blank' }))], [0, 0, 0, 0, 1, 1], 'One accreditation filled → 1 of 1 optional');
     const optionalKeys = ['town_1', 'town_2', 'town_3', 'anything_else', 'words_to_avoid', 'jobs_not_wanted', 'stand_out_other', 'areas_voice'];
     chk('Optional-by-design fields are marked optional', optionalKeys.every(key => (allFields.find(f => f.key === key) || {}).optional === true), optionalKeys.filter(key => !(allFields.find(f => f.key === key) || {}).optional).join(','), 'none missing');
-    chk('jobs_not_wanted is filled ("nope") but counted as optional, not expected', allFields.find(f => f.key === 'jobs_not_wanted').status === 'filled' && k.optionalFilled === 1, '', '');
+    chk('jobs_not_wanted is filled ("nope") but optional, so it never scores', allFields.find(f => f.key === 'jobs_not_wanted').status === 'filled' && allFields.find(f => f.key === 'jobs_not_wanted').tier === 'optional' && k.optional.filled === 3, '', '');
     chk('Property types question (removed from the form) is not in the map or the record', !map.fields.some(f => f.id === 'gbsoP3SSTnGFW5PdJ1U7zY') && !allFields.some(f => f.key === 'property_types'), '', '');
 
     // ── Record page panels (fillout/field-map.json "panels") ──
@@ -172,13 +172,15 @@ const quiet = { info() {}, warn() {}, error() {} };
     chk('Every field in the map has a panel listed under panels', map.fields.every(f => f.panel && panelKeys.has(f.panel)), map.fields.filter(f => !f.panel || !panelKeys.has(f.panel)).map(f => f.key).join(','), 'none missing');
     chk('A map entry without a panel is refused by loadFieldMap', (() => { const fs2 = require('fs'); const tmp = path.join(require('os').tmpdir(), 'fm-nopanel.json'); const m2 = JSON.parse(JSON.stringify(map)); delete m2.fields[3].panel; fs2.writeFileSync(tmp, JSON.stringify(m2)); try { I.loadFieldMap(tmp); return false; } catch (e) { return /panel/.test(e.message); } })(), '', '');
     chk('Every record field carries its panel', allFields.every(f => f.panel && panelKeys.has(f.panel)), '', '');
-    chk('Record has 11 panels with group, tag, description and counts', record.panels.length === 11 && record.panels.every(p => p.group && p.description && ['Required', 'Recommended', 'Optional'].includes(p.tag) && typeof p.filled === 'number' && ['missing', 'complete', 'none'].includes(p.status)), JSON.stringify(record.panels.map(p => [p.key, p.tag, p.status])), '');
+    chk('Record has 11 panels with group, tag, description, tier counts and a dot status', record.panels.length === 11 && record.panels.every(p => p.group && p.description && ['Required', 'Recommended', 'Optional'].includes(p.tag) && p.needed && p.chase && p.optional && ['missing', 'chase', 'complete', 'none'].includes(p.status)), JSON.stringify(record.panels.map(p => [p.key, p.tag, p.status])), '');
     const sum = k => record.panels.reduce((n, p) => n + p[k], 0);
-    chk('Panel counts add up to the headline: filled, expected, optional', sum('filled') === record.completeness.filled && sum('expected') === record.completeness.expected && sum('optionalFilled') === record.completeness.optionalFilled && sum('optionalTotal') === record.completeness.optionalTotal, JSON.stringify([sum('filled'), sum('expected'), sum('optionalFilled'), sum('optionalTotal')]), JSON.stringify([record.completeness.filled, record.completeness.expected, record.completeness.optionalFilled, record.completeness.optionalTotal]));
+    const sumT = (t, k2) => record.panels.reduce((n, p) => n + p[t][k2], 0);
+    chk('Panel counts add up to the headline: needed, chase, optional', sumT('needed', 'filled') === k.needed.filled && sumT('needed', 'total') === k.needed.total && sumT('chase', 'filled') === k.chase.filled && sumT('chase', 'total') === k.chase.total && sumT('optional', 'total') === k.optional.total, JSON.stringify([sumT('needed', 'filled'), sumT('needed', 'total'), sumT('chase', 'total')]), JSON.stringify([k.needed.filled, k.needed.total, k.chase.total]));
     chk('Panel fields add up to every field once', sum('fields') === allFields.length, sum('fields'), allFields.length);
     const pricesPanel = record.panels.find(p => p.key === 'prices');
-    chk('The prices unit sits on the Prices panel (2 fields + prices unit = 3 expected at most)', pricesPanel.expected === 3 || pricesPanel.expected === 2, pricesPanel.expected, '2 or 3');
-    chk('Record carries a needs-attention list', Array.isArray(record.attention) && record.attention.some(a => a.code === 'blank_expected' && a.panel === 'business_information'), JSON.stringify((record.attention || []).map(a => a.code)), 'blank_expected…');
+    chk('The prices unit is a needed unit on the Prices panel (fee + prices = 2 needed, discount = 1 chase)', pricesPanel.needed.total === 2 && pricesPanel.chase.total === 1 && pricesPanel.status === 'missing', JSON.stringify(pricesPanel), '2 needed');
+    chk('Dots: red where a needed answer is missing, amber where only chase is missing, green when both done, grey for optional-only', record.panels.find(p => p.key === 'services').status === 'complete' && record.panels.find(p => p.key === 'business_information').status === 'chase' && record.panels.find(p => p.key === 'prices').status === 'missing' && record.panels.find(p => p.key === 'reviews_social').status === 'none' && record.panels.find(p => p.key === 'reviews_social').tag === 'Optional', JSON.stringify(record.panels.map(p => [p.key, p.status])), 'services complete, business_information chase, prices missing, reviews_social none');
+    chk('Record carries a needs-attention list grouped into blocks and chase, no optional blanks', Array.isArray(record.attention) && record.attention.some(a => a.code === 'blank_needed' && a.group === 'blocks' && a.panel === 'prices') && record.attention.some(a => a.code === 'blank_chase' && a.group === 'chase') && !record.attention.some(a => a.code === 'blank_expected') && !JSON.stringify(record.attention).includes('town_1'), JSON.stringify((record.attention || []).map(a => [a.code, a.panel])), 'blank_needed on prices, blank_chase…');
     chk('Record carries duplicateOf (null for the first client)', 'duplicateOf' in record && record.duplicateOf === null, JSON.stringify(record.duplicateOf), 'null');
 
     const pv = allFields.find(f => f.key === 'prices_voice');
@@ -342,17 +344,17 @@ const quiet = { info() {}, warn() {}, error() {} };
     chk('Not matched by text: a different label in the same slot still resolves', (() => { const p = withFee('Call-out fee', '£40'); p.submission.questions.find(q => q.id === FEE_ID).name = 'Renamed'; return feeField(p).id === FEE_ID && feeField(p).value === '£40'; })(), '', '');
     chk('A question that is not directly between the two anchors is not taken', (() => { const p = withFee('Call-out fee', '£40'); const qs = p.submission.questions; const at = qs.findIndex(q => q.id === FEE_ID); qs.splice(at + 1, 0, { id: 'q_extra', name: 'Extra', type: 'ShortAnswer', value: 'z' }); const f = feeField(p); return f.id === null && f.status === 'blank'; })(), '', '');
     const c1 = I.completeness(I.buildRecord(withFee('Call-out fee', '£60, taken off the job'), map).fields);
-    chk('1. Call-out fee, fee answered → counted as filled (47 of 69)', c1.expected === 69 && c1.filled === 47 && feeField(withFee('Call-out fee', '£60')).applicable === true, JSON.stringify([c1.filled, c1.expected]), '[47,69]');
+    chk('1. Call-out fee, fee answered → needed 17 of 17', c1.needed.filled === 17 && c1.needed.total === 17, JSON.stringify(c1.needed), '17/17');
     const c2 = I.completeness(I.buildRecord(withFee('Survey fee', null), map).fields);
-    chk('2. Survey fee, fee blank → expected and missing (46 of 69)', c2.expected === 69 && c2.filled === 46 && feeField(withFee('Survey fee', '')).status === 'blank' && feeField(withFee('Survey fee', '')).applicable === true, JSON.stringify([c2.filled, c2.expected]), '[50,74]');
+    chk('2. Survey fee, fee blank → needed and missing, 16 of 17', c2.needed.filled === 16 && c2.needed.total === 17 && feeField(withFee('Survey fee', '')).status === 'blank' && feeField(withFee('Survey fee', '')).applicable === true && feeField(withFee('Survey fee', '')).tier === 'needed', JSON.stringify(c2.needed), '16/17');
     const c3 = I.completeness(I.buildRecord(withFee('Yes, no call-out or survey fee', null), map).fields);
-    chk('3. Yes, no call-out or survey fee → not in the denominator (46 of 68, 1 not applicable)', c3.expected === 68 && c3.filled === 46 && c3.notApplicable === 1 && feeField(withFee('Yes, no call-out or survey fee', null)).applicable === false, JSON.stringify([c3.filled, c3.expected, c3.notApplicable]), '[46,68,1]');
+    chk('3. Yes, no call-out or survey fee → not in the denominator (16 of 16, 1 not applicable)', c3.needed.filled === 16 && c3.needed.total === 16 && c3.notApplicable === 1 && feeField(withFee('Yes, no call-out or survey fee', null)).applicable === false, JSON.stringify([c3.needed, c3.notApplicable]), '16/16, 1');
     const c3b = I.completeness(I.buildRecord(withFee('Not Applicable', null), map).fields);
-    chk('3b. Not Applicable → not in the denominator either', c3b.expected === 68 && feeField(withFee('Not Applicable', null)).applicable === false, c3b.expected, 68);
-    chk('3c. Fee answered anyway when the quote is free: value kept, still not counted', (() => { const f = feeField(withFee('Yes, no call-out or survey fee', '£20')); return f.value === '£20' && f.status === 'filled' && f.applicable === false; })() && I.completeness(I.buildRecord(withFee('Yes, no call-out or survey fee', '£20'), map).fields).expected === 68, '', '');
+    chk('3b. Not Applicable → not in the denominator either', c3b.needed.total === 16 && feeField(withFee('Not Applicable', null)).applicable === false, c3b.needed.total, 16);
+    chk('3c. Fee answered anyway when the quote is free: value kept, still not counted', (() => { const f = feeField(withFee('Yes, no call-out or survey fee', '£20')); return f.value === '£20' && f.status === 'filled' && f.applicable === false; })() && I.completeness(I.buildRecord(withFee('Yes, no call-out or survey fee', '£20'), map).fields).needed.total === 16, '', '');
     const c4 = I.completeness(I.buildRecord(sample, map).fields);
-    chk('4. A submission from before the question existed still builds; fee blank, expected because the sample says Survey fee', c4.expected === 69 && c4.filled === 46 && feeField(sample).present === false && feeField(sample).status === 'blank', JSON.stringify([c4.filled, c4.expected]), '[46,69]');
-    chk('4b. Same old submission with a free quote: fee not applicable, 68 expected', (() => { const p = clone(sample); p.submission.questions.find(q => q.id === 'q_quote_free').value = 'Yes, no call-out or survey fee'; const c = I.completeness(I.buildRecord(p, map).fields); return c.expected === 68 && feeField(p).applicable === false; })(), '', '');
+    chk('4. A submission from before the question existed still builds; fee blank, needed because the sample says Survey fee (16 of 17)', c4.needed.filled === 16 && c4.needed.total === 17 && feeField(sample).present === false && feeField(sample).status === 'blank', JSON.stringify(c4.needed), '16/17');
+    chk('4b. Same old submission with a free quote: fee not applicable, 16 needed', (() => { const p = clone(sample); p.submission.questions.find(q => q.id === 'q_quote_free').value = 'Yes, no call-out or survey fee'; const c = I.completeness(I.buildRecord(p, map).fields); return c.needed.total === 16 && feeField(p).applicable === false; })(), '', '');
     // Through the webhook: the resolved id is what gets stored, and the record and inbox follow the rule
     const feeSub = withFee('Call-out fee', '£60, taken off the job'); feeSub.submission.submissionId = 'fee-0001';
     feeSub.submission.questions.find(q => q.id === 'bwUuvaZTmChegZekppzNNv').value = 'Fee Plumbing'; feeSub.submission.questions.find(q => q.id === '5EHeuZ2pntQwCaoADHRRrJ').value = 'fee@example.com';
@@ -362,7 +364,7 @@ const quiet = { info() {}, warn() {}, error() {} };
     chk('Stored with the payload question id and value', feeRow && feeRow.question_id === FEE_ID && feeRow.value === '£60, taken off the job' && feeRow.status === 'filled', JSON.stringify(feeRow), FEE_ID);
     const feeRec = await (await get(`/api/clients/${feeRow.client_id}/record`)).json();
     const feeShown = feeRec.sections.find(s => s.name === 'Quotes Process and Response').fields;
-    chk('Record: fee directly after Is the quote free, applicable, 47 of 70', feeShown[feeShown.findIndex(f => f.key === 'quote_free') + 1].key === 'quote_call_out_fee' && feeShown.find(f => f.key === 'quote_call_out_fee').applicable === true && feeRec.completeness.filled === 47 && feeRec.completeness.expected === 70, JSON.stringify(feeRec.completeness), '47 of 70');
+    chk('Record: fee directly after Is the quote free, applicable, needed 17 of 18 (prices unit still blank)', feeShown[feeShown.findIndex(f => f.key === 'quote_free') + 1].key === 'quote_call_out_fee' && feeShown.find(f => f.key === 'quote_call_out_fee').applicable === true && feeRec.completeness.needed.filled === 17 && feeRec.completeness.needed.total === 18, JSON.stringify(feeRec.completeness.needed), '17/18');
     const freeSub = withFee('Yes, no call-out or survey fee', null); freeSub.submission.submissionId = 'free-0001';
     freeSub.submission.questions.find(q => q.id === 'bwUuvaZTmChegZekppzNNv').value = 'Free Quotes Ltd'; freeSub.submission.questions.find(q => q.id === '5EHeuZ2pntQwCaoADHRRrJ').value = 'free@example.com';
     await post(`/api/webhooks/fillout?token=${SECRET}`, freeSub);
@@ -370,7 +372,7 @@ const quiet = { info() {}, warn() {}, error() {} };
     const freeClient = (await pool.query(`SELECT client_id FROM fillout_submissions WHERE submission_id = 'free-0001'`)).rows[0].client_id;
     const freeRec = await (await get(`/api/clients/${freeClient}/record`)).json();
     const freeInbox = (await (await get('/api/fillout/submissions')).json()).submissions.find(s => s.submissionId === 'free-0001');
-    chk('Record and inbox: free quote → fee not applicable, 69 expected in both', freeRec.sections.flatMap(s => s.fields).find(f => f.key === 'quote_call_out_fee').applicable === false && freeRec.completeness.expected === 69 && freeInbox.completeness.expected === 69, JSON.stringify([freeRec.completeness.expected, freeInbox.completeness.expected]), '[69,69]');
+    chk('Record and inbox: free quote → fee not applicable, 17 needed in both', freeRec.sections.flatMap(s => s.fields).find(f => f.key === 'quote_call_out_fee').applicable === false && freeRec.completeness.needed.total === 17 && freeInbox.completeness.needed.total === 17 && freeInbox.completeness.pct === freeRec.completeness.pct, JSON.stringify([freeRec.completeness.needed, freeInbox.completeness.needed]), '17 and 17');
 
     // ── All 28 niche blocks mapped (tools/fillout-niche-blocks.js) ──
     const B = require(path.join(root, 'tools/fillout-niche-blocks.js'));
@@ -429,7 +431,7 @@ const quiet = { info() {}, warn() {}, error() {} };
     chk('(2) Landscapers: stored fields are the landscaper block only, none from P&H though answered', !(await pool.query(`SELECT field_key FROM client_fields WHERE client_id = $1`, [land.sub.client_id])).rows.some(r => r.field_key === 'cat_plumber' || r.field_key === 'most_wanted_job_1'), '', '');
     chk('(2) Landscapers: voice answer copied with its transcript, like Plumbing & Heating', landF.find(f => f.key === 'landscapers.prices_voice').audio && landF.find(f => f.key === 'landscapers.prices_voice').audio.playable && landF.find(f => f.key === 'landscapers.prices_voice').audio.transcription === 'Transcript for landscapers.prices_voice', JSON.stringify(landF.find(f => f.key === 'landscapers.prices_voice').audio), 'playable');
     // 8 checkbox groups + 3 most wanted + voice = 5 units, the same 5 the sample's Plumbing & Heating block fills
-    chk('(2) Landscapers: completeness counts the 8 groups as one services unit (46 of 70, like the sample)', land.rec.completeness.expected === 70 && land.rec.completeness.filled === 46 && land.rec.completeness.optionalFilled === 2, JSON.stringify(land.rec.completeness), '46 of 70, 2 optional');
+    chk('(2) Landscapers: the 8 groups are one needed services unit; needed 16 of 18 like the sample, chase 28 of 41, optional 4 of 22', land.rec.completeness.needed.filled === 16 && land.rec.completeness.needed.total === 18 && land.rec.completeness.chase.filled === 28 && land.rec.completeness.chase.total === 41 && land.rec.completeness.optional.filled === 4, JSON.stringify(land.rec.completeness), '16/18, 28/41, 4/22');
 
     // (3) Window Cleaning: "Window Cleaning Service" and "Pressure Washing Service" also exist in the Cleaning and Pressure Washing blocks, with other ids
     const wcIds = map.fields.filter(f => f.niche === 'Window Cleaning' && f.group === 'services').map(f => f.id);
@@ -460,6 +462,25 @@ const quiet = { info() {}, warn() {}, error() {} };
     const nearInbox = (await (await get('/api/fillout/submissions')).json()).submissions.find(s => s.submissionId === 'niche-near-0001');
     chk('(5) "Roofers " (trailing space) matches no niche: processed, universal fields only, banner flag on inbox and record', near.sub.status === 'processed' && near.rec.nicheKnown === false && near.rec.niche === 'Roofers ' && keysOf(near.rec).every(k => !k.includes('.') && !['cat_plumber', 'prices_voice'].includes(k)) && nearInbox.nicheKnown === false, JSON.stringify([near.rec.niche, near.rec.nicheKnown, nearInbox.nicheKnown]), '["Roofers ",false,false]');
     chk('(5) Exact label "Roofers" is known', I.fieldsForNiche(map, 'Roofers').some(f => f.key === 'roofers.cat.roofer') && !I.fieldsForNiche(map, 'roofers').some(f => f.niche === 'Roofers'), '', '');
+
+    // ── photos_received: a manual-only checkbox that survives resubmission and Reprocess ──
+    const recOf = async () => (await (await get(`/api/clients/${clientId}/record`)).json());
+    const pr0 = (await recOf()).sections.flatMap(s => s.fields).find(f => f.key === 'photos_received');
+    chk('photos_received shows on the record, blank, manual, chase, on Look & Feel, with no question id', pr0 && pr0.status === 'blank' && pr0.manual === true && pr0.tier === 'chase' && pr0.panel === 'look_feel' && pr0.questionId === null, JSON.stringify(pr0), '');
+    chk('photos_received is never written by a submission', !(await pool.query(`SELECT 1 FROM client_fields WHERE client_id = $1 AND field_key = 'photos_received'`, [clientId])).rows.length, '', 'no row');
+    r = await put(`/api/clients/${clientId}/record/photos_received`, { value: true });
+    chk('Ticking photos_received → filled, source manual', r.status === 200 && (await r.json()).source === 'manual' && (await recOf()).sections.flatMap(s => s.fields).find(f => f.key === 'photos_received').status === 'filled', r.status, 200);
+    const chaseBefore = (await recOf()).completeness.chase.filled;
+    const resubPhotos = clone(payload); resubPhotos.submission.submissionId = 'resub-photos-0001';
+    await post(`/api/webhooks/fillout?token=${SECRET}`, resubPhotos); await waitDone('resub-photos-0001');
+    const lastSub = (await pool.query(`SELECT id FROM fillout_submissions WHERE submission_id = 'resub-photos-0001'`)).rows[0];
+    await post(`/api/fillout/submissions/${lastSub.id}/reprocess`, {});
+    const prAfter = await recOf();
+    const prField = prAfter.sections.flatMap(s => s.fields).find(f => f.key === 'photos_received');
+    chk('photos_received survives a resubmission and a Reprocess, still ticked and manual', prField.status === 'filled' && prField.value === true && prField.source === 'manual' && prAfter.completeness.chase.filled === chaseBefore, JSON.stringify([prField.status, prField.source, prAfter.completeness.chase.filled, chaseBefore]), 'filled manual, same chase count');
+    r = await put(`/api/clients/${clientId}/record/photos_received`, { value: false });
+    chk('Unticking photos_received → blank again (still manual)', r.status === 200 && (await r.json()).status === 'blank', r.status, 200);
+    chk('The old WhatsApp answer stays visible as information, tier optional', (() => { const f = prAfter.sections.flatMap(s => s.fields).find(f => f.key === 'photos_whatsapp'); return f && f.status === 'filled' && f.tier === 'optional'; })(), '', '');
 
     // ── The fixture's real audio URL is untouched in what we commit ──
     chk('Fixture still carries the real Fillout audio URL', /prod-fillout-oregon-s3/.test(realUrl), realUrl, 'fillout s3');

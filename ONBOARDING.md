@@ -56,7 +56,25 @@ there: no extraction, no page generation from these records yet.
 - Each field has a value, a status (`filled` / `blank`) and a source (`form` /
   `transcript` / `manual`). A field typed in on the record page becomes `manual`
   and is never overwritten by a later submission or a re-run.
-- Completeness counts units, not fields, and the headline is filled ÷ expected:
+- Every field has a **tier** (`tier` in the map, mirrored by `optional: true`):
+  `needed` (CopyBot can't build a correct page without it: business name, phone,
+  email, business address, owner, hours, visit/travel, niche, service ticks,
+  most-wanted jobs, prices rows or "not applicable", base town, other towns,
+  travel distance, is the quote free and the fee when applicable), `chase`
+  (worth chasing: the voice answers, story and team facts, quote process,
+  payment terms, insurance, hero and colours, photos received), `optional`
+  (never counted; any label containing "(optional)" must be optional, and
+  `loadFieldMap` refuses anything else). Two scores: **Ready to build** =
+  needed units filled / needed units (the inbox percentage); **Worth chasing** =
+  chase units filled / chase units. The old combined score is gone. Menu dots:
+  red = a needed unit missing, amber = needed done but chase missing, green =
+  both done, grey = only optional. Needs attention is grouped into "Blocks the
+  build" and "Worth chasing"; optional blanks are never listed.
+- `photos_received` is a manual-only checkbox (no Fillout question, `manual: true`
+  in the map, tier chase, Look & Feel) ticked when the photos and logo arrive by
+  WhatsApp. It is never written by a submission, so it survives resubmission and
+  Reprocess; the form's "I'll WhatsApp them" answer stays visible as information.
+- Completeness counts units, not fields, within each tier:
   - a voice answer and its typed twin (same `group` in the map) are one unit,
     filled if either is filled;
   - the five accreditation triples are one optional group;
@@ -131,6 +149,10 @@ from and up to, a single price gets typical, no usable prices gives no rows).
 - The code then traces every number back to the transcript (digits, "k",
   "grand", number words). A number it cannot trace keeps its row but is marked
   **unverified** and flagged; nothing is dropped or fixed silently.
+- `inferred_note` and `what_moves_price` are read by a person: the prompt bans
+  field names in them, and the record API and page replace any that slip through
+  (`from_gbp` → lowest price, `up_to_gbp` → highest price, `typical_gbp` →
+  single price).
 - Each row is matched, conservatively, to the ticked services and the three
   most-wanted jobs: both sides lower-cased, punctuation dropped, each word cut
   to a simple stem (s, es, ing, ed, er endings off), then equal stems, or one
