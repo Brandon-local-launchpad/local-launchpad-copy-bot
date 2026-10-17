@@ -418,8 +418,14 @@ function createFilloutService({ pool, audioStore, fetchAudio = defaultFetchAudio
       if (!force && cur && cur.status === 'not_applicable') return { skipped: 'not applicable' };
       if (!callModel) throw new Error('No model available: ANTHROPIC_API_KEY is not set');
       const { system, message } = P.buildPrompt(transcript, niche);
-      const reply = await callModel({ system, message, maxTokens: 2048, effort: 'low' });
-      let rows = P.parseReply(reply.text);
+      const reply = await callModel({ system, message, maxTokens: 4096, effort: 'low' });
+      let rows;
+      try { rows = P.parseReply(reply.text); }
+      catch (err) {
+        // Cut off at the output limit: say so, rather than a parse error on half a JSON object
+        if (reply.usage && reply.usage.stop_reason === 'max_tokens') throw new Error('reply too long, retry or split the recording');
+        throw err;
+      }
       P.verifyRows(rows, transcript);
       const fields = rec.sections.flatMap(s => s.fields);
       P.matchRows(rows, P.candidatesFrom(fields));

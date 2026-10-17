@@ -49,7 +49,9 @@ const T3 = "Emergency call outs are forty five pounds an hour. Full rewires are 
     const next = replies.shift();
     if (next === undefined) throw new Error('mock model: no reply queued');
     if (next instanceof Error) throw next;
-    return { text: typeof next === 'function' ? next(message) : next, usage: { model: 'mock-model' } };
+    // {text, stop_reason} stands for a reply the API cut off
+    if (next && typeof next === 'object') return { text: next.text, usage: { model: 'mock-model', stop_reason: next.stop_reason } };
+    return { text: typeof next === 'function' ? next(message) : next, usage: { model: 'mock-model', stop_reason: 'end_turn' } };
   };
   const reply = rows => JSON.stringify({ rows });
   const svc = createFilloutService({ pool, audioStore: createPgAudioStore(pool), fetchAudio: async () => ({ buffer: Buffer.from('ID3x'), contentType: 'audio/mpeg' }), log: quiet, callModel, modelName: 'mock-model' });
@@ -203,10 +205,25 @@ const T3 = "Emergency call outs are forty five pounds an hour. Full rewires are 
     v = await view(c8);
     chk('A reply with no JSON → extraction_failed, no rows', v.prices.state.status === 'extraction_failed' && v.prices.rows.length === 0, JSON.stringify(v.prices.state), 'extraction_failed');
 
+    // ── A reply cut off at the output limit ──
+    chk('Extraction asks the model for 4096 output tokens', calls.every(c => c.maxTokens === 4096), [...new Set(calls.map(c => c.maxTokens))].join(','), '4096');
+    replies.push({ text: '{"rows":[{"service":"Typical plumbing job","from_gbp":50,"up_to_gbp":100},{"service":"Bathroom inst', stop_reason: 'max_tokens' });
+    const c10 = await submit('p-0010', 'Long Winded Plumbing', T1);
+    v = await view(c10);
+    chk('Truncated reply (stop reason max_tokens): extraction_failed with "reply too long, retry or split the recording", no rows', v.prices.state.status === 'extraction_failed' && v.prices.state.error === 'reply too long, retry or split the recording' && v.prices.rows.length === 0, JSON.stringify(v.prices.state), 'reply too long');
+    replies.push({ text: '{"rows":[', stop_reason: 'end_turn' });
+    r = await req('POST', `/api/clients/${c10}/prices/extract`);
+    v = await view(c10);
+    chk('A broken reply that was not cut off keeps the parse error, not the too-long message', v.prices.state.status === 'extraction_failed' && !/too long/.test(v.prices.state.error) && /JSON|rows/.test(v.prices.state.error), v.prices.state.error, 'parse error');
+    replies.push(reply([{ service: 'Boiler repair', typical_gbp: 300 }]));
+    r = await req('POST', `/api/clients/${c10}/prices/extract`);
+    v = await view(c10);
+    chk('Retry after a truncated reply works', v.prices.state.status === 'done' && v.prices.rows.length === 1, JSON.stringify(v.prices.state), 'done');
+
     // ── No voice answer at all ──
     const c9 = await submit('p-0009', 'Silent Plumbing', null);
     v = await view(c9);
-    chk('No recording: state no_transcript, no model call, record fine', v.prices.state.status === 'no_transcript' && v.prices.rows.length === 0 && calls.length === 8, JSON.stringify([v.prices.state.status, calls.length]), '["no_transcript",8]');
+    chk('No recording: state no_transcript, no model call, record fine', v.prices.state.status === 'no_transcript' && v.prices.rows.length === 0 && calls.length === 11, JSON.stringify([v.prices.state.status, calls.length]), '["no_transcript",11]');
   } finally {
     srv.close();
   }
