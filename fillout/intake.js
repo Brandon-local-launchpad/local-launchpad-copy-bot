@@ -19,8 +19,18 @@ const MAP_PATH = path.join(__dirname, 'field-map.json');
 function loadFieldMap(file = MAP_PATH) {
   const map = JSON.parse(fs.readFileSync(file, 'utf8'));
   const seen = new Set();
+  const keys = new Set(map.fields.map(f => f.key));
   for (const f of map.fields) {
-    if (!f.id || !f.key || !f.section || !f.niche) throw new Error(`field map: entry missing id, key, section or niche: ${JSON.stringify(f)}`);
+    // An entry is found by id, or by position (the question directly between two known ids)
+    // when its id isn't known yet; see resolveQuestion
+    const positioned = f.position && f.position.after && f.position.before;
+    if ((!f.id && !positioned) || !f.key || !f.section || !f.niche) throw new Error(`field map: entry missing id (or position), key, section or niche: ${JSON.stringify(f)}`);
+    // expectedWhen: {field, in: [...]} makes the field count only when another field holds one of those values
+    if (f.expectedWhen) {
+      const w = f.expectedWhen;
+      if (!w.field || !Array.isArray(w.in) || !w.in.length) throw new Error(`field map: ${f.key} expectedWhen needs {field, in: [...]}`);
+      if (!keys.has(w.field)) throw new Error(`field map: ${f.key} expectedWhen names an unknown field ${w.field}`);
+    }
     if (f.niche !== 'all' && !map.niches[f.niche]) throw new Error(`field map: field ${f.key} names a niche not under niches: ${f.niche}`);
     const k = `${f.niche}|${f.key}`;
     if (seen.has(k)) throw new Error(`field map: duplicate key ${f.key} for niche ${f.niche}`);
@@ -76,6 +86,31 @@ function questionsById(payload) {
   return out;
 }
 
+// The question a map entry points at: by id, else by position, the single question
+// that sits directly between position.after and position.before in the payload's
+// order (Fillout renames questions, so position is the stable handle until the
+// id is known). Null when neither finds it.
+function resolveQuestion(payload, f) {
+  const byId = questionsById(payload);
+  if (f.id && byId.has(f.id)) return byId.get(f.id);
+  if (f.position && f.position.after && f.position.before) {
+    const qs = payload.submission.questions;
+    const a = qs.findIndex(q => q && q.id === f.position.after);
+    const b = qs.findIndex(q => q && q.id === f.position.before);
+    if (a >= 0 && b === a + 2 && qs[a + 1] && qs[a + 1].id) return qs[a + 1];
+  }
+  return null;
+}
+
+// Does a field count, given the other fields' values? expectedWhen: {field, in}
+function applies(f, valueOf) {
+  if (!f.expectedWhen) return true;
+  const v = valueOf(f.expectedWhen.field);
+  if (isBlank(v)) return false;
+  const vals = Array.isArray(v) ? v : [v];
+  return vals.some(x => f.expectedWhen.in.some(want => norm(want) === norm(x)));
+}
+
 const submissionId = payload => (payload && payload.submission && payload.submission.submissionId) || null;
 
 function detectNiche(payload, map) {
@@ -96,15 +131,16 @@ function buildRecord(payload, map) {
   const niche = detectNiche(payload, map);
   const nicheKnown = !!(niche && map.niches[niche]);
   const fields = fieldsForNiche(map, niche).map(f => {
-    const q = byId.get(f.id);
+    const q = resolveQuestion(payload, f);
     const value = q ? q.value : null;
     const blank = isBlank(value);
     return {
-      key: f.key, id: f.id, label: f.label || stripSuffix(q && q.name), section: f.section, type: f.type, niche: f.niche,
-      group: f.group || null, optional: !!f.optional,
+      key: f.key, id: q ? q.id : f.id, label: f.label || stripSuffix(q && q.name), section: f.section, type: f.type, niche: f.niche,
+      group: f.group || null, optional: !!f.optional, expectedWhen: f.expectedWhen || null,
       value: blank ? null : value, status: blank ? 'blank' : 'filled', present: !!q,
     };
   });
+  markApplicable(fields);
   const get = id => { const q = byId.get(id); return q && !isBlank(q.value) ? String(q.value).trim() : ''; };
   return {
     submissionId: submissionId(payload),
@@ -120,6 +156,16 @@ function buildRecord(payload, map) {
 
 const isAudioField = f => f.type === 'AudioRecording';
 
+// Sets applicable on each field from the others' values. A field that doesn't
+// apply is left out of completeness and shown as "Not applicable". Its value, if
+// the client gave one anyway, is kept.
+function markApplicable(fields) {
+  const byKey = new Map(fields.map(f => [f.key, f]));
+  const valueOf = key => { const f = byKey.get(key); return f ? f.value : null; };
+  for (const f of fields) f.applicable = applies(f, valueOf);
+  return fields;
+}
+
 // Completeness counts units, not fields: fields that share a `group` (a voice
 // and typed pair, the five accreditation triples) are one unit, filled if any of
 // them is. Units whose fields are all `optional` are left out of the expected
@@ -127,6 +173,7 @@ const isAudioField = f => f.type === 'AudioRecording';
 function completeness(fields) {
   const units = new Map();
   fields.forEach((f, i) => {
+    if (f.applicable === false) return; // not applicable: neither expected nor optional
     const id = f.group || `field:${f.key || i}`;
     const u = units.get(id) || { optional: true, filled: false, keys: [] };
     if (!f.optional) u.optional = false;
@@ -141,11 +188,12 @@ function completeness(fields) {
   return {
     filled, expected: expected.length, pct: expected.length ? Math.round((filled / expected.length) * 100) : 0,
     optionalFilled: optional.filter(u => u.filled).length, optionalTotal: optional.length,
+    notApplicable: fields.filter(f => f.applicable === false).length,
     fields: fields.length,
   };
 }
 
 module.exports = {
   MAP_PATH, loadFieldMap, stripSuffix, isBlank, norm, secretMatches, secretFromRequest,
-  questionsById, submissionId, detectNiche, fieldsForNiche, buildRecord, isAudioField, completeness,
+  questionsById, resolveQuestion, applies, markApplicable, submissionId, detectNiche, fieldsForNiche, buildRecord, isAudioField, completeness,
 };

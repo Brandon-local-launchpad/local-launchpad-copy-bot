@@ -1,5 +1,5 @@
 {
-  "_about": "Which Fillout questions become client fields. Keyed by question id (names repeat and carry suffixes). niche is \"all\" or a label from niches. Adding a niche: add its label under niches and its questions under fields. Completeness: fields sharing a group count as one unit (filled if any is filled); optional fields and groups are left out of the expected count and shown as optional filled.",
+  "_about": "Which Fillout questions become client fields. Keyed by question id (names repeat and carry suffixes). niche is \"all\" or a label from niches. Adding a niche: add its label under niches and its questions under fields. Completeness: fields sharing a group count as one unit (filled if any is filled); optional fields and groups are left out of the expected count and shown as optional filled. An entry may give position {after, before} instead of id (the question directly between two known ids). expectedWhen {field, in} makes a field count only when another field holds one of those values; otherwise it is Not applicable.",
   "niche_question_id": "q_niche_select",
   "business_name_question_id": "bwUuvaZTmChegZekppzNNv",
   "business_email_question_id": "5EHeuZ2pntQwCaoADHRRrJ",
@@ -797,6 +797,26 @@
       "section": "Quotes Process and Response",
       "type": "MultipleChoice",
       "niche": "all"
+    },
+    {
+      "id": null,
+      "position": {
+        "after": "q_quote_free",
+        "before": "eHt6ipCmD9PZXGfmX3wTEZ"
+      },
+      "key": "quote_call_out_fee",
+      "label": "Call-out or survey fee, and is it taken off the job if the customer goes ahead?",
+      "section": "Quotes Process and Response",
+      "type": "ShortAnswer",
+      "niche": "all",
+      "expectedWhen": {
+        "field": "quote_free",
+        "in": [
+          "Call-out fee",
+          "Survey fee"
+        ]
+      },
+      "_note": "id not yet seen in a payload (17 Oct 2026): found by position, the question directly between q_quote_free and the written quotes question. Set id once a submission with it is in hand; position stays as the fallback."
     },
     {
       "id": "eHt6ipCmD9PZXGfmX3wTEZ",

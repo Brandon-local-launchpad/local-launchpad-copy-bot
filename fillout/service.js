@@ -285,13 +285,16 @@ function createFilloutService({ pool, audioStore, fetchAudio = defaultFetchAudio
     const byClient = new Map();
     if (clientIds.length) {
       const ph = clientIds.map((_, i) => `$${i + 1}`).join(',');
-      const { rows: fr } = await pool.query(`SELECT client_id, field_key, status FROM client_fields WHERE client_id IN (${ph})`, clientIds);
+      const { rows: fr } = await pool.query(`SELECT client_id, field_key, status, value FROM client_fields WHERE client_id IN (${ph})`, clientIds);
       for (const f of fr) { if (!byClient.has(f.client_id)) byClient.set(f.client_id, []); byClient.get(f.client_id).push(f); }
     }
     return rows.map(r => {
       const used = I.fieldsForNiche(map, r.niche);
-      const have = new Map((byClient.get(r.client_id) || []).map(f => [f.field_key, f.status]));
-      const c = I.completeness(used.map(f => ({ key: f.key, group: f.group, optional: f.optional, status: have.get(f.key) || 'blank' })));
+      const have = new Map((byClient.get(r.client_id) || []).map(f => [f.field_key, f]));
+      const c = I.completeness(I.markApplicable(used.map(f => {
+        const h = have.get(f.key);
+        return { key: f.key, group: f.group, optional: f.optional, expectedWhen: f.expectedWhen, status: h ? h.status : 'blank', value: h ? h.value : null };
+      })));
       return {
         id: r.id, receivedAt: r.received_at, submissionId: r.submission_id, status: r.status, error: r.error || null, processedAt: r.processed_at,
         clientId: r.client_id, clientName: r.client_name || null, archived: !!r.archived_at, reviewed: !!r.reviewed_at,
@@ -319,13 +322,15 @@ function createFilloutService({ pool, audioStore, fetchAudio = defaultFetchAudio
       const h = have.get(f.key);
       const a = f.type === 'AudioRecording' ? audioByKey.get(f.key) : null;
       return {
-        key: f.key, label: f.label, section: f.section, type: f.type, niche: f.niche, questionId: f.id, group: f.group || null, optional: !!f.optional,
+        key: f.key, label: f.label, section: f.section, type: f.type, niche: f.niche, questionId: (h && h.question_id) || f.id || null,
+        group: f.group || null, optional: !!f.optional, expectedWhen: f.expectedWhen || null,
         value: h ? h.value : null, status: h ? h.status : 'blank', source: h ? h.source : 'form', updatedAt: h ? h.updated_at : null,
         audio: a ? { id: a.id, filloutUrl: a.fillout_url, filename: a.filename, transcription: a.transcription, duration: a.duration,
                      downloadStatus: a.download_status, downloadError: a.download_error, size: a.size_bytes,
                      playable: a.download_status === 'stored' } : null,
       };
     });
+    I.markApplicable(fields);
     const sections = map.sections.map(name => ({ name, fields: fields.filter(f => f.section === name) })).filter(s => s.fields.length);
     const { rows: subs } = await pool.query(`SELECT id, submission_id, received_at, status FROM fillout_submissions WHERE client_id = $1 ORDER BY received_at DESC`, [clientId]);
     return {

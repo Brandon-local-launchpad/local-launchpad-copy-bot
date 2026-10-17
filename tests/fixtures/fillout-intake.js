@@ -150,7 +150,7 @@ const quiet = { info() {}, warn() {}, error() {} };
     chk('Record shows every field we use for Plumbing & Heating', allFields.length === rec.fields.length && allFields.some(f => f.key === 'cat_gas_engineer'), allFields.length, rec.fields.length);
     // Completeness: units, not fields. Pairs count once, the accreditations are one optional group, optional fields leave the denominator.
     const k = record.completeness;
-    chk('Completeness headline = filled / expected units (pairs once, optional out)', k.expected === 73 && k.filled === 50 && k.pct === 68 && k.optionalTotal === 9 && k.optionalFilled === 1 && k.fields === rec.fields.length, JSON.stringify(k), '50 of 73, 1 of 9 optional');
+    chk('Completeness headline = filled / expected units (pairs once, optional out)', k.expected === 74 && k.filled === 50 && k.pct === 68 && k.optionalTotal === 9 && k.optionalFilled === 1 && k.fields === rec.fields.length, JSON.stringify(k), '50 of 74, 1 of 9 optional');
     const unitTest = (fs, want, label) => { const c = I.completeness(fs); chk(label, JSON.stringify([c.filled, c.expected, c.optionalFilled, c.optionalTotal]) === JSON.stringify(want), JSON.stringify([c.filled, c.expected, c.optionalFilled, c.optionalTotal]), JSON.stringify(want)); };
     unitTest([{ key: 'a_voice', group: 'a', status: 'filled' }, { key: 'a_text', group: 'a', status: 'blank' }], [1, 1, 0, 0], 'Voice filled, typed blank → one unit, filled');
     unitTest([{ key: 'a_voice', group: 'a', status: 'blank' }, { key: 'a_text', group: 'a', status: 'filled' }], [1, 1, 0, 0], 'Voice blank, typed filled → one unit, filled');
@@ -163,6 +163,7 @@ const quiet = { info() {}, warn() {}, error() {} };
     chk('Optional-by-design fields are marked optional', optionalKeys.every(key => (allFields.find(f => f.key === key) || {}).optional === true), optionalKeys.filter(key => !(allFields.find(f => f.key === key) || {}).optional).join(','), 'none missing');
     chk('jobs_not_wanted is filled ("nope") but counted as optional, not expected', allFields.find(f => f.key === 'jobs_not_wanted').status === 'filled' && k.optionalFilled === 1, '', '');
     chk('Property types question (removed from the form) is not in the map or the record', !map.fields.some(f => f.id === 'gbsoP3SSTnGFW5PdJ1U7zY') && !allFields.some(f => f.key === 'property_types'), '', '');
+
     const pv = allFields.find(f => f.key === 'prices_voice');
     chk('Audio field carries transcript and a playable copy', pv.audio && pv.audio.playable && /boiler repair/.test(pv.audio.transcription), JSON.stringify(pv.audio), 'playable');
     chk('Labels have no numeric suffix', allFields.every(f => !/\(\d+\)\s*$/.test(f.label)), allFields.filter(f => /\(\d+\)\s*$/.test(f.label)).map(f => f.label).join(','), 'none');
@@ -306,6 +307,53 @@ const quiet = { info() {}, warn() {}, error() {} };
     await pool.query(`UPDATE fillout_submissions SET status = 'received' WHERE submission_id = 'resub-0001'`);
     const recovered = await svc.recoverPending();
     chk('Rows left at received are processed at startup', recovered === 1 && (await pool.query(`SELECT status FROM fillout_submissions WHERE submission_id = 'resub-0001'`)).rows[0].status === 'processed', recovered, 1);
+
+    // ── Call-out / survey fee question: found by position, expected only when the quote isn't free ──
+    const FEE_ID = 'q_fee_TEST_id';
+    const withFee = (quoteFree, fee) => {
+      const p = clone(sample);
+      const qs = p.submission.questions;
+      qs.find(q => q.id === 'q_quote_free').value = quoteFree;
+      const at = qs.findIndex(q => q.id === 'eHt6ipCmD9PZXGfmX3wTEZ');
+      qs.splice(at, 0, { id: FEE_ID, name: 'If so  how much is the call out/survey fee, and is it taken off the job if the customer goes ahead?', type: 'ShortAnswer', value: fee });
+      return p;
+    };
+    const feeField = p => I.buildRecord(p, map).fields.find(f => f.key === 'quote_call_out_fee');
+    const feeEntry = map.fields.find(f => f.key === 'quote_call_out_fee');
+    chk('Fee entry sits directly after quote_free in the map, in Quotes Process and Response', map.fields[map.fields.findIndex(f => f.key === 'quote_free') + 1].key === 'quote_call_out_fee' && feeEntry.section === 'Quotes Process and Response' && feeEntry.type === 'ShortAnswer', feeEntry.section, 'Quotes Process and Response');
+    chk('Fee question resolved by position, id taken from the payload', feeField(withFee('Call-out fee', '£60, taken off the job')).id === FEE_ID, feeField(withFee('Call-out fee', 'x')).id, FEE_ID);
+    chk('Not matched by text: a different label in the same slot still resolves', (() => { const p = withFee('Call-out fee', '£40'); p.submission.questions.find(q => q.id === FEE_ID).name = 'Renamed'; return feeField(p).id === FEE_ID && feeField(p).value === '£40'; })(), '', '');
+    chk('A question that is not directly between the two anchors is not taken', (() => { const p = withFee('Call-out fee', '£40'); const qs = p.submission.questions; const at = qs.findIndex(q => q.id === FEE_ID); qs.splice(at + 1, 0, { id: 'q_extra', name: 'Extra', type: 'ShortAnswer', value: 'z' }); const f = feeField(p); return f.id === null && f.status === 'blank'; })(), '', '');
+    const c1 = I.completeness(I.buildRecord(withFee('Call-out fee', '£60, taken off the job'), map).fields);
+    chk('1. Call-out fee, fee answered → counted as filled (51 of 74)', c1.expected === 74 && c1.filled === 51 && feeField(withFee('Call-out fee', '£60')).applicable === true, JSON.stringify([c1.filled, c1.expected]), '[51,74]');
+    const c2 = I.completeness(I.buildRecord(withFee('Survey fee', null), map).fields);
+    chk('2. Survey fee, fee blank → expected and missing (50 of 74)', c2.expected === 74 && c2.filled === 50 && feeField(withFee('Survey fee', '')).status === 'blank' && feeField(withFee('Survey fee', '')).applicable === true, JSON.stringify([c2.filled, c2.expected]), '[50,74]');
+    const c3 = I.completeness(I.buildRecord(withFee('Yes, no call-out or survey fee', null), map).fields);
+    chk('3. Yes, no call-out or survey fee → not in the denominator (50 of 73, 1 not applicable)', c3.expected === 73 && c3.filled === 50 && c3.notApplicable === 1 && feeField(withFee('Yes, no call-out or survey fee', null)).applicable === false, JSON.stringify([c3.filled, c3.expected, c3.notApplicable]), '[50,73,1]');
+    const c3b = I.completeness(I.buildRecord(withFee('Not Applicable', null), map).fields);
+    chk('3b. Not Applicable → not in the denominator either', c3b.expected === 73 && feeField(withFee('Not Applicable', null)).applicable === false, c3b.expected, 73);
+    chk('3c. Fee answered anyway when the quote is free: value kept, still not counted', (() => { const f = feeField(withFee('Yes, no call-out or survey fee', '£20')); return f.value === '£20' && f.status === 'filled' && f.applicable === false; })() && I.completeness(I.buildRecord(withFee('Yes, no call-out or survey fee', '£20'), map).fields).expected === 73, '', '');
+    const c4 = I.completeness(I.buildRecord(sample, map).fields);
+    chk('4. A submission from before the question existed still builds; fee blank, expected because the sample says Survey fee', c4.expected === 74 && c4.filled === 50 && feeField(sample).present === false && feeField(sample).status === 'blank', JSON.stringify([c4.filled, c4.expected]), '[50,74]');
+    chk('4b. Same old submission with a free quote: fee not applicable, 73 expected', (() => { const p = clone(sample); p.submission.questions.find(q => q.id === 'q_quote_free').value = 'Yes, no call-out or survey fee'; const c = I.completeness(I.buildRecord(p, map).fields); return c.expected === 73 && feeField(p).applicable === false; })(), '', '');
+    // Through the webhook: the resolved id is what gets stored, and the record and inbox follow the rule
+    const feeSub = withFee('Call-out fee', '£60, taken off the job'); feeSub.submission.submissionId = 'fee-0001';
+    feeSub.submission.questions.find(q => q.id === 'bwUuvaZTmChegZekppzNNv').value = 'Fee Plumbing'; feeSub.submission.questions.find(q => q.id === '5EHeuZ2pntQwCaoADHRRrJ').value = 'fee@example.com';
+    await post(`/api/webhooks/fillout?token=${SECRET}`, feeSub);
+    await waitDone('fee-0001');
+    const feeRow = (await pool.query(`SELECT s.client_id, f.question_id, f.value, f.status FROM fillout_submissions s JOIN client_fields f ON f.client_id = s.client_id AND f.field_key = 'quote_call_out_fee' WHERE s.submission_id = 'fee-0001'`)).rows[0];
+    chk('Stored with the payload question id and value', feeRow && feeRow.question_id === FEE_ID && feeRow.value === '£60, taken off the job' && feeRow.status === 'filled', JSON.stringify(feeRow), FEE_ID);
+    const feeRec = await (await get(`/api/clients/${feeRow.client_id}/record`)).json();
+    const feeShown = feeRec.sections.find(s => s.name === 'Quotes Process and Response').fields;
+    chk('Record: fee directly after Is the quote free, applicable, 51 of 74', feeShown[feeShown.findIndex(f => f.key === 'quote_free') + 1].key === 'quote_call_out_fee' && feeShown.find(f => f.key === 'quote_call_out_fee').applicable === true && feeRec.completeness.filled === 51 && feeRec.completeness.expected === 74, JSON.stringify(feeRec.completeness), '51 of 74');
+    const freeSub = withFee('Yes, no call-out or survey fee', null); freeSub.submission.submissionId = 'free-0001';
+    freeSub.submission.questions.find(q => q.id === 'bwUuvaZTmChegZekppzNNv').value = 'Free Quotes Ltd'; freeSub.submission.questions.find(q => q.id === '5EHeuZ2pntQwCaoADHRRrJ').value = 'free@example.com';
+    await post(`/api/webhooks/fillout?token=${SECRET}`, freeSub);
+    await waitDone('free-0001');
+    const freeClient = (await pool.query(`SELECT client_id FROM fillout_submissions WHERE submission_id = 'free-0001'`)).rows[0].client_id;
+    const freeRec = await (await get(`/api/clients/${freeClient}/record`)).json();
+    const freeInbox = (await (await get('/api/fillout/submissions')).json()).submissions.find(s => s.submissionId === 'free-0001');
+    chk('Record and inbox: free quote → fee not applicable, 73 expected in both', freeRec.sections.flatMap(s => s.fields).find(f => f.key === 'quote_call_out_fee').applicable === false && freeRec.completeness.expected === 73 && freeInbox.completeness.expected === 73, JSON.stringify([freeRec.completeness.expected, freeInbox.completeness.expected]), '[73,73]');
 
     // ── The fixture's real audio URL is untouched in what we commit ──
     chk('Fixture still carries the real Fillout audio URL', /prod-fillout-oregon-s3/.test(realUrl), realUrl, 'fillout s3');
