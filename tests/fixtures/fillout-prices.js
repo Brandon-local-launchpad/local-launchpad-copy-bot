@@ -246,10 +246,45 @@ const T3 = "Emergency call outs are forty five pounds an hour. Full rewires are 
     const afterGood = Object.fromEntries(v.prices.rows.map(x => [x.service, x]));
     chk('Then a good re-extraction replaces transcript rows only: manual Boiler repair (320) and Stopcock kept, old transcript rows gone', v.prices.state.status === 'done' && afterGood['Boiler repair'].typical_gbp === 320 && afterGood['Boiler repair'].source === 'manual' && afterGood['Stopcock replacement'] && afterGood['Bathroom installation'].source === 'transcript' && !afterGood['Wet room installation'] && v.prices.rows.length === 3, Object.keys(afterGood).join(' | '), 'Bathroom installation | Boiler repair | Stopcock replacement');
 
+    // ── Matching with stems ──
+    const m = (a, b) => P.matchService(a, [{ key: 'k', value: b }]) !== null;
+    chk('Stems: cleaning, cleaner, cleaned, cleans → clean; fences and fencing meet; short words untouched', P.stem('cleaning') === 'clean' && P.stem('cleaner') === 'clean' && P.stem('cleans') === 'clean' && P.stem('cleaned') === 'clean' && P.stem('fences') === P.stem('fencing') && P.stem('patio') === 'patio' && P.stem('gas') === 'gas', [P.stem('cleaning'), P.stem('cleaner'), P.stem('fences'), P.stem('fencing'), P.stem('patio'), P.stem('gas')].join(' '), 'clean clean fenc fenc patio gas');
+    chk('"Patio clean" matches "Patio cleaning" and "Patio cleaner"', m('Patio clean', 'Patio cleaning') && m('Patio clean', 'Patio cleaner'), '', '');
+    chk('"Patio clean" does NOT match "Decking cleaning"', !m('Patio clean', 'Decking cleaning'), '', '');
+    chk('A one-word service still does not match a longer candidate', !m('Clean', 'Patio cleaning') && !m('Repair', 'Boiler repair'), '', '');
+    chk('Word order and extra words: "Cleaning of patios" matches "Patio cleaning"; "Patio and driveway cleaning" matches "Patio cleaning"', m('Cleaning of patios', 'Patio cleaning') && m('Patio and driveway cleaning', 'Patio cleaning'), '', '');
+    chk('Still conservative: "Driveway cleaning" does not match "Patio cleaning"', !m('Driveway cleaning', 'Patio cleaning'), '', '');
+
+    // Through the webhook: a "Patio clean" row against most-wanted "Patio cleaning" raises no false flag
+    const T5 = 'A patio clean is usually two hundred pounds. Decking cleaning is one fifty.';
+    replies.push(reply([{ service: 'Patio clean', typical_gbp: 200 }, { service: 'Decking cleaning', typical_gbp: 150 }]));
+    const c11 = await submit('p-0011', 'Jet Set Cleaning', T5, { wRxFDYrMJbfr88Y9rLdmX2: 'Patio cleaning', '62NXtm2Nzq6NqwfXuPXt4J': 'Fence cleaning', dJr1hD9w8yY8CxxpuExfUX: 'Decking cleaning' });
+    v = await view(c11);
+    const r11 = Object.fromEntries(v.prices.rows.map(x => [x.service, x]));
+    chk('"Patio clean" row matched to most-wanted job 1 "Patio cleaning", no flag for it', r11['Patio clean'].matched_to && r11['Patio clean'].matched_to.key === 'most_wanted_job_1' && !v.prices.flags.some(f => f.code === 'most_wanted_no_price' && f.key === 'most_wanted_job_1'), JSON.stringify(r11['Patio clean'].matched_to), 'most_wanted_job_1');
+    chk('"Decking cleaning" matched to job 3; only "Fence cleaning" (job 2) flagged', r11['Decking cleaning'].matched_to && r11['Decking cleaning'].matched_to.key === 'most_wanted_job_3' && v.prices.flags.filter(f => f.code === 'most_wanted_no_price').map(f => f.key).join() === 'most_wanted_job_2' && v.warnings.mostWantedWithoutPrice === 1, JSON.stringify(v.prices.flags), 'job 2 only');
+
+    // ── Two prices for one service ──
+    const T6 = 'Graffiti removal is £50 per big letter and £20 per small letter.';
+    // (a) the model follows the prompt: one row already
+    replies.push(reply([{ service: 'Graffiti removal', from_gbp: 20, up_to_gbp: 50, unit: 'per letter', what_moves_price: 'big letter £50, small letter £20', inferred: true, inferred_note: 'two prices for one service kept as a range' }]));
+    const c12 = await submit('p-0012', 'Spotless Walls', T6, { wRxFDYrMJbfr88Y9rLdmX2: 'Graffiti removal' });
+    v = await view(c12);
+    let g = v.prices.rows[0];
+    chk('Graffiti (model gives one row): from 20 up to 50, per letter, split in what moves the price, inferred, both figures traceable', v.prices.rows.length === 1 && g.from_gbp === 20 && g.up_to_gbp === 50 && g.typical_gbp === null && g.unit === 'per letter' && /big letter £50/.test(g.what_moves_price) && g.inferred === true && g.unverified === false && g.matched_to && g.matched_to.key === 'most_wanted_job_1', JSON.stringify(g), 'one row 20..50');
+    // (b) the model returns two rows for the same service anyway: the code merges them
+    replies.push(reply([{ service: 'Graffiti removal', typical_gbp: 50, unit: 'per big letter' }, { service: 'Graffiti removal', typical_gbp: 20, unit: 'per small letter' }]));
+    r = await req('POST', `/api/clients/${c12}/prices/extract`);
+    v = await view(c12);
+    g = v.prices.rows[0];
+    chk('Graffiti (model gives two rows): merged into one, from 20 up to 50, split kept, inferred, traceable', v.prices.rows.length === 1 && g.from_gbp === 20 && g.up_to_gbp === 50 && g.typical_gbp === null && /per big letter £50/.test(g.what_moves_price) && /per small letter £20/.test(g.what_moves_price) && g.inferred === true && g.unverified === false, JSON.stringify(g), 'merged 20..50');
+    chk('Merge never invents a number: a merged figure outside the transcript is still unverified', (() => { const merged = P.mergeDuplicateServices([{ service: 'Graffiti removal', typical_gbp: 50 }, { service: 'Graffiti removal', typical_gbp: 25 }]); P.verifyRows(merged, T6); return merged.length === 1 && merged[0].from_gbp === 25 && merged[0].unverified === true; })(), '', '');
+    chk('Two different services are not merged', P.mergeDuplicateServices([{ service: 'Patio clean', typical_gbp: 200 }, { service: 'Decking cleaning', typical_gbp: 150 }]).length === 2, '', '');
+
     // ── No voice answer at all ──
     const c9 = await submit('p-0009', 'Silent Plumbing', null);
     v = await view(c9);
-    chk('No recording: state no_transcript, no model call, record fine', v.prices.state.status === 'no_transcript' && v.prices.rows.length === 0 && calls.length === 15, JSON.stringify([v.prices.state.status, calls.length]), '["no_transcript",15]');
+    chk('No recording: state no_transcript, no model call, record fine', v.prices.state.status === 'no_transcript' && v.prices.rows.length === 0 && calls.length === 18, JSON.stringify([v.prices.state.status, calls.length]), '["no_transcript",18]');
   } finally {
     srv.close();
   }

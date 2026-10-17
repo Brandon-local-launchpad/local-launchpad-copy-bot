@@ -26,4 +26,5 @@ Fields:
 - If the speaker gives no usable prices (for example "pricing depends on the project, don't worry about this one"), return {"rows": []}. Do not make rows up.
 - If a figure is ambiguous (for example "as expensive as ten" where the surrounding figures are in thousands), set the value you believe is meant, mark inferred true and explain in inferred_note.
 - One row per service, in the order spoken. Keep the speaker's own service wording. Do not merge two services into one row or split one service into two.
+- Two prices for the same service (for example "£50 per big letter and £20 per small letter"): keep ONE row, from_gbp the lower figure and up_to_gbp the higher, the unit in unit ("per letter"), and the split in what_moves_price ("big letter £50, small letter £20"). Mark inferred true. Both figures must be ones the speaker said.
 - Say nothing about services the speaker did not mention.
