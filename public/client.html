@@ -99,6 +99,26 @@
     document.title = `${client.name} — Local Launchpad`;
     document.getElementById('clientName').textContent = client.name;
     document.getElementById('clientMeta').textContent = `${client.trade} · Created ${fmtDate(client.created_at)}`;
+    // A client made by the Fillout intake: marker, link to its onboarding record, archive
+    if (client.source === 'fillout') {
+      const mark = document.createElement('span');
+      mark.className = 'badge ' + (client.reviewed_at ? 'badge-ok' : 'badge-warn');
+      mark.style.marginLeft = '8px'; mark.style.verticalAlign = 'middle';
+      mark.textContent = client.reviewed_at ? 'From Fillout' : 'From Fillout, unreviewed';
+      document.getElementById('clientName').appendChild(mark);
+      const actions = document.getElementById('settingsLink').parentElement;
+      const rec = document.createElement('a');
+      rec.className = 'btn btn-ghost'; rec.href = `/client-record.html?id=${clientId}`; rec.textContent = 'Onboarding record';
+      actions.insertBefore(rec, actions.firstChild);
+      const arch = document.createElement('button');
+      arch.className = 'btn btn-ghost'; arch.textContent = client.archived_at ? 'Unarchive' : 'Archive';
+      arch.onclick = async () => {
+        if (!client.archived_at && !confirm(`Archive "${client.name}"? It leaves the Clients list; the onboarding record is kept.`)) return;
+        await fetch(`/api/clients/${clientId}/${client.archived_at ? 'unarchive' : 'archive'}`, { method: 'POST' });
+        location.href = client.archived_at ? location.href : '/clients.html';
+      };
+      actions.appendChild(arch);
+    }
     document.getElementById('generateLink').href = `/generate?clientId=${clientId}`;
     document.getElementById('settingsLink').href = `/client-settings.html?id=${clientId}`;
 

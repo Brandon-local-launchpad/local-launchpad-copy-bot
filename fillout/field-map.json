@@ -1,0 +1,856 @@
+{
+  "_about": "Which Fillout questions become client fields. Keyed by question id (names repeat and carry suffixes). niche is \"all\" or a label from niches. Adding a niche: add its label under niches and its questions under fields.",
+  "niche_question_id": "q_niche_select",
+  "business_name_question_id": "bwUuvaZTmChegZekppzNNv",
+  "business_email_question_id": "5EHeuZ2pntQwCaoADHRRrJ",
+  "sections": [
+    "Business Information",
+    "Services & Locations",
+    "Your Areas",
+    "Your Customers and Their Problems",
+    "Quotes Process and Response",
+    "Social Media & Proof",
+    "Your Story",
+    "Look and Feel",
+    "Photos and Logo"
+  ],
+  "niches": {
+    "Plumbing & Heating": {
+      "key": "plumbing_heating"
+    }
+  },
+  "fields": [
+    {
+      "id": "6cEFHm7bGjbbbByMVixxqX",
+      "key": "full_name",
+      "label": "Full Name",
+      "section": "Business Information",
+      "type": "ShortAnswer",
+      "niche": "all"
+    },
+    {
+      "id": "bwUuvaZTmChegZekppzNNv",
+      "key": "business_name",
+      "label": "Your Official Business Name",
+      "section": "Business Information",
+      "type": "ShortAnswer",
+      "niche": "all"
+    },
+    {
+      "id": "5EHeuZ2pntQwCaoADHRRrJ",
+      "key": "business_email",
+      "label": "Business/Primary Email",
+      "section": "Business Information",
+      "type": "EmailInput",
+      "niche": "all"
+    },
+    {
+      "id": "pt3n5TwXdkoJZKXjAQQBS1",
+      "key": "business_phone",
+      "label": "Business Phone Number",
+      "section": "Business Information",
+      "type": "PhoneNumber",
+      "niche": "all"
+    },
+    {
+      "id": "qiSfB8XCPXYmvUe49Sh8mU",
+      "key": "current_website",
+      "label": "Link to your current website (if you have one)",
+      "section": "Business Information",
+      "type": "URLInput",
+      "niche": "all"
+    },
+    {
+      "id": "aq57",
+      "key": "website_manager",
+      "label": "Who currently manages your website (If you have one)",
+      "section": "Business Information",
+      "type": "LongAnswer",
+      "niche": "all"
+    },
+    {
+      "id": "mRrU",
+      "key": "domain_access",
+      "label": "Do you have access to your domain (website address)?",
+      "section": "Business Information",
+      "type": "LongAnswer",
+      "niche": "all"
+    },
+    {
+      "id": "7rHhBRjenkjAjowjBRKaYH",
+      "key": "gbp_existing",
+      "label": "Do you already have a Google Business Profile?",
+      "section": "Business Information",
+      "type": "LongAnswer",
+      "niche": "all"
+    },
+    {
+      "id": "oLCK",
+      "key": "analytics_search_console",
+      "label": "Do you currently have Google Analytics or Google Search Console set up on your website?",
+      "section": "Business Information",
+      "type": "LongAnswer",
+      "niche": "all"
+    },
+    {
+      "id": "nvc7",
+      "key": "limited_company",
+      "label": "Do you have a UK registered limited company?",
+      "section": "Business Information",
+      "type": "LongAnswer",
+      "niche": "all"
+    },
+    {
+      "id": "kn5rnXkQ9VekruWV3fAjhq",
+      "key": "postal_address",
+      "label": "Postal Address",
+      "section": "Business Information",
+      "type": "ShortAnswer",
+      "niche": "all"
+    },
+    {
+      "id": "ktyj6cenA7Fa62UqyeBPaX",
+      "key": "business_address",
+      "label": "Business Address",
+      "section": "Business Information",
+      "type": "LongAnswer",
+      "niche": "all"
+    },
+    {
+      "id": "oV3fdxPzw2vPCbXacUnVis",
+      "key": "premises_or_travel",
+      "label": "Do customers come to your premises, or do you travel to them?",
+      "section": "Business Information",
+      "type": "MultipleChoice",
+      "niche": "all"
+    },
+    {
+      "id": "q9Fft3D9HAkZdfRu6uyPsW",
+      "key": "owner_name_title",
+      "label": "Owner's first name and job title",
+      "section": "Business Information",
+      "type": "ShortAnswer",
+      "niche": "all"
+    },
+    {
+      "id": "j3ddAZnSddo9PuKv1aPVUD",
+      "key": "vat_registered",
+      "label": "Are you VAT registered?",
+      "section": "Business Information",
+      "type": "MultipleChoice",
+      "niche": "all"
+    },
+    {
+      "id": "k5G4F2uTPcU5S4t1kLE5GU",
+      "key": "stand_out",
+      "label": "What makes your business stand out?",
+      "section": "Business Information",
+      "type": "Checkboxes",
+      "niche": "all"
+    },
+    {
+      "id": "qDs4rsxrQLV3PeG3ak6t97",
+      "key": "stand_out_other",
+      "label": "Is there anything else that makes your business stand out that wasn't covered above?",
+      "section": "Business Information",
+      "type": "LongAnswer",
+      "niche": "all"
+    },
+    {
+      "id": "gRbng5fQ2nDYgLwKWAMLtP",
+      "key": "opening_hours",
+      "label": "What's your business's hours of operations (e.g. 9 am to 5 pm Monday - Saturday)",
+      "section": "Business Information",
+      "type": "LongAnswer",
+      "niche": "all"
+    },
+    {
+      "id": "ue8vE98ZS4utYR9errfBDn",
+      "key": "monthly_enquiries",
+      "label": "Approximate monthly number of enquiries you currently receive",
+      "section": "Business Information",
+      "type": "Checkboxes",
+      "niche": "all"
+    },
+    {
+      "id": "5yBS2vaqoCCapSkqMy5Zn3",
+      "key": "guarantees",
+      "label": "Do you offer any workmanship guarantees or warranties?",
+      "section": "Business Information",
+      "type": "LongAnswer",
+      "niche": "all"
+    },
+    {
+      "id": "1VAYPLsJfgpcKyPJxkDH82",
+      "key": "finance",
+      "label": "Do you offer finance or payment plans for larger jobs?",
+      "section": "Business Information",
+      "type": "LongAnswer",
+      "niche": "all"
+    },
+    {
+      "id": "qd9WBnbQwPjJXYF1ENz9dF",
+      "key": "insured_licensed",
+      "label": "Are you fully insured and licensed for the services you provide?",
+      "section": "Business Information",
+      "type": "LongAnswer",
+      "niche": "all"
+    },
+    {
+      "id": "isx2GtdYsRqBnRHmcsi2P3",
+      "key": "public_liability",
+      "label": "Do you have public liability insurance? If yes, what is your cover amount?",
+      "section": "Business Information",
+      "type": "LongAnswer",
+      "niche": "all"
+    },
+    {
+      "id": "hbhQyXhY5DNy3N58sLPRVE",
+      "key": "cancellation_terms",
+      "label": "Do you currently have cancellation policies or service terms?",
+      "section": "Business Information",
+      "type": "LongAnswer",
+      "niche": "all"
+    },
+    {
+      "id": "q_niche_select",
+      "key": "niche",
+      "label": "Select your niche",
+      "section": "Services & Locations",
+      "type": "Dropdown",
+      "niche": "all"
+    },
+    {
+      "id": "g1srZPr9BN8b7PC2AJWEuH",
+      "key": "cat_central_heating_service",
+      "label": "Central Heating Service",
+      "section": "Services & Locations",
+      "type": "Checkboxes",
+      "niche": "Plumbing & Heating"
+    },
+    {
+      "id": "gqxtq1j4uhHwztHQCyzptu",
+      "key": "cat_plumber",
+      "label": "Plumber",
+      "section": "Services & Locations",
+      "type": "Checkboxes",
+      "niche": "Plumbing & Heating"
+    },
+    {
+      "id": "u2zpmZXK49pDwmS9Tu4RRs",
+      "key": "cat_gas_engineer",
+      "label": "Gas Engineer",
+      "section": "Services & Locations",
+      "type": "Checkboxes",
+      "niche": "Plumbing & Heating"
+    },
+    {
+      "id": "q7EY1xVvi3fMPHUGhwXX6z",
+      "key": "additional_heating_services",
+      "label": "Heating Additional Services",
+      "section": "Services & Locations",
+      "type": "Checkboxes",
+      "niche": "Plumbing & Heating"
+    },
+    {
+      "id": "1wjFss56TDJosHkbiw5XKx",
+      "key": "additional_plumbing_services",
+      "label": "Plumbing Additional Services",
+      "section": "Services & Locations",
+      "type": "Checkboxes",
+      "niche": "Plumbing & Heating"
+    },
+    {
+      "id": "wRxFDYrMJbfr88Y9rLdmX2",
+      "key": "most_wanted_job_1",
+      "label": "Most wanted job 1",
+      "section": "Services & Locations",
+      "type": "ShortAnswer",
+      "niche": "Plumbing & Heating"
+    },
+    {
+      "id": "62NXtm2Nzq6NqwfXuPXt4J",
+      "key": "most_wanted_job_2",
+      "label": "Most wanted job 2",
+      "section": "Services & Locations",
+      "type": "ShortAnswer",
+      "niche": "Plumbing & Heating"
+    },
+    {
+      "id": "dJr1hD9w8yY8CxxpuExfUX",
+      "key": "most_wanted_job_3",
+      "label": "Most wanted job 3",
+      "section": "Services & Locations",
+      "type": "ShortAnswer",
+      "niche": "Plumbing & Heating"
+    },
+    {
+      "id": "rygW9ALYDsZ1d5f2K5pRHg",
+      "key": "prices_voice",
+      "label": "Prices for your services (voice)",
+      "section": "Services & Locations",
+      "type": "AudioRecording",
+      "niche": "Plumbing & Heating"
+    },
+    {
+      "id": "ugsSP2dTbNrjVH1vzuFeSw",
+      "key": "other_services",
+      "label": "Any Other Services?",
+      "section": "Services & Locations",
+      "type": "LongAnswer",
+      "niche": "Plumbing & Heating"
+    },
+    {
+      "id": "vvbZ771APyWSvvJmXNhQdE",
+      "key": "jobs_not_wanted",
+      "label": "Are there any types of jobs you DO NOT want?",
+      "section": "Services & Locations",
+      "type": "LongAnswer",
+      "niche": "Plumbing & Heating"
+    },
+    {
+      "id": "gbsoP3SSTnGFW5PdJ1U7zY",
+      "key": "property_types",
+      "label": "Property types you mostly work on.",
+      "section": "Services & Locations",
+      "type": "MultiSelect",
+      "niche": "all"
+    },
+    {
+      "id": "tuDBpxPb1nUucBBrSQcjTh",
+      "key": "primary_town",
+      "label": "The town or city your business is based in and where you want to rank first.",
+      "section": "Your Areas",
+      "type": "ShortAnswer",
+      "niche": "all"
+    },
+    {
+      "id": "vXGJtLWSghpQzbuTmZq4LW",
+      "key": "other_areas",
+      "label": "Other towns and areas you want work from, one per line, up to 20.",
+      "section": "Your Areas",
+      "type": "LongAnswer",
+      "niche": "all"
+    },
+    {
+      "id": "kCiDBA4m6W1eMBrnTwZ8yr",
+      "key": "areas_not_covered",
+      "label": "Are there any nearby locations you do NOT want to cover? (optional)",
+      "section": "Your Areas",
+      "type": "LongAnswer",
+      "niche": "all"
+    },
+    {
+      "id": "bXpoUqJ3nFvMDMzAgpFNxx",
+      "key": "travel_distance",
+      "label": "How far will you travel for work?",
+      "section": "Your Areas",
+      "type": "MultipleChoice",
+      "niche": "all"
+    },
+    {
+      "id": "xABg",
+      "key": "areas_voice",
+      "label": "Areas, anything else (voice)",
+      "section": "Your Areas",
+      "type": "AudioRecording",
+      "niche": "all"
+    },
+    {
+      "id": "38XUThDiXkkqb782RWjFXy",
+      "key": "town_1",
+      "label": "Town 1",
+      "section": "Your Areas",
+      "type": "LongAnswer",
+      "niche": "all"
+    },
+    {
+      "id": "aqVJoDX5zNJhmqn3tiowhE",
+      "key": "town_2",
+      "label": "Town 2",
+      "section": "Your Areas",
+      "type": "LongAnswer",
+      "niche": "all"
+    },
+    {
+      "id": "kZiwoHi5h6UyQvsXyteyK5",
+      "key": "town_3",
+      "label": "Town 3",
+      "section": "Your Areas",
+      "type": "LongAnswer",
+      "niche": "all"
+    },
+    {
+      "id": "hk6pHzA1N5vcciNvnpVyRD",
+      "key": "instagram",
+      "label": "Your business Instagram page",
+      "section": "Social Media & Proof",
+      "type": "URLInput",
+      "niche": "all"
+    },
+    {
+      "id": "pJr8mk87WbMLZy85hEbGPT",
+      "key": "facebook",
+      "label": "Your business Facebook page",
+      "section": "Social Media & Proof",
+      "type": "URLInput",
+      "niche": "all"
+    },
+    {
+      "id": "jnoYxaBGQqUxjm1LKarS9M",
+      "key": "youtube",
+      "label": "Your business YouTube page",
+      "section": "Social Media & Proof",
+      "type": "URLInput",
+      "niche": "all"
+    },
+    {
+      "id": "tQVz68rVPSsWJhBsXzZBmT",
+      "key": "listing_links",
+      "label": "Please provide links to any review platforms, directories, or trade association profiles your business is listed on.",
+      "section": "Social Media & Proof",
+      "type": "LongAnswer",
+      "niche": "all"
+    },
+    {
+      "id": "sY49c6PZw3wJXY71RUHr1n",
+      "key": "existing_reviews",
+      "label": "Do you currently have customer reviews on any platforms?",
+      "section": "Social Media & Proof",
+      "type": "LongAnswer",
+      "niche": "all"
+    },
+    {
+      "id": "uK5V",
+      "key": "awards_press",
+      "label": "Have you won any awards, or been featured in local press, trade publications, or industry lists?",
+      "section": "Social Media & Proof",
+      "type": "LongAnswer",
+      "niche": "all"
+    },
+    {
+      "id": "mFEThsRaGkuTv6ar7VFgAX",
+      "key": "accreditation_1_scheme",
+      "label": "Accreditation 1: scheme name",
+      "section": "Social Media & Proof",
+      "type": "ShortAnswer",
+      "niche": "all"
+    },
+    {
+      "id": "uVpirkfhqENkRq9TygyVjs",
+      "key": "accreditation_1_number",
+      "label": "Accreditation 1: membership or registration number",
+      "section": "Social Media & Proof",
+      "type": "ShortAnswer",
+      "niche": "all"
+    },
+    {
+      "id": "6VNn5aWqdQjuUPSFZBoMW5",
+      "key": "accreditation_1_link",
+      "label": "Accreditation 1: link to listing",
+      "section": "Social Media & Proof",
+      "type": "URLInput",
+      "niche": "all"
+    },
+    {
+      "id": "13cPy55767AkywhxMgd3NX",
+      "key": "accreditation_2_scheme",
+      "label": "Accreditation 2: scheme name",
+      "section": "Social Media & Proof",
+      "type": "ShortAnswer",
+      "niche": "all"
+    },
+    {
+      "id": "ux2kMePHo9jR1Q77Sd1HHE",
+      "key": "accreditation_2_number",
+      "label": "Accreditation 2: membership or registration number",
+      "section": "Social Media & Proof",
+      "type": "ShortAnswer",
+      "niche": "all"
+    },
+    {
+      "id": "vRnVJ9p2nfnhSqCiuihNgt",
+      "key": "accreditation_2_link",
+      "label": "Accreditation 2: link to listing",
+      "section": "Social Media & Proof",
+      "type": "URLInput",
+      "niche": "all"
+    },
+    {
+      "id": "x77c1xW5poH2ukrifqEjWv",
+      "key": "accreditation_3_scheme",
+      "label": "Accreditation 3: scheme name",
+      "section": "Social Media & Proof",
+      "type": "ShortAnswer",
+      "niche": "all"
+    },
+    {
+      "id": "urDPPLdChHn82PXZQWsGGe",
+      "key": "accreditation_3_number",
+      "label": "Accreditation 3: membership or registration number",
+      "section": "Social Media & Proof",
+      "type": "ShortAnswer",
+      "niche": "all"
+    },
+    {
+      "id": "4iWDQBNCkR4N6SaygJP9Pd",
+      "key": "accreditation_3_link",
+      "label": "Accreditation 3: link to listing",
+      "section": "Social Media & Proof",
+      "type": "URLInput",
+      "niche": "all"
+    },
+    {
+      "id": "cfmNbgU97fzGNYpWpA67Uv",
+      "key": "accreditation_4_scheme",
+      "label": "Accreditation 4: scheme name",
+      "section": "Social Media & Proof",
+      "type": "ShortAnswer",
+      "niche": "all"
+    },
+    {
+      "id": "effGUksyU11VgyHNFsmavE",
+      "key": "accreditation_4_number",
+      "label": "Accreditation 4: membership or registration number",
+      "section": "Social Media & Proof",
+      "type": "ShortAnswer",
+      "niche": "all"
+    },
+    {
+      "id": "uro4wvi9MudxP6gNjB82Vm",
+      "key": "accreditation_4_link",
+      "label": "Accreditation 4: link to listing",
+      "section": "Social Media & Proof",
+      "type": "URLInput",
+      "niche": "all"
+    },
+    {
+      "id": "3YnfUbdMMKRhj7mENMC6UP",
+      "key": "accreditation_5_scheme",
+      "label": "Accreditation 5: scheme name",
+      "section": "Social Media & Proof",
+      "type": "ShortAnswer",
+      "niche": "all"
+    },
+    {
+      "id": "eqTLAoUfvzvoe8ePKvMSFw",
+      "key": "accreditation_5_number",
+      "label": "Accreditation 5: membership or registration number",
+      "section": "Social Media & Proof",
+      "type": "ShortAnswer",
+      "niche": "all"
+    },
+    {
+      "id": "bVRoC6LFEYyEV7SmsfLS2z",
+      "key": "accreditation_5_link",
+      "label": "Accreditation 5: link to listing",
+      "section": "Social Media & Proof",
+      "type": "URLInput",
+      "niche": "all"
+    },
+    {
+      "id": "sp_proud_audio",
+      "key": "proud_of_voice",
+      "label": "What you are proud of (voice)",
+      "section": "Social Media & Proof",
+      "type": "AudioRecording",
+      "niche": "all"
+    },
+    {
+      "id": "sp_proud_text",
+      "key": "proud_of_text",
+      "label": "What you are proud of (typed)",
+      "section": "Social Media & Proof",
+      "type": "LongAnswer",
+      "niche": "all"
+    },
+    {
+      "id": "uqbB",
+      "key": "anything_else",
+      "label": "Is there anything else we should know? (optional)",
+      "section": "Social Media & Proof",
+      "type": "LongAnswer",
+      "niche": "all"
+    },
+    {
+      "id": "bvM3MppDbfpHkZW3mBxKe3",
+      "key": "trading_since",
+      "label": "When did you start trading? Ideally the day, month & year",
+      "section": "Your Story",
+      "type": "ShortAnswer",
+      "niche": "all"
+    },
+    {
+      "id": "cmdCB4WREP87TFSYKRpUCk",
+      "key": "family_run",
+      "label": "Are you family run / independent?",
+      "section": "Your Story",
+      "type": "ShortAnswer",
+      "niche": "all"
+    },
+    {
+      "id": "erroGGUPEgr7tEQqemjQ98",
+      "key": "team_size",
+      "label": "How many people are currently in your team?",
+      "section": "Your Story",
+      "type": "ShortAnswer",
+      "niche": "all"
+    },
+    {
+      "id": "ofHYxJVkxt7mDnR9ZoVBoC",
+      "key": "jobs_completed",
+      "label": "Roughly how many jobs have you completed in the business since it started?",
+      "section": "Your Story",
+      "type": "ShortAnswer",
+      "niche": "all"
+    },
+    {
+      "id": "ys_trade_audio",
+      "key": "story_trade_voice",
+      "label": "Your story: the trade (voice)",
+      "section": "Your Story",
+      "type": "AudioRecording",
+      "niche": "all"
+    },
+    {
+      "id": "ys_trade_text",
+      "key": "story_trade_text",
+      "label": "Your story: the trade (typed)",
+      "section": "Your Story",
+      "type": "LongAnswer",
+      "niche": "all"
+    },
+    {
+      "id": "ys_team_audio",
+      "key": "story_team_voice",
+      "label": "Your story: the team (voice)",
+      "section": "Your Story",
+      "type": "AudioRecording",
+      "niche": "all"
+    },
+    {
+      "id": "ys_team_text",
+      "key": "story_team_text",
+      "label": "Your story: the team (typed)",
+      "section": "Your Story",
+      "type": "LongAnswer",
+      "niche": "all"
+    },
+    {
+      "id": "uSQWuH2jTgabJuz9LWQ3NN",
+      "key": "facts_and_never_say",
+      "label": "Facts we must get exactly right, and anything we must never say or claim.",
+      "section": "Your Story",
+      "type": "LongAnswer",
+      "niche": "all"
+    },
+    {
+      "id": "kQnYtuxNTkXL9HiHHVpHr9",
+      "key": "tone",
+      "label": "How do you want to come across?",
+      "section": "Your Story",
+      "type": "MultiSelect",
+      "niche": "all"
+    },
+    {
+      "id": "dzJLheRkqpxV3sBYogf3qx",
+      "key": "words_to_avoid",
+      "label": "Words or phrases to avoid. (optional)",
+      "section": "Your Story",
+      "type": "ShortAnswer",
+      "niche": "all"
+    },
+    {
+      "id": "vvv6B1CJ9K5yHG1ugN73PN",
+      "key": "customer_types",
+      "label": "Who are your customers?",
+      "section": "Your Customers and Their Problems",
+      "type": "MultiSelect",
+      "niche": "all"
+    },
+    {
+      "id": "dg8EHAqeQEzAVtB5e9qXth",
+      "key": "residential_share",
+      "label": "Roughly what share of your work is residential?",
+      "section": "Your Customers and Their Problems",
+      "type": "MultipleChoice",
+      "niche": "all"
+    },
+    {
+      "id": "cust_reviews_audio",
+      "key": "customer_reviews_voice",
+      "label": "What customers say in reviews (voice)",
+      "section": "Your Customers and Their Problems",
+      "type": "AudioRecording",
+      "niche": "all"
+    },
+    {
+      "id": "cust_reviews_text",
+      "key": "customer_reviews_text",
+      "label": "What customers say in reviews (typed)",
+      "section": "Your Customers and Their Problems",
+      "type": "LongAnswer",
+      "niche": "all"
+    },
+    {
+      "id": "1JkK3W6oabgAamauK716oq",
+      "key": "one_thing_remembered",
+      "label": "If a customer remembered one thing about your business, what should it be? One sentence.",
+      "section": "Your Customers and Their Problems",
+      "type": "ShortAnswer",
+      "niche": "all"
+    },
+    {
+      "id": "eDjFcgZywiKd1KPZAvs1Up",
+      "key": "common_jobs_voice",
+      "label": "The jobs people ring about most (voice)",
+      "section": "Your Customers and Their Problems",
+      "type": "AudioRecording",
+      "niche": "all"
+    },
+    {
+      "id": "tDvwLeaB5LKt3rzFybATLK",
+      "key": "common_jobs_text",
+      "label": "The jobs people ring about most (typed)",
+      "section": "Your Customers and Their Problems",
+      "type": "LongAnswer",
+      "niche": "all"
+    },
+    {
+      "id": "o8Xiw8JQ1qTygzH8bvaTV6",
+      "key": "common_questions_voice",
+      "label": "Questions you get asked all the time (voice)",
+      "section": "Your Customers and Their Problems",
+      "type": "AudioRecording",
+      "niche": "all"
+    },
+    {
+      "id": "ku3Yt1gqbyEjZKbQEgdC81",
+      "key": "common_questions_text",
+      "label": "Questions you get asked all the time (typed)",
+      "section": "Your Customers and Their Problems",
+      "type": "LongAnswer",
+      "niche": "all"
+    },
+    {
+      "id": "nXmJ",
+      "key": "photos_whatsapp",
+      "label": "Photos and logo by WhatsApp",
+      "section": "Photos and Logo",
+      "type": "MultipleChoice",
+      "niche": "all"
+    },
+    {
+      "id": "uKAxvaxW6t5RRXoro4TyoL",
+      "key": "quote_method",
+      "label": "How do customers usually get a quote from you?",
+      "section": "Quotes Process and Response",
+      "type": "MultiSelect",
+      "niche": "all"
+    },
+    {
+      "id": "q_quote_free",
+      "key": "quote_free",
+      "label": "Is the quote free?",
+      "section": "Quotes Process and Response",
+      "type": "MultipleChoice",
+      "niche": "all"
+    },
+    {
+      "id": "eHt6ipCmD9PZXGfmX3wTEZ",
+      "key": "written_quotes",
+      "label": "Do you give written quotes, and how long are they valid?",
+      "section": "Quotes Process and Response",
+      "type": "ShortAnswer",
+      "niche": "all"
+    },
+    {
+      "id": "oCxMFu4Q5DK5V3sK8V2o4e",
+      "key": "reply_speed",
+      "label": "How quickly do you reply to a new enquiry?",
+      "section": "Quotes Process and Response",
+      "type": "MultipleChoice",
+      "niche": "all"
+    },
+    {
+      "id": "jitnTjoC25yUBLCbC58ucL",
+      "key": "start_speed",
+      "label": "How soon can you usually start a new job?",
+      "section": "Quotes Process and Response",
+      "type": "MultipleChoice",
+      "niche": "all"
+    },
+    {
+      "id": "qp_journey_audio",
+      "key": "quote_journey_voice",
+      "label": "How a quote usually goes (voice)",
+      "section": "Quotes Process and Response",
+      "type": "AudioRecording",
+      "niche": "all"
+    },
+    {
+      "id": "qp_journey_text",
+      "key": "quote_journey_text",
+      "label": "How a quote usually goes (typed)",
+      "section": "Quotes Process and Response",
+      "type": "LongAnswer",
+      "niche": "all"
+    },
+    {
+      "id": "u2853cBeQycd9SRLb7jguz",
+      "key": "payment_methods",
+      "label": "Payment methods you accept.",
+      "section": "Quotes Process and Response",
+      "type": "MultiSelect",
+      "niche": "all"
+    },
+    {
+      "id": "sfrQC4QToGCf4GLA9C8o6U",
+      "key": "deposit",
+      "label": "Do you take a deposit?",
+      "section": "Quotes Process and Response",
+      "type": "MultipleChoice",
+      "niche": "all"
+    },
+    {
+      "id": "upvGiwpADLXrLrvndNt79r",
+      "key": "stage_payments",
+      "label": "Stage payments on big jobs?",
+      "section": "Quotes Process and Response",
+      "type": "MultipleChoice",
+      "niche": "all"
+    },
+    {
+      "id": "q_emergency",
+      "key": "emergency_callouts",
+      "label": "Do you take emergency call-outs?",
+      "section": "Quotes Process and Response",
+      "type": "MultipleChoice",
+      "niche": "all"
+    },
+    {
+      "id": "qEYymWzUQE5qpJs1oyeAc6",
+      "key": "repeat_discount",
+      "label": "What discounts would you offer for return customers or friends of past customers?",
+      "section": "Quotes Process and Response",
+      "type": "ShortAnswer",
+      "niche": "all"
+    },
+    {
+      "id": "1dB2GMJJmVj1bmW1NV3sU2",
+      "key": "hero_image",
+      "label": "Hero image: a real photo of your work, or an illustration?",
+      "section": "Look and Feel",
+      "type": "MultipleChoice",
+      "niche": "all"
+    },
+    {
+      "id": "eWpFgiwJk292nFZQ1fJgGt",
+      "key": "colours",
+      "label": "Colours.",
+      "section": "Look and Feel",
+      "type": "MultipleChoice",
+      "niche": "all"
+    }
+  ]
+}

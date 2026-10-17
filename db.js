@@ -84,6 +84,9 @@ async function initDb() {
   `);
   // WordPress push: connections, snapshots, push log (wp/db-store.js)
   await require('./wp/db-store').ensureWpTables(pool);
+  // Fillout onboarding intake: submissions, client fields, audio (fillout/service.js, fillout/audio-store.js)
+  await require('./fillout/service').ensureFilloutTables(pool);
+  await require('./fillout/audio-store').ensureAudioBlobTable(pool);
   console.log('DB schema ready');
 }
 

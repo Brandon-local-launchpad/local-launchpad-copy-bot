@@ -15,6 +15,7 @@ Copybot writes website copy for UK tradespeople (Local Launchpad clients) using 
 | FAQs: choosing, assigning, answering, checking | `docs/seo/current-build/FAQ_Framework_and_Perplexity_Prompt.md`. Code: `faq-research.js` (per client research prompt and parser), `faq-sort.js` (tidy call, approval, which page each question goes to), `faq-service.js` (storage, research job, the FAQ questions card); prompts `prompts/FAQ_Research_CORE.md` and `prompts/FAQ_Sorting_CORE.md`; client facts in `niche-library/client-facts.json` and `practices.json` |
 | Copy quality: what a good page is, and the review step | `docs/seo/COPY_QUALITY_RUBRIC.md`, `quality-review.js`, `tools/quality-loop.js` |
 | Category/service custom values and the test client | `docs/seo/reference/Edens_Edge_Custom_Values_HOW_TO_USE.csv` |
+| Fillout onboarding intake (webhook, field map, client record, inbox, audio storage) | `ONBOARDING.md`; code in `fillout/` (`field-map.json` is the config: a new niche goes there, not in code) |
 | The old GHL delivery process | `docs/seo/reference/Website_Delivery_SOP.txt` (OUTDATED, reference only) |
 
 The file the code reads is the only copy. Don't keep duplicates in `docs/`. On business rules, the Master Context Document (3 Oct 2026) and anything newer in `docs/seo/current-build/` win over older docs.

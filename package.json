@@ -11,7 +11,9 @@
     "wp:dry-run": "node wp/dry-run-cli.js",
     "wp:plugin-data": "node wp/build-plugin-data.js",
     "wp:push": "node wp/push-cli.js",
-    "demo:wp": "node tests/ui/demo-server.js"
+    "demo:wp": "node tests/ui/demo-server.js",
+    "demo:fillout": "node tests/ui/demo-fillout.js",
+    "test:fillout": "node tests/fixtures/fillout-intake.js"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.36.0",
