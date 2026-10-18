@@ -176,12 +176,19 @@
   ],
   "knownSourceErrors": [
     {
+      "type": "a",
+      "typeLabel": "a: note says duplicate of X, but X's list does not contain the service",
       "code": "note_without_duplicate",
       "category": "flooring_contractor",
       "service": "Flooring repair",
-      "why": "The PDF notes Flooring repair as a duplicate of Wood Floor Installation Service, but that category does not list it (Brandon, 18 Oct 2026: source error, report only)."
+      "why": "The PDF notes Flooring repair as a duplicate of Wood Floor Installation Service, but that category does not list it (Brandon, 18 Oct 2026: source error, report only).",
+      "missingFrom": [
+        "wood_floor_installation_service"
+      ]
     },
     {
+      "type": "b",
+      "typeLabel": "b: service in 2+ categories with no note naming them",
       "code": "missing_note",
       "category": "flooring_contractor",
       "service": "Wood floor installation",

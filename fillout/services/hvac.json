@@ -620,426 +620,568 @@
   ],
   "knownSourceErrors": [
     {
+      "type": "b",
+      "typeLabel": "b: service in 2+ categories with no note naming them",
       "code": "missing_note",
       "category": "hvac_contractor",
       "service": "A/C system maintenance",
       "why": "Generated: the PDF note disagrees with the category lists (the lists are the authority). Awaiting Brandon's review."
     },
     {
+      "type": "b",
+      "typeLabel": "b: service in 2+ categories with no note naming them",
       "code": "note_mismatch",
       "category": "air_conditioning_contractor",
       "service": "A/C system maintenance",
       "why": "Generated: the PDF note disagrees with the category lists (the lists are the authority). Awaiting Brandon's review."
     },
     {
+      "type": "b",
+      "typeLabel": "b: service in 2+ categories with no note naming them",
       "code": "note_mismatch",
       "category": "air_conditioning_contractor",
       "service": "HVAC duct and vent cleaning",
       "why": "Generated: the PDF note disagrees with the category lists (the lists are the authority). Awaiting Brandon's review."
     },
     {
+      "type": "b",
+      "typeLabel": "b: service in 2+ categories with no note naming them",
       "code": "note_mismatch",
       "category": "air_conditioning_contractor",
       "service": "Ductless heating and A/C services",
       "why": "Generated: the PDF note disagrees with the category lists (the lists are the authority). Awaiting Brandon's review."
     },
     {
+      "type": "b",
+      "typeLabel": "b: service in 2+ categories with no note naming them",
       "code": "note_mismatch",
       "category": "air_conditioning_contractor",
       "service": "Heating system maintenance",
       "why": "Generated: the PDF note disagrees with the category lists (the lists are the authority). Awaiting Brandon's review."
     },
     {
+      "type": "b",
+      "typeLabel": "b: service in 2+ categories with no note naming them",
       "code": "note_mismatch",
       "category": "air_conditioning_contractor",
       "service": "HVAC system maintenance",
       "why": "Generated: the PDF note disagrees with the category lists (the lists are the authority). Awaiting Brandon's review."
     },
     {
+      "type": "b",
+      "typeLabel": "b: service in 2+ categories with no note naming them",
       "code": "note_mismatch",
       "category": "air_conditioning_contractor",
       "service": "AC installation",
       "why": "Generated: the PDF note disagrees with the category lists (the lists are the authority). Awaiting Brandon's review."
     },
     {
+      "type": "b",
+      "typeLabel": "b: service in 2+ categories with no note naming them",
       "code": "note_mismatch",
       "category": "air_conditioning_contractor",
       "service": "HVAC duct and vent installation",
       "why": "Generated: the PDF note disagrees with the category lists (the lists are the authority). Awaiting Brandon's review."
     },
     {
+      "type": "b",
+      "typeLabel": "b: service in 2+ categories with no note naming them",
       "code": "note_mismatch",
       "category": "air_conditioning_contractor",
       "service": "Heating system installation",
       "why": "Generated: the PDF note disagrees with the category lists (the lists are the authority). Awaiting Brandon's review."
     },
     {
+      "type": "b",
+      "typeLabel": "b: service in 2+ categories with no note naming them",
       "code": "note_mismatch",
       "category": "air_conditioning_contractor",
       "service": "Thermostat installation",
       "why": "Generated: the PDF note disagrees with the category lists (the lists are the authority). Awaiting Brandon's review."
     },
     {
+      "type": "b",
+      "typeLabel": "b: service in 2+ categories with no note naming them",
       "code": "note_mismatch",
       "category": "air_conditioning_contractor",
       "service": "A/C system repair",
       "why": "Generated: the PDF note disagrees with the category lists (the lists are the authority). Awaiting Brandon's review."
     },
     {
+      "type": "b",
+      "typeLabel": "b: service in 2+ categories with no note naming them",
       "code": "note_mismatch",
       "category": "air_conditioning_contractor",
       "service": "HVAC duct and vent repair",
       "why": "Generated: the PDF note disagrees with the category lists (the lists are the authority). Awaiting Brandon's review."
     },
     {
+      "type": "b",
+      "typeLabel": "b: service in 2+ categories with no note naming them",
       "code": "note_mismatch",
       "category": "air_conditioning_contractor",
       "service": "Heating system repair",
       "why": "Generated: the PDF note disagrees with the category lists (the lists are the authority). Awaiting Brandon's review."
     },
     {
+      "type": "b",
+      "typeLabel": "b: service in 2+ categories with no note naming them",
       "code": "note_mismatch",
       "category": "air_conditioning_contractor",
       "service": "HVAC repair",
       "why": "Generated: the PDF note disagrees with the category lists (the lists are the authority). Awaiting Brandon's review."
     },
     {
+      "type": "b",
+      "typeLabel": "b: service in 2+ categories with no note naming them",
       "code": "note_mismatch",
       "category": "air_conditioning_contractor",
       "service": "Thermostat repair",
       "why": "Generated: the PDF note disagrees with the category lists (the lists are the authority). Awaiting Brandon's review."
     },
     {
+      "type": "b",
+      "typeLabel": "b: service in 2+ categories with no note naming them",
       "code": "note_mismatch",
       "category": "air_conditioning_repair_shop",
       "service": "A/C system maintenance",
       "why": "Generated: the PDF note disagrees with the category lists (the lists are the authority). Awaiting Brandon's review."
     },
     {
+      "type": "b",
+      "typeLabel": "b: service in 2+ categories with no note naming them",
       "code": "note_mismatch",
       "category": "air_conditioning_repair_shop",
       "service": "HVAC duct and vent cleaning",
       "why": "Generated: the PDF note disagrees with the category lists (the lists are the authority). Awaiting Brandon's review."
     },
     {
+      "type": "b",
+      "typeLabel": "b: service in 2+ categories with no note naming them",
       "code": "note_mismatch",
       "category": "air_conditioning_repair_shop",
       "service": "Ductless heating and A/C services",
       "why": "Generated: the PDF note disagrees with the category lists (the lists are the authority). Awaiting Brandon's review."
     },
     {
+      "type": "b",
+      "typeLabel": "b: service in 2+ categories with no note naming them",
       "code": "note_mismatch",
       "category": "air_conditioning_repair_shop",
       "service": "Heating system maintenance",
       "why": "Generated: the PDF note disagrees with the category lists (the lists are the authority). Awaiting Brandon's review."
     },
     {
+      "type": "b",
+      "typeLabel": "b: service in 2+ categories with no note naming them",
       "code": "note_mismatch",
       "category": "air_conditioning_repair_shop",
       "service": "HVAC system maintenance",
       "why": "Generated: the PDF note disagrees with the category lists (the lists are the authority). Awaiting Brandon's review."
     },
     {
+      "type": "b",
+      "typeLabel": "b: service in 2+ categories with no note naming them",
       "code": "note_mismatch",
       "category": "air_conditioning_repair_shop",
       "service": "AC installation",
       "why": "Generated: the PDF note disagrees with the category lists (the lists are the authority). Awaiting Brandon's review."
     },
     {
+      "type": "b",
+      "typeLabel": "b: service in 2+ categories with no note naming them",
       "code": "note_mismatch",
       "category": "air_conditioning_repair_shop",
       "service": "HVAC duct and vent installation",
       "why": "Generated: the PDF note disagrees with the category lists (the lists are the authority). Awaiting Brandon's review."
     },
     {
+      "type": "b",
+      "typeLabel": "b: service in 2+ categories with no note naming them",
       "code": "note_mismatch",
       "category": "air_conditioning_repair_shop",
       "service": "Heating system installation",
       "why": "Generated: the PDF note disagrees with the category lists (the lists are the authority). Awaiting Brandon's review."
     },
     {
+      "type": "b",
+      "typeLabel": "b: service in 2+ categories with no note naming them",
       "code": "note_mismatch",
       "category": "air_conditioning_repair_shop",
       "service": "Thermostat installation",
       "why": "Generated: the PDF note disagrees with the category lists (the lists are the authority). Awaiting Brandon's review."
     },
     {
+      "type": "b",
+      "typeLabel": "b: service in 2+ categories with no note naming them",
       "code": "note_mismatch",
       "category": "air_conditioning_repair_shop",
       "service": "A/C system repair",
       "why": "Generated: the PDF note disagrees with the category lists (the lists are the authority). Awaiting Brandon's review."
     },
     {
+      "type": "b",
+      "typeLabel": "b: service in 2+ categories with no note naming them",
       "code": "note_mismatch",
       "category": "air_conditioning_repair_shop",
       "service": "HVAC duct and vent repair",
       "why": "Generated: the PDF note disagrees with the category lists (the lists are the authority). Awaiting Brandon's review."
     },
     {
+      "type": "b",
+      "typeLabel": "b: service in 2+ categories with no note naming them",
       "code": "note_mismatch",
       "category": "air_conditioning_repair_shop",
       "service": "Heating system repair",
       "why": "Generated: the PDF note disagrees with the category lists (the lists are the authority). Awaiting Brandon's review."
     },
     {
+      "type": "b",
+      "typeLabel": "b: service in 2+ categories with no note naming them",
       "code": "note_mismatch",
       "category": "air_conditioning_repair_shop",
       "service": "HVAC repair",
       "why": "Generated: the PDF note disagrees with the category lists (the lists are the authority). Awaiting Brandon's review."
     },
     {
+      "type": "b",
+      "typeLabel": "b: service in 2+ categories with no note naming them",
       "code": "note_mismatch",
       "category": "air_conditioning_repair_shop",
       "service": "Thermostat repair",
       "why": "Generated: the PDF note disagrees with the category lists (the lists are the authority). Awaiting Brandon's review."
     },
     {
+      "type": "b",
+      "typeLabel": "b: service in 2+ categories with no note naming them",
       "code": "note_mismatch",
       "category": "air_duct_cleaning_service",
       "service": "A/C system maintenance",
       "why": "Generated: the PDF note disagrees with the category lists (the lists are the authority). Awaiting Brandon's review."
     },
     {
+      "type": "b",
+      "typeLabel": "b: service in 2+ categories with no note naming them",
       "code": "note_mismatch",
       "category": "air_duct_cleaning_service",
       "service": "HVAC duct and vent cleaning",
       "why": "Generated: the PDF note disagrees with the category lists (the lists are the authority). Awaiting Brandon's review."
     },
     {
+      "type": "b",
+      "typeLabel": "b: service in 2+ categories with no note naming them",
       "code": "note_mismatch",
       "category": "air_duct_cleaning_service",
       "service": "Ductless heating and A/C services",
       "why": "Generated: the PDF note disagrees with the category lists (the lists are the authority). Awaiting Brandon's review."
     },
     {
+      "type": "b",
+      "typeLabel": "b: service in 2+ categories with no note naming them",
       "code": "note_mismatch",
       "category": "air_duct_cleaning_service",
       "service": "Heating system maintenance",
       "why": "Generated: the PDF note disagrees with the category lists (the lists are the authority). Awaiting Brandon's review."
     },
     {
+      "type": "b",
+      "typeLabel": "b: service in 2+ categories with no note naming them",
       "code": "note_mismatch",
       "category": "air_duct_cleaning_service",
       "service": "HVAC system maintenance",
       "why": "Generated: the PDF note disagrees with the category lists (the lists are the authority). Awaiting Brandon's review."
     },
     {
+      "type": "b",
+      "typeLabel": "b: service in 2+ categories with no note naming them",
       "code": "note_mismatch",
       "category": "air_duct_cleaning_service",
       "service": "AC installation",
       "why": "Generated: the PDF note disagrees with the category lists (the lists are the authority). Awaiting Brandon's review."
     },
     {
+      "type": "b",
+      "typeLabel": "b: service in 2+ categories with no note naming them",
       "code": "note_mismatch",
       "category": "air_duct_cleaning_service",
       "service": "HVAC duct and vent installation",
       "why": "Generated: the PDF note disagrees with the category lists (the lists are the authority). Awaiting Brandon's review."
     },
     {
+      "type": "b",
+      "typeLabel": "b: service in 2+ categories with no note naming them",
       "code": "note_mismatch",
       "category": "air_duct_cleaning_service",
       "service": "Heating system installation",
       "why": "Generated: the PDF note disagrees with the category lists (the lists are the authority). Awaiting Brandon's review."
     },
     {
+      "type": "b",
+      "typeLabel": "b: service in 2+ categories with no note naming them",
       "code": "note_mismatch",
       "category": "air_duct_cleaning_service",
       "service": "Thermostat installation",
       "why": "Generated: the PDF note disagrees with the category lists (the lists are the authority). Awaiting Brandon's review."
     },
     {
+      "type": "b",
+      "typeLabel": "b: service in 2+ categories with no note naming them",
       "code": "note_mismatch",
       "category": "air_duct_cleaning_service",
       "service": "A/C system repair",
       "why": "Generated: the PDF note disagrees with the category lists (the lists are the authority). Awaiting Brandon's review."
     },
     {
+      "type": "b",
+      "typeLabel": "b: service in 2+ categories with no note naming them",
       "code": "note_mismatch",
       "category": "air_duct_cleaning_service",
       "service": "HVAC duct and vent repair",
       "why": "Generated: the PDF note disagrees with the category lists (the lists are the authority). Awaiting Brandon's review."
     },
     {
+      "type": "b",
+      "typeLabel": "b: service in 2+ categories with no note naming them",
       "code": "note_mismatch",
       "category": "air_duct_cleaning_service",
       "service": "Heating system repair",
       "why": "Generated: the PDF note disagrees with the category lists (the lists are the authority). Awaiting Brandon's review."
     },
     {
+      "type": "b",
+      "typeLabel": "b: service in 2+ categories with no note naming them",
       "code": "note_mismatch",
       "category": "air_duct_cleaning_service",
       "service": "HVAC repair",
       "why": "Generated: the PDF note disagrees with the category lists (the lists are the authority). Awaiting Brandon's review."
     },
     {
+      "type": "b",
+      "typeLabel": "b: service in 2+ categories with no note naming them",
       "code": "note_mismatch",
       "category": "air_duct_cleaning_service",
       "service": "Thermostat repair",
       "why": "Generated: the PDF note disagrees with the category lists (the lists are the authority). Awaiting Brandon's review."
     },
     {
+      "type": "b",
+      "typeLabel": "b: service in 2+ categories with no note naming them",
       "code": "note_mismatch",
       "category": "central_heating_service",
       "service": "A/C system maintenance",
       "why": "Generated: the PDF note disagrees with the category lists (the lists are the authority). Awaiting Brandon's review."
     },
     {
+      "type": "b",
+      "typeLabel": "b: service in 2+ categories with no note naming them",
       "code": "note_mismatch",
       "category": "central_heating_service",
       "service": "HVAC duct and vent cleaning",
       "why": "Generated: the PDF note disagrees with the category lists (the lists are the authority). Awaiting Brandon's review."
     },
     {
+      "type": "b",
+      "typeLabel": "b: service in 2+ categories with no note naming them",
       "code": "note_mismatch",
       "category": "central_heating_service",
       "service": "Ductless heating and A/C services",
       "why": "Generated: the PDF note disagrees with the category lists (the lists are the authority). Awaiting Brandon's review."
     },
     {
+      "type": "b",
+      "typeLabel": "b: service in 2+ categories with no note naming them",
       "code": "note_mismatch",
       "category": "central_heating_service",
       "service": "Heating system maintenance",
       "why": "Generated: the PDF note disagrees with the category lists (the lists are the authority). Awaiting Brandon's review."
     },
     {
+      "type": "b",
+      "typeLabel": "b: service in 2+ categories with no note naming them",
       "code": "note_mismatch",
       "category": "central_heating_service",
       "service": "HVAC system maintenance",
       "why": "Generated: the PDF note disagrees with the category lists (the lists are the authority). Awaiting Brandon's review."
     },
     {
+      "type": "b",
+      "typeLabel": "b: service in 2+ categories with no note naming them",
       "code": "note_mismatch",
       "category": "central_heating_service",
       "service": "AC installation",
       "why": "Generated: the PDF note disagrees with the category lists (the lists are the authority). Awaiting Brandon's review."
     },
     {
+      "type": "b",
+      "typeLabel": "b: service in 2+ categories with no note naming them",
       "code": "note_mismatch",
       "category": "central_heating_service",
       "service": "HVAC duct and vent installation",
       "why": "Generated: the PDF note disagrees with the category lists (the lists are the authority). Awaiting Brandon's review."
     },
     {
+      "type": "b",
+      "typeLabel": "b: service in 2+ categories with no note naming them",
       "code": "note_mismatch",
       "category": "central_heating_service",
       "service": "Heating system installation",
       "why": "Generated: the PDF note disagrees with the category lists (the lists are the authority). Awaiting Brandon's review."
     },
     {
+      "type": "b",
+      "typeLabel": "b: service in 2+ categories with no note naming them",
       "code": "note_mismatch",
       "category": "central_heating_service",
       "service": "Thermostat installation",
       "why": "Generated: the PDF note disagrees with the category lists (the lists are the authority). Awaiting Brandon's review."
     },
     {
+      "type": "b",
+      "typeLabel": "b: service in 2+ categories with no note naming them",
       "code": "note_mismatch",
       "category": "central_heating_service",
       "service": "A/C system repair",
       "why": "Generated: the PDF note disagrees with the category lists (the lists are the authority). Awaiting Brandon's review."
     },
     {
+      "type": "b",
+      "typeLabel": "b: service in 2+ categories with no note naming them",
       "code": "note_mismatch",
       "category": "central_heating_service",
       "service": "HVAC duct and vent repair",
       "why": "Generated: the PDF note disagrees with the category lists (the lists are the authority). Awaiting Brandon's review."
     },
     {
+      "type": "b",
+      "typeLabel": "b: service in 2+ categories with no note naming them",
       "code": "note_mismatch",
       "category": "central_heating_service",
       "service": "Heating system repair",
       "why": "Generated: the PDF note disagrees with the category lists (the lists are the authority). Awaiting Brandon's review."
     },
     {
+      "type": "b",
+      "typeLabel": "b: service in 2+ categories with no note naming them",
       "code": "note_mismatch",
       "category": "central_heating_service",
       "service": "HVAC repair",
       "why": "Generated: the PDF note disagrees with the category lists (the lists are the authority). Awaiting Brandon's review."
     },
     {
+      "type": "b",
+      "typeLabel": "b: service in 2+ categories with no note naming them",
       "code": "note_mismatch",
       "category": "central_heating_service",
       "service": "Thermostat repair",
       "why": "Generated: the PDF note disagrees with the category lists (the lists are the authority). Awaiting Brandon's review."
     },
     {
+      "type": "b",
+      "typeLabel": "b: service in 2+ categories with no note naming them",
       "code": "note_mismatch",
       "category": "furnace_repair_service",
       "service": "A/C system maintenance",
       "why": "Generated: the PDF note disagrees with the category lists (the lists are the authority). Awaiting Brandon's review."
     },
     {
+      "type": "b",
+      "typeLabel": "b: service in 2+ categories with no note naming them",
       "code": "note_mismatch",
       "category": "furnace_repair_service",
       "service": "HVAC duct and vent cleaning",
       "why": "Generated: the PDF note disagrees with the category lists (the lists are the authority). Awaiting Brandon's review."
     },
     {
+      "type": "b",
+      "typeLabel": "b: service in 2+ categories with no note naming them",
       "code": "note_mismatch",
       "category": "furnace_repair_service",
       "service": "Ductless heating and A/C services",
       "why": "Generated: the PDF note disagrees with the category lists (the lists are the authority). Awaiting Brandon's review."
     },
     {
+      "type": "b",
+      "typeLabel": "b: service in 2+ categories with no note naming them",
       "code": "note_mismatch",
       "category": "furnace_repair_service",
       "service": "Heating system maintenance",
       "why": "Generated: the PDF note disagrees with the category lists (the lists are the authority). Awaiting Brandon's review."
     },
     {
+      "type": "b",
+      "typeLabel": "b: service in 2+ categories with no note naming them",
       "code": "note_mismatch",
       "category": "furnace_repair_service",
       "service": "HVAC system maintenance",
       "why": "Generated: the PDF note disagrees with the category lists (the lists are the authority). Awaiting Brandon's review."
     },
     {
+      "type": "b",
+      "typeLabel": "b: service in 2+ categories with no note naming them",
       "code": "note_mismatch",
       "category": "furnace_repair_service",
       "service": "AC installation",
       "why": "Generated: the PDF note disagrees with the category lists (the lists are the authority). Awaiting Brandon's review."
     },
     {
+      "type": "b",
+      "typeLabel": "b: service in 2+ categories with no note naming them",
       "code": "note_mismatch",
       "category": "furnace_repair_service",
       "service": "HVAC duct and vent installation",
       "why": "Generated: the PDF note disagrees with the category lists (the lists are the authority). Awaiting Brandon's review."
     },
     {
+      "type": "b",
+      "typeLabel": "b: service in 2+ categories with no note naming them",
       "code": "note_mismatch",
       "category": "furnace_repair_service",
       "service": "Heating system installation",
       "why": "Generated: the PDF note disagrees with the category lists (the lists are the authority). Awaiting Brandon's review."
     },
     {
+      "type": "b",
+      "typeLabel": "b: service in 2+ categories with no note naming them",
       "code": "note_mismatch",
       "category": "furnace_repair_service",
       "service": "Thermostat installation",
       "why": "Generated: the PDF note disagrees with the category lists (the lists are the authority). Awaiting Brandon's review."
     },
     {
+      "type": "b",
+      "typeLabel": "b: service in 2+ categories with no note naming them",
       "code": "note_mismatch",
       "category": "furnace_repair_service",
       "service": "A/C system repair",
       "why": "Generated: the PDF note disagrees with the category lists (the lists are the authority). Awaiting Brandon's review."
     },
     {
+      "type": "b",
+      "typeLabel": "b: service in 2+ categories with no note naming them",
       "code": "note_mismatch",
       "category": "furnace_repair_service",
       "service": "HVAC duct and vent repair",
       "why": "Generated: the PDF note disagrees with the category lists (the lists are the authority). Awaiting Brandon's review."
     },
     {
+      "type": "b",
+      "typeLabel": "b: service in 2+ categories with no note naming them",
       "code": "note_mismatch",
       "category": "furnace_repair_service",
       "service": "Heating system repair",
       "why": "Generated: the PDF note disagrees with the category lists (the lists are the authority). Awaiting Brandon's review."
     },
     {
+      "type": "b",
+      "typeLabel": "b: service in 2+ categories with no note naming them",
       "code": "note_mismatch",
       "category": "furnace_repair_service",
       "service": "HVAC repair",
       "why": "Generated: the PDF note disagrees with the category lists (the lists are the authority). Awaiting Brandon's review."
     },
     {
+      "type": "b",
+      "typeLabel": "b: service in 2+ categories with no note naming them",
       "code": "note_mismatch",
       "category": "furnace_repair_service",
       "service": "Thermostat repair",

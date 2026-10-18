@@ -238,78 +238,104 @@
   ],
   "knownSourceErrors": [
     {
+      "type": "b",
+      "typeLabel": "b: service in 2+ categories with no note naming them",
       "code": "missing_note",
       "category": "drainage_service",
       "service": "Drain Unblocking",
       "why": "Generated: the PDF note disagrees with the category lists (the lists are the authority). Awaiting Brandon's review."
     },
     {
+      "type": "b",
+      "typeLabel": "b: service in 2+ categories with no note naming them",
       "code": "missing_note",
       "category": "drainage_service",
       "service": "CCTV Drain Surveys",
       "why": "Generated: the PDF note disagrees with the category lists (the lists are the authority). Awaiting Brandon's review."
     },
     {
+      "type": "b",
+      "typeLabel": "b: service in 2+ categories with no note naming them",
       "code": "missing_note",
       "category": "sewage_disposal_service",
       "service": "Septic Tank Emptying",
       "why": "Generated: the PDF note disagrees with the category lists (the lists are the authority). Awaiting Brandon's review."
     },
     {
+      "type": "b",
+      "typeLabel": "b: service in 2+ categories with no note naming them",
       "code": "missing_note",
       "category": "sewage_disposal_service",
       "service": "Septic Tank Repairs",
       "why": "Generated: the PDF note disagrees with the category lists (the lists are the authority). Awaiting Brandon's review."
     },
     {
+      "type": "b",
+      "typeLabel": "b: service in 2+ categories with no note naming them",
       "code": "missing_note",
       "category": "sewage_disposal_service",
       "service": "Septic Tank Maintenance",
       "why": "Generated: the PDF note disagrees with the category lists (the lists are the authority). Awaiting Brandon's review."
     },
     {
+      "type": "b",
+      "typeLabel": "b: service in 2+ categories with no note naming them",
       "code": "missing_note",
       "category": "septic_tank_service",
       "service": "Septic Tank Emptying",
       "why": "Generated: the PDF note disagrees with the category lists (the lists are the authority). Awaiting Brandon's review."
     },
     {
+      "type": "b",
+      "typeLabel": "b: service in 2+ categories with no note naming them",
       "code": "missing_note",
       "category": "septic_tank_service",
       "service": "Septic Tank Repairs",
       "why": "Generated: the PDF note disagrees with the category lists (the lists are the authority). Awaiting Brandon's review."
     },
     {
+      "type": "b",
+      "typeLabel": "b: service in 2+ categories with no note naming them",
       "code": "missing_note",
       "category": "septic_tank_service",
       "service": "Septic Tank Maintenance",
       "why": "Generated: the PDF note disagrees with the category lists (the lists are the authority). Awaiting Brandon's review."
     },
     {
+      "type": "b",
+      "typeLabel": "b: service in 2+ categories with no note naming them",
       "code": "missing_note",
       "category": "plumbing",
       "service": "CCTV Drain Surveys",
       "why": "Generated: the PDF note disagrees with the category lists (the lists are the authority). Awaiting Brandon's review."
     },
     {
+      "type": "b",
+      "typeLabel": "b: service in 2+ categories with no note naming them",
       "code": "missing_note",
       "category": "plumbing",
       "service": "Drain Unblocking",
       "why": "Generated: the PDF note disagrees with the category lists (the lists are the authority). Awaiting Brandon's review."
     },
     {
+      "type": "c",
+      "typeLabel": "c: other source error",
       "code": "no_home",
       "category": null,
       "service": "Drainage Service",
       "why": "Generated: the category name itself, listed as a service in the All list (GBP default) but not a tick box. Awaiting Brandon's review."
     },
     {
+      "type": "c",
+      "typeLabel": "c: other source error",
       "code": "no_home",
       "category": null,
       "service": "Sewage Disposal Service",
       "why": "Generated: the category name itself, listed as a service in the All list (GBP default) but not a tick box. Awaiting Brandon's review."
     },
     {
+      "type": "c",
+      "typeLabel": "c: other source error",
       "code": "no_home",
       "category": null,
       "service": "Septic Tank Service",

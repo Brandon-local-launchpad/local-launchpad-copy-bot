@@ -51,7 +51,7 @@ const clone = o => JSON.parse(JSON.stringify(o));
     const { rows: [c] } = await pool.query(`INSERT INTO clients (name, trade) VALUES ('Hand Made Gardens', 'Landscaper') RETURNING id`);
     let b = await json(await req('GET', `/api/clients/${c.id}/services/by-hand`));
     chk('Editor view: no Fillout record, niche not saved yet but suggested from the trade, its 7 tick groups shown, nothing ticked', b.hasFillout === false && b.niche === null && b.suggestedNiche === 'Landscapers/Gardeners' && b.niches.includes('Landscapers/Gardeners') && b.groups.length === 7 && b.groups.every(x => !x.ticked.length), JSON.stringify([b.hasFillout, b.niche, b.suggestedNiche, b.groups.length]), '');
-    let r = await req('PUT', `/api/clients/${c.id}/services/by-hand`, { niche: 'Plumbing & Heating' });
+    let r = await req('PUT', `/api/clients/${c.id}/services/by-hand`, { niche: 'Chimney Sweeps' });
     chk('A niche with no categories file is refused', r.status === 400, r.status, 400);
     b = await json(await req('PUT', `/api/clients/${c.id}/services/by-hand`, { niche: 'Landscapers/Gardeners' }));
     chk('Saving the niche shows the 7 category groups with the form\'s tick boxes', b.niche === 'Landscapers/Gardeners' && b.groups.length === 7 && b.groups[0].name === 'Gardener' && b.groups[0].options.length === 9, JSON.stringify(b.groups.map(g => g.options.length)), '');
@@ -73,9 +73,9 @@ const clone = o => JSON.parse(JSON.stringify(o));
     chk('A supported niche has no "Services not set up" flag', recA.servicesConfigured === true && !recA.attention.some(a => a.code === 'services_not_set_up'), JSON.stringify(recA.attention.map(a => a.code)), '');
 
     // ── A niche with no services file ──
-    const { rows: [u] } = await pool.query(`INSERT INTO clients (name, trade) VALUES ('Pipe Pros', 'Plumbing & Heating') RETURNING id`);
+    const { rows: [u] } = await pool.query(`INSERT INTO clients (name, trade) VALUES ('Sweep Pros', 'Chimney Sweeps') RETURNING id`);
     const recU = await json(await req('GET', `/api/clients/${u.id}/record`));
-    chk('No services file: the record flags "Services not set up for this niche yet" in Needs attention', recU.niche === 'Plumbing & Heating' && recU.servicesConfigured === false && recU.attention.some(a => a.code === 'services_not_set_up' && a.group === 'blocks' && /Services not set up for this niche yet \(Plumbing & Heating\)/.test(a.msg)), JSON.stringify(recU.attention.map(a => a.code)), '');
+    chk('No services file: the record flags "Services not set up for this niche yet" in Needs attention', recU.niche === 'Chimney Sweeps' && recU.servicesConfigured === false && recU.attention.some(a => a.code === 'services_not_set_up' && a.group === 'blocks' && /Services not set up for this niche yet \(Chimney Sweeps\)/.test(a.msg)), JSON.stringify(recU.attention.map(a => a.code)), '');
     const svU = await json(await req('GET', `/api/clients/${u.id}/services`));
     chk('No services file: the Services view says so (hasConfig false), not an empty resolver result', svU.hasConfig === false && svU.resolved === null, JSON.stringify([svU.hasConfig, svU.niche]), '');
     const pvU = await json(await req('GET', `/api/clients/${u.id}/page-map/preview`));

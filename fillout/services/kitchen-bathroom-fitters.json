@@ -509,426 +509,806 @@
   ],
   "knownSourceErrors": [
     {
+      "type": "b",
+      "typeLabel": "b: service in 2+ categories with no note naming them",
       "code": "missing_note",
       "category": "bathroom_renovator",
       "service": "Bathroom worktop resurfacing",
       "why": "Generated: the PDF note disagrees with the category lists (the lists are the authority). Awaiting Brandon's review."
     },
     {
+      "type": "b",
+      "typeLabel": "b: service in 2+ categories with no note naming them",
       "code": "missing_note",
       "category": "bathroom_renovator",
       "service": "Shower refinishing",
       "why": "Generated: the PDF note disagrees with the category lists (the lists are the authority). Awaiting Brandon's review."
     },
     {
+      "type": "a",
+      "typeLabel": "a: note says duplicate of X, but X's list does not contain the service",
       "code": "note_names_unknown_category",
       "category": "construction_company",
       "service": "Accessory building construction",
-      "why": "Generated: the PDF note disagrees with the category lists (the lists are the authority). Awaiting Brandon's review."
+      "why": "Generated: the PDF note disagrees with the category lists (the lists are the authority). Awaiting Brandon's review.",
+      "missingFrom": [
+        "remodeller"
+      ]
     },
     {
+      "type": "a",
+      "typeLabel": "a: note says duplicate of X, but X's list does not contain the service",
       "code": "note_without_duplicate",
       "category": "construction_company",
       "service": "Accessory building construction",
-      "why": "Generated: the PDF note disagrees with the category lists (the lists are the authority). Awaiting Brandon's review."
+      "why": "Generated: the PDF note disagrees with the category lists (the lists are the authority). Awaiting Brandon's review.",
+      "missingFrom": [
+        "remodeller"
+      ]
     },
     {
+      "type": "a",
+      "typeLabel": "a: note says duplicate of X, but X's list does not contain the service",
       "code": "note_names_unknown_category",
       "category": "construction_company",
       "service": "Furniture assembly",
-      "why": "Generated: the PDF note disagrees with the category lists (the lists are the authority). Awaiting Brandon's review."
+      "why": "Generated: the PDF note disagrees with the category lists (the lists are the authority). Awaiting Brandon's review.",
+      "missingFrom": [
+        "remodeller",
+        "bathroom_renovator",
+        "kitchen_renovator"
+      ]
     },
     {
+      "type": "a",
+      "typeLabel": "a: note says duplicate of X, but X's list does not contain the service",
       "code": "note_without_duplicate",
       "category": "construction_company",
       "service": "Furniture assembly",
-      "why": "Generated: the PDF note disagrees with the category lists (the lists are the authority). Awaiting Brandon's review."
+      "why": "Generated: the PDF note disagrees with the category lists (the lists are the authority). Awaiting Brandon's review.",
+      "missingFrom": [
+        "remodeller",
+        "bathroom_renovator",
+        "kitchen_renovator"
+      ]
     },
     {
+      "type": "a",
+      "typeLabel": "a: note says duplicate of X, but X's list does not contain the service",
       "code": "note_names_unknown_category",
       "category": "construction_company",
       "service": "Bathroom remodelling",
-      "why": "Generated: the PDF note disagrees with the category lists (the lists are the authority). Awaiting Brandon's review."
+      "why": "Generated: the PDF note disagrees with the category lists (the lists are the authority). Awaiting Brandon's review.",
+      "missingFrom": [
+        "remodeller"
+      ]
     },
     {
+      "type": "a",
+      "typeLabel": "a: note says duplicate of X, but X's list does not contain the service",
       "code": "note_without_duplicate",
       "category": "construction_company",
       "service": "Bathroom remodelling",
-      "why": "Generated: the PDF note disagrees with the category lists (the lists are the authority). Awaiting Brandon's review."
+      "why": "Generated: the PDF note disagrees with the category lists (the lists are the authority). Awaiting Brandon's review.",
+      "missingFrom": [
+        "remodeller"
+      ]
     },
     {
+      "type": "c",
+      "typeLabel": "c: other source error",
       "code": "note_names_unknown_category",
       "category": "construction_company",
       "service": "Building construction",
       "why": "Generated: the PDF note disagrees with the category lists (the lists are the authority). Awaiting Brandon's review."
     },
     {
+      "type": "a",
+      "typeLabel": "a: note says duplicate of X, but X's list does not contain the service",
       "code": "note_names_unknown_category",
       "category": "construction_company",
       "service": "Gutter cleaning",
-      "why": "Generated: the PDF note disagrees with the category lists (the lists are the authority). Awaiting Brandon's review."
+      "why": "Generated: the PDF note disagrees with the category lists (the lists are the authority). Awaiting Brandon's review.",
+      "missingFrom": [
+        "remodeller",
+        "bathroom_renovator",
+        "kitchen_renovator"
+      ]
     },
     {
+      "type": "a",
+      "typeLabel": "a: note says duplicate of X, but X's list does not contain the service",
       "code": "note_without_duplicate",
       "category": "construction_company",
       "service": "Gutter cleaning",
-      "why": "Generated: the PDF note disagrees with the category lists (the lists are the authority). Awaiting Brandon's review."
+      "why": "Generated: the PDF note disagrees with the category lists (the lists are the authority). Awaiting Brandon's review.",
+      "missingFrom": [
+        "remodeller",
+        "bathroom_renovator",
+        "kitchen_renovator"
+      ]
     },
     {
+      "type": "a",
+      "typeLabel": "a: note says duplicate of X, but X's list does not contain the service",
       "code": "note_names_unknown_category",
       "category": "construction_company",
       "service": "Concrete pouring",
-      "why": "Generated: the PDF note disagrees with the category lists (the lists are the authority). Awaiting Brandon's review."
+      "why": "Generated: the PDF note disagrees with the category lists (the lists are the authority). Awaiting Brandon's review.",
+      "missingFrom": [
+        "remodeller"
+      ]
     },
     {
+      "type": "a",
+      "typeLabel": "a: note says duplicate of X, but X's list does not contain the service",
       "code": "note_without_duplicate",
       "category": "construction_company",
       "service": "Concrete pouring",
-      "why": "Generated: the PDF note disagrees with the category lists (the lists are the authority). Awaiting Brandon's review."
+      "why": "Generated: the PDF note disagrees with the category lists (the lists are the authority). Awaiting Brandon's review.",
+      "missingFrom": [
+        "remodeller"
+      ]
     },
     {
+      "type": "c",
+      "typeLabel": "c: other source error",
       "code": "note_names_unknown_category",
       "category": "construction_company",
       "service": "Construction management",
       "why": "Generated: the PDF note disagrees with the category lists (the lists are the authority). Awaiting Brandon's review."
     },
     {
+      "type": "c",
+      "typeLabel": "c: other source error",
       "code": "note_names_unknown_category",
       "category": "construction_company",
       "service": "Custom home building",
       "why": "Generated: the PDF note disagrees with the category lists (the lists are the authority). Awaiting Brandon's review."
     },
     {
+      "type": "c",
+      "typeLabel": "c: other source error",
       "code": "note_names_unknown_category",
       "category": "construction_company",
       "service": "Deck construction",
       "why": "Generated: the PDF note disagrees with the category lists (the lists are the authority). Awaiting Brandon's review."
     },
     {
+      "type": "c",
+      "typeLabel": "c: other source error",
       "code": "note_names_unknown_category",
       "category": "construction_company",
       "service": "Demolition",
       "why": "Generated: the PDF note disagrees with the category lists (the lists are the authority). Awaiting Brandon's review."
     },
     {
+      "type": "a",
+      "typeLabel": "a: note says duplicate of X, but X's list does not contain the service",
       "code": "note_names_unknown_category",
       "category": "construction_company",
       "service": "Exterior structural repairs",
-      "why": "Generated: the PDF note disagrees with the category lists (the lists are the authority). Awaiting Brandon's review."
+      "why": "Generated: the PDF note disagrees with the category lists (the lists are the authority). Awaiting Brandon's review.",
+      "missingFrom": [
+        "remodeller",
+        "bathroom_renovator"
+      ]
     },
     {
+      "type": "a",
+      "typeLabel": "a: note says duplicate of X, but X's list does not contain the service",
       "code": "note_without_duplicate",
       "category": "construction_company",
       "service": "Exterior structural repairs",
-      "why": "Generated: the PDF note disagrees with the category lists (the lists are the authority). Awaiting Brandon's review."
+      "why": "Generated: the PDF note disagrees with the category lists (the lists are the authority). Awaiting Brandon's review.",
+      "missingFrom": [
+        "remodeller",
+        "bathroom_renovator"
+      ]
     },
     {
+      "type": "a",
+      "typeLabel": "a: note says duplicate of X, but X's list does not contain the service",
       "code": "note_names_unknown_category",
       "category": "construction_company",
       "service": "Foundation pouring",
-      "why": "Generated: the PDF note disagrees with the category lists (the lists are the authority). Awaiting Brandon's review."
+      "why": "Generated: the PDF note disagrees with the category lists (the lists are the authority). Awaiting Brandon's review.",
+      "missingFrom": [
+        "remodeller"
+      ]
     },
     {
+      "type": "a",
+      "typeLabel": "a: note says duplicate of X, but X's list does not contain the service",
       "code": "note_without_duplicate",
       "category": "construction_company",
       "service": "Foundation pouring",
-      "why": "Generated: the PDF note disagrees with the category lists (the lists are the authority). Awaiting Brandon's review."
+      "why": "Generated: the PDF note disagrees with the category lists (the lists are the authority). Awaiting Brandon's review.",
+      "missingFrom": [
+        "remodeller"
+      ]
     },
     {
+      "type": "c",
+      "typeLabel": "c: other source error",
       "code": "note_names_unknown_category",
       "category": "construction_company",
       "service": "Repairs and maintenance",
       "why": "Generated: the PDF note disagrees with the category lists (the lists are the authority). Awaiting Brandon's review."
     },
     {
+      "type": "a",
+      "typeLabel": "a: note says duplicate of X, but X's list does not contain the service",
       "code": "note_names_unknown_category",
       "category": "construction_company",
       "service": "Remodelling",
-      "why": "Generated: the PDF note disagrees with the category lists (the lists are the authority). Awaiting Brandon's review."
+      "why": "Generated: the PDF note disagrees with the category lists (the lists are the authority). Awaiting Brandon's review.",
+      "missingFrom": [
+        "remodeller",
+        "kitchen_renovator",
+        "bathroom_renovator"
+      ]
     },
     {
+      "type": "a",
+      "typeLabel": "a: note says duplicate of X, but X's list does not contain the service",
       "code": "note_without_duplicate",
       "category": "construction_company",
       "service": "Remodelling",
-      "why": "Generated: the PDF note disagrees with the category lists (the lists are the authority). Awaiting Brandon's review."
+      "why": "Generated: the PDF note disagrees with the category lists (the lists are the authority). Awaiting Brandon's review.",
+      "missingFrom": [
+        "remodeller",
+        "kitchen_renovator",
+        "bathroom_renovator"
+      ]
     },
     {
+      "type": "a",
+      "typeLabel": "a: note says duplicate of X, but X's list does not contain the service",
       "code": "note_names_unknown_category",
       "category": "construction_company",
       "service": "Home addition construction",
-      "why": "Generated: the PDF note disagrees with the category lists (the lists are the authority). Awaiting Brandon's review."
+      "why": "Generated: the PDF note disagrees with the category lists (the lists are the authority). Awaiting Brandon's review.",
+      "missingFrom": [
+        "remodeller"
+      ]
     },
     {
+      "type": "a",
+      "typeLabel": "a: note says duplicate of X, but X's list does not contain the service",
       "code": "note_without_duplicate",
       "category": "construction_company",
       "service": "Home addition construction",
-      "why": "Generated: the PDF note disagrees with the category lists (the lists are the authority). Awaiting Brandon's review."
+      "why": "Generated: the PDF note disagrees with the category lists (the lists are the authority). Awaiting Brandon's review.",
+      "missingFrom": [
+        "remodeller"
+      ]
     },
     {
+      "type": "c",
+      "typeLabel": "c: other source error",
       "code": "note_names_unknown_category",
       "category": "construction_company",
       "service": "Home building",
       "why": "Generated: the PDF note disagrees with the category lists (the lists are the authority). Awaiting Brandon's review."
     },
     {
+      "type": "c",
+      "typeLabel": "c: other source error",
       "code": "note_names_unknown_category",
       "category": "construction_company",
       "service": "Home renovations",
       "why": "Generated: the PDF note disagrees with the category lists (the lists are the authority). Awaiting Brandon's review."
     },
     {
+      "type": "a",
+      "typeLabel": "a: note says duplicate of X, but X's list does not contain the service",
       "code": "note_names_unknown_category",
       "category": "construction_company",
       "service": "Drywall installation",
-      "why": "Generated: the PDF note disagrees with the category lists (the lists are the authority). Awaiting Brandon's review."
+      "why": "Generated: the PDF note disagrees with the category lists (the lists are the authority). Awaiting Brandon's review.",
+      "missingFrom": [
+        "remodeller",
+        "bathroom_renovator",
+        "kitchen_renovator"
+      ]
     },
     {
+      "type": "a",
+      "typeLabel": "a: note says duplicate of X, but X's list does not contain the service",
       "code": "note_without_duplicate",
       "category": "construction_company",
       "service": "Drywall installation",
-      "why": "Generated: the PDF note disagrees with the category lists (the lists are the authority). Awaiting Brandon's review."
+      "why": "Generated: the PDF note disagrees with the category lists (the lists are the authority). Awaiting Brandon's review.",
+      "missingFrom": [
+        "remodeller",
+        "bathroom_renovator",
+        "kitchen_renovator"
+      ]
     },
     {
+      "type": "a",
+      "typeLabel": "a: note says duplicate of X, but X's list does not contain the service",
       "code": "note_names_unknown_category",
       "category": "construction_company",
       "service": "Fan installation",
-      "why": "Generated: the PDF note disagrees with the category lists (the lists are the authority). Awaiting Brandon's review."
+      "why": "Generated: the PDF note disagrees with the category lists (the lists are the authority). Awaiting Brandon's review.",
+      "missingFrom": [
+        "remodeller",
+        "bathroom_renovator",
+        "kitchen_renovator"
+      ]
     },
     {
+      "type": "a",
+      "typeLabel": "a: note says duplicate of X, but X's list does not contain the service",
       "code": "note_without_duplicate",
       "category": "construction_company",
       "service": "Fan installation",
-      "why": "Generated: the PDF note disagrees with the category lists (the lists are the authority). Awaiting Brandon's review."
+      "why": "Generated: the PDF note disagrees with the category lists (the lists are the authority). Awaiting Brandon's review.",
+      "missingFrom": [
+        "remodeller",
+        "bathroom_renovator",
+        "kitchen_renovator"
+      ]
     },
     {
+      "type": "a",
+      "typeLabel": "a: note says duplicate of X, but X's list does not contain the service",
       "code": "note_names_unknown_category",
       "category": "construction_company",
       "service": "Floor fitting",
-      "why": "Generated: the PDF note disagrees with the category lists (the lists are the authority). Awaiting Brandon's review."
+      "why": "Generated: the PDF note disagrees with the category lists (the lists are the authority). Awaiting Brandon's review.",
+      "missingFrom": [
+        "remodeller",
+        "bathroom_renovator",
+        "kitchen_renovator"
+      ]
     },
     {
+      "type": "a",
+      "typeLabel": "a: note says duplicate of X, but X's list does not contain the service",
       "code": "note_without_duplicate",
       "category": "construction_company",
       "service": "Floor fitting",
-      "why": "Generated: the PDF note disagrees with the category lists (the lists are the authority). Awaiting Brandon's review."
+      "why": "Generated: the PDF note disagrees with the category lists (the lists are the authority). Awaiting Brandon's review.",
+      "missingFrom": [
+        "remodeller",
+        "bathroom_renovator",
+        "kitchen_renovator"
+      ]
     },
     {
+      "type": "a",
+      "typeLabel": "a: note says duplicate of X, but X's list does not contain the service",
       "code": "note_names_unknown_category",
       "category": "construction_company",
       "service": "Tile work installation",
-      "why": "Generated: the PDF note disagrees with the category lists (the lists are the authority). Awaiting Brandon's review."
+      "why": "Generated: the PDF note disagrees with the category lists (the lists are the authority). Awaiting Brandon's review.",
+      "missingFrom": [
+        "remodeller",
+        "bathroom_renovator",
+        "kitchen_renovator"
+      ]
     },
     {
+      "type": "a",
+      "typeLabel": "a: note says duplicate of X, but X's list does not contain the service",
       "code": "note_without_duplicate",
       "category": "construction_company",
       "service": "Tile work installation",
-      "why": "Generated: the PDF note disagrees with the category lists (the lists are the authority). Awaiting Brandon's review."
+      "why": "Generated: the PDF note disagrees with the category lists (the lists are the authority). Awaiting Brandon's review.",
+      "missingFrom": [
+        "remodeller",
+        "bathroom_renovator",
+        "kitchen_renovator"
+      ]
     },
     {
+      "type": "a",
+      "typeLabel": "a: note says duplicate of X, but X's list does not contain the service",
       "code": "note_names_unknown_category",
       "category": "construction_company",
       "service": "Plumbing fixture installation",
-      "why": "Generated: the PDF note disagrees with the category lists (the lists are the authority). Awaiting Brandon's review."
+      "why": "Generated: the PDF note disagrees with the category lists (the lists are the authority). Awaiting Brandon's review.",
+      "missingFrom": [
+        "remodeller",
+        "bathroom_renovator",
+        "kitchen_renovator"
+      ]
     },
     {
+      "type": "a",
+      "typeLabel": "a: note says duplicate of X, but X's list does not contain the service",
       "code": "note_without_duplicate",
       "category": "construction_company",
       "service": "Plumbing fixture installation",
-      "why": "Generated: the PDF note disagrees with the category lists (the lists are the authority). Awaiting Brandon's review."
+      "why": "Generated: the PDF note disagrees with the category lists (the lists are the authority). Awaiting Brandon's review.",
+      "missingFrom": [
+        "remodeller",
+        "bathroom_renovator",
+        "kitchen_renovator"
+      ]
     },
     {
+      "type": "a",
+      "typeLabel": "a: note says duplicate of X, but X's list does not contain the service",
       "code": "note_names_unknown_category",
       "category": "construction_company",
       "service": "Interior structural repairs",
-      "why": "Generated: the PDF note disagrees with the category lists (the lists are the authority). Awaiting Brandon's review."
+      "why": "Generated: the PDF note disagrees with the category lists (the lists are the authority). Awaiting Brandon's review.",
+      "missingFrom": [
+        "remodeller",
+        "bathroom_renovator",
+        "kitchen_renovator"
+      ]
     },
     {
+      "type": "a",
+      "typeLabel": "a: note says duplicate of X, but X's list does not contain the service",
       "code": "note_without_duplicate",
       "category": "construction_company",
       "service": "Interior structural repairs",
-      "why": "Generated: the PDF note disagrees with the category lists (the lists are the authority). Awaiting Brandon's review."
+      "why": "Generated: the PDF note disagrees with the category lists (the lists are the authority). Awaiting Brandon's review.",
+      "missingFrom": [
+        "remodeller",
+        "bathroom_renovator",
+        "kitchen_renovator"
+      ]
     },
     {
+      "type": "a",
+      "typeLabel": "a: note says duplicate of X, but X's list does not contain the service",
       "code": "note_names_unknown_category",
       "category": "construction_company",
       "service": "Kitchen remodelling",
-      "why": "Generated: the PDF note disagrees with the category lists (the lists are the authority). Awaiting Brandon's review."
+      "why": "Generated: the PDF note disagrees with the category lists (the lists are the authority). Awaiting Brandon's review.",
+      "missingFrom": [
+        "remodeller",
+        "kitchen_renovator"
+      ]
     },
     {
+      "type": "a",
+      "typeLabel": "a: note says duplicate of X, but X's list does not contain the service",
       "code": "note_without_duplicate",
       "category": "construction_company",
       "service": "Kitchen remodelling",
-      "why": "Generated: the PDF note disagrees with the category lists (the lists are the authority). Awaiting Brandon's review."
+      "why": "Generated: the PDF note disagrees with the category lists (the lists are the authority). Awaiting Brandon's review.",
+      "missingFrom": [
+        "remodeller",
+        "kitchen_renovator"
+      ]
     },
     {
+      "type": "c",
+      "typeLabel": "c: other source error",
       "code": "note_names_unknown_category",
       "category": "construction_company",
       "service": "Metal building construction",
       "why": "Generated: the PDF note disagrees with the category lists (the lists are the authority). Awaiting Brandon's review."
     },
     {
+      "type": "a",
+      "typeLabel": "a: note says duplicate of X, but X's list does not contain the service",
       "code": "note_names_unknown_category",
       "category": "construction_company",
       "service": "TV mounting",
-      "why": "Generated: the PDF note disagrees with the category lists (the lists are the authority). Awaiting Brandon's review."
+      "why": "Generated: the PDF note disagrees with the category lists (the lists are the authority). Awaiting Brandon's review.",
+      "missingFrom": [
+        "remodeller",
+        "bathroom_renovator",
+        "kitchen_renovator"
+      ]
     },
     {
+      "type": "a",
+      "typeLabel": "a: note says duplicate of X, but X's list does not contain the service",
       "code": "note_without_duplicate",
       "category": "construction_company",
       "service": "TV mounting",
-      "why": "Generated: the PDF note disagrees with the category lists (the lists are the authority). Awaiting Brandon's review."
+      "why": "Generated: the PDF note disagrees with the category lists (the lists are the authority). Awaiting Brandon's review.",
+      "missingFrom": [
+        "remodeller",
+        "bathroom_renovator",
+        "kitchen_renovator"
+      ]
     },
     {
+      "type": "c",
+      "typeLabel": "c: other source error",
       "code": "note_names_unknown_category",
       "category": "construction_company",
       "service": "New building construction",
       "why": "Generated: the PDF note disagrees with the category lists (the lists are the authority). Awaiting Brandon's review."
     },
     {
+      "type": "a",
+      "typeLabel": "a: note says duplicate of X, but X's list does not contain the service",
       "code": "note_names_unknown_category",
       "category": "construction_company",
       "service": "Interior decorating",
-      "why": "Generated: the PDF note disagrees with the category lists (the lists are the authority). Awaiting Brandon's review."
+      "why": "Generated: the PDF note disagrees with the category lists (the lists are the authority). Awaiting Brandon's review.",
+      "missingFrom": [
+        "remodeller",
+        "bathroom_renovator",
+        "kitchen_renovator"
+      ]
     },
     {
+      "type": "a",
+      "typeLabel": "a: note says duplicate of X, but X's list does not contain the service",
       "code": "note_without_duplicate",
       "category": "construction_company",
       "service": "Interior decorating",
-      "why": "Generated: the PDF note disagrees with the category lists (the lists are the authority). Awaiting Brandon's review."
+      "why": "Generated: the PDF note disagrees with the category lists (the lists are the authority). Awaiting Brandon's review.",
+      "missingFrom": [
+        "remodeller",
+        "bathroom_renovator",
+        "kitchen_renovator"
+      ]
     },
     {
+      "type": "a",
+      "typeLabel": "a: note says duplicate of X, but X's list does not contain the service",
       "code": "note_names_unknown_category",
       "category": "construction_company",
       "service": "Exterior painting",
-      "why": "Generated: the PDF note disagrees with the category lists (the lists are the authority). Awaiting Brandon's review."
+      "why": "Generated: the PDF note disagrees with the category lists (the lists are the authority). Awaiting Brandon's review.",
+      "missingFrom": [
+        "remodeller",
+        "bathroom_renovator",
+        "kitchen_renovator"
+      ]
     },
     {
+      "type": "a",
+      "typeLabel": "a: note says duplicate of X, but X's list does not contain the service",
       "code": "note_without_duplicate",
       "category": "construction_company",
       "service": "Exterior painting",
-      "why": "Generated: the PDF note disagrees with the category lists (the lists are the authority). Awaiting Brandon's review."
+      "why": "Generated: the PDF note disagrees with the category lists (the lists are the authority). Awaiting Brandon's review.",
+      "missingFrom": [
+        "remodeller",
+        "bathroom_renovator",
+        "kitchen_renovator"
+      ]
     },
     {
+      "type": "a",
+      "typeLabel": "a: note says duplicate of X, but X's list does not contain the service",
       "code": "note_names_unknown_category",
       "category": "construction_company",
       "service": "Patio construction",
-      "why": "Generated: the PDF note disagrees with the category lists (the lists are the authority). Awaiting Brandon's review."
+      "why": "Generated: the PDF note disagrees with the category lists (the lists are the authority). Awaiting Brandon's review.",
+      "missingFrom": [
+        "remodeller"
+      ]
     },
     {
+      "type": "a",
+      "typeLabel": "a: note says duplicate of X, but X's list does not contain the service",
       "code": "note_without_duplicate",
       "category": "construction_company",
       "service": "Patio construction",
-      "why": "Generated: the PDF note disagrees with the category lists (the lists are the authority). Awaiting Brandon's review."
+      "why": "Generated: the PDF note disagrees with the category lists (the lists are the authority). Awaiting Brandon's review.",
+      "missingFrom": [
+        "remodeller"
+      ]
     },
     {
+      "type": "c",
+      "typeLabel": "c: other source error",
       "code": "note_names_unknown_category",
       "category": "construction_company",
       "service": "Pole building construction",
       "why": "Generated: the PDF note disagrees with the category lists (the lists are the authority). Awaiting Brandon's review."
     },
     {
+      "type": "c",
+      "typeLabel": "c: other source error",
       "code": "note_names_unknown_category",
       "category": "construction_company",
       "service": "Refurbishment",
       "why": "Generated: the PDF note disagrees with the category lists (the lists are the authority). Awaiting Brandon's review."
     },
     {
+      "type": "a",
+      "typeLabel": "a: note says duplicate of X, but X's list does not contain the service",
       "code": "note_names_unknown_category",
       "category": "construction_company",
       "service": "Drywall repair",
-      "why": "Generated: the PDF note disagrees with the category lists (the lists are the authority). Awaiting Brandon's review."
+      "why": "Generated: the PDF note disagrees with the category lists (the lists are the authority). Awaiting Brandon's review.",
+      "missingFrom": [
+        "remodeller",
+        "bathroom_renovator",
+        "kitchen_renovator"
+      ]
     },
     {
+      "type": "a",
+      "typeLabel": "a: note says duplicate of X, but X's list does not contain the service",
       "code": "note_without_duplicate",
       "category": "construction_company",
       "service": "Drywall repair",
-      "why": "Generated: the PDF note disagrees with the category lists (the lists are the authority). Awaiting Brandon's review."
+      "why": "Generated: the PDF note disagrees with the category lists (the lists are the authority). Awaiting Brandon's review.",
+      "missingFrom": [
+        "remodeller",
+        "bathroom_renovator",
+        "kitchen_renovator"
+      ]
     },
     {
+      "type": "a",
+      "typeLabel": "a: note says duplicate of X, but X's list does not contain the service",
       "code": "note_names_unknown_category",
       "category": "construction_company",
       "service": "Fan repair",
-      "why": "Generated: the PDF note disagrees with the category lists (the lists are the authority). Awaiting Brandon's review."
+      "why": "Generated: the PDF note disagrees with the category lists (the lists are the authority). Awaiting Brandon's review.",
+      "missingFrom": [
+        "remodeller",
+        "bathroom_renovator",
+        "kitchen_renovator"
+      ]
     },
     {
+      "type": "a",
+      "typeLabel": "a: note says duplicate of X, but X's list does not contain the service",
       "code": "note_without_duplicate",
       "category": "construction_company",
       "service": "Fan repair",
-      "why": "Generated: the PDF note disagrees with the category lists (the lists are the authority). Awaiting Brandon's review."
+      "why": "Generated: the PDF note disagrees with the category lists (the lists are the authority). Awaiting Brandon's review.",
+      "missingFrom": [
+        "remodeller",
+        "bathroom_renovator",
+        "kitchen_renovator"
+      ]
     },
     {
+      "type": "a",
+      "typeLabel": "a: note says duplicate of X, but X's list does not contain the service",
       "code": "note_names_unknown_category",
       "category": "construction_company",
       "service": "Flooring repair",
-      "why": "Generated: the PDF note disagrees with the category lists (the lists are the authority). Awaiting Brandon's review."
+      "why": "Generated: the PDF note disagrees with the category lists (the lists are the authority). Awaiting Brandon's review.",
+      "missingFrom": [
+        "remodeller",
+        "bathroom_renovator",
+        "kitchen_renovator"
+      ]
     },
     {
+      "type": "a",
+      "typeLabel": "a: note says duplicate of X, but X's list does not contain the service",
       "code": "note_without_duplicate",
       "category": "construction_company",
       "service": "Flooring repair",
-      "why": "Generated: the PDF note disagrees with the category lists (the lists are the authority). Awaiting Brandon's review."
+      "why": "Generated: the PDF note disagrees with the category lists (the lists are the authority). Awaiting Brandon's review.",
+      "missingFrom": [
+        "remodeller",
+        "bathroom_renovator",
+        "kitchen_renovator"
+      ]
     },
     {
+      "type": "a",
+      "typeLabel": "a: note says duplicate of X, but X's list does not contain the service",
       "code": "note_names_unknown_category",
       "category": "construction_company",
       "service": "Water fixture repair",
-      "why": "Generated: the PDF note disagrees with the category lists (the lists are the authority). Awaiting Brandon's review."
+      "why": "Generated: the PDF note disagrees with the category lists (the lists are the authority). Awaiting Brandon's review.",
+      "missingFrom": [
+        "remodeller",
+        "bathroom_renovator",
+        "kitchen_renovator"
+      ]
     },
     {
+      "type": "a",
+      "typeLabel": "a: note says duplicate of X, but X's list does not contain the service",
       "code": "note_without_duplicate",
       "category": "construction_company",
       "service": "Water fixture repair",
-      "why": "Generated: the PDF note disagrees with the category lists (the lists are the authority). Awaiting Brandon's review."
+      "why": "Generated: the PDF note disagrees with the category lists (the lists are the authority). Awaiting Brandon's review.",
+      "missingFrom": [
+        "remodeller",
+        "bathroom_renovator",
+        "kitchen_renovator"
+      ]
     },
     {
+      "type": "a",
+      "typeLabel": "a: note says duplicate of X, but X's list does not contain the service",
       "code": "note_names_unknown_category",
       "category": "construction_company",
       "service": "Tile work replacement",
-      "why": "Generated: the PDF note disagrees with the category lists (the lists are the authority). Awaiting Brandon's review."
+      "why": "Generated: the PDF note disagrees with the category lists (the lists are the authority). Awaiting Brandon's review.",
+      "missingFrom": [
+        "remodeller",
+        "bathroom_renovator",
+        "kitchen_renovator"
+      ]
     },
     {
+      "type": "a",
+      "typeLabel": "a: note says duplicate of X, but X's list does not contain the service",
       "code": "note_without_duplicate",
       "category": "construction_company",
       "service": "Tile work replacement",
-      "why": "Generated: the PDF note disagrees with the category lists (the lists are the authority). Awaiting Brandon's review."
+      "why": "Generated: the PDF note disagrees with the category lists (the lists are the authority). Awaiting Brandon's review.",
+      "missingFrom": [
+        "remodeller",
+        "bathroom_renovator",
+        "kitchen_renovator"
+      ]
     },
     {
+      "type": "c",
+      "typeLabel": "c: other source error",
       "code": "note_names_unknown_category",
       "category": "construction_company",
       "service": "Road construction",
       "why": "Generated: the PDF note disagrees with the category lists (the lists are the authority). Awaiting Brandon's review."
     },
     {
+      "type": "a",
+      "typeLabel": "a: note says duplicate of X, but X's list does not contain the service",
       "code": "note_names_unknown_category",
       "category": "construction_company",
       "service": "Roof installation",
-      "why": "Generated: the PDF note disagrees with the category lists (the lists are the authority). Awaiting Brandon's review."
+      "why": "Generated: the PDF note disagrees with the category lists (the lists are the authority). Awaiting Brandon's review.",
+      "missingFrom": [
+        "remodeller",
+        "bathroom_renovator"
+      ]
     },
     {
+      "type": "a",
+      "typeLabel": "a: note says duplicate of X, but X's list does not contain the service",
       "code": "note_without_duplicate",
       "category": "construction_company",
       "service": "Roof installation",
-      "why": "Generated: the PDF note disagrees with the category lists (the lists are the authority). Awaiting Brandon's review."
+      "why": "Generated: the PDF note disagrees with the category lists (the lists are the authority). Awaiting Brandon's review.",
+      "missingFrom": [
+        "remodeller",
+        "bathroom_renovator"
+      ]
     },
     {
+      "type": "a",
+      "typeLabel": "a: note says duplicate of X, but X's list does not contain the service",
       "code": "note_names_unknown_category",
       "category": "construction_company",
       "service": "Roof repair",
-      "why": "Generated: the PDF note disagrees with the category lists (the lists are the authority). Awaiting Brandon's review."
+      "why": "Generated: the PDF note disagrees with the category lists (the lists are the authority). Awaiting Brandon's review.",
+      "missingFrom": [
+        "remodeller",
+        "bathroom_renovator"
+      ]
     },
     {
+      "type": "a",
+      "typeLabel": "a: note says duplicate of X, but X's list does not contain the service",
       "code": "note_without_duplicate",
       "category": "construction_company",
       "service": "Roof repair",
-      "why": "Generated: the PDF note disagrees with the category lists (the lists are the authority). Awaiting Brandon's review."
+      "why": "Generated: the PDF note disagrees with the category lists (the lists are the authority). Awaiting Brandon's review.",
+      "missingFrom": [
+        "remodeller",
+        "bathroom_renovator"
+      ]
     },
     {
+      "type": "c",
+      "typeLabel": "c: other source error",
       "code": "note_names_unknown_category",
       "category": "construction_company",
       "service": "Steel building construction",
       "why": "Generated: the PDF note disagrees with the category lists (the lists are the authority). Awaiting Brandon's review."
     },
     {
+      "type": "c",
+      "typeLabel": "c: other source error",
       "code": "no_home",
       "category": null,
       "service": "Accessory building construction",

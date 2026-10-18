@@ -42,6 +42,7 @@ if (process.env.DEMO_REAL_MODEL !== '1') {
     { service: 'Pond installation', category_key: 'landscape_designer', reason: 'ponds are designed garden features' },
     { service: 'Raised beds', category_key: 'unsure', reason: 'could sit under Gardener or Landscape Gardener' },
     { service: 'Water features', category_key: 'landscape_designer', reason: 'water features are designed garden features' },
+    { service: 'Garden clearance', category_key: 'gardener', reason: 'clearing a garden is general garden work' },
   ] });
   const reply = async params => ({ stop_reason: 'end_turn', model: 'demo-fake-model', usage: { input_tokens: 0, output_tokens: 0 }, content: [{ type: 'text', text: /Parent category for an additional service/.test(String(params && params.system)) ? parents : canned }] });
   class FakeAnthropic { constructor() { this.messages = { create: reply }; this.beta = { messages: { create: reply } }; } }

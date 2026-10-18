@@ -125,13 +125,16 @@ function resolve(ticks, config, options = {}) {
   const tickedGroups = new Set();
   const unmatched = [];
   const additionalTicks = [];
+  const addFields = additionalFields(config);
   for (const [field, values] of Object.entries(ticks || {})) {
     const cat = config.categories.find(c => c.tickGroup === field);
     for (const v of Array.isArray(values) ? values : []) {
       const id = norm(v);
       if (!id) continue;
       if (cat && cat.services.some(s => norm(s) === id)) { offered.add(id); tickedGroups.add(cat.key); continue; }
-      if (config.additionalTickGroup && field === config.additionalTickGroup.field && additionalKnown.has(id)) { additionalTicks.push(v); continue; }
+      // An additional-services tick group: a service already in the category lists is offered;
+      // anything else goes to the additional-services flow. Never an unmatched tick.
+      if (addFields.includes(field)) { if (known.has(id) && !additionalKnown.has(id)) offered.add(id); else additionalTicks.push(v); continue; }
       if (known.has(id)) { offered.add(id); if (cat) tickedGroups.add(cat.key); continue; } // a known service ticked under another group
       unmatched.push({ field, value: v });
     }
@@ -195,15 +198,46 @@ function resolve(ticks, config, options = {}) {
 function ticksFromFields(fields, config) {
   const out = {};
   for (const c of config.categories) { const f = fields.find(x => x.key === c.tickGroup); if (f && Array.isArray(f.value)) out[c.tickGroup] = f.value; }
-  if (config.additionalTickGroup) { const f = fields.find(x => x.key === config.additionalTickGroup.field); if (f && Array.isArray(f.value)) out[config.additionalTickGroup.field] = f.value; }
+  for (const field of additionalFields(config)) { const f = fields.find(x => x.key === field); if (f && Array.isArray(f.value)) out[field] = f.value; }
+  return out;
+}
+
+// The niche's additional-services tick groups: the main one and any extra (Drainage, Plumbing & Heating)
+function additionalFields(config) {
+  return [config.additionalTickGroup && config.additionalTickGroup.field, ...((config.extraAdditionalTickGroups || []).map(g => g.field))].filter(Boolean);
+}
+
+// Services already in the niche's category lists: an additional service that matches one is "already covered"
+function categoryServiceIds(config) {
+  const ids = new Set();
+  for (const c of config.categories) for (const s of c.services) ids.add(norm(s));
+  return ids;
+}
+
+// ── Additional services: ticks from the additional-services tick groups plus the free-text
+// answer, one item per service (ticks first, then typed, deduped), each marked
+// alreadyCovered when the category lists already hold it, with where it came from ──
+function additionalInputs(ticks, text, config) {
+  const known = categoryServiceIds(config);
+  const byId = new Map();
+  const out = [];
+  for (const t of ticks || []) {
+    const id = norm(t);
+    if (!id || byId.has(id)) continue;
+    const item = { service: String(t).trim().replace(/\s+/g, ' '), id, alreadyCovered: known.has(id), origin: 'ticked' };
+    byId.set(id, item); out.push(item);
+  }
+  for (const p of parseAdditional(text, config)) {
+    if (byId.has(p.id)) { byId.get(p.id).origin = 'ticked and typed'; continue; }
+    const item = { ...p, origin: 'typed' };
+    byId.set(p.id, item); out.push(item);
+  }
   return out;
 }
 
 // ── Additional services: the free-text answer, one service per line, bullet or comma ──
 function parseAdditional(text, config) {
-  const knownIds = new Set();
-  for (const c of config.categories) for (const s of c.services) knownIds.add(norm(s));
-  for (const s of ((config.additionalTickGroup || {}).services || [])) knownIds.add(norm(s));
+  const knownIds = categoryServiceIds(config);
   const parts = String(text || '').split(/\r?\n|[•●▪·]|;|,(?![^(]*\))/).map(s => s.replace(/^[\s\-–—*\d.)]+/, '').trim()).filter(Boolean);
   const seen = new Set();
   const out = [];
@@ -217,4 +251,4 @@ function parseAdditional(text, config) {
   return out;
 }
 
-module.exports = { norm, loadConfig, configFor, validateConfig, resolve, ticksFromFields, parseAdditional, MAX_TABS };
+module.exports = { norm, loadConfig, configFor, validateConfig, resolve, ticksFromFields, parseAdditional, additionalInputs, additionalFields, MAX_TABS };

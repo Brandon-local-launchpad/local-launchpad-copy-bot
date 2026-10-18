@@ -181,7 +181,7 @@ function createFilloutService({ pool, audioStore, fetchAudio = defaultFetchAudio
       if (audio.failed) log.warn(`[fillout] ${sub.submission_id}: ${audio.failed} audio download(s) failed; reprocess to retry`);
       // Price rows from the prices voice answer: in the background, never holding up intake
       setImmediate(() => extractPrices(clientId, { submissionId: sub.submission_id }).catch(err => log.error('[fillout] price extraction failed to start:', err)));
-      // Parent categories for the typed additional services: also in the background, hash-gated
+      // Parent categories for the additional services (ticked or typed): also in the background, hash-gated
       setImmediate(() => proposeAdditional(clientId).catch(err => log.error('[fillout] additional services proposal failed to start:', err)));
       return { clientId, niche: rec.niche, nicheKnown: rec.nicheKnown, fields: written, audio, duplicateOf };
     } catch (err) {
@@ -613,12 +613,16 @@ function createFilloutService({ pool, audioStore, fetchAudio = defaultFetchAudio
     const ticks = R.ticksFromFields(fields, config);
     const resolved = R.resolve(ticks, config, { categoryTabRule, primaryOverride, additional: add.confirmed });
     const textField = fields.find(f => f.key === config.additionalServicesField);
+    const additionalText = textField && typeof textField.value === 'string' ? textField.value : '';
+    // Where each additional row came from: the additional-services ticks, the typed answer, or both
+    const origins = new Map(R.additionalInputs(resolved.additionalTicks, additionalText, config).map(i => [i.id, i.origin]));
+    for (const row of add.rows) row.origin = origins.get(R.norm(row.service)) || null;
     return {
       niche: rec.niche, hasConfig: true, categoryTabRule, primaryOverride, primaryDefault: config.primaryDefault,
       allCategories: config.categories.map(c => ({ key: c.key, name: c.name })),
       // "N of M ticked" per category tick group: ticks that match the group's own tick boxes
       tickCounts: config.categories.map(c => { const v = Array.isArray(ticks[c.tickGroup]) ? ticks[c.tickGroup] : []; const own = new Set((c.ticks || []).map(R.norm)); return { key: c.key, name: c.name, ticked: new Set(v.map(R.norm).filter(id => own.has(id))).size, total: own.size }; }),
-      resolved, additional: add, additionalText: textField && typeof textField.value === 'string' ? textField.value : '',
+      resolved, additional: add, additionalText, additionalTicks: resolved.additionalTicks,
     };
   }
 
@@ -634,7 +638,7 @@ function createFilloutService({ pool, audioStore, fetchAudio = defaultFetchAudio
     if (!v.hasConfig) return { skipped: 'no config for this niche' };
     const config = R.configFor(v.niche);
     const tabs = v.resolved.categories.map(c => ({ key: c.key, name: c.name }));
-    return additional.propose(clientId, { text: v.additionalText, tabs, config, force });
+    return additional.propose(clientId, { text: v.additionalText, ticks: v.additionalTicks, tabs, config, force });
   }
 
   async function decideAdditional(clientId, rowId, body) {

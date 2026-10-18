@@ -206,13 +206,15 @@ from and up to, a single price gets typical, no usable prices gives no rows).
   repeating a service, inconsistent casing, a tick box service missing from the
   All list, a duplicate note that disagrees with the lists). `validateConfig`
   reports; nothing is silently fixed. crossRef lists every service on 2+ tabs.
-- Additional services (`fillout/additional-services.js`): the free-text answer is
-  split one service per line, bullet or comma, tidied, deduped against known
-  services ("already covered"), and each new one gets a proposed parent from the
+- Additional services (`fillout/additional-services.js`): the ticks in the niche's
+  "<Niche> Additional Services" tick group(s) (never unmatched-tick flags) and the
+  free-text answer, split one service per line, bullet or comma, tidied, merged
+  (ticks first; a service both ticked and typed is one row), deduped against the
+  services already in the category lists ("already covered"), and each new one gets a proposed parent from the
   model (`prompts/Additional_Service_Parent.md`: only the client's tabs or
   "unsure", never a new category, never a renamed service, a plain reason).
   Hash-gated on the answer text; a bad reply marks `extraction_failed` for a
-  person. Rows: proposed / confirmed / rejected / skipped / covered; confirmed or
+  person; hash-gated on the ticks and the text. Rows: proposed / confirmed / rejected / skipped / covered; confirmed or
   manual rows are never overwritten by a re-run; confirmed ones become
   "additional" rows in their parent tab, numbered after the config services.
 - Record page, Services panel, "Categories & services": the tabs with unique /
@@ -246,14 +248,21 @@ until Brandon chooses. `alwaysCreate: true` on a category gives it a tab under
    keep the lists right and declare the case in `knownSourceErrors`
    (`{ code, category, service, why }`): it is then reported, not failed.
 2. Put the form's checkbox options on each tick group's entry in
-   `fillout/field-map.json` (`options`, exactly as the form shows them).
+   `fillout/field-map.json` (`options`, exactly as the form shows them). Today only
+   the landscaper groups have them: the stored webhook payloads carry each
+   question's id, name, type and value only (no option lists), and there is no
+   Fillout API key in the app's environment.
 3. Run the niche check: `node tests/fixtures/niche-configs.js`. It loops over
    every file in `fillout/services/` and fails on a tick box missing from the All
    list, a tick box with no matching checkbox option (or an option with no tick
    box), a category listing a service twice, an undeclared duplicate note that
    disagrees with the lists, a tick group missing from the field map, and a
    `primaryDefault` that is not a category. Each message names the niche,
-   category and service. Logic: `fillout/services/check-niche.js`.
+   category and service. Logic: `fillout/services/check-niche.js`. Declared source
+   errors are typed (a: the note says duplicate of X but X's list lacks the service;
+   b: in 2+ categories with no note naming them; c: anything else) and reported in
+   those groups; `node tools/source-errors-report.js` prints them by niche and type,
+   every (a) in full (`docs/niches-source/source-errors-report.md`).
 4. Check against the niche's finished example sheet. Export each category tab
    (and the cross-ref tab, if there is one) as CSV, write the example client's
    ticks as a `.js` or `.json` file (`{ "<tickGroup>": ["Service", …] }`, like
