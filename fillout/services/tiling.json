@@ -11,41 +11,11 @@
       "tickGroup": "tiling.cat.select_the_tiling_services_you_offer",
       "alwaysCreate": false,
       "ticks": [
-        "Furniture assembly",
-        "Bathroom tile repair",
-        "Gutter cleaning",
-        "Dust-free tile removal",
-        "Grout cleaning",
-        "Grout repair",
-        "Grout sealing",
-        "Grout staining",
-        "Remodelling",
-        "Drywall installation",
-        "Fan installation",
-        "Floor fitting",
-        "Tile work installation",
-        "Plumbing fixture installation",
-        "Kitchen tile repair",
-        "TV mounting",
-        "Interior decorating",
-        "Exterior painting",
-        "Drywall repair",
-        "Fan repair",
-        "Flooring repair",
-        "Water fixture repair",
-        "Tile work replacement",
-        "Shower tile installation",
-        "Shower tile repair",
-        "Tile backsplash installation",
-        "Tile cleaning",
-        "Tile design services",
-        "Tile flooring repair",
-        "Tile grouting",
-        "Tile refinishing",
-        "Tile regrouting",
-        "Tile removal",
-        "Tile replacement",
-        "Tile restoration"
+        "Wall tiling",
+        "Floor tiling",
+        "Bathroom tiling",
+        "Kitchen splashback",
+        "Mosaic tiling"
       ],
       "services": [
         "Furniture assembly",
@@ -82,9 +52,304 @@
         "Tile regrouting",
         "Tile removal",
         "Tile replacement",
-        "Tile restoration"
+        "Tile restoration",
+        "Wall tiling",
+        "Floor tiling",
+        "Bathroom tiling",
+        "Kitchen splashback",
+        "Mosaic tiling"
       ],
-      "duplicateNotes": {}
+      "duplicateNotes": {},
+      "ticksFromForm": true,
+      "formOnlyServices": [
+        "Wall tiling",
+        "Floor tiling",
+        "Bathroom tiling",
+        "Kitchen splashback",
+        "Mosaic tiling"
+      ]
+    }
+  ],
+  "knownSourceErrors": [
+    {
+      "type": "c",
+      "typeLabel": "c: other source error",
+      "code": "no_home",
+      "category": null,
+      "service": "Furniture assembly",
+      "why": "Generated: in the All list but in no tick box list. Awaiting Brandon's review."
+    },
+    {
+      "type": "c",
+      "typeLabel": "c: other source error",
+      "code": "no_home",
+      "category": null,
+      "service": "Bathroom tile repair",
+      "why": "Generated: in the All list but in no tick box list. Awaiting Brandon's review."
+    },
+    {
+      "type": "c",
+      "typeLabel": "c: other source error",
+      "code": "no_home",
+      "category": null,
+      "service": "Gutter cleaning",
+      "why": "Generated: in the All list but in no tick box list. Awaiting Brandon's review."
+    },
+    {
+      "type": "c",
+      "typeLabel": "c: other source error",
+      "code": "no_home",
+      "category": null,
+      "service": "Dust-free tile removal",
+      "why": "Generated: in the All list but in no tick box list. Awaiting Brandon's review."
+    },
+    {
+      "type": "c",
+      "typeLabel": "c: other source error",
+      "code": "no_home",
+      "category": null,
+      "service": "Grout cleaning",
+      "why": "Generated: in the All list but in no tick box list. Awaiting Brandon's review."
+    },
+    {
+      "type": "c",
+      "typeLabel": "c: other source error",
+      "code": "no_home",
+      "category": null,
+      "service": "Grout repair",
+      "why": "Generated: in the All list but in no tick box list. Awaiting Brandon's review."
+    },
+    {
+      "type": "c",
+      "typeLabel": "c: other source error",
+      "code": "no_home",
+      "category": null,
+      "service": "Grout sealing",
+      "why": "Generated: in the All list but in no tick box list. Awaiting Brandon's review."
+    },
+    {
+      "type": "c",
+      "typeLabel": "c: other source error",
+      "code": "no_home",
+      "category": null,
+      "service": "Grout staining",
+      "why": "Generated: in the All list but in no tick box list. Awaiting Brandon's review."
+    },
+    {
+      "type": "c",
+      "typeLabel": "c: other source error",
+      "code": "no_home",
+      "category": null,
+      "service": "Remodelling",
+      "why": "Generated: in the All list but in no tick box list. Awaiting Brandon's review."
+    },
+    {
+      "type": "c",
+      "typeLabel": "c: other source error",
+      "code": "no_home",
+      "category": null,
+      "service": "Drywall installation",
+      "why": "Generated: in the All list but in no tick box list. Awaiting Brandon's review."
+    },
+    {
+      "type": "c",
+      "typeLabel": "c: other source error",
+      "code": "no_home",
+      "category": null,
+      "service": "Fan installation",
+      "why": "Generated: in the All list but in no tick box list. Awaiting Brandon's review."
+    },
+    {
+      "type": "c",
+      "typeLabel": "c: other source error",
+      "code": "no_home",
+      "category": null,
+      "service": "Floor fitting",
+      "why": "Generated: in the All list but in no tick box list. Awaiting Brandon's review."
+    },
+    {
+      "type": "c",
+      "typeLabel": "c: other source error",
+      "code": "no_home",
+      "category": null,
+      "service": "Tile work installation",
+      "why": "Generated: in the All list but in no tick box list. Awaiting Brandon's review."
+    },
+    {
+      "type": "c",
+      "typeLabel": "c: other source error",
+      "code": "no_home",
+      "category": null,
+      "service": "Plumbing fixture installation",
+      "why": "Generated: in the All list but in no tick box list. Awaiting Brandon's review."
+    },
+    {
+      "type": "c",
+      "typeLabel": "c: other source error",
+      "code": "no_home",
+      "category": null,
+      "service": "Kitchen tile repair",
+      "why": "Generated: in the All list but in no tick box list. Awaiting Brandon's review."
+    },
+    {
+      "type": "c",
+      "typeLabel": "c: other source error",
+      "code": "no_home",
+      "category": null,
+      "service": "TV mounting",
+      "why": "Generated: in the All list but in no tick box list. Awaiting Brandon's review."
+    },
+    {
+      "type": "c",
+      "typeLabel": "c: other source error",
+      "code": "no_home",
+      "category": null,
+      "service": "Interior decorating",
+      "why": "Generated: in the All list but in no tick box list. Awaiting Brandon's review."
+    },
+    {
+      "type": "c",
+      "typeLabel": "c: other source error",
+      "code": "no_home",
+      "category": null,
+      "service": "Exterior painting",
+      "why": "Generated: in the All list but in no tick box list. Awaiting Brandon's review."
+    },
+    {
+      "type": "c",
+      "typeLabel": "c: other source error",
+      "code": "no_home",
+      "category": null,
+      "service": "Drywall repair",
+      "why": "Generated: in the All list but in no tick box list. Awaiting Brandon's review."
+    },
+    {
+      "type": "c",
+      "typeLabel": "c: other source error",
+      "code": "no_home",
+      "category": null,
+      "service": "Fan repair",
+      "why": "Generated: in the All list but in no tick box list. Awaiting Brandon's review."
+    },
+    {
+      "type": "c",
+      "typeLabel": "c: other source error",
+      "code": "no_home",
+      "category": null,
+      "service": "Flooring repair",
+      "why": "Generated: in the All list but in no tick box list. Awaiting Brandon's review."
+    },
+    {
+      "type": "c",
+      "typeLabel": "c: other source error",
+      "code": "no_home",
+      "category": null,
+      "service": "Water fixture repair",
+      "why": "Generated: in the All list but in no tick box list. Awaiting Brandon's review."
+    },
+    {
+      "type": "c",
+      "typeLabel": "c: other source error",
+      "code": "no_home",
+      "category": null,
+      "service": "Tile work replacement",
+      "why": "Generated: in the All list but in no tick box list. Awaiting Brandon's review."
+    },
+    {
+      "type": "c",
+      "typeLabel": "c: other source error",
+      "code": "no_home",
+      "category": null,
+      "service": "Shower tile installation",
+      "why": "Generated: in the All list but in no tick box list. Awaiting Brandon's review."
+    },
+    {
+      "type": "c",
+      "typeLabel": "c: other source error",
+      "code": "no_home",
+      "category": null,
+      "service": "Shower tile repair",
+      "why": "Generated: in the All list but in no tick box list. Awaiting Brandon's review."
+    },
+    {
+      "type": "c",
+      "typeLabel": "c: other source error",
+      "code": "no_home",
+      "category": null,
+      "service": "Tile backsplash installation",
+      "why": "Generated: in the All list but in no tick box list. Awaiting Brandon's review."
+    },
+    {
+      "type": "c",
+      "typeLabel": "c: other source error",
+      "code": "no_home",
+      "category": null,
+      "service": "Tile cleaning",
+      "why": "Generated: in the All list but in no tick box list. Awaiting Brandon's review."
+    },
+    {
+      "type": "c",
+      "typeLabel": "c: other source error",
+      "code": "no_home",
+      "category": null,
+      "service": "Tile design services",
+      "why": "Generated: in the All list but in no tick box list. Awaiting Brandon's review."
+    },
+    {
+      "type": "c",
+      "typeLabel": "c: other source error",
+      "code": "no_home",
+      "category": null,
+      "service": "Tile flooring repair",
+      "why": "Generated: in the All list but in no tick box list. Awaiting Brandon's review."
+    },
+    {
+      "type": "c",
+      "typeLabel": "c: other source error",
+      "code": "no_home",
+      "category": null,
+      "service": "Tile grouting",
+      "why": "Generated: in the All list but in no tick box list. Awaiting Brandon's review."
+    },
+    {
+      "type": "c",
+      "typeLabel": "c: other source error",
+      "code": "no_home",
+      "category": null,
+      "service": "Tile refinishing",
+      "why": "Generated: in the All list but in no tick box list. Awaiting Brandon's review."
+    },
+    {
+      "type": "c",
+      "typeLabel": "c: other source error",
+      "code": "no_home",
+      "category": null,
+      "service": "Tile regrouting",
+      "why": "Generated: in the All list but in no tick box list. Awaiting Brandon's review."
+    },
+    {
+      "type": "c",
+      "typeLabel": "c: other source error",
+      "code": "no_home",
+      "category": null,
+      "service": "Tile removal",
+      "why": "Generated: in the All list but in no tick box list. Awaiting Brandon's review."
+    },
+    {
+      "type": "c",
+      "typeLabel": "c: other source error",
+      "code": "no_home",
+      "category": null,
+      "service": "Tile replacement",
+      "why": "Generated: in the All list but in no tick box list. Awaiting Brandon's review."
+    },
+    {
+      "type": "c",
+      "typeLabel": "c: other source error",
+      "code": "no_home",
+      "category": null,
+      "service": "Tile restoration",
+      "why": "Generated: in the All list but in no tick box list. Awaiting Brandon's review."
     }
   ]
 }

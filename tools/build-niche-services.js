@@ -29,12 +29,13 @@ const norm = R.norm;
 // PDF title (text before "Onboarding") → the Fillout dropdown label in field-map.json.
 // primary: the obvious trade category (Brandon checks these). alwaysCreate: categories
 // that always get a tab under ticked_only. knownSourceErrors: PDF mistakes reported,
-// not failed.
+// not failed. ticksFromForm: the tick boxes (and additional examples) come from the
+// Fillout options recorded in field-map.json, not the PDF tick box list.
 const NICHES = [
   { title: 'Landscaping', niche: 'Landscapers/Gardeners', skip: 'already built (landscapers-gardeners.json)' },
   { title: 'Cleaning', niche: 'Cleaning Companies', primary: 'House Cleaning Service' },
   { title: 'Roofer', niche: 'Roofers', primary: 'Roofing services' },
-  { title: 'Heating', niche: 'Plumbing & Heating', primary: 'Central Heating Service', useCopy: 1 },
+  { title: 'Heating', niche: 'Plumbing & Heating', primary: 'Central Heating Service', useCopy: 1, ticksFromForm: true },
   { title: 'Drainage', niche: 'Drainage', primary: 'Drainage Service' },
   { title: 'Fencing', niche: 'Fencing', primary: 'Fence Contractor' },
   { title: '', niche: 'Locksmith', primary: 'Locksmith' },
@@ -47,7 +48,7 @@ const NICHES = [
   { title: 'Tree Surgeon', niche: 'Tree Surgeons', primary: 'Tree service' },
   { title: 'Garage Door Installs', niche: 'Garage Doors Installs', primary: 'Garage door supplier' },
   { title: 'Pressure Washing / Exterior Cleaning', niche: 'Pressure Washing / Exterior Cleaning', primary: 'Pressure Washing Service' },
-  { title: 'Guttering and Fascias', niche: 'Guttering & Fascias', primary: 'Roofing services' },
+  { title: 'Guttering and Fascias', niche: 'Guttering & Fascias', primary: 'Roofing services', ticksFromForm: true },
   { title: 'Pest Control', niche: 'Pest Control', primary: 'Pest control service' },
   { title: 'Scaffolding', niche: 'Scaffolding', primary: 'Scaffolding Service' },
   { title: 'Window Cleaning', niche: 'Window Cleaning', primary: 'Window Cleaning Service' },
@@ -57,7 +58,7 @@ const NICHES = [
   { title: 'Painting & Decorators', niche: 'Painters & Decorators', primary: 'Painter and Decorator' },
   { title: 'Flooring Fitters (carpet/laminate/LVT)', niche: 'Flooring Fitters (carpet/laminate/LVT)', primary: 'Flooring Contractor',
     knownSourceErrors: [{ code: 'note_without_duplicate', category: 'flooring_contractor', service: 'Flooring repair', why: 'The PDF notes Flooring repair as a duplicate of Wood Floor Installation Service, but that category does not list it (Brandon, 18 Oct 2026: source error, report only).' }] },
-  { title: 'Tiling', niche: 'Tiling', primary: 'Tile contractor' },
+  { title: 'Tiling', niche: 'Tiling', primary: 'Tile contractor', ticksFromForm: true },
   { title: 'Curtain & Blind Fitters', niche: 'Blinds & Curtains Fitters', primary: 'Curtain Shop', alwaysCreate: ['Curtain Fitter'] },
   { title: 'Removals Company', niche: 'Removals Company', primary: 'Removals Company' },
 ];
@@ -237,8 +238,17 @@ function buildNiche(def, allSec, tickSec, fieldMap) {
       for (const s of x.c.services) if (s.dup) duplicateNotes[s.name] = s.dup;
       const notes = [...x.c.notes, ...(x.t ? x.t.notes : [])].map(n => n.note);
       const custom = x.c.services.filter(s => s.custom).map(s => s.name);
-      const ticks = x.t ? x.t.services.map(s => s.name) : [];
+      let ticks = x.t ? x.t.services.map(s => s.name) : [];
       let services = x.c.services.map(s => s.name);
+      // ticksFromForm (Brandon, 18 Oct 2026): the Fillout form is the source of the tick boxes
+      // (field-map.json options); the All list keeps the PDF's entries and gains the form labels
+      // it lacks, at the end, so every tick is a service
+      let formOnlyServices = [];
+      if (def.ticksFromForm && x.g && Array.isArray(x.g.options) && x.g.options.length) {
+        ticks = [...x.g.options];
+        formOnlyServices = ticks.filter(t => !services.some(s => norm(s) === norm(t)));
+        services = [...services, ...formOnlyServices];
+      }
       // An All-list entry named exactly like its own category, with no tick box, is the Google
       // Business Profile default service (Drainage): the category page covers it, so it is not
       // a service here (Brandon, 18 Oct 2026)
@@ -251,20 +261,23 @@ function buildNiche(def, allSec, tickSec, fieldMap) {
       if (!services.length && ticks.length) { services = [...ticks]; servicesFromTicks = true; }
       return { key, name: x.name, tickGroup: x.g ? x.g.key : null, alwaysCreate: (def.alwaysCreate || []).some(n => norm(n) === norm(x.name)), ticks, services, duplicateNotes,
         ...(gbpDefaultService ? { gbpDefaultService } : {}), ...(servicesFromTicks ? { servicesFromTicks: true } : {}),
+        ...(def.ticksFromForm && x.g && x.g.options ? { ticksFromForm: true } : {}), ...(formOnlyServices.length ? { formOnlyServices } : {}),
         ...(custom.length ? { customServices: custom } : {}), ...(notes.length ? { notes } : {}) };
     });
     return out;
   };
 
+  // An additional group's examples: the PDF's, or the form's options when ticksFromForm is set
+  const examplesOf = (field, pdf) => def.ticksFromForm && Array.isArray(field.options) && field.options.length ? [...field.options] : ((pdf || {}).examples || []);
   const config = {
     _about: `Categories and services for ${def.niche}, generated by tools/build-niche-services.js from the "Niche By Niche Categories & Services" PDF (All Categories & Services list in its order, with its duplicate notes; ticks = the Tick Box list, each category's home services). Do not hand-edit: change the PDF or the generator's NICHES table and re-run.`,
     niche: def.niche,
     nicheKey: nicheDef.key,
     primaryDefault: null,
     additionalServicesField: otherField ? otherField.key : null,
-    additionalTickGroup: addFields.length ? { field: addFields[0].key, services: [], examples: (additional[0] || {}).examples || [] } : null,
+    additionalTickGroup: addFields.length ? { field: addFields[0].key, services: [], examples: examplesOf(addFields[0], additional[0]) } : null,
   };
-  if (addFields.length > 1) config.extraAdditionalTickGroups = addFields.slice(1).map((f, i) => ({ field: f.key, label: f.label, examples: (additional[i + 1] || {}).examples || [] }));
+  if (addFields.length > 1) config.extraAdditionalTickGroups = addFields.slice(1).map((f, i) => ({ field: f.key, label: f.label, examples: examplesOf(f, additional[i + 1]) }));
   if (addFields.length !== Math.max(additional.length, addFields.length ? 1 : 0)) report.notes.push(`${additional.length} additional-services question(s) in the PDF, ${addFields.length} additional tick group(s) in field-map.json`);
 
   // Two copies and Brandon chose one (NICHES useCopy): load that one; keep the others in the

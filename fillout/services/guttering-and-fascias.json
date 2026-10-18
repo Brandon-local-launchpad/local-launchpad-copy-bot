@@ -11,19 +11,12 @@
       "tickGroup": "guttering.cat.select_the_guttering_and_fascias_services_you_offer",
       "alwaysCreate": false,
       "ticks": [
-        "Loft ventilation",
-        "Attic venting installation",
-        "Attic venting repairs",
-        "Gutter cleaning",
         "Gutter installation",
-        "Gutter repairs",
-        "Roof damage repair",
-        "Roof inspection",
-        "Roof installation",
-        "Roof repair",
-        "Skylight installation",
-        "Skylight repair",
-        "Roof repair for storm and wind damage"
+        "Gutter repair",
+        "Gutter cleaning",
+        "Fascia installation",
+        "Soffit replacement",
+        "Cladding"
       ],
       "services": [
         "Loft ventilation",
@@ -38,9 +31,110 @@
         "Roof repair",
         "Skylight installation",
         "Skylight repair",
-        "Roof repair for storm and wind damage"
+        "Roof repair for storm and wind damage",
+        "Gutter repair",
+        "Fascia installation",
+        "Soffit replacement",
+        "Cladding"
       ],
-      "duplicateNotes": {}
+      "duplicateNotes": {},
+      "ticksFromForm": true,
+      "formOnlyServices": [
+        "Gutter repair",
+        "Fascia installation",
+        "Soffit replacement",
+        "Cladding"
+      ]
+    }
+  ],
+  "knownSourceErrors": [
+    {
+      "type": "c",
+      "typeLabel": "c: other source error",
+      "code": "no_home",
+      "category": null,
+      "service": "Loft ventilation",
+      "why": "Generated: in the All list but in no tick box list. Awaiting Brandon's review."
+    },
+    {
+      "type": "c",
+      "typeLabel": "c: other source error",
+      "code": "no_home",
+      "category": null,
+      "service": "Attic venting installation",
+      "why": "Generated: in the All list but in no tick box list. Awaiting Brandon's review."
+    },
+    {
+      "type": "c",
+      "typeLabel": "c: other source error",
+      "code": "no_home",
+      "category": null,
+      "service": "Attic venting repairs",
+      "why": "Generated: in the All list but in no tick box list. Awaiting Brandon's review."
+    },
+    {
+      "type": "c",
+      "typeLabel": "c: other source error",
+      "code": "no_home",
+      "category": null,
+      "service": "Gutter repairs",
+      "why": "Generated: in the All list but in no tick box list. Awaiting Brandon's review."
+    },
+    {
+      "type": "c",
+      "typeLabel": "c: other source error",
+      "code": "no_home",
+      "category": null,
+      "service": "Roof damage repair",
+      "why": "Generated: in the All list but in no tick box list. Awaiting Brandon's review."
+    },
+    {
+      "type": "c",
+      "typeLabel": "c: other source error",
+      "code": "no_home",
+      "category": null,
+      "service": "Roof inspection",
+      "why": "Generated: in the All list but in no tick box list. Awaiting Brandon's review."
+    },
+    {
+      "type": "c",
+      "typeLabel": "c: other source error",
+      "code": "no_home",
+      "category": null,
+      "service": "Roof installation",
+      "why": "Generated: in the All list but in no tick box list. Awaiting Brandon's review."
+    },
+    {
+      "type": "c",
+      "typeLabel": "c: other source error",
+      "code": "no_home",
+      "category": null,
+      "service": "Roof repair",
+      "why": "Generated: in the All list but in no tick box list. Awaiting Brandon's review."
+    },
+    {
+      "type": "c",
+      "typeLabel": "c: other source error",
+      "code": "no_home",
+      "category": null,
+      "service": "Skylight installation",
+      "why": "Generated: in the All list but in no tick box list. Awaiting Brandon's review."
+    },
+    {
+      "type": "c",
+      "typeLabel": "c: other source error",
+      "code": "no_home",
+      "category": null,
+      "service": "Skylight repair",
+      "why": "Generated: in the All list but in no tick box list. Awaiting Brandon's review."
+    },
+    {
+      "type": "c",
+      "typeLabel": "c: other source error",
+      "code": "no_home",
+      "category": null,
+      "service": "Roof repair for storm and wind damage",
+      "why": "Generated: in the All list but in no tick box list. Awaiting Brandon's review."
     }
   ]
 }

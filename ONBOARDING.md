@@ -253,10 +253,16 @@ service (Drainage).
    keep the lists right and declare the case in `knownSourceErrors`
    (`{ code, category, service, why }`): it is then reported, not failed.
 2. Put the form's checkbox options on each tick group's entry in
-   `fillout/field-map.json` (`options`, exactly as the form shows them). Today only
-   the landscaper groups have them: the stored webhook payloads carry each
-   question's id, name, type and value only (no option lists), and there is no
-   Fillout API key in the app's environment.
+   `fillout/field-map.json` (`options`, exactly as the form shows them). They come
+   from Fillout itself: `node tools/fetch-fillout-options.js` (needs
+   `FILLOUT_API_KEY` and `FILLOUT_FORM_ID` in `.env`) reads the form and reports
+   every difference from the niche files, (a) trivial and (b) real, by niche and
+   tick group (`docs/niches-source/fillout-options-report.md`); `--preview <file>`
+   writes the proposed field map elsewhere for a diff, `--write` records the
+   options. All 112 niche tick groups have them (18 Oct 2026). Where the form and
+   the PDF disagree and the form wins, set `ticksFromForm` on the niche in the
+   generator: its tick boxes (and additional examples) come from the options, and
+   form labels missing from the All list are appended (`formOnlyServices`).
 3. Run the niche check: `node tests/fixtures/niche-configs.js`. It loops over
    every file in `fillout/services/` and fails on a tick box missing from the All
    list, a tick box with no matching checkbox option (or an option with no tick
