@@ -134,6 +134,8 @@ function mountPageMapApi(app, { pool, filloutService, searchVolume = D.searchVol
     const out = await store.generate(req.params.clientId, { categoryTabRule: ruleOf((req.body || {}).rule) });
     res.json({ rows: out.rows, state: await store.state(req.params.clientId), counts: out.diff.counts, renames: out.diff.renames, collisions: out.plan.collisions });
   }));
+  // Use every no-data suggestion in one page type as its H1 (the group's "Use all suggestions")
+  app.post('/api/clients/:clientId/page-map/use-suggestions', wrap(async (req, res) => res.json(await store.useSuggestions(req.params.clientId, { type: (req.body || {}).type }))));
   app.put('/api/clients/:clientId/page-map/:rowId', wrap(async (req, res) => res.json(await store.setRow(req.params.clientId, req.params.rowId, req.body || {}))));
 
   app.get('/api/clients/:clientId/services/by-hand', wrap(async (req, res) => res.json(await byHandView(filloutService, req.params.clientId))));

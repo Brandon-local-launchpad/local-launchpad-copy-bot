@@ -174,9 +174,31 @@ function createPageMapStore({ pool, filloutService }) {
     return fromDb(out[0]);
   }
 
+  // Use every no-data suggestion in one page type as that page's H1 (Brandon, 18 Oct 2026): the
+  // same as clicking "Use" on each, so each becomes manual (research never touches it again) and
+  // Not Started moves to H1 Added. Only empty, applying rows with a suggestion; a suggestion that
+  // would repeat an H1 already on another page is skipped and reported.
+  async function useSuggestions(clientId, { type }) {
+    if (!G.TYPES.includes(type) || type === 'service') throw Object.assign(new Error('type must be homepage, category, location or location_category'), { status: 400 });
+    const rows = await saved(clientId);
+    const kw = s => String(s || '').toLowerCase().replace(/['’‘`]/g, '').replace(/[^a-z0-9]+/g, ' ').trim();
+    const used = new Map(rows.filter(r => r.applies && r.h1).map(r => [kw(r.h1), r.title]));
+    const done = [], skipped = [];
+    for (const r of rows.filter(x => x.applies && x.type === type && !x.h1 && x.h1_source !== 'manual' && x.h1_suggestion)) {
+      const k = kw(r.h1_suggestion);
+      if (used.has(k)) { skipped.push({ title: r.title, suggestion: r.h1_suggestion, why: `already the H1 of "${used.get(k)}"` }); continue; }
+      const { rowCount } = await pool.query(
+        `UPDATE client_page_map SET h1 = $3, h1_source = 'manual', h1_accepted = FALSE, h1_suggestion = NULL,
+           status = CASE WHEN status = 'Not Started' THEN 'H1 Added' ELSE status END, updated_at = NOW()
+         WHERE id = $1 AND client_id = $2 AND h1 = '' AND h1_source <> 'manual'`, [r.id, clientId, r.h1_suggestion]);
+      if (rowCount) { used.set(k, r.title); done.push({ title: r.title, h1: r.h1_suggestion }); }
+    }
+    return { used: done, skipped, rows: await saved(clientId) };
+  }
+
   async function csv(clientId, opts) { return G.toCsv(await saved(clientId), opts); }
 
-  return { saved, state, preview, generate, setRow, csv };
+  return { saved, state, preview, generate, setRow, useSuggestions, csv };
 }
 
 module.exports = { ensurePageMapTables, createPageMapStore, inputsFor };

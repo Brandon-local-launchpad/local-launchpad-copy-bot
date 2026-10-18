@@ -679,7 +679,8 @@
       const n = pm.rows.filter(r => r.type === type && r.applies).length, gone = pm.rows.filter(r => r.type === type && !r.applies).length;
       if (!n && !gone) return '';
       const need = pm.rows.filter(r => r.type === type && r.applies && !r.h1).length;
-      return `<details class="pm-group" data-type="${type}"${pmOpen.has(type) ? ' open' : ''} ontoggle="pmToggle('${type}', this.open)"><summary>${esc(label)} <span class="badge b-muted">${n}</span>${need ? `<span class="badge b-warn">${need} need H1</span>` : ''}${gone ? `<span class="badge b-muted">${gone} no longer apply</span>` : ''}</summary>${pmOpen.has(type) ? rows.map(renderPmRow).join('') : ''}</details>`;
+      const suggestable = type === 'service' ? 0 : pm.rows.filter(r => r.type === type && r.applies && !r.h1 && r.h1_source !== 'manual' && r.h1_suggestion).length;
+      return `<details class="pm-group" data-type="${type}"${pmOpen.has(type) ? ' open' : ''} ontoggle="pmToggle('${type}', this.open)"><summary>${esc(label)} <span class="badge b-muted">${n}</span>${need ? `<span class="badge b-warn">${need} need H1</span>` : ''}${suggestable ? `<button class="btn btn-ghost btn-xs" onclick="event.preventDefault();event.stopPropagation();pmUseAll('${type}', ${suggestable})" title="Use each page's no-data suggestion as its H1 (manual); a suggestion that would repeat another page's H1 is skipped">Use all ${suggestable} suggestions</button>` : ''}${gone ? `<span class="badge b-muted">${gone} no longer apply</span>` : ''}</summary>${pmOpen.has(type) ? rows.map(renderPmRow).join('') : ''}</details>`;
     }).join('');
     const retiredToggle = retired.length ? `<div class="pm-bar"><label class="tick" style="margin:0"><input type="checkbox" ${pmShowRetired ? 'checked' : ''} onchange="pmShowRetired=this.checked;render()"> Show pages that no longer apply (${retired.length})</label></div>` : '';
     const nNeeds = live.filter(r => !r.h1).length, nSugg = live.filter(r => r.h1_source === 'suggested').length;
@@ -716,6 +717,17 @@
     if (r.h1_source === 'auto') return '<span class="src">auto</span>';
     if (r.h1_suggestion) return `<span class="badge b-warn">no volume data, choose manually</span> <button class="btn btn-ghost btn-xs acc" onclick="pmUseSuggestion('${r.id}')" title="Use the suggestion as a manual H1">Use "${esc(r.h1_suggestion)}"</button>`;
     return '<span class="badge b-warn">needs H1</span>';
+  }
+  async function pmUseAll(type, n) {
+    const label = (PM_TYPES.find(t => t[0] === type) || [type, type])[1].toLowerCase();
+    if (!confirm(`Use the suggested H1 on ${n} ${label}? Each becomes a manual H1 (research will not change it) and Not Started moves to H1 Added.`)) return;
+    setSaved('Saving…');
+    const res = await fetch(`/api/clients/${clientId}/page-map/use-suggestions`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ type }) });
+    const r = await res.json().catch(() => ({}));
+    if (!res.ok) { setSaved('Not saved: ' + (r.error || res.status), 'bad'); return; }
+    pm.rows = r.rows;
+    setSaved(`${r.used.length} H1${r.used.length === 1 ? '' : 's'} set${r.skipped.length ? `, ${r.skipped.length} skipped (would repeat another page's H1)` : ''}`, r.skipped.length ? 'bad' : 'ok');
+    setTimeout(() => setSaved(''), 4000); render();
   }
   function pmUseSuggestion(id) { const r = pm.rows.find(x => x.id === id); if (r && r.h1_suggestion) pmSave(id, { h1: r.h1_suggestion }); }
   function pmSetFilter(v) { pmFilter = v; if (v !== 'all') PM_TYPES.forEach(t => pmOpen.add(t[0])); render(); }

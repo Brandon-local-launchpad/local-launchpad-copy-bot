@@ -123,7 +123,7 @@ function createH1Research({ pool, filloutService, pageMapStore, searchVolume = D
       const st = await pageMapStore.state(clientId);
       const inputs = await inputsFor(filloutService, clientId, { categoryTabRule: (st && st.category_tab_rule) || 'ticked_only' });
       const cats = inputs.resolved ? inputs.resolved.categories : [];
-      const ctx = { primaryName: inputs.resolved && inputs.resolved.primaryName, baseTown: inputs.baseTown, categoryName: key => (cats.find(c => c.key === key) || {}).name };
+      const ctx = { primaryName: inputs.resolved && inputs.resolved.primaryName, primaryKey: inputs.resolved && inputs.resolved.primary, baseTown: inputs.baseTown, categoryName: key => (cats.find(c => c.key === key) || {}).name, terms: H.searchTerms(inputs.niche) };
       const { pages, keywords } = H.plan(rows, ctx);
       await patch(id, { status: 'researching', stage: `Researching H1s (${pages.length} pages, ${keywords.length} keywords)`, pages_total: rows.length, pages_built: rows.length, keywords_total: keywords.length });
 
@@ -146,8 +146,8 @@ function createH1Research({ pool, filloutService, pageMapStore, searchVolume = D
 
       // Candidates and H1s, page by page
       let suggested = 0, noData = 0;
-      for (const p of pages) {
-        const sel = H.select(p.candidates, volumes);
+      for (const p of H.assign(pages, volumes, rows)) {
+        const sel = p.sel;
         await saveCandidates(clientId, p.row.page_key, sel);
         if (sel.usable) {
           suggested++;

@@ -53,7 +53,7 @@ const same = (a, b) => [...a].sort().join() === [...b].sort().join();
   chk('Category Gardener: links to its 8 services, from its 13 location category pages, h1 needed', cat.links_to.length === 8 && cat.links_from.length === 13 && cat.links_from[0] === '/locations/romsey/gardener' && cat.h1_source === 'needed', '', '');
   const gs = find(m1, '/services/grass-seeding');
   chk('Duplicates share one page: Grass seeding is one row with all 3 parents linked to and from', m1.rows.filter(r => r.title === 'Grass seeding').length === 1 && same(gs.links_from, ['/gardener', '/landscape-gardener', '/landscape-designer']) && ['/gardener', '/landscape-gardener', '/landscape-designer'].every(p => gs.links_to.includes(p)), JSON.stringify(gs.links_from), '3 parents');
-  chk('Grass seeding links to 3 parents x 13 towns location category pages and "/" (43); H1 auto "Grass seeding Southampton"', gs.links_to.length === 43 && gs.links_to.includes('/locations/kings-worthy/landscape-designer') && gs.links_to[gs.links_to.length - 1] === '/' && gs.h1 === 'Grass seeding Southampton' && gs.h1_source === 'auto', gs.links_to.length, 43);
+  chk('Grass seeding links to 3 parents x 13 towns location category pages and "/" (43); H1 auto "Grass Seeding Southampton" (Title Case)', gs.links_to.length === 43 && gs.links_to.includes('/locations/kings-worthy/landscape-designer') && gs.links_to[gs.links_to.length - 1] === '/' && gs.h1 === 'Grass Seeding Southampton' && gs.h1_source === 'auto', gs.links_to.length, 43);
   const loc = find(m1, '/locations/romsey');
   chk('Location Romsey: links to its 6 location category pages, from "/"', loc.links_to.length === 6 && same(loc.links_from, ['/']) && loc.h1_source === 'needed', '', '');
   const lc = find(m1, '/locations/romsey/gardener');
@@ -68,7 +68,8 @@ const same = (a, b) => [...a].sort().join() === [...b].sort().join();
     for (const o of old) {
       const n = find(m, o.slug);
       if (!n) { unexpected.push('missing ' + o.slug); continue; }
-      if (o.title !== n.title || o.h1 !== n.h1) unexpected.push('title/h1 ' + o.slug);
+      // Service H1s are Title Case now (Brandon, 18 Oct 2026): an intended difference, compared without case
+      if (o.title !== n.title || o.h1.toLowerCase() !== n.h1.toLowerCase()) unexpected.push('title/h1 ' + o.slug);
       const fixedHome = o.slug === '/' && same(o.linksTo.filter(l => l !== '/locations/southampton'), n.links_to) && same(o.linksFrom, n.links_from);
       const fixedDup = dupSlugs.has(o.slug) && o.linksTo.every(l => n.links_to.includes(l)) && o.linksFrom.every(l => n.links_from.includes(l));
       if (!fixedHome && !fixedDup && !(same(o.linksTo, n.links_to) && same(o.linksFrom, n.links_from))) unexpected.push('links ' + o.slug);
@@ -76,7 +77,7 @@ const same = (a, b) => [...a].sort().join() === [...b].sort().join();
     chk(`${rule}: same ${old.length} pages as the old script; links differ only on the homepage (no base town page) and the ${dupSlugs.size} duplicate services (all parents)`, old.length === m.rows.length && !unexpected.length, unexpected.slice(0, 5).join(', '), 'none');
   }
 
-  chk('The CSV reads back through the old page map parser (client-files.js): 176 pages, the right types', (() => { const p = require(path.join(root, 'client-files.js')).parsePageMap(G.toCsv(m1.rows)); return p.length === 176 && p.filter(x => x.pageType === 'location-category').length === 78 && p.find(x => x.urlSlug === '/services/grass-seeding').h1 === 'Grass seeding Southampton'; })(), '', '');
+  chk('The CSV reads back through the old page map parser (client-files.js): 176 pages, the right types', (() => { const p = require(path.join(root, 'client-files.js')).parsePageMap(G.toCsv(m1.rows)); return p.length === 176 && p.filter(x => x.pageType === 'location-category').length === 78 && p.find(x => x.urlSlug === '/services/grass-seeding').h1 === 'Grass Seeding Southampton'; })(), '', '');
   chk('New Forest District is marked as a council area (it still gets pages)', m1.councilAreas.join() === 'New Forest District' && !!find(m1, '/locations/new-forest-district'), JSON.stringify(m1.councilAreas), '');
 
   chk('Against the real Edens Edge sheet page map (edens-edge-real/page-map.csv, 198 rows): ticked_or_propagated gives the same pages minus the 8 base town pages the old script made', (() => {
@@ -89,7 +90,7 @@ const same = (a, b) => [...a].sort().join() === [...b].sort().join();
   // ── Additional services ──
   const withAdd = build('ticked_only', { resolve: { additional: [{ service: 'Pond installation', categoryKey: 'landscape_designer' }] }, input: { waiting: [{ service: 'Raised beds', why: 'no category chosen yet' }] } });
   const pond = find(withAdd, '/services/pond-installation');
-  chk('A confirmed additional service is a Service page under its parent, same rules; unconfirmed ones are only listed as waiting', pond && pond.additional === true && same(pond.links_from, ['/landscape-designer']) && pond.h1 === 'Pond installation Southampton' && find(withAdd, '/landscape-designer').links_to.includes('/services/pond-installation') && !find(withAdd, '/services/raised-beds') && withAdd.waiting[0].service === 'Raised beds' && withAdd.counts.service === 79, JSON.stringify(withAdd.counts), '79 services');
+  chk('A confirmed additional service is a Service page under its parent, same rules; unconfirmed ones are only listed as waiting', pond && pond.additional === true && same(pond.links_from, ['/landscape-designer']) && pond.h1 === 'Pond Installation Southampton' && find(withAdd, '/landscape-designer').links_to.includes('/services/pond-installation') && !find(withAdd, '/services/raised-beds') && withAdd.waiting[0].service === 'Raised beds' && withAdd.counts.service === 79, JSON.stringify(withAdd.counts), '79 services');
 
   // ── Slug collisions ──
   const collide = build('ticked_only', { resolve: { additional: [{ service: 'Grass-seeding!', categoryKey: 'tree_service' }] }, input: { otherTowns: "Chandler's Ford\nChandlers Ford\n!!!" } });
@@ -99,7 +100,7 @@ const same = (a, b) => [...a].sort().join() === [...b].sort().join();
 
   // ── CSV ──
   const csv = G.toCsv(m1.rows);
-  chk('CSV: the old PAGE MAP columns in order, 176 rows, links one per line in a quoted cell', csv.split('\r\n')[0] === 'Page Type,Page Title,URL Slug,H1 (Ahrefs),Meta Title,Meta Description,Links TO,Links FROM,Status' && /^Service,Grass seeding,\/services\/grass-seeding,Grass seeding Southampton,,,"\/gardener\n\/landscape-gardener/m.test(csv), csv.slice(0, 120), '');
+  chk('CSV: the old PAGE MAP columns in order, 176 rows, links one per line in a quoted cell', csv.split('\r\n')[0] === 'Page Type,Page Title,URL Slug,H1 (Ahrefs),Meta Title,Meta Description,Links TO,Links FROM,Status' && /^Service,Grass seeding,\/services\/grass-seeding,Grass Seeding Southampton,,,"\/gardener\n\/landscape-gardener/m.test(csv), csv.slice(0, 120), '');
 
   // ── Store, seed and regeneration through pg-mem ──
   const mem = newDb();
@@ -166,7 +167,7 @@ const same = (a, b) => [...a].sort().join() === [...b].sort().join();
   await svc.setField(client.id, 'primary_town', 'Eastleigh Town');
   await store.generate(client.id);
   rows = await store.saved(client.id);
-  chk('Auto service H1s follow a new base town; a status set by a person is never reset', byKey('service:/services/hedge-trimming').h1 === 'Hedge trimming Eastleigh Town' && byKey('service:/services/grass-seeding').status === 'Live', byKey('service:/services/hedge-trimming').h1, '');
+  chk('Auto service H1s follow a new base town; a status set by a person is never reset', byKey('service:/services/hedge-trimming').h1 === 'Hedge Trimming Eastleigh Town' && byKey('service:/services/grass-seeding').status === 'Live', byKey('service:/services/hedge-trimming').h1, '');
   // Bring Romsey back: the retired row revives with its edits
   await svc.setField(client.id, 'primary_town', 'Southampton');
   await svc.setField(client.id, otherKey, S.OTHER_TOWNS.join('\n'));
