@@ -741,7 +741,7 @@
     let cls = '', txt = '', sub = '', fill = '', btn = '';
     if (showJob && jobActive()) {
       if (j.status === 'building' || (j.status === 'queued' && j.kind === 'generate')) { const pct = j.pages_total ? Math.round(100 * j.pages_built / j.pages_total) : 5; txt = j.pages_total ? `Building pages (${j.pages_built} of ${j.pages_total})` : 'Building pages'; fill = `<div class="fill" style="width:${pct}%"></div>`; }
-      else { txt = j.stage || 'Researching H1s'; sub = 'One batched DataForSEO call: this takes a few seconds'; fill = '<div class="fill indet"></div>'; }
+      else { txt = j.stage || 'Researching H1s'; sub = /is busy/.test(j.stage || '') ? 'Waiting for DataForSEO, which asked us to slow down: this can take up to two minutes' : 'One batched DataForSEO call: this takes a few seconds'; fill = '<div class="fill indet"></div>'; }
     } else if (showJob && j.status === 'complete') { cls = 'ok'; txt = j.stage; fill = '<div class="fill" style="width:100%"></div>'; btn = '<button class="x" onclick="dismissH1Bar()" aria-label="Hide">×</button>'; }
     else if (showJob && j.status === 'failed') { cls = 'bad'; txt = j.stage || 'H1 research failed'; sub = 'The page map is saved; only the H1 research failed.'; fill = '<div class="fill" style="width:100%"></div>'; btn = '<button class="btn btn-primary btn-xs" onclick="h1Retry()">Retry</button>'; }
     el.hidden = false;

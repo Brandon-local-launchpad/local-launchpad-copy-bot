@@ -54,6 +54,20 @@ const okReply = (keywords, table) => ({ ok: true, status: 200, statusText: 'OK',
   chk('A network failure is scrubbed too', e2 && e2.status === 'network' && !leaks(e2.message), e2 && e2.message, '');
   const e3 = await D.searchVolume(['a'], { env: {}, fetchImpl: fetchStub }).then(() => null, e => e);
   chk('Missing credentials: a plain "not set up" error and no call made', e3 && e3.status === 'config' && /not set up/.test(e3.message) && calls.length === 2, e3 && e3.message, '');
+  // Busy replies (DataForSEO 50301 "Too many requests", HTTP 429/5xx) are retried after a wait
+  const busy = { ok: true, status: 200, json: async () => ({ status_code: 20000, cost: 0, tasks: [{ status_code: 50301, status_message: 'Too many requests.', cost: 0 }] }) };
+  let seq = [busy, async (o) => okReply(JSON.parse(o.body)[0].keywords, { a: [40, 1] })], seen = 0; const waits = [], notes = [];
+  const busyThenOk = async (u, o) => { const x = seq[Math.min(seen++, seq.length - 1)]; return typeof x === 'function' ? x(o) : x; };
+  const rr = await D.searchVolume(['a'], { env: FAKE, fetchImpl: busyThenOk, retryDelays: [7, 9, 11], sleep: async ms => { waits.push(ms); }, onRetry: n => notes.push(n) });
+  chk('A 50301 "Too many requests" reply is retried after a wait and then succeeds; only the successful call is charged', rr.results.get('a').volume === 40 && rr.calls === 2 && rr.cost === 0.09 && waits.join() === '7' && notes.length === 1 && notes[0].status === 50301 && notes[0].attempt === 1 && notes[0].of === 3 && /Too many requests/.test(notes[0].message), JSON.stringify([rr.calls, rr.cost, waits, notes]), '');
+  seen = 0; seq = [busy]; waits.length = 0;
+  const e4 = await D.searchVolume(['a'], { env: FAKE, fetchImpl: busyThenOk, retryDelays: [7, 9, 11], sleep: async ms => { waits.push(ms); } }).then(() => null, e => e);
+  chk('Still busy after every retry: fails with the status and message, after 4 attempts and waits 7, 9, 11', e4 && e4.status === 50301 && e4.attempts === 4 && /Too many requests/.test(e4.message) && waits.join() === '7,9,11', JSON.stringify(e4 && [e4.status, e4.attempts, waits]), '');
+  for (const [label, st] of [['HTTP 429', 429], ['HTTP 503', 503], ['DataForSEO 40202', 40202], ['a timeout', 'timeout'], ['a network error', 'network']]) chk(`${label} counts as busy (retried)`, D.isBusy(st), st, true);
+  for (const [label, st] of [['HTTP 401 (credentials)', 401], ['DataForSEO 40200 (no credit)', 40200], ['DataForSEO 40100', 40100]]) chk(`${label} is not retried`, !D.isBusy(st), st, false);
+  seen = 0; waits.length = 0;
+  const e5 = await D.searchVolume(['a'], { env: FAKE, fetchImpl: errStub, retryDelays: [7, 9, 11], sleep: async ms => { waits.push(ms); } }).then(() => null, e => e);
+  chk('Bad credentials fail at once, with no wait', e5 && e5.status === 401 && e5.attempts === 1 && !waits.length, JSON.stringify(e5 && [e5.status, e5.attempts]), '');
   const bal = await D.balance({ env: FAKE, fetchImpl: async () => ({ ok: true, status: 200, json: async () => ({ status_code: 20000, tasks: [{ result: [{ money: { balance: 7.5 } }] }] }) }) });
   chk('The balance comes from /v3/appendix/user_data money.balance', bal === 7.5, bal, 7.5);
 
@@ -164,9 +178,20 @@ const okReply = (keywords, table) => ({ ok: true, status: 200, statusText: 'OK',
   chk('The page map is untouched by the failure (names, slugs, H1s, statuses)', JSON.stringify((await store.saved(cid)).map(r => [r.page_key, r.title, r.slug, r.h1, r.h1_source, r.status])) === snapshot, '', '');
   chk('The credentials appear in no log line, job error or stage', !leaks(logs.join('\n')) && !leaks(job.error) && !leaks(job.stage) && logs.some(l => /research failed/.test(l)), logs.filter(l => /failed/.test(l)).join(' | '), '');
 
+  // A busy DataForSEO during a job: the stage says so while waiting, then the job completes
+  now = new Date('2027-09-01T10:00:00Z'); // stale cache again
+  const stages = [];
+  let busyLeft = 1;
+  const patient = createH1Research({ pool, filloutService: svc, pageMapStore: store, log: quiet, now: () => now,
+    searchVolume: (kws, opts) => D.searchVolume(kws, { env: FAKE, ...opts, retryDelays: [30000], sleep: async () => { const j = await patient.latest(cid); stages.push(j.stage); },
+      fetchImpl: async (u, o) => (busyLeft-- > 0 ? busy : okReply(JSON.parse(o.body)[0].keywords, table)) }) });
+  job = await patient.start(cid, { kind: 'research' });
+  for (let i = 0; i < 200; i++) { job = await patient.job(job.id); if (job.status === 'failed' || job.status === 'complete') break; await sleep(15); }
+  chk('A job that meets a busy DataForSEO shows "DataForSEO is busy … retrying in 30s (1 of 1)" while waiting, then completes', job.status === 'complete' && stages.some(s => /DataForSEO is busy \(Too many requests\.\), retrying in 30s \(1 of 1\)/.test(s)), JSON.stringify([job.status, stages]), '');
+
   // A restart: a job left "researching" is picked up by a new instance on startup
   await pool.query(`INSERT INTO h1_research_jobs (client_id, kind, status, stage) VALUES ($1, 'research', 'researching', 'Researching H1s')`, [cid]);
-  now = new Date('2027-06-01T12:00:00Z');
+  now = new Date('2028-01-01T12:00:00Z'); // stale cache: the resumed job must fetch
   const searched2 = [];
   const restarted = createH1Research({ pool, filloutService: svc, pageMapStore: store, log: quiet, now: () => now, searchVolume: async kws => { searched2.push(kws.length); return D.searchVolume(kws, { env: FAKE, fetchImpl: async (u, o) => okReply(JSON.parse(o.body)[0].keywords, table) }); } });
   const n = await restarted.recover();

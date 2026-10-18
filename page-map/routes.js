@@ -71,7 +71,7 @@ async function saveByHand(svc, clientId, body) {
 // searchVolume / balanceOf: stubs for tests; the real DataForSEO calls otherwise
 function mountPageMapApi(app, { pool, filloutService, searchVolume = D.searchVolume, balanceOf = D.balance, recover = true, log = console }) {
   const store = createPageMapStore({ pool, filloutService });
-  const h1 = createH1Research({ pool, filloutService, pageMapStore: store, searchVolume: kws => searchVolume(kws), log });
+  const h1 = createH1Research({ pool, filloutService, pageMapStore: store, searchVolume: (kws, opts) => searchVolume(kws, opts), log });
   // Jobs a restart interrupted are picked up again
   if (recover) setImmediate(() => h1.recover().catch(err => log.error('[h1-research] recovery failed:', D.safeMessage(err.message))));
   let balanceCache = null;
