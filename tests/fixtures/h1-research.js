@@ -154,7 +154,7 @@ const okReply = (keywords, table) => ({ ok: true, status: 200, statusText: 'OK',
   job = await waitFor(job.id);
   let rows = await store.saved(cid);
   const byKey = k => rows.find(r => r.page_key === k);
-  chk('The job builds the pages then researches: complete, 176 pages, 98 researched, one DataForSEO call for 168 keywords, cost stored', job.status === 'complete' && job.pages_total === 176 && job.pages_built === 176 && job.keywords_total === 168 && job.keywords_fetched === 168 && searched.join() === '168' && job.cost === 0.09, JSON.stringify(job), '');
+  chk('The job builds the pages then researches: complete, 176 pages, 98 researched, one DataForSEO call for 308 keywords (the SOP pairs plus the approved Landscapers/Gardeners words), cost stored', job.status === 'complete' && job.pages_total === 176 && job.pages_built === 176 && job.keywords_total === 308 && job.keywords_fetched === 308 && searched.join() === '308' && job.cost === 0.09, JSON.stringify(job), '');
   chk('Stage text: "Complete: X suggested, Y need a manual H1, cost $Z"', /^Complete: \d+ suggested, \d+ need a manual H1, cost \$0\.09$/.test(job.stage) && job.suggested_count + job.no_data_count === 98, job.stage, '');
   chk('A winner above 10 is written as the H1: suggested, keyword and volume stored, status still Not Started', byKey('homepage:/').h1 === 'Gardener Southampton' && byKey('homepage:/').h1_source === 'suggested' && byKey('homepage:/').h1_keyword === 'gardener southampton' && byKey('homepage:/').h1_volume === 210 && byKey('homepage:/').status === 'Not Started', JSON.stringify(byKey('homepage:/')), '');
   chk('No usable data (10, null): H1 left empty, h1_source needed, the first candidate stored as a suggestion', byKey('category:/paving-contractor').h1 === '' && byKey('category:/paving-contractor').h1_source === 'needed' && byKey('category:/paving-contractor').h1_suggestion === 'Paving Contractor Southampton' && byKey('location:/locations/kings-worthy').h1_suggestion === 'Gardener Kings Worthy', JSON.stringify(byKey('category:/paving-contractor')), '');
@@ -164,7 +164,7 @@ const okReply = (keywords, table) => ({ ok: true, status: 200, statusText: 'OK',
   const suggs = rows.filter(r => r.applies && !r.h1 && r.h1_suggestion).map(r => H.keywordOf(r.h1_suggestion));
   chk('After a full run no two pages share an H1, and no suggestion repeats another page\'s H1 or suggestion (the homepage keeps "Gardener Southampton", the Gardener page does not)', new Set(h1s).size === h1s.length && new Set([...h1s, ...suggs]).size === h1s.length + suggs.length && byKey('category:/gardener').h1 !== 'Gardener Southampton', JSON.stringify(h1s.filter((k, i) => h1s.indexOf(k) !== i)), '[]');
   const cands = await h1.candidates(cid);
-  chk('Every candidate is stored per page with volume, CPC, which one was chosen and why', cands['homepage:/'].length === 2 && cands['homepage:/'][0].chosen === true && /highest volume/.test(cands['homepage:/'][0].reason) && cands['homepage:/'][1].volume === null && Object.keys(cands).length === 98, JSON.stringify(cands['homepage:/']), '');
+  chk('Every candidate is stored per page with volume, CPC, which one was chosen and why', cands['homepage:/'].length === 5 && cands['homepage:/'].map(c => c.candidate).join() === 'gardener southampton,gardener services southampton,garden maintenance southampton,landscaper southampton,landscaping southampton' && cands['homepage:/'][0].chosen === true && /highest volume/.test(cands['homepage:/'][0].reason) && cands['homepage:/'][1].volume === null && Object.keys(cands).length === 98, JSON.stringify(cands['homepage:/']), '');
 
   // A person's work: a manual H1, an accepted suggestion, a status, and an edit to a suggested row's status
   const loc = byKey('location:/locations/romsey'), win = byKey('location:/locations/winchester'), lc = byKey('location_category:/locations/winchester/tree-service');
@@ -186,11 +186,27 @@ const okReply = (keywords, table) => ({ ok: true, status: 200, statusText: 'OK',
   now = new Date('2027-01-20T10:00:00Z');
   job = await waitFor((await h1.start(cid, { kind: 'research' })).id);
   rows = await store.saved(cid);
-  chk('After 90 days the cache is stale and the keywords are fetched again in one call: 164, as pages with a manual or accepted H1 are no longer researched', job.keywords_fetched === 164 && searched.join() === '168,164', JSON.stringify(searched), '168,164');
+  chk('After 90 days the cache is stale and the keywords are fetched again in one call: 300, as pages with a manual or accepted H1 are no longer researched', job.keywords_fetched === 300 && searched.join() === '308,300', JSON.stringify(searched), '308,300');
   chk('Re-research updates suggestions: the homepage now takes the second candidate (300 vs 5)', byKey('homepage:/').h1 === 'Gardener Services Southampton' && byKey('homepage:/').h1_source === 'suggested', byKey('homepage:/').h1, '');
   chk('A suggestion that falls to 10 or less goes back to "needed" with a suggestion (Winchester location, status kept)', byKey('location:/locations/winchester').h1 === '' && byKey('location:/locations/winchester').h1_source === 'needed' && byKey('location:/locations/winchester').status === 'Copy Generated', JSON.stringify(byKey('location:/locations/winchester')), '');
   chk('Never overwritten: the manual Paving Contractor H1 (though its second candidate now has 800), the accepted Romsey H1 (though 999 now), the typed Tree Surgeon Winchester H1', byKey('category:/paving-contractor').h1 === 'Patio Layers Southampton' && byKey('location:/locations/romsey').h1 === 'Gardener Romsey' && byKey('location:/locations/romsey').h1_accepted === true && byKey(lc.page_key).h1 === 'Tree Surgeon Winchester' && byKey(lc.page_key).h1_source === 'manual', JSON.stringify([byKey('category:/paving-contractor').h1, byKey('location:/locations/romsey').h1, byKey(lc.page_key).h1]), '');
   chk('Statuses untouched by research: H1 Added and Copy Generated kept, everything else still Not Started', byKey('location:/locations/romsey').status === 'H1 Added' && byKey('location:/locations/winchester').status === 'Copy Generated' && rows.filter(r => ![loc.page_key, win.page_key, lc.page_key, 'category:/paving-contractor'].includes(r.page_key)).every(r => r.status === 'Not Started'), '', '');
+
+  // "Use all suggestions" for one page type
+  rows = await store.saved(cid);
+  const lcNoData = rows.filter(r => r.applies && r.type === 'location_category' && !r.h1 && r.h1_source !== 'manual' && r.h1_suggestion);
+  const clash = lcNoData[0];
+  const kwLoc = rows.find(r => r.page_key === 'location:/locations/kings-worthy');
+  await store.setRow(cid, kwLoc.id, { h1: clash.h1_suggestion }); // a person typed the same words on another page
+  const beforeUse = JSON.stringify((await store.saved(cid)).filter(r => r.type !== 'location_category').map(r => [r.page_key, r.h1, r.h1_source, r.status]));
+  const used = await store.useSuggestions(cid, { type: 'location_category' });
+  rows = await store.saved(cid);
+  chk('Use all suggestions: every no-data location category page takes its suggestion as a manual H1, status Not Started → H1 Added', used.used.length === lcNoData.length - 1 && used.used.every(u => { const r = rows.find(x => x.title === u.title && x.type === 'location_category'); return r.h1 === u.h1 && r.h1_source === 'manual' && r.h1_accepted === false && !r.h1_suggestion && r.status === 'H1 Added'; }), JSON.stringify([used.used.length, lcNoData.length]), '');
+  chk('A suggestion that would repeat an H1 a person typed elsewhere is skipped and reported, and that page stays empty', used.skipped.length === 1 && used.skipped[0].title === clash.title && /already the H1 of "Kings Worthy"/.test(used.skipped[0].why) && rows.find(r => r.id === clash.id).h1 === '', JSON.stringify(used.skipped), '');
+  chk('Nothing outside that page type changes', JSON.stringify(rows.filter(r => r.type !== 'location_category').map(r => [r.page_key, r.h1, r.h1_source, r.status])) === beforeUse, '', '');
+  const lcH1 = rows.filter(r => r.applies && r.h1).map(r => H.keywordOf(r.h1));
+  chk('Still no two pages share an H1', new Set(lcH1).size === lcH1.length, '', '');
+  chk('Running it again changes nothing; service pages are refused', (await store.useSuggestions(cid, { type: 'location_category' })).used.length === 0 && await store.useSuggestions(cid, { type: 'service' }).then(() => false, e => e.status === 400), '', '');
 
   // Regenerating the map (store.generate) keeps suggestions and a person's H1s
   const before = JSON.stringify(rows.map(r => [r.page_key, r.h1, r.h1_source, r.status]));
@@ -243,10 +259,12 @@ const okReply = (keywords, table) => ({ ok: true, status: 200, statusText: 'OK',
     chk('POST page-map/run returns the job at once', r.job && r.job.kind === 'generate', JSON.stringify(r), '');
     let got;
     for (let i = 0; i < 300; i++) { got = await (await req('GET', `/api/clients/${c2.id}/page-map`)).json(); if (got.job && got.job.status === 'complete') break; await sleep(15); }
-    chk('GET page-map: rows, candidates per page and the latest job (what another device or a refresh sees)', got.job.status === 'complete' && got.rows.length > 0 && got.candidates['homepage:/'] && got.candidates['homepage:/'].length === 2, JSON.stringify(got.job), '');
+    chk('GET page-map: rows, candidates per page and the latest job (what another device or a refresh sees)', got.job.status === 'complete' && got.rows.length > 0 && got.candidates['homepage:/'] && got.candidates['homepage:/'].length === 5, JSON.stringify(got.job), '');
     const hp = got.rows.find(x => x.page_key === 'homepage:/');
     const acc = await (await req('PUT', `/api/clients/${c2.id}/page-map/${hp.id}`, { accept: true })).json();
     chk('Accept through the API', acc.h1_source === 'manual' && acc.h1_accepted === true && acc.status === 'H1 Added', JSON.stringify(acc), '');
+    const viaRoute = await (await req('POST', `/api/clients/${c2.id}/page-map/use-suggestions`, { type: 'location' })).json();
+    chk('POST page-map/use-suggestions works through the API and returns the rows', Array.isArray(viaRoute.used) && Array.isArray(viaRoute.rows) && viaRoute.rows.length === got.rows.length, JSON.stringify(Object.keys(viaRoute)), '');
     r = await (await req('POST', `/api/clients/${c2.id}/h1-research/retry`, {})).json();
     chk('Retry starts a research job (the map exists)', r.job && r.job.kind === 'research', JSON.stringify(r.job), '');
     const b1 = await (await req('GET', '/api/dataforseo/balance')).json(); const b2 = await (await req('GET', '/api/dataforseo/balance')).json();
