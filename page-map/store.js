@@ -49,6 +49,11 @@ async function ensurePageMapTables(pool) {
       counts             JSONB
     );
   `);
+  // H1 research beside the H1 (h1-research/service.js): the researched keyword and volume, a
+  // suggestion when there is no usable data, and whether a person accepted the suggestion
+  for (const col of ['h1_keyword TEXT', 'h1_volume INTEGER', 'h1_suggestion TEXT', 'h1_accepted BOOLEAN NOT NULL DEFAULT FALSE', 'h1_researched_at TIMESTAMPTZ']) {
+    await pool.query(`ALTER TABLE client_page_map ADD COLUMN IF NOT EXISTS ${col}`);
+  }
 }
 
 const parse = v => (typeof v === 'string' ? JSON.parse(v) : v);
@@ -104,11 +109,16 @@ function createPageMapStore({ pool, filloutService }) {
     const { inputs, plan, diff } = await preview(clientId, opts);
     if (!plan.ok) throw Object.assign(new Error(plan.problems.map(p => p.msg).join(' ')), { status: 400, problems: plan.problems });
     const order = new Map(plan.rows.map((r, i) => [r.page_key, i]));
+    // Progress for the one-click flow: "Building pages (n of N)"
+    const total = diff.add.length + diff.update.length + diff.revive.length + diff.unchanged.length + diff.retire.length;
+    let done = 0;
+    const tick = async (force = false) => { done++; if (opts.onProgress && (force || done % 10 === 0 || done === total)) await opts.onProgress(done, total); };
     for (const p of diff.add) {
       await pool.query(
         `INSERT INTO client_page_map (client_id, page_key, type, title, slug, h1, h1_source, links_to, links_from, status, applies, info, sort_order)
          VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,'Not Started',TRUE,$10,$11)`,
         [clientId, p.page_key, p.type, p.title, p.slug, p.h1, p.h1_source, JSON.stringify(p.links_to), JSON.stringify(p.links_from), JSON.stringify(infoOf(p)), order.get(p.page_key)]);
+      await tick();
     }
     const planned = new Map(plan.rows.map(r => [r.page_key, r]));
     for (const { row, changes } of [...diff.update, ...diff.revive]) {
@@ -118,11 +128,14 @@ function createPageMapStore({ pool, filloutService }) {
         `UPDATE client_page_map SET title=$3, links_to=$4, links_from=$5, h1=$6, h1_source=$7, info=$8, sort_order=$9, applies=TRUE, retired_at=NULL, updated_at=NOW()
          WHERE id=$1 AND client_id=$2`,
         [row.id, clientId, next.title, JSON.stringify(next.links_to), JSON.stringify(next.links_from), next.h1, next.h1_source, JSON.stringify(infoOf(p)), order.get(row.page_key)]);
+      await tick();
     }
     for (const row of diff.unchanged) {
       if (row.sort_order !== order.get(row.page_key)) await pool.query(`UPDATE client_page_map SET sort_order=$3 WHERE id=$1 AND client_id=$2`, [row.id, clientId, order.get(row.page_key)]);
+      await tick();
     }
-    for (const row of diff.retire) await pool.query(`UPDATE client_page_map SET applies=FALSE, retired_at=NOW(), updated_at=NOW() WHERE id=$1 AND client_id=$2`, [row.id, clientId]);
+    for (const row of diff.retire) { await pool.query(`UPDATE client_page_map SET applies=FALSE, retired_at=NOW(), updated_at=NOW() WHERE id=$1 AND client_id=$2`, [row.id, clientId]); await tick(); }
+    if (opts.onProgress && !total) await opts.onProgress(0, 0);
     const st = { generated_at: new Date(), category_tab_rule: inputs.categoryTabRule,
       inputs: { baseTown: inputs.baseTown, otherTowns: inputs.otherTowns, companyName: inputs.companyName },
       counts: { ...plan.counts, ...diff.counts } };
@@ -132,25 +145,32 @@ function createPageMapStore({ pool, filloutService }) {
   }
 
   // A person's edit. H1 marks the row manual and moves Not Started to H1 Added (never backwards).
+  // accept: true takes a suggested-by-volume H1 as it is (manual, accepted).
   async function setRow(clientId, id, body) {
     const { rows } = await pool.query(`SELECT * FROM client_page_map WHERE id = $1 AND client_id = $2`, [id, clientId]);
     if (!rows.length) throw Object.assign(new Error('Page not found'), { status: 404 });
     const cur = fromDb(rows[0]);
-    const next = { h1: cur.h1, h1_source: cur.h1_source, meta_title: cur.meta_title, meta_description: cur.meta_description, status: cur.status, notes: cur.notes };
+    const next = { h1: cur.h1, h1_source: cur.h1_source, meta_title: cur.meta_title, meta_description: cur.meta_description, status: cur.status, notes: cur.notes, h1_accepted: !!cur.h1_accepted, h1_suggestion: cur.h1_suggestion || null };
     if (body.status !== undefined) {
       if (!G.STATUSES.includes(body.status)) throw Object.assign(new Error(`status must be one of: ${G.STATUSES.join(', ')}`), { status: 400 });
       next.status = body.status;
     }
-    if (body.h1 !== undefined) {
+    if (body.accept === true) {
+      if (cur.h1_source !== 'suggested' || !cur.h1) throw Object.assign(new Error('Only an H1 suggested by volume can be accepted'), { status: 400 });
+      next.h1_source = 'manual'; next.h1_accepted = true; next.h1_suggestion = null;
+      if (next.status === 'Not Started' && body.status === undefined) next.status = 'H1 Added';
+    } else if (body.h1 !== undefined) {
       const h1 = String(body.h1 || '').trim();
       next.h1 = h1;
       next.h1_source = h1 ? 'manual' : (cur.type === 'service' ? 'auto' : 'needed');
+      next.h1_accepted = false;
+      if (h1) next.h1_suggestion = null;
       if (h1 && next.status === 'Not Started' && body.status === undefined) next.status = 'H1 Added';
     }
     for (const k of ['meta_title', 'meta_description', 'notes']) if (body[k] !== undefined) next[k] = String(body[k] || '');
     const { rows: out } = await pool.query(
-      `UPDATE client_page_map SET h1=$3, h1_source=$4, meta_title=$5, meta_description=$6, status=$7, notes=$8, updated_at=NOW() WHERE id=$1 AND client_id=$2 RETURNING *`,
-      [id, clientId, next.h1, next.h1_source, next.meta_title, next.meta_description, next.status, next.notes]);
+      `UPDATE client_page_map SET h1=$3, h1_source=$4, meta_title=$5, meta_description=$6, status=$7, notes=$8, h1_accepted=$9, h1_suggestion=$10, updated_at=NOW() WHERE id=$1 AND client_id=$2 RETURNING *`,
+      [id, clientId, next.h1, next.h1_source, next.meta_title, next.meta_description, next.status, next.notes, next.h1_accepted, next.h1_suggestion]);
     return fromDb(out[0]);
   }
 

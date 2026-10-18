@@ -13,6 +13,8 @@
 const R = require('../fillout/services/resolver');
 const N = require('../fillout/niches');
 const { createPageMapStore } = require('./store');
+const { createH1Research } = require('../h1-research/service');
+const D = require('../h1-research/dataforseo');
 
 const RULES = ['ticked_only', 'ticked_or_propagated'];
 const ruleOf = v => (RULES.includes(v) ? v : 'ticked_only');
@@ -66,8 +68,13 @@ async function saveByHand(svc, clientId, body) {
   return byHandView(svc, clientId);
 }
 
-function mountPageMapApi(app, { pool, filloutService }) {
+// searchVolume / balanceOf: stubs for tests; the real DataForSEO calls otherwise
+function mountPageMapApi(app, { pool, filloutService, searchVolume = D.searchVolume, balanceOf = D.balance, recover = true, log = console }) {
   const store = createPageMapStore({ pool, filloutService });
+  const h1 = createH1Research({ pool, filloutService, pageMapStore: store, searchVolume: kws => searchVolume(kws), log });
+  // Jobs a restart interrupted are picked up again
+  if (recover) setImmediate(() => h1.recover().catch(err => log.error('[h1-research] recovery failed:', D.safeMessage(err.message))));
+  let balanceCache = null;
   const wrap = fn => async (req, res) => {
     try { await fn(req, res); }
     catch (err) { res.status(err.status || 500).json({ error: err.message, problems: err.problems }); }
@@ -91,7 +98,34 @@ function mountPageMapApi(app, { pool, filloutService }) {
     res.send('﻿' + await store.csv(req.params.clientId, { includeRetired: req.query.retired === '1' }));
   }));
   app.get('/api/clients/:clientId/page-map', wrap(async (req, res) => {
-    res.json({ rows: await store.saved(req.params.clientId), state: await store.state(req.params.clientId) });
+    res.json({ rows: await store.saved(req.params.clientId), state: await store.state(req.params.clientId), candidates: await h1.candidates(req.params.clientId), job: await h1.latest(req.params.clientId) });
+  }));
+  // The one-click flow: build the page map, then research H1s, in the background
+  app.post('/api/clients/:clientId/page-map/run', wrap(async (req, res) => {
+    const p = await store.preview(req.params.clientId, { categoryTabRule: ruleOf((req.body || {}).rule) });
+    if (!p.plan.ok) return res.status(400).json({ error: p.plan.problems.map(x => x.msg).join(' '), problems: p.plan.problems });
+    res.json({ job: await h1.start(req.params.clientId, { kind: 'generate', categoryTabRule: ruleOf((req.body || {}).rule) }) });
+  }));
+  // Re-research H1s (suggestions only), and Retry after a failure
+  app.post('/api/clients/:clientId/h1-research', wrap(async (req, res) => {
+    const rows = await store.saved(req.params.clientId);
+    if (!rows.length) return res.status(400).json({ error: 'No page map yet: generate it first.' });
+    res.json({ job: await h1.start(req.params.clientId, { kind: 'research' }) });
+  }));
+  app.post('/api/clients/:clientId/h1-research/retry', wrap(async (req, res) => {
+    const last = await h1.latest(req.params.clientId);
+    const rows = await store.saved(req.params.clientId);
+    const rebuild = !rows.length || (last && last.kind === 'generate' && last.status === 'failed' && last.pages_built < last.pages_total);
+    res.json({ job: await h1.start(req.params.clientId, { kind: rebuild ? 'generate' : 'research', categoryTabRule: last && last.category_tab_rule }) });
+  }));
+  app.get('/api/clients/:clientId/h1-research', wrap(async (req, res) => res.json({ job: await h1.latest(req.params.clientId) })));
+  // The DataForSEO balance (free call), cached for ten minutes; low below $10
+  app.get('/api/dataforseo/balance', wrap(async (req, res) => {
+    if (!balanceCache || Date.now() - balanceCache.at > 600000) {
+      try { const b = await balanceOf(); balanceCache = { at: Date.now(), body: { balance: b, low: b < 10 } }; }
+      catch (err) { balanceCache = { at: Date.now() - 540000, body: { error: `${err.status ? `status ${err.status}: ` : ''}${D.safeMessage(err.message)}` } }; }
+    }
+    res.json(balanceCache.body);
   }));
   app.get('/api/clients/:clientId/page-map/preview', wrap(async (req, res) => {
     res.json(summary(await store.preview(req.params.clientId, { categoryTabRule: ruleOf(req.query.rule) })));
@@ -104,7 +138,7 @@ function mountPageMapApi(app, { pool, filloutService }) {
 
   app.get('/api/clients/:clientId/services/by-hand', wrap(async (req, res) => res.json(await byHandView(filloutService, req.params.clientId))));
   app.put('/api/clients/:clientId/services/by-hand', wrap(async (req, res) => res.json(await saveByHand(filloutService, req.params.clientId, req.body))));
-  return store;
+  return { store, h1 };
 }
 
 module.exports = { mountPageMapApi, byHandView, saveByHand, configuredNiches };

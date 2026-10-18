@@ -153,6 +153,20 @@
   .pm-row .lcols { display: grid; grid-template-columns: 1fr 1fr; gap: .75rem; margin-top: .35rem; }
   .pm-row .lcols ul { list-style: none; max-height: 220px; overflow: auto; word-break: break-all; } .pm-row .lcols h4 { font-size: 11px; text-transform: uppercase; letter-spacing: .04em; color: var(--muted); }
   @media (max-width: 700px) { .pm-row { grid-template-columns: 1fr; padding: .65rem 1rem; } .pm-row .lcols { grid-template-columns: 1fr; } .pm-bar, details.pm-group > summary { padding-left: 1rem; padding-right: 1rem; } .pm-box { margin: .8rem 1rem; } }
+  /* H1 research: the progress bar and the H1 cell */
+  .h1bar { max-width: 1400px; margin: 1rem auto 0; padding: 0 1.5rem; }
+  .h1bar .in { background: var(--surface); border: 1px solid var(--border); border-radius: var(--r); padding: .7rem 1rem; display: flex; gap: .8rem; align-items: center; flex-wrap: wrap; }
+  .h1bar .in.bad { border-color: var(--danger); background: var(--danger-bg); } .h1bar .in.ok { border-color: var(--success); }
+  .h1bar .txt { flex: 1 1 260px; font-size: 13px; font-weight: 600; } .h1bar .sub { font-size: 12px; color: var(--muted); font-weight: 500; }
+  .h1bar .track { flex: 1 1 100%; height: 6px; border-radius: 4px; background: var(--surface3); overflow: hidden; order: 3; }
+  .h1bar .fill { height: 100%; background: var(--accent); transition: width .4s; } .h1bar .in.ok .fill { background: var(--success); } .h1bar .in.bad .fill { background: var(--danger); }
+  .h1bar .fill.indet { width: 35%; animation: indet 1.3s ease-in-out infinite; } @keyframes indet { from { margin-left: -35%; } to { margin-left: 100%; } }
+  @media (prefers-reduced-motion: reduce) { .h1bar .fill.indet { animation: none; width: 100%; opacity: .5; } }
+  .h1bar .x { background: none; border: none; color: var(--muted); cursor: pointer; font-size: 16px; line-height: 1; padding: 2px 6px; }
+  @media (max-width: 900px) { .h1bar { padding: 0 1rem; } }
+  .pm-row .h1note .acc { padding: 2px 8px; font-size: 11px; }
+  .pm-row details.cands { font-size: 12px; margin-top: 4px; } .pm-row details.cands summary { cursor: pointer; color: var(--muted); }
+  .pm-row .ctwrap { overflow-x: auto; } .pm-row table.ct { width: 100%; border-collapse: collapse; margin-top: .3rem; } .pm-row table.ct th, .pm-row table.ct td { text-align: left; padding: 3px 6px; border-bottom: 1px solid var(--border); font-size: 12px; } .pm-row table.ct th { color: var(--muted); font-weight: 600; } .pm-row table.ct tr.win td { font-weight: 700; }
   /* Set up by hand */
   .bh-group { border: 1px solid var(--border); border-radius: 8px; margin-top: .6rem; } .bh-group > summary { cursor: pointer; padding: .55rem .8rem; font-weight: 600; display: flex; justify-content: space-between; gap: .5rem; }
   .bh-opts { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: .2rem .8rem; padding: .2rem .8rem .7rem; }
@@ -183,6 +197,7 @@
   </div>
 </div>
 
+<div id="h1bar" class="h1bar" hidden></div>
 <div class="wrap">
   <aside>
     <select class="menu-select" id="menuSelect" onchange="go(this.value)"></select>
@@ -231,6 +246,7 @@
     if (!res.ok) { document.getElementById('main').innerHTML = `<div class="empty">Could not load: ${esc((await res.json().catch(() => ({}))).error || res.status)}</div>`; return; }
     rec = await res.json();
     await Promise.all([loadServices(), loadPageMap(), rec.submissions.length ? null : loadByHand()]);
+    loadBalance();
     if (current().panel === 'pages') loadPagePreview();
     const c = rec.client;
     document.title = `${c.name} — Onboarding record`;
@@ -614,9 +630,16 @@
   let pmShowRetired = false;
   const pmOpen = new Set(['homepage', 'category']);
   const pmLinksOpen = new Set();       // rows whose links are expanded
+  const pmCandOpen = new Set();        // rows whose H1 candidates are expanded
+  let pmFilter = 'all';                // all | needs | suggested
+  let dfsBalance = null;               // GET /api/dataforseo/balance
+  let h1Poll = null;
   async function loadPageMap() {
     try { const res = await fetch(`/api/clients/${clientId}/page-map`); pm = res.ok ? await res.json() : { rows: [], state: null }; } catch (_) { pm = { rows: [], state: null }; }
+    pm.candidates = pm.candidates || {};
     if (pm.state && pm.state.category_tab_rule) pmRule = pm.state.category_tab_rule;
+    renderH1Bar();
+    if (jobActive()) pollH1();
   }
   async function loadPagePreview() {
     try { const res = await fetch(`/api/clients/${clientId}/page-map/preview?rule=${pmRule}`); pmPreview = res.ok ? await res.json() : { error: (await res.json().catch(() => ({}))).error || res.status }; } catch (e) { pmPreview = { error: e.message }; }
@@ -637,7 +660,8 @@
     }
     const ruleSel = `<label class="pnote">Category tabs <select onchange="pmRule=this.value;pmConfirm=false;loadPagePreview()"><option value="ticked_only"${pmRule === 'ticked_only' ? ' selected' : ''}>Ticked only</option><option value="ticked_or_propagated"${pmRule === 'ticked_or_propagated' ? ' selected' : ''}>Ticked or propagated</option></select></label>`;
     const bar = `<div class="pm-bar"><div class="facts">${facts}</div><div class="pt-actions">${ruleSel}
-      <button class="btn btn-primary btn-xs" onclick="pmStart()" ${canGen ? '' : 'disabled title="Needs at least one category tab and a base town"'}>${live.length || retired.length ? 'Regenerate page map' : 'Generate page map'}</button>
+      <button class="btn btn-primary btn-xs" onclick="pmStart()" ${canGen && !jobActive() ? '' : `disabled title="${jobActive() ? 'A page map job is running' : 'Needs at least one category tab and a base town'}"`}>${live.length || retired.length ? 'Regenerate page map' : 'Generate page map'}</button>
+      ${live.length ? `<button class="btn btn-ghost btn-xs" onclick="h1Research()" ${jobActive() ? 'disabled' : ''} title="Researches suggested and empty H1s only; never a manual or accepted H1">Re-research H1s</button>` : ''}
       ${pm.rows.length ? `<a class="btn btn-ghost btn-xs" href="/api/clients/${clientId}/page-map.csv">Export CSV</a>` : ''}</div></div>`;
     let box = '';
     const notSetUp = p && p.inputs && p.inputs.hasConfig === false;
@@ -648,15 +672,19 @@
     if (p && p.ok && p.waiting.length) box += `<div class="pm-box"><h3>Waiting on confirmation (${p.waiting.length})</h3><div class="pnote">Additional services that get a page once confirmed on <a href="#services">Services</a>.</div><ul>${p.waiting.map(w => `<li>${esc(w.service)} <span class="pnote">${esc(w.why)}</span></li>`).join('')}</ul></div>`;
     if (p && p.ok && p.councilAreas.length) box += `<div class="pm-box"><h3>Council areas in the town list</h3><div class="pnote">${esc(p.councilAreas.join(', '))} ${p.councilAreas.length === 1 ? 'is a council area' : 'are council areas'}, not ${p.councilAreas.length === 1 ? 'a town' : 'towns'}. ${p.councilAreas.length === 1 ? 'It has' : 'They have'} pages here, but Copybot's location research skips council areas.</div></div>`;
     if (p && p.ok && p.droppedTowns.length) box += `<div class="pm-box"><h3>Towns left out</h3><ul>${p.droppedTowns.map(d => `<li>${esc(d.town)} <span class="pnote">${esc(d.why)}</span></li>`).join('')}</ul></div>`;
+    const keep = r => pmFilter === 'all' || (pmFilter === 'needs' ? r.applies && !r.h1 : r.applies && r.h1_source === 'suggested');
     const groups = PM_TYPES.map(([type, label]) => {
-      const rows = pm.rows.filter(r => r.type === type && (r.applies || pmShowRetired)).sort((a, b) => (b.applies - a.applies));
+      const rows = pm.rows.filter(r => r.type === type && (r.applies || pmShowRetired) && keep(r)).sort((a, b) => (b.applies - a.applies));
+      if (pmFilter !== 'all' && !rows.length) return '';
       const n = pm.rows.filter(r => r.type === type && r.applies).length, gone = pm.rows.filter(r => r.type === type && !r.applies).length;
       if (!n && !gone) return '';
       const need = pm.rows.filter(r => r.type === type && r.applies && !r.h1).length;
       return `<details class="pm-group" data-type="${type}"${pmOpen.has(type) ? ' open' : ''} ontoggle="pmToggle('${type}', this.open)"><summary>${esc(label)} <span class="badge b-muted">${n}</span>${need ? `<span class="badge b-warn">${need} need H1</span>` : ''}${gone ? `<span class="badge b-muted">${gone} no longer apply</span>` : ''}</summary>${pmOpen.has(type) ? rows.map(renderPmRow).join('') : ''}</details>`;
     }).join('');
     const retiredToggle = retired.length ? `<div class="pm-bar"><label class="tick" style="margin:0"><input type="checkbox" ${pmShowRetired ? 'checked' : ''} onchange="pmShowRetired=this.checked;render()"> Show pages that no longer apply (${retired.length})</label></div>` : '';
-    const list = pm.rows.length ? groups + retiredToggle : `<div class="empty">No page map yet. ${canGen ? 'Generate it from the categories and towns above.' : notSetUp ? 'This niche needs its services file first.' : 'Add the categories and a base town first.'}</div>`;
+    const nNeeds = live.filter(r => !r.h1).length, nSugg = live.filter(r => r.h1_source === 'suggested').length;
+    const filterBar = live.length ? `<div class="pm-bar"><label class="pnote">Show <select onchange="pmSetFilter(this.value)"><option value="all"${pmFilter === 'all' ? ' selected' : ''}>All pages</option><option value="needs"${pmFilter === 'needs' ? ' selected' : ''}>Needs H1 (${nNeeds})</option><option value="suggested"${pmFilter === 'suggested' ? ' selected' : ''}>Suggested (${nSugg})</option></select></label></div>` : '';
+    const list = pm.rows.length ? filterBar + (groups || '<div class="empty">Nothing to show for this filter.</div>') + retiredToggle : `<div class="empty">No page map yet. ${canGen ? 'Generate it from the categories and towns above.' : notSetUp ? 'This niche needs its services file first.' : 'Add the categories and a base town first.'}</div>`;
     return `<div class="panel">${head}${bar}${box}${list}</div>`;
   }
   function renderPmConfirm(p) {
@@ -673,14 +701,74 @@
   }
   function renderPmRow(r) {
     const linkList = l => l.length ? `<ul>${l.map(x => `<li>${esc(x)}</li>`).join('')}</ul>` : '<div class="pnote">none</div>';
-    const src = r.h1_source === 'manual' ? '<span class="src manual">set by hand</span>' : r.h1_source === 'auto' ? '<span class="src">auto</span>' : '';
     return `<div class="pm-row${r.applies ? '' : ' retired'}" id="pm_${r.id}">
       <div><div class="ttl">${esc(r.title)}${r.applies ? '' : ' <span class="badge b-muted">no longer applies</span>'}${r.info && r.info.additional ? ' <span class="badge b-ok">additional</span>' : ''}</div><div class="slug">${esc(r.slug)}</div></div>
-      <div><input type="text" value="${esc(r.h1)}" placeholder="H1 (from keyword volume)" aria-label="H1 for ${esc(r.title)}" onchange="pmSave('${r.id}', { h1: this.value })"><div class="h1note">${!r.h1 && r.applies ? '<span class="badge b-warn">needs H1</span>' : ''}${src}</div></div>
+      <div><input type="text" value="${esc(r.h1)}" placeholder="${esc(r.h1_suggestion ? 'Suggestion: ' + r.h1_suggestion : 'H1')}" aria-label="H1 for ${esc(r.title)}" onchange="pmSave('${r.id}', { h1: this.value })"><div class="h1note">${h1Badges(r)}</div>${renderCands(r)}</div>
       <div><select aria-label="Status for ${esc(r.title)}" onchange="pmSave('${r.id}', { status: this.value })">${PM_STATUSES.map(s => `<option${s === r.status ? ' selected' : ''}>${s}</option>`).join('')}</select></div>
       <details class="links"${pmLinksOpen.has(r.id) ? ' open' : ''} ontoggle="if (this.open) pmLinksOpen.add('${r.id}'); else pmLinksOpen.delete('${r.id}')"><summary>Links to ${r.links_to.length} · from ${r.links_from.length}</summary><div class="lcols"><div><h4>Links to</h4>${linkList(r.links_to)}</div><div><h4>Links from</h4>${linkList(r.links_from)}</div></div></details>
     </div>`;
   }
+  // The H1 cell: where the H1 came from, Accept for a suggestion, Use for a no-data suggestion
+  function h1Badges(r) {
+    if (!r.applies) return '';
+    if (r.h1_source === 'suggested') return `<span class="badge b-accent">suggested by volume</span>${r.h1_volume != null ? ` <span class="pnote">${esc(r.h1_keyword)} · ${r.h1_volume}/mo</span>` : ''} <button class="btn btn-primary btn-xs acc" onclick="pmSave('${r.id}', { accept: true })">Accept</button>`;
+    if (r.h1_source === 'manual') return r.h1_accepted ? '<span class="badge b-ok">accepted</span>' : '<span class="badge b-muted">manual</span>';
+    if (r.h1_source === 'auto') return '<span class="src">auto</span>';
+    if (r.h1_suggestion) return `<span class="badge b-warn">no volume data, choose manually</span> <button class="btn btn-ghost btn-xs acc" onclick="pmUseSuggestion('${r.id}')" title="Use the suggestion as a manual H1">Use "${esc(r.h1_suggestion)}"</button>`;
+    return '<span class="badge b-warn">needs H1</span>';
+  }
+  function pmUseSuggestion(id) { const r = pm.rows.find(x => x.id === id); if (r && r.h1_suggestion) pmSave(id, { h1: r.h1_suggestion }); }
+  function pmSetFilter(v) { pmFilter = v; if (v !== 'all') PM_TYPES.forEach(t => pmOpen.add(t[0])); render(); }
+  function renderCands(r) {
+    const c = pm.candidates[r.page_key];
+    if (!c || !c.length) return '';
+    const why = (c.find(x => x.reason) || {}).reason || '';
+    return `<details class="cands"${pmCandOpen.has(r.id) ? ' open' : ''} ontoggle="if (this.open) pmCandOpen.add('${r.id}'); else pmCandOpen.delete('${r.id}')"><summary>Candidates (${c.length})</summary>
+      <div class="ctwrap"><table class="ct"><thead><tr><th>Keyword</th><th>Monthly volume</th><th>CPC (currency unconfirmed)</th></tr></thead><tbody>${c.map(x => `<tr class="${x.chosen ? 'win' : ''}"><td>${x.chosen ? '✓ ' : ''}${esc(x.candidate)}</td><td>${x.volume == null ? 'no data' : x.volume}</td><td>${x.cpc == null ? '—' : x.cpc}</td></tr>`).join('')}</tbody></table></div>
+      ${why ? `<div class="pnote" style="margin-top:3px">${esc(why)}</div>` : ''}</details>`;
+  }
+  // ── H1 research job: one-click flow, progress bar at the top, persisted on the server ──
+  const jobActive = () => !!(pm.job && ['queued', 'building', 'researching'].includes(pm.job.status));
+  const dismissKey = id => 'h1bar_dismissed_' + id;
+  function isDismissed(id) { try { return localStorage.getItem(dismissKey(id)) === '1'; } catch (_) { return false; } }
+  function dismissH1Bar() { try { localStorage.setItem(dismissKey(pm.job.id), '1'); } catch (_) {} renderH1Bar(); }
+  function renderH1Bar() {
+    const el = document.getElementById('h1bar'); if (!el) return;
+    const j = pm.job;
+    const low = dfsBalance && dfsBalance.low ? `<span class="badge b-bad" title="DataForSEO account balance">DataForSEO balance $${Number(dfsBalance.balance).toFixed(2)}: below $10, top up before researching</span>` : '';
+    const showJob = j && (jobActive() || j.status === 'failed' || (j.status === 'complete' && !isDismissed(j.id)));
+    if (!showJob && !low) { el.hidden = true; el.innerHTML = ''; return; }
+    let cls = '', txt = '', sub = '', fill = '', btn = '';
+    if (showJob && jobActive()) {
+      if (j.status === 'building' || (j.status === 'queued' && j.kind === 'generate')) { const pct = j.pages_total ? Math.round(100 * j.pages_built / j.pages_total) : 5; txt = j.pages_total ? `Building pages (${j.pages_built} of ${j.pages_total})` : 'Building pages'; fill = `<div class="fill" style="width:${pct}%"></div>`; }
+      else { txt = j.stage || 'Researching H1s'; sub = 'One batched DataForSEO call: this takes a few seconds'; fill = '<div class="fill indet"></div>'; }
+    } else if (showJob && j.status === 'complete') { cls = 'ok'; txt = j.stage; fill = '<div class="fill" style="width:100%"></div>'; btn = '<button class="x" onclick="dismissH1Bar()" aria-label="Hide">×</button>'; }
+    else if (showJob && j.status === 'failed') { cls = 'bad'; txt = j.stage || 'H1 research failed'; sub = 'The page map is saved; only the H1 research failed.'; fill = '<div class="fill" style="width:100%"></div>'; btn = '<button class="btn btn-primary btn-xs" onclick="h1Retry()">Retry</button>'; }
+    el.hidden = false;
+    el.innerHTML = `<div class="in ${cls}" role="status" aria-live="polite">${txt ? `<div class="txt">${esc(txt)}${sub ? `<div class="sub">${esc(sub)}</div>` : ''}</div>` : ''}${low}${btn}${fill ? `<div class="track">${fill}</div>` : ''}</div>`;
+  }
+  function pollH1() {
+    if (h1Poll) return;
+    h1Poll = setInterval(async () => {
+      try {
+        const r = await (await fetch(`/api/clients/${clientId}/h1-research`)).json();
+        pm.job = r.job; renderH1Bar();
+        if (!jobActive()) {
+          clearInterval(h1Poll); h1Poll = null;
+          await loadPageMap(); if (current().panel === 'pages') loadPagePreview(); render();
+        } else if (r.job && r.job.status === 'researching' && !pm.rows.length) { const j = pm.job; await loadPageMap(); pm.job = j; render(); }
+      } catch (_) {}
+    }, 1500);
+  }
+  async function startJob(url, body) {
+    const res = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body || {}) });
+    const r = await res.json().catch(() => ({}));
+    if (!res.ok) { setSaved('Not started: ' + (r.error || res.status), 'bad'); return; }
+    pm.job = r.job; pmConfirm = false; renderH1Bar(); render(); pollH1();
+  }
+  function h1Research() { return startJob(`/api/clients/${clientId}/h1-research`); }
+  function h1Retry() { return startJob(`/api/clients/${clientId}/h1-research/retry`); }
+  async function loadBalance() { try { const r = await fetch('/api/dataforseo/balance'); dfsBalance = r.ok ? await r.json() : null; } catch (_) { dfsBalance = null; } renderH1Bar(); }
   function pmToggle(type, open) { if (open === pmOpen.has(type)) return; if (open) pmOpen.add(type); else pmOpen.delete(type); render(); }
   async function pmStart() {
     await loadPagePreview();
@@ -689,15 +777,8 @@
     if (pmPreview.firstRun && !pmPreview.inputs.attentionCount) return pmGenerate();
     pmConfirm = true; render();
   }
-  async function pmGenerate() {
-    setSaved('Generating…');
-    const res = await fetch(`/api/clients/${clientId}/page-map/generate`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ rule: pmRule }) });
-    const r = await res.json().catch(() => ({}));
-    if (!res.ok) { setSaved('Not generated: ' + (r.error || res.status), 'bad'); return; }
-    pm = { rows: r.rows, state: r.state }; pmConfirm = false;
-    setSaved(`Page map: ${r.counts.wouldAdd} added, ${r.counts.wouldRetire} retired`, 'ok'); setTimeout(() => setSaved(''), 3000);
-    await loadPagePreview();
-  }
+  // Build the pages and research H1s in one background job (progress bar at the top)
+  async function pmGenerate() { return startJob(`/api/clients/${clientId}/page-map/run`, { rule: pmRule }); }
   async function pmSave(id, body) {
     setSaved('Saving…');
     const res = await fetch(`/api/clients/${clientId}/page-map/${id}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });

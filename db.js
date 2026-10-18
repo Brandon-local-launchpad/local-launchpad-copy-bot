@@ -94,6 +94,8 @@ async function initDb() {
   await require('./fillout/additional-services').ensureAdditionalTables(pool);
   // Page map: the planned list of every page a site needs (page-map/store.js)
   await require('./page-map/store').ensurePageMapTables(pool);
+  // H1 research: keyword volume cache, candidates, jobs (h1-research/service.js)
+  await require('./h1-research/service').ensureH1Tables(pool);
   console.log('DB schema ready');
 }
 
