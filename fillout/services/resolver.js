@@ -15,6 +15,8 @@
 //   - categoryTabRule "ticked_only" (default): a category gets a tab only when the
 //     client ticked something in that category's own tick group;
 //     "ticked_or_propagated": also when a ticked service propagates into it
+//   - a category with alwaysCreate: true always gets a tab under "ticked_only"
+//     (Brandon, 18 Oct 2026); "ticked_or_propagated" ignores the flag
 //   - rows follow the PDF order, unique and duplicate interleaved
 //   - legacy keys: category_N in tab order; service_N by walking the tabs in
 //     order and each tab's rows in PDF order, numbering a service the first time
@@ -137,9 +139,11 @@ function resolve(ticks, config, options = {}) {
   for (const u of unmatched) flags.push({ code: 'unmatched_tick', severity: 'warn', field: u.field, value: u.value, msg: `"${u.value}" (${u.field}) matches no known service: a typo or a form change` });
 
   // Tabs
+  // alwaysCreate (per category, default false): under ticked_only the category gets a
+  // tab even when nothing in its own group was ticked; ticked_or_propagated ignores it
   const tabbed = config.categories.filter(c => {
     const hasRows = c.services.some(s => offered.has(norm(s)));
-    return rule === 'ticked_only' ? tickedGroups.has(c.key) : (tickedGroups.has(c.key) || hasRows);
+    return rule === 'ticked_only' ? (tickedGroups.has(c.key) || c.alwaysCreate === true) : (tickedGroups.has(c.key) || hasRows);
   });
 
   // Rows with global numbering

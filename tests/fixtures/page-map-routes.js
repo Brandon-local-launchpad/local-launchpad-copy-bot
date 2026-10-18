@@ -51,7 +51,7 @@ const clone = o => JSON.parse(JSON.stringify(o));
     const { rows: [c] } = await pool.query(`INSERT INTO clients (name, trade) VALUES ('Hand Made Gardens', 'Landscaper') RETURNING id`);
     let b = await json(await req('GET', `/api/clients/${c.id}/services/by-hand`));
     chk('Editor view: no Fillout record, niche not saved yet but suggested from the trade, its 7 tick groups shown, nothing ticked', b.hasFillout === false && b.niche === null && b.suggestedNiche === 'Landscapers/Gardeners' && b.niches.includes('Landscapers/Gardeners') && b.groups.length === 7 && b.groups.every(x => !x.ticked.length), JSON.stringify([b.hasFillout, b.niche, b.suggestedNiche, b.groups.length]), '');
-    let r = await req('PUT', `/api/clients/${c.id}/services/by-hand`, { niche: 'Roofers' });
+    let r = await req('PUT', `/api/clients/${c.id}/services/by-hand`, { niche: 'Plumbing & Heating' });
     chk('A niche with no categories file is refused', r.status === 400, r.status, 400);
     b = await json(await req('PUT', `/api/clients/${c.id}/services/by-hand`, { niche: 'Landscapers/Gardeners' }));
     chk('Saving the niche shows the 7 category groups with the form\'s tick boxes', b.niche === 'Landscapers/Gardeners' && b.groups.length === 7 && b.groups[0].name === 'Gardener' && b.groups[0].options.length === 9, JSON.stringify(b.groups.map(g => g.options.length)), '');

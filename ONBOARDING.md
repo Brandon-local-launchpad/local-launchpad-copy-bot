@@ -228,6 +228,16 @@ from and up to, a single price gets typical, no usable prices gives no rows).
 
 ### Adding a niche
 
+All 28 niches come from the two "Niche By Niche Categories & Services" PDFs in
+`docs/niches-source/` (git-ignored): `node tools/build-niche-services.js` prints the
+report (also saved as `docs/niches-source/niche-services-report.md`) and `--write`
+writes the files. Never hand-edit a generated file: change the PDF or the
+generator's `NICHES` table (PDF title → dropdown label, primary, `alwaysCreate`,
+Brandon's declared source errors) and re-run. A niche whose All list holds two
+copies of its categories is written to `fillout/services/drafts/` (never loaded)
+until Brandon chooses. `alwaysCreate: true` on a category gives it a tab under
+`ticked_only` even with nothing ticked in its own group.
+
 1. Add `fillout/services/<niche>.json` (copy the landscaper file's shape): the
    categories in GBP order with `tickGroup`, `ticks` (the form's tick boxes) and
    `services` (the All Categories & Services list, in its order) with the PDF's
