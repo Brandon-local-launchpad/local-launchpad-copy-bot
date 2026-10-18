@@ -175,6 +175,10 @@ const same = (a, b) => [...a].sort().join() === [...b].sort().join();
   rows = await store.saved(client.id);
   chk('Putting Romsey back revives its row (no duplicate) with the H1 the person set', rows.filter(r => r.page_key === 'location:/locations/romsey').length === 1 && byKey('location:/locations/romsey').applies && byKey('location:/locations/romsey').h1 === 'Gardener Romsey' && byKey('location_category:/locations/romsey/gardener').status === 'Copy Generated' && byKey('location:/locations/totton').applies === false, JSON.stringify(pv.diff.counts), '');
   chk('Regeneration never touched the old pages table', JSON.stringify((await pool.query(`SELECT * FROM pages WHERE client_id = $1`, [client.id])).rows) === pageBefore, '', '');
+  // tools/page-map-cli.js: a dry run through the same store writes nothing
+  const savedBefore = JSON.stringify(await store.saved(client.id));
+  const cli = await require(path.join(root, 'tools/page-map-cli.js')).run(pool, { client: 'ednes edge testing', log() {} });
+  chk('page-map-cli dry run: finds the client by name, reports the counts, writes nothing', cli.client.id === client.id && cli.preview.diff && typeof cli.preview.diff.counts.unchanged === 'number' && JSON.stringify(await store.saved(client.id)) === savedBefore, JSON.stringify(cli.preview.diff && cli.preview.diff.counts), '');
   // CSV from the store leaves retired rows out unless asked
   const csv2 = await store.csv(client.id);
   chk('CSV from the store: applying rows only; retired rows on request with a tag', csv2.trim().split('\r\n').length - 0 > 0 && !/Totton/.test(csv2) && /Location \(no longer applies\),Totton/.test(await store.csv(client.id, { includeRetired: true })), '', '');
