@@ -3691,6 +3691,8 @@ const v20CallModel = async ({ system, message, maxTokens }) => {
 
 // Fillout intake: inbox, client record, audio, archive (fillout/routes.js)
 if (filloutService) filloutRoutes.mountApi(app, filloutService);
+// Page map and the hand set-up editor (page-map/routes.js)
+if (filloutService) require('./page-map/routes').mountPageMapApi(app, { pool, filloutService });
 
 app.get('/api/clients/:clientId/wp/connection', wpRoute(req => wpService.connection(req.params.clientId)));
 app.put('/api/clients/:clientId/wp/connection', wpRoute(req => wpService.saveConnection(req.params.clientId, req.body || {})));

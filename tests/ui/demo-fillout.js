@@ -116,10 +116,16 @@ process.env.APP_PASSWORD = '';
   }
   await fetch(base + '/api/clients', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ name: 'Chips Carpentry', trade: 'Carpenter' }) });
   await fetch(base + '/api/clients', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ name: 'Edens Edge (demo)', trade: 'Landscaper Gardener' }) });
+  // A hand-made client like the live "ednes edge testing" (no Fillout record, one old page),
+  // filled by tools/seed-edens-edge.js, for the Set up by hand editor and the Pages panel
+  const { rows: [hand] } = await pool.query(`INSERT INTO clients (name, trade) VALUES ('ednes edge testing', 'Landscaper') RETURNING id`);
+  await pool.query(`INSERT INTO pages (client_id, page_type, page_title, url_slug, h1, copy_output) VALUES ($1, 'homepage', 'Homepage', '/', 'Landscaper Southampton', 'old copy')`, [hand.id]);
+  await require(path.join(root, 'tools/seed-edens-edge.js')).seed(pool, { write: true, log() {} });
 
   console.log('\nDEMO READY');
   console.log(`  Webhook:  POST ${base}/api/webhooks/fillout?token=${SECRET}`);
   console.log(`  Inbox:    ${base}/submissions.html`);
   console.log(`  Record:   ${base}/client-record.html?id=${rows[0].client_id}`);
   console.log(`  Clients:  ${base}/clients.html`);
+  console.log(`  By hand:  ${base}/client-record.html?id=${hand.id}#pages`);
 })().catch(e => { console.error('Demo failed:', e); process.exit(1); });

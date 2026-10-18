@@ -76,6 +76,9 @@ const same = (a, b) => [...a].sort().join() === [...b].sort().join();
     chk(`${rule}: same ${old.length} pages as the old script; links differ only on the homepage (no base town page) and the ${dupSlugs.size} duplicate services (all parents)`, old.length === m.rows.length && !unexpected.length, unexpected.slice(0, 5).join(', '), 'none');
   }
 
+  chk('The CSV reads back through the old page map parser (client-files.js): 177 pages, the right types', (() => { const p = require(path.join(root, 'client-files.js')).parsePageMap(G.toCsv(m1.rows)); return p.length === 177 && p.filter(x => x.pageType === 'location-category').length === 78 && p.find(x => x.urlSlug === '/services/grass-seeding').h1 === 'Grass seeding Southampton'; })(), '', '');
+  chk('New Forest District is marked as a council area (it still gets pages)', m1.councilAreas.join() === 'New Forest District' && !!find(m1, '/locations/new-forest-district'), JSON.stringify(m1.councilAreas), '');
+
   // ── Additional services ──
   const withAdd = build('ticked_only', { resolve: { additional: [{ service: 'Pond installation', categoryKey: 'landscape_designer' }] }, input: { waiting: [{ service: 'Raised beds', why: 'no category chosen yet' }] } });
   const pond = find(withAdd, '/services/pond-installation');

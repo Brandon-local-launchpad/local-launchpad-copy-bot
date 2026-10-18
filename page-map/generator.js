@@ -15,6 +15,8 @@
 // Confirmed additional services arrive as resolver rows (kind "additional") and
 // are built like any service; unconfirmed proposals are listed as waiting.
 
+const { isAdminArea } = require('../client-files');
+
 const TYPES = ['homepage', 'category', 'service', 'location', 'location_category'];
 const TYPE_LABEL = { homepage: 'Homepage', category: 'Category', service: 'Service', location: 'Location', location_category: 'Location Category' };
 const STATUSES = ['Not Started', 'H1 Added', 'Copy Generated', 'Pushed to WordPress', 'Live'];
@@ -132,6 +134,8 @@ function buildPageMap(input) {
   counts.total = rows.length;
   return {
     ok: true, problems: [], rows, collisions, counts, droppedTowns: dropped,
+    // Council areas get pages like any town (Brandon to decide); elsewhere Copybot skips them for research
+    councilAreas: towns.filter(t => isAdminArea(t)),
     waiting: input.waiting || [],
     arithmetic: `1 homepage + ${cats.length} categories + ${services.size} unique services + ${townSlugs.length} other towns + ${townSlugs.length} towns x ${cats.length} categories (${counts.location_category}) = ${rows.length}`,
   };
@@ -162,6 +166,8 @@ function diffPlan(saved, planned) {
   const renames = [];
   for (const type of ['category', 'service', 'location', 'location_category']) {
     const a = add.filter(r => r.type === type), r = retire.filter(x => x.type === type);
+    // A town rename already explains its location category pages
+    if (type === 'location_category' && renames.some(x => x.type === 'location')) continue;
     if (a.length && r.length) renames.push({ type, added: a.map(x => x.title), retired: r.map(x => x.title),
       msg: `${TYPE_LABEL[type]}: ${r.map(x => `"${x.title}"`).join(', ')} no longer applies and ${a.map(x => `"${x.title}"`).join(', ')} is new. If this is a rename, copy any H1, meta or notes across by hand.` });
   }
