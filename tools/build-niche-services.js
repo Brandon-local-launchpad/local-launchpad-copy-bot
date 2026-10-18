@@ -56,7 +56,7 @@ const NICHES = [
   { title: 'Loft Conversions / Extensions', niche: 'Loft Conversions / Extensions', primary: 'Building Firm' },
   { title: 'Painting & Decorators', niche: 'Painters & Decorators', primary: 'Painter and Decorator' },
   { title: 'Flooring Fitters (carpet/laminate/LVT)', niche: 'Flooring Fitters (carpet/laminate/LVT)', primary: 'Flooring Contractor',
-    knownSourceErrors: [{ code: 'note_mismatch', category: 'flooring_contractor', service: 'Flooring repair', why: 'The PDF notes Flooring repair as a duplicate of Wood Floor Installation Service, but that category does not list it (Brandon, 18 Oct 2026: source error, report only).' }] },
+    knownSourceErrors: [{ code: 'note_without_duplicate', category: 'flooring_contractor', service: 'Flooring repair', why: 'The PDF notes Flooring repair as a duplicate of Wood Floor Installation Service, but that category does not list it (Brandon, 18 Oct 2026: source error, report only).' }] },
   { title: 'Tiling', niche: 'Tiling', primary: 'Tile contractor' },
   { title: 'Curtain & Blind Fitters', niche: 'Blinds & Curtains Fitters', primary: 'Curtain Shop', alwaysCreate: ['Curtain Fitter'] },
   { title: 'Removals Company', niche: 'Removals Company', primary: 'Removals Company' },

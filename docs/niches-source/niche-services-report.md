@@ -904,7 +904,7 @@ Duplicate-note disagreements:
 In 2+ categories with no "(Duplicate: …)" note (item 5, the lists are the authority): 
 - Flooring Contractor: "Wood floor installation" also listed under Wood Floor Installation Service; the PDF note says nothing
 Same service, other case or wording (item 4): none
-Niche check: passes, 4 notice(s)
+Niche check: passes, 3 notice(s)
 
 ## Tiling
 File: fillout/services/tiling.json · nicheKey tiling · primaryDefault **Tile contractor** (tile_contractor) · other services field tiling.other_services

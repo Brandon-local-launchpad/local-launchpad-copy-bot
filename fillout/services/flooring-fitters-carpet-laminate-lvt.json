@@ -176,16 +176,10 @@
   ],
   "knownSourceErrors": [
     {
-      "code": "note_mismatch",
-      "category": "flooring_contractor",
-      "service": "Flooring repair",
-      "why": "The PDF notes Flooring repair as a duplicate of Wood Floor Installation Service, but that category does not list it (Brandon, 18 Oct 2026: source error, report only)."
-    },
-    {
       "code": "note_without_duplicate",
       "category": "flooring_contractor",
       "service": "Flooring repair",
-      "why": "Generated: the PDF note disagrees with the category lists (the lists are the authority). Awaiting Brandon's review."
+      "why": "The PDF notes Flooring repair as a duplicate of Wood Floor Installation Service, but that category does not list it (Brandon, 18 Oct 2026: source error, report only)."
     },
     {
       "code": "missing_note",
