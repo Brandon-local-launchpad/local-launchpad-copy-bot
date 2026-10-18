@@ -28,30 +28,48 @@ function safeMessage(msg, creds) {
 }
 
 // keywords: unique, lower case. Returns { results: Map keyword → { volume, cpc, status }, cost, calls }
-async function searchVolume(keywords, { env = process.env, fetchImpl = fetch, target = UK, timeoutMs = 120000 } = {}) {
+// retryDelays: waits before each retry of a busy reply (DataForSEO's Google Ads endpoints answer
+// 50301 "Too many requests" when busy); onRetry({ attempt, of, waitMs, status, message }) is told first
+const RETRY_DELAYS = [10000, 30000, 60000];
+const isBusy = st => st === 'timeout' || st === 'network' || st === 429 || (typeof st === 'number' && ((st >= 500 && st < 600) || st === 40202 || st >= 50000));
+async function searchVolume(keywords, { env = process.env, fetchImpl = fetch, target = UK, timeoutMs = 120000, retryDelays = RETRY_DELAYS, onRetry = null, sleep = ms => new Promise(r => setTimeout(r, ms)) } = {}) {
   const creds = credentials(env);
   const auth = 'Basic ' + Buffer.from(`${creds.login}:${creds.password}`).toString('base64');
   const results = new Map();
   let cost = 0, calls = 0;
   for (let i = 0; i < keywords.length; i += CHUNK) {
     const chunk = keywords.slice(i, i + CHUNK);
-    const ctrl = new AbortController();
-    const timer = setTimeout(() => ctrl.abort(), timeoutMs);
-    let res, body = null;
-    try {
-      calls++;
-      res = await fetchImpl(ENDPOINT, { method: 'POST', headers: { Authorization: auth, 'Content-Type': 'application/json' }, body: JSON.stringify([{ keywords: chunk, ...target }]), signal: ctrl.signal });
-      try { body = await res.json(); } catch (_) {}
-    } catch (e) {
-      throw Object.assign(new Error(safeMessage(e.name === 'AbortError' ? `DataForSEO did not answer within ${Math.round(timeoutMs / 1000)}s` : `DataForSEO could not be reached: ${e.message}`, creds)), { status: e.name === 'AbortError' ? 'timeout' : 'network', cost, calls });
-    } finally { clearTimeout(timer); }
-    const task = body && Array.isArray(body.tasks) ? body.tasks[0] : null;
-    const fail = !res.ok ? { status: res.status, message: (body && body.status_message) || res.statusText }
-      : !body ? { status: res.status, message: 'DataForSEO sent a reply that is not JSON' }
-      : body.status_code !== 20000 ? { status: body.status_code, message: body.status_message }
-      : !task ? { status: body.status_code, message: 'DataForSEO sent no task' }
-      : task.status_code !== 20000 ? { status: task.status_code, message: task.status_message } : null;
-    if (fail) throw Object.assign(new Error(safeMessage(fail.message || 'request failed', creds)), { status: fail.status, cost, calls });
+    let task = null, body = null;
+    // A busy reply (429, 5xx, DataForSEO 40202 or 5xxxx, a timeout or a network error) is
+    // retried after a wait; anything else (bad credentials, no credit) fails at once
+    for (let attempt = 0; ; attempt++) {
+      let fail = null;
+      const ctrl = new AbortController();
+      const timer = setTimeout(() => ctrl.abort(), timeoutMs);
+      let res = null;
+      body = null;
+      try {
+        calls++;
+        res = await fetchImpl(ENDPOINT, { method: 'POST', headers: { Authorization: auth, 'Content-Type': 'application/json' }, body: JSON.stringify([{ keywords: chunk, ...target }]), signal: ctrl.signal });
+        try { body = await res.json(); } catch (_) {}
+      } catch (e) {
+        fail = { status: e.name === 'AbortError' ? 'timeout' : 'network', message: e.name === 'AbortError' ? `DataForSEO did not answer within ${Math.round(timeoutMs / 1000)}s` : `DataForSEO could not be reached: ${e.message}` };
+      } finally { clearTimeout(timer); }
+      if (!fail) {
+        task = body && Array.isArray(body.tasks) ? body.tasks[0] : null;
+        fail = !res.ok ? { status: res.status, message: (body && body.status_message) || res.statusText }
+          : !body ? { status: res.status, message: 'DataForSEO sent a reply that is not JSON' }
+          : body.status_code !== 20000 ? { status: body.status_code, message: body.status_message }
+          : !task ? { status: body.status_code, message: 'DataForSEO sent no task' }
+          : task.status_code !== 20000 ? { status: task.status_code, message: task.status_message } : null;
+      }
+      if (!fail) break;
+      const message = safeMessage(fail.message || 'request failed', creds);
+      if (!isBusy(fail.status) || attempt >= retryDelays.length) throw Object.assign(new Error(message), { status: fail.status, cost, calls, attempts: attempt + 1 });
+      const wait = retryDelays[attempt];
+      if (onRetry) await onRetry({ attempt: attempt + 1, of: retryDelays.length, waitMs: wait, status: fail.status, message });
+      await sleep(wait);
+    }
     cost += Number(task.cost != null ? task.cost : body.cost) || 0;
     for (const r of task.result || []) {
       if (!r || r.keyword == null) continue;
@@ -81,4 +99,4 @@ async function balance({ env = process.env, fetchImpl = fetch, timeoutMs = 20000
   } finally { clearTimeout(timer); }
 }
 
-module.exports = { searchVolume, balance, credentials, safeMessage, ENDPOINT, UK, CHUNK };
+module.exports = { searchVolume, balance, credentials, safeMessage, isBusy, ENDPOINT, UK, CHUNK, RETRY_DELAYS };

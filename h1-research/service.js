@@ -132,7 +132,8 @@ function createH1Research({ pool, filloutService, pageMapStore, searchVolume = D
       const missing = keywords.filter(k => !volumes.has(k));
       let cost = 0;
       if (missing.length) {
-        const r = await searchVolume(missing);
+        const stage = `Researching H1s (${pages.length} pages, ${keywords.length} keywords)`;
+        const r = await searchVolume(missing, { onRetry: ({ attempt, of, waitMs, message }) => patch(id, { stage: `${stage}: DataForSEO is busy (${message}), retrying in ${Math.round(waitMs / 1000)}s (${attempt} of ${of})` }) });
         cost = r.cost;
         const per = missing.length ? r.cost / missing.length : 0;
         for (const k of missing) {
