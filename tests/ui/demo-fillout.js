@@ -50,6 +50,22 @@ if (process.env.DEMO_REAL_MODEL !== '1') {
   process.env.ANTHROPIC_API_KEY = process.env.ANTHROPIC_API_KEY || 'demo-fake-key'; // so the server wires the (fake) model in
 }
 
+// DataForSEO, faked: fixed volumes (the 18 Oct 2026 Edens Edge dry run) after a short wait,
+// so the H1 research progress bar shows its stages; a balance of $8.40 shows the low warning
+process.env.DATAFORSEO_LOGIN = 'demo-login'; process.env.DATAFORSEO_PASSWORD = 'demo-password';
+{
+  const VOL = { 'gardener southampton': [210, 3.12], 'landscape gardener southampton': [20, 2.79], 'tree service southampton': [20, 3.03], 'paving contractor southampton': [10, null], 'gardener romsey': [50, 1.81], 'gardener winchester': [140, 2.43], 'gardener eastleigh': [50, 2.49], 'gardener chandlers ford': [30, 0.91], 'gardener hedge end': [20, 2.08], 'tree service winchester': [30, null] };
+  const realFetch = globalThis.fetch;
+  globalThis.fetch = async (url, opts) => {
+    const u = String(url);
+    if (!u.startsWith('https://api.dataforseo.com/')) return realFetch(url, opts);
+    await new Promise(r => setTimeout(r, 2500));
+    if (u.includes('/appendix/user_data')) return new Response(JSON.stringify({ status_code: 20000, tasks: [{ result: [{ money: { balance: 8.4 } }] }] }), { status: 200 });
+    const kws = JSON.parse(opts.body)[0].keywords;
+    return new Response(JSON.stringify({ status_code: 20000, status_message: 'Ok.', cost: 0.09, tasks: [{ status_code: 20000, status_message: 'Ok.', cost: 0.09, result: kws.map(k => ({ keyword: k, search_volume: VOL[k] ? VOL[k][0] : null, cpc: VOL[k] ? VOL[k][1] : null })) }] }), { status: 200 });
+  };
+}
+
 const PORT = process.env.DEMO_PORT || 3992;
 const SECRET = 'demo-secret-' + crypto.randomBytes(4).toString('hex');
 process.env.PORT = String(PORT);
