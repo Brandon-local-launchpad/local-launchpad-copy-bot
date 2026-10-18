@@ -5,8 +5,8 @@ Types: a: note says duplicate of X, but X's list does not contain the service ·
 | Niche | (a) | (b) | (c) | Total |
 |---|---|---|---|---|
 | Builders | 47 | 3 | 5 | 55 |
-| Cleaning Companies | 0 | 3 | 1 | 4 |
-| Drainage | 0 | 10 | 3 | 13 |
+| Cleaning Companies | 0 | 3 | 0 | 3 |
+| Drainage | 0 | 10 | 0 | 10 |
 | Fencing | 5 | 2 | 2 | 9 |
 | Flooring Fitters (carpet/laminate/LVT) | 1 | 1 | 0 | 2 |
 | HVAC | 0 | 71 | 0 | 71 |
@@ -14,7 +14,7 @@ Types: a: note says duplicate of X, but X's list does not contain the service ·
 | Landscapers/Gardeners | 0 | 3 | 0 | 3 |
 | Loft Conversions / Extensions | 75 | 0 | 6 | 81 |
 | Plumbing & Heating | 2 | 5 | 18 | 25 |
-| **All** | **184** | **100** | **50** | **334** |
+| **All** | **184** | **100** | **46** | **330** |
 
 ## By check code
 - a · note_mismatch: 8
@@ -22,9 +22,8 @@ Types: a: note says duplicate of X, but X's list does not contain the service ·
 - a · note_without_duplicate: 120
 - b · missing_note: 30
 - b · note_mismatch: 70
-- c · no_home: 6
+- c · no_home: 3
 - c · note_names_unknown_category: 43
-- c · tick_not_in_list: 1
 
 ## (a) in full: the note says duplicate of X, but X's list does not contain the service
 

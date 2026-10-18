@@ -237,7 +237,21 @@ function buildNiche(def, allSec, tickSec, fieldMap) {
       for (const s of x.c.services) if (s.dup) duplicateNotes[s.name] = s.dup;
       const notes = [...x.c.notes, ...(x.t ? x.t.notes : [])].map(n => n.note);
       const custom = x.c.services.filter(s => s.custom).map(s => s.name);
-      return { key, name: x.name, tickGroup: x.g ? x.g.key : null, alwaysCreate: (def.alwaysCreate || []).some(n => norm(n) === norm(x.name)), ticks: x.t ? x.t.services.map(s => s.name) : [], services: x.c.services.map(s => s.name), duplicateNotes, ...(custom.length ? { customServices: custom } : {}), ...(notes.length ? { notes } : {}) };
+      const ticks = x.t ? x.t.services.map(s => s.name) : [];
+      let services = x.c.services.map(s => s.name);
+      // An All-list entry named exactly like its own category, with no tick box, is the Google
+      // Business Profile default service (Drainage): the category page covers it, so it is not
+      // a service here (Brandon, 18 Oct 2026)
+      const gbp = services.find(s => norm(s) === norm(x.c.name) || norm(s) === norm(x.name));
+      let gbpDefaultService = null;
+      if (gbp && !ticks.some(t => norm(t) === norm(gbp))) { gbpDefaultService = gbp; services = services.filter(s => s !== gbp); delete duplicateNotes[gbp]; }
+      // A category whose All list has no services but whose tick box does (Blast Cleaning:
+      // "No predefined services available in GBP") takes its tick boxes as its services
+      let servicesFromTicks = false;
+      if (!services.length && ticks.length) { services = [...ticks]; servicesFromTicks = true; }
+      return { key, name: x.name, tickGroup: x.g ? x.g.key : null, alwaysCreate: (def.alwaysCreate || []).some(n => norm(n) === norm(x.name)), ticks, services, duplicateNotes,
+        ...(gbpDefaultService ? { gbpDefaultService } : {}), ...(servicesFromTicks ? { servicesFromTicks: true } : {}),
+        ...(custom.length ? { customServices: custom } : {}), ...(notes.length ? { notes } : {}) };
     });
     return out;
   };

@@ -48,8 +48,8 @@ File: fillout/services/cleaning-companies.json · nicheKey cleaning · primaryDe
 | Window Cleaning Service | window_cleaning_service | 6 | 1 | cleaning.cat.window_cleaning_service |  |  |
 | Cleaners | cleaners | 7 | 0 | — |  |  |
 | Air Duct Cleaning Service | air_duct_cleaning_service | 14 | 14 | cleaning.cat.air_duct_cleaning_service |  |  |
-| Blast Cleaning Service | blast_cleaning_service | 0 | 1 | cleaning.cat.blast_cleaning_service |  | No predefined services available in GBP |
-Totals: 72 All rows (46 unique services), 47 tick boxes
+| Blast Cleaning Service | blast_cleaning_service | 1 | 1 | cleaning.cat.blast_cleaning_service |  | No predefined services available in GBP |
+Totals: 73 All rows (47 unique services), 47 tick boxes
 Additional services: tick group cleaning.cat.cleaning_additional_services; 13 examples kept as help text (not services)
 
 Tick group mapping:
@@ -64,15 +64,14 @@ Tick group mapping:
 - Air Duct Cleaning Service → cleaning.cat.air_duct_cleaning_service
 - Blast Cleaning Service → cleaning.cat.blast_cleaning_service
 
-Home categories (item 6): 
-- Blast Cleaning Service tick box "Blast Cleaning" is not in its All Categories list
+Home categories (item 6): every service has exactly one home in the tick box list
 Duplicate-note disagreements: none
 In 2+ categories with no "(Duplicate: …)" note (item 5, the lists are the authority): 
 - Carpet Cleaning Service: "Area rug cleaning" also listed under Upholstery Cleaning Service; the PDF note says nothing
 - Carpet Cleaning Service: "General carpet cleaning" also listed under Upholstery Cleaning Service; the PDF note says nothing
 - Carpet Cleaning Service: "Drapes and curtain cleaning" also listed under Upholstery Cleaning Service; the PDF note says nothing
 Same service, other case or wording (item 4): none
-Niche check: passes, 7 notice(s)
+Niche check: passes, 6 notice(s)
 
 ## Roofers  (PDF: "Roofer")
 File: fillout/services/roofers.json · nicheKey roofers · primaryDefault **Roofing services** (roofing_services) · other services field roofers.other_services
@@ -150,11 +149,11 @@ File: fillout/services/drainage.json · nicheKey drainage · primaryDefault **Dr
 
 | Category | key | All | Tick | Tick group | alwaysCreate | Notes |
 |---|---|---|---|---|---|---|
-| Drainage Service | drainage_service | 12 | 11 | drainage.cat.drainage_service |  |  |
-| Sewage Disposal Service | sewage_disposal_service | 6 | 5 | drainage.cat.sewage_disposal_service |  |  |
-| Septic Tank Service | septic_tank_service | 5 | 1 | drainage.cat.septic_tank_service |  |  |
+| Drainage Service | drainage_service | 11 | 11 | drainage.cat.drainage_service |  |  |
+| Sewage Disposal Service | sewage_disposal_service | 5 | 5 | drainage.cat.sewage_disposal_service |  |  |
+| Septic Tank Service | septic_tank_service | 4 | 1 | drainage.cat.septic_tank_service |  |  |
 | Plumbing | plumbing | 25 | 23 | drainage.cat.plumbing |  |  |
-Totals: 48 All rows (43 unique services), 40 tick boxes
+Totals: 45 All rows (40 unique services), 40 tick boxes
 Additional services: tick group drainage.cat.drainage_additional_services; 23 examples kept as help text (not services); also drainage.cat.plumbing_additional_services (31 examples)
 
 Tick group mapping:
@@ -164,10 +163,7 @@ Tick group mapping:
 - Septic Tank Service → drainage.cat.septic_tank_service
 - Plumbing → drainage.cat.plumbing (label "Plumbing", PDF "Plumber")
 
-Home categories (item 6): 
-- "Drainage Service" is on no tick box, so it has no home category
-- "Sewage Disposal Service" is on no tick box, so it has no home category
-- "Septic Tank Service" is on no tick box, so it has no home category
+Home categories (item 6): every service has exactly one home in the tick box list
 Duplicate-note disagreements: none
 In 2+ categories with no "(Duplicate: …)" note (item 5, the lists are the authority): 
 - Drainage Service: "Drain Unblocking" also listed under Plumbing; the PDF note says nothing
@@ -181,7 +177,7 @@ In 2+ categories with no "(Duplicate: …)" note (item 5, the lists are the auth
 - Plumbing: "CCTV Drain Surveys" also listed under Drainage Service; the PDF note says nothing
 - Plumbing: "Drain Unblocking" also listed under Drainage Service; the PDF note says nothing
 Same service, other case or wording (item 4): none
-Niche check: passes, 14 notice(s)
+Niche check: passes, 11 notice(s)
 
 ## Fencing
 File: fillout/services/fencing.json · nicheKey fencing · primaryDefault **Fence Contractor** (fence_contractor) · other services field fencing.other_services
@@ -1089,9 +1085,9 @@ Niche check: passes, 1 notice(s)
 | Cleaning Companies | Pressure Washing Service | 2 | 7 |  |  |
 | Cleaning Companies | Window Cleaning Service | 1 | 6 |  |  |
 | Cleaning Companies | Cleaners | 0 | 7 |  |  |
-| Cleaning Companies | Blast Cleaning Service | 1 | 0 |  |  |
+| Cleaning Companies | Blast Cleaning Service | 1 | 1 |  |  |
 | Plumbing & Heating | Furnace Repair Service | 0 | 14 |  |  |
-| Drainage | Septic Tank Service | 1 | 5 |  |  |
+| Drainage | Septic Tank Service | 1 | 4 |  |  |
 | Fencing | Lawn Care Service | 1 | 10 |  |  |
 | Locksmith | Emergency Locksmith Service | 0 | 12 | No additional services (all services already listed above). |  |
 | Locksmith | Key Duplication Service | 0 | 12 | No additional services (all services already listed above). |  |

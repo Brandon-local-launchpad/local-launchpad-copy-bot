@@ -410,8 +410,11 @@
       "ticks": [
         "Blast Cleaning"
       ],
-      "services": [],
+      "services": [
+        "Blast Cleaning"
+      ],
       "duplicateNotes": {},
+      "servicesFromTicks": true,
       "notes": [
         "No predefined services available in GBP"
       ]
@@ -441,14 +444,6 @@
       "category": "carpet_cleaning_service",
       "service": "Drapes and curtain cleaning",
       "why": "Generated: the PDF note disagrees with the category lists (the lists are the authority). Awaiting Brandon's review."
-    },
-    {
-      "type": "c",
-      "typeLabel": "c: other source error",
-      "code": "tick_not_in_list",
-      "category": "blast_cleaning_service",
-      "service": "Blast Cleaning",
-      "why": "Generated: a tick box the PDF's All list does not have under this category. Awaiting Brandon's review."
     }
   ]
 }

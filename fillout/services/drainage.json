@@ -92,7 +92,6 @@
         "Emergency Drainage Services"
       ],
       "services": [
-        "Drainage Service",
         "Drain Unblocking",
         "CCTV Drain Surveys",
         "Drain Repairs",
@@ -106,6 +105,7 @@
         "Emergency Drainage Services"
       ],
       "duplicateNotes": {},
+      "gbpDefaultService": "Drainage Service",
       "customServices": [
         "Drain Unblocking",
         "CCTV Drain Surveys",
@@ -133,7 +133,6 @@
         "Sewage Pump Installation"
       ],
       "services": [
-        "Sewage Disposal Service",
         "Septic Tank Emptying",
         "Septic Tank Repairs",
         "Septic Tank Maintenance",
@@ -141,6 +140,7 @@
         "Sewage Pump Installation"
       ],
       "duplicateNotes": {},
+      "gbpDefaultService": "Sewage Disposal Service",
       "customServices": [
         "Septic Tank Emptying",
         "Septic Tank Repairs",
@@ -158,13 +158,13 @@
         "Septic System Installation"
       ],
       "services": [
-        "Septic Tank Service",
         "Septic System Installation",
         "Septic Tank Emptying",
         "Septic Tank Repairs",
         "Septic Tank Maintenance"
       ],
       "duplicateNotes": {},
+      "gbpDefaultService": "Septic Tank Service",
       "customServices": [
         "Septic Tank Emptying",
         "Septic Tank Repairs",
@@ -316,30 +316,6 @@
       "category": "plumbing",
       "service": "Drain Unblocking",
       "why": "Generated: the PDF note disagrees with the category lists (the lists are the authority). Awaiting Brandon's review."
-    },
-    {
-      "type": "c",
-      "typeLabel": "c: other source error",
-      "code": "no_home",
-      "category": null,
-      "service": "Drainage Service",
-      "why": "Generated: the category name itself, listed as a service in the All list (GBP default) but not a tick box. Awaiting Brandon's review."
-    },
-    {
-      "type": "c",
-      "typeLabel": "c: other source error",
-      "code": "no_home",
-      "category": null,
-      "service": "Sewage Disposal Service",
-      "why": "Generated: the category name itself, listed as a service in the All list (GBP default) but not a tick box. Awaiting Brandon's review."
-    },
-    {
-      "type": "c",
-      "typeLabel": "c: other source error",
-      "code": "no_home",
-      "category": null,
-      "service": "Septic Tank Service",
-      "why": "Generated: the category name itself, listed as a service in the All list (GBP default) but not a tick box. Awaiting Brandon's review."
     }
   ]
 }

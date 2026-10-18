@@ -238,7 +238,12 @@ generator's `NICHES` table (PDF title → dropdown label, primary, `alwaysCreate
 Brandon's declared source errors) and re-run. A niche whose All list holds two
 copies of its categories is written to `fillout/services/drafts/` (never loaded)
 until Brandon chooses. `alwaysCreate: true` on a category gives it a tab under
-`ticked_only` even with nothing ticked in its own group.
+`ticked_only` even with nothing ticked in its own group. Two generator rules
+(Brandon, 18 Oct 2026): a category whose All list has no services but whose tick
+box does takes its tick boxes as its services (`servicesFromTicks`, Blast
+Cleaning); an All-list entry named exactly like its own category, with no tick
+box, is the GBP default service, kept as `gbpDefaultService` and not as a
+service (Drainage).
 
 1. Add `fillout/services/<niche>.json` (copy the landscaper file's shape): the
    categories in GBP order with `tickGroup`, `ticks` (the form's tick boxes) and
