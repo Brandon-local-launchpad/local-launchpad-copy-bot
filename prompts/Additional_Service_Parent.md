@@ -1,6 +1,6 @@
 # Parent category for an additional service (CORE 1, 17 Oct 2026)
 
-A tradesperson has typed services on their onboarding form that were not in the tick boxes. For each one, say which of the client's category tabs it belongs under. A person reads your answer and confirms it; you are suggesting, not deciding.
+A tradesperson has listed services on their onboarding form, ticked as extras or typed, that sit under none of their category tabs yet. For each one, say which of the client's category tabs it belongs under. A person reads your answer and confirms it; you are suggesting, not deciding.
 
 ## Rules
 

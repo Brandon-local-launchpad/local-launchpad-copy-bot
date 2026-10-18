@@ -582,54 +582,87 @@
   ],
   "knownSourceErrors": [
     {
+      "type": "a",
+      "typeLabel": "a: note says duplicate of X, but X's list does not contain the service",
       "code": "note_without_duplicate",
       "category": "deck_builder",
       "service": "Fence building",
-      "why": "Generated: the PDF note disagrees with the category lists (the lists are the authority). Awaiting Brandon's review."
+      "why": "Generated: the PDF note disagrees with the category lists (the lists are the authority). Awaiting Brandon's review.",
+      "missingFrom": [
+        "fence_contractor"
+      ]
     },
     {
+      "type": "b",
+      "typeLabel": "b: service in 2+ categories with no note naming them",
       "code": "missing_note",
       "category": "gardener",
       "service": "Lawn mowing and maintenance",
       "why": "Generated: the PDF note disagrees with the category lists (the lists are the authority). Awaiting Brandon's review."
     },
     {
+      "type": "a",
+      "typeLabel": "a: note says duplicate of X, but X's list does not contain the service",
       "code": "note_mismatch",
       "category": "gardener",
       "service": "Fencing installation",
-      "why": "Generated: the PDF note disagrees with the category lists (the lists are the authority). Awaiting Brandon's review."
+      "why": "Generated: the PDF note disagrees with the category lists (the lists are the authority). Awaiting Brandon's review.",
+      "missingFrom": [
+        "fence_contractor"
+      ]
     },
     {
+      "type": "b",
+      "typeLabel": "b: service in 2+ categories with no note naming them",
       "code": "missing_note",
       "category": "gardener",
       "service": "Garden work",
       "why": "Generated: the PDF note disagrees with the category lists (the lists are the authority). Awaiting Brandon's review."
     },
     {
+      "type": "a",
+      "typeLabel": "a: note says duplicate of X, but X's list does not contain the service",
       "code": "note_mismatch",
       "category": "gardener",
       "service": "Landscape design",
-      "why": "Generated: the PDF note disagrees with the category lists (the lists are the authority). Awaiting Brandon's review."
+      "why": "Generated: the PDF note disagrees with the category lists (the lists are the authority). Awaiting Brandon's review.",
+      "missingFrom": [
+        "landscape_designer"
+      ]
     },
     {
+      "type": "a",
+      "typeLabel": "a: note says duplicate of X, but X's list does not contain the service",
       "code": "note_mismatch",
       "category": "landscape_gardener",
       "service": "Landscape design",
-      "why": "Generated: the PDF note disagrees with the category lists (the lists are the authority). Awaiting Brandon's review."
+      "why": "Generated: the PDF note disagrees with the category lists (the lists are the authority). Awaiting Brandon's review.",
+      "missingFrom": [
+        "landscape_designer"
+      ]
     },
     {
+      "type": "a",
+      "typeLabel": "a: note says duplicate of X, but X's list does not contain the service",
       "code": "note_mismatch",
       "category": "lawn_care_service",
       "service": "Fencing installation",
-      "why": "Generated: the PDF note disagrees with the category lists (the lists are the authority). Awaiting Brandon's review."
+      "why": "Generated: the PDF note disagrees with the category lists (the lists are the authority). Awaiting Brandon's review.",
+      "missingFrom": [
+        "fence_contractor"
+      ]
     },
     {
+      "type": "c",
+      "typeLabel": "c: other source error",
       "code": "no_home",
       "category": null,
       "service": "Fence building",
       "why": "Generated: in the All list but in no tick box list. Awaiting Brandon's review."
     },
     {
+      "type": "c",
+      "typeLabel": "c: other source error",
       "code": "no_home",
       "category": null,
       "service": "Fencing installation",

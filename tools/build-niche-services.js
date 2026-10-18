@@ -20,7 +20,7 @@ const fs = require('fs');
 const path = require('path');
 const root = path.join(__dirname, '..');
 const R = require(path.join(root, 'fillout/services/resolver.js'));
-const { checkNiche } = require(path.join(root, 'fillout/services/check-niche.js'));
+const { checkNiche, classifySourceError, SOURCE_ERROR_TYPES } = require(path.join(root, 'fillout/services/check-niche.js'));
 
 const SRC = path.join(root, 'docs/niches-source');
 const OUT = path.join(root, 'fillout/services');
@@ -34,7 +34,7 @@ const NICHES = [
   { title: 'Landscaping', niche: 'Landscapers/Gardeners', skip: 'already built (landscapers-gardeners.json)' },
   { title: 'Cleaning', niche: 'Cleaning Companies', primary: 'House Cleaning Service' },
   { title: 'Roofer', niche: 'Roofers', primary: 'Roofing services' },
-  { title: 'Heating', niche: 'Plumbing & Heating', primary: 'Central Heating Service' },
+  { title: 'Heating', niche: 'Plumbing & Heating', primary: 'Central Heating Service', useCopy: 1 },
   { title: 'Drainage', niche: 'Drainage', primary: 'Drainage Service' },
   { title: 'Fencing', niche: 'Fencing', primary: 'Fence Contractor' },
   { title: '', niche: 'Locksmith', primary: 'Locksmith' },
@@ -237,7 +237,21 @@ function buildNiche(def, allSec, tickSec, fieldMap) {
       for (const s of x.c.services) if (s.dup) duplicateNotes[s.name] = s.dup;
       const notes = [...x.c.notes, ...(x.t ? x.t.notes : [])].map(n => n.note);
       const custom = x.c.services.filter(s => s.custom).map(s => s.name);
-      return { key, name: x.name, tickGroup: x.g ? x.g.key : null, alwaysCreate: (def.alwaysCreate || []).some(n => norm(n) === norm(x.name)), ticks: x.t ? x.t.services.map(s => s.name) : [], services: x.c.services.map(s => s.name), duplicateNotes, ...(custom.length ? { customServices: custom } : {}), ...(notes.length ? { notes } : {}) };
+      const ticks = x.t ? x.t.services.map(s => s.name) : [];
+      let services = x.c.services.map(s => s.name);
+      // An All-list entry named exactly like its own category, with no tick box, is the Google
+      // Business Profile default service (Drainage): the category page covers it, so it is not
+      // a service here (Brandon, 18 Oct 2026)
+      const gbp = services.find(s => norm(s) === norm(x.c.name) || norm(s) === norm(x.name));
+      let gbpDefaultService = null;
+      if (gbp && !ticks.some(t => norm(t) === norm(gbp))) { gbpDefaultService = gbp; services = services.filter(s => s !== gbp); delete duplicateNotes[gbp]; }
+      // A category whose All list has no services but whose tick box does (Blast Cleaning:
+      // "No predefined services available in GBP") takes its tick boxes as its services
+      let servicesFromTicks = false;
+      if (!services.length && ticks.length) { services = [...ticks]; servicesFromTicks = true; }
+      return { key, name: x.name, tickGroup: x.g ? x.g.key : null, alwaysCreate: (def.alwaysCreate || []).some(n => norm(n) === norm(x.name)), ticks, services, duplicateNotes,
+        ...(gbpDefaultService ? { gbpDefaultService } : {}), ...(servicesFromTicks ? { servicesFromTicks: true } : {}),
+        ...(custom.length ? { customServices: custom } : {}), ...(notes.length ? { notes } : {}) };
     });
     return out;
   };
@@ -253,6 +267,17 @@ function buildNiche(def, allSec, tickSec, fieldMap) {
   if (addFields.length > 1) config.extraAdditionalTickGroups = addFields.slice(1).map((f, i) => ({ field: f.key, label: f.label, examples: (additional[i + 1] || {}).examples || [] }));
   if (addFields.length !== Math.max(additional.length, addFields.length ? 1 : 0)) report.notes.push(`${additional.length} additional-services question(s) in the PDF, ${addFields.length} additional tick group(s) in field-map.json`);
 
+  // Two copies and Brandon chose one (NICHES useCopy): load that one; keep the others in the
+  // file as archivedCopies, a reference nothing reads
+  let archivedCopies = null;
+  if (copies.length > 1 && def.useCopy) {
+    const mark = { mapping: report.mapping.length, unplaced: report.unplaced.length };
+    archivedCopies = copies.map((cats, i) => ({ copy: i + 1, cats })).filter(x => x.copy !== def.useCopy)
+      .map(x => ({ copy: x.copy, status: 'archived reference, not loaded', categories: build(x.cats) }));
+    report.mapping.length = mark.mapping; report.unplaced.length = mark.unplaced;
+    report.notes.push(`The All list holds ${copies.length} copies; copy ${def.useCopy} is loaded (Brandon, 18 Oct 2026), ${archivedCopies.map(a => `copy ${a.copy}`).join(', ')} kept as archivedCopies`);
+    copies.splice(0, copies.length, copies[def.useCopy - 1]);
+  }
   if (copies.length > 1) {
     const variants = copies.map(cats => build(cats));
     report.draft = `The All list holds ${copies.length} copies of the categories; written as a DRAFT with both, until Brandon chooses`;
@@ -262,6 +287,7 @@ function buildNiche(def, allSec, tickSec, fieldMap) {
   }
   config.categories = build(copies[0]);
   if (!config.additionalTickGroup) delete config.additionalTickGroup;
+  if (archivedCopies) config.archivedCopies = archivedCopies;
   const pk = config.categories.find(c => norm(c.name) === norm(def.primary)) || config.categories.find(c => norm(c.key) === norm(keyOf(def.primary)));
   config.primaryDefault = pk ? pk.key : null;
   if (!pk) report.issues.push(`primary "${def.primary}" is not a category`);
@@ -280,7 +306,11 @@ function buildNiche(def, allSec, tickSec, fieldMap) {
   for (const p of v.problems.filter(p => p.code === 'tick_not_in_list')) {
     if (!has('tick_not_in_list', p.category, p.service)) declared.push({ code: 'tick_not_in_list', category: p.category, service: p.service, why: 'Generated: a tick box the PDF\'s All list does not have under this category. Awaiting Brandon\'s review.' });
   }
-  if (declared.length) config.knownSourceErrors = declared;
+  // Each declaration opens with its type (a / b / c, see check-niche.js) so they can be filtered
+  if (declared.length) config.knownSourceErrors = declared.map(k => {
+    const cl = classifySourceError(config, k);
+    return { type: cl.type, typeLabel: SOURCE_ERROR_TYPES[cl.type], ...k, ...(cl.type === 'a' ? { missingFrom: cl.missingFrom } : {}) };
+  });
   return { config, report };
 }
 

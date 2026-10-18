@@ -22,6 +22,31 @@
 
 const R = require('./resolver');
 
+// ── Source-error types, so declarations can be filtered and reported apart ──
+//   a: the note says "duplicate of X" but X's list does not contain the service
+//   b: the service is in 2+ categories and a note leaves out a category that lists it
+//   c: anything else (a note naming no category, no tick box home, a tick box not in the All list)
+const SOURCE_ERROR_TYPES = {
+  a: 'a: note says duplicate of X, but X\'s list does not contain the service',
+  b: 'b: service in 2+ categories with no note naming them',
+  c: 'c: other source error',
+};
+function classifySourceError(config, { code, category, service }) {
+  const id = R.norm(service);
+  const catByName = n => config.categories.find(k => R.norm(k.name) === R.norm(n) || R.norm(k.key).replace(/_/g, ' ') === R.norm(n));
+  const cat = config.categories.find(k => k.key === category);
+  if (!cat || !['missing_note', 'note_mismatch', 'note_without_duplicate', 'note_names_unknown_category'].includes(code)) return { type: 'c' };
+  const noteKey = Object.keys(cat.duplicateNotes || {}).find(s => R.norm(s) === id);
+  const noted = noteKey ? cat.duplicateNotes[noteKey] : [];
+  const notedCats = noted.map(catByName).filter(Boolean);
+  const unknownNames = noted.filter(n => !catByName(n));
+  const missingFrom = notedCats.filter(k => k.key !== cat.key && !k.services.some(s => R.norm(s) === id)).map(k => k.key);
+  const listedElsewhere = config.categories.filter(k => k.key !== cat.key && k.services.some(s => R.norm(s) === id));
+  const notNoted = listedElsewhere.filter(k => !notedCats.includes(k)).map(k => k.key);
+  const type = missingFrom.length ? 'a' : notNoted.length ? 'b' : 'c';
+  return { type, missingFrom, notNoted, unknownNames, note: noted };
+}
+
 function checkNiche(config, fieldMap) {
   const niche = config.niche || config.nicheKey || '(no niche name)';
   const errors = [], notices = [];
@@ -35,14 +60,14 @@ function checkNiche(config, fieldMap) {
   const { problems, disagreements } = R.validateConfig(config);
   for (const p of problems) {
     // A declared source error (e.g. a service with no tick box home) is a notice
-    if (known.includes(`${p.code}|${p.category == null ? null : p.category}|${R.norm(p.service)}`)) { notices.push({ code: p.code, msg: `${niche}: ${p.msg} (declared in knownSourceErrors)`, service: p.service }); continue; }
+    if (known.includes(`${p.code}|${p.category == null ? null : p.category}|${R.norm(p.service)}`)) { notices.push({ code: p.code, sourceErrorType: 'c', msg: `${niche}: ${p.msg} (declared in knownSourceErrors)`, service: p.service }); continue; }
     if (p.code === 'repeated_in_category') err(p.code, `category "${catName(p.category)}" lists "${p.service}" twice (position ${p.position})`, { category: p.category, service: p.service });
     else if (p.code === 'tick_not_in_list') err(p.code, `category "${catName(p.category)}" has the tick box "${p.service}", which is missing from its All list`, { category: p.category, service: p.service });
     else err(p.code, p.msg.replace(/^/, ''), { service: p.service });
   }
   for (const d of disagreements) {
     const line = `category "${catName(d.category)}", service "${d.service}": ${d.msg.replace(/^[^:]+:\s*/, '')}`;
-    if (known.includes(`${d.code}|${d.category}|${R.norm(d.service)}`)) notices.push({ code: d.code, msg: `${niche}: ${line} (declared in knownSourceErrors)`, category: d.category, service: d.service });
+    if (known.includes(`${d.code}|${d.category}|${R.norm(d.service)}`)) notices.push({ code: d.code, sourceErrorType: classifySourceError(config, d).type, msg: `${niche}: ${line} (declared in knownSourceErrors)`, category: d.category, service: d.service });
     else err('duplicate_note_' + d.code, `${line}. Fix the note or the list, or declare it in knownSourceErrors if the source sheet is wrong`, { category: d.category, service: d.service });
   }
 
@@ -73,7 +98,9 @@ function checkNiche(config, fieldMap) {
   for (const k of config.knownSourceErrors || []) {
     if (!disagreements.some(d => d.code === k.code && d.category === k.category && R.norm(d.service) === R.norm(k.service)) && !problems.some(p => p.code === k.code && R.norm(p.service) === R.norm(k.service))) notices.push({ code: 'stale_known_error', msg: `${niche}: knownSourceErrors lists ${k.code} for "${k.service}" in "${catName(k.category)}", which no longer happens; remove it` });
   }
-  return { niche, errors, notices };
+  // Declared source errors grouped by type: (a) is reported apart from (b) and (c)
+  const declared = { a: notices.filter(n => n.sourceErrorType === 'a'), b: notices.filter(n => n.sourceErrorType === 'b'), c: notices.filter(n => n.sourceErrorType === 'c') };
+  return { niche, errors, notices, declared };
 }
 
-module.exports = { checkNiche };
+module.exports = { checkNiche, classifySourceError, SOURCE_ERROR_TYPES };

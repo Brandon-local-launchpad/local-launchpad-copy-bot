@@ -48,8 +48,8 @@ File: fillout/services/cleaning-companies.json · nicheKey cleaning · primaryDe
 | Window Cleaning Service | window_cleaning_service | 6 | 1 | cleaning.cat.window_cleaning_service |  |  |
 | Cleaners | cleaners | 7 | 0 | — |  |  |
 | Air Duct Cleaning Service | air_duct_cleaning_service | 14 | 14 | cleaning.cat.air_duct_cleaning_service |  |  |
-| Blast Cleaning Service | blast_cleaning_service | 0 | 1 | cleaning.cat.blast_cleaning_service |  | No predefined services available in GBP |
-Totals: 72 All rows (46 unique services), 47 tick boxes
+| Blast Cleaning Service | blast_cleaning_service | 1 | 1 | cleaning.cat.blast_cleaning_service |  | No predefined services available in GBP |
+Totals: 73 All rows (47 unique services), 47 tick boxes
 Additional services: tick group cleaning.cat.cleaning_additional_services; 13 examples kept as help text (not services)
 
 Tick group mapping:
@@ -64,15 +64,14 @@ Tick group mapping:
 - Air Duct Cleaning Service → cleaning.cat.air_duct_cleaning_service
 - Blast Cleaning Service → cleaning.cat.blast_cleaning_service
 
-Home categories (item 6): 
-- Blast Cleaning Service tick box "Blast Cleaning" is not in its All Categories list
+Home categories (item 6): every service has exactly one home in the tick box list
 Duplicate-note disagreements: none
 In 2+ categories with no "(Duplicate: …)" note (item 5, the lists are the authority): 
 - Carpet Cleaning Service: "Area rug cleaning" also listed under Upholstery Cleaning Service; the PDF note says nothing
 - Carpet Cleaning Service: "General carpet cleaning" also listed under Upholstery Cleaning Service; the PDF note says nothing
 - Carpet Cleaning Service: "Drapes and curtain cleaning" also listed under Upholstery Cleaning Service; the PDF note says nothing
 Same service, other case or wording (item 4): none
-Niche check: passes, 7 notice(s)
+Niche check: passes, 6 notice(s)
 
 ## Roofers  (PDF: "Roofer")
 File: fillout/services/roofers.json · nicheKey roofers · primaryDefault **Roofing services** (roofing_services) · other services field roofers.other_services
@@ -95,9 +94,8 @@ Same service, other case or wording (item 4): none
 Niche check: passes, 1 notice(s)
 
 ## Plumbing & Heating  (PDF: "Heating")
-DRAFT (fillout/services/drafts/, not loaded by the resolver): The All list holds 2 copies of the categories; written as a DRAFT with both, until Brandon chooses
+File: fillout/services/plumbing-and-heating.json · nicheKey plumbing_heating · primaryDefault **Central Heating Service** (central_heating_service) · other services field other_services
 
-Copy 1
 | Category | key | All | Tick | Tick group | alwaysCreate | Notes |
 |---|---|---|---|---|---|---|
 | Central Heating Service | central_heating_service | 15 | 15 | cat_central_heating_service |  |  |
@@ -105,15 +103,6 @@ Copy 1
 | Furnace Repair Service | furnace_repair_service | 14 | 0 | — |  |  |
 | Gas Engineer | gas_engineer | 18 | 15 | cat_gas_engineer |  | (Custom services) |
 Totals: 69 All rows (52 unique services), 52 tick boxes
-
-Copy 2
-| Category | key | All | Tick | Tick group | alwaysCreate | Notes |
-|---|---|---|---|---|---|---|
-| Central Heating Service | central_heating_service | 16 | 15 | cat_central_heating_service |  |  |
-| Plumber | plumber | 22 | 22 | cat_plumber |  |  |
-| Furnace repair service | furnace_repair_service | 14 | 0 | — |  |  |
-| Gas Engineer | gas_engineer | 17 | 15 | cat_gas_engineer |  |  |
-Totals: 69 All rows (53 unique services), 52 tick boxes
 Additional services: tick group additional_heating_services; 13 examples kept as help text (not services); also additional_plumbing_services (0 examples)
 
 Tick group mapping:
@@ -121,22 +110,50 @@ Tick group mapping:
 - Plumber → cat_plumber
 - Furnace Repair Service → no tick group (no tick boxes of its own)
 - Gas Engineer → cat_gas_engineer
-- Central Heating Service → cat_central_heating_service
-- Plumber → cat_plumber
-- Furnace repair service → no tick group (no tick boxes of its own)
-- Gas Engineer → cat_gas_engineer
 - Note: 1 additional-services question(s) in the PDF, 2 additional tick group(s) in field-map.json
+- Note: The All list holds 2 copies; copy 1 is loaded (Brandon, 18 Oct 2026), copy 2 kept as archivedCopies
+
+Home categories (item 6): every service has exactly one home in the tick box list
+Duplicate-note disagreements: 
+- Central Heating Service: "HVAC system repair" note names a category that does not exist: HVAC Contractor, Furnace Repair Service (declared known source error)
+- Central Heating Service: "HVAC system repair" listed nowhere else; the PDF note says Furnace Repair Service (declared known source error)
+- Central Heating Service: "AC installation" note names a category that does not exist: HVAC Contractor, Furnace Repair Service (declared known source error)
+- Central Heating Service: "HVAC duct and vent installation" note names a category that does not exist: HVAC Contractor, Furnace Repair Service (declared known source error)
+- Central Heating Service: "Heating system installation" note names a category that does not exist: HVAC Contractor, Furnace Repair Service (declared known source error)
+- Central Heating Service: "Thermostat installation" note names a category that does not exist: HVAC Contractor, Furnace Repair Service, Gas Engineer (declared known source error)
+- Central Heating Service: "A/C system repair" note names a category that does not exist: HVAC Contractor, Furnace Repair Service (declared known source error)
+- Central Heating Service: "HVAC duct and vent repair" note names a category that does not exist: HVAC Contractor, Furnace Repair Service (declared known source error)
+- Central Heating Service: "Heating system repair" note names a category that does not exist: HVAC Contractor, Furnace Repair Service, Gas Engineer (declared known source error)
+- Central Heating Service: "HVAC repair" note names a category that does not exist: HVAC Contractor, Furnace Repair Service (declared known source error)
+- Central Heating Service: "Thermostat repair" note names a category that does not exist: HVAC Contractor, Furnace Repair Service, Gas Engineer (declared known source error)
+- Furnace Repair Service: "AC installation" note names a category that does not exist: Central Heating Service, HVAC Contractor (declared known source error)
+- Furnace Repair Service: "HVAC duct and vent installation" note names a category that does not exist: Central Heating Service, HVAC Contractor (declared known source error)
+- Furnace Repair Service: "Heating system installation" note names a category that does not exist: Central Heating Service, HVAC Contractor (declared known source error)
+- Furnace Repair Service: "Thermostat installation" note names a category that does not exist: Central Heating Service, HVAC Contractor, Gas Engineer (declared known source error)
+- Furnace Repair Service: "A/C system repair" note names a category that does not exist: Central Heating Service, HVAC Contractor (declared known source error)
+- Furnace Repair Service: "HVAC duct and vent repair" note names a category that does not exist: Central Heating Service, HVAC Contractor (declared known source error)
+- Furnace Repair Service: "Heating system repair" note names a category that does not exist: Central Heating Service, HVAC Contractor, Gas Engineer (declared known source error)
+- Furnace Repair Service: "HVAC repair" note names a category that does not exist: Central Heating Service, HVAC Contractor (declared known source error)
+- Furnace Repair Service: "Thermostat repair" note names a category that does not exist: Central Heating Service, HVAC Contractor, Gas Engineer (declared known source error)
+In 2+ categories with no "(Duplicate: …)" note (item 5, the lists are the authority): 
+- Central Heating Service: "A/C system maintenance" also listed under Furnace Repair Service; the PDF note says nothing
+- Central Heating Service: "HVAC duct and vent cleaning" also listed under Furnace Repair Service; the PDF note says nothing
+- Central Heating Service: "Ductless heating and A/C services" also listed under Furnace Repair Service; the PDF note says nothing
+- Central Heating Service: "Heating system maintenance" also listed under Furnace Repair Service; the PDF note says nothing
+- Central Heating Service: "HVAC system maintenance" also listed under Furnace Repair Service; the PDF note says nothing
+Same service, other case or wording (item 4): none
+Niche check: passes, 27 notice(s)
 
 ## Drainage
 File: fillout/services/drainage.json · nicheKey drainage · primaryDefault **Drainage Service** (drainage_service) · other services field drainage.other_services
 
 | Category | key | All | Tick | Tick group | alwaysCreate | Notes |
 |---|---|---|---|---|---|---|
-| Drainage Service | drainage_service | 12 | 11 | drainage.cat.drainage_service |  |  |
-| Sewage Disposal Service | sewage_disposal_service | 6 | 5 | drainage.cat.sewage_disposal_service |  |  |
-| Septic Tank Service | septic_tank_service | 5 | 1 | drainage.cat.septic_tank_service |  |  |
+| Drainage Service | drainage_service | 11 | 11 | drainage.cat.drainage_service |  |  |
+| Sewage Disposal Service | sewage_disposal_service | 5 | 5 | drainage.cat.sewage_disposal_service |  |  |
+| Septic Tank Service | septic_tank_service | 4 | 1 | drainage.cat.septic_tank_service |  |  |
 | Plumbing | plumbing | 25 | 23 | drainage.cat.plumbing |  |  |
-Totals: 48 All rows (43 unique services), 40 tick boxes
+Totals: 45 All rows (40 unique services), 40 tick boxes
 Additional services: tick group drainage.cat.drainage_additional_services; 23 examples kept as help text (not services); also drainage.cat.plumbing_additional_services (31 examples)
 
 Tick group mapping:
@@ -146,10 +163,7 @@ Tick group mapping:
 - Septic Tank Service → drainage.cat.septic_tank_service
 - Plumbing → drainage.cat.plumbing (label "Plumbing", PDF "Plumber")
 
-Home categories (item 6): 
-- "Drainage Service" is on no tick box, so it has no home category
-- "Sewage Disposal Service" is on no tick box, so it has no home category
-- "Septic Tank Service" is on no tick box, so it has no home category
+Home categories (item 6): every service has exactly one home in the tick box list
 Duplicate-note disagreements: none
 In 2+ categories with no "(Duplicate: …)" note (item 5, the lists are the authority): 
 - Drainage Service: "Drain Unblocking" also listed under Plumbing; the PDF note says nothing
@@ -163,7 +177,7 @@ In 2+ categories with no "(Duplicate: …)" note (item 5, the lists are the auth
 - Plumbing: "CCTV Drain Surveys" also listed under Drainage Service; the PDF note says nothing
 - Plumbing: "Drain Unblocking" also listed under Drainage Service; the PDF note says nothing
 Same service, other case or wording (item 4): none
-Niche check: passes, 14 notice(s)
+Niche check: passes, 11 notice(s)
 
 ## Fencing
 File: fillout/services/fencing.json · nicheKey fencing · primaryDefault **Fence Contractor** (fence_contractor) · other services field fencing.other_services
@@ -969,98 +983,6 @@ In 2+ categories with no "(Duplicate: …)" note (item 5, the lists are the auth
 Same service, other case or wording (item 4): none
 Niche check: passes, 1 notice(s)
 
-## Plumbing & Heating: the two All-list copies side by side (item 1)
-
-### Central Heating Service: copy 1 15 rows, copy 2 16 rows
-| # | Copy 1 | Copy 2 |
-|---|---|---|
-| 1 | A/C system maintenance | A/C system Maintenance |
-| 2 | HVAC duct and vent cleaning | HVAC duct and vent cleaning |
-| 3 | Ductless heating and A/C services | Ductless heating and A/C services |
-| 4 | Heating system maintenance | Heating system maintenance |
-| 5 | HVAC system maintenance | HVAC system maintenance |
-| 6 | HVAC system repair (Dup: HVAC Contractor, Furnace Repair Service) | HVAC system repair |
-| 7 | AC installation (Dup: HVAC Contractor, Furnace Repair Service) | AC installation |
-| 8 | HVAC duct and vent installation (Dup: HVAC Contractor, Furnace Repair Service) | HVAC duct and vent installation |
-| 9 | Heating system installation (Dup: HVAC Contractor, Furnace Repair Service) | Heating system installation |
-| 10 | Thermostat installation (Dup: HVAC Contractor, Furnace Repair Service, Gas Engineer) | Thermostat installation |
-| 11 | A/C system repair (Dup: HVAC Contractor, Furnace Repair Service) | A/C system repair |
-| 12 | HVAC duct and vent repair (Dup: HVAC Contractor, Furnace Repair Service) | HVAC duct and vent repair |
-| 13 | Heating system repair (Dup: HVAC Contractor, Furnace Repair Service, Gas Engineer) | Heating system repair |
-| 14 | HVAC repair (Dup: HVAC Contractor, Furnace Repair Service) | HVAC repair |
-| 15 | Thermostat repair (Dup: HVAC Contractor, Furnace Repair Service, Gas Engineer) | Thermostat repair |
-| 16 |  | Thermostat installation |
-Listed twice in copy 2: Thermostat installation
-
-### Plumber: copy 1 22 rows, copy 2 22 rows
-| # | Copy 1 | Copy 2 |
-|---|---|---|
-| 1 | Plumbing leak detection | Plumbing leak detection |
-| 2 | Tap installation | Tap installation |
-| 3 | Waste disposal installation | Waste disposal installation |
-| 4 | Shower installation | Shower installation |
-| 5 | Toilet installation | Toilet installation |
-| 6 | Water heater installation | Water heater installation |
-| 7 | Plumbing leak repair | Plumbing leak repair |
-| 8 | Pool plumbing repair | Pool plumbing repair |
-| 9 | Tap repair | Tap repair |
-| 10 | Waste disposal repair | Waste disposal repair |
-| 11 | Outdoor plumbing system repair | Outdoor plumbing system repair |
-| 12 | Plumbing pipe repair | Plumbing pipe repair |
-| 13 | Sewer repair | Sewer repair |
-| 14 | Shower repair | Shower repair |
-| 15 | Toilet repair | Toilet repair |
-| 16 | Water heater repair | Water heater repair |
-| 17 | Sewer cleaning | Sewer cleaning |
-| 18 | Sump pump installation | Sump pump installation |
-| 19 | Sump pump repair | Sump pump repair |
-| 20 | Drain cleaning | Drain cleaning |
-| 21 | Water tank installation | Water tank installation |
-| 22 | Water tank repair | Water tank repair |
-
-### Furnace Repair Service: copy 1 14 rows, copy 2 14 rows
-| # | Copy 1 | Copy 2 |
-|---|---|---|
-| 1 | A/C system maintenance (Dup: Central Heating Service) | A/C system maintenance |
-| 2 | HVAC duct and vent cleaning (Dup: Central Heating Service) | HVAC duct and vent cleaning |
-| 3 | Ductless heating and A/C services (Dup: Central Heating Service) | Ductless heating and A/C services |
-| 4 | Heating system maintenance (Dup: Central Heating Service) | Heating system maintenance |
-| 5 | HVAC system maintenance (Dup: Central Heating Service) | HVAC system maintenance |
-| 6 | AC installation (Dup: Central Heating Service, HVAC Contractor) | AC installation |
-| 7 | HVAC duct and vent installation (Dup: Central Heating Service, HVAC Contractor) | HVAC duct and vent installation |
-| 8 | Heating system installation (Dup: Central Heating Service, HVAC Contractor) | Heating system installation |
-| 9 | Thermostat installation (Dup: Central Heating Service, HVAC Contractor, Gas Engineer) | Thermostat installation |
-| 10 | A/C system repair (Dup: Central Heating Service, HVAC Contractor) | A/C system repair |
-| 11 | HVAC duct and vent repair (Dup: Central Heating Service, HVAC Contractor) | HVAC duct and vent repair |
-| 12 | Heating system repair (Dup: Central Heating Service, HVAC Contractor, Gas Engineer) | Heating system repair |
-| 13 | HVAC repair (Dup: Central Heating Service, HVAC Contractor) | HVAC repair |
-| 14 | Thermostat repair (Dup: Central Heating Service, HVAC Contractor, Gas Engineer) | Thermostat repair |
-
-### Gas Engineer: copy 1 18 rows, copy 2 17 rows
-| # | Copy 1 | Copy 2 |
-|---|---|---|
-| 1 | Boiler installation | Boiler Installation |
-| 2 | Boiler servicing | Boiler Servicing |
-| 3 | Boiler repair | Boiler Repairs ≠ |
-| 4 | Emergency boiler repair | Emergency Boiler Repairs ≠ |
-| 5 | Boiler fault finding | Boiler Fault Finding |
-| 6 | Central heating installation | Gas Safety Certificates ≠ |
-| 7 | Central heating repair | Landlord Gas Safety Certificates (CP12) ≠ |
-| 8 | Central heating servicing | Gas Appliance Installation ≠ |
-| 9 | Radiator installation | Gas Appliance Repairs ≠ |
-| 10 | Radiator repair | Central Heating Installation ≠ |
-| 11 | Power flushing | Central Heating Repairs ≠ |
-| 12 | Gas safety certificate (CP12) | Central Heating Servicing ≠ |
-| 13 | Landlord gas safety certificate | Radiator Installation ≠ |
-| 14 | Gas appliance installation | Radiator Repairs ≠ |
-| 15 | Gas appliance repair | Power Flushing ≠ |
-| 16 | Thermostat installation (Dup: Central Heating Service, Furnace Repair Service) | Thermostat Installation |
-| 17 | Thermostat repair (Dup: Central Heating Service, Furnace Repair Service) | Thermostat Repairs ≠ |
-| 18 | Heating system repair (Dup: Central Heating Service, Furnace Repair Service) |  |
-Only in copy 1: Boiler repair; Emergency boiler repair; Central heating repair; Radiator repair; Gas safety certificate (CP12); Landlord gas safety certificate; Gas appliance repair; Thermostat repair; Heating system repair
-Only in copy 2: Boiler Repairs; Emergency Boiler Repairs; Gas Safety Certificates; Landlord Gas Safety Certificates (CP12); Gas Appliance Repairs; Central Heating Repairs; Radiator Repairs; Thermostat Repairs
-Notes: (Custom services)
-
 ## Categories in more than one niche (item 3)
 
 ### Air Duct Cleaning Service: Cleaning Companies 14, HVAC 14
@@ -1075,9 +997,8 @@ Notes: (Custom services)
 ### Carpenter: Builders 15, Loft Conversions / Extensions 15
 - Loft Conversions / Extensions: same services as Builders
 
-### Central Heating Service: HVAC 15, Plumbing & Heating (copy 1) 15, Plumbing & Heating (copy 2) 16
-- Plumbing & Heating (copy 1): same services as HVAC
-- Plumbing & Heating (copy 2): same services as HVAC (other order)
+### Central Heating Service: Plumbing & Heating 15, HVAC 15
+- HVAC: same services as Plumbing & Heating
 
 ### Construction Company: Builders 53, Kitchen/Bathroom Fitters 53, Loft Conversions / Extensions 53
 - Kitchen/Bathroom Fitters: same services as Builders
@@ -1093,9 +1014,8 @@ Notes: (Custom services)
 ### Flooring Contractor: Builders 25, Flooring Fitters (carpet/laminate/LVT) 41
 - Flooring Fitters (carpet/laminate/LVT) vs Builders: only in Flooring Fitters (carpet/laminate/LVT): Furniture assembly; Gutter cleaning; Flooring repair; Remodelling; Drywall installation; Fan installation; Floor fitting; Tile work installation; Plumbing fixture installation; TV mounting; Interior decorating; Exterior painting; Drywall repair; Fan repair; Water fixture repair; Tile work replacement · only in Builders: —
 
-### Furnace Repair Service: HVAC 14, Plumbing & Heating (copy 1) 14, Plumbing & Heating (copy 2) 14
-- Plumbing & Heating (copy 1): same services as HVAC
-- Plumbing & Heating (copy 2): same services as HVAC
+### Furnace Repair Service: Plumbing & Heating 14, HVAC 14
+- HVAC: same services as Plumbing & Heating
 
 ### Gardener: Landscapers/Gardeners 9, Fencing 9
 - Fencing: same services as Landscapers/Gardeners
@@ -1129,9 +1049,8 @@ Notes: (Custom services)
 ### Pet sitter: Pet Care Services (Dog Walkers) 14, Dog Grooming 14
 - Dog Grooming: same services as Pet Care Services (Dog Walkers)
 
-### Plumbing: Drainage 25, Plumbing & Heating (copy 1) 22, Plumbing & Heating (copy 2) 22
-- Plumbing & Heating (copy 1) vs Drainage: only in Plumbing & Heating (copy 1): — · only in Drainage: Emergency Plumbing; CCTV Drain Surveys; Drain Unblocking
-- Plumbing & Heating (copy 2) vs Drainage: only in Plumbing & Heating (copy 2): — · only in Drainage: Emergency Plumbing; CCTV Drain Surveys; Drain Unblocking
+### Plumber: Plumbing & Heating 22, Drainage 25
+- Drainage vs Plumbing & Heating: only in Drainage: Emergency Plumbing; CCTV Drain Surveys; Drain Unblocking · only in Plumbing & Heating: —
 
 ### Pressure Washing Service: Cleaning Companies 7, Pressure Washing / Exterior Cleaning 7, Window Cleaning 7
 - Pressure Washing / Exterior Cleaning: same services as Cleaning Companies
@@ -1166,8 +1085,9 @@ Notes: (Custom services)
 | Cleaning Companies | Pressure Washing Service | 2 | 7 |  |  |
 | Cleaning Companies | Window Cleaning Service | 1 | 6 |  |  |
 | Cleaning Companies | Cleaners | 0 | 7 |  |  |
-| Cleaning Companies | Blast Cleaning Service | 1 | 0 |  |  |
-| Drainage | Septic Tank Service | 1 | 5 |  |  |
+| Cleaning Companies | Blast Cleaning Service | 1 | 1 |  |  |
+| Plumbing & Heating | Furnace Repair Service | 0 | 14 |  |  |
+| Drainage | Septic Tank Service | 1 | 4 |  |  |
 | Fencing | Lawn Care Service | 1 | 10 |  |  |
 | Locksmith | Emergency Locksmith Service | 0 | 12 | No additional services (all services already listed above). |  |
 | Locksmith | Key Duplication Service | 0 | 12 | No additional services (all services already listed above). |  |

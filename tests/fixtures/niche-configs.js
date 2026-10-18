@@ -26,7 +26,10 @@ for (const f of files()) {
   const config = JSON.parse(fs.readFileSync(path.join(dir, f), 'utf8'));
   const r = checkNiche(config, fieldMap);
   chk(`${f}: no errors`, !r.errors.length, '\n    ' + r.errors.map(e => e.msg).join('\n    '), 'none');
-  for (const n of r.notices) console.log('  notice: ' + n.msg);
+  // Declared source errors: (a) reported apart from (b) and (c); other notices after
+  if (r.declared.a.length) { console.log(`  declared (a) note says duplicate of X, X's list lacks the service: ${r.declared.a.length}`); for (const n of r.declared.a) console.log('    ' + n.msg); }
+  if (r.declared.b.length || r.declared.c.length) console.log(`  declared (b) in 2+ categories with no note: ${r.declared.b.length} · (c) other: ${r.declared.c.length}`);
+  for (const n of r.notices.filter(n => !n.sourceErrorType)) console.log('  notice: ' + n.msg);
 }
 
 // ── Broken copies are rejected, with readable messages ──
@@ -50,6 +53,20 @@ c = clone(base); c.primaryDefault = 'pond_builder';
 chk('A primaryDefault that is not a category fails', msgs(c).some(m => /primaryDefault "pond_builder" is not a category in the file/.test(m)), msgs(c).join(' | '), '');
 c = clone(base); c.categories[2].tickGroup = 'landscapers.cat.nope';
 chk('A tick group missing from the field map fails', msgs(c).some(m => /category "Landscape Designer": tick group landscapers.cat.nope is not in field-map.json/.test(m)), msgs(c).join(' | '), '');
+
+// ── Source-error types: (a) reported apart from (b) and (c) ──
+const { classifySourceError } = require(path.join(dir, 'check-niche.js'));
+const tc = { niche: 'T', primaryDefault: 'x', categories: [
+  { key: 'x', name: 'X', tickGroup: null, ticks: ['One', 'Two', 'Three'], services: ['One', 'Two', 'Three'], duplicateNotes: { One: ['Y'], Three: ['Nowhere'] } },
+  { key: 'y', name: 'Y', tickGroup: null, ticks: [], services: ['Two'], duplicateNotes: {} },
+] };
+chk('Type a: the note says duplicate of Y, but Y does not list the service', classifySourceError(tc, { code: 'note_without_duplicate', category: 'x', service: 'One' }).type === 'a' && classifySourceError(tc, { code: 'note_without_duplicate', category: 'x', service: 'One' }).missingFrom.join() === 'y', '', '');
+chk('Type b: in 2+ categories with no note naming the other', classifySourceError(tc, { code: 'missing_note', category: 'x', service: 'Two' }).type === 'b', '', '');
+chk('Type c: a note naming something that is not a category, and anything not about notes', classifySourceError(tc, { code: 'note_names_unknown_category', category: 'x', service: 'Three' }).type === 'c' && classifySourceError(tc, { code: 'no_home', category: null, service: 'Four' }).type === 'c', '', '');
+const tc2 = JSON.parse(JSON.stringify(tc)); tc2.knownSourceErrors = [{ code: 'note_without_duplicate', category: 'x', service: 'One' }, { code: 'missing_note', category: 'x', service: 'Two' }, { code: 'missing_note', category: 'y', service: 'Two' }, { code: 'note_names_unknown_category', category: 'x', service: 'Three' }];
+const rc = checkNiche(tc2, fieldMap);
+chk('Validation reports declared source errors grouped: (a) apart from (b) and (c)', rc.declared.a.length === 1 && rc.declared.b.length === 2 && rc.declared.c.length === 1 && !rc.errors.some(e => /duplicate_note/.test(e.code)), JSON.stringify([rc.declared.a.length, rc.declared.b.length, rc.declared.c.length, rc.errors.map(e => e.code)]), '[1,2,1]');
+chk('Every generated declaration starts with its type, and the type matches the classifier', files().every(f => { const c = JSON.parse(fs.readFileSync(path.join(dir, f), 'utf8')); return c.niche === 'Landscapers/Gardeners' || (c.knownSourceErrors || []).every(k => Object.keys(k)[0] === 'type' && k.type === classifySourceError(c, k).type); }), '', '');
 
 // ── A deliberately broken temporary niche file on disk, picked up by the loop ──
 const tmp = path.join(dir, 'zz-temp-broken-niche.json');

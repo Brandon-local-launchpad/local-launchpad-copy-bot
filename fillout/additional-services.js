@@ -1,8 +1,10 @@
 'use strict';
 
-// ── Additional services: the free-text "any other services" answer ──────────
-// Parsed into individual services (fillout/services/resolver.js parseAdditional),
-// deduped against the niche's known services, and each new one given a proposed
+// ── Additional services: ticks and the free-text "any other services" answer ─
+// The niche's additional-services tick groups (e.g. "Window Cleaning Additional
+// Services") and the typed answer, as individual services
+// (fillout/services/resolver.js additionalInputs), deduped against the services
+// already in the category lists ("already covered"), and each new one given a proposed
 // parent category by the model (prompts/Additional_Service_Parent.md), from the
 // client's existing category tabs only. A person confirms, changes or skips each
 // row on the record page. Hash-gated like price extraction: the model runs only
@@ -91,13 +93,18 @@ function createAdditionalServices({ pool, callModel = null, modelName = null, lo
     return rows;
   }
 
-  // text: the free-text answer; tabs: the client's resolved category tabs [{key, name}]; config: the niche config
-  async function propose(clientId, { text, tabs, config, force = false }) {
-    const hash = String(text || '').trim() ? hashText(text) : null;
+  // text: the free-text answer; ticks: values ticked in the niche's additional-services tick
+  // groups; tabs: the client's resolved category tabs [{key, name}]; config: the niche config.
+  // Hash-gated on both; with no ticks the hash is the text's alone (as before ticks were read).
+  async function propose(clientId, { text, ticks = [], tabs, config, force = false }) {
+    const tickIds = [...new Set((ticks || []).map(R.norm).filter(Boolean))].sort();
+    const hasText = !!String(text || '').trim();
+    const hash = !hasText && !tickIds.length ? null : tickIds.length ? hashText(`${String(text || '')}
+#ticked:${tickIds.join('|')}`) : hashText(text);
     const cur = await state(clientId);
-    if (!hash) { await saveState(clientId, { status: 'no_text', text_hash: null }); return { skipped: 'no text' }; }
+    if (!hash) { await saveState(clientId, { status: 'no_text', text_hash: null }); return { skipped: 'no ticks or text' }; }
     if (!force && cur && cur.status === 'done' && cur.text_hash === hash) return { skipped: 'unchanged' };
-    const parsed = R.parseAdditional(text, config);
+    const parsed = R.additionalInputs(ticks, text, config);
     const existing = await rows(clientId);
     const keep = new Map(existing.filter(r => r.source === 'manual' || ['confirmed', 'rejected', 'skipped'].includes(r.status)).map(r => [r.service_id, r]));
     // Rows a person has handled stay; model rows for the current text are rebuilt
@@ -123,7 +130,7 @@ function createAdditionalServices({ pool, callModel = null, modelName = null, lo
       const prop = proposals.get(p.id);
       const status = p.alreadyCovered ? 'covered' : failed ? 'extraction_failed' : 'proposed';
       await pool.query(`INSERT INTO client_additional_services (client_id, service, service_id, proposed_category_key, reason, status, source, text_hash, sort_order) VALUES ($1,$2,$3,$4,$5,$6,'model',$7,$8)`,
-        [clientId, p.service, p.id, prop ? prop.categoryKey : null, prop ? prop.reason : (p.alreadyCovered ? 'Already in the tick boxes' : failed), status, hash, i++]);
+        [clientId, p.service, p.id, prop ? prop.categoryKey : null, prop ? prop.reason : (p.alreadyCovered ? 'Already a service in the category lists' : failed), status, hash, i++]);
     }
     await saveState(clientId, { status: failed ? 'extraction_failed' : 'done', text_hash: hash, error: failed, model: failed ? null : modelName, proposed_at: failed ? null : new Date() });
     return failed ? { error: failed, rows: parsed.length } : { rows: parsed.length, asked: toAsk.length, covered: parsed.filter(p => p.alreadyCovered).length };
