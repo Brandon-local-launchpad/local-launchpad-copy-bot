@@ -19,6 +19,8 @@ function needsAttention(rec) {
   const chase = (code, panel, msg, extra = {}) => items.push({ code, group: 'chase', severity: 'warn', panel, msg, ...extra });
 
   if (rec.niche && rec.nicheKnown === false) blocks('no_field_map', 'services', `No field map for the niche "${rec.niche}": only the universal fields were read.`);
+  // No services file (fillout/services/<niche>.json) for the niche: no category tabs, so no page map
+  if (rec.servicesConfigured === false) blocks('services_not_set_up', 'services', `Services not set up for this niche yet (${rec.niche || 'no niche given'}): there are no category tabs, so no page map can be generated.`);
   for (const s of rec.submissions || []) {
     if (s.status === 'error') blocks('submission_error', 'overview', `Submission ${s.submissionId} failed to process; re-run it from the inbox.`, { submissionId: s.submissionId });
   }

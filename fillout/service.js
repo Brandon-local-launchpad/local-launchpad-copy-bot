@@ -377,6 +377,8 @@ function createFilloutService({ pool, audioStore, fetchAudio = defaultFetchAudio
       // rules as the headline, so the panels add up to it. The prices unit sits on Prices.
       panels: panelSummary(fields, prices),
     };
+    // Whether the niche has a services file (fillout/services/); without one there are no category tabs or page map
+    out.servicesConfigured = !!(niche && R.configFor(niche));
     out.attention = A.needsAttention(out);
     return out;
   }
@@ -614,6 +616,8 @@ function createFilloutService({ pool, audioStore, fetchAudio = defaultFetchAudio
     return {
       niche: rec.niche, hasConfig: true, categoryTabRule, primaryOverride, primaryDefault: config.primaryDefault,
       allCategories: config.categories.map(c => ({ key: c.key, name: c.name })),
+      // "N of M ticked" per category tick group: ticks that match the group's own tick boxes
+      tickCounts: config.categories.map(c => { const v = Array.isArray(ticks[c.tickGroup]) ? ticks[c.tickGroup] : []; const own = new Set((c.ticks || []).map(R.norm)); return { key: c.key, name: c.name, ticked: new Set(v.map(R.norm).filter(id => own.has(id))).size, total: own.size }; }),
       resolved, additional: add, additionalText: textField && typeof textField.value === 'string' ? textField.value : '',
     };
   }

@@ -1,5 +1,5 @@
 {
-  "_about": "Categories and services for one niche, from the \"All Categories & Services\" PDF (services in its order, with its duplicate notes) and the tick box form PDF (ticks = the services a category shows on the form, its \"home\" services). Adding a niche = adding a file like this one. Service ids are the normalised name (lower case, single spaces); no fuzzy matching.",
+  "_about": "Categories and services for one niche, from the \"All Categories & Services\" PDF (services in its order, with its duplicate notes) and the tick box form PDF (ticks = the services a category shows on the form, its \"home\" services). Adding a niche = adding a file like this one. Service ids are the normalised name (lower case, single spaces); no fuzzy matching. The PDF also lists \"Garden landscaping\" twice under Landscape Designer (positions 2 and 11); the second is removed here (18 Oct 2026), which changes nothing the resolver shows. knownSourceErrors: PDF mistakes that the niche check reports but does not fail on.",
   "niche": "Landscapers/Gardeners",
   "nicheKey": "landscapers",
   "primaryDefault": "gardener",
@@ -242,7 +242,6 @@
         "Driveway or path paving",
         "Garden decorating",
         "Garden design",
-        "Garden landscaping",
         "Gardening services",
         "Grading and resloping",
         "Landscape architecture services",
@@ -514,6 +513,26 @@
         "Wood deck construction"
       ],
       "duplicateNotes": {}
+    }
+  ],
+  "knownSourceErrors": [
+    {
+      "code": "missing_note",
+      "category": "gardener",
+      "service": "Lawn mowing and maintenance",
+      "why": "The PDF gives no duplicate note; the category lists are the authority (Brandon, 17 Oct 2026)."
+    },
+    {
+      "code": "missing_note",
+      "category": "gardener",
+      "service": "Fencing installation",
+      "why": "The PDF gives no duplicate note; the category lists are the authority (Brandon, 17 Oct 2026)."
+    },
+    {
+      "code": "missing_note",
+      "category": "gardener",
+      "service": "Garden work",
+      "why": "The PDF gives no duplicate note; the category lists are the authority (Brandon, 17 Oct 2026)."
     }
   ]
 }

@@ -545,14 +545,17 @@
     try { const res = await fetch(`/api/clients/${clientId}/services`); services = res.ok ? await res.json() : null; } catch (_) { services = null; }
   }
   function renderServices(s) {
-    if (!s) return '';
-    if (!s.hasConfig) return `<div class="prices"><div class="prices-head"><h3>Categories &amp; services</h3></div><div class="pnote">No categories file for ${esc(s.niche || 'this niche')} yet (fillout/services/). The tick boxes below are still stored.</div></div>`;
+    if (!s) return `<div class="prices"><div class="prices-head"><h3>Categories &amp; services</h3></div><div class="pm-box warn" style="margin:0">Could not load categories and services. Reload the page; if it stays, check the server log.</div></div>`;
+    if (!s.hasConfig) return `<div class="prices" id="f_services_resolved"><div class="prices-head"><h3>Categories &amp; services</h3></div><div class="pm-box warn" style="margin:0"><h3>Services not set up for this niche yet</h3><div class="pnote">${esc(s.niche || 'No niche given')} has no services file (fillout/services/), so there are no category tabs and no page map. Any tick boxes below are still stored and will be used once the file is added.</div></div></div>`;
     const r = s.resolved;
     const flags = r.flags.filter(f => !f.code.startsWith('config_'));
     const configNotes = r.flags.filter(f => f.code.startsWith('config_'));
     const flagHtml = flags.map(f => `<span class="badge ${f.severity === 'bad' ? 'b-bad' : 'b-warn'}">${esc(f.msg)}</span>`).join('') + (configNotes.length ? `<span class="badge b-muted" title="${esc(configNotes.map(f => f.msg).join('\n'))}">${configNotes.length} note${configNotes.length === 1 ? '' : 's'} on the categories file</span>` : '');
     const primarySel = `<label class="pnote">Primary category <select onchange="setPrimary(this.value)"><option value=""${!s.primaryOverride ? ' selected' : ''}>Default (${esc((s.allCategories.find(c => c.key === s.primaryDefault) || {}).name || s.primaryDefault)})</option>${s.allCategories.map(c => `<option value="${esc(c.key)}"${s.primaryOverride === c.key ? ' selected' : ''}>${esc(c.name)}</option>`).join('')}</select>${s.primaryOverride ? ' <span class="src manual">set by hand</span>' : ''}</label>`;
     if (!svcTab || !r.categories.some(c => c.key === svcTab)) svcTab = r.primary || (r.categories[0] && r.categories[0].key) || null;
+    const tc = s.tickCounts || [];
+    const tcTotal = tc.reduce((a, c) => ({ ticked: a.ticked + c.ticked, total: a.total + c.total }), { ticked: 0, total: 0 });
+    const tickHtml = tc.length ? `<div class="pnote" style="margin:.2rem 0 .6rem"><strong>${tcTotal.ticked} of ${tcTotal.total} ticked</strong> · ${tc.map(c => `${esc(c.name)} ${c.ticked} of ${c.total}`).join(' · ')}</div>` : '';
     const tabs = r.categories.map(c => `<button class="btn ${c.key === svcTab ? 'btn-primary' : 'btn-ghost'} btn-xs" onclick="svcTab='${c.key}';render()">${esc(c.name)}${c.primary ? ' ★' : ''} <span class="pnote" style="color:inherit">${c.rows.length}</span></button>`).join(' ');
     const cur = r.categories.find(c => c.key === svcTab);
     const rows = cur ? cur.rows.map(row => `<tr><td class="num">${esc(row.legacyKey)}</td><td>${esc(row.name)}${row.kind === 'additional' ? ' <span class="rb badge b-ok">additional</span>' : ''}</td><td>${row.kind === 'duplicate' ? `<span class="badge b-warn">duplicate</span> <span class="pnote">also on ${esc(row.alsoOn.map(a => a.name + (a.hasTab ? '' : ' (no tab)')).join(', '))}</span>` : row.kind === 'unique' ? '<span class="badge b-ok">unique</span>' : ''}</td></tr>`).join('') : '';
@@ -574,7 +577,7 @@
     const addState = st.status === 'extraction_failed' ? `<span class="badge b-bad">Proposal failed</span> <span class="pnote">${esc(st.error || '')}</span>` : st.status === 'pending' && s.additionalText ? '<span class="badge b-muted">Proposing…</span>' : '';
     const addTable = s.additionalText ? `<table class="t"><thead><tr><th>Service</th><th>Parent category</th></tr></thead><tbody>${addRows || '<tr><td colspan="2" class="val blank">Nothing parsed yet</td></tr>'}</tbody></table>` : '<div class="val blank">No additional services typed on the form.</div>';
     return `<div class="prices" id="f_services_resolved"><div class="prices-head"><h3>Categories &amp; services</h3><div class="pt-actions">${primarySel}</div></div>
-      <div class="prices-flags">${flagHtml}</div>
+      <div class="prices-flags">${flagHtml}</div>${tickHtml}
       <div class="pt-actions" style="margin-bottom:.5rem">${tabs}</div>${table}
       ${r.crossRef.length ? `<div class="pnote" style="margin-top:.4rem">${r.crossRef.length} service${r.crossRef.length === 1 ? '' : 's'} on more than one tab: ${esc(r.crossRef.map(x => `${x.name} (${x.short})`).join('; '))}</div>` : ''}
       ${addHead}<div class="prices-flags">${addState}</div>${addTable}</div>`;
@@ -627,7 +630,7 @@
     if (p && p.error) facts = `<span class="badge b-bad">${esc(p.error)}</span>`;
     else if (p) {
       const i = p.inputs, towns = (i.otherTowns || '').split('\n').filter(Boolean).length;
-      canGen = i.tabs > 0 && !!i.baseTown;
+      canGen = i.hasConfig !== false && i.tabs > 0 && !!i.baseTown;
       facts = `<span class="badge ${i.tabs ? 'b-muted' : 'b-bad'}">${i.tabs} category tab${i.tabs === 1 ? '' : 's'}</span><span class="badge ${i.baseTown ? 'b-muted' : 'b-bad'}">Base town: ${esc(i.baseTown || 'missing')}</span><span class="badge b-muted">${towns} other town${towns === 1 ? '' : 's'}</span>`
         + (p.ok && !p.firstRun && (p.diff.counts.wouldAdd || p.diff.counts.wouldRetire || p.diff.counts.wouldUpdate) ? `<span class="badge b-warn">Plan has changed since the last run</span>` : '');
     }
@@ -636,7 +639,9 @@
       <button class="btn btn-primary btn-xs" onclick="pmStart()" ${canGen ? '' : 'disabled title="Needs at least one category tab and a base town"'}>${live.length || retired.length ? 'Regenerate page map' : 'Generate page map'}</button>
       ${pm.rows.length ? `<a class="btn btn-ghost btn-xs" href="/api/clients/${clientId}/page-map.csv">Export CSV</a>` : ''}</div></div>`;
     let box = '';
-    if (p && p.ok === false && p.problems) box += `<div class="pm-box warn"><h3>Can't map pages yet</h3><ul>${p.problems.map(x => `<li>${esc(x.msg)}</li>`).join('')}</ul></div>`;
+    const notSetUp = p && p.inputs && p.inputs.hasConfig === false;
+    if (notSetUp) box += `<div class="pm-box warn"><h3>Services not set up for this niche yet</h3><div class="pnote">${esc(p.inputs.niche || 'No niche given')} has no services file (fillout/services/), so there are no category tabs to build pages from. Generate page map stays off until the file is added.</div></div>`;
+    else if (p && p.ok === false && p.problems) box += `<div class="pm-box warn"><h3>Can't map pages yet</h3><ul>${p.problems.map(x => `<li>${esc(x.msg)}</li>`).join('')}</ul></div>`;
     if (pmConfirm && p && p.ok) box += renderPmConfirm(p);
     if (p && p.ok && p.collisions.length) box += `<div class="pm-box warn"><h3>Slug collisions (${p.collisions.length})</h3><ul>${p.collisions.map(c => `<li>${esc(c.msg)}</li>`).join('')}</ul><div class="pnote">Nothing is renamed: fix the name on the record and generate again.</div></div>`;
     if (p && p.ok && p.waiting.length) box += `<div class="pm-box"><h3>Waiting on confirmation (${p.waiting.length})</h3><div class="pnote">Additional services that get a page once confirmed on <a href="#services">Services</a>.</div><ul>${p.waiting.map(w => `<li>${esc(w.service)} <span class="pnote">${esc(w.why)}</span></li>`).join('')}</ul></div>`;
@@ -650,7 +655,7 @@
       return `<details class="pm-group" data-type="${type}"${pmOpen.has(type) ? ' open' : ''} ontoggle="pmToggle('${type}', this.open)"><summary>${esc(label)} <span class="badge b-muted">${n}</span>${need ? `<span class="badge b-warn">${need} need H1</span>` : ''}${gone ? `<span class="badge b-muted">${gone} no longer apply</span>` : ''}</summary>${pmOpen.has(type) ? rows.map(renderPmRow).join('') : ''}</details>`;
     }).join('');
     const retiredToggle = retired.length ? `<div class="pm-bar"><label class="tick" style="margin:0"><input type="checkbox" ${pmShowRetired ? 'checked' : ''} onchange="pmShowRetired=this.checked;render()"> Show pages that no longer apply (${retired.length})</label></div>` : '';
-    const list = pm.rows.length ? groups + retiredToggle : `<div class="empty">No page map yet. ${canGen ? 'Generate it from the categories and towns above.' : 'Add the categories and a base town first.'}</div>`;
+    const list = pm.rows.length ? groups + retiredToggle : `<div class="empty">No page map yet. ${canGen ? 'Generate it from the categories and towns above.' : notSetUp ? 'This niche needs its services file first.' : 'Add the categories and a base town first.'}</div>`;
     return `<div class="panel">${head}${bar}${box}${list}</div>`;
   }
   function renderPmConfirm(p) {

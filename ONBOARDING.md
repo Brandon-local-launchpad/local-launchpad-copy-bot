@@ -221,6 +221,44 @@ from and up to, a single price gets typical, no usable prices gives no rows).
   /api/clients/:id/services?rule=`, `PUT …/services/primary`, `POST
   …/services/additional/propose`, `PUT …/services/additional/:rowId`.
   Tests: `tests/fixtures/service-resolver.js` (Edens Edge, both rules).
+- The Services panel shows "N of M ticked" for each category's tick group and in
+  total (`tickCounts` on the services API). A client whose niche has no services
+  file shows "Services not set up for this niche yet" in Categories & services
+  and in Pages (Generate page map is off), and a "blocks" item in Needs attention.
+
+### Adding a niche
+
+1. Add `fillout/services/<niche>.json` (copy the landscaper file's shape): the
+   categories in GBP order with `tickGroup`, `ticks` (the form's tick boxes) and
+   `services` (the All Categories & Services list, in its order) with the PDF's
+   `duplicateNotes`; `primaryDefault`; and `additionalTickGroup` if the niche has
+   one. If the source PDF itself is wrong (a missing or wrong duplicate note),
+   keep the lists right and declare the case in `knownSourceErrors`
+   (`{ code, category, service, why }`): it is then reported, not failed.
+2. Put the form's checkbox options on each tick group's entry in
+   `fillout/field-map.json` (`options`, exactly as the form shows them).
+3. Run the niche check: `node tests/fixtures/niche-configs.js`. It loops over
+   every file in `fillout/services/` and fails on a tick box missing from the All
+   list, a tick box with no matching checkbox option (or an option with no tick
+   box), a category listing a service twice, an undeclared duplicate note that
+   disagrees with the lists, a tick group missing from the field map, and a
+   `primaryDefault` that is not a category. Each message names the niche,
+   category and service. Logic: `fillout/services/check-niche.js`.
+4. Check against the niche's finished example sheet. Export each category tab
+   (and the cross-ref tab, if there is one) as CSV, write the example client's
+   ticks as a `.js` or `.json` file (`{ "<tickGroup>": ["Service", …] }`, like
+   `tests/fixtures/data/edens-edge-ticks.js`), then run:
+
+   ```
+   node tools/check-against-sheet.js <niche> --ticks <ticks file> --rule ticked_or_propagated <csv files...>
+   ```
+
+   It is read-only. Content differences (a tab, service, key, unique/duplicate
+   or "also on" note) are listed apart from order differences (same rows, other
+   position); exit code 1 when content differs. Use `--rule ticked_only` too if
+   the sheet left out categories the client never ticked. Edens Edge today: every
+   key matches; 5 content differences in the notes and Hardscaping on Paving
+   Contractor, and 2 order differences (PDF order vs the sheet's).
 
 ## The Clients landing page: niche tabs and allocation
 
