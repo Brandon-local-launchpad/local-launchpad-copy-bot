@@ -92,6 +92,8 @@ async function initDb() {
   await require('./fillout/allocation').ensureAllocationColumns(pool);
   // Additional services and the primary category override (fillout/additional-services.js)
   await require('./fillout/additional-services').ensureAdditionalTables(pool);
+  // Page map: the planned list of every page a site needs (page-map/store.js)
+  await require('./page-map/store').ensurePageMapTables(pool);
   console.log('DB schema ready');
 }
 

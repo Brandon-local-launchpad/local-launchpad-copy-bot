@@ -134,6 +134,31 @@
   .pnote { font-size: 11px; color: var(--muted); margin-top: 2px; }
   .empty { color: var(--muted); text-align: center; padding: 3rem; }
   .orig-section { margin-bottom: 1rem; } .orig-section h2 { font-size: 1rem; padding: .8rem 1.4rem; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; } .orig-section h2 span { color: var(--muted); font-size: 12px; font-weight: 500; }
+  /* Pages (page map) */
+  .pm-bar { display: flex; align-items: center; justify-content: space-between; gap: .75rem; flex-wrap: wrap; padding: 1rem 1.4rem; border-bottom: 1px solid var(--border); }
+  .pm-bar .facts { display: flex; gap: .4rem; flex-wrap: wrap; align-items: center; font-size: 12px; color: var(--muted); }
+  .pm-bar select, .pm-row select, #f_by_hand select { background: var(--surface); color: var(--text); border: 1px solid var(--border); border-radius: 8px; padding: 6px 8px; font-size: 13px; max-width: 100%; }
+  .pm-box { margin: 1rem 1.4rem; border: 1px solid var(--border); border-radius: 8px; padding: .8rem 1rem; background: var(--surface2); }
+  .pm-box h3 { font-size: .95rem; margin-bottom: .4rem; } .pm-box ul { padding-left: 1.1rem; margin: .3rem 0; font-size: 13px; }
+  .pm-box .counts { display: flex; gap: .4rem; flex-wrap: wrap; margin: .4rem 0; }
+  .pm-box.warn { background: var(--warning-bg); border-color: var(--warning); }
+  details.pm-group { border-bottom: 1px solid var(--border); } details.pm-group > summary { cursor: pointer; padding: .75rem 1.4rem; font-weight: 700; list-style: none; display: flex; gap: .5rem; align-items: center; flex-wrap: wrap; }
+  details.pm-group > summary::before { content: '▸'; color: var(--muted); } details.pm-group[open] > summary::before { content: '▾'; }
+  .pm-row { display: grid; grid-template-columns: minmax(0, 1.4fr) minmax(0, 2fr) 170px; gap: .5rem .9rem; align-items: start; padding: .65rem 1.4rem; border-top: 1px solid var(--border); }
+  .pm-row.retired { opacity: .7; } .pm-row.retired .ttl { text-decoration: line-through; }
+  .pm-row .ttl { font-weight: 600; word-break: break-word; } .pm-row .slug { font-size: 12px; color: var(--muted); word-break: break-all; }
+  .pm-row input[type=text] { margin-top: 0; padding: 6px 8px; font-size: 13px; }
+  .pm-row .h1note { font-size: 11px; color: var(--muted); margin-top: 3px; display: flex; gap: .4rem; flex-wrap: wrap; align-items: center; }
+  .pm-row details.links { grid-column: 1 / -1; font-size: 12px; } .pm-row details.links summary { cursor: pointer; color: var(--muted); }
+  .pm-row .lcols { display: grid; grid-template-columns: 1fr 1fr; gap: .75rem; margin-top: .35rem; }
+  .pm-row .lcols ul { list-style: none; max-height: 220px; overflow: auto; word-break: break-all; } .pm-row .lcols h4 { font-size: 11px; text-transform: uppercase; letter-spacing: .04em; color: var(--muted); }
+  @media (max-width: 700px) { .pm-row { grid-template-columns: 1fr; padding: .65rem 1rem; } .pm-row .lcols { grid-template-columns: 1fr; } .pm-bar, details.pm-group > summary { padding-left: 1rem; padding-right: 1rem; } .pm-box { margin: .8rem 1rem; } }
+  /* Set up by hand */
+  .bh-group { border: 1px solid var(--border); border-radius: 8px; margin-top: .6rem; } .bh-group > summary { cursor: pointer; padding: .55rem .8rem; font-weight: 600; display: flex; justify-content: space-between; gap: .5rem; }
+  .bh-opts { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: .2rem .8rem; padding: .2rem .8rem .7rem; }
+  .bh-opts label { display: flex; gap: 8px; align-items: flex-start; font-size: 13px; cursor: pointer; } .bh-opts input { margin-top: 3px; accent-color: var(--accent); width: 15px; height: 15px; flex: none; }
+  .bh-towns { display: grid; grid-template-columns: 1fr 2fr; gap: .8rem; margin-top: .8rem; } .bh-towns label { font-size: 12px; font-weight: 600; }
+  @media (max-width: 700px) { .bh-towns { grid-template-columns: 1fr; } }
   .hl { animation: hl 1.6s ease-out; } @keyframes hl { from { background: var(--warning-bg); } to { background: transparent; } }
 </style>
 </head>
@@ -196,16 +221,17 @@
   const unitFields = f => f.group && f.group !== 'services' ? allFields().filter(x => x.group === f.group) : [f];
 
   // ── Routing: #panel or #panel:field_key ──
-  const PANEL_KEYS = () => ['overview', ...rec.panels.map(p => p.key), 'original'];
+  const PANEL_KEYS = () => ['overview', ...rec.panels.map(p => p.key), 'pages', 'original'];
   function current() { const h = (location.hash || '#overview').slice(1); const [p, field] = h.split(':'); return { panel: PANEL_KEYS().includes(p) ? p : 'overview', field: field || null }; }
   function go(target) { location.hash = '#' + target; }
-  window.addEventListener('hashchange', () => { editing = null; priceEdit = null; render(); });
+  window.addEventListener('hashchange', () => { editing = null; priceEdit = null; if (current().panel === 'pages') loadPagePreview(); render(); });
 
   async function load() {
     const res = await fetch(`/api/clients/${clientId}/record`);
     if (!res.ok) { document.getElementById('main').innerHTML = `<div class="empty">Could not load: ${esc((await res.json().catch(() => ({}))).error || res.status)}</div>`; return; }
     rec = await res.json();
-    await loadServices();
+    await Promise.all([loadServices(), loadPageMap(), rec.submissions.length ? null : loadByHand()]);
+    if (current().panel === 'pages') loadPagePreview();
     const c = rec.client;
     document.title = `${c.name} — Onboarding record`;
     document.getElementById('crumbClient').textContent = c.name; document.getElementById('crumbClient').href = `/client.html?id=${c.id}`;
@@ -241,10 +267,13 @@
       html += `<div class="mg">${esc(g.name)}</div>`;
       for (const p of g.items) html += item(p.key, p.label, counts(p), p.status);
     }
+    const live = pm.rows.filter(r => r.applies);
+    const needH1 = live.filter(r => !r.h1).length;
+    html += `<div class="mg">Build</div>` + item('pages', 'Pages', live.length ? `${live.length} pages${needH1 ? ` · ${needH1} need H1` : ''}` : 'not mapped', live.length ? (needH1 ? 'chase' : 'complete') : 'none');
     html += `<details class="orig"${cur === 'original' ? ' open' : ''}><summary>Original answers</summary>${item('original', 'By form page', `${allFields().length} fields`, 'none')}</details>`;
     document.getElementById('menu').innerHTML = html;
     const sel = document.getElementById('menuSelect');
-    sel.innerHTML = `<option value="overview">Overview</option>` + groups.map(g => `<optgroup label="${esc(g.name)}">${g.items.map(p => `<option value="${p.key}">${esc(p.label)} (${counts(p) || 'optional'})</option>`).join('')}</optgroup>`).join('') + `<option value="original">Original answers</option>`;
+    sel.innerHTML = `<option value="overview">Overview</option>` + groups.map(g => `<optgroup label="${esc(g.name)}">${g.items.map(p => `<option value="${p.key}">${esc(p.label)} (${counts(p) || 'optional'})</option>`).join('')}</optgroup>`).join('') + `<optgroup label="Build"><option value="pages">Pages (${live.length || 'not mapped'})</option></optgroup><option value="original">Original answers</option>`;
     sel.value = cur;
   }
 
@@ -254,6 +283,7 @@
     const main = document.getElementById('main');
     if (panel === 'overview') main.innerHTML = renderOverview();
     else if (panel === 'original') main.innerHTML = renderOriginal();
+    else if (panel === 'pages') main.innerHTML = renderPageMap();
     else main.innerHTML = renderPanel(rec.panels.find(p => p.key === panel));
     if (field) { const el = document.getElementById('f_' + CSS.escape(field)); if (el) { el.scrollIntoView({ block: 'center' }); el.classList.add('hl'); } }
     const ed = document.getElementById('ed'); if (ed) ed.focus();
@@ -292,6 +322,7 @@
       <div class="pc">${p.needed.total ? `Needed ${p.needed.filled} of ${p.needed.total}` : 'Nothing needed here'}${p.chase.total ? ` · worth chasing ${p.chase.filled} of ${p.chase.total}` : ''}${p.optional.total ? ` · optional ${p.optional.filled} of ${p.optional.total}` : ''}${p.notApplicable ? ` · ${p.notApplicable} not applicable` : ''}</div></div>`;
     let body = '';
     if (p.key === 'prices') body += renderPrices(rec.prices);
+    if (p.key === 'services' && byHand && !byHand.hasFillout) body += renderByHand(byHand);
     if (p.key === 'services') body += renderServices(services);
     body += `<div class="fields">${renderFieldList(p.key, fields)}</div>`;
     return `<div class="panel">${head}${body}</div>`;
@@ -567,6 +598,144 @@
     const r = await res.json().catch(() => ({}));
     if (r.view) services = r.view;
     setSaved(r.error ? 'Proposal failed: ' + r.error : 'Proposals updated', r.error ? 'bad' : 'ok'); setTimeout(() => setSaved(''), 3000); render();
+  }
+
+  // ── Pages: the page map (page-map/routes.js) ──
+  const PM_TYPES = [['homepage', 'Homepage'], ['category', 'Category pages'], ['service', 'Service pages'], ['location', 'Location pages'], ['location_category', 'Location category pages']];
+  const PM_STATUSES = ['Not Started', 'H1 Added', 'Copy Generated', 'Pushed to WordPress', 'Live'];
+  let pm = { rows: [], state: null };   // GET /api/clients/:id/page-map
+  let pmPreview = null;                 // GET .../page-map/preview (nothing written)
+  let pmConfirm = false;                // the dry-run box is open, waiting for Generate
+  let pmRule = 'ticked_only';
+  let pmShowRetired = false;
+  const pmOpen = new Set(['homepage', 'category']);
+  const pmLinksOpen = new Set();       // rows whose links are expanded
+  async function loadPageMap() {
+    try { const res = await fetch(`/api/clients/${clientId}/page-map`); pm = res.ok ? await res.json() : { rows: [], state: null }; } catch (_) { pm = { rows: [], state: null }; }
+    if (pm.state && pm.state.category_tab_rule) pmRule = pm.state.category_tab_rule;
+  }
+  async function loadPagePreview() {
+    try { const res = await fetch(`/api/clients/${clientId}/page-map/preview?rule=${pmRule}`); pmPreview = res.ok ? await res.json() : { error: (await res.json().catch(() => ({}))).error || res.status }; } catch (e) { pmPreview = { error: e.message }; }
+    if (current().panel === 'pages') render();
+  }
+  function renderPageMap() {
+    const p = pmPreview;
+    const live = pm.rows.filter(r => r.applies), retired = pm.rows.filter(r => !r.applies);
+    const head = `<div class="ph"><h2>Pages <span class="tag optional">Page map</span></h2><p>Every page the site needs, planned from the categories, services and towns. Fill in H1s and track each page's status here. Generating again adds and retires pages; it never changes an H1, meta, status or note you set.</p>
+      <div class="pc">${live.length ? `${live.length} pages${retired.length ? ` · ${retired.length} no longer apply` : ''}${pm.state && pm.state.generated_at ? ` · generated ${esc(fmt(pm.state.generated_at))}` : ''}` : 'No page map yet'}</div></div>`;
+    let facts = '<span>Checking…</span>', canGen = false;
+    if (p && p.error) facts = `<span class="badge b-bad">${esc(p.error)}</span>`;
+    else if (p) {
+      const i = p.inputs, towns = (i.otherTowns || '').split('\n').filter(Boolean).length;
+      canGen = i.tabs > 0 && !!i.baseTown;
+      facts = `<span class="badge ${i.tabs ? 'b-muted' : 'b-bad'}">${i.tabs} category tab${i.tabs === 1 ? '' : 's'}</span><span class="badge ${i.baseTown ? 'b-muted' : 'b-bad'}">Base town: ${esc(i.baseTown || 'missing')}</span><span class="badge b-muted">${towns} other town${towns === 1 ? '' : 's'}</span>`
+        + (p.ok && !p.firstRun && (p.diff.counts.wouldAdd || p.diff.counts.wouldRetire || p.diff.counts.wouldUpdate) ? `<span class="badge b-warn">Plan has changed since the last run</span>` : '');
+    }
+    const ruleSel = `<label class="pnote">Category tabs <select onchange="pmRule=this.value;pmConfirm=false;loadPagePreview()"><option value="ticked_only"${pmRule === 'ticked_only' ? ' selected' : ''}>Ticked only</option><option value="ticked_or_propagated"${pmRule === 'ticked_or_propagated' ? ' selected' : ''}>Ticked or propagated</option></select></label>`;
+    const bar = `<div class="pm-bar"><div class="facts">${facts}</div><div class="pt-actions">${ruleSel}
+      <button class="btn btn-primary btn-xs" onclick="pmStart()" ${canGen ? '' : 'disabled title="Needs at least one category tab and a base town"'}>${live.length || retired.length ? 'Regenerate page map' : 'Generate page map'}</button>
+      ${pm.rows.length ? `<a class="btn btn-ghost btn-xs" href="/api/clients/${clientId}/page-map.csv">Export CSV</a>` : ''}</div></div>`;
+    let box = '';
+    if (p && p.ok === false && p.problems) box += `<div class="pm-box warn"><h3>Can't map pages yet</h3><ul>${p.problems.map(x => `<li>${esc(x.msg)}</li>`).join('')}</ul></div>`;
+    if (pmConfirm && p && p.ok) box += renderPmConfirm(p);
+    if (p && p.ok && p.collisions.length) box += `<div class="pm-box warn"><h3>Slug collisions (${p.collisions.length})</h3><ul>${p.collisions.map(c => `<li>${esc(c.msg)}</li>`).join('')}</ul><div class="pnote">Nothing is renamed: fix the name on the record and generate again.</div></div>`;
+    if (p && p.ok && p.waiting.length) box += `<div class="pm-box"><h3>Waiting on confirmation (${p.waiting.length})</h3><div class="pnote">Additional services that get a page once confirmed on <a href="#services">Services</a>.</div><ul>${p.waiting.map(w => `<li>${esc(w.service)} <span class="pnote">${esc(w.why)}</span></li>`).join('')}</ul></div>`;
+    if (p && p.ok && p.councilAreas.length) box += `<div class="pm-box"><h3>Council areas in the town list</h3><div class="pnote">${esc(p.councilAreas.join(', '))} ${p.councilAreas.length === 1 ? 'is a council area' : 'are council areas'}, not ${p.councilAreas.length === 1 ? 'a town' : 'towns'}. ${p.councilAreas.length === 1 ? 'It has' : 'They have'} pages here, but Copybot's location research skips council areas.</div></div>`;
+    if (p && p.ok && p.droppedTowns.length) box += `<div class="pm-box"><h3>Towns left out</h3><ul>${p.droppedTowns.map(d => `<li>${esc(d.town)} <span class="pnote">${esc(d.why)}</span></li>`).join('')}</ul></div>`;
+    const groups = PM_TYPES.map(([type, label]) => {
+      const rows = pm.rows.filter(r => r.type === type && (r.applies || pmShowRetired)).sort((a, b) => (b.applies - a.applies));
+      const n = pm.rows.filter(r => r.type === type && r.applies).length, gone = pm.rows.filter(r => r.type === type && !r.applies).length;
+      if (!n && !gone) return '';
+      const need = pm.rows.filter(r => r.type === type && r.applies && !r.h1).length;
+      return `<details class="pm-group" data-type="${type}"${pmOpen.has(type) ? ' open' : ''} ontoggle="pmToggle('${type}', this.open)"><summary>${esc(label)} <span class="badge b-muted">${n}</span>${need ? `<span class="badge b-warn">${need} need H1</span>` : ''}${gone ? `<span class="badge b-muted">${gone} no longer apply</span>` : ''}</summary>${pmOpen.has(type) ? rows.map(renderPmRow).join('') : ''}</details>`;
+    }).join('');
+    const retiredToggle = retired.length ? `<div class="pm-bar"><label class="tick" style="margin:0"><input type="checkbox" ${pmShowRetired ? 'checked' : ''} onchange="pmShowRetired=this.checked;render()"> Show pages that no longer apply (${retired.length})</label></div>` : '';
+    const list = pm.rows.length ? groups + retiredToggle : `<div class="empty">No page map yet. ${canGen ? 'Generate it from the categories and towns above.' : 'Add the categories and a base town first.'}</div>`;
+    return `<div class="panel">${head}${bar}${box}${list}</div>`;
+  }
+  function renderPmConfirm(p) {
+    const c = p.diff.counts, att = p.inputs.attentionCount;
+    const list = (title, items) => items.length ? `<div class="pnote" style="margin-top:.4rem"><strong>${title}:</strong> ${esc(items.slice(0, 12).join(', '))}${items.length > 12 ? ` and ${items.length - 12} more` : ''}</div>` : '';
+    return `<div class="pm-box${att ? ' warn' : ''}"><h3>${p.firstRun ? 'Generate the page map?' : 'Dry run: what regenerating will do'}</h3>
+      ${att ? `<div>${att} thing${att === 1 ? '' : 's'} on this record need${att === 1 ? 's' : ''} attention (<a href="#overview">Overview</a>). You can still generate; pages update when you generate again.</div>` : ''}
+      <div class="counts"><span class="badge b-ok">Would add ${c.wouldAdd}</span><span class="badge ${c.wouldRetire ? 'b-warn' : 'b-muted'}">Would retire ${c.wouldRetire}</span><span class="badge b-muted">Would update links ${c.wouldUpdate}</span><span class="badge b-muted">Unchanged ${c.unchanged}</span></div>
+      <div class="pnote">${esc(p.arithmetic)}</div>
+      ${list('New', p.diff.add)}${list('No longer applies', p.diff.retire)}
+      ${p.diff.renames.length ? `<ul>${p.diff.renames.map(r => `<li>${esc(r.msg)}</li>`).join('')}</ul>` : ''}
+      ${p.diff.retiringWorkedOn.length ? `<div class="pnote" style="color:var(--warning)">Retiring ${p.diff.retiringWorkedOn.length} page${p.diff.retiringWorkedOn.length === 1 ? '' : 's'} someone has worked on (kept, tagged "no longer applies"): ${esc(p.diff.retiringWorkedOn.slice(0, 8).map(r => `${r.title} (${r.status})`).join(', '))}</div>` : ''}
+      <div class="pt-actions" style="margin-top:.6rem"><button class="btn btn-primary btn-xs" onclick="pmGenerate()">${att ? 'Generate anyway' : p.firstRun ? 'Generate' : 'Apply'}</button><button class="btn btn-ghost btn-xs" onclick="pmConfirm=false;render()">Cancel</button></div></div>`;
+  }
+  function renderPmRow(r) {
+    const linkList = l => l.length ? `<ul>${l.map(x => `<li>${esc(x)}</li>`).join('')}</ul>` : '<div class="pnote">none</div>';
+    const src = r.h1_source === 'manual' ? '<span class="src manual">set by hand</span>' : r.h1_source === 'auto' ? '<span class="src">auto</span>' : '';
+    return `<div class="pm-row${r.applies ? '' : ' retired'}" id="pm_${r.id}">
+      <div><div class="ttl">${esc(r.title)}${r.applies ? '' : ' <span class="badge b-muted">no longer applies</span>'}${r.info && r.info.additional ? ' <span class="badge b-ok">additional</span>' : ''}</div><div class="slug">${esc(r.slug)}</div></div>
+      <div><input type="text" value="${esc(r.h1)}" placeholder="H1 (from keyword volume)" aria-label="H1 for ${esc(r.title)}" onchange="pmSave('${r.id}', { h1: this.value })"><div class="h1note">${!r.h1 && r.applies ? '<span class="badge b-warn">needs H1</span>' : ''}${src}</div></div>
+      <div><select aria-label="Status for ${esc(r.title)}" onchange="pmSave('${r.id}', { status: this.value })">${PM_STATUSES.map(s => `<option${s === r.status ? ' selected' : ''}>${s}</option>`).join('')}</select></div>
+      <details class="links"${pmLinksOpen.has(r.id) ? ' open' : ''} ontoggle="if (this.open) pmLinksOpen.add('${r.id}'); else pmLinksOpen.delete('${r.id}')"><summary>Links to ${r.links_to.length} · from ${r.links_from.length}</summary><div class="lcols"><div><h4>Links to</h4>${linkList(r.links_to)}</div><div><h4>Links from</h4>${linkList(r.links_from)}</div></div></details>
+    </div>`;
+  }
+  function pmToggle(type, open) { if (open === pmOpen.has(type)) return; if (open) pmOpen.add(type); else pmOpen.delete(type); render(); }
+  async function pmStart() {
+    await loadPagePreview();
+    if (!pmPreview || !pmPreview.ok) return;
+    // First run with nothing needing attention: no dry run needed
+    if (pmPreview.firstRun && !pmPreview.inputs.attentionCount) return pmGenerate();
+    pmConfirm = true; render();
+  }
+  async function pmGenerate() {
+    setSaved('Generating…');
+    const res = await fetch(`/api/clients/${clientId}/page-map/generate`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ rule: pmRule }) });
+    const r = await res.json().catch(() => ({}));
+    if (!res.ok) { setSaved('Not generated: ' + (r.error || res.status), 'bad'); return; }
+    pm = { rows: r.rows, state: r.state }; pmConfirm = false;
+    setSaved(`Page map: ${r.counts.wouldAdd} added, ${r.counts.wouldRetire} retired`, 'ok'); setTimeout(() => setSaved(''), 3000);
+    await loadPagePreview();
+  }
+  async function pmSave(id, body) {
+    setSaved('Saving…');
+    const res = await fetch(`/api/clients/${clientId}/page-map/${id}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+    const r = await res.json().catch(() => ({}));
+    if (!res.ok) { setSaved('Not saved: ' + (r.error || res.status), 'bad'); return; }
+    pm.rows = pm.rows.map(x => x.id === id ? r : x);
+    setSaved('Saved', 'ok'); setTimeout(() => setSaved(''), 1500); render();
+  }
+
+  // ── Set up by hand: a client with no Fillout record ──
+  let byHand = null;   // GET /api/clients/:id/services/by-hand
+  async function loadByHand() {
+    try { const res = await fetch(`/api/clients/${clientId}/services/by-hand`); byHand = res.ok ? await res.json() : null; } catch (_) { byHand = null; }
+  }
+  function renderByHand(b) {
+    const nicheSel = `<select id="bh_niche" onchange="bhNiche(this.value)">${b.niche ? '' : '<option value="">Choose a niche</option>'}${b.niches.map(n => `<option${n === (b.niche || b.suggestedNiche) ? ' selected' : ''}>${esc(n)}</option>`).join('')}</select>`;
+    const groups = b.groups.map(g => `<details class="bh-group"${g.ticked.length ? ' open' : ''}><summary><span>${esc(g.name)}</span><span class="pnote">${g.ticked.length} of ${g.options.length} ticked</span></summary><div class="bh-opts">${g.options.map(o => `<label><input type="checkbox" data-group="${esc(g.field)}" value="${esc(o)}"${g.ticked.includes(o) ? ' checked' : ''}> ${esc(o)}</label>`).join('')}</div></details>`).join('');
+    return `<div class="prices" id="f_by_hand"><div class="prices-head"><h3>Set up by hand</h3><div class="pt-actions"><label class="pnote">Niche ${nicheSel}</label></div></div>
+      <div class="pnote">This client has no Fillout record. Tick the services they offer and add the towns; these save as hand edits, so a later form or Reprocess never overwrites them.</div>
+      ${b.groups.length ? groups : '<div class="val blank" style="margin-top:.5rem">Choose a niche that has a categories file to see its tick boxes.</div>'}
+      <div class="bh-towns"><div><label for="bh_base">Base town</label><input type="text" id="bh_base" value="${esc(b.baseTown)}" placeholder="e.g. Southampton"><label for="bh_company" style="display:block;margin-top:.6rem">Company name</label><input type="text" id="bh_company" value="${esc(b.companyName)}" placeholder="${esc(b.clientName)}"></div>
+      <div><label for="bh_towns">Other towns, one per line</label><textarea id="bh_towns" rows="6">${esc(b.otherTowns)}</textarea></div></div>
+      <div class="pt-actions" style="margin-top:.7rem"><button class="btn btn-primary btn-xs" onclick="saveByHand()" ${b.groups.length ? '' : 'disabled'}>Save set-up</button></div></div>`;
+  }
+  async function bhNiche(label) {
+    if (!label) return;
+    byHand = { ...byHand, niche: label, groups: [] };
+    setSaved('Saving…');
+    const res = await fetch(`/api/clients/${clientId}/services/by-hand`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ niche: label }) });
+    const r = await res.json().catch(() => ({}));
+    if (!res.ok) { setSaved('Not saved: ' + (r.error || res.status), 'bad'); return; }
+    setSaved('Saved', 'ok'); setTimeout(() => setSaved(''), 1500);
+    await load();
+  }
+  async function saveByHand() {
+    const ticks = {};
+    for (const g of byHand.groups) ticks[g.field] = [...document.querySelectorAll(`#f_by_hand input[type=checkbox]`)].filter(i => i.dataset.group === g.field && i.checked).map(i => i.value);
+    const body = { niche: document.getElementById('bh_niche').value, ticks, baseTown: document.getElementById('bh_base').value, otherTowns: document.getElementById('bh_towns').value, companyName: document.getElementById('bh_company').value };
+    setSaved('Saving…');
+    const res = await fetch(`/api/clients/${clientId}/services/by-hand`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+    const r = await res.json().catch(() => ({}));
+    if (!res.ok) { setSaved('Not saved: ' + (r.error || res.status), 'bad'); return; }
+    setSaved('Saved', 'ok'); setTimeout(() => setSaved(''), 1500);
+    await load();
   }
 
   // ── Header actions ──

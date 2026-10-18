@@ -16,6 +16,7 @@ Copybot writes website copy for UK tradespeople (Local Launchpad clients) using 
 | Copy quality: what a good page is, and the review step | `docs/seo/COPY_QUALITY_RUBRIC.md`, `quality-review.js`, `tools/quality-loop.js` |
 | Category/service custom values and the test client | `docs/seo/reference/Edens_Edge_Custom_Values_HOW_TO_USE.csv` |
 | Fillout onboarding intake (webhook, field map, client record, inbox, audio storage) | `ONBOARDING.md`; code in `fillout/` (`field-map.json` is the config: a new niche goes there, not in code) |
+| The page map (planned pages, links, H1s, statuses) and the hand set-up for clients with no Fillout record | `page-map/generator.js` (rules), `page-map/store.js` (`client_page_map`, regeneration), `page-map/routes.js`; Edens Edge numbers via `node tools/page-map-report.js` |
 | The old GHL delivery process | `docs/seo/reference/Website_Delivery_SOP.txt` (OUTDATED, reference only) |
 
 The file the code reads is the only copy. Don't keep duplicates in `docs/`. On business rules, the Master Context Document (3 Oct 2026) and anything newer in `docs/seo/current-build/` win over older docs.

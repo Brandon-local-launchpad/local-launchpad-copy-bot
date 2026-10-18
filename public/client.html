@@ -118,6 +118,12 @@
         location.href = client.archived_at ? location.href : '/clients.html';
       };
       actions.appendChild(arch);
+    } else {
+      // A client set up by hand: its record holds the hand set-up and the page map
+      const actions = document.getElementById('settingsLink').parentElement;
+      const rec = document.createElement('a');
+      rec.className = 'btn btn-ghost'; rec.href = `/client-record.html?id=${clientId}#services`; rec.textContent = 'Set-up and page map';
+      actions.insertBefore(rec, actions.firstChild);
     }
     document.getElementById('generateLink').href = `/generate?clientId=${clientId}`;
     document.getElementById('settingsLink').href = `/client-settings.html?id=${clientId}`;
