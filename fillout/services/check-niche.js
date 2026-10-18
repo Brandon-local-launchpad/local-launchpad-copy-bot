@@ -73,7 +73,11 @@ function checkNiche(config, fieldMap) {
 
   // Tick boxes vs the field map's checkbox options
   const groups = config.categories.map(c => ({ category: c.key, name: c.name, field: c.tickGroup || null, ticks: c.ticks || [], alwaysCreate: !!c.alwaysCreate }));
-  if (config.additionalTickGroup) groups.push({ category: '(additional services)', name: 'Additional services', field: config.additionalTickGroup.field, ticks: config.additionalTickGroup.services || [] });
+  // An additional-services group is compared through its tick options: its services when it
+  // has them (Landscapers), else its examples (the other niches, services: [] by design)
+  const addList = g => (g.services && g.services.length ? g.services : g.examples || []);
+  if (config.additionalTickGroup) groups.push({ category: '(additional services)', name: 'Additional services', field: config.additionalTickGroup.field, ticks: addList(config.additionalTickGroup) });
+  for (const g of config.extraAdditionalTickGroups || []) groups.push({ category: '(additional services)', name: g.label || 'Additional services', field: g.field, ticks: addList(g) });
   // A niche whose options are not recorded in the field map yet is checked by tick group only
   const recorded = groups.some(g => { const f = (fieldMap.fields || []).find(x => x.key === g.field); return f && Array.isArray(f.options) && f.options.length; });
   if (!recorded) notices.push({ code: 'options_not_recorded', msg: `${niche}: no checkbox options recorded in field-map.json for this niche yet, so tick boxes were not compared with the form` });

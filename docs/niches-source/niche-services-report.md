@@ -71,7 +71,7 @@ In 2+ categories with no "(Duplicate: …)" note (item 5, the lists are the auth
 - Carpet Cleaning Service: "General carpet cleaning" also listed under Upholstery Cleaning Service; the PDF note says nothing
 - Carpet Cleaning Service: "Drapes and curtain cleaning" also listed under Upholstery Cleaning Service; the PDF note says nothing
 Same service, other case or wording (item 4): none
-Niche check: passes, 6 notice(s)
+Niche check: passes, 5 notice(s)
 
 ## Roofers  (PDF: "Roofer")
 File: fillout/services/roofers.json · nicheKey roofers · primaryDefault **Roofing services** (roofing_services) · other services field roofers.other_services
@@ -91,7 +91,7 @@ Home categories (item 6): every service has exactly one home in the tick box lis
 Duplicate-note disagreements: none
 In 2+ categories with no "(Duplicate: …)" note (item 5, the lists are the authority): none
 Same service, other case or wording (item 4): none
-Niche check: passes, 1 notice(s)
+Niche check: passes
 
 ## Plumbing & Heating  (PDF: "Heating")
 File: fillout/services/plumbing-and-heating.json · nicheKey plumbing_heating · primaryDefault **Central Heating Service** (central_heating_service) · other services field other_services
@@ -103,7 +103,7 @@ File: fillout/services/plumbing-and-heating.json · nicheKey plumbing_heating ·
 | Furnace Repair Service | furnace_repair_service | 14 | 0 | — |  |  |
 | Gas Engineer | gas_engineer | 18 | 15 | cat_gas_engineer |  | (Custom services) |
 Totals: 69 All rows (52 unique services), 52 tick boxes
-Additional services: tick group additional_heating_services; 13 examples kept as help text (not services); also additional_plumbing_services (0 examples)
+Additional services: tick group additional_heating_services; 13 examples kept as help text (not services); also additional_plumbing_services (31 examples)
 
 Tick group mapping:
 - Central Heating Service → cat_central_heating_service
@@ -142,7 +142,7 @@ In 2+ categories with no "(Duplicate: …)" note (item 5, the lists are the auth
 - Central Heating Service: "Heating system maintenance" also listed under Furnace Repair Service; the PDF note says nothing
 - Central Heating Service: "HVAC system maintenance" also listed under Furnace Repair Service; the PDF note says nothing
 Same service, other case or wording (item 4): none
-Niche check: passes, 27 notice(s)
+Niche check: passes, 26 notice(s)
 
 ## Drainage
 File: fillout/services/drainage.json · nicheKey drainage · primaryDefault **Drainage Service** (drainage_service) · other services field drainage.other_services
@@ -177,7 +177,7 @@ In 2+ categories with no "(Duplicate: …)" note (item 5, the lists are the auth
 - Plumbing: "CCTV Drain Surveys" also listed under Drainage Service; the PDF note says nothing
 - Plumbing: "Drain Unblocking" also listed under Drainage Service; the PDF note says nothing
 Same service, other case or wording (item 4): none
-Niche check: passes, 11 notice(s)
+Niche check: passes, 10 notice(s)
 
 ## Fencing
 File: fillout/services/fencing.json · nicheKey fencing · primaryDefault **Fence Contractor** (fence_contractor) · other services field fencing.other_services
@@ -219,7 +219,7 @@ In 2+ categories with no "(Duplicate: …)" note (item 5, the lists are the auth
 - Gardener: "Garden work" also listed under Lawn Care Service; the PDF note says nothing
 Same service, other case or wording (item 4): 
 - "Garden design" / "Garden designs"
-Niche check: passes, 10 notice(s)
+Niche check: passes, 9 notice(s)
 
 ## Locksmith  (PDF: "no title: Output 2 / Output 1 headings")
 File: fillout/services/locksmith.json · nicheKey locksmith · primaryDefault **Locksmith** (locksmith) · other services field locksmith.other_services
@@ -243,7 +243,7 @@ Home categories (item 6): every service has exactly one home in the tick box lis
 Duplicate-note disagreements: none
 In 2+ categories with no "(Duplicate: …)" note (item 5, the lists are the authority): none
 Same service, other case or wording (item 4): none
-Niche check: passes, 3 notice(s)
+Niche check: passes, 2 notice(s)
 
 ## Builders  (PDF: "Builder")
 File: fillout/services/builders.json · nicheKey builders · primaryDefault **Building Firm** (building_firm) · other services field builders.other_services
@@ -338,7 +338,7 @@ In 2+ categories with no "(Duplicate: …)" note (item 5, the lists are the auth
 - Bathroom Renovator: "Shower refinishing" also listed under Remodeller; the PDF note says nothing
 - Deck Builder: "Deck repair" also listed under Carpenter; the PDF note says nothing
 Same service, other case or wording (item 4): none
-Niche check: passes, 57 notice(s)
+Niche check: passes, 56 notice(s)
 
 ## Pet Care Services (Dog Walkers)  (PDF: "Dog Walker")
 File: fillout/services/pet-care-services-dog-walkers.json · nicheKey dog_walkers · primaryDefault **Dog Walker** (dog_walker) · other services field dog_walkers.other_services
@@ -358,7 +358,7 @@ Home categories (item 6): every service has exactly one home in the tick box lis
 Duplicate-note disagreements: none
 In 2+ categories with no "(Duplicate: …)" note (item 5, the lists are the authority): none
 Same service, other case or wording (item 4): none
-Niche check: passes, 2 notice(s)
+Niche check: passes, 1 notice(s)
 
 ## Dog Training
 File: fillout/services/dog-training.json · nicheKey dog_training · primaryDefault **Dog Trainer** (dog_trainer) · other services field dog_training.other_services
@@ -376,7 +376,7 @@ Home categories (item 6): every service has exactly one home in the tick box lis
 Duplicate-note disagreements: none
 In 2+ categories with no "(Duplicate: …)" note (item 5, the lists are the authority): none
 Same service, other case or wording (item 4): none
-Niche check: passes, 1 notice(s)
+Niche check: passes
 
 ## Dog Grooming  (PDF: "Dog Groomer")
 File: fillout/services/dog-grooming.json · nicheKey dog_grooming · primaryDefault **Pet Groomer** (pet_groomer) · other services field dog_grooming.other_services
@@ -396,7 +396,7 @@ Home categories (item 6): every service has exactly one home in the tick box lis
 Duplicate-note disagreements: none
 In 2+ categories with no "(Duplicate: …)" note (item 5, the lists are the authority): none
 Same service, other case or wording (item 4): none
-Niche check: passes, 1 notice(s)
+Niche check: passes
 
 ## HVAC
 File: fillout/services/hvac.json · nicheKey hvac · primaryDefault **HVAC Contractor** (hvac_contractor) · other services field hvac.other_services
@@ -495,7 +495,7 @@ Duplicate-note disagreements:
 In 2+ categories with no "(Duplicate: …)" note (item 5, the lists are the authority): 
 - HVAC Contractor: "A/C system maintenance" also listed under Air Conditioning Contractor, Air Conditioning Repair Shop, Air Duct Cleaning Service, Central Heating Service, Furnace Repair Service; the PDF note says nothing
 Same service, other case or wording (item 4): none
-Niche check: passes, 75 notice(s)
+Niche check: passes, 74 notice(s)
 
 ## Electricians  (PDF: "Electrician")
 File: fillout/services/electricians.json · nicheKey electricians · primaryDefault **Electrician** (electrician) · other services field electricians.other_services
@@ -515,7 +515,7 @@ Home categories (item 6): every service has exactly one home in the tick box lis
 Duplicate-note disagreements: none
 In 2+ categories with no "(Duplicate: …)" note (item 5, the lists are the authority): none
 Same service, other case or wording (item 4): none
-Niche check: passes, 1 notice(s)
+Niche check: passes
 
 ## Tree Surgeons  (PDF: "Tree Surgeon")
 File: fillout/services/tree-surgeons.json · nicheKey tree_surgeons · primaryDefault **Tree Service** (tree_service) · other services field tree_surgeons.other_services
@@ -533,7 +533,7 @@ Home categories (item 6): every service has exactly one home in the tick box lis
 Duplicate-note disagreements: none
 In 2+ categories with no "(Duplicate: …)" note (item 5, the lists are the authority): none
 Same service, other case or wording (item 4): none
-Niche check: passes, 1 notice(s)
+Niche check: passes
 
 ## Garage Doors Installs  (PDF: "Garage Door Installs")
 File: fillout/services/garage-doors-installs.json · nicheKey garage_doors · primaryDefault **Garage door supplier** (garage_door_supplier) · other services field garage_doors.other_services
@@ -551,7 +551,7 @@ Home categories (item 6): every service has exactly one home in the tick box lis
 Duplicate-note disagreements: none
 In 2+ categories with no "(Duplicate: …)" note (item 5, the lists are the authority): none
 Same service, other case or wording (item 4): none
-Niche check: passes, 1 notice(s)
+Niche check: passes
 
 ## Pressure Washing / Exterior Cleaning
 File: fillout/services/pressure-washing-exterior-cleaning.json · nicheKey pressure_washing · primaryDefault **Pressure Washing Service** (pressure_washing_service) · other services field pressure_washing.other_services
@@ -573,26 +573,38 @@ Home categories (item 6): every service has exactly one home in the tick box lis
 Duplicate-note disagreements: none
 In 2+ categories with no "(Duplicate: …)" note (item 5, the lists are the authority): none
 Same service, other case or wording (item 4): none
-Niche check: passes, 2 notice(s)
+Niche check: passes, 1 notice(s)
 
 ## Guttering & Fascias  (PDF: "Guttering and Fascias")
 File: fillout/services/guttering-and-fascias.json · nicheKey guttering · primaryDefault **Roofing services** (roofing_services) · other services field guttering.other_services
 
 | Category | key | All | Tick | Tick group | alwaysCreate | Notes |
 |---|---|---|---|---|---|---|
-| Roofing services | roofing_services | 13 | 13 | guttering.cat.select_the_guttering_and_fascias_services_you_offer |  |  |
-Totals: 13 All rows (13 unique services), 13 tick boxes
+| Roofing services | roofing_services | 17 | 6 | guttering.cat.select_the_guttering_and_fascias_services_you_offer |  |  |
+Totals: 17 All rows (17 unique services), 6 tick boxes
 
 Tick group mapping:
 - Category "Roofing services" mapped to tick group "Select the Guttering & Fascias services you offer" (guttering.cat.select_the_guttering_and_fascias_services_you_offer): the only group left
 - Roofing services → guttering.cat.select_the_guttering_and_fascias_services_you_offer (label "Select the Guttering & Fascias services you offer", PDF "Roofing services")
 - Note: 1 additional-services question(s) in the PDF, 0 additional tick group(s) in field-map.json
 
-Home categories (item 6): every service has exactly one home in the tick box list
+Home categories (item 6): 
+- "Loft ventilation" is on no tick box, so it has no home category
+- "Attic venting installation" is on no tick box, so it has no home category
+- "Attic venting repairs" is on no tick box, so it has no home category
+- "Gutter repairs" is on no tick box, so it has no home category
+- "Roof damage repair" is on no tick box, so it has no home category
+- "Roof inspection" is on no tick box, so it has no home category
+- "Roof installation" is on no tick box, so it has no home category
+- "Roof repair" is on no tick box, so it has no home category
+- "Skylight installation" is on no tick box, so it has no home category
+- "Skylight repair" is on no tick box, so it has no home category
+- "Roof repair for storm and wind damage" is on no tick box, so it has no home category
 Duplicate-note disagreements: none
 In 2+ categories with no "(Duplicate: …)" note (item 5, the lists are the authority): none
-Same service, other case or wording (item 4): none
-Niche check: passes, 1 notice(s)
+Same service, other case or wording (item 4): 
+- "Gutter repairs" / "Gutter repair"
+Niche check: passes, 11 notice(s)
 
 ## Pest Control
 File: fillout/services/pest-control.json · nicheKey pest_control · primaryDefault **Pest control service** (pest_control_service) · other services field pest_control.other_services
@@ -610,7 +622,7 @@ Home categories (item 6): every service has exactly one home in the tick box lis
 Duplicate-note disagreements: none
 In 2+ categories with no "(Duplicate: …)" note (item 5, the lists are the authority): none
 Same service, other case or wording (item 4): none
-Niche check: passes, 1 notice(s)
+Niche check: passes
 
 ## Scaffolding
 File: fillout/services/scaffolding.json · nicheKey scaffolding · primaryDefault **Scaffolding Service** (scaffolding_service) · other services field scaffolding.other_services
@@ -628,7 +640,7 @@ Home categories (item 6): every service has exactly one home in the tick box lis
 Duplicate-note disagreements: none
 In 2+ categories with no "(Duplicate: …)" note (item 5, the lists are the authority): none
 Same service, other case or wording (item 4): none
-Niche check: passes, 1 notice(s)
+Niche check: passes
 
 ## Window Cleaning
 File: fillout/services/window-cleaning.json · nicheKey window_cleaning · primaryDefault **Window Cleaning Service** (window_cleaning_service) · other services field window_cleaning.other_services
@@ -650,7 +662,7 @@ Home categories (item 6): every service has exactly one home in the tick box lis
 Duplicate-note disagreements: none
 In 2+ categories with no "(Duplicate: …)" note (item 5, the lists are the authority): none
 Same service, other case or wording (item 4): none
-Niche check: passes, 2 notice(s)
+Niche check: passes, 1 notice(s)
 
 ## Driveways & Paving
 File: fillout/services/driveways-and-paving.json · nicheKey driveways_paving · primaryDefault **Paving Contractor** (paving_contractor) · other services field driveways_paving.other_services
@@ -672,7 +684,7 @@ Home categories (item 6): every service has exactly one home in the tick box lis
 Duplicate-note disagreements: none
 In 2+ categories with no "(Duplicate: …)" note (item 5, the lists are the authority): none
 Same service, other case or wording (item 4): none
-Niche check: passes, 1 notice(s)
+Niche check: passes
 
 ## Kitchen/Bathroom Fitters  (PDF: "Kitchen / Bathroom Fitters")
 File: fillout/services/kitchen-bathroom-fitters.json · nicheKey kitchen_bathroom · primaryDefault **Kitchen Renovator** (kitchen_renovator) · other services field kitchen_bathroom.other_services
@@ -767,7 +779,7 @@ In 2+ categories with no "(Duplicate: …)" note (item 5, the lists are the auth
 - Bathroom Renovator: "Bathroom worktop resurfacing" also listed under Remodeller; the PDF note says nothing
 - Bathroom Renovator: "Shower refinishing" also listed under Remodeller; the PDF note says nothing
 Same service, other case or wording (item 4): none
-Niche check: passes, 73 notice(s)
+Niche check: passes, 72 notice(s)
 
 ## Loft Conversions / Extensions
 File: fillout/services/loft-conversions-extensions.json · nicheKey loft_extensions · primaryDefault **Building Firm** (building_firm) · other services field loft_extensions.other_services
@@ -876,7 +888,7 @@ Duplicate-note disagreements:
 - Carpenter: "Deck repair" note names a category that does not exist: Deck Builder (declared known source error)
 In 2+ categories with no "(Duplicate: …)" note (item 5, the lists are the authority): none
 Same service, other case or wording (item 4): none
-Niche check: passes, 82 notice(s)
+Niche check: passes, 81 notice(s)
 
 ## Painters & Decorators  (PDF: "Painting & Decorators")
 File: fillout/services/painters-and-decorators.json · nicheKey painters_decorators · primaryDefault **Painter and Decorator** (painter_and_decorator) · other services field painters_decorators.other_services
@@ -896,7 +908,7 @@ Home categories (item 6): every service has exactly one home in the tick box lis
 Duplicate-note disagreements: none
 In 2+ categories with no "(Duplicate: …)" note (item 5, the lists are the authority): none
 Same service, other case or wording (item 4): none
-Niche check: passes, 1 notice(s)
+Niche check: passes
 
 ## Flooring Fitters (carpet/laminate/LVT)
 File: fillout/services/flooring-fitters-carpet-laminate-lvt.json · nicheKey flooring · primaryDefault **Flooring Contractor** (flooring_contractor) · other services field flooring.other_services
@@ -918,26 +930,61 @@ Duplicate-note disagreements:
 In 2+ categories with no "(Duplicate: …)" note (item 5, the lists are the authority): 
 - Flooring Contractor: "Wood floor installation" also listed under Wood Floor Installation Service; the PDF note says nothing
 Same service, other case or wording (item 4): none
-Niche check: passes, 3 notice(s)
+Niche check: passes, 2 notice(s)
 
 ## Tiling
 File: fillout/services/tiling.json · nicheKey tiling · primaryDefault **Tile contractor** (tile_contractor) · other services field tiling.other_services
 
 | Category | key | All | Tick | Tick group | alwaysCreate | Notes |
 |---|---|---|---|---|---|---|
-| Tile contractor | tile_contractor | 35 | 35 | tiling.cat.select_the_tiling_services_you_offer |  |  |
-Totals: 35 All rows (35 unique services), 35 tick boxes
+| Tile contractor | tile_contractor | 40 | 5 | tiling.cat.select_the_tiling_services_you_offer |  |  |
+Totals: 40 All rows (40 unique services), 5 tick boxes
 
 Tick group mapping:
 - Category "Tile contractor" mapped to tick group "Select the Tiling services you offer" (tiling.cat.select_the_tiling_services_you_offer): the only group left
 - Tile contractor → tiling.cat.select_the_tiling_services_you_offer (label "Select the Tiling services you offer", PDF "Tile contractor")
 - Note: 1 additional-services question(s) in the PDF, 0 additional tick group(s) in field-map.json
 
-Home categories (item 6): every service has exactly one home in the tick box list
+Home categories (item 6): 
+- "Furniture assembly" is on no tick box, so it has no home category
+- "Bathroom tile repair" is on no tick box, so it has no home category
+- "Gutter cleaning" is on no tick box, so it has no home category
+- "Dust-free tile removal" is on no tick box, so it has no home category
+- "Grout cleaning" is on no tick box, so it has no home category
+- "Grout repair" is on no tick box, so it has no home category
+- "Grout sealing" is on no tick box, so it has no home category
+- "Grout staining" is on no tick box, so it has no home category
+- "Remodelling" is on no tick box, so it has no home category
+- "Drywall installation" is on no tick box, so it has no home category
+- "Fan installation" is on no tick box, so it has no home category
+- "Floor fitting" is on no tick box, so it has no home category
+- "Tile work installation" is on no tick box, so it has no home category
+- "Plumbing fixture installation" is on no tick box, so it has no home category
+- "Kitchen tile repair" is on no tick box, so it has no home category
+- "TV mounting" is on no tick box, so it has no home category
+- "Interior decorating" is on no tick box, so it has no home category
+- "Exterior painting" is on no tick box, so it has no home category
+- "Drywall repair" is on no tick box, so it has no home category
+- "Fan repair" is on no tick box, so it has no home category
+- "Flooring repair" is on no tick box, so it has no home category
+- "Water fixture repair" is on no tick box, so it has no home category
+- "Tile work replacement" is on no tick box, so it has no home category
+- "Shower tile installation" is on no tick box, so it has no home category
+- "Shower tile repair" is on no tick box, so it has no home category
+- "Tile backsplash installation" is on no tick box, so it has no home category
+- "Tile cleaning" is on no tick box, so it has no home category
+- "Tile design services" is on no tick box, so it has no home category
+- "Tile flooring repair" is on no tick box, so it has no home category
+- "Tile grouting" is on no tick box, so it has no home category
+- "Tile refinishing" is on no tick box, so it has no home category
+- "Tile regrouting" is on no tick box, so it has no home category
+- "Tile removal" is on no tick box, so it has no home category
+- "Tile replacement" is on no tick box, so it has no home category
+- "Tile restoration" is on no tick box, so it has no home category
 Duplicate-note disagreements: none
 In 2+ categories with no "(Duplicate: …)" note (item 5, the lists are the authority): none
 Same service, other case or wording (item 4): none
-Niche check: passes, 1 notice(s)
+Niche check: passes, 35 notice(s)
 
 ## Blinds & Curtains Fitters  (PDF: "Curtain & Blind Fitters")
 File: fillout/services/blinds-and-curtains-fitters.json · nicheKey blinds_curtains · primaryDefault **Curtain Shop** (curtain_shop) · other services field blinds_curtains.other_services
@@ -959,7 +1006,7 @@ Home categories (item 6): every service has exactly one home in the tick box lis
 Duplicate-note disagreements: none
 In 2+ categories with no "(Duplicate: …)" note (item 5, the lists are the authority): none
 Same service, other case or wording (item 4): none
-Niche check: passes, 2 notice(s)
+Niche check: passes, 1 notice(s)
 
 ## Removals Company
 File: fillout/services/removals-company.json · nicheKey removals · primaryDefault **Removals Company** (removals_company) · other services field removals.other_services
@@ -981,7 +1028,7 @@ Home categories (item 6): every service has exactly one home in the tick box lis
 Duplicate-note disagreements: none
 In 2+ categories with no "(Duplicate: …)" note (item 5, the lists are the authority): none
 Same service, other case or wording (item 4): none
-Niche check: passes, 1 notice(s)
+Niche check: passes
 
 ## Categories in more than one niche (item 3)
 
@@ -1059,8 +1106,8 @@ Niche check: passes, 1 notice(s)
 ### Remodeller: Builders 2, Kitchen/Bathroom Fitters 2
 - Kitchen/Bathroom Fitters: same services as Builders
 
-### Roofing services: Roofers 13, Guttering & Fascias 13
-- Guttering & Fascias: same services as Roofers
+### Roofing services: Roofers 13, Guttering & Fascias 17
+- Guttering & Fascias vs Roofers: only in Guttering & Fascias: Gutter repair; Fascia installation; Soffit replacement; Cladding · only in Roofers: —
 
 ### Security System Supplier: Locksmith 4, Electricians 4
 - Electricians: same services as Locksmith

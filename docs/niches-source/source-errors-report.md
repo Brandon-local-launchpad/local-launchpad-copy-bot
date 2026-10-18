@@ -9,12 +9,14 @@ Types: a: note says duplicate of X, but X's list does not contain the service ·
 | Drainage | 0 | 10 | 0 | 10 |
 | Fencing | 5 | 2 | 2 | 9 |
 | Flooring Fitters (carpet/laminate/LVT) | 1 | 1 | 0 | 2 |
+| Guttering & Fascias | 0 | 0 | 11 | 11 |
 | HVAC | 0 | 71 | 0 | 71 |
 | Kitchen/Bathroom Fitters | 54 | 2 | 15 | 71 |
 | Landscapers/Gardeners | 0 | 3 | 0 | 3 |
 | Loft Conversions / Extensions | 75 | 0 | 6 | 81 |
 | Plumbing & Heating | 2 | 5 | 18 | 25 |
-| **All** | **184** | **100** | **46** | **330** |
+| Tiling | 0 | 0 | 35 | 35 |
+| **All** | **184** | **100** | **92** | **376** |
 
 ## By check code
 - a · note_mismatch: 8
@@ -22,7 +24,7 @@ Types: a: note says duplicate of X, but X's list does not contain the service ·
 - a · note_without_duplicate: 120
 - b · missing_note: 30
 - b · note_mismatch: 70
-- c · no_home: 3
+- c · no_home: 49
 - c · note_names_unknown_category: 43
 
 ## (a) in full: the note says duplicate of X, but X's list does not contain the service

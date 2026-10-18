@@ -27,7 +27,39 @@
     {
       "field": "additional_plumbing_services",
       "label": "Plumbing Additional Services",
-      "examples": []
+      "examples": [
+        "Power flushing",
+        "Radiator installation",
+        "Radiator replacement",
+        "Radiator repairs",
+        "Water softener installation",
+        "Water softener repairs",
+        "Water filter installation",
+        "Lead pipe replacement",
+        "Stopcock installation",
+        "Stopcock replacement",
+        "Stopcock repair",
+        "Ball valve replacement",
+        "Overflow repairs",
+        "Immersion heater installation",
+        "Immersion heater replacement",
+        "Immersion heater repairs",
+        "Hot water cylinder installation",
+        "Hot water cylinder replacement",
+        "Hot water cylinder repairs",
+        "Cold water storage tank installation",
+        "Cold water storage tank repairs",
+        "Outside tap installation",
+        "Outside tap repairs",
+        "Washing machine installation",
+        "Dishwasher installation",
+        "Fridge water supply installation",
+        "Commercial plumbing",
+        "Landlord plumbing inspections",
+        "Water pressure investigations",
+        "Water pressure boosting systems",
+        "Trace and access leak detection"
+      ]
     }
   ],
   "categories": [
@@ -114,7 +146,8 @@
           "Furnace Repair Service",
           "Gas Engineer"
         ]
-      }
+      },
+      "ticksFromForm": true
     },
     {
       "key": "plumber",
@@ -169,7 +202,8 @@
         "Water tank installation",
         "Water tank repair"
       ],
-      "duplicateNotes": {}
+      "duplicateNotes": {},
+      "ticksFromForm": true
     },
     {
       "key": "furnace_repair_service",
@@ -306,6 +340,7 @@
           "Furnace Repair Service"
         ]
       },
+      "ticksFromForm": true,
       "notes": [
         "(Custom services)"
       ]
@@ -356,7 +391,8 @@
             "Thermostat repair",
             "Thermostat installation"
           ],
-          "duplicateNotes": {}
+          "duplicateNotes": {},
+          "ticksFromForm": true
         },
         {
           "key": "plumber",
@@ -411,7 +447,8 @@
             "Water tank installation",
             "Water tank repair"
           ],
-          "duplicateNotes": {}
+          "duplicateNotes": {},
+          "ticksFromForm": true
         },
         {
           "key": "furnace_repair_service",
@@ -476,9 +513,26 @@
             "Radiator Repairs",
             "Power Flushing",
             "Thermostat Installation",
-            "Thermostat Repairs"
+            "Thermostat Repairs",
+            "Boiler repair",
+            "Emergency boiler repair",
+            "Central heating repair",
+            "Radiator repair",
+            "Gas safety certificate (CP12)",
+            "Landlord gas safety certificate",
+            "Gas appliance repair"
           ],
-          "duplicateNotes": {}
+          "duplicateNotes": {},
+          "ticksFromForm": true,
+          "formOnlyServices": [
+            "Boiler repair",
+            "Emergency boiler repair",
+            "Central heating repair",
+            "Radiator repair",
+            "Gas safety certificate (CP12)",
+            "Landlord gas safety certificate",
+            "Gas appliance repair"
+          ]
         }
       ]
     }
