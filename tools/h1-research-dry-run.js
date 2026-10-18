@@ -19,7 +19,8 @@ const { createPageMapStore, inputsFor } = require(path.join(root, 'page-map/stor
 
 const TYPE_LABEL = { homepage: 'Homepage', category: 'Category', location: 'Location', location_category: 'Location Category' };
 
-async function dryRun(pool, who, { searchVolume = D.searchVolume, log = console.log } = {}) {
+async function dryRun(pool, who, opts = {}) {
+  const { searchVolume = D.searchVolume, log = console.log } = opts;
   const svc = createFilloutService({ pool, audioStore: { put() { throw new Error('not used'); }, get() { return null; } }, log: { log() {}, info() {}, warn() {}, error() {} } });
   const store = createPageMapStore({ pool, filloutService: svc });
   const { rows: cs } = await pool.query(`SELECT id, name FROM clients`);
@@ -31,12 +32,12 @@ async function dryRun(pool, who, { searchVolume = D.searchVolume, log = console.
   const st = await store.state(client.id);
   const inputs = await inputsFor(svc, client.id, { categoryTabRule: (st && st.category_tab_rule) || 'ticked_only' });
   const cats = inputs.resolved ? inputs.resolved.categories : [];
-  const ctx = { primaryName: inputs.resolved && inputs.resolved.primaryName, baseTown: inputs.baseTown, categoryName: key => (cats.find(c => c.key === key) || {}).name };
+  const ctx = { primaryName: inputs.resolved && inputs.resolved.primaryName, primaryKey: inputs.resolved && inputs.resolved.primary, baseTown: inputs.baseTown, categoryName: key => (cats.find(c => c.key === key) || {}).name, terms: opts.terms || H.searchTerms(inputs.niche) };
   const { pages, keywords } = H.plan(rows, ctx);
   if (keywords.length > D.CHUNK) throw new Error(`${keywords.length} keywords would need ${Math.ceil(keywords.length / D.CHUNK)} calls; the dry run makes at most one`);
   log(`${client.name}: ${rows.length} pages in the map, ${pages.length} need an H1 researched (service pages keep "<service> ${inputs.baseTown}"); primary category ${ctx.primaryName}; base town ${inputs.baseTown}; ${keywords.length} unique keywords`);
   const { results, cost, calls } = await searchVolume(keywords);
-  const out = pages.map(p => ({ ...p, sel: H.select(p.candidates, results) }));
+  const out = H.assign(pages, results, rows);
   return { client, rows, pages: out, keywords, cost, calls, results, ctx };
 }
 

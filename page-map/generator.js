@@ -17,6 +17,9 @@
 
 const { isAdminArea } = require('../client-files');
 
+// Service-page H1s use the same Title Case as researched H1s (Brandon, 18 Oct 2026)
+const { titleCase } = require('../h1-research/research');
+
 const TYPES = ['homepage', 'category', 'service', 'location', 'location_category'];
 const TYPE_LABEL = { homepage: 'Homepage', category: 'Category', service: 'Service', location: 'Location', location_category: 'Location Category' };
 const STATUSES = ['Not Started', 'H1 Added', 'Copy Generated', 'Pushed to WordPress', 'Live'];
@@ -118,7 +121,7 @@ function buildPageMap(input) {
 
   for (const c of cats) add('category', c.name, catPath(c), '', catServices(c), townSlugs.map(t => locCatPath(t, c)), { category_key: c.key, primary: c.primary });
 
-  for (const s of services.values()) add('service', s.name, svcPath(s), `${s.name} ${baseTown}`,
+  for (const s of services.values()) add('service', s.name, svcPath(s), titleCase(`${s.name} ${baseTown}`),
     [...s.parents.map(catPath), ...townSlugs.flatMap(t => s.parents.map(c => locCatPath(t, c))), '/'],
     s.parents.map(catPath),
     { service_id: s.id, additional: s.kind === 'additional', parent_keys: s.parents.map(c => c.key) });
