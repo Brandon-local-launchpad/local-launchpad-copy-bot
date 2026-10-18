@@ -69,7 +69,7 @@ async function inputsFor(filloutService, clientId, { categoryTabRule = 'ticked_o
     .map(a => ({ service: a.service, why: a.status === 'proposed' ? (a.proposedCategoryKey ? `proposed under ${a.proposedCategoryKey}, not confirmed` : 'no category chosen yet') : 'the proposal step failed; needs a person' }));
   const parentMissing = ((v.resolved && v.resolved.flags) || []).filter(f => f.code === 'additional_parent_missing').map(f => ({ service: f.msg, why: 'confirmed under a category that has no tab' }));
   return {
-    clientId, niche: v.niche, hasConfig: v.hasConfig, categoryTabRule,
+    clientId, niche: v.niche || rec.niche, hasConfig: !!v.hasConfig, categoryTabRule,
     resolved: v.resolved,
     baseTown: str(val('primary_town')),
     otherTowns: str(val('other_areas')),
@@ -92,7 +92,9 @@ function createPageMapStore({ pool, filloutService }) {
   // The plan and what it would do, nothing written
   async function preview(clientId, opts = {}) {
     const inputs = await inputsFor(filloutService, clientId, opts);
-    const plan = G.buildPageMap(inputs);
+    // A niche with no services file has no category tabs: say so plainly, never an empty map
+    const plan = inputs.hasConfig ? G.buildPageMap(inputs)
+      : { ok: false, problems: [{ code: 'services_not_set_up', msg: `Services not set up for this niche yet (${inputs.niche || 'no niche given'}).` }], rows: [], collisions: [], waiting: [], droppedTowns: [], councilAreas: [], counts: {} };
     const rows = await saved(clientId);
     const diff = plan.ok ? G.diffPlan(rows, plan.rows) : null;
     return { inputs, plan, diff, firstRun: !rows.length };

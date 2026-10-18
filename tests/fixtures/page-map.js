@@ -36,8 +36,8 @@ const same = (a, b) => [...a].sort().join() === [...b].sort().join();
 (async () => {
   // ── Counts ──
   const m1 = build('ticked_only'), m2 = build('ticked_or_propagated');
-  chk('ticked_only: 1 + 6 categories + 79 services + 13 locations + 78 location categories = 177', JSON.stringify(m1.counts) === JSON.stringify({ homepage: 1, category: 6, service: 79, location: 13, location_category: 78, total: 177 }), JSON.stringify(m1.counts), '177');
-  chk('ticked_or_propagated: 1 + 7 + 79 + 13 + 91 = 191', m2.counts.category === 7 && m2.counts.location_category === 91 && m2.counts.total === 191, JSON.stringify(m2.counts), '191');
+  chk('ticked_only: 1 + 6 categories + 78 services + 13 locations + 78 location categories = 176', JSON.stringify(m1.counts) === JSON.stringify({ homepage: 1, category: 6, service: 78, location: 13, location_category: 78, total: 176 }), JSON.stringify(m1.counts), '176');
+  chk('ticked_or_propagated: 1 + 7 + 78 + 13 + 91 = 190', m2.counts.category === 7 && m2.counts.location_category === 91 && m2.counts.total === 190, JSON.stringify(m2.counts), '190');
   chk('Every page_key is type + slug and unique', new Set(m1.rows.map(r => r.page_key)).size === m1.rows.length && m1.rows.every(r => r.page_key === `${r.type}:${r.slug}`), '', '');
 
   // ── Base town ──
@@ -48,7 +48,7 @@ const same = (a, b) => [...a].sort().join() === [...b].sort().join();
 
   // ── Homepage and examples ──
   const home = find(m1, '/');
-  chk('Homepage: title, h1 needed, links to 6 categories then 13 locations then 79 services; links from the 79 services', home.title === 'Edens Edge landscaping Homepage' && home.h1_source === 'needed' && home.links_to.length === 98 && home.links_to[0] === '/gardener' && home.links_to[6] === '/locations/romsey' && home.links_to[19] === '/services/lawn-mowing-and-maintenance' && home.links_from.length === 79 && home.links_from.every(l => l.startsWith('/services/')), JSON.stringify([home.links_to.length, home.links_from.length]), '');
+  chk('Homepage: title, h1 needed, links to 6 categories then 13 locations then 78 services; links from the 78 services', home.title === 'Edens Edge landscaping Homepage' && home.h1_source === 'needed' && home.links_to.length === 97 && home.links_to[0] === '/gardener' && home.links_to[6] === '/locations/romsey' && home.links_to[19] === '/services/lawn-mowing-and-maintenance' && home.links_from.length === 78 && home.links_from.every(l => l.startsWith('/services/')), JSON.stringify([home.links_to.length, home.links_from.length]), '');
   const cat = find(m1, '/gardener');
   chk('Category Gardener: links to its 8 services, from its 13 location category pages, h1 needed', cat.links_to.length === 8 && cat.links_from.length === 13 && cat.links_from[0] === '/locations/romsey/gardener' && cat.h1_source === 'needed', '', '');
   const gs = find(m1, '/services/grass-seeding');
@@ -76,23 +76,30 @@ const same = (a, b) => [...a].sort().join() === [...b].sort().join();
     chk(`${rule}: same ${old.length} pages as the old script; links differ only on the homepage (no base town page) and the ${dupSlugs.size} duplicate services (all parents)`, old.length === m.rows.length && !unexpected.length, unexpected.slice(0, 5).join(', '), 'none');
   }
 
-  chk('The CSV reads back through the old page map parser (client-files.js): 177 pages, the right types', (() => { const p = require(path.join(root, 'client-files.js')).parsePageMap(G.toCsv(m1.rows)); return p.length === 177 && p.filter(x => x.pageType === 'location-category').length === 78 && p.find(x => x.urlSlug === '/services/grass-seeding').h1 === 'Grass seeding Southampton'; })(), '', '');
+  chk('The CSV reads back through the old page map parser (client-files.js): 176 pages, the right types', (() => { const p = require(path.join(root, 'client-files.js')).parsePageMap(G.toCsv(m1.rows)); return p.length === 176 && p.filter(x => x.pageType === 'location-category').length === 78 && p.find(x => x.urlSlug === '/services/grass-seeding').h1 === 'Grass seeding Southampton'; })(), '', '');
   chk('New Forest District is marked as a council area (it still gets pages)', m1.councilAreas.join() === 'New Forest District' && !!find(m1, '/locations/new-forest-district'), JSON.stringify(m1.councilAreas), '');
+
+  chk('Against the real Edens Edge sheet page map (edens-edge-real/page-map.csv, 198 rows): ticked_or_propagated gives the same pages minus the 8 base town pages the old script made', (() => {
+    const old = require(path.join(root, 'client-files.js')).parsePageMap(require('fs').readFileSync(path.join(root, 'tests/fixtures/edens-edge-real/page-map.csv'), 'utf8'));
+    const os = new Set(old.map(p => p.urlSlug)), ns = new Set(m2.rows.map(r => r.slug));
+    const onlySheet = [...os].filter(s => !ns.has(s)), onlyOurs = [...ns].filter(s => !os.has(s));
+    return old.length === 198 && old.filter(p => p.pageType === 'service').length === 78 && !onlyOurs.length && onlySheet.length === 8 && onlySheet.every(s => s.startsWith('/locations/southampton'));
+  })(), '', '');
 
   // ── Additional services ──
   const withAdd = build('ticked_only', { resolve: { additional: [{ service: 'Pond installation', categoryKey: 'landscape_designer' }] }, input: { waiting: [{ service: 'Raised beds', why: 'no category chosen yet' }] } });
   const pond = find(withAdd, '/services/pond-installation');
-  chk('A confirmed additional service is a Service page under its parent, same rules; unconfirmed ones are only listed as waiting', pond && pond.additional === true && same(pond.links_from, ['/landscape-designer']) && pond.h1 === 'Pond installation Southampton' && find(withAdd, '/landscape-designer').links_to.includes('/services/pond-installation') && !find(withAdd, '/services/raised-beds') && withAdd.waiting[0].service === 'Raised beds' && withAdd.counts.service === 80, JSON.stringify(withAdd.counts), '80 services');
+  chk('A confirmed additional service is a Service page under its parent, same rules; unconfirmed ones are only listed as waiting', pond && pond.additional === true && same(pond.links_from, ['/landscape-designer']) && pond.h1 === 'Pond installation Southampton' && find(withAdd, '/landscape-designer').links_to.includes('/services/pond-installation') && !find(withAdd, '/services/raised-beds') && withAdd.waiting[0].service === 'Raised beds' && withAdd.counts.service === 79, JSON.stringify(withAdd.counts), '79 services');
 
   // ── Slug collisions ──
   const collide = build('ticked_only', { resolve: { additional: [{ service: 'Grass-seeding!', categoryKey: 'tree_service' }] }, input: { otherTowns: "Chandler's Ford\nChandlers Ford\n!!!" } });
-  chk('Slug collisions are reported, not renamed: a service and a town that slug the same as another, and a town with no letters', collide.collisions.some(c => c.slug === '/services/grass-seeding' && c.names.length === 2) && collide.collisions.some(c => /no letters/.test(c.msg)) && collide.collisions.some(c => c.slug === '/locations/chandlers-ford' && c.names.length === 2) && collide.counts.location === 1 && collide.counts.service === 79 && collide.rows.filter(r => r.slug === '/services/grass-seeding').length === 1, JSON.stringify(collide.collisions.map(c => c.msg)), '');
+  chk('Slug collisions are reported, not renamed: a service and a town that slug the same as another, and a town with no letters', collide.collisions.some(c => c.slug === '/services/grass-seeding' && c.names.length === 2) && collide.collisions.some(c => /no letters/.test(c.msg)) && collide.collisions.some(c => c.slug === '/locations/chandlers-ford' && c.names.length === 2) && collide.counts.location === 1 && collide.counts.service === 78 && collide.rows.filter(r => r.slug === '/services/grass-seeding').length === 1, JSON.stringify(collide.collisions.map(c => c.msg)), '');
   chk('Edens Edge itself has no slug collisions in either mode', !m1.collisions.length && !m2.collisions.length, JSON.stringify(m1.collisions), '[]');
   chk('Nothing to map without a category tab or a base town', !G.buildPageMap({ resolved: { categories: [] }, baseTown: 'X' }).ok && !build('ticked_only', { input: { baseTown: '' } }).ok, '', '');
 
   // ── CSV ──
   const csv = G.toCsv(m1.rows);
-  chk('CSV: the old PAGE MAP columns in order, 177 rows, links one per line in a quoted cell', csv.split('\r\n')[0] === 'Page Type,Page Title,URL Slug,H1 (Ahrefs),Meta Title,Meta Description,Links TO,Links FROM,Status' && /^Service,Grass seeding,\/services\/grass-seeding,Grass seeding Southampton,,,"\/gardener\n\/landscape-gardener/m.test(csv), csv.slice(0, 120), '');
+  chk('CSV: the old PAGE MAP columns in order, 176 rows, links one per line in a quoted cell', csv.split('\r\n')[0] === 'Page Type,Page Title,URL Slug,H1 (Ahrefs),Meta Title,Meta Description,Links TO,Links FROM,Status' && /^Service,Grass seeding,\/services\/grass-seeding,Grass seeding Southampton,,,"\/gardener\n\/landscape-gardener/m.test(csv), csv.slice(0, 120), '');
 
   // ── Store, seed and regeneration through pg-mem ──
   const mem = newDb();
@@ -119,13 +126,13 @@ const same = (a, b) => [...a].sort().join() === [...b].sort().join();
 
   // First generation
   let pv = await store.preview(client.id);
-  chk('Dry run on a new map: would add 177, retire 0, nothing written', pv.firstRun && pv.diff.counts.wouldAdd === 177 && pv.diff.counts.wouldRetire === 0 && pv.diff.counts.unchanged === 0 && (await store.saved(client.id)).length === 0, JSON.stringify(pv.diff.counts), '');
+  chk('Dry run on a new map: would add 176, retire 0, nothing written', pv.firstRun && pv.diff.counts.wouldAdd === 176 && pv.diff.counts.wouldRetire === 0 && pv.diff.counts.unchanged === 0 && (await store.saved(client.id)).length === 0, JSON.stringify(pv.diff.counts), '');
   chk('Inputs come from the record: base town, 13 other towns, company name, the resolver tabs', pv.inputs.baseTown === 'Southampton' && pv.inputs.otherTowns.split('\n').length === 13 && pv.inputs.companyName === 'Edens Edge landscaping' && pv.inputs.resolved.counts.tabs === 6, JSON.stringify([pv.inputs.baseTown, pv.inputs.companyName]), '');
   await store.generate(client.id);
   let rows = await store.saved(client.id);
-  chk('Generate writes 177 rows, all Not Started and applying', rows.length === 177 && rows.every(r => r.status === 'Not Started' && r.applies === true), rows.length, 177);
+  chk('Generate writes 176 rows, all Not Started and applying', rows.length === 176 && rows.every(r => r.status === 'Not Started' && r.applies === true), rows.length, 176);
   pv = await store.preview(client.id);
-  chk('Dry run again: 0 to add, 0 to retire, 177 unchanged', pv.diff.counts.wouldAdd === 0 && pv.diff.counts.wouldRetire === 0 && pv.diff.counts.unchanged === 177 && pv.diff.counts.wouldUpdate === 0, JSON.stringify(pv.diff.counts), '');
+  chk('Dry run again: 0 to add, 0 to retire, 176 unchanged', pv.diff.counts.wouldAdd === 0 && pv.diff.counts.wouldRetire === 0 && pv.diff.counts.unchanged === 176 && pv.diff.counts.wouldUpdate === 0, JSON.stringify(pv.diff.counts), '');
 
   // A person's edits
   const byKey = k => rows.find(r => r.page_key === k);
@@ -146,10 +153,10 @@ const same = (a, b) => [...a].sort().join() === [...b].sort().join();
   chk('Dry run after renaming Romsey and swapping Lockerley for Totton: would add 14 (2 locations + 12 location categories), retire 14, update the rest that link to them', pv.diff.counts.wouldAdd === 14 && pv.diff.counts.wouldRetire === 14 && pv.diff.counts.wouldUpdate > 0, JSON.stringify(pv.diff.counts), '');
   chk('The rename is flagged for a person (new page plus a no-longer-applies one)', pv.diff.renames.some(r => r.type === 'location' && r.retired.includes('Romsey') && r.added.includes('Romsey Extra')), JSON.stringify(pv.diff.renames.map(r => r.msg)), '');
   chk('Retiring pages a person worked on is called out', pv.diff.retiringWorkedOn.some(r => r.title === 'Romsey') && pv.diff.retiringWorkedOn.some(r => r.title === 'Gardener Romsey'), JSON.stringify(pv.diff.retiringWorkedOn), '');
-  chk('The dry run wrote nothing', (await store.saved(client.id)).length === 177, '', '177');
+  chk('The dry run wrote nothing', (await store.saved(client.id)).length === 176, '', '176');
   await store.generate(client.id);
   rows = await store.saved(client.id);
-  chk('After regeneration: 191 rows kept (177 + 14 new), 14 no longer apply, none deleted', rows.length === 191 && rows.filter(r => !r.applies).length === 14 && rows.filter(r => r.applies).length === 177, JSON.stringify([rows.length, rows.filter(r => !r.applies).length]), '[191,14]');
+  chk('After regeneration: 190 rows kept (176 + 14 new), 14 no longer apply, none deleted', rows.length === 190 && rows.filter(r => !r.applies).length === 14 && rows.filter(r => r.applies).length === 176, JSON.stringify([rows.length, rows.filter(r => !r.applies).length]), '[190,14]');
   const oldRomsey = byKey('location:/locations/romsey');
   chk("Retired Romsey keeps the person's H1, meta, notes and status; its location category keeps Copy Generated", !oldRomsey.applies && oldRomsey.retired_at && oldRomsey.h1 === 'Gardener Romsey' && oldRomsey.h1_source === 'manual' && oldRomsey.meta_title === 'Romsey gardener' && oldRomsey.notes === 'checked in Ahrefs' && oldRomsey.status === 'H1 Added' && byKey('location_category:/locations/romsey/gardener').status === 'Copy Generated', JSON.stringify(oldRomsey), '');
   const home2 = byKey('homepage:/'), gs2 = byKey('service:/services/grass-seeding');
@@ -168,6 +175,10 @@ const same = (a, b) => [...a].sort().join() === [...b].sort().join();
   rows = await store.saved(client.id);
   chk('Putting Romsey back revives its row (no duplicate) with the H1 the person set', rows.filter(r => r.page_key === 'location:/locations/romsey').length === 1 && byKey('location:/locations/romsey').applies && byKey('location:/locations/romsey').h1 === 'Gardener Romsey' && byKey('location_category:/locations/romsey/gardener').status === 'Copy Generated' && byKey('location:/locations/totton').applies === false, JSON.stringify(pv.diff.counts), '');
   chk('Regeneration never touched the old pages table', JSON.stringify((await pool.query(`SELECT * FROM pages WHERE client_id = $1`, [client.id])).rows) === pageBefore, '', '');
+  // tools/page-map-cli.js: a dry run through the same store writes nothing
+  const savedBefore = JSON.stringify(await store.saved(client.id));
+  const cli = await require(path.join(root, 'tools/page-map-cli.js')).run(pool, { client: 'ednes edge testing', log() {} });
+  chk('page-map-cli dry run: finds the client by name, reports the counts, writes nothing', cli.client.id === client.id && cli.preview.diff && typeof cli.preview.diff.counts.unchanged === 'number' && JSON.stringify(await store.saved(client.id)) === savedBefore, JSON.stringify(cli.preview.diff && cli.preview.diff.counts), '');
   // CSV from the store leaves retired rows out unless asked
   const csv2 = await store.csv(client.id);
   chk('CSV from the store: applying rows only; retired rows on request with a tag', csv2.trim().split('\r\n').length - 0 > 0 && !/Totton/.test(csv2) && /Location \(no longer applies\),Totton/.test(await store.csv(client.id, { includeRetired: true })), '', '');

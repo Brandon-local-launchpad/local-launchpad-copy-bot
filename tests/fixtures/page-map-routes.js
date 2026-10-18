@@ -66,14 +66,29 @@ const clone = o => JSON.parse(JSON.stringify(o));
     const { rows: srcs } = await pool.query(`SELECT field_key, source FROM client_fields WHERE client_id = $1`, [c.id]);
     chk('Every saved value is a hand edit (source manual)', srcs.length === 11 && srcs.every(s => s.source === 'manual'), JSON.stringify(srcs), '11 manual');
     const sv = await json(await req('GET', `/api/clients/${c.id}/services`));
-    chk('The resolver reads the hand ticks: 6 tabs, 79 services, Gardener primary', sv.hasConfig && sv.resolved.counts.tabs === 6 && sv.resolved.counts.services === 79 && sv.resolved.primary === 'gardener', JSON.stringify(sv.resolved && sv.resolved.counts), '');
+    chk('The resolver reads the hand ticks: 6 tabs, 78 services, Gardener primary', sv.hasConfig && sv.resolved.counts.tabs === 6 && sv.resolved.counts.services === 78 && sv.resolved.primary === 'gardener', JSON.stringify(sv.resolved && sv.resolved.counts), '');
+
+    chk('Tick counts per category tick group and in total: Gardener 8 of 9, Deck Builder 16 of 17, 78 of 102 in all', (() => { const t = sv.tickCounts, by = k => t.find(x => x.key === k); return t.length === 7 && by('gardener').ticked === 8 && by('gardener').total === 9 && by('deck_builder').ticked === 16 && by('deck_builder').total === 17 && by('lawn_care_service').ticked === 0 && by('lawn_care_service').total === 1 && t.reduce((a, x) => a + x.ticked, 0) === 78 && t.reduce((a, x) => a + x.total, 0) === 102; })(), JSON.stringify(sv.tickCounts), '');
+    const recA = await json(await req('GET', `/api/clients/${c.id}/record`));
+    chk('A supported niche has no "Services not set up" flag', recA.servicesConfigured === true && !recA.attention.some(a => a.code === 'services_not_set_up'), JSON.stringify(recA.attention.map(a => a.code)), '');
+
+    // ── A niche with no services file ──
+    const { rows: [u] } = await pool.query(`INSERT INTO clients (name, trade) VALUES ('Pipe Pros', 'Plumbing & Heating') RETURNING id`);
+    const recU = await json(await req('GET', `/api/clients/${u.id}/record`));
+    chk('No services file: the record flags "Services not set up for this niche yet" in Needs attention', recU.niche === 'Plumbing & Heating' && recU.servicesConfigured === false && recU.attention.some(a => a.code === 'services_not_set_up' && a.group === 'blocks' && /Services not set up for this niche yet \(Plumbing & Heating\)/.test(a.msg)), JSON.stringify(recU.attention.map(a => a.code)), '');
+    const svU = await json(await req('GET', `/api/clients/${u.id}/services`));
+    chk('No services file: the Services view says so (hasConfig false), not an empty resolver result', svU.hasConfig === false && svU.resolved === null, JSON.stringify([svU.hasConfig, svU.niche]), '');
+    const pvU = await json(await req('GET', `/api/clients/${u.id}/page-map/preview`));
+    chk('No services file: the page map preview is not ready and names the reason', pvU.ok === false && pvU.inputs.hasConfig === false && pvU.problems.length === 1 && pvU.problems[0].code === 'services_not_set_up', JSON.stringify(pvU.problems), '');
+    r = await req('POST', `/api/clients/${u.id}/page-map/generate`, {});
+    chk('No services file: Generate page map is refused', r.status === 400 && /Services not set up/.test((await r.json()).error), r.status, 400);
 
     pv = await json(await req('GET', `/api/clients/${c.id}/page-map/preview`));
-    chk('Preview: first run would add 177, inputs shown, nothing written', pv.ok && pv.firstRun && pv.diff.counts.wouldAdd === 177 && pv.inputs.tabs === 6 && pv.inputs.baseTown === 'Southampton' && (await json(await req('GET', `/api/clients/${c.id}/page-map`))).rows.length === 0, JSON.stringify(pv.diff && pv.diff.counts), '');
+    chk('Preview: first run would add 176, inputs shown, nothing written', pv.ok && pv.firstRun && pv.diff.counts.wouldAdd === 176 && pv.inputs.tabs === 6 && pv.inputs.baseTown === 'Southampton' && (await json(await req('GET', `/api/clients/${c.id}/page-map`))).rows.length === 0, JSON.stringify(pv.diff && pv.diff.counts), '');
     let g = await json(await req('POST', `/api/clients/${c.id}/page-map/generate`, { rule: 'ticked_or_propagated' }));
-    chk('Generate with ticked_or_propagated: 191 rows and the rule remembered', g.rows.length === 191 && g.state.category_tab_rule === 'ticked_or_propagated', JSON.stringify([g.rows.length, g.state && g.state.category_tab_rule]), '');
+    chk('Generate with ticked_or_propagated: 190 rows and the rule remembered', g.rows.length === 190 && g.state.category_tab_rule === 'ticked_or_propagated', JSON.stringify([g.rows.length, g.state && g.state.category_tab_rule]), '');
     g = await json(await req('POST', `/api/clients/${c.id}/page-map/generate`, { rule: 'ticked_only' }));
-    chk('Back to ticked_only: Lawn Care Service and its 13 location pages no longer apply (14 retired, none deleted)', g.rows.length === 191 && g.rows.filter(x => !x.applies).length === 14 && g.counts.wouldRetire === 14, JSON.stringify(g.counts), '');
+    chk('Back to ticked_only: Lawn Care Service and its 13 location pages no longer apply (14 retired, none deleted)', g.rows.length === 190 && g.rows.filter(x => !x.applies).length === 14 && g.counts.wouldRetire === 14, JSON.stringify(g.counts), '');
     const home = g.rows.find(x => x.page_key === 'homepage:/');
     let row = await json(await req('PUT', `/api/clients/${c.id}/page-map/${home.id}`, { h1: 'Landscaper Southampton' }));
     chk('Editing an H1 through the API: manual, status H1 Added', row.h1 === 'Landscaper Southampton' && row.h1_source === 'manual' && row.status === 'H1 Added', JSON.stringify([row.h1_source, row.status]), '');
@@ -83,7 +98,7 @@ const clone = o => JSON.parse(JSON.stringify(o));
     chk('Editing an unknown row is a 404', r.status === 404, r.status, 404);
     const csvRes = await req('GET', `/api/clients/${c.id}/page-map.csv`);
     const csv = (await csvRes.text()).replace(/^﻿/, '');
-    chk('CSV download: old column order, 177 applying rows, the edited homepage first', /attachment; filename="Hand_Made_Gardens_page_map.csv"/.test(csvRes.headers.get('content-disposition')) && csv.startsWith('Page Type,Page Title,URL Slug,H1 (Ahrefs),Meta Title,Meta Description,Links TO,Links FROM,Status') && csv.split('\r\n')[1].startsWith('Homepage,Edens Edge landscaping Homepage,/,Landscaper Southampton,') && !/Lawn Care Service/.test(csv), csv.split('\r\n')[1].slice(0, 80), '');
+    chk('CSV download: old column order, 176 applying rows, the edited homepage first', /attachment; filename="Hand_Made_Gardens_page_map.csv"/.test(csvRes.headers.get('content-disposition')) && csv.startsWith('Page Type,Page Title,URL Slug,H1 (Ahrefs),Meta Title,Meta Description,Links TO,Links FROM,Status') && csv.split('\r\n')[1].startsWith('Homepage,Edens Edge landscaping Homepage,/,Landscaper Southampton,') && !/Lawn Care Service/.test(csv), csv.split('\r\n')[1].slice(0, 80), '');
     // Saving the editor again (same values) changes nothing in the page map
     await req('PUT', `/api/clients/${c.id}/services/by-hand`, { niche: 'Landscapers/Gardeners', ticks: groupTicks, baseTown: 'Southampton', otherTowns: S.OTHER_TOWNS.join('\n'), companyName: S.COMPANY });
     pv = await json(await req('GET', `/api/clients/${c.id}/page-map/preview`));

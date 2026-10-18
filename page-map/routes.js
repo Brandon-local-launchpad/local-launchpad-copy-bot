@@ -78,7 +78,7 @@ function mountPageMapApi(app, { pool, filloutService }) {
     diff: p.diff ? { counts: p.diff.counts, renames: p.diff.renames, retiringWorkedOn: p.diff.retiringWorkedOn,
       add: [...p.diff.add.map(r => r.title), ...p.diff.revive.map(x => x.row.title)], retire: p.diff.retire.map(r => r.title) } : null,
     firstRun: p.firstRun,
-    inputs: { baseTown: p.inputs.baseTown, otherTowns: p.inputs.otherTowns, companyName: p.inputs.companyName, categoryTabRule: p.inputs.categoryTabRule,
+    inputs: { niche: p.inputs.niche, hasConfig: p.inputs.hasConfig, baseTown: p.inputs.baseTown, otherTowns: p.inputs.otherTowns, companyName: p.inputs.companyName, categoryTabRule: p.inputs.categoryTabRule,
       tabs: p.inputs.resolved ? p.inputs.resolved.categories.length : 0, attentionCount: p.inputs.attentionCount },
   });
 
