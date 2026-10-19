@@ -608,9 +608,12 @@
   }
   // Launch towns (page map phases): the base town always launches in phase 1; other towns when ticked
   function renderLaunchTowns() {
-    const f = k => { const x = allFields().find(y => y.key === k); return x && typeof x.value === 'string' ? x.value : ''; };
-    const base = f('primary_town').trim();
-    const towns = [...new Set(f('other_areas').split(/\r?\n/).map(t => t.replace(/^[\s\-–—*•\d.)]+/, '').trim()).filter(Boolean))].filter(t => slugOf(t) !== slugOf(base));
+    // Towns from the record (a string or a list), else from the last page map's inputs
+    const f = k => { const x = allFields().find(y => y.key === k); const v = x ? x.value : ''; return Array.isArray(v) ? v.join('\n') : typeof v === 'string' ? v : ''; };
+    const fromMap = pm.state && pm.state.inputs;
+    const base = (f('primary_town') || (fromMap && fromMap.baseTown) || '').trim();
+    const townText = f('other_areas') || (fromMap && fromMap.otherTowns) || '';
+    const towns = [...new Set(townText.split(/\r?\n/).map(t => t.replace(/^[\s\-–—*•\d.)]+/, '').trim()).filter(Boolean))].filter(t => slugOf(t) !== slugOf(base));
     const on = new Set(pm.launchTowns || []);
     const published = pm.state && pm.state.phase2_published_at;
     const rows = towns.map(t => `<label class="tick" style="margin:0 1rem .4rem 0;display:inline-flex;gap:.35rem;align-items:center"><input type="checkbox" ${on.has(slugOf(t)) ? 'checked' : ''} ${published ? 'disabled' : ''} onchange="setLaunchTown('${esc(t)}', this.checked)"> ${esc(t)}</label>`).join('');
@@ -719,12 +722,25 @@
   let h1Preview = null;                // GET .../h1-research/preview (re-research, waiting for Apply)
   let dfsBalance = null;               // GET /api/dataforseo/balance
   let h1Poll = null;
+  let migrationAsked = false;          // the old-rules migration is started once per page load
   async function loadPageMap() {
     try { const res = await fetch(`/api/clients/${clientId}/page-map`); pm = res.ok ? await res.json() : { rows: [], state: null }; } catch (_) { pm = { rows: [], state: null }; }
     pm.candidates = pm.candidates || {};
     if (pm.state && pm.state.category_tab_rule) pmRule = pm.state.category_tab_rule;
     renderH1Bar();
     if (jobActive()) pollH1();
+    else migrateOldRules();
+  }
+  // Old-rules research left on a page map: the current page map and research are applied without a
+  // confirmation (Not Started or H1 Added, not manual; later pages get "research now suggests")
+  async function migrateOldRules() {
+    if (migrationAsked || !pm.rows.some(r => r.applies && h1State(r) === 'old')) return;
+    migrationAsked = true;
+    try {
+      const res = await fetch(`/api/clients/${clientId}/page-map/migrate`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: '{}' });
+      const r = await res.json().catch(() => ({}));
+      if (res.ok && r.job) { pm.job = r.job; renderH1Bar(); render(); pollH1(); }
+    } catch (_) {}
   }
   async function loadPagePreview() {
     try { const res = await fetch(`/api/clients/${clientId}/page-map/preview?rule=${pmRule}`); pmPreview = res.ok ? await res.json() : { error: (await res.json().catch(() => ({}))).error || res.status }; } catch (e) { pmPreview = { error: e.message }; }
@@ -758,6 +774,8 @@
     if (p && p.ok && p.collisions.length) box += `<div class="pm-box warn"><h3>Slug collisions (${p.collisions.length})</h3><ul>${p.collisions.map(c => `<li>${esc(c.msg)}</li>`).join('')}</ul><div class="pnote">Nothing is renamed: fix the name on the record and generate again.</div></div>`;
     if (p && p.ok && p.waiting.length) box += `<div class="pm-box"><h3>Waiting on confirmation (${p.waiting.length})</h3><div class="pnote">Additional services that get a page once confirmed on <a href="#services">Services</a>.</div><ul>${p.waiting.map(w => `<li>${esc(w.service)} <span class="pnote">${esc(w.why)}</span></li>`).join('')}</ul></div>`;
     if (p && p.ok && p.councilAreas.length) box += `<div class="pm-box"><h3>Council areas in the town list</h3><div class="pnote">${esc(p.councilAreas.join(', '))} ${p.councilAreas.length === 1 ? 'is a council area' : 'are council areas'}, not ${p.councilAreas.length === 1 ? 'a town' : 'towns'}. ${p.councilAreas.length === 1 ? 'It has' : 'They have'} pages here, but Copybot's location research skips council areas.</div></div>`;
+    // Launch towns live on Areas & Local Details and here, next to the phase counts they drive
+    if (live.length) box += `<div class="pm-box" id="pm_launch_towns">${renderLaunchTowns().replace(/^<div class="prices" id="f_launch_towns">/, '').replace(/<\/div>\s*$/, '')}</div>`;
     if (p && p.ok && p.droppedTowns.length) box += `<div class="pm-box"><h3>Towns left out</h3><ul>${p.droppedTowns.map(d => `<li>${esc(d.town)} <span class="pnote">${esc(d.why)}</span></li>`).join('')}</ul></div>`;
     const keep = r => pmFilter === 'all' || (pmFilter === 'conflicts' ? r.applies && r.h1_source === 'conflict' : r.applies && r.h1_source === 'pattern');
     const groups = PM_TYPES.map(([type, label]) => {
@@ -772,7 +790,7 @@
     const retiredToggle = retired.length ? `<div class="pm-bar"><label class="tick" style="margin:0"><input type="checkbox" ${pmShowRetired ? 'checked' : ''} onchange="pmShowRetired=this.checked;render()"> Show pages that no longer apply (${retired.length})</label></div>` : '';
     const nConf = live.filter(r => r.h1_source === 'conflict').length, nPat = live.filter(r => r.h1_source === 'pattern').length;
     const nOld = live.filter(r => h1State(r) === 'old').length;
-    const oldBox = nOld && !jobActive() ? `<div class="pm-box warn"><h3>${nOld} page${nOld === 1 ? '' : 's'} still carry the old H1 research</h3><div class="pnote">They were researched before the current rules (19 Oct), so pages without a usable keyword have no H1 yet. Re-research H1s shows what the current rules would apply, and applies it only after you confirm.</div><div class="pt-actions" style="margin-top:.6rem"><button class="btn btn-primary btn-xs" onclick="h1Research()">Re-research H1s</button></div></div>` : '';
+    const oldBox = nOld ? `<div class="pm-box warn"><h3>${nOld} page${nOld === 1 ? '' : 's'} still carry the old H1 research</h3><div class="pnote">${jobActive() ? 'Moving them to the current rules now: the page map is being rebuilt and researched, and the result is applied to pages at Not Started or H1 Added that are not manual. Pages at Copy Generated or later keep their H1 and get a "research now suggests" note.' : 'They were researched before the current rules (19 Oct). The move to the current rules starts by itself when this page map opens; if it did not, reload the page.'}</div></div>` : '';
     const filterBar = live.length ? `<div class="pm-bar"><label class="pnote">Show <select onchange="pmSetFilter(this.value)"><option value="all"${pmFilter === 'all' ? ' selected' : ''}>All pages</option><option value="conflicts"${pmFilter === 'conflicts' ? ' selected' : ''}>H1 conflicts (${nConf})</option><option value="pattern"${pmFilter === 'pattern' ? ' selected' : ''}>Pattern, no volume data (${nPat})</option></select></label></div>` : '';
     const list = pm.rows.length ? oldBox + filterBar + (groups || '<div class="empty">Nothing to show for this filter.</div>') + retiredToggle : `<div class="empty">No page map yet. ${canGen ? 'Generate it from the categories and towns above.' : notSetUp ? 'This niche needs its services file first.' : 'Add the categories and a base town first.'}</div>`;
     return `<div class="panel">${head}${bar}${box}${list}</div>`;

@@ -147,6 +147,16 @@ function mountPageMapApi(app, { pool, filloutService, searchVolume = D.searchVol
   }));
   app.put('/api/clients/:clientId/page-map/:rowId', wrap(async (req, res) => res.json(await store.setRow(req.params.clientId, req.params.rowId, req.body || {}))));
 
+  // Old-rules migration (Brandon, 20 Oct 2026): a client whose page map still carries research from before
+  // 19 Oct gets the current page map and research applied without confirmation (the usual limits: Not
+  // Started or H1 Added, not manual; Copy Generated and later only get "research now suggests")
+  app.post('/api/clients/:clientId/page-map/migrate', wrap(async (req, res) => {
+    const rows = await store.saved(req.params.clientId);
+    const old = rows.filter(r => r.applies && (r.h1_source === 'suggested' || (r.h1_source === 'needed' && r.h1_researched_at)));
+    if (!old.length) return res.json({ job: null, migrated: 0, note: 'nothing on the old rules' });
+    const last = await store.state(req.params.clientId);
+    res.json({ job: await h1.start(req.params.clientId, { kind: 'generate', categoryTabRule: (last && last.category_tab_rule) || 'ticked_only', mode: 'all' }), migrated: old.length });
+  }));
   // Launch towns (phase 1); "Publish phase 2" flips phase-2 pages to publish and plans the links again
   app.put('/api/clients/:clientId/towns/:town/launch', wrap(async (req, res) => res.json({ launchTowns: [...await store.setLaunchTown(req.params.clientId, req.params.town, !!(req.body || {}).launch)] })));
   app.post('/api/clients/:clientId/page-map/publish-phase-2', wrap(async (req, res) => {
