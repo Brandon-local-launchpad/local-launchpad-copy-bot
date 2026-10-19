@@ -14,6 +14,16 @@
 
 const G = require('./generator');
 
+// Why a page no longer applies: the plan built from the record has no page with its key any more
+function retiredReason(row) {
+  const t = row.title;
+  if (row.type === 'service') return `"${t}" is no longer one of this client's services: it is not ticked in any category on the record`;
+  if (row.type === 'category') return `the "${t}" category is no longer one of this client's category tabs`;
+  if (row.type === 'location') return `${t} is no longer in this client's town list`;
+  if (row.type === 'location_category') return `the category or the town for "${t}" is no longer on the record`;
+  return 'it is no longer in the plan built from the record';
+}
+
 async function ensurePageMapTables(pool) {
   await pool.query(`
     CREATE TABLE IF NOT EXISTS client_page_map (
@@ -51,7 +61,8 @@ async function ensurePageMapTables(pool) {
   `);
   // H1 research beside the H1 (h1-research/service.js): the researched keyword and volume, a
   // suggestion when there is no usable data, and whether a person accepted the suggestion
-  for (const col of ['h1_keyword TEXT', 'h1_volume INTEGER', 'h1_suggestion TEXT', 'h1_accepted BOOLEAN NOT NULL DEFAULT FALSE', 'h1_researched_at TIMESTAMPTZ', 'h1_reason TEXT', 'h1_suggests TEXT', 'h1_hub TEXT']) {
+  // (h1_cpc: the applied keyword's CPC; retired_reason: why a page no longer applies)
+  for (const col of ['h1_keyword TEXT', 'h1_volume INTEGER', 'h1_suggestion TEXT', 'h1_accepted BOOLEAN NOT NULL DEFAULT FALSE', 'h1_researched_at TIMESTAMPTZ', 'h1_reason TEXT', 'h1_suggests TEXT', 'h1_hub TEXT', 'h1_cpc NUMERIC', 'retired_reason TEXT']) {
     await pool.query(`ALTER TABLE client_page_map ADD COLUMN IF NOT EXISTS ${col}`);
   }
 }
@@ -125,7 +136,7 @@ function createPageMapStore({ pool, filloutService }) {
       const p = planned.get(row.page_key);
       const next = { title: row.title, links_to: row.links_to, links_from: row.links_from, h1: row.h1, h1_source: row.h1_source, ...changes };
       await pool.query(
-        `UPDATE client_page_map SET title=$3, links_to=$4, links_from=$5, h1=$6, h1_source=$7, info=$8, sort_order=$9, applies=TRUE, retired_at=NULL, updated_at=NOW()
+        `UPDATE client_page_map SET title=$3, links_to=$4, links_from=$5, h1=$6, h1_source=$7, info=$8, sort_order=$9, applies=TRUE, retired_at=NULL, retired_reason=NULL, updated_at=NOW()
          WHERE id=$1 AND client_id=$2`,
         [row.id, clientId, next.title, JSON.stringify(next.links_to), JSON.stringify(next.links_from), next.h1, next.h1_source, JSON.stringify(infoOf(p)), order.get(row.page_key)]);
       await tick();
@@ -134,7 +145,7 @@ function createPageMapStore({ pool, filloutService }) {
       if (row.sort_order !== order.get(row.page_key)) await pool.query(`UPDATE client_page_map SET sort_order=$3 WHERE id=$1 AND client_id=$2`, [row.id, clientId, order.get(row.page_key)]);
       await tick();
     }
-    for (const row of diff.retire) { await pool.query(`UPDATE client_page_map SET applies=FALSE, retired_at=NOW(), updated_at=NOW() WHERE id=$1 AND client_id=$2`, [row.id, clientId]); await tick(); }
+    for (const row of diff.retire) { await pool.query(`UPDATE client_page_map SET applies=FALSE, retired_at=NOW(), retired_reason=$3, updated_at=NOW() WHERE id=$1 AND client_id=$2`, [row.id, clientId, retiredReason(row)]); await tick(); }
     if (opts.onProgress && !total) await opts.onProgress(0, 0);
     const st = { generated_at: new Date(), category_tab_rule: inputs.categoryTabRule,
       inputs: { baseTown: inputs.baseTown, otherTowns: inputs.otherTowns, companyName: inputs.companyName },
@@ -175,4 +186,4 @@ function createPageMapStore({ pool, filloutService }) {
   return { saved, state, preview, generate, setRow, csv };
 }
 
-module.exports = { ensurePageMapTables, createPageMapStore, inputsFor };
+module.exports = { ensurePageMapTables, createPageMapStore, inputsFor, retiredReason };

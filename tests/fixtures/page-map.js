@@ -161,6 +161,7 @@ const same = (a, b) => [...a].sort().join() === [...b].sort().join();
   rows = await store.saved(client.id);
   chk('After regeneration: 190 rows kept (176 + 14 new), 14 no longer apply, none deleted', rows.length === 190 && rows.filter(r => !r.applies).length === 14 && rows.filter(r => r.applies).length === 176, JSON.stringify([rows.length, rows.filter(r => !r.applies).length]), '[190,14]');
   const oldRomsey = byKey('location:/locations/romsey');
+  chk('A retired page says why: Romsey "is no longer in this client\'s town list"', oldRomsey.retired_reason === "Romsey is no longer in this client's town list" && rows.filter(r => !r.applies).every(r => r.retired_reason), oldRomsey.retired_reason, '');
   chk("Retired Romsey keeps the person's H1, meta, notes and status; its location category keeps Copy Generated", !oldRomsey.applies && oldRomsey.retired_at && oldRomsey.h1 === 'Gardener Romsey' && oldRomsey.h1_source === 'manual' && oldRomsey.meta_title === 'Romsey gardener' && oldRomsey.notes === 'checked in Ahrefs' && oldRomsey.status === 'H1 Added' && byKey('location_category:/locations/romsey/gardener').status === 'Copy Generated', JSON.stringify(oldRomsey), '');
   const home2 = byKey('homepage:/'), gs2 = byKey('service:/services/grass-seeding');
   chk("Links follow the plan but the homepage's manual H1 and Grass seeding's Live status and meta stay", home2.h1 === 'Landscaper Southampton' && home2.status === 'H1 Added' && home2.links_to.includes('/locations/romsey-extra') && !home2.links_to.includes('/locations/romsey') && gs2.status === 'Live' && gs2.meta_description === 'Seeding lawns' && gs2.links_to.includes('/locations/totton/gardener'), JSON.stringify([home2.h1, gs2.status]), '');
@@ -176,7 +177,7 @@ const same = (a, b) => [...a].sort().join() === [...b].sort().join();
   pv = await store.preview(client.id);
   await store.generate(client.id);
   rows = await store.saved(client.id);
-  chk('Putting Romsey back revives its row (no duplicate) with the H1 the person set', rows.filter(r => r.page_key === 'location:/locations/romsey').length === 1 && byKey('location:/locations/romsey').applies && byKey('location:/locations/romsey').h1 === 'Gardener Romsey' && byKey('location_category:/locations/romsey/gardener').status === 'Copy Generated' && byKey('location:/locations/totton').applies === false, JSON.stringify(pv.diff.counts), '');
+  chk('Putting Romsey back revives its row (no duplicate) with the H1 the person set', rows.filter(r => r.page_key === 'location:/locations/romsey').length === 1 && byKey('location:/locations/romsey').retired_reason === null && byKey('location:/locations/romsey').applies && byKey('location:/locations/romsey').h1 === 'Gardener Romsey' && byKey('location_category:/locations/romsey/gardener').status === 'Copy Generated' && byKey('location:/locations/totton').applies === false, JSON.stringify(pv.diff.counts), '');
   chk('Regeneration never touched the old pages table', JSON.stringify((await pool.query(`SELECT * FROM pages WHERE client_id = $1`, [client.id])).rows) === pageBefore, '', '');
   // tools/page-map-cli.js: a dry run through the same store writes nothing
   const savedBefore = JSON.stringify(await store.saved(client.id));
