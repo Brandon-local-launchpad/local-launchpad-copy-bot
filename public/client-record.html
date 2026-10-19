@@ -151,6 +151,7 @@
   .pm-row .h1note { font-size: 11px; color: var(--muted); margin-top: 3px; display: flex; gap: .4rem; flex-wrap: wrap; align-items: center; }
   .pm-row details.links { grid-column: 1 / -1; font-size: 12px; } .pm-row details.links summary { cursor: pointer; color: var(--muted); }
   .pm-row .lcols { display: grid; grid-template-columns: 1fr 1fr; gap: .75rem; margin-top: .35rem; }
+  .pm-row .lcols.lsec { grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); }
   .pm-row .lcols ul { list-style: none; max-height: 220px; overflow: auto; word-break: break-all; } .pm-row .lcols h4 { font-size: 11px; text-transform: uppercase; letter-spacing: .04em; color: var(--muted); }
   @media (max-width: 700px) { .pm-row { grid-template-columns: 1fr; padding: .65rem 1rem; } .pm-row .lcols { grid-template-columns: 1fr; } .pm-bar, details.pm-group > summary { padding-left: 1rem; padding-right: 1rem; } .pm-box { margin: .8rem 1rem; } }
   /* H1 research: the progress bar and the H1 cell */
@@ -560,6 +561,7 @@
   let services = null;        // GET /api/clients/:id/services
   let svcTab = null;          // open category tab
   let changing = null;        // additional row id whose category is being changed
+  let svcOutcomeFilter = 'all'; // all | page | merged | folded | mentioned
   async function loadServices() {
     try { const res = await fetch(`/api/clients/${clientId}/services`); services = res.ok ? await res.json() : null; } catch (_) { services = null; }
   }
@@ -600,7 +602,31 @@
       <div class="prices-flags">${flagHtml}</div>${tickHtml}
       <div class="pt-actions" style="margin-bottom:.5rem">${tabs}</div>${table}
       ${r.crossRef.length ? `<div class="pnote" style="margin-top:.4rem">${r.crossRef.length} service${r.crossRef.length === 1 ? '' : 's'} on more than one tab: ${esc(r.crossRef.map(x => `${x.name} (${x.short})`).join('; '))}</div>` : ''}
+      ${renderServiceOutcomes(s)}
       ${addHead}<div class="prices-flags">${addState}</div>${addTable}</div>`;
+  }
+  // Which services get a page (page map v3): from the last page map generation; core forces a page
+  function renderServiceOutcomes(s) {
+    const list = (pm.state && pm.state.services) || null;
+    const core = new Set(pm.core || []);
+    const catName = k => ((s.allCategories || []).find(c => c.key === k) || {}).name || k;
+    const head = `<div class="prices-head" style="margin-top:1rem"><h3>Pages for these services</h3><div class="pt-actions">${list ? `<label class="pnote">Show <select onchange="svcOutcomeFilter=this.value;render()">${[['all', 'All'], ['page', 'Page'], ['merged', 'Merged'], ['folded', 'Folded'], ['mentioned', 'Mentioned']].map(([v, l]) => `<option value="${v}"${svcOutcomeFilter === v ? ' selected' : ''}>${l}${v === 'all' ? '' : ` (${list.filter(x => x.outcome === v).length})`}</option>`).join('')}</select></label>` : ''}</div></div>`;
+    if (!list) return `${head}<div class="pnote">Decided by search volume when the page map is generated (<a href="#pages">Pages</a>): a service gets its own page with more than 10 searches a month in ${esc((pm.state && pm.state.inputs && pm.state.inputs.baseTown) || 'the base town')} or any town, or when you tick core. Otherwise it is listed on its category page.</div>`;
+    const rows = list.filter(x => svcOutcomeFilter === 'all' || x.outcome === svcOutcomeFilter).map(x => {
+      const badge = x.outcome === 'page' ? '<span class="badge b-ok">page</span>' : x.outcome === 'merged' ? `<span class="badge b-muted">merged into ${esc(x.intoName || '')}</span>` : x.outcome === 'folded' ? `<span class="badge b-warn">folded into ${esc(x.intoName || '')}</span>` : '<span class="badge b-muted">mentioned</span>';
+      const coreBox = x.outcome === 'merged' ? '' : `<label class="tick" style="margin:0;white-space:nowrap"><input type="checkbox" ${core.has(x.id) ? 'checked' : ''} onchange="setCore('${esc(x.id)}', this.checked)"> core</label>`;
+      return `<tr><td>${esc(x.name)}${x.merged_from && x.merged_from.length ? ` <span class="pnote">merged from ${esc(x.merged_from.join(', '))}</span>` : ''}<div class="pnote">${esc((x.parents || []).map(catName).join(', '))}</div></td><td>${badge}<div class="pnote">${esc(x.reason || '')}</div></td><td>${coreBox}</td></tr>`;
+    }).join('');
+    const pending = [...core].filter(id => { const x = list.find(y => y.id === id); return x && x.outcome !== 'page'; });
+    return `${head}<div class="pnote" style="margin:.2rem 0 .5rem">From the page map generated ${esc(fmt(pm.state.generated_at))}. Core forces a page whatever the volume; it applies the next time the page map is generated.${pending.length ? ` <strong>${pending.length} core flag${pending.length === 1 ? '' : 's'} not applied yet: regenerate the page map.</strong>` : ''}</div>
+      <div class="ctwrap"><table class="t"><thead><tr><th>Service</th><th>Outcome</th><th>Core</th></tr></thead><tbody>${rows || '<tr><td colspan="3" class="val blank">Nothing for this filter</td></tr>'}</tbody></table></div>`;
+  }
+  async function setCore(serviceId, on) {
+    setSaved('Saving…');
+    const res = await fetch(`/api/clients/${clientId}/services/${encodeURIComponent(serviceId)}/core`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ core: on }) });
+    const r = await res.json().catch(() => ({}));
+    if (!res.ok) { setSaved('Not saved: ' + (r.error || res.status), 'bad'); return; }
+    pm.core = r.core; setSaved('Saved', 'ok'); setTimeout(() => setSaved(''), 1500); render();
   }
   async function setPrimary(key) {
     setSaved('Saving…');
@@ -624,9 +650,10 @@
   }
 
   // ── Pages: the page map (page-map/routes.js) ──
-  const PM_TYPES = [['homepage', 'Homepage'], ['category', 'Category pages'], ['service', 'Service pages'], ['location', 'Location pages'], ['location_category', 'Location category pages']];
+  const PM_TYPES = [['homepage', 'Homepage'], ['category', 'Category pages'], ['service', 'Service pages'], ['location', 'Location pages'], ['location_category', 'Location category pages'], ['town_service', 'Town service pages']];
+  const SECTION_LABEL = { breadcrumb: 'Breadcrumb', cards: 'Cards', areas: 'Areas block', more: 'More services', body: 'Body link', parents: 'Also under' };
   const PM_STATUSES = ['Not Started', 'H1 Added', 'Copy Generated', 'Pushed to WordPress', 'Live'];
-  let pm = { rows: [], state: null };   // GET /api/clients/:id/page-map
+  let pm = { rows: [], state: null, core: [] };   // GET /api/clients/:id/page-map (rows, state, candidates, job, core flags)
   let pmPreview = null;                 // GET .../page-map/preview (nothing written)
   let pmConfirm = false;                // the dry-run box is open, waiting for Generate
   let pmRule = 'ticked_only';
@@ -702,18 +729,28 @@
       ${att ? `<div>${att} thing${att === 1 ? '' : 's'} on this record need${att === 1 ? 's' : ''} attention (<a href="#overview">Overview</a>). You can still generate; pages update when you generate again.</div>` : ''}
       <div class="counts"><span class="badge b-ok">Would add ${c.wouldAdd}</span><span class="badge ${c.wouldRetire ? 'b-warn' : 'b-muted'}">Would retire ${c.wouldRetire}</span><span class="badge b-muted">Would update links ${c.wouldUpdate}</span><span class="badge b-muted">Unchanged ${c.unchanged}</span></div>
       <div class="pnote">${esc(p.arithmetic)}</div>
+      ${p.services ? `<div class="pnote" style="margin-top:.3rem">Services: <strong>${p.services.page}</strong> get a page, ${p.services.merged} merged, ${p.services.folded} folded into a category, ${p.services.mentioned} mentioned only · ${p.townServicePages ? `${p.townServicePages.count} town service page${p.townServicePages.count === 1 ? '' : 's'}` : ''}${p.volumesFrom === 'cache' ? ' · from the keyword cache: keywords never looked up count as no volume here; the job looks them up first' : ''}</div>` : ''}
       ${list('New', p.diff.add)}${list('No longer applies', p.diff.retire)}
       ${p.diff.renames.length ? `<ul>${p.diff.renames.map(r => `<li>${esc(r.msg)}</li>`).join('')}</ul>` : ''}
       ${p.diff.retiringWorkedOn.length ? `<div class="pnote" style="color:var(--warning)">Retiring ${p.diff.retiringWorkedOn.length} page${p.diff.retiringWorkedOn.length === 1 ? '' : 's'} someone has worked on (kept, tagged "no longer applies"): ${esc(p.diff.retiringWorkedOn.slice(0, 8).map(r => `${r.title} (${r.status})`).join(', '))}</div>` : ''}
       <div class="pt-actions" style="margin-top:.6rem"><button class="btn btn-primary btn-xs" onclick="pmGenerate()">${att ? 'Generate anyway' : p.firstRun ? 'Generate' : 'Apply'}</button><button class="btn btn-ghost btn-xs" onclick="pmConfirm=false;render()">Cancel</button></div></div>`;
   }
+  // The link planner's sections (page map v3): breadcrumb, cards, areas block, more services, body link, mentioned
+  function linkSections(r) {
+    const L = r.info && r.info.links;
+    if (!L) return `<div class="lcols"><div><h4>Links to</h4>${r.links_to.length ? `<ul>${r.links_to.map(x => `<li>${esc(x)}</li>`).join('')}</ul>` : '<div class="pnote">none</div>'}</div></div>`;
+    const secs = Object.keys(SECTION_LABEL).filter(k => (L[k] || []).length).map(k => `<div><h4>${SECTION_LABEL[k]} (${L[k].length})</h4><ul>${L[k].map(x => `<li>${esc(x.anchor)} <span class="pnote">${esc(x.to)}</span></li>`).join('')}</ul></div>`);
+    if (r.type === 'town_service') secs.push('<div><h4>Areas block</h4><div class="pnote">villages and neighbourhoods, no links</div></div>');
+    if ((L.mentioned || []).length) secs.push(`<div><h4>Mentioned, no link (${L.mentioned.length})</h4><div class="pnote">${esc(L.mentioned.join(', '))}</div></div>`);
+    return `<div class="lcols lsec">${secs.join('') || '<div class="pnote">no links out</div>'}</div>`;
+  }
   function renderPmRow(r) {
     const linkList = l => l.length ? `<ul>${l.map(x => `<li>${esc(x)}</li>`).join('')}</ul>` : '<div class="pnote">none</div>';
     return `<div class="pm-row${r.applies ? '' : ' retired'}" id="pm_${r.id}">
-      <div><div class="ttl">${esc(r.title)}${r.applies ? '' : ' <span class="badge b-muted">no longer applies</span>'}${r.info && r.info.additional ? ' <span class="badge b-ok">additional</span>' : ''}</div><div class="slug">${esc(r.slug)}</div>${r.applies ? '' : `<div class="h1why">No longer applies: ${esc(r.retired_reason || retiredReason(r))}${r.retired_at ? ` (since ${esc(fmt(r.retired_at))})` : ''}. Kept, never deleted; nothing on it changes.</div>`}</div>
+      <div><div class="ttl">${esc(r.title)}${r.applies ? '' : ' <span class="badge b-muted">no longer applies</span>'}${r.info && r.info.additional ? ' <span class="badge b-ok">additional</span>' : ''}${r.info && r.info.merged_from && r.info.merged_from.length ? ` <span class="badge b-muted" title="One page for names that are the same service">merged from ${esc(r.info.merged_from.join(', '))}</span>` : ''}${r.type === 'town_service' ? ' <span class="badge b-ok" title="Exists because this service has search volume of its own in this town">town page</span>' : ''}</div><div class="slug">${esc(r.slug)}</div>${r.applies ? '' : `<div class="h1why">No longer applies: ${esc(r.retired_reason || retiredReason(r))}${r.retired_at ? ` (since ${esc(fmt(r.retired_at))})` : ''}. Kept, never deleted; nothing on it changes.</div>`}</div>
       <div><input type="text" value="${esc(r.h1)}" placeholder="${r.h1_source === 'conflict' ? 'H1 conflict: type an H1' : 'H1'}" aria-label="H1 for ${esc(r.title)}" onchange="pmSave('${r.id}', { h1: this.value })">${h1Under(r)}${renderCands(r)}</div>
       <div><select aria-label="Status for ${esc(r.title)}" onchange="pmSave('${r.id}', { status: this.value })">${PM_STATUSES.map(s => `<option${s === r.status ? ' selected' : ''}>${s}</option>`).join('')}</select></div>
-      <details class="links"${pmLinksOpen.has(r.id) ? ' open' : ''} ontoggle="if (this.open) pmLinksOpen.add('${r.id}'); else pmLinksOpen.delete('${r.id}')"><summary>Links to ${r.links_to.length} · from ${r.links_from.length}</summary><div class="lcols"><div><h4>Links to</h4>${linkList(r.links_to)}</div><div><h4>Links from</h4>${linkList(r.links_from)}</div></div></details>
+      <details class="links"${pmLinksOpen.has(r.id) ? ' open' : ''} ontoggle="if (this.open) pmLinksOpen.add('${r.id}'); else pmLinksOpen.delete('${r.id}')"><summary>Links to ${r.links_to.length} · from ${r.links_from.length}</summary>${linkSections(r)}<div class="lcols"><div><h4>Links from</h4>${linkList(r.links_from)}</div></div></details>
     </div>`;
   }
   // The state of a page's H1, from the row itself (Brandon, 19 Oct 2026):

@@ -85,11 +85,11 @@ const clone = o => JSON.parse(JSON.stringify(o));
     chk('No services file: Generate page map is refused', r.status === 400 && /Services not set up/.test((await r.json()).error), r.status, 400);
 
     pv = await json(await req('GET', `/api/clients/${c.id}/page-map/preview`));
-    chk('Preview: first run would add 176, inputs shown, nothing written', pv.ok && pv.firstRun && pv.diff.counts.wouldAdd === 176 && pv.inputs.tabs === 6 && pv.inputs.baseTown === 'Southampton' && (await json(await req('GET', `/api/clients/${c.id}/page-map`))).rows.length === 0, JSON.stringify(pv.diff && pv.diff.counts), '');
+    chk('Preview: first run would add 98 (no keyword volumes in this test, so no service pages), inputs shown, services counts, nothing written', pv.ok && pv.firstRun && pv.diff.counts.wouldAdd === 98 && pv.services && pv.services.page === 0 && pv.volumesFrom === 'cache' && pv.inputs.tabs === 6 && pv.inputs.baseTown === 'Southampton' && (await json(await req('GET', `/api/clients/${c.id}/page-map`))).rows.length === 0, JSON.stringify(pv.diff && pv.diff.counts), '');
     let g = await json(await req('POST', `/api/clients/${c.id}/page-map/generate`, { rule: 'ticked_or_propagated' }));
-    chk('Generate with ticked_or_propagated: 190 rows and the rule remembered', g.rows.length === 190 && g.state.category_tab_rule === 'ticked_or_propagated', JSON.stringify([g.rows.length, g.state && g.state.category_tab_rule]), '');
+    chk('Generate with ticked_or_propagated: 112 rows and the rule remembered', g.rows.length === 112 && g.state.category_tab_rule === 'ticked_or_propagated', JSON.stringify([g.rows.length, g.state && g.state.category_tab_rule]), '');
     g = await json(await req('POST', `/api/clients/${c.id}/page-map/generate`, { rule: 'ticked_only' }));
-    chk('Back to ticked_only: Lawn Care Service and its 13 location pages no longer apply (14 retired, none deleted)', g.rows.length === 190 && g.rows.filter(x => !x.applies).length === 14 && g.counts.wouldRetire === 14, JSON.stringify(g.counts), '');
+    chk('Back to ticked_only: Lawn Care Service and its 13 location pages no longer apply (14 retired, none deleted)', g.rows.length === 112 && g.rows.filter(x => !x.applies).length === 14 && g.counts.wouldRetire === 14, JSON.stringify(g.counts), '');
     const home = g.rows.find(x => x.page_key === 'homepage:/');
     let row = await json(await req('PUT', `/api/clients/${c.id}/page-map/${home.id}`, { h1: 'Landscaper Southampton' }));
     chk('Editing an H1 through the API: manual, status H1 Added', row.h1 === 'Landscaper Southampton' && row.h1_source === 'manual' && row.status === 'H1 Added', JSON.stringify([row.h1_source, row.status]), '');
@@ -99,7 +99,7 @@ const clone = o => JSON.parse(JSON.stringify(o));
     chk('Editing an unknown row is a 404', r.status === 404, r.status, 404);
     const csvRes = await req('GET', `/api/clients/${c.id}/page-map.csv`);
     const csv = (await csvRes.text()).replace(/^﻿/, '');
-    chk('CSV download: old column order, 176 applying rows, the edited homepage first', /attachment; filename="Hand_Made_Gardens_page_map.csv"/.test(csvRes.headers.get('content-disposition')) && csv.startsWith('Page Type,Page Title,URL Slug,H1 (Ahrefs),Meta Title,Meta Description,Links TO,Links FROM,Status') && csv.split('\r\n')[1].startsWith('Homepage,Edens Edge landscaping Homepage,/,Landscaper Southampton,') && !/Lawn Care Service/.test(csv), csv.split('\r\n')[1].slice(0, 80), '');
+    chk('CSV download: old column order first, the edited homepage first', /attachment; filename="Hand_Made_Gardens_page_map.csv"/.test(csvRes.headers.get('content-disposition')) && csv.startsWith('Page Type,Page Title,URL Slug,H1 (Ahrefs),Meta Title,Meta Description,Links TO,Links FROM,Status') && csv.split('\r\n')[1].startsWith('Homepage,Edens Edge landscaping Homepage,/,Landscaper Southampton,') && !/Lawn Care Service/.test(csv), csv.split('\r\n')[1].slice(0, 80), '');
     // Saving the editor again (same values) changes nothing in the page map
     await req('PUT', `/api/clients/${c.id}/services/by-hand`, { niche: 'Landscapers/Gardeners', ticks: groupTicks, baseTown: 'Southampton', otherTowns: S.OTHER_TOWNS.join('\n'), companyName: S.COMPANY });
     pv = await json(await req('GET', `/api/clients/${c.id}/page-map/preview`));

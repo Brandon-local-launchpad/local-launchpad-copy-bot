@@ -1,13 +1,37 @@
 {
-  "_about": "Extra H1 research candidates per niche and category, tried after the SOP pair (\"<category> <town>\", \"<category> services <town>\"). Each term becomes \"<term> <town>\". \"_sitewide\" terms are added for the homepage and the location pages. Approved by Brandon, 18 Oct 2026, after a test on Edens Edge (gardening services, patio installers and decking installers dropped: they scored almost nothing). Plurals are not needed: Google Ads returns the same figures for singular and plural.",
+  "_about": "Extra H1 research candidates per niche and category, tried after the SOP pair (\"<category> <town>\", \"<category> services <town>\"). Each term becomes \"<term> <town>\". \"_sitewide\" terms are added for the homepage and the location pages. Approved by Brandon, 18 Oct 2026, after a test on Edens Edge (patio installers and decking installers dropped: they scored almost nothing). 19 Oct 2026: gardening services (Gardener) and garden landscaping (Landscape Gardener) added so those services fold into their categories (page map v3). Plurals are not needed: Google Ads returns the same figures for singular and plural.",
   "Landscapers/Gardeners": {
-    "_sitewide": ["landscaper", "landscaping"],
-    "gardener": ["garden maintenance"],
-    "landscape_gardener": ["landscaping", "landscaper"],
-    "landscape_designer": ["garden designer", "garden design"],
-    "lawn_care_service": ["lawn treatment", "lawn maintenance"],
-    "tree_service": ["tree surgeon", "tree surgery"],
-    "paving_contractor": ["block paving", "driveways"],
-    "deck_builder": ["decking"]
+    "_sitewide": [
+      "landscaper",
+      "landscaping"
+    ],
+    "gardener": [
+      "garden maintenance",
+      "gardening services"
+    ],
+    "landscape_gardener": [
+      "landscaping",
+      "landscaper",
+      "garden landscaping"
+    ],
+    "landscape_designer": [
+      "garden designer",
+      "garden design"
+    ],
+    "lawn_care_service": [
+      "lawn treatment",
+      "lawn maintenance"
+    ],
+    "tree_service": [
+      "tree surgeon",
+      "tree surgery"
+    ],
+    "paving_contractor": [
+      "block paving",
+      "driveways"
+    ],
+    "deck_builder": [
+      "decking"
+    ]
   }
 }
