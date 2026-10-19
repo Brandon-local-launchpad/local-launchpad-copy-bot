@@ -132,6 +132,7 @@ function createH1Research({ pool, filloutService, pageMapStore, searchVolume = D
     try {
       let j = await job(id);
       if (!j || !ACTIVE.includes(j.status)) return;
+      let fresh = new Set(); // rows this run's rebuild created or revived
       await patch(id, { started_at: j.started_at || now() });
       if (j.kind === 'generate' && j.status !== 'researching') {
         // A brand new map is researched in full; regenerating an existing one only fills pages without a v2 H1
@@ -157,20 +158,23 @@ function createH1Research({ pool, filloutService, pageMapStore, searchVolume = D
         }
         await patch(id, { status: 'building', stage: 'Building pages' });
         try {
-          await pageMapStore.generate(j.client_id, { categoryTabRule: j.category_tab_rule || 'ticked_only', volumes: volumes || undefined, onProgress: (done, total) => patch(id, { pages_built: done, pages_total: total, stage: `Building pages (${done} of ${total})` }) });
+          const out = await pageMapStore.generate(j.client_id, { categoryTabRule: j.category_tab_rule || 'ticked_only', volumes: volumes || undefined, onProgress: (done, total) => patch(id, { pages_built: done, pages_total: total, stage: `Building pages (${done} of ${total})` }) });
+          fresh = new Set([...out.diff.add.map(p => p.page_key), ...out.diff.revive.map(x => x.row.page_key)]);
         } catch (err) {
           await patch(id, { status: 'failed', stage: 'Could not build the page map', error: D.safeMessage(err.message), finished_at: now() });
           return;
         }
       }
-      await research(id);
+      await research(id, { fresh });
     } finally { running.delete(id); }
   }
 
   // Research rows that may change (mode "all": every row except manual or past H1 Added; mode
   // "fill", after regenerating an existing map: also keeps every H1 v2 research already set),
   // with volumes from the cache and one batched call for the rest
-  async function decide(clientId, { mode = 'all', onStage = async () => {}, onRetry = null } = {}) {
+  // fresh: page keys a rebuild just created; in fill mode a page whose keyword group one of them wins
+  // is re-researched too (Brandon, 20 Oct 2026), within the usual limits
+  async function decide(clientId, { mode = 'all', fresh = new Set(), onStage = async () => {}, onRetry = null } = {}) {
     const rows = (await pageMapStore.saved(clientId)).filter(r => r.applies);
     const st = await pageMapStore.state(clientId);
     const inputs = await inputsFor(filloutService, clientId, { categoryTabRule: (st && st.category_tab_rule) || 'ticked_only' });
@@ -179,8 +183,16 @@ function createH1Research({ pool, filloutService, pageMapStore, searchVolume = D
     const keywords = [...new Set(rows.flatMap(r => C.candidatesV2(r, ctx).map(c => c.keyword)))];
     await onStage({ pages: rows.length, keywords: keywords.length });
     const { volumes, fetched: missing, cost } = await lookup(keywords, { onRetry });
-    const fillLock = r => C.isLocked(r) || (!!r.h1 && ['research', 'pattern'].includes(r.h1_source));
+    // Fill mode: existing research and pattern H1s stay, except on pages out-ranked by a fresh page
+    const outRanked = new Set();
+    if (mode === 'fill' && fresh.size) {
+      const free = C.resolve(rows, ctx, volumes, { isLocked: C.isLocked });
+      const won = new Set(free.decisions.filter(d => fresh.has(d.row.page_key) && d.source === 'research').map(d => free.groupOf(d.keyword)));
+      for (const r of rows) if (!fresh.has(r.page_key) && r.h1 && !C.isLocked(r) && won.has(free.groupOf(r.h1))) outRanked.add(r.page_key);
+    }
+    const fillLock = r => C.isLocked(r) || (!!r.h1 && ['research', 'pattern'].includes(r.h1_source) && !outRanked.has(r.page_key));
     const out = C.resolve(rows, ctx, volumes, { isLocked: mode === 'fill' ? fillLock : C.isLocked });
+    out.outRanked = [...outRanked];
     return { rows, ctx, keywords, missing, cost, ...out };
   }
 
@@ -202,14 +214,14 @@ function createH1Research({ pool, filloutService, pageMapStore, searchVolume = D
     return { volumes, fetched: missing.length, cost };
   }
 
-  async function research(id) {
+  async function research(id, { fresh = new Set() } = {}) {
     const j = await job(id);
     const clientId = j.client_id;
     try {
       const stage = n => `Researching H1s (${n.pages} pages, ${n.keywords} keywords)`;
       let label = 'Researching H1s';
       const r = await decide(clientId, {
-        mode: j.mode || 'all',
+        mode: j.mode || 'all', fresh,
         onStage: async n => { label = stage(n); await patch(id, { status: 'researching', stage: label, pages_total: n.pages, pages_built: n.pages, keywords_total: n.keywords }); },
         onRetry: ({ attempt, of, waitMs, message }) => patch(id, { stage: `${label}: DataForSEO is busy (${message}), retrying in ${Math.round(waitMs / 1000)}s (${attempt} of ${of})` }),
       });
@@ -315,7 +327,7 @@ function createH1Research({ pool, filloutService, pageMapStore, searchVolume = D
     return rows.length;
   }
 
-  return { start, run, job, latest, candidates, recover, cached, lookup, preview, decide };
+  return { start, run, job, latest, candidates, recover, cached, lookup, preview, decide, apply, saveCandidates };
 }
 
 module.exports = { ensureH1Tables, createH1Research, changeKind, CACHE_DAYS, ACTIVE };
