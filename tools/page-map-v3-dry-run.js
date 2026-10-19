@@ -52,7 +52,8 @@ async function dryRun(pool, who, { searchVolume = D.searchVolume, exclude = new 
   const baseKeywords = V3.keywordsFor(services, cats, [], ctx);
   services = V3.fold(services, cats, ctx, C.buildGroups(baseKeywords, volumes, { towns: [input.baseTown, ...towns] }));
   const townKeywords = V3.keywordsFor(services, cats, towns, ctx, { townVariants: false }).filter(k => !baseKeywords.includes(k));
-  const allKeywords = [...new Set([...baseKeywords, ...townKeywords, ...V3.pageKeywords(cats, towns, ctx)])];
+  // The same keyword universe the job looks up (library targets included), minus the town variants
+  const allKeywords = [...new Set([...baseKeywords, ...townKeywords, ...V3.pageKeywords(cats, towns, ctx), ...G.keywordsFor(input).filter(k => !/ services [a-z]/.test(k) || baseKeywords.includes(k))])];
   const missing = allKeywords.filter(k => !volumes.has(k));
   const fetchList = missing.slice(0, D.CHUNK);
   const unfetched = missing.slice(D.CHUNK);
@@ -74,7 +75,7 @@ async function dryRun(pool, who, { searchVolume = D.searchVolume, exclude = new 
     else if (d) Object.assign(r, { h1: d.h1, h1_source: d.source });
   }
   const dropped = plan.droppedTownPages.map(x => ({ row: x, why: x.why }));
-  return { client, input, ctx, towns, services, rows, dropped, decisions, saved, cats,
+  return { client, input, ctx, towns, services, rows, dropped, decisions, saved, cats, plan,
     keywords: { total: allKeywords.length, cached: allKeywords.length - missing.length, fetched: fetchList.length, unfetched }, cost, calls, volumes };
 }
 
@@ -86,9 +87,17 @@ function report(r) {
   const byType = t => r.rows.filter(x => x.type === t);
   L.push(`# Page map v3 dry run: ${r.client.name} (${new Date().toISOString().slice(0, 10)})`, '');
   L.push(`${r.keywords.total} keywords: ${r.keywords.cached} from the cache, ${r.keywords.fetched} fetched in ${r.calls} call(s), cost $${r.cost.toFixed(2)} · nothing written${r.keywords.unfetched.length ? ` · ${r.keywords.unfetched.length} keywords NOT fetched (would need a second call): treated as no data` : ''}`, '');
+  const catName = k => (r.cats.find(c => c.key === k) || {}).name || k;
+  // Library resolution, per GBP name
+  const lc = r.plan.libraryCounts || {};
+  L.push(`## Library resolution (${lc.library || 'no library for this niche'})`, '', '| GBP name | GBP category | Verdict | Target | Outcome | Note |', '|---|---|---|---|---|---|');
+  for (const x of r.plan.libraryRecords || []) L.push(`| ${x.gbp_name} | ${x.parents.map(catName).join(', ')} | ${x.verdict || 'not in library'} | ${x.target || ''} | ${x.outcome === 'page' ? `page as ${x.intoName}` : x.outcome === 'absorbed' ? `absorbed into ${x.intoName}` : x.outcome === 'folded' ? `folded into ${x.intoName}` : x.outcome === 'merged' ? `merged into ${x.intoName}` : x.outcome === 'mentioned' ? `mentioned (${x.intoName})` : x.outcome} | ${String(x.note || x.reason || '').replace(/\|/g, '/')} |`);
+  L.push('', `GBP names ${lc.names}: page ${lc.page}, absorbed ${lc.absorbed}, folded ${lc.folded}, excluded ${lc.excluded}, mentioned ${lc.mentioned}, merged ${lc.merged}, not in library ${lc.notInLibrary}${(lc.libraryProblems || []).length ? ` · library problems: ${lc.libraryProblems.join('; ')}` : ''}`, '');
+  L.push('## Resulting service pages', '', '| Service page | Parent categories | From GBP names | Absorbs | copy_priority |', '|---|---|---|---|---|');
+  for (const p of r.rows.filter(x => x.type === 'service')) L.push(`| ${p.title} | ${(p.info.parent_keys || []).map(catName).join(', ')} | ${(p.info.gbp_names || []).join('; ')} | ${(p.info.absorbs || []).join('; ')} | ${p.info.copy_priority || 0} |`);
+  L.push('', `${r.rows.filter(x => x.type === 'service').length} service pages`, '');
   // a) services
   L.push('## (a) Services', '', '| Service | Categories | Outcome | copy_priority | Reason |', '|---|---|---|---|---|');
-  const catName = k => (r.cats.find(c => c.key === k) || {}).name || k;
   for (const s of r.services) L.push(`| ${s.name}${s.merged_from && s.merged_from.length ? ` (merged from ${s.merged_from.map(x => `"${x}"`).join(', ')})` : ''} | ${s.parents.map(catName).join(', ')} | ${s.outcome === 'page' ? 'page' : s.outcome === 'merged' ? `merged into ${s.intoName}` : s.outcome === 'folded' ? `folded into ${s.intoName}` : 'mentioned'} | ${s.outcome === 'page' ? s.copy_priority || 0 : ''} | ${String(s.reason || '').replace(/\|/g, '/')} |`);
   const n = o => r.services.filter(s => s.outcome === o).length;
   L.push('', `Pages ${n('page')} · merged ${n('merged')} · folded ${n('folded')} · mentioned ${n('mentioned')} (of ${r.services.length} names)`, '');

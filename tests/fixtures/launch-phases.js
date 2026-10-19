@@ -37,11 +37,11 @@ const phase = (m, slug) => find(m, slug).info.phase;
   // ── Defaults ──
   const m = build();
   chk('Defaults: homepage, category, service and town service pages are phase 1', phase(m, '/') === 1 && phase(m, '/gardener') === 1 && phase(m, '/services/hedge-trimming') === 1 && phase(m, '/locations/romsey/tree-stump-removal') === 1, JSON.stringify(m.rows.filter(r => r.type !== 'location' && r.type !== 'location_category').map(r => [r.slug, r.info.phase]).filter(x => x[1] !== 1)), '[]');
-  chk('Defaults: location and location category pages are phase 2 when the town is not a launch town (no toggles yet): 91 pages', m.rows.filter(r => ['location', 'location_category'].includes(r.type)).every(r => r.info.phase === 2) && m.counts.phase2 === 91 && m.counts.phase1 === 83, JSON.stringify([m.counts.phase1, m.counts.phase2]), '[83,91]');
+  chk('Defaults: location and location category pages are phase 2 when the town is not a launch town (no toggles yet): 91 pages', m.rows.filter(r => ['location', 'location_category'].includes(r.type)).every(r => r.info.phase === 2) && m.counts.phase2 === 91 && m.counts.phase1 === 41, JSON.stringify([m.counts.phase1, m.counts.phase2]), '[41,91]');
   chk('The base town always counts as a launch town (it has no location page, so nothing changes), and it is listed', m.launchTowns.length === 0 && !m.rows.some(r => /\/locations\/southampton/.test(r.slug)), JSON.stringify(m.launchTowns), '');
   // ── The toggle ──
   const t = build({ launchTowns: new Set(['romsey', 'winchester']) });
-  chk('Launch towns: Romsey and Winchester pages become phase 1 (2 locations + 12 location categories), the other towns stay phase 2', phase(t, '/locations/romsey') === 1 && phase(t, '/locations/winchester/gardener') === 1 && phase(t, '/locations/eastleigh') === 2 && phase(t, '/locations/eastleigh/gardener') === 2 && t.counts.phase1 === 83 + 14 && t.counts.phase2 === 91 - 14 && t.launchTowns.join() === 'Romsey,Winchester', JSON.stringify([t.counts.phase1, t.counts.phase2, t.launchTowns]), '');
+  chk('Launch towns: Romsey and Winchester pages become phase 1 (2 locations + 12 location categories), the other towns stay phase 2', phase(t, '/locations/romsey') === 1 && phase(t, '/locations/winchester/gardener') === 1 && phase(t, '/locations/eastleigh') === 2 && phase(t, '/locations/eastleigh/gardener') === 2 && t.counts.phase1 === 41 + 14 && t.counts.phase2 === 91 - 14 && t.launchTowns.join() === 'Romsey,Winchester', JSON.stringify([t.counts.phase1, t.counts.phase2, t.launchTowns]), '');
   // ── Links ──
   const home = find(t, '/'), cat = find(t, '/tree-service'), svc = find(t, '/services/tree-stump-removal'), romsey = find(t, '/locations/romsey'), east = find(t, '/locations/eastleigh'), eastGard = find(t, '/locations/eastleigh/gardener');
   chk('A phase 1 page links only to phase 1 pages: the homepage links to Romsey and Winchester, not the 11 phase-2 locations; links_to leaves them out', home.links_to.filter(l => l.startsWith('/locations/')).sort().join() === '/locations/romsey,/locations/winchester' && home.links.areas.length === 13, JSON.stringify(home.links_to), '');
@@ -75,13 +75,13 @@ const phase = (m, slug) => find(m, slug).info.phase;
   await store.generate(cid);
   let rows = await store.saved(cid);
   const byKey = k => rows.find(r => r.page_key === k);
-  chk('Generated with no launch towns: 83 phase 1, 91 phase 2, saved in info.phase and the state counts', rows.filter(r => r.info.phase === 2).length === 91 && byKey('location:/locations/romsey').info.phase === 2 && (await store.state(cid)).counts.phase2 === 91, JSON.stringify((await store.state(cid)).counts), '');
+  chk('Generated with no launch towns: 41 phase 1, 91 phase 2, saved in info.phase and the state counts', rows.filter(r => r.info.phase === 2).length === 91 && byKey('location:/locations/romsey').info.phase === 2 && (await store.state(cid)).counts.phase2 === 91, JSON.stringify((await store.state(cid)).counts), '');
   chk('Publish phase 2 is refused before… no: it needs a page map, which exists; a client without one is refused', await store.publishPhase2('00000000-0000-0000-0000-000000000000').then(() => false, e => e.status === 400), '', '400');
   const flags = await store.setLaunchTown(cid, 'Romsey', true);
   chk('The launch-town toggle is stored by slug and read back', flags.has('romsey') && (await store.launchTowns(cid)).size === 1, JSON.stringify([...flags]), '');
   await store.generate(cid);
   rows = await store.saved(cid);
-  chk('Regenerating applies the toggle: Romsey and its 6 location category pages move to phase 1 (an update, no new rows); the homepage now links to Romsey', byKey('location:/locations/romsey').info.phase === 1 && byKey('location_category:/locations/romsey/gardener').info.phase === 1 && rows.filter(r => r.info.phase === 2).length === 84 && byKey('homepage:/').links_to.includes('/locations/romsey') && !byKey('homepage:/').links_to.includes('/locations/eastleigh') && rows.length === 174, JSON.stringify([rows.filter(r => r.info.phase === 2).length, rows.length]), '');
+  chk('Regenerating applies the toggle: Romsey and its 6 location category pages move to phase 1 (an update, no new rows); the homepage now links to Romsey', byKey('location:/locations/romsey').info.phase === 1 && byKey('location_category:/locations/romsey/gardener').info.phase === 1 && rows.filter(r => r.info.phase === 2).length === 84 && byKey('homepage:/').links_to.includes('/locations/romsey') && !byKey('homepage:/').links_to.includes('/locations/eastleigh') && rows.length === 132, JSON.stringify([rows.filter(r => r.info.phase === 2).length, rows.length]), '');
   await store.setLaunchTown(cid, 'Romsey', false);
   await store.generate(cid);
   rows = await store.saved(cid);

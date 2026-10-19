@@ -5,7 +5,10 @@
 // no database. The H1 rules themselves stay in h1-research/claims.js; this module decides
 // WHICH pages exist and WHAT each links to.
 //
-// Services list, three rules in order, before any page is planned:
+// Services list. First the niche library (niche-library/<niche>.csv, Brandon's verdict per GBP
+// name: page as the UK target name, alias absorbed into its target's page, fold into a category,
+// exclude altogether; resolveLibrary below). Names not in the library fall through to three
+// rules, in order, before any page is planned:
 //   1. Dedupe: names that normalise alike (plural, "services", "&" as "and", word order, case)
 //      are one service; the shorter name is kept, merged_from records the rest, and the
 //      parents of both are kept so both category pages link to the one page.
@@ -47,16 +50,60 @@ function collectServices(resolved) {
   return [...map.values()];
 }
 
+// The library, before the rules. lib: niche-library/library.js loadLibrary() (or null); cats:
+// [{ key, name }] with a tab. Returns the services to plan (library pages, keyed by their target,
+// plus every name not in the library, untouched) and a record per GBP name for the services step.
+function resolveLibrary(services, lib, cats) {
+  if (!lib) return { services: services.map(s => ({ ...s, gbp_names: [s.name] })), records: services.map(s => ({ id: s.id, name: s.name, parents: s.parents, library: null, page_id: s.id })) };
+  const pages = new Map();   // target id → page service
+  const records = [];
+  const catByName = new Map(cats.map(c => [norm(c.name), c]));
+  const page = (target, s, how) => {
+    const id = norm(target);
+    if (!pages.has(id)) pages.set(id, { id, name: target, kind: s.kind, home: null, parents: [], gbp_names: [], absorbs: [], decided: true, library: 'page', outcome: null, into: null, reason: null });
+    const p = pages.get(id);
+    for (const k of s.parents) if (!p.parents.includes(k)) p.parents.push(k);
+    if (how === 'page') { p.gbp_names.push(s.name); if (!p.home) p.home = s.home || null; }
+    else p.absorbs.push(s.name);
+    return p;
+  };
+  const rest = [];
+  for (const s of services) {
+    const e = lib.entries.get(norm(s.name));
+    const rec = { id: s.id, name: s.name, parents: s.parents, library: e ? { verdict: e.verdict, target: e.target, note: e.note, gbp_category: e.gbp_category } : null, page_id: null };
+    records.push(rec);
+    if (!e) { rest.push({ ...s, gbp_names: [s.name], library: null }); rec.page_id = s.id; continue; }
+    if (e.verdict === 'page') { rec.page_id = page(e.target, s, 'page').id; continue; }
+    if (e.verdict === 'alias') { rec.page_id = page(e.target, s, 'alias').id; continue; }
+    if (e.verdict === 'fold') {
+      const c = catByName.get(norm(e.target));
+      if (c) { rest.push({ ...s, gbp_names: [s.name], library: 'fold', outcome: 'folded', into: c.key, intoName: c.name, reason: `library: listed on the ${c.name} category page, which keeps the keyword${e.note ? ` (${e.note})` : ''}` }); continue; }
+      // The fold target is not in this client's plan (Brandon, 20 Oct 2026): a page named by its own name, flagged
+      const p = page(s.name, s, 'page'); p.fold_target_missing = e.target; rec.page_id = p.id; rec.flag = 'fold target missing';
+      continue;
+    }
+    rest.push({ ...s, gbp_names: [s.name], library: 'exclude', outcome: 'excluded', reason: `library: excluded${e.note ? ` (${e.note})` : ''}` });
+  }
+  for (const p of pages.values()) { p.gbp_names = [...new Set(p.gbp_names)]; p.absorbs = [...new Set(p.absorbs)]; if (!p.gbp_names.length) p.created_from_alias = true; }
+  return { services: [...pages.values(), ...rest], records };
+}
+const norm = s => String(s == null ? '' : s).trim().toLowerCase().replace(/\s+/g, ' ');
+
 // Rule 1
 function dedupe(services) {
   const groups = new Map();
   for (const s of services) { const k = dedupeKey(s.name); if (!groups.has(k)) groups.set(k, []); groups.get(k).push(s); }
   const out = [];
-  for (const members of groups.values()) {
-    const keep = members.slice().sort((a, b) => a.name.length - b.name.length)[0];
+  for (let members of groups.values()) {
+    // Library outcomes (folded, excluded) are settled: they never merge with anything
+    const settled = members.filter(m => m.outcome), open = members.filter(m => !m.outcome);
+    for (const m of settled) out.push({ ...m, merged_from: [], merged_ids: [] });
+    if (!open.length) continue;
+    members = open;
+    const keep = members.slice().sort((a, b) => (b.decided ? 1 : 0) - (a.decided ? 1 : 0) || a.name.length - b.name.length)[0];
     const others = members.filter(m => m !== keep);
     const parents = [...new Set(members.flatMap(m => m.parents))];
-    out.push({ ...keep, parents, merged_from: others.map(o => o.name), merged_ids: others.map(o => o.id), outcome: null, into: null, reason: null });
+    out.push({ ...keep, parents, merged_from: others.map(o => o.name), merged_ids: others.map(o => o.id), gbp_names: [...new Set(members.flatMap(m => m.gbp_names || [m.name]))], absorbs: [...new Set(members.flatMap(m => m.absorbs || []))], outcome: keep.outcome || null, into: keep.into || null, reason: keep.reason || null });
     for (const o of others) out.push({ ...o, outcome: 'merged', into: keep.id, intoName: keep.name, reason: `the same service as "${keep.name}" once plurals, word forms, "services", "&" and word order are ignored; "${keep.name}" is the shorter name and keeps both categories` });
   }
   return out;
@@ -70,7 +117,7 @@ function fold(services, cats, ctx, G) {
     return { c, byGroup, norm: C.normalise(c.name) };
   });
   for (const s of services) {
-    if (s.outcome) continue;
+    if (s.outcome || s.decided) continue; // the library decided it is a page
     const kw = keywordOf(`${s.name} ${ctx.baseTown}`);
     const g = G.groupOf(kw);
     const hits = catGroups.filter(x => x.byGroup.has(g) || x.norm === C.normalise(s.name));
@@ -152,7 +199,7 @@ function planLinks(rows, services) {
   const svcName = r => (r.info && r.info.service_name) || r.title;
   // Paged services of a category, in plan order; mentioned and folded names for its text line
   const catServices = key => live.filter(r => r.type === 'service' && (r.info.parent_keys || []).includes(key));
-  const catMentioned = key => services.filter(s => (s.outcome === 'mentioned' && s.parents.includes(key)) || (s.outcome === 'folded' && s.into === key)).map(s => s.name);
+  const catMentioned = key => services.filter(s => (s.outcome === 'mentioned' && s.parents.includes(key)) || (s.outcome === 'folded' && (s.into === key || (!s.into && s.parents[0] === key)))).map(s => s.name);
   const bc = r => (r.info.category_key && r.info.parent_keys ? by.category.get(r.info.category_key) || by.category.get(r.info.parent_keys[0]) : by.category.get(r.info.category_key));
   const plan = new Map();
   for (const r of live) {
@@ -213,4 +260,4 @@ function planLinks(rows, services) {
   return rows;
 }
 
-module.exports = { TYPES, TYPE_LABEL, dedupeKey, collectServices, dedupe, fold, pageOrMention, keywordsFor, pageKeywords, planLinks, usable };
+module.exports = { TYPES, TYPE_LABEL, dedupeKey, collectServices, resolveLibrary, dedupe, fold, pageOrMention, keywordsFor, pageKeywords, planLinks, usable };

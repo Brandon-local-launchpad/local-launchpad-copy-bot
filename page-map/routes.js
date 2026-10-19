@@ -89,7 +89,7 @@ function mountPageMapApi(app, { pool, filloutService, searchVolume = D.searchVol
       add: [...p.diff.add.map(r => r.title), ...p.diff.revive.map(x => x.row.title)], retire: p.diff.retire.map(r => r.title) } : null,
     firstRun: p.firstRun,
     services: p.plan.serviceCounts || null, townServicePages: p.plan.townServicePages || null, volumesFrom: p.plan.volumesFrom || null, arithmetic: p.plan.arithmetic,
-    phases: p.plan.counts ? { phase1: p.plan.counts.phase1, phase2: p.plan.counts.phase2 } : null, launchTowns: p.plan.launchTowns || [], phase2Published: !!p.plan.phase2Published,
+    phases: p.plan.counts ? { phase1: p.plan.counts.phase1, phase2: p.plan.counts.phase2 } : null, library: p.plan.libraryCounts || null, launchTowns: p.plan.launchTowns || [], phase2Published: !!p.plan.phase2Published,
     inputs: { niche: p.inputs.niche, hasConfig: p.inputs.hasConfig, baseTown: p.inputs.baseTown, otherTowns: p.inputs.otherTowns, companyName: p.inputs.companyName, categoryTabRule: p.inputs.categoryTabRule,
       tabs: p.inputs.resolved ? p.inputs.resolved.categories.length : 0, attentionCount: p.inputs.attentionCount },
   });
