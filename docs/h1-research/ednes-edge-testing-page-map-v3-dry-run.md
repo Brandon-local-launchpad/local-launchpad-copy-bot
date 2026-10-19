@@ -1,6 +1,6 @@
 # Page map v3 dry run: ednes edge testing (2026-10-19)
 
-1447 keywords: 1447 from the cache, 0 fetched in 0 call(s), cost $0.00 · nothing written
+1432 keywords: 1432 from the cache, 0 fetched in 0 call(s), cost $0.00 · nothing written
 
 ## (a) Services
 
@@ -11,7 +11,8 @@
 | Garden work | Gardener | page | 0 | a page by default; no keyword above 10 searches a month in Southampton or any town, so the pattern H1 applies and copy_priority is 0 |
 | Grass seeding | Gardener, Landscape Gardener, Landscape Designer | page | 0 | a page by default; no keyword above 10 searches a month in Southampton or any town, so the pattern H1 applies and copy_priority is 0 |
 | Hedge trimming | Gardener | page | 30 | a page by default; "hedge trimming southampton" has 30 searches a month in Southampton |
-| Landscape design | Gardener, Landscape Gardener | page | 0 | a page by default; no keyword above 10 searches a month in Southampton or any town, so the pattern H1 applies and copy_priority is 0 |
+| Landscape design (merged from "Landscaping design") | Gardener, Landscape Gardener | page | 0 | a page by default; no keyword above 10 searches a month in Southampton or any town, so the pattern H1 applies and copy_priority is 0 |
+| Landscaping design | Landscape Gardener | merged into Landscape design |  | the same service as "Landscape design" once plurals, "services", "&" and word order are ignored; "Landscape design" is the shorter name and keeps both categories |
 | Mulching | Gardener | page | 0 | a page by default; no keyword above 10 searches a month in Southampton or any town, so the pattern H1 applies and copy_priority is 0 |
 | Weed control | Gardener | page | 0 | a page by default; no keyword above 10 searches a month in Southampton or any town, so the pattern H1 applies and copy_priority is 0 |
 | Artificial turf installation | Landscape Gardener, Landscape Designer | page | 0 | a page by default; no keyword above 10 searches a month in Southampton or any town, so the pattern H1 applies and copy_priority is 0 |
@@ -29,7 +30,6 @@
 | Hardscaping | Landscape Gardener, Paving Contractor | page | 0 | a page by default; no keyword above 10 searches a month in Southampton or any town, so the pattern H1 applies and copy_priority is 0 |
 | Landscape installations | Landscape Gardener, Landscape Designer | page | 0 | a page by default; no keyword above 10 searches a month in Southampton or any town, so the pattern H1 applies and copy_priority is 0 |
 | Landscape management | Landscape Gardener | page | 0 | a page by default; no keyword above 10 searches a month in Southampton or any town, so the pattern H1 applies and copy_priority is 0 |
-| Landscaping design | Landscape Gardener | page | 0 | a page by default; no keyword above 10 searches a month in Southampton or any town, so the pattern H1 applies and copy_priority is 0 |
 | Landscaping maintenance | Landscape Gardener | page | 0 | a page by default; no keyword above 10 searches a month in Southampton or any town, so the pattern H1 applies and copy_priority is 0 |
 | Lawn care | Landscape Gardener, Landscape Designer | page | 30 | a page by default; "lawn care southampton" has 30 searches a month in Southampton |
 | Lawn landscaping | Landscape Gardener | page | 0 | a page by default; no keyword above 10 searches a month in Southampton or any town, so the pattern H1 applies and copy_priority is 0 |
@@ -85,10 +85,10 @@
 | Wood staining | Deck Builder | page | 0 | a page by default; no keyword above 10 searches a month in Southampton or any town, so the pattern H1 applies and copy_priority is 0 |
 | Wood deck construction | Deck Builder | page | 0 | a page by default; no keyword above 10 searches a month in Southampton or any town, so the pattern H1 applies and copy_priority is 0 |
 
-Pages 74 · merged 1 · folded 3 · mentioned 0 (of 78 names)
+Pages 73 · merged 2 · folded 3 · mentioned 0 (of 78 names)
 
 
-## Service pages (74), by copy_priority
+## Service pages (73), by copy_priority
 
 | copy_priority | Service page | H1 | Source |
 |---|---|---|---|
@@ -115,7 +115,6 @@ Pages 74 · merged 1 · folded 3 · mentioned 0 (of 78 names)
 | 0 | Hardscaping | Hardscaping Southampton | pattern |
 | 0 | Landscape installations | Landscape Installations Southampton | pattern |
 | 0 | Landscape management | Landscape Management Southampton | pattern |
-| 0 | Landscaping design | Landscaping Design Southampton | pattern |
 | 0 | Landscaping maintenance | Landscaping Maintenance Southampton | pattern |
 | 0 | Lawn landscaping | Lawn Landscaping Southampton | pattern |
 | 0 | Outdoor step construction | Outdoor Step Construction Southampton | pattern |
@@ -181,11 +180,11 @@ Pages 74 · merged 1 · folded 3 · mentioned 0 (of 78 names)
 |---|---|---|
 | Homepage | 1 | 1 |
 | Category | 6 | 6 |
-| Service | 4 | 74 |
+| Service | 4 | 73 |
 | Location | 13 | 13 |
 | Location Category | 78 | 78 |
 | Town Service | 2 | 2 |
-| **Total** | **104** | **174** |
+| **Total** | **104** | **173** |
 
 ## (d) Links out, by section
 

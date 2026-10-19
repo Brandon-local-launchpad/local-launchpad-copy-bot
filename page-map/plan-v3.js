@@ -28,8 +28,11 @@ const TYPE_LABEL = { homepage: 'Homepage', category: 'Category', service: 'Servi
 const usable = v => !!v && v.volume != null && v.volume > MIN_USABLE;
 
 // The dedupe key: the keyword normalisation plus "service(s)" dropped ("Gardening services"
-// and "Gardening" are one service; keywords keep the word, see claims.js)
-const dedupeKey = name => C.normalise(name).split(' ').filter(w => w !== 'service').join(' ');
+// and "Gardening" are one service; keywords keep the word, see claims.js) and a small stem list
+// so word forms collapse (Brandon, 20 Oct 2026): landscaping/landscape, fencing/fence,
+// decking/deck, paving/pave, draining/drainage, planting/plant. Names only, never keywords.
+const STEMS = { landscaping: 'landscape', fencing: 'fence', decking: 'deck', paving: 'pave', draining: 'drain', drainage: 'drain', planting: 'plant' };
+const dedupeKey = name => C.normalise(name).split(' ').filter(w => w !== 'service').map(w => STEMS[w] || w).sort().join(' ');
 
 // Every service on the client's tabs, once, with all its parent categories in tab order
 function collectServices(resolved) {
@@ -51,7 +54,7 @@ function dedupe(services) {
     const others = members.filter(m => m !== keep);
     const parents = [...new Set(members.flatMap(m => m.parents))];
     out.push({ ...keep, parents, merged_from: others.map(o => o.name), merged_ids: others.map(o => o.id), outcome: null, into: null, reason: null });
-    for (const o of others) out.push({ ...o, outcome: 'merged', into: keep.id, intoName: keep.name, reason: `the same service as "${keep.name}" once plurals, "services", "&" and word order are ignored; "${keep.name}" is the shorter name and keeps both categories` });
+    for (const o of others) out.push({ ...o, outcome: 'merged', into: keep.id, intoName: keep.name, reason: `the same service as "${keep.name}" once plurals, word forms, "services", "&" and word order are ignored; "${keep.name}" is the shorter name and keeps both categories` });
   }
   return out;
 }

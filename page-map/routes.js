@@ -102,7 +102,7 @@ function mountPageMapApi(app, { pool, filloutService, searchVolume = D.searchVol
     res.send('﻿' + await store.csv(req.params.clientId, { includeRetired: req.query.retired === '1' }));
   }));
   app.get('/api/clients/:clientId/page-map', wrap(async (req, res) => {
-    res.json({ rows: await store.saved(req.params.clientId), state: await store.state(req.params.clientId), candidates: await h1.candidates(req.params.clientId), job: await h1.latest(req.params.clientId), core: [...await store.coreFlags(req.params.clientId)] });
+    res.json({ rows: await store.saved(req.params.clientId), state: await store.state(req.params.clientId), candidates: await h1.candidates(req.params.clientId), job: await h1.latest(req.params.clientId), excluded: [...await store.excludeFlags(req.params.clientId)] });
   }));
   // The one-click flow: build the page map, then research H1s, in the background
   app.post('/api/clients/:clientId/page-map/run', wrap(async (req, res) => {
@@ -146,8 +146,8 @@ function mountPageMapApi(app, { pool, filloutService, searchVolume = D.searchVol
   }));
   app.put('/api/clients/:clientId/page-map/:rowId', wrap(async (req, res) => res.json(await store.setRow(req.params.clientId, req.params.rowId, req.body || {}))));
 
-  // A person flags a service core: it gets a page whatever the volume (applied at the next generation)
-  app.put('/api/clients/:clientId/services/:serviceId/core', wrap(async (req, res) => res.json({ core: [...await store.setCore(req.params.clientId, req.params.serviceId, !!(req.body || {}).core)] })));
+  // A person excludes a service at intake: mentioned on its category page, no page (applied at the next generation)
+  app.put('/api/clients/:clientId/services/:serviceId/exclude', wrap(async (req, res) => res.json({ excluded: [...await store.setExclude(req.params.clientId, req.params.serviceId, !!(req.body || {}).excluded)] })));
   app.get('/api/clients/:clientId/services/by-hand', wrap(async (req, res) => res.json(await byHandView(filloutService, req.params.clientId))));
   app.put('/api/clients/:clientId/services/by-hand', wrap(async (req, res) => res.json(await saveByHand(filloutService, req.params.clientId, req.body))));
   return { store, h1 };

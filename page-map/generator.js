@@ -172,6 +172,7 @@ function diffPlan(saved, planned) {
     if (JSON.stringify(s.links_to || []) !== JSON.stringify(p.links_to)) changes.links_to = p.links_to;
     if (JSON.stringify(s.links_from || []) !== JSON.stringify(p.links_from)) changes.links_from = p.links_from;
     if (JSON.stringify(((s.info || {}).links) || null) !== JSON.stringify(p.links || null)) changes.links = p.links;
+    if (p.type === 'service' && ((s.info || {}).copy_priority || 0) !== ((p.info || {}).copy_priority || 0)) changes.copy_priority = (p.info || {}).copy_priority || 0;
     if (['auto', 'needed'].includes(s.h1_source || 'needed') && ((s.h1 || '') !== p.h1 || s.h1_source !== p.h1_source)) { changes.h1 = p.h1; changes.h1_source = p.h1_source; }
     if (s.applies === false) { revive.push({ row: s, changes }); continue; }
     if (Object.keys(changes).length) update.push({ row: s, changes }); else unchanged.push(s);

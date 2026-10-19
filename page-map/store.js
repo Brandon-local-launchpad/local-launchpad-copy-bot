@@ -16,7 +16,7 @@
 // (page-map/generator.js), so the plan takes the keyword volumes: the one-click job
 // looks them up first; the dry run and the direct Generate route use the cache. The
 // services list outcomes (page / merged / folded / mentioned) are kept on the state
-// row; a person's core flags live in client_service_flags.
+// row; the services a person excluded at intake live in client_service_flags.
 
 const G = require('./generator');
 
@@ -28,7 +28,7 @@ function retiredReason(row, plan) {
     const s = plan && plan.services && plan.services.find(x => x.id === info.service_id || (x.merged_ids || []).includes(info.service_id));
     if (s && s.outcome === 'merged') return `"${t}" is the same service as "${s.intoName}", which keeps the page`;
     if (s && s.outcome === 'folded') return `"${t}" is now listed on the ${s.intoName} category page: its keyword is that category's`;
-    if (s && s.outcome === 'mentioned') return `"${t}" has no keyword above 10 searches a month in any town, so it is mentioned on its category page instead of having a page (flag it core on Services to force a page)`;
+    if (s && s.outcome === 'mentioned') return `"${t}" was excluded at intake: it is mentioned on its category page instead of having a page (untick Exclude on Services to bring the page back)`;
     return `"${t}" is no longer one of this client's services: it is not ticked in any category on the record`;
   }
   if (row.type === 'town_service') return `"${info.service_name || t}" no longer has a usable keyword of its own in ${info.town || 'this town'}, or another page owns it`;
@@ -88,11 +88,13 @@ async function ensurePageMapTables(pool) {
   }
   // The services list outcomes from the last generation (page map v3)
   await pool.query(`ALTER TABLE client_page_map_state ADD COLUMN IF NOT EXISTS services JSONB`);
+  // Services a person excluded at intake (replaces the core flag, 20 Oct 2026: every service is a page by default)
+  await pool.query(`ALTER TABLE client_service_flags ADD COLUMN IF NOT EXISTS excluded BOOLEAN NOT NULL DEFAULT FALSE`);
 }
 
 const parse = v => (typeof v === 'string' ? JSON.parse(v) : v);
 const fromDb = r => ({ ...r, links_to: parse(r.links_to) || [], links_from: parse(r.links_from) || [], info: parse(r.info) || {}, generated_ref: parse(r.generated_ref) });
-const INFO_KEYS = ['town', 'category_key', 'service_id', 'service_name', 'parent_keys', 'additional', 'primary', 'merged_from', 'links'];
+const INFO_KEYS = ['town', 'category_key', 'service_id', 'service_name', 'parent_keys', 'additional', 'primary', 'merged_from', 'copy_priority', 'links'];
 // A plan row's info: what the generator put in info, plus its link sections
 const infoOf = p => { const src = { ...(p.info || {}), ...(p.links ? { links: p.links } : {}) }; return Object.fromEntries(INFO_KEYS.filter(k => src[k] !== undefined).map(k => [k, src[k]])); };
 
@@ -130,17 +132,17 @@ function createPageMapStore({ pool, filloutService, volumesFor = async () => new
     const { rows } = await pool.query(`SELECT * FROM client_page_map_state WHERE client_id = $1`, [clientId]);
     return rows[0] ? { ...rows[0], inputs: parse(rows[0].inputs), counts: parse(rows[0].counts), services: parse(rows[0].services) || null } : null;
   }
-  // Services a person flagged core (always a page): Set of service ids
-  async function coreFlags(clientId) {
-    const { rows } = await pool.query(`SELECT service_id FROM client_service_flags WHERE client_id = $1 AND core = TRUE`, [clientId]);
+  // Services a person excluded at intake (mentioned, never a page): Set of service ids
+  async function excludeFlags(clientId) {
+    const { rows } = await pool.query(`SELECT service_id FROM client_service_flags WHERE client_id = $1 AND excluded = TRUE`, [clientId]);
     return new Set(rows.map(r => r.service_id));
   }
-  async function setCore(clientId, serviceId, core) {
+  async function setExclude(clientId, serviceId, excluded) {
     const id = String(serviceId || '').trim().toLowerCase().replace(/\s+/g, ' ');
     if (!id) throw Object.assign(new Error('Which service?'), { status: 400 });
-    const { rowCount } = await pool.query(`UPDATE client_service_flags SET core = $3, updated_at = NOW() WHERE client_id = $1 AND service_id = $2`, [clientId, id, !!core]);
-    if (!rowCount) await pool.query(`INSERT INTO client_service_flags (client_id, service_id, core) VALUES ($1, $2, $3)`, [clientId, id, !!core]);
-    return coreFlags(clientId);
+    const { rowCount } = await pool.query(`UPDATE client_service_flags SET excluded = $3, updated_at = NOW() WHERE client_id = $1 AND service_id = $2`, [clientId, id, !!excluded]);
+    if (!rowCount) await pool.query(`INSERT INTO client_service_flags (client_id, service_id, excluded) VALUES ($1, $2, $3)`, [clientId, id, !!excluded]);
+    return excludeFlags(clientId);
   }
 
   // The plan and what it would do, nothing written. opts.volumes: a Map from the job; otherwise
@@ -153,7 +155,7 @@ function createPageMapStore({ pool, filloutService, volumesFor = async () => new
     else {
       const ready = inputs.resolved && inputs.resolved.categories.length && String(inputs.baseTown || '').trim();
       const volumes = opts.volumes || (ready ? await volumesFor(G.keywordsFor(inputs)) : new Map());
-      plan = G.buildPageMap(inputs, { volumes, core: await coreFlags(clientId), saved: rows });
+      plan = G.buildPageMap(inputs, { volumes, exclude: await excludeFlags(clientId), saved: rows });
       plan.volumesFrom = opts.volumes ? 'lookup' : 'cache';
     }
     const diff = plan.ok ? G.diffPlan(rows, plan.rows) : null;
@@ -192,7 +194,7 @@ function createPageMapStore({ pool, filloutService, volumesFor = async () => new
     for (const row of diff.retire) { await pool.query(`UPDATE client_page_map SET applies=FALSE, retired_at=NOW(), retired_reason=$3, updated_at=NOW() WHERE id=$1 AND client_id=$2`, [row.id, clientId, retiredReason(row, plan)]); await tick(); }
     if (opts.onProgress && !total) await opts.onProgress(0, 0);
     // The services list outcomes, as the Services step shows them
-    const services = plan.services.map(s => ({ id: s.id, name: s.name, parents: s.parents, outcome: s.outcome, into: s.into || null, intoName: s.intoName || null, reason: s.reason, merged_from: s.merged_from || [], townVolumes: (s.townVolumes || []).map(t => ({ town: t.town, volume: t.volume })) }));
+    const services = plan.services.map(s => ({ id: s.id, name: s.name, parents: s.parents, outcome: s.outcome, into: s.into || null, intoName: s.intoName || null, reason: s.reason, merged_from: s.merged_from || [], copy_priority: s.copy_priority || 0, townVolumes: (s.townVolumes || []).map(t => ({ town: t.town, volume: t.volume })) }));
     const st = { generated_at: new Date(), category_tab_rule: inputs.categoryTabRule,
       inputs: { baseTown: inputs.baseTown, otherTowns: inputs.otherTowns, companyName: inputs.companyName },
       counts: { ...plan.counts, ...diff.counts, services: plan.serviceCounts, townServicePages: plan.townServicePages, volumesFrom: plan.volumesFrom } };
@@ -229,7 +231,7 @@ function createPageMapStore({ pool, filloutService, volumesFor = async () => new
 
   async function csv(clientId, opts) { return G.toCsv(await saved(clientId), opts); }
 
-  return { saved, state, preview, generate, setRow, csv, coreFlags, setCore };
+  return { saved, state, preview, generate, setRow, csv, excludeFlags, setExclude };
 }
 
 module.exports = { ensurePageMapTables, createPageMapStore, inputsFor, retiredReason };
