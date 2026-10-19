@@ -9,14 +9,16 @@
 
 const MIN_USABLE = 10; // volume must be above this
 
-// Lower case, apostrophes dropped ("Chandler's" → "chandlers"), other punctuation to spaces
-const keywordOf = s => String(s == null ? '' : s).toLowerCase().replace(/['’‘`]/g, '').replace(/[^a-z0-9]+/g, ' ').trim().replace(/\s+/g, ' ');
+// Lower case, "&" as "and" ("Excavation & grading" → "excavation and grading"), apostrophes
+// dropped ("Chandler's" → "chandlers"), other punctuation to spaces
+const keywordOf = s => String(s == null ? '' : s).toLowerCase().replace(/&/g, ' and ').replace(/['’‘`]/g, '').replace(/[^a-z0-9]+/g, ' ').trim().replace(/\s+/g, ' ');
 
 // Title Case for every H1: each word capitalised, small joining words lower case unless first;
-// the rest of a word is kept ("CCTV" stays "CCTV", "Chandler's" stays "Chandler's")
-const SMALL = new Set(['and', 'or', 'of', 'the', 'in', 'on', 'for', 'to', 'a', 'an', 'at', 'by', 'with', '&']);
+// the rest of a word is kept ("CCTV" stays "CCTV", "Chandler's" stays "Chandler's"); "&" is
+// written "and" ("Excavation & grading Southampton" → "Excavation and Grading Southampton")
+const SMALL = new Set(['and', 'or', 'of', 'the', 'in', 'on', 'for', 'to', 'a', 'an', 'at', 'by', 'with']);
 function titleCase(text) {
-  return String(text == null ? '' : text).trim().replace(/\s+/g, ' ').split(' ').map((w, i) => {
+  return String(text == null ? '' : text).replace(/s*&s*/g, ' and ').trim().replace(/\s+/g, ' ').split(' ').map((w, i) => {
     if (i > 0 && SMALL.has(w.toLowerCase())) return w.toLowerCase();
     return w.replace(/^([("'‘“]?)([a-z])/, (m, p, c) => p + c.toUpperCase());
   }).join(' ');

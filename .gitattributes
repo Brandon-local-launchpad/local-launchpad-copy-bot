@@ -1,0 +1,2 @@
+# The niche builder test compares a fresh build with these files byte for byte
+fillout/services/*.json text eol=lf
