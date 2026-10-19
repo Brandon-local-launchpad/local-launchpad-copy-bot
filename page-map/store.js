@@ -72,6 +72,13 @@ async function ensurePageMapTables(pool) {
       inputs             JSONB,
       counts             JSONB
     );
+    CREATE TABLE IF NOT EXISTS client_town_flags (
+      client_id   UUID NOT NULL REFERENCES clients(id) ON DELETE CASCADE,
+      town_slug   TEXT NOT NULL,
+      launch      BOOLEAN NOT NULL DEFAULT FALSE,
+      updated_at  TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      PRIMARY KEY (client_id, town_slug)
+    );
     CREATE TABLE IF NOT EXISTS client_service_flags (
       client_id   UUID NOT NULL REFERENCES clients(id) ON DELETE CASCADE,
       service_id  TEXT NOT NULL,
@@ -90,11 +97,13 @@ async function ensurePageMapTables(pool) {
   await pool.query(`ALTER TABLE client_page_map_state ADD COLUMN IF NOT EXISTS services JSONB`);
   // Services a person excluded at intake (replaces the core flag, 20 Oct 2026: every service is a page by default)
   await pool.query(`ALTER TABLE client_service_flags ADD COLUMN IF NOT EXISTS excluded BOOLEAN NOT NULL DEFAULT FALSE`);
+  // Launch phases: when "Publish phase 2" ran (every page phase 1 from then on)
+  await pool.query(`ALTER TABLE client_page_map_state ADD COLUMN IF NOT EXISTS phase2_published_at TIMESTAMPTZ`);
 }
 
 const parse = v => (typeof v === 'string' ? JSON.parse(v) : v);
 const fromDb = r => ({ ...r, links_to: parse(r.links_to) || [], links_from: parse(r.links_from) || [], info: parse(r.info) || {}, generated_ref: parse(r.generated_ref) });
-const INFO_KEYS = ['town', 'category_key', 'service_id', 'service_name', 'parent_keys', 'additional', 'primary', 'merged_from', 'copy_priority', 'links'];
+const INFO_KEYS = ['town', 'category_key', 'service_id', 'service_name', 'parent_keys', 'additional', 'primary', 'merged_from', 'copy_priority', 'phase', 'links'];
 // A plan row's info: what the generator put in info, plus its link sections
 const infoOf = p => { const src = { ...(p.info || {}), ...(p.links ? { links: p.links } : {}) }; return Object.fromEntries(INFO_KEYS.filter(k => src[k] !== undefined).map(k => [k, src[k]])); };
 
@@ -132,6 +141,25 @@ function createPageMapStore({ pool, filloutService, volumesFor = async () => new
     const { rows } = await pool.query(`SELECT * FROM client_page_map_state WHERE client_id = $1`, [clientId]);
     return rows[0] ? { ...rows[0], inputs: parse(rows[0].inputs), counts: parse(rows[0].counts), services: parse(rows[0].services) || null } : null;
   }
+  // Towns launching in phase 1 (the base town always counts): Set of town slugs
+  async function launchTowns(clientId) {
+    const { rows } = await pool.query(`SELECT town_slug FROM client_town_flags WHERE client_id = $1 AND launch = TRUE`, [clientId]);
+    return new Set(rows.map(r => r.town_slug));
+  }
+  async function setLaunchTown(clientId, town, launch) {
+    const slug = G.slugify(town);
+    if (!slug) throw Object.assign(new Error('Which town?'), { status: 400 });
+    const { rowCount } = await pool.query(`UPDATE client_town_flags SET launch = $3, updated_at = NOW() WHERE client_id = $1 AND town_slug = $2`, [clientId, slug, !!launch]);
+    if (!rowCount) await pool.query(`INSERT INTO client_town_flags (client_id, town_slug, launch) VALUES ($1, $2, $3)`, [clientId, slug, !!launch]);
+    return launchTowns(clientId);
+  }
+  // "Publish phase 2": phase-2 pages become publish, and the links are planned again
+  async function publishPhase2(clientId, opts = {}) {
+    const st = await state(clientId);
+    if (!st) throw Object.assign(new Error('No page map yet: generate it first.'), { status: 400 });
+    if (!st.phase2_published_at) await pool.query(`UPDATE client_page_map_state SET phase2_published_at = NOW() WHERE client_id = $1`, [clientId]);
+    return generate(clientId, { categoryTabRule: st.category_tab_rule || 'ticked_only', ...opts });
+  }
   // Services a person excluded at intake (mentioned, never a page): Set of service ids
   async function excludeFlags(clientId) {
     const { rows } = await pool.query(`SELECT service_id FROM client_service_flags WHERE client_id = $1 AND excluded = TRUE`, [clientId]);
@@ -155,7 +183,8 @@ function createPageMapStore({ pool, filloutService, volumesFor = async () => new
     else {
       const ready = inputs.resolved && inputs.resolved.categories.length && String(inputs.baseTown || '').trim();
       const volumes = opts.volumes || (ready ? await volumesFor(G.keywordsFor(inputs)) : new Map());
-      plan = G.buildPageMap(inputs, { volumes, exclude: await excludeFlags(clientId), saved: rows });
+      const st = await state(clientId);
+      plan = G.buildPageMap(inputs, { volumes, exclude: await excludeFlags(clientId), launchTowns: await launchTowns(clientId), phase2Published: !!(st && st.phase2_published_at), saved: rows });
       plan.volumesFrom = opts.volumes ? 'lookup' : 'cache';
     }
     const diff = plan.ok ? G.diffPlan(rows, plan.rows) : null;
@@ -197,7 +226,7 @@ function createPageMapStore({ pool, filloutService, volumesFor = async () => new
     const services = plan.services.map(s => ({ id: s.id, name: s.name, parents: s.parents, outcome: s.outcome, into: s.into || null, intoName: s.intoName || null, reason: s.reason, merged_from: s.merged_from || [], copy_priority: s.copy_priority || 0, townVolumes: (s.townVolumes || []).map(t => ({ town: t.town, volume: t.volume })) }));
     const st = { generated_at: new Date(), category_tab_rule: inputs.categoryTabRule,
       inputs: { baseTown: inputs.baseTown, otherTowns: inputs.otherTowns, companyName: inputs.companyName },
-      counts: { ...plan.counts, ...diff.counts, services: plan.serviceCounts, townServicePages: plan.townServicePages, volumesFrom: plan.volumesFrom } };
+      counts: { ...plan.counts, ...diff.counts, services: plan.serviceCounts, townServicePages: plan.townServicePages, volumesFrom: plan.volumesFrom, launchTowns: plan.launchTowns } };
     if (await state(clientId)) await pool.query(`UPDATE client_page_map_state SET generated_at=$2, category_tab_rule=$3, inputs=$4, counts=$5, services=$6 WHERE client_id=$1`, [clientId, st.generated_at, st.category_tab_rule, JSON.stringify(st.inputs), JSON.stringify(st.counts), JSON.stringify(services)]);
     else await pool.query(`INSERT INTO client_page_map_state (client_id, generated_at, category_tab_rule, inputs, counts, services) VALUES ($1,$2,$3,$4,$5,$6)`, [clientId, st.generated_at, st.category_tab_rule, JSON.stringify(st.inputs), JSON.stringify(st.counts), JSON.stringify(services)]);
     return { plan, diff, rows: await saved(clientId) };
@@ -231,7 +260,7 @@ function createPageMapStore({ pool, filloutService, volumesFor = async () => new
 
   async function csv(clientId, opts) { return G.toCsv(await saved(clientId), opts); }
 
-  return { saved, state, preview, generate, setRow, csv, excludeFlags, setExclude };
+  return { saved, state, preview, generate, setRow, csv, excludeFlags, setExclude, launchTowns, setLaunchTown, publishPhase2 };
 }
 
 module.exports = { ensurePageMapTables, createPageMapStore, inputsFor, retiredReason };

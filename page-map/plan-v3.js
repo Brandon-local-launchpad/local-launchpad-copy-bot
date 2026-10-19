@@ -19,6 +19,9 @@
 // Town service pages: /locations/<town>/<service>, only where "<service> <town>" is usable AND
 // the page wins that keyword under the ownership rules (never on pattern alone).
 // Links: base pages link wide, town pages link tight (planLinks below).
+// Launch phases (Brandon, 20 Oct 2026): every page has info.phase 1 or 2 (the generator sets
+// it). A link only goes to a page in the same or an earlier phase; a later-phase target stays
+// in its section as plain text, flagged "links when published", and is left out of links_to.
 
 const { keywordOf, MIN_USABLE } = require('../h1-research/research');
 const C = require('../h1-research/claims');
@@ -192,11 +195,16 @@ function planLinks(rows, services) {
     }
     plan.set(r.page_key, L);
   }
-  // links_to and links_from
+  // Phase gating, then links_to and links_from
+  const phaseOf = new Map(live.map(r => [r.slug, (r.info && r.info.phase) || 1]));
   const from = new Map(live.map(r => [r.slug, new Set()]));
   for (const r of live) {
     const L = plan.get(r.page_key);
-    const targets = [...new Set([...L.breadcrumb, ...L.cards, ...L.areas, ...L.more, ...L.body, ...L.parents].map(x => x.to))];
+    const mine = phaseOf.get(r.slug) || 1;
+    for (const k of ['breadcrumb', 'cards', 'areas', 'more', 'body', 'parents']) for (const x of L[k]) {
+      if ((phaseOf.get(x.to) || 1) > mine) { x.unlinked = true; x.flag = 'links when published'; x.phase = phaseOf.get(x.to); }
+    }
+    const targets = [...new Set([...L.breadcrumb, ...L.cards, ...L.areas, ...L.more, ...L.body, ...L.parents].filter(x => !x.unlinked).map(x => x.to))];
     r.links_to = targets;
     r.links = L;
     for (const t of targets) if (from.has(t)) from.get(t).add(r.slug);
