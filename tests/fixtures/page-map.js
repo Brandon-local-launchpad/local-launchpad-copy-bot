@@ -31,14 +31,16 @@ const chk = (label, ok, got, want) => {
 console.log('\n=== FIXTURE: page map (Edens Edge) ===\n');
 const config = R.loadConfig('landscapers-gardeners');
 const quiet = { log() {}, info() {}, warn() {}, error() {} };
-const build = (rule, extra = {}) => G.buildPageMap({ resolved: R.resolve(ticks, config, { categoryTabRule: rule, ...(extra.resolve || {}) }), baseTown: S.BASE_TOWN, otherTowns: S.OTHER_TOWNS.join('\n'), companyName: S.COMPANY, niche: 'Landscapers/Gardeners', ...extra.input }, { volumes: volumes(), ...(extra.opts || {}) });
+// Every town launches in phase 1 here; launch phases have their own fixture (launch-phases.js)
+const allTowns = new Set([...S.OTHER_TOWNS, 'Totton', 'Romsey Extra'].concat(Array.from({ length: 40 }, (_, i) => `Town ${i + 1}`)).map(G.slugify));
+const build = (rule, extra = {}) => G.buildPageMap({ resolved: R.resolve(ticks, config, { categoryTabRule: rule, ...(extra.resolve || {}) }), baseTown: S.BASE_TOWN, otherTowns: S.OTHER_TOWNS.join('\n'), companyName: S.COMPANY, niche: 'Landscapers/Gardeners', ...extra.input }, { volumes: volumes(), launchTowns: allTowns, ...(extra.opts || {}) });
 const find = (m, slug) => m.rows.find(r => r.slug === slug);
 const same = (a, b) => [...a].sort().join() === [...b].sort().join();
 
 (async () => {
   // ── Counts ──
   const m1 = build('ticked_only'), m2 = build('ticked_or_propagated');
-  chk('ticked_only on the stub volumes: 1 + 6 categories + 73 service pages + 13 locations + 78 location categories + 3 town service pages = 174', JSON.stringify(m1.counts) === JSON.stringify({ homepage: 1, category: 6, service: 73, location: 13, location_category: 78, town_service: 3, total: 174 }), JSON.stringify(m1.counts), '174');
+  chk('ticked_only on the stub volumes: 1 + 6 categories + 73 service pages + 13 locations + 78 location categories + 3 town service pages = 174', JSON.stringify(m1.counts) === JSON.stringify({ homepage: 1, category: 6, service: 73, location: 13, location_category: 78, town_service: 3, total: 174, phase1: 174, phase2: 0 }), JSON.stringify(m1.counts), '174');
   chk('Of the 78 service names: 73 pages, 2 merged (Garden designs, Landscaping design), 3 folded, none mentioned', JSON.stringify(m1.serviceCounts) === JSON.stringify({ page: 73, merged: 2, folded: 3, mentioned: 0, names: 78 }) && m1.services.find(s => s.id === 'landscaping design').intoName === 'Landscape design', JSON.stringify(m1.serviceCounts), '');
   chk('ticked_or_propagated: 7 categories, 91 location categories', m2.counts.category === 7 && m2.counts.location_category === 91 && m2.counts.total === 174 + 1 + 13, JSON.stringify(m2.counts), '');
   chk('With no volumes at all every service is still a page (pattern H1s, copy_priority 0) and there are no town service pages: 171 pages', (() => { const m = build('ticked_only', { opts: { volumes: new Map() } }); return m.counts.total === 171 && m.counts.service === 73 && m.counts.town_service === 0 && m.rows.filter(r => r.type === 'service').every(r => r.info.copy_priority === 0); })(), '', '');
@@ -98,7 +100,7 @@ const same = (a, b) => [...a].sort().join() === [...b].sort().join();
 
   // ── CSV ──
   const csv = G.toCsv(m1.rows);
-  chk('CSV: the old PAGE MAP columns in order, then the link sections; 174 rows; links one per line in a quoted cell', csv.split('\r\n')[0] === 'Page Type,Page Title,URL Slug,H1 (Ahrefs),Meta Title,Meta Description,Links TO,Links FROM,Status,Breadcrumb,Cards,Areas Block,More Services,Body Links,Mentioned Services' && /^Service,Hedge trimming,\/services\/hedge-trimming,,,,"\/\n\/gardener\n\/locations\/romsey\/gardener/m.test(csv) && csv.split('\r\n').length - 2 === 174, csv.slice(0, 120), '');
+  chk('CSV: the old PAGE MAP columns in order, then the link sections; 174 rows; links one per line in a quoted cell', csv.split('\r\n')[0] === 'Page Type,Page Title,URL Slug,H1 (Ahrefs),Meta Title,Meta Description,Links TO,Links FROM,Status,Breadcrumb,Cards,Areas Block,More Services,Body Links,Mentioned Services,Launch Phase,WordPress Status' && /^Service,Hedge trimming,\/services\/hedge-trimming,,,,"\/\n\/gardener\n\/locations\/romsey\/gardener/m.test(csv) && csv.split('\r\n').length - 2 === 174, csv.slice(0, 120), '');
 
   // ── Store, seed and regeneration through pg-mem ──
   const mem = newDb();
@@ -112,6 +114,7 @@ const same = (a, b) => [...a].sort().join() === [...b].sort().join();
   // The store plans with the stub volumes (the app passes the keyword cache or the job's look-up)
   const store = createPageMapStore({ pool, filloutService: svc, volumesFor: async () => volumes() });
   const { rows: [client] } = await pool.query(`INSERT INTO clients (name, trade) VALUES ('ednes edge testing', 'Landscaper') RETURNING id`);
+  for (const t of [...S.OTHER_TOWNS, 'Totton', 'Romsey Extra']) await store.setLaunchTown(client.id, t, true); // every town live here; phases have their own fixture
   await pool.query(`INSERT INTO pages (client_id, page_type, page_title, url_slug, h1, copy_output) VALUES ($1, 'homepage', 'Homepage', '/', 'Old H1', 'old copy')`, [client.id]);
   const pageBefore = JSON.stringify((await pool.query(`SELECT * FROM pages WHERE client_id = $1`, [client.id])).rows);
 

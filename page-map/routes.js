@@ -89,6 +89,7 @@ function mountPageMapApi(app, { pool, filloutService, searchVolume = D.searchVol
       add: [...p.diff.add.map(r => r.title), ...p.diff.revive.map(x => x.row.title)], retire: p.diff.retire.map(r => r.title) } : null,
     firstRun: p.firstRun,
     services: p.plan.serviceCounts || null, townServicePages: p.plan.townServicePages || null, volumesFrom: p.plan.volumesFrom || null, arithmetic: p.plan.arithmetic,
+    phases: p.plan.counts ? { phase1: p.plan.counts.phase1, phase2: p.plan.counts.phase2 } : null, launchTowns: p.plan.launchTowns || [], phase2Published: !!p.plan.phase2Published,
     inputs: { niche: p.inputs.niche, hasConfig: p.inputs.hasConfig, baseTown: p.inputs.baseTown, otherTowns: p.inputs.otherTowns, companyName: p.inputs.companyName, categoryTabRule: p.inputs.categoryTabRule,
       tabs: p.inputs.resolved ? p.inputs.resolved.categories.length : 0, attentionCount: p.inputs.attentionCount },
   });
@@ -102,7 +103,7 @@ function mountPageMapApi(app, { pool, filloutService, searchVolume = D.searchVol
     res.send('﻿' + await store.csv(req.params.clientId, { includeRetired: req.query.retired === '1' }));
   }));
   app.get('/api/clients/:clientId/page-map', wrap(async (req, res) => {
-    res.json({ rows: await store.saved(req.params.clientId), state: await store.state(req.params.clientId), candidates: await h1.candidates(req.params.clientId), job: await h1.latest(req.params.clientId), excluded: [...await store.excludeFlags(req.params.clientId)] });
+    res.json({ rows: await store.saved(req.params.clientId), state: await store.state(req.params.clientId), candidates: await h1.candidates(req.params.clientId), job: await h1.latest(req.params.clientId), excluded: [...await store.excludeFlags(req.params.clientId)], launchTowns: [...await store.launchTowns(req.params.clientId)] });
   }));
   // The one-click flow: build the page map, then research H1s, in the background
   app.post('/api/clients/:clientId/page-map/run', wrap(async (req, res) => {
@@ -146,6 +147,12 @@ function mountPageMapApi(app, { pool, filloutService, searchVolume = D.searchVol
   }));
   app.put('/api/clients/:clientId/page-map/:rowId', wrap(async (req, res) => res.json(await store.setRow(req.params.clientId, req.params.rowId, req.body || {}))));
 
+  // Launch towns (phase 1); "Publish phase 2" flips phase-2 pages to publish and plans the links again
+  app.put('/api/clients/:clientId/towns/:town/launch', wrap(async (req, res) => res.json({ launchTowns: [...await store.setLaunchTown(req.params.clientId, req.params.town, !!(req.body || {}).launch)] })));
+  app.post('/api/clients/:clientId/page-map/publish-phase-2', wrap(async (req, res) => {
+    const out = await store.publishPhase2(req.params.clientId);
+    res.json({ rows: out.rows, state: await store.state(req.params.clientId), counts: out.diff.counts });
+  }));
   // A person excludes a service at intake: mentioned on its category page, no page (applied at the next generation)
   app.put('/api/clients/:clientId/services/:serviceId/exclude', wrap(async (req, res) => res.json({ excluded: [...await store.setExclude(req.params.clientId, req.params.serviceId, !!(req.body || {}).excluded)] })));
   app.get('/api/clients/:clientId/services/by-hand', wrap(async (req, res) => res.json(await byHandView(filloutService, req.params.clientId))));

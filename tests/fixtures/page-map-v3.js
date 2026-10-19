@@ -55,7 +55,8 @@ const table = {
   'tree stump grinding winchester': [20, 1], 'tree planting winchester': [20, 1.2], 'tree removal romsey': [20, 1], 'stump grinding and removal southampton': [25, 1], 'tree surgery southampton': [320, 4], 'gardener romsey': [50, 1.8], 'gardener winchester': [140, 2.4],
   'tree surgeon winchester': [140, 3.9], 'tree surgeon romsey': [50, 3.7],
 };
-const build = (extra = {}, opts = {}) => G.buildPageMap({ ...input, ...extra }, { volumes: vol({ ...table, ...(opts.table || {}) }), exclude: opts.exclude || new Set(), saved: opts.saved || [] });
+// Every town launches in phase 1 here; launch phases have their own fixture (launch-phases.js)
+const build = (extra = {}, opts = {}) => G.buildPageMap({ ...input, ...extra }, { volumes: vol({ ...table, ...(opts.table || {}) }), exclude: opts.exclude || new Set(), launchTowns: new Set(['romsey', 'winchester']), saved: opts.saved || [] });
 const find = (m, slug) => m.rows.find(r => r.slug === slug);
 const svcOf = (m, id) => m.services.find(s => s.id === id);
 
@@ -120,7 +121,7 @@ const svcOf = (m, id) => m.services.find(s => s.id === id);
   const csv = G.toCsv(m.rows);
   const head = csv.split('\r\n')[0];
   const lineOf = slug => csv.split('\r\n').find(l => l.includes(`,${slug},`)) || '';
-  chk('The export carries, per page: breadcrumb, cards, areas block, more services, body links and the mentioned list', /,Breadcrumb,Cards,Areas Block,More Services,Body Links,Mentioned Services$/.test(head) && /Tree surgery/.test(lineOf('/tree-service')) && /Winchester → \/locations\/winchester\/tree-planting/.test(lineOf('/services/tree-planting')) && /\/services\/tree-planting/.test(lineOf('/locations/winchester/tree-planting')), lineOf('/services/tree-planting').slice(0, 200), '');
+  chk('The export carries, per page: breadcrumb, cards, areas block, more services, body links and the mentioned list', /,Breadcrumb,Cards,Areas Block,More Services,Body Links,Mentioned Services,Launch Phase,WordPress Status$/.test(head) && /Tree surgery/.test(lineOf('/tree-service')) && /Winchester → \/locations\/winchester\/tree-planting/.test(lineOf('/services/tree-planting')) && /\/services\/tree-planting/.test(lineOf('/locations/winchester/tree-planting')), lineOf('/services/tree-planting').slice(0, 200), '');
   chk('Town Service is a page type in the export and the old parser still reads the file', /^Town Service,Tree planting Winchester,/m.test(csv) && require(path.join(root, 'client-files.js')).parsePageMap(csv).length > 0, '', '');
 
   // ── The job with a stubbed API: service x town batched and cached ──
@@ -144,6 +145,7 @@ const svcOf = (m, id) => m.services.find(s => s.id === id);
   await pool.query(`INSERT INTO clients (name, trade) VALUES ('ednes edge testing', 'Landscaper')`);
   await S.seed(pool, { write: true, log() {} });
   const cid = (await pool.query(`SELECT id FROM clients WHERE name = 'ednes edge testing'`)).rows[0].id;
+  for (const t of S.OTHER_TOWNS) await store.setLaunchTown(cid, t, true); // every town live here; phases have their own fixture
   const waitFor = async (id) => { for (let i = 0; i < 4000; i++) { const j = await h1.job(id); if (!['queued', 'building', 'researching'].includes(j.status)) return j; await sleep(15); } throw new Error('job never finished'); };
   const inputs = await require(path.join(root, 'page-map/store.js')).inputsFor(svcF, cid);
   const wanted = G.keywordsFor(inputs);

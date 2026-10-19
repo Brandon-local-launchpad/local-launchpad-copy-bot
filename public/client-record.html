@@ -344,6 +344,7 @@
     if (p.key === 'prices') body += renderPrices(rec.prices);
     if (p.key === 'services' && byHand && !byHand.hasFillout) body += renderByHand(byHand);
     if (p.key === 'services') body += renderServices(services);
+    if (p.key === 'areas') body += renderLaunchTowns();
     body += `<div class="fields">${renderFieldList(p.key, fields)}</div>`;
     return `<div class="panel">${head}${body}</div>`;
   }
@@ -605,6 +606,34 @@
       ${renderServiceOutcomes(s)}
       ${addHead}<div class="prices-flags">${addState}</div>${addTable}</div>`;
   }
+  // Launch towns (page map phases): the base town always launches in phase 1; other towns when ticked
+  function renderLaunchTowns() {
+    const f = k => { const x = allFields().find(y => y.key === k); return x && typeof x.value === 'string' ? x.value : ''; };
+    const base = f('primary_town').trim();
+    const towns = [...new Set(f('other_areas').split(/\r?\n/).map(t => t.replace(/^[\s\-–—*•\d.)]+/, '').trim()).filter(Boolean))].filter(t => slugOf(t) !== slugOf(base));
+    const on = new Set(pm.launchTowns || []);
+    const published = pm.state && pm.state.phase2_published_at;
+    const rows = towns.map(t => `<label class="tick" style="margin:0 1rem .4rem 0;display:inline-flex;gap:.35rem;align-items:center"><input type="checkbox" ${on.has(slugOf(t)) ? 'checked' : ''} ${published ? 'disabled' : ''} onchange="setLaunchTown('${esc(t)}', this.checked)"> ${esc(t)}</label>`).join('');
+    return `<div class="prices" id="f_launch_towns"><div class="prices-head"><h3>Launch towns</h3></div>
+      <div class="pnote" style="margin-bottom:.5rem">A launch town's location and location category pages go live in phase 1 (published). Other towns' pages are phase 2: built, but draft + noindex, and only linked from other phase 2 pages until you publish phase 2 on <a href="#pages">Pages</a>. Applies the next time the page map is generated.${published ? ` <strong>Phase 2 was published ${esc(fmt(published))}: every page is phase 1.</strong>` : ''}</div>
+      <div>${base ? `<span class="badge b-ok" title="The base town always launches in phase 1">${esc(base)} · base town, phase 1</span> ` : ''}${rows || '<span class="pnote">No other towns on the record yet.</span>'}</div></div>`;
+  }
+  async function setLaunchTown(town, on) {
+    setSaved('Saving…');
+    const res = await fetch(`/api/clients/${clientId}/towns/${encodeURIComponent(town)}/launch`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ launch: on }) });
+    const r = await res.json().catch(() => ({}));
+    if (!res.ok) { setSaved('Not saved: ' + (r.error || res.status), 'bad'); return; }
+    pm.launchTowns = r.launchTowns; setSaved('Saved', 'ok'); setTimeout(() => setSaved(''), 1500); render();
+  }
+  async function publishPhase2() {
+    const n = pm.rows.filter(r => r.applies && r.info && r.info.phase === 2).length;
+    if (!confirm(`Publish phase 2? ${n} page${n === 1 ? '' : 's'} move from draft + noindex to publish, and the links are planned again so phase 1 pages link to them. This cannot be undone here.`)) return;
+    setSaved('Publishing…');
+    const res = await fetch(`/api/clients/${clientId}/page-map/publish-phase-2`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: '{}' });
+    const r = await res.json().catch(() => ({}));
+    if (!res.ok) { setSaved('Not done: ' + (r.error || res.status), 'bad'); return; }
+    await loadPageMap(); setSaved('Phase 2 published', 'ok'); setTimeout(() => setSaved(''), 2500); render();
+  }
   // Which services get a page (page map v3): every service by default; Exclude makes it a mention
   function renderServiceOutcomes(s) {
     const list = (pm.state && pm.state.services) || null;
@@ -654,7 +683,8 @@
   const PM_TYPES = [['homepage', 'Homepage'], ['category', 'Category pages'], ['service', 'Service pages'], ['location', 'Location pages'], ['location_category', 'Location category pages'], ['town_service', 'Town service pages']];
   const SECTION_LABEL = { breadcrumb: 'Breadcrumb', cards: 'Cards', areas: 'Areas block', more: 'More services', body: 'Body link', parents: 'Also under' };
   const PM_STATUSES = ['Not Started', 'H1 Added', 'Copy Generated', 'Pushed to WordPress', 'Live'];
-  let pm = { rows: [], state: null, excluded: [] };   // GET /api/clients/:id/page-map (rows, state, candidates, job, excluded services)
+  let pm = { rows: [], state: null, excluded: [], launchTowns: [] };   // GET /api/clients/:id/page-map (rows, state, candidates, job, excluded services, launch towns)
+  const slugOf = t => String(t || '').toLowerCase().trim().replace(/[^a-z0-9\s-]/g, '').replace(/\s+/g, '-').replace(/-+/g, '-');
   let pmPreview = null;                 // GET .../page-map/preview (nothing written)
   let pmConfirm = false;                // the dry-run box is open, waiting for Generate
   let pmRule = 'ticked_only';
@@ -681,7 +711,7 @@
     const p = pmPreview;
     const live = pm.rows.filter(r => r.applies), retired = pm.rows.filter(r => !r.applies);
     const head = `<div class="ph"><h2>Pages <span class="tag optional">Page map</span></h2><p>Every page the site needs, planned from the categories, services and towns. H1s come from search volume, or the standard pattern when there is no usable volume; no two pages target the same keyword. Generating again adds and retires pages; it never changes an H1, meta, status or note you set.</p>
-      <div class="pc">${live.length ? `${live.length} pages${retired.length ? ` · ${retired.length} no longer apply` : ''}${pm.state && pm.state.generated_at ? ` · generated ${esc(fmt(pm.state.generated_at))}` : ''}` : 'No page map yet'}</div></div>`;
+      <div class="pc">${live.length ? `${live.length} pages${retired.length ? ` · ${retired.length} no longer apply` : ''}${pm.state && pm.state.generated_at ? ` · generated ${esc(fmt(pm.state.generated_at))}` : ''} · <strong>phase 1: ${live.filter(r => (r.info || {}).phase !== 2).length}</strong> · phase 2: ${live.filter(r => (r.info || {}).phase === 2).length}${pm.state && pm.state.phase2_published_at ? ` (published ${esc(fmt(pm.state.phase2_published_at))})` : ''}` : 'No page map yet'}</div></div>`;
     let facts = '<span>Checking…</span>', canGen = false;
     if (p && p.error) facts = `<span class="badge b-bad">${esc(p.error)}</span>`;
     else if (p) {
@@ -694,6 +724,7 @@
     const bar = `<div class="pm-bar"><div class="facts">${facts}</div><div class="pt-actions">${ruleSel}
       <button class="btn btn-primary btn-xs" onclick="pmStart()" ${canGen && !jobActive() ? '' : `disabled title="${jobActive() ? 'A page map job is running' : 'Needs at least one category tab and a base town'}"`}>${live.length || retired.length ? 'Regenerate page map' : 'Generate page map'}</button>
       ${live.length ? `<button class="btn btn-ghost btn-xs" onclick="h1Research()" ${jobActive() || (h1Preview && h1Preview.loading) ? 'disabled' : ''} title="Shows what would change first. Never changes a manual H1 or a page at Copy Generated or later">Re-research H1s</button>` : ''}
+      ${live.some(r => (r.info || {}).phase === 2) && !(pm.state && pm.state.phase2_published_at) ? `<button class="btn btn-ghost btn-xs" onclick="publishPhase2()" ${jobActive() ? 'disabled' : ''} title="Phase 2 pages become publish and the links are planned again">Publish phase 2</button>` : ''}
       ${pm.rows.length ? `<a class="btn btn-ghost btn-xs" href="/api/clients/${clientId}/page-map.csv">Export CSV</a>` : ''}</div></div>`;
     let box = '';
     const notSetUp = p && p.inputs && p.inputs.hasConfig === false;
@@ -731,6 +762,7 @@
       <div class="counts"><span class="badge b-ok">Would add ${c.wouldAdd}</span><span class="badge ${c.wouldRetire ? 'b-warn' : 'b-muted'}">Would retire ${c.wouldRetire}</span><span class="badge b-muted">Would update links ${c.wouldUpdate}</span><span class="badge b-muted">Unchanged ${c.unchanged}</span></div>
       <div class="pnote">${esc(p.arithmetic)}</div>
       ${p.services ? `<div class="pnote" style="margin-top:.3rem">Services: <strong>${p.services.page}</strong> get a page, ${p.services.merged} merged, ${p.services.folded} folded into a category, ${p.services.mentioned} mentioned only · ${p.townServicePages ? `${p.townServicePages.count} town service page${p.townServicePages.count === 1 ? '' : 's'}` : ''}${p.volumesFrom === 'cache' ? ' · from the keyword cache: keywords never looked up count as no volume here; the job looks them up first' : ''}</div>` : ''}
+      ${p.phases ? `<div class="pnote">Phase 1: ${p.phases.phase1} pages (publish) · phase 2: ${p.phases.phase2} (draft + noindex)${p.launchTowns && p.launchTowns.length ? ` · launch towns: ${esc(p.launchTowns.join(', '))}` : ''}${p.phase2Published ? ' · phase 2 published' : ''}</div>` : ''}
       ${list('New', p.diff.add)}${list('No longer applies', p.diff.retire)}
       ${p.diff.renames.length ? `<ul>${p.diff.renames.map(r => `<li>${esc(r.msg)}</li>`).join('')}</ul>` : ''}
       ${p.diff.retiringWorkedOn.length ? `<div class="pnote" style="color:var(--warning)">Retiring ${p.diff.retiringWorkedOn.length} page${p.diff.retiringWorkedOn.length === 1 ? '' : 's'} someone has worked on (kept, tagged "no longer applies"): ${esc(p.diff.retiringWorkedOn.slice(0, 8).map(r => `${r.title} (${r.status})`).join(', '))}</div>` : ''}
@@ -740,7 +772,7 @@
   function linkSections(r) {
     const L = r.info && r.info.links;
     if (!L) return `<div class="lcols"><div><h4>Links to</h4>${r.links_to.length ? `<ul>${r.links_to.map(x => `<li>${esc(x)}</li>`).join('')}</ul>` : '<div class="pnote">none</div>'}</div></div>`;
-    const secs = Object.keys(SECTION_LABEL).filter(k => (L[k] || []).length).map(k => `<div><h4>${SECTION_LABEL[k]} (${L[k].length})</h4><ul>${L[k].map(x => `<li>${esc(x.anchor)} <span class="pnote">${esc(x.to)}</span></li>`).join('')}</ul></div>`);
+    const secs = Object.keys(SECTION_LABEL).filter(k => (L[k] || []).length).map(k => `<div><h4>${SECTION_LABEL[k]} (${L[k].length})</h4><ul>${L[k].map(x => `<li>${esc(x.anchor)} ${x.unlinked ? `<span class="badge b-muted" title="${esc(x.to)} is phase 2: plain text until phase 2 is published">links when published</span>` : `<span class="pnote">${esc(x.to)}</span>`}</li>`).join('')}</ul></div>`);
     if (r.type === 'town_service') secs.push('<div><h4>Areas block</h4><div class="pnote">villages and neighbourhoods, no links</div></div>');
     if ((L.mentioned || []).length) secs.push(`<div><h4>Mentioned, no link (${L.mentioned.length})</h4><div class="pnote">${esc(L.mentioned.join(', '))}</div></div>`);
     return `<div class="lcols lsec">${secs.join('') || '<div class="pnote">no links out</div>'}</div>`;
@@ -748,7 +780,7 @@
   function renderPmRow(r) {
     const linkList = l => l.length ? `<ul>${l.map(x => `<li>${esc(x)}</li>`).join('')}</ul>` : '<div class="pnote">none</div>';
     return `<div class="pm-row${r.applies ? '' : ' retired'}" id="pm_${r.id}">
-      <div><div class="ttl">${esc(r.title)}${r.applies ? '' : ' <span class="badge b-muted">no longer applies</span>'}${r.info && r.info.additional ? ' <span class="badge b-ok">additional</span>' : ''}${r.info && r.info.merged_from && r.info.merged_from.length ? ` <span class="badge b-muted" title="One page for names that are the same service">merged from ${esc(r.info.merged_from.join(', '))}</span>` : ''}${r.type === 'town_service' ? ' <span class="badge b-ok" title="Exists because this service has search volume of its own in this town">town page</span>' : ''}${r.type === 'service' && r.info && r.info.copy_priority != null ? ` <span class="badge b-muted" title="Copy generation orders service pages by this: the service's best search volume, else 0">priority ${r.info.copy_priority}</span>` : ''}</div><div class="slug">${esc(r.slug)}</div>${r.applies ? '' : `<div class="h1why">No longer applies: ${esc(r.retired_reason || retiredReason(r))}${r.retired_at ? ` (since ${esc(fmt(r.retired_at))})` : ''}. Kept, never deleted; nothing on it changes.</div>`}</div>
+      <div><div class="ttl">${esc(r.title)}${r.applies ? '' : ' <span class="badge b-muted">no longer applies</span>'}${r.info && r.info.additional ? ' <span class="badge b-ok">additional</span>' : ''}${r.info && r.info.merged_from && r.info.merged_from.length ? ` <span class="badge b-muted" title="One page for names that are the same service">merged from ${esc(r.info.merged_from.join(', '))}</span>` : ''}${r.type === 'town_service' ? ' <span class="badge b-ok" title="Exists because this service has search volume of its own in this town">town page</span>' : ''}${r.type === 'service' && r.info && r.info.copy_priority != null ? ` <span class="badge b-muted" title="Copy generation orders service pages by this: the service's best search volume, else 0">priority ${r.info.copy_priority}</span>` : ''}${r.info && r.info.phase === 2 ? ' <span class="badge b-warn" title="Draft + noindex until phase 2 is published; linked only from other phase 2 pages">phase 2</span>' : ''}</div><div class="slug">${esc(r.slug)}</div>${r.applies ? '' : `<div class="h1why">No longer applies: ${esc(r.retired_reason || retiredReason(r))}${r.retired_at ? ` (since ${esc(fmt(r.retired_at))})` : ''}. Kept, never deleted; nothing on it changes.</div>`}</div>
       <div><input type="text" value="${esc(r.h1)}" placeholder="${r.h1_source === 'conflict' ? 'H1 conflict: type an H1' : 'H1'}" aria-label="H1 for ${esc(r.title)}" onchange="pmSave('${r.id}', { h1: this.value })">${h1Under(r)}${renderCands(r)}</div>
       <div><select aria-label="Status for ${esc(r.title)}" onchange="pmSave('${r.id}', { status: this.value })">${PM_STATUSES.map(s => `<option${s === r.status ? ' selected' : ''}>${s}</option>`).join('')}</select></div>
       <details class="links"${pmLinksOpen.has(r.id) ? ' open' : ''} ontoggle="if (this.open) pmLinksOpen.add('${r.id}'); else pmLinksOpen.delete('${r.id}')"><summary>Links to ${r.links_to.length} · from ${r.links_from.length}</summary>${linkSections(r)}<div class="lcols"><div><h4>Links from</h4>${linkList(r.links_from)}</div></div></details>

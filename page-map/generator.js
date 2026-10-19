@@ -13,6 +13,11 @@
 //   - town service pages (/locations/<town>/<service>) exist only where "<service> <town>"
 //     is usable AND the page wins that keyword under the H1 ownership rules (claims.js)
 //   - links: base pages link wide, town pages link tight (plan-v3.planLinks)
+//   - launch phases (Brandon, 20 Oct 2026): homepage, category, service and town service pages
+//     are phase 1; location and location category pages are phase 1 for launch towns (the base
+//     town always; others when a person ticks them) and phase 2 otherwise. Phase 2 exports as
+//     "draft + noindex" and is linked to only from phase 2 pages, until "Publish phase 2"
+//     (opts.phase2Published) makes every page phase 1
 //   - the homepage links to location pages for the other towns only; the base town has
 //     no /locations/<base town> page; no cap on other towns; slug collisions are reported,
 //     never renamed; "Pushed to WordPress" replaces "Pasted Into GHL"
@@ -29,7 +34,8 @@ const TYPES = ['homepage', 'category', 'service', 'location', 'location_category
 const TYPE_LABEL = { homepage: 'Homepage', category: 'Category', service: 'Service', location: 'Location', location_category: 'Location Category', town_service: 'Town Service' };
 const STATUSES = ['Not Started', 'H1 Added', 'Copy Generated', 'Pushed to WordPress', 'Live'];
 // The old PAGE MAP tab's columns, in its order, then the v3 link sections copy generation reads
-const CSV_COLUMNS = ['Page Type', 'Page Title', 'URL Slug', 'H1 (Ahrefs)', 'Meta Title', 'Meta Description', 'Links TO', 'Links FROM', 'Status', 'Breadcrumb', 'Cards', 'Areas Block', 'More Services', 'Body Links', 'Mentioned Services'];
+const CSV_COLUMNS = ['Page Type', 'Page Title', 'URL Slug', 'H1 (Ahrefs)', 'Meta Title', 'Meta Description', 'Links TO', 'Links FROM', 'Status', 'Breadcrumb', 'Cards', 'Areas Block', 'More Services', 'Body Links', 'Mentioned Services', 'Launch Phase', 'WordPress Status'];
+const WP_STATUS = { 1: 'publish', 2: 'draft + noindex' };
 
 // The research context the H1 rules want, from the generator's inputs
 function contextFor(input) {
@@ -53,7 +59,8 @@ function keywordsFor(input) {
 
 // input: { resolved, baseTown, otherTowns, companyName, niche, waiting: [{ service, reason }] }
 // opts: volumes (Map keyword → { volume, cpc }; what is missing counts as no data), exclude (Set of
-// service ids a person excluded at intake), saved (the client's saved rows: their manual and locked H1s take
+// service ids a person excluded at intake), launchTowns (Set of town slugs launching in phase 1),
+// phase2Published (true once "Publish phase 2" ran: everything is phase 1), saved (the client's saved rows: their manual and locked H1s take
 // part in the ownership rules that decide the town service pages)
 function buildPageMap(input, opts = {}) {
   const { resolved, companyName = '' } = input;
@@ -68,6 +75,8 @@ function buildPageMap(input, opts = {}) {
   const ctx = contextFor(input);
   const { towns, dropped, clashes } = cleanTowns(baseTown, input.otherTowns);
   const townSlugs = towns.map(t => ({ name: t, slug: slugify(t) }));
+  const launch = new Set([slugify(baseTown), ...(opts.launchTowns || [])]);
+  const townPhase = t => (opts.phase2Published || launch.has(t.slug) ? 1 : 2);
   const collisions = [...clashes];
 
   // Category pages, one per tab, in tab order. Two tabs (or two services) that make
@@ -107,16 +116,16 @@ function buildPageMap(input, opts = {}) {
   const townSvcPath = (t, s) => `/locations/${t.slug}/${s.slug}`;
   const rows = [];
   const add = (type, title, slug, info) => rows.push({ page_key: pageKey(type, slug), type, title, slug, h1: '', h1_source: 'needed', meta_title: '', meta_description: '', status: 'Not Started', applies: true, links_to: [], links_from: [], info, sort_order: rows.length });
-  add('homepage', `${companyName} Homepage`.trim(), '/', {});
-  for (const c of cats) add('category', c.name, catPath(c), { category_key: c.key, primary: c.primary });
-  for (const s of paged) add('service', s.name, svcPath(s), { service_id: s.id, additional: s.kind === 'additional', parent_keys: s.parents.filter(k => cats.some(c => c.key === k)), merged_from: s.merged_from || [], copy_priority: s.copy_priority || 0 });
-  for (const t of townSlugs) add('location', t.name, locPath(t), { town: t.name });
-  for (const t of townSlugs) for (const c of cats) add('location_category', `${c.name} ${t.name}`, locCatPath(t, c), { town: t.name, category_key: c.key });
+  add('homepage', `${companyName} Homepage`.trim(), '/', { phase: 1 });
+  for (const c of cats) add('category', c.name, catPath(c), { category_key: c.key, primary: c.primary, phase: 1 });
+  for (const s of paged) add('service', s.name, svcPath(s), { service_id: s.id, additional: s.kind === 'additional', parent_keys: s.parents.filter(k => cats.some(c => c.key === k)), merged_from: s.merged_from || [], copy_priority: s.copy_priority || 0, phase: 1 });
+  for (const t of townSlugs) add('location', t.name, locPath(t), { town: t.name, phase: townPhase(t) });
+  for (const t of townSlugs) for (const c of cats) add('location_category', `${c.name} ${t.name}`, locCatPath(t, c), { town: t.name, category_key: c.key, phase: townPhase(t) });
   // Town service candidates: a usable "<service> <town>"; the ownership rules below keep only the winners
   for (const t of townSlugs) for (const s of paged) {
     if (!V3.usable(vol(keywordOf(`${s.name} ${t.name}`)))) continue;
     const parents = s.parents.filter(k => cats.some(c => c.key === k));
-    add('town_service', `${s.name} ${t.name}`, townSvcPath(t, s), { town: t.name, service_id: s.id, service_name: s.name, parent_keys: parents, category_key: s.home && parents.includes(s.home) ? s.home : parents[0] });
+    add('town_service', `${s.name} ${t.name}`, townSvcPath(t, s), { town: t.name, service_id: s.id, service_name: s.name, parent_keys: parents, category_key: s.home && parents.includes(s.home) ? s.home : parents[0], phase: 1 });
   }
 
   // The H1 rules decide which town service pages win their keyword; the rest are not pages.
@@ -140,6 +149,8 @@ function buildPageMap(input, opts = {}) {
   const counts = {};
   for (const t of TYPES) counts[t] = kept.filter(r => r.type === t).length;
   counts.total = kept.length;
+  counts.phase1 = kept.filter(r => r.info.phase === 1).length;
+  counts.phase2 = kept.filter(r => r.info.phase === 2).length;
   const n = o => services.filter(s => s.outcome === o).length;
   const townPages = kept.filter(r => r.type === 'town_service');
   const perTown = {};
@@ -151,6 +162,7 @@ function buildPageMap(input, opts = {}) {
     waiting: input.waiting || [],
     serviceCounts: { page: n('page'), merged: n('merged'), folded: n('folded'), mentioned: n('mentioned'), names: services.length },
     townServicePages: { count: townPages.length, towns: perTown },
+    launchTowns: townSlugs.filter(t => launch.has(t.slug)).map(t => t.name), phase2Published: !!opts.phase2Published,
     arithmetic: `1 homepage + ${cats.length} categories + ${counts.service} service pages (of ${services.length} names: ${n('merged')} merged, ${n('folded')} folded, ${n('mentioned')} mentioned) + ${townSlugs.length} other towns + ${townSlugs.length} towns x ${cats.length} categories (${counts.location_category}) + ${counts.town_service} town service pages = ${kept.length}`,
   };
 }
@@ -173,6 +185,7 @@ function diffPlan(saved, planned) {
     if (JSON.stringify(s.links_from || []) !== JSON.stringify(p.links_from)) changes.links_from = p.links_from;
     if (JSON.stringify(((s.info || {}).links) || null) !== JSON.stringify(p.links || null)) changes.links = p.links;
     if (p.type === 'service' && ((s.info || {}).copy_priority || 0) !== ((p.info || {}).copy_priority || 0)) changes.copy_priority = (p.info || {}).copy_priority || 0;
+    if (((s.info || {}).phase || 1) !== ((p.info || {}).phase || 1)) changes.phase = (p.info || {}).phase || 1;
     if (['auto', 'needed'].includes(s.h1_source || 'needed') && ((s.h1 || '') !== p.h1 || s.h1_source !== p.h1_source)) { changes.h1 = p.h1; changes.h1_source = p.h1_source; }
     if (s.applies === false) { revive.push({ row: s, changes }); continue; }
     if (Object.keys(changes).length) update.push({ row: s, changes }); else unchanged.push(s);
@@ -203,12 +216,14 @@ function toCsv(rows, { includeRetired = false } = {}) {
   const cell = v => { const s = String(v == null ? '' : v); return /[",\n\r]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s; };
   const order = r => TYPES.indexOf(r.type);
   const list = rows.filter(r => includeRetired || r.applies !== false).slice().sort((a, b) => order(a) - order(b) || (a.sort_order || 0) - (b.sort_order || 0));
-  const sec = (r, k) => (((r.links || (r.info || {}).links || {})[k]) || []).map(x => (x.anchor && x.anchor !== x.to ? `${x.anchor} → ${x.to}` : x.to)).join('\n');
+  // A phase-2 target from an earlier-phase page is plain text, flagged "links when published"
+  const sec = (r, k) => (((r.links || (r.info || {}).links || {})[k]) || []).map(x => (x.unlinked ? `${x.anchor || x.to} (links when published)` : x.anchor && x.anchor !== x.to ? `${x.anchor} → ${x.to}` : x.to)).join('\n');
   const mentioned = r => ((((r.links || (r.info || {}).links || {}).mentioned) || []).join('\n'));
   const lines = [CSV_COLUMNS.map(cell).join(',')];
   for (const r of list) lines.push([TYPE_LABEL[r.type] + (r.applies === false ? ' (no longer applies)' : ''), r.title, r.slug, r.h1, r.meta_title, r.meta_description, (r.links_to || []).join('\n'), (r.links_from || []).join('\n'), r.status,
-    sec(r, 'breadcrumb'), sec(r, 'cards'), sec(r, 'areas'), [sec(r, 'more'), sec(r, 'parents')].filter(Boolean).join('\n'), sec(r, 'body'), mentioned(r)].map(cell).join(','));
+    sec(r, 'breadcrumb'), sec(r, 'cards'), sec(r, 'areas'), [sec(r, 'more'), sec(r, 'parents')].filter(Boolean).join('\n'), sec(r, 'body'), mentioned(r),
+    (r.info || {}).phase || 1, WP_STATUS[(r.info || {}).phase || 1]].map(cell).join(','));
   return lines.join('\r\n') + '\r\n';
 }
 
-module.exports = { TYPES, TYPE_LABEL, STATUSES, CSV_COLUMNS, slugify, pageKey, cleanTowns, contextFor, keywordsFor, buildPageMap, diffPlan, toCsv };
+module.exports = { TYPES, TYPE_LABEL, STATUSES, CSV_COLUMNS, WP_STATUS, slugify, pageKey, cleanTowns, contextFor, keywordsFor, buildPageMap, diffPlan, toCsv };
