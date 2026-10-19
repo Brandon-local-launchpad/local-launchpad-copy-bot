@@ -21,6 +21,7 @@ const { CACHE_DAYS } = require(path.join(root, 'h1-research/service.js'));
 const { createFilloutService } = require(path.join(root, 'fillout/service.js'));
 const { createPageMapStore, inputsFor } = require(path.join(root, 'page-map/store.js'));
 const V3 = require(path.join(root, 'page-map/plan-v3.js'));
+const G = require(path.join(root, 'page-map/generator.js'));
 const { keywordOf } = H;
 
 async function dryRun(pool, who, { searchVolume = D.searchVolume, core = new Set() } = {}) {
@@ -36,7 +37,7 @@ async function dryRun(pool, who, { searchVolume = D.searchVolume, core = new Set
   if (!input.resolved || !input.resolved.categories.length) throw new Error('No category tabs for this client');
   const cats = input.resolved.categories.map(c => ({ key: c.key, name: c.name }));
   const ctx = { primaryName: input.resolved.primaryName, primaryKey: input.resolved.primary, baseTown: input.baseTown, categoryName: k => (cats.find(c => c.key === k) || {}).name, terms: H.searchTerms(input.niche) };
-  const towns = require(path.join(root, 'page-map/generator.js')).cleanTowns(input.baseTown, input.otherTowns).towns;
+  const towns = G.cleanTowns(input.baseTown, input.otherTowns).towns;
 
   // The cache, fresh within 90 days
   const { rows: cached } = await pool.query(`SELECT keyword, volume, cpc, status, fetched_at FROM keyword_volumes WHERE location_code = $1`, [D.UK.location_code]);
@@ -50,7 +51,7 @@ async function dryRun(pool, who, { searchVolume = D.searchVolume, core = new Set
   const baseKeywords = V3.keywordsFor(services, cats, [], ctx);
   services = V3.fold(services, cats, ctx, C.buildGroups(baseKeywords, volumes));
   const townKeywords = V3.keywordsFor(services, cats, towns, ctx, { townVariants: false }).filter(k => !baseKeywords.includes(k));
-  const allKeywords = [...new Set([...baseKeywords, ...townKeywords])];
+  const allKeywords = [...new Set([...baseKeywords, ...townKeywords, ...V3.pageKeywords(cats, towns, ctx)])];
   const missing = allKeywords.filter(k => !volumes.has(k));
   const fetchList = missing.slice(0, D.CHUNK);
   const unfetched = missing.slice(D.CHUNK);
@@ -60,21 +61,18 @@ async function dryRun(pool, who, { searchVolume = D.searchVolume, core = new Set
     cost = r.cost; calls = r.calls;
     for (const k of fetchList) volumes.set(k, r.results.get(k) || { volume: null, cpc: null });
   }
-  // Rule 3, the pages, the H1 rules (town service pages only where they WIN their keyword), the links
-  services = V3.pageOrMention(services, towns, ctx, vol, core);
-  const built = V3.buildRows(input, services, vol);
-  const savedBy = new Map(saved.map(r => [r.page_key, r]));
-  for (const r of built.rows) { const s = savedBy.get(r.page_key); if (s) Object.assign(r, { h1: s.h1 || '', h1_source: s.h1_source, status: s.status, h1_researched_at: s.h1_researched_at }); }
-  const out = C.resolve(built.rows, ctx, volumes);
-  const dropped = [];
-  const decisions = new Map(out.decisions.map(d => [d.row.page_key, d]));
-  for (const r of built.rows) {
+  // Rule 3, the pages, the H1 rules (town service pages only where they WIN their keyword), the links:
+  // all through the generator, as the real run does it
+  const plan = G.buildPageMap(input, { volumes, core, saved });
+  services = plan.services;
+  const decisions = plan.decisions;
+  const rows = plan.rows;
+  for (const r of rows) {
     const d = decisions.get(r.page_key);
-    if (r.type === 'town_service' && d.source !== 'research') { dropped.push({ row: r, why: d.reason }); r.applies = false; continue; }
-    if (['research', 'pattern', 'conflict'].includes(d.source)) Object.assign(r, { h1: d.h1, h1_source: d.source, h1_volume: d.volume == null ? null : d.volume, h1_cpc: d.cpc == null ? null : d.cpc, h1_reason: d.reason, h1_hub: d.hub || null });
+    if (d && ['research', 'pattern', 'conflict'].includes(d.source)) Object.assign(r, { h1: d.h1, h1_source: d.source, h1_volume: d.volume == null ? null : d.volume, h1_cpc: d.cpc == null ? null : d.cpc, h1_reason: d.reason, h1_hub: d.hub || null });
+    else if (d) Object.assign(r, { h1: d.h1, h1_source: d.source });
   }
-  const rows = built.rows.filter(r => r.applies);
-  V3.planLinks(rows, services);
+  const dropped = plan.droppedTownPages.map(x => ({ row: x, why: x.why }));
   return { client, input, ctx, towns, services, rows, dropped, decisions, saved, cats,
     keywords: { total: allKeywords.length, cached: allKeywords.length - missing.length, fetched: fetchList.length, unfetched }, cost, calls, volumes };
 }
@@ -119,6 +117,9 @@ function report(r) {
     }
     if (p.links.mentioned.length) L.push(`- mentioned, no link (${p.links.mentioned.length}): ${p.links.mentioned.join(', ')}`);
   }
+  // H1s on the pages the services rules feed: the homepage, the category pages, the hub location pages
+  L.push('', '## H1s: homepage, category pages, location pages, Winchester location category pages', '', '| Page | H1 | Volume | Source | Reason |', '|---|---|---|---|---|');
+  for (const p of r.rows.filter(x => ['homepage', 'category', 'location'].includes(x.type) || (x.type === 'location_category' && x.info.town === 'Winchester'))) L.push(`| ${LABEL[p.type]} "${p.title}" | ${p.h1 || '—'} | ${p.h1_volume == null ? '—' : p.h1_volume} | ${p.h1_source} | ${String(p.h1_reason || '').replace(/\|/g, '/')} |`);
   // e) cost
   L.push('', '## (e) API cost', '', `$${r.cost.toFixed(2)} (${r.calls} call${r.calls === 1 ? '' : 's'}, ${r.keywords.fetched} keywords)`);
   // f) computed notes

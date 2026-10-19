@@ -14,6 +14,7 @@ const H = require('./research');
 const C = require('./claims');
 const D = require('./dataforseo');
 const { inputsFor } = require('../page-map/store');
+const G = require('../page-map/generator');
 
 const CACHE_DAYS = 90;
 const ACTIVE = ['queued', 'building', 'researching'];
@@ -135,9 +136,28 @@ function createH1Research({ pool, filloutService, pageMapStore, searchVolume = D
       if (j.kind === 'generate' && j.status !== 'researching') {
         // A brand new map is researched in full; regenerating an existing one only fills pages without a v2 H1
         if (!j.mode) await patch(id, { mode: (await pageMapStore.saved(j.client_id)).length ? 'fill' : 'all' });
+        // Page map v3: which service pages exist depends on search volume, so every keyword the
+        // plan and the research can ask for is looked up first (the cache, then the fewest calls)
+        let volumes = null;
+        try {
+          const inputs = await inputsFor(filloutService, j.client_id, { categoryTabRule: j.category_tab_rule || 'ticked_only' });
+          if (inputs.hasConfig && inputs.resolved && inputs.resolved.categories.length && inputs.baseTown) {
+            const keywords = G.keywordsFor(inputs);
+            let label = `Looking up search volume (${keywords.length} keywords)`;
+            await patch(id, { status: 'building', stage: label, keywords_total: keywords.length });
+            const r = await lookup(keywords, { onRetry: ({ attempt, of, waitMs, message }) => patch(id, { stage: `${label}: DataForSEO is busy (${message}), retrying in ${Math.round(waitMs / 1000)}s (${attempt} of ${of})` }) });
+            volumes = r.volumes;
+            await patch(id, { keywords_fetched: r.fetched, cost: r.cost });
+          }
+        } catch (err) {
+          const msg = D.safeMessage(err.message);
+          log.error(`[h1-research] volume look-up failed for ${j.client_id}: ${err.status ? `status ${err.status}, ` : ''}${msg}`);
+          await patch(id, { status: 'failed', stage: `Could not look up search volume: ${msg}`, error: `${err.status ? `status ${err.status}: ` : ''}${msg}`, cost: err.cost || 0, finished_at: now() });
+          return;
+        }
         await patch(id, { status: 'building', stage: 'Building pages' });
         try {
-          await pageMapStore.generate(j.client_id, { categoryTabRule: j.category_tab_rule || 'ticked_only', onProgress: (done, total) => patch(id, { pages_built: done, pages_total: total, stage: `Building pages (${done} of ${total})` }) });
+          await pageMapStore.generate(j.client_id, { categoryTabRule: j.category_tab_rule || 'ticked_only', volumes: volumes || undefined, onProgress: (done, total) => patch(id, { pages_built: done, pages_total: total, stage: `Building pages (${done} of ${total})` }) });
         } catch (err) {
           await patch(id, { status: 'failed', stage: 'Could not build the page map', error: D.safeMessage(err.message), finished_at: now() });
           return;
@@ -158,6 +178,14 @@ function createH1Research({ pool, filloutService, pageMapStore, searchVolume = D
     const ctx = { primaryName: inputs.resolved && inputs.resolved.primaryName, primaryKey: inputs.resolved && inputs.resolved.primary, baseTown: inputs.baseTown, categoryName: key => (cats.find(c => c.key === key) || {}).name, terms: H.searchTerms(inputs.niche) };
     const keywords = [...new Set(rows.flatMap(r => C.candidatesV2(r, ctx).map(c => c.keyword)))];
     await onStage({ pages: rows.length, keywords: keywords.length });
+    const { volumes, fetched: missing, cost } = await lookup(keywords, { onRetry });
+    const fillLock = r => C.isLocked(r) || (!!r.h1 && ['research', 'pattern'].includes(r.h1_source));
+    const out = C.resolve(rows, ctx, volumes, { isLocked: mode === 'fill' ? fillLock : C.isLocked });
+    return { rows, ctx, keywords, missing, cost, ...out };
+  }
+
+  // The cache, then the fewest DataForSEO calls for the rest (1,000 keywords a call), stored
+  async function lookup(keywords, { onRetry = null } = {}) {
     const volumes = await cached(keywords);
     const missing = keywords.filter(k => !volumes.has(k));
     let cost = 0;
@@ -171,9 +199,7 @@ function createH1Research({ pool, filloutService, pageMapStore, searchVolume = D
         await saveVolume(k, v, per);
       }
     }
-    const fillLock = r => C.isLocked(r) || (!!r.h1 && ['research', 'pattern'].includes(r.h1_source));
-    const out = C.resolve(rows, ctx, volumes, { isLocked: mode === 'fill' ? fillLock : C.isLocked });
-    return { rows, ctx, keywords, missing: missing.length, cost, ...out };
+    return { volumes, fetched: missing.length, cost };
   }
 
   async function research(id) {
@@ -187,7 +213,8 @@ function createH1Research({ pool, filloutService, pageMapStore, searchVolume = D
         onStage: async n => { label = stage(n); await patch(id, { status: 'researching', stage: label, pages_total: n.pages, pages_built: n.pages, keywords_total: n.keywords }); },
         onRetry: ({ attempt, of, waitMs, message }) => patch(id, { stage: `${label}: DataForSEO is busy (${message}), retrying in ${Math.round(waitMs / 1000)}s (${attempt} of ${of})` }),
       });
-      await patch(id, { keywords_fetched: r.missing, cost: r.cost });
+      const total = { fetched: (j.keywords_fetched || 0) + r.missing, cost: (num(j.cost) || 0) + r.cost };
+      await patch(id, { keywords_fetched: total.fetched, cost: total.cost });
       const counts = { research: 0, pattern: 0, conflict: 0 };
       for (const d of r.decisions) {
         await saveCandidates(clientId, d);
@@ -197,7 +224,7 @@ function createH1Research({ pool, filloutService, pageMapStore, searchVolume = D
       const st = await pageMapStore.state(clientId);
       await patch(id, { map_generated_at: st && st.generated_at ? st.generated_at : null });
       await patch(id, { status: 'complete', suggested_count: counts.research, no_data_count: counts.pattern, conflict_count: counts.conflict,
-        stage: `Complete: ${counts.research} H1s by search volume, ${counts.pattern} by pattern${counts.conflict ? `, ${counts.conflict} H1 conflict${counts.conflict === 1 ? '' : 's'} to resolve` : ''}, cost $${r.cost.toFixed(2)}`, finished_at: now() });
+        stage: `Complete: ${counts.research} H1s by search volume, ${counts.pattern} by pattern${counts.conflict ? `, ${counts.conflict} H1 conflict${counts.conflict === 1 ? '' : 's'} to resolve` : ''}, cost $${total.cost.toFixed(2)}`, finished_at: now() });
     } catch (err) {
       const msg = D.safeMessage(err.message);
       log.error(`[h1-research] research failed for ${clientId}: ${err.status ? `status ${err.status}, ` : ''}${msg}`);
@@ -288,7 +315,7 @@ function createH1Research({ pool, filloutService, pageMapStore, searchVolume = D
     return rows.length;
   }
 
-  return { start, run, job, latest, candidates, recover, cached, preview, decide };
+  return { start, run, job, latest, candidates, recover, cached, lookup, preview, decide };
 }
 
 module.exports = { ensureH1Tables, createH1Research, changeKind, CACHE_DAYS, ACTIVE };

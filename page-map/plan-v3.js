@@ -19,10 +19,8 @@
 // the page wins that keyword under the ownership rules (never on pattern alone).
 // Links: base pages link wide, town pages link tight (planLinks below).
 
-const { keywordOf, titleCase, MIN_USABLE } = require('../h1-research/research');
+const { keywordOf, MIN_USABLE } = require('../h1-research/research');
 const C = require('../h1-research/claims');
-const { slugify, pageKey, cleanTowns } = require('./generator');
-const { isAdminArea } = require('../client-files');
 
 const TYPES = ['homepage', 'category', 'service', 'location', 'location_category', 'town_service'];
 const TYPE_LABEL = { homepage: 'Homepage', category: 'Category', service: 'Service', location: 'Location', location_category: 'Location Category', town_service: 'Town Service' };
@@ -110,32 +108,16 @@ function keywordsFor(services, cats, towns, ctx, { townVariants = true } = {}) {
   return [...out];
 }
 
-// The planned pages (before H1 research): rows like generator.buildPageMap's, plus
-// town_service candidates for every paged service and town where "<service> <town>" is usable.
-// input: { resolved, baseTown, otherTowns, companyName }; services: after the three rules
-function buildRows(input, services, vol) {
-  const baseTown = String(input.baseTown || '').trim();
-  const { towns, dropped, clashes } = cleanTowns(baseTown, input.otherTowns);
-  const townSlugs = towns.map(t => ({ name: t, slug: slugify(t) }));
-  const cats = input.resolved.categories.map(c => ({ key: c.key, name: c.name, slug: slugify(c.name), primary: !!c.primary }));
-  const paged = services.filter(s => s.outcome === 'page').map(s => ({ ...s, slug: slugify(s.name) }));
-  const catPath = c => `/${c.slug}`;
-  const svcPath = s => `/services/${s.slug}`;
-  const locPath = t => `/locations/${t.slug}`;
-  const locCatPath = (t, c) => `/locations/${t.slug}/${c.slug}`;
-  const townSvcPath = (t, s) => `/locations/${t.slug}/${s.slug}`;
-  const rows = [];
-  const add = (type, title, slug, info) => rows.push({ page_key: pageKey(type, slug), type, title, slug, h1: '', h1_source: 'needed', meta_title: '', meta_description: '', status: 'Not Started', applies: true, links_to: [], links_from: [], info, sort_order: rows.length });
-  add('homepage', `${input.companyName || ''} Homepage`.trim(), '/', {});
-  for (const c of cats) add('category', c.name, catPath(c), { category_key: c.key, primary: c.primary });
-  for (const s of paged) add('service', s.name, svcPath(s), { service_id: s.id, additional: s.kind === 'additional', parent_keys: s.parents, merged_from: s.merged_from || [] });
-  for (const t of townSlugs) add('location', t.name, locPath(t), { town: t.name });
-  for (const t of townSlugs) for (const c of cats) add('location_category', `${c.name} ${t.name}`, locCatPath(t, c), { town: t.name, category_key: c.key });
-  for (const t of townSlugs) for (const s of paged) {
-    const k = keywordOf(`${s.name} ${t.name}`);
-    if (usable(vol(k))) add('town_service', `${s.name} ${t.name}`, townSvcPath(t, s), { town: t.name, service_id: s.id, service_name: s.name, parent_keys: s.parents, category_key: s.home && s.parents.includes(s.home) ? s.home : s.parents[0] });
+// The location and location category pages' own candidates (synonyms included), so one call
+// covers everything the H1 rules will ask for
+function pageKeywords(cats, towns, ctx) {
+  const out = new Set();
+  for (const t of towns) {
+    for (const x of C.candidatesV2({ type: 'location', title: t, info: { town: t } }, ctx)) out.add(x.keyword);
+    for (const c of cats) for (const x of C.candidatesV2({ type: 'location_category', title: `${c.name} ${t}`, info: { town: t, category_key: c.key } }, ctx)) out.add(x.keyword);
   }
-  return { rows, cats, towns: townSlugs, paged, droppedTowns: dropped, collisions: clashes, councilAreas: towns.filter(isAdminArea) };
+  if (ctx.primaryName) for (const x of C.candidatesV2({ type: 'homepage', title: 'Homepage', info: {} }, ctx)) out.add(x.keyword);
+  return [...out];
 }
 
 // ── The link planner ──
@@ -216,15 +198,4 @@ function planLinks(rows, services) {
   return rows;
 }
 
-// Everything the dry run and the generator need from the rules, given volumes.
-// input: { resolved, baseTown, otherTowns, companyName }; ctx as claims.resolve wants it;
-// vol(keyword) → { volume, cpc }; groups: claims.buildGroups output; core: Set of service ids
-function planV3(input, ctx, vol, groups, { core = new Set() } = {}) {
-  const cats = input.resolved.categories.map(c => ({ key: c.key, name: c.name }));
-  const { towns } = cleanTowns(input.baseTown, input.otherTowns);
-  const services = pageOrMention(fold(dedupe(collectServices(input.resolved)), cats, ctx, groups), towns, ctx, vol, core);
-  const built = buildRows(input, services, vol);
-  return { services, ...built };
-}
-
-module.exports = { TYPES, TYPE_LABEL, dedupeKey, collectServices, dedupe, fold, pageOrMention, keywordsFor, buildRows, planLinks, planV3, usable };
+module.exports = { TYPES, TYPE_LABEL, dedupeKey, collectServices, dedupe, fold, pageOrMention, keywordsFor, pageKeywords, planLinks, usable };

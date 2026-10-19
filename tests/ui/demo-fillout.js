@@ -54,7 +54,10 @@ if (process.env.DEMO_REAL_MODEL !== '1') {
 // so the H1 research progress bar shows its stages; a balance of $8.40 shows the low warning
 process.env.DATAFORSEO_LOGIN = 'demo-login'; process.env.DATAFORSEO_PASSWORD = 'demo-password';
 {
-  const VOL = { 'gardener southampton': [210, 3.12], 'landscape gardener southampton': [20, 2.79], 'tree service southampton': [20, 3.03], 'paving contractor southampton': [10, null], 'gardener romsey': [50, 1.81], 'gardener winchester': [140, 2.43], 'gardener eastleigh': [50, 2.49], 'gardener chandlers ford': [30, 0.91], 'gardener hedge end': [20, 2.08], 'tree service winchester': [30, null] };
+  const VOL = { 'gardener southampton': [210, 3.12], 'landscape gardener southampton': [20, 2.79], 'tree service southampton': [20, 3.03], 'paving contractor southampton': [10, null], 'gardener romsey': [50, 1.81], 'gardener winchester': [140, 2.43], 'gardener eastleigh': [50, 2.49], 'gardener chandlers ford': [30, 0.91], 'gardener hedge end': [20, 2.08], 'tree service winchester': [30, null],
+    // Page map v3: a few services with volume (base pages) and in towns (town service pages)
+    'hedge trimming southampton': [30, 6.49], 'lawn care southampton': [30, 2.31], 'tree stump removal southampton': [40, 2], 'tree removal southampton': [20, 1.5],
+    'tree stump removal romsey': [20, null], 'lawn care winchester': [20, 3.42], 'tree surgeon southampton': [320, 4.1], 'tree surgeon winchester': [140, 3.9], 'tree surgeon romsey': [50, 3.66] };
   const realFetch = globalThis.fetch;
   globalThis.fetch = async (url, opts) => {
     const u = String(url);

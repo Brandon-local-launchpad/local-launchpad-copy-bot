@@ -1,6 +1,6 @@
 # Page map v3 dry run: ednes edge testing (2026-10-19)
 
-1161 keywords: 173 from the cache, 988 fetched in 1 call(s), cost $0.09 · nothing written
+1447 keywords: 459 from the cache, 988 fetched in 1 call(s), cost $0.09 · nothing written
 
 ## (a) Services
 
@@ -22,7 +22,7 @@
 | Garden decorating | Landscape Gardener, Landscape Designer | mentioned | no keyword above 10 searches a month in Southampton or any town: one line on its category page, no card |
 | Garden design (merged from "Garden designs") | Landscape Gardener, Landscape Designer | folded into Landscape Designer | "garden design southampton" is in the same keyword group as the Landscape Designer category's candidate "garden design southampton" (an approved synonym): the same words once plurals, word order, "in" and "near me" are ignored. The category keeps the keyword |
 | Garden designs | Landscape Designer | merged into Garden design | the same service as "Garden design" once plurals, "services", "&" and word order are ignored; "Garden design" is the shorter name and keeps both categories |
-| Gardening services | Landscape Gardener, Landscape Designer | page | "gardening services southampton" has 90 searches a month in Southampton |
+| Gardening services | Landscape Gardener, Landscape Designer | folded into Gardener | "gardening services southampton" is in the same keyword group as the Gardener category's candidate "gardening services southampton" (an approved synonym): the same words once plurals, word order, "in" and "near me" are ignored. The category keeps the keyword |
 | Grading and resloping | Landscape Gardener, Landscape Designer | mentioned | no keyword above 10 searches a month in Southampton or any town: one line on its category page, no card |
 | Green landscaping | Landscape Gardener | mentioned | no keyword above 10 searches a month in Southampton or any town: one line on its category page, no card |
 | Groundskeeping | Landscape Gardener | mentioned | no keyword above 10 searches a month in Southampton or any town: one line on its category page, no card |
@@ -44,7 +44,7 @@
 | Path landscaping | Landscape Gardener, Landscape Designer | mentioned | no keyword above 10 searches a month in Southampton or any town: one line on its category page, no card |
 | Garden drainage | Landscape Gardener, Landscape Designer | mentioned | no keyword above 10 searches a month in Southampton or any town: one line on its category page, no card |
 | Garden levelling | Landscape Gardener | mentioned | no keyword above 10 searches a month in Southampton or any town: one line on its category page, no card |
-| Garden landscaping | Landscape Gardener, Landscape Designer | page | "garden landscaping southampton" has 90 searches a month in Southampton |
+| Garden landscaping | Landscape Gardener, Landscape Designer | folded into Landscape Gardener | "garden landscaping southampton" is in the same keyword group as the Landscape Gardener category's candidate "garden landscaping southampton" (an approved synonym): the same words once plurals, word order, "in" and "near me" are ignored. The category keeps the keyword |
 | Custom landscape design | Landscape Designer | mentioned | no keyword above 10 searches a month in Southampton or any town: one line on its category page, no card |
 | Drainage solutions | Landscape Designer | mentioned | no keyword above 10 searches a month in Southampton or any town: one line on its category page, no card |
 | Landscape architecture services | Landscape Designer | mentioned | no keyword above 10 searches a month in Southampton or any town: one line on its category page, no card |
@@ -85,18 +85,16 @@
 | Wood staining | Deck Builder | mentioned | no keyword above 10 searches a month in Southampton or any town: one line on its category page, no card |
 | Wood deck construction | Deck Builder | mentioned | no keyword above 10 searches a month in Southampton or any town: one line on its category page, no card |
 
-Pages 6 · merged 1 · folded 1 · mentioned 70 (of 78 names)
+Pages 4 · merged 1 · folded 3 · mentioned 70 (of 78 names)
 
 ## (b) Town service pages that would be created
 
 | Town | Service | H1 (keyword) | Volume | CPC |
 |---|---|---|---|---|
 | Romsey | Tree stump removal | Tree Stump Removal Romsey | 20 | — |
-| Winchester | Gardening services | Gardening Services Winchester | 40 | 5.22 |
 | Winchester | Lawn care | Lawn Care Winchester | 20 | 3.42 |
-| Winchester | Garden landscaping | Garden Landscaping Winchester | 30 | 2.1 |
 
-4 town service pages in 2 towns: Romsey 1, Winchester 3
+2 town service pages in 2 towns: Romsey 1, Winchester 1
 
 ## (c) Page count by type
 
@@ -104,11 +102,11 @@ Pages 6 · merged 1 · folded 1 · mentioned 70 (of 78 names)
 |---|---|---|
 | Homepage | 1 | 1 |
 | Category | 6 | 6 |
-| Service | 78 | 6 |
+| Service | 78 | 4 |
 | Location | 13 | 13 |
 | Location Category | 78 | 78 |
-| Town Service | 0 | 4 |
-| **Total** | **176** | **108** |
+| Town Service | 0 | 2 |
+| **Total** | **176** | **104** |
 
 ## (d) Links out, by section
 
@@ -131,6 +129,37 @@ Pages 6 · merged 1 · folded 1 · mentioned 70 (of 78 names)
 - mentioned, no link (5): Cabling and bracing, Tree planting, Tree stump grinding, Tree transplanting, Tree trimming and pruning
 
 - (no service page found for this entry)
+
+## H1s: homepage, category pages, location pages, Winchester location category pages
+
+| Page | H1 | Volume | Source | Reason |
+|---|---|---|---|---|
+| Homepage "Edens Edge landscaping Homepage" | Landscaper Southampton | — | manual |  |
+| Category "Gardener" | Gardener Southampton | 210 | research | 210/mo, the highest of 3 usable candidates |
+| Category "Landscape Gardener" | Garden Landscaping Southampton | 90 | research | 90/mo, after losing "landscaping southampton" (260/mo) to the homepage |
+| Category "Landscape Designer" | Garden Design Southampton | 20 | research | 20/mo, the only candidate above 10 searches a month |
+| Category "Tree Service" | Tree Surgeon Southampton | 320 | research | 320/mo, the highest of 3 usable candidates |
+| Category "Paving Contractor" | Driveways Southampton | 140 | research | 140/mo, the highest of 2 usable candidates |
+| Category "Deck Builder" | Decking Southampton | 20 | research | 20/mo, the only candidate above 10 searches a month |
+| Location "Romsey" | Garden Maintenance Romsey | 30 | research | 30/mo, the only candidate above 10 searches a month (hub page: Gardener keyword owned by location category page "Gardener Romsey") |
+| Location "Winchester" | Landscaper Winchester | 70 | research | 70/mo, the highest of 3 usable candidates (hub page: Gardener keyword owned by location category page "Gardener Winchester") |
+| Location "Eastleigh" | Gardener Services in and around Eastleigh | — | pattern | hub page: Gardener keyword owned by location category page "Gardener Eastleigh"; no other keyword above 10 searches a month, so "Gardener Services in and around Eastleigh" is used |
+| Location "Chandlers Ford" | Gardener Services in and around Chandlers Ford | — | pattern | hub page: Gardener keyword owned by location category page "Gardener Chandlers Ford"; no other keyword above 10 searches a month, so "Gardener Services in and around Chandlers Ford" is used |
+| Location "Ampfield" | Gardener Services in and around Ampfield | — | pattern | hub page: Gardener keyword owned by location category page "Gardener Ampfield"; no other keyword above 10 searches a month, so "Gardener Services in and around Ampfield" is used |
+| Location "Stockbridge" | Gardener Services in and around Stockbridge | — | pattern | hub page: Gardener keyword owned by location category page "Gardener Stockbridge"; no other keyword above 10 searches a month, so "Gardener Services in and around Stockbridge" is used |
+| Location "Awbridge" | Gardener Services in and around Awbridge | — | pattern | hub page: Gardener keyword owned by location category page "Gardener Awbridge"; no other keyword above 10 searches a month, so "Gardener Services in and around Awbridge" is used |
+| Location "Chilworth" | Gardener Services in and around Chilworth | — | pattern | hub page: Gardener keyword owned by location category page "Gardener Chilworth"; no other keyword above 10 searches a month, so "Gardener Services in and around Chilworth" is used |
+| Location "Hedge End" | Gardener Services in and around Hedge End | — | pattern | hub page: Gardener keyword owned by location category page "Gardener Hedge End"; no other keyword above 10 searches a month, so "Gardener Services in and around Hedge End" is used |
+| Location "Lyndhurst" | Gardener Services in and around Lyndhurst | — | pattern | hub page: Gardener keyword owned by location category page "Gardener Lyndhurst"; no other keyword above 10 searches a month, so "Gardener Services in and around Lyndhurst" is used |
+| Location "New Forest District" | Gardener Services in and around New Forest District | — | pattern | hub page: Gardener keyword owned by location category page "Gardener New Forest District"; no other keyword above 10 searches a month, so "Gardener Services in and around New Forest District" is used |
+| Location "Lockerley" | Gardener Services in and around Lockerley | — | pattern | hub page: Gardener keyword owned by location category page "Gardener Lockerley"; no other keyword above 10 searches a month, so "Gardener Services in and around Lockerley" is used |
+| Location "Kings Worthy" | Gardener Services in and around Kings Worthy | — | pattern | hub page: Gardener keyword owned by location category page "Gardener Kings Worthy"; no other keyword above 10 searches a month, so "Gardener Services in and around Kings Worthy" is used |
+| Location Category "Gardener Winchester" | Gardener Winchester | 140 | research | 140/mo, the highest of 3 usable candidates |
+| Location Category "Landscape Gardener Winchester" | Garden Landscaping Winchester | 30 | research | 30/mo, after losing "landscaping winchester" (70/mo) to location page "Winchester" |
+| Location Category "Landscape Designer Winchester" | Garden Designer Winchester | 30 | research | 30/mo, the highest of 2 usable candidates |
+| Location Category "Tree Service Winchester" | Tree Surgeon Winchester | 140 | research | 140/mo, the highest of 3 usable candidates |
+| Location Category "Paving Contractor Winchester" | Driveways Winchester | 20 | research | 20/mo, the only candidate above 10 searches a month |
+| Location Category "Deck Builder Winchester" | Decking Winchester | 30 | research | 30/mo, the only candidate above 10 searches a month |
 
 ## (e) API cost
 
