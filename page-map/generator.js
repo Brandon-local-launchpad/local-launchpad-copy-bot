@@ -28,6 +28,7 @@ const { isAdminArea } = require('../client-files');
 const { keywordOf, searchTerms } = require('../h1-research/research');
 const C = require('../h1-research/claims');
 const V3 = require('./plan-v3');
+const { loadLibrary } = require('../niche-library/library');
 const { slugify, pageKey, cleanTowns } = require('./slugs');
 
 const TYPES = ['homepage', 'category', 'service', 'location', 'location_category', 'town_service'];
@@ -49,17 +50,19 @@ function contextFor(input) {
 }
 
 // Every keyword the plan and the research can ask for, so one look-up covers them all
-function keywordsFor(input) {
+function keywordsFor(input, opts = {}) {
   const ctx = contextFor(input);
   const { towns } = cleanTowns(input.baseTown, input.otherTowns);
   const cats = input.resolved.categories.map(c => ({ key: c.key, name: c.name }));
-  const services = V3.dedupe(V3.collectServices(input.resolved));
+  const lib = opts.library !== undefined ? opts.library : loadLibrary(input.niche);
+  const services = V3.dedupe(V3.resolveLibrary(V3.collectServices(input.resolved), lib, cats).services);
   return [...new Set([...V3.keywordsFor(services, cats, towns, ctx, { townVariants: true }), ...V3.pageKeywords(cats, towns, ctx)])];
 }
 
 // input: { resolved, baseTown, otherTowns, companyName, niche, waiting: [{ service, reason }] }
-// opts: volumes (Map keyword → { volume, cpc }; what is missing counts as no data), exclude (Set of
-// service ids a person excluded at intake), launchTowns (Set of town slugs launching in phase 1),
+// opts: volumes (Map keyword → { volume, cpc }; what is missing counts as no data), library (the
+// niche library, loadLibrary(input.niche) unless given; null for none), exclude (Set of page ids a
+// person excluded at intake), launchTowns (Set of town slugs launching in phase 1),
 // phase2Published (true once "Publish phase 2" ran: everything is phase 1), saved (the client's saved rows: their manual and locked H1s take
 // part in the ownership rules that decide the town service pages)
 function buildPageMap(input, opts = {}) {
@@ -99,11 +102,30 @@ function buildPageMap(input, opts = {}) {
 
   // The services list rules, on the categories that have a page
   const catList = cats.map(c => ({ key: c.key, name: c.name }));
-  const allKeywords = [...new Set([...V3.keywordsFor(V3.dedupe(V3.collectServices(resolved)), catList, towns, ctx, { townVariants: true }), ...V3.pageKeywords(catList, towns, ctx)])];
+  const lib = opts.library !== undefined ? opts.library : loadLibrary(input.niche);
+  const resolvedLib = V3.resolveLibrary(V3.collectServices(resolved), lib, catList);
+  const allKeywords = [...new Set([...V3.keywordsFor(V3.dedupe(resolvedLib.services), catList, towns, ctx, { townVariants: true }), ...V3.pageKeywords(catList, towns, ctx)])];
   const G = C.buildGroups(allKeywords, volumes, { towns: [baseTown, ...towns] });
-  const services = V3.pageOrMention(V3.fold(V3.dedupe(V3.collectServices(resolved)), catList, ctx, G), towns, ctx, vol, opts.exclude || new Set());
+  const services = V3.pageOrMention(V3.fold(V3.dedupe(resolvedLib.services), catList, ctx, G), towns, ctx, vol, opts.exclude || new Set());
+  // The services step's view: one record per GBP name, with where it ended up
+  const byId = new Map(services.map(s => [s.id, s]));
+  const finalOf = id => { let s = byId.get(id); while (s && s.outcome === 'merged' && s.into && byId.get(s.into)) s = byId.get(s.into); return s; };
+  const libraryRecords = resolvedLib.records.map(r => {
+    const s = finalOf(r.page_id) || byId.get(r.id);
+    const v = r.library && r.library.verdict;
+    let outcome, intoName = null, reason = '';
+    if (v === 'exclude') { outcome = 'excluded'; reason = r.library.note || 'excluded by the library'; }
+    else if (v === 'fold') { outcome = 'folded'; const f = byId.get(r.id); intoName = f ? f.intoName : r.library.target; reason = f ? f.reason : ''; }
+    else if (s && s.outcome === 'mentioned') { outcome = 'mentioned'; intoName = s.name; reason = s.reason; }
+    else if (s && s.outcome === 'folded') { outcome = 'folded'; intoName = s.intoName; reason = s.reason; }
+    else if (v === 'alias') { outcome = 'absorbed'; intoName = s ? s.name : r.library.target; reason = s && s.created_from_alias ? 'no GBP name was marked page for this target, so the page was created from this alias' : ''; }
+    else if (v === 'page') { outcome = 'page'; intoName = s ? s.name : r.library.target; reason = s ? s.reason : ''; }
+    else { outcome = s ? s.outcome : 'page'; intoName = s ? (s.outcome === 'merged' ? s.intoName : s.name) : r.name; reason = s ? s.reason : ''; }
+    return { gbp_name: r.name, gbp_id: r.id, parents: r.parents, verdict: v || null, target: r.library ? r.library.target : null, note: r.library ? r.library.note : null, in_library: !!r.library, outcome, intoName, page_id: s ? s.id : null, reason, copy_priority: s && s.outcome === 'page' ? s.copy_priority || 0 : null, absorbs: s && s.absorbs ? s.absorbs : [], gbp_names: s && s.gbp_names ? s.gbp_names : [] };
+  });
   const paged = [];
   for (const s of services.filter(x => x.outcome === 'page')) {
+    s.gbp_names = s.gbp_names || [s.name];
     const slug = slugify(s.name);
     if (claim('service', s.name, slug, '/services/')) paged.push({ ...s, slug });
     else { s.outcome = 'mentioned'; s.reason = `its slug collides with another page's (see collisions), so it is mentioned instead`; }
@@ -118,7 +140,7 @@ function buildPageMap(input, opts = {}) {
   const add = (type, title, slug, info) => rows.push({ page_key: pageKey(type, slug), type, title, slug, h1: '', h1_source: 'needed', meta_title: '', meta_description: '', status: 'Not Started', applies: true, links_to: [], links_from: [], info, sort_order: rows.length });
   add('homepage', `${companyName} Homepage`.trim(), '/', { phase: 1 });
   for (const c of cats) add('category', c.name, catPath(c), { category_key: c.key, primary: c.primary, phase: 1 });
-  for (const s of paged) add('service', s.name, svcPath(s), { service_id: s.id, additional: s.kind === 'additional', parent_keys: s.parents.filter(k => cats.some(c => c.key === k)), merged_from: s.merged_from || [], copy_priority: s.copy_priority || 0, phase: 1 });
+  for (const s of paged) add('service', s.name, svcPath(s), { service_id: s.id, additional: s.kind === 'additional', parent_keys: s.parents.filter(k => cats.some(c => c.key === k)), merged_from: s.merged_from || [], gbp_names: s.gbp_names, absorbs: s.absorbs || [], copy_priority: s.copy_priority || 0, phase: 1 });
   for (const t of townSlugs) add('location', t.name, locPath(t), { town: t.name, phase: townPhase(t) });
   for (const t of townSlugs) for (const c of cats) add('location_category', `${c.name} ${t.name}`, locCatPath(t, c), { town: t.name, category_key: c.key, phase: townPhase(t) });
   // Town service candidates: a usable "<service> <town>"; the ownership rules below keep only the winners
@@ -152,18 +174,19 @@ function buildPageMap(input, opts = {}) {
   counts.phase1 = kept.filter(r => r.info.phase === 1).length;
   counts.phase2 = kept.filter(r => r.info.phase === 2).length;
   const n = o => services.filter(s => s.outcome === o).length;
+  const libCounts = { page: libraryRecords.filter(r => r.outcome === 'page').length, absorbed: libraryRecords.filter(r => r.outcome === 'absorbed').length, folded: libraryRecords.filter(r => r.outcome === 'folded').length, excluded: libraryRecords.filter(r => r.outcome === 'excluded').length, mentioned: libraryRecords.filter(r => r.outcome === 'mentioned').length, merged: libraryRecords.filter(r => r.outcome === 'merged').length, notInLibrary: libraryRecords.filter(r => !r.in_library).length, names: libraryRecords.length, library: lib ? lib.file : null, libraryProblems: lib ? lib.problems : [] };
   const townPages = kept.filter(r => r.type === 'town_service');
   const perTown = {};
   for (const r of townPages) perTown[r.info.town] = (perTown[r.info.town] || 0) + 1;
   return {
-    ok: true, problems: [], rows: kept, services, decisions, droppedTownPages, collisions, counts, droppedTowns: dropped,
+    ok: true, problems: [], rows: kept, services, libraryRecords, libraryCounts: libCounts, decisions, droppedTownPages, collisions, counts, droppedTowns: dropped,
     // Council areas get pages like any town (Brandon to decide); elsewhere Copybot skips them for research
     councilAreas: towns.filter(t => isAdminArea(t)),
     waiting: input.waiting || [],
-    serviceCounts: { page: n('page'), merged: n('merged'), folded: n('folded'), mentioned: n('mentioned'), names: services.length },
+    serviceCounts: { page: n('page'), merged: n('merged'), folded: n('folded'), mentioned: n('mentioned'), excluded: n('excluded'), names: services.length },
     townServicePages: { count: townPages.length, towns: perTown },
     launchTowns: townSlugs.filter(t => launch.has(t.slug)).map(t => t.name), phase2Published: !!opts.phase2Published,
-    arithmetic: `1 homepage + ${cats.length} categories + ${counts.service} service pages (of ${services.length} names: ${n('merged')} merged, ${n('folded')} folded, ${n('mentioned')} mentioned) + ${townSlugs.length} other towns + ${townSlugs.length} towns x ${cats.length} categories (${counts.location_category}) + ${counts.town_service} town service pages = ${kept.length}`,
+    arithmetic: `1 homepage + ${cats.length} categories + ${counts.service} service pages (of ${libraryRecords.length} GBP names: ${libCounts.absorbed} absorbed, ${libCounts.merged} merged, ${libCounts.folded} folded, ${libCounts.excluded} excluded, ${libCounts.mentioned} mentioned) + ${townSlugs.length} other towns + ${townSlugs.length} towns x ${cats.length} categories (${counts.location_category}) + ${counts.town_service} town service pages = ${kept.length}`,
   };
 }
 

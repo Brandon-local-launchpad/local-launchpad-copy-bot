@@ -1,0 +1,103 @@
+gbp_name,gbp_category,verdict,target,note
+Lawn mowing and maintenance,Gardener,page,Lawn mowing,
+Fencing installation,Gardener,page,Fencing,
+Garden work,Gardener,fold,Gardener,Just gardening
+Grass seeding,Gardener,page,Lawn seeding,Also listed under Landscape Gardener / Landscape Designer / Lawn care service
+Hedge trimming,Gardener,page,Hedge trimming,
+Landscape design,Gardener,fold,Landscape Designer,Also listed under Landscape Gardener / Lawn care service
+Lawn pest control,Gardener,alias,Lawn treatments,UK lawn treatment covers feed weed moss and pest
+Mulching,Gardener,page,Mulching,Marginal; keep as low priority page
+Weed control,Gardener,page,Weed control,
+Artificial turf installation,Landscape Gardener,page,Artificial grass installation,UK term is artificial grass
+Concrete masonry,Landscape Gardener,alias,Concrete bases and paths,US term
+Desert landscaping,Landscape Gardener,exclude,,US only
+Driveway landscaping,Landscape Gardener,alias,Driveways,
+Driveway or path paving,Landscape Gardener,alias,Driveways,
+Garden decorating,Landscape Gardener,exclude,,Not a trade service
+Garden design,Landscape Gardener,fold,Landscape Designer,Is the category
+Gardening services,Landscape Gardener,fold,Gardener,Is the category
+Grading and resloping,Landscape Gardener,alias,Garden levelling,US term
+Green landscaping,Landscape Gardener,exclude,,Marketing term not a job
+Groundskeeping,Landscape Gardener,alias,Garden maintenance,Commercial variant; mention commercial on the page
+Hardscaping,Landscape Gardener,fold,Landscape Gardener,UK hard landscaping is the category's core
+Hydroseeding,Landscape Gardener,alias,Lawn seeding,Rare domestic UK
+Landscape installations,Landscape Gardener,fold,Landscape Gardener,Is the category
+Landscape management,Landscape Gardener,alias,Garden maintenance,
+Landscaping design,Landscape Gardener,fold,Landscape Designer,
+Landscaping maintenance,Landscape Gardener,alias,Garden maintenance,
+Lawn care,Landscape Gardener,page,Lawn care,Has volume
+Lawn landscaping,Landscape Gardener,alias,Lawn care,Meaningless on its own
+Outdoor step construction,Landscape Gardener,page,Garden steps,
+Outdoor water feature design,Landscape Gardener,alias,Ponds and water features,
+Pool landscaping,Landscape Gardener,exclude,,US only
+Retaining walls,Landscape Gardener,page,Retaining walls,
+Rock landscaping,Landscape Gardener,alias,Garden walls and stonework,Rockeries mentioned on that page
+Sod installation,Landscape Gardener,alias,Turf laying,US term for turfing
+Stone landscaping,Landscape Gardener,alias,Garden walls and stonework,
+Stonemasonry,Landscape Gardener,page,Garden walls and stonework,
+Tree landscaping,Landscape Gardener,exclude,,Meaningless
+Path landscaping,Landscape Gardener,page,Garden paths,
+Garden drainage,Landscape Gardener,page,Garden drainage,
+Garden levelling,Landscape Gardener,page,Garden levelling,
+Garden landscaping,Landscape Gardener,fold,Landscape Gardener,Is the category
+Custom landscape design,Landscape Designer,fold,Landscape Designer,
+Drainage solutions,Landscape Designer,alias,Garden drainage,
+Landscape architecture services,Landscape Designer,exclude,,Different profession
+Landscape design construction,Landscape Designer,fold,Landscape Designer,
+Patio design,Landscape Designer,alias,Patios,
+Pond maintenance,Landscape Designer,alias,Ponds and water features,
+Retaining wall design,Landscape Designer,alias,Retaining walls,
+Turf management,Landscape Designer,alias,Lawn care,
+Garden designs,Landscape Designer,fold,Landscape Designer,Plural of Garden design
+Irrigation system repair and maintenance,Lawn care service,page,Garden irrigation,Low priority; keep
+Cabling and bracing,Tree service,page,Tree cabling and bracing,Specialist arb job
+Tree stump removal,Tree service,page,Tree stump removal,Has volume
+Tree planting,Tree service,page,Tree planting,
+Tree removal,Tree service,page,Tree removal and felling,
+Tree stump grinding,Tree service,alias,Tree stump removal,Grinding is the method; one page
+Tree transplanting,Tree service,page,Tree transplanting,Low priority
+Tree trimming and pruning,Tree service,page,Tree pruning and crown reduction,
+Asphalt milling,Paving contractor,exclude,,Road works
+Asphalt paving & repair,Paving contractor,alias,Tarmac surfacing,UK term is tarmac
+Asphalt recycling,Paving contractor,exclude,,Road works
+Asphalt resurfacing,Paving contractor,alias,Tarmac surfacing,
+Brick paver installation,Paving contractor,alias,Block paving,US term
+Bumper block and post installation,Paving contractor,exclude,,US car park fittings
+Concrete work,Paving contractor,page,Concrete bases and paths,
+General construction,Paving contractor,exclude,,Not this trade
+Pavement crack filling and sealing,Paving contractor,alias,Driveway repairs,
+Paving-related drainage,Paving contractor,alias,Garden drainage,
+Driveway installation,Paving contractor,page,Driveways,
+Driveway repairs,Paving contractor,page,Driveway repairs,
+Driveway replacement,Paving contractor,alias,Driveways,
+Driveway sealing,Paving contractor,page,Driveway sealing,Block paving sealing is a real UK service
+Excavation & grading,Paving contractor,alias,Garden levelling,
+Hauling,Paving contractor,exclude,,US haulage
+Paving line striping,Paving contractor,exclude,,Car park marking; not this trade
+Car park repair and maintenance,Paving contractor,page,Car park surfacing,Commercial; low priority
+Car park striping,Paving contractor,exclude,,
+Patio paving,Paving contractor,page,Patios,
+Paver installation,Paving contractor,alias,Block paving,
+Paver sealing,Paving contractor,alias,Driveway sealing,
+Road materials recycling,Paving contractor,exclude,,
+Road construction,Paving contractor,exclude,,
+Sealcoating,Paving contractor,alias,Driveway sealing,
+Paving job site preparation,Paving contractor,exclude,,Not a service
+Street maintenance,Paving contractor,exclude,,
+Composite decks,Deck builder,page,Composite decking,
+Deck cleaning,Deck builder,alias,Decking restoration,
+Deck design,Deck builder,alias,Decking installation,
+Deck installation,Deck builder,page,Decking installation,
+Deck painting,Deck builder,alias,Decking restoration,
+Deck railing repair,Deck builder,alias,Decking repairs,
+Deck refinishing,Deck builder,alias,Decking restoration,
+Deck remodelling,Deck builder,alias,Decking installation,
+Deck repair,Deck builder,page,Decking repairs,
+Deck replacement,Deck builder,alias,Decking installation,
+Fence building,Deck builder,alias,Fencing,
+Patio decks,Deck builder,alias,Decking installation,
+Patio enclosure construction,Deck builder,exclude,,US screened porch
+Pergola construction,Deck builder,page,Pergolas,
+Porch construction,Deck builder,exclude,,UK porch is a builder's job
+Wood staining,Deck builder,alias,Decking restoration,
+Wood deck construction,Deck builder,alias,Decking installation,
