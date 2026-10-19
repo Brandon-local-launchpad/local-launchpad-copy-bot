@@ -7,8 +7,9 @@
 // Structure" (Brandon, 19 Oct 2026):
 //   - the services list is cleaned first (page-map/plan-v3.js): names that normalise alike
 //     merge, a service whose keyword is a category's candidate folds into that category,
-//     and a service gets a base page only with a usable keyword (more than 10 searches a
-//     month) in the base town or any town, or a core flag; otherwise it is mentioned
+//     and every other service gets a base page unless a person excluded it at intake (then
+//     it is mentioned on its category page). copy_priority on each service page is its
+//     best volume anywhere, else 0, for copy generation to order by
 //   - town service pages (/locations/<town>/<service>) exist only where "<service> <town>"
 //     is usable AND the page wins that keyword under the H1 ownership rules (claims.js)
 //   - links: base pages link wide, town pages link tight (plan-v3.planLinks)
@@ -51,8 +52,8 @@ function keywordsFor(input) {
 }
 
 // input: { resolved, baseTown, otherTowns, companyName, niche, waiting: [{ service, reason }] }
-// opts: volumes (Map keyword → { volume, cpc }; what is missing counts as no data), core (Set of
-// service ids a person flagged), saved (the client's saved rows: their manual and locked H1s take
+// opts: volumes (Map keyword → { volume, cpc }; what is missing counts as no data), exclude (Set of
+// service ids a person excluded at intake), saved (the client's saved rows: their manual and locked H1s take
 // part in the ownership rules that decide the town service pages)
 function buildPageMap(input, opts = {}) {
   const { resolved, companyName = '' } = input;
@@ -91,7 +92,7 @@ function buildPageMap(input, opts = {}) {
   const catList = cats.map(c => ({ key: c.key, name: c.name }));
   const allKeywords = [...new Set([...V3.keywordsFor(V3.dedupe(V3.collectServices(resolved)), catList, towns, ctx, { townVariants: true }), ...V3.pageKeywords(catList, towns, ctx)])];
   const G = C.buildGroups(allKeywords, volumes, { towns: [baseTown, ...towns] });
-  const services = V3.pageOrMention(V3.fold(V3.dedupe(V3.collectServices(resolved)), catList, ctx, G), towns, ctx, vol, opts.core || new Set());
+  const services = V3.pageOrMention(V3.fold(V3.dedupe(V3.collectServices(resolved)), catList, ctx, G), towns, ctx, vol, opts.exclude || new Set());
   const paged = [];
   for (const s of services.filter(x => x.outcome === 'page')) {
     const slug = slugify(s.name);
@@ -108,7 +109,7 @@ function buildPageMap(input, opts = {}) {
   const add = (type, title, slug, info) => rows.push({ page_key: pageKey(type, slug), type, title, slug, h1: '', h1_source: 'needed', meta_title: '', meta_description: '', status: 'Not Started', applies: true, links_to: [], links_from: [], info, sort_order: rows.length });
   add('homepage', `${companyName} Homepage`.trim(), '/', {});
   for (const c of cats) add('category', c.name, catPath(c), { category_key: c.key, primary: c.primary });
-  for (const s of paged) add('service', s.name, svcPath(s), { service_id: s.id, additional: s.kind === 'additional', parent_keys: s.parents.filter(k => cats.some(c => c.key === k)), merged_from: s.merged_from || [] });
+  for (const s of paged) add('service', s.name, svcPath(s), { service_id: s.id, additional: s.kind === 'additional', parent_keys: s.parents.filter(k => cats.some(c => c.key === k)), merged_from: s.merged_from || [], copy_priority: s.copy_priority || 0 });
   for (const t of townSlugs) add('location', t.name, locPath(t), { town: t.name });
   for (const t of townSlugs) for (const c of cats) add('location_category', `${c.name} ${t.name}`, locCatPath(t, c), { town: t.name, category_key: c.key });
   // Town service candidates: a usable "<service> <town>"; the ownership rules below keep only the winners

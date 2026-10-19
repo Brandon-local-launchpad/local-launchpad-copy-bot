@@ -12,9 +12,10 @@
 //   2. Fold: a service whose "<service> <base town>" keyword falls into the same keyword group
 //      as any candidate of a category (its own name or a synonym), or whose name IS a category
 //      name, is not a page: it is listed on that category page, which keeps the keyword.
-//   3. Page or mention: a remaining service gets a base page when it has a usable keyword
-//      (more than 10 searches a month) in the base town or in any town, or a person flagged it
-//      core. Otherwise it is mentioned: one line on its category page, no card, no page.
+//   3. Page or mention (Brandon, 20 Oct 2026): every remaining service gets a base page by
+//      default. A service a person excluded at intake is mentioned instead: one line on its
+//      category page, no card, no page. Volume still decides the H1 and the town service pages,
+//      and sets copy_priority (the service's best volume anywhere, else 0) for copy generation.
 // Town service pages: /locations/<town>/<service>, only where "<service> <town>" is usable AND
 // the page wins that keyword under the ownership rules (never on pattern alone).
 // Links: base pages link wide, town pages link tight (planLinks below).
@@ -77,17 +78,20 @@ function fold(services, cats, ctx, G) {
   return services;
 }
 
-// Rule 3. towns: [names]; vol(keyword) → { volume, cpc }; core: Set of service ids a person flagged
-function pageOrMention(services, towns, ctx, vol, core = new Set()) {
+// Rule 3. towns: [names]; vol(keyword) → { volume, cpc }; exclude: Set of service ids a person
+// excluded at intake. copy_priority: the best volume among the service's base-town candidates and
+// its "<service> <town>" keywords, else 0.
+function pageOrMention(services, towns, ctx, vol, exclude = new Set()) {
   for (const s of services) {
     if (s.outcome) continue;
-    const base = C.candidatesV2({ type: 'service', title: s.name, info: {} }, ctx).map(c => ({ ...c, ...vol(c.keyword) })).filter(usable);
+    const base = C.candidatesV2({ type: 'service', title: s.name, info: {} }, ctx).map(c => ({ ...c, ...vol(c.keyword) })).filter(usable).sort((a, b) => b.volume - a.volume);
     const townHits = towns.map(t => ({ town: t, keyword: keywordOf(`${s.name} ${t}`), ...vol(keywordOf(`${s.name} ${t}`)) })).filter(usable);
     s.townVolumes = townHits;
-    if (core.has(s.id) || (s.merged_ids || []).some(id => core.has(id))) { s.outcome = 'page'; s.reason = 'flagged core by a person: a page whatever the volume'; }
-    else if (base.length) { s.outcome = 'page'; s.reason = `"${base[0].keyword}" has ${base[0].volume} searches a month in ${ctx.baseTown}`; }
-    else if (townHits.length) { s.outcome = 'page'; s.reason = `no usable keyword in ${ctx.baseTown}, but ${townHits.map(h => `"${h.keyword}" has ${h.volume}/mo`).join(', ')}: the base page exists as the parent of ${townHits.length === 1 ? 'that town page' : 'those town pages'}`; }
-    else { s.outcome = 'mentioned'; s.reason = `no keyword above ${MIN_USABLE} searches a month in ${ctx.baseTown} or any town: one line on its category page, no card`; }
+    s.copy_priority = Math.max(0, ...base.map(b => b.volume), ...townHits.map(h => h.volume));
+    if (exclude.has(s.id) || (s.merged_ids || []).some(id => exclude.has(id))) { s.outcome = 'mentioned'; s.reason = 'excluded at intake'; }
+    else if (base.length) { s.outcome = 'page'; s.reason = `a page by default; "${base[0].keyword}" has ${base[0].volume} searches a month in ${ctx.baseTown}`; }
+    else if (townHits.length) { s.outcome = 'page'; s.reason = `a page by default; no usable keyword in ${ctx.baseTown}, but ${townHits.map(h => `"${h.keyword}" has ${h.volume}/mo`).join(', ')}`; }
+    else { s.outcome = 'page'; s.reason = `a page by default; no keyword above ${MIN_USABLE} searches a month in ${ctx.baseTown} or any town, so the pattern H1 applies and copy_priority is 0`; }
   }
   return services;
 }

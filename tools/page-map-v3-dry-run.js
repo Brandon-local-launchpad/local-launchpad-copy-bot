@@ -24,7 +24,7 @@ const V3 = require(path.join(root, 'page-map/plan-v3.js'));
 const G = require(path.join(root, 'page-map/generator.js'));
 const { keywordOf } = H;
 
-async function dryRun(pool, who, { searchVolume = D.searchVolume, core = new Set() } = {}) {
+async function dryRun(pool, who, { searchVolume = D.searchVolume, exclude = new Set() } = {}) {
   const svc = createFilloutService({ pool, audioStore: { put() { throw new Error('not used'); }, get() { return null; } }, log: { log() {}, info() {}, warn() {}, error() {} } });
   const store = createPageMapStore({ pool, filloutService: svc });
   const { rows: cs } = await pool.query(`SELECT id, name FROM clients`);
@@ -48,6 +48,7 @@ async function dryRun(pool, who, { searchVolume = D.searchVolume, core = new Set
 
   // Rule 1, then rule 2 on the base-town keywords (cached), then ONE call for "<service> <town>"
   let services = V3.dedupe(V3.collectServices(input.resolved));
+  // exclude: service ids excluded at intake (none yet on a dry run before the flag exists)
   const baseKeywords = V3.keywordsFor(services, cats, [], ctx);
   services = V3.fold(services, cats, ctx, C.buildGroups(baseKeywords, volumes, { towns: [input.baseTown, ...towns] }));
   const townKeywords = V3.keywordsFor(services, cats, towns, ctx, { townVariants: false }).filter(k => !baseKeywords.includes(k));
@@ -63,7 +64,7 @@ async function dryRun(pool, who, { searchVolume = D.searchVolume, core = new Set
   }
   // Rule 3, the pages, the H1 rules (town service pages only where they WIN their keyword), the links:
   // all through the generator, as the real run does it
-  const plan = G.buildPageMap(input, { volumes, core, saved });
+  const plan = G.buildPageMap(input, { volumes, exclude, saved });
   services = plan.services;
   const decisions = plan.decisions;
   const rows = plan.rows;
@@ -86,11 +87,14 @@ function report(r) {
   L.push(`# Page map v3 dry run: ${r.client.name} (${new Date().toISOString().slice(0, 10)})`, '');
   L.push(`${r.keywords.total} keywords: ${r.keywords.cached} from the cache, ${r.keywords.fetched} fetched in ${r.calls} call(s), cost $${r.cost.toFixed(2)} · nothing written${r.keywords.unfetched.length ? ` · ${r.keywords.unfetched.length} keywords NOT fetched (would need a second call): treated as no data` : ''}`, '');
   // a) services
-  L.push('## (a) Services', '', '| Service | Categories | Outcome | Reason |', '|---|---|---|---|');
+  L.push('## (a) Services', '', '| Service | Categories | Outcome | copy_priority | Reason |', '|---|---|---|---|---|');
   const catName = k => (r.cats.find(c => c.key === k) || {}).name || k;
-  for (const s of r.services) L.push(`| ${s.name}${s.merged_from && s.merged_from.length ? ` (merged from ${s.merged_from.map(x => `"${x}"`).join(', ')})` : ''} | ${s.parents.map(catName).join(', ')} | ${s.outcome === 'page' ? 'page' : s.outcome === 'merged' ? `merged into ${s.intoName}` : s.outcome === 'folded' ? `folded into ${s.intoName}` : 'mentioned'} | ${String(s.reason || '').replace(/\|/g, '/')} |`);
+  for (const s of r.services) L.push(`| ${s.name}${s.merged_from && s.merged_from.length ? ` (merged from ${s.merged_from.map(x => `"${x}"`).join(', ')})` : ''} | ${s.parents.map(catName).join(', ')} | ${s.outcome === 'page' ? 'page' : s.outcome === 'merged' ? `merged into ${s.intoName}` : s.outcome === 'folded' ? `folded into ${s.intoName}` : 'mentioned'} | ${s.outcome === 'page' ? s.copy_priority || 0 : ''} | ${String(s.reason || '').replace(/\|/g, '/')} |`);
   const n = o => r.services.filter(s => s.outcome === o).length;
   L.push('', `Pages ${n('page')} · merged ${n('merged')} · folded ${n('folded')} · mentioned ${n('mentioned')} (of ${r.services.length} names)`, '');
+  const pages = byType('service').slice().sort((a, b) => (b.info.copy_priority || 0) - (a.info.copy_priority || 0));
+  L.push('', `## Service pages (${pages.length}), by copy_priority`, '', '| copy_priority | Service page | H1 | Source |', '|---|---|---|---|');
+  for (const p of pages) L.push(`| ${p.info.copy_priority || 0} | ${p.title} | ${p.h1 || '—'} | ${p.h1_source} |`);
   // b) town service pages
   L.push('## (b) Town service pages that would be created', '', '| Town | Service | H1 (keyword) | Volume | CPC |', '|---|---|---|---|---|');
   const ts = byType('town_service');
