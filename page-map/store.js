@@ -29,6 +29,10 @@ function retiredReason(row, plan) {
     if (s && s.outcome === 'merged') return `"${t}" is the same service as "${s.intoName}", which keeps the page`;
     if (s && s.outcome === 'folded') return `"${t}" is now listed on the ${s.intoName} category page: its keyword is that category's`;
     if (s && s.outcome === 'mentioned') return `"${t}" was excluded at intake: it is mentioned on its category page instead of having a page (untick Exclude on Services to bring the page back)`;
+    const lib = plan && plan.libraryRecords && plan.libraryRecords.find(x => x.gbp_id === info.service_id || (info.gbp_names || []).includes(x.gbp_name));
+    if (lib && lib.outcome === 'absorbed') return `"${t}" is now part of the "${lib.intoName}" page (niche library: alias)`;
+    if (lib && lib.outcome === 'excluded') return `"${t}" is excluded by the niche library${lib.note ? ` (${lib.note})` : ''}: no page, not mentioned`;
+    if (lib && lib.outcome === 'page' && lib.intoName !== t) return `"${t}" is now the "${lib.intoName}" page (niche library: UK name)`;
     return `"${t}" is no longer one of this client's services: it is not ticked in any category on the record`;
   }
   if (row.type === 'town_service') return `"${info.service_name || t}" no longer has a usable keyword of its own in ${info.town || 'this town'}, or another page owns it`;
@@ -97,6 +101,8 @@ async function ensurePageMapTables(pool) {
   await pool.query(`ALTER TABLE client_page_map_state ADD COLUMN IF NOT EXISTS services JSONB`);
   // Services a person excluded at intake (replaces the core flag, 20 Oct 2026: every service is a page by default)
   await pool.query(`ALTER TABLE client_service_flags ADD COLUMN IF NOT EXISTS excluded BOOLEAN NOT NULL DEFAULT FALSE`);
+  // The niche library resolution per GBP name (page map v3 library step)
+  await pool.query(`ALTER TABLE client_page_map_state ADD COLUMN IF NOT EXISTS library JSONB`);
   // Launch phases: when "Publish phase 2" ran (every page phase 1 from then on)
   await pool.query(`ALTER TABLE client_page_map_state ADD COLUMN IF NOT EXISTS phase2_published_at TIMESTAMPTZ`);
 }
@@ -139,7 +145,7 @@ function createPageMapStore({ pool, filloutService, volumesFor = async () => new
   }
   async function state(clientId) {
     const { rows } = await pool.query(`SELECT * FROM client_page_map_state WHERE client_id = $1`, [clientId]);
-    return rows[0] ? { ...rows[0], inputs: parse(rows[0].inputs), counts: parse(rows[0].counts), services: parse(rows[0].services) || null } : null;
+    return rows[0] ? { ...rows[0], inputs: parse(rows[0].inputs), counts: parse(rows[0].counts), services: parse(rows[0].services) || null, library: parse(rows[0].library) || null } : null;
   }
   // Towns launching in phase 1 (the base town always counts): Set of town slugs
   async function launchTowns(clientId) {
@@ -223,12 +229,13 @@ function createPageMapStore({ pool, filloutService, volumesFor = async () => new
     for (const row of diff.retire) { await pool.query(`UPDATE client_page_map SET applies=FALSE, retired_at=NOW(), retired_reason=$3, updated_at=NOW() WHERE id=$1 AND client_id=$2`, [row.id, clientId, retiredReason(row, plan)]); await tick(); }
     if (opts.onProgress && !total) await opts.onProgress(0, 0);
     // The services list outcomes, as the Services step shows them
-    const services = plan.services.map(s => ({ id: s.id, name: s.name, parents: s.parents, outcome: s.outcome, into: s.into || null, intoName: s.intoName || null, reason: s.reason, merged_from: s.merged_from || [], copy_priority: s.copy_priority || 0, townVolumes: (s.townVolumes || []).map(t => ({ town: t.town, volume: t.volume })) }));
+    const services = plan.services.map(s => ({ id: s.id, name: s.name, parents: s.parents, outcome: s.outcome, into: s.into || null, intoName: s.intoName || null, reason: s.reason, merged_from: s.merged_from || [], gbp_names: s.gbp_names || [s.name], absorbs: s.absorbs || [], copy_priority: s.copy_priority || 0, townVolumes: (s.townVolumes || []).map(t => ({ town: t.town, volume: t.volume })) }));
+    const library = { file: plan.libraryCounts.library, counts: plan.libraryCounts, records: plan.libraryRecords };
     const st = { generated_at: new Date(), category_tab_rule: inputs.categoryTabRule,
       inputs: { baseTown: inputs.baseTown, otherTowns: inputs.otherTowns, companyName: inputs.companyName },
       counts: { ...plan.counts, ...diff.counts, services: plan.serviceCounts, townServicePages: plan.townServicePages, volumesFrom: plan.volumesFrom, launchTowns: plan.launchTowns } };
-    if (await state(clientId)) await pool.query(`UPDATE client_page_map_state SET generated_at=$2, category_tab_rule=$3, inputs=$4, counts=$5, services=$6 WHERE client_id=$1`, [clientId, st.generated_at, st.category_tab_rule, JSON.stringify(st.inputs), JSON.stringify(st.counts), JSON.stringify(services)]);
-    else await pool.query(`INSERT INTO client_page_map_state (client_id, generated_at, category_tab_rule, inputs, counts, services) VALUES ($1,$2,$3,$4,$5,$6)`, [clientId, st.generated_at, st.category_tab_rule, JSON.stringify(st.inputs), JSON.stringify(st.counts), JSON.stringify(services)]);
+    if (await state(clientId)) await pool.query(`UPDATE client_page_map_state SET generated_at=$2, category_tab_rule=$3, inputs=$4, counts=$5, services=$6, library=$7 WHERE client_id=$1`, [clientId, st.generated_at, st.category_tab_rule, JSON.stringify(st.inputs), JSON.stringify(st.counts), JSON.stringify(services), JSON.stringify(library)]);
+    else await pool.query(`INSERT INTO client_page_map_state (client_id, generated_at, category_tab_rule, inputs, counts, services, library) VALUES ($1,$2,$3,$4,$5,$6,$7)`, [clientId, st.generated_at, st.category_tab_rule, JSON.stringify(st.inputs), JSON.stringify(st.counts), JSON.stringify(services), JSON.stringify(library)]);
     return { plan, diff, rows: await saved(clientId) };
   }
 

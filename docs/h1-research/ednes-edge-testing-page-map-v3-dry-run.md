@@ -17,8 +17,8 @@
 | Artificial turf installation | Landscape Gardener, Landscape Designer | page | Artificial grass installation | page as Artificial grass installation | UK term is artificial grass |
 | Concrete masonry | Landscape Gardener, Landscape Designer | alias | Concrete bases and paths | absorbed into Concrete bases and paths | US term |
 | Desert landscaping | Landscape Gardener, Landscape Designer | exclude |  | excluded | US only |
-| Driveway landscaping | Landscape Gardener, Landscape Designer | alias | Driveways | absorbed into Driveways |  |
-| Driveway or path paving | Landscape Gardener, Landscape Designer | alias | Driveways | absorbed into Driveways |  |
+| Driveway landscaping | Landscape Gardener, Landscape Designer | fold | Paving Contractor | folded into Paving Contractor | Driveways is the Paving Contractor hub keyword |
+| Driveway or path paving | Landscape Gardener, Landscape Designer | fold | Paving Contractor | folded into Paving Contractor | Driveways is the Paving Contractor hub keyword |
 | Garden decorating | Landscape Gardener, Landscape Designer | exclude |  | excluded | Not a trade service |
 | Garden design | Landscape Gardener, Landscape Designer | fold | Landscape Designer | folded into Landscape Designer | Is the category |
 | Gardening services | Landscape Gardener, Landscape Designer | fold | Gardener | folded into Gardener | Is the category |
@@ -64,8 +64,8 @@
 | Bumper block and post installation | Paving Contractor | exclude |  | excluded | US car park fittings |
 | Concrete work | Paving Contractor | page | Concrete bases and paths | page as Concrete bases and paths | a page by default; no keyword above 10 searches a month in Southampton or any town, so the pattern H1 applies and copy_priority is 0 |
 | General construction | Paving Contractor | exclude |  | excluded | Not this trade |
-| Driveway installation | Paving Contractor | page | Driveways | page as Driveways | a page by default; "driveways southampton" has 140 searches a month in Southampton |
-| Driveway replacement | Paving Contractor | alias | Driveways | absorbed into Driveways |  |
+| Driveway installation | Paving Contractor | fold | Paving Contractor | folded into Paving Contractor | Driveways is the Paving Contractor hub keyword |
+| Driveway replacement | Paving Contractor | fold | Paving Contractor | folded into Paving Contractor | Driveways is the Paving Contractor hub keyword |
 | Excavation & grading | Paving Contractor | alias | Garden levelling | absorbed into Garden levelling |  |
 | Patio paving | Paving Contractor | page | Patios | page as Patios | a page by default; "patios southampton" has 20 searches a month in Southampton |
 | Composite decks | Deck Builder | page | Composite decking | page as Composite decking | a page by default; "composite decking southampton" has 30 searches a month in Southampton |
@@ -85,7 +85,7 @@
 | Wood staining | Deck Builder | alias | Decking restoration | absorbed into Decking restoration | no GBP name was marked page for this target, so the page was created from this alias |
 | Wood deck construction | Deck Builder | alias | Decking installation | absorbed into Decking installation |  |
 
-GBP names 78: page 27, absorbed 32, folded 11, excluded 8, mentioned 0, merged 0, not in library 0
+GBP names 78: page 26, absorbed 29, folded 15, excluded 8, mentioned 0, merged 0, not in library 0
 
 ## Resulting service pages
 
@@ -99,7 +99,6 @@ GBP names 78: page 27, absorbed 32, folded 11, excluded 8, mentioned 0, merged 0
 | Weed control | Gardener | Weed control |  | 0 |
 | Artificial grass installation | Landscape Gardener, Landscape Designer | Artificial turf installation |  | 0 |
 | Concrete bases and paths | Landscape Gardener, Landscape Designer, Paving Contractor | Concrete work | Concrete masonry | 0 |
-| Driveways | Landscape Gardener, Landscape Designer, Paving Contractor | Driveway installation | Driveway landscaping; Driveway or path paving; Driveway replacement | 140 |
 | Garden levelling | Landscape Gardener, Landscape Designer, Paving Contractor | Garden levelling | Grading and resloping; Excavation & grading | 0 |
 | Garden maintenance | Landscape Gardener |  | Groundskeeping; Landscape management; Landscaping maintenance | 50 |
 | Lawn care | Landscape Gardener, Landscape Designer | Lawn care | Lawn landscaping; Turf management | 30 |
@@ -124,7 +123,7 @@ GBP names 78: page 27, absorbed 32, folded 11, excluded 8, mentioned 0, merged 0
 | Decking repairs | Deck Builder | Deck repair | Deck railing repair | 0 |
 | Pergolas | Deck Builder | Pergola construction |  | 40 |
 
-32 service pages
+31 service pages
 
 ## (a) Services
 
@@ -138,7 +137,6 @@ GBP names 78: page 27, absorbed 32, folded 11, excluded 8, mentioned 0, merged 0
 | Weed control | Gardener | page | 0 | a page by default; no keyword above 10 searches a month in Southampton or any town, so the pattern H1 applies and copy_priority is 0 |
 | Artificial grass installation | Landscape Gardener, Landscape Designer | page | 0 | a page by default; no keyword above 10 searches a month in Southampton or any town, so the pattern H1 applies and copy_priority is 0 |
 | Concrete bases and paths | Landscape Gardener, Landscape Designer, Paving Contractor | page | 0 | a page by default; no keyword above 10 searches a month in Southampton or any town, so the pattern H1 applies and copy_priority is 0 |
-| Driveways | Landscape Gardener, Landscape Designer, Paving Contractor | page | 140 | a page by default; "driveways southampton" has 140 searches a month in Southampton |
 | Garden levelling | Landscape Gardener, Landscape Designer, Paving Contractor | page | 0 | a page by default; no keyword above 10 searches a month in Southampton or any town, so the pattern H1 applies and copy_priority is 0 |
 | Garden maintenance | Landscape Gardener | page | 50 | a page by default; "garden maintenance southampton" has 50 searches a month in Southampton |
 | Lawn care | Landscape Gardener, Landscape Designer | page | 30 | a page by default; "lawn care southampton" has 30 searches a month in Southampton |
@@ -166,6 +164,8 @@ GBP names 78: page 27, absorbed 32, folded 11, excluded 8, mentioned 0, merged 0
 | Landscape design | Gardener, Landscape Gardener | folded into Landscape Designer |  | library: listed on the Landscape Designer category page, which keeps the keyword (Also listed under Landscape Gardener / Lawn care service) |
 | Landscaping design | Landscape Gardener | folded into Landscape Designer |  | library: listed on the Landscape Designer category page, which keeps the keyword |
 | Desert landscaping | Landscape Gardener, Landscape Designer | mentioned |  | library: excluded (US only) |
+| Driveway landscaping | Landscape Gardener, Landscape Designer | folded into Paving Contractor |  | library: listed on the Paving Contractor category page, which keeps the keyword (Driveways is the Paving Contractor hub keyword) |
+| Driveway or path paving | Landscape Gardener, Landscape Designer | folded into Paving Contractor |  | library: listed on the Paving Contractor category page, which keeps the keyword (Driveways is the Paving Contractor hub keyword) |
 | Garden decorating | Landscape Gardener, Landscape Designer | mentioned |  | library: excluded (Not a trade service) |
 | Garden design | Landscape Gardener, Landscape Designer | folded into Landscape Designer |  | library: listed on the Landscape Designer category page, which keeps the keyword (Is the category) |
 | Garden designs | Landscape Designer | folded into Landscape Designer |  | library: listed on the Landscape Designer category page, which keeps the keyword (Plural of Garden design) |
@@ -180,17 +180,18 @@ GBP names 78: page 27, absorbed 32, folded 11, excluded 8, mentioned 0, merged 0
 | Landscape design construction | Landscape Designer | folded into Landscape Designer |  | library: listed on the Landscape Designer category page, which keeps the keyword |
 | Bumper block and post installation | Paving Contractor | mentioned |  | library: excluded (US car park fittings) |
 | General construction | Paving Contractor | mentioned |  | library: excluded (Not this trade) |
+| Driveway installation | Paving Contractor | folded into Paving Contractor |  | library: listed on the Paving Contractor category page, which keeps the keyword (Driveways is the Paving Contractor hub keyword) |
+| Driveway replacement | Paving Contractor | folded into Paving Contractor |  | library: listed on the Paving Contractor category page, which keeps the keyword (Driveways is the Paving Contractor hub keyword) |
 | Patio enclosure construction | Deck Builder | mentioned |  | library: excluded (US screened porch) |
 
-Pages 32 · merged 0 · folded 11 · mentioned 0 (of 51 names)
+Pages 31 · merged 0 · folded 15 · mentioned 0 (of 54 names)
 
 
-## Service pages (32), by copy_priority
+## Service pages (31), by copy_priority
 
 | copy_priority | Service page | H1 | Source |
 |---|---|---|---|
 | 210 | Fencing | Fencing Southampton | research |
-| 140 | Driveways | Driveways Southampton | research |
 | 50 | Garden maintenance | Garden Maintenance Southampton | research |
 | 50 | Block paving | Block Paving Southampton | research |
 | 40 | Tree stump removal | Tree Stump Removal Southampton | research |
@@ -229,7 +230,6 @@ Pages 32 · merged 0 · folded 11 · mentioned 0 (of 51 names)
 | Romsey | Garden maintenance | Garden Maintenance Romsey | 30 | — |
 | Romsey | Tree stump removal | Tree Stump Removal Romsey | 20 | — |
 | Winchester | Fencing | Fencing Winchester | 50 | 0.75 |
-| Winchester | Driveways | Driveways Winchester | 20 | 12.05 |
 | Winchester | Garden maintenance | Garden Maintenance Winchester | 30 | 5.45 |
 | Winchester | Lawn care | Lawn Care Winchester | 20 | 3.42 |
 | Winchester | Pergolas | Pergolas Winchester | 20 | 5.61 |
@@ -237,7 +237,7 @@ Pages 32 · merged 0 · folded 11 · mentioned 0 (of 51 names)
 | Chandlers Ford | Fencing | Fencing Chandlers Ford | 30 | 5.69 |
 | Hedge End | Fencing | Fencing Hedge End | 20 | 9.31 |
 
-11 town service pages in 5 towns: Romsey 3, Winchester 5, Eastleigh 1, Chandlers Ford 1, Hedge End 1
+10 town service pages in 5 towns: Romsey 3, Winchester 4, Eastleigh 1, Chandlers Ford 1, Hedge End 1
 
 ## (c) Page count by type
 
@@ -245,11 +245,11 @@ Pages 32 · merged 0 · folded 11 · mentioned 0 (of 51 names)
 |---|---|---|
 | Homepage | 1 | 1 |
 | Category | 6 | 6 |
-| Service | 4 | 32 |
+| Service | 4 | 31 |
 | Location | 13 | 13 |
 | Location Category | 78 | 78 |
-| Town Service | 2 | 11 |
-| **Total** | **104** | **141** |
+| Town Service | 2 | 10 |
+| **Total** | **104** | **139** |
 
 ## (d) Links out, by section
 
@@ -282,7 +282,7 @@ Pages 32 · merged 0 · folded 11 · mentioned 0 (of 51 names)
 | Category "Landscape Gardener" | Garden Landscaping Southampton | 90 | research | 90/mo, after losing "landscaping southampton" (260/mo) to the homepage |
 | Category "Landscape Designer" | Garden Design Southampton | 20 | research | 20/mo, the only candidate above 10 searches a month |
 | Category "Tree Service" | Tree Surgeon Southampton | 320 | research | 320/mo, the highest of 3 usable candidates |
-| Category "Paving Contractor" | Paving Contractor Southampton | 10 | pattern | every usable keyword was claimed by another page: "driveways southampton" (140/mo) by service page "Driveways"; "block paving southampton" (50/mo) by service page "Block paving": the standard pattern is used |
+| Category "Paving Contractor" | Driveways Southampton | 140 | research | 140/mo, the only candidate above 10 searches a month |
 | Category "Deck Builder" | Decking Southampton | 20 | research | 20/mo, the only candidate above 10 searches a month |
 | Location "Romsey" | Gardener Services in and around Romsey | — | pattern | hub page: Gardener keyword owned by location category page "Gardener Romsey"; no other keyword above 10 searches a month, so "Gardener Services in and around Romsey" is used (lost "garden maintenance romsey" (30/mo) to town service page "Garden maintenance Romsey") |
 | Location "Winchester" | Landscaper Winchester | 70 | research | 70/mo, the highest of 3 usable candidates (hub page: Gardener keyword owned by location category page "Gardener Winchester") |
@@ -301,7 +301,7 @@ Pages 32 · merged 0 · folded 11 · mentioned 0 (of 51 names)
 | Location Category "Landscape Gardener Winchester" | Garden Landscaping Winchester | 30 | research | 30/mo, after losing "landscaping winchester" (70/mo) to location page "Winchester" |
 | Location Category "Landscape Designer Winchester" | Garden Designer Winchester | 30 | research | 30/mo, the highest of 2 usable candidates |
 | Location Category "Tree Service Winchester" | Tree Surgeon Winchester | 140 | research | 140/mo, the highest of 3 usable candidates |
-| Location Category "Paving Contractor Winchester" | Paving Contractor Winchester | — | pattern | every usable keyword was claimed by another page: "driveways winchester" (20/mo) by town service page "Driveways Winchester": the standard pattern is used |
+| Location Category "Paving Contractor Winchester" | Driveways Winchester | 20 | research | 20/mo, the only candidate above 10 searches a month |
 | Location Category "Deck Builder Winchester" | Decking Winchester | 30 | research | 30/mo, the only candidate above 10 searches a month |
 
 ## (e) API cost

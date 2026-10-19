@@ -115,13 +115,14 @@ function buildPageMap(input, opts = {}) {
     const v = r.library && r.library.verdict;
     let outcome, intoName = null, reason = '';
     if (v === 'exclude') { outcome = 'excluded'; reason = r.library.note || 'excluded by the library'; }
+    else if (v === 'fold' && r.flag === 'fold target missing') { outcome = s && s.outcome === 'mentioned' ? 'mentioned' : 'page'; intoName = s ? s.name : r.name; reason = `fold target missing: "${r.library.target}" is not one of this client's category tabs, so it is a page under its own name${s && s.outcome === 'mentioned' ? `; ${s.reason}` : ''}`; }
     else if (v === 'fold') { outcome = 'folded'; const f = byId.get(r.id); intoName = f ? f.intoName : r.library.target; reason = f ? f.reason : ''; }
     else if (s && s.outcome === 'mentioned') { outcome = 'mentioned'; intoName = s.name; reason = s.reason; }
     else if (s && s.outcome === 'folded') { outcome = 'folded'; intoName = s.intoName; reason = s.reason; }
     else if (v === 'alias') { outcome = 'absorbed'; intoName = s ? s.name : r.library.target; reason = s && s.created_from_alias ? 'no GBP name was marked page for this target, so the page was created from this alias' : ''; }
     else if (v === 'page') { outcome = 'page'; intoName = s ? s.name : r.library.target; reason = s ? s.reason : ''; }
-    else { outcome = s ? s.outcome : 'page'; intoName = s ? (s.outcome === 'merged' ? s.intoName : s.name) : r.name; reason = s ? s.reason : ''; }
-    return { gbp_name: r.name, gbp_id: r.id, parents: r.parents, verdict: v || null, target: r.library ? r.library.target : null, note: r.library ? r.library.note : null, in_library: !!r.library, outcome, intoName, page_id: s ? s.id : null, reason, copy_priority: s && s.outcome === 'page' ? s.copy_priority || 0 : null, absorbs: s && s.absorbs ? s.absorbs : [], gbp_names: s && s.gbp_names ? s.gbp_names : [] };
+    else { const own = byId.get(r.id); if (own && own.outcome === 'merged' && s && s !== own) { outcome = 'merged'; intoName = s.name; reason = own.reason; } else { outcome = s ? s.outcome : 'page'; intoName = s ? s.name : r.name; reason = s ? s.reason : ''; } }
+    return { gbp_name: r.name, gbp_id: r.id, parents: r.parents, verdict: v || null, flag: r.flag || (lib && !r.library ? 'not in library' : null), target: r.library ? r.library.target : null, note: r.library ? r.library.note : null, in_library: !!r.library, outcome, intoName, page_id: s ? s.id : null, reason, copy_priority: s && s.outcome === 'page' ? s.copy_priority || 0 : null, absorbs: s && s.absorbs ? s.absorbs : [], gbp_names: s && s.gbp_names ? s.gbp_names : [] };
   });
   const paged = [];
   for (const s of services.filter(x => x.outcome === 'page')) {

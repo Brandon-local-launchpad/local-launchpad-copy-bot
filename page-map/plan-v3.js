@@ -77,7 +77,9 @@ function resolveLibrary(services, lib, cats) {
     if (e.verdict === 'alias') { rec.page_id = page(e.target, s, 'alias').id; continue; }
     if (e.verdict === 'fold') {
       const c = catByName.get(norm(e.target));
-      rest.push({ ...s, gbp_names: [s.name], library: 'fold', outcome: 'folded', into: c ? c.key : null, intoName: c ? c.name : e.target, reason: c ? `library: listed on the ${c.name} category page, which keeps the keyword${e.note ? ` (${e.note})` : ''}` : `library: folds into "${e.target}", which has no category tab for this client; listed on its own category page` });
+      if (c) { rest.push({ ...s, gbp_names: [s.name], library: 'fold', outcome: 'folded', into: c.key, intoName: c.name, reason: `library: listed on the ${c.name} category page, which keeps the keyword${e.note ? ` (${e.note})` : ''}` }); continue; }
+      // The fold target is not in this client's plan (Brandon, 20 Oct 2026): a page named by its own name, flagged
+      const p = page(s.name, s, 'page'); p.fold_target_missing = e.target; rec.page_id = p.id; rec.flag = 'fold target missing';
       continue;
     }
     rest.push({ ...s, gbp_names: [s.name], library: 'exclude', outcome: 'excluded', reason: `library: excluded${e.note ? ` (${e.note})` : ''}` });

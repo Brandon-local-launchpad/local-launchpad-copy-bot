@@ -1,5 +1,5 @@
 {
-  "_about": "Extra H1 research candidates per niche and category, tried after the SOP pair (\"<category> <town>\", \"<category> services <town>\"). Each term becomes \"<term> <town>\". \"_sitewide\" terms are added for the homepage and the location pages. Approved by Brandon, 18 Oct 2026, after a test on Edens Edge (patio installers and decking installers dropped: they scored almost nothing). 19 Oct 2026: gardening services (Gardener) and garden landscaping (Landscape Gardener) added so those services fold into their categories (page map v3). Plurals are not needed: Google Ads returns the same figures for singular and plural.",
+  "_about": "Extra H1 research candidates per niche and category, tried after the SOP pair (\"<category> <town>\", \"<category> services <town>\"). Each term becomes \"<term> <town>\". \"_sitewide\" terms are added for the homepage and the location pages. Approved by Brandon, 18 Oct 2026, after a test on Edens Edge (patio installers and decking installers dropped: they scored almost nothing). 19 Oct 2026: gardening services (Gardener) and garden landscaping (Landscape Gardener) added so those services fold into their categories (page map v3). Plurals are not needed: Google Ads returns the same figures for singular and plural. 20 Oct 2026: block paving removed from Paving Contractor: \"Block paving\" is a service page under the niche library, and a page and its hub should not contest one keyword.",
   "Landscapers/Gardeners": {
     "_sitewide": [
       "landscaper",
@@ -27,7 +27,6 @@
       "tree surgery"
     ],
     "paving_contractor": [
-      "block paving",
       "driveways"
     ],
     "deck_builder": [
