@@ -47,8 +47,12 @@ function normalise(keyword) {
 }
 
 // Groups over every keyword in play: union by normalised text, and by identical volume and CPC
-// when both CPCs are known. Returns { groupOf(keyword), why(a, b) }.
-function buildGroups(keywords, volumes) {
+// when both CPCs are known AND both keywords are for the same town (Brandon, 19 Oct 2026: figures
+// never join keywords across towns). opts.towns: the client's towns; a keyword's town is the
+// longest one it ends with. Returns { groupOf(keyword), why(a, b) }.
+function buildGroups(keywords, volumes, opts = {}) {
+  const towns = [...new Set((opts.towns || []).map(keywordOf).filter(Boolean))].sort((a, b) => b.length - a.length);
+  const townOf = k => towns.find(t => k === t || k.endsWith(' ' + t)) || '';
   const parent = new Map();
   const find = k => { while (parent.get(k) !== k) { parent.set(k, parent.get(parent.get(k))); k = parent.get(k); } return k; };
   const union = (a, b) => { const x = find(a), y = find(b); if (x !== y) parent.set(x, y); };
@@ -60,7 +64,7 @@ function buildGroups(keywords, volumes) {
     if (byNorm.has(n)) union(k, byNorm.get(n)); else byNorm.set(n, k);
     const v = volumes.get(k);
     if (v && v.volume != null && v.cpc != null) {
-      const f = `${v.volume}|${v.cpc}`;
+      const f = `${townOf(k)}|${v.volume}|${v.cpc}`;
       if (byFigures.has(f)) union(k, byFigures.get(f)); else byFigures.set(f, k);
     }
   }
@@ -68,7 +72,7 @@ function buildGroups(keywords, volumes) {
   const why = (a, b) => {
     if (normalise(a) === normalise(b)) return 'the same words once plurals, word order, "in" and "near me" are ignored';
     const x = volumes.get(keywordOf(a)), y = volumes.get(keywordOf(b));
-    if (x && y && x.cpc != null && x.volume === y.volume && x.cpc === y.cpc) return `identical Google Ads figures (${x.volume}/mo, CPC ${x.cpc}): treated as close variants`;
+    if (x && y && x.cpc != null && x.volume === y.volume && x.cpc === y.cpc && townOf(keywordOf(a)) === townOf(keywordOf(b))) return `identical Google Ads figures (${x.volume}/mo, CPC ${x.cpc}): treated as close variants`;
     return 'linked through other keywords in the same group';
   };
   return { groupOf, why };
@@ -132,7 +136,7 @@ function resolveOnce(rows, ctx, volumes, opts, primaryRule) {
   const plan = new Map(live.map((r, i) => [r.page_key, i]));
   const cands = new Map(live.map(r => [r.page_key, candidatesV2(r, ctx)]));
   const all = [...live.flatMap(r => cands.get(r.page_key).map(c => c.keyword)), ...live.filter(r => r.h1).map(r => keywordOf(r.h1))];
-  const G = buildGroups(all, volumes);
+  const G = buildGroups(all, volumes, { towns: [ctx.baseTown, ...live.map(r => (r.info || {}).town)].filter(Boolean) });
   const vol = k => volumes.get(k) || { volume: null, cpc: null };
 
   // 1. Locked H1s claim their group first (manual always keeps its keyword)

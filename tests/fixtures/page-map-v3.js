@@ -50,7 +50,7 @@ const input = { resolved, baseTown: 'Southampton', otherTowns: 'Romsey\nWinchest
 const table = {
   'tree service southampton': [20, 3], 'tree surgeon southampton': [320, 4], 'gardener southampton': [210, 3], 'garden maintenance southampton': [50, 3.6],
   'tree stump grinding southampton': [40, 2], 'tree removal southampton': [20, 1.5], 'hedge trimming southampton': [30, 6], 'tree planting southampton': [10, null],
-  'tree stump grinding winchester': [20, 1.3], 'tree planting winchester': [20, 1.2], 'tree removal romsey': [20, 1], 'stump grinding and removal southampton': [25, 1], 'tree surgery southampton': [320, 4], 'gardener romsey': [50, 1.8], 'gardener winchester': [140, 2.4],
+  'tree stump grinding winchester': [20, 1], 'tree planting winchester': [20, 1.2], 'tree removal romsey': [20, 1], 'stump grinding and removal southampton': [25, 1], 'tree surgery southampton': [320, 4], 'gardener romsey': [50, 1.8], 'gardener winchester': [140, 2.4],
   'tree surgeon winchester': [140, 3.9], 'tree surgeon romsey': [50, 3.7],
 };
 const build = (extra = {}, opts = {}) => G.buildPageMap({ ...input, ...extra }, { volumes: vol({ ...table, ...(opts.table || {}) }), core: opts.core || new Set(), saved: opts.saved || [] });
@@ -79,6 +79,7 @@ const svcOf = (m, id) => m.services.find(s => s.id === id);
   // ── Town service pages ──
   const tsp = m.rows.filter(r => r.type === 'town_service');
   chk('Town service pages only where "<service> <town>" has volume: Tree Stump Grinding Winchester (20), Tree Planting Winchester (20), Tree Removal Romsey (20); nothing on pattern', tsp.map(r => r.slug).sort().join() === '/locations/romsey/tree-removal,/locations/winchester/tree-planting,/locations/winchester/tree-stump-grinding' && m.townServicePages.count === 3 && JSON.stringify(m.townServicePages.towns) === JSON.stringify({ Romsey: 1, Winchester: 2 }), JSON.stringify(tsp.map(r => r.slug)), '');
+  chk('Cross-town keywords never group on figures alone: "tree removal romsey" and "tree stump grinding winchester", both 20/1.00, each keep their town service page', !!find(m, '/locations/romsey/tree-removal') && !!find(m, '/locations/winchester/tree-stump-grinding'), JSON.stringify(tsp.map(r => r.slug)), '');
   chk('No town service page for a town without volume (Hedge trimming anywhere, Tree stump grinding Romsey), and never one for a service with no base page', !find(m, '/locations/romsey/tree-stump-grinding') && !find(m, '/locations/romsey/hedge-trimming') && !find(m, '/locations/winchester/hedge-trimming') && !find(m, '/locations/romsey/tree-surgery'), '', '');
   const owned = build({}, { table: { 'tree service romsey': [20, 1], 'tree surgeon romsey': [null, null] } });
   chk('A town service page never exists on pattern alone: when its keyword is owned by a page above it (identical figures make "tree removal romsey" one group with the Tree Service Romsey page\'s own keyword, which wins on page type), it is not created and the reason is kept', !find(owned, '/locations/romsey/tree-removal') && owned.droppedTownPages.some(d => d.slug === '/locations/romsey/tree-removal' && /Tree Service Romsey/.test(d.why)) && find(owned, '/locations/romsey/tree-service') && owned.decisions.get('location_category:/locations/romsey/tree-service').source === 'research', JSON.stringify(owned.droppedTownPages), '');
