@@ -1,9 +1,11 @@
 'use strict';
-// Fixture: H1 research (h1-research/*) with a stubbed DataForSEO and pg-mem. Batching at
-// 1,000 keywords, the 90-day cache, tie-break to the first candidate, null and 0-10 as no
-// usable data, never overwriting manual or accepted H1s, statuses untouched, re-runs
-// updating suggestions only, page names and slugs unchanged, service-page H1s unchanged,
-// a job surviving a simulated restart, a failed call leaving the page map intact, and
+// Fixture: H1 research v2 (h1-research/*) with a stubbed DataForSEO and pg-mem. Batching at
+// 1,000 keywords, the 90-day cache, every page type researched (services too), the >10 rule
+// applied at once (H1 Added), the pattern fallback, keyword groups (normalised text; identical
+// volume AND CPC, never volume alone), own name over a synonym, losers falling to their next
+// candidate, pattern collisions as H1 conflicts, hub pages, manual H1s claiming first and never
+// overwritten, re-research (preview, then apply) never touching manual or Copy Generated pages,
+// no accept step, a job surviving a restart, a failed call leaving the page map intact, and
 // credentials never appearing in a log, an error or the job.
 const path = require('path');
 const http = require('http');
@@ -11,12 +13,14 @@ const crypto = require('crypto');
 const express = require('express');
 const root = path.join(__dirname, '../..');
 const H = require(path.join(root, 'h1-research/research.js'));
+const C = require(path.join(root, 'h1-research/claims.js'));
 const D = require(path.join(root, 'h1-research/dataforseo.js'));
 const { ensureH1Tables, createH1Research } = require(path.join(root, 'h1-research/service.js'));
 const { ensurePageMapTables, createPageMapStore } = require(path.join(root, 'page-map/store.js'));
 const { mountPageMapApi } = require(path.join(root, 'page-map/routes.js'));
 const routes = require(path.join(root, 'fillout/routes.js'));
 const S = require(path.join(root, 'tools/seed-edens-edge.js'));
+const fs = require('fs');
 const { newDb, DataType } = require('pg-mem');
 const { ensureFilloutTables, createFilloutService } = require(path.join(root, 'fillout/service.js'));
 const { ensureAudioBlobTable, createPgAudioStore } = require(path.join(root, 'fillout/audio-store.js'));
@@ -71,53 +75,67 @@ const okReply = (keywords, table) => ({ ok: true, status: 200, statusText: 'OK',
   const bal = await D.balance({ env: FAKE, fetchImpl: async () => ({ ok: true, status: 200, json: async () => ({ status_code: 20000, tasks: [{ result: [{ money: { balance: 7.5 } }] }] }) }) });
   chk('The balance comes from /v3/appendix/user_data money.balance', bal === 7.5, bal, 7.5);
 
-  // ── Candidates and selection ──
-  const ctx = { primaryName: 'Gardener', baseTown: 'Southampton', categoryName: k => ({ tree_service: 'Tree Service' })[k] };
-  chk('Candidates per type in SOP order, lower case, no punctuation; service pages none', JSON.stringify([
-    H.candidatesFor({ type: 'homepage', title: 'X Homepage' }, ctx), H.candidatesFor({ type: 'category', title: 'Tree Service' }, ctx),
-    H.candidatesFor({ type: 'location', title: "Chandler's Ford", info: { town: "Chandler's Ford" } }, ctx), H.candidatesFor({ type: 'location_category', title: 'Tree Service Romsey', info: { town: 'Romsey', category_key: 'tree_service' } }, ctx),
-    H.needsResearch({ type: 'service', h1_source: 'auto' })]) === JSON.stringify([
-    ['gardener southampton', 'gardener services southampton'], ['tree service southampton', 'tree service services southampton'],
-    ['gardener chandlers ford', 'gardener services chandlers ford'], ['tree service romsey', 'tree service services romsey'], false]), '', '');
+  // ── v2 rules (h1-research/claims.js), pure ──
   const vol = m => new Map(Object.entries(m).map(([k, v]) => [k, { volume: v[0], cpc: v[1] }]));
-  let s = H.select(['a b', 'a services b'], vol({ 'a b': [210, 3.1], 'a services b': [210, 3.1] }));
-  chk('A tie (Google merges close variants) goes to the first-listed candidate', s.chosen === 'a b' && s.usable && /ties with/.test(s.reason) && /close variants/.test(s.reason), s.reason, '');
-  s = H.select(['a b', 'a services b'], vol({ 'a b': [20, null], 'a services b': [90, 2] }));
-  chk('The second candidate wins when its volume is higher (and says so)', s.chosen === 'a services b' && s.beatFirst && s.display === 'A Services B', JSON.stringify(s), '');
-  for (const [label, m] of [['null', {}], ['zero', { 'a b': [0, null] }], ['10', { 'a b': [10, null], 'a services b': [10, null] }]]) {
-    s = H.select(['a b', 'a services b'], vol(m));
-    chk(`No usable data when the best volume is ${label}: nothing chosen, the first candidate kept as a suggestion`, !s.usable && s.chosen === null && s.suggestion === 'a b' && /no usable data/.test(s.reason), JSON.stringify(s), '');
-  }
-  s = H.select(['a b'], vol({ 'a b': [11, null] }));
-  chk('11 is usable', s.usable && s.volume === 11, '', '');
-  chk('Display form: Title Case', H.displayOf('landscape gardener new forest district') === 'Landscape Gardener New Forest District', H.displayOf('landscape gardener new forest district'), '');
-
-  // ── No two pages share an H1; extra terms; Title Case ──
-  const rowsA = [
-    { page_key: 'homepage:/', type: 'homepage', title: 'X Homepage', h1_source: 'needed', sort_order: 0 },
-    { page_key: 'category:/gardener', type: 'category', title: 'Gardener', h1_source: 'needed', info: { category_key: 'gardener' }, sort_order: 1 },
-    { page_key: 'category:/lawn-care-service', type: 'category', title: 'Lawn Care Service', h1_source: 'needed', info: { category_key: 'lawn_care_service' }, sort_order: 2 },
-    { page_key: 'location:/locations/romsey', type: 'location', title: 'Romsey', h1_source: 'needed', info: { town: 'Romsey' }, sort_order: 4 },
-    { page_key: 'location_category:/locations/romsey/gardener', type: 'location_category', title: 'Gardener Romsey', h1_source: 'needed', info: { town: 'Romsey', category_key: 'gardener' }, sort_order: 5 },
-    { page_key: 'service:/services/lawn-care', type: 'service', title: 'Lawn care', h1: 'Lawn Care Southampton', h1_source: 'auto', sort_order: 3 },
-    { page_key: 'location_category:/locations/romsey/tree-service', type: 'location_category', title: 'Tree Service Romsey', h1: 'Tree Surgeon Romsey', h1_source: 'manual', info: { town: 'Romsey', category_key: 'tree_service' }, sort_order: 6 },
-    { page_key: 'location:/locations/winchester', type: 'location', title: 'Winchester', h1_source: 'needed', info: { town: 'Winchester' }, sort_order: 7 },
-  ];
-  const ctxA = { primaryName: 'Gardener', primaryKey: 'gardener', baseTown: 'Southampton', categoryName: k => ({ gardener: 'Gardener', lawn_care_service: 'Lawn Care Service', tree_service: 'Tree Service' })[k],
+  const slugOf = t => t.toLowerCase().replace(/[^a-z0-9]+/g, '-');
+  const row = (type, title, extra = {}) => ({ page_key: `${type}:/${slugOf(title)}`, type, title, h1: '', h1_source: type === 'service' ? 'auto' : 'needed', status: 'Not Started', applies: true, info: {}, sort_order: 0, ...extra });
+  const ctxB = { primaryName: 'Gardener', primaryKey: 'gardener', baseTown: 'Southampton', categoryName: k => ({ gardener: 'Gardener', lawn_care_service: 'Lawn Care Service', tree_service: 'Tree Service' })[k],
     terms: { gardener: ['gardening services'], lawn_care_service: ['lawn care'], tree_service: ['tree surgeon'], _sitewide: ['landscaper'] } };
-  chk('Extra terms come after the SOP pair; the homepage and location pages also get the sitewide terms', JSON.stringify(H.candidatesFor(rowsA[0], ctxA)) === JSON.stringify(['gardener southampton', 'gardener services southampton', 'gardening services southampton', 'landscaper southampton']) && JSON.stringify(H.candidatesFor(rowsA[1], ctxA)) === JSON.stringify(['gardener southampton', 'gardener services southampton', 'gardening services southampton']), JSON.stringify(H.candidatesFor(rowsA[0], ctxA)), '');
-  const planA = H.plan(rowsA, ctxA);
-  chk('Pages are researched in priority order: homepage, categories, locations, location categories; never a service or manual page', planA.pages.map(p => p.row.page_key).join() === 'homepage:/,category:/gardener,category:/lawn-care-service,location:/locations/romsey,location:/locations/winchester,location_category:/locations/romsey/gardener', planA.pages.map(p => p.row.page_key).join(), '');
-  const volA = vol({ 'gardener southampton': [210, 3], 'gardening services southampton': [90, 2], 'landscaper southampton': [50, 1], 'lawn care southampton': [400, 2], 'lawn care service southampton': [20, 1], 'gardener romsey': [50, 1], 'gardening services romsey': [20, 1], 'tree surgeon romsey': [60, 2], 'gardener winchester': [140, 2] });
-  const asg = H.assign(planA.pages, volA, rowsA);
-  const got = k => asg.find(p => p.row.page_key === k).sel;
-  chk('The homepage takes "Gardener Southampton"; the Gardener category page, which would also win it, takes its next best ("Gardening Services Southampton") and says why', got('homepage:/').display === 'Gardener Southampton' && got('category:/gardener').display === 'Gardening Services Southampton' && /already the H1 of the homepage/.test(got('category:/gardener').reason), JSON.stringify(got('category:/gardener')), '');
-  chk('A service page\'s H1 is taken: Lawn Care Service skips "lawn care southampton" (400) and takes its own name (20)', got('category:/lawn-care-service').display === 'Lawn Care Service Southampton' && /already the H1 of the service page "Lawn care"/.test(got('category:/lawn-care-service').reason), JSON.stringify(got('category:/lawn-care-service')), '');
-  chk('The location page Romsey takes "Gardener Romsey"; its Gardener location category page takes the next open one', got('location:/locations/romsey').display === 'Gardener Romsey' && got('location_category:/locations/romsey/gardener').display === 'Gardening Services Romsey', JSON.stringify([got('location:/locations/romsey').display, got('location_category:/locations/romsey/gardener').display]), '');
-  const allTaken = H.assign(H.plan([rowsA[0], rowsA[1], { ...rowsA[1], page_key: 'category:/x', sort_order: 9 }], { ...ctxA, terms: {} }).pages, vol({ 'gardener southampton': [210, 3], 'gardener services southampton': [50, 1] }), []);
-  chk('When every candidate is taken the page has no H1 and no suggestion (so "Use" can never make a duplicate)', allTaken[2].sel.usable === false && allTaken[2].sel.suggestion === null && /no open candidate/.test(allTaken[2].sel.reason) && allTaken[0].sel.display === 'Gardener Southampton' && allTaken[1].sel.display === 'Gardener Services Southampton', JSON.stringify(allTaken[2].sel), '');
-  const sugg = H.assign(H.plan([rowsA[3], rowsA[4]], { ...ctxA, terms: {} }).pages, new Map(), rowsA);
-  chk('No-data suggestions are kept distinct too: the location page suggests "gardener romsey", its location category page the next one', sugg[0].sel.suggestion === 'gardener romsey' && sugg[1].sel.suggestion === 'gardener services romsey', JSON.stringify(sugg.map(s => s.sel.suggestion)), '');
+  const pick = (out, key) => out.decisions.find(d => d.row.page_key === key);
+  chk('Normalising: lower case, no punctuation, singular/plural, "services", "in", "near me" dropped, word order ignored', C.normalise('Gardeners in Southampton') === C.normalise('gardener services southampton') && C.normalise('Southampton gardener near me') === C.normalise('gardener southampton') && C.normalise("Chandler's Ford gardeners") === C.normalise('gardener chandlers ford') && C.normalise('tree surgeon romsey') !== C.normalise('tree surgery romsey'), C.normalise('Gardeners in Southampton'), C.normalise('gardener southampton'));
+  let G = C.buildGroups(['landscaper southampton', 'landscaping southampton'], vol({ 'landscaper southampton': [260, 2.45], 'landscaping southampton': [260, 2.45] }));
+  chk('Grouping by identical figures: same volume AND same CPC are one group (close variants), and the reason says so', G.groupOf('landscaper southampton') === G.groupOf('landscaping southampton') && /identical Google Ads figures \(260\/mo, CPC 2\.45\)/.test(G.why('landscaper southampton', 'landscaping southampton')), G.why('landscaper southampton', 'landscaping southampton'), '');
+  G = C.buildGroups(['landscaper southampton', 'landscaping southampton'], vol({ 'landscaper southampton': [260, null], 'landscaping southampton': [260, null] }));
+  chk('Not grouped by volume alone when the CPC is null', G.groupOf('landscaper southampton') !== G.groupOf('landscaping southampton'), '', '');
+  G = C.buildGroups(['landscaper southampton', 'landscaping southampton'], vol({ 'landscaper southampton': [260, 2.45], 'landscaping southampton': [260, 1.1] }));
+  chk('Not grouped when the volume matches but the CPC differs', G.groupOf('landscaper southampton') !== G.groupOf('landscaping southampton'), '', '');
+  chk('Service pages are researched: "<service> <base town>", then "<service> services <base town>", both its own name', JSON.stringify(C.candidatesV2(row('service', 'Lawn care'), ctxB)) === JSON.stringify([{ keyword: 'lawn care southampton', fit: 'own' }, { keyword: 'lawn care services southampton', fit: 'own' }]), JSON.stringify(C.candidatesV2(row('service', 'Lawn care'), ctxB)), '');
+  chk('The hub pattern: "<Primary Category> Services in and around <Town>", "Services" never doubled', C.hubPattern('Gardener', 'Romsey') === 'Gardener Services in and around Romsey' && C.hubPattern('Cleaning Services', 'Leeds') === 'Cleaning Services in and around Leeds' && C.hubPattern('Tree Service', 'Ripon') === 'Tree Services in and around Ripon', C.hubPattern('Tree Service', 'Ripon'), '');
+
+  const rowsB = [
+    row('homepage', 'X Homepage', { page_key: 'homepage:/' }),
+    row('category', 'Gardener', { info: { category_key: 'gardener' }, sort_order: 1 }),
+    row('category', 'Lawn Care Service', { info: { category_key: 'lawn_care_service' }, sort_order: 2 }),
+    row('category', 'Tree Service', { info: { category_key: 'tree_service' }, sort_order: 3 }),
+    row('service', 'Lawn care', { sort_order: 4 }),
+    row('service', 'Garden design', { sort_order: 5 }),
+    row('service', 'Garden designs', { sort_order: 6 }),
+    row('location', 'Romsey', { info: { town: 'Romsey' }, sort_order: 7 }),
+    row('location', 'Winchester', { info: { town: 'Winchester' }, sort_order: 8 }),
+    row('location_category', 'Gardener Romsey', { page_key: 'location_category:/romsey/gardener', info: { town: 'Romsey', category_key: 'gardener' }, sort_order: 9 }),
+    row('location_category', 'Tree Service Romsey', { page_key: 'location_category:/romsey/tree-service', h1: 'Tree Surgeon Romsey', h1_source: 'manual', status: 'H1 Added', info: { town: 'Romsey', category_key: 'tree_service' }, sort_order: 10 }),
+  ];
+  const volB = vol({ 'gardener southampton': [210, 3], 'gardening services southampton': [90, 2], 'lawn care southampton': [400, 2], 'lawn care service southampton': [20, 1], 'gardener romsey': [50, 1], 'landscaper romsey': [30, 1.5], 'tree surgeon romsey': [60, 2], 'paving contractor southampton': [10, null] });
+  const outB = C.resolve(rowsB, ctxB, volB);
+  const hp = pick(outB, 'homepage:/'), gard = pick(outB, 'category:/gardener'), lcs = pick(outB, 'category:/lawn-care-service'), lawn = pick(outB, 'service:/lawn-care');
+  chk('More than 10 searches: applied as research with its volume (the homepage takes "Gardener Southampton", 210)', hp.source === 'research' && hp.h1 === 'Gardener Southampton' && hp.volume === 210, JSON.stringify([hp.source, hp.h1, hp.volume]), '');
+  chk('A loser falls to its next best unclaimed candidate above 10: the Gardener category page takes "Gardening Services Southampton" and names the homepage', gard.source === 'research' && gard.h1 === 'Gardening Services Southampton' && gard.lostTo.length === 1 && gard.lostTo[0].by === 'the homepage' && /after losing "gardener southampton" \(210\/mo\) to the homepage/.test(gard.reason), JSON.stringify([gard.h1, gard.reason]), '');
+  chk('Own name beats a synonym: the service page "Lawn care" keeps "Lawn Care Southampton" (400) against the Lawn Care Service category, whose synonym it is; "Lawn Care Service Southampton" normalises into the same group, so that category page is an H1 conflict', lawn.source === 'research' && lawn.h1 === 'Lawn Care Southampton' && lawn.volume === 400 && lcs.source === 'conflict' && lcs.h1 === '' && lcs.claimedBy === 'service page "Lawn care"', JSON.stringify([lawn.h1, lcs.h1, lcs.lostTo]), '');
+  const tree = pick(outB, 'category:/tree-service'), win = pick(outB, 'location:/winchester');
+  chk('No usable data: the standard pattern is applied ("pattern"), with the reason', tree.source === 'pattern' && tree.h1 === 'Tree Service Southampton' && /no keyword above 10 searches a month: the standard pattern is used/.test(tree.reason) && win.source === 'pattern' && win.h1 === 'Gardener Winchester' && !win.hub, JSON.stringify([tree.h1, tree.reason, win.h1]), '');
+  const gd = pick(outB, 'service:/garden-design'), gds = pick(outB, 'service:/garden-designs');
+  chk('A pattern that collides with another page\'s H1 is an "H1 conflict": H1 left empty, the page that has it named', gd.source === 'pattern' && gd.h1 === 'Garden Design Southampton' && gds.source === 'conflict' && gds.h1 === '' && gds.claimedBy === 'service page "Garden design"' && /choose an H1 by hand/.test(gds.reason), JSON.stringify([gd.h1, gds.source, gds.reason]), '');
+  const rom = pick(outB, 'location:/romsey'), lcg = pick(outB, 'location_category:/romsey/gardener'), man = pick(outB, 'location_category:/romsey/tree-service');
+  chk('Hub rule: the Gardener Romsey location category page owns "Gardener Romsey"; the Romsey location page takes its synonym "Landscaper Romsey" (30) and is marked a hub page, not a conflict', lcg.h1 === 'Gardener Romsey' && rom.source === 'research' && rom.h1 === 'Landscaper Romsey' && rom.hub === 'hub page: Gardener keyword owned by location category page "Gardener Romsey"', JSON.stringify([lcg.h1, rom.source, rom.h1, rom.hub]), '');
+  const outHub = C.resolve(rowsB, ctxB, vol({ 'gardener romsey': [50, 1] }));
+  chk('Hub rule with no other candidate above 10: the hub pattern "Gardener Services in and around Romsey"', pick(outHub, 'location:/romsey').source === 'pattern' && pick(outHub, 'location:/romsey').h1 === 'Gardener Services in and around Romsey' && /hub page/.test(pick(outHub, 'location:/romsey').reason), JSON.stringify(pick(outHub, 'location:/romsey')), '');
+  chk('A manual H1 is never changed and keeps its keyword', man.source === 'manual' && man.h1 === 'Tree Surgeon Romsey', JSON.stringify([man.source, man.h1]), '');
+  const all = outB.decisions.filter(d => d.h1).map(d => outB.groupOf(d.h1));
+  chk('No two pages target the same keyword group', new Set(all).size === all.length, JSON.stringify(outB.decisions.map(d => d.h1)), '');
+  // Manual claims first, even over the homepage
+  const outM = C.resolve([rowsB[0], rowsB[1], row('location_category', 'Gardener Hythe', { page_key: 'location_category:/hythe/gardener', h1: 'Gardeners in Southampton', h1_source: 'manual', info: { town: 'Hythe', category_key: 'gardener' } })], ctxB, volB);
+  chk('Manual H1s claim first, across the whole client: a location category page\'s manual "Gardeners in Southampton" keeps the group, so the homepage takes its next best', pick(outM, 'homepage:/').h1 === 'Gardening Services Southampton' && pick(outM, 'location_category:/hythe/gardener').h1 === 'Gardeners in Southampton', JSON.stringify(pick(outM, 'homepage:/')), '');
+  chk('…and says which page took its keyword', pick(outM, 'homepage:/').lostTo.some(l => l.keyword === 'gardener southampton' && /Gardener Hythe/.test(l.by)), JSON.stringify(pick(outM, 'homepage:/').lostTo), '');
+  // Identical figures make a contested group: the category page "Landscaping" cannot take what the homepage has
+  const ctxL = { ...ctxB, primaryName: 'Landscaper', primaryKey: 'landscaper', terms: {} };
+  const rowsL = [row('homepage', 'X Homepage', { page_key: 'homepage:/' }), row('category', 'Landscaping', { info: { category_key: 'landscaping' }, sort_order: 1 })];
+  const outL = C.resolve(rowsL, ctxL, vol({ 'landscaper southampton': [260, 2.45], 'landscaping southampton': [260, 2.45] }));
+  chk('Close variants by identical volume and CPC: the homepage takes "Landscaper Southampton"; "Landscaping Southampton" is the same group, so the category page is an H1 conflict, with the reason', pick(outL, 'homepage:/').h1 === 'Landscaper Southampton' && pick(outL, 'category:/landscaping').source === 'conflict' && /identical Google Ads figures/.test(pick(outL, 'category:/landscaping').lostTo.map(l => l.why).join() + pick(outL, 'category:/landscaping').reason), JSON.stringify(pick(outL, 'category:/landscaping')), '');
+  const outL2 = C.resolve(rowsL, ctxL, vol({ 'landscaper southampton': [260, null], 'landscaping southampton': [260, null] }));
+  chk('…but with a null CPC they stay apart: both pages get their own H1', pick(outL2, 'homepage:/').h1 === 'Landscaper Southampton' && pick(outL2, 'category:/landscaping').h1 === 'Landscaping Southampton' && pick(outL2, 'category:/landscaping').source === 'research', JSON.stringify(outL2.decisions.map(d => d.h1)), '');
+  // Pages research must not change
+  const outC = C.resolve([{ ...rowsB[0], h1: 'Lawn Care Southampton', h1_source: 'research', status: 'Copy Generated' }, rowsB[4]], ctxB, volB);
+  chk('A page at Copy Generated keeps its H1, claims it first, and gets "research now suggests"; the service page whose keyword it holds has no other usable candidate, so it is a conflict', pick(outC, 'homepage:/').source === 'locked' && pick(outC, 'homepage:/').h1 === 'Lawn Care Southampton' && pick(outC, 'homepage:/').suggests === 'Gardener Southampton' && pick(outC, 'service:/lawn-care').source === 'conflict', JSON.stringify([pick(outC, 'homepage:/'), pick(outC, 'service:/lawn-care').h1].map(x => x.suggests || x)), '');
   chk('Title Case for H1s: small words lower case, acronyms kept', H.titleCase('Lawn mowing and maintenance Southampton') === 'Lawn Mowing and Maintenance Southampton' && H.titleCase('Excavation & grading Southampton') === 'Excavation & Grading Southampton' && H.titleCase('CCTV drain surveys Romsey') === 'CCTV Drain Surveys Romsey', H.titleCase('Lawn mowing and maintenance Southampton'), '');
 
   // ── The service with pg-mem: the one-click flow ──
@@ -139,7 +157,7 @@ const okReply = (keywords, table) => ({ ok: true, status: 200, statusText: 'OK',
   // Volumes like the real dry run (18 Oct 2026), plus a tie and a second-candidate win
   let table = { 'gardener southampton': [210, 3.12], 'landscape gardener southampton': [20, 2.79], 'tree service southampton': [20, 3.03], 'paving contractor southampton': [10, null],
     'gardener romsey': [50, 1.81], 'gardener winchester': [140, 2.43], 'tree service winchester': [30, null], 'deck builder southampton': [40, 1], 'deck builder services southampton': [40, 1],
-    'landscape designer southampton': [15, null], 'landscape designer services southampton': [60, 2] };
+    'landscape designer southampton': [15, null], 'landscape designer services southampton': [60, 2], 'lawn care southampton': [400, 2] };
   const searched = [];
   const searchVolume = async kws => { searched.push(kws.length); return D.searchVolume(kws, { env: FAKE, fetchImpl: async (u, o) => okReply(JSON.parse(o.body)[0].keywords, table) }); };
   const logs = [];
@@ -154,65 +172,62 @@ const okReply = (keywords, table) => ({ ok: true, status: 200, statusText: 'OK',
   job = await waitFor(job.id);
   let rows = await store.saved(cid);
   const byKey = k => rows.find(r => r.page_key === k);
-  chk('The job builds the pages then researches: complete, 176 pages, 98 researched, one DataForSEO call for 308 keywords (the SOP pairs plus the approved Landscapers/Gardeners words), cost stored', job.status === 'complete' && job.pages_total === 176 && job.pages_built === 176 && job.keywords_total === 308 && job.keywords_fetched === 308 && searched.join() === '308' && job.cost === 0.09, JSON.stringify(job), '');
-  chk('Stage text: "Complete: X suggested, Y need a manual H1, cost $Z"', /^Complete: \d+ suggested, \d+ need a manual H1, cost \$0\.09$/.test(job.stage) && job.suggested_count + job.no_data_count === 98, job.stage, '');
-  chk('A winner above 10 is written as the H1: suggested, keyword and volume stored, status still Not Started', byKey('homepage:/').h1 === 'Gardener Southampton' && byKey('homepage:/').h1_source === 'suggested' && byKey('homepage:/').h1_keyword === 'gardener southampton' && byKey('homepage:/').h1_volume === 210 && byKey('homepage:/').status === 'Not Started', JSON.stringify(byKey('homepage:/')), '');
-  chk('No usable data (10, null): H1 left empty, h1_source needed, the first candidate stored as a suggestion', byKey('category:/paving-contractor').h1 === '' && byKey('category:/paving-contractor').h1_source === 'needed' && byKey('category:/paving-contractor').h1_suggestion === 'Paving Contractor Southampton' && byKey('location:/locations/kings-worthy').h1_suggestion === 'Gardener Kings Worthy', JSON.stringify(byKey('category:/paving-contractor')), '');
+  const nServices = rows.filter(r => r.type === 'service').length;
+  chk('The job builds the pages then researches every page, service pages included, in ONE batched DataForSEO call (fewer than 1,000 keywords), cost stored', job.status === 'complete' && job.pages_total === 176 && job.keywords_total > 308 && job.keywords_fetched === job.keywords_total && searched.join() === String(job.keywords_total) && job.cost === 0.09 && nServices > 0, JSON.stringify([job.status, job.keywords_total, job.keywords_fetched, searched, nServices]), '');
+  chk('Stage text: "Complete: X H1s by search volume, Y by pattern, Z H1 conflicts to resolve, cost $…"', /^Complete: \d+ H1s by search volume, \d+ by pattern(, \d+ H1 conflicts? to resolve)?, cost \$0\.09$/.test(job.stage) && job.suggested_count + job.no_data_count + job.conflict_count === 176, job.stage, '');
+  chk('More than 10 searches: applied as the H1 immediately, h1_source "research", keyword and volume stored, status Not Started → H1 Added', byKey('homepage:/').h1 === 'Gardener Southampton' && byKey('homepage:/').h1_source === 'research' && byKey('homepage:/').h1_keyword === 'gardener southampton' && byKey('homepage:/').h1_volume === 210 && byKey('homepage:/').status === 'H1 Added' && /210\/mo/.test(byKey('homepage:/').h1_reason), JSON.stringify(byKey('homepage:/')), '');
+  chk('A service page is researched like the rest: "Lawn Care Southampton" by volume (400)', byKey('service:/services/lawn-care').h1 === 'Lawn Care Southampton' && byKey('service:/services/lawn-care').h1_source === 'research' && byKey('service:/services/lawn-care').h1_volume === 400, JSON.stringify(byKey('service:/services/lawn-care')), '');
+  chk('No usable data (10, null): the standard pattern is applied, h1_source "pattern", status H1 Added', byKey('category:/paving-contractor').h1 === 'Paving Contractor Southampton' && byKey('category:/paving-contractor').h1_source === 'pattern' && byKey('category:/paving-contractor').status === 'H1 Added' && /no keyword above 10/.test(byKey('category:/paving-contractor').h1_reason), JSON.stringify(byKey('category:/paving-contractor')), '');
   chk('A tie on identical figures goes to the first candidate; a higher second candidate wins', byKey('category:/deck-builder').h1 === 'Deck Builder Southampton' && byKey('category:/landscape-designer').h1 === 'Landscape Designer Services Southampton', JSON.stringify([byKey('category:/deck-builder').h1, byKey('category:/landscape-designer').h1]), '');
-  chk('Page names and slugs are exactly the plan\'s; service-page H1s stay "<service> Southampton" (auto, never researched)', planRows.every(p => { const r = byKey(p.page_key); return r && r.title === p.title && r.slug === p.slug; }) && rows.filter(r => r.type === 'service').every(r => r.h1_source === 'auto' && r.h1 === H.titleCase(`${r.title} Southampton`)), '', '');
-  const h1s = rows.filter(r => r.applies && r.h1).map(r => H.keywordOf(r.h1));
-  const suggs = rows.filter(r => r.applies && !r.h1 && r.h1_suggestion).map(r => H.keywordOf(r.h1_suggestion));
-  chk('After a full run no two pages share an H1, and no suggestion repeats another page\'s H1 or suggestion (the homepage keeps "Gardener Southampton", the Gardener page does not)', new Set(h1s).size === h1s.length && new Set([...h1s, ...suggs]).size === h1s.length + suggs.length && byKey('category:/gardener').h1 !== 'Gardener Southampton', JSON.stringify(h1s.filter((k, i) => h1s.indexOf(k) !== i)), '[]');
+  chk('Hub pages: the Romsey location page does not take "Gardener Romsey" (the Gardener Romsey location category page has it) and is marked a hub page', byKey('location_category:/locations/romsey/gardener').h1 === 'Gardener Romsey' && byKey('location:/locations/romsey').h1 === 'Gardener Services in and around Romsey' && /^hub page: Gardener keyword owned by location category page "Gardener Romsey"$/.test(byKey('location:/locations/romsey').h1_hub), JSON.stringify([byKey('location:/locations/romsey').h1, byKey('location:/locations/romsey').h1_hub]), '');
+  chk('Page names and slugs are exactly the plan\'s', planRows.every(p => { const r = byKey(p.page_key); return r && r.title === p.title && r.slug === p.slug; }), '', '');
+  const h1s = rows.filter(r => r.applies && r.h1).map(r => C.normalise(r.h1));
+  const conflicts = rows.filter(r => r.h1_source === 'conflict');
+  chk('After a full run no two pages share an H1 or a keyword group; every conflict has an empty H1 and says which page has its keyword', new Set(h1s).size === h1s.length && conflicts.every(r => r.h1 === '' && /already the H1 of/.test(r.h1_reason)) && conflicts.length === job.conflict_count, JSON.stringify(conflicts.map(r => [r.title, r.h1_reason])), '');
   const cands = await h1.candidates(cid);
-  chk('Every candidate is stored per page with volume, CPC, which one was chosen and why', cands['homepage:/'].length === 5 && cands['homepage:/'].map(c => c.candidate).join() === 'gardener southampton,gardener services southampton,garden maintenance southampton,landscaper southampton,landscaping southampton' && cands['homepage:/'][0].chosen === true && /highest volume/.test(cands['homepage:/'][0].reason) && cands['homepage:/'][1].volume === null && Object.keys(cands).length === 98, JSON.stringify(cands['homepage:/']), '');
+  chk('Every candidate is stored per page with volume, CPC, which one was applied and why (services too)', cands['homepage:/'].length === 5 && cands['homepage:/'].map(c => c.candidate).join() === 'gardener southampton,gardener services southampton,garden maintenance southampton,landscaper southampton,landscaping southampton' && cands['homepage:/'][0].chosen === true && /210\/mo/.test(cands['homepage:/'][0].reason) && cands['homepage:/'][1].volume === null && /not usable/.test(cands['homepage:/'][1].reason) && Object.keys(cands).length === 176 && cands['service:/services/lawn-care'][0].chosen === true, JSON.stringify(cands['homepage:/']), '');
 
-  // A person's work: a manual H1, an accepted suggestion, a status, and an edit to a suggested row's status
-  const loc = byKey('location:/locations/romsey'), win = byKey('location:/locations/winchester'), lc = byKey('location_category:/locations/winchester/tree-service');
+  // A person's work: a manual H1, a page at Copy Generated, and an old v1 "suggested" row
+  const kings = byKey('location:/locations/kings-worthy'), copyGen = byKey('location:/locations/winchester'), lc = byKey('location_category:/locations/winchester/tree-service');
   await store.setRow(cid, byKey('category:/paving-contractor').id, { h1: 'Patio Layers Southampton' });
-  await store.setRow(cid, loc.id, { accept: true });
-  await store.setRow(cid, win.id, { status: 'Copy Generated' });
+  await store.setRow(cid, copyGen.id, { status: 'Copy Generated' });
   await store.setRow(cid, lc.id, { h1: 'Tree Surgeon Winchester' });
+  await pool.query(`UPDATE client_page_map SET h1 = 'Gardener Kings Worthy', h1_source = 'suggested', h1_suggestion = 'Gardener Kings Worthy', status = 'Not Started' WHERE id = $1`, [kings.id]);
   rows = await store.saved(cid);
-  chk('Accept: manual, accepted, status Not Started → H1 Added; a typed H1 is manual, not accepted', byKey(loc.page_key).h1_source === 'manual' && byKey(loc.page_key).h1_accepted === true && byKey(loc.page_key).status === 'H1 Added' && byKey('category:/paving-contractor').h1_source === 'manual' && byKey('category:/paving-contractor').h1_accepted === false && byKey('category:/paving-contractor').h1_suggestion === null, JSON.stringify(byKey(loc.page_key)), '');
-  chk('Accept is only for a suggested H1', await store.setRow(cid, byKey('location:/locations/kings-worthy').id, { accept: true }).then(() => false, e => e.status === 400), '', '400');
+  chk('A person typing an H1 sets h1_source "manual"', byKey('category:/paving-contractor').h1_source === 'manual' && byKey(lc.page_key).h1_source === 'manual', '', '');
+  chk('There is no accept step: accept is refused', await store.setRow(cid, byKey('homepage:/').id, { accept: true }).then(() => false, e => e.status === 400), '', '400');
+  const copyGenH1 = byKey(copyGen.page_key).h1;
 
-  // Re-research with new volumes: suggestions move, a person's work never
-  table = { ...table, 'gardener southampton': [5, null], 'gardener services southampton': [300, 1], 'gardener romsey': [999, 1], 'gardener winchester': [1, null], 'paving contractor services southampton': [800, 1], 'tree service winchester': [0, null], 'gardener eastleigh': [70, 1] };
-  now = new Date('2026-10-18T11:00:00Z');
-  job = await waitFor((await h1.start(cid, { kind: 'research' })).id);
-  rows = await store.saved(cid);
-  chk('Re-research: cached keywords are not fetched again (0 fetched, no new call, cost 0)', job.status === 'complete' && job.keywords_fetched === 0 && searched.length === 1 && job.cost === 0, JSON.stringify([job.keywords_fetched, searched]), '');
-  // Let the cache expire so the new volumes are seen
+  // Re-research with new volumes (the cache expired): a preview first, then apply
+  table = { ...table, 'gardener southampton': [5, null], 'gardener services southampton': [300, 1], 'gardener winchester': [1, null], 'landscaper winchester': [500, 4], 'paving contractor services southampton': [800, 1], 'tree service winchester': [0, null], 'gardener eastleigh': [70, 1], 'tree surgeon winchester': [900, 5] };
   now = new Date('2027-01-20T10:00:00Z');
+  const before = JSON.stringify((await store.saved(cid)).map(r => [r.page_key, r.h1, r.h1_source, r.status]));
+  const pv = await h1.preview(cid);
+  rows = await store.saved(cid);
+  chk('The re-research preview writes no H1 (only caches the keywords it had to look up, in one call)', JSON.stringify(rows.map(r => [r.page_key, r.h1, r.h1_source, r.status])) === before && searched.length === 2, JSON.stringify(searched), '');
+  const ch = k => pv.changes.find(c => c.page_key === k);
+  chk('The preview lists old → new for pages that would change (the homepage to "Gardener Services Southampton", 300)', ch('homepage:/') && ch('homepage:/').from === 'Gardener Southampton' && ch('homepage:/').to === 'Gardener Services Southampton' && ch('homepage:/').volume === 300, JSON.stringify(ch('homepage:/')), '');
+  chk('The preview never lists a manual page or one at Copy Generated; Copy Generated gets "research now suggests"', !ch('category:/paving-contractor') && !ch(lc.page_key) && !ch(copyGen.page_key) && pv.notes.some(n => n.page_key === copyGen.page_key && n.suggests === 'Landscaper Winchester'), JSON.stringify([pv.notes, pv.changes.map(c => c.page_key).filter(k => /winchester|paving/.test(k))]), '');
   job = await waitFor((await h1.start(cid, { kind: 'research' })).id);
   rows = await store.saved(cid);
-  chk('After 90 days the cache is stale and the keywords are fetched again in one call: 300, as pages with a manual or accepted H1 are no longer researched', job.keywords_fetched === 300 && searched.join() === '308,300', JSON.stringify(searched), '308,300');
-  chk('Re-research updates suggestions: the homepage now takes the second candidate (300 vs 5)', byKey('homepage:/').h1 === 'Gardener Services Southampton' && byKey('homepage:/').h1_source === 'suggested', byKey('homepage:/').h1, '');
-  chk('A suggestion that falls to 10 or less goes back to "needed" with a suggestion (Winchester location, status kept)', byKey('location:/locations/winchester').h1 === '' && byKey('location:/locations/winchester').h1_source === 'needed' && byKey('location:/locations/winchester').status === 'Copy Generated', JSON.stringify(byKey('location:/locations/winchester')), '');
-  chk('Never overwritten: the manual Paving Contractor H1 (though its second candidate now has 800), the accepted Romsey H1 (though 999 now), the typed Tree Surgeon Winchester H1', byKey('category:/paving-contractor').h1 === 'Patio Layers Southampton' && byKey('location:/locations/romsey').h1 === 'Gardener Romsey' && byKey('location:/locations/romsey').h1_accepted === true && byKey(lc.page_key).h1 === 'Tree Surgeon Winchester' && byKey(lc.page_key).h1_source === 'manual', JSON.stringify([byKey('category:/paving-contractor').h1, byKey('location:/locations/romsey').h1, byKey(lc.page_key).h1]), '');
-  chk('Statuses untouched by research: H1 Added and Copy Generated kept, everything else still Not Started', byKey('location:/locations/romsey').status === 'H1 Added' && byKey('location:/locations/winchester').status === 'Copy Generated' && rows.filter(r => ![loc.page_key, win.page_key, lc.page_key, 'category:/paving-contractor'].includes(r.page_key)).every(r => r.status === 'Not Started'), '', '');
+  chk('Applying uses the keywords the preview cached: no new call', job.status === 'complete' && job.keywords_fetched === 0 && searched.length === 2, JSON.stringify([job.keywords_fetched, searched]), '');
+  chk('Re-research changed the homepage as previewed', byKey('homepage:/').h1 === 'Gardener Services Southampton' && byKey('homepage:/').h1_source === 'research', byKey('homepage:/').h1, '');
+  chk('Never touched: the manual Paving Contractor H1 (its second candidate now has 800), the typed Tree Surgeon Winchester (900 now), the Copy Generated Winchester page', byKey('category:/paving-contractor').h1 === 'Patio Layers Southampton' && byKey('category:/paving-contractor').h1_source === 'manual' && byKey(lc.page_key).h1 === 'Tree Surgeon Winchester' && byKey(lc.page_key).h1_source === 'manual' && byKey(copyGen.page_key).h1 === copyGenH1 && byKey(copyGen.page_key).status === 'Copy Generated', JSON.stringify([byKey('category:/paving-contractor').h1, byKey(lc.page_key).h1, byKey(copyGen.page_key).h1]), '');
+  chk('The Copy Generated page shows "research now suggests Landscaper Winchester" instead', byKey(copyGen.page_key).h1_suggests === 'Landscaper Winchester', byKey(copyGen.page_key).h1_suggests, 'Landscaper Winchester');
+  chk('An old v1 "suggested" row is converted on the next research run', ['research', 'pattern'].includes(byKey(kings.page_key).h1_source) && byKey(kings.page_key).h1_suggestion === null && byKey(kings.page_key).status === 'H1 Added', JSON.stringify(byKey(kings.page_key)), '');
+  const h1s2 = rows.filter(r => r.applies && r.h1).map(r => C.normalise(r.h1));
+  chk('Still no two pages share a keyword group', new Set(h1s2).size === h1s2.length, '', '');
 
-  // "Use all suggestions" for one page type
-  rows = await store.saved(cid);
-  const lcNoData = rows.filter(r => r.applies && r.type === 'location_category' && !r.h1 && r.h1_source !== 'manual' && r.h1_suggestion);
-  const clash = lcNoData[0];
-  const kwLoc = rows.find(r => r.page_key === 'location:/locations/kings-worthy');
-  await store.setRow(cid, kwLoc.id, { h1: clash.h1_suggestion }); // a person typed the same words on another page
-  const beforeUse = JSON.stringify((await store.saved(cid)).filter(r => r.type !== 'location_category').map(r => [r.page_key, r.h1, r.h1_source, r.status]));
-  const used = await store.useSuggestions(cid, { type: 'location_category' });
-  rows = await store.saved(cid);
-  chk('Use all suggestions: every no-data location category page takes its suggestion as a manual H1, status Not Started → H1 Added', used.used.length === lcNoData.length - 1 && used.used.every(u => { const r = rows.find(x => x.title === u.title && x.type === 'location_category'); return r.h1 === u.h1 && r.h1_source === 'manual' && r.h1_accepted === false && !r.h1_suggestion && r.status === 'H1 Added'; }), JSON.stringify([used.used.length, lcNoData.length]), '');
-  chk('A suggestion that would repeat an H1 a person typed elsewhere is skipped and reported, and that page stays empty', used.skipped.length === 1 && used.skipped[0].title === clash.title && /already the H1 of "Kings Worthy"/.test(used.skipped[0].why) && rows.find(r => r.id === clash.id).h1 === '', JSON.stringify(used.skipped), '');
-  chk('Nothing outside that page type changes', JSON.stringify(rows.filter(r => r.type !== 'location_category').map(r => [r.page_key, r.h1, r.h1_source, r.status])) === beforeUse, '', '');
-  const lcH1 = rows.filter(r => r.applies && r.h1).map(r => H.keywordOf(r.h1));
-  chk('Still no two pages share an H1', new Set(lcH1).size === lcH1.length, '', '');
-  chk('Running it again changes nothing; service pages are refused', (await store.useSuggestions(cid, { type: 'location_category' })).used.length === 0 && await store.useSuggestions(cid, { type: 'service' }).then(() => false, e => e.status === 400), '', '');
-
-  // Regenerating the map (store.generate) keeps suggestions and a person's H1s
-  const before = JSON.stringify(rows.map(r => [r.page_key, r.h1, r.h1_source, r.status]));
+  // Regenerating the map keeps every H1 (store.generate, and the one-click job in "fill" mode)
+  const kept = JSON.stringify(rows.map(r => [r.page_key, r.h1, r.h1_source, r.status]));
   await store.generate(cid);
   rows = await store.saved(cid);
-  chk('Regenerating the page map never clears a suggested H1, a manual H1 or a status', JSON.stringify(rows.map(r => [r.page_key, r.h1, r.h1_source, r.status])) === before, '', '');
+  chk('Regenerating the page map never changes a research, pattern, conflict or manual H1, or a status', JSON.stringify(rows.map(r => [r.page_key, r.h1, r.h1_source, r.status])) === kept, '', '');
+  table = { ...table, 'gardener services southampton': [1, null], 'gardener southampton': [999, 3] };
+  await pool.query(`UPDATE keyword_volumes SET fetched_at = '2020-01-01'`);
+  job = await waitFor((await h1.start(cid, { kind: 'generate' })).id);
+  rows = await store.saved(cid);
+  chk('The one-click job on an existing map only fills pages without an H1: research and pattern H1s stay (only the first run applies everything)', job.status === 'complete' && job.mode === 'fill' && byKey('homepage:/').h1 === 'Gardener Services Southampton' && JSON.stringify(rows.filter(r => r.h1_source !== 'conflict').map(r => [r.page_key, r.h1])) === JSON.stringify(JSON.parse(kept).filter(r => r[2] !== 'conflict').map(r => [r[0], r[1]])), JSON.stringify([job.mode, byKey('homepage:/').h1]), '');
 
   // A failed API call: the page map stays, the job says why, the credentials never show
   const failing = createH1Research({ pool, filloutService: svc, pageMapStore: store, log: capture, now: () => now,
@@ -260,11 +275,15 @@ const okReply = (keywords, table) => ({ ok: true, status: 200, statusText: 'OK',
     let got;
     for (let i = 0; i < 300; i++) { got = await (await req('GET', `/api/clients/${c2.id}/page-map`)).json(); if (got.job && got.job.status === 'complete') break; await sleep(15); }
     chk('GET page-map: rows, candidates per page and the latest job (what another device or a refresh sees)', got.job.status === 'complete' && got.rows.length > 0 && got.candidates['homepage:/'] && got.candidates['homepage:/'].length === 5, JSON.stringify(got.job), '');
-    const hp = got.rows.find(x => x.page_key === 'homepage:/');
-    const acc = await (await req('PUT', `/api/clients/${c2.id}/page-map/${hp.id}`, { accept: true })).json();
-    chk('Accept through the API', acc.h1_source === 'manual' && acc.h1_accepted === true && acc.status === 'H1 Added', JSON.stringify(acc), '');
-    const viaRoute = await (await req('POST', `/api/clients/${c2.id}/page-map/use-suggestions`, { type: 'location' })).json();
-    chk('POST page-map/use-suggestions works through the API and returns the rows', Array.isArray(viaRoute.used) && Array.isArray(viaRoute.rows) && viaRoute.rows.length === got.rows.length, JSON.stringify(Object.keys(viaRoute)), '');
+    const hp2 = got.rows.find(x => x.page_key === 'homepage:/');
+    chk('Through the API the first run applies at once: the homepage H1 is set and H1 Added', hp2.h1 && ['research', 'pattern'].includes(hp2.h1_source) && hp2.status === 'H1 Added', JSON.stringify([hp2.h1, hp2.h1_source, hp2.status]), '');
+    const acc = await req('PUT', `/api/clients/${c2.id}/page-map/${hp2.id}`, { accept: true });
+    const useAll = await req('POST', `/api/clients/${c2.id}/page-map/use-suggestions`, { type: 'location' });
+    chk('The Accept and "Use all suggestions" endpoints are gone (400, 404)', acc.status === 400 && useAll.status === 404, JSON.stringify([acc.status, useAll.status]), '[400,404]');
+    const pv2 = await (await req('GET', `/api/clients/${c2.id}/h1-research/preview`)).json();
+    chk('GET h1-research/preview returns the changes and notes, writing nothing', Array.isArray(pv2.changes) && Array.isArray(pv2.notes) && typeof pv2.keywords === 'number', JSON.stringify(Object.keys(pv2)), '');
+    const html = fs.readFileSync(path.join(root, 'public/client-record.html'), 'utf8');
+    chk('The page has no Accept or "Use all suggestions" button; it shows the pattern badge, H1 conflicts, the volume line, the CPC label and the re-research preview', !/>Accept<|Use all \$\{|use-suggestions|accept: true/.test(html) && /pattern, no volume data/.test(html) && /H1 conflict/.test(html) && /searches a month<\/div>/.test(html) && /CPC \(currency unconfirmed\)/.test(html) && /h1-research\/preview/.test(html) && /Research now suggests/.test(html), '', '');
     r = await (await req('POST', `/api/clients/${c2.id}/h1-research/retry`, {})).json();
     chk('Retry starts a research job (the map exists)', r.job && r.job.kind === 'research', JSON.stringify(r.job), '');
     const b1 = await (await req('GET', '/api/dataforseo/balance')).json(); const b2 = await (await req('GET', '/api/dataforseo/balance')).json();

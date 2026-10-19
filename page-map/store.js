@@ -51,7 +51,7 @@ async function ensurePageMapTables(pool) {
   `);
   // H1 research beside the H1 (h1-research/service.js): the researched keyword and volume, a
   // suggestion when there is no usable data, and whether a person accepted the suggestion
-  for (const col of ['h1_keyword TEXT', 'h1_volume INTEGER', 'h1_suggestion TEXT', 'h1_accepted BOOLEAN NOT NULL DEFAULT FALSE', 'h1_researched_at TIMESTAMPTZ']) {
+  for (const col of ['h1_keyword TEXT', 'h1_volume INTEGER', 'h1_suggestion TEXT', 'h1_accepted BOOLEAN NOT NULL DEFAULT FALSE', 'h1_researched_at TIMESTAMPTZ', 'h1_reason TEXT', 'h1_suggests TEXT', 'h1_hub TEXT']) {
     await pool.query(`ALTER TABLE client_page_map ADD COLUMN IF NOT EXISTS ${col}`);
   }
 }
@@ -145,7 +145,6 @@ function createPageMapStore({ pool, filloutService }) {
   }
 
   // A person's edit. H1 marks the row manual and moves Not Started to H1 Added (never backwards).
-  // accept: true takes a suggested-by-volume H1 as it is (manual, accepted).
   async function setRow(clientId, id, body) {
     const { rows } = await pool.query(`SELECT * FROM client_page_map WHERE id = $1 AND client_id = $2`, [id, clientId]);
     if (!rows.length) throw Object.assign(new Error('Page not found'), { status: 404 });
@@ -155,11 +154,8 @@ function createPageMapStore({ pool, filloutService }) {
       if (!G.STATUSES.includes(body.status)) throw Object.assign(new Error(`status must be one of: ${G.STATUSES.join(', ')}`), { status: 400 });
       next.status = body.status;
     }
-    if (body.accept === true) {
-      if (cur.h1_source !== 'suggested' || !cur.h1) throw Object.assign(new Error('Only an H1 suggested by volume can be accepted'), { status: 400 });
-      next.h1_source = 'manual'; next.h1_accepted = true; next.h1_suggestion = null;
-      if (next.status === 'Not Started' && body.status === undefined) next.status = 'H1 Added';
-    } else if (body.h1 !== undefined) {
+    if (body.accept !== undefined) throw Object.assign(new Error('There is no accept step: research H1s apply directly; edit the H1 to change it'), { status: 400 });
+    if (body.h1 !== undefined) {
       const h1 = String(body.h1 || '').trim();
       next.h1 = h1;
       next.h1_source = h1 ? 'manual' : (cur.type === 'service' ? 'auto' : 'needed');
@@ -174,31 +170,9 @@ function createPageMapStore({ pool, filloutService }) {
     return fromDb(out[0]);
   }
 
-  // Use every no-data suggestion in one page type as that page's H1 (Brandon, 18 Oct 2026): the
-  // same as clicking "Use" on each, so each becomes manual (research never touches it again) and
-  // Not Started moves to H1 Added. Only empty, applying rows with a suggestion; a suggestion that
-  // would repeat an H1 already on another page is skipped and reported.
-  async function useSuggestions(clientId, { type }) {
-    if (!G.TYPES.includes(type) || type === 'service') throw Object.assign(new Error('type must be homepage, category, location or location_category'), { status: 400 });
-    const rows = await saved(clientId);
-    const kw = s => String(s || '').toLowerCase().replace(/['’‘`]/g, '').replace(/[^a-z0-9]+/g, ' ').trim();
-    const used = new Map(rows.filter(r => r.applies && r.h1).map(r => [kw(r.h1), r.title]));
-    const done = [], skipped = [];
-    for (const r of rows.filter(x => x.applies && x.type === type && !x.h1 && x.h1_source !== 'manual' && x.h1_suggestion)) {
-      const k = kw(r.h1_suggestion);
-      if (used.has(k)) { skipped.push({ title: r.title, suggestion: r.h1_suggestion, why: `already the H1 of "${used.get(k)}"` }); continue; }
-      const { rowCount } = await pool.query(
-        `UPDATE client_page_map SET h1 = $3, h1_source = 'manual', h1_accepted = FALSE, h1_suggestion = NULL,
-           status = CASE WHEN status = 'Not Started' THEN 'H1 Added' ELSE status END, updated_at = NOW()
-         WHERE id = $1 AND client_id = $2 AND h1 = '' AND h1_source <> 'manual'`, [r.id, clientId, r.h1_suggestion]);
-      if (rowCount) { used.set(k, r.title); done.push({ title: r.title, h1: r.h1_suggestion }); }
-    }
-    return { used: done, skipped, rows: await saved(clientId) };
-  }
-
   async function csv(clientId, opts) { return G.toCsv(await saved(clientId), opts); }
 
-  return { saved, state, preview, generate, setRow, useSuggestions, csv };
+  return { saved, state, preview, generate, setRow, csv };
 }
 
 module.exports = { ensurePageMapTables, createPageMapStore, inputsFor };
