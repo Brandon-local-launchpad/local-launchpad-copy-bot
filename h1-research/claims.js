@@ -8,9 +8,11 @@
 //     <base town>", category "<category> <base town>", location "<primary category> <town>",
 //     location category "<category> <town>", service "<service> <base town>"
 //   - no two pages target the same keyword GROUP. A group joins keywords that normalise alike
-//     (lower case, no punctuation, singular/plural, "services", "in", "near me" dropped, word
-//     order ignored), and keywords Google Ads reports with identical volume AND identical CPC
-//     (close variants it merges), the latter only when both have a CPC
+//     (lower case, no punctuation, singular/plural, "in" and "near me" dropped, word order
+//     ignored), and keywords Google Ads reports with identical volume AND identical CPC (close
+//     variants it merges), the latter only when both have a CPC. "Service(s)" is NOT dropped
+//     (Brandon, 19 Oct 2026): "lawn care service romsey" and "lawn care romsey" are one group
+//     only when their figures are identical
 //   - claims: H1s that research must not change (manual, or a page past H1 Added) claim first;
 //     then pages take groups by their own preference (highest volume, ties to the first-listed
 //     candidate); a contested group goes to (a) the page whose own name gives that exact
@@ -22,18 +24,22 @@
 //     not compete for that keyword group: it takes its best other candidate above 10 searches (a
 //     synonym), else the hub pattern "<Primary Category> Services in and around <Town>" ("Services"
 //     never doubled). Marked "hub page", never a conflict.
+//   - the same between the homepage and the primary category's category page: the homepage owns
+//     "<primary category> <base town>"; the category page takes its best other candidate above 10,
+//     else "<Category> Services in and around <Base Town>". Marked "primary category page:
+//     keyword owned by the homepage", never a conflict. A manual H1 still claims first.
 //   - every decision carries its reason; grouping is inferred from Google Ads reporting, so the
 //     reason always says why two keywords were treated as one.
 
-const { keywordOf, displayOf, MIN_USABLE } = require('./research');
+const { keywordOf, displayOf, titleCase, MIN_USABLE } = require('./research');
 
 const TYPE_ORDER = { homepage: 0, category: 1, service: 2, location: 3, location_category: 4 };
 const TYPE_WORD = { homepage: 'homepage', category: 'category page', service: 'service page', location: 'location page', location_category: 'location category page' };
 const pageLabel = r => (r.type === 'homepage' ? 'the homepage' : `${TYPE_WORD[r.type]} "${r.title}"`);
-const DROP = new Set(['service', 'in', 'near', 'me']);
+const DROP = new Set(['in', 'near', 'me']);
 const stem = w => (w.length > 3 && /s$/.test(w) && !/ss$/.test(w) ? w.replace(/ies$/, 'y').replace(/([^s])s$/, '$1') : w);
 
-// "Gardeners in Southampton" → "gardener southampton"; "gardener services southampton" → the same
+// "Gardeners in Southampton" → "gardener southampton"; "gardener services southampton" stays apart
 function normalise(keyword) {
   return keywordOf(keyword).split(' ').map(stem).filter(w => w && !DROP.has(w)).sort().join(' ');
 }
@@ -58,7 +64,7 @@ function buildGroups(keywords, volumes) {
   }
   const groupOf = k => { const kw = keywordOf(k); if (!parent.has(kw)) parent.set(kw, kw); return find(kw); };
   const why = (a, b) => {
-    if (normalise(a) === normalise(b)) return 'the same words once plurals, "services", "in" and "near me" are ignored';
+    if (normalise(a) === normalise(b)) return 'the same words once plurals, word order, "in" and "near me" are ignored';
     const x = volumes.get(keywordOf(a)), y = volumes.get(keywordOf(b));
     if (x && y && x.cpc != null && x.volume === y.volume && x.cpc === y.cpc) return `identical Google Ads figures (${x.volume}/mo, CPC ${x.cpc}): treated as close variants`;
     return 'linked through other keywords in the same group';
@@ -68,12 +74,16 @@ function buildGroups(keywords, volumes) {
 
 // Candidates for one row, each with its fit: "own" (the page's standard pattern, built from its
 // own category or service name; for the homepage and location pages, the primary category) or
-// "synonym" (an approved extra word). The first candidate is the page's pattern.
+// "synonym" (an approved extra word). The first candidate is the page's pattern. A name already
+// ending in "Service" gets "…services <town>" as its second, never "service services".
 function candidatesV2(row, ctx) {
   const info = row.info || {};
   const terms = ctx.terms || {};
   const make = (name, key, town, sitewide) => {
-    const own = [keywordOf(`${name} ${town}`), keywordOf(`${name} services ${town}`)];
+    // "Gutter Cleaning Service" → "gutter cleaning services <town>", never "service services"
+    const last = keywordOf(name).split(' ').pop();
+    const plural = last === 'services' ? null : last === 'service' ? `${name}s` : `${name} services`;
+    const own = [keywordOf(`${name} ${town}`), plural && keywordOf(`${plural} ${town}`)].filter(Boolean);
     const syn = [...(key ? terms[key] || [] : []), ...(sitewide ? terms._sitewide || [] : [])].map(t => keywordOf(`${t} ${town}`));
     const seen = new Set();
     return [...own.map(k => ({ keyword: k, fit: 'own' })), ...syn.map(k => ({ keyword: k, fit: 'synonym' }))].filter(c => c.keyword && !seen.has(c.keyword) && seen.add(c.keyword));
@@ -93,16 +103,27 @@ const isLockedDefault = r => r.h1_source === 'manual' || (r.status && !EDITABLE_
 // rows: the client's applying page-map rows. volumes: Map keyword → { volume, cpc }.
 // Returns { decisions: [{ row, source, keyword, h1, volume, cpc, reason, lostTo, candidates, locked, suggests }], groups }
 // The hub pattern for a location page: "Gardener Services in and around Romsey"; a name already
-// ending in "Services" is not doubled, and one ending in "Service" becomes "Services"
+// ending in "Services" is not doubled, one ending in "Service" becomes "Services"; Title Case
+// (niche files spell "Pest control service")
 function hubPattern(primaryName, town) {
   const name = String(primaryName || '').trim();
   const last = name.split(/\s+/).pop().toLowerCase();
   const base = last === 'services' ? name : last === 'service' ? `${name}s` : `${name} Services`;
-  return `${base} in and around ${String(town || '').trim()}`;
+  return `${titleCase(base)} in and around ${String(town || '').trim()}`;
 }
 
-// opts.isLocked: which rows research must not change (default: manual, or past H1 Added)
+// opts.isLocked: which rows research must not change (default: manual, or past H1 Added).
+// The primary category page leaves "<primary> <base town>" to the homepage only when the homepage
+// actually holds that keyword group (Brandon, 19 Oct 2026): a manual homepage H1 on other words
+// leaves it free. So: resolve once; if the homepage ends up in that group, resolve again with the rule.
 function resolve(rows, ctx, volumes, opts = {}) {
+  const first = resolveOnce(rows, ctx, volumes, opts, false);
+  const home = first.decisions.find(d => d.row.type === 'homepage');
+  if (first.primaryPage && home && home.h1 && first.primaryGroup && first.groupOf(home.h1) === first.primaryGroup) return resolveOnce(rows, ctx, volumes, opts, true);
+  return first;
+}
+
+function resolveOnce(rows, ctx, volumes, opts, primaryRule) {
   const isLocked = opts.isLocked || isLockedDefault;
   const live = rows.filter(r => r.applies !== false).slice().sort((a, b) => TYPE_ORDER[a.type] - TYPE_ORDER[b.type] || (a.sort_order || 0) - (b.sort_order || 0));
   const plan = new Map(live.map((r, i) => [r.page_key, i]));
@@ -116,12 +137,21 @@ function resolve(rows, ctx, volumes, opts = {}) {
   const locked = live.filter(isLocked);
   for (const r of locked) if (r.h1) { const g = G.groupOf(r.h1); if (!claim.has(g)) claim.set(g, { row: r, keyword: keywordOf(r.h1), how: r.h1_source === 'manual' ? 'manual' : 'locked' }); }
 
-  // Hub pages: a location page whose town has a location category page for the primary category
-  const hubOwner = new Map();
+  // Pages that leave one keyword group to another page: { group, note, pattern }
+  //   a location page whose town has a location category page for the primary category (hub page)
+  //   the primary category's category page, whose "<primary> <base town>" is the homepage's
+  const hubs = new Map();
+  const patternGroup = owner => { const c = cands.get(owner.page_key)[0]; return c ? G.groupOf(c.keyword) : null; };
   for (const r of live.filter(x => x.type === 'location')) {
     const town = (r.info || {}).town || r.title;
     const owner = ctx.primaryKey && live.find(x => x.type === 'location_category' && (x.info || {}).category_key === ctx.primaryKey && ((x.info || {}).town || '') === town);
-    if (owner) hubOwner.set(r.page_key, owner);
+    if (owner) hubs.set(r.page_key, { group: patternGroup(owner), note: `hub page: ${ctx.primaryName} keyword owned by ${pageLabel(owner)}`, pattern: hubPattern(ctx.primaryName, town) });
+  }
+  const home = live.find(x => x.type === 'homepage');
+  const primaryGroup = home ? patternGroup(home) : null;
+  const primaryPage = live.find(x => x.type === 'category' && ctx.primaryKey && (x.info || {}).category_key === ctx.primaryKey);
+  for (const r of primaryRule && primaryPage ? [primaryPage] : []) {
+    if (primaryGroup) hubs.set(r.page_key, { group: patternGroup(home), note: 'primary category page: keyword owned by the homepage', pattern: hubPattern(ctx.categoryName(ctx.primaryKey) || r.title, ctx.baseTown) });
   }
 
   // 2. Research: each page's options are its candidates' groups with more than 10 searches,
@@ -130,13 +160,13 @@ function resolve(rows, ctx, volumes, opts = {}) {
   const options = new Map();
   for (const r of open) {
     const byGroup = new Map();
-    // A hub location page leaves the primary category's keyword groups to the location category page
-    const ownerGroups = hubOwner.has(r.page_key) ? new Set(cands.get(hubOwner.get(r.page_key).page_key).filter(c => c.fit === 'own').map(c => G.groupOf(c.keyword))) : null;
+    // A hub page leaves the owner's keyword group alone
+    const hub = hubs.get(r.page_key);
     cands.get(r.page_key).forEach((c, i) => {
       const v = vol(c.keyword);
       if (v.volume == null || v.volume <= MIN_USABLE) return;
       const g = G.groupOf(c.keyword);
-      if (ownerGroups && ownerGroups.has(g)) return;
+      if (hub && g === hub.group) return;
       const cur = byGroup.get(g);
       // Within a group keep the page's best candidate. Fit: "own" when that keyword is built from the
       // page's own name, "variant" when only another of its own keywords is in the group ("Lawn Care
@@ -188,8 +218,8 @@ function resolve(rows, ctx, volumes, opts = {}) {
     }
     const opts = options.get(r.page_key) || [];
     const mine = won.get(r.page_key);
-    const owner = hubOwner.get(r.page_key);
-    if (owner) d.hub = `hub page: ${ctx.primaryName} keyword owned by ${pageLabel(owner)}`;
+    const hub = hubs.get(r.page_key);
+    if (hub) d.hub = hub.note;
     for (const o of opts) {
       if (mine && o.group === mine.group) break;
       const by = claim.has(o.group) ? claim.get(o.group).row : (holder.get(o.group) || {}).row;
@@ -199,14 +229,14 @@ function resolve(rows, ctx, volumes, opts = {}) {
       const v = vol(mine.keyword);
       Object.assign(d, { source: 'research', keyword: mine.keyword, h1: displayOf(mine.keyword), volume: v.volume, cpc: v.cpc,
         reason: `${mine.volume}/mo${lostTo.length ? `, after losing ${lostTo.map(l => `"${l.keyword}" (${l.volume}/mo) to ${l.by}`).join('; ')}` : opts.length > 1 ? `, the highest of ${opts.length} usable candidates` : ', the only candidate above 10 searches a month'}${d.hub ? ` (${d.hub})` : ''}` });
-    } else if (owner) {
-      // Hub pattern: never the primary category keyword, never a conflict with its owner
-      const text = hubPattern(ctx.primaryName, (r.info || {}).town || r.title);
+    } else if (hub) {
+      // Hub pattern: never the owner's keyword, never a conflict with its owner
+      const text = hub.pattern;
       const kw = keywordOf(text);
       const g = G.groupOf(kw);
       const other = taken.get(g);
       if (other && other !== r) Object.assign(d, { source: 'conflict', keyword: kw, h1: '', claimedBy: pageLabel(other), reason: `the hub pattern "${text}" is already the H1 of ${pageLabel(other)}: choose an H1 by hand (${d.hub})` });
-      else { taken.set(g, r); Object.assign(d, { source: 'pattern', keyword: kw, h1: text, volume: null, cpc: null, reason: `${d.hub}; no other keyword above 10 searches a month, so the hub pattern is used${lostTo.length ? ` (lost ${lostTo.map(l => `"${l.keyword}" (${l.volume}/mo) to ${l.by}`).join('; ')})` : ''}` }); }
+      else { taken.set(g, r); Object.assign(d, { source: 'pattern', keyword: kw, h1: text, volume: null, cpc: null, reason: `${d.hub}; no other keyword above 10 searches a month, so "${text}" is used${lostTo.length ? ` (lost ${lostTo.map(l => `"${l.keyword}" (${l.volume}/mo) to ${l.by}`).join('; ')})` : ''}` }); }
     } else {
       const pattern = list[0];
       if (!pattern) { Object.assign(d, { source: 'conflict', keyword: null, h1: '', reason: 'no candidates (no primary category)' }); decisions.push(d); continue; }
@@ -223,7 +253,7 @@ function resolve(rows, ctx, volumes, opts = {}) {
     }
     decisions.push(d);
   }
-  return { decisions, groupOf: G.groupOf, why: G.why };
+  return { decisions, groupOf: G.groupOf, why: G.why, primaryGroup, primaryPage: !!primaryPage };
 }
 
 module.exports = { normalise, buildGroups, candidatesV2, resolve, isLocked: isLockedDefault, EDITABLE_STATUS, hubPattern, TYPE_ORDER, pageLabel };
