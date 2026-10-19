@@ -106,7 +106,13 @@ function mountPageMapApi(app, { pool, filloutService, searchVolume = D.searchVol
     if (!p.plan.ok) return res.status(400).json({ error: p.plan.problems.map(x => x.msg).join(' '), problems: p.plan.problems });
     res.json({ job: await h1.start(req.params.clientId, { kind: 'generate', categoryTabRule: ruleOf((req.body || {}).rule) }) });
   }));
-  // Re-research H1s (suggestions only), and Retry after a failure
+  // Re-research H1s: the preview first (what would change), then apply after a person confirms
+  app.get('/api/clients/:clientId/h1-research/preview', wrap(async (req, res) => {
+    const rows = await store.saved(req.params.clientId);
+    if (!rows.length) return res.status(400).json({ error: 'No page map yet: generate it first.' });
+    try { res.json(await h1.preview(req.params.clientId)); }
+    catch (err) { res.status(502).json({ error: `${err.status ? `status ${err.status}: ` : ''}${D.safeMessage(err.message)}` }); }
+  }));
   app.post('/api/clients/:clientId/h1-research', wrap(async (req, res) => {
     const rows = await store.saved(req.params.clientId);
     if (!rows.length) return res.status(400).json({ error: 'No page map yet: generate it first.' });
@@ -116,7 +122,7 @@ function mountPageMapApi(app, { pool, filloutService, searchVolume = D.searchVol
     const last = await h1.latest(req.params.clientId);
     const rows = await store.saved(req.params.clientId);
     const rebuild = !rows.length || (last && last.kind === 'generate' && last.status === 'failed' && last.pages_built < last.pages_total);
-    res.json({ job: await h1.start(req.params.clientId, { kind: rebuild ? 'generate' : 'research', categoryTabRule: last && last.category_tab_rule }) });
+    res.json({ job: await h1.start(req.params.clientId, { kind: rebuild ? 'generate' : 'research', categoryTabRule: last && last.category_tab_rule, mode: last && last.mode }) });
   }));
   app.get('/api/clients/:clientId/h1-research', wrap(async (req, res) => res.json({ job: await h1.latest(req.params.clientId) })));
   // The DataForSEO balance (free call), cached for ten minutes; low below $10
@@ -134,8 +140,6 @@ function mountPageMapApi(app, { pool, filloutService, searchVolume = D.searchVol
     const out = await store.generate(req.params.clientId, { categoryTabRule: ruleOf((req.body || {}).rule) });
     res.json({ rows: out.rows, state: await store.state(req.params.clientId), counts: out.diff.counts, renames: out.diff.renames, collisions: out.plan.collisions });
   }));
-  // Use every no-data suggestion in one page type as its H1 (the group's "Use all suggestions")
-  app.post('/api/clients/:clientId/page-map/use-suggestions', wrap(async (req, res) => res.json(await store.useSuggestions(req.params.clientId, { type: (req.body || {}).type }))));
   app.put('/api/clients/:clientId/page-map/:rowId', wrap(async (req, res) => res.json(await store.setRow(req.params.clientId, req.params.rowId, req.body || {}))));
 
   app.get('/api/clients/:clientId/services/by-hand', wrap(async (req, res) => res.json(await byHandView(filloutService, req.params.clientId))));

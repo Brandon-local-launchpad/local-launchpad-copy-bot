@@ -11,6 +11,7 @@
 // A failed research leaves the page map as it is; the job carries a safe message.
 
 const H = require('./research');
+const C = require('./claims');
 const D = require('./dataforseo');
 const { inputsFor } = require('../page-map/store');
 
@@ -57,14 +58,19 @@ async function ensureH1Tables(pool) {
       suggested_count   INTEGER NOT NULL DEFAULT 0,
       no_data_count     INTEGER NOT NULL DEFAULT 0,
       cost              NUMERIC NOT NULL DEFAULT 0,
+      conflict_count    INTEGER NOT NULL DEFAULT 0,
+      mode              TEXT,
       error             TEXT,
       created_at        TIMESTAMPTZ NOT NULL DEFAULT NOW(),
       started_at        TIMESTAMPTZ,
       finished_at       TIMESTAMPTZ
     );
   `);
-  // The page map's own columns for research (h1_keyword, h1_volume, h1_suggestion,
-  // h1_accepted, h1_researched_at) are added by page-map/store.js ensurePageMapTables
+  // Added by H1 research v2 to a table that may already exist
+  await pool.query(`ALTER TABLE h1_research_jobs ADD COLUMN IF NOT EXISTS conflict_count INTEGER NOT NULL DEFAULT 0`);
+  await pool.query(`ALTER TABLE h1_research_jobs ADD COLUMN IF NOT EXISTS mode TEXT`);
+  // The page map's own columns for research (h1_keyword, h1_volume, h1_reason, h1_hub,
+  // h1_suggests, h1_researched_at) are added by page-map/store.js ensurePageMapTables
 }
 
 const num = v => (v == null ? null : Number(v));
@@ -85,11 +91,11 @@ function createH1Research({ pool, filloutService, pageMapStore, searchVolume = D
   }
 
   // kind: "generate" (build the page map, then research) or "research" (research only)
-  async function start(clientId, { kind = 'generate', categoryTabRule = null } = {}) {
+  async function start(clientId, { kind = 'generate', categoryTabRule = null, mode = null } = {}) {
     const cur = await latest(clientId);
     if (cur && ACTIVE.includes(cur.status)) return cur; // one job at a time per client
-    const { rows } = await pool.query(`INSERT INTO h1_research_jobs (client_id, kind, category_tab_rule, status, stage) VALUES ($1, $2, $3, 'queued', $4) RETURNING id`,
-      [clientId, kind, categoryTabRule, kind === 'generate' ? 'Queued: building pages' : 'Queued: researching H1s']);
+    const { rows } = await pool.query(`INSERT INTO h1_research_jobs (client_id, kind, category_tab_rule, status, stage, mode) VALUES ($1, $2, $3, 'queued', $4, $5) RETURNING id`,
+      [clientId, kind, categoryTabRule, kind === 'generate' ? 'Queued: building pages' : 'Queued: researching H1s', mode || (kind === 'generate' ? null : 'all')]);
     const id = rows[0].id;
     setImmediate(() => run(id).catch(err => log.error('[h1-research] job crashed:', D.safeMessage(err.message))));
     return job(id);
@@ -103,6 +109,8 @@ function createH1Research({ pool, filloutService, pageMapStore, searchVolume = D
       if (!j || !ACTIVE.includes(j.status)) return;
       await patch(id, { started_at: j.started_at || now() });
       if (j.kind === 'generate' && j.status !== 'researching') {
+        // A brand new map is researched in full; regenerating an existing one only fills pages without a v2 H1
+        if (!j.mode) await patch(id, { mode: (await pageMapStore.saved(j.client_id)).length ? 'fill' : 'all' });
         await patch(id, { status: 'building', stage: 'Building pages' });
         try {
           await pageMapStore.generate(j.client_id, { categoryTabRule: j.category_tab_rule || 'ticked_only', onProgress: (done, total) => patch(id, { pages_built: done, pages_total: total, stage: `Building pages (${done} of ${total})` }) });
@@ -115,56 +123,96 @@ function createH1Research({ pool, filloutService, pageMapStore, searchVolume = D
     } finally { running.delete(id); }
   }
 
+  // Research rows that may change (mode "all": every row except manual or past H1 Added; mode
+  // "fill", after regenerating an existing map: also keeps every H1 v2 research already set),
+  // with volumes from the cache and one batched call for the rest
+  async function decide(clientId, { mode = 'all', onStage = async () => {}, onRetry = null } = {}) {
+    const rows = (await pageMapStore.saved(clientId)).filter(r => r.applies);
+    const st = await pageMapStore.state(clientId);
+    const inputs = await inputsFor(filloutService, clientId, { categoryTabRule: (st && st.category_tab_rule) || 'ticked_only' });
+    const cats = inputs.resolved ? inputs.resolved.categories : [];
+    const ctx = { primaryName: inputs.resolved && inputs.resolved.primaryName, primaryKey: inputs.resolved && inputs.resolved.primary, baseTown: inputs.baseTown, categoryName: key => (cats.find(c => c.key === key) || {}).name, terms: H.searchTerms(inputs.niche) };
+    const keywords = [...new Set(rows.flatMap(r => C.candidatesV2(r, ctx).map(c => c.keyword)))];
+    await onStage({ pages: rows.length, keywords: keywords.length });
+    const volumes = await cached(keywords);
+    const missing = keywords.filter(k => !volumes.has(k));
+    let cost = 0;
+    if (missing.length) {
+      const r = await searchVolume(missing, { onRetry });
+      cost = r.cost;
+      const per = r.cost / missing.length;
+      for (const k of missing) {
+        const v = r.results.get(k) || { volume: null, cpc: null, status: 'null' };
+        volumes.set(k, v);
+        await saveVolume(k, v, per);
+      }
+    }
+    const fillLock = r => C.isLocked(r) || (!!r.h1 && ['research', 'pattern'].includes(r.h1_source));
+    const out = C.resolve(rows, ctx, volumes, { isLocked: mode === 'fill' ? fillLock : C.isLocked });
+    return { rows, ctx, keywords, missing: missing.length, cost, ...out };
+  }
+
   async function research(id) {
     const j = await job(id);
     const clientId = j.client_id;
     try {
-      const rows = (await pageMapStore.saved(clientId)).filter(r => r.applies);
-      const st = await pageMapStore.state(clientId);
-      const inputs = await inputsFor(filloutService, clientId, { categoryTabRule: (st && st.category_tab_rule) || 'ticked_only' });
-      const cats = inputs.resolved ? inputs.resolved.categories : [];
-      const ctx = { primaryName: inputs.resolved && inputs.resolved.primaryName, primaryKey: inputs.resolved && inputs.resolved.primary, baseTown: inputs.baseTown, categoryName: key => (cats.find(c => c.key === key) || {}).name, terms: H.searchTerms(inputs.niche) };
-      const { pages, keywords } = H.plan(rows, ctx);
-      await patch(id, { status: 'researching', stage: `Researching H1s (${pages.length} pages, ${keywords.length} keywords)`, pages_total: rows.length, pages_built: rows.length, keywords_total: keywords.length });
-
-      // Volumes: fresh cache first, one batched call for the rest
-      const volumes = await cached(keywords);
-      const missing = keywords.filter(k => !volumes.has(k));
-      let cost = 0;
-      if (missing.length) {
-        const stage = `Researching H1s (${pages.length} pages, ${keywords.length} keywords)`;
-        const r = await searchVolume(missing, { onRetry: ({ attempt, of, waitMs, message }) => patch(id, { stage: `${stage}: DataForSEO is busy (${message}), retrying in ${Math.round(waitMs / 1000)}s (${attempt} of ${of})` }) });
-        cost = r.cost;
-        const per = missing.length ? r.cost / missing.length : 0;
-        for (const k of missing) {
-          const v = r.results.get(k) || { volume: null, cpc: null, status: 'null' };
-          volumes.set(k, v);
-          await saveVolume(k, v, per);
-        }
+      const stage = n => `Researching H1s (${n.pages} pages, ${n.keywords} keywords)`;
+      let label = 'Researching H1s';
+      const r = await decide(clientId, {
+        mode: j.mode || 'all',
+        onStage: async n => { label = stage(n); await patch(id, { status: 'researching', stage: label, pages_total: n.pages, pages_built: n.pages, keywords_total: n.keywords }); },
+        onRetry: ({ attempt, of, waitMs, message }) => patch(id, { stage: `${label}: DataForSEO is busy (${message}), retrying in ${Math.round(waitMs / 1000)}s (${attempt} of ${of})` }),
+      });
+      await patch(id, { keywords_fetched: r.missing, cost: r.cost });
+      const counts = { research: 0, pattern: 0, conflict: 0 };
+      for (const d of r.decisions) {
+        await saveCandidates(clientId, d);
+        await apply(clientId, d);
+        if (counts[d.source] != null && !['manual', 'locked'].includes(d.source)) counts[d.source]++;
       }
-      await patch(id, { keywords_fetched: missing.length, cost });
-
-      // Candidates and H1s, page by page
-      let suggested = 0, noData = 0;
-      for (const p of H.assign(pages, volumes, rows)) {
-        const sel = p.sel;
-        await saveCandidates(clientId, p.row.page_key, sel);
-        if (sel.usable) {
-          suggested++;
-          await pool.query(`UPDATE client_page_map SET h1 = $3, h1_source = 'suggested', h1_keyword = $4, h1_volume = $5, h1_suggestion = NULL, h1_accepted = FALSE, h1_researched_at = $6, updated_at = $6
-            WHERE id = $1 AND client_id = $2 AND h1_source IN ('needed', 'suggested')`, [p.row.id, clientId, sel.display, sel.chosen, sel.volume, now()]);
-        } else {
-          noData++;
-          await pool.query(`UPDATE client_page_map SET h1 = '', h1_source = 'needed', h1_keyword = NULL, h1_volume = NULL, h1_suggestion = $3, h1_accepted = FALSE, h1_researched_at = $4, updated_at = $4
-            WHERE id = $1 AND client_id = $2 AND h1_source IN ('needed', 'suggested')`, [p.row.id, clientId, sel.suggestion ? H.displayOf(sel.suggestion) : null, now()]);
-        }
-      }
-      await patch(id, { status: 'complete', suggested_count: suggested, no_data_count: noData, stage: `Complete: ${suggested} suggested, ${noData} need a manual H1, cost $${cost.toFixed(2)}`, finished_at: now() });
+      await patch(id, { status: 'complete', suggested_count: counts.research, no_data_count: counts.pattern, conflict_count: counts.conflict,
+        stage: `Complete: ${counts.research} H1s by search volume, ${counts.pattern} by pattern${counts.conflict ? `, ${counts.conflict} H1 conflict${counts.conflict === 1 ? '' : 's'} to resolve` : ''}, cost $${r.cost.toFixed(2)}`, finished_at: now() });
     } catch (err) {
       const msg = D.safeMessage(err.message);
       log.error(`[h1-research] research failed for ${clientId}: ${err.status ? `status ${err.status}, ` : ''}${msg}`);
       await patch(id, { status: 'failed', stage: `H1 research failed: ${msg}`, error: `${err.status ? `status ${err.status}: ` : ''}${msg}`, cost: err.cost || 0, finished_at: now() });
     }
+  }
+
+  // One decision onto its row. The WHERE clause is the guard: never a manual H1, never a page
+  // past H1 Added (a person's edit made meanwhile always wins). Not Started becomes H1 Added.
+  async function apply(clientId, d) {
+    const r = d.row;
+    const at = now();
+    if (d.source === 'manual') return;
+    if (d.source === 'locked') {
+      await pool.query(`UPDATE client_page_map SET h1_suggests = $3, h1_researched_at = $4 WHERE id = $1 AND client_id = $2`, [r.id, clientId, d.suggests || null, at]);
+      return;
+    }
+    const guard = `WHERE id = $1 AND client_id = $2 AND h1_source <> 'manual' AND status IN ('Not Started', 'H1 Added')`;
+    if (d.source === 'research' || d.source === 'pattern') {
+      await pool.query(`UPDATE client_page_map SET h1 = $3, h1_source = $4, h1_keyword = $5, h1_volume = $6, h1_reason = $7, h1_hub = $8, h1_suggests = NULL, h1_suggestion = NULL, h1_accepted = FALSE, h1_researched_at = $9, updated_at = $9,
+        status = CASE WHEN status = 'Not Started' THEN 'H1 Added' ELSE status END ${guard}`,
+        [r.id, clientId, d.h1, d.source, d.keyword, d.volume == null ? null : d.volume, d.reason, d.hub || null, at]);
+    } else {
+      await pool.query(`UPDATE client_page_map SET h1 = '', h1_source = 'conflict', h1_keyword = $3, h1_volume = NULL, h1_reason = $4, h1_hub = $5, h1_suggests = NULL, h1_suggestion = NULL, h1_accepted = FALSE, h1_researched_at = $6, updated_at = $6 ${guard}`,
+        [r.id, clientId, d.keyword, d.reason, d.hub || null, at]);
+    }
+  }
+
+  // What re-research would change, applied only after a person confirms (Brandon, 19 Oct 2026).
+  // Fetching any uncached keywords here is the same single call research would make; they are cached.
+  async function preview(clientId) {
+    const r = await decide(clientId, { mode: 'all' });
+    const changes = [], notes = [];
+    for (const d of r.decisions) {
+      const row = d.row;
+      if (d.source === 'manual') continue;
+      if (d.source === 'locked') { if (d.suggests) notes.push({ page_key: row.page_key, title: row.title, type: row.type, status: row.status, h1: row.h1, suggests: d.suggests }); continue; }
+      const sourceNow = ['research', 'pattern', 'conflict'].includes(row.h1_source) ? row.h1_source : row.h1_source || 'needed';
+      if ((row.h1 || '') !== (d.h1 || '') || sourceNow !== d.source) changes.push({ page_key: row.page_key, title: row.title, type: row.type, from: row.h1 || '', fromSource: row.h1_source, to: d.h1 || '', toSource: d.source, volume: d.volume == null ? null : d.volume, reason: d.reason });
+    }
+    return { changes, notes, keywords: r.keywords.length, fetched: r.missing, cost: r.cost };
   }
 
   async function cached(keywords) {
@@ -181,11 +229,20 @@ function createH1Research({ pool, filloutService, pageMapStore, searchVolume = D
       [keyword, D.UK.location_code, v.volume, v.cpc, v.status, now(), cost]);
     if (!rowCount) await pool.query(`INSERT INTO keyword_volumes (keyword, location_code, volume, cpc, status, fetched_at, cost) VALUES ($1,$2,$3,$4,$5,$6,$7)`, [keyword, D.UK.location_code, v.volume, v.cpc, v.status, now(), cost]);
   }
-  async function saveCandidates(clientId, pageKey, sel) {
-    await pool.query(`DELETE FROM h1_candidates WHERE client_id = $1 AND page_key = $2`, [clientId, pageKey]);
-    for (const s of sel.scored) {
+  // Every candidate with its volume, CPC and fit; which one was applied and why; who claimed the rest
+  async function saveCandidates(clientId, d) {
+    await pool.query(`DELETE FROM h1_candidates WHERE client_id = $1 AND page_key = $2`, [clientId, d.row.page_key]);
+    const lost = new Map((d.lostTo || []).map(l => [l.keyword, l]));
+    for (let i = 0; i < (d.candidates || []).length; i++) {
+      const c = d.candidates[i];
+      const chosen = ['research', 'pattern'].includes(d.source) && c.keyword === d.keyword;
+      const l = lost.get(c.keyword);
+      const why = chosen ? d.reason
+        : l ? `claimed by ${l.by}, ${l.volume}/mo (${l.why})`
+        : c.volume == null || c.volume <= 10 ? `${c.volume == null ? 'no data' : `${c.volume}/mo`}: 10 or less is not usable`
+        : c.fit === 'synonym' ? 'a synonym' : null;
       await pool.query(`INSERT INTO h1_candidates (client_id, page_key, candidate, position, volume, cpc, chosen, reason, updated_at) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9)`,
-        [clientId, pageKey, s.keyword, s.order, s.volume, s.cpc, sel.usable && s.keyword === sel.chosen, s.keyword === (sel.chosen || sel.suggestion) ? sel.reason : null, now()]);
+        [clientId, d.row.page_key, c.keyword, i, c.volume, c.cpc, chosen, why, now()]);
     }
   }
 
@@ -203,7 +260,7 @@ function createH1Research({ pool, filloutService, pageMapStore, searchVolume = D
     return rows.length;
   }
 
-  return { start, run, job, latest, candidates, recover, cached };
+  return { start, run, job, latest, candidates, recover, cached, preview, decide };
 }
 
 module.exports = { ensureH1Tables, createH1Research, CACHE_DAYS, ACTIVE };

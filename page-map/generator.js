@@ -147,7 +147,7 @@ function buildPageMap(input) {
 // ── Regeneration: what a new plan does to the saved rows ──
 // saved: rows from client_page_map (applies true or false). Keyed on page_key.
 // Only plan-owned fields can change: title, links, applies, and h1 while h1_source
-// is "auto" or "needed" (a manual H1 is a person's; a "suggested" one is H1 research's). h1 (manual), meta, status and notes are never touched.
+// is "auto" or "needed" (a manual H1 is a person's; research, pattern and conflict are H1 research's). h1 (manual), meta, status and notes are never touched.
 function diffPlan(saved, planned) {
   const byKey = new Map(saved.map(r => [r.page_key, r]));
   const plannedKeys = new Set(planned.map(r => r.page_key));
@@ -159,7 +159,7 @@ function diffPlan(saved, planned) {
     if (s.title !== p.title) changes.title = p.title;
     if (JSON.stringify(s.links_to || []) !== JSON.stringify(p.links_to)) changes.links_to = p.links_to;
     if (JSON.stringify(s.links_from || []) !== JSON.stringify(p.links_from)) changes.links_from = p.links_from;
-    if (!['manual', 'suggested'].includes(s.h1_source) && ((s.h1 || '') !== p.h1 || s.h1_source !== p.h1_source)) { changes.h1 = p.h1; changes.h1_source = p.h1_source; }
+    if (['auto', 'needed'].includes(s.h1_source || 'needed') && ((s.h1 || '') !== p.h1 || s.h1_source !== p.h1_source)) { changes.h1 = p.h1; changes.h1_source = p.h1_source; }
     if (s.applies === false) { revive.push({ row: s, changes }); continue; }
     if (Object.keys(changes).length) update.push({ row: s, changes }); else unchanged.push(s);
   }
