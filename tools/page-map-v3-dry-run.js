@@ -49,7 +49,7 @@ async function dryRun(pool, who, { searchVolume = D.searchVolume, core = new Set
   // Rule 1, then rule 2 on the base-town keywords (cached), then ONE call for "<service> <town>"
   let services = V3.dedupe(V3.collectServices(input.resolved));
   const baseKeywords = V3.keywordsFor(services, cats, [], ctx);
-  services = V3.fold(services, cats, ctx, C.buildGroups(baseKeywords, volumes));
+  services = V3.fold(services, cats, ctx, C.buildGroups(baseKeywords, volumes, { towns: [input.baseTown, ...towns] }));
   const townKeywords = V3.keywordsFor(services, cats, towns, ctx, { townVariants: false }).filter(k => !baseKeywords.includes(k));
   const allKeywords = [...new Set([...baseKeywords, ...townKeywords, ...V3.pageKeywords(cats, towns, ctx)])];
   const missing = allKeywords.filter(k => !volumes.has(k));

@@ -90,7 +90,7 @@ function buildPageMap(input, opts = {}) {
   // The services list rules, on the categories that have a page
   const catList = cats.map(c => ({ key: c.key, name: c.name }));
   const allKeywords = [...new Set([...V3.keywordsFor(V3.dedupe(V3.collectServices(resolved)), catList, towns, ctx, { townVariants: true }), ...V3.pageKeywords(catList, towns, ctx)])];
-  const G = C.buildGroups(allKeywords, volumes);
+  const G = C.buildGroups(allKeywords, volumes, { towns: [baseTown, ...towns] });
   const services = V3.pageOrMention(V3.fold(V3.dedupe(V3.collectServices(resolved)), catList, ctx, G), towns, ctx, vol, opts.core || new Set());
   const paged = [];
   for (const s of services.filter(x => x.outcome === 'page')) {
