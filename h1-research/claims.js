@@ -33,8 +33,10 @@
 
 const { keywordOf, displayOf, titleCase, MIN_USABLE } = require('./research');
 
-const TYPE_ORDER = { homepage: 0, category: 1, service: 2, location: 3, location_category: 4 };
-const TYPE_WORD = { homepage: 'homepage', category: 'category page', service: 'service page', location: 'location page', location_category: 'location category page' };
+// Town service pages (page map v3, Brandon, 19 Oct 2026) join last: they exist only where
+// "<service> <town>" is a usable keyword nobody above them holds
+const TYPE_ORDER = { homepage: 0, category: 1, service: 2, location: 3, location_category: 4, town_service: 5 };
+const TYPE_WORD = { homepage: 'homepage', category: 'category page', service: 'service page', location: 'location page', location_category: 'location category page', town_service: 'town service page' };
 const pageLabel = r => (r.type === 'homepage' ? 'the homepage' : `${TYPE_WORD[r.type]} "${r.title}"`);
 const DROP = new Set(['in', 'near', 'me']);
 const stem = w => (w.length > 3 && /s$/.test(w) && !/ss$/.test(w) ? w.replace(/ies$/, 'y').replace(/([^s])s$/, '$1') : w);
@@ -93,6 +95,7 @@ function candidatesV2(row, ctx) {
   if (row.type === 'service') return make(row.title, null, ctx.baseTown, false);
   if (row.type === 'location') return ctx.primaryName ? make(ctx.primaryName, ctx.primaryKey, info.town || row.title, true) : [];
   if (row.type === 'location_category') return make(ctx.categoryName(info.category_key) || row.title, info.category_key, info.town || '', false);
+  if (row.type === 'town_service') return make(info.service_name || row.title, null, info.town || '', false);
   return [];
 }
 
