@@ -689,8 +689,10 @@
     }).join('');
     const retiredToggle = retired.length ? `<div class="pm-bar"><label class="tick" style="margin:0"><input type="checkbox" ${pmShowRetired ? 'checked' : ''} onchange="pmShowRetired=this.checked;render()"> Show pages that no longer apply (${retired.length})</label></div>` : '';
     const nConf = live.filter(r => r.h1_source === 'conflict').length, nPat = live.filter(r => r.h1_source === 'pattern').length;
+    const nOld = live.filter(r => h1State(r) === 'old').length;
+    const oldBox = nOld && !jobActive() ? `<div class="pm-box warn"><h3>${nOld} page${nOld === 1 ? '' : 's'} still carry the old H1 research</h3><div class="pnote">They were researched before the current rules (19 Oct), so pages without a usable keyword have no H1 yet. Re-research H1s shows what the current rules would apply, and applies it only after you confirm.</div><div class="pt-actions" style="margin-top:.6rem"><button class="btn btn-primary btn-xs" onclick="h1Research()">Re-research H1s</button></div></div>` : '';
     const filterBar = live.length ? `<div class="pm-bar"><label class="pnote">Show <select onchange="pmSetFilter(this.value)"><option value="all"${pmFilter === 'all' ? ' selected' : ''}>All pages</option><option value="conflicts"${pmFilter === 'conflicts' ? ' selected' : ''}>H1 conflicts (${nConf})</option><option value="pattern"${pmFilter === 'pattern' ? ' selected' : ''}>Pattern, no volume data (${nPat})</option></select></label></div>` : '';
-    const list = pm.rows.length ? filterBar + (groups || '<div class="empty">Nothing to show for this filter.</div>') + retiredToggle : `<div class="empty">No page map yet. ${canGen ? 'Generate it from the categories and towns above.' : notSetUp ? 'This niche needs its services file first.' : 'Add the categories and a base town first.'}</div>`;
+    const list = pm.rows.length ? oldBox + filterBar + (groups || '<div class="empty">Nothing to show for this filter.</div>') + retiredToggle : `<div class="empty">No page map yet. ${canGen ? 'Generate it from the categories and towns above.' : notSetUp ? 'This niche needs its services file first.' : 'Add the categories and a base town first.'}</div>`;
     return `<div class="panel">${head}${bar}${box}${list}</div>`;
   }
   function renderPmConfirm(p) {
@@ -708,26 +710,60 @@
   function renderPmRow(r) {
     const linkList = l => l.length ? `<ul>${l.map(x => `<li>${esc(x)}</li>`).join('')}</ul>` : '<div class="pnote">none</div>';
     return `<div class="pm-row${r.applies ? '' : ' retired'}" id="pm_${r.id}">
-      <div><div class="ttl">${esc(r.title)}${r.applies ? '' : ' <span class="badge b-muted">no longer applies</span>'}${r.info && r.info.additional ? ' <span class="badge b-ok">additional</span>' : ''}</div><div class="slug">${esc(r.slug)}</div></div>
+      <div><div class="ttl">${esc(r.title)}${r.applies ? '' : ' <span class="badge b-muted">no longer applies</span>'}${r.info && r.info.additional ? ' <span class="badge b-ok">additional</span>' : ''}</div><div class="slug">${esc(r.slug)}</div>${r.applies ? '' : `<div class="h1why">No longer applies: ${esc(r.retired_reason || retiredReason(r))}${r.retired_at ? ` (since ${esc(fmt(r.retired_at))})` : ''}. Kept, never deleted; nothing on it changes.</div>`}</div>
       <div><input type="text" value="${esc(r.h1)}" placeholder="${r.h1_source === 'conflict' ? 'H1 conflict: type an H1' : 'H1'}" aria-label="H1 for ${esc(r.title)}" onchange="pmSave('${r.id}', { h1: this.value })">${h1Under(r)}${renderCands(r)}</div>
       <div><select aria-label="Status for ${esc(r.title)}" onchange="pmSave('${r.id}', { status: this.value })">${PM_STATUSES.map(s => `<option${s === r.status ? ' selected' : ''}>${s}</option>`).join('')}</select></div>
       <details class="links"${pmLinksOpen.has(r.id) ? ' open' : ''} ontoggle="if (this.open) pmLinksOpen.add('${r.id}'); else pmLinksOpen.delete('${r.id}')"><summary>Links to ${r.links_to.length} · from ${r.links_from.length}</summary><div class="lcols"><div><h4>Links to</h4>${linkList(r.links_to)}</div><div><h4>Links from</h4>${linkList(r.links_from)}</div></div></details>
     </div>`;
   }
-  // Under the H1: its monthly volume, where it came from, why, and notes (hub page, research now suggests)
+  // The state of a page's H1, from the row itself (Brandon, 19 Oct 2026):
+  //   research  a keyword above 10 searches a month was applied
+  //   pattern   no usable keyword: the standard (or hub) pattern was applied
+  //   manual    a person's H1
+  //   conflict  no usable keyword and the pattern is another page's H1: empty, for a person
+  //   old       researched before 19 Oct under the old rules (h1_source "suggested", or "needed"
+  //             with a research date): Re-research H1s converts it
+  //   none      no research run at all (a page added since, or a map never researched)
+  // Same wording as page-map/store.js retiredReason, for rows retired before it was stored
+  function retiredReason(r) {
+    const t = r.title;
+    if (r.type === 'service') return `"${t}" is no longer one of this client's services: it is not ticked in any category on the record`;
+    if (r.type === 'category') return `the "${t}" category is no longer one of this client's category tabs`;
+    if (r.type === 'location') return `${t} is no longer in this client's town list`;
+    if (r.type === 'location_category') return `the category or the town for "${t}" is no longer on the record`;
+    return 'it is no longer in the plan built from the record';
+  }
+  function h1State(r) {
+    const s = r.h1_source;
+    if (['research', 'pattern', 'manual', 'conflict'].includes(s)) return s;
+    if (s === 'suggested' || (r.h1_researched_at && s === 'needed')) return 'old';
+    return 'none';
+  }
+  // The chosen candidate's figures (the row's own, else the candidates table)
+  function h1Figures(r) {
+    const c = (pm.candidates[r.page_key] || []).find(x => x.chosen) || {};
+    return { volume: r.h1_volume != null ? r.h1_volume : c.volume, cpc: r.h1_cpc != null ? Number(r.h1_cpc) : c.cpc };
+  }
+  function h1Line(r) {
+    const st = h1State(r), f = h1Figures(r);
+    const fig = () => `${f.volume}/mo · CPC ${f.cpc == null ? 'none' : f.cpc}`;
+    if (st === 'research') return `${fig()} · research`;
+    if (st === 'pattern') return 'no search data · pattern';
+    if (st === 'manual') return 'manual';
+    if (st === 'conflict') return 'H1 conflict';
+    if (st === 'old') return r.h1_source === 'suggested' && f.volume != null ? `${fig()} · research (old rules)` : 'researched under the old rules: no H1 applied';
+    return 'not researched yet';
+  }
+  // Under the H1: the volume line, why, and notes (hub page, research now suggests, old rules)
   function h1Under(r) {
     if (!r.applies) return '';
     const why = t => t ? `<div class="h1why">${esc(t)}</div>` : '';
-    const notes = (r.h1_hub ? why(r.h1_hub) : '') + (r.h1_suggests ? `<div class="h1why">Research now suggests "${esc(r.h1_suggests)}"</div>` : '');
-    const src = r.h1_source;
-    let html = '';
-    if (src === 'research') html = `${r.h1_volume != null ? `<div class="h1vol">${r.h1_volume} searches a month</div>` : ''}<div class="h1note"><span class="badge b-ok">by search volume</span></div>${why(r.h1_reason)}`;
-    else if (src === 'pattern') html = `<div class="h1note"><span class="badge b-warn">pattern, no volume data</span></div>${why(r.h1_reason)}`;
-    else if (src === 'conflict') html = `<div class="h1note"><span class="badge b-bad">H1 conflict</span></div>${why(r.h1_reason)}`;
-    else if (src === 'manual') html = '<div class="h1note"><span class="badge b-muted">manual</span></div>';
-    else if (src === 'auto') html = '<div class="h1note"><span class="src">auto, not researched yet</span></div>';
-    else html = '<div class="h1note"><span class="src">not researched yet</span></div>';
-    return html + notes;
+    const notes = (r.h1_hub && !String(r.h1_reason || '').includes(r.h1_hub) ? why(r.h1_hub) : '') + (r.h1_suggests ? `<div class="h1why">Research now suggests "${esc(r.h1_suggests)}"</div>` : '');
+    const st = h1State(r);
+    const cls = { research: 'b-ok', pattern: 'b-warn', manual: 'b-muted', conflict: 'b-bad', old: 'b-warn', none: 'b-muted' }[st];
+    const line = `<div class="h1vol"><span class="badge ${cls}">${esc(h1Line(r))}</span></div>`;
+    const old = st === 'old' ? '<div class="h1why">Researched on 18 Oct under the old rules. Re-research H1s applies the current ones (patterns for pages without volume, conflicts flagged).</div>' : '';
+    return line + (['research', 'pattern', 'conflict'].includes(st) ? why(r.h1_reason) : '') + old + notes;
   }
   function pmSetFilter(v) { pmFilter = v; if (v !== 'all') PM_TYPES.forEach(t => pmOpen.add(t[0])); render(); }
   function renderCands(r) {

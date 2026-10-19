@@ -217,11 +217,11 @@ function createH1Research({ pool, filloutService, pageMapStore, searchVolume = D
     }
     const guard = `WHERE id = $1 AND client_id = $2 AND h1_source <> 'manual' AND status IN ('Not Started', 'H1 Added')`;
     if (d.source === 'research' || d.source === 'pattern') {
-      await pool.query(`UPDATE client_page_map SET h1 = $3, h1_source = $4, h1_keyword = $5, h1_volume = $6, h1_reason = $7, h1_hub = $8, h1_suggests = NULL, h1_suggestion = NULL, h1_accepted = FALSE, h1_researched_at = $9, updated_at = $9,
+      await pool.query(`UPDATE client_page_map SET h1 = $3, h1_source = $4, h1_keyword = $5, h1_volume = $6, h1_reason = $7, h1_hub = $8, h1_suggests = NULL, h1_suggestion = NULL, h1_accepted = FALSE, h1_researched_at = $9, updated_at = $9, h1_cpc = $10,
         status = CASE WHEN status = 'Not Started' THEN 'H1 Added' ELSE status END ${guard}`,
-        [r.id, clientId, d.h1, d.source, d.keyword, d.volume == null ? null : d.volume, d.reason, d.hub || null, at]);
+        [r.id, clientId, d.h1, d.source, d.keyword, d.volume == null ? null : d.volume, d.reason, d.hub || null, at, d.cpc == null ? null : d.cpc]);
     } else {
-      await pool.query(`UPDATE client_page_map SET h1 = '', h1_source = 'conflict', h1_keyword = $3, h1_volume = NULL, h1_reason = $4, h1_hub = $5, h1_suggests = NULL, h1_suggestion = NULL, h1_accepted = FALSE, h1_researched_at = $6, updated_at = $6 ${guard}`,
+      await pool.query(`UPDATE client_page_map SET h1 = '', h1_source = 'conflict', h1_keyword = $3, h1_volume = NULL, h1_cpc = NULL, h1_reason = $4, h1_hub = $5, h1_suggests = NULL, h1_suggestion = NULL, h1_accepted = FALSE, h1_researched_at = $6, updated_at = $6 ${guard}`,
         [r.id, clientId, d.keyword, d.reason, d.hub || null, at]);
     }
   }
