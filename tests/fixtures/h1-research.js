@@ -15,7 +15,7 @@ const root = path.join(__dirname, '../..');
 const H = require(path.join(root, 'h1-research/research.js'));
 const C = require(path.join(root, 'h1-research/claims.js'));
 const D = require(path.join(root, 'h1-research/dataforseo.js'));
-const { ensureH1Tables, createH1Research } = require(path.join(root, 'h1-research/service.js'));
+const { ensureH1Tables, createH1Research, changeKind } = require(path.join(root, 'h1-research/service.js'));
 const { ensurePageMapTables, createPageMapStore } = require(path.join(root, 'page-map/store.js'));
 const { mountPageMapApi } = require(path.join(root, 'page-map/routes.js'));
 const routes = require(path.join(root, 'fillout/routes.js'));
@@ -152,7 +152,11 @@ const okReply = (keywords, table) => ({ ok: true, status: 200, statusText: 'OK',
   // Pages research must not change
   const outC = C.resolve([{ ...rowsB[0], h1: 'Lawn Care Southampton', h1_source: 'research', status: 'Copy Generated' }, rowsB[4]], ctxB, volB);
   chk('A page at Copy Generated keeps its H1, claims it first, and gets "research now suggests"; the service page whose keyword it holds has no other usable candidate, so it is a conflict', pick(outC, 'homepage:/').source === 'locked' && pick(outC, 'homepage:/').h1 === 'Lawn Care Southampton' && pick(outC, 'homepage:/').suggests === 'Gardener Southampton' && pick(outC, 'service:/lawn-care').source === 'conflict', JSON.stringify([pick(outC, 'homepage:/'), pick(outC, 'service:/lawn-care').h1].map(x => x.suggests || x)), '');
-  chk('Title Case for H1s: small words lower case, acronyms kept', H.titleCase('Lawn mowing and maintenance Southampton') === 'Lawn Mowing and Maintenance Southampton' && H.titleCase('Excavation & grading Southampton') === 'Excavation & Grading Southampton' && H.titleCase('CCTV drain surveys Romsey') === 'CCTV Drain Surveys Romsey', H.titleCase('Lawn mowing and maintenance Southampton'), '');
+  chk('Title Case for H1s: small words lower case, acronyms kept', H.titleCase('Lawn mowing and maintenance Southampton') === 'Lawn Mowing and Maintenance Southampton' && H.titleCase('Excavation & grading Southampton') === 'Excavation and Grading Southampton' && H.titleCase('CCTV drain surveys Romsey') === 'CCTV Drain Surveys Romsey', H.titleCase('Lawn mowing and maintenance Southampton'), '');
+  // "&" is written "and" wherever a pattern is built
+  const ampOut = C.resolve([row('service', 'Excavation & grading', { page_key: 'service:/excavation-grading' })], ctxB, new Map());
+  chk('"&" becomes "and" everywhere a pattern is built: Title Case, the keyword, the display form, the hub pattern and a service page\'s pattern H1', H.titleCase('Excavation & grading Southampton') === 'Excavation and Grading Southampton' && H.keywordOf('Excavation & grading') === 'excavation and grading' && H.displayOf('excavation & grading southampton') === 'Excavation and Grading Southampton' && C.hubPattern('Patio & driveway', 'Leeds') === 'Patio and Driveway Services in and around Leeds' && ampOut.decisions[0].h1 === 'Excavation and Grading Southampton' && ampOut.decisions[0].source === 'pattern', JSON.stringify([H.titleCase('Excavation & grading Southampton'), ampOut.decisions[0].h1]), 'Excavation and Grading Southampton');
+  chk('Re-research change kinds: capitalisation only is "case", an empty H1 getting its pattern is "fill", anything else is "real"', changeKind('Gardener southampton', 'Gardener Southampton', 'pattern') === 'case' && changeKind('', 'Gardener Romsey', 'pattern') === 'fill' && changeKind('', 'Gardener Romsey', 'research') === 'real' && changeKind('Gardener Romsey', 'Landscaper Romsey', 'research') === 'real' && changeKind('Gardener Romsey', '', 'conflict') === 'real' && changeKind('', '', 'conflict') === 'real', '', '');
 
   // ── The service with pg-mem: the one-click flow ──
   const mem = newDb();
@@ -188,6 +192,9 @@ const okReply = (keywords, table) => ({ ok: true, status: 200, statusText: 'OK',
   job = await waitFor(job.id);
   let rows = await store.saved(cid);
   const byKey = k => rows.find(r => r.page_key === k);
+  chk('The Excavation & grading service page\'s H1 says "and"', byKey('service:/services/excavation-grading').h1 === 'Excavation and Grading Southampton', byKey('service:/services/excavation-grading').h1, 'Excavation and Grading Southampton');
+  let lj = await h1.latest(cid);
+  chk('The latest finished job is current (its banner shows)', lj.id === job.id && lj.stale === false, JSON.stringify([lj.id === job.id, lj.stale]), '');
   const nServices = rows.filter(r => r.type === 'service').length;
   chk('The job builds the pages then researches every page, service pages included, in ONE batched DataForSEO call (fewer than 1,000 keywords), cost stored', job.status === 'complete' && job.pages_total === 176 && job.keywords_total > 308 && job.keywords_fetched === job.keywords_total && searched.join() === String(job.keywords_total) && job.cost === 0.09 && nServices > 0, JSON.stringify([job.status, job.keywords_total, job.keywords_fetched, searched, nServices]), '');
   chk('Stage text: "Complete: X H1s by search volume, Y by pattern, Z H1 conflicts to resolve, cost $…"', /^Complete: \d+ H1s by search volume, \d+ by pattern(, \d+ H1 conflicts? to resolve)?, cost \$0\.09$/.test(job.stage) && job.suggested_count + job.no_data_count + job.conflict_count === 176, job.stage, '');
@@ -217,10 +224,16 @@ const okReply = (keywords, table) => ({ ok: true, status: 200, statusText: 'OK',
   // Re-research with new volumes (the cache expired): a preview first, then apply
   table = { ...table, 'gardener southampton': [5, null], 'gardener services southampton': [300, 1], 'gardener winchester': [1, null], 'landscaper winchester': [500, 4], 'paving contractor services southampton': [800, 1], 'tree service winchester': [0, null], 'gardener eastleigh': [70, 1], 'tree surgeon winchester': [900, 5] };
   now = new Date('2027-01-20T10:00:00Z');
+  const minorRows = (await store.saved(cid)).filter(r => r.type === 'location_category' && r.h1_source === 'pattern' && r.status === 'H1 Added' && !/winchester/.test(r.page_key)).slice(0, 2);
+  await pool.query(`UPDATE client_page_map SET h1 = lower(h1) WHERE id = $1`, [minorRows[0].id]);
+  await pool.query(`UPDATE client_page_map SET h1 = '', h1_source = 'needed' WHERE id = $1`, [minorRows[1].id]);
   const before = JSON.stringify((await store.saved(cid)).map(r => [r.page_key, r.h1, r.h1_source, r.status]));
   const pv = await h1.preview(cid);
   rows = await store.saved(cid);
   chk('The re-research preview writes no H1 (only caches the keywords it had to look up, in one call)', JSON.stringify(rows.map(r => [r.page_key, r.h1, r.h1_source, r.status])) === before && searched.length === 2, JSON.stringify(searched), '');
+  const kindOf = k => (pv.changes.find(c => c.page_key === k) || {}).kind;
+  const firstMinor = pv.changes.findIndex(c => c.kind !== 'real');
+  chk('Preview: capitalisation only and an empty H1 getting its pattern are minor; real changes come first and the headline count is the real ones', kindOf(minorRows[0].page_key) === 'case' && kindOf(minorRows[1].page_key) === 'fill' && kindOf('homepage:/') === 'real' && pv.realCount === pv.changes.filter(c => c.kind === 'real').length && pv.realCount > 0 && firstMinor === pv.realCount && pv.changes.slice(firstMinor).every(c => c.kind !== 'real'), JSON.stringify([kindOf(minorRows[0].page_key), kindOf(minorRows[1].page_key), pv.realCount, firstMinor]), '');
   const ch = k => pv.changes.find(c => c.page_key === k);
   chk('The preview lists old → new for pages that would change (the homepage to "Gardener Services Southampton", 300)', ch('homepage:/') && ch('homepage:/').from === 'Gardener Southampton' && ch('homepage:/').to === 'Gardener Services Southampton' && ch('homepage:/').volume === 300, JSON.stringify(ch('homepage:/')), '');
   chk('The preview never lists a manual page or one at Copy Generated; Copy Generated gets "research now suggests"', !ch('category:/paving-contractor') && !ch(lc.page_key) && !ch(copyGen.page_key) && pv.notes.some(n => n.page_key === copyGen.page_key && n.suggests === 'Landscaper Winchester'), JSON.stringify([pv.notes, pv.changes.map(c => c.page_key).filter(k => /winchester|paving/.test(k))]), '');
@@ -234,16 +247,26 @@ const okReply = (keywords, table) => ({ ok: true, status: 200, statusText: 'OK',
   const h1s2 = rows.filter(r => r.applies && r.h1).map(r => C.normalise(r.h1));
   chk('Still no two pages share a keyword group', new Set(h1s2).size === h1s2.length, '', '');
 
+  lj = await h1.latest(cid);
+  chk('After an applied re-research the latest job is that run, current', lj.id === job.id && lj.kind === 'research' && lj.stale === false, JSON.stringify([lj.kind, lj.stale]), '');
+  const { rows: [oldJob] } = await pool.query(`INSERT INTO h1_research_jobs (client_id, kind, status, stage, finished_at, created_at) VALUES ($1, 'research', 'complete', 'Complete: 15 suggested, 83 need a manual H1, cost $0.09', $2, $2) RETURNING id`, [cid, new Date('2027-01-21T10:00:00Z')]);
+  lj = await h1.latest(cid);
+  chk('A finished job from the old rules ("N suggested, M need a manual H1") is stale: its banner is not shown', lj.id === oldJob.id && lj.stale === true, JSON.stringify([lj.stage, lj.stale]), '');
+  await pool.query(`DELETE FROM h1_research_jobs WHERE id = $1`, [oldJob.id]);
   // Regenerating the map keeps every H1 (store.generate, and the one-click job in "fill" mode)
   const kept = JSON.stringify(rows.map(r => [r.page_key, r.h1, r.h1_source, r.status]));
   await store.generate(cid);
   rows = await store.saved(cid);
   chk('Regenerating the page map never changes a research, pattern, conflict or manual H1, or a status', JSON.stringify(rows.map(r => [r.page_key, r.h1, r.h1_source, r.status])) === kept, '', '');
+  lj = await h1.latest(cid);
+  chk('Regenerating the page map after a run makes that run\'s banner stale', lj.stale === true, JSON.stringify([lj.finished_at, lj.stale]), 'true');
   table = { ...table, 'gardener services southampton': [1, null], 'gardener southampton': [999, 3] };
   await pool.query(`UPDATE keyword_volumes SET fetched_at = '2020-01-01'`);
   job = await waitFor((await h1.start(cid, { kind: 'generate' })).id);
   rows = await store.saved(cid);
   chk('The one-click job on an existing map only fills pages without an H1: research and pattern H1s stay (only the first run applies everything)', job.status === 'complete' && job.mode === 'fill' && byKey('homepage:/').h1 === 'Gardener Services Southampton' && JSON.stringify(rows.filter(r => r.h1_source !== 'conflict').map(r => [r.page_key, r.h1])) === JSON.stringify(JSON.parse(kept).filter(r => r[2] !== 'conflict').map(r => [r[0], r[1]])), JSON.stringify([job.mode, byKey('homepage:/').h1]), '');
+  lj = await h1.latest(cid);
+  chk('A newer run replaces it: the latest job is the new one, current', lj.id === job.id && lj.stale === false, '', '');
 
   // A failed API call: the page map stays, the job says why, the credentials never show
   const failing = createH1Research({ pool, filloutService: svc, pageMapStore: store, log: capture, now: () => now,
@@ -299,7 +322,7 @@ const okReply = (keywords, table) => ({ ok: true, status: 200, statusText: 'OK',
     const pv2 = await (await req('GET', `/api/clients/${c2.id}/h1-research/preview`)).json();
     chk('GET h1-research/preview returns the changes and notes, writing nothing', Array.isArray(pv2.changes) && Array.isArray(pv2.notes) && typeof pv2.keywords === 'number', JSON.stringify(Object.keys(pv2)), '');
     const html = fs.readFileSync(path.join(root, 'public/client-record.html'), 'utf8');
-    chk('The page has no Accept or "Use all suggestions" button; it shows the pattern badge, H1 conflicts, the volume line, the CPC label and the re-research preview', !/>Accept<|Use all \$\{|use-suggestions|accept: true/.test(html) && /pattern, no volume data/.test(html) && /H1 conflict/.test(html) && /searches a month<\/div>/.test(html) && /CPC \(currency unconfirmed\)/.test(html) && /h1-research\/preview/.test(html) && /Research now suggests/.test(html), '', '');
+    chk('The page has no Accept or "Use all suggestions" button; it shows the pattern badge, H1 conflicts, the volume line, the CPC label and the re-research preview', !/>Accept<|Use all \$\{|use-suggestions|accept: true/.test(html) && /pattern, no volume data/.test(html) && /H1 conflict/.test(html) && /searches a month<\/div>/.test(html) && /CPC \(currency unconfirmed\)/.test(html) && /h1-research\/preview/.test(html) && /Research now suggests/.test(html) && /!j\.stale/.test(html) && /real change/.test(html) && /capitalisation only/.test(html) && html.includes('looked up ($${Number(v.cost)'), '', '');
     r = await (await req('POST', `/api/clients/${c2.id}/h1-research/retry`, {})).json();
     chk('Retry starts a research job (the map exists)', r.job && r.job.kind === 'research', JSON.stringify(r.job), '');
     const b1 = await (await req('GET', '/api/dataforseo/balance')).json(); const b2 = await (await req('GET', '/api/dataforseo/balance')).json();

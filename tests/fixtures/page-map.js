@@ -68,8 +68,10 @@ const same = (a, b) => [...a].sort().join() === [...b].sort().join();
     for (const o of old) {
       const n = find(m, o.slug);
       if (!n) { unexpected.push('missing ' + o.slug); continue; }
-      // Service H1s are Title Case now (Brandon, 18 Oct 2026): an intended difference, compared without case
-      if (o.title !== n.title || o.h1.toLowerCase() !== n.h1.toLowerCase()) unexpected.push('title/h1 ' + o.slug);
+      // Service H1s are Title Case now (Brandon, 18 Oct 2026) and write "&" as "and" (19 Oct 2026):
+      // intended differences, compared without case and with "&" read as "and"
+      const h1Form = h => h.toLowerCase().replace(/\s*&\s*/g, ' and ');
+      if (o.title !== n.title || h1Form(o.h1) !== h1Form(n.h1)) unexpected.push('title/h1 ' + o.slug);
       const fixedHome = o.slug === '/' && same(o.linksTo.filter(l => l !== '/locations/southampton'), n.links_to) && same(o.linksFrom, n.links_from);
       const fixedDup = dupSlugs.has(o.slug) && o.linksTo.every(l => n.links_to.includes(l)) && o.linksFrom.every(l => n.links_from.includes(l));
       if (!fixedHome && !fixedDup && !(same(o.linksTo, n.links_to) && same(o.linksFrom, n.links_from))) unexpected.push('links ' + o.slug);

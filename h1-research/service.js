@@ -69,20 +69,44 @@ async function ensureH1Tables(pool) {
   // Added by H1 research v2 to a table that may already exist
   await pool.query(`ALTER TABLE h1_research_jobs ADD COLUMN IF NOT EXISTS conflict_count INTEGER NOT NULL DEFAULT 0`);
   await pool.query(`ALTER TABLE h1_research_jobs ADD COLUMN IF NOT EXISTS mode TEXT`);
+  // Which page map generation a finished job researched (a later regeneration makes its banner stale)
+  await pool.query(`ALTER TABLE h1_research_jobs ADD COLUMN IF NOT EXISTS map_generated_at TIMESTAMPTZ`);
   // The page map's own columns for research (h1_keyword, h1_volume, h1_reason, h1_hub,
   // h1_suggests, h1_researched_at) are added by page-map/store.js ensurePageMapTables
 }
 
 const num = v => (v == null ? null : Number(v));
+// The v1 job summary ("Complete: 15 suggested, 83 need a manual H1, cost $0.09")
+const STALE_STAGE = /suggested.*need a manual H1/;
+// A re-research change is "case" when only capitals (or the label) differ, "fill" when an empty H1
+// gets its pattern, otherwise "real" (Brandon, 19 Oct 2026: the preview leads with the real ones)
+function changeKind(from, to, toSource) {
+  if (from && from.toLowerCase() === to.toLowerCase()) return 'case';
+  if (!from && to && toSource === 'pattern') return 'fill';
+  return 'real';
+}
 const jobOut = j => j && ({ ...j, cost: num(j.cost) });
 
 function createH1Research({ pool, filloutService, pageMapStore, searchVolume = D.searchVolume, log = console, now = () => new Date() }) {
   const running = new Set();
 
   async function job(id) { const { rows } = await pool.query(`SELECT * FROM h1_research_jobs WHERE id = $1`, [id]); return jobOut(rows[0]) || null; }
+  // The client's latest job only. A finished job is "stale" (its banner is not shown) when it was
+  // written by the old v1 rules ("N suggested, M need a manual H1") or the page map was
+  // regenerated since it ran; a newer run or an applied re-research is a newer job anyway.
   async function latest(clientId) {
     const { rows } = await pool.query(`SELECT * FROM h1_research_jobs WHERE client_id = $1 ORDER BY created_at DESC LIMIT 1`, [clientId]);
-    return jobOut(rows[0]) || null;
+    const j = jobOut(rows[0]);
+    if (!j) return null;
+    let stale = false;
+    if (j.status === 'complete') {
+      if (STALE_STAGE.test(j.stage || '')) stale = true;
+      else if (j.map_generated_at) {
+        const st = await pageMapStore.state(clientId);
+        if (st && st.generated_at && new Date(st.generated_at).getTime() !== new Date(j.map_generated_at).getTime()) stale = true;
+      }
+    }
+    return { ...j, stale };
   }
   async function patch(id, fields) {
     const keys = Object.keys(fields);
@@ -170,6 +194,8 @@ function createH1Research({ pool, filloutService, pageMapStore, searchVolume = D
         await apply(clientId, d);
         if (counts[d.source] != null && !['manual', 'locked'].includes(d.source)) counts[d.source]++;
       }
+      const st = await pageMapStore.state(clientId);
+      await patch(id, { map_generated_at: st && st.generated_at ? st.generated_at : null });
       await patch(id, { status: 'complete', suggested_count: counts.research, no_data_count: counts.pattern, conflict_count: counts.conflict,
         stage: `Complete: ${counts.research} H1s by search volume, ${counts.pattern} by pattern${counts.conflict ? `, ${counts.conflict} H1 conflict${counts.conflict === 1 ? '' : 's'} to resolve` : ''}, cost $${r.cost.toFixed(2)}`, finished_at: now() });
     } catch (err) {
@@ -210,9 +236,11 @@ function createH1Research({ pool, filloutService, pageMapStore, searchVolume = D
       if (d.source === 'manual') continue;
       if (d.source === 'locked') { if (d.suggests) notes.push({ page_key: row.page_key, title: row.title, type: row.type, status: row.status, h1: row.h1, suggests: d.suggests }); continue; }
       const sourceNow = ['research', 'pattern', 'conflict'].includes(row.h1_source) ? row.h1_source : row.h1_source || 'needed';
-      if ((row.h1 || '') !== (d.h1 || '') || sourceNow !== d.source) changes.push({ page_key: row.page_key, title: row.title, type: row.type, from: row.h1 || '', fromSource: row.h1_source, to: d.h1 || '', toSource: d.source, volume: d.volume == null ? null : d.volume, reason: d.reason });
+      if ((row.h1 || '') !== (d.h1 || '') || sourceNow !== d.source) changes.push({ page_key: row.page_key, title: row.title, type: row.type, from: row.h1 || '', fromSource: row.h1_source, to: d.h1 || '', toSource: d.source, volume: d.volume == null ? null : d.volume, reason: d.reason, kind: changeKind(row.h1 || '', d.h1 || '', d.source) });
     }
-    return { changes, notes, keywords: r.keywords.length, fetched: r.missing, cost: r.cost };
+    // Real changes first; capitalisation-only and empty-gets-its-pattern after (collapsed on the page)
+    changes.sort((a, b) => (a.kind === 'real' ? 0 : 1) - (b.kind === 'real' ? 0 : 1));
+    return { changes, realCount: changes.filter(c => c.kind === 'real').length, notes, keywords: r.keywords.length, fetched: r.missing, cost: r.cost };
   }
 
   async function cached(keywords) {
@@ -263,4 +291,4 @@ function createH1Research({ pool, filloutService, pageMapStore, searchVolume = D
   return { start, run, job, latest, candidates, recover, cached, preview, decide };
 }
 
-module.exports = { ensureH1Tables, createH1Research, CACHE_DAYS, ACTIVE };
+module.exports = { ensureH1Tables, createH1Research, changeKind, CACHE_DAYS, ACTIVE };

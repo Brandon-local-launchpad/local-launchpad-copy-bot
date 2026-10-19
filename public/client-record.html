@@ -166,6 +166,7 @@
   @media (max-width: 900px) { .h1bar { padding: 0 1rem; } }
   .pm-row .h1vol { font-size: 12px; font-weight: 600; color: var(--text); margin-top: 3px; }
   .pm-row .h1why { font-size: 11px; color: var(--muted); margin-top: 2px; word-break: break-word; }
+  .pm-box details.cands summary { cursor: pointer; color: var(--muted); font-size: 12px; }
   .pm-box .ctwrap { overflow-x: auto; } .pm-box table.ct { width: 100%; border-collapse: collapse; margin-top: .4rem; } .pm-box table.ct th, .pm-box table.ct td { text-align: left; padding: 4px 6px; border-bottom: 1px solid var(--border); font-size: 12px; vertical-align: top; } .pm-box table.ct th { color: var(--muted); font-weight: 600; }
   .pm-row details.cands { font-size: 12px; margin-top: 4px; } .pm-row details.cands summary { cursor: pointer; color: var(--muted); }
   .pm-row .ctwrap { overflow-x: auto; } .pm-row table.ct { width: 100%; border-collapse: collapse; margin-top: .3rem; } .pm-row table.ct th, .pm-row table.ct td { text-align: left; padding: 3px 6px; border-bottom: 1px solid var(--border); font-size: 12px; } .pm-row table.ct th { color: var(--muted); font-weight: 600; } .pm-row table.ct tr.win td { font-weight: 700; }
@@ -744,7 +745,7 @@
     const el = document.getElementById('h1bar'); if (!el) return;
     const j = pm.job;
     const low = dfsBalance && dfsBalance.low ? `<span class="badge b-bad" title="DataForSEO account balance">DataForSEO balance $${Number(dfsBalance.balance).toFixed(2)}: below $10, top up before researching</span>` : '';
-    const showJob = j && (jobActive() || j.status === 'failed' || (j.status === 'complete' && !isDismissed(j.id)));
+    const showJob = j && (jobActive() || j.status === 'failed' || (j.status === 'complete' && !j.stale && !isDismissed(j.id)));
     if (!showJob && !low) { el.hidden = true; el.innerHTML = ''; return; }
     let cls = '', txt = '', sub = '', fill = '', btn = '';
     if (showJob && jobActive()) {
@@ -788,12 +789,17 @@
     if (v.loading) return '<div class="pm-box"><h3>Re-research H1s</h3><div class="pnote">Working out what would change…</div></div>';
     if (v.error) return `<div class="pm-box warn"><h3>Could not research H1s</h3><div class="pnote">${esc(v.error)}</div><div class="pt-actions" style="margin-top:.6rem"><button class="btn btn-ghost btn-xs" onclick="h1Preview=null;render()">Close</button></div></div>`;
     const label = s => ({ research: 'by volume', pattern: 'pattern', conflict: 'H1 conflict' }[s] || s || 'none');
-    const cost = v.fetched ? `${v.fetched} new keyword${v.fetched === 1 ? '' : 's'} looked up (${Number(v.cost).toFixed(2)}), the rest from the cache` : 'All keywords from the cache, no cost';
-    const rows = v.changes.map(c => `<tr><td>${esc(c.title)}</td><td>${esc(c.from || '(empty)')}</td><td><strong>${esc(c.to || '(empty)')}</strong>${c.volume != null ? ` · ${c.volume}/mo` : ''} <span class="pnote">${esc(label(c.toSource))}</span><div class="pnote">${esc(c.reason || '')}</div></td></tr>`).join('');
+    const cost = v.fetched ? `${v.fetched} new keyword${v.fetched === 1 ? '' : 's'} looked up ($${Number(v.cost).toFixed(2)}), the rest from the cache` : 'All keywords from the cache, no cost';
+    const real = v.changes.filter(c => c.kind === 'real' || !c.kind), minor = v.changes.filter(c => c.kind && c.kind !== 'real');
+    const nReal = v.realCount != null ? v.realCount : real.length;
+    const row = c => `<tr><td>${esc(c.title)}</td><td>${esc(c.from || '(empty)')}</td><td><strong>${esc(c.to || '(empty)')}</strong>${c.volume != null ? ` · ${c.volume}/mo` : ''} <span class="pnote">${esc(label(c.toSource))}</span><div class="pnote">${esc(c.reason || '')}</div></td></tr>`;
+    const table = list => `<div class="ctwrap"><table class="ct"><thead><tr><th>Page</th><th>H1 now</th><th>Would become</th></tr></thead><tbody>${list.map(row).join('')}</tbody></table></div>`;
+    const nCase = minor.filter(c => c.kind === 'case').length, nFill = minor.filter(c => c.kind === 'fill').length;
+    const minorBox = minor.length ? `<details class="cands" style="margin-top:.5rem"><summary>${minor.length} other update${minor.length === 1 ? '' : 's'}: ${[nCase ? `${nCase} capitalisation only` : '', nFill ? `${nFill} empty H1${nFill === 1 ? '' : 's'} getting the pattern` : ''].filter(Boolean).join(', ')}</summary>${table(minor)}</details>` : '';
     const notes = v.notes.length ? `<div class="pnote" style="margin-top:.5rem"><strong>Not changed (manual, or Copy Generated or later), research now suggests:</strong></div><ul>${v.notes.map(n => `<li>${esc(n.title)}: "${esc(n.h1)}" → "${esc(n.suggests)}"</li>`).join('')}</ul>` : '';
-    return `<div class="pm-box"><h3>Re-research H1s: ${v.changes.length ? `${v.changes.length} page${v.changes.length === 1 ? '' : 's'} would change` : 'nothing would change'}</h3>
+    return `<div class="pm-box"><h3>Re-research H1s: ${nReal ? `${nReal} real change${nReal === 1 ? '' : 's'}` : v.changes.length ? 'no real changes' : 'nothing would change'}${minor.length ? ` <span class="pnote">(+${minor.length} minor)</span>` : ''}</h3>
       <div class="pnote">${esc(cost)}. Only pages with a research or pattern H1 at Not Started or H1 Added change; manual H1s never do.</div>
-      ${v.changes.length ? `<div class="ctwrap"><table class="ct"><thead><tr><th>Page</th><th>H1 now</th><th>Would become</th></tr></thead><tbody>${rows}</tbody></table></div>` : ''}${notes}
+      ${real.length ? table(real) : ''}${minorBox}${notes}
       <div class="pt-actions" style="margin-top:.6rem">${v.changes.length || v.notes.length ? '<button class="btn btn-primary btn-xs" onclick="h1Apply()">Apply</button>' : ''}<button class="btn btn-ghost btn-xs" onclick="h1Preview=null;render()">Cancel</button></div></div>`;
   }
   function h1Retry() { return startJob(`/api/clients/${clientId}/h1-research/retry`); }
