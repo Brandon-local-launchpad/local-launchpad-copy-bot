@@ -50,6 +50,28 @@ function responseText(r) {
   return parts.join('\n');
 }
 
+// Perplexity cites as [web:N] markers, N being search_results[].id in the response's
+// output. The pack needs URLs (Ray opens every source), so markers become [url]:
+// "[url][web:N]" keeps the inline url, a bare "[web:N]" becomes the mapped url, and an
+// id with no result is dropped. Returns { text, resolved, unmatched }.
+function resolveCitations(text, r) {
+  const urls = {};
+  for (const item of Array.isArray(r && r.output) ? r.output : []) {
+    if (item.type === 'search_results' && Array.isArray(item.results)) {
+      for (const s of item.results) if (s.id != null && s.url) urls[s.id] = s.url;
+    }
+  }
+  let resolved = 0, unmatched = 0;
+  let out = String(text).replace(/(\[https?:\/\/[^\]]+\])\[web:\d+\]/g, (_, url) => url);
+  out = out.replace(/\[web:(\d+)\]/g, (_, n) => {
+    const url = urls[parseInt(n, 10)];
+    if (url) { resolved++; return `[${url}]`; }
+    unmatched++;
+    return '';
+  });
+  return { text: out, resolved, unmatched };
+}
+
 // usage.cost.total_cost when Perplexity reports it, else null (no guessing at rates)
 function responseCost(r) {
   const c = r && r.usage && r.usage.cost;
@@ -100,9 +122,10 @@ function perplexityAgent({ apiKey, preset = DEFAULT_PRESET, fetchFn = global.fet
     async research(prompt) {
       const submitted = await submit(prompt);
       const done = submitted.status === 'completed' ? submitted : await poll(submitted.id);
-      const text = responseText(done);
-      if (!text.trim()) throw new Error('Perplexity returned an empty answer');
-      return { text, model: done.model || null, cost: responseCost(done), usage: done.usage || null };
+      const raw = responseText(done);
+      if (!raw.trim()) throw new Error('Perplexity returned an empty answer');
+      const { text, resolved, unmatched } = resolveCitations(raw, done);
+      return { text, model: done.model || null, cost: responseCost(done), usage: done.usage || null, citations: { resolved, unmatched } };
     },
   };
 }
@@ -145,7 +168,8 @@ async function run({ api, niches = null, force = false, concurrency = 3, dryRun 
       const text = `${P.header({ generated: today(), model })}\n\n${r.text.replace(/\r\n/g, '\n').trim()}\n`;
       fs.mkdirSync(path.dirname(P.packFile(niche)), { recursive: true });
       fs.writeFileSync(P.packFile(niche), text, 'utf8');
-      log(`${niche}: done in ${fmtSecs(Date.now() - started)}, ${fmtMoney(r.cost)}, wrote ${file} (${text.length} chars); verify it on the Trade facts page`);
+      const cites = r.citations ? `, ${r.citations.resolved} sources resolved${r.citations.unmatched ? `, ${r.citations.unmatched} citation markers with no url dropped` : ''}` : '';
+      log(`${niche}: done in ${fmtSecs(Date.now() - started)}, ${fmtMoney(r.cost)}${cites}, wrote ${file} (${text.length} chars); verify it on the Trade facts page`);
       return { niche, status: 'written', file, cost: r.cost, model };
     } catch (err) {
       log(`${niche}: failed after ${fmtSecs(Date.now() - started)}: ${err.message}`);
@@ -202,4 +226,4 @@ if (require.main === module) {
   main().catch(err => { console.error(err.message); process.exitCode = 1; });
 }
 
-module.exports = { run, perplexityAgent, parseArgs, responseText, responseCost, loadDotEnv, AGENT_URL, DEFAULT_PRESET };
+module.exports = { run, perplexityAgent, parseArgs, responseText, responseCost, resolveCitations, loadDotEnv, AGENT_URL, DEFAULT_PRESET };

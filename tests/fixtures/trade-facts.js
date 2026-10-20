@@ -119,7 +119,10 @@ const dataRows = sec => sec.split('\n').filter(l => /^\| /.test(l)).slice(1);
     () => reply(429, { error: 'slow down' }),
     () => reply(200, { id: 'resp_1', status: 'queued' }),
     () => reply(200, { id: 'resp_1', status: 'in_progress' }),
-    () => reply(200, { id: 'resp_1', status: 'completed', model: 'openai/gpt-5.6-luna', output: [{ type: 'message', content: [{ type: 'output_text', text: 'TABLE A — HOW EACH JOB IS DONE\n| a |' }] }], usage: { input_tokens: 10, output_tokens: 20, cost: { total_cost: 2.5 } } }),
+    () => reply(200, { id: 'resp_1', status: 'completed', model: 'openai/gpt-5.6-luna', output: [
+      { type: 'search_results', results: [{ id: 7, url: 'https://www.gov.uk/a', title: 'A' }, { id: 48, url: 'https://www.hse.gov.uk/b' }] },
+      { type: 'message', content: [{ type: 'output_text', text: 'TABLE A — HOW EACH JOB IS DONE\n| a | [web:48][web:7] | [https://x.org/c][web:48] | [web:99] |' }] },
+    ], usage: { input_tokens: 10, output_tokens: 20, cost: { total_cost: 2.5 } } }),
   ];
   const fetchFn = async (url, init = {}) => { calls.push({ url, method: init.method || 'GET', headers: init.headers, body: init.body }); return script.shift()(); };
   const statuses = [];
@@ -127,7 +130,8 @@ const dataRows = sec => sec.split('\n').filter(l => /^\| /.test(l)).slice(1);
   const out = await api.research('PROMPT');
   chk('Agent API: POST /v1/agent with the preset, the prompt as input and background mode; the key only in the Authorization header', calls[1].url === R.AGENT_URL && calls[1].method === 'POST' && JSON.parse(calls[1].body).preset === 'high' && JSON.parse(calls[1].body).input === 'PROMPT' && JSON.parse(calls[1].body).background === true && calls[1].headers.Authorization === `Bearer ${KEY}`, JSON.stringify(calls[1]), '');
   chk('A 429 backs off and resubmits; the job is polled by id until completed', calls.length === 4 && calls[2].url === `${R.AGENT_URL}/resp_1` && calls[2].method === 'GET' && statuses.join() === 'rate limited, waiting 0s,in_progress', JSON.stringify({ n: calls.length, statuses }), '');
-  chk('The result: the answer text, the model Perplexity reports and usage.cost.total_cost', out.text === 'TABLE A — HOW EACH JOB IS DONE\n| a |' && out.model === 'openai/gpt-5.6-luna' && out.cost === 2.5, JSON.stringify(out), '');
+  chk('The result: the answer text, the model Perplexity reports and usage.cost.total_cost', out.text === 'TABLE A — HOW EACH JOB IS DONE\n| a | [https://www.hse.gov.uk/b][https://www.gov.uk/a] | [https://x.org/c] |  |' && out.model === 'openai/gpt-5.6-luna' && out.cost === 2.5, JSON.stringify(out), '');
+  chk('[web:N] citation markers become the search result urls (an inline url kept, an unknown id dropped), counted', out.citations.resolved === 2 && out.citations.unmatched === 1 && R.resolveCitations('x [web:1]', {}).text === 'x ', JSON.stringify(out.citations), '');
   chk('Cost is null, never guessed, when the response has no usage.cost', R.responseCost({ usage: { input_tokens: 1 } }) === null && R.responseText({ output_text: 'x' }) === 'x', '', '');
   const script2 = [() => reply(500, { error: 'boom' })];
   const api2 = R.perplexityAgent({ apiKey: KEY, fetchFn: async () => script2.shift()(), pollMs: 1, backoffMs: [1] });
@@ -154,6 +158,25 @@ const dataRows = sec => sec.split('\n').filter(l => /^\| /.test(l)).slice(1);
   chk('A missing pack is refused by file name, status 422', err && err.status === 422 && /plumber\.md is missing/.test(err.message), err && err.message, '');
   const noTables = P.parseTables('generated x · model y · verified: no\n\nNothing here');
   chk('A pack with no tables: every table reported missing by the loader', noTables.size === 0, noTables.size, 0);
+
+  // The real roofer pack, when the script has written one: every service in the block has
+  // its rows, the loader finds them, and sources are urls, not markers
+  const realRoofer = path.join(root, 'trade-facts/roofer.md');
+  if (fs.existsSync(realRoofer)) {
+    const text = fs.readFileSync(realRoofer, 'utf8');
+    const rt = P.parseTables(text);
+    const block = fs.readFileSync(path.join(root, 'trade-facts/blocks/roofer.md'), 'utf8').replace(/\r\n/g, '\n');
+    const services = (block.match(/^SERVICES[^\n]*\n([\s\S]*?)\n\n/m) || ['', ''])[1].split('\n').flatMap(l => l.replace(/^[^:]+:\s*/, '').split('|').map(s => s.trim())).filter(Boolean);
+    const rowsFor = (t, s) => (rt.get(t) ? rt.get(t).rows : []).filter(r => P.cellNames(r[0] || '', s));
+    const missingRows = services.flatMap(s => ['A', 'B', 'F'].filter(t => !rowsFor(t, s).length).map(t => `${t}:${s}`));
+    chk(`The real roofer pack (trade-facts/roofer.md): header, seven tables, a row in A, B and F for all ${services.length} services of the block`, P.parseHeader(text) && rt.size === 7 && services.length >= 20 && missingRows.length === 0, JSON.stringify({ header: P.parseHeader(text), tables: rt.size, services: services.length, missingRows }), '');
+    chk('The real roofer pack: sources are urls, no [web:N] markers left', !/\[web:\d+\]/.test(text) && (text.match(/https?:\/\//g) || []).length > 50, (text.match(/\[web:\d+\]/g) || []).length + ' markers', '0 markers');
+    const old = process.env.TRADE_FACTS_DIR; delete process.env.TRADE_FACTS_DIR;
+    const realP = (() => { const k = require.resolve(path.join(root, 'trade-facts/pack.js')); const cached = require.cache[k]; delete require.cache[k]; const m = require(k); require.cache[k] = cached; return m; })();
+    const real = realP.packForService('roofer', 'Roof repairs');
+    process.env.TRADE_FACTS_DIR = old;
+    chk('The loader on the real pack: Roof repairs gets its A, B and F rows and C, D, E in full, nothing missing', real.missing.length === 0 && dataRows(section(real.markdown, 'A')).length === 1 && dataRows(section(real.markdown, 'C')).length > 10, JSON.stringify(real.missing), '[]');
+  }
 
   chk('packNameFor: niche keys, Fillout labels and old trade names map to the pack', ['Roofers', 'roofers', 'Roofing Company', 'roofer'].every(x => P.packNameFor(x) === 'roofer') && ['Landscapers/Gardeners', 'landscapers', 'Landscaper Gardener'].every(x => P.packNameFor(x) === 'landscaper') && ['Builders', 'Building Company', 'builder'].every(x => P.packNameFor(x) === 'builder') && P.packNameFor('Dog Training') === 'dog-training' && P.packNameFor('') === null && P.packNameFor('Chimney Sweeps') === 'chimney-sweeps', [P.packNameFor('Roofing Company'), P.packNameFor('Landscaper Gardener'), P.packNameFor('Dog Training'), P.packNameFor('Chimney Sweeps')].join(), '');
 

@@ -137,7 +137,7 @@ function parseTables(text) {
       tables.set(current.letter, current);
       continue;
     }
-    if (/^\s*END OF PACK\s*$/i.test(line)) { current = null; continue; }
+    if (/^\s*(?:#{1,6}\s*)?(?:\*\*)?END OF PACK(?:\*\*)?\s*$/i.test(line)) { current = null; continue; }
     if (current) current.lines.push(line);
   }
   for (const t of tables.values()) {
