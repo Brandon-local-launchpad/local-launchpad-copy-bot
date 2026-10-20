@@ -1,0 +1,23 @@
+gbp_name,gbp_category,verdict,target,note
+Driveway cleaning,Additional services,alias,Driveway and patio cleaning,Free-text intake name; page defined in cleaning.csv
+Patio cleaning,Additional services,alias,Driveway and patio cleaning,Free-text intake name
+Decking cleaning,Additional services,page,Decking cleaning,Free-text intake name
+Render cleaning,Additional services,alias,Render cleaning,Free-text intake name; page defined in cleaning.csv
+Brick cleaning,Additional services,page,Brick and stone cleaning,Free-text intake name
+Stone cleaning,Additional services,alias,Brick and stone cleaning,Free-text intake name
+Cladding cleaning,Additional services,alias,Cladding cleaning,Free-text intake name; page defined in cleaning.csv
+Conservatory cleaning,Additional services,alias,Conservatory cleaning,Free-text intake name; page defined in cleaning.csv
+Solar panel cleaning,Additional services,page,Solar panel cleaning,Free-text intake name
+Fascia and soffit cleaning,Additional services,alias,Fascia and soffit cleaning,Free-text intake name; page defined in cleaning.csv
+Graffiti removal,Additional services,page,Graffiti removal,Free-text intake name
+Oil stain removal,Additional services,page,Oil and rust stain removal,Free-text intake name
+Rust stain removal,Additional services,alias,Oil and rust stain removal,Free-text intake name
+Car park cleaning,Additional services,page,Car park cleaning,Free-text intake name
+Tennis court cleaning,Additional services,page,Tennis court and sports surface cleaning,Free-text intake name
+Playground cleaning,Additional services,alias,Tennis court and sports surface cleaning,Free-text intake name
+Industrial cleaning,Additional services,page,Industrial and warehouse cleaning,Free-text intake name
+Warehouse floor cleaning,Additional services,alias,Industrial and warehouse cleaning,Free-text intake name
+Concrete sealing,Additional services,alias,Block paving and concrete sealing,Free-text intake name
+Block paving sealing,Additional services,page,Block paving and concrete sealing,Free-text intake name
+Block paving re-sanding,Additional services,alias,Block paving and concrete sealing,Common free-text name; added
+Gum removal,Additional services,alias,Graffiti removal,Common free-text name; added

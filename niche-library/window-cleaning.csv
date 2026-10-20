@@ -1,0 +1,18 @@
+gbp_name,gbp_category,verdict,target,note
+Conservatory cleaning,Additional services,alias,Conservatory cleaning,Free-text intake name; page defined in cleaning.csv
+Fascia and soffit cleaning,Additional services,alias,Fascia and soffit cleaning,Free-text intake name; page defined in cleaning.csv
+Cladding cleaning,Additional services,alias,Cladding cleaning,Free-text intake name; page defined in cleaning.csv
+Solar panel cleaning,Additional services,alias,Solar panel cleaning,Free-text intake name; page defined in pressure-washing.csv
+Sign cleaning,Additional services,page,Sign and canopy cleaning,Free-text intake name
+Canopy cleaning,Additional services,alias,Sign and canopy cleaning,Free-text intake name
+Render cleaning,Additional services,alias,Render cleaning,Free-text intake name; page defined in cleaning.csv
+Patio cleaning,Additional services,alias,Driveway and patio cleaning,Free-text intake name
+Driveway cleaning,Additional services,alias,Driveway and patio cleaning,Free-text intake name
+Decking cleaning,Additional services,alias,Decking cleaning,Free-text intake name; page defined in pressure-washing.csv
+Bin store cleaning,Additional services,page,Bin store cleaning,Free-text intake name
+Graffiti removal,Additional services,alias,Graffiti removal,Free-text intake name; page defined in pressure-washing.csv
+High-level access cleaning,Additional services,page,High level window cleaning,Free-text intake name
+Commercial window cleaning,Additional services,page,Commercial window cleaning,Free-text intake name
+Industrial window cleaning,Additional services,alias,Commercial window cleaning,Free-text intake name
+Residential window cleaning,Additional services,page,Residential window cleaning,Common free-text name; added
+Gutter clearing,Additional services,alias,Gutter cleaning,Common free-text name; added; page defined in roofer.csv

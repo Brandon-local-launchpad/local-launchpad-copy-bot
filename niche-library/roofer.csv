@@ -1,0 +1,42 @@
+gbp_name,gbp_category,verdict,target,note
+Loft ventilation,Roofing services,page,Loft ventilation,
+Attic venting installation,Roofing services,alias,Loft ventilation,US term
+Attic venting repairs,Roofing services,alias,Loft ventilation,US term
+Gutter cleaning,Roofing services,page,Gutter cleaning,
+Gutter installation,Roofing services,page,Guttering installation,
+Gutter repairs,Roofing services,page,Gutter repairs,
+Roof damage repair,Roofing services,alias,Roof repairs,
+Roof inspection,Roofing services,page,Roof inspections,
+Roof installation,Roofing services,page,Roof replacement,
+Roof repair,Roofing services,page,Roof repairs,
+Skylight installation,Roofing services,page,Roof window installation (Velux),US term
+Skylight repair,Roofing services,page,Roof window repairs,US term
+Roof repair for storm and wind damage,Roofing services,page,Storm damage repairs,
+Flat roofing,Additional services,page,Flat roof replacement,Free-text intake name
+EPDM roofing,Additional services,page,EPDM rubber roofing,Free-text intake name
+GRP fibreglass roofing,Additional services,page,GRP fibreglass roofing,Free-text intake name
+Felt roofing,Additional services,page,Felt roofing,Free-text intake name
+Slate roofing,Additional services,page,Slate roofing,Free-text intake name
+Tile roofing,Additional services,page,Tile roofing,Free-text intake name
+Rubber roofing,Additional services,alias,EPDM rubber roofing,Free-text intake name
+Warm roof systems,Additional services,page,Warm roof and cold roof conversion,Free-text intake name
+Cold roof systems,Additional services,alias,Warm roof and cold roof conversion,Free-text intake name
+Pitched roof installation,Additional services,alias,Roof replacement,Free-text intake name
+Roof replacement,Additional services,alias,Roof replacement,Free-text intake name
+Fascias,Additional services,page,Fascias and soffits,Free-text intake name
+Soffits,Additional services,alias,Fascias and soffits,Free-text intake name
+Cladding,Additional services,page,Cladding,Free-text intake name
+UPVC roofline replacement,Additional services,alias,Fascias and soffits,Free-text intake name
+Dry verge systems,Additional services,page,Dry ridge and dry verge,Free-text intake name
+Dry ridge systems,Additional services,alias,Dry ridge and dry verge,Free-text intake name
+Leadwork,Additional services,page,Leadwork,Free-text intake name
+Chimney repairs,Additional services,page,Chimney repairs and repointing,Free-text intake name
+Chimney repointing,Additional services,alias,Chimney repairs and repointing,Free-text intake name
+Chimney removal,Additional services,page,Chimney removal,Free-text intake name
+Roof cleaning,Additional services,page,Roof cleaning and moss removal,Free-text intake name
+Moss removal,Additional services,alias,Roof cleaning and moss removal,Free-text intake name
+Solar panel bird proofing,Additional services,page,Solar panel bird proofing,Free-text intake name
+Commercial roofing,Additional services,page,Commercial roofing,Free-text intake name
+Garage roof replacement,Additional services,page,Garage roof replacement,Free-text intake name
+Conservatory roof replacement,Additional services,page,Conservatory roof replacement,Free-text intake name
+Roof coatings,Additional services,page,Roof coatings,Free-text intake name

@@ -1,0 +1,66 @@
+gbp_name,gbp_category,verdict,target,note
+General alarm installation,Electrician,alias,Intruder alarms,
+General construction,Electrician,exclude,,
+Electric car charger installation,Electrician,page,EV charger installation,
+Electrical fixture installation,Electrician,alias,Lighting installation,
+Electrical parts assembly,Electrician,exclude,,Meaningless
+Electrical wiring installation,Electrician,page,Rewiring,
+Electrical wiring repair,Electrician,page,Electrical fault finding and repairs,
+Remodelling,Electrician,exclude,,
+Electrical fuse changing,Electrician,alias,Consumer unit upgrades,
+General repairs,Electrician,alias,Electrical fault finding and repairs,
+Electrical heat resistor changing,Electrician,exclude,,Meaningless
+Electrical inspections,Electrician,alias,EICR and electrical testing,
+Fan installation,Electrician,page,Extractor fan installation,
+Ground wire installation,Electrician,exclude,,US term
+Light fixture installation,Electrician,page,Lighting installation,
+Outdoor lighting installation,Electrician,page,Garden and outdoor lighting,
+Electrical socket and switch installation,Electrician,page,Sockets and switches,
+Security system installation,Electrician,alias,Intruder alarms,
+Installation,Electrician,exclude,,Meaningless
+Electrical socket and switch relocation,Electrician,alias,Sockets and switches,
+Fan repair,Electrician,alias,Extractor fan installation,
+Light fixture repair,Electrician,alias,Lighting installation,
+Electrical socket and switch repair,Electrician,alias,Sockets and switches,
+Electrical panel repair,Electrician,alias,Consumer unit upgrades,US term
+Electrical panel replacement or upgrading,Electrician,alias,Consumer unit upgrades,US term
+Electrical power restoration,Electrician,page,Emergency electrician,
+Security cameras,Security System Supplier,alias,CCTV installation,
+Technical support,Security System Supplier,exclude,,
+Consumer unit installation,Additional services,alias,Consumer unit upgrades,Free-text intake name
+Consumer unit upgrades,Additional services,page,Consumer unit upgrades,Free-text intake name
+EICR (Electrical Installation Condition Reports),Additional services,page,EICR and electrical testing,Free-text intake name
+Landlord electrical safety certificates (EICR),Additional services,page,Landlord electrical certificates,Free-text intake name
+PAT testing,Additional services,page,PAT testing,Free-text intake name
+Smoke alarm installation,Additional services,page,Smoke and heat alarms,Free-text intake name
+Heat alarm installation,Additional services,alias,Smoke and heat alarms,Free-text intake name
+Emergency lighting installation,Additional services,page,Emergency lighting,Free-text intake name
+Emergency lighting testing,Additional services,alias,Emergency lighting,Free-text intake name
+Fire alarm installation,Additional services,page,Fire alarm systems,Free-text intake name
+Fire alarm maintenance,Additional services,alias,Fire alarm systems,Free-text intake name
+CCTV installation,Additional services,page,CCTV installation,Free-text intake name
+Access control systems,Additional services,page,Access control and door entry,Free-text intake name
+Door entry systems,Additional services,alias,Access control and door entry,Free-text intake name
+Intruder alarm installation,Additional services,page,Intruder alarms,Free-text intake name
+Smart home installation,Additional services,page,Smart home installation,Free-text intake name
+Home automation systems,Additional services,alias,Smart home installation,Free-text intake name
+Smart lighting installation,Additional services,alias,Smart home installation,Free-text intake name
+Smart heating controls,Additional services,alias,Smart home installation,Free-text intake name
+Home cinema installation,Additional services,page,Home cinema and audio visual,Free-text intake name
+Audio visual installation,Additional services,alias,Home cinema and audio visual,Free-text intake name
+Multi-room audio systems,Additional services,alias,Home cinema and audio visual,Free-text intake name
+Data cabling,Additional services,page,Data and network cabling,Free-text intake name
+Network cabling,Additional services,alias,Data and network cabling,Free-text intake name
+Wi-Fi access point installation,Additional services,alias,Data and network cabling,Free-text intake name
+Garden power installation,Additional services,alias,Garden and outdoor lighting,Free-text intake name
+Outdoor socket installation,Additional services,alias,Garden and outdoor lighting,Free-text intake name
+LED lighting upgrades,Additional services,alias,Lighting installation,Free-text intake name
+Commercial electrical installations,Additional services,page,Commercial electrical work,Free-text intake name
+Three-phase electrical installations,Additional services,alias,Commercial electrical work,Free-text intake name
+Temporary site electrics,Additional services,alias,Commercial electrical work,Free-text intake name
+Electric shower installation,Additional services,page,Electric shower installation,Common free-text name; added
+Cooker and hob installation,Additional services,page,Cooker and hob installation,Common free-text name; added
+Partial rewires,Additional services,alias,Rewiring,Common free-text name; added
+Electric vehicle charging points,Additional services,alias,EV charger installation,Common free-text name; added
+Solar PV installation,Additional services,page,Solar PV and battery storage,Common free-text name; added
+Battery storage,Additional services,alias,Solar PV and battery storage,Common free-text name; added

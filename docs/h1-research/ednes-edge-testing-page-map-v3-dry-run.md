@@ -1,6 +1,6 @@
-# Page map v3 dry run: ednes edge testing (2026-10-19)
+# Page map v3 dry run: ednes edge testing (2026-10-20)
 
-1698 keywords: 1432 from the cache, 266 fetched in 1 call(s), cost $0.09 · nothing written
+1698 keywords: 1698 from the cache, 0 fetched in 0 call(s), cost $0.00 · nothing written
 
 ## Library resolution (landscaper.csv)
 
@@ -17,8 +17,8 @@
 | Artificial turf installation | Landscape Gardener, Landscape Designer | page | Artificial grass installation | page as Artificial grass installation | UK term is artificial grass |
 | Concrete masonry | Landscape Gardener, Landscape Designer | alias | Concrete bases and paths | absorbed into Concrete bases and paths | US term |
 | Desert landscaping | Landscape Gardener, Landscape Designer | exclude |  | excluded | US only |
-| Driveway landscaping | Landscape Gardener, Landscape Designer | fold | Paving Contractor | folded into Paving Contractor | Driveways is the Paving Contractor hub keyword |
-| Driveway or path paving | Landscape Gardener, Landscape Designer | fold | Paving Contractor | folded into Paving Contractor | Driveways is the Paving Contractor hub keyword |
+| Driveway landscaping | Landscape Gardener, Landscape Designer | fold | Paving Contractor | folded into Paving Contractor | Driveways is the Paving Contractor hub |
+| Driveway or path paving | Landscape Gardener, Landscape Designer | fold | Paving Contractor | folded into Paving Contractor | Driveways is the Paving Contractor hub |
 | Garden decorating | Landscape Gardener, Landscape Designer | exclude |  | excluded | Not a trade service |
 | Garden design | Landscape Gardener, Landscape Designer | fold | Landscape Designer | folded into Landscape Designer | Is the category |
 | Gardening services | Landscape Gardener, Landscape Designer | fold | Gardener | folded into Gardener | Is the category |
@@ -64,8 +64,8 @@
 | Bumper block and post installation | Paving Contractor | exclude |  | excluded | US car park fittings |
 | Concrete work | Paving Contractor | page | Concrete bases and paths | page as Concrete bases and paths | a page by default; no keyword above 10 searches a month in Southampton or any town, so the pattern H1 applies and copy_priority is 0 |
 | General construction | Paving Contractor | exclude |  | excluded | Not this trade |
-| Driveway installation | Paving Contractor | fold | Paving Contractor | folded into Paving Contractor | Driveways is the Paving Contractor hub keyword |
-| Driveway replacement | Paving Contractor | fold | Paving Contractor | folded into Paving Contractor | Driveways is the Paving Contractor hub keyword |
+| Driveway installation | Paving Contractor | fold | Paving Contractor | folded into Paving Contractor | Driveways is the Paving Contractor hub |
+| Driveway replacement | Paving Contractor | fold | Paving Contractor | folded into Paving Contractor | Driveways is the Paving Contractor hub |
 | Excavation & grading | Paving Contractor | alias | Garden levelling | absorbed into Garden levelling |  |
 | Patio paving | Paving Contractor | page | Patios | page as Patios | a page by default; "patios southampton" has 20 searches a month in Southampton |
 | Composite decks | Deck Builder | page | Composite decking | page as Composite decking | a page by default; "composite decking southampton" has 30 searches a month in Southampton |
@@ -164,8 +164,8 @@ GBP names 78: page 26, absorbed 29, folded 15, excluded 8, mentioned 0, merged 0
 | Landscape design | Gardener, Landscape Gardener | folded into Landscape Designer |  | library: listed on the Landscape Designer category page, which keeps the keyword (Also listed under Landscape Gardener / Lawn care service) |
 | Landscaping design | Landscape Gardener | folded into Landscape Designer |  | library: listed on the Landscape Designer category page, which keeps the keyword |
 | Desert landscaping | Landscape Gardener, Landscape Designer | mentioned |  | library: excluded (US only) |
-| Driveway landscaping | Landscape Gardener, Landscape Designer | folded into Paving Contractor |  | library: listed on the Paving Contractor category page, which keeps the keyword (Driveways is the Paving Contractor hub keyword) |
-| Driveway or path paving | Landscape Gardener, Landscape Designer | folded into Paving Contractor |  | library: listed on the Paving Contractor category page, which keeps the keyword (Driveways is the Paving Contractor hub keyword) |
+| Driveway landscaping | Landscape Gardener, Landscape Designer | folded into Paving Contractor |  | library: listed on the Paving Contractor category page, which keeps the keyword (Driveways is the Paving Contractor hub) |
+| Driveway or path paving | Landscape Gardener, Landscape Designer | folded into Paving Contractor |  | library: listed on the Paving Contractor category page, which keeps the keyword (Driveways is the Paving Contractor hub) |
 | Garden decorating | Landscape Gardener, Landscape Designer | mentioned |  | library: excluded (Not a trade service) |
 | Garden design | Landscape Gardener, Landscape Designer | folded into Landscape Designer |  | library: listed on the Landscape Designer category page, which keeps the keyword (Is the category) |
 | Garden designs | Landscape Designer | folded into Landscape Designer |  | library: listed on the Landscape Designer category page, which keeps the keyword (Plural of Garden design) |
@@ -180,8 +180,8 @@ GBP names 78: page 26, absorbed 29, folded 15, excluded 8, mentioned 0, merged 0
 | Landscape design construction | Landscape Designer | folded into Landscape Designer |  | library: listed on the Landscape Designer category page, which keeps the keyword |
 | Bumper block and post installation | Paving Contractor | mentioned |  | library: excluded (US car park fittings) |
 | General construction | Paving Contractor | mentioned |  | library: excluded (Not this trade) |
-| Driveway installation | Paving Contractor | folded into Paving Contractor |  | library: listed on the Paving Contractor category page, which keeps the keyword (Driveways is the Paving Contractor hub keyword) |
-| Driveway replacement | Paving Contractor | folded into Paving Contractor |  | library: listed on the Paving Contractor category page, which keeps the keyword (Driveways is the Paving Contractor hub keyword) |
+| Driveway installation | Paving Contractor | folded into Paving Contractor |  | library: listed on the Paving Contractor category page, which keeps the keyword (Driveways is the Paving Contractor hub) |
+| Driveway replacement | Paving Contractor | folded into Paving Contractor |  | library: listed on the Paving Contractor category page, which keeps the keyword (Driveways is the Paving Contractor hub) |
 | Patio enclosure construction | Deck Builder | mentioned |  | library: excluded (US screened porch) |
 
 Pages 31 · merged 0 · folded 15 · mentioned 0 (of 54 names)
@@ -245,11 +245,11 @@ Pages 31 · merged 0 · folded 15 · mentioned 0 (of 54 names)
 |---|---|---|
 | Homepage | 1 | 1 |
 | Category | 6 | 6 |
-| Service | 4 | 31 |
+| Service | 31 | 31 |
 | Location | 13 | 13 |
 | Location Category | 78 | 78 |
-| Town Service | 2 | 10 |
-| **Total** | **104** | **139** |
+| Town Service | 10 | 10 |
+| **Total** | **139** | **139** |
 
 ## (d) Links out, by section
 
@@ -306,7 +306,7 @@ Pages 31 · merged 0 · folded 15 · mentioned 0 (of 54 names)
 
 ## (e) API cost
 
-$0.09 (1 call, 266 keywords)
+$0.00 (0 calls, 0 keywords)
 
 ## (f) Notes from the run
 - The "<service> services <town>" variants were not fetched in this dry run (they only matter as a second H1 candidate on a town service page; page creation is decided by "<service> <town>" alone). The real run fetches them.

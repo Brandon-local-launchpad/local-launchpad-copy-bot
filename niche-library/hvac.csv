@@ -1,0 +1,53 @@
+gbp_name,gbp_category,verdict,target,note
+A/C system maintenance,HVAC Contractor,page,Air conditioning servicing,
+HVAC duct and vent cleaning,HVAC Contractor,page,Duct cleaning,
+Ductless heating and A/C services,HVAC Contractor,alias,Split system air conditioning,US term
+Heating system maintenance,HVAC Contractor,exclude,,Plumbing and Heating niche unless the client ticks a heating page
+HVAC system maintenance,HVAC Contractor,alias,Air conditioning servicing,
+HVAC system repair,HVAC Contractor,alias,Air conditioning repairs,
+AC installation,HVAC Contractor,page,Air conditioning installation,
+HVAC duct and vent installation,HVAC Contractor,page,Ductwork and ventilation installation,
+Heating system installation,HVAC Contractor,exclude,,Plumbing and Heating niche
+Thermostat installation,HVAC Contractor,alias,Air conditioning installation,
+A/C system repair,HVAC Contractor,page,Air conditioning repairs,
+HVAC duct and vent repair,HVAC Contractor,alias,Ductwork and ventilation installation,
+Heating system repair,HVAC Contractor,exclude,,Plumbing and Heating niche
+HVAC repair,HVAC Contractor,alias,Air conditioning repairs,
+Thermostat repair,HVAC Contractor,alias,Air conditioning repairs,
+Cleaning,Air Conditioning Contractor,alias,Air conditioning servicing,
+A/C system dismantlement,Air Conditioning Contractor,page,Air conditioning removal and decommissioning,
+A/C filter replacement,Air Conditioning Contractor,alias,Air conditioning servicing,
+Installation,Air Conditioning Contractor,exclude,,Meaningless
+Portable A/C services,Air Conditioning Contractor,exclude,,
+A/C system vent cleaning,Air Conditioning Contractor,alias,Duct cleaning,
+Ventilated ceiling installation,Air Conditioning Contractor,exclude,,Commercial kitchen specialism; rare
+Ventilated ceiling repairs,Air Conditioning Contractor,exclude,,
+A/C preventive maintenance,Air Conditioning Repair Shop,alias,Air conditioning servicing,
+Air source heat pump installation,Additional services,alias,Air source heat pumps,Free-text intake name; page defined in plumbing-heating.csv
+Air source heat pump servicing,Additional services,alias,Air source heat pumps,Free-text intake name
+Air source heat pump repairs,Additional services,alias,Air source heat pumps,Free-text intake name
+Ground source heat pump installation,Additional services,alias,Ground source heat pumps,Free-text intake name; page defined in plumbing-heating.csv
+Ground source heat pump servicing,Additional services,alias,Ground source heat pumps,Free-text intake name
+Ground source heat pump repairs,Additional services,alias,Ground source heat pumps,Free-text intake name
+Heat recovery ventilation (MVHR) installation,Additional services,page,MVHR heat recovery ventilation,Free-text intake name
+Heat recovery ventilation (MVHR) servicing,Additional services,alias,MVHR heat recovery ventilation,Free-text intake name
+Heat recovery ventilation (MVHR) repairs,Additional services,alias,MVHR heat recovery ventilation,Free-text intake name
+Commercial HVAC installation,Additional services,page,Commercial HVAC,Free-text intake name
+Commercial HVAC servicing,Additional services,alias,Commercial HVAC,Free-text intake name
+Commercial HVAC repairs,Additional services,alias,Commercial HVAC,Free-text intake name
+Refrigeration system installation,Additional services,page,Commercial refrigeration,Free-text intake name
+Refrigeration system servicing,Additional services,alias,Commercial refrigeration,Free-text intake name
+Refrigeration system repairs,Additional services,alias,Commercial refrigeration,Free-text intake name
+Cold room installation,Additional services,page,Cold rooms,Free-text intake name
+Cold room servicing,Additional services,alias,Cold rooms,Free-text intake name
+Cold room repairs,Additional services,alias,Cold rooms,Free-text intake name
+Chiller installation,Additional services,alias,Commercial HVAC,Free-text intake name
+Chiller servicing,Additional services,alias,Commercial HVAC,Free-text intake name
+Chiller repairs,Additional services,alias,Commercial HVAC,Free-text intake name
+Air balancing,Additional services,alias,Ductwork and ventilation installation,Free-text intake name
+Indoor air quality testing,Additional services,page,Indoor air quality testing,Free-text intake name
+Split system air conditioning,Additional services,page,Split system air conditioning,Common free-text name; added
+Multi split air conditioning,Additional services,alias,Split system air conditioning,Common free-text name; added
+VRF systems,Additional services,alias,Commercial HVAC,Common free-text name; added
+Server room cooling,Additional services,page,Server room cooling,Common free-text name; added
+F-Gas leak testing,Additional services,alias,Air conditioning servicing,Common free-text name; added

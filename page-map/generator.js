@@ -28,7 +28,7 @@ const { isAdminArea } = require('../client-files');
 const { keywordOf, searchTerms } = require('../h1-research/research');
 const C = require('../h1-research/claims');
 const V3 = require('./plan-v3');
-const { loadLibrary } = require('../niche-library/library');
+const { loadLibrarySet } = require('../niche-library/library');
 const { slugify, pageKey, cleanTowns } = require('./slugs');
 
 const TYPES = ['homepage', 'category', 'service', 'location', 'location_category', 'town_service'];
@@ -54,14 +54,14 @@ function keywordsFor(input, opts = {}) {
   const ctx = contextFor(input);
   const { towns } = cleanTowns(input.baseTown, input.otherTowns);
   const cats = input.resolved.categories.map(c => ({ key: c.key, name: c.name }));
-  const lib = opts.library !== undefined ? opts.library : loadLibrary(input.niche);
+  const lib = opts.library !== undefined ? opts.library : loadLibrarySet(input.niche);
   const services = V3.dedupe(V3.resolveLibrary(V3.collectServices(input.resolved), lib, cats).services);
   return [...new Set([...V3.keywordsFor(services, cats, towns, ctx, { townVariants: true }), ...V3.pageKeywords(cats, towns, ctx)])];
 }
 
 // input: { resolved, baseTown, otherTowns, companyName, niche, waiting: [{ service, reason }] }
 // opts: volumes (Map keyword → { volume, cpc }; what is missing counts as no data), library (the
-// niche library, loadLibrary(input.niche) unless given; null for none), exclude (Set of page ids a
+// niche library set, loadLibrarySet(input.niche) unless given, or one library; null for none), exclude (Set of page ids a
 // person excluded at intake), launchTowns (Set of town slugs launching in phase 1),
 // phase2Published (true once "Publish phase 2" ran: everything is phase 1), saved (the client's saved rows: their manual and locked H1s take
 // part in the ownership rules that decide the town service pages)
@@ -102,7 +102,7 @@ function buildPageMap(input, opts = {}) {
 
   // The services list rules, on the categories that have a page
   const catList = cats.map(c => ({ key: c.key, name: c.name }));
-  const lib = opts.library !== undefined ? opts.library : loadLibrary(input.niche);
+  const lib = opts.library !== undefined ? opts.library : loadLibrarySet(input.niche);
   const resolvedLib = V3.resolveLibrary(V3.collectServices(resolved), lib, catList);
   const allKeywords = [...new Set([...V3.keywordsFor(V3.dedupe(resolvedLib.services), catList, towns, ctx, { townVariants: true }), ...V3.pageKeywords(catList, towns, ctx)])];
   const G = C.buildGroups(allKeywords, volumes, { towns: [baseTown, ...towns] });
@@ -110,6 +110,8 @@ function buildPageMap(input, opts = {}) {
   // The services step's view: one record per GBP name, with where it ended up
   const byId = new Map(services.map(s => [s.id, s]));
   const finalOf = id => { let s = byId.get(id); while (s && s.outcome === 'merged' && s.into && byId.get(s.into)) s = byId.get(s.into); return s; };
+  // "not in library" is flagged only when the niche has a library of its own (a set with no own file matches across the others, but there is no file to add the verdict to yet)
+  const flagMissing = !!(lib && (lib.own !== undefined ? lib.own : true));
   const libraryRecords = resolvedLib.records.map(r => {
     const s = finalOf(r.page_id) || byId.get(r.id);
     const v = r.library && r.library.verdict;
@@ -122,7 +124,7 @@ function buildPageMap(input, opts = {}) {
     else if (v === 'alias') { outcome = 'absorbed'; intoName = s ? s.name : r.library.target; reason = s && s.created_from_alias ? 'no GBP name was marked page for this target, so the page was created from this alias' : ''; }
     else if (v === 'page') { outcome = 'page'; intoName = s ? s.name : r.library.target; reason = s ? s.reason : ''; }
     else { const own = byId.get(r.id); if (own && own.outcome === 'merged' && s && s !== own) { outcome = 'merged'; intoName = s.name; reason = own.reason; } else { outcome = s ? s.outcome : 'page'; intoName = s ? s.name : r.name; reason = s ? s.reason : ''; } }
-    return { gbp_name: r.name, gbp_id: r.id, parents: r.parents, verdict: v || null, flag: r.flag || (lib && !r.library ? 'not in library' : null), target: r.library ? r.library.target : null, note: r.library ? r.library.note : null, in_library: !!r.library, outcome, intoName, page_id: s ? s.id : null, reason, copy_priority: s && s.outcome === 'page' ? s.copy_priority || 0 : null, absorbs: s && s.absorbs ? s.absorbs : [], gbp_names: s && s.gbp_names ? s.gbp_names : [] };
+    return { gbp_name: r.name, gbp_id: r.id, parents: r.parents, verdict: v || null, flag: r.flag || (flagMissing && !r.library ? 'not in library' : null), target: r.library ? r.library.target : null, note: r.library ? r.library.note : null, in_library: !!r.library, matched: r.library ? r.library.matched || null : null, fold_lost: r.library && r.library.fold_lost ? r.library.fold_lost : null, outcome, intoName, page_id: s ? s.id : null, reason, copy_priority: s && s.outcome === 'page' ? s.copy_priority || 0 : null, absorbs: s && s.absorbs ? s.absorbs : [], gbp_names: s && s.gbp_names ? s.gbp_names : [] };
   });
   const paged = [];
   for (const s of services.filter(x => x.outcome === 'page')) {

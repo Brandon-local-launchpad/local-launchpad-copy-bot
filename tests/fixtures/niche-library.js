@@ -74,6 +74,57 @@ const rec = (m, name) => m.libraryRecords.find(r => r.gbp_name === name);
   const ex = build({ exclude: new Set(['fencing']) });
   chk('The client exclude applies after the library, to pages: excluding "fencing" makes the Fencing page a mention ("excluded at intake") and the names behind it show it', !find(ex, '/services/fencing') && rec(ex, 'Fencing installation').outcome === 'mentioned' && rec(ex, 'Fence building').outcome === 'mentioned' && find(ex, '/gardener').links.mentioned.includes('Fencing') && ex.services.find(s => s.id === 'fencing').reason === 'excluded at intake', JSON.stringify([rec(ex, 'Fencing installation'), rec(ex, 'Fence building').outcome]), '');
   chk('Excluding a GBP name that is not a page id does nothing (the toggle is on pages)', build({ exclude: new Set(['fence building']) }).rows.some(r => r.slug === '/services/fencing'), '', '');
+  // ── Matching across libraries, name + category, fuzzy intake rows, fold beats page, hubs (20 Oct 2026) ──
+  const csv2 = `gbp_name,gbp_category,verdict,target,note
+Roof installation,Roofing services,page,Roof replacement,
+Lawn pest control,Lawn care,page,Lawn pest treatment,another niche's verdict
+Patio cleaning,Pressure washing,fold,Gardener,cleaning is the gardener's job here
+Deck cleaning,Gardener,exclude,,a different verdict under another category
+`;
+  const file2 = path.join(os.tmpdir(), `copybot-lib2-${process.pid}.csv`);
+  fs.writeFileSync(file2, csv2);
+  const lib2 = L.loadLibrary('Other', { file: file2 });
+  const ownPlus = `${csv}Patio cleaning,Gardener,page,Patio cleaning,
+Deck cleaning,Gardener,exclude,,gardener row
+`;
+  const file3 = path.join(os.tmpdir(), `copybot-lib3-${process.pid}.csv`);
+  fs.writeFileSync(file3, ownPlus);
+  const own = L.loadLibrary('Test Niche', { file: file3 });
+  chk('A name may appear under several categories with different verdicts: keyed by name + category, no "listed twice" problem', own.problems.length === 2 && own.byKey.get('deck cleaning|deck builder').verdict === 'alias' && own.byKey.get('deck cleaning|gardener').verdict === 'exclude' && own.rows.length === 9, JSON.stringify([own.problems, own.rows.length]), '');
+  const hubsFile = path.join(os.tmpdir(), `copybot-hubs-${process.pid}.csv`);
+  fs.writeFileSync(hubsFile, `gbp_category,hub,note\nLawn care service,Gardener,lawn care sits on the gardener page\nGardener,Gardener,\n`);
+  const hubs = L.loadHubs('x', { file: hubsFile });
+  const set = (withHubs = false) => ({ niche: 'test', file: own.file, own, others: [lib2], hubs: withHubs ? hubs : null, problems: [] });
+  const cats2 = [
+    { key: 'gardener', name: 'Gardener', primary: true, rows: [
+      { id: 'fencing installation', name: 'Fencing installation', kind: 'unique' }, { id: 'lawn pest control', name: 'Lawn pest control', kind: 'unique' }, { id: 'patio cleaning', name: 'Patio cleaning', kind: 'unique' },
+      { id: 'deck cleaning', name: 'Deck cleaning', kind: 'unique' }, { id: 'roof installation', name: 'Roof installation', kind: 'unique' }, { id: 'fence instalation', name: 'Fence instalation', kind: 'unique' },
+      { id: 'hedge trimming', name: 'Hedge trimming', kind: 'unique' } ] },
+    { key: 'deck_builder', name: 'Deck Builder', rows: [ { id: 'wood staining', name: 'Wood staining', kind: 'unique' } ] },
+  ];
+  const input2 = { ...input, resolved: { categories: cats2, primary: 'gardener', primaryName: 'Gardener', crossRef: [], flags: [] } };
+  const build2 = (opts = {}) => G.buildPageMap(input2, { volumes, library: set(), launchTowns: new Set(['romsey']), ...opts });
+  const m2 = build2();
+  const r2 = n => rec(m2, n);
+  chk('Name + category: "Deck cleaning" under Gardener takes the Gardener row (exclude), not the Deck builder alias', r2('Deck cleaning').outcome === 'excluded' && r2('Deck cleaning').matched.how === 'name+category' && r2('Deck cleaning').note === 'gardener row', JSON.stringify(r2('Deck cleaning')), '');
+  chk('Across libraries: "Roof installation" is not in the niche\'s own library but is in another, so that verdict applies, and the record says where it came from', r2('Roof installation').outcome === 'page' && r2('Roof installation').intoName === 'Roof replacement' && r2('Roof installation').matched.file === path.basename(file2) && r2('Roof installation').matched.own === false && !r2('Roof installation').flag && !!find(m2, '/services/roof-replacement'), JSON.stringify(r2('Roof installation')), '');
+  chk('Fold beats page when the client has the fold\'s target category: own library says page for "Patio cleaning", the other says fold into Gardener, and the client has Gardener', r2('Patio cleaning').outcome === 'folded' && r2('Patio cleaning').intoName === 'Gardener' && /in copybot-lib2/.test(r2('Patio cleaning').reason) && !find(m2, '/services/patio-cleaning'), JSON.stringify(r2('Patio cleaning')), '');
+  chk('A fold whose target the client lacks gives way to a page row from another library: "Lawn pest control" (fold → Lawn Care Service, no such tab) becomes the "Lawn pest treatment" page, the passed-over fold recorded', r2('Lawn pest control').outcome === 'page' && r2('Lawn pest control').intoName === 'Lawn pest treatment' && r2('Lawn pest control').fold_lost && r2('Lawn pest control').fold_lost.target === 'Lawn Care Service' && !r2('Lawn pest control').flag, JSON.stringify(r2('Lawn pest control')), '');
+  chk('A GBP name is matched exactly only: "Fence instalation" (typo) is not in any library', r2('Fence instalation').outcome === 'page' && r2('Fence instalation').flag === 'not in library' && !r2('Fence instalation').in_library, JSON.stringify(r2('Fence instalation')), '');
+  const cats3 = JSON.parse(JSON.stringify(cats2));
+  cats3[0].rows = cats3[0].rows.filter(r => r.id !== 'fence instalation').concat([{ id: 'fence instalation', name: 'Fence instalation', kind: 'additional', home: 'gardener' }, { id: 'rsj installation', name: 'RSJ installation', kind: 'additional', home: 'gardener' }, { id: 'pond installation', name: 'Pond installation', kind: 'additional', home: 'gardener' }]);
+  const m3 = G.buildPageMap({ ...input2, resolved: { ...input2.resolved, categories: cats3 } }, { volumes, library: set(), launchTowns: new Set(['romsey']) });
+  chk('A typed intake row (kind additional) is matched loosely and fuzzily: "Fence instalation" joins the Fencing page (fuzzy match of "Fencing installation"); a near miss that shares only a suffix ("Pond installation") matches nothing', rec(m3, 'Fence instalation').outcome === 'page' && rec(m3, 'Fence instalation').intoName === 'Fencing' && rec(m3, 'Fence instalation').matched.how === 'fuzzy' && rec(m3, 'Fence instalation').matched.gbp_name === 'Fencing installation' && rec(m3, 'Pond installation').flag === 'not in library', JSON.stringify([rec(m3, 'Fence instalation').matched, rec(m3, 'Pond installation').outcome]), '');
+  chk('similarity: typos, word forms and containment count; shared suffixes do not', L.similarity('Fence instalation', 'Fencing installation') >= 0.8 && L.similarity('RSJ installation', 'Steel beam (RSJ) installation') >= 0.8 && L.similarity('Knock throughs and open plan living', 'Knock-throughs & open-plan living') === 1 && L.similarity('Pond installation', 'Sod installation') < 0.8 && L.similarity('Fan installation', 'Pond installation') < 0.8 && L.matchKey('Fascias') === L.matchKey('fascia'), [L.similarity('Fence instalation', 'Fencing installation'), L.similarity('Pond installation', 'Sod installation')].join(), '');
+  chk('findEntries ranks own name+category, own name, others; fuzzy only on request; an ambiguous fuzzy match (two different rows within 5 points) is no match', L.findEntries(set(), 'Deck cleaning', ['Gardener']).map(m => [m.own, m.how].join(':')).join() === 'true:name+category,true:name,false:name+category' && L.findEntries(set(), 'Fence instalation', ['Gardener']).length === 0 && L.findEntries(set(), 'Fence instalation', ['Gardener'], { fuzzy: true })[0].entry.gbp_name === 'Fencing installation', JSON.stringify(L.findEntries(set(), 'Deck cleaning', ['Gardener']).map(m => [m.file, m.how])), '');
+  const m4 = build2({ library: set(true) });
+  chk('Hub mapping (<niche>-categories.csv): a fold target the client has no tab for still folds when a tab shares its hub: "Lawn pest control" → Lawn Care Service → hub Gardener, so it folds into Gardener', rec(m4, 'Lawn pest control').outcome === 'folded' && rec(m4, 'Lawn pest control').intoName === 'Gardener' && /its hub, for "Lawn Care Service"/.test(rec(m4, 'Lawn pest control').reason) && hubs.problems.length === 0 && L.hubOf(set(true), 'Lawn Care Service') === 'Gardener' && L.hubOf(set(true), 'Deck Builder') === 'Deck Builder', JSON.stringify(rec(m4, 'Lawn pest control')), '');
+  chk('A plain library (no set) still works as the niche\'s own, with no others', G.buildPageMap(input2, { volumes, library: own, launchTowns: new Set(['romsey']) }).libraryRecords.find(r => r.gbp_name === 'Roof installation').flag === 'not in library', '', '');
+  for (const f of [file2, file3, hubsFile]) fs.unlinkSync(f);
+  const all = L.loadAllLibraries();
+  chk('Every library CSV loads with no problems (name + category keys), 16 files, builder.csv with its repeated names under different categories', all.length === 16 && all.every(l => l.problems.length === 0) && all.find(l => l.file === 'builder.csv').byKey.get('general repairs|building firm').verdict === 'page' && all.find(l => l.file === 'builder.csv').byKey.get('general repairs|contractor').verdict === 'alias', JSON.stringify(all.map(l => [l.file, l.rows.length, l.problems.length])), '');
+  chk('loadLibrarySet for a niche with a library: its own file first, the other 15 as others, no hubs file yet; for a niche with none: own null, every file as others', (() => { const s = L.loadLibrarySet('Builders'); const t = L.loadLibrarySet('Locksmith'); return s.file === 'builder.csv' && s.others.length === 15 && s.hubs === null && t.own === null && t.file === null && t.others.length === 16; })(), '', '');
+
   // the real library
   const real = L.loadLibrary('Landscapers/Gardeners');
   chk('The landscaper library loads for the niche label, with no problems; the four Driveway names fold into Paving Contractor (20 Oct 2026)', real && real.file === 'landscaper.csv' && real.problems.length === 0 && ['driveway installation', 'driveway replacement', 'driveway landscaping', 'driveway or path paving'].every(k => real.entries.get(k).verdict === 'fold' && real.entries.get(k).target === 'Paving Contractor') && real.entries.get('tree stump grinding').verdict === 'alias' && real.entries.get('tree stump grinding').target === 'Tree stump removal', JSON.stringify(real && [real.entries.size, real.problems]), '');

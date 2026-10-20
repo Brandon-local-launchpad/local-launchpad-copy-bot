@@ -1,0 +1,60 @@
+gbp_name,gbp_category,verdict,target,note
+Carpet steam cleaning,Carpet Cleaning Service,fold,Carpet Cleaning Service,Method of the category
+Area rug cleaning,Carpet Cleaning Service,page,Rug cleaning,Also under Upholstery Cleaning Service
+General carpet cleaning,Carpet Cleaning Service,fold,Carpet Cleaning Service,Is the category
+Drapes and curtain cleaning,Carpet Cleaning Service,page,Curtain cleaning,
+Upholstery cleaning,Carpet Cleaning Service,fold,Upholstery Cleaning Service,Falls back to a page if the client has no Upholstery category
+Leather cleaning,Carpet Cleaning Service,page,Leather cleaning,
+Mattress cleaning,Carpet Cleaning Service,page,Mattress cleaning,
+Pet stain and odour removal,Carpet Cleaning Service,page,Pet stain and odour removal,
+Glass and mirror cleaning,Gutter Cleaning Service,fold,Window Cleaning Service,
+Gutter cleaning,Gutter Cleaning Service,fold,Gutter Cleaning Service,Is the category
+Power/pressure washing,Gutter Cleaning Service,fold,Pressure Washing Service,Is the category
+Rooftop/skylight cleaning,Gutter Cleaning Service,alias,Roof cleaning,US term
+Interior and exterior window cleaning,Gutter Cleaning Service,fold,Window Cleaning Service,Is the category
+Deep clean,House Cleaning Service,page,Deep cleaning,
+General housekeeping,House Cleaning Service,alias,Regular domestic cleaning,
+Moving-related cleaning,House Cleaning Service,alias,End of tenancy cleaning,
+Office and workplace cleaning,House Cleaning Service,page,Office cleaning,
+Standard cleaning,House Cleaning Service,page,Regular domestic cleaning,
+Fitness centre & gym cleaning,Janitorial Service,page,Gym and leisure centre cleaning,
+Laboratory cleaning,Janitorial Service,alias,Specialist commercial cleaning,
+Medical institution cleaning,Janitorial Service,page,Medical and clinic cleaning,
+Move-out cleaning,Janitorial Service,alias,End of tenancy cleaning,
+Cinema cleaning,Janitorial Service,alias,Specialist commercial cleaning,
+Multi-tenant cleaning,Janitorial Service,page,Communal area cleaning,
+Office cleaning,Janitorial Service,alias,Office cleaning,
+Post-construction cleaning,Janitorial Service,page,After builders cleaning,UK term
+Post-event cleaning,Janitorial Service,alias,Specialist commercial cleaning,
+School & campus cleaning,Janitorial Service,page,School cleaning,
+Stadium cleaning,Janitorial Service,alias,Specialist commercial cleaning,
+Roof cleaning,Pressure Washing Service,page,Roof cleaning,
+Soft wash cleaning,Pressure Washing Service,page,Soft washing,
+Window washing,Window Cleaning Service,fold,Window Cleaning Service,
+A/C system maintenance,Air Duct Cleaning Service,exclude,,HVAC niche
+HVAC duct and vent cleaning,Air Duct Cleaning Service,exclude,,HVAC niche
+Ductless heating and A/C services,Air Duct Cleaning Service,exclude,,HVAC niche
+Heating system maintenance,Air Duct Cleaning Service,exclude,,HVAC niche
+HVAC system maintenance,Air Duct Cleaning Service,exclude,,HVAC niche
+AC installation,Air Duct Cleaning Service,exclude,,HVAC niche
+HVAC duct and vent installation,Air Duct Cleaning Service,exclude,,HVAC niche
+Heating system installation,Air Duct Cleaning Service,exclude,,HVAC niche
+Thermostat installation,Air Duct Cleaning Service,exclude,,HVAC niche
+A/C system repair,Air Duct Cleaning Service,exclude,,HVAC niche
+HVAC duct and vent repair,Air Duct Cleaning Service,exclude,,HVAC niche
+Heating system repair,Air Duct Cleaning Service,exclude,,HVAC niche
+HVAC repair,Air Duct Cleaning Service,exclude,,HVAC niche
+Thermostat repair,Air Duct Cleaning Service,exclude,,HVAC niche
+End of tenancy cleaning,Additional services,page,End of tenancy cleaning,Free-text intake name
+Holiday let & Airbnb cleaning,Additional services,page,Holiday let and Airbnb cleaning,Free-text intake name
+Oven cleaning,Additional services,page,Oven cleaning,Free-text intake name
+Tile & grout cleaning,Additional services,page,Tile and grout cleaning,Free-text intake name
+Marble polishing,Additional services,alias,Stone floor cleaning and restoration,Free-text intake name
+Stone floor cleaning & restoration,Additional services,page,Stone floor cleaning and restoration,Free-text intake name
+Emergency & specialist commercial cleaning,Additional services,page,Specialist commercial cleaning,Free-text intake name
+Conservatory cleaning,Additional services,page,Conservatory cleaning,Free-text intake name
+Fascia & soffit cleaning,Additional services,page,Fascia and soffit cleaning,Free-text intake name
+Cladding cleaning,Additional services,page,Cladding cleaning,Free-text intake name
+Render cleaning,Additional services,page,Render cleaning,Free-text intake name
+Driveway cleaning,Additional services,page,Driveway and patio cleaning,Free-text intake name
+Patio cleaning,Additional services,alias,Driveway and patio cleaning,Free-text intake name
