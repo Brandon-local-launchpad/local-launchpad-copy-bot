@@ -1,0 +1,45 @@
+gbp_name,gbp_category,verdict,target,note
+Ant extermination,Pest control service,page,Ant control,
+Bat extermination,Pest control service,exclude,,Illegal in the UK; bats are protected
+Bed bug extermination,Pest control service,page,Bed bug treatment,
+Bee extermination,Pest control service,page,Bee removal and relocation,Bees are relocated not exterminated; page explains
+Bug and insect extermination,Pest control service,fold,Pest control service,Is the category
+Cockroach extermination,Pest control service,page,Cockroach control,
+Flea and mite extermination,Pest control service,page,Flea treatment,
+Home inspection,Pest control service,alias,Pest surveys and inspections,
+Hornet and wasp extermination,Pest control service,page,Wasp nest removal,
+Mosquito extermination,Pest control service,exclude,,Not a UK domestic service
+General pest inspection,Pest control service,page,Pest surveys and inspections,
+Rodent extermination,Pest control service,page,Rat and mouse control,
+Spider extermination,Pest control service,exclude,,Not a UK service
+Termite inspection,Pest control service,exclude,,No termites in the UK
+Termite extermination,Pest control service,exclude,,No termites in the UK
+General wildlife removal,Pest control service,alias,Fox and wildlife control,
+Bird control,Additional services,page,Bird control and proofing,Free-text intake name
+Bird proofing,Additional services,alias,Bird control and proofing,Free-text intake name
+Bird netting,Additional services,alias,Bird control and proofing,Free-text intake name
+Bird spike installation,Additional services,alias,Bird control and proofing,Free-text intake name
+Solar panel bird proofing,Additional services,page,Solar panel bird proofing,Free-text intake name
+Pigeon control,Additional services,alias,Bird control and proofing,Free-text intake name
+Mole control,Additional services,page,Mole control,Free-text intake name
+Rabbit control,Additional services,page,Rabbit control,Free-text intake name
+Fox control,Additional services,page,Fox and wildlife control,Free-text intake name
+Squirrel control,Additional services,page,Squirrel control,Free-text intake name
+Moth control,Additional services,page,Moth and textile pest control,Free-text intake name
+Silverfish control,Additional services,alias,Insect control,Free-text intake name
+Carpet beetle control,Additional services,alias,Moth and textile pest control,Free-text intake name
+Clothes moth treatment,Additional services,alias,Moth and textile pest control,Free-text intake name
+Woodworm treatment,Additional services,page,Woodworm treatment,Free-text intake name
+Beetle control,Additional services,alias,Insect control,Free-text intake name
+Fumigation services,Additional services,page,Fumigation and heat treatment,Free-text intake name
+Pest proofing,Additional services,page,Pest proofing,Free-text intake name
+Proofing and exclusion work,Additional services,alias,Pest proofing,Free-text intake name
+Drain inspections for rodents,Additional services,alias,Rat and mouse control,Free-text intake name
+Dead animal removal,Additional services,page,Dead animal removal,Free-text intake name
+Loft clearance and decontamination,Additional services,page,Loft clearance and decontamination,Free-text intake name
+Commercial pest control,Additional services,page,Commercial pest control,Free-text intake name
+Restaurant pest control,Additional services,alias,Commercial pest control,Free-text intake name
+Warehouse pest control,Additional services,alias,Commercial pest control,Free-text intake name
+Office pest control,Additional services,alias,Commercial pest control,Free-text intake name
+Insect control,Additional services,page,Insect control,Common free-text name; added
+Cluster fly treatment,Additional services,alias,Insect control,Common free-text name; added

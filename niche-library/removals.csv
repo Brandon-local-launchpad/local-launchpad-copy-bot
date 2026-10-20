@@ -1,0 +1,46 @@
+gbp_name,gbp_category,verdict,target,note
+Furniture assembly,Removals Company,page,Furniture dismantling and reassembly,
+Furniture storage,Removals Company,page,Storage,
+Furniture disassembly,Removals Company,alias,Furniture dismantling and reassembly,
+In-county moving,Removals Company,alias,Local house removals,US term
+International moving,Removals Company,page,International removals,Only if offered
+Local moving,Removals Company,page,Local house removals,
+Object-related moving assistance,Removals Company,alias,Single item and small moves,
+Business and corporate-related moving,Removals Company,page,Office and commercial removals,
+Moving-related waste removal,Removals Company,alias,House clearance,
+Moving-related storage,Removals Company,alias,Storage,
+Inter-county moving,Removals Company,page,Long distance removals,US term
+Oversized item moving,Removals Company,alias,Single item and small moves,
+Moving-related packing,Removals Company,page,Packing services,
+Senior moving,Removals Company,exclude,,US term
+Shared moving services,Removals Company,alias,Single item and small moves,
+Small furniture moving,Removals Company,page,Single item and small moves,
+Vehicle transport,Removals Company,exclude,,
+Warehouse storage services,Removals Company,alias,Storage,
+Long-distance moving,Removals Service,alias,Long distance removals,
+Alarm monitoring,Self Storage Facility,exclude,,
+Carry-in service,Self Storage Facility,exclude,,
+Climate controlling,Self Storage Facility,exclude,,
+Dollies & moving trollies,Self Storage Facility,exclude,,
+Forklift rental,Self Storage Facility,exclude,,
+Move-in trucks,Self Storage Facility,exclude,,
+Online payments,Self Storage Facility,exclude,,
+Package placement,Self Storage Facility,exclude,,
+Packing & moving supplies,Self Storage Facility,alias,Packing services,
+Self storage,Self Storage Facility,alias,Storage,
+Piano removals,Additional services,page,Piano removals,Free-text intake name
+Antique removals,Additional services,page,Antique and fine art removals,Free-text intake name
+Fine art removals,Additional services,alias,Antique and fine art removals,Free-text intake name
+Safe removals,Additional services,alias,Single item and small moves,Free-text intake name
+IT equipment relocation,Additional services,alias,Office and commercial removals,Free-text intake name
+Archive storage,Additional services,alias,Storage,Free-text intake name
+Document storage,Additional services,alias,Storage,Free-text intake name
+Container storage,Additional services,alias,Storage,Free-text intake name
+Export packing,Additional services,alias,International removals,Free-text intake name
+Unpacking service,Additional services,alias,Packing services,Free-text intake name
+End of tenancy clearance,Additional services,alias,House clearance,Free-text intake name
+House clearance,Additional services,page,House clearance,Free-text intake name
+Office clearance,Additional services,alias,House clearance,Free-text intake name
+Crate hire,Additional services,alias,Packing services,Free-text intake name
+Man and van,Additional services,alias,Single item and small moves,Common free-text name; added
+Student removals,Additional services,alias,Local house removals,Common free-text name; added

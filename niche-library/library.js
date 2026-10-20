@@ -30,24 +30,19 @@ const path = require('path');
 const VERDICTS = ['page', 'alias', 'fold', 'exclude'];
 const norm = s => String(s == null ? '' : s).trim().toLowerCase().replace(/\s+/g, ' ');
 
-// Which file serves a niche label (fillout/niches.js labels) or key
-const FILES = {
-  'landscapers/gardeners': 'landscaper', landscaper: 'landscaper', landscapers: 'landscaper',
-  roofers: 'roofer', roofer: 'roofer', roofing: 'roofer',
-  builders: 'builder', builder: 'builder', 'building company': 'builder',
-  'cleaning companies': 'cleaning', 'cleaning company': 'cleaning',
-  'dog training': 'dog-training', 'dog-training': 'dog-training',
-  'drainage company': 'drainage',
-  'driveways & paving': 'driveways', 'driveways and paving': 'driveways', 'driveways-paving': 'driveways',
-  electricians: 'electrician', 'guttering & fascias': 'guttering', 'guttering and fascias': 'guttering', 'guttering-fascias': 'guttering',
-  'plumbing & heating': 'plumbing-heating', 'plumbing and heating': 'plumbing-heating',
-  'pressure washing / exterior cleaning': 'pressure-washing', 'pressure washing': 'pressure-washing', 'pressure-washing-exterior-cleaning': 'pressure-washing',
-  'tree surgeons': 'tree-surgeon', 'tree surgeon': 'tree-surgeon', 'tree-surgeons': 'tree-surgeon',
-  'window cleaning': 'window-cleaning', scaffolding: 'scaffolding', hvac: 'hvac', fencing: 'fencing',
-};
+// Which file serves a niche: a file name given directly ("roofer"), else the niche key from
+// fillout/niches.js (a Fillout label, an old trade name or the key itself), which is the file
+// name except where the two differ below. 28 niches, 28 files.
+const KEY_TO_FILE = { builders: 'builder', roofers: 'roofer', landscapers: 'landscaper', electricians: 'electrician', 'tree-surgeons': 'tree-surgeon', 'dog-walkers': 'pet-care', 'driveways-paving': 'driveways', 'loft-extensions': 'loft-conversions' };
 function keyFor(niche) {
   const n = norm(niche);
-  return FILES[n] || n.replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+  if (!n) return '';
+  const direct = n.replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+  if (direct && fs.existsSync(path.join(__dirname, `${direct}.csv`))) return direct;
+  const niches = require('../fillout/niches');
+  const key = niches.nicheByKey(n) ? n : niches.nicheKeyFor(n);
+  if (!key || key === 'other') return direct;
+  return KEY_TO_FILE[key] || key;
 }
 function fileFor(niche) {
   const file = path.join(__dirname, `${keyFor(niche)}.csv`);

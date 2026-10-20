@@ -1,0 +1,54 @@
+gbp_name,gbp_category,verdict,target,note
+Furniture assembly,Tile contractor,exclude,,
+Bathroom tile repair,Tile contractor,alias,Tile repairs and replacement,
+Gutter cleaning,Tile contractor,exclude,,
+Dust-free tile removal,Tile contractor,page,Tile removal,
+Grout cleaning,Tile contractor,alias,Regrouting and grout repair,
+Grout repair,Tile contractor,page,Regrouting and grout repair,
+Grout sealing,Tile contractor,alias,Regrouting and grout repair,
+Grout staining,Tile contractor,alias,Regrouting and grout repair,
+Remodelling,Tile contractor,exclude,,
+Drywall installation,Tile contractor,exclude,,
+Fan installation,Tile contractor,exclude,,
+Floor fitting,Tile contractor,exclude,,
+Tile work installation,Tile contractor,fold,Tile contractor,Is the category
+Plumbing fixture installation,Tile contractor,exclude,,
+Kitchen tile repair,Tile contractor,alias,Tile repairs and replacement,
+TV mounting,Tile contractor,exclude,,
+Interior decorating,Tile contractor,exclude,,
+Exterior painting,Tile contractor,exclude,,
+Drywall repair,Tile contractor,exclude,,
+Fan repair,Tile contractor,exclude,,
+Flooring repair,Tile contractor,exclude,,
+Water fixture repair,Tile contractor,exclude,,
+Tile work replacement,Tile contractor,alias,Tile repairs and replacement,
+Shower tile installation,Tile contractor,page,Bathroom and shower tiling,
+Shower tile repair,Tile contractor,alias,Tile repairs and replacement,
+Tile backsplash installation,Tile contractor,page,Kitchen tiling and splashbacks,US term
+Tile cleaning,Tile contractor,alias,Tile and grout cleaning,Page defined in cleaning.csv
+Tile design services,Tile contractor,exclude,,
+Tile flooring repair,Tile contractor,alias,Tile repairs and replacement,
+Tile grouting,Tile contractor,alias,Regrouting and grout repair,
+Tile refinishing,Tile contractor,exclude,,US
+Tile regrouting,Tile contractor,alias,Regrouting and grout repair,
+Tile removal,Tile contractor,alias,Tile removal,
+Tile replacement,Tile contractor,page,Tile repairs and replacement,
+Tile restoration,Tile contractor,alias,Victorian and period floor tiling,
+Wet room tiling,Additional services,page,Wet room tiling and tanking,Free-text intake name
+Underfloor heating installation,Additional services,alias,Underfloor heating,Free-text intake name; page defined in plumbing-heating.csv
+Tile underlay board installation,Additional services,alias,Floor tiling,Free-text intake name
+Floor screeding,Additional services,alias,Screeding and floor levelling,Free-text intake name; page defined in flooring.csv
+Floor levelling,Additional services,alias,Screeding and floor levelling,Free-text intake name
+Silicone sealing,Additional services,alias,Regrouting and grout repair,Free-text intake name
+Natural stone sealing,Additional services,page,Natural stone tiling,Free-text intake name
+Victorian floor tiling,Additional services,page,Victorian and period floor tiling,Free-text intake name
+Outdoor tiling,Additional services,page,Outdoor and porcelain paving tiling,Free-text intake name
+Swimming pool tiling,Additional services,page,Swimming pool tiling,Free-text intake name
+Fireplace hearth tiling,Additional services,alias,Feature wall and hearth tiling,Free-text intake name
+Feature wall tiling,Additional services,page,Feature wall and hearth tiling,Free-text intake name
+Tile edge trim installation,Additional services,alias,Bathroom and shower tiling,Free-text intake name
+Tile waterproof tanking,Additional services,alias,Wet room tiling and tanking,Free-text intake name
+Floor tiling,Additional services,page,Floor tiling,Common free-text name; added
+Wall tiling,Additional services,alias,Bathroom and shower tiling,Common free-text name; added
+Large format tiling,Additional services,alias,Floor tiling,Common free-text name; added
+Mosaic tiling,Additional services,alias,Feature wall and hearth tiling,Common free-text name; added

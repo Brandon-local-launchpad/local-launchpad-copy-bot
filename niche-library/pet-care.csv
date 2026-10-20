@@ -1,0 +1,31 @@
+gbp_name,gbp_category,verdict,target,note
+Cat boarding,Dog Walker,page,Cat boarding,Only if offered
+Cat grooming,Dog Walker,exclude,,Dog Grooming niche
+Cat sitting (in-home),Dog Walker,page,Cat sitting,
+Dog boarding,Dog Walker,page,Dog home boarding,
+Dog boarding with training,Dog Walker,exclude,,Dog Training niche
+Dog day care,Dog Walker,page,Dog day care,
+Dog grooming,Dog Walker,exclude,,Dog Grooming niche
+Dog sitting (in-home),Dog Walker,page,Dog sitting,
+Dog training,Dog Walker,exclude,,Dog Training niche
+Dog walking,Dog Walker,fold,Dog Walker,Is the category
+Other pet boarding,Dog Walker,alias,Small animal care,
+Other pet daycare,Dog Walker,exclude,,
+Other pet grooming,Dog Walker,exclude,,
+Other pet sitting (in-home),Dog Walker,alias,Small animal care,
+Solo dog walks,Additional services,page,Solo dog walks,Free-text intake name
+Group dog walks,Additional services,page,Group dog walks,Free-text intake name
+Puppy walks,Additional services,alias,Puppy visits,Free-text intake name
+Senior dog walks,Additional services,alias,Solo dog walks,Free-text intake name
+Reactive dog walks,Additional services,alias,Solo dog walks,Free-text intake name
+Off-lead dog walks,Additional services,alias,Group dog walks,Free-text intake name
+Secure field walks,Additional services,page,Secure field walks,Free-text intake name
+Pet taxi services,Additional services,page,Pet taxi,Free-text intake name
+Vet appointment transport,Additional services,alias,Pet taxi,Free-text intake name
+Wedding dog chaperone services,Additional services,page,Wedding dog chaperone,Free-text intake name
+Puppy visits,Additional services,page,Puppy visits,Free-text intake name
+Feeding visits,Additional services,page,Drop in visits,Free-text intake name
+Medication visits,Additional services,alias,Drop in visits,Free-text intake name
+Overnight pet sitting,Additional services,alias,Dog sitting,Free-text intake name
+Live-in pet sitting,Additional services,alias,Dog sitting,Free-text intake name
+Small animal care,Additional services,page,Small animal care,Free-text intake name

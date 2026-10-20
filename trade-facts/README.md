@@ -20,4 +20,4 @@ Verified: a pack is used only after a person has read it and pressed Verify on C
 
 Loader: `trade-facts/pack.js` `packForService(niche, service)` returns, as markdown, the service's rows from Tables A, B and F plus Tables C, D and E in full. This is what the rebuilt service page prompt will receive.
 
-The pack name is the block's file name (`builder`, `roofer`, `landscaper`). `packNameFor()` maps a client's niche key, Fillout label or old trade name to it.
+The pack name is the block's file name, the same name as the niche's library CSV (`builder`, `roofer`, `pet-care`, all 28). `packNameFor()` maps a client's niche key, Fillout label or old trade name to it through `niche-library/library.js` keyFor.

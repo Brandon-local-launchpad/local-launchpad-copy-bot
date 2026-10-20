@@ -17,34 +17,25 @@
 const fs = require('fs');
 const path = require('path');
 const crypto = require('crypto');
-const niches = require('../fillout/niches');
+const library = require('../niche-library/library');
 
 // TRADE_FACTS_DIR points the module at another folder (the fixtures use a temp copy)
 const DIR = process.env.TRADE_FACTS_DIR || __dirname;
 const BLOCKS_DIR = path.join(DIR, 'blocks');
 const CORE_FILE = path.join(DIR, 'core.md');
 
-// Which pack serves a niche key (fillout/niches.js), a Fillout label or an old trade name.
-// The pack name is the block's file name. Keys not listed here are used as they are.
-const PACK_FOR_KEY = {
-  builders: 'builder', roofers: 'roofer', landscapers: 'landscaper', electricians: 'electrician',
-  'tree-surgeons': 'tree-surgeon', 'painters-decorators': 'painter-decorator',
-};
-
 const norm = s => String(s == null ? '' : s).trim().toLowerCase().replace(/\s+/g, ' ');
 
 // A pack name for anything that names a niche: a pack or block that exists under that
-// name, a niche key, a Fillout label or an old trade name. null for blank; a key that
-// matches no niche is used as it is (and will show as a missing pack).
+// name, else the niche's library file name (niche-library/library.js keyFor: a niche key,
+// a Fillout label or an old trade name). Packs and libraries share their names. null for
+// blank; a name that matches no niche is used as it is (and shows as a missing pack).
 function packNameFor(nicheOrTrade) {
   const n = norm(nicheOrTrade);
   if (!n) return null;
   const direct = n.replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
   if (direct && (fs.existsSync(packFile(direct)) || fs.existsSync(blockFile(direct)))) return direct;
-  // a niche key as clients.niche_key holds it, else a label or an old trade name
-  const key = niches.nicheByKey(n) ? n : niches.nicheKeyFor(n);
-  if (!key || key === 'other') return direct || null;
-  return PACK_FOR_KEY[key] || key;
+  return library.keyFor(n) || direct || null;
 }
 
 function packFile(niche) { return path.join(DIR, `${niche}.md`); }

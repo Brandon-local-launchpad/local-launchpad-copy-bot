@@ -1,0 +1,47 @@
+gbp_name,gbp_category,verdict,target,note
+Custom painting,Painter,exclude,,Meaningless
+Exterior painting,Painter,page,Exterior painting,Also in builder.csv as a page
+Furniture painting,Painter,page,Furniture and kitchen painting,
+Interior painting,Painter,page,Interior painting and decorating,
+Metal painting,Painter,alias,Exterior painting,
+Cabinet painting,Painter,alias,Furniture and kitchen painting,
+Door painting,Painter,alias,Interior painting and decorating,
+Speciality design painting,Painter,alias,Decorative finishes and murals,
+Drywall repair,Painter,alias,Plaster repairs and skimming,US term
+Water-damage repair,Painter,alias,Plaster repairs and skimming,
+Roof painting,Painter,exclude,,Not a UK trade service
+Spray painting,Painter,page,Spray painting,
+Wood staining,Painter,alias,Woodwork and timber finishing,
+Wood varnishing,Painter,alias,Woodwork and timber finishing,
+Wallpaper hanging,Painter,page,Wallpapering,
+Waterproofing,Painter,exclude,,Builder niche
+Wood painting,Painter,page,Woodwork and timber finishing,
+Deck painting,Painter and Decorator,alias,Exterior painting,
+Drywall painting,Painter and Decorator,alias,Interior painting and decorating,US term
+Faux finishes,Painter and Decorator,page,Decorative finishes and murals,
+Mural painting,Painter and Decorator,alias,Decorative finishes and murals,
+Siding painting,Painter and Decorator,alias,Exterior painting,US term
+Wallpaper removal,Painter and Decorator,alias,Wallpapering,
+Coving installation,Additional services,page,Coving and cornice,Free-text intake name
+Ceiling repairs,Additional services,alias,Plaster repairs and skimming,Free-text intake name
+Plaster repairs,Additional services,page,Plaster repairs and skimming,Free-text intake name
+Skimming,Additional services,alias,Plaster repairs and skimming,Free-text intake name
+Artex removal,Additional services,page,Artex removal,Free-text intake name
+Paint stripping,Additional services,alias,Woodwork and timber finishing,Free-text intake name
+Timber restoration,Additional services,alias,Sash window and timber restoration,Free-text intake name
+Sash window restoration,Additional services,page,Sash window and timber restoration,Free-text intake name
+Exterior wood repairs,Additional services,alias,Sash window and timber restoration,Free-text intake name
+Fascia and soffit painting,Additional services,alias,Exterior painting,Free-text intake name
+Garage door painting,Additional services,alias,Exterior painting,Free-text intake name
+Fence painting,Additional services,alias,Fence staining and treatment,Free-text intake name; page defined in fencing.csv
+Gate painting,Additional services,alias,Fence staining and treatment,Free-text intake name
+Staircase painting,Additional services,alias,Woodwork and timber finishing,Free-text intake name
+Commercial decorating,Additional services,page,Commercial decorating,Free-text intake name
+Office decorating,Additional services,alias,Commercial decorating,Free-text intake name
+Retail decorating,Additional services,alias,Commercial decorating,Free-text intake name
+School decorating,Additional services,alias,Commercial decorating,Free-text intake name
+Industrial painting,Additional services,alias,Commercial decorating,Free-text intake name
+Fire protection coatings,Additional services,page,Intumescent and fire protection coatings,Free-text intake name
+Kitchen cabinet painting,Additional services,alias,Furniture and kitchen painting,Common free-text name; added
+Hand painted kitchens,Additional services,alias,Furniture and kitchen painting,Common free-text name; added
+Rendering and masonry paint,Additional services,alias,Exterior painting,Common free-text name; added

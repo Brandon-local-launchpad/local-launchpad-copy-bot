@@ -1,0 +1,40 @@
+gbp_name,gbp_category,verdict,target,note
+Building lockouts,Locksmith,page,Lockouts and gaining entry,
+Car digital and remote key reprogramming,Locksmith,page,Auto locksmith,Only if offered
+Coded key copying,Locksmith,alias,Key cutting,
+Building key copying,Locksmith,page,Key cutting,
+Car key copying,Locksmith,alias,Auto locksmith,
+Delivery,Locksmith,exclude,,
+Door lock and bolt hardware repair,Locksmith,page,Lock repairs,
+General repairs,Locksmith,alias,Lock repairs,
+Door lock and bolt hardware installation,Locksmith,page,Lock fitting and replacement,
+Installation,Locksmith,exclude,,Meaningless
+Electronic lock installation,Locksmith,alias,Smart locks,
+Knife sharpening,Locksmith,exclude,,
+General lock installation,Locksmith,alias,Lock fitting and replacement,
+Magnetic key copying,Locksmith,alias,Key cutting,
+Multi-point key copying,Locksmith,alias,Key cutting,
+New key fob creation,Locksmith,alias,Auto locksmith,
+Pantographic key copying,Locksmith,alias,Key cutting,
+Lock rekeying,Locksmith,alias,Lock fitting and replacement,US term
+Repair hardware,Locksmith,alias,Lock repairs,
+"Safe lock install, open and repair",Locksmith,page,Safes,
+Security door locks,Locksmith,page,British Standard and insurance approved locks,
+Tubular key copying,Locksmith,alias,Key cutting,
+Car lockouts,Locksmith,alias,Auto locksmith,
+Window locks,Locksmith,page,Window locks,
+Standard key copying,Locksmith,alias,Key cutting,
+Security cameras,Security System Supplier,alias,CCTV installation,Page defined in electrician.csv
+Technical support,Security System Supplier,exclude,,
+Emergency locksmith,Additional services,page,Emergency locksmith,Free-text intake name
+uPVC door lock repairs,Additional services,page,uPVC door and window lock repairs,Free-text intake name
+Lock replacement,Additional services,alias,Lock fitting and replacement,Free-text intake name
+Lock changes,Additional services,alias,Lock fitting and replacement,Free-text intake name
+Smart lock installation,Additional services,page,Smart locks,Free-text intake name
+Safe opening,Additional services,alias,Safes,Free-text intake name
+Master key systems,Additional services,page,Master key systems,Free-text intake name
+Access control,Additional services,alias,Access control and door entry,Free-text intake name; page defined in electrician.csv
+Burglary repairs,Additional services,page,Burglary repairs and boarding up,Free-text intake name
+Lock upgrades,Additional services,alias,British Standard and insurance approved locks,Common free-text name; added
+Anti-snap locks,Additional services,alias,British Standard and insurance approved locks,Common free-text name; added
+Garage door locks,Additional services,alias,Lock fitting and replacement,Common free-text name; added
