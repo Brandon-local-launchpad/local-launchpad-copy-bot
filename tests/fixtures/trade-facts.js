@@ -119,6 +119,7 @@ const dataRows = sec => sec.split('\n').filter(l => /^\| /.test(l)).slice(1);
     () => reply(429, { error: 'slow down' }),
     () => reply(200, { id: 'resp_1', status: 'queued' }),
     () => reply(200, { id: 'resp_1', status: 'in_progress' }),
+    () => reply(429, { error: 'rate limit on the poll' }),
     () => reply(200, { id: 'resp_1', status: 'completed', model: 'openai/gpt-5.6-luna', output: [
       { type: 'search_results', results: [{ id: 7, url: 'https://www.gov.uk/a', title: 'A' }, { id: 48, url: 'https://www.hse.gov.uk/b' }] },
       { type: 'message', content: [{ type: 'output_text', text: 'TABLE A — HOW EACH JOB IS DONE\n| a | [web:48][web:7] | [https://x.org/c][web:48] | [web:99] |' }] },
@@ -129,7 +130,7 @@ const dataRows = sec => sec.split('\n').filter(l => /^\| /.test(l)).slice(1);
   const api = R.perplexityAgent({ apiKey: KEY, preset: 'high', fetchFn, pollMs: 1, backoffMs: [1], onStatus: s => statuses.push(s) });
   const out = await api.research('PROMPT');
   chk('Agent API: POST /v1/agent with the preset, the prompt as input and background mode; the key only in the Authorization header', calls[1].url === R.AGENT_URL && calls[1].method === 'POST' && JSON.parse(calls[1].body).preset === 'high' && JSON.parse(calls[1].body).input === 'PROMPT' && JSON.parse(calls[1].body).background === true && calls[1].headers.Authorization === `Bearer ${KEY}`, JSON.stringify(calls[1]), '');
-  chk('A 429 backs off and resubmits; the job is polled by id until completed', calls.length === 4 && calls[2].url === `${R.AGENT_URL}/resp_1` && calls[2].method === 'GET' && statuses.join() === 'rate limited, waiting 0s,in_progress', JSON.stringify({ n: calls.length, statuses }), '');
+  chk('A 429 on submit backs off and resubmits; the job is polled by id until completed; a 429 on a poll waits and polls again instead of failing the job', calls.length === 5 && calls[2].url === `${R.AGENT_URL}/resp_1` && calls[2].method === 'GET' && statuses.join() === 'rate limited, waiting 0s,in_progress,rate limited while polling, waiting', JSON.stringify({ n: calls.length, statuses }), '');
   chk('The result: the answer text, the model Perplexity reports and usage.cost.total_cost', out.text === 'TABLE A — HOW EACH JOB IS DONE\n| a | [https://www.hse.gov.uk/b][https://www.gov.uk/a] | [https://x.org/c] |  |' && out.model === 'openai/gpt-5.6-luna' && out.cost === 2.5, JSON.stringify(out), '');
   chk('[web:N] citation markers become the search result urls (an inline url kept, an unknown id dropped), counted', out.citations.resolved === 2 && out.citations.unmatched === 1 && R.resolveCitations('x [web:1]', {}).text === 'x ', JSON.stringify(out.citations), '');
   chk('Cost is null, never guessed, when the response has no usage.cost', R.responseCost({ usage: { input_tokens: 1 } }) === null && R.responseText({ output_text: 'x' }) === 'x', '', '');

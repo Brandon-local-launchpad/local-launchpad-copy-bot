@@ -109,6 +109,8 @@ function perplexityAgent({ apiKey, preset = DEFAULT_PRESET, fetchFn = global.fet
       if (Date.now() > deadline) throw new Error(`Perplexity timeout after ${Math.round(timeoutMs / 60000)} min waiting for ${id}`);
       await sleep(pollMs);
       const res = await fetchFn(`${AGENT_URL}/${id}`, { headers });
+      // A rate limit on a poll is not a failed job: the research carries on server side
+      if (res.status === 429) { onStatus('rate limited while polling, waiting'); await sleep(backoffMs[0]); continue; }
       if (!res.ok) throw await errorOf(res, 'poll');
       const body = await res.json();
       if (body.status === 'completed') return body;
