@@ -96,6 +96,8 @@ async function initDb() {
   await require('./page-map/store').ensurePageMapTables(pool);
   // H1 research: keyword volume cache, candidates, jobs (h1-research/service.js)
   await require('./h1-research/service').ensureH1Tables(pool);
+  // Trade facts: the verified flag per niche pack (trade-facts/store.js)
+  await require('./trade-facts/store').ensureTradeFactsTables(pool);
   console.log('DB schema ready');
 }
 
