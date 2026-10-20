@@ -1,0 +1,36 @@
+gbp_name,gbp_category,verdict,target,note
+Cat bathing,Pet Groomer,alias,Cat grooming,
+Cat ear cleaning,Pet Groomer,alias,Cat grooming,
+Cat grooming,Pet Groomer,page,Cat grooming,Only if offered
+Cat grooming and styling,Pet Groomer,alias,Cat grooming,
+Cat nail trimming,Pet Groomer,alias,Cat grooming,
+Dog anal gland expression,Pet Groomer,exclude,,Vet guidance now against routine expression by groomers; mention only
+Dog bathing and blow dry,Pet Groomer,page,Dog bath and blow dry,
+Dog ear cleaning,Pet Groomer,alias,Dog bath and blow dry,
+Dog flea and tick treatment,Pet Groomer,alias,Dog bath and blow dry,
+Dog full service grooming,Pet Groomer,page,Full groom,
+Dog grooming,Pet Groomer,fold,Pet Groomer,Is the category
+Dog grooming and styling,Pet Groomer,alias,Full groom,
+Dog nail trimming,Pet Groomer,page,Nail clipping,
+Dog tooth brushing,Pet Groomer,alias,Teeth cleaning,
+Cat boarding,Pet Sitter,exclude,,Pet Care niche
+Cat sitting (in-home),Pet Sitter,exclude,,Pet Care niche
+Dog boarding,Pet Sitter,exclude,,Pet Care niche
+Dog boarding with training,Pet Sitter,exclude,,Dog Training niche
+Dog day care,Pet Sitter,exclude,,Pet Care niche
+Dog sitting (in-home),Pet Sitter,exclude,,Pet Care niche
+Dog training,Pet Sitter,exclude,,Dog Training niche
+Dog walking,Pet Sitter,exclude,,Pet Care niche
+Other pet boarding,Pet Sitter,exclude,,
+Other pet daycare,Pet Sitter,exclude,,
+Other pet grooming,Pet Sitter,exclude,,
+Other pet sitting (in-home),Pet Sitter,exclude,,
+Puppy grooming,Additional services,page,Puppy grooming,Free-text intake name
+Hand stripping,Additional services,page,Hand stripping,Free-text intake name
+De-shedding treatments,Additional services,page,De-shedding,Free-text intake name
+Coat de-matting,Additional services,alias,Full groom,Free-text intake name
+Mobile dog grooming,Additional services,page,Mobile dog grooming,Free-text intake name
+Mobile cat grooming,Additional services,alias,Cat grooming,Free-text intake name
+Ultrasonic teeth cleaning,Additional services,page,Teeth cleaning,Free-text intake name
+Breed standard trims,Additional services,alias,Full groom,Common free-text name; added
+Dog wash self service,Additional services,exclude,,Rare

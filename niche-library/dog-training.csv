@@ -1,0 +1,32 @@
+gbp_name,gbp_category,verdict,target,note
+Cat boarding,Dog trainer,exclude,,Not this niche
+Cat grooming,Dog trainer,exclude,,Not this niche
+Cat sitting (in-home),Dog trainer,exclude,,Not this niche
+Dog boarding,Dog trainer,page,Dog boarding,Only if the client offers it
+Dog boarding with training,Dog trainer,page,Residential dog training,UK term: board and train
+Dog day care,Dog trainer,page,Dog day care,Only if the client offers it
+Dog grooming,Dog trainer,exclude,,Dog Grooming niche
+Dog sitting (in-home),Dog trainer,exclude,,Pet Care niche
+Dog training,Dog trainer,fold,Dog trainer,Is the category
+Dog walking,Dog trainer,exclude,,Pet Care niche
+Other pet boarding,Dog trainer,exclude,,
+Other pet daycare,Dog trainer,exclude,,
+Other pet grooming,Dog trainer,exclude,,
+Other pet sitting (in-home),Dog trainer,exclude,,
+Puppy training,Additional services,page,Puppy training,Free-text intake name
+obedience training,Additional services,page,Obedience training,Free-text intake name
+Off-lead recall training,Additional services,page,Recall training,Free-text intake name
+Loose lead walking,Additional services,page,Loose lead walking,Free-text intake name
+Behaviour modification,Additional services,page,Behaviour modification,Free-text intake name
+Reactive dog training,Additional services,page,Reactive dog training,Free-text intake name
+Nervous and anxious dog training,Additional services,page,Nervous and anxious dog training,Free-text intake name
+Aggressive dog rehabilitation,Additional services,page,Aggressive dog rehabilitation,Free-text intake name
+Assistance dog training,Additional services,page,Assistance dog training,Free-text intake name
+Therapy dog training,Additional services,alias,Assistance dog training,Free-text intake name
+Scent detection training,Additional services,page,Scent detection training,Free-text intake name
+Gundog training,Additional services,page,Gundog training,Free-text intake name
+Protection dog training,Additional services,page,Protection dog training,Free-text intake name; security dog clients only
+Family protection dogs,Additional services,page,Family protection dogs,Free-text intake name; security dog clients only
+Personal protection dogs,Additional services,alias,Family protection dogs,Free-text intake name
+Guard dog training,Additional services,alias,Protection dog training,Free-text intake name
+Police dog training,Additional services,exclude,,Not a service sold to the public

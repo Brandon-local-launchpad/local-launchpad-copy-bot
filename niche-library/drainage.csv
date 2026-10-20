@@ -1,0 +1,67 @@
+gbp_name,gbp_category,verdict,target,note
+Drainage Service,Drainage Service,fold,Drainage Service,Is the category
+Drain Unblocking,Drainage Service,page,Drain unblocking,
+CCTV Drain Surveys,Drainage Service,page,CCTV drain surveys,
+Drain Repairs,Drainage Service,page,Drain repairs,
+Drain Relining,Drainage Service,page,Drain relining,
+High Pressure Drain Jetting,Drainage Service,page,Drain jetting,
+Root Removal,Drainage Service,page,Tree root removal from drains,
+Soakaway Installation,Drainage Service,page,Soakaways,
+Soakaway Repair,Drainage Service,alias,Soakaways,
+Gully Cleaning,Drainage Service,page,Gully cleaning,
+Manhole Repairs,Drainage Service,page,Manhole repairs,
+Emergency Drainage Services,Drainage Service,page,Emergency drainage,
+Sewage Disposal Service,Sewage Disposal Service,fold,Sewage Disposal Service,Is the category
+Septic Tank Emptying,Sewage Disposal Service,page,Septic tank emptying,Also under Septic Tank Service
+Septic Tank Repairs,Sewage Disposal Service,page,Septic tank repairs,
+Septic Tank Maintenance,Sewage Disposal Service,alias,Septic tank repairs,
+Sewage Pump Repairs,Sewage Disposal Service,page,Sewage pumps,
+Sewage Pump Installation,Sewage Disposal Service,alias,Sewage pumps,
+Septic Tank Service,Septic Tank Service,fold,Septic Tank Service,Is the category
+Septic System Installation,Septic Tank Service,page,Septic tank and treatment plant installation,
+Plumbing leak detection,Plumber,page,Leak detection,
+Tap installation,Plumber,exclude,,Plumber niche
+Waste disposal installation,Plumber,exclude,,
+Shower installation,Plumber,exclude,,Plumber niche
+Toilet installation,Plumber,exclude,,Plumber niche
+Water heater installation,Plumber,exclude,,Plumber niche
+Plumbing leak repair,Plumber,alias,Leak detection,
+Pool plumbing repair,Plumber,exclude,,US
+Tap repair,Plumber,exclude,,Plumber niche
+Waste disposal repair,Plumber,exclude,,
+Outdoor plumbing system repair,Plumber,exclude,,Meaningless
+Plumbing pipe repair,Plumber,exclude,,Plumber niche
+Sewer repair,Plumber,alias,Drain repairs,
+Shower repair,Plumber,exclude,,Plumber niche
+Toilet repair,Plumber,exclude,,Plumber niche
+Water heater repair,Plumber,exclude,,Plumber niche
+Sewer cleaning,Plumber,alias,Drain jetting,
+Sump pump installation,Plumber,alias,Sewage pumps,
+Sump pump repair,Plumber,alias,Sewage pumps,
+Drain cleaning,Plumber,alias,Drain unblocking,
+Water tank installation,Plumber,exclude,,Plumber niche
+Water tank repair,Plumber,exclude,,Plumber niche
+Emergency Plumbing,Plumber,alias,Emergency drainage,
+Drain excavation,Additional services,page,Drain excavation and replacement,Free-text intake name
+Pitch fibre drain repairs,Additional services,page,Pitch fibre drain repairs,Free-text intake name
+Drain installation,Additional services,alias,Drain excavation and replacement,Free-text intake name
+Drain replacement,Additional services,alias,Drain excavation and replacement,Free-text intake name
+Drain descaling,Additional services,page,Drain descaling,Free-text intake name
+Drain maintenance contracts,Additional services,page,Drain maintenance contracts,Free-text intake name
+Home buyer drain surveys,Additional services,page,Home buyer drain surveys,Free-text intake name
+Commercial drain maintenance,Additional services,alias,Drain maintenance contracts,Free-text intake name
+Commercial drain cleaning,Additional services,alias,Drain maintenance contracts,Free-text intake name
+Grease trap cleaning,Additional services,page,Grease trap and interceptor cleaning,Free-text intake name
+Interceptor cleaning,Additional services,alias,Grease trap and interceptor cleaning,Free-text intake name
+Pump station maintenance,Additional services,alias,Sewage pumps,Free-text intake name
+Drain mapping,Additional services,alias,CCTV drain surveys,Free-text intake name
+Drain odour investigations,Additional services,page,Drain odour investigations,Free-text intake name
+Drain patch lining,Additional services,alias,Drain relining,Free-text intake name
+Collapsed drain repairs,Additional services,alias,Drain excavation and replacement,Free-text intake name
+Blocked toilet clearance,Additional services,page,Blocked toilets,Free-text intake name
+Blocked sink clearance,Additional services,page,Blocked sinks and showers,Free-text intake name
+Blocked bath & shower drains,Additional services,alias,Blocked sinks and showers,Free-text intake name
+Blocked urinals,Additional services,alias,Blocked toilets,Free-text intake name
+Flood response & flood water pumping,Additional services,page,Flood water pumping,Free-text intake name
+Surface water drainage repairs,Additional services,alias,Drain repairs,Free-text intake name
+Foul water drainage repairs,Additional services,alias,Drain repairs,Free-text intake name

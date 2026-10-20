@@ -1,0 +1,30 @@
+gbp_name,gbp_category,verdict,target,note
+Emergency tree work,Additional services,page,Emergency tree work,Free-text intake name
+Hedge cutting,Additional services,alias,Hedge trimming,Free-text intake name; page defined in landscaper.csv
+Hedge reduction,Additional services,page,Hedge reduction and removal,Free-text intake name
+Hedge removal,Additional services,alias,Hedge reduction and removal,Free-text intake name
+Crown reduction,Additional services,alias,Tree pruning and crown reduction,Free-text intake name; page defined in landscaper.csv
+Crown lifting,Additional services,alias,Tree pruning and crown reduction,Free-text intake name
+Crown thinning,Additional services,alias,Tree pruning and crown reduction,Free-text intake name
+Coppicing,Additional services,alias,Pollarding and coppicing,Free-text intake name
+Deadwood removal,Additional services,alias,Tree pruning and crown reduction,Free-text intake name
+Tree crown cleaning,Additional services,alias,Tree pruning and crown reduction,Free-text intake name
+Pollarding,Additional services,page,Pollarding and coppicing,Free-text intake name
+Tree surveys,Additional services,page,Tree surveys and reports,Free-text intake name
+Tree inspections,Additional services,alias,Tree surveys and reports,Free-text intake name
+Tree risk assessments,Additional services,alias,Tree surveys and reports,Free-text intake name
+Tree health assessments,Additional services,alias,Tree surveys and reports,Free-text intake name
+Tree disease diagnosis,Additional services,alias,Tree surveys and reports,Free-text intake name
+Tree removal,Additional services,alias,Tree removal and felling,Free-text intake name; page defined in landscaper.csv
+tree felling,Additional services,alias,Tree removal and felling,Free-text intake name
+Ash dieback management,Additional services,page,Ash dieback management,Free-text intake name
+Ivy removal,Additional services,page,Ivy removal,Free-text intake name
+Site clearance,Additional services,page,Site and vegetation clearance,Free-text intake name
+Vegetation clearance,Additional services,alias,Site and vegetation clearance,Free-text intake name
+Woodland management,Additional services,page,Woodland management,Free-text intake name
+Forestry services,Additional services,alias,Woodland management,Free-text intake name
+Firewood processing,Additional services,page,Firewood and logs,Free-text intake name; low priority
+Log splitting,Additional services,alias,Firewood and logs,Free-text intake name
+Wood chipping,Additional services,page,Wood chipping,Free-text intake name
+Stump treatment,Additional services,alias,Tree stump removal,Free-text intake name; page defined in landscaper.csv
+Root barrier installation,Additional services,page,Root barriers,Free-text intake name

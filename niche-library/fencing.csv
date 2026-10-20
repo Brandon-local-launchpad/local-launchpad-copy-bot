@@ -1,0 +1,43 @@
+gbp_name,gbp_category,verdict,target,note
+Aluminium fence installation,Fence Contractor,page,Metal fencing and railings,
+Automatic gate installation and repairs,Fence Contractor,page,Automatic gates,
+Chain link fence installation,Fence Contractor,page,Chain link fencing,
+Custom fabrication,Fence Contractor,alias,Metal fencing and railings,
+Custom fence construction,Fence Contractor,alias,Bespoke fencing,
+Deer fencing and ranch rail installation,Fence Contractor,alias,Agricultural and stock fencing,US term
+Dog fence installation,Fence Contractor,alias,Dog proof fencing,
+Fence design,Fence Contractor,alias,Bespoke fencing,
+Fence installation,Fence Contractor,fold,Fence Contractor,Is the category
+General repairs & maintenance,Fence Contractor,page,Fence repairs,
+Iron fence installation,Fence Contractor,alias,Metal fencing and railings,
+Ornamental iron fence design and installation,Fence Contractor,alias,Metal fencing and railings,
+Pool fence installation,Fence Contractor,exclude,,US
+Privacy fence installation,Fence Contractor,alias,Closeboard fencing,
+Security fencing and metal cage installation,Fence Contractor,page,Security fencing,
+Simtek fencing installation,Fence Contractor,exclude,,US brand
+Trex fencing installation,Fence Contractor,alias,Composite fencing,US brand
+Vinyl fence installation,Fence Contractor,alias,Composite fencing,US term
+Wood fence installation,Fence Contractor,page,Timber fencing,
+Fence building,Deck Builder,fold,Fence Contractor,Also in landscaper.csv as alias to Fencing; fold wins when the client has a Fence Contractor category
+Fencing installation,Gardener,fold,Fence Contractor,Also in landscaper.csv as a page; fold wins when the client has a Fence Contractor category
+Acoustic fencing,Additional services,page,Acoustic fencing,Free-text intake name
+Agricultural fencing,Additional services,page,Agricultural and stock fencing,Free-text intake name
+Equestrian fencing,Additional services,page,Equestrian fencing,Free-text intake name
+Closeboard fencing,Additional services,page,Closeboard fencing,Free-text intake name
+Feather edge fencing,Additional services,alias,Closeboard fencing,Free-text intake name
+Picket fencing,Additional services,page,Picket fencing,Free-text intake name
+Post and rail fencing,Additional services,page,Post and rail fencing,Free-text intake name
+Hit and miss fencing,Additional services,page,Hit and miss fencing,Free-text intake name
+Larch lap fencing,Additional services,page,Panel fencing,Free-text intake name
+Waney lap fencing,Additional services,alias,Panel fencing,Free-text intake name
+Stock fencing,Additional services,alias,Agricultural and stock fencing,Free-text intake name
+Electric fencing,Additional services,page,Electric fencing,Free-text intake name
+Temporary fencing,Additional services,page,Temporary fencing,Free-text intake name
+Fence painting,Additional services,alias,Fence staining and treatment,Free-text intake name
+Fence staining & treatment,Additional services,page,Fence staining and treatment,Free-text intake name
+Bin store construction,Additional services,page,Bin and log stores,Free-text intake name
+Log store construction,Additional services,alias,Bin and log stores,Free-text intake name
+Gates,Additional services,page,Garden gates,Common free-text name; added
+Composite fencing,Additional services,page,Composite fencing,Common free-text name; added
+Concrete posts and gravel boards,Additional services,page,Concrete posts and gravel boards,Common free-text name; added
+Trellis,Additional services,alias,Panel fencing,Common free-text name; added

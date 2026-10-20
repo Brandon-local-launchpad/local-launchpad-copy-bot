@@ -1,0 +1,23 @@
+gbp_name,gbp_category,verdict,target,note
+Fascia installation,Additional services,alias,Fascias and soffits,Free-text intake name; page defined in roofer.csv
+Fascia replacement,Additional services,alias,Fascias and soffits,Free-text intake name
+Soffit installation,Additional services,alias,Fascias and soffits,Free-text intake name
+Soffit replacement,Additional services,alias,Fascias and soffits,Free-text intake name
+Bargeboard installation,Additional services,page,Bargeboards,Free-text intake name
+Bargeboard replacement,Additional services,alias,Bargeboards,Free-text intake name
+Cladding installation,Additional services,alias,Cladding,Free-text intake name; page defined in roofer.csv
+Cladding replacement,Additional services,alias,Cladding,Free-text intake name
+UPVC roofline replacement,Additional services,alias,Fascias and soffits,Free-text intake name
+Downpipe installation,Additional services,page,Downpipes,Free-text intake name
+Downpipe replacement,Additional services,alias,Downpipes,Free-text intake name
+Downpipe repairs,Additional services,alias,Downpipes,Free-text intake name
+Rainwater pipe installation,Additional services,alias,Downpipes,Free-text intake name
+Rainwater pipe replacement,Additional services,alias,Downpipes,Free-text intake name
+Dry verge systems,Additional services,alias,Dry ridge and dry verge,Free-text intake name; page defined in roofer.csv
+Dry ridge systems,Additional services,alias,Dry ridge and dry verge,Free-text intake name
+Roofline maintenance,Additional services,alias,Gutter repairs,Free-text intake name
+Commercial guttering,Additional services,page,Commercial guttering,Free-text intake name
+Aluminium guttering,Additional services,page,Aluminium guttering,Free-text intake name
+Cast iron guttering,Additional services,page,Cast iron guttering,Free-text intake name
+Gutter guards,Additional services,page,Gutter guards and leaf protection,Common free-text name; added
+Seamless guttering,Additional services,alias,Aluminium guttering,Common free-text name; added

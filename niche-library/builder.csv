@@ -1,0 +1,202 @@
+gbp_name,gbp_category,verdict,target,note
+General repairs,Building Firm,page,Property repairs and maintenance,
+Landscaping,Building Firm,exclude,,Separate niche
+Project management,Building Firm,alias,Design and build,
+Accessory building construction,Construction Company,alias,Garden rooms and outbuildings,US term
+Furniture assembly,Construction Company,exclude,,Handyman work
+Basement waterproofing,Construction Company,alias,Damp proofing and waterproofing,
+Bathroom remodelling,Construction Company,fold,Bathroom Renovator,Is the category
+Building construction,Construction Company,fold,Building Firm,Is the category
+Civil engineering consulting,Construction Company,exclude,,Different profession
+Gutter cleaning,Construction Company,exclude,,Not this trade
+Concrete construction,Construction Company,alias,Concrete bases and groundworks,
+Concrete pouring,Construction Company,alias,Concrete bases and groundworks,
+Construction management,Construction Company,alias,Design and build,
+Crawl space foundation construction,Construction Company,exclude,,US only
+Custom home building,Construction Company,alias,New build homes,
+Deck construction,Construction Company,alias,Decking installation,
+Demolition,Construction Company,page,Demolition and strip out,
+Construction site excavation,Construction Company,alias,Concrete bases and groundworks,
+Exterior structural repairs,Construction Company,alias,Structural repairs,
+Foundation drainage,Construction Company,alias,Damp proofing and waterproofing,
+Foundation installation,Construction Company,page,Foundations and underpinning,
+Foundation pouring,Construction Company,alias,Foundations and underpinning,
+Foundation raising,Construction Company,alias,Foundations and underpinning,US term
+Repairs and maintenance,Construction Company,alias,Property repairs and maintenance,
+Remodelling,Construction Company,alias,Property refurbishment,US term
+Home addition construction,Construction Company,alias,House extensions,US term
+Home building,Construction Company,alias,New build homes,
+Home renovations,Construction Company,page,Property refurbishment,
+Drywall installation,Construction Company,page,Plastering and drylining,US term
+Fan installation,Construction Company,exclude,,Handyman work
+Floor fitting,Construction Company,fold,Flooring Contractor,Is the category
+Tile work installation,Construction Company,alias,Wall and floor tiling,
+Plumbing fixture installation,Construction Company,exclude,,Not marketed separately by builders
+Interior structural repairs,Construction Company,alias,Structural repairs,
+Kitchen remodelling,Construction Company,fold,Kitchen Renovator,Is the category
+Commercial machinery rental,Construction Company,exclude,,
+Metal building construction,Construction Company,exclude,,US agricultural
+TV mounting,Construction Company,exclude,,Handyman work
+New building construction,Construction Company,alias,New build homes,
+Interior decorating,Construction Company,alias,Painting and decorating,
+Exterior painting,Construction Company,page,Painting and decorating,
+Patio construction,Construction Company,page,Patios,
+Pole building construction,Construction Company,exclude,,US agricultural
+Refurbishment,Construction Company,alias,Property refurbishment,
+Drywall repair,Construction Company,alias,Plastering and drylining,
+Fan repair,Construction Company,exclude,,
+Flooring repair,Construction Company,alias,Floor repairs,
+Water fixture repair,Construction Company,exclude,,
+Tile work replacement,Construction Company,alias,Wall and floor tiling,
+Road construction,Construction Company,exclude,,
+Roof installation,Construction Company,page,Roofing,Builder doing roofs; low priority
+Roof repair,Construction Company,alias,Roofing,
+Slab foundation construction,Construction Company,alias,Foundations and underpinning,
+Steel building construction,Construction Company,exclude,,
+Steel pier piling construction,Construction Company,alias,Foundations and underpinning,
+Water and moisture control services,Construction Company,alias,Damp proofing and waterproofing,
+A/C services,Contractor,exclude,,
+Basement remodelling,Contractor,page,Basement conversions,
+Carpentry services,Contractor,fold,Carpenter,Is the category
+General construction,Contractor,fold,Building Firm,
+Flooring,Contractor,fold,Flooring Contractor,
+General repairs,Contractor,alias,Property repairs and maintenance,
+Plumbing services,Contractor,exclude,,
+Installation,Contractor,exclude,,Meaningless
+Building design,General Contractor,page,Design and build,
+Commercial projects,General Contractor,page,Commercial building work,
+General building construction,General Contractor,fold,Building Firm,
+Home repairs,General Contractor,alias,Property repairs and maintenance,
+Interior finishing,General Contractor,alias,Property refurbishment,
+Masonry installation,General Contractor,page,Brickwork and masonry,
+Painting,General Contractor,alias,Painting and decorating,
+Bathroom worktop resurfacing,Remodeller,alias,Bath and shower resurfacing,
+Shower refinishing,Remodeller,alias,Bath and shower resurfacing,
+Appraisals,Property Developer,exclude,,
+New construction services,Property Developer,alias,New build homes,
+Custom kitchen cabinet construction,Kitchen Renovator,alias,Kitchen fitting,
+Granite worktop installation,Kitchen Renovator,alias,Kitchen worktops,
+Granite worktop repair,Kitchen Renovator,alias,Kitchen worktops,
+Kitchen cabinet design,Kitchen Renovator,alias,Kitchen design,
+Kitchen cabinet door replacement,Kitchen Renovator,page,Kitchen door replacement and refacing,
+Kitchen cabinet installation,Kitchen Renovator,page,Kitchen fitting,
+Kitchen cabinet refacing,Kitchen Renovator,alias,Kitchen door replacement and refacing,
+Kitchen cabinet refinishing,Kitchen Renovator,alias,Kitchen door replacement and refacing,
+Kitchen worktop installation,Kitchen Renovator,page,Kitchen worktops,
+Kitchen worktop repair,Kitchen Renovator,alias,Kitchen worktops,
+Kitchen worktop replacement,Kitchen Renovator,alias,Kitchen worktops,
+Kitchen design,Kitchen Renovator,page,Kitchen design,
+Outdoor kitchen remodelling,Kitchen Renovator,exclude,,Rare domestic UK
+Cabinet repair,Carpenter,alias,Bespoke carpentry and joinery,
+Cabinet construction and installation,Carpenter,alias,Bespoke carpentry and joinery,
+General carpentry and cabinetry services,Carpenter,fold,Carpenter,Is the category
+Wardrobe construction and installation,Carpenter,page,Fitted wardrobes,
+Wardrobe repair,Carpenter,alias,Fitted wardrobes,
+Custom carpentry services,Carpenter,page,Bespoke carpentry and joinery,
+Custom wardrobe design and installation,Carpenter,alias,Fitted wardrobes,
+Deck repair,Carpenter,alias,Decking repairs,
+Finish carpentry services,Carpenter,page,Second fix carpentry,UK term
+Rough carpentry services,Carpenter,page,First fix carpentry,UK term
+Shelving/storage construction and installation,Carpenter,page,Fitted shelving and storage,
+Shelving and storage repair,Carpenter,alias,Fitted shelving and storage,
+Staircase construction and installation,Carpenter,page,Staircases,
+Staircase repair,Carpenter,alias,Staircases,
+Trim carpentry services,Carpenter,alias,Second fix carpentry,
+Baseboard installation,Flooring Contractor,page,Skirting boards and architrave,US term
+Carpet installation,Flooring Contractor,page,Carpet fitting,
+Ceramic tile flooring installation,Flooring Contractor,page,Wall and floor tiling,
+Commercial floor coating,Flooring Contractor,alias,Resin flooring,
+Concrete epoxy floor installation,Flooring Contractor,alias,Resin flooring,
+Concrete floor polishing,Flooring Contractor,page,Polished concrete floors,
+Concrete patio floor installation,Flooring Contractor,alias,Patios,
+Concrete staining,Flooring Contractor,alias,Polished concrete floors,
+Epoxy floor coating,Flooring Contractor,page,Resin flooring,
+Floor polishing,Flooring Contractor,alias,Floor sanding and restoration,
+Floor refinishing,Flooring Contractor,alias,Floor sanding and restoration,
+Floor repairs and maintenance,Flooring Contractor,page,Floor repairs,
+Floor tile installation,Flooring Contractor,alias,Wall and floor tiling,
+Floor tile restoration,Flooring Contractor,alias,Wall and floor tiling,
+Garage floor epoxy coating,Flooring Contractor,alias,Resin flooring,
+Laminate floor installation,Flooring Contractor,page,Laminate and LVT flooring,
+Marble floor installation,Flooring Contractor,alias,Wall and floor tiling,
+Marble floor repair,Flooring Contractor,alias,Wall and floor tiling,
+Stair flooring,Flooring Contractor,alias,Carpet fitting,
+Wood floor installation,Flooring Contractor,page,Wood flooring,
+Wood floor refinishing,Flooring Contractor,alias,Floor sanding and restoration,
+Wood floor repairs,Flooring Contractor,alias,Floor repairs,
+Wood floor restoration,Flooring Contractor,page,Floor sanding and restoration,
+Wood floor sanding,Flooring Contractor,alias,Floor sanding and restoration,
+Wood floor tile installation,Flooring Contractor,alias,Wood flooring,
+Bathroom worktop resurfacing,Bathroom Renovator,alias,Bath and shower resurfacing,
+Bathroom tile reglazing,Bathroom Renovator,alias,Bath and shower resurfacing,
+Bathtub installation,Bathroom Renovator,page,Bath installation and replacement,
+Bathtub refinishing,Bathroom Renovator,alias,Bath and shower resurfacing,
+Bathtub reglazing,Bathroom Renovator,alias,Bath and shower resurfacing,
+Bathtub repair,Bathroom Renovator,alias,Bath and shower resurfacing,
+Bathtub replacement,Bathroom Renovator,alias,Bath installation and replacement,
+Bathtub resurfacing,Bathroom Renovator,page,Bath and shower resurfacing,
+Shower refinishing,Bathroom Renovator,alias,Bath and shower resurfacing,
+Composite decks,Deck Builder,page,Composite decking,
+Deck cleaning,Deck Builder,alias,Decking restoration,
+Deck design,Deck Builder,alias,Decking installation,
+Deck installation,Deck Builder,page,Decking installation,
+Deck painting,Deck Builder,alias,Decking restoration,
+Deck railing repair,Deck Builder,alias,Decking repairs,
+Deck refinishing,Deck Builder,alias,Decking restoration,
+Deck remodelling,Deck Builder,alias,Decking installation,
+Deck repair,Deck Builder,page,Decking repairs,
+Deck replacement,Deck Builder,alias,Decking installation,
+Patio decks,Deck Builder,alias,Decking installation,
+Patio enclosure construction,Deck Builder,exclude,,US screened porch
+Pergola construction,Deck Builder,page,Pergolas,
+Porch construction,Deck Builder,page,Porch extensions,UK front porches are builder work
+Wood staining,Deck Builder,alias,Decking restoration,
+Wood deck construction,Deck Builder,alias,Decking installation,
+Architectural design services,Home Builder,alias,Design and build,
+Home blueprint design creation,Home Builder,alias,Design and build,
+Consultation,Home Builder,exclude,,
+Country home building,Home Builder,alias,New build homes,
+Design,Home Builder,alias,Design and build,
+Electrical work,Home Builder,exclude,,
+Exterior design services,Home Builder,alias,Design and build,
+Garage construction,Home Builder,page,Garage construction,
+Garage design,Home Builder,alias,Garage construction,
+Garage design and building,Home Builder,alias,Garage construction,
+Home extension services,Home Builder,page,House extensions,
+Interior design,Home Builder,exclude,,Different profession
+Luxury home building,Home Builder,alias,New build homes,
+General plumbing services,Home Builder,exclude,,
+Predesigned floor plans for homes,Home Builder,exclude,,
+Prefabricated home building,Home Builder,exclude,,
+Roof building,Home Builder,alias,Roofing,
+Tiny home building,Home Builder,exclude,,
+Waterproofing,Home Builder,alias,Damp proofing and waterproofing,
+House extensions,Additional services,alias,House extensions,Free-text intake name
+Loft conversions,Additional services,page,Loft conversions,Free-text intake name
+Garage conversions,Additional services,page,Garage conversions,Free-text intake name
+Home office conversions,Additional services,alias,Garden rooms and outbuildings,Free-text intake name
+Garden rooms,Additional services,page,Garden rooms and outbuildings,Free-text intake name
+Conservatory construction,Additional services,page,Conservatories and orangeries,Free-text intake name
+Orangery construction,Additional services,alias,Conservatories and orangeries,Free-text intake name
+Property refurbishments,Additional services,alias,Property refurbishment,Free-text intake name
+Structural alterations,Additional services,page,Structural alterations and steel beams,Free-text intake name
+Knock-throughs & open-plan living,Additional services,alias,Structural alterations and steel beams,Free-text intake name
+Steel beam (RSJ) installation,Additional services,alias,Structural alterations and steel beams,Free-text intake name
+Bricklaying services,Additional services,alias,Brickwork and masonry,Free-text intake name
+Bespoke kitchen units,Additional services,alias,Kitchen fitting,Free-text intake name
+Kitchen installation,Additional services,alias,Kitchen fitting,Free-text intake name
+Utility room installation,Additional services,alias,Kitchen fitting,Free-text intake name
+Bathroom installation,Additional services,page,Bathroom fitting,Free-text intake name
+Bathroom refurbishment,Additional services,alias,Bathroom fitting,Free-text intake name
+Wet room installation,Additional services,page,Wet rooms,Free-text intake name
+Shower room installation,Additional services,alias,Bathroom fitting,Free-text intake name
+En-suite installation,Additional services,alias,Bathroom fitting,Free-text intake name
+Commercial building services,Additional services,alias,Commercial building work,Free-text intake name
+Shop fitting,Additional services,page,Shop and office fit outs,Free-text intake name
+Office fit-outs,Additional services,alias,Shop and office fit outs,Free-text intake name
+Heritage & listed building restoration,Additional services,page,Listed building and heritage work,Free-text intake name
+Insurance repair work,Additional services,page,Insurance repair work,Free-text intake name
+Fire & flood restoration,Additional services,alias,Insurance repair work,Free-text intake name
+Disability adaptations,Additional services,page,Disability adaptations,Free-text intake name
+Barn conversions,Additional services,page,Barn conversions,Free-text intake name
+Self-build project management,Additional services,alias,Design and build,Free-text intake name

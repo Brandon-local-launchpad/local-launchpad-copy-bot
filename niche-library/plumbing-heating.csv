@@ -1,0 +1,73 @@
+gbp_name,gbp_category,verdict,target,note
+A/C system maintenance,Central Heating Service,exclude,,HVAC niche
+HVAC duct and vent cleaning,Central Heating Service,exclude,,HVAC niche
+Ductless heating and A/C services,Central Heating Service,exclude,,HVAC niche
+Heating system maintenance,Central Heating Service,alias,Central heating servicing,
+HVAC system maintenance,Central Heating Service,exclude,,HVAC niche
+HVAC system repair,Central Heating Service,exclude,,HVAC niche
+AC installation,Central Heating Service,exclude,,HVAC niche
+HVAC duct and vent installation,Central Heating Service,exclude,,HVAC niche
+Heating system installation,Central Heating Service,alias,Central heating installation,
+Thermostat installation,Central Heating Service,page,Heating controls and thermostats,
+A/C system repair,Central Heating Service,exclude,,HVAC niche
+HVAC duct and vent repair,Central Heating Service,exclude,,HVAC niche
+Heating system repair,Central Heating Service,alias,Central heating repairs,
+HVAC repair,Central Heating Service,exclude,,HVAC niche
+Thermostat repair,Central Heating Service,alias,Heating controls and thermostats,
+Plumbing leak detection,Plumber,page,Leak detection and repair,
+Tap installation,Plumber,page,Taps and basins,
+Waste disposal installation,Plumber,exclude,,Rare UK
+Shower installation,Plumber,page,Shower installation and repair,
+Toilet installation,Plumber,page,Toilet installation and repair,
+Water heater installation,Plumber,alias,Hot water cylinders,US term
+Plumbing leak repair,Plumber,alias,Leak detection and repair,
+Pool plumbing repair,Plumber,exclude,,US
+Tap repair,Plumber,alias,Taps and basins,
+Waste disposal repair,Plumber,exclude,,
+Outdoor plumbing system repair,Plumber,page,Outside taps and garden plumbing,
+Plumbing pipe repair,Plumber,page,Burst and leaking pipes,
+Sewer repair,Plumber,exclude,,Drainage niche
+Shower repair,Plumber,alias,Shower installation and repair,
+Toilet repair,Plumber,alias,Toilet installation and repair,
+Water heater repair,Plumber,alias,Hot water cylinders,
+Sewer cleaning,Plumber,exclude,,Drainage niche
+Sump pump installation,Plumber,exclude,,Drainage niche
+Sump pump repair,Plumber,exclude,,Drainage niche
+Drain cleaning,Plumber,page,Blocked drains and sinks,
+Water tank installation,Plumber,page,Cold water tanks,
+Water tank repair,Plumber,alias,Cold water tanks,
+Boiler installation,Gas Engineer,page,Boiler installation,
+Boiler servicing,Gas Engineer,page,Boiler servicing,
+Boiler repair,Gas Engineer,page,Boiler repairs,
+Emergency boiler repair,Gas Engineer,page,Emergency plumber and heating engineer,
+Boiler fault finding,Gas Engineer,alias,Boiler repairs,
+Central heating installation,Gas Engineer,page,Central heating installation,
+Central heating repair,Gas Engineer,page,Central heating repairs,
+Central heating servicing,Gas Engineer,page,Central heating servicing,
+Radiator installation,Gas Engineer,page,Radiators,
+Radiator repair,Gas Engineer,alias,Radiators,
+Power flushing,Gas Engineer,page,Power flushing,
+Gas safety certificate (CP12),Gas Engineer,page,Gas safety certificates,
+Landlord gas safety certificate,Gas Engineer,alias,Gas safety certificates,
+Gas appliance installation,Gas Engineer,page,Gas appliance installation,
+Gas appliance repair,Gas Engineer,alias,Gas appliance installation,
+Air source heat pump installation,Additional services,page,Air source heat pumps,Free-text intake name
+Air source heat pump servicing,Additional services,alias,Air source heat pumps,Free-text intake name
+Air source heat pump repairs,Additional services,alias,Air source heat pumps,Free-text intake name
+Ground source heat pump installation,Additional services,page,Ground source heat pumps,Free-text intake name
+Ground source heat pump servicing,Additional services,alias,Ground source heat pumps,Free-text intake name
+Ground source heat pump repairs,Additional services,alias,Ground source heat pumps,Free-text intake name
+Underfloor heating installation,Additional services,page,Underfloor heating,Free-text intake name
+Underfloor heating servicing,Additional services,alias,Underfloor heating,Free-text intake name
+Underfloor heating repairs,Additional services,alias,Underfloor heating,Free-text intake name
+Unvented hot water cylinder installation,Additional services,page,Hot water cylinders,Free-text intake name
+Unvented hot water cylinder servicing,Additional services,alias,Hot water cylinders,Free-text intake name
+Unvented hot water cylinder repairs,Additional services,alias,Hot water cylinders,Free-text intake name
+Zoned heating systems,Additional services,alias,Heating controls and thermostats,Free-text intake name
+Bathroom installation,Additional services,page,Bathroom installation,Common free-text name; added
+Oil boilers,Additional services,page,Oil boilers,Common free-text name; added
+LPG boilers,Additional services,alias,Gas appliance installation,Common free-text name; added
+Gas cooker installation,Additional services,alias,Gas appliance installation,Common free-text name; added
+Gas fire installation,Additional services,alias,Gas appliance installation,Common free-text name; added
+Water softener installation,Additional services,page,Water softeners,Common free-text name; added
+Electric boilers,Additional services,alias,Boiler installation,Common free-text name; added

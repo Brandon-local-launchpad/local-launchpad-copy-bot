@@ -1,0 +1,30 @@
+gbp_name,gbp_category,verdict,target,note
+Customer support,Garage door supplier,exclude,,
+Garage door consultation,Garage door supplier,exclude,,
+Garage door design,Garage door supplier,alias,Bespoke garage doors,
+General repairs & installation,Garage door supplier,page,Garage door repairs,
+Sectional garage doors,Additional services,page,Sectional garage doors,Free-text intake name
+Up and over garage doors,Additional services,page,Up and over garage doors,Free-text intake name
+Roller garage doors,Additional services,page,Roller garage doors,Free-text intake name
+Side hinged garage doors,Additional services,page,Side hinged garage doors,Free-text intake name
+Timber garage doors,Additional services,page,Timber garage doors,Free-text intake name
+Steel garage doors,Additional services,alias,Up and over garage doors,Free-text intake name
+Aluminium garage doors,Additional services,alias,Sectional garage doors,Free-text intake name
+Insulated garage doors,Additional services,page,Insulated garage doors,Free-text intake name
+Automatic garage doors,Additional services,page,Electric garage doors,Free-text intake name
+Electric garage doors,Additional services,alias,Electric garage doors,Free-text intake name
+Garage door automation,Additional services,alias,Electric garage doors,Free-text intake name
+Garage door motor installation,Additional services,alias,Electric garage doors,Free-text intake name
+Garage door opener repairs,Additional services,alias,Garage door repairs,Free-text intake name
+Smart garage door systems,Additional services,alias,Electric garage doors,Free-text intake name
+Personnel doors,Additional services,page,Personnel and side doors,Free-text intake name
+Entrance doors,Additional services,page,Front and entrance doors,Free-text intake name
+Garden gates,Additional services,alias,Garden gates,Free-text intake name; page defined in fencing.csv
+Industrial garage doors,Additional services,page,Industrial and commercial doors,Free-text intake name
+Commercial garage doors,Additional services,alias,Industrial and commercial doors,Free-text intake name
+Loading bay doors,Additional services,alias,Industrial and commercial doors,Free-text intake name
+Roller shutters,Additional services,page,Roller shutters,Free-text intake name
+Security grilles,Additional services,alias,Roller shutters,Free-text intake name
+Bespoke garage doors,Additional services,page,Bespoke garage doors,Common free-text name; added
+Garage door servicing,Additional services,alias,Garage door repairs,Common free-text name; added
+Garage door replacement,Additional services,fold,Garage door supplier,Common free-text name; added; is the category

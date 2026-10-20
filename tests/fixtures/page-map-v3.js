@@ -56,7 +56,8 @@ const table = {
   'tree surgeon winchester': [140, 3.9], 'tree surgeon romsey': [50, 3.7],
 };
 // Every town launches in phase 1 here; launch phases have their own fixture (launch-phases.js)
-const build = (extra = {}, opts = {}) => G.buildPageMap({ ...input, ...extra }, { volumes: vol({ ...table, ...(opts.table || {}) }), exclude: opts.exclude || new Set(), launchTowns: new Set(['romsey', 'winchester']), saved: opts.saved || [] });
+// No niche here, so no library at all (every library is loaded for a real client; niche-library.js covers that)
+const build = (extra = {}, opts = {}) => G.buildPageMap({ ...input, ...extra }, { volumes: vol({ ...table, ...(opts.table || {}) }), exclude: opts.exclude || new Set(), launchTowns: new Set(['romsey', 'winchester']), saved: opts.saved || [], library: opts.library !== undefined ? opts.library : null });
 const find = (m, slug) => m.rows.find(r => r.slug === slug);
 const svcOf = (m, id) => m.services.find(s => s.id === id);
 

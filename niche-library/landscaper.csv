@@ -11,8 +11,8 @@ Weed control,Gardener,page,Weed control,
 Artificial turf installation,Landscape Gardener,page,Artificial grass installation,UK term is artificial grass
 Concrete masonry,Landscape Gardener,alias,Concrete bases and paths,US term
 Desert landscaping,Landscape Gardener,exclude,,US only
-Driveway landscaping,Landscape Gardener,fold,Paving Contractor,Driveways is the Paving Contractor hub keyword
-Driveway or path paving,Landscape Gardener,fold,Paving Contractor,Driveways is the Paving Contractor hub keyword
+Driveway landscaping,Landscape Gardener,fold,Paving Contractor,Driveways is the Paving Contractor hub
+Driveway or path paving,Landscape Gardener,fold,Paving Contractor,Driveways is the Paving Contractor hub
 Garden decorating,Landscape Gardener,exclude,,Not a trade service
 Garden design,Landscape Gardener,fold,Landscape Designer,Is the category
 Gardening services,Landscape Gardener,fold,Gardener,Is the category
@@ -67,9 +67,9 @@ Concrete work,Paving contractor,page,Concrete bases and paths,
 General construction,Paving contractor,exclude,,Not this trade
 Pavement crack filling and sealing,Paving contractor,alias,Driveway repairs,
 Paving-related drainage,Paving contractor,alias,Garden drainage,
-Driveway installation,Paving contractor,fold,Paving Contractor,Driveways is the Paving Contractor hub keyword
+Driveway installation,Paving contractor,fold,Paving Contractor,Driveways is the Paving Contractor hub
 Driveway repairs,Paving contractor,page,Driveway repairs,
-Driveway replacement,Paving contractor,fold,Paving Contractor,Driveways is the Paving Contractor hub keyword
+Driveway replacement,Paving contractor,fold,Paving Contractor,Driveways is the Paving Contractor hub
 Driveway sealing,Paving contractor,page,Driveway sealing,Block paving sealing is a real UK service
 Excavation & grading,Paving contractor,alias,Garden levelling,
 Hauling,Paving contractor,exclude,,US haulage

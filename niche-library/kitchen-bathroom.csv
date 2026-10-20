@@ -1,0 +1,26 @@
+gbp_name,gbp_category,verdict,target,note
+Kitchen fitting,Additional services,alias,Kitchen fitting,Free-text intake name; page defined in builder.csv
+Bathroom fitting,Additional services,alias,Bathroom fitting,Free-text intake name; page defined in builder.csv
+Wet room installation,Additional services,alias,Wet rooms,Free-text intake name; page defined in builder.csv
+Walk-in shower installation,Additional services,page,Walk in showers,Free-text intake name
+Accessible bathroom installation,Additional services,page,Accessible and mobility bathrooms,Free-text intake name
+Disabled bathroom adaptations,Additional services,alias,Accessible and mobility bathrooms,Free-text intake name
+Cloakroom installation,Additional services,page,Cloakrooms and en suites,Free-text intake name
+Utility room installation,Additional services,page,Utility rooms,Free-text intake name
+Boot room installation,Additional services,alias,Utility rooms,Free-text intake name
+Shower panel installation,Additional services,alias,Walk in showers,Free-text intake name
+Splashback installation,Additional services,alias,Kitchen worktops,Free-text intake name; page defined in builder.csv
+Quartz worktop installation,Additional services,alias,Kitchen worktops,Free-text intake name
+Solid surface worktop installation,Additional services,alias,Kitchen worktops,Free-text intake name
+Laminate worktop installation,Additional services,alias,Kitchen worktops,Free-text intake name
+Kitchen island installation,Additional services,alias,Kitchen fitting,Free-text intake name
+Breakfast bar installation,Additional services,alias,Kitchen fitting,Free-text intake name
+Underfloor heating installation,Additional services,alias,Underfloor heating,Free-text intake name; page defined in plumbing-heating.csv
+Media wall installation,Additional services,page,Media walls,Free-text intake name
+Bespoke storage solutions,Additional services,alias,Fitted shelving and storage,Free-text intake name; page defined in builder.csv
+Wine rack installation,Additional services,alias,Fitted shelving and storage,Free-text intake name
+En-suite installation,Additional services,alias,Cloakrooms and en suites,Common free-text name; added
+Shower room installation,Additional services,alias,Bathroom fitting,Common free-text name; added
+Kitchen supply and fit,Additional services,alias,Kitchen fitting,Common free-text name; added
+Kitchen design,Additional services,alias,Kitchen design,Common free-text name; added; page defined in builder.csv
+Bathroom design,Additional services,page,Bathroom design,Common free-text name; added

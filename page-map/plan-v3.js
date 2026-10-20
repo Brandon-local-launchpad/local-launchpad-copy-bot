@@ -28,6 +28,7 @@
 
 const { keywordOf, MIN_USABLE } = require('../h1-research/research');
 const C = require('../h1-research/claims');
+const L = require('../niche-library/library');
 
 const TYPES = ['homepage', 'category', 'service', 'location', 'location_category', 'town_service'];
 const TYPE_LABEL = { homepage: 'Homepage', category: 'Category', service: 'Service', location: 'Location', location_category: 'Location Category', town_service: 'Town Service' };
@@ -53,11 +54,22 @@ function collectServices(resolved) {
 // The library, before the rules. lib: niche-library/library.js loadLibrary() (or null); cats:
 // [{ key, name }] with a tab. Returns the services to plan (library pages, keyed by their target,
 // plus every name not in the library, untouched) and a record per GBP name for the services step.
+// lib may be one library (niche-library/library.js loadLibrary) or a set (loadLibrarySet: the
+// niche's own library, every other library, the hub table). Matching (Brandon, 20 Oct 2026):
+// a GBP name is looked up by name + its category, then by name, in the own library and then
+// the others; a free-text intake row (kind "additional") is also matched loosely and fuzzily.
+// When the rows found disagree, a fold whose target the client has (as a tab, or through the
+// hub table) beats page and alias; otherwise the first row by rank decides, except that a fold
+// whose target the client lacks gives way to a page or alias row from another library.
 function resolveLibrary(services, lib, cats) {
-  if (!lib) return { services: services.map(s => ({ ...s, gbp_names: [s.name] })), records: services.map(s => ({ id: s.id, name: s.name, parents: s.parents, library: null, page_id: s.id })) };
+  const set = L.asSet(lib);
+  if (!set || (!set.own && !set.others.length)) return { services: services.map(s => ({ ...s, gbp_names: [s.name] })), records: services.map(s => ({ id: s.id, name: s.name, parents: s.parents, library: null, page_id: s.id })) };
   const pages = new Map();   // target id → page service
   const records = [];
   const catByName = new Map(cats.map(c => [norm(c.name), c]));
+  const catByKey = new Map(cats.map(c => [c.key, c]));
+  // The client's tab for a fold target: the same name, or the same hub (niche-library/<niche>-categories.csv)
+  const tabFor = target => catByName.get(norm(target)) || cats.find(c => norm(L.hubOf(set, c.name)) === norm(L.hubOf(set, target))) || null;
   const page = (target, s, how) => {
     const id = norm(target);
     if (!pages.has(id)) pages.set(id, { id, name: target, kind: s.kind, home: null, parents: [], gbp_names: [], absorbs: [], decided: true, library: 'page', outcome: null, into: null, reason: null });
@@ -69,20 +81,38 @@ function resolveLibrary(services, lib, cats) {
   };
   const rest = [];
   for (const s of services) {
-    const e = lib.entries.get(norm(s.name));
-    const rec = { id: s.id, name: s.name, parents: s.parents, library: e ? { verdict: e.verdict, target: e.target, note: e.note, gbp_category: e.gbp_category } : null, page_id: null };
+    const catNames = [s.home, ...s.parents].filter(Boolean).map(k => (catByKey.get(k) || {}).name).filter(Boolean);
+    const matches = L.findEntries(set, s.name, catNames, { fuzzy: s.kind === 'additional' });
+    const rec = { id: s.id, name: s.name, parents: s.parents, library: null, page_id: null };
     records.push(rec);
-    if (!e) { rest.push({ ...s, gbp_names: [s.name], library: null }); rec.page_id = s.id; continue; }
+    if (!matches.length) { rest.push({ ...s, gbp_names: [s.name], library: null }); rec.page_id = s.id; continue; }
+    // Which row decides
+    let m = matches.find(x => x.entry.verdict === 'fold' && tabFor(x.entry.target)) || matches[0];
+    let foldLost = null;
+    if (m.entry.verdict === 'fold' && !tabFor(m.entry.target)) {
+      const other = matches.find(x => x.entry.verdict !== 'fold');
+      if (other) { foldLost = m; m = other; }
+    }
+    const e = m.entry;
+    const matched = { file: m.file, own: m.own, how: m.how, score: m.score, gbp_name: e.gbp_name };
+    const exactHow = m.how === 'name+category' || m.how === 'name';
+    const via = m.own && exactHow ? '' : ` (${[exactHow ? '' : `${m.how} match of "${e.gbp_name}"`, m.own ? '' : `in ${m.file}`].filter(Boolean).join(' ')})`;
+    rec.library = { verdict: e.verdict, target: e.target, note: e.note, gbp_category: e.gbp_category, matched, candidates: matches.length };
+    if (foldLost) rec.library.fold_lost = { target: foldLost.entry.target, file: foldLost.file };
     if (e.verdict === 'page') { rec.page_id = page(e.target, s, 'page').id; continue; }
     if (e.verdict === 'alias') { rec.page_id = page(e.target, s, 'alias').id; continue; }
     if (e.verdict === 'fold') {
-      const c = catByName.get(norm(e.target));
-      if (c) { rest.push({ ...s, gbp_names: [s.name], library: 'fold', outcome: 'folded', into: c.key, intoName: c.name, reason: `library: listed on the ${c.name} category page, which keeps the keyword${e.note ? ` (${e.note})` : ''}` }); continue; }
+      const c = tabFor(e.target);
+      if (c) {
+        const hub = norm(c.name) !== norm(e.target) ? ` (its hub, for "${e.target}")` : '';
+        rest.push({ ...s, gbp_names: [s.name], library: 'fold', outcome: 'folded', into: c.key, intoName: c.name, reason: `library: listed on the ${c.name} category page${hub}, which keeps the keyword${e.note ? ` (${e.note})` : ''}${via}` });
+        continue;
+      }
       // The fold target is not in this client's plan (Brandon, 20 Oct 2026): a page named by its own name, flagged
       const p = page(s.name, s, 'page'); p.fold_target_missing = e.target; rec.page_id = p.id; rec.flag = 'fold target missing';
       continue;
     }
-    rest.push({ ...s, gbp_names: [s.name], library: 'exclude', outcome: 'excluded', reason: `library: excluded${e.note ? ` (${e.note})` : ''}` });
+    rest.push({ ...s, gbp_names: [s.name], library: 'exclude', outcome: 'excluded', reason: `library: excluded${e.note ? ` (${e.note})` : ''}${via}` });
   }
   for (const p of pages.values()) { p.gbp_names = [...new Set(p.gbp_names)]; p.absorbs = [...new Set(p.absorbs)]; if (!p.gbp_names.length) p.created_from_alias = true; }
   return { services: [...pages.values(), ...rest], records };

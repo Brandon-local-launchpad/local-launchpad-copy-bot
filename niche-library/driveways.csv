@@ -1,0 +1,75 @@
+gbp_name,gbp_category,verdict,target,note
+Basement waterproofing,Concrete Contractor,exclude,,Builder niche
+Construction cleanup,Concrete Contractor,exclude,,
+Concrete worktop installation,Concrete Contractor,exclude,,
+Concrete cutting,Concrete Contractor,alias,Concrete repairs and resurfacing,
+Concrete levelling,Concrete Contractor,alias,Concrete repairs and resurfacing,
+Concrete repairs,Concrete Contractor,page,Concrete repairs and resurfacing,
+Concrete resurfacing,Concrete Contractor,alias,Concrete repairs and resurfacing,
+Crawl space foundation construction,Concrete Contractor,exclude,,US
+Demolition,Concrete Contractor,exclude,,Builder niche
+Driveway installation,Concrete Contractor,fold,Paving Contractor,Driveways is the hub; also in landscaper.csv
+Driveway repairs,Concrete Contractor,alias,Driveway repairs,Page defined in landscaper.csv
+Concrete driveway building,Concrete Contractor,page,Concrete driveways,
+Flooring,Concrete Contractor,exclude,,
+Concrete footings,Concrete Contractor,alias,Concrete bases and paths,Page defined in landscaper.csv
+Foundation drainage,Concrete Contractor,exclude,,Builder niche
+Foundation installation,Concrete Contractor,exclude,,Builder niche
+Foundation raising,Concrete Contractor,exclude,,US
+Foundation repairs,Concrete Contractor,exclude,,Builder niche
+Foundations,Concrete Contractor,exclude,,Builder niche
+General repairs & maintenance,Concrete Contractor,alias,Driveway repairs,
+Concrete highway building,Concrete Contractor,exclude,,
+Concrete car park building,Concrete Contractor,alias,Car park surfacing,Page defined in landscaper.csv
+General paving,Concrete Contractor,fold,Paving Contractor,
+Retaining walls,Concrete Contractor,alias,Retaining walls,Page defined in landscaper.csv
+Concrete pavement building,Concrete Contractor,alias,Concrete bases and paths,
+Slab foundation building,Concrete Contractor,exclude,,
+Stamped concrete services,Concrete Contractor,page,Imprinted concrete,UK term
+Structural construction assistance,Concrete Contractor,exclude,,
+Water and moisture control services,Concrete Contractor,exclude,,
+Asphalt paving & repair,Road Construction Company,alias,Tarmac surfacing,Page defined in landscaper.csv
+Barrier & flagging services,Road Construction Company,exclude,,
+Bridge repair,Road Construction Company,exclude,,
+Concrete repair & installation,Road Construction Company,alias,Concrete repairs and resurfacing,
+Excavation & grading,Road Construction Company,alias,Garden levelling,Page defined in landscaper.csv
+Project management,Road Construction Company,exclude,,
+Project planning,Road Construction Company,exclude,,
+Road & highway repair,Road Construction Company,exclude,,
+Road painting & striping,Road Construction Company,page,Car park line marking,Only if client does commercial
+Sewer construction,Road Construction Company,exclude,,
+Storm drain construction,Road Construction Company,exclude,,
+Structural concrete,Road Construction Company,exclude,,
+Temporary traffic control services,Road Construction Company,exclude,,
+Waterline construction,Road Construction Company,exclude,,
+Resin bound driveways,Additional services,page,Resin bound driveways,Free-text intake name
+Resin bonded surfacing,Additional services,alias,Resin bound driveways,Free-text intake name; the page explains the difference
+Gravel driveways,Additional services,page,Gravel driveways,Free-text intake name
+Tar and chip surfacing,Additional services,page,Tar and chip surfacing,Free-text intake name
+Block paving restoration,Additional services,alias,Driveway repairs,Free-text intake name
+Patio cleaning,Additional services,alias,Driveway and patio cleaning,Free-text intake name; page defined in cleaning.csv
+Driveway cleaning,Additional services,alias,Driveway and patio cleaning,Free-text intake name
+Patio sealing,Additional services,alias,Driveway sealing,Free-text intake name; page defined in landscaper.csv
+Imprinted concrete,Additional services,alias,Imprinted concrete,Free-text intake name
+Kerbing installation,Additional services,page,Kerbs and edging,Free-text intake name
+Edging installation,Additional services,alias,Kerbs and edging,Free-text intake name
+Dropped kerbs,Additional services,page,Dropped kerbs,Free-text intake name
+Permeable paving,Additional services,page,Permeable paving,Free-text intake name
+Steps and stair construction,Additional services,alias,Garden steps,Free-text intake name; page defined in landscaper.csv
+Outdoor steps,Additional services,alias,Garden steps,Free-text intake name
+Garden paths,Additional services,alias,Garden paths,Free-text intake name; page defined in landscaper.csv
+Courtyard paving,Additional services,alias,Patios,Free-text intake name; page defined in landscaper.csv
+Play area surfacing,Additional services,page,Play area and sports surfacing,Free-text intake name
+Sports court surfacing,Additional services,alias,Play area and sports surfacing,Free-text intake name
+Resin pathways,Additional services,alias,Resin bound driveways,Free-text intake name
+Bollard installation,Additional services,page,Bollards,Free-text intake name
+Vehicle crossover installation,Additional services,alias,Dropped kerbs,Free-text intake name
+Custom kitchen cabinet construction,Additional services,exclude,,Wrong niche; copy error in the form
+Granite worktop installation,Additional services,exclude,,Wrong niche; copy error in the form
+Granite worktop repair,Additional services,exclude,,Wrong niche; copy error in the form
+Kitchen cabinet design,Additional services,exclude,,Wrong niche; copy error in the form
+Kitchen cabinet door replacement,Additional services,exclude,,Wrong niche; copy error in the form
+Kitchen cabinet installation,Additional services,exclude,,Wrong niche; copy error in the form
+Kitchen cabinet refacing,Additional services,exclude,,Wrong niche; copy error in the form
+Kitchen cabinet refinishing,Additional services,exclude,,Wrong niche; copy error in the form
+Kitchen worktop installation,Additional services,exclude,,Wrong niche; copy error in the form

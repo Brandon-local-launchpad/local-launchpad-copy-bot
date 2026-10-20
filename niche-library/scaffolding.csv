@@ -1,0 +1,33 @@
+gbp_name,gbp_category,verdict,target,note
+Debris netting,Scaffolding Service,page,Debris netting and sheeting,
+Ground protection,Scaffolding Service,alias,Pavement and road scaffolding,
+Material hoisting,Scaffolding Service,page,Hoists and loading bays,
+Personal safety equipment,Scaffolding Service,exclude,,Not a service
+Scaffolding covering,Scaffolding Service,alias,Debris netting and sheeting,
+Scaffolding delivery,Scaffolding Service,exclude,,Not a service
+Scaffolding installation/disassembly,Scaffolding Service,fold,Scaffolding Service,Is the category
+Scaffolding rental,Scaffolding Service,page,Scaffold hire,
+Swing stages,Scaffolding Service,alias,Suspended access,US term
+Domestic scaffolding,Additional services,page,Domestic scaffolding,Free-text intake name
+Commercial scaffolding,Additional services,page,Commercial scaffolding,Free-text intake name
+Industrial scaffolding,Additional services,alias,Commercial scaffolding,Free-text intake name
+Temporary roof scaffolding,Additional services,page,Temporary roofs,Free-text intake name
+Chimney scaffolding,Additional services,page,Chimney scaffolding,Free-text intake name
+Roof access scaffolding,Additional services,alias,Domestic scaffolding,Free-text intake name
+Access towers,Additional services,page,Access towers,Free-text intake name
+Mobile scaffold towers,Additional services,alias,Access towers,Free-text intake name
+Cantilever scaffolding,Additional services,page,Cantilever and truss out scaffolding,Free-text intake name
+Birdcage scaffolding,Additional services,page,Birdcage scaffolding,Free-text intake name
+Staircase scaffolding,Additional services,page,Stair towers and temporary stairs,Free-text intake name
+Temporary access platforms,Additional services,alias,Access towers,Free-text intake name
+Edge protection systems,Additional services,page,Edge protection,Free-text intake name
+Scaffold design,Additional services,page,Scaffold design,Free-text intake name
+Scaffold inspections,Additional services,page,Scaffold inspections,Free-text intake name
+Emergency scaffolding,Additional services,page,Emergency scaffolding,Free-text intake name
+Event scaffolding,Additional services,page,Event scaffolding,Free-text intake name
+Temporary walkways,Additional services,alias,Pavement and road scaffolding,Free-text intake name
+Bridge scaffolding,Additional services,alias,Commercial scaffolding,Free-text intake name
+Confined space scaffolding,Additional services,alias,Commercial scaffolding,Free-text intake name
+Heritage scaffolding,Additional services,page,Heritage and listed building scaffolding,Free-text intake name
+Pavement scaffolding,Additional services,page,Pavement and road scaffolding,Common free-text name; added
+Suspended access,Additional services,page,Suspended access,Common free-text name; added

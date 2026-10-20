@@ -1,0 +1,52 @@
+gbp_name,gbp_category,verdict,target,note
+Blind measuring service,Blind Shop,alias,Made to measure blinds,
+Blind fitting,Blind Shop,fold,Blind Shop,Is the category
+Blind installation,Blind Shop,fold,Blind Shop,
+Blind repairs,Blind Shop,page,Blind repairs,
+Blind restringing,Blind Shop,alias,Blind repairs,
+Blind cleaning,Blind Shop,alias,Blind repairs,
+Blind safety device installation,Blind Shop,alias,Child safe blinds,
+Motorised blind installation,Blind Shop,page,Motorised and smart blinds,
+Electric blind installation,Blind Shop,alias,Motorised and smart blinds,
+Conservatory blind installation,Blind Shop,page,Conservatory blinds,
+Roof window blind installation,Blind Shop,page,Roof window and skylight blinds,
+Commercial blind installation,Blind Shop,page,Commercial blinds,
+Curtain measuring service,Curtain Fitter,alias,Made to measure curtains,
+Curtain fitting,Curtain Fitter,fold,Curtain Fitter,Is the category
+Curtain installation,Curtain Fitter,fold,Curtain Fitter,
+Curtain alterations,Curtain Fitter,page,Curtain alterations and repairs,
+Curtain shortening,Curtain Fitter,alias,Curtain alterations and repairs,
+Curtain repairs,Curtain Fitter,alias,Curtain alterations and repairs,
+Curtain track installation,Curtain Fitter,page,Curtain tracks and poles,
+Curtain pole installation,Curtain Fitter,alias,Curtain tracks and poles,
+Bay window curtain installation,Curtain Fitter,page,Bay window curtains and blinds,
+Motorised curtain installation,Curtain Fitter,alias,Motorised and smart blinds,
+Ready-made curtains,Curtain Shop,exclude,,Retail not a service
+Made-to-measure curtains,Curtain Shop,page,Made to measure curtains,
+Bespoke curtains,Curtain Shop,alias,Made to measure curtains,
+Curtain design consultation,Curtain Shop,alias,Made to measure curtains,
+Blackout curtain installation,Curtain Shop,alias,Made to measure curtains,
+Thermal curtain installation,Curtain Shop,alias,Made to measure curtains,
+Voile curtain installation,Curtain Shop,alias,Made to measure curtains,
+Sheer curtain installation,Curtain Shop,alias,Made to measure curtains,
+Commercial curtain installation,Curtain Shop,alias,Commercial blinds,
+Shutter installation,Additional services,page,Plantation shutters,Free-text intake name
+Canopy installation,Additional services,exclude,,
+Curtain and blind automation upgrades,Additional services,alias,Motorised and smart blinds,Free-text intake name
+Smart blind integration,Additional services,alias,Motorised and smart blinds,Free-text intake name
+Smart curtain integration,Additional services,alias,Motorised and smart blinds,Free-text intake name
+Curtain track repairs,Additional services,alias,Curtain tracks and poles,Free-text intake name
+Curtain pole repairs,Additional services,alias,Curtain tracks and poles,Free-text intake name
+Bay window track bending,Additional services,alias,Bay window curtains and blinds,Free-text intake name
+Curtain track replacement,Additional services,alias,Curtain tracks and poles,Free-text intake name
+Curtain pole replacement,Additional services,alias,Curtain tracks and poles,Free-text intake name
+Made to measure blinds,Additional services,page,Made to measure blinds,Common free-text name; added
+Roller blinds,Additional services,page,Roller blinds,Common free-text name; added
+Roman blinds,Additional services,page,Roman blinds,Common free-text name; added
+Venetian blinds,Additional services,page,Venetian and wooden blinds,Common free-text name; added
+Wooden blinds,Additional services,alias,Venetian and wooden blinds,Common free-text name; added
+Vertical blinds,Additional services,page,Vertical blinds,Common free-text name; added
+Perfect fit blinds,Additional services,page,Perfect fit and intu blinds,Common free-text name; added
+Day and night blinds,Additional services,alias,Roller blinds,Common free-text name; added
+Child safe blinds,Additional services,page,Child safe blinds,Common free-text name; added
+Awnings,Additional services,page,Awnings,Common free-text name; added

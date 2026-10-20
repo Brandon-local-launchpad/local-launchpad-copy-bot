@@ -1,0 +1,25 @@
+gbp_name,gbp_category,verdict,target,note
+Dormer loft conversions,Additional services,page,Dormer loft conversions,Free-text intake name
+Hip-to-gable loft conversions,Additional services,page,Hip to gable loft conversions,Free-text intake name
+Mansard loft conversions,Additional services,page,Mansard loft conversions,Free-text intake name
+Velux loft conversions,Additional services,page,Velux loft conversions,Free-text intake name
+L-shaped dormer loft conversions,Additional services,alias,Dormer loft conversions,Free-text intake name
+Garage conversions,Additional services,alias,Garage conversions,Free-text intake name; page defined in builder.csv
+Integral garage conversions,Additional services,alias,Garage conversions,Free-text intake name
+Double-storey extensions,Additional services,page,Double storey extensions,Free-text intake name
+Single-storey rear extensions,Additional services,page,Single storey extensions,Free-text intake name
+Side return extensions,Additional services,page,Side return extensions,Free-text intake name
+Wraparound extensions,Additional services,page,Wraparound extensions,Free-text intake name
+Orangery construction,Additional services,alias,Conservatories and orangeries,Free-text intake name; page defined in builder.csv
+Conservatory construction,Additional services,alias,Conservatories and orangeries,Free-text intake name
+Annex construction,Additional services,page,Annexes and granny flats,Free-text intake name
+Garden room construction,Additional services,alias,Garden rooms and outbuildings,Free-text intake name; page defined in builder.csv
+Loft boarding,Additional services,page,Loft boarding and insulation,Free-text intake name
+Loft insulation,Additional services,alias,Loft boarding and insulation,Free-text intake name
+Loft ladder installation,Additional services,alias,Loft boarding and insulation,Free-text intake name
+RSJ installation,Additional services,alias,Structural alterations and steel beams,Free-text intake name; page defined in builder.csv
+Structural steel installation,Additional services,alias,Structural alterations and steel beams,Free-text intake name
+Loft conversions,Additional services,alias,Loft conversions,Common free-text name; page defined in builder.csv
+House extensions,Additional services,alias,House extensions,Common free-text name; page defined in builder.csv
+Basement conversions,Additional services,alias,Basement conversions,Common free-text name; page defined in builder.csv
+Bungalow loft conversions,Additional services,alias,Dormer loft conversions,Common free-text name; added

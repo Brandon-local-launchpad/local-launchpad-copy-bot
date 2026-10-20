@@ -98,6 +98,19 @@ app.use((req, res, next) => {
 
 const sleep = ms => new Promise(r => setTimeout(r, ms));
 
+// ── Trade facts: one research pack per niche, the verified flag, the service page gate ──
+// (trade-facts/store.js). Service pages are only written from a verified pack.
+const tradeFacts = require('./trade-facts/store').createTradeFactsService({ pool });
+require('./trade-facts/routes').mountTradeFactsApi(app, tradeFacts);
+// The niche the gate checks for a client: the allocated niche key, else the trade
+async function nicheForGate(clientId, trade) {
+  if (clientId && pool) {
+    const { rows } = await pool.query(`SELECT niche_key, trade FROM clients WHERE id = $1`, [clientId]).catch(() => ({ rows: [] }));
+    if (rows[0]) return rows[0].niche_key && rows[0].niche_key !== 'other' ? rows[0].niche_key : (rows[0].trade || trade);
+  }
+  return trade;
+}
+
 // ── Load core prompt files ────────────────────────────────────────────────────
 
 function readDoc(name) {
@@ -1559,6 +1572,18 @@ app.post('/api/generate-batch/:sessionId', async (req, res) => {
     if (!calibrationPack) {
       return res.status(400).json({ error: `No calibration pack for "${trade}" yet. Research is saved; copy generation will be available once the pack is added.` });
     }
+
+    // Service pages need a verified trade facts pack; the other page types carry on without them
+    const tradeFactsSkipped = [];
+    let tradeFactsGate = null;
+    if (jobs.some(j => j.pageType === 'service')) {
+      tradeFactsGate = await tradeFacts.serviceGate(await nicheForGate(clientId, trade));
+      if (!tradeFactsGate.ok) {
+        if (jobs.every(j => j.pageType === 'service')) return res.status(409).json({ error: tradeFactsGate.message });
+        for (const j of jobs) if (j.pageType === 'service') tradeFactsSkipped.push({ ...j, skipReason: tradeFactsGate.message });
+      }
+    }
+    const genJobs = tradeFactsSkipped.length ? jobs.filter(j => j.pageType !== 'service') : jobs;
     const customValuesText = Object.entries(keyValueMap).map(([k, v]) => `${k}: ${v}`).join('\n');
     const client            = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
 
@@ -1571,7 +1596,7 @@ app.post('/api/generate-batch/:sessionId', async (req, res) => {
     const requestJobs = [];
     const geoSkipped  = [];
 
-    for (const job of jobs) {
+    for (const job of genJobs) {
       const { dossierText, skipReason } = selectDossierForJob(dossierMap, job, primaryGeo);
       if (skipReason) { geoSkipped.push({ ...job, skipReason }); continue; }
       requestJobs.push({ job, dossierText });
@@ -1599,7 +1624,7 @@ app.post('/api/generate-batch/:sessionId', async (req, res) => {
     // connection while we upload the (potentially large) batch payload to Anthropic.
     const batchId = crypto.randomUUID();
     const companyName = keyValueMap['company_name'] || '';
-    const allSkipped  = startIndex > 0 ? geoSkipped : [...skippedPages, ...geoSkipped];
+    const allSkipped  = startIndex > 0 ? [...tradeFactsSkipped, ...geoSkipped] : [...skippedPages, ...tradeFactsSkipped, ...geoSkipped];
     const record = {
       id: batchId,
       clientId: clientId || null,
@@ -1617,7 +1642,7 @@ app.post('/api/generate-batch/:sessionId', async (req, res) => {
     batchJobs.set(batchId, record);
     await persistBatchRecord(record);
 
-    res.json({ batchId, anthropicBatchId: null, total: requestJobs.length, startIndex, geoSkipped: geoSkipped.length });
+    res.json({ batchId, anthropicBatchId: null, total: requestJobs.length, startIndex, geoSkipped: geoSkipped.length, tradeFacts: tradeFactsSkipped.length ? { skipped: tradeFactsSkipped.length, message: tradeFactsGate.message } : null });
 
     // Background: submit to Anthropic and save assets — client polls /api/batch-status
     (async () => {
@@ -3846,12 +3871,16 @@ app.post('/api/clients/:clientId/pages/:pageId/regenerate', async (req, res) => 
   try {
     // Load page + client assets
     const { rows: pageRows } = await pool.query(
-      `SELECT p.*, c.trade FROM pages p JOIN clients c ON c.id = p.client_id
+      `SELECT p.*, c.trade, c.niche_key FROM pages p JOIN clients c ON c.id = p.client_id
        WHERE p.id = $1 AND p.client_id = $2`,
       [req.params.pageId, req.params.clientId]
     );
     if (!pageRows.length) return res.status(404).json({ error: 'Page not found.' });
     const page = pageRows[0];
+    if (page.page_type === 'service') {
+      const gate = await tradeFacts.serviceGate(page.niche_key && page.niche_key !== 'other' ? page.niche_key : page.trade);
+      if (!gate.ok) return res.status(409).json({ error: gate.message });
+    }
 
     // Load client files: prefer client_file rows (saved at Step 1 upload).
     // Fall back to legacy asset types for older clients that pre-date Step 1 saving.

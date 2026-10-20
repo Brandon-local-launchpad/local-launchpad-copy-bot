@@ -1,0 +1,38 @@
+gbp_name,gbp_category,verdict,target,note
+Wood floor installation,Wood Floor Installation Service,alias,Wood flooring,Page defined in builder.csv
+Cherry wood,Wood Floor Installation Service,exclude,,Species not a service
+Coating,Wood Floor Installation Service,alias,Floor sanding and restoration,Page defined in builder.csv
+Engineered wood,Wood Floor Installation Service,alias,Wood flooring,
+General repairs & maintenance,Wood Floor Installation Service,alias,Floor repairs,Page defined in builder.csv
+Hickory wood,Wood Floor Installation Service,exclude,,
+Installation,Wood Floor Installation Service,exclude,,Meaningless
+Maple wood,Wood Floor Installation Service,exclude,,
+Oak wood,Wood Floor Installation Service,alias,Wood flooring,
+Restoration,Wood Floor Installation Service,alias,Floor sanding and restoration,
+Sanding,Wood Floor Installation Service,alias,Floor sanding and restoration,
+Wood staining,Wood Floor Installation Service,alias,Floor sanding and restoration,
+Walnut wood,Wood Floor Installation Service,exclude,,
+LVT flooring installation,Additional services,page,LVT flooring,Free-text intake name
+Vinyl sheet flooring installation,Additional services,page,Vinyl flooring,Free-text intake name
+Safety flooring installation,Additional services,page,Safety flooring,Free-text intake name
+Rubber flooring installation,Additional services,alias,Safety flooring,Free-text intake name
+Parquet flooring installation,Additional services,page,Parquet and herringbone flooring,Free-text intake name
+Herringbone flooring installation,Additional services,alias,Parquet and herringbone flooring,Free-text intake name
+Carpet fitting,Additional services,alias,Carpet fitting,Free-text intake name; page defined in builder.csv
+Carpet tile installation,Additional services,page,Carpet tiles,Free-text intake name
+Stair carpet installation,Additional services,alias,Carpet fitting,Free-text intake name
+Carpet re-stretching,Additional services,page,Carpet repairs and re stretching,Free-text intake name
+Carpet binding,Additional services,alias,Carpet repairs and re stretching,Free-text intake name
+Carpet whipping,Additional services,alias,Carpet repairs and re stretching,Free-text intake name
+Carpet repairs,Additional services,alias,Carpet repairs and re stretching,Free-text intake name
+Carpet uplift and disposal,Additional services,alias,Floor removal and uplift,Free-text intake name
+Screeding,Additional services,page,Screeding and floor levelling,Free-text intake name
+Floor levelling,Additional services,alias,Screeding and floor levelling,Free-text intake name
+Subfloor preparation,Additional services,alias,Screeding and floor levelling,Free-text intake name
+Damp-proof membrane installation,Additional services,alias,Screeding and floor levelling,Free-text intake name
+Underlay installation,Additional services,alias,Carpet fitting,Free-text intake name
+Acoustic flooring installation,Additional services,page,Acoustic flooring,Free-text intake name
+Floor removal and uplift,Additional services,page,Floor removal and uplift,Free-text intake name
+Floor inspection and surveys,Additional services,page,Floor surveys and moisture testing,Free-text intake name
+Laminate flooring,Additional services,alias,Laminate and LVT flooring,Common free-text name; page defined in builder.csv
+Commercial flooring,Additional services,page,Commercial flooring,Common free-text name; added

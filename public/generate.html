@@ -2123,6 +2123,7 @@
       document.getElementById('batchQueuedMsg').style.display = 'block';
       document.getElementById('batchTotalText').textContent = `${totalJobs}`;
       document.getElementById('batchStatusText').textContent = 'Queued — click Refresh Status to check progress.';
+      if (data.tradeFacts) document.getElementById('batchStatusText').textContent += ` ${data.tradeFacts.skipped} service page${data.tradeFacts.skipped === 1 ? '' : 's'} not sent. ${data.tradeFacts.message}`;
       document.getElementById('refreshBtn').disabled = false;
       document.getElementById('batchLink').style.display = 'block';
       document.getElementById('batchLink').innerHTML = `Bookmark this page to come back later: <code>${location.href}</code>`;
