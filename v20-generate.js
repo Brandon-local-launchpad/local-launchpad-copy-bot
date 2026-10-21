@@ -101,9 +101,11 @@ function buildServiceList(keyValueMap = {}, serviceParentMap = {}, niche = {}) {
   const byCat = {};
   for (const s of confirmedServiceList(keyValueMap, serviceParentMap, niche)) {
     if (s.say === null) continue;
-    (byCat[s.category] = byCat[s.category] || new Set()).add(s.say);
+    const c = byCat[s.category] = byCat[s.category] || { pages: new Set(), mentioned: new Set() };
+    (s.kind === 'mentioned' ? c.mentioned : c.pages).add(s.say);
   }
-  const lines = Object.entries(byCat).map(([cat, set]) => `${cat}: ${[...set].join(', ')}`);
+  // A folded service (v3 page map) is confirmed and may be named in prose, never as a card's service
+  const lines = Object.entries(byCat).map(([cat, c]) => `${cat}: ${[...c.pages].join(', ')}${c.mentioned.size ? `${c.pages.size ? '; ' : ''}also offered, no page of their own (name in prose only, never as a card's service): ${[...c.mentioned].join(', ')}` : ''}`);
   // Every GBP category, including one whose services all sit under other categories
   const cats = Object.entries(keyValueMap).filter(([k, v]) => /^category_\d+$/.test(k) && v).map(([, v]) => v);
   if (cats.length) lines.unshift(`GBP categories: ${cats.join(', ')}`);
