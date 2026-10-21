@@ -509,7 +509,10 @@ function stepsFor(niche, cv, emergencyOn) {
 }
 
 // ── Main entry point ─────────────────────────────────────────────────────────
-function computeDecisions({ cv, niche, pages, keyValueMap, serviceParentMap, v20TestMode, allocationData, faqResearch = [] }) {
+// cardServices (v3 page map path, v20-context-v3.js): { picks: { [category lower]: [names] } }.
+// When given, the cards are the category pages only (no primary-category service cards) and
+// each card names the services picked there, not pickCardServices'.
+function computeDecisions({ cv, niche, pages, keyValueMap, serviceParentMap, v20TestMode, allocationData, faqResearch = [], cardServices = null }) {
   const gates = [];
   const flags = [];
 
@@ -705,9 +708,10 @@ function computeDecisions({ cv, niche, pages, keyValueMap, serviceParentMap, v20
 
   // ── D9 service cards ──
   const primaryCategory = cv.primary_category || keyValueMap['category_1'] || '';
-  const cardServices = homepageServicePages(pages, primaryCategory, keyValueMap, serviceParentMap || {});
-  const d9 = buildServiceCards(pages, niche, cardServices);
-  pickCardServices(d9.main, cv, keyValueMap, serviceParentMap || {}, niche);
+  const cardServicePages = cardServices ? [] : homepageServicePages(pages, primaryCategory, keyValueMap, serviceParentMap || {});
+  const d9 = buildServiceCards(pages, niche, cardServicePages);
+  if (cardServices) d9.main.forEach(c => { c.services = (cardServices.picks || {})[(c.name || '').toLowerCase().trim()] || []; });
+  else pickCardServices(d9.main, cv, keyValueMap, serviceParentMap || {}, niche);
   assignCardShapes(d9.main);
   if (d9.overflowServiceCount > 6) {
     flags.push({ code: 'F-MORE-SERVICES', msg: `${d9.overflowServiceCount} primary-category services overflow; only the first 6 are shown in "We also offer".` });
@@ -810,7 +814,7 @@ function computeDecisions({ cv, niche, pages, keyValueMap, serviceParentMap, v20
   // can link: never itself, never location-category pages, and only the services
   // that can be cards (secondary-category services sit under their category page).
   // The primary city's own location page is left out too: the homepage is that page.
-  const cardServiceSet = new Set(cardServices);
+  const cardServiceSet = new Set(cardServicePages);
   const linkablePages = pages
     .filter(p => isLinkable(p) && (p.urlSlug || '').trim())
     .filter(p => p.pageType !== 'homepage' && p.pageType !== 'location-category')
