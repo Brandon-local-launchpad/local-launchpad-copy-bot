@@ -1,0 +1,3403 @@
+{
+ "_note": "ednes edge testing client_page_map rows, taken from the live app 21 Oct 2026 (page map generated 19 Oct 2026, 139 applying, 69 retired). Only the fields the homepage inputs read. No personal data.",
+ "rows": [
+  {
+   "type": "homepage",
+   "title": "Edens Edge landscaping Homepage",
+   "slug": "/",
+   "h1": "Landscaper Southampton",
+   "h1_source": "manual",
+   "status": "H1 Added",
+   "applies": true,
+   "info": {
+    "phase": 1
+   }
+  },
+  {
+   "type": "category",
+   "title": "Gardener",
+   "slug": "/gardener",
+   "h1": "Gardener Southampton",
+   "h1_source": "research",
+   "status": "H1 Added",
+   "applies": true,
+   "info": {
+    "phase": 1,
+    "category_key": "gardener",
+    "primary": true,
+    "links": {
+     "mentioned": [
+      "Garden work",
+      "Gardening services"
+     ],
+     "cards": [
+      "Lawn mowing",
+      "Fencing",
+      "Lawn seeding",
+      "Hedge trimming",
+      "Mulching",
+      "Weed control"
+     ]
+    }
+   }
+  },
+  {
+   "type": "category",
+   "title": "Landscape Gardener",
+   "slug": "/landscape-gardener",
+   "h1": "Garden Landscaping Southampton",
+   "h1_source": "research",
+   "status": "H1 Added",
+   "applies": true,
+   "info": {
+    "phase": 1,
+    "category_key": "landscape_gardener",
+    "primary": false,
+    "links": {
+     "mentioned": [
+      "Hardscaping",
+      "Landscape installations",
+      "Garden landscaping"
+     ],
+     "cards": [
+      "Lawn seeding",
+      "Artificial grass installation",
+      "Concrete bases and paths",
+      "Garden levelling",
+      "Garden maintenance",
+      "Lawn care",
+      "Garden steps",
+      "Ponds and water features",
+      "Retaining walls",
+      "Garden walls and stonework",
+      "Turf laying",
+      "Garden paths",
+      "Garden drainage"
+     ]
+    }
+   }
+  },
+  {
+   "type": "category",
+   "title": "Landscape Designer",
+   "slug": "/landscape-designer",
+   "h1": "Garden Design Southampton",
+   "h1_source": "research",
+   "status": "H1 Added",
+   "applies": true,
+   "info": {
+    "phase": 1,
+    "category_key": "landscape_designer",
+    "primary": false,
+    "links": {
+     "mentioned": [
+      "Landscape design",
+      "Landscaping design",
+      "Garden design",
+      "Garden designs",
+      "Custom landscape design",
+      "Landscape design construction"
+     ],
+     "cards": [
+      "Lawn seeding",
+      "Artificial grass installation",
+      "Concrete bases and paths",
+      "Garden levelling",
+      "Lawn care",
+      "Garden steps",
+      "Ponds and water features",
+      "Retaining walls",
+      "Garden walls and stonework",
+      "Turf laying",
+      "Garden paths",
+      "Garden drainage",
+      "Patios"
+     ]
+    }
+   }
+  },
+  {
+   "type": "category",
+   "title": "Tree Service",
+   "slug": "/tree-service",
+   "h1": "Tree Surgeon Southampton",
+   "h1_source": "research",
+   "status": "H1 Added",
+   "applies": true,
+   "info": {
+    "phase": 1,
+    "category_key": "tree_service",
+    "primary": false,
+    "links": {
+     "mentioned": [],
+     "cards": [
+      "Tree cabling and bracing",
+      "Tree stump removal",
+      "Tree planting",
+      "Tree removal and felling",
+      "Tree transplanting",
+      "Tree pruning and crown reduction"
+     ]
+    }
+   }
+  },
+  {
+   "type": "category",
+   "title": "Paving Contractor",
+   "slug": "/paving-contractor",
+   "h1": "Driveways Southampton",
+   "h1_source": "research",
+   "status": "H1 Added",
+   "applies": true,
+   "info": {
+    "phase": 1,
+    "category_key": "paving_contractor",
+    "primary": false,
+    "links": {
+     "mentioned": [
+      "Driveway landscaping",
+      "Driveway or path paving",
+      "Driveway installation",
+      "Driveway replacement"
+     ],
+     "cards": [
+      "Concrete bases and paths",
+      "Garden levelling",
+      "Patios",
+      "Block paving"
+     ]
+    }
+   }
+  },
+  {
+   "type": "category",
+   "title": "Deck Builder",
+   "slug": "/deck-builder",
+   "h1": "Decking Southampton",
+   "h1_source": "research",
+   "status": "H1 Added",
+   "applies": true,
+   "info": {
+    "phase": 1,
+    "category_key": "deck_builder",
+    "primary": false,
+    "links": {
+     "mentioned": [],
+     "cards": [
+      "Fencing",
+      "Composite decking",
+      "Decking restoration",
+      "Decking installation",
+      "Decking repairs",
+      "Pergolas"
+     ]
+    }
+   }
+  },
+  {
+   "type": "service",
+   "title": "Lawn mowing and maintenance",
+   "slug": "/services/lawn-mowing-and-maintenance",
+   "h1": "Lawn Mowing and Maintenance Southampton",
+   "h1_source": "pattern",
+   "status": "H1 Added",
+   "applies": false,
+   "info": {
+    "parent_keys": [
+     "gardener"
+    ],
+    "service_id": "lawn mowing and maintenance"
+   }
+  },
+  {
+   "type": "service",
+   "title": "Lawn mowing",
+   "slug": "/services/lawn-mowing",
+   "h1": "Lawn Mowing Southampton",
+   "h1_source": "pattern",
+   "status": "H1 Added",
+   "applies": true,
+   "info": {
+    "phase": 1,
+    "parent_keys": [
+     "gardener"
+    ],
+    "copy_priority": 0,
+    "gbp_names": [
+     "Lawn mowing and maintenance"
+    ],
+    "absorbs": [],
+    "service_id": "lawn mowing"
+   }
+  },
+  {
+   "type": "service",
+   "title": "Fencing installation",
+   "slug": "/services/fencing-installation",
+   "h1": "Fencing Installation Southampton",
+   "h1_source": "pattern",
+   "status": "H1 Added",
+   "applies": false,
+   "info": {
+    "parent_keys": [
+     "gardener"
+    ],
+    "service_id": "fencing installation"
+   }
+  },
+  {
+   "type": "service",
+   "title": "Fencing",
+   "slug": "/services/fencing",
+   "h1": "Fencing Southampton",
+   "h1_source": "research",
+   "status": "H1 Added",
+   "applies": true,
+   "info": {
+    "phase": 1,
+    "parent_keys": [
+     "gardener",
+     "deck_builder"
+    ],
+    "copy_priority": 210,
+    "gbp_names": [
+     "Fencing installation"
+    ],
+    "absorbs": [
+     "Fence building"
+    ],
+    "service_id": "fencing"
+   }
+  },
+  {
+   "type": "service",
+   "title": "Garden work",
+   "slug": "/services/garden-work",
+   "h1": "Garden Work Southampton",
+   "h1_source": "pattern",
+   "status": "H1 Added",
+   "applies": false,
+   "info": {
+    "parent_keys": [
+     "gardener"
+    ],
+    "service_id": "garden work"
+   }
+  },
+  {
+   "type": "service",
+   "title": "Lawn seeding",
+   "slug": "/services/lawn-seeding",
+   "h1": "Lawn Seeding Southampton",
+   "h1_source": "pattern",
+   "status": "H1 Added",
+   "applies": true,
+   "info": {
+    "phase": 1,
+    "parent_keys": [
+     "gardener",
+     "landscape_gardener",
+     "landscape_designer"
+    ],
+    "copy_priority": 0,
+    "gbp_names": [
+     "Grass seeding"
+    ],
+    "absorbs": [],
+    "service_id": "lawn seeding"
+   }
+  },
+  {
+   "type": "service",
+   "title": "Grass seeding",
+   "slug": "/services/grass-seeding",
+   "h1": "Grass Seeding Southampton",
+   "h1_source": "pattern",
+   "status": "H1 Added",
+   "applies": false,
+   "info": {
+    "parent_keys": [
+     "gardener",
+     "landscape_gardener",
+     "landscape_designer"
+    ],
+    "service_id": "grass seeding"
+   }
+  },
+  {
+   "type": "service",
+   "title": "Tree removal",
+   "slug": "/services/tree-removal",
+   "h1": "Tree Removal Southampton",
+   "h1_source": "research",
+   "status": "H1 Added",
+   "applies": false,
+   "info": {
+    "parent_keys": [
+     "tree_service"
+    ],
+    "service_id": "tree removal"
+   }
+  },
+  {
+   "type": "service",
+   "title": "Hedge trimming",
+   "slug": "/services/hedge-trimming",
+   "h1": "Hedge Trimming Southampton",
+   "h1_source": "research",
+   "status": "H1 Added",
+   "applies": true,
+   "info": {
+    "phase": 1,
+    "parent_keys": [
+     "gardener"
+    ],
+    "copy_priority": 30,
+    "gbp_names": [
+     "Hedge trimming"
+    ],
+    "absorbs": [],
+    "service_id": "hedge trimming"
+   }
+  },
+  {
+   "type": "service",
+   "title": "Mulching",
+   "slug": "/services/mulching",
+   "h1": "Mulching Southampton",
+   "h1_source": "pattern",
+   "status": "H1 Added",
+   "applies": true,
+   "info": {
+    "phase": 1,
+    "parent_keys": [
+     "gardener"
+    ],
+    "copy_priority": 0,
+    "gbp_names": [
+     "Mulching"
+    ],
+    "absorbs": [],
+    "service_id": "mulching"
+   }
+  },
+  {
+   "type": "service",
+   "title": "Weed control",
+   "slug": "/services/weed-control",
+   "h1": "Weed Control Southampton",
+   "h1_source": "pattern",
+   "status": "H1 Added",
+   "applies": true,
+   "info": {
+    "phase": 1,
+    "parent_keys": [
+     "gardener"
+    ],
+    "copy_priority": 0,
+    "gbp_names": [
+     "Weed control"
+    ],
+    "absorbs": [],
+    "service_id": "weed control"
+   }
+  },
+  {
+   "type": "service",
+   "title": "Landscape design",
+   "slug": "/services/landscape-design",
+   "h1": "Landscape Design Southampton",
+   "h1_source": "pattern",
+   "status": "H1 Added",
+   "applies": false,
+   "info": {
+    "parent_keys": [
+     "gardener",
+     "landscape_gardener"
+    ],
+    "service_id": "landscape design"
+   }
+  },
+  {
+   "type": "service",
+   "title": "Artificial grass installation",
+   "slug": "/services/artificial-grass-installation",
+   "h1": "Artificial Grass Installation Southampton",
+   "h1_source": "pattern",
+   "status": "H1 Added",
+   "applies": true,
+   "info": {
+    "phase": 1,
+    "parent_keys": [
+     "landscape_gardener",
+     "landscape_designer"
+    ],
+    "copy_priority": 0,
+    "gbp_names": [
+     "Artificial turf installation"
+    ],
+    "absorbs": [],
+    "service_id": "artificial grass installation"
+   }
+  },
+  {
+   "type": "service",
+   "title": "Concrete bases and paths",
+   "slug": "/services/concrete-bases-and-paths",
+   "h1": "Concrete Bases and Paths Southampton",
+   "h1_source": "pattern",
+   "status": "H1 Added",
+   "applies": true,
+   "info": {
+    "phase": 1,
+    "parent_keys": [
+     "landscape_gardener",
+     "landscape_designer",
+     "paving_contractor"
+    ],
+    "copy_priority": 0,
+    "gbp_names": [
+     "Concrete work"
+    ],
+    "absorbs": [
+     "Concrete masonry"
+    ],
+    "service_id": "concrete bases and paths"
+   }
+  },
+  {
+   "type": "service",
+   "title": "Artificial turf installation",
+   "slug": "/services/artificial-turf-installation",
+   "h1": "Artificial Turf Installation Southampton",
+   "h1_source": "pattern",
+   "status": "H1 Added",
+   "applies": false,
+   "info": {
+    "parent_keys": [
+     "landscape_gardener",
+     "landscape_designer"
+    ],
+    "service_id": "artificial turf installation"
+   }
+  },
+  {
+   "type": "service",
+   "title": "Garden levelling",
+   "slug": "/services/garden-levelling",
+   "h1": "Garden Levelling Southampton",
+   "h1_source": "pattern",
+   "status": "H1 Added",
+   "applies": true,
+   "info": {
+    "phase": 1,
+    "parent_keys": [
+     "landscape_gardener",
+     "landscape_designer",
+     "paving_contractor"
+    ],
+    "copy_priority": 0,
+    "gbp_names": [
+     "Garden levelling"
+    ],
+    "absorbs": [
+     "Grading and resloping",
+     "Excavation & grading"
+    ],
+    "service_id": "garden levelling"
+   }
+  },
+  {
+   "type": "service",
+   "title": "Garden maintenance",
+   "slug": "/services/garden-maintenance",
+   "h1": "Garden Maintenance Southampton",
+   "h1_source": "research",
+   "status": "H1 Added",
+   "applies": true,
+   "info": {
+    "phase": 1,
+    "parent_keys": [
+     "landscape_gardener"
+    ],
+    "copy_priority": 50,
+    "gbp_names": [],
+    "absorbs": [
+     "Groundskeeping",
+     "Landscape management",
+     "Landscaping maintenance"
+    ],
+    "service_id": "garden maintenance"
+   }
+  },
+  {
+   "type": "service",
+   "title": "Concrete masonry",
+   "slug": "/services/concrete-masonry",
+   "h1": "Concrete Masonry Southampton",
+   "h1_source": "pattern",
+   "status": "H1 Added",
+   "applies": false,
+   "info": {
+    "parent_keys": [
+     "landscape_gardener",
+     "landscape_designer"
+    ],
+    "service_id": "concrete masonry"
+   }
+  },
+  {
+   "type": "service",
+   "title": "Lawn care",
+   "slug": "/services/lawn-care",
+   "h1": "Lawn Care Southampton",
+   "h1_source": "research",
+   "status": "H1 Added",
+   "applies": true,
+   "info": {
+    "phase": 1,
+    "parent_keys": [
+     "landscape_gardener",
+     "landscape_designer"
+    ],
+    "copy_priority": 30,
+    "gbp_names": [
+     "Lawn care"
+    ],
+    "absorbs": [
+     "Lawn landscaping",
+     "Turf management"
+    ],
+    "service_id": "lawn care"
+   }
+  },
+  {
+   "type": "service",
+   "title": "Desert landscaping",
+   "slug": "/services/desert-landscaping",
+   "h1": "Desert Landscaping Southampton",
+   "h1_source": "pattern",
+   "status": "H1 Added",
+   "applies": false,
+   "info": {
+    "parent_keys": [
+     "landscape_gardener",
+     "landscape_designer"
+    ],
+    "service_id": "desert landscaping"
+   }
+  },
+  {
+   "type": "service",
+   "title": "Garden steps",
+   "slug": "/services/garden-steps",
+   "h1": "Garden Steps Southampton",
+   "h1_source": "pattern",
+   "status": "H1 Added",
+   "applies": true,
+   "info": {
+    "phase": 1,
+    "parent_keys": [
+     "landscape_gardener",
+     "landscape_designer"
+    ],
+    "copy_priority": 0,
+    "gbp_names": [
+     "Outdoor step construction"
+    ],
+    "absorbs": [],
+    "service_id": "garden steps"
+   }
+  },
+  {
+   "type": "service",
+   "title": "Driveway landscaping",
+   "slug": "/services/driveway-landscaping",
+   "h1": "Driveway Landscaping Southampton",
+   "h1_source": "pattern",
+   "status": "H1 Added",
+   "applies": false,
+   "info": {
+    "parent_keys": [
+     "landscape_gardener",
+     "landscape_designer"
+    ],
+    "service_id": "driveway landscaping"
+   }
+  },
+  {
+   "type": "service",
+   "title": "Driveway or path paving",
+   "slug": "/services/driveway-or-path-paving",
+   "h1": "Driveway or Path Paving Southampton",
+   "h1_source": "pattern",
+   "status": "H1 Added",
+   "applies": false,
+   "info": {
+    "parent_keys": [
+     "landscape_gardener",
+     "landscape_designer"
+    ],
+    "service_id": "driveway or path paving"
+   }
+  },
+  {
+   "type": "service",
+   "title": "Ponds and water features",
+   "slug": "/services/ponds-and-water-features",
+   "h1": "Ponds and Water Features Southampton",
+   "h1_source": "pattern",
+   "status": "H1 Added",
+   "applies": true,
+   "info": {
+    "phase": 1,
+    "parent_keys": [
+     "landscape_gardener",
+     "landscape_designer"
+    ],
+    "copy_priority": 0,
+    "gbp_names": [],
+    "absorbs": [
+     "Outdoor water feature design",
+     "Pond maintenance"
+    ],
+    "service_id": "ponds and water features"
+   }
+  },
+  {
+   "type": "service",
+   "title": "Retaining walls",
+   "slug": "/services/retaining-walls",
+   "h1": "Retaining Walls Southampton",
+   "h1_source": "pattern",
+   "status": "H1 Added",
+   "applies": true,
+   "info": {
+    "phase": 1,
+    "parent_keys": [
+     "landscape_gardener",
+     "landscape_designer"
+    ],
+    "copy_priority": 0,
+    "gbp_names": [
+     "Retaining walls"
+    ],
+    "absorbs": [
+     "Retaining wall design"
+    ],
+    "service_id": "retaining walls"
+   }
+  },
+  {
+   "type": "service",
+   "title": "Garden decorating",
+   "slug": "/services/garden-decorating",
+   "h1": "Garden Decorating Southampton",
+   "h1_source": "pattern",
+   "status": "H1 Added",
+   "applies": false,
+   "info": {
+    "parent_keys": [
+     "landscape_gardener",
+     "landscape_designer"
+    ],
+    "service_id": "garden decorating"
+   }
+  },
+  {
+   "type": "service",
+   "title": "Garden walls and stonework",
+   "slug": "/services/garden-walls-and-stonework",
+   "h1": "Garden Walls and Stonework Southampton",
+   "h1_source": "pattern",
+   "status": "H1 Added",
+   "applies": true,
+   "info": {
+    "phase": 1,
+    "parent_keys": [
+     "landscape_gardener",
+     "landscape_designer"
+    ],
+    "copy_priority": 0,
+    "gbp_names": [
+     "Stonemasonry"
+    ],
+    "absorbs": [
+     "Rock landscaping",
+     "Stone landscaping"
+    ],
+    "service_id": "garden walls and stonework"
+   }
+  },
+  {
+   "type": "service",
+   "title": "Garden design",
+   "slug": "/services/garden-design",
+   "h1": "Garden Design Southampton",
+   "h1_source": "research",
+   "status": "H1 Added",
+   "applies": false,
+   "info": {
+    "parent_keys": [
+     "landscape_gardener",
+     "landscape_designer"
+    ],
+    "service_id": "garden design"
+   }
+  },
+  {
+   "type": "service",
+   "title": "Turf laying",
+   "slug": "/services/turf-laying",
+   "h1": "Turf Laying Southampton",
+   "h1_source": "pattern",
+   "status": "H1 Added",
+   "applies": true,
+   "info": {
+    "phase": 1,
+    "parent_keys": [
+     "landscape_gardener",
+     "landscape_designer"
+    ],
+    "copy_priority": 0,
+    "gbp_names": [],
+    "absorbs": [
+     "Sod installation"
+    ],
+    "service_id": "turf laying"
+   }
+  },
+  {
+   "type": "service",
+   "title": "Gardening services",
+   "slug": "/services/gardening-services",
+   "h1": "Gardening Services Southampton",
+   "h1_source": "research",
+   "status": "H1 Added",
+   "applies": false,
+   "info": {
+    "parent_keys": [
+     "landscape_gardener",
+     "landscape_designer"
+    ],
+    "service_id": "gardening services"
+   }
+  },
+  {
+   "type": "service",
+   "title": "Garden paths",
+   "slug": "/services/garden-paths",
+   "h1": "Garden Paths Southampton",
+   "h1_source": "pattern",
+   "status": "H1 Added",
+   "applies": true,
+   "info": {
+    "phase": 1,
+    "parent_keys": [
+     "landscape_gardener",
+     "landscape_designer"
+    ],
+    "copy_priority": 0,
+    "gbp_names": [
+     "Path landscaping"
+    ],
+    "absorbs": [],
+    "service_id": "garden paths"
+   }
+  },
+  {
+   "type": "service",
+   "title": "Grading and resloping",
+   "slug": "/services/grading-and-resloping",
+   "h1": "Grading and Resloping Southampton",
+   "h1_source": "pattern",
+   "status": "H1 Added",
+   "applies": false,
+   "info": {
+    "parent_keys": [
+     "landscape_gardener",
+     "landscape_designer"
+    ],
+    "service_id": "grading and resloping"
+   }
+  },
+  {
+   "type": "service",
+   "title": "Green landscaping",
+   "slug": "/services/green-landscaping",
+   "h1": "Green Landscaping Southampton",
+   "h1_source": "pattern",
+   "status": "H1 Added",
+   "applies": false,
+   "info": {
+    "parent_keys": [
+     "landscape_gardener"
+    ],
+    "service_id": "green landscaping"
+   }
+  },
+  {
+   "type": "service",
+   "title": "Garden drainage",
+   "slug": "/services/garden-drainage",
+   "h1": "Garden Drainage Southampton",
+   "h1_source": "pattern",
+   "status": "H1 Added",
+   "applies": true,
+   "info": {
+    "phase": 1,
+    "parent_keys": [
+     "landscape_gardener",
+     "landscape_designer"
+    ],
+    "copy_priority": 0,
+    "gbp_names": [
+     "Garden drainage"
+    ],
+    "absorbs": [
+     "Drainage solutions"
+    ],
+    "service_id": "garden drainage"
+   }
+  },
+  {
+   "type": "service",
+   "title": "Groundskeeping",
+   "slug": "/services/groundskeeping",
+   "h1": "Groundskeeping Southampton",
+   "h1_source": "pattern",
+   "status": "H1 Added",
+   "applies": false,
+   "info": {
+    "parent_keys": [
+     "landscape_gardener"
+    ],
+    "service_id": "groundskeeping"
+   }
+  },
+  {
+   "type": "service",
+   "title": "Patios",
+   "slug": "/services/patios",
+   "h1": "Patios Southampton",
+   "h1_source": "research",
+   "status": "H1 Added",
+   "applies": true,
+   "info": {
+    "phase": 1,
+    "parent_keys": [
+     "landscape_designer",
+     "paving_contractor"
+    ],
+    "copy_priority": 20,
+    "gbp_names": [
+     "Patio paving"
+    ],
+    "absorbs": [
+     "Patio design"
+    ],
+    "service_id": "patios"
+   }
+  },
+  {
+   "type": "service",
+   "title": "Tree cabling and bracing",
+   "slug": "/services/tree-cabling-and-bracing",
+   "h1": "Tree Cabling and Bracing Southampton",
+   "h1_source": "pattern",
+   "status": "H1 Added",
+   "applies": true,
+   "info": {
+    "phase": 1,
+    "parent_keys": [
+     "tree_service"
+    ],
+    "copy_priority": 0,
+    "gbp_names": [
+     "Cabling and bracing"
+    ],
+    "absorbs": [],
+    "service_id": "tree cabling and bracing"
+   }
+  },
+  {
+   "type": "service",
+   "title": "Hardscaping",
+   "slug": "/services/hardscaping",
+   "h1": "Hardscaping Southampton",
+   "h1_source": "pattern",
+   "status": "H1 Added",
+   "applies": false,
+   "info": {
+    "parent_keys": [
+     "landscape_gardener",
+     "paving_contractor"
+    ],
+    "service_id": "hardscaping"
+   }
+  },
+  {
+   "type": "service",
+   "title": "Tree stump removal",
+   "slug": "/services/tree-stump-removal",
+   "h1": "Tree Stump Removal Southampton",
+   "h1_source": "research",
+   "status": "H1 Added",
+   "applies": true,
+   "info": {
+    "phase": 1,
+    "parent_keys": [
+     "tree_service"
+    ],
+    "copy_priority": 40,
+    "gbp_names": [
+     "Tree stump removal"
+    ],
+    "absorbs": [
+     "Tree stump grinding"
+    ],
+    "service_id": "tree stump removal"
+   }
+  },
+  {
+   "type": "service",
+   "title": "Landscape installations",
+   "slug": "/services/landscape-installations",
+   "h1": "Landscape Installations Southampton",
+   "h1_source": "pattern",
+   "status": "H1 Added",
+   "applies": false,
+   "info": {
+    "parent_keys": [
+     "landscape_gardener",
+     "landscape_designer"
+    ],
+    "service_id": "landscape installations"
+   }
+  },
+  {
+   "type": "service",
+   "title": "Landscape management",
+   "slug": "/services/landscape-management",
+   "h1": "Landscape Management Southampton",
+   "h1_source": "pattern",
+   "status": "H1 Added",
+   "applies": false,
+   "info": {
+    "parent_keys": [
+     "landscape_gardener"
+    ],
+    "service_id": "landscape management"
+   }
+  },
+  {
+   "type": "service",
+   "title": "Tree planting",
+   "slug": "/services/tree-planting",
+   "h1": "Tree Planting Southampton",
+   "h1_source": "pattern",
+   "status": "H1 Added",
+   "applies": true,
+   "info": {
+    "phase": 1,
+    "parent_keys": [
+     "tree_service"
+    ],
+    "copy_priority": 0,
+    "gbp_names": [
+     "Tree planting"
+    ],
+    "absorbs": [],
+    "service_id": "tree planting"
+   }
+  },
+  {
+   "type": "service",
+   "title": "Tree removal and felling",
+   "slug": "/services/tree-removal-and-felling",
+   "h1": "Tree Removal and Felling Southampton",
+   "h1_source": "pattern",
+   "status": "H1 Added",
+   "applies": true,
+   "info": {
+    "phase": 1,
+    "parent_keys": [
+     "tree_service"
+    ],
+    "copy_priority": 0,
+    "gbp_names": [
+     "Tree removal"
+    ],
+    "absorbs": [],
+    "service_id": "tree removal and felling"
+   }
+  },
+  {
+   "type": "service",
+   "title": "Landscaping design",
+   "slug": "/services/landscaping-design",
+   "h1": "Landscaping Design Southampton",
+   "h1_source": "pattern",
+   "status": "H1 Added",
+   "applies": false,
+   "info": {
+    "parent_keys": [
+     "landscape_gardener"
+    ],
+    "service_id": "landscaping design"
+   }
+  },
+  {
+   "type": "service",
+   "title": "Tree transplanting",
+   "slug": "/services/tree-transplanting",
+   "h1": "Tree Transplanting Southampton",
+   "h1_source": "pattern",
+   "status": "H1 Added",
+   "applies": true,
+   "info": {
+    "phase": 1,
+    "parent_keys": [
+     "tree_service"
+    ],
+    "copy_priority": 0,
+    "gbp_names": [
+     "Tree transplanting"
+    ],
+    "absorbs": [],
+    "service_id": "tree transplanting"
+   }
+  },
+  {
+   "type": "service",
+   "title": "Landscaping maintenance",
+   "slug": "/services/landscaping-maintenance",
+   "h1": "Landscaping Maintenance Southampton",
+   "h1_source": "pattern",
+   "status": "H1 Added",
+   "applies": false,
+   "info": {
+    "parent_keys": [
+     "landscape_gardener"
+    ],
+    "service_id": "landscaping maintenance"
+   }
+  },
+  {
+   "type": "service",
+   "title": "Tree pruning and crown reduction",
+   "slug": "/services/tree-pruning-and-crown-reduction",
+   "h1": "Tree Pruning and Crown Reduction Southampton",
+   "h1_source": "pattern",
+   "status": "H1 Added",
+   "applies": true,
+   "info": {
+    "phase": 1,
+    "parent_keys": [
+     "tree_service"
+    ],
+    "copy_priority": 0,
+    "gbp_names": [
+     "Tree trimming and pruning"
+    ],
+    "absorbs": [],
+    "service_id": "tree pruning and crown reduction"
+   }
+  },
+  {
+   "type": "service",
+   "title": "Block paving",
+   "slug": "/services/block-paving",
+   "h1": "Block Paving Southampton",
+   "h1_source": "research",
+   "status": "H1 Added",
+   "applies": true,
+   "info": {
+    "phase": 1,
+    "parent_keys": [
+     "paving_contractor"
+    ],
+    "copy_priority": 50,
+    "gbp_names": [],
+    "absorbs": [
+     "Brick paver installation"
+    ],
+    "service_id": "block paving"
+   }
+  },
+  {
+   "type": "service",
+   "title": "Lawn landscaping",
+   "slug": "/services/lawn-landscaping",
+   "h1": "Lawn Landscaping Southampton",
+   "h1_source": "pattern",
+   "status": "H1 Added",
+   "applies": false,
+   "info": {
+    "parent_keys": [
+     "landscape_gardener"
+    ],
+    "service_id": "lawn landscaping"
+   }
+  },
+  {
+   "type": "service",
+   "title": "Composite decking",
+   "slug": "/services/composite-decking",
+   "h1": "Composite Decking Southampton",
+   "h1_source": "research",
+   "status": "H1 Added",
+   "applies": true,
+   "info": {
+    "phase": 1,
+    "parent_keys": [
+     "deck_builder"
+    ],
+    "copy_priority": 30,
+    "gbp_names": [
+     "Composite decks"
+    ],
+    "absorbs": [],
+    "service_id": "composite decking"
+   }
+  },
+  {
+   "type": "service",
+   "title": "Outdoor step construction",
+   "slug": "/services/outdoor-step-construction",
+   "h1": "Outdoor Step Construction Southampton",
+   "h1_source": "pattern",
+   "status": "H1 Added",
+   "applies": false,
+   "info": {
+    "parent_keys": [
+     "landscape_gardener",
+     "landscape_designer"
+    ],
+    "service_id": "outdoor step construction"
+   }
+  },
+  {
+   "type": "service",
+   "title": "Decking restoration",
+   "slug": "/services/decking-restoration",
+   "h1": "Decking Restoration Southampton",
+   "h1_source": "pattern",
+   "status": "H1 Added",
+   "applies": true,
+   "info": {
+    "phase": 1,
+    "parent_keys": [
+     "deck_builder"
+    ],
+    "copy_priority": 0,
+    "gbp_names": [],
+    "absorbs": [
+     "Deck cleaning",
+     "Deck painting",
+     "Deck refinishing",
+     "Wood staining"
+    ],
+    "service_id": "decking restoration"
+   }
+  },
+  {
+   "type": "service",
+   "title": "Outdoor water feature design",
+   "slug": "/services/outdoor-water-feature-design",
+   "h1": "Outdoor Water Feature Design Southampton",
+   "h1_source": "pattern",
+   "status": "H1 Added",
+   "applies": false,
+   "info": {
+    "parent_keys": [
+     "landscape_gardener",
+     "landscape_designer"
+    ],
+    "service_id": "outdoor water feature design"
+   }
+  },
+  {
+   "type": "service",
+   "title": "Decking installation",
+   "slug": "/services/decking-installation",
+   "h1": "Decking Installation Southampton",
+   "h1_source": "pattern",
+   "status": "H1 Added",
+   "applies": true,
+   "info": {
+    "phase": 1,
+    "parent_keys": [
+     "deck_builder"
+    ],
+    "copy_priority": 0,
+    "gbp_names": [
+     "Deck installation"
+    ],
+    "absorbs": [
+     "Deck design",
+     "Deck remodelling",
+     "Deck replacement",
+     "Patio decks",
+     "Wood deck construction"
+    ],
+    "service_id": "decking installation"
+   }
+  },
+  {
+   "type": "service",
+   "title": "Pool landscaping",
+   "slug": "/services/pool-landscaping",
+   "h1": "Pool Landscaping Southampton",
+   "h1_source": "pattern",
+   "status": "H1 Added",
+   "applies": false,
+   "info": {
+    "parent_keys": [
+     "landscape_gardener"
+    ],
+    "service_id": "pool landscaping"
+   }
+  },
+  {
+   "type": "service",
+   "title": "Decking repairs",
+   "slug": "/services/decking-repairs",
+   "h1": "Decking Repairs Southampton",
+   "h1_source": "pattern",
+   "status": "H1 Added",
+   "applies": true,
+   "info": {
+    "phase": 1,
+    "parent_keys": [
+     "deck_builder"
+    ],
+    "copy_priority": 0,
+    "gbp_names": [
+     "Deck repair"
+    ],
+    "absorbs": [
+     "Deck railing repair"
+    ],
+    "service_id": "decking repairs"
+   }
+  },
+  {
+   "type": "service",
+   "title": "Pergolas",
+   "slug": "/services/pergolas",
+   "h1": "Pergolas Southampton",
+   "h1_source": "research",
+   "status": "H1 Added",
+   "applies": true,
+   "info": {
+    "phase": 1,
+    "parent_keys": [
+     "deck_builder"
+    ],
+    "copy_priority": 40,
+    "gbp_names": [
+     "Pergola construction"
+    ],
+    "absorbs": [],
+    "service_id": "pergolas"
+   }
+  },
+  {
+   "type": "service",
+   "title": "Rock landscaping",
+   "slug": "/services/rock-landscaping",
+   "h1": "Rock Landscaping Southampton",
+   "h1_source": "pattern",
+   "status": "H1 Added",
+   "applies": false,
+   "info": {
+    "parent_keys": [
+     "landscape_gardener"
+    ],
+    "service_id": "rock landscaping"
+   }
+  },
+  {
+   "type": "service",
+   "title": "Sod installation",
+   "slug": "/services/sod-installation",
+   "h1": "Sod Installation Southampton",
+   "h1_source": "pattern",
+   "status": "H1 Added",
+   "applies": false,
+   "info": {
+    "parent_keys": [
+     "landscape_gardener",
+     "landscape_designer"
+    ],
+    "service_id": "sod installation"
+   }
+  },
+  {
+   "type": "location",
+   "title": "Romsey",
+   "slug": "/locations/romsey",
+   "h1": "Gardener Services in and around Romsey",
+   "h1_source": "pattern",
+   "status": "H1 Added",
+   "applies": true,
+   "info": {
+    "phase": 1,
+    "town": "Romsey"
+   }
+  },
+  {
+   "type": "location",
+   "title": "Winchester",
+   "slug": "/locations/winchester",
+   "h1": "Landscaper Winchester",
+   "h1_source": "research",
+   "status": "H1 Added",
+   "applies": true,
+   "info": {
+    "phase": 1,
+    "town": "Winchester"
+   }
+  },
+  {
+   "type": "service",
+   "title": "Stone landscaping",
+   "slug": "/services/stone-landscaping",
+   "h1": "Stone Landscaping Southampton",
+   "h1_source": "pattern",
+   "status": "H1 Added",
+   "applies": false,
+   "info": {
+    "parent_keys": [
+     "landscape_gardener"
+    ],
+    "service_id": "stone landscaping"
+   }
+  },
+  {
+   "type": "service",
+   "title": "Stonemasonry",
+   "slug": "/services/stonemasonry",
+   "h1": "Stonemasonry Southampton",
+   "h1_source": "pattern",
+   "status": "H1 Added",
+   "applies": false,
+   "info": {
+    "parent_keys": [
+     "landscape_gardener",
+     "landscape_designer"
+    ],
+    "service_id": "stonemasonry"
+   }
+  },
+  {
+   "type": "location",
+   "title": "Eastleigh",
+   "slug": "/locations/eastleigh",
+   "h1": "Gardener Services in and around Eastleigh",
+   "h1_source": "pattern",
+   "status": "H1 Added",
+   "applies": true,
+   "info": {
+    "phase": 1,
+    "town": "Eastleigh"
+   }
+  },
+  {
+   "type": "location",
+   "title": "Chandlers Ford",
+   "slug": "/locations/chandlers-ford",
+   "h1": "Gardener Services in and around Chandlers Ford",
+   "h1_source": "pattern",
+   "status": "H1 Added",
+   "applies": true,
+   "info": {
+    "phase": 1,
+    "town": "Chandlers Ford"
+   }
+  },
+  {
+   "type": "service",
+   "title": "Path landscaping",
+   "slug": "/services/path-landscaping",
+   "h1": "Path Landscaping Southampton",
+   "h1_source": "pattern",
+   "status": "H1 Added",
+   "applies": false,
+   "info": {
+    "parent_keys": [
+     "landscape_gardener",
+     "landscape_designer"
+    ],
+    "service_id": "path landscaping"
+   }
+  },
+  {
+   "type": "location",
+   "title": "Ampfield",
+   "slug": "/locations/ampfield",
+   "h1": "Gardener Services in and around Ampfield",
+   "h1_source": "pattern",
+   "status": "H1 Added",
+   "applies": true,
+   "info": {
+    "phase": 2,
+    "town": "Ampfield"
+   }
+  },
+  {
+   "type": "location",
+   "title": "Stockbridge",
+   "slug": "/locations/stockbridge",
+   "h1": "Gardener Services in and around Stockbridge",
+   "h1_source": "pattern",
+   "status": "H1 Added",
+   "applies": true,
+   "info": {
+    "phase": 2,
+    "town": "Stockbridge"
+   }
+  },
+  {
+   "type": "service",
+   "title": "Garden landscaping",
+   "slug": "/services/garden-landscaping",
+   "h1": "Garden Landscaping Southampton",
+   "h1_source": "research",
+   "status": "H1 Added",
+   "applies": false,
+   "info": {
+    "parent_keys": [
+     "landscape_gardener",
+     "landscape_designer"
+    ],
+    "service_id": "garden landscaping"
+   }
+  },
+  {
+   "type": "location",
+   "title": "Awbridge",
+   "slug": "/locations/awbridge",
+   "h1": "Gardener Services in and around Awbridge",
+   "h1_source": "pattern",
+   "status": "H1 Added",
+   "applies": true,
+   "info": {
+    "phase": 2,
+    "town": "Awbridge"
+   }
+  },
+  {
+   "type": "location",
+   "title": "Chilworth",
+   "slug": "/locations/chilworth",
+   "h1": "Gardener Services in and around Chilworth",
+   "h1_source": "pattern",
+   "status": "H1 Added",
+   "applies": true,
+   "info": {
+    "phase": 2,
+    "town": "Chilworth"
+   }
+  },
+  {
+   "type": "service",
+   "title": "Custom landscape design",
+   "slug": "/services/custom-landscape-design",
+   "h1": "Custom Landscape Design Southampton",
+   "h1_source": "pattern",
+   "status": "H1 Added",
+   "applies": false,
+   "info": {
+    "parent_keys": [
+     "landscape_designer"
+    ],
+    "service_id": "custom landscape design"
+   }
+  },
+  {
+   "type": "location",
+   "title": "Hedge End",
+   "slug": "/locations/hedge-end",
+   "h1": "Gardener Services in and around Hedge End",
+   "h1_source": "pattern",
+   "status": "H1 Added",
+   "applies": true,
+   "info": {
+    "phase": 1,
+    "town": "Hedge End"
+   }
+  },
+  {
+   "type": "service",
+   "title": "Drainage solutions",
+   "slug": "/services/drainage-solutions",
+   "h1": "Drainage Solutions Southampton",
+   "h1_source": "pattern",
+   "status": "H1 Added",
+   "applies": false,
+   "info": {
+    "parent_keys": [
+     "landscape_designer"
+    ],
+    "service_id": "drainage solutions"
+   }
+  },
+  {
+   "type": "service",
+   "title": "Landscape architecture services",
+   "slug": "/services/landscape-architecture-services",
+   "h1": "Landscape Architecture Services Southampton",
+   "h1_source": "pattern",
+   "status": "H1 Added",
+   "applies": false,
+   "info": {
+    "parent_keys": [
+     "landscape_designer"
+    ],
+    "service_id": "landscape architecture services"
+   }
+  },
+  {
+   "type": "location",
+   "title": "Lyndhurst",
+   "slug": "/locations/lyndhurst",
+   "h1": "Gardener Services in and around Lyndhurst",
+   "h1_source": "pattern",
+   "status": "H1 Added",
+   "applies": true,
+   "info": {
+    "phase": 2,
+    "town": "Lyndhurst"
+   }
+  },
+  {
+   "type": "service",
+   "title": "Landscape design construction",
+   "slug": "/services/landscape-design-construction",
+   "h1": "Landscape Design Construction Southampton",
+   "h1_source": "pattern",
+   "status": "H1 Added",
+   "applies": false,
+   "info": {
+    "parent_keys": [
+     "landscape_designer"
+    ],
+    "service_id": "landscape design construction"
+   }
+  },
+  {
+   "type": "location",
+   "title": "New Forest District",
+   "slug": "/locations/new-forest-district",
+   "h1": "Gardener Services in and around New Forest District",
+   "h1_source": "pattern",
+   "status": "H1 Added",
+   "applies": true,
+   "info": {
+    "phase": 2,
+    "town": "New Forest District"
+   }
+  },
+  {
+   "type": "location",
+   "title": "Lockerley",
+   "slug": "/locations/lockerley",
+   "h1": "Gardener Services in and around Lockerley",
+   "h1_source": "pattern",
+   "status": "H1 Added",
+   "applies": true,
+   "info": {
+    "phase": 2,
+    "town": "Lockerley"
+   }
+  },
+  {
+   "type": "service",
+   "title": "Patio design",
+   "slug": "/services/patio-design",
+   "h1": "Patio Design Southampton",
+   "h1_source": "pattern",
+   "status": "H1 Added",
+   "applies": false,
+   "info": {
+    "parent_keys": [
+     "landscape_designer"
+    ],
+    "service_id": "patio design"
+   }
+  },
+  {
+   "type": "service",
+   "title": "Pond maintenance",
+   "slug": "/services/pond-maintenance",
+   "h1": "Pond Maintenance Southampton",
+   "h1_source": "pattern",
+   "status": "H1 Added",
+   "applies": false,
+   "info": {
+    "parent_keys": [
+     "landscape_designer"
+    ],
+    "service_id": "pond maintenance"
+   }
+  },
+  {
+   "type": "location",
+   "title": "Kings Worthy",
+   "slug": "/locations/kings-worthy",
+   "h1": "Gardener Services in and around Kings Worthy",
+   "h1_source": "pattern",
+   "status": "H1 Added",
+   "applies": true,
+   "info": {
+    "phase": 2,
+    "town": "Kings Worthy"
+   }
+  },
+  {
+   "type": "location_category",
+   "title": "Gardener Romsey",
+   "slug": "/locations/romsey/gardener",
+   "h1": "Gardener Romsey",
+   "h1_source": "research",
+   "status": "H1 Added",
+   "applies": true,
+   "info": {
+    "phase": 1,
+    "category_key": "gardener",
+    "town": "Romsey"
+   }
+  },
+  {
+   "type": "service",
+   "title": "Retaining wall design",
+   "slug": "/services/retaining-wall-design",
+   "h1": "Retaining Wall Design Southampton",
+   "h1_source": "pattern",
+   "status": "H1 Added",
+   "applies": false,
+   "info": {
+    "parent_keys": [
+     "landscape_designer"
+    ],
+    "service_id": "retaining wall design"
+   }
+  },
+  {
+   "type": "service",
+   "title": "Turf management",
+   "slug": "/services/turf-management",
+   "h1": "Turf Management Southampton",
+   "h1_source": "pattern",
+   "status": "H1 Added",
+   "applies": false,
+   "info": {
+    "parent_keys": [
+     "landscape_designer"
+    ],
+    "service_id": "turf management"
+   }
+  },
+  {
+   "type": "location_category",
+   "title": "Landscape Gardener Romsey",
+   "slug": "/locations/romsey/landscape-gardener",
+   "h1": "Landscape Gardener Romsey",
+   "h1_source": "pattern",
+   "status": "H1 Added",
+   "applies": true,
+   "info": {
+    "phase": 1,
+    "category_key": "landscape_gardener",
+    "town": "Romsey"
+   }
+  },
+  {
+   "type": "service",
+   "title": "Garden designs",
+   "slug": "/services/garden-designs",
+   "h1": "",
+   "h1_source": "conflict",
+   "status": "Not Started",
+   "applies": false,
+   "info": {
+    "parent_keys": [
+     "landscape_designer"
+    ],
+    "service_id": "garden designs"
+   }
+  },
+  {
+   "type": "location_category",
+   "title": "Landscape Designer Romsey",
+   "slug": "/locations/romsey/landscape-designer",
+   "h1": "Landscape Designer Romsey",
+   "h1_source": "pattern",
+   "status": "H1 Added",
+   "applies": true,
+   "info": {
+    "phase": 1,
+    "category_key": "landscape_designer",
+    "town": "Romsey"
+   }
+  },
+  {
+   "type": "location_category",
+   "title": "Tree Service Romsey",
+   "slug": "/locations/romsey/tree-service",
+   "h1": "Tree Surgeon Romsey",
+   "h1_source": "research",
+   "status": "H1 Added",
+   "applies": true,
+   "info": {
+    "phase": 1,
+    "category_key": "tree_service",
+    "town": "Romsey"
+   }
+  },
+  {
+   "type": "service",
+   "title": "Cabling and bracing",
+   "slug": "/services/cabling-and-bracing",
+   "h1": "Cabling and Bracing Southampton",
+   "h1_source": "pattern",
+   "status": "H1 Added",
+   "applies": false,
+   "info": {
+    "parent_keys": [
+     "tree_service"
+    ],
+    "service_id": "cabling and bracing"
+   }
+  },
+  {
+   "type": "location_category",
+   "title": "Paving Contractor Romsey",
+   "slug": "/locations/romsey/paving-contractor",
+   "h1": "Paving Contractor Romsey",
+   "h1_source": "pattern",
+   "status": "H1 Added",
+   "applies": true,
+   "info": {
+    "phase": 1,
+    "category_key": "paving_contractor",
+    "town": "Romsey"
+   }
+  },
+  {
+   "type": "location_category",
+   "title": "Deck Builder Romsey",
+   "slug": "/locations/romsey/deck-builder",
+   "h1": "Deck Builder Romsey",
+   "h1_source": "pattern",
+   "status": "H1 Added",
+   "applies": true,
+   "info": {
+    "phase": 1,
+    "category_key": "deck_builder",
+    "town": "Romsey"
+   }
+  },
+  {
+   "type": "location_category",
+   "title": "Gardener Winchester",
+   "slug": "/locations/winchester/gardener",
+   "h1": "Gardener Winchester",
+   "h1_source": "research",
+   "status": "H1 Added",
+   "applies": true,
+   "info": {
+    "phase": 1,
+    "category_key": "gardener",
+    "town": "Winchester"
+   }
+  },
+  {
+   "type": "service",
+   "title": "Tree stump grinding",
+   "slug": "/services/tree-stump-grinding",
+   "h1": "Tree Stump Grinding Southampton",
+   "h1_source": "pattern",
+   "status": "H1 Added",
+   "applies": false,
+   "info": {
+    "parent_keys": [
+     "tree_service"
+    ],
+    "service_id": "tree stump grinding"
+   }
+  },
+  {
+   "type": "location_category",
+   "title": "Landscape Gardener Winchester",
+   "slug": "/locations/winchester/landscape-gardener",
+   "h1": "Garden Landscaping Winchester",
+   "h1_source": "research",
+   "status": "H1 Added",
+   "applies": true,
+   "info": {
+    "phase": 1,
+    "category_key": "landscape_gardener",
+    "town": "Winchester"
+   }
+  },
+  {
+   "type": "location_category",
+   "title": "Landscape Designer Winchester",
+   "slug": "/locations/winchester/landscape-designer",
+   "h1": "Garden Designer Winchester",
+   "h1_source": "research",
+   "status": "H1 Added",
+   "applies": true,
+   "info": {
+    "phase": 1,
+    "category_key": "landscape_designer",
+    "town": "Winchester"
+   }
+  },
+  {
+   "type": "service",
+   "title": "Tree trimming and pruning",
+   "slug": "/services/tree-trimming-and-pruning",
+   "h1": "Tree Trimming and Pruning Southampton",
+   "h1_source": "pattern",
+   "status": "H1 Added",
+   "applies": false,
+   "info": {
+    "parent_keys": [
+     "tree_service"
+    ],
+    "service_id": "tree trimming and pruning"
+   }
+  },
+  {
+   "type": "location_category",
+   "title": "Tree Service Winchester",
+   "slug": "/locations/winchester/tree-service",
+   "h1": "Tree Surgeon Winchester",
+   "h1_source": "research",
+   "status": "H1 Added",
+   "applies": true,
+   "info": {
+    "phase": 1,
+    "category_key": "tree_service",
+    "town": "Winchester"
+   }
+  },
+  {
+   "type": "service",
+   "title": "Brick paver installation",
+   "slug": "/services/brick-paver-installation",
+   "h1": "Brick Paver Installation Southampton",
+   "h1_source": "pattern",
+   "status": "H1 Added",
+   "applies": false,
+   "info": {
+    "parent_keys": [
+     "paving_contractor"
+    ],
+    "service_id": "brick paver installation"
+   }
+  },
+  {
+   "type": "location_category",
+   "title": "Paving Contractor Winchester",
+   "slug": "/locations/winchester/paving-contractor",
+   "h1": "Driveways Winchester",
+   "h1_source": "research",
+   "status": "H1 Added",
+   "applies": true,
+   "info": {
+    "phase": 1,
+    "category_key": "paving_contractor",
+    "town": "Winchester"
+   }
+  },
+  {
+   "type": "service",
+   "title": "Bumper block and post installation",
+   "slug": "/services/bumper-block-and-post-installation",
+   "h1": "Bumper Block and Post Installation Southampton",
+   "h1_source": "pattern",
+   "status": "H1 Added",
+   "applies": false,
+   "info": {
+    "parent_keys": [
+     "paving_contractor"
+    ],
+    "service_id": "bumper block and post installation"
+   }
+  },
+  {
+   "type": "location_category",
+   "title": "Deck Builder Winchester",
+   "slug": "/locations/winchester/deck-builder",
+   "h1": "Decking Winchester",
+   "h1_source": "research",
+   "status": "H1 Added",
+   "applies": true,
+   "info": {
+    "phase": 1,
+    "category_key": "deck_builder",
+    "town": "Winchester"
+   }
+  },
+  {
+   "type": "service",
+   "title": "Concrete work",
+   "slug": "/services/concrete-work",
+   "h1": "Concrete Work Southampton",
+   "h1_source": "pattern",
+   "status": "H1 Added",
+   "applies": false,
+   "info": {
+    "parent_keys": [
+     "paving_contractor"
+    ],
+    "service_id": "concrete work"
+   }
+  },
+  {
+   "type": "location_category",
+   "title": "Gardener Eastleigh",
+   "slug": "/locations/eastleigh/gardener",
+   "h1": "Gardener Eastleigh",
+   "h1_source": "research",
+   "status": "H1 Added",
+   "applies": true,
+   "info": {
+    "phase": 1,
+    "category_key": "gardener",
+    "town": "Eastleigh"
+   }
+  },
+  {
+   "type": "service",
+   "title": "General construction",
+   "slug": "/services/general-construction",
+   "h1": "General Construction Southampton",
+   "h1_source": "pattern",
+   "status": "H1 Added",
+   "applies": false,
+   "info": {
+    "parent_keys": [
+     "paving_contractor"
+    ],
+    "service_id": "general construction"
+   }
+  },
+  {
+   "type": "location_category",
+   "title": "Landscape Gardener Eastleigh",
+   "slug": "/locations/eastleigh/landscape-gardener",
+   "h1": "Landscape Gardener Eastleigh",
+   "h1_source": "pattern",
+   "status": "H1 Added",
+   "applies": true,
+   "info": {
+    "phase": 1,
+    "category_key": "landscape_gardener",
+    "town": "Eastleigh"
+   }
+  },
+  {
+   "type": "service",
+   "title": "Driveway installation",
+   "slug": "/services/driveway-installation",
+   "h1": "Driveway Installation Southampton",
+   "h1_source": "pattern",
+   "status": "H1 Added",
+   "applies": false,
+   "info": {
+    "parent_keys": [
+     "paving_contractor"
+    ],
+    "service_id": "driveway installation"
+   }
+  },
+  {
+   "type": "location_category",
+   "title": "Landscape Designer Eastleigh",
+   "slug": "/locations/eastleigh/landscape-designer",
+   "h1": "Landscape Designer Eastleigh",
+   "h1_source": "pattern",
+   "status": "H1 Added",
+   "applies": true,
+   "info": {
+    "phase": 1,
+    "category_key": "landscape_designer",
+    "town": "Eastleigh"
+   }
+  },
+  {
+   "type": "location_category",
+   "title": "Tree Service Eastleigh",
+   "slug": "/locations/eastleigh/tree-service",
+   "h1": "Tree Surgeon Eastleigh",
+   "h1_source": "research",
+   "status": "H1 Added",
+   "applies": true,
+   "info": {
+    "phase": 1,
+    "category_key": "tree_service",
+    "town": "Eastleigh"
+   }
+  },
+  {
+   "type": "service",
+   "title": "Driveway replacement",
+   "slug": "/services/driveway-replacement",
+   "h1": "Driveway Replacement Southampton",
+   "h1_source": "pattern",
+   "status": "H1 Added",
+   "applies": false,
+   "info": {
+    "parent_keys": [
+     "paving_contractor"
+    ],
+    "service_id": "driveway replacement"
+   }
+  },
+  {
+   "type": "location_category",
+   "title": "Paving Contractor Eastleigh",
+   "slug": "/locations/eastleigh/paving-contractor",
+   "h1": "Paving Contractor Eastleigh",
+   "h1_source": "pattern",
+   "status": "H1 Added",
+   "applies": true,
+   "info": {
+    "phase": 1,
+    "category_key": "paving_contractor",
+    "town": "Eastleigh"
+   }
+  },
+  {
+   "type": "service",
+   "title": "Excavation & grading",
+   "slug": "/services/excavation-grading",
+   "h1": "Excavation and Grading Southampton",
+   "h1_source": "pattern",
+   "status": "H1 Added",
+   "applies": false,
+   "info": {
+    "parent_keys": [
+     "paving_contractor"
+    ],
+    "service_id": "excavation & grading"
+   }
+  },
+  {
+   "type": "location_category",
+   "title": "Deck Builder Eastleigh",
+   "slug": "/locations/eastleigh/deck-builder",
+   "h1": "Deck Builder Eastleigh",
+   "h1_source": "pattern",
+   "status": "H1 Added",
+   "applies": true,
+   "info": {
+    "phase": 1,
+    "category_key": "deck_builder",
+    "town": "Eastleigh"
+   }
+  },
+  {
+   "type": "service",
+   "title": "Patio paving",
+   "slug": "/services/patio-paving",
+   "h1": "Patio Paving Southampton",
+   "h1_source": "pattern",
+   "status": "H1 Added",
+   "applies": false,
+   "info": {
+    "parent_keys": [
+     "paving_contractor"
+    ],
+    "service_id": "patio paving"
+   }
+  },
+  {
+   "type": "location_category",
+   "title": "Gardener Chandlers Ford",
+   "slug": "/locations/chandlers-ford/gardener",
+   "h1": "Gardener Chandlers Ford",
+   "h1_source": "research",
+   "status": "H1 Added",
+   "applies": true,
+   "info": {
+    "phase": 1,
+    "category_key": "gardener",
+    "town": "Chandlers Ford"
+   }
+  },
+  {
+   "type": "service",
+   "title": "Composite decks",
+   "slug": "/services/composite-decks",
+   "h1": "Composite Decks Southampton",
+   "h1_source": "pattern",
+   "status": "H1 Added",
+   "applies": false,
+   "info": {
+    "parent_keys": [
+     "deck_builder"
+    ],
+    "service_id": "composite decks"
+   }
+  },
+  {
+   "type": "service",
+   "title": "Deck cleaning",
+   "slug": "/services/deck-cleaning",
+   "h1": "Deck Cleaning Southampton",
+   "h1_source": "pattern",
+   "status": "H1 Added",
+   "applies": false,
+   "info": {
+    "parent_keys": [
+     "deck_builder"
+    ],
+    "service_id": "deck cleaning"
+   }
+  },
+  {
+   "type": "location_category",
+   "title": "Landscape Gardener Chandlers Ford",
+   "slug": "/locations/chandlers-ford/landscape-gardener",
+   "h1": "Landscape Gardener Chandlers Ford",
+   "h1_source": "pattern",
+   "status": "H1 Added",
+   "applies": true,
+   "info": {
+    "phase": 1,
+    "category_key": "landscape_gardener",
+    "town": "Chandlers Ford"
+   }
+  },
+  {
+   "type": "service",
+   "title": "Deck design",
+   "slug": "/services/deck-design",
+   "h1": "Deck Design Southampton",
+   "h1_source": "pattern",
+   "status": "H1 Added",
+   "applies": false,
+   "info": {
+    "parent_keys": [
+     "deck_builder"
+    ],
+    "service_id": "deck design"
+   }
+  },
+  {
+   "type": "location_category",
+   "title": "Landscape Designer Chandlers Ford",
+   "slug": "/locations/chandlers-ford/landscape-designer",
+   "h1": "Landscape Designer Chandlers Ford",
+   "h1_source": "pattern",
+   "status": "H1 Added",
+   "applies": true,
+   "info": {
+    "phase": 1,
+    "category_key": "landscape_designer",
+    "town": "Chandlers Ford"
+   }
+  },
+  {
+   "type": "service",
+   "title": "Deck installation",
+   "slug": "/services/deck-installation",
+   "h1": "Deck Installation Southampton",
+   "h1_source": "pattern",
+   "status": "H1 Added",
+   "applies": false,
+   "info": {
+    "parent_keys": [
+     "deck_builder"
+    ],
+    "service_id": "deck installation"
+   }
+  },
+  {
+   "type": "location_category",
+   "title": "Tree Service Chandlers Ford",
+   "slug": "/locations/chandlers-ford/tree-service",
+   "h1": "Tree Service Chandlers Ford",
+   "h1_source": "pattern",
+   "status": "H1 Added",
+   "applies": true,
+   "info": {
+    "phase": 1,
+    "category_key": "tree_service",
+    "town": "Chandlers Ford"
+   }
+  },
+  {
+   "type": "location_category",
+   "title": "Paving Contractor Chandlers Ford",
+   "slug": "/locations/chandlers-ford/paving-contractor",
+   "h1": "Paving Contractor Chandlers Ford",
+   "h1_source": "pattern",
+   "status": "H1 Added",
+   "applies": true,
+   "info": {
+    "phase": 1,
+    "category_key": "paving_contractor",
+    "town": "Chandlers Ford"
+   }
+  },
+  {
+   "type": "service",
+   "title": "Deck painting",
+   "slug": "/services/deck-painting",
+   "h1": "Deck Painting Southampton",
+   "h1_source": "pattern",
+   "status": "H1 Added",
+   "applies": false,
+   "info": {
+    "parent_keys": [
+     "deck_builder"
+    ],
+    "service_id": "deck painting"
+   }
+  },
+  {
+   "type": "service",
+   "title": "Deck railing repair",
+   "slug": "/services/deck-railing-repair",
+   "h1": "Deck Railing Repair Southampton",
+   "h1_source": "pattern",
+   "status": "H1 Added",
+   "applies": false,
+   "info": {
+    "parent_keys": [
+     "deck_builder"
+    ],
+    "service_id": "deck railing repair"
+   }
+  },
+  {
+   "type": "location_category",
+   "title": "Deck Builder Chandlers Ford",
+   "slug": "/locations/chandlers-ford/deck-builder",
+   "h1": "Deck Builder Chandlers Ford",
+   "h1_source": "pattern",
+   "status": "H1 Added",
+   "applies": true,
+   "info": {
+    "phase": 1,
+    "category_key": "deck_builder",
+    "town": "Chandlers Ford"
+   }
+  },
+  {
+   "type": "location_category",
+   "title": "Gardener Ampfield",
+   "slug": "/locations/ampfield/gardener",
+   "h1": "Gardener Ampfield",
+   "h1_source": "pattern",
+   "status": "H1 Added",
+   "applies": true,
+   "info": {
+    "phase": 2,
+    "category_key": "gardener",
+    "town": "Ampfield"
+   }
+  },
+  {
+   "type": "service",
+   "title": "Deck refinishing",
+   "slug": "/services/deck-refinishing",
+   "h1": "Deck Refinishing Southampton",
+   "h1_source": "pattern",
+   "status": "H1 Added",
+   "applies": false,
+   "info": {
+    "parent_keys": [
+     "deck_builder"
+    ],
+    "service_id": "deck refinishing"
+   }
+  },
+  {
+   "type": "service",
+   "title": "Deck remodelling",
+   "slug": "/services/deck-remodelling",
+   "h1": "Deck Remodelling Southampton",
+   "h1_source": "pattern",
+   "status": "H1 Added",
+   "applies": false,
+   "info": {
+    "parent_keys": [
+     "deck_builder"
+    ],
+    "service_id": "deck remodelling"
+   }
+  },
+  {
+   "type": "location_category",
+   "title": "Landscape Gardener Ampfield",
+   "slug": "/locations/ampfield/landscape-gardener",
+   "h1": "Landscape Gardener Ampfield",
+   "h1_source": "pattern",
+   "status": "H1 Added",
+   "applies": true,
+   "info": {
+    "phase": 2,
+    "category_key": "landscape_gardener",
+    "town": "Ampfield"
+   }
+  },
+  {
+   "type": "service",
+   "title": "Deck repair",
+   "slug": "/services/deck-repair",
+   "h1": "Deck Repair Southampton",
+   "h1_source": "pattern",
+   "status": "H1 Added",
+   "applies": false,
+   "info": {
+    "parent_keys": [
+     "deck_builder"
+    ],
+    "service_id": "deck repair"
+   }
+  },
+  {
+   "type": "location_category",
+   "title": "Landscape Designer Ampfield",
+   "slug": "/locations/ampfield/landscape-designer",
+   "h1": "Landscape Designer Ampfield",
+   "h1_source": "pattern",
+   "status": "H1 Added",
+   "applies": true,
+   "info": {
+    "phase": 2,
+    "category_key": "landscape_designer",
+    "town": "Ampfield"
+   }
+  },
+  {
+   "type": "service",
+   "title": "Deck replacement",
+   "slug": "/services/deck-replacement",
+   "h1": "Deck Replacement Southampton",
+   "h1_source": "pattern",
+   "status": "H1 Added",
+   "applies": false,
+   "info": {
+    "parent_keys": [
+     "deck_builder"
+    ],
+    "service_id": "deck replacement"
+   }
+  },
+  {
+   "type": "location_category",
+   "title": "Tree Service Ampfield",
+   "slug": "/locations/ampfield/tree-service",
+   "h1": "Tree Service Ampfield",
+   "h1_source": "pattern",
+   "status": "H1 Added",
+   "applies": true,
+   "info": {
+    "phase": 2,
+    "category_key": "tree_service",
+    "town": "Ampfield"
+   }
+  },
+  {
+   "type": "service",
+   "title": "Fence building",
+   "slug": "/services/fence-building",
+   "h1": "Fence Building Southampton",
+   "h1_source": "pattern",
+   "status": "H1 Added",
+   "applies": false,
+   "info": {
+    "parent_keys": [
+     "deck_builder"
+    ],
+    "service_id": "fence building"
+   }
+  },
+  {
+   "type": "location_category",
+   "title": "Paving Contractor Ampfield",
+   "slug": "/locations/ampfield/paving-contractor",
+   "h1": "Paving Contractor Ampfield",
+   "h1_source": "pattern",
+   "status": "H1 Added",
+   "applies": true,
+   "info": {
+    "phase": 2,
+    "category_key": "paving_contractor",
+    "town": "Ampfield"
+   }
+  },
+  {
+   "type": "service",
+   "title": "Patio decks",
+   "slug": "/services/patio-decks",
+   "h1": "Patio Decks Southampton",
+   "h1_source": "pattern",
+   "status": "H1 Added",
+   "applies": false,
+   "info": {
+    "parent_keys": [
+     "deck_builder"
+    ],
+    "service_id": "patio decks"
+   }
+  },
+  {
+   "type": "location_category",
+   "title": "Deck Builder Ampfield",
+   "slug": "/locations/ampfield/deck-builder",
+   "h1": "Deck Builder Ampfield",
+   "h1_source": "pattern",
+   "status": "H1 Added",
+   "applies": true,
+   "info": {
+    "phase": 2,
+    "category_key": "deck_builder",
+    "town": "Ampfield"
+   }
+  },
+  {
+   "type": "service",
+   "title": "Patio enclosure construction",
+   "slug": "/services/patio-enclosure-construction",
+   "h1": "Patio Enclosure Construction Southampton",
+   "h1_source": "pattern",
+   "status": "H1 Added",
+   "applies": false,
+   "info": {
+    "parent_keys": [
+     "deck_builder"
+    ],
+    "service_id": "patio enclosure construction"
+   }
+  },
+  {
+   "type": "location_category",
+   "title": "Gardener Stockbridge",
+   "slug": "/locations/stockbridge/gardener",
+   "h1": "Gardener Stockbridge",
+   "h1_source": "pattern",
+   "status": "H1 Added",
+   "applies": true,
+   "info": {
+    "phase": 2,
+    "category_key": "gardener",
+    "town": "Stockbridge"
+   }
+  },
+  {
+   "type": "service",
+   "title": "Pergola construction",
+   "slug": "/services/pergola-construction",
+   "h1": "Pergola Construction Southampton",
+   "h1_source": "pattern",
+   "status": "H1 Added",
+   "applies": false,
+   "info": {
+    "parent_keys": [
+     "deck_builder"
+    ],
+    "service_id": "pergola construction"
+   }
+  },
+  {
+   "type": "location_category",
+   "title": "Landscape Gardener Stockbridge",
+   "slug": "/locations/stockbridge/landscape-gardener",
+   "h1": "Landscape Gardener Stockbridge",
+   "h1_source": "pattern",
+   "status": "H1 Added",
+   "applies": true,
+   "info": {
+    "phase": 2,
+    "category_key": "landscape_gardener",
+    "town": "Stockbridge"
+   }
+  },
+  {
+   "type": "service",
+   "title": "Wood staining",
+   "slug": "/services/wood-staining",
+   "h1": "Wood Staining Southampton",
+   "h1_source": "pattern",
+   "status": "H1 Added",
+   "applies": false,
+   "info": {
+    "parent_keys": [
+     "deck_builder"
+    ],
+    "service_id": "wood staining"
+   }
+  },
+  {
+   "type": "service",
+   "title": "Porch construction",
+   "slug": "/services/porch-construction",
+   "h1": "Porch construction Southampton",
+   "h1_source": "auto",
+   "status": "Not Started",
+   "applies": false,
+   "info": {
+    "parent_keys": [
+     "deck_builder"
+    ],
+    "service_id": "porch construction"
+   }
+  },
+  {
+   "type": "location_category",
+   "title": "Landscape Designer Stockbridge",
+   "slug": "/locations/stockbridge/landscape-designer",
+   "h1": "Landscape Designer Stockbridge",
+   "h1_source": "pattern",
+   "status": "H1 Added",
+   "applies": true,
+   "info": {
+    "phase": 2,
+    "category_key": "landscape_designer",
+    "town": "Stockbridge"
+   }
+  },
+  {
+   "type": "service",
+   "title": "Wood deck construction",
+   "slug": "/services/wood-deck-construction",
+   "h1": "Wood Deck Construction Southampton",
+   "h1_source": "pattern",
+   "status": "H1 Added",
+   "applies": false,
+   "info": {
+    "parent_keys": [
+     "deck_builder"
+    ],
+    "service_id": "wood deck construction"
+   }
+  },
+  {
+   "type": "location_category",
+   "title": "Tree Service Stockbridge",
+   "slug": "/locations/stockbridge/tree-service",
+   "h1": "Tree Service Stockbridge",
+   "h1_source": "pattern",
+   "status": "H1 Added",
+   "applies": true,
+   "info": {
+    "phase": 2,
+    "category_key": "tree_service",
+    "town": "Stockbridge"
+   }
+  },
+  {
+   "type": "location_category",
+   "title": "Paving Contractor Stockbridge",
+   "slug": "/locations/stockbridge/paving-contractor",
+   "h1": "Paving Contractor Stockbridge",
+   "h1_source": "pattern",
+   "status": "H1 Added",
+   "applies": true,
+   "info": {
+    "phase": 2,
+    "category_key": "paving_contractor",
+    "town": "Stockbridge"
+   }
+  },
+  {
+   "type": "location_category",
+   "title": "Deck Builder Stockbridge",
+   "slug": "/locations/stockbridge/deck-builder",
+   "h1": "Deck Builder Stockbridge",
+   "h1_source": "pattern",
+   "status": "H1 Added",
+   "applies": true,
+   "info": {
+    "phase": 2,
+    "category_key": "deck_builder",
+    "town": "Stockbridge"
+   }
+  },
+  {
+   "type": "location_category",
+   "title": "Gardener Awbridge",
+   "slug": "/locations/awbridge/gardener",
+   "h1": "Gardener Awbridge",
+   "h1_source": "pattern",
+   "status": "H1 Added",
+   "applies": true,
+   "info": {
+    "phase": 2,
+    "category_key": "gardener",
+    "town": "Awbridge"
+   }
+  },
+  {
+   "type": "location_category",
+   "title": "Landscape Gardener Awbridge",
+   "slug": "/locations/awbridge/landscape-gardener",
+   "h1": "Landscape Gardener Awbridge",
+   "h1_source": "pattern",
+   "status": "H1 Added",
+   "applies": true,
+   "info": {
+    "phase": 2,
+    "category_key": "landscape_gardener",
+    "town": "Awbridge"
+   }
+  },
+  {
+   "type": "location_category",
+   "title": "Landscape Designer Awbridge",
+   "slug": "/locations/awbridge/landscape-designer",
+   "h1": "Landscape Designer Awbridge",
+   "h1_source": "pattern",
+   "status": "H1 Added",
+   "applies": true,
+   "info": {
+    "phase": 2,
+    "category_key": "landscape_designer",
+    "town": "Awbridge"
+   }
+  },
+  {
+   "type": "location_category",
+   "title": "Tree Service Awbridge",
+   "slug": "/locations/awbridge/tree-service",
+   "h1": "Tree Service Awbridge",
+   "h1_source": "pattern",
+   "status": "H1 Added",
+   "applies": true,
+   "info": {
+    "phase": 2,
+    "category_key": "tree_service",
+    "town": "Awbridge"
+   }
+  },
+  {
+   "type": "location_category",
+   "title": "Paving Contractor Awbridge",
+   "slug": "/locations/awbridge/paving-contractor",
+   "h1": "Paving Contractor Awbridge",
+   "h1_source": "pattern",
+   "status": "H1 Added",
+   "applies": true,
+   "info": {
+    "phase": 2,
+    "category_key": "paving_contractor",
+    "town": "Awbridge"
+   }
+  },
+  {
+   "type": "location_category",
+   "title": "Deck Builder Awbridge",
+   "slug": "/locations/awbridge/deck-builder",
+   "h1": "Deck Builder Awbridge",
+   "h1_source": "pattern",
+   "status": "H1 Added",
+   "applies": true,
+   "info": {
+    "phase": 2,
+    "category_key": "deck_builder",
+    "town": "Awbridge"
+   }
+  },
+  {
+   "type": "location_category",
+   "title": "Gardener Chilworth",
+   "slug": "/locations/chilworth/gardener",
+   "h1": "Gardener Chilworth",
+   "h1_source": "pattern",
+   "status": "H1 Added",
+   "applies": true,
+   "info": {
+    "phase": 2,
+    "category_key": "gardener",
+    "town": "Chilworth"
+   }
+  },
+  {
+   "type": "location_category",
+   "title": "Landscape Gardener Chilworth",
+   "slug": "/locations/chilworth/landscape-gardener",
+   "h1": "Landscape Gardener Chilworth",
+   "h1_source": "pattern",
+   "status": "H1 Added",
+   "applies": true,
+   "info": {
+    "phase": 2,
+    "category_key": "landscape_gardener",
+    "town": "Chilworth"
+   }
+  },
+  {
+   "type": "location_category",
+   "title": "Landscape Designer Chilworth",
+   "slug": "/locations/chilworth/landscape-designer",
+   "h1": "Landscape Designer Chilworth",
+   "h1_source": "pattern",
+   "status": "H1 Added",
+   "applies": true,
+   "info": {
+    "phase": 2,
+    "category_key": "landscape_designer",
+    "town": "Chilworth"
+   }
+  },
+  {
+   "type": "location_category",
+   "title": "Tree Service Chilworth",
+   "slug": "/locations/chilworth/tree-service",
+   "h1": "Tree Service Chilworth",
+   "h1_source": "pattern",
+   "status": "H1 Added",
+   "applies": true,
+   "info": {
+    "phase": 2,
+    "category_key": "tree_service",
+    "town": "Chilworth"
+   }
+  },
+  {
+   "type": "location_category",
+   "title": "Paving Contractor Chilworth",
+   "slug": "/locations/chilworth/paving-contractor",
+   "h1": "Paving Contractor Chilworth",
+   "h1_source": "pattern",
+   "status": "H1 Added",
+   "applies": true,
+   "info": {
+    "phase": 2,
+    "category_key": "paving_contractor",
+    "town": "Chilworth"
+   }
+  },
+  {
+   "type": "location_category",
+   "title": "Deck Builder Chilworth",
+   "slug": "/locations/chilworth/deck-builder",
+   "h1": "Deck Builder Chilworth",
+   "h1_source": "pattern",
+   "status": "H1 Added",
+   "applies": true,
+   "info": {
+    "phase": 2,
+    "category_key": "deck_builder",
+    "town": "Chilworth"
+   }
+  },
+  {
+   "type": "location_category",
+   "title": "Gardener Hedge End",
+   "slug": "/locations/hedge-end/gardener",
+   "h1": "Gardener Hedge End",
+   "h1_source": "research",
+   "status": "H1 Added",
+   "applies": true,
+   "info": {
+    "phase": 1,
+    "category_key": "gardener",
+    "town": "Hedge End"
+   }
+  },
+  {
+   "type": "location_category",
+   "title": "Landscape Gardener Hedge End",
+   "slug": "/locations/hedge-end/landscape-gardener",
+   "h1": "Landscape Gardener Hedge End",
+   "h1_source": "pattern",
+   "status": "H1 Added",
+   "applies": true,
+   "info": {
+    "phase": 1,
+    "category_key": "landscape_gardener",
+    "town": "Hedge End"
+   }
+  },
+  {
+   "type": "location_category",
+   "title": "Landscape Designer Hedge End",
+   "slug": "/locations/hedge-end/landscape-designer",
+   "h1": "Landscape Designer Hedge End",
+   "h1_source": "pattern",
+   "status": "H1 Added",
+   "applies": true,
+   "info": {
+    "phase": 1,
+    "category_key": "landscape_designer",
+    "town": "Hedge End"
+   }
+  },
+  {
+   "type": "location_category",
+   "title": "Tree Service Hedge End",
+   "slug": "/locations/hedge-end/tree-service",
+   "h1": "Tree Surgeon Hedge End",
+   "h1_source": "research",
+   "status": "H1 Added",
+   "applies": true,
+   "info": {
+    "phase": 1,
+    "category_key": "tree_service",
+    "town": "Hedge End"
+   }
+  },
+  {
+   "type": "location_category",
+   "title": "Paving Contractor Hedge End",
+   "slug": "/locations/hedge-end/paving-contractor",
+   "h1": "Paving Contractor Hedge End",
+   "h1_source": "pattern",
+   "status": "H1 Added",
+   "applies": true,
+   "info": {
+    "phase": 1,
+    "category_key": "paving_contractor",
+    "town": "Hedge End"
+   }
+  },
+  {
+   "type": "location_category",
+   "title": "Deck Builder Hedge End",
+   "slug": "/locations/hedge-end/deck-builder",
+   "h1": "Deck Builder Hedge End",
+   "h1_source": "pattern",
+   "status": "H1 Added",
+   "applies": true,
+   "info": {
+    "phase": 1,
+    "category_key": "deck_builder",
+    "town": "Hedge End"
+   }
+  },
+  {
+   "type": "location_category",
+   "title": "Gardener Lyndhurst",
+   "slug": "/locations/lyndhurst/gardener",
+   "h1": "Gardener Lyndhurst",
+   "h1_source": "pattern",
+   "status": "H1 Added",
+   "applies": true,
+   "info": {
+    "phase": 2,
+    "category_key": "gardener",
+    "town": "Lyndhurst"
+   }
+  },
+  {
+   "type": "location_category",
+   "title": "Landscape Gardener Lyndhurst",
+   "slug": "/locations/lyndhurst/landscape-gardener",
+   "h1": "Landscape Gardener Lyndhurst",
+   "h1_source": "pattern",
+   "status": "H1 Added",
+   "applies": true,
+   "info": {
+    "phase": 2,
+    "category_key": "landscape_gardener",
+    "town": "Lyndhurst"
+   }
+  },
+  {
+   "type": "location_category",
+   "title": "Landscape Designer Lyndhurst",
+   "slug": "/locations/lyndhurst/landscape-designer",
+   "h1": "Landscape Designer Lyndhurst",
+   "h1_source": "pattern",
+   "status": "H1 Added",
+   "applies": true,
+   "info": {
+    "phase": 2,
+    "category_key": "landscape_designer",
+    "town": "Lyndhurst"
+   }
+  },
+  {
+   "type": "location_category",
+   "title": "Tree Service Lyndhurst",
+   "slug": "/locations/lyndhurst/tree-service",
+   "h1": "Tree Service Lyndhurst",
+   "h1_source": "pattern",
+   "status": "H1 Added",
+   "applies": true,
+   "info": {
+    "phase": 2,
+    "category_key": "tree_service",
+    "town": "Lyndhurst"
+   }
+  },
+  {
+   "type": "location_category",
+   "title": "Paving Contractor Lyndhurst",
+   "slug": "/locations/lyndhurst/paving-contractor",
+   "h1": "Paving Contractor Lyndhurst",
+   "h1_source": "pattern",
+   "status": "H1 Added",
+   "applies": true,
+   "info": {
+    "phase": 2,
+    "category_key": "paving_contractor",
+    "town": "Lyndhurst"
+   }
+  },
+  {
+   "type": "location_category",
+   "title": "Deck Builder Lyndhurst",
+   "slug": "/locations/lyndhurst/deck-builder",
+   "h1": "Deck Builder Lyndhurst",
+   "h1_source": "pattern",
+   "status": "H1 Added",
+   "applies": true,
+   "info": {
+    "phase": 2,
+    "category_key": "deck_builder",
+    "town": "Lyndhurst"
+   }
+  },
+  {
+   "type": "location_category",
+   "title": "Gardener New Forest District",
+   "slug": "/locations/new-forest-district/gardener",
+   "h1": "Gardener New Forest District",
+   "h1_source": "pattern",
+   "status": "H1 Added",
+   "applies": true,
+   "info": {
+    "phase": 2,
+    "category_key": "gardener",
+    "town": "New Forest District"
+   }
+  },
+  {
+   "type": "location_category",
+   "title": "Landscape Gardener New Forest District",
+   "slug": "/locations/new-forest-district/landscape-gardener",
+   "h1": "Landscape Gardener New Forest District",
+   "h1_source": "pattern",
+   "status": "H1 Added",
+   "applies": true,
+   "info": {
+    "phase": 2,
+    "category_key": "landscape_gardener",
+    "town": "New Forest District"
+   }
+  },
+  {
+   "type": "location_category",
+   "title": "Landscape Designer New Forest District",
+   "slug": "/locations/new-forest-district/landscape-designer",
+   "h1": "Landscape Designer New Forest District",
+   "h1_source": "pattern",
+   "status": "H1 Added",
+   "applies": true,
+   "info": {
+    "phase": 2,
+    "category_key": "landscape_designer",
+    "town": "New Forest District"
+   }
+  },
+  {
+   "type": "location_category",
+   "title": "Tree Service New Forest District",
+   "slug": "/locations/new-forest-district/tree-service",
+   "h1": "Tree Service New Forest District",
+   "h1_source": "pattern",
+   "status": "H1 Added",
+   "applies": true,
+   "info": {
+    "phase": 2,
+    "category_key": "tree_service",
+    "town": "New Forest District"
+   }
+  },
+  {
+   "type": "location_category",
+   "title": "Paving Contractor New Forest District",
+   "slug": "/locations/new-forest-district/paving-contractor",
+   "h1": "Paving Contractor New Forest District",
+   "h1_source": "pattern",
+   "status": "H1 Added",
+   "applies": true,
+   "info": {
+    "phase": 2,
+    "category_key": "paving_contractor",
+    "town": "New Forest District"
+   }
+  },
+  {
+   "type": "location_category",
+   "title": "Deck Builder New Forest District",
+   "slug": "/locations/new-forest-district/deck-builder",
+   "h1": "Deck Builder New Forest District",
+   "h1_source": "pattern",
+   "status": "H1 Added",
+   "applies": true,
+   "info": {
+    "phase": 2,
+    "category_key": "deck_builder",
+    "town": "New Forest District"
+   }
+  },
+  {
+   "type": "location_category",
+   "title": "Gardener Lockerley",
+   "slug": "/locations/lockerley/gardener",
+   "h1": "Gardener Lockerley",
+   "h1_source": "pattern",
+   "status": "H1 Added",
+   "applies": true,
+   "info": {
+    "phase": 2,
+    "category_key": "gardener",
+    "town": "Lockerley"
+   }
+  },
+  {
+   "type": "location_category",
+   "title": "Landscape Gardener Lockerley",
+   "slug": "/locations/lockerley/landscape-gardener",
+   "h1": "Landscape Gardener Lockerley",
+   "h1_source": "pattern",
+   "status": "H1 Added",
+   "applies": true,
+   "info": {
+    "phase": 2,
+    "category_key": "landscape_gardener",
+    "town": "Lockerley"
+   }
+  },
+  {
+   "type": "location_category",
+   "title": "Landscape Designer Lockerley",
+   "slug": "/locations/lockerley/landscape-designer",
+   "h1": "Landscape Designer Lockerley",
+   "h1_source": "pattern",
+   "status": "H1 Added",
+   "applies": true,
+   "info": {
+    "phase": 2,
+    "category_key": "landscape_designer",
+    "town": "Lockerley"
+   }
+  },
+  {
+   "type": "location_category",
+   "title": "Tree Service Lockerley",
+   "slug": "/locations/lockerley/tree-service",
+   "h1": "Tree Service Lockerley",
+   "h1_source": "pattern",
+   "status": "H1 Added",
+   "applies": true,
+   "info": {
+    "phase": 2,
+    "category_key": "tree_service",
+    "town": "Lockerley"
+   }
+  },
+  {
+   "type": "location_category",
+   "title": "Paving Contractor Lockerley",
+   "slug": "/locations/lockerley/paving-contractor",
+   "h1": "Paving Contractor Lockerley",
+   "h1_source": "pattern",
+   "status": "H1 Added",
+   "applies": true,
+   "info": {
+    "phase": 2,
+    "category_key": "paving_contractor",
+    "town": "Lockerley"
+   }
+  },
+  {
+   "type": "location_category",
+   "title": "Deck Builder Lockerley",
+   "slug": "/locations/lockerley/deck-builder",
+   "h1": "Deck Builder Lockerley",
+   "h1_source": "pattern",
+   "status": "H1 Added",
+   "applies": true,
+   "info": {
+    "phase": 2,
+    "category_key": "deck_builder",
+    "town": "Lockerley"
+   }
+  },
+  {
+   "type": "location_category",
+   "title": "Gardener Kings Worthy",
+   "slug": "/locations/kings-worthy/gardener",
+   "h1": "Gardener Kings Worthy",
+   "h1_source": "pattern",
+   "status": "H1 Added",
+   "applies": true,
+   "info": {
+    "phase": 2,
+    "category_key": "gardener",
+    "town": "Kings Worthy"
+   }
+  },
+  {
+   "type": "location_category",
+   "title": "Landscape Gardener Kings Worthy",
+   "slug": "/locations/kings-worthy/landscape-gardener",
+   "h1": "Landscape Gardener Kings Worthy",
+   "h1_source": "pattern",
+   "status": "H1 Added",
+   "applies": true,
+   "info": {
+    "phase": 2,
+    "category_key": "landscape_gardener",
+    "town": "Kings Worthy"
+   }
+  },
+  {
+   "type": "location_category",
+   "title": "Landscape Designer Kings Worthy",
+   "slug": "/locations/kings-worthy/landscape-designer",
+   "h1": "Landscape Designer Kings Worthy",
+   "h1_source": "pattern",
+   "status": "H1 Added",
+   "applies": true,
+   "info": {
+    "phase": 2,
+    "category_key": "landscape_designer",
+    "town": "Kings Worthy"
+   }
+  },
+  {
+   "type": "location_category",
+   "title": "Tree Service Kings Worthy",
+   "slug": "/locations/kings-worthy/tree-service",
+   "h1": "Tree Service Kings Worthy",
+   "h1_source": "pattern",
+   "status": "H1 Added",
+   "applies": true,
+   "info": {
+    "phase": 2,
+    "category_key": "tree_service",
+    "town": "Kings Worthy"
+   }
+  },
+  {
+   "type": "location_category",
+   "title": "Paving Contractor Kings Worthy",
+   "slug": "/locations/kings-worthy/paving-contractor",
+   "h1": "Paving Contractor Kings Worthy",
+   "h1_source": "pattern",
+   "status": "H1 Added",
+   "applies": true,
+   "info": {
+    "phase": 2,
+    "category_key": "paving_contractor",
+    "town": "Kings Worthy"
+   }
+  },
+  {
+   "type": "location_category",
+   "title": "Deck Builder Kings Worthy",
+   "slug": "/locations/kings-worthy/deck-builder",
+   "h1": "Deck Builder Kings Worthy",
+   "h1_source": "pattern",
+   "status": "H1 Added",
+   "applies": true,
+   "info": {
+    "phase": 2,
+    "category_key": "deck_builder",
+    "town": "Kings Worthy"
+   }
+  },
+  {
+   "type": "town_service",
+   "title": "Fencing Romsey",
+   "slug": "/locations/romsey/fencing",
+   "h1": "Fencing Romsey",
+   "h1_source": "research",
+   "status": "H1 Added",
+   "applies": true,
+   "info": {
+    "phase": 1,
+    "category_key": "gardener",
+    "parent_keys": [
+     "gardener",
+     "deck_builder"
+    ],
+    "town": "Romsey",
+    "service_id": "fencing"
+   }
+  },
+  {
+   "type": "town_service",
+   "title": "Garden maintenance Romsey",
+   "slug": "/locations/romsey/garden-maintenance",
+   "h1": "Garden Maintenance Romsey",
+   "h1_source": "research",
+   "status": "H1 Added",
+   "applies": true,
+   "info": {
+    "phase": 1,
+    "category_key": "landscape_gardener",
+    "parent_keys": [
+     "landscape_gardener"
+    ],
+    "town": "Romsey",
+    "service_id": "garden maintenance"
+   }
+  },
+  {
+   "type": "town_service",
+   "title": "Tree stump removal Romsey",
+   "slug": "/locations/romsey/tree-stump-removal",
+   "h1": "Tree Stump Removal Romsey",
+   "h1_source": "research",
+   "status": "H1 Added",
+   "applies": true,
+   "info": {
+    "phase": 1,
+    "category_key": "tree_service",
+    "parent_keys": [
+     "tree_service"
+    ],
+    "town": "Romsey",
+    "service_id": "tree stump removal"
+   }
+  },
+  {
+   "type": "town_service",
+   "title": "Fencing Winchester",
+   "slug": "/locations/winchester/fencing",
+   "h1": "Fencing Winchester",
+   "h1_source": "research",
+   "status": "H1 Added",
+   "applies": true,
+   "info": {
+    "phase": 1,
+    "category_key": "gardener",
+    "parent_keys": [
+     "gardener",
+     "deck_builder"
+    ],
+    "town": "Winchester",
+    "service_id": "fencing"
+   }
+  },
+  {
+   "type": "town_service",
+   "title": "Garden maintenance Winchester",
+   "slug": "/locations/winchester/garden-maintenance",
+   "h1": "Garden Maintenance Winchester",
+   "h1_source": "research",
+   "status": "H1 Added",
+   "applies": true,
+   "info": {
+    "phase": 1,
+    "category_key": "landscape_gardener",
+    "parent_keys": [
+     "landscape_gardener"
+    ],
+    "town": "Winchester",
+    "service_id": "garden maintenance"
+   }
+  },
+  {
+   "type": "town_service",
+   "title": "Lawn care Winchester",
+   "slug": "/locations/winchester/lawn-care",
+   "h1": "Lawn Care Winchester",
+   "h1_source": "research",
+   "status": "H1 Added",
+   "applies": true,
+   "info": {
+    "phase": 1,
+    "category_key": "landscape_gardener",
+    "parent_keys": [
+     "landscape_gardener",
+     "landscape_designer"
+    ],
+    "town": "Winchester",
+    "service_id": "lawn care"
+   }
+  },
+  {
+   "type": "town_service",
+   "title": "Pergolas Winchester",
+   "slug": "/locations/winchester/pergolas",
+   "h1": "Pergolas Winchester",
+   "h1_source": "research",
+   "status": "H1 Added",
+   "applies": true,
+   "info": {
+    "phase": 1,
+    "category_key": "deck_builder",
+    "parent_keys": [
+     "deck_builder"
+    ],
+    "town": "Winchester",
+    "service_id": "pergolas"
+   }
+  },
+  {
+   "type": "town_service",
+   "title": "Fencing Eastleigh",
+   "slug": "/locations/eastleigh/fencing",
+   "h1": "Fencing Eastleigh",
+   "h1_source": "research",
+   "status": "H1 Added",
+   "applies": true,
+   "info": {
+    "phase": 1,
+    "category_key": "gardener",
+    "parent_keys": [
+     "gardener",
+     "deck_builder"
+    ],
+    "town": "Eastleigh",
+    "service_id": "fencing"
+   }
+  },
+  {
+   "type": "town_service",
+   "title": "Fencing Chandlers Ford",
+   "slug": "/locations/chandlers-ford/fencing",
+   "h1": "Fencing Chandlers Ford",
+   "h1_source": "research",
+   "status": "H1 Added",
+   "applies": true,
+   "info": {
+    "phase": 1,
+    "category_key": "gardener",
+    "parent_keys": [
+     "gardener",
+     "deck_builder"
+    ],
+    "town": "Chandlers Ford",
+    "service_id": "fencing"
+   }
+  },
+  {
+   "type": "town_service",
+   "title": "Fencing Hedge End",
+   "slug": "/locations/hedge-end/fencing",
+   "h1": "Fencing Hedge End",
+   "h1_source": "research",
+   "status": "H1 Added",
+   "applies": true,
+   "info": {
+    "phase": 1,
+    "category_key": "gardener",
+    "parent_keys": [
+     "gardener",
+     "deck_builder"
+    ],
+    "town": "Hedge End",
+    "service_id": "fencing"
+   }
+  }
+ ]
+}

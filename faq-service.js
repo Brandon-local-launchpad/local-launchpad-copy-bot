@@ -89,7 +89,7 @@ function createFaqService({
   // answers and the area dossiers.
   async function researchInput(clientId, sessionId) {
     const ctx = await loadContext(clientId, sessionId);
-    const { niche, error } = loadNiche(ctx.trade);
+    const { niche, error } = loadNiche(ctx.trade, ctx);
     if (error) throw new Error(error);
     const dossiers = await dossiersFor(clientId, ctx.keyValueMap);
     return { ctx, niche, dossiers, input: { niche, keyValueMap: ctx.keyValueMap, serviceParentMap: ctx.serviceParentMap, pages: ctx.pages, cv: ctx.cv, onboardingText: ctx.onboardingText || '', dossiers } };
@@ -222,7 +222,7 @@ function createFaqService({
       const research = await latestResearch(clientId);
       if (!research) throw new Error('No FAQ research saved for this client yet. Run the FAQ research first.');
       const ctx = await loadContext(clientId, sessionId);
-      const { niche, error } = loadNiche(ctx.trade);
+      const { niche, error } = loadNiche(ctx.trade, ctx);
       if (error) throw new Error(error);
       // The client's own customers' questions go in ahead of the research
       const own = S.clientQuestionItems(ctx.cv);
@@ -284,7 +284,7 @@ function createFaqService({
   // ── The card ──
   async function view(clientId, sessionId) {
     const ctx = await loadContext(clientId, sessionId);
-    const { niche, error } = loadNiche(ctx.trade);
+    const { niche, error } = loadNiche(ctx.trade, ctx);
     if (error) return { error };
     const job = await latestJob(clientId);
     const jobRow = job ? job.locations[FAQ_CODE] || {} : null;

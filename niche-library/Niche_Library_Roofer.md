@@ -106,6 +106,8 @@ re-roofing, new roof, roof replacement, roof repair, flat roofing, flat roof, le
 
 GBP service names are shown to the model in the words a homeowner uses. The first row whose text appears in the GBP name wins; with no match, the GBP name is used in lower case. Cards name 2 or 3 services in these words, never the raw GBP list.
 
+Old path only (21 Oct 2026): this list applies when the homepage is written from the uploaded custom values CSVs. A client with a v3 page map names every service by its page title (the services library's UK name), and this list is not used.
+
 | GBP name contains | Say |
 |---|---|
 | fascia | fascias and soffits |

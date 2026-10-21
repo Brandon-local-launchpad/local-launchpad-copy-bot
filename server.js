@@ -3107,6 +3107,26 @@ app.put('/api/clients/:clientId/v20-settings', async (req, res) => {
 // ── v20 client context (shared by decisions preview and allocation) ──────────
 // Client values, test mode, trade, and the page map / custom values: from the
 // active session when there is one, else from the stored client_file rows.
+// The v3 page map path (Brandon, 21 Oct 2026): when the client has a v3 page map that
+// applies (a homepage and at least one category row), the homepage's pages, categories,
+// services and areas come from it and the hand set-up (v20-context-v3.js), session or not.
+// Without one, the uploaded page map and custom values CSVs are read as before.
+const { contextFromPageMap } = require('./v20-context-v3');
+const pageMapStore = (pool && filloutService) ? require('./page-map/store').createPageMapStore({ pool, filloutService }) : null;
+async function loadV3Context(clientId, cv, niche) {
+  if (!pageMapStore) return null;
+  const rows = await pageMapStore.saved(clientId);
+  const live = rows.filter(r => r.applies !== false);
+  if (!live.some(r => r.type === 'homepage') || !live.some(r => r.type === 'category')) return null;
+  const st = await pageMapStore.state(clientId);
+  const { inputsFor } = require('./page-map/store');
+  const hand = await inputsFor(filloutService, clientId, { categoryTabRule: (st && st.category_tab_rule) || 'ticked_only' });
+  return contextFromPageMap({ rows: live, hand: { baseTown: hand.baseTown, otherTowns: hand.otherTowns }, cv, niche: niche || {} });
+}
+// The niche for a loaded context: on the v3 path it carries no service_words (the page
+// titles are the names), so every consumer must take it from here, not loadNiche(trade)
+function nicheFor(ctx) { return ctx.nicheError ? { niche: null, error: ctx.nicheError } : { niche: ctx.niche, error: null }; }
+
 async function loadV20Context(clientId, sessionId) {
   let cv = { ...CLIENT_VALUES_TEMPLATE };
   let cvLoadError = null;
@@ -3181,11 +3201,27 @@ async function loadV20Context(clientId, sessionId) {
       console.error('[v20] Failed to load the onboarding form for', clientId, err);
     }
   }
+  // The v3 page map wins over the CSVs (session or not) when the client has one that applies
+  const loaded = loadNiche(trade);
+  let niche = loaded.niche, nicheError = loaded.error;
+  let cardServices = null, contextSource = 'csv';
+  if (pool) {
+    try {
+      const v3 = await loadV3Context(clientId, cv, niche);
+      if (v3) {
+        ({ pages, keyValueMap, serviceParentMap, cardServices } = v3);
+        contextSource = 'page_map_v3';
+        if (niche) niche = { ...niche, service_words: [] };
+      }
+    } catch (err) {
+      console.error('[v20] Failed to load the v3 page map for', clientId, err.message);
+    }
+  }
   // Coastal: a value set on Client Values wins; left blank, the primary city's dossier
   // answers it ("Coastal: Yes/No", Geo Research CORE v7 on)
   const coastalFromResearch = await researchCoastal(clientId, keyValueMap);
   if (!cv.coastal_city && coastalFromResearch) cv = { ...cv, coastal_city: coastalFromResearch.value };
-  return { cv, cvLoadError, v20TestMode, trade, clientTrade, pages, keyValueMap, serviceParentMap, onboardingText, coastalFromResearch };
+  return { cv, cvLoadError, v20TestMode, trade, clientTrade, niche, nicheError, pages, keyValueMap, serviceParentMap, cardServices, contextSource, onboardingText, coastalFromResearch };
 }
 
 // ── Allocation storage (Stage 5) ─────────────────────────────────────────────
@@ -3248,7 +3284,7 @@ async function runAllocationForClient(clientId, sessionId) {
   allocationRunning.add(clientId);
   try {
     const ctx = await loadV20Context(clientId, sessionId);
-    const { niche, error: nicheErr } = loadNiche(ctx.trade);
+    const { niche, error: nicheErr } = nicheFor(ctx);
     if (nicheErr) throw new Error(nicheErr);
     const dossier = await loadPrimaryDossier(clientId, ctx.keyValueMap);
     if (!dossier) throw new Error(`No saved dossier for the primary city (${ctx.keyValueMap['biz_area_1'] || 'biz_area_1 blank'}). Run geo research first.`);
@@ -3346,7 +3382,7 @@ app.post('/api/clients/:clientId/decisions-preview', async (req, res) => {
   const { sessionId } = req.body;
   const { clientId } = req.params;
   const ctx = await loadV20Context(clientId, sessionId);
-  const { niche, error: nicheErr } = loadNiche(ctx.trade);
+  const { niche, error: nicheErr } = nicheFor(ctx);
   if (nicheErr) return res.status(400).json({ error: nicheErr });
 
   let allocationData = null;
@@ -3364,7 +3400,7 @@ app.post('/api/clients/:clientId/decisions-preview', async (req, res) => {
 
   const result = computeDecisions({
     cv: ctx.cv, niche, pages: ctx.pages, keyValueMap: ctx.keyValueMap, serviceParentMap: ctx.serviceParentMap,
-    v20TestMode: ctx.v20TestMode, allocationData, faqResearch,
+    v20TestMode: ctx.v20TestMode, allocationData, faqResearch, cardServices: ctx.cardServices || null,
   });
   result.flags = [...(result.flags || []), ...allocFlags, ...faqFlags];
   if (ctx.cvLoadError) result.cvLoadError = ctx.cvLoadError;
@@ -3380,7 +3416,7 @@ const { createFaqService } = require('./faq-service');
 const faqService = pool ? createFaqService({
   pool,
   loadContext: loadV20Context,
-  loadNiche,
+  loadNiche: (trade, ctx) => (ctx ? nicheFor(ctx) : loadNiche(trade)),
   perplexity: {
     submit: submitPerplexity, poll: pollPerplexity, text: extractPerplexityText, resolveCitations,
     timeoutMs: PERPLEXITY_TIMEOUT_MS, preset: PERPLEXITY_PRESET,
@@ -3402,7 +3438,7 @@ const faqService = pool ? createFaqService({
   },
   homepageDecisions: (ctx, niche, faqResearch) => computeDecisions({
     cv: ctx.cv, niche, pages: ctx.pages, keyValueMap: ctx.keyValueMap, serviceParentMap: ctx.serviceParentMap,
-    v20TestMode: ctx.v20TestMode, allocationData: null, faqResearch,
+    v20TestMode: ctx.v20TestMode, allocationData: null, faqResearch, cardServices: ctx.cardServices || null,
   }),
 }) : null;
 
@@ -3495,7 +3531,7 @@ app.put('/api/clients/:clientId/faq/questions', async (req, res) => {
 // ── Allocation routes ────────────────────────────────────────────────────────
 async function allocationView(clientId, sessionId) {
   const ctx = await loadV20Context(clientId, sessionId);
-  const { niche, error } = loadNiche(ctx.trade);
+  const { niche, error } = nicheFor(ctx);
   if (error) return { error };
   const { view, flags } = await resolveHomepageAllocation(clientId, ctx, niche);
   return { view, flags, running: allocationRunning.has(clientId) };
@@ -3530,7 +3566,7 @@ app.put('/api/clients/:clientId/allocation', async (req, res) => {
     const { clientId } = req.params;
     const { neighbourhoods = [], symptoms = {}, sessionId } = req.body || {};
     const ctx = await loadV20Context(clientId, sessionId);
-    const { niche, error } = loadNiche(ctx.trade);
+    const { niche, error } = nicheFor(ctx);
     if (error) return res.status(400).json({ error });
     const dossier = await loadPrimaryDossier(clientId, ctx.keyValueMap);
     if (!dossier) return res.status(400).json({ error: 'No saved dossier for the primary city.' });
@@ -3589,13 +3625,13 @@ function v20CalibrationPack(ctx, niche) {
 // The client's context, niche and code decisions for the homepage, as they stand now
 async function v20HomepageInputs(clientId, sessionId) {
   const ctx = await loadV20Context(clientId, sessionId);
-  const { niche, error: nicheErr } = loadNiche(ctx.trade);
+  const { niche, error: nicheErr } = nicheFor(ctx);
   if (nicheErr) { const e = new Error(nicheErr); e.status = 400; throw e; }
   const { allocationData, flags: allocFlags, view } = await resolveHomepageAllocation(clientId, ctx, niche);
   const { faqResearch } = await resolveHomepageFaq(clientId, ctx, niche);
   const decisionsResult = computeDecisions({
     cv: ctx.cv, niche, pages: ctx.pages, keyValueMap: ctx.keyValueMap, serviceParentMap: ctx.serviceParentMap,
-    v20TestMode: ctx.v20TestMode, allocationData, faqResearch,
+    v20TestMode: ctx.v20TestMode, allocationData, faqResearch, cardServices: ctx.cardServices || null,
   });
   return { ctx, niche, allocFlags, view, decisionsResult };
 }

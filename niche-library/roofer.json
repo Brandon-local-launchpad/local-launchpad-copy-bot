@@ -204,6 +204,7 @@
 
   "service_terms": ["re-roofing", "new roof", "roof replacement", "roof repair", "flat roofing", "flat roof", "leadwork", "lead flashing", "chimney repointing", "chimney repair", "chimney removal", "gutter cleaning", "guttering", "gutter repair", "fascias", "soffits", "ridge repair", "dry ridge", "dry verge", "valley repair", "skylight", "roof window", "roof inspection", "roof survey", "moss removal", "roof cleaning", "emergency repair", "storm damage", "loft insulation", "tile replacement", "slate replacement"],
 
+  "service_words_note": "Old path only (21 Oct 2026): this list applies when the homepage is written from the uploaded custom values CSVs. A client with a v3 page map names every service by its page title (the services library's UK name), and this list is not used.",
   "service_words": [
     ["fascia", "fascias and soffits"], ["soffit", "fascias and soffits"], ["skylight", "roof windows"],
     ["gutter cleaning", "gutter cleaning"], ["gutter", "guttering"], ["roof inspection", "roof checks"],

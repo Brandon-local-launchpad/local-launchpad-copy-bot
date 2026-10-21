@@ -109,7 +109,7 @@ function report(r) {
   }
 
   push('## Services per card (new path): the category\'s base service pages, and the pick', '');
-  push('| Card | Base service pages under it (phase 1) | Picked (jobs_wanted, then core services, then volume, then page map order; 3 at most; each service in one card) |', '|---|---|---|');
+  push('| Card | Base service pages under it (phase 1) | Picked (jobs_wanted, then search volume, then core services, then page map order; 3 at most; each service in one card) |', '|---|---|---|');
   for (const c of nc) { const k = lc(c.name); const up = (r.v3.cardServices.toppedUp || {})[k] || []; push(`| ${c.name} | ${(r.v3.cardServices.pools[k] || []).join(', ') || '(none)'} | ${(r.v3.cardServices.picks[k] || []).join(', ') || '(none)'}${up.length ? ` (${up.join(', ')} also named on another card: this card had fewer than two of its own)` : ''} |`); }
   push('');
 

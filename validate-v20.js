@@ -178,7 +178,7 @@ function buildValidationContext({ cv, niche, decisions, keyValueMap = {}, servic
 
   const serviceList = confirmedServiceList(keyValueMap, serviceParentMap, niche);
   const confirmedServices = [
-    ...Object.entries(keyValueMap).filter(([k]) => /^(service|category)_\d+$/.test(k)).map(([, v]) => v),
+    ...Object.entries(keyValueMap).filter(([k]) => /^(service|mentioned|category)_\d+$/.test(k)).map(([, v]) => v),
     ...serviceList.map(s => s.say).filter(Boolean),
     ...(D.d9.main || []).map(c => c.name), ...(D.d9.alsoOffer || []),
     cv.primary_category, ...(cv.materials_methods || []),

@@ -70,6 +70,17 @@ function contextFromPageMap({ rows, hand, cv = {}, niche = {} }) {
     const first = (s.info.parent_keys || [])[0];
     serviceParentMap[key] = catName.get(first) || cats[0]?.title || '';
   });
+  // Folded services (the category page lists them, no page of their own): confirmed, so the
+  // copy may name them (driveways under Paving Contractor), never as a card's service
+  let m = 0;
+  const seenMention = new Set(services.map(s => lc(s.title)));
+  for (const c of cats) for (const name of ((c.info.links && c.info.links.mentioned) || [])) {
+    if (seenMention.has(lc(name))) continue;
+    seenMention.add(lc(name));
+    const key = `mentioned_${++m}`;
+    keyValueMap[key] = name;
+    serviceParentMap[key] = c.title;
+  }
   const towns = cleanTowns(hand.baseTown, hand.otherTowns).towns.map(t => (typeof t === 'string' ? t : t.name));
   [hand.baseTown, ...towns].filter(Boolean).forEach((t, i) => { keyValueMap[`biz_area_${i + 1}`] = t; });
 
@@ -96,8 +107,8 @@ function pickCardServices({ cats, services, cv = {}, niche = {}, catName }) {
   const order = name => {
     const coreList = core[name] || [];
     const coreRank = s => { const i = coreList.indexOf(lc(s.title)); return i < 0 ? Infinity : i; };
-    return (a, b) => wantRank(a.s) - wantRank(b.s) || coreRank(a.s) - coreRank(b.s)
-      || ((b.s.info.copy_priority || 0) - (a.s.info.copy_priority || 0)) || a.i - b.i;
+    return (a, b) => wantRank(a.s) - wantRank(b.s)
+      || ((b.s.info.copy_priority || 0) - (a.s.info.copy_priority || 0)) || coreRank(a.s) - coreRank(b.s) || a.i - b.i;
   };
   const picks = {}, pools = {}, toppedUp = {};
   const indexed = live.map((s, i) => ({ s, i }));
