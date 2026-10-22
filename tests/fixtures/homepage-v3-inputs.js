@@ -33,8 +33,12 @@ const keys = re => Object.keys(kv).filter(k => re.test(k)).sort((a, b) => parseI
 
 // ── The three structures ──
 same('categories: the six category rows, page map order', keys(/^category_\d+$/), ['Gardener', 'Landscape Gardener', 'Landscape Designer', 'Tree Service', 'Paving Contractor', 'Deck Builder']);
-chk('services: the 31 service pages, by their page title', keys(/^service_\d+$/).length === 31 && keys(/^service_\d+$/).includes('Artificial grass installation'), keys(/^service_\d+$/).length, 31);
-same('a service sits under its first parent tab', ['service_1', 'service_2'].map(k => `${kv[k]} → ${ctx.serviceParentMap[k]}`), ['Lawn mowing → Gardener', 'Fencing → Gardener']);
+const serviceRows = rows.filter(r => r.applies !== false && r.type === 'service');
+const pairs = serviceRows.reduce((n, r) => n + Math.max(1, (r.info.parent_keys || []).length), 0);
+chk('services: the 31 service pages, by their page title, once per parent tab', new Set(keys(/^service_\d+$/)).size === 31 && keys(/^service_\d+$/).length === pairs && keys(/^service_\d+$/).includes('Artificial grass installation'), `${new Set(keys(/^service_\d+$/)).size} names, ${keys(/^service_\d+$/).length} entries`, `31 names, ${pairs} entries`);
+const under = name => Object.keys(kv).filter(k => /^service_\d+$/.test(k) && kv[k] === name).map(k => ctx.serviceParentMap[k]);
+same('a service sits under every parent tab (Fencing: Gardener and Deck Builder)', under('Fencing'), ['Gardener', 'Deck Builder']);
+same('Lawn seeding is confirmed under all three of its categories', under('Lawn seeding'), ['Gardener', 'Landscape Gardener', 'Landscape Designer']);
 const mentioned = keys(/^mentioned_\d+$/);
 chk('folded services are mentioned_N entries under their category', mentioned.includes('Garden work') && mentioned.includes('Driveway landscaping') && ctx.serviceParentMap[Object.keys(kv).find(k => kv[k] === 'Driveway landscaping')] === 'Paving Contractor', mentioned.join(', '), 'Garden work … Driveway landscaping (Paving Contractor)');
 chk('a folded name never repeats a page name', !mentioned.some(m => keys(/^service_\d+$/).map(s => s.toLowerCase()).includes(m.toLowerCase())), mentioned.join(', '), 'no page names');
@@ -81,11 +85,12 @@ same('H1 and title unchanged', [D.d2_h1, D.d3_title], ['Landscaper Southampton',
 chk('service_words would translate a GBP name on the old path', sayFor('Sod installation', landscaper) === 'turf laying', sayFor('Sod installation', landscaper), 'turf laying');
 chk('on the v3 path the page title is the name', sayFor('Artificial grass installation', nicheV3) === 'artificial grass installation', sayFor('Artificial grass installation', nicheV3), 'artificial grass installation');
 const list = confirmedServiceList(kv, ctx.serviceParentMap, nicheV3);
-chk('confirmed services: 31 pages plus the folded names, each said as written', list.filter(s => s.kind === 'page').length === 31 && list.filter(s => s.kind === 'mentioned').length === mentioned.length && list.every(s => s.say === s.gbp.toLowerCase()), `${list.filter(s => s.kind === 'page').length} pages, ${list.filter(s => s.kind === 'mentioned').length} mentioned`, `31 pages, ${mentioned.length} mentioned`);
+chk('confirmed services: the page entries plus the folded names, each said as written', list.filter(s => s.kind === 'page').length === pairs && list.filter(s => s.kind === 'mentioned').length === mentioned.length && list.every(s => s.say === s.gbp.toLowerCase()), `${list.filter(s => s.kind === 'page').length} page entries, ${list.filter(s => s.kind === 'mentioned').length} mentioned`, `${pairs} page entries, ${mentioned.length} mentioned`);
 const V = buildValidationContext({ cv, niche: nicheV3, decisions: D, keyValueMap: kv, serviceParentMap: ctx.serviceParentMap });
 chk('the validator counts a folded service as confirmed', V.serviceList.some(s => s.kind === 'mentioned' && s.gbp === 'Driveway landscaping'), V.serviceList.filter(s => s.kind === 'mentioned').map(s => s.gbp).join(', '), 'includes Driveway landscaping');
 const block = V20.buildServiceList(kv, ctx.serviceParentMap, nicheV3);
-chk('the client block lists folded services as prose only, never a card service', /Paving Contractor: block paving; also offered, no page of their own \(name in prose only, never as a card's service\): driveway landscaping/.test(block), block.split('\n').find(l => l.startsWith('Paving Contractor')), 'Paving Contractor: block paving; also offered … driveway landscaping');
+chk('the client block lists Lawn seeding under Landscape Designer too', /^Landscape Designer: .*lawn seeding/m.test(block), block.split('\n').find(l => l.startsWith('Landscape Designer')), 'Landscape Designer: … lawn seeding');
+chk('the client block lists folded services as prose only, never a card service', /Paving Contractor: concrete bases and paths, garden levelling, patios, block paving; also offered, no page of their own \(name in prose only, never as a card's service\): driveway landscaping/.test(block), block.split('\n').find(l => l.startsWith('Paving Contractor')), 'Paving Contractor: concrete bases and paths, garden levelling, patios, block paving; also offered … driveway landscaping');
 
 // The claims review reads meta.services_on_file: with services on file it must be the full
 // list, not the card names (first live v3 run, 22 Oct: a broken regex gave the reviewer only

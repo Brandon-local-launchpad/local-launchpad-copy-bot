@@ -63,13 +63,19 @@ function contextFromPageMap({ rows, hand, cv = {}, niche = {} }) {
   const keyValueMap = {};
   const serviceParentMap = {};
   cats.forEach((c, i) => { keyValueMap[`category_${i + 1}`] = c.title; });
+  // One service_N entry per service and parent tab (22 Oct: a service under three
+  // categories, like Lawn seeding, is confirmed under each; the client block, the validator
+  // and the claims review list it under all of them, as the old sheets did with DUPLICATE rows)
   const services = byType('service');
-  services.forEach((s, i) => {
-    const key = `service_${i + 1}`;
-    keyValueMap[key] = s.title;
-    const first = (s.info.parent_keys || [])[0];
-    serviceParentMap[key] = catName.get(first) || cats[0]?.title || '';
-  });
+  let n = 0;
+  for (const s of services) {
+    const parents = (s.info.parent_keys || []).map(k => catName.get(k)).filter(Boolean);
+    for (const parent of (parents.length ? parents : [cats[0]?.title || ''])) {
+      const key = `service_${++n}`;
+      keyValueMap[key] = s.title;
+      serviceParentMap[key] = parent;
+    }
+  }
   // Folded services (the category page lists them, no page of their own): confirmed, so the
   // copy may name them (driveways under Paving Contractor), never as a card's service
   let m = 0;
