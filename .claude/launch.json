@@ -18,6 +18,14 @@
         "demo:fillout"
       ],
       "port": 3992
+    },
+    {
+      "name": "live",
+      "runtimeExecutable": "node",
+      "runtimeArgs": [
+        "server.js"
+      ],
+      "port": 3000
     }
   ]
 }

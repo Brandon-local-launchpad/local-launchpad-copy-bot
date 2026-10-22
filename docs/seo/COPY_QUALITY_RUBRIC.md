@@ -42,7 +42,7 @@ Where a test needs a client fact that isn't on file, the page passes by leaving 
 | ID | Test | Scored by | Found |
 |---|---|---|---|
 | S1 | Each card names only the services code picked for it, and never more than 3. | code: CARD-COUNT, CARD-PICK | round 2, items 2 and 9 |
-| S2 | Code's picks come from the niche's core services for the category after jobs_wanted; no card leads with a specialist service (tree bracing, artificial grass) unless it is wanted; mowing and seeding sit under Lawn Care, not Gardener; no service is in two cards. | code: decisions | round 3, item 1 |
+| S2 | With a v3 page map (21 Oct): code's picks are the category's own base service pages, jobs_wanted first, then search volume, then the niche core list, then page map order, 2 or 3 per card; each service sits in one card, except that a card with fewer than two of its own may repeat one. On the uploaded CSV path: the picks come from the niche's core services for the category after jobs_wanted; no card leads with a specialist service (tree bracing, artificial grass) unless it is wanted; mowing and seeding sit under Lawn Care, not Gardener; no service is in two cards. | code: decisions | round 3, item 1; v3 rule 21 Oct |
 | S3 | No two cards share a sentence pattern ("Our [category] work covers…", "We also handle…"), and "We also handle" appears once on the page at most. | code: CARD-PATTERN, N13 | round 3, item 2 |
 | S4 | No card calls a category a team ("our deck builder team"). | code: CAT-TEAM | round 2, item 5 |
 | S5 | The city appears in two cards at most. | code: CARD-FILLER | 15 Oct review |

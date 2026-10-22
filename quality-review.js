@@ -30,7 +30,7 @@ const CODE_ITEMS = {
   B5: { title: 'No "we worked in [allocated place]"', checks: ['WORKED'] },
   B6: { title: 'A neighbourhood in one paragraph', checks: ['REPEAT-IN'] },
   S1: { title: 'Cards name only their picked services, 3 at most', checks: ['CARD-COUNT', 'CARD-PICK'] },
-  S2: { title: 'Card picks from core services, no specialist lead, one card per service', decisions: 'cardPicks' },
+  S2: { title: 'Card picks as the rule says: 2 or 3 per card, one card per service (v3: from the category\'s own pages, by jobs_wanted then volume then the core list)', decisions: 'cardPicks' },
   S3: { title: 'No shared card sentence pattern; "We also handle" once', checks: ['CARD-PATTERN', 'N13'] },
   S4: { title: 'No "[category] team"', checks: ['CAT-TEAM'] },
   S5: { title: 'City in two cards at most', checks: ['CARD-FILLER'] },
@@ -106,7 +106,19 @@ function decisionsTests({ record, D, cv, niche }) {
   const wanted = (cv.jobs_wanted || []).map(lc);
   const problems = [];
   const seen = new Map();
+  // v3 page map path (21 Oct): the picks come from the category's own base pages, jobs_wanted,
+  // then search volume, then the core list; a card short of two may repeat one (toppedUp).
+  // The core list no longer decides the lead or the home, so only the limits are checked here.
+  const v3 = D.d9.rule === 'page_map_v3';
+  const toppedUp = new Set(Object.values(D.d9.toppedUp || {}).flat());
   for (const c of (D.d9.main || [])) {
+    if (v3) {
+      const s = c.services || [];
+      if (s.length > 3) problems.push(`${c.name} has ${s.length} services`);
+      if (s.length < 2) problems.push(`${c.name} names ${s.length ? 'only one service' : 'no services'}`);
+      for (const x of s) { if (seen.has(x) && !toppedUp.has(x)) problems.push(`"${x}" is in ${seen.get(x)} and ${c.name}`); seen.set(x, c.name); }
+      continue;
+    }
     const list = core[lc(c.name)] || [];
     const s = c.services || [];
     if (s.length > 3) problems.push(`${c.name} has ${s.length} services`);
