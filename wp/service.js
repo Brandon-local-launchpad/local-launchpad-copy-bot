@@ -80,7 +80,15 @@ function createWpService({ pool, loadRecord, saveRecordClaims, currentFacts, rev
 
     async reviewClaims(clientId, { recordId } = {}, callModel) {
       const { record, id } = await loadRecord(clientId, recordId);
-      const claims = await runClaimsReview(record, factsFromRecord(record), callModel);
+      // Today's service list, not the one the page was written with (22 Oct: a saved record
+      // can carry a list a later fix or page map change has moved on from). The stored
+      // record is not changed. If today's facts can't be made (a gate), the record's own list.
+      let forReview = record;
+      try {
+        const cur = await currentFacts(clientId, { record });
+        if (cur && cur.servicesOnFile) forReview = { ...record, meta: { ...(record.meta || {}), services_on_file: cur.servicesOnFile } };
+      } catch (_) { /* the record's own facts */ }
+      const claims = await runClaimsReview(record, factsFromRecord(forReview), callModel);
       const CLAIMS = { for: claims.for, at: claims.at, status: claims.findings.length ? 'needs acceptance' : 'clear', first_review: claims.findings.length, findings: claims.findings, rounds: [] };
       await saveRecordClaims(clientId, id, CLAIMS);
       return CLAIMS;

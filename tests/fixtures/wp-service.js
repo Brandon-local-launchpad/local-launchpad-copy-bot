@@ -56,7 +56,9 @@ console.log('\n=== FIXTURE: WordPress push service (pg-mem + fake WordPress) ===
   // Today's rules: the real check is tested in v20-edit.js against real facts. Here a
   // stub returns the stored result, or `todays` when a test sets it.
   let todays = null, factsError = null;
-  const currentFacts = async () => { if (factsError) throw new Error(factsError); return {}; };
+  // Today's facts: a review run again reads today's service list, never the record's own
+  const TODAY_SERVICES = 'Gardener: hedge trimming, weed control (today)';
+  const currentFacts = async () => { if (factsError) throw new Error(factsError); return { servicesOnFile: TODAY_SERVICES }; };
   const revalidateRecord = record => {
     const V = todays || record.VALIDATION;
     return { VALIDATION: { ...V, source: 'today' }, stored: { block: record.VALIDATION.block, flag: record.VALIDATION.flag }, differs: !!todays, added: todays ? todays.issues : [], cleared: [], factsChanged: false };
@@ -85,9 +87,11 @@ console.log('\n=== FIXTURE: WordPress push service (pg-mem + fake WordPress) ===
     // ── Test, claims review, dry run ──
     const t = await svc.test(clientId);
     chk('Connection test reports the plugin', t.status && t.status.plugin === '0.1.0' && t.status.seo === 'rankmath', JSON.stringify(t), 'plugin 0.1.0');
-    const reviewed = await svc.reviewClaims(clientId, { recordId: noClaimsId }, async () => ({ text: JSON.stringify({ findings: [{ field: 'home_final_cta_body', quote: rec.home_final_cta_body.slice(0, 30), why: 'test' }] }) }));
+    let reviewMessage = '';
+    const reviewed = await svc.reviewClaims(clientId, { recordId: noClaimsId }, async ({ message }) => { reviewMessage = message || ''; return { text: JSON.stringify({ findings: [{ field: 'home_final_cta_body', quote: rec.home_final_cta_body.slice(0, 30), why: 'test' }] }) }; });
     const stored = JSON.parse((await pool.query(`SELECT content FROM client_assets WHERE id=$1`, [noClaimsId])).rows[0].content);
     chk('Claims review on a record without one: saved onto the record', reviewed.status === 'needs acceptance' && stored.CLAIMS && stored.CLAIMS.findings.length === 1 && stored.CLAIMS.for === rec.meta.generated_at, JSON.stringify(stored.CLAIMS).slice(0, 120), 'saved');
+    chk('A review run again reads today’s service list, and the stored record keeps its own', reviewMessage.includes(TODAY_SERVICES) && (stored.meta.services_on_file || '') !== TODAY_SERVICES, reviewMessage.includes(TODAY_SERVICES) ? 'today list sent' : 'today list NOT sent', 'today list sent, record unchanged');
     let p;
     const d = await svc.dryRun(clientId, { recordId: claimsId, reviewed: true });
     chk('Dry run through the service: pushable checks pass, no payload sent to the browser, nothing written', d.pushable && d.payload === undefined && fake.state.writes === 0 && d.claims.findings.length === 1, JSON.stringify({ pushable: d.pushable, refusals: d.refusals }), 'ok');

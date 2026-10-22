@@ -3728,6 +3728,8 @@ const V20_FACTS = {
       V: v20.validationContextFor({ cv: ctx.cv, niche, decisions: D, keyValueMap: ctx.keyValueMap, serviceParentMap: ctx.serviceParentMap }),
       clientValues: v20.clientValueMap(ctx.cv, D.d1_years_trading),
       decisionsBlock: decisionsResult.decisionsBlock || null,
+      // Today's service list for a claims review run again on a saved page (22 Oct)
+      servicesOnFile: v20.servicesOnFile(ctx.keyValueMap, ctx.serviceParentMap, niche, D),
     };
   },
 };
@@ -3822,7 +3824,8 @@ for (const base of V20_PAGE_BASES) {
     const { runClaimsReview, factsFromRecord } = require('./wp/claims-review');
     const out = await v20Edit.editRecord({
       record: found.record, isLatest: !!latest && latest.id === recordId, edits, accepted, current,
-      review: rec => runClaimsReview(rec, factsFromRecord(rec), v20CallModel),
+      // The review reads today's service list, as a review run again does (22 Oct)
+      review: rec => runClaimsReview(rec, factsFromRecord(current.servicesOnFile ? { ...rec, meta: { ...(rec.meta || {}), services_on_file: current.servicesOnFile } } : rec), v20CallModel),
     });
     // The previous version keeps the acceptances made on it; the edit is a new version
     if (out.previous.CLAIMS !== found.record.CLAIMS) await v20Store.saveClaims(clientId, recordId, out.previous.CLAIMS);
