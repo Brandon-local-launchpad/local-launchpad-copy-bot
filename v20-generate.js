@@ -116,7 +116,8 @@ function buildServiceList(keyValueMap = {}, serviceParentMap = {}, niche = {}) {
 // when the custom values carry none, the categories and services in the page map
 function servicesOnFile(keyValueMap, serviceParentMap, niche, D) {
   const list = buildServiceList(keyValueMap, serviceParentMap, niche);
-  if (Object.keys(keyValueMap || {}).some(k => /^service_d+$/.test(k))) return list;
+  // (regex fixed 22 Oct 2026: it read "service_d+", so the review only ever saw the category names)
+  if (Object.keys(keyValueMap || {}).some(k => /^service_\d+$/.test(k))) return list;
   const names = [...(D.d9.main || []).map(c => c.name), ...(D.d9.alsoOffer || [])];
   return names.length ? `Categories and services on the client's site (page map): ${names.join(', ')}` : list;
 }
@@ -302,5 +303,5 @@ async function generateV20Homepage({ cv, niche, keyValueMap, serviceParentMap = 
 
 module.exports = {
   V20_MODEL, V20_PROMPT_FILE, V20_MAX_TOKENS,
-  CV_KEYS, buildV20Request, buildClientValues, clientValueMap, buildNicheEntry, buildServiceList, buildPracticeList, nicheContext, loadCore20, generateV20Homepage, validationContextFor,
+  CV_KEYS, buildV20Request, buildClientValues, clientValueMap, buildNicheEntry, buildServiceList, servicesOnFile, buildPracticeList, nicheContext, loadCore20, generateV20Homepage, validationContextFor,
 };

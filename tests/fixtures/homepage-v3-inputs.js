@@ -87,6 +87,12 @@ chk('the validator counts a folded service as confirmed', V.serviceList.some(s =
 const block = V20.buildServiceList(kv, ctx.serviceParentMap, nicheV3);
 chk('the client block lists folded services as prose only, never a card service', /Paving Contractor: block paving; also offered, no page of their own \(name in prose only, never as a card's service\): driveway landscaping/.test(block), block.split('\n').find(l => l.startsWith('Paving Contractor')), 'Paving Contractor: block paving; also offered … driveway landscaping');
 
+// The claims review reads meta.services_on_file: with services on file it must be the full
+// list, not the card names (first live v3 run, 22 Oct: a broken regex gave the reviewer only
+// the six category names, and it flagged every card's services as unconfirmed)
+const onFile = V20.servicesOnFile(kv, ctx.serviceParentMap, nicheV3, D);
+chk('the claims review gets the full service list, not the category names', onFile === block && /fencing/.test(onFile), onFile.slice(0, 120), block.slice(0, 120));
+
 // ── The old path is untouched ──
 const real = require(path.join(__dirname, 'data/edens-edge-real.js'));
 const old = computeDecisions({ cv, niche: landscaper, pages: real.pages, keyValueMap: real.keyValueMap, serviceParentMap: real.serviceParentMap, v20TestMode: true, allocationData: null }).decisions;
