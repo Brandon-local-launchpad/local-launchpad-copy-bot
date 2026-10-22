@@ -63,6 +63,20 @@ function inputsFor(name) {
       pack: 'Landscaper_Calibration_Pack_v4.md', packName: 'Landscaper Gardener',
     };
   }
+  if (name === 'edens-edge-v3') {
+    // The v3 page map path (22 Oct): the live rows snapshot and the hand set-up, as loadV20Context builds them
+    const { contextFromPageMap } = require(path.join(root, 'v20-context-v3.js'));
+    const { rows } = require(path.join(root, 'tests/fixtures/data/edens-edge-v3-page-map.json'));
+    const snap = JSON.parse(fs.readFileSync(path.join(root, 'tests/live-snapshots/edens-edge.json'), 'utf8'));
+    const niche = { ...require(path.join(root, 'niche-library/landscaper.json')), service_words: [] };
+    const hand = { baseTown: 'Southampton', otherTowns: ['Romsey', 'Winchester', 'Eastleigh', 'Chandlers Ford', 'Ampfield', 'Stockbridge', 'Awbridge', 'Chilworth', 'Hedge End', 'Lyndhurst', 'New Forest District', 'Lockerley', 'Kings Worthy'].join('\n') };
+    const ctx = contextFromPageMap({ rows, hand, cv: snap.cv, niche });
+    return {
+      cv: snap.cv, niche, pages: ctx.pages, keyValueMap: ctx.keyValueMap, serviceParentMap: ctx.serviceParentMap, cardServices: ctx.cardServices,
+      v20TestMode: snap.v20TestMode, allocationData: snap.allocated, faqResearch: snap.faqResearch,
+      pack: 'Landscaper_Calibration_Pack_v4.md', packName: 'Landscaper Gardener',
+    };
+  }
   const file = { 'kestrel-rich': 'kestrel-ridge-rich', 'kestrel-thin': 'kestrel-ridge-thin-page' }[name];
   if (!file) throw new Error(`Unknown client "${name}": edens-edge, kestrel-rich or kestrel-thin.`);
   const d = require(path.join(root, 'tests/fixtures/data', `${file}.js`));
@@ -78,13 +92,21 @@ function inputsFor(name) {
   const name = process.argv[2];
   const reviewDir = process.argv[3] === '--review' ? process.argv[4] : null;
   const I = inputsFor(name);
-  const DR = computeDecisions({ cv: I.cv, niche: I.niche, pages: I.pages, keyValueMap: I.keyValueMap, serviceParentMap: I.serviceParentMap, v20TestMode: I.v20TestMode, allocationData: I.allocationData, faqResearch: I.faqResearch });
+  const DR = computeDecisions({ cv: I.cv, niche: I.niche, pages: I.pages, keyValueMap: I.keyValueMap, serviceParentMap: I.serviceParentMap, v20TestMode: I.v20TestMode, allocationData: I.allocationData, faqResearch: I.faqResearch, cardServices: I.cardServices || null });
   if (DR.gates.length) { console.error('GATES:', DR.gates); process.exit(1); }
   const t0 = Date.now();
   let record, dir;
   if (reviewDir) {
     dir = reviewDir;
     record = JSON.parse(fs.readFileSync(path.join(dir, 'record.json'), 'utf8'));
+    // A record pulled from the live app without its client block (too big to carry):
+    // rebuild the facts the reviewer reads from the same inputs
+    record.meta = record.meta || {};
+    if (!record.meta.client_block) {
+      const req = G.buildV20Request({ cv: I.cv, niche: I.niche, decisions: DR.decisions, decisionsBlock: DR.decisionsBlock, calibrationPack: '', ctx: G.nicheContext(I.cv, I.niche, I.keyValueMap), keyValueMap: I.keyValueMap, serviceParentMap: I.serviceParentMap });
+      record.meta.client_block = req.clientBlock;
+      record.meta.services_on_file = G.servicesOnFile(I.keyValueMap, I.serviceParentMap, I.niche, DR.decisions);
+    }
   } else {
     record = await G.generateV20Homepage({
       cv: I.cv, niche: I.niche, keyValueMap: I.keyValueMap, serviceParentMap: I.serviceParentMap, decisionsResult: DR,

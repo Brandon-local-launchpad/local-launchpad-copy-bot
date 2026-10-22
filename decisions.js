@@ -710,8 +710,11 @@ function computeDecisions({ cv, niche, pages, keyValueMap, serviceParentMap, v20
   const primaryCategory = cv.primary_category || keyValueMap['category_1'] || '';
   const cardServicePages = cardServices ? [] : homepageServicePages(pages, primaryCategory, keyValueMap, serviceParentMap || {});
   const d9 = buildServiceCards(pages, niche, cardServicePages);
-  if (cardServices) d9.main.forEach(c => { c.services = (cardServices.picks || {})[(c.name || '').toLowerCase().trim()] || []; });
-  else pickCardServices(d9.main, cv, keyValueMap, serviceParentMap || {}, niche);
+  if (cardServices) {
+    d9.main.forEach(c => { c.services = (cardServices.picks || {})[(c.name || '').toLowerCase().trim()] || []; });
+    d9.rule = 'page_map_v3';
+    d9.toppedUp = cardServices.toppedUp || {};
+  } else pickCardServices(d9.main, cv, keyValueMap, serviceParentMap || {}, niche);
   assignCardShapes(d9.main);
   if (d9.overflowServiceCount > 6) {
     flags.push({ code: 'F-MORE-SERVICES', msg: `${d9.overflowServiceCount} primary-category services overflow; only the first 6 are shown in "We also offer".` });
