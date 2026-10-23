@@ -199,6 +199,7 @@ const stubLeadsnap = {
   listHeatmaps: async () => { lsCalls.push('listHeatmaps'); return LS.heatmaps_list_since; },
   createSchedule: async body => { lsCalls.push('createSchedule'); return LS.schedule_create[body.heatmap_config.keywords[0]]; },
   getSchedule: async () => { lsCalls.push('getSchedule'); return {}; },
+  listSchedules: async () => { lsCalls.push('listSchedules'); return LS.schedules_list.data; },
   updateSchedule: async () => { lsCalls.push('updateSchedule'); return {}; },
   pauseSchedule: async () => { lsCalls.push('pause'); return LS.schedule_pause; },
   resumeSchedule: async () => { lsCalls.push('resume'); return LS.schedule_resume; },
@@ -457,7 +458,7 @@ function fakeModel(opts = {}) {
     chk('refresh: one heatmap still running, the others stored with their scores; no schedules yet; only reads were made', v.scans.pending === 1 && v.scans.scans.find(s => s.heatmap_id === 9003).status === 'completed' && v.scans.scans.find(s => s.heatmap_id === 9003).top_3_percentage === 44.4 && v.scans.scans.find(s => s.heatmap_id === 9003).share_url && v.scans.schedules.items.length === 0 && !lsCalls.includes('createHeatmap') && !lsCalls.includes('createSchedule'), JSON.stringify([v.scans.pending, lsCalls]), '');
     heatmap9001Pending = false;
     v = await (await req('POST', `/api/clients/${c.id}/gbp/scans/refresh`)).json();
-    chk('refresh again: the main heatmap completes, its competitors are saved as the LeadSnap competitors, LeadSnap\'s place id lands on the settings, two monthly schedules created', v.scans.pending === 0 && v.leadsnapCompetitors && v.leadsnapCompetitors.competitors[0].name === 'Solent Landscapes' && v.leadsnapCompetitors.keyword === 'Landscaper Southampton' && v.scans.settings.place.leadsnap_place_id === 555001 && v.scans.schedules.items.length === 4 && v.scans.schedules.items[0].schedule_id === 6501 && v.files['competitors_leadsnap.json'] && v.files['schedules.json'] && v.files['scans.json'], JSON.stringify([v.scans.pending, v.scans.schedules.items.map(i => i.name)]), '');
+    chk('refresh again: the main heatmap completes, its competitors are saved as the LeadSnap competitors, LeadSnap\'s place id lands on the settings, two monthly schedules created', v.scans.pending === 0 && v.leadsnapCompetitors && v.leadsnapCompetitors.competitors[0].name === 'Solent Landscapes' && v.leadsnapCompetitors.keyword === 'Landscaper Southampton' && v.scans.settings.place.leadsnap_place_id === 555001 && v.scans.schedules.items.length === 4 && v.scans.schedules.items[0].schedule_id === 6501 && v.scans.schedules.items.every(i => i.schedule_id !== undefined && i.schedule_id !== null) && v.scans.schedules.items.find(i => /Block Paving/.test(i.name)).schedule_id === 6505 && v.files['competitors_leadsnap.json'] && v.files['schedules.json'] && v.files['scans.json'], JSON.stringify([v.scans.pending, v.scans.schedules.items.map(i => i.name)]), '');
     chk('the baseline table: all four keywords marked baseline', v.scans.table.length === 4 && v.scans.table.every(t => t.months[0].is_baseline) && v.scans.alerts.length === 0, JSON.stringify(v.scans.table.map(t => t.months)), '');
     v = await (await req('POST', `/api/clients/${c.id}/gbp/scans/fetch`)).json();
     chk('fetch latest: the November heatmap for our keyword added; the known baseline and the other keywords skipped', v.added.length === 1 && v.added[0].month === '2026-11' && v.scans.count === 5 && v.scans.schedules.last_fetch_at, JSON.stringify(v.added), '');
@@ -488,6 +489,15 @@ function fakeModel(opts = {}) {
     const sj2 = await (await req('GET', `/clients/edens-edge-landscaping/gbp/scans.json`)).json();
     chk('scans.json keeps the superseded rows apart', sj2.scans.length === 4 && sj2.superseded.length === 5 && sj2.superseded.every(x => x.superseded && x.superseded_at), JSON.stringify([sj2.scans.length, sj2.superseded.length]), '');
     resetMode = false;
+    // Schedules stored without an id (the live create answer carried none): pause-previous looks them up by name
+    const { rows: schedRows } = await pool.query(`SELECT id, content FROM client_assets WHERE client_id=$1 AND asset_type='gbp_schedules'`, [c.id]);
+    const sd = JSON.parse(schedRows[0].content);
+    sd.previous.push({ items: [{ keyword: 'Landscaper Southampton', name: 'Edens Edge Landscaping Landscaper Southampton monthly', status: 'active' }, { keyword: 'Artificial grass installation Southampton', name: 'Edens Edge Landscaping Artificial grass installation Southampton monthly', status: 'active', pause_error: 'LeadSnap POST /heatmap/schedules/undefined/pause: no query results' }, { keyword: 'Patios Southampton', name: 'Edens Edge Landscaping Patios Southampton monthly', status: 'active' }], superseded_at: '2026-12-01T10:00:00Z' });
+    await pool.query(`UPDATE client_assets SET content=$1 WHERE id=$2`, [JSON.stringify(sd), schedRows[0].id]);
+    lsCalls.length = 0;
+    v = await (await req('POST', `/api/clients/${c.id}/gbp/schedules/pause-previous`)).json();
+    const pp = v.paused_previous;
+    chk('pause-previous: ids found on LeadSnap by name are paused and stored; one not found is reported', pp.filter(x => x.status === 'paused').length >= 2 && pp.some(x => /Patios/.test(x.name) && x.status === 'unknown') && lsCalls.includes('listSchedules') && v.scans.schedules.previous.some(set => set.items.some(i => i.schedule_id === 7101 && i.status === 'paused' && i.id_from)), JSON.stringify(pp), '');
   } finally { srv.close(); }
 
   console.log(`\n${pass} passed, ${fail} failed`);

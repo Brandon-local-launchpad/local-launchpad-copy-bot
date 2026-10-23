@@ -131,6 +131,24 @@ function mountGbpApi(app, { pool, loadInputs, callModel, log = console, search =
     return next;
   }
 
+  // The schedule's id and status from a create or list answer, bare or wrapped (data, schedule, heatmap_schedule)
+  function scheduleIdOf(made) {
+    const o = made && typeof made === 'object' ? (made.data && typeof made.data === 'object' && !Array.isArray(made.data) ? made.data : made.schedule || made.heatmap_schedule || made) : {};
+    return { id: o.id !== undefined ? o.id : null, status: o.status || (o.schedule_config && o.schedule_config.status) || null };
+  }
+  // A stored schedule with no id gets it from LeadSnap's list, matched by name
+  async function resolveScheduleIds(items) {
+    const missing = items.filter(i => i.schedule_id === undefined || i.schedule_id === null);
+    if (!missing.length) return 0;
+    const ls = needLeadsnap();
+    const listed = await ls.listSchedules();
+    let fixed = 0;
+    for (const item of missing) {
+      const hit = listed.find(x => { const o = scheduleIdOf(x); const name = x.name || (x.heatmap_config && x.heatmap_config.name) || ''; return o.id !== null && name === item.name; });
+      if (hit) { const o = scheduleIdOf(hit); item.schedule_id = o.id; item.status = o.status || item.status; item.id_from = 'the LeadSnap list, by name'; delete item.pause_error; fixed++; }
+    }
+    return fixed;
+  }
   // One monthly schedule per keyword once every baseline heatmap has completed
   async function ensureSchedules(clientId, settings, scans) {
     const ls = needLeadsnap();
@@ -142,7 +160,10 @@ function mountGbpApi(app, { pool, loadInputs, callModel, log = console, search =
     for (const s of baseline) {
       const body = SC.scheduleBody(settings, s.keyword, s.points || [], { clientName: settings.client, baselineAt: s.created_at, locationId: settings.place.leadsnap_location_id });
       const made = await ls.createSchedule(body);
-      data.items.push({ keyword: s.keyword, kind: s.kind, schedule_id: made.id, name: body.heatmap_config.name, status: made.status || 'active', repeat_on: body.schedule_config.repeat_on, created_at: new Date().toISOString() });
+      // The live API wraps the created schedule (the docs show it bare): take the id wherever it sits,
+      // and keep the raw answer so a missing id can be seen
+      const found = scheduleIdOf(made);
+      data.items.push({ keyword: s.keyword, kind: s.kind, schedule_id: found.id, name: body.heatmap_config.name, status: found.status || 'active', repeat_on: body.schedule_config.repeat_on, created_at: new Date().toISOString(), raw: made });
     }
     data.created_at = new Date().toISOString();
     await store.saveSchedules(clientId, data);
@@ -308,10 +329,13 @@ function mountGbpApi(app, { pool, loadInputs, callModel, log = console, search =
     const I = await loadInputs(clientId);
     const cv = I.validatorCtx.cv || {};
     const at = new Date().toISOString();
-    // Schedules: paused on LeadSnap and kept as the previous set
+    // Schedules: paused on LeadSnap and kept as the previous set (an id missing from the create
+    // answer is looked up by name first)
     const sched = await store.schedules(clientId);
+    await resolveScheduleIds(sched.items).catch(e => log.error('[gbp] schedule ids not resolved:', e.message));
     const paused = [];
     for (const item of sched.items) {
+      if (item.schedule_id === undefined || item.schedule_id === null) { item.pause_error = 'no schedule id: not found on LeadSnap by name'; continue; }
       if (item.status !== 'paused') { try { await ls.pauseSchedule(item.schedule_id); item.status = 'paused'; item.paused_at = at; paused.push(item.schedule_id); } catch (e) { item.pause_error = e.message; } }
     }
     const previous = { ...sched, superseded_at: at };
@@ -372,6 +396,25 @@ function mountGbpApi(app, { pool, loadInputs, callModel, log = console, search =
     await store.saveSchedules(clientId, data);
     log.log(`[gbp] fetched scans for ${clientId}: ${added.length} new since ${since}`);
     res.json(await view(clientId, { added }));
+  }));
+
+  // Pause every schedule from before a reset that is still active on LeadSnap (ids looked up by name)
+  app.post('/api/clients/:clientId/gbp/schedules/pause-previous', wrap(async (req, res) => {
+    const { clientId } = req.params;
+    const ls = needLeadsnap();
+    const data = await store.schedules(clientId);
+    const result = [];
+    for (const set of data.previous || []) {
+      await resolveScheduleIds(set.items).catch(e => log.error('[gbp] previous schedule ids not resolved:', e.message));
+      for (const item of set.items) {
+        if (item.status === 'paused') { result.push({ name: item.name, status: 'paused' }); continue; }
+        if (item.schedule_id === undefined || item.schedule_id === null) { result.push({ name: item.name, status: 'unknown', error: 'not found on LeadSnap by name' }); continue; }
+        try { await ls.pauseSchedule(item.schedule_id); item.status = 'paused'; item.paused_at = new Date().toISOString(); delete item.pause_error; result.push({ name: item.name, schedule_id: item.schedule_id, status: 'paused' }); }
+        catch (e) { item.pause_error = e.message; result.push({ name: item.name, schedule_id: item.schedule_id, status: item.status, error: e.message }); }
+      }
+    }
+    await store.saveSchedules(clientId, data);
+    res.json(await view(clientId, { paused_previous: result }));
   }));
 
   app.post('/api/clients/:clientId/gbp/schedules/:scheduleId/:action', wrap(async (req, res) => {

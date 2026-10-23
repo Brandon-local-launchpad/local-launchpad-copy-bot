@@ -697,18 +697,20 @@
       }
     },
     "Block Paving Southampton": {
-      "id": 6505,
-      "place_id": 555001,
-      "keywords": [
-        "Block Paving Southampton"
-      ],
-      "name": "Edens Edge Landscaping Block Paving Southampton monthly",
-      "grid_size": 13,
-      "status": "active",
-      "schedule_config": {
-        "repeat_type": "month",
-        "repeat_on": "23",
-        "status": "active"
+      "data": {
+        "id": 6505,
+        "place_id": 555001,
+        "keywords": [
+          "Block Paving Southampton"
+        ],
+        "name": "Edens Edge Landscaping Block Paving Southampton monthly",
+        "grid_size": 13,
+        "status": "active",
+        "schedule_config": {
+          "repeat_type": "month",
+          "repeat_on": "23",
+          "status": "active"
+        }
       }
     }
   },
@@ -765,5 +767,20 @@
         "google_place_id": "ChIJ_edens_edge_own"
       }
     }
+  },
+  "schedules_list": {
+    "data": [
+      {
+        "id": 7101,
+        "name": "Edens Edge Landscaping Landscaper Southampton monthly",
+        "status": "active"
+      },
+      {
+        "id": 7102,
+        "name": "Edens Edge Landscaping Artificial grass installation Southampton monthly",
+        "status": "active"
+      }
+    ],
+    "total": 2
   }
 }

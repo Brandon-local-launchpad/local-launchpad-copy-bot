@@ -51,6 +51,7 @@ function createLeadsnapClient({ token = process.env.LEADSNAP_API_TOKEN, baseUrl 
     getHeatmapCompetitors: id => call('GET', `/heatmaps/${encodeURIComponent(id)}/competitors`),
     listHeatmaps: async (query = {}) => await call('GET', '/heatmaps', { query: { per_page: 50, sort: '-created_at', ...query } }),
     // Schedules (a scheduled run spends credits when it runs)
+    listSchedules: async (query = {}) => rows(await call('GET', '/heatmap/schedules', { query: { per_page: 100, ...query } })),
     createSchedule: body => call('POST', '/heatmap/schedules', { body }),
     getSchedule: id => call('GET', `/heatmap/schedules/${encodeURIComponent(id)}`),
     updateSchedule: (id, body) => call('PATCH', `/heatmap/schedules/${encodeURIComponent(id)}`, { body }),
