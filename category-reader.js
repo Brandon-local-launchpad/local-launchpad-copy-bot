@@ -43,12 +43,12 @@ function buildCategoryReaderView(record, values = {}) {
   push(`## ${r(record.cat_content_h2)}`, '', r(record[LABELS.content]), '');
 
   // Block 4
-  push(`## ${r(record.cat_problems_h2)}`, '');
-  for (const p of record.problems || []) push(`### ${r(p.problem_title)}`, '', r(p.problem_body), '');
+  push(`## ${r(record.cat_block4_h2)}`, '');
+  for (const p of record.block4 || []) push(`### ${r(p.card_title)}`, '', r(p.card_body), '');
 
   // Block 5
-  push(`## ${r(record.cat_cost_h2)}`, '', r(record[LABELS.costIntro]), '');
-  for (const p of record.cost_factors || []) push(`### ${r(p.factor_title)}`, '', r(p.factor_body), '');
+  push(`## ${r(record.cat_block5_h2)}`, '', r(record[LABELS.costIntro]), '');
+  for (const p of record.block5 || []) push(`### ${r(p.card_title)}`, '', r(p.card_body), '');
   if (record.cat_cost_price_line) push(`*Price list: ${r(record.cat_cost_price_line)}*`, '');
 
   // Reviews

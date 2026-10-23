@@ -252,7 +252,7 @@ function validateCommon(record, V) {
     // LEAK (16 Oct, copy quality loop): a field label or the data behind the copy shows on the
     // page ("card_text (Lawn Care Service): …", "Because yes is confirmed for urgent leaks")
     {
-      const lab = s.match(/^\s*(?:card_text|card_name|faq_answer|faq_question|point_body|point_title|step_body|step_title|problem_body|problem_title|factor_body|factor_title|home_[a-z_]+|cat_[a-z_]+)\b[^:\n]{0,60}:/i);
+      const lab = s.match(/^\s*(?:card_text|card_name|faq_answer|faq_question|point_body|point_title|step_body|step_title|card_title|card_body|home_[a-z_]+|cat_[a-z_]+)\b[^:\n]{0,60}:/i);
       if (lab) flag('BLOCK', 'LEAK', `The text starts with a field label ("${lab[0].trim()}"). Write only the copy.`);
       const data = s.match(/\b(?:is|are|isn't|aren't|been|as) confirmed\b|\byes is\b|\bon file\b|\bclient values?\b|\bcustom values?\b|\bCVTOKEN\s*=/i);
       if (data) flag('BLOCK', 'LEAK', `"${data[0]}" talks about the data behind the page. Say the fact itself, the way the owner would.`);

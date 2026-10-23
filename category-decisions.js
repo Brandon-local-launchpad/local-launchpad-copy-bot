@@ -418,11 +418,11 @@ function formatCategoryBlock(D, cv, niche, ctx) {
   for (const c of D.cards) push(`    - card_name: ${c.name} | card_text`);
   push(`  ${PT.LABELS.alsoOffered}${D.alsoOffered.length ? '' : ' (HIDDEN)'}`);
   push(`  ${PT.LABELS.content}`);
-  push(`  ${PT.LABELS.problems}`);
-  for (const p of D.problems) push(`    - ${PT.LIST_KEYS[PT.LABELS.problems][0]}: ${p.title} | ${PT.LIST_KEYS[PT.LABELS.problems][1]}`);
+  push(`  ${PT.LABELS.block4}`);
+  for (const p of D.problems) push(`    - ${PT.LIST_KEYS[PT.LABELS.block4][0]}: ${p.title} | ${PT.LIST_KEYS[PT.LABELS.block4][1]}`);
   push(`  ${PT.LABELS.costIntro}`);
-  push(`  ${PT.LABELS.cost}`);
-  for (const p of D.cost) push(`    - ${PT.LIST_KEYS[PT.LABELS.cost][0]}: ${p.title} | ${PT.LIST_KEYS[PT.LABELS.cost][1]}`);
+  push(`  ${PT.LABELS.block5}`);
+  for (const p of D.cost) push(`    - ${PT.LIST_KEYS[PT.LABELS.block5][0]}: ${p.title} | ${PT.LIST_KEYS[PT.LABELS.block5][1]}`);
   push(`  ${PT.LABELS.steps}`);
   for (const s of D.niche_steps) push(`    - step_title: ${s.title} | step_body`);
   push(`  ${PT.LABELS.areasIntro}`);

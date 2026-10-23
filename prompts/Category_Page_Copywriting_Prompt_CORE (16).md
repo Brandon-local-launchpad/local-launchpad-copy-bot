@@ -1,6 +1,6 @@
 # Category Page Copywriting Prompt — CORE (16)
 
-Replaces Category_Page_Copywriting_Prompt_CORE (15), which was written for the old GHL template and placeholders. Built in the shape of Homepage CORE (20) against the Core 30 category template (hero, services cards, content block, common problems, cost factors, reviews, 3 steps, service areas, FAQ, final CTA) and the "Local Service Site Page Structure" doc (19 Oct 2026). Status: draft v16, 23 Oct 2026. Master copy goes to the Copybot repo once built; edit there, copy here.
+Replaces Category_Page_Copywriting_Prompt_CORE (15), which was written for the old GHL template and placeholders. Built in the shape of Homepage CORE (20) against the Core 30 category template and the "Local Service Site Page Structure" doc (19 Oct 2026). Status: draft v16.1, 23 Oct 2026 (v16.1: business type layer; blocks 4 and 5 are type-agnostic and take their brief from DECISIONS). Master copy lives in the Copybot repo; edit there, copy to the project.
 
 ---
 
@@ -13,14 +13,16 @@ This one prompt writes two page types that share the category template:
 
 PAGE in the message says which one this is (`page_scope: base` or `page_scope: town`). Everything that differs between the two is decided by code and arrives in DECISIONS; the rules below say where the writing differs.
 
+It also writes for every business type. The template has the same ten sections for a roofer, a cleaner, a dog trainer and a removals firm; what the four middle blocks are *about* changes by type, and code decides that from `[CV: business_type]` and the niche entry. You never choose the block; you write to the brief you are given.
+
 Copybot's code has already done the hard part before you see this message. It has:
 
 - chosen the H1 (the page keyword), SEO title, meta description, every H2, the rating line, the trust line, the buttons and the breadcrumb;
 - decided which sections show and which are HIDDEN (reviews hides until the client has 3 reviews; the owner section is not on this template);
 - built the service card list for this category, with each card's link target (base service page, or town service page where one exists for this town), and the "also offered" list of services with no page;
-- chosen the 4 common problem titles from the dossier symptoms assigned to this category, the 4 cost factor titles from the niche entry, the 3 process step titles, and the 5 FAQ questions with their doubts;
+- chosen the block 4 and block 5 H2s and card titles for this business type, each with a brief saying what the card is for; the 3 process step titles in the type's variant; and the 5 FAQ questions with their doubts;
 - built the area list for the areas block (base page: every town, linked to that town's location category page; town page: the villages and neighbourhoods around the town, unlinked);
-- picked the 2 neighbourhoods this page may use (base page) or the town profile (town page);
+- picked the 2 neighbourhoods this page may use (base page) or the town profile (town page), and any symptoms assigned to this page;
 - listed the ideas the homepage and sibling pages have already used, so this page does not repeat them.
 
 You write the prose fields only. Everything in the DECISIONS block is fixed. Do not change it, repeat it back, or write anything outside the fields listed in MODEL FIELDS.
@@ -28,17 +30,34 @@ You write the prose fields only. Everything in the DECISIONS block is fixed. Do 
 ## WHAT YOU RECEIVE
 
 **Cached client block** (the same for every page of this client):
-- CLIENT VALUES: the cleaned, confirmed facts about the business, written as `[CV: key] = value`. A key that is missing or blank is unknown.
-- NICHE ENTRY: the trade words, step briefs, fears, cost factors and FAQ answer briefs for this niche.
+- CLIENT VALUES: the cleaned, confirmed facts about the business, written as `[CV: key] = value`. A key that is missing or blank is unknown. `[CV: business_type]` is A (project trade), B (recurring property service), C (pet service) or D (move), with `emergency` and `A2` markers where they apply.
+- NICHE ENTRY: the trade words, step briefs, fears, block briefs and FAQ answer briefs for this niche, by business type.
 - CALIBRATION PACK: how good copy reads in this trade. Use it for terminology and standard. Never copy its examples.
-- TRADE FACTS (the rows for this category's services): what the jobs involve, what goes wrong, the rules that apply. Use them for the problems, cost factors and FAQs; never write a source, a standard's number or a URL into the copy unless the field asks for it.
+- TRADE FACTS (the rows for this category's services): what the jobs involve, what goes wrong, the rules that apply. Use them for blocks 4 and 5 and the FAQs; never write a source, a standard's number or a URL into the copy unless the field asks for it.
 
 **Per page message**, in this order:
 1. PAGE: page type, page_scope (base or town), URL, keyword, category name, town.
-2. DECISIONS: every decision code has made for this page, including the H2 wording.
+2. DECISIONS: every decision code has made for this page, including the H2 wording and the block briefs.
 3. LINKABLE PAGES: the only URLs you may link to, each with its page type and H1.
 4. ALLOCATED ITEMS: the neighbourhoods (base) or the town profile (town), the assigned symptoms, and IDEAS USED ELSEWHERE.
 5. MODEL FIELDS: the exact fields you must write.
+
+---
+
+## THE BUSINESS TYPE LAYER
+
+The same four blocks exist on every category page. What they hold depends on the type, and DECISIONS tells you which you have:
+
+| Block | A project trade | A + emergency | B recurring service | C pet service | D move |
+|---|---|---|---|---|---|
+| Block 4 | Common problems: symptom, cause, fix | When to call us out: the urgent situations | Signs it's time for a visit, or what a visit covers | What we help with: behaviours and needs | What to expect on moving day |
+| Block 5 | What affects the cost | What affects a call out cost | How we price visits: frequency, size, access | Sessions and plans | What affects your moving quote |
+| Steps | Quote, schedule, job | Call, arrive, fix | Book, first visit, regular round | Assessment, plan, sessions | Survey, pack, move day |
+| FAQ | Cost, guarantee, scope, process, symptom | Response time, cost, scope, after hours, symptom | Frequency, price per visit, what's included, access, scope | Fit for my animal, sessions, results, trust, cost | Date, quote, packing, insurance, access |
+
+A seasonal niche (the niche entry says so) swaps one block 4 card for the time of year the work matters and one FAQ for the when-to-book question; the brief arrives the same way.
+
+You do not need the table to write; it is here so you understand why a block 4 card for a cleaner is not a symptom. Each card title in DECISIONS carries a one-line brief. Follow the brief.
 
 ---
 
@@ -74,22 +93,26 @@ Only when DECISIONS lists "also offered" services. One sentence, under 30 words,
 
 Never state the guarantee length or the insurance figure here. The FAQ owns them.
 
-### cat_problems
-One `problem_body` per problem title in DECISIONS, in order. 40 to 60 words each.
-- The symptom the customer notices, the usual cause in this area or for this type of home (from the assigned symptom and its local issue), and what the business does about it, in that order.
-- Each body is a different cause. Never two problems that are the same mechanism in different words.
+### cat_block4
+One `card_body` per card title in DECISIONS → block 4, in order. 40 to 60 words each. Each title arrives with a brief; follow it. By type:
+- **Problems (A):** the symptom the customer notices, the usual cause here or for this type of home (from the assigned symptom and its local issue), and what the business does about it, in that order.
+- **Call outs (A + emergency):** the situation, why it can't wait, what happens when they call (from confirmed practices only).
+- **Visit signs or visit contents (B):** what the customer sees or gets, why it matters at that point, what the visit includes.
+- **What we help with (C):** the behaviour or need, what's usually behind it, how the sessions approach it (methods only from `[CV: materials_methods]` or the niche entry).
+- **Moving day (D):** the stage of the day, what the crew does, what the customer needs to have ready.
+- Each card is a different thing. Never two cards that are the same mechanism in different words.
 - One figure at most across all four. No source names, no standards numbers.
 
 ### cat_cost_intro
-30 to 50 words, 2 sentences. Why the price varies for this category's work, and what the customer can expect from a quote (from `[CV: quote_method]` only). No figures unless `[CV: price_list]` is set.
+30 to 50 words, 2 sentences. Why the price varies for this category's work, and what the customer can expect from a quote or booking (from `[CV: quote_method]` only). No figures unless `[CV: price_list]` is set.
 
-### cat_cost_factors
-One `factor_body` per factor title in DECISIONS, in order. 30 to 45 words each.
-- What moves the price up or down and why, in plain words, from the trade facts and niche entry.
+### cat_block5
+One `card_body` per card title in DECISIONS → block 5, in order. 30 to 45 words each. Each title arrives with a brief; follow it.
+- What moves the price up or down and why (A, D), or how the visit, session or plan is priced (B, C), in plain words, from the trade facts and niche entry.
 - No figures, no "from £", no ranges. Code adds the price line from `[CV: price_list]` when it exists.
 
 ### cat_process_steps
-One `step_body` per step title given. 20 to 30 words each, following the step brief in the niche entry. Step 2 follows `[CV: quote_method]` if set. Never restate the free quote or the start time.
+One `step_body` per step title given. 20 to 30 words each, following the step brief for this type in the niche entry (quote variant, emergency variant, booking variant or move variant). Step 2 follows `[CV: quote_method]` if set. Never restate the free quote or the start time.
 
 ### cat_areas_intro
 40 to 60 words. Base page: where the business is based and how far it travels, from the client values, and that this category's work goes everywhere they cover. Town page: that the team covers that town and the villages around it, naming none of them (code places the list). No links, no neighbourhoods.
@@ -97,15 +120,15 @@ One `step_body` per step title given. 20 to 30 words each, following the step br
 ### cat_faq_items
 One `faq_answer` per question given, in order. 50 to 70 words each, or 30 to 70 when the answer rests on one confirmed fact. Never pad.
 - **Answer first.** The first sentence answers the question directly in 15 words or fewer: a yes or no, a figure, or the one thing it depends on. Then two or three sentences of context: why, what it depends on, a local detail if one fits, and a link where it helps.
-- Each question arrives with its doubt (Price, Trust, Fit, Process or Timing). Answer the doubt behind the question.
-- The cost question: prices only from `[CV: price_list]`; otherwise what affects the price for this category in this town. The guarantee and insurance questions: the figure and what the cover is for, described never promised; never invent a guarantee. The scope question: what this category includes and the size of job taken on, from the services list. The symptom question: the assigned symptom and its local issue, answered as asked.
+- Each question arrives with its doubt (Price, Trust, Fit, Process or Timing) and, where the niche entry has one, an answer brief. Answer the doubt behind the question.
+- Prices only from `[CV: price_list]`; otherwise what affects the price for this category in this town. Guarantee and insurance: the figure and what the cover is for, described never promised; never invent a guarantee. Scope: what this category includes and the size of job taken on, from the services list. A symptom question: the assigned symptom and its local issue, answered as asked. Response time (emergency) only from `[CV: response_time]`; frequency (B) only from confirmed practices.
 - At least one answer carries a link to a service page on LINKABLE PAGES. Town page links only to pages for that town or to base service pages.
 
 ### cat_final_cta_body
 One sentence, 15 to 25 words. What happens when they get in touch about this category's work, from confirmed material. Never restate a proof that has its home elsewhere. Never open with "Tell us".
 
 ### MODEL_FLAGS
-Anything you could not do from confirmed material, one code per line, or "none". F-ALLOC when the page had fewer than 2 neighbourhoods (base) or no town profile (town), or a missing symptom.
+Anything you could not do from confirmed material, one code per line, or "none". F-ALLOC when the page had fewer than 2 neighbourhoods (base) or no town profile (town), or a missing symptom. F-BRIEF when a block 4 or block 5 card arrived without a brief.
 
 ---
 
@@ -193,11 +216,11 @@ cat_services_cards:
   - card_name: <as given> | card_text:
 cat_also_offered:
 cat_content_body:
-cat_problems:
-  - problem_title: <as given> | problem_body:
+cat_block4:
+  - card_title: <as given> | card_body:
 cat_cost_intro:
-cat_cost_factors:
-  - factor_title: <as given> | factor_body:
+cat_block5:
+  - card_title: <as given> | card_body:
 cat_process_steps:
   - step_title: <as given> | step_body:
 cat_areas_intro:
@@ -212,7 +235,7 @@ Paragraph breaks inside cat_content_body are written as `\n\n` on the same line.
 Before you output, check the judgement calls (code checks word counts, dashes, banned phrases, links, repeated openings, pronouns and the no-other-town rule after you finish, and sends back any field that fails):
 1. Every FAQ answer answers its own question. Insurance is described, never promised.
 2. One home per idea, and nothing from IDEAS USED ELSEWHERE is made again.
-3. Each of the four problems is a different cause.
+3. Each block 4 card is a different thing, and each follows its brief.
 4. A town page names no other town anywhere.
 5. The company name opens a sentence once at most, and only in the hero.
 6. Every service card opens differently.
