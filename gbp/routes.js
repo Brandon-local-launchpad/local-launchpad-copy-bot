@@ -15,7 +15,7 @@ const { runGbp, filesFor, STEPS } = require('./generate');
 const { buildProfile } = require('./profile');
 const { runCompetitorCheck, compareRuns, primaryReading, findDuplicates } = require('./competitors');
 const { checkLandingPage, fetchHtml } = require('./landing-page');
-const { searchPlaces } = require('./places');
+const { searchPlaces, locateClient } = require('./places');
 
 const CONTENT_TYPES = { 'description.txt': 'text/plain; charset=utf-8', 'services.csv': 'text/csv; charset=utf-8', 'products.csv': 'text/csv; charset=utf-8', 'validation.json': 'application/json; charset=utf-8', 'nap.json': 'application/json; charset=utf-8', 'note.txt': 'text/plain; charset=utf-8', 'competitors.json': 'application/json; charset=utf-8', 'duplicates.json': 'application/json; charset=utf-8', 'landing_page.json': 'application/json; charset=utf-8' };
 
@@ -27,7 +27,9 @@ function profileFiles(I, record, competitors) {
 
 // Batch 2 options: search(textQuery) → [place] (the Places client; the fixture records
 // it), fetchPage(url) → { finalUrl, html }, saveClientValue(clientId, key, value)
-function mountGbpApi(app, { pool, loadInputs, callModel, log = console, search = q => searchPlaces(q), fetchPage = fetchHtml, saveClientValue = null }) {
+// locate({ placeId, address, town }) → { lat, lng, from } or null: the client's position for the map signal
+function mountGbpApi(app, { pool, loadInputs, callModel, log = console, search = q => searchPlaces(q), fetchPage = fetchHtml, saveClientValue = null, locate = null }) {
+  const locateFn = locate || (args => locateClient({ ...args, search }));
   const store = createGbpStore(pool);
   // The competitor runs as the panel, the note and competitors.json read them
   const competitorView = async clientId => {
@@ -139,7 +141,11 @@ function mountGbpApi(app, { pool, loadInputs, callModel, log = console, search =
     const I = await loadInputs(clientId);
     const cv = I.validatorCtx.cv || {};
     const p = buildProfile({ inputs: I, record: null });
-    const result = await checkLandingPage({ url: I.siteUrl, primary: I.primary, town: I.town, secondaries: I.secondaries, nap: { name: p.nap.name, phone: p.nap.phone, address: p.nap.address || cv.address || '' }, hiddenAddress: !p.nap.address, fetchHtmlFn: fetchPage });
+    // The client's position for the map signal: the saved listing, else the address, else the main town
+    let location = null;
+    try { location = await locateFn({ placeId: cv.gbp_place_id || '', address: cv.address || '', town: I.town ? `${I.town}, UK` : '' }); }
+    catch (e) { log.error('[gbp] client location for the map check failed:', e.message); }
+    const result = await checkLandingPage({ url: I.siteUrl, primary: I.primary, town: I.town, secondaries: I.secondaries, nap: { name: p.nap.name, phone: p.nap.phone, address: p.nap.address || cv.address || '' }, hiddenAddress: !p.nap.address, client: { placeId: cv.gbp_place_id || '', location }, fetchHtmlFn: fetchPage });
     await store.saveLandingPage(clientId, result);
     // The fails go on the client record, so the internal note reads them (a typed value is replaced)
     if (saveClientValue) await saveClientValue(clientId, 'landing_page_fails', result.fails.join('; '));
