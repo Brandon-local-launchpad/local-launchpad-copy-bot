@@ -40,10 +40,11 @@ function mountGbpApi(app, { pool, loadInputs, callModel, log = console, search =
   // The scans as the panel, the note and scans.json read them: the settings, the rows, the
   // monthly table against the baseline, the drop alerts, what is still pending
   const scansView = async (clientId, cv = null) => {
-    const scans = await store.scans(clientId);
+    const all = await store.scans(clientId);
+    const scans = SC.live(all);
     const settings = cv && cv.scan_settings && typeof cv.scan_settings === 'object' ? cv.scan_settings : null;
     const schedules = await store.schedules(clientId);
-    return { settings, scans, table: SC.monthlyTable(scans), alerts: SC.dropAlerts(scans), pending: scans.filter(s => s.status !== 'completed' && s.status !== 'failed').length, schedules, count: scans.length };
+    return { settings, scans, superseded: all.length - scans.length, table: SC.monthlyTable(scans), alerts: SC.dropAlerts(scans), pending: scans.filter(s => s.status !== 'completed' && s.status !== 'failed').length, schedules, count: scans.length };
   };
 
   // The client's listing on LeadSnap: by the saved Google place id, else by name and phone
@@ -61,9 +62,9 @@ function mountGbpApi(app, { pool, loadInputs, callModel, log = console, search =
   }
 
   // The settings for a baseline: the saved locked ones, else built now (not saved until the run)
-  async function scanSettingsFor(clientId, I) {
+  async function scanSettingsFor(clientId, I, { fresh = false } = {}) {
     const cv = I.validatorCtx.cv || {};
-    if (cv.scan_settings && cv.scan_settings.locked) return { settings: cv.scan_settings, saved: true };
+    if (!fresh && cv.scan_settings && cv.scan_settings.locked) return { settings: cv.scan_settings, saved: true };
     const found = await leadsnapLocationFor(cv);
     let centre = null, place = null;
     const finite = v => Number.isFinite(Number(v)) && Number(v) !== 0;
@@ -106,7 +107,7 @@ function mountGbpApi(app, { pool, loadInputs, callModel, log = console, search =
         Object.assign(a, { found_lat: a.lat, found_lng: a.lng, lat: null, lng: null, note: `found ${Math.round(a.km)} km from the centre (${a.found || 'another place of that name'}; the towns sit ${median} km away on average); left out of the radius` });
       }
     }
-    const settings = SC.buildScanSettings({ clientName: I.name, primary: I.primary, town: I.town, jobsWanted: cv.jobs_wanted || [], locked: I.locked, categories: I.categories, centre, areas, place });
+    const settings = SC.buildScanSettings({ clientName: I.name, primary: I.primary, town: I.town, pages: I.volumePages || [], centre, areas, place });
     settings.areas = areas;
     settings.notes = areas.filter(a => a.note || a.error).map(a => `${a.name}: ${a.note || a.error}`);
     return { settings, saved: false };
@@ -265,19 +266,14 @@ function mountGbpApi(app, { pool, loadInputs, callModel, log = console, search =
   app.post('/api/clients/:clientId/gbp/scans/preview', wrap(async (req, res) => {
     const { clientId } = req.params;
     const I = await loadInputs(clientId);
-    const { settings, saved } = await scanSettingsFor(clientId, I);
+    // ?fresh=1: the settings a reset would lock, ignoring the current lock
+    const { settings, saved } = await scanSettingsFor(clientId, I, { fresh: String(req.query.fresh || '') === '1' });
     res.json({ settings, saved, credits: SC.creditCost(settings) });
   }));
 
   // The baseline: one heatmap per keyword, settings saved and locked, rows pending until refresh
-  app.post('/api/clients/:clientId/gbp/scans/baseline', wrap(async (req, res) => {
-    const { clientId } = req.params;
-    if (!(req.body || {}).confirm) throw Object.assign(new Error('The baseline needs confirm: true (the confirm step shows the settings and the credit cost).'), { status: 400 });
+  async function runBaseline(clientId, I, settings) {
     const ls = needLeadsnap();
-    const I = await loadInputs(clientId);
-    const existing = await store.scans(clientId);
-    if (existing.some(s => s.run_type === 'baseline')) throw Object.assign(new Error('A baseline exists for this client. Hard rule 8: the settings are locked; monthly scans come from the schedules.'), { status: 409 });
-    const { settings } = await scanSettingsFor(clientId, I);
     settings.locked = true; settings.locked_at = new Date().toISOString();
     if (saveClientValue) await saveClientValue(clientId, 'scan_settings', settings);
     const created = [];
@@ -289,7 +285,48 @@ function mountGbpApi(app, { pool, loadInputs, callModel, log = console, search =
       created.push({ keyword: k.keyword, heatmap_id: row.heatmap_id, status: row.status });
     }
     log.log(`[gbp] baseline scan for ${clientId}: ${created.length} heatmaps created (${SC.creditCost(settings)} credits)`);
+    return created;
+  }
+  app.post('/api/clients/:clientId/gbp/scans/baseline', wrap(async (req, res) => {
+    const { clientId } = req.params;
+    if (!(req.body || {}).confirm) throw Object.assign(new Error('The baseline needs confirm: true (the confirm step shows the settings and the credit cost).'), { status: 400 });
+    needLeadsnap();
+    const I = await loadInputs(clientId);
+    const existing = SC.live(await store.scans(clientId));
+    if (existing.some(s => s.run_type === 'baseline')) throw Object.assign(new Error('A baseline exists for this client. Hard rule 8: the settings are locked; monthly scans come from the schedules. Use Reset baseline to start again.'), { status: 409 });
+    const { settings } = await scanSettingsFor(clientId, I);
+    const created = await runBaseline(clientId, I, settings);
     res.json(await view(clientId, { created }));
+  }));
+
+  // Reset baseline (Brandon, 23 Oct): pause the schedules, mark every stored scan superseded,
+  // clear the lock and run a new baseline on fresh settings. The old rows stay stored.
+  app.post('/api/clients/:clientId/gbp/scans/reset', wrap(async (req, res) => {
+    const { clientId } = req.params;
+    if (!(req.body || {}).confirm) throw Object.assign(new Error('The reset needs confirm: true (the confirm step shows the new settings and the credit cost).'), { status: 400 });
+    const ls = needLeadsnap();
+    const I = await loadInputs(clientId);
+    const cv = I.validatorCtx.cv || {};
+    const at = new Date().toISOString();
+    // Schedules: paused on LeadSnap and kept as the previous set
+    const sched = await store.schedules(clientId);
+    const paused = [];
+    for (const item of sched.items) {
+      if (item.status !== 'paused') { try { await ls.pauseSchedule(item.schedule_id); item.status = 'paused'; item.paused_at = at; paused.push(item.schedule_id); } catch (e) { item.pause_error = e.message; } }
+    }
+    const previous = { ...sched, superseded_at: at };
+    await store.saveSchedules(clientId, { items: [], last_fetch_at: null, previous: [...(sched.previous || []), previous] });
+    // Scans: every live row superseded
+    let superseded = 0;
+    for (const row of SC.live(await store.scans(clientId))) { await store.updateScan(clientId, row.heatmap_id, { ...row, superseded: true, superseded_at: at }); superseded++; }
+    // The lock cleared, then a fresh baseline
+    if (saveClientValue) await saveClientValue(clientId, 'scan_settings', null);
+    const I2 = { ...I, validatorCtx: { ...I.validatorCtx, cv: { ...cv, scan_settings: null } } };
+    const { settings } = await scanSettingsFor(clientId, I2, { fresh: true });
+    settings.reset_from = cv.scan_settings ? { locked_at: cv.scan_settings.locked_at || null, keywords: (cv.scan_settings.keywords || []).map(k => k.keyword) } : null;
+    const created = await runBaseline(clientId, I2, settings);
+    log.log(`[gbp] baseline reset for ${clientId}: ${paused.length} schedules paused, ${superseded} scans superseded, ${created.length} heatmaps created`);
+    res.json(await view(clientId, { created, paused, superseded }));
   }));
 
   // Settle pending heatmaps (reads only); create the schedules once the baseline is complete
@@ -298,13 +335,13 @@ function mountGbpApi(app, { pool, loadInputs, callModel, log = console, search =
     const I = await loadInputs(clientId);
     const cv = I.validatorCtx.cv || {};
     const settings = cv.scan_settings || null;
-    const scans = await store.scans(clientId);
+    const scans = SC.live(await store.scans(clientId));
     const settled = [];
     for (const row of scans.filter(s => s.status !== 'completed' && s.status !== 'failed')) {
       try { settled.push(await settleScan(clientId, row, settings, cv)); } catch (e) { settled.push({ ...row, error: e.message }); }
     }
     let schedules = null;
-    if (settings) { try { schedules = await ensureSchedules(clientId, settings, await store.scans(clientId)); } catch (e) { log.error('[gbp] schedules not created:', e.message); schedules = { error: e.message }; } }
+    if (settings) { try { schedules = await ensureSchedules(clientId, settings, SC.live(await store.scans(clientId))); } catch (e) { log.error('[gbp] schedules not created:', e.message); schedules = { error: e.message }; } }
     res.json(await view(clientId, { settled: settled.map(s => ({ heatmap_id: s.heatmap_id, status: s.status, error: s.error || null })), schedules_result: schedules }));
   }));
 
@@ -406,7 +443,7 @@ function mountGbpApi(app, { pool, loadInputs, callModel, log = console, search =
     let files = found ? filesFor(found.record) : {};
     if (file === 'nap.json' || file === 'note.txt') { const I = await loadInputs(client.id); files = profileFiles(I, found ? found.record : null, await competitorView(client.id), (await scansView(client.id, I.validatorCtx.cv)).alerts); }
     if (file === 'competitors.json') { const c = await competitorView(client.id); if (c.latest) files = { 'competitors.json': JSON.stringify(c, null, 2) }; }
-    if (file === 'scans.json') { const I = await loadInputs(client.id); const s = await scansView(client.id, I.validatorCtx.cv); if (s.count) files = { 'scans.json': JSON.stringify({ settings: s.settings, table: s.table, alerts: s.alerts, scans: s.scans }, null, 2) }; }
+    if (file === 'scans.json') { const I = await loadInputs(client.id); const s = await scansView(client.id, I.validatorCtx.cv); const all = await store.scans(client.id); if (all.length) files = { 'scans.json': JSON.stringify({ settings: s.settings, table: s.table, alerts: s.alerts, scans: s.scans, superseded: all.filter(x => x.superseded) }, null, 2) }; }
     if (file === 'schedules.json') { const s = await store.schedules(client.id); if (s.items.length) files = { 'schedules.json': JSON.stringify(s, null, 2) }; }
     if (file === 'competitors_leadsnap.json') { const c = await store.leadsnapCompetitors(client.id); if (c) files = { 'competitors_leadsnap.json': JSON.stringify(c, null, 2) }; }
     if (file === 'profile_check.json') { const p = await store.profileCheck(client.id); if (p) files = { 'profile_check.json': JSON.stringify(p, null, 2) }; }

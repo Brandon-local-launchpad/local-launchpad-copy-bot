@@ -1,76 +1,769 @@
 {
   "_note": "Recorded LeadSnap public API responses for the Edens Edge GBP fixture, in the shapes leadsnap/openapi.yaml documents (list endpoints wrap rows in data). Hand written: the token lives only on Railway, so no live call was recorded. Keyed by operation; the fixture's stub client serves them. No test ever calls LeadSnap.",
-  "companies": { "data": [{ "id": 1, "name": "Local Launchpad" }], "total": 1 },
-  "locations": { "data": [
-    { "id": 20, "name": "Edens Edge Landscaping", "location_name": "Edens Edge Landscaping", "primary_phone": "07850 412717", "address": "", "city": "Southampton", "primary_category": "Landscaper", "website_url": "https://mediumturquoise-parr-749549.hostingersite.com/?utm_source=gbp", "place_id": "ChIJ_edens_edge_own", "location_id": "locations/1000000000000000001", "latitude": 50.9150, "longitude": -1.4100, "review_count": 18, "ave_review_rating": 4.9, "review_url": "https://search.google.com/local/writereview?placeid=ChIJ_edens_edge_own", "completion_percentage": 86 },
-    { "id": 21, "name": "Kestrel Ridge Roofing", "location_name": "Kestrel Ridge Roofing", "primary_phone": "01202 000000", "city": "Bournemouth", "primary_category": "Roofing contractor", "place_id": "ChIJ_kestrel", "latitude": 50.72, "longitude": -1.88, "completion_percentage": 70 }
-  ], "total": 2 },
-  "location_20": {
-    "id": 20, "name": "Edens Edge Landscaping", "location_name": "Edens Edge Landscaping", "primary_phone": "07850 412717",
-    "primary_category": { "display_name": "Landscaper", "name": "categories/gcid:landscaper" },
-    "additional_categories": [
-      { "display_name": "Gardener", "name": "categories/gcid:gardener" },
-      { "display_name": "Landscape designer", "name": "categories/gcid:landscape_designer" },
-      { "display_name": "Tree service", "name": "categories/gcid:tree_service" },
-      { "display_name": "Fence contractor", "name": "categories/gcid:fence_contractor" }
+  "companies": {
+    "data": [
+      {
+        "id": 1,
+        "name": "Local Launchpad"
+      }
     ],
-    "place_id": "ChIJ_edens_edge_own", "latitude": 50.9150, "longitude": -1.4100, "completion_percentage": 86, "location_state": "verified",
-    "metadata": { "suspension_reason": null, "has_pending_edits": 1, "open_status": "Open", "ownership": "Claimed", "standing": "Good" },
+    "total": 1
+  },
+  "locations": {
+    "data": [
+      {
+        "id": 20,
+        "name": "Edens Edge Landscaping",
+        "location_name": "Edens Edge Landscaping",
+        "primary_phone": "07850 412717",
+        "address": "",
+        "city": "Southampton",
+        "primary_category": "Landscaper",
+        "website_url": "https://mediumturquoise-parr-749549.hostingersite.com/?utm_source=gbp",
+        "place_id": "ChIJ_edens_edge_own",
+        "location_id": "locations/1000000000000000001",
+        "latitude": 50.915,
+        "longitude": -1.41,
+        "review_count": 18,
+        "ave_review_rating": 4.9,
+        "review_url": "https://search.google.com/local/writereview?placeid=ChIJ_edens_edge_own",
+        "completion_percentage": 86
+      },
+      {
+        "id": 21,
+        "name": "Kestrel Ridge Roofing",
+        "location_name": "Kestrel Ridge Roofing",
+        "primary_phone": "01202 000000",
+        "city": "Bournemouth",
+        "primary_category": "Roofing contractor",
+        "place_id": "ChIJ_kestrel",
+        "latitude": 50.72,
+        "longitude": -1.88,
+        "completion_percentage": 70
+      }
+    ],
+    "total": 2
+  },
+  "location_20": {
+    "id": 20,
+    "name": "Edens Edge Landscaping",
+    "location_name": "Edens Edge Landscaping",
+    "primary_phone": "07850 412717",
+    "primary_category": {
+      "display_name": "Landscaper",
+      "name": "categories/gcid:landscaper"
+    },
+    "additional_categories": [
+      {
+        "display_name": "Gardener",
+        "name": "categories/gcid:gardener"
+      },
+      {
+        "display_name": "Landscape designer",
+        "name": "categories/gcid:landscape_designer"
+      },
+      {
+        "display_name": "Tree service",
+        "name": "categories/gcid:tree_service"
+      },
+      {
+        "display_name": "Fence contractor",
+        "name": "categories/gcid:fence_contractor"
+      }
+    ],
+    "place_id": "ChIJ_edens_edge_own",
+    "latitude": 50.915,
+    "longitude": -1.41,
+    "completion_percentage": 86,
+    "location_state": "verified",
+    "metadata": {
+      "suspension_reason": null,
+      "has_pending_edits": 1,
+      "open_status": "Open",
+      "ownership": "Claimed",
+      "standing": "Good"
+    },
     "working_hours": [
-      { "open_day": "monday", "close_day": "monday", "open_time": "07:00:00", "close_time": "18:00:00" },
-      { "open_day": "tuesday", "close_day": "tuesday", "open_time": "07:00:00", "close_time": "18:00:00" },
-      { "open_day": "wednesday", "close_day": "wednesday", "open_time": "07:00:00", "close_time": "18:00:00" },
-      { "open_day": "thursday", "close_day": "thursday", "open_time": "07:00:00", "close_time": "18:00:00" },
-      { "open_day": "friday", "close_day": "friday", "open_time": "07:00:00", "close_time": "17:00:00" },
-      { "open_day": "saturday", "close_day": "saturday", "open_time": "08:00:00", "close_time": "14:00:00" }
+      {
+        "open_day": "monday",
+        "close_day": "monday",
+        "open_time": "07:00:00",
+        "close_time": "18:00:00"
+      },
+      {
+        "open_day": "tuesday",
+        "close_day": "tuesday",
+        "open_time": "07:00:00",
+        "close_time": "18:00:00"
+      },
+      {
+        "open_day": "wednesday",
+        "close_day": "wednesday",
+        "open_time": "07:00:00",
+        "close_time": "18:00:00"
+      },
+      {
+        "open_day": "thursday",
+        "close_day": "thursday",
+        "open_time": "07:00:00",
+        "close_time": "18:00:00"
+      },
+      {
+        "open_day": "friday",
+        "close_day": "friday",
+        "open_time": "07:00:00",
+        "close_time": "17:00:00"
+      },
+      {
+        "open_day": "saturday",
+        "close_day": "saturday",
+        "open_time": "08:00:00",
+        "close_time": "14:00:00"
+      }
     ],
     "service_items": [
-      { "id": 1, "name": "Lawn mowing", "category_name": "Gardener", "is_primary_category": 0 },
-      { "id": 2, "name": "Fencing", "category_name": "Gardener", "is_primary_category": 0 },
-      { "id": 3, "name": "Patio installation", "category_name": "Landscaper", "is_primary_category": 1 },
-      { "id": 4, "name": "Garden design", "category_name": "Landscape designer", "is_primary_category": 0 }
+      {
+        "id": 1,
+        "name": "Lawn mowing",
+        "category_name": "Gardener",
+        "is_primary_category": 0
+      },
+      {
+        "id": 2,
+        "name": "Fencing",
+        "category_name": "Gardener",
+        "is_primary_category": 0
+      },
+      {
+        "id": 3,
+        "name": "Patio installation",
+        "category_name": "Landscaper",
+        "is_primary_category": 1
+      },
+      {
+        "id": 4,
+        "name": "Garden design",
+        "category_name": "Landscape designer",
+        "is_primary_category": 0
+      }
     ]
   },
   "heatmap_create": {
-    "Landscaper Southampton": { "id": 9001, "business_name": "Edens Edge Landscaping", "business_place_id": "ChIJ_edens_edge_own", "grid_size": 13, "keyword": "Landscaper Southampton", "status": "queue", "status_code": 0, "created_at": "2026-10-23T14:00:00.000000Z", "search_type": "google_maps", "place": { "id": 555001, "google_place_id": "ChIJ_edens_edge_own", "name": "Edens Edge Landscaping" } },
-    "Artificial grass installation Southampton": { "id": 9002, "business_name": "Edens Edge Landscaping", "business_place_id": "ChIJ_edens_edge_own", "grid_size": 13, "keyword": "Artificial grass installation Southampton", "status": "queue", "status_code": 0, "created_at": "2026-10-23T14:00:01.000000Z", "search_type": "google_maps", "place": { "id": 555001, "google_place_id": "ChIJ_edens_edge_own", "name": "Edens Edge Landscaping" } }
+    "Landscaper Southampton": {
+      "id": 9001,
+      "business_name": "Edens Edge Landscaping",
+      "business_place_id": "ChIJ_edens_edge_own",
+      "grid_size": 13,
+      "keyword": "Landscaper Southampton",
+      "status": "queue",
+      "status_code": 0,
+      "created_at": "2026-10-23T14:00:00.000000Z",
+      "search_type": "google_maps",
+      "place": {
+        "id": 555001,
+        "google_place_id": "ChIJ_edens_edge_own",
+        "name": "Edens Edge Landscaping"
+      }
+    },
+    "Artificial grass installation Southampton": {
+      "id": 9002,
+      "business_name": "Edens Edge Landscaping",
+      "business_place_id": "ChIJ_edens_edge_own",
+      "grid_size": 13,
+      "keyword": "Artificial grass installation Southampton",
+      "status": "queue",
+      "status_code": 0,
+      "created_at": "2026-10-23T14:00:01.000000Z",
+      "search_type": "google_maps",
+      "place": {
+        "id": 555001,
+        "google_place_id": "ChIJ_edens_edge_own",
+        "name": "Edens Edge Landscaping"
+      }
+    },
+    "Fencing Southampton": {
+      "id": 9003,
+      "keyword": "Fencing Southampton",
+      "status": "queue",
+      "created_at": "2026-10-23T14:00:02.000000Z",
+      "grid_size": 13,
+      "place": {
+        "id": 555001,
+        "google_place_id": "ChIJ_edens_edge_own"
+      }
+    },
+    "Garden Maintenance Southampton": {
+      "id": 9004,
+      "keyword": "Garden Maintenance Southampton",
+      "status": "queue",
+      "created_at": "2026-10-23T14:00:03.000000Z",
+      "grid_size": 13,
+      "place": {
+        "id": 555001,
+        "google_place_id": "ChIJ_edens_edge_own"
+      }
+    },
+    "Block Paving Southampton": {
+      "id": 9005,
+      "keyword": "Block Paving Southampton",
+      "status": "queue",
+      "created_at": "2026-10-23T14:00:04.000000Z",
+      "grid_size": 13,
+      "place": {
+        "id": 555001,
+        "google_place_id": "ChIJ_edens_edge_own"
+      }
+    }
   },
   "heatmap_get": {
-    "9001#pending": { "id": 9001, "keyword": "Landscaper Southampton", "status": "in_progress", "status_code": 1, "grid_size": 13, "created_at": "2026-10-23T14:00:00.000000Z", "search_type": "google_maps", "place": { "id": 555001, "google_place_id": "ChIJ_edens_edge_own", "name": "Edens Edge Landscaping" }, "average": null, "total_points": null, "top_3_points": null, "top_3_percentage": null },
-    "9001": { "id": 9001, "keyword": "Landscaper Southampton", "status": "completed", "status_code": 2, "grid_size": 13, "created_at": "2026-10-23T14:00:00.000000Z", "search_type": "google_maps", "place": { "id": 555001, "google_place_id": "ChIJ_edens_edge_own", "name": "Edens Edge Landscaping" }, "average": "8.4", "total_points": 169, "top_3_points": 61, "top_3_percentage": 36.1, "points": [
-      { "id": 1, "index": 0, "lat": "50.8600000000000000", "lng": "-1.4600000000000000", "rank": 14 },
-      { "id": 2, "index": 1, "lat": "50.9150000000000000", "lng": "-1.4100000000000000", "rank": 1 },
-      { "id": 3, "index": 2, "lat": "50.9700000000000000", "lng": "-1.3600000000000000", "rank": 3 },
-      { "id": 4, "index": 3, "lat": "51.0200000000000000", "lng": "-1.3100000000000000", "rank": null }
-    ] },
-    "9002": { "id": 9002, "keyword": "Artificial grass installation Southampton", "status": "completed", "status_code": 2, "grid_size": 13, "created_at": "2026-10-23T14:00:01.000000Z", "search_type": "google_maps", "place": { "id": 555001, "google_place_id": "ChIJ_edens_edge_own", "name": "Edens Edge Landscaping" }, "average": "5.2", "total_points": 169, "top_3_points": 98, "top_3_percentage": 58.0, "points": [
-      { "id": 5, "index": 0, "lat": "50.8600000000000000", "lng": "-1.4600000000000000", "rank": 6 },
-      { "id": 6, "index": 1, "lat": "50.9150000000000000", "lng": "-1.4100000000000000", "rank": 1 }
-    ] },
-    "9101": { "id": 9101, "keyword": "Landscaper Southampton", "status": "completed", "status_code": 2, "grid_size": 13, "created_at": "2026-11-23T06:00:00.000000Z", "search_type": "google_maps", "place": { "id": 555001, "google_place_id": "ChIJ_edens_edge_own", "name": "Edens Edge Landscaping" }, "average": "11.9", "total_points": 169, "top_3_points": 41, "top_3_percentage": 24.3, "points": [ { "id": 7, "index": 0, "lat": "50.8600000000000000", "lng": "-1.4600000000000000", "rank": 18 } ] },
-    "9102": { "id": 9102, "keyword": "Artificial grass installation Southampton", "status": "completed", "status_code": 2, "grid_size": 13, "created_at": "2026-11-23T06:00:01.000000Z", "search_type": "google_maps", "place": { "id": 555001, "google_place_id": "ChIJ_edens_edge_own", "name": "Edens Edge Landscaping" }, "average": "4.8", "total_points": 169, "top_3_points": 103, "top_3_percentage": 60.9, "points": [ { "id": 8, "index": 0, "lat": "50.8600000000000000", "lng": "-1.4600000000000000", "rank": 5 } ] }
+    "9001": {
+      "id": 9001,
+      "keyword": "Landscaper Southampton",
+      "status": "completed",
+      "status_code": 2,
+      "grid_size": 13,
+      "created_at": "2026-10-23T14:00:00.000000Z",
+      "search_type": "google_maps",
+      "place": {
+        "id": 555001,
+        "google_place_id": "ChIJ_edens_edge_own",
+        "name": "Edens Edge Landscaping"
+      },
+      "average": "8.4",
+      "total_points": 169,
+      "top_3_points": 61,
+      "top_3_percentage": 36.1,
+      "points": [
+        {
+          "id": 1,
+          "index": 0,
+          "lat": "50.8600000000000000",
+          "lng": "-1.4600000000000000",
+          "rank": 14
+        },
+        {
+          "id": 2,
+          "index": 1,
+          "lat": "50.9150000000000000",
+          "lng": "-1.4100000000000000",
+          "rank": 1
+        },
+        {
+          "id": 3,
+          "index": 2,
+          "lat": "50.9700000000000000",
+          "lng": "-1.3600000000000000",
+          "rank": 3
+        },
+        {
+          "id": 4,
+          "index": 3,
+          "lat": "51.0200000000000000",
+          "lng": "-1.3100000000000000",
+          "rank": null
+        }
+      ],
+      "share_link_details": {
+        "id": 9001,
+        "token": "tok-9001",
+        "expires_at": null,
+        "url": "https://app.leadsnap.com/rank-tracking/share/9001/tok-9001"
+      }
+    },
+    "9002": {
+      "id": 9002,
+      "keyword": "Artificial grass installation Southampton",
+      "status": "completed",
+      "status_code": 2,
+      "grid_size": 13,
+      "created_at": "2026-10-23T14:00:01.000000Z",
+      "search_type": "google_maps",
+      "place": {
+        "id": 555001,
+        "google_place_id": "ChIJ_edens_edge_own",
+        "name": "Edens Edge Landscaping"
+      },
+      "average": "5.2",
+      "total_points": 169,
+      "top_3_points": 98,
+      "top_3_percentage": 58,
+      "points": [
+        {
+          "id": 5,
+          "index": 0,
+          "lat": "50.8600000000000000",
+          "lng": "-1.4600000000000000",
+          "rank": 6
+        },
+        {
+          "id": 6,
+          "index": 1,
+          "lat": "50.9150000000000000",
+          "lng": "-1.4100000000000000",
+          "rank": 1
+        }
+      ],
+      "share_link_details": {
+        "id": 9002,
+        "token": "tok-9002",
+        "expires_at": null,
+        "url": "https://app.leadsnap.com/rank-tracking/share/9002/tok-9002"
+      }
+    },
+    "9003": {
+      "id": 9003,
+      "keyword": "Fencing Southampton",
+      "status": "completed",
+      "status_code": 2,
+      "grid_size": 13,
+      "created_at": "2026-10-23T14:00:02.000000Z",
+      "search_type": "google_maps",
+      "place": {
+        "id": 555001,
+        "google_place_id": "ChIJ_edens_edge_own",
+        "name": "Edens Edge Landscaping"
+      },
+      "average": "6.1",
+      "total_points": 169,
+      "top_3_points": 75,
+      "top_3_percentage": 44.4,
+      "points": [
+        {
+          "id": 1,
+          "index": 0,
+          "lat": "50.8600000000000000",
+          "lng": "-1.4600000000000000",
+          "rank": 9
+        }
+      ],
+      "share_link_details": {
+        "id": 9003,
+        "token": "tok-9003",
+        "expires_at": null,
+        "url": "https://app.leadsnap.com/rank-tracking/share/9003/tok-9003"
+      }
+    },
+    "9004": {
+      "id": 9004,
+      "keyword": "Garden Maintenance Southampton",
+      "status": "completed",
+      "status_code": 2,
+      "grid_size": 13,
+      "created_at": "2026-10-23T14:00:03.000000Z",
+      "search_type": "google_maps",
+      "place": {
+        "id": 555001,
+        "google_place_id": "ChIJ_edens_edge_own",
+        "name": "Edens Edge Landscaping"
+      },
+      "average": "9.8",
+      "total_points": 169,
+      "top_3_points": 51,
+      "top_3_percentage": 30.2,
+      "points": [
+        {
+          "id": 1,
+          "index": 0,
+          "lat": "50.8600000000000000",
+          "lng": "-1.4600000000000000",
+          "rank": 9
+        }
+      ],
+      "share_link_details": {
+        "id": 9004,
+        "token": "tok-9004",
+        "expires_at": null,
+        "url": "https://app.leadsnap.com/rank-tracking/share/9004/tok-9004"
+      }
+    },
+    "9005": {
+      "id": 9005,
+      "keyword": "Block Paving Southampton",
+      "status": "completed",
+      "status_code": 2,
+      "grid_size": 13,
+      "created_at": "2026-10-23T14:00:04.000000Z",
+      "search_type": "google_maps",
+      "place": {
+        "id": 555001,
+        "google_place_id": "ChIJ_edens_edge_own",
+        "name": "Edens Edge Landscaping"
+      },
+      "average": "12",
+      "total_points": 169,
+      "top_3_points": 36,
+      "top_3_percentage": 21.3,
+      "points": [
+        {
+          "id": 1,
+          "index": 0,
+          "lat": "50.8600000000000000",
+          "lng": "-1.4600000000000000",
+          "rank": 9
+        }
+      ],
+      "share_link_details": {
+        "id": 9005,
+        "token": "tok-9005",
+        "expires_at": null,
+        "url": "https://app.leadsnap.com/rank-tracking/share/9005/tok-9005"
+      }
+    },
+    "9101": {
+      "id": 9101,
+      "keyword": "Landscaper Southampton",
+      "status": "completed",
+      "status_code": 2,
+      "grid_size": 13,
+      "created_at": "2026-11-23T06:00:00.000000Z",
+      "search_type": "google_maps",
+      "place": {
+        "id": 555001,
+        "google_place_id": "ChIJ_edens_edge_own",
+        "name": "Edens Edge Landscaping"
+      },
+      "average": "11.9",
+      "total_points": 169,
+      "top_3_points": 41,
+      "top_3_percentage": 24.3,
+      "points": [
+        {
+          "id": 7,
+          "index": 0,
+          "lat": "50.8600000000000000",
+          "lng": "-1.4600000000000000",
+          "rank": 18
+        }
+      ],
+      "share_link_details": {
+        "id": 9101,
+        "token": "tok-9101",
+        "expires_at": null,
+        "url": "https://app.leadsnap.com/rank-tracking/share/9101/tok-9101"
+      }
+    },
+    "9102": {
+      "id": 9102,
+      "keyword": "Artificial grass installation Southampton",
+      "status": "completed",
+      "status_code": 2,
+      "grid_size": 13,
+      "created_at": "2026-11-23T06:00:01.000000Z",
+      "search_type": "google_maps",
+      "place": {
+        "id": 555001,
+        "google_place_id": "ChIJ_edens_edge_own",
+        "name": "Edens Edge Landscaping"
+      },
+      "average": "4.8",
+      "total_points": 169,
+      "top_3_points": 103,
+      "top_3_percentage": 60.9,
+      "points": [
+        {
+          "id": 8,
+          "index": 0,
+          "lat": "50.8600000000000000",
+          "lng": "-1.4600000000000000",
+          "rank": 5
+        }
+      ],
+      "share_link_details": {
+        "id": 9102,
+        "token": "tok-9102",
+        "expires_at": null,
+        "url": "https://app.leadsnap.com/rank-tracking/share/9102/tok-9102"
+      }
+    },
+    "9001#pending": {
+      "id": 9001,
+      "keyword": "Landscaper Southampton",
+      "status": "in_progress",
+      "status_code": 1,
+      "grid_size": 13,
+      "created_at": "2026-10-23T14:00:00.000000Z",
+      "search_type": "google_maps",
+      "place": {
+        "id": 555001,
+        "google_place_id": "ChIJ_edens_edge_own",
+        "name": "Edens Edge Landscaping"
+      },
+      "average": null,
+      "total_points": null,
+      "top_3_points": null,
+      "top_3_percentage": null
+    }
   },
   "heatmap_competitors": {
     "9001": [
-      { "id": 1, "total_points": 169, "top_3_points": 70, "market_share": "41.42", "market_share_position": 1, "average_position": 3, "top_3_position": 1, "average": 4.1, "place": { "id": 7001, "google_place_id": "ChIJ_comp_1", "name": "Solent Landscapes", "place_url": "https://maps.google.com/?cid=101", "review_count": 112, "ave_review_rating": 4.8 } },
-      { "id": 2, "total_points": 169, "top_3_points": 61, "market_share": "36.09", "market_share_position": 2, "average": 8.4, "place": { "id": 555001, "google_place_id": "ChIJ_edens_edge_own", "name": "Edens Edge Landscaping", "place_url": "https://maps.google.com/?cid=1", "review_count": 18, "ave_review_rating": 4.9 } },
-      { "id": 3, "total_points": 169, "top_3_points": 44, "market_share": "26.04", "market_share_position": 3, "average": 9.9, "place": { "id": 7002, "google_place_id": "ChIJ_comp_3", "name": "Shirley Landscapes Ltd", "place_url": "https://maps.google.com/?cid=105", "review_count": 45, "ave_review_rating": 4.7 } },
-      { "id": 4, "total_points": 169, "top_3_points": 30, "market_share": "17.75", "market_share_position": 4, "average": 12.3, "place": { "id": 7003, "google_place_id": "ChIJ_comp_2", "name": "Hampshire Garden Design & Build", "place_url": "https://maps.google.com/?cid=102", "review_count": 64, "ave_review_rating": 5 } },
-      { "id": 5, "total_points": 169, "top_3_points": 22, "market_share": "13.02", "market_share_position": 5, "average": 14.0, "place": { "id": 7004, "google_place_id": "ChIJ_comp_5", "name": "Bassett Garden Services", "place_url": "https://maps.google.com/?cid=109", "review_count": 26, "ave_review_rating": 4.4 } },
-      { "id": 6, "total_points": 169, "top_3_points": 12, "market_share": "7.10", "market_share_position": 6, "average": 16.5, "place": { "id": 7005, "google_place_id": "ChIJ_comp_4", "name": "Totton Tree & Garden Care", "place_url": "https://maps.google.com/?cid=108", "review_count": 88, "ave_review_rating": 4.9 } }
+      {
+        "id": 1,
+        "total_points": 169,
+        "top_3_points": 70,
+        "market_share": "41.42",
+        "market_share_position": 1,
+        "average_position": 3,
+        "top_3_position": 1,
+        "average": 4.1,
+        "place": {
+          "id": 7001,
+          "google_place_id": "ChIJ_comp_1",
+          "name": "Solent Landscapes",
+          "place_url": "https://maps.google.com/?cid=101",
+          "review_count": 112,
+          "ave_review_rating": 4.8
+        }
+      },
+      {
+        "id": 2,
+        "total_points": 169,
+        "top_3_points": 61,
+        "market_share": "36.09",
+        "market_share_position": 2,
+        "average": 8.4,
+        "place": {
+          "id": 555001,
+          "google_place_id": "ChIJ_edens_edge_own",
+          "name": "Edens Edge Landscaping",
+          "place_url": "https://maps.google.com/?cid=1",
+          "review_count": 18,
+          "ave_review_rating": 4.9
+        }
+      },
+      {
+        "id": 3,
+        "total_points": 169,
+        "top_3_points": 44,
+        "market_share": "26.04",
+        "market_share_position": 3,
+        "average": 9.9,
+        "place": {
+          "id": 7002,
+          "google_place_id": "ChIJ_comp_3",
+          "name": "Shirley Landscapes Ltd",
+          "place_url": "https://maps.google.com/?cid=105",
+          "review_count": 45,
+          "ave_review_rating": 4.7
+        }
+      },
+      {
+        "id": 4,
+        "total_points": 169,
+        "top_3_points": 30,
+        "market_share": "17.75",
+        "market_share_position": 4,
+        "average": 12.3,
+        "place": {
+          "id": 7003,
+          "google_place_id": "ChIJ_comp_2",
+          "name": "Hampshire Garden Design & Build",
+          "place_url": "https://maps.google.com/?cid=102",
+          "review_count": 64,
+          "ave_review_rating": 5
+        }
+      },
+      {
+        "id": 5,
+        "total_points": 169,
+        "top_3_points": 22,
+        "market_share": "13.02",
+        "market_share_position": 5,
+        "average": 14,
+        "place": {
+          "id": 7004,
+          "google_place_id": "ChIJ_comp_5",
+          "name": "Bassett Garden Services",
+          "place_url": "https://maps.google.com/?cid=109",
+          "review_count": 26,
+          "ave_review_rating": 4.4
+        }
+      },
+      {
+        "id": 6,
+        "total_points": 169,
+        "top_3_points": 12,
+        "market_share": "7.10",
+        "market_share_position": 6,
+        "average": 16.5,
+        "place": {
+          "id": 7005,
+          "google_place_id": "ChIJ_comp_4",
+          "name": "Totton Tree & Garden Care",
+          "place_url": "https://maps.google.com/?cid=108",
+          "review_count": 88,
+          "ave_review_rating": 4.9
+        }
+      }
     ],
-    "9002": [], "9101": [], "9102": []
+    "9002": [],
+    "9003": [],
+    "9004": [],
+    "9005": [],
+    "9101": [],
+    "9102": []
   },
-  "heatmaps_list_since": { "data": [
-    { "id": 9101, "keyword": "Landscaper Southampton", "status": "completed", "created_at": "2026-11-23T06:00:00.000000Z", "business_place_id": "ChIJ_edens_edge_own" },
-    { "id": 9102, "keyword": "Artificial grass installation Southampton", "status": "completed", "created_at": "2026-11-23T06:00:01.000000Z", "business_place_id": "ChIJ_edens_edge_own" },
-    { "id": 9001, "keyword": "Landscaper Southampton", "status": "completed", "created_at": "2026-10-23T14:00:00.000000Z", "business_place_id": "ChIJ_edens_edge_own" },
-    { "id": 9150, "keyword": "Something else Southampton", "status": "completed", "created_at": "2026-11-20T06:00:00.000000Z", "business_place_id": "ChIJ_edens_edge_own" }
-  ], "total": 4 },
+  "heatmaps_list_since": {
+    "data": [
+      {
+        "id": 9101,
+        "keyword": "Landscaper Southampton",
+        "status": "completed",
+        "created_at": "2026-11-23T06:00:00.000000Z",
+        "business_place_id": "ChIJ_edens_edge_own"
+      },
+      {
+        "id": 9102,
+        "keyword": "Artificial grass installation Southampton",
+        "status": "completed",
+        "created_at": "2026-11-23T06:00:01.000000Z",
+        "business_place_id": "ChIJ_edens_edge_own"
+      },
+      {
+        "id": 9001,
+        "keyword": "Landscaper Southampton",
+        "status": "completed",
+        "created_at": "2026-10-23T14:00:00.000000Z",
+        "business_place_id": "ChIJ_edens_edge_own"
+      },
+      {
+        "id": 9150,
+        "keyword": "Something else Southampton",
+        "status": "completed",
+        "created_at": "2026-11-20T06:00:00.000000Z",
+        "business_place_id": "ChIJ_edens_edge_own"
+      }
+    ],
+    "total": 4
+  },
   "schedule_create": {
-    "Landscaper Southampton": { "id": 6501, "place_id": 555001, "keywords": ["Landscaper Southampton"], "name": "Edens Edge Landscaping Landscaper Southampton monthly", "grid_size": 13, "status": "active", "schedule_config": { "repeat_type": "month", "repeat_on": "23", "status": "active" } },
-    "Artificial grass installation Southampton": { "id": 6502, "place_id": 555001, "keywords": ["Artificial grass installation Southampton"], "name": "Edens Edge Landscaping Artificial grass installation Southampton monthly", "grid_size": 13, "status": "active", "schedule_config": { "repeat_type": "month", "repeat_on": "23", "status": "active" } }
+    "Landscaper Southampton": {
+      "id": 6501,
+      "place_id": 555001,
+      "keywords": [
+        "Landscaper Southampton"
+      ],
+      "name": "Edens Edge Landscaping Landscaper Southampton monthly",
+      "grid_size": 13,
+      "status": "active",
+      "schedule_config": {
+        "repeat_type": "month",
+        "repeat_on": "23",
+        "status": "active"
+      }
+    },
+    "Artificial grass installation Southampton": {
+      "id": 6502,
+      "place_id": 555001,
+      "keywords": [
+        "Artificial grass installation Southampton"
+      ],
+      "name": "Edens Edge Landscaping Artificial grass installation Southampton monthly",
+      "grid_size": 13,
+      "status": "active",
+      "schedule_config": {
+        "repeat_type": "month",
+        "repeat_on": "23",
+        "status": "active"
+      }
+    },
+    "Fencing Southampton": {
+      "id": 6503,
+      "place_id": 555001,
+      "keywords": [
+        "Fencing Southampton"
+      ],
+      "name": "Edens Edge Landscaping Fencing Southampton monthly",
+      "grid_size": 13,
+      "status": "active",
+      "schedule_config": {
+        "repeat_type": "month",
+        "repeat_on": "23",
+        "status": "active"
+      }
+    },
+    "Garden Maintenance Southampton": {
+      "id": 6504,
+      "place_id": 555001,
+      "keywords": [
+        "Garden Maintenance Southampton"
+      ],
+      "name": "Edens Edge Landscaping Garden Maintenance Southampton monthly",
+      "grid_size": 13,
+      "status": "active",
+      "schedule_config": {
+        "repeat_type": "month",
+        "repeat_on": "23",
+        "status": "active"
+      }
+    },
+    "Block Paving Southampton": {
+      "id": 6505,
+      "place_id": 555001,
+      "keywords": [
+        "Block Paving Southampton"
+      ],
+      "name": "Edens Edge Landscaping Block Paving Southampton monthly",
+      "grid_size": 13,
+      "status": "active",
+      "schedule_config": {
+        "repeat_type": "month",
+        "repeat_on": "23",
+        "status": "active"
+      }
+    }
   },
-  "schedule_pause": { "id": 6501, "status": "paused" },
-  "schedule_resume": { "id": 6501, "status": "active" }
+  "schedule_pause": {
+    "id": 6501,
+    "status": "paused"
+  },
+  "schedule_resume": {
+    "id": 6501,
+    "status": "active"
+  },
+  "heatmap_create_reset": {
+    "Landscaper Southampton": {
+      "id": 9201,
+      "keyword": "Landscaper Southampton",
+      "status": "queue",
+      "created_at": "2026-12-01T10:00:00.000000Z",
+      "grid_size": 13,
+      "place": {
+        "id": 555001,
+        "google_place_id": "ChIJ_edens_edge_own"
+      }
+    },
+    "Fencing Southampton": {
+      "id": 9203,
+      "keyword": "Fencing Southampton",
+      "status": "queue",
+      "created_at": "2026-12-01T10:00:02.000000Z",
+      "grid_size": 13,
+      "place": {
+        "id": 555001,
+        "google_place_id": "ChIJ_edens_edge_own"
+      }
+    },
+    "Garden Maintenance Southampton": {
+      "id": 9204,
+      "keyword": "Garden Maintenance Southampton",
+      "status": "queue",
+      "created_at": "2026-12-01T10:00:03.000000Z",
+      "grid_size": 13,
+      "place": {
+        "id": 555001,
+        "google_place_id": "ChIJ_edens_edge_own"
+      }
+    },
+    "Block Paving Southampton": {
+      "id": 9205,
+      "keyword": "Block Paving Southampton",
+      "status": "queue",
+      "created_at": "2026-12-01T10:00:04.000000Z",
+      "grid_size": 13,
+      "place": {
+        "id": 555001,
+        "google_place_id": "ChIJ_edens_edge_own"
+      }
+    }
+  }
 }

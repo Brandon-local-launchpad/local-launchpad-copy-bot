@@ -39,7 +39,7 @@ function buildGbpInputs({ cv = {}, niche = {}, rows = [], keyValueMap = {}, site
     const parents = ((s.info && s.info.parent_keys) || []).map(k => catName.get(k)).filter(Boolean);
     const home = parents.find(p => (core[lc(p)] || []).includes(lc(s.title))) || parents[0] || catOrder[0] || '';
     if (!parents.length) flags.push({ code: 'GBP-NO-PARENT', msg: `"${s.title}" has no parent category in the page map; it is listed under "${home}".` });
-    locked.push({ category: home, service: s.title, slug: s.slug || '', url: urlOf(s.slug || ''), parents, copyPriority: (s.info && s.info.copy_priority) || 0, phase: (s.info && s.info.phase) || 1 });
+    locked.push({ category: home, service: s.title, slug: s.slug || '', url: urlOf(s.slug || ''), parents, copyPriority: (s.info && s.info.copy_priority) || 0, phase: (s.info && s.info.phase) || 1, h1: s.h1 || '', h1_source: s.h1_source || '' });
   }
   locked.sort((a, b) => catOrder.indexOf(a.category) - catOrder.indexOf(b.category));
 
@@ -128,6 +128,9 @@ function buildGbpInputs({ cv = {}, niche = {}, rows = [], keyValueMap = {}, site
     years, accreditations, proofPoints, showPrices, prices, timeframes,
     competitorCount: Number.isFinite(competitorCount) ? competitorCount : null, minServices,
     included, siteUrl: base, flags, serviceAreasPageMap,
+    // The pages with a search volume, for the rank scan keywords (service rows carry copy_priority,
+    // their best volume; category rows carry none today, so they come through with 0)
+    volumePages: live.filter(r => r.type === 'category' || r.type === 'service').map(r => ({ type: r.type, title: r.title, h1: r.h1 || '', h1_source: r.h1_source || '', volume: (r.info && (r.info.volume || r.info.copy_priority)) || 0 })),
     packStatus: tradeFacts ? { niche: tradeFacts.niche || null, exists: tradeFacts.exists !== false, verified: !!tradeFacts.verified } : null,
     validatorCtx: { locked: locked.map(l => ({ category: l.category, service: l.service })), minServices, competitorCount: Number.isFinite(competitorCount) ? competitorCount : null, showPrices, towns: areas, categories: [...new Set([primary, ...categories].filter(Boolean))], proofPoints: proofPointList, properNouns: properPhrases.filter(p => !/\s/.test(p)).map(p => p.toLowerCase()), properPhrases, primaryCategory: primary, cv },
     properNounSource: tradeFacts && tradeFacts.verified ? `client record and the ${tradeFacts.niche || ''} trade facts pack`.replace(/\s+/g, ' ') : 'client record only',

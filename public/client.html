@@ -70,7 +70,14 @@
   .gbp .flag { color: var(--warning); font-size: 12px; margin-top: .35rem; }
   .gbp .files a { margin-right: 1rem; font-size: 13px; }
   .gbp details summary { cursor: pointer; color: var(--muted); font-size: 13px; margin: .5rem 0; }
+  /* Rank scan maps (batch 3): one Leaflet map per keyword, grid points as numbered circles */
+  .gbp .scanmap { height: 420px; border-radius: 8px; border: 1px solid var(--border); margin-top: .5rem; background: #0b0d14; }
+  .gbp .rankpin { display: flex; align-items: center; justify-content: center; width: 26px; height: 26px; border-radius: 50%; color: #0f1117; font: 700 12px/1 var(--font); border: 2px solid rgba(15,17,23,.6); box-shadow: 0 1px 3px rgba(0,0,0,.5); }
+  .gbp .rankpin.g { background: #4ade80; } .gbp .rankpin.a { background: #fbbf24; } .gbp .rankpin.r { background: #f87171; } .gbp .rankpin.x { background: #64748b; color: #e2e8f0; }
+  .gbp .mapbar { display: flex; gap: .5rem; align-items: center; flex-wrap: wrap; font-size: 12px; color: var(--muted); }
+  .gbp .mapbar select { background: var(--surface2); color: var(--text); border: 1px solid var(--border); border-radius: 6px; padding: 3px 6px; font-size: 12px; }
 </style>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
 </head>
 <body>
 
@@ -337,15 +344,38 @@
     const lsOff = rd.leadsnap === false;
     const hasBaseline = S && S.scans && S.scans.some(s => s.run_type === 'baseline');
     H.push(`<div style="display:flex;gap:.5rem;flex-wrap:wrap;align-items:center;margin-bottom:.6rem">
-      ${hasBaseline ? '' : `<button class="btn btn-ghost" id="gbpScanRun" onclick="previewBaseline()" ${rd.ok === false || lsOff ? 'disabled' : ''}>Run baseline scan</button>`}
+      ${hasBaseline ? '' : `<button class="btn btn-ghost" id="gbpScanRun" onclick="previewBaseline('baseline')" ${rd.ok === false || lsOff ? 'disabled' : ''}>Run baseline scan</button>`}
       ${hasBaseline ? `<button class="btn btn-ghost" id="gbpScanFetch" onclick="fetchScans()" ${lsOff ? 'disabled' : ''}>Fetch latest scans</button>` : ''}
+      ${hasBaseline ? `<button class="btn btn-ghost btn-sm" id="gbpScanReset" onclick="previewBaseline('reset')" ${lsOff ? 'disabled' : ''}>Reset baseline</button>` : ''}
       ${S && S.pending ? `<button class="btn btn-ghost btn-sm" id="gbpScanRefresh" onclick="refreshScans()">Check ${S.pending} pending</button>` : ''}
-      <span class="gen-date">${lsOff ? 'LeadSnap is not configured on the server' : S && S.settings ? `settings locked ${fmtDate(S.settings.locked_at || S.settings.built_at)} · ${S.settings.keywords.length} keywords · grid ${S.settings.grid_size} · radius ${S.settings.grid_radius_m} m · ${S.settings.credits_per_run} credits a run` : 'No baseline yet'}${S && S.schedules && S.schedules.last_fetch_at ? ` · last fetch ${fmtTime(S.schedules.last_fetch_at)}` : ''}</span>
+      <span class="gen-date">${lsOff ? 'LeadSnap is not configured on the server' : S && S.settings ? `settings locked ${fmtDate(S.settings.locked_at || S.settings.built_at)} · ${S.settings.keywords.map(k => esc(k.keyword) + (k.volume ? ` (${k.volume}/mo)` : '')).join(', ')} · grid ${S.settings.grid_size} · radius ${S.settings.grid_radius_m} m · ${S.settings.credits_per_run} credits a run` : 'No baseline yet'}${S && S.schedules && S.schedules.last_fetch_at ? ` · last fetch ${fmtTime(S.schedules.last_fetch_at)}` : ''}${S && S.superseded ? ` · ${S.superseded} superseded scan${S.superseded > 1 ? 's' : ''} kept from before the reset` : ''}</span>
     </div>`);
     if (S && S.settings) {
       const st = S.settings;
       H.push(`<div class="field"><div class="field-head"><span class="field-name">Scan settings (locked)</span><span class="field-meta">centre ${st.centre.lat.toFixed(4)}, ${st.centre.lng.toFixed(4)} from ${esc(st.centre.from)}${st.farthest ? ` · farthest town ${esc(st.farthest.name)} ${st.farthest.km} km` : ''}</span></div>
-        <div class="field-text">${st.keywords.map(k => `${esc(k.keyword)} <span class="field-meta">(${esc(k.kind)}, ${esc(k.source)})</span>`).join('<br>')}</div></div>`);
+        <div class="field-text">${st.keywords.map(k => `${esc(k.keyword)}${k.volume ? ` <strong>${k.volume}/mo</strong>` : ''} <span class="field-meta">(${esc(k.kind)}, ${esc(k.source)})</span>`).join('<br>')}</div>
+        ${st.reset_from ? `<div class="field-meta" style="margin-top:.3rem">Reset from the settings locked ${st.reset_from.locked_at ? fmtDate(st.reset_from.locked_at) : 'earlier'} (${st.reset_from.keywords.map(esc).join(', ')})</div>` : ''}</div>`);
+    }
+    // The drawn heatmaps: one per keyword, a month selector, a before and after toggle against the baseline, a PNG export
+    if (S && S.table && S.table.length) {
+      const withPoints = S.table.filter(t => t.months.some(m => (S.scans.find(s => s.heatmap_id === m.heatmap_id) || {}).points));
+      for (const t of withPoints) {
+        const key = 'map_' + t.keyword.replace(/[^a-z0-9]+/gi, '_');
+        const sel = mapState[key] || (mapState[key] = { month: t.months[t.months.length - 1].month, baseline: false });
+        const current = t.months.find(m => m.month === sel.month) || t.months[t.months.length - 1];
+        const shown = sel.baseline && t.baseline ? t.months.find(m => m.is_baseline) || current : current;
+        const scan = S.scans.find(s => s.heatmap_id === shown.heatmap_id);
+        H.push(`<div class="field"><div class="field-head"><span class="field-name">${esc(t.keyword)} <span class="field-meta">${shown.is_baseline ? 'baseline' : shown.month} · Top 3% ${shown.top_3_percentage}% · average ${shown.average}</span></span>
+          <span class="mapbar">
+            <select onchange="setMapMonth('${key}', this.value)">${t.months.map(m => `<option value="${m.month}" ${m.month === sel.month ? 'selected' : ''}>${m.month}${m.is_baseline ? ' (baseline)' : ''}</option>`).join('')}</select>
+            ${t.baseline && !current.is_baseline ? `<button class="copy" onclick="toggleMapBaseline('${key}')">${sel.baseline ? `Show ${esc(current.month)}` : 'Show baseline'}</button>` : ''}
+            <button class="copy" onclick="exportMap('${key}', '${esc(t.keyword)}', '${esc(shown.is_baseline ? 'baseline' : shown.month)}')">Export PNG</button>
+            ${scan && scan.share_url ? `<a href="${esc(scan.share_url)}" target="_blank">Open on LeadSnap</a>` : ''}
+          </span></div>
+          <div id="${key}" class="scanmap" data-heatmap="${shown.heatmap_id}"></div>
+          <div class="field-meta" style="margin-top:.3rem">1 to 3 green · 4 to 10 amber · 11 to 20 red · grey: not in the top 20</div></div>`);
+      }
+      setTimeout(drawMaps, 0);
     }
     if (S && S.table && S.table.length) {
       const months = [...new Set(S.table.flatMap(r => r.months.map(m => m.month)))].sort();
@@ -442,23 +472,95 @@
   function runLandingPage() { return postGbp('landing-page', 'gbpLandRun', 'Checking…'); }
   function markDuplicate(placeId, mark) { return postGbp(`duplicates/${encodeURIComponent(placeId)}`, null, '', { mark }); }
   function setHandPrimary(placeId, value) { return postGbp(`competitors/${encodeURIComponent(placeId)}`, null, '', { gbp_primary: value }); }
-  // Rank scans (batch 3)
-  async function previewBaseline() {
-    const btn = document.getElementById('gbpScanRun');
+  // Rank scans (batch 3). mode: 'baseline' (first run) or 'reset' (pause the schedules, supersede the scans, run again)
+  async function previewBaseline(mode) {
+    const btn = document.getElementById(mode === 'reset' ? 'gbpScanReset' : 'gbpScanRun');
+    const label = mode === 'reset' ? 'Reset baseline' : 'Run baseline scan';
     btn.disabled = true; btn.textContent = 'Working out the settings…';
     try {
-      const r = await fetch(`/api/clients/${clientId}/gbp/scans/preview`, { method: 'POST' });
+      // A reset previews fresh settings: the preview ignores the lock when asked to
+      const r = await fetch(`/api/clients/${clientId}/gbp/scans/preview${mode === 'reset' ? '?fresh=1' : ''}`, { method: 'POST' });
       const data = await r.json();
-      if (!r.ok) { alert(data.error || `HTTP ${r.status}`); btn.disabled = false; btn.textContent = 'Run baseline scan'; return; }
+      if (!r.ok) { alert(data.error || `HTTP ${r.status}`); btn.disabled = false; btn.textContent = label; return; }
       const s = data.settings;
-      const text = `Baseline scan for ${s.client}\n\nKeywords (${s.keywords.length}):\n${s.keywords.map(k => '  ' + k.keyword).join('\n')}\n\nGrid: ${s.grid_size} x ${s.grid_size}, ${s.grid_radius_m} m between points${s.farthest ? ` (farthest town ${s.farthest.name}, ${s.farthest.km} km)` : ''}\nCentre: ${s.centre.lat.toFixed(4)}, ${s.centre.lng.toFixed(4)} from ${s.centre.from}\nPlace: ${s.place.name || s.place.google_place_id} (${s.place.how})\n\nCredit cost: ${data.credits} credits (${s.grid_size * s.grid_size} per keyword) now, and the same each month from the schedules.\n\nThe settings lock after this run (hard rule 8). Run it?`;
-      if (!confirm(text)) { btn.disabled = false; btn.textContent = 'Run baseline scan'; return; }
+      const head = mode === 'reset' ? `Reset the baseline for ${s.client}\n\nThe current schedules are paused, every stored scan is kept but marked superseded, the lock is cleared and a new baseline runs on these settings:` : `Baseline scan for ${s.client}`;
+      const text = `${head}\n\nKeywords (${s.keywords.length}):\n${s.keywords.map(k => '  ' + k.keyword + (k.volume ? ` (${k.volume} searches a month)` : '')).join('\n')}\n\nGrid: ${s.grid_size} x ${s.grid_size}, ${s.grid_radius_m} m between points${s.farthest ? ` (farthest town ${s.farthest.name}, ${s.farthest.km} km)` : ''}\nCentre: ${s.centre.lat.toFixed(4)}, ${s.centre.lng.toFixed(4)} from ${s.centre.from}\nPlace: ${s.place.name || s.place.google_place_id} (${s.place.how})\n\nCredit cost: ${data.credits} credits (${s.grid_size * s.grid_size} per keyword) now, and the same each month from the schedules.\n\nThe settings lock after this run (hard rule 8). Run it?`;
+      if (!confirm(text)) { btn.disabled = false; btn.textContent = label; return; }
       btn.textContent = 'Creating heatmaps…';
-      const r2 = await fetch(`/api/clients/${clientId}/gbp/scans/baseline`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ confirm: true }) });
+      const r2 = await fetch(`/api/clients/${clientId}/gbp/scans/${mode === 'reset' ? 'reset' : 'baseline'}`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ confirm: true }) });
       const d2 = await r2.json();
       if (!r2.ok) { alert(d2.error || `HTTP ${r2.status}`); await loadGbp(); return; }
       gbp = d2; renderGbp(); scheduleRefresh();
     } catch (e) { alert('Failed: ' + e.message); await loadGbp(); }
+  }
+  // ── The drawn heatmaps ──
+  const mapState = {};
+  const maps = {};
+  function setMapMonth(key, month) { mapState[key] = { ...(mapState[key] || {}), month, baseline: false }; renderGbp(); }
+  function toggleMapBaseline(key) { mapState[key] = { ...(mapState[key] || {}), baseline: !(mapState[key] || {}).baseline }; renderGbp(); }
+  const rankClass = r => (r === null || r === undefined || r > 20 ? 'x' : r <= 3 ? 'g' : r <= 10 ? 'a' : 'r');
+  const rankColour = r => ({ g: '#4ade80', a: '#fbbf24', r: '#f87171', x: '#64748b' })[rankClass(r)];
+  let leafletLoading = null;
+  function loadLeaflet() {
+    if (window.L) return Promise.resolve();
+    if (leafletLoading) return leafletLoading;
+    leafletLoading = new Promise((resolve, reject) => { const s = document.createElement('script'); s.src = 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js'; s.onload = resolve; s.onerror = () => reject(new Error('Leaflet did not load')); document.head.appendChild(s); });
+    return leafletLoading;
+  }
+  async function drawMaps() {
+    const els = [...document.querySelectorAll('.scanmap')];
+    if (!els.length) return;
+    try { await loadLeaflet(); } catch (e) { els.forEach(el => { el.textContent = e.message; }); return; }
+    for (const el of els) {
+      const scan = gbp.scans.scans.find(s => String(s.heatmap_id) === el.dataset.heatmap);
+      if (!scan || !scan.points) continue;
+      if (maps[el.id]) { maps[el.id].remove(); delete maps[el.id]; }
+      const pts = scan.points.filter(p => typeof p.lat === 'number' && typeof p.lng === 'number');
+      const map = L.map(el, { zoomControl: true, attributionControl: true });
+      L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19, attribution: '&copy; OpenStreetMap contributors' }).addTo(map);
+      for (const p of pts) L.marker([p.lat, p.lng], { icon: L.divIcon({ className: '', html: `<div class="rankpin ${rankClass(p.rank)}">${p.rank === null || p.rank === undefined ? '–' : p.rank > 20 ? '20+' : p.rank}</div>`, iconSize: [26, 26], iconAnchor: [13, 13] }) }).addTo(map);
+      if (pts.length) map.fitBounds(L.latLngBounds(pts.map(p => [p.lat, p.lng])).pad(0.08));
+      maps[el.id] = map;
+    }
+  }
+  // PNG export: the OpenStreetMap tiles under the grid, drawn on a canvas, then downloaded
+  async function exportMap(key, keyword, label) {
+    const el = document.getElementById(key);
+    const scan = gbp.scans.scans.find(s => String(s.heatmap_id) === el.dataset.heatmap);
+    const pts = (scan && scan.points || []).filter(p => typeof p.lat === 'number' && typeof p.lng === 'number');
+    if (!pts.length) { alert('No grid points to draw.'); return; }
+    const W = 1000, Hh = 1000, T = 256;
+    const lats = pts.map(p => p.lat), lngs = pts.map(p => p.lng);
+    const bounds = { n: Math.max(...lats), s: Math.min(...lats), e: Math.max(...lngs), w: Math.min(...lngs) };
+    const toWorld = (lat, lng, z) => { const n = 2 ** z; const x = (lng + 180) / 360 * n * T; const r = lat * Math.PI / 180; const y = (1 - Math.log(Math.tan(r) + 1 / Math.cos(r)) / Math.PI) / 2 * n * T; return { x, y }; };
+    let z = 19;
+    for (; z > 1; z--) { const a = toWorld(bounds.n, bounds.w, z), b = toWorld(bounds.s, bounds.e, z); if (b.x - a.x < W * 0.85 && b.y - a.y < Hh * 0.85) break; }
+    const a = toWorld(bounds.n, bounds.w, z), b = toWorld(bounds.s, bounds.e, z);
+    const cx = (a.x + b.x) / 2, cy = (a.y + b.y) / 2;
+    const ox = cx - W / 2, oy = cy - Hh / 2;
+    const canvas = document.createElement('canvas'); canvas.width = W; canvas.height = Hh;
+    const ctx = canvas.getContext('2d');
+    ctx.fillStyle = '#e5e7eb'; ctx.fillRect(0, 0, W, Hh);
+    const x0 = Math.floor(ox / T), x1 = Math.floor((ox + W) / T), y0 = Math.floor(oy / T), y1 = Math.floor((oy + Hh) / T);
+    const loads = [];
+    for (let tx = x0; tx <= x1; tx++) for (let ty = y0; ty <= y1; ty++) {
+      loads.push(new Promise(resolve => { const img = new Image(); img.crossOrigin = 'anonymous'; img.onload = () => { ctx.drawImage(img, tx * T - ox, ty * T - oy); resolve(); }; img.onerror = () => resolve(); img.src = `https://tile.openstreetmap.org/${z}/${tx}/${ty}.png`; }));
+    }
+    await Promise.all(loads);
+    for (const p of pts) {
+      const w = toWorld(p.lat, p.lng, z); const x = w.x - ox, y = w.y - oy;
+      ctx.beginPath(); ctx.arc(x, y, 15, 0, Math.PI * 2); ctx.fillStyle = rankColour(p.rank); ctx.fill(); ctx.lineWidth = 2; ctx.strokeStyle = 'rgba(15,17,23,.7)'; ctx.stroke();
+      ctx.fillStyle = rankClass(p.rank) === 'x' ? '#e2e8f0' : '#0f1117'; ctx.font = '700 13px Inter, system-ui, sans-serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+      ctx.fillText(p.rank === null || p.rank === undefined ? '–' : p.rank > 20 ? '20+' : String(p.rank), x, y + 1);
+    }
+    ctx.fillStyle = 'rgba(255,255,255,.85)'; ctx.fillRect(0, Hh - 48, W, 48);
+    ctx.fillStyle = '#111827'; ctx.font = '600 16px Inter, system-ui, sans-serif'; ctx.textAlign = 'left'; ctx.textBaseline = 'middle';
+    ctx.fillText(`${keyword} · ${label} · Top 3% ${scan.top_3_percentage}% · average ${scan.average}`, 14, Hh - 30);
+    ctx.font = '12px Inter, system-ui, sans-serif'; ctx.fillStyle = '#374151';
+    ctx.fillText('1 to 3 green · 4 to 10 amber · 11 to 20 red · map © OpenStreetMap contributors', 14, Hh - 12);
+    try {
+      canvas.toBlob(blob => { const a2 = document.createElement('a'); a2.href = URL.createObjectURL(blob); a2.download = `${keyword.replace(/[^a-z0-9]+/gi, '-').toLowerCase()}-${label}.png`; a2.click(); setTimeout(() => URL.revokeObjectURL(a2.href), 2000); });
+    } catch (e) { alert('The PNG could not be built (' + e.message + '); use the LeadSnap link instead.'); }
   }
   let refreshTimer = null;
   function scheduleRefresh() {

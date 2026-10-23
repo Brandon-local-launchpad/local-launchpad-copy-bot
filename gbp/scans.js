@@ -23,22 +23,23 @@ function kmBetween(a, b) {
   return 2 * r * Math.asin(Math.sqrt(h));
 }
 
-// Keywords: "[primary category] [main town]" then up to three "[service] [main town]" in
-// jobs_wanted order (a wanted job names a service page, or a category whose first page
-// stands in), never the same keyword twice
-function scanKeywords({ primary, town, jobsWanted = [], locked = [], categories = [] }) {
+// Keywords (Brandon, 23 Oct): "[primary category] [main town]" plus the three highest
+// search volume keywords from the page map (hub or service pages with a volume figure),
+// nothing under MIN_VOLUME a month. A page's keyword is its researched H1 ("Fencing
+// Southampton"), else "[title] [main town]". pages: [{ title, h1, h1_source, volume, type }]
+// in page map order (ties keep that order). Never the same keyword twice.
+const MIN_VOLUME = 30;
+function scanKeywords({ primary, town, pages = [], minVolume = MIN_VOLUME }) {
   const out = [];
-  const add = (text, kind, source) => { const k = str(text); if (k && !out.some(o => norm(o.keyword) === norm(k))) out.push({ keyword: k, kind, source }); };
+  const add = (text, kind, source, volume = null) => { const k = str(text); if (k && !out.some(o => norm(o.keyword) === norm(k))) out.push({ keyword: k, kind, source, volume }); };
   add(`${str(primary)} ${str(town)}`, 'main', 'primary category');
-  for (const w of jobsWanted) {
+  const ranked = (pages || [])
+    .map((p, i) => ({ ...p, i, volume: Number(p.volume) || 0, keyword: str(p.h1_source === 'research' && p.h1 ? p.h1 : `${str(p.title)} ${str(town)}`) }))
+    .filter(p => p.volume >= minVolume && p.keyword)
+    .sort((a, b) => b.volume - a.volume || a.i - b.i);
+  for (const p of ranked) {
     if (out.length >= 4) break;
-    const want = norm(w);
-    if (!want) continue;
-    const svc = locked.find(l => norm(l.service) === want) || locked.find(l => norm(l.service).includes(want) || want.includes(norm(l.service)));
-    if (svc) { add(`${svc.service} ${str(town)}`, 'service', `jobs_wanted: ${str(w)}`); continue; }
-    const cat = categories.find(c => norm(c) === want);
-    const first = cat && locked.find(l => norm(l.category) === norm(cat));
-    if (first) add(`${first.service} ${str(town)}`, 'service', `jobs_wanted: ${str(w)} (its first service page)`);
+    add(p.keyword, p.type === 'category' ? 'hub' : 'service', `${p.type === 'category' ? 'hub' : 'service'} page "${p.title}", ${p.volume} searches a month`, p.volume);
   }
   return out;
 }
@@ -58,8 +59,8 @@ function gridFor(centre, areas) {
 }
 
 // The settings, built once. place: { google_place_id, leadsnap_place_id, leadsnap_location_id, name, how }
-function buildScanSettings({ clientName, primary, town, jobsWanted, locked, categories, centre, areas, place, now = new Date() }) {
-  const keywords = scanKeywords({ primary, town, jobsWanted, locked, categories });
+function buildScanSettings({ clientName, primary, town, pages = [], centre, areas, place, now = new Date() }) {
+  const keywords = scanKeywords({ primary, town, pages });
   const grid = gridFor(centre, areas);
   const settings = {
     version: 1, built_at: now.toISOString(), locked: false,
@@ -97,6 +98,9 @@ function scanRow(heatmap, { keyword, kind, run_type, created_from = 'baseline' }
     heatmap_id: h.id, keyword: keyword || h.keyword || '', kind: kind || 'main', run_type, created_from,
     status: String(h.status || 'queue').toLowerCase(), created_at: h.created_at || null, month: monthOf(h.created_at),
     grid_size: h.grid_size || null, search_type: h.search_type || SEARCH_TYPE,
+    // LeadSnap's own shareable map page, the fallback link beside the drawn grid
+    share_url: (h.share_link_details && h.share_link_details.url) || h.share_url || null,
+    superseded: false,
     top_3_percentage: completed ? num(h.top_3_percentage) : null,
     average: completed ? num(h.average) : null,
     total_points: completed ? num(h.total_points) : null,
@@ -117,8 +121,10 @@ function topCompetitors(list, limit = 5) {
 
 // Per keyword: the baseline, then each month's latest completed scan with the change from
 // the previous month and from the baseline
+// Superseded rows (from before a reset) stay stored but never count
+const live = scans => (scans || []).filter(s => !s.superseded);
 function monthlyTable(scans) {
-  const done = (scans || []).filter(s => s.status === 'completed' && s.top_3_percentage !== null);
+  const done = live(scans).filter(s => s.status === 'completed' && s.top_3_percentage !== null);
   const byKeyword = new Map();
   for (const s of done) { const k = norm(s.keyword); if (!byKeyword.has(k)) byKeyword.set(k, { keyword: s.keyword, kind: s.kind, baseline: null, months: [] }); }
   for (const [k, row] of byKeyword) {
@@ -170,4 +176,4 @@ function scheduleBody(settings, keyword, points, { clientName, baselineAt, locat
   };
 }
 
-module.exports = { scanKeywords, gridFor, buildScanSettings, creditCost, heatmapBody, scanRow, topCompetitors, monthlyTable, dropAlerts, scheduleBody, kmBetween, monthOf, GRID_MAX, GRID_SMALL, SMALL_AREA_KM, MIN_RADIUS_M, DROP_POINTS };
+module.exports = { scanKeywords, gridFor, buildScanSettings, creditCost, heatmapBody, scanRow, topCompetitors, monthlyTable, dropAlerts, scheduleBody, live, kmBetween, monthOf, GRID_MAX, GRID_SMALL, SMALL_AREA_KM, MIN_RADIUS_M, MIN_VOLUME, DROP_POINTS };
