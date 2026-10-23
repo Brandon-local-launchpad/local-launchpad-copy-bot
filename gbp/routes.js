@@ -76,10 +76,20 @@ function mountGbpApi(app, { pool, loadInputs, callModel, log = console, search =
       // listing by place id, else the address, else the main town, through Places
       if (finite(L.latitude) && finite(L.longitude)) centre = { lat: Number(L.latitude), lng: Number(L.longitude), from: `the GBP pin (LeadSnap location "${place.name}", matched by ${found.how})` };
       else {
-        // The centre must be the pin: a listing with no position is a warning the confirm step shows, never a silent fallback
-        const loc = await locateFn({ placeId: place.google_place_id || '', address: cv.address || '', town: I.town ? `${I.town}, UK` : '' });
-        if (!loc) throw Object.assign(new Error(`The LeadSnap location "${place.name}" has no position, and the address and main town did not resolve, so there is no centre for the grid.`), { status: 400 });
-        centre = { ...loc, from: `${loc.from} (the LeadSnap location "${place.name}" has no position)`, warning: `listing not activated in LeadSnap; grid will centre on the town (${loc.from})` };
+        // No position on LeadSnap. A service area business (hidden address) has no pin by design:
+        // it centres on the main town and says so. A storefront with no position is a warning the
+        // confirm step shows, never a silent fallback. The record's gbp_address_type decides; when
+        // it is blank, LeadSnap's own business_type (customer_location = service area) does.
+        let sab = String(cv.gbp_address_type || '').toLowerCase() === 'service_area';
+        let sabFrom = 'the record (gbp_address_type)';
+        if (!cv.gbp_address_type && L.id) {
+          try { const full = await needLeadsnap().getLocation(L.id); const bt = String((full.metadata || {}).business_type || '').toLowerCase(); if (bt) { sab = bt === 'customer_location'; sabFrom = `LeadSnap (business_type ${bt})`; } } catch (_) { /* unknown stays a storefront */ }
+        }
+        const loc = await locateFn({ placeId: '', address: sab ? '' : (cv.address || ''), town: I.town ? `${I.town}, UK` : '' });
+        if (!loc) throw Object.assign(new Error(`The LeadSnap location "${place.name}" has no position, and the main town did not resolve, so there is no centre for the grid.`), { status: 400 });
+        centre = sab
+          ? { ...loc, from: `the main town (${I.town}): service area business, no pin by design`, note: `service area business, centred on the main town (per ${sabFrom})` }
+          : { ...loc, from: `${loc.from} (the LeadSnap location "${place.name}" has no position)`, warning: `listing not activated in LeadSnap; grid will centre on the town (${loc.from})` };
       }
     } else {
       const loc = await locateFn({ placeId: cv.gbp_place_id || '', address: cv.address || '', town: I.town ? `${I.town}, UK` : '' });
@@ -122,8 +132,9 @@ function mountGbpApi(app, { pool, loadInputs, callModel, log = console, search =
     } catch (e) { pointsNote = `LeadSnap grid-points failed (${e.message}); the grid was built here`; }
     const settings = SC.buildScanSettings({ clientName: I.name, primary: I.primary, keyword2: cv.scan_keyword_2 || '', scanArea: cv.scan_area || 'city', town: I.town, centre, areas, place, points });
     settings.areas = areas;
-    settings.notes = [...areas.filter(a => a.note || a.error).map(a => `${a.name}: ${a.note || a.error}`), ...(pointsNote ? [pointsNote] : [])];
+    settings.notes = [...(centre.note ? [centre.note] : []), ...areas.filter(a => a.note || a.error).map(a => `${a.name}: ${a.note || a.error}`), ...(pointsNote ? [pointsNote] : [])];
     settings.warnings = centre.warning ? [centre.warning] : [];
+    settings.centre_kind = centre.warning ? 'town, storefront with no position' : centre.note ? 'town, service area business' : 'the GBP pin';
     return { settings, saved: false };
   }
 

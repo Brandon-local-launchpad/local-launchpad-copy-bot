@@ -456,7 +456,16 @@ function fakeModel(opts = {}) {
     // A LeadSnap location with no position: the centre falls back through Places (the locate stub)
     const savedLoc = LS.locations.data[0]; const keepLat = savedLoc.latitude, keepLng = savedLoc.longitude; savedLoc.latitude = 0; savedLoc.longitude = null;
     const pv0 = await (await req('POST', `/api/clients/${c.id}/gbp/scans/preview`)).json();
-    chk('a LeadSnap location at 0, 0: the centre comes from Places, the settings say so, and the confirm step carries the warning', pv0.settings && pv0.settings.centre.lat === 50.9097 && /has no position/.test(pv0.settings.centre.from) && pv0.settings.place.leadsnap_location_id === 20 && pv0.settings.warnings.length === 1 && /^listing not activated in LeadSnap; grid will centre on the town/.test(pv0.settings.warnings[0]), JSON.stringify(pv0.settings && [pv0.settings.centre, pv0.settings.warnings]) + ' ' + (pv0.error || ''), '');
+    chk('a LeadSnap location at 0, 0 for a service area business: centred on the main town with the note, no warning', pv0.settings && pv0.settings.centre.lat === 50.9097 && /service area business, no pin by design/.test(pv0.settings.centre.from) && pv0.settings.place.leadsnap_location_id === 20 && pv0.settings.warnings.length === 0 && pv0.settings.notes.some(n => /^service area business, centred on the main town \(per the record/.test(n)) && pv0.settings.centre_kind === 'town, service area business', JSON.stringify(pv0.settings && [pv0.settings.centre, pv0.settings.warnings, pv0.settings.notes]) + ' ' + (pv0.error || ''), '');
+    const cvShop = { ...inputsFor.validatorCtx.cv, gbp_address_type: 'storefront', address: '12 High Street, Hedge End' };
+    const keepInputs = inputsFor; inputsFor = { ...inputsFor, validatorCtx: { ...inputsFor.validatorCtx, cv: cvShop } };
+    const pvShop = await (await req('POST', `/api/clients/${c.id}/gbp/scans/preview`)).json();
+    chk('a storefront with no position keeps the warning', pvShop.settings && pvShop.settings.warnings.length === 1 && /^listing not activated in LeadSnap; grid will centre on the town/.test(pvShop.settings.warnings[0]) && pvShop.settings.centre_kind === 'town, storefront with no position', JSON.stringify(pvShop.settings && pvShop.settings.warnings) + ' ' + (pvShop.error || ''), '');
+    inputsFor = { ...keepInputs, validatorCtx: { ...keepInputs.validatorCtx, cv: { ...keepInputs.validatorCtx.cv, gbp_address_type: '' } } };
+    lsCalls.length = 0;
+    const pvBlank = await (await req('POST', `/api/clients/${c.id}/gbp/scans/preview`)).json();
+    chk('with gbp_address_type blank, LeadSnap\'s business_type decides (customer_location = service area)', pvBlank.settings && pvBlank.settings.warnings.length === 0 && pvBlank.settings.notes.some(n => /per LeadSnap \(business_type customer_location\)/.test(n)) && lsCalls.includes('location'), JSON.stringify(pvBlank.settings && [pvBlank.settings.warnings, pvBlank.settings.notes]) + ' ' + (pvBlank.error || ''), '');
+    inputsFor = keepInputs;
     chk('a positioned LeadSnap location: the centre is the GBP pin and there is no warning', /^the GBP pin/.test(pv.settings.centre.from) && pv.settings.warnings.length === 0, pv.settings.centre.from, '');
     savedLoc.latitude = keepLat; savedLoc.longitude = keepLng;
     r = await req('POST', `/api/clients/${c.id}/gbp/scans/baseline`);

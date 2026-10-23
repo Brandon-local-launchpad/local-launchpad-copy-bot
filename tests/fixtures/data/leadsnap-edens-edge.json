@@ -81,7 +81,8 @@
       "has_pending_edits": 1,
       "open_status": "Open",
       "ownership": "Claimed",
-      "standing": "Good"
+      "standing": "Good",
+      "business_type": "customer_location"
     },
     "working_hours": [
       {
