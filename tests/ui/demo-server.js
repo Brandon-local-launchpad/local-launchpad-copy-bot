@@ -99,6 +99,13 @@ process.env.APP_PASSWORD = '';
 
   // No FAQ research or sorted questions: the FAQ questions card shows the real empty state
 
+  // GBP output (23 Oct): the newest local real run (node tools/gbp-run.js edens-edge) when
+  // there is one, so the client page's GBP panel can be seen with real copy. The demo client
+  // has no v3 page map, so the panel's readiness line shows that error and the button is off.
+  const runsDir = path.join(root, 'tests/quality-runs/gbp/edens-edge');
+  const runs = fs.existsSync(runsDir) ? fs.readdirSync(runsDir).filter(d => fs.existsSync(path.join(runsDir, d, 'record.json'))).sort() : [];
+  if (runs.length) await asset('gbp_output', 'gbp.json', fs.readFileSync(path.join(runsDir, runs[runs.length - 1], 'record.json'), 'utf8'));
+
   console.log('\nDEMO READY');
   console.log(`  Client:       http://localhost:${PORT}/client.html?id=${clientId}`);
   console.log(`  Settings:     http://localhost:${PORT}/client-settings.html?id=${clientId}`);

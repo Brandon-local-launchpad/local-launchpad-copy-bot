@@ -2933,6 +2933,9 @@ const CLIENT_VALUES_TEMPLATE = {
   review_themes: [], jobs_wanted: [], map_embed: '',
   stand_ins: [],
   h1_override: '',
+  // GBP output (23 Oct): the competitors' average service count (a whole number, by hand for
+  // now) and whether products may show the approved prices
+  competitor_service_count: '', show_prices: '',
 };
 
 app.get('/api/clients/:clientId/gbp-categories', async (req, res) => {
@@ -3756,6 +3759,22 @@ const v20CallModel = async ({ system, message, maxTokens }) => {
 if (filloutService) filloutRoutes.mountApi(app, filloutService);
 // Page map and the hand set-up editor (page-map/routes.js)
 if (filloutService) require('./page-map/routes').mountPageMapApi(app, { pool, filloutService });
+
+// GBP output (gbp/routes.js, 23 Oct): the Google Business Profile description, services and
+// products, from the client values, the v3 page map and the generated service page copy
+async function gbpInputsFor(clientId) {
+  const ctx = await loadV20Context(clientId, null);
+  if (ctx.contextSource !== 'page_map_v3') throw Object.assign(new Error('GBP output needs a v3 page map: fill in the set-up on the client record and generate the page map first.'), { status: 400 });
+  const rows = await pageMapStore.saved(clientId);
+  const { rows: wp } = await pool.query(`SELECT url FROM wp_connections WHERE client_id=$1`, [clientId]);
+  const { rows: serviceCopy } = await pool.query(`SELECT page_title, url_slug, copy_output FROM pages WHERE client_id=$1 AND page_type='service' AND copy_output IS NOT NULL`, [clientId]);
+  return require('./gbp/inputs').buildGbpInputs({ cv: ctx.cv, niche: ctx.niche || {}, rows, keyValueMap: ctx.keyValueMap, siteUrl: wp.length ? wp[0].url : '', serviceCopy });
+}
+if (pool && pageMapStore) {
+  const { GBP_MODEL } = require('./gbp/generate');
+  const gbpCallModel = args => makeCallModel(new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY }), GBP_MODEL)(args);
+  require('./gbp/routes').mountGbpApi(app, { pool, loadInputs: gbpInputsFor, callModel: gbpCallModel });
+}
 
 app.get('/api/clients/:clientId/wp/connection', wpRoute(req => wpService.connection(req.params.clientId)));
 app.put('/api/clients/:clientId/wp/connection', wpRoute(req => wpService.saveConnection(req.params.clientId, req.body || {})));

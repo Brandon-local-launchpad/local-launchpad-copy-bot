@@ -2273,6 +2273,10 @@
       { key: 'out_of_hours_available', label: 'Out of hours',        type: 'select', options: ['','yes','no','24/7'] },
       { key: 'start_time',             label: 'Start time',          type: 'text', placeholder: 'e.g. same week' },
     ]},
+    { title: 'Google Business Profile', fields: [
+      { key: 'competitor_service_count', label: 'Competitor service count (top 5 average)', type: 'text', placeholder: 'Whole number; blank means the GBP services target is 20' },
+      { key: 'show_prices',              label: 'Show prices in GBP products',             type: 'select', options: ['','yes','no'] },
+    ]},
     { title: 'Differentiators', fields: [
       { key: 'differentiator_1', label: 'Diff 1 (title)', type: 'text', placeholder: 'e.g. Fixed Prices With No Hidden Costs',
         sub: [{ key: 'differentiator_1_confirmed', label: 'Confirmed ✓' }] },

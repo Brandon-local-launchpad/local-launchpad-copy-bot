@@ -48,6 +48,28 @@
   .gen-date { color: var(--muted); font-size: 11px; }
   .badge-v20  { background: rgba(108,99,255,.15); color: var(--accent); }
     @media (max-width: 640px) { body { padding: 1rem; } .page-row { flex-wrap: wrap; } }
+  /* GBP output (23 Oct): description, services and products with a copy button per field */
+  .gbp { margin-top: 2.5rem; border-top: 1px solid var(--border); padding-top: 1.5rem; }
+  .gbp h2 { font-size: 1.1rem; font-weight: 700; margin-bottom: .25rem; }
+  .gbp .sub { color: var(--muted); font-size: 13px; margin-bottom: 1rem; }
+  .gbp .steps { display: flex; gap: .5rem; flex-wrap: wrap; margin: .75rem 0 1rem; }
+  .gbp .notice { background: var(--surface); border: 1px solid var(--border); border-radius: var(--r); padding: .75rem 1rem; font-size: 13px; margin-bottom: 1rem; }
+  .gbp .notice.fail { border-color: var(--danger); }
+  .gbp .notice ul { margin: .4rem 0 0 1.2rem; }
+  .gbp .notice li { margin: 2px 0; }
+  .gbp h3 { font-size: .95rem; font-weight: 700; margin: 1.5rem 0 .5rem; display: flex; align-items: center; gap: .6rem; }
+  .gbp .field { background: var(--surface); border: 1px solid var(--border); border-radius: var(--r); padding: .75rem 1rem; margin-bottom: .6rem; }
+  .gbp .field-head { display: flex; justify-content: space-between; align-items: center; gap: .75rem; margin-bottom: .35rem; }
+  .gbp .field-name { font-weight: 600; font-size: 13px; }
+  .gbp .field-meta { color: var(--muted); font-size: 11px; font-family: monospace; }
+  .gbp .field-text { font-size: 13px; line-height: 1.5; white-space: pre-wrap; }
+  .gbp .field-text a { font-family: monospace; font-size: 12px; }
+  .gbp .copy { background: var(--surface2); color: var(--text); border: 1px solid var(--border); border-radius: 6px; padding: 3px 9px; font-size: 11px; font-weight: 600; cursor: pointer; font-family: var(--font); }
+  .gbp .copy:hover { border-color: var(--accent); }
+  .gbp .copy.done { color: var(--success); border-color: var(--success); }
+  .gbp .flag { color: var(--warning); font-size: 12px; margin-top: .35rem; }
+  .gbp .files a { margin-right: 1rem; font-size: 13px; }
+  .gbp details summary { cursor: pointer; color: var(--muted); font-size: 13px; margin: .5rem 0; }
 </style>
 </head>
 <body>
@@ -67,6 +89,12 @@
 
 <div class="tabs" id="tabs"></div>
 <div class="page-list" id="pageList"></div>
+
+<div class="gbp" id="gbp">
+  <h2>Google Business Profile</h2>
+  <div class="sub">The description, services and products to paste into the GBP editor. Each field has a copy button. Runs description, then services, then products; a run that stops at a step picks up from that step next time.</div>
+  <div id="gbpBody"><div class="empty">Loading…</div></div>
+</div>
 
 <script>
   const params   = new URLSearchParams(location.search);
@@ -197,8 +225,112 @@
 
   function esc(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
   function fmtDate(s) { return new Date(s).toLocaleDateString('en-GB', { day:'numeric', month:'short', year:'numeric' }); }
+  function fmtTime(s) { return new Date(s).toLocaleString('en-GB', { day:'numeric', month:'short', hour:'2-digit', minute:'2-digit' }); }
+
+  // ── GBP output (gbp/routes.js) ──
+  const GBP_STEPS = [['description', 'Description'], ['services', 'Services'], ['products', 'Products']];
+  let gbp = null;
+  const gbpTexts = [];   // the copy buttons' texts, by index
+  async function loadGbp() {
+    const r = await fetch(`/api/clients/${clientId}/gbp`).catch(() => null);
+    if (!r) return;
+    gbp = r.ok ? await r.json() : { error: (await r.json().catch(() => ({}))).error || `HTTP ${r.status}` };
+    renderGbp();
+  }
+  function stepBadge(step, label) {
+    const st = gbp.record && gbp.record.steps ? gbp.record.steps[step] : null;
+    const cls = !st ? 'badge-none' : st.status === 'done' ? 'badge-ok' : 'badge-warn';
+    const txt = !st ? 'not run' : st.status === 'done' ? `done${st.validation && st.validation.flags.length ? `, ${st.validation.flags.length} to check` : ''}` : 'failed';
+    return `<span class="badge ${cls}">${label}: ${txt}</span>`;
+  }
+  function copyBtn(text) { gbpTexts.push(text); return `<button class="copy" onclick="gbpCopy(this, ${gbpTexts.length - 1})">Copy</button>`; }
+  function field(name, text, meta, flags) {
+    return `<div class="field"><div class="field-head"><span class="field-name">${esc(name)}</span><span style="display:flex;gap:.6rem;align-items:center"><span class="field-meta">${esc(meta || '')}</span>${copyBtn(text)}</span></div>
+      <div class="field-text">${esc(text)}</div>${(flags || []).map(f => `<div class="flag">Check: ${esc(f.message)}</div>`).join('')}</div>`;
+  }
+  function renderGbp() {
+    const el = document.getElementById('gbpBody');
+    gbpTexts.length = 0;
+    if (!gbp) return;
+    if (gbp.error) { el.innerHTML = `<div class="notice fail">${esc(gbp.error)}</div>`; return; }
+    const R = gbp.record, rd = gbp.readiness || {};
+    const steps = (R && R.steps) || {};
+    const allDone = GBP_STEPS.every(([s]) => steps[s] && steps[s].status === 'done');
+    const failed = GBP_STEPS.map(([s]) => s).find(s => steps[s] && steps[s].status === 'failed');
+    const H = [];
+    H.push(`<div style="display:flex;gap:.5rem;flex-wrap:wrap;align-items:center">
+      <button class="btn btn-primary" id="gbpRun" onclick="runGbp()" ${rd.ok === false || gbp.running ? 'disabled' : ''}>${gbp.running ? 'Running…' : allDone ? 'Generate GBP again' : R ? 'Generate GBP (resume)' : 'Generate GBP'}</button>
+      ${R ? `<button class="btn btn-ghost btn-sm" onclick="clearGbp()">Start again</button>` : ''}
+      ${R && R.updated_at ? `<span class="gen-date">Last run ${fmtTime(R.updated_at)}</span>` : ''}
+    </div>`);
+    H.push(`<div class="steps">${GBP_STEPS.map(([s, l]) => stepBadge(s, l)).join('')}</div>`);
+    if (rd.error) H.push(`<div class="notice fail">${esc(rd.error)}</div>`);
+    else {
+      const bits = [`${rd.locked} service pages in the page map`, `services target ${rd.minServices}${rd.competitorCount !== null && rd.competitorCount !== undefined ? ` (competitors average ${rd.competitorCount})` : ' (no competitor count saved)'}`, rd.siteUrl ? `site ${rd.siteUrl}` : 'no site URL saved', `${rd.withCopy} service pages with copy`, `prices ${rd.showPrices ? 'shown' : 'hidden'}`];
+      H.push(`<div class="notice">${esc(bits.join(' · '))}${(rd.flags || []).length ? `<ul>${rd.flags.map(f => `<li>${esc(f.msg)}</li>`).join('')}</ul>` : ''}</div>`);
+    }
+    if (failed) {
+      const st = steps[failed];
+      H.push(`<div class="notice fail"><strong>${esc(st.error)}</strong><ul>${st.fails.map(f => `<li>${esc(f.message)}</li>`).join('')}</ul>
+        <details><summary>The model's answer</summary><pre class="field-text" style="max-height:300px;overflow:auto">${esc(st.raw || '')}</pre></details></div>`);
+    }
+    if (R && Object.keys(gbp.files || {}).length) H.push(`<div class="files">Files: ${Object.entries(gbp.files).map(([f, u]) => `<a href="${u}" target="_blank">${f}</a>`).join('')}</div>`);
+    // Description
+    const d = steps.description;
+    if (d && d.status === 'done') {
+      H.push(`<h3>Description</h3>`);
+      H.push(field('Business description', d.output.description, `${[...d.output.description].length} characters`, d.validation.flags));
+    }
+    // Services
+    const s = steps.services;
+    if (s && s.status === 'done') {
+      const list = s.output.services;
+      const cats = [...new Set(list.map(x => x.category))];
+      H.push(`<h3>Services <span class="badge badge-v20">${list.length} total, ${list.filter(x => x.type === 'LOCKED').length} from the page map, ${list.filter(x => x.type === 'VARIANT').length} variants</span></h3>`);
+      for (const c of cats) {
+        H.push(`<div class="field"><div class="field-head"><span class="field-name">${esc(c)}</span>${copyBtn(list.filter(x => x.category === c).map(x => x.service).join('\n'))}</div><div class="field-meta">Copy gives the service names under this category, one per line</div></div>`);
+        for (const x of list.filter(y => y.category === c)) {
+          H.push(field(x.service, x.description, `${x.type.toLowerCase()} · ${[...x.description].length} characters${x.url ? ' · ' + x.url : ''}`, s.validation.flags.filter(f => f.field === x.service)));
+        }
+      }
+    }
+    // Products
+    const p = steps.products;
+    if (p && p.status === 'done') {
+      H.push(`<h3>Products <span class="badge badge-v20">${p.output.products.length}</span></h3>`);
+      for (const x of p.output.products) {
+        H.push(`<div class="field"><div class="field-head"><span class="field-name">${esc(x.title)}</span><span style="display:flex;gap:.6rem;align-items:center"><span class="field-meta">title · ${[...x.title].length} characters · ${esc(x.category)}</span>${copyBtn(x.title)}</span></div>
+          <div class="field-head" style="margin-top:.5rem"><span class="field-meta">description · ${[...x.description].length} characters</span>${copyBtn(x.description)}</div>
+          <div class="field-text">${esc(x.description)}</div>
+          ${x.url ? `<div class="field-head" style="margin-top:.5rem"><span class="field-text"><a href="${esc(x.url)}" target="_blank">${esc(x.url)}</a></span>${copyBtn(x.url)}</div>` : ''}
+          ${p.validation.flags.filter(f => f.field === x.service).map(f => `<div class="flag">Check: ${esc(f.message)}</div>`).join('')}</div>`);
+      }
+    }
+    if (!R) H.push(`<div class="empty">Not generated yet.</div>`);
+    el.innerHTML = H.join('');
+  }
+  async function gbpCopy(btn, i) {
+    try { await navigator.clipboard.writeText(gbpTexts[i]); btn.textContent = 'Copied'; btn.classList.add('done'); setTimeout(() => { btn.textContent = 'Copy'; btn.classList.remove('done'); }, 1500); }
+    catch (e) { alert('Copy failed: ' + e.message); }
+  }
+  async function runGbp() {
+    const btn = document.getElementById('gbpRun');
+    btn.disabled = true; btn.textContent = 'Running… (a few minutes)';
+    try {
+      const r = await fetch(`/api/clients/${clientId}/gbp/generate`, { method: 'POST' });
+      const data = await r.json();
+      if (!r.ok) { alert(data.error || `HTTP ${r.status}`); await loadGbp(); return; }
+      gbp = data; renderGbp();
+    } catch (e) { alert('GBP run failed: ' + e.message); await loadGbp(); }
+  }
+  async function clearGbp() {
+    if (!confirm('Start the GBP output again? The saved description, services and products are removed.')) return;
+    const r = await fetch(`/api/clients/${clientId}/gbp/clear`, { method: 'POST' });
+    gbp = await r.json(); renderGbp();
+  }
 
   load();
+  loadGbp();
 </script>
 </body>
 </html>
