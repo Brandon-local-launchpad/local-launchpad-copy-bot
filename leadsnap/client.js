@@ -45,6 +45,8 @@ function createLeadsnapClient({ token = process.env.LEADSNAP_API_TOKEN, baseUrl 
     listLocations: async (query = {}) => rows(await call('GET', '/heatmaps/locations', { query: { per_page: 100, ...query } })),
     // One location in full: categories, service items, hours, completion, metadata
     getLocation: id => call('GET', `/locations/${encodeURIComponent(id)}`),
+    // The grid's points for a centre, size and spacing, clipped to a polygon; creates nothing, spends nothing
+    gridPoints: body => call('POST', '/heatmap/grid-points', { body }),
     // Spends credits: one heatmap per keyword × search type
     createHeatmap: body => call('POST', '/heatmaps', { body }),
     getHeatmap: id => call('GET', `/heatmaps/${encodeURIComponent(id)}`),

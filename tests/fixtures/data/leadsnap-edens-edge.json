@@ -213,12 +213,28 @@
         "id": 555001,
         "google_place_id": "ChIJ_edens_edge_own"
       }
+    },
+    "landscaper": {
+      "id": 9001,
+      "business_name": "Edens Edge Landscaping",
+      "business_place_id": "ChIJ_edens_edge_own",
+      "grid_size": 13,
+      "keyword": "landscaper",
+      "status": "queue",
+      "status_code": 0,
+      "created_at": "2026-10-23T14:00:00.000000Z",
+      "search_type": "google_maps",
+      "place": {
+        "id": 555001,
+        "google_place_id": "ChIJ_edens_edge_own",
+        "name": "Edens Edge Landscaping"
+      }
     }
   },
   "heatmap_get": {
     "9001": {
       "id": 9001,
-      "keyword": "Landscaper Southampton",
+      "keyword": "landscaper",
       "status": "completed",
       "status_code": 2,
       "grid_size": 13,
@@ -411,7 +427,7 @@
     },
     "9101": {
       "id": 9101,
-      "keyword": "Landscaper Southampton",
+      "keyword": "landscaper",
       "status": "completed",
       "status_code": 2,
       "grid_size": 13,
@@ -477,7 +493,7 @@
     },
     "9001#pending": {
       "id": 9001,
-      "keyword": "Landscaper Southampton",
+      "keyword": "landscaper",
       "status": "in_progress",
       "status_code": 1,
       "grid_size": 13,
@@ -606,7 +622,7 @@
     "data": [
       {
         "id": 9101,
-        "keyword": "Landscaper Southampton",
+        "keyword": "landscaper",
         "status": "completed",
         "created_at": "2026-11-23T06:00:00.000000Z",
         "business_place_id": "ChIJ_edens_edge_own"
@@ -712,6 +728,21 @@
           "status": "active"
         }
       }
+    },
+    "landscaper": {
+      "id": 6501,
+      "place_id": 555001,
+      "keywords": [
+        "landscaper"
+      ],
+      "name": "Edens Edge Landscaping monthly",
+      "grid_size": 13,
+      "status": "active",
+      "schedule_config": {
+        "repeat_type": "month",
+        "repeat_on": "23",
+        "status": "active"
+      }
     }
   },
   "schedule_pause": {
@@ -766,6 +797,18 @@
         "id": 555001,
         "google_place_id": "ChIJ_edens_edge_own"
       }
+    },
+    "landscaper": {
+      "id": 9201,
+      "keyword": "landscaper",
+      "status": "queue",
+      "created_at": "2026-12-01T10:00:00.000000Z",
+      "grid_size": 13,
+      "place": {
+        "id": 555001,
+        "google_place_id": "ChIJ_edens_edge_own",
+        "name": "Edens Edge Landscaping"
+      }
     }
   },
   "schedules_list": {
@@ -782,5 +825,6 @@
       }
     ],
     "total": 2
-  }
+  },
+  "grid_points_note": "The fixture stub answers grid-points locally (gbp/scans.js gridPoints) with the polygon it is given."
 }

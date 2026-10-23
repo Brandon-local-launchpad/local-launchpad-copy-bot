@@ -7,9 +7,7 @@
 // against the baseline, the drop alerts, the top competitors from a heatmap and the
 // schedule body. No network here: gbp/routes.js makes the calls.
 
-const GRID_MAX = 13, GRID_SMALL = 7;
-const SMALL_AREA_KM = 5;
-const MIN_RADIUS_M = 500;
+const GRID_MAX = 13;
 const DROP_POINTS = 10;
 const SEARCH_TYPE = 'google_maps';
 
@@ -23,50 +21,94 @@ function kmBetween(a, b) {
   return 2 * r * Math.asin(Math.sqrt(h));
 }
 
-// Keywords (Brandon, 23 Oct): "[primary category] [main town]" plus the three highest
-// search volume keywords from the page map (hub or service pages with a volume figure),
-// nothing under MIN_VOLUME a month. A page's keyword is its researched H1 ("Fencing
-// Southampton"), else "[title] [main town]". pages: [{ title, h1, h1_source, volume, type }]
-// in page map order (ties keep that order). Never the same keyword twice.
-const MIN_VOLUME = 30;
-function scanKeywords({ primary, town, pages = [], minVolume = MIN_VOLUME }) {
+// ── The final rules (Brandon, 23 Oct) ──
+// Keyword = the primary category, lower case, no town ("landscaper"), plus the optional
+// scan_keyword_2 client value (lower case, no town). One 13 × 13 grid per client, centred
+// on the GBP pin (LeadSnap's location, else the main town), spaced by the scan_area client
+// value (city 1500 m, market town 2000 m, rural 2500 m, default city), and clipped to the
+// convex hull of the service area towns plus 3 km so sea and empty country drop out. No
+// calibration run and no automatic change: after a baseline the leader's Top 3% is shown
+// with the line "over 90: consider the next tighter setting; under 40: the next wider".
+const SPACING_M = { city: 1500, market_town: 2000, rural: 2500 };
+const HULL_BUFFER_KM = 3;
+const lcKeyword = s => str(s).toLowerCase().replace(/\s+/g, ' ');
+
+function scanKeywords({ primary, keyword2 = '' }) {
   const out = [];
-  const add = (text, kind, source, volume = null) => { const k = str(text); if (k && !out.some(o => norm(o.keyword) === norm(k))) out.push({ keyword: k, kind, source, volume }); };
-  add(`${str(primary)} ${str(town)}`, 'main', 'primary category');
-  const ranked = (pages || [])
-    .map((p, i) => ({ ...p, i, volume: Number(p.volume) || 0, keyword: str(p.h1_source === 'research' && p.h1 ? p.h1 : `${str(p.title)} ${str(town)}`) }))
-    .filter(p => p.volume >= minVolume && p.keyword)
-    .sort((a, b) => b.volume - a.volume || a.i - b.i);
-  for (const p of ranked) {
-    if (out.length >= 4) break;
-    add(p.keyword, p.type === 'category' ? 'hub' : 'service', `${p.type === 'category' ? 'hub' : 'service'} page "${p.title}", ${p.volume} searches a month`, p.volume);
+  const add = (text, kind, source) => { const k = lcKeyword(text); if (k && !out.some(o => o.keyword === k)) out.push({ keyword: k, kind, source }); };
+  add(primary, 'main', 'primary category, lower case, no town');
+  add(keyword2, 'second', 'scan_keyword_2 on Client Values');
+  return out;
+}
+
+function spacingFor(scanArea) {
+  const key = str(scanArea).toLowerCase().replace(/[\s-]+/g, '_');
+  return { scan_area: SPACING_M[key] ? key : 'city', spacing_m: SPACING_M[key] || SPACING_M.city };
+}
+
+// ── Geometry: metres east and north of the centre, the convex hull, a 3 km buffer ──
+const R_EARTH = 6371000;
+const toLocal = (centre, p) => ({ x: ((p.lng - centre.lng) * Math.PI / 180) * R_EARTH * Math.cos(centre.lat * Math.PI / 180), y: ((p.lat - centre.lat) * Math.PI / 180) * R_EARTH });
+const fromLocal = (centre, q) => ({ lat: centre.lat + (q.y / R_EARTH) * 180 / Math.PI, lng: centre.lng + (q.x / (R_EARTH * Math.cos(centre.lat * Math.PI / 180))) * 180 / Math.PI });
+function convexHull(points) {
+  const pts = [...points].sort((a, b) => a.x - b.x || a.y - b.y);
+  if (pts.length < 3) return pts;
+  const cross = (o, a, b) => (a.x - o.x) * (b.y - o.y) - (a.y - o.y) * (b.x - o.x);
+  const lower = [];
+  for (const p of pts) { while (lower.length >= 2 && cross(lower[lower.length - 2], lower[lower.length - 1], p) <= 0) lower.pop(); lower.push(p); }
+  const upper = [];
+  for (const p of pts.reverse()) { while (upper.length >= 2 && cross(upper[upper.length - 2], upper[upper.length - 1], p) <= 0) upper.pop(); upper.push(p); }
+  return [...lower.slice(0, -1), ...upper.slice(0, -1)];
+}
+// The hull of the towns buffered by HULL_BUFFER_KM: the hull of a ring of points around each town
+function servicePolygon(centre, towns, bufferKm = HULL_BUFFER_KM) {
+  const positioned = (towns || []).filter(t => t && typeof t.lat === 'number' && typeof t.lng === 'number');
+  const seeds = positioned.length ? positioned : [centre];
+  const ring = [];
+  for (const t of seeds) {
+    const c = toLocal(centre, t);
+    for (let i = 0; i < 16; i++) { const a = (i / 16) * 2 * Math.PI; ring.push({ x: c.x + Math.cos(a) * bufferKm * 1000, y: c.y + Math.sin(a) * bufferKm * 1000 }); }
+  }
+  const hull = convexHull(ring);
+  return { polygon: hull.map(q => fromLocal(centre, q)), towns_used: seeds.length, local: hull };
+}
+function pointInPolygon(q, poly) {
+  let inside = false;
+  for (let i = 0, j = poly.length - 1; i < poly.length; j = i++) {
+    const a = poly[i], b = poly[j];
+    if ((a.y > q.y) !== (b.y > q.y) && q.x < ((b.x - a.x) * (q.y - a.y)) / (b.y - a.y) + a.x) inside = !inside;
+  }
+  return inside;
+}
+// The 13 × 13 grid around the centre at the spacing, clipped to the polygon (the local
+// generator; the live run asks LeadSnap's grid-points endpoint for the same thing)
+function gridPoints(centre, { grid_size = GRID_MAX, spacing_m, polygonLocal = null } = {}) {
+  const half = (grid_size - 1) / 2;
+  const out = [];
+  for (let r = -half; r <= half; r++) for (let c = -half; c <= half; c++) {
+    const q = { x: c * spacing_m, y: r * spacing_m };
+    if (polygonLocal && polygonLocal.length >= 3 && !pointInPolygon(q, polygonLocal)) continue;
+    out.push(fromLocal(centre, q));
   }
   return out;
 }
 
-// centre: { lat, lng, from }; areas: [{ name, lat, lng }] (the service area towns with a position)
-function gridFor(centre, areas) {
-  const withPos = (areas || []).filter(a => a && typeof a.lat === 'number' && typeof a.lng === 'number');
-  const distances = withPos.map(a => ({ name: a.name, km: kmBetween(centre, a) }));
-  const farthest = distances.reduce((m, d) => (d.km > (m ? m.km : -1) ? d : m), null);
-  const allClose = withPos.length > 0 && distances.every(d => d.km <= SMALL_AREA_KM);
-  const grid_size = allClose ? GRID_SMALL : GRID_MAX;
-  // The grid reaches the farthest town: (grid_size - 1) / 2 steps from the centre, so the
-  // 13 grid has 6 steps, which is the SOP's "divided by 6"
-  const steps = (grid_size - 1) / 2;
-  const radius = farthest ? Math.round((farthest.km * 1000) / steps) : MIN_RADIUS_M;
-  return { grid_size, grid_radius_m: Math.max(MIN_RADIUS_M, radius), farthest: farthest ? { name: farthest.name, km: Math.round(farthest.km * 10) / 10 } : null, towns_positioned: withPos.length, towns_total: (areas || []).length, all_within_5km: allClose };
-}
-
 // The settings, built once. place: { google_place_id, leadsnap_place_id, leadsnap_location_id, name, how }
-function buildScanSettings({ clientName, primary, town, pages = [], centre, areas, place, now = new Date() }) {
-  const keywords = scanKeywords({ primary, town, pages });
-  const grid = gridFor(centre, areas);
+// points: the clipped grid (from LeadSnap's grid-points endpoint when the caller has them, else local)
+function buildScanSettings({ clientName, primary, keyword2 = '', scanArea = 'city', town, centre, areas, place, points = null, now = new Date() }) {
+  const keywords = scanKeywords({ primary, keyword2 });
+  const sp = spacingFor(scanArea);
+  const poly = servicePolygon(centre, areas);
+  const pts = points && points.length ? points : gridPoints(centre, { grid_size: GRID_MAX, spacing_m: sp.spacing_m, polygonLocal: poly.local });
   const settings = {
-    version: 1, built_at: now.toISOString(), locked: false,
+    version: 2, built_at: now.toISOString(), locked: false,
     client: str(clientName), primary: str(primary), town: str(town),
     keywords, search_type: SEARCH_TYPE,
-    grid_size: grid.grid_size, grid_radius_m: grid.grid_radius_m, farthest: grid.farthest, towns_positioned: grid.towns_positioned, towns_total: grid.towns_total, all_within_5km: grid.all_within_5km,
+    grid_size: GRID_MAX, scan_area: sp.scan_area, spacing_m: sp.spacing_m,
+    polygon: poly.polygon, hull_towns: poly.towns_used, buffer_km: HULL_BUFFER_KM,
+    points: pts.map(p => ({ lat: Math.round(p.lat * 1e7) / 1e7, lng: Math.round(p.lng * 1e7) / 1e7 })), point_count: pts.length, full_grid: GRID_MAX * GRID_MAX,
+    points_from: points && points.length ? 'LeadSnap grid-points' : 'local',
+    towns_positioned: (areas || []).filter(a => a && typeof a.lat === 'number').length, towns_total: (areas || []).length,
     centre: { lat: centre.lat, lng: centre.lng, from: centre.from || '' },
     place: place || null,
   };
@@ -76,16 +118,29 @@ function buildScanSettings({ clientName, primary, town, pages = [], centre, area
 
 // One credit per grid point per keyword per run (assumed: the API has no cost field)
 function creditCost(settings) {
-  return settings.grid_size * settings.grid_size * (settings.keywords || []).length;
+  const points = settings.point_count || (settings.points && settings.points.length) || (settings.grid_size * settings.grid_size);
+  return points * (settings.keywords || []).length;
 }
 
-// The create heatmap body for one keyword
+// The create heatmap body for one keyword: the clipped points, never a bare radius
 function heatmapBody(settings, keyword) {
   return {
     keyword: [keyword], search_type: [settings.search_type],
-    grid_size: settings.grid_size, grid_radius: settings.grid_radius_m, unit: 'm',
+    grid_size: settings.grid_size, points: settings.points,
     place_id: settings.place && settings.place.google_place_id, lat: settings.centre.lat, lng: settings.centre.lng,
   };
+}
+
+// The leader's Top 3% from a heatmap's competitors response, with the SOP line
+function leaderLine(competitors) {
+  const list = (Array.isArray(competitors) ? competitors : []).map(c => ({ name: (c.place && c.place.name) || c.business_name || '', share: num(c.market_share), top3: num(c.top_3_percentage), top3pts: num(c.top_3_points), total: num(c.total_points), pos: num(c.market_share_position) }));
+  if (!list.length) return null;
+  const lead = list.sort((a, b) => (a.pos || 99) - (b.pos || 99) || (b.share || 0) - (a.share || 0))[0];
+  let top3 = lead.top3;
+  if (top3 === null && lead.top3pts !== null && lead.total) top3 = Math.round((lead.top3pts / lead.total) * 1000) / 10;
+  if (top3 === null) return { name: lead.name, top3: null, line: `Leader ${lead.name}: Top 3% not reported.` };
+  const verdict = top3 > 90 ? 'over 90: consider the next tighter setting' : top3 < 40 ? 'under 40: consider the next wider setting' : 'between 40 and 90: the setting fits';
+  return { name: lead.name, top3, line: `Leader ${lead.name} at Top 3% ${top3}; ${verdict} (over 90: consider the next tighter setting; under 40: the next wider).` };
 }
 
 const monthOf = iso => (iso ? String(iso).slice(0, 7) : '');
@@ -159,15 +214,17 @@ function dropAlerts(scans) {
   return out;
 }
 
-// The monthly schedule for one keyword: the baseline's day of the month (28 at most), 06:00 UK
-function scheduleBody(settings, keyword, points, { clientName, baselineAt, locationId = null } = {}) {
+// The one monthly schedule: every keyword, the same clipped grid, the baseline's day of the
+// month (28 at most), 06:00 UK. keywords: strings; points: the settings' clipped grid
+function scheduleBody(settings, keywords, points, { clientName, baselineAt, locationId = null } = {}) {
   const day = Math.min(28, new Date(baselineAt || settings.built_at).getUTCDate() || 1);
+  const list = Array.isArray(keywords) ? keywords : [keywords];
   return {
     heatmap_config: {
-      name: `${str(clientName || settings.client)} ${keyword} monthly`,
+      name: `${str(clientName || settings.client)} monthly`,
       place_id: settings.place && settings.place.leadsnap_place_id,
-      keywords: [keyword], grid_size: settings.grid_size,
-      grid_points: (points || []).map(p => ({ lat: p.lat, lng: p.lng })),
+      keywords: list, grid_size: settings.grid_size,
+      grid_points: (points || settings.points || []).map(p => ({ lat: p.lat, lng: p.lng })),
       lat: settings.centre.lat, lng: settings.centre.lng,
       ...(locationId ? { location_id: locationId } : {}),
     },
@@ -176,4 +233,4 @@ function scheduleBody(settings, keyword, points, { clientName, baselineAt, locat
   };
 }
 
-module.exports = { scanKeywords, gridFor, buildScanSettings, creditCost, heatmapBody, scanRow, topCompetitors, monthlyTable, dropAlerts, scheduleBody, live, kmBetween, monthOf, GRID_MAX, GRID_SMALL, SMALL_AREA_KM, MIN_RADIUS_M, MIN_VOLUME, DROP_POINTS };
+module.exports = { scanKeywords, spacingFor, servicePolygon, convexHull, pointInPolygon, gridPoints, toLocal, fromLocal, buildScanSettings, creditCost, heatmapBody, leaderLine, scanRow, topCompetitors, monthlyTable, dropAlerts, scheduleBody, live, kmBetween, monthOf, GRID_MAX, SPACING_M, HULL_BUFFER_KM, DROP_POINTS };

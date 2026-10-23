@@ -348,13 +348,16 @@
       ${hasBaseline ? `<button class="btn btn-ghost" id="gbpScanFetch" onclick="fetchScans()" ${lsOff ? 'disabled' : ''}>Fetch latest scans</button>` : ''}
       ${hasBaseline ? `<button class="btn btn-ghost btn-sm" id="gbpScanReset" onclick="previewBaseline('reset')" ${lsOff ? 'disabled' : ''}>Reset baseline</button>` : ''}
       ${S && S.pending ? `<button class="btn btn-ghost btn-sm" id="gbpScanRefresh" onclick="refreshScans()">Check ${S.pending} pending</button>` : ''}
-      <span class="gen-date">${lsOff ? 'LeadSnap is not configured on the server' : S && S.settings ? `settings locked ${fmtDate(S.settings.locked_at || S.settings.built_at)} · ${S.settings.keywords.map(k => esc(k.keyword) + (k.volume ? ` (${k.volume}/mo)` : '')).join(', ')} · grid ${S.settings.grid_size} · radius ${S.settings.grid_radius_m} m · ${S.settings.credits_per_run} credits a run` : 'No baseline yet'}${S && S.schedules && S.schedules.last_fetch_at ? ` · last fetch ${fmtTime(S.schedules.last_fetch_at)}` : ''}${S && S.superseded ? ` · ${S.superseded} superseded scan${S.superseded > 1 ? 's' : ''} kept from before the reset` : ''}</span>
+      <span class="gen-date">${lsOff ? 'LeadSnap is not configured on the server' : S && S.settings ? `settings locked ${fmtDate(S.settings.locked_at || S.settings.built_at)} · ${S.settings.keywords.map(k => esc(k.keyword)).join(', ')} · ${esc((S.settings.scan_area || 'city').replace('_', ' '))} ${S.settings.spacing_m || S.settings.grid_radius_m} m · ${S.settings.point_count || S.settings.grid_size * S.settings.grid_size} of ${S.settings.full_grid || 169} points · ${S.settings.credits_per_run} credits a run` : 'No baseline yet'}${S && S.schedules && S.schedules.last_fetch_at ? ` · last fetch ${fmtTime(S.schedules.last_fetch_at)}` : ''}${S && S.superseded ? ` · ${S.superseded} superseded scan${S.superseded > 1 ? 's' : ''} kept from before the reset` : ''}</span>
     </div>`);
     if (S && S.settings) {
       const st = S.settings;
-      H.push(`<div class="field"><div class="field-head"><span class="field-name">Scan settings (locked)</span><span class="field-meta">centre ${st.centre.lat.toFixed(4)}, ${st.centre.lng.toFixed(4)} from ${esc(st.centre.from)}${st.farthest ? ` · farthest town ${esc(st.farthest.name)} ${st.farthest.km} km` : ''}</span></div>
-        <div class="field-text">${st.keywords.map(k => `${esc(k.keyword)}${k.volume ? ` <strong>${k.volume}/mo</strong>` : ''} <span class="field-meta">(${esc(k.kind)}, ${esc(k.source)})</span>`).join('<br>')}</div>
-        ${st.reset_from ? `<div class="field-meta" style="margin-top:.3rem">Reset from the settings locked ${st.reset_from.locked_at ? fmtDate(st.reset_from.locked_at) : 'earlier'} (${st.reset_from.keywords.map(esc).join(', ')})</div>` : ''}</div>`);
+      const lead = gbp.leadsnapCompetitors && gbp.leadsnapCompetitors.leader;
+      H.push(`<div class="field"><div class="field-head"><span class="field-name">Scan settings (locked)</span><span class="field-meta">centre ${st.centre.lat.toFixed(4)}, ${st.centre.lng.toFixed(4)} from ${esc(st.centre.from)}${st.hull_towns ? ` · grid clipped to ${st.hull_towns} town${st.hull_towns > 1 ? 's' : ''} plus ${st.buffer_km} km` : ''}${st.points_from ? ` · points from ${esc(st.points_from)}` : ''}</span></div>
+        <div class="field-text">${st.keywords.map(k => `${esc(k.keyword)} <span class="field-meta">(${esc(k.kind)}, ${esc(k.source)})</span>`).join('<br>')}</div>
+        ${lead ? `<div class="${lead.top3 !== null && (lead.top3 > 90 || lead.top3 < 40) ? 'flag' : 'field-meta'}" style="margin-top:.4rem">${esc(lead.line)}</div>` : ''}
+        ${st.reset_from ? `<div class="field-meta" style="margin-top:.3rem">Reset from the settings locked ${st.reset_from.locked_at ? fmtDate(st.reset_from.locked_at) : 'earlier'} (${st.reset_from.keywords.map(esc).join(', ')})</div>` : ''}
+        ${st.notes && st.notes.length ? `<div class="flag">${st.notes.map(esc).join('<br>')}</div>` : ''}</div>`);
     }
     // The drawn heatmaps: one per keyword, a month selector, a before and after toggle against the baseline, a PNG export
     if (S && S.table && S.table.length) {
@@ -388,7 +391,7 @@
     if (S && S.pending) H.push(`<div class="notice">${S.pending} heatmap${S.pending > 1 ? 's are' : ' is'} still running on LeadSnap. This page checks again every 20 seconds while it stays open.</div>`);
     if (S && S.schedules && S.schedules.items.length) {
       H.push(`<div class="field"><div class="field-head"><span class="field-name">Monthly schedules</span><span class="field-meta">schedules.json</span></div>
-        ${S.schedules.items.map(i => `<div class="field-head" style="margin-top:.4rem"><span class="field-text">${esc(i.name)} <span class="field-meta">day ${esc(i.repeat_on)} · ${esc(i.status)}</span></span>
+        ${S.schedules.items.map(i => `<div class="field-head" style="margin-top:.4rem"><span class="field-text">${esc(i.name)} <span class="field-meta">${esc(i.keyword || (i.keywords || []).join(', '))} · day ${esc(i.repeat_on)} · ${esc(i.status)}${i.schedule_id === null || i.schedule_id === undefined ? ' · no id from LeadSnap' : ''}</span></span>
           <button class="copy" onclick="scheduleAction('${esc(i.schedule_id)}', '${i.status === 'paused' ? 'resume' : 'pause'}')">${i.status === 'paused' ? 'Resume' : 'Pause'}</button></div>`).join('')}</div>`);
     }
     // Profile verification (batch 3, SOP 3.10)
@@ -484,7 +487,7 @@
       if (!r.ok) { alert(data.error || `HTTP ${r.status}`); btn.disabled = false; btn.textContent = label; return; }
       const s = data.settings;
       const head = mode === 'reset' ? `Reset the baseline for ${s.client}\n\nThe current schedules are paused, every stored scan is kept but marked superseded, the lock is cleared and a new baseline runs on these settings:` : `Baseline scan for ${s.client}`;
-      const text = `${head}\n\nKeywords (${s.keywords.length}):\n${s.keywords.map(k => '  ' + k.keyword + (k.volume ? ` (${k.volume} searches a month)` : '')).join('\n')}\n\nGrid: ${s.grid_size} x ${s.grid_size}, ${s.grid_radius_m} m between points${s.farthest ? ` (farthest town ${s.farthest.name}, ${s.farthest.km} km)` : ''}\nCentre: ${s.centre.lat.toFixed(4)}, ${s.centre.lng.toFixed(4)} from ${s.centre.from}\nPlace: ${s.place.name || s.place.google_place_id} (${s.place.how})\n\nCredit cost: ${data.credits} credits (${s.grid_size * s.grid_size} per keyword) now, and the same each month from the schedules.\n\nThe settings lock after this run (hard rule 8). Run it?`;
+      const text = `${head}\n\nKeyword${s.keywords.length > 1 ? 's' : ''}: ${s.keywords.map(k => k.keyword).join(', ')}\nScan area: ${(s.scan_area || 'city').replace('_', ' ')}, ${s.spacing_m} m between points\nGrid: ${s.grid_size} x ${s.grid_size}, clipped to the service area towns plus ${s.buffer_km} km: ${s.point_count} of ${s.full_grid} points\nCentre: ${s.centre.lat.toFixed(4)}, ${s.centre.lng.toFixed(4)} from ${s.centre.from}\nPlace: ${s.place.name || s.place.google_place_id} (${s.place.how})${s.notes && s.notes.length ? '\n\nNotes:\n' + s.notes.map(n => '  ' + n).join('\n') : ''}\n\nCredit cost: ${data.credits} credits (${s.point_count} points x ${s.keywords.length} keyword${s.keywords.length > 1 ? 's' : ''}) now, and the same each month from the schedule.\n\nThe settings lock after this run (hard rule 8). Run it?`;
       if (!confirm(text)) { btn.disabled = false; btn.textContent = label; return; }
       btn.textContent = 'Creating heatmaps…';
       const r2 = await fetch(`/api/clients/${clientId}/gbp/scans/${mode === 'reset' ? 'reset' : 'baseline'}`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ confirm: true }) });

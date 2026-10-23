@@ -2941,8 +2941,9 @@ const CLIENT_VALUES_TEMPLATE = {
   review_url: '', reviews_per_month: '', landing_page_fails: '',
   // GBP batch 2 (23 Oct): the client's own Google place id, found by the first competitor check
   gbp_place_id: '',
-  // GBP batch 3 (23 Oct): the rank scan settings, built by code and locked after the baseline (hard rule 8)
-  scan_settings: null,
+  // GBP batch 3 (23 Oct): the rank scan settings, built by code and locked after the baseline (hard rule 8);
+  // scan_area sets the grid spacing (city 1500 m, market town 2000 m, rural 2500 m); scan_keyword_2 is optional
+  scan_settings: null, scan_area: '', scan_keyword_2: '',
 };
 
 app.get('/api/clients/:clientId/gbp-categories', async (req, res) => {

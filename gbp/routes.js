@@ -104,12 +104,23 @@ function mountGbpApi(app, { pool, loadInputs, callModel, log = console, search =
     for (const a of areas) {
       if (a.lat === null) continue;
       if (a.km > 50 || (kms.length >= 3 && median > 0 && a.km > 3 * median)) {
-        Object.assign(a, { found_lat: a.lat, found_lng: a.lng, lat: null, lng: null, note: `found ${Math.round(a.km)} km from the centre (${a.found || 'another place of that name'}; the towns sit ${median} km away on average); left out of the radius` });
+        Object.assign(a, { found_lat: a.lat, found_lng: a.lng, lat: null, lng: null, note: `found ${Math.round(a.km)} km from the centre (${a.found || 'another place of that name'}; the towns sit ${median} km away on average); left out of the service area` });
       }
     }
-    const settings = SC.buildScanSettings({ clientName: I.name, primary: I.primary, town: I.town, pages: I.volumePages || [], centre, areas, place });
+    // The clipped grid from LeadSnap's grid-points endpoint (the hull plus 3 km as the polygon);
+    // the local generator when that call fails, so the preview still shows a count
+    const spacing = SC.spacingFor(cv.scan_area);
+    const poly = SC.servicePolygon(centre, areas);
+    let points = null, pointsNote = null;
+    try {
+      const got = await needLeadsnap().gridPoints({ lat: centre.lat, lng: centre.lng, grid_size: SC.GRID_MAX, grid_radius: spacing.spacing_m, polygon: poly.polygon.map(p => ({ lat: p.lat, lng: p.lng })) });
+      const list = (got && (got.points || (got.data && got.data.points))) || [];
+      if (list.length) points = list.map(p => ({ lat: Number(p.lat), lng: Number(p.lng) })).filter(p => Number.isFinite(p.lat) && Number.isFinite(p.lng));
+      else pointsNote = 'LeadSnap returned no points for the polygon; the grid was built here';
+    } catch (e) { pointsNote = `LeadSnap grid-points failed (${e.message}); the grid was built here`; }
+    const settings = SC.buildScanSettings({ clientName: I.name, primary: I.primary, keyword2: cv.scan_keyword_2 || '', scanArea: cv.scan_area || 'city', town: I.town, centre, areas, place, points });
     settings.areas = areas;
-    settings.notes = areas.filter(a => a.note || a.error).map(a => `${a.name}: ${a.note || a.error}`);
+    settings.notes = [...areas.filter(a => a.note || a.error).map(a => `${a.name}: ${a.note || a.error}`), ...(pointsNote ? [pointsNote] : [])];
     return { settings, saved: false };
   }
 
@@ -120,7 +131,13 @@ function mountGbpApi(app, { pool, loadInputs, callModel, log = console, search =
     const next = { ...row, ...SC.scanRow(h, { keyword: row.keyword, kind: row.kind, run_type: row.run_type, created_from: row.created_from }) };
     if (next.status === 'completed') {
       try { const comps = await ls.getHeatmapCompetitors(row.heatmap_id); next.competitors = SC.topCompetitors(comps, 10); } catch (e) { next.competitors_error = e.message; }
-      if (row.kind === 'main' && row.run_type === 'baseline') await store.saveLeadsnapCompetitors(clientId, { at: new Date().toISOString(), keyword: row.keyword, heatmap_id: row.heatmap_id, competitors: next.competitors || [] });
+      if (row.kind === 'main' && row.run_type === 'baseline') {
+        // The leader's Top 3% with the spacing line, from the same competitors response
+        let leader = null;
+        try { leader = SC.leaderLine(await ls.getHeatmapCompetitors(row.heatmap_id)); } catch (_) { leader = null; }
+        next.leader = leader;
+        await store.saveLeadsnapCompetitors(clientId, { at: new Date().toISOString(), keyword: row.keyword, heatmap_id: row.heatmap_id, competitors: next.competitors || [], leader });
+      }
       // LeadSnap's own numeric place id, needed by the schedules, comes with the first completed heatmap
       if (h.place && h.place.id && settings && settings.place && !settings.place.leadsnap_place_id && saveClientValue) {
         settings.place.leadsnap_place_id = h.place.id;
@@ -149,7 +166,7 @@ function mountGbpApi(app, { pool, loadInputs, callModel, log = console, search =
     }
     return fixed;
   }
-  // One monthly schedule per keyword once every baseline heatmap has completed
+  // The one monthly schedule, every keyword on the same clipped grid, once every baseline heatmap has completed
   async function ensureSchedules(clientId, settings, scans) {
     const ls = needLeadsnap();
     const data = await store.schedules(clientId);
@@ -157,14 +174,13 @@ function mountGbpApi(app, { pool, loadInputs, callModel, log = console, search =
     const baseline = scans.filter(s => s.run_type === 'baseline');
     if (!baseline.length || baseline.some(s => s.status !== 'completed')) return data;
     if (!settings.place || !settings.place.leadsnap_place_id) return data;
-    for (const s of baseline) {
-      const body = SC.scheduleBody(settings, s.keyword, s.points || [], { clientName: settings.client, baselineAt: s.created_at, locationId: settings.place.leadsnap_location_id });
-      const made = await ls.createSchedule(body);
-      // The live API wraps the created schedule (the docs show it bare): take the id wherever it sits,
-      // and keep the raw answer so a missing id can be seen
-      const found = scheduleIdOf(made);
-      data.items.push({ keyword: s.keyword, kind: s.kind, schedule_id: found.id, name: body.heatmap_config.name, status: found.status || 'active', repeat_on: body.schedule_config.repeat_on, created_at: new Date().toISOString(), raw: made });
-    }
+    const keywords = settings.keywords.map(k => k.keyword);
+    const body = SC.scheduleBody(settings, keywords, settings.points, { clientName: settings.client, baselineAt: baseline[0].created_at, locationId: settings.place.leadsnap_location_id });
+    const made = await ls.createSchedule(body);
+    // The live API wraps the created schedule (the docs show it bare): take the id wherever it sits,
+    // and keep the raw answer so a missing id can be seen
+    const found = scheduleIdOf(made);
+    data.items.push({ keywords, keyword: keywords.join(', '), schedule_id: found.id, name: body.heatmap_config.name, status: found.status || 'active', repeat_on: body.schedule_config.repeat_on, created_at: new Date().toISOString(), raw: made });
     data.created_at = new Date().toISOString();
     await store.saveSchedules(clientId, data);
     return data;
