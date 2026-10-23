@@ -508,6 +508,52 @@ function stepsFor(niche, cv, emergencyOn) {
   return steps;
 }
 
+// ── Shared with the category pages (23 Oct) ──────────────────────────────────
+// The hero's trust and rating lines, the title modifier and the buttons are the same
+// on every page type, so they're built here once.
+function yearsTradingOf(cv) {
+  const yearFounded  = cv.year_founded ? parseInt(cv.year_founded, 10) : NaN;
+  const yearsTrading = isNaN(yearFounded) ? null : CURRENT_YEAR - yearFounded;
+  return { yearFounded: isNaN(yearFounded) ? null : yearFounded, yearsTrading };
+}
+function titleModifierFor(cv, { yearsTrading, yearFounded, emergencyOn }) {
+  if (emergencyOn && cv.out_of_hours_available === '24/7') return 'Available 24/7';
+  if (yearsTrading !== null && yearsTrading >= 5) return `Established ${yearFounded}`;
+  if (cv.guarantee_years && parseInt(cv.guarantee_years, 10) >= 5) return `${cv.guarantee_years} Year Guarantee`;
+  if (cv.rating && parseFloat(cv.rating) >= 4.8 && cv.review_count && parseInt(cv.review_count, 10) >= 20) return `Rated ${cv.rating}★`;
+  return null;
+}
+// "H1 | modifier | company" when it fits 60 characters, else "H1 | company"
+function seoTitleFor(h1, cv, modifier) {
+  if (modifier) {
+    const withMod = `${h1} | ${modifier} | ${cv.company_name}`;
+    if (withMod.length <= 60) return { title: withMod, modifier };
+  }
+  const title = `${h1} | ${cv.company_name}`;
+  return { title, modifier: null, tooLong: title.length > 60 };
+}
+function trustLineFor(cv, niche, { yearsTrading, yearFounded, unitOfWork }) {
+  if (yearsTrading !== null && yearsTrading >= 5) return { line: `Established in ${yearFounded}`, proof: 'years' };
+  if (cv.jobs_completed && parseInt(cv.jobs_completed, 10) > 0) return { line: `${cv.jobs_completed}+ ${cap(unitOfWork)} Completed`, proof: 'jobs' };
+  for (const proof of (niche.cover_chain || [])) {
+    if (proof === 'guarantee'             && cv.guarantee_years)       return { line: `${cv.guarantee_years} Year Workmanship Guarantee`, proof };
+    if (proof === 'manufacturer_warranty' && cv.manufacturer_warranty) return { line: cv.manufacturer_warranty, proof };
+    if (proof === 'insurance'             && cv.insurance_cover)       return { line: `Insured up to £${cv.insurance_cover}`, proof };
+  }
+  return { line: null, proof: null };
+}
+function ratingLineFor(cv) {
+  const ratingNum = cv.rating ? parseFloat(cv.rating) : 0;
+  const rvCount   = cv.review_count ? parseInt(cv.review_count, 10) : 0;
+  if (!(rvCount > 0)) return null;
+  return ratingNum >= 4.5 ? `★★★★★ ${cv.rating} from ${rvCount}+ Google Reviews` : `${rvCount}+ Google Reviews`;
+}
+function buttonsFor(cv, primaryAction, emergencyOn) {
+  return emergencyOn
+    ? [`Call ${cv.phone}`, primaryAction]
+    : [primaryAction, cv.phone ? `Call ${cv.phone}` : null].filter(Boolean);
+}
+
 // ── Main entry point ─────────────────────────────────────────────────────────
 // cardServices (v3 page map path, v20-context-v3.js): { picks: { [category lower]: [names] } }.
 // When given, the cards are the category pages only (no primary-category service cards) and
@@ -578,26 +624,14 @@ function computeDecisions({ cv, niche, pages, keyValueMap, serviceParentMap, v20
   if (gates.length) return { gates, flags, decisions: null, decisionsBlock: null };
 
   // ── D1 years trading ──
-  const yearFounded   = cv.year_founded ? parseInt(cv.year_founded, 10) : NaN;
-  const yearsTrading  = isNaN(yearFounded) ? null : CURRENT_YEAR - yearFounded;
+  const { yearFounded, yearsTrading } = yearsTradingOf(cv);
   const emergencyOn   = !!(niche.emergency_niche && cv.emergency_primary === 'yes');
 
   // ── D3 title modifier ──
-  let titleModifier = null;
-  if (emergencyOn && cv.out_of_hours_available === '24/7') titleModifier = 'Available 24/7';
-  else if (yearsTrading !== null && yearsTrading >= 5)     titleModifier = `Established ${yearFounded}`;
-  else if (cv.guarantee_years && parseInt(cv.guarantee_years, 10) >= 5) titleModifier = `${cv.guarantee_years} Year Guarantee`;
-  else if (cv.rating && parseFloat(cv.rating) >= 4.8 && cv.review_count && parseInt(cv.review_count, 10) >= 20) titleModifier = `Rated ${cv.rating}★`;
-
-  let d3_title;
-  if (titleModifier) {
-    const withMod = `${d2_h1} | ${titleModifier} | ${cv.company_name}`;
-    if (withMod.length <= 60) { d3_title = withMod; }
-    else { d3_title = `${d2_h1} | ${cv.company_name}`; titleModifier = null; }
-  } else {
-    d3_title = `${d2_h1} | ${cv.company_name}`;
-    if (d3_title.length > 60) flags.push({ code: 'F-LEN-TITLE', msg: `Title is ${d3_title.length} chars (max 60).` });
-  }
+  const titleBuilt = seoTitleFor(d2_h1, cv, titleModifierFor(cv, { yearsTrading, yearFounded, emergencyOn }));
+  let titleModifier = titleBuilt.modifier;
+  const d3_title = titleBuilt.title;
+  if (titleBuilt.tooLong) flags.push({ code: 'F-LEN-TITLE', msg: `Title is ${d3_title.length} chars (max 60).` });
 
   // ── D4 meta description ──
   const metaCta   = ph(btnBase.meta_cta || '', ctx);
@@ -644,24 +678,12 @@ function computeDecisions({ cv, niche, pages, keyValueMap, serviceParentMap, v20
   }
 
   // ── D5 trust line ──
-  let d5_trust = null;
-  let trustProof = null;
-  if (yearsTrading !== null && yearsTrading >= 5)                                   { d5_trust = `Established in ${yearFounded}`;                         trustProof = 'years'; }
-  else if (cv.jobs_completed && parseInt(cv.jobs_completed, 10) > 0)               { d5_trust = `${cv.jobs_completed}+ ${cap(ctx.unitOfWork)} Completed`; trustProof = 'jobs'; }
-  else {
-    for (const proof of (niche.cover_chain || [])) {
-      if (proof === 'guarantee'             && cv.guarantee_years)       { d5_trust = `${cv.guarantee_years} Year Workmanship Guarantee`; trustProof = proof; break; }
-      if (proof === 'manufacturer_warranty' && cv.manufacturer_warranty) { d5_trust = cv.manufacturer_warranty;                          trustProof = proof; break; }
-      if (proof === 'insurance'             && cv.insurance_cover)       { d5_trust = `Insured up to £${cv.insurance_cover}`;        trustProof = proof; break; }
-    }
-  }
+  const trust = trustLineFor(cv, niche, { yearsTrading, yearFounded, unitOfWork: ctx.unitOfWork });
+  const d5_trust = trust.line;
+  const trustProof = trust.proof;
 
   // ── D6 rating line ──
-  let d6_rating = null;
-  if (rvCount > 0) {
-    if (ratingNum >= 4.5) d6_rating = `★★★★★ ${cv.rating} from ${rvCount}+ Google Reviews`;
-    else d6_rating = `${rvCount}+ Google Reviews`;
-  }
+  const d6_rating = ratingLineFor(cv);
 
   // ── D7 section visibility ──
   const reviewCount      = cv.review_count ? parseInt(cv.review_count, 10) : 0;
@@ -738,9 +760,7 @@ function computeDecisions({ cv, niche, pages, keyValueMap, serviceParentMap, v20
   const d14 = buildD14Town(pages, keyValueMap);
 
   // ── D15 button order ──
-  const d15 = emergencyOn
-    ? [`Call ${cv.phone}`, ctx.primaryAction]
-    : [ctx.primaryAction, cv.phone ? `Call ${cv.phone}` : null].filter(Boolean);
+  const d15 = buttonsFor(cv, ctx.primaryAction, emergencyOn);
 
   // ── CTA band (code only): heading, one fixed niche line, the D15 buttons.
   // The response time lives here and nowhere else on the page.
@@ -979,4 +999,4 @@ function formatDecisionsBlock(D, cv, niche, ctx) {
   return lines.join('\n');
 }
 
-module.exports = { computeDecisions, ph };
+module.exports = { computeDecisions, ph, cap, titleCase, normArea, stripAdmin, isLinkable, getLinkStatus, stepsFor, yearsTradingOf, titleModifierFor, seoTitleFor, trustLineFor, ratingLineFor, buttonsFor, approvedThemes };

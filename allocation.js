@@ -59,7 +59,9 @@ function eligibleItems(parsed, { emergencyNiche, categories }) {
   return { neighbourhoods, symptoms, excluded };
 }
 
-function buildAllocationMessage({ parsed, eligible, cv, niche, city, categories, slots }) {
+// page: { label: 'homepage' } (the default), or a category page { label: 'category page: Gardener',
+// category: 'Gardener', taken: [neighbourhood names other pages already use] }
+function buildAllocationMessage({ parsed, eligible, cv, niche, city, categories, slots, page = null }) {
   const issueIds = new Set(eligible.symptoms.map(s => s.issueId));
   const L = [];
   L.push('CLIENT:');
@@ -68,7 +70,12 @@ function buildAllocationMessage({ parsed, eligible, cv, niche, city, categories,
   L.push(`  GBP categories: ${[...categories].join(', ') || '(none)'}`);
   L.push(`  Jobs wanted: ${(cv.jobs_wanted || []).join(', ') || '(blank)'}`);
   L.push('');
-  L.push('PAGE: homepage');
+  L.push(`PAGE: ${(page && page.label) || 'homepage'}`);
+  if (page && page.category) {
+    L.push(`  This page is about one category of the work: ${page.category}. Prefer the neighbourhoods whose profiles say most about that kind of work.`);
+    L.push(`  Code has already removed the neighbourhoods the homepage and the other category pages use${(page.taken || []).length ? ` (${page.taken.join(', ')})` : ''}; the two you pick must still be in different parts of the city.`);
+    L.push('  Return the JSON with the key "page" in place of "homepage".');
+  }
   L.push('');
   L.push('LOCATION OVERVIEW:');
   L.push(`  ${(parsed.overview || '(none)').replace(/\n+/g, ' ')}`);
@@ -109,7 +116,7 @@ function parseModelJson(raw) {
 // Code is the gate. Returns the valid picks and a plain-words error per bad pick.
 function checkPicks(reply, { eligible, slots }) {
   const errors = [];
-  const hp = (reply && reply.homepage) || {};
+  const hp = (reply && (reply.homepage || reply.page)) || {};
   const nIds = new Set(eligible.neighbourhoods.map(n => n.id));
   const sById = Object.fromEntries(eligible.symptoms.map(s => [s.id, s]));
   const slotNames = new Set(slots.map(s => s.slot));
@@ -154,14 +161,24 @@ function conservationFromRules(parsed, ids) {
 }
 
 // Run the pass. `callModel(system, message)` returns the model's text reply.
-async function runAllocation({ dossierText, cv, niche, keyValueMap, pages, callModel }) {
+// page (category pages, 23 Oct): { label, category, takenNeighbourhoods: [ids], slots: [] }.
+// The eligible neighbourhoods lose the taken ones; the slots are the page's own (none
+// for a category page: code assigns its symptoms).
+async function runAllocation({ dossierText, cv, niche, keyValueMap, pages, callModel, page = null }) {
   const parsed = parseDossier(dossierText);
   const city = (keyValueMap['biz_area_1'] || '').trim();
   const categories = clientCategories(cv, keyValueMap, pages);
-  const slots = symptomSlots(niche);
+  const slots = page ? (page.slots || []) : symptomSlots(niche);
   const eligible = eligibleItems(parsed, { emergencyNiche: !!niche.emergency_niche, categories });
+  const takenIds = new Set((page && page.takenNeighbourhoods) || []);
+  if (takenIds.size) {
+    const names = parsed.neighbourhoods.filter(n => takenIds.has(n.id)).map(n => n.name);
+    eligible.neighbourhoods = eligible.neighbourhoods.filter(n => !takenIds.has(n.id));
+    for (const n of names) eligible.excluded.push(`${n}: used by another page`);
+    page = { ...page, taken: names };
+  }
   const system = loadAllocationPrompt();
-  const message = buildAllocationMessage({ parsed, eligible, cv, niche, city, categories, slots });
+  const message = buildAllocationMessage({ parsed, eligible, cv, niche, city, categories, slots, page });
 
   const attempts = [];
   let best = null;
@@ -270,8 +287,31 @@ function resolveAllocatedItems(allocation, parsed) {
   return { neighbourhoods, symptoms };
 }
 
+// Symptoms for a category page (23 Oct): the dossier's symptoms whose issue is tagged
+// with the category, one per issue, the non urgent ones first, in dossier order, leaving
+// out any symptom (or issue) another page already uses. Code picks these; no model call.
+function symptomsForCategory(parsed, { category, emergencyNiche, takenSymptoms = [], takenIssues = [], limit = 5 }) {
+  const issueById = Object.fromEntries(parsed.issues.map(i => [i.id, i]));
+  const taken = new Set(takenSymptoms), takenI = new Set(takenIssues);
+  const fits = parsed.symptoms.filter(s => {
+    const issue = issueById[s.issueId];
+    if (!issue || taken.has(s.id) || takenI.has(issue.id)) return false;
+    if (s.urgent && !emergencyNiche) return false;
+    return issue.categoryTags.some(t => norm(t) === norm(category));
+  });
+  const out = [];
+  const seenIssue = new Set();
+  for (const s of [...fits.filter(s => !s.urgent), ...fits.filter(s => s.urgent)]) {
+    if (seenIssue.has(s.issueId)) continue;
+    seenIssue.add(s.issueId);
+    out.push(s);
+    if (out.length >= limit) break;
+  }
+  return out;
+}
+
 module.exports = {
-  ALLOCATION_MODEL,
+  ALLOCATION_MODEL, symptomsForCategory,
   runAllocation, checkPicks, eligibleItems, clientCategories, symptomSlots,
   buildAllocationMessage, conservationFromRules, applyAssigned, resolveAllocatedItems,
   loadAllocationPrompt, parseModelJson,

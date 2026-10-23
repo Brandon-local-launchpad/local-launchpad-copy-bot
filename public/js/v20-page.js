@@ -7,6 +7,7 @@
 
 const PAGE_TYPES = {
   homepage: { label: 'Homepage', singleKey: 'homepage' },
+  category: { label: 'Category page', singleKey: null },
 };
 
 const params = new URLSearchParams(location.search);
@@ -61,7 +62,7 @@ async function load() {
   document.title = `${PT.label} · ${client.name} — Local Launchpad`;
   document.getElementById('crumbClient').textContent = client.name;
   document.getElementById('crumbClient').href = `/client.html?id=${encodeURIComponent(clientId)}`;
-  document.getElementById('pgTitle').textContent = `${PT.label} (v20)`;
+  document.getElementById('pgTitle').textContent = PT.singleKey ? `${PT.label} (v20)` : `${PT.label} ${PT.key} (v20)`;
   document.getElementById('settingsLink').href = `/client-settings.html?id=${encodeURIComponent(clientId)}`;
   await loadRecord();
   let tab = 'reader';

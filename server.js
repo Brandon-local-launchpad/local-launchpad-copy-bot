@@ -2939,6 +2939,9 @@ const CLIENT_VALUES_TEMPLATE = {
   // GBP batch 1 (23 Oct): the Google review link (also pushed to the site), the reviews a
   // month target and the landing page fails, for the internal note and the templates
   review_url: '', reviews_per_month: '', landing_page_fails: '',
+  // Category pages (23 Oct): the three hand picked reviews the reviews block shows once
+  // the client has 3 or more reviews ({ text, name, town })
+  hand_reviews: [],
   // GBP batch 2 (23 Oct): the client's own Google place id, found by the first competitor check
   gbp_place_id: '',
   // GBP batch 3 (23 Oct): the rank scan settings, built by code and locked after the baseline (hard rule 8);
@@ -3729,8 +3732,27 @@ const wpService = pool ? createWpService({
 }) : null;
 
 // The client's facts as they are now, for checking a saved page with today's
-// rules. Each page type has its own (category pages add theirs in C2).
+// rules. Each page type has its own.
 const V20_FACTS = {
+  category: async (clientId, sessionId, record) => {
+    if (!categoryRunner) throw new Error('category pages are not available (no page map store)');
+    const key = record && record.meta && record.meta.page_key;
+    if (!key) throw new Error('this category record has no page key');
+    const I = await categoryInputsFor(clientId);
+    const page = categoryRunner.pagesInOrder(I.rows).find(p => p.slug === key);
+    if (!page) throw new Error(`the page map no longer has ${key}`);
+    const written = await categoryRunner.writtenFor(clientId, I.rows, key);
+    const { decisionsResult } = await categoryRunner.prepare(clientId, I, page, written);
+    const D = decisionsResult.decisions;
+    if (!D) throw new Error("the page decisions can't be made right now (a gate is failing)");
+    const { categoryValidationContext } = require('./validate-category');
+    return {
+      V: categoryValidationContext(v20.validationContextFor({ cv: I.ctx.cv, niche: I.niche, decisions: D, keyValueMap: I.ctx.keyValueMap, serviceParentMap: I.ctx.serviceParentMap }), D),
+      clientValues: v20.clientValueMap(I.ctx.cv, D.d1_years_trading),
+      decisionsBlock: decisionsResult.decisionsBlock || null,
+      servicesOnFile: v20.servicesOnFile(I.ctx.keyValueMap, I.ctx.serviceParentMap, I.niche, D),
+    };
+  },
   homepage: async (clientId, sessionId) => {
     const { ctx, niche, decisionsResult } = await v20HomepageInputs(clientId, sessionId);
     const D = decisionsResult.decisions;
@@ -3747,7 +3769,7 @@ const V20_FACTS = {
 async function v20CurrentFacts(clientId, sessionId, record = null) {
   const id = pageTypeId(record);
   if (!V20_FACTS[id]) throw new Error(`today's facts for ${getPageType(id).label.toLowerCase()} pages aren't built yet`);
-  return V20_FACTS[id](clientId, sessionId);
+  return V20_FACTS[id](clientId, sessionId, record);
 }
 
 function wpRoute(handler) {
@@ -3797,6 +3819,91 @@ if (pool && pageMapStore) {
   // LeadSnap rank scans (batch 3): the client exists only when the token is set on Railway
   const leadsnap = process.env.LEADSNAP_API_TOKEN ? require('./leadsnap/client').createLeadsnapClient() : null;
   require('./gbp/routes').mountGbpApi(app, { pool, loadInputs: gbpInputsFor, callModel: gbpCallModel, saveClientValue, leadsnap });
+}
+
+// Category pages (CORE (16), 23 Oct): every category page and location category page from
+// the v3 page map, base pages first. category-run.js owns the order, the resume and the
+// run state; category-generate.js the model call; category-decisions.js the decisions.
+let categoryRunner = null;
+async function categoryInputsFor(clientId) {
+  const ctx = await loadV20Context(clientId, null);
+  if (ctx.contextSource !== 'page_map_v3') throw Object.assign(new Error('Category pages need a v3 page map: fill in the set-up on the client record and generate the page map first.'), { status: 400 });
+  const { niche, error } = nicheFor(ctx);
+  if (error) throw Object.assign(new Error(error), { status: 400 });
+  const rows = await pageMapStore.saved(clientId);
+  const P = require('./trade-facts/pack');
+  const packName = P.packNameFor(await nicheForGate(clientId, ctx.trade));
+  const st = packName ? await tradeFacts.status(packName) : { exists: false, verified: false };
+  const { rows: dRows } = await pool.query(
+    `SELECT id, content, metadata FROM client_assets WHERE client_id = $1 AND asset_type = 'geo_dossier' AND (metadata IS NULL OR NOT (metadata->>'superseded')::boolean) ORDER BY uploaded_at DESC`, [clientId]);
+  const seen = new Set();
+  const dossiers = [];
+  for (const r of dRows) { const loc = (r.metadata && r.metadata.location_name) || ''; const k = normaliseLocation(loc); if (!loc || seen.has(k)) continue; seen.add(k); dossiers.push({ id: r.id, text: r.content, locationName: loc }); }
+  const alloc = await loadAllocationRecord(clientId);
+  const allocationRecord = alloc ? alloc.record : { version: 1, pages: {} };
+  return {
+    ctx, niche, rows, dossiers, allocationRecord,
+    calibrationPack: v20CalibrationPack(ctx, niche),
+    // The category's rows are read per page (packForCategory); here the pack's standing
+    tradeFacts: packName && st.exists ? { niche: packName, file: st.file, verified: !!st.verified } : null,
+    reviews: Array.isArray(ctx.cv.hand_reviews) ? ctx.cv.hand_reviews : [],
+    saveAllocation: record => saveAllocationRecord(clientId, { ...record, updated_at: new Date().toISOString() }),
+  };
+}
+if (pool && pageMapStore && v20Store) {
+  const CG = require('./category-generate');
+  const { createCategoryRunner } = require('./category-run');
+  const P = require('./trade-facts/pack');
+  const callModel = args => makeCallModel(new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY }), CG.CATEGORY_MODEL)(args);
+  categoryRunner = createCategoryRunner({
+    pool, v20Store,
+    loadInputs: categoryInputsFor,
+    // The category's trade facts rows join the request only when the pack is verified
+    generate: async args => {
+      const D = args.decisionsResult.decisions;
+      let tf = args.tradeFacts;
+      if (tf && D) {
+        try { const pack = P.packForCategory(tf.niche, D.category, D.cards.map(c => c.name)); tf = { ...tf, markdown: pack.markdown, missing: pack.missing }; }
+        catch (e) { tf = { ...tf, verified: false, error: e.message }; }
+      }
+      return CG.generateCategoryPage({ ...args, tradeFacts: tf, callModel });
+    },
+    allocate: args => allocation.runAllocation({ ...args, callModel: async (system, message) => {
+      const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
+      const r = await client.messages.create({ model: allocation.ALLOCATION_MODEL, max_tokens: 2048, system, messages: [{ role: 'user', content: message }] });
+      return r.content.map(c => c.text || '').join('');
+    } }),
+  });
+  const catRoute = handler => async (req, res) => {
+    try { res.json(await handler(req)); }
+    catch (err) { res.status(err.status || 500).json({ error: err.message }); }
+  };
+  app.get('/api/clients/:clientId/category-pages', catRoute(async req => {
+    const rows = await pageMapStore.saved(req.params.clientId);
+    const view = await categoryRunner.view(req.params.clientId, rows);
+    let readiness = { ok: true };
+    try { const I = await categoryInputsFor(req.params.clientId); require('./category-blocks').blocksFor({ niche: I.niche, cv: I.ctx.cv, category: (rows.find(r => r.type === 'category' && r.applies !== false) || {}).title || '' }); readiness.tradeFacts = I.tradeFacts; readiness.dossiers = I.dossiers.map(d => d.locationName); readiness.reviews = I.reviews.length; }
+    catch (e) { readiness = { ok: false, error: e.message }; }
+    return { ...view, readiness };
+  }));
+  // The run goes on in the background: the panel polls the state
+  app.post('/api/clients/:clientId/category-pages/run', catRoute(async req => {
+    const { resume = true, keys = null } = req.body || {};
+    if (categoryRunner.running.has(req.params.clientId)) throw Object.assign(new Error('A category pages run is already in progress for this client.'), { status: 409 });
+    categoryRunner.run(req.params.clientId, { resume: !!resume, keys: Array.isArray(keys) && keys.length ? keys : null })
+      .catch(err => console.error('[category] run failed for', req.params.clientId, err));
+    return { started: true };
+  }));
+  // The decisions for one page as they stand now, no model call (a dry run)
+  app.get('/api/clients/:clientId/category-pages/preview/:key(*)', catRoute(async req => {
+    const I = await categoryInputsFor(req.params.clientId);
+    const key = '/' + String(req.params.key || '').replace(/^\/+/, '');
+    const page = categoryRunner.pagesInOrder(I.rows).find(p => p.slug === key);
+    if (!page) throw Object.assign(new Error(`No category page ${key} in the page map.`), { status: 404 });
+    const written = await categoryRunner.writtenFor(req.params.clientId, I.rows, key);
+    const { decisionsResult, extraFlags } = await categoryRunner.prepare(req.params.clientId, I, page, written);
+    return { key, gates: decisionsResult.gates, flags: [...decisionsResult.flags, ...extraFlags], decisionsBlock: decisionsResult.decisionsBlock };
+  }));
 }
 
 app.get('/api/clients/:clientId/wp/connection', wpRoute(req => wpService.connection(req.params.clientId)));

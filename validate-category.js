@@ -1,0 +1,136 @@
+'use strict';
+
+// ── Category page validator (23 Oct 2026) ────────────────────────────────────
+// The shared checks (validate-v20.js validateCommon and sharedCrossChecks) keyed on the
+// category page's fields, plus the category page's own rules:
+//   HERO-CAT    BLOCK  hero sentence 1 has no [CV: company_name] or no keyword phrase;
+//                      FLAG when a base page's sentence 1 doesn't name the wider area
+//   TOWN-OTHER  BLOCK  a town page names another service area town (anywhere)
+//   CARD-LINK   BLOCK  (shared) every card links its given target inside a sentence
+//   CARD-TARGET BLOCK  a card links a page other than its given target
+//   LINK-TOWN   BLOCK  link text on a town page carries a town name
+//   KEYWORD     BLOCK  the keyword phrase anywhere but hero sentence 1 and content block
+//                      sentence 1; FLAG when either of those two lacks it
+//   IDEAS       BLOCK  a sentence remakes an idea from IDEAS USED ELSEWHERE (fuzzy)
+//   CB-LINKS    FLAG   the content block carries no link to a section 3 page
+//   AREAS-TOWN  BLOCK  a town page's areas intro names one of its villages (code places the list)
+//   H1 and area list checks on the code fields (report only)
+
+const { validateCommon, sharedCrossChecks, helpers } = require('./validate-v20');
+const { LABELS } = require('./page-types/category');
+const { matchIdea } = require('./ideas');
+const { isAdminArea } = require('./client-files');
+const { esc, linkUrls, normUrl, scanText, sentences, lc } = helpers;
+
+const KEYS = {
+  hero: LABELS.hero, content: LABELS.content, finalCta: LABELS.finalCta,
+  areasIntro: LABELS.areasIntro, moreLine: LABELS.alsoOffered, selfUrl: '/',
+};
+
+// The context: the shared one plus the category page's keys and lists
+function categoryValidationContext(base, D) {
+  return { ...base, keys: { ...KEYS, selfUrl: D.slug || '/' } };
+}
+
+function validateCategory(record, V) {
+  const common = validateCommon(record, V);
+  const { issues, issue, fields } = common;
+  if (record.blocked) return issues;
+  const { cv, D } = V;
+  const scope = D.scope || record.scope || 'base';
+  const town = D.town || record.town || '';
+  const cat = lc(D.cat_lower || '');
+  const kwRe = cat && town ? new RegExp(`\\b${esc(cat)}\\s+(?:in|around|across|near)\\s+${esc(lc(town))}\\b|\\b${esc(cat)}\\s+${esc(lc(town))}\\b`, 'gi') : null;
+  const firstSentence = t => (sentences(t)[0] || '');
+
+  // ── Hero sentence 1 ──
+  const hero = fields.find(f => f.ref.key === LABELS.hero);
+  if (hero && hero.text.trim()) {
+    const s1 = firstSentence(hero.text);
+    const blockers = [], problems = [];
+    if (!/\[CV: company_name\]/.test(hero.text.split(/(?<=[.!?])\s+/)[0] || '')) blockers.push('it has no [CV: company_name]');
+    if (kwRe && !new RegExp(kwRe.source, 'i').test(lc(s1))) blockers.push(`the keyword "${D.keyword}" isn't there as a phrase`);
+    if (scope === 'base' && cv.area_wide && !new RegExp(`\\b${esc(lc(cv.area_wide))}\\b`).test(lc(s1))) problems.push(`it doesn't end with the wider area (${cv.area_wide})`);
+    if (blockers.length) issue('BLOCK', 'HERO-CAT', hero.label, `Sentence 1: ${blockers.join('; ')}.`, hero.ref);
+    if (problems.length) issue('FLAG', 'HERO-CAT', hero.label, `Sentence 1: ${problems.join('; ')}.`, hero.ref);
+  }
+
+  // ── Keyword placement: hero sentence 1 and content block sentence 1 only ──
+  const cb = fields.find(f => f.ref.key === LABELS.content);
+  if (kwRe) {
+    for (const f of fields) {
+      const s = lc(scanText(f.text));
+      const n = (s.match(kwRe) || []).length;
+      if (!n) continue;
+      const allowed = (f.ref.key === LABELS.hero || f.ref.key === LABELS.content) ? (new RegExp(kwRe.source, 'i').test(lc(firstSentence(f.text))) ? 1 : 0) : 0;
+      if (n > allowed) issue('BLOCK', 'KEYWORD', f.label, `The keyword phrase "${D.keyword}" appears here${allowed ? ' beyond sentence 1' : ''}. It belongs in hero sentence 1 and content block sentence 1 only; say "${cat}" or "the work" elsewhere.`, f.ref);
+    }
+    if (cb && cb.text.trim() && !new RegExp(kwRe.source, 'i').test(lc(firstSentence(cb.text)))) issue('FLAG', 'KEYWORD', cb.label, `Sentence 1 of the content block doesn't carry the keyword "${D.keyword}".`, cb.ref);
+  }
+
+  // ── A town page names no other town ──
+  if (scope === 'town') {
+    const others = (V.towns || []).concat(V.city ? [V.city] : []).filter(t => t && lc(t) !== lc(town) && !isAdminArea(t)).map(t => t.replace(/\s+\b(District|Borough|Council|County|Authority)\b.*$/i, '').trim());
+    for (const f of fields) {
+      const s = scanText(f.text);
+      const hit = others.find(t => new RegExp(`\\b${esc(t)}\\b`, 'i').test(s));
+      if (hit) issue('BLOCK', 'TOWN-OTHER', f.label, `Names ${hit}. A town page names no other town, anywhere: this page is about ${town} only.`, f.ref);
+      // Link text carries no town
+      for (const m of f.text.matchAll(/\[([^\]]+)\]\(([^)]+)\)/g)) {
+        const t = [town, ...others].find(x => new RegExp(`\\b${esc(x)}\\b`, 'i').test(m[1]));
+        if (t) issue('BLOCK', 'LINK-TOWN', f.label, `The link text "${m[1]}" carries a town. On a town page link text is the plain service or page name.`, f.ref);
+      }
+    }
+    // The areas intro names none of the villages: code places the list
+    const ai = fields.find(f => f.ref.key === LABELS.areasIntro);
+    if (ai) {
+      const v = ((D.allocated && D.allocated.villages) || []).find(x => x && x.length > 3 && new RegExp(`\\b${esc(x)}\\b`, 'i').test(scanText(ai.text)));
+      if (v) issue('BLOCK', 'AREAS-TOWN', ai.label, `Names ${v}. The areas intro names none of the villages; code places the list under it.`, ai.ref);
+    }
+  }
+
+  // ── Cards link their given target and nothing else ──
+  (record.cards || []).forEach((c, i) => {
+    const f = fields.find(x => x.ref.key === 'cards' && x.ref.index === i);
+    if (!f || !c.card_url) return;
+    const other = linkUrls(f.text).map(normUrl).find(u => u !== normUrl(c.card_url));
+    if (other) issue('BLOCK', 'CARD-TARGET', f.label, `Links ${other}; this card links only its own page ${c.card_url}.`, f.ref);
+  });
+
+  // ── Content block links a section 3 page ──
+  if (cb && cb.text.trim()) {
+    const targets = new Set((D.contentLinks || []).map(l => normUrl(l.url)));
+    if (targets.size && !linkUrls(cb.text).map(normUrl).some(u => targets.has(u))) issue('FLAG', 'CB-LINKS', cb.label, 'Paragraph 2 links none of the section 3 pages. Link the service pages given in DECISIONS, each with a reason.', cb.ref);
+  }
+
+  // ── Nothing from IDEAS USED ELSEWHERE ──
+  const ideas = D.ideasUsed || [];
+  if (ideas.length) {
+    for (const f of fields) {
+      for (const s of sentences(f.text)) {
+        const hit = matchIdea(s, ideas);
+        if (hit) { issue('BLOCK', 'IDEAS', f.label, `"${scanText(s).slice(0, 80)}…" remakes an idea the ${hit.page} already made ("${hit.text.slice(0, 80)}…"). Find a different angle.`, f.ref); break; }
+      }
+    }
+  }
+
+  sharedCrossChecks(record, V, common);
+
+  // ── Code fields (report only) ──
+  const h1 = record.cat_hero_h1 || '';
+  if (/[—–]/.test(h1)) issue('BLOCK', '4a', 'cat_hero_h1', 'H1 contains an em or en dash.');
+  if (h1.length > 60) issue('FLAG', '4b', 'cat_hero_h1', `H1 is ${h1.length} characters (max 60).`);
+  if (town && !lc(h1).includes(lc(town))) issue('FLAG', '4c', 'cat_hero_h1', `H1 doesn't contain the town "${town}".`);
+  if (cv.company_name && lc(h1).includes(lc(cv.company_name))) issue('BLOCK', '4d', 'cat_hero_h1', 'H1 contains the company name.');
+  if (scope === 'base') {
+    const names = new Set((record.cat_areas_links || []).map(a => lc(a.name)));
+    for (const t of V.towns || []) {
+      if (isAdminArea(t) || lc(t) === lc(V.city)) continue;
+      const short = lc(t.replace(/\s+\b(District|Borough|Council|County|Authority)\b.*$/i, '').trim());
+      if (!names.has(lc(t)) && !names.has(short)) issue('BLOCK', '9', 'cat_areas_links', `The area list is missing "${t}".`);
+    }
+  }
+  return issues;
+}
+
+module.exports = { validateCategory, categoryValidationContext, KEYS };

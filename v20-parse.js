@@ -1,36 +1,40 @@
 'use strict';
 
 // ── v20 model output parser (Stage 6) ────────────────────────────────────────
-// Reads the CORE (20) OUTPUT block by its labels and checks it against what
-// DECISIONS asked for. Problems become P-* flags; nothing throws. Given titles
-// (card names, point titles, step titles, FAQ questions) always win over the
-// model's copy of them.
+// Reads a page's OUTPUT block by its labels and checks it against what DECISIONS
+// asked for. Problems become P-* flags; nothing throws. Given titles (card names,
+// point titles, step titles, FAQ questions) always win over the model's copy of
+// them. parseOutput(raw, spec, expected) is the general form, one spec per page
+// type; parseV20Output is the homepage's.
 
-const SCALAR_FIELDS = [
-  'home_hero_intro', 'home_content_block_body', 'home_services_intro', 'home_services_more_line',
-  'home_owner_body', 'home_areas_intro', 'home_final_cta_body',
-];
-const LIST_FIELDS = {
-  home_services_cards: ['card_name', 'card_text'],
-  home_why_points:     ['point_title', 'point_body'],
-  home_process_steps:  ['step_title', 'step_body'],
-  home_faq_items:      ['faq_question', 'faq_answer'],
+const HOMEPAGE_SPEC = {
+  scalars: [
+    'home_hero_intro', 'home_content_block_body', 'home_services_intro', 'home_services_more_line',
+    'home_owner_body', 'home_areas_intro', 'home_final_cta_body',
+  ],
+  lists: {
+    home_services_cards: ['card_name', 'card_text'],
+    home_why_points:     ['point_title', 'point_body'],
+    home_process_steps:  ['step_title', 'step_body'],
+    home_faq_items:      ['faq_question', 'faq_answer'],
+  },
 };
-const ALL_LABELS = [...SCALAR_FIELDS, ...Object.keys(LIST_FIELDS), 'MODEL_FLAGS'];
-const LABEL_RE = new RegExp(`^\\s*\\**(${ALL_LABELS.join('|')})\\**\\s*:\\s*(.*)$`);
+const SCALAR_FIELDS = HOMEPAGE_SPEC.scalars;
+const LIST_FIELDS = HOMEPAGE_SPEC.lists;
 
 const isHidden = s => /^\s*HIDDEN\s*\.?\s*$/i.test(s || '');
 const norm = s => (s || '').toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim();
 
 // Split raw text into { label: [lines] }
-function splitLabels(raw) {
+function splitLabels(raw, labels) {
+  const labelRe = new RegExp(`^\\s*\\**(${labels.join('|')})\\**\\s*:\\s*(.*)$`);
   let text = (raw || '').replace(/^```[a-z]*\s*$/gim, '');
   const start = text.indexOf('=== MODEL OUTPUT');
   if (start >= 0) text = text.slice(text.indexOf('\n', start) + 1);
   const blocks = {};
   let current = null;
   for (const line of text.split(/\r?\n/)) {
-    const m = line.match(LABEL_RE);
+    const m = line.match(labelRe);
     if (m && !/^\s*-/.test(line)) {
       current = m[1];
       blocks[current] = m[2] ? [m[2]] : [];
@@ -73,19 +77,19 @@ function listItems(lines, [k1, k2]) {
   });
 }
 
-// expected: { cards: [names], points: [titles], steps: [titles], faqs: [questions],
-//             hidden: { home_owner_body: bool, home_services_more_line: bool } }
-function parseV20Output(raw, expected) {
+// spec: { scalars: [label], lists: { label: [titleKey, textKey] } }
+// expected: { lists: { label: [given titles] }, hidden: { label: bool } }
+function parseOutput(raw, spec, expected) {
   const flags = [];
   const flag = (code, msg) => flags.push({ code, msg });
-  const blocks = splitLabels(raw);
+  const blocks = splitLabels(raw, [...spec.scalars, ...Object.keys(spec.lists), 'MODEL_FLAGS']);
   const fields = {};
+  const hidden = expected.hidden || {};
 
-  for (const f of SCALAR_FIELDS) {
+  for (const f of spec.scalars) {
     if (!(f in blocks)) { flag('P-MISSING', `${f} is missing from the output.`); fields[f] = ''; continue; }
     const v = scalarValue(blocks[f]);
-    const shouldHide = !!(expected.hidden && expected.hidden[f]);
-    if (shouldHide) {
+    if (hidden[f]) {
       if (v && !isHidden(v)) flag('P-HIDDEN', `${f} should be HIDDEN but has text.`);
       fields[f] = 'HIDDEN';
     } else {
@@ -94,14 +98,8 @@ function parseV20Output(raw, expected) {
     }
   }
 
-  const listSpecs = {
-    home_services_cards: expected.cards || [],
-    home_why_points:     expected.points || [],
-    home_process_steps:  expected.steps || [],
-    home_faq_items:      expected.faqs || [],
-  };
-  for (const [f, given] of Object.entries(listSpecs)) {
-    const [k1, k2] = LIST_FIELDS[f];
+  for (const [f, [k1, k2]] of Object.entries(spec.lists)) {
+    const given = (expected.lists || {})[f] || [];
     if (!(f in blocks)) { flag('P-MISSING', `${f} is missing from the output.`); }
     const items = f in blocks ? listItems(blocks[f], [k1, k2]) : [];
     if (items.length !== given.length) {
@@ -124,4 +122,12 @@ function parseV20Output(raw, expected) {
   return { fields, flags, modelFlags };
 }
 
-module.exports = { parseV20Output, SCALAR_FIELDS, LIST_FIELDS };
+// The homepage: expected is { cards, points, steps, faqs, hidden } (v20-record.js)
+function parseV20Output(raw, expected) {
+  return parseOutput(raw, HOMEPAGE_SPEC, {
+    lists: { home_services_cards: expected.cards || [], home_why_points: expected.points || [], home_process_steps: expected.steps || [], home_faq_items: expected.faqs || [] },
+    hidden: expected.hidden || {},
+  });
+}
+
+module.exports = { parseV20Output, parseOutput, SCALAR_FIELDS, LIST_FIELDS, HOMEPAGE_SPEC };

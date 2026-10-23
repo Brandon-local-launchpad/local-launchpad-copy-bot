@@ -92,7 +92,8 @@ function decisionsFromRecord(record) {
   const part = (from, to) => { const a = block.indexOf(from); if (a < 0) return ''; const b = block.indexOf(to, a + from.length); return block.slice(a, b > a ? b : undefined).trim(); };
   // The coastal line is a code decision too ("inland and along the coast")
   const coastal = (block.match(/^Primary city coastal:.*$/m) || [''])[0];
-  return [part('--- HEADINGS ---', '\n\n'), part('--- PROCESS STEPS ---', '\n\n'), part('--- D11 FAQ QUESTIONS ---', '\n\n'), coastal].filter(Boolean).join('\n\n');
+  // A category page's block names its sections without the D numbers and adds blocks 4 and 5 (23 Oct)
+  return [part('--- HEADINGS ---', '\n\n'), part('--- PROCESS STEPS ---', '\n\n'), part('--- D11 FAQ QUESTIONS ---', '\n\n') || part('--- FAQ QUESTIONS ---', '\n\n'), part('--- BLOCK 4: COMMON PROBLEMS', '\n\n'), part('--- BLOCK 5: COST FACTORS', '\n\n'), coastal].filter(Boolean).join('\n\n');
 }
 function factsFromRecord(record) {
   const meta = record.meta || {};

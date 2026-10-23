@@ -2255,6 +2255,7 @@
       { key: 'jobs_completed',       label: 'Jobs completed',      type: 'text', placeholder: 'Number only, e.g. 150' },
       { key: 'rating',               label: 'Rating',              type: 'text', placeholder: 'e.g. 4.9' },
       { key: 'review_count',         label: 'Review count',        type: 'text', placeholder: 'Number only' },
+      { key: 'hand_reviews',         label: 'Hand picked reviews (category pages show these once the client has 3 reviews)', type: 'review-rows' },
       { key: 'guarantee_years',      label: 'Guarantee years',     type: 'text', placeholder: 'Number only, e.g. 10' },
       { key: 'guarantee_scope',      label: 'Guarantee scope',     type: 'textarea', rows: 2, placeholder: 'e.g. new roofs 10 yrs, repairs 2 yrs' },
       { key: 'manufacturer_warranty',label: 'Manufacturer warranty',type: 'text', placeholder: 'e.g. 25 year manufacturer warranty' },
@@ -2359,6 +2360,14 @@
           <input class="cv-input cv-job-name" type="text" placeholder="Job name">
           <input class="cv-input cv-job-price" type="text" placeholder="From £">
           <input class="cv-input cv-job-dur" type="text" placeholder="Duration">
+        </div>`).join('')}</div>`;
+    }
+    if (f.type === 'review-rows') {
+      return `<div id="cv_${f.key}" class="cv-review-rows">${[0,1,2].map(i => `
+        <div class="cv-review-row" style="display:grid;grid-template-columns:1fr 120px 120px;gap:4px;margin-bottom:4px">
+          <input class="cv-input cv-review-text" type="text" placeholder="The review, as the customer wrote it">
+          <input class="cv-input cv-review-name" type="text" placeholder="First name">
+          <input class="cv-input cv-review-town" type="text" placeholder="Town">
         </div>`).join('')}</div>`;
     }
     if (f.type === 'theme-rows') {
@@ -2583,6 +2592,12 @@
             price:    row.querySelector('.cv-job-price').value.trim(),
             duration: row.querySelector('.cv-job-dur').value.trim(),
           })).filter(r => r.job);
+        } else if (f.type === 'review-rows') {
+          v[f.key] = Array.from(el.querySelectorAll('.cv-review-row')).map(row => ({
+            text: row.querySelector('.cv-review-text').value.trim(),
+            name: row.querySelector('.cv-review-name').value.trim(),
+            town: row.querySelector('.cv-review-town').value.trim(),
+          })).filter(r => r.text);
         } else if (f.type === 'theme-rows') {
           v[f.key] = Array.from(el.querySelectorAll('.cv-theme-row')).map(row => ({
             theme:    row.querySelector('.cv-theme-text').value.trim(),
@@ -2664,6 +2679,15 @@
             row.querySelector('.cv-job-name').value  = r.job      || '';
             row.querySelector('.cv-job-price').value = r.price    || '';
             row.querySelector('.cv-job-dur').value   = r.duration || '';
+          });
+        } else if (f.type === 'review-rows') {
+          const rows = el.querySelectorAll('.cv-review-row');
+          const arr = Array.isArray(val) ? val : [];
+          rows.forEach((row, i) => {
+            const r = arr[i] || {};
+            row.querySelector('.cv-review-text').value = r.text || '';
+            row.querySelector('.cv-review-name').value = r.name || '';
+            row.querySelector('.cv-review-town').value = r.town || '';
           });
         } else if (f.type === 'theme-rows') {
           // Normalise: old string[] → [{theme,approved:false}]

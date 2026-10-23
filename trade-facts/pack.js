@@ -183,6 +183,34 @@ function packForService(niche, service) {
   return { markdown: out.join('\n'), missing, header: pack.header, file: pack.file };
 }
 
+// The pack text for one category page (23 Oct): the rows of Tables A, B and F for every
+// one of the category's services, and Tables C, D and E in full. Throws when the pack
+// is missing. missing lists the services with no row in a table ("A:Mulching").
+function packForCategory(niche, category, services) {
+  const pack = readPack(niche);
+  if (!pack.exists) throw Object.assign(new Error(`No trade facts pack for "${niche}": ${pack.file} is missing`), { status: 422 });
+  const tables = parseTables(pack.text);
+  const out = [`# Trade facts: ${niche} · ${category}`];
+  if (pack.header) out.push(`_${pack.file}: generated ${pack.header.generated} · model ${pack.header.model}_`);
+  const missing = [];
+  for (const letter of ['A', 'B', 'C', 'D', 'E', 'F']) {
+    const t = tables.get(letter);
+    const title = t ? t.title : `TABLE ${letter} — ${TITLES[letter]}`;
+    out.push('', `## ${title}`);
+    if (!t) { out.push(`_Table ${letter} is not in the pack._`); missing.push(letter); continue; }
+    if (letter === 'C' || letter === 'D' || letter === 'E') { out.push(renderTable(t, t.rows)); continue; }
+    const rows = [];
+    for (const service of services) {
+      const mine = t.rows.filter(r => cellNames(r[0] || '', service));
+      if (!mine.length) missing.push(`${letter}:${service}`);
+      for (const r of mine) if (!rows.includes(r)) rows.push(r);
+    }
+    if (!rows.length) { out.push(`_No row for this category's services in Table ${letter}._`); continue; }
+    out.push(renderTable(t, rows));
+  }
+  return { markdown: out.join('\n'), missing, header: pack.header, file: pack.file };
+}
+
 // Proper nouns the pack names (Brandon, 23 Oct, for the GBP lower casing): the trade
 // bodies, accreditations and schemes of Table D (the whole name cell), and the brands,
 // standards and bodies written with a capital inside a sentence anywhere in Tables C, D
@@ -265,5 +293,5 @@ function packProperNouns(niche) {
 
 module.exports = {
   DIR, BLOCKS_DIR, CORE_FILE, packNameFor, packFile, blockFile, relative, readPack, readBlock, readCore, listNiches, hasBlock,
-  parseHeader, header, fingerprintOf, parseTables, packForService, packProperNouns, cellNames, normName,
+  parseHeader, header, fingerprintOf, parseTables, packForService, packForCategory, packProperNouns, cellNames, normName,
 };

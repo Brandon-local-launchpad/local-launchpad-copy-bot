@@ -68,6 +68,11 @@ const RETRY_FLAGS = new Set(['N7', 'N13', 'N14', 'N15', 'N17', 'N18', 'N19', 'N2
 //   N5            a fixed price in any wording, or a manufacturer warranty, when not confirmed
 //   HERO          BLOCK  sentence 1 says the business is based somewhere other than the city
 //   PRICE-FIRST   FLAG   "a price agreed before work starts" outside step 2 more than once
+//
+//   (23 Oct, category pages) The per-field checks and the cross-field checks that any
+//   page shares run in validateCommon(record, V); the field names they key on come
+//   from V.keys (the homepage's by default). validateV20 adds the homepage-only checks;
+//   validate-category.js adds the category page's.
 const RESEARCH_WORDS = ['investigated sites?', 'records? shows?', 'recorded (at|in|by)', 'council (guidance|records|data|maps?|says)',
   'strategic flood', 'flood (risk )?assessments?', 'suds', 'according to', 'research', 'dossier', 'data (shows|suggests)',
   'mapped', 'appraisal', 'neighbourhood plan', 'evidence base', 'studies show', 'surveys? (show|found)',
@@ -121,6 +126,12 @@ const RANGES = {
   home_final_cta_body:      { min: 15, max: 25, label: '15 to 25' },
 };
 
+// The fields the shared checks key on; a page type passes its own as V.keys
+const HOMEPAGE_KEYS = {
+  hero: 'home_hero_intro', content: 'home_content_block_body', finalCta: 'home_final_cta_body',
+  areasIntro: 'home_areas_intro', moreLine: 'home_services_more_line', selfUrl: '/',
+};
+
 // ── Text helpers ──
 const esc = s => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 const stripLinks = t => (t || '').replace(/\[([^\]]+)\]\((?:[^)]+)\)/g, '$1');
@@ -163,7 +174,8 @@ function buildValidationContext({ cv, niche, decisions, keyValueMap = {}, servic
   }
   if (D.d1_years_trading !== null && D.d1_years_trading !== undefined) cvNumbers.add(String(D.d1_years_trading));
   const allocated = D.allocated || { neighbourhoods: [], symptoms: {} };
-  const researchText = lc([...allocated.neighbourhoods.map(n => n.profile), ...Object.values(allocated.symptoms).map(s => `${s.text} ${s.issueText}`)].join(' '));
+  // A town page's profile (category pages) counts as research the copy may draw on
+  const researchText = lc([...allocated.neighbourhoods.map(n => n.profile), ...Object.values(allocated.symptoms || {}).map(s => `${s.text} ${s.issueText}`), allocated.extraText || ''].join(' '));
   const researchNumbers = new Set(researchText.match(/\d+(?:\.\d+)?/g) || []);
 
   // Places the business must not claim to have worked: allocated neighbourhoods
@@ -180,7 +192,7 @@ function buildValidationContext({ cv, niche, decisions, keyValueMap = {}, servic
   const confirmedServices = [
     ...Object.entries(keyValueMap).filter(([k]) => /^(service|mentioned|category)_\d+$/.test(k)).map(([, v]) => v),
     ...serviceList.map(s => s.say).filter(Boolean),
-    ...(D.d9.main || []).map(c => c.name), ...(D.d9.alsoOffer || []),
+    ...((D.d9 && D.d9.main) || []).map(c => c.name), ...((D.d9 && D.d9.alsoOffer) || []),
     cv.primary_category, ...(cv.materials_methods || []),
   ].filter(Boolean).map(s => new Set(lc(s).split(/[^a-z0-9]+/).filter(Boolean).map(stem)));
 
@@ -196,18 +208,22 @@ function buildValidationContext({ cv, niche, decisions, keyValueMap = {}, servic
     neighbourhoodNames: allocated.neighbourhoods.map(n => n.name.split(/[\s,’']/)[0]).filter(n => n.length > 3),
     city: (keyValueMap.biz_area_1 || '').trim(),
     categoryNames: [...new Set([...Object.entries(keyValueMap).filter(([k]) => /^category_\d+$/.test(k)).map(([, v]) => v),
-      ...(D.d9.main || []).map(c => c.name)])],
+      ...((D.d9 && D.d9.main) || []).map(c => c.name)])],
   };
 }
 
 // ── The validator ──
-function validateV20(record, V) {
+// The checks every page type shares. Returns { issues, issue, fields } so a page
+// type's own validator can add to them.
+function validateCommon(record, V) {
   const issues = [];
   const issue = (type, check, field, message, ref = null) => issues.push({
     type, check, field, ref, message, retry: !!ref && (type === 'BLOCK' || RETRY_FLAGS.has(check)),
   });
-  if (record.blocked) return issues;
+  if (record.blocked) return { issues, issue, fields: [] };
   const { cv, niche, D } = V;
+  const K = V.keys || HOMEPAGE_KEYS;
+  const ranges = (require('./page-types').pageTypeOf(record).ranges) || RANGES;
   const fields = modelFields(record);
 
   // ── Per field ──
@@ -236,7 +252,7 @@ function validateV20(record, V) {
     // LEAK (16 Oct, copy quality loop): a field label or the data behind the copy shows on the
     // page ("card_text (Lawn Care Service): …", "Because yes is confirmed for urgent leaks")
     {
-      const lab = s.match(/^\s*(?:card_text|card_name|faq_answer|faq_question|point_body|point_title|step_body|step_title|home_[a-z_]+)\b[^:\n]{0,60}:/i);
+      const lab = s.match(/^\s*(?:card_text|card_name|faq_answer|faq_question|point_body|point_title|step_body|step_title|problem_body|problem_title|factor_body|factor_title|home_[a-z_]+|cat_[a-z_]+)\b[^:\n]{0,60}:/i);
       if (lab) flag('BLOCK', 'LEAK', `The text starts with a field label ("${lab[0].trim()}"). Write only the copy.`);
       const data = s.match(/\b(?:is|are|isn't|aren't|been|as) confirmed\b|\byes is\b|\bon file\b|\bclient values?\b|\bcustom values?\b|\bCVTOKEN\s*=/i);
       if (data) flag('BLOCK', 'LEAK', `"${data[0]}" talks about the data behind the page. Say the fact itself, the way the owner would.`);
@@ -268,7 +284,7 @@ function validateV20(record, V) {
 
     // N2: every link on LINKABLE PAGES; no self link
     for (const u of linkUrls(t)) {
-      if (normUrl(u) === '/') flag('BLOCK', 'N2', 'Links the homepage to itself.');
+      if (normUrl(u) === normUrl(K.selfUrl)) flag('BLOCK', 'N2', 'Links the page to itself.');
       else if (!V.linkable.has(normUrl(u))) flag('BLOCK', 'N2', `Links to ${u}, which is not on LINKABLE PAGES.`);
     }
 
@@ -290,13 +306,13 @@ function validateV20(record, V) {
     for (const w of CLAIM_WORDS) if (new RegExp(`(^|\\W)${esc(w)}(\\W|$)`, 'i').test(claimText)) flag('BLOCK', 'N5', `Claim word "${w}" with no proof on file. Say "local" or the concrete thing.`);
 
     // N7: word ranges and long sentences
-    const r = RANGES[f.rangeKey];
+    const r = ranges[f.rangeKey];
     if (r) {
-      const range = f.rangeKey === 'home_content_block_body' && D.d13_expands ? { min: 200, max: 300, label: '200 to 300' } : r;
+      const range = f.rangeKey === K.content && D.d13_expands ? { min: 200, max: 300, label: '200 to 300' } : r;
       const n = wordCount(t);
       if ((range.min && n < range.min) || n > range.max) flag('FLAG', 'N7', `${n} words: it must be ${range.label}.`);
     }
-    if (f.rangeKey === 'home_final_cta_body' && sentences(t).length > 1) flag('FLAG', 'N7', 'Must be one sentence.');
+    if (f.rangeKey === K.finalCta && sentences(t).length > 1) flag('FLAG', 'N7', 'Must be one sentence.');
     for (const sen of sentences(t)) {
       const n = wordCount(sen);
       if (n > 25) flag('FLAG', 'N7', `A sentence of ${n} words (soft cap 25): "${sen.slice(0, 60)}…". Split it.`);
@@ -315,7 +331,7 @@ function validateV20(record, V) {
     if (!cv.owner_pronoun && /\b(he|him|himself|she|her|herself)\b/i.test(s)) flag('FLAG', 'N15', 'A gendered pronoun with no owner_pronoun set. Repeat [CV: owner_name] or rewrite.');
     // N17 company token outside the hero, or opening sentences more than once
     const companyOpens = t.split(/\n\n+|(?<=[.!?])\s+/).filter(x => /^\[CV: company_name\]/.test(x.trim())).length;
-    if (f.ref.key !== 'home_hero_intro' && /\[CV: company_name\]/.test(t)) flag('FLAG', 'N17', '[CV: company_name] appears outside the hero intro. Start with "We", the customer or the subject.');
+    if (f.ref.key !== K.hero && /\[CV: company_name\]/.test(t)) flag('FLAG', 'N17', '[CV: company_name] appears outside the hero intro. Start with "We", the customer or the subject.');
     if (companyOpens > 1) flag('FLAG', 'N17', '[CV: company_name] opens more than one sentence.');
     // N18 back-to-back starts
     const sens = sentences(t);
@@ -392,7 +408,7 @@ function validateV20(record, V) {
     }
     // LINK-TEXT: a category link's text holds the category's words, in order
     for (const m of t.matchAll(/\[([^\]]+)\]\(([^)]+)\)/g)) {
-      const card = (D.d9.main || []).find(c => c.url && normUrl(c.url) === normUrl(m[2]));
+      const card = ((D.d9 && D.d9.main) || []).find(c => c.url && normUrl(c.url) === normUrl(m[2]));
       if (!card) continue;
       const want = lc(card.name).split(/\s+/);
       const have = lc(m[1]).split(/[^a-z0-9]+/);
@@ -408,7 +424,7 @@ function validateV20(record, V) {
       const cardCat = lc(((record.cards || [])[f.ref.index] || {}).card_name || '');
       const named = new Set(hits.filter(h => !hits.some(o => o !== h && o.includes(h)) && !(cardCat && cardCat.includes(lc(h)))));
       // A BLOCK since 16 Oct (Brandon); code gives each card its 2 or 3 services
-      const picks = ((D.d9.main || [])[f.ref.index] || {}).services;
+      const picks = (((D.d9 && D.d9.main) || [])[f.ref.index] || {}).services;
       const allowed = picks && picks.length ? ` Name only ${picks.join(', ')}.` : ' Name 2 or 3, in a sentence, not a list.';
       if (named.size > 3) flag('BLOCK', 'CARD-COUNT', `Names ${named.size} services (${[...named].join(', ')}).${allowed}`);
       // CARD-PICK: a service the card wasn't given (category names don't count)
@@ -430,7 +446,7 @@ function validateV20(record, V) {
       if (m && !V.cvText.includes(lc(m[1]))) flag('BLOCK', 'EXPERIENCE', `"${scanText(sen).slice(0, 90)}…" claims experience with ${lc(m[1])} properties or jobs, which isn't in the client values. Leave the kind of job out.`);
     }
     // AREA-ADMIN: council areas aren't places a customer lives (16 Oct)
-    if (f.label === 'home_areas_intro' || /^faq_answer \(Which areas/i.test(f.label)) {
+    if (f.ref.key === K.areasIntro || /^faq_answer \(Which areas/i.test(f.label)) {
       for (const a of V.adminAreas) if (new RegExp(`\\b${esc(a)}\\b`, 'i').test(s)) flag('FLAG', 'AREA-ADMIN', `Names "${a}", a council area. Name towns and villages from the area list instead.`);
     }
     // CAT-TEAM: a category name is never a job title for the team ("our deck builder team") (16 Oct)
@@ -446,7 +462,7 @@ function validateV20(record, V) {
       }
     }
     // CB-PARA: content block paragraphs are 4 sentences at most (16 Oct)
-    if (f.ref.key === 'home_content_block_body') {
+    if (f.ref.key === K.content) {
       t.split(/\n\s*\n/).forEach((para, i) => {
         const n = sentences(para).length;
         if (n > 4) flag('BLOCK', 'CB-PARA', `Paragraph ${i + 1} has ${n} sentences. Keep each paragraph to 4 at most: split it or cut a sentence.`);
@@ -459,7 +475,7 @@ function validateV20(record, V) {
       }
     }
     // COAST-DIR: on a coastal city the areas intro names no compass direction (15 Oct)
-    if (D.coastal && f.label === 'home_areas_intro') {
+    if (D.coastal && f.ref.key === K.areasIntro) {
       const plain = s.replace(/\[CV: [a-z0-9_]+\]/g, ' ').replace(new RegExp(esc(cv.area_wide || '\u0000'), 'gi'), ' ');
       const dir = plain.match(/\b(north|south|east|west)(?:ern|wards?|\s*east|\s*west)?\b/i);
       if (dir) flag('BLOCK', 'COAST-DIR', `"${dir[0]}": the city is on the coast, so the areas intro names no compass direction. Write "inland and along the coast" and name places instead.`);
@@ -471,7 +487,7 @@ function validateV20(record, V) {
       if (m) flag('BLOCK', 'QUOTE-METHOD', `"${m[0]}" names a way of pricing the job, but no quote method is confirmed. Say a price is agreed before work starts, without saying how.`);
     }
     // FINAL-CTA: one normal sentence, "we" or the customer as the subject, never the phone number (15 Oct)
-    if (f.label === 'home_final_cta_body') {
+    if (f.ref.key === K.finalCta) {
       if (/\[CV: phone\]/.test(t) || (cv.phone && digits.includes(cv.phone.replace(/\D/g, '')))) flag('BLOCK', 'FINAL-CTA', 'The final CTA body never gives the phone number: the buttons carry it.');
       if (sentences(t).length > 1) flag('FLAG', 'FINAL-CTA', 'The final CTA body is one sentence.');
       if (!/\b(we|we'll|we're|you|you'll|your)\b/i.test(s)) flag('FLAG', 'FINAL-CTA', 'Make "we" or the customer the subject of the sentence.');
@@ -492,7 +508,7 @@ function validateV20(record, V) {
         if (seen.has(k) && i - seen.get(k) >= 4) { flag('FLAG', 'REPEAT-IN', `"${k}" appears twice in this field. Make each point once.`); break; }
         if (!seen.has(k)) seen.set(k, i);
       }
-      if (f.ref.key === 'home_content_block_body') {
+      if (f.ref.key === K.content) {
         const paras = t.split(/\n\n+/);
         for (const n of V.neighbourhoodNames) {
           const inParas = paras.filter(p => new RegExp(`\\b${esc(n)}`, 'i').test(p)).length;
@@ -514,6 +530,21 @@ function validateV20(record, V) {
       }
     }
   }
+
+  const cb = fields.find(f => f.ref.key === K.content);
+  // N4 / PROOF-REPEAT: one home per proof (headline, explanation, one mention = 3)
+  const tokenCount = {};
+  for (const f of fields) for (const m of f.text.matchAll(/\[CV: (insurance_cover|jobs_completed|years_trading|guarantee_years)\]/g)) tokenCount[m[1]] = (tokenCount[m[1]] || 0) + 1;
+  for (const [k, n] of Object.entries(tokenCount)) if (n > 2) issue('FLAG', 'N4', 'page', `[CV: ${k}] appears ${n} times in the model fields.`);
+  return { issues, issue, fields, cb, K };
+}
+
+// The homepage's own checks, on top of the shared ones
+function validateV20(record, V) {
+  const common = validateCommon(record, V);
+  const { issues, issue, fields, cb } = common;
+  if (record.blocked) return issues;
+  const { cv, niche, D } = V;
 
   // ── Hero sentence 1 (HERO) ──
   const hero = fields.find(f => f.ref.key === 'home_hero_intro');
@@ -539,13 +570,73 @@ function validateV20(record, V) {
   // ── Across fields ──
   // N1: every linkable category page linked in content block, a card, or the more line
   const linkedOnPage = new Set(fields.filter(f => /content_block|card_text|more_line/.test(f.label)).flatMap(f => linkUrls(f.text).map(normUrl)));
-  const cb = fields.find(f => f.ref.key === 'home_content_block_body');
   for (const u of V.linkableCategories) if (!linkedOnPage.has(u)) issue('BLOCK', 'N1', cb.label, `The category page ${u} isn't linked in the content block, a card or the more line.`, cb.ref);
 
-  // N4 / PROOF-REPEAT: one home per proof (headline, explanation, one mention = 3)
-  const tokenCount = {};
-  for (const f of fields) for (const m of f.text.matchAll(/\[CV: (insurance_cover|jobs_completed|years_trading|guarantee_years)\]/g)) tokenCount[m[1]] = (tokenCount[m[1]] || 0) + 1;
-  for (const [k, n] of Object.entries(tokenCount)) if (n > 2) issue('FLAG', 'N4', 'page', `[CV: ${k}] appears ${n} times in the model fields.`);
+  sharedCrossChecks(record, V, common);
+
+  // TRUST-REPEAT: the trust line's proof stays out of the content block
+  if (cb && D.d5_trust && /Jobs Completed/i.test(D.d5_trust) && cv.jobs_completed && new RegExp(`\\b${esc(String(cv.jobs_completed))}\\b`).test(scanText(cb.text))) {
+    issue('FLAG', 'TRUST-REPEAT', cb.label, `The jobs figure is the hero trust line, so leave it out of the content block.`, cb.ref);
+  }
+  if (cb && D.d5_trust && /^Established/i.test(D.d5_trust) && cv.year_founded && new RegExp(`\\b${esc(String(cv.year_founded))}\\b`).test(cb.text)) {
+    issue('FLAG', 'TRUST-REPEAT', cb.label, 'The founding year is the hero trust line, so leave it out of the content block.', cb.ref);
+  }
+  const cardFields = fields.filter(f => f.ref.sub === 'card_text');
+  // CB-SERVICES: the content block's category links come with a reason each, never a list
+  // of the services inside them: the cards describe those (15 Oct)
+  const cbField = fields.find(f => f.label === 'home_content_block_body');
+  if (cbField) {
+    const catWords = new Set(cardFields.map(f => lc(f.label.replace(/^card_text \(|\)$/g, ''))));
+    for (const para of String(cbField.text).split(/\n\s*\n/)) {
+      if (!linkUrls(para).length) continue;
+      const named = [...new Set(V.serviceList.filter(sv => sv.say && !catWords.has(lc(sv.say)) && new RegExp(`\\b${esc(sv.say)}\\b`, 'i').test(scanText(para))).map(sv => lc(sv.say)))]
+        .filter((w, _, all) => !all.some(o => o !== w && o.includes(w)));
+      if (named.length >= 2) issue('FLAG', 'CB-SERVICES', cbField.label, `The services paragraph lists services (${named.join(', ')}). Link each category with a reason instead: the cards describe the services.`, cbField.ref);
+    }
+  }
+  // MORE-REPEAT: "We also offer" names only services no card names (15 Oct)
+  const moreLine = fields.find(f => f.label === 'home_services_more_line');
+  if (moreLine) {
+    const inCards = new Set(V.serviceList.filter(sv => sv.say && cardFields.some(c => new RegExp(`\\b${esc(sv.say)}\\b`, 'i').test(scanText(c.text)))).map(sv => lc(sv.say)));
+    const repeated = [...new Set(V.serviceList.filter(sv => sv.say && inCards.has(lc(sv.say)) && new RegExp(`\\b${esc(sv.say)}\\b`, 'i').test(scanText(moreLine.text))).map(sv => sv.say))];
+    if (repeated.length) issue('FLAG', 'MORE-REPEAT', moreLine.label, `"We also offer" names ${repeated.join(', ')}, already in a card. Name only services no card names, or write HIDDEN.`, moreLine.ref);
+  }
+  // HUB-LINK: the areas FAQ links the Locations Hub when there is one
+  if (D.locations_hub) {
+    const areasFaq = fields.find(f => f.ref.sub === 'faq_answer' && /which areas/i.test(f.label));
+    if (areasFaq && !linkUrls(areasFaq.text).some(u => normUrl(u) === normUrl(D.locations_hub))) {
+      issue('FLAG', 'HUB-LINK', areasFaq.label, `Link the Locations Hub (${D.locations_hub}) in this answer.`, areasFaq.ref);
+    }
+  }
+
+  // ── Code fields (report only; code owns them) ──
+  const h1 = record.home_hero_h1 || '';
+  if (/[—–]/.test(h1)) issue('BLOCK', '4a', 'home_hero_h1', 'H1 contains an em or en dash.');
+  if (/\b[A-Za-z]+-[A-Za-z]+\b/.test(h1)) issue('FLAG', '4a', 'home_hero_h1', 'H1 contains a hyphenated word.');
+  if (h1.length > 60) issue('FLAG', '4b', 'home_hero_h1', `H1 is ${h1.length} characters (max 60).`);
+  if (V.city && !lc(h1).includes(lc(V.city))) issue('FLAG', '4c', 'home_hero_h1', `H1 doesn't contain the city "${V.city}".`);
+  if (!lc(h1).includes(lc(cv.primary_category || '~')) && !lc(h1).includes(lc(niche.trade_person || '~'))) issue('FLAG', '4c', 'home_hero_h1', 'H1 contains neither the primary category nor the trade person word.');
+  if (cv.company_name && lc(h1).includes(lc(cv.company_name))) issue('BLOCK', '4d', 'home_hero_h1', 'H1 contains the company name.');
+  const mod = (record.seo_title || '').split(' | ').length === 3 ? record.seo_title.split(' | ')[1] : null;
+  if (mod) {
+    const kw = new Set(lc(`${D.d2_h1} ${niche.trade} ${niche.trade_person} ${niche.trade_person_plural}`).split(/\W+/).filter(w => w.length > 2));
+    const clash = lc(mod).split(/\W+/).find(w => kw.has(w));
+    if (clash) issue('BLOCK', 'N3', 'seo_title', `The title modifier repeats "${clash}" from the keyword or trade words.`);
+  }
+  const areaNames = new Set((record.home_areas_links || []).map(a => lc(a.name)));
+  for (const t of V.towns) {
+    if (isAdminArea(t)) continue; // a council area is left out of the area list (15 Oct)
+    const short = lc(t.replace(/\s+\b(District|Borough|Council|County|Authority)\b.*$/i, '').trim());
+    if (!areaNames.has(lc(t)) && !areaNames.has(short)) issue('BLOCK', '9', 'home_areas_links', `The area list is missing "${t}".`);
+  }
+
+  return issues;
+}
+
+// The cross-field checks any page type runs (proof repeats, card patterns, phrase
+// repeats, stock phrases, FAQ links, title and meta lengths)
+function sharedCrossChecks(record, V, { issues, issue, fields, cb, K }) {
+  const { cv, niche, D } = V;
   // PROOF-FIXED (16 Oct, Brandon): the fixed price appears 3 times at most, counting the
   // meta description and its Why point (title and body as one), in any wording; never in a step
   if (/fixed\s+price/i.test(`${cv.differentiator_1 || ''} ${cv.differentiator_2 || ''}`)) {
@@ -588,14 +679,6 @@ function validateV20(record, V) {
       if (seen > 3) issue('FLAG', 'PROOF-REPEAT', f.label, `"${p.name}" already appears 3 times earlier on the page. Leave it out here.`, f.ref);
     }
   }
-  // TRUST-REPEAT: the trust line's proof stays out of the content block
-  if (cb && D.d5_trust && /Jobs Completed/i.test(D.d5_trust) && cv.jobs_completed && new RegExp(`\\b${esc(String(cv.jobs_completed))}\\b`).test(scanText(cb.text))) {
-    issue('FLAG', 'TRUST-REPEAT', cb.label, `The jobs figure is the hero trust line, so leave it out of the content block.`, cb.ref);
-  }
-  if (cb && D.d5_trust && /^Established/i.test(D.d5_trust) && cv.year_founded && new RegExp(`\\b${esc(String(cv.year_founded))}\\b`).test(cb.text)) {
-    issue('FLAG', 'TRUST-REPEAT', cb.label, 'The founding year is the hero trust line, so leave it out of the content block.', cb.ref);
-  }
-
   // CARD-LINK: a linked card carries the link to its own page inside a sentence
   (record.cards || []).forEach((c, i) => {
     if (!c.card_url) return;
@@ -625,35 +708,17 @@ function validateV20(record, V) {
   }
   // N13: two cards opening with the same three words
   const cardFields = fields.filter(f => f.ref.sub === 'card_text');
+  void cardFields;
   const openers = new Map();
   for (const f of cardFields) {
     const k = words(f.text).slice(0, 3).map(w => lc(w).replace(/\W/g, '')).join(' ');
     if (openers.has(k)) issue('FLAG', 'N13', f.label, `Opens with the same three words as ${openers.get(k)}. Start differently.`, f.ref);
     else openers.set(k, f.label);
   }
-  // CB-SERVICES: the content block's category links come with a reason each, never a list
-  // of the services inside them: the cards describe those (15 Oct)
-  const cbField = fields.find(f => f.label === 'home_content_block_body');
-  if (cbField) {
-    const catWords = new Set(cardFields.map(f => lc(f.label.replace(/^card_text \(|\)$/g, ''))));
-    for (const para of String(cbField.text).split(/\n\s*\n/)) {
-      if (!linkUrls(para).length) continue;
-      const named = [...new Set(V.serviceList.filter(sv => sv.say && !catWords.has(lc(sv.say)) && new RegExp(`\\b${esc(sv.say)}\\b`, 'i').test(scanText(para))).map(sv => lc(sv.say)))]
-        .filter((w, _, all) => !all.some(o => o !== w && o.includes(w)));
-      if (named.length >= 2) issue('FLAG', 'CB-SERVICES', cbField.label, `The services paragraph lists services (${named.join(', ')}). Link each category with a reason instead: the cards describe the services.`, cbField.ref);
-    }
-  }
   // CARD-FILLER: the city in more than two cards reads as filler ("across Southampton") (15 Oct)
   if (V.city) {
     const withCity = cardFields.filter(f => new RegExp(`\\b${esc(lc(V.city))}\\b`).test(lc(scanText(f.text))));
     withCity.slice(2).forEach(f => issue('FLAG', 'CARD-FILLER', f.label, `${withCity.length} cards mention ${V.city} ("across ${V.city}"). Keep it to two at most; cards say what the service does, not where.`, f.ref));
-  }
-  // MORE-REPEAT: "We also offer" names only services no card names (15 Oct)
-  const moreLine = fields.find(f => f.label === 'home_services_more_line');
-  if (moreLine) {
-    const inCards = new Set(V.serviceList.filter(sv => sv.say && cardFields.some(c => new RegExp(`\\b${esc(sv.say)}\\b`, 'i').test(scanText(c.text)))).map(sv => lc(sv.say)));
-    const repeated = [...new Set(V.serviceList.filter(sv => sv.say && inCards.has(lc(sv.say)) && new RegExp(`\\b${esc(sv.say)}\\b`, 'i').test(scanText(moreLine.text))).map(sv => sv.say))];
-    if (repeated.length) issue('FLAG', 'MORE-REPEAT', moreLine.label, `"We also offer" names ${repeated.join(', ')}, already in a card. Name only services no card names, or write HIDDEN.`, moreLine.ref);
   }
   // N14: words to avoid more than twice; closing lines starting the same way
   for (const w of (niche.words_avoid || [])) {
@@ -665,9 +730,9 @@ function validateV20(record, V) {
     }
   }
   const firstTwo = t => words(t).slice(0, 2).map(w => lc(w).replace(/\W/g, '')).join(' ');
-  const finalF = fields.find(f => f.ref.key === 'home_final_cta_body');
+  const finalF = fields.find(f => f.ref.key === K.finalCta);
   const closing = cb ? (sentences(cb.text).slice(-1)[0] || '') : '';
-  if (finalF && D.cta_band && firstTwo(finalF.text) === firstTwo(D.cta_band.line)) issue('FLAG', 'N14', finalF.label, 'Opens with the same two words as the CTA band line.', finalF.ref);
+  if (finalF && D.cta_band && D.cta_band.line && firstTwo(finalF.text) === firstTwo(D.cta_band.line)) issue('FLAG', 'N14', finalF.label, 'Opens with the same two words as the CTA band line.', finalF.ref);
   if (finalF && closing && firstTwo(finalF.text) === firstTwo(closing)) issue('FLAG', 'N14', finalF.label, 'Opens with the same two words as the content block closing line.', finalF.ref);
 
   // N21: a five word run shared by two fields (the later field is rewritten)
@@ -720,40 +785,11 @@ function validateV20(record, V) {
       if (n && seen > 1) issue('FLAG', 'N23', f.label, `"${p}" is already used once on the page.`, f.ref);
     }
   }
-  // HUB-LINK: the areas FAQ links the Locations Hub when there is one
-  if (D.locations_hub) {
-    const areasFaq = fields.find(f => f.ref.sub === 'faq_answer' && /which areas/i.test(f.label));
-    if (areasFaq && !linkUrls(areasFaq.text).some(u => normUrl(u) === normUrl(D.locations_hub))) {
-      issue('FLAG', 'HUB-LINK', areasFaq.label, `Link the Locations Hub (${D.locations_hub}) in this answer.`, areasFaq.ref);
-    }
-  }
-
   // 6c: at least one FAQ answer carries a link
   if (!fields.some(f => f.ref.sub === 'faq_answer' && linkUrls(f.text).length)) issue('FLAG', '6c', 'faq_items', 'No FAQ answer carries a link.');
 
-  // ── Code fields (report only; code owns them) ──
-  const h1 = record.home_hero_h1 || '';
-  if (/[—–]/.test(h1)) issue('BLOCK', '4a', 'home_hero_h1', 'H1 contains an em or en dash.');
-  if (/\b[A-Za-z]+-[A-Za-z]+\b/.test(h1)) issue('FLAG', '4a', 'home_hero_h1', 'H1 contains a hyphenated word.');
-  if (h1.length > 60) issue('FLAG', '4b', 'home_hero_h1', `H1 is ${h1.length} characters (max 60).`);
-  if (V.city && !lc(h1).includes(lc(V.city))) issue('FLAG', '4c', 'home_hero_h1', `H1 doesn't contain the city "${V.city}".`);
-  if (!lc(h1).includes(lc(cv.primary_category || '~')) && !lc(h1).includes(lc(niche.trade_person || '~'))) issue('FLAG', '4c', 'home_hero_h1', 'H1 contains neither the primary category nor the trade person word.');
-  if (cv.company_name && lc(h1).includes(lc(cv.company_name))) issue('BLOCK', '4d', 'home_hero_h1', 'H1 contains the company name.');
   if ((record.seo_title || '').length > 60) issue('FLAG', '7', 'seo_title', `SEO title is ${record.seo_title.length} characters (max 60).`);
   if ((record.meta_description || '').length > 155) issue('FLAG', '8', 'meta_description', `Meta description is ${record.meta_description.length} characters (max 155).`);
-  const mod = (record.seo_title || '').split(' | ').length === 3 ? record.seo_title.split(' | ')[1] : null;
-  if (mod) {
-    const kw = new Set(lc(`${D.d2_h1} ${niche.trade} ${niche.trade_person} ${niche.trade_person_plural}`).split(/\W+/).filter(w => w.length > 2));
-    const clash = lc(mod).split(/\W+/).find(w => kw.has(w));
-    if (clash) issue('BLOCK', 'N3', 'seo_title', `The title modifier repeats "${clash}" from the keyword or trade words.`);
-  }
-  const areaNames = new Set((record.home_areas_links || []).map(a => lc(a.name)));
-  for (const t of V.towns) {
-    if (isAdminArea(t)) continue; // a council area is left out of the area list (15 Oct)
-    const short = lc(t.replace(/\s+\b(District|Borough|Council|County|Authority)\b.*$/i, '').trim());
-    if (!areaNames.has(lc(t)) && !areaNames.has(short)) issue('BLOCK', '9', 'home_areas_links', `The area list is missing "${t}".`);
-  }
-
   return issues;
 }
 
@@ -764,4 +800,8 @@ function summarise(issues) {
   };
 }
 
-module.exports = { validateV20, buildValidationContext, modelFields, getField, setField, summarise, wordCount, RANGES, RETRY_FLAGS, BANNED, STOCK };
+module.exports = {
+  validateV20, validateCommon, sharedCrossChecks, buildValidationContext, modelFields, getField, setField, summarise, wordCount, RANGES, RETRY_FLAGS, BANNED, STOCK, HOMEPAGE_KEYS,
+  // Text helpers for a page type's own checks
+  helpers: { esc, stripLinks, linkUrls, normUrl, scanText, words, sentences, lc, stem, STOPWORDS },
+};
