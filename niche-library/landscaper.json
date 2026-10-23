@@ -224,6 +224,234 @@
     "deck builder": "decking",
     "lawn care service": "lawn care"
   },
+  "seasonal_trade": true,
+  "category_types": {
+    "gardener": "B",
+    "lawn care service": "B"
+  },
+  "category_page_blocks": {
+    "A": {
+      "problems": {
+        "h2": "Common [WORK] Problems",
+        "cards": [
+          {
+            "title": "Water that sits where it shouldn't",
+            "brief": "Puddles on paving, a soggy corner of lawn or beds that stay wet. The usual causes: a surface laid with no fall, a base that holds water, or ground that drains slowly. Say what the business checks first and what the fix usually involves, without promising the ground will change."
+          },
+          {
+            "title": "Surfaces that sink or rock",
+            "brief": "Slabs that rock, blocks that dip, a step that moves. Cause: a base that was never compacted, bedding that was skipped, or edges with nothing holding them. Say what a sound base involves in plain words and that the fix starts underneath, not on top."
+          },
+          {
+            "title": "Timber that fails early",
+            "brief": "Fence posts that lean, boards soft at ground level, a pergola post that moves. Cause: posts not set deep enough, timber sitting in wet ground, no gap for water to get away. Say what the business does differently at ground level."
+          },
+          {
+            "title": "A garden that has outgrown its layout",
+            "brief": "Borders too close to paths, a hedge that blocks the way, levels that send water to the house. Cause: planting and levels set years ago for a different garden. Say how the business looks at the whole garden before it quotes one part of it."
+          }
+        ]
+      },
+      "cost": {
+        "h2": "What Affects the Cost of [WORK] in [CITY]",
+        "cards": [
+          {
+            "title": "The size of the area",
+            "brief": "Square metres move the price more than anything else: more digging, more base, more material, more days. Say it plainly and give no figure."
+          },
+          {
+            "title": "What is underneath",
+            "brief": "Clay, old concrete, tree roots or a base that has to come out all add to the dig and the waste. Say the business looks before it prices, from [CV: quote_method] only."
+          },
+          {
+            "title": "Getting to the garden",
+            "brief": "Rear access, a path down the side, where a skip can sit and how far materials are carried by hand. Say why a tight access costs more time."
+          },
+          {
+            "title": "The materials you choose",
+            "brief": "Natural stone against concrete, composite against softwood, a permeable base against a plain one. Name a material only if the trade facts or [CV: materials_methods] give it. Code adds the price line from [CV: price_list] when there is one."
+          }
+        ]
+      },
+      "faq_slots": [
+        {
+          "slot": "cost",
+          "question": "How much does [WORK_LOWER] cost in [CITY]?",
+          "answer_brief": "Prices only from [CV: price_list]; otherwise the three things that move the price for this kind of work (area, ground, access) and how the quote is given, from [CV: quote_method] only.",
+          "doubt": "Price"
+        },
+        {
+          "slot": "cover",
+          "when": "guarantee",
+          "question": "Do you guarantee your [WORK_LOWER] work?",
+          "answer_brief": "Start with yes, then the terms from [CV: guarantee_years] and [CV: guarantee_scope]. Described, never promised.",
+          "doubt": "Trust"
+        },
+        {
+          "slot": "cover",
+          "when": "insurance",
+          "question": "Are you insured for [WORK_LOWER] work?",
+          "answer_brief": "The cover figure from [CV: insurance_cover] and what the cover is for. Never what it pays or who it covers.",
+          "doubt": "Trust"
+        },
+        {
+          "slot": "cover",
+          "question": "What happens if something isn't right after the job?",
+          "answer_brief": "Open with what the customer does: tell us and we look at it. Then the reasonable care and skill standard every trade works to. No promise to come back free. Never invent a guarantee.",
+          "doubt": "Trust"
+        },
+        {
+          "slot": "scope",
+          "question": "What does your [WORK_LOWER] work include?",
+          "answer_brief": "The jobs on the card list and the size of job taken on, from the services list and [CV: typical_jobs] only. Link one service page.",
+          "doubt": "Fit"
+        },
+        {
+          "slot": "process",
+          "question": "What happens when I ask for a quote?",
+          "answer_brief": "From [CV: quote_method] and the confirmed practices only: what the customer sends, what the business looks at, what comes back. No timescale unless [CV: response_time] is set.",
+          "doubt": "Process"
+        },
+        {
+          "slot": "timing",
+          "question": "When is the best time of year for [WORK_LOWER] work?",
+          "answer_brief": "Hard landscaping runs most of the year in dry spells; planting and turf do best in autumn and spring. Booking ahead for spring. No dates, no promises about the weather.",
+          "doubt": "Timing"
+        }
+      ],
+      "faq_symptom": {
+        "frame": "[SYMPTOM]: why does it happen, and what can be done?",
+        "answer_brief": "The symptom and its linked local issue, answered as asked: the usual cause here in plain words, what the local ground or housing adds, then what the business does about it. One figure at most.",
+        "doubt": "Process"
+      },
+      "seasonal": {
+        "problem_card": {
+          "title": "Damage that shows after a wet winter",
+          "brief": "Lifted slabs, a leaning post, moss across the paving, a lawn that never dried out. Cause: water that sat all winter in a base or against timber, and frost moving what water had loosened. Say what the business looks for in spring."
+        },
+        "faq_slot": {
+          "slot": "seasonal",
+          "question": "Can you do [WORK_LOWER] work in winter?",
+          "answer_brief": "What runs in the cold months (hard landscaping in dry spells, clearance, fencing) and what waits (turf, planting in frozen ground). No dates.",
+          "doubt": "Timing"
+        }
+      }
+    },
+    "B": {
+      "problems": {
+        "h2": "Common [WORK] Problems",
+        "cards": [
+          {
+            "title": "A lawn full of moss and bare patches",
+            "brief": "Moss where the grass is thin and the ground stays damp, bare patches that never fill. Cause: shade, compacted ground, thatch, cutting too low. Say what a regular round does about each, from the trade facts."
+          },
+          {
+            "title": "Hedges that have got away",
+            "brief": "A hedge wide at the top and bare at the base, growth over the path. Cause: missed cuts, cutting at the wrong time. Say how the round brings it back over more than one cut, and that nesting birds are checked for first."
+          },
+          {
+            "title": "Weeds that come straight back",
+            "brief": "Weeds through paving joints and across beds within weeks of clearing. Cause: roots left in, bare soil with nothing covering it. Say what the round does so they stay away: roots out, soil covered."
+          },
+          {
+            "title": "Borders that dry out or get swamped",
+            "brief": "Beds bare and dry by the first warm week, or sodden all winter. Cause: no mulch, planting too close, ground that holds water. Say what the round does through the year."
+          }
+        ]
+      },
+      "cost": {
+        "h2": "What Affects the Cost of [WORK] in [CITY]",
+        "cards": [
+          {
+            "title": "How often we visit",
+            "brief": "A regular round keeps on top of growth and costs less per visit than a catch up every few months. Visit frequency only from the confirmed practices; no promise of a schedule otherwise."
+          },
+          {
+            "title": "The size of the garden",
+            "brief": "More lawn to cut and edge, more borders to weed, more hedge to trim. Say it plainly and give no figure."
+          },
+          {
+            "title": "What each visit covers",
+            "brief": "A cut on its own against a visit that covers the lawn, the edges, the beds and the hedges. Say what is usually in a visit, from the card list."
+          },
+          {
+            "title": "Green waste",
+            "brief": "Taken away or left for the council bin or the compost heap. Waste carrier registration only if [CV: waste_carrier_registered] is yes."
+          }
+        ]
+      },
+      "steps": [
+        {
+          "title": "Tell Us About Your Garden",
+          "brief": "How to get in touch and what is useful to send first (the size of the garden, what needs keeping on top of, photos if they have them). No promise of a reply time unless [CV: response_time] is set."
+        },
+        {
+          "title": "We Agree the Round and the Price",
+          "brief": "What a visit will cover and what it costs, agreed before the first visit. Follows [CV: quote_method]; only say the quote is written if quote_method says so. Never restates \"free\"."
+        },
+        {
+          "title": "We Start on a Date That Suits You",
+          "brief": "The first visit goes in the diary on a day that suits the customer, and the round follows from there. Never mention the price or changes to the plan."
+        }
+      ],
+      "faq_slots": [
+        {
+          "slot": "cost",
+          "question": "How much does [WORK_LOWER] cost in [CITY]?",
+          "answer_brief": "Prices only from [CV: price_list]; otherwise what moves the price of a visit (how often, the size of the garden, what the visit covers) and how the price is agreed, from [CV: quote_method] only.",
+          "doubt": "Price"
+        },
+        {
+          "slot": "cover",
+          "when": "insurance",
+          "question": "Are you insured?",
+          "answer_brief": "The cover figure from [CV: insurance_cover] and what the cover is for. Never what it pays or who it covers.",
+          "doubt": "Trust"
+        },
+        {
+          "slot": "cover",
+          "question": "What if something gets damaged during a visit?",
+          "answer_brief": "Open with what the customer does: tell us and we look at it. Then the reasonable care and skill standard every trade works to. No promise to put it right free. Never invent a guarantee or insurance.",
+          "doubt": "Trust"
+        },
+        {
+          "slot": "scope",
+          "question": "What does a [WORK_LOWER] visit include?",
+          "answer_brief": "The jobs on the card list, said as a visit: the lawn, the edges, the beds, the hedges. Link one service page. What is not included only from the services list.",
+          "doubt": "Fit"
+        },
+        {
+          "slot": "process",
+          "question": "How do regular visits work?",
+          "answer_brief": "From the confirmed practices only: whether the customer needs to be in, keys, how the visit is agreed. A frequency only if the practice is confirmed. Never promise a schedule.",
+          "doubt": "Process"
+        },
+        {
+          "slot": "timing",
+          "question": "Do you garden all year round?",
+          "answer_brief": "What the round does in each season in plain words (cutting through the growing season, clearing and pruning in the cold months). No dates.",
+          "doubt": "Timing"
+        }
+      ],
+      "faq_symptom": {
+        "frame": "[SYMPTOM]: why does it happen, and what can be done?",
+        "answer_brief": "The symptom and its linked local issue, answered as asked: the usual cause here in plain words, then what a regular round does about it. One figure at most.",
+        "doubt": "Process"
+      },
+      "seasonal": {
+        "problem_card": {
+          "title": "Leaves and debris burying the lawn",
+          "brief": "Leaves left on the grass through autumn, a lawn yellow underneath by December. Cause: no clearance after leaf fall. Say what the autumn visits do."
+        },
+        "faq_slot": {
+          "slot": "seasonal",
+          "question": "When should I book for spring?",
+          "answer_brief": "Spring is the busiest time for a maintenance round, so the earlier the better. No dates, no promise of a slot.",
+          "doubt": "Timing"
+        }
+      }
+    }
+  },
 
   "do_not_reuse": []
 }
