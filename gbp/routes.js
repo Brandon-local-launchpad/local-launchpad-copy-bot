@@ -38,7 +38,8 @@ function mountGbpApi(app, { pool, loadInputs, callModel, log = console }) {
       readiness = { ok: I.locked.length > 0, locked: I.locked.length, minServices: I.minServices, competitorCount: I.competitorCount, showPrices: I.showPrices, siteUrl: I.siteUrl, withCopy: Object.keys(I.included).length, flags: I.flags, town: I.town, name: I.name };
       if (!I.locked.length) readiness.flags = [...I.flags, { code: 'GBP-NO-SERVICES', msg: 'The page map has no service pages.' }];
     } catch (e) { readiness = { ok: false, error: e.message, flags: [] }; }
-    return { slug, record, files, readiness, running: running.has(clientId), ...extra };
+    // rules: the validator round the live app runs (2: Brandon's review of 23 Oct)
+    return { slug, record, files, readiness, running: running.has(clientId), rules: 2, ...extra };
   };
 
   app.get('/api/clients/:clientId/gbp', wrap(async (req, res) => res.json(await view(req.params.clientId))));

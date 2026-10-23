@@ -40,13 +40,18 @@ function buildGbpInputs({ cv = {}, niche = {}, rows = [], keyValueMap = {}, site
   }
   locked.sort((a, b) => catOrder.indexOf(a.category) - catOrder.indexOf(b.category));
 
-  // Confirmed, no page of their own (folded into a category page)
+  // Confirmed, no page of their own (folded into a category page). Names that differ only
+  // by a plural, the word order or the words custom, bespoke, services or work are one
+  // service (gbp/validator.js nameKey), so only the first spelling is offered
+  const { nameKey } = require('./validator');
   const lockedNames = new Set(locked.map(l => norm(l.service)));
+  const lockedKeys = new Set(locked.map(l => nameKey(l.service)));
   const confirmedNoPage = [];
   const seenNoPage = new Set();
   for (const c of cats) for (const name of (((c.info || {}).links || {}).mentioned || [])) {
-    if (lockedNames.has(norm(name)) || seenNoPage.has(norm(name))) continue;
-    seenNoPage.add(norm(name));
+    const k = nameKey(name);
+    if (lockedNames.has(norm(name)) || lockedKeys.has(k) || seenNoPage.has(k)) continue;
+    seenNoPage.add(k);
     confirmedNoPage.push({ category: c.title, service: name });
   }
 
@@ -71,7 +76,10 @@ function buildGbpInputs({ cv = {}, niche = {}, rows = [], keyValueMap = {}, site
   // Facts from confirmed client values
   const years = yearsLine(cv);
   const accreditations = accreditationsLine(cv);
-  const proofPoints = proofPointsFor(cv, niche);
+  const proofPointList = proofPointsFor(cv, niche);
+  const proofPoints = proofPointList.map(p => p.text);
+  // The description names each core service beside its own category (Pergolas is Deck Builder work, never paving)
+  const coreByCategory = categories.map(c => ({ category: c, services: coreServices.filter(n => (locked.find(l => norm(l.service) === norm(n)) || {}).category === c) })).filter(x => x.services.length);
   const showPrices = lc(cv.show_prices) === 'yes';
   const jobs = Array.isArray(cv.typical_jobs) ? cv.typical_jobs : [];
   const prices = showPrices ? jobs.filter(j => j && j.job && (j.price || j.from_price)).map(j => `${j.job}: from ${j.price || j.from_price}`) : [];
@@ -93,11 +101,11 @@ function buildGbpInputs({ cv = {}, niche = {}, rows = [], keyValueMap = {}, site
 
   return {
     name: String(cv.company_name || '').trim(), primary, secondaries, categories, town, otherAreas, areas,
-    locked, confirmedNoPage, coreServices,
+    locked, confirmedNoPage, coreServices, coreByCategory,
     years, accreditations, proofPoints, showPrices, prices, timeframes,
     competitorCount: Number.isFinite(competitorCount) ? competitorCount : null, minServices,
     included, siteUrl: base, flags,
-    validatorCtx: { locked: locked.map(l => ({ category: l.category, service: l.service })), minServices, competitorCount: Number.isFinite(competitorCount) ? competitorCount : null, showPrices, towns: areas, cv },
+    validatorCtx: { locked: locked.map(l => ({ category: l.category, service: l.service })), minServices, competitorCount: Number.isFinite(competitorCount) ? competitorCount : null, showPrices, towns: areas, categories: [...new Set([primary, ...categories].filter(Boolean))], proofPoints: proofPointList, cv },
   };
 }
 
@@ -130,29 +138,44 @@ function accreditationsLine(cv) {
   return parts.length ? parts.join('; ') : 'none';
 }
 
+// Proof points from confirmed client values, each with a detector the validator uses to
+// count how many service descriptions carry it (no proof point in more than a quarter;
+// Brandon, 23 Oct). Opening hours are not a proof point. Materials have no detector: they
+// are facts the copy may name, not a phrase that repeats.
+const STOP = new Set(['the', 'a', 'an', 'and', 'or', 'of', 'to', 'in', 'on', 'with', 'for', 'our', 'we', 'your', 'you', 'is', 'are', 'be', 'any', 'all', 'from', 'at', 'by', 'no', 'not', 'up', 'out', 'every', 'before', 'with', 'within']);
+const stem = w => w.replace(/(ies|es|s|ing|ed)$/, '').slice(0, 5);
+// True when at least half of the phrase's content words (stemmed) are in the text
+function wordsDetect(phrase) {
+  const stems = [...new Set(String(phrase).toLowerCase().split(/[^a-z0-9]+/).filter(w => w.length > 2 && !STOP.has(w)).map(stem))];
+  const need = Math.max(1, Math.ceil(stems.length / 2));
+  return t => stems.filter(s => String(t).toLowerCase().includes(s)).length >= need;
+}
+const reDetect = re => t => re.test(String(t));
+const escapeRe = s => String(s).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+
 function proofPointsFor(cv, niche) {
   const out = [];
-  if (lc(cv.free_quotes) === 'yes') out.push(lc(cv.free_inspection) === 'yes' ? 'free inspection and quote before any work' : 'free quotes');
-  if (cv.quote_method) out.push(`quotes: ${cv.quote_method}`);
-  if (cv.quote_includes) out.push(`every quote includes ${cv.quote_includes}`);
-  if (cv.deposit_terms) out.push(`payment terms: ${cv.deposit_terms}`);
-  if (cv.differentiator_1_confirmed && (cv.differentiator_1_sentence || cv.differentiator_1)) out.push(cv.differentiator_1_sentence || cv.differentiator_1);
-  if (cv.differentiator_2_confirmed && (cv.differentiator_2_sentence || cv.differentiator_2)) out.push(cv.differentiator_2_sentence || cv.differentiator_2);
-  if (cv.jobs_completed) out.push(`${cv.jobs_completed} jobs completed`);
-  if (cv.rating && cv.review_count) out.push(`rated ${cv.rating} from ${cv.review_count} reviews`);
-  if (cv.team_size) out.push(`a team of ${cv.team_size}`);
-  if (cv.response_time) out.push(`replies ${cv.response_time}`);
-  if (cv.start_time) out.push(`work starts ${cv.start_time}`);
-  if (lc(cv.same_day_available) === 'yes') out.push('same day visits available');
-  if (lc(cv.out_of_hours_available) === '24/7') out.push('available 24 hours a day, 7 days a week');
-  else if (lc(cv.out_of_hours_available) === 'yes') out.push('out of hours visits available');
-  if (cv.hours) out.push(`open ${cv.hours}`);
-  if (Array.isArray(cv.materials_methods) && cv.materials_methods.length) out.push(`materials and methods used: ${cv.materials_methods.join(', ')}`);
+  const add = (text, detect) => { if (text) out.push({ text, detect: detect || wordsDetect(text) }); };
+  if (lc(cv.free_quotes) === 'yes') add(lc(cv.free_inspection) === 'yes' ? 'free inspection and quote before any work' : 'free quotes', reDetect(/\bfree\b[^.]{0,30}\b(quote|quotation|visit|inspection|estimate)|\b(quote|quotation|visit|inspection|estimate)s?\b[^.]{0,20}\b(is|are|come|comes) free|no (obligation|charge)/i));
+  if (cv.quote_method) add(`quotes: ${cv.quote_method}`);
+  if (cv.quote_includes) add(`every quote includes ${cv.quote_includes}`);
+  if (cv.deposit_terms) add(`payment terms: ${cv.deposit_terms}`, reDetect(/\bdeposit|balance on completion|\bpayment/i));
+  if (cv.differentiator_1_confirmed) add(cv.differentiator_1_sentence || cv.differentiator_1);
+  if (cv.differentiator_2_confirmed) add(cv.differentiator_2_sentence || cv.differentiator_2);
+  if (cv.jobs_completed) add(`${cv.jobs_completed} jobs completed`, reDetect(new RegExp(`\\b${escapeRe(String(cv.jobs_completed))}\\b[^.]{0,20}\\b(jobs?|gardens?|projects?|customers?)|jobs completed`, 'i')));
+  if (cv.rating && cv.review_count) add(`rated ${cv.rating} from ${cv.review_count} reviews`, reDetect(/\brated\b|\brating\b|\breviews?\b|\bstars?\b/i));
+  if (cv.team_size) add(`a team of ${cv.team_size}`, reDetect(/\bteam of\b|\b(two|three|four|five|six|seven|eight|nine|ten|\d+) of us\b/i));
+  if (cv.response_time) add(`replies ${cv.response_time}`, reDetect(/\brepl(y|ies|ied)\b|\brespond|\bget back\b/i));
+  if (cv.start_time) add(`work starts ${cv.start_time}`, reDetect(new RegExp(escapeRe(cv.start_time), 'i')));
+  if (lc(cv.same_day_available) === 'yes') add('same day visits available', reDetect(/same day/i));
+  if (lc(cv.out_of_hours_available) === '24/7') add('available 24 hours a day, 7 days a week', reDetect(/24 hours|24\/7|round the clock|any hour|day or night/i));
+  else if (lc(cv.out_of_hours_available) === 'yes') add('out of hours visits available', reDetect(/out of hours|\bevenings?\b|\bweekends?\b/i));
+  if (Array.isArray(cv.materials_methods) && cv.materials_methods.length) out.push({ text: `materials and methods used: ${cv.materials_methods.join(', ')}`, detect: null });
   try {
     const { confirmedPractices } = require('../practices');
-    for (const p of confirmedPractices(cv, niche || {})) out.push(p.claim);
+    for (const p of confirmedPractices(cv, niche || {})) add(p.claim, Array.isArray(p.detect) && p.detect.length ? reDetect(new RegExp(p.detect.join('|'), 'i')) : null);
   } catch (_) { /* practices.js reads the niche; without one there are no practice claims */ }
-  return out.filter(Boolean);
+  return out;
 }
 
 // The part of a generated service page that says what the work includes: the intro
@@ -191,7 +214,7 @@ function descriptionMessage(I) {
     `- Secondary categories: ${list(I.secondaries)}`,
     `- Main town: ${I.town || 'none'}`,
     `- Other areas served: ${list(I.otherAreas)}`,
-    `- Core services: ${list(I.coreServices)}`,
+    `- Core services by category (name each only beside its category): ${I.coreByCategory.length ? I.coreByCategory.map(x => `${x.category}: ${x.services.join(', ')}`).join('; ') : list(I.coreServices)}`,
     `- Years trading / founded: ${I.years}`,
     `- Accreditations, memberships, insurance: ${I.accreditations}`,
     `- Other proof points: ${list(I.proofPoints)}`,
@@ -207,7 +230,7 @@ function servicesMessage(I) {
   ];
   if (I.confirmedNoPage.length) L.push('', 'CONFIRMED, NO PAGE (the business offers these too; add them as VARIANT under the category shown where they fit):', ...I.confirmedNoPage.map(c => `${c.category}: ${c.service}`));
   L.push('', `COMPETITOR TARGET: the top 5 competitors list ${I.competitorCount === null ? 'an unknown number of' : I.competitorCount} services on average. Beat it: at least ${I.minServices} services in total (locked plus variants), each appearing once.`);
-  L.push('', `PROOF POINTS (use only these): ${list(I.proofPoints)}`);
+  L.push('', `PROOF POINTS (use only these; each in at most a quarter of the descriptions, most descriptions without one; opening hours are never one): ${list(I.proofPoints)}`);
   L.push('', `TOWN to name once in each description: ${I.town || 'none'}`);
   return L.join('\n');
 }
@@ -217,8 +240,8 @@ function productsMessage(I, batch, categoryOf) {
   const L = [
     `BUSINESS: ${I.name || 'none'}, a ${I.primary || 'local service business'} in ${I.town || 'the UK'}, UK.`,
     '',
-    `Areas served: ${list(I.areas)}`,
-    `Proof points (use only these): ${list(I.proofPoints)}`,
+    `Areas served (name these and no others): ${list([I.town, ...I.otherAreas.slice(0, 5)].filter(Boolean))}`,
+    `Proof points (use only these; opening hours are never one): ${list(I.proofPoints)}`,
     `Show prices: ${I.showPrices ? (I.prices.length ? `yes. Approved figures: ${I.prices.join('; ')}` : 'yes, but no approved figures are on file, so name none') : 'no'}`,
     '',
     'SERVICES (one product each):',
@@ -230,4 +253,4 @@ function productsMessage(I, batch, categoryOf) {
   return L.join('\n');
 }
 
-module.exports = { buildGbpInputs, descriptionMessage, servicesMessage, productsMessage, whatsIncluded, proofPointsFor, accreditationsLine, yearsLine, moneyFor };
+module.exports = { buildGbpInputs, descriptionMessage, servicesMessage, productsMessage, whatsIncluded, proofPointsFor, wordsDetect, accreditationsLine, yearsLine, moneyFor };

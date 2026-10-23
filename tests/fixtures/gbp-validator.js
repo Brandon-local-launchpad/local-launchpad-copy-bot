@@ -172,6 +172,60 @@ chk('a symbol in a title is allowed by code (the prompt forbids it; the validato
 P = products(); P[0].title = 'Lawn Mowing - Weekly';
 chk('a hyphen in a title fails', has(V.validateProducts(P, ctx), 'no-dash'), '', 'no-dash');
 
+// ── Round 2 (Brandon's review, 23 Oct) ──
+// Near duplicate names
+list = [...twenty(), svc('Garden design', 'VARIANT'), svc('Garden designs', 'VARIANT')];
+r = V.validateServices(list, ctx);
+chk('two names that differ by a plural fail, the pair reported', has(r, 'near-duplicate') && /"Garden design" and "Garden designs"/.test(r.fails.find(f => f.rule === 'near-duplicate').message), r.fails.map(f => f.message).join(), 'pair');
+list = [...twenty(), svc('Landscape design', 'VARIANT'), svc('Custom landscape design', 'VARIANT')];
+chk('"Custom landscape design" and "Landscape design" fail', has(V.validateServices(list, ctx), 'near-duplicate'), '', 'near-duplicate');
+list = [...twenty(), svc('Decking installation', 'VARIANT'), svc('Installation decking', 'VARIANT')];
+chk('word order only: fail', has(V.validateServices(list, ctx), 'near-duplicate'), '', 'near-duplicate');
+list = [...twenty(), svc('Lawn mowing services', 'VARIANT')];
+r = V.validateServices(list, ctx);
+chk('a variant that is a locked name plus "services" fails', has(r, 'near-duplicate') && /"Lawn mowing" and "Lawn mowing services"/.test(r.fails.find(f => f.rule === 'near-duplicate').message), r.fails.map(f => f.message).join(), 'pair');
+list = [...twenty(), svc('Garden work', 'VARIANT'), svc('Gardening', 'VARIANT')];
+chk('"Garden work" and "Gardening" are different words: no fail', !has(V.validateServices(list, ctx), 'near-duplicate'), '', 'ok');
+chk('nameKey: plural, order and the dropped words collapse', V.nameKey('Custom Garden Designs') === V.nameKey('garden design work') && V.nameKey('Bespoke fencing services') === 'fencing', V.nameKey('Custom Garden Designs') + ' / ' + V.nameKey('Bespoke fencing services'), '');
+const ctxLL = { ...ctx, locked: [...locked, { category: 'Gardener', service: 'Fencing work' }] };
+list = [...twenty(), svc('Fencing work', 'LOCKED')];
+r = V.validateServices(list, ctxLL);
+chk('two locked names that collide are a FLAG (the page map\'s fix), not a FAIL', r.ok && has(r, 'near-duplicate', 'FLAG'), rules(r), 'FLAG only');
+
+// Category phrasing in the description
+const ctxC = { ...ctx, categories: ['Landscaper', 'Gardener', 'Landscape Gardener', 'Landscape Designer', 'Tree Service', 'Paving Contractor', 'Deck Builder'] };
+const dc = s => V.validateDescription(s, ctxC);
+r = dc(text(680) + ' As gardeners, we handle lawn mowing too.');
+chk('"As [category], we" fails', has(r, 'category-opener'), rules(r), 'category-opener');
+r = dc(text(680) + ' As a tree service we remove tree stumps.');
+chk('"As a [category] we" (no comma) fails', has(r, 'category-opener'), rules(r), 'category-opener');
+r = dc(text(660) + ' Our landscape gardeners lay patios. The tree service side removes stumps.');
+chk('categories named inside sentences, one each, pass', r.ok && !has(r, 'category-opener') && !has(r, 'category-per-sentence'), rules(r), 'ok');
+r = dc(text(660) + ' Our landscape gardeners and deck builders lay patios and fit decking.');
+chk('two categories in one sentence fail, both named', has(r, 'category-per-sentence') && /Landscape Gardener, Deck Builder|Deck Builder, Landscape Gardener/.test(r.fails.find(f => f.rule === 'category-per-sentence').message), r.fails.map(f => f.message).join(), 'two named');
+r = dc(text(680) + ' Our landscape gardeners lay patios in the garden.');
+chk('"landscape gardeners" counts as one category, not Gardener as well', !has(r, 'category-per-sentence'), rules(r), 'ok');
+chk('no categories in the context: no category checks', V.validateDescription(text(680) + ' As gardeners, we handle lawn mowing too.', ctx).ok, '', 'ok');
+
+// Proof point share
+const pp = [{ text: 'free quotes', detect: /free quote/i }, { text: 'a team of 4', detect: t => /team of/i.test(t) }];
+list = twenty(); list.slice(0, 5).forEach(s => { s.description = text(230) + ' Free quotes for every job.'; });
+r = V.validateServices(list, { ...ctx, proofPoints: pp });
+chk('a proof point in 5 of 20 descriptions (25%) passes', r.ok, rules(r), 'ok');
+list = twenty(); list.slice(0, 6).forEach(s => { s.description = text(230) + ' Free quotes for every job.'; });
+r = V.validateServices(list, { ...ctx, proofPoints: pp });
+chk('a proof point in 6 of 20 (30%) fails, naming the phrase and the count', has(r, 'proof-share') && /"free quotes" appears in 6 of 20/.test(r.fails[0].message), r.fails.map(f => f.message).join(), 'proof-share');
+list = twenty(); list.slice(0, 8).forEach(s => { s.description = text(225) + ' A team of four does the work.'; });
+chk('a function detector works the same', has(V.validateServices(list, { ...ctx, proofPoints: pp }), 'proof-share'), '', 'proof-share');
+chk('no proof points in the context: no share check', V.validateServices(list, ctx).ok, '', 'ok');
+
+// Areas in a product
+P = products(); P[0].description = text(700) + ' We cover Southampton, Romsey, Hedge End, Winchester, Eastleigh, Totton and Fareham.';
+r = V.validateProducts(P, { ...ctx, towns: ['Southampton', 'Romsey', 'Hedge End', 'Winchester', 'Eastleigh', 'Totton', 'Fareham', 'Lyndhurst'] });
+chk('a product naming 7 areas fails', has(r, 'too-many-areas') && /names 7 areas/.test(r.fails[0].message), r.fails.map(f => f.message).join(), 'too-many-areas');
+P = products(); P[0].description = text(700) + ' We cover Southampton, Romsey, Hedge End, Winchester, Eastleigh and Totton.';
+chk('six areas pass', V.validateProducts(P, { ...ctx, towns: ['Southampton', 'Romsey', 'Hedge End', 'Winchester', 'Eastleigh', 'Totton', 'Fareham', 'Lyndhurst'] }).ok, '', 'ok');
+
 // ── Empty answers ──
 chk('an empty description fails', has(V.validateDescription('', ctx), 'missing'), '', 'missing');
 chk('no services fails', has(V.validateServices([], ctx), 'missing'), '', 'missing');

@@ -148,6 +148,67 @@ function wordToNumber(w) {
   return WORDS[s] === undefined ? null : WORDS[s];
 }
 
+// ── Near duplicate service names (Brandon, 23 Oct): two names that differ only by a
+// plural, the word order, or the words custom, bespoke, services or work are one service ──
+const DROP_WORDS = new Set(['custom', 'bespoke', 'service', 'services', 'work']);
+function singular(w) {
+  if (w.length > 4 && /ies$/.test(w)) return w.slice(0, -3) + 'y';
+  if (/(ss|us|is)$/.test(w)) return w;
+  if (w.length > 4 && /(ches|shes|xes|ses)$/.test(w)) return w.slice(0, -2);
+  if (w.length > 3 && /s$/.test(w)) return w.slice(0, -1);
+  return w;
+}
+function nameKey(name) {
+  return norm(name).replace(/[^a-z0-9 ]+/g, ' ').split(/\s+/).filter(w => w && !DROP_WORDS.has(w)).map(singular).sort().join(' ');
+}
+function nearDuplicates(names) {
+  const byKey = new Map();
+  const pairs = [];
+  for (const n of names) {
+    const k = nameKey(n);
+    if (!k) continue;
+    if (byKey.has(k)) { if (norm(byKey.get(k)) !== norm(n)) pairs.push([byKey.get(k), n]); }
+    else byKey.set(k, n);
+  }
+  return pairs;
+}
+
+// ── Category phrasing in the description (Brandon, 23 Oct): never "As [category], we";
+// one category phrase per sentence at most ──
+function categoryRe(cat) {
+  // "Tree Service" → tree services?, "Landscaper" → landscapers?
+  return new RegExp(`\\b${escapeRe(cat).replace(/\\s+/g, '\\s+')}s?\\b`, 'i');
+}
+function categoryIssues(text, field, ctx) {
+  const out = [];
+  const cats = [...(ctx.categories || [])].filter(Boolean).sort((a, b) => b.length - a.length);
+  if (!cats.length) return out;
+  const t = String(text || '');
+  const asOpener = t.match(/\b[Aa]s (?:a |an |the |our |your )?([^,.;]{0,70}?),? (?:we|our|the team|I)\b/);
+  if (asOpener && cats.some(c => categoryRe(c).test(asOpener[1]))) out.push({ level: 'FAIL', rule: 'category-opener', field, message: `"${field}" opens a clause with "As [category], we" ("${asOpener[0].slice(0, 60)}"); name the category inside the sentence instead.` });
+  for (const sentence of t.split(/(?<=[.!?])\s+/)) {
+    let rest = sentence;
+    const named = [];
+    for (const c of cats) { const re = categoryRe(c); if (re.test(rest)) { named.push(c); rest = rest.replace(new RegExp(re.source, 'gi'), ' '); } }
+    if (named.length > 1) { out.push({ level: 'FAIL', rule: 'category-per-sentence', field, message: `"${field}" names ${named.length} categories in one sentence (${named.join(', ')}): one category phrase per sentence at most ("${sentence.slice(0, 80)}").` }); break; }
+  }
+  return out;
+}
+
+// ── Proof point share (Brandon, 23 Oct): no proof point in more than a quarter of the
+// service descriptions. ctx.proofPoints: [{ text, detect }], detect a function or RegExp ──
+function proofShareIssues(list, ctx) {
+  const out = [];
+  const points = (ctx.proofPoints || []).filter(p => p && p.detect);
+  if (!points.length || !list.length) return out;
+  for (const p of points) {
+    const hit = t => (typeof p.detect === 'function' ? p.detect(t) : p.detect.test(String(t || '')));
+    const n = list.filter(s => hit(s.description)).length;
+    if (n / list.length > 0.25) out.push({ level: 'FAIL', rule: 'proof-share', field: 'services', message: `The proof point "${p.text}" appears in ${n} of ${list.length} service descriptions (${Math.round(100 * n / list.length)}%); the limit is a quarter. Spread the proof points and leave most descriptions without one.` });
+  }
+  return out;
+}
+
 function lengthIssue(text, field, [min, max], what) {
   const n = count(text);
   if (n < min) return { level: 'FAIL', rule: 'length', field, message: `${what} is ${n} characters; it needs ${min} to ${max}.` };
@@ -164,6 +225,7 @@ function validateDescription(description, ctx) {
     const l = lengthIssue(text, 'description', LIMITS.description, 'The description');
     if (l) issues.push(l);
     issues.push(...contentIssues(text, 'description', ctx));
+    issues.push(...categoryIssues(text, 'description', ctx));
     issues.push(...factIssues(text, 'description', ctx));
   }
   return result(issues);
@@ -202,6 +264,12 @@ function validateServices(services, ctx) {
       issues.push({ level: 'FAIL', rule: 'duplicate', field: s.service, message: norm(first.category) === norm(s.category) ? `"${s.service}" appears twice under "${s.category}".` : `"${s.service}" appears under two categories ("${first.category}" and "${s.category}").` });
     } else byName.set(k, s);
   }
+  // Near duplicates: a FAIL when the model can change one of the pair (a variant); two
+  // locked names that collide are the page map's to fix, so that pair is a FLAG
+  for (const [a, b] of nearDuplicates([...byName.values()].map(s => s.service))) {
+    const bothLocked = lockedByName.has(norm(a)) && lockedByName.has(norm(b));
+    issues.push({ level: bothLocked ? 'FLAG' : 'FAIL', rule: 'near-duplicate', field: b, message: `"${a}" and "${b}" differ only by a plural, the word order, or the words custom, bespoke, services or work: one service, listed once.${bothLocked ? ' Both are page map names, so the page map needs the fix.' : ''}` });
+  }
   // Count
   const total = byName.size;
   if (total < minServices) issues.push({ level: 'FAIL', rule: 'count', field: 'services', message: `${total} services; the target is at least ${minServices}${ctx.competitorCount ? ` (competitors list ${ctx.competitorCount} on average)` : ''}.` });
@@ -225,6 +293,7 @@ function validateServices(services, ctx) {
       if (d) issues.push({ level: 'FAIL', rule: 'no-dash', field, message: `The service name "${s.service}" has a ${dashName(d[0])}.` });
     }
   }
+  issues.push(...proofShareIssues(list, ctx));
   return result(issues, { total, locked: seenLocked.size, variants: list.filter(s => String(s.type || '').toUpperCase() === 'VARIANT').length, minServices });
 }
 
@@ -249,6 +318,9 @@ function validateProducts(products, ctx) {
     if (l) issues.push(l);
     issues.push(...contentIssues(p.description, field, ctx, { prices: true }));
     issues.push(...factIssues(p.description, field, ctx));
+    // Areas: the main town and the five nearest (Brandon, 23 Oct), so six names at most
+    const named = (ctx.towns || []).filter(town => town && new RegExp(`\\b${escapeRe(town)}\\b`, 'i').test(String(p.description || '')));
+    if (named.length > 6) issues.push({ level: 'FAIL', rule: 'too-many-areas', field, message: `The description of "${field}" names ${named.length} areas (${named.join(', ')}); name the main town and the five nearest only.` });
   }
   return result(issues, { total: list.length });
 }
@@ -262,5 +334,5 @@ function result(issues, counts = {}) {
 module.exports = {
   LIMITS, VALIDATOR_FILE, loadBannedPhrases, count,
   validateDescription, validateServices, validateProducts,
-  contentIssues, factIssues, bannedHits, capsWords,
+  contentIssues, factIssues, bannedHits, capsWords, nameKey, nearDuplicates, categoryIssues, proofShareIssues,
 };
