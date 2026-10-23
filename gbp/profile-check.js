@@ -96,7 +96,9 @@ function checkProfile({ location, ours, now = new Date() }) {
   const meta = L.metadata || {};
   return {
     at: now.toISOString(),
-    location: { id: L.id, name: L.name || L.location_name || '', place_id: L.place_id || '', completion_percentage: L.completion_percentage === undefined ? null : L.completion_percentage, status: L.location_state || L.status || '', suspension_reason: meta.suspension_reason || null, standing: meta.standing || null, has_pending_edits: !!meta.has_pending_edits, open_status: meta.open_status || null },
+    location: { id: L.id, name: L.name || L.location_name || '', place_id: L.place_id || '', completion_percentage: L.completion_percentage === undefined ? null : L.completion_percentage, status: L.location_state || L.status || '', suspension_reason: meta.suspension_reason || null, standing: meta.standing || null, has_pending_edits: !!meta.has_pending_edits, open_status: meta.open_status || null,
+      // The pin and the connection, so a scan centred on the town can be traced to LeadSnap's own record
+      latitude: L.latitude === undefined ? null : L.latitude, longitude: L.longitude === undefined ? null : L.longitude, is_connected: L.is_connected === undefined ? null : L.is_connected, is_gmb_activate: L.is_gmb_activate === undefined ? null : L.is_gmb_activate, updated_at: L.updated_at || null, business_type: meta.business_type || null },
     google: { primary: gPrimary, secondaries: gSecondaries, services: gServices.map(s => s.name), hours: gHours },
     ours: { primary: ours.primary || '', secondaries: ours.secondaries || [], services: ours.services || [], hours: parsed.hours, hours_text: ours.hours || '' },
     diffs, counts: { missing: diffs.filter(d => d.kind === 'missing').length, extra: diffs.filter(d => d.kind === 'extra').length, mismatch: diffs.filter(d => d.kind === 'mismatch').length },
