@@ -13,7 +13,7 @@ For each product write:
 1. Title, up to 58 characters. The service name, plain. No town names, symbols or dashes.
 2. Description, 700 to 950 characters (the hard limits are 600 and 1,000; aim for the middle, since a description under 600 fails), in short paragraphs: what it is, what's included, the timeframe when one is given, areas served, one proof point, and a closing line to tap Learn more.
 
-UK English. No phone numbers, emails, prices unless allowed above, superlatives, capitals for emphasis, or dashes of any kind. Name no materials, guarantees, accreditations, years or figures that the message does not give.
+UK English. No phone numbers, emails, prices unless allowed above, superlatives (best, cheapest, number one: never the word "best"), capitals for emphasis, or dashes of any kind. Name no materials, guarantees, accreditations, years or figures that the message does not give.
 
 VOICE: write like the owner describing the work to a neighbour. Short sentences. Name the specific jobs, materials and places. Banned phrases: look no further, whether you need, we pride ourselves, your go to, tailored to your needs, top notch, in the heart of, nestled, elevate, seamless, hassle free, peace of mind, we understand that, from start to finish, unparalleled, dedicated team.
 
