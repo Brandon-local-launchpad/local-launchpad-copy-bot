@@ -193,6 +193,17 @@ function packForService(niche, service) {
 // A one word phrase is kept only when it is an acronym, a Table D name, or a word the pack
 // never writes in lower case (a brand); "Guarantee" from "10 Year Guarantee" is dropped.
 const CONNECTORS = new Set(['and', 'of', 'the', 'for', '&']);
+// Words that are capitalised only because they sit in a title (an Act, a scheme tier, a
+// register): never a name on their own. Places and months are left as proper nouns.
+const TITLE_WORDS = new Set(('act acts order orders association british national federation institute guild council standard standards code scheme schemes register registered approved accredited assured ' +
+  'trusted traders management town country countryside wildlife environmental protection building buildings conservation development planning highways portal level gold silver platinum bronze ' +
+  'master member members partner premier contractor contractors builder builders competent person persons skilled worker workers charges rights information programme volume chapter class classes ' +
+  'article schedule document documents additional all best minor works search promise pump carbon monoxide vehicles networks industry engineering commercial agency owner craftsmen species habitats ' +
+  'dwellings compliance consumer contracts cancellation recommendations reform regulatory regulation regulations requirement requirements where every each use water supply fittings grounds height ' +
+  'lifting operations equipment temporary bans behaviour permitted general historic listed areas party wall sustainable type academy confederation workmanship rolled blue elevate gravity skills ' +
+  'slating installer installers products product professional roof roofing quality safety health service services system systems total group limited company certified certificate certification ' +
+  'guarantee guarantees warranty insurance backed scotland wales england great britain uk city guilds preservation bedroom sanitation screeds gypsum environment chartered landscapers floorlayers').split(/\s+/));
+const titleWord = w => TITLE_WORDS.has(w.toLowerCase()) || /['’]s$/.test(w);
 function packProperNouns(niche) {
   const pack = readPack(niche);
   if (!pack.exists) return [];
@@ -225,7 +236,7 @@ function packProperNouns(niche) {
       let run = [], opener = false;
       const flush = () => {
         const caps = run.filter(w => isCap(w) || isAcronym(w)).length;
-        if (!(opener && caps < 2)) addPhrase(run, { single: x => isAcronym(x) || !lowerInPack(x) });
+        if (!(opener && caps < 2)) addPhrase(run, { single: x => isAcronym(x) || (!lowerInPack(x) && !titleWord(x)) });
         run = []; opener = false;
       };
       ws.forEach((w, i) => {
@@ -245,7 +256,7 @@ function packProperNouns(niche) {
   for (const p of [...phrases.values()]) {
     if (!/\s/.test(p)) continue;
     for (const w of p.split(/\s+/)) {
-      if (CONNECTORS.has(w.toLowerCase()) || w.length < 3 || !isCap(w) || isAcronym(w) || lowerSeen.has(w.toLowerCase())) continue;
+      if (CONNECTORS.has(w.toLowerCase()) || w.length < 3 || !isCap(w) || isAcronym(w) || lowerSeen.has(w.toLowerCase()) || titleWord(w)) continue;
       if (!phrases.has(w.toLowerCase())) phrases.set(w.toLowerCase(), w);
     }
   }
