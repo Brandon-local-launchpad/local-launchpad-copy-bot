@@ -14,7 +14,7 @@ const { helpers } = require('./validate-v20');
 const { sentences, scanText, lc, stem, STOPWORDS } = helpers;
 
 const MIN_WORDS = 4;
-const SHARE = 0.6;
+const SHARE = 0.7;
 const GENERIC = new Set('work works working garden gardens home homes property customer customers business team local area areas town towns service services page pages year years time call quote quotes price prices job jobs make makes made need needs needed want wants help helps take takes keep keeps give gives come comes well good right back into over about through around with without after before every each more most some same other than then there here their your what when where which while will would could should also just only such very'.split(' '));
 
 // Content words of a sentence: 4+ letters, stop words and generic words out, stemmed
