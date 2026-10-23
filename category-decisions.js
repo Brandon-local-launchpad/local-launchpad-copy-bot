@@ -26,12 +26,16 @@ const B = require('./category-blocks');
 const lc = s => String(s || '').toLowerCase().trim();
 const esc = s => String(s).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 
-// The category page placeholders, then the shared ones (ph)
+// The category page placeholders, then the shared ones (ph). [CAT] is the page keyword
+// without the town (Gardener); [WORK] is the category's work noun (Gardening), from the
+// niche entry's category_work_nouns, else "[CAT] Services" (Brandon, 23 Oct).
 function phCat(text, ctx) {
   if (!text) return text;
   return ph(String(text)
     .replace(/\[CAT_LOWER\]/g, ctx.catLower || '')
     .replace(/\[CAT\]/g, ctx.cat || '')
+    .replace(/\[WORK_LOWER\]/g, ctx.workLower || '')
+    .replace(/\[WORK\]/g, ctx.work || '')
     .replace(/\[TOWN\]/g, ctx.town || '')
     .replace(/\[SYMPTOM\]/g, ctx.symptom || ''), ctx);
 }
@@ -87,8 +91,13 @@ function computeCategoryDecisions({ cv, niche, keyValueMap = {}, rows = [], page
   const quoteFree = cv.free_quotes === 'yes' ? 'Free' : '';
   const cat = titleCase(keywordWord(h1, townName, category));
   const catLower = lc(cat);
+  // The work noun: every H2 but the H1 and the services line reads "Gardening", never "Gardener"
+  const workNoun = (niche.category_work_nouns || {})[lc(category)] || (niche.category_work_nouns || {})[catLower] || null;
+  if (!workNoun) flags.push({ code: 'F-WORK-NOUN', msg: `No work noun for "${category}" in the niche entry (category_work_nouns): the H2s read "${cat} Services".` });
+  const work = workNoun ? titleCase(workNoun) : `${cat} Services`;
+  const workLower = lc(work);
   const ctx = {
-    kwPhrase: h1, category, cat, catLower, town: townName, city: townName,
+    kwPhrase: h1, category, cat, catLower, work, workLower, town: townName, city: townName,
     trade: niche.trade || '', tradeLower: niche.trade_lower || '', tradePerson: niche.trade_person || '', tradePersonPlural: niche.trade_person_plural || '',
     customerType: niche.customer_type || '', unitOfWork: niche.unit_of_work || '', areaWide: scope === 'base' ? (cv.area_wide || '') : '',
     companyName: cv.company_name || '', quoteFree,
@@ -125,14 +134,14 @@ function computeCategoryDecisions({ cv, niche, keyValueMap = {}, rows = [], page
   const wide = scope === 'base' ? (ctx.areaWide ? `${city} & ${ctx.areaWide}` : `${city} and Nearby Towns`) : townName;
   const h2 = {
     services:  `Our ${cat} Services in ${townName}`,
-    content:   scope === 'base' ? (ctx.areaWide ? `Local ${cat} for ${city} & ${ctx.areaWide} ${custCap}` : `Local ${cat} for ${city} ${custCap}`) : `Local ${cat} for ${townName} ${custCap}`,
-    problems:  phCat(blocks.entry.problems && blocks.entry.problems.h2, ctx) || `Common ${cat} Problems`,
-    cost:      phCat(blocks.entry.cost && blocks.entry.cost.h2, ctx) || `What Affects the Cost of ${cat} in ${townName}`,
-    reviews:   `What ${townName} ${custCap} Say About Our ${cat}`,
+    content:   scope === 'base' ? (ctx.areaWide ? `Local ${work} for ${city} & ${ctx.areaWide} ${custCap}` : `Local ${work} for ${city} ${custCap}`) : `Local ${work} for ${townName} ${custCap}`,
+    problems:  phCat(blocks.entry.problems && blocks.entry.problems.h2, ctx) || `Common ${work} Problems`,
+    cost:      phCat(blocks.entry.cost && blocks.entry.cost.h2, ctx) || `What Affects the Cost of ${work} in ${townName}`,
+    reviews:   `What ${townName} ${custCap} Say About Our ${work}`,
     process:   ph(btn.process_h2 || 'Your [QUOTE_FREE] Quote in 3 Simple Steps', ctx),
-    areas:     `Where We Provide ${cat} Across ${wide}`,
-    faq:       `${cat} Questions Answered`,
-    final_cta: ph(`Get a [QUOTE_FREE] ${cat} Quote in ${townName}`, ctx),
+    areas:     `Where We Provide ${work} Across ${wide}`,
+    faq:       `${work} Questions Answered`,
+    final_cta: ph(`Get a [QUOTE_FREE] ${work} Quote in ${townName}`, ctx),
   };
 
   // ── Cards: the category's service pages, page map order; a town page links the town
@@ -268,7 +277,7 @@ function computeCategoryDecisions({ cv, niche, keyValueMap = {}, rows = [], page
     page_type: 'category', scope, category, category_key: catKey, town: townName, city, slug: selfUrl,
     type: { letter: blocks.letter, key: blocks.key, a2: blocks.a2, emergency: blocks.emergencyUsed, source: blocks.source },
     d1_years_trading: yearsTrading,
-    d2_h1: h1, keyword: kwNatural, cat, cat_lower: catLower,
+    d2_h1: h1, keyword: kwNatural, cat, cat_lower: catLower, work, work_lower: workLower,
     d3_title: built.title, d4_meta: meta, d5_trust: trust.line, d6_rating: rating,
     d15_buttons: buttons, breadcrumb,
     h2,

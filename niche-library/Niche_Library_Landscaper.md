@@ -216,6 +216,10 @@ Type A defaults from the Homepage Structure:
 1. Track record → **Local Experience Behind Every Job**
 2. Cover → **Covered If Something Goes Wrong**
 
+## Category work nouns (category_work_nouns)
+
+Brandon, 23 Oct. the work noun every category page H2 reads in place of the category name, except the H1 and "Our [CAT] Services in [CITY]": landscaper → landscaping, gardener → gardening, landscape gardener → landscape gardening, landscape designer → garden design, tree service → tree surgery, paving contractor → paving, deck builder → decking, lawn care service → lawn care. A category with no noun reads "[CAT] Services" and is flagged. The category page briefs (`category_page_blocks`) use `[WORK]` and `[WORK_LOWER]` for it.
+
 ## do_not_reuse
 
 (empty to start; add any sentence that has gone live on a client site so it is never repeated)

@@ -214,5 +214,16 @@
     "Covered If Something Goes Wrong"
   ],
 
+  "category_work_nouns": {
+    "landscaper": "landscaping",
+    "gardener": "gardening",
+    "landscape gardener": "landscape gardening",
+    "landscape designer": "garden design",
+    "tree service": "tree surgery",
+    "paving contractor": "paving",
+    "deck builder": "decking",
+    "lawn care service": "lawn care"
+  },
+
   "do_not_reuse": []
 }
