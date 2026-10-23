@@ -76,7 +76,7 @@ function buildGbpInputs({ cv = {}, niche = {}, rows = [], keyValueMap = {}, site
   // Facts from confirmed client values
   const years = yearsLine(cv);
   const accreditations = accreditationsLine(cv);
-  const proofPointList = proofPointsFor(cv, niche);
+  const proofPointList = proofPointsFor(cv, niche, { properWords: [...areas, ...categories] });
   const proofPoints = proofPointList.map(p => p.text);
   // The description names each core service beside its own category (Pergolas is Deck Builder work, never paving)
   const coreByCategory = categories.map(c => ({ category: c, services: coreServices.filter(n => (locked.find(l => norm(l.service) === norm(n)) || {}).category === c) })).filter(x => x.services.length);
@@ -105,7 +105,7 @@ function buildGbpInputs({ cv = {}, niche = {}, rows = [], keyValueMap = {}, site
     years, accreditations, proofPoints, showPrices, prices, timeframes,
     competitorCount: Number.isFinite(competitorCount) ? competitorCount : null, minServices,
     included, siteUrl: base, flags,
-    validatorCtx: { locked: locked.map(l => ({ category: l.category, service: l.service })), minServices, competitorCount: Number.isFinite(competitorCount) ? competitorCount : null, showPrices, towns: areas, categories: [...new Set([primary, ...categories].filter(Boolean))], proofPoints: proofPointList, cv },
+    validatorCtx: { locked: locked.map(l => ({ category: l.category, service: l.service })), minServices, competitorCount: Number.isFinite(competitorCount) ? competitorCount : null, showPrices, towns: areas, categories: [...new Set([primary, ...categories].filter(Boolean))], proofPoints: proofPointList, properNouns: [...properNouns(cv, [...areas, ...categories])], cv },
   };
 }
 
@@ -153,9 +153,33 @@ function wordsDetect(phrase) {
 const reDetect = re => t => re.test(String(t));
 const escapeRe = s => String(s).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 
-function proofPointsFor(cv, niche) {
+// Proof points read as prose, so they are lower case except proper nouns and acronyms
+// (Brandon, round 3): "Family Run and Independent" → "family run and independent";
+// "Checkatrade approved" keeps Checkatrade. Proper nouns: the company name, the areas,
+// the verified logos, the materials and the GBP categories, as the client record spells them.
+function properNouns(cv = {}, extra = []) {
+  const words = new Set();
+  const take = v => { for (const w of String(v || '').split(/[^A-Za-z0-9']+/)) if (/^[A-Z]/.test(w)) words.add(w.toLowerCase()); };
+  take(cv.company_name);
+  (Array.isArray(cv.verified_logos) ? cv.verified_logos : []).forEach(l => take(typeof l === 'string' ? l : l && (l.name || l.label)));
+  (Array.isArray(cv.materials_methods) ? cv.materials_methods : []).forEach(take);
+  extra.forEach(take);
+  return words;
+}
+function lowerExceptProper(text, proper) {
+  return String(text || '').split(/(\s+)/).map(w => {
+    const core = w.replace(/^[^A-Za-z0-9]+|[^A-Za-z0-9]+$/g, '');
+    if (!core) return w;
+    if (/^[A-Z0-9]{2,}$/.test(core)) return w;                       // acronym: RHS, VAT
+    if (proper.has(core.toLowerCase())) return w;                     // proper noun from the record
+    return w.toLowerCase();
+  }).join('');
+}
+
+function proofPointsFor(cv, niche, { properWords = [] } = {}) {
   const out = [];
-  const add = (text, detect) => { if (text) out.push({ text, detect: detect || wordsDetect(text) }); };
+  const proper = properNouns(cv, properWords);
+  const add = (text, detect) => { if (text) { const t = lowerExceptProper(text, proper); out.push({ text: t, detect: detect || wordsDetect(t) }); } };
   if (lc(cv.free_quotes) === 'yes') add(lc(cv.free_inspection) === 'yes' ? 'free inspection and quote before any work' : 'free quotes', reDetect(/\bfree\b[^.]{0,30}\b(quote|quotation|visit|inspection|estimate)|\b(quote|quotation|visit|inspection|estimate)s?\b[^.]{0,20}\b(is|are|come|comes) free|no (obligation|charge)/i));
   if (cv.quote_method) add(`quotes: ${cv.quote_method}`);
   if (cv.quote_includes) add(`every quote includes ${cv.quote_includes}`);
@@ -231,7 +255,7 @@ function servicesMessage(I) {
   if (I.confirmedNoPage.length) L.push('', 'CONFIRMED, NO PAGE (the business offers these too; add them as VARIANT under the category shown where they fit):', ...I.confirmedNoPage.map(c => `${c.category}: ${c.service}`));
   L.push('', `COMPETITOR TARGET: the top 5 competitors list ${I.competitorCount === null ? 'an unknown number of' : I.competitorCount} services on average. Beat it: at least ${I.minServices} services in total (locked plus variants), each appearing once.`);
   L.push('', `PROOF POINTS (use only these; each in at most a quarter of the descriptions, most descriptions without one; opening hours are never one): ${list(I.proofPoints)}`);
-  L.push('', `TOWN to name once in each description: ${I.town || 'none'}`);
+  L.push('', `TOWN to name once in each description: ${I.town || 'none'}. Vary where it sits: sometimes the first sentence, sometimes the middle, sometimes the last. Do not end most descriptions with a sentence that starts with the service name.`);
   return L.join('\n');
 }
 
@@ -253,4 +277,4 @@ function productsMessage(I, batch, categoryOf) {
   return L.join('\n');
 }
 
-module.exports = { buildGbpInputs, descriptionMessage, servicesMessage, productsMessage, whatsIncluded, proofPointsFor, wordsDetect, accreditationsLine, yearsLine, moneyFor };
+module.exports = { buildGbpInputs, descriptionMessage, servicesMessage, productsMessage, whatsIncluded, proofPointsFor, wordsDetect, lowerExceptProper, properNouns, accreditationsLine, yearsLine, moneyFor };

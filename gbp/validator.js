@@ -209,6 +209,43 @@ function proofShareIssues(list, ctx) {
   return out;
 }
 
+// ── Proof points with internal capitals (Brandon, round 3): "Family Run and Independent"
+// mid sentence fails; proper nouns (ctx.properNouns) and acronyms are allowed ──
+const PROOF_STOP = new Set(['the', 'and', 'with', 'for', 'our', 'your', 'are', 'from', 'that', 'this', 'any', 'all', 'you', 'not', 'but']);
+function proofCapsIssues(text, field, ctx) {
+  const out = [];
+  const points = ctx.proofPoints || [];
+  if (!points.length) return out;
+  const proofWords = new Set(points.flatMap(p => String(p.text || '').toLowerCase().split(/[^a-z0-9]+/)).filter(w => w.length >= 3 && !PROOF_STOP.has(w)));
+  const proper = new Set((ctx.properNouns || []).map(w => String(w).toLowerCase()));
+  for (const sentence of String(text || '').split(/(?<=[.!?])\s+|\n+/)) {
+    const words = sentence.trim().split(/\s+/);
+    for (let i = 1; i < words.length; i++) {
+      const core = words[i].replace(/^[^A-Za-z0-9]+|[^A-Za-z0-9]+$/g, '');
+      if (!/^[A-Z][a-z]+$/.test(core)) continue;                       // Title Case only: acronyms and lower case pass
+      const low = core.toLowerCase();
+      if (!proofWords.has(low) || proper.has(low)) continue;
+      out.push({ level: 'FAIL', rule: 'proof-caps', field, message: `"${field}" writes a proof point with capitals inside a sentence ("${words.slice(Math.max(0, i - 1), i + 3).join(' ')}"); proof points are lower case except proper nouns.` });
+      return out;
+    }
+  }
+  return out;
+}
+
+// ── Closing sentence pattern (Brandon, round 3): no more than a third of the service
+// descriptions may end with a sentence that starts with the service name ──
+function closingPatternIssues(list) {
+  const out = [];
+  if (!list.length) return out;
+  const endsWithName = list.filter(s => {
+    const sentences = String(s.description || '').trim().split(/(?<=[.!?])\s+/).filter(Boolean);
+    const last = (sentences[sentences.length - 1] || '').replace(/^["'(]+/, '');
+    return norm(s.service) && norm(last).startsWith(norm(s.service));
+  });
+  if (endsWithName.length / list.length > 1 / 3) out.push({ level: 'FAIL', rule: 'closing-pattern', field: 'services', message: `${endsWithName.length} of ${list.length} service descriptions end with a sentence that starts with the service name (${endsWithName.slice(0, 4).map(s => `"${s.service}"`).join(', ')}${endsWithName.length > 4 ? ', …' : ''}); the limit is a third. Vary the closing sentence.` });
+  return out;
+}
+
 function lengthIssue(text, field, [min, max], what) {
   const n = count(text);
   if (n < min) return { level: 'FAIL', rule: 'length', field, message: `${what} is ${n} characters; it needs ${min} to ${max}.` };
@@ -226,6 +263,7 @@ function validateDescription(description, ctx) {
     if (l) issues.push(l);
     issues.push(...contentIssues(text, 'description', ctx));
     issues.push(...categoryIssues(text, 'description', ctx));
+    issues.push(...proofCapsIssues(text, 'description', ctx));
     issues.push(...factIssues(text, 'description', ctx));
   }
   return result(issues);
@@ -287,6 +325,7 @@ function validateServices(services, ctx) {
     const l = lengthIssue(s.description, field, LIMITS.service_description, `The description of "${field}"`);
     if (l) issues.push(l);
     issues.push(...contentIssues(s.description, field, ctx));
+    issues.push(...proofCapsIssues(s.description, field, ctx));
     issues.push(...factIssues(s.description, field, ctx));
     if (!lockedByName.has(norm(s.service))) {
       const d = String(s.service || '').match(DASH_RE);
@@ -294,6 +333,7 @@ function validateServices(services, ctx) {
     }
   }
   issues.push(...proofShareIssues(list, ctx));
+  issues.push(...closingPatternIssues(list));
   return result(issues, { total, locked: seenLocked.size, variants: list.filter(s => String(s.type || '').toUpperCase() === 'VARIANT').length, minServices });
 }
 
@@ -317,6 +357,7 @@ function validateProducts(products, ctx) {
     const l = lengthIssue(p.description, field, LIMITS.product_description, `The description of "${field}"`);
     if (l) issues.push(l);
     issues.push(...contentIssues(p.description, field, ctx, { prices: true }));
+    issues.push(...proofCapsIssues(p.description, field, ctx));
     issues.push(...factIssues(p.description, field, ctx));
     // Areas: the main town and the five nearest (Brandon, 23 Oct), so six names at most
     const named = (ctx.towns || []).filter(town => town && new RegExp(`\\b${escapeRe(town)}\\b`, 'i').test(String(p.description || '')));
@@ -334,5 +375,5 @@ function result(issues, counts = {}) {
 module.exports = {
   LIMITS, VALIDATOR_FILE, loadBannedPhrases, count,
   validateDescription, validateServices, validateProducts,
-  contentIssues, factIssues, bannedHits, capsWords, nameKey, nearDuplicates, categoryIssues, proofShareIssues,
+  contentIssues, factIssues, bannedHits, capsWords, nameKey, nearDuplicates, categoryIssues, proofShareIssues, proofCapsIssues, closingPatternIssues,
 };

@@ -1,4 +1,4 @@
-# GBP Validator rules (v2, 23 Oct 2026)
+# GBP Validator rules (v3, 23 Oct 2026)
 
 Copybot runs these after each GBP step (`gbp/validator.js`). A FAIL blocks the save and shows the reason. A FLAG saves but marks the field for Brandon to check. Code reads the banned phrase list from this file; a locked service name that itself has a hyphen (the site's own page title) is exempt from the dash rule, since the name may not change. A step that fails runs once more with its failures before it fails.
 
@@ -15,6 +15,8 @@ Copybot runs these after each GBP step (`gbp/validator.js`). A FAIL blocks the s
 - Every VARIANT shares a category with a LOCKED parent
 - No two service names that differ only by a plural, the word order, or the words custom, bespoke, services or work (the pair is reported; two page map names that collide are a FLAG, since the page map owns them)
 - No proof point in more than a quarter of the service descriptions (each proof point has a detector; opening hours are never a proof point)
+- No more than a third of the service descriptions end with a sentence that starts with the service name
+- A proof point is lower case except proper nouns: "Family Run" inside a sentence fails (proper nouns from the client record and acronyms pass)
 
 ## Content (FAIL)
 - No phone numbers, email addresses or URLs in the description, service descriptions or product descriptions

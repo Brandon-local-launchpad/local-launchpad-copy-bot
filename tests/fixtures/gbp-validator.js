@@ -209,10 +209,10 @@ chk('no categories in the context: no category checks', V.validateDescription(te
 
 // Proof point share
 const pp = [{ text: 'free quotes', detect: /free quote/i }, { text: 'a team of 4', detect: t => /team of/i.test(t) }];
-list = twenty(); list.slice(0, 5).forEach(s => { s.description = text(230) + ' Free quotes for every job.'; });
+list = twenty(); list.slice(0, 5).forEach(s => { s.description = text(230) + '. We give free quotes on every job.'; });
 r = V.validateServices(list, { ...ctx, proofPoints: pp });
 chk('a proof point in 5 of 20 descriptions (25%) passes', r.ok, rules(r), 'ok');
-list = twenty(); list.slice(0, 6).forEach(s => { s.description = text(230) + ' Free quotes for every job.'; });
+list = twenty(); list.slice(0, 6).forEach(s => { s.description = text(230) + '. We give free quotes on every job.'; });
 r = V.validateServices(list, { ...ctx, proofPoints: pp });
 chk('a proof point in 6 of 20 (30%) fails, naming the phrase and the count', has(r, 'proof-share') && /"free quotes" appears in 6 of 20/.test(r.fails[0].message), r.fails.map(f => f.message).join(), 'proof-share');
 list = twenty(); list.slice(0, 8).forEach(s => { s.description = text(225) + ' A team of four does the work.'; });
@@ -225,6 +225,32 @@ r = V.validateProducts(P, { ...ctx, towns: ['Southampton', 'Romsey', 'Hedge End'
 chk('a product naming 7 areas fails', has(r, 'too-many-areas') && /names 7 areas/.test(r.fails[0].message), r.fails.map(f => f.message).join(), 'too-many-areas');
 P = products(); P[0].description = text(700) + ' We cover Southampton, Romsey, Hedge End, Winchester, Eastleigh and Totton.';
 chk('six areas pass', V.validateProducts(P, { ...ctx, towns: ['Southampton', 'Romsey', 'Hedge End', 'Winchester', 'Eastleigh', 'Totton', 'Fareham', 'Lyndhurst'] }).ok, '', 'ok');
+
+// ── Round 3 (Brandon, 23 Oct) ──
+const ctxP = { ...ctx, proofPoints: [{ text: 'family run and independent', detect: /family run/i }, { text: 'free quotes', detect: /free quote/i }, { text: 'Checkatrade approved', detect: /checkatrade/i }], properNouns: ['southampton', 'checkatrade', 'edens', 'edge'] };
+r = V.validateDescription(text(690) + ' We are Family Run and Independent here.', ctxP);
+chk('a proof point with internal capitals fails ("Family Run")', has(r, 'proof-caps') && /Family Run/.test(r.fails.find(f => f.rule === 'proof-caps').message), rules(r), 'proof-caps');
+r = V.validateDescription(text(690) + ' We are family run and independent here.', ctxP);
+chk('the same proof point in lower case passes', !has(r, 'proof-caps'), rules(r), 'ok');
+r = V.validateDescription(text(690) + '. Family run and independent. Free quotes too.', ctxP);
+chk('a proof point word at the start of a sentence is fine', !has(r, 'proof-caps'), rules(r), 'ok');
+r = V.validateDescription(text(690) + ' We are Checkatrade approved in Southampton.', ctxP);
+chk('a proper noun inside a proof point passes (Checkatrade)', !has(r, 'proof-caps'), rules(r), 'ok');
+list = twenty(); list[2].description = text(228) + ' We offer Free Quotes on every job.';
+r = V.validateServices(list, ctxP);
+chk('internal capitals in a service description fail, the field named', has(r, 'proof-caps') && r.fails.find(f => f.rule === 'proof-caps').field === 'Tree planting', rules(r), 'proof-caps on Tree planting');
+P = products(); P[1].description = text(770) + ' We are a Family Run business here.';
+chk('and in a product description', has(V.validateProducts(P, ctxP), 'proof-caps'), '', 'proof-caps');
+chk('no proof points in the context: no capitals check', !has(V.validateDescription(text(690) + ' We are Family Run and Independent here.', ctx), 'proof-caps'), '', 'ok');
+
+// Closing sentence pattern
+const closing = (s, n) => { const l = twenty(); l.slice(0, n).forEach(x => { x.description = text(200) + `. ${x.service} for Southampton gardens.`; }); return V.validateServices(l, s); };
+r = closing(ctx, 6);
+chk('6 of 20 descriptions ending with "[service name] for Southampton gardens." pass (under a third)', !has(r, 'closing-pattern'), rules(r), 'ok');
+r = closing(ctx, 7);
+chk('7 of 20 (35%) fail, with the count and names', has(r, 'closing-pattern') && /7 of 20 service descriptions end with/.test(r.fails.find(f => f.rule === 'closing-pattern').message) && /"Lawn mowing"/.test(r.fails.find(f => f.rule === 'closing-pattern').message), r.fails.map(f => f.message).join(), 'closing-pattern');
+list = twenty(); list.forEach(x => { x.description = `${x.service} across Southampton. ` + text(210); });
+chk('the service name at the start of the first sentence does not count', !has(V.validateServices(list, ctx), 'closing-pattern'), '', 'ok');
 
 // ── Empty answers ──
 chk('an empty description fails', has(V.validateDescription('', ctx), 'missing'), '', 'missing');
