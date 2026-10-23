@@ -259,7 +259,7 @@
 3. WordPress push: slice 5 part 2, a first push to Given's staging site (the site is ready; Brandon, 15 Oct: not yet). Needs the plugin installed, the field groups imported and `COPYBOT_SECRET_KEY` on Railway. The Edens Edge homepage has 0 BLOCK and its claims accepted.
 4. FAQ per client: done for the homepage (live for Edens Edge: research, sorting, approval, Q7 in the generated page). The other page types use their sorted questions when they are built.
 5. Then: humanizer decision, emergency and regulated group tests, category page.
-6. GBP output: run it on the live "ednes edge testing" client once competitor_service_count is saved; each problem Brandon finds in a pasted set becomes a validator rule.
+6. GBP output: run on the live "ednes edge testing" client (23 Oct, 2m48s): description 724 characters first time, 46 services (31 locked, 15 variants, one retry for "best"), 31 products (one retry for a hyphen), no flags; files at /clients/ednes-edge-testing/gbp/. Next: Brandon pastes a set into the GBP editor; each problem he finds becomes a validator rule. competitor_service_count still blank (target 20).
 7. Fillout intake stage 2: the niche → trade mapping, extraction from the record into client values, and moving the audio bytes out of Postgres (ONBOARDING.md, "Audio storage").
 
 ## Open decisions
