@@ -500,6 +500,14 @@ function fakeModel(opts = {}) {
     const sj2 = await (await req('GET', `/clients/edens-edge-landscaping/gbp/scans.json`)).json();
     chk('scans.json keeps the superseded rows apart', sj2.scans.length === 1 && sj2.superseded.length === 2 && sj2.superseded.every(x => x.superseded && x.superseded_at), JSON.stringify([sj2.scans.length, sj2.superseded.length]), '');
     resetMode = false;
+    // A stored schedule with a null id but an array raw answer (the live shape) is repaired on the next load, no LeadSnap call
+    const { rows: schedRows0 } = await pool.query(`SELECT id, content FROM client_assets WHERE client_id=$1 AND asset_type='gbp_schedules'`, [c.id]);
+    const sd0 = JSON.parse(schedRows0[0].content);
+    sd0.items.push({ keywords: ['landscaper'], keyword: 'landscaper', schedule_id: null, name: 'Edens Edge Landscaping monthly', status: 'active', repeat_on: 23, raw: [{ id: 13470, name: 'Edens Edge Landscaping monthly', status: 'active' }] });
+    await pool.query(`UPDATE client_assets SET content=$1 WHERE id=$2`, [JSON.stringify(sd0), schedRows0[0].id]);
+    lsCalls.length = 0;
+    v = await (await req('GET', `/api/clients/${c.id}/gbp`)).json();
+    chk('a null schedule id is repaired from the array shaped raw answer on load, with no LeadSnap call', v.scans.schedules.items.some(i => i.schedule_id === 13470 && i.id_from === 'the raw create answer') && !lsCalls.length, JSON.stringify(v.scans.schedules.items.map(i => i.schedule_id)) + ' ' + lsCalls.join(','), '');
     // Schedules stored without an id (the live create answer carried none): pause-previous looks them up by name
     const { rows: schedRows } = await pool.query(`SELECT id, content FROM client_assets WHERE client_id=$1 AND asset_type='gbp_schedules'`, [c.id]);
     const sd = JSON.parse(schedRows[0].content);

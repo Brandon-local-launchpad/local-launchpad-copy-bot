@@ -44,6 +44,7 @@ function mountGbpApi(app, { pool, loadInputs, callModel, log = console, search =
     const scans = SC.live(all);
     const settings = cv && cv.scan_settings && typeof cv.scan_settings === 'object' ? cv.scan_settings : null;
     const schedules = await store.schedules(clientId);
+    await repairScheduleIds(clientId, schedules);
     return { settings, scans, superseded: all.length - scans.length, table: SC.monthlyTable(scans), alerts: SC.dropAlerts(scans), pending: scans.filter(s => s.status !== 'completed' && s.status !== 'failed').length, schedules, count: scans.length };
   };
 
@@ -148,10 +149,30 @@ function mountGbpApi(app, { pool, loadInputs, callModel, log = console, search =
     return next;
   }
 
-  // The schedule's id and status from a create or list answer, bare or wrapped (data, schedule, heatmap_schedule)
+  // The schedule's id and status from a create or list answer: the live API answers with an
+  // array holding the schedule (the docs show it bare); data, schedule and heatmap_schedule
+  // wrappers are read too
   function scheduleIdOf(made) {
-    const o = made && typeof made === 'object' ? (made.data && typeof made.data === 'object' && !Array.isArray(made.data) ? made.data : made.schedule || made.heatmap_schedule || made) : {};
-    return { id: o.id !== undefined ? o.id : null, status: o.status || (o.schedule_config && o.schedule_config.status) || null };
+    let o = made;
+    if (Array.isArray(o)) o = o[0];
+    if (o && typeof o === 'object') {
+      if (o.data && typeof o.data === 'object') o = Array.isArray(o.data) ? o.data[0] : o.data;
+      else if (o.schedule && typeof o.schedule === 'object') o = o.schedule;
+      else if (o.heatmap_schedule && typeof o.heatmap_schedule === 'object') o = o.heatmap_schedule;
+    }
+    o = o && typeof o === 'object' ? o : {};
+    return { id: o.id !== undefined && o.id !== null ? o.id : null, status: o.status || (o.schedule_config && o.schedule_config.status) || null };
+  }
+  // Stored items with no id get it from their raw create answer (no network), saved when any changed
+  async function repairScheduleIds(clientId, data) {
+    let changed = 0;
+    for (const item of data.items || []) {
+      if (item.schedule_id !== undefined && item.schedule_id !== null) continue;
+      const found = scheduleIdOf(item.raw);
+      if (found.id !== null) { item.schedule_id = found.id; item.status = found.status || item.status; item.id_from = 'the raw create answer'; changed++; }
+    }
+    if (changed) await store.saveSchedules(clientId, data);
+    return changed;
   }
   // A stored schedule with no id gets it from LeadSnap's list, matched by name
   async function resolveScheduleIds(items) {

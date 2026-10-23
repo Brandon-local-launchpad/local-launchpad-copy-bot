@@ -729,21 +729,23 @@
         }
       }
     },
-    "landscaper": {
-      "id": 6501,
-      "place_id": 555001,
-      "keywords": [
-        "landscaper"
-      ],
-      "name": "Edens Edge Landscaping monthly",
-      "grid_size": 13,
-      "status": "active",
-      "schedule_config": {
-        "repeat_type": "month",
-        "repeat_on": "23",
-        "status": "active"
+    "landscaper": [
+      {
+        "id": 6501,
+        "place_id": 555001,
+        "keywords": [
+          "landscaper"
+        ],
+        "name": "Edens Edge Landscaping monthly",
+        "grid_size": 13,
+        "status": "active",
+        "schedule_config": {
+          "repeat_type": "month",
+          "repeat_on": "23",
+          "status": "active"
+        }
       }
-    }
+    ]
   },
   "schedule_pause": {
     "id": 6501,
