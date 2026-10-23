@@ -292,6 +292,38 @@
       H.push(field('C1. Review request (text after every job)', P.templates.c1, 'keeps [first name]', []));
       H.push(field('C2. Reply to a 1 to 3 star review', P.templates.c2, 'keeps [name] and [job]', [{ message: P.templates.c2_rule }]));
     }
+    // Batch 2: the competitor check and duplicate finder, then the landing page signals
+    const C = gbp.competitors || {}, L = gbp.landing, Dp = gbp.duplicates || { duplicates: [], marks: {} };
+    const link = (u, t) => u ? `<a href="${esc(u)}" target="_blank">${esc(t || u)}</a>` : '';
+    H.push(`<h3>Competitor check <span class="field-meta">SOP 2.1 and 1.3: the top five for "[primary category] [main town]", then any listing that looks like the client's own</span></h3>`);
+    H.push(`<div style="display:flex;gap:.5rem;flex-wrap:wrap;align-items:center;margin-bottom:.6rem">
+      <button class="btn btn-ghost" id="gbpCompRun" onclick="runCompetitors()" ${rd.ok === false ? 'disabled' : ''}>Run competitor check</button>
+      ${C.latest ? `<span class="gen-date">Last run ${fmtTime(C.latest.at)} · searched "${esc(C.latest.keyword)}"${C.runs && C.runs.length > 1 ? ` · ${C.runs.length} runs` : ''}</span>` : '<span class="gen-date">Not run yet</span>'}
+      ${rd.ownPlaceId ? `<span class="field-meta">own place id ${esc(rd.ownPlaceId)}</span>` : ''}
+    </div>`);
+    if (C.latest) {
+      const cmp = C.comparison, chg = id => cmp && cmp.changes.find(x => x.place_id === id);
+      H.push(`<div class="field"><div class="field-head"><span class="field-name">Top ${C.latest.competitors.length} competitors${C.reading ? ` · ${esc(C.reading.line)}` : ''}</span><span class="field-meta">competitor_service_count: ${rd.competitorCount !== null && rd.competitorCount !== undefined ? esc(rd.competitorCount) : 'not saved'} · <a href="/generate?clientId=${clientId}">edit on Client Values</a></span></div>
+        <table style="width:100%;border-collapse:collapse;font-size:13px;margin-top:.4rem">
+          <tr style="color:var(--muted);text-align:left"><th>Business</th><th>Primary type</th><th>Rating</th><th>Reviews</th><th>Change</th><th>Website</th><th>Maps</th></tr>
+          ${C.latest.competitors.map(c => { const ch = chg(c.place_id); return `<tr style="border-top:1px solid var(--border)"><td style="padding:4px 6px 4px 0">${esc(c.name)}</td><td>${esc(c.primary_type || '')}</td><td>${c.rating === null ? '' : c.rating}</td><td>${c.review_count}</td><td>${ch && ch.change !== null ? (ch.change > 0 ? '+' : '') + ch.change : ''}</td><td>${link(c.website, (c.website || '').replace(/^https?:\/\/(www\.)?/, '').replace(/\/$/, ''))}</td><td>${link(c.maps_url, 'Maps')}</td></tr>`; }).join('')}
+          <tr style="border-top:1px solid var(--border);font-weight:600"><td style="padding:4px 6px 4px 0">Average</td><td></td><td>${C.latest.average.rating === null ? '' : C.latest.average.rating}</td><td>${C.latest.average.review_count}</td><td>${cmp ? ((cmp.average_change > 0 ? '+' : '') + cmp.average_change + (cmp.reviews_per_month !== null ? ` (${cmp.reviews_per_month} a month over ${cmp.days} days)` : '')) : ''}</td><td colspan="2">${cmp ? `since ${fmtTime(cmp.previous_at)}${cmp.previous_keyword !== C.latest.keyword ? ` (searched "${esc(cmp.previous_keyword)}" then)` : ''}` : ''}</td></tr>
+        </table>
+        ${C.latest.skipped.length ? `<details><summary>${C.latest.skipped.length} result${C.latest.skipped.length > 1 ? 's' : ''} skipped</summary><ul style="margin:.3rem 0 0 1.2rem;font-size:13px">${C.latest.skipped.map(s => `<li>${esc(s.name)}: ${esc(s.reason)}${s.maps_url ? ' · ' + link(s.maps_url, 'Maps') : ''}</li>`).join('')}</ul></details>` : ''}
+      </div>`);
+      H.push(`<div class="field"><div class="field-head"><span class="field-name">Possible duplicates of the client's listing</span><span class="field-meta">${Dp.at ? `searched ${Dp.queries.map(q => `"${esc(q)}"`).join(' and ')}` : ''}</span></div>
+        ${Dp.duplicates.length ? Dp.duplicates.map(d => { const m = (Dp.marks || {})[d.place_id]; return `<div class="field-head" style="margin-top:.4rem"><span class="field-text">${esc(d.name)} <span class="field-meta">${esc(d.address || '')} · matched by ${esc(d.matched)}</span> ${link(d.maps_url, 'Maps')}</span>
+          <span style="display:flex;gap:.4rem;align-items:center">${m ? `<span class="badge ${m.mark === 'reported' ? 'badge-ok' : 'badge-none'}">${m.mark === 'reported' ? 'Reported' : 'Ignored'} ${fmtDate(m.at)}</span>` : ''}
+          <button class="copy" onclick="markDuplicate('${esc(d.place_id)}', '${m && m.mark === 'reported' ? '' : 'reported'}')">${m && m.mark === 'reported' ? 'Unmark' : 'Reported'}</button>
+          <button class="copy" onclick="markDuplicate('${esc(d.place_id)}', '${m && m.mark === 'ignore' ? '' : 'ignore'}')">${m && m.mark === 'ignore' ? 'Unignore' : 'Ignore'}</button></span></div>`; }).join('') : '<div class="field-meta" style="margin-top:.3rem">None found.</div>'}
+      </div>`);
+    }
+    H.push(`<h3>Landing page signals <span class="field-meta">SOP 2.4: the eight checks on the site's homepage</span></h3>`);
+    H.push(`<div style="display:flex;gap:.5rem;flex-wrap:wrap;align-items:center;margin-bottom:.6rem">
+      <button class="btn btn-ghost" id="gbpLandRun" onclick="runLandingPage()" ${rd.ok === false || !rd.siteUrl ? 'disabled' : ''}>Check landing page</button>
+      ${L ? `<span class="gen-date">Last check ${fmtTime(L.at)} · ${L.passed} of ${L.of} pass · ${link(L.final_url)}</span>` : `<span class="gen-date">${rd.siteUrl ? 'Not checked yet' : 'No site URL saved'}</span>`}
+    </div>`);
+    if (L) H.push(`<div class="field">${L.signals.map(s => `<div class="field-head" style="margin-top:.3rem"><span class="field-text"><span class="badge ${s.pass ? 'badge-ok' : 'badge-warn'}">${s.pass ? 'pass' : 'fail'}</span> ${esc(s.label)}</span><span class="field-meta" style="max-width:55%;text-align:right">${esc(s.found)}</span></div>`).join('')}</div>`);
     // Description
     const d = steps.description;
     if (d && d.status === 'done') {
@@ -340,6 +372,19 @@
       gbp = data; renderGbp();
     } catch (e) { alert('GBP run failed: ' + e.message); await loadGbp(); }
   }
+  async function postGbp(path, btnId, label, body) {
+    const btn = document.getElementById(btnId);
+    if (btn) { btn.disabled = true; btn.textContent = label; }
+    try {
+      const r = await fetch(`/api/clients/${clientId}/gbp/${path}`, { method: body ? 'PUT' : 'POST', headers: body ? { 'Content-Type': 'application/json' } : {}, body: body ? JSON.stringify(body) : undefined });
+      const data = await r.json();
+      if (!r.ok) { alert(data.error || `HTTP ${r.status}`); await loadGbp(); return; }
+      gbp = data; renderGbp();
+    } catch (e) { alert('Failed: ' + e.message); await loadGbp(); }
+  }
+  function runCompetitors() { return postGbp('competitors', 'gbpCompRun', 'Searching…'); }
+  function runLandingPage() { return postGbp('landing-page', 'gbpLandRun', 'Checking…'); }
+  function markDuplicate(placeId, mark) { return postGbp(`duplicates/${encodeURIComponent(placeId)}`, null, '', { mark }); }
   async function clearGbp() {
     if (!confirm('Start the GBP output again? The saved description, services and products are removed.')) return;
     const r = await fetch(`/api/clients/${clientId}/gbp/clear`, { method: 'POST' });

@@ -2939,6 +2939,8 @@ const CLIENT_VALUES_TEMPLATE = {
   // GBP batch 1 (23 Oct): the Google review link (also pushed to the site), the reviews a
   // month target and the landing page fails, for the internal note and the templates
   review_url: '', reviews_per_month: '', landing_page_fails: '',
+  // GBP batch 2 (23 Oct): the client's own Google place id, found by the first competitor check
+  gbp_place_id: '',
 };
 
 app.get('/api/clients/:clientId/gbp-categories', async (req, res) => {
@@ -3779,10 +3781,17 @@ async function gbpInputsFor(clientId) {
   const tf = { niche: packName, exists: !!st.exists, verified: !!st.verified, properNouns: st.verified ? P.packProperNouns(packName) : [] };
   return require('./gbp/inputs').buildGbpInputs({ cv: ctx.cv, niche: ctx.niche || {}, rows, keyValueMap: ctx.keyValueMap, siteUrl: wp.length ? wp[0].url : '', serviceCopy, tradeFacts: tf });
 }
+// One client value changed by code (the GBP checks write gbp_place_id and landing_page_fails)
+async function saveClientValue(clientId, key, value) {
+  const { rows } = await pool.query(`SELECT id, content FROM client_assets WHERE client_id = $1 AND asset_type = 'client_values' ORDER BY uploaded_at DESC LIMIT 1`, [clientId]);
+  const cv = { ...CLIENT_VALUES_TEMPLATE, ...(rows.length ? JSON.parse(rows[0].content) : {}), [key]: value };
+  if (rows.length) await pool.query(`UPDATE client_assets SET content = $1, uploaded_at = NOW() WHERE id = $2`, [JSON.stringify(cv), rows[0].id]);
+  else await pool.query(`INSERT INTO client_assets (client_id, asset_type, filename, content) VALUES ($1, 'client_values', 'client_values.json', $2)`, [clientId, JSON.stringify(cv)]);
+}
 if (pool && pageMapStore) {
   const { GBP_MODEL } = require('./gbp/generate');
   const gbpCallModel = args => makeCallModel(new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY }), GBP_MODEL)(args);
-  require('./gbp/routes').mountGbpApi(app, { pool, loadInputs: gbpInputsFor, callModel: gbpCallModel });
+  require('./gbp/routes').mountGbpApi(app, { pool, loadInputs: gbpInputsFor, callModel: gbpCallModel, saveClientValue });
 }
 
 app.get('/api/clients/:clientId/wp/connection', wpRoute(req => wpService.connection(req.params.clientId)));

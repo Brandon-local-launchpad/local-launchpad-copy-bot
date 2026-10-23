@@ -2278,7 +2278,8 @@
       { key: 'show_prices',              label: 'Show prices in GBP products',             type: 'select', options: ['','yes','no'] },
       { key: 'review_url',               label: 'Google review link',                      type: 'text', placeholder: 'https://g.page/r/…/review (also pushed to the site)' },
       { key: 'reviews_per_month',        label: 'Reviews a month (target)',                type: 'text', placeholder: 'Whole number' },
-      { key: 'landing_page_fails',       label: 'Landing page fails (from the GBP audit)', type: 'textarea', rows: 2, placeholder: 'e.g. no phone in the header; slow on mobile' },
+      { key: 'landing_page_fails',       label: 'Landing page fails (the landing page check fills this)', type: 'textarea', rows: 2, placeholder: 'Filled by "Check landing page" on the client page; type by hand until then' },
+      { key: 'gbp_place_id',             label: 'Google place id (the client\'s own listing)', type: 'text', placeholder: 'Filled by the first competitor check; correct it here if it picked the wrong listing' },
     ]},
     { title: 'Differentiators', fields: [
       { key: 'differentiator_1', label: 'Diff 1 (title)', type: 'text', placeholder: 'e.g. Fixed Prices With No Hidden Costs',

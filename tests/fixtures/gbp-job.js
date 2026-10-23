@@ -5,6 +5,7 @@
 // what's included from a service page's copy, the three steps in order, the retry and
 // the failed step (nothing saved, the reason kept), the resume, the files and the routes.
 const path = require('path');
+const fs = require('fs');
 const http = require('http');
 const crypto = require('crypto');
 const express = require('express');
@@ -107,13 +108,51 @@ chk('note line 1: primary, "competitor check not done", and not a page map tab',
 chk('note line 2: targets with the services target and reviews a month', noteLines[1] === 'Targets: services target 20 (no competitor count saved); 4 reviews a month.', noteLines[1], '');
 chk('note line 3: landing page fails; line 4: blockers (pack unverified, no competitor count, no review link; site URL saved)', noteLines[2] === 'Landing page fails: no phone in the header.' && noteLines[3] === 'Blockers: trade facts pack unverified; no competitor count; no review link.', noteLines[2] + ' / ' + noteLines[3], '');
 const withCount = buildProfile({ inputs: buildGbpInputs({ cv: { ...cvP, competitor_service_count: '24', review_url: 'https://g.page/r/abc/review' }, niche: landscaper, rows, keyValueMap: ctx.keyValueMap, tradeFacts: { niche: 'landscaper', exists: true, verified: true, properNouns: [] } }), record: null });
-chk('with a competitor count, a review link and a verified pack: "competitor check saved", target 25, blockers only the site URL', /competitor check saved \(top 5 list 24 services on average\)/.test(withCount.note) && /beat 24 services \(target 25\)/.test(withCount.note) && /Blockers: no site URL\.$/.test(withCount.note), withCount.note, '');
+chk('with a competitor count, a review link and a verified pack: line 1 still "competitor check not done" (the count is typed, the check is the Places run), target 25, blockers only the site URL', /competitor check not done/.test(withCount.note) && /beat 24 services \(target 25\)/.test(withCount.note) && /Blockers: no site URL\.$/.test(withCount.note), withCount.note, '');
 chk('templates C1 and C2 personalised: business, owner, email; [first name], [name], [job] and [review link] kept when no link is saved', prof.templates.c1 === "Hi [first name], thanks for choosing Edens Edge Landscaping. If you have a minute, we'd really appreciate a Google review: [review link]. Thank you! – Ethan" && /Please email Ethan at ethan@edensedge\.co\.uk so we can talk it through\. – Ethan, Edens Edge Landscaping$/.test(prof.templates.c2) && /^Hi \[name\], thank you for your feedback\. We're sorry the \[job\]/.test(prof.templates.c2), prof.templates.c1 + ' || ' + prof.templates.c2, '');
 chk('with a review link saved, C1 carries it', /Google review: https:\/\/g\.page\/r\/abc\/review\. Thank you!/.test(withCount.templates.c1), withCount.templates.c1, '');
 chk('flags: no review link and no description are flagged, nothing else', prof.flags.map(f => f.code).sort().join(',') === 'GBP-NO-REVIEW-LINK', prof.flags.map(f => f.code).join(','), 'GBP-NO-REVIEW-LINK');
 const manyRows = [...rows, ...Array.from({ length: 10 }, (_, i) => ({ type: 'location', title: `Extra Town ${i + 1}`, slug: `/locations/extra-town-${i + 1}`, applies: true, info: { phase: 2 } }))];
 const capped = buildProfile({ inputs: buildGbpInputs({ cv: cvP, niche: landscaper, rows: manyRows, keyValueMap: ctx.keyValueMap }), record: null });
 chk(`24 areas in the page map: the panel shows ${GBP_AREA_LIMIT} in page map order and flags the rest`, capped.fields.find(f => f.key === 'service_areas').lines.length === 20 && capped.flags.some(f => f.code === 'GBP-AREAS-OVER-LIMIT' && /24 service areas/.test(f.msg) && /Extra Town 7, Extra Town 8, Extra Town 9, Extra Town 10 left off/.test(f.msg)) && capped.nap.service_areas.length === 20, capped.flags.map(f => f.msg).join(), '');
+
+// ── Competitor check, duplicates, landing page (batch 2): recorded Places responses, no Google ──
+const CO = require(path.join(root, 'gbp/competitors.js'));
+const LP = require(path.join(root, 'gbp/landing-page.js'));
+const { normalisePlace } = require(path.join(root, 'gbp/places.js'));
+const recorded = require(path.join(__dirname, 'data/places-edens-edge.json'));
+let placesRun = 1;
+const placesCalls = [];
+const stubSearch = async q => { placesCalls.push(q); const key = q === 'Landscaper Southampton' && placesRun === 2 ? 'Landscaper Southampton#run2' : q; const rec = recorded[key]; if (!rec) throw new Error(`no recorded Places response for "${q}"`); return rec.places.map(normalisePlace); };
+const landingHtml = fs.readFileSync(path.join(__dirname, 'data/edens-edge-landing.html'), 'utf8');
+const fetchedUrls = [];
+const stubFetch = async url => { fetchedUrls.push(url); return { finalUrl: 'https://edensedge.co.uk/', html: landingHtml }; };
+(async () => {
+  const run1 = await CO.runCompetitorCheck({ primary: 'Landscaper', town: 'Southampton', clientName: 'Edens Edge Landscaping', clientPhone: '07850 412717', ownPlaceId: '', search: stubSearch, now: new Date('2026-10-01T10:00:00Z') });
+  chk('competitor run: the keyword is stored; the first five real local businesses in order', run1.keyword === 'Landscaper Southampton' && run1.competitors.map(c => c.name).join('|') === 'Solent Landscapes|Hampshire Garden Design & Build|GreenThumb Southampton|Shirley Landscapes Ltd|Totton Tree & Garden Care', run1.competitors.map(c => c.name).join('|'), '');
+  chk('the client\'s own listing is found by phone and skipped, with its place id', run1.own && run1.own.place_id === 'ChIJ_edens_edge_own' && run1.own.how === 'matched by phone' && run1.skipped.some(s => s.reason === "the client's own listing"), JSON.stringify(run1.own), '');
+  chk('skipped: a directory, a closed business, a listing with no street address; the chain\'s second branch never reached', run1.skipped.some(s => /directory/.test(s.reason) && /checkatrade/.test(s.reason)) && run1.skipped.some(s => /not operating/.test(s.reason)) && run1.skipped.some(s => s.reason === 'no street address' && s.name === 'Hampshire Landscaping Services') && !run1.competitors.some(c => c.name === 'GreenThumb Eastleigh'), run1.skipped.map(s => s.name + ': ' + s.reason).join('; '), '');
+  chk('each competitor carries name, place_id, Maps link, primary type, rating, review count, website; the average row', run1.competitors.every(c => c.place_id && c.maps_url && c.primary_type && c.website && typeof c.review_count === 'number') && run1.average.review_count === Math.round((112 + 64 + 203 + 45 + 88) / 5) && run1.average.rating === 4.8, JSON.stringify(run1.average), '');
+  const reading1 = CO.primaryReading(run1, 'Landscaper');
+  chk('primary reading: 2 of 5 use landscaper → "2 of 5 use landscaper, escalate"', reading1.escalate && reading1.line === 'primary = Landscaper, 2 of 5 use landscaper, escalate', reading1.line, '');
+  const run2Base = { ...run1, competitors: run1.competitors.map(c => ({ ...c, primary_type: 'landscaper' })) };
+  chk('primary reading: 4 of 5 → "4 of 5 competitors use it"', CO.primaryReading({ ...run2Base, competitors: run2Base.competitors.map((c, i) => i === 4 ? { ...c, primary_type: 'tree_service' } : c) }, 'Landscaper').line === 'primary = Landscaper, 4 of 5 competitors use it', '', '');
+  placesRun = 2;
+  const run2 = await CO.runCompetitorCheck({ primary: 'Landscaper', town: 'Southampton', clientName: 'Edens Edge Landscaping', clientPhone: '07850 412717', ownPlaceId: 'ChIJ_edens_edge_own', search: stubSearch, now: new Date('2026-10-31T10:00:00Z') });
+  const cmp = CO.compareRuns(run2, run1);
+  chk('a second run 30 days on: the change per competitor and the average change, as reviews a month', cmp.days === 30 && cmp.changes.find(c => c.name === 'Solent Landscapes').change === 6 && cmp.average_change === Math.round((118 + 70 + 210 + 49 + 90) / 5) - run1.average.review_count && cmp.reviews_per_month === Math.round((cmp.average_change / 30) * 30.4 * 10) / 10, JSON.stringify(cmp).slice(0, 300), '');
+  placesRun = 1;
+  const dup = await CO.findDuplicates({ clientName: 'Edens Edge Landscaping', clientPhone: '07850 412717', town: 'Southampton', ownPlaceId: 'ChIJ_edens_edge_own', search: stubSearch });
+  chk('duplicates: the name match and the phone match listed, the own listing and an unrelated name left out', dup.duplicates.map(d => d.name + ':' + d.matched).sort().join('|') === "Edens Edge Landscaping Ltd:name|Ethan's Gardening:phone" && dup.queries.join('|') === 'Edens Edge Landscaping Southampton|07850 412717', dup.duplicates.map(d => d.name + ':' + d.matched).join('|'), '');
+  const lp = await LP.checkLandingPage({ url: 'https://edensedge.co.uk/?utm_source=google&utm_medium=organic&utm_campaign=gbp', primary: 'Landscaper', town: 'Southampton', secondaries: ['Gardener', 'Landscape Gardener', 'Tree Service'], nap: { name: 'Edens Edge Landscaping', phone: '07850 412717', address: '' }, hiddenAddress: true, fetchHtmlFn: stubFetch, now: new Date('2026-10-23T12:00:00Z') });
+  chk('landing page: utm stripped before the fetch, the final URL recorded', fetchedUrls[0] === 'https://edensedge.co.uk/' && lp.final_url === 'https://edensedge.co.uk/', fetchedUrls[0], 'https://edensedge.co.uk/');
+  chk('all eight signals pass on the sample page (hidden address: none expected)', lp.passed === 8 && lp.fails.length === 0, lp.signals.filter(s => !s.pass).map(s => s.key + ': ' + s.found).join('; '), 'all pass');
+  const lp2 = await LP.checkLandingPage({ url: 'https://edensedge.co.uk/', primary: 'Landscaper', town: 'Southampton', secondaries: ['Deck Builder'], nap: { name: 'Edens Edge Landscaping', phone: '023 8012 3456', address: '12 High Street, Hedge End' }, hiddenAddress: false, fetchHtmlFn: stubFetch });
+  chk('a different NAP phone, an address not on the page and no matching H2 fail, with what was found', !lp2.signals.find(s => s.key === 'phone').pass && /page has 07850412717/.test(lp2.signals.find(s => s.key === 'phone').found) && !lp2.signals.find(s => s.key === 'address').pass && !lp2.signals.find(s => s.key === 'h2_secondary').pass && !lp2.signals.find(s => s.key === 'jsonld').pass && lp2.fails.length === 4, lp2.fails.join('; '), '4 fails');
+  chk('phone matching is digits only: +44 and spaced forms match the page', (await LP.checkLandingPage({ url: 'https://edensedge.co.uk/', primary: 'Landscaper', town: 'Southampton', secondaries: [], nap: { name: 'Edens Edge Landscaping', phone: '+44 7850 412 717', address: '' }, hiddenAddress: true, fetchHtmlFn: stubFetch })).signals.find(s => s.key === 'phone').pass, '', 'pass');
+  placesCalls.length = 0;
+  global.__gbpBatch2 = { stubSearch: async q => { placesCalls.push(q); return stubSearch(q); }, stubFetch, placesCalls, setRun: n => { placesRun = n; } };
+})().catch(e => { console.error(e); process.exit(1); });
 
 // ── A canned model ──
 const SAFE = ['We lay patios and paths in Southampton gardens.', 'Each job starts with a visit and a written quote.', 'The team clears the ground, sets the base and lays the stone.', 'Edges are cut clean and the waste goes with us.', 'Call us for a visit this week.'];
@@ -218,7 +257,11 @@ function fakeModel(opts = {}) {
   let model = fakeModel({ dropOne: true });
   const app = express(); app.use(express.json());
   const quiet = { log() {}, error() {} };
-  mountGbpApi(app, { pool, loadInputs: async id => { if (id === other.id) throw Object.assign(new Error('GBP output needs a v3 page map'), { status: 400 }); return I; }, callModel: (...a) => model(...a), log: quiet });
+  const savedValues = [];
+  let inputsFor = I;
+  const tolerantSearch = async q => { const key = Object.keys(recorded).find(k => k === q || (CO.phoneDigits(k) && CO.phoneDigits(k) === CO.phoneDigits(q))); return key ? stubSearch(key) : []; };
+  mountGbpApi(app, { pool, loadInputs: async id => { if (id === other.id) throw Object.assign(new Error('GBP output needs a v3 page map'), { status: 400 }); return inputsFor; }, callModel: (...a) => model(...a), log: quiet,
+    search: tolerantSearch, fetchPage: stubFetch, saveClientValue: async (id, k, v) => { savedValues.push([k, v]); } });
   const srv = http.createServer(app); await new Promise(r => srv.listen(0, '127.0.0.1', r));
   const base = `http://127.0.0.1:${srv.address().port}`;
   const req = (method, p) => fetch(base + p, { method });
@@ -260,6 +303,33 @@ function fakeModel(opts = {}) {
     chk('clear removes the record; only the live nap.json and note.txt remain', v.record === null && Object.keys(v.files).sort().join(',') === 'nap.json,note.txt', JSON.stringify(Object.keys(v.files)), 'nap.json,note.txt');
     r = await req('POST', `/api/clients/${other.id}/gbp/generate`);
     chk('generate for a client with no v3 page map is 400 with the reason', r.status === 400 && /v3 page map/.test((await r.json()).error), r.status, 400);
+
+    // ── Batch 2 through the routes ──
+    inputsFor = IP;   // the client values with the phone and email
+    placesRun = 1;
+    v = await (await req('POST', `/api/clients/${c.id}/gbp/competitors`)).json();
+    chk('POST competitors: five competitors with the keyword, the reading, no comparison on the first run', v.competitors.latest && v.competitors.latest.competitors.length === 5 && v.competitors.latest.keyword === 'Landscaper Southampton' && v.competitors.reading.escalate === true && v.competitors.comparison === null && v.competitors.runs.length === 1, JSON.stringify(v.competitors.runs), '');
+    chk('the client\'s own place id is saved on the record from the first run', savedValues.some(([k, val]) => k === 'gbp_place_id' && val === 'ChIJ_edens_edge_own'), JSON.stringify(savedValues), '');
+    chk('the duplicate finder ran as the second step: two possible duplicates, no marks yet', v.duplicates.duplicates.length === 2 && Object.keys(v.duplicates.marks).length === 0 && v.files['competitors.json'] && v.files['duplicates.json'], JSON.stringify(Object.keys(v.files)), '');
+    chk('the note reads the competitor run: "2 of 5 use landscaper, escalate" and the keyword and date', /primary = Landscaper, 2 of 5 use landscaper, escalate; search "Landscaper Southampton" on \d+ \w+ \d{4}/.test(v.profile.note), v.profile.note.split('\n')[0], '');
+    const dupId = v.duplicates.duplicates.find(d => d.matched === 'name').place_id;
+    v = await (await fetch(`${base}/api/clients/${c.id}/gbp/duplicates/${encodeURIComponent(dupId)}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ mark: 'reported' }) })).json();
+    chk('PUT a duplicate mark: Reported, with a date', v.duplicates.marks[dupId] && v.duplicates.marks[dupId].mark === 'reported' && v.duplicates.marks[dupId].at, JSON.stringify(v.duplicates.marks), '');
+    r = await fetch(`${base}/api/clients/${c.id}/gbp/duplicates/${encodeURIComponent(dupId)}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ mark: 'maybe' }) });
+    chk('an unknown mark is 400', r.status === 400, r.status, 400);
+    placesRun = 2;
+    v = await (await req('POST', `/api/clients/${c.id}/gbp/competitors`)).json();
+    chk('a second run: two runs stored, the comparison with the review count changes, the mark remembered across runs', v.competitors.runs.length === 2 && v.competitors.comparison && v.competitors.comparison.changes.find(x => x.name === 'Solent Landscapes').change === 6 && v.duplicates.marks[dupId].mark === 'reported', JSON.stringify(v.competitors.comparison).slice(0, 200), '');
+    chk('the note targets line carries reviews a month from the runs when the runs are days apart, else the typed value', /reviews a month/.test(v.profile.note.split('\n')[1]), v.profile.note.split('\n')[1], '');
+    placesRun = 1;
+    v = await (await req('POST', `/api/clients/${c.id}/gbp/landing-page`)).json();
+    chk('POST landing page: the eight signals saved, the fails written to landing_page_fails on the record', v.landing && v.landing.of === 8 && v.files['landing_page.json'] && savedValues.some(([k]) => k === 'landing_page_fails'), JSON.stringify(v.landing && v.landing.fails), '');
+    for (const f of ['competitors.json', 'duplicates.json', 'landing_page.json']) {
+      const rf = await req('GET', `/clients/edens-edge-landscaping/gbp/${f}`);
+      chk(`${f} is served as JSON`, rf.status === 200 && /^application\/json/.test(rf.headers.get('content-type')) && typeof (await rf.json()) === 'object', rf.status, 200);
+    }
+    const cj = await (await req('GET', `/clients/edens-edge-landscaping/gbp/competitors.json`)).json();
+    chk('competitors.json holds the latest run, the previous run, the comparison and the run list', cj.latest && cj.previous && cj.comparison && cj.runs.length === 2 && cj.latest.keyword, Object.keys(cj).join(','), '');
   } finally { srv.close(); }
 
   console.log(`\n${pass} passed, ${fail} failed`);
