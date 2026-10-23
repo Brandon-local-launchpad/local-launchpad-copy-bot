@@ -33,6 +33,9 @@ function createGbpStore(pool) {
       const { rows } = await pool.query(`SELECT id, content, uploaded_at FROM client_assets WHERE client_id=$1 AND asset_type='gbp_competitor_run' ORDER BY uploaded_at DESC LIMIT ${Math.min(200, Math.max(1, limit | 0))}`, [clientId]);
       return rows.map(r => ({ id: r.id, run: typeof r.content === 'string' ? JSON.parse(r.content) : r.content }));
     },
+    // The GBP primary typed by hand per competitor (after a GMB Everywhere look), by place_id, kept across runs
+    async competitorHand(clientId) { return (await one('gbp_competitor_hand', clientId)) || {}; },
+    async saveCompetitorHand(clientId, data) { return put('gbp_competitor_hand', 'competitor_hand.json', clientId, data); },
     async duplicates(clientId) { return one('gbp_duplicates', clientId); },
     async saveDuplicates(clientId, data) { return put('gbp_duplicates', 'duplicates.json', clientId, data); },
     async landingPage(clientId) { return one('gbp_landing_page', clientId); },

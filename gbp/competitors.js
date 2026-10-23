@@ -90,19 +90,52 @@ function compareRuns(latest, previous) {
   return { previous_at: previous.at, days: Math.round(days * 10) / 10, changes, average_change: avgChange, reviews_per_month: perMonth, previous_keyword: previous.keyword };
 }
 
-// How many of the five use the client's primary category (the Places primary type is an
-// approximation of the GBP category: "landscaper" for Landscaper, so the match is loose)
-function primaryReading(run, primary) {
+// ── The primary category reading for the note (Brandon, 23 Oct) ──
+// The Places primary type is an approximation of the GBP category, and for some niches
+// Places has no type at all and falls back to a generic one (landscapers come back as
+// general_contractor). So:
+//   - a "GBP primary (by hand)" value per competitor, typed after a GMB Everywhere look,
+//     wins: when at least half the five have one, the reading uses those
+//   - else, when a majority of the five carry a generic type (GENERIC_TYPES, plus the
+//     niche's own fallback), the line says the type is generic and to check with GMB
+//     Everywhere
+//   - else "escalate" only when a majority share a specific type that differs from the
+//     client's primary; "use it" when a majority match it; otherwise no majority
+const GENERIC_TYPES = ['general_contractor', 'contractor', 'establishment', 'point_of_interest', 'store', 'home_goods_store', 'business', 'local_business'];
+// Niches whose GBP category has no Places type: the type Places gives instead
+const NICHE_FALLBACK_TYPES = { landscaper: ['general_contractor'], 'landscape gardener': ['general_contractor'], gardener: ['general_contractor'], builder: ['general_contractor'], fencing: ['general_contractor'], driveways: ['general_contractor'], paving: ['general_contractor'] };
+
+function primaryReading(run, primary, { hand = {}, nicheFallbacks = null } = {}) {
   if (!run || !run.competitors || !run.competitors.length) return null;
   const want = norm(primary);
-  const typeName = t => norm(String(t || '').replace(/_/g, ' '));
-  const uses = run.competitors.filter(c => { const t = typeName(c.primary_type); return t && want && (t === want || t.includes(want) || want.includes(t)); }).length;
-  const counts = new Map();
-  for (const c of run.competitors) { const t = typeName(c.primary_type) || '(no type)'; counts.set(t, (counts.get(t) || 0) + 1); }
-  const [topType, topCount] = [...counts.entries()].sort((a, b) => b[1] - a[1])[0];
   const n = run.competitors.length;
-  if (uses >= Math.ceil(n / 2)) return { uses, of: n, line: `primary = ${primary}, ${uses} of ${n} competitors use it`, escalate: false, top: topType, top_count: topCount };
-  return { uses, of: n, line: `primary = ${primary}, ${topCount} of ${n} use ${topType}, escalate`, escalate: true, top: topType, top_count: topCount };
+  const majority = Math.ceil(n / 2);
+  const same = (a, b) => a && b && (a === b || a.includes(b) || b.includes(a));
+  const top = values => { const counts = new Map(); for (const v of values) counts.set(v, (counts.get(v) || 0) + 1); return [...counts.entries()].sort((a, b) => b[1] - a[1])[0] || ['', 0]; };
+
+  // By hand first
+  const handValues = run.competitors.map(c => norm((hand[c.place_id] || {}).gbp_primary)).filter(Boolean);
+  if (handValues.length >= majority) {
+    const uses = handValues.filter(v => same(v, want)).length;
+    const [topCat, topCount] = top(handValues);
+    const filled = handValues.length;
+    if (uses >= Math.ceil(filled / 2)) return { source: 'hand', uses, of: filled, line: `primary = ${primary}, ${uses} of ${filled} competitors use it (GBP primary by hand)`, escalate: false, top: topCat, top_count: topCount };
+    if (topCount >= Math.ceil(filled / 2) && !same(topCat, want)) return { source: 'hand', uses, of: filled, line: `primary = ${primary}, ${topCount} of ${filled} use ${topCat} (GBP primary by hand), escalate`, escalate: true, top: topCat, top_count: topCount };
+    return { source: 'hand', uses, of: filled, line: `primary = ${primary}, no majority category among the ${filled} typed by hand (${uses} use it)`, escalate: false, top: topCat, top_count: topCount };
+  }
+
+  // Else the Places types
+  const fallbacks = nicheFallbacks || NICHE_FALLBACK_TYPES[want] || [];
+  const generic = new Set([...GENERIC_TYPES, ...fallbacks].map(t => norm(String(t).replace(/_/g, ' '))));
+  const typeName = t => norm(String(t || '').replace(/_/g, ' '));
+  const types = run.competitors.map(c => typeName(c.primary_type));
+  const genericCount = types.filter(t => !t || generic.has(t)).length;
+  if (genericCount >= majority) return { source: 'places', uses: 0, of: n, generic: genericCount, line: `primary = ${primary}; Places type generic for this niche, check the five with GMB Everywhere`, escalate: false, top: top(types)[0], top_count: top(types)[1] };
+  const uses = types.filter(t => same(t, want)).length;
+  const [topType, topCount] = top(types.filter(t => t && !generic.has(t)));
+  if (uses >= majority) return { source: 'places', uses, of: n, line: `primary = ${primary}, ${uses} of ${n} competitors use it`, escalate: false, top: topType, top_count: topCount };
+  if (topCount >= majority && !same(topType, want)) return { source: 'places', uses, of: n, line: `primary = ${primary}, ${topCount} of ${n} use ${topType}, escalate`, escalate: true, top: topType, top_count: topCount };
+  return { source: 'places', uses, of: n, line: `primary = ${primary}, no majority type among the five (${uses} use it)`, escalate: false, top: topType, top_count: topCount };
 }
 
 // ── Duplicates ──
@@ -126,4 +159,4 @@ async function findDuplicates({ clientName, clientPhone, town, ownPlaceId, searc
   return { at: new Date().toISOString(), queries: queries.map(x => x.q), duplicates: [...found.values()] };
 }
 
-module.exports = { runCompetitorCheck, compareRuns, primaryReading, findDuplicates, namesMatch, phoneDigits, skipReason, DIRECTORY_DOMAINS };
+module.exports = { runCompetitorCheck, compareRuns, primaryReading, findDuplicates, namesMatch, phoneDigits, skipReason, DIRECTORY_DOMAINS, GENERIC_TYPES, NICHE_FALLBACK_TYPES };

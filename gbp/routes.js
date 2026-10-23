@@ -32,9 +32,10 @@ function mountGbpApi(app, { pool, loadInputs, callModel, log = console, search =
   // The competitor runs as the panel, the note and competitors.json read them
   const competitorView = async clientId => {
     const runs = await store.competitorRuns(clientId);
+    const hand = await store.competitorHand(clientId);
     const latest = runs[0] ? runs[0].run : null;
     const previous = runs[1] ? runs[1].run : null;
-    return { latest, previous, comparison: compareRuns(latest, previous), reading: latest ? primaryReading(latest, latest.primary) : null, runs: runs.map(r => ({ at: r.run.at, keyword: r.run.keyword, average: r.run.average, count: (r.run.competitors || []).length })) };
+    return { latest, previous, comparison: compareRuns(latest, previous), hand, reading: latest ? primaryReading(latest, latest.primary, { hand }) : null, runs: runs.map(r => ({ at: r.run.at, keyword: r.run.keyword, average: r.run.average, count: (r.run.competitors || []).length })) };
   };
   const running = new Set();
   const wrap = fn => async (req, res) => {
@@ -109,6 +110,16 @@ function mountGbpApi(app, { pool, loadInputs, callModel, log = console, search =
     const before = (await store.duplicates(clientId)) || { marks: {} };
     await store.saveDuplicates(clientId, { ...dup, marks: before.marks || {} });
     log.log(`[gbp] competitor check for ${clientId}: "${run.keyword}", ${run.competitors.length} competitors, ${run.skipped.length} skipped, ${dup.duplicates.length} possible duplicates`);
+    res.json(await view(clientId));
+  }));
+
+  // The GBP primary category typed by hand for a competitor (blank clears it)
+  app.put('/api/clients/:clientId/gbp/competitors/:placeId', wrap(async (req, res) => {
+    const { clientId, placeId } = req.params;
+    const value = String((req.body || {}).gbp_primary || '').trim().slice(0, 80);
+    const hand = await store.competitorHand(clientId);
+    if (value) hand[placeId] = { gbp_primary: value, at: new Date().toISOString() }; else delete hand[placeId];
+    await store.saveCompetitorHand(clientId, hand);
     res.json(await view(clientId));
   }));
 
