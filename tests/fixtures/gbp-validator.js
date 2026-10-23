@@ -242,6 +242,12 @@ chk('internal capitals in a service description fail, the field named', has(r, '
 P = products(); P[1].description = text(770) + ' We are a Family Run business here.';
 chk('and in a product description', has(V.validateProducts(P, ctxP), 'proof-caps'), '', 'proof-caps');
 chk('no proof points in the context: no capitals check', !has(V.validateDescription(text(690) + ' We are Family Run and Independent here.', ctx), 'proof-caps'), '', 'ok');
+const ctxTF = { ...ctxP, proofPoints: [...ctxP.proofPoints, { text: 'BALI Accredited Contractor', detect: /bali/i }], properPhrases: ['BALI Accredited Contractor', 'Tree Preservation Orders'] };
+r = V.validateDescription(text(685) + ' We are a BALI Accredited Contractor here.', ctxTF);
+chk('a trade facts pack name keeps its capitals inside a sentence', !has(r, 'proof-caps'), rules(r), 'ok');
+r = V.validateDescription(text(685) + ' We are a BALI Accredited Contractor here.', { ...ctxTF, properPhrases: [] });
+chk('the same words without the pack phrase fail ("Accredited")', has(r, 'proof-caps') && /Accredited/.test(r.fails.find(f => f.rule === 'proof-caps').message), rules(r), 'proof-caps');
+chk('phraseSpans finds whole word matches, any case', JSON.stringify(V.phraseSpans('We check tree preservation orders first.', ['Tree Preservation Orders'])) === '[[9,33]]' && V.phraseSpans('Treehouse orders', ['Tree Preservation Orders']).length === 0, JSON.stringify(V.phraseSpans('We check tree preservation orders first.', ['Tree Preservation Orders'])), '[[9,33]]');
 
 // Closing sentence pattern
 const closing = (s, n) => { const l = twenty(); l.slice(0, n).forEach(x => { x.description = text(200) + `. ${x.service} for Southampton gardens.`; }); return V.validateServices(l, s); };

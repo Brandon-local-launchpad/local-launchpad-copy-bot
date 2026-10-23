@@ -5,6 +5,7 @@
 //
 //   node tools/gbp-run.js edens-edge                  the Edens Edge v3 page map and client values
 //   node tools/gbp-run.js edens-edge --resume <dir>   run again from a saved record (the failed step on)
+//   node tools/gbp-run.js edens-edge --trust-pack     treat the landscaper trade facts pack as verified (its names join the proper nouns)
 //
 // Edens Edge: the live page map rows snapshot (tests/fixtures/data/edens-edge-v3-page-map.json),
 // the live client values when tests/live-snapshots/edens-edge.json is there (else the fixture
@@ -35,7 +36,11 @@ function inputsFor(name) {
   const cv = fs.existsSync(snapFile) ? JSON.parse(fs.readFileSync(snapFile, 'utf8')).cv : { ...E.ethanValues(), jobs_wanted: ['Landscape Gardener', 'Landscape Designer'] };
   const hand = { baseTown: 'Southampton', otherTowns: ['Romsey', 'Winchester', 'Eastleigh', 'Chandlers Ford', 'Ampfield', 'Stockbridge', 'Awbridge', 'Chilworth', 'Hedge End', 'Lyndhurst', 'New Forest District', 'Lockerley', 'Kings Worthy'].join('\n') };
   const ctx = contextFromPageMap({ rows, hand, cv, niche: landscaper });
-  return buildGbpInputs({ cv, niche: landscaper, rows, keyValueMap: ctx.keyValueMap, siteUrl: process.env.GBP_SITE_URL || '', serviceCopy: [] });
+  // The verified flag lives in the live database: locally the pack counts as verified only with --trust-pack
+  const P = require(path.join(root, 'trade-facts/pack.js'));
+  const trust = process.argv.includes('--trust-pack');
+  const tradeFacts = { niche: 'landscaper', exists: P.readPack('landscaper').exists, verified: trust, properNouns: trust ? P.packProperNouns('landscaper') : [] };
+  return buildGbpInputs({ cv, niche: landscaper, rows, keyValueMap: ctx.keyValueMap, siteUrl: process.env.GBP_SITE_URL || '', serviceCopy: [], tradeFacts });
 }
 
 (async () => {

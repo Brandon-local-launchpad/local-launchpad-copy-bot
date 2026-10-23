@@ -212,19 +212,37 @@ function proofShareIssues(list, ctx) {
 // ── Proof points with internal capitals (Brandon, round 3): "Family Run and Independent"
 // mid sentence fails; proper nouns (ctx.properNouns) and acronyms are allowed ──
 const PROOF_STOP = new Set(['the', 'and', 'with', 'for', 'our', 'your', 'are', 'from', 'that', 'this', 'any', 'all', 'you', 'not', 'but']);
+// [start, end) character spans where a phrase from the list occurs (case insensitive, whole words)
+function phraseSpans(text, phrases = []) {
+  const spans = [];
+  for (const p of phrases) {
+    if (!p) continue;
+    const re = new RegExp(`\\b${escapeRe(p).replace(/\\?\s+/g, '\\s+')}\\b`, 'gi');
+    for (const m of String(text || '').matchAll(re)) spans.push([m.index, m.index + m[0].length]);
+  }
+  return spans;
+}
+
 function proofCapsIssues(text, field, ctx) {
   const out = [];
   const points = ctx.proofPoints || [];
   if (!points.length) return out;
   const proofWords = new Set(points.flatMap(p => String(p.text || '').toLowerCase().split(/[^a-z0-9]+/)).filter(w => w.length >= 3 && !PROOF_STOP.has(w)));
   const proper = new Set((ctx.properNouns || []).map(w => String(w).toLowerCase()));
+  let offset = 0;
   for (const sentence of String(text || '').split(/(?<=[.!?])\s+|\n+/)) {
+    const spans = phraseSpans(sentence, ctx.properPhrases || []);
     const words = sentence.trim().split(/\s+/);
-    for (let i = 1; i < words.length; i++) {
+    let pos = sentence.indexOf(words[0]);
+    for (let i = 0; i < words.length; i++) {
+      const start = sentence.indexOf(words[i], pos); pos = start + words[i].length;
+      if (i === 0) continue;
       const core = words[i].replace(/^[^A-Za-z0-9]+|[^A-Za-z0-9]+$/g, '');
       if (!/^[A-Z][a-z]+$/.test(core)) continue;                       // Title Case only: acronyms and lower case pass
       const low = core.toLowerCase();
       if (!proofWords.has(low) || proper.has(low)) continue;
+      if (spans.some(([a, b]) => start >= a && start < b)) continue;  // inside a trade facts pack name
+      void offset;
       out.push({ level: 'FAIL', rule: 'proof-caps', field, message: `"${field}" writes a proof point with capitals inside a sentence ("${words.slice(Math.max(0, i - 1), i + 3).join(' ')}"); proof points are lower case except proper nouns.` });
       return out;
     }
@@ -375,5 +393,5 @@ function result(issues, counts = {}) {
 module.exports = {
   LIMITS, VALIDATOR_FILE, loadBannedPhrases, count,
   validateDescription, validateServices, validateProducts,
-  contentIssues, factIssues, bannedHits, capsWords, nameKey, nearDuplicates, categoryIssues, proofShareIssues, proofCapsIssues, closingPatternIssues,
+  contentIssues, factIssues, bannedHits, capsWords, nameKey, nearDuplicates, categoryIssues, proofShareIssues, proofCapsIssues, closingPatternIssues, phraseSpans, escapeRe,
 };

@@ -16,7 +16,7 @@ Copybot runs these after each GBP step (`gbp/validator.js`). A FAIL blocks the s
 - No two service names that differ only by a plural, the word order, or the words custom, bespoke, services or work (the pair is reported; two page map names that collide are a FLAG, since the page map owns them)
 - No proof point in more than a quarter of the service descriptions (each proof point has a detector; opening hours are never a proof point)
 - No more than a third of the service descriptions end with a sentence that starts with the service name
-- A proof point is lower case except proper nouns: "Family Run" inside a sentence fails (proper nouns from the client record and acronyms pass)
+- A proof point is lower case except proper nouns: "Family Run" inside a sentence fails. Proper nouns are the client record's names (company name, areas, logos, materials, GBP categories, each matched as a whole phrase), acronyms, and, when the niche's trade facts pack is verified, the pack's trade bodies, accreditations, schemes and brands (`trade-facts/pack.js` packProperNouns); with the pack unverified or missing the client record alone decides and the run is flagged
 
 ## Content (FAIL)
 - No phone numbers, email addresses or URLs in the description, service descriptions or product descriptions

@@ -3768,7 +3768,13 @@ async function gbpInputsFor(clientId) {
   const rows = await pageMapStore.saved(clientId);
   const { rows: wp } = await pool.query(`SELECT url FROM wp_connections WHERE client_id=$1`, [clientId]);
   const { rows: serviceCopy } = await pool.query(`SELECT page_title, url_slug, copy_output FROM pages WHERE client_id=$1 AND page_type='service' AND copy_output IS NOT NULL`, [clientId]);
-  return require('./gbp/inputs').buildGbpInputs({ cv: ctx.cv, niche: ctx.niche || {}, rows, keyValueMap: ctx.keyValueMap, siteUrl: wp.length ? wp[0].url : '', serviceCopy });
+  // The niche's trade facts pack names (bodies, accreditations, schemes, brands) join the
+  // proper nouns for the GBP lower casing, but only once the pack is verified (Brandon, 23 Oct)
+  const P = require('./trade-facts/pack');
+  const packName = P.packNameFor(await nicheForGate(clientId, ctx.trade));
+  const st = packName ? await tradeFacts.status(packName) : { exists: false, verified: false };
+  const tf = { niche: packName, exists: !!st.exists, verified: !!st.verified, properNouns: st.verified ? P.packProperNouns(packName) : [] };
+  return require('./gbp/inputs').buildGbpInputs({ cv: ctx.cv, niche: ctx.niche || {}, rows, keyValueMap: ctx.keyValueMap, siteUrl: wp.length ? wp[0].url : '', serviceCopy, tradeFacts: tf });
 }
 if (pool && pageMapStore) {
   const { GBP_MODEL } = require('./gbp/generate');

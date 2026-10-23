@@ -183,7 +183,76 @@ function packForService(niche, service) {
   return { markdown: out.join('\n'), missing, header: pack.header, file: pack.file };
 }
 
+// Proper nouns the pack names (Brandon, 23 Oct, for the GBP lower casing): the trade
+// bodies, accreditations and schemes of Table D (the whole name cell), and the brands,
+// standards and bodies written with a capital inside a sentence anywhere in Tables C, D
+// and E (sentence openers are left out, the sources column too). Lower case words; the
+// caller checks the pack is verified before using them. [] when the pack is missing.
+// They come back as phrases ("Tree Preservation Order", "BALI Accredited Contractor",
+// "Marshalls"): a run of capitalised words, with "and", "of", "the", "for" allowed inside.
+// A one word phrase is kept only when it is an acronym, a Table D name, or a word the pack
+// never writes in lower case (a brand); "Guarantee" from "10 Year Guarantee" is dropped.
+const CONNECTORS = new Set(['and', 'of', 'the', 'for', '&']);
+function packProperNouns(niche) {
+  const pack = readPack(niche);
+  if (!pack.exists) return [];
+  const tables = parseTables(pack.text);
+  const clean = cell => String(cell || '').replace(/\*\*/g, '').replace(/\[[^\]]*\]/g, '').replace(/https?:\/\/\S+/g, '').replace(/[–—]/g, ' ');
+  const core = w => w.replace(/^[^A-Za-z0-9]+|[^A-Za-z0-9'’]+$/g, '');
+  const isCap = w => /^[A-Z][A-Za-z0-9'’]*$/.test(core(w)) && core(w).length > 1;
+  const isAcronym = w => /^[A-Z0-9]{2,}$/.test(core(w)) && /[A-Z]/.test(core(w));
+  // Words the pack writes in lower case somewhere (URLs left out: marshalls.co.uk is not prose)
+  const prose = pack.text.replace(/https?:\/\/\S+/g, ' ').replace(/\[[^\]]*\]/g, ' ');
+  const lowerSeen = new Set(prose.match(/(?<![A-Za-z])[a-z][a-z0-9]+(?![A-Za-z])/g) || []);
+  const lowerInPack = w => lowerSeen.has(core(w).toLowerCase());
+  const phrases = new Map();   // lower → as written
+  const addPhrase = (words, { single }) => {
+    const run = words.map(core).filter(Boolean);
+    while (run.length && CONNECTORS.has(run[run.length - 1].toLowerCase())) run.pop();
+    if (!run.length) return;
+    if (run.length === 1 && !single(run[0])) return;
+    const text = run.join(' ');
+    if (!phrases.has(text.toLowerCase())) phrases.set(text.toLowerCase(), text);
+  };
+  const scanCell = (cell, { whole }) => {
+    const text = clean(cell);
+    for (const s of text.split(/(?<=[.!?;:])\s+|\s*\(|\)\s*/)) {
+      const ws = s.trim().split(/\s+/).filter(Boolean);
+      if (!ws.length) continue;
+      if (whole) { if (isCap(ws[0]) || isAcronym(ws[0])) addPhrase(ws, { single: () => true }); continue; }
+      // A sentence opener starts a run only when more capitalised words follow ("Tree
+      // Preservation Orders" at the start of a cell); alone it is just a sentence start
+      let run = [], opener = false;
+      const flush = () => {
+        const caps = run.filter(w => isCap(w) || isAcronym(w)).length;
+        if (!(opener && caps < 2)) addPhrase(run, { single: x => isAcronym(x) || !lowerInPack(x) });
+        run = []; opener = false;
+      };
+      ws.forEach((w, i) => {
+        if (isCap(w) || isAcronym(w) || (run.length && CONNECTORS.has(w.toLowerCase()))) { if (i === 0 && !isAcronym(w)) opener = true; run.push(w); return; }
+        flush();
+      });
+      flush();
+    }
+  };
+  for (const letter of ['C', 'D', 'E']) {
+    const t = tables.get(letter);
+    if (!t) continue;
+    for (const row of t.rows) row.slice(0, Math.max(1, row.length - 1)).forEach((cell, i) => scanCell(cell, { whole: letter === 'D' && i === 0 }));
+  }
+  // A brand inside a longer name ("Marshalls Hard Landscape Guarantee") is a name on its own
+  // when the pack never writes it in lower case
+  for (const p of [...phrases.values()]) {
+    if (!/\s/.test(p)) continue;
+    for (const w of p.split(/\s+/)) {
+      if (CONNECTORS.has(w.toLowerCase()) || w.length < 3 || !isCap(w) || isAcronym(w) || lowerSeen.has(w.toLowerCase())) continue;
+      if (!phrases.has(w.toLowerCase())) phrases.set(w.toLowerCase(), w);
+    }
+  }
+  return [...phrases.values()].sort((a, b) => a.localeCompare(b));
+}
+
 module.exports = {
   DIR, BLOCKS_DIR, CORE_FILE, packNameFor, packFile, blockFile, relative, readPack, readBlock, readCore, listNiches, hasBlock,
-  parseHeader, header, fingerprintOf, parseTables, packForService, cellNames, normName,
+  parseHeader, header, fingerprintOf, parseTables, packForService, packProperNouns, cellNames, normName,
 };

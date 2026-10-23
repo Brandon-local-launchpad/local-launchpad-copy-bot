@@ -17,7 +17,10 @@
 const lc = s => String(s == null ? '' : s).toLowerCase().trim();
 const norm = s => lc(s).replace(/\s+/g, ' ');
 
-function buildGbpInputs({ cv = {}, niche = {}, rows = [], keyValueMap = {}, siteUrl = '', serviceCopy = [] }) {
+// tradeFacts: { niche, verified, properNouns: [words] } from the niche's trade facts pack
+// (trade-facts/pack.js packProperNouns). Its names join the proper noun list only when the
+// pack is verified; otherwise the client record alone decides, and the run says so.
+function buildGbpInputs({ cv = {}, niche = {}, rows = [], keyValueMap = {}, siteUrl = '', serviceCopy = [], tradeFacts = null }) {
   const live = (rows || []).filter(r => r.applies !== false);
   const cats = live.filter(r => r.type === 'category');
   const catName = new Map(cats.map(c => [c.info && c.info.category_key, c.title]));
@@ -76,7 +79,10 @@ function buildGbpInputs({ cv = {}, niche = {}, rows = [], keyValueMap = {}, site
   // Facts from confirmed client values
   const years = yearsLine(cv);
   const accreditations = accreditationsLine(cv);
-  const proofPointList = proofPointsFor(cv, niche, { properWords: [...areas, ...categories] });
+  const packNouns = tradeFacts && tradeFacts.verified ? (tradeFacts.properNouns || []) : [];
+  if (tradeFacts && !tradeFacts.verified) flags.push({ code: 'GBP-PACK-UNVERIFIED', msg: `The trade facts pack${tradeFacts.niche ? ` for "${tradeFacts.niche}"` : ''} is ${tradeFacts.exists === false ? 'missing' : 'not verified'}, so the proper nouns for the GBP lower casing come from the client record alone.` });
+  const properPhrases = properNouns(cv, [...areas, ...categories, ...packNouns]);
+  const proofPointList = proofPointsFor(cv, niche, { properPhrases });
   const proofPoints = proofPointList.map(p => p.text);
   // The description names each core service beside its own category (Pergolas is Deck Builder work, never paving)
   const coreByCategory = categories.map(c => ({ category: c, services: coreServices.filter(n => (locked.find(l => norm(l.service) === norm(n)) || {}).category === c) })).filter(x => x.services.length);
@@ -105,7 +111,8 @@ function buildGbpInputs({ cv = {}, niche = {}, rows = [], keyValueMap = {}, site
     years, accreditations, proofPoints, showPrices, prices, timeframes,
     competitorCount: Number.isFinite(competitorCount) ? competitorCount : null, minServices,
     included, siteUrl: base, flags,
-    validatorCtx: { locked: locked.map(l => ({ category: l.category, service: l.service })), minServices, competitorCount: Number.isFinite(competitorCount) ? competitorCount : null, showPrices, towns: areas, categories: [...new Set([primary, ...categories].filter(Boolean))], proofPoints: proofPointList, properNouns: [...properNouns(cv, [...areas, ...categories])], cv },
+    validatorCtx: { locked: locked.map(l => ({ category: l.category, service: l.service })), minServices, competitorCount: Number.isFinite(competitorCount) ? competitorCount : null, showPrices, towns: areas, categories: [...new Set([primary, ...categories].filter(Boolean))], proofPoints: proofPointList, properNouns: properPhrases.filter(p => !/\s/.test(p)).map(p => p.toLowerCase()), properPhrases, cv },
+    properNounSource: tradeFacts && tradeFacts.verified ? `client record and the ${tradeFacts.niche || ''} trade facts pack`.replace(/\s+/g, ' ') : 'client record only',
   };
 }
 
@@ -157,29 +164,36 @@ const escapeRe = s => String(s).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 // (Brandon, round 3): "Family Run and Independent" → "family run and independent";
 // "Checkatrade approved" keeps Checkatrade. Proper nouns: the company name, the areas,
 // the verified logos, the materials and the GBP categories, as the client record spells them.
+// Every name is a phrase ("Edens Edge Landscaping", "Hedge End", "Paving Contractor",
+// "Indian sandstone"), matched whole, so "Contractor" alone in a proof point is not
+// protected by the category. Returns the phrases as the record spells them.
 function properNouns(cv = {}, extra = []) {
-  const words = new Set();
-  const take = v => { for (const w of String(v || '').split(/[^A-Za-z0-9']+/)) if (/^[A-Z]/.test(w)) words.add(w.toLowerCase()); };
+  const phrases = new Map();
+  const take = v => { const s = String(v || '').trim(); if (s && /[A-Z]/.test(s) && !phrases.has(s.toLowerCase())) phrases.set(s.toLowerCase(), s); };
   take(cv.company_name);
   (Array.isArray(cv.verified_logos) ? cv.verified_logos : []).forEach(l => take(typeof l === 'string' ? l : l && (l.name || l.label)));
   (Array.isArray(cv.materials_methods) ? cv.materials_methods : []).forEach(take);
   extra.forEach(take);
-  return words;
+  return [...phrases.values()];
 }
-function lowerExceptProper(text, proper) {
-  return String(text || '').split(/(\s+)/).map(w => {
+// Lower case except acronyms and the proper noun phrases, which take the record's own
+// spelling where they occur ("Indian Sandstone Patios" → "Indian sandstone patios")
+function lowerExceptProper(text, phrases = []) {
+  const { escapeRe } = require('./validator');
+  let s = String(text || '').split(/(\s+)/).map(w => {
     const core = w.replace(/^[^A-Za-z0-9]+|[^A-Za-z0-9]+$/g, '');
-    if (!core) return w;
-    if (/^[A-Z0-9]{2,}$/.test(core)) return w;                       // acronym: RHS, VAT
-    if (proper.has(core.toLowerCase())) return w;                     // proper noun from the record
-    return w.toLowerCase();
+    return core && /^[A-Z0-9]{2,}$/.test(core) ? w : w.toLowerCase();   // acronym: RHS, VAT
   }).join('');
+  for (const p of [...phrases].filter(Boolean).sort((a, b) => b.length - a.length)) {
+    s = s.replace(new RegExp(`(?<![A-Za-z0-9])${escapeRe(p).replace(/\\?\s+/g, '\\s+')}(?![A-Za-z0-9])`, 'gi'), p);
+  }
+  return s;
 }
 
-function proofPointsFor(cv, niche, { properWords = [] } = {}) {
+function proofPointsFor(cv, niche, { properPhrases = [] } = {}) {
   const out = [];
-  const proper = properNouns(cv, properWords);
-  const add = (text, detect) => { if (text) { const t = lowerExceptProper(text, proper); out.push({ text: t, detect: detect || wordsDetect(t) }); } };
+  const phrases = properNouns(cv, properPhrases);
+  const add = (text, detect) => { if (text) { const t = lowerExceptProper(text, phrases); out.push({ text: t, detect: detect || wordsDetect(t) }); } };
   if (lc(cv.free_quotes) === 'yes') add(lc(cv.free_inspection) === 'yes' ? 'free inspection and quote before any work' : 'free quotes', reDetect(/\bfree\b[^.]{0,30}\b(quote|quotation|visit|inspection|estimate)|\b(quote|quotation|visit|inspection|estimate)s?\b[^.]{0,20}\b(is|are|come|comes) free|no (obligation|charge)/i));
   if (cv.quote_method) add(`quotes: ${cv.quote_method}`);
   if (cv.quote_includes) add(`every quote includes ${cv.quote_includes}`);
