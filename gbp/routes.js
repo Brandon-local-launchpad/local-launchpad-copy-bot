@@ -66,10 +66,18 @@ function mountGbpApi(app, { pool, loadInputs, callModel, log = console, search =
     if (cv.scan_settings && cv.scan_settings.locked) return { settings: cv.scan_settings, saved: true };
     const found = await leadsnapLocationFor(cv);
     let centre = null, place = null;
+    const finite = v => Number.isFinite(Number(v)) && Number(v) !== 0;
     if (found) {
       const L = found.location;
-      centre = { lat: Number(L.latitude), lng: Number(L.longitude), from: `LeadSnap location "${L.location_name || L.name}" (matched by ${found.how})` };
       place = { google_place_id: L.place_id || cv.gbp_place_id || '', leadsnap_location_id: L.id, leadsnap_place_id: null, name: L.location_name || L.name || '', how: found.how };
+      // A service area business often has no position on LeadSnap (0, 0 or null): the
+      // listing by place id, else the address, else the main town, through Places
+      if (finite(L.latitude) && finite(L.longitude)) centre = { lat: Number(L.latitude), lng: Number(L.longitude), from: `LeadSnap location "${place.name}" (matched by ${found.how})` };
+      else {
+        const loc = await locateFn({ placeId: place.google_place_id || '', address: cv.address || '', town: I.town ? `${I.town}, UK` : '' });
+        if (!loc) throw Object.assign(new Error(`The LeadSnap location "${place.name}" has no position, and the address and main town did not resolve, so there is no centre for the grid.`), { status: 400 });
+        centre = { ...loc, from: `${loc.from} (the LeadSnap location "${place.name}" has no position)` };
+      }
     } else {
       const loc = await locateFn({ placeId: cv.gbp_place_id || '', address: cv.address || '', town: I.town ? `${I.town}, UK` : '' });
       if (!loc) throw Object.assign(new Error('No centre for the grid: the client is not on LeadSnap under its place id, phone or name, and the address and main town did not resolve.'), { status: 400 });
@@ -77,14 +85,30 @@ function mountGbpApi(app, { pool, loadInputs, callModel, log = console, search =
       place = { google_place_id: cv.gbp_place_id || '', leadsnap_location_id: null, leadsnap_place_id: null, name: cv.company_name || '', how: 'not on LeadSnap: the centre is ' + loc.from };
     }
     if (!place.google_place_id) throw Object.assign(new Error("No Google place id for the client: save gbp_place_id on Client Values (the competitor check fills it when it finds the listing)."), { status: 400 });
-    // The service area towns' positions, once, through Places
+    // The service area towns' positions, once, through Places, searched near the main town
+    // (a bare "Chilworth, UK" finds the Surrey one, 70 km away). A town further than 50 km from
+    // the centre, or more than three times the median distance of the towns, is the wrong town
+    // or a council area: kept in the list, flagged, left out of the radius.
     const areas = [];
     for (const name of (I.serviceAreasPageMap || I.areas || [])) {
-      try { const hits = await search(`${name}, UK`); const hit = hits.find(p => p.location); areas.push(hit ? { name, lat: hit.location.lat, lng: hit.location.lng } : { name, lat: null, lng: null }); }
-      catch (e) { areas.push({ name, lat: null, lng: null, error: e.message }); }
+      try {
+        const hits = await search(`${name} near ${I.town}, UK`);
+        const hit = hits.find(p => p.location);
+        if (!hit) { areas.push({ name, lat: null, lng: null, note: 'no position found' }); continue; }
+        areas.push({ name, lat: hit.location.lat, lng: hit.location.lng, km: Math.round(SC.kmBetween(centre, hit.location) * 10) / 10, found: hit.name || hit.address || '' });
+      } catch (e) { areas.push({ name, lat: null, lng: null, error: e.message }); }
+    }
+    const kms = areas.filter(a => a.lat !== null).map(a => a.km).sort((x, y) => x - y);
+    const median = kms.length ? kms[Math.floor(kms.length / 2)] : 0;
+    for (const a of areas) {
+      if (a.lat === null) continue;
+      if (a.km > 50 || (kms.length >= 3 && median > 0 && a.km > 3 * median)) {
+        Object.assign(a, { found_lat: a.lat, found_lng: a.lng, lat: null, lng: null, note: `found ${Math.round(a.km)} km from the centre (${a.found || 'another place of that name'}; the towns sit ${median} km away on average); left out of the radius` });
+      }
     }
     const settings = SC.buildScanSettings({ clientName: I.name, primary: I.primary, town: I.town, jobsWanted: cv.jobs_wanted || [], locked: I.locked, categories: I.categories, centre, areas, place });
     settings.areas = areas;
+    settings.notes = areas.filter(a => a.note || a.error).map(a => `${a.name}: ${a.note || a.error}`);
     return { settings, saved: false };
   }
 

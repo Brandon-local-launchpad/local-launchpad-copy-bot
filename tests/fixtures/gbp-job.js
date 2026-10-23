@@ -348,7 +348,7 @@ function fakeModel(opts = {}) {
   let inputsFor = I;
   const tolerantSearch = async q => { const key = Object.keys(recorded).find(k => k === q || (CO.phoneDigits(k) && CO.phoneDigits(k) === CO.phoneDigits(q))); return key ? stubSearch(key) : []; };
   mountGbpApi(app, { pool, loadInputs: async id => { if (id === other.id) throw Object.assign(new Error('GBP output needs a v3 page map'), { status: 400 }); return inputsFor; }, callModel: (...a) => model(...a), log: quiet,
-    search: async q => { const town = q.replace(/, UK$/, ''); if (townPositions[town]) return [{ name: town, location: { lat: townPositions[town][0], lng: townPositions[town][1] } }]; return tolerantSearch(q); },
+    search: async q => { const town = q.replace(/ near .*$/, '').replace(/, UK$/, ''); if (town === 'Chilworth') return [{ name: 'Chilworth, Guildford', location: { lat: 51.214, lng: -0.534 } }]; if (townPositions[town]) return [{ name: town, location: { lat: townPositions[town][0], lng: townPositions[town][1] } }]; return tolerantSearch(q); },
     fetchPage: stubFetch, saveClientValue: async (id, k, v) => { savedValues.push([k, v]); if (k === 'scan_settings') inputsFor = { ...inputsFor, validatorCtx: { ...inputsFor.validatorCtx, cv: { ...inputsFor.validatorCtx.cv, scan_settings: v } } }; }, locate: async () => ({ lat: 50.9097, lng: -1.4044, from: 'the main town (Southampton)' }), leadsnap: stubLeadsnap });
   const srv = http.createServer(app); await new Promise(r => srv.listen(0, '127.0.0.1', r));
   const base = `http://127.0.0.1:${srv.address().port}`;
@@ -436,7 +436,13 @@ function fakeModel(opts = {}) {
     lsCalls.length = 0;
     let pv = await (await req('POST', `/api/clients/${c.id}/gbp/scans/preview`)).json();
     chk('preview: settings from the LeadSnap location (centre and place by the saved gbp_place_id), two keywords, grid 13, the credit cost, nothing created', pv.saved === false && pv.settings.place.leadsnap_location_id === 20 && /matched by the saved gbp_place_id/.test(pv.settings.centre.from) && pv.settings.keywords.length === 2 && pv.settings.grid_size === 13 && pv.credits === 338 && !lsCalls.includes('createHeatmap'), JSON.stringify([pv.settings.keywords.map(k => k.keyword), pv.settings.grid_size, pv.credits, lsCalls]), '');
-    chk('preview: the service area towns were positioned through Places and the farthest sets the radius', pv.settings.towns_positioned >= 6 && pv.settings.farthest && pv.settings.farthest.name === 'Winchester' && Math.abs(pv.settings.grid_radius_m - Math.round(pv.settings.farthest.km * 1000 / 6)) <= 20, JSON.stringify([pv.settings.towns_positioned, pv.settings.farthest, pv.settings.grid_radius_m]), '');
+    chk('preview: the service area towns were positioned through Places near the main town and the farthest sets the radius', pv.settings.towns_positioned >= 6 && pv.settings.farthest && pv.settings.farthest.name === 'Winchester' && Math.abs(pv.settings.grid_radius_m - Math.round(pv.settings.farthest.km * 1000 / 6)) <= 20, JSON.stringify([pv.settings.towns_positioned, pv.settings.farthest, pv.settings.grid_radius_m]), '');
+    chk('a town found far away (Chilworth in Surrey) is flagged and left out of the radius', pv.settings.areas.find(a => a.name === 'Chilworth').lat === null && /km from the centre/.test(pv.settings.areas.find(a => a.name === 'Chilworth').note) && pv.settings.notes.some(n => /^Chilworth:/.test(n)), JSON.stringify(pv.settings.areas.find(a => a.name === 'Chilworth')), '');
+    // A LeadSnap location with no position: the centre falls back through Places (the locate stub)
+    const savedLoc = LS.locations.data[0]; const keepLat = savedLoc.latitude, keepLng = savedLoc.longitude; savedLoc.latitude = 0; savedLoc.longitude = null;
+    const pv0 = await (await req('POST', `/api/clients/${c.id}/gbp/scans/preview`)).json();
+    chk('a LeadSnap location at 0, 0: the centre comes from Places and the settings say so', pv0.settings && pv0.settings.centre.lat === 50.9097 && /has no position/.test(pv0.settings.centre.from) && pv0.settings.place.leadsnap_location_id === 20, JSON.stringify(pv0.settings && pv0.settings.centre) + ' ' + (pv0.error || ''), '');
+    savedLoc.latitude = keepLat; savedLoc.longitude = keepLng;
     r = await req('POST', `/api/clients/${c.id}/gbp/scans/baseline`);
     chk('baseline without confirm is 400 and creates nothing', r.status === 400 && !lsCalls.includes('createHeatmap'), r.status, 400);
     v = await (await fetch(`${base}/api/clients/${c.id}/gbp/scans/baseline`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ confirm: true }) })).json();
