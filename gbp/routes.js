@@ -51,7 +51,9 @@ function mountGbpApi(app, { pool, loadInputs, callModel, log = console }) {
       const I = await loadInputs(clientId);
       if (!I.locked.length) throw Object.assign(new Error('The page map has no service pages, so there is nothing to build the GBP services from.'), { status: 400 });
       const found = await store.latest(clientId);
-      const before = found ? found.record : null;
+      // Resume a record with a step still to do; a finished one starts again from the description
+      const allDone = found && STEPS.every(s => found.record.steps && found.record.steps[s] && found.record.steps[s].status === 'done');
+      const before = found && !allDone ? found.record : null;
       const { record, failedStep } = await runGbp({ inputs: I, record: before, callModel, log: m => log.log(m) });
       await store.save(clientId, record);
       log.log(`[gbp] ${clientId}: ${failedStep ? `failed at ${failedStep}` : 'all three steps done'}`);

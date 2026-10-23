@@ -188,6 +188,9 @@ function fakeModel(opts = {}) {
     chk('an unknown file name is 404', r.status === 404, r.status, 404);
     r = await req('GET', `/clients/nobody-here/gbp/description.txt`);
     chk('an unknown slug is 404', r.status === 404, r.status, 404);
+    const doneAt = v.record.updated_at;
+    v = await (await req('POST', `/api/clients/${c.id}/gbp/generate`)).json();
+    chk('POST on a finished record starts again from the description (a new record, all three steps run)', v.failedStep === null && v.record.updated_at !== doneAt && v.record.steps.description.at > doneAt, `${v.record.updated_at} vs ${doneAt}`, 'newer');
     const { rows: assets } = await pool.query(`SELECT asset_type FROM client_assets WHERE client_id=$1`, [c.id]);
     chk('one gbp_output row per client, updated in place', assets.length === 1 && assets[0].asset_type === 'gbp_output', assets.length, 1);
     v = await (await req('POST', `/api/clients/${c.id}/gbp/clear`)).json();
