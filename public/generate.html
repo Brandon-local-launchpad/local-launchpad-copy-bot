@@ -2276,6 +2276,9 @@
     { title: 'Google Business Profile', fields: [
       { key: 'competitor_service_count', label: 'Competitor service count (top 5 average)', type: 'text', placeholder: 'Whole number; blank means the GBP services target is 20' },
       { key: 'show_prices',              label: 'Show prices in GBP products',             type: 'select', options: ['','yes','no'] },
+      { key: 'review_url',               label: 'Google review link',                      type: 'text', placeholder: 'https://g.page/r/…/review (also pushed to the site)' },
+      { key: 'reviews_per_month',        label: 'Reviews a month (target)',                type: 'text', placeholder: 'Whole number' },
+      { key: 'landing_page_fails',       label: 'Landing page fails (from the GBP audit)', type: 'textarea', rows: 2, placeholder: 'e.g. no phone in the header; slow on mobile' },
     ]},
     { title: 'Differentiators', fields: [
       { key: 'differentiator_1', label: 'Diff 1 (title)', type: 'text', placeholder: 'e.g. Fixed Prices With No Hidden Costs',

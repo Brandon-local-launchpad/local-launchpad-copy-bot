@@ -2936,6 +2936,9 @@ const CLIENT_VALUES_TEMPLATE = {
   // GBP output (23 Oct): the competitors' average service count (a whole number, by hand for
   // now) and whether products may show the approved prices
   competitor_service_count: '', show_prices: '',
+  // GBP batch 1 (23 Oct): the Google review link (also pushed to the site), the reviews a
+  // month target and the landing page fails, for the internal note and the templates
+  review_url: '', reviews_per_month: '', landing_page_fails: '',
 };
 
 app.get('/api/clients/:clientId/gbp-categories', async (req, res) => {

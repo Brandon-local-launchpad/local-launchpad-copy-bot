@@ -59,6 +59,9 @@ function cvValue(key, cv, yearsTrading) {
 function clientValueMap(cv, yearsTrading) {
   const out = {};
   for (const k of CV_KEYS) { const v = cvValue(k, cv, yearsTrading); if (v) out[k] = v; }
+  // The Google review link (Client Values, Google Business Profile, 23 Oct): the WordPress
+  // site's review_url and the GBP review request read it; no [CV:] token names it
+  if (cv.review_url && String(cv.review_url).trim()) out.review_url = String(cv.review_url).trim();
   return out;
 }
 

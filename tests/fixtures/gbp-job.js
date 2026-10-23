@@ -86,6 +86,35 @@ chk('what\'s included: the intro and middle sections, tokens written out, phone 
 chk('30 of 31 services have no copy: one flag with the count', I.flags.some(f => f.code === 'GBP-NO-SERVICE-COPY' && /30 of 31/.test(f.msg)), JSON.stringify(I.flags), '30 of 31');
 chk('a long copy is cut at a sentence end near 1500 characters', whatsIncluded('### 5. INTRO PARAGRAPH\n' + 'A sentence about the work. '.repeat(100)).length <= 1500, whatsIncluded('A sentence about the work. '.repeat(100)).length, '<= 1500');
 
+// ── Profile fields, NAP, note and templates (batch 1) ──
+const { buildProfile, normalisePhone, expandAddress, GBP_AREA_LIMIT } = require(path.join(root, 'gbp/profile.js'));
+const cvP = { ...cv, competitor_service_count: '', phone: '+44 7850 412717', email: 'ethan@edensedge.co.uk', hours: 'Monday to Saturday, 7am to 6pm', year_founded: '2015', owner_name: 'Ethan', review_url: '', reviews_per_month: '4', landing_page_fails: 'no phone in the header' };
+const IP = buildGbpInputs({ cv: cvP, niche: landscaper, rows, keyValueMap: ctx.keyValueMap, siteUrl: 'https://edensedge.co.uk/', tradeFacts: { niche: 'landscaper', exists: true, verified: false, properNouns: [] } });
+const fakeRecord = { steps: { description: { status: 'done', output: { description: 'Edens Edge Landscaping is a landscaper in Southampton.' } } } };
+const prof = buildProfile({ inputs: IP, record: fakeRecord });
+const fld = k => prof.fields.find(f => f.key === k);
+chk('profile fields in order: name, primary, secondaries, areas, description, website, appointment, year, hours', prof.fields.map(f => f.key).join(',') === 'business_name,primary_category,secondary_categories,service_areas,description,website_url,appointment_url,opening_year,hours', prof.fields.map(f => f.key).join(','), '');
+chk('service areas: page map spelling, base town first, one per line (14 for Edens Edge, no cap flag)', fld('service_areas').lines.length === 14 && fld('service_areas').lines[0] === 'Southampton' && fld('service_areas').lines[1] === 'Romsey' && fld('service_areas').lines.includes('New Forest District') && !fld('service_areas').flag, fld('service_areas').lines.join('|'), '');
+chk('website URL carries the GBP tracking; the appointment URL is the contact page', fld('website_url').value === 'https://edensedge.co.uk/?utm_source=google&utm_medium=organic&utm_campaign=gbp' && fld('appointment_url').value === 'https://edensedge.co.uk/contact/', fld('website_url').value + ' ' + fld('appointment_url').value, '');
+chk('description from the record, opening year and hours from the client values', fld('description').value.startsWith('Edens Edge Landscaping is a landscaper') && fld('opening_year').value === '2015' && fld('hours').value === 'Monday to Saturday, 7am to 6pm', '', '');
+chk('NAP: service areas (no storefront address), phone normalised from +44, website without the tracking', prof.nap.address === null && prof.nap.service_areas.length === 14 && prof.nap.phone === '07850 412717' && prof.nap.website === 'https://edensedge.co.uk' && prof.nap.email === 'ethan@edensedge.co.uk', JSON.stringify(prof.nap).slice(0, 200), '');
+const storefront = buildProfile({ inputs: IP, record: fakeRecord, cv: { ...cvP, gbp_address_type: 'storefront', address: '12 High St, Hedge End, Southampton' } });
+chk('a storefront address replaces the areas in the NAP, with Street written out', storefront.nap.address === '12 High Street, Hedge End, Southampton' && storefront.nap.service_areas === null, storefront.nap.address, '12 High Street, Hedge End, Southampton');
+chk('phone formats: 023 8000 1234 → 02380 001234; 0044 → 0; 10 digits left as typed and flagged', normalisePhone('023 8000 1234').phone === '02380 001234' && normalisePhone('0044 7850412717').phone === '07850 412717' && normalisePhone('7850 412717').phone === '7850 412717' && /left as typed/.test(normalisePhone('7850 412717').flag), JSON.stringify([normalisePhone('023 8000 1234'), normalisePhone('7850 412717')]), '');
+chk('address abbreviations: Rd, Ave, Ln written out; "St Marys Road" keeps the saint', expandAddress('Unit 3 Mill Rd, Park Ave, Oak Ln') === 'Unit 3 Mill Road, Park Avenue, Oak Lane' && expandAddress('St Marys Rd') === 'St Marys Road', expandAddress('Unit 3 Mill Rd, Park Ave, Oak Ln') + ' | ' + expandAddress('St Marys Rd'), '');
+const noteLines = prof.note.split('\n');
+chk('note line 1: primary, "competitor check not done", and not a page map tab', noteLines.length === 4 && /^Primary category: Landscaper \(primary = client's pick, competitor check not done; not one of the page map tabs/.test(noteLines[0]), noteLines[0], '');
+chk('note line 2: targets with the services target and reviews a month', noteLines[1] === 'Targets: services target 20 (no competitor count saved); 4 reviews a month.', noteLines[1], '');
+chk('note line 3: landing page fails; line 4: blockers (pack unverified, no competitor count, no review link; site URL saved)', noteLines[2] === 'Landing page fails: no phone in the header.' && noteLines[3] === 'Blockers: trade facts pack unverified; no competitor count; no review link.', noteLines[2] + ' / ' + noteLines[3], '');
+const withCount = buildProfile({ inputs: buildGbpInputs({ cv: { ...cvP, competitor_service_count: '24', review_url: 'https://g.page/r/abc/review' }, niche: landscaper, rows, keyValueMap: ctx.keyValueMap, tradeFacts: { niche: 'landscaper', exists: true, verified: true, properNouns: [] } }), record: null });
+chk('with a competitor count, a review link and a verified pack: "competitor check saved", target 25, blockers only the site URL', /competitor check saved \(top 5 list 24 services on average\)/.test(withCount.note) && /beat 24 services \(target 25\)/.test(withCount.note) && /Blockers: no site URL\.$/.test(withCount.note), withCount.note, '');
+chk('templates C1 and C2 personalised: business, owner, email; [first name], [name], [job] and [review link] kept when no link is saved', prof.templates.c1 === "Hi [first name], thanks for choosing Edens Edge Landscaping. If you have a minute, we'd really appreciate a Google review: [review link]. Thank you! – Ethan" && /Please email Ethan at ethan@edensedge\.co\.uk so we can talk it through\. – Ethan, Edens Edge Landscaping$/.test(prof.templates.c2) && /^Hi \[name\], thank you for your feedback\. We're sorry the \[job\]/.test(prof.templates.c2), prof.templates.c1 + ' || ' + prof.templates.c2, '');
+chk('with a review link saved, C1 carries it', /Google review: https:\/\/g\.page\/r\/abc\/review\. Thank you!/.test(withCount.templates.c1), withCount.templates.c1, '');
+chk('flags: no review link and no description are flagged, nothing else', prof.flags.map(f => f.code).sort().join(',') === 'GBP-NO-REVIEW-LINK', prof.flags.map(f => f.code).join(','), 'GBP-NO-REVIEW-LINK');
+const manyRows = [...rows, ...Array.from({ length: 10 }, (_, i) => ({ type: 'location', title: `Extra Town ${i + 1}`, slug: `/locations/extra-town-${i + 1}`, applies: true, info: { phase: 2 } }))];
+const capped = buildProfile({ inputs: buildGbpInputs({ cv: cvP, niche: landscaper, rows: manyRows, keyValueMap: ctx.keyValueMap }), record: null });
+chk(`24 areas in the page map: the panel shows ${GBP_AREA_LIMIT} in page map order and flags the rest`, capped.fields.find(f => f.key === 'service_areas').lines.length === 20 && capped.flags.some(f => f.code === 'GBP-AREAS-OVER-LIMIT' && /24 service areas/.test(f.msg) && /Extra Town 7, Extra Town 8, Extra Town 9, Extra Town 10 left off/.test(f.msg)) && capped.nap.service_areas.length === 20, capped.flags.map(f => f.msg).join(), '');
+
 // ── A canned model ──
 const SAFE = ['We lay patios and paths in Southampton gardens.', 'Each job starts with a visit and a written quote.', 'The team clears the ground, sets the base and lays the stone.', 'Edges are cut clean and the waste goes with us.', 'Call us for a visit this week.'];
 function text(n, lead = '') {
@@ -195,7 +224,11 @@ function fakeModel(opts = {}) {
   const req = (method, p) => fetch(base + p, { method });
   try {
     let v = await (await req('GET', `/api/clients/${c.id}/gbp`)).json();
-    chk('GET: no record yet, readiness from the inputs, the slug', v.record === null && v.readiness.ok && v.readiness.locked === 31 && v.readiness.minServices === 25 && v.slug === 'edens-edge-landscaping' && Object.keys(v.files).length === 0, JSON.stringify([v.record, v.readiness.locked, v.slug]), '');
+    chk('GET: no record yet, readiness from the inputs, the slug, the profile with nap.json and note.txt links', v.record === null && v.readiness.ok && v.readiness.locked === 31 && v.readiness.minServices === 25 && v.slug === 'edens-edge-landscaping' && Object.keys(v.files).sort().join(',') === 'nap.json,note.txt' && v.profile && v.profile.fields.length === 9 && v.profile.nap.name === 'Edens Edge Landscaping' && v.profile.flags.some(f => f.code === 'GBP-NO-DESCRIPTION'), JSON.stringify([v.record, v.readiness.locked, v.slug, Object.keys(v.files)]), '');
+    const rn = await req('GET', `/clients/edens-edge-landscaping/gbp/nap.json`);
+    chk('nap.json is served live before any run, phone normalised', rn.status === 200 && (await rn.json()).phone === '02300 000000', rn.status, 200);
+    const rt = await req('GET', `/clients/edens-edge-landscaping/gbp/note.txt`);
+    chk('note.txt is served live, four lines', rt.status === 200 && (await rt.text()).split('\n').length === 4, rt.status, 200);
     v = await (await req('GET', `/api/clients/${other.id}/gbp`)).json();
     chk('GET for a client with no v3 page map: readiness carries the error', v.readiness.ok === false && /v3 page map/.test(v.readiness.error), JSON.stringify(v.readiness), '');
     let r = await req('GET', `/clients/edens-edge-landscaping/gbp/description.txt`);
@@ -209,7 +242,7 @@ function fakeModel(opts = {}) {
     chk('services.csv is 404 while that step has not passed', r.status === 404 && /not ready/.test((await r.json()).error), r.status, 404);
     model = fakeModel();
     v = await (await req('POST', `/api/clients/${c.id}/gbp/generate`)).json();
-    chk('POST again resumes and finishes; all four files linked', v.failedStep === null && Object.keys(v.files).length === 4 && v.record.steps.products.status === 'done', JSON.stringify(Object.keys(v.files)), '');
+    chk('POST again resumes and finishes; all six files linked', v.failedStep === null && Object.keys(v.files).sort().join(',') === 'description.txt,nap.json,note.txt,products.csv,services.csv,validation.json' && v.record.steps.products.status === 'done', JSON.stringify(Object.keys(v.files)), '');
     r = await req('GET', `/clients/edens-edge-landscaping/gbp/products.csv`);
     chk('products.csv is served as CSV with 31 rows', r.status === 200 && /^text\/csv/.test(r.headers.get('content-type')) && Papa.parse(await r.text(), { header: true, skipEmptyLines: true }).data.length === 31, r.status, 200);
     r = await req('GET', `/clients/edens-edge-landscaping/gbp/validation.json`);
@@ -224,7 +257,7 @@ function fakeModel(opts = {}) {
     const { rows: assets } = await pool.query(`SELECT asset_type FROM client_assets WHERE client_id=$1`, [c.id]);
     chk('one gbp_output row per client, updated in place', assets.length === 1 && assets[0].asset_type === 'gbp_output', assets.length, 1);
     v = await (await req('POST', `/api/clients/${c.id}/gbp/clear`)).json();
-    chk('clear removes the record', v.record === null && Object.keys(v.files).length === 0, JSON.stringify(v.record), 'null');
+    chk('clear removes the record; only the live nap.json and note.txt remain', v.record === null && Object.keys(v.files).sort().join(',') === 'nap.json,note.txt', JSON.stringify(Object.keys(v.files)), 'nap.json,note.txt');
     r = await req('POST', `/api/clients/${other.id}/gbp/generate`);
     chk('generate for a client with no v3 page map is 400 with the reason', r.status === 400 && /v3 page map/.test((await r.json()).error), r.status, 400);
   } finally { srv.close(); }

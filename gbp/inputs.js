@@ -93,6 +93,9 @@ function buildGbpInputs({ cv = {}, niche = {}, rows = [], keyValueMap = {}, site
   // Facts from confirmed client values
   const years = yearsLine(cv);
   const accreditations = accreditationsLine(cv);
+  // Service areas as the page map spells them (the profile panel): the base town, then the
+  // location rows in page map order, phase 2 included (they are areas served, built or not)
+  const serviceAreasPageMap = [town, ...live.filter(r => r.type === 'location').map(r => r.title)].filter(Boolean).filter((t, i, a) => a.findIndex(x => norm(x) === norm(t)) === i);
   const packNouns = tradeFacts && tradeFacts.verified ? (tradeFacts.properNouns || []) : [];
   if (tradeFacts && !tradeFacts.verified) flags.push({ code: 'GBP-PACK-UNVERIFIED', msg: `The trade facts pack${tradeFacts.niche ? ` for "${tradeFacts.niche}"` : ''} is ${tradeFacts.exists === false ? 'missing' : 'not verified'}, so the proper nouns for the GBP lower casing come from the client record alone.` });
   const properPhrases = properNouns(cv, [...areas, ...categories, ...packNouns]);
@@ -124,7 +127,8 @@ function buildGbpInputs({ cv = {}, niche = {}, rows = [], keyValueMap = {}, site
     locked, confirmedNoPage, coreServices, coreByCategory,
     years, accreditations, proofPoints, showPrices, prices, timeframes,
     competitorCount: Number.isFinite(competitorCount) ? competitorCount : null, minServices,
-    included, siteUrl: base, flags,
+    included, siteUrl: base, flags, serviceAreasPageMap,
+    packStatus: tradeFacts ? { niche: tradeFacts.niche || null, exists: tradeFacts.exists !== false, verified: !!tradeFacts.verified } : null,
     validatorCtx: { locked: locked.map(l => ({ category: l.category, service: l.service })), minServices, competitorCount: Number.isFinite(competitorCount) ? competitorCount : null, showPrices, towns: areas, categories: [...new Set([primary, ...categories].filter(Boolean))], proofPoints: proofPointList, properNouns: properPhrases.filter(p => !/\s/.test(p)).map(p => p.toLowerCase()), properPhrases, primaryCategory: primary, cv },
     properNounSource: tradeFacts && tradeFacts.verified ? `client record and the ${tradeFacts.niche || ''} trade facts pack`.replace(/\s+/g, ' ') : 'client record only',
   };

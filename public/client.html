@@ -274,7 +274,24 @@
       H.push(`<div class="notice fail"><strong>${esc(st.error)}</strong><ul>${st.fails.map(f => `<li>${esc(f.message)}</li>`).join('')}</ul>
         <details><summary>The model's answer</summary><pre class="field-text" style="max-height:300px;overflow:auto">${esc(st.raw || '')}</pre></details></div>`);
     }
-    if (R && Object.keys(gbp.files || {}).length) H.push(`<div class="files">Files: ${Object.entries(gbp.files).map(([f, u]) => `<a href="${u}" target="_blank">${f}</a>`).join('')}</div>`);
+    if (Object.keys(gbp.files || {}).length) H.push(`<div class="files">Files: ${Object.entries(gbp.files).map(([f, u]) => `<a href="${u}" target="_blank">${f}</a>`).join('')}</div>`);
+    // Profile fields, NAP, the internal note and the review templates (batch 1): live from the record
+    const P = gbp.profile;
+    if (P) {
+      H.push(`<h3>Profile fields <span class="badge badge-v20">paste into the GBP editor, top to bottom</span></h3>`);
+      if (P.flags.length) H.push(`<div class="notice"><ul>${P.flags.map(f => `<li>${esc(f.msg)}</li>`).join('')}</ul></div>`);
+      for (const f of P.fields) H.push(field(f.label, f.value || '(blank)', f.lines ? `${f.lines.length} lines` : `${[...(f.value || '')].length} characters`, f.flag ? [{ message: f.flag }] : []));
+      H.push(`<h3>NAP record <span class="field-meta">nap.json</span></h3>`);
+      const nap = P.nap;
+      const napRows = [['Name', nap.name], ['Address', nap.address || ''], ['Service areas', nap.service_areas ? nap.service_areas.join('\n') : ''], ['Phone', nap.phone], ['Website', nap.website], ['Email', nap.email], ['Hours', nap.hours]].filter(([, v]) => v);
+      H.push(`<div class="field"><div class="field-head"><span class="field-name">Name, address, phone, website, email, hours</span>${copyBtn(JSON.stringify(nap, null, 2))}</div>
+        ${napRows.map(([k, v]) => `<div class="field-head" style="margin-top:.4rem"><span class="field-text"><span class="field-meta">${esc(k)}</span>&nbsp; ${esc(v)}</span>${copyBtn(v)}</div>`).join('')}</div>`);
+      H.push(`<h3>Internal note <span class="field-meta">note.txt</span></h3>`);
+      H.push(field('Four lines for the GBP record', P.note, '', []));
+      H.push(`<h3>Review templates <span class="field-meta">Appendix C of the GBP Workflow SOP</span></h3>`);
+      H.push(field('C1. Review request (text after every job)', P.templates.c1, 'keeps [first name]', []));
+      H.push(field('C2. Reply to a 1 to 3 star review', P.templates.c2, 'keeps [name] and [job]', [{ message: P.templates.c2_rule }]));
+    }
     // Description
     const d = steps.description;
     if (d && d.status === 'done') {

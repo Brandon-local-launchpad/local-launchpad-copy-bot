@@ -12,8 +12,15 @@
 const { slugify } = require('../page-map/slugs');
 const { createGbpStore } = require('./store');
 const { runGbp, filesFor, STEPS } = require('./generate');
+const { buildProfile } = require('./profile');
 
-const CONTENT_TYPES = { 'description.txt': 'text/plain; charset=utf-8', 'services.csv': 'text/csv; charset=utf-8', 'products.csv': 'text/csv; charset=utf-8', 'validation.json': 'application/json; charset=utf-8' };
+const CONTENT_TYPES = { 'description.txt': 'text/plain; charset=utf-8', 'services.csv': 'text/csv; charset=utf-8', 'products.csv': 'text/csv; charset=utf-8', 'validation.json': 'application/json; charset=utf-8', 'nap.json': 'application/json; charset=utf-8', 'note.txt': 'text/plain; charset=utf-8' };
+
+// nap.json and note.txt are built live from the inputs and the saved record (gbp/profile.js)
+function profileFiles(I, record) {
+  const p = buildProfile({ inputs: I, record });
+  return { 'nap.json': JSON.stringify(p.nap, null, 2), 'note.txt': p.note };
+}
 
 function mountGbpApi(app, { pool, loadInputs, callModel, log = console }) {
   const store = createGbpStore(pool);
@@ -32,14 +39,18 @@ function mountGbpApi(app, { pool, loadInputs, callModel, log = console }) {
     const found = await store.latest(clientId);
     const record = found ? found.record : null;
     const files = record ? Object.keys(filesFor(record)).reduce((o, f) => { o[f] = `/clients/${slug}/gbp/${f}`; return o; }, {}) : {};
-    let readiness;
+    let readiness, profile = null;
     try {
       const I = await loadInputs(clientId);
       readiness = { ok: I.locked.length > 0, locked: I.locked.length, minServices: I.minServices, competitorCount: I.competitorCount, showPrices: I.showPrices, siteUrl: I.siteUrl, withCopy: Object.keys(I.included).length, flags: I.flags, town: I.town, name: I.name };
       if (!I.locked.length) readiness.flags = [...I.flags, { code: 'GBP-NO-SERVICES', msg: 'The page map has no service pages.' }];
+      // The profile fields, NAP, note and templates: live, so a changed value shows at once
+      profile = buildProfile({ inputs: I, record });
+      files['nap.json'] = `/clients/${slug}/gbp/nap.json`;
+      files['note.txt'] = `/clients/${slug}/gbp/note.txt`;
     } catch (e) { readiness = { ok: false, error: e.message, flags: [] }; }
     // rules: the validator round the live app runs (3: the description's category cap and openings, 23 Oct)
-    return { slug, record, files, readiness, running: running.has(clientId), rules: 3, ...extra };
+    return { slug, record, files, readiness, profile, running: running.has(clientId), rules: 3, ...extra };
   };
 
   app.get('/api/clients/:clientId/gbp', wrap(async (req, res) => res.json(await view(req.params.clientId))));
@@ -74,7 +85,8 @@ function mountGbpApi(app, { pool, loadInputs, callModel, log = console }) {
     const client = rows.find(r => slugify(r.name) === slug);
     if (!client) throw Object.assign(new Error('No client with that slug.'), { status: 404 });
     const found = await store.latest(client.id);
-    const files = found ? filesFor(found.record) : {};
+    let files = found ? filesFor(found.record) : {};
+    if (file === 'nap.json' || file === 'note.txt') files = profileFiles(await loadInputs(client.id), found ? found.record : null);
     if (!(file in files)) throw Object.assign(new Error(found ? `${file} is not ready: that step has not passed yet.` : 'No GBP output has been generated for this client.'), { status: 404 });
     res.set('Content-Type', CONTENT_TYPES[file]);
     res.set('Content-Disposition', `inline; filename="${file}"`);
