@@ -192,6 +192,22 @@ function categoryIssues(text, field, ctx) {
     for (const c of cats) { const re = categoryRe(c); if (re.test(rest)) { named.push(c); rest = rest.replace(new RegExp(re.source, 'gi'), ' '); } }
     if (named.length > 1) { out.push({ level: 'FAIL', rule: 'category-per-sentence', field, message: `"${field}" names ${named.length} categories in one sentence (${named.join(', ')}): one category phrase per sentence at most ("${sentence.slice(0, 80)}").` }); break; }
   }
+  // At most three secondary categories named across the whole text (Brandon, 23 Oct)
+  const primary = norm(ctx.primaryCategory || '');
+  let rest = t;
+  const secondariesNamed = [];
+  for (const c of cats) { if (norm(c) === primary) continue; const re = categoryRe(c); if (re.test(rest)) { secondariesNamed.push(c); rest = rest.replace(new RegExp(re.source, 'gi'), ' '); } }
+  if (secondariesNamed.length > 3) out.push({ level: 'FAIL', rule: 'secondary-count', field, message: `"${field}" names ${secondariesNamed.length} secondary categories (${secondariesNamed.join(', ')}); the limit is three. Name the others' services, not the categories.` });
+  return out;
+}
+
+// No two consecutive sentences start with the same word (Brandon, 23 Oct): "Our … . Our … ." fails
+function openingIssues(text, field) {
+  const out = [];
+  const firsts = String(text || '').split(/(?<=[.!?])\s+|\n+/).map(s => (s.trim().match(/^["'(]*([A-Za-z0-9’']+)/) || [])[1] || '').map(w => w.toLowerCase());
+  for (let i = 1; i < firsts.length; i++) {
+    if (firsts[i] && firsts[i] === firsts[i - 1]) { out.push({ level: 'FAIL', rule: 'same-opening', field, message: `"${field}" has two consecutive sentences starting with "${firsts[i]}"; vary the openings.` }); break; }
+  }
   return out;
 }
 
@@ -281,6 +297,7 @@ function validateDescription(description, ctx) {
     if (l) issues.push(l);
     issues.push(...contentIssues(text, 'description', ctx));
     issues.push(...categoryIssues(text, 'description', ctx));
+    issues.push(...openingIssues(text, 'description'));
     issues.push(...proofCapsIssues(text, 'description', ctx));
     issues.push(...factIssues(text, 'description', ctx));
   }
@@ -393,5 +410,5 @@ function result(issues, counts = {}) {
 module.exports = {
   LIMITS, VALIDATOR_FILE, loadBannedPhrases, count,
   validateDescription, validateServices, validateProducts,
-  contentIssues, factIssues, bannedHits, capsWords, nameKey, nearDuplicates, categoryIssues, proofShareIssues, proofCapsIssues, closingPatternIssues, phraseSpans, escapeRe,
+  contentIssues, factIssues, bannedHits, capsWords, nameKey, nearDuplicates, categoryIssues, proofShareIssues, proofCapsIssues, closingPatternIssues, openingIssues, phraseSpans, escapeRe,
 };

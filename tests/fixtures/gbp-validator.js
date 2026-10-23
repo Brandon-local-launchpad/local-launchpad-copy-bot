@@ -206,6 +206,19 @@ chk('two categories in one sentence fail, both named', has(r, 'category-per-sent
 r = dc(text(680) + ' Our landscape gardeners lay patios in the garden.');
 chk('"landscape gardeners" counts as one category, not Gardener as well', !has(r, 'category-per-sentence'), rules(r), 'ok');
 chk('no categories in the context: no category checks', V.validateDescription(text(680) + ' As gardeners, we handle lawn mowing too.', ctx).ok, '', 'ok');
+const ctxP1 = { ...ctxC, primaryCategory: 'Landscaper' };
+r = V.validateDescription(text(600) + ' Our gardeners mow lawns. The landscape gardeners lay patios. Tree service work covers stumps. The deck builders fit decking.', ctxP1);
+chk('four secondary categories named fails (secondary-count), all four listed', has(r, 'secondary-count') && /names 4 secondary categories/.test(r.fails.find(f => f.rule === 'secondary-count').message), r.fails.map(f => f.message).join(), 'secondary-count');
+r = V.validateDescription(text(615) + ' Our gardeners mow lawns. The landscape gardeners lay patios. Tree service work covers stumps. We fit decking.', ctxP1);
+chk('three secondaries plus the primary pass', !has(r, 'secondary-count'), rules(r), 'ok');
+r = V.validateDescription(text(630) + ' A landscaper in Southampton. Our gardeners mow. The landscape gardeners lay patios. Tree service work covers stumps.', ctxP1);
+chk('the primary category does not count towards the three', !has(r, 'secondary-count'), rules(r), 'ok');
+r = V.validateDescription(text(680) + '. Our gardeners mow lawns. Our team lays patios too.', ctxP1);
+chk('two consecutive sentences starting with "Our" fail (same-opening)', has(r, 'same-opening') && /starting with "our"/.test(r.fails.find(f => f.rule === 'same-opening').message), rules(r), 'same-opening');
+r = V.validateDescription(text(680) + '. Our gardeners mow lawns. The team lays patios too.', ctxP1);
+chk('different openings pass', !has(r, 'same-opening'), rules(r), 'ok');
+r = V.validateDescription(text(700) + '. We mow lawns. we lay patios too.', ctxP1);
+chk('the same opening word in a different case still fails', has(r, 'same-opening'), rules(r), 'same-opening');
 
 // Proof point share
 const pp = [{ text: 'free quotes', detect: /free quote/i }, { text: 'a team of 4', detect: t => /team of/i.test(t) }];

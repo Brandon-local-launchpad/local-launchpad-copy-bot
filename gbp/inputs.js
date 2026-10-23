@@ -71,6 +71,20 @@ function buildGbpInputs({ cv = {}, niche = {}, rows = [], keyValueMap = {}, site
   const categories = catOrder.length ? catOrder : Object.entries(keyValueMap).filter(([k]) => /^category_\d+$/.test(k)).map(([, v]) => v);
   const primary = String(cv.primary_category || '').trim() || categories[0] || '';
   const secondaries = categories.filter(c => norm(c) !== norm(primary));
+  // The description names at most three secondaries (Brandon, 23 Oct): the ones tied to the
+  // services the client wants most, in jobs_wanted order (a wanted job names a category, or a
+  // service whose home category counts), then page map order to make three. The rest are
+  // not named; their services are.
+  const wanted = (Array.isArray(cv.jobs_wanted) ? cv.jobs_wanted : []).map(w => String(w || '').trim()).filter(Boolean);
+  const namedSecondaries = [];
+  const pick = c => { if (c && secondaries.some(s => norm(s) === norm(c)) && !namedSecondaries.some(s => norm(s) === norm(c)) && namedSecondaries.length < 3) namedSecondaries.push(secondaries.find(s => norm(s) === norm(c))); };
+  for (const w of wanted) {
+    pick(secondaries.find(s => norm(s) === norm(w)));
+    const svc = locked.find(l => norm(l.service) === norm(w)) || locked.find(l => norm(l.service).includes(norm(w)) || norm(w).includes(norm(l.service)));
+    if (svc) pick(svc.category);
+  }
+  for (const s of secondaries) pick(s);
+  const unnamedSecondaries = secondaries.filter(s => !namedSecondaries.some(n => norm(n) === norm(s)));
   const areas = Object.entries(keyValueMap).filter(([k]) => /^biz_area_\d+$/.test(k))
     .sort((a, b) => parseInt(a[0].split('_')[2], 10) - parseInt(b[0].split('_')[2], 10)).map(([, v]) => String(v || '').trim()).filter(Boolean);
   const town = areas[0] || '';
@@ -106,12 +120,12 @@ function buildGbpInputs({ cv = {}, niche = {}, rows = [], keyValueMap = {}, site
   if (missingCopy) flags.push({ code: 'GBP-NO-SERVICE-COPY', msg: `${missingCopy} of ${locked.length} service pages have no generated copy yet; those products use the GBP service description for what's included.` });
 
   return {
-    name: String(cv.company_name || '').trim(), primary, secondaries, categories, town, otherAreas, areas,
+    name: String(cv.company_name || '').trim(), primary, secondaries, namedSecondaries, unnamedSecondaries, categories, town, otherAreas, areas,
     locked, confirmedNoPage, coreServices, coreByCategory,
     years, accreditations, proofPoints, showPrices, prices, timeframes,
     competitorCount: Number.isFinite(competitorCount) ? competitorCount : null, minServices,
     included, siteUrl: base, flags,
-    validatorCtx: { locked: locked.map(l => ({ category: l.category, service: l.service })), minServices, competitorCount: Number.isFinite(competitorCount) ? competitorCount : null, showPrices, towns: areas, categories: [...new Set([primary, ...categories].filter(Boolean))], proofPoints: proofPointList, properNouns: properPhrases.filter(p => !/\s/.test(p)).map(p => p.toLowerCase()), properPhrases, cv },
+    validatorCtx: { locked: locked.map(l => ({ category: l.category, service: l.service })), minServices, competitorCount: Number.isFinite(competitorCount) ? competitorCount : null, showPrices, towns: areas, categories: [...new Set([primary, ...categories].filter(Boolean))], proofPoints: proofPointList, properNouns: properPhrases.filter(p => !/\s/.test(p)).map(p => p.toLowerCase()), properPhrases, primaryCategory: primary, cv },
     properNounSource: tradeFacts && tradeFacts.verified ? `client record and the ${tradeFacts.niche || ''} trade facts pack`.replace(/\s+/g, ' ') : 'client record only',
   };
 }
@@ -248,8 +262,9 @@ function descriptionMessage(I) {
   return [
     'FACTS',
     `- Business name: ${I.name || 'none'}`,
-    `- Primary category: ${I.primary || 'none'}`,
-    `- Secondary categories: ${list(I.secondaries)}`,
+    `- Primary category (name it in the first sentence): ${I.primary || 'none'}`,
+    `- Secondary categories to name (these only, at most three across the whole description): ${list(I.namedSecondaries)}`,
+    `- Other secondary categories (never name these; name their services instead): ${list(I.unnamedSecondaries)}`,
     `- Main town: ${I.town || 'none'}`,
     `- Other areas served: ${list(I.otherAreas)}`,
     `- Core services by category (name each only beside its category): ${I.coreByCategory.length ? I.coreByCategory.map(x => `${x.category}: ${x.services.join(', ')}`).join('; ') : list(I.coreServices)}`,

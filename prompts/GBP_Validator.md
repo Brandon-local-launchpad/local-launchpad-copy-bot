@@ -1,4 +1,4 @@
-# GBP Validator rules (v3, 23 Oct 2026)
+# GBP Validator rules (v4, 23 Oct 2026)
 
 Copybot runs these after each GBP step (`gbp/validator.js`). A FAIL blocks the save and shows the reason. A FLAG saves but marks the field for Brandon to check. Code reads the banned phrase list from this file; a locked service name that itself has a hyphen (the site's own page title) is exempt from the dash rule, since the name may not change. A step that fails runs once more with its failures before it fails.
 
@@ -25,6 +25,8 @@ Copybot runs these after each GBP step (`gbp/validator.js`). A FAIL blocks the s
 - No town names in product titles
 - A product description names the main town and the five nearest areas at most (six names)
 - The description never opens a clause with "As [category], we" or "As a [category] we", and names one category per sentence at most
+- The description names the primary category in sentence one and at most three secondary categories in all (code picks them: the categories tied to the services the client wants most, jobs_wanted order, then page map order; the others' services are named, not the categories)
+- No two consecutive sentences in the description start with the same word
 - No capitals-for-emphasis words (whole word in caps, excluding acronyms in the client record)
 - Banned phrases, case insensitive: look no further, whether you need, we pride ourselves, your go to, tailored to your needs, top notch, in the heart of, nestled, elevate, seamless, hassle free, peace of mind, we understand that, from start to finish, unparalleled, dedicated team, best, cheapest, number one
 
