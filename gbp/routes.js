@@ -74,11 +74,12 @@ function mountGbpApi(app, { pool, loadInputs, callModel, log = console, search =
       place = { google_place_id: L.place_id || cv.gbp_place_id || '', leadsnap_location_id: L.id, leadsnap_place_id: null, name: L.location_name || L.name || '', how: found.how };
       // A service area business often has no position on LeadSnap (0, 0 or null): the
       // listing by place id, else the address, else the main town, through Places
-      if (finite(L.latitude) && finite(L.longitude)) centre = { lat: Number(L.latitude), lng: Number(L.longitude), from: `LeadSnap location "${place.name}" (matched by ${found.how})` };
+      if (finite(L.latitude) && finite(L.longitude)) centre = { lat: Number(L.latitude), lng: Number(L.longitude), from: `the GBP pin (LeadSnap location "${place.name}", matched by ${found.how})` };
       else {
+        // The centre must be the pin: a listing with no position is a warning the confirm step shows, never a silent fallback
         const loc = await locateFn({ placeId: place.google_place_id || '', address: cv.address || '', town: I.town ? `${I.town}, UK` : '' });
         if (!loc) throw Object.assign(new Error(`The LeadSnap location "${place.name}" has no position, and the address and main town did not resolve, so there is no centre for the grid.`), { status: 400 });
-        centre = { ...loc, from: `${loc.from} (the LeadSnap location "${place.name}" has no position)` };
+        centre = { ...loc, from: `${loc.from} (the LeadSnap location "${place.name}" has no position)`, warning: `listing not activated in LeadSnap; grid will centre on the town (${loc.from})` };
       }
     } else {
       const loc = await locateFn({ placeId: cv.gbp_place_id || '', address: cv.address || '', town: I.town ? `${I.town}, UK` : '' });
@@ -122,6 +123,7 @@ function mountGbpApi(app, { pool, loadInputs, callModel, log = console, search =
     const settings = SC.buildScanSettings({ clientName: I.name, primary: I.primary, keyword2: cv.scan_keyword_2 || '', scanArea: cv.scan_area || 'city', town: I.town, centre, areas, place, points });
     settings.areas = areas;
     settings.notes = [...areas.filter(a => a.note || a.error).map(a => `${a.name}: ${a.note || a.error}`), ...(pointsNote ? [pointsNote] : [])];
+    settings.warnings = centre.warning ? [centre.warning] : [];
     return { settings, saved: false };
   }
 

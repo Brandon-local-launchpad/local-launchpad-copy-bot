@@ -28,8 +28,10 @@ function kmBetween(a, b) {
 // value (city 1500 m, market town 2000 m, rural 2500 m, default city), and clipped to the
 // convex hull of the service area towns plus 3 km so sea and empty country drop out. No
 // calibration run and no automatic change: after a baseline the leader's Top 3% is shown
-// with the line "over 90: consider the next tighter setting; under 40: the next wider".
-const SPACING_M = { city: 1500, market_town: 2000, rural: 2500 };
+// with the line "over 90: the map is too small, consider the next wider setting; under 40:
+// the map is too large, consider the next tighter setting" (dense city 1000 m is the
+// tightest, rural 2500 m the widest).
+const SPACING_M = { dense_city: 1000, city: 1500, market_town: 2000, rural: 2500 };
 const HULL_BUFFER_KM = 3;
 const lcKeyword = s => str(s).toLowerCase().replace(/\s+/g, ' ');
 
@@ -139,8 +141,8 @@ function leaderLine(competitors) {
   let top3 = lead.top3;
   if (top3 === null && lead.top3pts !== null && lead.total) top3 = Math.round((lead.top3pts / lead.total) * 1000) / 10;
   if (top3 === null) return { name: lead.name, top3: null, line: `Leader ${lead.name}: Top 3% not reported.` };
-  const verdict = top3 > 90 ? 'over 90: consider the next tighter setting' : top3 < 40 ? 'under 40: consider the next wider setting' : 'between 40 and 90: the setting fits';
-  return { name: lead.name, top3, line: `Leader ${lead.name} at Top 3% ${top3}; ${verdict} (over 90: consider the next tighter setting; under 40: the next wider).` };
+  const verdict = top3 > 90 ? 'over 90: the map is too small, consider the next wider setting' : top3 < 40 ? 'under 40: the map is too large, consider the next tighter setting' : 'between 40 and 90: the map fits';
+  return { name: lead.name, top3, line: `Leader ${lead.name} at Top 3% ${top3}; ${verdict} (over 90: the map is too small, consider the next wider setting; under 40: the map is too large, consider the next tighter setting).` };
 }
 
 const monthOf = iso => (iso ? String(iso).slice(0, 7) : '');
