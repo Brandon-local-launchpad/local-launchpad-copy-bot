@@ -135,7 +135,7 @@ chk('the banned list comes from GBP_Validator.md (19 phrases, "dedicated team" a
 // ── Facts: FLAG, never FAIL ──
 let x = d(text(700) + ' Trading since 2015, insured up to £5m.');
 chk('a year and an insurance figure in the client values: no flag', x.ok && !x.flags.length, rules(x), 'clean');
-x = d(text(705) + ' Trading since 2009 in the city.');
+x = d(text(705) + ' Trading since 2009 across Hampshire.');
 chk('a year not in the client values: FLAG, still ok', x.ok && has(x, 'fact-year', 'FLAG'), rules(x), 'FLAG:fact-year');
 x = d(text(700) + ' Over 25 years of garden work here.');
 chk('"25 years" not in the client values: FLAG', x.ok && has(x, 'fact-years', 'FLAG'), rules(x), 'FLAG:fact-years');
@@ -219,6 +219,22 @@ r = V.validateDescription(text(680) + '. Our gardeners mow lawns. The team lays 
 chk('different openings pass', !has(r, 'same-opening'), rules(r), 'ok');
 r = V.validateDescription(text(700) + '. We mow lawns. we lay patios too.', ctxP1);
 chk('the same opening word in a different case still fails', has(r, 'same-opening'), rules(r), 'same-opening');
+
+// The areas sentence and filler endings (Brandon, 23 Oct)
+const ctxA = { ...ctxP1, towns: ['Southampton', 'Romsey', 'Winchester', 'Eastleigh', 'Hedge End'] };
+r = V.validateDescription('Edens Edge is a landscaper in Southampton. We work across Southampton and nearby places, including Romsey, Winchester and Eastleigh. ' + text(600) + '.', ctxA);
+chk('the areas sentence repeating the main town fails', has(r, 'areas-main-town') && /repeats the main town \(Southampton\)/.test(r.fails.find(f => f.rule === 'areas-main-town').message), rules(r), 'areas-main-town');
+r = V.validateDescription('Edens Edge is a landscaper in Southampton. We also work in Romsey, Winchester and Eastleigh. ' + text(630) + '.', ctxA);
+chk('the areas sentence without the main town passes', !has(r, 'areas-main-town'), rules(r), 'ok');
+r = V.validateDescription('Edens Edge is a landscaper in Southampton. We lay patios in Southampton and Romsey. ' + text(640) + '.', ctxA);
+chk('a sentence naming one other town is not the areas sentence', !has(r, 'areas-main-town'), rules(r), 'ok');
+r = V.validateDescription(text(690) + '. We trim hedges around the garden.', ctxA);
+chk('a sentence ending "around the garden" fails (filler ending)', has(r, 'filler-ending') && /around the garden/.test(r.fails.find(f => f.rule === 'filler-ending').message), rules(r), 'filler-ending');
+chk('"for your home", "in the area", "across the local area", "on your property" all fail', ['We fit decking for your home.', 'We lay paving in the area.', 'We cover jobs across the local area.', 'We build walls on your property.'].every(s => has(V.validateDescription(text(690) + '. ' + s, ctxA), 'filler-ending')), '', 'all fail');
+r = V.validateDescription(text(690) + '. We lay porcelain patios in Romsey.', ctxA);
+chk('ending on a place by name passes', !has(r, 'filler-ending'), rules(r), 'ok');
+r = V.validateDescription(text(690) + '. We turf lawns and trim hedges.', ctxA);
+chk('ending on the job passes', !has(r, 'filler-ending'), rules(r), 'ok');
 
 // Proof point share
 const pp = [{ text: 'free quotes', detect: /free quote/i }, { text: 'a team of 4', detect: t => /team of/i.test(t) }];

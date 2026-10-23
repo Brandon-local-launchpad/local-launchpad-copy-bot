@@ -201,6 +201,25 @@ function categoryIssues(text, field, ctx) {
   return out;
 }
 
+// The areas sentence (the one listing two or more of the other areas) does not repeat the
+// main town, and no sentence ends with a filler location phrase (Brandon, 23 Oct)
+const FILLER_END_RE = /\b(?:around|for|in|across|on|at|to|throughout|near)\s+(?:the|your|our|a|any|every|all)?\s*(?:whole\s+|wider\s+|local\s+|surrounding\s+)?(?:garden|gardens|home|homes|house|houses|area|areas|property|properties|neighbourhood|region|city|town|premises|place|space|outdoor space|outside space)\s*[.!?]?$/i;
+function areaIssues(text, field, ctx) {
+  const out = [];
+  const towns = (ctx.towns || []).filter(Boolean);
+  const main = towns[0] || '';
+  const others = towns.slice(1);
+  const sentences = String(text || '').split(/(?<=[.!?])\s+|\n+/).map(s => s.trim()).filter(Boolean);
+  if (main && others.length >= 2) {
+    const named = s => others.filter(t => new RegExp(`\\b${escapeRe(t)}\\b`, 'i').test(s)).length;
+    const areas = sentences.find((s, i) => i > 0 && named(s) >= 2);
+    if (areas && new RegExp(`\\b${escapeRe(main)}\\b`, 'i').test(areas)) out.push({ level: 'FAIL', rule: 'areas-main-town', field, message: `"${field}" repeats the main town (${main}) in the areas sentence ("${areas.slice(0, 80)}"); sentence one has it already.` });
+  }
+  const filler = sentences.find(s => FILLER_END_RE.test(s));
+  if (filler) out.push({ level: 'FAIL', rule: 'filler-ending', field, message: `"${field}" ends a sentence with a filler location phrase ("…${filler.slice(-50)}"); end on the job, the material or the place by name.` });
+  return out;
+}
+
 // No two consecutive sentences start with the same word (Brandon, 23 Oct): "Our … . Our … ." fails
 function openingIssues(text, field) {
   const out = [];
@@ -298,6 +317,7 @@ function validateDescription(description, ctx) {
     issues.push(...contentIssues(text, 'description', ctx));
     issues.push(...categoryIssues(text, 'description', ctx));
     issues.push(...openingIssues(text, 'description'));
+    issues.push(...areaIssues(text, 'description', ctx));
     issues.push(...proofCapsIssues(text, 'description', ctx));
     issues.push(...factIssues(text, 'description', ctx));
   }
@@ -410,5 +430,5 @@ function result(issues, counts = {}) {
 module.exports = {
   LIMITS, VALIDATOR_FILE, loadBannedPhrases, count,
   validateDescription, validateServices, validateProducts,
-  contentIssues, factIssues, bannedHits, capsWords, nameKey, nearDuplicates, categoryIssues, proofShareIssues, proofCapsIssues, closingPatternIssues, openingIssues, phraseSpans, escapeRe,
+  contentIssues, factIssues, bannedHits, capsWords, nameKey, nearDuplicates, categoryIssues, proofShareIssues, proofCapsIssues, closingPatternIssues, openingIssues, areaIssues, phraseSpans, escapeRe,
 };
