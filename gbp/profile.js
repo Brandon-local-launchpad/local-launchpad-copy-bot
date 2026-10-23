@@ -50,8 +50,9 @@ function serviceAreas(I) {
   return { all, capped, flag };
 }
 
-// competitors: { latest, comparison, reading } from gbp/competitors.js (batch 2), or null
-function buildProfile({ inputs: I, record = null, cv: cvIn = null, competitors = null }) {
+// competitors: { latest, comparison, reading } from gbp/competitors.js (batch 2), or null;
+// scanAlerts: the drop alerts from gbp/scans.js (batch 3), each with a line for the note
+function buildProfile({ inputs: I, record = null, cv: cvIn = null, competitors = null, scanAlerts = [] }) {
   const cv = cvIn || (I.validatorCtx && I.validatorCtx.cv) || {};
   const flags = [];
   const site = str(I.siteUrl).replace(/\/+$/, '');
@@ -90,13 +91,13 @@ function buildProfile({ inputs: I, record = null, cv: cvIn = null, competitors =
     hours: str(cv.hours),
   };
 
-  return { fields, nap, note: buildNote({ I, cv, site, competitors }), templates: buildTemplates({ cv, flags }), flags };
+  return { fields, nap, note: buildNote({ I, cv, site, competitors, scanAlerts }), templates: buildTemplates({ cv, flags }), flags };
 }
 
 // Four lines: the primary category and why; targets; landing page fails; blockers.
 // With a competitor run saved, "why" is its reading ("4 of 5 competitors use it", or
 // "2 of 5 use X, escalate"); without one, "competitor check not done".
-function buildNote({ I, cv, site, competitors = null }) {
+function buildNote({ I, cv, site, competitors = null, scanAlerts = [] }) {
   const primary = str(I.primary) || 'none';
   const inPageMap = (I.categories || []).some(c => c.toLowerCase() === primary.toLowerCase());
   const competitor = I.competitorCount !== null && I.competitorCount !== undefined ? I.competitorCount : null;
@@ -123,7 +124,8 @@ function buildNote({ I, cv, site, competitors = null }) {
   if (!site) blockers.push('no site URL');
   if (!str(cv.review_url)) blockers.push('no review link');
   const l4 = `Blockers: ${blockers.length ? blockers.join('; ') : 'none'}.`;
-  return [l1, l2, l3, l4].join('\n');
+  // A rank drop (10 points or more of Top 3% month on month) adds a line per keyword
+  return [l1, l2, l3, l4, ...(scanAlerts || []).map(a => a.line)].join('\n');
 }
 
 // Appendix C, personalised. Per review placeholders stay: [first name], [name], [job].

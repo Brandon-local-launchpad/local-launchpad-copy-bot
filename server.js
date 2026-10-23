@@ -2941,6 +2941,8 @@ const CLIENT_VALUES_TEMPLATE = {
   review_url: '', reviews_per_month: '', landing_page_fails: '',
   // GBP batch 2 (23 Oct): the client's own Google place id, found by the first competitor check
   gbp_place_id: '',
+  // GBP batch 3 (23 Oct): the rank scan settings, built by code and locked after the baseline (hard rule 8)
+  scan_settings: null,
 };
 
 app.get('/api/clients/:clientId/gbp-categories', async (req, res) => {
@@ -3791,7 +3793,9 @@ async function saveClientValue(clientId, key, value) {
 if (pool && pageMapStore) {
   const { GBP_MODEL } = require('./gbp/generate');
   const gbpCallModel = args => makeCallModel(new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY }), GBP_MODEL)(args);
-  require('./gbp/routes').mountGbpApi(app, { pool, loadInputs: gbpInputsFor, callModel: gbpCallModel, saveClientValue });
+  // LeadSnap rank scans (batch 3): the client exists only when the token is set on Railway
+  const leadsnap = process.env.LEADSNAP_API_TOKEN ? require('./leadsnap/client').createLeadsnapClient() : null;
+  require('./gbp/routes').mountGbpApi(app, { pool, loadInputs: gbpInputsFor, callModel: gbpCallModel, saveClientValue, leadsnap });
 }
 
 app.get('/api/clients/:clientId/wp/connection', wpRoute(req => wpService.connection(req.params.clientId)));

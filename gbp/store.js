@@ -36,6 +36,23 @@ function createGbpStore(pool) {
     // The GBP primary typed by hand per competitor (after a GMB Everywhere look), by place_id, kept across runs
     async competitorHand(clientId) { return (await one('gbp_competitor_hand', clientId)) || {}; },
     async saveCompetitorHand(clientId, data) { return put('gbp_competitor_hand', 'competitor_hand.json', clientId, data); },
+    // ── Batch 3: rank scans (one row per heatmap), schedules, LeadSnap competitors, the profile check ──
+    async addScan(clientId, row) {
+      await pool.query(`INSERT INTO client_assets (client_id, asset_type, filename, content, metadata) VALUES ($1, 'gbp_scan', 'scan.json', $2, $3)`, [clientId, JSON.stringify(row), JSON.stringify({ heatmap_id: row.heatmap_id })]);
+    },
+    async updateScan(clientId, heatmapId, row) {
+      await pool.query(`UPDATE client_assets SET content=$1 WHERE client_id=$2 AND asset_type='gbp_scan' AND metadata->>'heatmap_id'=$3`, [JSON.stringify(row), clientId, String(heatmapId)]);
+    },
+    async scans(clientId) {
+      const { rows } = await pool.query(`SELECT content FROM client_assets WHERE client_id=$1 AND asset_type='gbp_scan' ORDER BY uploaded_at`, [clientId]);
+      return rows.map(r => (typeof r.content === 'string' ? JSON.parse(r.content) : r.content));
+    },
+    async schedules(clientId) { return (await one('gbp_schedules', clientId)) || { items: [], last_fetch_at: null }; },
+    async saveSchedules(clientId, data) { return put('gbp_schedules', 'schedules.json', clientId, data); },
+    async leadsnapCompetitors(clientId) { return one('gbp_competitors_leadsnap', clientId); },
+    async saveLeadsnapCompetitors(clientId, data) { return put('gbp_competitors_leadsnap', 'competitors_leadsnap.json', clientId, data); },
+    async profileCheck(clientId) { return one('gbp_profile_check', clientId); },
+    async saveProfileCheck(clientId, data) { return put('gbp_profile_check', 'profile_check.json', clientId, data); },
     async duplicates(clientId) { return one('gbp_duplicates', clientId); },
     async saveDuplicates(clientId, data) { return put('gbp_duplicates', 'duplicates.json', clientId, data); },
     async landingPage(clientId) { return one('gbp_landing_page', clientId); },

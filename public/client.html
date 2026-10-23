@@ -236,6 +236,7 @@
     if (!r) return;
     gbp = r.ok ? await r.json() : { error: (await r.json().catch(() => ({}))).error || `HTTP ${r.status}` };
     renderGbp();
+    if (typeof scheduleRefresh === 'function') scheduleRefresh();
   }
   function stepBadge(step, label) {
     const st = gbp.record && gbp.record.steps ? gbp.record.steps[step] : null;
@@ -258,6 +259,9 @@
     const allDone = GBP_STEPS.every(([s]) => steps[s] && steps[s].status === 'done');
     const failed = GBP_STEPS.map(([s]) => s).find(s => steps[s] && steps[s].status === 'failed');
     const H = [];
+    // A rank drop (batch 3) sits at the top of the section
+    const SA = (gbp.scans && gbp.scans.alerts) || [];
+    if (SA.length) H.push(`<div class="notice fail"><strong>Rank drop</strong><ul>${SA.map(a => `<li>${esc(a.line)} (${esc(a.previous_month)} to ${esc(a.month)})</li>`).join('')}</ul></div>`);
     H.push(`<div style="display:flex;gap:.5rem;flex-wrap:wrap;align-items:center">
       <button class="btn btn-primary" id="gbpRun" onclick="runGbp()" ${rd.ok === false || gbp.running ? 'disabled' : ''}>${gbp.running ? 'Running…' : allDone ? 'Generate GBP again' : R ? 'Generate GBP (resume)' : 'Generate GBP'}</button>
       ${R ? `<button class="btn btn-ghost btn-sm" onclick="clearGbp()">Start again</button>` : ''}
@@ -317,6 +321,58 @@
           <button class="copy" onclick="markDuplicate('${esc(d.place_id)}', '${m && m.mark === 'reported' ? '' : 'reported'}')">${m && m.mark === 'reported' ? 'Unmark' : 'Reported'}</button>
           <button class="copy" onclick="markDuplicate('${esc(d.place_id)}', '${m && m.mark === 'ignore' ? '' : 'ignore'}')">${m && m.mark === 'ignore' ? 'Unignore' : 'Ignore'}</button></span></div>`; }).join('') : '<div class="field-meta" style="margin-top:.3rem">None found.</div>'}
       </div>`);
+    }
+    // LeadSnap competitors from the baseline heatmap, beside the Places table (they cover different things)
+    const LC = gbp.leadsnapCompetitors;
+    if (LC && LC.competitors && LC.competitors.length) {
+      H.push(`<div class="field"><div class="field-head"><span class="field-name">Top ${Math.min(5, LC.competitors.length)} by market share on the "${esc(LC.keyword)}" heatmap</span><span class="field-meta">LeadSnap, baseline ${fmtDate(LC.at)}</span></div>
+        <table style="width:100%;border-collapse:collapse;font-size:13px;margin-top:.4rem">
+          <tr style="color:var(--muted);text-align:left"><th>Business</th><th>Market share</th><th>Average rank</th><th>Top 3 points</th><th>Reviews</th><th>Maps</th></tr>
+          ${LC.competitors.slice(0, 5).map(c => `<tr style="border-top:1px solid var(--border)"><td style="padding:4px 6px 4px 0">${esc(c.name)}</td><td>${c.market_share === null ? '' : c.market_share + '%'}</td><td>${c.average === null ? '' : c.average}</td><td>${c.top_3_points === null ? '' : c.top_3_points}</td><td>${c.review_count === null ? '' : c.review_count}</td><td>${link(c.maps_url, 'Maps')}</td></tr>`).join('')}
+        </table></div>`);
+    }
+    // Rank scans (batch 3): the baseline, the monthly table, the schedules
+    const S = gbp.scans;
+    H.push(`<h3>Rank scans <span class="field-meta">SOP 1.7 baseline and 5.2 monthly, through LeadSnap; every run spends credits</span></h3>`);
+    const lsOff = rd.leadsnap === false;
+    const hasBaseline = S && S.scans && S.scans.some(s => s.run_type === 'baseline');
+    H.push(`<div style="display:flex;gap:.5rem;flex-wrap:wrap;align-items:center;margin-bottom:.6rem">
+      ${hasBaseline ? '' : `<button class="btn btn-ghost" id="gbpScanRun" onclick="previewBaseline()" ${rd.ok === false || lsOff ? 'disabled' : ''}>Run baseline scan</button>`}
+      ${hasBaseline ? `<button class="btn btn-ghost" id="gbpScanFetch" onclick="fetchScans()" ${lsOff ? 'disabled' : ''}>Fetch latest scans</button>` : ''}
+      ${S && S.pending ? `<button class="btn btn-ghost btn-sm" id="gbpScanRefresh" onclick="refreshScans()">Check ${S.pending} pending</button>` : ''}
+      <span class="gen-date">${lsOff ? 'LeadSnap is not configured on the server' : S && S.settings ? `settings locked ${fmtDate(S.settings.locked_at || S.settings.built_at)} · ${S.settings.keywords.length} keywords · grid ${S.settings.grid_size} · radius ${S.settings.grid_radius_m} m · ${S.settings.credits_per_run} credits a run` : 'No baseline yet'}${S && S.schedules && S.schedules.last_fetch_at ? ` · last fetch ${fmtTime(S.schedules.last_fetch_at)}` : ''}</span>
+    </div>`);
+    if (S && S.settings) {
+      const st = S.settings;
+      H.push(`<div class="field"><div class="field-head"><span class="field-name">Scan settings (locked)</span><span class="field-meta">centre ${st.centre.lat.toFixed(4)}, ${st.centre.lng.toFixed(4)} from ${esc(st.centre.from)}${st.farthest ? ` · farthest town ${esc(st.farthest.name)} ${st.farthest.km} km` : ''}</span></div>
+        <div class="field-text">${st.keywords.map(k => `${esc(k.keyword)} <span class="field-meta">(${esc(k.kind)}, ${esc(k.source)})</span>`).join('<br>')}</div></div>`);
+    }
+    if (S && S.table && S.table.length) {
+      const months = [...new Set(S.table.flatMap(r => r.months.map(m => m.month)))].sort();
+      H.push(`<div class="field"><div class="field-head"><span class="field-name">Top 3% by month against the baseline</span><span class="field-meta">average rank in brackets; change from the month before</span></div>
+        <table style="width:100%;border-collapse:collapse;font-size:13px;margin-top:.4rem">
+          <tr style="color:var(--muted);text-align:left"><th>Keyword</th>${months.map(m => `<th>${esc(m)}</th>`).join('')}</tr>
+          ${S.table.map(r => `<tr style="border-top:1px solid var(--border)"><td style="padding:4px 6px 4px 0">${esc(r.keyword)}</td>${months.map(m => { const x = r.months.find(y => y.month === m); if (!x) return '<td></td>'; return `<td>${x.top_3_percentage}%${x.average !== null ? ` <span class="field-meta">(${x.average})</span>` : ''}${x.is_baseline ? ' <span class="badge badge-v20">baseline</span>' : x.change !== null ? ` <span class="${x.change < 0 ? 'flag' : 'field-meta'}" style="margin:0">${x.change > 0 ? '+' : ''}${x.change}</span>` : ''}</td>`; }).join('')}</tr>`).join('')}
+        </table></div>`);
+    }
+    if (S && S.pending) H.push(`<div class="notice">${S.pending} heatmap${S.pending > 1 ? 's are' : ' is'} still running on LeadSnap. This page checks again every 20 seconds while it stays open.</div>`);
+    if (S && S.schedules && S.schedules.items.length) {
+      H.push(`<div class="field"><div class="field-head"><span class="field-name">Monthly schedules</span><span class="field-meta">schedules.json</span></div>
+        ${S.schedules.items.map(i => `<div class="field-head" style="margin-top:.4rem"><span class="field-text">${esc(i.name)} <span class="field-meta">day ${esc(i.repeat_on)} · ${esc(i.status)}</span></span>
+          <button class="copy" onclick="scheduleAction('${esc(i.schedule_id)}', '${i.status === 'paused' ? 'resume' : 'pause'}')">${i.status === 'paused' ? 'Resume' : 'Pause'}</button></div>`).join('')}</div>`);
+    }
+    // Profile verification (batch 3, SOP 3.10)
+    const PC = gbp.profileCheck;
+    H.push(`<h3>Profile verification <span class="field-meta">SOP 3.10: the LeadSnap location against the profile fields, services.csv and the hours</span></h3>`);
+    H.push(`<div style="display:flex;gap:.5rem;flex-wrap:wrap;align-items:center;margin-bottom:.6rem">
+      <button class="btn btn-ghost" id="gbpVerify" onclick="verifyProfile()" ${rd.ok === false || lsOff ? 'disabled' : ''}>Verify profile</button>
+      ${PC ? `<span class="gen-date">Checked ${fmtTime(PC.at)} · ${esc(PC.location.name)} · completion ${PC.location.completion_percentage === null ? 'unknown' : PC.location.completion_percentage + '%'}${PC.location.suspension_reason ? ` · <span class="flag">suspended: ${esc(PC.location.suspension_reason)}</span>` : ''}${PC.location.has_pending_edits ? ' · pending edits on Google' : ''}</span>` : '<span class="gen-date">Not checked yet</span>'}
+    </div>`);
+    if (PC) {
+      H.push(`<div class="field"><div class="field-head"><span class="field-name">${PC.diffs.length ? `${PC.counts.missing} missing, ${PC.counts.extra} extra, ${PC.counts.mismatch} mismatch` : 'Everything matches'}</span><span class="field-meta">services from ${esc(PC.services_source || '')}</span></div>
+        ${PC.diffs.length ? `<table style="width:100%;border-collapse:collapse;font-size:13px;margin-top:.4rem"><tr style="color:var(--muted);text-align:left"><th>Area</th><th>Kind</th><th>Ours</th><th>Google</th></tr>
+        ${PC.diffs.map(d => `<tr style="border-top:1px solid var(--border)"><td style="padding:4px 6px 4px 0">${esc(d.area)}</td><td><span class="badge ${d.kind === 'mismatch' ? 'badge-warn' : d.kind === 'missing' ? 'badge-warn' : 'badge-none'}">${esc(d.kind)}</span></td><td>${esc(d.ours)}</td><td>${esc(d.google)}</td></tr>`).join('')}</table>` : ''}
+        ${PC.notes.length ? `<div class="flag">${PC.notes.map(esc).join('<br>')}</div>` : ''}</div>`);
     }
     H.push(`<h3>Landing page signals <span class="field-meta">SOP 2.4: the eight checks on the site's homepage</span></h3>`);
     H.push(`<div style="display:flex;gap:.5rem;flex-wrap:wrap;align-items:center;margin-bottom:.6rem">
@@ -386,6 +442,41 @@
   function runLandingPage() { return postGbp('landing-page', 'gbpLandRun', 'Checking…'); }
   function markDuplicate(placeId, mark) { return postGbp(`duplicates/${encodeURIComponent(placeId)}`, null, '', { mark }); }
   function setHandPrimary(placeId, value) { return postGbp(`competitors/${encodeURIComponent(placeId)}`, null, '', { gbp_primary: value }); }
+  // Rank scans (batch 3)
+  async function previewBaseline() {
+    const btn = document.getElementById('gbpScanRun');
+    btn.disabled = true; btn.textContent = 'Working out the settings…';
+    try {
+      const r = await fetch(`/api/clients/${clientId}/gbp/scans/preview`, { method: 'POST' });
+      const data = await r.json();
+      if (!r.ok) { alert(data.error || `HTTP ${r.status}`); btn.disabled = false; btn.textContent = 'Run baseline scan'; return; }
+      const s = data.settings;
+      const text = `Baseline scan for ${s.client}\n\nKeywords (${s.keywords.length}):\n${s.keywords.map(k => '  ' + k.keyword).join('\n')}\n\nGrid: ${s.grid_size} x ${s.grid_size}, ${s.grid_radius_m} m between points${s.farthest ? ` (farthest town ${s.farthest.name}, ${s.farthest.km} km)` : ''}\nCentre: ${s.centre.lat.toFixed(4)}, ${s.centre.lng.toFixed(4)} from ${s.centre.from}\nPlace: ${s.place.name || s.place.google_place_id} (${s.place.how})\n\nCredit cost: ${data.credits} credits (${s.grid_size * s.grid_size} per keyword) now, and the same each month from the schedules.\n\nThe settings lock after this run (hard rule 8). Run it?`;
+      if (!confirm(text)) { btn.disabled = false; btn.textContent = 'Run baseline scan'; return; }
+      btn.textContent = 'Creating heatmaps…';
+      const r2 = await fetch(`/api/clients/${clientId}/gbp/scans/baseline`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ confirm: true }) });
+      const d2 = await r2.json();
+      if (!r2.ok) { alert(d2.error || `HTTP ${r2.status}`); await loadGbp(); return; }
+      gbp = d2; renderGbp(); scheduleRefresh();
+    } catch (e) { alert('Failed: ' + e.message); await loadGbp(); }
+  }
+  let refreshTimer = null;
+  function scheduleRefresh() {
+    if (refreshTimer) clearTimeout(refreshTimer);
+    if (!gbp || !gbp.scans || !gbp.scans.pending) return;
+    refreshTimer = setTimeout(() => refreshScans(), 20000);
+  }
+  async function refreshScans() {
+    try {
+      const r = await fetch(`/api/clients/${clientId}/gbp/scans/refresh`, { method: 'POST' });
+      const data = await r.json();
+      if (r.ok) { gbp = data; renderGbp(); }
+    } catch (e) { /* the next tick tries again */ }
+    scheduleRefresh();
+  }
+  function fetchScans() { return postGbp('scans/fetch', 'gbpScanFetch', 'Fetching…'); }
+  function scheduleAction(id, action) { return postGbp(`schedules/${encodeURIComponent(id)}/${action}`, null, ''); }
+  function verifyProfile() { return postGbp('verify-profile', 'gbpVerify', 'Reading the listing…'); }
   async function clearGbp() {
     if (!confirm('Start the GBP output again? The saved description, services and products are removed.')) return;
     const r = await fetch(`/api/clients/${clientId}/gbp/clear`, { method: 'POST' });

@@ -181,6 +181,66 @@ const stubFetch = async url => { fetchedUrls.push(url); return { finalUrl: 'http
   global.__gbpBatch2 = { stubSearch: async q => { placesCalls.push(q); return stubSearch(q); }, stubFetch, placesCalls, setRun: n => { placesRun = n; } };
 })().catch(e => { console.error(e); process.exit(1); });
 
+// ── Rank scans and the profile check (batch 3): recorded LeadSnap responses, no LeadSnap ──
+const SC = require(path.join(root, 'gbp/scans.js'));
+const PCk = require(path.join(root, 'gbp/profile-check.js'));
+const LS = require(path.join(__dirname, 'data/leadsnap-edens-edge.json'));
+const lsCalls = [];
+let heatmap9001Pending = true;
+const stubLeadsnap = {
+  baseUrl: 'https://app.leadsnap.com',
+  listCompanies: async () => { lsCalls.push('companies'); return LS.companies.data; },
+  listLocations: async (q = {}) => { lsCalls.push('locations'); const pid = q['filter[place_id]']; return LS.locations.data.filter(l => !pid || l.place_id === pid); },
+  getLocation: async id => { lsCalls.push('location'); return LS[`location_${id}`]; },
+  createHeatmap: async body => { lsCalls.push('createHeatmap'); const h = LS.heatmap_create[body.keyword[0]]; if (!h) throw new Error('no recorded heatmap for ' + body.keyword[0]); return h; },
+  getHeatmap: async id => { lsCalls.push('getHeatmap'); if (String(id) === '9001' && heatmap9001Pending) return LS.heatmap_get['9001#pending']; return LS.heatmap_get[String(id)]; },
+  getHeatmapCompetitors: async id => { lsCalls.push('competitors'); return LS.heatmap_competitors[String(id)] || []; },
+  listHeatmaps: async () => { lsCalls.push('listHeatmaps'); return LS.heatmaps_list_since; },
+  createSchedule: async body => { lsCalls.push('createSchedule'); return LS.schedule_create[body.heatmap_config.keywords[0]]; },
+  getSchedule: async () => { lsCalls.push('getSchedule'); return {}; },
+  updateSchedule: async () => { lsCalls.push('updateSchedule'); return {}; },
+  pauseSchedule: async () => { lsCalls.push('pause'); return LS.schedule_pause; },
+  resumeSchedule: async () => { lsCalls.push('resume'); return LS.schedule_resume; },
+  rows: r => (r && Array.isArray(r.data) ? r.data : Array.isArray(r) ? r : []),
+};
+const townPositions = { Southampton: [50.9097, -1.4044], Romsey: [50.989, -1.499], Winchester: [51.063, -1.308], Eastleigh: [50.969, -1.350], 'Chandlers Ford': [50.983, -1.381], 'Hedge End': [50.918, -1.305], Lyndhurst: [50.873, -1.577] };
+(() => {
+  const centre = { lat: 50.915, lng: -1.41, from: 'LeadSnap' };
+  const kws = SC.scanKeywords({ primary: 'Landscaper', town: 'Southampton', jobsWanted: ['Landscape Gardener', 'Landscape Designer'], locked: I.locked, categories: I.categories });
+  chk('scan keywords: the primary keyword, then jobs_wanted in order (a category gives its first service page), four at most', kws.map(k => k.keyword).join('|') === 'Landscaper Southampton|Artificial grass installation Southampton|Patios Southampton' && kws[0].kind === 'main' && kws[1].kind === 'service', kws.map(k => k.keyword).join('|'), '');
+  chk('a wanted service page gives "[service] [main town]"; never the same keyword twice', SC.scanKeywords({ primary: 'Landscaper', town: 'Southampton', jobsWanted: ['Patios', 'patios', 'Fencing', 'Pergolas', 'Lawn mowing'], locked: I.locked, categories: I.categories }).map(k => k.keyword).join('|') === 'Landscaper Southampton|Patios Southampton|Fencing Southampton|Pergolas Southampton', '', '');
+  const areas = Object.entries(townPositions).map(([name, [lat, lng]]) => ({ name, lat, lng }));
+  const g = SC.gridFor(centre, areas);
+  chk('grid: 13 when a town is beyond 5 km; radius = farthest distance / 6 in metres', g.grid_size === 13 && g.farthest.name === 'Winchester' && Math.abs(g.grid_radius_m - Math.round((g.farthest.km * 1000) / 6)) <= 20 && g.grid_radius_m > 2500, JSON.stringify(g), '');
+  chk('grid: 7 when every town is within 5 km; radius never under 500 m', SC.gridFor(centre, [{ name: 'Bassett', lat: 50.94, lng: -1.41 }]).grid_size === 7 && SC.gridFor(centre, [{ name: 'Next door', lat: 50.916, lng: -1.41 }]).grid_radius_m === 500, '', '');
+  const settings = SC.buildScanSettings({ clientName: 'Edens Edge Landscaping', primary: 'Landscaper', town: 'Southampton', jobsWanted: ['Landscape Gardener'], locked: I.locked, categories: I.categories, centre, areas, place: { google_place_id: 'ChIJ_edens_edge_own', leadsnap_location_id: 20, leadsnap_place_id: null, name: 'Edens Edge Landscaping', how: 'the saved gbp_place_id' } });
+  chk('credit cost: grid points × keywords (169 × 2 = 338)', SC.creditCost(settings) === 338 && settings.credits_per_run === 338 && settings.locked === false, SC.creditCost(settings), 338);
+  const body = SC.heatmapBody(settings, 'Landscaper Southampton');
+  chk('the create heatmap body: one keyword, google_maps, grid, radius in metres, the Google place id and the centre', body.keyword[0] === 'Landscaper Southampton' && body.search_type[0] === 'google_maps' && body.grid_size === 13 && body.unit === 'm' && body.place_id === 'ChIJ_edens_edge_own' && body.lat === 50.915, JSON.stringify(body), '');
+  const row = SC.scanRow(LS.heatmap_get['9001'], { keyword: 'Landscaper Southampton', kind: 'main', run_type: 'baseline' });
+  chk('a completed heatmap becomes a row with the four scores, the month and the points with ranks', row.status === 'completed' && row.top_3_percentage === 36.1 && row.average === 8.4 && row.total_points === 169 && row.top_3_points === 61 && row.month === '2026-10' && row.points.length === 4 && row.points[1].rank === 1 && row.points[3].rank === null, JSON.stringify(row).slice(0, 200), '');
+  chk('a pending heatmap keeps the scores null', SC.scanRow(LS.heatmap_get['9001#pending'], { keyword: 'x', run_type: 'baseline' }).top_3_percentage === null, '', '');
+  const top = SC.topCompetitors(LS.heatmap_competitors['9001'], 5);
+  chk('top competitors by market share, five, with average rank and Top 3 points', top.length === 5 && top[0].name === 'Solent Landscapes' && top[0].market_share === 41.42 && top[0].average === 4.1 && top[0].top_3_points === 70 && top[4].name === 'Bassett Garden Services', top.map(t => t.name).join('|'), '');
+  const sched = SC.scheduleBody(settings, 'Landscaper Southampton', row.points, { clientName: 'Edens Edge Landscaping', baselineAt: '2026-10-23T14:00:00Z', locationId: 20 });
+  chk('the schedule body: name "[client] [keyword] monthly", LeadSnap place id, the grid points, monthly on the baseline day at 06:00', sched.heatmap_config.name === 'Edens Edge Landscaping Landscaper Southampton monthly' && sched.heatmap_config.grid_points.length === 4 && sched.schedule_config.repeat_type === 'month' && sched.schedule_config.repeat_on === 23 && sched.schedule_config.schedule_hour_minute === '06:00' && sched.heatmap_config.location_id === 20, JSON.stringify(sched.schedule_config), '');
+  chk('a baseline on the 31st schedules the 28th', SC.scheduleBody(settings, 'k', [], { baselineAt: '2026-10-31T10:00:00Z' }).schedule_config.repeat_on === 28, '', '');
+  const scans = [SC.scanRow(LS.heatmap_get['9001'], { keyword: 'Landscaper Southampton', kind: 'main', run_type: 'baseline' }), SC.scanRow(LS.heatmap_get['9002'], { keyword: 'Artificial grass installation Southampton', kind: 'service', run_type: 'baseline' }), SC.scanRow(LS.heatmap_get['9101'], { keyword: 'Landscaper Southampton', kind: 'main', run_type: 'monthly' }), SC.scanRow(LS.heatmap_get['9102'], { keyword: 'Artificial grass installation Southampton', kind: 'service', run_type: 'monthly' })];
+  const table = SC.monthlyTable(scans);
+  chk('the monthly table: per keyword, the baseline marked, each month with the change from the month before', table.length === 2 && table[0].months[0].is_baseline && table[0].months[1].change === -11.8 && table[1].months[1].change === 2.9 && table[1].months[1].vs_baseline === 2.9, JSON.stringify(table[0].months), '');
+  const alerts = SC.dropAlerts(scans);
+  chk('drop alert: a fall of 10 points or more month on month, with the SOP line', alerts.length === 1 && alerts[0].keyword === 'Landscaper Southampton' && alerts[0].line === 'Top 3% dropped 36.1 to 24.3 on Landscaper Southampton: check scan settings unchanged, suspension, duplicates, categories', JSON.stringify(alerts), '');
+  chk('no alert for a fall under 10 points', SC.dropAlerts([scans[0], { ...scans[2], top_3_percentage: 27 }]).length === 0, '', '');
+  // Profile check
+  const pc = PCk.checkProfile({ location: LS.location_20, ours: { primary: 'Landscaper', secondaries: ['Gardener', 'Landscape Gardener', 'Landscape Designer', 'Tree Service', 'Paving Contractor', 'Deck Builder'], services: ['Lawn mowing', 'Fencing', 'Patios', 'Garden design'], hours: 'Monday to Saturday, 7am to 6pm' } });
+  const d = (area, kind) => pc.diffs.filter(x => x.area === area && x.kind === kind).map(x => x.ours || x.google);
+  chk('profile check: primary matches; secondaries missing on Google and an extra one', !pc.diffs.some(x => x.area === 'primary category') && d('secondary categories', 'missing').join('|') === 'Landscape Gardener|Paving Contractor|Deck Builder' && d('secondary categories', 'extra').join('|') === 'Fence contractor', JSON.stringify(pc.diffs.filter(x => x.area === 'secondary categories')), '');
+  chk('profile check: services missing (Patios) and extra (Patio installation), name match case insensitive', d('services', 'missing').join('|') === 'Patios' && d('services', 'extra').join('|') === 'Patio installation (Landscaper)', JSON.stringify(pc.diffs.filter(x => x.area === 'services')), '');
+  chk('profile check: hours mismatch on Friday (closes 17:00) and Saturday (08:00 to 14:00), the rest match', d('hours', 'mismatch').join('|') === 'friday 07:00 to 18:00|saturday 07:00 to 18:00' && pc.counts.mismatch === 2 && pc.notes.length === 0, JSON.stringify(pc.diffs.filter(x => x.area === 'hours')), '');
+  chk('profile check carries completion, standing and pending edits', pc.location.completion_percentage === 86 && pc.location.standing === 'Good' && pc.location.has_pending_edits === true && pc.location.suspension_reason === null, JSON.stringify(pc.location), '');
+  chk('hours the parser cannot read are reported, not guessed', PCk.checkProfile({ location: LS.location_20, ours: { primary: 'Landscaper', secondaries: [], services: [], hours: 'by appointment' } }).notes.some(n => /could not read "by appointment"/.test(n)), '', '');
+})();
+
 // ── A canned model ──
 const SAFE = ['We lay patios and paths in Southampton gardens.', 'Each job starts with a visit and a written quote.', 'The team clears the ground, sets the base and lays the stone.', 'Edges are cut clean and the waste goes with us.', 'Call us for a visit this week.'];
 function text(n, lead = '') {
@@ -288,7 +348,8 @@ function fakeModel(opts = {}) {
   let inputsFor = I;
   const tolerantSearch = async q => { const key = Object.keys(recorded).find(k => k === q || (CO.phoneDigits(k) && CO.phoneDigits(k) === CO.phoneDigits(q))); return key ? stubSearch(key) : []; };
   mountGbpApi(app, { pool, loadInputs: async id => { if (id === other.id) throw Object.assign(new Error('GBP output needs a v3 page map'), { status: 400 }); return inputsFor; }, callModel: (...a) => model(...a), log: quiet,
-    search: tolerantSearch, fetchPage: stubFetch, saveClientValue: async (id, k, v) => { savedValues.push([k, v]); }, locate: async () => ({ lat: 50.9097, lng: -1.4044, from: 'the main town (Southampton)' }) });
+    search: async q => { const town = q.replace(/, UK$/, ''); if (townPositions[town]) return [{ name: town, location: { lat: townPositions[town][0], lng: townPositions[town][1] } }]; return tolerantSearch(q); },
+    fetchPage: stubFetch, saveClientValue: async (id, k, v) => { savedValues.push([k, v]); if (k === 'scan_settings') inputsFor = { ...inputsFor, validatorCtx: { ...inputsFor.validatorCtx, cv: { ...inputsFor.validatorCtx.cv, scan_settings: v } } }; }, locate: async () => ({ lat: 50.9097, lng: -1.4044, from: 'the main town (Southampton)' }), leadsnap: stubLeadsnap });
   const srv = http.createServer(app); await new Promise(r => srv.listen(0, '127.0.0.1', r));
   const base = `http://127.0.0.1:${srv.address().port}`;
   const req = (method, p) => fetch(base + p, { method });
@@ -364,6 +425,48 @@ function fakeModel(opts = {}) {
     }
     const cj = await (await req('GET', `/clients/edens-edge-landscaping/gbp/competitors.json`)).json();
     chk('competitors.json holds the latest run, the previous run, the comparison and the run list', cj.latest && cj.previous && cj.comparison && cj.runs.length === 2 && cj.latest.keyword, Object.keys(cj).join(','), '');
+
+    // ── Batch 3 through the routes ──
+    lsCalls.length = 0;
+    v = await (await req('GET', `/api/clients/${c.id}/gbp`)).json();
+    chk('page load calls nothing on LeadSnap; scans empty, leadsnap configured', lsCalls.length === 0 && v.scans.count === 0 && v.readiness.leadsnap === true && v.scans.settings === null, lsCalls.join(','), 'no calls');
+    const ping = await (await req('GET', `/api/leadsnap/ping`)).json();
+    chk('ping: list companies answers with the base URL', ping.ok && ping.base_url === 'https://app.leadsnap.com' && ping.companies === 1, JSON.stringify(ping), '');
+    inputsFor = { ...IP, validatorCtx: { ...IP.validatorCtx, cv: { ...IP.validatorCtx.cv, gbp_place_id: 'ChIJ_edens_edge_own', jobs_wanted: ['Landscape Gardener'] } } };
+    lsCalls.length = 0;
+    let pv = await (await req('POST', `/api/clients/${c.id}/gbp/scans/preview`)).json();
+    chk('preview: settings from the LeadSnap location (centre and place by the saved gbp_place_id), two keywords, grid 13, the credit cost, nothing created', pv.saved === false && pv.settings.place.leadsnap_location_id === 20 && /matched by the saved gbp_place_id/.test(pv.settings.centre.from) && pv.settings.keywords.length === 2 && pv.settings.grid_size === 13 && pv.credits === 338 && !lsCalls.includes('createHeatmap'), JSON.stringify([pv.settings.keywords.map(k => k.keyword), pv.settings.grid_size, pv.credits, lsCalls]), '');
+    chk('preview: the service area towns were positioned through Places and the farthest sets the radius', pv.settings.towns_positioned >= 6 && pv.settings.farthest && pv.settings.farthest.name === 'Winchester' && Math.abs(pv.settings.grid_radius_m - Math.round(pv.settings.farthest.km * 1000 / 6)) <= 20, JSON.stringify([pv.settings.towns_positioned, pv.settings.farthest, pv.settings.grid_radius_m]), '');
+    r = await req('POST', `/api/clients/${c.id}/gbp/scans/baseline`);
+    chk('baseline without confirm is 400 and creates nothing', r.status === 400 && !lsCalls.includes('createHeatmap'), r.status, 400);
+    v = await (await fetch(`${base}/api/clients/${c.id}/gbp/scans/baseline`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ confirm: true }) })).json();
+    chk('baseline: two heatmaps created, two pending rows, the settings saved and locked', v.created && v.created.length === 2 && v.scans.count === 2 && v.scans.pending === 2 && savedValues.some(([k, val]) => k === 'scan_settings' && val.locked === true) && lsCalls.filter(x => x === 'createHeatmap').length === 2, JSON.stringify([v.created, v.scans && v.scans.pending, v.error]), '');
+    r = await fetch(`${base}/api/clients/${c.id}/gbp/scans/baseline`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ confirm: true }) });
+    chk('a second baseline is refused (hard rule 8)', r.status === 409, r.status, 409);
+    lsCalls.length = 0;
+    v = await (await req('POST', `/api/clients/${c.id}/gbp/scans/refresh`)).json();
+    chk('refresh: one heatmap still running, the other stored with its scores and competitors; no schedules yet; only reads were made', v.scans.pending === 1 && v.scans.scans.find(s => s.heatmap_id === 9002).status === 'completed' && v.scans.scans.find(s => s.heatmap_id === 9002).top_3_percentage === 58 && v.scans.schedules.items.length === 0 && !lsCalls.includes('createHeatmap') && !lsCalls.includes('createSchedule'), JSON.stringify([v.scans.pending, lsCalls]), '');
+    heatmap9001Pending = false;
+    v = await (await req('POST', `/api/clients/${c.id}/gbp/scans/refresh`)).json();
+    chk('refresh again: the main heatmap completes, its competitors are saved as the LeadSnap competitors, LeadSnap\'s place id lands on the settings, two monthly schedules created', v.scans.pending === 0 && v.leadsnapCompetitors && v.leadsnapCompetitors.competitors[0].name === 'Solent Landscapes' && v.leadsnapCompetitors.keyword === 'Landscaper Southampton' && v.scans.settings.place.leadsnap_place_id === 555001 && v.scans.schedules.items.length === 2 && v.scans.schedules.items[0].schedule_id === 6501 && v.files['competitors_leadsnap.json'] && v.files['schedules.json'] && v.files['scans.json'], JSON.stringify([v.scans.pending, v.scans.schedules.items.map(i => i.name)]), '');
+    chk('the baseline table: both keywords marked baseline', v.scans.table.length === 2 && v.scans.table.every(t => t.months[0].is_baseline) && v.scans.alerts.length === 0, JSON.stringify(v.scans.table.map(t => t.months)), '');
+    v = await (await req('POST', `/api/clients/${c.id}/gbp/scans/fetch`)).json();
+    chk('fetch latest: the two November heatmaps added, the known baseline and another keyword skipped', v.added.length === 2 && v.added.every(a => a.month === '2026-11') && v.scans.count === 4 && v.scans.schedules.last_fetch_at, JSON.stringify(v.added), '');
+    chk('the drop alert fires on the main keyword and reaches the note and the top of the section', v.scans.alerts.length === 1 && /Top 3% dropped 36.1 to 24.3 on Landscaper Southampton/.test(v.profile.note) && v.scans.table.find(t => t.keyword === 'Landscaper Southampton').months[1].change === -11.8, v.profile.note.split('\n').slice(-1)[0], '');
+    v = await (await req('POST', `/api/clients/${c.id}/gbp/schedules/6501/pause`)).json();
+    chk('pause a schedule: LeadSnap called, the stored status paused', lsCalls.includes('pause') && v.scans.schedules.items.find(i => i.schedule_id === 6501).status === 'paused', '', '');
+    v = await (await req('POST', `/api/clients/${c.id}/gbp/schedules/6501/resume`)).json();
+    chk('resume it: active again', v.scans.schedules.items.find(i => i.schedule_id === 6501).status === 'active', '', '');
+    r = await req('POST', `/api/clients/${c.id}/gbp/schedules/6501/delete`);
+    chk('an unknown schedule action is 400', r.status === 400, r.status, 400);
+    v = await (await req('POST', `/api/clients/${c.id}/gbp/verify-profile`)).json();
+    chk('verify profile: the location read by the saved place id, the diff saved with completion 86%', v.profileCheck && v.profileCheck.location.completion_percentage === 86 && v.profileCheck.matched_by === 'the saved gbp_place_id' && v.profileCheck.counts.missing > 0 && v.files['profile_check.json'], JSON.stringify(v.profileCheck && v.profileCheck.counts), '');
+    for (const f of ['scans.json', 'schedules.json', 'competitors_leadsnap.json', 'profile_check.json']) {
+      const rf = await req('GET', `/clients/edens-edge-landscaping/gbp/${f}`);
+      chk(`${f} is served as JSON`, rf.status === 200 && /^application\/json/.test(rf.headers.get('content-type')), rf.status, 200);
+    }
+    const sj = await (await req('GET', `/clients/edens-edge-landscaping/gbp/scans.json`)).json();
+    chk('scans.json holds the settings, the table, the alerts and the rows', sj.settings && sj.table.length === 2 && sj.alerts.length === 1 && sj.scans.length === 4, Object.keys(sj).join(','), '');
   } finally { srv.close(); }
 
   console.log(`\n${pass} passed, ${fail} failed`);
