@@ -48,7 +48,7 @@ chk('S2: tree bracing leading and mowing under Gardener fail', /tree bracing/.te
   const reply = JSON.stringify({ items: Object.keys(Q.JUDGE_ITEMS).filter(id => id !== 'Y5').map(id => ({ id, pass: true })), score: 9.1, other_problems: [] });
   const rv = await Q.reviewPage({ record: rec, V, D: DR.decisions, cv, niche: landscaper, callModel: async () => ({ text: reply }) });
   chk('Review: score read; an item the reviewer skipped fails; not done with failures', rv.score === 9.1 && rv.failed.includes('Y5') && !rv.done, `${rv.score} ${rv.failed.join(',')}`, '9.1, Y5 failed, not done');
-  chk('Review prompt is CORE (2) and asks for JSON with items and score', /"score"/.test(Q.loadReviewPrompt()) && /CORE \(2\)/.test(fs.readFileSync(path.join(root, 'prompts/Copy_Quality_Review_CORE.md'), 'utf8')), '', 'prompt');
+  chk('Review prompt is CORE (3) and asks for JSON with items and score', /"score"/.test(Q.loadReviewPrompt()) && /CORE \(3\)/.test(fs.readFileSync(path.join(root, 'prompts/Copy_Quality_Review_CORE.md'), 'utf8')), '', 'prompt');
   console.log(`\n${pass + fail} checks: ${pass} passed, ${fail} failed`);
   if (fail) process.exit(1);
 })();

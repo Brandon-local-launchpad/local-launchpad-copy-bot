@@ -1,7 +1,8 @@
-# Copy Quality Review — CORE (2)
+# Copy Quality Review — CORE (3)
 
 (1), 16 Oct 2026: the reviewer for docs/seo/COPY_QUALITY_RUBRIC.md. Calibrated on the owner's own rating of the round 3 page (8.0). Used by quality-review.js after a page is generated. Code scores the rubric items it can check; this prompt scores the judgement items and gives the overall score.
 (2), 25 Oct: the same reviewer reads category pages (a category page for the whole area, or a location category page about one town); the judge items say which page it is.
+(3), 25 Oct (Brandon): the same trade facts rule as the claims review CORE (6): a method the TRADE FACTS rows give for a confirmed service is how the job is done, never an unconfirmed practice; only client-specific practices count as claims.
 
 ---
 
@@ -11,7 +12,7 @@ You get:
 - JUDGE ITEMS: the rubric tests you score, each with its ID.
 - CODE DECISIONS: what code chose on purpose (the hero town, the content block's link set, each card's services, the steps, the FAQ questions, the headings). Never fail an item because of these.
 - CODE RESULTS: the rubric items code has already scored (pass or fail, with the reason). Don't score them again, but take them into account in the overall score.
-- FACTS ON FILE: the client values, confirmed practices and services the copy may use. Anything about the business not in the facts is a claim with no support.
+- FACTS ON FILE: the client values, confirmed practices and services the copy may use, and the TRADE FACTS rows for the page's services. Anything about the business not in the facts is a claim with no support. A method the TRADE FACTS rows give for a confirmed service (edging during mowing, the cutting height, taking no more than a third off a hedge, lifting weeds out by the root, raking moss, a compacted base, seed sown on firm level soil) is how the job is done, never an unconfirmed practice: do not fail an item or list a problem for it. What counts as a claim about this business is a client-specific practice that is not in CONFIRMED PRACTICES: how often visits come, what happens to the waste, a check made before the work, a timing or response time, who turns up or how many.
 - PAGE: the page as a visitor reads it, in page order.
 
 For each judge item, decide pass or fail. A fail must quote the exact words from the page that break the test (one quote per problem, the shortest that shows it) and say in one sentence why. Fail only on a real problem a careful reader would notice; never on taste alone.

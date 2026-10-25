@@ -94,6 +94,29 @@ function buildCategoryReaderView(record, values = {}) {
       if ((C.findings || []).length) push('');
     }
   }
+  // The rubric review (docs/seo/COPY_QUALITY_RUBRIC.md): every failed item with the sentence it failed on
+  const Qr = record.QUALITY;
+  if (Qr) {
+    if (Qr.status === 'failed') push(`Quality review: failed (${Qr.error}).`, '');
+    else {
+      push(`Quality review: **${Qr.score === null || Qr.score === undefined ? 'n/a' : Qr.score.toFixed(1)} / 10**${(Qr.rounds || []).length ? ` (rounds ${Qr.rounds.map(r => r.score).join(', ')})` : ''}, ${(Qr.failed || []).length ? `failing ${Qr.failed.join(', ')}` : 'every rubric item passes'}.`, '');
+      for (const i of Qr.failures || []) {
+        push(`- **${i.id} ${i.title}** (${i.by})`);
+        for (const reason of i.reasons || []) push(`  - ${reason}`);
+      }
+      if ((Qr.failures || []).length) push('');
+      if ((Qr.other_problems || []).length) {
+        push('Other problems the reviewer noticed:');
+        for (const p of Qr.other_problems) push(`- "${p.quote}": ${p.why}`);
+        push('');
+      }
+      if ((Qr.missing_facts || []).length) {
+        push('Client facts that would let the page say more:');
+        for (const m of Qr.missing_facts) push(`- ${m.fact}: ${m.why}`);
+        push('');
+      }
+    }
+  }
   const flags = record.FLAGS || [];
   if (flags.length) { push('Flags:'); for (const f of flags) push(`- ${f.code} (${f.source}): ${f.msg}`); push(''); }
   const unresolved = [...new Set((L.join('\n').match(/\[CV: [a-z0-9_]+\]/g) || []))];
