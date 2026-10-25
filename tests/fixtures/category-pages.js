@@ -105,6 +105,12 @@ same('FAQ slots: the fallback cover question with nothing confirmed', B.pickFaqS
   const s = B.applySeasonal({ seasonal_trade: true }, BLOCKS.A, { problems: BLOCKS.A.problems.cards, faqs: B.pickFaqSlots(BLOCKS.A, cv, {}) });
   chk('seasonal: card 4 and the timing FAQ swap for the seasonal pair', s.swapped && s.problems[3].title === 'Moss after a wet winter' && s.faqs.find(q => q.slot === 'seasonal').question === 'Do you work through the winter?' && !s.faqs.some(q => q.slot === 'timing'), JSON.stringify([s.problems[3].title, s.faqs.map(q => q.slot)]), '');
   chk('seasonal: nothing swaps without the niche flag', !B.applySeasonal({}, BLOCKS.A, { problems: BLOCKS.A.problems.cards, faqs: [] }).swapped, '', 'off');
+  // Type B (Brandon, 25 Oct): insurance is always one of the five, so the seasonal question takes the symptom question's place
+  const Bs = { ...BLOCKS.B, seasonal: { problem_card: card('Leaves burying the lawn', 'Autumn.'), faq_slot: { question: 'When should I book for spring?', answer_brief: 'Book ahead.', doubt: 'Timing' } } };
+  const sb = B.applySeasonal({ seasonal_trade: true }, Bs, { problems: Bs.problems.cards, faqs: B.pickFaqSlots(Bs, cv, {}), letter: 'B' });
+  chk('seasonal (type B): the five slots stay and the seasonal question comes back as the symptom question\'s replacement', sb.swapped && sb.faqs.map(q => q.slot).join(',') === 'cost,cover,scope,process,timing' && sb.symptomSwap && sb.symptomSwap.question === 'When should I book for spring?' && sb.problems[3].title === 'Leaves burying the lawn', JSON.stringify([sb.faqs.map(q => q.slot), sb.symptomSwap]), '');
+  const RB = computeCategoryDecisions({ cv, niche: { ...niche, category_page_blocks: { ...BLOCKS, B: Bs } }, keyValueMap: kv, rows, page: basePage, allocation, symptoms: symptomsFor(parsedCity, 'Gardener'), ideasUsed: [], reviews: [], tradeFacts: null });
+  chk('seasonal (type B page): six questions, the insurance one kept, the seasonal one where the symptom question was, all four symptoms in the problems block', RB.decisions.faq.map(q => q.slot).join(',') === 'cost,cover,scope,process,timing,seasonal' && !RB.decisions.faq.some(q => q.symptom) && Object.keys(RB.decisions.allocated.symptoms).join(',') === 'problem_1,problem_2,problem_3,problem_4' && !RB.flags.some(f => f.code === 'F-ALLOC' && /symptom question/.test(f.msg)), JSON.stringify([RB.decisions.faq.map(q => q.slot), Object.keys(RB.decisions.allocated.symptoms)]), '');
 }
 
 // ── The base page decisions ──

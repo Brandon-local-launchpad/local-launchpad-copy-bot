@@ -27,21 +27,9 @@ function promptFile() {
   for (const n of PROMPT_NAMES) { const p = path.join(__dirname, 'prompts', n); if (fs.existsSync(p)) return { name: n, path: p }; }
   throw new Error(`The service page prompt is missing: prompts/${PROMPT_NAMES[0]}`);
 }
-// The shared rules file; until Brandon has read it in, the GLOBAL COPY RULES block of
-// CORE (16) itself (the file is that block word for word)
+// The shared rules file, the same one CORE (16) reads (category-generate.js)
 function loadSharedRules() {
-  const p = path.join(__dirname, 'prompts', SHARED_RULES);
-  if (fs.existsSync(p)) {
-    const text = fs.readFileSync(p, 'utf8').replace(/\r\n/g, '\n');
-    const cut = text.indexOf('\n---\n');
-    return { text: (cut >= 0 ? text.slice(cut + 5) : text).trim(), source: SHARED_RULES };
-  }
-  const { loadCore16 } = require('./category-generate');
-  const core16 = loadCore16().replace(/\r\n/g, '\n');
-  const a = core16.indexOf('## GLOBAL COPY RULES');
-  if (a < 0) throw new Error(`The shared copy rules are missing: prompts/${SHARED_RULES} is not there and CORE (16) has no GLOBAL COPY RULES block.`);
-  const b = core16.indexOf('\n---\n', a);
-  return { text: core16.slice(a, b > a ? b : undefined).trim(), source: 'Category_Page_Copywriting_Prompt_CORE (16).md GLOBAL COPY RULES' };
+  return { text: require('./category-generate').loadSharedRules(), source: SHARED_RULES };
 }
 // CORE (17) with the shared rules appended under their own heading
 function loadCore17() {

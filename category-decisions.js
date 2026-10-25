@@ -196,10 +196,6 @@ function computeCategoryDecisions({ cv, niche, keyValueMap = {}, rows = [], page
   const steps = (stepsRaw || []).slice(0, 3).map(s => ({ title: phCat(s.title, ctx), brief: phCat(s.brief || '', ctx) }));
   if (steps.length < 3) flags.push({ code: 'F-BRIEF', msg: `Only ${steps.length} process step(s) for type ${blocks.key}.` });
 
-  // Symptoms: the first (non urgent first, dossier order) feeds the symptom FAQ; the next
-  // four are the local causes for the problems block
-  const faqSymptom = symptoms[0] || null;
-  const problemSymptoms = symptoms.slice(1, 5);
   let faqs = B.pickFaqSlots(blocks.entry, cv, { quoteFree }).map(q => ({ ...q, question: phCat(q.question, ctx), answer_brief: phCat(q.answer_brief, ctx) }));
   // The visits question reads the frequency from the client value, or says the schedule is agreed and no more (Brandon, 25 Oct)
   const freq = String(cv.visit_frequency_options || '').trim();
@@ -207,11 +203,18 @@ function computeCategoryDecisions({ cv, niche, keyValueMap = {}, rows = [], page
     if (!/\b(?:regular visits|how often|visits work|visit frequency)\b/i.test(q.question)) continue;
     q.answer_brief = `${q.answer_brief} ${freq ? `The frequencies on offer are [CV: visit_frequency_options] (${freq}); name those and no other.` : 'No visit frequency is on file: say the schedule is agreed with you, and nothing more about how often.'}`.trim();
   }
-  const seasonal = B.applySeasonal(niche, blocks.entry, { problems: problemCards, faqs });
+  const seasonal = B.applySeasonal(niche, blocks.entry, { problems: problemCards, faqs, letter: blocks.letter });
   const problems = seasonal.problems.map(c => ({ ...c, title: phCat(c.title, ctx), brief: phCat(c.brief, ctx), mechanism: phCat(c.mechanism || '', ctx) }));
   const mechanisms = problems.map(p => p.mechanism).filter(Boolean);
   faqs = seasonal.faqs.map(q => ({ ...q, question: phCat(q.question, ctx), answer_brief: phCat(q.answer_brief, ctx) }));
-  if (faqSymptom) {
+  // Symptoms: the first (non urgent first, dossier order) feeds the symptom FAQ; the next four
+  // are the local causes for the problems block. On a type B page with the seasonal pair on,
+  // the seasonal question takes the symptom question's place and all four symptoms go to block 4.
+  const faqSymptom = seasonal.symptomSwap ? null : (symptoms[0] || null);
+  const problemSymptoms = seasonal.symptomSwap ? symptoms.slice(0, 4) : symptoms.slice(1, 5);
+  if (seasonal.symptomSwap) {
+    faqs.push({ ...seasonal.symptomSwap, question: phCat(seasonal.symptomSwap.question, ctx), answer_brief: phCat(seasonal.symptomSwap.answer_brief, ctx) });
+  } else if (faqSymptom) {
     const fs = blocks.entry.faq_symptom || {};
     const sctx = { ...ctx, symptom: faqSymptom.text.replace(/[.!?]\s*$/, '') };
     const frame = fs.frame || '[SYMPTOM]: why does it happen, and what can be done?';

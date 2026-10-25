@@ -27,7 +27,23 @@ function promptFile() {
   for (const n of PROMPT_NAMES) { const p = path.join(__dirname, 'prompts', n); if (fs.existsSync(p)) return { name: n, path: p }; }
   throw new Error(`The category page prompt is missing: prompts/${PROMPT_NAMES[0]}`);
 }
-function loadCore16() { return fs.readFileSync(promptFile().path, 'utf8').trim(); }
+// CORE (16) with the shared copy rules (prompts/_shared_copy_rules.md) in its GLOBAL COPY RULES
+// place: the prompt file holds a one line pointer there, the file holds the rules (Brandon, 25 Oct)
+const SHARED_RULES = '_shared_copy_rules.md';
+function loadSharedRules() {
+  const p = path.join(__dirname, 'prompts', SHARED_RULES);
+  if (!fs.existsSync(p)) throw new Error(`The shared copy rules are missing: prompts/${SHARED_RULES}`);
+  const text = fs.readFileSync(p, 'utf8').replace(/\r\n/g, '\n');
+  const cut = text.indexOf('\n---\n');
+  return (cut >= 0 ? text.slice(cut + 5) : text).trim();
+}
+function loadCore16() {
+  const core = fs.readFileSync(promptFile().path, 'utf8').replace(/\r\n/g, '\n').trim();
+  const a = core.indexOf('## GLOBAL COPY RULES');
+  if (a < 0) return core;
+  const b = core.indexOf('\n---\n', a);
+  return `${core.slice(0, a)}${loadSharedRules()}${b > a ? core.slice(b) : ''}`;
+}
 
 // The request: system blocks (CORE (16), the cached client block, the category's trade
 // facts) and the message (the decisions block)
@@ -161,4 +177,4 @@ async function generateCategoryPage({ cv, niche, keyValueMap, serviceParentMap =
   return out;
 }
 
-module.exports = { generateCategoryPage, buildCategoryRequest, loadCore16, promptFile, CATEGORY_MODEL, CATEGORY_MAX_TOKENS };
+module.exports = { generateCategoryPage, buildCategoryRequest, loadCore16, loadSharedRules, promptFile, CATEGORY_MODEL, CATEGORY_MAX_TOKENS, SHARED_RULES };

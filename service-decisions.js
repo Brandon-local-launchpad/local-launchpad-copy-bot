@@ -183,15 +183,13 @@ function computeServiceDecisions({ cv, niche, keyValueMap = {}, rows = [], page,
   const steps = (stepsRaw || []).slice(0, 3).map(s => ({ title: phSvc(s.title, ctx), brief: phSvc(s.brief || '', ctx) }));
   if (steps.length < 3) flags.push({ code: 'F-BRIEF', msg: `Only ${steps.length} process step(s) for type ${blocks.key}.` });
 
-  const faqSymptom = symptoms[0] || null;
-  const problemSymptoms = symptoms.slice(1, 5);
   let faqs = B.pickFaqSlots(E, cv, { quoteFree }).map(q => ({ ...q, question: phSvc(q.question, ctx), answer_brief: phSvc(q.answer_brief, ctx) }));
   const freq = String(cv.visit_frequency_options || '').trim();
   for (const q of faqs) {
     if (!/\b(?:regular visits|how often|visits work|visit frequency|frequency)\b/i.test(`${q.slot} ${q.question}`)) continue;
     q.answer_brief = `${q.answer_brief} ${freq ? `The frequencies on offer are [CV: visit_frequency_options] (${freq}); name those and no other.` : 'No visit frequency is on file: say the schedule is agreed with you, and nothing more about how often.'}`.trim();
   }
-  const seasonal = B.applySeasonal(niche, E, { problems: problemCards, faqs });
+  const seasonal = B.applySeasonal(niche, E, { problems: problemCards, faqs, letter: blocks.letter });
   const problems = seasonal.problems.map(c => ({ ...c, title: phSvc(c.title, ctx), brief: phSvc(c.brief, ctx), mechanism: phSvc(c.mechanism || '', ctx) }));
   const mechanisms = problems.map(p => p.mechanism).filter(Boolean);
   // The type's briefs give every service of that type the same four causes by design, so a
@@ -199,7 +197,13 @@ function computeServiceDecisions({ cv, niche, keyValueMap = {}, rows = [], page,
   // other pages' own causes (the category page's, a sibling of another type's) are kept
   mechanismsUsed = (Array.isArray(mechanismsUsed) ? mechanismsUsed : []).filter(m => m && m.text && !mechanisms.some(o => lc(o) === lc(m.text)));
   faqs = seasonal.faqs.map(q => ({ ...q, question: phSvc(q.question, ctx), answer_brief: phSvc(q.answer_brief, ctx) }));
-  if (faqSymptom) {
+  // The first symptom feeds the symptom question, the next four block 4; on a type B page with
+  // the seasonal pair on, the seasonal question takes the symptom question's place (Brandon, 25 Oct)
+  const faqSymptom = seasonal.symptomSwap ? null : (symptoms[0] || null);
+  const problemSymptoms = seasonal.symptomSwap ? symptoms.slice(0, 4) : symptoms.slice(1, 5);
+  if (seasonal.symptomSwap) {
+    faqs.push({ ...seasonal.symptomSwap, question: phSvc(seasonal.symptomSwap.question, ctx), answer_brief: phSvc(seasonal.symptomSwap.answer_brief, ctx) });
+  } else if (faqSymptom) {
     const fs = E.faq_symptom || {};
     const sctx = { ...ctx, symptom: faqSymptom.text.replace(/[.!?]\s*$/, '') };
     const frame = fs.frame || '[SYMPTOM]: why does it happen, and what can be done?';

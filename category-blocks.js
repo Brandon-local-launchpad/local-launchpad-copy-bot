@@ -95,21 +95,28 @@ function pickFaqSlots(entry, cv = {}, { quoteFree = '' } = {}) {
   return out.slice(0, 5);
 }
 
-// The seasonal swap: card 4 of block 4 and the FAQ slot named timing (else the last slot
-// that isn't cost, cover or scope) give way to the entry's seasonal pair.
-function applySeasonal(niche, entry, { problems, faqs }) {
+// The seasonal swap: card 4 of block 4 gives way to the entry's seasonal card. The seasonal
+// FAQ replaces the slot named timing (else the last slot that isn't cost, cover or scope) on
+// a type A page; on a type B page the five slots stay (insurance is always one of them) and
+// the seasonal question takes the symptom question's place instead (Brandon, 25 Oct):
+// symptomSwap carries it for the caller to push where the symptom question would go.
+function applySeasonal(niche, entry, { problems, faqs, letter = 'A' }) {
   const S = entry.seasonal;
-  if (!niche.seasonal_trade || !S) return { problems, faqs, swapped: false };
+  if (!niche.seasonal_trade || !S) return { problems, faqs, swapped: false, symptomSwap: null };
   const p = [...problems];
   if (S.problem_card && S.problem_card.title) p[Math.min(3, Math.max(0, p.length - 1))] = { title: S.problem_card.title, brief: S.problem_card.brief || '', mechanism: S.problem_card.mechanism || '', seasonal: true };
   let q = [...faqs];
+  let symptomSwap = null;
   if (S.faq_slot && S.faq_slot.question) {
-    let i = q.findIndex(x => x.slot === 'timing');
-    if (i < 0) { for (let j = q.length - 1; j >= 0; j--) if (!['cost', 'cover', 'scope'].includes(q[j].slot)) { i = j; break; } }
     const swap = { slot: 'seasonal', question: S.faq_slot.question, answer_brief: S.faq_slot.answer_brief || '', doubt: S.faq_slot.doubt || 'Timing', seasonal: true };
-    if (i >= 0) q[i] = swap; else q.push(swap);
+    if (letter === 'B') symptomSwap = swap;
+    else {
+      let i = q.findIndex(x => x.slot === 'timing');
+      if (i < 0) { for (let j = q.length - 1; j >= 0; j--) if (!['cost', 'cover', 'scope'].includes(q[j].slot)) { i = j; break; } }
+      if (i >= 0) q[i] = swap; else q.push(swap);
+    }
   }
-  return { problems: p, faqs: q, swapped: true };
+  return { problems: p, faqs: q, swapped: true, symptomSwap };
 }
 
 module.exports = { typeFor, blocksFor, briefGaps, pickFaqSlots, applySeasonal, NoBriefsError };
