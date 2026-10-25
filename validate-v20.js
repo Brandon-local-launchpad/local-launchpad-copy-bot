@@ -488,7 +488,8 @@ function validateCommon(record, V) {
     }
     // FINAL-CTA: one normal sentence, "we" or the customer as the subject, never the phone number (15 Oct)
     if (f.ref.key === K.finalCta) {
-      if (/\[CV: phone\]/.test(t) || (cv.phone && digits.includes(cv.phone.replace(/\D/g, '')))) flag('BLOCK', 'FINAL-CTA', 'The final CTA body never gives the phone number: the buttons carry it.');
+      // The token is named, so the rewrite drops it (25 Oct: four category page retries kept "Call [CV: phone]")
+      if (/\[CV: phone\]/.test(t) || (cv.phone && digits.includes(cv.phone.replace(/\D/g, '')))) flag('BLOCK', 'FINAL-CTA', 'The final CTA body never gives the phone number: remove "[CV: phone]" and any "Call" or "Ring" before it; the buttons carry the number. Say what happens when they get in touch.');
       if (sentences(t).length > 1) flag('FLAG', 'FINAL-CTA', 'The final CTA body is one sentence.');
       if (!/\b(we|we'll|we're|you|you'll|your)\b/i.test(s)) flag('FLAG', 'FINAL-CTA', 'Make "we" or the customer the subject of the sentence.');
     }
