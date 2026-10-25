@@ -63,7 +63,7 @@ function buildCategoryRequest({ cv, niche, decisions, decisionsBlock, calibratio
 }
 
 // Generate one category page record. With a failed gate there is no call.
-async function generateCategoryPage({ cv, niche, keyValueMap, serviceParentMap = {}, decisionsResult, calibrationPack, calibrationPackName, callModel, tradeFacts = null, extraFlags = [], retries = true, claimsReview = true }) {
+async function generateCategoryPage({ cv, niche, keyValueMap, serviceParentMap = {}, decisionsResult, calibrationPack, calibrationPackName, callModel, tradeFacts = null, extraFlags = [], retries = true, claimsReview = true, qualityReview = false }) {
   const { runRetries, loadRetryPrompt, validationSummary } = require('./v20-retry');
   const D = decisionsResult.decisions;
   const meta = {
@@ -124,6 +124,25 @@ async function generateCategoryPage({ cv, niche, keyValueMap, serviceParentMap =
         record.VALIDATION = validationSummary(validate(record), [...log, ...rounds.flatMap(r => r.retries.map(x => ({ ...x, problems: x.claims, source: 'claims' }))), ...after.log.map(x => ({ ...x, round: `after claims ${x.round}` }))], retryUsage);
       } catch (e) {
         record.CLAIMS = { for: meta.generated_at, status: 'failed', error: e.message, findings: [] };
+      }
+    }
+    // The rubric review (docs/seo/COPY_QUALITY_RUBRIC.md, category items added 25 Oct): the
+    // reviewer reads the page, the fields it quotes are rewritten, the page is reviewed again
+    if (qualityReview) {
+      const { runQualityRetries, runClaimRetries } = require('./v20-retry');
+      const Q = require('./quality-review');
+      try {
+        const { review: rv, rounds: qRounds } = await runQualityRetries({ record, V, callRetry, review: rec => Q.reviewPage({ record: rec, V, D, cv, niche, callModel }) });
+        record.QUALITY = { at: rv.at, model: rv.model, score: rv.score, done: rv.done, failed: rv.failed, failures: rv.items.filter(i => !i.pass), other_problems: rv.other_problems, missing_facts: rv.missing_facts, rounds: qRounds };
+        if (claimsReview && qRounds.some(r => r.retries.some(x => x.kept))) {
+          const { runClaimsReview, factsFromRecord } = require('./wp/claims-review');
+          const { claims, rounds } = await runClaimRetries({ record, V, callRetry, review: rec => runClaimsReview(rec, factsFromRecord(rec), callModel), maxRounds: 1 });
+          record.CLAIMS = { ...(record.CLAIMS || {}), at: claims.at, status: claims.findings.length ? 'needs acceptance' : 'clear', findings: claims.findings, rounds: [...((record.CLAIMS || {}).rounds || []), ...rounds.map(r => ({ ...r, round: `after quality ${r.round}` }))] };
+        }
+        const earlier = (record.VALIDATION && record.VALIDATION.retries) || [];
+        record.VALIDATION = validationSummary(validate(record), [...earlier, ...qRounds.flatMap(r => r.retries.map(x => ({ ...x, round: `quality ${x.round}`, source: 'quality' })))], retryUsage);
+      } catch (e) {
+        record.QUALITY = { status: 'failed', error: e.message };
       }
     }
   } else {

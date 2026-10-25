@@ -54,6 +54,25 @@ function requiredWording(record) {
   return out;
 }
 
+// Rule 2 (25 Oct): a finding whose quote carries a figure the client values give (team size,
+// years, jobs, insurance) and whose reason is about that figure is not a finding. The
+// values the page was written with are on the record (meta.client_values).
+const FIGURE_KEYS = { team_size: /\b(team|crew|staff|people|of us)\b/i, years_trading: /\byears?\b/i, year_founded: /\b(year|since|established|founded)\b/i, jobs_completed: /\b(jobs?|projects?|gardens?|homes?|customers?|completed)\b/i, insurance_cover: /\b(insur|cover|liability)/i };
+const NUM_WORDS = { 1: 'one', 2: 'two', 3: 'three', 4: 'four', 5: 'five', 6: 'six', 7: 'seven', 8: 'eight', 9: 'nine', 10: 'ten', 11: 'eleven', 12: 'twelve' };
+function isOnFileFigure(f, record) {
+  const values = (record && record.meta && record.meta.client_values) || {};
+  const text = norm(`${f.quote} ${f.why || ''}`);
+  for (const [key, topic] of Object.entries(FIGURE_KEYS)) {
+    const v = String(values[key] || '').trim();
+    if (!v) continue;
+    const forms = [norm(v), norm(v).replace(/[£,]/g, '')];
+    const n = parseInt(v, 10);
+    if (!isNaN(n) && NUM_WORDS[n]) forms.push(NUM_WORDS[n]);
+    if (forms.some(x => x && new RegExp(`(?:^|[^a-z0-9])${x.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}(?:$|[^a-z0-9])`).test(norm(f.quote))) && topic.test(text)) return true;
+  }
+  return false;
+}
+
 function parseFindings(text, record) {
   const raw = extractJsonObject(text).findings || [];
   const fields = Object.fromEntries(modelFields(record).map(f => [f.label, f.text]));
@@ -66,7 +85,7 @@ function parseFindings(text, record) {
   const isRequired = f => required.some(r => norm(f.quote).includes(r.phrase) && r.topic.test(`${f.quote} ${f.why || ''}`));
   for (const f of raw) {
     const fieldText = fields[f.field];
-    if (fieldText && f.quote && norm(fieldText).includes(norm(f.quote)) && !selfCleared(f.why) && !isRequired(f)) kept.push({ field: f.field, quote: f.quote, why: f.why || '' });
+    if (fieldText && f.quote && norm(fieldText).includes(norm(f.quote)) && !selfCleared(f.why) && !isRequired(f) && !isOnFileFigure(f, record)) kept.push({ field: f.field, quote: f.quote, why: f.why || '' });
     else dropped.push(f);
   }
   return { findings: kept, dropped };
@@ -102,4 +121,4 @@ function factsFromRecord(record) {
   return { clientBlock, research: researchFromRecord(record), decisions: decisionsFromRecord(record) };
 }
 
-module.exports = { runClaimsReview, buildClaimsMessage, parseFindings, researchFromRecord, decisionsFromRecord, factsFromRecord, loadClaimsPrompt, CLAIMS_MODEL };
+module.exports = { runClaimsReview, buildClaimsMessage, parseFindings, isOnFileFigure, researchFromRecord, decisionsFromRecord, factsFromRecord, loadClaimsPrompt, CLAIMS_MODEL };

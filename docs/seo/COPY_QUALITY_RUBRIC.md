@@ -1,4 +1,4 @@
-# Copy Quality Rubric (v20 homepage)
+# Copy Quality Rubric (v20 homepage and category pages)
 
 Every copy problem found on the Edens Edge homepage reviews of 15 and 16 Oct 2026 (Brandon's reviews, round 2 "7.5/10" and round 3 "8/10", and the problems found while fixing them), written as a pass/fail test.
 
@@ -116,6 +116,23 @@ Where a test needs a client fact that isn't on file, the page passes by leaving 
 | Y5 | Every sentence reads naturally to a homeowner: grammatical, no padding, no contradiction, nothing a reader would stumble on. | judge | every review |
 
 ---
+
+## K. Category pages (CORE (16), 25 Oct)
+
+The same rubric scores a category page (base scope) and a location category page (town scope), through the category page's validator and reader view, with these items on top. The homepage-only items (B1, B4, S2, S6, A1's hub link) pass on a category page because their checks never fire there.
+
+| ID | Test (pass when…) | Scored by | Found |
+|---|---|---|---|
+| E1 | Hero sentence 1 has the company token and the keyword phrase ("a gardener in Winchester"); a base page ends with the wider area. | code: HERO-CAT | first run |
+| K1 | The keyword phrase appears only in hero sentence 1 and content block sentence 1 (code puts it in the H1 and H2s). | code: KEYWORD | CORE (16) rule |
+| B7 | Content block paragraph 2 links the service pages given in DECISIONS, each with a reason, two links a sentence at most. | code: CB-LINKS; judge B1j | CORE (16) rule |
+| S11 | Each card links its given target (the base service page, or the town service page on a town page) and nothing else. | code: CARD-TARGET, CARD-LINK | CORE (16) rule |
+| Y8 | The services intro is two sentences. | code: INTRO-SENTENCES | first run (four sentences on the town page) |
+| I1 | Nothing from IDEAS USED ELSEWHERE is made again, in any wording (70% of a sentence's content words). | code: IDEAS; judge P6 | first run |
+| T3 | A town page names no other town, anywhere. | code: TOWN-OTHER; judge T6j | CORE (16) rule |
+| T4 | On a town page every link reads as the plain service or page name: no town in the link text, never a destination H1. | code: LINK-TOWN; judge T6j | CORE (16) rule |
+| T5 | A town page's cards name no town: the page is about the town already. | code: CARD-TOWN | first run (three cards named Winchester) |
+| A3 | A town page's areas intro names none of the villages; code places the list under it. | code: AREAS-TOWN | CORE (16) rule |
 
 ## How the review step uses this
 

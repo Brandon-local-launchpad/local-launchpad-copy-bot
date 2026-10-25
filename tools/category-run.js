@@ -8,6 +8,7 @@
 //   node tools/category-run.js --all                        every category and location category page (base first)
 //   node tools/category-run.js --trust-pack                 treat the landscaper trade facts pack as verified (its rows join the message)
 //   node tools/category-run.js --no-claims                  skip the claims review
+//   node tools/category-run.js --quality                    the rubric review and its rewrites too (quality-review.js; Opus, about 50p a page more)
 //   node tools/category-run.js --practices all              tick every practice the niche lists (or --practices key1,key2), as the
 //                                                           live client would have them ticked on Client Values
 //
@@ -86,7 +87,7 @@ const flag = name => process.argv.includes(name);
       const D = args.decisionsResult.decisions;
       let tf = args.tradeFacts;
       if (tf && D && tf.verified) { const pack = P.packForCategory(tf.niche, D.category, D.cards.map(c => c.name)); tf = { ...tf, markdown: pack.markdown, missing: pack.missing }; }
-      return CG.generateCategoryPage({ ...args, tradeFacts: tf, callModel, claimsReview: !flag('--no-claims') });
+      return CG.generateCategoryPage({ ...args, tradeFacts: tf, callModel, claimsReview: !flag('--no-claims'), qualityReview: flag('--quality') });
     },
     allocate: args => A.runAllocation({ ...args, callModel: async (system, message) => {
       const r = await client.messages.create({ model: A.ALLOCATION_MODEL, max_tokens: 2048, system, messages: [{ role: 'user', content: message }] });
@@ -106,7 +107,10 @@ const flag = name => process.argv.includes(name);
     fs.writeFileSync(path.join(dir, `${name}.json`), JSON.stringify(found.record, null, 2));
     if (!found.record.error && !found.record.blocked) fs.writeFileSync(path.join(dir, `${name}.md`), buildCategoryReaderView(found.record, found.record.meta.client_values || {}));
     const V = found.record.VALIDATION || {};
-    console.log(`  ${p.key}: ${p.status}${V.status === 'run' ? ` (${V.block} BLOCK, ${V.flag} FLAG${found.record.CLAIMS ? `, claims ${found.record.CLAIMS.status}` : ''})` : ''}${p.error ? `: ${p.error}` : ''}`);
+    const Qr = found.record.QUALITY;
+    console.log(`  ${p.key}: ${p.status}${V.status === 'run' ? ` (${V.block} BLOCK, ${V.flag} FLAG${found.record.CLAIMS ? `, claims ${found.record.CLAIMS.status}` : ''}${Qr && Qr.score != null ? `, quality ${Qr.score.toFixed(1)}${Qr.done ? ' DONE' : ` failing ${Qr.failed.join(', ')}`}` : ''})` : ''}${p.error ? `: ${p.error}` : ''}`);
+    if (Qr && Qr.failures) for (const i of Qr.failures) console.log(`      QUALITY ${i.id} ${i.title}: ${(i.reasons || []).slice(0, 2).join(' | ')}`);
+    if (Qr && Qr.other_problems) for (const o of Qr.other_problems) console.log(`      QUALITY other: "${o.quote}": ${o.why}`);
     for (const i of (V.issues || [])) console.log(`      ${i.type} ${i.check} · ${i.field}: ${i.message}`);
     for (const f of (found.record.FLAGS || [])) console.log(`      flag ${f.code}: ${f.msg}`);
   }

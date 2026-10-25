@@ -252,6 +252,26 @@ chk('AREAS-TOWN: a village in the town page areas intro is a BLOCK', has(blocks(
 chk('CARD-TOWN: a town page card naming the town is a BLOCK', (() => { const r = JSON.parse(JSON.stringify(recordT)); r.cards[0].card_text = r.cards[0].card_text.replace('keep it in shape', 'keep it in shape across Winchester'); return has(blocks(issuesOf(r, Vtown)), 'CARD-TOWN', 'Lawn mowing', 'Winchester'); })(), '', 'CARD-TOWN');
 chk('the town name itself is allowed on a town page (no TOWN-OTHER for Winchester)', !has(issuesOf(withText(recordT, PT.LABELS.servicesIntro, 'Lawns, hedges, beds and fences across Winchester, on a regular round or put right in one visit, for homeowners who want the garden kept in shape without doing it themselves.'), Vtown), 'TOWN-OTHER'), '', 'allowed');
 
+// ── The rubric reviewer on category pages (code side) ──
+{
+  const Q = require(path.join(root, 'quality-review.js'));
+  const base = Q.scoreCodeItems({ record, V: Vbase, D, cv, niche });
+  const ids = base.items.map(i => i.id);
+  chk('rubric: a category page is scored with the homepage items plus the category items', ['K1', 'S11', 'I1', 'T3', 'T4', 'T5', 'Y8', 'B7', 'A3', 'H1', 'C1', 'P3'].every(i => ids.includes(i)), ids.join(','), 'homepage + category items');
+  chk('rubric: the built base page passes the category items', ['K1', 'S11', 'I1', 'T3', 'T4', 'T5', 'Y8', 'E1'].every(i => base.items.find(x => x.id === i).pass), JSON.stringify(base.items.filter(i => !i.pass).map(i => i.id + ': ' + i.reasons[0])), 'pass');
+  const dec = Q.decisionsTests({ record, D, cv, niche });
+  chk('rubric: the final CTA heading names the work noun; no card pick or meta test on a category page', dec.finalCta === null && dec.cardPicks === null && dec.meta === null && dec.areaList === null, JSON.stringify(dec), '');
+  const townBad = JSON.parse(JSON.stringify(recordT));
+  townBad[PT.LABELS.servicesIntro] = 'Lawns, hedges and beds across the city, with the same round we run in Romsey. It suits homeowners who want the garden kept in shape without doing it themselves. Nobody has to pick up a mower. The hedges stay tidy.';
+  townBad.cards[0].card_text = townBad.cards[0].card_text.replace('keep it in shape', 'keep it in shape across Winchester');
+  const town = Q.scoreCodeItems({ record: townBad, V: Vtown, D: T, cv, niche });
+  const fails = Object.fromEntries(town.items.filter(i => !i.pass).map(i => [i.id, i.reasons[0]]));
+  chk('rubric (town): T3 fails on Romsey, T5 on Winchester in a card, Y8 on four sentences', /Romsey/.test(fails.T3) && /Winchester/.test(fails.T5) && /4 sentences/.test(fails.Y8), JSON.stringify(Object.keys(fails)), 'T3, T5, Y8');
+  const J = Q.judgeItemsFor(recordT);
+  chk('rubric (town): the judge gets the town page item and the category paragraph 2 item', !!J.T6j && /service pages given in DECISIONS/.test(J.B1j) && !Q.judgeItemsFor(record).T6j, Object.keys(J).join(','), 'T6j on the town page only');
+  chk('rubric: the reviewer reads the category reader view', /Gardener Winchester/.test(Q.pageText(recordT)) && !/Review notes/.test(Q.pageText(recordT)), '', 'category reader');
+}
+
 // ── Ideas ──
 {
   const ideas = I.extractIdeas({ ...record, meta: { ...record.meta, ideas_context: { names: ['Bassett Heath', 'Portswood'], proofs: ['Fixed Prices With No Hidden Costs'] } } });

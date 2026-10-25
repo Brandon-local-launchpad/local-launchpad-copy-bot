@@ -125,7 +125,7 @@ One `faq_answer` per question given, in order. 50 to 70 words each, or 30 to 70 
 - At least one answer carries a link to a service page on LINKABLE PAGES. Town page links only to pages for that town or to base service pages.
 
 ### cat_final_cta_body
-One sentence, 15 to 25 words. What happens when they get in touch about this category's work, from confirmed material. Never restate a proof that has its home elsewhere. Never open with "Tell us".
+One sentence, 15 to 25 words. What happens when they get in touch about this category's work, from confirmed material. Never restate a proof that has its home elsewhere. Never open with "Tell us". Never `[CV: phone]` or any phone number: the buttons under it carry the number (code sends the field back if it does).
 
 ### MODEL_FLAGS
 Anything you could not do from confirmed material, one code per line, or "none". F-ALLOC when the page had fewer than 2 neighbourhoods (base) or no town profile (town), or a missing symptom. F-BRIEF when a block 4 or block 5 card arrived without a brief.

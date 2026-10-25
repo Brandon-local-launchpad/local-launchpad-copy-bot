@@ -1,16 +1,21 @@
 'use strict';
 
-// ── Copy quality review (16 Oct) ─────────────────────────────────────────────
-// Scores a generated v20 homepage against docs/seo/COPY_QUALITY_RUBRIC.md.
+// ── Copy quality review (16 Oct; category pages 25 Oct) ──────────────────────
+// Scores a generated v20 page (the homepage, or a category page) against
+// docs/seo/COPY_QUALITY_RUBRIC.md. The page type gives the validator and the reader
+// view; a category page adds its own code items (the keyword placement, the town
+// page's no-other-town and plain-anchor rules, the ideas check) and a judge item.
 // Code items come from the validator and the decisions; judge items and the
 // overall score come from one reviewer model call (prompts/Copy_Quality_Review_CORE.md).
 // A page is done when every item passes and the score is 8.5 or more.
 
 const fs = require('fs');
 const path = require('path');
-const { validateV20, wordCount } = require('./validate-v20');
+const { wordCount } = require('./validate-v20');
 const { isAdminArea } = require('./client-files');
-const { buildReaderView } = require('./v20-reader');
+const { pageTypeOf, pageTypeId } = require('./page-types');
+const validateV20 = (record, V) => pageTypeOf(record).validate(record, V);
+const buildReaderView = (record, values) => pageTypeOf(record).readerView(record, values);
 const { extractJsonObject } = require('./json-extract');
 
 const REVIEW_MODEL = 'claude-opus-5-5';
@@ -67,6 +72,22 @@ const CODE_ITEMS = {
   Y3: { title: 'No research wording', checks: ['RESEARCH-LANG'] },
   Y4: { title: 'Pronouns and "team"', checks: ['N15', 'N12'] },
 };
+// The category page's own items (25 Oct), on top of the homepage's
+const CATEGORY_ITEMS = {
+  E1: { title: 'Hero sentence 1: company token, keyword phrase, the wider area on a base page', checks: ['HERO', 'HERO-CAT'] },
+  K1: { title: 'Keyword phrase only in hero sentence 1 and content block sentence 1', checks: ['KEYWORD'] },
+  B7: { title: 'Content block paragraph 2 links a section 3 page', checks: ['CB-LINKS'] },
+  S11: { title: 'Each card links its given target and nothing else', checks: ['CARD-TARGET'] },
+  Y8: { title: 'Services intro is two sentences', checks: ['INTRO-SENTENCES'] },
+  I1: { title: 'Nothing from IDEAS USED ELSEWHERE made again', checks: ['IDEAS'] },
+  T3: { title: 'Town page names no other town', checks: ['TOWN-OTHER'] },
+  T4: { title: 'Town page links are plain names: no town in link text', checks: ['LINK-TOWN'] },
+  T5: { title: 'Town page cards name no town', checks: ['CARD-TOWN'] },
+  A3: { title: 'Town page areas intro names no village (code places the list)', checks: ['AREAS-TOWN'] },
+};
+function codeItemsFor(record) {
+  return pageTypeId(record) === 'category' ? { ...CODE_ITEMS, ...CATEGORY_ITEMS } : CODE_ITEMS;
+}
 
 // Rubric items the reviewer model scores
 const JUDGE_ITEMS = {
@@ -80,6 +101,18 @@ const JUDGE_ITEMS = {
   Y6: 'No padding (a sentence that could sit on any website: "there is a service here for you", "we bring that experience to every job") and no pasted research ("gardens that date mostly from 1908 to 1930", "the geology varies widely"). Memberships and logos only when they are in the facts.',
   Y5: 'Every sentence reads naturally to a homeowner: grammatical, specific, no padding, no contradiction, nothing a reader would stumble on or doubt.',
 };
+// The judge items for a page: a category page's paragraph 2 links service pages, and a
+// town page is about its town only (25 Oct)
+function judgeItemsFor(record) {
+  if (pageTypeId(record) !== 'category') return JUDGE_ITEMS;
+  const out = { ...JUDGE_ITEMS };
+  out.B1j = 'The content block\'s paragraph 2 links the service pages given in DECISIONS, each with a reason (what that work does for the customer), never more than two links in a sentence, and lists no other services.';
+  out.P6 = 'Each idea has one home: the same point (a drainage cause, a cost factor, an insurance example) isn\'t made in several sections, and nothing listed under IDEAS USED ELSEWHERE is made again in other words. A confirmed proof may appear up to 3 times: code scores that (P1, P2), so don\'t fail P6 for it.';
+  if (record.scope === 'town') {
+    out.T6j = 'A town page reads as about that town only: no other town is named or implied anywhere (the city, a neighbouring town, "the surrounding towns"), and every link reads as the plain service or page name, never a destination H1 and never with a town in it.';
+  }
+  return out;
+}
 
 function loadReviewPrompt() {
   const text = fs.readFileSync(path.join(__dirname, 'prompts', 'Copy_Quality_Review_CORE.md'), 'utf8').replace(/\r\n/g, '\n');
@@ -92,6 +125,20 @@ const lc = s => String(s || '').toLowerCase();
 // Decisions tests (code)
 function decisionsTests({ record, D, cv, niche }) {
   const out = {};
+  const category = pageTypeId(record) === 'category';
+  if (category) {
+    // H2 on a category page: the final CTA heading names the page's work noun or its category
+    const h2 = lc(record.cat_final_cta_h2);
+    const want = [D.work, D.cat, D.category].filter(Boolean).map(lc);
+    out.finalCta = want.some(w => h2.includes(w)) ? null : `The final CTA heading "${record.cat_final_cta_h2}" names neither ${want.join(' nor ')}.`;
+    out.meta = null;
+    out.cardPicks = null;
+    const admin = (record.cat_areas_links || []).map(a => a.name).filter(isAdminArea);
+    out.areaList = admin.length ? `The area list includes ${admin.join(', ')}.` : null;
+    const claims = (record.CLAIMS && record.CLAIMS.findings) || [];
+    out.claims = record.CLAIMS && record.CLAIMS.status === 'failed' ? 'The claims review failed to run.' : claims.length ? claims.map(f => `"${f.quote}" (${f.why})`).join('; ') : null;
+    return out;
+  }
   // H2: the final CTA heading names the primary category or the trade person
   const h2 = lc(record.home_final_cta_h2);
   const okNames = [cv.primary_category, niche.trade_person].filter(Boolean).map(lc);
@@ -146,13 +193,14 @@ function scoreCodeItems({ record, V, D, cv, niche }) {
   const issues = validateV20(record, V);
   const dec = decisionsTests({ record, D, cv, niche });
   const items = [];
-  for (const [id, item] of Object.entries(CODE_ITEMS)) {
+  const contentField = pageTypeId(record) === 'category' ? /cat_content_body/ : /home_content_block_body/;
+  for (const [id, item] of Object.entries(codeItemsFor(record))) {
     const reasons = [];
     if (item.checks) for (const i of issues) if (item.checks.includes(i.check) && !(item.skip && item.skip.test(i.message)) && !(item.only && !item.only.test(i.message))) reasons.push(`${i.check} · ${i.field}: ${i.message}`);
     if (item.decisions && dec[item.decisions]) reasons.push(dec[item.decisions]);
     if (item.range) {
       for (const i of issues.filter(x => x.check === 'N7' && /words: it must be/.test(x.message))) {
-        const isCb = /home_content_block_body/.test(i.field), isFaq = /^faq_answer/.test(i.field);
+        const isCb = contentField.test(i.field), isFaq = /^faq_answer/.test(i.field);
         if ((item.range === 'home_content_block_body' && isCb) || (item.range === 'faq_answer' && isFaq) || (item.range === 'other' && !isCb && !isFaq)) reasons.push(`${i.field}: ${i.message}`);
       }
       if (item.longSentence) {
@@ -169,6 +217,20 @@ function scoreCodeItems({ record, V, D, cv, niche }) {
 // What code decided, so the reviewer doesn't mark it down (the hero town, the content
 // block's link set, each card's services, the step titles, the FAQ questions)
 function decisionsSummary(record, D) {
+  if (pageTypeId(record) === 'category') {
+    return [
+      `${D.scope === 'town' ? 'Location category page' : 'Category page'} for ${D.category}, H1: ${D.d2_h1}. Keyword phrase in body copy: "${D.keyword}", by rule only in hero sentence 1 and content block sentence 1.`,
+      `Cards (one service page each, the link target given): ${(D.cards || []).map(c => `${c.name} → ${c.url}`).join('; ')}.`,
+      `Also offered (no page): ${(D.alsoOffered || []).join(', ') || 'none'}.`,
+      `Block 4 cards: ${(D.problems || []).map(p => p.title).join(' / ')}. Block 5 cards: ${(D.cost || []).map(p => p.title).join(' / ')}.`,
+      `Steps: ${(D.niche_steps || []).map(s => s.title).join(' / ')}.`,
+      `FAQ questions (chosen by code): ${(D.faq || []).map(q => q.question).join(' / ')}.`,
+      `Final CTA heading: ${record.cat_final_cta_h2}.`,
+      D.scope === 'town'
+        ? `By design: the page is about ${D.town} only; the areas list (villages) is placed by code and the areas intro names none of them; the content block closing line may call [CV: phone].`
+        : 'By design: towns are named in the content block\'s paragraph 4 links and the area list; the content block closing line may call [CV: phone]; a confirmed proof can be headlined, explained and mentioned once more (3 times).',
+    ].join('\n');
+  }
   return [
     `H1: ${D.d2_h1}. Hero town (where the business works, named in hero sentence 1): ${(D.d14_town || {}).name || 'none'}.`,
     `Content block links these categories only (the cards cover the rest): ${(D.d13_links || []).map(l => l.name).join(', ')}.`,
@@ -195,7 +257,7 @@ function pageText(record) {
 async function reviewPage({ record, V, D, cv, niche, callModel }) {
   const { items: codeItems, issues } = scoreCodeItems({ record, V, D, cv, niche });
   const message = [
-    'JUDGE ITEMS:', ...Object.entries(JUDGE_ITEMS).map(([id, t]) => `${id}: ${t}`), '',
+    'JUDGE ITEMS:', ...Object.entries(judgeItemsFor(record)).map(([id, t]) => `${id}: ${t}`), '',
     'CODE RESULTS:', ...codeItems.map(i => `${i.id} ${i.pass ? 'pass' : 'FAIL'}: ${i.title}${i.pass ? '' : ` (${i.reasons.slice(0, 3).join(' | ')})`}`), '',
     'CODE DECISIONS (made by code on purpose; never fail an item for these):', decisionsSummary(record, D), '',
     'FACTS ON FILE:', factsFor(record), '',
@@ -203,7 +265,7 @@ async function reviewPage({ record, V, D, cv, niche, callModel }) {
   ].join('\n');
   const r = await callModel({ system: loadReviewPrompt(), message, maxTokens: 16000, model: REVIEW_MODEL });
   const j = extractJsonObject(r.text);
-  const judgeItems = Object.entries(JUDGE_ITEMS).map(([id, t]) => {
+  const judgeItems = Object.entries(judgeItemsFor(record)).map(([id, t]) => {
     const got = (j.items || []).find(x => x.id === id) || { pass: false, why: 'The reviewer did not score this item.' };
     return { id, title: t, by: 'judge', pass: !!got.pass, reasons: got.pass ? [] : [`"${got.quote || ''}": ${got.why || ''}`] };
   });
@@ -237,4 +299,4 @@ function formatReview(rv) {
   return L.join('\n');
 }
 
-module.exports = { reviewPage, scoreCodeItems, decisionsTests, formatReview, pageText, CODE_ITEMS, JUDGE_ITEMS, REVIEW_MODEL, PASS_SCORE, loadReviewPrompt };
+module.exports = { reviewPage, scoreCodeItems, decisionsTests, formatReview, pageText, CODE_ITEMS, CATEGORY_ITEMS, JUDGE_ITEMS, codeItemsFor, judgeItemsFor, REVIEW_MODEL, PASS_SCORE, loadReviewPrompt };
