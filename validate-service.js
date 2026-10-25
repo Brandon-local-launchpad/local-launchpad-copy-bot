@@ -212,6 +212,10 @@ function validateService(record, V) {
     }
   }
 
+  // ── The final CTA body never opens with "Tell us" (CORE (17)) ──
+  const fc = fields.find(f => f.ref.key === LABELS.finalCta);
+  if (fc && /^\s*tell us\b/i.test(scanText(fc.text))) issue('FLAG', 'FINAL-CTA', fc.label, 'Opens with "Tell us"; the final CTA body never does. Say what happens when they get in touch.', fc.ref);
+
   // ── Nothing from IDEAS USED ELSEWHERE ──
   const ideas = D.ideasUsed || [];
   if (ideas.length) {
