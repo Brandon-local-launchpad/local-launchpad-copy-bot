@@ -120,6 +120,10 @@
     "label": "Start time"
   },
   {
+    "key": "visit_frequency_options",
+    "label": "Visit frequency options"
+  },
+  {
     "key": "owner_name",
     "label": "Owner name"
   },

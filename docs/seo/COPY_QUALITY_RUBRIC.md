@@ -119,6 +119,9 @@ Where a test needs a client fact that isn't on file, the page passes by leaving 
 | Y9 | No padding in the section intros (services, cost, areas): every sentence after the first brings a new noun or a number. | code: INTRO-PAD | Gardener live run, 25 Oct |
 | Y10 | No sentence copied from the calibration pack: a run of five words shared with a pack example, or 70% of a sentence's content words (seven or more), is a BLOCK ("Hedges put on most of their growth between May and July" came from the pack). | code: PACK-COPY | Gardener live run, 25 Oct |
 | L1 | Every local detail from the research earns its place by saying what it means for the work (rule 6 of USING THE LOCAL RESEARCH); a detail used as scenery ("Cherries line the avenue") fails. | judge | Gardener live run, 25 Oct |
+| Y11 | No padding opener: "every garden is different", "gardens change from street to street", "wherever you are", "prices vary because", "the same care wherever". The retries rewrite it. | code: PAD-OPENER | loop rounds 1 to 3, 25 Oct |
+| Y12 | No research detail named for its own sake in the content block or an answer (trees, greens, villas, a conservation area with nothing it means for the work). The retries rewrite it; L1 judges the rest. | code: SCENERY | loop rounds 1 to 3, 25 Oct |
+| C12 | A visit frequency (weekly, fortnightly, monthly) only from the client value visit_frequency_options; blank means the answer says the schedule is agreed with the customer and nothing more. | code: FREQUENCY | loop round 3, 25 Oct |
 
 ---
 

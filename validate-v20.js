@@ -34,7 +34,7 @@ const { confirmedServiceList } = require('./service-words');
 
 const RETRY_FLAGS = new Set(['N7', 'N13', 'N14', 'N15', 'N17', 'N18', 'N19', 'N21', 'N22', 'N23', 'N24',
   '1b', 'HERO', 'SERVICE', 'TRUST-REPEAT', 'PROOF-REPEAT', 'RAW-GBP', 'CARD-COUNT', 'COAST', 'HUB-LINK', 'RESEARCH-LANG', 'REPEAT-IN',
-  'FINAL-CTA', 'CARD-FILLER', 'MORE-REPEAT', 'CB-SERVICES', 'PRACTICE-REPEAT', 'FAQ-PAD', 'INTRO-PAD',
+  'FINAL-CTA', 'CARD-FILLER', 'MORE-REPEAT', 'CB-SERVICES', 'PRACTICE-REPEAT', 'FAQ-PAD', 'INTRO-PAD', 'PAD-OPENER', 'SCENERY',
   'CARD-LOCAL', 'LINK-TEXT', 'CARD-PICK', 'REPEAT-PAGE', 'CARD-PATTERN', 'OUTCOME', 'AREA-ADMIN', 'PRICE-FIRST']);
 //   INSURANCE     BLOCK  insurance mentioned with no insurance_cover on file
 //   RIVALS        BLOCK  (15 Oct) the copy tells the reader to get other quotes, compare firms or shop around
@@ -51,6 +51,9 @@ const RETRY_FLAGS = new Set(['N7', 'N13', 'N14', 'N15', 'N17', 'N18', 'N19', 'N2
 //   PRACTICE-REPEAT FLAG a confirmed practice stated more than twice on the page (25 Oct)
 //   INTRO-PAD     FLAG   a section intro sentence after the first that brings no new noun or number (25 Oct)
 //   PROMISE       BLOCK  a promise about how the business runs a job or visit, in the shapes the loop keeps producing (25 Oct)
+//   PAD-OPENER    FLAG   a sentence that could sit on any website ("every garden is different", "wherever you are") (25 Oct, loop)
+//   SCENERY       FLAG   a research detail with no consequence for the work (trees, greens, villas named for their own sake) (25 Oct, loop)
+//   FREQUENCY     BLOCK  a visit frequency (weekly, fortnightly, monthly) with no visit_frequency_options on file (25 Oct)
 //   CONTRADICT    BLOCK  the copy says the price is not fixed when the fixed price is the client's confirmed proof (25 Oct)
 //   PACK-COPY     BLOCK  a sentence copied from the calibration pack: five words in a row, or 70% of its content words (25 Oct)
 //   FAQ-PAD       FLAG   a sentence after the answer that brings no new noun or number (25 Oct)
@@ -301,7 +304,8 @@ function validateCommon(record, V) {
     {
       const lab = s.match(/^\s*(?:card_text|card_name|faq_answer|faq_question|point_body|point_title|step_body|step_title|card_title|card_body|home_[a-z_]+|cat_[a-z_]+)\b[^:\n]{0,60}:/i);
       if (lab) flag('BLOCK', 'LEAK', `The text starts with a field label ("${lab[0].trim()}"). Write only the copy.`);
-      const data = s.match(/\b(?:is|are|isn't|aren't|been|as) confirmed\b|\byes is\b|\bon file\b|\bclient values?\b|\bcustom values?\b|\bCVTOKEN\s*=/i);
+      // ...and the insurance rule said out loud ("described here as the cover we hold, not a promise of any outcome", loop round 4)
+      const data = s.match(/\b(?:is|are|isn't|aren't|been|as) confirmed\b|\byes is\b|\bon file\b|\bclient values?\b|\bcustom values?\b|\bCVTOKEN\s*=|\bdescribed (?:here )?as (?:the )?cover\b|\bnot a promise (?:of|about) (?:any )?(?:outcome|result)s?\b|\bnever a promise\b|\brather than a promise\b/i);
       if (data) flag('BLOCK', 'LEAK', `"${data[0]}" talks about the data behind the page. Say the fact itself, the way the owner would.`);
     }
     // 3a, 3b, 3c
@@ -459,6 +463,24 @@ function validateCommon(record, V) {
       flag('BLOCK', 'NUM', `The timescale "${m[0]}" is not in the client values. Give the factors that decide it, without a time.`);
     }
 
+    // PAD-OPENER: a sentence that could sit on any website (loop rounds 1 to 3)
+    {
+      const m = s.match(/\b(?:every|each|no two) (?:garden|home|job|roof|property|lawn)s? (?:is|are|looks?|sits?) (?:different|the same|unique)\b|\bgardens? (?:change|changes|differ|differs|vary|varies) from (?:one )?(?:street|house|garden|road) to (?:street|house|the next|garden|road)\b|\bwherever you (?:are|live)\b|\bthe same (?:care|attention|service|work|standard) (?:in|wherever|whether|as)\b|\bgo(?:es)? (?:wherever|everywhere|anywhere) we (?:cover|work|go)\b|\b(?:prices?|costs?) (?:vary|varies|differ|change) because\b|\bwhatever (?:the|your) (?:size|garden|job|budget)\b|\bhas to work with that\b|\bthere(?:'s| is) (?:no|a) (?:single|one) (?:answer|figure|price)\b|\bit depends on the garden\b/i);
+      if (m) flag('FLAG', 'PAD-OPENER', `"${m[0]}" could sit on any website. Replace it with the specific point: a place, a job, a number or a named service.`);
+    }
+    // SCENERY: a research detail named for its own sake, with nothing it means for the work (loop rounds 1 to 3)
+    if (f.ref.key === K.content || f.ref.sub === 'faq_answer') {
+      for (const sen of sentences(t)) {
+        if (!/\b(?:pines?|cherr(?:y|ies)|oaks?|limes?|beech(?:es)?|chestnuts?|planes?|poplars?|willows?|sycamores?|tree lined|leafy|avenue|villas?|cottages?|terraces?|semis?|detached|footway|pavement|river(?:side)?|canal|greens|estate|conservation area|article 4)\b/i.test(sen)) continue;
+        if (/\b(?:mow|cut|hedg|lawn|grass|beds?|borders?|fenc|weed|mulch|seed|turf|soil|clay|chalk|drain|water|shade|shad|roots?|access|slope|level|paving|patio|drive|deck|timber|post|prun|trim|clear|plant|dig|base|path|boundary|boundaries|work|visit|job|round)\w*/i.test(sen.replace(/\b(?:tree lined|leafy)\b/gi, ''))) continue;
+        flag('FLAG', 'SCENERY', `"${sen.slice(0, 70)}…" names the place for its own sake. Say what the detail means for the work, or leave it out.`);
+        break;
+      }
+    }
+    // FREQUENCY: a visit frequency only from visit_frequency_options
+    if (!String(cv.visit_frequency_options || '').trim() && /\b(?:weekly|fortnightly|monthly|every (?:week|fortnight|month|two weeks|other week))\b/i.test(s)) {
+      flag('BLOCK', 'FREQUENCY', `"${s.match(/\b(?:weekly|fortnightly|monthly|every (?:week|fortnight|month|two weeks|other week))\b/i)[0]}" names a visit frequency, but visit_frequency_options is blank. Say the schedule is agreed with the customer and nothing more.`);
+    }
     // PROMISE: how a job or visit is run is a practice; these shapes are never on file (loop round 1)
     {
       const m = s.match(/\bnothing (?:gets |is |will be )?added\b[^.]{0,30}\bwithout\b|\bwithout you (?:saying|asking|agreeing)\b|\bwe (?:always )?stick to\b|\b(?:price|figure|cost|quote)s?\b[^.]{0,20}\b(?:doesn't|does not|won't|will not|never) (?:creep|change|move|go up|rise)\b|\beach (?:garden|job|visit|customer) gets (?:its|their) own\b|\b(?:its|their) own plan\b|\bwe (?:fit|fits|fitted|fitting|shape|plan|build) (?:the|each|every|a) (?:visit|round|job)s? (?:to|around) (?:a time|your|the time|when)\b|\bat a time that (?:works|suits)\b|\b(?:we )?arrive ready\b|\bready to start on\b/i);

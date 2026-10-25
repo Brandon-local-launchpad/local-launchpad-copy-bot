@@ -190,7 +190,7 @@ function computeCategoryDecisions({ cv, niche, keyValueMap = {}, rows = [], page
   cards.forEach((c, i) => { c.shape = SHAPES[i % SHAPES.length]; c.link_phrase = LINK_PHRASES[i % LINK_PHRASES.length].replace('[X]', `[${lc(c.name)}](${c.url})`); });
 
   // ── Blocks 4 and 5, steps, FAQ from the type's briefs ──
-  const problemCards = ((blocks.entry.problems || {}).cards || []).slice(0, 4).map(c => ({ title: phCat(c.title, ctx), brief: phCat(c.brief || '', ctx) }));
+  const problemCards = ((blocks.entry.problems || {}).cards || []).slice(0, 4).map(c => ({ title: phCat(c.title, ctx), brief: phCat(c.brief || '', ctx), mechanism: phCat(c.mechanism || '', ctx) }));
   const costCards = ((blocks.entry.cost || {}).cards || []).slice(0, 4).map(c => ({ title: phCat(c.title, ctx), brief: phCat(c.brief || '', ctx) }));
   const stepsRaw = Array.isArray(blocks.entry.steps) && blocks.entry.steps.length ? (emergencyOn && Array.isArray(blocks.entry.steps_emergency) && blocks.entry.steps_emergency.length ? blocks.entry.steps_emergency : blocks.entry.steps) : stepsFor(niche, cv, emergencyOn);
   const steps = (stepsRaw || []).slice(0, 3).map(s => ({ title: phCat(s.title, ctx), brief: phCat(s.brief || '', ctx) }));
@@ -201,14 +201,22 @@ function computeCategoryDecisions({ cv, niche, keyValueMap = {}, rows = [], page
   const faqSymptom = symptoms[0] || null;
   const problemSymptoms = symptoms.slice(1, 5);
   let faqs = B.pickFaqSlots(blocks.entry, cv, { quoteFree }).map(q => ({ ...q, question: phCat(q.question, ctx), answer_brief: phCat(q.answer_brief, ctx) }));
+  // The visits question reads the frequency from the client value, or says the schedule is agreed and no more (Brandon, 25 Oct)
+  const freq = String(cv.visit_frequency_options || '').trim();
+  for (const q of faqs) {
+    if (!/\b(?:regular visits|how often|visits work|visit frequency)\b/i.test(q.question)) continue;
+    q.answer_brief = `${q.answer_brief} ${freq ? `The frequencies on offer are [CV: visit_frequency_options] (${freq}); name those and no other.` : 'No visit frequency is on file: say the schedule is agreed with you, and nothing more about how often.'}`.trim();
+  }
   const seasonal = B.applySeasonal(niche, blocks.entry, { problems: problemCards, faqs });
-  const problems = seasonal.problems.map(c => ({ ...c, title: phCat(c.title, ctx), brief: phCat(c.brief, ctx) }));
+  const problems = seasonal.problems.map(c => ({ ...c, title: phCat(c.title, ctx), brief: phCat(c.brief, ctx), mechanism: phCat(c.mechanism || '', ctx) }));
+  const mechanisms = problems.map(p => p.mechanism).filter(Boolean);
   faqs = seasonal.faqs.map(q => ({ ...q, question: phCat(q.question, ctx), answer_brief: phCat(q.answer_brief, ctx) }));
   if (faqSymptom) {
     const fs = blocks.entry.faq_symptom || {};
     const sctx = { ...ctx, symptom: faqSymptom.text.replace(/[.!?]\s*$/, '') };
     const frame = fs.frame || '[SYMPTOM]: why does it happen, and what can be done?';
-    faqs.push({ slot: 'symptom', question: phCat(frame, sctx), answer_brief: phCat(fs.answer_brief || 'Answer from the assigned symptom and its local issue: the usual cause here in plain words, then what the business does about it.', sctx), doubt: fs.doubt || 'Process', symptom: true });
+    const otherCause = mechanisms.length ? ` Give a cause none of the block 4 cards use (they use: ${mechanisms.join('; ')}): for a wet lawn that is the drainage and the soil, not compaction or shade.` : '';
+    faqs.push({ slot: 'symptom', question: phCat(frame, sctx), answer_brief: phCat(fs.answer_brief || 'Answer from the assigned symptom and its local issue: the usual cause here in plain words, then what the business does about it.', sctx) + otherCause, doubt: fs.doubt || 'Process', symptom: true });
   } else {
     flags.push({ code: 'F-ALLOC', msg: `No local symptom tagged ${category} for the symptom question${scope === 'town' ? ` (${townName} dossier)` : ''}.` });
   }
@@ -368,7 +376,7 @@ function formatCategoryBlock(D, cv, niche, ctx) {
   if (!D.locationLinks.length) push('  none');
   push('');
   push('--- BLOCK 4: COMMON PROBLEMS (4 cards) ---');
-  D.problems.forEach((p, i) => { push(`  ${i + 1}. ${p.title}${p.seasonal ? ' (seasonal)' : ''}`); if (p.brief) push(`     Brief: ${p.brief}`); });
+  D.problems.forEach((p, i) => { push(`  ${i + 1}. ${p.title}${p.seasonal ? ' (seasonal)' : ''}`); if (p.mechanism) push(`     Mechanism (this card's one cause; no other card or answer makes it): ${p.mechanism}`); if (p.brief) push(`     Brief: ${p.brief}`); });
   push('');
   push('--- BLOCK 5: COST FACTORS (4 cards) ---');
   D.cost.forEach((p, i) => { push(`  ${i + 1}. ${p.title}`); if (p.brief) push(`     Brief: ${p.brief}`); });
@@ -438,7 +446,9 @@ function formatCategoryBlock(D, cv, niche, ctx) {
     }
   }
   push('  IDEAS USED ELSEWHERE (never make these again, in any wording):');
-  if (!D.ideasUsed.length) push('    none yet');
+  const mech = D.problems.filter(p => p.mechanism);
+  if (!D.ideasUsed.length && !mech.length) push('    none yet');
+  for (const p of mech) push(`    - (block 4 card "${p.title}", on this page) the cause: ${p.mechanism}. The FAQ answers and the content block take a different cause.`);
   for (const i of D.ideasUsed) push(`    - (${i.page}) ${i.text}`);
   push('');
   const PT = require('./page-types/category');

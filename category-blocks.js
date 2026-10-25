@@ -101,7 +101,7 @@ function applySeasonal(niche, entry, { problems, faqs }) {
   const S = entry.seasonal;
   if (!niche.seasonal_trade || !S) return { problems, faqs, swapped: false };
   const p = [...problems];
-  if (S.problem_card && S.problem_card.title) p[Math.min(3, Math.max(0, p.length - 1))] = { title: S.problem_card.title, brief: S.problem_card.brief || '', seasonal: true };
+  if (S.problem_card && S.problem_card.title) p[Math.min(3, Math.max(0, p.length - 1))] = { title: S.problem_card.title, brief: S.problem_card.brief || '', mechanism: S.problem_card.mechanism || '', seasonal: true };
   let q = [...faqs];
   if (S.faq_slot && S.faq_slot.question) {
     let i = q.findIndex(x => x.slot === 'timing');

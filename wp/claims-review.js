@@ -73,6 +73,37 @@ function isOnFileFigure(f, record) {
   return false;
 }
 
+// Rule (6), 25 Oct: a finding whose quote restates a method from the page's TRADE FACTS rows
+// is how the job is done, not a claim, unless its reason is about a client-specific practice
+// (frequency, waste, a check, a timing, staffing). The trade facts the page was written with
+// sit in record.meta.client_block after "TRADE FACTS".
+const CLIENT_PRACTICE_RE = /\b(?:frequen|schedule|weekly|fortnight|monthly|how often|regular (?:visit|round)|waste|cuttings|clippings|arisings|check(?:s|ed|ing)? (?:for|before)|nesting|inspect|timing|response|arriv|turn(?:s)? up|staff|team size|who (?:does|turns)|crew|same (?:person|team))/i;
+const tfCache = new Map();
+function tradeFactsWords(record) {
+  const block = (record && record.meta && record.meta.client_block) || '';
+  const i = block.indexOf('TRADE FACTS');
+  if (i < 0) return null;
+  const text = block.slice(i);
+  if (tfCache.has(text)) return tfCache.get(text);
+  const { contentWords } = require('../validate-v20').helpers;
+  const words = contentWords(text.replace(/\[https?:[^\]]*\]/g, ' '));
+  tfCache.set(text, words);
+  return words;
+}
+function isTradeFactsMethod(f, record) {
+  const words = tradeFactsWords(record);
+  if (!words || !words.size) return false;
+  if (CLIENT_PRACTICE_RE.test(`${f.quote} ${f.why || ''}`)) return false;
+  const { contentWords } = require('../validate-v20').helpers;
+  const mine = contentWords(String(f.quote || '').replace(/\[([^\]]+)\]\([^)]+\)/g, '$1'));
+  if (mine.size < 4) return false;
+  let shared = 0;
+  for (const w of mine) if (words.has(w)) shared++;
+  // Half the quote's content words in the rows: a method quote carries its own connecting words
+  // ("keeps growth in check and tidies the edges" against "mow, edge or strim")
+  return shared / mine.size >= 0.5;
+}
+
 function parseFindings(text, record) {
   const raw = extractJsonObject(text).findings || [];
   const fields = Object.fromEntries(modelFields(record).map(f => [f.label, f.text]));
@@ -85,7 +116,7 @@ function parseFindings(text, record) {
   const isRequired = f => required.some(r => norm(f.quote).includes(r.phrase) && r.topic.test(`${f.quote} ${f.why || ''}`));
   for (const f of raw) {
     const fieldText = fields[f.field];
-    if (fieldText && f.quote && norm(fieldText).includes(norm(f.quote)) && !selfCleared(f.why) && !isRequired(f) && !isOnFileFigure(f, record)) kept.push({ field: f.field, quote: f.quote, why: f.why || '' });
+    if (fieldText && f.quote && norm(fieldText).includes(norm(f.quote)) && !selfCleared(f.why) && !isRequired(f) && !isOnFileFigure(f, record) && !isTradeFactsMethod(f, record)) kept.push({ field: f.field, quote: f.quote, why: f.why || '' });
     else dropped.push(f);
   }
   return { findings: kept, dropped };
@@ -121,4 +152,4 @@ function factsFromRecord(record) {
   return { clientBlock, research: researchFromRecord(record), decisions: decisionsFromRecord(record) };
 }
 
-module.exports = { runClaimsReview, buildClaimsMessage, parseFindings, isOnFileFigure, researchFromRecord, decisionsFromRecord, factsFromRecord, loadClaimsPrompt, CLAIMS_MODEL };
+module.exports = { runClaimsReview, buildClaimsMessage, parseFindings, isOnFileFigure, isTradeFactsMethod, researchFromRecord, decisionsFromRecord, factsFromRecord, loadClaimsPrompt, CLAIMS_MODEL };

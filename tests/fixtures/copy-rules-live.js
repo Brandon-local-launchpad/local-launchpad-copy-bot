@@ -51,7 +51,7 @@ const kept = C.parseFindings(reply, saved).findings;
 chk('Claims: a finding withdrawn in its own reason is dropped; a real one is kept', kept.length === 1 && /not on file/.test(kept[0].why), JSON.stringify(kept), '1 finding (the real one)');
 const facts = C.factsFromRecord({ meta: { decisions_block: result.decisionsBlock.replace(/Primary city coastal: no/, 'Primary city coastal: yes. Write the travel distance as "inland and along the coast", never compass directions or "in each direction"') } });
 chk('Claims: the coastal line is sent as a code decision', /Primary city coastal: yes\. Write the travel distance as "inland and along the coast"/.test(facts.decisions), facts.decisions.slice(-160), 'coastal line');
-chk('Claims prompt is CORE (5) and says a step body that follows its title is supported', /CORE \(5\)/.test(require('fs').readFileSync(path.join(root, 'prompts/Claims_Review_CORE.md'), 'utf8')) && /A step body that says what its step title says/.test(C.loadClaimsPrompt()), '', 'CORE (5)');
+chk('Claims prompt is CORE (6) and says a step body that follows its title is supported', /CORE \(6\)/.test(require('fs').readFileSync(path.join(root, 'prompts/Claims_Review_CORE.md'), 'utf8')) && /A step body that says what its step title says/.test(C.loadClaimsPrompt()), '', 'CORE (5)');
 
 // ── Second Edens Edge review (15 Oct) ──
 // The live hand-edited page (with one field changed per check), validated with today's rules

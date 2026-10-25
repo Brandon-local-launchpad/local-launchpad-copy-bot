@@ -75,6 +75,9 @@ const CODE_ITEMS = {
   Y4: { title: 'Pronouns and "team"', checks: ['N15', 'N12'] },
   Y9: { title: 'No padding in the section intros: every sentence after the first brings a new noun or number', checks: ['INTRO-PAD'] },
   Y10: { title: 'No sentence copied from the calibration pack', checks: ['PACK-COPY'] },
+  Y11: { title: 'No padding opener ("every garden is different", "wherever you are")', checks: ['PAD-OPENER'] },
+  Y12: { title: 'No research detail named for its own sake', checks: ['SCENERY'] },
+  C12: { title: 'A visit frequency only from visit_frequency_options', checks: ['FREQUENCY'] },
 };
 // The category page's own items (25 Oct), on top of the homepage's
 const CATEGORY_ITEMS = {
@@ -101,7 +104,7 @@ const JUDGE_ITEMS = {
   S10: 'Each card says what the customer gets, in sentences that read naturally (no retry artefacts like "We also handle our tree service work for…").',
   C3j: 'No claim of experience with kinds of property or job ("large rural properties", "conservation area gardens") unless the facts say so.',
   P6: 'Each idea has one home: the same point (the base under paving, an insurance example, a technical explanation) isn\'t made in several sections. A confirmed proof (a differentiator, the jobs count, the insurance figure) may appear up to 3 times: code scores that (P1, P2), so don\'t fail P6 for it.',
-  F5: 'Each FAQ answer answers the question as asked and the doubt behind it. When the facts don\'t say what the business does (no guarantee, no complaints process), an answer that says what the customer can do and the standard the work is held to passes: put the missing fact in missing_facts instead.',
+  F5: 'Each FAQ answer answers the question as asked and the doubt behind it. When the facts don\'t say what the business does (no guarantee, no complaints process, no visit frequency on file), an answer that says what the customer can do and the standard the work is held to passes, and a visits answer that says the schedule is agreed with the customer and no more passes: put the missing fact in missing_facts instead.',
   T2: 'Step bodies follow their step titles and never restate the free quote, the fixed price promise or the start time. Step 2 saying a price is agreed before work starts is the step itself, not a restatement.',
   Y6: 'No padding (a sentence that could sit on any website: "there is a service here for you", "we bring that experience to every job") and no pasted research ("gardens that date mostly from 1908 to 1930", "the geology varies widely"). Memberships and logos only when they are in the facts.',
   Y5: 'Every sentence reads naturally to a homeowner: grammatical, specific, no padding, no contradiction, nothing a reader would stumble on or doubt.',

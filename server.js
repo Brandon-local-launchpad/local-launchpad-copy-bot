@@ -2923,6 +2923,9 @@ const CLIENT_VALUES_TEMPLATE = {
   quote_includes: '', deposit_terms: '', waste_carrier_registered: '', customer_questions: [],
   confirmed_practices: [], coastal_city: '',
   same_day_available: '', out_of_hours_available: '', start_time: '',
+  // Category pages (25 Oct): the visit frequencies a maintenance client offers (weekly, fortnightly,
+  // monthly, one off), comma separated; blank means the visits answer says the schedule is agreed and no more
+  visit_frequency_options: '',
   owner_name: '', owner_name_2: '', owner_qualification: '',
   owner_why: '', owner_promise: '', owner_pronoun: '',
   owner_photo: 'no', business_type: 'A',
