@@ -463,5 +463,305 @@
     }
   },
 
+  "service_page_blocks": {
+    "A": {
+      "included": {
+        "h2": "What's Included in Our [SERVICE]",
+        "items": [
+          {
+            "title": "Checking the ground and what's already there",
+            "brief": "The inspection stage from the trade facts: the ground, what has to come out, where the services run, how the materials get in. A part of the job, not a promise about the quote."
+          },
+          {
+            "title": "Clearing and preparing the area",
+            "brief": "The removal and preparation stages from the trade facts: the old surface or fence out, the dig, the levels. Name only what the rows give."
+          },
+          {
+            "title": "The groundwork underneath",
+            "brief": "The base, the post holes, the drainage or the depth, as the trade facts stages name them. No figure unless the rows give one, and never a standard's number."
+          },
+          {
+            "title": "The materials for the job",
+            "brief": "From the trade facts materials and methods cell or [CV: materials_methods]: the options a customer is offered, by their trade name. A named product only from [CV: materials_methods]."
+          },
+          {
+            "title": "The main build or installation",
+            "brief": "The central stage of the job from the trade facts: the laying, the setting, the grinding, the planting, named as the trade names it."
+          },
+          {
+            "title": "Finishing and tidying up",
+            "brief": "The finishing stages from the trade facts: joints, edges, backfill, a final level. What the customer sees when the job is done."
+          },
+          {
+            "title": "Clearing the arisings",
+            "brief": "What comes off the job and what happens to it, from the trade facts stages (remove or redistribute arisings). Whether it leaves with us only from the confirmed practices (green_waste_choice); otherwise say it is cleared or kept as agreed."
+          }
+        ]
+      },
+      "problems": {
+        "h2": "Signs You Need [SERVICE]",
+        "cards": [
+          {
+            "title": "The first signs",
+            "brief": "The things a homeowner notices first, from the trade facts signs row, in their words. The one cause this card makes: the job left undone. Then what it leads to if left, from the skipped row: specific, never alarming.",
+            "mechanism": "the job left undone"
+          },
+          {
+            "title": "Movement underneath",
+            "brief": "A surface, a post, a level or a finish that has shifted. The one cause this card makes: soft ground settling under the weight. Say what the job does underneath so it stays put, from the trade facts stages; no depth or figure the rows do not give.",
+            "mechanism": "soft ground settling under the weight"
+          },
+          {
+            "title": "Done badly the first time",
+            "brief": "A job that already failed once: the faults from the trade facts done badly row and what caused them. The one cause this card makes: a stage skipped to save time. Then what doing it properly involves, from the stages; never a dig at another trade.",
+            "mechanism": "a stage skipped to save time"
+          },
+          {
+            "title": "Water in the wrong place",
+            "brief": "Puddles, a soggy patch, damp at a wall or a post. The one cause this card makes: water with nowhere to go. Say what the job does about it from the trade facts; never promise the ground will change. Not the fall of a surface or an uncompacted base: the category page owns those.",
+            "mechanism": "water with nowhere to go"
+          }
+        ]
+      },
+      "cost": {
+        "h2": "What Affects the Cost of [SERVICE] in [CITY]",
+        "cards": [
+          {
+            "title": "How much there is to do",
+            "brief": "The size factor from the trade facts price row: the area, the length, the number, the height. Say it plainly and give no figure."
+          },
+          {
+            "title": "What's there now",
+            "brief": "What has to come out or be worked round before the job starts, from the trade facts price row: an old surface, roots, a base, waste. Say the business looks before it prices, from [CV: quote_method] only."
+          },
+          {
+            "title": "Access for materials and machines",
+            "brief": "Rear access, a path down the side, where a skip or a machine can go, what is carried by hand, from the trade facts price row. Say why tight access costs more time."
+          },
+          {
+            "title": "The finish you choose",
+            "brief": "The material and finish options from the trade facts price row and [CV: materials_methods], and why one costs more than another. A named product only from [CV: materials_methods]. Code adds the price line from [CV: price_list] when there is one."
+          }
+        ]
+      },
+      "faq_slots": [
+        {
+          "slot": "cost",
+          "question": "How much does [SERVICE_LOWER] cost in [CITY]?",
+          "answer_brief": "Prices only from [CV: price_list]; otherwise how the quote is given, from [CV: quote_method] only. The four cost cards above already give what moves the price: name one factor at most, never the list again.",
+          "doubt": "Price"
+        },
+        {
+          "slot": "timing",
+          "question": "How long does [SERVICE_LOWER] take?",
+          "answer_brief": "From the trade facts timing row only: the duration where the row gives one, else what decides it (the size, the ground, the access). Nothing about when the job can start unless [CV: start_time] is set. This is the one place the timing is written.",
+          "doubt": "Timing"
+        },
+        {
+          "slot": "cover",
+          "when": "guarantee",
+          "question": "Do you guarantee your [SERVICE_LOWER] work?",
+          "answer_brief": "Start with yes, then the terms from [CV: guarantee_years] and [CV: guarantee_scope]. Described, never promised.",
+          "doubt": "Trust"
+        },
+        {
+          "slot": "cover",
+          "when": "insurance",
+          "question": "Are you insured for [SERVICE_LOWER]?",
+          "answer_brief": "The cover figure from [CV: insurance_cover] and what the cover is for. Never what it pays or who it covers.",
+          "doubt": "Trust"
+        },
+        {
+          "slot": "cover",
+          "question": "What happens if something isn't right after the job?",
+          "answer_brief": "Open with what the customer does: tell us and we look at it. Then the reasonable care and skill standard every trade works to. No promise to come back free. Never invent a guarantee.",
+          "doubt": "Trust"
+        },
+        {
+          "slot": "rules",
+          "question": "Do I need permission for [SERVICE_LOWER]?",
+          "answer_brief": "From the trade facts rule rows only, as what usually applies, with \"usually\" or \"in most cases\": the condition that brings a rule in (a boundary, a height, a protected tree, a listed home, a front garden) and what the customer does about it. Never a standard's number, an Act's name or legal advice. Where the rows give no rule, say no permission is usually needed for this work at a home and leave it there.",
+          "doubt": "Process"
+        },
+        {
+          "slot": "scope",
+          "question": "What does your [SERVICE_LOWER] service include?",
+          "answer_brief": "The What's Included items said as a sentence, in other words. What it does not cover only from the services list, with one sibling service page or the category page linked.",
+          "doubt": "Fit"
+        }
+      ],
+      "faq_symptom": {
+        "frame": "[SYMPTOM]: why does it happen, and what can be done?",
+        "answer_brief": "The symptom and its linked local issue, answered as asked: the usual cause here in plain words, what the local ground or housing adds, then what this service does about it. One figure at most.",
+        "doubt": "Process"
+      },
+      "seasonal": {
+        "problem_card": {
+          "title": "What a winter leaves behind",
+          "brief": "What shows in spring after the cold months: the signs from the trade facts for this job. The one cause this card makes: months of rain soaking into the ground. Say what the business looks for in spring from confirmed practices only; otherwise what the job puts right.",
+          "mechanism": "months of rain soaking into the ground"
+        },
+        "faq_slot": {
+          "slot": "seasonal",
+          "question": "When is the best time of year for [SERVICE_LOWER], and how long does it take?",
+          "answer_brief": "From the trade facts timing row only: the season the job suits and why, then the duration where the row gives one, else what decides it. No dates, no promises about the weather. This is the one place the timing is written.",
+          "doubt": "Timing"
+        }
+      }
+    },
+    "B": {
+      "included": {
+        "h2": "What's Included in a [SERVICE] Visit",
+        "items": [
+          {
+            "title": "Looking over the area first",
+            "brief": "The first stage of a visit from the trade facts: debris, growth, hazards, what has changed since last time. A part of the visit, not a promise."
+          },
+          {
+            "title": "Setting the height, line or method",
+            "brief": "The cutting height, the line of the hedge, the treatment chosen: from the trade facts methods cell. A named product only from [CV: materials_methods]."
+          },
+          {
+            "title": "The main work of the visit",
+            "brief": "The central stage from the trade facts: the mow, the cut, the clearance, the treatment, named as the trade names it."
+          },
+          {
+            "title": "Edges, sides and the awkward bits",
+            "brief": "The edging, strimming, the sides and top, the corners a machine cannot reach: from the trade facts stages."
+          },
+          {
+            "title": "Collecting what comes off",
+            "brief": "Clippings, arisings, what the visit takes off. Collected or left only from the confirmed practices (clippings_collected, green_waste_choice); otherwise say it is collected or spread as agreed."
+          },
+          {
+            "title": "Paths and surfaces cleared before we leave",
+            "brief": "The last stage from the trade facts: paths swept, surfaces cleared, the area left usable."
+          },
+          {
+            "title": "The visit pattern you choose",
+            "brief": "Only from [CV: visit_frequency_options]; when it is blank, write that visits follow the pattern agreed with you and name no frequency."
+          }
+        ]
+      },
+      "problems": {
+        "h2": "Signs It's Time for a [SERVICE] Visit",
+        "cards": [
+          {
+            "title": "Growth has got ahead of you",
+            "brief": "The signs from the trade facts signs row: long grass, a hedge over the path, beds overrun. The one cause this card makes: a visit missed in the growing season. Then what the visit does, from the stages; what skipping leads to from the skipped row.",
+            "mechanism": "a visit missed in the growing season"
+          },
+          {
+            "title": "It looks untidy from the house",
+            "brief": "The things that show from a window or the door: ragged edges, an uneven line, clumps left on the grass. The one cause this card makes: edges and lines left uncut. Say what the visit puts right.",
+            "mechanism": "edges and lines left uncut"
+          },
+          {
+            "title": "It keeps coming back",
+            "brief": "Weeds, moss or growth that returns within weeks of a tidy up. The one cause this card makes: the cause never dealt with, only what shows. Say what the visit does about the cause, from the trade facts; never a product the client values do not give. Not roots left in the ground, not shade and damp: the category page owns those.",
+            "mechanism": "the cause never dealt with, only what shows"
+          },
+          {
+            "title": "It's taking more of your weekend than it should",
+            "brief": "The customer's side: a job that has become a catch up every time instead of a short regular one. The one cause this card makes: a round that has turned into a catch up. Say what a regular visit changes, without a frequency unless [CV: visit_frequency_options] is set.",
+            "mechanism": "a round that has turned into a catch up"
+          }
+        ]
+      },
+      "cost": {
+        "h2": "How We Price [SERVICE] Visits in [CITY]",
+        "cards": [
+          {
+            "title": "What a visit has to get through",
+            "brief": "The size and the growth, from the trade facts price row: a larger or awkward area, long or wet growth, more to cut or clear. Say it plainly and give no figure."
+          },
+          {
+            "title": "How much is in the way",
+            "brief": "Obstacles, slopes, beds to work round, access for the machine, from the trade facts price row. Say why they add time."
+          },
+          {
+            "title": "The first visit",
+            "brief": "An area left a season needs a first visit that is a bigger job; after that each visit is priced as a visit. Nothing priced on time, no hourly rule, no frequency unless [CV: visit_frequency_options] is set. Not the regular round against a tidy up: the category page owns that."
+          },
+          {
+            "title": "Extras you add to the visit",
+            "brief": "Work the visit can take on as well, from the sibling service pages and the services list only (an edge, a feed, a hedge, a treatment), and that each adds to the visit. Code adds the price line from [CV: price_list] when there is one."
+          }
+        ]
+      },
+      "steps": [
+        {
+          "title": "Tell Us What Needs Keeping On Top Of",
+          "brief": "How to get in touch and what is useful to send first (the size of the area, what needs doing, photos if they have them). No promise of a reply time unless [CV: response_time] is set."
+        },
+        {
+          "title": "We Agree the Visit and the Price",
+          "brief": "What a visit will cover and what it costs. The price agreed before the first visit only when the price_agreed_before_work practice is confirmed. Follows [CV: quote_method]; only say the quote is written if quote_method says so. Never restates \"free\"."
+        },
+        {
+          "title": "We Start on a Date That Suits You",
+          "brief": "The first visit goes in the diary on a day that suits the customer. A regular pattern following on only when the maintenance_schedule practice is confirmed. Never mention the price or changes to the plan."
+        }
+      ],
+      "faq_slots": [
+        {
+          "slot": "frequency",
+          "question": "How often should [SERVICE_LOWER] be done?",
+          "answer_brief": "What decides it, from the trade facts timing row (the growing season, the weather, the species) in plain words, and the season the work runs. A frequency only from [CV: visit_frequency_options]; otherwise say the pattern is agreed with you and nothing more. This is the one place the timing is written.",
+          "doubt": "Timing"
+        },
+        {
+          "slot": "cost",
+          "question": "How much does a [SERVICE_LOWER] visit cost in [CITY]?",
+          "answer_brief": "Prices only from [CV: price_list]; otherwise how the price is reached, from [CV: quote_method] only, and that the figure is agreed before the first visit when that practice is confirmed. The four cost cards above already give what moves the price: name one factor at most, never the list again.",
+          "doubt": "Price"
+        },
+        {
+          "slot": "cover",
+          "when": "insurance",
+          "question": "Are you insured for [SERVICE_LOWER]?",
+          "answer_brief": "The cover figure from [CV: insurance_cover] and what the cover is for. Never what it pays or who it covers.",
+          "doubt": "Trust"
+        },
+        {
+          "slot": "cover",
+          "question": "What if something gets damaged during a visit?",
+          "answer_brief": "Open with what the customer does: tell us and we look at it. Then the reasonable care and skill standard every trade works to. No promise to put it right free. Never invent a guarantee or insurance.",
+          "doubt": "Trust"
+        },
+        {
+          "slot": "access",
+          "question": "Do I need to be home for a [SERVICE_LOWER] visit?",
+          "answer_brief": "From [CV: access_handling] and the confirmed practices only: whether the customer needs to be in, side gates, keys. When nothing is on file, say the arrangements for getting in are agreed before the first visit and nothing more.",
+          "doubt": "Process"
+        },
+        {
+          "slot": "scope",
+          "question": "What does a [SERVICE_LOWER] visit include?",
+          "answer_brief": "The What's Included items said as a sentence, in other words. What a visit does not cover only from the services list, with one sibling service page linked.",
+          "doubt": "Fit"
+        }
+      ],
+      "faq_symptom": {
+        "frame": "[SYMPTOM]: why does it happen, and what can be done?",
+        "answer_brief": "The symptom and its linked local issue, answered as asked: the usual cause here in plain words, then what a regular visit does about it. One figure at most.",
+        "doubt": "Process"
+      },
+      "seasonal": {
+        "problem_card": {
+          "title": "What the season is about to throw at it",
+          "brief": "The growth or the fall that comes all at once: spring growth, autumn leaves, as the trade facts timing row has it for this work. The one cause this card makes: growth that comes all at once in spring. Say what getting ahead of it looks like, from the stages; no frequency unless [CV: visit_frequency_options] is set.",
+          "mechanism": "growth that comes all at once in spring"
+        },
+        "faq_slot": {
+          "slot": "seasonal",
+          "question": "When should I book [SERVICE_LOWER] for the season?",
+          "answer_brief": "The first visit of the year is the one to book ahead for, and what the season does to the work in plain words. No dates, no promise of a slot, nothing about agreeing the visit before a rush. The frequency question owns the season the work runs: do not repeat it.",
+          "doubt": "Timing"
+        }
+      }
+    }
+  },
+
   "do_not_reuse": []
 }

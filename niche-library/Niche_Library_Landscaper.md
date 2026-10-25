@@ -306,7 +306,118 @@ Draft, 23 Oct 2026, for Brandon's read against the SOP and the calibration pack.
 | timing | always | Do you garden all year round? | What the round does in each season in plain words (cutting through the growing season, clearing and pruning in the cold months). No dates. | Timing |
 | symptom | a symptom tagged with the category | [SYMPTOM]: why does it happen, and what can be done? | The symptom and its linked local issue, answered as asked: the usual cause here in plain words, then what a regular round does about it. One figure at most. | Process |
 
-**Seasonal swap** (card 4 of block 4 and the timing FAQ): **Leaves and debris burying the lawn** (mechanism: light and air kept off the grass): Leaves left on the grass through autumn, a lawn pale underneath by midwinter. The one cause this card makes: light and air kept off the grass. What the autumn visits do only from confirmed practices (autumn_leaf_clearance); otherwise what clearing the leaves does for the grass. FAQ: When should I book for spring? (Timing): The first cut of the year is the one to book ahead for. No dates, no promise of a slot, nothing about agreeing the round before a rush.
+**Seasonal swap** (card 4 of block 4; the FAQ takes the symptom question's place and the five slots stay, Brandon, 25 Oct): **Leaves and debris burying the lawn** (mechanism: light and air kept off the grass): Leaves left on the grass through autumn, a lawn pale underneath by midwinter. The one cause this card makes: light and air kept off the grass. What the autumn visits do only from confirmed practices (autumn_leaf_clearance); otherwise what clearing the leaves does for the grass. FAQ: When should I book for spring? (Timing): The first cut of the year is the one to book ahead for. No dates, no promise of a slot, nothing about agreeing the round before a rush.
+
+## Service page blocks by business type (service_page_blocks)
+
+Draft, 25 Oct 2026, for Brandon's read against the SOP, the service template and the calibration pack. Used by the service page job (CORE (17)): What's Included is an H2 and six to eight tick item titles with a one line brief each; block 4 (A: signs you need it; B: signs it's time for a visit) and block 5 (cost) are an H2 and four card titles with a brief each, block 4 cards with their one mechanism; the type also gives the process steps (A uses the niche steps above), the FAQ slots (A: cost, timing, cover, rules, scope; B: frequency, cost, cover, access, scope) and, with `seasonal_trade` on, the one card and one FAQ that swap in (on a type A page the FAQ replaces the timing slot; on a type B page it takes the symptom question's place, since insurance is always one of the five). The service's own trade facts rows (`trade-facts/pack.js rowsForService`: standard method, timing, what goes wrong, rule, fact, price factor) are the material every brief points at, so one type A entry serves fencing, patios and stump removal alike. The type is the parent category's (`category_types`) else the client's. Placeholders: `[SERVICE]` the page keyword without the town (Lawn Mowing, Tree Stump Removal), `[SERVICE_LOWER]`, `[CAT]`, `[WORK]`, `[CITY]` the page's town, `[SYMPTOM]` the assigned symptom. The copy rules of CORE (17) and the shared rules apply to every brief: claims only from client values, no figures, no promises, no standard's number.
+
+- A niche with no section here has its service pages refused: "no service block briefs for landscaper".
+- The block 4 mechanisms differ from the category page briefs' on purpose: the service page may not make a cause its category page already made (MECHANISMS USED).
+
+### Type A (project trade: Landscape Gardener, Landscape Designer, Tree Service, Paving Contractor, Deck Builder)
+
+**What's Included.** H2: What's Included in Our [SERVICE]
+
+| Item | Brief |
+|---|---|
+| Checking the ground and what's already there | The inspection stage from the trade facts: the ground, what has to come out, where the services run, how the materials get in. A part of the job, not a promise about the quote. |
+| Clearing and preparing the area | The removal and preparation stages from the trade facts: the old surface or fence out, the dig, the levels. Name only what the rows give. |
+| The groundwork underneath | The base, the post holes, the drainage or the depth, as the trade facts stages name them. No figure unless the rows give one, and never a standard's number. |
+| The materials for the job | From the trade facts materials and methods cell or [CV: materials_methods]: the options a customer is offered, by their trade name. A named product only from [CV: materials_methods]. |
+| The main build or installation | The central stage of the job from the trade facts: the laying, the setting, the grinding, the planting, named as the trade names it. |
+| Finishing and tidying up | The finishing stages from the trade facts: joints, edges, backfill, a final level. What the customer sees when the job is done. |
+| Clearing the arisings | What comes off the job and what happens to it, from the trade facts stages (remove or redistribute arisings). Whether it leaves with us only from the confirmed practices (green_waste_choice); otherwise say it is cleared or kept as agreed. |
+
+**Block 4, signs you need it.** H2: Signs You Need [SERVICE]
+
+| Card | Mechanism (its one cause) | Brief |
+|---|---|---|
+| The first signs | the job left undone | The things a homeowner notices first, from the trade facts signs row, in their words. The one cause this card makes: the job left undone. Then what it leads to if left, from the skipped row: specific, never alarming. |
+| Movement underneath | soft ground settling under the weight | A surface, a post, a level or a finish that has shifted. The one cause this card makes: soft ground settling under the weight. Say what the job does underneath so it stays put, from the trade facts stages; no depth or figure the rows do not give. |
+| Done badly the first time | a stage skipped to save time | A job that already failed once: the faults from the trade facts done badly row and what caused them. The one cause this card makes: a stage skipped to save time. Then what doing it properly involves, from the stages; never a dig at another trade. |
+| Water in the wrong place | water with nowhere to go | Puddles, a soggy patch, damp at a wall or a post. The one cause this card makes: water with nowhere to go. Say what the job does about it from the trade facts; never promise the ground will change. Not the fall of a surface or an uncompacted base: the category page owns those. |
+
+**Block 5, cost factors.** H2: What Affects the Cost of [SERVICE] in [CITY]
+
+| Card | Brief |
+|---|---|
+| How much there is to do | The size factor from the trade facts price row: the area, the length, the number, the height. Say it plainly and give no figure. |
+| What's there now | What has to come out or be worked round before the job starts, from the trade facts price row: an old surface, roots, a base, waste. Say the business looks before it prices, from [CV: quote_method] only. |
+| Access for materials and machines | Rear access, a path down the side, where a skip or a machine can go, what is carried by hand, from the trade facts price row. Say why tight access costs more time. |
+| The finish you choose | The material and finish options from the trade facts price row and [CV: materials_methods], and why one costs more than another. A named product only from [CV: materials_methods]. Code adds the price line from [CV: price_list] when there is one. |
+
+**Steps.** The niche steps above (Tell Us About Your Garden, We Price Your Job or We Visit and Price Your Job, We Start on a Date That Suits You); the emergency steps when the emergency layout is on.
+
+**FAQ slots.** Five before the symptom question: cost, timing, one cover question (the first whose condition holds), rules, scope.
+
+| Slot | When | Question | Answer brief | Doubt |
+|---|---|---|---|---|
+| cost | always | How much does [SERVICE_LOWER] cost in [CITY]? | Prices only from [CV: price_list]; otherwise how the quote is given, from [CV: quote_method] only. The four cost cards above already give what moves the price: name one factor at most, never the list again. | Price |
+| timing | always | How long does [SERVICE_LOWER] take? | From the trade facts timing row only: the duration where the row gives one, else what decides it (the size, the ground, the access). Nothing about when the job can start unless [CV: start_time] is set. This is the one place the timing is written. | Timing |
+| cover | guarantee | Do you guarantee your [SERVICE_LOWER] work? | Start with yes, then the terms from [CV: guarantee_years] and [CV: guarantee_scope]. Described, never promised. | Trust |
+| cover | insurance | Are you insured for [SERVICE_LOWER]? | The cover figure from [CV: insurance_cover] and what the cover is for. Never what it pays or who it covers. | Trust |
+| cover | always | What happens if something isn't right after the job? | Open with what the customer does: tell us and we look at it. Then the reasonable care and skill standard every trade works to. No promise to come back free. Never invent a guarantee. | Trust |
+| rules | always | Do I need permission for [SERVICE_LOWER]? | From the trade facts rule rows only, as what usually applies, with "usually" or "in most cases": the condition that brings a rule in (a boundary, a height, a protected tree, a listed home, a front garden) and what the customer does about it. Never a standard's number, an Act's name or legal advice. Where the rows give no rule, say no permission is usually needed for this work at a home and leave it there. | Process |
+| scope | always | What does your [SERVICE_LOWER] service include? | The What's Included items said as a sentence, in other words. What it does not cover only from the services list, with one sibling service page or the category page linked. | Fit |
+| symptom | a symptom tagged with the service or its category | [SYMPTOM]: why does it happen, and what can be done? | The symptom and its linked local issue, answered as asked: the usual cause here in plain words, what the local ground or housing adds, then what this service does about it. One figure at most. | Process |
+
+**Seasonal swap** (card 4 of block 4 and the timing FAQ): **What a winter leaves behind** (mechanism: months of rain soaking into the ground): What shows in spring after the cold months: the signs from the trade facts for this job. The one cause this card makes: months of rain soaking into the ground. Say what the business looks for in spring from confirmed practices only; otherwise what the job puts right. FAQ: When is the best time of year for [SERVICE_LOWER], and how long does it take? (Timing): From the trade facts timing row only: the season the job suits and why, then the duration where the row gives one, else what decides it. No dates, no promises about the weather. This is the one place the timing is written.
+
+### Type B (maintenance: Gardener, Lawn Care Service)
+
+**What's Included.** H2: What's Included in a [SERVICE] Visit
+
+| Item | Brief |
+|---|---|
+| Looking over the area first | The first stage of a visit from the trade facts: debris, growth, hazards, what has changed since last time. A part of the visit, not a promise. |
+| Setting the height, line or method | The cutting height, the line of the hedge, the treatment chosen: from the trade facts methods cell. A named product only from [CV: materials_methods]. |
+| The main work of the visit | The central stage from the trade facts: the mow, the cut, the clearance, the treatment, named as the trade names it. |
+| Edges, sides and the awkward bits | The edging, strimming, the sides and top, the corners a machine cannot reach: from the trade facts stages. |
+| Collecting what comes off | Clippings, arisings, what the visit takes off. Collected or left only from the confirmed practices (clippings_collected, green_waste_choice); otherwise say it is collected or spread as agreed. |
+| Paths and surfaces cleared before we leave | The last stage from the trade facts: paths swept, surfaces cleared, the area left usable. |
+| The visit pattern you choose | Only from [CV: visit_frequency_options]; when it is blank, write that visits follow the pattern agreed with you and name no frequency. |
+
+**Block 4, signs it's time for a visit.** H2: Signs It's Time for a [SERVICE] Visit
+
+| Card | Mechanism (its one cause) | Brief |
+|---|---|---|
+| Growth has got ahead of you | a visit missed in the growing season | The signs from the trade facts signs row: long grass, a hedge over the path, beds overrun. The one cause this card makes: a visit missed in the growing season. Then what the visit does, from the stages; what skipping leads to from the skipped row. |
+| It looks untidy from the house | edges and lines left uncut | The things that show from a window or the door: ragged edges, an uneven line, clumps left on the grass. The one cause this card makes: edges and lines left uncut. Say what the visit puts right. |
+| It keeps coming back | the cause never dealt with, only what shows | Weeds, moss or growth that returns within weeks of a tidy up. The one cause this card makes: the cause never dealt with, only what shows. Say what the visit does about the cause, from the trade facts; never a product the client values do not give. Not roots left in the ground, not shade and damp: the category page owns those. |
+| It's taking more of your weekend than it should | a round that has turned into a catch up | The customer's side: a job that has become a catch up every time instead of a short regular one. The one cause this card makes: a round that has turned into a catch up. Say what a regular visit changes, without a frequency unless [CV: visit_frequency_options] is set. |
+
+**Block 5, how visits are priced.** H2: How We Price [SERVICE] Visits in [CITY]
+
+| Card | Brief |
+|---|---|
+| What a visit has to get through | The size and the growth, from the trade facts price row: a larger or awkward area, long or wet growth, more to cut or clear. Say it plainly and give no figure. |
+| How much is in the way | Obstacles, slopes, beds to work round, access for the machine, from the trade facts price row. Say why they add time. |
+| The first visit | An area left a season needs a first visit that is a bigger job; after that each visit is priced as a visit. Nothing priced on time, no hourly rule, no frequency unless [CV: visit_frequency_options] is set. Not the regular round against a tidy up: the category page owns that. |
+| Extras you add to the visit | Work the visit can take on as well, from the sibling service pages and the services list only (an edge, a feed, a hedge, a treatment), and that each adds to the visit. Code adds the price line from [CV: price_list] when there is one. |
+
+**Steps.**
+
+1. **Tell Us What Needs Keeping On Top Of**
+   Brief: How to get in touch and what is useful to send first (the size of the area, what needs doing, photos if they have them). No promise of a reply time unless [CV: response_time] is set.
+2. **We Agree the Visit and the Price**
+   Brief: What a visit will cover and what it costs. The price agreed before the first visit only when the price_agreed_before_work practice is confirmed. Follows [CV: quote_method]; only say the quote is written if quote_method says so. Never restates "free".
+3. **We Start on a Date That Suits You**
+   Brief: The first visit goes in the diary on a day that suits the customer. A regular pattern following on only when the maintenance_schedule practice is confirmed. Never mention the price or changes to the plan.
+
+**FAQ slots.** Five before the symptom question: frequency, cost, one cover question (insurance, else the fallback; Brandon, 25 Oct: insurance is always one of the five), access, scope. The frequency answer owns the season the work runs (there is no separate timing slot).
+
+| Slot | When | Question | Answer brief | Doubt |
+|---|---|---|---|---|
+| frequency | always | How often should [SERVICE_LOWER] be done? | What decides it, from the trade facts timing row (the growing season, the weather, the species) in plain words, and the season the work runs. A frequency only from [CV: visit_frequency_options]; otherwise say the pattern is agreed with you and nothing more. This is the one place the timing is written. | Timing |
+| cost | always | How much does a [SERVICE_LOWER] visit cost in [CITY]? | Prices only from [CV: price_list]; otherwise how the price is reached, from [CV: quote_method] only, and that the figure is agreed before the first visit when that practice is confirmed. The four cost cards above already give what moves the price: name one factor at most, never the list again. | Price |
+| cover | insurance | Are you insured for [SERVICE_LOWER]? | The cover figure from [CV: insurance_cover] and what the cover is for. Never what it pays or who it covers. | Trust |
+| cover | always | What if something gets damaged during a visit? | Open with what the customer does: tell us and we look at it. Then the reasonable care and skill standard every trade works to. No promise to put it right free. Never invent a guarantee or insurance. | Trust |
+| access | always | Do I need to be home for a [SERVICE_LOWER] visit? | From [CV: access_handling] and the confirmed practices only: whether the customer needs to be in, side gates, keys. When nothing is on file, say the arrangements for getting in are agreed before the first visit and nothing more. | Process |
+| scope | always | What does a [SERVICE_LOWER] visit include? | The What's Included items said as a sentence, in other words. What a visit does not cover only from the services list, with one sibling service page linked. | Fit |
+| symptom | a symptom tagged with the service or its category | [SYMPTOM]: why does it happen, and what can be done? | The symptom and its linked local issue, answered as asked: the usual cause here in plain words, then what a regular visit does about it. One figure at most. | Process |
+
+**Seasonal swap** (card 4 of block 4; on a type B page the FAQ takes the symptom question's place, the five slots stay): **What the season is about to throw at it** (mechanism: growth that comes all at once in spring): The growth or the fall that comes all at once: spring growth, autumn leaves, as the trade facts timing row has it for this work. The one cause this card makes: growth that comes all at once in spring. Say what getting ahead of it looks like, from the stages; no frequency unless [CV: visit_frequency_options] is set. FAQ, in the symptom question's place: When should I book [SERVICE_LOWER] for the season? (Timing): The first visit of the year is the one to book ahead for, and what the season does to the work in plain words. No dates, no promise of a slot, nothing about agreeing the visit before a rush. The frequency question owns the season the work runs: do not repeat it.
 
 ## do_not_reuse
 
