@@ -310,8 +310,40 @@ function symptomsForCategory(parsed, { category, emergencyNiche, takenSymptoms =
   return out;
 }
 
+// The symptoms a service page may use (CORE (17), 25 Oct): the issues whose service tags
+// name the service (its page title, its GBP names or the names it absorbed), else the
+// issues tagged with its parent category. One per issue, non urgent first, taken ones out.
+function symptomsForService(parsed, { service, names = [], category, emergencyNiche, takenSymptoms = [], takenIssues = [], limit = 5 }) {
+  const issueById = Object.fromEntries(parsed.issues.map(i => [i.id, i]));
+  const taken = new Set(takenSymptoms), takenI = new Set(takenIssues);
+  const wanted = [service, ...names].map(norm).filter(Boolean);
+  const byService = s => { const issue = issueById[s.issueId]; return issue && (issue.serviceTags || []).some(t => wanted.includes(norm(t))); };
+  const pick = test => {
+    const fits = parsed.symptoms.filter(s => {
+      const issue = issueById[s.issueId];
+      if (!issue || taken.has(s.id) || takenI.has(issue.id)) return false;
+      if (s.urgent && !emergencyNiche) return false;
+      return test(s, issue);
+    });
+    const out = [];
+    const seenIssue = new Set();
+    for (const s of [...fits.filter(s => !s.urgent), ...fits.filter(s => s.urgent)]) {
+      if (seenIssue.has(s.issueId)) continue;
+      seenIssue.add(s.issueId);
+      out.push({ ...s, by: 'service' });
+      if (out.length >= limit) break;
+    }
+    return out;
+  };
+  const mine = pick(byService);
+  if (mine.length >= limit || !category) return mine;
+  const seen = new Set(mine.map(s => s.issueId));
+  const rest = pick((s, issue) => !seen.has(issue.id) && issue.categoryTags.some(t => norm(t) === norm(category))).map(s => ({ ...s, by: 'category' }));
+  return [...mine, ...rest].slice(0, limit);
+}
+
 module.exports = {
-  ALLOCATION_MODEL, symptomsForCategory,
+  ALLOCATION_MODEL, symptomsForCategory, symptomsForService,
   runAllocation, checkPicks, eligibleItems, clientCategories, symptomSlots,
   buildAllocationMessage, conservationFromRules, applyAssigned, resolveAllocatedItems,
   loadAllocationPrompt, parseModelJson,

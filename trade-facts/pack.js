@@ -211,6 +211,66 @@ function packForCategory(niche, category, services) {
   return { markdown: out.join('\n'), missing, header: pack.header, file: pack.file };
 }
 
+// ── The rows for one service page, tagged (CORE (17), 25 Oct) ────────────────
+// rowsForService(niche, service, { names }) is the service page loader: every row that is
+// about this service, each tagged with what it is for the copy:
+//   standard method  Table A, the stages and the materials or methods (named as how the job is done)
+//   timing           Table A, the timing cell (written once on the page)
+//   what goes wrong  Table B (paragraph 3 of the content block, block 4)
+//   rule             Table C rows whose services cell names the service (the FAQ's planning
+//                    or rules question; what usually applies, never a number)
+//   fact             Table E rows whose fact names the service, or carries one of the
+//                    service's own words (a word no other Table A service shares)
+//   price factor     Table F
+// Sources, URLs and bold marks are stripped: nothing here is a citation. names: the
+// service's other names (GBP names, absorbed names) a row may use. Returns { rows,
+// markdown, missing, counts, hasRule, thin, header, file }; thin is fewer than 3 rows.
+// Throws when the pack is missing.
+const cleanCell = s => String(s || '').replace(/\[https?:\/\/[^\]]*\]/g, '').replace(/https?:\/\/\S+/g, '').replace(/\*/g, '').replace(/\s+/g, ' ').trim();
+const escRe = s => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+const cellMentions = (cell, names) => String(cell).split(/[;/,]/).some(part => { const p = normName(part); return names.some(n => p === n || new RegExp(`(^| )${escRe(n)}( |$)`).test(p)); });
+const stemWord = w => w.replace(/(ings?|ers?|ies|s)$/, '');
+const SERVICE_GENERIC = new Set(['and', 'or', 'the', 'of', 'service', 'services', 'work', 'works', 'installation', 'install', 'general', 'repair', 'repairs', 'removal', 'maintenance', 'solutions', 'design']);
+function rowsForService(niche, service, { names = [] } = {}) {
+  const pack = readPack(niche);
+  if (!pack.exists) throw Object.assign(new Error(`No trade facts pack for "${niche}": ${pack.file} is missing`), { status: 422 });
+  const tables = parseTables(pack.text);
+  const all = [...new Set([service, ...names].map(normName).filter(Boolean))];
+  const rows = [];
+  const missing = [];
+  const A = tables.get('A'), Bt = tables.get('B'), C = tables.get('C'), E = tables.get('E'), F = tables.get('F');
+  const mine = t => (t ? t.rows.filter(r => all.some(n => cellNames(r[0] || '', n))) : []);
+  for (const r of mine(A)) {
+    const stages = cleanCell(r[1]), materials = cleanCell(r[2]), timing = cleanCell(r[3]);
+    if (stages || materials) rows.push({ table: 'A', kind: 'standard method', text: [stages ? `Stages: ${stages}` : '', materials ? `Materials and methods: ${materials}` : ''].filter(Boolean).join('. ') });
+    if (timing) rows.push({ table: 'A', kind: 'timing', text: timing });
+  }
+  if (!mine(A).length) missing.push(`A:${service}`);
+  for (const r of mine(Bt)) rows.push({ table: 'B', kind: 'what goes wrong', text: [r[1] ? `Signs: ${cleanCell(r[1])}` : '', r[2] ? `Skipped: ${cleanCell(r[2])}` : '', r[3] ? `Done badly: ${cleanCell(r[3])}` : ''].filter(Boolean).join('. ') });
+  if (!mine(Bt).length) missing.push(`B:${service}`);
+  if (C) for (const r of C.rows) if (cellMentions(r[1] || '', all)) rows.push({ table: 'C', kind: 'rule', name: cleanCell(r[0]), text: [cleanCell(r[2]), r[3] ? `What the customer does: ${cleanCell(r[3])}` : ''].filter(Boolean).join('. ') });
+  if (E) {
+    // The service's own words: the stems of its name that no other Table A service name shares
+    const count = new Map();
+    for (const r of (A ? A.rows : [])) for (const w of new Set(normName(r[0] || '').split(' ').filter(x => x && !SERVICE_GENERIC.has(x)).map(stemWord))) count.set(w, (count.get(w) || 0) + 1);
+    const own = [...new Set(normName(service).split(' ').filter(x => x && !SERVICE_GENERIC.has(x)).map(stemWord))].filter(w => (count.get(w) || 0) <= 1);
+    for (const r of E.rows) {
+      const title = cleanCell(r[0]);
+      const words = new Set(normName(title).split(' ').map(stemWord));
+      if (all.some(n => cellMentions(title, [n])) || own.some(w => words.has(w))) rows.push({ table: 'E', kind: 'fact', name: title, text: cleanCell(r[1]) });
+    }
+  }
+  for (const r of mine(F)) rows.push({ table: 'F', kind: 'price factor', text: [r[1] ? `Costs more: ${cleanCell(r[1])}` : '', r[2] ? `Costs less: ${cleanCell(r[2])}` : ''].filter(Boolean).join('. ') });
+  if (!mine(F).length) missing.push(`F:${service}`);
+  for (const letter of ['A', 'B', 'C', 'E', 'F']) if (!tables.get(letter)) missing.push(letter);
+  const counts = {};
+  for (const r of rows) counts[r.kind] = (counts[r.kind] || 0) + 1;
+  const out = [`# Trade facts: ${niche} · ${service}`, 'Each row is tagged with what it is for the copy. A rule is written as what usually applies, in plain words, never with its number or name. A timing is written once on the page. Never write a source or a URL.', ''];
+  for (const r of rows) out.push(`- [${r.kind}]${r.name ? ` ${r.name}:` : ''} ${r.text}`);
+  if (!rows.length) out.push('_No rows for this service in the pack._');
+  return { rows, markdown: out.join('\n'), missing, counts, hasRule: rows.some(r => r.kind === 'rule'), thin: rows.length < 3, header: pack.header, file: pack.file };
+}
+
 // Proper nouns the pack names (Brandon, 23 Oct, for the GBP lower casing): the trade
 // bodies, accreditations and schemes of Table D (the whole name cell), and the brands,
 // standards and bodies written with a capital inside a sentence anywhere in Tables C, D
@@ -293,5 +353,5 @@ function packProperNouns(niche) {
 
 module.exports = {
   DIR, BLOCKS_DIR, CORE_FILE, packNameFor, packFile, blockFile, relative, readPack, readBlock, readCore, listNiches, hasBlock,
-  parseHeader, header, fingerprintOf, parseTables, packForService, packForCategory, packProperNouns, cellNames, normName,
+  parseHeader, header, fingerprintOf, parseTables, packForService, packForCategory, rowsForService, packProperNouns, cellNames, normName,
 };

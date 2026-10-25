@@ -103,6 +103,12 @@
   <div id="catBody"><div class="empty">Loading…</div></div>
 </div>
 
+<div class="gbp" id="servicePages">
+  <h2>Service pages</h2>
+  <div class="sub">Every service page and town service page from the page map, written from CORE (17): base pages first, then the town pages. A page runs only once its category page is written, and only with a verified trade facts pack. A run carries on past a page that fails; "Resume" writes only the pages with no good record.</div>
+  <div id="svcBody"><div class="empty">Loading…</div></div>
+</div>
+
 <div class="gbp" id="gbp">
   <h2>Google Business Profile</h2>
   <div class="sub">The description, services and products to paste into the GBP editor. Each field has a copy button. Runs description, then services, then products; a run that stops at a step picks up from that step next time.</div>
@@ -661,9 +667,77 @@
     await loadCat();
   }
 
+  // ── Service pages (25 Oct) ──
+  let svc = null, svcTimer = null;
+  async function loadSvc() {
+    const r = await fetch(`/api/clients/${clientId}/service-pages`).catch(() => null);
+    if (!r) return;
+    svc = r.ok ? await r.json() : { error: (await r.json().catch(() => ({}))).error || `HTTP ${r.status}` };
+    renderSvc();
+    clearTimeout(svcTimer);
+    if (svc && svc.running) svcTimer = setTimeout(loadSvc, 8000);
+  }
+  function renderSvc() {
+    const el = document.getElementById('svcBody');
+    if (!svc) return;
+    if (svc.error) { el.innerHTML = `<div class="notice fail">${esc(svc.error)}</div>`; return; }
+    const H = [];
+    const rd = svc.readiness || {};
+    const pages = svc.pages || [];
+    const good = pages.filter(p => p.record && p.record.good).length;
+    const ready = pages.filter(p => p.parent_written).length;
+    const run = svc.run;
+    H.push(`<div style="display:flex;gap:.5rem;flex-wrap:wrap;align-items:center">
+      <button class="btn btn-primary" onclick="runSvc(true)" ${rd.ok === false || svc.running || !pages.length ? 'disabled' : ''}>${svc.running ? 'Running…' : good ? `Resume (${pages.length - good} to write)` : 'Write all service pages'}</button>
+      <button class="btn btn-ghost btn-sm" onclick="runSvc(false)" ${rd.ok === false || svc.running || !pages.length ? 'disabled' : ''}>Write all again</button>
+      ${run && run.started_at ? `<span class="gen-date">${run.finished_at ? 'Last run finished' : 'Run started'} ${fmtTime(run.finished_at || run.started_at)}</span>` : ''}
+      <label class="field-meta" style="display:flex;gap:.3rem;align-items:center"><input type="checkbox" id="svcQuality" ${window.__svcQuality ? 'checked' : ''} onchange="window.__svcQuality = this.checked"> rubric review (slower, about 50p a page more)</label>
+    </div>`);
+    if (rd.error) H.push(`<div class="notice fail">${esc(rd.error)}</div>`);
+    if (!rd.error || rd.tradeFacts) {
+      const bits = [`${pages.length} pages (${pages.filter(p => p.scope === 'base').length} base, ${pages.filter(p => p.scope === 'town').length} town)`, `${ready} with their category page written`, `${good} with a good record`,
+        rd.tradeFacts ? `trade facts ${rd.tradeFacts.verified ? 'verified' : 'not verified (the run is refused)'}` : 'no trade facts pack', `dossiers: ${(rd.dossiers || []).join(', ') || 'none'}`];
+      H.push(`<div class="notice">${esc(bits.join(' · '))}</div>`);
+    }
+    if (pages.length) {
+      H.push(`<table style="width:100%;border-collapse:collapse;font-size:13px"><tr><th style="text-align:left;padding:4px 6px 4px 0">Page</th><th style="text-align:left;padding:4px 6px">Scope</th><th style="text-align:left;padding:4px 6px">Record</th><th></th></tr>`);
+      for (const p of pages) {
+        const r = p.record;
+        const st = run && run.pages ? run.pages.find(x => x.key === p.key) : null;
+        const running = svc.running && svc.running.current === p.key;
+        let badge = p.parent_written ? '<span class="badge badge-none">not written</span>' : `<span class="badge badge-none">waiting: category page ${esc(p.parent_key || '')} not written yet</span>`;
+        if (running) badge = '<span class="badge badge-warn">writing…</span>';
+        else if (r && r.error) badge = `<span class="badge badge-warn">failed</span> <span class="field-meta">${esc(r.error)}</span>`;
+        else if (r && r.blocked) badge = '<span class="badge badge-warn">blocked by a gate</span>';
+        else if (r) badge = `<span class="badge ${r.good ? 'badge-ok' : 'badge-warn'}">${r.block} BLOCK, ${r.flag} FLAG</span>${r.claims ? ` <span class="badge badge-warn">${r.claims} claim${r.claims > 1 ? 's' : ''} to accept</span>` : ''} <span class="gen-date">${fmtTime(r.at)}</span>`;
+        else if (st && st.status === 'skipped') badge = `<span class="badge badge-none">skipped</span> <span class="field-meta">${esc(st.error || '')}</span>`;
+        else if (st && st.status === 'pending' && svc.running) badge = '<span class="badge badge-none">queued</span>';
+        H.push(`<tr style="border-top:1px solid var(--border)"><td style="padding:6px 6px 6px 0"><strong>${esc(p.title)}</strong><div class="field-meta">${esc(p.h1 || p.key)}${p.category ? ` · ${esc(p.category)}` : ''}</div></td><td style="padding:6px">${p.scope}${p.town ? ` · ${esc(p.town)}` : ''}</td><td style="padding:6px">${badge}</td>
+          <td style="padding:6px;text-align:right;white-space:nowrap">${r ? `<a class="btn btn-ghost btn-sm" href="/v20-page.html?clientId=${clientId}&type=service&key=${encodeURIComponent(p.key)}">Open</a> ` : ''}<button class="btn btn-ghost btn-sm" onclick="runSvcOne('${esc(p.key)}')" ${svc.running || rd.ok === false || !p.parent_written ? 'disabled' : ''}>${r ? 'Write again' : 'Write'}</button></td></tr>`);
+      }
+      H.push('</table>');
+    } else H.push('<div class="empty">No service pages in the page map yet.</div>');
+    el.innerHTML = H.join('');
+  }
+  const svcQuality = () => { const el = document.getElementById('svcQuality'); return !!(el && el.checked); };
+  async function runSvc(resume) {
+    if (!resume && !confirm('Write every service page again? Existing records are kept as earlier versions.')) return;
+    const r = await fetch(`/api/clients/${clientId}/service-pages/run`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ resume, quality: svcQuality() }) });
+    const d = await r.json().catch(() => ({}));
+    if (!r.ok) { alert(d.error || `HTTP ${r.status}`); }
+    await loadSvc();
+  }
+  async function runSvcOne(key) {
+    const r = await fetch(`/api/clients/${clientId}/service-pages/run`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ resume: false, keys: [key], quality: svcQuality() }) });
+    const d = await r.json().catch(() => ({}));
+    if (!r.ok) { alert(d.error || `HTTP ${r.status}`); }
+    await loadSvc();
+  }
+
   load();
   loadGbp();
   loadCat();
+  loadSvc();
 </script>
 </body>
 </html>

@@ -72,7 +72,7 @@ function matchIdea(sentence, ideas) {
 function ideasFromRecords(records) {
   const out = [];
   for (const { page, record } of records || []) {
-    if (!record || record.blocked) continue;
+    if (!record || record.blocked || record.error) continue;
     const stored = (record.meta && record.meta.ideas) || extractIdeas(record);
     for (const i of stored) out.push({ page, text: i.text, kind: i.kind });
   }

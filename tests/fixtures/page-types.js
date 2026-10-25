@@ -59,7 +59,7 @@ const TEST = {
   chk('Unknown page type refused', /Unknown page type "nope"/.test(await throwsMsg(async () => PT.getPageType('nope'))), '', 'refused');
   chk('A page type missing a part is refused', /missing "wp"/.test(await throwsMsg(async () => PT.registerPageType({ id: 'x', label: 'X', modelFields: () => [], validate: () => [], readerView: () => '' }))), '', 'refused');
   PT.registerPageType(TEST);
-  chk('A second type registers alongside the homepage and the category page', PT.pageTypes().map(t => t.id).join() === 'homepage,category,testpage', PT.pageTypes().map(t => t.id).join(), 'homepage,category,testpage');
+  chk('A second type registers alongside the homepage, the category page and the service page', PT.pageTypes().map(t => t.id).join() === 'homepage,category,service,testpage', PT.pageTypes().map(t => t.id).join(), 'homepage,category,service,testpage');
 
   const rec = {
     meta: { page_type: 'testpage', generated_at: '2026-10-14T09:00:00.000Z', client_values: { company_name: 'Edens Edge Landscaping', phone: '023 0000 0000' } },

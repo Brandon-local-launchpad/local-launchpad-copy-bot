@@ -8,6 +8,7 @@
 const PAGE_TYPES = {
   homepage: { label: 'Homepage', singleKey: 'homepage' },
   category: { label: 'Category page', singleKey: null },
+  service: { label: 'Service page', singleKey: null },
 };
 
 const params = new URLSearchParams(location.search);

@@ -81,6 +81,8 @@ async function generateCategoryPage({ cv, niche, keyValueMap, serviceParentMap =
     trade_facts: D ? D.trade_facts : null,
     stand_ins: cv.stand_ins || [],
     decisions_block: decisionsResult.decisionsBlock || null,
+    // The block 4 causes this page makes, for MECHANISMS USED on the service pages under it (CORE (17), 25 Oct)
+    mechanisms: D ? D.problems.map(p => p.mechanism).filter(Boolean) : [],
   };
   if ((decisionsResult.gates || []).length || !D) {
     return buildCategoryRecord({ cv, decisionsResult, parsed: null, meta, extraFlags });

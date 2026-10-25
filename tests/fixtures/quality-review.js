@@ -22,7 +22,7 @@ console.log('\n=== FIXTURE: copy quality review ===\n');
 // Every rubric ID in the doc is scored, and every scored ID is in the doc
 const doc = fs.readFileSync(path.join(root, 'docs/seo/COPY_QUALITY_RUBRIC.md'), 'utf8');
 const docIds = [...doc.matchAll(/^\| ([A-Z]\d+) \|/gm)].map(m => m[1]);
-const scored = new Set([...Object.keys(Q.CODE_ITEMS), ...Object.keys(Q.CATEGORY_ITEMS), ...Object.keys(Q.JUDGE_ITEMS).map(id => id.replace(/j$/, ''))]);
+const scored = new Set([...Object.keys(Q.CODE_ITEMS), ...Object.keys(Q.CATEGORY_ITEMS), ...Object.keys(Q.SERVICE_ITEMS), ...Object.keys(Q.JUDGE_ITEMS).map(id => id.replace(/j$/, ''))]);
 chk('Every rubric item in the doc is scored', docIds.every(id => scored.has(id)), docIds.filter(id => !scored.has(id)).join(', '), 'all');
 chk('Every scored item is in the doc', [...scored].every(id => docIds.includes(id)), [...scored].filter(id => !docIds.includes(id)).join(', '), 'all');
 

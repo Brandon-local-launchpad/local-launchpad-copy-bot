@@ -146,6 +146,20 @@ The same rubric scores a category page (base scope) and a location category page
 | A5 | The areas intro lists no services. | code: AREAS-SERVICES | Gardener round 6, 25 Oct |
 | B8 | The content block opens on the place or the work, never on the reader's search ("Finding a gardener in Southampton…"). | code: CB-OPENER | Gardener round 6, 25 Oct |
 
+## V. Service pages (CORE (17), 25 Oct)
+
+The same rubric scores a service page (base scope) and a town service page (town scope), through the service page's validator and reader view, with the category page's K1, I1, T3, T4, A3, A4, A5 and B8 and these items on top. The card items (S11, T5) do not apply: a service page's cards are placed by code (What's Included items, More Services cards).
+
+| ID | Test (pass when…) | Scored by | Found |
+|---|---|---|---|
+| V1 | Every What's Included item is a part of the job someone could check off: 4 to 10 words, no full stop, no benefit or claim word (ensure, enjoy, peace of mind, hassle free), no client value token, no town, no link. | code: ITEM, N7; judge S10 | CORE (17) rule |
+| V2 | The content block is four paragraphs: who and where; how the job is done; what goes wrong (sharing at least two content words with the trade facts "what goes wrong" rows); where they work. Paragraph 2 never repeats an item's wording. | code: CB-PARAS, CB-PARA3, ITEM-REPEAT; judge B1j | CORE (17) rule |
+| V3 | Paragraph 4 links 2 or 3 of the area pages given in DECISIONS on a base page, as the town name or "[service] in [town]"; a town page links its base service page exactly once. | code: CB-LINKS, BASE-LINK; judge T6j | CORE (17) rule |
+| V4 | No standard, regulation or Act by number or name anywhere; a rule is written as what usually applies, with "usually" or "in most cases", never as advice. | code: STANDARD; judge V9j | CORE (17) rule |
+| V5 | The trade facts timing (how long, when, how soon) is written once on the page. | code: TIMING | CORE (17) rule |
+| V6 | No promise of a result the business cannot control ("will stay green", "will last 20 years", "guaranteed to", "for life", "never need"). | code: RESULT | CORE (17) rule |
+| V7 | Each block 4 card makes a different mechanism, none from MECHANISMS USED (the category page's and the sibling service pages' causes). | code: MECHANISM; judge P6 | CORE (17) rule |
+| V8 | The More Services intro names no service and no town and carries no link: the cards carry the names. | code: MORE-NAMES | CORE (17) rule |
 ## How the review step uses this
 
 - Code items: an item fails when the validator reports any issue for its checks on the final page (BLOCK or FLAG), or when the decisions break it. Y2 fails only on sentences over 30 words or a field outside its range (the validator's 25 word soft cap is advice, not a fail).

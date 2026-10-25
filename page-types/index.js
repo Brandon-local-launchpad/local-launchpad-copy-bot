@@ -36,5 +36,6 @@ const pageTypes = () => [...TYPES.values()];
 
 registerPageType(require('./homepage'));
 registerPageType(require('./category'));
+registerPageType(require('./service'));
 
 module.exports = { registerPageType, getPageType, pageTypeOf, pageTypeId, pageTypes };

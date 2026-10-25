@@ -3759,6 +3759,25 @@ const V20_FACTS = {
       servicesOnFile: v20.servicesOnFile(I.ctx.keyValueMap, I.ctx.serviceParentMap, I.niche, D),
     };
   },
+  service: async (clientId, sessionId, record) => {
+    if (!serviceRunner) throw new Error('service pages are not available (no page map store)');
+    const key = record && record.meta && record.meta.page_key;
+    if (!key) throw new Error('this service record has no page key');
+    const I = await serviceInputsFor(clientId);
+    const page = serviceRunner.pagesInOrder(I.rows).find(p => p.slug === key);
+    if (!page) throw new Error(`the page map no longer has ${key}`);
+    const written = await serviceRunner.writtenFor(clientId, I.rows, key);
+    const { decisionsResult, tradeFacts } = await serviceRunner.prepare(clientId, I, page, written);
+    const D = decisionsResult.decisions;
+    if (!D) throw new Error("the page decisions can't be made right now (a gate is failing)");
+    const { serviceValidationContext } = require('./validate-service');
+    return {
+      V: serviceValidationContext(v20.validationContextFor({ cv: I.ctx.cv, niche: I.niche, decisions: D, keyValueMap: I.ctx.keyValueMap, serviceParentMap: I.ctx.serviceParentMap, calibrationPack: I.calibrationPack.text, tradeFactsText: (tradeFacts && tradeFacts.markdown) || '' }), D, { tradeFactsRows: (tradeFacts && tradeFacts.rows) || [] }),
+      clientValues: v20.clientValueMap(I.ctx.cv, D.d1_years_trading),
+      decisionsBlock: decisionsResult.decisionsBlock || null,
+      servicesOnFile: v20.servicesOnFile(I.ctx.keyValueMap, I.ctx.serviceParentMap, I.niche, D),
+    };
+  },
   homepage: async (clientId, sessionId) => {
     const { ctx, niche, decisionsResult } = await v20HomepageInputs(clientId, sessionId);
     const D = decisionsResult.decisions;
@@ -3831,6 +3850,13 @@ if (pool && pageMapStore) {
 // the v3 page map, base pages first. category-run.js owns the order, the resume and the
 // run state; category-generate.js the model call; category-decisions.js the decisions.
 let categoryRunner = null;
+let serviceRunner = null;
+// The service pages read the category pages' inputs plus the trade facts gate's answer
+async function serviceInputsFor(clientId) {
+  const I = await categoryInputsFor(clientId);
+  const gate = await tradeFacts.serviceGate(await nicheForGate(clientId, I.ctx.trade));
+  return { ...I, tradeFacts: gate.ok ? { niche: gate.niche, file: gate.file, verified: true } : { niche: gate.niche, file: gate.file, verified: false, reason: gate.reason, message: gate.message } };
+}
 async function categoryInputsFor(clientId) {
   const ctx = await loadV20Context(clientId, null);
   if (ctx.contextSource !== 'page_map_v3') throw Object.assign(new Error('Category pages need a v3 page map: fill in the set-up on the client record and generate the page map first.'), { status: 400 });
@@ -3909,6 +3935,57 @@ if (pool && pageMapStore && v20Store) {
     const written = await categoryRunner.writtenFor(req.params.clientId, I.rows, key);
     const { decisionsResult, extraFlags } = await categoryRunner.prepare(req.params.clientId, I, page, written);
     return { key, gates: decisionsResult.gates, flags: [...decisionsResult.flags, ...extraFlags], decisionsBlock: decisionsResult.decisionsBlock };
+  }));
+
+  // Service pages (CORE (17), 25 Oct): every service page and town service page from the v3
+  // page map, base pages first, after the category pages. service-run.js owns the order, the
+  // category check, the resume and the run state; service-generate.js the model call;
+  // service-decisions.js the decisions. The trade facts pack must be verified (serviceGate).
+  const SG = require('./service-generate');
+  const { createServiceRunner } = require('./service-run');
+  const serviceCallModel = args => makeCallModel(new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY }), SG.SERVICE_MODEL)(args);
+  serviceRunner = createServiceRunner({
+    pool, v20Store,
+    loadInputs: serviceInputsFor,
+    generate: args => SG.generateServicePage({ ...args, callModel: serviceCallModel }),
+    allocate: args => allocation.runAllocation({ ...args, callModel: async (system, message) => {
+      const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
+      const r = await client.messages.create({ model: allocation.ALLOCATION_MODEL, max_tokens: 2048, system, messages: [{ role: 'user', content: message }] });
+      return r.content.map(c => c.text || '').join('');
+    } }),
+  });
+  app.get('/api/clients/:clientId/service-pages', catRoute(async req => {
+    const rows = await pageMapStore.saved(req.params.clientId);
+    const view = await serviceRunner.view(req.params.clientId, rows);
+    let readiness = { ok: true };
+    try {
+      const I = await serviceInputsFor(req.params.clientId);
+      const first = rows.find(r => r.type === 'service' && r.applies !== false);
+      const { category } = serviceRunner.parentsOf(rows, first || {});
+      if (first) require('./service-blocks').blocksFor({ niche: I.niche, cv: I.ctx.cv, category });
+      readiness.tradeFacts = I.tradeFacts; readiness.dossiers = I.dossiers.map(d => d.locationName); readiness.reviews = I.reviews.length;
+      if (!I.tradeFacts || !I.tradeFacts.verified) readiness = { ...readiness, ok: false, error: (I.tradeFacts && I.tradeFacts.message) || 'Service pages are blocked: no trade facts pack for this niche.' };
+    } catch (e) { readiness = { ok: false, error: e.message }; }
+    return { ...view, readiness };
+  }));
+  app.post('/api/clients/:clientId/service-pages/run', catRoute(async req => {
+    const { resume = true, keys = null, quality = false } = req.body || {};
+    if (serviceRunner.running.has(req.params.clientId)) throw Object.assign(new Error('A service pages run is already in progress for this client.'), { status: 409 });
+    // The gate is checked here too, so the panel gets the refusal at once rather than in the run log
+    const I = await serviceInputsFor(req.params.clientId);
+    if (!I.tradeFacts || !I.tradeFacts.verified) throw Object.assign(new Error((I.tradeFacts && I.tradeFacts.message) || 'Service pages are blocked: no trade facts pack for this niche.'), { status: 422 });
+    serviceRunner.run(req.params.clientId, { resume: !!resume, keys: Array.isArray(keys) && keys.length ? keys : null, qualityReview: !!quality })
+      .catch(err => console.error('[service] run failed for', req.params.clientId, err));
+    return { started: true };
+  }));
+  app.get('/api/clients/:clientId/service-pages/preview/:key(*)', catRoute(async req => {
+    const I = await serviceInputsFor(req.params.clientId);
+    const key = '/' + String(req.params.key || '').replace(/^\/+/, '');
+    const page = serviceRunner.pagesInOrder(I.rows).find(p => p.slug === key);
+    if (!page) throw Object.assign(new Error(`No service page ${key} in the page map.`), { status: 404 });
+    const written = await serviceRunner.writtenFor(req.params.clientId, I.rows, key);
+    const { decisionsResult, extraFlags, parentWritten, parentKey } = await serviceRunner.prepare(req.params.clientId, I, page, written);
+    return { key, parent_key: parentKey, parent_written: parentWritten, gates: decisionsResult.gates, flags: [...decisionsResult.flags, ...extraFlags], decisionsBlock: decisionsResult.decisionsBlock };
   }));
 }
 
