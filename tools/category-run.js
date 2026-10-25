@@ -8,6 +8,8 @@
 //   node tools/category-run.js --all                        every category and location category page (base first)
 //   node tools/category-run.js --trust-pack                 treat the landscaper trade facts pack as verified (its rows join the message)
 //   node tools/category-run.js --no-claims                  skip the claims review
+//   node tools/category-run.js --practices all              tick every practice the niche lists (or --practices key1,key2), as the
+//                                                           live client would have them ticked on Client Values
 //
 // Inputs: the live page map rows snapshot (tests/fixtures/data/edens-edge-v3-page-map.json), the live
 // client values when tests/live-snapshots/edens-edge.json is there (else the fixture values), the
@@ -46,6 +48,12 @@ const flag = name => process.argv.includes(name);
   const snapFile = path.join(root, 'tests/live-snapshots/edens-edge.json');
   const snap = fs.existsSync(snapFile) ? JSON.parse(fs.readFileSync(snapFile, 'utf8')) : null;
   const cv = snap ? snap.cv : { ...E.ethanValues(), jobs_wanted: ['Landscape Gardener', 'Landscape Designer'], h1_override: 'Landscaper Southampton', coastal_city: 'yes' };
+  if (arg('--practices')) {
+    const { practicesFor } = require(path.join(root, 'practices.js'));
+    const want = arg('--practices') === 'all' ? practicesFor(require(path.join(root, 'niche-library/landscaper.json'))).map(p => p.key) : arg('--practices').split(',').map(s => s.trim()).filter(Boolean);
+    cv.confirmed_practices = [...new Set([...(cv.confirmed_practices || []), ...want])];
+    console.log(`Practices ticked for this run: ${cv.confirmed_practices.join(', ')}`);
+  }
   const hand = { baseTown: 'Southampton', otherTowns: ['Romsey', 'Winchester', 'Eastleigh', 'Chandlers Ford', 'Ampfield', 'Stockbridge', 'Awbridge', 'Chilworth', 'Hedge End', 'Lyndhurst', 'New Forest District', 'Lockerley', 'Kings Worthy'].join('\n') };
   const niche = { ...landscaper, _source: 'landscaper', service_words: [] };
   const ctx = { ...contextFromPageMap({ rows, hand, cv, niche }), cv };

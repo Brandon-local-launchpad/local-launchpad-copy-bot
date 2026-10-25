@@ -73,7 +73,9 @@ const BLOCKS = {
   },
 };
 const niche = { ...landscaper, service_words: [], category_page_blocks: BLOCKS, category_types: { gardener: 'B' } };
-const cv = { ...E.ethanValues(), jobs_wanted: ['Landscape Gardener', 'Landscape Designer'], h1_override: 'Landscaper Southampton', coastal_city: 'yes', insurance_cover: '5m', hours: 'Monday to Saturday, 7am to 6pm' };
+// The practices Edens Edge ticks on Client Values (25 Oct): the ones the briefs may draw on
+const TICKED = ['price_agreed_before_work', 'green_waste_choice', 'weed_roots_out', 'soil_covered_after_clearance', 'nesting_bird_check', 'autumn_leaf_clearance', 'maintenance_schedule'];
+const cv = { ...E.ethanValues(), jobs_wanted: ['Landscape Gardener', 'Landscape Designer'], h1_override: 'Landscaper Southampton', coastal_city: 'yes', insurance_cover: '5m', hours: 'Monday to Saturday, 7am to 6pm', confirmed_practices: TICKED };
 const hand = { baseTown: 'Southampton', otherTowns: ['Romsey', 'Winchester', 'Eastleigh', 'Chandlers Ford', 'Ampfield', 'Stockbridge', 'Awbridge', 'Chilworth', 'Hedge End', 'Lyndhurst', 'New Forest District', 'Lockerley', 'Kings Worthy'].join('\n') };
 const ctx = contextFromPageMap({ rows, hand, cv, niche });
 const kv = ctx.keyValueMap;
@@ -234,6 +236,8 @@ chk('IDEAS: a sentence that remakes a stored idea is a BLOCK, a different point 
   const ok = !blocks(issuesOf(record, { ...Vbase, D: { ...D, ideasUsed: [{ page: 'homepage', text: 'The team arrives on the agreed morning with the skip booked for the end of the week.' }] } })).some(i => i.check === 'IDEAS');
   return has(iss, 'IDEAS', 'content', 'homepage already made') && ok;
 })(), '', 'IDEAS');
+chk('PRACTICE (shared): with the practices unticked the hero "prices are agreed before" and the green waste card are BLOCKs', (() => { const V0 = categoryValidationContext(G.validationContextFor({ cv: { ...cv, confirmed_practices: [] }, niche, decisions: D, keyValueMap: kv, serviceParentMap: ctx.serviceParentMap }), D); const iss = blocks(issuesOf(record, V0)); return has(iss, 'PRACTICE', 'hero', 'price is agreed before') && has(iss, 'PRACTICE', 'Green waste', 'Green waste'); })(), '', 'PRACTICE');
+chk('INTRO-SENTENCES: a services intro of three sentences is a retried FLAG', (() => { const iss = issuesOf(withText(record, PT.LABELS.servicesIntro, 'Lawns, hedges, beds and fences, looked after on a regular round. It suits homeowners who want the garden kept in shape. They never have to pick up a mower themselves.')); const i = iss.find(x => x.check === 'INTRO-SENTENCES'); return !!i && i.type === 'FLAG' && i.retry; })(), '', 'FLAG, retried');
 chk('shared checks still run: a banned phrase is a BLOCK', has(blocks(issuesOf(withText(record, PT.LABELS.costIntro, 'Look no further for a tidy garden. The price depends on the size of the garden and how often we come, and we give you a figure before the first visit.'))), '2', 'cost_intro'), '', 'banned');
 // The town page's own rules
 const rawT = outputFor(T, { scope: 'town', town: 'Winchester', kw: 'gardener in Winchester' });
@@ -245,6 +249,7 @@ chk('validator (town): the built town page has no BLOCK', !cleanT.length, cleanT
 chk('TOWN-OTHER: naming Southampton or Romsey on a town page is a BLOCK', (() => { const iss = blocks(issuesOf(withText(recordT, PT.LABELS.servicesIntro, 'Lawns, hedges, beds and fences across the city, with the same round we run in Romsey, for homeowners who want the garden kept in shape without doing it themselves.'), Vtown)); return has(iss, 'TOWN-OTHER', 'services_intro', 'Romsey'); })(), '', 'TOWN-OTHER');
 chk('LINK-TOWN: link text with a town on a town page is a BLOCK', (() => { const r = JSON.parse(JSON.stringify(recordT)); r.cards[1].card_text = r.cards[1].card_text.replace('[fencing](/locations/winchester/fencing)', '[fencing Winchester](/locations/winchester/fencing)'); return has(blocks(issuesOf(r, Vtown)), 'LINK-TOWN', 'Fencing'); })(), '', 'LINK-TOWN');
 chk('AREAS-TOWN: a village in the town page areas intro is a BLOCK', has(blocks(issuesOf(withText(recordT, PT.LABELS.areasIntro, 'We cover the whole of the city and the villages around it, Twyford included, on the same round, so the garden gets the same care wherever it sits and whoever looks after it.'), Vtown)), 'AREAS-TOWN', 'areas_intro', 'Twyford'), '', 'AREAS-TOWN');
+chk('CARD-TOWN: a town page card naming the town is a BLOCK', (() => { const r = JSON.parse(JSON.stringify(recordT)); r.cards[0].card_text = r.cards[0].card_text.replace('keep it in shape', 'keep it in shape across Winchester'); return has(blocks(issuesOf(r, Vtown)), 'CARD-TOWN', 'Lawn mowing', 'Winchester'); })(), '', 'CARD-TOWN');
 chk('the town name itself is allowed on a town page (no TOWN-OTHER for Winchester)', !has(issuesOf(withText(recordT, PT.LABELS.servicesIntro, 'Lawns, hedges, beds and fences across Winchester, on a regular round or put right in one visit, for homeowners who want the garden kept in shape without doing it themselves.'), Vtown), 'TOWN-OTHER'), '', 'allowed');
 
 // ── Ideas ──

@@ -14,9 +14,13 @@
 //   IDEAS       BLOCK  a sentence remakes an idea from IDEAS USED ELSEWHERE (fuzzy)
 //   CB-LINKS    FLAG   the content block carries no link to a section 3 page
 //   AREAS-TOWN  BLOCK  a town page's areas intro names one of its villages (code places the list)
+//   CARD-TOWN   BLOCK  a town page card names the town (Brandon, 25 Oct: fail, not flag)
+//   INTRO-SENTENCES FLAG the services intro runs past 2 sentences (Brandon, 25 Oct)
 //   H1 and area list checks on the code fields (report only)
 
-const { validateCommon, sharedCrossChecks, helpers } = require('./validate-v20');
+const { validateCommon, sharedCrossChecks, helpers, RETRY_FLAGS } = require('./validate-v20');
+// The category page's own FLAGs are rewritten by the retries like the shared ones
+for (const c of ['HERO-CAT', 'KEYWORD', 'CB-LINKS', 'INTRO-SENTENCES']) RETRY_FLAGS.add(c);
 const { LABELS } = require('./page-types/category');
 const { matchIdea } = require('./ideas');
 const { isAdminArea } = require('./client-files');
@@ -81,12 +85,23 @@ function validateCategory(record, V) {
         if (t) issue('BLOCK', 'LINK-TOWN', f.label, `The link text "${m[1]}" carries a town. On a town page link text is the plain service or page name.`, f.ref);
       }
     }
+    // A card never names the town: the page is about the town already
+    for (const f of fields.filter(x => x.ref.sub === 'card_text')) {
+      if (new RegExp(`\\b${esc(town)}\\b`, 'i').test(scanText(f.text))) issue('BLOCK', 'CARD-TOWN', f.label, `Names ${town}. A town page's cards say what the service does, never where: the page is about ${town} already.`, f.ref);
+    }
     // The areas intro names none of the villages: code places the list
     const ai = fields.find(f => f.ref.key === LABELS.areasIntro);
     if (ai) {
       const v = ((D.allocated && D.allocated.villages) || []).find(x => x && x.length > 3 && new RegExp(`\\b${esc(x)}\\b`, 'i').test(scanText(ai.text)));
       if (v) issue('BLOCK', 'AREAS-TOWN', ai.label, `Names ${v}. The areas intro names none of the villages; code places the list under it.`, ai.ref);
     }
+  }
+
+  // ── The services intro is two sentences ──
+  const intro = fields.find(f => f.ref.key === LABELS.servicesIntro);
+  if (intro && intro.text.trim()) {
+    const n = sentences(intro.text).length;
+    if (n > 2) issue('FLAG', 'INTRO-SENTENCES', intro.label, `${n} sentences: the services intro is 2 sentences, what the work covers and who it is for.`, intro.ref);
   }
 
   // ── Cards link their given target and nothing else ──

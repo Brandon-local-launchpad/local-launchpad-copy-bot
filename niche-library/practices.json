@@ -101,7 +101,9 @@
         "\\bscheduled visits?\\b",
         "\\bvisits? (every|each) (week|fortnight|month)\\b",
         "\\bvisits? (?:are |is )?(?:timed|planned|booked|set) (?:to|around|by)\\b",
-        "\\bset up a (?:\\w+ )?schedule\\b"
+        "\\bset up a (?:\\w+ )?schedule\\b",
+        "\\b(?:regular )?(?:round|visits?) (?:carries|carry|follows?|continues?) on\\b",
+        "\\bregular (?:visits|rounds?) (?:follow|run|continue)\\b"
       ]
     },
     {
@@ -300,6 +302,95 @@
       "detect": [
         "\\b(protect|protected|protecting|cover|covered|covering|sheet|sheeted|board|boarded)\\b[^.]{0,40}\\b(house|home|drive|driveway|paths?|floors?|lawn|neighbours?)\\b",
         "\\b(keep|kept|keeping) (the )?(access|drive|driveway|paths?) clear\\b"
+      ]
+    },
+    {
+      "key": "price_agreed_before_work",
+      "trades": [
+        "all"
+      ],
+      "label": "The price is agreed before any work starts",
+      "claim": "the price is agreed with the customer before any work starts",
+      "question": "Is the price always agreed with the customer before any work starts?",
+      "detect": [
+        "\\b(?:price|quote|figure|cost)s?\\b[^.]{0,40}\\bagreed before\\b",
+        "\\bagree(?:d|s)? (?:the |a |your )?(?:price|quote|figure|round and the price|cost)\\b[^.]{0,40}\\bbefore (?:any|the|a|anything|work|we|you|it)\\b",
+        "\\bbefore (?:any |the )?work (?:starts|begins)\\b[^.]{0,30}\\b(?:price|quote|figure)\\b"
+      ]
+    },
+    {
+      "key": "weed_roots_out",
+      "trades": [
+        "landscaper"
+      ],
+      "label": "Weeds are taken out by the root",
+      "claim": "weeds are lifted out whole, roots and all",
+      "question": "When you clear weeds, do you take the roots out rather than cut them at the surface?",
+      "detect": [
+        "\\b(?:pull|pulled|pulling|lift|lifted|lifting|dig|dug|digging|take|taken|taking|get|got) (?:them |the weeds? |weeds? )?(?:out )?(?:whole|by the roots?)\\b",
+        "\\broots? (?:out|up|lifted|removed|dug out)\\b",
+        "\\b(?:clear|clearing|cleared) (?:the )?roots\\b"
+      ]
+    },
+    {
+      "key": "soil_covered_after_clearance",
+      "trades": [
+        "landscaper"
+      ],
+      "label": "Bare soil is covered after a clearance",
+      "claim": "bare soil is covered (mulched) after a bed is cleared",
+      "question": "After you clear a bed, do you cover the bare soil with mulch or planting?",
+      "detect": [
+        "\\bcover(?:s|ed|ing)? (?:the |any )?(?:bare )?(?:soil|ground|earth)\\b",
+        "\\b(?:soil|ground|earth) (?:is |stays |kept |left )?covered\\b",
+        "\\bkeep(?:s|ing)? the soil covered\\b"
+      ]
+    },
+    {
+      "key": "nesting_bird_check",
+      "trades": [
+        "landscaper"
+      ],
+      "label": "Hedges are checked for nesting birds before cutting",
+      "claim": "hedges are checked for nesting birds before any cutting",
+      "question": "Do you check a hedge for nesting birds before you cut it?",
+      "detect": [
+        "\\bnesting birds?\\b",
+        "\\bcheck\\w* for (?:active )?nests?\\b",
+        "\\b(?:active )?nests? (?:are |is )?checked\\b",
+        "\\bnesting\\b[^.]{0,40}\\bcheck"
+      ]
+    },
+    {
+      "key": "autumn_leaf_clearance",
+      "trades": [
+        "landscaper"
+      ],
+      "label": "Leaves are cleared from lawns in autumn",
+      "claim": "fallen leaves are cleared from the lawn in autumn",
+      "question": "Do your autumn visits include clearing fallen leaves off the lawn?",
+      "detect": [
+        "\\b(?:clear|clears|cleared|clearing|lift|lifts|lifted|lifting|rake|rakes|raked|raking|collect|collects|collected|collecting) (?:the |them |fallen )?(?:leaves|leaf fall)\\b",
+        "\\bleaf clearance\\b",
+        "\\bleaves (?:are |get |come )?(?:cleared|lifted|raked|collected)\\b",
+        "\\bautumn (?:visits?|rounds?)\\b",
+        "\\bclear\\w* (?:them|it|those) (?:on|in|during) (?:our |the )?autumn\\b"
+      ]
+    },
+    {
+      "key": "green_waste_choice",
+      "trades": [
+        "landscaper"
+      ],
+      "label": "Green waste taken away, or left, as the customer chooses",
+      "claim": "green waste is taken away, or left for the customer, whichever they choose",
+      "question": "Do you take green waste away, leave it for the customer, or offer both?",
+      "detect": [
+        "\\bgreen waste\\b",
+        "\\b(?:cuttings|clippings|arisings|trimmings) (?:go|come|are taken|get taken|taken) (?:away|with us)\\b",
+        "\\bcouncil bin\\b",
+        "\\bcompost heap\\b",
+        "\\b(?:take|taking|took|taken) (?:the |it |them )?(?:waste|cuttings|clippings|arisings) away\\b"
       ]
     }
   ]

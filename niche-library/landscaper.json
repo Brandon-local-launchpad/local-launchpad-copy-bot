@@ -236,7 +236,7 @@
         "cards": [
           {
             "title": "Water that sits where it shouldn't",
-            "brief": "Puddles on paving, a soggy corner of lawn or beds that stay wet. The usual causes: a surface laid with no fall, a base that holds water, or ground that drains slowly. Say what the business checks first and what the fix usually involves, without promising the ground will change."
+            "brief": "Puddles on paving, a soggy corner of lawn or beds that stay wet. The usual causes: a surface laid with no fall, a base that holds water, or ground that drains slowly. Say what the fix usually involves, in plain words; what the business itself does on site only from confirmed practices. Never promise the ground will change."
           },
           {
             "title": "Surfaces that sink or rock",
@@ -347,11 +347,11 @@
           },
           {
             "title": "Hedges that have got away",
-            "brief": "A hedge wide at the top and bare at the base, growth over the path. Cause: missed cuts, cutting at the wrong time. Say how the round brings it back over more than one cut, and that nesting birds are checked for first."
+            "brief": "A hedge wide at the top and bare at the base, growth over the path. Cause: missed cuts, cutting at the wrong time. Say how the round brings it back over more than one cut. A nesting bird check only when the nesting_bird_check practice is confirmed."
           },
           {
             "title": "Weeds that come straight back",
-            "brief": "Weeds through paving joints and across beds within weeks of clearing. Cause: roots left in, bare soil with nothing covering it. Say what the round does so they stay away: roots out, soil covered."
+            "brief": "Weeds through paving joints and across beds within weeks of clearing. Cause: roots left in, bare soil with nothing covering it. What the round does so they stay away, from confirmed practices only (weed_roots_out, soil_covered_after_clearance); otherwise say what stops weeds in general terms."
           },
           {
             "title": "Borders that dry out or get swamped",
@@ -376,7 +376,7 @@
           },
           {
             "title": "Green waste",
-            "brief": "Taken away or left for the council bin or the compost heap. Waste carrier registration only if [CV: waste_carrier_registered] is yes."
+            "brief": "Whether the waste goes with us or stays, from confirmed practices only (green_waste_choice); otherwise say that what happens to the waste moves the price, without saying which the business does. Waste carrier registration only if [CV: waste_carrier_registered] is yes."
           }
         ]
       },
@@ -387,11 +387,11 @@
         },
         {
           "title": "We Agree the Round and the Price",
-          "brief": "What a visit will cover and what it costs, agreed before the first visit. Follows [CV: quote_method]; only say the quote is written if quote_method says so. Never restates \"free\"."
+          "brief": "What a visit will cover and what it costs. The price agreed before the first visit only when the price_agreed_before_work practice is confirmed. Follows [CV: quote_method]; only say the quote is written if quote_method says so. Never restates \"free\"."
         },
         {
           "title": "We Start on a Date That Suits You",
-          "brief": "The first visit goes in the diary on a day that suits the customer, and the round follows from there. Never mention the price or changes to the plan."
+          "brief": "The first visit goes in the diary on a day that suits the customer. A regular round following on only when the maintenance_schedule practice is confirmed. Never mention the price or changes to the plan."
         }
       ],
       "faq_slots": [
@@ -441,7 +441,7 @@
       "seasonal": {
         "problem_card": {
           "title": "Leaves and debris burying the lawn",
-          "brief": "Leaves left on the grass through autumn, a lawn yellow underneath by December. Cause: no clearance after leaf fall. Say what the autumn visits do."
+          "brief": "Leaves left on the grass through autumn, a lawn yellow underneath by December. Cause: no clearance after leaf fall. What the autumn visits do only from confirmed practices (autumn_leaf_clearance); otherwise what clearing the leaves does for the grass."
         },
         "faq_slot": {
           "slot": "seasonal",
