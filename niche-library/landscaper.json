@@ -236,19 +236,23 @@
         "cards": [
           {
             "title": "Water that sits where it shouldn't",
-            "brief": "Puddles on paving, a soggy corner of lawn or beds that stay wet. The usual causes: a surface laid with no fall, a base that holds water, or ground that drains slowly. Say what the fix usually involves, in plain words; what the business itself does on site only from confirmed practices. Never promise the ground will change."
+            "brief": "Puddles on paving, a soggy corner of lawn or beds that stay wet. The one cause this card makes: a surface laid with no fall, so water has nowhere to go. Say what the fix usually involves, in plain words; what the business itself does on site only from confirmed practices. Never promise the ground will change. Not slow draining ground: the symptom FAQ may own that.",
+            "mechanism": "a surface laid with no fall"
           },
           {
             "title": "Surfaces that sink or rock",
-            "brief": "Slabs that rock, blocks that dip, a step that moves. Cause: a base that was never compacted, bedding that was skipped, or edges with nothing holding them. Say what a sound base involves in plain words and that the fix starts underneath, not on top."
+            "brief": "Slabs that rock, blocks that dip, a step that moves. The one cause this card makes: a base that was never compacted, so it moves under the surface. Say what a sound base involves in plain words and that the fix starts underneath, not on top.",
+            "mechanism": "a base never compacted"
           },
           {
             "title": "Timber that fails early",
-            "brief": "Fence posts that lean, boards soft at ground level, a pergola post that moves. Cause: posts not set deep enough, timber sitting in wet ground, no gap for water to get away. Say what the business does differently at ground level."
+            "brief": "Fence posts that lean, boards soft at ground level, a pergola post that moves. The one cause this card makes: timber sitting in wet ground with no way for water to get away. Say what the business does differently at ground level, from confirmed practices only; otherwise what a post set properly involves.",
+            "mechanism": "timber sitting in wet ground"
           },
           {
             "title": "A garden that has outgrown its layout",
-            "brief": "Borders too close to paths, a hedge that blocks the way, levels that send water to the house. Cause: planting and levels set years ago for a different garden. Say how the business looks at the whole garden before it quotes one part of it."
+            "brief": "Borders too close to paths, a hedge that blocks the way, levels that send water to the house. The one cause this card makes: planting and levels set years ago for a different garden. Say how the business looks at the whole garden before it quotes one part of it, from confirmed practices only.",
+            "mechanism": "planting and levels set for an older garden"
           }
         ]
       },
@@ -327,7 +331,8 @@
       "seasonal": {
         "problem_card": {
           "title": "Damage that shows after a wet winter",
-          "brief": "Lifted slabs, a leaning post, moss across the paving, a lawn that never dried out. Cause: water that sat all winter in a base or against timber, and frost moving what water had loosened. Say what the business looks for in spring."
+          "brief": "Lifted slabs, a leaning post, moss across the paving, a lawn that never dried out. The one cause this card makes: frost moving what water had loosened over the winter. Say what the business looks for in spring, from confirmed practices only.",
+          "mechanism": "frost moving what water had loosened"
         },
         "faq_slot": {
           "slot": "seasonal",
@@ -343,19 +348,23 @@
         "cards": [
           {
             "title": "A lawn full of moss and bare patches",
-            "brief": "Moss where the grass is thin and the ground stays damp, bare patches that never fill. Cause: shade, compacted ground, thatch, cutting too low. Say what a regular round does about each, from the trade facts."
+            "brief": "Moss where the grass is thin and the ground stays damp, bare patches that never fill. The one cause this card makes: shade and damp ground. Say what a regular round does about it, from the trade facts. Not compaction, not thatch, not the cutting height: other cards and the FAQ own those.",
+            "mechanism": "shade and damp ground"
           },
           {
             "title": "Hedges that have got away",
-            "brief": "A hedge wide at the top and bare at the base, growth over the path. Cause: missed cuts, cutting at the wrong time. Say how the round brings it back over more than one cut. A nesting bird check only when the nesting_bird_check practice is confirmed."
+            "brief": "A hedge wide at the top and bare at the base, growth over the path. The one cause this card makes: cuts missed or made at the wrong time of year. Say how the round brings it back over more than one cut. A nesting bird check only when the nesting_bird_check practice is confirmed.",
+            "mechanism": "the timing of cuts"
           },
           {
             "title": "Weeds that come straight back",
-            "brief": "Weeds through paving joints and across beds within weeks of clearing. Cause: roots left in, bare soil with nothing covering it. What the round does so they stay away, from confirmed practices only (weed_roots_out, soil_covered_after_clearance); otherwise say what stops weeds in general terms."
+            "brief": "Weeds through paving joints and across beds within weeks of clearing. The one cause this card makes: roots left in the ground. What the round does so they stay away, from confirmed practices only (weed_roots_out); otherwise say what stops weeds in general terms. Not bare soil or mulch: the mulching card owns that.",
+            "mechanism": "roots left in the ground"
           },
           {
             "title": "Borders that dry out or get swamped",
-            "brief": "Beds bare and dry by the first warm week, or sodden all winter. Cause: no mulch, planting too close, ground that holds water. Say what the round does through the year."
+            "brief": "Beds bare and dry by the first warm week, or sodden all winter. The one cause this card makes: bare soil with nothing covering it. Say what the round does through the year, from confirmed practices only (soil_covered_after_clearance).",
+            "mechanism": "bare soil with no mulch"
           }
         ]
       },
@@ -398,7 +407,7 @@
         {
           "slot": "cost",
           "question": "How much does [WORK_LOWER] cost in [CITY]?",
-          "answer_brief": "Prices only from [CV: price_list]; otherwise what moves the price of a visit (how often, the size of the garden, what the visit covers) and how the price is agreed, from [CV: quote_method] only.",
+          "answer_brief": "Prices only from [CV: price_list]; otherwise how the price is reached, from [CV: quote_method] only, and that the figure is agreed before the first visit when that practice is confirmed. The four cost cards above already give what moves the price: name one factor at most, never the list again.",
           "doubt": "Price"
         },
         {
@@ -441,7 +450,8 @@
       "seasonal": {
         "problem_card": {
           "title": "Leaves and debris burying the lawn",
-          "brief": "Leaves left on the grass through autumn, a lawn yellow underneath by December. Cause: no clearance after leaf fall. What the autumn visits do only from confirmed practices (autumn_leaf_clearance); otherwise what clearing the leaves does for the grass."
+          "brief": "Leaves left on the grass through autumn, a lawn pale underneath by midwinter. The one cause this card makes: light and air kept off the grass. What the autumn visits do only from confirmed practices (autumn_leaf_clearance); otherwise what clearing the leaves does for the grass.",
+          "mechanism": "light and air kept off the grass"
         },
         "faq_slot": {
           "slot": "seasonal",

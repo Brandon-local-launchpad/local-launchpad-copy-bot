@@ -1,9 +1,10 @@
-# Claims Review Prompt — CORE (5)
+# Claims Review Prompt — CORE (6)
 
 (2), 14 Oct: code-made decisions (step titles and briefs, FAQ questions, headings) count as facts; list only unsupported statements.
 (3), 15 Oct: the coastal travel wording is a code decision; a body that says what its step title says is supported; a finding the reviewer withdraws is left out.
 (4), 16 Oct (copy quality loop): ordinary contact and next steps, a confirmed service described in plain trade terms (including the standard way any firm does it), the required insurance wording, a confirmed free quote and start time, and review themes are not claims; check the service list before listing a service.
 (5), 25 Oct (category pages, Brandon): an outcome stated as what a confirmed service does passes; a result the business can't control or guarantee wording fails. Team size, years, jobs and the insurance figure from the client values pass wherever they appear (the one-home limit is code's). The final CTA body never carries [CV: phone]; code blocks it.
+(6), 25 Oct (Brandon, after the quality loop): a method the TRADE FACTS rows give for a confirmed service is how the job is done and passes; only client-specific practices fail when they are not confirmed (frequency, waste handling, checks, timings, staffing).
 
 Used before a WordPress push (Stage 10, slice 3) and after every page is generated. Reads the finished page copy (homepage or category page) against the facts on file and lists every statement about the business that the facts don't support. Code checks each quote is really in the copy, then refuses the push until a person accepts or fixes the findings.
 
@@ -40,6 +41,7 @@ Do **not** list:
 - a service that is in CONFIRMED SERVICES under any category, or a category in GBP categories. Check the list before you list a service.
 - an outcome stated as what a confirmed service does, in plain terms: "the grass stays at an even height" from a mowing round, "the beds stay clear" from weed control, "the hedge keeps its shape" from regular trimming. List an outcome only when it is a result the business can't control (the weather, how fast something grows, that a problem will never come back, "won't ever", "always", "never again") or when it is guarantee wording ("guaranteed", "we promise", "for life", "or your money back") with no guarantee on file.
 - the team size, the years trading, the jobs completed and the insurance figure, when they are in the client values, wherever they appear on the page and in whatever words ("a team of four", "four of us", "more than 100 jobs"). How many times a proof appears is code's rule, not yours.
+- a method the TRADE FACTS rows give for one of the confirmed services: that is how the job is done, not a claim about this business. Edging during mowing, the cutting height, taking no more than a third off a hedge, lifting weeds out by the root, a compacted base under paving, seed sown on firm level soil: all pass when the service is confirmed. What fails is a client-specific practice that is not in CONFIRMED PRACTICES: how often visits come, what happens to the waste, a check made before the work, a timing or response time, who turns up or how many.
 
 Quote the exact words from the page copy, character for character, short enough to point at the claim (a phrase or one sentence). Only list a statement you are sure is unsupported: if you check something and find it is supported, or it is not about the business, leave it out entirely. If nothing is unsupported, return an empty list.
 

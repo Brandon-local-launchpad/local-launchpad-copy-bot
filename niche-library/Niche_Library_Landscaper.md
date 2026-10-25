@@ -232,12 +232,12 @@ Draft, 23 Oct 2026, for Brandon's read against the SOP and the calibration pack.
 
 **Block 4, common problems.** H2: Common [WORK] Problems
 
-| Card | Brief |
-|---|---|
-| Water that sits where it shouldn't | Puddles on paving, a soggy corner of lawn or beds that stay wet. The usual causes: a surface laid with no fall, a base that holds water, or ground that drains slowly. Say what the fix usually involves, in plain words; what the business itself does on site only from confirmed practices. Never promise the ground will change. |
-| Surfaces that sink or rock | Slabs that rock, blocks that dip, a step that moves. Cause: a base that was never compacted, bedding that was skipped, or edges with nothing holding them. Say what a sound base involves in plain words and that the fix starts underneath, not on top. |
-| Timber that fails early | Fence posts that lean, boards soft at ground level, a pergola post that moves. Cause: posts not set deep enough, timber sitting in wet ground, no gap for water to get away. Say what the business does differently at ground level. |
-| A garden that has outgrown its layout | Borders too close to paths, a hedge that blocks the way, levels that send water to the house. Cause: planting and levels set years ago for a different garden. Say how the business looks at the whole garden before it quotes one part of it. |
+| Card | Mechanism (its one cause) | Brief |
+|---|---|---|
+| Water that sits where it shouldn't | a surface laid with no fall | Puddles on paving, a soggy corner of lawn or beds that stay wet. The one cause this card makes: a surface laid with no fall, so water has nowhere to go. Say what the fix usually involves, in plain words; what the business itself does on site only from confirmed practices. Never promise the ground will change. Not slow draining ground: the symptom FAQ may own that. |
+| Surfaces that sink or rock | a base never compacted | Slabs that rock, blocks that dip, a step that moves. The one cause this card makes: a base that was never compacted, so it moves under the surface. Say what a sound base involves in plain words and that the fix starts underneath, not on top. |
+| Timber that fails early | timber sitting in wet ground | Fence posts that lean, boards soft at ground level, a pergola post that moves. The one cause this card makes: timber sitting in wet ground with no way for water to get away. Say what the business does differently at ground level, from confirmed practices only; otherwise what a post set properly involves. |
+| A garden that has outgrown its layout | planting and levels set for an older garden | Borders too close to paths, a hedge that blocks the way, levels that send water to the house. The one cause this card makes: planting and levels set years ago for a different garden. Say how the business looks at the whole garden before it quotes one part of it, from confirmed practices only. |
 
 **Block 5, cost factors.** H2: What Affects the Cost of [WORK] in [CITY]
 
@@ -263,18 +263,18 @@ Draft, 23 Oct 2026, for Brandon's read against the SOP and the calibration pack.
 | timing | always | When is the best time of year for [WORK_LOWER] work? | Hard landscaping runs most of the year in dry spells; planting and turf do best in autumn and spring. Booking ahead for spring. No dates, no promises about the weather. | Timing |
 | symptom | a symptom tagged with the category | [SYMPTOM]: why does it happen, and what can be done? | The symptom and its linked local issue, answered as asked: the usual cause here in plain words, what the local ground or housing adds, then what the business does about it. One figure at most. | Process |
 
-**Seasonal swap** (card 4 of block 4 and the timing FAQ): **Damage that shows after a wet winter**: Lifted slabs, a leaning post, moss across the paving, a lawn that never dried out. Cause: water that sat all winter in a base or against timber, and frost moving what water had loosened. Say what the business looks for in spring. FAQ: Can you do [WORK_LOWER] work in winter? (Timing): What runs in the cold months (hard landscaping in dry spells, clearance, fencing) and what waits (turf, planting in frozen ground). No dates.
+**Seasonal swap** (card 4 of block 4 and the timing FAQ): **Damage that shows after a wet winter** (mechanism: frost moving what water had loosened): Lifted slabs, a leaning post, moss across the paving, a lawn that never dried out. The one cause this card makes: frost moving what water had loosened over the winter. Say what the business looks for in spring, from confirmed practices only. FAQ: Can you do [WORK_LOWER] work in winter? (Timing): What runs in the cold months (hard landscaping in dry spells, clearance, fencing) and what waits (turf, planting in frozen ground). No dates.
 
 ### Type B (maintenance: Gardener, Lawn Care Service)
 
 **Block 4, common problems.** H2: Common [WORK] Problems
 
-| Card | Brief |
-|---|---|
-| A lawn full of moss and bare patches | Moss where the grass is thin and the ground stays damp, bare patches that never fill. Cause: shade, compacted ground, thatch, cutting too low. Say what a regular round does about each, from the trade facts. |
-| Hedges that have got away | A hedge wide at the top and bare at the base, growth over the path. Cause: missed cuts, cutting at the wrong time. Say how the round brings it back over more than one cut. A nesting bird check only when the nesting_bird_check practice is confirmed. |
-| Weeds that come straight back | Weeds through paving joints and across beds within weeks of clearing. Cause: roots left in, bare soil with nothing covering it. What the round does so they stay away, from confirmed practices only (weed_roots_out, soil_covered_after_clearance); otherwise say what stops weeds in general terms. |
-| Borders that dry out or get swamped | Beds bare and dry by the first warm week, or sodden all winter. Cause: no mulch, planting too close, ground that holds water. Say what the round does through the year. |
+| Card | Mechanism (its one cause) | Brief |
+|---|---|---|
+| A lawn full of moss and bare patches | shade and damp ground | Moss where the grass is thin and the ground stays damp, bare patches that never fill. The one cause this card makes: shade and damp ground. Say what a regular round does about it, from the trade facts. Not compaction, not thatch, not the cutting height: other cards and the FAQ own those. |
+| Hedges that have got away | the timing of cuts | A hedge wide at the top and bare at the base, growth over the path. The one cause this card makes: cuts missed or made at the wrong time of year. Say how the round brings it back over more than one cut. A nesting bird check only when the nesting_bird_check practice is confirmed. |
+| Weeds that come straight back | roots left in the ground | Weeds through paving joints and across beds within weeks of clearing. The one cause this card makes: roots left in the ground. What the round does so they stay away, from confirmed practices only (weed_roots_out); otherwise say what stops weeds in general terms. Not bare soil or mulch: the mulching card owns that. |
+| Borders that dry out or get swamped | bare soil with no mulch | Beds bare and dry by the first warm week, or sodden all winter. The one cause this card makes: bare soil with nothing covering it. Say what the round does through the year, from confirmed practices only (soil_covered_after_clearance). |
 
 **Block 5, cost factors.** H2: What Affects the Cost of [WORK] in [CITY]
 
@@ -298,7 +298,7 @@ Draft, 23 Oct 2026, for Brandon's read against the SOP and the calibration pack.
 
 | Slot | When | Question | Answer brief | Doubt |
 |---|---|---|---|---|
-| cost | always | How much does [WORK_LOWER] cost in [CITY]? | Prices only from [CV: price_list]; otherwise what moves the price of a visit (how often, the size of the garden, what the visit covers) and how the price is agreed, from [CV: quote_method] only. | Price |
+| cost | always | How much does [WORK_LOWER] cost in [CITY]? | Prices only from [CV: price_list]; otherwise how the price is reached, from [CV: quote_method] only, and that the figure is agreed before the first visit when that practice is confirmed. The four cost cards above already give what moves the price: name one factor at most, never the list again. | Price |
 | cover | insurance | Are you insured? | The cover figure from [CV: insurance_cover] and what the cover is for. Never what it pays or who it covers. | Trust |
 | cover | always | What if something gets damaged during a visit? | Open with what the customer does: tell us and we look at it. Then the reasonable care and skill standard every trade works to. No promise to put it right free. Never invent a guarantee or insurance. | Trust |
 | scope | always | What does a [WORK_LOWER] visit include? | The jobs on the card list, said as a visit: the lawn, the edges, the beds, the hedges. Link one service page. What is not included only from the services list. | Fit |
@@ -306,7 +306,7 @@ Draft, 23 Oct 2026, for Brandon's read against the SOP and the calibration pack.
 | timing | always | Do you garden all year round? | What the round does in each season in plain words (cutting through the growing season, clearing and pruning in the cold months). No dates. | Timing |
 | symptom | a symptom tagged with the category | [SYMPTOM]: why does it happen, and what can be done? | The symptom and its linked local issue, answered as asked: the usual cause here in plain words, then what a regular round does about it. One figure at most. | Process |
 
-**Seasonal swap** (card 4 of block 4 and the timing FAQ): **Leaves and debris burying the lawn**: Leaves left on the grass through autumn, a lawn yellow underneath by December. Cause: no clearance after leaf fall. What the autumn visits do only from confirmed practices (autumn_leaf_clearance); otherwise what clearing the leaves does for the grass. FAQ: When should I book for spring? (Timing): The first cut of the year is the one to book ahead for. No dates, no promise of a slot, nothing about agreeing the round before a rush.
+**Seasonal swap** (card 4 of block 4 and the timing FAQ): **Leaves and debris burying the lawn** (mechanism: light and air kept off the grass): Leaves left on the grass through autumn, a lawn pale underneath by midwinter. The one cause this card makes: light and air kept off the grass. What the autumn visits do only from confirmed practices (autumn_leaf_clearance); otherwise what clearing the leaves does for the grass. FAQ: When should I book for spring? (Timing): The first cut of the year is the one to book ahead for. No dates, no promise of a slot, nothing about agreeing the round before a rush.
 
 ## do_not_reuse
 
