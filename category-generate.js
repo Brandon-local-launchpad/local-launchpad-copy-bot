@@ -102,7 +102,7 @@ async function generateCategoryPage({ cv, niche, keyValueMap, serviceParentMap =
   if (usage && usage.stop_reason === 'max_tokens') record.FLAGS.push({ code: 'P-TRUNCATED', msg: 'The model hit the output limit; the last fields may be cut off.', source: 'parse' });
 
   // Validate, then rewrite failing fields one at a time
-  const V = categoryValidationContext(G.validationContextFor({ cv, niche, decisions: D, keyValueMap, serviceParentMap, calibrationPack }), D);
+  const V = categoryValidationContext(G.validationContextFor({ cv, niche, decisions: D, keyValueMap, serviceParentMap, calibrationPack, tradeFactsText: tradeFacts && tradeFacts.verified ? tradeFacts.markdown || '' : '' }), D);
   const validate = rec => PT.validate(rec, V);
   record.meta.first_draft_validation = (() => { const i = validate(record); return { block: i.filter(x => x.type === 'BLOCK').length, flag: i.filter(x => x.type === 'FLAG').length }; })();
   if (retries) {

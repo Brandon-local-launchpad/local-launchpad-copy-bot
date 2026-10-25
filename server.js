@@ -2926,6 +2926,9 @@ const CLIENT_VALUES_TEMPLATE = {
   // Category pages (25 Oct): the visit frequencies a maintenance client offers (weekly, fortnightly,
   // monthly, one off), comma separated; blank means the visits answer says the schedule is agreed and no more
   visit_frequency_options: '',
+  // The other type B facts the rubric reviewer kept asking for (Brandon, 25 Oct): how access is
+  // handled, what happens if the customer isn't happy with a visit, whether clippings are collected
+  access_handling: '', if_not_happy: '', clippings_collected: '',
   owner_name: '', owner_name_2: '', owner_qualification: '',
   owner_why: '', owner_promise: '', owner_pronoun: '',
   owner_photo: 'no', business_type: 'A',

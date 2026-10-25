@@ -124,6 +124,18 @@
     "label": "Visit frequency options"
   },
   {
+    "key": "access_handling",
+    "label": "Access handling"
+  },
+  {
+    "key": "if_not_happy",
+    "label": "If not happy"
+  },
+  {
+    "key": "clippings_collected",
+    "label": "Clippings collected"
+  },
+  {
     "key": "owner_name",
     "label": "Owner name"
   },

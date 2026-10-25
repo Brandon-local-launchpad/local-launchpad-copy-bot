@@ -58,6 +58,7 @@ const CODE_ITEMS = {
   P2: { title: 'Other proofs 3 times at most', checks: ['PROOF-REPEAT', 'N4', 'N20'] },
   P3: { title: 'No phrase in more than two fields', checks: ['REPEAT-PAGE'] },
   P7: { title: '"A price agreed before work starts" once outside step 2', checks: ['PRICE-FIRST'] },
+  P8: { title: 'Quote method and the price practice 3 times at most, never in both the cost FAQ and the visits FAQ', checks: ['PROOF-QUOTE'] },
   P4: { title: 'No five word run shared by two fields', checks: ['N21'] },
   P5: { title: 'Stock phrases, words to avoid, sentence openers', checks: ['N23', 'N14', 'N18', 'N8', 'N19', 'N9'] },
   F1: { title: 'FAQ answers first, 15 words or fewer', checks: ['N24'] },
@@ -92,6 +93,8 @@ const CATEGORY_ITEMS = {
   T5: { title: 'Town page cards name no town', checks: ['CARD-TOWN'] },
   A3: { title: 'Town page areas intro names no village (code places the list)', checks: ['AREAS-TOWN'] },
   A4: { title: 'Areas intro never claims every town has a page', checks: ['AREAS-PAGES'] },
+  A5: { title: 'Areas intro lists no services', checks: ['AREAS-SERVICES'] },
+  B8: { title: 'Content block opens on the place or the work, never on the reader\'s search', checks: ['CB-OPENER'] },
 };
 function codeItemsFor(record) {
   return pageTypeId(record) === 'category' ? { ...CODE_ITEMS, ...CATEGORY_ITEMS } : CODE_ITEMS;

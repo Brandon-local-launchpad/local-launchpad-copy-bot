@@ -17,6 +17,8 @@
 //   CARD-TOWN   BLOCK  a town page card names the town (Brandon, 25 Oct: fail, not flag)
 //   AREAS-PAGES BLOCK  the areas intro claims every town has a page (the "We also cover" towns have none)
 //   CB-LINKS    BLOCK  paragraph 2 carries more than 3 section 3 links, or a sentence more than 2
+//   CB-OPENER   BLOCK  the content block opens on the reader's search ("Finding a gardener in…"), not on the place or the work (Brandon, round 6)
+//   AREAS-SERVICES BLOCK the areas intro lists services (Brandon, round 6)
 //   INTRO-SENTENCES FLAG the services intro runs past 2 sentences (Brandon, 25 Oct)
 //   H1 and area list checks on the code fields (report only)
 
@@ -114,6 +116,18 @@ function validateCategory(record, V) {
     if (other) issue('BLOCK', 'CARD-TARGET', f.label, `Links ${other}; this card links only its own page ${c.card_url}.`, f.ref);
   });
 
+  // ── The content block opens on the place or the work, never on the reader's search ──
+  if (cb && cb.text.trim()) {
+    const s1 = scanText(firstSentence(cb.text));
+    const m = s1.match(/^(?:finding|looking for|searching for|choosing|picking|hiring|if you(?:'re| are) (?:looking|searching|hunting|after)|when you(?:'re| are)? (?:look|search|hunt|choose)|anyone (?:looking|searching)|homeowners (?:looking|searching))\b|\b(?:your|the) search\b|\bsearch(?:ing)? for a\b/i);
+    if (m) issue('BLOCK', 'CB-OPENER', cb.label, `"${m[0]}": the content block never opens on the reader's search. Open on the place or the work, with the keyword in the sentence.`, cb.ref);
+  }
+  // ── The areas intro lists no services ──
+  const areasIntro = fields.find(f => f.ref.key === LABELS.areasIntro);
+  if (areasIntro && areasIntro.text.trim()) {
+    const named = [...new Set((V.serviceList || []).filter(sv => sv.say && new RegExp(`\\b${esc(sv.say)}\\b`, 'i').test(scanText(areasIntro.text))).map(sv => lc(sv.say)))].filter((w, _, all) => !all.some(o => o !== w && o.includes(w)));
+    if (named.length >= 2) issue('BLOCK', 'AREAS-SERVICES', areasIntro.label, `Names ${named.join(', ')}. The areas intro says where the business is based and how far it travels; it lists no services.`, areasIntro.ref);
+  }
   // ── Content block links a section 3 page: 3 at most, 2 a sentence at most ──
   if (cb && cb.text.trim()) {
     const targets = new Set((D.contentLinks || []).map(l => normUrl(l.url)));

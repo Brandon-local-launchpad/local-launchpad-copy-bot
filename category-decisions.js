@@ -407,8 +407,11 @@ function formatCategoryBlock(D, cv, niche, ctx) {
   if (cv.differentiator_2_confirmed && cv.differentiator_2) homes.push(`${cv.differentiator_2} (differentiator): hero sentence 2 or the content block, once; nowhere else.`);
   homes.push('Years trading, jobs completed, team size: the content block only.');
   homes.push(`Guarantee and insurance: their FAQ answers only${cv.insurance_cover ? ' (the insurance figure in the insurance answer, described, never promised)' : ''}.`);
-  homes.push('The quote method: the cost intro only. "Free": the FAQ cost answer and the headings code writes; never in a step.');
+  homes.push('The quote method and the price agreed before work are one proof: the cost intro is its home, 3 mentions on the whole page at most in different words, and never in both the cost FAQ answer and the visits FAQ answer. "Free": the FAQ cost answer and the headings code writes; never in a step.');
   for (const h of homes) push(`  ${h}`);
+  push('');
+  push(`Content block opener: sentence 1 opens on the place or the work and carries the keyword "${D.keyword}". Never on the reader's search ("Finding a ${D.cat_lower} in ${D.town}…", "If you're looking for…").`);
+  push('Areas intro: where the business is based and how far it travels, and that this work goes everywhere it covers. It names no services and no towns.');
   push('');
   push('--- HOW THE BUSINESS WORKS ---');
   push('  Only what CONFIRMED PRACTICES in the client block say. Never invent a way of working or a promise about it: no "nothing gets added without you saying so", "each garden gets its own plan", "we stick to the work you asked for", "the price never creeps", "we fit the visit to a time that suits you", "we arrive ready to start", no seasonal pattern of visits, no comparison between the cost of a round and a one off. Say what the work involves, not how the business runs it.');

@@ -9,6 +9,7 @@
 //   node tools/category-run.js --trust-pack                 treat the landscaper trade facts pack as verified (its rows join the message)
 //   node tools/category-run.js --no-claims                  skip the claims review
 //   node tools/category-run.js --quality                    the rubric review and its rewrites too (quality-review.js; Opus, about 50p a page more)
+//   node tools/category-run.js --model claude-opus-5-5       write with another model (the live app uses category-generate.js CATEGORY_MODEL)
 //   node tools/category-run.js --practices all              tick every practice the niche lists (or --practices key1,key2), as the
 //                                                           live client would have them ticked on Client Values
 //
@@ -78,7 +79,9 @@ const flag = name => process.argv.includes(name);
 
   const usage = {};
   const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
-  const callModel = makeCallModel(client, CG.CATEGORY_MODEL, { onUsage: (model, r) => { const u = usage[model] = usage[model] || { calls: 0, input: 0, output: 0 }; u.calls++; u.input += r.input_tokens; u.output += r.output_tokens; } });
+  const writerModel = arg('--model') || CG.CATEGORY_MODEL;
+  if (writerModel !== CG.CATEGORY_MODEL) console.log(`Writer model: ${writerModel}`);
+  const callModel = makeCallModel(client, writerModel, { onUsage: (model, r) => { const u = usage[model] = usage[model] || { calls: 0, input: 0, output: 0 }; u.calls++; u.input += r.input_tokens; u.output += r.output_tokens; } });
   const allocationRecord = { version: 1, pages: {} };
   const inputs = { ctx, niche, rows, dossiers, allocationRecord, calibrationPack, tradeFacts, reviews: Array.isArray(cv.hand_reviews) ? cv.hand_reviews : [], saveAllocation: async r => { Object.assign(allocationRecord, r); } };
   const runner = createCategoryRunner({

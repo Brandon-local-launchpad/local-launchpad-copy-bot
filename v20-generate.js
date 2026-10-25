@@ -29,7 +29,7 @@ const CV_KEYS = [
   'guarantee_years', 'guarantee_scope', 'manufacturer_warranty', 'insurance_cover',
   'differentiator_1', 'differentiator_1_sentence', 'differentiator_2', 'differentiator_2_sentence',
   'free_quotes', 'free_inspection', 'quote_method', 'quote_includes', 'deposit_terms', 'price_list', 'response_time',
-  'same_day_available', 'out_of_hours_available', 'start_time', 'visit_frequency_options',
+  'same_day_available', 'out_of_hours_available', 'start_time', 'visit_frequency_options', 'access_handling', 'if_not_happy', 'clippings_collected',
   'owner_name', 'owner_name_2', 'owner_qualification', 'owner_why', 'owner_promise', 'owner_pronoun',
   'business_type', 'materials_methods', 'team_size', 'typical_jobs',
   'emergency_primary', 'handles_planning', 'finance_options', 'complaints_process',
@@ -189,10 +189,10 @@ function nicheContext(cv, niche, keyValueMap) {
 }
 
 // What the validator checks a page against (generation and hand edits use the same)
-function validationContextFor({ cv, niche, decisions, keyValueMap, serviceParentMap = {}, calibrationPack = '' }) {
+function validationContextFor({ cv, niche, decisions, keyValueMap, serviceParentMap = {}, calibrationPack = '', tradeFactsText = '' }) {
   const { buildValidationContext } = require('./validate-v20');
   const populatedCvKeys = new Set([...buildClientValues(cv, decisions.d1_years_trading).matchAll(/^\[CV: ([a-z0-9_]+)\]/gm)].map(m => m[1]));
-  return buildValidationContext({ cv, niche, decisions, keyValueMap, serviceParentMap, populatedCvKeys, calibrationPack });
+  return buildValidationContext({ cv, niche, decisions, keyValueMap, serviceParentMap, populatedCvKeys, calibrationPack, tradeFactsText });
 }
 
 // Generate the homepage record. `callModel({ system, message, maxTokens })` returns

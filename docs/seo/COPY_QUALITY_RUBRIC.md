@@ -77,6 +77,7 @@ Where a test needs a client fact that isn't on file, the page passes by leaving 
 | P4 | No five word run shared by two fields. | code: N21 | 14 Oct |
 | P5 | Stock phrases once, words to avoid twice at most, no back to back sentence openers. | code: N23, N14, N18 | standing rule |
 | P7 | "A price agreed before work starts" is step 2's point, said once more elsewhere at most. | code: PRICE-FIRST | loop 1 |
+| P8 | The quote method and the price agreed before work are one proof: 3 mentions on the page at most, in different words, and never in both the cost FAQ and the visits FAQ. | code: PROOF-QUOTE | Gardener round 6, 25 Oct |
 | P6 | Each idea has one home: the same point (the base under paving, a clear price before work) isn't made in several sections. | judge | 15 Oct review |
 
 ## F. FAQ
@@ -142,6 +143,8 @@ The same rubric scores a category page (base scope) and a location category page
 | T5 | A town page's cards name no town: the page is about the town already. | code: CARD-TOWN | first run (three cards named Winchester) |
 | A3 | A town page's areas intro names none of the villages; code places the list under it. | code: AREAS-TOWN | CORE (16) rule |
 | A4 | The areas intro never claims every town has a page: the towns without a location category page follow the linked list as one "We also cover" line, placed by code. | code: AREAS-PAGES | Gardener read, 25 Oct |
+| A5 | The areas intro lists no services. | code: AREAS-SERVICES | Gardener round 6, 25 Oct |
+| B8 | The content block opens on the place or the work, never on the reader's search ("Finding a gardener in Southampton…"). | code: CB-OPENER | Gardener round 6, 25 Oct |
 
 ## How the review step uses this
 

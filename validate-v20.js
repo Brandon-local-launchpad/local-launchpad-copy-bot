@@ -51,6 +51,7 @@ const RETRY_FLAGS = new Set(['N7', 'N13', 'N14', 'N15', 'N17', 'N18', 'N19', 'N2
 //   PRACTICE-REPEAT FLAG a confirmed practice stated more than twice on the page (25 Oct)
 //   INTRO-PAD     FLAG   a section intro sentence after the first that brings no new noun or number (25 Oct)
 //   PROMISE       BLOCK  a promise about how the business runs a job or visit, in the shapes the loop keeps producing (25 Oct)
+//   PROOF-QUOTE   BLOCK  the quote method or the price agreed before work more than 3 times on the page, or in both the cost FAQ and the visits FAQ (25 Oct, Brandon's read of round 6)
 //   PAD-OPENER    FLAG   a sentence that could sit on any website ("every garden is different", "wherever you are") (25 Oct, loop)
 //   SCENERY       FLAG   a research detail with no consequence for the work (trees, greens, villas named for their own sake) (25 Oct, loop)
 //   FREQUENCY     BLOCK  a visit frequency (weekly, fortnightly, monthly) with no visit_frequency_options on file (25 Oct)
@@ -208,7 +209,7 @@ function packCopy(sentence, idx) {
   return null;
 }
 
-function buildValidationContext({ cv, niche, decisions, keyValueMap = {}, serviceParentMap = {}, populatedCvKeys, calibrationPack = '' }) {
+function buildValidationContext({ cv, niche, decisions, keyValueMap = {}, serviceParentMap = {}, populatedCvKeys, calibrationPack = '', tradeFactsText = '' }) {
   const D = decisions;
   const cvNumbers = new Set();
   const cvText = [];
@@ -250,6 +251,7 @@ function buildValidationContext({ cv, niche, decisions, keyValueMap = {}, servic
   return {
     cv, niche, D, keyValueMap, serviceParentMap, populatedCvKeys: populatedCvKeys || new Set(),
     pack: packIndex(calibrationPack),
+    tradeFactsText: lc(tradeFactsText || ''),
     cvNumbers, cvText: cvText.join(' | '), researchText, researchNumbers, places: [...places],
     confirmedServices, serviceList, linkable, linkableCategories, towns,
     // Council areas, by their short name too ("New Forest" for "New Forest District")
@@ -633,6 +635,7 @@ function validateCommon(record, V) {
         const need = lc(term).split(/[^a-z0-9]+/).filter(w => w && !GENERIC_SERVICE_WORDS.has(w)).map(stem);
         if (!need.length || V.confirmedServices.some(set => need.every(w => set.has(w)))) continue;
         if (V.cvText.includes(lc(term))) continue; // the client values name it (a guarantee scope, typical jobs)
+        if (V.tradeFactsText && V.tradeFactsText.includes(lc(term))) continue; // a method the page's trade facts rows give (scarifying on the moss card, 25 Oct)
         flag('FLAG', 'SERVICE', `Names "${term}", which isn't one of the client's confirmed services. Name a confirmed service instead.`);
       }
     }
@@ -765,6 +768,30 @@ function sharedCrossChecks(record, V, { issues, issue, fields, cb, K }) {
   {
     const others = fields.filter(f => !(f.ref.key === 'steps' && f.ref.index === 1) && f.ref.key !== 'points' && PRICE_FIRST_RE.test(scanText(f.text)));
     others.slice(1).forEach(f => issue('FLAG', 'PRICE-FIRST', f.label, `"A price agreed before work starts" is already said in ${others[0].label} (and it is step 2's point). Make a different point here.`, f.ref));
+  }
+  // PROOF-QUOTE (25 Oct): the quote method and the price agreed before work are one proof with the
+  // homepage's limit: 3 mentions on the page at most, in different words, and never in both the
+  // cost FAQ and the visits FAQ
+  {
+    const methodWords = lc(String(cv.quote_method || '')).split(/[^a-z]+/).filter(w => w.length > 3 && !STOPWORDS.has(w) && !/^(?:then|fixed|price|quote)$/.test(w));
+    const methodRe = methodWords.length ? new RegExp(`\\b(?:quote|quotes|price|prices|figure|cost|costed|priced)\\b[^.]{0,60}\\b(?:${methodWords.map(esc).join('|')})\\w*\\b|\\b(?:${methodWords.map(esc).join('|')})\\w*\\b[^.]{0,60}\\b(?:quote|quotes|price|prices|figure|cost|costed|priced)\\b`, 'i') : null;
+    const isQuoteMention = sen => PRICE_FIRST_RE.test(sen) || (methodRe && methodRe.test(sen)) || practiceClaims(sen, niche).some(c => c.practice.key === 'price_agreed_before_work');
+    let count = 0;
+    const homes = [];
+    const faqKind = f => f.ref.sub === 'faq_answer' ? (/cost|how much|price/i.test(f.label) ? 'cost' : /regular visits|how often|visits work/i.test(f.label) ? 'visits' : null) : null;
+    const seenFaq = new Set();
+    for (const f of fields) {
+      const n = sentences(f.text).filter(isQuoteMention).length;
+      if (!n) continue;
+      const kind = faqKind(f);
+      if (kind) {
+        if ((kind === 'cost' && seenFaq.has('visits')) || (kind === 'visits' && seenFaq.has('cost'))) issue('BLOCK', 'PROOF-QUOTE', f.label, 'The quote method and the price agreed before work are already in the other FAQ answer: never in both the cost answer and the visits answer. Make this answer\'s point without them.', f.ref);
+        seenFaq.add(kind);
+      }
+      count += n;
+      if (count > 3) { issue('BLOCK', 'PROOF-QUOTE', f.label, `The quote method or the price agreed before work is already on the page 3 times (${homes.join(', ')}). Leave it out here, in any wording.`, f.ref); continue; }
+      homes.push(f.label);
+    }
   }
   // PRACTICE-REPEAT (25 Oct): a confirmed practice is stated twice on the page at most, in
   // different words (REPEAT-PAGE and N21 hold the wording to account)
