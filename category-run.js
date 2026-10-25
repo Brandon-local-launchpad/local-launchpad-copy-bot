@@ -125,17 +125,17 @@ function createCategoryRunner({ pool, v20Store, loadInputs, generate, allocate =
   }
 
   // The decisions and the model call for one page; never throws (the error goes in the record)
-  async function writePage(clientId, inputs, page, written, { retries = true, claimsReview = true } = {}) {
+  async function writePage(clientId, inputs, page, written, { retries = true, claimsReview = true, qualityReview = false } = {}) {
     const { ctx, niche, calibrationPack, tradeFacts } = inputs;
     const { decisionsResult, extraFlags, scope, category, town } = await prepare(clientId, inputs, page, written);
     try {
-      return await generate({ cv: ctx.cv, niche, keyValueMap: ctx.keyValueMap, serviceParentMap: ctx.serviceParentMap, decisionsResult, calibrationPack: calibrationPack.text, calibrationPackName: calibrationPack.name, tradeFacts, extraFlags, retries, claimsReview });
+      return await generate({ cv: ctx.cv, niche, keyValueMap: ctx.keyValueMap, serviceParentMap: ctx.serviceParentMap, decisionsResult, calibrationPack: calibrationPack.text, calibrationPackName: calibrationPack.name, tradeFacts, extraFlags, retries, claimsReview, qualityReview });
     } catch (e) {
       return { page: 'category', error: e.message, scope, category, town, page_slug: page.slug, FLAGS: [...extraFlags, { code: 'E-RUN', msg: e.message, source: 'run' }], VALIDATION: { status: 'not run' }, meta: { page_type: 'category', page_key: page.slug, scope, category, town, generated_at: new Date().toISOString(), decisions_block: decisionsResult.decisionsBlock || null, failed: true } };
     }
   }
 
-  // The run. opts: { resume: true (skip pages with a good record), keys: [slugs] (only these), retries, claimsReview }
+  // The run. opts: { resume: true (skip pages with a good record), keys: [slugs] (only these), retries, claimsReview, qualityReview (the rubric review and its rewrites) }
   async function run(clientId, opts = {}) {
     if (running.has(clientId)) throw Object.assign(new Error('A category pages run is already in progress for this client.'), { status: 409 });
     running.set(clientId, { startedAt: new Date().toISOString(), current: null });

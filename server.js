@@ -3888,9 +3888,9 @@ if (pool && pageMapStore && v20Store) {
   }));
   // The run goes on in the background: the panel polls the state
   app.post('/api/clients/:clientId/category-pages/run', catRoute(async req => {
-    const { resume = true, keys = null } = req.body || {};
+    const { resume = true, keys = null, quality = false } = req.body || {};
     if (categoryRunner.running.has(req.params.clientId)) throw Object.assign(new Error('A category pages run is already in progress for this client.'), { status: 409 });
-    categoryRunner.run(req.params.clientId, { resume: !!resume, keys: Array.isArray(keys) && keys.length ? keys : null })
+    categoryRunner.run(req.params.clientId, { resume: !!resume, keys: Array.isArray(keys) && keys.length ? keys : null, qualityReview: !!quality })
       .catch(err => console.error('[category] run failed for', req.params.clientId, err));
     return { started: true };
   }));

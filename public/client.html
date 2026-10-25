@@ -619,6 +619,7 @@
       <button class="btn btn-primary" onclick="runCat(true)" ${rd.ok === false || cat.running || !pages.length ? 'disabled' : ''}>${cat.running ? 'Running…' : good ? `Resume (${pages.length - good} to write)` : 'Write all category pages'}</button>
       <button class="btn btn-ghost btn-sm" onclick="runCat(false)" ${rd.ok === false || cat.running || !pages.length ? 'disabled' : ''}>Write all again</button>
       ${run && run.started_at ? `<span class="gen-date">${run.finished_at ? 'Last run finished' : 'Run started'} ${fmtTime(run.finished_at || run.started_at)}</span>` : ''}
+      <label class="field-meta" style="display:flex;gap:.3rem;align-items:center"><input type="checkbox" id="catQuality" ${window.__catQuality ? 'checked' : ''} onchange="window.__catQuality = this.checked"> rubric review (slower, about 50p a page more)</label>
     </div>`);
     if (rd.error) H.push(`<div class="notice fail">${esc(rd.error)}</div>`);
     else {
@@ -647,13 +648,14 @@
   }
   async function runCat(resume) {
     if (!resume && !confirm('Write every category page again? Existing records are kept as earlier versions.')) return;
-    const r = await fetch(`/api/clients/${clientId}/category-pages/run`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ resume }) });
+    const r = await fetch(`/api/clients/${clientId}/category-pages/run`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ resume, quality: catQuality() }) });
     const d = await r.json().catch(() => ({}));
     if (!r.ok) { alert(d.error || `HTTP ${r.status}`); }
     await loadCat();
   }
+  const catQuality = () => { const el = document.getElementById('catQuality'); return !!(el && el.checked); };
   async function runCatOne(key) {
-    const r = await fetch(`/api/clients/${clientId}/category-pages/run`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ resume: false, keys: [key] }) });
+    const r = await fetch(`/api/clients/${clientId}/category-pages/run`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ resume: false, keys: [key], quality: catQuality() }) });
     const d = await r.json().catch(() => ({}));
     if (!r.ok) { alert(d.error || `HTTP ${r.status}`); }
     await loadCat();
