@@ -271,7 +271,7 @@ Draft, 23 Oct 2026, for Brandon's read against the SOP and the calibration pack.
 
 | Card | Mechanism (its one cause) | Brief |
 |---|---|---|
-| A lawn full of moss and bare patches | shade and damp ground | Moss where the grass is thin and the ground stays damp, bare patches that never fill. The one cause this card makes: shade and damp ground. Say what a regular round does about it, from the trade facts. Not compaction, not thatch, not the cutting height: other cards and the FAQ own those. |
+| A lawn full of moss and bare patches | shade and damp ground | Moss where the grass is thin and the ground stays damp, bare patches that never fill. The one cause this card makes: shade and damp ground. The fix is scarifying to lift the moss and overseeding the thin patches, linking the lawn care or lawn seeding page where LINKABLE PAGES has one; never mowing alone as the answer. Not compaction, not thatch, not the cutting height: other cards and the FAQ own those. |
 | Hedges that have got away | the timing of cuts | A hedge wide at the top and bare at the base, growth over the path. The one cause this card makes: cuts missed or made at the wrong time of year. Say how the round brings it back over more than one cut. A nesting bird check only when the nesting_bird_check practice is confirmed. |
 | Weeds that come straight back | roots left in the ground | Weeds through paving joints and across beds within weeks of clearing. The one cause this card makes: roots left in the ground. What the round does so they stay away, from confirmed practices only (weed_roots_out); otherwise say what stops weeds in general terms. Not bare soil or mulch: the mulching card owns that. |
 | Borders that dry out or get swamped | bare soil with no mulch | Beds bare and dry by the first warm week, or sodden all winter. The one cause this card makes: bare soil with nothing covering it. Say what the round does through the year, from confirmed practices only (soil_covered_after_clearance). |
@@ -280,7 +280,7 @@ Draft, 23 Oct 2026, for Brandon's read against the SOP and the calibration pack.
 
 | Card | Brief |
 |---|---|
-| How often we visit | A regular round keeps on top of growth, so each visit is lighter work. Say that a lighter visit is a smaller job; give no pricing basis (nothing priced on time, no hourly or per visit rule) and never compare the price of a round with a one off job. Visit frequency only from the confirmed practices; no promise of a schedule otherwise. |
+| How often we visit | A regular round means each visit is shorter, so the price per visit is lower than an occasional big tidy up. Give no pricing basis beyond that (nothing priced on time, no hourly rule). Visit frequency only from the confirmed practices; no promise of a schedule otherwise. |
 | The size of the garden | More lawn to cut and edge, more borders to weed, more hedge to trim. Say it plainly and give no figure. |
 | What each visit covers | A cut on its own against a visit that covers the lawn, the edges, the beds and the hedges. Say what is usually in a visit, from the card list. |
 | Green waste | Whether the waste goes with us or stays, from confirmed practices only (green_waste_choice); otherwise say that what happens to the waste moves the price, without saying which the business does. Waste carrier registration only if [CV: waste_carrier_registered] is yes. |
