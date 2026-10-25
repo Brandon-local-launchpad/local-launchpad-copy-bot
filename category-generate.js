@@ -90,6 +90,8 @@ async function generateCategoryPage({ cv, niche, keyValueMap, serviceParentMap =
   const parsed = parseOutput(text, PT.OUTPUT_SPEC, expectedFromCategoryDecisions(D));
   meta.raw_output = text;
   meta.usage = usage || null;
+  // The model that wrote the page, when the caller used another (the --model comparison run, 25 Oct)
+  if (usage && usage.model) meta.model = usage.model;
   meta.client_block = `${req.clientBlock}\n\n${req.factsBlock}`;
   meta.services_on_file = G.servicesOnFile(keyValueMap, serviceParentMap, niche, D);
   meta.client_values = G.clientValueMap(cv, D.d1_years_trading);
