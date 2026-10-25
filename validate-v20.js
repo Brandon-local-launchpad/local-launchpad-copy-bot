@@ -307,6 +307,9 @@ function validateCommon(record, V) {
     {
       const lab = s.match(/^\s*(?:card_text|card_name|faq_answer|faq_question|point_body|point_title|step_body|step_title|card_title|card_body|home_[a-z_]+|cat_[a-z_]+)\b[^:\n]{0,60}:/i);
       if (lab) flag('BLOCK', 'LEAK', `The text starts with a field label ("${lab[0].trim()}"). Write only the copy.`);
+      // ...or a label, or the model's own working, inside the text ("Wait, that opens with "Tell"… Corrected version: cat_final_cta_body: …", 25 Oct)
+      const mid = s.match(/\n\s*(?:card_text|card_body|faq_answer|step_body|item_text|point_body|home_[a-z_]+|cat_[a-z_]+|svc_[a-z_]+)\s*:|\b(?:corrected version|revised version|final version|final answer|here is the (?:rewrite|rewritten|corrected))\s*:|\bwait, that\b|\bwhich is banned\b/i);
+      if (mid) flag('BLOCK', 'LEAK', `"${mid[0].trim()}" is the model's working or a field label inside the copy. Write only the copy, once.`);
       // ...and the insurance rule said out loud ("described here as the cover we hold, not a promise of any outcome", loop round 4)
       const data = s.match(/\b(?:is|are|isn't|aren't|been|as) confirmed\b|\byes is\b|\bon file\b|\bclient values?\b|\bcustom values?\b|\bCVTOKEN\s*=|\bdescribed (?:here )?as (?:the )?cover\b|\bnot a promise (?:of|about) (?:any )?(?:outcome|result)s?\b|\bnever a promise\b|\brather than a promise\b/i);
       if (data) flag('BLOCK', 'LEAK', `"${data[0]}" talks about the data behind the page. Say the fact itself, the way the owner would.`);

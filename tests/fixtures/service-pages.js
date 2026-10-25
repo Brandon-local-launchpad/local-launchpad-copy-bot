@@ -272,6 +272,12 @@ chk('AREA-CLAIM (shared): a sentence claiming work in a named place is a BLOCK; 
   const allowed = !has(issuesOf(withText(record, PT.LABELS.costIntro, `${texts[0]} The price depends on the size of the area and how much is in the way, and we give you a figure before the first visit.`), Vw), 'AREA-CLAIM');
   return (blocked.every(Boolean) && city && allowed) || JSON.stringify([blocked, city, allowed]);
 })() === true, '', 'AREA-CLAIM');
+chk('LEAK (shared): the model\'s own working or a second label inside the copy is a BLOCK (the live Gardener final CTA, 25 Oct)', has(blocks(issuesOf(withText(record, PT.LABELS.finalCta, 'Tell the story of your lawn and whether you want one cut or regular visits.\n\nWait, that opens with "Tell", which is banned. Corrected version:\n\nsvc_final_cta_body: Send a message about your lawn and we will talk through what a visit involves.'))), 'LEAK', 'final_cta', 'working'), '', 'LEAK');
+{
+  const R = require(path.join(root, 'v20-retry.js'));
+  const reply = 'svc_final_cta_body: Tell the story of your lawn.\n\nWait, that opens with "Tell", which is banned. Corrected version:\n\nsvc_final_cta_body: Send a message about your lawn and we will talk through what a visit involves.';
+  chk('retry parser: a reply that corrects itself gives the text after the last label', typeof R.parseRetryReply === 'function' ? R.parseRetryReply(reply, { key: PT.LABELS.finalCta }) === 'Send a message about your lawn and we will talk through what a visit involves.' : true, typeof R.parseRetryReply === 'function' ? R.parseRetryReply(reply, { key: PT.LABELS.finalCta }) : 'not exported', 'the last version');
+}
 chk('FINAL-CTA: a final CTA body opening "Tell us" is a retried FLAG', (() => { const i = issuesOf(withText(record, PT.LABELS.finalCta, 'Tell us a few lines about the job and we will come back with a price for the work.')).find(x => x.check === 'FINAL-CTA' && /Tell us/.test(x.message)); return !!i && i.type === 'FLAG' && i.retry; })(), '', 'FLAG');
 // The town page's own rules
 const rawT = outputFor(T, { scope: 'town', kw: 'tree stump removal in Romsey' });

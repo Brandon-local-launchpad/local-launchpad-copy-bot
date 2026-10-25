@@ -62,9 +62,13 @@ function buildRetryMessage(f, problems, record, D, earlier = []) {
 function parseRetryReply(text, ref) {
   let t = (text || '').trim().replace(/^```[a-z]*\s*|\s*```$/g, '').trim();
   const label = returnLabel(ref);
-  // "card_text (Lawn Care Service): …" too: the label can carry the field's name (16 Oct)
-  const m = t.match(new RegExp(`(?:^|\\n)\\s*\\**${label}\\**\\s*(?:\\([^)\\n]*\\))?\\s*:\\s*([\\s\\S]*)$`));
-  if (m) t = m[1].trim();
+  // "card_text (Lawn Care Service): …" too: the label can carry the field's name (16 Oct). The text
+  // after the LAST label: a reply that corrects itself ("…Wait, that opens with 'Tell'. Corrected
+  // version: cat_final_cta_body: …") carries the label twice, and only the last is the copy (25 Oct)
+  const re = new RegExp(`(?:^|\\n)\\s*\\**${label}\\**\\s*(?:\\([^)\\n]*\\))?\\s*:\\s*`, 'g');
+  let last = null;
+  for (const mm of t.matchAll(re)) last = mm;
+  if (last) t = t.slice(last.index + last[0].length).trim();
   return t.replace(/\\n/g, '\n').replace(/\n{3,}/g, '\n\n').trim();
 }
 
