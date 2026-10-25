@@ -73,8 +73,9 @@ function briefGaps(entry) {
 }
 
 // The FAQ slots a page uses: one per slot name in the entry's order, the first whose
-// `when` holds (none = always). Five at most before the symptom question.
-function pickFaqSlots(entry, cv = {}, { quoteFree = '' } = {}) {
+// `when` holds (none = always). Five at most before the symptom question (max), unless the
+// caller allows a sixth for a slot marked when: rule_rows (a service with Table C rule rows).
+function pickFaqSlots(entry, cv = {}, { quoteFree = '', ruleRows = false, max = 5 } = {}) {
   const holds = when => {
     if (!when) return true;
     if (when === 'guarantee') return !!((cv.guarantee_years && parseInt(cv.guarantee_years, 10) > 0) || cv.manufacturer_warranty);
@@ -83,6 +84,7 @@ function pickFaqSlots(entry, cv = {}, { quoteFree = '' } = {}) {
     if (when === 'start_time') return !!cv.start_time;
     if (when === 'quote_free') return !!quoteFree;
     if (when === 'not_quote_free') return !quoteFree;
+    if (when === 'rule_rows') return !!ruleRows;
     return false;
   };
   const out = [];
@@ -92,7 +94,7 @@ function pickFaqSlots(entry, cv = {}, { quoteFree = '' } = {}) {
     seen.add(s.slot);
     out.push({ slot: s.slot, question: s.question, answer_brief: s.answer_brief || '', doubt: s.doubt || '' });
   }
-  return out.slice(0, 5);
+  return out.slice(0, max);
 }
 
 // The seasonal swap: card 4 of block 4 gives way to the entry's seasonal card. The seasonal

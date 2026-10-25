@@ -121,11 +121,10 @@ function computeServiceDecisions({ cv, niche, keyValueMap = {}, rows = [], page,
   const built = seoTitleFor(h1, cv, titleModifierFor(cv, { yearsTrading, yearFounded, emergencyOn }));
   if (built.tooLong) flags.push({ code: 'F-LEN-TITLE', msg: `Title is ${built.title.length} chars (max 60).` });
   const metaCta = ph(btn.meta_cta || '', ctx);
-  // "[company] is a [category_lower] in [town] offering [service_lower] with [proof]" (the category page's
-  // rule with the service named); a category that is work, not a person ("garden design"), drops to
-  // "[company] offers [service_lower] in [town] with [proof]"
-  const person = isPersonWord(cat);
-  const stem = person ? `${cv.company_name} is a ${catLower} in ${townName} offering ${svcLower}` : `${cv.company_name} offers ${svcLower} in ${townName}`;
+  // "[company] offers [service_lower] in [town] with [proof]" (Brandon, 25 Oct). The years keep
+  // their comma; a description of the business ("family run and independent") goes before the
+  // verb; a proof that itself says "with" ("fixed prices with no hidden costs") follows a comma
+  const stem = `${cv.company_name} offers ${svcLower} in ${townName}`;
   const metaProofs = [];
   if (cv.differentiator_1_confirmed && cv.differentiator_1_sentence) metaProofs.push(cv.differentiator_1_sentence);
   if (yearsTrading !== null && yearsTrading >= 5 && built.modifier !== `Established ${yearFounded}`) metaProofs.push(`established in ${yearFounded}`);
@@ -134,8 +133,8 @@ function computeServiceDecisions({ cv, niche, keyValueMap = {}, rows = [], page,
     const proof = p[0].toLowerCase() + p.slice(1);
     let cand;
     if (/^established/i.test(proof)) cand = `${stem}, ${proof}. ${metaCta}`;
-    else if (/^(family|independent|local|owner|small|award)/i.test(proof) && person) cand = `${cv.company_name} is a ${proof} ${catLower} in ${townName} offering ${svcLower}. ${metaCta}`;
-    else if (/\bwith\b/i.test(proof)) cand = `${stem} and ${proof}. ${metaCta}`;
+    else if (/^(family|independent|local|owner|small|award)/i.test(proof)) cand = `${cv.company_name}, ${proof}, offers ${svcLower} in ${townName}. ${metaCta}`;
+    else if (/\bwith\b/i.test(proof)) cand = `${stem}, ${proof}. ${metaCta}`;
     else cand = `${stem} with ${proof}. ${metaCta}`;
     cand = cand.trim();
     if (cand.length <= 155) { meta = cand; break; }
@@ -165,8 +164,21 @@ function computeServiceDecisions({ cv, niche, keyValueMap = {}, rows = [], page,
     final_cta: ph(`Get a [QUOTE_FREE] ${svc} Quote in ${townName}`, ctx),
   };
 
-  // ── What's Included: the type's tick items ──
-  const included = ((E.included && E.included.items) || []).slice(0, 8).map(it => ({ title: phSvc(it.title, ctx), brief: phSvc(it.brief || '', ctx) }));
+  // ── What's Included: the service's own Table A stages (6 to 8), in sentence case; the type's
+  // role based items only when the pack gives fewer than 6 stages (F-ITEMS-GENERIC) (Brandon, 25 Oct) ──
+  const stageRow = (tradeFacts.rows || []).find(r => r.kind === 'standard method' && Array.isArray(r.stages));
+  const stages = stageRow ? stageRow.stages : [];
+  let included;
+  let includedSource;
+  if (stages.length >= 6) {
+    if (stages.length > 8) flags.push({ code: 'F-ITEMS', msg: `The trade facts give ${stages.length} stages for ${serviceName}; the first 8 are the tick items.` });
+    included = stages.slice(0, 8).map(s => ({ title: s.charAt(0).toUpperCase() + s.slice(1), brief: 'This stage of the job, from the trade facts stages row: what is done at this point, as a part of the job someone could check off. Name only what the row and the materials cell give; never a benefit, a proof or a town.', source: 'trade facts' }));
+    includedSource = 'trade facts';
+  } else {
+    included = ((E.included && E.included.items) || []).slice(0, 8).map(it => ({ title: phSvc(it.title, ctx), brief: phSvc(it.brief || '', ctx), source: 'type' }));
+    includedSource = 'type';
+    flags.push({ code: 'F-ITEMS-GENERIC', msg: `The trade facts give ${stages.length} stage(s) for ${serviceName} (6 wanted): the What's Included items are type ${blocks.key}'s role based set.` });
+  }
 
   // ── More Services cards: the sibling service pages in this category; a town page links the
   // sibling's town service page in this town where one exists, else its base page ──
@@ -183,7 +195,9 @@ function computeServiceDecisions({ cv, niche, keyValueMap = {}, rows = [], page,
   const steps = (stepsRaw || []).slice(0, 3).map(s => ({ title: phSvc(s.title, ctx), brief: phSvc(s.brief || '', ctx) }));
   if (steps.length < 3) flags.push({ code: 'F-BRIEF', msg: `Only ${steps.length} process step(s) for type ${blocks.key}.` });
 
-  let faqs = B.pickFaqSlots(E, cv, { quoteFree }).map(q => ({ ...q, question: phSvc(q.question, ctx), answer_brief: phSvc(q.answer_brief, ctx) }));
+  // A slot marked when: rule_rows (type B's "rules or standards" question) joins as a sixth when
+  // the service has Table C rule rows (Brandon, 25 Oct)
+  let faqs = B.pickFaqSlots(E, cv, { quoteFree, ruleRows: !!tradeFacts.hasRule, max: 5 + (tradeFacts.hasRule && (E.faq_slots || []).some(s => s.when === 'rule_rows') ? 1 : 0) }).map(q => ({ ...q, question: phSvc(q.question, ctx), answer_brief: phSvc(q.answer_brief, ctx) }));
   const freq = String(cv.visit_frequency_options || '').trim();
   for (const q of faqs) {
     if (!/\b(?:regular visits|how often|visits work|visit frequency|frequency)\b/i.test(`${q.slot} ${q.question}`)) continue;
@@ -201,6 +215,13 @@ function computeServiceDecisions({ cv, niche, keyValueMap = {}, rows = [], page,
   // the seasonal pair on, the seasonal question takes the symptom question's place (Brandon, 25 Oct)
   const faqSymptom = seasonal.symptomSwap ? null : (symptoms[0] || null);
   const problemSymptoms = seasonal.symptomSwap ? symptoms.slice(0, 4) : symptoms.slice(1, 5);
+  // Block 4 sources (Brandon, 25 Oct): with fewer than 2 local symptoms, the cards without one are
+  // written from the trade facts "what goes wrong" rows, one mechanism each (the card's own)
+  const wrongRows = (tradeFacts.rows || []).filter(r => r.kind === 'what goes wrong').map(r => r.text);
+  problems.forEach((p, i) => {
+    const s = problemSymptoms.length >= 2 ? problemSymptoms[i] : null;
+    p.source = s ? { kind: 'symptom', text: s.text, issue: s.issueTitle } : { kind: 'trade facts', text: wrongRows.join(' ') };
+  });
   if (seasonal.symptomSwap) {
     faqs.push({ ...seasonal.symptomSwap, question: phSvc(seasonal.symptomSwap.question, ctx), answer_brief: phSvc(seasonal.symptomSwap.answer_brief, ctx) });
   } else if (faqSymptom) {
@@ -259,7 +280,7 @@ function computeServiceDecisions({ cv, niche, keyValueMap = {}, rows = [], page,
   if (scope === 'base' && neighbourhoods.length < 2) flags.push({ code: 'F-ALLOC', msg: `${neighbourhoods.length} allocated neighbourhood(s); the content block needs 2.` });
   const townProfile = scope === 'town' ? ((town && town.profile) || '') : '';
   if (scope === 'town' && !townProfile) flags.push({ code: 'F-ALLOC', msg: `No town profile for ${townName} (no dossier saved for it).` });
-  if (problemSymptoms.length < 4) flags.push({ code: 'F-ALLOC', msg: `${problemSymptoms.length} local symptom(s) for block 4 (4 wanted); the other bodies are written from the trade facts.` });
+  if (problemSymptoms.length < 4) flags.push({ code: 'F-ALLOC', msg: `${problemSymptoms.length} local symptom(s) for block 4 (4 wanted); ${problemSymptoms.length < 2 ? 'every card is' : 'the other cards are'} written from the trade facts "what goes wrong" rows, one mechanism each.` });
   const allocated = {
     neighbourhoods: neighbourhoods.map(n => ({ name: n.name, type: n.type, conservation: !!n.conservation, profile: n.profile })),
     symptoms: Object.fromEntries([...(faqSymptom ? [['faq', faqSymptom]] : []), ...problemSymptoms.map((s, i) => [`problem_${i + 1}`, s])].map(([k, s]) => [k, { text: s.text, issueTitle: s.issueTitle, issueText: s.issueText }])),
@@ -308,7 +329,7 @@ function computeServiceDecisions({ cv, niche, keyValueMap = {}, rows = [], page,
     d3_title: built.title, d4_meta: meta, d5_trust: trust.line, d6_rating: rating,
     d15_buttons: buttons, breadcrumb,
     h2,
-    included, more,
+    included, included_source: includedSource, more,
     d9: { main: [{ name: baseRow.title, url: slugOf(baseRow), linked: true, h1: baseRow.h1 || '', services: [] }, ...more.map(c => ({ name: c.name, url: c.url, linked: true, h1: c.h1, services: [] }))], alsoOffer: [] },
     problems, cost: costCards, price_line: cv.price_list ? '[CV: price_list]' : null,
     reviews: { show: reviewsShow, items: picked, count: reviewCount },
@@ -357,12 +378,17 @@ function formatServiceBlock(D, cv, niche, ctx) {
   push(`More Services H2: ${D.more.length ? D.h2.more : '(section hidden)'}`);
   push(`Final CTA H2: ${D.h2.final_cta}`);
   push('');
-  push(`--- WHAT'S INCLUDED (${D.included.length} tick items; one item_text each, 4 to 10 words, no full stop, a part of the job from the trade facts, never a benefit, a proof or a town) ---`);
+  push(`--- WHAT'S INCLUDED (${D.included.length} tick items${D.included_source === 'trade facts' ? ', the trade facts stages for this service in order' : `, type ${D.type.key}'s set (the trade facts give too few stages)`}; one item_text each, 4 to 10 words, no full stop, a part of the job from the trade facts, never a benefit, a proof or a town) ---`);
   D.included.forEach((it, i) => { push(`  ${i + 1}. ${it.title}`); if (it.brief) push(`     Brief: ${it.brief}`); });
   if (!D.included.length) push('  (none)');
   push('');
-  push('--- BLOCK 4 (4 cards) ---');
-  D.problems.forEach((p, i) => { push(`  ${i + 1}. ${p.title}${p.seasonal ? ' (seasonal)' : ''}`); if (p.mechanism) push(`     Mechanism (this card's one cause; no other card, answer or page makes it): ${p.mechanism}`); if (p.brief) push(`     Brief: ${p.brief}`); });
+  push('--- BLOCK 4 (4 cards; each card carries its one mechanism and its source: a local symptom, or the trade facts "what goes wrong" rows when fewer than 2 symptoms are allocated) ---');
+  D.problems.forEach((p, i) => {
+    push(`  ${i + 1}. ${p.title}${p.seasonal ? ' (seasonal)' : ''}`);
+    if (p.mechanism) push(`     Mechanism (this card's one cause; no other card, answer or page makes it): ${p.mechanism}`);
+    if (p.source) push(`     Source: ${p.source.kind === 'symptom' ? `the local symptom "${p.source.text}" (issue: ${p.source.issue})` : `the trade facts "what goes wrong" rows (${p.source.text || 'none in the pack: write the card from the mechanism and the stages'})`}`);
+    if (p.brief) push(`     Brief: ${p.brief}`);
+  });
   push('');
   push('--- BLOCK 5: COST FACTORS (4 cards) ---');
   D.cost.forEach((p, i) => { push(`  ${i + 1}. ${p.title}`); if (p.brief) push(`     Brief: ${p.brief}`); });

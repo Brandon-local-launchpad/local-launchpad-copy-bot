@@ -123,6 +123,7 @@ Where a test needs a client fact that isn't on file, the page passes by leaving 
 | Y11 | No padding opener: "every garden is different", "gardens change from street to street", "wherever you are", "prices vary because", "the same care wherever". The retries rewrite it. | code: PAD-OPENER | loop rounds 1 to 3, 25 Oct |
 | Y12 | No research detail named for its own sake in the content block or an answer (trees, greens, villas, a conservation area with nothing it means for the work). The retries rewrite it; L1 judges the rest. | code: SCENERY | loop rounds 1 to 3, 25 Oct |
 | C12 | A visit frequency (weekly, fortnightly, monthly) only from the client value visit_frequency_options; blank means the answer says the schedule is agreed with the customer and nothing more. | code: FREQUENCY | loop round 3, 25 Oct |
+| C13 | No sentence claims the business works, has worked or regularly works in a named town, village or neighbourhood ("regular work for us around Romsey", "we've done many jobs in Bassett") unless the client value areas_worked names the place; the base town is exempt. | code: AREA-CLAIM | service pair read, 25 Oct |
 
 ---
 
@@ -160,6 +161,7 @@ The same rubric scores a service page (base scope) and a town service page (town
 | V6 | No promise of a result the business cannot control ("will stay green", "will last 20 years", "guaranteed to", "for life", "never need"). | code: RESULT | CORE (17) rule |
 | V7 | Each block 4 card makes a different mechanism, none from MECHANISMS USED (the category page's and the sibling service pages' causes). | code: MECHANISM; judge P6 | CORE (17) rule |
 | V8 | The More Services intro names no service and no town and carries no link: the cards carry the names. | code: MORE-NAMES | CORE (17) rule |
+| V10 | The What's Included item titles are the service's own trade facts stages (6 to 8, in order); the type's role based set is used only when the pack gives fewer than 6 stages, and the page is flagged F-ITEMS-GENERIC. | code: decisions (items) | service pair read, 25 Oct |
 ## How the review step uses this
 
 - Code items: an item fails when the validator reports any issue for its checks on the final page (BLOCK or FLAG), or when the decisions break it. Y2 fails only on sentences over 30 words or a field outside its range (the validator's 25 word soft cap is advice, not a fail).

@@ -136,6 +136,10 @@
     "label": "Clippings collected"
   },
   {
+    "key": "areas_worked",
+    "label": "Areas worked"
+  },
+  {
     "key": "owner_name",
     "label": "Owner name"
   },

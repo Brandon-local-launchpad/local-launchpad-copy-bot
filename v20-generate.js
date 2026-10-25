@@ -29,7 +29,7 @@ const CV_KEYS = [
   'guarantee_years', 'guarantee_scope', 'manufacturer_warranty', 'insurance_cover',
   'differentiator_1', 'differentiator_1_sentence', 'differentiator_2', 'differentiator_2_sentence',
   'free_quotes', 'free_inspection', 'quote_method', 'quote_includes', 'deposit_terms', 'price_list', 'response_time',
-  'same_day_available', 'out_of_hours_available', 'start_time', 'visit_frequency_options', 'access_handling', 'if_not_happy', 'clippings_collected',
+  'same_day_available', 'out_of_hours_available', 'start_time', 'visit_frequency_options', 'access_handling', 'if_not_happy', 'clippings_collected', 'areas_worked',
   'owner_name', 'owner_name_2', 'owner_qualification', 'owner_why', 'owner_promise', 'owner_pronoun',
   'business_type', 'materials_methods', 'team_size', 'typical_jobs',
   'emergency_primary', 'handles_planning', 'finance_options', 'complaints_process',

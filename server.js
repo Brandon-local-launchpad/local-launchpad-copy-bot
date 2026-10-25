@@ -2929,6 +2929,9 @@ const CLIENT_VALUES_TEMPLATE = {
   // The other type B facts the rubric reviewer kept asking for (Brandon, 25 Oct): how access is
   // handled, what happens if the customer isn't happy with a visit, whether clippings are collected
   access_handling: '', if_not_happy: '', clippings_collected: '',
+  // Places the business has worked, comma separated (Brandon, 25 Oct): the only source for "we've
+  // done jobs in [place]"; the validator blocks such a claim for any other place (AREA-CLAIM)
+  areas_worked: '',
   owner_name: '', owner_name_2: '', owner_qualification: '',
   owner_why: '', owner_promise: '', owner_pronoun: '',
   owner_photo: 'no', business_type: 'A',

@@ -242,7 +242,8 @@ function rowsForService(niche, service, { names = [] } = {}) {
   const mine = t => (t ? t.rows.filter(r => all.some(n => cellNames(r[0] || '', n))) : []);
   for (const r of mine(A)) {
     const stages = cleanCell(r[1]), materials = cleanCell(r[2]), timing = cleanCell(r[3]);
-    if (stages || materials) rows.push({ table: 'A', kind: 'standard method', text: [stages ? `Stages: ${stages}` : '', materials ? `Materials and methods: ${materials}` : ''].filter(Boolean).join('. ') });
+    // stages: the sequence as a list ("Inspect lawn and remove debris → set cutting height → …"), for the What's Included items
+    if (stages || materials) rows.push({ table: 'A', kind: 'standard method', text: [stages ? `Stages: ${stages}` : '', materials ? `Materials and methods: ${materials}` : ''].filter(Boolean).join('. '), stages: stages.split(/\s*(?:→|->|>|;)\s*/).map(s => s.replace(/^\d+[.)]\s*/, '').trim()).filter(Boolean) });
     if (timing) rows.push({ table: 'A', kind: 'timing', text: timing });
   }
   if (!mine(A).length) missing.push(`A:${service}`);

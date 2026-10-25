@@ -71,6 +71,7 @@ const RETRY_FLAGS = new Set(['N7', 'N13', 'N14', 'N15', 'N17', 'N18', 'N19', 'N2
 //   CARD-PATTERN  FLAG   two cards sharing a sentence pattern (same normalised opener); "we also handle" more than once on the page
 //   SELF-REF      BLOCK  copy pointing at another part of the page ("see the areas section", "the full list below")
 //   OUTCOME       FLAG   an outcome promise ("won't crack", "stays green") not in the client values
+//   AREA-CLAIM    BLOCK  the business works, has worked or regularly works in a named place, unless areas_worked names it (25 Oct)
 //   EXPERIENCE    BLOCK  a claim about the kinds of property or job worked on ("large rural properties") not in the client values
 //   AREA-ADMIN    FLAG   a council area named in the areas intro or the areas FAQ
 //   (16 Oct, copy quality loop)
@@ -600,6 +601,26 @@ function validateCommon(record, V) {
       if (/\[CV: phone\]/.test(t) || (cv.phone && digits.includes(cv.phone.replace(/\D/g, '')))) flag('BLOCK', 'FINAL-CTA', 'The final CTA body never gives the phone number: remove "[CV: phone]" and any "Call" or "Ring" before it; the buttons carry the number. Say what happens when they get in touch.');
       if (sentences(t).length > 1) flag('FLAG', 'FINAL-CTA', 'The final CTA body is one sentence.');
       if (!/\b(we|we'll|we're|you|you'll|your)\b/i.test(s)) flag('FLAG', 'FINAL-CTA', 'Make "we" or the customer the subject of the sentence.');
+    }
+    // AREA-CLAIM (Brandon, 25 Oct, service pair): no sentence claims the business works, has worked
+    // or regularly works in a named place ("regular work for us around Romsey", "we've done many
+    // jobs in Bassett") unless [CV: areas_worked] names it
+    {
+      // The base town is where the business is based, so work there is no claim; every other town, village or neighbourhood is
+      const placeNames = [...new Set([...(V.towns || []), D.town, ...(V.neighbourhoodNames || []), ...(V.places || []), ...(((D.allocated || {}).villages) || [])].filter(Boolean).map(String))].filter(p => lc(p) !== lc(V.city || ''));
+      const worked = lc(String(cv.areas_worked || '')).split(/[,\n;]+/).map(x => x.trim()).filter(Boolean);
+      const allowed = p => worked.some(w => w === lc(p) || w.includes(lc(p)) || lc(p).includes(w));
+      const places = placeNames.filter(p => p.length > 3 && !allowed(p));
+      if (places.length) {
+        const P = `(?:${places.map(esc).join('|')})`;
+        const CLAIM = new RegExp(`\\b(?:regular|regularly|often|frequently|most of our|much of our|a lot of our|plenty of our|many of our)\\b[^.]{0,40}\\b(?:work|jobs?|visits?|customers?)\\b[^.]{0,40}\\b(?:in|around|across|for)\\s+${P}\\b|\\b(?:work|jobs?|visits?|customers?)\\b[^.]{0,20}\\b(?:we(?:'ve| have)?\\s+(?:done|do|completed|carried out|finished|worked|work)|for us)\\b[^.]{0,40}\\b(?:in|around|across)\\s+${P}\\b|\\bwe(?:'ve| have)\\s+(?:done|completed|carried out|finished|worked|looked after|cut|laid|built|fitted|installed)\\b[^.]{0,60}\\b(?:in|around|across)\\s+${P}\\b|\\bwe(?:'re| are)\\s+(?:often|regularly|frequently|usually|always)\\s+(?:in|around|out in)\\s+${P}\\b|\\b(?:our|the)\\s+(?:work|jobs?|visits?)\\s+(?:in|around|across)\\s+${P}\\b`, 'i');
+        // The page keyword ("gardener in Winchester") is required by rule, so it is not a claim on its own
+        const kwRe = D.keyword ? new RegExp(esc(D.keyword), 'ig') : null;
+        for (const sen of sentences(t)) {
+          const m = (kwRe ? scanText(sen).replace(kwRe, 'KEYWORD') : scanText(sen)).match(CLAIM);
+          if (m) { flag('BLOCK', 'AREA-CLAIM', `"${m[0]}" claims the business works, or has worked, in a named place. Only [CV: areas_worked] can say where work has been done; say what the work involves instead.`); break; }
+        }
+      }
     }
     // RESEARCH-LANG: the copy never sounds like the research it came from
     for (const w of RESEARCH_WORDS) {

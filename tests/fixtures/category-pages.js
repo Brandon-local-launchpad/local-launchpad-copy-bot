@@ -74,7 +74,7 @@ const BLOCKS = {
 };
 const niche = { ...landscaper, service_words: [], category_page_blocks: BLOCKS, category_types: { gardener: 'B' } };
 // The practices Edens Edge ticks on Client Values (25 Oct): the ones the briefs may draw on
-const TICKED = ['price_agreed_before_work', 'green_waste_choice', 'weed_roots_out', 'soil_covered_after_clearance', 'nesting_bird_check', 'autumn_leaf_clearance', 'maintenance_schedule'];
+const TICKED = ['price_agreed_before_work', 'green_waste_choice', 'weed_roots_out', 'soil_covered_after_clearance', 'nesting_bird_check', 'autumn_leaf_clearance', 'maintenance_schedule', 'paths_swept_after_mowing', 'strimmer_edges', 'customer_need_not_be_home', 'pre_season_clearing'];
 const cv = { ...E.ethanValues(), jobs_wanted: ['Landscape Gardener', 'Landscape Designer'], h1_override: 'Landscaper Southampton', coastal_city: 'yes', insurance_cover: '5m', hours: 'Monday to Saturday, 7am to 6pm', confirmed_practices: TICKED };
 const hand = { baseTown: 'Southampton', otherTowns: ['Romsey', 'Winchester', 'Eastleigh', 'Chandlers Ford', 'Ampfield', 'Stockbridge', 'Awbridge', 'Chilworth', 'Hedge End', 'Lyndhurst', 'New Forest District', 'Lockerley', 'Kings Worthy'].join('\n') };
 const ctx = contextFromPageMap({ rows, hand, cv, niche });

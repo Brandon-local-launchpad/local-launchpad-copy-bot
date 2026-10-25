@@ -79,6 +79,7 @@ const CODE_ITEMS = {
   Y11: { title: 'No padding opener ("every garden is different", "wherever you are")', checks: ['PAD-OPENER'] },
   Y12: { title: 'No research detail named for its own sake', checks: ['SCENERY'] },
   C12: { title: 'A visit frequency only from visit_frequency_options', checks: ['FREQUENCY'] },
+  C13: { title: 'No claim of working, or having worked, in a named place unless areas_worked names it', checks: ['AREA-CLAIM'] },
 };
 // The category page's own items (25 Oct), on top of the homepage's
 const CATEGORY_ITEMS = {
@@ -115,6 +116,7 @@ const SERVICE_ITEMS = {
   V6: { title: 'No promise of a result the business cannot control', checks: ['RESULT'] },
   V7: { title: 'Each block 4 card a different mechanism, none from MECHANISMS USED', checks: ['MECHANISM'] },
   V8: { title: 'More Services intro names no service or town and carries no link', checks: ['MORE-NAMES'] },
+  V10: { title: 'What\'s Included items are the service\'s own trade facts stages (the type set only as a fallback)', decisions: 'items' },
 };
 function codeItemsFor(record) {
   const id = pageTypeId(record);
@@ -181,6 +183,7 @@ function decisionsTests({ record, D, cv, niche }) {
     out.finalCta = want.some(w => h2.includes(w)) ? null : `The final CTA heading "${ctaH2}" names neither ${want.join(' nor ')}.`;
     out.meta = null;
     out.cardPicks = null;
+    if (typeId === 'service') out.items = D.included_source === 'type' ? `The What's Included items are type ${D.type && D.type.key}'s role based set: the trade facts give too few stages for ${D.service}.` : null;
     const admin = (typeId === 'service' ? (record.svc_areas_links || []) : (record.cat_areas_links || [])).map(a => a.name).filter(isAdminArea);
     out.areaList = admin.length ? `The area list includes ${admin.join(', ')}.` : null;
     const claims = (record.CLAIMS && record.CLAIMS.findings) || [];

@@ -496,7 +496,8 @@
             "title": "Clearing the arisings",
             "brief": "What comes off the job and what happens to it, from the trade facts stages (remove or redistribute arisings). Whether it leaves with us only from the confirmed practices (green_waste_choice); otherwise say it is cleared or kept as agreed."
           }
-        ]
+        ],
+        "note": "Fallback only: the tick items are the service's own Table A stages when the pack gives 6 or more; this set is used when it gives fewer (F-ITEMS-GENERIC)."
       },
       "problems": {
         "h2": "Signs You Need [SERVICE]",
@@ -507,14 +508,14 @@
             "mechanism": "the job left undone"
           },
           {
-            "title": "Movement underneath",
-            "brief": "A surface, a post, a level or a finish that has shifted. The one cause this card makes: soft ground settling under the weight. Say what the job does underneath so it stays put, from the trade facts stages; no depth or figure the rows do not give.",
-            "mechanism": "soft ground settling under the weight"
+            "title": "It's moved, sunk or leant",
+            "brief": "A surface, a post, a level or a finish that has shifted or dropped, including where a job was done once and left roots, a loose base or a shallow grind behind. The one cause this card makes: a stage skipped underneath, so the ground gives. Say what the job does underneath so it stays put, from the trade facts stages and the done badly row; no depth or figure the rows do not give; never a dig at another trade.",
+            "mechanism": "a stage skipped underneath, so the ground gives"
           },
           {
-            "title": "Done badly the first time",
-            "brief": "A job that already failed once: the faults from the trade facts done badly row and what caused them. The one cause this card makes: a stage skipped to save time. Then what doing it properly involves, from the stages; never a dig at another trade.",
-            "mechanism": "a stage skipped to save time"
+            "title": "It's past patching up",
+            "brief": "Rot, cracking, moss in the joints, a lean that comes back: the signs from the trade facts that a repair no longer holds. The one cause this card makes: wear that a repair no longer holds. Say when a patch repair stops being worth it and what doing the job properly involves, from the stages. Not settlement or a skipped stage: card 2 owns those.",
+            "mechanism": "wear that a repair no longer holds"
           },
           {
             "title": "Water in the wrong place",
@@ -598,8 +599,8 @@
       "seasonal": {
         "problem_card": {
           "title": "What a winter leaves behind",
-          "brief": "What shows in spring after the cold months: the signs from the trade facts for this job. The one cause this card makes: months of rain soaking into the ground. Say what the business looks for in spring from confirmed practices only; otherwise what the job puts right.",
-          "mechanism": "months of rain soaking into the ground"
+          "brief": "What shows in spring after the cold months: the signs from the trade facts for this job. The one cause this card makes: ground heaving and shrinking through the winter. Say what the business looks for in spring from confirmed practices only; otherwise what the job puts right. Not water sitting (card 4) and not a skipped stage (card 2).",
+          "mechanism": "ground heaving and shrinking through the winter"
         },
         "faq_slot": {
           "slot": "seasonal",
@@ -641,7 +642,8 @@
             "title": "The visit pattern you choose",
             "brief": "Only from [CV: visit_frequency_options]; when it is blank, write that visits follow the pattern agreed with you and name no frequency."
           }
-        ]
+        ],
+        "note": "Fallback only: the tick items are the service's own Table A stages when the pack gives 6 or more; this set is used when it gives fewer (F-ITEMS-GENERIC)."
       },
       "problems": {
         "h2": "Signs It's Time for a [SERVICE] Visit",
@@ -740,6 +742,13 @@
           "question": "What does a [SERVICE_LOWER] visit include?",
           "answer_brief": "The What's Included items said as a sentence, in other words. What a visit does not cover only from the services list, with one sibling service page linked.",
           "doubt": "Fit"
+        },
+        {
+          "slot": "rules",
+          "when": "rule_rows",
+          "question": "Are there rules or standards for [SERVICE_LOWER]?",
+          "answer_brief": "From the trade facts rule rows only, as what usually applies, in plain words with \"usually\" or \"in most cases\": what the rule or standard asks of the work and what, if anything, the customer has to do. Never a standard's number, an Act's name or legal advice. This slot is used only when the service has rule rows.",
+          "doubt": "Process"
         }
       ],
       "faq_symptom": {

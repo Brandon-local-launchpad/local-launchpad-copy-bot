@@ -392,6 +392,63 @@
         "\\bcompost heap\\b",
         "\\b(?:take|taking|took|taken) (?:the |it |them )?(?:waste|cuttings|clippings|arisings) away\\b"
       ]
+    },
+    {
+      "key": "pre_season_clearing",
+      "trades": [
+        "landscaper"
+      ],
+      "label": "Winter debris cleared before the first cut of the year",
+      "claim": "the winter debris is cleared before the first cut of the year",
+      "question": "Before the first cut of the year, do you clear the winter debris off the lawn first?",
+      "detect": [
+        "\\b(?:clear(?:ing|ed)?|pick(?:ing|ed)? up|rak(?:e|ing|ed)) (?:the |any |all )?(?:winter|winter's) (?:debris|leaves|twigs|mess)\\b",
+        "\\bbefore the first cut\\b[^.]{0,40}\\b(?:clear|debris|twigs|leaves)\\b",
+        "\\bpre[- ]?season (?:clear|tidy|clean)\\w*\\b"
+      ]
+    },
+    {
+      "key": "strimmer_edges",
+      "trades": [
+        "landscaper"
+      ],
+      "label": "Edges and tight corners finished with a strimmer",
+      "claim": "the edges and tight corners are finished with a strimmer",
+      "question": "Do you finish the edges and the corners the mower cannot reach with a strimmer?",
+      "detect": [
+        "\\bstrimm(?:er|ing|ed)\\b",
+        "\\bstrim\\b",
+        "\\bline trimmer\\b"
+      ]
+    },
+    {
+      "key": "paths_swept_after_mowing",
+      "trades": [
+        "landscaper"
+      ],
+      "label": "Paths and hard surfaces swept after mowing",
+      "claim": "the paths and hard surfaces are swept after mowing",
+      "question": "Do you sweep the paths and hard surfaces clear of cuttings before you leave?",
+      "detect": [
+        "\\b(?:paths?|patios?|drives?|driveways?|hard surfaces?|paving)\\b[^.]{0,30}\\b(?:swept|brushed|blown|cleared)\\b",
+        "\\b(?:sweep|brush|blow|clear)(?:ing|ed)? (?:up |off |down )?(?:the |any |all )?(?:cuttings|clippings|grass)?\\s?(?:off |from )?(?:the )?(?:paths?|patios?|drives?|driveways?|paving|hard surfaces?)\\b",
+        "\\bcuttings (?:left )?on the paths?\\b[^.]{0,30}\\b(?:brushed|swept|cleared)\\b"
+      ]
+    },
+    {
+      "key": "customer_need_not_be_home",
+      "trades": [
+        "landscaper"
+      ],
+      "label": "The customer does not need to be home for a visit",
+      "claim": "the customer does not need to be home for a visit",
+      "question": "Can a visit go ahead when nobody is home, as long as the garden can be reached?",
+      "detect": [
+        "\\b(?:don't|do not|doesn't|does not|no) need (?:to be|to stay) (?:in|at home|home|there|around)\\b",
+        "\\bwithout (?:anyone|anybody|you) (?:needing to be|being) (?:in|at home|home|there)\\b",
+        "\\bnobody (?:needs to be|has to be|need be) (?:in|at home|home|there)\\b",
+        "\\b(?:while|when) you(?:'re| are) (?:out|away|at work|not (?:in|there|home))\\b"
+      ]
     }
   ]
 }
