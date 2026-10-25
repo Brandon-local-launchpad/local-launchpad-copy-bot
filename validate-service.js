@@ -216,10 +216,13 @@ function validateService(record, V) {
   const fc = fields.find(f => f.ref.key === LABELS.finalCta);
   if (fc && /^\s*tell us\b/i.test(scanText(fc.text))) issue('FLAG', 'FINAL-CTA', fc.label, 'Opens with "Tell us"; the final CTA body never does. Say what happens when they get in touch.', fc.ref);
 
-  // ── Nothing from IDEAS USED ELSEWHERE ──
+  // ── Nothing from IDEAS USED ELSEWHERE (the areas intro is left out: its content is prescribed,
+  // "this service in this town and the villages around it", which the category page's hero also
+  // says; first real run, 25 Oct) ──
   const ideas = D.ideasUsed || [];
   if (ideas.length) {
     for (const f of fields) {
+      if (f.ref.key === LABELS.areasIntro) continue;
       for (const s of sentences(f.text)) {
         const hit = matchIdea(s, ideas);
         if (hit) { issue('BLOCK', 'IDEAS', f.label, `"${scanText(s).slice(0, 80)}…" remakes an idea the ${hit.page} already made ("${hit.text.slice(0, 80)}…"). Find a different angle.`, f.ref); break; }
