@@ -72,7 +72,7 @@ function buildServiceRequest({ cv, niche, decisions, decisionsBlock, calibration
 }
 
 // Generate one service page record. With a failed gate there is no call.
-async function generateServicePage({ cv, niche, keyValueMap, serviceParentMap = {}, decisionsResult, calibrationPack, calibrationPackName, callModel, tradeFacts = null, extraFlags = [], retries = true, claimsReview = true, qualityReview = false }) {
+async function generateServicePage({ cv, niche, keyValueMap, serviceParentMap = {}, decisionsResult, calibrationPack, calibrationPackName, callModel, tradeFacts = null, extraFlags = [], retries = true, claimsReview = true, qualityReview = false, qualityRounds = 3 }) {
   const { runRetries, loadRetryPrompt, validationSummary } = require('./v20-retry');
   const D = decisionsResult.decisions;
   const meta = {
@@ -142,7 +142,7 @@ async function generateServicePage({ cv, niche, keyValueMap, serviceParentMap = 
       const { runQualityRetries, runClaimRetries } = require('./v20-retry');
       const Q = require('./quality-review');
       try {
-        const { review: rv, rounds: qRounds } = await runQualityRetries({ record, V, callRetry, review: rec => Q.reviewPage({ record: rec, V, D, cv, niche, callModel }) });
+        const { review: rv, rounds: qRounds } = await runQualityRetries({ record, V, callRetry, review: rec => Q.reviewPage({ record: rec, V, D, cv, niche, callModel }), maxRounds: qualityRounds });
         record.QUALITY = { at: rv.at, model: rv.model, score: rv.score, done: rv.done, failed: rv.failed, failures: rv.items.filter(i => !i.pass), other_problems: rv.other_problems, missing_facts: rv.missing_facts, rounds: qRounds };
         if (claimsReview && qRounds.some(r => r.retries.some(x => x.kept))) {
           const { runClaimsReview, factsFromRecord } = require('./wp/claims-review');

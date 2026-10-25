@@ -104,7 +104,7 @@ const flag = name => process.argv.includes(name);
   const inputs = { ctx, niche, rows, dossiers, allocationRecord, calibrationPack, tradeFacts, reviews: Array.isArray(cv.hand_reviews) ? cv.hand_reviews : [], saveAllocation: async r => { Object.assign(allocationRecord, r); } };
   const runner = createServiceRunner({
     pool, v20Store, loadInputs: async () => inputs,
-    generate: async args => SG.generateServicePage({ ...args, callModel, claimsReview: !flag('--no-claims'), qualityReview: flag('--quality') }),
+    generate: async args => SG.generateServicePage({ ...args, callModel, claimsReview: !flag('--no-claims'), qualityReview: flag('--quality'), qualityRounds: arg('--quality-rounds') ? parseInt(arg('--quality-rounds'), 10) : 3 }),
     allocate: args => A.runAllocation({ ...args, callModel: async (system, message) => {
       const r = await client.messages.create({ model: A.ALLOCATION_MODEL, max_tokens: 2048, system, messages: [{ role: 'user', content: message }] });
       return r.content.map(c => c.text || '').join('');

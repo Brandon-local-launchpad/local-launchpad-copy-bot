@@ -90,7 +90,7 @@ const flag = name => process.argv.includes(name);
       const D = args.decisionsResult.decisions;
       let tf = args.tradeFacts;
       if (tf && D && tf.verified) { const pack = P.packForCategory(tf.niche, D.category, D.cards.map(c => c.name)); tf = { ...tf, markdown: pack.markdown, missing: pack.missing }; }
-      return CG.generateCategoryPage({ ...args, tradeFacts: tf, callModel, claimsReview: !flag('--no-claims'), qualityReview: flag('--quality') });
+      return CG.generateCategoryPage({ ...args, tradeFacts: tf, callModel, claimsReview: !flag('--no-claims'), qualityReview: flag('--quality'), qualityRounds: arg('--quality-rounds') ? parseInt(arg('--quality-rounds'), 10) : 3 });
     },
     allocate: args => A.runAllocation({ ...args, callModel: async (system, message) => {
       const r = await client.messages.create({ model: A.ALLOCATION_MODEL, max_tokens: 2048, system, messages: [{ role: 'user', content: message }] });
