@@ -49,7 +49,7 @@ Where a test needs a client fact that isn't on file, the page passes by leaving 
 | S6 | "We also offer" names only services no card names, or is hidden. | code: MORE-REPEAT | 15 Oct review |
 | S7 | Services in homeowner words, never the raw GBP name ("Composite decks", "Lawn mowing and maintenance"). | code: RAW-GBP | 14 Oct |
 | S8 | Each linked card links its own page inside a sentence, and the link text holds the category's words. | code: CARD-LINK, LINK-TEXT | 14 Oct |
-| S9 | No neighbourhoods or local conditions in cards. | code: CARD-LOCAL | 14 Oct |
+| S9 | No neighbourhoods or local conditions in cards (a BLOCK since 25 Oct). | code: CARD-LOCAL | 14 Oct; Gardener read, 25 Oct |
 | S10 | Each card says what the customer gets, in a sentence that reads naturally (no retry artefacts like "We also handle our tree service work for…"). | judge | round 3 regen |
 
 ## C. Claims and promises
@@ -65,6 +65,7 @@ Where a test needs a client fact that isn't on file, the page passes by leaving 
 | C7 | Step 2 names no quote method (photos, a call, a visit) when none is confirmed. | code: QUOTE-METHOD | 15 Oct review |
 | C8 | Claim words ("trusted", "expert", "reliable") only with proof. | code: N5 | standing rule |
 | C9 | The claims review leaves no statement about the business that the facts don't support. | judge: claims review | every run |
+| C11 | A confirmed practice is stated twice on the page at most, in different words (the one-home rule extended to practices). | code: PRACTICE-REPEAT | Gardener read, 25 Oct |
 
 ## P. Proofs and repetition
 
@@ -87,6 +88,7 @@ Where a test needs a client fact that isn't on file, the page passes by leaving 
 | F3 | Answers are 30 to 70 words. | code: N7 range | standing rule |
 | F4 | No answer (and no other field) points at another part of the page ("the full list is in the areas section") or sends the reader to another page in words ("visit our paving contractor page"). | code: SELF-REF | round 3, item 3; loop 1 |
 | F5 | Each answer answers the question as asked and the doubt behind it. | judge | 15 Oct review |
+| F6 | Every sentence after the answer brings a new noun or a number; a sentence that only restates is padding. | code: FAQ-PAD | Gardener read, 25 Oct |
 
 ## A. Areas
 
@@ -125,7 +127,7 @@ The same rubric scores a category page (base scope) and a location category page
 |---|---|---|---|
 | E1 | Hero sentence 1 has the company token and the keyword phrase ("a gardener in Winchester"); a base page ends with the wider area. | code: HERO-CAT | first run |
 | K1 | The keyword phrase appears only in hero sentence 1 and content block sentence 1 (code puts it in the H1 and H2s). | code: KEYWORD | CORE (16) rule |
-| B7 | Content block paragraph 2 links the service pages given in DECISIONS, each with a reason, two links a sentence at most. | code: CB-LINKS; judge B1j | CORE (16) rule |
+| B7 | Content block paragraph 2 links 3 of the service pages given in DECISIONS at most, each with its own reason, two links a sentence at most; the cards link the rest. | code: CB-LINKS; judge B1j | CORE (16) rule; Gardener read, 25 Oct |
 | S11 | Each card links its given target (the base service page, or the town service page on a town page) and nothing else. | code: CARD-TARGET, CARD-LINK | CORE (16) rule |
 | Y8 | The services intro is two sentences. | code: INTRO-SENTENCES | first run (four sentences on the town page) |
 | I1 | Nothing from IDEAS USED ELSEWHERE is made again, in any wording (70% of a sentence's content words). | code: IDEAS; judge P6 | first run |
@@ -133,6 +135,7 @@ The same rubric scores a category page (base scope) and a location category page
 | T4 | On a town page every link reads as the plain service or page name: no town in the link text, never a destination H1. | code: LINK-TOWN; judge T6j | CORE (16) rule |
 | T5 | A town page's cards name no town: the page is about the town already. | code: CARD-TOWN | first run (three cards named Winchester) |
 | A3 | A town page's areas intro names none of the villages; code places the list under it. | code: AREAS-TOWN | CORE (16) rule |
+| A4 | The areas intro never claims every town has a page: the towns without a location category page follow the linked list as one "We also cover" line, placed by code. | code: AREAS-PAGES | Gardener read, 25 Oct |
 
 ## How the review step uses this
 

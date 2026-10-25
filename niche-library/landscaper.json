@@ -446,7 +446,7 @@
         "faq_slot": {
           "slot": "seasonal",
           "question": "When should I book for spring?",
-          "answer_brief": "Spring is the busiest time for a maintenance round, so the earlier the better. No dates, no promise of a slot.",
+          "answer_brief": "The first cut of the year is the one to book ahead for. No dates, no promise of a slot, nothing about agreeing the round before a rush.",
           "doubt": "Timing"
         }
       }

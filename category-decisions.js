@@ -117,8 +117,17 @@ function computeCategoryDecisions({ cv, niche, keyValueMap = {}, rows = [], page
   if (cv.differentiator_1_confirmed && cv.differentiator_1_sentence) metaProofs.push(cv.differentiator_1_sentence);
   if (yearsTrading !== null && yearsTrading >= 5 && built.modifier !== `Established ${yearFounded}`) metaProofs.push(`established in ${yearFounded}`);
   let meta = null;
+  // "[company] is a [category_lower] in [town] with [proof]" (Brandon, 25 Oct); the years fallback keeps its comma
+  // A proof that itself says "with" ("fixed prices with no hidden costs") is joined with "offering",
+  // a description of the business ("family run and independent") goes before the trade, the years keep their comma
   for (const p of metaProofs) {
-    const cand = `${cv.company_name} ${verb} ${kwNatural}, ${p[0].toLowerCase() + p.slice(1)}. ${metaCta}`.trim();
+    const proof = p[0].toLowerCase() + p.slice(1);
+    let cand;
+    if (/^established/i.test(proof)) cand = `${cv.company_name} ${verb} ${kwNatural}, ${proof}. ${metaCta}`;
+    else if (/^(family|independent|local|owner|small|award)/i.test(proof) && verb === 'is a') cand = `${cv.company_name} is a ${proof} ${kwNatural}. ${metaCta}`;
+    else if (/\bwith\b/i.test(proof)) cand = `${cv.company_name} ${verb} ${kwNatural} offering ${proof}. ${metaCta}`;
+    else cand = `${cv.company_name} ${verb} ${kwNatural} with ${proof}. ${metaCta}`;
+    cand = cand.trim();
     if (cand.length <= 155) { meta = cand; break; }
   }
   if (!meta) {
@@ -154,10 +163,16 @@ function computeCategoryDecisions({ cv, niche, keyValueMap = {}, rows = [], page
     return { name: s.title, url: slugOf(target), h1: target.h1 || '', target: ts ? 'town' : 'base', base_url: slugOf(s), linked: true, status: isLinkable({ status: target.status, urlSlug: slugOf(target), pageType: 'service' }) ? 'Launching' : 'Launching' };
   });
   if (!cards.length) flags.push({ code: 'F-CARDS', msg: `${category} has no service page to show as a card.` });
+  // A mentioned name that only restates the category or a card ("Gardening services", "Garden
+  // work" on the Gardener page) is a GBP variant, not another service: left out (Brandon, 25 Oct)
+  const GENERIC_WORDS = new Set(['service', 'services', 'work', 'works', 'job', 'jobs', 'general', 'and', 'or', 'the', 'installation', 'install', 'fitting', 'company', 'contractor', 'contractors', 'local', 'professional']);
+  const stems = s => new Set(lc(s).split(/[^a-z0-9]+/).filter(w => w && !GENERIC_WORDS.has(w)).map(w => w.replace(/(ings?|ers?|ies|s)$/, '')));
+  const known = [category, cat, ...cards.map(c => c.name)].map(stems);
+  const isVariant = name => { const st = stems(name); return !st.size || known.some(k => [...st].every(w => k.has(w))); };
   const alsoOffered = [
     ...(((catRow.info || {}).links || {}).mentioned || []),
     ...services.filter(s => !live(s)).map(s => s.title),
-  ].filter((n, i, a) => n && a.findIndex(x => lc(x) === lc(n)) === i);
+  ].filter((n, i, a) => n && a.findIndex(x => lc(x) === lc(n)) === i).filter(n => !isVariant(n));
   // Each card its own opening shape, as on the homepage
   const SHAPES = [
     'Open with the problem the customer has; name what the service does about it.',
@@ -342,7 +357,7 @@ function formatCategoryBlock(D, cv, niche, ctx) {
   if (!D.cards.length) push('  (none)');
   push(`  Also offered (no page; one sentence, no links): ${D.alsoOffered.length ? D.alsoOffered.join(', ') : 'none (write HIDDEN)'}`);
   push('');
-  push('--- SECTION 3 LINK SET (content block, paragraph 2) ---');
+  push('--- SECTION 3 LINK SET (content block, paragraph 2: link 3 of these at most, each in its own clause with its own reason; the cards link the rest) ---');
   for (const l of D.contentLinks) push(`  ${l.name} → ${l.url}`);
   push('');
   push(`--- ${D.scope === 'base' ? 'LOCATION CATEGORY PAGES FOR PARAGRAPH 4 (link 2 or 3, as the town name or "[category_lower] in [town]")' : 'SIBLING PAGES IN THIS TOWN (paragraph 4 may link one)'} ---`);
@@ -365,7 +380,7 @@ function formatCategoryBlock(D, cv, niche, ctx) {
   push('--- AREA LIST ---');
   if (D.scope === 'base') {
     for (const a of D.areas.linked) push(`  ${a.name} (linked: ${a.url})`);
-    for (const a of D.areas.plain) push(`  ${a} (plain text)`);
+    if (D.areas.plain.length) push(`  Code adds "We also cover ${D.areas.plain.join(', ')}" after the linked list: never say every town has a page, and name none of these in the intro.`);
   } else {
     push(`  Around ${D.town}, unlinked (code places the list; the areas intro names none of them): ${D.areas.plain.length ? D.areas.plain.join(', ') : 'none on file'}`);
   }

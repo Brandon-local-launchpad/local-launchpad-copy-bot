@@ -306,7 +306,7 @@ Draft, 23 Oct 2026, for Brandon's read against the SOP and the calibration pack.
 | timing | always | Do you garden all year round? | What the round does in each season in plain words (cutting through the growing season, clearing and pruning in the cold months). No dates. | Timing |
 | symptom | a symptom tagged with the category | [SYMPTOM]: why does it happen, and what can be done? | The symptom and its linked local issue, answered as asked: the usual cause here in plain words, then what a regular round does about it. One figure at most. | Process |
 
-**Seasonal swap** (card 4 of block 4 and the timing FAQ): **Leaves and debris burying the lawn**: Leaves left on the grass through autumn, a lawn yellow underneath by December. Cause: no clearance after leaf fall. What the autumn visits do only from confirmed practices (autumn_leaf_clearance); otherwise what clearing the leaves does for the grass. FAQ: When should I book for spring? (Timing): Spring is the busiest time for a maintenance round, so the earlier the better. No dates, no promise of a slot.
+**Seasonal swap** (card 4 of block 4 and the timing FAQ): **Leaves and debris burying the lawn**: Leaves left on the grass through autumn, a lawn yellow underneath by December. Cause: no clearance after leaf fall. What the autumn visits do only from confirmed practices (autumn_leaf_clearance); otherwise what clearing the leaves does for the grass. FAQ: When should I book for spring? (Timing): The first cut of the year is the one to book ahead for. No dates, no promise of a slot, nothing about agreeing the round before a rush.
 
 ## do_not_reuse
 

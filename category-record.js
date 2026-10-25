@@ -80,10 +80,13 @@ function buildCategoryRecord({ cv, decisionsResult, parsed, meta, extraFlags = [
     steps: D.niche_steps.map((s, i) => ({ step_title: s.title, step_body: item(LABELS.steps, i, 'step_body') })),
     cat_areas_h2:           D.h2.areas,
     [LABELS.areasIntro]:    F[LABELS.areasIntro],
-    cat_areas_links: [
-      ...D.areas.linked.map(a => ({ name: a.name, url: a.url })),
-      ...D.areas.plain.map(n => ({ name: n, url: null })),
-    ],
+    // Base page: the towns with a page for this category are the list; the rest are one
+    // "We also cover" line after it (the structure doc; Brandon, 25 Oct). Town page: the
+    // villages, unlinked, as the list.
+    cat_areas_links: D.scope === 'base'
+      ? D.areas.linked.map(a => ({ name: a.name, url: a.url }))
+      : D.areas.plain.map(n => ({ name: n, url: null })),
+    cat_areas_also_cover: D.scope === 'base' && D.areas.plain.length ? D.areas.plain.slice() : [],
     cat_faq_h2:             D.h2.faq,
     faq_items: D.faq.map((q, i) => ({ faq_question: q.question, faq_answer: item(LABELS.faq, i, 'faq_answer'), doubt: q.doubt })),
     cat_final_cta_h2:       D.h2.final_cta,

@@ -65,6 +65,8 @@ function buildCategoryReaderView(record, values = {}) {
   push(`## ${r(record.cat_areas_h2)}`, '', r(record[LABELS.areasIntro]), '');
   for (const a of record.cat_areas_links || []) push(`- ${a.url ? `[${a.name}](${a.url})` : a.name}`);
   push('');
+  const also = record.cat_areas_also_cover || [];
+  if (also.length) push(`We also cover ${also.length > 1 ? `${also.slice(0, -1).join(', ')} and ${also[also.length - 1]}` : also[0]}.`, '');
 
   // FAQ
   push(`## ${r(record.cat_faq_h2)}`, '');

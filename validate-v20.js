@@ -34,7 +34,7 @@ const { confirmedServiceList } = require('./service-words');
 
 const RETRY_FLAGS = new Set(['N7', 'N13', 'N14', 'N15', 'N17', 'N18', 'N19', 'N21', 'N22', 'N23', 'N24',
   '1b', 'HERO', 'SERVICE', 'TRUST-REPEAT', 'PROOF-REPEAT', 'RAW-GBP', 'CARD-COUNT', 'COAST', 'HUB-LINK', 'RESEARCH-LANG', 'REPEAT-IN',
-  'FINAL-CTA', 'CARD-FILLER', 'MORE-REPEAT', 'CB-SERVICES',
+  'FINAL-CTA', 'CARD-FILLER', 'MORE-REPEAT', 'CB-SERVICES', 'PRACTICE-REPEAT', 'FAQ-PAD',
   'CARD-LOCAL', 'LINK-TEXT', 'CARD-PICK', 'REPEAT-PAGE', 'CARD-PATTERN', 'OUTCOME', 'AREA-ADMIN', 'PRICE-FIRST']);
 //   INSURANCE     BLOCK  insurance mentioned with no insurance_cover on file
 //   RIVALS        BLOCK  (15 Oct) the copy tells the reader to get other quotes, compare firms or shop around
@@ -47,7 +47,9 @@ const RETRY_FLAGS = new Set(['N7', 'N13', 'N14', 'N15', 'N17', 'N18', 'N19', 'N2
 //   MORE-REPEAT   FLAG   "We also offer" names a service a card already names
 //   CB-SERVICES   FLAG   the content block's services paragraph lists services instead of linking categories with a reason
 //   9             council areas are left out of the area list check
-//   CARD-LOCAL    FLAG   a neighbourhood or allocated place in a card
+//   CARD-LOCAL    BLOCK  a neighbourhood or allocated place in a card (a FLAG until 25 Oct)
+//   PRACTICE-REPEAT FLAG a confirmed practice stated more than twice on the page (25 Oct)
+//   FAQ-PAD       FLAG   a sentence after the answer that brings no new noun or number (25 Oct)
 //   LINK-TEXT     FLAG   a category link whose text drops the category's words
 //   (16 Oct, Brandon's round 2 review of Edens Edge)
 //   CARD-COUNT    BLOCK  more than 3 services in a card (was a FLAG)
@@ -144,6 +146,9 @@ const wordCount = t => words(t).length;
 const sentences = t => scanText(t).split(/\n\n+|(?<=[.!?])\s+(?=["“A-Z0-9£])/).map(s => s.trim()).filter(Boolean);
 const lc = s => (s || '').toLowerCase();
 const stem = w => lc(w).replace(/[^a-z0-9]/g, '').replace(/(ations?|ions?|ings?|ed|es|s|e)$/, '');
+// The content words of a sentence (4+ letters, stop words out, stemmed): what it is about
+const PAD_GENERIC = new Set('with without about would could should there their these those which while where when what have having been being also just only very more most much many some such into onto over under than then them they your yours ours ever every each from this that here come comes came make makes made take takes took give gives want wants need needs keep keeps look looks like well good right thing things time times work works works'.split(' '));
+const contentWords = t => new Set(lc(scanText(t)).replace(/cvtoken/g, ' ').replace(/[^a-z0-9' ]+/g, ' ').split(/\s+/).map(w => w.replace(/'s$/, '')).filter(w => w.length >= 4 && !STOPWORDS.has(w) && !PAD_GENERIC.has(w)).map(stem));
 
 // Model fields of a record, in page order, with a ref to write a rewrite back.
 // Each page type lists its own (page-types/).
@@ -357,8 +362,18 @@ function validateCommon(record, V) {
     }
     // N24 FAQ first sentence
     if (f.ref.sub === 'faq_answer') {
-      const n = wordCount(sentences(t)[0] || '');
+      const sens = sentences(t);
+      const n = wordCount(sens[0] || '');
       if (n > 15) flag('FLAG', 'N24', `The first sentence is ${n} words. Answer the question first, in 15 words or fewer.`);
+      // FAQ-PAD: every sentence after the answer earns its place with a new noun or a number
+      const question = (f.label.match(/^faq_answer \((.*)\)$/) || [])[1] || '';
+      const seenWords = new Set(contentWords(`${question} ${sens[0] || ''}`));
+      for (const sen of sens.slice(1)) {
+        const mine = contentWords(sen);
+        const fresh = [...mine].filter(w => !seenWords.has(w));
+        if (!fresh.length && !/\d/.test(sen) && !/\[CV: /.test(sen)) { flag('FLAG', 'FAQ-PAD', `"${sen.slice(0, 70)}…" adds nothing the answer hasn't said (no new noun or number). Cut it, or give it a fact.`); break; }
+        for (const w of mine) seenWords.add(w);
+      }
     }
 
     // WORKED: claims of work in allocated places
@@ -404,7 +419,8 @@ function validateCommon(record, V) {
     // CARD-LOCAL: no neighbourhoods or local conditions in cards (CORE (20) cards rule)
     if (f.ref.sub === 'card_text') {
       const local = [...V.places, ...V.neighbourhoodNames].find(p => new RegExp(`\\b${esc(p)}`, 'i').test(s));
-      if (local) flag('FLAG', 'CARD-LOCAL', `Mentions ${local}. Cards carry no neighbourhoods or local conditions; local detail lives on the category pages.`);
+      // A BLOCK since 25 Oct (Brandon's read of the Gardener page)
+      if (local) flag('BLOCK', 'CARD-LOCAL', `Mentions ${local}. Cards carry no neighbourhoods or local conditions; local detail lives in the content block.`);
     }
     // LINK-TEXT: a category link's text holds the category's words, in order
     for (const m of t.matchAll(/\[([^\]]+)\]\(([^)]+)\)/g)) {
@@ -660,6 +676,23 @@ function sharedCrossChecks(record, V, { issues, issue, fields, cb, K }) {
     const others = fields.filter(f => !(f.ref.key === 'steps' && f.ref.index === 1) && f.ref.key !== 'points' && PRICE_FIRST_RE.test(scanText(f.text)));
     others.slice(1).forEach(f => issue('FLAG', 'PRICE-FIRST', f.label, `"A price agreed before work starts" is already said in ${others[0].label} (and it is step 2's point). Make a different point here.`, f.ref));
   }
+  // PRACTICE-REPEAT (25 Oct): a confirmed practice is stated twice on the page at most, in
+  // different words (REPEAT-PAGE and N21 hold the wording to account)
+  {
+    const confirmedKeys = new Set(cv.confirmed_practices || []);
+    const seen = new Map();
+    for (const f of fields) {
+      for (const sen of sentences(f.text)) {
+        for (const c of practiceClaims(sen, niche)) {
+          if (!confirmedKeys.has(c.practice.key)) continue;
+          const list = seen.get(c.practice.key) || [];
+          list.push(f.label);
+          seen.set(c.practice.key, list);
+          if (list.length === 3) issue('FLAG', 'PRACTICE-REPEAT', f.label, `"${c.practice.label}" is already stated in ${list[0]} and ${list[1]}. A practice is stated twice on the page at most: leave it out here.`, f.ref);
+        }
+      }
+    }
+  }
   const proofs = [];
   if (cv.jobs_completed) proofs.push({ name: `${cv.jobs_completed} jobs`, re: new RegExp(`\\b${esc(String(cv.jobs_completed))}\\b\\+?`, 'g') });
   if (cv.insurance_cover) proofs.push({ name: 'the insurance figure', re: new RegExp(`£?\\s?${esc(String(cv.insurance_cover))}\\b`, 'gi') });
@@ -804,5 +837,5 @@ function summarise(issues) {
 module.exports = {
   validateV20, validateCommon, sharedCrossChecks, buildValidationContext, modelFields, getField, setField, summarise, wordCount, RANGES, RETRY_FLAGS, BANNED, STOCK, HOMEPAGE_KEYS,
   // Text helpers for a page type's own checks
-  helpers: { esc, stripLinks, linkUrls, normUrl, scanText, words, sentences, lc, stem, STOPWORDS },
+  helpers: { esc, stripLinks, linkUrls, normUrl, scanText, words, sentences, lc, stem, STOPWORDS, contentWords },
 };

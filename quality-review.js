@@ -53,6 +53,7 @@ const CODE_ITEMS = {
   C6: { title: 'Never sends the reader to rivals', checks: ['RIVALS'] },
   C7: { title: 'Step 2 names no quote method', checks: ['QUOTE-METHOD'] },
   C9: { title: 'Claims review clear', decisions: 'claims' },
+  C11: { title: 'A confirmed practice stated twice at most, in different words', checks: ['PRACTICE-REPEAT'] },
   P1: { title: 'Fixed price 3 times at most, never in a step', checks: ['PROOF-FIXED'] },
   P2: { title: 'Other proofs 3 times at most', checks: ['PROOF-REPEAT', 'N4', 'N20'] },
   P3: { title: 'No phrase in more than two fields', checks: ['REPEAT-PAGE'] },
@@ -63,6 +64,7 @@ const CODE_ITEMS = {
   F2: { title: 'No "Yes" to a which/what/how question', checks: ['FAQ-YES'] },
   F3: { title: 'FAQ answers 30 to 70 words', range: 'faq_answer' },
   F4: { title: 'Nothing points at another part of the page', checks: ['SELF-REF'] },
+  F6: { title: 'No FAQ padding: every sentence after the answer brings a new noun or number', checks: ['FAQ-PAD'] },
   A1: { title: 'Coastal wording, no compass directions', checks: ['COAST', 'COAST-DIR', 'HUB-LINK'] },
   A2: { title: 'No council areas', checks: ['AREA-ADMIN', '9'], decisions: 'areaList' },
   T1: { title: 'Final CTA body one plain sentence', checks: ['FINAL-CTA'] },
@@ -84,6 +86,7 @@ const CATEGORY_ITEMS = {
   T4: { title: 'Town page links are plain names: no town in link text', checks: ['LINK-TOWN'] },
   T5: { title: 'Town page cards name no town', checks: ['CARD-TOWN'] },
   A3: { title: 'Town page areas intro names no village (code places the list)', checks: ['AREAS-TOWN'] },
+  A4: { title: 'Areas intro never claims every town has a page', checks: ['AREAS-PAGES'] },
 };
 function codeItemsFor(record) {
   return pageTypeId(record) === 'category' ? { ...CODE_ITEMS, ...CATEGORY_ITEMS } : CODE_ITEMS;

@@ -15,6 +15,8 @@
 //   CB-LINKS    FLAG   the content block carries no link to a section 3 page
 //   AREAS-TOWN  BLOCK  a town page's areas intro names one of its villages (code places the list)
 //   CARD-TOWN   BLOCK  a town page card names the town (Brandon, 25 Oct: fail, not flag)
+//   AREAS-PAGES BLOCK  the areas intro claims every town has a page (the "We also cover" towns have none)
+//   CB-LINKS    BLOCK  paragraph 2 carries more than 3 section 3 links, or a sentence more than 2
 //   INTRO-SENTENCES FLAG the services intro runs past 2 sentences (Brandon, 25 Oct)
 //   H1 and area list checks on the code fields (report only)
 
@@ -112,10 +114,24 @@ function validateCategory(record, V) {
     if (other) issue('BLOCK', 'CARD-TARGET', f.label, `Links ${other}; this card links only its own page ${c.card_url}.`, f.ref);
   });
 
-  // ── Content block links a section 3 page ──
+  // ── Content block links a section 3 page: 3 at most, 2 a sentence at most ──
   if (cb && cb.text.trim()) {
     const targets = new Set((D.contentLinks || []).map(l => normUrl(l.url)));
-    if (targets.size && !linkUrls(cb.text).map(normUrl).some(u => targets.has(u))) issue('FLAG', 'CB-LINKS', cb.label, 'Paragraph 2 links none of the section 3 pages. Link the service pages given in DECISIONS, each with a reason.', cb.ref);
+    const s3 = linkUrls(cb.text).map(normUrl).filter(u => targets.has(u));
+    if (targets.size && !s3.length) issue('FLAG', 'CB-LINKS', cb.label, 'Paragraph 2 links none of the section 3 pages. Link up to 3 of the service pages given in DECISIONS, each with a reason.', cb.ref);
+    if (s3.length > 3) issue('BLOCK', 'CB-LINKS', cb.label, `The content block links ${s3.length} service pages. Link 3 at most, each with its own reason: the cards already link every service.`, cb.ref);
+    for (const sen of sentences(cb.text)) {
+      // sentences() strips the links, so count them on the raw text of the sentence
+      const rawSen = cb.text.split(/\n\n+|(?<=[.!?])\s+(?=["“A-Z0-9£\[])/).find(x => scanText(x).trim() === sen);
+      const n = rawSen ? linkUrls(rawSen).length : 0;
+      if (n > 2) issue('BLOCK', 'CB-LINKS', cb.label, `A sentence carries ${n} links. Two in one sentence at most, each with a reason.`, cb.ref);
+    }
+  }
+  // ── The areas intro never claims every town has a page ──
+  const ai = fields.find(f => f.ref.key === LABELS.areasIntro);
+  if (ai && ai.text.trim() && (record.cat_areas_also_cover || []).length) {
+    const m = scanText(ai.text).match(/\b(?:each|every|all)\b[^.]{0,40}\b(?:town|place|area|village)s?\b[^.]{0,50}\b(?:pages?)\b|\bpages? of (?:its|their) own\b|\b(?:towns?|places?|areas?)\b[^.]{0,20}\b(?:each|all) (?:have|has|with) (?:a|its own|their own) page/i);
+    if (m) issue('BLOCK', 'AREAS-PAGES', ai.label, `"${m[0]}" says every town has a page. ${record.cat_areas_also_cover.length} of the towns have none (they follow the list as "We also cover"). Say the work goes everywhere the business covers, without promising a page.`, ai.ref);
   }
 
   // ── Nothing from IDEAS USED ELSEWHERE ──
@@ -138,11 +154,11 @@ function validateCategory(record, V) {
   if (town && !lc(h1).includes(lc(town))) issue('FLAG', '4c', 'cat_hero_h1', `H1 doesn't contain the town "${town}".`);
   if (cv.company_name && lc(h1).includes(lc(cv.company_name))) issue('BLOCK', '4d', 'cat_hero_h1', 'H1 contains the company name.');
   if (scope === 'base') {
-    const names = new Set((record.cat_areas_links || []).map(a => lc(a.name)));
+    const names = new Set([...(record.cat_areas_links || []).map(a => lc(a.name)), ...(record.cat_areas_also_cover || []).map(lc)]);
     for (const t of V.towns || []) {
       if (isAdminArea(t) || lc(t) === lc(V.city)) continue;
       const short = lc(t.replace(/\s+\b(District|Borough|Council|County|Authority)\b.*$/i, '').trim());
-      if (!names.has(lc(t)) && !names.has(short)) issue('BLOCK', '9', 'cat_areas_links', `The area list is missing "${t}".`);
+      if (!names.has(lc(t)) && !names.has(short)) issue('BLOCK', '9', 'cat_areas_links', `The area list (with the "We also cover" line) is missing "${t}".`);
     }
   }
   return issues;
