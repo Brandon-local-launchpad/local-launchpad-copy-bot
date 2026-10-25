@@ -747,7 +747,7 @@
           "slot": "rules",
           "when": "rule_rows",
           "question": "Are there rules or standards for [SERVICE_LOWER]?",
-          "answer_brief": "From the trade facts rule rows only, as what usually applies, in plain words with \"usually\" or \"in most cases\": what the rule or standard asks of the work and what, if anything, the customer has to do. Never a standard's number, an Act's name or legal advice. This slot is used only when the service has rule rows.",
+          "answer_brief": "From the trade facts rule rows only, written as what usually applies to the work, never as something the customer must comply with: a grounds maintenance standard reads as how the job is done, not as homework for the reader. Plain words with \"usually\" or \"in most cases\"; what the customer does only where the row says so. Never a standard's number, an Act's name or legal advice. This slot is used only when the service has rule rows.",
           "doubt": "Process"
         }
       ],
