@@ -280,7 +280,7 @@ Draft, 23 Oct 2026, for Brandon's read against the SOP and the calibration pack.
 
 | Card | Brief |
 |---|---|
-| How often we visit | A regular round keeps on top of growth and costs less per visit than a catch up every few months. Visit frequency only from the confirmed practices; no promise of a schedule otherwise. |
+| How often we visit | A regular round keeps on top of growth, so each visit is lighter work. Say that a lighter visit is a smaller job; give no pricing basis (nothing priced on time, no hourly or per visit rule) and never compare the price of a round with a one off job. Visit frequency only from the confirmed practices; no promise of a schedule otherwise. |
 | The size of the garden | More lawn to cut and edge, more borders to weed, more hedge to trim. Say it plainly and give no figure. |
 | What each visit covers | A cut on its own against a visit that covers the lawn, the edges, the beds and the hedges. Say what is usually in a visit, from the card list. |
 | Green waste | Whether the waste goes with us or stays, from confirmed practices only (green_waste_choice); otherwise say that what happens to the waste moves the price, without saying which the business does. Waste carrier registration only if [CV: waste_carrier_registered] is yes. |
