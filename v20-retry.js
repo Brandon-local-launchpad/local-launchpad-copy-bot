@@ -240,9 +240,13 @@ async function runQualityRetries({ record, V, callRetry, review, maxRounds = 3, 
       const cand = clone(base);
       setField(cand, r.g.f.ref, r.after);
       const gone = r.g.problems.every(p => !normq(fillTokens(r.after, record)).includes(normq(p.quote)));
-      const was = score(fieldIssues(base, r.g.f.label)), now = score(fieldIssues(cand, r.g.f.label));
-      if (gone && now <= was) { setField(record, r.g.f.ref, r.after); entry.kept = true; }
-      else entry.error = !gone ? 'the flagged words are still there' : 'the rewrite added validator issues';
+      const after = fieldIssues(cand, r.g.f.label);
+      const was = score(fieldIssues(base, r.g.f.label)), now = score(after);
+      // A rewrite must pass the validator: one with a BLOCK is discarded and the earlier text kept,
+      // whatever the reviewer said (25 Oct: a quality rewrite brought the areas intro's page claim back)
+      const blocked = after.filter(i => i.type === 'BLOCK');
+      if (gone && !blocked.length && now <= was) { setField(record, r.g.f.ref, r.after); entry.kept = true; }
+      else entry.error = !gone ? 'the flagged words are still there' : blocked.length ? `the rewrite has a BLOCK (${blocked.map(i => i.check).join(', ')})` : 'the rewrite added validator issues';
       log.push(entry);
     }
     rounds.push({ round, score: rv.score, failed: rv.failed, retries: log });

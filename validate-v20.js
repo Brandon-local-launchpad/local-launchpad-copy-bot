@@ -34,7 +34,7 @@ const { confirmedServiceList } = require('./service-words');
 
 const RETRY_FLAGS = new Set(['N7', 'N13', 'N14', 'N15', 'N17', 'N18', 'N19', 'N21', 'N22', 'N23', 'N24',
   '1b', 'HERO', 'SERVICE', 'TRUST-REPEAT', 'PROOF-REPEAT', 'RAW-GBP', 'CARD-COUNT', 'COAST', 'HUB-LINK', 'RESEARCH-LANG', 'REPEAT-IN',
-  'FINAL-CTA', 'CARD-FILLER', 'MORE-REPEAT', 'CB-SERVICES', 'PRACTICE-REPEAT', 'FAQ-PAD',
+  'FINAL-CTA', 'CARD-FILLER', 'MORE-REPEAT', 'CB-SERVICES', 'PRACTICE-REPEAT', 'FAQ-PAD', 'INTRO-PAD',
   'CARD-LOCAL', 'LINK-TEXT', 'CARD-PICK', 'REPEAT-PAGE', 'CARD-PATTERN', 'OUTCOME', 'AREA-ADMIN', 'PRICE-FIRST']);
 //   INSURANCE     BLOCK  insurance mentioned with no insurance_cover on file
 //   RIVALS        BLOCK  (15 Oct) the copy tells the reader to get other quotes, compare firms or shop around
@@ -49,6 +49,8 @@ const RETRY_FLAGS = new Set(['N7', 'N13', 'N14', 'N15', 'N17', 'N18', 'N19', 'N2
 //   9             council areas are left out of the area list check
 //   CARD-LOCAL    BLOCK  a neighbourhood or allocated place in a card (a FLAG until 25 Oct)
 //   PRACTICE-REPEAT FLAG a confirmed practice stated more than twice on the page (25 Oct)
+//   INTRO-PAD     FLAG   a section intro sentence after the first that brings no new noun or number (25 Oct)
+//   PACK-COPY     BLOCK  a sentence copied from the calibration pack: five words in a row, or 70% of its content words (25 Oct)
 //   FAQ-PAD       FLAG   a sentence after the answer that brings no new noun or number (25 Oct)
 //   LINK-TEXT     FLAG   a category link whose text drops the category's words
 //   (16 Oct, Brandon's round 2 review of Edens Edge)
@@ -165,7 +167,41 @@ function setField(record, ref, text) {
 }
 
 // What the validator needs besides the record
-function buildValidationContext({ cv, niche, decisions, keyValueMap = {}, serviceParentMap = {}, populatedCvKeys }) {
+// The calibration pack's sentences, for PACK-COPY: word 5-grams (two content words at least) and
+// content word sets. {{custom_values.x}} and [CV: x] tokens are neutral words. Cached by text.
+const packCache = new Map();
+function packIndex(text) {
+  if (!text) return null;
+  if (packCache.has(text)) return packCache.get(text);
+  const grams = new Set();
+  const sets = [];
+  const plain = String(text).replace(/\{\{[^}]+\}\}|\[CV: [a-z0-9_]+\]/g, ' x ').replace(/[#*_>|`]+/g, ' ');
+  for (const sen of plain.split(/\n+|(?<=[.!?])\s+/)) {
+    const toks = lc(sen).replace(/[^a-z0-9£' ]+/g, ' ').split(/\s+/).filter(Boolean);
+    for (let i = 0; i + 5 <= toks.length; i++) {
+      const g = toks.slice(i, i + 5);
+      if (g.filter(w => !STOPWORDS.has(w) && w.length > 2).length >= 2) grams.add(g.join(' '));
+    }
+    // Seven content words at least: shorter sentences are generic ("the price depends on the size of
+    // the garden" matched a pack FAQ at 80%), and the 5-gram run catches a short copy anyway
+    const cw = contentWords(sen);
+    if (cw.size >= 7) sets.push({ words: cw, text: sen.trim().slice(0, 90) });
+  }
+  const idx = { grams, sets };
+  packCache.set(text, idx);
+  return idx;
+}
+// A sentence copied from the pack: a shared 4-gram, or 70% of its content words in one pack sentence
+function packCopy(sentence, idx) {
+  if (!idx) return null;
+  const toks = lc(scanText(sentence)).replace(/cvtoken/g, 'x').replace(/[^a-z0-9£' ]+/g, ' ').split(/\s+/).filter(Boolean);
+  for (let i = 0; i + 5 <= toks.length; i++) { const g = toks.slice(i, i + 5); if (g.filter(w => !STOPWORDS.has(w) && w.length > 2).length >= 2 && idx.grams.has(g.join(' '))) return { kind: 'run', match: g.join(' ') }; }
+  const mine = contentWords(sentence);
+  if (mine.size >= 7) for (const s of idx.sets) { let shared = 0; for (const w of mine) if (s.words.has(w)) shared++; if (shared / Math.min(mine.size, s.words.size) >= 0.7) return { kind: 'sentence', match: s.text }; }
+  return null;
+}
+
+function buildValidationContext({ cv, niche, decisions, keyValueMap = {}, serviceParentMap = {}, populatedCvKeys, calibrationPack = '' }) {
   const D = decisions;
   const cvNumbers = new Set();
   const cvText = [];
@@ -206,6 +242,7 @@ function buildValidationContext({ cv, niche, decisions, keyValueMap = {}, servic
   const towns = Object.entries(keyValueMap).filter(([k]) => /^biz_area_\d+$/.test(k)).map(([, v]) => v);
   return {
     cv, niche, D, keyValueMap, serviceParentMap, populatedCvKeys: populatedCvKeys || new Set(),
+    pack: packIndex(calibrationPack),
     cvNumbers, cvText: cvText.join(' | '), researchText, researchNumbers, places: [...places],
     confirmedServices, serviceList, linkable, linkableCategories, towns,
     // Council areas, by their short name too ("New Forest" for "New Forest District")
@@ -358,6 +395,24 @@ function validateCommon(record, V) {
       if (!/\b(we|our)\b.{0,40}\b(lay|laid|fit|fitted|install|installed|use|used|supply|supplied|build|built)\b/i.test(sen)) continue;
       for (const items of Object.values(niche.materials_tick_list || {})) for (const m of items) {
         if (new RegExp(`\\b${esc(m)}\\b`, 'i').test(sen) && !ticked.includes(lc(m))) flag('FLAG', 'N22', `Names "${m}" as something the business uses, but it isn't ticked in materials_methods.`);
+      }
+    }
+    // PACK-COPY: nothing lifted from the calibration pack (25 Oct: the May to July hedge line)
+    if (V.pack) {
+      for (const sen of sentences(t)) {
+        const hit = packCopy(sen, V.pack);
+        if (hit) { flag('BLOCK', 'PACK-COPY', `"${sen.slice(0, 70)}…" ${hit.kind === 'run' ? `shares "${hit.match}" with` : 'is a sentence from'} the calibration pack. The pack is for terminology and standard, never copied: write the point for this client.`); break; }
+      }
+    }
+    // INTRO-PAD: a section intro earns every sentence after the first with a new noun or a number
+    if (/_intro$/.test(f.rangeKey || '')) {
+      const sens = sentences(t);
+      const seenWords = new Set(contentWords(sens[0] || ''));
+      for (const sen of sens.slice(1)) {
+        const mine = contentWords(sen);
+        const fresh = [...mine].filter(w => !seenWords.has(w));
+        if (!fresh.length && !/\d/.test(sen) && !/\[CV: /.test(sen)) { flag('FLAG', 'INTRO-PAD', `"${sen.slice(0, 70)}…" adds nothing the intro hasn't said (no new noun or number). Cut it, or give it a fact.`); break; }
+        for (const w of mine) seenWords.add(w);
       }
     }
     // N24 FAQ first sentence
@@ -837,5 +892,5 @@ function summarise(issues) {
 module.exports = {
   validateV20, validateCommon, sharedCrossChecks, buildValidationContext, modelFields, getField, setField, summarise, wordCount, RANGES, RETRY_FLAGS, BANNED, STOCK, HOMEPAGE_KEYS,
   // Text helpers for a page type's own checks
-  helpers: { esc, stripLinks, linkUrls, normUrl, scanText, words, sentences, lc, stem, STOPWORDS, contentWords },
+  helpers: { esc, stripLinks, linkUrls, normUrl, scanText, words, sentences, lc, stem, STOPWORDS, contentWords, packIndex, packCopy },
 };

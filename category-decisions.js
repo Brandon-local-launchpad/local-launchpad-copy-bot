@@ -390,6 +390,15 @@ function formatCategoryBlock(D, cv, niche, ctx) {
   push(`Primary city coastal: ${D.coastal ? 'yes. Write the travel distance as "inland and along the coast", never compass directions or "in each direction"' : 'no'}`);
   push(`Trade facts: ${D.trade_facts && D.trade_facts.included ? 'in the client block (TRADE FACTS)' : 'none for this page: name no material, method or rule the client values do not give'}`);
   push('');
+  push('--- PROOF HOMES (one home per proof; code blocks a fourth mention and any mention outside its home) ---');
+  const homes = [];
+  if (cv.differentiator_1_confirmed && cv.differentiator_1) homes.push(`${cv.differentiator_1} (differentiator): the meta description and hero sentence 2 already carry it; the content block may say it once more in other words; nowhere else, not the cost intro, not a card, not a step, not an FAQ answer.`);
+  if (cv.differentiator_2_confirmed && cv.differentiator_2) homes.push(`${cv.differentiator_2} (differentiator): hero sentence 2 or the content block, once; nowhere else.`);
+  homes.push('Years trading, jobs completed, team size: the content block only.');
+  homes.push(`Guarantee and insurance: their FAQ answers only${cv.insurance_cover ? ' (the insurance figure in the insurance answer, described, never promised)' : ''}.`);
+  homes.push('The quote method: the cost intro only. "Free": the FAQ cost answer and the headings code writes; never in a step.');
+  for (const h of homes) push(`  ${h}`);
+  push('');
   push('LINKABLE PAGES:');
   for (const p of D.linkablePages) push(`  [${p.type}] ${p.url} | H1: ${p.h1}`);
   if (!D.linkablePages.length) push('  none');

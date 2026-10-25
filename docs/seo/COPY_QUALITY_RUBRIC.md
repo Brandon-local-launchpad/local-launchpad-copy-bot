@@ -116,6 +116,9 @@ Where a test needs a client fact that isn't on file, the page passes by leaving 
 | C10 | Memberships and logos only when verified (the page's trusted logos); manufacturer warranties only when confirmed. | code: N5 | loop 1 |
 | Y7 | No field label ("card_text (Lawn Care Service):") and no talk about the data ("Because yes is confirmed", "on file") on the page. | code: LEAK | loop 8 |
 | Y5 | Every sentence reads naturally to a homeowner: grammatical, no padding, no contradiction, nothing a reader would stumble on. | judge | every review |
+| Y9 | No padding in the section intros (services, cost, areas): every sentence after the first brings a new noun or a number. | code: INTRO-PAD | Gardener live run, 25 Oct |
+| Y10 | No sentence copied from the calibration pack: a run of five words shared with a pack example, or 70% of a sentence's content words (seven or more), is a BLOCK ("Hedges put on most of their growth between May and July" came from the pack). | code: PACK-COPY | Gardener live run, 25 Oct |
+| L1 | Every local detail from the research earns its place by saying what it means for the work (rule 6 of USING THE LOCAL RESEARCH); a detail used as scenery ("Cherries line the avenue") fails. | judge | Gardener live run, 25 Oct |
 
 ---
 

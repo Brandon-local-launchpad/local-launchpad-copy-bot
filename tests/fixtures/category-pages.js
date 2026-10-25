@@ -250,6 +250,13 @@ chk('CB-LINKS: more than 3 section 3 links in the content block is a BLOCK; 3 pa
 chk('AREAS-PAGES: an areas intro claiming every town has a page is a BLOCK when some have none', has(blocks(issuesOf(withText(record, PT.LABELS.areasIntro, 'We are based in the city and travel [CV: travel_distance] inland and along the coast for garden rounds. Every town below has its own page, so pick the one nearest you to see how the round works there and what it covers.'))), 'AREAS-PAGES', 'areas_intro'), '', 'AREAS-PAGES');
 chk('PRACTICE-REPEAT: a confirmed practice stated three times is a FLAG on the third field', (() => { const r = JSON.parse(JSON.stringify(record)); r[PT.LABELS.costIntro] = 'The price depends on the size of the garden and how often we come, and it is agreed before any work starts. We give you a figure for the regular round before the first visit so you know where you stand.'; r.steps[1].step_body = 'The price is agreed before any work starts, so there is nothing to work out later on and you know the figure from the start.'; r.faq_items[0].faq_answer = r.faq_items[0].faq_answer + ' The price is agreed before any work starts, so nothing changes once we begin.'; const iss = issuesOf(r); return iss.some(i => i.check === 'PRACTICE-REPEAT' && i.type === 'FLAG' && /step_body|faq_answer/.test(i.field) && /already stated in cat_hero_intro and cat_content_body/.test(i.message)) && !issuesOf(record).some(i => i.check === 'PRACTICE-REPEAT'); })(), '', 'PRACTICE-REPEAT');
 chk('FAQ-PAD: a sentence after the answer with no new noun or number is a FLAG; a sentence with a new fact is not', (() => { const r = JSON.parse(JSON.stringify(record)); r.faq_items[2].faq_answer = 'A visit covers the lawn, the edges, the beds and the hedges. It covers the lawn and the beds and the hedges as well. Our [lawn mowing](/services/lawn-mowing) rounds are the usual starting point.'; const iss = issuesOf(r); return iss.some(i => i.check === 'FAQ-PAD' && /visit include/.test(i.field)) && !issuesOf(record).some(i => i.check === 'FAQ-PAD'); })(), '', 'FAQ-PAD');
+chk('PACK-COPY: a sentence lifted from the calibration pack is a BLOCK; ordinary trade wording is not', (() => {
+  const pack = fs.readFileSync(path.join(root, 'Landscaper_Calibration_Pack_v4.md'), 'utf8');
+  const Vp = categoryValidationContext(G.validationContextFor({ cv, niche, decisions: D, keyValueMap: kv, serviceParentMap: ctx.serviceParentMap, calibrationPack: pack }), D);
+  const bad = withText(record, PT.LABELS.servicesIntro, 'Hedges put on most of their growth between May and July, which is when a privet hedge starts pushing out over the path. It suits homeowners who want the garden kept in shape.');
+  return has(blocks(issuesOf(bad, Vp)), 'PACK-COPY', 'services_intro', 'calibration pack') && !issuesOf(record, Vp).some(i => i.check === 'PACK-COPY');
+})(), '', 'PACK-COPY');
+chk('INTRO-PAD: a section intro sentence that adds no noun or number is a retried FLAG', (() => { const iss = issuesOf(withText(record, PT.LABELS.costIntro, 'The price depends on the size of the garden and how often we come. The garden size and how often we come are what the price depends on.')); const i = iss.find(x => x.check === 'INTRO-PAD'); return !!i && i.type === 'FLAG' && i.retry && !issuesOf(record).some(x => x.check === 'INTRO-PAD'); })(), '', 'INTRO-PAD');
 chk('shared checks still run: a banned phrase is a BLOCK', has(blocks(issuesOf(withText(record, PT.LABELS.costIntro, 'Look no further for a tidy garden. The price depends on the size of the garden and how often we come, and we give you a figure before the first visit.'))), '2', 'cost_intro'), '', 'banned');
 // The town page's own rules
 const rawT = outputFor(T, { scope: 'town', town: 'Winchester', kw: 'gardener in Winchester' });
@@ -283,6 +290,18 @@ chk('the town name itself is allowed on a town page (no TOWN-OTHER for Wincheste
   chk('rubric (town): the judge gets the town page item and the category paragraph 2 item', !!J.T6j && /service pages given in DECISIONS/.test(J.B1j) && !Q.judgeItemsFor(record).T6j, Object.keys(J).join(','), 'T6j on the town page only');
   chk('rubric: the reviewer reads the category reader view', /Gardener Winchester/.test(Q.pageText(recordT)) && !/Review notes/.test(Q.pageText(recordT)), '', 'category reader');
 }
+
+// ── A quality round rewrite must pass the validator ──
+(async () => {
+  const { runQualityRetries } = require(path.join(root, 'v20-retry.js'));
+  const r0 = JSON.parse(JSON.stringify(record));
+  let calls = 0;
+  const review = async rec => ({ at: 'x', model: 'stub', score: 7, done: false, failed: ['Y5'], items: [{ id: 'Y5', title: 'reads', by: 'judge', pass: false, reasons: [`"${rec[PT.LABELS.costIntro].split('.')[0]}": stilted`] }], other_problems: [], missing_facts: [] });
+  const callRetry = async () => { calls++; return { text: 'cat_cost_intro: Look no further for a tidy garden at a fair price. We give you a figure for the round before the first cut so you know where you stand.', usage: {} }; };
+  const { rounds } = await runQualityRetries({ record: r0, V: Vbase, callRetry, review, maxRounds: 1 });
+  const entry = rounds[0].retries.find(x => x.field === PT.LABELS.costIntro);
+  chk('quality retry: a rewrite that brings a BLOCK (banned phrase) is discarded and the earlier text kept', calls === 1 && entry && !entry.kept && /BLOCK \(2\)/.test(entry.error) && r0[PT.LABELS.costIntro] === record[PT.LABELS.costIntro], JSON.stringify(entry && [entry.kept, entry.error]), 'discarded');
+})().catch(e => chk('quality retry acceptance', false, e.message, ''));
 
 // ── Ideas ──
 {

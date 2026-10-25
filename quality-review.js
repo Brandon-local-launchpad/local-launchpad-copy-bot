@@ -73,6 +73,8 @@ const CODE_ITEMS = {
   Y2: { title: 'No sentence over 30 words; fields in range', range: 'other', longSentence: 30 },
   Y3: { title: 'No research wording', checks: ['RESEARCH-LANG'] },
   Y4: { title: 'Pronouns and "team"', checks: ['N15', 'N12'] },
+  Y9: { title: 'No padding in the section intros: every sentence after the first brings a new noun or number', checks: ['INTRO-PAD'] },
+  Y10: { title: 'No sentence copied from the calibration pack', checks: ['PACK-COPY'] },
 };
 // The category page's own items (25 Oct), on top of the homepage's
 const CATEGORY_ITEMS = {
@@ -103,6 +105,7 @@ const JUDGE_ITEMS = {
   T2: 'Step bodies follow their step titles and never restate the free quote, the fixed price promise or the start time. Step 2 saying a price is agreed before work starts is the step itself, not a restatement.',
   Y6: 'No padding (a sentence that could sit on any website: "there is a service here for you", "we bring that experience to every job") and no pasted research ("gardens that date mostly from 1908 to 1930", "the geology varies widely"). Memberships and logos only when they are in the facts.',
   Y5: 'Every sentence reads naturally to a homeowner: grammatical, specific, no padding, no contradiction, nothing a reader would stumble on or doubt.',
+  L1: 'Every local detail from the research earns its place by saying what it means for the work (rule 6 of USING THE LOCAL RESEARCH): a detail used as scenery, with no consequence for the job ("Cherries line the avenue and Scots pine stand on the estate greens"), fails.',
 };
 // The judge items for a page: a category page's paragraph 2 links service pages, and a
 // town page is about its town only (25 Oct)

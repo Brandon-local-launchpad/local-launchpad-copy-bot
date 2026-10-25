@@ -3747,7 +3747,7 @@ const V20_FACTS = {
     if (!D) throw new Error("the page decisions can't be made right now (a gate is failing)");
     const { categoryValidationContext } = require('./validate-category');
     return {
-      V: categoryValidationContext(v20.validationContextFor({ cv: I.ctx.cv, niche: I.niche, decisions: D, keyValueMap: I.ctx.keyValueMap, serviceParentMap: I.ctx.serviceParentMap }), D),
+      V: categoryValidationContext(v20.validationContextFor({ cv: I.ctx.cv, niche: I.niche, decisions: D, keyValueMap: I.ctx.keyValueMap, serviceParentMap: I.ctx.serviceParentMap, calibrationPack: I.calibrationPack.text }), D),
       clientValues: v20.clientValueMap(I.ctx.cv, D.d1_years_trading),
       decisionsBlock: decisionsResult.decisionsBlock || null,
       servicesOnFile: v20.servicesOnFile(I.ctx.keyValueMap, I.ctx.serviceParentMap, I.niche, D),
@@ -3758,7 +3758,7 @@ const V20_FACTS = {
     const D = decisionsResult.decisions;
     if (!D) throw new Error("the page decisions can't be made right now (a gate is failing)");
     return {
-      V: v20.validationContextFor({ cv: ctx.cv, niche, decisions: D, keyValueMap: ctx.keyValueMap, serviceParentMap: ctx.serviceParentMap }),
+      V: v20.validationContextFor({ cv: ctx.cv, niche, decisions: D, keyValueMap: ctx.keyValueMap, serviceParentMap: ctx.serviceParentMap, calibrationPack: v20CalibrationPack(ctx, niche).text }),
       clientValues: v20.clientValueMap(ctx.cv, D.d1_years_trading),
       decisionsBlock: decisionsResult.decisionsBlock || null,
       // Today's service list for a claims review run again on a saved page (22 Oct)
