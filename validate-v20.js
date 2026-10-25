@@ -50,6 +50,8 @@ const RETRY_FLAGS = new Set(['N7', 'N13', 'N14', 'N15', 'N17', 'N18', 'N19', 'N2
 //   CARD-LOCAL    BLOCK  a neighbourhood or allocated place in a card (a FLAG until 25 Oct)
 //   PRACTICE-REPEAT FLAG a confirmed practice stated more than twice on the page (25 Oct)
 //   INTRO-PAD     FLAG   a section intro sentence after the first that brings no new noun or number (25 Oct)
+//   PROMISE       BLOCK  a promise about how the business runs a job or visit, in the shapes the loop keeps producing (25 Oct)
+//   CONTRADICT    BLOCK  the copy says the price is not fixed when the fixed price is the client's confirmed proof (25 Oct)
 //   PACK-COPY     BLOCK  a sentence copied from the calibration pack: five words in a row, or 70% of its content words (25 Oct)
 //   FAQ-PAD       FLAG   a sentence after the answer that brings no new noun or number (25 Oct)
 //   LINK-TEXT     FLAG   a category link whose text drops the category's words
@@ -147,7 +149,9 @@ const words = t => scanText(t).replace(/CVTOKEN/g, 'x').split(/\s+/).filter(w =>
 const wordCount = t => words(t).length;
 const sentences = t => scanText(t).split(/\n\n+|(?<=[.!?])\s+(?=["“A-Z0-9£])/).map(s => s.trim()).filter(Boolean);
 const lc = s => (s || '').toLowerCase();
-const stem = w => lc(w).replace(/[^a-z0-9]/g, '').replace(/(ations?|ions?|ings?|ed|es|s|e)$/, '');
+const stem1 = w => { const a = lc(w).replace(/[^a-z0-9]/g, ''); const b = a.replace(/(ations?|ions?|ings?|ed|es|s|e)$/, ''); return b.length >= 3 ? b : a; };
+// Stemmed until stable, so "weeding" (→ weed → we) meets "weed" (→ we) (loop round 1: "weeding" was flagged against the Weed control page)
+const stem = w => { let a = stem1(w); for (let i = 0; i < 3; i++) { const b = stem1(a); if (b === a) break; a = b; } return a; };
 // The content words of a sentence (4+ letters, stop words out, stemmed): what it is about
 const PAD_GENERIC = new Set('with without about would could should there their these those which while where when what have having been being also just only very more most much many some such into onto over under than then them they your yours ours ever every each from this that here come comes came make makes made take takes took give gives want wants need needs keep keeps look looks like well good right thing things time times work works works'.split(' '));
 const contentWords = t => new Set(lc(scanText(t)).replace(/cvtoken/g, ' ').replace(/[^a-z0-9' ]+/g, ' ').split(/\s+/).map(w => w.replace(/'s$/, '')).filter(w => w.length >= 4 && !STOPWORDS.has(w) && !PAD_GENERIC.has(w)).map(stem));
@@ -278,6 +282,7 @@ function validateCommon(record, V) {
     // N6: shown field must have text
     if (!t.trim() || t.trim() === 'HIDDEN') { flag('BLOCK', 'N6', `${f.label} is shown on the page but empty.`); continue; }
 
+    const fixedConfirmed = /fixed\s+price/i.test(`${cv.differentiator_1_confirmed ? cv.differentiator_1 : ''} ${cv.differentiator_2_confirmed ? cv.differentiator_2 : ''} ${cv.quote_method || ''}`);
     // 1a dashes, 1b hyphenated compounds
     if (/[—–]/.test(s)) flag('BLOCK', '1a', 'Contains an em or en dash. Rewrite the sentence without it.');
     const hyph = [...new Set(s.match(/\b[A-Za-z]+-[A-Za-z]+(?:-[A-Za-z]+)*\b/g) || [])];
@@ -339,7 +344,6 @@ function validateCommon(record, V) {
     // RIVALS: the client's own site never sends the reader to other businesses
     const rivals = s.match(/\b(?:get|getting|ask for|asking for|collect|obtain|request)\s+(?:at least\s+)?(?:two|three|four|several|a few|multiple|more|other|\d+)(?:\s+or\s+(?:two|three|four|more))?\s+(?:\w+\s+)?quotes?\b|\bcompare\s+(?:\w+\s+)?(?:quotes|firms|companies|businesses|landscapers|gardeners|roofers|tradespeople|traders)\b|\bshop(?:ping)? around\b|\bother (?:firms|companies|landscapers|gardeners|roofers|tradespeople|traders|contractors)\b/i);
     if (rivals) flag('BLOCK', 'RIVALS', `"${rivals[0]}" sends the reader to other businesses. Answer as this business; leave it out.`);
-    const fixedConfirmed = /fixed\s+price/i.test(`${cv.differentiator_1_confirmed ? cv.differentiator_1 : ''} ${cv.differentiator_2_confirmed ? cv.differentiator_2 : ''} ${cv.quote_method || ''}`);
     if (!fixedConfirmed && FIXED_RE.test(s)) flag('BLOCK', 'N5', `"${s.match(FIXED_RE)[0]}" promises a fixed price, which isn't confirmed.`);
     if (!cv.manufacturer_warranty && /\bmanufacturer(?:'s)?\s+(?:warrant|guarant|terms|cover)/i.test(s)) flag('BLOCK', 'N5', 'A manufacturer warranty is mentioned but none is confirmed.');
     // Claim words; "the best chance/time/way" and "leading to" aren't claims about the business
@@ -455,6 +459,15 @@ function validateCommon(record, V) {
       flag('BLOCK', 'NUM', `The timescale "${m[0]}" is not in the client values. Give the factors that decide it, without a time.`);
     }
 
+    // PROMISE: how a job or visit is run is a practice; these shapes are never on file (loop round 1)
+    {
+      const m = s.match(/\bnothing (?:gets |is |will be )?added\b[^.]{0,30}\bwithout\b|\bwithout you (?:saying|asking|agreeing)\b|\bwe (?:always )?stick to\b|\b(?:price|figure|cost|quote)s?\b[^.]{0,20}\b(?:doesn't|does not|won't|will not|never) (?:creep|change|move|go up|rise)\b|\beach (?:garden|job|visit|customer) gets (?:its|their) own\b|\b(?:its|their) own plan\b|\bwe (?:fit|fits|fitted|fitting|shape|plan|build) (?:the|each|every|a) (?:visit|round|job)s? (?:to|around) (?:a time|your|the time|when)\b|\bat a time that (?:works|suits)\b|\b(?:we )?arrive ready\b|\bready to start on\b/i);
+      if (m) flag('BLOCK', 'PROMISE', `"${m[0]}" promises how the business runs the job, which only CONFIRMED PRACTICES may say. Leave it out, or say what the work involves instead.`);
+    }
+    // CONTRADICT: the fixed price is the proof, so the price is never "not fixed" (loop round 1)
+    if (fixedConfirmed && /\bnot (?:a |one )?fixed\b|\bisn't fixed\b|\bis not fixed\b|\bno (?:single |one )?fixed (?:price|sum|figure|cost|fee)\b|\bno set (?:price|figure|fee)\b/i.test(s)) {
+      flag('BLOCK', 'CONTRADICT', `"${s.match(/\bnot (?:a |one )?fixed\b|\bisn't fixed\b|\bis not fixed\b|\bno (?:single |one )?fixed (?:price|sum|figure|cost|fee)\b|\bno set (?:price|figure|fee)\b/i)[0]}" contradicts the fixed price the page is built on. Say the price depends on the garden and is agreed first, never that it isn't fixed.`);
+    }
     // PRACTICE: working practices only from confirmed_practices
     const confirmedKeys = new Set(cv.confirmed_practices || []);
     for (const c of practiceClaims(s, niche)) {

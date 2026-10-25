@@ -184,7 +184,10 @@ function computeCategoryDecisions({ cv, niche, keyValueMap = {}, rows = [], page
     'Open with who this suits; then the work.',
     'Open with the material or method that matters most; then what the customer gets.',
   ];
-  cards.forEach((c, i) => { c.shape = SHAPES[i % SHAPES.length]; });
+  // ...and its own way of carrying the link, so the cards don't all read "Our [service] work…"
+  // (loop round 1: five of six cards opened that way because every card was shown the same example)
+  const LINK_PHRASES = ['our [X] work', 'a [X] visit', 'booking [X]', 'our [X] rounds', 'a [X] job', 'the [X] we do'];
+  cards.forEach((c, i) => { c.shape = SHAPES[i % SHAPES.length]; c.link_phrase = LINK_PHRASES[i % LINK_PHRASES.length].replace('[X]', `[${lc(c.name)}](${c.url})`); });
 
   // ── Blocks 4 and 5, steps, FAQ from the type's briefs ──
   const problemCards = ((blocks.entry.problems || {}).cards || []).slice(0, 4).map(c => ({ title: phCat(c.title, ctx), brief: phCat(c.brief || '', ctx) }));
@@ -352,7 +355,7 @@ function formatCategoryBlock(D, cv, niche, ctx) {
   D.cards.forEach((c, i) => {
     push(`  ${i + 1}. ${c.name} → ${c.url} (${c.target === 'town' ? 'town service page' : 'base service page'}${c.h1 ? ' | H1: ' + c.h1 : ''})`);
     push(`     Shape: ${c.shape}`);
-    push(`     Link text: ${D.scope === 'town' ? `"${lc(c.name)}" (the plain service name, no town)` : `"${lc(c.name)}" inside a phrase ("our [${lc(c.name)}](${c.url}) work")`}`);
+    push(`     Link text: "${lc(c.name)}"${D.scope === 'town' ? ' (the plain service name, no town)' : ' (the service name, words in order)'}, inside a sentence as "${c.link_phrase}", never at its start and never the same phrase as another card`);
   });
   if (!D.cards.length) push('  (none)');
   push(`  Also offered (no page; one sentence, no links): ${D.alsoOffered.length ? D.alsoOffered.join(', ') : 'none (write HIDDEN)'}`);
@@ -399,11 +402,15 @@ function formatCategoryBlock(D, cv, niche, ctx) {
   homes.push('The quote method: the cost intro only. "Free": the FAQ cost answer and the headings code writes; never in a step.');
   for (const h of homes) push(`  ${h}`);
   push('');
+  push('--- HOW THE BUSINESS WORKS ---');
+  push('  Only what CONFIRMED PRACTICES in the client block say. Never invent a way of working or a promise about it: no "nothing gets added without you saying so", "each garden gets its own plan", "we stick to the work you asked for", "the price never creeps", "we fit the visit to a time that suits you", "we arrive ready to start", no seasonal pattern of visits, no comparison between the cost of a round and a one off. Say what the work involves, not how the business runs it.');
+  push('');
   push('LINKABLE PAGES:');
   for (const p of D.linkablePages) push(`  [${p.type}] ${p.url} | H1: ${p.h1}`);
   if (!D.linkablePages.length) push('  none');
   push('');
   push('ALLOCATED ITEMS:');
+  push('  How to use the research below: at most two facts from each neighbourhood or the town profile, each followed in the same sentence by what it means for ' + D.cat_lower + ' work (the mowing, the hedges, the beds, the boundaries). A fact with no consequence for the work is left out: never list trees, plants, street features or planning controls for their own sake, and never describe a soil or a flood setting in research terms.');
   const A = D.allocated;
   if (D.scope === 'base') {
     if (!A.neighbourhoods.length) push('  Neighbourhoods: none allocated');
