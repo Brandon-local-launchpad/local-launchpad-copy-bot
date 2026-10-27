@@ -48,7 +48,12 @@ const KEYS = {
 // The context: the shared one plus the location page's keys and the "how it's done" material
 // (howItsDone: { paragraphs: [{ page, text }], rows: [{ service, text }] })
 function locationValidationContext(base, D, { howItsDone = null } = {}) {
-  return { ...base, keys: { ...KEYS, selfUrl: D.slug || '/' }, howItsDone: howItsDone || { paragraphs: [], rows: [] } };
+  // A neighbourhood named after the town ("Romsey Old Town and riverside streets") shortens to the
+  // town's name, which the shared REPEAT-IN rule then counts across the content paragraphs; the
+  // town is allowed in more than one paragraph here (the third real run, 27 Oct)
+  const town = lc(D.town || '');
+  const neighbourhoodNames = (base.neighbourhoodNames || []).filter(n => lc(n) !== town);
+  return { ...base, neighbourhoodNames, keys: { ...KEYS, selfUrl: D.slug || '/' }, howItsDone: howItsDone || { paragraphs: [], rows: [] } };
 }
 
 const STAGE_OPENER_RE = /\b(?:first,? we|then we|next,? we|the next step|the first step|we start by|we begin by|after that,? we|once that is done|step one|step two)\b/i;

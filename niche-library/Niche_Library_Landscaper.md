@@ -441,7 +441,7 @@ Draft, 27 Oct 2026, for Brandon's read before the first live run. Used by the lo
 
 | Card | Brief |
 |---|---|
-| Getting in on a terraced street | Where the only way to the back garden is through the house or a shared side path, materials come in by hand and the skip sits on the road. Say why that adds time; the town profile says which streets are terraced. No figure. |
+| Getting in on a terraced street | Where the back garden is reached through the house or a shared side path, materials come in by hand and the skip sits on the road. Say why that adds time (never "the only way": a superlative); the town profile says which streets are terraced. No figure. |
 | Gardens on a slope | A garden that falls or rises from the house needs levels taken, steps or a retaining edge, and more digging than a flat garden. Say it plainly, from the town profile where it gives the slope. No figure. |
 | Conservation areas and protected trees | Where the town has conservation areas or tree protection, the checks and the paperwork before work can start add time, and some things cannot be done at all. "Usually", never the order's or the area's official name. From the dossier rules only; otherwise a tree survey as something that sometimes applies. |
 | What the last owner left behind | Old concrete, a shed base, buried rubble, an overgrown hedge: what has to come out and go in a skip before anything new goes in. Older gardens in the town carry more of it; say so without unkindness. No figure. |
