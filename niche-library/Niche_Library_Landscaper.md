@@ -420,6 +420,81 @@ Draft, 25 Oct 2026, for Brandon's read against the SOP, the service template and
 
 **Seasonal swap** (card 4 of block 4; on a type B page the FAQ takes the symptom question's place, the five slots stay): **What the season is about to throw at it** (mechanism: growth that comes all at once in spring): The growth or the fall that comes all at once: spring growth, autumn leaves, as the trade facts timing row has it for this work. The one cause this card makes: growth that comes all at once in spring. Say what getting ahead of it looks like, from the stages; no frequency unless [CV: visit_frequency_options] is set. FAQ, in the symptom question's place: When should I book [SERVICE_LOWER] for the season? (Timing): The first visit of the year is the one to book ahead for, and what the season does to the work in plain words. No dates, no promise of a slot, nothing about agreeing the visit before a rush. The frequency question owns the season the work runs: do not repeat it.
 
+## Location page blocks by business type (location_page_blocks)
+
+Draft, 27 Oct 2026, for Brandon's read before the first live run. Used by the location page job (CORE (18)): block 4 (the problems the town's homes have across the trade) and block 5 (what moves the price in this town) are an H2 and four card titles with a brief each, block 4 cards with their one mechanism; the type also gives the FAQ slots (five, one of them the town question: "How soon can you get to [TOWN]?" when `start_time` is set, else "Do you cover [TOWN]?"). The steps are the type's category page steps (A: the niche steps) unless an entry carries its own. The briefs are town wide, not per category: the town profile, the allocated neighbourhoods and the assigned symptoms are the material, and every mechanism differs from the category and service briefs' on purpose (MECHANISMS USED carries the town's other pages' causes). No seasonal swap and no symptom question on a location page: the town's category pages carry those. The type is the client's (`business_type`), never a category override. Placeholders: `[WORK]` the primary category's work noun (Landscaping, Gardening), `[WORK_LOWER]`, `[TOWN]` the page's town, `[CITY]` the base town. The copy rules of CORE (18) and the shared rules apply to every brief: claims only from client values, no figures, no promises, no standard's or order's name, no how it's done sentence.
+
+- A niche with no section here has its location pages refused: "no location block briefs for landscaper".
+
+### Type A (project trade: the client's type is A)
+
+**Block 4, common problems in the town.** H2: Common [WORK] Problems in [TOWN]
+
+| Card | Mechanism (its one cause) | Brief |
+|---|---|---|
+| Ground that holds the rain | the ground under the town's gardens holding water | Lawns soft for days, beds that sit wet, water lying at the bottom of a slope. The one cause this card makes: the ground under the town's gardens holding water; the town profile and a symptom say which ground (clay, a high water table, a river valley, a flood setting). Say what it means for any job that goes into the ground, in plain words; never promise the ground will change. Not a surface laid with no fall, not a base left loose, not water with nowhere to go: the town's category and service pages own those. |
+| Boundaries as old as the houses | fences and walls put up when the houses were built | Panels that lean, posts soft at the base, a garden wall with a bow in it. The one cause this card makes: fences and walls put up when the houses were built, now at the end of their life; the town profile gives the era. What replacing a boundary involves, in plain words; what the business does only from confirmed practices. Not timber in wet ground, not a repair that no longer holds: other pages own those. |
+| Trees that have outgrown the plot | trees planted for a bigger garden than the plot is now | Roots lifting a path, a canopy over the whole lawn, leaves in every gutter. The one cause this card makes: trees planted when the garden was bigger, or the house further away, than it is now; the town profile gives the mature trees, the conservation areas, the tree protection. What usually applies before a protected tree is touched, with "usually" and never an order's name. Not shade on a lawn: the Gardener pages own that. |
+| Front gardens turned over to parking | rain running off a paved front | A paved front that sends rain to the road or next door, a dropped kerb with nothing to soak the water. The one cause this card makes: rain running off a paved front with nowhere to soak in. What usually applies to a new hard surface at the front (a permeable surface, or a drain within the plot), in plain words, never the rule's name; where the town profile gives the street pattern (terraces with no drive), say what it means. Not water on a patio: the service pages own that. |
+
+**Block 5, cost factors.** H2: What Affects the Cost of [WORK] in [TOWN]
+
+| Card | Brief |
+|---|---|
+| Getting in on a terraced street | Where the only way to the back garden is through the house or a shared side path, materials come in by hand and the skip sits on the road. Say why that adds time; the town profile says which streets are terraced. No figure. |
+| Gardens on a slope | A garden that falls or rises from the house needs levels taken, steps or a retaining edge, and more digging than a flat plot. Say it plainly, from the town profile where it gives the slope. No figure. |
+| Conservation areas and protected trees | Where the town has conservation areas or tree protection, the checks and the paperwork before work can start add time, and some things cannot be done at all. "Usually", never the order's or the area's official name. From the dossier rules only; otherwise a tree survey as something that sometimes applies. |
+| What the last owner left behind | Old concrete, a shed base, buried rubble, an overgrown hedge: what has to come out and go in a skip before anything new goes in. Older gardens in the town carry more of it; say so without unkindness. No figure. |
+
+**Steps.** The niche steps (Tell Us About Your Garden; We Visit and Price the Job; We Start on a Date That Suits You).
+
+**FAQ slots.** Five: cost, the town question, one cover question (the first whose condition holds), process, timing.
+
+| Slot | When | Question | Answer brief | Doubt |
+|---|---|---|---|---|
+| cost | always | How much does [WORK_LOWER] cost in [TOWN]? | Prices only from [CV: price_list]; otherwise what moves the price in a town like this (access, slope, what has to come out) and how the quote is given, from [CV: quote_method] only. | Price |
+| town | start_time | How soon can you get to [TOWN]? | From [CV: start_time] and [CV: response_time] only. The town is in the area covered; nothing about distance unless [CV: travel_distance] is set. | Timing |
+| town | always | Do you cover [TOWN]? | Yes: the town and the villages around it (code lists them; name none). How the business reaches it from its base only from the client values. Link one page in this town. | Fit |
+| cover | guarantee | Do you guarantee your work in [TOWN]? | Start with yes, then the terms from [CV: guarantee_years] and [CV: guarantee_scope]. Described, never promised. | Trust |
+| cover | insurance | Are you insured? | The cover figure from [CV: insurance_cover] and what the cover is for. Never what it pays or who it covers. | Trust |
+| cover | always | What happens if something isn't right after the job? | Open with what the customer does: tell us and we look at it. Then the reasonable care and skill standard every trade works to. No promise to come back free. Never invent a guarantee. | Trust |
+| process | always | What happens when I ask for a quote in [TOWN]? | From [CV: quote_method] and the confirmed practices only: what the customer sends, what the business looks at, what comes back. No timescale unless [CV: response_time] is set. | Process |
+| timing | always | When is the best time of year for [WORK_LOWER] work? | Hard landscaping runs most of the year in dry spells; planting and turf do best in autumn and spring. Booking ahead for spring. No dates, no promises about the weather. | Timing |
+
+### Type B (maintenance: the client's type is B)
+
+**Block 4, common problems in the town.** H2: Common [WORK] Problems in [TOWN]
+
+| Card | Mechanism (its one cause) | Brief |
+|---|---|---|
+| Lawns that struggle on this ground | the soil under the town's lawns | Grass that browns in the first dry week, or stays mossy all winter. The one cause this card makes: the soil under the town's lawns (the profile: fast draining gravel, heavy clay, a river valley). What a regular round does about it in plain words (the height of cut, feeding, scarifying where it fits); anything the business itself promises only from confirmed practices. Not shade and damp ground: the Gardener pages own that. |
+| Hedges as old as the houses | hedges planted with the houses and left to grow out | Privet and laurel put in when the street was built, now wide at the top, bare at the base and over the pavement. The one cause this card makes: hedges planted with the houses and left to grow out. How a round brings a hedge back over more than one cut, never one hard cut. Not the timing of cuts: the Gardener pages own that. |
+| Gardens that run away in the growing season | growth outpacing the time the owner has | A garden tidy in April and lost by July. The one cause this card makes: growth outpacing the time the owner has for it (the profile may say who lives here: commuters, retired owners, big plots). What a regular round keeps on top of, from the card list; a frequency only from the confirmed practices. |
+| A garden that came with the house | a garden inherited with the house | New owners with planting they do not know, a lawn cut the wrong way for a season, beds left to see what comes up. The one cause this card makes: a garden inherited with the house (the profile: new estates, turnover, families moving in). What a first visit sorts out and what waits a season; promises only from confirmed practices. Never that the owner has neglected it. |
+
+**Block 5, cost factors.** H2: What Affects the Cost of [WORK] in [TOWN]
+
+| Card | Brief |
+|---|---|
+| Getting the mower round the back | Terraced streets with no side gate mean the mower and the waste go through the house. Say why that adds time to a visit, from the profile where it gives the housing. |
+| A garden that has been left a while | The first visit on a garden that has had a season or two off is a bigger job than the round that follows. Say it plainly; no figure; not the service pages' first visit card in the same words. |
+| Banks and sloping lawns | A lawn on a bank is cut with a different machine and takes longer; steps and terraces add edges. From the profile where the town has slopes. |
+| Big hedges and old trees | A mature hedge takes longer each cut, and some trees are a tree surgeon's job, not the gardener's. Say which work moves to the tree pages only where LINKABLE PAGES has one in this town. |
+
+**Steps.** The category type B steps (Tell Us About Your Garden; We Agree the Round and the Price; We Start on a Date That Suits You), by the fallback.
+
+**FAQ slots.** Five: cost, the town question, one cover question (the first whose condition holds), process, timing.
+
+| Slot | When | Question | Answer brief | Doubt |
+|---|---|---|---|---|
+| cost | always | What does a regular [WORK_LOWER] round cost in [TOWN]? | Prices only from [CV: price_list]; otherwise how the price is reached, from [CV: quote_method] only, and that the figure is agreed before the first visit when that practice is confirmed. One factor at most, never the list again. | Price |
+| town | start_time | How soon can you get to [TOWN]? | From [CV: start_time] and [CV: response_time] only. The town is in the area covered; nothing about distance unless [CV: travel_distance] is set. | Timing |
+| town | always | Do you cover [TOWN]? | Yes: the town and the villages around it (code lists them; name none). How the business reaches it from its base only from the client values. Link one page in this town. | Fit |
+| cover | insurance | Are you insured for garden work? | The cover figure from [CV: insurance_cover] and what the cover is for. Never what it pays or who it covers. | Trust |
+| cover | always | What happens if something gets broken on a visit? | Open with what the customer does: tell us and we look at it. Then the reasonable care and skill standard. No promise to put it right free. Never invent a guarantee or insurance. | Trust |
+| process | always | How do regular visits work in [TOWN]? | From the confirmed practices only: whether the customer needs to be in, keys, how the visit is agreed. A frequency only from [CV: visit_frequency_options]. Never promise a schedule. | Process |
+| timing | always | Do you garden through the winter in [TOWN]? | What the round does in each season in plain words (cutting through the growing season, clearing and pruning in the cold months). No dates. | Timing |
+
 ## do_not_reuse
 
 (empty to start; add any sentence that has gone live on a client site so it is never repeated)

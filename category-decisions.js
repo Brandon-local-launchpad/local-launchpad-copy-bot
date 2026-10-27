@@ -51,6 +51,32 @@ function keywordWord(h1, town, category) {
 const PERSON_RE = /(?:er|or|ist|ian|eon|man|men|smith|wright)s?$/i;
 const isPersonWord = w => PERSON_RE.test(String(w || '').trim().split(/\s+/).pop() || '') && !/^(?:cover|water|timber|render|plaster|shutter|gutter|order|floor|paver)s?$/i.test(String(w || '').trim().split(/\s+/).pop());
 
+// The meta description: "[company] is a [category_lower] in [town] with [proof]" (Brandon, 25 Oct),
+// or "offers" for a work word; the years fallback keeps its comma. A proof that itself says
+// "with" ("fixed prices with no hidden costs") is joined with "offering", a description of the
+// business ("family run and independent") goes before the trade. The first candidate within
+// 155 characters wins; none: the plain stem (F-LEN-META when even that is too long). The
+// location page uses the same builder (location-decisions.js).
+function metaFor({ cv, isPerson, kwNatural, metaCta, yearsTrading, yearFounded, modifier, flags = [] }) {
+  const verb = isPerson ? 'is a' : 'offers';
+  const metaProofs = [];
+  if (cv.differentiator_1_confirmed && cv.differentiator_1_sentence) metaProofs.push(cv.differentiator_1_sentence);
+  if (yearsTrading !== null && yearsTrading >= 5 && modifier !== `Established ${yearFounded}`) metaProofs.push(`established in ${yearFounded}`);
+  for (const p of metaProofs) {
+    const proof = p[0].toLowerCase() + p.slice(1);
+    let cand;
+    if (/^established/i.test(proof)) cand = `${cv.company_name} ${verb} ${kwNatural}, ${proof}. ${metaCta}`;
+    else if (/^(family|independent|local|owner|small|award)/i.test(proof) && verb === 'is a') cand = `${cv.company_name} is a ${proof} ${kwNatural}. ${metaCta}`;
+    else if (/\bwith\b/i.test(proof)) cand = `${cv.company_name} ${verb} ${kwNatural} offering ${proof}. ${metaCta}`;
+    else cand = `${cv.company_name} ${verb} ${kwNatural} with ${proof}. ${metaCta}`;
+    cand = cand.trim();
+    if (cand.length <= 155) return cand;
+  }
+  const meta = `${cv.company_name} ${verb} ${kwNatural}. ${metaCta}`.trim();
+  if (meta.length > 155) flags.push({ code: 'F-LEN-META', msg: `Meta is ${meta.length} chars (max 155).` });
+  return meta;
+}
+
 // The row's phase 1 and applies: the page exists for linking
 const live = r => r && r.applies !== false && ((r.info && r.info.phase) || 1) === 1;
 const slugOf = r => (r && r.slug) || '';
@@ -112,28 +138,7 @@ function computeCategoryDecisions({ cv, niche, keyValueMap = {}, rows = [], page
   const built = seoTitleFor(h1, cv, titleModifierFor(cv, { yearsTrading, yearFounded, emergencyOn }));
   if (built.tooLong) flags.push({ code: 'F-LEN-TITLE', msg: `Title is ${built.title.length} chars (max 60).` });
   const metaCta = ph(btn.meta_cta || '', ctx);
-  const verb = isPersonWord(cat) ? 'is a' : 'offers';
-  const metaProofs = [];
-  if (cv.differentiator_1_confirmed && cv.differentiator_1_sentence) metaProofs.push(cv.differentiator_1_sentence);
-  if (yearsTrading !== null && yearsTrading >= 5 && built.modifier !== `Established ${yearFounded}`) metaProofs.push(`established in ${yearFounded}`);
-  let meta = null;
-  // "[company] is a [category_lower] in [town] with [proof]" (Brandon, 25 Oct); the years fallback keeps its comma
-  // A proof that itself says "with" ("fixed prices with no hidden costs") is joined with "offering",
-  // a description of the business ("family run and independent") goes before the trade, the years keep their comma
-  for (const p of metaProofs) {
-    const proof = p[0].toLowerCase() + p.slice(1);
-    let cand;
-    if (/^established/i.test(proof)) cand = `${cv.company_name} ${verb} ${kwNatural}, ${proof}. ${metaCta}`;
-    else if (/^(family|independent|local|owner|small|award)/i.test(proof) && verb === 'is a') cand = `${cv.company_name} is a ${proof} ${kwNatural}. ${metaCta}`;
-    else if (/\bwith\b/i.test(proof)) cand = `${cv.company_name} ${verb} ${kwNatural} offering ${proof}. ${metaCta}`;
-    else cand = `${cv.company_name} ${verb} ${kwNatural} with ${proof}. ${metaCta}`;
-    cand = cand.trim();
-    if (cand.length <= 155) { meta = cand; break; }
-  }
-  if (!meta) {
-    meta = `${cv.company_name} ${verb} ${kwNatural}. ${metaCta}`.trim();
-    if (meta.length > 155) flags.push({ code: 'F-LEN-META', msg: `Meta is ${meta.length} chars (max 155).` });
-  }
+  const meta = metaFor({ cv, isPerson: isPersonWord(cat), kwNatural, metaCta, yearsTrading, yearFounded, modifier: built.modifier, flags });
   const trust = trustLineFor(cv, niche, { yearsTrading, yearFounded, unitOfWork: ctx.unitOfWork });
   const rating = ratingLineFor(cv);
   const buttons = buttonsFor(cv, ctx.primaryAction, emergencyOn);
@@ -480,4 +485,4 @@ function formatCategoryBlock(D, cv, niche, ctx) {
   return L.join('\n');
 }
 
-module.exports = { computeCategoryDecisions, formatCategoryBlock, keywordWord, isPersonWord, phCat };
+module.exports = { computeCategoryDecisions, formatCategoryBlock, keywordWord, isPersonWord, phCat, metaFor };

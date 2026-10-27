@@ -342,8 +342,32 @@ function symptomsForService(parsed, { service, names = [], category, emergencyNi
   return [...mine, ...rest].slice(0, limit);
 }
 
+// The symptoms a location page may use (CORE (18), 27 Oct): the town is the subject, not one
+// category, so any issue tagged with one of the client's categories fits. One per issue, non
+// urgent first, dossier order, taken ones (the town's category and service pages') out.
+function symptomsForLocation(parsed, { categories = [], emergencyNiche, takenSymptoms = [], takenIssues = [], limit = 4 }) {
+  const issueById = Object.fromEntries(parsed.issues.map(i => [i.id, i]));
+  const taken = new Set(takenSymptoms), takenI = new Set(takenIssues);
+  const cats = new Set([...categories].map(norm).filter(Boolean));
+  const fits = parsed.symptoms.filter(s => {
+    const issue = issueById[s.issueId];
+    if (!issue || taken.has(s.id) || takenI.has(issue.id)) return false;
+    if (s.urgent && !emergencyNiche) return false;
+    return !cats.size || issue.categoryTags.some(t => cats.has(norm(t)));
+  });
+  const out = [];
+  const seenIssue = new Set();
+  for (const s of [...fits.filter(s => !s.urgent), ...fits.filter(s => s.urgent)]) {
+    if (seenIssue.has(s.issueId)) continue;
+    seenIssue.add(s.issueId);
+    out.push(s);
+    if (out.length >= limit) break;
+  }
+  return out;
+}
+
 module.exports = {
-  ALLOCATION_MODEL, symptomsForCategory, symptomsForService,
+  ALLOCATION_MODEL, symptomsForCategory, symptomsForService, symptomsForLocation,
   runAllocation, checkPicks, eligibleItems, clientCategories, symptomSlots,
   buildAllocationMessage, conservationFromRules, applyAssigned, resolveAllocatedItems,
   loadAllocationPrompt, parseModelJson,

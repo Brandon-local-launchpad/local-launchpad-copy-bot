@@ -118,10 +118,31 @@ const SERVICE_ITEMS = {
   V8: { title: 'More Services intro names no service or town and carries no link', checks: ['MORE-NAMES'] },
   V10: { title: 'What\'s Included items are the service\'s own trade facts stages (the type set only as a fallback)', decisions: 'items' },
 };
+// The location page's own items (CORE (18), 27 Oct), on top of the homepage's
+const LOCATION_ITEMS = {
+  E1: { title: 'Hero sentence 1: company token and the keyword phrase', checks: ['HERO', 'HERO-LOC'] },
+  K1: { title: 'Keyword phrase only in hero sentence 1 and content block sentence 1', checks: ['KEYWORD'] },
+  I1: { title: 'Nothing from IDEAS USED ELSEWHERE made again', checks: ['IDEAS'] },
+  T3: { title: 'The page names no other town; the base town once, in the areas intro', checks: ['TOWN-OTHER'] },
+  T4: { title: 'Links are plain names: no town in link text', checks: ['LINK-TOWN'] },
+  S11: { title: 'Each card links its given target and nothing else', checks: ['CARD-TARGET'] },
+  Y8: { title: 'Services intro is two sentences', checks: ['INTRO-SENTENCES'] },
+  A3: { title: 'Areas intro names no village (code places the list)', checks: ['AREAS-TOWN'] },
+  A5: { title: 'Areas intro lists no services', checks: ['AREAS-SERVICES'] },
+  B8: { title: 'Content block opens on the town or the work, never on the reader\'s search', checks: ['CB-OPENER'] },
+  B7: { title: 'Content block links 2 or 3 of the cards\' pages, two a sentence at most', checks: ['CB-LINKS', 'CB-PARAS'] },
+  L2: { title: 'The town in the hero, the services intro, the content block and the areas intro; twice elsewhere at most', checks: ['TOWN-COUNT'] },
+  L3: { title: 'Every content block paragraph carries a fact from the town profile or a neighbourhood; no guarantee length or insurance figure there', checks: ['CB-FACT', 'CB-PROOF'] },
+  L4: { title: 'No sentence explains how a job is done', checks: ['HOW-DONE'] },
+  L5: { title: 'No neighbourhood or village in a card', checks: ['CARD-NBHD'] },
+  L6: { title: 'At least one FAQ answer links a page in this town', checks: ['FAQ-TOWN-LINK'] },
+  V7: { title: 'Each block 4 card a different mechanism, none from MECHANISMS USED', checks: ['MECHANISM'] },
+};
 function codeItemsFor(record) {
   const id = pageTypeId(record);
   if (id === 'category') return { ...CODE_ITEMS, ...CATEGORY_ITEMS };
   if (id === 'service') return { ...CODE_ITEMS, ...SERVICE_ITEMS };
+  if (id === 'location') return { ...CODE_ITEMS, ...LOCATION_ITEMS };
   return CODE_ITEMS;
 }
 
@@ -151,6 +172,14 @@ function judgeItemsFor(record) {
     if (record.scope === 'town') out.T6j = 'A town page reads as about that town only: no other town is named or implied anywhere (the city, a neighbouring town, "the surrounding towns"), every link reads as the plain service or page name, and the base service page is linked once.';
     return out;
   }
+  if (id === 'location') {
+    const out = { ...JUDGE_ITEMS };
+    out.B1j = 'The content block is about this town: paragraph 1 gives two or three concrete details from the town profile and what each means for the trade; paragraph 2 gives the allocated neighbourhoods one detail each and what it means for the work, never implying the business has worked there; paragraph 3 links 2 or 3 of the cards\' pages, each with a reason, two links a sentence at most, plus one confirmed differentiator not already in the hero; the closing line is a soft push to the primary action. No sentence explains how a job is done.';
+    out.P6 = 'Each idea has one home: the same point (a cause, a cost factor, a town fact) isn\'t made in several sections, and nothing under IDEAS USED ELSEWHERE or MECHANISMS USED (the town\'s category and service pages\' causes) is made again in other words. A confirmed proof may appear up to 3 times: code scores that (P1, P2), so don\'t fail P6 for it.';
+    out.L1 = 'Every paragraph of the content block carries at least one town fact that says what it means for the work (rule 6 of USING THE LOCAL RESEARCH, applied harder on this page): a detail used as scenery, with no consequence for the job, fails, and so does a paragraph with no town fact at all.';
+    out.T6j = 'The page reads as about this town only: no other town is named or implied anywhere (the base town once in the areas intro at most, a neighbouring town never, "the surrounding towns" never), every link reads as the plain category or service name, and each card says what the customer in this town gets from that work without naming a neighbourhood.';
+    return out;
+  }
   if (id !== 'category') return JUDGE_ITEMS;
   const out = { ...JUDGE_ITEMS };
   out.B1j = 'The content block\'s paragraph 2 links the service pages given in DECISIONS, each with a reason (what that work does for the customer), never more than two links in a sentence, and lists no other services.';
@@ -173,18 +202,18 @@ const lc = s => String(s || '').toLowerCase();
 function decisionsTests({ record, D, cv, niche }) {
   const out = {};
   const typeId = pageTypeId(record);
-  const category = typeId === 'category' || typeId === 'service';
+  const category = typeId === 'category' || typeId === 'service' || typeId === 'location';
   if (category) {
     // H2 on a category page: the final CTA heading names the page's work noun or its category;
-    // on a service page, the service
-    const ctaH2 = typeId === 'service' ? record.svc_final_cta_h2 : record.cat_final_cta_h2;
+    // on a service page, the service; on a location page, the work noun or the primary category
+    const ctaH2 = typeId === 'service' ? record.svc_final_cta_h2 : typeId === 'location' ? record.loc_final_cta_h2 : record.cat_final_cta_h2;
     const h2 = lc(ctaH2);
     const want = (typeId === 'service' ? [D.svc, D.service] : [D.work, D.cat, D.category]).filter(Boolean).map(lc);
     out.finalCta = want.some(w => h2.includes(w)) ? null : `The final CTA heading "${ctaH2}" names neither ${want.join(' nor ')}.`;
     out.meta = null;
     out.cardPicks = null;
     if (typeId === 'service') out.items = D.included_source === 'type' ? `The What's Included items are type ${D.type && D.type.key}'s role based set: the trade facts give too few stages for ${D.service}.` : null;
-    const admin = (typeId === 'service' ? (record.svc_areas_links || []) : (record.cat_areas_links || [])).map(a => a.name).filter(isAdminArea);
+    const admin = (typeId === 'service' ? (record.svc_areas_links || []) : typeId === 'location' ? (record.loc_areas_links || []) : (record.cat_areas_links || [])).map(a => a.name).filter(isAdminArea);
     out.areaList = admin.length ? `The area list includes ${admin.join(', ')}.` : null;
     const claims = (record.CLAIMS && record.CLAIMS.findings) || [];
     out.claims = record.CLAIMS && record.CLAIMS.status === 'failed' ? 'The claims review failed to run.' : claims.length ? claims.map(f => `"${f.quote}" (${f.why})`).join('; ') : null;
@@ -244,7 +273,7 @@ function scoreCodeItems({ record, V, D, cv, niche }) {
   const issues = validateV20(record, V);
   const dec = decisionsTests({ record, D, cv, niche });
   const items = [];
-  const contentField = { category: /cat_content_body/, service: /svc_content_body/ }[pageTypeId(record)] || /home_content_block_body/;
+  const contentField = { category: /cat_content_body/, service: /svc_content_body/, location: /loc_content_body/ }[pageTypeId(record)] || /home_content_block_body/;
   for (const [id, item] of Object.entries(codeItemsFor(record))) {
     const reasons = [];
     if (item.checks) for (const i of issues) if (item.checks.includes(i.check) && !(item.skip && item.skip.test(i.message)) && !(item.only && !item.only.test(i.message))) reasons.push(`${i.check} · ${i.field}: ${i.message}`);
@@ -280,6 +309,17 @@ function decisionsSummary(record, D) {
       D.scope === 'town'
         ? `By design: the page is about ${D.town} only; paragraph 4 links the base service page ${D.baseLink ? D.baseLink.url : ''} once; the areas list (villages) is placed by code and the areas intro names none of them.`
         : `By design: paragraph 4 links 2 or 3 of these area pages as the town name or "[service] in [town]": ${(D.locationLinks || []).map(l => `${l.name} → ${l.url}`).join('; ') || 'none'}; the area list and the "We also cover" line are placed by code; a confirmed proof can be headlined, explained and mentioned once more (3 times).`,
+    ].join('\n');
+  }
+  if (pageTypeId(record) === 'location') {
+    return [
+      `Location page for ${D.town} (the town's hub; primary category ${D.primary_category}), H1: ${D.d2_h1}. Keyword phrase in body copy: "${D.keyword}", by rule only in hero sentence 1 and content block sentence 1.`,
+      `Cards (${D.card_mode === 'categories' ? "the town's location category pages" : "the town's service pages"}, one each, the link target given): ${(D.cards || []).map(c => `${c.name} → ${c.url}`).join('; ') || 'none'}.`,
+      `Block 4 cards (town wide, one mechanism each): ${(D.problems || []).map(p => p.title).join(' / ')}. Block 5 cards: ${(D.cost || []).map(p => p.title).join(' / ')}.`,
+      `Steps: ${(D.niche_steps || []).map(s => s.title).join(' / ')}.`,
+      `FAQ questions (chosen by code, one of them the town question): ${(D.faq || []).map(q => q.question).join(' / ')}.`,
+      `Final CTA heading: ${record.loc_final_cta_h2}.`,
+      `By design: the page is about ${D.town} only; the base town may be named once in the areas intro; the areas list (villages and neighbourhoods, unlinked) is placed by code and the areas intro names none of them; no trade facts are sent, so nothing on the page explains how a job is done; the town's category and service pages carry the seasonal card and the symptom question, so this page has neither.`,
     ].join('\n');
   }
   if (pageTypeId(record) === 'category') {
@@ -364,4 +404,4 @@ function formatReview(rv) {
   return L.join('\n');
 }
 
-module.exports = { reviewPage, scoreCodeItems, decisionsTests, decisionsSummary, formatReview, pageText, CODE_ITEMS, CATEGORY_ITEMS, SERVICE_ITEMS, JUDGE_ITEMS, codeItemsFor, judgeItemsFor, REVIEW_MODEL, PASS_SCORE, loadReviewPrompt };
+module.exports = { reviewPage, scoreCodeItems, decisionsTests, decisionsSummary, formatReview, pageText, CODE_ITEMS, CATEGORY_ITEMS, SERVICE_ITEMS, LOCATION_ITEMS, JUDGE_ITEMS, codeItemsFor, judgeItemsFor, REVIEW_MODEL, PASS_SCORE, loadReviewPrompt };

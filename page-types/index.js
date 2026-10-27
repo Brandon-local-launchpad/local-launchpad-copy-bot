@@ -1,7 +1,7 @@
 'use strict';
 
 // ── Page type registry ───────────────────────────────────────────────────────
-// Each v20 page type (homepage now, category pages next) describes itself once:
+// Each v20 page type (homepage, category, service and location pages) describes itself once:
 //   id, label, singleKey (when a client has only one page of the type)
 //   modelFields(record)  the prose fields the model writes, in page order
 //   ranges               word ranges by rangeKey
@@ -37,5 +37,6 @@ const pageTypes = () => [...TYPES.values()];
 registerPageType(require('./homepage'));
 registerPageType(require('./category'));
 registerPageType(require('./service'));
+registerPageType(require('./location'));
 
 module.exports = { registerPageType, getPageType, pageTypeOf, pageTypeId, pageTypes };

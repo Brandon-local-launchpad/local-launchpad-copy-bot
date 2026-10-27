@@ -3781,6 +3781,25 @@ const V20_FACTS = {
       servicesOnFile: v20.servicesOnFile(I.ctx.keyValueMap, I.ctx.serviceParentMap, I.niche, D),
     };
   },
+  location: async (clientId, sessionId, record) => {
+    if (!locationRunner) throw new Error('location pages are not available (no page map store)');
+    const key = record && record.meta && record.meta.page_key;
+    if (!key) throw new Error('this location record has no page key');
+    const I = await categoryInputsFor(clientId);
+    const page = locationRunner.pagesInOrder(I.rows).find(p => p.slug === key);
+    if (!page) throw new Error(`the page map no longer has ${key}`);
+    const written = await locationRunner.writtenFor(clientId, I.rows, page);
+    const { decisionsResult, howItsDone } = await locationRunner.prepare(clientId, I, page, written);
+    const D = decisionsResult.decisions;
+    if (!D) throw new Error("the page decisions can't be made right now (a gate is failing)");
+    const { locationValidationContext } = require('./validate-location');
+    return {
+      V: locationValidationContext(v20.validationContextFor({ cv: I.ctx.cv, niche: I.niche, decisions: D, keyValueMap: I.ctx.keyValueMap, serviceParentMap: I.ctx.serviceParentMap, calibrationPack: I.calibrationPack.text }), D, { howItsDone }),
+      clientValues: v20.clientValueMap(I.ctx.cv, D.d1_years_trading),
+      decisionsBlock: decisionsResult.decisionsBlock || null,
+      servicesOnFile: v20.servicesOnFile(I.ctx.keyValueMap, I.ctx.serviceParentMap, I.niche, D),
+    };
+  },
   homepage: async (clientId, sessionId) => {
     const { ctx, niche, decisionsResult } = await v20HomepageInputs(clientId, sessionId);
     const D = decisionsResult.decisions;
@@ -3854,6 +3873,7 @@ if (pool && pageMapStore) {
 // run state; category-generate.js the model call; category-decisions.js the decisions.
 let categoryRunner = null;
 let serviceRunner = null;
+let locationRunner = null;
 // The service pages read the category pages' inputs plus the trade facts gate's answer
 async function serviceInputsFor(clientId) {
   const I = await categoryInputsFor(clientId);
@@ -3989,6 +4009,49 @@ if (pool && pageMapStore && v20Store) {
     const written = await serviceRunner.writtenFor(req.params.clientId, I.rows, key);
     const { decisionsResult, extraFlags, parentWritten, parentKey } = await serviceRunner.prepare(req.params.clientId, I, page, written);
     return { key, parent_key: parentKey, parent_written: parentWritten, gates: decisionsResult.gates, flags: [...decisionsResult.flags, ...extraFlags], decisionsBlock: decisionsResult.decisionsBlock };
+  }));
+
+  // Location pages (CORE (18), 27 Oct): one per town from the v3 page map, after the town's
+  // location category pages and town service pages. location-run.js owns the order, the town
+  // check, the resume and the run state; location-generate.js the model call;
+  // location-decisions.js the decisions. No trade facts are sent (the page explains the town).
+  const LG = require('./location-generate');
+  const { createLocationRunner } = require('./location-run');
+  const locationCallModel = args => makeCallModel(new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY }), LG.LOCATION_MODEL)(args);
+  locationRunner = createLocationRunner({
+    pool, v20Store,
+    loadInputs: categoryInputsFor,
+    generate: args => LG.generateLocationPage({ ...args, callModel: locationCallModel }),
+    allocate: args => allocation.runAllocation({ ...args, callModel: async (system, message) => {
+      const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
+      const r = await client.messages.create({ model: allocation.ALLOCATION_MODEL, max_tokens: 2048, system, messages: [{ role: 'user', content: message }] });
+      return r.content.map(c => c.text || '').join('');
+    } }),
+  });
+  app.get('/api/clients/:clientId/location-pages', catRoute(async req => {
+    const rows = await pageMapStore.saved(req.params.clientId);
+    const view = await locationRunner.view(req.params.clientId, rows);
+    let readiness = { ok: true };
+    try { const I = await categoryInputsFor(req.params.clientId); require('./location-blocks').blocksFor({ niche: I.niche, cv: I.ctx.cv }); readiness.dossiers = I.dossiers.map(d => d.locationName); readiness.reviews = I.reviews.length; }
+    catch (e) { readiness = { ok: false, error: e.message }; }
+    return { ...view, readiness };
+  }));
+  app.post('/api/clients/:clientId/location-pages/run', catRoute(async req => {
+    const { resume = true, keys = null, quality = false } = req.body || {};
+    if (locationRunner.running.has(req.params.clientId)) throw Object.assign(new Error('A location pages run is already in progress for this client.'), { status: 409 });
+    locationRunner.run(req.params.clientId, { resume: !!resume, keys: Array.isArray(keys) && keys.length ? keys : null, qualityReview: !!quality })
+      .catch(err => console.error('[location] run failed for', req.params.clientId, err));
+    return { started: true };
+  }));
+  // The decisions for one page as they stand now, no model call (a dry run)
+  app.get('/api/clients/:clientId/location-pages/preview/:key(*)', catRoute(async req => {
+    const I = await categoryInputsFor(req.params.clientId);
+    const key = '/' + String(req.params.key || '').replace(/^\/+/, '');
+    const page = locationRunner.pagesInOrder(I.rows).find(p => p.slug === key);
+    if (!page) throw Object.assign(new Error(`No location page ${key} in the page map.`), { status: 404 });
+    const written = await locationRunner.writtenFor(req.params.clientId, I.rows, page);
+    const { decisionsResult, extraFlags, townWritten, waitingOn } = await locationRunner.prepare(req.params.clientId, I, page, written);
+    return { key, town_written: townWritten, waiting_on: waitingOn, gates: decisionsResult.gates, flags: [...decisionsResult.flags, ...extraFlags], decisionsBlock: decisionsResult.decisionsBlock };
   }));
 }
 

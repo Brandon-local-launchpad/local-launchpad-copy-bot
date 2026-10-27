@@ -162,6 +162,21 @@ The same rubric scores a service page (base scope) and a town service page (town
 | V7 | Each block 4 card makes a different mechanism, none from MECHANISMS USED (the category page's and the sibling service pages' causes). | code: MECHANISM; judge P6 | CORE (17) rule |
 | V8 | The More Services intro names no service and no town and carries no link: the cards carry the names. | code: MORE-NAMES | CORE (17) rule |
 | V10 | The What's Included item titles are the service's own trade facts stages (6 to 8, in order); the type's role based set is used only when the pack gives fewer than 6 stages, and the page is flagged F-ITEMS-GENERIC. | code: decisions (items) | service pair read, 25 Oct |
+## L. Location pages (CORE (18), 27 Oct)
+
+The same rubric scores a location page (one per town, the town's hub, always town scope), through the location page's validator and reader view, with the category page's K1, I1, T3, T4, S11, Y8, A3, A5, B8 (and the service page's V7) and these items on top. T5 does not apply as written: a location page's cards may name the town within the L2 count, but never a neighbourhood or village (L5).
+
+| ID | Test (pass when…) | Scored by | Found |
+|---|---|---|---|
+| E1 | Hero sentence 1 has the company token and the keyword phrase ("a landscaper working across Winchester": up to two words between the category word and in/around/across/near). | code: HERO-LOC | CORE (18) rule |
+| B7 | The content block has three or four paragraphs and a closing line, and paragraph 3 links 2 or 3 of the cards' pages, each with a reason, two links a sentence at most. | code: CB-PARAS, CB-LINKS; judge B1j | CORE (18) rule |
+| L2 | The town is named in the hero, the services intro, the content block and the areas intro, and at most twice across the other fields; the base town once at most, in the areas intro only ("our base in Southampton"); no other town anywhere. | code: TOWN-COUNT, TOWN-OTHER; judge T6j | CORE (18) rule |
+| L3 | Every paragraph of the content block (the closing line apart) carries a fact from the town profile or an allocated neighbourhood (two content words shared with the research) and says what it means for the work; the content block never states the guarantee length or the insurance figure. | code: CB-FACT, CB-PROOF; judge L1 | CORE (18) rule |
+| L4 | No sentence explains how a job is done: nothing remakes (70% of its content words) paragraph 2 of one of the town's service pages or a trade facts standard method row, and nothing walks through stages ("first we", "then we", "the next step"). | code: HOW-DONE; judge B1j | CORE (18) rule |
+| L5 | No card names an allocated neighbourhood or a village. | code: CARD-NBHD, CARD-LOCAL | CORE (18) rule |
+| L6 | At least one FAQ answer links a page in this town. | code: FAQ-TOWN-LINK | CORE (18) rule |
+| V7 | Each block 4 card makes a different mechanism, none from MECHANISMS USED (the town's category and service pages' causes). | code: MECHANISM; judge P6 | CORE (18) rule |
+
 ## How the review step uses this
 
 - Code items: an item fails when the validator reports any issue for its checks on the final page (BLOCK or FLAG), or when the decisions break it. Y2 fails only on sentences over 30 words or a field outside its range (the validator's 25 word soft cap is advice, not a fail).

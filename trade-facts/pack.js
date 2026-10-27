@@ -352,7 +352,19 @@ function packProperNouns(niche) {
   return [...phrases.values()].sort((a, b) => a.localeCompare(b));
 }
 
+// Every Table A row of a pack as "how it's done" text, for the location page validator
+// (CORE (18), 27 Oct): a location page explains the town, not the job, so a sentence that
+// remakes one of these is a fail. Read whether or not the pack is verified (nothing here is
+// sent to the model). [] when the pack or the table is missing.
+function standardMethodRows(niche) {
+  const pack = niche ? readPack(niche) : { exists: false };
+  if (!pack.exists) return [];
+  const A = parseTables(pack.text).get('A');
+  if (!A) return [];
+  return A.rows.map(r => ({ service: cleanCell(r[0]), text: [cleanCell(r[1]), cleanCell(r[2])].filter(Boolean).join('. ') })).filter(r => r.text);
+}
+
 module.exports = {
   DIR, BLOCKS_DIR, CORE_FILE, packNameFor, packFile, blockFile, relative, readPack, readBlock, readCore, listNiches, hasBlock,
-  parseHeader, header, fingerprintOf, parseTables, packForService, packForCategory, rowsForService, packProperNouns, cellNames, normName,
+  parseHeader, header, fingerprintOf, parseTables, packForService, packForCategory, rowsForService, standardMethodRows, packProperNouns, cellNames, normName,
 };
