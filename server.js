@@ -80,7 +80,7 @@ app.post('/auth/login', express.urlencoded({ extended: false }), (req, res) => {
     const token   = signToken(APP_PASSWORD);
     const maxAge  = 30 * 24 * 3600; // 30 days
     res.setHeader('Set-Cookie', `ll_auth=${token}; Path=/; HttpOnly; Max-Age=${maxAge}; SameSite=Lax`);
-    return res.redirect('/clients.html');
+    return res.redirect('/dashboard');
   }
   res.redirect('/login.html?error=1');
 });
@@ -2906,7 +2906,7 @@ app.post('/api/research-rerun', async (req, res) => {
 // ── Serve generate tool at /generate ─────────────────────────────────────────
 
 app.get('/generate', (req, res) => res.sendFile(path.join(__dirname, 'public', 'generate.html')));
-app.get('/', (req, res) => res.redirect('/clients.html'));
+app.get('/', (req, res) => res.redirect('/dashboard'));
 
 // ── v20 client values ─────────────────────────────────────────────────────────
 
@@ -3659,9 +3659,12 @@ async function v20HomepageInputs(clientId, sessionId) {
   return { ctx, niche, allocFlags, view, decisionsResult };
 }
 
+// The clients whose homepage is being written right now (the dashboard's Running now)
+const homepageRunning = new Set();
 app.post('/api/clients/:clientId/v20/homepage/generate', async (req, res) => {
   if (!pool) return res.status(503).json({ error: 'Database not configured.' });
   const { clientId } = req.params;
+  homepageRunning.add(clientId); res.on('finish', () => homepageRunning.delete(clientId));
   const sessionId = req.body && req.body.sessionId;
   try {
     let inputs;
@@ -4054,6 +4057,11 @@ if (pool && pageMapStore && v20Store) {
     return { key, town_written: townWritten, waiting_on: waitingOn, gates: decisionsResult.gates, flags: [...decisionsResult.flags, ...extraFlags], decisionsBlock: decisionsResult.decisionsBlock };
   }));
 }
+
+// ── The redesigned UI (27 Oct): the dashboard, assigned to, the app shell (ui/routes.js) ──
+const uiRoutes = require('./ui/routes');
+uiRoutes.mountUiApi(app, { pool, tradeFacts, runners: () => ({ category: categoryRunner, service: serviceRunner, location: locationRunner }), homepageRunning: () => homepageRunning });
+uiRoutes.mountAppShell(app, path.join(__dirname, 'public'));
 
 app.get('/api/clients/:clientId/wp/connection', wpRoute(req => wpService.connection(req.params.clientId)));
 app.put('/api/clients/:clientId/wp/connection', wpRoute(req => wpService.saveConnection(req.params.clientId, req.body || {})));

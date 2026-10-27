@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Copybot</title>
+<link rel="icon" href="/logo.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/app/app.css">
+</head>
+<body>
+<div class="app" id="app">
+  <aside class="sb" id="sidebar">
+    <a class="sb-logo" href="/dashboard" data-link>
+      <img src="/logo.png" alt="Local Launchpad">
+      <span class="sb-brand">Local Launchpad</span>
+    </a>
+    <nav class="sb-nav" id="nav"></nav>
+    <div class="sb-foot">
+      <div class="sb-user" id="sbUser"><span class="sb-avatar" id="sbAvatar">LL</span><span class="sb-username" id="sbName">Local Launchpad</span></div>
+      <form method="post" action="/auth/logout" class="sb-signout"><button type="submit" class="sb-link" title="Sign out"><span class="ico">⎋</span><span class="lbl">Sign out</span></button></form>
+    </div>
+    <button class="sb-collapse" id="sbCollapse" title="Collapse the sidebar">‹</button>
+  </aside>
+  <div class="sb-scrim" id="sbScrim"></div>
+  <div class="main">
+    <div class="topbar" id="topbar"><button class="menu-btn" id="menuBtn" aria-label="Menu">☰</button><img src="/logo.png" alt="" class="topbar-logo"><span id="topbarTitle">Copybot</span></div>
+    <main class="view" id="view"></main>
+  </div>
+</div>
+<div id="toasts" class="toasts"></div>
+<script type="module" src="/app/shell.js"></script>
+</body>
+</html>
