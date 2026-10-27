@@ -70,9 +70,13 @@ function tableRows(sectionText) {
   const out = [];
   for (const line of (sectionText || '').split('\n')) {
     if (!/^\s*\|/.test(line)) continue;
-    const cells = line.trim().replace(/^\|/, '').replace(/\|$/, '').split('|').map(c => c.replace(/<br\s*\/?>/gi, '\n').replace(/[\[\]]/g, m => m).trim());
-    if (!cells.length || !ID_RE.test(cells[0].replace(/[\[\]]/g, '')) || /^-+$/.test(cells[0])) continue;
-    cells[0] = cells[0].replace(/[\[\]]/g, '').trim();
+    const cells = line.trim().replace(/^\|/, '').replace(/\|$/, '').split('|').map(c => c.replace(/<br\s*\/?>/gi, '\n').trim());
+    if (!cells.length || !ID_RE.test(cells[0]) || /^-+$/.test(cells[0])) continue;
+    // "ID and name" in one cell ("[WIN-N01] St Cross", the Winchester dossier): the ID, then the rest as the next cell
+    const first = cells[0].replace(/[\[\]]/g, '').trim();
+    const m = first.match(ID_RE);
+    const rest = first.replace(ID_RE, '').replace(/^[\s|:.\-–—]+/, '').trim();
+    cells.splice(0, 1, m[0], ...(rest ? [rest] : []));
     out.push(cells);
   }
   return out;
