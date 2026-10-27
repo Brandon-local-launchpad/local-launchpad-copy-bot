@@ -4458,6 +4458,8 @@ initDb().then(async () => {
     const n = await filloutService.recoverPending().catch(err => { console.error('[fillout] recovery failed:', err); return 0; });
     if (n) console.log(`[fillout] processed ${n} submission(s) left waiting by a restart`);
   }
+  // A preview environment's demo client (tools/seed-demo-client.js): only when SEED_DEMO_CLIENT=1, never on production
+  if (pool && process.env.SEED_DEMO_CLIENT === '1') await require('./tools/seed-demo-client').seedDemoClient(pool, { v20HomepageInputs, filloutService }).catch(err => console.error('[seed-demo] failed:', err));
   app.listen(PORT, () => console.log(`Copy bot running at http://localhost:${PORT}`));
 }).catch(err => {
   console.error('DB init failed:', err.message);
