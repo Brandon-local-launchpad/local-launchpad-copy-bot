@@ -4,6 +4,7 @@
 //   GET /api/dashboard            tiles, the clients table rows, what is running
 //   GET /api/dashboard/running    what is running now (polled)
 //   GET /api/dashboard/rankings   Top 3% per client per month from the stored scans
+//   GET /api/clients/:id/summary  one client's row, what is running, the facts the pages are missing
 //   PUT /api/clients/:id/assigned-to   { name }
 // and the app shell for every app path (public/app/index.html). Read only apart
 // from assigned_to. Nothing here changes the pipeline.
@@ -26,6 +27,12 @@ function mountUiApi(app, { pool, tradeFacts = null, runners = () => ({}), homepa
   app.get('/api/dashboard', wrap(() => D.loadDashboard({ pool, tradeFacts, runners: runners(), homepageRunning: homepageRunning() })));
   app.get('/api/dashboard/running', wrap(async () => { const d = await D.loadDashboard({ pool, tradeFacts, runners: runners(), homepageRunning: homepageRunning() }); return { running: d.running, generated_at: d.generated_at }; }));
   app.get('/api/dashboard/rankings', wrap(req => D.loadRankings({ pool, months: Math.min(24, Math.max(1, parseInt(req.query.months, 10) || 6)) })));
+  // One client's dashboard row plus the facts the pages are missing (the client page header and Record tab)
+  app.get('/api/clients/:id/summary', wrap(async req => {
+    const d = await D.loadDashboard({ pool, tradeFacts, runners: runners(), homepageRunning: homepageRunning(), clientId: req.params.id });
+    if (!d.clients.length) throw Object.assign(new Error('Client not found.'), { status: 404 });
+    return { row: d.clients[0], running: d.running, missing_facts: await D.loadMissingFacts({ pool, clientId: req.params.id }), stages: d.stages };
+  }));
   app.put('/api/clients/:id/assigned-to', wrap(async req => {
     const name = String((req.body || {}).name || '').trim().slice(0, 80);
     const { rows } = await pool.query(`UPDATE clients SET assigned_to = $2 WHERE id = $1 RETURNING id, assigned_to`, [req.params.id, name || null]);

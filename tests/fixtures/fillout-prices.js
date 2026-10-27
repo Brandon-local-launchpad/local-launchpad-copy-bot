@@ -72,6 +72,7 @@ const T3 = "Emergency call outs are forty five pounds an hour. Full rewires are 
     const qs = p.submission.questions;
     qs.find(q => q.id === 'bwUuvaZTmChegZekppzNNv').value = name;
     qs.find(q => q.id === '5EHeuZ2pntQwCaoADHRRrJ').value = name.toLowerCase().replace(/\s+/g, '') + '@example.com';
+    qs.find(q => q.id === 'pt3n5TwXdkoJZKXjAQQBS1').value = '07' + String([...String(name)].reduce((a, c) => (a * 31 + c.charCodeAt(0)) >>> 0, 0)).padStart(9, '0').slice(0, 9);
     qs.find(q => q.id === 'rygW9ALYDsZ1d5f2K5pRHg').value = transcript === null ? null : { url: 'http://audio.test/a.mp3', filename: 'a.mp3', transcription: transcript, duration: 20 };
     for (const [id, v] of Object.entries(extra)) qs.find(q => q.id === id).value = v;
     await req('POST', `/api/webhooks/fillout?token=${SECRET}`, p);

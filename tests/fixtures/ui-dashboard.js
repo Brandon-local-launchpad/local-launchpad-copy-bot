@@ -120,5 +120,6 @@ console.log('\n=== FIXTURE: the dashboard (stage, blockers, needs a person, runn
   } finally { srv.close(); }
 
   console.log(`\n${pass} passed, ${fail} failed`);
-  process.exit(fail ? 1 : 0);
+  // A tick for the closed server's handles, so the exit is clean on Windows
+  setTimeout(() => process.exit(fail ? 1 : 0), 100);
 })().catch(e => { console.error(e); process.exit(1); });

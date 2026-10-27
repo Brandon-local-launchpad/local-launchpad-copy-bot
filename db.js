@@ -98,6 +98,8 @@ async function initDb() {
   await require('./h1-research/service').ensureH1Tables(pool);
   // Trade facts: the verified flag per niche pack (trade-facts/store.js)
   await require('./trade-facts/store').ensureTradeFactsTables(pool);
+  // The redesigned UI (27 Oct): the per-call model log for Settings (ui/model-log.js)
+  await require('./ui/model-log').ensureModelLogTable(pool);
   // The redesigned UI (27 Oct): assigned_to on the client (ui/routes.js)
   await require('./ui/routes').ensureUiColumns(pool);
   console.log('DB schema ready');

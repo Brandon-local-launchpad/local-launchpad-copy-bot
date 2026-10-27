@@ -89,7 +89,7 @@ const quiet = { log() {}, info() {}, warn() {}, error() {} };
   const submit = async (sid, name, email, niche) => {
     const p = clone(sample); p.submission.submissionId = sid;
     const qs = p.submission.questions;
-    qs.find(q => q.id === 'bwUuvaZTmChegZekppzNNv').value = name; qs.find(q => q.id === '5EHeuZ2pntQwCaoADHRRrJ').value = email;
+    qs.find(q => q.id === 'bwUuvaZTmChegZekppzNNv').value = name; qs.find(q => q.id === '5EHeuZ2pntQwCaoADHRRrJ').value = email; qs.find(q => q.id === 'pt3n5TwXdkoJZKXjAQQBS1').value = '07' + String([...String(email)].reduce((a, c) => (a * 31 + c.charCodeAt(0)) >>> 0, 0)).padStart(9, '0').slice(0, 9);
     if (niche !== undefined) qs.find(q => q.id === 'q_niche_select').value = niche;
     qs.find(q => q.id === 'rygW9ALYDsZ1d5f2K5pRHg').value = null;
     await req('POST', `/api/webhooks/fillout?token=${SECRET}`, p);

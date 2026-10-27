@@ -70,8 +70,10 @@ const NEEDS_PERSON = new Set(['fields', 'pack', 'claims', 'blocked']);
 // ── Loading ───────────────────────────────────────────────────────────────────
 // deps: { pool, tradeFacts (status(niche)), runners: { category, service, location } each with a
 // `running` Map (clientId → { startedAt, current }), homepageRunning: Set of clientIds }
-async function loadDashboard({ pool, tradeFacts = null, runners = {}, homepageRunning = null, now = new Date() } = {}) {
-  const { clients, tabs, niches } = await listClients(pool, { archived: true });
+async function loadDashboard({ pool, tradeFacts = null, runners = {}, homepageRunning = null, now = new Date(), clientId = null } = {}) {
+  const all = await listClients(pool, { archived: true });
+  const { tabs, niches } = all;
+  const clients = clientId ? all.clients.filter(c => c.id === clientId) : all.clients;
   const byClient = new Map(clients.map(c => [c.id, c]));
   const q = async (sql, params = []) => (await pool.query(sql, params)).rows;
 
@@ -211,7 +213,13 @@ async function loadDashboard({ pool, tradeFacts = null, runners = {}, homepageRu
       last_activity: act.get(c.id) || c.created_at, assigned_to: c.assigned_to || '', archived: !!c.archived_at, reviewed: !!c.reviewed_at, source: c.source || 'manual',
       running: runs.length > 0, first_submission_at: firstAt,
       pages: { total: pages.length, written: pages.filter(p => p.good).length }, towns_without_dossier: townsWithoutDossier,
+      page_types: Object.fromEntries(PAGE_TYPES.map(t => [t, { total: pages.filter(p => p.type === t).length, written: pages.filter(p => p.type === t && p.good).length, records: pages.filter(p => p.type === t && p.record).length }])),
+      // The wizard's answer: an existing site to replace (the Site audit tab shows), or a new build
+      existing_site: cv && cv._intake ? cv._intake.existing_site !== false : null,
+      gbp_done: !!(g && g.steps && ['description', 'services', 'products'].every(k => g.steps[k] && g.steps[k].status === 'done')), has_scans: (scansByClient.get(c.id) || []).length > 0,
       missing_fields: summary.missing, pack_unverified: packUnverified,
+      // The page list (type, key, title, good, block, claims, score, at) only for one client's summary
+      page_list: clientId ? pages : undefined,
     });
   }
 
@@ -246,4 +254,23 @@ async function loadRankings({ pool, months = 6, now = new Date() }) {
   return { months: xs, series };
 }
 
-module.exports = { loadDashboard, loadRankings, stageOf, blockersOf, missingFields, STAGES, PAGE_TYPES };
+// ── What the pages can't say yet: the reviewer's missing facts across the client's latest page records ─
+async function loadMissingFacts({ pool, clientId }) {
+  const PT = `COALESCE(metadata->>'page_type', 'homepage')`, PK = `COALESCE(metadata->>'page_key', 'homepage')`;
+  const { rows } = await pool.query(`SELECT DISTINCT ON (${PT}, ${PK}) ${PT} AS page_type, ${PK} AS page_key, (content::jsonb)->'QUALITY'->'missing_facts' AS facts
+    FROM client_assets WHERE client_id = $1 AND asset_type = 'v20_page_record' ORDER BY ${PT}, ${PK}, uploaded_at DESC`, [clientId]);
+  const byFact = new Map();
+  for (const r of rows) {
+    const facts = parse(r.facts);
+    if (!Array.isArray(facts)) continue;
+    for (const f of facts) {
+      const key = str(f && f.fact).toLowerCase();
+      if (!key) continue;
+      if (!byFact.has(key)) byFact.set(key, { fact: str(f.fact), why: str(f.why), pages: [] });
+      byFact.get(key).pages.push({ type: r.page_type, key: r.page_key });
+    }
+  }
+  return [...byFact.values()].sort((a, b) => b.pages.length - a.pages.length);
+}
+
+module.exports = { loadMissingFacts, loadDashboard, loadRankings, stageOf, blockersOf, missingFields, STAGES, PAGE_TYPES };
