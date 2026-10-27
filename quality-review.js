@@ -136,6 +136,8 @@ const LOCATION_ITEMS = {
   L4: { title: 'No sentence explains how a job is done', checks: ['HOW-DONE'] },
   L5: { title: 'No neighbourhood or village in a card', checks: ['CARD-NBHD'] },
   L6: { title: 'At least one FAQ answer links a page in this town', checks: ['FAQ-TOWN-LINK'] },
+  L7: { title: 'Content block paragraph 3 opens on a town fact, like paragraphs 1 and 2', checks: ['CB-P3'] },
+  L8: { title: 'A cause has one home: never in all three of the content block, block 4 and the FAQ', checks: ['CAUSE-HOME'] },
   V7: { title: 'Each block 4 card a different mechanism, none from MECHANISMS USED', checks: ['MECHANISM'] },
 };
 function codeItemsFor(record) {

@@ -20,6 +20,8 @@
 //   CB-OPENER   BLOCK  the content block opens on the reader's search
 //   CB-LINKS    FLAG   the content block links none of the cards' pages; BLOCK over 3, or over 2 in a sentence
 //   CB-PROOF    BLOCK  the content block states the guarantee length or the insurance figure (their FAQ answers are their home)
+//   CB-P3       BLOCK  paragraph 3 of the content block opens on something other than a town fact (the company, a proof, "day to day")
+//   CAUSE-HOME  FLAG   a block 4 cause made in all three of the content block, block 4 and the FAQ (one home, two at most)
 //   CB-FACT     BLOCK  a content block paragraph (the closing line apart) shares fewer than two
 //                      content words with the research (the town profile, the neighbourhoods, the symptoms)
 //   HOW-DONE    BLOCK  a sentence remakes (ideas.js matchIdea, 70%) paragraph 2 of one of the town's
@@ -34,7 +36,7 @@
 //   H1 checks on the code fields (report only)
 
 const { validateCommon, sharedCrossChecks, helpers, RETRY_FLAGS } = require('./validate-v20');
-for (const c of ['HERO-LOC', 'KEYWORD', 'CB-LINKS', 'INTRO-SENTENCES', 'TOWN-COUNT', 'HOW-DONE', 'FAQ-TOWN-LINK']) RETRY_FLAGS.add(c);
+for (const c of ['HERO-LOC', 'KEYWORD', 'CB-LINKS', 'INTRO-SENTENCES', 'TOWN-COUNT', 'HOW-DONE', 'FAQ-TOWN-LINK', 'CAUSE-HOME']) RETRY_FLAGS.add(c);
 const { LABELS } = require('./page-types/location');
 const { matchIdea, contentWords } = require('./ideas');
 const { isAdminArea } = require('./client-files');
@@ -181,6 +183,14 @@ function validateLocation(record, V) {
         for (const w of contentWords(p)) if (research.has(w)) shared++;
         if (shared < 2) issue('BLOCK', 'CB-FACT', cb.label, `Paragraph ${i + 1} carries no fact from the town profile or the neighbourhoods. Every paragraph of the content block names a town fact and says what it means for the work.`, cb.ref);
       });
+      // CB-P3: paragraph 3 opens on a town fact like paragraphs 1 and 2; a generic opener (the
+      // company, a proof, "day to day") is a BLOCK (Brandon, 27 Oct, after the Romsey runs)
+      if (body.length >= 3) {
+        const s1 = sentences(body[2])[0] || '';
+        let shared = 0;
+        for (const w of contentWords(s1)) if (research.has(w)) shared++;
+        if (shared < 2) issue('BLOCK', 'CB-P3', cb.label, `Paragraph 3 opens "${scanText(s1).slice(0, 60)}…", not on a town fact. Open it on a fact from the town profile or a neighbourhood, as paragraphs 1 and 2 do, then the links with their reasons.`, cb.ref);
+      }
     }
   }
 
@@ -205,6 +215,21 @@ function validateLocation(record, V) {
       const mine = contentWords(f.text);
       const used = mechanisms.find(mm => [...mm.words].every(w => mine.has(w)));
       if (used) issue('BLOCK', 'MECHANISM', f.label, `Makes the cause "${used.text}", which ${used.page} already makes (MECHANISMS USED). Each card is a different mechanism: take another cause.`, f.ref);
+    }
+  }
+
+  // ── One home per cause (Brandon, 27 Oct): a block 4 cause made in all three of the content
+  // block, block 4 and the FAQ is a FLAG for rewrite on the FAQ answer (the last of the three) ──
+  {
+    const causes = (D.problems || []).map(p => ({ title: p.title, text: p.mechanism || '', words: contentWords(p.mechanism || '') })).filter(c => c.words.size >= 2);
+    // A field makes a cause when 70% of the cause's content words are in it ("under" and "were"
+    // count as content words, so every word is too strict for prose)
+    const makes = (text, words) => { const mine = contentWords(text); let n = 0; for (const w of words) if (mine.has(w)) n++; return n / words.size >= 0.7; };
+    for (const c of causes) {
+      const inContent = !!(cb && makes(cb.text, c.words));
+      const inBlock4 = fields.some(f => f.ref.key === 'block4' && makes(f.text, c.words));
+      const faqField = fields.find(f => f.ref.sub === 'faq_answer' && makes(f.text, c.words));
+      if (inContent && inBlock4 && faqField) issue('FLAG', 'CAUSE-HOME', faqField.label, `Makes the cause "${c.text}" again: the content block and block 4 ("${c.title}") already make it. A cause has one home on the page, two at most: take another angle here.`, faqField.ref);
     }
   }
 

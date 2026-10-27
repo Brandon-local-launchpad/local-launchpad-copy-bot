@@ -175,6 +175,8 @@ The same rubric scores a location page (one per town, the town's hub, always tow
 | L4 | No sentence explains how a job is done: nothing remakes (70% of its content words) paragraph 2 of one of the town's service pages or a trade facts standard method row, and nothing walks through stages ("first we", "then we", "the next step"). | code: HOW-DONE; judge B1j | CORE (18) rule |
 | L5 | No card names an allocated neighbourhood or a village. | code: CARD-NBHD, CARD-LOCAL | CORE (18) rule |
 | L6 | At least one FAQ answer links a page in this town. | code: FAQ-TOWN-LINK | CORE (18) rule |
+| L7 | Paragraph 3 of the content block opens on a town fact (two content words shared with the research), as paragraphs 1 and 2 do; a generic opener (the company, a proof, "day to day") fails. | code: CB-P3; judge B1j | Romsey runs, 27 Oct (Brandon) |
+| L8 | A block 4 cause (its briefed mechanism) has one home on the page, two at most: never made in all three of the content block, block 4 and the FAQ. | code: CAUSE-HOME; judge P6 | Romsey runs, 27 Oct (Brandon: wet ground in three places) |
 | V7 | Each block 4 card makes a different mechanism, none from MECHANISMS USED (the town's category and service pages' causes). | code: MECHANISM; judge P6 | CORE (18) rule |
 
 ## How the review step uses this

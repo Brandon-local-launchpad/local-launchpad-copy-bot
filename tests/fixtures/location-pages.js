@@ -325,6 +325,18 @@ chk('CB-PROOF: the insurance figure or the guarantee length in the content block
   const b = blocks(issuesOf(withText(record, PT.LABELS.content, record[PT.LABELS.content].replace('We are family run and independent', 'Every job carries our 5 year guarantee and we are family run')), Vg));
   return has(a, 'CB-PROOF', 'content', 'token') && has(b, 'CB-PROOF', 'content', 'guarantee length') && !has(blocks(clean), 'CB-PROOF');
 })(), '', 'CB-PROOF');
+chk('CB-P3: paragraph 3 opening on the company or a proof rather than a town fact is a BLOCK; the built page passes', (() => {
+  const r = withText(record, PT.LABELS.content, record[PT.LABELS.content].replace('On the fast draining gravel a lawn needs feeding more often, which is what our', 'We are a small family firm and proud of the way we work. Our'));
+  return has(blocks(issuesOf(r)), 'CB-P3', 'content', 'Paragraph 3 opens') && !has(clean, 'CB-P3');
+})(), '', 'CB-P3');
+chk('CAUSE-HOME: a block 4 cause made in the content block, block 4 and an FAQ answer is a retried FLAG on the answer; in two of the three it passes', (() => {
+  // The first card's cause ("the ground under the town's gardens holding water"): the built page makes it in block 4 and the content block (the water table)
+  const cause = D.problems[0].mechanism;
+  const r = withFaq(record, 4, 'Hard landscaping runs most of the year in dry spells, and planting and turf do well in autumn and spring. The ground under the gardens here holds water through the winter, so the town waits for a dry spell.');
+  const i = issuesOf(r).find(x => x.check === 'CAUSE-HOME');
+  return !!i && i.type === 'FLAG' && i.retry && /faq_answer/.test(i.field) && i.message.includes(cause) && !clean.some(x => x.check === 'CAUSE-HOME');
+})(), '', 'CAUSE-HOME');
+chk('RESEARCH-LANG (shared): "plateau" is research wording', issuesOf(withText(record, PT.LABELS.costIntro, 'Prices vary here because the gardens do, from a walled yard by the Abbey to a sloping plot up on the plateau. We look at the garden first, then give you a figure that stays the same.')).some(i => i.check === 'RESEARCH-LANG' && /plateau/.test(i.message)), '', 'RESEARCH-LANG');
 chk('CB-FACT: a paragraph with no fact from the town profile or the neighbourhoods is a BLOCK', has(blocks(issuesOf(withText(record, PT.LABELS.content, record[PT.LABELS.content].replace(/The terraced streets[^\n]*/, 'Some people worry about letting a firm they have not met into the garden, so the first visit is a walk round with you and nothing happens until you have said what matters most.')))), 'CB-FACT', 'content', 'Paragraph 2'), '', 'CB-FACT');
 chk('HOW-DONE: a sentence remaking a service page\'s paragraph 2 is a BLOCK; one remaking a Table A row is a BLOCK; a stage opener is a FLAG', (() => {
   const a = blocks(issuesOf(withFaq(record, 2, 'Tell us and we look at it. For most stumps a grinder does the work, taking the wood out in passes below the surface, and digging and winching come in where the whole root plate has to come out for a wall or a drive.')));
