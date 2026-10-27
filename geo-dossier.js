@@ -63,8 +63,31 @@ function splitList(s) {
 
 const hasSource = text => /https?:\/\//.test(text || '');
 
+// The table form the older dossiers use for sections 2, 3 and 5 (Geo Research before v6,
+// the 8 Oct town dossiers): one row per item, the ID in the first cell. Returns the cells
+// of each item row (header and separator rows out), "<br>" turned into a line break.
+function tableRows(sectionText) {
+  const out = [];
+  for (const line of (sectionText || '').split('\n')) {
+    if (!/^\s*\|/.test(line)) continue;
+    const cells = line.trim().replace(/^\|/, '').replace(/\|$/, '').split('|').map(c => c.replace(/<br\s*\/?>/gi, '\n').replace(/[\[\]]/g, m => m).trim());
+    if (!cells.length || !ID_RE.test(cells[0].replace(/[\[\]]/g, '')) || /^-+$/.test(cells[0])) continue;
+    cells[0] = cells[0].replace(/[\[\]]/g, '').trim();
+    out.push(cells);
+  }
+  return out;
+}
+
 function parseNeighbourhoods(sectionText, warnings) {
   const out = [];
+  if (!splitBlocks(sectionText).length) {
+    // | ID | Name | Type | Profile | Linked issues |
+    for (const c of tableRows(sectionText)) {
+      const profile = c[3] || '';
+      out.push({ id: c[0], name: c[1] || c[0], type: (c[2] || '').toLowerCase(), profile, linkedIssues: ((c[4] || '').match(ID_RE_G) || []), sourced: hasSource(profile) });
+    }
+    return out;
+  }
   for (const { heading, body } of splitBlocks(sectionText)) {
     const h = parseHeading(heading);
     if (!h) { warnings.push(`Neighbourhood heading without an ID: "${heading.slice(0, 60)}"`); continue; }
@@ -79,6 +102,15 @@ const ISSUE_LABELS = ['Detail', 'Scope', 'Category tags', 'Service tags', 'Angle
 
 function parseIssues(sectionText, warnings) {
   const out = [];
+  if (!splitBlocks(sectionText).length) {
+    // | ID | Title | Detail | Scope | Category tags | Service tags | Angles | Condition question | Answer material |
+    for (const c of tableRows(sectionText)) {
+      const [id, title, detail, scope, cats, svcs, angles, question, answer] = c;
+      const body = [`Detail: ${detail || ''}`, scope ? `Scope: ${scope}` : '', cats ? `Category tags: ${cats}` : '', svcs ? `Service tags: ${svcs}` : '', angles ? `Angles: ${angles}` : '', question ? `Condition question: ${question}` : '', answer ? `Answer material: ${answer}` : ''].filter(Boolean).join('\n');
+      out.push({ id, title: title || id, detail: detail || '', categoryTags: splitList(cats), serviceTags: splitList(svcs), body });
+    }
+    return out;
+  }
   for (const { heading, body } of splitBlocks(sectionText)) {
     const h = parseHeading(heading);
     if (!h) { warnings.push(`Issue heading without an ID: "${heading.slice(0, 60)}"`); continue; }
@@ -115,6 +147,14 @@ function parseSymptoms(sectionText, warnings) {
 
 function parseRules(sectionText, warnings) {
   const out = [];
+  if (!splitBlocks(sectionText).length) {
+    // | ID | Exact name of the rule or designation | Detail | Applies to |
+    for (const c of tableRows(sectionText)) {
+      const appliesRaw = c[3] || '';
+      out.push({ id: c[0], name: c[1] || c[0], detail: c[2] || '', appliesTo: appliesRaw.match(ID_RE_G) || [], wholeArea: /whole area/i.test(appliesRaw) });
+    }
+    return out;
+  }
   for (const { heading, body } of splitBlocks(sectionText)) {
     const h = parseHeading(heading);
     if (!h) { warnings.push(`Rule heading without an ID: "${heading.slice(0, 60)}"`); continue; }

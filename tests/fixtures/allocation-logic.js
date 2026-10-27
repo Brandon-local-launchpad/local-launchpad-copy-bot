@@ -27,6 +27,23 @@ chk('Parser: 5 neighbourhoods, 3 issues, 5 symptoms, 2 rules, no warnings',
   `${parsed.neighbourhoods.length}/${parsed.issues.length}/${parsed.symptoms.length}/${parsed.rules.length} warnings=${parsed.warnings.join('; ')}`, '5/3/5/2, none');
 chk('Parser: unbracketed "TST-N02 | Old Riverside" heading read',
   parsed.neighbourhoods[1].id === 'TST-N02' && parsed.neighbourhoods[1].name === 'Old Riverside', JSON.stringify(parsed.neighbourhoods[1].name), 'Old Riverside');
+// The table form of sections 2, 3 and 5 (the 8 Oct town dossiers on the live client; 27 Oct)
+{
+  const T = parseDossier(['## 1. LOCATION OVERVIEW', '', 'A market town on the Test.[https://example.org/o]', '', '## 2. NEIGHBOURHOOD PROFILES', '', '| ID | Name | Type | Profile | Linked issues |', '|---|---|---|---|---|',
+    '| TBL-N01 | Whitenap | neighbourhood | Built in the 1960s on a plateau.[https://example.org/a] Open plan fronts. | TBL-I01, TBL-I02 |', '| TBL-N02 | Great Woodley | estate | Vehicle access behind the house (inferred). | TBL-I02 |', '',
+    '## 3. LOCAL ISSUES', '', '| ID | Title | Detail | Scope | Category tags | Service tags | Angles | Condition question | Answer material |', '|---|---|---|---|---|---|---|---|---|',
+    '| TBL-I01 | Lawns on the plateau dry out | The plateau drains fast.[https://example.org/b] | Local | Gardener; Lawn care service | Lawn mowing; Turf laying | Timing: summer.<br>Property type: open plan. | Why does the lawn brown first? | Thin soil over gravel. |',
+    '| TBL-I02 | Access from the back | Radburn layout (TBL-N02).[https://example.org/c] | Local | Paving contractor; Deck builder | Patios | Access: behind. | Why the back road? | Separated routes. |', '',
+    '## 4. SYMPTOMS', '', '| ID | What the customer sees | Issue ID | Urgent |', '|---|---|---|---|', '| TBL-S01 | “The lawn browns in a week.” | TBL-I01 | N |', '',
+    '## 5. RULES & COUNCIL', '', '| ID | Exact name of the rule or designation | Detail | Applies to |', '|---|---|---|---|', '| TBL-R01 | Romsey Conservation Area | Covers the old town.[https://example.org/d] | TBL-N01 |', '| TBL-R02 | Permitted development for paving | Front gardens.[https://example.org/e] | Whole area |', ''].join('\n'));
+  chk('Parser: table rows for neighbourhoods, issues and rules are read (names, types, sources, tags, linked issues, applies to)',
+    T.neighbourhoods.map(n => `${n.name}:${n.type}:${n.sourced ? 's' : 'u'}:${n.linkedIssues.join('/')}`).join(' ') === 'Whitenap:neighbourhood:s:TBL-I01/TBL-I02 Great Woodley:estate:u:TBL-I02'
+    && T.issues.map(i => `${i.id}:${i.categoryTags.join('/')}:${i.serviceTags.length}`).join(' ') === 'TBL-I01:Gardener/Lawn care service:2 TBL-I02:Paving contractor/Deck builder:1'
+    && /^Detail: The plateau drains fast/.test(T.issues[0].body) && /Angles: Timing: summer\.\nProperty type/.test(T.issues[0].body)
+    && T.symptoms.length === 1 && T.symptoms[0].issueId === 'TBL-I01'
+    && T.rules.map(r => `${r.id}:${r.wholeArea ? 'whole' : r.appliesTo.join('/')}`).join(' ') === 'TBL-R01:TBL-N01 TBL-R02:whole' && !T.warnings.length,
+    JSON.stringify([T.neighbourhoods.map(n => n.name), T.issues.map(i => i.categoryTags), T.rules.map(r => r.appliesTo), T.warnings]), 'read');
+}
 chk('Parser: table-row symptom TST-S03 read with its issue',
   parsed.symptoms.find(s => s.id === 'TST-S03').issueId === 'TST-I02', parsed.symptoms.find(s => s.id === 'TST-S03').issueId, 'TST-I02');
 chk('Parser: urgent flag read', parsed.symptoms.find(s => s.id === 'TST-S04').urgent === true, 'false', 'true');
