@@ -136,8 +136,13 @@ function computeLocationDecisions({ cv, niche, keyValueMap = {}, rows = [], page
   const locCats = applies.filter(r => r.type === 'location_category' && live(r) && inTown(r));
   const townServices = applies.filter(r => r.type === 'town_service' && live(r) && inTown(r));
   const cardMode = categories.length > 1 ? 'categories' : 'services';
+  // A category card is named by its work noun ("Decking" for Deck Builder, "Tree Surgery" for Tree
+  // Service), so the link reads as the work ("our [decking](…) work"), never a job title written
+  // around the link ("the deck builder side of what we do", the first real run, 27 Oct); a category
+  // with no work noun keeps its page's own H1 word
+  const nounFor = category => { const n = (niche.category_work_nouns || {})[lc(category)]; return n ? titleCase(n) : null; };
   const cards = cardMode === 'categories'
-    ? locCats.map(r => { const category = catTitle(r.info.category_key) || r.title; return { name: titleCase(keywordWord(r.h1 || '', townName, category)), category, url: slugOf(r), h1: r.h1 || '', target: 'location-category', linked: true, status: isLinkable({ status: r.status, urlSlug: slugOf(r), pageType: 'category' }) ? 'Launching' : 'Launching' }; })
+    ? locCats.map(r => { const category = catTitle(r.info.category_key) || r.title; return { name: nounFor(category) || titleCase(keywordWord(r.h1 || '', townName, category)), category, url: slugOf(r), h1: r.h1 || '', target: 'location-category', linked: true, status: isLinkable({ status: r.status, urlSlug: slugOf(r), pageType: 'category' }) ? 'Launching' : 'Launching' }; })
     : townServices.map(r => { const name = (r.info && r.info.service_name) || keywordWord(r.title || '', townName, r.title); return { name: name.charAt(0).toUpperCase() + name.slice(1), category: catTitle(r.info && r.info.category_key) || '', url: slugOf(r), h1: r.h1 || '', target: 'town-service', linked: true, status: 'Launching' }; });
   if (!cards.length) flags.push({ code: 'F-CARDS', msg: `${townName} has no ${cardMode === 'categories' ? 'location category page' : 'town service page'} to show as a card.` });
   const SHAPES = [
@@ -150,7 +155,10 @@ function computeLocationDecisions({ cv, niche, keyValueMap = {}, rows = [], page
     'Open with who this suits; then the work.',
     'Open with the material or method that matters most; then what the customer gets.',
   ];
-  const LINK_PHRASES = ['our [X] work', 'the [X] we do', 'a [X] job', 'booking [X]', 'our [X] visits', 'the [X] side of what we do'];
+  // The link inside a sentence: the plain name of the page, so "our [gardener] work", "the [paving
+  // contractor] page", never "paving contractor visits" or "the deck builder side of what we do"
+  // (the first real run, 27 Oct: both read as written around the link)
+  const LINK_PHRASES = ['our [X] work', 'the [X] we do', 'a [X] job', 'our [X] jobs', 'booking [X]', 'our [X] service'];
   cards.forEach((c, i) => { c.shape = SHAPES[i % SHAPES.length]; c.link_phrase = LINK_PHRASES[i % LINK_PHRASES.length].replace('[X]', `[${lc(c.name)}](${c.url})`); });
 
   // ── Blocks 4 and 5, steps, FAQ from the type's town wide briefs (no seasonal swap, no symptom question) ──
@@ -236,7 +244,10 @@ function computeLocationDecisions({ cv, niche, keyValueMap = {}, rows = [], page
     areas, faq: faqs,
     allocated, ideasUsed: Array.isArray(ideasUsed) ? ideasUsed : [], mechanismsUsed,
     contentLinks, linkablePages, townPagePrefix,
-    quoteFree, emergencyOn, coastal: cv.coastal_city === 'yes',
+    quoteFree, emergencyOn,
+    // The shared COAST rule ("inland and along the coast") is the base page's travel sentence: a
+    // location page is about one town, so it never applies here (the first real run, 27 Oct)
+    coastal: false, city_coastal: cv.coastal_city === 'yes',
     travel_distance: cv.travel_distance || '',
     seasonal: false,
     trade_facts: null,
@@ -280,7 +291,7 @@ function formatLocationBlock(D, cv, niche, ctx) {
   D.cards.forEach((c, i) => {
     push(`  ${i + 1}. ${c.name} → ${c.url} (${c.target === 'location-category' ? `location category page for ${c.category}` : 'town service page'}${c.h1 ? ' | H1: ' + c.h1 : ''})`);
     push(`     Shape: ${c.shape}`);
-    push(`     Link text: "${lc(c.name)}" (the plain ${D.card_mode === 'categories' ? 'category' : 'service'} name, never the destination H1, never with the town), inside a sentence as "${c.link_phrase}", never at its start and never the same phrase as another card. 2 or 3 of the client's confirmed services in this ${D.card_mode === 'categories' ? 'category' : 'service'} named in plain words. No neighbourhoods, no villages.`);
+    push(`     Link text: "${lc(c.name)}" (the plain name of the ${D.card_mode === 'categories' ? 'work' : 'service'}, never the destination H1, never with the town, never a job title), inside a sentence as "${c.link_phrase}", never at its start and never the same phrase as another card. The card is about the work the customer gets, never about a page: 2 or 3 of the client's confirmed services in this ${D.card_mode === 'categories' ? 'category' : 'service'} named in plain words. No neighbourhoods, no villages.`);
   });
   if (!D.cards.length) push('  (none)');
   push('');
@@ -311,7 +322,7 @@ function formatLocationBlock(D, cv, niche, ctx) {
   push('');
   push(`[QUOTE_FREE]: ${D.quoteFree || '(blank — paid quotes)'}`);
   push(`Emergency layout: ${D.emergencyOn ? 'ON' : 'off'}`);
-  push(`Primary city coastal: ${D.coastal ? 'yes. Write the travel distance as "inland and along the coast", never compass directions or "in each direction"' : 'no'}`);
+  push(`Primary city coastal: ${D.city_coastal ? `yes, but this page is about ${D.town}: never "inland and along the coast" or a compass direction here; the areas intro says the business reaches the town from its base, nothing more about where else it goes` : 'no'}`);
   push('Trade facts: none for this page (it explains the town, not the job). Name no material, method or rule the client values do not give.');
   push('');
   push('--- PROOF HOMES (one home per proof; code blocks a fourth mention and any mention outside its home) ---');
@@ -323,7 +334,7 @@ function formatLocationBlock(D, cv, niche, ctx) {
   homes.push('The quote method and the price agreed before work are one proof: the cost intro is its home, 3 mentions on the whole page at most in different words, and never in both the cost FAQ answer and the visits FAQ answer. "Free": the FAQ cost answer and the headings code writes; never in a step.');
   for (const h of homes) push(`  ${h}`);
   push('');
-  push(`Content block opener: sentence 1 opens on the town or the work and carries the keyword "${D.keyword}", not the company name. Never on the reader's search ("Finding a ${D.cat_lower} in ${D.town}…", "If you're looking for…"). Three or four short paragraphs, then one closing line: the town (two or three concrete details from the town profile and what each means for the trade); the neighbourhoods (one concrete detail each and what it means for the work); what they do here (links to 2 or 3 of the cards' pages, each with a reason, and one confirmed differentiator not already in the hero); the closing line (a soft push to the primary action, never the phone number). Every paragraph carries a town fact that says something about the work.`);
+  push(`Content block opener: sentence 1 opens on the town or the work and carries the keyword "${D.keyword}", not the company name. Never on the reader's search ("Finding a ${D.cat_lower} in ${D.town}…", "If you're looking for…"), and never as a claim about where the business works ("a ${D.cat_lower} in ${D.town} spends the week on…", "most of our work here is…"): say what the town's homes and ground ask of the work. Three or four short paragraphs, then one closing line: the town (two or three concrete details from the town profile and what each means for the trade); the neighbourhoods (one concrete detail each and what it means for the work); what they do here (links to 2 or 3 of the cards' pages, each with a reason, and one confirmed differentiator not already in the hero); the closing line (a soft push to the primary action, never the phone number). Every paragraph carries a town fact that says something about the work.`);
   push(`Town rule: this page names ${D.town} and no other town, anywhere, including ${D.city}${D.city ? `, except in the areas intro where the base is allowed once as "our base in ${D.city}"` : ''}. A village or neighbourhood from the dossier is not another town. ${D.town} appears in the hero, the services intro, the content block and the areas intro, and at most twice elsewhere in the fields you write.`);
   push(`Areas intro: that the business covers ${D.town} and the villages and neighbourhoods around it (code places the list; name none of them), and how it reaches them from its base${D.travel_distance ? ` (the distance or time only as [CV: travel_distance] gives it: "${D.travel_distance}")` : ' (no distance or time: none is on file)'}. No services, no links, no other towns.`);
   push('No how it\'s done sentence: nothing on this page explains how a job is done (the stages, the method, the materials in order). That belongs to the service pages; a sentence that reads like one of their paragraphs is a fail.');

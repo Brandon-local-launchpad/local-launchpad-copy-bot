@@ -788,13 +788,13 @@
             "mechanism": "fences and walls put up when the houses were built"
           },
           {
-            "title": "Trees that have outgrown the plot",
-            "brief": "Roots lifting a path, a canopy over the whole lawn, leaves in every gutter. The one cause this card makes: trees planted when the garden was bigger, or the house further away, than it is now; the town profile gives the mature trees, the conservation areas, the tree protection. What usually applies before a protected tree is touched, with \"usually\" and never an order's name. Not shade on a lawn: the Gardener pages own that.",
-            "mechanism": "trees planted for a bigger garden than the plot is now"
+            "title": "Trees that have outgrown the garden",
+            "brief": "Roots lifting a path, a canopy over the whole lawn, leaves in every gutter. The one cause this card makes: trees planted when the garden was bigger, or the house further away, than it is now (never the word plot: it is on the words to avoid list); the town profile gives the mature trees, the conservation areas, the tree protection. What usually applies before a protected tree is touched, with \"usually\" and never an order's name. Not shade on a lawn: the Gardener pages own that.",
+            "mechanism": "trees planted for a bigger garden than there is now"
           },
           {
             "title": "Front gardens turned over to parking",
-            "brief": "A paved front that sends rain to the road or next door, a dropped kerb with nothing to soak the water. The one cause this card makes: rain running off a paved front with nowhere to soak in. What usually applies to a new hard surface at the front (a permeable surface, or a drain within the plot), in plain words, never the rule's name; where the town profile gives the street pattern (terraces with no drive), say what it means. Not water on a patio: the service pages own that.",
+            "brief": "A paved front that sends rain to the road or next door, a dropped kerb with nothing to soak the water. The one cause this card makes: rain running off a paved front with nowhere to soak in. What usually applies to a new hard surface at the front (a permeable surface, or a drain inside the garden), in plain words, never the rule's name; where the town profile gives the street pattern (terraces with no drive), say what it means. Not water on a patio: the service pages own that.",
             "mechanism": "rain running off a paved front"
           }
         ]
@@ -808,7 +808,7 @@
           },
           {
             "title": "Gardens on a slope",
-            "brief": "A garden that falls or rises from the house needs levels taken, steps or a retaining edge, and more digging than a flat plot. Say it plainly, from the town profile where it gives the slope. No figure."
+            "brief": "A garden that falls or rises from the house needs levels taken, steps or a retaining edge, and more digging than a flat garden. Say it plainly, from the town profile where it gives the slope. No figure."
           },
           {
             "title": "Conservation areas and protected trees",
@@ -890,7 +890,7 @@
           },
           {
             "title": "Gardens that run away in the growing season",
-            "brief": "A garden tidy in April and lost by July. The one cause this card makes: growth outpacing the time the owner has for it (the profile may say who lives here: commuters, retired owners, big plots). What a regular round keeps on top of, from the card list; a frequency only from the confirmed practices.",
+            "brief": "A garden tidy in April and lost by July. The one cause this card makes: growth outpacing the time the owner has for it (the profile may say who lives here: commuters, retired owners, big gardens). What a regular round keeps on top of, from the card list; a frequency only from the confirmed practices.",
             "mechanism": "growth outpacing the time the owner has"
           },
           {

@@ -117,7 +117,7 @@ function validateLocation(record, V) {
       if (must.includes(f.ref.key)) { if (!n) issue('FLAG', 'TOWN-COUNT', f.label, `Doesn't name ${town}. The town appears in the hero, the services intro, the content block and the areas intro.`, f.ref); continue; }
       if (!n) continue;
       elsewhere += n;
-      if (elsewhere > 2) issue('BLOCK', 'TOWN-COUNT', f.label, `Names ${town} again: outside the hero, the services intro, the content block and the areas intro the town is named twice at most on the page. Say "here" or "the town", or leave it out.`, f.ref);
+      if (elsewhere > 2) issue('BLOCK', 'TOWN-COUNT', f.label, `Names ${town}: outside the hero, the services intro, the content block and the areas intro the town is named twice at most on the page, and two other fields already name it. Rewrite this field without "${town}" at all ("here", "the town", or nothing).`, f.ref);
     }
   }
 
@@ -223,8 +223,11 @@ function validateLocation(record, V) {
   const fc = fields.find(f => f.ref.key === LABELS.finalCta);
   if (fc && /^\s*tell us\b/i.test(scanText(fc.text))) issue('FLAG', 'FINAL-CTA', fc.label, 'Opens with "Tell us"; the final CTA body never does. Say what happens when they get in touch from the town.', fc.ref);
 
-  // ── Nothing from IDEAS USED ELSEWHERE (the areas intro is left out: its content is prescribed) ──
-  const ideas = D.ideasUsed || [];
+  // ── Nothing from IDEAS USED ELSEWHERE (the areas intro is left out: its content is prescribed; a
+  // proof idea is left out too: the differentiator is on every page by rule and PROOF-REPEAT holds
+  // its count; the first real run, 27 Oct, blocked "family run and independent" against the town's
+  // service page) ──
+  const ideas = (D.ideasUsed || []).filter(i => i.kind !== 'proof');
   if (ideas.length) {
     for (const f of fields) {
       if (f.ref.key === LABELS.areasIntro) continue;
