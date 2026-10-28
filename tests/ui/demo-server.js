@@ -44,7 +44,7 @@ if (process.env.DEMO_REAL_MODEL !== '1') {
   require.cache[SDK_ID] = { id: SDK_ID, filename: SDK_ID, loaded: true, exports: FakeAnthropic };
 }
 
-const PORT = process.env.DEMO_PORT || 3991;
+const PORT = process.env.DEMO_PORT || (process.argv.includes('--port') ? process.argv[process.argv.indexOf('--port') + 1] : 3991);
 process.env.PORT = String(PORT);
 process.env.DATABASE_URL = 'postgres://pg-mem/demo';
 process.env.COPYBOT_SECRET_KEY = process.env.COPYBOT_SECRET_KEY || crypto.randomBytes(32).toString('hex');

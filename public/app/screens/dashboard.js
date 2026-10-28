@@ -12,6 +12,7 @@ const TIPS = {
   running: 'Page generations, research runs and rank scans in progress.',
 };
 const KIND_LABEL = { fields: 'record missing a key field', pack: 'pack unverified', claims: 'claims to accept', blocked: 'pages blocked' };
+const KIND_SHORT = { fields: 'record field', pack: 'unverified pack', claims: 'client with claims', blocked: 'client with blocked page' };
 
 export async function render(root, params, ctx) {
   ctx.setTitle('Dashboard');
@@ -28,7 +29,7 @@ export async function render(root, params, ctx) {
       <div class="grid grid-4" id="tiles">
         ${tile({ label: 'New clients today', value: t.new_today, tip: TIPS.new_today, href: '/clients?new=today' })}
         ${tile({ label: 'New clients this week', value: t.new_week, tip: TIPS.new_week, href: '/clients?new=week' })}
-        <a class="tile clickable tip" href="/clients?needs=1" data-link data-tip="${attr(split)}"><div class="label">Needs a person${info(TIPS.needs_person)}</div><div class="num">${t.needs_person.count}</div><div class="foot">${h(Object.entries(t.needs_person.by_kind).filter(([, n]) => n).map(([k, n]) => `${n} ${k}`).join(' · ') || 'nothing waiting')}</div></a>
+        <a class="tile clickable tip" href="/clients?needs=1" data-link data-tip="${attr(split)}"><div class="label">Needs a person${info(TIPS.needs_person)}</div><div class="num">${t.needs_person.count}</div><div class="foot">${h(Object.entries(t.needs_person.by_kind).filter(([, n]) => n).map(([k, n]) => `${n} ${KIND_SHORT[k]}${n === 1 ? '' : 's'}`).join(' · ') || 'nothing waiting')}</div></a>
         <div class="tile" id="runningTile"><div class="label">Running now${info(TIPS.running)}</div>${runningBody(runs)}</div>
       </div>
       <div class="stack" style="margin-top:16px">

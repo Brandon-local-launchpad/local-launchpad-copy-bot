@@ -24,9 +24,10 @@ const GROUPS = [
     { key: 'handles_planning', label: 'Handles planning', type: 'select', options: ['', 'yes', 'no'] },
     { key: 'finance_options', label: 'Finance options' },
     { key: 'complaints_process', label: 'Complaints process', type: 'textarea' },
-    { key: 'coastal_city', label: 'Primary city is coastal', type: 'select', options: ['', 'yes', 'no'], hint: 'Blank: the area research decides.' },
-    { key: 'h1_override', label: 'Homepage H1 override', placeholder: 'Leave blank to use the page map H1' },
     { key: 'map_embed', label: 'Map embed', type: 'textarea', placeholder: 'Full Google Maps embed URL' },
+    // Rarely needed: the dossier decides whether the city is coastal and the page map sets the H1
+    { key: 'coastal_city', label: 'Primary city is coastal', type: 'select', options: ['', 'yes', 'no'], hint: 'Blank: the area research decides.', rare: true },
+    { key: 'h1_override', label: 'Homepage H1 override', placeholder: 'Leave blank to use the page map H1', rare: true },
   ] },
   { key: 'contact', title: 'Contact and NAP', fields: [
     { key: 'phone', label: 'Phone' },
@@ -154,7 +155,7 @@ async function renderValues(body, ctx) {
       <label>${h(f.label)}${src ? ` ${tag(src, SOURCE_LABEL[src])}` : ''}${amber ? ` <button class="btn btn-xs" data-confirm="${h(f.key)}" style="color:#b45309;border-color:#f3dcb0">Confirm</button>` : ''}${confirmed[f.key] ? ' <span class="tag ok">confirmed</span>' : ''}</label>
       ${input(f)}
       ${f.hint ? `<div class="help">${h(f.hint)}</div>` : ''}
-      ${f.key === 'coastal_city' && !hasValue(values.coastal_city) && derived.coastal_city ? `<div class="help">The area research says: ${h(derived.coastal_city)} ${tag('dossier', 'Dossier')}</div>` : ''}
+      ${f.key === 'coastal_city' && !hasValue(values.coastal_city) && derived.coastal_city ? `<div class="help">The area research says: ${h(typeof derived.coastal_city === 'object' ? (derived.coastal_city.value || JSON.stringify(derived.coastal_city)) : derived.coastal_city)}${derived.coastal_city && derived.coastal_city.source ? ` (${h(derived.coastal_city.source)})` : ''} ${tag('dossier', 'Dossier')}</div>` : ''}
       ${(f.sub || []).map(s => `<label class="check" style="margin-top:6px"><input type="checkbox" data-key="${h(s.key)}"${values[s.key] ? ' checked' : ''}> ${h(s.label)}</label>`).join('')}
     </div>`;
   };
@@ -166,13 +167,35 @@ async function renderValues(body, ctx) {
     if (t === 'select') return `<select class="input" data-key="${h(f.key)}">${f.options.map(o => `<option value="${h(o)}"${String(v ?? '') === o ? ' selected' : ''}>${o || '–'}</option>`).join('')}</select>`;
     if (t === 'gbp-select') { const cats = catRes.categories || []; const list = cats.includes(v) || !v ? cats : [v, ...cats]; return `<select class="input" data-key="${h(f.key)}"><option value="">– select –</option>${list.map(o => `<option value="${h(o)}"${v === o ? ' selected' : ''}>${h(o)}</option>`).join('')}</select>${cats.length ? '' : '<div class="help">No GBP categories on file: the category list comes from the custom values files.</div>'}`; }
     if (t === 'gbp-multicheck') { const cats = catRes.categories || []; const set = new Set(Array.isArray(v) ? v : []); return cats.length ? `<div class="chips" data-multi="${h(f.key)}">${cats.map(o => `<label class="chip${set.has(o) ? ' active' : ''}"><input type="checkbox" value="${attr(o)}"${set.has(o) ? ' checked' : ''} style="display:none"> ${h(o)}</label>`).join('')}</div>` : '<div class="help">No GBP categories on file.</div>'; }
-    if (t === 'materials') { const tl = niche && niche.materials_tick_list; const set = new Set(Array.isArray(v) ? v : []); if (!tl || !Object.keys(tl).length) return '<div class="help">No materials list for this category yet (set the primary category and save).</div>'; return `<div data-multi="${h(f.key)}">${Object.entries(tl).map(([head, items]) => `<div class="sec-title">${h(head)}</div><div class="chips">${items.map(o => `<label class="chip${set.has(o) ? ' active' : ''}"><input type="checkbox" value="${attr(o)}"${set.has(o) ? ' checked' : ''} style="display:none"> ${h(o)}</label>`).join('')}</div>`).join('')}</div>`; }
-    if (t === 'practices') { const ps = (niche && niche.practices) || []; const set = new Set(Array.isArray(v) ? v : []); if (!ps.length) return '<div class="help">No practices list for this niche yet (set the primary category and save).</div>'; return `<div data-multi="${h(f.key)}" class="stack" style="--gap:4px">${ps.map(p => `<label class="check" title="${attr(p.question || '')}" style="display:flex;margin:3px 0"><input type="checkbox" value="${attr(p.key)}"${set.has(p.key) ? ' checked' : ''}> <span>${h(p.label)}<span class="muted small"> · ${h(p.question || '')}</span></span></label>`).join('')}</div>`; }
+    if (t === 'materials') {
+      const tl = (niche && niche.materials_tick_list) || {}; const set = new Set(Array.isArray(v) ? v : []);
+      const listed = new Set(Object.values(tl).flat());
+      const own = [...set].filter(x => !listed.has(x));
+      const chip = o => `<label class="chip${set.has(o) ? ' active' : ''}"><input type="checkbox" value="${attr(o)}"${set.has(o) ? ' checked' : ''} style="display:none"> ${h(o)}</label>`;
+      return `<div data-multi="${h(f.key)}">${Object.keys(tl).length ? Object.entries(tl).map(([head, items]) => `<div class="sec-title">${h(head)}</div><div class="chips">${items.map(chip).join('')}</div>`).join('') : '<div class="help">No materials list for this category yet (set the primary category and save); add your own below.</div>'}
+        <div class="sec-title">Your own</div><div class="chips" data-own>${own.map(chip).join('')}</div>
+        <div class="btn-row" style="margin-top:6px"><input class="input" data-own-input placeholder="Add a material or method" style="max-width:260px;padding:5px 8px"><button class="btn btn-ghost btn-xs" data-own-add>Add</button></div></div>`;
+    }
+    if (t === 'practices') {
+      const mine = (niche && niche.practices) || [], all = (niche && niche.all_practices) || mine;
+      const set = new Set(Array.isArray(v) ? v : []);
+      const showAll = !!f._showAll;
+      const list = showAll ? all : [...mine, ...all.filter(p => set.has(p.key) && !mine.some(m => m.key === p.key))];
+      if (!list.length) return '<div class="help">No practices list for this niche yet (set the primary category and save).</div>';
+      return `<div data-multi="${h(f.key)}" class="stack" style="--gap:4px">${list.map(p => `<label class="check" title="${attr(p.question || '')}" style="display:flex;margin:3px 0"><input type="checkbox" value="${attr(p.key)}"${set.has(p.key) ? ' checked' : ''}> <span>${h(p.label)}<span class="muted small"> · ${h(p.question || '')}</span></span></label>`).join('')}
+        ${all.length > mine.length ? `<button class="btn btn-ghost btn-xs" data-show-all="${h(f.key)}" style="margin-top:6px;align-self:flex-start">${showAll ? `Show this niche's only (${mine.length})` : `Show all practices (${all.length})`}</button>` : ''}</div>`;
+    }
     if (t === 'job-rows') { const rows = Array.isArray(v) ? v : []; return rowsEditor(f.key, [['name', 'Job name', 2], ['price', 'From £', 1], ['duration', 'Duration', 1]], rows, 3); }
     if (t === 'review-rows') { const rows = Array.isArray(v) ? v : []; return rowsEditor(f.key, [['text', 'The review, as the customer wrote it', 3], ['name', 'First name', 1], ['town', 'Town', 1]], rows, 3); }
     if (t === 'theme-rows') { const rows = Array.isArray(v) ? v : []; return rowsEditor(f.key, [['theme', 'e.g. tidied up every day', 3], ['approved', 'Approved by the client', 'check']], rows, Math.max(1, rows.length), true); }
     if (t === 'logo-rows') { const rows = Array.isArray(v) ? v : []; return rowsEditor(f.key, [['name', 'Name', 2], ['tier', 'ratings|tier1|tier2|tier3', 'select'], ['register_url', 'Register URL', 2], ['caption', 'Caption', 2]], rows, rows.length, true); }
     return `<input class="input" type="text" data-key="${h(f.key)}" value="${attr(v ?? '')}" placeholder="${attr(f.placeholder || '')}">`;
+  };
+  // A group's card: the usual fields, then the rarely needed ones behind a toggle (open when one holds a value)
+  const groupCard = g => {
+    const usual = g.fields.filter(f => !f.rare), rare = g.fields.filter(f => f.rare);
+    const open = rare.some(f => hasValue(values[f.key]));
+    return card({ title: g.title, id: `g-${g.key}`, body: usual.map(field).join('') + (rare.length ? `<details${open ? ' open' : ''}><summary class="small muted" style="cursor:pointer;margin-top:4px">Rarely needed (${rare.length}): the dossier and the page map decide these</summary><div style="margin-top:10px">${rare.map(field).join('')}</div></details>` : '') });
   };
   const rowsEditor = (key, cols, rows, n, addable = false) => {
     const line = (r = {}) => `<div class="row-line" style="display:grid;grid-template-columns:${cols.map(c => typeof c[2] === 'number' ? `${c[2]}fr` : 'auto').join(' ')}${addable ? ' 24px' : ''};gap:6px;margin-bottom:6px;align-items:center">${cols.map(([k, ph, kind]) => kind === 'check' ? `<label class="check small"><input type="checkbox" data-col="${k}"${r[k] ? ' checked' : ''}> ${h(ph)}</label>` : kind === 'select' ? `<select class="input" data-col="${k}" style="width:auto">${ph.split('|').map(o => `<option value="${o}"${r[k] === o ? ' selected' : ''}>${o}</option>`).join('')}</select>` : `<input class="input" data-col="${k}" placeholder="${attr(ph)}" value="${attr(r[k] ?? '')}">`).join('')}${addable ? '<button class="btn btn-xs" data-remove title="Remove">×</button>' : ''}</div>`;
@@ -182,13 +205,17 @@ async function renderValues(body, ctx) {
 
   body.innerHTML = `
     <div class="btn-row" style="margin-bottom:14px"><button class="btn btn-primary" id="saveCv">Save</button><button class="btn btn-ghost" id="prefill" title="Read the uploaded custom values and onboarding files into the blanks">Prefill from files</button><span class="muted small">Source tags: Form (Fillout), Website, GBP, Dossier (research), Hand. Amber values were inferred and need confirming.</span></div>
-    <div class="grid grid-2" id="cvGroups">${GROUPS.map(g => card({ title: g.title, id: `g-${g.key}`, body: g.fields.map(field).join('') })).join('')}</div>`;
+    <div class="grid grid-2" id="cvGroups">${GROUPS.map(groupCard).join('')}</div>`;
 
   // Chips toggle
   body.addEventListener('click', async e => {
     const chip = e.target.closest('[data-multi] label.chip'); if (chip) { setTimeout(() => chip.classList.toggle('active', chip.querySelector('input').checked), 0); }
     const rm = e.target.closest('[data-remove]'); if (rm) { rm.closest('.row-line').remove(); return; }
     const add = e.target.closest('[data-add]'); if (add) { const t = add.parentElement.querySelector('template'); add.insertAdjacentHTML('beforebegin', t.innerHTML); return; }
+    const addOwn = e.target.closest('[data-own-add]');
+    if (addOwn) { const box = addOwn.closest('[data-multi]'); const inp = box.querySelector('[data-own-input]'); const val = inp.value.trim(); if (!val) return; if ([...box.querySelectorAll('input[type=checkbox]')].some(i => i.value.toLowerCase() === val.toLowerCase())) { toast('Already in the list', 'bad'); return; } box.querySelector('[data-own]').insertAdjacentHTML('beforeend', `<label class="chip active"><input type="checkbox" value="${attr(val)}" checked style="display:none"> ${h(val)}</label>`); inp.value = ''; return; }
+    const showAll = e.target.closest('[data-show-all]');
+    if (showAll) { const f = GROUPS.flatMap(g => g.fields).find(x => x.key === showAll.dataset.showAll); values[f.key] = collectOne(body, f) ?? values[f.key]; f._showAll = !f._showAll; body.querySelector(`#f-${f.key}`).outerHTML = field(f); return; }
     const conf = e.target.closest('[data-confirm]'); if (conf) { confirmed[conf.dataset.confirm] = true; const f = conf.closest('.field'); f.style.borderLeft = ''; f.style.paddingLeft = ''; f.style.marginLeft = ''; conf.replaceWith(Object.assign(document.createElement('span'), { className: 'tag ok', textContent: 'confirmed' })); return; }
   });
   // A new primary category loads its niche's materials and practices
@@ -242,7 +269,7 @@ async function renderValues(body, ctx) {
       renderValuesInto();
     } catch (err) { toast(err.message, 'bad'); }
   }));
-  const renderValuesInto = () => { body.querySelector('#cvGroups').innerHTML = GROUPS.map(g => card({ title: g.title, id: `g-${g.key}`, body: g.fields.map(field).join('') })).join(''); };
+  const renderValuesInto = () => { body.querySelector('#cvGroups').innerHTML = GROUPS.map(groupCard).join(''); };
   if (location.hash && body.querySelector(location.hash)) body.querySelector(location.hash).scrollIntoView({ block: 'center' });
 }
 

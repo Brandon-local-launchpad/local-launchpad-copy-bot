@@ -1371,7 +1371,7 @@ app.get('/api/niche/:trade', (req, res) => {
   const { niche, error } = loadNiche(req.params.trade);
   if (error) return res.status(404).json({ error });
   // The Client Values screen's confirmed practices tick list comes with the niche
-  res.json({ ...niche, practices: practicesFor(niche) });
+  res.json({ ...niche, practices: practicesFor(niche), all_practices: PRACTICES });
 });
 
 app.post('/api/parse-zip', upload.array('files', 30), async (req, res) => {
@@ -2949,7 +2949,7 @@ app.get('/api/clients/:clientId/research', async (req, res) => {
   if (!pool) return res.status(503).json({ error: 'Database not configured.' });
   try {
     const ctx = await researchContextFor(req.params.clientId);
-    res.json({ module: ctx.moduleName, modules: ctx.modules, baseTown: ctx.baseTown, towns: ctx.towns.map(t => ({ name: t.name, code: t.code, runType: t.runType, adminArea: t.adminArea })) });
+    res.json({ module: ctx.moduleName, modules: ctx.modules, baseTown: ctx.baseTown, county: ctx.keyValueMap.biz_county || '', towns: ctx.towns.map(t => ({ name: t.name, code: t.code, runType: t.runType, adminArea: t.adminArea })) });
   } catch (err) { res.status(err.status || 500).json({ error: err.message }); }
 });
 // Research the named towns (or every town) in one job, one after another; the tab polls geo-location-status
@@ -2960,7 +2960,8 @@ app.post('/api/clients/:clientId/research/run', async (req, res) => {
     const moduleName = (req.body && req.body.moduleName) || ctx.moduleName;
     if (!moduleName || !RESEARCH_MODULES[moduleName]) return res.status(400).json({ error: moduleName ? `Unknown module "${moduleName}".` : "No research module matches this client's niche: pick one." });
     const wanted = Array.isArray(req.body && req.body.towns) && req.body.towns.length ? new Set(req.body.towns.map(normaliseLocation)) : null;
-    const locations = ctx.towns.filter(t => !t.adminArea && (!wanted || wanted.has(t.norm)));
+    const county = String((req.body && req.body.county) || ctx.keyValueMap.biz_county || '').trim();
+    const locations = ctx.towns.filter(t => !t.adminArea && (!wanted || wanted.has(t.norm))).map(t => ({ ...t, county }));
     if (!locations.length) return res.status(400).json({ error: 'No towns to research (council areas are skipped).' });
     const record = { id: crypto.randomUUID(), sessionId: '', clientId: req.params.clientId, status: 'running', preset: PERPLEXITY_PRESET, locations: {}, createdAt: Date.now() };
     for (const l of locations) record.locations[l.code] = { name: l.name, status: 'pending', startedAt: null, finishedAt: null, inputTokens: null, outputTokens: null, searchCount: null, rawUsage: null, cost: null, preset: PERPLEXITY_PRESET, assetId: null, error: null };

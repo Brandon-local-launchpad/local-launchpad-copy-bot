@@ -35,7 +35,7 @@ export async function render(el, ctx) {
     for (const k of Object.keys(maps)) { try { maps[k].remove(); } catch (_) {} delete maps[k]; }
 
     const actions = `<div class="btn-row">
-      ${hasBaseline ? `<button class="btn btn-ghost" data-act="fetch" ${lsOff ? 'disabled' : ''}>Fetch latest scans</button><button class="btn btn-ghost btn-sm" data-act="reset" ${lsOff ? 'disabled' : ''}>Reset baseline</button>` : `<button class="btn btn-primary" data-act="baseline" ${rd.ok === false || lsOff ? 'disabled' : ''}>Run baseline scan</button>`}
+      ${hasBaseline ? `<button class="btn btn-ghost" data-act="fetch" ${lsOff ? 'disabled' : ''}>Fetch latest scans</button><button class="btn btn-ghost btn-sm" data-act="reset" ${lsOff ? 'disabled' : ''}>Reset baseline</button>` : `<button class="btn btn-primary" data-act="baseline" ${rd.ok === false || lsOff ? 'disabled' : ''}>Run baseline scan</button>${lsOff ? '<span class="small" style="color:#b45309">LeadSnap is not configured on the server (LEADSNAP_API_TOKEN)</span>' : rd.ok === false ? `<span class="small" style="color:#b45309">${h(rd.error || 'The client is not ready: see the GBP tab')}</span>` : ''}`}
       ${S && S.pending ? `<button class="btn btn-ghost btn-sm" data-act="refresh">Check ${S.pending} pending</button>` : ''}
     </div>`;
     const settingsBody = lsOff ? `<div class="notice warn">LeadSnap is not configured on the server (LEADSNAP_API_TOKEN).</div>` : !st ? empty({ title: 'No baseline yet', text: 'The baseline scan locks the settings (keyword, area, grid) and starts the monthly schedule. It spends credits, so it asks first.' }) : `

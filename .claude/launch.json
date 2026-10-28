@@ -26,6 +26,16 @@
         "server.js"
       ],
       "port": 3000
+    },
+    {
+      "name": "demo-ui",
+      "runtimeExecutable": "node",
+      "runtimeArgs": [
+        "tests/ui/demo-server.js",
+        "--port",
+        "3995"
+      ],
+      "port": 3995
     }
   ]
 }

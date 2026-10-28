@@ -18,6 +18,9 @@
 
 const { listClients } = require('../fillout/client-routes');
 const SC = require('../gbp/scans');
+const { costPence } = require('./model-log');
+// What a page costs to write when nothing has been logged yet, in pence (the real Edens Edge runs, Oct 2026)
+const DEFAULT_COST = { homepage: 65, category: 60, service: 60, location: 60 };
 
 const STAGES = ['Onboarding', 'Research', 'Page map', 'Pages', 'GBP', 'Live'];
 const PAGE_TYPES = ['homepage', 'category', 'service', 'location'];
@@ -82,14 +85,18 @@ async function loadDashboard({ pool, tradeFacts = null, runners = {}, homepageRu
   const recs = await q(`SELECT DISTINCT ON (client_id, ${PT}, ${PK}) id, client_id, uploaded_at, ${PT} AS page_type, ${PK} AS page_key,
       (content::jsonb)->'VALIDATION'->>'status' AS v_status, (content::jsonb)->'VALIDATION'->>'block' AS block, (content::jsonb)->'VALIDATION'->>'flag' AS flag,
       (content::jsonb)->>'blocked' AS blocked, (content::jsonb)->>'error' AS error, (content::jsonb)->'CLAIMS' AS claims,
-      (content::jsonb)->'QUALITY'->>'score' AS score, (content::jsonb)->'meta' AS meta
+      (content::jsonb)->'QUALITY'->>'score' AS score,
+      (content::jsonb)->'meta'->>'generated_at' AS generated_at, (content::jsonb)->'meta'->>'edited_at' AS edited_at, (content::jsonb)->'meta'->>'failed' AS failed, (content::jsonb)->'meta'->>'approved_at' AS approved_at,
+      (content::jsonb)->'meta'->>'model' AS model, (content::jsonb)->'meta'->'usage' AS usage, (content::jsonb)->'VALIDATION'->'retry_usage' AS retry_usage
     FROM client_assets WHERE asset_type = 'v20_page_record' ORDER BY client_id, ${PT}, ${PK}, uploaded_at DESC`);
   const recordsByClient = new Map();
   for (const r of recs) {
     const claims = parse(r.claims) || null;
-    const meta = parse(r.meta) || {};
+    const meta = { generated_at: r.generated_at, edited_at: r.edited_at, failed: r.failed === 'true', approved_at: r.approved_at };
+    const usage = parse(r.usage), retryUsage = parse(r.retry_usage);
+    const cost = usage || retryUsage ? Math.round((costPence(r.model, usage || {}) + costPence(r.model, retryUsage || {})) * 100) / 100 : null;
     const rec = {
-      id: r.id, type: r.page_type, key: r.page_key, at: meta.edited_at || meta.generated_at || r.uploaded_at,
+      id: r.id, type: r.page_type, key: r.page_key, at: meta.edited_at || meta.generated_at || r.uploaded_at, cost_pence: cost, model: r.model || null,
       block: r.block === null || r.block === undefined ? null : Number(r.block), flag: r.flag === null || r.flag === undefined ? null : Number(r.flag),
       run: r.v_status === 'run', blocked: r.blocked === 'true', error: r.error || null, failed: !!meta.failed,
       claims: claims && Array.isArray(claims.findings) ? Math.max(0, claims.findings.length - (claims.accepted || []).length) : 0,
@@ -162,7 +169,7 @@ async function loadDashboard({ pool, tradeFacts = null, runners = {}, homepageRu
       const type = ROW_TYPE[r.type];
       const key = type === 'homepage' ? 'homepage' : r.slug;
       const rec = recs.get(`${type}:${key}`) || null;
-      return { type, key, title: r.title, record: !!rec, good: !!(rec && rec.good), blocked: !!(rec && rec.blocked), block: rec ? rec.block : null, error: rec ? rec.error : null, claims: rec ? rec.claims : 0, score: rec ? rec.score : null, at: rec ? rec.at : null };
+      return { type, key, title: r.title, record: !!rec, good: !!(rec && rec.good), blocked: !!(rec && rec.blocked), block: rec ? rec.block : null, error: rec ? rec.error : null, claims: rec ? rec.claims : 0, score: rec ? rec.score : null, at: rec ? rec.at : null, cost_pence: rec ? rec.cost_pence : null };
     });
     const ds = dossiersByClient.get(c.id) || [];
     const norm = s => str(s).toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim();
@@ -214,6 +221,8 @@ async function loadDashboard({ pool, tradeFacts = null, runners = {}, homepageRu
       running: runs.length > 0, first_submission_at: firstAt,
       pages: { total: pages.length, written: pages.filter(p => p.good).length }, towns_without_dossier: townsWithoutDossier,
       page_types: Object.fromEntries(PAGE_TYPES.map(t => [t, { total: pages.filter(p => p.type === t).length, written: pages.filter(p => p.type === t && p.good).length, records: pages.filter(p => p.type === t && p.record).length }])),
+      // Spent: the cost on the latest records; estimate: the pages not yet written clean, at the type's average on this client, else the default
+      cost: (() => { const spent = pages.reduce((n, p) => n + (p.cost_pence || 0), 0); let est = 0; for (const t of PAGE_TYPES) { const done = pages.filter(p => p.type === t && p.cost_pence !== null); const avg = done.length ? done.reduce((n, p) => n + p.cost_pence, 0) / done.length : DEFAULT_COST[t]; est += pages.filter(p => p.type === t && !p.good).length * avg; } return { spent_pence: Math.round(spent * 100) / 100, estimate_pence: Math.round(est), logged: pages.filter(p => p.cost_pence !== null).length }; })(),
       // The wizard's answer: an existing site to replace (the Site audit tab shows), or a new build
       existing_site: cv && cv._intake ? cv._intake.existing_site !== false : null,
       gbp_done: !!(g && g.steps && ['description', 'services', 'products'].every(k => g.steps[k] && g.steps[k].status === 'done')), has_scans: (scansByClient.get(c.id) || []).length > 0,
