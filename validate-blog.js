@@ -23,8 +23,11 @@
 //   B-N9   FLAG   a section paragraph with no fact behind it: nothing shared with a FACTS
 //                 ALLOWED row (two content words), no figure, no link
 //   ANSWER-OPEN BLOCK blog_answer opens on the company name
-//   CLOSING BLOCK  blog_closing gives [CV: phone] or opens "Tell us" (one sentence and the
-//                 subject are the shared FINAL-CTA and N7 rules, retried)
+//   CLOSING BLOCK  blog_closing gives [CV: phone] or opens "Tell us"; FLAG over two sentences
+//   B-CELL-LIST BLOCK a table cell that is a list; B-ROW-SAME BLOCK a row whose sign and cause
+//                 say the same thing
+//   B-PROOF BLOCK a differentiator or a proof claim (years, guarantee, insurance, reviews, job
+//                 counts) outside blog_business (CORE (1) rule 8)
 //   DATE   FLAG   a date that goes stale ("this year", "in 2026", "recently", "nowadays")
 // Brandon's four after the first real posts (28 Oct):
 //   TOKEN  BLOCK  an unresolved placeholder ([QUOTE_FREE_LOWER]) in any field, the meta
@@ -43,10 +46,17 @@ const { LABELS } = require('./page-types/blog');
 const { matchIdea, contentWords } = require('./ideas');
 const { esc, linkUrls, normUrl, scanText, sentences, lc, words } = helpers;
 
-// The closing is the post's final CTA (Brandon, 28 Oct, after the first real posts): the shared
-// FINAL-CTA and N7 rules apply (one sentence, "we" or the customer as the subject, never the
-// phone number) and their flags retry, as on the other page types
-const KEYS = { hero: LABELS.answer, content: LABELS.answer, finalCta: LABELS.closing, areasIntro: null, moreLine: null, selfUrl: '/' };
+// The closing is one or two sentences, 20 to 40 words (the spec; Brandon, 28 Oct, evening):
+// exempt from the pages' one sentence FINAL-CTA rule, so it is not the final CTA key; its own
+// rules (CLOSING) are below
+const KEYS = { hero: LABELS.answer, content: LABELS.answer, finalCta: null, areasIntro: null, moreLine: null, selfUrl: '/' };
+// The retry policy for a post (Brandon, 28 Oct): a BLOCK, a word range (N7 "it must be"), and
+// this short list retry, two rounds at most (blog/generate.js); style flags (sentence length,
+// back to back openers, repeated phrases) go to review
+const BLOG_RETRY = new Set(['N24', 'B-N1', 'B-N5', 'B-N8', 'B-N9', 'DATE', 'LINK-ONCE', 'CLOSING', 'N5', 'PRACTICE']);
+// Proof outside the business block (CORE (1) rule 8): the confirmed differentiators, the
+// insurance figure, the guarantee length, the jobs count and the years trading
+const PROOF_RE = /\b(?:fully insured|public liability|insured for|insurance of|£\s?\d+\s?(?:m|million)\b|\d+\s*year (?:guarantee|warranty)|guaranteed for|\d[\d,]*\s*(?:jobs|projects|gardens|customers) (?:completed|done|finished)|(?:over|more than) \d+ years|\d+ years(?:'|’)? (?:experience|of experience|in (?:the )?(?:trade|business)|trading)|five star|5 star|\d+ (?:google )?reviews)\b/i;
 // Placeholders that must never reach a record: a prompt or niche token the code did not
 // resolve ([QUOTE_FREE_LOWER], [TOPIC]); [CV: key] tokens are resolved at push and the shared
 // check reports an unknown key
@@ -110,11 +120,39 @@ function validateBlog(record, V) {
   for (const f of fields) { const m = f.text.match(PLACEHOLDER_RE); if (m) issue('BLOCK', 'TOKEN', f.label, `"${m[0]}" is an unresolved token. Write the words it stands for.`, f.ref); }
   for (const k of CODE_FIELDS) { const m = String(record[k] || '').match(PLACEHOLDER_RE); if (m) issue('BLOCK', 'TOKEN', k, `"${m[0]}" is an unresolved token in ${k}: code builds this field, so the decisions did not resolve it.`); }
 
-  // ── B-CELLS: every table row has one cell per column (a dropped section is N6, retried) ──
+  // ── B-CELLS: every table row has one cell per column (a dropped section is N6, retried);
+  // B-CELL-LIST: a cell that is a list; B-ROW-SAME: a row whose cause and sign say the same thing ──
   const cols = (record.table_columns || []).length;
-  if (record.table_show && cols) for (const f of fields.filter(x => x.ref.key === 'table_rows')) {
-    const got = f.text.split(/\s*;\s*/).filter(c => c.trim()).length;
-    if (got !== cols - 1) issue('BLOCK', 'B-CELLS', f.label, `${got} cell${got === 1 ? '' : 's'} for ${cols - 1} column${cols - 1 === 1 ? '' : 's'} (${record.table_columns.slice(1).join(' | ')}). Write exactly ${cols - 1}, separated by " ; ", with no ";" inside a cell.`, f.ref);
+  if (record.table_show && cols) {
+    const names = (record.table_columns || []).map(c => lc(c));
+    const signAt = names.findIndex(c => /sign/.test(c)), causeAt = names.findIndex(c => /cause/.test(c));
+    for (const f of fields.filter(x => x.ref.key === 'table_rows')) {
+      const cells = f.text.split(/\s*;\s*/).filter(c => c.trim());
+      if (cells.length !== cols - 1) { issue('BLOCK', 'B-CELLS', f.label, `${cells.length} cell${cells.length === 1 ? '' : 's'} for ${cols - 1} column${cols - 1 === 1 ? '' : 's'} (${record.table_columns.slice(1).join(' | ')}). Write exactly ${cols - 1}, separated by " ; ", with no ";" inside a cell (a list inside a cell reads as extra cells).`, f.ref); continue; }
+      const list = cells.find(c => (c.match(/,/g) || []).length >= 2 || /\b(?:and|or) \w+, /.test(c));
+      if (list) issue('BLOCK', 'B-CELL-LIST', f.label, `"${list.slice(0, 60)}" is a list. One point per cell, a few words, no commas joining items.`, f.ref);
+      const row = (record.table_rows || [])[f.ref.index] || {};
+      const all = [row.row, ...cells];
+      if (signAt >= 0 && causeAt >= 0 && all[signAt] && all[causeAt]) {
+        const A = contentWords(all[signAt]), B = contentWords(all[causeAt]);
+        let n = 0; for (const w of A) if (B.has(w)) n++;
+        if (A.size >= 2 && B.size >= 2 && n / Math.min(A.size, B.size) >= 0.6) issue('BLOCK', 'B-ROW-SAME', f.label, `The sign ("${all[signAt]}") and the cause ("${all[causeAt]}") say the same thing. The sign is what the reader sees; the cause is what is behind it.`, f.ref);
+      }
+    }
+  }
+
+  // ── B-PROOF: a differentiator or a proof claim outside blog_business (CORE (1) rule 8) ──
+  const diffs = [cv.differentiator_1_confirmed && cv.differentiator_1, cv.differentiator_2_confirmed && cv.differentiator_2].filter(Boolean).map(d => ({ text: d, words: contentWords(d) })).filter(d => d.words.size >= 2);
+  for (const f of fields) {
+    if (f.ref.key === LABELS.business) continue;
+    const s = scanText(f.text);
+    const m = s.match(PROOF_RE);
+    if (m) { issue('BLOCK', 'B-PROOF', f.label, `"${m[0]}" is a proof claim. Years, guarantee, insurance, reviews and job counts appear only in the business block.`, f.ref); continue; }
+    for (const sen of sentences(f.text)) {
+      const mine = contentWords(sen);
+      const hit = diffs.find(d => { let n = 0; for (const w of d.words) if (mine.has(w)) n++; return n / d.words.size >= 0.7; });
+      if (hit) { issue('BLOCK', 'B-PROOF', f.label, `"${sen.slice(0, 70)}…" makes the differentiator "${hit.text}". A proof belongs in the business block only.`, f.ref); break; }
+    }
   }
 
   // ── B-N1: the answer's first sentence; B-PRICE on a cost guide in prices mode; B-TIMING on a seasonal post ──
@@ -219,7 +257,12 @@ function validateBlog(record, V) {
     const digits = scanText(t).replace(/\D/g, '');
     if (/\[CV: phone\]/.test(t) || (cv.phone && digits.includes(String(cv.phone).replace(/\D/g, '')))) issue('BLOCK', 'CLOSING', closing.label, 'The closing never gives the phone number: the buttons carry it. Say what the reader can do next and link the primary page.', closing.ref);
     if (/^\s*tell us\b/i.test(scanText(t))) issue('BLOCK', 'CLOSING', closing.label, 'Opens with "Tell us". Open on what the reader can do next.', closing.ref);
+    const n = sentences(t).length;
+    if (n > 2) issue('FLAG', 'CLOSING', closing.label, `${n} sentences: the closing is one or two sentences, 20 to 40 words.`, closing.ref);
   }
+
+  // ── The retry policy: BLOCKs, the word ranges and the short list; style flags go to review ──
+  for (const i of issues) i.retry = !!i.ref && (i.type === 'BLOCK' || BLOG_RETRY.has(i.check) || (i.check === 'N7' && /it must be/.test(i.message)));
   return issues;
 }
 

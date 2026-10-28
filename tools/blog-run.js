@@ -87,7 +87,7 @@ const flag = name => process.argv.includes(name);
 
   if (flag('--dry')) {
     const v = await queue.view(client.id);
-    for (const r of v.rows) console.log(`${r.status === 'Held' ? 'HELD ' : ''}${r.post_type.padEnd(10)} ${r.slug}  spec ${r.specificity ? r.specificity.count : '-'}/6  ${r.stack}/${r.faq}  ${r.gates.length ? r.gates.map(g => g.code + ': ' + g.msg).join(' | ') : 'ready'}`);
+    for (const r of v.rows) console.log(`${r.status === 'Held' ? 'HELD ' : ''}${r.post_type.padEnd(10)} ${r.slug}  spec ${r.specificity ? r.specificity.count : '-'}/6  ${r.stack}/${r.faq}  link ${r.primary ? r.primary.url : '-'}  ${r.gates.length ? r.gates.map(g => g.code + ': ' + g.msg).join(' | ') : 'ready'}`);
     console.log(JSON.stringify(v.counts));
     return;
   }

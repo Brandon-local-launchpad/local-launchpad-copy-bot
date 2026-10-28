@@ -74,6 +74,10 @@ function buildBlogRequest({ cv, niche, decisions, decisionsBlock, calibrationPac
 async function generateBlogPost({ cv, niche, keyValueMap, serviceParentMap = {}, decisionsResult, calibrationPack, calibrationPackName, callModel, extraFlags = [], retries = true, claimsReview = true, qualityReview = false, qualityRounds = 3 }) {
   const { runRetries, loadRetryPrompt, validationSummary } = require('../v20-retry');
   const D = decisionsResult.decisions;
+  // Every call's tokens, for the cost per post (Brandon, 28 Oct)
+  const spend = { calls: 0, input_tokens: 0, output_tokens: 0, cache_read_input_tokens: 0, cache_creation_input_tokens: 0 };
+  const rawCall = callModel;
+  callModel = async args => { const r = await rawCall(args); spend.calls++; for (const k of ['input_tokens', 'output_tokens', 'cache_read_input_tokens', 'cache_creation_input_tokens']) spend[k] += (r && r.usage && r.usage[k]) || 0; return r; };
   const meta = {
     page_type: 'blog',
     page_key: D ? D.slug : null,
@@ -123,7 +127,8 @@ async function generateBlogPost({ cv, niche, keyValueMap, serviceParentMap = {},
       if (retries) {
         const retrySystem = [...req.system, { type: 'text', text: `${loadRetryPrompt().replace(/this homepage/g, 'this blog post')}\n\nTHE POST'S MESSAGE (POST, DECISIONS, FACTS ALLOWED, LINKABLE PAGES, IDEAS USED ELSEWHERE, MODEL FIELDS):\n\n${decisionsResult.decisionsBlock}`, cache_control: { type: 'ephemeral' } }];
         const callRetry = ({ message }) => callModel({ system: retrySystem, message, maxTokens: 2048 });
-        const { log, usage: retryUsage, finalIssues } = await runRetries({ record, V, callRetry });
+        // Two rounds at most (Brandon, 28 Oct); which issues retry is the validator's call (validate-blog.js)
+        const { log, usage: retryUsage, finalIssues } = await runRetries({ record, V, callRetry, maxRetries: 2 });
         record.VALIDATION = validationSummary(finalIssues, log, retryUsage);
         if (claimsReview) {
           const { runClaimRetries } = require('../v20-retry');
@@ -163,6 +168,9 @@ async function generateBlogPost({ cv, niche, keyValueMap, serviceParentMap = {},
     }
   }
   record.meta.ideas = extractIdeas(record);
+  // The cost of the post: every call made for it (the draft, the retries, the claims and quality reviews)
+  record.meta.spend = spend;
+  try { record.meta.cost_pence = require('../ui/model-log').costPence(record.meta.model || BLOG_MODEL, spend); } catch (_) { record.meta.cost_pence = null; }
   if (!record.CLAIMS) return record;
   const { CLAIMS, ...rest } = record;
   const out = {};

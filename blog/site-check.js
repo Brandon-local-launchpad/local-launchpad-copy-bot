@@ -41,7 +41,7 @@ function repeatsOf(byPage) {
 // pagesQuestions: { pageId: [wording] }; topics: blog/topics.js topics with the question wordings
 // resolved (topicQuestions(topic, byId)); allocationRecord: { pages: { key: { neighbourhoods, symptoms } } };
 // pageRecords: [{ page: 'type:key', record }]; dossiers: [{ town, parsed }] (geo-dossier.js parseDossier)
-function siteWideCheck({ pagesQuestions = {}, topics = [], questionsById = new Map(), allocationRecord = null, pageRecords = [], dossiers = [] } = {}) {
+function siteWideCheck({ pagesQuestions = {}, topics = [], questionsById = new Map(), allocationRecord = null, pageRecords = [], dossiers = [], genericWords = [] } = {}) {
   // Questions
   const q = { ...pagesQuestions };
   for (const t of topics) {
@@ -52,6 +52,15 @@ function siteWideCheck({ pagesQuestions = {}, topics = [], questionsById = new M
     q[`blog:${t.key}`] = words;
   }
   const questions = repeatsOf(q);
+  // Posts against posts (Brandon, 28 Oct): two posts in a batch never share a topic, in other
+  // words either ("why is my lawn waterlogged" and "why does my lawn get waterlogged")
+  // The question's frame ("how much does … cost") and the trade's generic words (the city, the trade) are not the topic
+  const STOP = new Set(['a', 'an', 'the', 'i', 'you', 'my', 'your', 'our', 'we', 'do', 'does', 'did', 'is', 'are', 'it', 'its', 'to', 'in', 'for', 'of', 'and', 'or', 'on', 'at', 'by', 'with', 'from', 'after', 'before', 'always', 'ever', 'can', 'could', 'should', 'would', 'will', 'what', 'which', 'how', 'why', 'when', 'who', 'there', 'this', 'that', 'these', 'those', 'me', 'us', 'them', 'need', 'want', 'get', 'much', 'many', 'cost', 'costs', 'price', 'prices', 'best', 'better', 'time', 'new', 'garden', 'gardens', ...genericWords.map(w => norm(w)).flatMap(w => w.split(' '))]);
+  const stems = s => new Set(norm(s).split(' ').filter(w => w && !STOP.has(w)).map(w => w.replace(/(ing|ed|es|s)$/, '')));
+  const same = (a, b) => { const A = stems(a), B = stems(b); if (!A.size || !B.size) return false; let n = 0; for (const w of A) if (B.has(w)) n++; return n / (A.size + B.size - n) >= 0.5; };
+  for (let i = 0; i < topics.length; i++) for (let j = i + 1; j < topics.length; j++) {
+    if (same(topics[i].wording, topics[j].wording)) questions.push({ item: topics[i].wording, pages: [`blog:${topics[i].key}`, `blog:${topics[j].key}`], label: 'the same topic in other words' });
+  }
 
   // Neighbourhoods
   const n = {};

@@ -95,6 +95,37 @@ function reserveBlogTopics({ assignment, cv = {}, niche = {}, keyValueMap = {}, 
   const add = t => { topics.push({ batch: 'onboarding', query_stack: [], faq_ids: [], stack: [], faq: [], flags: [], group, ...t }); return topics[topics.length - 1]; };
   const qRef = q => ({ id: q.id, wording: q.wording || q.text, approved: !!q.approved, usable: q.usable !== false && !!q.approved, doubt: q.doubt || '', service: q.service || '', town: q.town || '', source: q.source || 'research' });
   const pageRef = p => (p ? { title: p.pageTitle, slug: p.urlSlug } : null);
+  // The built service page for a pack service ("Lawn care" → /services/lawn-care; "Turf laying" → the
+  // page whose name shares its stems, else none), so a seasonal or dossier post links a real page (B8)
+  const servicePageFor = packService => {
+    if (!packService) return null;
+    const found = pageFor({ service: packService, page: 'Service', text: packService });
+    if (found.service) return found.service;
+    const hit = bestServiceFor(packService, services.map(p => ({ key: p.urlSlug, value: p.pageTitle })));
+    return hit ? services.find(p => p.urlSlug === hit.key) || null : null;
+  };
+  // "The lawn stays soggy for days after rain" → "Why Does My Lawn Stay Soggy for Days After Rain in Southampton?"
+  const homeownerQuestion = (symptom, town) => {
+    let s = lc(symptom).replace(/[.?!]+$/, '').trim();
+    // "The lawn" is the homeowner's own ("my lawn"); "a puddle", "water", "one patch" stay as they are
+    s = s.replace(/^(?:the|my|our|your)\s+/, 'my ').replace(/^my\s+(?:new|newly|old)\s+/, 'my ');
+    const w = s.split(' ');
+    // The verb goes to its base form after "does" ("stays" → "stay", "forms" → "form"); "is" and
+    // "has" make the question themselves ("why is my new turf drying out", "why has my lawn gone brown")
+    const i = w.findIndex((x, k) => k > 0 && /^(?:is|are|has|have|was|were)$/.test(x));
+    let base;
+    if (i > 0) base = `why ${w[i]} ${[...w.slice(0, i), ...w.slice(i + 1)].join(' ')}`;
+    else {
+      const v = w.findIndex((x, k) => k > 0 && /[a-z]s$/.test(x) && !/(?:ss|us|is|ous|ies)$/.test(x) && x.length > 3);
+      if (v > 0) w[v] = w[v].replace(/ies$/, 'y').replace(/(?:sh|ch|x|z|o|ss)es$/, m => m.slice(0, -2)).replace(/s$/, '');
+      base = `why does ${w.join(' ')}`;
+    }
+    let q = question(`${base} in ${town}`);
+    if (q.length > 70) q = question(base);
+    if (q.length > 70) q = question(base.replace(/,.*$/, '').replace(/\s+(?:after|when|during|every|in the)\b.*$/, ''));
+    if (q.length > 70) q = q.slice(0, 69).replace(/\s+\S*$/, '') + '?';
+    return q;
+  };
 
   // ── The bank: its topics in rank order, and a page for each ──
   const bankTopics = bank && Array.isArray(bank.topics) ? bank.topics : [];
@@ -112,18 +143,32 @@ function reserveBlogTopics({ assignment, cv = {}, niche = {}, keyValueMap = {}, 
   };
   const bankType = t => (t.type === 'cost' ? 'cost_guide' : t.type === 'decision' ? 'decision' : t.type === 'question' ? 'question' : postTypeOf({ wording: t.question, doubt: '' }, slots.decision_pairs));
   // A bank topic's related questions in doubt order, the ones a page uses dropped
-  const relatedOf = t => {
-    const kept = [], dropped = [];
-    for (const r of [...t.related].sort(byDoubt)) { if (usedBank.has(r.id)) continue; if (usedWordings.has(norm(r.question))) dropped.push(r); else kept.push(r); }
-    return { kept, dropped };
+  // A related question must match the post's own question (Brandon, 28 Oct): the key words it
+  // shares with the target (stems of four letters or more, the stop words and the trade's
+  // generic words out), a third of the target's at least; ranked by that share, then doubt order
+  const GENERIC = new Set(['garden', 'gardens', 'cost', 'costs', 'much', 'does', 'need', 'needs', 'should', 'could', 'would', 'better', 'best', 'what', 'which', 'when', 'where', 'why', 'how', 'can', 'will', 'there', 'they', 'this', 'that', 'with', 'from', 'into', 'your', 'have', 'been', 'make', 'take', 'work', 'service', 'services', 'installation', 'install', lc(city), ...lc(niche.trade || '').split(/s+/)]);
+  const keyWords = s => new Set(norm(s).split(' ').filter(w => w.length >= 4 && !GENERIC.has(w) && !STOP.has(w)).map(w => w.replace(/(ing|ed|es|s)$/, '')));
+  // The share of the target's key words the question carries, over three of them at most, so
+  // one shared key word ("drain", "turf") is the floor on a long target and ranking still
+  // prefers the questions that share more
+  const relatedScore = (target, q) => { const T = keyWords(target), Q = keyWords(q); if (!T.size || !Q.size) return 0; let n = 0; for (const w of T) if (Q.has(w) || [...Q].some(x => x.length >= 5 && w.length >= 5 && (x.startsWith(w) || w.startsWith(x)))) n++; return n / Math.min(T.size, 3); };
+  const RELATED_MIN = 1 / 3;
+  const rankRelated = (target, list) => list.map(r => ({ r, s: relatedScore(target, r.question) })).filter(x => x.s >= RELATED_MIN).sort((a, b) => b.s - a.s || byDoubt(a.r, b.r)).map(x => x.r);
+  const relatedOf = (t, target) => {
+    const kept = [], dropped = [], weak = [];
+    for (const r of [...t.related].sort(byDoubt)) { if (usedBank.has(r.id)) continue; if (usedWordings.has(norm(r.question))) dropped.push(r); else if (relatedScore(target || t.question, r.question) >= RELATED_MIN) kept.push(r); else weak.push(r); }
+    return { kept: rankRelated(target || t.question, kept), dropped, weak };
   };
   const bankRef = t => ({ id: t.id, wording: t.question, approved: true, usable: true, doubt: '', service: t.service || '', town: '', source: 'blog_bank', url: t.url || '' });
   const takeBank = (topic, t) => {
     usedBank.add(t.id);
-    const { kept, dropped } = relatedOf(t);
-    // The first 3 to 5 as the H2s and the next 3 to 5 as the FAQ: split so both get their
-    // three when there are six or more (7 → 4 and 3, 10 → 5 and 5)
-    const n = Math.min(5, Math.max(3, Math.ceil(kept.length / 2)));
+    const { kept, dropped, weak } = relatedOf(t, topic.wording);
+    if (weak.length) topic.flags.push({ code: 'F-RELATED', msg: `${weak.length} related question${weak.length === 1 ? '' : 's'} left out: ${weak.length === 1 ? 'it shares' : 'they share'} too few key words with the post's question (${weak.map(r => r.id).join(', ')}).` });
+    // A cost guide's H2s are the fixed set (blog/cost-guide.js); the bank gives its FAQ only.
+    // Otherwise the first 3 to 5 as the H2s and the next 3 to 5 as the FAQ: split so both get
+    // their three when there are six or more (7 → 4 and 3, 10 → 5 and 5)
+    const costGuide = topic.post_type === 'cost_guide';
+    const n = costGuide ? 0 : Math.min(5, Math.max(3, Math.ceil(kept.length / 2)));
     const stack = kept.slice(0, n), faq = kept.slice(n, n + 5);
     for (const r of [...stack, ...faq]) { usedBank.add(r.id); usedWordings.add(norm(r.question)); }
     topic.query_stack = stack.map(r => r.id); topic.stack = stack.map(r => ({ id: r.id, wording: r.question, doubt: r.doubt, needs_fact: !!r.needsFact }));
@@ -254,9 +299,13 @@ function reserveBlogTopics({ assignment, cv = {}, niche = {}, keyValueMap = {}, 
     let packService = null;
     // The condition's title names the work ("slow-draining ground" → Garden drainage); its symptom text would pull in whatever it mentions ("the lawn stays soggy" → Lawn care)
     try { packService = P.serviceForQuestion(niche._source || P.packNameFor(niche.trade), issue.title); } catch (_) { packService = null; }
-    add({ pack_service: packService, key: keyFor(`${issue.title} ${town}`), post_type: 'local', source: 'dossier', homepage_cost_guide: false, target_query: lc(norm(`${issue.title} ${town}`)),
-      wording: question(`what causes ${lc(issue.title)} in ${town}`), wording_source: 'code', needs_approval: true, question: null, service: null, category: null, town,
-      dossier_condition: { id: issue.id, title: issue.title, symptom: symptom ? { id: symptom.id, text: symptom.text } : null, town }, primary: '/#services' });
+    // The H1 from the symptom as a homeowner would type it ("Why Does My Lawn Stay Soggy for Days
+    // After Rain in Southampton?"), 70 characters at most, never the condition's research title
+    const wording = homeownerQuestion(symptom ? symptom.text : issue.title, town);
+    const svcPage = servicePageFor(packService);
+    add({ pack_service: packService, key: keyFor(wording.replace(/\?$/, '')), post_type: 'local', source: 'dossier', homepage_cost_guide: false, target_query: lc(norm(wording)),
+      wording, wording_source: 'code', needs_approval: true, question: null, service: pageRef(svcPage), category: null, town,
+      dossier_condition: { id: issue.id, title: issue.title, symptom: symptom ? { id: symptom.id, text: symptom.text } : null, town }, primary: svcPage ? svcPage.urlSlug : '/#services' });
   }
   if (!parsedDossiers.length) flags.push({ code: 'F-LOCAL', msg: 'No saved dossier for any town: no local posts.' });
 
@@ -300,10 +349,11 @@ function reserveBlogTopics({ assignment, cv = {}, niche = {}, keyValueMap = {}, 
     let packService = null;
     try { packService = P.serviceForQuestion(niche._source || P.packNameFor(niche.trade), t.topic); } catch (_) { packService = null; }
     if (c) usedIssues.add(c.issue.id);
+    const svcPage = servicePageFor(packService);
     const topic = add({ key: keyFor(`${t.topic} ${town}`), post_type: 'local', source: 'seasonal', homepage_cost_guide: false, target_query: lc(norm(`${t.topic} ${town}`)),
       // "Lay new turf" reads as "When should you lay new turf"; "Spring lawn care" as "When is the best time for spring lawn care"
-      wording: question(SEASONAL_VERB.test(t.topic) ? `when should you ${lc(t.topic)} in ${town}` : `when is the best time for ${lc(t.topic)} in ${town}`), wording_source: 'code', needs_approval: true, question: null, service: null, category: null, town,
-      seasonal: { topic: t.topic, window: t.window, publish: t.publish, month }, in_window: !!month, primary: '/#services', pack_service: packService,
+      wording: question(SEASONAL_VERB.test(t.topic) ? `when should you ${lc(t.topic)} in ${town}` : `when is the best time for ${lc(t.topic)} in ${town}`), wording_source: 'code', needs_approval: true, question: null, service: pageRef(svcPage), category: null, town,
+      seasonal: { topic: t.topic, window: t.window, publish: t.publish, month }, in_window: !!month, primary: svcPage ? svcPage.urlSlug : '/#services', pack_service: packService,
       dossier_condition: c ? { id: c.issue.id, title: c.issue.title, symptom: c.symptom ? { id: c.symptom.id, text: c.symptom.text } : null, town, fit: c.score >= 1 ? 'names the job' : 'the first free condition' } : null });
     if (!c) topic.flags.push({ code: 'F-CONDITION', msg: `No free dossier condition for "${t.topic}" (${parsedDossiers.length ? 'every condition is used' : 'no saved dossier'}): the post has no condition and will gate on B9.` });
     else if (c.score < 1) topic.flags.push({ code: 'F-CONDITION', msg: `No dossier condition names "${t.topic}": the first free condition of ${town} (${c.issue.title}) is used.` });
@@ -333,9 +383,12 @@ function reserveBlogTopics({ assignment, cv = {}, niche = {}, keyValueMap = {}, 
   const ref = q => ({ id: q.id, wording: q.wording || q.text, doubt: q.doubt || '', needs_fact: !!(q.needs_fact || q.fact || q.new_fact) });
   const fromPool = t => t.source !== 'blog_bank' && !(t.question && t.question.source === 'blog_bank') && !t.bank_topic;
   const stackFor = t => {
-    const stack = pool.filter(q => sameCluster(t, q)).sort(byDoubt).slice(0, 5);
+    const fits = q => sameCluster(t, q) && relatedScore(t.wording, q.wording || q.text) >= RELATED_MIN;
+    const byScore = (a, b) => relatedScore(t.wording, b.wording || b.text) - relatedScore(t.wording, a.wording || a.text) || byDoubt(a, b);
+    const costGuide = t.post_type === 'cost_guide';
+    const stack = costGuide ? [] : pool.filter(fits).sort(byScore).slice(0, 5);
     for (const q of stack) used.add(q.id);
-    const rest = pool.filter(q => sameCluster(t, q)).sort(byDoubt).slice(0, 5);
+    const rest = pool.filter(fits).sort(byScore).slice(0, 5);
     for (const q of rest) used.add(q.id);
     t.query_stack = stack.map(q => q.id); t.stack = stack.map(ref);
     t.faq_ids = rest.map(q => q.id); t.faq = rest.map(ref);
@@ -349,9 +402,13 @@ function reserveBlogTopics({ assignment, cv = {}, niche = {}, keyValueMap = {}, 
     // the pack names no service, and the question only when the bank topic names no service
     const want = new Set(stemsOf(t.pack_service || (t.seasonal ? t.seasonal.topic : '') || (t.dossier_condition ? t.dossier_condition.title : '')).filter(w => !['lay', 'new', 'prepare', 'care', 'cut', 'season', 'spring', 'summer', 'autumn', 'winter'].includes(w)));
     const near = want.size ? bankTopics.filter(bt => { const have = new Set(stemsOf(bt.service || (bt.service === '' ? bt.question : '') || '')); return [...want].some(w => have.has(w) || [...have].some(h => (h.length >= 4 && w.startsWith(h)) || (w.length >= 4 && h.startsWith(w)))); }) : [];
-    const kept = [];
+    let kept = [];
     for (const bt of near) for (const r of [...bt.related].sort(byDoubt)) { if (usedBank.has(r.id) || usedWordings.has(norm(r.question))) continue; if (!kept.some(k => k.id === r.id)) kept.push({ ...r, _topic: bt.id }); }
-    kept.sort(byDoubt);
+    // Against the post's own question ("Why does my garden stay waterlogged" keeps the drainage
+    // questions, not every lawn question the service has); the topic's words count too, since
+    // the question is the homeowner's and the topic names the work
+    const target = `${t.wording} ${t.seasonal ? t.seasonal.topic : ''} ${t.pack_service || ''}`;
+    kept = rankRelated(target, kept);
     const n = Math.min(5, Math.max(3, Math.ceil(kept.length / 2)));
     const stack = kept.slice(0, n), faq = kept.slice(n, n + 5);
     for (const r of [...stack, ...faq]) { usedBank.add(r.id); usedWordings.add(norm(r.question)); }
@@ -384,7 +441,8 @@ function reserveBlogTopics({ assignment, cv = {}, niche = {}, keyValueMap = {}, 
   // The shape gate (Brandon, 28 Oct): a post needs three H2s and three FAQ questions, or it
   // is held (G-STACK), not written; the next topic beyond the batch takes its slot
   const heldBack = [];
-  const thin = t => t.query_stack.length < 3 || t.faq_ids.length < 3;
+  // A cost guide's H2s are fixed (blog/cost-guide.js), so only its FAQ comes from the bank and the gate never holds it
+  const thin = t => t.post_type === 'cost_guide' ? false : (t.query_stack.length < 3 || t.faq_ids.length < 3);
   const hold = t => {
     const had = { stack: t.query_stack.length, faq: t.faq_ids.length };
     release(t);

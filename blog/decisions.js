@@ -22,6 +22,7 @@ const { getLinkStatus, isLinkable } = require('../decisions');
 const { bylineFor, matchPrices } = require('./inputs');
 const { blocksFor } = require('./blocks');
 const { titleCase, question } = require('./topics');
+const { costGuideH2s, loadStructure } = require('./cost-guide');
 const PT = require('../page-types/blog');
 const { CV_KEYS } = require('../v20-generate');
 
@@ -41,6 +42,7 @@ const DECISION_RE = /^(?:is |are |should i (?:choose |use |go for |lay |pick |ha
 // A dossier symptom that reads as a sign of a condition, not a description of the plot
 const SYMPTOM_RE = /\b(?:water|puddle|pool|sits|sitting|standing|boggy|soggy|waterlogg|damp|moss|thin|bare|patch|yellow|brown|dies|dying|dead|crack|lift|rock|sink|slip|slump|wobbl|lean|rot|flood|drain|dries|hard|compact|weed|algae|slime|heave|subsid|sag|loose|gap|erod|wash)\w*\b/i;
 const TABLE_COLUMNS = {
+  local:      ['Sign', 'Likely cause', 'Usual fix'],
   cost_guide: ['Job', 'Typical price', 'What affects it'],
   decision:   ['Option', 'Suits', 'Cost level', 'Upkeep'],
   question:   ['Cause', 'Sign', 'Fix'],
@@ -217,17 +219,22 @@ const tfRows = (tradeFacts && tradeFacts.verified && Array.isArray(tradeFacts.ro
   // ── B6, B7: the H2s and the FAQ questions, from the row ──
   const stackQ = (info.stack && info.stack.length ? info.stack : (info.query_stack || []).map(id => ({ id, wording: (questions.get(id) || {}).wording || id, doubt: (questions.get(id) || {}).doubt || '' }))).map(s => ({ ...s, doubt: s.doubt || 'Process' }));
   const faqQ = (info.faq && info.faq.length ? info.faq : (info.faq_ids || []).map(id => ({ id, wording: (questions.get(id) || {}).wording || id, doubt: (questions.get(id) || {}).doubt || '' }))).map(s => ({ ...s, doubt: s.doubt || 'Process' }));
-  const sections = stackQ.map(s => ({ id: s.id, h2: question(s.wording), doubt: s.doubt, brief: DOUBT_BRIEF[s.doubt] || DOUBT_BRIEF.Process, needs_fact: !!s.needs_fact }));
+  // A cost guide's H2s are the fixed set from the Cost Guide Structure (Brandon, 28 Oct); the bank gives its FAQ only
+  const fixed = postType === 'cost_guide' ? costGuideH2s({ service: svcTitle || ctx.trade, city }) : null;
+  // A fixed H2 is written as the structure has it (a heading, not always a question)
+  const sections = fixed ? fixed.map(h => ({ id: h.id, h2: /\?$/.test(h.wording) ? question(h.wording) : titleCase(h.wording), doubt: h.doubt, brief: h.brief, needs_fact: false, fixed: true }))
+    : stackQ.map(s => ({ id: s.id, h2: question(s.wording), doubt: s.doubt, brief: DOUBT_BRIEF[s.doubt] || DOUBT_BRIEF.Process, needs_fact: !!s.needs_fact }));
+  if (fixed && loadStructure().placeholder) flags.push({ code: 'F-STRUCTURE', msg: 'The cost guide H2s are the placeholder set: prompts/Cost_Guide_Structure.md waits for Brandon\'s Cost Guide Structure.' });
   const faq = faqQ.map(s => ({ id: s.id, question: question(s.wording), doubt: s.doubt, needs_fact: !!s.needs_fact }));
-  // The shape gate (Brandon, 28 Oct): three H2s and three FAQ questions at least, or the post is held
-  if (sections.length < 3 || faq.length < 3) gates.push({ code: 'G-STACK', hold: true, msg: `${row.slug}: ${sections.length} H2${sections.length === 1 ? '' : 's'} and ${faq.length} FAQ question${faq.length === 1 ? '' : 's'} (3 of each needed). The post is held, not written.` });
-  if (sections.length < 3) flags.push({ code: 'F-STACK', msg: `${sections.length} query stack question(s) (3 to 5 wanted): held (G-STACK).` });
+  // The shape gate (Brandon, 28 Oct): three H2s and three FAQ questions at least, or the post is held; never a cost guide
+  if (!fixed && (sections.length < 3 || faq.length < 3)) gates.push({ code: 'G-STACK', hold: true, msg: `${row.slug}: ${sections.length} H2${sections.length === 1 ? '' : 's'} and ${faq.length} FAQ question${faq.length === 1 ? '' : 's'} (3 of each needed). The post is held, not written.` });
+  if (!fixed && sections.length < 3) flags.push({ code: 'F-STACK', msg: `${sections.length} query stack question(s) (3 to 5 wanted): held (G-STACK).` });
   if (faq.length < 3) flags.push({ code: 'F-FAQ-ITEMS', msg: `${faq.length} FAQ question(s) (3 to 5 wanted).` });
 
   // ── B11: the table ──
   const isRules = postType === 'decision' && RULE_RE.test(wording);
   // A local post's table takes the question columns (cause, sign, fix)
-  let tableType = isRules ? 'rules' : postType === 'local' ? 'question' : postType;
+  let tableType = isRules ? 'rules' : postType;
   let rows = [];
   if (tableType === 'cost_guide') rows = priceList.map(r => ({ label: r.service, from: 'PRICE' }));
   else if (tableType === 'rules') rows = tfRows.filter(r => r.kind === 'rule').map(r => ({ label: r.name || r.text.slice(0, 60), from: 'TF rule' })).concat(dossierRows.filter(d => d.kind === 'dossier rule').map(d => ({ label: d.text.split(':')[0], from: 'dossier rule' })));

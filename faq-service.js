@@ -298,7 +298,7 @@ function createFaqService({
     for (const d of dossiers) { try { parsed.push({ town: d.location, parsed: require('./geo-dossier').parseDossier(d.text) }); } catch (e) { problems.push(`${d.location}: dossier not parsed (${e.message})`); } }
     const siteCheck = SC.siteWideCheck({
       pagesQuestions: Object.fromEntries(Object.values(assignment.pages).map(p => [p.id, p.questions.map(q => q.wording)])),
-      topics: blog.topics, questionsById: new Map(sort.record.questions.map(q => [q.id, q])), allocationRecord: alloc, pageRecords: records, dossiers: parsed,
+      topics: blog.topics, questionsById: new Map(sort.record.questions.map(q => [q.id, q])), allocationRecord: alloc, pageRecords: records, dossiers: parsed, genericWords: [ctx.keyValueMap.biz_area_1 || '', niche.trade || ''],
     });
     return { blog: { ...blog, problems }, siteCheck, pageWordings: [...pageWordings] };
   }
