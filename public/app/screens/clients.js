@@ -1,7 +1,7 @@
 // Clients (27 Oct 2026): the dashboard's table full page, niche tabs, the archive toggle,
 // and the Fillout clients still to allocate ("Is this client a X?") as a card at the top.
 
-import { h, attr, api, card, toast, confirm, fmtDate, wire } from '../ui.js';
+import { h, attr, api, card, table, pill, timeEl, toast, confirm, fmtDate, wire, busy } from '../ui.js';
 import { clientsTable } from './clients-table.js';
 
 export async function render(root, params, ctx) {
@@ -18,9 +18,35 @@ export async function render(root, params, ctx) {
       <div class="ph"><div class="ph-title"><h1>Clients</h1><div class="ph-meta">${list.clients.filter(c => !c.archived_at).length} active</div></div>
         <div class="ph-actions"><a class="btn btn-primary" href="/add-client" data-link>Add client</a></div></div>
       ${pending.length ? card({ title: `New from Fillout: ${pending.length} to allocate`, sub: 'Say which niche each one is in. The record, services and page map follow from the niche.', body: pending.map(newCard).join('') }) : ''}
-      <div class="card card-flat" style="margin-top:${pending.length ? 16 : 0}px"><div id="tbl"></div></div>`;
+      <div class="card card-flat" style="margin-top:${pending.length ? 16 : 0}px"><div id="tbl"></div></div>
+      <details class="card" style="margin-top:16px" id="inbox"><summary style="cursor:pointer;font-weight:600">Fillout inbox <span class="muted small" style="font-weight:400">every submission, newest first; Reprocess rebuilds the record from the stored payload (hand edits are kept)</span></summary><div id="inboxBody" style="margin-top:12px"><div class="skel" style="width:50%"></div></div></details>`;
+    root.querySelector('#inbox').addEventListener('toggle', e => { if (e.target.open) loadInbox(); }, { once: true });
     clientsTable(root.querySelector('#tbl'), { ...dash, tabs: list.tabs }, ctx, { title: 'All clients', nicheTabs: true, showArchiveToggle: true, filters: { needs: ctx.query.needs === '1', newOnly: ctx.query.new || '' } });
   };
+
+  // The Fillout inbox (the old submissions page): every submission with its state and a Reprocess
+  async function loadInbox() {
+    const el = root.querySelector('#inboxBody'); if (!el) return;
+    try {
+      const { submissions } = await api('/api/fillout/submissions');
+      if (!submissions.length) { el.innerHTML = '<div class="muted">No submissions yet. Point the Fillout webhook at /api/webhooks/fillout with the shared secret.</div>'; return; }
+      const columns = [
+        { key: 'businessName', label: 'Business', cls: 'no-label', render: s => `<span class="primary">${s.clientId ? `<a href="/clients/${h(s.clientId)}/record?view=form" data-link>${h(s.businessName || '(no business name)')}</a>` : h(s.businessName || '(no business name)')}</span><span class="sub">${h(s.submissionId)}${s.duplicateOf ? ` · <span class="pill wait">possible duplicate of ${h(s.duplicateOf.name || 'another client')}</span>` : ''}${s.audioFailed ? ` · <span class="pill wait">${s.audioFailed} audio download${s.audioFailed > 1 ? 's' : ''} to retry</span>` : ''}${s.niche && !s.nicheKnown ? ' · <span class="pill wait">no field map for this niche</span>' : ''}${s.archived ? ' · <span class="pill">archived</span>' : ''}</span>` },
+        { key: 'niche', label: 'Niche', render: s => h(s.niche || '–') },
+        { key: 'receivedAt', label: 'Received', render: s => timeEl(s.receivedAt) },
+        { key: 'status', label: 'Status', render: s => `${pill(s.status === 'processed' ? 'ok' : s.status === 'error' ? 'block' : 'none', s.status)}${s.error ? `<span class="sub" style="color:#b91c1c" title="${attr(s.error)}">${h(s.error.split('\n')[0])}</span>` : ''}` },
+        { key: 'completeness', label: 'Ready to build', render: s => s.completeness ? `${s.completeness.needed.filled} of ${s.completeness.needed.total}${s.completeness.chase && s.completeness.chase.total ? `<span class="sub">worth chasing ${s.completeness.chase.filled} of ${s.completeness.chase.total}</span>` : ''}` : '<span class="muted">–</span>' },
+        { key: 'act', label: '', cls: 'right no-label', render: s => `${s.status !== 'rejected' ? `<button class="btn btn-ghost btn-sm" data-rerun="${h(s.id)}" title="Rebuild the client record from the stored submission. Fields typed in by hand are kept.">${s.status === 'error' || s.audioFailed || s.status === 'received' ? 'Re-run' : 'Reprocess'}</button>` : ''}${s.archived && s.clientId ? ` <button class="btn btn-ghost btn-sm" data-unarchive="${h(s.clientId)}">Unarchive</button>` : ''}` },
+      ];
+      el.innerHTML = table({ columns, rows: submissions, cards: true });
+    } catch (e) { el.innerHTML = `<div class="notice bad">${h(e.message)}</div>`; }
+  }
+  root.addEventListener('click', async e => {
+    const rr = e.target.closest('[data-rerun]');
+    if (rr) { try { await busy(rr, 'Running…', () => api(`/api/fillout/submissions/${rr.dataset.rerun}/reprocess`, { method: 'POST' })); toast('Reprocessed'); } catch (err) { toast(`Re-run failed: ${err.message}`, 'bad'); } return loadInbox(); }
+    const ua = e.target.closest('[data-unarchive]');
+    if (ua) { try { await api(`/api/clients/${ua.dataset.unarchive}/unarchive`, { method: 'POST' }); toast('Unarchived'); } catch (err) { toast(err.message, 'bad'); } return loadInbox(); }
+  });
 
   function newCard(c) {
     const sug = c.suggested_niche_key ? niches.find(n => n.key === c.suggested_niche_key) : null;

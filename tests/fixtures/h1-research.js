@@ -334,8 +334,8 @@ const okReply = (keywords, table) => ({ ok: true, status: 200, statusText: 'OK',
     chk('The Accept and "Use all suggestions" endpoints are gone (400, 404)', acc.status === 400 && useAll.status === 404, JSON.stringify([acc.status, useAll.status]), '[400,404]');
     const pv2 = await (await req('GET', `/api/clients/${c2.id}/h1-research/preview`)).json();
     chk('GET h1-research/preview returns the changes and notes, writing nothing', Array.isArray(pv2.changes) && Array.isArray(pv2.notes) && typeof pv2.keywords === 'number', JSON.stringify(Object.keys(pv2)), '');
-    const html = fs.readFileSync(path.join(root, 'public/client-record.html'), 'utf8');
-    // The H1 label for each state, from the page's own functions
+    // The H1 label for each state, from the page map view's own functions (the record panels ported into the app, 28 Oct)
+    const html = fs.readFileSync(path.join(root, 'public/app/legacy/record-panels.js'), 'utf8');
     const src = html.slice(html.indexOf('  function retiredReason(r) {'), html.indexOf('  // Under the H1: the volume line'));
     const ui = new Function('pm', `${src}; return { h1State, h1Line, retiredReason };`)({ candidates: { 'location:/romsey': [{ candidate: 'gardener romsey', volume: 50, cpc: 1.81, chosen: true }] } });
     const lbl = r => ui.h1Line({ applies: true, page_key: 'location:/romsey', ...r });

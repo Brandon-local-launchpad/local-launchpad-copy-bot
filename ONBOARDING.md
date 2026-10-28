@@ -12,7 +12,7 @@ there: no extraction, no page generation from these records yet.
 2. In Fillout, add a webhook on the form pointing at
    `https://<the app>/api/webhooks/fillout?token=<that secret>`
    (a header works too: `X-Fillout-Secret: <secret>` or `Authorization: Bearer <secret>`).
-3. Submit a test form. It appears at `/submissions.html` within a second or two.
+3. Submit a test form. It appears in the Fillout inbox on `/clients` within a second or two.
 
 ## What happens on delivery
 
@@ -304,7 +304,7 @@ service (Drainage).
   migration at startup: hand-made clients (and archived Fillout ones) are placed
   by their trade with `signed_on = created date`; live Fillout clients are left
   for New Clients. A resubmission never touches these columns.
-- `/clients.html`: search (name and email, across all niches), Show archived,
+- `/clients` (the Clients screen; the old `/clients.html`): search (name and email, across all niches), Show archived,
   a scrolling tab bar (`?tab=key`, remembered in localStorage; lands on New
   Clients when it has any): New Clients (n), one tab per niche with a client
   (alphabetical, with counts), Other / unsorted, All clients. Counts exclude
@@ -325,11 +325,11 @@ service (Drainage).
 
 ## Pages and API
 
-- `/submissions.html`: every submission, newest first: business name, niche,
+- The Fillout inbox card on `/clients` (the old `/submissions.html`): every submission, newest first: business name, niche,
   received, status (received / processed / error / rejected), completeness, flags.
   Click a row for the record. `GET /api/fillout/submissions`,
   `POST /api/fillout/submissions/:id/reprocess`.
-- `/client-record.html?id=<clientId>`: one panel at a time. Left menu (a dropdown
+- `/clients/<clientId>/record?view=form` (the Record tab's Onboarding form sub-tab; the old `/client-record.html`): one panel at a time. Left menu (a dropdown
   on narrow screens) with "filled of expected" counts and a dot per panel: red
   when an expected answer is missing, green when all are filled, grey when the
   panel has nothing expected. Panels come from `panels` in

@@ -107,10 +107,10 @@ process.env.APP_PASSWORD = '';
   if (runs.length) await asset('gbp_output', 'gbp.json', fs.readFileSync(path.join(runsDir, runs[runs.length - 1], 'record.json'), 'utf8'));
 
   console.log('\nDEMO READY');
-  console.log(`  Client:       http://localhost:${PORT}/client.html?id=${clientId}`);
-  console.log(`  Settings:     http://localhost:${PORT}/client-settings.html?id=${clientId}`);
-  console.log(`  Page screen:  http://localhost:${PORT}/v20-page.html?clientId=${clientId}&type=homepage`);
-  console.log(`  Generate:     http://localhost:${PORT}/generate?clientId=${clientId}`);
+  console.log(`  Client:       http://localhost:${PORT}/clients/${clientId}/record`);
+  console.log(`  Pages:        http://localhost:${PORT}/clients/${clientId}/pages`);
+  console.log(`  Page view:    http://localhost:${PORT}/clients/${clientId}/pages/homepage/homepage`);
+  console.log(`  Dashboard:    http://localhost:${PORT}/dashboard`);
   console.log(`  Fake WP site: ${wp.url}  (user copybot, Application Password test-app-password-not-real)`);
   console.log(`  Fake site writes so far: GET ${wp.url}/__writes`);
   fake.app.get('/__writes', (req, res) => res.json({ writes: fake.state.writes, h1: fake.state.pages.get(7).acf.home_hero_h1 }));

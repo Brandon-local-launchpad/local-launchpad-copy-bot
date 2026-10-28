@@ -3018,10 +3018,9 @@ app.post('/api/research-rerun', async (req, res) => {
   })();
 });
 
-// ── Serve generate tool at /generate ─────────────────────────────────────────
-
-app.get('/generate', (req, res) => res.sendFile(path.join(__dirname, 'public', 'generate.html')));
+// The old generate page (the GoHighLevel path's upload steps) is gone (UI redesign, 28 Oct); the app lives at /dashboard
 app.get('/', (req, res) => res.redirect('/dashboard'));
+app.get('/generate', (req, res) => res.redirect('/dashboard'));
 
 // ── v20 client values ─────────────────────────────────────────────────────────
 

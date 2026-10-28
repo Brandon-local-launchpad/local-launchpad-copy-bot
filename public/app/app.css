@@ -14,7 +14,7 @@
 
   --text: #1a1d26;
   --text-2: #4b5160;
-  --muted: #6b7280;
+  --muted: #626876;
   --label: #8a8f9c;
 
   --accent: #5e63f0;
@@ -22,11 +22,12 @@
   --accent-soft: #eef0ff;
   --accent-grad: linear-gradient(135deg, #6b5ae6 0%, #3f6bff 100%);
 
-  --ok: #16a34a;      --ok-soft: #e7f6ec;
-  --wait: #d97706;    --wait-soft: #fdf3e3;
-  --block: #dc2626;   --block-soft: #fdeaea;
+  /* Status: the dot or bar colour, its soft background, and the ink for text on white or on the soft (4.5:1 or better) */
+  --ok: #16a34a;      --ok-soft: #e7f6ec;    --ok-ink: #166534;
+  --wait: #d97706;    --wait-soft: #fdf3e3;  --wait-ink: #b45309;
+  --block: #dc2626;   --block-soft: #fdeaea; --block-ink: #b91c1c;
   --none: #9ca3af;    --none-soft: #eff0f3;
-  --run: #2563eb;     --run-soft: #e8efff;
+  --run: #2563eb;     --run-soft: #e8efff;   --run-ink: #1d4ed8;
 
   --sb-bg: #12141c;
   --sb-text: #c9cdd6;
@@ -43,7 +44,7 @@
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 html { -webkit-text-size-adjust: 100%; }
 body { background: var(--bg); color: var(--text); font-family: var(--font); font-size: 14px; line-height: 1.5; min-height: 100vh; }
-a { color: var(--accent); text-decoration: none; }
+a { color: var(--accent-ink); text-decoration: none; }
 a:hover { text-decoration: underline; }
 button { font-family: var(--font); }
 h1, h2, h3, h4 { font-weight: 600; line-height: 1.25; }
@@ -147,7 +148,7 @@ code, .mono { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monosp
 @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: .35; } }
 .status { display: inline-flex; align-items: center; gap: 7px; font-size: 13px; white-space: nowrap; }
 .pill { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 500; padding: 2px 9px; border-radius: 999px; background: var(--none-soft); color: var(--text-2); white-space: nowrap; }
-.pill.ok { background: var(--ok-soft); color: #15803d; } .pill.wait { background: var(--wait-soft); color: #b45309; } .pill.block { background: var(--block-soft); color: #b91c1c; } .pill.run { background: var(--run-soft); color: #1d4ed8; } .pill.accent { background: var(--accent-soft); color: var(--accent-ink); }
+.pill.ok { background: var(--ok-soft); color: var(--ok-ink); } .pill.wait { background: var(--wait-soft); color: var(--wait-ink); } .pill.block { background: var(--block-soft); color: var(--block-ink); } .pill.run { background: var(--run-soft); color: var(--run-ink); } .pill.accent { background: var(--accent-soft); color: var(--accent-ink); }
 .tag { display: inline-block; font-size: 11px; font-weight: 500; padding: 1px 7px; border-radius: 6px; background: var(--none-soft); color: var(--muted); white-space: nowrap; vertical-align: middle; }
 .tag.form { background: #e8efff; color: #1d4ed8; } .tag.website { background: #e7f6ec; color: #15803d; } .tag.gbp { background: #fdf3e3; color: #b45309; } .tag.dossier { background: #f1e8ff; color: #6d28d9; } .tag.hand { background: var(--none-soft); color: var(--text-2); }
 
@@ -163,7 +164,7 @@ code, .mono { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monosp
 .btn-sm { padding: 5px 10px; font-size: 12.5px; }
 .btn-xs { padding: 3px 8px; font-size: 12px; }
 .btn-copy { padding: 3px 8px; font-size: 12px; color: var(--muted); border-color: var(--border); }
-.btn-copy.done { color: var(--ok); border-color: var(--ok); }
+.btn-copy.done { color: var(--ok-ink); border-color: var(--ok); }
 .btn-row { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
 
 /* ── Forms ─────────────────────────────────────────────────────────────────── */
@@ -302,7 +303,7 @@ hr.sep { border: 0; border-top: 1px solid var(--border); margin: 16px 0; }
 
 /* ── Misc ──────────────────────────────────────────────────────────────────── */
 .score { font-weight: 600; font-variant-numeric: tabular-nums; }
-.score.good { color: var(--ok); } .score.mid { color: var(--wait); } .score.low { color: var(--block); }
+.score.good { color: var(--ok-ink); } .score.mid { color: var(--wait-ink); } .score.low { color: var(--block-ink); }
 pre.block { background: #fafbfc; border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 12px; font-size: 12.5px; white-space: pre-wrap; word-break: break-word; max-height: 420px; overflow: auto; }
 .inline-edit { display: inline-flex; gap: 6px; align-items: center; }
 .skel { background: linear-gradient(90deg, #eef0f3 25%, #f6f7f9 50%, #eef0f3 75%); background-size: 200% 100%; animation: shimmer 1.2s infinite; border-radius: 6px; height: 14px; }

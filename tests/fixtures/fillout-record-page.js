@@ -14,59 +14,53 @@ const chk = (label, ok, got, want) => {
   if (ok) { console.log('✓ ' + label); pass++; }
   else    { console.log('✗ ' + label + '\n  got:  ' + got + '\n  want: ' + want); fail++; }
 };
-console.log('\n=== FIXTURE: record page contract (themes, contrast, tiers) ===\n');
+console.log('\n=== FIXTURE: record page contract (the ported panels, the app tokens, tiers) ===\n');
 
-const html = fs.readFileSync(path.join(root, 'public/client-record.html'), 'utf8');
-const css = (html.match(/<style>([\s\S]*?)<\/style>/) || [])[1] || '';
+// The record panels live in the app since the UI redesign (28 Oct): the script ported as is, the styles
+// scoped under .legacy on the app's tokens (one light theme in public/app/app.css, no theme switch)
+const html = fs.readFileSync(path.join(root, 'public/app/legacy/record-panels.js'), 'utf8');
+const css = fs.readFileSync(path.join(root, 'public/app/legacy/record.css'), 'utf8');
+const appCss = fs.readFileSync(path.join(root, 'public/app/app.css'), 'utf8');
 
-// ── Variables per theme ──
+// ── The tokens: the app's :root (one light theme), and the legacy panels' aliases onto them ──
 function vars(block) {
   const out = {};
   for (const m of block.matchAll(/--([a-z0-9-]+):\s*([^;]+);/g)) out[m[1]] = m[2].trim();
   return out;
 }
-const lightBlock = (css.match(/:root\s*\{([\s\S]*?)\}/) || [])[1] || '';
-const darkBlock = (css.match(/:root\[data-theme="dark"\]\s*\{([\s\S]*?)\}/) || [])[1] || '';
-const light = vars(lightBlock), dark = { ...light, ...vars(darkBlock) };
-chk('Light and dark variable blocks exist and dark overrides the base', Object.keys(light).length > 10 && Object.keys(vars(darkBlock)).length > 10 && light.bg !== dark.bg, `${Object.keys(light).length}/${Object.keys(vars(darkBlock)).length}`, '>10 each');
+const rootBlock = (appCss.match(/:root\s*\{([\s\S]*?)\}/) || [])[1] || '';
+const legacyBlock = (css.match(/\.legacy\s*\{([\s\S]*?)\}/) || [])[1] || '';
+const tokens = vars(rootBlock), aliases = vars(legacyBlock);
+// A value may name another token (var(--x)); resolve until it is a colour
+const resolve = (v, depth = 0) => { const m = String(v || '').match(/^var\(--([a-z0-9-]+)\)$/); if (!m) return v; if (depth > 6) throw new Error('token loop: ' + v); return resolve(tokens[m[1]] !== undefined ? tokens[m[1]] : aliases[m[1]], depth + 1); };
+const theme = {};
+for (const [k, v] of Object.entries({ ...tokens, ...aliases })) theme[k] = resolve(v);
+chk('The app defines its tokens once on :root and the legacy panels alias their old variables onto them', Object.keys(tokens).length > 20 && aliases.surface === 'var(--card)' && aliases.danger === 'var(--block-ink)', JSON.stringify([Object.keys(tokens).length, aliases.surface, aliases.danger]), '');
+chk('Every legacy rule is scoped under .legacy, so nothing leaks into the app', css.split('\n').filter(l => /^\S.*\{/.test(l) && !/^@|^\.legacy|^\s*$/.test(l)).length === 0, css.split('\n').filter(l => /^\S.*\{/.test(l) && !/^@|^\.legacy/.test(l)).slice(0, 3).join(' | '), 'none');
 
-// No hard-coded colours in rules outside the two variable blocks
-const rulesOnly = css.replace(lightBlock, '').replace(darkBlock, '');
-const hard = rulesOnly.match(/#[0-9a-f]{3,8}\b|rgba?\([^)]*\)/gi) || [];
-chk('No hard-coded colours in CSS rules (variables only)', hard.length === 0, hard.slice(0, 5).join(' '), 'none');
-
-// ── Contrast ──
+// ── Contrast: text 4.5:1 or better on the surfaces it sits on ──
 function parse(c) {
-  c = c.trim();
+  c = String(c || '').trim();
   let m;
   if ((m = c.match(/^#([0-9a-f]{6})$/i))) return [parseInt(m[1].slice(0, 2), 16), parseInt(m[1].slice(2, 4), 16), parseInt(m[1].slice(4, 6), 16), 1];
   if ((m = c.match(/^#([0-9a-f]{3})$/i))) return [...m[1]].map(h => parseInt(h + h, 16)).concat([1]);
   if ((m = c.match(/^rgba?\(([^)]+)\)$/i))) { const p = m[1].split(',').map(s => parseFloat(s)); return [p[0], p[1], p[2], p.length > 3 ? p[3] : 1]; }
   throw new Error('colour not parsed: ' + c);
 }
-const over = (fg, bg) => { const a = fg[3]; return [0, 1, 2].map(i => Math.round(fg[i] * a + bg[i] * (1 - a))).concat([1]); };
 const lum = ([r, g, b]) => { const f = v => { v /= 255; return v <= 0.03928 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4); }; return 0.2126 * f(r) + 0.7152 * f(g) + 0.0722 * f(b); };
 const ratio = (fg, bg) => { const l1 = lum(fg), l2 = lum(bg); return (Math.max(l1, l2) + 0.05) / (Math.min(l1, l2) + 0.05); };
-function checkTheme(name, v) {
-  const col = k => parse(v[k]);
-  const surface = col('surface'), bg = col('bg'), surface2 = col('surface2');
-  const pairs = [
-    ['text on surface', col('text'), surface], ['text on bg', col('text'), bg], ['muted on surface', col('muted'), surface], ['muted on surface2', col('muted'), surface2],
-    ['accent (attention links) on surface', col('accent'), surface], ['accent on bg', col('accent'), bg],
-    ['warning badge', col('warning'), over(col('warning-bg'), surface)], ['success badge', col('success'), over(col('success-bg'), surface)], ['danger badge', col('danger'), over(col('danger-bg'), surface)],
-    ['warning text on surface', col('warning'), surface], ['success text on surface', col('success'), surface], ['danger text on surface', col('danger'), surface],
-    ['button text on accent', col('on-accent'), col('accent')], ['muted badge on surface2', col('muted'), surface2],
-  ];
-  for (const [label, fg, b] of pairs) {
-    const r = ratio(fg, b);
-    chk(`${name}: ${label} ≥ 4.5:1`, r >= 4.5, r.toFixed(2), '≥ 4.5');
-  }
-}
-checkTheme('light', light);
-checkTheme('dark', dark);
+const col = k => parse(theme[k]);
+const pairs = [
+  ['text on card', col('text'), col('card')], ['text on bg', col('text'), col('bg')], ['muted on card', col('muted'), col('card')], ['muted on surface2', col('muted'), col('surface2')], ['muted on bg', col('muted'), col('bg')],
+  ['links (accent ink) on card', col('accent-ink'), col('card')], ['links on bg', col('accent-ink'), col('bg')],
+  ['done text on its soft badge', col('ok-ink'), col('ok-soft')], ['waiting text on its soft badge', col('wait-ink'), col('wait-soft')], ['blocked text on its soft badge', col('block-ink'), col('block-soft')],
+  ['done text on card', col('ok-ink'), col('card')], ['waiting text on card', col('wait-ink'), col('card')], ['blocked text on card', col('block-ink'), col('card')],
+  ['button text on the accent', [255, 255, 255, 1], col('accent')], ['legacy warning badge', col('warning'), col('warning-bg')], ['legacy success badge', col('success'), col('success-bg')], ['legacy danger badge', col('danger'), col('danger-bg')],
+];
+for (const [label, fg, bg] of pairs) { const r = ratio(fg, bg); chk(`light: ${label} ≥ 4.5:1`, r >= 4.5, r.toFixed(2), '≥ 4.5'); }
 
 // ── The page honours the theme contract ──
-chk('Theme is set on <html data-theme>, defaults to the system preference, and storage is wrapped in try/catch', /data-theme/.test(html) && /prefers-color-scheme/.test(html) && /try \{ return localStorage\.getItem/.test(html) && /try \{ localStorage\.setItem/.test(html), '', '');
+chk('The panels never set a theme of their own (the app has one light theme)', !/data-theme/.test(html), '', '');
 chk('Page shows the two scores and the two attention groups', /Ready to build/.test(html) && /Worth chasing/.test(html) && /Blocks the build/.test(html), '', '');
 chk('Empty voice answers render as a compact row with a "Type an answer" action', /Type an answer/.test(html), '', '');
 

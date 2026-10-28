@@ -40,10 +40,7 @@ local-launchpad-copy-bot/
 │   NOTE: All packs are registered in EXPLICIT_PACK_MAP in server.js (see §8 for adding more).
 │
 ├── public/
-│   ├── generate.html      VA-facing site generator (Step 1–4 upload/batch/download UI).
-│   ├── clients.html       Client list dashboard (requires DB).
-│   ├── client.html        Per-client page list and regenerate UI.
-│   ├── page.html          Per-page copy viewer and manual editor.
+│   ├── app/               The app (UI redesign, 28 Oct 2026): index.html, app.css, shell.js, ui.js, screens/, tabs/, legacy/
 │   └── login.html         Password gate (active if APP_PASSWORD env var is set).
 │
 └── calibration-packs/     Empty directory. Alternative location for calibration packs

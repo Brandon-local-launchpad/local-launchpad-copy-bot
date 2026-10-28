@@ -4,7 +4,7 @@
 // Write all / resume / write one through the existing run routes; a row opens the Page view.
 // Polls every 8 seconds while a run is on.
 
-import { h, attr, api, card, table, status, pill, timeEl, score, running, toast, confirm, empty, plural } from '../ui.js';
+import { h, attr, api, card, table, status, pill, timeEl, score, running, toast, confirm, empty, plural, fmtDate, busy } from '../ui.js';
 
 const TYPES = [['homepage', 'Homepage'], ['category', 'Category'], ['service', 'Service'], ['location', 'Location']];
 const STATUS_KIND = { 'not started': 'none', running: 'run', queued: 'none', written: 'ok', blocked: 'block', failed: 'block', 'waiting on a person': 'wait', approved: 'ok', pushed: 'ok', skipped: 'none', waiting: 'none' };
@@ -110,9 +110,45 @@ export async function render(el, ctx) {
         </div>
         ${table({ columns, rows: list, rowHref: r => r.href || null, cards: true, emptyText: rows.length ? 'No pages of this type.' : 'No pages in the page map yet. Generate the page map first.' })}
         <div class="tbl-foot">${h(plural(list.length, 'page'))} · ${list.filter(r => r.status === 'written' || r.status === 'approved' || r.status === 'pushed').length} written clean · ${list.filter(r => r.status === 'blocked' || r.status === 'failed').length} blocked or failed · ${list.reduce((n, r) => n + r.claims, 0)} claims to accept</div>
-      </section>`;
+      </section>
+      <div id="siteCard" style="margin-top:16px"></div>`;
     el.querySelector('#quality').addEventListener('change', e => { quality = e.target.checked; });
+    drawSite();
   };
+
+  // The WordPress site the pages push to, and the v20 switches (the old client settings page)
+  let site = null;
+  const drawSite = async () => {
+    const box = el.querySelector('#siteCard'); if (!box) return;
+    if (!site) { try { const [conn, v20] = await Promise.all([api(`/api/clients/${clientId}/wp/connection`).catch(() => null), api(`/api/clients/${clientId}/v20-settings`).catch(() => ({}))]); site = { conn, v20 }; } catch (_) { site = { conn: null, v20: {} }; } }
+    const c = site.conn, v = site.v20 || {};
+    box.innerHTML = card({ title: 'WordPress site', sub: c ? `Saved ${h(fmtDate(c.updatedAt, true))}${c.staging ? ' · staging' : ''}` : 'No site connected yet: the Page view\'s Push stays off until there is one', body: `
+      <div class="grid grid-2">
+        <div><div class="field"><label>Site URL</label><input class="input" id="wpUrl" value="${attr(c ? c.url : '')}" placeholder="https://client-site.co.uk"></div>
+        <div class="field"><label>WordPress user</label><input class="input" id="wpUser" value="${attr(c ? c.user : '')}" autocomplete="off"></div>
+        <div class="field"><label>Application password</label><input class="input" id="wpPassword" type="password" autocomplete="new-password" placeholder="${c && c.hasPassword ? 'Stored (leave blank to keep)' : 'xxxx xxxx xxxx xxxx xxxx xxxx'}"></div></div>
+        <div><div class="field"><label>SEO plugin</label><select class="input" id="wpSeo"><option value="rankmath"${!c || c.seo === 'rankmath' ? ' selected' : ''}>Rank Math</option><option value="yoast"${c && c.seo === 'yoast' ? ' selected' : ''}>Yoast</option></select></div>
+        <div class="field"><label>Homepage slug (optional)</label><input class="input" id="wpSlug" value="${attr(c ? c.homepageSlug || '' : '')}" placeholder="Leave blank to use the site's front page"></div>
+        <label class="check" style="margin-bottom:10px"><input type="checkbox" id="wpStaging"${c && c.staging ? ' checked' : ''}> This is a staging site</label><br>
+        <label class="check" style="margin-bottom:6px"><input type="checkbox" id="useV20"${v.use_v20_homepage ? ' checked' : ''}> v20 homepage path (CORE 20)</label><br>
+        <label class="check"><input type="checkbox" id="testMode"${v.v20_test_mode ? ' checked' : ''}> Test mode (stand-ins allowed)</label></div>
+      </div>
+      <div class="btn-row"><button class="btn btn-primary btn-sm" data-site="save">Save</button><button class="btn btn-ghost btn-sm" data-site="test" ${c ? '' : 'disabled'}>Test connection</button><span class="small muted" id="siteStatus"></span></div>` });
+  };
+  el.addEventListener('click', async e => {
+    const b = e.target.closest('[data-site]'); if (!b) return;
+    const status = m => { const s = el.querySelector('#siteStatus'); if (s) s.textContent = m; };
+    try {
+      if (b.dataset.site === 'save') {
+        await busy(b, 'Saving…', async () => {
+          const conn = await api(`/api/clients/${clientId}/wp/connection`, { method: 'PUT', body: { url: el.querySelector('#wpUrl').value, user: el.querySelector('#wpUser').value, appPassword: el.querySelector('#wpPassword').value, seo: el.querySelector('#wpSeo').value, homepageSlug: el.querySelector('#wpSlug').value, staging: el.querySelector('#wpStaging').checked } });
+          const v20 = await api(`/api/clients/${clientId}/v20-settings`, { method: 'PUT', body: { use_v20_homepage: el.querySelector('#useV20').checked, v20_test_mode: el.querySelector('#testMode').checked } });
+          site = { conn, v20 }; toast('Saved'); drawSite();
+        });
+      }
+      if (b.dataset.site === 'test') await busy(b, 'Testing…', async () => { const t = await api(`/api/clients/${clientId}/wp/test`, { method: 'POST' }); const s = t.status || {}; status(s.error ? `Can't reach the plugin: ${s.error}` : `Connected${t.staging ? ' (staging)' : ''}: plugin ${s.plugin}, ACF Pro ${s.acf_pro ? 'yes' : 'NO'}, SEO ${s.seo}, ${(s.field_groups || []).length} homepage field groups`); });
+    } catch (err) { toast(err.message, 'bad'); }
+  });
 
   el.addEventListener('click', async e => {
     const f = e.target.closest('[data-filter]'); if (f) { filter = f.dataset.filter; draw(); return; }
