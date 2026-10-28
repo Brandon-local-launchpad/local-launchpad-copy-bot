@@ -219,6 +219,7 @@
     "Covered If Something Goes Wrong"
   ],
 
+  "seasonal_trade": false,
   "blog": {
     "seasonal_topics": [
       {
