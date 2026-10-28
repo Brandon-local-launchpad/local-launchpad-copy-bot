@@ -9,3 +9,6 @@ tests/acceptance/output/
 .wp-push/
 tests/live-snapshots/
 tests/quality-runs/
+
+# Ray's blog spec is the source of truth for the blog page type, kept in the repo
+!docs/Blog_Post_Structure.pdf
