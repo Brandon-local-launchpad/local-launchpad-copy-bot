@@ -1,66 +1,83 @@
-# Blog question bank: Perplexity prompt (v1, 28 Oct 2026)
+# Blog question bank: Perplexity prompt (v2, 28 Oct 2026)
 
-Run **once per trade**, with Deep Research, the same way as the trade question bank. The output is reused for every client in that trade, because we only take one client per trade per town. Refresh it about once a year.
+Run **once per trade**, with Deep Research. The output is reused for every client in that trade, because we only take one client per trade per town. Refresh it about once a year.
 
-Why it exists: on a real client, the page FAQs use up almost all of the trade question bank (46 of Eden's Edge's 48 questions). Each blog post needs a target question plus 6 to 10 questions around it, so 16 posts need well over 100 questions the pages don't use. This bank is the blog's own supply. Local and seasonal posts still come from the dossiers and the niche entry.
+Why it exists: the page FAQs use up almost all of the trade question bank, and each blog post needs a target question plus 6 to 10 questions around it. v2 adds two blocks that v1 lacked, so posts never borrow questions from other topics:
+- **cost topics**, one per service, so every cost guide has FAQs that aren't the cost question reworded;
+- **seasonal topics**, one per seasonal topic in the niche entry, with the month window and its source.
 
-Replace the value in the first line, nothing else.
+The runner fills the three lines at the top: the trade, the services (UK page names from the services library) and the seasonal topics (from the niche entry). Nothing else changes.
 
 ```
 RUN FOR: [TRADE, e.g. landscaper]
+SERVICES: [one per line, e.g. Artificial Grass Installation / Fencing / Block Paving / Lawn Care / Turf Laying / Garden Drainage]
+SEASONAL TOPICS: [one per line, e.g. Spring lawn care / Laying new turf / Preparing the garden for winter / Hedge cutting after the nesting season, or "none"]
 
-You are researching blog topics for a UK [TRADE]. A blog topic is a question UK homeowners ask that needs a full written answer (several paragraphs), not a one-line FAQ reply: what a job costs and why, choosing between two options, whether a rule or permission applies, why a problem happens and what fixes it, how long something lasts, how a job is done. Your job is to FIND QUESTIONS, not to write answers or marketing copy.
+You are researching blog topics for a UK [TRADE]. A blog topic is a question UK homeowners ask that needs a full written answer (several paragraphs), not a one-line FAQ reply. Your job is to FIND QUESTIONS, not to write answers or marketing copy.
 
 WHERE TO LOOK
-- Google "People also ask" for each topic and each main service of a [TRADE]
+- Google "People also ask" for each topic, service and seasonal topic
 - Reddit (r/DIYUK, r/HousingUK, r/GardeningUK and trade-relevant UK subreddits), Mumsnet, MoneySavingExpert forums
 - Which? guides and community questions; Q&A on Checkatrade, MyBuilder, Rated People and Bark
-- Government, council and trade body pages for questions about rules, permissions and certificates in England
+- RHS, government, council and trade body pages for timings, rules, permissions and certificates in England
 UK sources only. Ignore questions that only apply to the US, Australia or elsewhere.
 
 WHAT TO RETURN
 
 ## 1. TOPICS
-25 to 35 distinct topics. Spread them across every common service a [TRADE] offers, not just the biggest job. Include:
-- one cost topic for each main service ("How much does X cost?");
-- at least 6 "X or Y" choices (materials, methods, repair or replace);
-- at least 4 rule or permission topics, where they exist for this trade;
-- at least 6 problem topics ("Why is my X doing Y?").
+25 to 35 distinct topics across every service listed. Include at least 6 "X or Y" choices, at least 4 rule or permission topics where they exist for this trade, and at least 6 problem topics ("Why is my X doing Y?"). Do not include cost topics or seasonal topics here; they have their own sections below.
 
-For each topic, one header line in exactly this format:
-### [BT-N] | "target question as a homeowner would type it" | Type: cost / decision / question | Service: which service, or General | Seen: where and roughly how often | [source URL]
+For each topic, a header line in exactly this format:
+### [BT-N] | "target question as a homeowner would type it" | Type: decision / question | Service: one service from SERVICES, or General | Seen: where and roughly how often | [source URL]
 
-Then 6 to 10 related questions people ask around that topic, one per line, in exactly this format:
-- [BT-N.a] | "question as a homeowner would type it" | Doubt: Price / Trust / Fit / Process / Timing | Needs client fact: Y/N | [source URL]
+Then 6 to 10 related questions about that same topic, one per line:
+- [BT-N.a] | "question" | Doubt: Price / Trust / Fit / Process / Timing | Needs client fact: Y/N | [source URL]
 
-Related questions must be about the same topic and the same service, and each must be different enough to need its own answer. Merge near duplicates. "Needs client fact" is Y when only the business itself can answer it (its prices, guarantee, process, what its quote includes).
+## 2. COST TOPICS
+One block for EVERY service in SERVICES, plus one for the trade as a whole ("How much does a [TRADE] cost?").
 
-Then list the 16 topics with the most search interest, in rank order, by ID only.
+### [CT-N] | "How much does [service] cost?" | Service: the service | Seen: where and roughly how often | [source URL]
 
-## 2. RULES BEHIND THE TOPICS
+Then 6 to 10 related questions people ask about that service's cost and value that are NOT the cost question in other words. "How much is it per square metre?" and "What's the average price?" are the cost question again: leave them out. Good related questions cover what a quote should include, what's usually extra, what makes it cost more or less, how long it lasts, what upkeep costs, whether it's worth it, and cheaper alternatives.
+- [CT-N.a] | "question" | Doubt: Price / Trust / Fit / Process / Timing | Needs client fact: Y/N | [source URL]
+
+## 3. SEASONAL TOPICS
+One block for every topic in SEASONAL TOPICS (skip this section if "none").
+
+### [ST-N] | "the topic as a homeowner would ask it, e.g. When should I scarify my lawn?" | Service: one service from SERVICES | Window: the months it's usually done, as the source states it (e.g. "September to March"), or "no window stated" | [source URL for the window: RHS, a trade body or a manufacturer, never a forum]
+
+Then 6 to 10 related questions about doing that job at that time of year:
+- [ST-N.a] | "question" | Doubt: Price / Trust / Fit / Process / Timing | Needs client fact: Y/N | [source URL]
+
+## 4. RANKED
+The 16 topics from sections 1 to 3 with the most search interest, in rank order, by ID only.
+
+## 5. RULES BEHIND THE TOPICS
 For every rule or permission topic, the rule as an official source states it:
-- [BT-N] | what the official source says, in one sentence | [official source URL]
-Official sources only (gov.uk, Planning Portal, council, trade body or scheme sites). Rules for England; note where Scotland or Wales differ. If you can't find an official source, say so rather than answering.
+- [ID] | what the official source says, in one sentence | [official source URL]
+Official sources only (gov.uk, Planning Portal, council, trade body or scheme sites). Rules for England; note where Scotland or Wales differ. No official source: say so.
 
-## 3. GAPS
-Topics you looked for and couldn't find enough real questions for, or where sources disagree.
+## 6. GAPS
+Any service, cost topic or seasonal topic where you found fewer than 6 real related questions, and how many you found. Any sources that disagree.
 
 RULES
-- Put the full source URL on the same line as every topic, question and rule. Never use [1] or [web:3] style markers.
+- Put the full source URL on the same line as every topic, question, window and rule. Never use [1] or [web:3] style markers.
 - Do not write answers to any question.
-- Do not invent questions. If a topic only has 4 real related questions, return 4 and say so in GAPS.
+- Do not invent questions. If a block only has 4 real related questions, return 4 and list it in GAPS.
+- Related questions stay on their own topic and service. Never reuse a question in two blocks.
 - Write every question the way a homeowner would type it, never as a heading ("The benefits of composite decking" is wrong; "Is composite decking worth it?" is right).
 - Mark anything older than 2 years as (dated: month year).
-- No marketing language, no intro, no summary. Start with "## 1. TOPICS" and end after section 3.
+- No marketing language, no intro, no summary. Start with "## 1. TOPICS" and end after section 6.
 ```
 
 ## How Copybot uses it
 
-- Stored per trade, like the trade question bank, with the same approval step before any question is used.
-- B1 takes cost topics, then decision and question topics from this bank, after the held buckets from the FAQ sort.
-- For each topic, the H2s (B6) are the first 3 to 5 related questions in doubt order, and the FAQ questions (B7) are the next 3 to 5.
-- The site wide check still runs against every page: any question a page already uses is dropped from the topic before it's used.
+- Stored per trade with the same approval step as v1. A v2 run replaces the v1 bank for that trade once approved.
+- Decision and question posts take their H2s and FAQs from their own BT block only.
+- Cost guides take their FAQs from their service's CT block only (the H2s are fixed by the Cost Guide Structure). The trade level CT block feeds the homepage cost guide.
+- Seasonal posts take their H2s and FAQs from their ST block only. The window, with its source URL, joins FACTS ALLOWED as a sourced row once the bank is approved; "no window stated" means the post uses the "How to" wording.
+- No post borrows questions from another block. A post whose own block has fewer than 3 usable H2 questions and 3 FAQ questions after the site wide check is Held.
 
 ## How to judge a run
 
-A good run has 25+ topics that sound like real searches, 6+ related questions under most of them, every main service covered, and a source URL on every line. A bad run has headings instead of questions, related questions that drift onto other services, or no sources. Send it over and I'll tighten the prompt.
+A good run has a CT block for every service and an ST block for every seasonal topic, 6+ related questions in most blocks, cost related questions that aren't the cost question reworded, windows sourced to RHS or a trade body, and a source URL on every line. Check the GAPS section: those are the blocks whose posts will be held.

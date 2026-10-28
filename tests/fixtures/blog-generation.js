@@ -44,8 +44,8 @@ const stubModel = async ({ system, message }) => { calls.push({ system, message 
 
 const edens = C.byId['edens-edge'];
 const niche = { ...edens.niche, _source: 'landscaper' };
-// The real landscaper bank (blog-bank/landscaper.md): the shape gate (3 H2s and 3 FAQ questions) leaves too few posts on the five topic sample
-const sampleBank = B.parseBank(fs.readFileSync(path.join(root, 'blog-bank/landscaper.md'), 'utf8'));
+// The real landscaper v1 run (28 Oct, frozen as data/blog-bank-landscaper-run-v1.md so a new run never moves this fixture): the shape gate (3 H2s and 3 FAQ questions) leaves too few posts on the five topic sample
+const sampleBank = B.parseBank(fs.readFileSync(path.join(__dirname, 'data/blog-bank-landscaper-run-v1.md'), 'utf8'));
 const dossierText = fs.readFileSync(path.join(__dirname, 'southampton-dossier.md'), 'utf8');
 
 chk('B5 on its own: the first sentence and the meta CTA at 155; the CTA dropped when over; F-LEN-META when the sentence alone is over', metaDescriptionFor('A patio in Southampton usually costs between two and six thousand pounds. The ground decides it.', 'Get your free quote today.').text === 'A patio in Southampton usually costs between two and six thousand pounds. Get your free quote today.' && metaDescriptionFor(`${'A long opening sentence about the price of a patio that runs on and on for a while'}, with more words to pass one hundred and forty characters in all here. Next.`, 'Get your free quote today.').how.startsWith('first sentence (the CTA dropped') && metaDescriptionFor(`${words(40)}`, 'x').flag && metaDescriptionFor('', 'x').flag, JSON.stringify(metaDescriptionFor(`${words(40)}`, 'x')), '');

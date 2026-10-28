@@ -10,7 +10,10 @@
 //   node scripts/blog-bank.js landscaper            write blog-bank/landscaper.md
 //   node scripts/blog-bank.js landscaper --force    overwrite one that exists
 //   --preset high        the Agent API preset (default high)
-//   --dry-run            print the prompt size, call nothing
+//   --dry-run            print the prompt, call nothing
+// After the run the per block report (tools/blog-bank-report.js) is printed: every BT, CT and
+// ST block with its related question count, the ranked ids, the rules, the GAPS section and
+// the services and seasonal topics sent that came back with no block.
 //
 // The key comes from PERPLEXITY_API_KEY (.env is read when present) and is never printed.
 
@@ -18,6 +21,7 @@ const fs = require('fs');
 const path = require('path');
 const B = require('../blog/bank');
 const { perplexityAgent, loadDotEnv, DEFAULT_PRESET } = require('./trade-facts');
+const { report } = require('../tools/blog-bank-report');
 
 async function main() {
   const args = process.argv.slice(2);
@@ -29,7 +33,7 @@ async function main() {
   const file = B.bankFile(trade);
   if (fs.existsSync(file) && !force && !dryRun) { console.log(`${trade}: ${B.relative(file)} exists; use --force to run again`); return; }
   const prompt = B.buildPrompt(trade);
-  if (dryRun) { console.log(`${trade}: would run, prompt ${prompt.length} chars → ${B.relative(file)}`); return; }
+  if (dryRun) { console.log(`${trade}: would run, prompt ${prompt.length} chars → ${B.relative(file)}\n\n${prompt}`); return; }
   loadDotEnv();
   const api = perplexityAgent({ apiKey: process.env.PERPLEXITY_API_KEY, preset, onStatus: s => console.log(`${trade}: ${s}`) });
   const started = Date.now();
@@ -40,7 +44,8 @@ async function main() {
   const text = `${B.header({ generated: new Date().toISOString().slice(0, 10), model: `perplexity agent ${preset}${r.model ? ` (${r.model})` : ''}` })}\n\n${r.text.replace(/\r\n/g, '\n').trim()}\n`;
   fs.mkdirSync(path.dirname(file), { recursive: true });
   fs.writeFileSync(file, text, 'utf8');
-  console.log(`${trade}: done in ${Math.round((Date.now() - started) / 1000)}s, ${r.cost == null ? 'cost not reported' : `$${r.cost.toFixed(2)}`}, wrote ${B.relative(file)}: ${parsed.counts.topics} topics, ${parsed.counts.related} related questions, ${parsed.warnings.length} warning(s)${check.valid ? '' : `; NOT USABLE: ${check.error}`}. Approve it on the Trade facts page.`);
+  console.log(`${trade}: done in ${Math.round((Date.now() - started) / 1000)}s, ${r.cost == null ? 'cost not reported' : `${r.cost.toFixed(2)}`}, wrote ${B.relative(file)}: ${parsed.counts.topics} topics, ${parsed.counts.related} related questions, ${parsed.counts.cost_topics} cost topics, ${parsed.counts.seasonal_topics} seasonal topics, ${parsed.warnings.length} warning(s)${check.valid ? '' : `; NOT USABLE: ${check.error}`}. Approve it on the Trade facts page.\n`);
+  console.log(report(trade, file).text);
   if (!check.valid) process.exitCode = 1;
 }
 
