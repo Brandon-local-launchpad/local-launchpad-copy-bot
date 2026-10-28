@@ -13,6 +13,8 @@ async function ensureBlogColumns(pool) {
   await pool.query(`ALTER TABLE clients ADD COLUMN IF NOT EXISTS launch_date DATE`);
   await pool.query(`ALTER TABLE clients ADD COLUMN IF NOT EXISTS status TEXT NOT NULL DEFAULT 'active'`);
   await pool.query(`ALTER TABLE clients ADD COLUMN IF NOT EXISTS search_console_property TEXT`);
+  // The blog question bank per trade (blog/bank-store.js)
+  await require('./bank-store').ensureBankTables(pool);
 }
 
 const isoDate = d => { if (!d) return null; const s = d instanceof Date ? d.toISOString() : String(d); return s.slice(0, 10); };

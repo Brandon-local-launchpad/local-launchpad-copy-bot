@@ -24,6 +24,8 @@ function createFaqService({
   pool, loadContext, loadNiche, perplexity, jobs, callSortModel,
   latestPageQuestions = async () => ({}), homepageDecisions = null, log = console,
   loadAllocationRecord = async () => null, latestRecords = async () => [],
+  // loadBlogBank(clientId, trade) → the trade's approved blog question bank (blog/bank-store.js approvedBank) or null
+  loadBlogBank = async () => null,
 }) {
   const B = require('./blog/topics');
   const SC = require('./blog/site-check');
@@ -282,7 +284,13 @@ function createFaqService({
     try { records = await latestRecords(clientId); } catch (e) { problems.push(`page records not read: ${e.message}`); }
     const usedSymptoms = new Set();
     for (const { record } of records) for (const t of SC.symptomsOf(record)) usedSymptoms.add(t);
-    const blog = B.reserveBlogTopics({ assignment, cv: ctx.cv, niche, keyValueMap: ctx.keyValueMap, pages: ctx.pages, serviceParentMap: ctx.serviceParentMap, dossiers, allocationRecord: alloc, usedSymptoms });
+    let bank = null;
+    try { bank = await loadBlogBank(clientId, ctx.trade); } catch (e) { problems.push(`blog question bank not read: ${e.message}`); }
+    // The wordings the pages use: the assignment's placed questions and the written pages' FAQ questions
+    const pageWordings = new Set();
+    for (const p of Object.values(assignment.pages)) for (const q of p.questions) pageWordings.add(q.wording);
+    for (const { record } of records) for (const f of (record && record.faq_items) || []) if (f && f.faq_question) pageWordings.add(f.faq_question);
+    const blog = B.reserveBlogTopics({ assignment, cv: ctx.cv, niche, keyValueMap: ctx.keyValueMap, pages: ctx.pages, serviceParentMap: ctx.serviceParentMap, dossiers, allocationRecord: alloc, usedSymptoms, bank, pageWordings });
     const parsed = [];
     for (const d of dossiers) { try { parsed.push({ town: d.location, parsed: require('./geo-dossier').parseDossier(d.text) }); } catch (e) { problems.push(`${d.location}: dossier not parsed (${e.message})`); } }
     const siteCheck = SC.siteWideCheck({
@@ -362,10 +370,7 @@ function createFaqService({
       pageOptions,
       siteRepeats: assignment ? S.siteRepeats(Object.fromEntries(Object.values(assignment.pages).map(p => [p.id, p.questions]))) : [],
       // The blog topics reserved from the held buckets (B1), with the wordings the card can show
-      blog: blogReserved.blog ? {
-        ...blogReserved.blog,
-        topics: blogReserved.blog.topics.map(t => ({ ...t, stack: t.query_stack.map(id => ({ id, wording: ((sort.record.questions.find(q => q.id === id) || {}).wording) || id })), faq: t.faq_ids.map(id => ({ id, wording: ((sort.record.questions.find(q => q.id === id) || {}).wording) || id })) })),
-      } : null,
+      blog: blogReserved.blog,
       siteCheck: blogReserved.siteCheck,
     };
   }

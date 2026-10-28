@@ -115,6 +115,13 @@ process.env.APP_PASSWORD = '';
     const record = { research_asset_id: rr[0].id, updated_at: new Date().toISOString(), model: 'demo replay', attempts: tidy.attempts, customer_questions: [], questions: tidy.questions.map(q => ({ ...q, approved: !q.wording_errors.length })) };
     await asset('faq_sort', 'faq_sort.json', JSON.stringify(record));
   }
+  // The landscaper blog question bank: the hand written sample (tests/fixtures/data), approved, so the
+  // reserved topics draw on it (28 Oct, blog stage 2). Replace with the real Perplexity run when it is in.
+  {
+    const bankStore = require(path.join(root, 'blog/bank-store.js')).createBankStore({ pool, log: { log() {}, error: console.error } });
+    await bankStore.save('landscaper', fs.readFileSync(path.join(root, 'tests/fixtures/data/blog-bank-landscaper-sample.md'), 'utf8'), { source: 'paste' });
+    await bankStore.approve('landscaper', 'demo');
+  }
 
   // GBP output (23 Oct): the newest local real run (node tools/gbp-run.js edens-edge) when
   // there is one, so the client page's GBP panel can be seen with real copy. The demo client

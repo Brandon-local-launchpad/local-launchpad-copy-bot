@@ -46,7 +46,9 @@ function siteWideCheck({ pagesQuestions = {}, topics = [], questionsById = new M
   const q = { ...pagesQuestions };
   for (const t of topics) {
     const words = [t.wording];
-    for (const id of [...(t.query_stack || []), ...(t.faq_ids || [])]) { const x = questionsById.get(id); if (x) words.push(x.wording || x.text); }
+    // The stack and FAQ wordings the topic carries (a bank topic's), else looked up by id (a held question's)
+    const resolved = new Map([...(t.stack || []), ...(t.faq || [])].map(x => [x.id, x.wording]));
+    for (const id of [...(t.query_stack || []), ...(t.faq_ids || [])]) { const w = resolved.get(id) || ((questionsById.get(id) || {}).wording) || ((questionsById.get(id) || {}).text); if (w) words.push(w); }
     q[`blog:${t.key}`] = words;
   }
   const questions = repeatsOf(q);

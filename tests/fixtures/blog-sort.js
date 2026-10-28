@@ -61,7 +61,7 @@ const parsedCity = parseDossier(dossierText);
   const pageIds = new Set(Object.values(A.pages).flatMap(p => p.questions.map(q => q.id)));
   const blogIds = T.flatMap(t => [t.question && t.question.id, ...t.query_stack, ...t.faq_ids]).filter(Boolean);
   chk('Every blog question ID is absent from every other page\'s allocation, and no ID is used twice across the topics', blogIds.every(id => !pageIds.has(id)) && new Set(blogIds).size === blogIds.length, blogIds.join(','), '');
-  chk('Counts: 6 cost guides, 0 decision, 0 question, 5 local; 9 wordings need approval (the held two are approved on the FAQ card)', JSON.stringify(B.counts) === JSON.stringify({ topics: 11, cost_guide: 6, decision: 0, question: 0, local: 5, stack: 0, faq: 0, needs_approval: 9 }), JSON.stringify(B.counts), '');
+  chk('Counts: 6 cost guides, 0 decision, 0 question, 5 local; 9 wordings need approval (the held two are approved on the FAQ card)', JSON.stringify(B.counts) === JSON.stringify({ topics: 11, cost_guide: 6, decision: 0, question: 0, local: 5, from_bank: 0, stack: 0, faq: 0, needs_approval: 9 }) && has(B.flags, /^F-BANK$/), JSON.stringify(B.counts), '');
   const B2 = reserveBlogTopics({ assignment: S.assignQuestions(args), cv: liveCv, niche, keyValueMap: edens.keyValueMap, pages: edens.pages, serviceParentMap: edens.serviceParentMap, dossiers, allocationRecord: alloc });
   chk('The same input twice gives identical topics', JSON.stringify(B2) === JSON.stringify(B), '', 'identical');
 

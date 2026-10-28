@@ -104,6 +104,13 @@ const sleep = ms => new Promise(r => setTimeout(r, ms));
 // (trade-facts/store.js). Service pages are only written from a verified pack.
 const tradeFacts = require('./trade-facts/store').createTradeFactsService({ pool });
 require('./trade-facts/routes').mountTradeFactsApi(app, tradeFacts);
+// The blog question bank per trade (28 Oct): pasted, or run through the Perplexity Agent API
+// (the trade facts runner's call) when the key is set; approved on the Trade facts page
+const blogBank = require('./blog/bank-store').createBankStore({
+  pool,
+  runner: process.env.PERPLEXITY_API_KEY ? async (trade, prompt, onStatus) => require('./scripts/trade-facts').perplexityAgent({ apiKey: process.env.PERPLEXITY_API_KEY, preset: process.env.TRADE_FACTS_PRESET || 'high', onStatus }).research(prompt) : null,
+});
+require('./blog/bank-routes').mountBankApi(app, blogBank, { trades: () => require('./trade-facts/pack').listNiches() });
 // The niche the gate checks for a client: the allocated niche key, else the trade
 async function nicheForGate(clientId, trade) {
   if (clientId && pool) {
@@ -3586,6 +3593,8 @@ const faqService = pool ? createFaqService({
   },
   // Blog (28 Oct): the allocation record and every page's latest record, for the topic reservation and the site wide check
   loadAllocationRecord,
+  // The trade's approved blog question bank, keyed as the trade facts pack is (the niche key, else the trade)
+  loadBlogBank: async (clientId, trade) => blogBank.approvedBank(require('./trade-facts/pack').packNameFor(await nicheForGate(clientId, trade))),
   latestRecords: async clientId => {
     if (!v20Store) return [];
     const out = [];
