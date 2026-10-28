@@ -36,6 +36,7 @@ do_action_test( 'init' );
 do_action_test( 'admin_init' );
 $out['meta'] = array_map( function ( $a ) { return array( 'show_in_rest' => $a['show_in_rest'], 'type' => $a['type'], 'auth' => ( $a['auth_callback'] )() ); }, $GLOBALS['llp_test']['meta'] );
 $out['setting_registered'] = isset( $GLOBALS['llp_test']['settings'][ LLP_COPYBOT_OPTION ] );
+$out['meta_types']         = $GLOBALS['llp_test']['meta_types'];
 
 // REST routes
 do_action_test( 'rest_api_init' );

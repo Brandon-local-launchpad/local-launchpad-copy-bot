@@ -27,9 +27,10 @@ function checkRecord(record, { reviewed = false } = {}) {
   return refusals;
 }
 
-function checkTarget(page, site, label = 'homepage') {
+// kind: 'page' (the target must exist) or 'post' (a missing post is created by the push)
+function checkTarget(page, site, label = 'homepage', { kind = 'page' } = {}) {
   const refusals = [];
-  if (!page) return [`The ${label} was not found on the site.`];
+  if (!page) return kind === 'post' ? [] : [`The ${label} was not found on the site.`];
   if (page.status === 'publish' && !site.staging) {
     refusals.push(`The ${label} on ${site.url} is published. Pushes go to drafts and staging sites only for now.`);
   }

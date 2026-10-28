@@ -234,5 +234,9 @@
   {
     "key": "rating_line",
     "label": "Rating line (hero and final CTA)"
+  },
+  {
+    "key": "business_schema_id",
+    "label": "LocalBusiness schema @id (the blog posts' publisher)"
   }
 ]

@@ -1,0 +1,129 @@
+{
+  "key": "group_llp_blog_table",
+  "title": "Blog post: Table",
+  "fields": [
+    {
+      "key": "field_llp_table_show",
+      "label": "Show the table",
+      "name": "table_show",
+      "type": "true_false",
+      "instructions": "Written by Copybot. Edits here are overwritten by the next push.",
+      "required": 0,
+      "conditional_logic": 0,
+      "show_in_rest": 1,
+      "ui": 1,
+      "default_value": 0
+    },
+    {
+      "key": "field_llp_table_after",
+      "label": "Under which section (1 based)",
+      "name": "table_after",
+      "type": "text",
+      "instructions": "Written by Copybot. Edits here are overwritten by the next push.",
+      "required": 0,
+      "conditional_logic": 0,
+      "show_in_rest": 1
+    },
+    {
+      "key": "field_llp_table_columns",
+      "label": "Columns",
+      "name": "table_columns",
+      "type": "repeater",
+      "instructions": "Written by Copybot. Edits here are overwritten by the next push.",
+      "required": 0,
+      "conditional_logic": 0,
+      "show_in_rest": 1,
+      "layout": "block",
+      "button_label": "Add row",
+      "sub_fields": [
+        {
+          "key": "field_llp_table_columns_column_label",
+          "label": "Column",
+          "name": "column_label",
+          "type": "text",
+          "instructions": "Written by Copybot. Edits here are overwritten by the next push.",
+          "required": 0,
+          "conditional_logic": 0,
+          "show_in_rest": 1
+        }
+      ]
+    },
+    {
+      "key": "field_llp_table_rows",
+      "label": "Rows",
+      "name": "table_rows",
+      "type": "repeater",
+      "instructions": "Written by Copybot. Edits here are overwritten by the next push.",
+      "required": 0,
+      "conditional_logic": 0,
+      "show_in_rest": 1,
+      "layout": "block",
+      "button_label": "Add row",
+      "sub_fields": [
+        {
+          "key": "field_llp_table_rows_row_label",
+          "label": "Row label",
+          "name": "row_label",
+          "type": "text",
+          "instructions": "Written by Copybot. Edits here are overwritten by the next push.",
+          "required": 0,
+          "conditional_logic": 0,
+          "show_in_rest": 1
+        },
+        {
+          "key": "field_llp_table_rows_cell_1",
+          "label": "Cell 1",
+          "name": "cell_1",
+          "type": "text",
+          "instructions": "Written by Copybot. Edits here are overwritten by the next push.",
+          "required": 0,
+          "conditional_logic": 0,
+          "show_in_rest": 1
+        },
+        {
+          "key": "field_llp_table_rows_cell_2",
+          "label": "Cell 2",
+          "name": "cell_2",
+          "type": "text",
+          "instructions": "Written by Copybot. Edits here are overwritten by the next push.",
+          "required": 0,
+          "conditional_logic": 0,
+          "show_in_rest": 1
+        },
+        {
+          "key": "field_llp_table_rows_cell_3",
+          "label": "Cell 3",
+          "name": "cell_3",
+          "type": "text",
+          "instructions": "Written by Copybot. Edits here are overwritten by the next push.",
+          "required": 0,
+          "conditional_logic": 0,
+          "show_in_rest": 1
+        }
+      ]
+    }
+  ],
+  "location": [
+    [
+      {
+        "param": "post_type",
+        "operator": "==",
+        "value": "post"
+      },
+      {
+        "param": "post_category",
+        "operator": "==",
+        "value": "category:guides"
+      }
+    ]
+  ],
+  "menu_order": 15,
+  "position": "normal",
+  "style": "default",
+  "label_placement": "top",
+  "instruction_placement": "label",
+  "hide_on_screen": "",
+  "active": true,
+  "description": "Local Launchpad blog post (master copy in the Copybot repo).",
+  "show_in_rest": 1
+}

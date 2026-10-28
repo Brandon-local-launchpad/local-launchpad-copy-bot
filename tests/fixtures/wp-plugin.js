@@ -5,8 +5,9 @@
 const fs = require('fs');
 const path = require('path');
 const root = path.join(__dirname, '../..');
-const { GROUPS, KIND_TO_TYPE } = require(path.join(root, 'wp/acf-schema.js'));
+const { GROUPS, HOMEPAGE_GROUPS, BLOG_GROUPS, KIND_TO_TYPE } = require(path.join(root, 'wp/acf-schema.js'));
 const { HOMEPAGE_FIELDS, SEO_ADAPTERS } = require(path.join(root, 'wp/homepage-map.js'));
+const { BLOG_FIELDS } = require(path.join(root, 'wp/blog-map.js'));
 const { generatedFiles, PLUGIN } = require(path.join(root, 'wp/build-plugin-data.js'));
 const { resolveTokens } = require(path.join(root, 'wp/token-resolve.js'));
 const { ALL_KEYS, buildClientValuesPayload } = require(path.join(root, 'wp/client-values.js'));
@@ -26,25 +27,33 @@ const stale = Object.entries(files).filter(([rel, body]) => !fs.existsSync(path.
 chk('Plugin ACF JSON and key list are up to date (npm run wp:plugin-data)', !stale.length, stale.map(s => s[0]).join(', '), 'none stale');
 
 // ── Schema ↔ payload ──
-const schemaFields = Object.fromEntries(GROUPS.flatMap(g => g.fields).map(f => [f.name, f]));
-const mismatches = [];
-for (const [name, kind, subs] of HOMEPAGE_FIELDS) {
-  const f = schemaFields[name];
-  if (!f) { mismatches.push(`${name}: not in the schema`); continue; }
-  if (f.type !== KIND_TO_TYPE[kind]) mismatches.push(`${name}: payload ${kind}, schema ${f.type}`);
-  if (kind === 'repeater') {
-    const sub = Object.fromEntries(f.sub_fields.map(s => [s.name, s]));
-    for (const [s, sk] of Object.entries(subs)) if (!sub[s] || sub[s].type !== KIND_TO_TYPE[sk]) mismatches.push(`${name}.${s}`);
+const schemaFields = Object.fromEntries(HOMEPAGE_GROUPS.flatMap(g => g.fields).map(f => [f.name, f]));
+const schemaMismatches = (fields, groups) => {
+  const sf = Object.fromEntries(groups.flatMap(g => g.fields).map(f => [f.name, f]));
+  const out = [];
+  for (const [name, kind, subs] of fields) {
+    const f = sf[name];
+    if (!f) { out.push(`${name}: not in the schema`); continue; }
+    if (f.type !== KIND_TO_TYPE[kind]) out.push(`${name}: payload ${kind}, schema ${f.type}`);
+    if (kind === 'repeater') {
+      const sub = Object.fromEntries(f.sub_fields.map(s => [s.name, s]));
+      for (const [s, sk] of Object.entries(subs)) if (!sub[s] || sub[s].type !== KIND_TO_TYPE[sk]) out.push(`${name}.${s}`);
+    }
   }
-}
-chk('Every pushed field exists in the ACF schema with the right type', !mismatches.length, mismatches.join(' | '), 'none');
-const pushed = new Set(HOMEPAGE_FIELDS.map(f => f[0]));
-const unpushed = Object.values(schemaFields).filter(f => f.push !== false && !pushed.has(f.name)).map(f => f.name);
-chk('Every Copybot-written schema field is in the payload', !unpushed.length, unpushed.join(', '), 'none');
+  const pushed = new Set(fields.map(f => f[0]));
+  for (const f of Object.values(sf)) if (f.push !== false && !pushed.has(f.name)) out.push(`${f.name}: in the schema, not pushed`);
+  return out;
+};
+const mismatches = schemaMismatches(HOMEPAGE_FIELDS, HOMEPAGE_GROUPS);
+chk('Every pushed homepage field exists in the ACF schema with the right type, and every Copybot-written schema field is in the payload', !mismatches.length, mismatches.join(' | '), 'none');
+const blogMismatches = schemaMismatches(BLOG_FIELDS, BLOG_GROUPS);
+chk('The blog groups (stage 7): every pushed blog field in the schema with the right type, every written field pushed; on posts in the Guides category; the homepage keeps its front page groups only', !blogMismatches.length && BLOG_GROUPS.every(g => g.location[0][0].value === 'post' && g.location[0][1].value === 'category:guides') && GROUPS.length === HOMEPAGE_GROUPS.length + BLOG_GROUPS.length && require(path.join(root, 'page-types')).getPageType('homepage').wp.groups.length === HOMEPAGE_GROUPS.length && require(path.join(root, 'page-types')).getPageType('blog').wp.groups.length === BLOG_GROUPS.length, blogMismatches.join(' | '), 'none');
 const allKeys = Object.values(files).filter((_, i) => i < GROUPS.length).flatMap(b => JSON.parse(b).fields.flatMap(f => [f.key, ...(f.sub_fields || []).map(s => s.key)]));
 chk('ACF field keys are unique and prefixed field_llp_', new Set(allKeys).size === allKeys.length && allKeys.every(k => k.startsWith('field_llp_')), allKeys.length, 'unique');
 const hero = JSON.parse(files['acf-json/group_llp_home_hero.json']);
 chk('Groups show on the front page and in the REST API', hero.location[0][0].value === 'front_page' && hero.show_in_rest === 1 && hero.fields.every(f => f.show_in_rest === 1), '', 'front_page, REST');
+const blogHeader = JSON.parse(files['acf-json/group_llp_blog_header.json']);
+chk('The blog groups\' JSON: on post type post in the Guides category, in the REST API, the image the site\'s', blogHeader.location[0].length === 2 && blogHeader.location[0][0].param === 'post_type' && blogHeader.location[0][1].value === 'category:guides' && blogHeader.show_in_rest === 1 && blogHeader.fields.find(f => f.name === 'blog_image').instructions === 'Filled on the site, not by Copybot.' && JSON.parse(files['acf-json/group_llp_blog_cta.json']).fields.find(f => f.name === 'blog_schema').type === 'textarea', JSON.stringify(blogHeader.location), 'post + guides');
 chk('The five NEW fields are in the schema', ['home_trusted_show', 'home_reviews_show', 'home_services_more_line', 'home_cta_band_heading', 'home_final_cta_body'].every(n => schemaFields[n] && schemaFields[n].new), '', 'all five');
 
 // ── Token rules (shared cases) ──

@@ -1,0 +1,42 @@
+{
+  "key": "group_llp_blog_answer",
+  "title": "Blog post: Quick answer",
+  "fields": [
+    {
+      "key": "field_llp_blog_answer",
+      "label": "Quick answer",
+      "name": "blog_answer",
+      "type": "wysiwyg",
+      "instructions": "Written by Copybot. Edits here are overwritten by the next push.",
+      "required": 0,
+      "conditional_logic": 0,
+      "show_in_rest": 1,
+      "tabs": "all",
+      "toolbar": "basic",
+      "media_upload": 0
+    }
+  ],
+  "location": [
+    [
+      {
+        "param": "post_type",
+        "operator": "==",
+        "value": "post"
+      },
+      {
+        "param": "post_category",
+        "operator": "==",
+        "value": "category:guides"
+      }
+    ]
+  ],
+  "menu_order": 13,
+  "position": "normal",
+  "style": "default",
+  "label_placement": "top",
+  "instruction_placement": "label",
+  "hide_on_screen": "",
+  "active": true,
+  "description": "Local Launchpad blog post (master copy in the Copybot repo).",
+  "show_in_rest": 1
+}

@@ -1,6 +1,6 @@
 'use strict';
 
-// ── Homepage ACF field groups: the master copy ──────────────────────────────
+// ── Homepage and blog ACF field groups: the master copy ─────────────────────
 // One source for the plugin's ACF JSON (npm run wp:acf-json writes
 // wp-plugin/llp-copybot/acf-json/) and for the push payload. Group and field
 // names follow the build spec (Homepage Template v2, sections 1 to 11), plus the
@@ -15,8 +15,9 @@ const html = (name, label, extra = {}) => ({ name, label, type: 'wysiwyg', ...ex
 const bool = (name, label, extra = {}) => ({ name, label, type: 'true_false', ...extra });
 const img = (name, label) => ({ name, label, type: 'image', push: false });
 const rep = (name, label, sub_fields, extra = {}) => ({ name, label, type: 'repeater', sub_fields, ...extra });
+const textarea = (name, label, extra = {}) => ({ name, label, type: 'textarea', ...extra });
 
-const GROUPS = [
+const HOMEPAGE_GROUPS = [
   { name: 'home_hero', title: 'Homepage: Hero', fields: [
     t('home_hero_h1', 'H1'), t('home_hero_trust_line', 'Trust line'), html('home_hero_intro', 'Intro'),
     img('home_hero_background_image', 'Background image'),
@@ -66,8 +67,41 @@ const GROUPS = [
   ] },
 ];
 
+// ── Blog post field groups (spec section 6; stage 7, 28 Oct 2026) ─────────────
+// On every post in the Guides category. The field names are the Blog CORE (1) labels;
+// wp/blog-map.js BLOG_FIELDS writes them. blog_image and its alt are the site's (push: false).
+const BLOG_LOCATION = [[{ param: 'post_type', operator: '==', value: 'post' }, { param: 'post_category', operator: '==', value: 'category:guides' }]];
+const BLOG_GROUPS = [
+  { name: 'blog_header', title: 'Blog post: Header', location: BLOG_LOCATION, fields: [
+    t('blog_h1', 'H1 (the target question)'), t('blog_byline', 'Byline'), t('blog_last_checked', 'Last checked (shown)'), t('blog_review_due', 'Review due (not shown)'),
+    img('blog_image', 'Image'), t('blog_image_alt', 'Image alt text', { push: false }),
+  ] },
+  { name: 'blog_answer', title: 'Blog post: Quick answer', location: BLOG_LOCATION, fields: [html('blog_answer', 'Quick answer')] },
+  { name: 'blog_sections', title: 'Blog post: Question sections', location: BLOG_LOCATION, fields: [
+    rep('blog_sections', 'Sections', [t('section_h2', 'H2'), html('section_body', 'Body')]),
+  ] },
+  { name: 'blog_table', title: 'Blog post: Table', location: BLOG_LOCATION, fields: [
+    bool('table_show', 'Show the table'), t('table_after', 'Under which section (1 based)'),
+    rep('table_columns', 'Columns', [t('column_label', 'Column')]),
+    rep('table_rows', 'Rows', [t('row_label', 'Row label'), t('cell_1', 'Cell 1'), t('cell_2', 'Cell 2'), t('cell_3', 'Cell 3')]),
+  ] },
+  { name: 'blog_business', title: 'Blog post: How we handle it', location: BLOG_LOCATION, fields: [
+    bool('blog_business_show', 'Show this section'), t('blog_business_h2', 'H2'), html('blog_business', 'Body'),
+  ] },
+  { name: 'blog_faq', title: 'Blog post: FAQ', location: BLOG_LOCATION, fields: [
+    t('blog_faq_h2', 'H2'), rep('blog_faq_items', 'Questions', [t('faq_question', 'Question'), html('faq_answer', 'Answer')]),
+  ] },
+  { name: 'blog_cta', title: 'Blog post: Next step', location: BLOG_LOCATION, fields: [
+    t('blog_cta_h2', 'H2'), html('blog_closing', 'Closing'),
+    rep('blog_buttons', 'Buttons', [t('button_label', 'Label'), t('button_url', 'URL')]),
+    textarea('blog_schema', 'Schema JSON-LD (BlogPosting, FAQPage, BreadcrumbList)'),
+  ] },
+];
+// Every group, the homepage's then the blog's (the plugin's ACF JSON)
+const GROUPS = [...HOMEPAGE_GROUPS, ...BLOG_GROUPS];
+
 // The ACF field types the push payload's kinds map to
-const KIND_TO_TYPE = { text: 'text', html: 'wysiwyg', bool: 'true_false', repeater: 'repeater' };
+const KIND_TO_TYPE = { text: 'text', html: 'wysiwyg', bool: 'true_false', repeater: 'repeater', textarea: 'textarea' };
 
 function key(...parts) { return `field_${PREFIX}_${parts.join('_')}`; }
 
@@ -80,6 +114,7 @@ function acfField(f, parentName) {
   };
   if (f.type === 'wysiwyg') Object.assign(out, { tabs: 'all', toolbar: 'basic', media_upload: 0 });
   if (f.type === 'true_false') Object.assign(out, { ui: 1, default_value: 0 });
+  if (f.type === 'textarea') Object.assign(out, { rows: 8, new_lines: '' });
   if (f.type === 'image') Object.assign(out, { return_format: 'array', preview_size: 'medium', library: 'all' });
   if (f.type === 'repeater') Object.assign(out, { layout: 'block', button_label: 'Add row', sub_fields: f.sub_fields.map(s => acfField(s, f.name)) });
   return out;
@@ -90,12 +125,12 @@ function acfGroupJson(g, index) {
     key: `group_${PREFIX}_${g.name}`,
     title: g.title,
     fields: g.fields.map(f => acfField(f)),
-    location: [[{ param: 'page_type', operator: '==', value: 'front_page' }]],
+    location: g.location || [[{ param: 'page_type', operator: '==', value: 'front_page' }]],
     menu_order: index,
     position: 'normal', style: 'default', label_placement: 'top', instruction_placement: 'label',
-    hide_on_screen: '', active: true, description: 'Local Launchpad homepage (master copy in the Copybot repo).',
+    hide_on_screen: '', active: true, description: g.location ? 'Local Launchpad blog post (master copy in the Copybot repo).' : 'Local Launchpad homepage (master copy in the Copybot repo).',
     show_in_rest: 1,
   };
 }
 
-module.exports = { GROUPS, KIND_TO_TYPE, acfGroupJson };
+module.exports = { GROUPS, HOMEPAGE_GROUPS, BLOG_GROUPS, KIND_TO_TYPE, acfGroupJson };

@@ -1,0 +1,98 @@
+{
+  "key": "group_llp_blog_cta",
+  "title": "Blog post: Next step",
+  "fields": [
+    {
+      "key": "field_llp_blog_cta_h2",
+      "label": "H2",
+      "name": "blog_cta_h2",
+      "type": "text",
+      "instructions": "Written by Copybot. Edits here are overwritten by the next push.",
+      "required": 0,
+      "conditional_logic": 0,
+      "show_in_rest": 1
+    },
+    {
+      "key": "field_llp_blog_closing",
+      "label": "Closing",
+      "name": "blog_closing",
+      "type": "wysiwyg",
+      "instructions": "Written by Copybot. Edits here are overwritten by the next push.",
+      "required": 0,
+      "conditional_logic": 0,
+      "show_in_rest": 1,
+      "tabs": "all",
+      "toolbar": "basic",
+      "media_upload": 0
+    },
+    {
+      "key": "field_llp_blog_buttons",
+      "label": "Buttons",
+      "name": "blog_buttons",
+      "type": "repeater",
+      "instructions": "Written by Copybot. Edits here are overwritten by the next push.",
+      "required": 0,
+      "conditional_logic": 0,
+      "show_in_rest": 1,
+      "layout": "block",
+      "button_label": "Add row",
+      "sub_fields": [
+        {
+          "key": "field_llp_blog_buttons_button_label",
+          "label": "Label",
+          "name": "button_label",
+          "type": "text",
+          "instructions": "Written by Copybot. Edits here are overwritten by the next push.",
+          "required": 0,
+          "conditional_logic": 0,
+          "show_in_rest": 1
+        },
+        {
+          "key": "field_llp_blog_buttons_button_url",
+          "label": "URL",
+          "name": "button_url",
+          "type": "text",
+          "instructions": "Written by Copybot. Edits here are overwritten by the next push.",
+          "required": 0,
+          "conditional_logic": 0,
+          "show_in_rest": 1
+        }
+      ]
+    },
+    {
+      "key": "field_llp_blog_schema",
+      "label": "Schema JSON-LD (BlogPosting, FAQPage, BreadcrumbList)",
+      "name": "blog_schema",
+      "type": "textarea",
+      "instructions": "Written by Copybot. Edits here are overwritten by the next push.",
+      "required": 0,
+      "conditional_logic": 0,
+      "show_in_rest": 1,
+      "rows": 8,
+      "new_lines": ""
+    }
+  ],
+  "location": [
+    [
+      {
+        "param": "post_type",
+        "operator": "==",
+        "value": "post"
+      },
+      {
+        "param": "post_category",
+        "operator": "==",
+        "value": "category:guides"
+      }
+    ]
+  ],
+  "menu_order": 18,
+  "position": "normal",
+  "style": "default",
+  "label_placement": "top",
+  "instruction_placement": "label",
+  "hide_on_screen": "",
+  "active": true,
+  "description": "Local Launchpad blog post (master copy in the Copybot repo).",
+  "show_in_rest": 1
+}

@@ -70,12 +70,14 @@ module.exports = {
   ranges: RANGES,
   validate: (record, V) => require('../validate-blog').validateBlog(record, V),
   readerView: (record, values) => require('../blog/reader').buildBlogReaderView(record, values),
-  // The WordPress mapping arrives with stage 7 (posts in the Guides category)
+  // The WordPress mapping (stage 7): a post in the Guides category at /guides/<slug>/, made by the
+  // push when the site has none, scheduled with its publish date (wp/blog-map.js)
   wp: {
     label: 'blog post',
-    fields: [],
-    buildPayload: () => { throw new Error('Blog posts cannot be pushed yet: the WordPress post mapping is stage 7 of the blog build.'); },
-    findPage: async () => null,
-    groups: [],
+    kind: 'post',
+    get fields() { return require('../wp/blog-map').BLOG_FIELDS; },
+    buildPayload: (record, opts) => require('../wp/blog-map').buildBlogPayload(record, opts),
+    findPage: (site, record) => require('../wp/posts').findPost(site, require('../wp/blog-map').slugOf(record)),
+    get groups() { return require('../wp/acf-schema').BLOG_GROUPS; },
   },
 };

@@ -3880,7 +3880,7 @@ const wpService = pool ? createWpService({
   pool,
   loadRecord: async (clientId, recordId) => {
     const found = await loadV20Download(clientId, recordId || null);
-    if (!found) throw new Error('No v20 homepage has been generated for this client yet.');
+    if (!found) throw new Error(recordId ? 'That record was not found for this client.' : 'No v20 homepage has been generated for this client yet.');
     return found;
   },
   saveRecordClaims: (clientId, recordId, CLAIMS) => v20Store.saveClaims(clientId, recordId, CLAIMS),
@@ -3945,6 +3945,30 @@ const V20_FACTS = {
       clientValues: v20.clientValueMap(I.ctx.cv, D.d1_years_trading),
       decisionsBlock: decisionsResult.decisionsBlock || null,
       servicesOnFile: v20.servicesOnFile(I.ctx.keyValueMap, I.ctx.serviceParentMap, I.niche, D),
+    };
+  },
+  // A blog post (stage 7): the queue's decisions for its row today, the validation context the generator used
+  blog: async (clientId, sessionId, record) => {
+    if (!blogRunner || !blogQueue) throw new Error('blog posts are not available (no page map store)');
+    const key = record && record.meta && record.meta.page_key;
+    if (!key) throw new Error('this blog record has no page key');
+    const I = await blogQueue.inputsFor(clientId);
+    const rows = (await blogQueue.rowsFor(clientId)).filter(r => r.applies !== false);
+    const row = rows.find(r => r.slug === key);
+    if (!row) throw new Error(`the blog queue no longer has ${key}`);
+    const written = [];
+    for (const r of rows) { if (r.slug === key) continue; const f = await v20Store.latest(clientId, { type: 'blog', key: r.slug }); if (f && !f.record.blocked && !f.record.error) written.push({ key: r.slug, title: r.h1 || r.title, service: (r.info || {}).service || '', town: (r.info || {}).town || '', record: f.record }); }
+    const { decisionsResult } = await blogRunner.prepare(clientId, I, row, rows, written);
+    const D = decisionsResult.decisions;
+    if (!D) throw new Error("the post's decisions can't be made right now (a gate is failing)");
+    const years = require('./decisions').yearsTradingOf(I.ctx.cv).yearsTrading;
+    const pack = (() => { try { return v20CalibrationPack(I.ctx, I.niche); } catch (_) { return null; } })();
+    const { blogValidationContext } = require('./validate-blog');
+    return {
+      V: blogValidationContext(v20.validationContextFor({ cv: I.ctx.cv, niche: I.niche, decisions: { ...D, d1_years_trading: years, allocated: { neighbourhoods: [], symptoms: {} } }, keyValueMap: I.ctx.keyValueMap, serviceParentMap: I.ctx.serviceParentMap, calibrationPack: pack ? pack.text : null }), D),
+      clientValues: v20.clientValueMap(I.ctx.cv, years),
+      decisionsBlock: decisionsResult.decisionsBlock || null,
+      servicesOnFile: v20.servicesOnFile(I.ctx.keyValueMap, I.ctx.serviceParentMap, I.niche, { d9: { main: [], alsoOffer: [] } }),
     };
   },
   homepage: async (clientId, sessionId) => {

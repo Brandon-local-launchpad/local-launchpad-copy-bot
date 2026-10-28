@@ -1,0 +1,92 @@
+{
+  "key": "group_llp_blog_header",
+  "title": "Blog post: Header",
+  "fields": [
+    {
+      "key": "field_llp_blog_h1",
+      "label": "H1 (the target question)",
+      "name": "blog_h1",
+      "type": "text",
+      "instructions": "Written by Copybot. Edits here are overwritten by the next push.",
+      "required": 0,
+      "conditional_logic": 0,
+      "show_in_rest": 1
+    },
+    {
+      "key": "field_llp_blog_byline",
+      "label": "Byline",
+      "name": "blog_byline",
+      "type": "text",
+      "instructions": "Written by Copybot. Edits here are overwritten by the next push.",
+      "required": 0,
+      "conditional_logic": 0,
+      "show_in_rest": 1
+    },
+    {
+      "key": "field_llp_blog_last_checked",
+      "label": "Last checked (shown)",
+      "name": "blog_last_checked",
+      "type": "text",
+      "instructions": "Written by Copybot. Edits here are overwritten by the next push.",
+      "required": 0,
+      "conditional_logic": 0,
+      "show_in_rest": 1
+    },
+    {
+      "key": "field_llp_blog_review_due",
+      "label": "Review due (not shown)",
+      "name": "blog_review_due",
+      "type": "text",
+      "instructions": "Written by Copybot. Edits here are overwritten by the next push.",
+      "required": 0,
+      "conditional_logic": 0,
+      "show_in_rest": 1
+    },
+    {
+      "key": "field_llp_blog_image",
+      "label": "Image",
+      "name": "blog_image",
+      "type": "image",
+      "instructions": "Filled on the site, not by Copybot.",
+      "required": 0,
+      "conditional_logic": 0,
+      "show_in_rest": 1,
+      "return_format": "array",
+      "preview_size": "medium",
+      "library": "all"
+    },
+    {
+      "key": "field_llp_blog_image_alt",
+      "label": "Image alt text",
+      "name": "blog_image_alt",
+      "type": "text",
+      "instructions": "Filled on the site, not by Copybot.",
+      "required": 0,
+      "conditional_logic": 0,
+      "show_in_rest": 1
+    }
+  ],
+  "location": [
+    [
+      {
+        "param": "post_type",
+        "operator": "==",
+        "value": "post"
+      },
+      {
+        "param": "post_category",
+        "operator": "==",
+        "value": "category:guides"
+      }
+    ]
+  ],
+  "menu_order": 12,
+  "position": "normal",
+  "style": "default",
+  "label_placement": "top",
+  "instruction_placement": "label",
+  "hide_on_screen": "",
+  "active": true,
+  "description": "Local Launchpad blog post (master copy in the Copybot repo).",
+  "show_in_rest": 1
+}

@@ -10,7 +10,7 @@ define( 'ABSPATH', '/' );
 $GLOBALS['llp_test'] = array(
 	'options' => array(), 'filters' => array(), 'actions' => array(), 'shortcodes' => array(),
 	'routes' => array(), 'meta' => array(), 'settings' => array(), 'pages' => array(),
-	'is_admin' => false, 'caps' => array( 'manage_options' => true, 'edit_pages' => true, 'activate_plugins' => true ),
+	'is_admin' => false, 'caps' => array( 'manage_options' => true, 'edit_pages' => true, 'edit_posts' => true, 'activate_plugins' => true ),
 	'year' => '2026', 'front' => 7,
 );
 
@@ -34,7 +34,7 @@ function is_admin() { return $GLOBALS['llp_test']['is_admin']; }
 function wp_doing_ajax() { return false; }
 function current_user_can( $cap ) { return ! empty( $GLOBALS['llp_test']['caps'][ $cap ] ); }
 function register_setting( $group, $name, $args ) { $GLOBALS['llp_test']['settings'][ $name ] = $args; }
-function register_post_meta( $type, $key, $args ) { $GLOBALS['llp_test']['meta'][ $key ] = $args; return true; }
+function register_post_meta( $type, $key, $args ) { $GLOBALS['llp_test']['meta'][ $key ] = $args; $GLOBALS['llp_test']['meta_types'][ $key ][] = $type; return true; }
 function register_rest_route( $ns, $route, $args ) { $GLOBALS['llp_test']['routes'][ "$ns$route" ] = $args; return true; }
 function rest_ensure_response( $r ) { return $r; }
 function wp_list_pluck( $list, $field ) { return array_map( function ( $x ) use ( $field ) { return is_array( $x ) ? $x[ $field ] : $x->$field; }, $list ); }

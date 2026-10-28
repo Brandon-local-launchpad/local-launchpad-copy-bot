@@ -14,6 +14,7 @@ const SITE_KEYS = [
   { key: 'review_url',     label: 'Google review link' },
   { key: 'primary_action', label: 'Primary button label' },
   { key: 'rating_line',    label: 'Rating line (hero and final CTA)' },
+  { key: 'business_schema_id', label: 'LocalBusiness schema @id (the blog posts\' publisher)' },
 ];
 
 const label = k => k.replace(/_/g, ' ').replace(/^./, c => c.toUpperCase());

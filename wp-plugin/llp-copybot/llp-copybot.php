@@ -2,7 +2,7 @@
 /**
  * Plugin Name: Local Launchpad Copybot
  * Description: Client Values, [CV: key] token replacement, the homepage ACF field groups (master copy) and REST access for Copybot pushes.
- * Version:     0.1.0
+ * Version:     0.2.0
  * Requires at least: 6.2
  * Requires PHP: 7.4
  * Author:      Local Launchpad
@@ -17,7 +17,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'LLP_COPYBOT_VERSION', '0.1.0' );
+define( 'LLP_COPYBOT_VERSION', '0.2.0' );
 define( 'LLP_COPYBOT_OPTION', 'llp_client_values' );
 
 // ── Client Values ────────────────────────────────────────────────────────────
@@ -195,20 +195,23 @@ add_filter(
 add_action(
 	'init',
 	function () {
-		foreach ( array( 'rank_math_title', 'rank_math_description', '_yoast_wpseo_title', '_yoast_wpseo_metadesc' ) as $key ) {
-			register_post_meta(
-				'page',
-				$key,
-				array(
-					'type'              => 'string',
-					'single'            => true,
-					'show_in_rest'      => true,
-					'sanitize_callback' => 'sanitize_text_field',
-					'auth_callback'     => function () {
-						return current_user_can( 'edit_pages' );
-					},
-				)
-			);
+		// Pages (the homepage) and posts (the blog posts in Guides, since 0.2.0)
+		foreach ( array( 'page' => 'edit_pages', 'post' => 'edit_posts' ) as $type => $cap ) {
+			foreach ( array( 'rank_math_title', 'rank_math_description', '_yoast_wpseo_title', '_yoast_wpseo_metadesc' ) as $key ) {
+				register_post_meta(
+					$type,
+					$key,
+					array(
+						'type'              => 'string',
+						'single'            => true,
+						'show_in_rest'      => true,
+						'sanitize_callback' => 'sanitize_text_field',
+						'auth_callback'     => function () use ( $cap ) {
+							return current_user_can( $cap );
+						},
+					)
+				);
+			}
 		}
 	}
 );

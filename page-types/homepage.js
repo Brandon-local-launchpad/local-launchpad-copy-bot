@@ -41,6 +41,6 @@ module.exports = {
     get fields() { return require('../wp/homepage-map').HOMEPAGE_FIELDS; },
     buildPayload: (record, opts) => require('../wp/homepage-map').buildHomepagePayload(record, opts),
     findPage: site => require('../wp/client').findHomepage(site),
-    get groups() { return require('../wp/acf-schema').GROUPS; },
+    get groups() { return require('../wp/acf-schema').HOMEPAGE_GROUPS; },
   },
 };
