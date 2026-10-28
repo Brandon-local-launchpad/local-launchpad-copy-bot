@@ -10,6 +10,8 @@
 //
 //   node scripts/blog-bank-paa.js landscaper
 //   --dry-run     print the targets that would be searched, call nothing
+//   --from-raw <file>   rebuild from a previous run's raw questions (…_raw.json), no API call
+// Every run also writes the raw questions per target to tests/quality-runs/blog/BANK_paa_<trade>_<date>_raw.json
 //
 // The credentials come from DATAFORSEO_LOGIN and DATAFORSEO_PASSWORD (.env is read when
 // present) and are never printed.
@@ -24,6 +26,8 @@ async function main() {
   const args = process.argv.slice(2);
   const trade = (args.find(a => !a.startsWith('-')) || '').toLowerCase();
   const dryRun = args.includes('--dry-run');
+  const fr = args.indexOf('--from-raw');
+  const fromRaw = fr >= 0 ? args[fr + 1] : null;
   if (!trade || !/^[a-z0-9-]+$/.test(trade)) { console.log('node scripts/blog-bank-paa.js <trade> [--dry-run]'); process.exitCode = 1; return; }
   const f = B.readBankFile(trade);
   if (!f.exists) { console.log(`${trade}: no bank file at ${f.file}; run scripts/blog-bank.js first`); process.exitCode = 1; return; }
@@ -35,10 +39,12 @@ async function main() {
   try { niche = JSON.parse(fs.readFileSync(path.join(__dirname, '..', 'niche-library', `${trade}.json`), 'utf8')); } catch (_) { niche = null; }
   const started = Date.now();
   const date = new Date().toISOString().slice(0, 10);
-  const r = await P.paaPass(f.text, { niche, date, onStatus: s => console.log(`${trade}: ${s}`) });
+  const raw = fromRaw ? JSON.parse(fs.readFileSync(path.resolve(fromRaw), 'utf8')) : null;
+  const r = await P.paaPass(f.text, { niche, date, raw, onStatus: s => console.log(`${trade}: ${s}`) });
   fs.writeFileSync(path.join(B.DIR, `${trade}.md`), r.text, 'utf8');
   const reportDir = path.join(__dirname, '..', 'tests', 'quality-runs', 'blog');
   fs.mkdirSync(reportDir, { recursive: true });
+  if (!fromRaw) fs.writeFileSync(path.join(reportDir, `BANK_paa_${trade}_${date}_raw.json`), JSON.stringify(r.raw, null, 1), 'utf8');
   const reportFile = path.join(reportDir, `BANK_paa_${trade}_${date}_report.txt`);
   const text = P.formatReport(r.report, { trade, cost: r.cost, calls: r.calls });
   fs.writeFileSync(reportFile, text + '\n', 'utf8');

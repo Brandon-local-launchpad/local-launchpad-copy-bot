@@ -26,8 +26,11 @@ const MAX_PER_BLOCK = 12;    // related questions kept per block at most
 const MIN_PER_BLOCK = 3;     // under this, the block is listed in GAPS (its post is held)
 
 // ── The filter: what a homeowner asks before or while hiring stays; DIY how to and other trades go ──
-const DIY_VERBS = 'build|make|install|lay|fit|put up|put down|put in|take down|take up|cut|mix|pour|drill|attach|screw|nail|paint|stain|oil|treat|seal|dig|level|remove|replace|repair|mend|fix|run|wire|plumb|erect|assemble|construct|lift|move|sand|varnish|weld|glue|bolt|hang|mount|plant|sow|spread|compact';
-const DIY_RE = new RegExp(`^(?:how (?:do|can|could|should|would|to) (?:i|we|you)\\b.*\\b(?:${DIY_VERBS})\\b|how to\\b.*\\b(?:${DIY_VERBS})\\b|can (?:i|we|you) (?:just |simply |easily )?(?:${DIY_VERBS})\\b|(?:what|which) (?:size|grade|type|kind|thickness|depth|gauge) (?:of )?(?:timber|wood|screw|screws|nail|nails|sand|cement|concrete|aggregate|mortar|membrane|pipe|gravel|stone|slab|slabs|post|posts|bolt|bolts|fixings?|joist|joists|c16|c24|mm)\\b|what tools?\\b|(?:do|will) (?:i|we) need (?:a|an|to use) (?:[a-z]+ )?(?:saw|drill|mixer|spirit level|spade|wacker|plate compactor|whacker|cement mixer|jigsaw|router)\\b)`, 'i');
+// Build it yourself verbs only (Brandon, 28 Oct): a fix, repair or "how do I stop" question is the
+// homeowner's before hiring and stays
+const DIY_VERBS = 'build|make|install|lay|fit|put up|put down|put in|take down|take up|cut|mix|pour|drill|attach|screw|nail|paint|stain|oil|treat|seal|dig|level|run|wire|plumb|erect|assemble|construct|lift|move|sand|varnish|weld|glue|bolt|hang|mount|plant|sow|spread|compact';
+const DIY_RE = new RegExp(`^(?:how (?:do|can|could|should|would|to) (?:i|we|you)\\b.*\\b(?:${DIY_VERBS})\\b|how to\\b.*\\b(?:${DIY_VERBS})\\b|can (?:i|we) (?:just |simply |easily )?(?:${DIY_VERBS})\\b|(?:what|which) (?:size|grade|type|kind|thickness|depth|gauge) (?:of )?(?:timber|wood|screw|screws|nail|nails|sand|cement|concrete|aggregate|mortar|membrane|pipe|gravel|stone|slab|slabs|post|posts|bolt|bolts|fixings?|joist|joists|c16|c24|mm)\\b|what tools?\\b|(?:do|will) (?:i|we) need (?:a|an|to use) (?:[a-z]+ )?(?:saw|drill|mixer|spirit level|spade|wacker|plate compactor|whacker|cement mixer|jigsaw|router)\\b)`, 'i');
+const RULE_Q_RE = /\b(?:planning permission|permission|permitted|allowed|legal|legally|the law|rules?|regulations?|neighbours?|neighbors?|council|boundary|boundaries|\d+ ?(?:foot|ft|feet|metres?|m) (?:high|tall|fence|wall|hedge))\b/i;
 const DIY_WORDS_RE = /\b(?:diy|myself|yourself|ourselves|by hand|on my own)\b/i;
 // A materials or fixings question ("Can I use C16 timber for a decking frame?") is the DIYer's, not the hirer's
 const MATERIAL_RE = /\b(?:c16|c24|\d+ ?mm|timber|joists?|screws?|nails?|postcrete|cement|mortar|hardcore|mot type ?1|sharp sand|building sand|kiln[- ]dried sand|ballast|geotextile|weed membrane|rebar|dpc|sub ?base depth|how (?:deep|thick) should)\b/i;
@@ -39,6 +42,8 @@ function classify(question, { niche = null } = {}) {
   const q = String(question || '').trim();
   if (!q) return { keep: false, why: 'empty' };
   const lower = q.toLowerCase();
+  // A rule or permission question ("Can I put up a 10 foot fence?", "Can I level my garden without planning permission?") is the homeowner's, whatever verb it uses
+  if (RULE_Q_RE.test(lower)) return { keep: true, why: '' };
   if (DIY_RE.test(lower) || DIY_WORDS_RE.test(lower)) return { keep: false, why: 'DIY how to' };
   if (MATERIAL_RE.test(lower) && MATERIAL_ASK_RE.test(lower) && !/\b(?:cost|price|quote|charge|worth)\b/.test(lower)) return { keep: false, why: 'DIY materials' };
   const own = new Set(((niche && niche.service_terms) || []).map(s => String(s).toLowerCase()));
@@ -49,6 +54,36 @@ function classify(question, { niche = null } = {}) {
   }
   return { keep: true, why: '' };
 }
+
+// Two People also ask questions that are one question (blog/same-question.js is tuned to the FAQ
+// wordings, with synonyms and a "shorter fully inside" rule too loose here: "What is tree cabling and
+// bracing?" is not "Can a split tree be saved with cabling and bracing?")
+// The stems of a People also ask question: every word but the question words, articles and
+// pronouns, lightly stemmed (causes and cause, turning and turn, decking and deck are one)
+const PAA_STOP = new Set('a an the and or of to in on at for by with from into onto over under about as is are was were be been being do does did can could should would will shall may might must i we you he she it they me us them my our your his her its their this that these those what which who whom whose when where why how there here than then if so not no yes any some all every each much many more most very really actually just still ever also too uk england britain british'.split(' '));
+const paaStem = w => { let x = w; if (x.length <= 3) return x; x = x.replace(/ies$/, 'y'); if (!/(?:ss|us|is)$/.test(x)) x = x.replace(/(?:ches|shes|xes|ses)$/, m => m.slice(0, -2)).replace(/s$/, ''); x = x.replace(/(?:ing|ed)$/, ''); if (x.length > 4) x = x.replace(/e$/, ''); return x; };
+const paaStems = q => new Set(String(q || '').toLowerCase().replace(/[^a-z0-9 ]+/g, ' ').split(/\s+/).filter(w => w && !PAA_STOP.has(w)).map(paaStem).filter(w => w.length >= 2));
+const GENERIC_STEMS = new Set(['caus', 'reason', 'happen', 'way', 'best', 'good', 'bad', 'better', 'wors', 'need', 'want', 'get', 'mak', 'thing', 'typ', 'kind', 'usual', 'common', 'normal', 'possibl', 'ok', 'okay', 'fine', 'new', 'old', 'own', 'garden', 'hous', 'hom', 'properti']);
+function samePaa(a, b) {
+  const A = paaStems(a), Bs = paaStems(b);
+  if (!A.size || !Bs.size) return false;
+  let both = 0; for (const w of A) if (Bs.has(w)) both++;
+  if (both < 2) return false;
+  const j = both / (A.size + Bs.size - both);
+  if (j >= 0.75) return true;
+  // At six in ten the two differ on a word: one question when what differs on one side is a
+  // generic ("what causes a pond to turn green" is "why is my garden pond turning green"), two
+  // when each side has its own subject ("…permission for a garden shed" is not "…for decking")
+  const onlyA = [...A].filter(w => !Bs.has(w)), onlyB = [...Bs].filter(w => !A.has(w));
+  const generic = ws => ws.every(w => GENERIC_STEMS.has(w));
+  return j >= 0.6 && (generic(onlyA) || generic(onlyB));
+}
+// In a cost block, the cost question in other words ("How much does a 25m2 deck cost?", "What is the
+// average price of decking?") is not a related question (the prompt's rule); a question with an
+// angle (what a quote includes, what is extra, labour, per hour, cheaper, worth it) stays
+const COST_AGAIN_RE = /^(?:how much (?:does|do|is|are|should|would|will|to)|what(?:'s| is| are) the (?:average |typical |going |usual )?(?:cost|price|rate)s?\b|what does .* cost\??$|how expensive)/i;
+const COST_ANGLE_RE = /\b(?:include|included|includes|extra|quote|quotes|labour|labor|per hour|per day|day rate|hourly|deposit|vat|cheaper|cheapest|save|saving|worth|maintain|maintenance|upkeep|supply|fit only|remove|removal|waste|more|less|add|adds|increase|reduce|why|without|yourself|myself|diy|small|large|big|vs|versus|or|compared)\b/i;
+const costAgain = q => COST_AGAIN_RE.test(String(q).trim()) && !COST_ANGLE_RE.test(q);
 
 // The doubt a question carries, read off its words (the prompt's five)
 function doubtOf(question) {
@@ -157,21 +192,38 @@ const HEADER_LINE_RE = /^\s*(?:#{1,6}\s*)?(?:\*\*)?\[?\s*((?:BT|CT|ST)\s*-?\s*\d
 function rebuildBank(text, paaByTarget, { niche = null, date = new Date().toISOString().slice(0, 10), fetched = null } = {}) {
   const parsed = B.parseBank(text);
   const all = B.allTopics(parsed);
-  const used = []; // every question kept so far (dedupe across blocks)
   const blocks = [];
   const linesFor = new Map();
+  // A question Google shows on several targets' SERPs (the decking questions on every decking
+  // search) goes to the one block whose target it shares most stems with (a tie: the block with
+  // fewer so far, then the first), so no block is starved by the one before it
+  const raws = new Map(all.map(t => [t.id, [...new Set((paaByTarget.get(t.id) || []).map(q => String(q).trim()).filter(Boolean))]]));
+  const overlap = (q, target) => { const A = paaStems(q), Bs = paaStems(target); let n = 0; for (const w of A) if (Bs.has(w)) n++; return n; };
+  const owner = new Map(); // normalised question → block id
+  const clusterKey = new Map(); // question text → the first question of its cluster
+  const keyOf = q => { for (const [k] of clusterKey) if (k === q || samePaa(k, q)) return k; clusterKey.set(q, q); return q; };
+  const seen = new Map(); // cluster key → [{ block, q }]
+  for (const t of all) for (const q of raws.get(t.id)) { const k = keyOf(q); if (!seen.has(k)) seen.set(k, []); seen.get(k).push({ block: t.id, q }); }
+  const counts = new Map(all.map(t => [t.id, 0]));
+  for (const [k, list] of seen) {
+    const byBlock = [...new Set(list.map(x => x.block))];
+    if (byBlock.length === 1) { owner.set(k, byBlock[0]); continue; }
+    const best = byBlock.map(id => ({ id, n: overlap(k, all.find(t => t.id === id).question), c: counts.get(id) })).sort((a, b) => b.n - a.n || a.c - b.c)[0];
+    owner.set(k, best.id); counts.set(best.id, counts.get(best.id) + 1);
+  }
   for (const t of all) {
-    const raw = [...new Set((paaByTarget.get(t.id) || []).map(q => String(q).trim()).filter(Boolean))];
+    const raw = raws.get(t.id);
     const kept = [], dropped = [];
     for (const q of raw) {
       const c = classify(q, { niche });
       if (!c.keep) { dropped.push({ question: q, why: c.why }); continue; }
-      if (SQ.sameQuestion(q, t.question)) { dropped.push({ question: q, why: 'the target question in other words' }); continue; }
-      if (kept.some(k => SQ.sameQuestion(k, q))) { dropped.push({ question: q, why: 'a question already kept in this block' }); continue; }
-      const elsewhere = used.find(u => SQ.sameQuestion(u.question, q));
-      if (elsewhere) { dropped.push({ question: q, why: `already in ${elsewhere.block}` }); continue; }
+      if (samePaa(q, t.question)) { dropped.push({ question: q, why: 'the target question in other words' }); continue; }
+      if (t.block === 'CT' && costAgain(q)) { dropped.push({ question: q, why: 'the cost question again' }); continue; }
+      const k = keyOf(q);
+      if (owner.get(k) && owner.get(k) !== t.id) { dropped.push({ question: q, why: `kept in ${owner.get(k)} (closer to its target)` }); continue; }
+      if (kept.some(x => samePaa(x, q))) { dropped.push({ question: q, why: 'a question already kept in this block' }); continue; }
       if (kept.length >= MAX_PER_BLOCK) { dropped.push({ question: q, why: `over ${MAX_PER_BLOCK} for the block` }); continue; }
-      kept.push(q); used.push({ question: q, block: t.id });
+      kept.push(q);
     }
     const f = fetched && fetched.get ? fetched.get(t.id) : null;
     blocks.push({ id: t.id, block: t.block, question: t.question, service: t.service, found: raw.length, kept: kept.length, dropped, status: f ? f.status : (raw.length ? 'done' : 'none'), error: f ? f.error : null, cost: f ? f.cost : 0 });
@@ -260,15 +312,17 @@ function formatReport(report, { trade = '', cost = null, calls = null } = {}) {
 }
 
 // The whole pass on a bank's text: fetch, rebuild, report
-async function paaPass(text, { niche = null, env = process.env, fetchImpl = fetch, onStatus = () => {}, date = new Date().toISOString().slice(0, 10), ...rest } = {}) {
+// raw: a previous pass's raw result ({ byId, cost, calls }), to rebuild without another run
+async function paaPass(text, { niche = null, env = process.env, fetchImpl = fetch, onStatus = () => {}, date = new Date().toISOString().slice(0, 10), raw = null, ...rest } = {}) {
   const parsed = B.parseBank(text);
   const targets = B.allTopics(parsed).filter(t => t.question).map(t => ({ id: t.id, question: t.question }));
   if (!targets.length) throw new Error('The bank has no target questions to search for.');
   onStatus(`${targets.length} target questions to search`);
-  const got = await fetchPaa(targets, { env, fetchImpl, onStatus, ...rest });
+  const got = raw ? { byId: new Map(Object.entries(raw.byId).map(([id, e]) => [id, { questions: e.questions || [], cost: e.cost || 0, status: e.status || 'done', error: e.error || null }])), cost: raw.cost || 0, calls: raw.calls || 0 } : await fetchPaa(targets, { env, fetchImpl, onStatus, ...rest });
   const byTarget = new Map([...got.byId].map(([id, e]) => [id, e.questions]));
   const r = rebuildBank(text, byTarget, { niche, date, fetched: got.byId });
-  return { text: r.text, report: r.report, cost: got.cost, calls: got.calls, reportText: formatReport(r.report, { cost: got.cost, calls: got.calls }) };
+  const rawOut = { date, cost: got.cost, calls: got.calls, byId: Object.fromEntries([...got.byId].map(([id, e]) => [id, { questions: e.questions, cost: e.cost, status: e.status, error: e.error }])) };
+  return { text: r.text, report: r.report, cost: got.cost, calls: got.calls, reportText: formatReport(r.report, { cost: got.cost, calls: got.calls }), raw: rawOut };
 }
 
-module.exports = { classify, doubtOf, paaQuestionsIn, fetchPaa, rebuildBank, formatReport, paaPass, API, UK, CLICK_DEPTH, MAX_PER_BLOCK, MIN_PER_BLOCK, OTHER_TRADES };
+module.exports = { classify, doubtOf, samePaa, costAgain, paaQuestionsIn, fetchPaa, rebuildBank, formatReport, paaPass, API, UK, CLICK_DEPTH, MAX_PER_BLOCK, MIN_PER_BLOCK, OTHER_TRADES };
