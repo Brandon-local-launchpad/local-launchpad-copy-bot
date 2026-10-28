@@ -4036,7 +4036,7 @@ if (pool) {
     generate: args => BG.generateBlogPost({ ...args, callModel: blogCallModel }),
     calibrationPack: I => { try { return v20CalibrationPack(I.ctx, I.niche); } catch (e) { console.error('[blog] calibration pack:', e.message); return null; } },
   });
-  B.mountBlogApi(app, { pool, loadBlogInputs, queue: blogQueue, runner: blogRunner });
+  B.mountBlogApi(app, { pool, loadBlogInputs, queue: blogQueue, runner: blogRunner, v20Store });
 }
 
 // Category pages (CORE (16), 23 Oct): every category page and location category page from
@@ -4272,6 +4272,12 @@ for (const base of V20_PAGE_BASES) {
     const page = v20PageOf(req);
     const id = (req.body && req.body.recordId) || ((await v20Store.latest(req.params.clientId, page)) || {}).id;
     if (!id) throw Object.assign(new Error('No version to approve.'), { status: 404 });
+    // The "FLAGs read" tick (blog posts, stage 6): a post with FLAGs counts as reviewed once a person has read them
+    if (req.body && req.body.flagsReviewed !== undefined) {
+      const on = !!req.body.flagsReviewed;
+      const record = await v20Store.setMeta(req.params.clientId, id, on ? { flags_reviewed_at: new Date().toISOString(), flags_reviewed_by: String(req.body.by || '').slice(0, 80) || null } : { flags_reviewed_at: null, flags_reviewed_by: null });
+      return { recordId: id, flags_reviewed_at: record.meta.flags_reviewed_at, approved_at: record.meta.approved_at, approved_by: record.meta.approved_by };
+    }
     const approve = !(req.body && req.body.approved === false);
     const record = await v20Store.setMeta(req.params.clientId, id, approve ? { approved_at: new Date().toISOString(), approved_by: String((req.body && req.body.by) || '').slice(0, 80) || null } : { approved_at: null, approved_by: null });
     return { recordId: id, approved_at: record.meta.approved_at, approved_by: record.meta.approved_by };

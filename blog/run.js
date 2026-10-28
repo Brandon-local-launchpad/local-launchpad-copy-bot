@@ -137,7 +137,7 @@ function createBlogRunner({ pool, v20Store, queue, generate, calibrationPack = (
       const f = await v20Store.latest(clientId, { type: 'blog', key: r.slug });
       const rec = f && f.record;
       posts.push({ key: r.slug, title: r.h1 || r.title, post_type: (r.info || {}).post_type, publish_date: (r.info || {}).publish_date || null,
-        record: rec ? { id: f.id, at: rec.meta && (rec.meta.edited_at || rec.meta.generated_at), blocked: !!rec.blocked, error: rec.error || null, block: rec.VALIDATION ? rec.VALIDATION.block ?? null : null, flag: rec.VALIDATION ? rec.VALIDATION.flag ?? null : null, claims: rec.CLAIMS && rec.CLAIMS.findings ? rec.CLAIMS.findings.length - ((rec.CLAIMS.accepted || []).length) : null, good: isGood(rec), flags: (rec.FLAGS || []).length } : null });
+        record: rec ? { id: f.id, at: rec.meta && (rec.meta.edited_at || rec.meta.generated_at), blocked: !!rec.blocked, error: rec.error || null, block: rec.VALIDATION ? rec.VALIDATION.block ?? null : null, flag: rec.VALIDATION ? rec.VALIDATION.flag ?? null : null, claims: rec.CLAIMS && rec.CLAIMS.findings ? rec.CLAIMS.findings.length - ((rec.CLAIMS.accepted || []).length) : null, good: isGood(rec), flags: (rec.FLAGS || []).length, approved: !!(rec.meta && rec.meta.approved_at), flags_reviewed: !!(rec.meta && rec.meta.flags_reviewed_at), cost_pence: rec.meta ? rec.meta.cost_pence ?? null : null } : null, batch: (r.info || {}).batch || 'onboarding' });
     }
     return { posts, run: st ? st.state : null, running: running.has(clientId) ? running.get(clientId) : null };
   }

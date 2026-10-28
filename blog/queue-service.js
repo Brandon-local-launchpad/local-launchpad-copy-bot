@@ -81,7 +81,7 @@ function createBlogQueueService({ pool, pageMapStore, faqService, filloutService
       const f = await v20Store.latest(clientId, { type: 'blog', key: r.slug });
       if (!f) continue;
       const rec = f.record, V = rec.VALIDATION || {}, m = rec.meta || {};
-      out.set(r.slug, { id: f.id, at: m.edited_at || m.generated_at, blocked: !!rec.blocked, error: rec.error || null, block: V.block ?? null, flag: V.flag ?? null, claims: rec.CLAIMS && rec.CLAIMS.findings ? rec.CLAIMS.findings.length - ((rec.CLAIMS.accepted || []).length) : null, good: !!(rec && !rec.blocked && !rec.error && V.status === 'run' && V.block === 0), approved: !!m.approved_at, flags: (rec.FLAGS || []).length });
+      out.set(r.slug, { id: f.id, at: m.edited_at || m.generated_at, blocked: !!rec.blocked, error: rec.error || null, block: V.block ?? null, flag: V.flag ?? null, claims: rec.CLAIMS && rec.CLAIMS.findings ? rec.CLAIMS.findings.length - ((rec.CLAIMS.accepted || []).length) : null, good: !!(rec && !rec.blocked && !rec.error && V.status === 'run' && V.block === 0), approved: !!m.approved_at, flags_reviewed: !!m.flags_reviewed_at, cost_pence: m.cost_pence ?? null, flags: (rec.FLAGS || []).length });
     }
     return out;
   }

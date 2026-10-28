@@ -20,12 +20,12 @@ const { listClients } = require('../fillout/client-routes');
 const SC = require('../gbp/scans');
 const { costPence } = require('./model-log');
 // What a page costs to write when nothing has been logged yet, in pence (the real Edens Edge runs, Oct 2026)
-const DEFAULT_COST = { homepage: 65, category: 60, service: 60, location: 60 };
+const DEFAULT_COST = { homepage: 65, category: 60, service: 60, location: 60, blog: 50 };
 
 const STAGES = ['Onboarding', 'Research', 'Page map', 'Pages', 'GBP', 'Live'];
-const PAGE_TYPES = ['homepage', 'category', 'service', 'location'];
+const PAGE_TYPES = ['homepage', 'category', 'service', 'location', 'blog'];
 // Page map row types → the v20 page type that writes them
-const ROW_TYPE = { homepage: 'homepage', category: 'category', location_category: 'category', service: 'service', town_service: 'service', location: 'location' };
+const ROW_TYPE = { homepage: 'homepage', category: 'category', location_category: 'category', service: 'service', town_service: 'service', location: 'location', blog: 'blog' };
 const RUN_ASSET = { category: 'category_run', service: 'service_run', location: 'location_run' };
 
 const parse = c => { try { return typeof c === 'string' ? JSON.parse(c) : c; } catch (_) { return null; } };
@@ -164,7 +164,8 @@ async function loadDashboard({ pool, tradeFacts = null, runners = {}, homepageRu
     const rs = rowsByClient.get(c.id) || [];
     const recs = recordsByClient.get(c.id) || new Map();
     const nicheKnown = !!(c.niche_key && c.niche_key !== 'other');
-    const applicable = rs.filter(r => r.applies !== false && ROW_TYPE[r.type] && (r.info.phase || 1) === 1);
+    // A held blog post (the topic queue's shape gate) is not a page to write
+    const applicable = rs.filter(r => r.applies !== false && ROW_TYPE[r.type] && (r.info.phase || 1) === 1 && !(r.type === 'blog' && r.status === 'Held'));
     const pages = applicable.map(r => {
       const type = ROW_TYPE[r.type];
       const key = type === 'homepage' ? 'homepage' : r.slug;

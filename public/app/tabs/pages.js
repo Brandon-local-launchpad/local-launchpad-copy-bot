@@ -97,7 +97,7 @@ export async function render(el, ctx) {
     else if (rec && rec.good) st = 'written';
     else if (rec) st = 'blocked';
     else if (r.gates.length) st = 'waiting';
-    const detail = st === 'failed' ? rec.error : st === 'blocked' ? (rec.blocked ? 'blocked by a gate when it ran' : `${rec.block} BLOCK to fix`) : st === 'waiting on a person' ? `${rec.claims} claim${rec.claims === 1 ? '' : 's'} to accept` : st === 'waiting' ? 'gated: the post waits' : st === 'held' ? 'fewer than 3 related questions: the Search Console batch picks it up' : st === 'written' && rec.flag ? `${rec.flag} FLAG to read` : '';
+    const detail = st === 'failed' ? rec.error : st === 'blocked' ? (rec.blocked ? 'blocked by a gate when it ran' : `${rec.block} BLOCK to fix`) : st === 'waiting on a person' ? `${rec.claims} claim${rec.claims === 1 ? '' : 's'} to accept` : st === 'waiting' ? 'gated: the post waits' : st === 'held' ? 'held by the queue: the Search Console batch picks it up' : st === 'written' && rec.flag ? (rec.flags_reviewed ? `${rec.flag} FLAG, read` : `${rec.flag} FLAG to read`) : st === 'approved' && rec.cost_pence != null ? `£${(rec.cost_pence / 100).toFixed(2)}` : '';
     return { st, detail };
   };
   const drawBlogQueue = () => {
@@ -130,6 +130,7 @@ export async function render(el, ctx) {
       ${[...(B.schedule_flags || []), ...((res && res.flags) || [])].map(f => `<div class="small" style="color:#b45309;margin-bottom:4px">${h(f.code)}: ${h(f.msg)}</div>`).join('')}
       <section class="card card-flat">
         <div class="tbl-tools"><span class="muted small">The topics reserved on the Research tab, dated by the schedule (3 at launch, then 2, 4, 3, 2, 1, 1 a month). Edit a question and Approve to clear G-TOPIC; the rest of the decisions are code's.${anyBlogRunning ? ` <strong>Writing ${h(blogRun.running.current || '…')}</strong>` : ''}</span><span class="spacer"></span>
+          <button class="btn btn-ghost btn-sm" data-blog="approve-batch" ${written.some(r => r.record.good && !r.record.approved) ? '' : 'disabled'} title="Approves every written post with no BLOCK whose FLAGs are read (or none), every claim accepted; a held or blocked post is left">Approve all without BLOCK or unreviewed FLAG</button>
           <button class="btn btn-primary btn-sm" data-blog="resume" ${anyBlogRunning || !rest.length ? 'disabled' : ''}>${written.length ? `Write the rest (${rest.length})` : 'Write all posts'}</button>
           <button class="btn btn-ghost btn-sm" data-blog="all" ${anyBlogRunning || !B.rows.length ? 'disabled' : ''}>Write all again</button>
           <button class="btn btn-ghost btn-sm" data-blog="build">${B.rows.length ? 'Rebuild the queue' : 'Build the queue'}</button></div>
@@ -139,6 +140,11 @@ export async function render(el, ctx) {
   el.addEventListener('click', async e => {
     const b = e.target.closest('[data-blog]');
     if (b && b.dataset.blog === 'build') { e.stopPropagation(); await busy(b, 'Building…', async () => { try { blog = await api(`/api/clients/${clientId}/blog/queue/build`, { method: 'POST' }); toast(`Queue built: ${blog.counts.rows} posts`); draw(); } catch (err) { toast(err.message, 'bad'); } }); return; }
+    if (b && b.dataset.blog === 'approve-batch') {
+      e.stopPropagation();
+      try { const r = await api(`/api/clients/${clientId}/blog/approve-batch`, { method: 'POST', body: { by: ctx.userName ? ctx.userName() : '' } }); toast(`${r.approved.length} approved${r.already ? `, ${r.already} already` : ''}${r.skipped.length ? `; ${r.skipped.length} left: ${r.skipped.map(s => s.why).slice(0, 3).join('; ')}` : ''}`, r.approved.length ? '' : 'bad'); loadBlog(); } catch (err) { toast(err.message, 'bad'); }
+      return;
+    }
     if (b && (b.dataset.blog === 'resume' || b.dataset.blog === 'all')) {
       e.stopPropagation();
       const resume = b.dataset.blog === 'resume';

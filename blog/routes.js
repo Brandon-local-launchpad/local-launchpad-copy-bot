@@ -54,7 +54,7 @@ function createBlogInputsLoader({ pool, filloutService = null, pageMapStore = nu
 //   GET  /api/clients/:id/blog/queue             every post with its decisions (no model call)
 //   POST /api/clients/:id/blog/queue/build       the reserved topics dated and written to the page map
 //   PUT  /api/clients/:id/blog/queue/:slug       { wording, approved } a person's approval or edit of the question
-function mountBlogApi(app, { pool, loadBlogInputs, queue = null, runner = null }) {
+function mountBlogApi(app, { pool, loadBlogInputs, queue = null, runner = null, v20Store = null }) {
   const wrap = fn => async (req, res) => {
     if (!pool) return res.status(503).json({ error: 'Database not configured.' });
     try { res.json(await fn(req)); }
@@ -79,6 +79,29 @@ function mountBlogApi(app, { pool, loadBlogInputs, queue = null, runner = null }
       if (runner.running.has(req.params.clientId)) throw Object.assign(new Error('A blog posts run is already in progress for this client.'), { status: 409 });
       runner.run(req.params.clientId, { resume: !!resume, keys: Array.isArray(keys) && keys.length ? keys : null, qualityReview: !!quality }).catch(err => console.error('[blog] run failed for', req.params.clientId, err));
       return { started: true };
+    }));
+    // Stage 6: "Approve all without BLOCK or unreviewed FLAG" (the brief). A post is approved when
+    // its latest record is good (no BLOCK, not blocked, no error) and has no FLAG, or its FLAGs
+    // were read (meta.flags_reviewed_at, the Page view's tick); a held post is not a post to approve
+    app.post('/api/clients/:clientId/blog/approve-batch', wrap(async req => {
+      if (!v20Store) throw Object.assign(new Error('No record store.'), { status: 503 });
+      const by = String((req.body && req.body.by) || '').slice(0, 80) || null;
+      const batch = req.body && req.body.batch ? String(req.body.batch) : null;
+      const v = await runner.view(req.params.clientId);
+      const approved = [], skipped = [];
+      let already = 0;
+      for (const p of v.posts) {
+        if (batch && p.batch && p.batch !== batch) continue;
+        const r = p.record;
+        if (!r) { skipped.push({ key: p.key, why: 'not written yet' }); continue; }
+        if (r.approved) { already++; continue; }
+        if (r.blocked || r.error || !r.good || r.block > 0) { skipped.push({ key: p.key, why: r.error ? `failed: ${r.error}` : r.blocked ? 'blocked by a gate' : `${r.block || 'a'} BLOCK to fix` }); continue; }
+        if (r.flag > 0 && !r.flags_reviewed) { skipped.push({ key: p.key, why: `${r.flag} FLAG not read yet (tick "FLAGs read" on the post)` }); continue; }
+        if (r.claims > 0) { skipped.push({ key: p.key, why: `${r.claims} claim${r.claims === 1 ? '' : 's'} to accept` }); continue; }
+        await v20Store.setMeta(req.params.clientId, r.id, { approved_at: new Date().toISOString(), approved_by: by });
+        approved.push(p.key);
+      }
+      return { approved, skipped, already };
     }));
     app.get('/api/clients/:clientId/blog-pages/preview/:key(*)', wrap(async req => {
       const key = '/' + String(req.params.key || '').replace(/^\/+/, '');
