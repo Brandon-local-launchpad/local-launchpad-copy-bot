@@ -974,22 +974,26 @@
       {
         "topic": "Lay new turf",
         "window": "September to October",
-        "publish": "August"
+        "publish": "August",
+        "tasks": ["prepare","level","water","clay","roll","root"]
       },
       {
         "topic": "Prepare the garden for winter",
         "window": "November",
-        "publish": "October"
+        "publish": "October",
+        "tasks": ["mulch","cut back","clear leaves","frost","protect","tidy","drain"]
       },
       {
         "topic": "Spring lawn care",
         "window": "March to April",
-        "publish": "February"
+        "publish": "February",
+        "tasks": ["scarify","aerate","overseed","feed","moss"]
       },
       {
         "topic": "Hedge cutting after the nesting season",
         "window": "August to September",
-        "publish": "July"
+        "publish": "July",
+        "tasks": ["trim","shape","height","nesting","birds","prune"]
       }
     ],
     "safety_topics": [

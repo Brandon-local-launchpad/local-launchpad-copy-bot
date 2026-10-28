@@ -3,7 +3,8 @@
 // ── The niche's blog slots by business type (spec section 3, 28 Oct 2026) ────
 // Blogs reuse the homepage slots (trade, trade_person, customer_type, primary_action,
 // business_type, seasonal_trade) and add these, read from the niche entry's `blog` object:
-//   seasonal_topics  [{ topic, window, publish }] (or "Topic: window, publish Month" strings);
+//   seasonal_topics  [{ topic, window, publish, tasks }] (or "Topic: window, publish Month" strings); the tasks are
+//                    the jobs the season involves, the match words for a seasonal post's related questions;
 //                    shared with the quarterly GBP post batch, so both follow one calendar
 //   safety_topics    topics that get the safety switch (gas, electrics, structure)
 //   blog_cta_h2      the Next step heading: a string, or one per business type { A, B, C, D }
@@ -32,7 +33,7 @@ function businessTypeOf(cv = {}, niche = {}) {
 
 // "Lay new turf: Sept to Oct, publish Aug" → { topic, window, publish }
 function parseSeasonalTopic(item) {
-  if (item && typeof item === 'object') return { topic: String(item.topic || '').trim(), window: String(item.window || '').trim(), publish: String(item.publish || item.publish_month || '').trim() };
+  if (item && typeof item === 'object') return { topic: String(item.topic || '').trim(), window: String(item.window || '').trim(), publish: String(item.publish || item.publish_month || '').trim(), tasks: list(item.tasks) };
   const s = String(item || '').trim();
   const m = s.match(/^(.*?)\s*:\s*(.*?)(?:,\s*publish\s+(.+))?$/i);
   if (!m) return { topic: s, window: '', publish: '' };

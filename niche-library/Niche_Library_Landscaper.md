@@ -501,7 +501,7 @@ Blog Post Structure (Ray, 28 Oct 2026), Layer 2 section 3. Blogs reuse the homep
 
 | Slot | Value |
 |---|---|
-| seasonal_topics | Lay new turf: September to October, publish August · Prepare the garden for winter: November, publish October · Spring lawn care: March to April, publish February · Hedge cutting after the nesting season: August to September, publish July |
+| seasonal_topics | Lay new turf: September to October, publish August, tasks prepare, level, water, clay, roll, root · Prepare the garden for winter: November, publish October, tasks mulch, cut back, clear leaves, frost, protect, tidy, drain · Spring lawn care: March to April, publish February, tasks scarify, aerate, overseed, feed, moss · Hedge cutting after the nesting season: August to September, publish July, tasks trim, shape, height, nesting, birds, prune. The tasks are the jobs the season involves (Brandon, 28 Oct): a seasonal topic matches the bank's questions on them, since the service word itself never counts |
 | safety_topics (the safety switch: no DIY steps) | Electrics for garden lighting · Outdoor sockets and garden power · Retaining walls and structural garden walls · Felling a large tree near a building |
 | blog_cta_h2 (the Next step heading) | A: Talk to a Local [TRADE_PERSON] About [TOPIC] · B: Book a Local [TRADE_PERSON] for [TOPIC] |
 | cost_unit (how a cost guide prices the job) | A: per job · B: per visit |

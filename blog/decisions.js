@@ -290,6 +290,13 @@ const tfRows = (tradeFacts && tradeFacts.verified && Array.isArray(tradeFacts.ro
     // A row label is one sign: the first clause of the "Signs:" text, never the whole list (B-CELL-LIST holds for code labels too)
     rows = [...signs.map(d => ({ label: d.text, from: 'dossier symptom' })), ...wrong.map(r => ({ label: r.text.replace(/^Signs:\s*/i, '').split(/[.;]/)[0].split(/,\s*(?=[a-z])/)[0].trim(), from: 'TF what goes wrong' }))].slice(0, 6);
   }
+  // A row whose sign means the same as an earlier row's is dropped (Brandon, 28 Oct: "The lawn stays
+  // soggy for days after rain" and "Lawn stays waterlogged" are one row)
+  if (tableType !== 'decision') {
+    const kept = [];
+    for (const r of rows) { if (kept.some(k => SQ.sameQuestion(k.label, r.label, { exclude: [city, svcTitle, ctx.trade] }))) { flags.push({ code: 'F-ROW-SAME', msg: `Table row "${r.label}" dropped: it means the same as "${kept.find(k => SQ.sameQuestion(k.label, r.label, { exclude: [city, svcTitle, ctx.trade] })).label}".` }); continue; } kept.push(r); }
+    rows = kept;
+  }
   // Fewer than three fitting rows and the table is off; the decision table is its two options
   const tableOn = tableType === 'decision' ? rows.length === 2 : rows.length >= 3;
   if (!tableOn && rows.length) flags.push({ code: 'F-TABLE', msg: `${rows.length} row${rows.length === 1 ? '' : 's'} fit the ${tableType === 'rules' ? 'rules' : postType.replace('_', ' ')} table's columns (3 needed): the table is off.` });

@@ -64,7 +64,9 @@ function buildBlogRecord({ cv = {}, decisionsResult, parsed, meta, extraFlags = 
   const metaD = metaDescriptionFor(F[PT.LABELS.answer], D.meta_cta);
   if (metaD.flag) record.FLAGS.push({ ...metaD.flag, source: 'code' });
   const cols = D.table.columns || [];
-  const tableRows = D.table.show ? D.table.rows.map((r, i) => { const cellsText = item(PT.LABELS.table, i, 'cells'); const cells = splitCells(cellsText, Math.max(0, cols.length - 1)); return { row: r.label, cells, cells_text: cells.join(' ; ') }; }) : [];
+  // cells_text keeps what the model wrote (its cell count included), so a wrong row is a BLOCK the
+  // retry can fix (B-CELLS); cells are the split for the page
+  const tableRows = D.table.show ? D.table.rows.map((r, i) => { const cellsText = String(item(PT.LABELS.table, i, 'cells') || '').trim(); const cells = splitCells(cellsText, Math.max(0, cols.length - 1)); return { row: r.label, cells, cells_text: cellsText || cells.join(' ; ') }; }) : [];
   if (D.table.show) for (const [i, r] of tableRows.entries()) { const got = String(item(PT.LABELS.table, i, 'cells') || '').split(/\s*;\s*/).filter(Boolean).length; if (got && got !== cols.length - 1) record.FLAGS.push({ code: 'P-CELLS', msg: `Table row "${r.row}": ${got} cell(s) for ${cols.length - 1} column(s).`, source: 'parse' }); }
   Object.assign(record, {
     post_type:              D.post_type,

@@ -109,7 +109,7 @@ function createBlogQueueService({ pool, pageMapStore, faqService, filloutService
       };
     });
     const counts = { rows: out.length, held: out.filter(r => r.status === 'Held').length, ready: out.filter(r => !r.gates.length && r.status !== 'Held').length, gated: out.filter(r => r.gates.length && r.status !== 'Held').length, to_approve: out.filter(r => !r.wording_approved).length, dated: out.filter(r => r.publish_date).length };
-    return { rows: out, counts, settings: I.settings, reservation: I.blog ? { counts: I.blog.counts, flags: I.blog.flags, pool: I.blog.pool } : null, schedule_flags: scheduleFlags, site_check: I.siteCheck, problems: [...(I.problems || []), ...((I.blog && I.blog.problems) || [])] };
+    return { rows: out, counts, settings: I.settings, reservation: I.blog ? { counts: I.blog.counts, flags: I.blog.flags, pool: I.blog.pool, held: (I.blog.held_back || []).map(t => ({ key: t.key, flags: t.flags })), topics: (I.blog.topics || []).map(t => ({ key: t.key, flags: t.flags })) } : null, schedule_flags: scheduleFlags, site_check: I.siteCheck, problems: [...(I.problems || []), ...((I.blog && I.blog.problems) || [])] };
   }
 
   async function setWording(clientId, slug, { wording, approved } = {}) {
