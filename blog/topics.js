@@ -261,7 +261,7 @@ function reserveBlogTopics({ assignment, cv = {}, niche = {}, keyValueMap = {}, 
   // free issue whose title, service tags or detail name the job's words most, the primary town's
   // dossier first, else the town whose dossier fits best; nothing fitting takes the first free
   // issue of the primary town (F-CONDITION says so)
-  const STOP_T = new Set(['the', 'a', 'an', 'for', 'after', 'new', 'and', 'of', 'in', 'to']);
+  const STOP_T = new Set(['the', 'a', 'an', 'for', 'after', 'new', 'and', 'of', 'in', 'to', 'garden', 'gardens']); // 'garden' is in nearly every issue of a garden trade
   const stemsOf = s => [...new Set(norm(s).split(' ').filter(w => w && !STOP_T.has(w)).map(w => w.replace(/(ing|ers?|es|s)$/, '')))];
   const issueScore = (issue, stems) => {
     const title = stemsOf(issue.title), tags = stemsOf([...(issue.serviceTags || []), ...(issue.categoryTags || [])].join(' ')), detail = new Set(stemsOf(issue.detail || ''));
