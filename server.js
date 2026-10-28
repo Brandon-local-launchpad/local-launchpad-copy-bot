@@ -3889,6 +3889,9 @@ const wpService = pool ? createWpService({
 
 // The client's facts as they are now, for checking a saved page with today's
 // rules. Each page type has its own.
+// The blog queue and runner (set up below with the page map store; today's facts for a blog record read them)
+let blogQueue = null;
+let blogRunner = null;
 const V20_FACTS = {
   category: async (clientId, sessionId, record) => {
     if (!categoryRunner) throw new Error('category pages are not available (no page map store)');
@@ -4047,7 +4050,7 @@ if (pool) {
     tradeFactsGate: async (clientId, trade) => { const gate = await tradeFacts.serviceGate(await nicheForGate(clientId, trade)); return gate.ok ? { niche: gate.niche, verified: true, message: '' } : { niche: gate.niche, verified: false, message: gate.message || gate.reason || 'not verified' }; },
   });
   // The queue (stage 3): the reserved topics dated and written to the page map, each row's decisions
-  const blogQueue = require('./blog/queue-service').createBlogQueueService({
+  blogQueue = require('./blog/queue-service').createBlogQueueService({
     pool, pageMapStore, faqService, filloutService, v20Store,
     tradeFactsGate: async (clientId, trade) => { const gate = await tradeFacts.serviceGate(await nicheForGate(clientId, trade)); return { niche: gate.niche, verified: !!gate.ok, message: gate.ok ? '' : gate.message || '' }; },
     packRows: (niche, service, question) => require('./trade-facts/pack').rowsForPost(niche, service, question),
@@ -4055,7 +4058,7 @@ if (pool) {
   // The run (stage 4): one post per model call, the records in the v20 store by slug (blog/run.js, blog/generate.js)
   const BG = require('./blog/generate');
   const blogCallModel = args => makeCallModel(new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY }), BG.BLOG_MODEL, { onUsage: modelLog.tagged('blog posts', { page_type: 'blog' }) })(args);
-  const blogRunner = require('./blog/run').createBlogRunner({
+  blogRunner = require('./blog/run').createBlogRunner({
     pool, v20Store, queue: blogQueue,
     generate: args => BG.generateBlogPost({ ...args, callModel: blogCallModel }),
     calibrationPack: I => { try { return v20CalibrationPack(I.ctx, I.niche); } catch (e) { console.error('[blog] calibration pack:', e.message); return null; } },

@@ -86,7 +86,7 @@ console.log('\n=== FIXTURE: WordPress push service (pg-mem + fake WordPress) ===
 
     // ── Test, claims review, dry run ──
     const t = await svc.test(clientId);
-    chk('Connection test reports the plugin', t.status && t.status.plugin === '0.1.0' && t.status.seo === 'rankmath', JSON.stringify(t), 'plugin 0.1.0');
+    chk('Connection test reports the plugin', t.status && t.status.plugin === '0.2.0' && t.status.seo === 'rankmath', JSON.stringify(t), 'plugin 0.1.0');
     let reviewMessage = '';
     const reviewed = await svc.reviewClaims(clientId, { recordId: noClaimsId }, async ({ message }) => { reviewMessage = message || ''; return { text: JSON.stringify({ findings: [{ field: 'home_final_cta_body', quote: rec.home_final_cta_body.slice(0, 30), why: 'test' }] }) }; });
     const stored = JSON.parse((await pool.query(`SELECT content FROM client_assets WHERE id=$1`, [noClaimsId])).rows[0].content);

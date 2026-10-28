@@ -94,7 +94,7 @@ chk('Client Values: company, travel distance, button label, no rating line', cv.
     try { return { r: await dryRun({ record: rec, site: site(url), reviewed: true, ...extra }), writes: fake.state.writes }; } finally { await new Promise(r => server.close(r)); }
   };
   const ok = await run({});
-  chk('Ready site: pushable, plugin reported, nothing written', ok.r.pushable && ok.r.plugin && ok.r.plugin.plugin === '0.1.0' && ok.writes === 0, ok.r.refusals.join(' | '), 'pushable');
+  chk('Ready site: pushable, plugin reported, nothing written', ok.r.pushable && ok.r.plugin && ok.r.plugin.plugin === '0.2.0' && ok.writes === 0, ok.r.refusals.join(' | '), 'pushable');
   chk('Ready site: Client Values diff included', ok.r.changes.some(c => c.field === 'client_values.company_name' && c.change === 'added' && c.next === 'Edens Edge Landscaping'), '', 'added');
   const noPlugin = await run({ plugin: false });
   chk('No plugin: refused', !noPlugin.r.pushable && noPlugin.r.refusals.some(x => /plugin is not active/.test(x)), noPlugin.r.refusals.join(' | '), 'refused');

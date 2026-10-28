@@ -250,7 +250,7 @@ export async function render(el, ctx) {
           site = { conn, v20 }; toast('Saved'); drawSite();
         });
       }
-      if (b.dataset.site === 'test') await busy(b, 'Testing…', async () => { const t = await api(`/api/clients/${clientId}/wp/test`, { method: 'POST' }); const s = t.status || {}; status(s.error ? `Can't reach the plugin: ${s.error}` : `Connected${t.staging ? ' (staging)' : ''}: plugin ${s.plugin}, ACF Pro ${s.acf_pro ? 'yes' : 'NO'}, SEO ${s.seo}, ${(s.field_groups || []).length} homepage field groups`); });
+      if (b.dataset.site === 'test') await busy(b, 'Testing…', async () => { const t = await api(`/api/clients/${clientId}/wp/test`, { method: 'POST' }); const s = t.status || {}; status(s.error ? `Can't reach the plugin: ${s.error}` : `Connected${t.staging ? ' (staging)' : ''}: plugin ${s.plugin}, ACF Pro ${s.acf_pro ? 'yes' : 'NO'}, SEO ${s.seo}, ${(s.field_groups || []).length} field groups`); });
     } catch (err) { toast(err.message, 'bad'); }
   });
 

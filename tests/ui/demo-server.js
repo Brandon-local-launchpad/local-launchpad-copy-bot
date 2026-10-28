@@ -125,9 +125,10 @@ process.env.BLOG_BANK_TEST_SAMPLES = '1'; // the demo's landscaper bank is the h
   // The landscaper blog question bank, approved on the demo so the reserved topics draw on it (28 Oct, blog stage 2)
   {
     const bankStore = require(path.join(root, 'blog/bank-store.js')).createBankStore({ pool, log: { log() {}, error: console.error }, testSamplesAllowed: true });
-    // The real run (blog-bank/landscaper.md) when it is there, else the hand written sample
-    const bankFile = fs.existsSync(path.join(root, 'blog-bank/landscaper.md')) ? path.join(root, 'blog-bank/landscaper.md') : path.join(root, 'tests/fixtures/data/blog-bank-landscaper-sample.md');
-    await bankStore.save('landscaper', fs.readFileSync(bankFile, 'utf8'), { source: /blog-bank/.test(bankFile) ? 'perplexity' : 'paste' });
+    // The real v1 run, frozen (tests/fixtures/data/blog-bank-landscaper-run-v1.md): the file the live app seeds from
+    // (blog-bank/landscaper.md) is whatever the last run wrote (the thin v2 run on 28 Oct), so the demo keeps a bank that gives posts
+    const bankFile = path.join(root, 'tests/fixtures/data/blog-bank-landscaper-run-v1.md');
+    await bankStore.save('landscaper', fs.readFileSync(bankFile, 'utf8'), { source: 'perplexity' });
     await bankStore.approve('landscaper', 'demo');
   }
 

@@ -28,7 +28,7 @@ function createFakeWp({ user = 'copybot', appPassword = 'test-app-password-not-r
   });
   app.get('/wp-json/wp/v2/settings', (req, res) => res.json({ title: 'Fake site', page_on_front: state.frontId }));
   if (plugin) {
-    app.get('/wp-json/llp-copybot/v1/status', (req, res) => res.json({ plugin: '0.1.0', acf_pro: acfPro, seo, front_page: state.frontId, field_groups: fieldGroups }));
+    app.get('/wp-json/llp-copybot/v1/status', (req, res) => res.json({ plugin: '0.2.0', acf_pro: acfPro, seo, front_page: state.frontId, field_groups: fieldGroups }));
     app.get('/wp-json/llp-copybot/v1/client-values', (req, res) => res.json(state.clientValues));
     app.post('/wp-json/llp-copybot/v1/client-values', (req, res) => { state.writes++; Object.assign(state.clientValues, req.body); res.json(state.clientValues); });
   }
