@@ -136,7 +136,7 @@ function reserveBlogTopics({ assignment, cv = {}, niche = {}, keyValueMap = {}, 
   // stack and the FAQ (B6, B7) instead of running as a second post
   const STOP = new Set('a an the i you my your our we do does did is are it its to in for of and or on at by with from after before always ever can could should would will what which how why when who there this that these those me us them need want get'.split(' '));
   const stems = s => new Set(norm(s).split(' ').filter(w => w && !STOP.has(w)).map(w => w.replace(/(ing|ed|es|s)$/, '')));
-  const sameQuestion = (a, b) => { const A = stems(a), B = stems(b); if (!A.size || !B.size) return false; let both = 0; for (const w of A) if (B.has(w)) both++; return both / (A.size + B.size - both) >= 0.6; };
+  const sameQuestion = (a, b) => { const A = stems(a), B = stems(b); if (!A.size || !B.size) return false; let both = 0; for (const w of A) if (B.has(w)) both++; return both / (A.size + B.size - both) >= 0.5; }; // 0.5: "lawn waterlogged after rain" and "lawn waterlogged and how can I fix it" are one post
   const bankMatch = q => bankTopics.find(t => !usedBank.has(t.id) && t.question && sameQuestion(t.question, q.wording || q.text));
   const mergeBank = (topic, q) => {
     const bt = bankMatch(q);

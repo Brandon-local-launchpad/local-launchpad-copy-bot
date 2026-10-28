@@ -97,7 +97,7 @@ const flag = name => process.argv.includes(name);
   fs.mkdirSync(outDir, { recursive: true });
   fs.writeFileSync(path.join(outDir, 'README.md'), `Edens Edge blog run, model ${model}, launch ${launch}. The price rows for Artificial turf installation and Driveway landscaping are made up for this run (Edens Edge has no price rows on file); every code written question was approved by the tool.\n`);
   const runner = createBlogRunner({ pool, v20Store, queue, generate: args => BG.generateBlogPost({ ...args, callModel, claimsReview: !flag('--no-claims'), qualityReview: flag('--quality') }), calibrationPack: () => { const f = path.join(root, 'Landscaper_Calibration_Pack_v4.md'); return fs.existsSync(f) ? { name: 'Landscaper_Calibration_Pack_v4.md', text: fs.readFileSync(f, 'utf8') } : null; }, log: console.log });
-  const keys = arg('--keys') ? arg('--keys').split(',').map(s => '/' + s.trim().replace(/^/+/, '')) : null; // a leading slash is optional (Git Bash rewrites /guides/… as a path)
+  const keys = arg('--keys') ? arg('--keys').split(',').map(s => '/' + s.trim().replace(/^\/+/, '')) : null; // a leading slash is optional (Git Bash rewrites /guides/… as a path)
   const state = await runner.run(client.id, { resume: false, keys });
   for (const p of state.posts) {
     const f = await v20Store.latest(client.id, { type: 'blog', key: p.key });
