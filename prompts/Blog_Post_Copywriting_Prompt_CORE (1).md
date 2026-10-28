@@ -1,6 +1,6 @@
 # Blog Post Copywriting Prompt: CORE (1)
 
-New page type for v20. Version 1.1, 28 Oct 2026 (prices read from the PRICE rows in FACTS ALLOWED). From the Blog Post Structure (Ray) plus Amendment 1. Master copy lives in the Copybot repo; edit there, copy to the project. Code appends prompts/_shared_copy_rules.md under SHARED COPY RULES, so claims, voice, links, names in prose and custom values are not repeated here.
+New page type for v20. Version 1.2, 28 Oct 2026 (prices read from the PRICE rows in FACTS ALLOWED; the closing is one sentence, as the other page types' final CTA, Brandon after the first real posts). From the Blog Post Structure (Ray) plus Amendment 1. Master copy lives in the Copybot repo; edit there, copy to the project. Code appends prompts/_shared_copy_rules.md under SHARED COPY RULES, so claims, voice, links, names in prose and custom values are not repeated here.
 
 ---
 
@@ -61,7 +61,7 @@ Only when DECISIONS shows the business block. 50 to 80 words. How this business 
 One answer per question given, in order. 40 to 70 words. First sentence answers in 15 words or fewer. Prices only from the PRICE rows in FACTS ALLOWED. Rules from trade facts rule rows only, written as what usually applies.
 
 ### blog_closing
-One or two sentences, 20 to 40 words. What the reader can do next, linking the primary page once. Never [CV: phone], never "Tell us", never the same opening words as another closing line on the site.
+One sentence, 20 to 40 words, with "we" or the reader as its subject. What the reader can do next, linking the primary page once. Never [CV: phone], never "Tell us", never the same opening words as another closing line on the site.
 
 ### MODEL_FLAGS
 One code per line, or "none".

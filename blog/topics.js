@@ -36,6 +36,7 @@ const { bestServiceFor } = require('./inputs');
 const { blocksFor } = require('./blocks');
 const { parseDossier } = require('../geo-dossier');
 const { seasonalMonth, parseDate } = require('./queue');
+const P = require('../trade-facts/pack');
 
 const TARGET = 16;
 // A seasonal topic that opens on a verb ("Lay new turf", "Prepare the garden for winter")
@@ -216,7 +217,11 @@ function reserveBlogTopics({ assignment, cv = {}, niche = {}, keyValueMap = {}, 
     const t = add({ key: keyFor(type === 'cost_guide' && service ? `${service.pageTitle} cost ${city}` : bt.question), post_type: type, source: 'blog_bank', homepage_cost_guide: false, target_query: lc(norm(bt.question)),
       wording: question(bt.question), wording_source: 'blog_bank', needs_approval: false, question: bankRef(bt),
       service: pageRef(service), category: pageRef(category), town: '', primary: service ? service.urlSlug : category ? category.urlSlug : '/#services', ...(type === 'cost_guide' ? { cost_unit: slots.cost_unit } : {}) });
-    takeBank(t, bt);
+    // Its related questions are taken at the batch cut, in batch order, so a seasonal topic
+    // inside the window (placed before the bank's posts) has first claim on its service's
+    // related questions (Brandon, 28 Oct)
+    t.bank_ref = bt;
+    usedBank.add(bt.id);
     usedWordings.add(norm(bt.question));
   }
 
@@ -246,7 +251,10 @@ function reserveBlogTopics({ assignment, cv = {}, niche = {}, keyValueMap = {}, 
     const issue = free[0];
     usedIssues.add(issue.id);
     const symptom = calm(issue)[0] || null;
-    add({ key: keyFor(`${issue.title} ${town}`), post_type: 'local', source: 'dossier', homepage_cost_guide: false, target_query: lc(norm(`${issue.title} ${town}`)),
+    let packService = null;
+    // The condition's title names the work ("slow-draining ground" → Garden drainage); its symptom text would pull in whatever it mentions ("the lawn stays soggy" → Lawn care)
+    try { packService = P.serviceForQuestion(niche._source || P.packNameFor(niche.trade), issue.title); } catch (_) { packService = null; }
+    add({ pack_service: packService, key: keyFor(`${issue.title} ${town}`), post_type: 'local', source: 'dossier', homepage_cost_guide: false, target_query: lc(norm(`${issue.title} ${town}`)),
       wording: question(`what causes ${lc(issue.title)} in ${town}`), wording_source: 'code', needs_approval: true, question: null, service: null, category: null, town,
       dossier_condition: { id: issue.id, title: issue.title, symptom: symptom ? { id: symptom.id, text: symptom.text } : null, town }, primary: '/#services' });
   }
@@ -287,11 +295,15 @@ function reserveBlogTopics({ assignment, cv = {}, niche = {}, keyValueMap = {}, 
     const month = launch ? seasonalMonth(launch, { seasonal: t }) : null;
     const c = conditionFor(t.topic);
     const town = c ? c.town : city;
+    // The pack's service for the topic ("Spring lawn care" → Lawn care): its bank topics give the
+    // related questions (Brandon, 28 Oct) and its timing rows the answer's timing (blog/decisions.js)
+    let packService = null;
+    try { packService = P.serviceForQuestion(niche._source || P.packNameFor(niche.trade), t.topic); } catch (_) { packService = null; }
     if (c) usedIssues.add(c.issue.id);
     const topic = add({ key: keyFor(`${t.topic} ${town}`), post_type: 'local', source: 'seasonal', homepage_cost_guide: false, target_query: lc(norm(`${t.topic} ${town}`)),
       // "Lay new turf" reads as "When should you lay new turf"; "Spring lawn care" as "When is the best time for spring lawn care"
       wording: question(SEASONAL_VERB.test(t.topic) ? `when should you ${lc(t.topic)} in ${town}` : `when is the best time for ${lc(t.topic)} in ${town}`), wording_source: 'code', needs_approval: true, question: null, service: null, category: null, town,
-      seasonal: { topic: t.topic, window: t.window, publish: t.publish, month }, in_window: !!month, primary: '/#services',
+      seasonal: { topic: t.topic, window: t.window, publish: t.publish, month }, in_window: !!month, primary: '/#services', pack_service: packService,
       dossier_condition: c ? { id: c.issue.id, title: c.issue.title, symptom: c.symptom ? { id: c.symptom.id, text: c.symptom.text } : null, town, fit: c.score >= 1 ? 'names the job' : 'the first free condition' } : null });
     if (!c) topic.flags.push({ code: 'F-CONDITION', msg: `No free dossier condition for "${t.topic}" (${parsedDossiers.length ? 'every condition is used' : 'no saved dossier'}): the post has no condition and will gate on B9.` });
     else if (c.score < 1) topic.flags.push({ code: 'F-CONDITION', msg: `No dossier condition names "${t.topic}": the first free condition of ${town} (${c.issue.title}) is used.` });
@@ -328,9 +340,30 @@ function reserveBlogTopics({ assignment, cv = {}, niche = {}, keyValueMap = {}, 
     t.query_stack = stack.map(q => q.id); t.stack = stack.map(ref);
     t.faq_ids = rest.map(q => q.id); t.faq = rest.map(ref);
   };
+  // A seasonal topic's related questions: the bank topics on the same service (the pack's
+  // service for the topic, else the topic's own words), their unused related questions in
+  // doubt order, the first 3 to 5 as the H2s and the next 3 to 5 as the FAQ
+  const seasonalRelated = t => {
+    // The service's words only ("Turf laying" → turf, lay), matched on the bank topic's service
+    // name, never its question ("lay a patio" is not a turf topic); the topic's own words when
+    // the pack names no service, and the question only when the bank topic names no service
+    const want = new Set(stemsOf(t.pack_service || (t.seasonal ? t.seasonal.topic : '') || (t.dossier_condition ? t.dossier_condition.title : '')).filter(w => !['lay', 'new', 'prepare', 'care', 'cut', 'season', 'spring', 'summer', 'autumn', 'winter'].includes(w)));
+    const near = want.size ? bankTopics.filter(bt => { const have = new Set(stemsOf(bt.service || (bt.service === '' ? bt.question : '') || '')); return [...want].some(w => have.has(w) || [...have].some(h => (h.length >= 4 && w.startsWith(h)) || (w.length >= 4 && h.startsWith(w)))); }) : [];
+    const kept = [];
+    for (const bt of near) for (const r of [...bt.related].sort(byDoubt)) { if (usedBank.has(r.id) || usedWordings.has(norm(r.question))) continue; if (!kept.some(k => k.id === r.id)) kept.push({ ...r, _topic: bt.id }); }
+    kept.sort(byDoubt);
+    const n = Math.min(5, Math.max(3, Math.ceil(kept.length / 2)));
+    const stack = kept.slice(0, n), faq = kept.slice(n, n + 5);
+    for (const r of [...stack, ...faq]) { usedBank.add(r.id); usedWordings.add(norm(r.question)); }
+    t.query_stack = stack.map(r => r.id); t.stack = stack.map(r => ({ id: r.id, wording: r.question, doubt: r.doubt, needs_fact: !!r.needsFact }));
+    t.faq_ids = faq.map(r => r.id); t.faq = faq.map(r => ({ id: r.id, wording: r.question, doubt: r.doubt, needs_fact: !!r.needsFact }));
+    t.related_from = [...new Set([...stack, ...faq].map(r => r._topic))];
+    if (!near.length) t.flags.push({ code: 'F-STACK', msg: `No bank topic on ${t.pack_service || 'this service'}: no related questions for the seasonal topic.` });
+  };
   const release = t => {
     if (t.question && t.question.source !== 'blog_bank') used.delete(t.question.id);
     if (fromPool(t)) for (const id of [...t.query_stack, ...t.faq_ids]) used.delete(id);
+    if (t.source === 'seasonal' || t.source === 'dossier') for (const id of [...t.query_stack, ...t.faq_ids]) usedBank.delete(id);
     if (t.question && t.question.source === 'blog_bank') { usedBank.delete(t.question.id); for (const id of [...t.query_stack, ...t.faq_ids]) usedBank.delete(id); }
     if (t.bank_topic) { usedBank.delete(t.bank_topic); for (const id of [...t.query_stack, ...t.faq_ids]) usedBank.delete(id); }
   };
@@ -343,33 +376,47 @@ function reserveBlogTopics({ assignment, cv = {}, niche = {}, keyValueMap = {}, 
   const batch = ordered.slice(0, target);
   const dropped = ordered.slice(target);
   for (const t of dropped) release(t);
-  for (const t of batch) if (fromPool(t)) stackFor(t);
+  // The stacks in batch order: the held pool, the bank topic's own related questions, or
+  // the same service's for a seasonal topic
+  // A seasonal or a dossier local post takes the bank's related questions on its service (the pool has none on a town)
+  const stackTopic = t => { if (t.source === 'seasonal' || t.source === 'dossier') seasonalRelated(t); else if (fromPool(t)) stackFor(t); else if (t.bank_ref && !t.query_stack.length) takeBank(t, t.bank_ref); };
+  for (const t of batch) stackTopic(t);
+  // The shape gate (Brandon, 28 Oct): a post needs three H2s and three FAQ questions, or it
+  // is held (G-STACK), not written; the next topic beyond the batch takes its slot
   const heldBack = [];
-  const skipped = []; // topics beyond the batch whose question a stack took: still listed beyond
-  for (let i = 0; i < batch.length; i++) {
-    const t = batch[i];
-    if (!(t.group === 'held' && !t.bank_topic && t.query_stack.length < 3)) continue;
-    batch.splice(i--, 1);
-    for (const id of [...t.query_stack, ...t.faq_ids]) used.delete(id);
+  const thin = t => t.query_stack.length < 3 || t.faq_ids.length < 3;
+  const hold = t => {
+    const had = { stack: t.query_stack.length, faq: t.faq_ids.length };
+    release(t);
+    if (t.question && t.question.source !== 'blog_bank') used.add(t.question.id); // its own question stays its own
     t.query_stack = []; t.stack = []; t.faq_ids = []; t.faq = [];
     t.held = true;
-    t.flags.push({ code: 'F-STACK', msg: `${t.question ? t.question.id + ' ' : ''}has fewer than 3 related questions and no bank topic matches it: held for the Search Console batch, not written.` });
+    t.flags.push({ code: 'F-STACK', msg: `${had.stack} related question${had.stack === 1 ? '' : 's'} for the H2s and ${had.faq} for the FAQ (3 of each needed): held (G-STACK), not written; the Search Console batch picks it up.` });
     heldBack.push(t);
-    // The next topic beyond the batch takes the slot, unless its question is in a stack already
-    let next = dropped.shift();
-    while (next && next.question && next.question.source !== 'blog_bank' && used.has(next.question.id)) { skipped.push(next); next = dropped.shift(); }
-    if (next) {
-      if (next.question && next.question.source !== 'blog_bank') used.add(next.question.id);
-      if (next.question && next.question.source === 'blog_bank') { usedBank.add(next.question.id); for (const id of [...next.query_stack, ...next.faq_ids]) usedBank.add(id); }
-      if (next.bank_topic) { usedBank.add(next.bank_topic); for (const id of [...next.query_stack, ...next.faq_ids]) usedBank.add(id); }
-      if (fromPool(next)) stackFor(next);
-      batch.push(next);
+  };
+  // A topic beyond the batch can take a slot when its question is free (not in a stack)
+  const free = t => !(t.question && t.question.source !== 'blog_bank' && used.has(t.question.id));
+  const take = next => {
+    if (next.question && next.question.source !== 'blog_bank') used.add(next.question.id);
+    if (next.question && next.question.source === 'blog_bank') { usedBank.add(next.question.id); for (const id of [...next.query_stack, ...next.faq_ids]) usedBank.add(id); }
+    if (next.bank_topic) { usedBank.add(next.bank_topic); for (const id of [...next.query_stack, ...next.faq_ids]) usedBank.add(id); }
+    stackTopic(next);
+    batch.push(next);
+  };
+  // Hold the thin ones and refill from beyond the batch until nothing changes: a hold frees
+  // its stack, which can make a later topic's question free again
+  for (let guard = 0; guard < 200; guard++) {
+    let changed = false;
+    for (let i = 0; i < batch.length; i++) { if (thin(batch[i])) { hold(batch[i]); batch.splice(i--, 1); changed = true; } }
+    while (batch.length < target) {
+      const j = dropped.findIndex(free);
+      if (j < 0) break;
+      take(dropped.splice(j, 1)[0]);
+      changed = true;
     }
+    if (!changed) break;
   }
-  dropped.push(...skipped);
   for (const t of batch) {
-    if (t.query_stack.length < 3) t.flags.push({ code: 'F-STACK', msg: `${t.query_stack.length} query stack question${t.query_stack.length === 1 ? '' : 's'} (3 to 5 wanted): the post runs with what it has.` });
-    if (t.faq_ids.length < 3) t.flags.push({ code: 'F-FAQ-ITEMS', msg: `${t.faq_ids.length} FAQ question${t.faq_ids.length === 1 ? '' : 's'} (3 to 5 wanted): fewer FAQ rows.` });
     if (t.needs_approval) t.flags.push({ code: 'F-WORDING', msg: 'The question was written by code: approve or edit it before the post runs (G-TOPIC).' });
     else if (t.question && !t.question.approved) t.flags.push({ code: 'F-WORDING', msg: `${t.question.id} is not approved on the FAQ card yet (G-TOPIC).` });
   }

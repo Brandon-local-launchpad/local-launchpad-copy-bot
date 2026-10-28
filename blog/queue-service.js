@@ -44,7 +44,7 @@ function createBlogQueueService({ pool, pageMapStore, faqService, filloutService
     const parsed = new Map();
     for (const d of dossiers) { try { parsed.set(norm(d.location), parseDossier(d.text)); } catch (e) { problems.push(`${d.location}: dossier not parsed (${e.message})`); } }
     const questions = new Map(((T.sort && T.sort.record && T.sort.record.questions) || []).map(q => [q.id, q]));
-    return { ...T, settings, priceRows, gate, dossiers: parsed, questions, problems };
+    return { ...T, settings, priceRows, gate, dossiers: parsed, questions, problems, pageWordings: T.pageWordings || [] };
   }
 
   async function build(clientId) {
@@ -59,15 +59,18 @@ function createBlogQueueService({ pool, pageMapStore, faqService, filloutService
   }
 
   // The decisions for one row, from the inputs; ideasUsed from the runner (blog/run.js)
-  function decide(I, row, blogRows, { ideasUsed = [] } = {}) {
+  function decide(I, row, blogRows, { ideasUsed = [], usedQuestions = [] } = {}) {
     const info = row.info || {};
     let tradeFacts = null;
     if (I.gate && I.gate.verified) {
-      try { tradeFacts = { ...I.gate, ...packRows(I.gate.niche, info.service || '', info.wording || row.h1 || '') }; }
+      // The service page's rows, else the pack service the topic queue matched (a seasonal or dossier post), else the question's
+      try { tradeFacts = { ...I.gate, ...packRows(I.gate.niche, info.service || info.pack_service || '', info.wording || row.h1 || '') }; }
       catch (e) { tradeFacts = { ...I.gate, rows: [], error: e.message }; }
     } else tradeFacts = I.gate ? { ...I.gate, rows: [] } : null;
     const dossier = info.post_type === 'local' ? (I.dossiers.get(norm(info.town || I.ctx.keyValueMap.biz_area_1)) || null) : null;
-    return computeBlogDecisions({ row, cv: I.ctx.cv, niche: I.niche, keyValueMap: I.ctx.keyValueMap, pages: I.ctx.pages, questions: I.questions, priceRows: I.priceRows, tradeFacts, dossier, ideasUsed, blogRows });
+    // The questions the pages use, the other posts' H1s and, from the runner, the written posts' FAQ questions (B-N7)
+    const others = blogRows.filter(r => r.slug !== row.slug && r.applies !== false).map(r => (r.info && r.info.wording) || r.h1).filter(Boolean);
+    return computeBlogDecisions({ row, cv: I.ctx.cv, niche: I.niche, keyValueMap: I.ctx.keyValueMap, pages: I.ctx.pages, questions: I.questions, priceRows: I.priceRows, tradeFacts, dossier, ideasUsed, usedQuestions: [...(I.pageWordings || []), ...others, ...usedQuestions], blogRows });
   }
 
   // The latest record of each post, summarised for the queue (the Pages tab's Blog filter)
@@ -94,7 +97,7 @@ function createBlogQueueService({ pool, pageMapStore, faqService, filloutService
       const info = row.info || {};
       return {
         record: records.get(row.slug) || null,
-        slug: row.slug, status: row.status, post_type: info.post_type, source: info.source, batch: info.batch, homepage_cost_guide: !!info.homepage_cost_guide, town: info.town || '',
+        slug: row.slug, status: row.status === 'Held' || d.gates.some(g => g.hold) ? 'Held' : row.status, post_type: info.post_type, source: info.source, batch: info.batch, homepage_cost_guide: !!info.homepage_cost_guide, town: info.town || '',
         wording: info.wording || row.h1, wording_approved: !!info.wording_approved, wording_source: info.wording_source, needs_approval: !!info.needs_approval, question_id: info.question_id || '',
         publish_date: info.publish_date || null, month: info.month, slot_note: info.slot_note || '', held_for_date: !!info.held_for_date,
         gates: d.gates, flags: d.flags,

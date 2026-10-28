@@ -378,7 +378,8 @@ function serviceForQuestion(niche, text) {
     const name = cleanCell(r[0]);
     const own = [...new Set(normName(name).split(' ').filter(w => w && !SERVICE_GENERIC.has(w)).map(stemWord))];
     // Stems matched, then the share of the name matched ("lay a patio": Patios over Turf laying)
-    const hit = own.filter(w => words.has(w)).length;
+    // A stem matches another it starts ("drain" and "drainage")
+    const hit = own.filter(w => words.has(w) || [...words].some(x => (x.length >= 4 && w.startsWith(x)) || (w.length >= 4 && x.startsWith(w)))).length;
     const score = hit ? hit + hit / own.length : 0;
     if (score > bestScore) { best = name; bestScore = score; }
   }
@@ -401,3 +402,54 @@ module.exports = {
   DIR, BLOCKS_DIR, CORE_FILE, packNameFor, packFile, blockFile, relative, readPack, readBlock, readCore, listNiches, hasBlock,
   parseHeader, header, fingerprintOf, parseTables, packForService, packForCategory, rowsForService, standardMethodRows, packProperNouns, cellNames, normName,
 };
+
+// ── A decision post's options (Blog CORE (1), Brandon 28 Oct) ─────────────────
+// The rows that mention an option ("resin", "block paving"): the client's own pack first,
+// then every other pack on disk whose service names the option (resin and block paving
+// live in the driveways pack for a landscaper's driveway services). Two rows at least, or
+// the post is held. Returns { rows, niche } with the pack the rows came from.
+const optionStems = s => [...new Set(normName(s).split(' ').filter(w => w && !SERVICE_GENERIC.has(w)).map(stemWord))];
+function mentionsOption(text, stems) { const t = normName(text).split(' ').map(stemWord); return stems.length > 0 && stems.every(w => t.includes(w)); }
+// How well a pack's Table A names a service (the best service's score, 0 when none)
+function serviceScoreFor(niche, text) {
+  const pack = niche ? readPack(niche) : { exists: false };
+  if (!pack.exists) return 0;
+  const A = parseTables(pack.text).get('A');
+  if (!A) return 0;
+  const words = new Set(normName(text).split(' ').filter(w => w && !SERVICE_GENERIC.has(w)).map(stemWord));
+  let best = 0;
+  for (const r of A.rows) {
+    const own = [...new Set(normName(cleanCell(r[0])).split(' ').filter(w => w && !SERVICE_GENERIC.has(w)).map(stemWord))];
+    // A stem matches another it starts ("drain" and "drainage")
+    const hit = own.filter(w => words.has(w) || [...words].some(x => (x.length >= 4 && w.startsWith(x)) || (w.length >= 4 && x.startsWith(w)))).length;
+    const score = hit ? hit + hit / own.length : 0;
+    if (score > best) best = score;
+  }
+  return best;
+}
+function rowsForOption(option, { first = null, service = '', niches = null, min = 2 } = {}) {
+  const stems = optionStems(option);
+  if (!stems.length) return { rows: [], niche: null, stems };
+  // The client's own pack, then the packs where the post's service lives (their Table A
+  // names it), best fit first; never a pack that does not know the service (resin in the
+  // builder pack is resin flooring, not a resin driveway)
+  const all = niches || listNiches();
+  const ranked = service ? all.map(n => ({ n, s: serviceScoreFor(n, service) })).filter(x => x.s > 0).sort((a, b) => b.s - a.s).map(x => x.n) : [];
+  const order = [...new Set([first, ...ranked].filter(Boolean))];
+  let best = { rows: [], niche: null, stems };
+  for (const niche of order) {
+    const pack = readPack(niche);
+    if (!pack.exists) continue;
+    let rows = [];
+    // The rows of the service that names the option count whole (its stages are about it);
+    // otherwise the rows that mention the option
+    try { const q = rowsForQuestion(niche, option); rows = q.service && mentionsOption(q.service, stems) ? q.rows : q.rows.filter(r => mentionsOption(`${r.name || ''} ${r.text}`, stems)); } catch (_) { rows = []; }
+    if (rows.length >= min) return { rows, niche, stems };
+    if (rows.length > best.rows.length) best = { rows, niche, stems };
+  }
+  return best;
+}
+module.exports.serviceScoreFor = serviceScoreFor;
+module.exports.rowsForOption = rowsForOption;
+module.exports.mentionsOption = mentionsOption;
+module.exports.optionStems = optionStems;

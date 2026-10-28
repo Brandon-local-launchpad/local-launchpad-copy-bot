@@ -16,7 +16,13 @@ function stubReply(message) {
   const lines = mf.split('\n').slice(1);
   for (let i = 0; i < lines.length; i++) {
     const l = lines[i];
-    if (/^  blog_answer$/.test(l)) L.push(`blog_answer: ${words(12, 3)} ${words(33, 9)}`);
+    if (/^  blog_answer$/.test(l)) {
+      // A cost guide in prices mode states the PRICE row's range first (B-PRICE)
+      const range = (message.match(/\[PRICE-1\][^\n]*?(£[\d,]+ to £[\d,]+(?: per \w+)?)/) || [])[1];
+      // A seasonal post gives the timing in its first sentence (B-TIMING)
+      const seasonal = /^Timing: a seasonal post/m.test(message);
+      L.push(`blog_answer: ${type === 'cost_guide' && range ? `It usually costs ${range} in Southampton, and the size moves it most. ${words(30, 9)}` : seasonal ? `Spring, from March to April, is the time for this work in Southampton. ${words(35, 9)}` : `${words(12, 3)} ${words(33, 9)}`}`);
+    }
     else if (/^  blog_sections$/.test(l)) {
       L.push('blog_sections:');
       let k = 0;

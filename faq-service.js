@@ -300,7 +300,7 @@ function createFaqService({
       pagesQuestions: Object.fromEntries(Object.values(assignment.pages).map(p => [p.id, p.questions.map(q => q.wording)])),
       topics: blog.topics, questionsById: new Map(sort.record.questions.map(q => [q.id, q])), allocationRecord: alloc, pageRecords: records, dossiers: parsed,
     });
-    return { blog: { ...blog, problems }, siteCheck };
+    return { blog: { ...blog, problems }, siteCheck, pageWordings: [...pageWordings] };
   }
 
   // F3: the research questions the homepage may use, and flags for the preview

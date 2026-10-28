@@ -57,10 +57,12 @@ function createBlogRunner({ pool, v20Store, queue, generate, calibrationPack = (
 
   // The decisions for one post, with the ideas of what is written; never throws past the gates
   async function prepare(clientId, I, row, rows, written) {
-    const first = queue.decide(I, row, rows);
+    // The written posts' FAQ questions, so no two posts answer one (B-N7)
+    const usedQuestions = written.flatMap(w => ((w.record && w.record.faq_items) || []).map(f => f.faq_question)).filter(Boolean);
+    const first = queue.decide(I, row, rows, { usedQuestions });
     const primary = first.decisions ? first.decisions.primary : null;
     const ideasUsed = await ideasFor(clientId, row, written, primary);
-    const decisionsResult = ideasUsed.length ? queue.decide(I, row, rows, { ideasUsed }) : first;
+    const decisionsResult = ideasUsed.length ? queue.decide(I, row, rows, { ideasUsed, usedQuestions }) : first;
     return { decisionsResult, ideasUsed };
   }
 
@@ -94,6 +96,10 @@ function createBlogRunner({ pool, v20Store, queue, generate, calibrationPack = (
         const st = state.posts.find(s => s.key === r.slug);
         running.get(clientId).current = r.slug;
         const existing = await latest(clientId, r.slug);
+        // A hold gate (G-STACK, G-OPTIONS): the post is held, not written and not recorded blocked
+        const pre = queue.decide(I, r, rows);
+        const hold = (pre.gates || []).find(g => g.hold);
+        if (hold) { st.status = 'held'; st.error = null; st.hold = hold.msg; log(`[blog] ${st.title} for ${clientId}: held: ${hold.msg}`); await saveState(clientId, state); continue; }
         if (opts.resume && isGood(existing)) {
           st.status = 'kept'; st.block = 0; st.flag = existing.VALIDATION.flag; st.at = existing.meta && existing.meta.generated_at;
           written.push(entryFor(r, existing));

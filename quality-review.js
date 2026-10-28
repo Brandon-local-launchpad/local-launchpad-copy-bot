@@ -140,8 +140,24 @@ const LOCATION_ITEMS = {
   L8: { title: 'A cause has one home: never in all three of the content block, block 4 and the FAQ', checks: ['CAUSE-HOME'] },
   V7: { title: 'Each block 4 card a different mechanism, none from MECHANISMS USED', checks: ['MECHANISM'] },
 };
+// G. Blog posts (docs/seo/COPY_QUALITY_RUBRIC.md, stage 5, 28 Oct)
+const BLOG_ITEMS = {
+  G1: { title: 'The answer first: blog_answer opens on the target query, first sentence 20 words or fewer, never on the company name', checks: ['B-N1', 'ANSWER-OPEN'] },
+  G2: { title: 'The primary link twice at most (section 1 or 2, and the closing); each secondary link once', checks: ['B-N2', 'LINK-ONCE'] },
+  G3: { title: 'Every £ figure from the PRICE rows or a fee row in FACTS ALLOWED', checks: ['B-N3'] },
+  G4: { title: 'Rules as what usually applies: no standard number or regulation name', checks: ['B-N4'] },
+  G5: { title: 'No story, scenario or invented customer', checks: ['B-N5'] },
+  G6: { title: 'Safety topic: no step the reader could take (dismantle, rewire, cut, reconnect, repair)', checks: ['B-N6'] },
+  G7: { title: 'No FAQ question another page or post answers', checks: ['B-N7'] },
+  G8: { title: 'Nothing from IDEAS USED ELSEWHERE made again', checks: ['B-N8'] },
+  G9: { title: 'Every section paragraph carries a fact from FACTS ALLOWED', checks: ['B-N9'] },
+  G10: { title: 'The closing: one or two sentences, 20 to 40 words, never the phone number, never "Tell us"', checks: ['CLOSING'], range: 'blog_closing' },
+  G11: { title: 'No date that goes stale', checks: ['DATE'] },
+  G12: { title: 'Section bodies inside the post type\'s range; FAQ answers 40 to 70 words, first sentence 15 or fewer', checks: ['N24'], range: 'faq_answer' },
+};
 function codeItemsFor(record) {
   const id = pageTypeId(record);
+  if (id === 'blog') return { ...CODE_ITEMS, ...BLOG_ITEMS };
   if (id === 'category') return { ...CODE_ITEMS, ...CATEGORY_ITEMS };
   if (id === 'service') return { ...CODE_ITEMS, ...SERVICE_ITEMS };
   if (id === 'location') return { ...CODE_ITEMS, ...LOCATION_ITEMS };
@@ -406,4 +422,4 @@ function formatReview(rv) {
   return L.join('\n');
 }
 
-module.exports = { reviewPage, scoreCodeItems, decisionsTests, decisionsSummary, formatReview, pageText, CODE_ITEMS, CATEGORY_ITEMS, SERVICE_ITEMS, LOCATION_ITEMS, JUDGE_ITEMS, codeItemsFor, judgeItemsFor, REVIEW_MODEL, PASS_SCORE, loadReviewPrompt };
+module.exports = { reviewPage, scoreCodeItems, decisionsTests, decisionsSummary, formatReview, pageText, CODE_ITEMS, CATEGORY_ITEMS, SERVICE_ITEMS, LOCATION_ITEMS, BLOG_ITEMS, JUDGE_ITEMS, codeItemsFor, judgeItemsFor, REVIEW_MODEL, PASS_SCORE, loadReviewPrompt };

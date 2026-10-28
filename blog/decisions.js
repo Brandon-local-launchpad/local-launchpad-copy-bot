@@ -36,6 +36,10 @@ const DOUBT_BRIEF = {
   Timing: 'how long it takes or when it is done, from the trade facts; one timing on the post',
   Trust: 'what protects the reader: the rule, the check or the cover, as what usually applies',
 };
+// "Is X or Y better", "Should I choose X or Y for my patio": the two options
+const DECISION_RE = /^(?:is |are |should i (?:choose |use |go for |lay |pick |have )?)?(.+?) or (.+?)(?:[,:?]| for | which | better| best|$)/i;
+// A dossier symptom that reads as a sign of a condition, not a description of the plot
+const SYMPTOM_RE = /\b(?:water|puddle|pool|sits|sitting|standing|boggy|soggy|waterlogg|damp|moss|thin|bare|patch|yellow|brown|dies|dying|dead|crack|lift|rock|sink|slip|slump|wobbl|lean|rot|flood|drain|dries|hard|compact|weed|algae|slime|heave|subsid|sag|loose|gap|erod|wash)\w*\b/i;
 const TABLE_COLUMNS = {
   cost_guide: ['Job', 'Typical price', 'What affects it'],
   decision:   ['Option', 'Suits', 'Cost level', 'Upkeep'],
@@ -82,7 +86,7 @@ function specificity({ price, town, condition, customerWords, process, methods }
   return { count: items.filter(i => i[1]).length, have: items.filter(i => i[1]).map(i => i[0]), missing: items.filter(i => !i[1]).map(i => i[0]) };
 }
 
-function computeBlogDecisions({ row, cv = {}, niche = {}, keyValueMap = {}, pages = [], questions = new Map(), priceRows = [], tradeFacts = null, dossier = null, ideasUsed = [], blogRows = [], today = new Date().toISOString().slice(0, 10) } = {}) {
+function computeBlogDecisions({ row, cv = {}, niche = {}, keyValueMap = {}, pages = [], questions = new Map(), priceRows = [], tradeFacts = null, dossier = null, ideasUsed = [], usedQuestions = [], blogRows = [], optionRows = null, today = new Date().toISOString().slice(0, 10) } = {}) {
   const gates = [];
   const flags = [];
   const info = (row && row.info) || {};
@@ -142,8 +146,32 @@ function computeBlogDecisions({ row, cv = {}, niche = {}, keyValueMap = {}, page
   const practices = Array.isArray(cv.confirmed_practices) ? cv.confirmed_practices : [];
   if (practices.length) { try { const { confirmedPractices } = require('../practices'); confirmedPractices(cv, niche).forEach((p, i) => fact(`PR-${i + 1}`, 'confirmed practice', p.claim)); } catch (_) { practices.forEach((p, i) => fact(`PR-${i + 1}`, 'confirmed practice', String(p).replace(/_/g, ' '))); } }
   priceList.forEach((r, i) => fact(`PRICE-${i + 1}`, 'price', `${r.service}: ${r.text}${r.what_moves_price ? ` (what moves it: ${r.what_moves_price})` : ''}`));
-  const tfRows = (tradeFacts && tradeFacts.verified && Array.isArray(tradeFacts.rows)) ? tradeFacts.rows : [];
-  tfRows.forEach((r, i) => fact(`TF-${i + 1}`, `trade facts ${r.kind}`, `${r.name ? `${r.name}: ` : ''}${r.text}`, { rowKind: r.kind, name: r.name || '' }));
+const tfRows = (tradeFacts && tradeFacts.verified && Array.isArray(tradeFacts.rows)) ? [...tradeFacts.rows] : [];
+  // A decision post's two options (Brandon, 28 Oct): each needs two trade facts rows at least,
+  // from the client's pack or the pack where the post's service lives (resin and block paving
+  // from the driveways pack); otherwise the post is held (G-OPTIONS)
+  const optionMatch = postType === 'decision' ? wording.match(DECISION_RE) : null;
+  // The option is the thing chosen, not the verb round it: "it better to lay turf" → turf, "sow grass seed" → grass seed, "replace it" → replace
+  const cleanOption = x => lc(x).replace(/^(?:(?:it|is|better|to|lay|sow|choose|use|go|for|pick|have|install|build|fit|get|put|a|an|the|my|your|our|new|some)\s+)+/, '').replace(/\s+(?:it|them|one|instead|myself|yourself|for me)$/, '').replace(/\b(?:my|your|our|the|a|an)\s+/g, '').trim();
+  const options = optionMatch ? [optionMatch[1], optionMatch[2]].map(x => ({ name: titleCase(cleanOption(x) || lc(x.trim())), rows: [], pack: null })) : [];
+  if (options.length) {
+    const P = require('../trade-facts/pack');
+    const findRows = optionRows || ((o, opts) => P.rowsForOption(o, opts));
+    for (const o of options) {
+      o.rows = tfRows.filter(r => P.mentionsOption(`${r.name || ''} ${r.text}`, P.optionStems ? P.optionStems(o.name) : [])).map(r => ({ ...r }));
+      if (o.rows.length < 2) {
+        let found = { rows: [], niche: null };
+        try { found = findRows(o.name, { first: tradeFacts && tradeFacts.niche, service: svcTitle }); } catch (e) { flags.push({ code: 'F-PACK-OTHER', msg: `${o.name}: the other packs could not be read (${e.message}).` }); }
+        const extra = (found.rows || []).filter(r => !o.rows.some(x => x.text === r.text));
+        if (extra.length && found.niche && found.niche !== (tradeFacts && tradeFacts.niche)) { flags.push({ code: 'F-PACK-OTHER', msg: `${o.name}: ${extra.length} row(s) from the ${found.niche} pack (the service lives there; check it is verified on the Trade facts page).` }); }
+        for (const r of extra) { const row = { ...r, from_pack: found.niche }; o.rows.push(row); if (!tfRows.some(x => x.text === r.text)) tfRows.push(row); }
+        o.pack = found.niche;
+      }
+    }
+    const thin = options.filter(o => o.rows.length < 2);
+    if (thin.length) gates.push({ code: 'G-OPTIONS', hold: true, msg: `${row.slug}: ${thin.map(o => `"${o.name}" has ${o.rows.length} trade facts row${o.rows.length === 1 ? '' : 's'}`).join(' and ')} (2 each needed, from the client's pack or the pack where the service lives). The post is held until a pack covers both options.` });
+  }
+  tfRows.forEach((r, i) => fact(`TF-${i + 1}`, `trade facts ${r.kind}${r.from_pack ? ` (${r.from_pack} pack)` : ''}`, `${r.name ? `${r.name}: ` : ''}${r.text}`, { rowKind: r.kind, name: r.name || '' }));
   const condition = info.dossier_condition || null;
   let dossierRows = [];
   if (dossier) {
@@ -173,10 +201,12 @@ function computeBlogDecisions({ row, cv = {}, niche = {}, keyValueMap = {}, page
   const title = seoTitleFor(h1, cv, info.target_query);
   if (title.tooLong) flags.push({ code: 'F-LEN-TITLE', msg: `The SEO title is ${title.title.length} characters at its shortest (60 at most).` });
   if (BANNED_TITLE.test(title.title)) flags.push({ code: 'F-LEN-TITLE', msg: `The SEO title carries "${title.title.match(BANNED_TITLE)[0]}", which a title never does.` });
-  const topic = (svcTitle || (categoryPage && categoryPage.pageTitle) || niche.trade || '').trim();
+  // The work the headings name: the service page, else the category page, else the pack service the
+  // topic queue matched (a seasonal or dossier post: "Common Questions About Lawn Care"), else the trade
+  const topic = (svcTitle || (categoryPage && categoryPage.pageTitle) || (tradeFacts && tradeFacts.service) || info.pack_service || niche.trade || '').trim();
   const topicTitle = titleCase(lc(topic));
   const ctx = { trade: niche.trade || '', tradeLower: niche.trade_lower || lc(niche.trade), tradePerson: niche.trade_person || '', tradePersonPlural: niche.trade_person_plural || '', city, companyName: cv.company_name || '', quoteFree: cv.free_quotes === 'yes' ? 'Free' : '' };
-  const ph = s => String(s || '').replace(/\[TOPIC\]/g, topicTitle).replace(/\[TRADE_PERSON\]/g, ctx.tradePerson).replace(/\[TRADE_PERSON_PLURAL\]/g, ctx.tradePersonPlural).replace(/\[TRADE\]/g, ctx.trade).replace(/\[CITY\]/g, city).replace(/\[QUOTE_FREE\] /g, ctx.quoteFree ? `${ctx.quoteFree} ` : '').replace(/\[QUOTE_FREE\]/g, ctx.quoteFree).replace(/\[CV: company_name\]/g, '[CV: company_name]');
+  const ph = s => String(s || '').replace(/\[TOPIC\]/g, topicTitle).replace(/\[TRADE_PERSON\]/g, ctx.tradePerson).replace(/\[TRADE_PERSON_PLURAL\]/g, ctx.tradePersonPlural).replace(/\[TRADE\]/g, ctx.trade).replace(/\[CITY\]/g, city).replace(/\[QUOTE_FREE\] /g, ctx.quoteFree ? `${ctx.quoteFree} ` : '').replace(/\[QUOTE_FREE\]/g, ctx.quoteFree || '').replace(/\[QUOTE_FREE_LOWER\] /g, ctx.quoteFree ? `${String(ctx.quoteFree).toLowerCase()} ` : '').replace(/\[QUOTE_FREE_LOWER\]/g, ctx.quoteFree ? String(ctx.quoteFree).toLowerCase() : '').replace(/\[CV: company_name\]/g, '[CV: company_name]');
   const byline = bylineFor({ name: cv.owner_name, role: cv.owner_role, company: '[CV: company_name]' });
   const statesRule = tfRows.some(r => r.kind === 'rule') || dossierRows.some(d => d.kind === 'dossier rule') || RULE_RE.test(wording);
   const reviewDue = addMonths(today, (priceList.length || statesRule) ? 12 : 24);
@@ -189,7 +219,9 @@ function computeBlogDecisions({ row, cv = {}, niche = {}, keyValueMap = {}, page
   const faqQ = (info.faq && info.faq.length ? info.faq : (info.faq_ids || []).map(id => ({ id, wording: (questions.get(id) || {}).wording || id, doubt: (questions.get(id) || {}).doubt || '' }))).map(s => ({ ...s, doubt: s.doubt || 'Process' }));
   const sections = stackQ.map(s => ({ id: s.id, h2: question(s.wording), doubt: s.doubt, brief: DOUBT_BRIEF[s.doubt] || DOUBT_BRIEF.Process, needs_fact: !!s.needs_fact }));
   const faq = faqQ.map(s => ({ id: s.id, question: question(s.wording), doubt: s.doubt, needs_fact: !!s.needs_fact }));
-  if (sections.length < 3) flags.push({ code: 'F-STACK', msg: `${sections.length} query stack question(s) (3 to 5 wanted): the post runs with what it has.` });
+  // The shape gate (Brandon, 28 Oct): three H2s and three FAQ questions at least, or the post is held
+  if (sections.length < 3 || faq.length < 3) gates.push({ code: 'G-STACK', hold: true, msg: `${row.slug}: ${sections.length} H2${sections.length === 1 ? '' : 's'} and ${faq.length} FAQ question${faq.length === 1 ? '' : 's'} (3 of each needed). The post is held, not written.` });
+  if (sections.length < 3) flags.push({ code: 'F-STACK', msg: `${sections.length} query stack question(s) (3 to 5 wanted): held (G-STACK).` });
   if (faq.length < 3) flags.push({ code: 'F-FAQ-ITEMS', msg: `${faq.length} FAQ question(s) (3 to 5 wanted).` });
 
   // ── B11: the table ──
@@ -200,14 +232,22 @@ function computeBlogDecisions({ row, cv = {}, niche = {}, keyValueMap = {}, page
   if (tableType === 'cost_guide') rows = priceList.map(r => ({ label: r.service, from: 'PRICE' }));
   else if (tableType === 'rules') rows = tfRows.filter(r => r.kind === 'rule').map(r => ({ label: r.name || r.text.slice(0, 60), from: 'TF rule' })).concat(dossierRows.filter(d => d.kind === 'dossier rule').map(d => ({ label: d.text.split(':')[0], from: 'dossier rule' })));
   else if (tableType === 'decision') {
-    const m = wording.match(/^(?:is |are |should i (?:choose |use |go for |lay )?)?(.+?) or (.+?)(?:[,:?]| for | which | better| best|$)/i);
-    rows = m ? [m[1], m[2]].map(x => ({ label: titleCase(lc(x.trim())), from: 'the question' })) : [];
+    // The two options, each with its rows behind it (G-OPTIONS holds the post otherwise)
+    rows = options.filter(o => o.rows.length >= 2).map(o => ({ label: o.name, from: `${o.rows.length} trade facts rows${o.pack ? ` (${o.pack} pack)` : ''}` }));
   } else {
-    const wrong = tfRows.filter(r => r.kind === 'what goes wrong');
-    rows = [...dossierRows.filter(d => d.kind === 'dossier symptom').map(d => ({ label: d.text, from: 'dossier symptom' })), ...wrong.map(r => ({ label: r.text.split('.')[0].replace(/^Signs:\s*/i, ''), from: 'TF what goes wrong' }))].slice(0, 6);
+    // Cause, sign, fix (Brandon, 28 Oct): only rows whose facts fit the three columns. A "what
+    // goes wrong" row gives the sign (Signs:) and the cause (Skipped: or Done badly:); a dossier
+    // symptom fits when it reads as a sign (water sits, moss, cracks), never a plot description;
+    // the fix comes from a standard method row, so none of them fit without one
+    const method = tfRows.some(r => r.kind === 'standard method');
+    const wrong = method ? tfRows.filter(r => r.kind === 'what goes wrong' && /Signs:/i.test(r.text) && /Skipped:|Done badly:/i.test(r.text)) : [];
+    const signs = method ? dossierRows.filter(d => d.kind === 'dossier symptom' && SYMPTOM_RE.test(d.text)) : [];
+    rows = [...signs.map(d => ({ label: d.text, from: 'dossier symptom' })), ...wrong.map(r => ({ label: r.text.split('.')[0].replace(/^Signs:\s*/i, ''), from: 'TF what goes wrong' }))].slice(0, 6);
   }
-  const tableOn = ['cost_guide', 'decision'].includes(postType) ? rows.length > 0 : rows.length >= 3;
-  if (['cost_guide', 'decision'].includes(postType) && !rows.length) flags.push({ code: 'F-TABLE', msg: `No facts fit the ${tableType === 'rules' ? 'rules' : postType.replace('_', ' ')} table's columns: the table is off.` });
+  // Fewer than three fitting rows and the table is off; the decision table is its two options
+  const tableOn = tableType === 'decision' ? rows.length === 2 : rows.length >= 3;
+  if (!tableOn && rows.length) flags.push({ code: 'F-TABLE', msg: `${rows.length} row${rows.length === 1 ? '' : 's'} fit the ${tableType === 'rules' ? 'rules' : postType.replace('_', ' ')} table's columns (3 needed): the table is off.` });
+  else if (!tableOn) flags.push({ code: 'F-TABLE', msg: `No facts fit the ${tableType === 'rules' ? 'rules' : postType.replace('_', ' ')} table's columns: the table is off.` });
   const table = { show: tableOn, type: tableType, columns: TABLE_COLUMNS[tableType] || TABLE_COLUMNS.question, rows: tableOn ? rows : [], after: postType === 'decision' ? Math.min(2, Math.max(1, sections.length)) : 1 };
 
   // ── B12: the business block; B15: safety ──
@@ -220,7 +260,8 @@ function computeBlogDecisions({ row, cv = {}, niche = {}, keyValueMap = {}, page
   if (gates.length) return { gates, flags, decisions: null, decisionsBlock: null };
 
   const D = {
-    slug: row.slug, url: `${row.slug}/`, post_type: postType, source, cost_mode: costMode, target_query: info.target_query || lc(wording),
+    slug: row.slug, url: `${row.slug}/`, post_type: postType, source, cost_mode: costMode, target_query: info.target_query || lc(wording), options: options.map(o => ({ name: o.name, rows: o.rows.length, pack: o.pack })),
+    timing_rows: source === 'seasonal' ? tfRows.filter(r => r.kind === 'timing').map(r => r.text) : [],
     service: svcTitle, category: (categoryPage && categoryPage.pageTitle) || info.category || '', town,
     h1, h1_with_city: withCity, seo_title: title.title, title_how: title.how, meta_cta: ph(String((niche.buttons || {}).meta_cta || '')),
     byline, last_checked: today, last_checked_text: longDate(today), review_due: reviewDue,
@@ -229,6 +270,8 @@ function computeBlogDecisions({ row, cv = {}, niche = {}, keyValueMap = {}, page
     specificity: { ...spec, threshold }, facts, customer_words: customerWords, publish_date: info.publish_date || null, homepage_cost_guide: !!info.homepage_cost_guide,
     // The validator's N2 list: the primary and the secondaries only (the LINKABLE PAGES block)
     linkablePages: [{ type: primary.type, url: primary.url, h1: primary.name }, ...secondary.map(l => ({ type: l.type, url: l.url, h1: l.name }))], ideasUsed: ideasUsed || [],
+    // The questions pages and the other posts use (B-N7): never one of this post's FAQ questions
+    usedQuestions: [...new Set((usedQuestions || []).filter(Boolean))],
     trade_facts: { rows: tfRows.length, thin: tfRows.length < 3 }, cost_unit: slots.cost_unit,
   };
   if (D.trade_facts.thin && needsPack) flags.push({ code: 'F-FACTS-THIN', msg: `${tfRows.length} trade facts row(s) for ${svcTitle || 'this topic'} (3 wanted).` });
@@ -253,6 +296,8 @@ function formatBlogBlock(D, cv) {
   push(`H1: ${D.h1}`);
   push(`SEO title: ${D.seo_title}`);
   push(`Meta description: code builds it after you write, from the first sentence of blog_answer plus "${D.meta_cta}" (155 characters at most), so that sentence must work on its own`);
+  if (D.source === 'seasonal') push(`Timing: a seasonal post, so blog_answer gives the timing from the trade facts timing row${D.timing_rows.length === 1 ? '' : 's'} (${D.timing_rows.map(t => `"${t}"`).join('; ') || 'none on file: say what decides the timing'}), the window and why, in its first sentence`);
+  if (D.options && D.options.length) push(`Options: ${D.options.map(o => `${o.name} (${o.rows} rows${o.pack ? `, ${o.pack} pack` : ''})`).join(' · ')}: each section and the table weigh both from their rows`);
   push(`Byline: ${D.byline} · Last checked ${D.last_checked_text}`);
   push(`Publish date: ${D.publish_date || 'not set (a draft until the launch date is set)'}`);
   push(`Buttons: ${D.buttons.join(' | ')}`);

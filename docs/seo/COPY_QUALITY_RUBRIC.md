@@ -179,6 +179,25 @@ The same rubric scores a location page (one per town, the town's hub, always tow
 | L8 | A block 4 cause (its briefed mechanism) has one home on the page, two at most: never made in all three of the content block, block 4 and the FAQ. | code: CAUSE-HOME; judge P6 | Romsey runs, 27 Oct (Brandon: wet ground in three places) |
 | V7 | Each block 4 card makes a different mechanism, none from MECHANISMS USED (the town's category and service pages' causes). | code: MECHANISM; judge P6 | CORE (18) rule |
 
+## G. Blog posts (Blog CORE (1), 28 Oct)
+
+The same rubric scores a blog post (a question, decision, local or cost guide post at /guides/<slug>/, CORE (1) v1.1), through the blog validator (`validate-blog.js`) and its reader view, with the shared items (Y, C, P, F where they apply; the FAQ range is 40 to 70 words on a post) and these items on top. The spec's checks are B-N1 to B-N9 (section 9 of `docs/Blog_Post_Structure.pdf`).
+
+| ID | Test (pass when…) | Scored by | Found |
+|---|---|---|---|
+| G1 | blog_answer opens on the target query, its first sentence 20 words or fewer, never on the company name. | code: B-N1, ANSWER-OPEN | spec B-N1, CORE (1) |
+| G2 | The primary page is linked twice at most: once in section 1 or 2, once in the closing; each secondary link (the cost guide, the town page) once. | code: B-N2, LINK-ONCE | spec B-N2 |
+| G3 | Every £ figure on the post is in a FACTS ALLOWED row (the PRICE rows, a council fee from a rule row); otherwise what moves the price and "ask for a quote". | code: B-N3 | spec B-N3 |
+| G4 | Rules are written as what usually applies, with who to check with; no standard's number or regulation's name (BS, EN, Part P, Regulations 20xx, Building Regulations, Permitted Development). | code: B-N4 | spec B-N4 |
+| G5 | No story, scenario, "imagine", "picture this" or invented customer; the customer's own question is the only story. | code: B-N5; judge | spec B-N5 |
+| G6 | With the safety switch on, no step the reader could take: nothing dismantled, rewired, cut, reconnected, repaired or removed as an instruction; what to avoid and who does the work instead. | code: B-N6 | spec B-N6 |
+| G7 | No FAQ question another page or post already answers. | code: B-N7 | spec B-N7 |
+| G8 | Nothing listed under IDEAS USED ELSEWHERE is made again in other words. | code: B-N8; judge P6 | spec B-N8 |
+| G9 | Every section paragraph carries a fact from FACTS ALLOWED (two content words shared with a row, a figure or a link). | code: B-N9; judge | spec B-N9, CORE (1) |
+| G10 | The closing is one or two sentences, 20 to 40 words, what the reader can do next with the primary link; never the phone number, never "Tell us". | code: CLOSING, N7 | CORE (1) |
+| G11 | No date that goes stale ("this year", "in 2026", "recently"): the post shows its own last checked date. | code: DATE | CORE (1) rule 11 |
+| G12 | Section bodies inside the post type's range (cost guide 150 to 220, decision and question 140 to 200, local 120 to 180); FAQ answers 40 to 70 words with a first sentence of 15 or fewer. | code: N7, N24 | CORE (1) |
+
 ## How the review step uses this
 
 - Code items: an item fails when the validator reports any issue for its checks on the final page (BLOCK or FLAG), or when the decisions break it. Y2 fails only on sentences over 30 words or a field outside its range (the validator's 25 word soft cap is advice, not a fail).
