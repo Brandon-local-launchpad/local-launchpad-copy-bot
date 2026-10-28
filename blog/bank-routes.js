@@ -8,6 +8,9 @@
 // POST /api/blog-bank/:trade/approve     { who } the flag on the bank as it is now
 // POST /api/blog-bank/:trade/unapprove   clears it
 // GET  /api/blog-bank/prompt/:trade      the prompt as it would be sent (to paste into the Perplexity app)
+// POST /api/blog-bank/:trade/load-file   the repo file blog-bank/<trade>.md saved over the row, unapproved
+// POST /api/blog-bank/:trade/paa         the People also ask pass through DataForSEO (background; GET shows its state)
+// GET  /api/blog-bank/:trade/paa-report  the last pass's report ({ text, date, cost, found, kept, … })
 
 const B = require('./bank');
 
@@ -23,6 +26,9 @@ function mountBankApi(app, store, { trades = () => [] } = {}) {
   }));
   app.post('/api/blog-bank/:trade/paste', (req, res) => send(res, () => store.save(req.params.trade, (req.body || {}).text, { source: 'paste' })));
   app.post('/api/blog-bank/:trade/run', (req, res) => send(res, () => store.run(req.params.trade)));
+  app.post('/api/blog-bank/:trade/load-file', (req, res) => send(res, () => store.loadFile(req.params.trade)));
+  app.post('/api/blog-bank/:trade/paa', (req, res) => send(res, () => store.runPaa(req.params.trade)));
+  app.get('/api/blog-bank/:trade/paa-report', (req, res) => send(res, async () => { const r = await store.paaReport(req.params.trade); if (!r) throw Object.assign(new Error('No People also ask report for this trade yet.'), { status: 404 }); return r; }));
   app.post('/api/blog-bank/:trade/approve', (req, res) => send(res, () => store.approve(req.params.trade, (req.body || {}).who)));
   app.post('/api/blog-bank/:trade/unapprove', (req, res) => send(res, () => store.unapprove(req.params.trade)));
 }

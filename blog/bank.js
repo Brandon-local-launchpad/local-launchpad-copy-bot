@@ -179,10 +179,12 @@ function parseBank(text) {
         const doubtRaw = labelled(parts, 'Doubt') || (doubtIn(parts[2]) ? parts[2] : '');
         const doubt = doubtIn(doubtRaw);
         const needsRaw = labelled(parts, 'Needs client fact') || labelled(parts, 'Needs fact') || labelled(parts, 'Client fact') || (parts.length >= 4 && /^(y|yes|n|no)$/i.test(parts[3]) ? parts[3] : '');
-        const q = { id: owner.id + '.' + id.sub, question: unquote(parts[1] || ''), doubt, needsFact: /^y/i.test(needsRaw), url: urlOf(line) };
+        // Source: a url (Perplexity's), or PAA (Google People also ask through DataForSEO, blog/paa.js: no url)
+        const paa = !urlOf(line) && (/^(?:sources*:s*)?paa$/i.test(parts[parts.length - 1] || '') || labelled(parts, 'Source').toUpperCase() === 'PAA');
+        const q = { id: owner.id + '.' + id.sub, question: unquote(parts[1] || ''), doubt, needsFact: /^y/i.test(needsRaw), url: urlOf(line), source: paa ? 'PAA' : (urlOf(line) ? 'url' : '') };
         if (!q.question) { warnings.push(q.id + ': no question; skipped.'); continue; }
         if (!doubt) warnings.push(q.id + ': doubt "' + (doubtRaw || parts[2] || '(none)') + '" is not one of ' + DOUBTS.join(', ') + '.');
-        if (!q.url) warnings.push(q.id + ': no source url.');
+        if (!q.url && q.source !== 'PAA') warnings.push(q.id + ': no source url.');
         owner.related.push(q); continue;
       }
       // A line (or table row) of topic ids and nothing else worth reading is the ranked list
