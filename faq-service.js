@@ -17,10 +17,16 @@ const S = require('./faq-sort');
 
 const FAQ_CODE = 'FAQ';
 
+// Blog (28 Oct, stage 2): loadAllocationRecord(clientId) → { record } | null and
+// latestRecords(clientId) → [{ page: 'type:key', record }] feed the topic reservation and
+// the site wide check (blog/topics.js, blog/site-check.js)
 function createFaqService({
   pool, loadContext, loadNiche, perplexity, jobs, callSortModel,
   latestPageQuestions = async () => ({}), homepageDecisions = null, log = console,
+  loadAllocationRecord = async () => null, latestRecords = async () => [],
 }) {
+  const B = require('./blog/topics');
+  const SC = require('./blog/site-check');
   const researchRunning = new Map(); // clientId → jobId
   const lastJob = new Map();         // clientId → jobId, so a failure shows even if the job row couldn't be saved
   const sortRunning = new Set();
@@ -264,6 +270,28 @@ function createFaqService({
     return { sort, assignment };
   }
 
+  // The blog topics reserved from the same assignment (B1 with Amendment 1), and the site
+  // wide check over pages and posts: questions, neighbourhoods, symptoms. Each input that
+  // cannot be read is reported in `problems`, never thrown, so the FAQ card still draws.
+  async function blogFor(clientId, ctx, niche, { sort, assignment }) {
+    if (!sort || !assignment) return { blog: null, siteCheck: null };
+    const problems = [];
+    let dossiers = [], alloc = null, records = [];
+    try { dossiers = await dossiersFor(clientId, ctx.keyValueMap); } catch (e) { problems.push(`dossiers not read: ${e.message}`); }
+    try { const a = await loadAllocationRecord(clientId); alloc = a ? a.record || a : null; } catch (e) { problems.push(`allocation record not read: ${e.message}`); }
+    try { records = await latestRecords(clientId); } catch (e) { problems.push(`page records not read: ${e.message}`); }
+    const usedSymptoms = new Set();
+    for (const { record } of records) for (const t of SC.symptomsOf(record)) usedSymptoms.add(t);
+    const blog = B.reserveBlogTopics({ assignment, cv: ctx.cv, niche, keyValueMap: ctx.keyValueMap, pages: ctx.pages, serviceParentMap: ctx.serviceParentMap, dossiers, allocationRecord: alloc, usedSymptoms });
+    const parsed = [];
+    for (const d of dossiers) { try { parsed.push({ town: d.location, parsed: require('./geo-dossier').parseDossier(d.text) }); } catch (e) { problems.push(`${d.location}: dossier not parsed (${e.message})`); } }
+    const siteCheck = SC.siteWideCheck({
+      pagesQuestions: Object.fromEntries(Object.values(assignment.pages).map(p => [p.id, p.questions.map(q => q.wording)])),
+      topics: blog.topics, questionsById: new Map(sort.record.questions.map(q => [q.id, q])), allocationRecord: alloc, pageRecords: records, dossiers: parsed,
+    });
+    return { blog: { ...blog, problems }, siteCheck };
+  }
+
   // F3: the research questions the homepage may use, and flags for the preview
   async function homepageFaq(clientId, ctx, niche) {
     const flags = [];
@@ -290,6 +318,9 @@ function createFaqService({
     const jobRow = job ? job.locations[FAQ_CODE] || {} : null;
     const research = await latestResearch(clientId);
     const { sort, assignment } = await assignmentFor(clientId, ctx, niche);
+    let blogReserved = { blog: null, siteCheck: null };
+    try { blogReserved = await blogFor(clientId, ctx, niche, { sort, assignment }); }
+    catch (e) { log.error('[faq] blog topics for the card failed:', e.message); blogReserved = { blog: { error: e.message, topics: [], flags: [], counts: {}, leftovers: [] }, siteCheck: null }; }
 
     let homepageUsed = null;
     if (assignment && homepageDecisions) {
@@ -330,7 +361,23 @@ function createFaqService({
       homepageUsed,
       pageOptions,
       siteRepeats: assignment ? S.siteRepeats(Object.fromEntries(Object.values(assignment.pages).map(p => [p.id, p.questions]))) : [],
+      // The blog topics reserved from the held buckets (B1), with the wordings the card can show
+      blog: blogReserved.blog ? {
+        ...blogReserved.blog,
+        topics: blogReserved.blog.topics.map(t => ({ ...t, stack: t.query_stack.map(id => ({ id, wording: ((sort.record.questions.find(q => q.id === id) || {}).wording) || id })), faq: t.faq_ids.map(id => ({ id, wording: ((sort.record.questions.find(q => q.id === id) || {}).wording) || id })) })),
+      } : null,
+      siteCheck: blogReserved.siteCheck,
     };
+  }
+
+  // The reserved topics on their own (the blog queue builder, stage 3, reads this)
+  async function blogTopics(clientId, sessionId) {
+    const ctx = await loadContext(clientId, sessionId);
+    const { niche, error } = loadNiche(ctx.trade, ctx);
+    if (error) throw new Error(error);
+    const { sort, assignment } = await assignmentFor(clientId, ctx, niche);
+    const out = await blogFor(clientId, ctx, niche, { sort, assignment });
+    return { ...out, sort, assignment, ctx, niche };
   }
 
   // Approve, edit wording, or move a question by hand. updates: [{ id, wording?, approved?, page_override? }]
@@ -366,7 +413,7 @@ function createFaqService({
   }
 
   return {
-    FAQ_CODE, startResearch, finishResearch, rereadResearch, rawReply, maybeAutoResearch, runSort, homepageFaq, view, updateQuestions,
+    FAQ_CODE, startResearch, finishResearch, rereadResearch, rawReply, maybeAutoResearch, runSort, homepageFaq, view, updateQuestions, blogTopics,
     latestResearch, loadSort, isResearchRunning: id => researchRunning.has(id),
   };
 }

@@ -3584,6 +3584,14 @@ const faqService = pool ? createFaqService({
     const found = v20Store ? await v20Store.latest(clientId, HOMEPAGE) : null;
     return found ? { 'homepage:homepage': (found.record.faq_items || []).map(f => f.faq_question) } : {};
   },
+  // Blog (28 Oct): the allocation record and every page's latest record, for the topic reservation and the site wide check
+  loadAllocationRecord,
+  latestRecords: async clientId => {
+    if (!v20Store) return [];
+    const out = [];
+    for (const type of ['homepage', 'category', 'service', 'location']) for (const p of await v20Store.pages(clientId, type)) out.push({ page: `${type}:${p.key}`, record: p.record });
+    return out;
+  },
   homepageDecisions: (ctx, niche, faqResearch) => computeDecisions({
     cv: ctx.cv, niche, pages: ctx.pages, keyValueMap: ctx.keyValueMap, serviceParentMap: ctx.serviceParentMap,
     v20TestMode: ctx.v20TestMode, allocationData: null, faqResearch, cardServices: ctx.cardServices || null,

@@ -167,7 +167,25 @@ export async function render(el, ctx) {
       }).join('');
       const waiting = (data.waitingByFact || []).map(w => `<li><strong>${h(w.label)}</strong>${w.kind === 'not collected yet' ? ' <span style="color:#b45309">(not a client value or practice yet)</span>' : ''}${w.questions ? `<div class="muted small">${w.questions.map(h).join(' · ')}</div>` : ''}</li>`).join('');
       const r = data.research || { ranges: [], rules: [], gaps: [] };
-      body += (data.siteRepeats || []).map(x => `<div class="small" style="color:#b91c1c;margin-top:6px">Repeated on two pages: ${h(x.question)}</div>`).join('');
+      // The blog topics reserved from the held buckets (B1 with Amendment 1), and the site wide check (28 Oct)
+      const B = data.blog;
+      if (B) {
+        const c = B.counts || {};
+        const topicLine = t => `<div class="small" style="border-top:1px solid var(--border);padding:6px 0"><span class="pill">${h(t.post_type.replace('_', ' '))}</span> <strong>${h(t.wording)}</strong>${t.homepage_cost_guide ? ' <span class="tag ok">homepage cost guide</span>' : ''}${t.town ? ` <span class="muted">· ${h(t.town)}</span>` : ''}${t.seasonal ? ` <span class="muted">· ${h(t.seasonal.window)}, publish ${h(t.seasonal.publish)}</span>` : ''}<div class="muted small">${h(t.key)} · ${t.question ? `${h(t.question.id)}${t.question.approved ? '' : ' (not approved)'}` : 'written by code: approve on the queue'} · primary ${h(t.primary || '')} · stack ${t.stack.length}: ${t.stack.map(s => h(s.id)).join(', ') || 'none'} · FAQ ${t.faq.length}: ${t.faq.map(s => h(s.id)).join(', ') || 'none'}${t.dossier_condition ? ` · condition ${h(t.dossier_condition.id)} ${h(t.dossier_condition.title)}` : ''}</div>${t.flags.length ? `<div class="small" style="color:#b45309">${t.flags.map(f => `${h(f.code)}: ${h(f.msg)}`).join('<br>')}</div>` : ''}</div>`;
+        body += `<details class="faq-group" data-group="blog" ${faqOpen.has('blog') ? 'open' : ''} style="border:1px solid var(--border);border-radius:8px;padding:6px 10px;margin-top:8px"><summary style="cursor:pointer"><strong>Blog topics reserved</strong> <span class="muted small">${B.error ? 'could not be built' : `${c.topics || 0} of 16 · ${c.cost_guide || 0} cost guides, ${c.decision || 0} decision, ${c.question || 0} question, ${c.local || 0} local · from ${B.pool ? B.pool.total : 0} held question${B.pool && B.pool.total === 1 ? '' : 's'}`}</span></summary>
+          ${B.error ? `<div class="notice bad small">${h(B.error)}</div>` : ''}
+          <div class="muted small" style="margin:6px 0">The topics, their query stacks and FAQ questions come from "Kept for a Cost Guide page" and "No page for these" only, so no page can use a question a post needs. Dates and links are decided on the queue (stage 3).</div>
+          ${(B.flags || []).map(f => `<div class="small" style="color:#b45309">${h(f.code)}: ${h(f.msg)}</div>`).join('')}
+          ${(B.topics || []).map(topicLine).join('')}
+          ${(B.leftovers || []).length ? `<div class="muted small" style="margin-top:6px">Left in the queue for the Search Console batches: ${B.leftovers.map(h).join(', ')}</div>` : ''}
+          ${(B.problems || []).length ? `<div class="notice bad small" style="margin-top:6px">Could not read: ${B.problems.map(h).join('; ')}</div>` : ''}</details>`;
+      }
+      const SC = data.siteCheck;
+      if (SC) {
+        const line = (kind, x) => `<div class="small" style="color:#b91c1c;margin-top:6px">${h(kind)} repeated across pages: ${h(x.label ? `${x.item} (${x.label})` : x.item)} on ${x.pages.map(h).join(' and ')}</div>`;
+        body += SC.ok ? `<div class="small" style="color:#15803d;margin-top:8px">Site wide check: no question, neighbourhood or symptom repeats across ${SC.counts.pages} pages and posts.</div>`
+          : [...SC.questions.map(x => line('Question', x)), ...SC.neighbourhoods.map(x => line('Neighbourhood', x)), ...SC.symptoms.map(x => line('Symptom', x))].join('');
+      } else body += (data.siteRepeats || []).map(x => `<div class="small" style="color:#b91c1c;margin-top:6px">Repeated on two pages: ${h(x.question)}</div>`).join('');
       if (waiting) body += `<details style="margin-top:10px"><summary class="small">Waiting on a client fact (ask at onboarding)</summary><ul class="small" style="margin:6px 0 0 18px">${waiting}</ul></details>`;
       body += `<details style="margin-top:6px"><summary class="small muted">Ranges, rules and gaps from the research (for onboarding only, never published)</summary>${r.ranges.length ? `<div class="small" style="margin-top:6px"><strong>Ranges to confirm with the client</strong>${r.ranges.map(x => `<div>${h(x.job)}: ${h(x.range)} <span class="muted">${h(x.area)}${x.dated ? ', ' + h(x.dated) : ''}</span></div>`).join('')}</div>` : ''}${r.rules.length ? `<div class="small" style="margin-top:6px"><strong>Rules customers ask about</strong>${r.rules.map(x => `<div>${h(x.question)}: <span class="muted">${h(x.rule)}</span></div>`).join('')}</div>` : ''}${r.gaps.length ? `<div class="small" style="margin-top:6px"><strong>Gaps</strong>${r.gaps.map(x => `<div class="muted">${h(x)}</div>`).join('')}</div>` : ''}</details>`;
       body += `<div class="btn-row" style="margin-top:12px"><button class="btn btn-primary btn-sm" data-faq="save">Save changes</button></div>`;

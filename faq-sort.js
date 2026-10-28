@@ -304,11 +304,11 @@ function isCostQuestion(q) {
   return q.doubt === 'Price' && /\bhow much\b|\bcost(s)? per\b|\bprice per\b/i.test(q.text) && !/\bdeposit\b/i.test(q.text);
 }
 
-function assignQuestions({ questions, cv, pages, keyValueMap, serviceParentMap, niche, pins = {} }) {
-  const facts = Object.fromEntries(factList(niche).map(f => [f.key, f]));
-  const city = clientTowns(keyValueMap)[0] || '';
+// The page a service word belongs to: the service page that carries it, or its category
+// page. Shared by the assignment below and the blog topic reservation (blog/topics.js),
+// so a held question's page is found the same way the sorting step found none for it.
+function pageFinder({ cv, pages, keyValueMap, serviceParentMap, niche }) {
   const built = pages.filter(isBuilt);
-  const homepage = pages.find(p => p.pageType === 'homepage');
   const byType = t => built.filter(p => p.pageType === t);
   const findTitle = (t, name) => byType(t).find(p => norm(p.pageTitle) === norm(name));
   const { cats } = serviceChoices(keyValueMap, serviceParentMap, niche, pages, cv);
@@ -346,6 +346,27 @@ function assignQuestions({ questions, cv, pages, keyValueMap, serviceParentMap, 
     for (const n of names) { const p = findTitle('category', n); if (p) return p; }
     return null;
   }
+  // A general word ("garden makeovers", "landscaping") is the category's subject, not the
+  // narrow service page that happens to carry it ("Garden decorating")
+  const isGeneral = service => (niche.general_service_words || []).some(w => norm(w) === norm(service));
+  // The page for a question about a service: its service page when the question is for a
+  // service page and the word is a service's, else its category page; null when neither exists
+  function pageFor(q) {
+    if (!q || !q.service) return { service: null, category: null };
+    const asService = q.page === 'Service' && !isCategory(q.service) && !isGeneral(q.service);
+    const sp = asService ? servicePage(q.service) : null;
+    if (sp) return { service: sp, category: null };
+    return { service: null, category: categoryPage(q.service, q.text) };
+  }
+  return { cats, built, findTitle, isCategory, isGeneral, servicePage, categoryPage, pageFor };
+}
+
+function assignQuestions({ questions, cv, pages, keyValueMap, serviceParentMap, niche, pins = {} }) {
+  const facts = Object.fromEntries(factList(niche).map(f => [f.key, f]));
+  const city = clientTowns(keyValueMap)[0] || '';
+  const built = pages.filter(isBuilt);
+  const homepage = pages.find(p => p.pageType === 'homepage');
+  const { findTitle, isCategory, isGeneral, servicePage, categoryPage } = pageFinder({ cv, pages, keyValueMap, serviceParentMap, niche });
   // Where a question goes, and why when it goes nowhere
   function route(q) {
     if (q.page === 'Homepage') return { page: homepage };
@@ -359,8 +380,7 @@ function assignQuestions({ questions, cv, pages, keyValueMap, serviceParentMap, 
       if (!q.service) return { why: 'not about one service or category' };
       // A general word ("garden makeovers", "landscaping") is the category's subject,
       // not the narrow service page that happens to carry it ("Garden decorating")
-      const general = (niche.general_service_words || []).some(w => norm(w) === norm(q.service));
-      const asService = q.page === 'Service' && !isCategory(q.service) && !general;
+      const asService = q.page === 'Service' && !isCategory(q.service) && !isGeneral(q.service);
       if (asService) { const sp = servicePage(q.service); if (sp) return { page: sp }; }
       const cp = categoryPage(q.service, q.text);
       if (cp) return { page: cp, note: asService ? `no ${q.service} page: moved up to its category page` : '' };
@@ -484,5 +504,5 @@ module.exports = {
   FAQ_SORT_MODEL, CLIENT_FACTS,
   loadSortPrompt, factList, factSupplied, fixedHomepageQuestions, checkWording,
   buildSortMessage, checkTidy, runTidy, carryOver, clientQuestionItems,
-  isCostQuestion, assignQuestions, shownFixedSlots, siteRepeats, answerBrief, homepageQuestions, pageId, normWording: norm,
+  isCostQuestion, assignQuestions, pageFinder, shownFixedSlots, siteRepeats, answerBrief, homepageQuestions, pageId, normWording: norm,
 };

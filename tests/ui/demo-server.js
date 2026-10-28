@@ -99,7 +99,22 @@ process.env.APP_PASSWORD = '';
   }
   await asset('v20_page_record', 'homepage_v20.json', JSON.stringify(ordered));
 
-  // No FAQ research or sorted questions: the FAQ questions card shows the real empty state
+  // The live Edens Edge FAQ research (14 Oct) and its sorted questions, replayed through the real
+  // tidy checks with the saved replies (no model call), every wording approved: the FAQ card shows
+  // the page groups and the blog topics reserved from the held buckets (28 Oct, blog stage 2)
+  {
+    const R = require(path.join(root, 'faq-research.js'));
+    const S = require(path.join(root, 'faq-sort.js'));
+    const FC = require(path.join(root, 'tests/fixtures/data/faq-clients.js')).byId['edens-edge'];
+    const researchText = fs.readFileSync(path.join(root, 'tests/fixtures/faq-research-replies/edens-edge-live-2026-10-14.md'), 'utf8');
+    const replies = JSON.parse(fs.readFileSync(path.join(root, 'tests/fixtures/faq-sort-replies/edens-edge-live.json'), 'utf8')).replies;
+    const research = R.parseFaqResearch(researchText);
+    const { rows: rr } = await pool.query(`INSERT INTO client_assets (client_id, asset_type, filename, content, metadata) VALUES ($1, 'faq_research', 'faq_research.md', $2, $3) RETURNING id`, [clientId, researchText, JSON.stringify({ superseded: false, source: 'demo: the live reply of 14 Oct' })]);
+    let i = 0;
+    const tidy = await S.runTidy({ research, niche: FC.niche, keyValueMap: FC.keyValueMap, serviceParentMap: FC.serviceParentMap, pages: FC.pages, cv: { ...FC.cvThin, primary_category: 'Gardener', insurance_cover: '5m', differentiator_2_confirmed: true }, callModel: async () => replies[i++] });
+    const record = { research_asset_id: rr[0].id, updated_at: new Date().toISOString(), model: 'demo replay', attempts: tidy.attempts, customer_questions: [], questions: tidy.questions.map(q => ({ ...q, approved: !q.wording_errors.length })) };
+    await asset('faq_sort', 'faq_sort.json', JSON.stringify(record));
+  }
 
   // GBP output (23 Oct): the newest local real run (node tools/gbp-run.js edens-edge) when
   // there is one, so the client page's GBP panel can be seen with real copy. The demo client
