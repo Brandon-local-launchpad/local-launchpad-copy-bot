@@ -12,6 +12,7 @@
 //   node tools/blog-run.js --no-claims           skip the claims review
 //   node tools/blog-run.js --quality             the rubric review and its rewrites too
 //   node tools/blog-run.js --model claude-opus-5-5
+//   node tools/blog-run.js --dry                 the queue with each post's gates, no model call
 // Needs ANTHROPIC_API_KEY in .env. About 40p to 80p a post.
 
 const fs = require('fs');
@@ -76,18 +77,27 @@ const flag = name => process.argv.includes(name);
   const v20Store = createV20Store(pool);
   const ctx = { cv, pages: edens.pages, keyValueMap: edens.keyValueMap, serviceParentMap: edens.serviceParentMap, trade: 'Landscaper' };
   // Price rows for this run (Edens Edge has none on file): one per main service, made up for the run and said so in the output folder
-  const priceRows = [{ id: 'p1', service: 'Artificial turf installation', from_gbp: 1500, up_to_gbp: 4000, unit: 'per job', what_moves_price: 'the area and the base', quote_only: false, unverified: false, deleted: false }];
+  const priceRows = [
+    { id: 'p1', service: 'Artificial turf installation', from_gbp: 1500, up_to_gbp: 4000, unit: 'per job', what_moves_price: 'the area and the base', quote_only: false, unverified: false, deleted: false },
+    { id: 'p2', service: 'Driveway landscaping', from_gbp: 3000, up_to_gbp: 9000, unit: 'per job', what_moves_price: 'the area, the surface and the drainage', quote_only: false, unverified: false, deleted: false },
+  ];
   const queue = createBlogQueueService({ pool, pageMapStore: store, faqService: { blogTopics: async () => ({ blog: res, siteCheck: { ok: true }, sort: { record: { questions } }, assignment: A, ctx, niche }) }, filloutService: { record: async () => ({ prices: { rows: priceRows } }) }, tradeFactsGate: async () => ({ niche: 'landscaper', verified: true }), packRows: (n, s, q) => P.rowsForPost(n, s, q), v20Store, log: { log() {}, error: console.error } });
   await queue.build(client.id);
   for (const r of await store.blogRows(client.id)) if (!(r.info || {}).wording_approved) await queue.setWording(client.id, r.slug, { approved: true });
 
+  if (flag('--dry')) {
+    const v = await queue.view(client.id);
+    for (const r of v.rows) console.log(`${r.status === 'Held' ? 'HELD ' : ''}${r.post_type.padEnd(10)} ${r.slug}  spec ${r.specificity ? r.specificity.count : '-'}/6  ${r.stack}/${r.faq}  ${r.gates.length ? r.gates.map(g => g.code + ': ' + g.msg).join(' | ') : 'ready'}`);
+    console.log(JSON.stringify(v.counts));
+    return;
+  }
   const model = arg('--model') || BG.BLOG_MODEL;
   const callModel = makeCallModel(new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY }), model);
   const outDir = path.join(root, 'tests/quality-runs/blog', new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19));
   fs.mkdirSync(outDir, { recursive: true });
-  fs.writeFileSync(path.join(outDir, 'README.md'), `Edens Edge blog run, model ${model}, launch ${launch}. The price row for Artificial turf installation is made up for this run (Edens Edge has no price rows on file).\n`);
+  fs.writeFileSync(path.join(outDir, 'README.md'), `Edens Edge blog run, model ${model}, launch ${launch}. The price rows for Artificial turf installation and Driveway landscaping are made up for this run (Edens Edge has no price rows on file); every code written question was approved by the tool.\n`);
   const runner = createBlogRunner({ pool, v20Store, queue, generate: args => BG.generateBlogPost({ ...args, callModel, claimsReview: !flag('--no-claims'), qualityReview: flag('--quality') }), calibrationPack: () => { const f = path.join(root, 'Landscaper_Calibration_Pack_v4.md'); return fs.existsSync(f) ? { name: 'Landscaper_Calibration_Pack_v4.md', text: fs.readFileSync(f, 'utf8') } : null; }, log: console.log });
-  const keys = arg('--keys') ? arg('--keys').split(',').map(s => s.trim()) : null;
+  const keys = arg('--keys') ? arg('--keys').split(',').map(s => '/' + s.trim().replace(/^/+/, '')) : null; // a leading slash is optional (Git Bash rewrites /guides/… as a path)
   const state = await runner.run(client.id, { resume: false, keys });
   for (const p of state.posts) {
     const f = await v20Store.latest(client.id, { type: 'blog', key: p.key });

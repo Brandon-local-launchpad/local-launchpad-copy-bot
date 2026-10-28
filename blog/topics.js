@@ -256,13 +256,45 @@ function reserveBlogTopics({ assignment, cv = {}, niche = {}, keyValueMap = {}, 
   // whose publish month falls inside the six months from the launch always gets a slot
   group = 'seasonal';
   const launch = parseDate(launchDate);
+  // The dossier condition for a seasonal topic (Brandon, 28 Oct: a seasonal post is a local post
+  // with a time of year, so B9 counts the town, the condition, the methods and the process): the
+  // free issue whose title, service tags or detail name the job's words most, the primary town's
+  // dossier first, else the town whose dossier fits best; nothing fitting takes the first free
+  // issue of the primary town (F-CONDITION says so)
+  const STOP_T = new Set(['the', 'a', 'an', 'for', 'after', 'new', 'and', 'of', 'in', 'to']);
+  const stemsOf = s => [...new Set(norm(s).split(' ').filter(w => w && !STOP_T.has(w)).map(w => w.replace(/(ing|ers?|es|s)$/, '')))];
+  const issueScore = (issue, stems) => {
+    const title = stemsOf(issue.title), tags = stemsOf([...(issue.serviceTags || []), ...(issue.categoryTags || [])].join(' ')), detail = new Set(stemsOf(issue.detail || ''));
+    return stems.reduce((n, w) => n + (title.includes(w) ? 3 : 0) + (tags.includes(w) ? 2 : 0) + (detail.has(w) ? 1 : 0), 0);
+  };
+  const conditionFor = topic => {
+    const stems = stemsOf(topic);
+    let best = null;
+    for (const { town, parsed } of parsedDossiers) {
+      const emergency = !!niche.emergency_niche;
+      for (const issue of parsed.issues) {
+        if (usedIssues.has(issue.id)) continue;
+        const symptoms = parsed.symptoms.filter(s => s.issueId === issue.id && (emergency || !s.urgent));
+        if (!symptoms.length) continue;
+        const score = issueScore(issue, stems) + (norm(town) === norm(city) ? 0.5 : 0);
+        if (!best || score > best.score) best = { town, issue, symptom: symptoms[0], score };
+      }
+    }
+    return best;
+  };
   for (const t of slots.seasonal_topics) {
     if (!city) break;
     const month = launch ? seasonalMonth(launch, { seasonal: t }) : null;
-    add({ key: keyFor(`${t.topic} ${city}`), post_type: 'local', source: 'seasonal', homepage_cost_guide: false, target_query: lc(norm(`${t.topic} ${city}`)),
+    const c = conditionFor(t.topic);
+    const town = c ? c.town : city;
+    if (c) usedIssues.add(c.issue.id);
+    const topic = add({ key: keyFor(`${t.topic} ${town}`), post_type: 'local', source: 'seasonal', homepage_cost_guide: false, target_query: lc(norm(`${t.topic} ${town}`)),
       // "Lay new turf" reads as "When should you lay new turf"; "Spring lawn care" as "When is the best time for spring lawn care"
-      wording: question(SEASONAL_VERB.test(t.topic) ? `when should you ${lc(t.topic)} in ${city}` : `when is the best time for ${lc(t.topic)} in ${city}`), wording_source: 'code', needs_approval: true, question: null, service: null, category: null, town: city,
-      seasonal: { topic: t.topic, window: t.window, publish: t.publish, month }, in_window: !!month, primary: '/#services' });
+      wording: question(SEASONAL_VERB.test(t.topic) ? `when should you ${lc(t.topic)} in ${town}` : `when is the best time for ${lc(t.topic)} in ${town}`), wording_source: 'code', needs_approval: true, question: null, service: null, category: null, town,
+      seasonal: { topic: t.topic, window: t.window, publish: t.publish, month }, in_window: !!month, primary: '/#services',
+      dossier_condition: c ? { id: c.issue.id, title: c.issue.title, symptom: c.symptom ? { id: c.symptom.id, text: c.symptom.text } : null, town, fit: c.score >= 1 ? 'names the job' : 'the first free condition' } : null });
+    if (!c) topic.flags.push({ code: 'F-CONDITION', msg: `No free dossier condition for "${t.topic}" (${parsedDossiers.length ? 'every condition is used' : 'no saved dossier'}): the post has no condition and will gate on B9.` });
+    else if (c.score < 1) topic.flags.push({ code: 'F-CONDITION', msg: `No dossier condition names "${t.topic}": the first free condition of ${town} (${c.issue.title}) is used.` });
   }
   if (!launch && slots.seasonal_topics.length) flags.push({ code: 'F-DATE', msg: 'No launch date on the client: no seasonal topic can be placed in its month, so they take the slots left after the question posts.' });
 
@@ -274,17 +306,9 @@ function reserveBlogTopics({ assignment, cv = {}, niche = {}, keyValueMap = {}, 
   const ordered = [...by('cost'), ...seasonals.filter(t => t.in_window), ...locals.slice(0, minLocal), ...by('held'), ...by('bank'), ...locals.slice(minLocal), ...seasonals.filter(t => !t.in_window)];
   if (locals.length < minLocal) flags.push({ code: 'F-LOCAL', msg: `${locals.length} local post${locals.length === 1 ? '' : 's'} (${minLocal} wanted per batch): the main towns need a saved dossier with a condition no page uses.` });
 
-  // The onboarding batch is the first 16; what is beyond it stays in the queue
-  const batch = ordered.slice(0, target);
-  const dropped = ordered.slice(target);
-  for (const t of dropped) {
-    if (t.question && t.question.source !== 'blog_bank') used.delete(t.question.id);
-    if (t.question && t.question.source === 'blog_bank') { usedBank.delete(t.question.id); for (const id of [...t.query_stack, ...t.faq_ids]) usedBank.delete(id); }
-    if (t.bank_topic) { usedBank.delete(t.bank_topic); for (const id of [...t.query_stack, ...t.faq_ids]) usedBank.delete(id); }
-  }
-
-  // B6 and B7 on the held topics of the batch: the stack and the FAQ questions from the held
-  // pool, same service (and town for a local post), none used anywhere else, in doubt order
+  // B6 and B7 on the held topics: the stack and the FAQ questions from the held pool, same
+  // service (and town for a local post), none used anywhere else, in doubt order. Done before
+  // the batch is cut, so a customer question held back gives its slot to the next topic
   const sameCluster = (t, q) => {
     if (used.has(q.id)) return false;
     if (t.post_type === 'local') return isLocalQ(q) && (q.town ? norm(q.town) === norm(t.town) : norm(t.town) === norm(city));
@@ -295,16 +319,55 @@ function reserveBlogTopics({ assignment, cv = {}, niche = {}, keyValueMap = {}, 
     return !q.service;
   };
   const ref = q => ({ id: q.id, wording: q.wording || q.text, doubt: q.doubt || '', needs_fact: !!(q.needs_fact || q.fact || q.new_fact) });
-  for (const t of batch) {
-    if (t.source !== 'blog_bank' && !(t.question && t.question.source === 'blog_bank') && !t.bank_topic) {
-      const cluster = pool.filter(q => sameCluster(t, q)).sort(byDoubt);
-      const stack = cluster.slice(0, 5);
-      for (const q of stack) used.add(q.id);
-      const rest = pool.filter(q => sameCluster(t, q)).sort(byDoubt).slice(0, 5);
-      for (const q of rest) used.add(q.id);
-      t.query_stack = stack.map(q => q.id); t.stack = stack.map(ref);
-      t.faq_ids = rest.map(q => q.id); t.faq = rest.map(ref);
+  const fromPool = t => t.source !== 'blog_bank' && !(t.question && t.question.source === 'blog_bank') && !t.bank_topic;
+  const stackFor = t => {
+    const stack = pool.filter(q => sameCluster(t, q)).sort(byDoubt).slice(0, 5);
+    for (const q of stack) used.add(q.id);
+    const rest = pool.filter(q => sameCluster(t, q)).sort(byDoubt).slice(0, 5);
+    for (const q of rest) used.add(q.id);
+    t.query_stack = stack.map(q => q.id); t.stack = stack.map(ref);
+    t.faq_ids = rest.map(q => q.id); t.faq = rest.map(ref);
+  };
+  const release = t => {
+    if (t.question && t.question.source !== 'blog_bank') used.delete(t.question.id);
+    if (fromPool(t)) for (const id of [...t.query_stack, ...t.faq_ids]) used.delete(id);
+    if (t.question && t.question.source === 'blog_bank') { usedBank.delete(t.question.id); for (const id of [...t.query_stack, ...t.faq_ids]) usedBank.delete(id); }
+    if (t.bank_topic) { usedBank.delete(t.bank_topic); for (const id of [...t.query_stack, ...t.faq_ids]) usedBank.delete(id); }
+  };
+
+  // The onboarding batch is the first 16; what is beyond it stays in the queue, its questions
+  // back in the pool for the stacks (B1 before B6). A customer question in the batch with no
+  // matching bank topic and fewer than three related questions is held (Brandon, 28 Oct): not
+  // written, status Held on the queue, in the pool for the Search Console batch; the next topic
+  // takes its slot and is stacked the same way
+  const batch = ordered.slice(0, target);
+  const dropped = ordered.slice(target);
+  for (const t of dropped) release(t);
+  for (const t of batch) if (fromPool(t)) stackFor(t);
+  const heldBack = [];
+  const skipped = []; // topics beyond the batch whose question a stack took: still listed beyond
+  for (let i = 0; i < batch.length; i++) {
+    const t = batch[i];
+    if (!(t.group === 'held' && !t.bank_topic && t.query_stack.length < 3)) continue;
+    batch.splice(i--, 1);
+    for (const id of [...t.query_stack, ...t.faq_ids]) used.delete(id);
+    t.query_stack = []; t.stack = []; t.faq_ids = []; t.faq = [];
+    t.held = true;
+    t.flags.push({ code: 'F-STACK', msg: `${t.question ? t.question.id + ' ' : ''}has fewer than 3 related questions and no bank topic matches it: held for the Search Console batch, not written.` });
+    heldBack.push(t);
+    // The next topic beyond the batch takes the slot, unless its question is in a stack already
+    let next = dropped.shift();
+    while (next && next.question && next.question.source !== 'blog_bank' && used.has(next.question.id)) { skipped.push(next); next = dropped.shift(); }
+    if (next) {
+      if (next.question && next.question.source !== 'blog_bank') used.add(next.question.id);
+      if (next.question && next.question.source === 'blog_bank') { usedBank.add(next.question.id); for (const id of [...next.query_stack, ...next.faq_ids]) usedBank.add(id); }
+      if (next.bank_topic) { usedBank.add(next.bank_topic); for (const id of [...next.query_stack, ...next.faq_ids]) usedBank.add(id); }
+      if (fromPool(next)) stackFor(next);
+      batch.push(next);
     }
+  }
+  dropped.push(...skipped);
+  for (const t of batch) {
     if (t.query_stack.length < 3) t.flags.push({ code: 'F-STACK', msg: `${t.query_stack.length} query stack question${t.query_stack.length === 1 ? '' : 's'} (3 to 5 wanted): the post runs with what it has.` });
     if (t.faq_ids.length < 3) t.flags.push({ code: 'F-FAQ-ITEMS', msg: `${t.faq_ids.length} FAQ question${t.faq_ids.length === 1 ? '' : 's'} (3 to 5 wanted): fewer FAQ rows.` });
     if (t.needs_approval) t.flags.push({ code: 'F-WORDING', msg: 'The question was written by code: approve or edit it before the post runs (G-TOPIC).' });
@@ -318,9 +381,10 @@ function reserveBlogTopics({ assignment, cv = {}, niche = {}, keyValueMap = {}, 
   return {
     topics: batch,
     beyond: dropped.map(t => ({ key: t.key, post_type: t.post_type, wording: t.wording, source: t.source })),
+    held_back: heldBack,
     leftovers, leftovers_bank: leftoversBank,
     pool: { costGuide: (held.costGuide || []).length, noPage: (held.noPage || []).length, total: pool.length, bank: bankTopics.length, bank_related: bankTopics.reduce((n, t) => n + t.related.length, 0) },
-    counts: { topics: batch.length, cost_guide: byType('cost_guide'), decision: byType('decision'), question: byType('question'), local: byType('local'), from_bank: batch.filter(t => t.source === 'blog_bank' || (t.question && t.question.source === 'blog_bank')).length, stack: batch.reduce((n, t) => n + t.query_stack.length, 0), faq: batch.reduce((n, t) => n + t.faq_ids.length, 0), needs_approval: batch.filter(t => t.needs_approval || (t.question && !t.question.approved)).length },
+    counts: { topics: batch.length, cost_guide: byType('cost_guide'), decision: byType('decision'), question: byType('question'), local: byType('local'), from_bank: batch.filter(t => t.source === 'blog_bank' || (t.question && t.question.source === 'blog_bank')).length, stack: batch.reduce((n, t) => n + t.query_stack.length, 0), faq: batch.reduce((n, t) => n + t.faq_ids.length, 0), needs_approval: batch.filter(t => t.needs_approval || (t.question && !t.question.approved)).length, held: heldBack.length },
     flags,
   };
 }

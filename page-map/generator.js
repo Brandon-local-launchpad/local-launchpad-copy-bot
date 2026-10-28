@@ -36,7 +36,7 @@ const { slugify, pageKey, cleanTowns } = require('./slugs');
 const TYPES = ['homepage', 'category', 'service', 'location', 'location_category', 'town_service', 'blog'];
 const TYPE_LABEL = { homepage: 'Homepage', category: 'Category', service: 'Service', location: 'Location', location_category: 'Location Category', town_service: 'Town Service', blog: 'Blog' };
 // Scheduled (28 Oct): a blog post pushed to WordPress with a future date
-const STATUSES = ['Not Started', 'H1 Added', 'Copy Generated', 'Pushed to WordPress', 'Scheduled', 'Live'];
+const STATUSES = ['Not Started', 'H1 Added', 'Copy Generated', 'Pushed to WordPress', 'Scheduled', 'Live', 'Held'];
 // The blog columns (Blog Post Structure section 2, plus Batch, Source and Source query from
 // Amendment 1), read from a blog row's info: [column, info key]
 const BLOG_COLUMNS = [['Post type', 'post_type'], ['Target query', 'target_query'], ['Query stack', 'query_stack'], ['FAQ IDs', 'faq_ids'], ['Primary link', 'primary_link'], ['Secondary links', 'secondary_links'], ['Town', 'town'], ['Homepage cost guide', 'homepage_cost_guide'], ['Publish date', 'publish_date'], ['Link status', 'link_status'], ['Last checked', 'last_checked'], ['Review due', 'review_due'], ['Batch', 'batch'], ['Source', 'source'], ['Source query', 'source_query']];

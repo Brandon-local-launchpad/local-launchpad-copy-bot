@@ -91,16 +91,17 @@ function schedule(topics, launchDate) {
 }
 
 // The page map rows for upsertBlogRows, from the scheduled topics
-function rowsFor(scheduled, { existing = [] } = {}) {
+function rowsFor(scheduled, { existing = [], held = [] } = {}) {
   const byKey = new Map(existing.map(r => [r.slug, r]));
-  return scheduled.map(t => {
+  // A held customer question (blog/topics.js held_back) is a row too, status Held, no date, not written
+  return [...scheduled, ...held.map(t => ({ ...t, publish_date: null, month: null, held: true, slot_note: 'held: fewer than 3 related questions; the Search Console batch picks it up' }))].map(t => {
     const cur = byKey.get(t.key);
     const curInfo = (cur && cur.info) || {};
     // A wording a person approved or edited on the queue stays; a new topic takes the reservation's
     const wording = curInfo.wording_edited ? curInfo.wording : t.wording;
     const approved = curInfo.wording_edited ? !!curInfo.wording_approved : (!t.needs_approval && !!(t.question && t.question.approved)) || !!curInfo.wording_approved;
     return {
-      slug: t.key, title: wording, h1: wording,
+      slug: t.key, title: wording, h1: wording, status: t.held ? 'Held' : undefined,
       info: {
         post_type: t.post_type, target_query: t.target_query, query_stack: t.query_stack, faq_ids: t.faq_ids,
         stack: t.stack, faq: t.faq, primary_link: t.primary, secondary_links: [], town: t.town || '',
@@ -108,7 +109,7 @@ function rowsFor(scheduled, { existing = [] } = {}) {
         last_checked: curInfo.last_checked || '', review_due: curInfo.review_due || '', batch: t.batch || 'onboarding', source: t.source, source_query: t.source_query || '',
         service: t.service ? t.service.title : '', service_slug: t.service ? t.service.slug : '', category: t.category ? t.category.title : '', category_slug: t.category ? t.category.slug : '',
         question_id: t.question ? t.question.id : '', question_source: t.question ? t.question.source : '', wording, wording_source: t.wording_source, wording_approved: approved, wording_edited: !!curInfo.wording_edited,
-        needs_approval: !!t.needs_approval, bank_topic: t.bank_topic || '', seasonal: t.seasonal || null, dossier_condition: t.dossier_condition || null, cost_unit: t.cost_unit || '', slot_note: t.slot_note || '', held_for_date: !!t.held_for_date,
+        needs_approval: !!t.needs_approval, bank_topic: t.bank_topic || '', held: !!t.held, seasonal: t.seasonal || null, dossier_condition: t.dossier_condition || null, cost_unit: t.cost_unit || '', slot_note: t.slot_note || '', held_for_date: !!t.held_for_date,
       },
     };
   });

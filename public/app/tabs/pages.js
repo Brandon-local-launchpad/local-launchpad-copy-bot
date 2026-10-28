@@ -7,7 +7,7 @@
 import { h, attr, api, card, table, status, pill, timeEl, score, running, toast, confirm, empty, plural, fmtDate, busy } from '../ui.js';
 
 const TYPES = [['homepage', 'Homepage'], ['category', 'Category'], ['service', 'Service'], ['location', 'Location'], ['blog', 'Blog']];
-const STATUS_KIND = { 'not started': 'none', running: 'run', queued: 'none', written: 'ok', blocked: 'block', failed: 'block', 'waiting on a person': 'wait', approved: 'ok', pushed: 'ok', skipped: 'none', waiting: 'none' };
+const STATUS_KIND = { held: 'wait', 'not started': 'none', running: 'run', queued: 'none', written: 'ok', blocked: 'block', failed: 'block', 'waiting on a person': 'wait', approved: 'ok', pushed: 'ok', skipped: 'none', waiting: 'none' };
 
 export async function render(el, ctx) {
   const { clientId } = ctx;
@@ -87,7 +87,8 @@ export async function render(el, ctx) {
   const blogStatus = r => {
     const rec = r.record, cur = blogRun && blogRun.running && blogRun.running.current === r.slug;
     let st = 'not started';
-    if (cur) st = 'running';
+    if (r.status === 'Held') st = 'held';
+    else if (cur) st = 'running';
     else if (rec && rec.error) st = 'failed';
     else if (rec && rec.blocked) st = 'blocked';
     else if (rec && rec.block > 0) st = 'blocked';
@@ -96,7 +97,7 @@ export async function render(el, ctx) {
     else if (rec && rec.good) st = 'written';
     else if (rec) st = 'blocked';
     else if (r.gates.length) st = 'waiting';
-    const detail = st === 'failed' ? rec.error : st === 'blocked' ? (rec.blocked ? 'blocked by a gate when it ran' : `${rec.block} BLOCK to fix`) : st === 'waiting on a person' ? `${rec.claims} claim${rec.claims === 1 ? '' : 's'} to accept` : st === 'waiting' ? 'gated: the post waits' : st === 'written' && rec.flag ? `${rec.flag} FLAG to read` : '';
+    const detail = st === 'failed' ? rec.error : st === 'blocked' ? (rec.blocked ? 'blocked by a gate when it ran' : `${rec.block} BLOCK to fix`) : st === 'waiting on a person' ? `${rec.claims} claim${rec.claims === 1 ? '' : 's'} to accept` : st === 'waiting' ? 'gated: the post waits' : st === 'held' ? 'fewer than 3 related questions: the Search Console batch picks it up' : st === 'written' && rec.flag ? `${rec.flag} FLAG to read` : '';
     return { st, detail };
   };
   const drawBlogQueue = () => {
@@ -118,14 +119,14 @@ export async function render(el, ctx) {
       { key: 'date', label: 'Publish', render: r => r.publish_date ? `${h(fmtDate(r.publish_date))}${r.month === 0 ? ' <span class="muted small">launch</span>' : ''}${r.slot_note ? `<span class="sub">${h(r.slot_note)}</span>` : ''}` : `<span class="muted">${r.held_for_date ? 'no launch date' : '–'}</span>` },
       { key: 'flags', label: 'Flags', render: flagLine },
       { key: 'status', label: 'Status', render: r => { const { st, detail } = blogStatus(r); return `${status(st, STATUS_KIND[st] || 'none')}${detail ? `<span class="sub">${h(detail)}</span>` : ''}${r.record && r.record.at ? `<span class="sub">${timeEl(r.record.at)}</span>` : ''}`; } },
-      { key: 'write', label: '', cls: 'no-label', render: r => `<button class="btn btn-ghost btn-sm" data-blog-write="${attr(r.slug)}" ${anyBlogRunning || !r.wording_approved ? 'disabled' : ''} title="${attr(r.gates.length ? 'The post is gated: it runs and is recorded blocked with its gate' : '')}">${r.record ? 'Write again' : 'Write'}</button>${r.record ? `<a class="btn btn-ghost btn-sm" href="/clients/${clientId}/pages/blog/${encodeURIComponent(r.slug)}" style="margin-left:4px">Open</a>` : ''}` },
+      { key: 'write', label: '', cls: 'no-label', render: r => `<button class="btn btn-ghost btn-sm" data-blog-write="${attr(r.slug)}" ${anyBlogRunning || !r.wording_approved || r.status === 'Held' ? 'disabled' : ''} title="${attr(r.gates.length ? 'The post is gated: it runs and is recorded blocked with its gate' : '')}">${r.record ? 'Write again' : 'Write'}</button>${r.record ? `<a class="btn btn-ghost btn-sm" href="/clients/${clientId}/pages/blog/${encodeURIComponent(r.slug)}" style="margin-left:4px">Open</a>` : ''}` },
     ];
     const res = B.reservation;
     const anyBlogRunning = !!(blogRun && blogRun.running);
-    const written = B.rows.filter(r => r.record), rest = B.rows.filter(r => r.wording_approved && (!r.record || !r.record.good));
+    const written = B.rows.filter(r => r.record), rest = B.rows.filter(r => r.wording_approved && r.status !== 'Held' && (!r.record || !r.record.good));
     box.innerHTML = `
       ${(B.problems || []).length ? `<div class="notice bad" style="margin-bottom:10px">Could not read: ${B.problems.map(h).join('; ')}</div>` : ''}
-      <div class="notice" style="margin-bottom:14px;display:flex;gap:16px;flex-wrap:wrap;align-items:center"><span><strong>${plural(c.rows || 0, 'post')}</strong> in the queue</span><span>${c.ready || 0} ready</span><span>${c.gated || 0} gated</span><span>${c.to_approve || 0} questions to approve</span><span>${c.dated || 0} dated${B.settings && B.settings.launch_date ? ` from ${h(fmtDate(B.settings.launch_date))}` : ' (no launch date on the Record tab)'}</span>${res ? `<span class="muted">reserved: ${res.counts.topics} topics, ${res.counts.from_bank || 0} from the bank</span>` : ''}</div>
+      <div class="notice" style="margin-bottom:14px;display:flex;gap:16px;flex-wrap:wrap;align-items:center"><span><strong>${plural(c.rows || 0, 'post')}</strong> in the queue</span><span>${c.ready || 0} ready</span><span>${c.gated || 0} gated</span>${c.held ? `<span>${c.held} held</span>` : ''}<span>${c.to_approve || 0} questions to approve</span><span>${c.dated || 0} dated${B.settings && B.settings.launch_date ? ` from ${h(fmtDate(B.settings.launch_date))}` : ' (no launch date on the Record tab)'}</span>${res ? `<span class="muted">reserved: ${res.counts.topics} topics, ${res.counts.from_bank || 0} from the bank</span>` : ''}</div>
       ${[...(B.schedule_flags || []), ...((res && res.flags) || [])].map(f => `<div class="small" style="color:#b45309;margin-bottom:4px">${h(f.code)}: ${h(f.msg)}</div>`).join('')}
       <section class="card card-flat">
         <div class="tbl-tools"><span class="muted small">The topics reserved on the Research tab, dated by the schedule (3 at launch, then 2, 4, 3, 2, 1, 1 a month). Edit a question and Approve to clear G-TOPIC; the rest of the decisions are code's.${anyBlogRunning ? ` <strong>Writing ${h(blogRun.running.current || '…')}</strong>` : ''}</span><span class="spacer"></span>

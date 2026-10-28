@@ -113,7 +113,7 @@ const fromDb = r => ({ ...r, links_to: parse(r.links_to) || [], links_from: pars
 // daily job keep on the row: the service and category the post belongs to, the record's version)
 const BLOG_INFO_KEYS = [...G.BLOG_COLUMNS.map(c => c[1]), 'service', 'category', 'phase', 'held', 'backfill_pending', 'published_url',
   // The queue's own keys (blog/queue.js rowsFor): the resolved stack and FAQ wordings, the question and its approval, the slot
-  'service_slug', 'category_slug', 'stack', 'faq', 'question_id', 'question_source', 'wording', 'wording_source', 'wording_approved', 'wording_edited', 'needs_approval', 'bank_topic', 'seasonal', 'dossier_condition', 'cost_unit', 'slot_note', 'held_for_date', 'month'];
+  'service_slug', 'category_slug', 'stack', 'faq', 'question_id', 'question_source', 'wording', 'wording_source', 'wording_approved', 'wording_edited', 'needs_approval', 'bank_topic', 'held', 'seasonal', 'dossier_condition', 'cost_unit', 'slot_note', 'held_for_date', 'month'];
 const INFO_KEYS = ['town', 'category_key', 'service_id', 'service_name', 'parent_keys', 'additional', 'primary', 'merged_from', 'gbp_names', 'absorbs', 'copy_priority', 'phase', 'links'];
 // A plan row's info: what the generator put in info, plus its link sections
 const infoOf = p => { const src = { ...(p.info || {}), ...(p.links ? { links: p.links } : {}) }; return Object.fromEntries(INFO_KEYS.filter(k => src[k] !== undefined).map(k => [k, src[k]])); };
@@ -298,14 +298,16 @@ function createPageMapStore({ pool, filloutService, volumesFor = async () => new
       if (!cur) {
         await pool.query(
           `INSERT INTO client_page_map (client_id, page_key, type, title, slug, h1, h1_source, links_to, links_from, status, applies, info, sort_order)
-           VALUES ($1,$2,'blog',$3,$4,$5,'auto','[]','[]','Not Started',TRUE,$6,$7)`,
-          [clientId, key, String(b.title || b.h1 || slug), slug, String(b.h1 || ''), JSON.stringify(info), order]);
+           VALUES ($1,$2,'blog',$3,$4,$5,'auto','[]','[]',$8,TRUE,$6,$7)`,
+          [clientId, key, String(b.title || b.h1 || slug), slug, String(b.h1 || ''), JSON.stringify(info), order, b.status === 'Held' ? 'Held' : 'Not Started']);
         continue;
       }
       const manual = cur.h1_source === 'manual';
+      // Held comes and goes with the queue; the other statuses are the daily job's and stay
+      const status = b.status === 'Held' ? 'Held' : cur.status === 'Held' ? 'Not Started' : cur.status;
       await pool.query(
-        `UPDATE client_page_map SET title=$3, slug=$4, h1=$5, h1_source=$6, info=$7, sort_order=$8, applies=TRUE, retired_at=NULL, retired_reason=NULL, updated_at=NOW() WHERE id=$1 AND client_id=$2`,
-        [cur.id, clientId, String(b.title || b.h1 || cur.title), slug, manual ? cur.h1 : String(b.h1 || ''), manual ? 'manual' : 'auto', JSON.stringify({ ...(cur.info || {}), ...info }), order]);
+        `UPDATE client_page_map SET title=$3, slug=$4, h1=$5, h1_source=$6, info=$7, sort_order=$8, status=$9, applies=TRUE, retired_at=NULL, retired_reason=NULL, updated_at=NOW() WHERE id=$1 AND client_id=$2`,
+        [cur.id, clientId, String(b.title || b.h1 || cur.title), slug, manual ? cur.h1 : String(b.h1 || ''), manual ? 'manual' : 'auto', JSON.stringify({ ...(cur.info || {}), ...info }), order, status]);
     }
     for (const cur of existing.values()) {
       if (keep.has(cur.page_key) || cur.applies === false || BLOG_KEEP.has(cur.status)) continue;

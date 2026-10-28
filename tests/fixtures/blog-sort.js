@@ -61,7 +61,7 @@ const parsedCity = parseDossier(dossierText);
   const pageIds = new Set(Object.values(A.pages).flatMap(p => p.questions.map(q => q.id)));
   const blogIds = T.flatMap(t => [t.question && t.question.id, ...t.query_stack, ...t.faq_ids]).filter(Boolean);
   chk('Every blog question ID is absent from every other page\'s allocation, and no ID is used twice across the topics', blogIds.every(id => !pageIds.has(id)) && new Set(blogIds).size === blogIds.length, blogIds.join(','), '');
-  chk('Counts: 6 cost guides, 0 decision, 0 question, 5 local; 9 wordings need approval (the held two are approved on the FAQ card)', JSON.stringify(B.counts) === JSON.stringify({ topics: 11, cost_guide: 6, decision: 0, question: 0, local: 5, from_bank: 0, stack: 0, faq: 0, needs_approval: 9 }) && has(B.flags, /^F-BANK$/), JSON.stringify(B.counts), '');
+  chk('Counts: 6 cost guides, 0 decision, 0 question, 5 local; 9 wordings need approval (the held two are approved on the FAQ card)', JSON.stringify(B.counts) === JSON.stringify({ topics: 11, cost_guide: 6, decision: 0, question: 0, local: 5, from_bank: 0, stack: 0, faq: 0, needs_approval: 9, held: 0 }) && has(B.flags, /^F-BANK$/), JSON.stringify(B.counts), '');
   const B2 = reserveBlogTopics({ assignment: S.assignQuestions(args), cv: liveCv, niche, keyValueMap: edens.keyValueMap, pages: edens.pages, serviceParentMap: edens.serviceParentMap, dossiers, allocationRecord: alloc });
   chk('The same input twice gives identical topics', JSON.stringify(B2) === JSON.stringify(B), '', 'identical');
 
@@ -108,18 +108,19 @@ const parsedCity = parseDossier(dossierText);
   const A2 = S.assignQuestions({ ...args, questions: pool });
   chk('Set-up: seven questions with a service no page carries: six held as no page, the cost one held for a cost guide', A2.held.noPage.length === 6 && A2.held.costGuide.length === 1, `${A2.held.noPage.length} / ${A2.held.costGuide.length}`, '6 / 1');
   const B3 = reserveBlogTopics({ assignment: A2, cv: liveCv, niche, keyValueMap: edens.keyValueMap, pages: edens.pages, serviceParentMap: edens.serviceParentMap, dossiers: [], allocationRecord: null });
-  const qs = B3.topics.filter(t => t.question);
-  chk('With room in the batch every held question becomes a post of its own (B1 before B6); only the cost question that names no page is left for a stack (the first post\'s), so every post flags F-STACK', qs.length === 6 && qs[0].query_stack.join() === 'Q-7' && qs.slice(1).every(t => t.query_stack.length === 0) && qs.every(t => has(t.flags, /^F-STACK$/)), JSON.stringify(qs.map(t => [t.question.id, t.query_stack])), '6 posts, Q-7 the one stack question');
-  chk("Customer question posts: the client's own customers' question first, then the research order; the decision pair runs as a decision post; a cost question naming no page is never a post",
-    qs[0].question.id === 'C-1' && qs[0].post_type === 'question' && qs[1].question.id === 'Q-1' && qs[1].post_type === 'decision' && !qs.some(t => t.question.id === 'Q-7') && B3.leftovers.length === 0,
+  const qs = B3.held_back;
+  // Brandon, 28 Oct: a customer question with no matching bank topic and fewer than 3 related questions is held, not written
+  chk('With room in the batch every held question would be a post of its own (B1 before B6), but none has 3 related questions in the pool and there is no bank: all six are held back (F-STACK, status Held on the queue, the Search Console batch picks them up), no question post runs, and the cost question naming no page is left', qs.length === 6 && B3.topics.filter(t => t.question).length === 0 && qs.every(t => t.held && has(t.flags, /held for the Search Console batch/)) && B3.counts.held === 6 && B3.leftovers.join() === 'Q-7', JSON.stringify({ held: qs.map(t => t.question.id), posts: B3.topics.filter(t => t.question).length, left: B3.leftovers }), '6 held, no question post, Q-7 left');
+  chk("Customer question posts (held here): the client's own customers' question first, then the research order; the decision pair is a decision post; a cost question naming no page is never a post",
+    qs[0].question.id === 'C-1' && qs[0].post_type === 'question' && qs[1].question.id === 'Q-1' && qs[1].post_type === 'decision' && !qs.some(t => t.question.id === 'Q-7'),
     JSON.stringify(qs.map(t => [t.question.id, t.post_type])) + ' left ' + B3.leftovers.join(), '');
   chk('A question post with no service page links the homepage services section (B8 fallback), and its key is its wording', qs[0].primary === '/#services' && qs[0].key === '/guides/why-does-my-pool-pump-keep-tripping', qs[0].key, '');
   // A batch of six (the four code cost guides and two question posts): the questions beyond it feed the stacks
   const B4 = reserveBlogTopics({ assignment: A2, cv: liveCv, niche, keyValueMap: edens.keyValueMap, pages: edens.pages, serviceParentMap: edens.serviceParentMap, dossiers: [], allocationRecord: null, target: 6 });
   const qs2 = B4.topics.filter(t => t.question);
-  chk('Stacks (B6): a topic takes the unused questions in its cluster in doubt order (Fit, Process, Price, Timing), none used twice; the first post gets Q-3, Q-5, Q-7, Q-2, Q-4; the second has none left and flags F-STACK; the four question topics and four seasonal topics beyond the batch are listed', (() => {
-    const ids = qs2.flatMap(t => [t.question.id, ...t.query_stack, ...t.faq_ids]); return qs2.length === 2 && new Set(ids).size === ids.length && qs2[0].question.id === 'C-1' && qs2[0].query_stack.join() === 'Q-3,Q-5,Q-7,Q-2,Q-4' && qs2[1].query_stack.length === 0 && has(qs2[1].flags, /^F-STACK$/) && B4.beyond.length === 8 && B4.leftovers.length === 0;
-  })(), JSON.stringify({ t: qs2.map(t => [t.question.id, t.query_stack, t.faq_ids]), beyond: B4.beyond.length, left: B4.leftovers }), '');
+  chk('Stacks (B6): a topic takes the unused questions in its cluster in doubt order (Fit, Process, Price, Timing), none used twice; the first post gets Q-3, Q-5, Q-7, Q-2, Q-4 and no FAQ (Q-1 is a post); the second question post (Q-1) has none left and is held; the four topics beyond the batch whose question the stack took cannot take its slot, so the first seasonal topic does; the seven beyond the batch are listed', (() => {
+    const ids = qs2.flatMap(t => [t.question.id, ...t.query_stack, ...t.faq_ids]); return qs2.length === 1 && new Set(ids).size === ids.length && qs2[0].question.id === 'C-1' && qs2[0].query_stack.join() === 'Q-3,Q-5,Q-7,Q-2,Q-4' && qs2[0].faq_ids.length === 0 && B4.held_back.length === 1 && B4.held_back[0].question.id === 'Q-1' && B4.topics.length === 6 && B4.topics[5].source === 'seasonal' && B4.beyond.length === 7;
+  })(), JSON.stringify({ t: qs2.map(t => [t.question.id, t.query_stack, t.faq_ids]), held: B4.held_back.map(t => t.question.id), n: B4.topics.length, beyond: B4.beyond.map(b => b.key), left: B4.leftovers }), '');
 
   // ── Through the FAQ service's view, with a stub context (the card's shape) ──
   const sortRecord = { research_asset_id: 'r1', updated_at: new Date().toISOString(), model: 'stub', attempts: [], customer_questions: [], questions };

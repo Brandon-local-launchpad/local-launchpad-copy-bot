@@ -83,7 +83,7 @@ function createBlogRunner({ pool, v20Store, queue, generate, calibrationPack = (
     running.set(clientId, { startedAt: new Date().toISOString(), current: null });
     try {
       const I = await queue.inputsFor(clientId);
-      const rows = (await queue.rowsFor(clientId)).filter(r => r.applies !== false);
+      const rows = (await queue.rowsFor(clientId)).filter(r => r.applies !== false && r.status !== 'Held');
       const order = rows.filter(r => !opts.keys || opts.keys.includes(r.slug));
       if (!order.length) throw Object.assign(new Error('No posts in the blog queue: build it on the Pages tab first.'), { status: 400 });
       const state = { started_at: new Date().toISOString(), finished_at: null, resume: !!opts.resume, posts: order.map(r => ({ key: r.slug, title: r.h1 || r.title, post_type: (r.info || {}).post_type, status: 'pending' })) };
@@ -125,7 +125,7 @@ function createBlogRunner({ pool, v20Store, queue, generate, calibrationPack = (
   // The posts in queue order with their latest record's summary and the run state
   async function view(clientId) {
     const st = await loadState(clientId);
-    const rows = (await queue.rowsFor(clientId)).filter(r => r.applies !== false);
+    const rows = (await queue.rowsFor(clientId)).filter(r => r.applies !== false && r.status !== 'Held');
     const posts = [];
     for (const r of rows) {
       const f = await v20Store.latest(clientId, { type: 'blog', key: r.slug });

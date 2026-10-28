@@ -52,7 +52,7 @@ function createBlogQueueService({ pool, pageMapStore, faqService, filloutService
     if (!I.blog) throw Object.assign(new Error('No FAQ questions sorted for this client yet: run the FAQ research and the sorting first.'), { status: 400 });
     const sch = Q.schedule(I.blog.topics, I.settings.launch_date);
     const existing = await pageMapStore.blogRows(clientId);
-    const rows = Q.rowsFor(sch.topics, { existing });
+    const rows = Q.rowsFor(sch.topics, { existing, held: I.blog.held_back || [] });
     await pageMapStore.upsertBlogRows(clientId, rows);
     log.log(`[blog] queue built for ${clientId}: ${rows.length} rows${I.settings.launch_date ? ` from ${I.settings.launch_date}` : ' (no launch date)'}`);
     return view(clientId, { inputs: I, scheduleFlags: sch.flags });
@@ -105,7 +105,7 @@ function createBlogQueueService({ pool, pageMapStore, faqService, filloutService
         decisions_block: d.decisionsBlock,
       };
     });
-    const counts = { rows: out.length, ready: out.filter(r => !r.gates.length).length, gated: out.filter(r => r.gates.length).length, to_approve: out.filter(r => !r.wording_approved).length, dated: out.filter(r => r.publish_date).length };
+    const counts = { rows: out.length, held: out.filter(r => r.status === 'Held').length, ready: out.filter(r => !r.gates.length && r.status !== 'Held').length, gated: out.filter(r => r.gates.length && r.status !== 'Held').length, to_approve: out.filter(r => !r.wording_approved).length, dated: out.filter(r => r.publish_date).length };
     return { rows: out, counts, settings: I.settings, reservation: I.blog ? { counts: I.blog.counts, flags: I.blog.flags, pool: I.blog.pool } : null, schedule_flags: scheduleFlags, site_check: I.siteCheck, problems: [...(I.problems || []), ...((I.blog && I.blog.problems) || [])] };
   }
 
