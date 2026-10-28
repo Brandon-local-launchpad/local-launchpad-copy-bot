@@ -31,11 +31,17 @@ const V3 = require('./plan-v3');
 const { loadLibrarySet } = require('../niche-library/library');
 const { slugify, pageKey, cleanTowns } = require('./slugs');
 
-const TYPES = ['homepage', 'category', 'service', 'location', 'location_category', 'town_service'];
-const TYPE_LABEL = { homepage: 'Homepage', category: 'Category', service: 'Service', location: 'Location', location_category: 'Location Category', town_service: 'Town Service' };
-const STATUSES = ['Not Started', 'H1 Added', 'Copy Generated', 'Pushed to WordPress', 'Live'];
-// The old PAGE MAP tab's columns, in its order, then the v3 link sections copy generation reads
-const CSV_COLUMNS = ['Page Type', 'Page Title', 'URL Slug', 'H1 (Ahrefs)', 'Meta Title', 'Meta Description', 'Links TO', 'Links FROM', 'Status', 'Breadcrumb', 'Cards', 'Areas Block', 'More Services', 'Body Links', 'Mentioned Services', 'Launch Phase', 'WordPress Status'];
+// Blog rows (28 Oct 2026) are not the generator's: the blog topic queue writes them
+// (page-map/store.js upsertBlogRows) and a regeneration leaves them alone (diffPlan)
+const TYPES = ['homepage', 'category', 'service', 'location', 'location_category', 'town_service', 'blog'];
+const TYPE_LABEL = { homepage: 'Homepage', category: 'Category', service: 'Service', location: 'Location', location_category: 'Location Category', town_service: 'Town Service', blog: 'Blog' };
+// Scheduled (28 Oct): a blog post pushed to WordPress with a future date
+const STATUSES = ['Not Started', 'H1 Added', 'Copy Generated', 'Pushed to WordPress', 'Scheduled', 'Live'];
+// The blog columns (Blog Post Structure section 2, plus Batch, Source and Source query from
+// Amendment 1), read from a blog row's info: [column, info key]
+const BLOG_COLUMNS = [['Post type', 'post_type'], ['Target query', 'target_query'], ['Query stack', 'query_stack'], ['FAQ IDs', 'faq_ids'], ['Primary link', 'primary_link'], ['Secondary links', 'secondary_links'], ['Town', 'town'], ['Homepage cost guide', 'homepage_cost_guide'], ['Publish date', 'publish_date'], ['Link status', 'link_status'], ['Last checked', 'last_checked'], ['Review due', 'review_due'], ['Batch', 'batch'], ['Source', 'source'], ['Source query', 'source_query']];
+// The old PAGE MAP tab's columns, in its order, then the v3 link sections copy generation reads, then the blog columns
+const CSV_COLUMNS = ['Page Type', 'Page Title', 'URL Slug', 'H1 (Ahrefs)', 'Meta Title', 'Meta Description', 'Links TO', 'Links FROM', 'Status', 'Breadcrumb', 'Cards', 'Areas Block', 'More Services', 'Body Links', 'Mentioned Services', 'Launch Phase', 'WordPress Status', ...BLOG_COLUMNS.map(c => c[0])];
 const WP_STATUS = { 1: 'publish', 2: 'draft + noindex' };
 
 // The research context the H1 rules want, from the generator's inputs
@@ -172,7 +178,7 @@ function buildPageMap(input, opts = {}) {
   for (const r of kept) { r.links = r.links || { breadcrumb: [], cards: [], areas: [], more: [], body: [], parents: [], mentioned: [] }; }
 
   const counts = {};
-  for (const t of TYPES) counts[t] = kept.filter(r => r.type === t).length;
+  for (const t of TYPES) if (t !== 'blog') counts[t] = kept.filter(r => r.type === t).length;
   counts.total = kept.length;
   counts.phase1 = kept.filter(r => r.info.phase === 1).length;
   counts.phase2 = kept.filter(r => r.info.phase === 2).length;
@@ -216,7 +222,8 @@ function diffPlan(saved, planned) {
     if (s.applies === false) { revive.push({ row: s, changes }); continue; }
     if (Object.keys(changes).length) update.push({ row: s, changes }); else unchanged.push(s);
   }
-  for (const s of saved) if (!plannedKeys.has(s.page_key)) (s.applies === false ? stillRetired : retire).push(s);
+  // Blog rows come from the topic queue, never from the plan: a regeneration never retires or revives one
+  for (const s of saved) if (s.type !== 'blog' && !plannedKeys.has(s.page_key)) (s.applies === false ? stillRetired : retire).push(s);
 
   // A rename is a new page plus a retired one of the same type: flag it for a person
   const renames = [];
@@ -245,11 +252,13 @@ function toCsv(rows, { includeRetired = false } = {}) {
   // A phase-2 target from an earlier-phase page is plain text, flagged "links when published"
   const sec = (r, k) => (((r.links || (r.info || {}).links || {})[k]) || []).map(x => (x.unlinked ? `${x.anchor || x.to} (links when published)` : x.anchor && x.anchor !== x.to ? `${x.anchor} → ${x.to}` : x.to)).join('\n');
   const mentioned = r => ((((r.links || (r.info || {}).links || {}).mentioned) || []).join('\n'));
+  // A blog column: a list one per line, a yes/no, else the value as it is; blank on every other page type
+  const blogCell = (r, k) => { if (r.type !== 'blog') return ''; const v = (r.info || {})[k]; if (Array.isArray(v)) return v.join('\n'); if (typeof v === 'boolean') return v ? 'yes' : 'no'; return v == null ? '' : String(v); };
   const lines = [CSV_COLUMNS.map(cell).join(',')];
   for (const r of list) lines.push([TYPE_LABEL[r.type] + (r.applies === false ? ' (no longer applies)' : ''), r.title, r.slug, r.h1, r.meta_title, r.meta_description, (r.links_to || []).join('\n'), (r.links_from || []).join('\n'), r.status,
     sec(r, 'breadcrumb'), sec(r, 'cards'), sec(r, 'areas'), [sec(r, 'more'), sec(r, 'parents')].filter(Boolean).join('\n'), sec(r, 'body'), mentioned(r),
-    (r.info || {}).phase || 1, WP_STATUS[(r.info || {}).phase || 1]].map(cell).join(','));
+    (r.info || {}).phase || 1, WP_STATUS[(r.info || {}).phase || 1], ...BLOG_COLUMNS.map(c => blogCell(r, c[1]))].map(cell).join(','));
   return lines.join('\r\n') + '\r\n';
 }
 
-module.exports = { TYPES, TYPE_LABEL, STATUSES, CSV_COLUMNS, WP_STATUS, slugify, pageKey, cleanTowns, contextFor, keywordsFor, buildPageMap, diffPlan, toCsv };
+module.exports = { TYPES, TYPE_LABEL, STATUSES, CSV_COLUMNS, BLOG_COLUMNS, WP_STATUS, slugify, pageKey, cleanTowns, contextFor, keywordsFor, buildPageMap, diffPlan, toCsv };

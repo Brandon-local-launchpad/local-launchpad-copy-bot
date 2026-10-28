@@ -969,5 +969,51 @@
       ]
     }
   },
+  "blog": {
+    "seasonal_topics": [
+      {
+        "topic": "Lay new turf",
+        "window": "September to October",
+        "publish": "August"
+      },
+      {
+        "topic": "Prepare the garden for winter",
+        "window": "November",
+        "publish": "October"
+      },
+      {
+        "topic": "Spring lawn care",
+        "window": "March to April",
+        "publish": "February"
+      },
+      {
+        "topic": "Hedge cutting after the nesting season",
+        "window": "August to September",
+        "publish": "July"
+      }
+    ],
+    "safety_topics": [
+      "Electrics for garden lighting",
+      "Outdoor sockets and garden power",
+      "Retaining walls and structural garden walls",
+      "Felling a large tree near a building"
+    ],
+    "blog_cta_h2": {
+      "A": "Talk to a Local [TRADE_PERSON] About [TOPIC]",
+      "B": "Book a Local [TRADE_PERSON] for [TOPIC]"
+    },
+    "cost_unit": {
+      "A": "per job",
+      "B": "per visit"
+    },
+    "decision_pairs": [
+      "Turf or seed",
+      "Porcelain or sandstone",
+      "Composite or timber decking",
+      "Gravel or block paving for a driveway",
+      "Fence panels or closeboard fencing",
+      "Real or artificial grass"
+    ]
+  },
   "do_not_reuse": []
 }

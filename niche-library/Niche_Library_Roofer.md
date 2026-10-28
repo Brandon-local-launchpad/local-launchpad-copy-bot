@@ -167,6 +167,18 @@ From the Bournemouth FAQ research, customers most often ask about these, and the
 
 1. **Local Experience Behind Every Job** 2. **Covered If Something Goes Wrong**
 
+## Blog slots (blog)
+
+Blog Post Structure (Ray, 28 Oct 2026), Layer 2 section 3. Blogs reuse the homepage slots and add these; code reads `roofer.json` `blog` (blog/blocks.js). Each slot starts from the business type default; a slot left out takes its default. Seasonal topics are shared with the quarterly GBP post batch, so blog and GBP posts follow one calendar; they apply only while `seasonal_trade` is yes.
+
+| Slot | Value |
+|---|---|
+| seasonal_topics | Check the roof before winter: October to November, publish September · Storm damage repairs: December to February, publish November · Moss clearing: March to April, publish February · Gutter clearing before the leaves fall: October, publish September |
+| safety_topics (the safety switch: no DIY steps) | Chimney removal or rebuild · Structural roof timbers and trusses · Going up on the roof yourself · Solar panels and electrical connections on the roof |
+| blog_cta_h2 (the Next step heading) | A: Talk to a Local [TRADE_PERSON] About [TOPIC] |
+| cost_unit (how a cost guide prices the job) | A: per job |
+| decision_pairs (common "X or Y" choices, run as decision posts) | Repair or replace · Slate or tile · Felt or EPDM for a flat roof · Concrete or clay tiles · Fascias repaired or replaced |
+
 ## do_not_reuse
 
 (empty)

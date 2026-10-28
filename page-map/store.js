@@ -109,6 +109,9 @@ async function ensurePageMapTables(pool) {
 
 const parse = v => (typeof v === 'string' ? JSON.parse(v) : v);
 const fromDb = r => ({ ...r, links_to: parse(r.links_to) || [], links_from: parse(r.links_from) || [], info: parse(r.info) || {}, generated_ref: parse(r.generated_ref) });
+// The blog row's info (page-map/generator.js BLOG_COLUMNS, plus what the decisions and the
+// daily job keep on the row: the service and category the post belongs to, the record's version)
+const BLOG_INFO_KEYS = [...G.BLOG_COLUMNS.map(c => c[1]), 'service', 'category', 'phase', 'held', 'backfill_pending', 'published_url'];
 const INFO_KEYS = ['town', 'category_key', 'service_id', 'service_name', 'parent_keys', 'additional', 'primary', 'merged_from', 'gbp_names', 'absorbs', 'copy_priority', 'phase', 'links'];
 // A plan row's info: what the generator put in info, plus its link sections
 const infoOf = p => { const src = { ...(p.info || {}), ...(p.links ? { links: p.links } : {}) }; return Object.fromEntries(INFO_KEYS.filter(k => src[k] !== undefined).map(k => [k, src[k]])); };
@@ -267,7 +270,58 @@ function createPageMapStore({ pool, filloutService, volumesFor = async () => new
 
   async function csv(clientId, opts) { return G.toCsv(await saved(clientId), opts); }
 
-  return { saved, state, preview, generate, setRow, csv, excludeFlags, setExclude, launchTowns, setLaunchTown, publishPhase2 };
+  // ── Blog rows (28 Oct 2026): written by the blog topic queue, never by the plan ──
+  // list: [{ slug: '/guides/<slug>', title, h1, info: { post_type, target_query, … } }] in queue
+  // order. Keyed on page_key: a new topic is added after every other row, a known one keeps its
+  // status, notes and a manual H1 (its title, auto H1 and info follow the queue), and a topic
+  // that left the queue no longer applies, unless its post is on the site (Scheduled, Pushed to
+  // WordPress or Live: a published post is never retired by a queue change).
+  const BLOG_KEEP = new Set(['Scheduled', 'Pushed to WordPress', 'Live']);
+  const blogInfoOf = b => { const src = { ...(b.info || {}) }; return Object.fromEntries(BLOG_INFO_KEYS.filter(k => src[k] !== undefined).map(k => [k, src[k]])); };
+  async function blogRows(clientId) { return (await saved(clientId)).filter(r => r.type === 'blog'); }
+  async function upsertBlogRows(clientId, list) {
+    const all = await saved(clientId);
+    const existing = new Map(all.filter(r => r.type === 'blog').map(r => [r.page_key, r]));
+    const base = all.filter(r => r.type !== 'blog').reduce((n, r) => Math.max(n, r.sort_order || 0), 0) + 1;
+    const keep = new Set();
+    let i = 0;
+    for (const b of list || []) {
+      const slug = String(b.slug || '').trim();
+      if (!slug) throw Object.assign(new Error('A blog row needs a slug.'), { status: 400 });
+      const key = G.pageKey('blog', slug);
+      keep.add(key);
+      const cur = existing.get(key);
+      const info = blogInfoOf(b);
+      const order = base + i++;
+      if (!cur) {
+        await pool.query(
+          `INSERT INTO client_page_map (client_id, page_key, type, title, slug, h1, h1_source, links_to, links_from, status, applies, info, sort_order)
+           VALUES ($1,$2,'blog',$3,$4,$5,'auto','[]','[]','Not Started',TRUE,$6,$7)`,
+          [clientId, key, String(b.title || b.h1 || slug), slug, String(b.h1 || ''), JSON.stringify(info), order]);
+        continue;
+      }
+      const manual = cur.h1_source === 'manual';
+      await pool.query(
+        `UPDATE client_page_map SET title=$3, slug=$4, h1=$5, h1_source=$6, info=$7, sort_order=$8, applies=TRUE, retired_at=NULL, retired_reason=NULL, updated_at=NOW() WHERE id=$1 AND client_id=$2`,
+        [cur.id, clientId, String(b.title || b.h1 || cur.title), slug, manual ? cur.h1 : String(b.h1 || ''), manual ? 'manual' : 'auto', JSON.stringify({ ...(cur.info || {}), ...info }), order]);
+    }
+    for (const cur of existing.values()) {
+      if (keep.has(cur.page_key) || cur.applies === false || BLOG_KEEP.has(cur.status)) continue;
+      await pool.query(`UPDATE client_page_map SET applies=FALSE, retired_at=NOW(), retired_reason=$3, updated_at=NOW() WHERE id=$1 AND client_id=$2`, [cur.id, clientId, 'it is no longer in the blog topic queue']);
+    }
+    return blogRows(clientId);
+  }
+  // One blog row's info patched (the daily job: publish date, link status, held, published_url)
+  async function patchBlogRow(clientId, slug, { info = {}, status } = {}) {
+    const cur = (await blogRows(clientId)).find(r => r.slug === slug);
+    if (!cur) throw Object.assign(new Error(`No blog row ${slug}.`), { status: 404 });
+    if (status !== undefined && !G.STATUSES.includes(status)) throw Object.assign(new Error(`status must be one of: ${G.STATUSES.join(', ')}`), { status: 400 });
+    const next = { ...(cur.info || {}), ...blogInfoOf({ info }) };
+    await pool.query(`UPDATE client_page_map SET info=$3, status=$4, updated_at=NOW() WHERE id=$1 AND client_id=$2`, [cur.id, clientId, JSON.stringify(next), status !== undefined ? status : cur.status]);
+    return (await blogRows(clientId)).find(r => r.slug === slug);
+  }
+
+  return { saved, state, preview, generate, setRow, csv, excludeFlags, setExclude, launchTowns, setLaunchTown, publishPhase2, blogRows, upsertBlogRows, patchBlogRow };
 }
 
-module.exports = { ensurePageMapTables, createPageMapStore, inputsFor, retiredReason };
+module.exports = { ensurePageMapTables, createPageMapStore, inputsFor, retiredReason, BLOG_INFO_KEYS };

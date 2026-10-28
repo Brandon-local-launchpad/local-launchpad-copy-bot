@@ -101,7 +101,7 @@ const same = (a, b) => [...a].sort().join() === [...b].sort().join();
 
   // ── CSV ──
   const csv = G.toCsv(m1.rows);
-  chk('CSV: the old PAGE MAP columns in order, then the link sections; 132 rows; links one per line in a quoted cell', csv.split('\r\n')[0] === 'Page Type,Page Title,URL Slug,H1 (Ahrefs),Meta Title,Meta Description,Links TO,Links FROM,Status,Breadcrumb,Cards,Areas Block,More Services,Body Links,Mentioned Services,Launch Phase,WordPress Status' && /^Service,Hedge trimming,\/services\/hedge-trimming,,,,"\/\n\/gardener\n\/locations\/romsey\/gardener/m.test(csv) && csv.split('\r\n').length - 2 === 132, csv.slice(0, 120), '');
+  chk('CSV: the old PAGE MAP columns in order, then the link sections, then the blog columns; 132 rows; links one per line in a quoted cell', csv.split('\r\n')[0] === 'Page Type,Page Title,URL Slug,H1 (Ahrefs),Meta Title,Meta Description,Links TO,Links FROM,Status,Breadcrumb,Cards,Areas Block,More Services,Body Links,Mentioned Services,Launch Phase,WordPress Status,Post type,Target query,Query stack,FAQ IDs,Primary link,Secondary links,Town,Homepage cost guide,Publish date,Link status,Last checked,Review due,Batch,Source,Source query' && /^Service,Hedge trimming,\/services\/hedge-trimming,,,,"\/\n\/gardener\n\/locations\/romsey\/gardener/m.test(csv) && csv.split('\r\n').length - 2 === 132, csv.slice(0, 120), '');
 
   // ── Store, seed and regeneration through pg-mem ──
   const mem = newDb();

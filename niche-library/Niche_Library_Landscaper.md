@@ -495,6 +495,18 @@ Draft, 27 Oct 2026, for Brandon's read before the first live run. Used by the lo
 | process | always | How do regular visits work in [TOWN]? | From the confirmed practices only: whether the customer needs to be in, keys, how the visit is agreed. A frequency only from [CV: visit_frequency_options]. Never promise a schedule. | Process |
 | timing | always | Do you garden through the winter in [TOWN]? | What the round does in each season in plain words (cutting through the growing season, clearing and pruning in the cold months). No dates. | Timing |
 
+## Blog slots (blog)
+
+Blog Post Structure (Ray, 28 Oct 2026), Layer 2 section 3. Blogs reuse the homepage slots and add these; code reads `landscaper.json` `blog` (blog/blocks.js). Each slot starts from the business type default; a slot left out takes its default. Seasonal topics are shared with the quarterly GBP post batch, so blog and GBP posts follow one calendar; they apply only while `seasonal_trade` is yes.
+
+| Slot | Value |
+|---|---|
+| seasonal_topics | Lay new turf: September to October, publish August · Prepare the garden for winter: November, publish October · Spring lawn care: March to April, publish February · Hedge cutting after the nesting season: August to September, publish July |
+| safety_topics (the safety switch: no DIY steps) | Electrics for garden lighting · Outdoor sockets and garden power · Retaining walls and structural garden walls · Felling a large tree near a building |
+| blog_cta_h2 (the Next step heading) | A: Talk to a Local [TRADE_PERSON] About [TOPIC] · B: Book a Local [TRADE_PERSON] for [TOPIC] |
+| cost_unit (how a cost guide prices the job) | A: per job · B: per visit |
+| decision_pairs (common "X or Y" choices, run as decision posts) | Turf or seed · Porcelain or sandstone · Composite or timber decking · Gravel or block paving for a driveway · Fence panels or closeboard fencing · Real or artificial grass |
+
 ## do_not_reuse
 
 (empty to start; add any sentence that has gone live on a client site so it is never repeated)

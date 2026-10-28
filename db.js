@@ -102,6 +102,8 @@ async function initDb() {
   await require('./ui/model-log').ensureModelLogTable(pool);
   // The redesigned UI (27 Oct): assigned_to on the client (ui/routes.js)
   await require('./ui/routes').ensureUiColumns(pool);
+  // Blog posts (28 Oct): launch_date, status and search_console_property on the client (blog/db.js)
+  await require('./blog/db').ensureBlogColumns(pool);
   console.log('DB schema ready');
 }
 

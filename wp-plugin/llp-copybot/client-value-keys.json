@@ -148,6 +148,10 @@
     "label": "Owner name 2"
   },
   {
+    "key": "owner_role",
+    "label": "Owner role"
+  },
+  {
     "key": "owner_qualification",
     "label": "Owner qualification"
   },

@@ -69,6 +69,8 @@ process.env.APP_PASSWORD = '';
   const asset = (type, filename, content, metadata = null) => pool.query(`INSERT INTO client_assets (client_id, asset_type, filename, content, metadata) VALUES ($1, $2, $3, $4, $5)`, [clientId, type, filename, content, metadata && JSON.stringify(metadata)]);
   // coastal_city left blank, so the area research answers it (see the dossier below)
   await asset('client_values', 'client_values.json', JSON.stringify({ ...E.ethanValues(), phone: '023 0000 0000', coastal_city: '' }));
+  // The onboarding form's owner field (28 Oct, blog stage 1): the Record tab infers the owner name and role from it while the values are blank
+  await pool.query(`INSERT INTO client_fields (client_id, field_key, question_id, value, status, source) VALUES ($1, 'owner_name_title', 'demo', '"Ethan, owner"', 'filled', 'form')`, [clientId]);
   const realDir = path.join(root, 'tests/fixtures/edens-edge-real');
   for (const f of fs.readdirSync(realDir)) {
     await asset('client_file', f, fs.readFileSync(path.join(realDir, f), 'utf8'), { fileType: f === 'page-map.csv' ? 'page_map' : 'custom_values' });

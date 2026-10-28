@@ -219,5 +219,48 @@
     "Covered If Something Goes Wrong"
   ],
 
+  "blog": {
+    "seasonal_topics": [
+      {
+        "topic": "Check the roof before winter",
+        "window": "October to November",
+        "publish": "September"
+      },
+      {
+        "topic": "Storm damage repairs",
+        "window": "December to February",
+        "publish": "November"
+      },
+      {
+        "topic": "Moss clearing",
+        "window": "March to April",
+        "publish": "February"
+      },
+      {
+        "topic": "Gutter clearing before the leaves fall",
+        "window": "October",
+        "publish": "September"
+      }
+    ],
+    "safety_topics": [
+      "Chimney removal or rebuild",
+      "Structural roof timbers and trusses",
+      "Going up on the roof yourself",
+      "Solar panels and electrical connections on the roof"
+    ],
+    "blog_cta_h2": {
+      "A": "Talk to a Local [TRADE_PERSON] About [TOPIC]"
+    },
+    "cost_unit": {
+      "A": "per job"
+    },
+    "decision_pairs": [
+      "Repair or replace",
+      "Slate or tile",
+      "Felt or EPDM for a flat roof",
+      "Concrete or clay tiles",
+      "Fascias repaired or replaced"
+    ]
+  },
   "do_not_reuse": []
 }

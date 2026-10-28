@@ -489,7 +489,7 @@
   }
 
   // ── Pages: the page map (page-map/routes.js) ──
-  const PM_TYPES = [['homepage', 'Homepage'], ['category', 'Category pages'], ['service', 'Service pages'], ['location', 'Location pages'], ['location_category', 'Location category pages'], ['town_service', 'Town service pages']];
+  const PM_TYPES = [['homepage', 'Homepage'], ['category', 'Category pages'], ['service', 'Service pages'], ['location', 'Location pages'], ['location_category', 'Location category pages'], ['town_service', 'Town service pages'], ['blog', 'Blog posts']];
   const SECTION_LABEL = { breadcrumb: 'Breadcrumb', cards: 'Cards', areas: 'Areas block', more: 'More services', body: 'Body link', parents: 'Also under' };
   const PM_STATUSES = ['Not Started', 'H1 Added', 'Copy Generated', 'Pushed to WordPress', 'Live'];
   let pm = { rows: [], state: null, excluded: [], launchTowns: [] };   // GET /api/clients/:id/page-map (rows, state, candidates, job, excluded services, launch towns)

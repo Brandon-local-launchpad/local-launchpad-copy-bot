@@ -175,7 +175,8 @@ function createH1Research({ pool, filloutService, pageMapStore, searchVolume = D
   // fresh: page keys a rebuild just created; in fill mode a page whose keyword group one of them wins
   // is re-researched too (Brandon, 20 Oct 2026), within the usual limits
   async function decide(clientId, { mode = 'all', fresh = new Set(), onStage = async () => {}, onRetry = null } = {}) {
-    const rows = (await pageMapStore.saved(clientId)).filter(r => r.applies);
+    // Blog rows (28 Oct) carry a question as their H1 and are never researched
+    const rows = (await pageMapStore.saved(clientId)).filter(r => r.applies && r.type !== 'blog');
     const st = await pageMapStore.state(clientId);
     const inputs = await inputsFor(filloutService, clientId, { categoryTabRule: (st && st.category_tab_rule) || 'ticked_only' });
     const cats = inputs.resolved ? inputs.resolved.categories : [];

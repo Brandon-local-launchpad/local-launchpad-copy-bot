@@ -3046,7 +3046,7 @@ const CLIENT_VALUES_TEMPLATE = {
   // Places the business has worked, comma separated (Brandon, 25 Oct): the only source for "we've
   // done jobs in [place]"; the validator blocks such a claim for any other place (AREA-CLAIM)
   areas_worked: '',
-  owner_name: '', owner_name_2: '', owner_qualification: '',
+  owner_name: '', owner_name_2: '', owner_role: '', owner_qualification: '',
   owner_why: '', owner_promise: '', owner_pronoun: '',
   owner_photo: 'no', business_type: 'A',
   materials_methods: [], guarantee_scope: '', team_size: '',
@@ -3101,6 +3101,14 @@ app.get('/api/clients/:clientId/client-values', async (req, res) => {
       if (ctx.coastalFromResearch) derived.coastal_city = ctx.coastalFromResearch;
     } catch (err) {
       console.error('[client-values] research values not loaded for', req.params.clientId, err);
+    }
+    // The owner's name and role as the onboarding form gave them ("first name and job title"), for
+    // the blog byline (28 Oct): shown beside owner_name and owner_role while they are blank
+    try {
+      const { rows: f } = await pool.query(`SELECT value FROM client_fields WHERE client_id = $1 AND field_key = 'owner_name_title' AND status = 'filled'`, [req.params.clientId]);
+      if (f.length && f[0].value) { const o = require('./blog/inputs').parseOwnerTitle(f[0].value); if (o.name) derived.owner = { ...o, raw: String(f[0].value) }; }
+    } catch (err) {
+      console.error('[client-values] owner field not read for', req.params.clientId, err);
     }
     if (!rows.length) return res.json({ found: false, values: { ...CLIENT_VALUES_TEMPLATE }, derived });
     const saved = JSON.parse(rows[0].content);
@@ -3986,6 +3994,16 @@ if (pool && pageMapStore) {
   // LeadSnap rank scans (batch 3): the client exists only when the token is set on Railway
   const leadsnap = process.env.LEADSNAP_API_TOKEN ? require('./leadsnap/client').createLeadsnapClient() : null;
   require('./gbp/routes').mountGbpApi(app, { pool, loadInputs: gbpInputsFor, callModel: gbpCallModel, saveClientValue, leadsnap });
+}
+
+// Blog posts (28 Oct, stage 1): the three settings on the client and the inputs report (blog/routes.js)
+if (pool) {
+  const B = require('./blog/routes');
+  const loadBlogInputs = B.createBlogInputsLoader({
+    pool, filloutService, pageMapStore, loadV20Context,
+    tradeFactsGate: async (clientId, trade) => { const gate = await tradeFacts.serviceGate(await nicheForGate(clientId, trade)); return gate.ok ? { niche: gate.niche, verified: true, message: '' } : { niche: gate.niche, verified: false, message: gate.message || gate.reason || 'not verified' }; },
+  });
+  B.mountBlogApi(app, { pool, loadBlogInputs });
 }
 
 // Category pages (CORE (16), 23 Oct): every category page and location category page from

@@ -53,7 +53,7 @@ const phase = (m, slug) => find(m, slug).info.phase;
   const csv = G.toCsv(t.rows);
   const head = csv.split('\r\n')[0];
   const line = slug => csv.split('\r\n').find(l => l.includes(`,${slug},`)) || '';
-  chk('The export carries the phase and the WordPress status it implies: publish for phase 1, "draft + noindex" for phase 2', /,Launch Phase,WordPress Status$/.test(head) && /,1,publish$/.test(line('/locations/romsey')) && /,2,draft \+ noindex$/.test(line('/locations/eastleigh')) && /,1,publish$/.test(line('/services/tree-stump-removal')), [line('/locations/romsey').slice(-20), line('/locations/eastleigh').slice(-22)].join(' | '), '');
+  chk('The export carries the phase and the WordPress status it implies: publish for phase 1, "draft + noindex" for phase 2', /,Launch Phase,WordPress Status,Post type,/.test(head) && /,1,publish,{15}$/.test(line('/locations/romsey')) && /,2,draft \+ noindex,{15}$/.test(line('/locations/eastleigh')) && /,1,publish,{15}$/.test(line('/services/tree-stump-removal')), [line('/locations/romsey').slice(-20), line('/locations/eastleigh').slice(-22)].join(' | '), '');
   chk('A phase-2 target is exported as plain text with the flag, a phase-1 one as a link', /Eastleigh \(links when published\)/.test(line('/services/tree-stump-removal')) && /Romsey → \/locations\/romsey\/tree-stump-removal/.test(line('/services/tree-stump-removal')), line('/services/tree-stump-removal').slice(0, 300), '');
   // ── Publish phase 2 (pure) ──
   const p = build({ launchTowns: new Set(['romsey']), phase2Published: true });
@@ -92,7 +92,7 @@ const phase = (m, slug) => find(m, slug).info.phase;
   const st = await store.state(cid);
   chk('Publish phase 2: every page is phase 1 (publish), the links are planned again (the homepage links to all 13 locations), the time is recorded, nothing added or retired, a person\'s H1 and status untouched', rows.filter(r => r.applies && r.info.phase === 2).length === 0 && byKey('homepage:/').links_to.filter(l => l.startsWith('/locations/')).length === 13 && !!st.phase2_published_at && out.diff.counts.wouldAdd === 0 && out.diff.counts.wouldRetire === 0 && byKey('location:/locations/eastleigh').h1 === 'Gardeners Eastleigh' && byKey('location:/locations/eastleigh').status === 'Copy Generated', JSON.stringify([out.diff.counts, st.phase2_published_at]), '');
   const csv2 = await store.csv(cid);
-  chk('After publishing, the export has no "links when published" and every row is publish', !/links when published/.test(csv2) && !/draft \+ noindex/.test(csv2) && /,1,publish\r\n/.test(csv2), '', '');
+  chk('After publishing, the export has no "links when published" and every row is publish', !/links when published/.test(csv2) && !/draft \+ noindex/.test(csv2) && /,1,publish,{15}\r\n/.test(csv2), '', '');
   await store.setLaunchTown(cid, 'Winchester', true);
   await store.generate(cid);
   rows = await store.saved(cid);

@@ -82,6 +82,7 @@ const GROUPS = [
   { key: 'owner', title: 'Owner', fields: [
     { key: 'owner_name', label: 'Owner name', placeholder: 'First name only' },
     { key: 'owner_name_2', label: 'Second owner' },
+    { key: 'owner_role', label: 'Owner role', placeholder: 'e.g. owner, lead gardener', hint: 'The blog byline reads "By [name], [role] at [company]"; blank reads "owner". No owner name: "By [company]".' },
     { key: 'owner_qualification', label: 'Qualification', placeholder: 'e.g. NVQ Level 3' },
     { key: 'owner_why', label: 'Why they do it', type: 'textarea' },
     { key: 'owner_promise', label: 'Owner promise', type: 'textarea' },
@@ -156,6 +157,8 @@ async function renderValues(body, ctx) {
       ${input(f)}
       ${f.hint ? `<div class="help">${h(f.hint)}</div>` : ''}
       ${f.key === 'coastal_city' && !hasValue(values.coastal_city) && derived.coastal_city ? `<div class="help">The area research says: ${h(typeof derived.coastal_city === 'object' ? (derived.coastal_city.value || JSON.stringify(derived.coastal_city)) : derived.coastal_city)}${derived.coastal_city && derived.coastal_city.source ? ` (${h(derived.coastal_city.source)})` : ''} ${tag('dossier', 'Dossier')}</div>` : ''}
+      ${f.key === 'owner_name' && !hasValue(values.owner_name) && derived.owner ? `<div class="help">The onboarding form says: "${h(derived.owner.raw)}", so the name reads ${h(derived.owner.name)} ${tag('form', 'Form')}. <button class="btn btn-xs" data-use-owner>Use it</button></div>` : ''}
+      ${f.key === 'owner_role' && !hasValue(values.owner_role) && derived.owner && derived.owner.role ? `<div class="help">The onboarding form says: "${h(derived.owner.raw)}", so the role reads ${h(derived.owner.role)} ${tag('form', 'Form')}.</div>` : ''}
       ${(f.sub || []).map(s => `<label class="check" style="margin-top:6px"><input type="checkbox" data-key="${h(s.key)}"${values[s.key] ? ' checked' : ''}> ${h(s.label)}</label>`).join('')}
     </div>`;
   };
@@ -205,7 +208,10 @@ async function renderValues(body, ctx) {
 
   body.innerHTML = `
     <div class="btn-row" style="margin-bottom:14px"><button class="btn btn-primary" id="saveCv">Save</button><button class="btn btn-ghost" id="prefill" title="Read the uploaded custom values and onboarding files into the blanks">Prefill from files</button><span class="muted small">Source tags: Form (Fillout), Website, GBP, Dossier (research), Hand. Amber values were inferred and need confirming.</span></div>
-    <div class="grid grid-2" id="cvGroups">${GROUPS.map(groupCard).join('')}</div>`;
+    <div class="grid grid-2" id="cvGroups">${GROUPS.map(groupCard).join('')}</div>
+    <div id="blogCard" style="margin-top:16px"></div>`;
+  // The Blog card loads on its own: a failure there never hides the client values
+  renderBlogCard(body.querySelector('#blogCard'), clientId).catch(err => { body.querySelector('#blogCard').innerHTML = `<section class="card"><div class="state failed"><h3>The Blog card could not load</h3><p>${h(err.message)}</p></div></section>`; console.error('[record] blog card', err); });
 
   // Chips toggle
   body.addEventListener('click', async e => {
@@ -217,6 +223,9 @@ async function renderValues(body, ctx) {
     const showAll = e.target.closest('[data-show-all]');
     if (showAll) { const f = GROUPS.flatMap(g => g.fields).find(x => x.key === showAll.dataset.showAll); values[f.key] = collectOne(body, f) ?? values[f.key]; f._showAll = !f._showAll; body.querySelector(`#f-${f.key}`).outerHTML = field(f); return; }
     const conf = e.target.closest('[data-confirm]'); if (conf) { confirmed[conf.dataset.confirm] = true; const f = conf.closest('.field'); f.style.borderLeft = ''; f.style.paddingLeft = ''; f.style.marginLeft = ''; conf.replaceWith(Object.assign(document.createElement('span'), { className: 'tag ok', textContent: 'confirmed' })); return; }
+    // The owner's name and role from the onboarding form, into the two boxes (saved with Save, as Form values)
+    const useOwner = e.target.closest('[data-use-owner]');
+    if (useOwner && derived.owner) { for (const [k, v] of [['owner_name', derived.owner.name], ['owner_role', derived.owner.role]]) { const inp = body.querySelector(`[data-key="${k}"]`); if (inp && v && !inp.value.trim()) { inp.value = v; sources[k] = 'form'; } } useOwner.replaceWith(Object.assign(document.createElement('span'), { className: 'muted', textContent: 'filled in; Save keeps it' })); return; }
   });
   // A new primary category loads its niche's materials and practices
   const catSel = body.querySelector('[data-key="primary_category"]');
@@ -274,3 +283,46 @@ async function renderValues(body, ctx) {
 }
 
 const hasValue = v => !(v === '' || v === null || v === undefined || (Array.isArray(v) && !v.length) || v === false);
+
+// ── The Blog card (28 Oct, stage 1): the three settings and every blog input ────────────
+// Launch date, status and the Search Console property save on their own (PUT blog-settings);
+// the report under them says what the posts can use and what is missing, in plain words.
+async function renderBlogCard(box, clientId) {
+  if (!box) return;
+  box.innerHTML = '<section class="card"><div class="muted small">Loading the blog inputs…</div></section>';
+  const draw = ({ settings: s, inputs: I }) => {
+    const P = I.prices || { services: [], rows: [], unmatched: [] };
+    const sl = I.slots;
+    const li = items => items.length ? `<ul class="list">${items.map(t => `<li>${h(t)}</li>`).join('')}</ul>` : '';
+    const priceRows = P.services.length ? `<table class="tbl" style="font-size:12px"><thead><tr><th>Service page</th><th>Price row</th><th>Cost guide</th><th></th></tr></thead><tbody>${P.services.map(sv => `<tr><td>${h(sv.title)}</td><td>${sv.price ? `${h(sv.price.text)}${sv.price.what_moves_price ? ` <span class="muted">(${h(sv.price.what_moves_price)})</span>` : ''}` : sv.rows.length ? `<span class="muted">${h(sv.rows.map(r => `"${r.service}": ${r.why}`).join('; '))}</span>` : '<span class="muted">none</span>'}</td><td>${sv.mode === 'prices' ? '<span class="pill ok">prices</span>' : '<span class="pill">factors</span>'}</td><td class="muted small">${h(sv.why || '')}</td></tr>`).join('')}</tbody></table>${P.unmatched.length ? `<div class="help">Price rows naming no service page: ${P.unmatched.map(r => `<strong>${h(r.service)}</strong> ${h(r.text)}${r.usable ? '' : ` <span class="muted">(${h(r.why)})</span>`}`).join(', ')}</div>` : ''}` : '<div class="muted">No service pages in the page map yet.</div>';
+    box.innerHTML = card({ title: 'Blog', sub: `${I.ready ? 'company name and phone on file' : 'company name or phone missing: no post runs'} · ${P.withPrices || 0} of ${P.services.length} service pages priced · ${I.trade_facts && I.trade_facts.verified ? 'trade facts pack verified' : 'trade facts pack not verified'}`, body: `
+      <div class="grid grid-2">
+        <div>
+          <div class="field"><label>Launch date</label><input class="input" type="date" id="blogLaunch" value="${attr(s.launch_date || '')}"><div class="help">The schedule (B10) is dated from it: 3 posts at launch, then 2, 4, 3, 2, 1, 1 a month. Blank: the launch posts go up as drafts.</div></div>
+          <div class="field"><label>Client status</label><select class="input" id="blogStatus"><option value="active"${s.status === 'active' ? ' selected' : ''}>active</option><option value="churned"${s.status === 'churned' ? ' selected' : ''}>churned</option></select><div class="help">Churned: the daily job turns every scheduled post into a draft. Published posts stay.</div></div>
+          <div class="field"><label>Search Console property</label><input class="input" id="blogSc" value="${attr(s.search_console_property || '')}" placeholder="sc-domain:example.co.uk or https://www.example.co.uk/"><div class="help">Read from month 6 for the Search Console batch. Brandon adds the service account as a user on the property.</div></div>
+          <div class="btn-row"><button class="btn btn-primary btn-sm" id="blogSave">Save blog settings</button><span class="small muted" id="blogSaved"></span></div>
+        </div>
+        <div>
+          <div class="sec-title">Byline (B13)</div>
+          <div>${h(I.owner.byline)}${I.owner.inferred ? ` ${tag('form', 'Form')} <span class="muted small">read from the onboarding form: confirm the owner name and role in the Owner card</span>` : ''}</div>
+          <div class="sec-title" style="margin-top:10px">Niche blog slots${sl ? ` <span class="muted small">(business type ${h(sl.type)}, ${h(sl.source === 'niche' ? 'from the niche entry' : 'business type defaults')})</span>` : ''}</div>
+          ${sl ? `<div class="small">Next step heading: ${h(sl.blog_cta_h2)} · cost unit: ${h(sl.cost_unit)} · seasonal: ${sl.seasonal ? `yes, ${sl.seasonal_topics.length} topic${sl.seasonal_topics.length === 1 ? '' : 's'}` : 'no'} · safety topics: ${sl.safety_topics.length} · decision pairs: ${sl.decision_pairs.length}</div>${sl.seasonal_topics.length ? `<div class="help">${sl.seasonal_topics.map(t => `${h(t.topic)} (${h(t.window)}${t.publish ? `, publish ${h(t.publish)}` : ''})`).join(' · ')}</div>` : ''}` : '<div class="muted small">No niche entry.</div>'}
+          <div class="sec-title" style="margin-top:10px">Dossiers</div>
+          <div class="small">${I.dossiers.length ? h(I.dossiers.join(', ')) : '<span class="muted">none saved</span>'}</div>
+        </div>
+      </div>
+      <div class="sec-title" style="margin-top:12px">Prices per service page (the price list)</div>
+      ${priceRows}
+      ${I.missing.length ? `<div class="notice warn" style="margin-top:12px"><strong>Missing</strong>${li(I.missing)}</div>` : '<div class="notice good" style="margin-top:12px">Every blog input is on file.</div>'}
+      ${I.notes.length ? `<div class="notice" style="margin-top:8px"><strong>Notes</strong>${li(I.notes)}</div>` : ''}
+      ${(I.problems || []).length ? `<div class="notice bad" style="margin-top:8px"><strong>Could not read</strong>${li(I.problems)}</div>` : ''}` });
+    box.querySelector('#blogSave').addEventListener('click', e => busy(e.target, 'Saving…', async () => {
+      try {
+        const r = await api(`/api/clients/${clientId}/blog-settings`, { method: 'PUT', body: { launch_date: box.querySelector('#blogLaunch').value, status: box.querySelector('#blogStatus').value, search_console_property: box.querySelector('#blogSc').value } });
+        toast('Blog settings saved'); draw(r);
+      } catch (err) { toast(`Not saved: ${err.message}`, 'bad'); }
+    }));
+  };
+  draw(await api(`/api/clients/${clientId}/blog-settings`));
+}
