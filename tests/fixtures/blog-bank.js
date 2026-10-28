@@ -152,14 +152,14 @@ const niche = { ...edens.niche, _source: 'landscaper' };
   try {
     const l = await call('/api/blog-bank');
     chk('GET /api/blog-bank lists the banks with the trades asked for (the approved file bank kept its row; landscaper is the real run file)', l.status === 200 && l.body.banks.map(b => b.trade).join() === 'landscaper,plumber,zz-fixture-trade,zz-paste-trade', l.body && l.body.banks.map(b => b.trade).join(), '');
-    const g = await call('/api/blog-bank/landscaper');
+    const g = await call('/api/blog-bank/zz-paste-trade');
     chk('GET one bank: the state, the text and the parsed topics', g.status === 200 && g.body.topics.length === 5 && /## 1\. TOPICS/.test(g.body.text) && g.body.ranked.length === 5, JSON.stringify([g.body.topics.length, g.body.ranked]), '');
     const pr = await call('/api/blog-bank/prompt/roofer');
     chk('GET the prompt for a trade', pr.status === 200 && pr.body.prompt.startsWith('RUN FOR: roofer'), pr.body && pr.body.prompt.slice(0, 20), '');
-    const bad = await call('/api/blog-bank/landscaper/paste', { method: 'POST', body: { text: 'nope' } });
+    const bad = await call('/api/blog-bank/zz-paste-trade/paste', { method: 'POST', body: { text: 'nope' } });
     chk('POST paste with a bad reply: 400 and the reason', bad.status === 400 && /No topics could be read/.test(bad.body.error), JSON.stringify(bad.body), '');
-    const ok = await call('/api/blog-bank/landscaper/paste', { method: 'POST', body: { text: sample } });
-    const ap = await call('/api/blog-bank/landscaper/approve', { method: 'POST', body: { who: 'Brandon' } });
+    const ok = await call('/api/blog-bank/zz-paste-trade/paste', { method: 'POST', body: { text: sample } });
+    const ap = await call('/api/blog-bank/zz-paste-trade/approve', { method: 'POST', body: { who: 'Brandon' } });
     chk('POST paste then approve: saved and approved', ok.status === 200 && ok.body.counts.topics === 5 && ap.status === 200 && ap.body.approved && ap.body.approvedBy === 'Brandon', JSON.stringify([ok.status, ap.body && ap.body.approved]), '');
     const badName = await call('/api/blog-bank/Bad%20Name/approve', { method: 'POST', body: { who: 'x' } });
     chk('A bad trade name: 400', badName.status === 400, badName.status, 400);

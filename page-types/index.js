@@ -38,5 +38,6 @@ registerPageType(require('./homepage'));
 registerPageType(require('./category'));
 registerPageType(require('./service'));
 registerPageType(require('./location'));
+registerPageType(require('./blog'));
 
 module.exports = { registerPageType, getPageType, pageTypeOf, pageTypeId, pageTypes };

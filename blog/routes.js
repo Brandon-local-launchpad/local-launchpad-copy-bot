@@ -50,7 +50,11 @@ function createBlogInputsLoader({ pool, filloutService = null, pageMapStore = nu
   };
 }
 
-function mountBlogApi(app, { pool, loadBlogInputs }) {
+// The queue (stage 3), when a queue service is given:
+//   GET  /api/clients/:id/blog/queue             every post with its decisions (no model call)
+//   POST /api/clients/:id/blog/queue/build       the reserved topics dated and written to the page map
+//   PUT  /api/clients/:id/blog/queue/:slug       { wording, approved } a person's approval or edit of the question
+function mountBlogApi(app, { pool, loadBlogInputs, queue = null }) {
   const wrap = fn => async (req, res) => {
     if (!pool) return res.status(503).json({ error: 'Database not configured.' });
     try { res.json(await fn(req)); }
@@ -59,6 +63,11 @@ function mountBlogApi(app, { pool, loadBlogInputs }) {
   const view = async clientId => ({ settings: await getBlogSettings(pool, clientId), inputs: await loadBlogInputs(clientId) });
   app.get('/api/clients/:clientId/blog-settings', wrap(req => view(req.params.clientId)));
   app.put('/api/clients/:clientId/blog-settings', wrap(async req => { await saveBlogSettings(pool, req.params.clientId, req.body || {}); return view(req.params.clientId); }));
+  if (queue) {
+    app.get('/api/clients/:clientId/blog/queue', wrap(req => queue.view(req.params.clientId)));
+    app.post('/api/clients/:clientId/blog/queue/build', wrap(req => queue.build(req.params.clientId)));
+    app.put('/api/clients/:clientId/blog/queue/:slug(*)', wrap(req => queue.setWording(req.params.clientId, '/' + String(req.params.slug || '').replace(/^\/+/, ''), req.body || {})));
+  }
 }
 
 module.exports = { mountBlogApi, createBlogInputsLoader };

@@ -109,6 +109,8 @@ require('./trade-facts/routes').mountTradeFactsApi(app, tradeFacts);
 const blogBank = require('./blog/bank-store').createBankStore({
   pool,
   runner: process.env.PERPLEXITY_API_KEY ? async (trade, prompt, onStatus) => require('./scripts/trade-facts').perplexityAgent({ apiKey: process.env.PERPLEXITY_API_KEY, preset: process.env.TRADE_FACTS_PRESET || 'high', onStatus }).research(prompt) : null,
+  // The hand written test sample is a bank only on the local demo (tests/ui/demo-server.js sets this); never on Railway
+  testSamplesAllowed: process.env.BLOG_BANK_TEST_SAMPLES === '1',
 });
 require('./blog/bank-routes').mountBankApi(app, blogBank, { trades: () => require('./trade-facts/pack').listNiches() });
 // The niche the gate checks for a client: the allocated niche key, else the trade
@@ -4020,7 +4022,13 @@ if (pool) {
     pool, filloutService, pageMapStore, loadV20Context,
     tradeFactsGate: async (clientId, trade) => { const gate = await tradeFacts.serviceGate(await nicheForGate(clientId, trade)); return gate.ok ? { niche: gate.niche, verified: true, message: '' } : { niche: gate.niche, verified: false, message: gate.message || gate.reason || 'not verified' }; },
   });
-  B.mountBlogApi(app, { pool, loadBlogInputs });
+  // The queue (stage 3): the reserved topics dated and written to the page map, each row's decisions
+  const blogQueue = require('./blog/queue-service').createBlogQueueService({
+    pool, pageMapStore, faqService, filloutService,
+    tradeFactsGate: async (clientId, trade) => { const gate = await tradeFacts.serviceGate(await nicheForGate(clientId, trade)); return { niche: gate.niche, verified: !!gate.ok, message: gate.ok ? '' : gate.message || '' }; },
+    packRows: (niche, service) => require('./trade-facts/pack').rowsForService(niche, service),
+  });
+  B.mountBlogApi(app, { pool, loadBlogInputs, queue: blogQueue });
 }
 
 // Category pages (CORE (16), 23 Oct): every category page and location category page from

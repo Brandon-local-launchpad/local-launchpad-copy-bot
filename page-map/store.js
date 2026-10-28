@@ -111,7 +111,9 @@ const parse = v => (typeof v === 'string' ? JSON.parse(v) : v);
 const fromDb = r => ({ ...r, links_to: parse(r.links_to) || [], links_from: parse(r.links_from) || [], info: parse(r.info) || {}, generated_ref: parse(r.generated_ref) });
 // The blog row's info (page-map/generator.js BLOG_COLUMNS, plus what the decisions and the
 // daily job keep on the row: the service and category the post belongs to, the record's version)
-const BLOG_INFO_KEYS = [...G.BLOG_COLUMNS.map(c => c[1]), 'service', 'category', 'phase', 'held', 'backfill_pending', 'published_url'];
+const BLOG_INFO_KEYS = [...G.BLOG_COLUMNS.map(c => c[1]), 'service', 'category', 'phase', 'held', 'backfill_pending', 'published_url',
+  // The queue's own keys (blog/queue.js rowsFor): the resolved stack and FAQ wordings, the question and its approval, the slot
+  'service_slug', 'category_slug', 'stack', 'faq', 'question_id', 'question_source', 'wording', 'wording_source', 'wording_approved', 'wording_edited', 'needs_approval', 'seasonal', 'dossier_condition', 'cost_unit', 'slot_note', 'held_for_date', 'month'];
 const INFO_KEYS = ['town', 'category_key', 'service_id', 'service_name', 'parent_keys', 'additional', 'primary', 'merged_from', 'gbp_names', 'absorbs', 'copy_priority', 'phase', 'links'];
 // A plan row's info: what the generator put in info, plus its link sections
 const infoOf = p => { const src = { ...(p.info || {}), ...(p.links ? { links: p.links } : {}) }; return Object.fromEntries(INFO_KEYS.filter(k => src[k] !== undefined).map(k => [k, src[k]])); };
@@ -312,12 +314,15 @@ function createPageMapStore({ pool, filloutService, volumesFor = async () => new
     return blogRows(clientId);
   }
   // One blog row's info patched (the daily job: publish date, link status, held, published_url)
-  async function patchBlogRow(clientId, slug, { info = {}, status } = {}) {
+  async function patchBlogRow(clientId, slug, { info = {}, status, h1, title } = {}) {
     const cur = (await blogRows(clientId)).find(r => r.slug === slug);
     if (!cur) throw Object.assign(new Error(`No blog row ${slug}.`), { status: 404 });
     if (status !== undefined && !G.STATUSES.includes(status)) throw Object.assign(new Error(`status must be one of: ${G.STATUSES.join(', ')}`), { status: 400 });
     const next = { ...(cur.info || {}), ...blogInfoOf({ info }) };
-    await pool.query(`UPDATE client_page_map SET info=$3, status=$4, updated_at=NOW() WHERE id=$1 AND client_id=$2`, [cur.id, clientId, JSON.stringify(next), status !== undefined ? status : cur.status]);
+    // A wording a person approved or edited on the queue is the row's H1 (manual, so a queue rebuild keeps it)
+    const nextH1 = h1 !== undefined ? String(h1 || '') : cur.h1;
+    await pool.query(`UPDATE client_page_map SET info=$3, status=$4, h1=$5, h1_source=$6, title=$7, updated_at=NOW() WHERE id=$1 AND client_id=$2`,
+      [cur.id, clientId, JSON.stringify(next), status !== undefined ? status : cur.status, nextH1, h1 !== undefined ? 'manual' : cur.h1_source, title !== undefined ? String(title || cur.title) : cur.title]);
     return (await blogRows(clientId)).find(r => r.slug === slug);
   }
 

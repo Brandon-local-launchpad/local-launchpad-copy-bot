@@ -263,7 +263,7 @@ function reserveBlogTopics({ assignment, cv = {}, niche = {}, keyValueMap = {}, 
     else if (t.question && !t.question.approved) t.flags.push({ code: 'F-WORDING', msg: `${t.question.id} is not approved on the FAQ card yet (G-TOPIC).` });
   }
   if (batch.length < target) flags.push({ code: 'F-QUEUE', msg: `${batch.length} topic${batch.length === 1 ? '' : 's'} for the onboarding batch (16 wanted): the cadence stops at the last topic; the Search Console batch picks up from month six.` });
-  if (!bank) flags.push({ code: 'F-BANK', msg: `No approved blog question bank for ${niche._source || niche.trade || 'this trade'}: the topics come from the held questions, the dossiers and the seasonal topics only. Run or paste the bank on the Trade facts page and approve it.` });
+  if (!bank) flags.push({ code: 'F-BANK', msg: `No approved blog question bank for ${lc(niche.trade) || 'this trade'}: the topics come from the held questions, the dossiers and the seasonal topics only. Run or paste the bank on the Trade facts page and approve it.` });
   const leftovers = pool.filter(q => !used.has(q.id)).map(q => q.id);
   const leftoversBank = bankTopics.filter(t => !usedBank.has(t.id)).map(t => t.id);
   const by = type => batch.filter(t => t.post_type === type).length;

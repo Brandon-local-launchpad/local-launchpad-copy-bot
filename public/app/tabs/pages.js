@@ -6,7 +6,7 @@
 
 import { h, attr, api, card, table, status, pill, timeEl, score, running, toast, confirm, empty, plural, fmtDate, busy } from '../ui.js';
 
-const TYPES = [['homepage', 'Homepage'], ['category', 'Category'], ['service', 'Service'], ['location', 'Location']];
+const TYPES = [['homepage', 'Homepage'], ['category', 'Category'], ['service', 'Service'], ['location', 'Location'], ['blog', 'Blog']];
 const STATUS_KIND = { 'not started': 'none', running: 'run', queued: 'none', written: 'ok', blocked: 'block', failed: 'block', 'waiting on a person': 'wait', approved: 'ok', pushed: 'ok', skipped: 'none', waiting: 'none' };
 
 export async function render(el, ctx) {
@@ -70,10 +70,62 @@ export async function render(el, ctx) {
     return { ...p, status: st, detail, score: r ? r.score : null, cost: r ? r.cost_pence : null, claims: r ? r.claims : 0, at: r ? r.at : null, href: r ? `/clients/${clientId}/pages/${p.type}/${encodeURIComponent(p.key)}` : '' };
   }
 
+  // The blog queue (stage 3, 28 Oct): the Blog filter shows the reserved topics dated by the
+  // schedule, each with its decisions (gates, flags, H1 and title lengths, links, switches,
+  // specificity, publish date), the question to approve or edit, and the build button
+  let blog = null, blogLoading = false;
+  const loadBlog = async () => { blogLoading = true; try { blog = await api(`/api/clients/${clientId}/blog/queue`); } catch (e) { blog = { error: e.message, rows: [], counts: {} }; } blogLoading = false; if (filter === 'blog') draw(); };
+  const drawBlogQueue = () => {
+    const box = el.querySelector('#blogQueue'); if (!box) return;
+    if (!blog) { box.innerHTML = '<section class="card"><div class="muted small">Loading the queue…</div></section>'; if (!blogLoading) loadBlog(); return; }
+    if (blog.error) { box.innerHTML = `<section class="card"><div class="state failed"><h3>The blog queue could not load</h3><p>${h(blog.error)}</p></div><div class="btn-row"><button class="btn btn-primary btn-sm" data-blog="build">Build the queue</button></div></section>`; return; }
+    const B = blog, c = B.counts || {};
+    const gateLine = r => r.gates.length ? r.gates.map(g => `<span class="pill block" title="${attr(g.msg)}">${h(g.code)}</span>`).join(' ') : '<span class="pill ok">ready</span>';
+    const flagLine = r => r.flags.map(f => `<span class="pill wait" title="${attr(f.msg)}">${h(f.code)}</span>`).join(' ');
+    const sw = r => r.switches ? `table ${r.switches.table ? `on (${h(r.switches.table_type)})` : 'off'} · business ${r.switches.business ? 'on' : 'off'} · safety ${r.switches.safety ? 'ON' : 'off'}${r.switches.cost_mode ? ` · ${h(r.switches.cost_mode)}` : ''}` : '<span class="muted">–</span>';
+    const columns = [
+      { key: 'post', label: 'Post', cls: 'no-label', render: r => `<span class="primary">${h(r.h1 || r.wording)}${r.homepage_cost_guide ? ' <span class="tag ok">homepage cost guide</span>' : ''}</span><span class="sub">${h(r.slug)} · ${h(r.post_type.replace('_', ' '))} · ${h(r.source || '')}${r.town ? ` · ${h(r.town)}` : ''}${r.question_id ? ` · ${h(r.question_id)}` : ''}</span>` },
+      { key: 'wording', label: 'Question', render: r => `<div style="display:flex;gap:6px;align-items:center;min-width:260px"><input class="input blog-wording" data-slug="${attr(r.slug)}" value="${attr(r.wording)}" data-orig="${attr(r.wording)}" style="flex:1;min-width:0;padding:4px 8px"><button class="btn btn-xs ${r.wording_approved ? 'btn-ghost' : 'btn-primary'}" data-blog-approve="${attr(r.slug)}" data-on="${r.wording_approved ? '0' : '1'}">${r.wording_approved ? 'Approved ✓' : 'Approve'}</button></div><span class="sub">${r.h1 ? `H1 ${r.h1_length} chars${r.h1_length > 70 ? ' <span style="color:#b91c1c">(70 at most)</span>' : ''} · title ${r.title_length} chars${r.title_length > 60 ? ' <span style="color:#b91c1c">(60 at most)</span>' : ''}` : h(r.wording_source === 'code' ? 'written by code: approve or edit it' : '')}</span>` },
+      { key: 'links', label: 'Links', render: r => r.primary ? `${h(r.primary.url)} <span class="muted small">(${h(r.primary.status)})</span>${r.secondary.map(s => `<span class="sub">+ ${h(s.url)}</span>`).join('')}` : '<span class="muted">–</span>' },
+      { key: 'switches', label: 'Switches', render: sw },
+      { key: 'spec', label: 'Specific', num: true, render: r => r.specificity ? `<span title="${attr(`have: ${r.specificity.have.join('; ')}; missing: ${r.specificity.missing.join('; ')}`)}">${r.specificity.count} of 6</span>` : '<span class="muted">–</span>' },
+      { key: 'stack', label: 'H2s · FAQ', render: r => `${r.stack} · ${r.faq}` },
+      { key: 'gates', label: 'Gates', render: gateLine },
+      { key: 'date', label: 'Publish', render: r => r.publish_date ? `${h(fmtDate(r.publish_date))}${r.month === 0 ? ' <span class="muted small">launch</span>' : ''}${r.slot_note ? `<span class="sub">${h(r.slot_note)}</span>` : ''}` : `<span class="muted">${r.held_for_date ? 'no launch date' : '–'}</span>` },
+      { key: 'flags', label: 'Flags', render: flagLine },
+    ];
+    const res = B.reservation;
+    box.innerHTML = `
+      ${(B.problems || []).length ? `<div class="notice bad" style="margin-bottom:10px">Could not read: ${B.problems.map(h).join('; ')}</div>` : ''}
+      <div class="notice" style="margin-bottom:14px;display:flex;gap:16px;flex-wrap:wrap;align-items:center"><span><strong>${plural(c.rows || 0, 'post')}</strong> in the queue</span><span>${c.ready || 0} ready</span><span>${c.gated || 0} gated</span><span>${c.to_approve || 0} questions to approve</span><span>${c.dated || 0} dated${B.settings && B.settings.launch_date ? ` from ${h(fmtDate(B.settings.launch_date))}` : ' (no launch date on the Record tab)'}</span>${res ? `<span class="muted">reserved: ${res.counts.topics} topics, ${res.counts.from_bank || 0} from the bank</span>` : ''}</div>
+      ${[...(B.schedule_flags || []), ...((res && res.flags) || [])].map(f => `<div class="small" style="color:#b45309;margin-bottom:4px">${h(f.code)}: ${h(f.msg)}</div>`).join('')}
+      <section class="card card-flat">
+        <div class="tbl-tools"><span class="muted small">The topics reserved on the Research tab, dated by the schedule (3 at launch, then 2, 4, 3, 2, 1, 1 a month). Edit a question and Approve to clear G-TOPIC; the rest of the decisions are code's.</span><span class="spacer"></span><button class="btn btn-primary btn-sm" data-blog="build">${B.rows.length ? 'Rebuild the queue' : 'Build the queue'}</button></div>
+        ${table({ columns, rows: B.rows, cards: true, emptyText: 'No posts in the queue yet. Build it from the reserved topics.' })}
+      </section>`;
+  };
+  el.addEventListener('click', async e => {
+    const b = e.target.closest('[data-blog]');
+    if (b && b.dataset.blog === 'build') { e.stopPropagation(); await busy(b, 'Building…', async () => { try { blog = await api(`/api/clients/${clientId}/blog/queue/build`, { method: 'POST' }); toast(`Queue built: ${blog.counts.rows} posts`); draw(); } catch (err) { toast(err.message, 'bad'); } }); return; }
+    const a = e.target.closest('[data-blog-approve]');
+    if (a) {
+      e.stopPropagation();
+      const slug = a.dataset.blogApprove;
+      const input = el.querySelector(`.blog-wording[data-slug="${CSS.escape(slug)}"]`);
+      const wording = input ? input.value : undefined;
+      const on = a.dataset.on === '1';
+      try { blog = await api(`/api/clients/${clientId}/blog/queue/${encodeURIComponent(slug.replace(/^\//, ''))}`, { method: 'PUT', body: { wording, approved: on } }); toast(on ? 'Question approved' : 'Approval removed'); draw(); } catch (err) { toast(err.message, 'bad'); }
+    }
+  });
+
   const draw = () => {
     const { rows, views } = data;
     const list = filter === 'all' ? rows : rows.filter(r => r.type === filter);
-    const counts = Object.fromEntries(TYPES.map(([t]) => [t, rows.filter(r => r.type === t).length]));
+    const counts = Object.fromEntries(TYPES.map(([t]) => [t, t === 'blog' ? (blog && blog.counts ? blog.counts.rows || 0 : 0) : rows.filter(r => r.type === t).length]));
+    if (filter === 'blog') {
+      el.innerHTML = `<section class="card card-flat" style="margin-bottom:14px"><div class="tbl-tools"><div class="chips">${[['all', 'All'], ...TYPES].map(([k, l]) => `<button class="chip${filter === k ? ' active' : ''}" data-filter="${k}">${l}${k === 'all' ? ` <span class="muted">${rows.length}</span>` : ` <span class="muted">${counts[k]}</span>`}</button>`).join('')}</div></div></section><div id="blogQueue"></div><div id="siteCard" style="margin-top:16px"></div>`;
+      drawBlogQueue(); drawSite(); return;
+    }
     const runningRows = rows.filter(r => r.status === 'running');
     const anyRunning = runningRows.length > 0 || Object.values(views).some(v => v.running);
     // One notice per distinct readiness problem (the three page types often share one)
@@ -82,7 +134,7 @@ export async function render(el, ctx) {
     const readiness = [...problems].map(([msg, ts]) => `<div class="notice bad" style="margin-bottom:10px"><strong>${h(ts.join(', '))} pages:</strong> ${h(msg)}</div>`).join('');
     const columns = [
       { key: 'title', label: 'Page', cls: 'no-label', render: r => `<span class="primary">${h(r.title)}</span><span class="sub">${h(r.h1 || r.key)}${r.town ? ` · ${h(r.town)}` : ''}</span>` },
-      { key: 'type', label: 'Type', render: r => `${h(TYPES.find(t => t[0] === r.type)[1])}${r.scope === 'town' ? ' <span class="muted small">(town)</span>' : ''}` },
+      { key: 'type', label: 'Type', render: r => `${h((TYPES.find(t => t[0] === r.type) || [r.type, r.type])[1])}${r.scope === 'town' ? ' <span class="muted small">(town)</span>' : ''}` },
       { key: 'status', label: 'Status', render: r => `${status(STATUS_KIND[r.status] || 'none', r.status)}${r.detail ? `<span class="sub">${h(r.detail)}</span>` : ''}` },
       { key: 'score', label: 'Quality', num: true, render: r => score(r.score) },
       { key: 'cost', label: 'Cost', num: true, render: r => r.cost === null || r.cost === undefined ? '<span class="muted">–</span>' : `£${(r.cost / 100).toFixed(2)}` },
@@ -94,7 +146,7 @@ export async function render(el, ctx) {
     ];
     const runLine = runningRows.length ? runningRows.map(r => { const v = views[r.type]; const list = v && v.run && v.run.pages || []; const done = list.filter(p => ['done', 'kept', 'blocked', 'failed', 'skipped'].includes(p.status)).length; const nxt = list.find(p => p.status === 'pending'); return running({ now: `Writing ${r.title}`, next: nxt ? `Next: ${nxt.title}` : 'Then the run finishes and this table refreshes', done: list.length ? done : null, total: list.length || null }); }).join('') : (anyRunning ? running({ now: 'A run is starting', next: 'The first page appears here in a moment' }) : '');
     const cost = data.summary.row.cost || {};
-    const typeLine = TYPES.map(([t, l]) => `${counts[t]} ${l.toLowerCase()}`).join(', ');
+    const typeLine = TYPES.filter(([t]) => t !== 'blog').map(([t, l]) => `${counts[t]} ${l.toLowerCase()}`).join(', ');
     const summaryLine = rows.length ? `<div class="notice" style="margin-bottom:14px;display:flex;gap:16px;flex-wrap:wrap;align-items:center"><span><strong>${plural(rows.length, 'page')}</strong>: ${h(typeLine)}</span><span>${rows.filter(r => r.record).length} written</span><span>spent <strong>£${((cost.spent_pence || 0) / 100).toFixed(2)}</strong>${cost.logged !== undefined && cost.logged < rows.filter(r => r.record).length ? ` <span class="muted">(${cost.logged} of ${rows.filter(r => r.record).length} written pages have a cost on record)</span>` : ''}</span><span>estimated <strong>£${((cost.estimate_pence || 0) / 100).toFixed(2)}</strong> to write the rest <span class="muted">(each type at its average here, else about 60p a page)</span></span></div>` : '';
     el.innerHTML = `
       ${readiness}
