@@ -23,6 +23,9 @@ const { bylineFor, matchPrices } = require('./inputs');
 const { blocksFor } = require('./blocks');
 const { titleCase, question } = require('./topics');
 const { costGuideH2s, loadStructure } = require('./cost-guide');
+const SQ = require('./same-question');
+const LIB = require('../niche-library/library');
+const MONTH_RE = /\b(?:january|february|march|april|may|june|july|august|september|october|november|december|spring|summer|autumn|winter)\b/i;
 const PT = require('../page-types/blog');
 const { CV_KEYS } = require('../v20-generate');
 
@@ -43,6 +46,7 @@ const DECISION_RE = /^(?:is |are |should i (?:choose |use |go for |lay |pick |ha
 const SYMPTOM_RE = /\b(?:water|puddle|pool|sits|sitting|standing|boggy|soggy|waterlogg|damp|moss|thin|bare|patch|yellow|brown|dies|dying|dead|crack|lift|rock|sink|slip|slump|wobbl|lean|rot|flood|drain|dries|hard|compact|weed|algae|slime|heave|subsid|sag|loose|gap|erod|wash)\w*\b/i;
 const TABLE_COLUMNS = {
   local:      ['Sign', 'Likely cause', 'Usual fix'],
+  cost_guide_factors: ['Job', 'What affects the price'],
   cost_guide: ['Job', 'Typical price', 'What affects it'],
   decision:   ['Option', 'Suits', 'Cost level', 'Upkeep'],
   question:   ['Cause', 'Sign', 'Fix'],
@@ -75,8 +79,15 @@ function seoTitleFor(h1, cv, targetQuery) {
   const full = `${bare} | ${cv.company_name}`;
   if (full.length <= 60) return { title: full, how: 'h1 and company' };
   if (bare.length <= 60) return { title: bare, how: 'h1 alone' };
-  const kw = titleCase(String(targetQuery || '').trim());
-  return { title: kw, how: 'the target query', tooLong: kw.length > 60 };
+  // Still over: the H1 without its place clause, then the target query's keyword words (the
+  // question frame out), then a cut at a word boundary (Brandon, 28 Oct: never over 60)
+  const noPlace = bare.replace(/\s+(?:in|across|around|near)\s+[A-Z][\w' ]+$/, '');
+  if (noPlace !== bare && noPlace.length <= 60) return { title: noPlace, how: 'h1 without the place' };
+  const FRAME = /\b(?:why|does|do|did|is|are|was|were|can|could|should|would|will|what|how|when|where|which|who|my|your|our|the|a|an|i|you|it|to|for|of|in|on|at|and|or|after|before|with|from|there|this|that|get|much|many)\b/gi;
+  const kw = titleCase(String(targetQuery || bare).replace(FRAME, ' ').replace(/\s+/g, ' ').trim());
+  if (kw.length <= 60 && kw.length >= 20) return { title: kw, how: 'the target query\'s keyword words' };
+  const cut = (kw.length >= 20 ? kw : bare).slice(0, 60).replace(/\s+\S*$/, '');
+  return { title: cut, how: 'cut at 60', tooLong: false };
 }
 
 // B9: the six specificity facts
@@ -126,6 +137,8 @@ function computeBlogDecisions({ row, cv = {}, niche = {}, keyValueMap = {}, page
     const guide = blogRows.find(r => r.slug !== row.slug && r.applies !== false && r.info && r.info.post_type === 'cost_guide' && r.info.service_slug === info.service_slug && r.status === 'Live');
     if (guide) secondary.push({ url: `${guide.slug}/`, name: guide.h1 || guide.title, type: 'cost guide' });
   }
+  // The homepage cost guide links the live service cost guides, each once, in H2 1 (the structure)
+  if (info.homepage_cost_guide) for (const g of blogRows.filter(r => r.slug !== row.slug && r.applies !== false && r.info && r.info.post_type === 'cost_guide' && r.info.service_slug && r.status === 'Live')) secondary.push({ url: `${g.slug}/`, name: g.h1 || g.title, type: 'cost guide' });
   if (postType === 'local' && town) {
     const loc = pages.find(p => p.pageType === 'location' && norm(p.pageTitle) === norm(town) && isLinkable(p));
     const locCat = !loc && servicePage ? null : pages.find(p => p.pageType === 'location-category' && norm(p.locationName || '') === norm(town) && isLinkable(p));
@@ -134,7 +147,12 @@ function computeBlogDecisions({ row, cv = {}, niche = {}, keyValueMap = {}, page
   }
 
   // ── The facts this post may use ──
-  const svcTitle = info.service || (servicePage && servicePage.pageTitle) || '';
+  // The UK page name from the services library, never the Google Business Profile name ("Turf laying", not "Sod installation")
+  let lib = null;
+  try { lib = LIB.loadLibrary(niche._source || require('../trade-facts/pack').packNameFor(niche.trade)); } catch (_) { lib = null; }
+  const ukName = title => { const t = String(title || '').trim(); if (!lib || !t) return t; const e = (lib.rows || []).find(r => lc(r.gbp_name) === lc(t)); return e && e.target && e.verdict !== 'exclude' ? e.target : t; };
+  const svcTitle = ukName(info.service || (servicePage && servicePage.pageTitle) || '');
+  if (primary.type === 'service') primary.name = ukName(primary.name);
   const prices = matchPrices(servicePage ? [{ type: 'service', title: servicePage.pageTitle, slug: servicePage.urlSlug, applies: true, info: {} }] : [], priceRows);
   const priceList = (prices.services[0] && prices.services[0].rows.filter(r => r.usable)) || [];
   const costMode = postType === 'cost_guide' ? (priceList.length ? 'prices' : 'factors') : null;
@@ -220,15 +238,30 @@ const tfRows = (tradeFacts && tradeFacts.verified && Array.isArray(tradeFacts.ro
   const stackQ = (info.stack && info.stack.length ? info.stack : (info.query_stack || []).map(id => ({ id, wording: (questions.get(id) || {}).wording || id, doubt: (questions.get(id) || {}).doubt || '' }))).map(s => ({ ...s, doubt: s.doubt || 'Process' }));
   const faqQ = (info.faq && info.faq.length ? info.faq : (info.faq_ids || []).map(id => ({ id, wording: (questions.get(id) || {}).wording || id, doubt: (questions.get(id) || {}).doubt || '' }))).map(s => ({ ...s, doubt: s.doubt || 'Process' }));
   // A cost guide's H2s are the fixed set from the Cost Guide Structure (Brandon, 28 Oct); the bank gives its FAQ only
-  const fixed = postType === 'cost_guide' ? costGuideH2s({ service: svcTitle || ctx.trade, city }) : null;
-  // A fixed H2 is written as the structure has it (a heading, not always a question)
-  const sections = fixed ? fixed.map(h => ({ id: h.id, h2: /\?$/.test(h.wording) ? question(h.wording) : titleCase(h.wording), doubt: h.doubt, brief: h.brief, needs_fact: false, fixed: true }))
+  // A cost guide's H2s are the fixed set from the Cost Guide Structure: an H2 whose fact rows are
+  // missing is dropped, not padded (F-H2-DROPPED); under three left the post is held
+  const have = {
+    price: info.homepage_cost_guide ? priceRows.some(r => !r.deleted && !r.quote_only && !r.unverified && (r.from_gbp || r.up_to_gbp || r.typical_gbp)) : priceList.length > 0,
+    factors: tfRows.some(r => r.kind === 'price factor') || priceList.some(r => r.what_moves_price),
+    quote: !!(cv.quote_includes || cv.quote_method) || practices.length > 0 || tfRows.some(r => r.kind === 'standard method'),
+    timing: tfRows.some(r => r.kind === 'timing'),
+  };
+  const fixedRes = postType === 'cost_guide' ? costGuideH2s({ service: svcTitle || ctx.trade, city, trade: ctx.trade, tradePerson: ctx.tradePerson, costUnit: info.cost_unit || slots.cost_unit || 'per job', mode: costMode || 'factors', homepage: !!info.homepage_cost_guide, have }) : null;
+  const fixed = fixedRes ? fixedRes.h2s : null;
+  const sections = fixed ? fixed.map(h => ({ id: h.id, h2: /\?$/.test(h.wording) ? question(h.wording) : titleCase(h.wording), doubt: h.doubt, brief: h.brief, needs_fact: false, fixed: true, needs: h.needs }))
     : stackQ.map(s => ({ id: s.id, h2: question(s.wording), doubt: s.doubt, brief: DOUBT_BRIEF[s.doubt] || DOUBT_BRIEF.Process, needs_fact: !!s.needs_fact }));
+  if (fixedRes && fixedRes.dropped.length) flags.push({ code: 'F-H2-DROPPED', msg: `${fixedRes.dropped.length} fixed H2${fixedRes.dropped.length === 1 ? '' : 's'} dropped for want of fact rows: ${fixedRes.dropped.map(h => `"${h.wording}" (${h.missing.join(', ')})`).join('; ')}.` });
   if (fixed && loadStructure().placeholder) flags.push({ code: 'F-STRUCTURE', msg: 'The cost guide H2s are the placeholder set: prompts/Cost_Guide_Structure.md waits for Brandon\'s Cost Guide Structure.' });
-  const faq = faqQ.map(s => ({ id: s.id, question: question(s.wording), doubt: s.doubt, needs_fact: !!s.needs_fact }));
-  // The shape gate (Brandon, 28 Oct): three H2s and three FAQ questions at least, or the post is held; never a cost guide
-  if (!fixed && (sections.length < 3 || faq.length < 3)) gates.push({ code: 'G-STACK', hold: true, msg: `${row.slug}: ${sections.length} H2${sections.length === 1 ? '' : 's'} and ${faq.length} FAQ question${faq.length === 1 ? '' : 's'} (3 of each needed). The post is held, not written.` });
-  if (!fixed && sections.length < 3) flags.push({ code: 'F-STACK', msg: `${sections.length} query stack question(s) (3 to 5 wanted): held (G-STACK).` });
+  // The FAQ never repeats or rephrases an H2 (the structure; Brandon, 28 Oct: same meaning, any words)
+  const h2Words = sections.map(s => s.h2);
+  const faqAll = faqQ.map(s => ({ id: s.id, question: question(s.wording), doubt: s.doubt, needs_fact: !!s.needs_fact }));
+  const faq = faqAll.filter(f => !SQ.findSame(f.question, h2Words, { exclude: [city, svcTitle, info.pack_service || '', ctx.trade] })); // the service words are the shared subject, not the question
+  if (faq.length < faqAll.length) flags.push({ code: 'F-FAQ-H2', msg: `${faqAll.length - faq.length} FAQ question${faqAll.length - faq.length === 1 ? '' : 's'} dropped: ${faqAll.filter(f => !faq.includes(f)).map(f => `"${f.question}"`).join(', ')} rephrase${faqAll.length - faq.length === 1 ? 's' : ''} an H2.` });
+  // The shape gate (Brandon, 28 Oct): three H2s and three FAQ questions at least, or the post is held
+  if (sections.length < 3 || faq.length < 3) gates.push({ code: 'G-STACK', hold: true, msg: `${row.slug}: ${sections.length} H2${sections.length === 1 ? '' : 's'} and ${faq.length} FAQ question${faq.length === 1 ? '' : 's'} (3 of each needed). The post is held, not written.` });
+  if (sections.length < 3) flags.push({ code: 'F-STACK', msg: `${sections.length} H2${sections.length === 1 ? '' : 's'} (3 to 5 wanted): held (G-STACK).` });
+  // A "When …" H1 needs a month window in the trade facts timing rows (Brandon, 28 Oct)
+  if (/^When\b/i.test(wording) && !tfRows.some(r => r.kind === 'timing' && MONTH_RE.test(r.text))) gates.push({ code: 'G-WINDOW', hold: true, msg: `${row.slug}: a "When …" post needs a month window in FACTS ALLOWED (a trade facts timing row naming a month or a season); none for ${svcTitle || info.pack_service || 'this service'}. Reword the topic as "How to …" or hold it.` });
   if (faq.length < 3) flags.push({ code: 'F-FAQ-ITEMS', msg: `${faq.length} FAQ question(s) (3 to 5 wanted).` });
 
   // ── B11: the table ──
@@ -236,7 +269,12 @@ const tfRows = (tradeFacts && tradeFacts.verified && Array.isArray(tradeFacts.ro
   // A local post's table takes the question columns (cause, sign, fix)
   let tableType = isRules ? 'rules' : postType;
   let rows = [];
-  if (tableType === 'cost_guide') rows = priceList.map(r => ({ label: r.service, from: 'PRICE' }));
+  if (tableType === 'cost_guide') {
+    // The price rows for the service (its sub jobs too), then related jobs the trade facts name, "Ask for a quote" in the price cell
+    const related = tfRows.filter(r => r.name && ['fact', 'rule', 'price factor'].includes(r.kind)).map(r => r.name).filter((n, i, a) => a.indexOf(n) === i).slice(0, 4);
+    rows = [...priceList.map(r => ({ label: ukName(r.service), from: 'PRICE' })), ...related.map(n => ({ label: n, from: 'TF related job: Ask for a quote' }))];
+    if (costMode === 'factors') tableType = 'cost_guide_factors';
+  }
   else if (tableType === 'rules') rows = tfRows.filter(r => r.kind === 'rule').map(r => ({ label: r.name || r.text.slice(0, 60), from: 'TF rule' })).concat(dossierRows.filter(d => d.kind === 'dossier rule').map(d => ({ label: d.text.split(':')[0], from: 'dossier rule' })));
   else if (tableType === 'decision') {
     // The two options, each with its rows behind it (G-OPTIONS holds the post otherwise)
@@ -249,7 +287,8 @@ const tfRows = (tradeFacts && tradeFacts.verified && Array.isArray(tradeFacts.ro
     const method = tfRows.some(r => r.kind === 'standard method');
     const wrong = method ? tfRows.filter(r => r.kind === 'what goes wrong' && /Signs:/i.test(r.text) && /Skipped:|Done badly:/i.test(r.text)) : [];
     const signs = method ? dossierRows.filter(d => d.kind === 'dossier symptom' && SYMPTOM_RE.test(d.text)) : [];
-    rows = [...signs.map(d => ({ label: d.text, from: 'dossier symptom' })), ...wrong.map(r => ({ label: r.text.split('.')[0].replace(/^Signs:\s*/i, ''), from: 'TF what goes wrong' }))].slice(0, 6);
+    // A row label is one sign: the first clause of the "Signs:" text, never the whole list (B-CELL-LIST holds for code labels too)
+    rows = [...signs.map(d => ({ label: d.text, from: 'dossier symptom' })), ...wrong.map(r => ({ label: r.text.replace(/^Signs:\s*/i, '').split(/[.;]/)[0].split(/,\s*(?=[a-z])/)[0].trim(), from: 'TF what goes wrong' }))].slice(0, 6);
   }
   // Fewer than three fitting rows and the table is off; the decision table is its two options
   const tableOn = tableType === 'decision' ? rows.length === 2 : rows.length >= 3;
@@ -270,7 +309,7 @@ const tfRows = (tradeFacts && tradeFacts.verified && Array.isArray(tradeFacts.ro
     slug: row.slug, url: `${row.slug}/`, post_type: postType, source, cost_mode: costMode, target_query: info.target_query || lc(wording), options: options.map(o => ({ name: o.name, rows: o.rows.length, pack: o.pack })),
     timing_rows: source === 'seasonal' ? tfRows.filter(r => r.kind === 'timing').map(r => r.text) : [],
     service: svcTitle, category: (categoryPage && categoryPage.pageTitle) || info.category || '', town,
-    h1, h1_with_city: withCity, seo_title: title.title, title_how: title.how, meta_cta: ph(String((niche.buttons || {}).meta_cta || '')),
+    h1, h1_with_city: withCity, seo_title: title.title, title_how: title.how, meta_cta: ph(String((niche.buttons || {}).meta_cta || '')), quoteFree: ctx.quoteFree,
     byline, last_checked: today, last_checked_text: longDate(today), review_due: reviewDue,
     sections, faq, table, business: { show: businessShow, h2: `How [CV: company_name] Handles ${topicTitle}`, facts: businessFacts }, faq_h2: `Common Questions About ${topicTitle}`, cta_h2: titleCase(ph(slots.blog_cta_h2)), buttons,
     primary, secondary, safety: { on: safety, why: safetyHit ? `niche safety topic "${safetyHit}"` : safetyRow ? `trade facts rule "${safetyRow.name || safetyRow.text.slice(0, 40)}"` : safety ? 'the question names gas, electrics or structure' : '' },

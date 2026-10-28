@@ -109,7 +109,7 @@ function rowsFor(scheduled, { existing = [], held = [] } = {}) {
         last_checked: curInfo.last_checked || '', review_due: curInfo.review_due || '', batch: t.batch || 'onboarding', source: t.source, source_query: t.source_query || '',
         service: t.service ? t.service.title : '', service_slug: t.service ? t.service.slug : '', category: t.category ? t.category.title : '', category_slug: t.category ? t.category.slug : '',
         question_id: t.question ? t.question.id : '', question_source: t.question ? t.question.source : '', wording, wording_source: t.wording_source, wording_approved: approved, wording_edited: !!curInfo.wording_edited,
-        needs_approval: !!t.needs_approval, bank_topic: t.bank_topic || '', held: !!t.held, pack_service: t.pack_service || '', related_from: t.related_from || [], seasonal: t.seasonal || null, dossier_condition: t.dossier_condition || null, cost_unit: t.cost_unit || '', slot_note: t.slot_note || '', held_for_date: !!t.held_for_date,
+        needs_approval: !!t.needs_approval, bank_topic: t.bank_topic || '', held: !!t.held, pack_service: t.pack_service || '', related_from: t.related_from || [], window_rows: t.window_rows || [], seasonal: t.seasonal || null, dossier_condition: t.dossier_condition || null, cost_unit: t.cost_unit || '', slot_note: t.slot_note || '', held_for_date: !!t.held_for_date,
       },
     };
   });

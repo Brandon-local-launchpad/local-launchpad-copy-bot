@@ -57,7 +57,10 @@ function buildBlogRecord({ cv = {}, decisionsResult, parsed, meta, extraFlags = 
     return record;
   }
   const F = parsed.fields;
-  const item = (list, i, key) => ((F[list] || [])[i] || {})[key] || '';
+  // Paragraph breaks (Brandon, 28 Oct): a literal "\n\n" the parser kept, or two spaces where the
+  // model meant a break, both become a real break
+  const paras = s => { let t = String(s || '').replace(/\\n\\n|\\n/g, '\n\n'); if (!/\n/.test(t) && /\S {2,}\S/.test(t)) t = t.replace(/ {2,}/g, '\n\n'); return t; };
+  const item = (list, i, key) => { const v = ((F[list] || [])[i] || {})[key] || ''; return key === 'body' || key === 'faq_answer' ? paras(v) : v; };
   const metaD = metaDescriptionFor(F[PT.LABELS.answer], D.meta_cta);
   if (metaD.flag) record.FLAGS.push({ ...metaD.flag, source: 'code' });
   const cols = D.table.columns || [];
@@ -83,7 +86,7 @@ function buildBlogRecord({ cv = {}, decisionsResult, parsed, meta, extraFlags = 
     blog_review_due:        D.review_due,
     publish_date:           D.publish_date,
     homepage_cost_guide:    !!D.homepage_cost_guide,
-    [PT.LABELS.answer]:     F[PT.LABELS.answer],
+    [PT.LABELS.answer]:     paras(F[PT.LABELS.answer]),
     sections:               D.sections.map((s, i) => ({ h2: s.h2, body: item(PT.LABELS.sections, i, 'body'), doubt: s.doubt, id: s.id })),
     table_show:             !!D.table.show,
     table_type:             D.table.type,
@@ -92,7 +95,7 @@ function buildBlogRecord({ cv = {}, decisionsResult, parsed, meta, extraFlags = 
     table_rows:             tableRows,
     blog_business_show:     !!D.business.show,
     blog_business_h2:       D.business.show ? D.business.h2 : 'HIDDEN',
-    [PT.LABELS.business]:   D.business.show ? F[PT.LABELS.business] : 'HIDDEN',
+    [PT.LABELS.business]:   D.business.show ? paras(F[PT.LABELS.business]) : 'HIDDEN',
     blog_faq_h2:            D.faq_h2,
     faq_items:              D.faq.map((q, i) => ({ faq_question: q.question, faq_answer: item(PT.LABELS.faq, i, 'faq_answer'), doubt: q.doubt, id: q.id })),
     blog_cta_h2:            D.cta_h2,

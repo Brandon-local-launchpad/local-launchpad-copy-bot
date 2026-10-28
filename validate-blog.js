@@ -28,6 +28,10 @@
 //                 say the same thing
 //   B-PROOF BLOCK a differentiator or a proof claim (years, guarantee, insurance, reviews, job
 //                 counts) outside blog_business (CORE (1) rule 8)
+//   B-HOURS BLOCK the hours, the travel distance or the service area in a post
+//   B-CHEAP BLOCK "cheap", "affordable", "competitive", a comparison with other businesses' prices
+//   B-QUOTES BLOCK telling the reader to get other quotes
+//   B-FIGURES BLOCK a cost guide's price range anywhere but the answer, H2 1 and the table
 //   DATE   FLAG   a date that goes stale ("this year", "in 2026", "recently", "nowadays")
 // Brandon's four after the first real posts (28 Oct):
 //   TOKEN  BLOCK  an unresolved placeholder ([QUOTE_FREE_LOWER]) in any field, the meta
@@ -57,6 +61,11 @@ const BLOG_RETRY = new Set(['N24', 'B-N1', 'B-N5', 'B-N8', 'B-N9', 'DATE', 'LINK
 // Proof outside the business block (CORE (1) rule 8): the confirmed differentiators, the
 // insurance figure, the guarantee length, the jobs count and the years trading
 const PROOF_RE = /\b(?:fully insured|public liability|insured for|insurance of|£\s?\d+\s?(?:m|million)\b|\d+\s*year (?:guarantee|warranty)|guaranteed for|\d[\d,]*\s*(?:jobs|projects|gardens|customers) (?:completed|done|finished)|(?:over|more than) \d+ years|\d+ years(?:'|’)? (?:experience|of experience|in (?:the )?(?:trade|business)|trading)|five star|5 star|\d+ (?:google )?reviews)\b/i;
+// The client's hours, travel distance and service area live in the footer and on the location pages (the Cost Guide Structure)
+const HOURS_RE = /\b(?:\d{1,2}(?::\d{2})?\s?(?:am|pm)\b|\d{1,2}(?::\d{2})?\s?(?:to|-|–)\s?\d{1,2}(?::\d{2})?\s?(?:am|pm)|monday to (?:friday|saturday|sunday)|seven days a week|7 days a week|open (?:7|seven) days|within \d+ miles|\d+ mile radius|up to \d+ miles|\d+ miles? (?:of|from|around)|we cover (?:the whole|all of|every)|our service area|areas? we cover)\b/i;
+// "Cheap", "affordable", "competitive", a comparison with other businesses' prices, telling the reader to get other quotes (the structure's "what stays out")
+const CHEAP_RE = /\b(?:cheap(?:er|est)?|affordable|competitive(?:ly)?|budget friendly|low cost|lowest price|beat any quote|cheaper than|less than other|other (?:landscapers|companies|firms|traders|businesses) charge|undercut)\b/i;
+const QUOTES_RE = /\b(?:get (?:two|three|several|a few|other|more|multiple) quotes|compare (?:several|a few|other|multiple|three) quotes|shop around|get quotes from (?:other|several|a few))\b/i;
 // Placeholders that must never reach a record: a prompt or niche token the code did not
 // resolve ([QUOTE_FREE_LOWER], [TOPIC]); [CV: key] tokens are resolved at push and the shared
 // check reports an unknown key
@@ -141,18 +150,47 @@ function validateBlog(record, V) {
     }
   }
 
-  // ── B-PROOF: a differentiator or a proof claim outside blog_business (CORE (1) rule 8) ──
-  const diffs = [cv.differentiator_1_confirmed && cv.differentiator_1, cv.differentiator_2_confirmed && cv.differentiator_2].filter(Boolean).map(d => ({ text: d, words: contentWords(d) })).filter(d => d.words.size >= 2);
+  // ── B-PROOF: a differentiator or a proof claim outside blog_business (CORE (1) rule 8); the
+  // differentiator matched loosely: its words in any order or case, or its phrase inside the text ──
+  const diffs = [cv.differentiator_1_confirmed && cv.differentiator_1, cv.differentiator_2_confirmed && cv.differentiator_2, cv.differentiator_1_sentence, cv.differentiator_2_sentence].filter(Boolean).map(d => ({ text: d, words: contentWords(d), norm: normQ(d) })).filter(d => d.words.size >= 2);
   for (const f of fields) {
     if (f.ref.key === LABELS.business) continue;
     const s = scanText(f.text);
     const m = s.match(PROOF_RE);
     if (m) { issue('BLOCK', 'B-PROOF', f.label, `"${m[0]}" is a proof claim. Years, guarantee, insurance, reviews and job counts appear only in the business block.`, f.ref); continue; }
+    const whole = normQ(s);
+    const phrase = diffs.find(d => whole.includes(d.norm));
+    if (phrase) { issue('BLOCK', 'B-PROOF', f.label, `Makes the differentiator "${phrase.text}". A proof belongs in the business block only.`, f.ref); continue; }
     for (const sen of sentences(f.text)) {
       const mine = contentWords(sen);
       const hit = diffs.find(d => { let n = 0; for (const w of d.words) if (mine.has(w)) n++; return n / d.words.size >= 0.7; });
       if (hit) { issue('BLOCK', 'B-PROOF', f.label, `"${sen.slice(0, 70)}…" makes the differentiator "${hit.text}". A proof belongs in the business block only.`, f.ref); break; }
     }
+  }
+
+  // ── What stays out of every post (the Cost Guide Structure): hours and travel, cheap and comparisons, other quotes ──
+  for (const f of fields) {
+    const s = scanText(f.text);
+    const h = s.match(HOURS_RE);
+    if (h) issue('BLOCK', 'B-HOURS', f.label, `"${h[0]}" gives the hours, the travel distance or the service area. They live in the footer and on the location pages, never in a post.`, f.ref);
+    const c = s.match(CHEAP_RE);
+    if (c) issue('BLOCK', 'B-CHEAP', f.label, `"${c[0]}": no "cheap", "affordable", "competitive" and no comparison with other businesses' prices.`, f.ref);
+    const q = s.match(QUOTES_RE);
+    if (q) issue('BLOCK', 'B-QUOTES', f.label, `"${q[0]}": never tell the reader to get other quotes.`, f.ref);
+  }
+
+  // ── B-FIGURES (a cost guide): the price range only in the answer, H2 1's body and the table ──
+  if (D.post_type === 'cost_guide') {
+    const priced = new Set((D.facts || []).filter(f => /^PRICE-/.test(f.id)).flatMap(f => figuresIn(f.text).map(x => x.value)));
+    for (const f of fields) {
+      if (f.ref.key === LABELS.answer || f.ref.key === 'table_rows' || (f.ref.key === 'sections' && f.ref.index === 0)) continue;
+      const hit = figuresIn(f.text).find(x => priced.has(x.value));
+      if (hit) issue('BLOCK', 'B-FIGURES', f.label, `"${hit.text}" repeats the price range. It appears in the answer, H2 1 and the table only; here say what moves the price within the range.`, f.ref);
+    }
+  }
+  // A code set row label is one sign, never a list (the same check as a model cell)
+  for (const [i, r] of (record.table_rows || []).entries()) {
+    if (/;/.test(r.row) || (r.row.match(/,/g) || []).length >= 2) issue('BLOCK', 'B-CELL-LIST', 'table_rows', `Row ${i + 1}'s label "${String(r.row).slice(0, 60)}" is a list. One sign per row: code sets the labels, so the decisions must split it.`);
   }
 
   // ── B-N1: the answer's first sentence; B-PRICE on a cost guide in prices mode; B-TIMING on a seasonal post ──
