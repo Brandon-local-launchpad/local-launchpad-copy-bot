@@ -118,7 +118,7 @@ process.env.APP_PASSWORD = '';
   // The landscaper blog question bank: the hand written sample (tests/fixtures/data), approved, so the
   // reserved topics draw on it (28 Oct, blog stage 2). Replace with the real Perplexity run when it is in.
   {
-    const bankStore = require(path.join(root, 'blog/bank-store.js')).createBankStore({ pool, log: { log() {}, error: console.error } });
+    const bankStore = require(path.join(root, 'blog/bank-store.js')).createBankStore({ pool, log: { log() {}, error: console.error }, testSamplesAllowed: true });
     await bankStore.save('landscaper', fs.readFileSync(path.join(root, 'tests/fixtures/data/blog-bank-landscaper-sample.md'), 'utf8'), { source: 'paste' });
     await bankStore.approve('landscaper', 'demo');
   }

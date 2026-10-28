@@ -44,7 +44,7 @@ const drift = B.parseBank(`## 1. TOPICS\n### BT-9 | How long does decking last? 
 chk('Drift: no brackets, no quotes, "type" in lower case, a bare url, a bad doubt and a missing url each warned, a stray related id kept under the open topic, a numbered ranked list', drift.topics.length === 1 && drift.topics[0].question === 'How long does decking last?' && drift.topics[0].type === 'question' && drift.topics[0].related.length === 3 && drift.topics[0].related[1].doubt === '' && has(drift.warnings, /BT-9\.b: doubt "Safety"/) && has(drift.warnings, /BT-9\.b: no source url/) && has(drift.warnings, /BT-8\.a: listed under BT-9/) && drift.ranked.join() === 'BT-9,BT-7' && has(drift.warnings, /ranked list names BT-7/) && has(drift.warnings, /rules: a line with no topic id/), JSON.stringify({ r: drift.ranked, w: drift.warnings }), '');
 chk('Validation: the sample is usable; an empty reply, a reply with no topics and one with too few are refused in words', B.validateBank(p).valid && /No topics could be read/.test(B.validateBank(B.parseBank('')).error) && /Only 1 topics could be read \(at least 5 needed\)/.test(B.validateBank(drift).error), B.validateBank(drift).error, '');
 chk('The prompt to send: the fenced block with RUN FOR filled in, the rest untouched', (() => { const pr = B.buildPrompt('roofer'); return pr.startsWith('RUN FOR: roofer\n') && /## 1\. TOPICS/.test(pr) && /\[TRADE\]/.test(pr) && !/```/.test(pr); })(), B.buildPrompt('roofer').slice(0, 40), '');
-chk('Header line: written and read back', B.parseHeader(B.header({ generated: '2026-10-28', model: 'pasted' })).generated === '2026-10-28' && B.parseHeader(sample).model.startsWith('sample'), '', '');
+chk('Header line: written and read back; the sample header says TEST SAMPLE', B.parseHeader(B.header({ generated: '2026-10-28', model: 'pasted' })).generated === '2026-10-28' && /^TEST SAMPLE/.test(B.parseHeader(sample).model), '', '');
 
 // ── The reservation with the bank, on the live Edens Edge sort ──
 const edens = C.byId['edens-edge'];
@@ -89,51 +89,59 @@ const niche = { ...edens.niche, _source: 'landscaper' };
   await ensureBankTables(pool); // once: pg-mem refuses CREATE TABLE IF NOT EXISTS on a table that exists
   const quiet = { log() {}, error() {} };
   let runs = 0;
-  const store = createBankStore({ pool, log: quiet, runner: async (trade, prompt, onStatus) => { runs++; onStatus('polling'); if (trade === 'roofer') throw new Error('fake outage'); return { text: sample.split('\n').slice(2).join('\n'), model: 'fake-model', cost: 1.23 }; } });
-  const s0 = await store.status('landscaper');
-  chk('No bank yet: exists false, not approved, not running', !s0.exists && !s0.approved && !s0.valid && s0.error === 'no bank yet', JSON.stringify(s0), '');
-  const s1 = await store.save('landscaper', sample.split('\n').slice(2).join('\n'), { source: 'paste' });
-  chk('Paste: saved in the database with a header line added, counts read, not approved', s1.exists && s1.from === 'database' && s1.source === 'paste' && s1.model === 'pasted (perplexity app)' && s1.counts.topics === 5 && !s1.approved && B.parseHeader((await store.read('landscaper')).text), JSON.stringify(s1), '');
+  const store = createBankStore({ pool, log: quiet, testSamplesAllowed: true, runner: async (trade, prompt, onStatus) => { runs++; onStatus('polling'); if (trade === 'zz-fail-trade') throw new Error('fake outage'); return { text: sample.split('\n').slice(2).join('\n'), model: 'fake-model', cost: 1.23 }; } });
+  const s0 = await store.status('zz-paste-trade');
+  chk('No bank yet (a trade with no file and no row): exists false, not approved, not running', !s0.exists && !s0.approved && !s0.valid && s0.error === 'no bank yet', JSON.stringify(s0), '');
+  const s1 = await store.save('zz-paste-trade', sample.split('\n').slice(2).join('\n'), { source: 'paste' });
+  chk('Paste: saved in the database with a header line added, counts read, not approved', s1.exists && s1.from === 'database' && s1.source === 'paste' && s1.model === 'pasted (perplexity app)' && s1.counts.topics === 5 && !s1.approved && B.parseHeader((await store.read('zz-paste-trade')).text), JSON.stringify(s1), '');
   let err = '';
-  try { await store.save('landscaper', 'nothing like a bank'); } catch (e) { err = e.message; }
-  chk('A paste that is not a bank is refused in words and the saved one stays', /No topics could be read/.test(err) && (await store.status('landscaper')).counts.topics === 5, err, '');
+  try { await store.save('zz-paste-trade', 'nothing like a bank'); } catch (e) { err = e.message; }
+  chk('A paste that is not a bank is refused in words and the saved one stays', /No topics could be read/.test(err) && (await store.status('zz-paste-trade')).counts.topics === 5, err, '');
   err = '';
-  try { await store.approve('landscaper', ''); } catch (e) { err = e.message; }
+  try { await store.approve('zz-paste-trade', ''); } catch (e) { err = e.message; }
   chk('Approve needs a name', /Say who is approving/.test(err), err, '');
-  const s2 = await store.approve('landscaper', 'Brandon');
-  chk('Approve: the flag, who and when; approvedBank gives the parsed topics', s2.approved && s2.approvedBy === 'Brandon' && (await store.approvedBank('landscaper')).topics.length === 5, JSON.stringify([s2.approved, s2.approvedBy]), '');
-  const s3 = await store.save('landscaper', sample.split('\n').slice(2).join('\n').replace('BT-1.g', 'BT-1.h'), { source: 'paste' });
-  chk('A new paste makes it stale (changed since approval): not approved, approvedBank null, the last approver kept', !s3.approved && s3.stale && (await store.approvedBank('landscaper')) === null && s3.approvedBy === 'Brandon', JSON.stringify([s3.approved, s3.stale, s3.approvedBy]), '');
-  await store.approve('landscaper', 'Brandon');
-  const s4 = await store.unapprove('landscaper');
+  const s2 = await store.approve('zz-paste-trade', 'Brandon');
+  chk('Approve: the flag, who and when; approvedBank gives the parsed topics', s2.approved && s2.approvedBy === 'Brandon' && (await store.approvedBank('zz-paste-trade')).topics.length === 5, JSON.stringify([s2.approved, s2.approvedBy]), '');
+  const s3 = await store.save('zz-paste-trade', sample.split('\n').slice(2).join('\n').replace('BT-1.g', 'BT-1.h'), { source: 'paste' });
+  chk('A new paste makes it stale (changed since approval): not approved, approvedBank null, the last approver kept', !s3.approved && s3.stale && (await store.approvedBank('zz-paste-trade')) === null && s3.approvedBy === 'Brandon', JSON.stringify([s3.approved, s3.stale, s3.approvedBy]), '');
+  await store.approve('zz-paste-trade', 'Brandon');
+  const s4 = await store.unapprove('zz-paste-trade');
   chk('Unapprove clears it', !s4.approved && !s4.stale && s4.approvedBy === null, JSON.stringify(s4), '');
   chk('approvedBank: null for a bad trade name or a trade with nothing', (await store.approvedBank('Bad Name!')) === null && (await store.approvedBank('plumber')) === null && (await store.approvedBank('')) === null, '', 'null');
   // The file seed: a trade with a repo file and no row
   const dir = B.DIR; fs.mkdirSync(dir, { recursive: true });
   const seedFile = B.bankFile('zz-fixture-trade');
-  fs.writeFileSync(seedFile, sample.replace('model sample', 'model file-seed'), 'utf8');
+  fs.writeFileSync(seedFile, sample.replace(/model TEST SAMPLE[^·]*·/, 'model file-seed ·'), 'utf8');
   try {
     const sf = await store.status('zz-fixture-trade');
     chk('A repo file seeds a trade with no row: read from the file, its header, not approved', sf.exists && sf.from === 'blog-bank/zz-fixture-trade.md' && /file-seed/.test(sf.model) && !sf.approved && sf.counts.topics === 5, JSON.stringify(sf), '');
     const sa = await store.approve('zz-fixture-trade', 'Ray');
     chk('Approving a file bank copies it into the database with the flag', sa.approved && sa.from === 'database' && (await store.approvedBank('zz-fixture-trade')).topics.length === 5, JSON.stringify([sa.approved, sa.from]), '');
-    chk('list: every trade with a file or a row, plus any asked for', (await store.list(['plumber'])).map(b => b.trade).join() === 'landscaper,plumber,zz-fixture-trade', (await store.list(['plumber'])).map(b => b.trade).join(), '');
+    chk('list: every trade with a file or a row, plus any asked for', (await store.list(['plumber'])).map(b => b.trade).join() === 'landscaper,plumber,zz-fixture-trade,zz-paste-trade', (await store.list(['plumber'])).map(b => b.trade).join(), '');
   } finally { fs.unlinkSync(seedFile); }
   // A run with the fake Perplexity
-  const r1 = await store.run('landscaper');
+  const r1 = await store.run('zz-paste-trade');
   chk('Run: starts in the background, status running', r1.running && r1.run.status === 'running', JSON.stringify(r1.run), '');
   err = '';
-  try { await store.run('landscaper'); } catch (e) { err = e.message; }
+  try { await store.run('zz-paste-trade'); } catch (e) { err = e.message; }
   chk('A second run while one runs is refused', /already running/.test(err), err, '');
   await new Promise(r => setTimeout(r, 50));
-  const r2 = await store.status('landscaper');
+  const r2 = await store.status('zz-paste-trade');
   chk('When it finishes the bank is saved from the run (perplexity, the model, the cost), not approved', !r2.running && r2.run.status === 'done' && r2.run.cost === 1.23 && r2.source === 'perplexity' && /fake-model/.test(r2.model) && !r2.approved && runs === 1, JSON.stringify([r2.run, r2.source, r2.model]), '');
-  await store.run('roofer'); await new Promise(r => setTimeout(r, 50));
-  const r3 = await store.status('roofer');
+  await store.run('zz-fail-trade'); await new Promise(r => setTimeout(r, 50));
+  const r3 = await store.status('zz-fail-trade');
   chk('A failed run: status failed with the reason, no bank saved', r3.run.status === 'failed' && r3.run.error === 'fake outage' && !r3.exists, JSON.stringify(r3.run), '');
   const noKey = createBankStore({ pool, log: quiet, runner: null });
+  const real = createBankStore({ pool, log: quiet, runner: null });
+  await store.save('zz-paste-trade', sample); await store.approve('zz-paste-trade', 'demo'); // the allowed store (the demo) holds the sample, approved
   err = '';
-  try { await noKey.run('landscaper'); } catch (e) { err = e.message; }
+  try { await real.save('zz-paste-trade', sample); } catch (e) { err = e.message; }
+  let approveErr = '';
+  try { await real.approve('zz-paste-trade', 'x'); } catch (e) { approveErr = e.message; }
+  chk('A store without testSamplesAllowed (the live app) refuses the hand written sample on paste and on approve, and never gives it as the approved bank even when the demo approved it', /hand written test sample/.test(err) && /hand written test sample/.test(approveErr) && (await real.approvedBank('zz-paste-trade')) === null && (await store.approvedBank('zz-paste-trade')) !== null && B.isTestSample(sample) && !B.isTestSample(sample.replace(/TEST SAMPLE/, 'perplexity agent high')), [err, approveErr].join(' | '), '');
+  await store.unapprove('zz-paste-trade');
+  err = '';
+  try { await noKey.run('zz-paste-trade'); } catch (e) { err = e.message; }
   chk('No key: Run says to paste instead', /PERPLEXITY_API_KEY is not set: paste the reply/.test(err), err, '');
 
   // The routes
@@ -143,7 +151,7 @@ const niche = { ...edens.niche, _source: 'landscaper' };
   const call = (p, opts = {}) => new Promise((resolve, reject) => { const req = http.request({ hostname: '127.0.0.1', port: server.address().port, path: p, method: opts.method || 'GET', headers: { 'Content-Type': 'application/json' } }, res => { let b = ''; res.on('data', d => { b += d; }); res.on('end', () => resolve({ status: res.statusCode, body: b ? JSON.parse(b) : null })); }); req.on('error', reject); if (opts.body) req.write(JSON.stringify(opts.body)); req.end(); });
   try {
     const l = await call('/api/blog-bank');
-    chk('GET /api/blog-bank lists the banks with the trades asked for (the approved file bank kept its row)', l.status === 200 && l.body.banks.map(b => b.trade).join() === 'landscaper,plumber,zz-fixture-trade', l.body && l.body.banks.map(b => b.trade).join(), '');
+    chk('GET /api/blog-bank lists the banks with the trades asked for (the approved file bank kept its row; landscaper is the real run file)', l.status === 200 && l.body.banks.map(b => b.trade).join() === 'landscaper,plumber,zz-fixture-trade,zz-paste-trade', l.body && l.body.banks.map(b => b.trade).join(), '');
     const g = await call('/api/blog-bank/landscaper');
     chk('GET one bank: the state, the text and the parsed topics', g.status === 200 && g.body.topics.length === 5 && /## 1\. TOPICS/.test(g.body.text) && g.body.ranked.length === 5, JSON.stringify([g.body.topics.length, g.body.ranked]), '');
     const pr = await call('/api/blog-bank/prompt/roofer');

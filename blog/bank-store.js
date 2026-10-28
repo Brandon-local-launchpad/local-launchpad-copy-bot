@@ -32,9 +32,13 @@ async function ensureBankTables(pool) {
 const TRADE = /^[a-z0-9-]+$/;
 const today = () => new Date().toISOString().slice(0, 10);
 
-// runner: async (trade, prompt, onStatus) → { text, model, cost } (blog/bank-run.js); null when no key
-function createBankStore({ pool = null, runner = null, log = console } = {}) {
+// runner: async (trade, prompt, onStatus) → { text, model, cost }; null when no key.
+// testSamplesAllowed: only the fixtures and the demo pass true; a hand written test sample
+// (its header says TEST SAMPLE) is otherwise refused by save and approve, so it never
+// reaches a real client.
+function createBankStore({ pool = null, runner = null, log = console, testSamplesAllowed = false } = {}) {
   const running = new Map(); // trade → { startedAt, status, error }
+  const refuseSample = text => { if (!testSamplesAllowed && B.isTestSample(text)) throw Object.assign(new Error('This is a hand written test sample (its header says TEST SAMPLE), not a bank: it is for the fixtures and the demo only and is never saved or approved for a real trade.'), { status: 400 }); };
 
   async function rowFor(trade) {
     if (!pool) return null;
@@ -75,6 +79,7 @@ function createBankStore({ pool = null, runner = null, log = console } = {}) {
     if (!TRADE.test(t)) return null;
     const r = await read(t);
     if (!r.text || !r.approvedFingerprint || r.approvedFingerprint !== r.fingerprint) return null;
+    if (!testSamplesAllowed && B.isTestSample(r.text)) return null;
     const parsed = B.parseBank(r.text);
     return B.validateBank(parsed).valid ? { trade: t, ...parsed } : null;
   }
@@ -85,6 +90,7 @@ function createBankStore({ pool = null, runner = null, log = console } = {}) {
     if (!pool) throw Object.assign(new Error('Database not configured.'), { status: 503 });
     let body = String(text || '').replace(/\r\n/g, '\n').trim();
     if (!body) throw Object.assign(new Error('Paste the reply first.'), { status: 400 });
+    refuseSample(body);
     const parsed = B.parseBank(body);
     const check = B.validateBank(parsed);
     if (!check.valid) throw Object.assign(new Error(check.error), { status: 400 });
@@ -107,6 +113,7 @@ function createBankStore({ pool = null, runner = null, log = console } = {}) {
     if (!pool) throw Object.assign(new Error('Database not configured.'), { status: 503 });
     const r = await read(t);
     if (!r.text) throw Object.assign(new Error(`There is no bank for ${t} to approve.`), { status: 404 });
+    refuseSample(r.text);
     const check = B.validateBank(B.parseBank(r.text));
     if (!check.valid) throw Object.assign(new Error(`The bank cannot be approved: ${check.error}`), { status: 400 });
     const row = await rowFor(t);

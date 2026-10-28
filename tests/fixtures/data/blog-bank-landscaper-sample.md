@@ -1,4 +1,4 @@
-generated 2026-10-28 · model sample (hand written to the prompt's format, for the parser test) · verified: no
+generated 2026-10-28 · model TEST SAMPLE, hand written to the prompt's format for the parser fixture and the demo only, never a real bank · verified: no
 
 ## 1. TOPICS
 
