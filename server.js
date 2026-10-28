@@ -110,7 +110,8 @@ const blogBank = require('./blog/bank-store').createBankStore({
   pool,
   runner: process.env.PERPLEXITY_API_KEY ? async (trade, prompt, onStatus) => require('./scripts/trade-facts').perplexityAgent({ apiKey: process.env.PERPLEXITY_API_KEY, preset: process.env.TRADE_FACTS_PRESET || 'high', onStatus }).research(prompt) : null,
   // The related questions from Google People also ask through DataForSEO (28 Oct): the H1 research's credentials
-  paa: process.env.DATAFORSEO_LOGIN && process.env.DATAFORSEO_PASSWORD ? (text, opts) => require('./blog/paa').paaPass(text, { ...opts, env: process.env }) : null,
+  // The relevance judge on Haiku when the Anthropic key is set (every question a word filter kept, against its block's target)
+  paa: process.env.DATAFORSEO_LOGIN && process.env.DATAFORSEO_PASSWORD ? (text, opts) => { const Pa = require('./blog/paa'); const callModel = process.env.ANTHROPIC_API_KEY ? require('./anthropic-call').makeCallModel(new (require('@anthropic-ai/sdk'))({ apiKey: process.env.ANTHROPIC_API_KEY }), Pa.RELEVANCE_MODEL) : null; return Pa.paaPass(text, { ...opts, env: process.env, callModel }); } : null,
   nicheFor: trade => { try { return JSON.parse(require('fs').readFileSync(require('path').join(__dirname, 'niche-library', `${trade}.json`), 'utf8')); } catch (_) { return null; } },
   // The hand written test sample is a bank only on the local demo (tests/ui/demo-server.js sets this); never on Railway
   testSamplesAllowed: process.env.BLOG_BANK_TEST_SAMPLES === '1',

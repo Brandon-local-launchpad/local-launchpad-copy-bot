@@ -206,11 +206,11 @@ function createBankStore({ pool = null, runner = null, paa = null, nicheFor = ()
     paaRunning.set(t, state);
     (async () => {
       try {
-        const out = await paa(r.text, { niche: nicheFor(t), onStatus: note => { state.note = note; } });
+        const out = await paa(r.text, { niche: nicheFor(t), trade: t, onStatus: note => { state.note = note; } });
         await save(t, out.text, { source: `${r.source && r.source !== 'file' ? r.source : 'perplexity'}+paa`, model: (B.parseHeader(out.text) || {}).model || r.model, generated: r.generated || undefined });
         if (await reports()) {
-          const summary = JSON.stringify({ date: out.report.date, cost: out.cost, calls: out.calls, found: out.report.totals.found, kept: out.report.totals.kept, blocks: out.report.totals.blocks, thin: out.report.totals.thin, failed: out.report.totals.failed });
-          const body = P.formatReport(out.report, { trade: t, cost: out.cost, calls: out.calls });
+          const summary = JSON.stringify({ date: out.report.date, cost: out.cost, calls: out.calls, modelPence: out.modelPence ?? null, found: out.report.totals.found, kept: out.report.totals.kept, blocks: out.report.totals.blocks, thin: out.report.totals.thin, failed: out.report.totals.failed, relevance_dropped: out.report.totals.relevance_dropped, deepened: out.report.totals.deepened });
+          const body = out.reportText || P.formatReport(out.report, { trade: t, cost: out.cost, calls: out.calls, modelPence: out.modelPence, modelCalls: out.modelCalls });
           const { rows } = await pool.query(`SELECT trade FROM blog_bank_reports WHERE trade = $1`, [t]);
           if (rows.length) await pool.query(`UPDATE blog_bank_reports SET body = $2, summary = $3, created_at = NOW() WHERE trade = $1`, [t, body, summary]);
           else await pool.query(`INSERT INTO blog_bank_reports (trade, body, summary) VALUES ($1, $2, $3)`, [t, body, summary]);

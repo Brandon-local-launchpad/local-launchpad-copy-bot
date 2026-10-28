@@ -10,7 +10,10 @@
 //
 //   node scripts/blog-bank-paa.js landscaper
 //   --dry-run     print the targets that would be searched, call nothing
-//   --from-raw <file>   rebuild from a previous run's raw questions (…_raw.json), no API call
+//   --from-raw <file>   rebuild from a previous run's raw questions (…_raw.json); only a block still under
+//                       six after the relevance judge gets a new search (four clicks deep)
+//   --no-judge    skip the relevance judge (the model); --no-deepen  no second search for thin blocks
+// The relevance judge runs on claude-haiku-5-5 with ANTHROPIC_API_KEY from .env (skipped, with a note, when unset).
 // Every run also writes the raw questions per target to tests/quality-runs/blog/BANK_paa_<trade>_<date>_raw.json
 //
 // The credentials come from DATAFORSEO_LOGIN and DATAFORSEO_PASSWORD (.env is read when
@@ -21,6 +24,7 @@ const path = require('path');
 const B = require('../blog/bank');
 const P = require('../blog/paa');
 const { loadDotEnv } = require('./trade-facts');
+const { makeCallModel } = require('../anthropic-call');
 
 async function main() {
   const args = process.argv.slice(2);
@@ -28,6 +32,7 @@ async function main() {
   const dryRun = args.includes('--dry-run');
   const fr = args.indexOf('--from-raw');
   const fromRaw = fr >= 0 ? args[fr + 1] : null;
+  const noJudge = args.includes('--no-judge'), noDeepen = args.includes('--no-deepen');
   if (!trade || !/^[a-z0-9-]+$/.test(trade)) { console.log('node scripts/blog-bank-paa.js <trade> [--dry-run]'); process.exitCode = 1; return; }
   const f = B.readBankFile(trade);
   if (!f.exists) { console.log(`${trade}: no bank file at ${f.file}; run scripts/blog-bank.js first`); process.exitCode = 1; return; }
@@ -40,16 +45,19 @@ async function main() {
   const started = Date.now();
   const date = new Date().toISOString().slice(0, 10);
   const raw = fromRaw ? JSON.parse(fs.readFileSync(path.resolve(fromRaw), 'utf8')) : null;
-  const r = await P.paaPass(f.text, { niche, date, raw, onStatus: s => console.log(`${trade}: ${s}`) });
+  let callModel = null;
+  if (!noJudge && process.env.ANTHROPIC_API_KEY) { const Anthropic = require('@anthropic-ai/sdk'); callModel = makeCallModel(new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY }), P.RELEVANCE_MODEL); }
+  else console.log(`${trade}: the relevance judge is ${noJudge ? 'off' : 'skipped (ANTHROPIC_API_KEY is not set)'}`);
+  const r = await P.paaPass(f.text, { niche, trade, date, raw, callModel, deepen: !noDeepen, onStatus: s => console.log(`${trade}: ${s}`) });
   fs.writeFileSync(path.join(B.DIR, `${trade}.md`), r.text, 'utf8');
   const reportDir = path.join(__dirname, '..', 'tests', 'quality-runs', 'blog');
   fs.mkdirSync(reportDir, { recursive: true });
-  if (!fromRaw) fs.writeFileSync(path.join(reportDir, `BANK_paa_${trade}_${date}_raw.json`), JSON.stringify(r.raw, null, 1), 'utf8');
+  fs.writeFileSync(path.join(reportDir, `BANK_paa_${trade}_${date}_raw.json`), JSON.stringify(r.raw, null, 1), 'utf8');
   const reportFile = path.join(reportDir, `BANK_paa_${trade}_${date}_report.txt`);
-  const text = P.formatReport(r.report, { trade, cost: r.cost, calls: r.calls });
+  const text = r.reportText;
   fs.writeFileSync(reportFile, text + '\n', 'utf8');
   const check = B.validateBank(B.parseBank(r.text));
-  console.log(`${trade}: done in ${Math.round((Date.now() - started) / 1000)}s, $${r.cost.toFixed(4)}: ${r.report.totals.found} questions found, ${r.report.totals.kept} kept over ${r.report.totals.blocks} blocks (${r.report.totals.thin} under ${P.MIN_PER_BLOCK}); wrote ${B.relative(path.join(B.DIR, `${trade}.md`))} and ${path.relative(process.cwd(), reportFile).split(path.sep).join('/')}${check.valid ? '' : `; NOT USABLE: ${check.error}`}. Not approved.`);
+  console.log(`${trade}: done in ${Math.round((Date.now() - started) / 1000)}s, DataForSEO ${r.cost.toFixed(4)}${r.modelPence != null ? `, the judge ${r.modelPence}p` : ''}: ${r.report.totals.found} questions found, ${r.report.totals.after_relevance} after the filters, ${r.report.totals.kept} kept over ${r.report.totals.blocks} blocks (${r.report.totals.thin} under ${P.MIN_PER_BLOCK}, ${r.report.totals.deepened} searched again); wrote ${B.relative(path.join(B.DIR, `${trade}.md`))} and ${path.relative(process.cwd(), reportFile).split(path.sep).join('/')}${check.valid ? '' : `; NOT USABLE: ${check.error}`}. Not approved.`);
   console.log('');
   console.log(text);
 }

@@ -229,6 +229,19 @@ function reserveBlogTopics({ assignment, cv = {}, niche = {}, keyValueMap = {}, 
         for (const r of [...ct.related].sort(priceFirst)) { if (faq.length >= 5) break; if (usedBank.has(r.id) || faq.some(f => f.id === r.id) || takenQ(r.question, ex) || !notH2(r.question)) continue; usedBank.add(r.id); useQ(r.question); faq.push({ id: r.id, wording: r.question, doubt: r.doubt, needs_fact: !!r.needsFact }); }
         topic.bank_topic = ct.id; topic.related_from = [ct.id];
       } else flagOnce(topic, 'F-STACK', `No CT block in the bank for ${topic.homepage_cost_guide ? 'the trade' : topic.service ? topic.service.title : 'this service'}: no FAQ questions, so the guide is held.`);
+      // Then the same service's BT block (Brandon, 28 Oct, night: the CT block first, then the
+      // service's own BT block, never another service's), leaving that block the six its own post
+      // needs (three H2s and three FAQ questions)
+      if (faq.length < 5 && topic.service && !topic.homepage_cost_guide) {
+        // The block's own post may be in the batch (its id is used); only its related questions matter here
+        const bts = bankTopics.filter(b => sameName(b.service, topic.service.title));
+        let fromBt = 0;
+        for (const bt of bts) {
+          const free = () => bt.related.filter(r => !usedBank.has(r.id) && !faq.some(f => f.id === r.id));
+          for (const r of free().sort(byDoubt)) { if (faq.length >= 5 || free().length <= 6) break; if (takenQ(r.question, ex) || !notH2(r.question)) continue; usedBank.add(r.id); useQ(r.question); faq.push({ id: r.id, wording: r.question, doubt: r.doubt, needs_fact: !!r.needsFact }); fromBt++; if (!topic.related_from.includes(bt.id)) topic.related_from = [...(topic.related_from || []), bt.id]; }
+        }
+        if (fromBt) flagOnce(topic, 'F-FAQ-BT', `${fromBt} FAQ question${fromBt === 1 ? '' : 's'} from the service's BT block (${topic.related_from.filter(id => /^BT-/.test(id)).join(', ')}), after its CT block.`);
+      }
       topic.faq = faq; topic.faq_ids = faq.map(f => f.id);
       if (dropped) topic.flags.push({ code: 'F-FAQ-H2', msg: `${dropped} FAQ question${dropped === 1 ? '' : 's'} dropped: ${dropped === 1 ? 'it rephrases' : 'they rephrase'} one of the fixed H2s.` });
       return;
