@@ -1,6 +1,6 @@
 # Blog Post Copywriting Prompt: CORE (1)
 
-New page type for v20. Version 1, 28 Oct 2026. From the Blog Post Structure (Ray) plus Amendment 1. Master copy lives in the Copybot repo; edit there, copy to the project. Code appends prompts/_shared_copy_rules.md under SHARED COPY RULES, so claims, voice, links, names in prose and custom values are not repeated here.
+New page type for v20. Version 1.1, 28 Oct 2026 (prices read from the PRICE rows in FACTS ALLOWED). From the Blog Post Structure (Ray) plus Amendment 1. Master copy lives in the Copybot repo; edit there, copy to the project. Code appends prompts/_shared_copy_rules.md under SHARED COPY RULES, so claims, voice, links, names in prose and custom values are not repeated here.
 
 ---
 
@@ -8,7 +8,7 @@ New page type for v20. Version 1, 28 Oct 2026. From the Blog Post Structure (Ray
 
 This one prompt writes every blog post. POST says which type it is:
 
-- cost_guide: owns "[service] cost [city]" (or "[trade] cost [city]" for the homepage cost guide). Explains what the job costs and why. Prices only from [CV: price_list]; with no price for this service it becomes "what affects the cost" (cost_mode: factors).
+- cost_guide: owns "[service] cost [city]" (or "[trade] cost [city]" for the homepage cost guide). Explains what the job costs and why. Prices only from the PRICE rows in FACTS ALLOWED; with no price for this service it becomes "what affects the cost" (cost_mode: factors).
 - decision: "X or Y", "repair or replace", "do I need planning permission for X". Helps the reader choose, then points to the service that does it.
 - question: one customer question ("why is my lawn waterlogged?", "how long does a patio take?"). Answers it, then points to the service that fixes it.
 - local: a problem or condition in one named town or neighbourhood, from the geo dossier. Seasonal posts are local posts with a time of year.
@@ -46,19 +46,19 @@ Per post message, in this order:
 Word counts are hard ranges. Count before you finish.
 
 ### blog_answer
-40 to 60 words. The direct answer to the target query, first sentence 20 words or fewer. Cost guide with prices: the typical range from [CV: price_list] and the one thing that moves it most. Factors mode: what moves the price, no figures. Decision: which option suits which situation. Question: the answer, then the most common cause. Local: the condition and what it means for the job. Never open on the company name.
+40 to 60 words. The direct answer to the target query, first sentence 20 words or fewer. Cost guide with prices: the typical range from the PRICE rows in FACTS ALLOWED and the one thing that moves it most. Factors mode: what moves the price, no figures. Decision: which option suits which situation. Question: the answer, then the most common cause. Local: the condition and what it means for the job. Never open on the company name.
 
 ### blog_sections
 One body per H2 in DECISIONS, in order. Each body opens with a sentence that answers its H2 directly, then 2 or 3 short paragraphs following the brief. Range per post type: cost guide 150 to 220 words each; decision and question 140 to 200; local 120 to 180. Every paragraph carries one fact from FACTS ALLOWED. The primary link appears once in the first or second section, as natural link text.
 
 ### blog_table
-Only when DECISIONS gives a table. One row per row label, in order, filling each column from FACTS ALLOWED. Prices only from [CV: price_list]; a cell with no fact is written "Ask for a quote", never a guess. 2 to 12 words per cell.
+Only when DECISIONS gives a table. One row per row label, in order, filling each column from FACTS ALLOWED. Prices only from the PRICE rows in FACTS ALLOWED; a cell with no fact is written "Ask for a quote", never a guess. 2 to 12 words per cell.
 
 ### blog_business
 Only when DECISIONS shows the business block. 50 to 80 words. How this business handles the job: its quote method, process, guarantee or accreditation, from client values only. Written as what happens, never as a boast.
 
 ### blog_faq_items
-One answer per question given, in order. 40 to 70 words. First sentence answers in 15 words or fewer. Prices only from [CV: price_list]. Rules from trade facts rule rows only, written as what usually applies.
+One answer per question given, in order. 40 to 70 words. First sentence answers in 15 words or fewer. Prices only from the PRICE rows in FACTS ALLOWED. Rules from trade facts rule rows only, written as what usually applies.
 
 ### blog_closing
 One or two sentences, 20 to 40 words. What the reader can do next, linking the primary page once. Never [CV: phone], never "Tell us", never the same opening words as another closing line on the site.
@@ -80,7 +80,7 @@ On top of the shared copy rules:
 3. No stories. Never a scenario, an anecdote, a "picture this" or an imagined customer. A real customer question is the only story allowed.
 4. Rules and planning are written as what usually applies ("in most cases", "usually"), never as legal advice, never with a standard's number or a regulation's name. Say who to check with (the council, building control).
 5. Safety switch on. What to switch off or avoid, then to call a qualified professional. Never DIY steps.
-6. Figures. Prices only from [CV: price_list]. Council fees and rules only from FACTS ALLOWED rows. One figure per paragraph at most.
+6. Figures. Prices only from the PRICE rows in FACTS ALLOWED. Council fees and rules only from FACTS ALLOWED rows. One figure per paragraph at most.
 7. One home per idea. Nothing in IDEAS USED ELSEWHERE is made again. A point made in one H2 is not repeated in the FAQ.
 8. No proof headlines. Years, guarantee, insurance and review counts appear only in blog_business, and only as confirmed.
 9. Links. The primary link twice at most (a section and the closing line); each secondary link once. Never link to another blog post unless it is on LINKABLE PAGES.
