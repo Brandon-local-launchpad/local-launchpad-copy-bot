@@ -56,16 +56,18 @@ async function copy({ from, to, write = false, batch = 200, log = console.log })
     await dst.query(`TRUNCATE ${todo.map(p => `"${p.table}"`).join(', ')} CASCADE`);
     let total = 0;
     for (const p of todo) {
-      const { rows: cols } = await src.query(`SELECT column_name FROM information_schema.columns WHERE table_schema = 'public' AND table_name = $1 ORDER BY ordinal_position`, [p.table]);
+      const { rows: cols } = await src.query(`SELECT column_name, data_type FROM information_schema.columns WHERE table_schema = 'public' AND table_name = $1 ORDER BY ordinal_position`, [p.table]);
       const { rows: dcols } = await dst.query(`SELECT column_name FROM information_schema.columns WHERE table_schema = 'public' AND table_name = $1`, [p.table]);
       const dset = new Set(dcols.map(c => c.column_name));
       const names = cols.map(c => c.column_name).filter(c => dset.has(c));
+      // A json or jsonb column holds any JSON value (a string, a number, an object): always sent serialised
+      const jsonCols = new Set(cols.filter(c => /json/.test(c.data_type)).map(c => c.column_name));
       let offset = 0, copied = 0;
       for (;;) {
         const { rows } = await src.query(`SELECT ${names.map(c => `"${c}"`).join(', ')} FROM "${p.table}" LIMIT ${batch} OFFSET ${offset}`);
         if (!rows.length) break;
         const values = [], params = [];
-        for (const r of rows) { const ph = []; for (const c of names) { params.push(r[c] !== null && typeof r[c] === 'object' && !Buffer.isBuffer(r[c]) && !(r[c] instanceof Date) ? JSON.stringify(r[c]) : r[c]); ph.push(`$${params.length}`); } values.push(`(${ph.join(', ')})`); }
+        for (const r of rows) { const ph = []; for (const c of names) { const v = r[c]; params.push(v === null || v === undefined ? null : jsonCols.has(c) ? JSON.stringify(v) : (typeof v === 'object' && !Buffer.isBuffer(v) && !(v instanceof Date) ? JSON.stringify(v) : v)); ph.push(`$${params.length}`); } values.push(`(${ph.join(', ')})`); }
         await dst.query(`INSERT INTO "${p.table}" (${names.map(c => `"${c}"`).join(', ')}) VALUES ${values.join(', ')}`, params);
         copied += rows.length; offset += rows.length;
         if (rows.length < batch) break;
