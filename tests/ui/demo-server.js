@@ -116,11 +116,12 @@ process.env.BLOG_BANK_TEST_SAMPLES = '1'; // the demo's landscaper bank is the h
     const record = { research_asset_id: rr[0].id, updated_at: new Date().toISOString(), model: 'demo replay', attempts: tidy.attempts, customer_questions: [], questions: tidy.questions.map(q => ({ ...q, approved: !q.wording_errors.length })) };
     await asset('faq_sort', 'faq_sort.json', JSON.stringify(record));
   }
-  // The landscaper blog question bank: the hand written sample (tests/fixtures/data), approved, so the
-  // reserved topics draw on it (28 Oct, blog stage 2). Replace with the real Perplexity run when it is in.
+  // The landscaper blog question bank, approved on the demo so the reserved topics draw on it (28 Oct, blog stage 2)
   {
     const bankStore = require(path.join(root, 'blog/bank-store.js')).createBankStore({ pool, log: { log() {}, error: console.error }, testSamplesAllowed: true });
-    await bankStore.save('landscaper', fs.readFileSync(path.join(root, 'tests/fixtures/data/blog-bank-landscaper-sample.md'), 'utf8'), { source: 'paste' });
+    // The real run (blog-bank/landscaper.md) when it is there, else the hand written sample
+    const bankFile = fs.existsSync(path.join(root, 'blog-bank/landscaper.md')) ? path.join(root, 'blog-bank/landscaper.md') : path.join(root, 'tests/fixtures/data/blog-bank-landscaper-sample.md');
+    await bankStore.save('landscaper', fs.readFileSync(bankFile, 'utf8'), { source: /blog-bank/.test(bankFile) ? 'perplexity' : 'paste' });
     await bankStore.approve('landscaper', 'demo');
   }
 

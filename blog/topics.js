@@ -175,9 +175,12 @@ function reserveBlogTopics({ assignment, cv = {}, niche = {}, keyValueMap = {}, 
       service: pageRef(service), category: pageRef(category), town: type === 'local' ? (q.town || city) : '', primary: service ? service.urlSlug : category ? category.urlSlug : '/#services' });
   }
 
-  // 5. The bank's topics: cost, then decision and question, the ranked ones first
+  // 5. The bank's decision and question topics, the ranked ones first. The bank's other cost
+  // topics are not posts in the onboarding batch: B1 caps the cost guides at the trade guide
+  // plus one per main service (the first real bank gave a batch of sixteen cost guides
+  // otherwise); they stay in the queue for the Search Console batches
   const bankLeft = bankTopics.filter(t => !usedBank.has(t.id) && t.question).sort(bankOrder);
-  for (const bt of [...bankLeft.filter(t => bankType(t) === 'cost_guide'), ...bankLeft.filter(t => bankType(t) !== 'cost_guide')]) {
+  for (const bt of bankLeft.filter(t => bankType(t) !== 'cost_guide')) {
     if (usedWordings.has(norm(bt.question))) { usedBank.add(bt.id); flags.push({ code: 'F-DROPPED', msg: `${bt.id} "${bt.question}" is a page's question already; not a post.` }); continue; }
     const { service, category } = bankPage(bt);
     const type = bankType(bt);

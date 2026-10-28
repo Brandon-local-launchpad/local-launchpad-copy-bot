@@ -52,13 +52,15 @@ const longDate = iso => { const d = new Date(`${iso}T00:00:00Z`); return `${d.ge
 // no town and there is room; 70 characters at most, over that the city is dropped
 function h1For(wording, { city, town, postType }) {
   const base = question(wording);
-  if (!base) return { h1: '', withCity: false };
-  const hasPlace = (city && new RegExp(`\\b${esc(city)}\\b`, 'i').test(base)) || (town && new RegExp(`\\b${esc(town)}\\b`, 'i').test(base)) || /\b(uk|england)\b/i.test(base);
+  if (!base) return { h1: '', withCity: false, namesPlace: false };
+  // The question already names the city or the town (a named town for B9), or the country (no city added)
+  const namesPlace = !!((city && new RegExp(`\\b${esc(city)}\\b`, 'i').test(base)) || (town && new RegExp(`\\b${esc(town)}\\b`, 'i').test(base)));
+  const hasPlace = namesPlace || /\b(uk|england)\b/i.test(base);
   if (postType !== 'local' && city && !hasPlace) {
     const withCity = `${base.replace(/\?$/, '')} in ${city}?`;
-    if (withCity.length <= 70) return { h1: withCity, withCity: true };
+    if (withCity.length <= 70) return { h1: withCity, withCity: true, namesPlace: true };
   }
-  return { h1: base, withCity: false };
+  return { h1: base, withCity: false, namesPlace };
 }
 
 // B4: "[H1 without ?] | [company]" at 60 at most; over, the company goes; still over, the target query's words
@@ -156,7 +158,7 @@ function computeBlogDecisions({ row, cv = {}, niche = {}, keyValueMap = {}, page
   // ── B9: specificity ──
   const spec = specificity({
     price: priceList.length > 0,
-    town: !!(town || (postType !== 'local' && city && h1For(wording, { city, town, postType }).withCity)),
+    town: !!(town || h1For(wording, { city, town, postType }).namesPlace),
     condition: !!condition || dossierRows.some(d => d.kind === 'dossier condition'),
     customerWords: !!customerWords,
     process: practices.length > 0 || !!cv.quote_method || (cv.differentiator_1_confirmed && cv.differentiator_1) || parseInt(cv.guarantee_years, 10) > 0,
