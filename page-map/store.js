@@ -113,7 +113,7 @@ const fromDb = r => ({ ...r, links_to: parse(r.links_to) || [], links_from: pars
 // daily job keep on the row: the service and category the post belongs to, the record's version)
 const BLOG_INFO_KEYS = [...G.BLOG_COLUMNS.map(c => c[1]), 'service', 'category', 'phase', 'held', 'backfill_pending', 'published_url',
   // The queue's own keys (blog/queue.js rowsFor): the resolved stack and FAQ wordings, the question and its approval, the slot
-  'service_slug', 'category_slug', 'stack', 'faq', 'question_id', 'question_source', 'wording', 'wording_source', 'wording_approved', 'wording_edited', 'needs_approval', 'bank_topic', 'held', 'pack_service', 'related_from', 'window_rows', 'seasonal', 'dossier_condition', 'cost_unit', 'slot_note', 'held_for_date', 'month'];
+  'service_slug', 'category_slug', 'stack', 'faq', 'question_id', 'question_source', 'wording', 'wording_source', 'wording_approved', 'wording_edited', 'needs_approval', 'bank_topic', 'held', 'pack_service', 'related_from', 'window_rows', 'bank_window', 'bank_block', 'seasonal', 'dossier_condition', 'cost_unit', 'slot_note', 'held_for_date', 'month'];
 const INFO_KEYS = ['town', 'category_key', 'service_id', 'service_name', 'parent_keys', 'additional', 'primary', 'merged_from', 'gbp_names', 'absorbs', 'copy_priority', 'phase', 'links'];
 // A plan row's info: what the generator put in info, plus its link sections
 const infoOf = p => { const src = { ...(p.info || {}), ...(p.links ? { links: p.links } : {}) }; return Object.fromEntries(INFO_KEYS.filter(k => src[k] !== undefined).map(k => [k, src[k]])); };

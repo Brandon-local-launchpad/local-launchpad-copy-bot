@@ -145,6 +145,18 @@ function reserveBlogTopics({ assignment, cv = {}, niche = {}, keyValueMap = {}, 
 
   // ── The bank: its topics in rank order, and a page for each ──
   const bankTopics = bank && Array.isArray(bank.topics) ? bank.topics : [];
+  // A v2 bank (Brandon, 28 Oct): every post takes its questions from its own block only. A decision
+  // or question post from its BT block, a cost guide's FAQ from its service's CT block (the trade
+  // level CT block feeds the homepage cost guide), a seasonal post from its ST block, whose window
+  // joins FACTS ALLOWED as a sourced row. No borrowing: the tasks list match and the fourth cost
+  // guide FAQ source are the v1 bank's only. Under three H2s and three FAQ questions, held.
+  const v2 = !!(bank && bank.version === 2);
+  const costBlocks = v2 && Array.isArray(bank.costTopics) ? bank.costTopics : [];
+  const seasonalBlocks = v2 && Array.isArray(bank.seasonalTopics) ? bank.seasonalTopics : [];
+  const sameName = (a, b) => { const x = norm(a), y = norm(b); return !!x && !!y && (x === y || (x.length >= 5 && y.length >= 5 && (x.includes(y) || y.includes(x)))); };
+  const GENERAL_RE = /^general$/i;
+  // A flag raised once, though the stacking runs again when the batch refills
+  const flagOnce = (t, code, msg) => { if (!t.flags.some(f => f.code === code && f.msg === msg)) t.flags.push({ code, msg }); };
   const rankOf = new Map((bank && bank.ranked ? bank.ranked : []).map((id, i) => [id, i]));
   const bankOrder = (a, b) => (rankOf.has(a.id) ? rankOf.get(a.id) : 1000 + idNum(a.id)) - (rankOf.has(b.id) ? rankOf.get(b.id) : 1000 + idNum(b.id));
   // A bank topic's page: the sorting step's lookup on its service word, else the service page
@@ -183,8 +195,10 @@ function reserveBlogTopics({ assignment, cv = {}, niche = {}, keyValueMap = {}, 
   const rankRelated = (target, list, ex) => list.map(r => ({ r, s: relatedScore(target, r.question, ex) })).filter(x => x.s >= RELATED_MIN).sort((a, b) => b.s - a.s || byDoubt(a.r, b.r)).map(x => x.r);
   const relatedOf = (t, target, ex = new Set()) => {
     const kept = [], dropped = [], weak = [];
-    for (const r of [...t.related].sort(byDoubt)) { if (usedBank.has(r.id)) continue; if (takenQ(r.question, ex)) dropped.push(r); else if (relatedScore(target || t.question, r.question, ex) >= RELATED_MIN) kept.push(r); else weak.push(r); }
-    return { kept: rankRelated(target || t.question, kept, ex), dropped, weak };
+    // A v2 block's related questions are on the topic by the bank's research: all kept, the best matched first
+    for (const r of [...t.related].sort(byDoubt)) { if (usedBank.has(r.id)) continue; if (takenQ(r.question, ex)) dropped.push(r); else if (v2 || relatedScore(target || t.question, r.question, ex) >= RELATED_MIN) kept.push(r); else weak.push(r); }
+    const ranked = v2 ? kept.map(r => ({ r, s: relatedScore(target || t.question, r.question, ex) })).sort((a, b) => b.s - a.s || byDoubt(a.r, b.r)).map(x => x.r) : rankRelated(target || t.question, kept, ex);
+    return { kept: ranked, dropped, weak };
   };
   const bankRef = t => ({ id: t.id, wording: t.question, approved: true, usable: true, doubt: '', service: t.service || '', town: '', source: 'blog_bank', url: t.url || '' });
   // The cost guide's fixed H2s, for the FAQ dedupe at reservation (the question forms of both modes)
@@ -192,12 +206,33 @@ function reserveBlogTopics({ assignment, cv = {}, niche = {}, keyValueMap = {}, 
   // A cost guide's FAQ (the structure): the bank's related questions on its cost topic first, then
   // other bank cost topics on the same service, then the held cost questions from the sort; never
   // one that rephrases an H2; fewer than three and the post is held
+  // A v2 bank: the CT block for a cost guide, the one its question came from, else the one on its
+  // service (the page's UK name), the General block for the homepage cost guide
+  const costBlockFor = topic => {
+    if (topic.question && /^CT-/.test(topic.question.id)) return costBlocks.find(b => b.id === topic.question.id) || null;
+    if (topic.homepage_cost_guide) return costBlocks.find(b => GENERAL_RE.test(b.service || '') || (tradeLower && norm(b.question).includes(norm(tradeLower)))) || null;
+    if (!topic.service) return null; // a cost question naming no service page has no block (the trade block is the homepage guide's)
+    return costBlocks.find(b => sameName(b.service, topic.service.title)) || costBlocks.find(b => relatedScore(topic.service.title, b.service || '') >= 1) || null;
+  };
   const fillCostGuideFaq = topic => {
     const h2s = costGuideH2Words(topic);
     const ex = serviceStems(topic);
     const notH2 = q => !SQ.findSame(q, h2s, { exclude: [city, niche.trade || '', ...ex] });
     const faq = topic.faq.filter(f => notH2(f.wording));
     const dropped = topic.faq.length - faq.length;
+    if (v2) {
+      // Own block only: the CT block's related questions, Price first then doubt order, never an H2 rephrased
+      const ct = costBlockFor(topic);
+      if (ct) {
+        usedBank.add(ct.id);
+        const priceFirst = (a, b) => (a.doubt === 'Price' ? 0 : 1) - (b.doubt === 'Price' ? 0 : 1) || byDoubt(a, b);
+        for (const r of [...ct.related].sort(priceFirst)) { if (faq.length >= 5) break; if (usedBank.has(r.id) || faq.some(f => f.id === r.id) || takenQ(r.question, ex) || !notH2(r.question)) continue; usedBank.add(r.id); useQ(r.question); faq.push({ id: r.id, wording: r.question, doubt: r.doubt, needs_fact: !!r.needsFact }); }
+        topic.bank_topic = ct.id; topic.related_from = [ct.id];
+      } else flagOnce(topic, 'F-STACK', `No CT block in the bank for ${topic.homepage_cost_guide ? 'the trade' : topic.service ? topic.service.title : 'this service'}: no FAQ questions, so the guide is held.`);
+      topic.faq = faq; topic.faq_ids = faq.map(f => f.id);
+      if (dropped) topic.flags.push({ code: 'F-FAQ-H2', msg: `${dropped} FAQ question${dropped === 1 ? '' : 's'} dropped: ${dropped === 1 ? 'it rephrases' : 'they rephrase'} one of the fixed H2s.` });
+      return;
+    }
     const sameService = bt => topic.service ? relatedScore(topic.service.title, bt.service || '') > 0 || lc(bt.service || '') === lc(topic.service.title) : /^general$/i.test(bt.service || '');
     for (const bt of bankTopics.filter(b => b.type === 'cost' && !(topic.question && b.id === topic.question.id) && sameService(b))) {
       if (faq.length >= 3) break;
@@ -228,6 +263,8 @@ function reserveBlogTopics({ assignment, cv = {}, niche = {}, keyValueMap = {}, 
     // Otherwise the first 3 to 5 as the H2s and the next 3 to 5 as the FAQ: split so both get
     // their three when there are six or more (7 → 4 and 3, 10 → 5 and 5)
     const costGuide = topic.post_type === 'cost_guide';
+    // A v2 cost guide's FAQ is filled at the cut from its CT block (fillCostGuideFaq); nothing is taken here
+    if (costGuide && v2) { topic.query_stack = []; topic.stack = []; return topic; }
     const n = costGuide ? 0 : Math.min(5, Math.max(3, Math.ceil(kept.length / 2)));
     const stack = kept.slice(0, n), faq = unlike(stack, kept.slice(n), serviceStems(topic)).slice(0, 5);
     for (const r of [...stack, ...faq]) { usedBank.add(r.id); useQ(r.question); }
@@ -252,8 +289,9 @@ function reserveBlogTopics({ assignment, cv = {}, niche = {}, keyValueMap = {}, 
     topic.flags.push({ code: 'F-MERGED', msg: `${bt.id} "${bt.question}" is this question in other words: its related questions are the stack and the FAQ; not a second post.` });
     return topic;
   };
-  const bankCostFor = page => bankTopics.find(t => !usedBank.has(t.id) && t.type === 'cost' && page && (bankPage(t).service || {}).urlSlug === page.urlSlug);
-  const bankGeneralCost = bankTopics.find(t => !usedBank.has(t.id) && t.type === 'cost' && (/^general$/i.test(t.service || '') || (tradeLower && norm(t.question).includes(norm(tradeLower)) && !bankPage(t).service)));
+  // A v2 bank's cost topics are its CT blocks, one per service (the page's UK name) and one for the trade
+  const bankCostFor = page => (v2 ? (page ? costBlocks.find(t => !usedBank.has(t.id) && sameName(t.service, ukName(page.pageTitle))) || null : null) : bankTopics.find(t => !usedBank.has(t.id) && t.type === 'cost' && page && (bankPage(t).service || {}).urlSlug === page.urlSlug));
+  const bankGeneralCost = v2 ? costBlocks.find(t => GENERAL_RE.test(t.service || '') || (tradeLower && norm(t.question).includes(norm(tradeLower)))) || null : bankTopics.find(t => !usedBank.has(t.id) && t.type === 'cost' && (/^general$/i.test(t.service || '') || (tradeLower && norm(t.question).includes(norm(tradeLower)) && !bankPage(t).service)));
 
   // 1. The trade level cost guide (the Homepage cost guide, read by the homepage FAQ Q1)
   if (city && tradeLower) {
@@ -399,6 +437,18 @@ function reserveBlogTopics({ assignment, cv = {}, niche = {}, keyValueMap = {}, 
     }
     return best;
   };
+  // The ST block for a niche seasonal topic: the block whose service or question shares the
+  // topic's words (its service name and its task words), else the block at the topic's position
+  const seasonalBlockFor = (t, index) => {
+    const want = new Set(stemsOf(`${t.topic} ${P.serviceForQuestion ? (() => { try { return P.serviceForQuestion(niche._source || P.packNameFor(niche.trade), t.topic) || ''; } catch (_) { return ''; } })() : ''}`).filter(w => w.length >= 4 && !['prepar', 'ready', 'season', 'after', 'before'].includes(w)));
+    let best = null, bestN = 0;
+    for (const b of seasonalBlocks) {
+      const have = new Set(stemsOf(`${b.service || ''} ${b.question || ''}`));
+      let n = 0; for (const w of want) if (have.has(w) || [...have].some(h => h.length >= 4 && (h.startsWith(w) || w.startsWith(h)))) n++;
+      if (n > bestN) { best = b; bestN = n; }
+    }
+    return best || seasonalBlocks[index] || null;
+  };
   for (const t of slots.seasonal_topics) {
     if (!city) break;
     const month = launch ? seasonalMonth(launch, { seasonal: t }) : null;
@@ -414,14 +464,21 @@ function reserveBlogTopics({ assignment, cv = {}, niche = {}, keyValueMap = {}, 
     // the topic reads "How to Get Your Lawn Ready for Spring" (Brandon, 28 Oct)
     let windowRows = [];
     try { windowRows = packService ? P.rowsForPost(niche._source || P.packNameFor(niche.trade), packService, t.topic).rows.filter(r => r.kind === 'timing' && MONTH_RE.test(r.text)) : []; } catch (_) { windowRows = []; }
+    // A v2 bank: the topic's ST block (the niche entry's topics were sent in order; matched on the
+    // service and the topic's words, else by position); its window, with its source, is a sourced
+    // row in FACTS ALLOWED, and gives the "When …" wording when it names a month or a season
+    const st = v2 ? seasonalBlockFor(t, slots.seasonal_topics.indexOf(t)) : null;
+    const bankWindow = st && st.window ? { id: st.id, text: st.window, url: st.window_url || st.url || '' } : null;
+    if (bankWindow && MONTH_RE.test(bankWindow.text)) windowRows = [{ text: bankWindow.text }, ...windowRows];
     const whenWording = question(SEASONAL_VERB.test(t.topic) ? `when should you ${lc(t.topic)} in ${town}` : `when is the best time for ${lc(t.topic)} in ${town}`);
     const howWording = question(howToWording(t.topic, town));
     const topic = add({ key: keyFor(`${t.topic} ${town}`), post_type: 'local', source: 'seasonal', homepage_cost_guide: false, target_query: lc(norm(`${t.topic} ${town}`)),
       // "Lay new turf" reads as "When should you lay new turf"; "Spring lawn care" as "When is the best time for spring lawn care"
       wording: windowRows.length ? whenWording : howWording, wording_source: 'code', needs_approval: true, question: null, service: pageRef(svcPage), category: null, town, window_rows: windowRows.map(r => r.text),
-      seasonal: { topic: t.topic, window: t.window, publish: t.publish, month, tasks: Array.isArray(t.tasks) ? t.tasks : [] }, in_window: !!month, primary: svcPage ? svcPage.urlSlug : '/#services', pack_service: packService,
+      seasonal: { topic: t.topic, window: t.window, publish: t.publish, month, tasks: Array.isArray(t.tasks) ? t.tasks : [] }, in_window: !!month, primary: svcPage ? svcPage.urlSlug : '/#services', pack_service: packService, bank_window: bankWindow, bank_block: st ? st.id : '',
       dossier_condition: c ? { id: c.issue.id, title: c.issue.title, symptom: c.symptom ? { id: c.symptom.id, text: c.symptom.text } : null, town, fit: c.score >= 1 ? 'names the job' : 'the first free condition' } : null });
-    if (!windowRows.length) topic.flags.push({ code: 'F-WINDOW', msg: `No month window in the trade facts timing rows for ${packService || t.topic}: the topic reads "${howWording}" instead of "${whenWording}".` });
+    if (!windowRows.length) topic.flags.push({ code: 'F-WINDOW', msg: `No month window in ${v2 ? `the bank's ${st ? st.id : 'ST block'} (${st && st.window ? `"${st.window}"` : 'no window stated'}) or ` : ''}the trade facts timing rows for ${packService || t.topic}: the topic reads "${howWording}" instead of "${whenWording}".` });
+    if (v2 && !st) topic.flags.push({ code: 'F-STACK', msg: `No ST block in the bank for "${t.topic}": no related questions, so the post is held.` });
     if (!c) topic.flags.push({ code: 'F-CONDITION', msg: `No free dossier condition for "${t.topic}" (${parsedDossiers.length ? 'every condition is used' : 'no saved dossier'}): the post has no condition and will gate on B9.` });
     else if (c.score < 1) topic.flags.push({ code: 'F-CONDITION', msg: `No dossier condition names "${t.topic}": the first free condition of ${town} (${c.issue.title}) is used.` });
   }
@@ -465,6 +522,25 @@ function reserveBlogTopics({ assignment, cv = {}, niche = {}, keyValueMap = {}, 
   // service for the topic, else the topic's own words), their unused related questions in
   // doubt order, the first 3 to 5 as the H2s and the next 3 to 5 as the FAQ
   const seasonalRelated = t => {
+    if (v2) {
+      // Own block only: a seasonal post's ST block; a dossier post the BT block that asks its question
+      // in other words (the homeowner's symptom and the bank's topic are one post), else none
+      let block = null;
+      if (t.source === 'seasonal') block = t.bank_block ? seasonalBlocks.find(b => b.id === t.bank_block) : null;
+      else block = bankTopics.find(b => !usedBank.has(b.id) && b.question && (sameQuestion(b.question, t.wording) || !!SQ.findSame(t.wording, [b.question], { exclude: [city, niche.trade || ''] }))) || null;
+      if (!block) { flagOnce(t, 'F-STACK', t.source === 'seasonal' ? `No ST block in the bank for "${t.seasonal.topic}": no related questions, so the post is held.` : `No bank topic asks "${t.wording}" in other words: no related questions, so the post is held.`); return; }
+      usedBank.add(block.id);
+      const { kept, dropped } = relatedOf(block, t.wording, serviceStems(t));
+      const n = Math.min(5, Math.max(3, Math.ceil(kept.length / 2)));
+      const stack = kept.slice(0, n), faq = unlike(stack, kept.slice(n), serviceStems(t)).slice(0, 5);
+      for (const r of [...stack, ...faq]) { usedBank.add(r.id); useQ(r.question); }
+      t.query_stack = stack.map(r => r.id); t.stack = stack.map(r => ({ id: r.id, wording: r.question, doubt: r.doubt, needs_fact: !!r.needsFact }));
+      t.faq_ids = faq.map(r => r.id); t.faq = faq.map(r => ({ id: r.id, wording: r.question, doubt: r.doubt, needs_fact: !!r.needsFact }));
+      t.bank_topic = block.id; t.related_from = [block.id];
+      if (t.source === 'dossier') t.flags.push({ code: 'F-MERGED', msg: `${block.id} "${block.question}" is this question in other words: its related questions are the stack and the FAQ; not a second post.` });
+      if (dropped.length) t.flags.push({ code: 'F-DROPPED', msg: `${dropped.length} related question${dropped.length === 1 ? '' : 's'} dropped: a page or another post already asks ${dropped.length === 1 ? 'it' : 'them'} (${dropped.map(r => r.id).join(', ')}).` });
+      return;
+    }
     // The service's words only ("Turf laying" → turf, lay), matched on the bank topic's service
     // name, never its question ("lay a patio" is not a turf topic); the topic's own words when
     // the pack names no service, and the question only when the bank topic names no service
@@ -497,6 +573,7 @@ function reserveBlogTopics({ assignment, cv = {}, niche = {}, keyValueMap = {}, 
     if (t.source === 'seasonal' || t.source === 'dossier') for (const id of [...t.query_stack, ...t.faq_ids]) usedBank.delete(id);
     if (t.question && t.question.source === 'blog_bank') { usedBank.delete(t.question.id); for (const id of [...t.query_stack, ...t.faq_ids]) usedBank.delete(id); }
     if (t.bank_topic) { usedBank.delete(t.bank_topic); for (const id of [...t.query_stack, ...t.faq_ids]) usedBank.delete(id); }
+    if (v2 && t.post_type === 'cost_guide') for (const id of t.faq_ids) usedBank.delete(id);
   };
 
   // The onboarding batch is the first 16; what is beyond it stays in the queue, its questions

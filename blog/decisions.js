@@ -191,7 +191,11 @@ const tfRows = (tradeFacts && tradeFacts.verified && Array.isArray(tradeFacts.ro
     const thin = options.filter(o => o.rows.length < 2);
     if (thin.length) gates.push({ code: 'G-OPTIONS', hold: true, msg: `${row.slug}: ${thin.map(o => `"${o.name}" has ${o.rows.length} trade facts row${o.rows.length === 1 ? '' : 's'}`).join(' and ')} (2 each needed, from the client's pack or the pack where the service lives). The post is held until a pack covers both options.` });
   }
-  tfRows.forEach((r, i) => fact(`TF-${i + 1}`, `trade facts ${r.kind}${r.from_pack ? ` (${r.from_pack} pack)` : ''}`, `${r.name ? `${r.name}: ` : ''}${r.text}`, { rowKind: r.kind, name: r.name || '' }));
+  // A seasonal post's window from the v2 bank's ST block (Brandon, 28 Oct): a sourced timing row,
+  // so the answer's timing, the "When …" wording and B-TIMING read it like a trade facts row
+  const bankWindow = info.bank_window && info.bank_window.text ? info.bank_window : null;
+  if (bankWindow) tfRows.push({ kind: 'timing', name: `${svcTitle || info.pack_service || 'the job'} window`, text: bankWindow.text, from_bank: bankWindow.id, source_url: bankWindow.url || '' });
+  tfRows.forEach((r, i) => fact(`TF-${i + 1}`, r.from_bank ? `seasonal window (the bank's ${r.from_bank}, sourced)` : `trade facts ${r.kind}${r.from_pack ? ` (${r.from_pack} pack)` : ''}`, `${r.name ? `${r.name}: ` : ''}${r.text}${r.source_url ? ` (source: ${r.source_url})` : ''}`, { rowKind: r.kind, name: r.name || '' }));
   const condition = info.dossier_condition || null;
   let dossierRows = [];
   if (dossier) {
