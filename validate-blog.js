@@ -28,7 +28,8 @@
 //                 say the same thing
 //   B-PROOF BLOCK a differentiator or a proof claim (years, guarantee, insurance, reviews, job
 //                 counts) outside blog_business (CORE (1) rule 8)
-//   B-HOURS BLOCK the hours, the travel distance or the service area in a post
+//   B-HOURS BLOCK the hours, the travel distance or the service area in a post (the client value
+//           tokens resolved first: "within [CV: travel_distance]" is "within 20 miles"; Brandon, 28 Oct)
 //   B-CHEAP BLOCK "cheap", "affordable", "competitive", a comparison with other businesses' prices
 //   B-QUOTES BLOCK telling the reader to get other quotes
 //   B-FIGURES BLOCK a cost guide's price range anywhere but the answer, H2 1 and the table
@@ -48,6 +49,7 @@ const { validateCommon, sharedCrossChecks, helpers, RETRY_FLAGS } = require('./v
 for (const c of ['B-N1', 'B-N5', 'B-N8', 'B-N9', 'LINK-ONCE', 'CLOSING', 'DATE']) RETRY_FLAGS.add(c);
 const { LABELS } = require('./page-types/blog');
 const { matchIdea, contentWords } = require('./ideas');
+const { resolveTokens } = require('./wp/token-resolve');
 const { esc, linkUrls, normUrl, scanText, sentences, lc, words } = helpers;
 
 // The closing is one or two sentences, 20 to 40 words (the spec; Brandon, 28 Oct, evening):
@@ -106,6 +108,14 @@ const MONEY_RE = /£\s?(\d[\d,]*(?:\.\d+)?)\s?(k|m)?\b|\b(\d[\d,]*)\s?(?:pounds|
 const figure = (n, k) => { let v = parseFloat(String(n).replace(/,/g, '')); if (/k/i.test(k || '')) v *= 1000; if (/m/i.test(k || '')) v *= 1000000; return String(v); };
 const figuresIn = t => { const out = []; for (const m of String(t || '').matchAll(MONEY_RE)) out.push({ text: m[0].trim(), value: figure(m[1] || m[3], m[2]) }); return out; };
 const normQ = s => lc(String(s || '')).replace(/[^a-z0-9 ]+/g, ' ').replace(/\s+/g, ' ').trim();
+// A differentiator reworded (Brandon, 28 Oct): "Fixed prices with no hidden costs" written as "the
+// price we give is fixed, with nothing added later". Its words are folded to stems (price, cost,
+// quote and charge are one; hidden, added, extra and surprise are one; a plural is its singular)
+// and a sentence makes the differentiator when it shares two or more stems and 60% of them.
+const PROOF_STEMS = { cost: 'price', costs: 'price', quote: 'price', quotes: 'price', quotation: 'price', charge: 'price', charges: 'price', fee: 'price', fees: 'price', pricing: 'price', hidden: 'extra', added: 'extra', surprise: 'extra', surprises: 'extra', extras: 'extra', set: 'fixed', agreed: 'fixed', guaranteed: 'fixed', free: 'free', complimentary: 'free' };
+const PROOF_STOP = new Set('a an the and or of to in on with for we our you your it is are be no not so what that this they them from by at as will can'.split(' '));
+const proofStems = text => { const out = new Set(); for (const w of normQ(text).split(' ')) { if (!w || w.length < 3 || PROOF_STOP.has(w)) continue; const base = PROOF_STEMS[w] || w.replace(/ies$/, 'y').replace(/(?<=[a-z]{3})(es|s)$/, '').replace(/(?<=[a-z]{3})(ed|ing)$/, ''); out.add(base); } return out; };
+const makesDifferentiator = (sentenceStems, d) => { let n = 0; for (const w of d.stems) if (sentenceStems.has(w)) n++; return n >= 2 && n / d.stems.size >= 0.6; };
 const firstSentence = t => sentences(t)[0] || '';
 const paragraphs = t => String(t || '').split(/\n\s*\n+|\\n\\n+/).map(p => p.trim()).filter(Boolean);
 
@@ -152,25 +162,27 @@ function validateBlog(record, V) {
 
   // ── B-PROOF: a differentiator or a proof claim outside blog_business (CORE (1) rule 8); the
   // differentiator matched loosely: its words in any order or case, or its phrase inside the text ──
-  const diffs = [cv.differentiator_1_confirmed && cv.differentiator_1, cv.differentiator_2_confirmed && cv.differentiator_2, cv.differentiator_1_sentence, cv.differentiator_2_sentence].filter(Boolean).map(d => ({ text: d, words: contentWords(d), norm: normQ(d) })).filter(d => d.words.size >= 2);
+  const diffs = [cv.differentiator_1_confirmed && cv.differentiator_1, cv.differentiator_2_confirmed && cv.differentiator_2, cv.differentiator_1_sentence, cv.differentiator_2_sentence].filter(Boolean).map(d => ({ text: d, words: contentWords(d), stems: proofStems(d), norm: normQ(d) })).filter(d => d.words.size >= 2);
+  // The text as the reader sees it: the client value tokens resolved (a token the values lack is empty)
+  const resolved = f => resolveTokens(f.text, cv);
   for (const f of fields) {
     if (f.ref.key === LABELS.business) continue;
-    const s = scanText(f.text);
+    const s = scanText(resolved(f));
     const m = s.match(PROOF_RE);
     if (m) { issue('BLOCK', 'B-PROOF', f.label, `"${m[0]}" is a proof claim. Years, guarantee, insurance, reviews and job counts appear only in the business block.`, f.ref); continue; }
     const whole = normQ(s);
     const phrase = diffs.find(d => whole.includes(d.norm));
     if (phrase) { issue('BLOCK', 'B-PROOF', f.label, `Makes the differentiator "${phrase.text}". A proof belongs in the business block only.`, f.ref); continue; }
-    for (const sen of sentences(f.text)) {
-      const mine = contentWords(sen);
-      const hit = diffs.find(d => { let n = 0; for (const w of d.words) if (mine.has(w)) n++; return n / d.words.size >= 0.7; });
-      if (hit) { issue('BLOCK', 'B-PROOF', f.label, `"${sen.slice(0, 70)}…" makes the differentiator "${hit.text}". A proof belongs in the business block only.`, f.ref); break; }
+    for (const sen of sentences(resolved(f))) {
+      const mine = proofStems(sen);
+      const hit = diffs.find(d => makesDifferentiator(mine, d));
+      if (hit) { issue('BLOCK', 'B-PROOF', f.label, `"${sen.slice(0, 70)}…" makes the differentiator "${hit.text}" in other words. A proof belongs in the business block only.`, f.ref); break; }
     }
   }
 
   // ── What stays out of every post (the Cost Guide Structure): hours and travel, cheap and comparisons, other quotes ──
   for (const f of fields) {
-    const s = scanText(f.text);
+    const s = scanText(resolved(f));
     const h = s.match(HOURS_RE);
     if (h) issue('BLOCK', 'B-HOURS', f.label, `"${h[0]}" gives the hours, the travel distance or the service area. They live in the footer and on the location pages, never in a post.`, f.ref);
     const c = s.match(CHEAP_RE);
