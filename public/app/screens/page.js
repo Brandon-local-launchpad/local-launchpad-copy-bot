@@ -8,7 +8,7 @@
 
 import { h, attr, api, card, status, pill, timeEl, fmtDate, score, toast, confirm, markdownToHtml, busy, info, tag, empty } from '../ui.js';
 
-const LABEL = { homepage: 'Homepage', category: 'Category page', service: 'Service page', location: 'Location page' };
+const LABEL = { homepage: 'Homepage', category: 'Category page', service: 'Service page', location: 'Location page', blog: 'Blog post' };
 
 export async function render(root, params, ctx) {
   const { clientId, type, key } = params;

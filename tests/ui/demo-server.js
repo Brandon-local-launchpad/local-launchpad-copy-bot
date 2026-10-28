@@ -35,10 +35,13 @@ if (process.env.DEMO_REAL_MODEL !== '1') {
   // (The FAQ sorting step needs the real model: run with DEMO_REAL_MODEL=1 to try it.)
   class FakeAnthropic {
     constructor() {
-      this.messages = { create: async () => ({ stop_reason: 'end_turn', usage: { input_tokens: 0, output_tokens: 0 }, content: [{ type: 'text', text: JSON.stringify({ findings: [
+      // A blog post's request (28 Oct, stage 4): the stub writes every field the post's MODEL FIELDS asks for
+      const stub = require(path.join(__dirname, '../fixtures/data/blog-stub-model.js'));
+      this.messages = { create: async params => { const t = stub.blogBlockOf(params); return t ? { stop_reason: 'end_turn', usage: { input_tokens: 0, output_tokens: 0 }, model: 'demo stub', content: [{ type: 'text', text: stub.stubReply(t) }] } : ({ stop_reason: 'end_turn', usage: { input_tokens: 0, output_tokens: 0 }, content: [{ type: 'text', text: JSON.stringify({ findings: [
         { field: 'faq_answer (How soon can you start?)', quote: 'We can usually start the same week.', why: '"usually" qualifies the confirmed start time' },
         { field: 'home_hero_intro', quote: 'is a landscaper in Southampton', why: 'demo: a made-up finding on text nobody touched' },
-      ] }) }] }) };
+      ] }) }] }); } };
+      this.beta = { messages: this.messages }; // the 5.5 models go through client.beta.messages (anthropic-call.js)
     }
   }
   require.cache[SDK_ID] = { id: SDK_ID, filename: SDK_ID, loaded: true, exports: FakeAnthropic };
@@ -113,7 +116,10 @@ process.env.BLOG_BANK_TEST_SAMPLES = '1'; // the demo's landscaper bank is the h
     const { rows: rr } = await pool.query(`INSERT INTO client_assets (client_id, asset_type, filename, content, metadata) VALUES ($1, 'faq_research', 'faq_research.md', $2, $3) RETURNING id`, [clientId, researchText, JSON.stringify({ superseded: false, source: 'demo: the live reply of 14 Oct' })]);
     let i = 0;
     const tidy = await S.runTidy({ research, niche: FC.niche, keyValueMap: FC.keyValueMap, serviceParentMap: FC.serviceParentMap, pages: FC.pages, cv: { ...FC.cvThin, primary_category: 'Gardener', insurance_cover: '5m', differentiator_2_confirmed: true }, callModel: async () => replies[i++] });
-    const record = { research_asset_id: rr[0].id, updated_at: new Date().toISOString(), model: 'demo replay', attempts: tidy.attempts, customer_questions: [], questions: tidy.questions.map(q => ({ ...q, approved: !q.wording_errors.length })) };
+    // Six questions the client's own customers ask (client value customer_questions, C-1…): the held "No page for these" posts (28 Oct, stage 4)
+    const customerQs = ['Why is my lawn always waterlogged after rain?', 'Is turf or seed better for a new lawn?', 'Do I need planning permission to pave my front garden?', 'What does a landscape gardener charge per day?', 'Can you lay a patio in winter?', 'How do I stop my hedge dying back after cutting?'];
+    const clientQs = S.clientQuestionItems({ customer_questions: customerQs }).map(q => ({ ...q, wording: q.text, wording_errors: [], approved: true }));
+    const record = { research_asset_id: rr[0].id, updated_at: new Date().toISOString(), model: 'demo replay', attempts: tidy.attempts, customer_questions: customerQs, questions: [...clientQs, ...tidy.questions.map(q => ({ ...q, approved: !q.wording_errors.length }))] };
     await asset('faq_sort', 'faq_sort.json', JSON.stringify(record));
   }
   // The landscaper blog question bank, approved on the demo so the reserved topics draw on it (28 Oct, blog stage 2)
@@ -123,6 +129,15 @@ process.env.BLOG_BANK_TEST_SAMPLES = '1'; // the demo's landscaper bank is the h
     const bankFile = fs.existsSync(path.join(root, 'blog-bank/landscaper.md')) ? path.join(root, 'blog-bank/landscaper.md') : path.join(root, 'tests/fixtures/data/blog-bank-landscaper-sample.md');
     await bankStore.save('landscaper', fs.readFileSync(bankFile, 'utf8'), { source: /blog-bank/.test(bankFile) ? 'perplexity' : 'paste' });
     await bankStore.approve('landscaper', 'demo');
+  }
+
+  // Stage 4 (28 Oct): what a blog run needs on the demo. The launch date; the landscaper pack
+  // verified (G-FACTS); three price rows, made up for the demo, on the main service pages (cost
+  // guides in prices mode, B9); the Write buttons then run the stub model above
+  await pool.query(`UPDATE clients SET launch_date = '2026-11-09' WHERE id = $1`, [clientId]);
+  try { await require(path.join(root, 'trade-facts/store.js')).createTradeFactsService({ pool }).verify('landscaper', 'demo'); } catch (e) { console.error('demo: landscaper pack not verified:', e.message); }
+  for (const [service, from, to, what] of [['Lawn mowing and maintenance', 30, 60, 'the size of the lawn and how often'], ['Fencing installation', 900, 3500, 'the length and the panel type'], ['Garden work', 150, 350, 'the day rate and the number of people']]) {
+    await pool.query(`INSERT INTO client_price_rows (client_id, niche, service, from_gbp, up_to_gbp, unit, what_moves_price, quote_only, inferred, unverified, source, sort_order) VALUES ($1, 'landscaper', $2, $3, $4, 'per job', $5, false, false, false, 'demo', 0)`, [clientId, service, from, to, what]).catch(e => console.error('demo: price row not seeded:', e.message));
   }
 
   // GBP output (23 Oct): the newest local real run (node tools/gbp-run.js edens-edge) when

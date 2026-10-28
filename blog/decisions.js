@@ -224,10 +224,11 @@ function computeBlogDecisions({ row, cv = {}, niche = {}, keyValueMap = {}, page
     service: svcTitle, category: (categoryPage && categoryPage.pageTitle) || info.category || '', town,
     h1, h1_with_city: withCity, seo_title: title.title, title_how: title.how, meta_cta: ph(String((niche.buttons || {}).meta_cta || '')),
     byline, last_checked: today, last_checked_text: longDate(today), review_due: reviewDue,
-    sections, faq, table, business: { show: businessShow, h2: `How [CV: company_name] Handles ${topicTitle}`, facts: businessFacts }, faq_h2: `Common Questions About ${topicTitle}`, cta_h2: ph(slots.blog_cta_h2), buttons,
+    sections, faq, table, business: { show: businessShow, h2: `How [CV: company_name] Handles ${topicTitle}`, facts: businessFacts }, faq_h2: `Common Questions About ${topicTitle}`, cta_h2: titleCase(ph(slots.blog_cta_h2)), buttons,
     primary, secondary, safety: { on: safety, why: safetyHit ? `niche safety topic "${safetyHit}"` : safetyRow ? `trade facts rule "${safetyRow.name || safetyRow.text.slice(0, 40)}"` : safety ? 'the question names gas, electrics or structure' : '' },
     specificity: { ...spec, threshold }, facts, customer_words: customerWords, publish_date: info.publish_date || null, homepage_cost_guide: !!info.homepage_cost_guide,
-    linkablePages: linkable.map(p => ({ type: p.pageType, url: p.urlSlug, h1: p.h1 || p.pageTitle })), ideasUsed: ideasUsed || [],
+    // The validator's N2 list: the primary and the secondaries only (the LINKABLE PAGES block)
+    linkablePages: [{ type: primary.type, url: primary.url, h1: primary.name }, ...secondary.map(l => ({ type: l.type, url: l.url, h1: l.name }))], ideasUsed: ideasUsed || [],
     trade_facts: { rows: tfRows.length, thin: tfRows.length < 3 }, cost_unit: slots.cost_unit,
   };
   if (D.trade_facts.thin && needsPack) flags.push({ code: 'F-FACTS-THIN', msg: `${tfRows.length} trade facts row(s) for ${svcTitle || 'this topic'} (3 wanted).` });

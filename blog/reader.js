@@ -12,22 +12,28 @@ function buildBlogReaderView(record, values = {}) {
   L.push('');
   L.push(`# ${record.blog_h1 || ''}`);
   L.push('');
-  L.push(`*${record.blog_byline || ''} · Last checked ${record.blog_last_checked_text || record.blog_last_checked || ''}*`);
+  // Plain lines (the Page view's Markdown renderer has no italics or blockquotes)
+  L.push(`${record.blog_byline || ''} · Last checked ${record.blog_last_checked_text || record.blog_last_checked || ''}`);
   L.push('');
-  L.push(`> ${record.blog_answer || ''}`);
+  L.push(record.blog_answer || '');
   L.push('');
+  const table = () => {
+    const cols = record.table_columns || [];
+    L.push(`| ${cols.join(' | ')} |`);
+    L.push(`| ${cols.map(() => '---').join(' | ')} |`);
+    for (const r of record.table_rows) L.push(`| ${[r.row, ...(r.cells || [])].join(' | ')} |`);
+    L.push('');
+  };
+  const tableAt = Math.min(record.table_after || 1, (record.sections || []).length);
+  const tableOn = !!(record.table_show && (record.table_rows || []).length);
+  // The table under its section; under the answer when the post has no sections (F-STACK)
+  if (tableOn && !tableAt) table();
   (record.sections || []).forEach((s, i) => {
     L.push(`## ${s.h2}`);
     L.push('');
     L.push(s.body || '');
     L.push('');
-    if (record.table_show && (record.table_after || 1) === i + 1 && (record.table_rows || []).length) {
-      const cols = record.table_columns || [];
-      L.push(`| ${cols.join(' | ')} |`);
-      L.push(`| ${cols.map(() => '---').join(' | ')} |`);
-      for (const r of record.table_rows) L.push(`| ${[r.row, ...(r.cells || [])].join(' | ')} |`);
-      L.push('');
-    }
+    if (tableOn && tableAt === i + 1) table();
   });
   if (record.blog_business_show && record.blog_business && record.blog_business !== 'HIDDEN') {
     L.push(`## ${record.blog_business_h2 || ''}`);

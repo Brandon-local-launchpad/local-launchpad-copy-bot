@@ -4024,11 +4024,19 @@ if (pool) {
   });
   // The queue (stage 3): the reserved topics dated and written to the page map, each row's decisions
   const blogQueue = require('./blog/queue-service').createBlogQueueService({
-    pool, pageMapStore, faqService, filloutService,
+    pool, pageMapStore, faqService, filloutService, v20Store,
     tradeFactsGate: async (clientId, trade) => { const gate = await tradeFacts.serviceGate(await nicheForGate(clientId, trade)); return { niche: gate.niche, verified: !!gate.ok, message: gate.ok ? '' : gate.message || '' }; },
-    packRows: (niche, service) => require('./trade-facts/pack').rowsForService(niche, service),
+    packRows: (niche, service, question) => require('./trade-facts/pack').rowsForPost(niche, service, question),
   });
-  B.mountBlogApi(app, { pool, loadBlogInputs, queue: blogQueue });
+  // The run (stage 4): one post per model call, the records in the v20 store by slug (blog/run.js, blog/generate.js)
+  const BG = require('./blog/generate');
+  const blogCallModel = args => makeCallModel(new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY }), BG.BLOG_MODEL, { onUsage: modelLog.tagged('blog posts', { page_type: 'blog' }) })(args);
+  const blogRunner = require('./blog/run').createBlogRunner({
+    pool, v20Store, queue: blogQueue,
+    generate: args => BG.generateBlogPost({ ...args, callModel: blogCallModel }),
+    calibrationPack: I => { try { return v20CalibrationPack(I.ctx, I.niche); } catch (e) { console.error('[blog] calibration pack:', e.message); return null; } },
+  });
+  B.mountBlogApi(app, { pool, loadBlogInputs, queue: blogQueue, runner: blogRunner });
 }
 
 // Category pages (CORE (16), 23 Oct): every category page and location category page from

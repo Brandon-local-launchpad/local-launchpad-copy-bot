@@ -286,11 +286,14 @@ function createFaqService({
     for (const { record } of records) for (const t of SC.symptomsOf(record)) usedSymptoms.add(t);
     let bank = null;
     try { bank = await loadBlogBank(clientId, ctx.trade); } catch (e) { problems.push(`blog question bank not read: ${e.message}`); }
+    // The launch date (blog/db.js): a seasonal topic inside the six months from it always gets a slot
+    let launchDate = null;
+    try { launchDate = (await require('./blog/db').getBlogSettings(pool, clientId)).launch_date; } catch (e) { problems.push(`launch date not read: ${e.message}`); }
     // The wordings the pages use: the assignment's placed questions and the written pages' FAQ questions
     const pageWordings = new Set();
     for (const p of Object.values(assignment.pages)) for (const q of p.questions) pageWordings.add(q.wording);
     for (const { record } of records) for (const f of (record && record.faq_items) || []) if (f && f.faq_question) pageWordings.add(f.faq_question);
-    const blog = B.reserveBlogTopics({ assignment, cv: ctx.cv, niche, keyValueMap: ctx.keyValueMap, pages: ctx.pages, serviceParentMap: ctx.serviceParentMap, dossiers, allocationRecord: alloc, usedSymptoms, bank, pageWordings });
+    const blog = B.reserveBlogTopics({ assignment, cv: ctx.cv, niche, keyValueMap: ctx.keyValueMap, pages: ctx.pages, serviceParentMap: ctx.serviceParentMap, dossiers, allocationRecord: alloc, usedSymptoms, bank, pageWordings, launchDate });
     const parsed = [];
     for (const d of dossiers) { try { parsed.push({ town: d.location, parsed: require('./geo-dossier').parseDossier(d.text) }); } catch (e) { problems.push(`${d.location}: dossier not parsed (${e.message})`); } }
     const siteCheck = SC.siteWideCheck({

@@ -364,7 +364,40 @@ function standardMethodRows(niche) {
   return A.rows.map(r => ({ service: cleanCell(r[0]), text: [cleanCell(r[1]), cleanCell(r[2])].filter(Boolean).join('. ') })).filter(r => r.text);
 }
 
+// The pack's service for a question with no service page (a blog post, CORE (1) B9: "named
+// methods or symptoms from the trade facts"): the Table A service whose own stems the question
+// uses most ("Why is my lawn waterlogged" → Lawn care), else null. Its rows are rowsForService's.
+function serviceForQuestion(niche, text) {
+  const pack = niche ? readPack(niche) : { exists: false };
+  if (!pack.exists) return null;
+  const A = parseTables(pack.text).get('A');
+  if (!A) return null;
+  const words = new Set(normName(text).split(' ').filter(w => w && !SERVICE_GENERIC.has(w)).map(stemWord));
+  let best = null, bestScore = 0;
+  for (const r of A.rows) {
+    const name = cleanCell(r[0]);
+    const own = [...new Set(normName(name).split(' ').filter(w => w && !SERVICE_GENERIC.has(w)).map(stemWord))];
+    // Stems matched, then the share of the name matched ("lay a patio": Patios over Turf laying)
+    const hit = own.filter(w => words.has(w)).length;
+    const score = hit ? hit + hit / own.length : 0;
+    if (score > bestScore) { best = name; bestScore = score; }
+  }
+  return best;
+}
+// A blog post's rows: the service page's rows when the pack names that service, else the
+// rows of the Table A service the post's service name and question name most ("Fencing
+// installation" → Fencing; "Garden work" plus its question → whatever the question names)
+function rowsForPost(niche, service, question) {
+  if (service) { const r = rowsForService(niche, service); if (r.rows.length) return { ...r, service }; }
+  return rowsForQuestion(niche, [service, question].filter(Boolean).join(' '));
+}
+function rowsForQuestion(niche, text) {
+  const service = serviceForQuestion(niche, text);
+  return service ? { ...rowsForService(niche, service), service } : { rows: [], service: null };
+}
+
 module.exports = {
+  serviceForQuestion, rowsForQuestion, rowsForPost,
   DIR, BLOCKS_DIR, CORE_FILE, packNameFor, packFile, blockFile, relative, readPack, readBlock, readCore, listNiches, hasBlock,
   parseHeader, header, fingerprintOf, parseTables, packForService, packForCategory, rowsForService, standardMethodRows, packProperNouns, cellNames, normName,
 };

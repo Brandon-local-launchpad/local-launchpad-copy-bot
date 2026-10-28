@@ -11,7 +11,8 @@
 //   code written question (G-TOPIC), kept as the row's manual H1.
 //
 // deps: pool, pageMapStore, faqService (blogTopics), filloutService (record: the price rows),
-//   tradeFactsGate(clientId, trade) → { verified, niche }, packRows(niche, service) → { rows },
+//   tradeFactsGate(clientId, trade) → { verified, niche }, packRows(niche, service, question) → { rows }
+//   (a post with no service page gets the pack's rows for the service its question names),
 //   v20Store (the written pages' ideas, stage 4 reads them; here the records' presence only)
 
 const Q = require('./queue');
@@ -21,7 +22,7 @@ const { parseDossier } = require('../geo-dossier');
 
 const norm = s => String(s || '').toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim();
 
-function createBlogQueueService({ pool, pageMapStore, faqService, filloutService = null, tradeFactsGate = async () => null, packRows = () => ({ rows: [] }), log = console }) {
+function createBlogQueueService({ pool, pageMapStore, faqService, filloutService = null, tradeFactsGate = async () => null, packRows = () => ({ rows: [] }), v20Store = null, log = console }) {
   async function dossiersFor(clientId) {
     const { rows } = await pool.query(`SELECT content, metadata FROM client_assets WHERE client_id = $1 AND asset_type = 'geo_dossier' ORDER BY uploaded_at DESC`, [clientId]);
     const out = []; const seen = new Set();
@@ -57,27 +58,42 @@ function createBlogQueueService({ pool, pageMapStore, faqService, filloutService
     return view(clientId, { inputs: I, scheduleFlags: sch.flags });
   }
 
-  // The decisions for one row, from the inputs
-  function decide(I, row, blogRows) {
+  // The decisions for one row, from the inputs; ideasUsed from the runner (blog/run.js)
+  function decide(I, row, blogRows, { ideasUsed = [] } = {}) {
     const info = row.info || {};
     let tradeFacts = null;
     if (I.gate && I.gate.verified) {
-      try { tradeFacts = { ...I.gate, ...(info.service ? packRows(I.gate.niche, info.service) : { rows: [] }) }; }
+      try { tradeFacts = { ...I.gate, ...packRows(I.gate.niche, info.service || '', info.wording || row.h1 || '') }; }
       catch (e) { tradeFacts = { ...I.gate, rows: [], error: e.message }; }
     } else tradeFacts = I.gate ? { ...I.gate, rows: [] } : null;
     const dossier = info.post_type === 'local' ? (I.dossiers.get(norm(info.town || I.ctx.keyValueMap.biz_area_1)) || null) : null;
-    return computeBlogDecisions({ row, cv: I.ctx.cv, niche: I.niche, keyValueMap: I.ctx.keyValueMap, pages: I.ctx.pages, questions: I.questions, priceRows: I.priceRows, tradeFacts, dossier, ideasUsed: [], blogRows });
+    return computeBlogDecisions({ row, cv: I.ctx.cv, niche: I.niche, keyValueMap: I.ctx.keyValueMap, pages: I.ctx.pages, questions: I.questions, priceRows: I.priceRows, tradeFacts, dossier, ideasUsed, blogRows });
+  }
+
+  // The latest record of each post, summarised for the queue (the Pages tab's Blog filter)
+  async function recordsFor(clientId, rows) {
+    const out = new Map();
+    if (!v20Store) return out;
+    for (const r of rows) {
+      const f = await v20Store.latest(clientId, { type: 'blog', key: r.slug });
+      if (!f) continue;
+      const rec = f.record, V = rec.VALIDATION || {}, m = rec.meta || {};
+      out.set(r.slug, { id: f.id, at: m.edited_at || m.generated_at, blocked: !!rec.blocked, error: rec.error || null, block: V.block ?? null, flag: V.flag ?? null, claims: rec.CLAIMS && rec.CLAIMS.findings ? rec.CLAIMS.findings.length - ((rec.CLAIMS.accepted || []).length) : null, good: !!(rec && !rec.blocked && !rec.error && V.status === 'run' && V.block === 0), approved: !!m.approved_at, flags: (rec.FLAGS || []).length });
+    }
+    return out;
   }
 
   async function view(clientId, { inputs = null, scheduleFlags = [] } = {}) {
     const I = inputs || await inputsFor(clientId);
     const rows = await pageMapStore.blogRows(clientId);
     const live = rows.filter(r => r.applies !== false);
+    const records = await recordsFor(clientId, live);
     const out = live.map(row => {
       const d = decide(I, row, live);
       const D = d.decisions;
       const info = row.info || {};
       return {
+        record: records.get(row.slug) || null,
         slug: row.slug, status: row.status, post_type: info.post_type, source: info.source, batch: info.batch, homepage_cost_guide: !!info.homepage_cost_guide, town: info.town || '',
         wording: info.wording || row.h1, wording_approved: !!info.wording_approved, wording_source: info.wording_source, needs_approval: !!info.needs_approval, question_id: info.question_id || '',
         publish_date: info.publish_date || null, month: info.month, slot_note: info.slot_note || '', held_for_date: !!info.held_for_date,
@@ -108,7 +124,10 @@ function createBlogQueueService({ pool, pageMapStore, faqService, filloutService
     return view(clientId);
   }
 
-  return { build, view, setWording, inputsFor };
+  // The blog rows in queue order (the runner's order)
+  const rowsFor = clientId => pageMapStore.blogRows(clientId);
+
+  return { build, view, setWording, inputsFor, decide, rowsFor };
 }
 
 module.exports = { createBlogQueueService };

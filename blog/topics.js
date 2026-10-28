@@ -35,8 +35,11 @@ const { pageFinder } = require('../faq-sort');
 const { bestServiceFor } = require('./inputs');
 const { blocksFor } = require('./blocks');
 const { parseDossier } = require('../geo-dossier');
+const { seasonalMonth, parseDate } = require('./queue');
 
 const TARGET = 16;
+// A seasonal topic that opens on a verb ("Lay new turf", "Prepare the garden for winter")
+const SEASONAL_VERB = /^(lay|prepare|plant|cut|clear|book|check|clean|fit|install|replace|repair|paint|treat|seed|sow|feed|mow|trim|prune|protect|service|get|order|move|start|finish)\b/i;
 const DOUBT_ORDER = ['Fit', 'Process', 'Price', 'Timing', 'Trust'];
 const norm = s => String(s || '').toLowerCase().replace(/[^a-z0-9 ]/g, ' ').replace(/\s+/g, ' ').trim();
 const lc = s => String(s || '').toLowerCase().trim();
@@ -65,7 +68,12 @@ const byOrder = (a, b) => (a.source === 'client' ? 0 : 1) - (b.source === 'clien
 // bank: the trade's approved blog question bank (blog/bank.js parseBank) or null
 // pageWordings: the normalised wordings the pages use (the assignment's placed questions and
 // the written pages' FAQ questions), so a bank question a page already uses is dropped
-function reserveBlogTopics({ assignment, cv = {}, niche = {}, keyValueMap = {}, pages = [], serviceParentMap = {}, dossiers = [], allocationRecord = null, usedSymptoms = new Set(), bank = null, pageWordings = new Set(), target = TARGET } = {}) {
+// launchDate: 'YYYY-MM-DD' or null. The batch's order (Brandon, 28 Oct): the cost guides; the
+// seasonal topics whose publish month falls inside the six months from the launch (none can
+// be placed without a launch date); at least two local posts from the main towns' dossier
+// conditions; then the held and bank decision and question posts; then the other local and
+// seasonal topics. The gates on each post are decided downstream (blog/decisions.js).
+function reserveBlogTopics({ assignment, cv = {}, niche = {}, keyValueMap = {}, pages = [], serviceParentMap = {}, dossiers = [], allocationRecord = null, usedSymptoms = new Set(), bank = null, pageWordings = new Set(), launchDate = null, target = TARGET, minLocal = 2 } = {}) {
   const flags = [];
   const held = (assignment && assignment.held) || {};
   const pool = [...(held.costGuide || []), ...(held.noPage || [])].sort(byOrder);
@@ -82,7 +90,8 @@ function reserveBlogTopics({ assignment, cv = {}, niche = {}, keyValueMap = {}, 
   const pageFor = q => finder.pageFor(q);
   const isLocalQ = q => !!(q.town || q.local || q.page === 'Location');
   const keyFor = base => { let k = `/guides/${slugify(base)}`; let n = 2; while (keys.has(k)) k = `/guides/${slugify(base)}-${n++}`; keys.add(k); return k; };
-  const add = t => { topics.push({ batch: 'onboarding', query_stack: [], faq_ids: [], stack: [], faq: [], flags: [], ...t }); return topics[topics.length - 1]; };
+  let group = 'cost';
+  const add = t => { topics.push({ batch: 'onboarding', query_stack: [], faq_ids: [], stack: [], faq: [], flags: [], group, ...t }); return topics[topics.length - 1]; };
   const qRef = q => ({ id: q.id, wording: q.wording || q.text, approved: !!q.approved, usable: q.usable !== false && !!q.approved, doubt: q.doubt || '', service: q.service || '', town: q.town || '', source: q.source || 'research' });
   const pageRef = p => (p ? { title: p.pageTitle, slug: p.urlSlug } : null);
 
@@ -121,6 +130,22 @@ function reserveBlogTopics({ assignment, cv = {}, niche = {}, keyValueMap = {}, 
     if (dropped.length) topic.flags.push({ code: 'F-DROPPED', msg: `${dropped.length} related question${dropped.length === 1 ? '' : 's'} dropped: a page already uses ${dropped.length === 1 ? 'it' : 'them'} (${dropped.map(r => r.id).join(', ')}).` });
     return topic;
   };
+  // A held question that is one of the bank's topics in other words ("Why is my lawn always
+  // waterlogged after rain" and "Why is my lawn waterlogged"): the same post, so the held
+  // question keeps the slot (the customer's own words, B9) and the bank topic gives it the
+  // stack and the FAQ (B6, B7) instead of running as a second post
+  const STOP = new Set('a an the i you my your our we do does did is are it its to in for of and or on at by with from after before always ever can could should would will what which how why when who there this that these those me us them need want get'.split(' '));
+  const stems = s => new Set(norm(s).split(' ').filter(w => w && !STOP.has(w)).map(w => w.replace(/(ing|ed|es|s)$/, '')));
+  const sameQuestion = (a, b) => { const A = stems(a), B = stems(b); if (!A.size || !B.size) return false; let both = 0; for (const w of A) if (B.has(w)) both++; return both / (A.size + B.size - both) >= 0.6; };
+  const bankMatch = q => bankTopics.find(t => !usedBank.has(t.id) && t.question && sameQuestion(t.question, q.wording || q.text));
+  const mergeBank = (topic, q) => {
+    const bt = bankMatch(q);
+    if (!bt) return topic;
+    takeBank(topic, bt);
+    topic.bank_topic = bt.id;
+    topic.flags.push({ code: 'F-MERGED', msg: `${bt.id} "${bt.question}" is this question in other words: its related questions are the stack and the FAQ; not a second post.` });
+    return topic;
+  };
   const bankCostFor = page => bankTopics.find(t => !usedBank.has(t.id) && t.type === 'cost' && page && (bankPage(t).service || {}).urlSlug === page.urlSlug);
   const bankGeneralCost = bankTopics.find(t => !usedBank.has(t.id) && t.type === 'cost' && (/^general$/i.test(t.service || '') || (tradeLower && norm(t.question).includes(norm(tradeLower)) && !bankPage(t).service)));
 
@@ -149,7 +174,7 @@ function reserveBlogTopics({ assignment, cv = {}, niche = {}, keyValueMap = {}, 
     const t = add({ key: keyFor(`${s.pageTitle} cost ${city}`), post_type: 'cost_guide', source: q ? 'faq_research' : bt ? 'blog_bank' : 'faq_research', homepage_cost_guide: false, target_query: lc(`${s.pageTitle} cost ${city}`),
       wording: q ? question(q.wording || q.text) : bt ? question(bt.question) : question(`how much does ${lc(s.pageTitle)} cost in ${city}`), wording_source: q ? 'faq_research' : bt ? 'blog_bank' : 'code', needs_approval: !q && !bt,
       question: q ? qRef(q) : bt ? bankRef(bt) : null, service: pageRef(s), category: null, town: '', primary: s.urlSlug, cost_unit: slots.cost_unit });
-    if (bt) takeBank(t, bt);
+    if (bt) takeBank(t, bt); else if (q) mergeBank(t, q);
   }
   if (!services.length) flags.push({ code: 'F-QUEUE', msg: 'No service pages in the page map, so no service cost guides.' });
 
@@ -162,9 +187,11 @@ function reserveBlogTopics({ assignment, cv = {}, niche = {}, keyValueMap = {}, 
     add({ key: keyFor(`${name} cost ${city}`), post_type: 'cost_guide', source: 'faq_research', homepage_cost_guide: false, target_query: lc(`${name} cost ${city}`),
       wording: question(q.wording || q.text), wording_source: 'faq_research', needs_approval: false, question: qRef(q),
       service: pageRef(service), category: pageRef(category), town: '', primary: service ? service.urlSlug : category.urlSlug, cost_unit: slots.cost_unit });
+    mergeBank(topics[topics.length - 1], q);
   }
 
   // 4. The held customer question posts (decision and question), the client's own customers' first
+  group = 'held';
   for (const q of pool.filter(x => !used.has(x.id))) {
     const type = postTypeOf(q, slots.decision_pairs);
     if (type === 'cost_guide') continue; // a cost question naming no page stays in the pool for a stack
@@ -173,12 +200,14 @@ function reserveBlogTopics({ assignment, cv = {}, niche = {}, keyValueMap = {}, 
     add({ key: keyFor(q.wording || q.text), post_type: type, source: 'faq_research', homepage_cost_guide: false, target_query: lc(norm(q.wording || q.text)),
       wording: question(q.wording || q.text), wording_source: q.source === 'client' ? 'client' : 'faq_research', needs_approval: false, question: qRef(q),
       service: pageRef(service), category: pageRef(category), town: type === 'local' ? (q.town || city) : '', primary: service ? service.urlSlug : category ? category.urlSlug : '/#services' });
+    mergeBank(topics[topics.length - 1], q);
   }
 
   // 5. The bank's decision and question topics, the ranked ones first. The bank's other cost
   // topics are not posts in the onboarding batch: B1 caps the cost guides at the trade guide
   // plus one per main service (the first real bank gave a batch of sixteen cost guides
   // otherwise); they stay in the queue for the Search Console batches
+  group = 'bank';
   const bankLeft = bankTopics.filter(t => !usedBank.has(t.id) && t.question).sort(bankOrder);
   for (const bt of bankLeft.filter(t => bankType(t) !== 'cost_guide')) {
     if (usedWordings.has(norm(bt.question))) { usedBank.add(bt.id); flags.push({ code: 'F-DROPPED', msg: `${bt.id} "${bt.question}" is a page's question already; not a post.` }); continue; }
@@ -193,6 +222,7 @@ function reserveBlogTopics({ assignment, cv = {}, niche = {}, keyValueMap = {}, 
 
   // 6. Local posts: one per town with a dossier condition no page uses (the homepage's
   // symptoms, the symptoms the written pages took, the conditions earlier topics took)
+  group = 'local';
   const usedIssues = new Set();
   const usedS = new Set([...usedSymptoms].map(norm));
   const alloc = (allocationRecord && allocationRecord.pages) || {};
@@ -222,20 +252,35 @@ function reserveBlogTopics({ assignment, cv = {}, niche = {}, keyValueMap = {}, 
   }
   if (!parsedDossiers.length) flags.push({ code: 'F-LOCAL', msg: 'No saved dossier for any town: no local posts.' });
 
-  // 7. Seasonal topics (a seasonal niche only): local posts in the city with a time of year
+  // 7. Seasonal topics (a seasonal niche only): local posts in the city with a time of year; one
+  // whose publish month falls inside the six months from the launch always gets a slot
+  group = 'seasonal';
+  const launch = parseDate(launchDate);
   for (const t of slots.seasonal_topics) {
     if (!city) break;
+    const month = launch ? seasonalMonth(launch, { seasonal: t }) : null;
     add({ key: keyFor(`${t.topic} ${city}`), post_type: 'local', source: 'seasonal', homepage_cost_guide: false, target_query: lc(norm(`${t.topic} ${city}`)),
-      wording: question(`when should you ${lc(t.topic)} in ${city}`), wording_source: 'code', needs_approval: true, question: null, service: null, category: null, town: city,
-      seasonal: { topic: t.topic, window: t.window, publish: t.publish }, primary: '/#services' });
+      // "Lay new turf" reads as "When should you lay new turf"; "Spring lawn care" as "When is the best time for spring lawn care"
+      wording: question(SEASONAL_VERB.test(t.topic) ? `when should you ${lc(t.topic)} in ${city}` : `when is the best time for ${lc(t.topic)} in ${city}`), wording_source: 'code', needs_approval: true, question: null, service: null, category: null, town: city,
+      seasonal: { topic: t.topic, window: t.window, publish: t.publish, month }, in_window: !!month, primary: '/#services' });
   }
+  if (!launch && slots.seasonal_topics.length) flags.push({ code: 'F-DATE', msg: 'No launch date on the client: no seasonal topic can be placed in its month, so they take the slots left after the question posts.' });
+
+  // The batch's order: the cost guides, the seasonal topics inside the window, the first two local
+  // posts, the held and bank question and decision posts, then the other local and seasonal topics
+  const by = g => topics.filter(t => t.group === g);
+  const locals = by('local');
+  const seasonals = by('seasonal');
+  const ordered = [...by('cost'), ...seasonals.filter(t => t.in_window), ...locals.slice(0, minLocal), ...by('held'), ...by('bank'), ...locals.slice(minLocal), ...seasonals.filter(t => !t.in_window)];
+  if (locals.length < minLocal) flags.push({ code: 'F-LOCAL', msg: `${locals.length} local post${locals.length === 1 ? '' : 's'} (${minLocal} wanted per batch): the main towns need a saved dossier with a condition no page uses.` });
 
   // The onboarding batch is the first 16; what is beyond it stays in the queue
-  const batch = topics.slice(0, target);
-  const dropped = topics.slice(target);
+  const batch = ordered.slice(0, target);
+  const dropped = ordered.slice(target);
   for (const t of dropped) {
     if (t.question && t.question.source !== 'blog_bank') used.delete(t.question.id);
     if (t.question && t.question.source === 'blog_bank') { usedBank.delete(t.question.id); for (const id of [...t.query_stack, ...t.faq_ids]) usedBank.delete(id); }
+    if (t.bank_topic) { usedBank.delete(t.bank_topic); for (const id of [...t.query_stack, ...t.faq_ids]) usedBank.delete(id); }
   }
 
   // B6 and B7 on the held topics of the batch: the stack and the FAQ questions from the held
@@ -251,7 +296,7 @@ function reserveBlogTopics({ assignment, cv = {}, niche = {}, keyValueMap = {}, 
   };
   const ref = q => ({ id: q.id, wording: q.wording || q.text, doubt: q.doubt || '', needs_fact: !!(q.needs_fact || q.fact || q.new_fact) });
   for (const t of batch) {
-    if (t.source !== 'blog_bank' && !(t.question && t.question.source === 'blog_bank')) {
+    if (t.source !== 'blog_bank' && !(t.question && t.question.source === 'blog_bank') && !t.bank_topic) {
       const cluster = pool.filter(q => sameCluster(t, q)).sort(byDoubt);
       const stack = cluster.slice(0, 5);
       for (const q of stack) used.add(q.id);
@@ -269,13 +314,13 @@ function reserveBlogTopics({ assignment, cv = {}, niche = {}, keyValueMap = {}, 
   if (!bank) flags.push({ code: 'F-BANK', msg: `No approved blog question bank for ${lc(niche.trade) || 'this trade'}: the topics come from the held questions, the dossiers and the seasonal topics only. Run or paste the bank on the Trade facts page and approve it.` });
   const leftovers = pool.filter(q => !used.has(q.id)).map(q => q.id);
   const leftoversBank = bankTopics.filter(t => !usedBank.has(t.id)).map(t => t.id);
-  const by = type => batch.filter(t => t.post_type === type).length;
+  const byType = type => batch.filter(t => t.post_type === type).length;
   return {
     topics: batch,
     beyond: dropped.map(t => ({ key: t.key, post_type: t.post_type, wording: t.wording, source: t.source })),
     leftovers, leftovers_bank: leftoversBank,
     pool: { costGuide: (held.costGuide || []).length, noPage: (held.noPage || []).length, total: pool.length, bank: bankTopics.length, bank_related: bankTopics.reduce((n, t) => n + t.related.length, 0) },
-    counts: { topics: batch.length, cost_guide: by('cost_guide'), decision: by('decision'), question: by('question'), local: by('local'), from_bank: batch.filter(t => t.source === 'blog_bank' || (t.question && t.question.source === 'blog_bank')).length, stack: batch.reduce((n, t) => n + t.query_stack.length, 0), faq: batch.reduce((n, t) => n + t.faq_ids.length, 0), needs_approval: batch.filter(t => t.needs_approval || (t.question && !t.question.approved)).length },
+    counts: { topics: batch.length, cost_guide: byType('cost_guide'), decision: byType('decision'), question: byType('question'), local: byType('local'), from_bank: batch.filter(t => t.source === 'blog_bank' || (t.question && t.question.source === 'blog_bank')).length, stack: batch.reduce((n, t) => n + t.query_stack.length, 0), faq: batch.reduce((n, t) => n + t.faq_ids.length, 0), needs_approval: batch.filter(t => t.needs_approval || (t.question && !t.question.approved)).length },
     flags,
   };
 }

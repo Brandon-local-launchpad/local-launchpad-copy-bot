@@ -54,7 +54,7 @@ function createBlogInputsLoader({ pool, filloutService = null, pageMapStore = nu
 //   GET  /api/clients/:id/blog/queue             every post with its decisions (no model call)
 //   POST /api/clients/:id/blog/queue/build       the reserved topics dated and written to the page map
 //   PUT  /api/clients/:id/blog/queue/:slug       { wording, approved } a person's approval or edit of the question
-function mountBlogApi(app, { pool, loadBlogInputs, queue = null }) {
+function mountBlogApi(app, { pool, loadBlogInputs, queue = null, runner = null }) {
   const wrap = fn => async (req, res) => {
     if (!pool) return res.status(503).json({ error: 'Database not configured.' });
     try { res.json(await fn(req)); }
@@ -67,6 +67,28 @@ function mountBlogApi(app, { pool, loadBlogInputs, queue = null }) {
     app.get('/api/clients/:clientId/blog/queue', wrap(req => queue.view(req.params.clientId)));
     app.post('/api/clients/:clientId/blog/queue/build', wrap(req => queue.build(req.params.clientId)));
     app.put('/api/clients/:clientId/blog/queue/:slug(*)', wrap(req => queue.setWording(req.params.clientId, '/' + String(req.params.slug || '').replace(/^\/+/, ''), req.body || {})));
+  }
+  // The run (stage 4), when a runner is given: the same shape as the other page types' runs
+  //   GET  /api/clients/:id/blog-pages              the posts with their records and the run state
+  //   POST /api/clients/:id/blog-pages/run          { resume, keys, quality } starts the run in the background
+  //   GET  /api/clients/:id/blog-pages/preview/:key the decisions block for one post, no model call
+  if (runner) {
+    app.get('/api/clients/:clientId/blog-pages', wrap(req => runner.view(req.params.clientId)));
+    app.post('/api/clients/:clientId/blog-pages/run', wrap(async req => {
+      const { resume = true, keys = null, quality = false } = req.body || {};
+      if (runner.running.has(req.params.clientId)) throw Object.assign(new Error('A blog posts run is already in progress for this client.'), { status: 409 });
+      runner.run(req.params.clientId, { resume: !!resume, keys: Array.isArray(keys) && keys.length ? keys : null, qualityReview: !!quality }).catch(err => console.error('[blog] run failed for', req.params.clientId, err));
+      return { started: true };
+    }));
+    app.get('/api/clients/:clientId/blog-pages/preview/:key(*)', wrap(async req => {
+      const key = '/' + String(req.params.key || '').replace(/^\/+/, '');
+      const I = await queue.inputsFor(req.params.clientId);
+      const rows = (await queue.rowsFor(req.params.clientId)).filter(r => r.applies !== false);
+      const row = rows.find(r => r.slug === key);
+      if (!row) throw Object.assign(new Error(`No post ${key} in the blog queue.`), { status: 404 });
+      const { decisionsResult, ideasUsed } = await runner.prepare(req.params.clientId, I, row, rows, []);
+      return { key, gates: decisionsResult.gates, flags: decisionsResult.flags, ideas: ideasUsed.length, decisionsBlock: decisionsResult.decisionsBlock };
+    }));
   }
 }
 

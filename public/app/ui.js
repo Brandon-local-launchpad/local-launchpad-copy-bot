@@ -212,9 +212,19 @@ export function markdownToHtml(md) {
   const lines = String(md || '').replace(/\r/g, '').split('\n');
   const out = []; let para = []; let list = null;
   const inline = s => h(s).replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>').replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank" rel="noopener">$1</a>');
-  const flush = () => { if (para.length) { out.push(`<p>${inline(para.join(' '))}</p>`); para = []; } if (list) { out.push(`</${list}>`); list = null; } };
+  const flush = () => { if (para.length) { out.push(`<p>${inline(para.join(' '))}</p>`); para = []; } if (list) { out.push(`</${list}>`); list = null; } if (table) { out.push('</tbody></table>'); table = false; } };
+  let table = false;
   for (const raw of lines) {
     const l = raw.trimEnd();
+    // A pipe table (the blog post's price or comparison table): the header row, the --- row, the rows
+    if (/^\|.*\|$/.test(l)) {
+      const cells = l.slice(1, -1).split('|').map(c => c.trim());
+      if (cells.every(c => /^-{3,}$/.test(c))) continue;
+      if (!table) { if (para.length || list) flush(); table = true; out.push(`<table class="tbl md-table"><thead><tr>${cells.map(c => `<th>${inline(c)}</th>`).join('')}</tr></thead><tbody>`); continue; }
+      out.push(`<tr>${cells.map(c => `<td>${inline(c)}</td>`).join('')}</tr>`);
+      continue;
+    }
+    if (table) flush();
     const hm = l.match(/^(#{1,5})\s+(.*)$/);
     if (hm) { flush(); out.push(`<h${hm[1].length}>${inline(hm[2])}</h${hm[1].length}>`); continue; }
     if (/^(-{3,}|\*{3,})$/.test(l)) { flush(); out.push('<hr>'); continue; }
