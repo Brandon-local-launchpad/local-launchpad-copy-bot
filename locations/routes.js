@@ -15,7 +15,9 @@
 // POST …/locations/review/add                     { name | place_id, to }  a place by name, nearest the base
 // GET  …/locations/review/suggest?q=              places of that name for the add box
 // POST …/locations/review/client-reply            { declined: [place_id], note }  the client's unticks
-// POST …/locations/review/approve                 { who }  writes client_location_tiers with approved_at
+// GET  …/locations/review/stage6                  what approving the review as it stands does to the page map (nothing written)
+// POST …/locations/review/approve                 { who }  Approve = Stage 6: writes client_location_tiers with approved_at, then
+//                                                 regenerates the page map from it (locations/stage6.js)
 // GET  …/locations/review/message                 the client confirmation text
 // The write to the page map and GBP service areas comes in Stage 6.
 
@@ -25,10 +27,14 @@ const P = require('./places');
 const S = require('./serp');
 const { createLocationService } = require('./service');
 const V = require('./review');
+const S6 = require('./stage6');
 
 function mountLocationsApi(app, { pool, filloutService, log = console }) {
-  const pageMapStore = createPageMapStore({ pool, filloutService });
+  // The page map store here regenerates on Approve, so it reads the volume cache like the page map routes do
+  let cacheLookup = async () => new Map();
+  const pageMapStore = createPageMapStore({ pool, filloutService, volumesFor: kws => cacheLookup(kws) });
   const h1 = createH1Research({ pool, filloutService, pageMapStore, log });
+  cacheLookup = kws => h1.cached(kws);
   const places = P.createPlacesStore(pool);
   const serp = S.createSerpStore(pool);
   S.ensureSerpTables(pool).catch(err => log.error('[locations] serp table:', err.message));
@@ -58,7 +64,9 @@ function mountLocationsApi(app, { pool, filloutService, log = console }) {
   app.post('/api/clients/:clientId/locations/review/add', wrap(async (req, res) => res.json(await review.addPlace(req.params.clientId, body(req)))));
   app.get('/api/clients/:clientId/locations/review/suggest', wrap(async (req, res) => res.json(await review.suggest(req.params.clientId, String(req.query.q || '')))));
   app.post('/api/clients/:clientId/locations/review/client-reply', wrap(async (req, res) => res.json(await review.clientReply(req.params.clientId, body(req)))));
-  app.post('/api/clients/:clientId/locations/review/approve', wrap(async (req, res) => res.json(await review.approve(req.params.clientId, body(req)))));
+  // Approve = Stage 6 (30 Oct): the preview the confirm shows, then the approval and the page map regenerated in one action
+  app.get('/api/clients/:clientId/locations/review/stage6', wrap(async (req, res) => res.json(await S6.stage6Preview({ review, pageMapStore, pool }, req.params.clientId))));
+  app.post('/api/clients/:clientId/locations/review/approve', wrap(async (req, res) => res.json(await S6.approveAndGenerate({ review, pageMapStore, pool, log }, req.params.clientId, body(req)))));
   app.get('/api/clients/:clientId/locations/review/message', wrap(async (req, res) => {
     const v = await review.view(req.params.clientId);
     if (!v.ok) return res.status(409).json({ error: v.problems[0].msg });

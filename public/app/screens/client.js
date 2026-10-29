@@ -5,7 +5,7 @@
 import { h, attr, api, status, pill, dot, timeEl, toast, confirm, tag } from '../ui.js';
 
 const TABS = [
-  ['record', 'Record'], ['research', 'Research'], ['locations', 'Locations'], ['page-map', 'Page map'], ['pages', 'Pages'],
+  ['record', 'Record'], ['locations', 'Locations'], ['research', 'Research'], ['page-map', 'Page map'], ['pages', 'Pages'],
   ['gbp', 'GBP'], ['rankings', 'Rankings'], ['images', 'Images'], ['site-audit', 'Site audit'],
 ];
 const MODULES = {
@@ -24,7 +24,8 @@ export function tabDots(row, summary) {
   return {
     record: row.missing_fields.length ? 'wait' : row.stage === 'Onboarding' ? 'none' : 'ok',
     research: row.towns_without_dossier.length ? 'wait' : row.stage === 'Onboarding' || row.stage === 'Research' ? 'none' : 'ok',
-    locations: row.locations_approved ? 'ok' : row.locations_run ? 'wait' : 'none',
+    // Locations (30 Oct): the first step after the record. Approved and current: ok; a run waiting for approval, or a run newer than the approval: wait
+    locations: row.locations_approved && !row.locations_changed ? 'ok' : row.locations_run ? 'wait' : 'none',
     'page-map': row.stage_index >= 3 ? 'ok' : 'none',
     pages: row.running ? 'run' : kinds.has('claims') || kinds.has('blocked') || kinds.has('pack') ? 'wait' : allGood ? 'ok' : anyRec ? 'run' : 'none',
     gbp: row.gbp_done ? 'ok' : row.stage === 'GBP' ? 'run' : 'none',
