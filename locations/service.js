@@ -103,6 +103,10 @@ function createLocationService({ pool, filloutService, pageMapStore, h1 = null, 
       if (best && best.parent_town_id && !best.parent_name) best.parent_name = ((await places.byIds([best.parent_town_id])).get(best.parent_town_id) || {}).name || '';
       clientAsked.push({ typed, match: best, note: matches.length ? '' : 'no place of that name in the places table' });
     }
+    // Namesakes (Brandon, 29 Oct, evening): a place whose name another place in the table shares is ambiguous
+    const nameRows = [...near, ...clientAsked.map(a => a.match).filter(Boolean)];
+    const namesakes = places.namesakes ? await places.namesakes(nameRows) : new Map();
+    for (const p of nameRows) { const n = namesakes.get(p.id); p.namesakes = n ? n.count : 0; p.namesake_examples = n ? n.examples : []; }
     const cand = R.candidates({ base, places: near, clientAsked, travel: travel.miles });
     const candidateRows = cand.rows.filter(r => r.status === 'candidate');
     const areaOnlyRows = cand.rows.filter(r => r.status === 'area_only');
@@ -133,6 +137,7 @@ function createLocationService({ pool, filloutService, pageMapStore, h1 = null, 
         across_water: cand.rows.filter(r => /^across water/.test(r.reason)).length,
         client_asked: cand.rows.filter(r => r.client_asked).length, client_asked_excluded: cand.rows.filter(r => r.client_asked && r.status === 'excluded').length, unmatched: cand.unmatched.length,
         districts_of_base: candidateRows.filter(r => r.type === 'district').length,
+        ambiguous_towns: candidateRows.filter(r => r.ambiguous).length, name_shared_districts: cand.rows.filter(r => /^name shared elsewhere/.test(r.reason)).length,
         pages_if_all_pass: { location: candidateRows.length, location_category: candidateRows.length * Math.max(0, I.categories.length - (I.primaryKey ? 1 : 0)) },
       },
       plan: { pages, keyword_count: plan.keywords.length, keywords_cached: plan.keywords.length - keywordsToBuy, keywords_to_buy: keywordsToBuy, serp_eligible_pages: pages.filter(p => p.serp_eligible).length, serp_queries: serpPairs.length, serp_cached: serpCached, serp_to_buy: serpPairs.length - serpCached, keywords: plan.keywords },

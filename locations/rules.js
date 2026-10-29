@@ -17,6 +17,13 @@
 //                it and it passes on volume: then Tier 2, flagged "beyond reach". Competitor
 //                pages never bring a beyond-reach town in.
 //   districts    in the volume run, no SERP check: a district passes on volume >= 10 only
+//   ambiguous    a place is ambiguous when another place of any type in the table shares its name
+//                (its own council of the same name is not counted). An ambiguous district is excluded,
+//                "name shared elsewhere"; an ambiguous town never passes on volume alone: 2+
+//                competitor pages or the population rule, so every page of it gets a SERP check
+//   population   a town (not a district) inside REACH of 10,000 or more that fails demand is Tier 2
+//                anyway, evidence "population, low competition", ranked after the towns that passed
+//                on demand by population × distance_weight; the 20 cap still applies
 //   demand gate  volume >= 10 OR 2+ competitor pages (a business domain's URL or title holding
 //                the town name in the top 10 at the town's coordinates; directories excluded)
 //   score        distance_weight = 1 - 0.7 × (miles / outer limit); score = total volume ×
@@ -44,6 +51,7 @@ const OUTER_CAP_MILES = 25;
 const POPULATION_FLOOR = 5000;
 const DEMAND_VOLUME = 10;
 const DEMAND_COMPETITORS = 2;
+const POPULATION_PAGE = 10000;     // a town inside reach of this size gets a Tier 2 page even with no demand evidence (29 Oct, evening)
 const TIER1_BAND = { 10: [3, 5], 20: [5, 8], 30: [8, 12], 45: [10, 15] };
 const TIER1_SCORE_SHARE = 0.25;
 const PAGE_TOWN_CAP = 20;
@@ -111,7 +119,7 @@ function candidates({ base, places, clientAsked = [], travel, islands = islandAu
   const consider = (p, source) => {
     if (byId.has(p.id)) { const r = byId.get(p.id); if (source === 'client_asked') { r.source = 'client_asked'; r.client_asked = true; } return r; }
     const miles = Math.round(p.km / KM_PER_MILE * 10) / 10;
-    const row = { place_id: p.id, name: p.name, type: p.type, kind: p.kind || '', population: p.population == null ? null : p.population, parent_town_id: p.parent_town_id || null, parent_name: p.parent_name || '', lad_name: p.lad_name || '', lat: p.lat, lng: p.lng, miles, inside_reach: reach != null && miles <= reach, inside_outer: outer != null && miles <= outer, source, client_asked: source === 'client_asked', is_admin_area: !!p.is_admin_area, qualifier: p.qualifier || '', status: 'candidate', reason: '' };
+    const row = { place_id: p.id, name: p.name, type: p.type, kind: p.kind || '', population: p.population == null ? null : p.population, parent_town_id: p.parent_town_id || null, parent_name: p.parent_name || '', lad_name: p.lad_name || '', lat: p.lat, lng: p.lng, miles, inside_reach: reach != null && miles <= reach, inside_outer: outer != null && miles <= outer, source, client_asked: source === 'client_asked', is_admin_area: !!p.is_admin_area, qualifier: p.qualifier || '', namesakes: Number(p.namesakes) || 0, namesake_examples: p.namesake_examples || [], ambiguous: (Number(p.namesakes) || 0) > 0, status: 'candidate', reason: '' };
     const exclude = reason => { row.status = 'excluded'; row.reason = reason; };
     const island = islandOf(p.lad_name, islands);
     if (row.is_admin_area) exclude('council area');
@@ -119,10 +127,11 @@ function candidates({ base, places, clientAsked = [], travel, islands = islandAu
     else if (!row.inside_outer) exclude(`outside the outer limit (${outer} mi)`);
     else if (island && island !== baseIsland) exclude(`across water (${island})`);
     else if (p.type === 'district') {
-      if (base && p.parent_town_id === base.id) row.reason = `district of ${base.name}`;
-      else exclude(`part of ${p.parent_name || 'another town'}`);
+      if (!base || p.parent_town_id !== base.id) exclude(`part of ${p.parent_name || 'another town'}`);
+      else if (row.ambiguous) exclude(`name shared elsewhere (${row.namesakes} other place${row.namesakes === 1 ? '' : 's'}${row.namesake_examples.length ? ': ' + row.namesake_examples.join(', ') : ''})`);
+      else row.reason = `district of ${base.name}`;
     } else if (p.type === 'town') {
-      if (p.population != null && p.population >= POPULATION_FLOOR) row.reason = '';
+      if (p.population != null && p.population >= POPULATION_FLOOR) row.reason = row.ambiguous ? `name shared elsewhere (${row.namesakes}): competitor pages or population only` : '';
       else if (source === 'client_asked') row.reason = `client asked: under the ${fmt(POPULATION_FLOOR)} floor (population ${fmt(p.population)})`;
       else exclude(`below the ${fmt(POPULATION_FLOOR)} floor (population ${fmt(p.population)})`);
     } else exclude(`type ${p.type}`);
@@ -159,13 +168,14 @@ function keywordPlan({ towns, categories, ctx }) {
   const all = new Set();
   for (const t of towns) {
     const serpEligible = t.type === 'town' && !!t.inside_reach;
+    const ambiguous = !!t.ambiguous;
     const loc = C.candidatesV2({ type: 'location', title: t.name, info: { town: t.name } }, ctx).map(c => c.keyword);
     const own = keywordOf(`${ctx.primaryName || ''} ${t.name}`);
-    pages.push({ place_id: t.place_id, town: t.name, page: 'location', category_key: ctx.primaryKey || null, category: ctx.primaryName || '', keywords: loc.length ? loc : [own], serp_keyword: loc[0] || own, serp_eligible: serpEligible });
+    pages.push({ place_id: t.place_id, town: t.name, page: 'location', category_key: ctx.primaryKey || null, category: ctx.primaryName || '', keywords: loc.length ? loc : [own], serp_keyword: loc[0] || own, serp_eligible: serpEligible, ambiguous });
     for (const c of categories) {
       if (c.key && c.key === ctx.primaryKey) continue;
       const kws = C.candidatesV2({ type: 'location_category', title: `${c.name} ${t.name}`, info: { town: t.name, category_key: c.key } }, ctx).map(x => x.keyword);
-      pages.push({ place_id: t.place_id, town: t.name, page: 'location_category', category_key: c.key, category: c.name, keywords: kws.length ? kws : [keywordOf(`${c.name} ${t.name}`)], serp_keyword: kws[0] || keywordOf(`${c.name} ${t.name}`), serp_eligible: serpEligible });
+      pages.push({ place_id: t.place_id, town: t.name, page: 'location_category', category_key: c.key, category: c.name, keywords: kws.length ? kws : [keywordOf(`${c.name} ${t.name}`)], serp_keyword: kws[0] || keywordOf(`${c.name} ${t.name}`), serp_eligible: serpEligible, ambiguous });
     }
   }
   for (const p of pages) for (const k of p.keywords) all.add(k);
@@ -184,7 +194,8 @@ function bestVolume(page, volumes) {
   return { volume: best, keyword, known, of: page.keywords.length };
 }
 // A page needs a SERP when it may do so and its best known volume is under the gate
-const needsSerp = (page, best) => !!page.serp_eligible && (best.volume == null || best.volume < DEMAND_VOLUME);
+// (an ambiguous town's pages always need one: their volume is national and never counts)
+const needsSerp = (page, best) => !!page.serp_eligible && (!!page.ambiguous || best.volume == null || best.volume < DEMAND_VOLUME);
 
 // ── Competitor pages ──
 const registrable = d => str(d).toLowerCase().replace(/^www\./, '');
@@ -214,10 +225,10 @@ function competitorPages(items, town, excluded) {
 }
 
 // The demand gate: pass on volume, else on competitor pages (null competitors = not allowed to count)
-function demandGate({ volume, competitors }) {
-  if (volume != null && volume >= DEMAND_VOLUME) return { pass: true, by: 'volume', volume, competitors: competitors == null ? null : competitors };
+function demandGate({ volume, competitors, ambiguous = false }) {
+  if (!ambiguous && volume != null && volume >= DEMAND_VOLUME) return { pass: true, by: 'volume', volume, competitors: competitors == null ? null : competitors };
   if (competitors != null && competitors >= DEMAND_COMPETITORS) return { pass: true, by: 'competitors', volume, competitors };
-  return { pass: false, by: null, volume, competitors: competitors == null ? null : competitors };
+  return { pass: false, by: null, volume, competitors: competitors == null ? null : competitors, ...(ambiguous ? { ambiguous: true } : {}) };
 }
 
 // ── Cost estimate ──
@@ -232,6 +243,7 @@ function estimate({ keywordsToBuy, avgKeywordCost = null, serpQueries }) {
     total_usd: round4(volumeCost + serpCost),
   };
 }
+const compText = g => g.competitors == null ? 'no SERP' : `${g.competitors} competitor page${g.competitors === 1 ? '' : 's'}`;
 const round4 = v => Math.round(v * 10000) / 10000;
 const round3 = v => Math.round(v * 1000) / 1000;
 
@@ -251,7 +263,7 @@ function scoreAndTier({ towns, pages, travel, areaOnlyRows = [], cap = PAGE_TOWN
     const total = mine.reduce((s, p) => s + (p.best_volume || 0), 0);
     const weight = outer ? Math.max(0, 1 - 0.7 * (t.miles / outer)) : 1;
     const allowCompetitors = t.type === 'town' && t.inside_reach;
-    const gate = loc ? demandGate({ volume: loc.best_volume, competitors: allowCompetitors ? loc.competitors : null }) : { pass: false, by: null, volume: null, competitors: null };
+    const gate = loc ? demandGate({ volume: loc.best_volume, competitors: allowCompetitors ? loc.competitors : null, ambiguous: !!t.ambiguous }) : { pass: false, by: null, volume: null, competitors: null };
     return { ...t, total_volume: total, distance_weight: round3(weight), score: round3(total * weight), fallback: round3((t.population || 0) * weight), gate, evidence: loc ? { volume: loc.best_volume, keyword: loc.best_keyword, competitors: allowCompetitors ? loc.competitors : null, competitor_pages: allowCompetitors ? (loc.competitor_pages || []) : [], serp_check_url: loc.serp_check_url || '' } : null };
   });
   // Towns with volume first by score, then zero-volume towns by population × weight
@@ -264,18 +276,23 @@ function scoreAndTier({ towns, pages, travel, areaOnlyRows = [], cap = PAGE_TOWN
   if (tier1.length < band[0]) tier1 = eligible1.slice(0, Math.min(band[0], eligible1.length));
   if (tier1.length > band[1]) tier1 = tier1.slice(0, band[1]);
   const t1 = new Set(tier1.map(t => t.place_id));
-  const rest = passed.filter(t => !t1.has(t.place_id));
+  // The population rule: a town inside reach of POPULATION_PAGE or more that failed demand is Tier 2 anyway,
+  // after the towns that passed on demand, by population × distance_weight
+  const byPopulation = scored.filter(t => !t.gate.pass && t.type === 'town' && t.inside_reach && (t.population || 0) >= POPULATION_PAGE).sort((a, b) => (b.fallback - a.fallback) || (a.miles - b.miles));
+  for (const t of byPopulation) t.population_rule = true;
+  const rest = [...passed.filter(t => !t1.has(t.place_id)), ...byPopulation];
   const room = Math.max(0, cap - tier1.length);
   const tier2 = rest.slice(0, room);
   const overCap = rest.slice(room);
   const t2 = new Set(tier2.map(t => t.place_id));
   for (const t of scored) {
     if (t1.has(t.place_id)) { t.tier = 1; t.phase = 1; t.outcome = 'page'; t.why = `Tier 1: score ${t.score}${top ? ` (${Math.round(t.score / top * 100)}% of the top ${top})` : ''}, passed on ${t.gate.by}`; }
+    else if (t2.has(t.place_id) && t.population_rule) { t.tier = 2; t.phase = 2; t.outcome = 'page'; t.why = `Tier 2: population ${fmt(t.population)}, low competition (volume ${t.ambiguous ? 'does not count' : fmt(t.gate.volume)}, ${compText(t.gate)}); ranked by population × weight ${t.fallback}`; }
     else if (t2.has(t.place_id)) { t.tier = 2; t.phase = 2; t.outcome = 'page'; t.why = `Tier 2: passed on ${t.gate.by}, score ${t.score}${!t.inside_reach ? ', beyond reach' : ''}`; if (!t.inside_reach) t.beyond_reach = true; }
-    else if (overCap.some(o => o.place_id === t.place_id)) { t.tier = null; t.outcome = 'area_only'; t.why = `over cap: passed on ${t.gate.by} but the ${cap} page towns are taken; promotable`; }
+    else if (overCap.some(o => o.place_id === t.place_id)) { t.tier = null; t.outcome = 'area_only'; t.why = `over cap: ${t.population_rule ? `population ${fmt(t.population)}` : `passed on ${t.gate.by}`} but the ${cap} page towns are taken; promotable`; }
     else if (t.type === 'district') { t.tier = null; t.outcome = 'excluded'; t.why = `no volume (district of the base town: volume ${fmt(t.gate.volume)}, passes on volume only)`; }
     else if (!t.inside_reach) { t.tier = null; t.outcome = 'area_only'; t.why = `beyond reach, typed by the client, volume ${fmt(t.gate.volume)} under ${DEMAND_VOLUME}`; }
-    else { t.tier = null; t.outcome = 'area_only'; t.why = `no demand: volume ${fmt(t.gate.volume)}, ${t.gate.competitors == null ? 'no SERP' : `${t.gate.competitors} competitor page${t.gate.competitors === 1 ? '' : 's'}`}`; }
+    else { t.tier = null; t.outcome = 'area_only'; t.why = `no demand: ${t.ambiguous ? `name shared elsewhere (${t.namesakes}), volume ${fmt(t.gate.volume)} does not count` : `volume ${fmt(t.gate.volume)}`}, ${compText(t.gate)}${(t.population || 0) >= POPULATION_FLOOR && (t.population || 0) < POPULATION_PAGE ? `; population ${fmt(t.population)} under ${fmt(POPULATION_PAGE)}` : ''}`; }
   }
   const areaOnly = [...scored.filter(t => t.outcome === 'area_only'), ...areaOnlyRows.map(r => ({ ...r, tier: null, outcome: 'area_only', why: r.reason, score: 0, total_volume: 0, gate: null, evidence: null }))];
   const excluded = scored.filter(t => t.outcome === 'excluded');
@@ -285,9 +302,9 @@ function scoreAndTier({ towns, pages, travel, areaOnlyRows = [], cap = PAGE_TOWN
   const locationCategories = [], noDemand = [];
   for (const t of [...tier1, ...tier2]) {
     for (const p of (byTown.get(t.place_id) || [])) {
-      if (p.page === 'location') { locationCategories.push({ town: t.name, place_id: t.place_id, phase: t.phase, tier: t.tier, category_key: p.category_key, category: p.category, primary: true, pass: true, by: t.gate.by, volume: p.best_volume, keyword: p.best_keyword, competitors: t.evidence.competitors, note: 'the primary category: shares the location page\'s demand (hub rule)' }); continue; }
+      if (p.page === 'location') { locationCategories.push({ town: t.name, place_id: t.place_id, phase: t.phase, tier: t.tier, category_key: p.category_key, category: p.category, primary: true, pass: true, by: t.population_rule ? 'population' : t.gate.by, volume: p.best_volume, keyword: p.best_keyword, competitors: t.evidence.competitors, population: t.population, note: t.population_rule ? 'the primary category: on the location page\'s population rule (hub rule)' : 'the primary category: shares the location page\'s demand (hub rule)' }); continue; }
       const allowCompetitors = t.type === 'town' && t.inside_reach;
-      const g = demandGate({ volume: p.best_volume, competitors: allowCompetitors ? p.competitors : null });
+      const g = demandGate({ volume: p.best_volume, competitors: allowCompetitors ? p.competitors : null, ambiguous: !!t.ambiguous });
       const row = { town: t.name, place_id: t.place_id, phase: t.phase, tier: t.tier, category_key: p.category_key, category: p.category, primary: false, pass: g.pass, by: g.by, volume: p.best_volume, keyword: p.best_keyword, competitors: g.competitors, competitor_pages: allowCompetitors ? (p.competitor_pages || []) : [] };
       (g.pass ? locationCategories : noDemand).push(row);
     }
@@ -295,5 +312,5 @@ function scoreAndTier({ towns, pages, travel, areaOnlyRows = [], cap = PAGE_TOWN
   return { towns: scored, tier1, tier2, area_only: areaOnly, excluded, gbp_areas: gbp, location_categories: locationCategories, no_demand: noDemand, top_score: top, band, cap };
 }
 
-module.exports = { ALLOWED_TRAVEL, REACH_MILES, OUTER_CAP_MILES, POPULATION_FLOOR, DEMAND_VOLUME, DEMAND_COMPETITORS, TIER1_BAND, TIER1_SCORE_SHARE, PAGE_TOWN_CAP, GBP_AREA_LIMIT, KM_PER_MILE, SERP_COST_USD, VOLUME_TASK_COST_USD,
+module.exports = { ALLOWED_TRAVEL, REACH_MILES, OUTER_CAP_MILES, POPULATION_FLOOR, POPULATION_PAGE, DEMAND_VOLUME, DEMAND_COMPETITORS, TIER1_BAND, TIER1_SCORE_SHARE, PAGE_TOWN_CAP, GBP_AREA_LIMIT, KM_PER_MILE, SERP_COST_USD, VOLUME_TASK_COST_USD,
   islandAuthorities, islandOf, leadingNumber, parseTravel, reachMiles, outerLimitMiles, tier1Band, scanReachMiles, candidates, keywordPlan, bestVolume, needsSerp, competitorPages, isExcludedDomain, mentionsTown, demandGate, estimate, scoreAndTier };

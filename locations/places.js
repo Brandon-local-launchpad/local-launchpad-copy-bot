@@ -251,6 +251,31 @@ function createPlacesStore(pool) {
       const out = rows.map(typed).map(r => ({ ...r, km: nearPoint && r.lat != null ? kmBetween(nearPoint, r) : null }));
       return out.sort((a, b) => (a.is_admin_area - b.is_admin_area) || ((a.km == null ? 1e9 : a.km) - (b.km == null ? 1e9 : b.km)) || ((b.population || 0) - (a.population || 0)));
     },
+    // Namesakes: for each given place row, how many OTHER places in the table share its normalised name,
+    // of any type. A place's own council (an admin row of the same name whose authority the place lies
+    // in, e.g. the town Winchester and the Winchester district) is the same place and is not counted.
+    // Returns a Map place_id → { count, examples: ["Newtown (town, Powys)", …] (3 at most) }
+    async namesakes(rowsIn) {
+      const rows = (rowsIn || []).filter(Boolean);
+      const names = [...new Set(rows.map(r => r.name_norm || normaliseName(r.name)))];
+      const found = [];
+      for (let i = 0; i < names.length; i += 200) {
+        const chunk = names.slice(i, i + 200);
+        const ph = chunk.map((_, k) => "$" + (k + 1)).join(", ");
+        const { rows: got } = await pool.query(`SELECT id, name, name_norm, type, is_admin_area, lad_name FROM places WHERE name_norm IN (${ph})`, chunk);
+        found.push(...got);
+      }
+      const byNorm = new Map();
+      for (const f of found) { if (!byNorm.has(f.name_norm)) byNorm.set(f.name_norm, []); byNorm.get(f.name_norm).push(f); }
+      const out = new Map();
+      for (const r of rows) {
+        const norm = r.name_norm || normaliseName(r.name);
+        const ownLad = String(r.lad_name || "").toLowerCase();
+        const others = (byNorm.get(norm) || []).filter(f => f.id !== r.id && !(f.is_admin_area && ownLad.includes(String(f.name).toLowerCase())));
+        out.set(r.id, { count: others.length, examples: others.slice(0, 3).map(f => `${f.name} (${f.type}${f.lad_name ? ", " + String(f.lad_name).split(";")[0].trim() : ""})`) });
+      }
+      return out;
+    },
     async importInfo() { const { rows } = await pool.query(`SELECT version, imported_at, row_count, counts FROM places_import ORDER BY imported_at DESC LIMIT 1`); return rows[0] || null; },
   };
 }

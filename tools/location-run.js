@@ -88,7 +88,9 @@ function dryReport(R) {
   const c = R.counts;
   L.push(`Considered ${c.considered} places within ${R.outer_limit_miles} mi: ${c.candidates} candidates in the volume run (${c.inside_reach} inside reach, ${c.beyond_reach_typed} beyond reach but typed, ${c.districts_of_base} districts of ${R.base.name}), ${c.area_only} area only (beyond reach, not typed), ${c.excluded} excluded (${c.across_water} across water). Typed: ${c.client_asked} matched (${c.client_asked_excluded} excluded), ${c.unmatched} unmatched.`);
   const towns = R.candidates.filter(x => x.status === 'candidate' && x.type === 'town');
-  L.push(`Candidate towns (${towns.length}): ${towns.map(t => `${t.name}${t.qualifier ? ` (${t.qualifier})` : ''} ${t.miles}mi${t.inside_reach ? '' : ' beyond'}${t.client_asked ? ' typed' : ''}`).join(', ')}`);
+  L.push(`Candidate towns (${towns.length}): ${towns.map(t => `${t.name}${t.qualifier ? ` (${t.qualifier})` : ''} ${t.miles}mi${t.inside_reach ? '' : ' beyond'}${t.client_asked ? ' typed' : ''}${t.ambiguous ? ` [${t.namesakes} namesake${t.namesakes === 1 ? '' : 's'}]` : ''}`).join(', ')}`);
+  const shared = R.candidates.filter(x => /^name shared elsewhere/.test(x.reason) && x.status === 'excluded');
+  L.push(`Districts excluded for a shared name (${shared.length}): ${shared.map(t => `${t.name} (${t.namesakes})`).join(', ') || 'none'}`);
   const ao = R.candidates.filter(x => x.status === 'area_only');
   L.push(`Area only (${ao.length}): ${ao.map(t => `${t.name} ${t.miles}mi`).join(', ')}`);
   const exTyped = R.candidates.filter(x => x.status === 'excluded' && x.client_asked);
@@ -109,14 +111,16 @@ function runReport(R) {
   L.push(`Counts: ${R.counts.candidates} candidates (${R.counts.inside_reach} inside reach, ${R.counts.beyond_reach_typed} beyond reach typed by the client, ${R.counts.districts_of_base} districts), ${R.counts.area_only} area only before scoring, ${R.counts.excluded} excluded (${R.counts.across_water} across water)`);
   L.push('');
   const gateText = t => t.gate ? `${t.gate.by || 'fail'} (v ${t.gate.volume == null ? '?' : t.gate.volume}${t.gate.competitors == null ? '' : `, c ${t.gate.competitors}`})` : '';
-  const townLine = t => pad(t.name + (t.qualifier ? ` (${t.qualifier})` : ''), 26) + pad(t.type, 9) + pad(num(t.population), 9) + pad(t.miles, 6) + pad(t.total_volume, 7) + pad(t.score, 9) + pad(gateText(t), 24) + (t.why || t.reason || '');
-  const head = pad('TOWN', 26) + pad('type', 9) + pad('pop', 9) + pad('mi', 6) + pad('vol', 7) + pad('score', 9) + pad('gate', 24) + 'why';
+  const townLine = t => pad(t.name + (t.qualifier ? ` (${t.qualifier})` : ''), 26) + pad(t.type, 9) + pad(num(t.population), 9) + pad(t.miles, 6) + pad(t.namesakes == null ? '' : t.namesakes, 6) + pad(t.total_volume, 7) + pad(t.score, 9) + pad(gateText(t), 24) + (t.why || t.reason || '');
+  const head = pad('TOWN', 26) + pad('type', 9) + pad('pop', 9) + pad('mi', 6) + pad('names', 6) + pad('vol', 7) + pad('score', 9) + pad('gate', 24) + 'why';
   L.push(`TIER 1 (phase 1 location pages, ${R.tiers.tier1.length}; top score ${R.tiers.top_score})`); L.push(head);
   for (const t of R.tiers.tier1) L.push(townLine(t));
   L.push(''); L.push(`TIER 2 (phase 2 location pages, ${R.tiers.tier2.length})`); L.push(head);
   for (const t of R.tiers.tier2) L.push(townLine(t));
   L.push(''); L.push(`AREA ONLY (${R.tiers.area_only.length}: service areas text and GBP, no page)`); L.push(head);
   for (const t of R.tiers.area_only) L.push(townLine(t));
+  const shared = R.candidates.filter(x => /^name shared elsewhere/.test(x.reason) && x.status === 'excluded');
+  L.push(''); L.push(`DISTRICTS EXCLUDED FOR A SHARED NAME (${shared.length}): ${shared.map(t => `${t.name} (${t.namesakes}: ${(t.namesake_examples || []).slice(0, 2).join(', ')})`).join('; ') || 'none'}`);
   L.push(''); L.push(`EXCLUDED AFTER SCORING (${R.tiers.excluded.length}: districts of the base town with no volume)`);
   L.push('  ' + R.tiers.excluded.map(t => `${t.name} (v ${t.gate.volume == null ? '?' : t.gate.volume})`).join(', '));
   L.push(''); L.push(`GBP SERVICE AREAS (${R.gbp_areas.length} of 20): ${R.gbp_areas.map(a => `${a.name} [${a.from}]`).join(', ')}`);
@@ -124,10 +128,15 @@ function runReport(R) {
   L.push(`LOCATION CATEGORY PAGES THAT PASS (${R.location_categories.length}; ${R.no_demand.length} combinations with no demand)`);
   const byTown = new Map();
   for (const c of R.location_categories) { if (!byTown.has(c.town)) byTown.set(c.town, []); byTown.get(c.town).push(c); }
-  for (const [town, list] of byTown) L.push(`  ${pad(town, 22)} phase ${list[0].phase}: ${list.map(c => `${c.category}${c.primary ? '*' : ''} (${c.by === 'volume' ? `v ${c.volume}` : `c ${c.competitors}`})`).join(', ')}`);
+  for (const [town, list] of byTown) L.push(`  ${pad(town, 22)} phase ${list[0].phase}: ${list.map(c => `${c.category}${c.primary ? '*' : ''} (${c.by === 'volume' ? `v ${c.volume}` : c.by === 'population' ? `pop ${num(c.population)}` : `c ${c.competitors}`})`).join(', ')}`);
   L.push('  * the primary category, on the location page\'s demand (hub rule)');
   L.push(`  No demand: ${R.no_demand.map(c => `${c.category} ${c.town} (v ${c.volume == null ? '?' : c.volume}${c.competitors == null ? '' : `, c ${c.competitors}`})`).join('; ')}`);
   L.push('');
+  if (R.moves) {
+    L.push('');
+    L.push(`MOVES SINCE THE PREVIOUS SAVED RUN (${R.moves.previous_ran_at}): ${R.moves.list.length}`);
+    for (const m of R.moves.list) L.push(`  ${pad(m.name, 26)} ${pad(m.before, 22)} → ${pad(m.after, 22)} ${m.why}`);
+  }
   L.push(`PAGES: before ${R.before.location} location (${R.before.location_phase2} phase 2) and ${R.before.location_category} location category; after ${R.after.location} location (${R.after.location_phase2} phase 2) and ${R.after.location_category} location category (${R.after.location_category_phase2} phase 2)`);
   L.push(`COSTS (this run, incl. cache hits at 0): volume ${money(R.costs.volume_usd)} for ${R.costs.keywords_fetched} fetched; SERP ${money(R.costs.serp_usd)} for ${R.costs.serp_calls} calls (${R.costs.serp_from_cache} from cache)`);
   if (R.costs.serp_failed && R.costs.serp_failed.length) L.push(`SERP FAILED after retries (${R.costs.serp_failed.length}, volume only for these): ${R.costs.serp_failed.map(f => `${f.keyword} (${f.error})`).join('; ')}`);
@@ -187,6 +196,7 @@ function runReport(R) {
   if (DRY) { if (JSON_OUT) console.log(JSON.stringify(dry, null, 2)); await pool.end(); return; }
   if (dry.estimate.total_usd > MAX_USD) { console.error(`Not buying: the estimate (${money(dry.estimate.total_usd)}) is over the limit (${money(MAX_USD)}). Raise it with --max-usd.`); await pool.end(); process.exit(3); }
 
+  const previous = setup.persist ? await svc.latestRun(setup.clientId).catch(() => null) : null;
   let R;
   try {
     R = await svc.run(setup.clientId, { inputs: setup.inputs, onProgress: t => console.error('  ' + t), persist: setup.persist });
@@ -206,7 +216,18 @@ function runReport(R) {
     } catch (e) { samples.push({ keyword: kw, town, error: e.message }); }
   }
   save();
+  // Volumes served from the cache were never fetched here: record them too, so the replay has every keyword
+  const fromCache = await h1.cached(R.plan.keywords);
+  for (const [k, v] of fromCache) if (!recorded.volumes[k]) recorded.volumes[k] = { volume: v.volume == null ? null : v.volume, cpc: v.cpc == null ? null : v.cpc, status: v.status || (v.volume == null ? 'null' : 'ok'), cost: 0 };
+  save();
   R.samples = samples;
+  if (previous && previous.tiers) {
+    const state = run => { const m = new Map(); for (const t of run.tiers.towns || []) m.set(t.place_id, { name: t.name, where: t.tier ? `Tier ${t.tier}` : t.outcome === 'area_only' ? 'area only' : 'excluded', why: t.why }); for (const t of run.tiers.area_only || []) if (!m.has(t.place_id)) m.set(t.place_id, { name: t.name, where: 'area only', why: t.why }); for (const c of run.candidates || []) if (!m.has(c.place_id)) m.set(c.place_id, { name: c.name, where: c.status === 'excluded' ? 'excluded' : c.status, why: c.reason }); return m; };
+    const was = state(previous), now = state(R);
+    const list = [];
+    for (const [id, n] of now) { const w = was.get(id); if (w && w.where !== n.where) list.push({ name: n.name, before: w.where, after: n.where, why: n.why || '' }); }
+    R.moves = { previous_ran_at: previous.ran_at, list };
+  }
   R.bought = { volume_keywords: bought.keywords, volume_usd: Math.round(bought.cost * 1e4) / 1e4, serp_calls: serpBought.calls, serp_usd: Math.round(serpBought.cost * 1e4) / 1e4 };
   await pool.end();
   if (JSON_OUT) { console.log(JSON.stringify(R, null, 2)); return; }
