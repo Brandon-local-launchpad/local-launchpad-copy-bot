@@ -275,7 +275,7 @@ function createFaqService({
   // The blog topics reserved from the same assignment (B1 with Amendment 1), and the site
   // wide check over pages and posts: questions, neighbourhoods, symptoms. Each input that
   // cannot be read is reported in `problems`, never thrown, so the FAQ card still draws.
-  async function blogFor(clientId, ctx, niche, { sort, assignment }) {
+  async function blogFor(clientId, ctx, niche, { sort, assignment }, opts = {}) {
     if (!sort || !assignment) return { blog: null, siteCheck: null };
     const problems = [];
     let dossiers = [], alloc = null, records = [];
@@ -293,7 +293,7 @@ function createFaqService({
     const pageWordings = new Set();
     for (const p of Object.values(assignment.pages)) for (const q of p.questions) pageWordings.add(q.wording);
     for (const { record } of records) for (const f of (record && record.faq_items) || []) if (f && f.faq_question) pageWordings.add(f.faq_question);
-    const blog = B.reserveBlogTopics({ assignment, cv: ctx.cv, niche, keyValueMap: ctx.keyValueMap, pages: ctx.pages, serviceParentMap: ctx.serviceParentMap, dossiers, allocationRecord: alloc, usedSymptoms, bank, pageWordings, launchDate });
+    const blog = B.reserveBlogTopics({ assignment, cv: ctx.cv, niche, keyValueMap: ctx.keyValueMap, pages: ctx.pages, serviceParentMap: ctx.serviceParentMap, dossiers, allocationRecord: alloc, usedSymptoms, bank, pageWordings, launchDate, ...opts });
     const parsed = [];
     for (const d of dossiers) { try { parsed.push({ town: d.location, parsed: require('./geo-dossier').parseDossier(d.text) }); } catch (e) { problems.push(`${d.location}: dossier not parsed (${e.message})`); } }
     const siteCheck = SC.siteWideCheck({
@@ -379,12 +379,13 @@ function createFaqService({
   }
 
   // The reserved topics on their own (the blog queue builder, stage 3, reads this)
-  async function blogTopics(clientId, sessionId) {
+  // opts: the reservation's extra options (a Search Console batch: batch, batchStart, scQuestions, existingRows)
+  async function blogTopics(clientId, sessionId, opts = {}) {
     const ctx = await loadContext(clientId, sessionId);
     const { niche, error } = loadNiche(ctx.trade, ctx);
     if (error) throw new Error(error);
     const { sort, assignment } = await assignmentFor(clientId, ctx, niche);
-    const out = await blogFor(clientId, ctx, niche, { sort, assignment });
+    const out = await blogFor(clientId, ctx, niche, { sort, assignment }, opts);
     return { ...out, sort, assignment, ctx, niche };
   }
 

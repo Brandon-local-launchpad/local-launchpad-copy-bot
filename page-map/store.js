@@ -115,7 +115,9 @@ const BLOG_INFO_KEYS = [...G.BLOG_COLUMNS.map(c => c[1]), 'service', 'category',
   // The queue's own keys (blog/queue.js rowsFor): the resolved stack and FAQ wordings, the question and its approval, the slot
   'service_slug', 'category_slug', 'stack', 'faq', 'question_id', 'question_source', 'wording', 'wording_source', 'wording_approved', 'wording_edited', 'needs_approval', 'bank_topic', 'held', 'pack_service', 'related_from', 'window_rows', 'bank_window', 'bank_block', 'seasonal',
   // The daily job's (blog/daily.js): the post on the site, the hold, the publish, the backfill
-  'wp_post_id', 'wp_date_gmt', 'published_at', 'churned_at', 'dossier_condition', 'cost_unit', 'slot_note', 'held_for_date', 'month'];
+  'wp_post_id', 'wp_date_gmt', 'published_at', 'churned_at',
+  // The Search Console batch's (stage 9): the query the post came from, a refresh of an earlier post
+  'refresh_of', 'impressions', 'dossier_condition', 'cost_unit', 'slot_note', 'held_for_date', 'month'];
 const INFO_KEYS = ['town', 'category_key', 'service_id', 'service_name', 'parent_keys', 'additional', 'primary', 'merged_from', 'gbp_names', 'absorbs', 'copy_priority', 'phase', 'links'];
 // A plan row's info: what the generator put in info, plus its link sections
 const infoOf = p => { const src = { ...(p.info || {}), ...(p.links ? { links: p.links } : {}) }; return Object.fromEntries(INFO_KEYS.filter(k => src[k] !== undefined).map(k => [k, src[k]])); };

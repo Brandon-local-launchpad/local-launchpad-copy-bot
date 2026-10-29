@@ -4,7 +4,7 @@
 // Write all / resume / write one through the existing run routes; a row opens the Page view.
 // Polls every 8 seconds while a run is on.
 
-import { h, attr, api, card, table, status, pill, timeEl, score, running, toast, confirm, empty, plural, fmtDate, busy } from '../ui.js';
+import { h, attr, api, card, table, status, pill, timeEl, score, running, toast, confirm, empty, plural, fmtDate, busy, dialog } from '../ui.js';
 
 const TYPES = [['homepage', 'Homepage'], ['category', 'Category'], ['service', 'Service'], ['location', 'Location'], ['blog', 'Blog']];
 const STATUS_KIND = { held: 'wait', 'not started': 'none', running: 'run', queued: 'none', written: 'ok', blocked: 'block', failed: 'block', 'waiting on a person': 'wait', approved: 'ok', pushed: 'ok', skipped: 'none', waiting: 'none' };
@@ -75,10 +75,10 @@ export async function render(el, ctx) {
   // specificity, publish date), the question to approve or edit, and the build button
   // Stage 4: each row's record status (from the queue view's record summary), Write and Write
   // again per post, Write all / the rest through /blog-pages/run; a written post opens the Page view
-  let blog = null, blogLoading = false, blogRun = null, blogTimer = null, blogJobLog = null;
+  let blog = null, blogLoading = false, blogRun = null, blogTimer = null, blogJobLog = null, blogSc = null, blogScCandidates = null;
   const loadBlog = async () => {
     blogLoading = true;
-    try { [blog, blogRun, blogJobLog] = await Promise.all([api(`/api/clients/${clientId}/blog/queue`), api(`/api/clients/${clientId}/blog-pages`).catch(() => null), api(`/api/clients/${clientId}/blog/daily-log`).then(r => r.log || []).catch(() => null)]); } catch (e) { blog = { error: e.message, rows: [], counts: {} }; }
+    try { [blog, blogRun, blogJobLog, blogSc] = await Promise.all([api(`/api/clients/${clientId}/blog/queue`), api(`/api/clients/${clientId}/blog-pages`).catch(() => null), api(`/api/clients/${clientId}/blog/daily-log`).then(r => r.log || []).catch(() => null), api(`/api/clients/${clientId}/search-console`).catch(() => null)]); } catch (e) { blog = { error: e.message, rows: [], counts: {} }; }
     blogLoading = false;
     clearTimeout(blogTimer);
     if (blogRun && blogRun.running) blogTimer = setTimeout(loadBlog, 8000);
@@ -99,6 +99,14 @@ export async function render(el, ctx) {
     else if (r.gates.length) st = 'waiting';
     const detail = st === 'failed' ? rec.error : st === 'blocked' ? (rec.blocked ? 'blocked by a gate when it ran' : `${rec.block} BLOCK to fix`) : st === 'waiting on a person' ? `${rec.claims} claim${rec.claims === 1 ? '' : 's'} to accept` : st === 'waiting' ? 'gated: the post waits' : st === 'held' ? 'held by the queue: the Search Console batch picks it up' : st === 'written' && rec.flag ? (rec.flags_reviewed ? `${rec.flag} FLAG, read` : `${rec.flag} FLAG to read`) : st === 'approved' && rec.cost_pence != null ? `£${(rec.cost_pence / 100).toFixed(2)}` : '';
     return { st, detail };
+  };
+  // The Search Console candidates (stage 9): the new post queries with their question wording, the page improvements, what was left out
+  const scCandidatesHtml = c => {
+    const row = cells => `<tr>${cells.map(x => `<td style="padding:3px 6px;vertical-align:top">${x}</td>`).join('')}</tr>`;
+    return `<div class="notice small" style="margin-bottom:6px">${c.counts.queries} queries read: <strong>${c.counts.newPosts}</strong> new post candidates, <strong>${c.counts.improvements}</strong> page improvements, ${c.counts.dropped} left out (under 10 impressions, on page one, or owned by a page or post).</div>
+      ${c.newPosts.length ? `<div class="sec-title">New post candidates (most impressions first; the wording is code's, to approve or edit on the queue once the batch is built)</div><table class="small" style="border-collapse:collapse"><tr><th style="text-align:left;padding:3px 6px">Query</th><th style="text-align:right;padding:3px 6px">Impr.</th><th style="text-align:right;padding:3px 6px">Pos.</th><th style="text-align:left;padding:3px 6px">Suggested question</th></tr>${c.newPosts.map(p => row([h(p.query), p.impressions, p.position, h(p.wording)])).join('')}</table>` : '<div class="small muted">No new post candidates.</div>'}
+      ${c.improvements.length ? `<div class="sec-title" style="margin-top:8px">Page improvements (positions 5 to 20, 20 or more impressions; listed only, for the page's next regeneration)</div><table class="small" style="border-collapse:collapse"><tr><th style="text-align:left;padding:3px 6px">Query</th><th style="text-align:right;padding:3px 6px">Impr.</th><th style="text-align:right;padding:3px 6px">Pos.</th><th style="text-align:left;padding:3px 6px">Page</th><th style="text-align:left;padding:3px 6px">Suggestion</th></tr>${c.improvements.map(p => row([h(p.query), p.impressions, p.position, `<code>${h(p.page || '')}</code>`, h(p.suggestion)])).join('')}</table>` : ''}
+      ${c.dropped.length ? `<details class="small" style="margin-top:8px"><summary>Left out (${c.dropped.length})</summary>${c.dropped.slice(0, 80).map(d => `<div>${h(d.query)} <span class="muted">${h(d.why)}</span></div>`).join('')}</details>` : ''}`;
   };
   const drawBlogQueue = () => {
     const box = el.querySelector('#blogQueue'); if (!box) return;
@@ -128,6 +136,10 @@ export async function render(el, ctx) {
       ${(B.problems || []).length ? `<div class="notice bad" style="margin-bottom:10px">Could not read: ${B.problems.map(h).join('; ')}</div>` : ''}
       <div class="notice" style="margin-bottom:14px;display:flex;gap:16px;flex-wrap:wrap;align-items:center"><span><strong>${plural(c.rows || 0, 'post')}</strong> in the queue</span><span>${c.ready || 0} ready</span><span>${c.gated || 0} gated</span>${c.held ? `<span>${c.held} held</span>` : ''}<span>${c.to_approve || 0} questions to approve</span><span>${c.dated || 0} dated${B.settings && B.settings.launch_date ? ` from ${h(fmtDate(B.settings.launch_date))}` : ' (no launch date on the Record tab)'}</span>${res ? `<span class="muted">reserved: ${res.counts.topics} topics, ${res.counts.from_bank || 0} from the bank</span>` : ''}</div>
       ${[...(B.schedule_flags || []), ...((res && res.flags) || [])].map(f => `<div class="small" style="color:#b45309;margin-bottom:4px">${h(f.code)}: ${h(f.msg)}</div>`).join('')}
+      ${blogSc ? `<section class="card card-flat" style="margin-bottom:14px"><div class="tbl-tools"><span class="muted small"><strong>Search Console batch</strong>${blogSc.due ? ` <span class="pill pill-warn">due since ${h(fmtDate(blogSc.due.start))}</span>` : blogSc.next ? ` · next ${h(fmtDate(blogSc.next.start))} (month ${blogSc.next.month})` : blogSc.launch ? '' : ' · no launch date yet'}: in month six and every six months after, six posts from the queries the site is seen for (10 or more impressions, off page one, no page or post owns them). ${blogSc.rows ? `${blogSc.rows} rows on file from ${h(blogSc.source === 'api' ? 'the API' : 'an export')}${blogSc.fetched_at ? `, ${h(fmtDate(blogSc.fetched_at, true))}` : ''}.` : 'No rows yet.'}${blogSc.batches.filter(b => b.built).length ? ` Built: ${blogSc.batches.filter(b => b.built).map(b => `${h(fmtDate(b.start))} (${b.rows})`).join(', ')}.` : ''}</span><span style="flex:1"></span>${blogSc.api && blogSc.property ? `<button class="btn btn-ghost btn-sm" data-blog="sc-fetch" title="${attr(`The last 90 days from ${blogSc.property}`)}">Fetch from the API</button>` : ''}<button class="btn btn-ghost btn-sm" data-blog="sc-upload">Upload an export</button><button class="btn btn-ghost btn-sm" data-blog="sc-candidates" ${blogSc.rows ? '' : 'disabled'}>Show the candidates</button><button class="btn btn-primary btn-sm" data-blog="sc-build" ${blogSc.rows && blogSc.next ? '' : 'disabled'} title="${attr(blogSc.next ? `Build the batch for ${blogSc.next.start}: six posts, one a month` : 'No batch to build')}">Build the batch${blogSc.next ? ` (${h(fmtDate(blogSc.next.start))})` : ''}</button></div>
+        ${blogSc.property ? '' : '<div class="small muted" style="margin-top:4px">No Search Console property on the Record tab\'s Blog card: the API cannot fetch; an export can still be uploaded.</div>'}
+        <div id="blogScOut" class="small" style="margin-top:6px">${blogScCandidates ? scCandidatesHtml(blogScCandidates) : ''}</div>
+      </section>` : ''}
       <section class="card card-flat" style="margin-bottom:14px"><div class="tbl-tools"><span class="muted small"><strong>Daily job</strong>: once a day, with no person: a churned client's scheduled posts back to draft; a scheduled post stating a changed price written again (F-PRICE-CHANGED, back to review); a post due within two days whose primary page is not Live, or not approved, moved back seven days (F-HELD); a post still scheduled on its date published; a cost guide's URL stored for the GBP batch and its pages marked backfill pending. ${blogJobLog && blogJobLog.length ? `Last action ${h(fmtDate(blogJobLog[0].at, true))}.` : 'No actions yet.'}</span><span style="flex:1"></span><button class="btn btn-ghost btn-sm" data-blog="daily-dry">What would it do today?</button><button class="btn btn-ghost btn-sm" data-blog="daily-run">Run the daily job now</button></div>
         ${blogJobLog && blogJobLog.length ? `<div class="small" style="max-height:180px;overflow:auto">${blogJobLog.slice(0, 40).map(l => `<div style="padding:3px 0;border-top:1px solid var(--border)"><span class="muted">${h(fmtDate(l.at, true))}</span> <strong>${h(l.action)}</strong> ${l.slug ? `<code>${h(l.slug)}</code> ` : ''}${h(l.why || '')}${l.to ? ` → ${h(l.to)}` : ''}${l.url ? ` <a href="${attr(l.url)}" target="_blank" rel="noopener">${h(l.url)}</a>` : ''}</div>`).join('')}</div>` : ''}
         <div id="blogDailyOut" class="small" style="margin-top:6px"></div>
@@ -144,6 +156,20 @@ export async function render(el, ctx) {
   el.addEventListener('click', async e => {
     const b = e.target.closest('[data-blog]');
     if (b && b.dataset.blog === 'build') { e.stopPropagation(); await busy(b, 'Building…', async () => { try { blog = await api(`/api/clients/${clientId}/blog/queue/build`, { method: 'POST' }); toast(`Queue built: ${blog.counts.rows} posts`); draw(); } catch (err) { toast(err.message, 'bad'); } }); return; }
+    if (b && b.dataset.blog === 'sc-upload') {
+      e.stopPropagation();
+      const d = dialog({ title: 'Upload a Search Console export', body: `<div class="muted small" style="margin-bottom:8px">Search Console, Performance, the Queries table, Export, CSV: paste the file's text (Top queries, Clicks, Impressions, CTR, Position). The last 90 days, UK.</div><textarea id="scCsv" class="input" style="width:100%;height:220px;font-family:monospace"></textarea><div id="scMsg" class="small" style="color:#b45309;margin-top:6px"></div><div style="margin-top:8px"><button class="btn btn-primary" id="scSave">Save the rows</button></div>`, wide: true });
+      d.el.querySelector('#scSave').addEventListener('click', ev => busy(ev.target, 'Reading…', async () => { try { blogSc = await api(`/api/clients/${clientId}/search-console/upload`, { method: 'POST', body: { csv: d.el.querySelector('#scCsv').value } }); toast(`${blogSc.rows} rows saved`); d.close(); blogScCandidates = null; drawBlogQueue(); } catch (err) { d.el.querySelector('#scMsg').textContent = err.message; } }));
+      return;
+    }
+    if (b && b.dataset.blog === 'sc-fetch') { e.stopPropagation(); await busy(b, 'Fetching…', async () => { try { blogSc = await api(`/api/clients/${clientId}/search-console/fetch`, { method: 'POST' }); toast(`${blogSc.rows} rows from Search Console`); blogScCandidates = null; drawBlogQueue(); } catch (err) { toast(err.message, 'bad'); } }); return; }
+    if (b && b.dataset.blog === 'sc-candidates') { e.stopPropagation(); await busy(b, 'Reading…', async () => { try { blogScCandidates = await api(`/api/clients/${clientId}/search-console/candidates`); const out = document.getElementById('blogScOut'); if (out) out.innerHTML = scCandidatesHtml(blogScCandidates); } catch (err) { toast(err.message, 'bad'); } }); return; }
+    if (b && b.dataset.blog === 'sc-build') {
+      e.stopPropagation();
+      if (!(await confirm({ title: 'Build the Search Console batch?', text: 'Six posts, one a month across the next six months: the seasonal topics in the window, then the queries with the most impressions, then the FAQ questions left over, then local posts. The queries\' question wordings need approving on the queue before they run.', ok: 'Build' }))) return;
+      await busy(b, 'Building…', async () => { try { const r = await api(`/api/clients/${clientId}/search-console/batch`, { method: 'POST', body: {} }); toast(`Batch ${r.batch.start}: ${r.counts.rows} posts (${r.counts.new} new, ${r.counts.refreshes} refreshes)`); blogScCandidates = null; await loadBlog(); const out = document.getElementById('blogScOut'); if (out) out.innerHTML = `<div class="notice small">Batch ${h(fmtDate(r.batch.start))}: ${r.topics.map(t => `${h(fmtDate(t.publish_date))} ${h(t.wording)}${t.source_query ? ` <span class="muted">(from "${h(t.source_query)}")</span>` : ''}${t.refresh_of ? ` <span class="muted">(a refresh of ${h(t.refresh_of)})</span>` : ''}`).join('<br>')}${r.flags.length ? `<br>${r.flags.map(f => `${h(f.code)}: ${h(f.msg)}`).join('<br>')}` : ''}${r.rechecks.length ? `<br>To recheck (review due before the next batch): ${r.rechecks.map(x => `${h(x.slug)} (${h(x.review_due)})`).join(', ')}` : ''}</div>`; } catch (err) { toast(err.message, 'bad'); } });
+      return;
+    }
     if (b && (b.dataset.blog === 'daily-run' || b.dataset.blog === 'daily-dry')) {
       e.stopPropagation();
       const dry = b.dataset.blog === 'daily-dry';

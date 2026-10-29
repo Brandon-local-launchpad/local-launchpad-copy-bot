@@ -44,14 +44,16 @@ function seasonalMonth(launch, topic) {
 
 // topics: the reserved batch in order; launchDate: 'YYYY-MM-DD' or null.
 // Returns the topics with publish_date, month (0 launch, 1 to 6) and slot notes, plus the schedule flags.
-function schedule(topics, launchDate) {
+// slots: the posts per month after the start (the onboarding SLOTS, or one a month for a Search
+// Console batch); launchCount: the posts on the start date itself (3 at launch, 0 for a batch).
+function schedule(topics, launchDate, { slots = SLOTS, launchCount = LAUNCH } = {}) {
   const launch = parseDate(launchDate);
   const flags = [];
   const out = topics.map(t => ({ ...t, publish_date: null, month: null, held_for_date: false }));
   if (!out.length) return { topics: out, flags };
   // The launch posts: the first three (the homepage cost guide and the first two service cost guides)
-  const launchPosts = out.slice(0, LAUNCH);
-  const rest = out.slice(LAUNCH);
+  const launchPosts = out.slice(0, launchCount);
+  const rest = out.slice(launchCount);
   for (const t of launchPosts) { t.month = 0; t.publish_date = launch ? iso(launch) : null; if (!launch) t.held_for_date = true; }
   if (!launch) {
     for (const t of rest) t.held_for_date = true;
@@ -59,7 +61,7 @@ function schedule(topics, launchDate) {
     return { topics: out, flags };
   }
   // The months' slots: seasonal topics take their month first (the month before their window), then the rest in order
-  const perMonth = SLOTS.map((n, i) => ({ month: i + 1, n, posts: [] }));
+  const perMonth = slots.map((n, i) => ({ month: i + 1, n, posts: [] }));
   const queue = [];
   for (const t of rest) {
     const sm = t.seasonal ? seasonalMonth(launch, t) : null;
@@ -86,9 +88,12 @@ function schedule(topics, launchDate) {
     m.posts.forEach((t, i) => { t.publish_date = iso(dates[i]); });
   }
   if (queue.length) { for (const t of queue) { t.held_for_date = true; t.slot_note = 'beyond the six months: no date'; } flags.push({ code: 'F-QUEUE', msg: `${queue.length} topic(s) have no slot in the six months.` }); }
-  if (rest.length < SLOTS.reduce((a, b) => a + b, 0)) flags.push({ code: 'F-QUEUE', msg: `${out.length} topics: the cadence stops at the last topic.` });
+  if (rest.length < slots.reduce((a, b) => a + b, 0)) flags.push({ code: 'F-QUEUE', msg: `${out.length} topics: the cadence stops at the last topic.` });
   return { topics: out, flags };
 }
+// A Search Console batch (B16): six posts, one a month across the six months from the batch's start
+const SC_SLOTS = [1, 1, 1, 1, 1, 1];
+const scheduleBatch = (topics, batchStart) => schedule(topics, batchStart, { slots: SC_SLOTS, launchCount: 0 });
 
 // The page map rows for upsertBlogRows, from the scheduled topics
 function rowsFor(scheduled, { existing = [], held = [] } = {}) {
@@ -106,7 +111,7 @@ function rowsFor(scheduled, { existing = [], held = [] } = {}) {
         post_type: t.post_type, target_query: t.target_query, query_stack: t.query_stack, faq_ids: t.faq_ids,
         stack: t.stack, faq: t.faq, primary_link: t.primary, secondary_links: [], town: t.town || '',
         homepage_cost_guide: !!t.homepage_cost_guide, publish_date: t.publish_date, month: t.month, link_status: curInfo.link_status || '',
-        last_checked: curInfo.last_checked || '', review_due: curInfo.review_due || '', batch: t.batch || 'onboarding', source: t.source, source_query: t.source_query || '',
+        last_checked: curInfo.last_checked || '', review_due: curInfo.review_due || '', batch: t.batch || 'onboarding', source: t.source, source_query: t.source_query || '', refresh_of: t.refresh_of || '',
         service: t.service ? t.service.title : '', service_slug: t.service ? t.service.slug : '', category: t.category ? t.category.title : '', category_slug: t.category ? t.category.slug : '',
         question_id: t.question ? t.question.id : '', question_source: t.question ? t.question.source : '', wording, wording_source: t.wording_source, wording_approved: approved, wording_edited: !!curInfo.wording_edited,
         needs_approval: !!t.needs_approval, bank_topic: t.bank_topic || '', held: !!t.held, pack_service: t.pack_service || '', related_from: t.related_from || [], window_rows: t.window_rows || [], bank_window: t.bank_window || null, bank_block: t.bank_block || '', seasonal: t.seasonal || null, dossier_condition: t.dossier_condition || null, cost_unit: t.cost_unit || '', slot_note: t.slot_note || '', held_for_date: !!t.held_for_date,
@@ -115,4 +120,4 @@ function rowsFor(scheduled, { existing = [], held = [] } = {}) {
   });
 }
 
-module.exports = { schedule, rowsFor, monthDates, seasonalMonth, parseDate, SLOTS, LAUNCH, MONTHS };
+module.exports = { schedule, scheduleBatch, rowsFor, monthDates, seasonalMonth, parseDate, addMonths, SLOTS, SC_SLOTS, LAUNCH, MONTHS };

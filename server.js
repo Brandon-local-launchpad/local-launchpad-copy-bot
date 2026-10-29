@@ -4092,7 +4092,13 @@ if (pool) {
     regenerate: async (clientId, slug) => { await blogRunner.run(clientId, { resume: false, keys: [slug] }); const f = await v20Store.latest(clientId, { type: 'blog', key: slug }); return f ? f.id : null; },
     log: console,
   });
-  B.mountBlogApi(app, { pool, loadBlogInputs, queue: blogQueue, runner: blogRunner, v20Store, daily: blogDaily });
+  // The Search Console batch (stage 9, blog/search-console.js): the API through the service account when its key is set
+  const searchConsole = require('./blog/search-console').createSearchConsoleService({
+    pool, pageMapStore, faqService, v20Store, env: process.env,
+    queryReport: process.env.GOOGLE_SERVICE_ACCOUNT_JSON ? (property, opts) => require('./search-console/client').queryReport(property, opts) : null,
+    log: console,
+  });
+  B.mountBlogApi(app, { pool, loadBlogInputs, queue: blogQueue, runner: blogRunner, v20Store, daily: blogDaily, searchConsole });
 
 }
 

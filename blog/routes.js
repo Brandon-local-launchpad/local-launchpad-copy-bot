@@ -54,7 +54,7 @@ function createBlogInputsLoader({ pool, filloutService = null, pageMapStore = nu
 //   GET  /api/clients/:id/blog/queue             every post with its decisions (no model call)
 //   POST /api/clients/:id/blog/queue/build       the reserved topics dated and written to the page map
 //   PUT  /api/clients/:id/blog/queue/:slug       { wording, approved } a person's approval or edit of the question
-function mountBlogApi(app, { pool, loadBlogInputs, queue = null, runner = null, v20Store = null, daily = null }) {
+function mountBlogApi(app, { pool, loadBlogInputs, queue = null, runner = null, v20Store = null, daily = null, searchConsole = null }) {
   const wrap = fn => async (req, res) => {
     if (!pool) return res.status(503).json({ error: 'Database not configured.' });
     try { res.json(await fn(req)); }
@@ -63,6 +63,13 @@ function mountBlogApi(app, { pool, loadBlogInputs, queue = null, runner = null, 
   const view = async clientId => ({ settings: await getBlogSettings(pool, clientId), inputs: await loadBlogInputs(clientId) });
   app.get('/api/clients/:clientId/blog-settings', wrap(req => view(req.params.clientId)));
   app.put('/api/clients/:clientId/blog-settings', wrap(async req => { await saveBlogSettings(pool, req.params.clientId, req.body || {}); return view(req.params.clientId); }));
+  // Stage 9: the Search Console batch (B16): the rows (the API or an export), the candidates, the batch
+  const sc = () => { if (!searchConsole) throw Object.assign(new Error('The Search Console batch is not available.'), { status: 503 }); return searchConsole; };
+  app.get('/api/clients/:clientId/search-console', wrap(async req => sc().status(req.params.clientId)));
+  app.post('/api/clients/:clientId/search-console/upload', wrap(async req => sc().upload(req.params.clientId, String((req.body || {}).csv || ''))));
+  app.post('/api/clients/:clientId/search-console/fetch', wrap(async req => sc().fetchRows(req.params.clientId)));
+  app.get('/api/clients/:clientId/search-console/candidates', wrap(async req => sc().candidates(req.params.clientId)));
+  app.post('/api/clients/:clientId/search-console/batch', wrap(async req => sc().build(req.params.clientId, { start: (req.body || {}).start || null })));
   if (queue) {
     app.get('/api/clients/:clientId/blog/queue', wrap(req => queue.view(req.params.clientId)));
     app.post('/api/clients/:clientId/blog/queue/build', wrap(req => queue.build(req.params.clientId)));
