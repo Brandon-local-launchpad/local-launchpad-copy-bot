@@ -275,7 +275,9 @@ const tfRows = (tradeFacts && tradeFacts.verified && Array.isArray(tradeFacts.ro
   let rows = [];
   if (tableType === 'cost_guide') {
     // The price rows for the service (its sub jobs too), then related jobs the trade facts name, "Ask for a quote" in the price cell
-    const related = tfRows.filter(r => r.name && ['fact', 'rule', 'price factor'].includes(r.kind)).map(r => r.name).filter((n, i, a) => a.indexOf(n) === i).slice(0, 4);
+    // A related job is a row name that reads as a job: a citation list ("Building Regulations 2010, Part L; Approved Document L…") is not one (the roofer run, 29 Oct)
+    const jobName = n => n && n.length <= 60 && !/;/.test(n) && (n.match(/,/g) || []).length < 2;
+    const related = tfRows.filter(r => jobName(r.name) && ['fact', 'rule', 'price factor'].includes(r.kind)).map(r => r.name).filter((n, i, a) => a.indexOf(n) === i).slice(0, 4);
     rows = [...priceList.map(r => ({ label: ukName(r.service), from: 'PRICE' })), ...related.map(n => ({ label: n, from: 'TF related job: Ask for a quote' }))];
     if (costMode === 'factors') tableType = 'cost_guide_factors';
   }

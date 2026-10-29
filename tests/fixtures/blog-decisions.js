@@ -107,6 +107,11 @@ chk('The rows for the page map: slug, the question as the title and H1, the blog
   const turf = { ...turfRow0, type: 'blog', page_key: `blog:${turfRow0.slug}`, status: 'Not Started', applies: true, info: { ...turfRow0.info, wording_approved: true } };
   const dTurf = computeBlogDecisions({ row: turf, cv, niche, keyValueMap: edens.keyValueMap, pages: edens.pages, questions: qById, priceRows, tradeFacts: tf, dossier: null, blogRows: rows, today: '2026-10-28' });
   chk('The artificial turf cost guide: 4 of 6 (a price, the city in the question, a process, named methods) passes B9', !dTurf.gates.length && dTurf.decisions.specificity.count === 4 && dTurf.decisions.specificity.missing.join('; ') === 'a dossier condition; the customer question in their own words', JSON.stringify(dTurf.gates.length ? dTurf.gates : dTurf.decisions.specificity), '');
+  // A trade facts row named like a citation list is not a related job in the cost guide's table (the roofer run, 29 Oct)
+  const listRule = { kind: 'rule', name: 'Building Regulations 2010, Part L; Approved Document L, Volume 1: Dwellings', text: 'Thermal elements renovated must meet Part L.' };
+  const plainFact = { kind: 'fact', name: 'Edging and borders', text: 'Edging is laid along the turf edge.' };
+  const dList = computeBlogDecisions({ row: turf, cv, niche, keyValueMap: edens.keyValueMap, pages: edens.pages, questions: qById, priceRows, tradeFacts: { ...tf, rows: [...tf.rows, listRule, plainFact] }, dossier: null, blogRows: rows, today: '2026-10-28' });
+  chk('The cost guide related job rows: a trade facts row named like a citation list (semicolons, several commas) is never a table row; a plainly named fact row is', !dList.decisions.table.rows.some(r => /;/.test(r.label)) && dList.decisions.table.rows.some(r => r.label === 'Edging and borders'), JSON.stringify(dList.decisions.table.rows.map(r => r.label)), '');
   const cvThin = { ...cv, quote_method: '', confirmed_practices: [], differentiator_1_confirmed: false };
   const dPatio = computeBlogDecisions({ row: turf, cv: cvThin, niche, keyValueMap: edens.keyValueMap, pages: edens.pages, questions: qById, priceRows, tradeFacts: tf, dossier: null, blogRows: rows, today: '2026-10-28' });
   chk('Without a confirmed process or proof it is 3 of 6: skipped with G-SPECIFIC naming the missing three', dPatio.gates.some(g => g.code === 'G-SPECIFIC' && /3 of the 6 specificity facts \(4 needed\); missing: a dossier condition, the customer question in their own words, a confirmed process or proof/.test(g.msg)), JSON.stringify(dPatio.gates), '');
@@ -178,6 +183,13 @@ chk('The rows for the page map: slug, the question as the title and H1, the blog
     const b = await call(`/api/clients/${client.id}/blog/queue/build`, { method: 'POST' });
     chk('Routes: GET the queue, PUT a slug\'s approval, POST build', g.status === 200 && g.body.rows.length === 14 && p.status === 200 && p.body.rows.find(r => r.slug === '/guides/artificial-turf-installation-cost-southampton').wording_approved && b.status === 200 && b.body.counts.rows === 14, JSON.stringify([g.status, p.status, b.status]), '');
   } finally { await new Promise(r => server.close(r)); }
+
+  // The claims review reads the post's own facts (29 Oct): the FACTS ALLOWED section as the research, the code's decisions as the decisions
+  const { claimsFactsFor } = require(path.join(root, 'blog/generate.js'));
+  const cf = claimsFactsFor({ meta: { decisions_block: dTurf.decisionsBlock, client_block: 'CLIENT' } }, rec => ({ clientBlock: rec.meta.client_block, research: '', decisions: '' }));
+  chk('The claims review of a post reads FACTS ALLOWED (the PRICE row, the trade facts rows) as the research the post may use, and the H2s and FAQ as the code\'s decisions, with the client block',
+    cf.clientBlock === 'CLIENT' && /PRICE/.test(cf.research) && /\[TF-1\]/.test(cf.research) && !/LINKABLE PAGES/.test(cf.research) && /--- H2s/.test(cf.decisions) && /--- FAQ/.test(cf.decisions) && !/FACTS ALLOWED \(/.test(cf.decisions),
+    JSON.stringify([cf.research.slice(0, 80), cf.decisions.slice(0, 60)]), '');
 
   console.log(`\n${pass + fail} checks: ${pass} passed, ${fail} failed`);
   if (fail > 0) process.exit(1);

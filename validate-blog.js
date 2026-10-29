@@ -148,7 +148,9 @@ function validateBlog(record, V) {
     for (const f of fields.filter(x => x.ref.key === 'table_rows')) {
       const cells = f.text.split(/\s*;\s*/).filter(c => c.trim());
       if (cells.length !== cols - 1) { issue('BLOCK', 'B-CELLS', f.label, `${cells.length} cell${cells.length === 1 ? '' : 's'} for ${cols - 1} column${cols - 1 === 1 ? '' : 's'} (${record.table_columns.slice(1).join(' | ')}). Write exactly ${cols - 1}, separated by " ; ", with no ";" inside a cell (a list inside a cell reads as extra cells).`, f.ref); continue; }
-      const list = cells.find(c => (c.match(/,/g) || []).length >= 2 || /\b(?:and|or) \w+, /.test(c));
+      // A comma inside a figure (£1,500 to £4,000) is not a list (the acceptance run, 29 Oct)
+      const noThousands = c => c.replace(/(\d),(\d{3})\b/g, '$1$2');
+      const list = cells.find(c => (noThousands(c).match(/,/g) || []).length >= 2 || /\b(?:and|or) \w+, /.test(noThousands(c)));
       if (list) issue('BLOCK', 'B-CELL-LIST', f.label, `"${list.slice(0, 60)}" is a list. One point per cell, a few words, no commas joining items.`, f.ref);
       const row = (record.table_rows || [])[f.ref.index] || {};
       const all = [row.row, ...cells];

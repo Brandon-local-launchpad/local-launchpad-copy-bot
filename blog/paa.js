@@ -46,18 +46,25 @@ const MATERIAL_RE = /\b(?:c16|c24|\d+ ?mm|timber|joists?|screws?|nails?|postcret
 const MATERIAL_ASK_RE = /^(?:can|could|should|do|does|what|which|how deep|how thick|how many|is it ok to)\b/i;
 const OTHER_TRADES = ['roof', 'roofer', 'roofing', 'roofs', 'gutter', 'gutters', 'guttering', 'boiler', 'boilers', 'plumber', 'plumbing', 'radiator', 'radiators', 'electrician', 'wiring', 'socket', 'sockets', 'fuse box', 'consumer unit', 'loft', 'plaster', 'plastering', 'plasterer', 'render', 'rendering', 'kitchen', 'bathroom', 'tiler', 'tiling', 'windows', 'double glazing', 'conservatory', 'extension', 'damp', 'chimney', 'carpet', 'carpets', 'laminate', 'painter', 'decorator', 'locksmith', 'solar panels', 'heat pump', 'insulation', 'scaffolding', 'removals', 'cleaner', 'cleaning', 'pest', 'wasp', 'rat', 'rats', 'mice', 'garage door', 'driveway gates', 'electric gates', 'cctv', 'alarm'];
 
-// niche: the niche entry, whose service terms are never "another trade" (fencing is a landscaper's)
-function classify(question, { niche = null } = {}) {
+// niche: the niche entry, whose trade, trade person and service terms are never "another trade"
+// (fencing is a landscaper's; roofer, roofs and gutters are a roofer's); services: the bank's own
+// services (the targets), the same. Compared on the stem: gutters is gutter, roofing and roofs are roof.
+const tradeStem = w => { const x = String(w || '').toLowerCase(); return x.length <= 3 ? x : x.replace(/(?:ers?|ings?|s)$/, ''); };
+function ownTradeStems(niche, services = []) {
+  const terms = [niche && niche.trade, niche && niche.trade_person, niche && niche.trade_lower, ...((niche && niche.service_terms) || []), ...(services || [])].filter(Boolean).map(s => String(s).toLowerCase());
+  return new Set(terms.flatMap(s => s.replace(/[^a-z0-9 ]+/g, ' ').split(/\s+/)).filter(Boolean).map(tradeStem).filter(w => w.length >= 3));
+}
+function classify(question, { niche = null, services = [] } = {}) {
   const q = String(question || '').trim();
   if (!q) return { keep: false, why: 'empty' };
   const lower = q.toLowerCase();
   if (RULE_Q_RE.test(lower)) return { keep: true, why: '' };
   if (DIY_RE.test(lower) || DIY_WORDS_RE.test(lower)) return { keep: false, why: 'DIY how to' };
   if (MATERIAL_RE.test(lower) && MATERIAL_ASK_RE.test(lower) && !/\b(?:cost|price|quote|charge|worth)\b/.test(lower)) return { keep: false, why: 'DIY materials' };
-  const own = new Set(((niche && niche.service_terms) || []).map(s => String(s).toLowerCase()));
-  const ownWords = new Set([...own].flatMap(s => s.split(/\s+/)));
+  const ownStems = ownTradeStems(niche, services);
+  const isOwn = w => w.split(/\s+/).every(part => ownStems.has(tradeStem(part)));
   for (const w of OTHER_TRADES) {
-    if (own.has(w) || ownWords.has(w)) continue;
+    if (isOwn(w)) continue;
     if (new RegExp(`\\b${w.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`, 'i').test(lower)) return { keep: false, why: `another trade (${w})` };
   }
   return { keep: true, why: '' };
@@ -246,13 +253,14 @@ const HEADER_LINE_RE = /^\s*(?:#{1,6}\s*)?(?:\*\*)?\[?\s*((?:BT|CT|ST)\s*-?\s*\d
 async function rebuildBank(text, paaByTarget, { niche = null, date = new Date().toISOString().slice(0, 10), fetched = null, judge = null, judged = new Map(), deepened = null } = {}) {
   const parsed = B.parseBank(text);
   const all = B.allTopics(parsed);
+  const bankServices = [...new Set(all.map(t => t.service).filter(s => s && !/^general$/i.test(s)))];
   const blocks = [];
   const linesFor = new Map();
   // 1. Per block: the word filter, then the relevance judge on what passed it
   const pre = new Map(); // block id → [{ question, keep, why, stage, note }]
   for (const t of all) {
     const raw = [...new Set((paaByTarget.get(t.id) || []).map(q => String(q).trim()).filter(Boolean))];
-    const rows = raw.map(q => { const c = classify(q, { niche }); return { question: q, keep: c.keep, why: c.keep ? '' : c.why, stage: c.keep ? 'words' : 'filter', note: '' }; });
+    const rows = raw.map(q => { const c = classify(q, { niche, services: bankServices }); return { question: q, keep: c.keep, why: c.keep ? '' : c.why, stage: c.keep ? 'words' : 'filter', note: '' }; });
     const toJudge = rows.filter(r => r.keep && !judged.has(`${t.id}\n${r.question}`)).map(r => r.question);
     if (judge && toJudge.length) {
       const out = await judge({ block: t, questions: toJudge });
@@ -430,4 +438,4 @@ async function paaPass(text, { niche = null, trade = '', env = process.env, fetc
   return { text: r.text, report: r.report, cost: got.cost, calls: got.calls, modelPence, modelCalls, reportText: formatReport(r.report, { trade: tradeName, cost: got.cost, calls: got.calls, modelPence, modelCalls }), raw: rawOut };
 }
 
-module.exports = { classify, doubtOf, samePaa, costAgain, paaQuestionsIn, fetchPaa, judgeRelevance, relevancePrompt, rebuildBank, formatReport, paaPass, API, UK, CLICK_DEPTH, DEEP_CLICK_DEPTH, DEEPEN_UNDER, MAX_PER_BLOCK, MIN_PER_BLOCK, RELEVANCE_MODEL, OTHER_TRADES };
+module.exports = { classify, ownTradeStems, doubtOf, samePaa, costAgain, paaQuestionsIn, fetchPaa, judgeRelevance, relevancePrompt, rebuildBank, formatReport, paaPass, API, UK, CLICK_DEPTH, DEEP_CLICK_DEPTH, DEEPEN_UNDER, MAX_PER_BLOCK, MIN_PER_BLOCK, RELEVANCE_MODEL, OTHER_TRADES };

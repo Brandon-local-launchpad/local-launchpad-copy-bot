@@ -20,6 +20,25 @@ Two set-ups, both in the Railway dashboard. There is no Railway CLI or token on 
 
 The Postgres in the new environment starts empty: the test copy has no clients until one is added (or the demo seed runs: `SEED_DEMO_CLIENT=1` on the service seeds the demo client at start up).
 
+## 1a. Getting the clients into the blog environment (the data)
+
+A duplicated environment gets its own, empty Postgres: no clients. The route that never runs the blog branch against the production database is `tools/copy-database.js` (built for the ui-redesign preview, 27 Oct): it reads production's tables with SELECT only and writes them into the blog environment's Postgres. The blog branch's tables and columns are made by the app itself at start up (the `ensure…` calls in server.js), against whatever DATABASE_URL it runs with, so the order is: deploy the blog service against the blog Postgres first, copy second.
+
+1. Section 1 done and the Copybot service in `blog` deployed once and up (its log says "DB schema ready"): the blog Postgres now has every table, the new blog ones included. Production's database has not been touched: the blog service's DATABASE_URL is the blog Postgres.
+2. The two connection strings, from Railway: each Postgres service, **Variables**, `DATABASE_PUBLIC_URL` (the proxy address reachable from your machine; `DATABASE_URL` is the private one and only works inside Railway). Copy production's and the blog environment's. Neither goes in a file or a message.
+3. On your machine, in the repo (either checkout), a dry run first: it lists every table with its row count and writes nothing:
+   ```
+   node tools/copy-database.js --from "<production DATABASE_PUBLIC_URL>" --to "<blog DATABASE_PUBLIC_URL>"
+   ```
+4. The same with `--yes` to copy. The blog tables are emptied and filled from production, table by table, parents first; a column production has and the blog branch has too is copied, the blog branch's new columns stay at their defaults. The tool refuses to write into the URL named as DATABASE_URL in the local .env, and refuses when the target is the source. A minute or two for the whole database.
+5. The test copy then shows every client as production has it today (Edens Edge's record, research, page map, custom values, trade facts flags). It is a copy: nothing done on it reaches production. Run the copy again whenever you want it fresh (it empties and refills).
+
+Two things to do on the test copy straight after the copy:
+- The WordPress connections came with it (`wp_connections`, decrypted with the same `COPYBOT_SECRET_KEY` the duplicate copied). On the test copy, before any push, replace each client's connection with Given's staging site or clear it, so a push from the test copy can never reach a live client site.
+- The landscaper bank: Trade facts, the landscaper row, **Load file** then **Approve** (the copy carries production's bank table, which may be the old one or empty).
+
+A copy of one client alone is not built; the whole database is the copy, which is the simpler and safer route for a test environment.
+
 ## 2. The daily job's cron service
 
 The job is one HTTP call a day to the app, which then runs every client (`scripts/blog-daily.js` calls `POST /api/blog/daily-run-all`). A Railway cron service runs that script on a schedule and exits.

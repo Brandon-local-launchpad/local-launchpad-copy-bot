@@ -133,7 +133,7 @@ async function generateBlogPost({ cv, niche, keyValueMap, serviceParentMap = {},
         if (claimsReview) {
           const { runClaimRetries } = require('../v20-retry');
           const { runClaimsReview, factsFromRecord } = require('../wp/claims-review');
-          const review = rec => runClaimsReview(rec, factsFromRecord(rec), callModel);
+          const review = rec => runClaimsReview(rec, claimsFactsFor(rec, factsFromRecord), callModel);
           try {
             const { claims, rounds, first } = await runClaimRetries({ record, V, callRetry, review });
             record.CLAIMS = { for: meta.generated_at, at: claims.at, status: claims.findings.length ? 'needs acceptance' : 'clear', first_review: first, findings: claims.findings, rounds };
@@ -151,7 +151,7 @@ async function generateBlogPost({ cv, niche, keyValueMap, serviceParentMap = {},
             record.QUALITY = { at: rv.at, model: rv.model, score: rv.score, done: rv.done, failed: rv.failed, failures: rv.items.filter(i => !i.pass), other_problems: rv.other_problems, missing_facts: rv.missing_facts, rounds: qRounds };
             if (claimsReview && qRounds.some(r => r.retries.some(x => x.kept))) {
               const { runClaimsReview, factsFromRecord } = require('../wp/claims-review');
-              const { claims, rounds } = await runClaimRetries({ record, V, callRetry, review: rec => runClaimsReview(rec, factsFromRecord(rec), callModel), maxRounds: 1 });
+              const { claims, rounds } = await runClaimRetries({ record, V, callRetry, review: rec => runClaimsReview(rec, claimsFactsFor(rec, factsFromRecord), callModel), maxRounds: 1 });
               record.CLAIMS = { ...(record.CLAIMS || {}), at: claims.at, status: claims.findings.length ? 'needs acceptance' : 'clear', findings: claims.findings, rounds: [...((record.CLAIMS || {}).rounds || []), ...rounds.map(r => ({ ...r, round: `after quality ${r.round}` }))] };
             }
             const earlier = (record.VALIDATION && record.VALIDATION.retries) || [];
@@ -178,4 +178,18 @@ async function generateBlogPost({ cv, niche, keyValueMap, serviceParentMap = {},
   return out;
 }
 
-module.exports = { generateBlogPost, buildBlogRequest, loadCore1, loadSharedRules, promptFile, BLOG_MODEL, BLOG_MAX_TOKENS, SHARED_RULES };
+// The facts the claims review reads for a post (29 Oct): the client block as every page, then from the
+// post's own decisions block the FACTS ALLOWED section (the values, the trade facts rows, the PRICE
+// rows, the dossier rows: the research the post may use) and the code's decisions (the H2s, the
+// table, the business block, the FAQ questions, the next step). The homepage's extractor reads
+// ALLOCATED ITEMS and --- HEADINGS ---, which a post's block does not have.
+function claimsFactsFor(record, factsFromRecord) {
+  const base = factsFromRecord ? factsFromRecord(record) : {};
+  const block = (record.meta && record.meta.decisions_block) || '';
+  const part = (from, to) => { const a = block.indexOf(from); if (a < 0) return ''; const b = block.indexOf(to, a + from.length); return block.slice(a, b > a ? b : undefined).trim(); };
+  const research = part('FACTS ALLOWED', 'LINKABLE PAGES');
+  const decisions = part('DECISIONS:', 'FACTS ALLOWED');
+  return { clientBlock: base.clientBlock, research: research || base.research || '', decisions: decisions || base.decisions || '' };
+}
+
+module.exports = { generateBlogPost, buildBlogRequest, loadCore1, loadSharedRules, promptFile, claimsFactsFor, BLOG_MODEL, BLOG_MAX_TOKENS, SHARED_RULES };
