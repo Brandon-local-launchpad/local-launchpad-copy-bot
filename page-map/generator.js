@@ -63,7 +63,9 @@ function keywordsFor(input, opts = {}) {
 // opts: volumes (Map keyword → { volume, cpc }; what is missing counts as no data), library (the
 // niche library set, loadLibrarySet(input.niche) unless given, or one library; null for none), exclude (Set of page ids a
 // person excluded at intake), launchTowns (Set of town slugs launching in phase 1),
-// phase2Published (true once "Publish phase 2" ran: everything is phase 1), saved (the client's saved rows: their manual and locked H1s take
+// phase2Published (true once "Publish phase 2" ran: everything is phase 1), tiers (Stage 6, locations/approved.js:
+// { tier1: Set of town slugs, tier2: Set, categories: Map town slug → Set of category keys }: a location row carries its
+// tier, and a location category row exists only where that combination passed the demand gate), saved (the client's saved rows: their manual and locked H1s take
 // part in the ownership rules that decide the town service pages)
 function buildPageMap(input, opts = {}) {
   const { resolved, companyName = '' } = input;
@@ -144,8 +146,11 @@ function buildPageMap(input, opts = {}) {
   add('homepage', `${companyName} Homepage`.trim(), '/', { phase: 1 });
   for (const c of cats) add('category', c.name, catPath(c), { category_key: c.key, primary: c.primary, phase: 1 });
   for (const s of paged) add('service', s.name, svcPath(s), { service_id: s.id, additional: s.kind === 'additional', parent_keys: s.parents.filter(k => cats.some(c => c.key === k)), merged_from: s.merged_from || [], gbp_names: s.gbp_names, absorbs: s.absorbs || [], copy_priority: s.copy_priority || 0, phase: 1 });
-  for (const t of townSlugs) add('location', t.name, locPath(t), { town: t.name, phase: townPhase(t) });
-  for (const t of townSlugs) for (const c of cats) add('location_category', `${c.name} ${t.name}`, locCatPath(t, c), { town: t.name, category_key: c.key, phase: townPhase(t) });
+  const tiers = opts.tiers || null;
+  const tierOf = t => (tiers ? (tiers.tier1.has(t.slug) ? 1 : tiers.tier2.has(t.slug) ? 2 : null) : undefined);
+  const combinationPassed = (t, c) => !tiers || !tiers.categories || !tiers.categories.has(t.slug) || tiers.categories.get(t.slug).has(c.key);
+  for (const t of townSlugs) add('location', t.name, locPath(t), { town: t.name, phase: townPhase(t), ...(tiers ? { tier: tierOf(t) } : {}) });
+  for (const t of townSlugs) for (const c of cats) if (combinationPassed(t, c)) add('location_category', `${c.name} ${t.name}`, locCatPath(t, c), { town: t.name, category_key: c.key, phase: townPhase(t), ...(tiers ? { tier: tierOf(t) } : {}) });
   // Town service candidates: a usable "<service> <town>"; the ownership rules below keep only the winners
   for (const t of townSlugs) for (const s of paged) {
     if (!V3.usable(vol(keywordOf(`${s.name} ${t.name}`)))) continue;

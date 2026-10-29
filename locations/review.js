@@ -48,6 +48,8 @@ async function ensureReviewTables(pool) {
     );
     CREATE INDEX IF NOT EXISTS client_location_tiers_client_idx ON client_location_tiers (client_id);
   `);
+  // Stage 6: the location category pages that passed, as category keys (the primary always, for a page town)
+  await pool.query(`ALTER TABLE client_location_tiers ADD COLUMN IF NOT EXISTS categories TEXT`);
 }
 
 function createLocationReview({ pool, places, locations, now = () => new Date(), log = console }) {
@@ -66,7 +68,7 @@ function createLocationReview({ pool, places, locations, now = () => new Date(),
   async function approval(clientId) {
     const { rows } = await pool.query(`SELECT * FROM client_location_tiers WHERE client_id = $1 ORDER BY tier NULLS LAST, name`, [clientId]);
     if (!rows.length) return null;
-    const typed = rows.map(r => ({ ...r, scores: parse(r.scores), evidence: parse(r.evidence), population: r.population == null ? null : Number(r.population), miles: r.miles == null ? null : Number(r.miles) }));
+    const typed = rows.map(r => ({ ...r, scores: parse(r.scores), evidence: parse(r.evidence), categories: parse(r.categories) || [], population: r.population == null ? null : Number(r.population), miles: r.miles == null ? null : Number(r.miles) }));
     return { approved_at: rows[0].approved_at, approved_by: rows[0].approved_by || '', run_at: rows[0].run_at, rows: typed, counts: { tier1: typed.filter(r => r.tier === 1).length, tier2: typed.filter(r => r.tier === 2).length, area_only: typed.filter(r => r.outcome === 'area_only').length, excluded: typed.filter(r => r.outcome === 'excluded').length } };
   }
 
@@ -220,12 +222,16 @@ function createLocationReview({ pool, places, locations, now = () => new Date(),
     if (v.warnings.some(w => w.code === 'over_cap')) throw Object.assign(new Error(v.warnings.find(w => w.code === 'over_cap').msg), { status: 409 });
     const at = now();
     const rows = v.list.filter(t => t.to !== 'excluded' || t.client_asked);
+    // The category keys that passed for each page town (the primary category's page shares the location page's
+    // evidence, so it is always there); a place added by hand has no evidence and gets the primary alone
+    const primaryKey = ((v.location_categories || []).find(c => c.primary) || {}).category_key || null;
+    const catsOf = t => { if (!t.tier) return []; const keys = (v.location_categories || []).filter(c => c.place_id === t.place_id).map(c => c.category_key); if (!keys.length && primaryKey) keys.push(primaryKey); return [...new Set(keys)]; };
     const client = await pool.query(`SELECT 1 FROM clients WHERE id = $1`, [clientId]);
     if (!client.rows.length) throw Object.assign(new Error('Client not found'), { status: 404 });
     await pool.query(`DELETE FROM client_location_tiers WHERE client_id = $1`, [clientId]);
     for (const t of rows) {
-      await pool.query(`INSERT INTO client_location_tiers (client_id, place_id, name, type, outcome, tier, phase, source, lat, lng, miles, population, scores, evidence, why, run_at, approved_at, approved_by) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18)`,
-        [clientId, t.place_id, t.name, t.type, t.outcome, t.tier, t.phase, t.source, t.lat, t.lng, t.miles, t.population == null ? null : Math.round(t.population), JSON.stringify({ score: t.score, total_volume: t.total_volume, fallback: t.fallback, namesakes: t.namesakes, ambiguous: !!t.ambiguous, inside_reach: t.inside_reach, client_asked: !!t.client_asked, population_rule: t.population_rule, client_declined: !!t.client_declined, moved: t.moved, run_to: t.run_to }), JSON.stringify({ gate: t.gate, evidence: t.evidence }), t.why, v.ran_at ? new Date(v.ran_at) : null, at, str(who)]);
+      await pool.query(`INSERT INTO client_location_tiers (client_id, place_id, name, type, outcome, tier, phase, source, lat, lng, miles, population, scores, evidence, why, run_at, approved_at, approved_by, categories) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19)`,
+        [clientId, t.place_id, t.name, t.type, t.outcome, t.tier, t.phase, t.source, t.lat, t.lng, t.miles, t.population == null ? null : Math.round(t.population), JSON.stringify({ score: t.score, total_volume: t.total_volume, fallback: t.fallback, namesakes: t.namesakes, ambiguous: !!t.ambiguous, inside_reach: t.inside_reach, client_asked: !!t.client_asked, population_rule: t.population_rule, client_declined: !!t.client_declined, moved: t.moved, run_to: t.run_to }), JSON.stringify({ gate: t.gate, evidence: t.evidence }), t.why, v.ran_at ? new Date(v.ran_at) : null, at, str(who), JSON.stringify(catsOf(t))]);
     }
     const s = await state(clientId);
     s.approved_at = at.toISOString();

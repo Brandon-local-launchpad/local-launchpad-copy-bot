@@ -3853,7 +3853,9 @@ async function gbpInputsFor(clientId) {
   const packName = P.packNameFor(await nicheForGate(clientId, ctx.trade));
   const st = packName ? await tradeFacts.status(packName) : { exists: false, verified: false };
   const tf = { niche: packName, exists: !!st.exists, verified: !!st.verified, properNouns: st.verified ? P.packProperNouns(packName) : [] };
-  return require('./gbp/inputs').buildGbpInputs({ cv: ctx.cv, niche: ctx.niche || {}, rows, keyValueMap: ctx.keyValueMap, siteUrl: wp.length ? wp[0].url : '', serviceCopy, tradeFacts: tf });
+  // Stage 6: the approved locations list gives the service areas (20 at most); no approval, the page map's rows as before
+  const approved = await require('./locations/approved').approvedTiers(pool, clientId).catch(() => null);
+  return require('./gbp/inputs').buildGbpInputs({ cv: ctx.cv, niche: ctx.niche || {}, rows, keyValueMap: ctx.keyValueMap, siteUrl: wp.length ? wp[0].url : '', serviceCopy, tradeFacts: tf, approvedAreas: approved ? approved.gbp_areas : null });
 }
 // One client value changed by code (the GBP checks write gbp_place_id and landing_page_fails)
 async function saveClientValue(clientId, key, value) {

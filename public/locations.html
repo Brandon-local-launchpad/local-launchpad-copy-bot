@@ -270,7 +270,10 @@
     try { await loadLeaflet(); } catch (e) { el.textContent = e.message; return; }
     if (map) { map.remove(); map = null; }
     const v = view;
-    map = L.map(el, { zoomControl: true });
+    // The wheel scrolls the page until the map is clicked (Brandon, 30 Oct); leaving the map hands the wheel back
+    map = L.map(el, { zoomControl: true, scrollWheelZoom: false });
+    map.on('click', () => map.scrollWheelZoom.enable());
+    map.on('mouseout', () => map.scrollWheelZoom.disable());
     L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19, attribution: '&copy; OpenStreetMap contributors' }).addTo(map);
     const base = [v.point.lat, v.point.lng];
     const mi = 1609.344;
