@@ -42,6 +42,30 @@ const DOUBT_BRIEF = {
 };
 // "Is X or Y better", "Should I choose X or Y for my patio": the two options
 const DECISION_RE = /^(?:is |are |should i (?:choose |use |go for |lay |pick |have )?)?(.+?) or (.+?)(?:[,:?]| for | which | better| best|$)/i;
+// The option is the thing chosen, not the verb round it: "it better to lay turf" → turf, "sow grass seed" → grass seed, "replace it" → replace
+const cleanOption = x => lc(x).replace(/^(?:(?:it|is|better|to|lay|sow|choose|use|go|for|pick|have|install|build|fit|get|put|a|an|the|my|your|our|new|some)\s+)+/, '').replace(/\s+(?:it|them|one|instead|myself|yourself|for me)$/, '').replace(/\b(?:my|your|our|the|a|an)\s+/g, '').trim();
+// The two options a decision question names, as the post and Table H name them; null when it names
+// no pair. "X better than Y", "X vs Y" and "X or Y" all name one; the question's own stem ("can my",
+// "should I", "do I need") and what hangs off an option ("be repaired" → repaired, "does it need
+// replacing" → replacing) are not part of the name; an acronym keeps its capitals (EPDM, GRP, uPVC).
+const BETTER_RE = /^(?:is |are )?(.+?) (?:better than|cheaper than|vs\.?|versus) (.+?)(?:[,:?]| for | in | on |$)/i;
+const QUESTION_STEM_RE = /^(?:(?:can|could|should|do|does|is|are|will|would|must)\s+(?:i|we|you|it|my|our|your|the|a|an|this|that)\s+)+(?:(?:need|have|want)\s+(?:to\s+)?)?/i;
+const HANGING_RE = /^(?:(?:does|do|will|would|should)\s+(?:it|i|we|they)\s+)?(?:need\s+(?:to\s+)?|have\s+to\s+|be\s+|get\s+|have\s+(?:it\s+)?)+/i;
+const keepAcronyms = (name, original) => name.split(' ').map(w => { const o = String(original || '').split(/\s+/).find(x => x.replace(/[^a-z]/gi, '').toLowerCase() === w.toLowerCase().replace(/[^a-z]/g, '')); return o && /^[A-Za-z]*[A-Z]{2,}[A-Za-z]*$/.test(o.replace(/[^A-Za-z]/g, '')) && o.replace(/[^A-Za-z]/g, '').length <= 5 ? o.replace(/[^A-Za-z]/g, '') : w; }).join(' ');
+function optionsOf(wording) {
+  const raw = String(wording || '').trim();
+  const stripped = raw.replace(QUESTION_STEM_RE, '');
+  const m = stripped.match(BETTER_RE) || stripped.match(DECISION_RE) || raw.match(DECISION_RE);
+  if (!m) return null;
+  return [m[1], m[2]].map(x => {
+    let o = lc(x).replace(/[,.;:]+\s*$/, '').replace(/^[,.;:]+\s*/, '').trim();
+    o = o.replace(QUESTION_STEM_RE, '').replace(HANGING_RE, '');
+    // "lead flashing be repaired" → repaired: the thing after "be"
+    if (/\bbe\s+\w+$/.test(o) && o.split(' ').length > 2) o = o.replace(/^.*\bbe\s+/, '');
+    const name = titleCase(cleanOption(o) || o || lc(x.trim()));
+    return keepAcronyms(name, x);
+  });
+}
 // A dossier symptom that reads as a sign of a condition, not a description of the plot
 const SYMPTOM_RE = /\b(?:water|puddle|pool|sits|sitting|standing|boggy|soggy|waterlogg|damp|moss|thin|bare|patch|yellow|brown|dies|dying|dead|crack|lift|rock|sink|slip|slump|wobbl|lean|rot|flood|drain|dries|hard|compact|weed|algae|slime|heave|subsid|sag|loose|gap|erod|wash)\w*\b/i;
 const TABLE_COLUMNS = {
@@ -99,7 +123,7 @@ function specificity({ price, town, condition, customerWords, process, methods }
   return { count: items.filter(i => i[1]).length, have: items.filter(i => i[1]).map(i => i[0]), missing: items.filter(i => !i[1]).map(i => i[0]) };
 }
 
-function computeBlogDecisions({ row, cv = {}, niche = {}, keyValueMap = {}, pages = [], questions = new Map(), priceRows = [], tradeFacts = null, dossier = null, ideasUsed = [], usedQuestions = [], blogRows = [], optionRows = null, today = new Date().toISOString().slice(0, 10) } = {}) {
+function computeBlogDecisions({ row, cv = {}, niche = {}, keyValueMap = {}, pages = [], questions = new Map(), priceRows = [], tradeFacts = null, dossier = null, ideasUsed = [], usedQuestions = [], blogRows = [], optionRows = null, optionFacts = null, today = new Date().toISOString().slice(0, 10) } = {}) {
   const gates = [];
   const flags = [];
   const info = (row && row.info) || {};
@@ -170,15 +194,21 @@ const tfRows = (tradeFacts && tradeFacts.verified && Array.isArray(tradeFacts.ro
   // A decision post's two options (Brandon, 28 Oct): each needs two trade facts rows at least,
   // from the client's pack or the pack where the post's service lives (resin and block paving
   // from the driveways pack); otherwise the post is held (G-OPTIONS)
-  const optionMatch = postType === 'decision' ? wording.match(DECISION_RE) : null;
-  // The option is the thing chosen, not the verb round it: "it better to lay turf" → turf, "sow grass seed" → grass seed, "replace it" → replace
-  const cleanOption = x => lc(x).replace(/^(?:(?:it|is|better|to|lay|sow|choose|use|go|for|pick|have|install|build|fit|get|put|a|an|the|my|your|our|new|some)\s+)+/, '').replace(/\s+(?:it|them|one|instead|myself|yourself|for me)$/, '').replace(/\b(?:my|your|our|the|a|an)\s+/g, '').trim();
-  const options = optionMatch ? [optionMatch[1], optionMatch[2]].map(x => ({ name: titleCase(cleanOption(x) || lc(x.trim())), rows: [], pack: null })) : [];
+  const optionNames = postType === 'decision' ? optionsOf(wording) : null;
+  const options = optionNames ? optionNames.map(name => ({ name, rows: [], pack: null })) : [];
   if (options.length) {
     const P = require('../trade-facts/pack');
     const findRows = optionRows || ((o, opts) => P.rowsForOption(o, opts));
+    // Table H first (29 Oct): the pack's option facts behind this option, through the verified pack
+    const findFacts = optionFacts || ((n, o) => P.rowsForOptionFacts(n, o));
     for (const o of options) {
       o.rows = tfRows.filter(r => P.mentionsOption(`${r.name || ''} ${r.text}`, P.optionStems ? P.optionStems(o.name) : [])).map(r => ({ ...r }));
+      if (tradeFacts && tradeFacts.verified && tradeFacts.niche) {
+        let hRows = [];
+        try { hRows = findFacts(tradeFacts.niche, o.name) || []; } catch (e) { flags.push({ code: 'F-PACK-OTHER', msg: `${o.name}: the pack's Table H could not be read (${e.message}).` }); }
+        for (const r of hRows) { if (o.rows.some(x => x.text === r.text)) continue; const row = { ...r }; o.rows.push(row); if (!tfRows.some(x => x.text === r.text)) tfRows.push(row); }
+        if (hRows.length) o.pack = tradeFacts.niche;
+      }
       if (o.rows.length < 2) {
         let found = { rows: [], niche: null };
         try { found = findRows(o.name, { first: tradeFacts && tradeFacts.niche, service: svcTitle }); } catch (e) { flags.push({ code: 'F-PACK-OTHER', msg: `${o.name}: the other packs could not be read (${e.message}).` }); }
@@ -410,4 +440,4 @@ function formatBlogBlock(D, cv) {
   return L.join('\n');
 }
 
-module.exports = { computeBlogDecisions, formatBlogBlock, expectedFromBlogDecisions, h1For, seoTitleFor, specificity, TABLE_COLUMNS, DOUBT_BRIEF };
+module.exports = { computeBlogDecisions, optionsOf, formatBlogBlock, expectedFromBlogDecisions, h1For, seoTitleFor, specificity, TABLE_COLUMNS, DOUBT_BRIEF };

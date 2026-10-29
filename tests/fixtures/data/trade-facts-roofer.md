@@ -66,4 +66,15 @@ A fixture for the trade facts loader: a short pack in the generated layout, rows
 | Storm claim timescales | Not found | No fixed settlement period from ABI, FOS or FCA. |
 | Timing (Table A) | No standard | Job durations are not set by any authority; marked "varies; no standard". |
 
+### TABLE H — OPTION FACTS
+
+| Decision | Option | Kind | Fact (one line, plain words) | Source |
+|---|---|---|---|---|
+| Felt or EPDM for a flat roof | EPDM | what it is | A single sheet of synthetic rubber laid over the deck and bonded at the edges, with few or no seams on a small roof. | [https://www.firestonebpe.com/en/rubbercover] |
+| Felt or EPDM for a flat roof | EPDM | lifespan | Manufacturers give the membrane a long service life when the deck is sound and the edges are trimmed and bonded. | [https://www.firestonebpe.com/en/rubbercover] |
+| Felt or EPDM for a flat roof | EPDM | upkeep | A yearly check of the edges and outlets, and leaves cleared from the surface. | [https://www.nfrc.co.uk/technical] |
+| Felt or EPDM for a flat roof | EPDM | price factor | The size of the sheet, the number of upstands and outlets, and whether the old covering comes off first. | [https://www.nfrc.co.uk/technical] |
+| Felt or EPDM for a flat roof | Felt | what it is | Layers of bitumen felt torched or bonded onto the deck, finished with a mineral cap sheet. | [https://www.nfrc.co.uk/technical] |
+| Felt or EPDM for a flat roof | Felt | lifespan | The cap sheet weathers over the years and the laps are the usual point of failure. | [https://www.nfrc.co.uk/technical] |
+
 END OF PACK

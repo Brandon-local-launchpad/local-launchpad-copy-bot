@@ -97,7 +97,7 @@ function readCore() {
 
 // ── Tables ───────────────────────────────────────────────────────────────────
 
-const TABLE_LINE = /^\s*(?:#{1,6}\s*)?(?:\*\*)?\s*TABLE\s+([A-G])\b([^\n]*)$/i;
+const TABLE_LINE = /^\s*(?:#{1,6}\s*)?(?:\*\*)?\s*TABLE\s+([A-H])\b([^\n]*)$/i;
 
 function splitCells(line) {
   const s = line.trim().replace(/^\|/, '').replace(/\|$/, '');
@@ -158,7 +158,7 @@ function renderTable(t, rows) {
   return [row(t.columns), `|${t.columns.map(() => '---').join('|')}|`, ...rows.map(row)].join('\n');
 }
 
-const TITLES = { A: 'Service process', B: 'Signs and failure', C: 'Rules and standards', D: 'Bodies and schemes', E: 'Facts', F: 'Price factors (no figures)', G: 'Gaps, dropped claims, conflicts' };
+const TITLES = { A: 'Service process', B: 'Signs and failure', C: 'Rules and standards', D: 'Bodies and schemes', E: 'Facts', F: 'Price factors (no figures)', G: 'Gaps, dropped claims, conflicts', H: 'Option facts' };
 
 // The pack text for one service page: its rows from Tables A, B and F, and Tables C, D
 // and E in full, as markdown. Throws when the pack is missing. missing lists what the
@@ -397,8 +397,31 @@ function rowsForQuestion(niche, text) {
   return service ? { ...rowsForService(niche, service), service } : { rows: [], service: null };
 }
 
+// ── Table H, the option facts (29 Oct): a decision's two options, 4 to 6 sourced rows each ──
+// Columns: Decision | Option | Kind | Fact | Source. Each row comes back tagged for the copy
+// as an "option fact" with the option and the kind (what it is, lifespan, upkeep, where it
+// suits, price factor, rule). Written by scripts/trade-facts-options.js; read only through a
+// verified pack (the caller checks).
+function optionFacts(niche) {
+  const pack = readPack(niche);
+  if (!pack.exists) return [];
+  const H = parseTables(pack.text).get('H');
+  if (!H) return [];
+  return H.rows.filter(r => r.length >= 4 && cleanCell(r[1]) && cleanCell(r[3])).map(r => {
+    const decision = cleanCell(r[0]), option = cleanCell(r[1]), factKind = normName(cleanCell(r[2])) || 'fact', text = cleanCell(r[3]), source = String(r[4] || '').trim(); // the source cell keeps its urls
+    return { table: 'H', kind: 'option fact', name: `${option} (${factKind})`, decision, option, factKind, text, source };
+  });
+}
+// The Table H rows behind one option: its name as written, else every stem of the option in the cell
+function rowsForOptionFacts(niche, option) {
+  const want = normName(option);
+  if (!want) return [];
+  const stems = optionStems(option);
+  return optionFacts(niche).filter(r => normName(r.option) === want || (stems.length > 0 && mentionsOption(r.option, stems)));
+}
+
 module.exports = {
-  serviceForQuestion, rowsForQuestion, rowsForPost,
+  serviceForQuestion, rowsForQuestion, rowsForPost, optionFacts, rowsForOptionFacts,
   DIR, BLOCKS_DIR, CORE_FILE, packNameFor, packFile, blockFile, relative, readPack, readBlock, readCore, listNiches, hasBlock,
   parseHeader, header, fingerprintOf, parseTables, packForService, packForCategory, rowsForService, standardMethodRows, packProperNouns, cellNames, normName,
 };

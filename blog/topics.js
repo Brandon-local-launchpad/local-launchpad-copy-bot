@@ -181,6 +181,9 @@ function reserveBlogTopics({ assignment, cv = {}, niche = {}, keyValueMap = {}, 
     if (!t.service || /^general$/i.test(t.service)) return { service: null, category: null };
     const found = pageFor({ service: t.service, page: 'Service', text: t.question });
     if (found.service) return found;
+    // The bank names a service by its UK library name ("Artificial grass installation" for the Artificial Turf Installation page), as the CT blocks do (29 Oct)
+    const byUk = services.find(p => sameName(t.service, ukName(p.pageTitle)) || sameName(t.service, p.pageTitle));
+    if (byUk) return { service: byUk, category: null };
     const hit = bestServiceFor(t.service, candidates);
     return hit ? { service: services.find(p => p.urlSlug === hit.key) || null, category: null } : found;
   };
@@ -231,18 +234,36 @@ function reserveBlogTopics({ assignment, cv = {}, niche = {}, keyValueMap = {}, 
     if (!topic.service) return null; // a cost question naming no service page has no block (the trade block is the homepage guide's)
     return costBlocks.find(b => sameName(b.service, topic.service.title)) || costBlocks.find(b => relatedScore(topic.service.title, b.service || '') >= 1) || null;
   };
-  const fillCostGuideFaq = topic => {
+  const fillCostGuideFaq = (topic, { late = false } = {}) => {
     const h2s = costGuideH2Words(topic);
     const ex = serviceStems(topic);
     const notH2 = q => !SQ.findSame(q, h2s, { exclude: [city, niche.trade || '', ...ex] });
     const faq = topic.faq.filter(f => notH2(f.wording));
     const dropped = topic.faq.length - faq.length;
     if (v2) {
+      const priceFirst = (a, b) => (a.doubt === 'Price' ? 0 : 1) - (b.doubt === 'Price' ? 0 : 1) || byDoubt(a, b);
+      // The late pass (Brandon, 29 Oct): once every post in the batch has its questions, the trade level
+      // cost guide fills up to five from every service's CT block, Price questions first, never a
+      // question another post in the batch uses (usedBank) or a page asks (takenQ), never an H2 rephrased
+      if (late) {
+        if (topic.homepage_cost_guide && faq.length < 5) {
+          const own = costBlockFor(topic);
+          const fromBlocks = [];
+          const pool = costBlocks.filter(b => !own || b.id !== own.id).flatMap(b => b.related.map(r => ({ r, b })));
+          for (const { r, b } of pool.sort((x, y) => priceFirst(x.r, y.r))) {
+            if (faq.length >= 5) break;
+            if (usedBank.has(r.id) || faq.some(f => f.id === r.id) || takenQ(r.question, ex) || !notH2(r.question) || faq.some(f => SQ.sameQuestion(f.wording, r.question))) continue;
+            usedBank.add(r.id); useQ(r.question); faq.push({ id: r.id, wording: r.question, doubt: r.doubt, needs_fact: !!r.needsFact }); if (!fromBlocks.includes(b.id)) fromBlocks.push(b.id);
+          }
+          if (fromBlocks.length) { topic.related_from = [...(topic.related_from || []), ...fromBlocks]; flagOnce(topic, 'F-FAQ-CT', `${faq.length - topic.faq.length} FAQ question${faq.length - topic.faq.length === 1 ? '' : 's'} from the services' CT blocks (${fromBlocks.join(', ')}), Price first, after the trade's own block; none a post in the batch uses.`); }
+        }
+        topic.faq = faq; topic.faq_ids = faq.map(f => f.id);
+        return;
+      }
       // Own block only: the CT block's related questions, Price first then doubt order, never an H2 rephrased
       const ct = costBlockFor(topic);
       if (ct) {
         usedBank.add(ct.id);
-        const priceFirst = (a, b) => (a.doubt === 'Price' ? 0 : 1) - (b.doubt === 'Price' ? 0 : 1) || byDoubt(a, b);
         for (const r of [...ct.related].sort(priceFirst)) { if (faq.length >= 5) break; if (usedBank.has(r.id) || faq.some(f => f.id === r.id) || takenQ(r.question, ex) || !notH2(r.question)) continue; usedBank.add(r.id); useQ(r.question); faq.push({ id: r.id, wording: r.question, doubt: r.doubt, needs_fact: !!r.needsFact }); }
         topic.bank_topic = ct.id; topic.related_from = [ct.id];
       } else flagOnce(topic, 'F-STACK', `No CT block in the bank for ${topic.homepage_cost_guide ? 'the trade' : topic.service ? topic.service.title : 'this service'}: no FAQ questions, so the guide is held.`);
@@ -660,6 +681,8 @@ function reserveBlogTopics({ assignment, cv = {}, niche = {}, keyValueMap = {}, 
   // A seasonal or a dossier local post takes the bank's related questions on its service (the pool has none on a town)
   const stackTopic = t => { if (t.source === 'seasonal' || t.source === 'dossier') seasonalRelated(t); else if (fromPool(t)) stackFor(t); else if (t.bank_ref && !t.query_stack.length) takeBank(t, t.bank_ref); if (t.post_type === 'cost_guide') fillCostGuideFaq(t); };
   for (const t of batch) stackTopic(t);
+  // The trade level cost guide's late fill (every service's CT block), once the batch has taken its questions
+  for (const t of batch) if (t.post_type === 'cost_guide' && t.homepage_cost_guide) fillCostGuideFaq(t, { late: true });
   // The shape gate (Brandon, 28 Oct): a post needs three H2s and three FAQ questions, or it
   // is held (G-STACK), not written; the next topic beyond the batch takes its slot
   const heldBack = [];

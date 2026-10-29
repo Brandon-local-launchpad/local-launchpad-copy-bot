@@ -172,7 +172,8 @@ ${pass + fail} checks: ${pass} passed, ${fail} failed`); if (fail > 0) process.e
   chk('The queue view carries each post\'s record too, and shows the held post as Held', qv.rows.filter(r => r.record).length === written && qv.rows.filter(r => r.status === 'Held').length >= heldPosts.length, qv.rows.filter(r => r.record).length, written);
   // Ideas: the second post about the same service sees the first post's ideas in its block
   const sameService = rows.filter(r => r.info.service).reduce((m, r) => { (m[r.info.service] = m[r.info.service] || []).push(r); return m; }, {});
-  const pair = Object.values(sameService).find(l => l.length >= 2);
+  // Both posts of the pair must have a record (a bank topic can share a page with a held or gated post, 29 Oct)
+  const pair = Object.values(sameService).find(l => l.length >= 2 && l.every(r => done.some(d => d.key === r.slug)));
   if (pair) {
     const I = await queue.inputsFor(client.id);
     const rec1 = (await v20Store.latest(client.id, { type: 'blog', key: pair[0].slug })).record;

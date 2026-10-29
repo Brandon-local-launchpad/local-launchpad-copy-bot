@@ -21,6 +21,8 @@
 //   node tests/acceptance/blog.js --launch 2026-11-09   the launch date (default 2026-11-09)
 //   node tests/acceptance/blog.js --model claude-opus-5-5
 //   node tests/acceptance/blog.js --no-claims           skip the claims review (then nothing is pushed)
+//   node tests/acceptance/blog.js --dry                 the queue only (runs, gates, holds), no model call
+//   node tests/acceptance/blog.js --dry --stand-in-prices   the same with a stand-in price row for every service page: the forecast
 //   node tests/acceptance/blog.js --accept-claims       push a post whose claims review found statements to accept, as a person
 //                                                      would after reading them (they are all listed); without it such a post is not pushed
 // Needs ANTHROPIC_API_KEY in .env. About 40p to 80p a post.
@@ -67,7 +69,9 @@ const flag = name => process.argv.includes(name);
 const LAUNCH = arg('--launch') || '2026-11-09';
 const MODEL = arg('--model') || BG.BLOG_MODEL;
 const CLAIMS = !flag('--no-claims');
-const ACCEPT = flag('--accept-claims'); // the push accepts the claims review's findings after listing them (a person's step on the live app), so the push and the daily job run
+const ACCEPT = flag('--accept-claims');
+const DRY = flag('--dry'); // the queue only: what runs, gates and holds; no model, no push, nothing written but the report
+const STAND_IN_PRICES = flag('--stand-in-prices'); // a stand-in price row for every service page (a forecast of what prices unlock), dry run only // the push accepts the claims review's findings after listing them (a person's step on the live app), so the push and the daily job run
 const dayAt = n => new Date(new Date(`${LAUNCH}T10:00:00Z`).getTime() + n * 86400000);
 const addDaysStr = (day, n) => new Date(new Date(`${day}T12:00:00Z`).getTime() + n * 86400000).toISOString().slice(0, 10);
 const dayOf = d => Math.round((new Date(`${d}T12:00:00Z`) - new Date(`${LAUNCH}T12:00:00Z`)) / 86400000);
@@ -173,7 +177,10 @@ async function runClient(cfg, outRoot, callModel) {
   const store = createPageMapStore({ pool, filloutService: null });
   const v20Store = createV20Store(pool);
   const ctx = { cv: cfg.cv, pages: cfg.pages, keyValueMap: cfg.keyValueMap, serviceParentMap: cfg.serviceParentMap, trade: cfg.trade };
-  const priceRows = cfg.priceRows.map(r => ({ ...r }));
+  const priceRows = STAND_IN_PRICES
+    ? cfg.pages.filter(p => p.pageType === 'service' && p.urlSlug).map((p, k) => ({ id: `s${k + 1}`, service: p.pageTitle, from_gbp: 400 + k * 50, up_to_gbp: 1200 + k * 50, typical_gbp: null, unit: 'per job', what_moves_price: 'the size of the job and the access', quote_only: false, unverified: false, deleted: false }))
+    : cfg.priceRows.map(r => ({ ...r }));
+  if (STAND_IN_PRICES) say(`Stand-in prices: one made up row for every service page (${priceRows.length}), for the forecast only.\n`);
   const queue = createBlogQueueService({ pool, pageMapStore: store, faqService: { blogTopics: async () => ({ blog: res, siteCheck: { ok: true }, sort: { record: { questions } }, assignment: A, ctx, niche: cfg.niche }) }, filloutService: { record: async () => ({ prices: { rows: priceRows } }) }, tradeFactsGate: async () => ({ niche: cfg.pack, verified: true }), packRows: (n, s, q) => P.rowsForPost(n, s, q), v20Store, log: { log() {}, error: console.error } });
 
   // ── 1. The queue ──
@@ -189,6 +196,12 @@ async function runClient(cfg, outRoot, callModel) {
     say(`| ${r.slug} | ${r.post_type} | ${r.publish_date || ''} | ${r.status === 'Held' ? 'held' : r.gates.length ? 'gated' : 'runs'} | ${r.specificity ? r.specificity.count + '/6' : ''} | ${why.replace(/\|/g, '/')} |`);
   }
   if (v.reservation && v.reservation.flags.length) say(`\nReservation flags: ${v.reservation.flags.map(f => `${f.code} (${short(f.msg, 120)})`).join('; ')}`);
+  if (DRY) {
+    const gateCodes = {};
+    for (const r of v.rows) for (const g of (r.status === 'Held' ? r.gates.filter(x => x.hold) : r.gates)) gateCodes[g.code] = (gateCodes[g.code] || 0) + 1;
+    say(`\nForecast: of the ${v.counts.dated} dated posts, ${v.counts.ready} run, ${v.counts.gated} gated, ${v.rows.filter(r => r.status === 'Held' && r.publish_date).length} held; gates and holds by code: ${Object.entries(gateCodes).map(([k, n]) => `${k} ${n}`).join(', ') || 'none'}.`);
+    return { rep, cost: 0, stopped: false };
+  }
 
   // The page map's pages for the daily job: every page the posts link Live, except one phase 2 page (Live on day 40)
   const primaries = [...new Set(v.rows.map(r => r.primary && r.primary.url).filter(s => s && s !== '/' && !/^\/#/.test(s)))];
@@ -341,6 +354,8 @@ async function runClient(cfg, outRoot, callModel) {
   for (const w of which) {
     const r = await runClient(CLIENTS[w](), outRoot, callModel);
     total += r.cost;
+    // A dry run (the forecast) writes its own file and leaves the run reports alone
+    if (DRY) { fs.writeFileSync(path.join(outRoot, `FORECAST_${w}${STAND_IN_PRICES ? '_stand-in-prices' : ''}.md`), r.rep.join('\n') + '\n'); continue; }
     fs.writeFileSync(path.join(outRoot, `REPORT_${w}.md`), r.rep.join('\n') + '\n');
     join();
   }
