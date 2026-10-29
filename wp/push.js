@@ -107,7 +107,7 @@ async function push({ record, recordId = null, site, store, reviewed = false, se
   const mismatches = await verify(site, pageId, dry.payload, dry.clientValues, type.wp.fields, kind);
   const result = mismatches.length ? 'written, read-back differs' : 'pushed';
   await store.appendLog({ ...base, page: pageId, result, snapshotId, created: !page, post: kind === 'post' ? { status: dry.payload.post.status, date_gmt: dry.payload.post.date_gmt, slug: dry.payload.post.slug } : undefined, summary: dry.summary, mismatches, claims: claims.findings.length, acceptedClaims: !!acceptClaims });
-  return { ok: !mismatches.length, result, snapshotId, mismatches, pageId, created: !page, dry };
+  return { ok: !mismatches.length, result, snapshotId, mismatches, pageId, created: !page, post: kind === 'post' ? { slug: dry.payload.post.slug, status: dry.payload.post.status, date_gmt: dry.payload.post.date_gmt } : null, dry };
 }
 
 async function rollback({ snapshotId, site, store }) {

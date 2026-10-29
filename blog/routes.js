@@ -54,7 +54,7 @@ function createBlogInputsLoader({ pool, filloutService = null, pageMapStore = nu
 //   GET  /api/clients/:id/blog/queue             every post with its decisions (no model call)
 //   POST /api/clients/:id/blog/queue/build       the reserved topics dated and written to the page map
 //   PUT  /api/clients/:id/blog/queue/:slug       { wording, approved } a person's approval or edit of the question
-function mountBlogApi(app, { pool, loadBlogInputs, queue = null, runner = null, v20Store = null }) {
+function mountBlogApi(app, { pool, loadBlogInputs, queue = null, runner = null, v20Store = null, daily = null }) {
   const wrap = fn => async (req, res) => {
     if (!pool) return res.status(503).json({ error: 'Database not configured.' });
     try { res.json(await fn(req)); }
@@ -103,6 +103,14 @@ function mountBlogApi(app, { pool, loadBlogInputs, queue = null, runner = null, 
       }
       return { approved, skipped, already };
     }));
+    // Stage 8: the daily job run by hand for one client ({ now: 'YYYY-MM-DD', dryRun }), and its log
+    app.post('/api/clients/:clientId/blog/daily-run', wrap(async req => {
+      if (!daily) throw Object.assign(new Error('The daily job is not available.'), { status: 503 });
+      const body = req.body || {};
+      const now = body.now && /^\d{4}-\d{2}-\d{2}$/.test(String(body.now)) ? new Date(`${body.now}T10:00:00Z`) : new Date();
+      return daily.run(req.params.clientId, { now, dryRun: !!body.dryRun });
+    }));
+    app.get('/api/clients/:clientId/blog/daily-log', wrap(async req => ({ log: daily ? await daily.listLog(req.params.clientId, 200) : [] })));
     app.get('/api/clients/:clientId/blog-pages/preview/:key(*)', wrap(async req => {
       const key = '/' + String(req.params.key || '').replace(/^\/+/, '');
       const I = await queue.inputsFor(req.params.clientId);

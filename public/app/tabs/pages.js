@@ -75,10 +75,10 @@ export async function render(el, ctx) {
   // specificity, publish date), the question to approve or edit, and the build button
   // Stage 4: each row's record status (from the queue view's record summary), Write and Write
   // again per post, Write all / the rest through /blog-pages/run; a written post opens the Page view
-  let blog = null, blogLoading = false, blogRun = null, blogTimer = null;
+  let blog = null, blogLoading = false, blogRun = null, blogTimer = null, blogJobLog = null;
   const loadBlog = async () => {
     blogLoading = true;
-    try { [blog, blogRun] = await Promise.all([api(`/api/clients/${clientId}/blog/queue`), api(`/api/clients/${clientId}/blog-pages`).catch(() => null)]); } catch (e) { blog = { error: e.message, rows: [], counts: {} }; }
+    try { [blog, blogRun, blogJobLog] = await Promise.all([api(`/api/clients/${clientId}/blog/queue`), api(`/api/clients/${clientId}/blog-pages`).catch(() => null), api(`/api/clients/${clientId}/blog/daily-log`).then(r => r.log || []).catch(() => null)]); } catch (e) { blog = { error: e.message, rows: [], counts: {} }; }
     blogLoading = false;
     clearTimeout(blogTimer);
     if (blogRun && blogRun.running) blogTimer = setTimeout(loadBlog, 8000);
@@ -128,6 +128,10 @@ export async function render(el, ctx) {
       ${(B.problems || []).length ? `<div class="notice bad" style="margin-bottom:10px">Could not read: ${B.problems.map(h).join('; ')}</div>` : ''}
       <div class="notice" style="margin-bottom:14px;display:flex;gap:16px;flex-wrap:wrap;align-items:center"><span><strong>${plural(c.rows || 0, 'post')}</strong> in the queue</span><span>${c.ready || 0} ready</span><span>${c.gated || 0} gated</span>${c.held ? `<span>${c.held} held</span>` : ''}<span>${c.to_approve || 0} questions to approve</span><span>${c.dated || 0} dated${B.settings && B.settings.launch_date ? ` from ${h(fmtDate(B.settings.launch_date))}` : ' (no launch date on the Record tab)'}</span>${res ? `<span class="muted">reserved: ${res.counts.topics} topics, ${res.counts.from_bank || 0} from the bank</span>` : ''}</div>
       ${[...(B.schedule_flags || []), ...((res && res.flags) || [])].map(f => `<div class="small" style="color:#b45309;margin-bottom:4px">${h(f.code)}: ${h(f.msg)}</div>`).join('')}
+      <section class="card card-flat" style="margin-bottom:14px"><div class="tbl-tools"><span class="muted small"><strong>Daily job</strong>: once a day, with no person: a churned client's scheduled posts back to draft; a scheduled post stating a changed price written again (F-PRICE-CHANGED, back to review); a post due within two days whose primary page is not Live, or not approved, moved back seven days (F-HELD); a post still scheduled on its date published; a cost guide's URL stored for the GBP batch and its pages marked backfill pending. ${blogJobLog && blogJobLog.length ? `Last action ${h(fmtDate(blogJobLog[0].at, true))}.` : 'No actions yet.'}</span><span style="flex:1"></span><button class="btn btn-ghost btn-sm" data-blog="daily-dry">What would it do today?</button><button class="btn btn-ghost btn-sm" data-blog="daily-run">Run the daily job now</button></div>
+        ${blogJobLog && blogJobLog.length ? `<div class="small" style="max-height:180px;overflow:auto">${blogJobLog.slice(0, 40).map(l => `<div style="padding:3px 0;border-top:1px solid var(--border)"><span class="muted">${h(fmtDate(l.at, true))}</span> <strong>${h(l.action)}</strong> ${l.slug ? `<code>${h(l.slug)}</code> ` : ''}${h(l.why || '')}${l.to ? ` → ${h(l.to)}` : ''}${l.url ? ` <a href="${attr(l.url)}" target="_blank" rel="noopener">${h(l.url)}</a>` : ''}</div>`).join('')}</div>` : ''}
+        <div id="blogDailyOut" class="small" style="margin-top:6px"></div>
+      </section>
       <section class="card card-flat">
         <div class="tbl-tools"><span class="muted small">The topics reserved on the Research tab, dated by the schedule (3 at launch, then 2, 4, 3, 2, 1, 1 a month). Edit a question and Approve to clear G-TOPIC; the rest of the decisions are code's.${anyBlogRunning ? ` <strong>Writing ${h(blogRun.running.current || '…')}</strong>` : ''}</span><span class="spacer"></span>
           <button class="btn btn-ghost btn-sm" data-blog="approve-batch" ${written.some(r => r.record.good && !r.record.approved) ? '' : 'disabled'} title="Approves every written post with no BLOCK whose FLAGs are read (or none), every claim accepted; a held or blocked post is left">Approve all without BLOCK or unreviewed FLAG</button>
@@ -140,6 +144,15 @@ export async function render(el, ctx) {
   el.addEventListener('click', async e => {
     const b = e.target.closest('[data-blog]');
     if (b && b.dataset.blog === 'build') { e.stopPropagation(); await busy(b, 'Building…', async () => { try { blog = await api(`/api/clients/${clientId}/blog/queue/build`, { method: 'POST' }); toast(`Queue built: ${blog.counts.rows} posts`); draw(); } catch (err) { toast(err.message, 'bad'); } }); return; }
+    if (b && (b.dataset.blog === 'daily-run' || b.dataset.blog === 'daily-dry')) {
+      e.stopPropagation();
+      const dry = b.dataset.blog === 'daily-dry';
+      if (!dry && !(await confirm({ title: 'Run the daily job now?', text: 'Scheduled posts due today are published on the site; posts whose primary page is not Live or whose record is not approved are moved back seven days; a changed price has its post written again. Every action is logged.', ok: 'Run' }))) return;
+      await busy(b, dry ? 'Checking…' : 'Running…', async () => {
+        try { const r = await api(`/api/clients/${clientId}/blog/daily-run`, { method: 'POST', body: { dryRun: dry } }); const out = box.querySelector('#blogDailyOut'); if (out) out.innerHTML = `<div class="notice small">${dry ? 'Today the job would do' : 'The job did'} ${r.actions.length} thing${r.actions.length === 1 ? '' : 's'}${r.site ? '' : ' (no WordPress site connected)'}${r.note ? `: ${h(r.note)}` : ''}</div>${r.actions.map(a => `<div style="padding:3px 0"><strong>${h(a.action)}</strong> ${a.slug ? `<code>${h(a.slug)}</code> ` : ''}${h(a.why || '')}${a.to ? ` → ${h(a.to)}` : ''}</div>`).join('')}`; if (!dry) { toast(`Daily job: ${r.actions.length} action(s)`); loadBlog(); } } catch (err) { toast(err.message, 'bad'); }
+      });
+      return;
+    }
     if (b && b.dataset.blog === 'approve-batch') {
       e.stopPropagation();
       try { const r = await api(`/api/clients/${clientId}/blog/approve-batch`, { method: 'POST', body: { by: ctx.userName ? ctx.userName() : '' } }); toast(`${r.approved.length} approved${r.already ? `, ${r.already} already` : ''}${r.skipped.length ? `; ${r.skipped.length} left: ${r.skipped.map(s => s.why).slice(0, 3).join('; ')}` : ''}`, r.approved.length ? '' : 'bad'); loadBlog(); } catch (err) { toast(err.message, 'bad'); }

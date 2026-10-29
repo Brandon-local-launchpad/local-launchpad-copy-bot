@@ -131,6 +131,9 @@ function createWpService({ pool, loadRecord, saveRecordClaims, currentFacts, rev
       return rollback({ snapshotId, site: await site(clientId), store: createDbStore(pool, clientId) });
     },
 
+    // The connected site, for the blog daily job (blog/daily.js); null when none
+    async siteFor(clientId) { try { return await site(clientId); } catch (_) { return null; } },
+
     async log(clientId) {
       return createDbStore(pool, clientId).listLog();
     },

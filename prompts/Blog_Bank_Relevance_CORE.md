@@ -1,4 +1,4 @@
-# Blog question bank: the relevance judge (28 Oct 2026)
+# Blog question bank: the relevance judge (28 Oct 2026; Brandon's nine, 29 Oct)
 
 Run by `blog/paa.js` on every People also ask question that passes the word filter, one call per block, on the cheapest model that does it well (Haiku). The reply is JSON only. Brandon's rule (28 Oct, night): keep only questions a UK homeowner considering, hiring for or living with this job would ask, that a landscaper's post could answer; drop off topic, job seeker and wage questions about being a tradesperson, US only, DIY products and chemicals, trivia.
 
@@ -15,7 +15,11 @@ DROP, with the reason in a few words:
 - job seeker: wages, qualifications, hours or careers of a gardener or tradesperson
 - US only: a term or rule that is not British (blacktop, asphalt shingles, Kentucky bluegrass, tall fescue, homeowners insurance, HOA, sod)
 - DIY product: a product, chemical or home remedy to apply yourself (vinegar on a stump, what kills fungus, best weedkiller)
-- trivia: a fact with no decision behind it (how old the oldest tree is, what a word means)
+- trivia: a fact with no decision behind it (how old the oldest tree is, what a word means); trends and dated colour or style lists ("garden trends for 2026", "what is trending in garden design")
+- off topic also covers: swimming or wildlife in a pond, growing vegetables, raised beds and allotments (gardening, not landscaping), house plants
+- US only also covers: asphalt (the UK word is tarmac), blacktop, sod
+- DIY also covers: doing the job with a tool yourself ("remove a stump with a chainsaw")
+- job seeker also covers: what a gardener is paid or should be paid per hour or per day
 - not a homeowner's question: a trade's own method detail, a supplier's or manufacturer's question
 
 A question that is the same as the target, in other words, is a KEEP (the code drops repeats itself).

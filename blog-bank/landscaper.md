@@ -137,9 +137,7 @@ generated 2026-10-28 · model perplexity agent high (openai/gpt-6.1-sol), relate
 
 ### [BT-14] | "Should I hire a garden landscaper or a garden designer?" | Type: decision | Service: Garden maintenance | Seen: One explicit UK cost-guide FAQ; related homeowner questions concern who should undertake the work. | [https://www.myjobquote.co.uk/costs/landscaping-costs]
 - [BT-14.a] | "How much to get a garden design?" | Doubt: Fit | Needs client fact: N | PAA
-- [BT-14.b] | "What are the new garden trends for 2026?" | Doubt: Fit | Needs client fact: N | PAA
 - [BT-14.c] | "What are some beautiful garden design ideas?" | Doubt: Fit | Needs client fact: N | PAA
-- [BT-14.d] | "What is trending in garden design?" | Doubt: Fit | Needs client fact: N | PAA
 - [BT-14.e] | "What can I put down instead of slabs?" | Doubt: Fit | Needs client fact: N | PAA
 - [BT-14.f] | "How much would a small garden makeover cost?" | Doubt: Price | Needs client fact: N | PAA
 - [BT-14.g] | "How much do garden designers charge in the UK?" | Doubt: Price | Needs client fact: N | PAA
@@ -234,7 +232,6 @@ generated 2026-10-28 · model perplexity agent high (openai/gpt-6.1-sol), relate
 
 ### [BT-25] | "Why is my garden pond turning green?" | Type: question | Service: Ponds and water features | Seen: Natural History Museum FAQ and several UK pond-care sources: recurring problem. | [https://www.nhm.ac.uk/discover/garden-pond-frequently-asked-questions.html]
 - [BT-25.a] | "What does bad pond algae look like?" | Doubt: Fit | Needs client fact: N | PAA
-- [BT-25.b] | "Is it okay to swim in a pond with algae?" | Doubt: Fit | Needs client fact: N | PAA
 - [BT-25.c] | "Will algae go away on its own?" | Doubt: Fit | Needs client fact: N | PAA
 - [BT-25.d] | "Can you get sick from green algae?" | Doubt: Fit | Needs client fact: N | PAA
 - [BT-25.e] | "What does dying algae look like?" | Doubt: Fit | Needs client fact: N | PAA
@@ -262,8 +259,6 @@ generated 2026-10-28 · model perplexity agent high (openai/gpt-6.1-sol), relate
 - [BT-27.d] | "How much does it cost to resurface a tarmac drive?" | Doubt: Price | Needs client fact: N | PAA
 - [BT-27.e] | "What is the best time of year to resurface a driveway?" | Doubt: Timing | Needs client fact: N | PAA
 - [BT-27.f] | "How long does resurfacing a driveway take?" | Doubt: Timing | Needs client fact: N | PAA
-- [BT-27.g] | "Can an asphalt driveway last 50 years?" | Doubt: Fit | Needs client fact: N | PAA
-- [BT-27.h] | "Will new asphalt stick to old asphalt?" | Doubt: Fit | Needs client fact: N | PAA
 
 ### [BT-28] | "Can a split or leaning tree be saved with cabling and bracing?" | Type: question | Service: Tree cabling and bracing | Seen: One dedicated UK question-led guide and two supporting service guides. | [https://treesol.co.uk/tree-cabling-and-bracing/]
 - [BT-28.a] | "How to fix a split branch on a tree?" | Doubt: Fit | Needs client fact: N | PAA
@@ -302,7 +297,6 @@ generated 2026-10-28 · model perplexity agent high (openai/gpt-6.1-sol), relate
 - [BT-31.e] | "How much can you cut off a tree without killing it?" | Doubt: Fit | Needs client fact: N | PAA
 
 ### [BT-32] | "Can a tree stump be removed if there is only a narrow side entrance?" | Type: question | Service: Tree stump removal | Seen: One UK tree-surgeon FAQ explicitly discusses awkward access and alternative removal methods. | [https://www.tree-surgeonessex.co.uk/faqs.html]
-- [BT-32.a] | "Can you remove a tree stump with a chainsaw?" | Doubt: Fit | Needs client fact: N | PAA
 - [BT-32.b] | "How long does it take tree roots to decompose underground?" | Doubt: Timing | Needs client fact: N | PAA
 - [BT-32.c] | "How much does it usually cost to remove a stump?" | Doubt: Price | Needs client fact: N | PAA
 - [BT-32.d] | "What are common mistakes after tree stump removal?" | Doubt: Fit | Needs client fact: N | PAA
@@ -480,7 +474,6 @@ generated 2026-10-28 · model perplexity agent high (openai/gpt-6.1-sol), relate
 
 ### [CT-15] | "How much does garden maintenance cost?" | Service: Garden maintenance | Seen: UK gardening price index and homeowner discussion. | [https://www.fantasticservices.com/cost-guides/gardening/]
 - [CT-15.a] | "What's the difference between a gardener and a landscape gardener?" | Doubt: Fit | Needs client fact: N | PAA
-- [CT-15.b] | "How much should I pay a gardener per hour?" | Doubt: Price | Needs client fact: N | PAA
 
 ### [CT-16] | "How much do garden paths cost?" | Service: Garden paths | Seen: Two dedicated UK path guides and a landscaping pricing guide. | [https://www.gardencost.com/garden-path-cost-uk-guide/]
 - [CT-16.a] | "What are the three golden rules of garden design?" | Doubt: Fit | Needs client fact: N | PAA
@@ -679,8 +672,6 @@ generated 2026-10-28 · model perplexity agent high (openai/gpt-6.1-sol), relate
 ### [ST-2] | "How should I prepare my garden for winter?" | Service: Garden maintenance | Window: Mainly in autumn, before the winter”; protective wrapping at the first sign of frost; cultivation changes can begin from mid-summer. No single month range stated. | [https://www.rhs.org.uk/prevention-protection/preventing-winter-damage]
 - [ST-2.a] | "When should you cut back your garden for winter?" | Doubt: Timing | Needs client fact: N | PAA
 - [ST-2.b] | "What should I put on my garden before winter?" | Doubt: Timing | Needs client fact: N | PAA
-- [ST-2.c] | "Should I cover my raised beds with plastic in winter?" | Doubt: Timing | Needs client fact: N | PAA
-- [ST-2.d] | "How cold is too cold for a vegetable garden?" | Doubt: Fit | Needs client fact: N | PAA
 - [ST-2.e] | "At what temperature should you cover your garden?" | Doubt: Fit | Needs client fact: N | PAA
 - [ST-2.f] | "Can you leave plants in pots over winter?" | Doubt: Timing | Needs client fact: N | PAA
 - [ST-2.g] | "What to cover pots with in winter?" | Doubt: Timing | Needs client fact: N | PAA

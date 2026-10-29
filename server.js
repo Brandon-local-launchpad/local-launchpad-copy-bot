@@ -43,6 +43,18 @@ const filloutCallModel = process.env.ANTHROPIC_API_KEY ? makeCallModel(new Anthr
 const filloutService = pool ? createFilloutService({ pool, audioStore: createPgAudioStore(pool), callModel: filloutCallModel, modelName: v20.V20_MODEL }) : null;
 if (filloutService) filloutRoutes.mountWebhook(app, filloutService, { secret: process.env.FILLOUT_WEBHOOK_SECRET || '' });
 else app.post('/api/webhooks/fillout', (_req, res) => res.status(503).json({ error: 'Database not configured.' }));
+// The blog daily job's cron entry (scripts/blog-daily.js, stage 8): before the login guard, with its
+// own secret (BLOG_JOB_SECRET in the x-blog-job-secret header); every client in turn (blog/daily.js runAll)
+let blogDaily = null;
+app.post('/api/blog/daily-run-all', express.json({ limit: '64kb' }), async (req, res) => {
+  const secret = process.env.BLOG_JOB_SECRET || '';
+  const given = String(req.get('x-blog-job-secret') || '');
+  if (!secret || given !== secret) return res.status(401).json({ error: 'The job needs BLOG_JOB_SECRET (the x-blog-job-secret header).' });
+  if (!blogDaily) return res.status(503).json({ error: 'The daily job is not available (no database or page map store).' });
+  const body = req.body || {};
+  const now = body.now && /^\d{4}-\d{2}-\d{2}$/.test(String(body.now)) ? new Date(`${body.now}T10:00:00Z`) : new Date();
+  try { res.json(await blogDaily.runAll({ now, dryRun: !!body.dryRun })); } catch (e) { res.status(500).json({ error: e.message }); }
+});
 
 app.use(express.json({ limit: '4mb' }));
 
@@ -4067,7 +4079,21 @@ if (pool) {
     generate: args => BG.generateBlogPost({ ...args, callModel: blogCallModel }),
     calibrationPack: I => { try { return v20CalibrationPack(I.ctx, I.niche); } catch (e) { console.error('[blog] calibration pack:', e.message); return null; } },
   });
-  B.mountBlogApi(app, { pool, loadBlogInputs, queue: blogQueue, runner: blogRunner, v20Store });
+  // The daily job (stage 8, blog/daily.js): the site from the WordPress connection, today's price facts
+  // from the queue's decisions, the client's values asset, the blog runner for a post written again
+  blogDaily = require('./blog/daily').createBlogDaily({
+    pool, pageMapStore, v20Store,
+    siteFor: async clientId => (wpService ? wpService.siteFor(clientId) : null),
+    priceFacts: async (clientId, row, rows) => { const I = await blogQueue.inputsFor(clientId); const d = blogQueue.decide(I, row, rows); return d.decisions ? d.decisions.facts.filter(f => f.kind === 'price').map(f => f.text) : null; },
+    clientValues: {
+      get: async (clientId, key) => { const { rows } = await pool.query(`SELECT content FROM client_assets WHERE client_id = $1 AND asset_type = 'client_values' ORDER BY uploaded_at DESC LIMIT 1`, [clientId]); return rows.length ? JSON.parse(rows[0].content)[key] : undefined; },
+      set: (clientId, key, value) => saveClientValue(clientId, key, value),
+    },
+    regenerate: async (clientId, slug) => { await blogRunner.run(clientId, { resume: false, keys: [slug] }); const f = await v20Store.latest(clientId, { type: 'blog', key: slug }); return f ? f.id : null; },
+    log: console,
+  });
+  B.mountBlogApi(app, { pool, loadBlogInputs, queue: blogQueue, runner: blogRunner, v20Store, daily: blogDaily });
+
 }
 
 // Category pages (CORE (16), 23 Oct): every category page and location category page from
@@ -4279,7 +4305,12 @@ app.put('/api/clients/:clientId/wp/connection', wpRoute(req => wpService.saveCon
 app.post('/api/clients/:clientId/wp/test', wpRoute(req => wpService.test(req.params.clientId)));
 app.post('/api/clients/:clientId/wp/claims-review', wpRoute(req => wpService.reviewClaims(req.params.clientId, req.body || {}, v20CallModel)));
 app.post('/api/clients/:clientId/wp/dry-run', wpRoute(req => wpService.dryRun(req.params.clientId, req.body || {})));
-app.post('/api/clients/:clientId/wp/push', wpRoute(req => wpService.push(req.params.clientId, req.body || {})));
+app.post('/api/clients/:clientId/wp/push', wpRoute(async req => {
+  const r = await wpService.push(req.params.clientId, req.body || {});
+  // A blog post pushed: its row says Scheduled (or Pushed to WordPress for a draft) with the post's id (stage 8)
+  if (r && r.ok && r.post && blogDaily) { try { await blogDaily.afterPush(req.params.clientId, { slug: r.post.slug, postId: r.pageId, status: r.post.status, dateGmt: r.post.date_gmt }); } catch (e) { console.error('[blog daily] after push:', e.message); } }
+  return r;
+}));
 app.post('/api/clients/:clientId/wp/rollback', wpRoute(req => wpService.rollback(req.params.clientId, req.body || {})));
 app.get('/api/clients/:clientId/wp/log', wpRoute(req => wpService.log(req.params.clientId)));
 app.put('/api/clients/:clientId/wp/claims-accepted', wpRoute(req => wpService.acceptClaims(req.params.clientId, req.body || {})));
