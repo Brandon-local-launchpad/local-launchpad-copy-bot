@@ -1,0 +1,15 @@
+{
+  "_note": "Domains that never count as a competitor page in the demand gate (locations/rules.js competitorPages): directories, lead platforms, social networks, review sites, councils and government, big retailers and job boards. Matched on the registrable domain and its subdomains. Add a line, not code. Brandon's list, 29 Oct 2026, plus the usual UK suspects.",
+  "domains": [
+    "checkatrade.com", "yell.com", "mybuilder.com", "ratedpeople.com", "trustatrader.com", "trustatrade.com", "bark.com", "houzz.co.uk", "houzz.com",
+    "facebook.com", "nextdoor.co.uk", "nextdoor.com", "gov.uk", "instagram.com", "linkedin.com", "twitter.com", "x.com", "youtube.com", "tiktok.com", "pinterest.co.uk", "pinterest.com",
+    "trustpilot.com", "google.com", "google.co.uk", "yelp.co.uk", "yelp.com", "thomsonlocal.com", "cylex-uk.co.uk", "cylex.uk", "192.com", "scoot.co.uk", "freeindex.co.uk", "hotfrog.co.uk", "misterwhat.co.uk", "yably.co.uk", "opendi.co.uk", "brownbook.net", "tuugo.co.uk", "localsearch.co.uk", "thebestof.co.uk", "which.co.uk", "trustedtraders.which.co.uk",
+    "gumtree.com", "indeed.com", "indeed.co.uk", "reed.co.uk", "totaljobs.com", "glassdoor.co.uk",
+    "amazon.co.uk", "ebay.co.uk", "wickes.co.uk", "bandq.co.uk", "diy.com", "screwfix.com", "homebase.co.uk", "toolstation.com", "travisperkins.co.uk", "jewson.co.uk",
+    "wikipedia.org", "tripadvisor.co.uk", "tripadvisor.com", "rightmove.co.uk", "zoopla.co.uk", "onthemarket.com",
+    "bidvine.com", "hipages.com.au", "homeadvisor.com", "angi.com", "thumbtack.com", "airtasker.com", "taskrabbit.co.uk", "fantasticservices.com",
+    "britishgas.co.uk", "ovoenergy.com", "homeserve.com", "localheroes.com", "apha.co.uk",
+    "nhs.uk", "police.uk", "parliament.uk", "ordnancesurvey.co.uk", "ons.gov.uk",
+    "reddit.com", "quora.com", "mumsnet.com", "moneysavingexpert.com"
+  ]
+}

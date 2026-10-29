@@ -230,6 +230,7 @@ function createPlacesStore(pool) {
       return Object.fromEntries(rows.map(r => [r.type, r.n]));
     },
     async byId(id) { const { rows } = await pool.query(`SELECT * FROM places WHERE id = $1`, [id]); return rows[0] ? typed(rows[0]) : null; },
+    async byIds(ids) { const list = [...new Set((ids || []).filter(Boolean))]; if (!list.length) return new Map(); const ph = list.map((_, k) => "$" + (k + 1)).join(", "); const { rows } = await pool.query(`SELECT * FROM places WHERE id IN (${ph})`, list); return new Map(rows.map(r => [r.id, typed(r)])); },
     // Every non-admin place within radiusKm of a point (a bounding box in SQL, haversine here)
     async near({ lat, lng }, radiusKm, { includeAdmin = false } = {}) {
       const dLat = radiusKm / 111.2, dLng = radiusKm / (111.2 * Math.cos(lat * Math.PI / 180));

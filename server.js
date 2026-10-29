@@ -3836,6 +3836,8 @@ const v20CallModel = async ({ system, message, maxTokens }) => {
 if (filloutService) filloutRoutes.mountApi(app, filloutService);
 // Page map and the hand set-up editor (page-map/routes.js)
 if (filloutService) require('./page-map/routes').mountPageMapApi(app, { pool, filloutService });
+// Location Determiner (locations/routes.js): which towns get location pages; the dry run first
+if (filloutService) require('./locations/routes').mountLocationsApi(app, { pool, filloutService });
 
 // GBP output (gbp/routes.js, 23 Oct): the Google Business Profile description, services and
 // products, from the client values, the v3 page map and the generated service page copy
