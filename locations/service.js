@@ -154,9 +154,17 @@ function createLocationService({ pool, filloutService, pageMapStore, h1 = null, 
     const toSerp = pages.filter(p => p.needs_serp);
     say(`Checking ${toSerp.length} SERPs`);
     let serpCost = 0, serpCalls = 0, serpFromCache = 0;
+    const serpFailed = [];
     for (const p of toSerp) {
       if (!serp) break;
-      const s = await serp.lookup(p.serp_keyword, p.point);
+      let s;
+      try { s = await serp.lookup(p.serp_keyword, p.point, { onRetry: r => say(`SERP "${p.serp_keyword}": DataForSEO busy (${r.message}), retry ${r.attempt} of ${r.of} in ${Math.round(r.waitMs / 1000)}s`) }); }
+      catch (e) {
+        // A SERP that fails after the retries leaves this combination on volume alone (competitors unknown, never counted)
+        p.serp_error = e.message; serpFailed.push({ keyword: p.serp_keyword, town: p.town, error: e.message });
+        say(`SERP "${p.serp_keyword}" failed: ${e.message} (volume only for this page)`);
+        continue;
+      }
       const cp = R.competitorPages(s.items, p.town, EXCLUDED_DOMAINS);
       Object.assign(p, { competitors: cp.count, competitor_pages: cp.pages, serp_check_url: s.check_url || '', serp_items: s.items.filter(i => i.type === 'organic').slice(0, 10), serp_cached: !!s.cached });
       if (s.cached) serpFromCache++; else { serpCalls++; serpCost += Number(s.cost) || 0; }
@@ -167,7 +175,7 @@ function createLocationService({ pool, filloutService, pageMapStore, h1 = null, 
     const result = {
       ...dry, ran_at: now().toISOString(),
       plan: { ...dry.plan, pages },
-      costs: { volume_usd: round4(got.cost || 0), keywords_fetched: got.fetched, serp_usd: round4(serpCost), serp_calls: serpCalls, serp_from_cache: serpFromCache, total_usd: round4((got.cost || 0) + serpCost) },
+      costs: { volume_usd: round4(got.cost || 0), keywords_fetched: got.fetched, serp_usd: round4(serpCost), serp_calls: serpCalls, serp_from_cache: serpFromCache, serp_failed: serpFailed, total_usd: round4((got.cost || 0) + serpCost) },
       tiers: { tier1: tiers.tier1, tier2: tiers.tier2, area_only: tiers.area_only, excluded: tiers.excluded, towns: tiers.towns, top_score: tiers.top_score, band: tiers.band, cap: tiers.cap },
       gbp_areas: tiers.gbp_areas, location_categories: tiers.location_categories, no_demand: tiers.no_demand,
       after: { location: tiers.tier1.length + tiers.tier2.length, location_phase2: tiers.tier2.length, location_category: tiers.location_categories.length, location_category_phase2: tiers.location_categories.filter(c => c.phase === 2).length },

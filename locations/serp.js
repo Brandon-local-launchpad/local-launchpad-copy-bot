@@ -18,28 +18,41 @@ const DEPTH = 10;
 const round4 = v => Math.round(Number(v) * 1e4) / 1e4;
 const pick = i => ({ type: i.type, rank_group: i.rank_group, rank_absolute: i.rank_absolute, url: i.url, domain: i.domain, title: i.title });
 
-// One live SERP. Returns { items (organic and the other top-level item types, trimmed), cost, check_url, se_results_count }
-async function fetchSerp({ keyword, lat, lng }, { env = process.env, fetchImpl = fetch, timeoutMs = 60000 } = {}) {
+// One live SERP. Returns { items (organic and the other top-level item types, trimmed), cost, check_url, se_results_count }.
+// A busy or failing DataForSEO (5xx, a 50000 series status such as "Internal SE Server Error", a timeout)
+// is retried after RETRY_DELAYS, as the volume call is; anything else throws at once.
+const RETRY_DELAYS = [5000, 15000, 30000];
+async function fetchSerp({ keyword, lat, lng }, { env = process.env, fetchImpl = fetch, timeoutMs = 60000, retryDelays = RETRY_DELAYS, onRetry = null, sleep = ms => new Promise(r => setTimeout(r, ms)) } = {}) {
   const creds = D.credentials(env);
   const auth = 'Basic ' + Buffer.from(`${creds.login}:${creds.password}`).toString('base64');
-  const ctrl = new AbortController();
-  const t = setTimeout(() => ctrl.abort(), timeoutMs);
-  let body = null, res = null;
-  try {
-    res = await fetchImpl(ENDPOINT, { method: 'POST', headers: { Authorization: auth, 'Content-Type': 'application/json' }, body: JSON.stringify([{ keyword, location_coordinate: `${Number(lat).toFixed(6)},${Number(lng).toFixed(6)},${RADIUS}`, language_code: 'en', depth: DEPTH, device: 'desktop', os: 'windows' }]), signal: ctrl.signal });
-    try { body = await res.json(); } catch (_) {}
-  } catch (e) {
-    throw Object.assign(new Error(D.safeMessage(e.name === 'AbortError' ? 'DataForSEO SERP did not answer' : `DataForSEO SERP could not be reached: ${e.message}`, creds)), { status: e.name === 'AbortError' ? 'timeout' : 'network' });
-  } finally { clearTimeout(t); }
-  const task = body && Array.isArray(body.tasks) ? body.tasks[0] : null;
-  const fail = !res.ok ? { status: res.status, message: (body && body.status_message) || res.statusText }
-    : !body ? { status: res.status, message: 'DataForSEO sent a reply that is not JSON' }
-    : body.status_code !== 20000 ? { status: body.status_code, message: body.status_message }
-    : !task ? { status: body.status_code, message: 'DataForSEO sent no task' }
-    : task.status_code !== 20000 ? { status: task.status_code, message: task.status_message } : null;
-  if (fail) throw Object.assign(new Error(D.safeMessage(fail.message || 'request failed', creds)), { status: fail.status });
-  const result = (task.result && task.result[0]) || {};
-  return { items: (result.items || []).map(pick), cost: round4(task.cost != null ? task.cost : body.cost || 0), check_url: result.check_url || '', se_results_count: result.se_results_count == null ? null : Number(result.se_results_count) };
+  for (let attempt = 0; ; attempt++) {
+    const ctrl = new AbortController();
+    const t = setTimeout(() => ctrl.abort(), timeoutMs);
+    let body = null, res = null, fail = null;
+    try {
+      res = await fetchImpl(ENDPOINT, { method: 'POST', headers: { Authorization: auth, 'Content-Type': 'application/json' }, body: JSON.stringify([{ keyword, location_coordinate: `${Number(lat).toFixed(6)},${Number(lng).toFixed(6)},${RADIUS}`, language_code: 'en', depth: DEPTH, device: 'desktop', os: 'windows' }]), signal: ctrl.signal });
+      try { body = await res.json(); } catch (_) {}
+    } catch (e) {
+      fail = { status: e.name === 'AbortError' ? 'timeout' : 'network', message: e.name === 'AbortError' ? 'DataForSEO SERP did not answer' : `DataForSEO SERP could not be reached: ${e.message}` };
+    } finally { clearTimeout(t); }
+    const task = body && Array.isArray(body.tasks) ? body.tasks[0] : null;
+    if (!fail) {
+      fail = !res.ok ? { status: res.status, message: (body && body.status_message) || res.statusText }
+        : !body ? { status: res.status, message: 'DataForSEO sent a reply that is not JSON' }
+        : body.status_code !== 20000 ? { status: body.status_code, message: body.status_message }
+        : !task ? { status: body.status_code, message: 'DataForSEO sent no task' }
+        : task.status_code !== 20000 ? { status: task.status_code, message: task.status_message } : null;
+    }
+    if (!fail) {
+      const result = (task.result && task.result[0]) || {};
+      return { items: (result.items || []).map(pick), cost: round4(task.cost != null ? task.cost : body.cost || 0), check_url: result.check_url || '', se_results_count: result.se_results_count == null ? null : Number(result.se_results_count), attempts: attempt + 1 };
+    }
+    const message = D.safeMessage(fail.message || 'request failed', creds);
+    if (!D.isBusy(fail.status) || attempt >= retryDelays.length) throw Object.assign(new Error(message), { status: fail.status, attempts: attempt + 1 });
+    const wait = retryDelays[attempt];
+    if (onRetry) await onRetry({ attempt: attempt + 1, of: retryDelays.length, waitMs: wait, status: fail.status, message });
+    await sleep(wait);
+  }
 }
 
 async function ensureSerpTables(pool) {
@@ -86,4 +99,4 @@ function createSerpStore(pool, { fetchSerpImpl = fetchSerp, now = () => new Date
   return { cached, lookup, cachedCount };
 }
 
-module.exports = { ENDPOINT, CACHE_DAYS, RADIUS, DEPTH, fetchSerp, ensureSerpTables, createSerpStore };
+module.exports = { ENDPOINT, CACHE_DAYS, RADIUS, DEPTH, RETRY_DELAYS, fetchSerp, ensureSerpTables, createSerpStore };
