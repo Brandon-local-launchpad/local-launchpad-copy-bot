@@ -178,6 +178,8 @@
       rec.className = 'btn btn-ghost'; rec.href = `/client-record.html?id=${clientId}#services`; rec.textContent = 'Set-up and page map';
       actions.insertBefore(rec, actions.firstChild);
     }
+    // The Location Determiner review (which towns get location pages)
+    { const actions = document.getElementById('settingsLink').parentElement; const loc = document.createElement('a'); loc.className = 'btn btn-ghost'; loc.href = `/locations.html?id=${clientId}`; loc.textContent = 'Locations'; actions.insertBefore(loc, document.getElementById('settingsLink')); }
     document.getElementById('generateLink').href = `/generate?clientId=${clientId}`;
     document.getElementById('settingsLink').href = `/client-settings.html?id=${clientId}`;
 

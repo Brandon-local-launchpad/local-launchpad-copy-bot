@@ -24,6 +24,7 @@ const crypto = require('crypto');
 
 const DATA_FILE = path.join(__dirname, 'data', 'places.csv.gz');
 const COLUMNS = ['id', 'name', 'slug', 'type', 'lat', 'lng', 'population', 'parent_town_id', 'country', 'is_admin_area', 'kind', 'qualifier', 'alt_name', 'source', 'os_id', 'lad_name'];
+const NAMESAKE_TOWN_POPULATION = 1000;
 const TYPES = ['town', 'district', 'admin'];
 
 // ── Names ──
@@ -34,11 +35,14 @@ const slugify = text => String(text == null ? '' : text).toLowerCase().trim()
 
 // The form two spellings of one place share: lower case, ASCII, "St." and "Saint" as
 // "st", "upon"/"on" kept, apostrophes and hyphens dropped, one space between words
+// Bump when normaliseName changes: name_norm is written at seed time, so the table is reseeded on deploy
+const NORMALISER_VERSION = 2;
 function normaliseName(name) {
   return String(name == null ? '' : name)
     .normalize('NFD').replace(/[̀-ͯ]/g, '')
     .toLowerCase()
     .replace(/\bsaint\b/g, 'st').replace(/\bst\./g, 'st')
+    .replace(/&/g, ' and ')
     .replace(/['’`]/g, '').replace(/[-–—/]/g, ' ')
     .replace(/[^a-z0-9\s]/g, ' ')
     .replace(/\s+/g, ' ').trim();
@@ -196,8 +200,9 @@ async function ensurePlacesTables(pool) {
 
 // Load the data file when the table is empty or the file changed. Returns what it did.
 async function seedPlaces(pool, { file = DATA_FILE, log = console, batch = 500, force = false } = {}) {
-  const version = dataFileVersion(file);
-  if (!version) return { seeded: false, reason: 'no data file' };
+  const fileVersion = dataFileVersion(file);
+  if (!fileVersion) return { seeded: false, reason: 'no data file' };
+  const version = `${fileVersion}-n${NORMALISER_VERSION}`;
   const { rows: have } = await pool.query(`SELECT version, row_count FROM places_import ORDER BY imported_at DESC LIMIT 1`);
   const { rows: cnt } = await pool.query(`SELECT COUNT(*)::int AS n FROM places`);
   if (!force && have[0] && have[0].version === version && cnt[0].n === have[0].row_count && cnt[0].n > 0) return { seeded: false, reason: 'up to date', version, rows: cnt[0].n };
@@ -254,6 +259,8 @@ function createPlacesStore(pool) {
     // Namesakes: for each given place row, how many OTHER places in the table share its normalised name,
     // of any type. A place's own council (an admin row of the same name whose authority the place lies
     // in, e.g. the town Winchester and the Winchester district) is the same place and is not counted.
+    // A town or village namesake counts only with a population of 1,000 or more (Brandon, 29 Oct, evening:
+    // a hamlet nobody searches for does not make a real town ambiguous); a district always counts.
     // Returns a Map place_id → { count, examples: ["Newtown (town, Powys)", …] (3 at most) }
     async namesakes(rowsIn) {
       const rows = (rowsIn || []).filter(Boolean);
@@ -262,7 +269,7 @@ function createPlacesStore(pool) {
       for (let i = 0; i < names.length; i += 200) {
         const chunk = names.slice(i, i + 200);
         const ph = chunk.map((_, k) => "$" + (k + 1)).join(", ");
-        const { rows: got } = await pool.query(`SELECT id, name, name_norm, type, is_admin_area, lad_name FROM places WHERE name_norm IN (${ph})`, chunk);
+        const { rows: got } = await pool.query(`SELECT id, name, name_norm, type, is_admin_area, lad_name, population FROM places WHERE name_norm IN (${ph})`, chunk);
         found.push(...got);
       }
       const byNorm = new Map();
@@ -271,7 +278,7 @@ function createPlacesStore(pool) {
       for (const r of rows) {
         const norm = r.name_norm || normaliseName(r.name);
         const ownLad = String(r.lad_name || "").toLowerCase();
-        const others = (byNorm.get(norm) || []).filter(f => f.id !== r.id && !(f.is_admin_area && ownLad.includes(String(f.name).toLowerCase())));
+        const others = (byNorm.get(norm) || []).filter(f => f.id !== r.id && !(f.is_admin_area && ownLad.includes(String(f.name).toLowerCase())) && !(f.type === 'town' && (f.population == null || Number(f.population) < NAMESAKE_TOWN_POPULATION)));
         out.set(r.id, { count: others.length, examples: others.slice(0, 3).map(f => `${f.name} (${f.type}${f.lad_name ? ", " + String(f.lad_name).split(";")[0].trim() : ""})`) });
       }
       return out;
@@ -280,4 +287,4 @@ function createPlacesStore(pool) {
   };
 }
 
-module.exports = { DATA_FILE, COLUMNS, TYPES, slugify, normaliseName, stripAdminSuffix, ADMIN_SUFFIX_RE, kmBetween, milesBetween, bngToLatLng, pointInRings, writeDataFile, readDataFile, dataFileVersion, ensurePlacesTables, seedPlaces, createPlacesStore, countsOf };
+module.exports = { NORMALISER_VERSION, NAMESAKE_TOWN_POPULATION, DATA_FILE, COLUMNS, TYPES, slugify, normaliseName, stripAdminSuffix, ADMIN_SUFFIX_RE, kmBetween, milesBetween, bngToLatLng, pointInRings, writeDataFile, readDataFile, dataFileVersion, ensurePlacesTables, seedPlaces, createPlacesStore, countsOf };
