@@ -178,6 +178,7 @@ Blog Post Structure (Ray, 28 Oct 2026), Layer 2 section 3. Blogs reuse the homep
 | blog_cta_h2 (the Next step heading) | A: Talk to a Local [TRADE_PERSON] About [TOPIC] |
 | cost_unit (how a cost guide prices the job) | A: per job |
 | decision_pairs (common "X or Y" choices, run as decision posts) | Repair or replace · Slate or tile · Felt or EPDM for a flat roof · Concrete or clay tiles · Fascias repaired or replaced |
+| offered_by_page (the blog's "offered" check only, Brandon 29 Oct: a bank service counts as offered when it is the usual work of a page the client has; never a library fold, which would change every roofer's page map) | Flat roofing: EPDM rubber roofing · GRP fibreglass roofing · Felt roofing · Warm roof and cold roof conversion. Roof repairs or Roof replacement: Slate roofing · Tile roofing · Dry ridge and dry verge · Storm damage repairs · Roof inspections. Specialist services (cladding, solar panel bird proofing, commercial roofing, roof coatings, loft ventilation, roof cleaning and moss removal) still need to be on the client's record |
 
 ## do_not_reuse
 

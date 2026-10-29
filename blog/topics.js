@@ -199,6 +199,15 @@ function reserveBlogTopics({ assignment, cv = {}, niche = {}, keyValueMap = {}, 
       const cp = hitPage(pages.filter(p => p.pageType === 'category' && built(p)));
       if (cp) return { service: null, category: cp };
     }
+    // The niche entry's offered_by_page (Brandon, 29 Oct): a bank service that is the usual work of a page the
+    // client has (EPDM, GRP and felt roofing on a Flat roofing page) counts as offered, and the post links that
+    // page; for the blog's offered check only, never a library fold. Specialist services stay on the record.
+    const map = (niche.blog && niche.blog.offered_by_page) || {};
+    for (const [pageName, list] of Object.entries(map)) {
+      if (!(list || []).some(x => sameName(x, t.service))) continue;
+      const page = services.find(p => sameName(pageName, ukName(p.pageTitle)) || sameName(pageName, p.pageTitle));
+      if (page) return { service: page, category: null, offered_by: pageName };
+    }
     return found;
   };
   const bankType = t => (t.type === 'cost' ? 'cost_guide' : t.type === 'decision' ? 'decision' : t.type === 'question' ? 'question' : postTypeOf({ wording: t.question, doubt: '' }, slots.decision_pairs));

@@ -1,6 +1,5 @@
 {
   "_source": "Niche_Library_Roofer (2).md",
-
   "trade": "Roofing",
   "trade_lower": "roofing",
   "trade_person": "roofer",
@@ -10,13 +9,36 @@
   "emergency_niche": true,
   "emergency_niche_note": "storm damage and active leaks — layout only switches on when [CV: emergency_primary] is yes",
   "big_ticket": true,
-  "big_ticket_examples": ["full roof replacements"],
+  "big_ticket_examples": [
+    "full roof replacements"
+  ],
   "schema_subtype": "RoofingContractor",
-
-  "words_use": ["roof", "tiles", "slates", "ridge", "chimney", "flat roof", "gutters", "leak", "damp patch", "flashing", "house", "home"],
-  "words_avoid": ["roofing system", "building envelope", "property", "structure", "solutions", "membrane", "top quality"],
-  "words_avoid_exceptions": { "membrane": "allowed when naming EPDM or a specific product" },
-
+  "words_use": [
+    "roof",
+    "tiles",
+    "slates",
+    "ridge",
+    "chimney",
+    "flat roof",
+    "gutters",
+    "leak",
+    "damp patch",
+    "flashing",
+    "house",
+    "home"
+  ],
+  "words_avoid": [
+    "roofing system",
+    "building envelope",
+    "property",
+    "structure",
+    "solutions",
+    "membrane",
+    "top quality"
+  ],
+  "words_avoid_exceptions": {
+    "membrane": "allowed when naming EPDM or a specific product"
+  },
   "buttons": {
     "primary_action": "Get My [QUOTE_FREE] Quote",
     "meta_cta": "Get your [QUOTE_FREE_LOWER] quote today.",
@@ -26,20 +48,44 @@
     "cta_band_line": "Tell us what's wrong with your roof and we'll get back to you within [CV: response_time].",
     "cta_band_line_no_response": "Tell us what's wrong with your roof and we'll get back to you."
   },
-
   "business_type_default": "A",
-
-  "priority_services": ["Emergency Roof Repair", "Roof Repair"],
+  "priority_services": [
+    "Emergency Roof Repair",
+    "Roof Repair"
+  ],
   "core_services": {
-    "roofing contractor": ["roof repairs", "new roofs", "flat roofs"],
-    "roofer": ["roof repairs", "new roofs", "flat roofs"],
-    "chimney services": ["chimney repairs", "leadwork"],
-    "gutter cleaning service": ["gutter cleaning", "guttering", "fascias and soffits"],
-    "guttering service": ["guttering", "gutter cleaning", "fascias and soffits"],
-    "waterproofing service": ["flat roofs", "roof coatings"],
-    "skylight contractor": ["roof windows"]
+    "roofing contractor": [
+      "roof repairs",
+      "new roofs",
+      "flat roofs"
+    ],
+    "roofer": [
+      "roof repairs",
+      "new roofs",
+      "flat roofs"
+    ],
+    "chimney services": [
+      "chimney repairs",
+      "leadwork"
+    ],
+    "gutter cleaning service": [
+      "gutter cleaning",
+      "guttering",
+      "fascias and soffits"
+    ],
+    "guttering service": [
+      "guttering",
+      "gutter cleaning",
+      "fascias and soffits"
+    ],
+    "waterproofing service": [
+      "flat roofs",
+      "roof coatings"
+    ],
+    "skylight contractor": [
+      "roof windows"
+    ]
   },
-
   "steps": [
     {
       "title": "Tell Us What's Wrong",
@@ -54,38 +100,56 @@
       "brief": "Date agreed once the quote is accepted, to suit the customer. Never mention the price or changes to the work (step 2 and Why choose us own them). Never restates the start time."
     }
   ],
-
   "steps_emergency": [
-    { "title": "Call Us" },
-    { "title": "We Give You a Price and an Arrival Time" },
-    { "title": "We Fix It on the Spot" }
+    {
+      "title": "Call Us"
+    },
+    {
+      "title": "We Give You a Price and an Arrival Time"
+    },
+    {
+      "title": "We Fix It on the Spot"
+    }
   ],
-
   "step_2_no_visit": {
     "title": "We Price Your Job",
     "brief": "Say a price is agreed before any work starts. Describe how the price is reached only from [CV: quote_method]; when quote_method is blank, name no method at all (no photos, call, video, inspection or visit). Never mention going on the roof before the quote. Never restates 'free'."
   },
-  "cover_chain": ["guarantee", "manufacturer_warranty", "insurance"],
-
+  "cover_chain": [
+    "guarantee",
+    "manufacturer_warranty",
+    "insurance"
+  ],
   "fears": [
     "a cold caller or cowboy who invents problems",
     "a repair that doesn't stop the leak, so they pay twice",
     "scaffolding and extras added to the price",
     "a roof left open or a job left half done"
   ],
-
   "logo_tiers": {
-    "ratings": ["Google (5+ reviews)", "Checkatrade", "Trustpilot", "Which? Trusted Traders"],
-    "tier1": ["NFRC (National Federation of Roofing Contractors)", "CompetentRoofer", "TrustMark"],
-    "tier2": ["Marley", "Sika Liquid Plastics", "Firestone (EPDM)", "Redland"],
+    "ratings": [
+      "Google (5+ reviews)",
+      "Checkatrade",
+      "Trustpilot",
+      "Which? Trusted Traders"
+    ],
+    "tier1": [
+      "NFRC (National Federation of Roofing Contractors)",
+      "CompetentRoofer",
+      "TrustMark"
+    ],
+    "tier2": [
+      "Marley",
+      "Sika Liquid Plastics",
+      "Firestone (EPDM)",
+      "Redland"
+    ],
     "tier3": "local press and chambers — Ray's call"
   },
-
   "faq_fixed_doubts": {
     "Q1_cost": "Price",
     "Q6_areas": "Fit"
   },
-
   "faq_slots": [
     {
       "slot": "faq_2",
@@ -191,34 +255,143 @@
       "doubt": "Process"
     }
   ],
-
   "materials_tick_list": {
-    "Pitched roof coverings": ["natural slate", "clay tile", "concrete tile", "fibre cement slate"],
-    "Underlay": ["breathable membrane", "traditional felt"],
-    "Flat roofs": ["EPDM rubber", "GRP fibreglass", "torch on felt", "liquid applied coating"],
-    "Roofline": ["uPVC", "timber", "aluminium guttering", "cast iron guttering"],
-    "Leadwork": ["dressed on site", "lead alternatives"],
-    "Ridges and hips": ["dry fix", "mortar bedded"],
-    "Other": ["scaffolding included in quotes", "photos provided", "roof left watertight each night", "competent person scheme member"]
+    "Pitched roof coverings": [
+      "natural slate",
+      "clay tile",
+      "concrete tile",
+      "fibre cement slate"
+    ],
+    "Underlay": [
+      "breathable membrane",
+      "traditional felt"
+    ],
+    "Flat roofs": [
+      "EPDM rubber",
+      "GRP fibreglass",
+      "torch on felt",
+      "liquid applied coating"
+    ],
+    "Roofline": [
+      "uPVC",
+      "timber",
+      "aluminium guttering",
+      "cast iron guttering"
+    ],
+    "Leadwork": [
+      "dressed on site",
+      "lead alternatives"
+    ],
+    "Ridges and hips": [
+      "dry fix",
+      "mortar bedded"
+    ],
+    "Other": [
+      "scaffolding included in quotes",
+      "photos provided",
+      "roof left watertight each night",
+      "competent person scheme member"
+    ]
   },
-
-  "service_terms": ["re-roofing", "new roof", "roof replacement", "roof repair", "flat roofing", "flat roof", "leadwork", "lead flashing", "chimney repointing", "chimney repair", "chimney removal", "gutter cleaning", "guttering", "gutter repair", "fascias", "soffits", "ridge repair", "dry ridge", "dry verge", "valley repair", "skylight", "roof window", "roof inspection", "roof survey", "moss removal", "roof cleaning", "emergency repair", "storm damage", "loft insulation", "tile replacement", "slate replacement"],
-
+  "service_terms": [
+    "re-roofing",
+    "new roof",
+    "roof replacement",
+    "roof repair",
+    "flat roofing",
+    "flat roof",
+    "leadwork",
+    "lead flashing",
+    "chimney repointing",
+    "chimney repair",
+    "chimney removal",
+    "gutter cleaning",
+    "guttering",
+    "gutter repair",
+    "fascias",
+    "soffits",
+    "ridge repair",
+    "dry ridge",
+    "dry verge",
+    "valley repair",
+    "skylight",
+    "roof window",
+    "roof inspection",
+    "roof survey",
+    "moss removal",
+    "roof cleaning",
+    "emergency repair",
+    "storm damage",
+    "loft insulation",
+    "tile replacement",
+    "slate replacement"
+  ],
   "service_words_note": "Old path only (21 Oct 2026): this list applies when the homepage is written from the uploaded custom values CSVs. A client with a v3 page map names every service by its page title (the services library's UK name), and this list is not used.",
   "service_words": [
-    ["fascia", "fascias and soffits"], ["soffit", "fascias and soffits"], ["skylight", "roof windows"],
-    ["gutter cleaning", "gutter cleaning"], ["gutter", "guttering"], ["roof inspection", "roof checks"],
-    ["re-roofing", "new roofs"], ["roof replacement", "new roofs"], ["flat roof", "flat roofs"],
-    ["emergency roof repair", "emergency roof repairs"], ["lead", "leadwork"], ["chimney", "chimney repairs"],
-    ["roof coating", "roof coatings"], ["roofing contractor", "roofing"]
+    [
+      "fascia",
+      "fascias and soffits"
+    ],
+    [
+      "soffit",
+      "fascias and soffits"
+    ],
+    [
+      "skylight",
+      "roof windows"
+    ],
+    [
+      "gutter cleaning",
+      "gutter cleaning"
+    ],
+    [
+      "gutter",
+      "guttering"
+    ],
+    [
+      "roof inspection",
+      "roof checks"
+    ],
+    [
+      "re-roofing",
+      "new roofs"
+    ],
+    [
+      "roof replacement",
+      "new roofs"
+    ],
+    [
+      "flat roof",
+      "flat roofs"
+    ],
+    [
+      "emergency roof repair",
+      "emergency roof repairs"
+    ],
+    [
+      "lead",
+      "leadwork"
+    ],
+    [
+      "chimney",
+      "chimney repairs"
+    ],
+    [
+      "roof coating",
+      "roof coatings"
+    ],
+    [
+      "roofing contractor",
+      "roofing"
+    ]
   ],
-
-  "general_service_words": ["roofing"],
+  "general_service_words": [
+    "roofing"
+  ],
   "why_titles_alt": [
     "Local Experience Behind Every Job",
     "Covered If Something Goes Wrong"
   ],
-
   "seasonal_trade": false,
   "blog": {
     "seasonal_topics": [
@@ -261,7 +434,29 @@
       "Felt or EPDM for a flat roof",
       "Concrete or clay tiles",
       "Fascias repaired or replaced"
-    ]
+    ],
+    "offered_by_page": {
+      "Flat roofing": [
+        "EPDM rubber roofing",
+        "GRP fibreglass roofing",
+        "Felt roofing",
+        "Warm roof and cold roof conversion"
+      ],
+      "Roof repairs": [
+        "Slate roofing",
+        "Tile roofing",
+        "Dry ridge and dry verge",
+        "Storm damage repairs",
+        "Roof inspections"
+      ],
+      "Roof replacement": [
+        "Slate roofing",
+        "Tile roofing",
+        "Dry ridge and dry verge",
+        "Storm damage repairs",
+        "Roof inspections"
+      ]
+    }
   },
   "do_not_reuse": []
 }

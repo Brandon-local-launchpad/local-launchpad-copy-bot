@@ -169,6 +169,15 @@ const niche = { ...edens.niche, _source: 'landscaper' };
     const paa = [...rvn.topics, ...rvn.held_back].filter(t => t.source === 'blog_bank');
     chk('B1: a bank topic whose service the client does not offer (BT-4 on chimney removal) is neither a post nor held, named once in F-NOT-OFFERED; a trade wide block (General) stays; a People also ask block marks its topic search_evidence', !bt4n && nf && /BT-4 \(Chimney removal\)/.test(nf.msg) && nf.ids.length === 1 && [...rvn.topics, ...rvn.held_back].some(t => t.question && t.question.id === 'BT-5') && paa.length > 0 && paa.every(t => !!t.search_evidence === [...v2n.topics, ...v2n.costTopics].some(b => b.id === (t.bank_topic || (t.question && t.question.id)) && b.related.some(r => r.source === 'PAA'))) && paa.some(t => t.search_evidence), JSON.stringify([!!bt4n, nf && nf.msg, paa.map(t => [t.key.slice(0, 40), !!t.search_evidence])]), '');
   }
+  // The niche entry's offered_by_page (Brandon, 29 Oct): a bank service that is the usual work of a page the client has counts as offered, and the post links that page
+  {
+    const v2o = B.parseBank(fs.readFileSync(path.join(__dirname, 'data/blog-bank-landscaper-sample-v2.md'), 'utf8'));
+    v2o.topics[3].service = 'Chimney removal';
+    const nicheO = { ...niche, blog: { ...niche.blog, offered_by_page: { 'Lawn mowing and maintenance': ['Chimney removal'] } } };
+    const rvo = reserveBlogTopics({ ...base, niche: nicheO, bank: v2o, launchDate: '2026-11-09' });
+    const bt4o = [...rvo.topics, ...rvo.held_back].find(t => t.question && t.question.id === 'BT-4');
+    chk('offered_by_page: the same chimney removal block counts as offered when the niche entry lists it as the usual work of a page the client has (the lawn mowing page here), and the post links that page; no F-NOT-OFFERED', bt4o && bt4o.service && /lawn-mowing/.test(bt4o.service.urlSlug || bt4o.service.slug || '') && /lawn-mowing/.test(bt4o.primary) && !rvo.flags.some(f => f.code === 'F-NOT-OFFERED'), JSON.stringify(bt4o && [bt4o.service, bt4o.primary, rvo.flags.map(f => f.code)]), '');
+  }
   // A bank topic named by the library's UK name finds its page (29 Oct): "Artificial grass installation" is the Artificial Turf Installation page
   {
     const v2u = B.parseBank(fs.readFileSync(path.join(__dirname, 'data/blog-bank-landscaper-sample-v2.md'), 'utf8'));
