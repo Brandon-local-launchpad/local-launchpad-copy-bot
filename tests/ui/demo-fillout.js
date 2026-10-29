@@ -144,8 +144,8 @@ process.env.APP_PASSWORD = '';
 
   console.log('\nDEMO READY');
   console.log(`  Webhook:  POST ${base}/api/webhooks/fillout?token=${SECRET}`);
-  console.log(`  Inbox:    ${base}/submissions.html`);
-  console.log(`  Record:   ${base}/client-record.html?id=${rows[0].client_id}`);
-  console.log(`  Clients:  ${base}/clients.html`);
-  console.log(`  By hand:  ${base}/client-record.html?id=${hand.id}#pages`);
+  console.log(`  Inbox:    ${base}/clients (the Fillout inbox card)`);
+  console.log(`  Record:   ${base}/clients/${rows[0].client_id}/record?view=form`);
+  console.log(`  Clients:  ${base}/clients`);
+  console.log(`  By hand:  ${base}/clients/${hand.id}/page-map`);
 })().catch(e => { console.error('Demo failed:', e); process.exit(1); });

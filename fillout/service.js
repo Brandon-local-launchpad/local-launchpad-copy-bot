@@ -152,12 +152,14 @@ function createFilloutService({ pool, audioStore, fetchAudio = defaultFetchAudio
       const nameNorm = I.norm(rec.businessName);
       const emailNorm = I.norm(rec.businessEmail);
 
-      // Which client. Same business name AND same email as an earlier processed submission: that client.
-      // Anything less: a new client, flagged as a possible duplicate when name or email matches.
+      // Which client (the UI redesign brief, 27 Oct): the same email or the same phone as an existing,
+      // unarchived client merges into that client, never a second one. The same name alone: a new
+      // client, flagged as a possible duplicate.
       let clientId = sub.client_id;
       let duplicateOf = null;
       if (!clientId) {
-        const match = await findClient(nameNorm, emailNorm, sub.id);
+        const phoneField = (rec.fields || []).find(f => f.key === 'business_phone' && f.status === 'filled');
+        const match = await findClient(nameNorm, emailNorm, sub.id, phoneField ? phoneField.value : '');
         clientId = match.clientId;
         duplicateOf = match.duplicateOf;
         if (!clientId) {
@@ -192,8 +194,10 @@ function createFilloutService({ pool, audioStore, fetchAudio = defaultFetchAudio
     }
   }
 
-  async function findClient(nameNorm, emailNorm, excludeRowId) {
-    if (!nameNorm && !emailNorm) return { clientId: null, duplicateOf: null };
+  const normPhone = p => String(p == null ? '' : p).replace(/[^\d+]/g, '').replace(/^\+44/, '0').replace(/^0044/, '0');
+  async function findClient(nameNorm, emailNorm, excludeRowId, phone = '') {
+    const phoneNorm = normPhone(phone);
+    if (!nameNorm && !emailNorm && !phoneNorm) return { clientId: null, duplicateOf: null };
     const { rows } = await pool.query(
       `SELECT s.client_id, s.business_name_norm, s.business_email_norm, c.archived_at
          FROM fillout_submissions s JOIN clients c ON c.id = s.client_id
@@ -202,8 +206,14 @@ function createFilloutService({ pool, audioStore, fetchAudio = defaultFetchAudio
     for (const r of rows) {
       const nameHit = !!nameNorm && r.business_name_norm === nameNorm;
       const emailHit = !!emailNorm && r.business_email_norm === emailNorm;
-      if (nameHit && emailHit && !r.archived_at) return { clientId: r.client_id, duplicateOf: null };
+      if (emailHit && !r.archived_at) return { clientId: r.client_id, duplicateOf: null };
       if ((nameHit || emailHit) && !duplicateOf) duplicateOf = r.client_id;
+    }
+    if (phoneNorm.length >= 10) {
+      // The same phone on an unarchived client's record (a Fillout field, or the wizard's seed)
+      const { rows: ph } = await pool.query(`SELECT f.client_id, f.value FROM client_fields f JOIN clients c ON c.id = f.client_id WHERE f.field_key = 'business_phone' AND f.status = 'filled' AND c.archived_at IS NULL`);
+      const hit = ph.find(r => normPhone(typeof r.value === 'string' ? r.value : JSON.stringify(r.value)) === phoneNorm);
+      if (hit) return { clientId: hit.client_id, duplicateOf: null };
     }
     if (!duplicateOf && nameNorm) {
       // A client someone created by hand with the same name

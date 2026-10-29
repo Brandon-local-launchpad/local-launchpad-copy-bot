@@ -20,6 +20,8 @@ const Papa       = require('papaparse');
 const JSZip      = require('jszip');
 const { validate, checkOrphanedServices } = require('./validate');
 const { pool, initDb } = require('./db');
+// The per-call model log (UI redesign, 27 Oct): every model call's tokens and cost, for Settings
+const modelLog = require('./ui/model-log').createModelLog(pool);
 const { computeDecisions } = require('./decisions');
 const allocation = require('./allocation');
 const { parseDossier } = require('./geo-dossier');
@@ -37,7 +39,7 @@ const filloutRoutes = require('./fillout/routes');
 const { createFilloutService } = require('./fillout/service');
 const { createPgAudioStore } = require('./fillout/audio-store');
 // Price extraction uses the same model and call helper as v20 generation (V20_MODEL via anthropic-call.js)
-const filloutCallModel = process.env.ANTHROPIC_API_KEY ? makeCallModel(new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY }), v20.V20_MODEL) : null;
+const filloutCallModel = process.env.ANTHROPIC_API_KEY ? makeCallModel(new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY }), v20.V20_MODEL, { onUsage: modelLog.tagged('price extraction') }) : null;
 const filloutService = pool ? createFilloutService({ pool, audioStore: createPgAudioStore(pool), callModel: filloutCallModel, modelName: v20.V20_MODEL }) : null;
 if (filloutService) filloutRoutes.mountWebhook(app, filloutService, { secret: process.env.FILLOUT_WEBHOOK_SECRET || '' });
 else app.post('/api/webhooks/fillout', (_req, res) => res.status(503).json({ error: 'Database not configured.' }));
@@ -80,7 +82,7 @@ app.post('/auth/login', express.urlencoded({ extended: false }), (req, res) => {
     const token   = signToken(APP_PASSWORD);
     const maxAge  = 30 * 24 * 3600; // 30 days
     res.setHeader('Set-Cookie', `ll_auth=${token}; Path=/; HttpOnly; Max-Age=${maxAge}; SameSite=Lax`);
-    return res.redirect('/clients.html');
+    return res.redirect('/dashboard');
   }
   res.redirect('/login.html?error=1');
 });
@@ -1212,11 +1214,15 @@ async function callClaude(client, promptParts, maxTokens = 8192) {
   };
   const options = { headers: { 'anthropic-beta': 'prompt-caching-2024-07-31' } };
   try {
-    return await client.messages.create(params, options);
+    const r = await client.messages.create(params, options);
+    modelLog.record({ model: params.model, usage: r.usage, call_type: 'old path page' });
+    return r;
   } catch (err) {
     if (err.status === 429) {
       await sleep(30000);
-      return await client.messages.create(params, options);
+      const r = await client.messages.create(params, options);
+      modelLog.record({ model: params.model, usage: r.usage, call_type: 'old path page' });
+      return r;
     }
     throw err;
   }
@@ -1365,7 +1371,7 @@ app.get('/api/niche/:trade', (req, res) => {
   const { niche, error } = loadNiche(req.params.trade);
   if (error) return res.status(404).json({ error });
   // The Client Values screen's confirmed practices tick list comes with the niche
-  res.json({ ...niche, practices: practicesFor(niche) });
+  res.json({ ...niche, practices: practicesFor(niche), all_practices: PRACTICES });
 });
 
 app.post('/api/parse-zip', upload.array('files', 30), async (req, res) => {
@@ -2869,6 +2875,115 @@ app.get('/api/clients/:clientId/dossiers/:assetId/download', async (req, res) =>
 });
 
 // Re-run research for a single location (adds to or creates a research job record)
+// ── The Research tab (UI redesign, 27 Oct): the towns, their codes, the module and the client
+// block for a run with no upload session. A Fillout or hand set-up client has no custom values
+// CSVs: the block is built from the client values and the page map instead. Codes are the saved
+// client_locations codes, else made the way the upload path makes them and saved. ──
+async function researchContextFor(clientId) {
+  const { rows: cs } = await pool.query('SELECT * FROM clients WHERE id = $1', [clientId]);
+  if (!cs.length) throw Object.assign(new Error('Client not found.'), { status: 404 });
+  const client = cs[0];
+  const N = require('./fillout/niches');
+  const label = client.niche_key ? N.nicheLabel(client.niche_key) : null;
+  const candidates = [client.trade, ...Object.entries(N.TRADE_TO_LABEL).filter(([, l]) => l === label).map(([t]) => t)].filter(Boolean);
+  const modKeys = Object.keys(RESEARCH_MODULES);
+  let moduleName = null;
+  for (const c of candidates) {
+    const m = tradeToResearchModule(canonicalTradeName(c));
+    if (m) { moduleName = m; break; }
+    const k = modKeys.find(x => x.toLowerCase() === String(c).toLowerCase());
+    if (k) { moduleName = k; break; }
+  }
+  const towns = [];
+  let baseTown = '';
+  let mapRows = [];
+  if (pageMapStore) {
+    const st = await pageMapStore.state(clientId).catch(() => null);
+    baseTown = (st && st.inputs && st.inputs.baseTown) || '';
+    mapRows = await pageMapStore.saved(clientId).catch(() => []);
+    for (const r of mapRows) if (r.type === 'location' && r.applies !== false && !r.retired_at && r.info && r.info.town && !towns.includes(r.info.town)) towns.push(r.info.town);
+  }
+  const cvRow = await pool.query(`SELECT content FROM client_assets WHERE client_id=$1 AND asset_type='client_values' ORDER BY uploaded_at DESC LIMIT 1`, [clientId]);
+  const cv = cvRow.rows.length ? JSON.parse(cvRow.rows[0].content) : {};
+  const files = await pool.query(`SELECT content FROM client_assets WHERE client_id=$1 AND asset_type='client_file' AND metadata->>'fileType'='custom_values' ORDER BY uploaded_at`, [clientId]);
+  let keyValueMap = {}, serviceParentMap = {};
+  if (files.rows.length) { const parsed = parseCustomValues(files.rows.map(r => r.content)); keyValueMap = { ...(parsed.keyValueMap || {}) }; serviceParentMap = { ...(parsed.serviceParentMap || {}) }; }
+  if (!towns.length) for (let i = 1; keyValueMap[`biz_area_${i}`]; i++) towns.push(keyValueMap[`biz_area_${i}`]);
+  if (!baseTown) baseTown = keyValueMap.biz_area_1 || towns[0] || '';
+  const bi = towns.findIndex(t => normaliseLocation(t) === normaliseLocation(baseTown));
+  if (baseTown && bi < 0) towns.unshift(baseTown);
+  else if (bi > 0) towns.unshift(towns.splice(bi, 1)[0]);
+  if (!keyValueMap.company_name) keyValueMap.company_name = cv.company_name || client.name;
+  if (!keyValueMap.biz_area_1) towns.forEach((t, i) => { keyValueMap[`biz_area_${i + 1}`] = t; });
+  if (!keyValueMap.category_1 && mapRows.length) {
+    const cats = mapRows.filter(r => r.type === 'category' && r.applies !== false && !r.retired_at);
+    cats.forEach((c, i) => { keyValueMap[`category_${i + 1}`] = c.title; });
+    let n = 1;
+    for (const sv of mapRows.filter(r => r.type === 'service' && r.applies !== false && !r.retired_at)) {
+      const parentKey = sv.info && sv.info.parent_keys && sv.info.parent_keys[0];
+      const parent = cats.find(c => c.info && c.info.category_key === parentKey) || cats[0];
+      if (!parent) continue;
+      keyValueMap[`service_${n}`] = sv.title; serviceParentMap[`service_${n}`] = parent.title; n++;
+    }
+  }
+  const { rows: lc } = await pool.query('SELECT location_name_norm, code FROM client_locations WHERE client_id = $1', [clientId]);
+  const existing = Object.fromEntries(lc.map(r => [r.location_name_norm, r.code]));
+  const used = new Set(Object.values(existing));
+  const list = [];
+  for (const name of towns) {
+    const norm = normaliseLocation(name);
+    let code = existing[norm] || null;
+    if (!code) {
+      const base = name.replace(/[^a-zA-Z]/g, '').slice(0, 3).toUpperCase().padEnd(3, 'X');
+      if (!used.has(base)) code = base;
+      else for (let d = 2; d <= 9 && !code; d++) { const c = base.slice(0, 2) + d; if (!used.has(c)) code = c; }
+      if (!code) { let seq = 1; while (used.has(`L${String(seq).padStart(2, '0')}`)) seq++; code = `L${String(seq).padStart(2, '0')}`; }
+      used.add(code); existing[norm] = code;
+      await pool.query(`INSERT INTO client_locations (client_id, location_name_norm, location_name_display, code) VALUES ($1, $2, $3, $4) ON CONFLICT (client_id, location_name_norm) DO NOTHING`, [clientId, norm, name, code]).catch(() => {});
+    }
+    list.push({ name, norm, code, runType: norm === normaliseLocation(baseTown) ? 'PRIMARY CITY' : 'TOWN', adminArea: isAdminArea(name) });
+  }
+  return { client, moduleName, modules: AVAILABLE_RESEARCH_MODULES, towns: list, keyValueMap, serviceParentMap, baseTown };
+}
+app.get('/api/clients/:clientId/research', async (req, res) => {
+  if (!pool) return res.status(503).json({ error: 'Database not configured.' });
+  try {
+    const ctx = await researchContextFor(req.params.clientId);
+    res.json({ module: ctx.moduleName, modules: ctx.modules, baseTown: ctx.baseTown, county: ctx.keyValueMap.biz_county || '', towns: ctx.towns.map(t => ({ name: t.name, code: t.code, runType: t.runType, adminArea: t.adminArea })) });
+  } catch (err) { res.status(err.status || 500).json({ error: err.message }); }
+});
+// Research the named towns (or every town) in one job, one after another; the tab polls geo-location-status
+app.post('/api/clients/:clientId/research/run', async (req, res) => {
+  if (!pool) return res.status(503).json({ error: 'Database not configured.' });
+  try {
+    const ctx = await researchContextFor(req.params.clientId);
+    const moduleName = (req.body && req.body.moduleName) || ctx.moduleName;
+    if (!moduleName || !RESEARCH_MODULES[moduleName]) return res.status(400).json({ error: moduleName ? `Unknown module "${moduleName}".` : "No research module matches this client's niche: pick one." });
+    const wanted = Array.isArray(req.body && req.body.towns) && req.body.towns.length ? new Set(req.body.towns.map(normaliseLocation)) : null;
+    const county = String((req.body && req.body.county) || ctx.keyValueMap.biz_county || '').trim();
+    const locations = ctx.towns.filter(t => !t.adminArea && (!wanted || wanted.has(t.norm))).map(t => ({ ...t, county }));
+    if (!locations.length) return res.status(400).json({ error: 'No towns to research (council areas are skipped).' });
+    const record = { id: crypto.randomUUID(), sessionId: '', clientId: req.params.clientId, status: 'running', preset: PERPLEXITY_PRESET, locations: {}, createdAt: Date.now() };
+    for (const l of locations) record.locations[l.code] = { name: l.name, status: 'pending', startedAt: null, finishedAt: null, inputTokens: null, outputTokens: null, searchCount: null, rawUsage: null, cost: null, preset: PERPLEXITY_PRESET, assetId: null, error: null };
+    researchJobs.set(record.id, record);
+    await persistResearchRecord(record);
+    res.json({ jobId: record.id, towns: locations.map(l => l.name), module: moduleName });
+    (async () => {
+      for (const l of locations) await runOneLocation(record, req.params.clientId, l, moduleName, ctx.keyValueMap, ctx.serviceParentMap, false);
+    })().catch(err => console.error('[research] run failed for', req.params.clientId, err));
+  } catch (err) { res.status(err.status || 500).json({ error: err.message }); }
+});
+// A dossier's counts for the Research tab: neighbourhoods (and those with sourced detail), issues, symptoms, rules
+app.get('/api/clients/:clientId/dossiers/:assetId/summary', async (req, res) => {
+  if (!pool) return res.status(503).json({ error: 'Database not configured.' });
+  try {
+    const { rows } = await pool.query(`SELECT content, metadata, uploaded_at FROM client_assets WHERE id = $1 AND client_id = $2 AND asset_type = 'geo_dossier'`, [req.params.assetId, req.params.clientId]);
+    if (!rows.length) return res.status(404).json({ error: 'Dossier not found.' });
+    const d = parseDossier(rows[0].content);
+    res.json({ neighbourhoods: d.neighbourhoods.length, sourced: d.neighbourhoods.filter(n => n.sourced).length, issues: d.issues.length, symptoms: d.symptoms.length, rules: d.rules.length, coastal: d.coastal || null, warnings: d.warnings || [], uploadedAt: rows[0].uploaded_at, chars: rows[0].content.length });
+  } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
 app.post('/api/research-rerun', async (req, res) => {
   const { jobId, sessionId, clientId, location, moduleName, includeSecurityAddOn } = req.body;
 
@@ -2903,10 +3018,9 @@ app.post('/api/research-rerun', async (req, res) => {
   })();
 });
 
-// ── Serve generate tool at /generate ─────────────────────────────────────────
-
-app.get('/generate', (req, res) => res.sendFile(path.join(__dirname, 'public', 'generate.html')));
-app.get('/', (req, res) => res.redirect('/clients.html'));
+// The old generate page (the GoHighLevel path's upload steps) is gone (UI redesign, 28 Oct); the app lives at /dashboard
+app.get('/', (req, res) => res.redirect('/dashboard'));
+app.get('/generate', (req, res) => res.redirect('/dashboard'));
 
 // ── v20 client values ─────────────────────────────────────────────────────────
 
@@ -3064,6 +3178,7 @@ app.post('/api/clients/:clientId/prefill-client-values', async (req, res) => {
           max_tokens: 1024,
           messages: [{ role: 'user', content: extractPrompt }],
         });
+        modelLog.record({ model: 'claude-sonnet-4-6', usage: extractResult.usage, call_type: 'onboarding extraction', client_id: typeof clientId !== 'undefined' ? clientId : null });
         const raw = extractResult.content[0].text.trim();
         const jsonStr = raw.startsWith('{') ? raw : raw.replace(/^```(?:json)?\n?/, '').replace(/\n?```$/, '');
         const extracted = JSON.parse(jsonStr);
@@ -3318,6 +3433,7 @@ async function runAllocationForClient(clientId, sessionId) {
         model: allocation.ALLOCATION_MODEL, max_tokens: 2048, system,
         messages: [{ role: 'user', content: message }],
       });
+      modelLog.record({ model: allocation.ALLOCATION_MODEL, usage: r.usage, call_type: 'allocation' });
       return r.content.map(c => c.text || '').join('');
     };
     const homepage = await allocation.runAllocation({
@@ -3452,6 +3568,7 @@ const faqService = pool ? createFaqService({
   callSortModel: async (system, message) => {
     const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
     const r = await client.messages.create({ model: faqSort.FAQ_SORT_MODEL, max_tokens: 8000, system, messages: [{ role: 'user', content: message }] });
+    modelLog.record({ model: faqSort.FAQ_SORT_MODEL, usage: r.usage, call_type: 'FAQ sorting' });
     return r.content.map(c => c.text || '').join('');
   },
   // The questions on the latest saved version of each v20 page keep their page
@@ -3659,9 +3776,12 @@ async function v20HomepageInputs(clientId, sessionId) {
   return { ctx, niche, allocFlags, view, decisionsResult };
 }
 
+// The clients whose homepage is being written right now (the dashboard's Running now)
+const homepageRunning = new Set();
 app.post('/api/clients/:clientId/v20/homepage/generate', async (req, res) => {
   if (!pool) return res.status(503).json({ error: 'Database not configured.' });
   const { clientId } = req.params;
+  homepageRunning.add(clientId); res.on('finish', () => homepageRunning.delete(clientId));
   const sessionId = req.body && req.body.sessionId;
   try {
     let inputs;
@@ -3672,7 +3792,7 @@ app.post('/api/clients/:clientId/v20/homepage/generate', async (req, res) => {
     const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
     // One call helper for every model the generation uses (the writer, the claims and
     // quality reviewers): anthropic-call.js handles the 5.5 models' effort and fallback
-    const callModel = makeCallModel(client, v20.V20_MODEL);
+    const callModel = makeCallModel(client, v20.V20_MODEL, { onUsage: modelLog.tagged('homepage', { client_id: clientId, page_type: 'homepage', page_key: 'homepage' }) });
     const record = await v20.generateV20Homepage({
       cv: ctx.cv, niche, keyValueMap: ctx.keyValueMap, serviceParentMap: ctx.serviceParentMap, decisionsResult,
       calibrationPack: pack.text, calibrationPackName: pack.name, callModel,
@@ -3866,7 +3986,7 @@ async function saveClientValue(clientId, key, value) {
 }
 if (pool && pageMapStore) {
   const { GBP_MODEL } = require('./gbp/generate');
-  const gbpCallModel = args => makeCallModel(new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY }), GBP_MODEL)(args);
+  const gbpCallModel = args => makeCallModel(new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY }), GBP_MODEL, { onUsage: modelLog.tagged('GBP output') })(args);
   // LeadSnap rank scans (batch 3): the client exists only when the token is set on Railway
   const leadsnap = process.env.LEADSNAP_API_TOKEN ? require('./leadsnap/client').createLeadsnapClient() : null;
   require('./gbp/routes').mountGbpApi(app, { pool, loadInputs: gbpInputsFor, callModel: gbpCallModel, saveClientValue, leadsnap });
@@ -3913,7 +4033,7 @@ if (pool && pageMapStore && v20Store) {
   const CG = require('./category-generate');
   const { createCategoryRunner } = require('./category-run');
   const P = require('./trade-facts/pack');
-  const callModel = args => makeCallModel(new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY }), CG.CATEGORY_MODEL)(args);
+  const callModel = args => makeCallModel(new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY }), CG.CATEGORY_MODEL, { onUsage: modelLog.tagged('category pages', { page_type: 'category' }) })(args);
   categoryRunner = createCategoryRunner({
     pool, v20Store,
     loadInputs: categoryInputsFor,
@@ -3929,7 +4049,7 @@ if (pool && pageMapStore && v20Store) {
     },
     allocate: args => allocation.runAllocation({ ...args, callModel: async (system, message) => {
       const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
-      const r = await client.messages.create({ model: allocation.ALLOCATION_MODEL, max_tokens: 2048, system, messages: [{ role: 'user', content: message }] });
+      const r = await client.messages.create({ model: allocation.ALLOCATION_MODEL, max_tokens: 2048, system, messages: [{ role: 'user', content: message }] }); modelLog.record({ model: allocation.ALLOCATION_MODEL, usage: r.usage, call_type: 'allocation' });
       return r.content.map(c => c.text || '').join('');
     } }),
   });
@@ -3970,14 +4090,14 @@ if (pool && pageMapStore && v20Store) {
   // service-decisions.js the decisions. The trade facts pack must be verified (serviceGate).
   const SG = require('./service-generate');
   const { createServiceRunner } = require('./service-run');
-  const serviceCallModel = args => makeCallModel(new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY }), SG.SERVICE_MODEL)(args);
+  const serviceCallModel = args => makeCallModel(new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY }), SG.SERVICE_MODEL, { onUsage: modelLog.tagged('service pages', { page_type: 'service' }) })(args);
   serviceRunner = createServiceRunner({
     pool, v20Store,
     loadInputs: serviceInputsFor,
     generate: args => SG.generateServicePage({ ...args, callModel: serviceCallModel }),
     allocate: args => allocation.runAllocation({ ...args, callModel: async (system, message) => {
       const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
-      const r = await client.messages.create({ model: allocation.ALLOCATION_MODEL, max_tokens: 2048, system, messages: [{ role: 'user', content: message }] });
+      const r = await client.messages.create({ model: allocation.ALLOCATION_MODEL, max_tokens: 2048, system, messages: [{ role: 'user', content: message }] }); modelLog.record({ model: allocation.ALLOCATION_MODEL, usage: r.usage, call_type: 'allocation' });
       return r.content.map(c => c.text || '').join('');
     } }),
   });
@@ -4021,14 +4141,14 @@ if (pool && pageMapStore && v20Store) {
   // location-decisions.js the decisions. No trade facts are sent (the page explains the town).
   const LG = require('./location-generate');
   const { createLocationRunner } = require('./location-run');
-  const locationCallModel = args => makeCallModel(new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY }), LG.LOCATION_MODEL)(args);
+  const locationCallModel = args => makeCallModel(new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY }), LG.LOCATION_MODEL, { onUsage: modelLog.tagged('location pages', { page_type: 'location' }) })(args);
   locationRunner = createLocationRunner({
     pool, v20Store,
     loadInputs: categoryInputsFor,
     generate: args => LG.generateLocationPage({ ...args, callModel: locationCallModel }),
     allocate: args => allocation.runAllocation({ ...args, callModel: async (system, message) => {
       const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
-      const r = await client.messages.create({ model: allocation.ALLOCATION_MODEL, max_tokens: 2048, system, messages: [{ role: 'user', content: message }] });
+      const r = await client.messages.create({ model: allocation.ALLOCATION_MODEL, max_tokens: 2048, system, messages: [{ role: 'user', content: message }] }); modelLog.record({ model: allocation.ALLOCATION_MODEL, usage: r.usage, call_type: 'allocation' });
       return r.content.map(c => c.text || '').join('');
     } }),
   });
@@ -4059,6 +4179,23 @@ if (pool && pageMapStore && v20Store) {
   }));
 }
 
+// ── The redesigned UI (27 Oct): the dashboard, assigned to, the app shell (ui/routes.js) ──
+const uiRoutes = require('./ui/routes');
+uiRoutes.mountUiApi(app, { pool, tradeFacts, runners: () => ({ category: categoryRunner, service: serviceRunner, location: locationRunner }), homepageRunning: () => homepageRunning });
+uiRoutes.mountAppShell(app, path.join(__dirname, 'public'));
+// The Add client wizard (ui/intake.js): the website read (one fetch, one model call), Places, the merge, the create
+{
+  const places = require('./gbp/places');
+  const intakeCallModel = process.env.ANTHROPIC_API_KEY ? makeCallModel(new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY }), 'claude-sonnet-4-6', { onUsage: modelLog.tagged('website read') }) : null;
+  const placesOn = !!process.env.GOOGLE_PLACES_API_KEY;
+  require('./ui/library').mountLibraryApi(app, { pool, modelLog, leadsnap: process.env.LEADSNAP_API_TOKEN ? require('./leadsnap/client').createLeadsnapClient() : null });
+  require('./ui/intake').mountIntakeApi(app, {
+    pool, callModel: intakeCallModel,
+    placesSearch: placesOn ? q => places.searchPlaces(q) : null,
+    placeDetails: placesOn ? id => places.getPlace(id) : null,
+  });
+}
+
 app.get('/api/clients/:clientId/wp/connection', wpRoute(req => wpService.connection(req.params.clientId)));
 app.put('/api/clients/:clientId/wp/connection', wpRoute(req => wpService.saveConnection(req.params.clientId, req.body || {})));
 app.post('/api/clients/:clientId/wp/test', wpRoute(req => wpService.test(req.params.clientId)));
@@ -4081,6 +4218,16 @@ for (const base of V20_PAGE_BASES) {
     const versions = await v20Store.versions(req.params.clientId, v20PageOf(req), 20);
     if (!versions.length) return { record: null, history: [] };
     return { record: versions[0].record, history: versions.map(v => ({ id: v.id, generatedAt: v.at })) };
+  }));
+
+  // Approve (UI redesign, 27 Oct): a mark on the version shown; Push on the Page view needs it
+  app.post(`${base}/approve`, wpRoute(async req => {
+    const page = v20PageOf(req);
+    const id = (req.body && req.body.recordId) || ((await v20Store.latest(req.params.clientId, page)) || {}).id;
+    if (!id) throw Object.assign(new Error('No version to approve.'), { status: 404 });
+    const approve = !(req.body && req.body.approved === false);
+    const record = await v20Store.setMeta(req.params.clientId, id, approve ? { approved_at: new Date().toISOString(), approved_by: String((req.body && req.body.by) || '').slice(0, 80) || null } : { approved_at: null, approved_by: null });
+    return { recordId: id, approved_at: record.meta.approved_at, approved_by: record.meta.approved_by };
   }));
 
   app.get(`${base}/download`, async (req, res) => {
@@ -4315,6 +4462,8 @@ initDb().then(async () => {
     const n = await filloutService.recoverPending().catch(err => { console.error('[fillout] recovery failed:', err); return 0; });
     if (n) console.log(`[fillout] processed ${n} submission(s) left waiting by a restart`);
   }
+  // A preview environment's demo client (tools/seed-demo-client.js): only when SEED_DEMO_CLIENT=1, never on production
+  if (pool && process.env.SEED_DEMO_CLIENT === '1') await require('./tools/seed-demo-client').seedDemoClient(pool, { v20HomepageInputs, filloutService }).catch(err => console.error('[seed-demo] failed:', err));
   app.listen(PORT, () => console.log(`Copy bot running at http://localhost:${PORT}`));
   // The places table (the Location Determiner's towns, suburbs and admin areas): created, then
   // seeded from locations/data/places.csv.gz after the server is up, only when the file changed

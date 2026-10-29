@@ -44,7 +44,7 @@ if (process.env.DEMO_REAL_MODEL !== '1') {
   require.cache[SDK_ID] = { id: SDK_ID, filename: SDK_ID, loaded: true, exports: FakeAnthropic };
 }
 
-const PORT = process.env.DEMO_PORT || 3991;
+const PORT = process.env.DEMO_PORT || (process.argv.includes('--port') ? process.argv[process.argv.indexOf('--port') + 1] : 3991);
 process.env.PORT = String(PORT);
 process.env.DATABASE_URL = 'postgres://pg-mem/demo';
 process.env.COPYBOT_SECRET_KEY = process.env.COPYBOT_SECRET_KEY || crypto.randomBytes(32).toString('hex');
@@ -107,10 +107,10 @@ process.env.APP_PASSWORD = '';
   if (runs.length) await asset('gbp_output', 'gbp.json', fs.readFileSync(path.join(runsDir, runs[runs.length - 1], 'record.json'), 'utf8'));
 
   console.log('\nDEMO READY');
-  console.log(`  Client:       http://localhost:${PORT}/client.html?id=${clientId}`);
-  console.log(`  Settings:     http://localhost:${PORT}/client-settings.html?id=${clientId}`);
-  console.log(`  Page screen:  http://localhost:${PORT}/v20-page.html?clientId=${clientId}&type=homepage`);
-  console.log(`  Generate:     http://localhost:${PORT}/generate?clientId=${clientId}`);
+  console.log(`  Client:       http://localhost:${PORT}/clients/${clientId}/record`);
+  console.log(`  Pages:        http://localhost:${PORT}/clients/${clientId}/pages`);
+  console.log(`  Page view:    http://localhost:${PORT}/clients/${clientId}/pages/homepage/homepage`);
+  console.log(`  Dashboard:    http://localhost:${PORT}/dashboard`);
   console.log(`  Fake WP site: ${wp.url}  (user copybot, Application Password test-app-password-not-real)`);
   console.log(`  Fake site writes so far: GET ${wp.url}/__writes`);
   fake.app.get('/__writes', (req, res) => res.json({ writes: fake.state.writes, h1: fake.state.pages.get(7).acf.home_hero_h1 }));

@@ -49,6 +49,14 @@ function createV20Store(pool) {
       for (const r of rows.map(row)) if (!seen.has(r.key)) seen.set(r.key, r);
       return [...seen.values()];
     },
+    // Patch a saved version's meta (the UI redesign's Approve: approved_at, approved_by)
+    async setMeta(clientId, id, patch) {
+      const found = await this.byId(clientId, id);
+      if (!found) throw new Error('Record not found.');
+      const out = { ...found.record, meta: { ...(found.record.meta || {}), ...patch } };
+      await pool.query(`UPDATE client_assets SET content=$1 WHERE id=$2 AND client_id=$3`, [JSON.stringify(out), id, clientId]);
+      return out;
+    },
     // Put a claims result on a saved version (CLAIMS sits after VALIDATION)
     async saveClaims(clientId, id, CLAIMS) {
       const found = await this.byId(clientId, id);

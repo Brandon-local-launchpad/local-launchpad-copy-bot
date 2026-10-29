@@ -16,7 +16,7 @@ node scripts/trade-facts.js
 
 Every block with no pack is sent to Perplexity (core + block as one user message) and the answer written to `<niche>.md`. `--force` re-runs packs that exist, `--concurrency N` sets parallel calls (default 3), `--dry-run` calls nothing. The key is `PERPLEXITY_API_KEY` (read from `.env`) and is never printed. Perplexity retired the Sonar chat completions endpoint on 27 Sep 2026 and maps the `sonar-deep-research` model to the Agent API `high` preset, so that is what runs (`--preset` changes it).
 
-Verified: a pack is used only after a person has read it and pressed Verify on Copybot's Trade facts page (`/trade-facts.html`). The flag is stored in the database against the pack's fingerprint, so a re-run (new text) makes the pack unverified again; the file's own `verified: no` never changes. Copybot refuses to write a service page for a niche whose pack is missing or unverified; homepage, category and location copy are not affected.
+Verified: a pack is used only after a person has read it and pressed Verify on Copybot's Trade facts page (`/trade-facts`). The flag is stored in the database against the pack's fingerprint, so a re-run (new text) makes the pack unverified again; the file's own `verified: no` never changes. Copybot refuses to write a service page for a niche whose pack is missing or unverified; homepage, category and location copy are not affected.
 
 Loader: `trade-facts/pack.js` `packForService(niche, service)` returns, as markdown, the service's rows from Tables A, B and F plus Tables C, D and E in full. This is what the rebuilt service page prompt will receive.
 

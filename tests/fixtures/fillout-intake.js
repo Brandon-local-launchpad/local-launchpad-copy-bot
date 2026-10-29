@@ -222,27 +222,38 @@ const quiet = { info() {}, warn() {}, error() {} };
     chk('Still one client after the resubmission', (await pool.query(`SELECT COUNT(*)::int AS n FROM clients`)).rows[0].n === 1, '', 1);
     chk('Audio already stored was kept, not downloaded again', (await pool.query(`SELECT COUNT(*)::int AS n FROM client_audio WHERE client_id = $1`, [clientId])).rows[0].n === 1 && processed[1].audio.kept === 1, JSON.stringify(processed[1].audio), 'kept 1');
 
-    // ── Merge rule: name alone or email alone never merges; flagged as possible duplicate ──
+    // ── Merge rule (the UI redesign brief, 27 Oct): the same email or the same phone merges into the
+    // existing client, never a second one; the same name alone is a new client, flagged ──
     const nameOnly = clone(payload);
     nameOnly.submission.submissionId = 'name-only-0001';
     nameOnly.submission.questions.find(q => q.id === '5EHeuZ2pntQwCaoADHRRrJ').value = 'different@example.com';
+    nameOnly.submission.questions.find(q => q.id === 'pt3n5TwXdkoJZKXjAQQBS1').value = '07221274559';
+    nameOnly.submission.questions.find(q => q.id === 'pt3n5TwXdkoJZKXjAQQBS1').value = '07000 111 222';
     await post(`/api/webhooks/fillout?token=${SECRET}`, nameOnly);
     await waitProcessed(3);
     const sub3 = (await pool.query(`SELECT * FROM fillout_submissions WHERE submission_id = 'name-only-0001'`)).rows[0];
-    chk('Same name, different email → new client, flagged possible duplicate of the first', sub3.client_id && sub3.client_id !== clientId && sub3.duplicate_of === clientId, `${sub3.client_id !== clientId} dup=${sub3.duplicate_of}`, `true dup=${clientId}`);
+    chk('Same name, different email and phone → new client, flagged possible duplicate of the first', sub3.client_id && sub3.client_id !== clientId && sub3.duplicate_of === clientId, `${sub3.client_id !== clientId} dup=${sub3.duplicate_of}`, `true dup=${clientId}`);
+    const phoneOnly = clone(payload);
+    phoneOnly.submission.submissionId = 'phone-only-0001';
+    phoneOnly.submission.questions.find(q => q.id === 'bwUuvaZTmChegZekppzNNv').value = 'Totally Other Trading Name';
+    phoneOnly.submission.questions.find(q => q.id === '5EHeuZ2pntQwCaoADHRRrJ').value = 'other@example.com';
+    await post(`/api/webhooks/fillout?token=${SECRET}`, phoneOnly);
+    await waitProcessed(4);
+    const sub3b = (await pool.query(`SELECT * FROM fillout_submissions WHERE submission_id = 'phone-only-0001'`)).rows[0];
+    chk('Same phone, different name and email → merged into the first client, no second client', sub3b.client_id === clientId && !sub3b.duplicate_of, `${sub3b.client_id === clientId} dup=${sub3b.duplicate_of}`, 'merged');
     const emailOnly = clone(payload);
     emailOnly.submission.submissionId = 'email-only-0001';
     emailOnly.submission.questions.find(q => q.id === 'bwUuvaZTmChegZekppzNNv').value = 'Brandon Heating Ltd';
     await post(`/api/webhooks/fillout?token=${SECRET}`, emailOnly);
-    await waitProcessed(4);
+    await waitProcessed(5);
     const sub4 = (await pool.query(`SELECT * FROM fillout_submissions WHERE submission_id = 'email-only-0001'`)).rows[0];
-    chk('Same email, different name → new client, flagged', sub4.client_id && sub4.client_id !== clientId && sub4.duplicate_of === clientId, `dup=${sub4.duplicate_of}`, clientId);
+    chk('Same email, different name → merged into the first client (the brief: email or phone merges)', sub4.client_id === clientId && !sub4.duplicate_of, `${sub4.client_id === clientId} dup=${sub4.duplicate_of}`, 'merged');
     const caseOnly = clone(payload);
     caseOnly.submission.submissionId = 'case-0001';
     caseOnly.submission.questions.find(q => q.id === 'bwUuvaZTmChegZekppzNNv').value = '  BRANDONS Plumbing ';
     caseOnly.submission.questions.find(q => q.id === '5EHeuZ2pntQwCaoADHRRrJ').value = 'Brandon@Gmail.com ';
     await post(`/api/webhooks/fillout?token=${SECRET}`, caseOnly);
-    await waitProcessed(5);
+    await waitProcessed(6);
     const sub5 = (await pool.query(`SELECT * FROM fillout_submissions WHERE submission_id = 'case-0001'`)).rows[0];
     chk('Case and whitespace differences still merge', sub5.client_id === clientId, sub5.client_id, clientId);
     r = await get('/api/fillout/submissions');
@@ -255,6 +266,7 @@ const quiet = { info() {}, warn() {}, error() {} };
     for (const p of [raceA, raceB]) {
       p.submission.questions.find(q => q.id === 'bwUuvaZTmChegZekppzNNv').value = 'Race Plumbing';
       p.submission.questions.find(q => q.id === '5EHeuZ2pntQwCaoADHRRrJ').value = 'race@example.com';
+      p.submission.questions.find(q => q.id === 'pt3n5TwXdkoJZKXjAQQBS1').value = '07178000078';
     }
     const clientsBefore = (await pool.query(`SELECT COUNT(*)::int AS n FROM clients`)).rows[0].n;
     await Promise.all([post(`/api/webhooks/fillout?token=${SECRET}`, raceA), post(`/api/webhooks/fillout?token=${SECRET}`, raceB)]);
@@ -268,6 +280,7 @@ const quiet = { info() {}, warn() {}, error() {} };
     failSub.submission.submissionId = 'audio-fail-0001';
     failSub.submission.questions.find(q => q.id === 'bwUuvaZTmChegZekppzNNv').value = 'Audio Fail Ltd';
     failSub.submission.questions.find(q => q.id === '5EHeuZ2pntQwCaoADHRRrJ').value = 'fail@example.com';
+    failSub.submission.questions.find(q => q.id === 'pt3n5TwXdkoJZKXjAQQBS1').value = '07281923810';
     await post(`/api/webhooks/fillout?token=${SECRET}`, failSub);
     await waitDone('audio-fail-0001');
     let sub6 = (await pool.query(`SELECT * FROM fillout_submissions WHERE submission_id = 'audio-fail-0001'`)).rows[0];
@@ -292,7 +305,8 @@ const quiet = { info() {}, warn() {}, error() {} };
     await waitDone('broken-0001');
     const sub7 = (await pool.query(`SELECT * FROM fillout_submissions WHERE submission_id = 'broken-0001'`)).rows[0];
     chk('Bad payload: 200 at receipt, raw row kept, status error with the reason', r.status === 200 && sub7 && sub7.status === 'error' && /questions/.test(sub7.error), `${sub7 && sub7.status}: ${sub7 && sub7.error}`, 'error');
-    chk('No client was created for the failed one', (await pool.query(`SELECT COUNT(*)::int AS n FROM clients`)).rows[0].n === 5, (await pool.query(`SELECT COUNT(*)::int AS n FROM clients`)).rows[0].n, 5);
+    // 4 clients so far: the first, the name-only one, the race pair's one, the audio-fail one (phone-only and email-only merged)
+    chk('No client was created for the failed one', (await pool.query(`SELECT COUNT(*)::int AS n FROM clients`)).rows[0].n === 4, (await pool.query(`SELECT COUNT(*)::int AS n FROM clients`)).rows[0].n, 4);
 
     // ── Rejected bodies: logged and kept ──
     r = await post(`/api/webhooks/fillout?token=${SECRET}`, '{"submission": {"questions": [}');
@@ -357,7 +371,7 @@ const quiet = { info() {}, warn() {}, error() {} };
     chk('4b. Same old submission with a free quote: fee not applicable, 16 needed', (() => { const p = clone(sample); p.submission.questions.find(q => q.id === 'q_quote_free').value = 'Yes, no call-out or survey fee'; const c = I.completeness(I.buildRecord(p, map).fields); return c.needed.total === 16 && feeField(p).applicable === false; })(), '', '');
     // Through the webhook: the resolved id is what gets stored, and the record and inbox follow the rule
     const feeSub = withFee('Call-out fee', '£60, taken off the job'); feeSub.submission.submissionId = 'fee-0001';
-    feeSub.submission.questions.find(q => q.id === 'bwUuvaZTmChegZekppzNNv').value = 'Fee Plumbing'; feeSub.submission.questions.find(q => q.id === '5EHeuZ2pntQwCaoADHRRrJ').value = 'fee@example.com';
+    feeSub.submission.questions.find(q => q.id === 'bwUuvaZTmChegZekppzNNv').value = 'Fee Plumbing'; feeSub.submission.questions.find(q => q.id === '5EHeuZ2pntQwCaoADHRRrJ').value = 'fee@example.com'; feeSub.submission.questions.find(q => q.id === 'pt3n5TwXdkoJZKXjAQQBS1').value = '07208302931';
     await post(`/api/webhooks/fillout?token=${SECRET}`, feeSub);
     await waitDone('fee-0001');
     const feeRow = (await pool.query(`SELECT s.client_id, f.question_id, f.value, f.status FROM fillout_submissions s JOIN client_fields f ON f.client_id = s.client_id AND f.field_key = 'quote_call_out_fee' WHERE s.submission_id = 'fee-0001'`)).rows[0];
@@ -366,7 +380,7 @@ const quiet = { info() {}, warn() {}, error() {} };
     const feeShown = feeRec.sections.find(s => s.name === 'Quotes Process and Response').fields;
     chk('Record: fee directly after Is the quote free, applicable, needed 17 of 18 (prices unit still blank)', feeShown[feeShown.findIndex(f => f.key === 'quote_free') + 1].key === 'quote_call_out_fee' && feeShown.find(f => f.key === 'quote_call_out_fee').applicable === true && feeRec.completeness.needed.filled === 17 && feeRec.completeness.needed.total === 18, JSON.stringify(feeRec.completeness.needed), '17/18');
     const freeSub = withFee('Yes, no call-out or survey fee', null); freeSub.submission.submissionId = 'free-0001';
-    freeSub.submission.questions.find(q => q.id === 'bwUuvaZTmChegZekppzNNv').value = 'Free Quotes Ltd'; freeSub.submission.questions.find(q => q.id === '5EHeuZ2pntQwCaoADHRRrJ').value = 'free@example.com';
+    freeSub.submission.questions.find(q => q.id === 'bwUuvaZTmChegZekppzNNv').value = 'Free Quotes Ltd'; freeSub.submission.questions.find(q => q.id === '5EHeuZ2pntQwCaoADHRRrJ').value = 'free@example.com'; freeSub.submission.questions.find(q => q.id === 'pt3n5TwXdkoJZKXjAQQBS1').value = '07245890333';
     await post(`/api/webhooks/fillout?token=${SECRET}`, freeSub);
     await waitDone('free-0001');
     const freeClient = (await pool.query(`SELECT client_id FROM fillout_submissions WHERE submission_id = 'free-0001'`)).rows[0].client_id;
@@ -405,6 +419,7 @@ const quiet = { info() {}, warn() {}, error() {} };
     const forNiche = (label, sid, name, email, answers = {}) => {
       const p = clone(sample);
       const qs = p.submission.questions;
+      qs.find(q => q.id === 'pt3n5TwXdkoJZKXjAQQBS1').value = '07' + String([...String(email)].reduce((a, c) => (a * 31 + c.charCodeAt(0)) >>> 0, 0)).padStart(9, '0').slice(0, 9);
       p.submission.submissionId = sid;
       qs.find(q => q.id === 'q_niche_select').value = label;
       qs.find(q => q.id === 'bwUuvaZTmChegZekppzNNv').value = name;
@@ -458,6 +473,7 @@ const quiet = { info() {}, warn() {}, error() {} };
     nearMiss.submission.questions.find(q => q.id === 'q_niche_select').value = 'Roofers ';
     nearMiss.submission.questions.find(q => q.id === 'bwUuvaZTmChegZekppzNNv').value = 'Near Miss Roofing';
     nearMiss.submission.questions.find(q => q.id === '5EHeuZ2pntQwCaoADHRRrJ').value = 'near@example.com';
+    nearMiss.submission.questions.find(q => q.id === 'pt3n5TwXdkoJZKXjAQQBS1').value = '07275425558';
     const near = await deliver(nearMiss);
     const nearInbox = (await (await get('/api/fillout/submissions')).json()).submissions.find(s => s.submissionId === 'niche-near-0001');
     chk('(5) "Roofers " (trailing space) matches no niche: processed, universal fields only, banner flag on inbox and record', near.sub.status === 'processed' && near.rec.nicheKnown === false && near.rec.niche === 'Roofers ' && keysOf(near.rec).every(k => !k.includes('.') && !['cat_plumber', 'prices_voice'].includes(k)) && nearInbox.nicheKnown === false, JSON.stringify([near.rec.niche, near.rec.nicheKnown, nearInbox.nicheKnown]), '["Roofers ",false,false]');
