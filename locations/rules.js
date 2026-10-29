@@ -1,21 +1,39 @@
 'use strict';
 
 // ── Location Determiner: the rules, no network and no database ─────────────────
-// Brandon's brief (29 Oct 2026) with his Step 0 changes and the tiers-are-phases
-// decision. This file decides; locations/service.js fetches and stores.
+// Brandon's brief (29 Oct 2026) with his changes of the same day. This file decides;
+// locations/service.js fetches and stores.
 //
-//   travel      the Fillout field travel_distance (leading number, 10/20/30/45); else the
-//               leading number in Client Values travel_distance snapped to the nearest, flagged
-//   REACH       by travel answer: 10 → 10 mi, 20 → 15, 30 → 20, 45 → 25 (always, at first build;
-//               a locked scan grid is only compared on the review screen, never applied)
-//   OUTER LIMIT min(travel, 25) miles
-//   candidates  places inside the outer limit, not admin areas, not the base town: a town of
-//               5,000 or more, or a district whose parent is the base town (no floor); plus the
-//               client's own typed towns (source client_asked) placed by the same rules but
-//               never excluded silently
-//   demand gate volume >= 10 OR 2+ competitor pages (a business domain's URL or title holding
-//               the town name in the top 10 at the town's coordinates; directories excluded)
+//   travel       the Fillout field travel_distance (leading number, 10/20/30/45); else the
+//                leading number in Client Values travel_distance snapped to the nearest, flagged
+//   REACH        by travel answer: 10 → 10 mi, 20 → 15, 30 → 20, 45 → 25 (always, at first build;
+//                a locked scan grid is only compared on the review screen, never applied)
+//   OUTER LIMIT  min(travel, 25) miles
+//   candidates   places inside the outer limit, not admin areas, not the base town, not across
+//                water (an island authority the base is not in): a town of 5,000 or more, or a
+//                district of the base town (no floor); plus the client's typed towns (source
+//                client_asked, the floor waived) placed by the same rules, never dropped silently
+//   beyond reach a town between REACH and the outer limit is area only, unless the client typed
+//                it and it passes on volume: then Tier 2, flagged "beyond reach". Competitor
+//                pages never bring a beyond-reach town in.
+//   districts    in the volume run, no SERP check: a district passes on volume >= 10 only
+//   demand gate  volume >= 10 OR 2+ competitor pages (a business domain's URL or title holding
+//                the town name in the top 10 at the town's coordinates; directories excluded)
+//   score        distance_weight = 1 - 0.7 × (miles / outer limit); score = total volume ×
+//                distance_weight; zero-volume towns rank after every town with volume, by
+//                population × distance_weight
+//   tiers        tiers are the launch phases. Tier 1 (phase 1): towns inside REACH that pass,
+//                score >= 25% of the top score, clamped to the band 10 → 3-5, 20 → 5-8,
+//                30 → 8-12, 45 → 10-15. Tier 2 (phase 2): every other town that passes. At most
+//                20 page towns in all, by score; the rest are area only, "over cap", promotable.
+//   GBP areas    Tier 1, then Tier 2, then area-only towns by score, 20 at most (districts of
+//                the base town are inside it and are never service areas)
+//   categories   a location category page per tier town and category where that combination
+//                passes the gate (the primary category's page shares the location page's
+//                keywords: the 19 Oct hub rule); it follows the town's phase. A failed
+//                combination gets no row and the town is plain text in that category's areas.
 
+const path = require('path');
 const { keywordOf } = require('../h1-research/research');
 const C = require('../h1-research/claims');
 const P = require('./places');
@@ -27,14 +45,29 @@ const POPULATION_FLOOR = 5000;
 const DEMAND_VOLUME = 10;
 const DEMAND_COMPETITORS = 2;
 const TIER1_BAND = { 10: [3, 5], 20: [5, 8], 30: [8, 12], 45: [10, 15] };
+const TIER1_SCORE_SHARE = 0.25;
+const PAGE_TOWN_CAP = 20;
 const GBP_AREA_LIMIT = 20;
 const KM_PER_MILE = 1.609344;
 const SERP_COST_USD = 0.002;          // DataForSEO Google organic SERP, live advanced, per SERP of 10 (pricing page, 29 Oct 2026)
 const VOLUME_TASK_COST_USD = 0.09;    // DataForSEO Google Ads search volume, live, per task of up to 1,000 keywords (fallback when the cache has no cost rows)
 
+let ISLANDS = null;
+function islandAuthorities() {
+  if (!ISLANDS) { try { ISLANDS = JSON.parse(require('fs').readFileSync(path.join(__dirname, 'islands.json'), 'utf8')).authorities || []; } catch (_) { ISLANDS = []; } }
+  return ISLANDS;
+}
+// The island authority a place's local authority name falls in, or null
+function islandOf(ladName, islands = islandAuthorities()) {
+  const n = P.normaliseName(ladName);
+  if (!n) return null;
+  return islands.find(i => n.includes(P.normaliseName(i))) || null;
+}
+
 const str = v => (v == null ? '' : String(v)).trim();
 const leadingNumber = text => { const m = str(text).match(/(\d+(?:\.\d+)?)/); return m ? Number(m[1]) : null; };
 const nearestAllowed = n => ALLOWED_TRAVEL.reduce((best, a) => (Math.abs(a - n) < Math.abs(best - n) ? a : best), ALLOWED_TRAVEL[0]);
+const fmt = n => (n == null ? 'unknown' : Number(n).toLocaleString('en-GB'));
 
 // { miles, from: 'fillout' | 'client values' | null, raw, flags: [{ code, msg }] }
 function parseTravel({ fillout = null, cv = null } = {}) {
@@ -66,36 +99,42 @@ function scanReachMiles(scanSettings) {
 }
 
 // ── Candidates ──
-// base: the base town's place row ({ id, name, lat, lng }); point: the base point used for
-// distances; places: every non-admin and admin place within the outer limit, each with km;
-// clientAsked: [{ typed, match }] (match: a place row with km, or null); miles: travel.
-// Returns { rows, unmatched } where rows are every place considered, each with
-// { status: 'candidate' | 'excluded', reason, source: 'scored' | 'client_asked', inside_reach, miles }.
-function candidates({ base, places, clientAsked = [], travel }) {
+// base: the base town's place row; places: every place within the outer limit with km and
+// parent_name; clientAsked: [{ typed, match }]; travel: miles. Every place considered comes
+// back with status 'candidate' (in the volume run), 'area_only' (no page: beyond reach and not
+// typed) or 'excluded', a reason, source and inside_reach.
+function candidates({ base, places, clientAsked = [], travel, islands = islandAuthorities() }) {
   const outer = outerLimitMiles(travel), reach = reachMiles(travel);
   const baseNorm = base ? P.normaliseName(base.name) : '';
+  const baseIsland = base ? islandOf(base.lad_name, islands) : null;
   const byId = new Map();
   const consider = (p, source) => {
     if (byId.has(p.id)) { const r = byId.get(p.id); if (source === 'client_asked') { r.source = 'client_asked'; r.client_asked = true; } return r; }
     const miles = Math.round(p.km / KM_PER_MILE * 10) / 10;
-    const row = { place_id: p.id, name: p.name, type: p.type, kind: p.kind || '', population: p.population == null ? null : p.population, parent_town_id: p.parent_town_id || null, parent_name: p.parent_name || '', lat: p.lat, lng: p.lng, miles, inside_reach: reach != null && miles <= reach, inside_outer: outer != null && miles <= outer, source, client_asked: source === 'client_asked', is_admin_area: !!p.is_admin_area, qualifier: p.qualifier || '', status: 'candidate', reason: '' };
+    const row = { place_id: p.id, name: p.name, type: p.type, kind: p.kind || '', population: p.population == null ? null : p.population, parent_town_id: p.parent_town_id || null, parent_name: p.parent_name || '', lad_name: p.lad_name || '', lat: p.lat, lng: p.lng, miles, inside_reach: reach != null && miles <= reach, inside_outer: outer != null && miles <= outer, source, client_asked: source === 'client_asked', is_admin_area: !!p.is_admin_area, qualifier: p.qualifier || '', status: 'candidate', reason: '' };
     const exclude = reason => { row.status = 'excluded'; row.reason = reason; };
+    const island = islandOf(p.lad_name, islands);
     if (row.is_admin_area) exclude('council area');
     else if (base && (p.id === base.id || (p.type === 'town' && P.normaliseName(p.name) === baseNorm && miles < 3))) exclude('the base town');
     else if (!row.inside_outer) exclude(`outside the outer limit (${outer} mi)`);
+    else if (island && island !== baseIsland) exclude(`across water (${island})`);
     else if (p.type === 'district') {
       if (base && p.parent_town_id === base.id) row.reason = `district of ${base.name}`;
       else exclude(`part of ${p.parent_name || 'another town'}`);
     } else if (p.type === 'town') {
       if (p.population != null && p.population >= POPULATION_FLOOR) row.reason = '';
-      else if (source === 'client_asked') row.reason = `client asked: under the ${POPULATION_FLOOR.toLocaleString('en-GB')} floor (population ${p.population == null ? 'unknown' : p.population.toLocaleString('en-GB')})`;
-      else exclude(`below the ${POPULATION_FLOOR.toLocaleString('en-GB')} floor (population ${p.population == null ? 'unknown' : p.population.toLocaleString('en-GB')})`);
+      else if (source === 'client_asked') row.reason = `client asked: under the ${fmt(POPULATION_FLOOR)} floor (population ${fmt(p.population)})`;
+      else exclude(`below the ${fmt(POPULATION_FLOOR)} floor (population ${fmt(p.population)})`);
     } else exclude(`type ${p.type}`);
+    // Beyond reach: area only unless the client typed it (then it can pass on volume alone)
+    if (row.status === 'candidate' && !row.inside_reach) {
+      if (source === 'client_asked') row.reason = `beyond reach (${reach} mi): typed by the client, a page only on volume`;
+      else { row.status = 'area_only'; row.reason = `beyond reach (${reach} mi)`; }
+    }
     byId.set(p.id, row);
     return row;
   };
-  // The client's own towns first, so a typed village is judged with the floor waived (a place
-  // seen once keeps its first judgement)
+  // The client's own towns first, so a typed village is judged with the floor waived
   const unmatched = [];
   for (const a of clientAsked) {
     if (!a.match) { unmatched.push({ typed: a.typed, note: a.note || 'no place of that name in the places table' }); continue; }
@@ -104,27 +143,29 @@ function candidates({ base, places, clientAsked = [], travel }) {
     if (a.match.is_admin_area) { row.status = 'excluded'; row.reason = 'council area (typed by the client)'; }
   }
   for (const p of places) consider(p, 'scored');
-  const rows = [...byId.values()].sort((x, y) => (x.status === y.status ? x.miles - y.miles : x.status === 'candidate' ? -1 : 1));
+  const order = { candidate: 0, area_only: 1, excluded: 2 };
+  const rows = [...byId.values()].sort((x, y) => (order[x.status] - order[y.status]) || (x.miles - y.miles));
   return { rows, unmatched, reach, outer };
 }
 
 // ── The keyword plan ──
-// For every candidate town: the location page's keywords ("[primary] [town]" and its approved
-// synonyms, as the H1 research asks for them) and one set per category. The primary category's
-// location category keywords are the location page's, so they are not asked twice.
-// categories: [{ key, name, primary }]; ctx: the page map context (primaryName, primaryKey,
-// categoryName, terms). Returns { pages: [{ place_id, town, page, category_key, category, keywords, serp_keyword }], keywords }
+// For every candidate town (status candidate): the location page's keywords ("[primary]
+// [town]", its services form and the approved synonyms, as the H1 research asks for them)
+// and one set per other category. The primary category's location category page shares the
+// location page's keywords (the hub rule), so it is not asked twice. A SERP check is only for
+// towns (not districts) inside reach. Returns { pages, keywords }
 function keywordPlan({ towns, categories, ctx }) {
   const pages = [];
   const all = new Set();
   for (const t of towns) {
+    const serpEligible = t.type === 'town' && !!t.inside_reach;
     const loc = C.candidatesV2({ type: 'location', title: t.name, info: { town: t.name } }, ctx).map(c => c.keyword);
     const own = keywordOf(`${ctx.primaryName || ''} ${t.name}`);
-    pages.push({ place_id: t.place_id, town: t.name, page: 'location', category_key: ctx.primaryKey || null, category: ctx.primaryName || '', keywords: loc, serp_keyword: loc[0] || own });
+    pages.push({ place_id: t.place_id, town: t.name, page: 'location', category_key: ctx.primaryKey || null, category: ctx.primaryName || '', keywords: loc.length ? loc : [own], serp_keyword: loc[0] || own, serp_eligible: serpEligible });
     for (const c of categories) {
       if (c.key && c.key === ctx.primaryKey) continue;
       const kws = C.candidatesV2({ type: 'location_category', title: `${c.name} ${t.name}`, info: { town: t.name, category_key: c.key } }, ctx).map(x => x.keyword);
-      pages.push({ place_id: t.place_id, town: t.name, page: 'location_category', category_key: c.key, category: c.name, keywords: kws, serp_keyword: kws[0] || keywordOf(`${c.name} ${t.name}`) });
+      pages.push({ place_id: t.place_id, town: t.name, page: 'location_category', category_key: c.key, category: c.name, keywords: kws.length ? kws : [keywordOf(`${c.name} ${t.name}`)], serp_keyword: kws[0] || keywordOf(`${c.name} ${t.name}`), serp_eligible: serpEligible });
     }
   }
   for (const p of pages) for (const k of p.keywords) all.add(k);
@@ -142,11 +183,10 @@ function bestVolume(page, volumes) {
   }
   return { volume: best, keyword, known, of: page.keywords.length };
 }
+// A page needs a SERP when it may do so and its best known volume is under the gate
+const needsSerp = (page, best) => !!page.serp_eligible && (best.volume == null || best.volume < DEMAND_VOLUME);
 
 // ── Competitor pages ──
-// items: DataForSEO organic items ({ type, url, domain, title, rank_group }); town: the town's
-// name; excluded: the registrable domains that never count. A page counts when its domain is
-// not excluded and its URL or title holds the town's name.
 const registrable = d => str(d).toLowerCase().replace(/^www\./, '');
 function isExcludedDomain(domain, excluded) {
   const d = registrable(domain);
@@ -158,6 +198,7 @@ function mentionsTown(text, town) {
   const hay = ' ' + P.normaliseName(String(text || '').replace(/^https?:\/\//, '').replace(/[-_/.?=&%+]+/g, ' ')) + ' ';
   return hay.includes(' ' + t + ' ') || hay.replace(/ /g, '').includes(t.replace(/ /g, ''));
 }
+// items: DataForSEO organic items; one page per business domain whose URL or title holds the town
 function competitorPages(items, town, excluded) {
   const organic = (items || []).filter(i => i && i.type === 'organic' && i.url);
   const seen = new Set();
@@ -172,7 +213,7 @@ function competitorPages(items, town, excluded) {
   return { count: pages.length, pages, organic: organic.length };
 }
 
-// The demand gate: pass on volume, else on competitor pages; { pass, by, volume, competitors }
+// The demand gate: pass on volume, else on competitor pages (null competitors = not allowed to count)
 function demandGate({ volume, competitors }) {
   if (volume != null && volume >= DEMAND_VOLUME) return { pass: true, by: 'volume', volume, competitors: competitors == null ? null : competitors };
   if (competitors != null && competitors >= DEMAND_COMPETITORS) return { pass: true, by: 'competitors', volume, competitors };
@@ -180,8 +221,6 @@ function demandGate({ volume, competitors }) {
 }
 
 // ── Cost estimate ──
-// keywords to buy (not in the cache) × the average cost per keyword from past rows (else the
-// live task price over 1,000); SERP queries × the SERP price. Both shown before any call.
 function estimate({ keywordsToBuy, avgKeywordCost = null, serpQueries }) {
   const perKeyword = avgKeywordCost != null && avgKeywordCost > 0 ? avgKeywordCost : VOLUME_TASK_COST_USD / 1000;
   const volumeTasks = Math.ceil(keywordsToBuy / 1000);
@@ -194,6 +233,67 @@ function estimate({ keywordsToBuy, avgKeywordCost = null, serpQueries }) {
   };
 }
 const round4 = v => Math.round(v * 10000) / 10000;
+const round3 = v => Math.round(v * 1000) / 1000;
 
-module.exports = { ALLOWED_TRAVEL, REACH_MILES, OUTER_CAP_MILES, POPULATION_FLOOR, DEMAND_VOLUME, DEMAND_COMPETITORS, TIER1_BAND, GBP_AREA_LIMIT, KM_PER_MILE, SERP_COST_USD, VOLUME_TASK_COST_USD,
-  leadingNumber, parseTravel, reachMiles, outerLimitMiles, tier1Band, scanReachMiles, candidates, keywordPlan, bestVolume, competitorPages, isExcludedDomain, mentionsTown, demandGate, estimate };
+// ── Stage 4: score and tier ──
+// towns: the candidate rows (status candidate); pages: the plan's pages with best_volume,
+// competitors (count or null) and competitor_pages; travel: miles; cap: page towns at most.
+// Returns { towns (every candidate with score, gate, tier and reason), tier1, tier2, area_only,
+// excluded, gbp_areas, location_categories, no_demand }.
+function scoreAndTier({ towns, pages, travel, areaOnlyRows = [], cap = PAGE_TOWN_CAP, gbpLimit = GBP_AREA_LIMIT }) {
+  const outer = outerLimitMiles(travel);
+  const band = tier1Band(travel) || [0, Infinity];
+  const byTown = new Map(towns.map(t => [t.place_id, []]));
+  for (const p of pages) if (byTown.has(p.place_id)) byTown.get(p.place_id).push(p);
+  const scored = towns.map(t => {
+    const mine = byTown.get(t.place_id) || [];
+    const loc = mine.find(p => p.page === 'location') || null;
+    const total = mine.reduce((s, p) => s + (p.best_volume || 0), 0);
+    const weight = outer ? Math.max(0, 1 - 0.7 * (t.miles / outer)) : 1;
+    const allowCompetitors = t.type === 'town' && t.inside_reach;
+    const gate = loc ? demandGate({ volume: loc.best_volume, competitors: allowCompetitors ? loc.competitors : null }) : { pass: false, by: null, volume: null, competitors: null };
+    return { ...t, total_volume: total, distance_weight: round3(weight), score: round3(total * weight), fallback: round3((t.population || 0) * weight), gate, evidence: loc ? { volume: loc.best_volume, keyword: loc.best_keyword, competitors: allowCompetitors ? loc.competitors : null, competitor_pages: allowCompetitors ? (loc.competitor_pages || []) : [], serp_check_url: loc.serp_check_url || '' } : null };
+  });
+  // Towns with volume first by score, then zero-volume towns by population × weight
+  const order = (a, b) => ((b.total_volume > 0) - (a.total_volume > 0)) || (b.score - a.score) || (b.fallback - a.fallback) || (a.miles - b.miles);
+  scored.sort(order);
+  const passed = scored.filter(t => t.gate.pass);
+  const eligible1 = passed.filter(t => t.inside_reach);
+  const top = eligible1.length ? Math.max(...eligible1.map(t => t.score)) : 0;
+  let tier1 = eligible1.filter(t => top > 0 && t.score >= TIER1_SCORE_SHARE * top);
+  if (tier1.length < band[0]) tier1 = eligible1.slice(0, Math.min(band[0], eligible1.length));
+  if (tier1.length > band[1]) tier1 = tier1.slice(0, band[1]);
+  const t1 = new Set(tier1.map(t => t.place_id));
+  const rest = passed.filter(t => !t1.has(t.place_id));
+  const room = Math.max(0, cap - tier1.length);
+  const tier2 = rest.slice(0, room);
+  const overCap = rest.slice(room);
+  const t2 = new Set(tier2.map(t => t.place_id));
+  for (const t of scored) {
+    if (t1.has(t.place_id)) { t.tier = 1; t.phase = 1; t.outcome = 'page'; t.why = `Tier 1: score ${t.score}${top ? ` (${Math.round(t.score / top * 100)}% of the top ${top})` : ''}, passed on ${t.gate.by}`; }
+    else if (t2.has(t.place_id)) { t.tier = 2; t.phase = 2; t.outcome = 'page'; t.why = `Tier 2: passed on ${t.gate.by}, score ${t.score}${!t.inside_reach ? ', beyond reach' : ''}`; if (!t.inside_reach) t.beyond_reach = true; }
+    else if (overCap.some(o => o.place_id === t.place_id)) { t.tier = null; t.outcome = 'area_only'; t.why = `over cap: passed on ${t.gate.by} but the ${cap} page towns are taken; promotable`; }
+    else if (t.type === 'district') { t.tier = null; t.outcome = 'excluded'; t.why = `no volume (district of the base town: volume ${fmt(t.gate.volume)}, passes on volume only)`; }
+    else if (!t.inside_reach) { t.tier = null; t.outcome = 'area_only'; t.why = `beyond reach, typed by the client, volume ${fmt(t.gate.volume)} under ${DEMAND_VOLUME}`; }
+    else { t.tier = null; t.outcome = 'area_only'; t.why = `no demand: volume ${fmt(t.gate.volume)}, ${t.gate.competitors == null ? 'no SERP' : `${t.gate.competitors} competitor page${t.gate.competitors === 1 ? '' : 's'}`}`; }
+  }
+  const areaOnly = [...scored.filter(t => t.outcome === 'area_only'), ...areaOnlyRows.map(r => ({ ...r, tier: null, outcome: 'area_only', why: r.reason, score: 0, total_volume: 0, gate: null, evidence: null }))];
+  const excluded = scored.filter(t => t.outcome === 'excluded');
+  // GBP service areas: Tier 1, Tier 2, then area-only towns by score (districts never)
+  const gbp = [...tier1, ...tier2, ...areaOnly.filter(t => t.type === 'town').sort((a, b) => (b.score - a.score) || (a.miles - b.miles))].filter(t => t.type === 'town').slice(0, gbpLimit).map(t => ({ place_id: t.place_id, name: t.name, from: t.tier ? `Tier ${t.tier}` : 'area only' }));
+  // Location category pages for the page towns
+  const locationCategories = [], noDemand = [];
+  for (const t of [...tier1, ...tier2]) {
+    for (const p of (byTown.get(t.place_id) || [])) {
+      if (p.page === 'location') { locationCategories.push({ town: t.name, place_id: t.place_id, phase: t.phase, tier: t.tier, category_key: p.category_key, category: p.category, primary: true, pass: true, by: t.gate.by, volume: p.best_volume, keyword: p.best_keyword, competitors: t.evidence.competitors, note: 'the primary category: shares the location page\'s demand (hub rule)' }); continue; }
+      const allowCompetitors = t.type === 'town' && t.inside_reach;
+      const g = demandGate({ volume: p.best_volume, competitors: allowCompetitors ? p.competitors : null });
+      const row = { town: t.name, place_id: t.place_id, phase: t.phase, tier: t.tier, category_key: p.category_key, category: p.category, primary: false, pass: g.pass, by: g.by, volume: p.best_volume, keyword: p.best_keyword, competitors: g.competitors, competitor_pages: allowCompetitors ? (p.competitor_pages || []) : [] };
+      (g.pass ? locationCategories : noDemand).push(row);
+    }
+  }
+  return { towns: scored, tier1, tier2, area_only: areaOnly, excluded, gbp_areas: gbp, location_categories: locationCategories, no_demand: noDemand, top_score: top, band, cap };
+}
+
+module.exports = { ALLOWED_TRAVEL, REACH_MILES, OUTER_CAP_MILES, POPULATION_FLOOR, DEMAND_VOLUME, DEMAND_COMPETITORS, TIER1_BAND, TIER1_SCORE_SHARE, PAGE_TOWN_CAP, GBP_AREA_LIMIT, KM_PER_MILE, SERP_COST_USD, VOLUME_TASK_COST_USD,
+  islandAuthorities, islandOf, leadingNumber, parseTravel, reachMiles, outerLimitMiles, tier1Band, scanReachMiles, candidates, keywordPlan, bestVolume, needsSerp, competitorPages, isExcludedDomain, mentionsTown, demandGate, estimate, scoreAndTier };

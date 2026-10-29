@@ -1,0 +1,4 @@
+{
+  "_note": "Island local authorities (Brandon, 29 Oct 2026): a place in one of these is excluded as 'across water' unless the base town sits in the same authority. Matched on the normalised authority name held on each place (ONS LAD name for a built-up area, the OS district or county/unitary name for an OS place), by containment, so the OS form 'Sir Ynys Mon - Isle of Anglesey' matches too. Add a line, not code.",
+  "authorities": ["Isle of Wight", "Isles of Scilly", "Isle of Anglesey", "Ynys Mon"]
+}

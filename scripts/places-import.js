@@ -117,6 +117,8 @@ async function osPopulatedPlaces() {
   return out;
 }
 
+// The OS place's local authority: the district or borough, else the county or unitary
+const osLad = r => String(r.DISTRICT_BOROUGH || r.COUNTY_UNITARY || '').trim();
 const splitQualifier = nm => { const m = String(nm || '').trim().match(/^(.*?)\s*\(([^()]+)\)\s*$/); return m ? { name: m[1].trim(), qualifier: m[2].trim() } : { name: String(nm || '').trim(), qualifier: '' }; };
 const countryOfCode = code => (code.startsWith('E') ? 'England' : code.startsWith('W') ? 'Wales' : code.startsWith('S') ? 'Scotland' : 'Northern Ireland');
 const adminKind = code => (/^(E06|W06)/.test(code) ? 'unitary authority' : /^E07/.test(code) ? 'local authority district' : /^E08/.test(code) ? 'metropolitan district' : /^E09/.test(code) ? 'London borough' : /^E10/.test(code) ? 'county' : /^(E26|W18)/.test(code) ? 'national park' : 'admin area');
@@ -162,6 +164,16 @@ async function main() {
   }
   log(`  ${oaPop.size} output areas with population, ${oaWithout} outside every built-up area, ${buaPop.size} built-up areas with a population`);
 
+  // 3b. Built-up area to local authority district (a built-up area may span several)
+  log('3b. ONS Built-up Area 2022 to Local Authority District 2022 lookup');
+  const buaLad = new Map();
+  for (const f of await fetchFeatures('Built_Up_Area_to_Local_Authority_District_(December_2022)_Lookup_in_Great_Britain', { outFields: 'BUA22CD,LAD22CD,LAD22NM,WHOLE_PART' }, 'ons-bua-lad')) {
+    const a = f.attributes; if (!a.BUA22CD || !a.LAD22NM) continue;
+    if (!buaLad.has(a.BUA22CD)) buaLad.set(a.BUA22CD, []);
+    buaLad.get(a.BUA22CD).push(String(a.LAD22NM).trim());
+  }
+  log(`  ${buaLad.size} built-up areas with a local authority`);
+
   // 4. Admin areas
   log('4. Admin areas (districts, counties, unitaries, national parks)');
   const admin = new Map();
@@ -181,7 +193,7 @@ async function main() {
   const towns = new Map(); // BUA22CD → row
   for (const a of buaAttrs) {
     const { name, qualifier } = splitQualifier(a.BUA22NM);
-    const row = { id: a.BUA22CD, name, slug: P.slugify(name), type: 'town', lat: round6(a.LAT), lng: round6(a.LONG), population: buaPop.has(a.BUA22CD) ? buaPop.get(a.BUA22CD) : null, parent_town_id: null, country: countryOfCode(a.BUA22CD), is_admin_area: false, kind: 'built-up area', qualifier, alt_name: String(a.BUA22NMW || '').trim() || '', source: 'ons_bua22', os_id: '' };
+    const row = { id: a.BUA22CD, name, slug: P.slugify(name), type: 'town', lat: round6(a.LAT), lng: round6(a.LONG), population: buaPop.has(a.BUA22CD) ? buaPop.get(a.BUA22CD) : null, parent_town_id: null, country: countryOfCode(a.BUA22CD), is_admin_area: false, kind: 'built-up area', qualifier, alt_name: String(a.BUA22NMW || '').trim() || '', source: 'ons_bua22', os_id: '', lad_name: (buaLad.get(a.BUA22CD) || []).join('; ') };
     towns.set(a.BUA22CD, row);
     rows.push(row);
   }
@@ -229,7 +241,7 @@ async function main() {
       const parent = inside.map(c => towns.get(c)).sort((p1, p2) => (p1.population || 0) - (p2.population || 0))[0];
       // A big place with its own population inside a bigger area keeps it anyway: the floor
       // is the built-up area's job, a district has no population
-      osRows.push({ id: r.ID, name, slug: P.slugify(name), type: 'district', ...point, population: null, parent_town_id: parent.id, country: r.COUNTRY, is_admin_area: false, kind: r.LOCAL_TYPE, qualifier: '', alt_name: alt, source: 'os_open_names', os_id: r.ID });
+      osRows.push({ id: r.ID, name, slug: P.slugify(name), type: 'district', ...point, population: null, parent_town_id: parent.id, country: r.COUNTRY, is_admin_area: false, kind: r.LOCAL_TYPE, qualifier: '', alt_name: alt, source: 'os_open_names', os_id: r.ID, lad_name: osLad(r) });
       stats.district++;
       continue;
     }
@@ -240,13 +252,13 @@ async function main() {
       // A suburb outside every polygon: a district of the nearest town with a population within 5 km, else a town
       let best = null, bestKm = 5;
       for (const t of towns.values()) { if (!t.population) continue; const km = P.kmBetween(t, point); if (km < bestKm) { bestKm = km; best = t; } }
-      if (best) { osRows.push({ id: r.ID, name, slug: P.slugify(name), type: 'district', ...point, population: null, parent_town_id: best.id, country: r.COUNTRY, is_admin_area: false, kind: r.LOCAL_TYPE, qualifier: '', alt_name: alt, source: 'os_open_names', os_id: r.ID }); stats.suburb_outside++; continue; }
+      if (best) { osRows.push({ id: r.ID, name, slug: P.slugify(name), type: 'district', ...point, population: null, parent_town_id: best.id, country: r.COUNTRY, is_admin_area: false, kind: r.LOCAL_TYPE, qualifier: '', alt_name: alt, source: 'os_open_names', os_id: r.ID, lad_name: osLad(r) }); stats.suburb_outside++; continue; }
     }
-    osRows.push({ id: r.ID, name, slug: P.slugify(name), type: 'town', ...point, population: null, parent_town_id: null, country: r.COUNTRY, is_admin_area: false, kind: r.LOCAL_TYPE, qualifier: '', alt_name: alt, source: 'os_open_names', os_id: r.ID });
+    osRows.push({ id: r.ID, name, slug: P.slugify(name), type: 'town', ...point, population: null, parent_town_id: null, country: r.COUNTRY, is_admin_area: false, kind: r.LOCAL_TYPE, qualifier: '', alt_name: alt, source: 'os_open_names', os_id: r.ID, lad_name: osLad(r) });
     stats.town_no_pop++;
   }
   rows.push(...osRows);
-  for (const a of admin.values()) rows.push({ id: a.code, name: a.name, slug: P.slugify(a.name), type: 'admin', lat: round6(a.lat), lng: round6(a.lng), population: null, parent_town_id: null, country: countryOfCode(a.code), is_admin_area: true, kind: adminKind(a.code), qualifier: '', alt_name: a.alt, source: 'ons_admin', os_id: '' });
+  for (const a of admin.values()) rows.push({ id: a.code, name: a.name, slug: P.slugify(a.name), type: 'admin', lat: round6(a.lat), lng: round6(a.lng), population: null, parent_town_id: null, country: countryOfCode(a.code), is_admin_area: true, kind: adminKind(a.code), qualifier: '', alt_name: a.alt, source: 'ons_admin', os_id: '', lad_name: a.name });
 
   rows.sort((p, q) => p.type.localeCompare(q.type) || p.name.localeCompare(q.name) || p.id.localeCompare(q.id));
   const written = P.writeDataFile(rows, OUT);

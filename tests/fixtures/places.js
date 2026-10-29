@@ -43,6 +43,8 @@ console.log('\n=== FIXTURE: places table (pg-mem, the real data file) ===\n');
   chk('and towns of their own nearby (Totton or Eastleigh) with populations', near.some(p => p.type === 'town' && /Totton|Eastleigh|Hedge End/.test(p.name) && p.population > 5000), near.filter(p => p.type === 'town' && p.population).map(p => p.name).join(', '), 'Totton, Eastleigh or Hedge End');
   chk('near() leaves admin rows out by default', !near.some(p => p.is_admin_area), '', 'no admin rows');
 
+  chk('every place carries its local authority name (Cowes: Isle of Wight; Southampton town: Southampton and its neighbours)', (await pool.query(`SELECT COUNT(*)::int AS n FROM places WHERE lad_name IS NULL OR lad_name = ''`)).rows[0].n === 0 && (await store.matchName('Cowes')).some(p => p.lad_name === 'Isle of Wight') && /Southampton/.test(town.lad_name), town.lad_name, 'Southampton; …');
+
   // Name matching
   const cf = await store.matchName('Chandlers Ford', town);
   chk('"Chandlers Ford" (no apostrophe) matches the built-up area Chandler\'s Ford', cf.some(p => p.type === 'town' && p.population > 20000), cf.map(p => `${p.name}/${p.type}/${p.population}`).join(', '), "Chandler's Ford town, 20,000+");

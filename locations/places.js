@@ -23,7 +23,7 @@ const zlib = require('zlib');
 const crypto = require('crypto');
 
 const DATA_FILE = path.join(__dirname, 'data', 'places.csv.gz');
-const COLUMNS = ['id', 'name', 'slug', 'type', 'lat', 'lng', 'population', 'parent_town_id', 'country', 'is_admin_area', 'kind', 'qualifier', 'alt_name', 'source', 'os_id'];
+const COLUMNS = ['id', 'name', 'slug', 'type', 'lat', 'lng', 'population', 'parent_town_id', 'country', 'is_admin_area', 'kind', 'qualifier', 'alt_name', 'source', 'os_id', 'lad_name'];
 const TYPES = ['town', 'district', 'admin'];
 
 // ── Names ──
@@ -179,7 +179,8 @@ async function ensurePlacesTables(pool) {
       qualifier       TEXT,
       alt_name        TEXT,
       source          TEXT,
-      os_id           TEXT
+      os_id           TEXT,
+      lad_name        TEXT
     );
     CREATE INDEX IF NOT EXISTS places_name_norm_idx ON places (name_norm);
     CREATE INDEX IF NOT EXISTS places_type_idx ON places (type);
@@ -203,12 +204,12 @@ async function seedPlaces(pool, { file = DATA_FILE, log = console, batch = 500, 
   const rows = readDataFile(file);
   await pool.query(`DELETE FROM places`);
   await pool.query(`DELETE FROM places_import`);
-  const cols = ['id', 'name', 'name_norm', 'slug', 'type', 'lat', 'lng', 'population', 'parent_town_id', 'country', 'is_admin_area', 'kind', 'qualifier', 'alt_name', 'source', 'os_id'];
+  const cols = ['id', 'name', 'name_norm', 'slug', 'type', 'lat', 'lng', 'population', 'parent_town_id', 'country', 'is_admin_area', 'kind', 'qualifier', 'alt_name', 'source', 'os_id', 'lad_name'];
   for (let i = 0; i < rows.length; i += batch) {
     const chunk = rows.slice(i, i + batch);
     const values = [], params = [];
     chunk.forEach((r, k) => {
-      const vals = [r.id, r.name, normaliseName(r.name), r.slug, r.type, r.lat, r.lng, r.population, r.parent_town_id, r.country, r.is_admin_area, r.kind || null, r.qualifier || null, r.alt_name || null, r.source || null, r.os_id || null];
+      const vals = [r.id, r.name, normaliseName(r.name), r.slug, r.type, r.lat, r.lng, r.population, r.parent_town_id, r.country, r.is_admin_area, r.kind || null, r.qualifier || null, r.alt_name || null, r.source || null, r.os_id || null, r.lad_name || null];
       params.push(...vals);
       values.push(`(${vals.map((_, j) => `$${k * cols.length + j + 1}`).join(',')})`);
     });
