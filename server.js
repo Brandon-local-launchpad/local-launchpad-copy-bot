@@ -4312,6 +4312,12 @@ initDb().then(async () => {
     if (n) console.log(`[fillout] processed ${n} submission(s) left waiting by a restart`);
   }
   app.listen(PORT, () => console.log(`Copy bot running at http://localhost:${PORT}`));
+  // The places table (the Location Determiner's towns, suburbs and admin areas): created, then
+  // seeded from locations/data/places.csv.gz after the server is up, only when the file changed
+  if (pool) {
+    const PL = require('./locations/places');
+    PL.ensurePlacesTables(pool).then(() => PL.seedPlaces(pool)).then(r => { if (!r.seeded) console.log(`[places] ${r.reason}${r.rows ? ` (${r.rows} rows)` : ''}`); }).catch(err => console.error('[places] seed failed:', err.message));
+  }
 }).catch(err => {
   console.error('DB init failed:', err.message);
   process.exit(1);
