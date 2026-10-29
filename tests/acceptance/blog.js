@@ -195,7 +195,7 @@ async function runClient(cfg, outRoot, callModel) {
     const why = r.status === 'Held' ? (heldWhy.get(r.slug) || r.gates.filter(g => g.hold).map(g => `${g.code}: ${short(g.msg, 160)}`).join(' | ') || 'held') : r.gates.length ? r.gates.map(g => `${g.code}: ${short(g.msg, 160)}`).join(' | ') : 'runs';
     say(`| ${r.slug} | ${r.post_type} | ${r.publish_date || ''} | ${r.status === 'Held' ? 'held' : r.gates.length ? 'gated' : 'runs'} | ${r.specificity ? r.specificity.count + '/6' : ''} | ${why.replace(/\|/g, '/')} |`);
   }
-  if (v.reservation && v.reservation.flags.length) say(`\nReservation flags: ${v.reservation.flags.map(f => `${f.code} (${short(f.msg, 120)})`).join('; ')}`);
+  if (v.reservation && v.reservation.flags.length) say(`\nReservation flags: ${v.reservation.flags.map(f => `${f.code} (${short(f.msg, 600)})`).join('; ')}`);
   if (DRY) {
     const gateCodes = {};
     for (const r of v.rows) for (const g of (r.status === 'Held' ? r.gates.filter(x => x.hold) : r.gates)) gateCodes[g.code] = (gateCodes[g.code] || 0) + 1;

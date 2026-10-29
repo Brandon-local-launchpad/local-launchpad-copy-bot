@@ -185,7 +185,21 @@ function reserveBlogTopics({ assignment, cv = {}, niche = {}, keyValueMap = {}, 
     const byUk = services.find(p => sameName(t.service, ukName(p.pageTitle)) || sameName(t.service, p.pageTitle));
     if (byUk) return { service: byUk, category: null };
     const hit = bestServiceFor(t.service, candidates);
-    return hit ? { service: services.find(p => p.urlSlug === hit.key) || null, category: null } : found;
+    if (hit) return { service: services.find(p => p.urlSlug === hit.key) || null, category: null };
+    // A word of the service on a page's name, on the stem ("Decking" is the Deck installation page, else the Deck Builder category): the client offers it (B1, 29 Oct)
+    // The job words (removal, installation, repair) and the trade's own words (roof, roofing, landscaping) name no service: "Chimney removal" is chimney, "Roof coatings" is coating
+    const JOB_WORDS = new Set(['install', 'installation', 'installations', 'repair', 'repairs', 'replacement', 'replacements', 'removal', 'cleaning', 'clearing', 'clearance', 'design', 'designs', 'maintenance', 'service', 'services', 'fitting', 'fitted', 'laying', 'work', 'works', 'building', 'construction', 'conversion', 'conversions', 'treatment', 'treatments', 'solutions', 'company', 'contractor', 'contractors', 'specialist', 'specialists', 'system', 'systems'].map(stemOf));
+    const tradeWords = new Set([niche.trade, niche.trade_person, niche.trade_lower, tradeLower].filter(Boolean).flatMap(x => norm(x).split(' ')).flatMap(w => [stemOf(w), w.replace(/(ers?|ing)$/, '')]).filter(Boolean));
+    const wordsOf = x => new Set(norm(x).split(' ').filter(w => w.length >= 4 && !GENERIC.has(w)).map(stemOf).filter(w => !JOB_WORDS.has(w) && !tradeWords.has(w) && !tradeWords.has(w.replace(/(ers?|ing)$/, ''))));
+    const want = wordsOf(t.service);
+    if (want.size) {
+      const hitPage = list => list.find(p => [...wordsOf(p.pageTitle)].some(w => want.has(w)));
+      const sp = hitPage(services);
+      if (sp) return { service: sp, category: null };
+      const cp = hitPage(pages.filter(p => p.pageType === 'category' && built(p)));
+      if (cp) return { service: null, category: cp };
+    }
+    return found;
   };
   const bankType = t => (t.type === 'cost' ? 'cost_guide' : t.type === 'decision' ? 'decision' : t.type === 'question' ? 'question' : postTypeOf({ wording: t.question, doubt: '' }, slots.decision_pairs));
   // A bank topic's related questions in doubt order, the ones a page uses dropped
@@ -264,6 +278,7 @@ function reserveBlogTopics({ assignment, cv = {}, niche = {}, keyValueMap = {}, 
       const ct = costBlockFor(topic);
       if (ct) {
         usedBank.add(ct.id);
+        if ((ct.related || []).some(r => r.source === 'PAA')) topic.search_evidence = true;
         for (const r of [...ct.related].sort(priceFirst)) { if (faq.length >= 5) break; if (usedBank.has(r.id) || faq.some(f => f.id === r.id) || takenQ(r.question, ex) || !notH2(r.question)) continue; usedBank.add(r.id); useQ(r.question); faq.push({ id: r.id, wording: r.question, doubt: r.doubt, needs_fact: !!r.needsFact }); }
         topic.bank_topic = ct.id; topic.related_from = [ct.id];
       } else flagOnce(topic, 'F-STACK', `No CT block in the bank for ${topic.homepage_cost_guide ? 'the trade' : topic.service ? topic.service.title : 'this service'}: no FAQ questions, so the guide is held.`);
@@ -307,6 +322,7 @@ function reserveBlogTopics({ assignment, cv = {}, niche = {}, keyValueMap = {}, 
   };
   const takeBank = (topic, t, { own = v2 } = {}) => {
     usedBank.add(t.id);
+    if ((t.related || []).some(r => r.source === 'PAA')) topic.search_evidence = true; // People also ask: search evidence (B9, 29 Oct)
     // The topic's own related questions share its subject by the bank's research: the service words count here; a question borrowed from another topic must share another word (serviceStems)
     const { kept, dropped, weak } = relatedOf(t, topic.wording, new Set(), { own });
     if (weak.length) topic.flags.push({ code: 'F-RELATED', msg: `${weak.length} related question${weak.length === 1 ? '' : 's'} left out: ${weak.length === 1 ? 'it shares' : 'they share'} too few key words with the post's question (${weak.map(r => r.id).join(', ')}).` });
@@ -443,6 +459,16 @@ function reserveBlogTopics({ assignment, cv = {}, niche = {}, keyValueMap = {}, 
   for (const bt of bankLeft.filter(t => bankType(t) !== 'cost_guide')) {
     if (usedWordings.has(norm(bt.question))) { usedBank.add(bt.id); flags.push({ code: 'F-DROPPED', msg: `${bt.id} "${bt.question}" is a page's question already; not a post.` }); continue; }
     const { service, category } = bankPage(bt);
+    // B1 (Brandon, 29 Oct): a bank topic only on a service the client offers: a service page in the page map,
+    // or a service on their record that folds into a page (the finder gives its category page); a trade
+    // wide block (General) always; the rest are skipped and the next bank topics on the client's own
+    // services take the slots
+    if (!service && !category && !/^general$/i.test(bt.service || '')) {
+      const nf = flags.find(f => f.code === 'F-NOT-OFFERED');
+      const item = `${bt.id} (${bt.service})`;
+      if (nf) { nf.msg = nf.msg.replace(/\.$/, `, ${item}.`); nf.ids.push(bt.id); } else flags.push({ code: 'F-NOT-OFFERED', ids: [bt.id], msg: `Bank topics on services the client does not offer (no page, not on the record), skipped: ${item}.` });
+      continue;
+    }
     const type = bankType(bt);
     const t = add({ key: keyFor(type === 'cost_guide' && service ? `${service.pageTitle} cost ${city}` : bt.question), post_type: type, source: 'blog_bank', homepage_cost_guide: false, target_query: lc(norm(bt.question)),
       wording: question(bt.question), wording_source: 'blog_bank', needs_approval: false, question: bankRef(bt),

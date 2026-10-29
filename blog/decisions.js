@@ -246,8 +246,12 @@ const tfRows = (tradeFacts && tradeFacts.verified && Array.isArray(tradeFacts.ro
     process: practices.length > 0 || !!cv.quote_method || (cv.differentiator_1_confirmed && cv.differentiator_1) || parseInt(cv.guarantee_years, 10) > 0,
     methods: tfRows.some(r => ['standard method', 'what goes wrong', 'fact'].includes(r.kind)) || dossierRows.some(d => d.kind === 'dossier symptom'),
   });
-  const threshold = source === 'search_console' ? 3 : 4;
-  if (spec.count < threshold) gates.push({ code: 'G-SPECIFIC', msg: `${row.slug}: ${spec.count} of the 6 specificity facts (${threshold} needed${source === 'search_console' ? ', 3 for a Search Console topic' : ''}); missing: ${spec.missing.join(', ')}. The next topic takes its slot.` });
+  // 3 of 6 is enough when the topic has search evidence (a People also ask bank topic, a Search Console
+  // query) and one of the three is the client's own fact, a price row or a confirmed process (Brandon, 29 Oct); else 4
+  const searchEvidence = source === 'search_console' || !!info.search_evidence;
+  const ownFact = spec.have.includes('a price for the service') || spec.have.includes('a confirmed process or proof');
+  const threshold = searchEvidence && ownFact ? 3 : 4;
+  if (spec.count < threshold) gates.push({ code: 'G-SPECIFIC', msg: `${row.slug}: ${spec.count} of the 6 specificity facts (${threshold} needed${threshold === 3 ? ', 3 with search evidence and the client\'s own fact' : searchEvidence ? ', 3 with search evidence once a price row or a confirmed process is among them' : ''}); missing: ${spec.missing.join(', ')}. The next topic takes its slot.` });
 
   // ── B2 to B4, B13, B14, the headings ──
   const { h1, withCity } = h1For(wording, { city, town, postType });
