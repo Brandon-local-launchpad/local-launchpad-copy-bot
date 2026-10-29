@@ -23,6 +23,9 @@ const AS = require(path.join(root, 'fillout/additional-services.js'));
 const A = require(path.join(root, 'locations/approved.js'));
 const V = require(path.join(root, 'locations/review.js'));
 const { buildGbpInputs } = require(path.join(root, 'gbp/inputs.js'));
+const S6 = require(path.join(root, 'locations/stage6.js'));
+const P = require(path.join(root, 'locations/places.js'));
+const { createLocationService } = require(path.join(root, 'locations/service.js'));
 
 let pass = 0, fail = 0;
 const chk = (label, ok, got, want) => {
@@ -130,6 +133,56 @@ const input = { resolved, baseTown: S.BASE_TOWN, otherTowns: S.OTHER_TOWNS.join(
   const many = Array.from({ length: 25 }, (_, i) => `Town ${i + 1}`);
   const withApproval = buildGbpInputs({ cv: { company_name: 'Edens Edge', primary_category: 'Gardener' }, rows: gbpRows, keyValueMap: kv, approvedAreas: ['Winchester', 'Southampton', ...many] });
   chk('GBP with an approval: the base town first, the approved list in order, no repeat, 20 at most', withApproval.serviceAreasPageMap[0] === 'Southampton' && withApproval.serviceAreasPageMap[1] === 'Winchester' && withApproval.serviceAreasPageMap.length === 20 && withApproval.serviceAreasPageMap.filter(t => t === 'Southampton').length === 1 && withApproval.serviceAreasFrom === 'the approved locations list', withApproval.serviceAreasPageMap.length + ' ' + withApproval.serviceAreasPageMap.slice(0, 3).join(','), '20 Southampton,Winchester,Town 1');
+
+  // ── Approve = Stage 6: the confirm's preview, then the approval and the page map in one action ──
+  // A second seeded client with a synthetic run (the shape locations/service.js saves) and no approval
+  await pool.query(`INSERT INTO clients (name, trade) VALUES ('Approve test', 'Landscaper')`);
+  const cid2 = (await pool.query(`SELECT id FROM clients WHERE name = 'Approve test'`)).rows[0].id;
+  const towns = [
+    { place_id: 'p-romsey', name: 'Romsey', type: 'town', population: 19923, miles: 6.4, lat: 50.9895, lng: -1.4997, inside_reach: true, source: 'client_asked', client_asked: true, total_volume: 120, score: 93.12, fallback: 10000, gate: { pass: true, by: 'volume', volume: 50, competitors: null }, evidence: null, tier: 1, phase: 1, outcome: 'page', why: 'Tier 1' },
+    { place_id: 'p-winchester', name: 'Winchester', type: 'town', population: 48486, miles: 10.2, lat: 51.0632, lng: -1.308, inside_reach: true, source: 'client_asked', client_asked: true, total_volume: 430, score: 276.49, fallback: 20000, gate: { pass: true, by: 'volume', volume: 140, competitors: null }, evidence: null, tier: 1, phase: 1, outcome: 'page', why: 'Tier 1' },
+    { place_id: 'p-eastleigh', name: 'Eastleigh', type: 'town', population: 48355, miles: 4.1, lat: 50.9697, lng: -1.35, inside_reach: true, source: 'client_asked', client_asked: true, total_volume: 110, score: 94.2, fallback: 30000, gate: { pass: true, by: 'volume', volume: 50, competitors: null }, evidence: null, tier: 2, phase: 2, outcome: 'page', why: 'Tier 2' },
+    { place_id: 'p-totton', name: 'Totton', type: 'town', population: 28093, miles: 5.2, lat: 50.92, lng: -1.4863, inside_reach: true, source: 'scored', client_asked: false, total_volume: 20, score: 16.36, fallback: 22980, gate: { pass: false, by: null, volume: null, competitors: 1 }, evidence: null, tier: 2, phase: 2, outcome: 'page', population_rule: true, why: 'Tier 2: population' },
+    { place_id: 'p-botley', name: 'Botley', type: 'town', population: 5900, miles: 4.7, lat: 50.915, lng: -1.27, inside_reach: true, source: 'scored', client_asked: false, total_volume: 70, score: 58, fallback: 5000, gate: { pass: false, by: null, volume: null, competitors: 0 }, evidence: null, tier: null, phase: null, outcome: 'area_only', why: 'no demand' },
+  ];
+  const run = { ok: true, client: { id: cid2, name: 'Approve test', niche: 'Landscapers/Gardeners' }, ran_at: '2026-10-30T09:00:00.000Z', base: { place_id: 'p-soton', name: 'Southampton', population: 249633, lat: 50.9105, lng: -1.4049 }, point: { lat: 50.9105, lng: -1.4049, from: 'town centroid', note: '' }, travel: { miles: 20, from: 'client values', raw: '20 miles' }, reach_miles: 15, outer_limit_miles: 20, tier1_band: [5, 8], page_town_cap: 20, flags: [], scan: null, costs: { total_usd: 0 }, candidates: [], unmatched: [],
+    tiers: { tier1: towns.filter(t => t.tier === 1), tier2: towns.filter(t => t.tier === 2), area_only: towns.filter(t => t.outcome === 'area_only'), excluded: [], towns, top_score: 276.49, band: [5, 8], cap: 20 },
+    gbp_areas: [], no_demand: [],
+    location_categories: [
+      { town: 'Romsey', place_id: 'p-romsey', phase: 1, tier: 1, category_key: primaryKey, category: 'Gardener', primary: true, pass: true, by: 'volume', volume: 50 },
+      { town: 'Romsey', place_id: 'p-romsey', phase: 1, tier: 1, category_key: keys[1], category: 'x', primary: false, pass: true, by: 'volume', volume: 30 },
+      { town: 'Winchester', place_id: 'p-winchester', phase: 1, tier: 1, category_key: primaryKey, category: 'Gardener', primary: true, pass: true, by: 'volume', volume: 140 },
+      ...keys.slice(1).map(k => ({ town: 'Winchester', place_id: 'p-winchester', phase: 1, tier: 1, category_key: k, category: k, primary: false, pass: true, by: 'volume', volume: 20 })),
+      { town: 'Eastleigh', place_id: 'p-eastleigh', phase: 2, tier: 2, category_key: primaryKey, category: 'Gardener', primary: true, pass: true, by: 'volume', volume: 50 },
+      { town: 'Totton', place_id: 'p-totton', phase: 2, tier: 2, category_key: primaryKey, category: 'Gardener', primary: true, pass: true, by: 'population' },
+    ],
+    after: {}, before: {} };
+  await pool.query(`CREATE TABLE client_assets (id UUID PRIMARY KEY DEFAULT gen_random_uuid(), client_id UUID NOT NULL, asset_type TEXT NOT NULL, filename TEXT, content TEXT NOT NULL, metadata JSONB, uploaded_at TIMESTAMPTZ NOT NULL DEFAULT NOW())`);
+  // The seeded client (cid) has the record and a page map already: use it as the approve client too, with the synthetic run
+  await pool.query(`INSERT INTO client_assets (client_id, asset_type, filename, content) VALUES ($1, 'locations_run', 'locations_run.json', $2)`, [cid, JSON.stringify({ ...run, client: { ...run.client, id: cid } })]);
+  await pool.query(`DELETE FROM client_location_tiers WHERE client_id = $1`, [cid]);
+  await pool.query(`DELETE FROM client_town_flags WHERE client_id = $1`, [cid]);
+  const placesStore = P.createPlacesStore(pool);
+  const locSvc = createLocationService({ pool, filloutService: svcF, pageMapStore: store, h1: null, places: placesStore, serp: null, geocode: async () => null, log: { error() {} } });
+  const review = V.createLocationReview({ pool, places: placesStore, locations: locSvc, log: { log() {} } });
+  { const r = (await store.saved(cid)).find(x => x.type === 'location_category' && x.applies && x.info.town === 'Totton' && x.info.category_key === keys[2]); await store.setRow(cid, r.id, { h1: 'Garden design in Totton' }); }
+  const v0 = await review.view(cid);
+  chk('approve: the review reads the synthetic run (4 page towns, no approval)', v0.ok && v0.counts.tier1 === 2 && v0.counts.tier2 === 2 && v0.approval === null, JSON.stringify(v0.ok && v0.counts), '2 Tier 1, 2 Tier 2');
+  const pre6 = await S6.stage6Preview({ review, pageMapStore: store, pool }, cid);
+  chk('the Stage 6 preview comes from the unapproved review: 4 other towns, Tier 1 as launch towns, counts by type, nothing written', pre6.ok && pre6.tiers.source === 'review (not approved)' && pre6.other_towns.join(',') === 'Winchester,Romsey,Eastleigh,Totton' && pre6.launch_towns.join(',') === 'Winchester,Romsey' && pre6.by_type.length > 0 && pre6.totals.retire >= 1 && (await A.approvedTiers(pool, cid)) === null, JSON.stringify(pre6.ok && { t: pre6.other_towns, l: pre6.launch_towns, src: pre6.tiers && pre6.tiers.source }), 'Winchester,Romsey,Eastleigh,Totton | Winchester,Romsey | review (not approved)');
+  chk('the preview lists the retiring page a person worked on (the Totton category page with a manual H1), with what the work was', pre6.worked_on.length === 1 && /Totton/.test(pre6.worked_on[0].title) && pre6.worked_on[0].worked.some(x => /manual/.test(x)) && pre6.retire.every(r => Array.isArray(r.worked)), JSON.stringify(pre6.worked_on.map(w => [w.title, w.worked])), 'one Totton page, H1 manual');
+  const approved = await S6.approveAndGenerate({ review, pageMapStore: store, pool, log: { log() {} } }, cid, { who: 'Brandon' });
+  rows = await store.saved(cid);
+  const byKey2 = k => rows.find(r => r.page_key === k);
+  chk('approveAndGenerate: the approval is written and the page map regenerated in one action (4 live location pages, the rest retired)', approved.view.approval && approved.view.approval.approved_by === 'Brandon' && approved.generated.ok && rows.filter(r => r.type === 'location' && r.applies).length === 4 && byKey2('location:/locations/totton') && byKey2('location:/locations/totton').info.tier === 2 && byKey2('location:/locations/lockerley').applies === false, JSON.stringify({ live: rows.filter(r => r.type === 'location' && r.applies).map(r => r.title), add: approved.generated.totals.add, retire: approved.generated.totals.retire }), '4 live: Romsey, Winchester, Eastleigh, Totton');
+  chk('the location category rows follow the passed combinations (Romsey 2, Eastleigh 1, Totton 1) and the phases follow the tiers', ['Romsey', 'Eastleigh', 'Totton'].map(t => rows.filter(r => r.type === 'location_category' && r.applies && r.info.town === t).length).join(',') === '2,1,1' && byKey2('location:/locations/romsey').info.phase === 1 && byKey2('location:/locations/eastleigh').info.phase === 2, ['Romsey', 'Eastleigh', 'Totton'].map(t => rows.filter(r => r.type === 'location_category' && r.applies && r.info.town === t).length).join(','), '2,1,1');
+  chk('the GBP areas come back with the approval (Tier 1, Tier 2, then area only)', approved.gbp_areas.join(',') === 'Romsey,Winchester,Eastleigh,Totton,Botley', approved.gbp_areas.join(','), 'Romsey,Winchester,Eastleigh,Totton,Botley');
+  chk('the retired pages keep a person\'s work', byKey2('location:/locations/lockerley').h1 === 'Gardeners in Lockerley' && byKey2('location:/locations/awbridge').status === 'Copy Generated', '', 'kept');
+  // Move a town and approve again: the same action, the page map follows
+  await review.move(cid, { place_id: 'p-botley', to: 'tier2', note: 'the client asked' });
+  const again = await S6.approveAndGenerate({ review, pageMapStore: store, pool, log: { log() {} } }, cid, { who: 'Brandon' });
+  rows = await store.saved(cid);
+  chk('approving again after a move regenerates: Botley is a live Tier 2 location page now, nothing else to do', again.generated.ok && byKey2('location:/locations/botley') && byKey2('location:/locations/botley').applies && byKey2('location:/locations/botley').info.tier === 2 && (await A.approvedTiers(pool, cid)).towns.includes('Botley'), JSON.stringify(byKey2('location:/locations/botley') && { a: byKey2('location:/locations/botley').applies, t: byKey2('location:/locations/botley').info.tier }), 'live, Tier 2');
 
   await pool.end();
   console.log(`\n${pass} passed, ${fail} failed`);

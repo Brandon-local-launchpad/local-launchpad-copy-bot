@@ -88,7 +88,7 @@ export async function render(el, ctx) {
       <div class="notice">Run of ${h(fmt(v.ran_at))}. Base <strong>${h(v.base.name)}</strong> (population ${num(v.base.population)}), point from ${h(v.point.from)}. Travel ${v.travel.miles} miles from ${h(v.travel.from)} → reach ${v.reach_miles} mi, outer limit ${v.outer_limit_miles} mi, Tier 1 band ${v.tier1_band.join(' to ')}, page town cap ${v.page_town_cap}.${v.costs ? ` This run cost $${Number(v.costs.total_usd).toFixed(2)}.` : ''}${v.scan ? ` <span class="muted">Locked scan grid: ${v.scan.reach_miles} mi would move ${v.scan.moves.length} towns (shown only, never applied).</span>` : ''}</div>
       ${v.flags.map(f => `<div class="notice warn">${h(f.code)}: ${h(f.msg)}</div>`).join('')}
       ${v.warnings.map(w => `<div class="notice ${w.code === 'over_cap' ? 'bad' : 'warn'}">${h(w.msg)}</div>`).join('')}
-      ${v.approval ? `<div class="notice good">Approved ${h(fmt(v.approval.approved_at))}${v.approval.approved_by ? ` by ${h(v.approval.approved_by)}` : ''}: ${v.approval.counts.tier1} Tier 1, ${v.approval.counts.tier2} Tier 2, ${v.approval.counts.area_only} area only. The page map and the GBP service areas read this list when the page map is generated; approving again replaces it.</div>` : `<div class="notice">Not approved yet. Move towns, add any missing, send the client message, record the reply, then Approve.</div>`}
+      ${v.approval ? `<div class="notice good">Approved ${h(fmt(v.approval.approved_at))}${v.approval.approved_by ? ` by ${h(v.approval.approved_by)}` : ''}: ${v.approval.counts.tier1} Tier 1, ${v.approval.counts.tier2} Tier 2, ${v.approval.counts.area_only} area only. The page map was regenerated from it and the GBP service areas follow it. Move a town and approve again to change it.</div>` : `<div class="notice">Not approved yet: the page map still uses the record's town list. Move towns, add any missing, send the client message, record the reply, then Approve, which regenerates the page map.</div>`}
       ${dryHtml()}`;
     el.innerHTML = `
       <div class="stack">
@@ -117,7 +117,7 @@ export async function render(el, ctx) {
                 <div id="suggest" class="card" style="display:none;position:absolute;left:0;right:0;top:40px;z-index:20;padding:4px;max-height:220px;overflow:auto"></div>
               </div>` })}
             ${card({ title: `GBP service areas (${v.gbp_areas.length} of 20)`, body: `<div class="small" style="line-height:2">${v.gbp_areas.map(g => `${h(g.name)} ${pill(g.from === 'Tier 1' ? 'accent' : g.from === 'Tier 2' ? 'run' : '', g.from)}`).join(' · ')}</div>` })}
-            ${card({ title: 'Approve', sub: 'Writes the approved list with a timestamp. Approving again replaces it.', body: `<div class="btn-row"><input class="input" id="who" placeholder="Your name" style="width:160px" value="${attr(localStorage.getItem('ll_who') || '')}"><button class="btn btn-primary" id="approveBtn" ${overCap ? 'disabled' : ''}>Approve this list</button></div>` })}
+            ${card({ title: 'Approve', sub: 'Shows what the list does to the page map, then approves it and regenerates the page map in one go. Moved a town later? Approve again.', body: `<div class="btn-row"><input class="input" id="who" placeholder="Your name" style="width:160px" value="${attr(localStorage.getItem('ll_who') || '')}"><button class="btn btn-primary" id="approveBtn" ${overCap ? 'disabled' : ''}>Approve this list</button></div>` })}
           </div>
         </div>
         ${sectionTable('tier1', 'Tier 1: phase 1 location pages', 'move a town with the buttons; Reset returns it to the run\'s decision')}
@@ -180,10 +180,37 @@ export async function render(el, ctx) {
       const declined = [...el.querySelectorAll('#reply input[type=checkbox]')].filter(c => !c.checked).map(c => c.dataset.id);
       await busy(e.target, 'Saving…', async () => { try { view = await post('/review/client-reply', { declined, note: el.querySelector('#replyNote').value }); toast('Reply saved'); draw(); } catch (err) { toast(err.message, 'bad'); } });
     });
+    // Approve = Stage 6 (30 Oct): the confirm shows what the approval does to the page map; on
+    // confirm the approval is saved and the page map regenerated in one action
     el.querySelector('#approveBtn').addEventListener('click', async e => {
       const who = el.querySelector('#who').value.trim(); localStorage.setItem('ll_who', who);
-      if (!(await confirm({ title: `Approve ${view.counts.tier1} Tier 1 and ${view.counts.tier2} Tier 2 towns?`, text: 'The approved list replaces any earlier approval. The page map reads it when it is next generated.', ok: 'Approve' }))) return;
-      await busy(e.target, 'Approving…', async () => { try { view = await post('/review/approve', { who }); toast('Approved'); draw(); } catch (err) { toast(err.message, 'bad'); } });
+      let s6;
+      try { s6 = await busy(e.target, 'Working out the pages…', () => api(`${base}/review/stage6`)); } catch (err) { return toast(err.message, 'bad'); }
+      if (!s6.ok) return toast((s6.problems || []).map(p => p.msg).join(' ') || 'The page map cannot be built yet', 'bad');
+      const rowsHtml = s6.by_type.map(t => `<tr><td>${h(t.label)}</td><td class="num">${t.add_p1 + t.add_p2}${t.add_p2 ? ` <span class="muted">(${t.add_p2} phase 2)</span>` : ''}</td><td class="num">${t.retire}</td><td class="num">${t.keep_p1 + t.keep_p2}${t.keep_p2 ? ` <span class="muted">(${t.keep_p2} phase 2)</span>` : ''}</td><td class="num">${t.phase_changes || ''}</td></tr>`).join('');
+      const worked = s6.worked_on.length ? `<div class="notice warn" style="margin-top:10px"><strong>${s6.worked_on.length} retiring page${s6.worked_on.length === 1 ? ' has' : 's have'} a person's work on ${s6.worked_on.length === 1 ? 'it' : 'them'}</strong> (kept, never deleted; applies = false):<ul style="margin:6px 0 0 18px">${s6.worked_on.slice(0, 12).map(r => `<li>${h(r.label)} ${h(r.title)}: ${h(r.worked.join(', '))}</li>`).join('')}${s6.worked_on.length > 12 ? `<li>… and ${s6.worked_on.length - 12} more</li>` : ''}</ul></div>` : `<div class="small muted" style="margin-top:10px">No retiring page has a person's work on it${s6.retire.some(r => r.research_h1) ? ' (research H1s only)' : ''}.</div>`;
+      const body = `
+        <div class="small muted" style="margin-bottom:8px">Towns for the page map (${s6.other_towns.length}): ${h(s6.other_towns.join(', '))}. Launch towns: ${h(s6.launch_towns.join(', ') || 'none')}.</div>
+        <div class="tbl-wrap"><table class="tbl"><thead><tr><th>Type</th><th class="num">Add</th><th class="num">Retire</th><th class="num">Keep</th><th class="num">Phase changes</th></tr></thead><tbody>${rowsHtml}</tbody></table></div>
+        <div class="small muted" style="margin-top:8px">Totals: add ${s6.totals.add}, retire ${s6.totals.retire}, keep ${s6.totals.keep}; the plan is ${s6.totals.plan} pages (${s6.totals.phase1} phase 1, ${s6.totals.phase2} phase 2).${s6.renames.length ? ' The rename check flags the leaving towns against the new ones; it is not a rename.' : ''}</div>
+        ${worked}
+        <div class="small muted" style="margin-top:10px">On confirm: the list is approved${who ? ` by ${h(who)}` : ''}, the page map is regenerated from it (retired pages keep their H1, meta and copy), and the GBP service areas follow the approved list. Approving again later does the same.</div>`;
+      const ok = await new Promise(resolve => {
+        const ov = document.createElement('div'); ov.className = 'overlay';
+        ov.innerHTML = `<div class="dialog wide" role="dialog"><h3>Approve ${view.counts.tier1} Tier 1 and ${view.counts.tier2} Tier 2 towns and regenerate the page map?</h3>${body}<div class="btn-row" style="margin-top:14px"><button class="btn btn-ghost" data-x="0">Cancel</button><button class="btn btn-primary" data-x="1">Approve and regenerate</button></div></div>`;
+        ov.addEventListener('click', ev => { const b = ev.target.closest('[data-x]'); if (b) { ov.remove(); resolve(b.dataset.x === '1'); } else if (ev.target === ov) { ov.remove(); resolve(false); } });
+        document.body.appendChild(ov);
+      });
+      if (!ok) return;
+      await busy(e.target, 'Approving and regenerating…', async () => {
+        try {
+          const r = await post('/review/approve', { who });
+          view = r.view;
+          toast(`Approved. Page map: ${r.generated.totals.add} added, ${r.generated.totals.retire} retired, ${r.generated.totals.keep} kept`);
+          draw();
+          if (ctx.refresh) ctx.refresh();
+        } catch (err) { toast(err.message, 'bad'); }
+      });
     });
   };
 

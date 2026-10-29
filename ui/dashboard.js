@@ -115,9 +115,12 @@ async function loadDashboard({ pool, tradeFacts = null, runners = {}, homepageRu
   const values = new Map((await latest('client_values')).map(r => [r.client_id, parse(r.content) || {}]));
   const gbp = new Map((await latest('gbp_output')).map(r => [r.client_id, parse(r.content) || {}]));
   // The Location Determiner (the Locations tab dot): a run saved, an approved list
-  const locRuns = new Set((await q(`SELECT DISTINCT client_id FROM client_assets WHERE asset_type = 'locations_run'`)).map(r => r.client_id));
-  let locApproved = new Set();
-  try { locApproved = new Set((await q(`SELECT DISTINCT client_id FROM client_location_tiers`)).map(r => r.client_id)); } catch (_) { /* the table is made on first use */ }
+  const locRunAt = new Map((await q(`SELECT client_id, MAX(uploaded_at) AS at FROM client_assets WHERE asset_type = 'locations_run' GROUP BY client_id`)).map(r => [r.client_id, r.at]));
+  const locRuns = new Set(locRunAt.keys());
+  let locApproved = new Map();
+  try { locApproved = new Map((await q(`SELECT client_id, MAX(approved_at) AS approved_at, MAX(run_at) AS run_at FROM client_location_tiers GROUP BY client_id`)).map(r => [r.client_id, r])); } catch (_) { /* the table is made on first use */ }
+  // A run saved more than a minute after the run the approval was made on: the locations changed since the approval
+  const locChanged = id => { const a = locApproved.get(id); const r = locRunAt.get(id); return !!(a && r && a.run_at && new Date(r).getTime() > new Date(a.run_at).getTime() + 60000); };
 
   // Dossiers (active), the page map rows, pushes, submissions, key record fields, scans
   const dossiers = await q(`SELECT client_id, metadata FROM client_assets WHERE asset_type = 'geo_dossier' AND COALESCE(metadata->>'superseded', 'false') <> 'true'`);
@@ -230,7 +233,7 @@ async function loadDashboard({ pool, tradeFacts = null, runners = {}, homepageRu
       // The wizard's answer: an existing site to replace (the Site audit tab shows), or a new build
       existing_site: cv && cv._intake ? cv._intake.existing_site !== false : null,
       gbp_done: !!(g && g.steps && ['description', 'services', 'products'].every(k => g.steps[k] && g.steps[k].status === 'done')), has_scans: (scansByClient.get(c.id) || []).length > 0,
-      locations_run: locRuns.has(c.id), locations_approved: locApproved.has(c.id),
+      locations_run: locRuns.has(c.id), locations_approved: locApproved.has(c.id), locations_approved_at: locApproved.has(c.id) ? locApproved.get(c.id).approved_at : null, locations_run_at: locRunAt.get(c.id) || null, locations_changed: locChanged(c.id),
       missing_fields: summary.missing, pack_unverified: packUnverified,
       // The page list (type, key, title, good, block, claims, score, at) only for one client's summary
       page_list: clientId ? pages : undefined,

@@ -11,6 +11,11 @@ const STATUS_KIND = { 'not started': 'none', running: 'run', queued: 'none', wri
 
 export async function render(el, ctx) {
   const { clientId } = ctx;
+  // Locations first (30 Oct): location and location category pages are not written until the list is approved
+  const locRow = ctx.row || {};
+  const locLocked = !locRow.locations_approved;
+  const isTownPage = r => r.type === 'location' || (r.type === 'category' && r.scope === 'town');
+  const locNotice = locLocked ? `<div class="notice warn" style="margin-bottom:10px"><strong>Locations not approved yet: town pages may change.</strong> Location and location category pages are not written until the list is approved on the <a href="/clients/${clientId}/locations" data-link>Locations tab</a>; the homepage, category and service pages can be written now.</div>` : locRow.locations_changed ? `<div class="notice warn" style="margin-bottom:10px"><strong>Locations changed since approval.</strong> A newer locations run exists: approve again on the <a href="/clients/${clientId}/locations" data-link>Locations tab</a> before writing town pages.</div>` : '';
   let filter = ctx.query.type || 'all';
   let quality = false;
   let timer = null;
@@ -90,6 +95,7 @@ export async function render(el, ctx) {
       { key: 'at', label: 'Last run', render: r => timeEl(r.at) },
       { key: 'act', label: '', cls: 'right no-label', render: r => r.type === 'homepage'
         ? `<button class="btn btn-ghost btn-sm" data-write="homepage" data-key="homepage" ${anyRunning ? 'disabled' : ''}>${r.record ? 'Write again' : 'Write'}</button>`
+        : locLocked && isTownPage(r) ? `<span class="tip" data-tip="Approve the locations list first"><button class="btn btn-ghost btn-sm" disabled>Write</button></span>`
         : `<button class="btn btn-ghost btn-sm" data-write="${h(r.type)}" data-key="${attr(r.key)}" ${anyRunning || !r.ready || (views[r.type].readiness && views[r.type].readiness.ok === false) ? 'disabled' : ''}>${r.record ? 'Write again' : 'Write'}</button>` },
     ];
     const runLine = runningRows.length ? runningRows.map(r => { const v = views[r.type]; const list = v && v.run && v.run.pages || []; const done = list.filter(p => ['done', 'kept', 'blocked', 'failed', 'skipped'].includes(p.status)).length; const nxt = list.find(p => p.status === 'pending'); return running({ now: `Writing ${r.title}`, next: nxt ? `Next: ${nxt.title}` : 'Then the run finishes and this table refreshes', done: list.length ? done : null, total: list.length || null }); }).join('') : (anyRunning ? running({ now: 'A run is starting', next: 'The first page appears here in a moment' }) : '');
@@ -97,6 +103,7 @@ export async function render(el, ctx) {
     const typeLine = TYPES.map(([t, l]) => `${counts[t]} ${l.toLowerCase()}`).join(', ');
     const summaryLine = rows.length ? `<div class="notice" style="margin-bottom:14px;display:flex;gap:16px;flex-wrap:wrap;align-items:center"><span><strong>${plural(rows.length, 'page')}</strong>: ${h(typeLine)}</span><span>${rows.filter(r => r.record).length} written</span><span>spent <strong>£${((cost.spent_pence || 0) / 100).toFixed(2)}</strong>${cost.logged !== undefined && cost.logged < rows.filter(r => r.record).length ? ` <span class="muted">(${cost.logged} of ${rows.filter(r => r.record).length} written pages have a cost on record)</span>` : ''}</span><span>estimated <strong>£${((cost.estimate_pence || 0) / 100).toFixed(2)}</strong> to write the rest <span class="muted">(each type at its average here, else about 60p a page)</span></span></div>` : '';
     el.innerHTML = `
+      ${locNotice}
       ${readiness}
       ${summaryLine}
       ${runLine ? `<div style="margin-bottom:14px">${runLine}</div>` : ''}
@@ -167,25 +174,30 @@ export async function render(el, ctx) {
     if (r) {
       const resume = r.dataset.run === 'resume';
       if (!resume && !(await confirm({ title: 'Write every page again?', text: 'Existing records are kept as earlier versions. Category pages run first, then service, then location.', ok: 'Write all again' }))) return;
-      const order = ['category', 'service', 'location'];
+      // Until the locations list is approved: no location run, and the category run takes the base pages only (no town pages)
+      const order = locLocked ? ['category', 'service'] : ['category', 'service', 'location'];
       const todo = order.filter(t => (data.views[t].pages || []).length && !(data.views[t].readiness && data.views[t].readiness.ok === false));
+      const keysFor = t => (locLocked && t === 'category') ? (data.views[t].pages || []).filter(p => p.scope !== 'town').map(p => p.key) : null;
       const hp = data.rows.find(x => x.type === 'homepage');
       try {
         if (hp && (!resume || !hp.record)) { api(`/api/clients/${clientId}/v20/homepage/generate`, { method: 'POST', body: {} }).catch(() => {}); }
         // The runs go one after another in the background: category first, service once it finishes, then location
         (async () => {
           for (const t of todo) {
-            await api(`/api/clients/${clientId}/${t}-pages/run`, { method: 'POST', body: { resume, quality } }).catch(err => toast(`${t} pages: ${err.message}`, 'bad'));
+            const keys = keysFor(t);
+            if (keys && !keys.length) continue;
+            await api(`/api/clients/${clientId}/${t}-pages/run`, { method: 'POST', body: { resume, quality, ...(keys ? { keys } : {}) } }).catch(err => toast(`${t} pages: ${err.message}`, 'bad'));
             await waitForRun(t);
           }
           load();
         })();
-        toast(resume ? 'Writing the pages that are missing' : 'Writing every page again'); setTimeout(load, 1200);
+        toast(resume ? (locLocked ? 'Writing the missing pages (town pages wait for the locations approval)' : 'Writing the pages that are missing') : (locLocked ? 'Writing every page again (town pages wait for the locations approval)' : 'Writing every page again')); setTimeout(load, 1200);
       } catch (err) { toast(err.message, 'bad'); }
     }
   });
   const waitForRun = async t => { for (let i = 0; i < 720; i++) { await new Promise(r => setTimeout(r, 10000)); const v = await api(`/api/clients/${clientId}/${t}-pages`).catch(() => null); if (!v || !v.running) return; } };
 
+  el.innerHTML = `${locNotice}<div class="card"><div class="skel" style="width:60%"></div></div>`;
   await load();
   return () => clearTimeout(timer);
 }

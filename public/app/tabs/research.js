@@ -10,8 +10,12 @@ import { h, attr, api, card, table, status, pill, timeEl, running, toast, dialog
 export async function render(el, ctx) {
   const { clientId } = ctx;
   let timer = null, faqTimer = null, state = null, moduleName = null, county = null;
+  // Locations first (30 Oct): research runs for approved page towns only; the towns here are the page map's, which Approve regenerates
+  const row = ctx.row || {};
+  const locked = !row.locations_approved;
+  const gateNotice = locked ? `<div class="notice warn" style="margin-bottom:14px"><strong>Locations not approved yet.</strong> Research runs for approved page towns only: approve the list on the <a href="/clients/${clientId}/locations" data-link>Locations tab</a> first, which regenerates the page map and the town list here.</div>` : row.locations_changed ? `<div class="notice warn" style="margin-bottom:14px"><strong>Locations changed since approval.</strong> A newer locations run exists: check the <a href="/clients/${clientId}/locations" data-link>Locations tab</a> and approve again before researching new towns.</div>` : '';
 
-  el.innerHTML = `<div id="towns"></div><div class="grid grid-2" style="margin-top:16px"><div id="alloc"></div><div id="faq"></div></div>`;
+  el.innerHTML = `${gateNotice}<div id="towns"></div><div class="grid grid-2" style="margin-top:16px"><div id="alloc"></div><div id="faq"></div></div>`;
   const townsEl = el.querySelector('#towns'), allocEl = el.querySelector('#alloc'), faqEl = el.querySelector('#faq');
 
   // ── Towns ──
@@ -50,14 +54,14 @@ export async function render(el, ctx) {
       { key: 'i', label: 'Issues', num: true, render: r => r.sum ? r.sum.issues : '<span class="muted">–</span>' },
       { key: 's', label: 'Symptoms', num: true, render: r => r.sum ? r.sum.symptoms : '<span class="muted">–</span>' },
       { key: 'r', label: 'Rules', num: true, render: r => r.sum ? r.sum.rules : '<span class="muted">–</span>' },
-      { key: 'act', label: '', cls: 'right no-label', render: r => `${r.assetId ? `<button class="btn btn-ghost btn-sm" data-open="${attr(r.assetId)}" data-name="${attr(r.name)}">Open</button> <a class="btn btn-ghost btn-sm" href="/api/clients/${clientId}/dossiers/${attr(r.assetId)}/download">Download</a> ` : ''}${r.adminArea || r.extra ? '' : `<button class="btn btn-ghost btn-sm" data-run="${attr(r.name)}" ${runningRows.length ? 'disabled' : ''}>${r.st === 'done' ? 'Run again' : 'Run'}</button>`}` },
+      { key: 'act', label: '', cls: 'right no-label', render: r => `${r.assetId ? `<button class="btn btn-ghost btn-sm" data-open="${attr(r.assetId)}" data-name="${attr(r.name)}">Open</button> <a class="btn btn-ghost btn-sm" href="/api/clients/${clientId}/dossiers/${attr(r.assetId)}/download">Download</a> ` : ''}${r.adminArea || r.extra ? '' : `<button class="btn btn-ghost btn-sm" data-run="${attr(r.name)}" ${runningRows.length || locked ? 'disabled' : ''}>${r.st === 'done' ? 'Run again' : 'Run'}</button>`}` },
     ];
     const modSel = `<label class="small muted">Module <select class="input" id="module" style="width:auto;padding:4px 8px">${rc.modules.map(m => `<option value="${attr(m)}"${m === moduleName ? ' selected' : ''}>${h(m)}</option>`).join('')}${moduleName ? '' : '<option value="" selected>pick one…</option>'}</select></label>`;
     townsEl.innerHTML = `
       ${runningRows.length ? `<div style="margin-bottom:14px">${running({ now: `Researching ${(runningRows.find(r => r.st === 'running') || runningRows[0]).name}`, next: runningRows.length > 1 ? `Then ${runningRows.filter(r => r.st === 'pending').map(r => r.name).join(', ')}` : 'Then the dossier is saved and the allocation pass runs for the primary city', done: rows.filter(r => r.st === 'done').length, total: rows.filter(r => !r.adminArea && !r.extra).length })}</div>` : ''}
       ${!rc.module ? `<div class="notice warn" style="margin-bottom:14px">No research module matches this client's niche by name. Pick the module to use below; it is remembered for this tab.</div>` : ''}
       <section class="card card-flat">
-        <div class="tbl-tools"><strong>Towns</strong> ${info('One row per town in the page map (the primary city first). Neighbourhoods counts those with sourced detail over the total; the allocation pass only uses sourced ones. The county is added to each town name for the research, to tell Romsey, Hampshire from any other.')}<label class="small muted">County <input class="input" id="county" style="width:130px;padding:4px 8px" placeholder="e.g. Hampshire" value="${attr(county || '')}"></label><span class="spacer"></span>${modSel}<button class="btn btn-primary btn-sm" data-run-missing ${runningRows.length || !missing.length ? 'disabled' : ''}>Run all missing (${missing.length})</button></div>
+        <div class="tbl-tools"><strong>Towns</strong> ${info('One row per town in the page map (the primary city first). Neighbourhoods counts those with sourced detail over the total; the allocation pass only uses sourced ones. The county is added to each town name for the research, to tell Romsey, Hampshire from any other.')}<label class="small muted">County <input class="input" id="county" style="width:130px;padding:4px 8px" placeholder="e.g. Hampshire" value="${attr(county || '')}"></label><span class="spacer"></span>${modSel}<button class="btn btn-primary btn-sm" data-run-missing ${runningRows.length || !missing.length || locked ? 'disabled' : ''}>Run all missing (${missing.length})</button></div>
         ${table({ columns, rows, cards: true, emptyText: 'No towns yet: the page map gives the town list (the base town and the service areas).' })}
         <div class="tbl-foot">${rows.filter(r => r.st === 'done').length} of ${rows.filter(r => !r.adminArea).length} researched · each run calls Perplexity once per town</div>
       </section>`;
@@ -203,7 +207,8 @@ export async function render(el, ctx) {
     } catch (err) { toast(err.message, 'bad'); }
   });
 
-  await Promise.all([load(), loadAlloc(), loadFaq()]);
+  // A failed towns load keeps the tab (and the Locations notice) on screen with the reason
+  await Promise.all([load().catch(e => { townsEl.innerHTML = card({ body: `<div class="state failed"><h3>Could not load the towns</h3><p>${h(e.message)}</p></div>` }); }), loadAlloc(), loadFaq()]);
   if (ctx.query.run === 'missing' && state) { const missing = state.rows.filter(x => !x.adminArea && !x.extra && x.st !== 'done' && x.st !== 'running' && x.st !== 'pending').map(x => x.name); if (missing.length) run(missing); else toast('Every town already has a dossier'); }
   return () => { clearTimeout(timer); clearTimeout(faqTimer); };
 }
