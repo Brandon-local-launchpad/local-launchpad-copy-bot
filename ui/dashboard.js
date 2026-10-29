@@ -114,6 +114,10 @@ async function loadDashboard({ pool, tradeFacts = null, runners = {}, homepageRu
   for (const [t, asset] of Object.entries(RUN_ASSET)) runStates[t] = new Map((await latest(asset)).map(r => [r.client_id, parse(r.content)]));
   const values = new Map((await latest('client_values')).map(r => [r.client_id, parse(r.content) || {}]));
   const gbp = new Map((await latest('gbp_output')).map(r => [r.client_id, parse(r.content) || {}]));
+  // The Location Determiner (the Locations tab dot): a run saved, an approved list
+  const locRuns = new Set((await q(`SELECT DISTINCT client_id FROM client_assets WHERE asset_type = 'locations_run'`)).map(r => r.client_id));
+  let locApproved = new Set();
+  try { locApproved = new Set((await q(`SELECT DISTINCT client_id FROM client_location_tiers`)).map(r => r.client_id)); } catch (_) { /* the table is made on first use */ }
 
   // Dossiers (active), the page map rows, pushes, submissions, key record fields, scans
   const dossiers = await q(`SELECT client_id, metadata FROM client_assets WHERE asset_type = 'geo_dossier' AND COALESCE(metadata->>'superseded', 'false') <> 'true'`);
@@ -226,6 +230,7 @@ async function loadDashboard({ pool, tradeFacts = null, runners = {}, homepageRu
       // The wizard's answer: an existing site to replace (the Site audit tab shows), or a new build
       existing_site: cv && cv._intake ? cv._intake.existing_site !== false : null,
       gbp_done: !!(g && g.steps && ['description', 'services', 'products'].every(k => g.steps[k] && g.steps[k].status === 'done')), has_scans: (scansByClient.get(c.id) || []).length > 0,
+      locations_run: locRuns.has(c.id), locations_approved: locApproved.has(c.id),
       missing_fields: summary.missing, pack_unverified: packUnverified,
       // The page list (type, key, title, good, block, claims, score, at) only for one client's summary
       page_list: clientId ? pages : undefined,

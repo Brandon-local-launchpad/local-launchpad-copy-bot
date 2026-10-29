@@ -20,7 +20,9 @@ const norm = s => lc(s).replace(/\s+/g, ' ');
 // tradeFacts: { niche, verified, properNouns: [words] } from the niche's trade facts pack
 // (trade-facts/pack.js packProperNouns). Its names join the proper noun list only when the
 // pack is verified; otherwise the client record alone decides, and the run says so.
-function buildGbpInputs({ cv = {}, niche = {}, rows = [], keyValueMap = {}, siteUrl = '', serviceCopy = [], tradeFacts = null }) {
+// approvedAreas (Stage 6, locations/approved.js gbp_areas): the approved locations list's service areas, 20 at most;
+// null means no approval and the page map's location rows stand, as before
+function buildGbpInputs({ cv = {}, niche = {}, rows = [], keyValueMap = {}, siteUrl = '', serviceCopy = [], tradeFacts = null, approvedAreas = null }) {
   const live = (rows || []).filter(r => r.applies !== false);
   const cats = live.filter(r => r.type === 'category');
   const catName = new Map(cats.map(c => [c.info && c.info.category_key, c.title]));
@@ -95,7 +97,11 @@ function buildGbpInputs({ cv = {}, niche = {}, rows = [], keyValueMap = {}, site
   const accreditations = accreditationsLine(cv);
   // Service areas as the page map spells them (the profile panel): the base town, then the
   // location rows in page map order, phase 2 included (they are areas served, built or not)
-  const serviceAreasPageMap = [town, ...live.filter(r => r.type === 'location').map(r => r.title)].filter(Boolean).filter((t, i, a) => a.findIndex(x => norm(x) === norm(t)) === i);
+  const fromPageMap = [town, ...live.filter(r => r.type === 'location').map(r => r.title)].filter(Boolean).filter((t, i, a) => a.findIndex(x => norm(x) === norm(t)) === i);
+  const serviceAreasPageMap = Array.isArray(approvedAreas) && approvedAreas.length
+    ? [town, ...approvedAreas].filter(Boolean).filter((t, i, a) => a.findIndex(x => norm(x) === norm(t)) === i).slice(0, 20)
+    : fromPageMap;
+  const serviceAreasFrom = Array.isArray(approvedAreas) && approvedAreas.length ? 'the approved locations list' : 'the page map';
   const packNouns = tradeFacts && tradeFacts.verified ? (tradeFacts.properNouns || []) : [];
   if (tradeFacts && !tradeFacts.verified) flags.push({ code: 'GBP-PACK-UNVERIFIED', msg: `The trade facts pack${tradeFacts.niche ? ` for "${tradeFacts.niche}"` : ''} is ${tradeFacts.exists === false ? 'missing' : 'not verified'}, so the proper nouns for the GBP lower casing come from the client record alone.` });
   const properPhrases = properNouns(cv, [...areas, ...categories, ...packNouns]);
@@ -127,7 +133,7 @@ function buildGbpInputs({ cv = {}, niche = {}, rows = [], keyValueMap = {}, site
     locked, confirmedNoPage, coreServices, coreByCategory,
     years, accreditations, proofPoints, showPrices, prices, timeframes,
     competitorCount: Number.isFinite(competitorCount) ? competitorCount : null, minServices,
-    included, siteUrl: base, flags, serviceAreasPageMap,
+    included, siteUrl: base, flags, serviceAreasPageMap, serviceAreasFrom,
     // The pages with a search volume, for the rank scan keywords (service rows carry copy_priority,
     // their best volume; category rows carry none today, so they come through with 0)
     volumePages: live.filter(r => r.type === 'category' || r.type === 'service').map(r => ({ type: r.type, title: r.title, h1: r.h1 || '', h1_source: r.h1_source || '', volume: (r.info && (r.info.volume || r.info.copy_priority)) || 0 })),

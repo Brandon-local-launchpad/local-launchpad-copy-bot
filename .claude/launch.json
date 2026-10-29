@@ -36,6 +36,14 @@
         "3995"
       ],
       "port": 3995
+    },
+    {
+      "name": "locations-review",
+      "runtimeExecutable": "node",
+      "runtimeArgs": [
+        "tools/locations-review-server.js"
+      ],
+      "port": 3993
     }
   ]
 }

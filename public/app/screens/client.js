@@ -5,11 +5,11 @@
 import { h, attr, api, status, pill, dot, timeEl, toast, confirm, tag } from '../ui.js';
 
 const TABS = [
-  ['record', 'Record'], ['research', 'Research'], ['page-map', 'Page map'], ['pages', 'Pages'],
+  ['record', 'Record'], ['research', 'Research'], ['locations', 'Locations'], ['page-map', 'Page map'], ['pages', 'Pages'],
   ['gbp', 'GBP'], ['rankings', 'Rankings'], ['images', 'Images'], ['site-audit', 'Site audit'],
 ];
 const MODULES = {
-  record: () => import('../tabs/record.js'), research: () => import('../tabs/research.js'), 'page-map': () => import('../tabs/pagemap.js'),
+  record: () => import('../tabs/record.js'), research: () => import('../tabs/research.js'), locations: () => import('../tabs/locations.js'), 'page-map': () => import('../tabs/pagemap.js'),
   pages: () => import('../tabs/pages.js'), gbp: () => import('../tabs/gbp.js'), rankings: () => import('../tabs/rankings.js'),
   images: () => import('../tabs/images.js'), 'site-audit': () => import('../tabs/audit.js'),
 };
@@ -24,6 +24,7 @@ export function tabDots(row, summary) {
   return {
     record: row.missing_fields.length ? 'wait' : row.stage === 'Onboarding' ? 'none' : 'ok',
     research: row.towns_without_dossier.length ? 'wait' : row.stage === 'Onboarding' || row.stage === 'Research' ? 'none' : 'ok',
+    locations: row.locations_approved ? 'ok' : row.locations_run ? 'wait' : 'none',
     'page-map': row.stage_index >= 3 ? 'ok' : 'none',
     pages: row.running ? 'run' : kinds.has('claims') || kinds.has('blocked') || kinds.has('pack') ? 'wait' : allGood ? 'ok' : anyRec ? 'run' : 'none',
     gbp: row.gbp_done ? 'ok' : row.stage === 'GBP' ? 'run' : 'none',

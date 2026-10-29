@@ -37,8 +37,8 @@ function retiredReason(row, plan) {
   }
   if (row.type === 'town_service') return `"${info.service_name || t}" no longer has a usable keyword of its own in ${info.town || 'this town'}, or another page owns it`;
   if (row.type === 'category') return `the "${t}" category is no longer one of this client's category tabs`;
-  if (row.type === 'location') return `${t} is no longer in this client's town list`;
-  if (row.type === 'location_category') return `the category or the town for "${t}" is no longer on the record`;
+  if (row.type === 'location') return plan && plan.locationTiers ? `${t} is not a Tier 1 or Tier 2 town on the approved locations list (${plan.locationTiers.approved_at ? String(plan.locationTiers.approved_at).slice(0, 10) : 'review'})` : `${t} is no longer in this client's town list`;
+  if (row.type === 'location_category') return plan && plan.locationTiers && plan.rows.some(r => r.type === 'location' && (r.info || {}).town === (row.info || {}).town) ? `"${t}" did not pass the demand gate for its town on the approved locations list (volume under 10 and under 2 competitor pages), so the town is plain text in that category's areas` : plan && plan.locationTiers ? `${(row.info || {}).town || t} is not a Tier 1 or Tier 2 town on the approved locations list` : `the category or the town for "${t}" is no longer on the record`;
   return 'it is no longer in the plan built from the record';
 }
 
@@ -109,7 +109,7 @@ async function ensurePageMapTables(pool) {
 
 const parse = v => (typeof v === 'string' ? JSON.parse(v) : v);
 const fromDb = r => ({ ...r, links_to: parse(r.links_to) || [], links_from: parse(r.links_from) || [], info: parse(r.info) || {}, generated_ref: parse(r.generated_ref) });
-const INFO_KEYS = ['town', 'category_key', 'service_id', 'service_name', 'parent_keys', 'additional', 'primary', 'merged_from', 'gbp_names', 'absorbs', 'copy_priority', 'phase', 'links'];
+const INFO_KEYS = ['town', 'category_key', 'service_id', 'service_name', 'parent_keys', 'additional', 'primary', 'merged_from', 'gbp_names', 'absorbs', 'copy_priority', 'phase', 'tier', 'links'];
 // A plan row's info: what the generator put in info, plus its link sections
 const infoOf = p => { const src = { ...(p.info || {}), ...(p.links ? { links: p.links } : {}) }; return Object.fromEntries(INFO_KEYS.filter(k => src[k] !== undefined).map(k => [k, src[k]])); };
 
@@ -138,7 +138,9 @@ async function inputsFor(filloutService, clientId, { categoryTabRule = 'ticked_o
 
 // volumesFor(keywords) → Map keyword → { volume, cpc }: the keyword cache (h1-research/service.js
 // cached). The one-click job passes the volumes it looked up instead (opts.volumes).
-function createPageMapStore({ pool, filloutService, volumesFor = async () => new Map() }) {
+// approvedTiers(clientId): the Stage 6 reader (locations/approved.js by default): null means no approval, today's behaviour
+function createPageMapStore({ pool, filloutService, volumesFor = async () => new Map(), approvedTiers = null }) {
+  const tiersFor = approvedTiers || (clientId => require('../locations/approved').approvedTiers(pool, clientId));
   async function saved(clientId) {
     const { rows } = await pool.query(`SELECT * FROM client_page_map WHERE client_id = $1 ORDER BY sort_order, created_at`, [clientId]);
     return rows.map(fromDb);
@@ -148,6 +150,20 @@ function createPageMapStore({ pool, filloutService, volumesFor = async () => new
     return rows[0] ? { ...rows[0], inputs: parse(rows[0].inputs), counts: parse(rows[0].counts), services: parse(rows[0].services) || null, library: parse(rows[0].library) || null } : null;
   }
   // Towns launching in phase 1 (the base town always counts): Set of town slugs
+  // Every town a person touched, with the tick as they left it (a row exists only once ticked or unticked)
+  async function townFlags(clientId) {
+    const { rows } = await pool.query(`SELECT town_slug, launch FROM client_town_flags WHERE client_id = $1`, [clientId]);
+    return new Map(rows.map(r => [r.town_slug, !!r.launch]));
+  }
+  // The launch set with the approved tiers: Tier 1 towns launch in phase 1, Tier 2 in phase 2, and a
+  // person's tick or untick on the Pages panel overrides either (Brandon, 30 Oct)
+  async function launchTownsWith(clientId, tiers) {
+    if (!tiers) return launchTowns(clientId);
+    const flags = await townFlags(clientId);
+    const set = new Set(tiers.tier1.map(t => t.slug));
+    for (const [slug, on] of flags) { if (on) set.add(slug); else set.delete(slug); }
+    return set;
+  }
   async function launchTowns(clientId) {
     const { rows } = await pool.query(`SELECT town_slug FROM client_town_flags WHERE client_id = $1 AND launch = TRUE`, [clientId]);
     return new Set(rows.map(r => r.town_slug));
@@ -183,6 +199,9 @@ function createPageMapStore({ pool, filloutService, volumesFor = async () => new
   // the cache answers, and keywords it has never seen count as no data.
   async function preview(clientId, opts = {}) {
     const inputs = await inputsFor(filloutService, clientId, opts);
+    // Stage 6: an approved locations list replaces the record's other towns (Tier 1 then Tier 2)
+    const tiers = opts.tiers !== undefined ? opts.tiers : await tiersFor(clientId);
+    if (tiers) { inputs.otherTownsFromRecord = inputs.otherTowns; inputs.otherTowns = tiers.towns.join('\n'); inputs.locationTiers = { source: tiers.source, approved_at: tiers.approved_at, approved_by: tiers.approved_by, run_at: tiers.run_at, tier1: tiers.tier1.map(t => t.name), tier2: tiers.tier2.map(t => t.name), area_only: tiers.area_only.map(t => t.name) }; }
     const rows = await saved(clientId);
     let plan;
     if (!inputs.hasConfig) plan = { ok: false, problems: [{ code: 'services_not_set_up', msg: `Services not set up for this niche yet (${inputs.niche || 'no niche given'}).` }], rows: [], services: [], collisions: [], waiting: [], droppedTowns: [], councilAreas: [], counts: {} };
@@ -190,8 +209,9 @@ function createPageMapStore({ pool, filloutService, volumesFor = async () => new
       const ready = inputs.resolved && inputs.resolved.categories.length && String(inputs.baseTown || '').trim();
       const volumes = opts.volumes || (ready ? await volumesFor(G.keywordsFor(inputs)) : new Map());
       const st = await state(clientId);
-      plan = G.buildPageMap(inputs, { volumes, exclude: await excludeFlags(clientId), launchTowns: await launchTowns(clientId), phase2Published: !!(st && st.phase2_published_at), saved: rows });
+      plan = G.buildPageMap(inputs, { volumes, exclude: await excludeFlags(clientId), launchTowns: await launchTownsWith(clientId, tiers), phase2Published: !!(st && st.phase2_published_at), saved: rows, tiers: tiers ? { tier1: new Set(tiers.tier1.map(t => t.slug)), tier2: new Set(tiers.tier2.map(t => t.slug)), categories: tiers.categories } : null });
       plan.volumesFrom = opts.volumes ? 'lookup' : 'cache';
+      plan.locationTiers = inputs.locationTiers || null;
     }
     const diff = plan.ok ? G.diffPlan(rows, plan.rows) : null;
     return { inputs, plan, diff, firstRun: !rows.length };
@@ -232,7 +252,7 @@ function createPageMapStore({ pool, filloutService, volumesFor = async () => new
     const services = plan.services.map(s => ({ id: s.id, name: s.name, parents: s.parents, outcome: s.outcome, into: s.into || null, intoName: s.intoName || null, reason: s.reason, merged_from: s.merged_from || [], gbp_names: s.gbp_names || [s.name], absorbs: s.absorbs || [], copy_priority: s.copy_priority || 0, townVolumes: (s.townVolumes || []).map(t => ({ town: t.town, volume: t.volume })) }));
     const library = { file: plan.libraryCounts.library, counts: plan.libraryCounts, records: plan.libraryRecords };
     const st = { generated_at: new Date(), category_tab_rule: inputs.categoryTabRule,
-      inputs: { baseTown: inputs.baseTown, otherTowns: inputs.otherTowns, companyName: inputs.companyName },
+      inputs: { baseTown: inputs.baseTown, otherTowns: inputs.otherTowns, companyName: inputs.companyName, ...(inputs.locationTiers ? { locationTiers: inputs.locationTiers, otherTownsFromRecord: inputs.otherTownsFromRecord } : {}) },
       counts: { ...plan.counts, ...diff.counts, services: plan.serviceCounts, townServicePages: plan.townServicePages, volumesFrom: plan.volumesFrom, launchTowns: plan.launchTowns } };
     if (await state(clientId)) await pool.query(`UPDATE client_page_map_state SET generated_at=$2, category_tab_rule=$3, inputs=$4, counts=$5, services=$6, library=$7 WHERE client_id=$1`, [clientId, st.generated_at, st.category_tab_rule, JSON.stringify(st.inputs), JSON.stringify(st.counts), JSON.stringify(services), JSON.stringify(library)]);
     else await pool.query(`INSERT INTO client_page_map_state (client_id, generated_at, category_tab_rule, inputs, counts, services, library) VALUES ($1,$2,$3,$4,$5,$6,$7)`, [clientId, st.generated_at, st.category_tab_rule, JSON.stringify(st.inputs), JSON.stringify(st.counts), JSON.stringify(services), JSON.stringify(library)]);
@@ -267,7 +287,7 @@ function createPageMapStore({ pool, filloutService, volumesFor = async () => new
 
   async function csv(clientId, opts) { return G.toCsv(await saved(clientId), opts); }
 
-  return { saved, state, preview, generate, setRow, csv, excludeFlags, setExclude, launchTowns, setLaunchTown, publishPhase2 };
+  return { saved, state, preview, generate, setRow, csv, excludeFlags, setExclude, launchTowns, townFlags, launchTownsWith, setLaunchTown, publishPhase2, tiersFor };
 }
 
 module.exports = { ensurePageMapTables, createPageMapStore, inputsFor, retiredReason };

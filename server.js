@@ -3956,6 +3956,8 @@ const v20CallModel = async ({ system, message, maxTokens }) => {
 if (filloutService) filloutRoutes.mountApi(app, filloutService);
 // Page map and the hand set-up editor (page-map/routes.js)
 if (filloutService) require('./page-map/routes').mountPageMapApi(app, { pool, filloutService });
+// Location Determiner (locations/routes.js): which towns get location pages; the dry run first
+if (filloutService) require('./locations/routes').mountLocationsApi(app, { pool, filloutService });
 
 // GBP output (gbp/routes.js, 23 Oct): the Google Business Profile description, services and
 // products, from the client values, the v3 page map and the generated service page copy
@@ -3971,7 +3973,9 @@ async function gbpInputsFor(clientId) {
   const packName = P.packNameFor(await nicheForGate(clientId, ctx.trade));
   const st = packName ? await tradeFacts.status(packName) : { exists: false, verified: false };
   const tf = { niche: packName, exists: !!st.exists, verified: !!st.verified, properNouns: st.verified ? P.packProperNouns(packName) : [] };
-  return require('./gbp/inputs').buildGbpInputs({ cv: ctx.cv, niche: ctx.niche || {}, rows, keyValueMap: ctx.keyValueMap, siteUrl: wp.length ? wp[0].url : '', serviceCopy, tradeFacts: tf });
+  // Stage 6: the approved locations list gives the service areas (20 at most); no approval, the page map's rows as before
+  const approved = await require('./locations/approved').approvedTiers(pool, clientId).catch(() => null);
+  return require('./gbp/inputs').buildGbpInputs({ cv: ctx.cv, niche: ctx.niche || {}, rows, keyValueMap: ctx.keyValueMap, siteUrl: wp.length ? wp[0].url : '', serviceCopy, tradeFacts: tf, approvedAreas: approved ? approved.gbp_areas : null });
 }
 // One client value changed by code (the GBP checks write gbp_place_id and landing_page_fails)
 async function saveClientValue(clientId, key, value) {
@@ -4461,6 +4465,12 @@ initDb().then(async () => {
   // A preview environment's demo client (tools/seed-demo-client.js): only when SEED_DEMO_CLIENT=1, never on production
   if (pool && process.env.SEED_DEMO_CLIENT === '1') await require('./tools/seed-demo-client').seedDemoClient(pool, { v20HomepageInputs, filloutService }).catch(err => console.error('[seed-demo] failed:', err));
   app.listen(PORT, () => console.log(`Copy bot running at http://localhost:${PORT}`));
+  // The places table (the Location Determiner's towns, suburbs and admin areas): created, then
+  // seeded from locations/data/places.csv.gz after the server is up, only when the file changed
+  if (pool) {
+    const PL = require('./locations/places');
+    PL.ensurePlacesTables(pool).then(() => PL.seedPlaces(pool)).then(r => { if (!r.seeded) console.log(`[places] ${r.reason}${r.rows ? ` (${r.rows} rows)` : ''}`); }).catch(err => console.error('[places] seed failed:', err.message));
+  }
 }).catch(err => {
   console.error('DB init failed:', err.message);
   process.exit(1);
