@@ -16,7 +16,11 @@ function mountWebhook(app, svc, { secret, log = console, limit = '2mb' } = {}) {
 
   app.post(path, (req, res, next) => {
     if (!secret) { log.error('[fillout] FILLOUT_WEBHOOK_SECRET is not set; refusing the webhook'); return res.status(401).json({ error: 'Webhook not configured' }); }
-    if (!I.secretMatches(I.secretFromRequest(req), secret)) return res.status(401).json({ error: 'Unauthorised' });
+    if (!I.requestHasSecret(req, secret)) {
+      const sources = I.secretSources(req);
+      log.error(`[fillout] webhook refused: no matching secret (sent in: ${sources.length ? sources.join(', ') : 'nothing'}; query string ${String(req.originalUrl || '').includes('?') ? 'present' : 'absent'})`);
+      return res.status(401).json({ error: 'Unauthorised' });
+    }
     next();
   }, parse, async (req, res) => {
     try {

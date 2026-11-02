@@ -72,18 +72,42 @@ function secretMatches(given, expected) {
   return crypto.timingSafeEqual(a, b);
 }
 
-// The secret as Fillout can send it: a header or ?token=
-function secretFromRequest(req) {
+// Every place the secret can arrive: the headers Fillout or a hand can set, and
+// ?token= on the URL. All of them are checked, so a header the sender adds on
+// its own cannot shadow a correct ?token= (2 Nov 2026: Fillout's deliveries were
+// refused with the right token on the URL; the first header found used to be
+// the only value compared).
+function secretsFromRequest(req) {
   const h = req.headers || {};
   const auth = String(h.authorization || '');
   const bearer = auth.match(/^Bearer\s+(.+)$/i);
-  return (
-    (h['x-fillout-secret'] && String(h['x-fillout-secret'])) ||
-    (h['x-webhook-secret'] && String(h['x-webhook-secret'])) ||
-    (bearer && bearer[1]) ||
-    (req.query && typeof req.query.token === 'string' && req.query.token) ||
-    ''
-  );
+  return [
+    h['x-fillout-secret'] && String(h['x-fillout-secret']),
+    h['x-webhook-secret'] && String(h['x-webhook-secret']),
+    bearer && bearer[1],
+    req.query && typeof req.query.token === 'string' && req.query.token,
+  ].filter(v => typeof v === 'string' && v);
+}
+
+// The first of them, for callers that want one value
+function secretFromRequest(req) {
+  return secretsFromRequest(req)[0] || '';
+}
+
+// True when any of the secrets sent matches the expected one
+function requestHasSecret(req, expected) {
+  return secretsFromRequest(req).some(given => secretMatches(given, expected));
+}
+
+// Which sources carried a value, by name only, for the refusal log
+function secretSources(req) {
+  const h = req.headers || {};
+  const names = [];
+  if (h['x-fillout-secret']) names.push('x-fillout-secret');
+  if (h['x-webhook-secret']) names.push('x-webhook-secret');
+  if (h.authorization) names.push('authorization');
+  if (req.query && req.query.token) names.push('token');
+  return names;
 }
 
 function questionsById(payload) {
@@ -219,6 +243,6 @@ function status(c) {
 }
 
 module.exports = {
-  MAP_PATH, loadFieldMap, stripSuffix, isBlank, norm, secretMatches, secretFromRequest,
+  MAP_PATH, loadFieldMap, stripSuffix, isBlank, norm, secretMatches, secretFromRequest, secretsFromRequest, requestHasSecret, secretSources,
   questionsById, resolveQuestion, applies, markApplicable, submissionId, detectNiche, fieldsForNiche, buildRecord, isAudioField, completeness, status, tierOf, TIERS,
 };
