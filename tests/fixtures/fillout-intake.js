@@ -111,6 +111,14 @@ const quiet = { info() {}, warn() {}, error() {} };
     const rawObj = typeof rawRow.raw_payload === 'string' ? JSON.parse(rawRow.raw_payload) : rawRow.raw_payload;
     chk('Raw payload saved untouched (same question count and ids)', rawObj.submission.questions.length === 372 && rawObj.submission.submissionId === sample.submission.submissionId, rawObj.submission.questions.length, 372);
     chk('Processing ran in the background after the 200', await waitProcessed(1), processed.length, 1);
+    // The secret is accepted wherever it arrives: a header the sender adds on its own must not shadow a right ?token=
+    r = await post(`/api/webhooks/fillout?token=${SECRET}`, payload, { Authorization: 'Bearer something-else' });
+    let bodyS = await r.json();
+    chk('Right secret (query) with a wrong Authorization header → accepted (duplicate of the first delivery)', r.status === 200 && bodyS.duplicate === true, `${r.status} ${JSON.stringify(bodyS)}`, '200 duplicate');
+    r = await post(`/api/webhooks/fillout?token=wrong`, payload, { 'x-fillout-secret': SECRET });
+    bodyS = await r.json();
+    chk('Right secret (header) with a wrong query token → accepted (duplicate)', r.status === 200 && bodyS.duplicate === true, `${r.status} ${JSON.stringify(bodyS)}`, '200 duplicate');
+    chk('Still one submission row after the duplicates', (await pool.query(`SELECT COUNT(*)::int AS n FROM fillout_submissions`)).rows[0].n === 1, '', 1);
     const sub1 = (await pool.query(`SELECT * FROM fillout_submissions WHERE id = $1`, [body1.id])).rows[0];
     chk('Status processed, niche and business name on the row', sub1.status === 'processed' && sub1.niche === 'Plumbing & Heating' && sub1.business_name === 'brandons plumbing' && sub1.client_id, `${sub1.status} ${sub1.niche} ${sub1.business_name}`, 'processed');
     const clientId = sub1.client_id;
