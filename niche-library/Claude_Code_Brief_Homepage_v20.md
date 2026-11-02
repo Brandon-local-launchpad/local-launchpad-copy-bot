@@ -149,15 +149,15 @@ With a modifier: "[KW_PHRASE] | [TITLE_MODIFIER] | [company_name]". Without one:
 - Code placed proofs: the rating figure shows in the hero rating line, the Reviews heading and the final CTA. The Google logo in Trusted & Rated By links to the profile with the caption "Google reviews", **no figure**. The response time shows in the CTA band only, not again in the final CTA trust lines.
 - 2 Trusted & Rated By: at least one logo qualifies (Google logo needs review_count 5+; other logos must be in verified_logos). If verified_logos has never been saved: hidden and flag F-LOGOS.
 - 5 Why choose us: at least 1 point.
-- 6 Reviews: review_count 3+.
+- 6 Reviews: review_count 1+ (2 Nov: the template spec wins); under 3 is F-REVIEWS.
 - 8 CTA band: always on (the open decision is settled: keep it).
-- 9 Meet the owner: owner_name set, owner_photo = yes, and at least two of owner_qualification, owner_why, owner_promise.
+- 9 Meet the owner: owner_name set, owner_photo = yes, and at least one of owner_qualification, owner_why, owner_promise (2 Nov); hidden or thin is F-OWNER.
 
 **D8 Formula headings** (with fallbacks when [AREA_WIDE] is blank):
 - Content block: "Local [TRADE] Serving [CITY] & [AREA_WIDE]" / "Local [TRADE] in [CITY] and Nearby Towns"
 - Services: "Our [TRADE] Services in [CITY]"
 - Why: "Why [CITY] [CUSTOMER_TYPE] Choose [company_name]", adding " for [TRADE]" if the company name holds no trade word
-- Reviews: 20+ → "[review_count]+ Google Reviews From [CITY] [CUSTOMER_TYPE]"; 3 to 19 → "What [CITY] [CUSTOMER_TYPE] Say About Us". No question mark.
+- Reviews: 20+ → "[review_count]+ Google Reviews From [CITY] [CUSTOMER_TYPE]"; 3 to 19 → "What [CITY] [CUSTOMER_TYPE] Say About Us"; 1 or 2 → "What Our Customers Say". No question mark.
 - Process: niche process_h2. CTA band: "Ready to talk to a local [TRADE_PERSON]?"
 - Owner: "Meet [owner_name], the [TRADE_PERSON] Behind [company_name]" (two owners: "Meet [owner_name] & [owner_name_2], the [TRADE_PERSON_PLURAL] Behind [company_name]"). No full stop.
 - Areas: "[TRADE] Services Across [CITY] & [AREA_WIDE]" / "Where Our [TRADE_PERSON_PLURAL] Work Around [CITY]"
