@@ -695,11 +695,21 @@ function computeDecisions({ cv, niche, pages, keyValueMap, serviceParentMap, v20
   if (!logosSaved) { flags.push({ code: 'F-LOGOS', msg: 'verified_logos has never been saved.' }); }
   else sec2 = googleQualifies || hasVerifiedLogos;
 
-  const sec6 = reviewCount >= 3;
-  if (!sec6) flags.push({ code: 'F-REVIEWS', msg: `Reviews hidden (review_count=${reviewCount || 'blank'}, needs 3+).` });
+  // Reviews (Brandon, 2 Nov: the template spec wins): the widget shows what there is from the
+  // first review; under 3 it is flagged so review requests start; zero hides the section
+  const sec6 = reviewCount >= 1;
+  if (!sec6) flags.push({ code: 'F-REVIEWS', msg: `Reviews hidden: no reviews yet (review_count=${reviewCount || 'blank'}). The section shows from the first review.` });
+  else if (reviewCount < 3) flags.push({ code: 'F-REVIEWS', msg: `Only ${reviewCount} review(s): the section shows them; start review requests before launch.` });
 
+  // Meet the owner (Brandon, 2 Nov: every client has an owner): shown with the owner's name, a
+  // photo and at least one owner value to write from. The body uses only the values given, so
+  // with none it would be invented: hidden, and flagged as facts to collect.
   const ownerHints = [cv.owner_qualification, cv.owner_why, cv.owner_promise].filter(Boolean).length;
-  const sec9 = !!(cv.owner_name && cv.owner_photo === 'yes' && ownerHints >= 2);
+  const sec9 = !!(cv.owner_name && cv.owner_photo === 'yes' && ownerHints >= 1);
+  if (!sec9) {
+    const missing = [!cv.owner_name && 'owner_name', cv.owner_photo !== 'yes' && 'owner photo', !ownerHints && 'one of owner_qualification, owner_why, owner_promise'].filter(Boolean);
+    flags.push({ code: 'F-OWNER', msg: `Meet the owner hidden until onboarding gives: ${missing.join('; ')}.` });
+  } else if (ownerHints < 3) flags.push({ code: 'F-OWNER', msg: `Meet the owner written from ${ownerHints} of 3 owner values; the rest would make it fuller.` });
 
   // ── D10 Why points (includes G-DATA check) ──
   const whyPoints = buildWhyPoints(cv, niche, yearsTrading, trustProof, ctx);
@@ -715,7 +725,7 @@ function computeDecisions({ cv, niche, pages, keyValueMap, serviceParentMap, v20
     content:   ctx.areaWide ? `Local ${ctx.trade} Serving ${ctx.city} & ${ctx.areaWide}` : `Local ${ctx.trade} in ${ctx.city} and Nearby Towns`,
     services:  `Our ${ctx.trade} Services in ${ctx.city}`,
     why:       buildWhyH2(cv, niche, ctx),
-    reviews:   reviewCount >= 20 ? `${reviewCount}+ Google Reviews From ${ctx.city} ${cap(ctx.customerType)}` : `What ${ctx.city} ${cap(ctx.customerType)} Say About Us`,
+    reviews:   reviewCount >= 20 ? `${reviewCount}+ Google Reviews From ${ctx.city} ${cap(ctx.customerType)}` : reviewCount >= 3 ? `What ${ctx.city} ${cap(ctx.customerType)} Say About Us` : 'What Our Customers Say',
     process:   ph(btnBase.process_h2 || '', ctx),
     // CTA band is a sentence, not a heading — trade_person stays lower case
     cta_band:  `Ready to talk to a local ${ctx.tradePerson}?`,

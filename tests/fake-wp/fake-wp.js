@@ -6,10 +6,12 @@
 const express = require('express');
 
 const ALL_GROUPS = require('../../wp/acf-schema').GROUPS.map(g => `group_llp_${g.name}`);
+// The homepage groups' top-level field names (their ACF location is the front page)
+const HOME_FIELDS = require('../../wp/acf-schema').GROUPS.flatMap(g => g.fields.map(f => f.name));
 
 // plugin: false → the companion plugin isn't installed (its routes 404)
 function createFakeWp({ user = 'copybot', appPassword = 'test-app-password-not-real', frontId = 7, pages = [],
-  plugin = true, acfPro = true, seo = 'rankmath', fieldGroups = ALL_GROUPS, clientValues = {},
+  plugin = true, acfPro = true, seo = 'rankmath', fieldGroups = ALL_GROUPS, clientValues = {}, pluginVersion = null,
   failWrites = false, ignoreAcf = [] } = {}) {
   // failWrites: page writes return 500; ignoreAcf: fields the site doesn't save (e.g. a field group that isn't there)
   const state = { writes: 0, pages: new Map(pages.map(p => [p.id, JSON.parse(JSON.stringify(p))])), frontId, clientValues: { ...clientValues } };
@@ -23,27 +25,37 @@ function createFakeWp({ user = 'copybot', appPassword = 'test-app-password-not-r
   });
   app.get('/wp-json/wp/v2/settings', (req, res) => res.json({ title: 'Fake site', page_on_front: state.frontId }));
   if (plugin) {
-    app.get('/wp-json/llp-copybot/v1/status', (req, res) => res.json({ plugin: '0.1.0', acf_pro: acfPro, seo, front_page: state.frontId, field_groups: fieldGroups }));
+    app.get('/wp-json/llp-copybot/v1/status', (req, res) => res.json({ plugin: pluginVersion || require('../../wp/plugin-version').VERSION, acf_pro: acfPro, seo, front_page: state.frontId, field_groups: fieldGroups }));
     app.get('/wp-json/llp-copybot/v1/client-values', (req, res) => res.json(state.clientValues));
     app.post('/wp-json/llp-copybot/v1/client-values', (req, res) => { state.writes++; Object.assign(state.clientValues, req.body); res.json(state.clientValues); });
   }
+  // As real ACF does: the homepage groups attach to the front page only. There every
+  // homepage field comes back (null when unset); on any other page homepage fields are
+  // left out, writes to them are dropped without an error, and with no fields at all
+  // `acf` is an empty array. Other pages keep their own fields.
+  const onFront = p => p.id === state.frontId;
+  const own = (p, acf) => Object.fromEntries(Object.entries(acf || {}).filter(([k]) => onFront(p) || !HOME_FIELDS.includes(k)));
+  const view = p => {
+    const acf = onFront(p) ? { ...Object.fromEntries(HOME_FIELDS.map(n => [n, null])), ...p.acf } : own(p, p.acf);
+    return { ...p, acf: Object.keys(acf).length ? acf : [] };
+  };
   app.get('/wp-json/wp/v2/pages', (req, res) => {
-    res.json([...state.pages.values()].filter(p => !req.query.slug || p.slug === req.query.slug));
+    res.json([...state.pages.values()].filter(p => !req.query.slug || p.slug === req.query.slug).map(view));
   });
   app.get('/wp-json/wp/v2/pages/:id', (req, res) => {
     const p = state.pages.get(Number(req.params.id));
     if (!p) return res.status(404).json({ code: 'rest_post_invalid_id', message: 'Invalid post ID.' });
-    res.json(p);
+    res.json(view(p));
   });
   app.post('/wp-json/wp/v2/pages/:id', (req, res) => {
     const p = state.pages.get(Number(req.params.id));
     if (!p) return res.status(404).json({ code: 'rest_post_invalid_id', message: 'Invalid post ID.' });
     state.writes++;
     if (failWrites) return res.status(500).json({ code: 'internal_server_error', message: 'There has been a critical error on this website.' });
-    if (req.body.acf) p.acf = { ...p.acf, ...Object.fromEntries(Object.entries(req.body.acf).filter(([k]) => !ignoreAcf.includes(k))) };
+    if (req.body.acf) p.acf = { ...p.acf, ...Object.fromEntries(Object.entries(own(p, req.body.acf)).filter(([k]) => !ignoreAcf.includes(k))) };
     if (req.body.meta) p.meta = { ...p.meta, ...req.body.meta };
     if (req.body.status) p.status = req.body.status;
-    res.json(p);
+    res.json(view(p));
   });
   app.use('/wp-json', (req, res) => res.status(404).json({ code: 'rest_no_route', message: 'No route was found matching the URL and request method.' }));
   return { app, state };

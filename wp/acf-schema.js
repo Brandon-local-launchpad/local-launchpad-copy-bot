@@ -44,7 +44,7 @@ const GROUPS = [
   ] },
   { name: 'home_process', title: 'Homepage: Process', fields: [
     t('home_process_h2', 'H2'),
-    rep('home_process_steps', 'Steps', [t('step_title', 'Title'), html('step_body', 'Body')]),
+    rep('home_process_steps', 'Steps', [t('step_title', 'Title'), html('step_body', 'Body'), img('step_icon', 'Icon')]),
   ] },
   { name: 'home_cta_band', title: 'Homepage: CTA band', new: true, fields: [
     t('home_cta_band_heading', 'Heading', { new: true }), t('home_cta_band_line', 'Line', { new: true }),

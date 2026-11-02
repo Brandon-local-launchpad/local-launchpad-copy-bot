@@ -75,7 +75,9 @@ function createWpService({ pool, loadRecord, saveRecordClaims, currentFacts, rev
     async test(clientId) {
       const s = await site(clientId);
       const status = await wpGet(s, '/llp-copybot/v1/status').catch(e => ({ error: e.message }));
-      return { site: s.url, staging: s.staging, status };
+      const { VERSION, siteVersionProblem } = require('./plugin-version');
+      const version = status.error ? null : { site: status.plugin || null, latest: VERSION, problem: siteVersionProblem(status.plugin) };
+      return { site: s.url, staging: s.staging, status, version };
     },
 
     async reviewClaims(clientId, { recordId } = {}, callModel) {

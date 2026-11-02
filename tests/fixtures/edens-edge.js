@@ -234,5 +234,17 @@ chk('F-ALLOC flag present', (result.flags||[]).some(f => f.code === 'F-ALLOC'), 
 chk('No gate failures', !result.gates || result.gates.length === 0,
   (result.gates||[]).map(g=>g.code).join(', '), 'none');
 
+// ── Reviews and owner rules (Brandon, 2 Nov) ──
+const variant = extra => computeDecisions({ cv: { ...cv, ...extra }, niche: landscaper, pages, keyValueMap, serviceParentMap, v20TestMode: true, allocationData: null });
+const flagMsg = (r, code) => ((r.flags || []).find(f => f.code === code) || {}).msg || '';
+const two = variant({ review_count: '2', rating: '5.0' });
+chk('2 reviews: section shown under "What Our Customers Say", F-REVIEWS', two.decisions.d7.sec6 === 'SHOWN' && two.decisions.d8.reviews === 'What Our Customers Say' && /Only 2 review/.test(flagMsg(two, 'F-REVIEWS')), `${two.decisions.d7.sec6} / ${two.decisions.d8.reviews}`, 'shown');
+const seven = variant({ review_count: '7', rating: '5.0' });
+chk('7 reviews: city heading, no F-REVIEWS', seven.decisions.d7.sec6 === 'SHOWN' && /^What Southampton/.test(seven.decisions.d8.reviews) && !flagMsg(seven, 'F-REVIEWS'), seven.decisions.d8.reviews, 'city heading');
+const oneHint = variant({ owner_qualification: '', owner_why: '' });
+chk('Owner with name, photo and one owner value: shown, F-OWNER says 1 of 3', oneHint.decisions.d7.sec9 === 'SHOWN' && /1 of 3/.test(flagMsg(oneHint, 'F-OWNER')), oneHint.decisions.d7.sec9, 'shown');
+const noHint = variant({ owner_qualification: '', owner_why: '', owner_promise: '' });
+chk('Owner with no owner values: hidden, F-OWNER names what to collect', noHint.decisions.d7.sec9 === 'HIDDEN' && /owner_qualification/.test(flagMsg(noHint, 'F-OWNER')), flagMsg(noHint, 'F-OWNER'), 'hidden');
+
 console.log(`\n${pass + fail} checks: ${pass} passed, ${fail} failed`);
 if (fail > 0) process.exit(1);

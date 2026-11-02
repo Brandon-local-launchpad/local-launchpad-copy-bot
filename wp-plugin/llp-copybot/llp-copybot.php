@@ -2,7 +2,7 @@
 /**
  * Plugin Name: Local Launchpad Copybot
  * Description: Client Values, [CV: key] token replacement, the homepage ACF field groups (master copy) and REST access for Copybot pushes.
- * Version:     0.1.0
+ * Version:     0.2.0
  * Requires at least: 6.2
  * Requires PHP: 7.4
  * Author:      Local Launchpad
@@ -17,7 +17,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'LLP_COPYBOT_VERSION', '0.1.0' );
+define( 'LLP_COPYBOT_VERSION', '0.2.0' );
 define( 'LLP_COPYBOT_OPTION', 'llp_client_values' );
 
 // ── Client Values ────────────────────────────────────────────────────────────

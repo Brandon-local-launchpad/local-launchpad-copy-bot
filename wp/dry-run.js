@@ -51,12 +51,33 @@ async function checkSite(site, seo, wp = getPageType('homepage').wp) {
     throw e;
   }
   const refusals = [];
+  // An old plugin on the site lacks newer fields and Client Values keys (2 Nov)
+  const versionProblem = require('./plugin-version').siteVersionProblem(status.plugin);
+  if (versionProblem) refusals.push(versionProblem);
   if (!status.acf_pro) refusals.push('ACF Pro is not active on the site.');
   if (status.seo !== seo) refusals.push(`The site's SEO plugin is ${status.seo}, but the push is set for ${seo}.`);
   const want = wp.groups.map(g => `group_llp_${g.name}`);
   const missing = want.filter(k => !(status.field_groups || []).includes(k));
   if (missing.length) refusals.push(`${wp.label[0].toUpperCase()}${wp.label.slice(1)} field groups missing on the site: ${missing.join(', ')}.`);
   return { status, refusals };
+}
+
+// Are the page type's ACF fields on this page? ACF only saves fields whose group's
+// location matches the page; others are dropped without an error, and the REST
+// response leaves them out (`acf` is [] when no group matches). 2 Nov: the Edens Edge
+// test copy took the SEO meta and Client Values but none of the copy.
+function fieldsAttached(page, wp, status) {
+  if (!page) return [];
+  const names = wp.fields.map(([name]) => name);
+  const acf = page.acf && !Array.isArray(page.acf) ? page.acf : {};
+  const absent = names.filter(n => !(n in acf));
+  // Some fields attached: the groups match this page (an unset field can be left out); the read-back names any gap
+  if (absent.length < names.length) return [];
+  const where = `page ${page.id}${page.slug ? ` (/${page.slug})` : ''}`;
+  if (wp.label === 'homepage' && status && status.front_page && status.front_page !== page.id) {
+    return [`The homepage fields only attach to the site's front page, and ${where} isn't it (the front page is page ${status.front_page}). Set it as the homepage in Settings → Reading, or clear the homepage slug so Copybot uses the front page. Otherwise the copy would not save.`];
+  }
+  return [`None of the ${wp.label} fields are attached to ${where}: check the field groups' location rules. Otherwise the copy would not save.`];
 }
 
 // clientValues: the values to push, when the record doesn't carry its own
@@ -72,6 +93,7 @@ async function dryRun({ record, site, reviewed = false, seo = 'rankmath', client
   refusals.push(...siteCheck.refusals);
   const page = await wp.findPage(site, record);
   refusals.push(...checkTarget(page, site, wp.label));
+  refusals.push(...fieldsAttached(page, wp, siteCheck.status));
   const payload = record.blocked ? null : wp.buildPayload(record, { seo });
   const changes = page && payload ? [
     ...diffFields(page.acf || {}, payload.acf, wp.fields),
@@ -122,4 +144,4 @@ function formatDryRun(r, { showSame = false } = {}) {
   return L.join('\n');
 }
 
-module.exports = { dryRun, diffFields, formatDryRun };
+module.exports = { fieldsAttached, dryRun, diffFields, formatDryRun };

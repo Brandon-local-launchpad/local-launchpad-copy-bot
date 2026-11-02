@@ -4,7 +4,7 @@
 // Write all / resume / write one through the existing run routes; a row opens the Page view.
 // Polls every 8 seconds while a run is on.
 
-import { h, attr, api, card, table, status, pill, timeEl, score, running, toast, confirm, empty, plural, fmtDate, busy } from '../ui.js';
+import { h, attr, api, card, table, status, pill, timeEl, score, running, toast, confirm, empty, plural, fmtDate, busy, wire } from '../ui.js';
 
 const TYPES = [['homepage', 'Homepage'], ['category', 'Category'], ['service', 'Service'], ['location', 'Location']];
 const STATUS_KIND = { 'not started': 'none', running: 'run', queued: 'none', written: 'ok', blocked: 'block', failed: 'block', 'waiting on a person': 'wait', approved: 'ok', pushed: 'ok', skipped: 'none', waiting: 'none' };
@@ -142,6 +142,9 @@ export async function render(el, ctx) {
       </div>
       <div class="btn-row"><button class="btn btn-primary btn-sm" data-site="save">Save</button><button class="btn btn-ghost btn-sm" data-site="test" ${c ? '' : 'disabled'}>Test connection</button><span class="small muted" id="siteStatus"></span></div>` });
   };
+  // Row clicks open the page view (2 Nov: the rows had data-href but nothing listened)
+  wire(el);
+
   el.addEventListener('click', async e => {
     const b = e.target.closest('[data-site]'); if (!b) return;
     const status = m => { const s = el.querySelector('#siteStatus'); if (s) s.textContent = m; };
@@ -153,7 +156,7 @@ export async function render(el, ctx) {
           site = { conn, v20 }; toast('Saved'); drawSite();
         });
       }
-      if (b.dataset.site === 'test') await busy(b, 'Testing…', async () => { const t = await api(`/api/clients/${clientId}/wp/test`, { method: 'POST' }); const s = t.status || {}; status(s.error ? `Can't reach the plugin: ${s.error}` : `Connected${t.staging ? ' (staging)' : ''}: plugin ${s.plugin}, ACF Pro ${s.acf_pro ? 'yes' : 'NO'}, SEO ${s.seo}, ${(s.field_groups || []).length} homepage field groups`); });
+      if (b.dataset.site === 'test') await busy(b, 'Testing…', async () => { const t = await api(`/api/clients/${clientId}/wp/test`, { method: 'POST' }); const s = t.status || {}; status(s.error ? `Can't reach the plugin: ${s.error}` : `Connected${t.staging ? ' (staging)' : ''}: plugin ${s.plugin}${t.version && t.version.problem ? ' (OUT OF DATE: latest is ' + t.version.latest + ')' : ' (latest)'}, ACF Pro ${s.acf_pro ? 'yes' : 'NO'}, SEO ${s.seo}, ${(s.field_groups || []).length} field groups`); if (t.version && t.version.problem) toast(t.version.problem, 'bad'); });
     } catch (err) { toast(err.message, 'bad'); }
   });
 
