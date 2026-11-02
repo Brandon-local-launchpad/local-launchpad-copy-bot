@@ -21,6 +21,9 @@ const chk = (label, ok, got, want) => {
 console.log('\n=== FIXTURE: WordPress companion plugin ===\n');
 
 // ── Generated files ──
+// The plugin can't change without a version bump (2 Nov): see wp/plugin-version.js
+const versionProblems = require(path.join(root, 'wp/plugin-version.js')).repoProblems();
+chk('Plugin version bumped with every change (npm run wp:plugin-version)', !versionProblems.length, versionProblems.join(' | '), 'recorded');
 const files = generatedFiles();
 const stale = Object.entries(files).filter(([rel, body]) => !fs.existsSync(path.join(PLUGIN, rel)) || fs.readFileSync(path.join(PLUGIN, rel), 'utf8').replace(/\r\n/g, '\n') !== body);
 chk('Plugin ACF JSON and key list are up to date (npm run wp:plugin-data)', !stale.length, stale.map(s => s[0]).join(', '), 'none stale');
@@ -85,8 +88,17 @@ chk('Client Values: company, travel distance, button label, no rating line', cv.
     try { return { r: await dryRun({ record: rec, site: site(url), reviewed: true, ...extra }), writes: fake.state.writes }; } finally { await new Promise(r => server.close(r)); }
   };
   const ok = await run({});
-  chk('Ready site: pushable, plugin reported, nothing written', ok.r.pushable && ok.r.plugin && ok.r.plugin.plugin === '0.1.0' && ok.writes === 0, ok.r.refusals.join(' | '), 'pushable');
+  chk('Ready site: pushable, plugin reported, nothing written', ok.r.pushable && ok.r.plugin && ok.r.plugin.plugin === require(path.join(root, 'wp/plugin-version.js')).VERSION && ok.writes === 0, ok.r.refusals.join(' | '), 'pushable');
   chk('Ready site: Client Values diff included', ok.r.changes.some(c => c.field === 'client_values.company_name' && c.change === 'added' && c.next === 'Edens Edge Landscaping'), '', 'added');
+  const oldPlugin = await run({ pluginVersion: '0.1.0' });
+  chk('Old plugin on the site: refused, naming both versions', !oldPlugin.r.pushable && oldPlugin.r.refusals.some(x => /has Copybot plugin 0\.1\.0; the latest is/.test(x)), oldPlugin.r.refusals.join(' | '), 'refused');
+  // 2 Nov: a homepage slug that points at a page other than the front page (the ACF groups don't attach there)
+  const notFront = await (async () => {
+    const fake = createFakeWp({ pages: [seedHomepage(), { ...seedHomepage({ id: 12 }), slug: 'home-test' }] });
+    const { server, url } = await listen(fake.app);
+    try { return { r: await dryRun({ record: rec, site: { ...site(url), homepageSlug: 'home-test' }, reviewed: true }), writes: fake.state.writes }; } finally { await new Promise(r => server.close(r)); }
+  })();
+  chk('Homepage slug on a page that is not the front page: refused before writing', !notFront.r.pushable && notFront.r.refusals.some(x => /only attach to the site's front page.*page 12 \(\/home-test\)/.test(x)) && notFront.writes === 0, notFront.r.refusals.join(' | '), 'refused');
   const noPlugin = await run({ plugin: false });
   chk('No plugin: refused', !noPlugin.r.pushable && noPlugin.r.refusals.some(x => /plugin is not active/.test(x)), noPlugin.r.refusals.join(' | '), 'refused');
   const noAcf = await run({ acfPro: false });

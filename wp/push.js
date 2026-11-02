@@ -32,7 +32,10 @@ function claimsRefusals(record, claims, acceptClaims) {
 // Read back and compare with what was sent
 async function verify(site, pageId, payload, clientValues, fields) {
   const page = await wpGet(site, `/wp/v2/pages/${pageId}?context=edit`);
-  const mismatches = diffFields(page.acf || {}, payload.acf, fields).filter(c => c.change !== 'same').map(c => c.field);
+  const acf = page.acf && !Array.isArray(page.acf) ? page.acf : {};
+  // A field the site left out entirely wasn't saved; one it returned with another value was changed on the way
+  const mismatches = diffFields(acf, payload.acf, fields).filter(c => c.change !== 'same')
+    .map(c => (c.field.split('[')[0] in acf ? c.field : `${c.field} (not saved: field not on this page)`));
   for (const [k, v] of Object.entries(payload.meta)) if (String((page.meta || {})[k] || '') !== String(v || '')) mismatches.push(`meta.${k}`);
   if (clientValues) {
     const cv = await wpGet(site, '/llp-copybot/v1/client-values');
@@ -57,7 +60,7 @@ async function push({ record, recordId = null, site, store, reviewed = false, se
   const metaKeys = Object.keys(dry.payload.meta);
   const before = {
     site: site.url, pageId: page.id, pageType: type.id, seo,
-    acf: Object.fromEntries(type.wp.fields.map(([name, kind]) => [name, page.acf && name in page.acf ? page.acf[name] : EMPTY[kind]])),
+    acf: Object.fromEntries(type.wp.fields.map(([name, kind]) => [name, page.acf && page.acf[name] != null ? page.acf[name] : EMPTY[kind]])),
     meta: Object.fromEntries(metaKeys.map(k => [k, (page.meta || {})[k] || ''])),
     clientValues: await wpGet(site, '/llp-copybot/v1/client-values'),
   };

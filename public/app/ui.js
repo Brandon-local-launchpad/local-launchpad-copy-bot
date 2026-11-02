@@ -82,7 +82,7 @@ export const skeleton = (n = 3) => `<div class="stack">${Array.from({ length: n 
 export function table({ columns, rows, rowHref = null, rowId = null, emptyText = 'Nothing here yet.', cards = false, sort = null, id = '' }) {
   const th = columns.map(c => `<th class="${c.sortable ? 'sortable' : ''} ${c.num ? 'num' : ''}" data-key="${h(c.key)}">${h(c.label)}${sort && sort.key === c.key ? `<span class="arrow">${sort.dir === 'asc' ? '▲' : '▼'}</span>` : ''}</th>`).join('');
   const body = rows.length
-    ? rows.map(r => `<tr${rowHref ? ` class="row-link" data-href="${h(rowHref(r))}"` : ''}${rowId ? ` data-id="${h(rowId(r))}"` : ''}>${columns.map(c => `<td class="${c.num ? 'num' : ''} ${c.cls || ''}" data-label="${h(c.label)}">${c.render ? c.render(r) : h(r[c.key])}</td>`).join('')}</tr>`).join('')
+    ? rows.map(r => { const href = rowHref ? rowHref(r) : null; return `<tr${href ? ` class="row-link" data-href="${h(href)}"` : ''}${rowId ? ` data-id="${h(rowId(r))}"` : ''}>${columns.map(c => `<td class="${c.num ? 'num' : ''} ${c.cls || ''}" data-label="${h(c.label)}">${c.render ? c.render(r) : h(r[c.key])}</td>`).join('')}</tr>`; }).join('')
     : `<tr><td colspan="${columns.length}" class="no-label"><div class="state">${h(emptyText)}</div></td></tr>`;
   return `<div class="tbl-wrap"><table class="tbl${cards ? ' cards' : ''}"${id ? ` id="${h(id)}"` : ''}><thead><tr>${th}</tr></thead><tbody>${body}</tbody></table></div>`;
 }

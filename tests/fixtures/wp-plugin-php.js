@@ -53,7 +53,7 @@ console.log('\n=== FIXTURE: companion plugin PHP (php-wasm) ===\n');
   chk('POST client-values merges, sanitises and drops unknown keys', o.post_values.phone === '01234 567890' && o.post_values.company_name === 'Edens Edge Landscaping' && !('nope' in o.post_values) && o.stored_after_post.phone === '01234 567890', JSON.stringify(o.post_values).slice(0, 160), 'merged');
   chk('POST with a bad body: 400 error', o.post_bad && o.post_bad.code === 'llp_bad_body' && o.post_bad.data.status === 400, JSON.stringify(o.post_bad), 'llp_bad_body 400');
   chk('Client values need manage_options', o.perm_without_manage === false, String(o.perm_without_manage), 'false');
-  chk('Status: plugin version, front page, SEO "none" without Rank Math/Yoast', o.status.plugin === '0.1.0' && o.status.front_page === 7 && o.status.seo === 'none' && o.status.acf_pro === false, JSON.stringify(o.status), 'ok');
+  chk('Status: plugin version, front page, SEO "none" without Rank Math/Yoast', o.status.plugin === require(path.join(root, 'wp/plugin-version.js')).VERSION && o.status.front_page === 7 && o.status.seo === 'none' && o.status.acf_pro === false, JSON.stringify(o.status), 'ok');
   chk('years_trading worked out from year_founded', o.years_trading === '17', o.years_trading, '17');
   chk('Settings page shows an input for every key', o.settings_page_inputs === o.key_count && o.key_count > 40, `${o.settings_page_inputs} inputs, ${o.key_count} keys`, 'equal');
 
