@@ -11,8 +11,22 @@ there: no extraction, no page generation from these records yet.
    refuses everything until it is set).
 2. In Fillout, add a webhook on the form pointing at
    `https://<the app>/api/webhooks/fillout?token=<that secret>`
-   (a header works too: `X-Fillout-Secret: <secret>` or `Authorization: Bearer <secret>`).
+   (a header works too: `X-Fillout-Secret: <secret>` or `Authorization: Bearer <secret>`;
+   the secret is accepted from any of these, whichever else is present).
+   **Keep the webhook on the Simple view.** Fillout (app.zite.com since Nov 2026)
+   keeps a second configuration under Advanced; saved in that mode it sends its own
+   body from the Body list and drops the query string, so no token arrives and
+   Copybot answers 401 "Unauthorised" (2 Nov 2026, the first real client form).
+   The Test button on the Simple view is the check: Copybot answers 400
+   "No submission.submissionId" to Fillout's empty test payload, which means the
+   secret passed (one rejected row in the inbox, harmless).
 3. Submit a test form. It appears in the Fillout inbox on `/clients` within a second or two.
+4. A delivery Fillout refused is not recovered by its "Retry integration": that
+   replays the original request as first built. Deliver it by hand from the Fillout
+   API: `node tools/fillout-redeliver.js <submissionId> --token <the secret>`
+   (the id is on the submission in Fillout's Results, or from the API). A refused
+   delivery is logged on Railway as `[fillout] webhook refused: no matching secret
+   (sent in: …; query string present|absent)`, names only, never values.
 
 ## What happens on delivery
 
@@ -106,12 +120,15 @@ plus `clients.source / reviewed_at / archived_at` (fillout/service.js).
 
 ## Which client a submission belongs to
 
-- A submission is merged into an existing client only when **both** the business
-  name and the business email match an earlier processed submission (case and
-  whitespace ignored) and that client is not archived.
+- (The UI redesign brief, 27 Oct 2026; `fillout/service.js findClient`.) A submission
+  is merged into an existing, unarchived client when its business email matches an
+  earlier processed submission's, or its business phone (digits compared, 10 or
+  more) matches the `business_phone` field on a client's record, a Fillout field or
+  one typed by hand. That is how Ethan's real form (2 Nov 2026) landed on the hand
+  made Edens Edge client: the same phone.
 - Anything less makes a new client. If the name or the email alone matches another
-  client (including one created by hand), the inbox row says "Possible duplicate of
-  <client>".
+  client (including one created by hand with the same name), the inbox row says
+  "Possible duplicate of <client>".
 - Clients created this way carry a "From Fillout, unreviewed" marker on the Clients
   list and the client page until Mark reviewed is clicked, and can be archived
   (archiving hides the client from the list; the record is kept and can be
