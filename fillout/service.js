@@ -69,6 +69,10 @@ async function ensureFilloutTables(pool) {
       created_at       TIMESTAMPTZ NOT NULL DEFAULT NOW(),
       updated_at       TIMESTAMPTZ NOT NULL DEFAULT NOW()
     );
+    ALTER TABLE client_audio ADD COLUMN IF NOT EXISTS transcription_source TEXT;
+    ALTER TABLE client_audio ADD COLUMN IF NOT EXISTS transcription_status TEXT;
+    ALTER TABLE client_audio ADD COLUMN IF NOT EXISTS transcription_error TEXT;
+    ALTER TABLE client_audio ADD COLUMN IF NOT EXISTS transcription_model TEXT;
     ALTER TABLE clients ADD COLUMN IF NOT EXISTS source TEXT;
     ALTER TABLE clients ADD COLUMN IF NOT EXISTS reviewed_at TIMESTAMPTZ;
     ALTER TABLE clients ADD COLUMN IF NOT EXISTS archived_at TIMESTAMPTZ;
@@ -96,7 +100,9 @@ async function defaultFetchAudio(url) {
 
 // callModel: anthropic-call.js makeCallModel(client, V20_MODEL), or null when there is no
 // API key (price extraction then records extraction_failed and waits for Retry)
-function createFilloutService({ pool, audioStore, fetchAudio = defaultFetchAudio, fieldMap = null, log = console, callModel = null, modelName = null }) {
+// transcriber: fillout/transcribe.js createTranscriber(...), or null when there is no key: a stored
+// recording Fillout sent without a transcript is then left as it is (transcription_status 'no_transcriber').
+function createFilloutService({ pool, audioStore, fetchAudio = defaultFetchAudio, fieldMap = null, log = console, callModel = null, modelName = null, transcriber = null }) {
   if (!pool) throw new Error('fillout service needs a pool');
   if (!audioStore) throw new Error('fillout service needs an audioStore');
   const map = fieldMap || I.loadFieldMap();
@@ -181,8 +187,10 @@ function createFilloutService({ pool, audioStore, fetchAudio = defaultFetchAudio
            business_name = $4, business_name_norm = $5, business_email_norm = $6, duplicate_of = $7, audio_failed = $8 WHERE id = $1`,
         [sub.id, clientId, rec.niche, rec.businessName || null, nameNorm || null, emailNorm || null, duplicateOf, audio.failed]);
       if (audio.failed) log.warn(`[fillout] ${sub.submission_id}: ${audio.failed} audio download(s) failed; reprocess to retry`);
-      // Price rows from the prices voice answer: in the background, never holding up intake
-      setImmediate(() => extractPrices(clientId, { submissionId: sub.submission_id }).catch(err => log.error('[fillout] price extraction failed to start:', err)));
+      // Transcripts for the recordings Fillout sent without one, then price rows from the prices
+      // voice answer: in the background, never holding up intake
+      setImmediate(() => transcribeMissing(clientId).catch(err => log.error('[fillout] transcription failed to start:', err))
+        .then(() => extractPrices(clientId, { submissionId: sub.submission_id })).catch(err => log.error('[fillout] price extraction failed to start:', err)));
       // Parent categories for the additional services (ticked or typed): also in the background, hash-gated
       setImmediate(() => proposeAdditional(clientId).catch(err => log.error('[fillout] additional services proposal failed to start:', err)));
       return { clientId, niche: rec.niche, nicheKnown: rec.nicheKnown, fields: written, audio, duplicateOf };
@@ -255,19 +263,24 @@ function createFilloutService({ pool, audioStore, fetchAudio = defaultFetchAudio
       const v = f.value || {};
       const { rows } = await pool.query(`SELECT * FROM client_audio WHERE client_id = $1 AND field_key = $2`, [clientId, f.key]);
       let row = rows[0];
+      // Fillout's transcript, when it sent one. Without one, a transcript Copybot made for the
+      // same file is kept (transcribeMissing); a new file starts again.
+      const filloutTranscript = v.transcription ? String(v.transcription) : null;
       if (row && row.download_status === 'stored' && row.fillout_url === (v.url || null)) {
-        // Same file: no download, but Fillout may have re-transcribed it
-        if ((row.transcription || null) !== (v.transcription || null)) await pool.query(`UPDATE client_audio SET transcription = $2, updated_at = NOW() WHERE id = $1`, [row.id, v.transcription || null]);
+        // Same file: no download, but Fillout may have transcribed it since
+        if (filloutTranscript && (row.transcription || null) !== filloutTranscript) {
+          await pool.query(`UPDATE client_audio SET transcription = $2, transcription_source = 'fillout', transcription_status = NULL, transcription_error = NULL, transcription_model = NULL, updated_at = NOW() WHERE id = $1`, [row.id, filloutTranscript]);
+        }
         kept++; continue;
       }
       if (!row) {
         const ins = await pool.query(
-          `INSERT INTO client_audio (client_id, field_key, question_id, fillout_url, filename, transcription, duration) VALUES ($1,$2,$3,$4,$5,$6,$7) RETURNING id`,
-          [clientId, f.key, f.id, v.url || null, v.filename || null, v.transcription || null, Number.isFinite(v.duration) ? Math.round(v.duration) : null]);
+          `INSERT INTO client_audio (client_id, field_key, question_id, fillout_url, filename, transcription, transcription_source, duration) VALUES ($1,$2,$3,$4,$5,$6,$7,$8) RETURNING id`,
+          [clientId, f.key, f.id, v.url || null, v.filename || null, filloutTranscript, filloutTranscript ? 'fillout' : null, Number.isFinite(v.duration) ? Math.round(v.duration) : null]);
         row = { id: ins.rows[0].id };
       } else {
-        await pool.query(`UPDATE client_audio SET fillout_url = $2, filename = $3, transcription = $4, duration = $5, updated_at = NOW() WHERE id = $1`,
-          [row.id, v.url || null, v.filename || null, v.transcription || null, Number.isFinite(v.duration) ? Math.round(v.duration) : null]);
+        await pool.query(`UPDATE client_audio SET fillout_url = $2, filename = $3, transcription = $4, transcription_source = $5, transcription_status = NULL, transcription_error = NULL, transcription_model = NULL, duration = $6, updated_at = NOW() WHERE id = $1`,
+          [row.id, v.url || null, v.filename || null, filloutTranscript, filloutTranscript ? 'fillout' : null, Number.isFinite(v.duration) ? Math.round(v.duration) : null]);
       }
       await pool.query(`UPDATE client_fields SET audio_id = $3 WHERE client_id = $1 AND field_key = $2`, [clientId, f.key, row.id]);
       if (!v.url) {
@@ -287,6 +300,43 @@ function createFilloutService({ pool, audioStore, fetchAudio = defaultFetchAudio
       }
     }
     return { stored, failed, kept };
+  }
+
+  // A transcript for every stored recording that has none (Fillout's transcription off on the
+  // question). Fillout's own transcript is never touched: only rows with no text are sent.
+  // One run per client at a time; a failed call leaves the row marked for the next run
+  // (Reprocess on the inbox row, or tools/fillout-transcribe.js).
+  const transcribing = new Set();
+  async function transcribeMissing(clientId) {
+    const { rows } = await pool.query(
+      `SELECT id, field_key, filename, content_type FROM client_audio
+        WHERE client_id = $1 AND download_status = 'stored' AND (transcription IS NULL OR transcription = '') ORDER BY field_key`, [clientId]);
+    if (!rows.length) return { missing: 0, done: 0, failed: 0 };
+    if (!transcriber) {
+      await pool.query(`UPDATE client_audio SET transcription_status = 'no_transcriber', updated_at = NOW() WHERE client_id = $1 AND download_status = 'stored' AND (transcription IS NULL OR transcription = '')`, [clientId]);
+      log.warn(`[fillout] ${rows.length} recording(s) without a transcript for ${clientId}; OPENAI_API_KEY is not set, so none made`);
+      return { missing: rows.length, done: 0, failed: 0, skipped: 'no transcriber' };
+    }
+    if (transcribing.has(clientId)) return { missing: rows.length, done: 0, failed: 0, skipped: 'running' };
+    transcribing.add(clientId);
+    let done = 0, failed = 0;
+    try {
+      for (const r of rows) {
+        try {
+          const got = await audioStore.get(r.id);
+          if (!got) throw new Error('stored copy not found');
+          const out = await transcriber.transcribe({ buffer: got.buffer, contentType: got.contentType || r.content_type || 'audio/mpeg', filename: r.filename || '' });
+          await pool.query(`UPDATE client_audio SET transcription = $2, transcription_source = 'copybot', transcription_status = 'done', transcription_error = NULL, transcription_model = $3, updated_at = NOW() WHERE id = $1`, [r.id, out.text, out.model || null]);
+          done++;
+        } catch (err) {
+          log.error(`[fillout] transcription failed for ${r.field_key} (${r.id}):`, err.message);
+          await pool.query(`UPDATE client_audio SET transcription_status = 'failed', transcription_error = $2, updated_at = NOW() WHERE id = $1`, [r.id, String(err.message || err).slice(0, 1000)]);
+          failed++;
+        }
+      }
+    } finally { transcribing.delete(clientId); }
+    if (done || failed) log.info(`[fillout] transcribed ${done} recording(s) for ${clientId}${failed ? `, ${failed} failed` : ''}`);
+    return { missing: rows.length, done, failed };
   }
 
   // Rows left at 'received' by a restart mid-processing
@@ -351,7 +401,7 @@ function createFilloutService({ pool, audioStore, fetchAudio = defaultFetchAudio
     const client = cs[0];
     const { rows: fr } = await pool.query(`SELECT field_key, question_id, value, status, source, audio_id, updated_at FROM client_fields WHERE client_id = $1`, [clientId]);
     const { rows: ar } = await pool.query(
-      `SELECT id, field_key, fillout_url, filename, transcription, duration, download_status, download_error, size_bytes FROM client_audio WHERE client_id = $1`, [clientId]);
+      `SELECT id, field_key, fillout_url, filename, transcription, transcription_source, transcription_status, transcription_error, duration, download_status, download_error, size_bytes FROM client_audio WHERE client_id = $1`, [clientId]);
     const have = new Map(fr.map(f => [f.field_key, f]));
     const audioByKey = new Map(ar.map(a => [a.field_key, a]));
     const nicheRow = have.get('niche');
@@ -365,6 +415,7 @@ function createFilloutService({ pool, audioStore, fetchAudio = defaultFetchAudio
         group: f.group || null, optional: !!f.optional, tier: f.tier, manual: !!f.manual, expectedWhen: f.expectedWhen || null,
         value: h ? h.value : null, status: h ? h.status : 'blank', source: h ? h.source : 'form', updatedAt: h ? h.updated_at : null,
         audio: a ? { id: a.id, filloutUrl: a.fillout_url, filename: a.filename, transcription: a.transcription, duration: a.duration,
+                     transcriptionSource: a.transcription_source || null, transcriptionStatus: a.transcription_status || null, transcriptionError: a.transcription_error || null,
                      downloadStatus: a.download_status, downloadError: a.download_error, size: a.size_bytes,
                      playable: a.download_status === 'stored' } : null,
       };
@@ -658,7 +709,7 @@ function createFilloutService({ pool, audioStore, fetchAudio = defaultFetchAudio
     return servicesView(clientId);
   }
 
-  return { map, receive, saveRejected, process, recoverPending, listSubmissions, record, setField, audio, setClientFlags,
+  return { map, receive, saveRejected, process, recoverPending, transcribeMissing, listSubmissions, record, setField, audio, setClientFlags,
     servicesView, setPrimaryCategory, proposeAdditional, decideAdditional,
     extractPrices, priceView: clientId => record(clientId).then(r => r && r.prices), setPriceRow, addPriceRow, deletePriceRow, setPricesNotApplicable };
 }
