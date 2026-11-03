@@ -3969,7 +3969,8 @@ if (filloutService && citationStore) {
   const citationsClientValues = async id => { const r = await pool.query(`SELECT content FROM client_assets WHERE client_id = $1 AND asset_type = 'client_values' ORDER BY uploaded_at DESC LIMIT 1`, [id]); return r.rows.length ? JSON.parse(r.rows[0].content) : {}; };
   const siteUrlFor = async id => { const r = await pool.query(`SELECT url FROM wp_connections WHERE client_id = $1`, [id]).catch(() => ({ rows: [] })); return r.rows.length ? r.rows[0].url : ''; };
   const clientCitations = CL.createClientCitations({ pool, store: citationStore, filloutService, placesStore: require('./locations/places').createPlacesStore(pool), approvedTiers: require('./locations/approved').approvedTiers, clientValues: citationsClientValues, siteUrlFor });
-  require('./citations/client-routes').mountClientCitationsApi(app, { pool, clientCitations });
+  const citationScanner = require('./citations/scan').createScanner({ pool, store: citationStore, clientCitations });
+  require('./citations/client-routes').mountClientCitationsApi(app, { pool, clientCitations, scanner: citationScanner });
 }
 // Location Determiner (locations/routes.js): which towns get location pages; the dry run first
 if (filloutService) require('./locations/routes').mountLocationsApi(app, { pool, filloutService });

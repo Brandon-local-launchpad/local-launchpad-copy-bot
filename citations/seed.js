@@ -59,13 +59,21 @@ const str = v => (v == null ? '' : String(v)).replace(/ /g, ' ').trim();
 const slugify = s => str(s).toLowerCase().replace(/&/g, ' and ').replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
 const normName = s => str(s).toLowerCase().replace(/&/g, ' and ').replace(/\b(the|ltd|limited)\b/g, ' ').replace(/[^a-z0-9]+/g, ' ').replace(/\s+/g, ' ').trim();
 
-// The registrable host of a URL or URL pattern: "https://<town>.nub.news/x" → "nub.news",
-// "https://directory.<paper-domain>/" → "" (no fixed host)
+// The registrable domain of a URL or URL pattern, so a listing on www.yelp.co.uk is on the
+// directory whose add page is biz.yelp.co.uk: "https://biz.yelp.co.uk/" → "yelp.co.uk",
+// "https://<town>.nub.news/x" → "nub.news", "https://directory.<paper-domain>/" → "" (no fixed host)
+const TWO_PART_TLDS = /\.(co|org|gov|ac|me|net|ltd|plc|nhs|sch|police|mod)\.uk$|\.(com|net|org|edu|gov)\.au$|\.(co|com)\.(nz|za|ie)$/;
+function registrableDomain(host) {
+  const h = String(host || '').toLowerCase().replace(/^ww+\./, '');
+  const parts = h.split('.');
+  const keep = TWO_PART_TLDS.test(h) ? 3 : 2;
+  return parts.length > keep ? parts.slice(-keep).join('.') : h;
+}
 function domainOf(url) {
   let s = str(url).replace(/^https?:\/\//i, '').split(/[/?#]/)[0].toLowerCase();
   if (!s) return '';
   if (s.includes('<')) { const parts = s.split('.'); while (parts.length && parts[0].includes('<')) parts.shift(); if (parts.some(p => p.includes('<')) || parts.length < 2) return ''; s = parts.join('.'); }
-  s = s.replace(/^ww+\./, '');
+  s = registrableDomain(s);
   return /^[a-z0-9.-]+\.[a-z]{2,}$/.test(s) ? s : '';
 }
 
@@ -389,4 +397,4 @@ function seedVersion(dir = DATA_DIR) {
   return h.digest('hex').slice(0, 16);
 }
 
-module.exports = { parseSeed, seedVersion, readTab, domainOf, costOf, priorityOf, verificationOf, doneByOf, normName, slugify, platformApplies, DATA_DIR, TABS, TIERS, COSTS, PRIORITIES, VERIFICATIONS, DONE_BY, SKIP, RETIRED };
+module.exports = { parseSeed, seedVersion, readTab, domainOf, registrableDomain, costOf, priorityOf, verificationOf, doneByOf, normName, slugify, platformApplies, DATA_DIR, TABS, TIERS, COSTS, PRIORITIES, VERIFICATIONS, DONE_BY, SKIP, RETIRED };
