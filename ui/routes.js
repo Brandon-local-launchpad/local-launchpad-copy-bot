@@ -12,7 +12,7 @@
 const path = require('path');
 const D = require('./dashboard');
 
-const APP_PATHS = ['/dashboard', '/clients', '/clients/*', '/add-client', '/niches', '/niches/*', '/trade-facts', '/prompts', '/settings'];
+const APP_PATHS = ['/dashboard', '/clients', '/clients/*', '/add-client', '/niches', '/niches/*', '/trade-facts', '/directories', '/prompts', '/settings'];
 
 async function ensureUiColumns(pool) {
   await pool.query(`ALTER TABLE clients ADD COLUMN IF NOT EXISTS assigned_to TEXT`);

@@ -1,0 +1,55 @@
+Network,URL pattern,Areas covered,Cost,How listing works,Who does it,Works for SAB?,Priority,When to use it,Live check,Notes,Source
+Buy With Confidence (Trading Standards),https://www.buywithconfidence.gov.uk/,"Council Trading Standards partnership, mainly South and South West England. Check the participating councils list for the client's council.","Annual fee set by the council, scaled by staff numbers","Trading Standards audit: checks, references, site visit, code of conduct",Client decision,Yes,P1 for trades,If the client's base council takes part. Otherwise look for that council's own approved trader scheme.,Unconfirmed,"A .gov.uk trust listing, strong for home services. Council list and fees still to confirm.",https://www.buywithconfidence.gov.uk/
+Council approved trader schemes (other),Varies by council (often called Trusted Trader),Individual Trading Standards services outside Buy With Confidence,Usually an annual fee,Trading Standards vetting,Client decision,Yes,P2,"Search ""<council> trading standards trusted trader"" for the client's base council.",Unconfirmed,"Looked up per client, not area by area.",
+Accredited chambers of commerce,https://www.britishchambers.org.uk/ then the local chamber's member directory,"About 50 chambers covering England and Wales, at county or city level",Paid membership,Membership application,Client decision,Yes,P2,Offer it if the client's county has an accredited chamber.,Unconfirmed,"A real local trust signal, but paid.",https://www.hampshirechamber.co.uk/your-voice/your-voice-at-a-local-level/southampton-chamber
+Nub News,https://<town>.nub.news/directories,"34 town sites, listed below this table (England and one in Wales)",Free Standard listing; Premium £35+VAT,Online form ('Add your business'),Team,Yes,P2,If a Nub News site exists for any of the client's towns.,Confirmed live,Free tier confirmed on Crewe; the other sites run the same system.,https://nub.news/sites
+Reach plc newspaper directories,https://directory.<paper-domain>/search/<town>/<category>,"About 40 papers, including Manchester Evening News, Liverpool Echo, Bristol Post, Birmingham Mail, WalesOnline, Kent Live, Essex Live, Devon Live, Cornwall Live",Free (claim),Claim an existing record,Team,Unknown,P3,Only if the client serves the paper's area and a test claim works.,Unconfirmed,"Old imported data. The data supplier, Central Index, was dissolved in April 2023, so claims may fail.",https://www.brightlocal.com/resources/top-citation-sites/location/uk/
+National World Findit,https://findit.<title-domain>/search/<town>/<category>,One UK-wide database shown under every National World paper's domain,Free,No add or claim link found,Team,Unknown,P3,Check only: see whether the client appears and fix NAP if a claim route exists. No submissions.,Confirmed live,Same old data as the Reach directories. One record feeds every title.,https://findit.chichester.co.uk/search/southampton/roofing-consultants
+Newsquest trade directories,https://www.<newsquest-title>/trade_directory,Reported on some Newsquest papers (the Daily Echo's owner),"Unknown, likely a paid ad product",Unknown,Client decision,Unknown,P3,Only if a Newsquest paper covers the client's town and they want paid local press.,Unconfirmed,No trade directory page could be loaded.,https://bird.marketing/blog/resources/business-directory-list-uk/
+LocalPage UK,https://localpage.uk/uk/<city-or-county>,City and county pages across the UK,Free,Online sign-up,Team,Unknown,P3,"Optional filler, done last. One account covers city and county pages.",Unconfirmed,"Search results are full of its own promotional posts on note-sharing sites, a spam signal.",https://localpage.uk/uk/southampton
+Tourism sites (Visit <place>),https://www.visit<place>.co.uk/,Every county and many cities,Free basic to paid tiers,Partner application,n/a,No,Never for trades,Never use for a trades or pet services client.,Confirmed live,"Listings are hotels, venues and attractions only.",https://www.visit-hampshire.co.uk/visitor-information/cruise?p=32
+Age UK local trader directories,Varies by local Age UK branch (e.g. ageuk.org.uk/<branch>/... or aubd<area>.co.uk),"Some local Age UK branches: seen for Birmingham, Derby and Derbyshire, Gloucestershire, West Sussex with Brighton and Hove, Bradford, Calderdale and Kirklees, Hillingdon, Harrow and Brent, York",Usually a paid annual listing (e.g. Gloucestershire £225/yr sole trader),"Vetting: insurance, references, checks, a customer charter",Client decision,Yes,P3,If the client's area has one and they work in older people's homes.,Unconfirmed,"Charity-run, not council endorsed. Trusted by older customers. Coverage is patchy, so check per client.",https://www.ageuk.org.uk/gloucestershire/get-involved/business-directory/
+,,,,,,,,,,,
+Rule for a new client's local list,,,,,,,,,,,
+"1. Start from the client's approved towns, each with its council and county.",,,,,,,,,,,
+"2. Approved trader: Buy With Confidence if the base council takes part (P1), otherwise that council's own trusted trader scheme (P2). Both are the client's decision because they cost money.",,,,,,,,,,,
+"3. Chamber: the accredited chamber covering the base county or city (P2, client decision).",,,,,,,,,,,
+"4. Free local: a Nub News listing for each approved town that has a site (P2, team).",,,,,,,,,,,
+5. Newspaper directories are check-only (P3). LocalPage UK is optional filler (P3).,,,,,,,,,,,
+"6. Never use tourism sites, business improvement districts, food and drink bodies, or anything that needs a shopfront.",,,,,,,,,,,
+,,,,,,,,,,,
+Nub News towns (free Shop Local directory at <town>.nub.news/directories),County,URL,Live check,,,,,,,,
+Alsager,Cheshire,https://alsager.nub.news/,Confirmed live,,,,,,,,
+Ashby,Leicestershire,https://ashby.nub.news/,Confirmed live,,,,,,,,
+Biddulph,Staffordshire,https://biddulph.nub.news/,Confirmed live,,,,,,,,
+Chester,Cheshire,https://chester.nub.news/,Confirmed live,,,,,,,,
+Coalville,Leicestershire,https://coalville.nub.news/,Confirmed live,,,,,,,,
+Congleton,Cheshire,https://congleton.nub.news/,Confirmed live,,,,,,,,
+Crewe,Cheshire,https://crewe.nub.news/,Confirmed live,,,,,,,,
+Dorchester,Dorset,https://dorchester.nub.news/,Confirmed live,,,,,,,,
+Frome,Somerset,https://frome.nub.news/,Confirmed live,,,,,,,,
+Glastonbury and Street,Somerset,https://glastonbury.nub.news/,Confirmed live,,,,,,,,
+Hitchin,Hertfordshire,https://hitchin.nub.news/,Confirmed live,,,,,,,,
+Hucknall,Nottinghamshire,https://hucknall.nub.news/,Confirmed live,,,,,,,,
+Kenilworth,Warwickshire,https://kenilworth.nub.news/,Confirmed live,,,,,,,,
+Kingston,Greater London,https://kingston.nub.news/,Confirmed live,,,,,,,,
+Leamington,Warwickshire,https://leamington.nub.news/,Confirmed live,,,,,,,,
+Macclesfield,Cheshire,https://macclesfield.nub.news/,Confirmed live,,,,,,,,
+Maldon,Essex,https://maldon.nub.news/,Confirmed live,,,,,,,,
+Nantwich,Cheshire,https://nantwich.nub.news/,Confirmed live,,,,,,,,
+Oakham,Rutland,https://oakham.nub.news/,Confirmed live,,,,,,,,
+Penarth,Vale of Glamorgan,https://penarth.nub.news/,Confirmed live,,,,,,,,
+Richmond,Greater London,https://richmond.nub.news/,Confirmed live,,,,,,,,
+Sale,Greater Manchester,https://sale.nub.news/,Confirmed live,,,,,,,,
+Sandbach,Cheshire,https://sandbach.nub.news/,Confirmed live,,,,,,,,
+Shepton Mallet,Somerset,https://sheptonmallet.nub.news/,Confirmed live,,,,,,,,
+Solihull,West Midlands,https://solihull.nub.news/,Confirmed live,,,,,,,,
+Stafford,Staffordshire,https://stafford.nub.news/,Confirmed live,,,,,,,,
+Stockport,Greater Manchester,https://stockport.nub.news/,Confirmed live,,,,,,,,
+Stoke,Staffordshire,https://stoke.nub.news/,Confirmed live,,,,,,,,
+Teddington,Greater London,https://teddington.nub.news/,Confirmed live,,,,,,,,
+Thurrock,Essex,https://thurrock.nub.news/,Confirmed live,,,,,,,,
+Twickenham,Greater London,https://twickenham.nub.news/,Confirmed live,,,,,,,,
+Warwick,Warwickshire,https://warwick.nub.news/,Confirmed live,,,,,,,,
+Wells,Somerset,https://wells.nub.news/,Confirmed live,,,,,,,,
+Wilmslow and Alderley Edge,Cheshire,https://wilmslow.nub.news/,Confirmed live,,,,,,,,

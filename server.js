@@ -107,6 +107,10 @@ const sleep = ms => new Promise(r => setTimeout(r, ms));
 // (trade-facts/store.js). Service pages are only written from a verified pack.
 const tradeFacts = require('./trade-facts/store').createTradeFactsService({ pool });
 require('./trade-facts/routes').mountTradeFactsApi(app, tradeFacts);
+// ── Citations (3 Nov): the directory database and the Directories page (citations/store.js, routes.js).
+// The client side (the Citations tab, the scan, the gaps) is mounted further down with the client services.
+const citationStore = pool ? require('./citations/store').createCitationStore(pool) : null;
+require('./citations/routes').mountCitationsApi(app, { pool, store: citationStore });
 // The niche the gate checks for a client: the allocated niche key, else the trade
 async function nicheForGate(clientId, trade) {
   if (clientId && pool) {
@@ -4473,6 +4477,9 @@ initDb().then(async () => {
   if (pool) {
     const PL = require('./locations/places');
     PL.ensurePlacesTables(pool).then(() => PL.seedPlaces(pool)).then(r => { if (!r.seeded) console.log(`[places] ${r.reason}${r.rows ? ` (${r.rows} rows)` : ''}`); }).catch(err => console.error('[places] seed failed:', err.message));
+    // The citation directory database: seeded from data/citations/ when the files changed; the DA
+    // column filled from DataForSEO for new rows (a few cents, logged in citation_api_costs)
+    citationStore.seedDirectories().then(r => console.log(r.seeded ? `[citations] seeded ${r.rows} directories (${r.inserted} added, ${r.updated} updated, ${r.kept} hand edited kept)${r.da && r.da.filled ? `, DA for ${r.da.filled} ($${r.da.cost})` : ''}` : `[citations] ${r.reason} (${r.rows} rows)`)).catch(err => console.error('[citations] seed failed:', err.message));
   }
 }).catch(err => {
   console.error('DB init failed:', err.message);
