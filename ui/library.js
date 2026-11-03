@@ -44,14 +44,8 @@ function parseCsv(text) {
   const [head, ...rest] = rows;
   return rest.filter(r => r.some(x => x.trim())).map(r => Object.fromEntries(head.map((h, i) => [h.trim(), (r[i] || '').trim()])));
 }
-function calibrationPackFor(stem, entry) {
-  const names = fs.readdirSync(ROOT).filter(f => /Calibration_Pack/i.test(f) && f.endsWith('.md'));
-  const want = (entry && entry.trade ? String(entry.trade) : stem).toLowerCase().replace(/[^a-z]/g, '');
-  const hit = names.find(f => f.toLowerCase().replace(/[^a-z]/g, '').startsWith(want.slice(0, 6))) || names.find(f => f.toLowerCase().includes(stem.split('-')[0]));
-  if (!hit) return { exists: false };
-  const st = fs.statSync(path.join(ROOT, hit));
-  return { exists: true, file: hit, version: (hit.match(/_v(\d+)/) || [])[1] || null, size: st.size, modified: st.mtime };
-}
+// The niche's calibration pack from the registry (calibration-packs.js, one file per niche key)
+const calibrationPackFor = key => require('../calibration-packs').statusForNiche(key);
 
 async function nicheList({ pool }) {
   const clients = pool ? (await pool.query(`SELECT id, name, niche_key, archived_at FROM clients WHERE archived_at IS NULL`)).rows : [];
@@ -59,7 +53,7 @@ async function nicheList({ pool }) {
     const stem = stemFor(n.key);
     const json = exists(path.join(LIB, `${stem}.json`)), csv = exists(path.join(LIB, `${stem}.csv`)), cats = exists(path.join(LIB, `${stem}-categories.csv`));
     const entry = json ? readJson(path.join(LIB, `${stem}.json`)) : null;
-    const pack = calibrationPackFor(stem, entry);
+    const pack = calibrationPackFor(n.key);
     const tfBlock = exists(path.join(ROOT, 'trade-facts', 'blocks', `${stem}.md`));
     const clientsOn = clients.filter(c => c.niche_key === n.key);
     return { key: n.key, label: n.label, stem, has: { entry: json, services: csv, categories: cats, pack: pack.exists, trade_facts_block: tfBlock }, clients: clientsOn.length, ready: json && csv && pack.exists };
@@ -73,7 +67,7 @@ async function nicheDetail({ pool, key }) {
   const entry = exists(path.join(LIB, `${stem}.json`)) ? readJson(path.join(LIB, `${stem}.json`)) : null;
   const services = exists(path.join(LIB, `${stem}.csv`)) ? parseCsv(fs.readFileSync(path.join(LIB, `${stem}.csv`), 'utf8')) : [];
   const categories = exists(path.join(LIB, `${stem}-categories.csv`)) ? parseCsv(fs.readFileSync(path.join(LIB, `${stem}-categories.csv`), 'utf8')) : [];
-  const pack = calibrationPackFor(stem, entry);
+  const pack = calibrationPackFor(key);
   const clients = pool ? (await pool.query(`SELECT id, name, archived_at, created_at FROM clients WHERE niche_key = $1 ORDER BY created_at DESC`, [key])).rows : [];
   const briefs = entry ? Object.fromEntries(['category_page_blocks', 'service_page_blocks', 'location_page_blocks'].map(k => [k, entry[k] ? Object.keys(entry[k]) : []])) : {};
   return { key, label: niche.label, stem, entry, briefs, services, categories, pack, clients: clients.map(c => ({ id: c.id, name: c.name, archived: !!c.archived_at })), trade_facts_block: exists(path.join(ROOT, 'trade-facts', 'blocks', `${stem}.md`)) };

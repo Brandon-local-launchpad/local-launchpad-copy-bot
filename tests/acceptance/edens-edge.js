@@ -65,7 +65,7 @@ async function call({ system, message, maxTokens }) {
   // 3. Generation, validation and retries
   const record = await G.generateV20Homepage({
     cv, niche: landscaper, keyValueMap: real.keyValueMap, serviceParentMap: real.serviceParentMap, decisionsResult: DR,
-    calibrationPack: fs.readFileSync(path.join(root, 'Landscaper_Calibration_Pack_v4.md'), 'utf8'), calibrationPackName: 'Landscaper Gardener',
+    calibrationPack: fs.readFileSync(path.join(root, 'calibration-packs', 'Landscaper_Calibration_Pack_v5.md'), 'utf8'), calibrationPackName: 'Landscaper Gardener',
     allocationSource: 'model', callModel: call,
   });
 
