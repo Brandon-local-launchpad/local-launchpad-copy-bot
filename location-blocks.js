@@ -24,13 +24,13 @@ class NoBriefsError extends Error {
 
 // The block entry for a location page: the client's type, A2 when the marker holds and an
 // A2 entry exists, the emergency variant laid over it.
-function blocksFor({ niche, cv = {} }) {
+function blocksFor({ niche, cv = {}, emergencyPage = false }) {
   const nicheName = niche._source || niche.trade_lower || niche.trade || 'this niche';
   const all = niche.location_page_blocks;
   if (!all || typeof all !== 'object' || !Object.keys(all).length) {
     throw new NoBriefsError(`no location block briefs for ${nicheName}`, { niche: nicheName });
   }
-  const t = C.typeFor({ niche, cv, category: null });
+  const t = C.typeFor({ niche, cv, category: null, emergencyPage });
   const key = t.a2 && all.A2 ? 'A2' : t.letter;
   const base = all[key];
   if (!base) throw new NoBriefsError(`no location block briefs for ${nicheName} type ${key}`, { niche: nicheName, type: key });
@@ -58,4 +58,4 @@ function briefGaps(entry) {
   return gaps;
 }
 
-module.exports = { blocksFor, briefGaps, stepsFor, pickFaqSlots: C.pickFaqSlots, typeFor: C.typeFor, NoBriefsError };
+module.exports = { blocksFor, briefGaps, stepsFor, pickFaqSlots: C.pickFaqSlots, typeFor: C.typeFor, clientEmergency: C.clientEmergency, emergencyWhy: C.emergencyWhy, NoBriefsError };

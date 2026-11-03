@@ -135,7 +135,10 @@ function loadLibrary(niche, { file = fileFor(niche) } = {}) {
   const entries = new Map(), byKey = new Map(), byMatchKey = new Map(), list = [];
   if (!problems.length) {
     rows.slice(1).forEach((r, i) => {
-      const e = { gbp_name: (r[col('gbp_name')] || '').trim(), gbp_category: (r[col('gbp_category')] || '').trim(), verdict: norm(r[col('verdict')]), target: (r[col('target')] || '').trim(), note: (r[col('note')] || '').trim(), line: i + 2 };
+      const e = { gbp_name: (r[col('gbp_name')] || '').trim(), gbp_category: (r[col('gbp_category')] || '').trim(), verdict: norm(r[col('verdict')]), target: (r[col('target')] || '').trim(), note: (r[col('note')] || '').trim(), line: i + 2,
+        // 3 Nov 2026: optional columns. emergency: the page gets the emergency briefs when the client confirms call outs;
+        // prose_name: what running text and link text call the page; confirm_only: a page only when ticked or typed by name
+        emergency: norm(r[col('emergency')]) === 'yes', prose_name: (r[col('prose_name')] || '').trim(), confirm_only: norm(r[col('confirm_only')]) === 'yes' };
       if (!e.gbp_name) return;
       if (!VERDICTS.includes(e.verdict)) { problems.push(`line ${e.line}: "${e.gbp_name}" has verdict "${e.verdict}", not one of ${VERDICTS.join(' / ')}`); return; }
       if (e.verdict !== 'exclude' && !e.target) { problems.push(`line ${e.line}: "${e.gbp_name}" (${e.verdict}) has no target`); return; }
@@ -216,7 +219,7 @@ function findEntries(set, name, categories = [], { fuzzy = false } = {}) {
     const id = `${lib.file}:${entry.line}`;
     if (seen.has(id)) return;
     seen.add(id);
-    out.push({ entry, file: lib.file, own, how, score });
+    out.push({ entry, file: lib.file, own, how, score, lib });
   };
   const exact = (lib, own) => {
     for (const c of cats) { const e = lib.byKey.get(`${n}|${c}`); if (e) push(e, lib, own, 'name+category'); }
@@ -239,6 +242,21 @@ function findEntries(set, name, categories = [], { fuzzy = false } = {}) {
   return out;
 }
 
+// The flags a target carries in one library (3 Nov 2026): any row with that target sets them, so
+// an alias row can flag a page defined elsewhere (the guttering rows for Dry ridge and dry verge),
+// and a flag never crosses into another library (the roofer's own rows are unchanged)
+function targetFlags(lib, target) {
+  const t = norm(target);
+  const out = { emergency: false, prose_name: '', confirm_only: false };
+  for (const e of (lib && lib.rows) || []) {
+    if (norm(e.target) !== t) continue;
+    if (e.emergency) out.emergency = true;
+    if (e.prose_name && !out.prose_name) out.prose_name = e.prose_name;
+    if (e.confirm_only) out.confirm_only = true;
+  }
+  return out;
+}
+
 // The hub a category name belongs to (itself when the table has no row for it)
 function hubOf(set, categoryName) {
   set = asSet(set);
@@ -246,4 +264,4 @@ function hubOf(set, categoryName) {
   return h || categoryName;
 }
 
-module.exports = { loadLibrary, loadLibrarySet, loadAllLibraries, loadHubs, findEntries, hubOf, asSet, fileFor, categoriesFileFor, keyFor, parseCsv, norm, matchKey, similarity, VERDICTS, FUZZY_MIN };
+module.exports = { loadLibrary, loadLibrarySet, loadAllLibraries, loadHubs, findEntries, targetFlags, hubOf, asSet, fileFor, categoriesFileFor, keyFor, parseCsv, norm, matchKey, similarity, VERDICTS, FUZZY_MIN };

@@ -108,7 +108,9 @@ function computeCategoryDecisions({ cv, niche, keyValueMap = {}, rows = [], page
   const missingNiche = requiredNiche.filter(k => !niche[k]);
   if (missingNiche.length) gates.push({ code: 'G-NICHE', msg: `Niche entry missing slots: ${missingNiche.join(', ')}` });
   let blocks = null;
-  try { blocks = B.blocksFor({ niche, cv, category }); }
+  // The emergency switch (3 Nov 2026): on when a card leads to a service page flagged in the library
+  const emergencyNames = applies.filter(r => r.type === 'service' && live(r) && r.info && r.info.emergency && ((r.info.parent_keys) || []).includes(catKey)).map(r => r.title);
+  try { blocks = B.blocksFor({ niche, cv, category, emergencyPage: emergencyNames.length > 0 }); }
   catch (e) { if (e.code === 'G-BRIEF') gates.push({ code: 'G-BRIEF', msg: e.message }); else throw e; }
   if (gates.length) return { gates, flags, decisions: null, decisionsBlock: null };
   for (const g of B.briefGaps(blocks.entry)) flags.push({ code: 'F-BRIEF', msg: `${niche._source || niche.trade} type ${blocks.key}: ${g}.` });
@@ -132,6 +134,7 @@ function computeCategoryDecisions({ cv, niche, keyValueMap = {}, rows = [], page
   ctx.primaryAction = ph(btn.primary_action || '', ctx);
   const { yearFounded, yearsTrading } = yearsTradingOf(cv);
   const emergencyOn = blocks.emergencyOn;
+  const emergencyWhy = B.emergencyWhy(emergencyOn, emergencyNames, cv);
   const kwNatural = `${catLower} in ${townName}`;
 
   // ── Title, meta, trust, rating, buttons (the homepage's rules) ──
@@ -165,7 +168,7 @@ function computeCategoryDecisions({ cv, niche, keyValueMap = {}, rows = [], page
   const cards = services.filter(live).map(s => {
     const ts = townServices.find(t => lc(t.info && t.info.service_name) === lc(s.title) || (t.info && t.info.category_key === catKey && lc(t.title) === lc(`${s.title} ${townName}`)));
     const target = ts || s;
-    return { name: s.title, url: slugOf(target), h1: target.h1 || '', target: ts ? 'town' : 'base', base_url: slugOf(s), linked: true, status: isLinkable({ status: target.status, urlSlug: slugOf(target), pageType: 'service' }) ? 'Launching' : 'Launching' };
+    return { name: s.title, say: (s.info && s.info.prose_name) || null, url: slugOf(target), h1: target.h1 || '', target: ts ? 'town' : 'base', base_url: slugOf(s), linked: true, status: isLinkable({ status: target.status, urlSlug: slugOf(target), pageType: 'service' }) ? 'Launching' : 'Launching' };
   });
   if (!cards.length) flags.push({ code: 'F-CARDS', msg: `${category} has no service page to show as a card.` });
   // A mentioned name that only restates the category or a card ("Gardening services", "Garden
@@ -192,7 +195,7 @@ function computeCategoryDecisions({ cv, niche, keyValueMap = {}, rows = [], page
   // ...and its own way of carrying the link, so the cards don't all read "Our [service] work…"
   // (loop round 1: five of six cards opened that way because every card was shown the same example)
   const LINK_PHRASES = ['our [X] work', 'a [X] visit', 'booking [X]', 'our [X] rounds', 'a [X] job', 'the [X] we do'];
-  cards.forEach((c, i) => { c.shape = SHAPES[i % SHAPES.length]; c.link_phrase = LINK_PHRASES[i % LINK_PHRASES.length].replace('[X]', `[${lc(c.name)}](${c.url})`); });
+  cards.forEach((c, i) => { c.shape = SHAPES[i % SHAPES.length]; c.link_phrase = LINK_PHRASES[i % LINK_PHRASES.length].replace('[X]', `[${c.say || lc(c.name)}](${c.url})`); });
 
   // ── Blocks 4 and 5, steps, FAQ from the type's briefs ──
   const problemCards = ((blocks.entry.problems || {}).cards || []).slice(0, 4).map(c => ({ title: phCat(c.title, ctx), brief: phCat(c.brief || '', ctx), mechanism: phCat(c.mechanism || '', ctx) }));
@@ -283,16 +286,16 @@ function computeCategoryDecisions({ cv, niche, keyValueMap = {}, rows = [], page
   const siblingsTown = scope === 'town' ? applies.filter(r => r.type === 'location_category' && live(r) && lc(r.info && r.info.town) === lc(townName) && r.info.category_key !== catKey) : [];
   const myLocCats = locCats.filter(live);
   const linkable = [];
-  const addL = (type, r) => { const url = slugOf(r); if (url && !linkable.some(p => p.url === url)) linkable.push({ type, url, h1: r.h1 || r.title || '' }); };
+  const addL = (type, r) => { const url = slugOf(r); if (url && !linkable.some(p => p.url === url)) linkable.push({ type, url, h1: r.h1 || r.title || '', say: r.say || (r.info && r.info.prose_name) || null }); };
   if (homepage) addL('homepage', { slug: '/', h1: homepage.h1 || '' });
-  for (const c of cards) addL(c.target === 'town' ? 'town-service' : 'service', { slug: c.url, h1: c.h1 });
-  if (scope === 'town') for (const c of cards) if (c.target === 'town') addL('service', { slug: c.base_url, h1: services.find(s => s.title === c.name).h1 });
+  for (const c of cards) addL(c.target === 'town' ? 'town-service' : 'service', { slug: c.url, h1: c.h1, say: c.say });
+  if (scope === 'town') for (const c of cards) if (c.target === 'town') addL('service', { slug: c.base_url, h1: services.find(s => s.title === c.name).h1, say: c.say });
   if (scope === 'base') { for (const r of siblingsBase) addL('category', r); for (const r of myLocCats) addL('location-category', r); }
   else { if (locPage) addL('location', locPage); for (const r of siblingsTown) addL('location-category', r); }
   const selfUrl = slugOf(page);
   const linkablePages = linkable.filter(p => p.url !== selfUrl);
   // Section 3 link set: the cards' targets. Section 4: 2 or 3 location category pages (base), the siblings in town (town)
-  const contentLinks = cards.map(c => ({ name: c.name, url: c.url }));
+  const contentLinks = cards.map(c => ({ name: c.name, say: c.say || null, url: c.url }));
   const locationLinks = scope === 'base'
     ? towns.filter(t => !isAdminArea(t)).map(locCatFor).filter(r => r && live(r)).slice(0, 3).map(r => ({ name: r.info.town, url: slugOf(r), h1: r.h1 || '' }))
     : siblingsTown.map(r => ({ name: catRowName(applies, r.info.category_key) || r.title, url: slugOf(r), h1: r.h1 || '' }));
@@ -316,14 +319,14 @@ function computeCategoryDecisions({ cv, niche, keyValueMap = {}, rows = [], page
     d15_buttons: buttons, breadcrumb,
     h2,
     cards, alsoOffered,
-    d9: { main: cards.map(c => ({ name: c.name, url: c.url, linked: true, h1: c.h1, services: [] })), alsoOffer: alsoOffered },
+    d9: { main: cards.map(c => ({ name: c.name, say: c.say || null, url: c.url, linked: true, h1: c.h1, services: [] })), alsoOffer: alsoOffered },
     problems, cost: costCards, price_line: cv.price_list ? '[CV: price_list]' : null,
     reviews: { show: reviewsShow, items: picked, count: reviewCount },
     niche_steps: steps,
     areas, faq: faqs,
     allocated, ideasUsed: Array.isArray(ideasUsed) ? ideasUsed : [],
     contentLinks, locationLinks, linkablePages,
-    quoteFree, emergencyOn, coastal: cv.coastal_city === 'yes',
+    quoteFree, emergencyOn, emergencyWhy, coastal: cv.coastal_city === 'yes',
     seasonal: seasonal.swapped,
     trade_facts: tradeFacts ? { file: tradeFacts.file || null, verified: !!tradeFacts.verified, missing: tradeFacts.missing || [], included: !!tradeFacts.verified } : null,
     // Fields the shared validator reads on every page type
@@ -371,7 +374,7 @@ function formatCategoryBlock(D, cv, niche, ctx) {
   D.cards.forEach((c, i) => {
     push(`  ${i + 1}. ${c.name} → ${c.url} (${c.target === 'town' ? 'town service page' : 'base service page'}${c.h1 ? ' | H1: ' + c.h1 : ''})`);
     push(`     Shape: ${c.shape}`);
-    push(`     Link text: "${lc(c.name)}"${D.scope === 'town' ? ' (the plain service name, no town)' : ' (the service name, words in order)'}, inside a sentence as "${c.link_phrase}", never at its start and never the same phrase as another card`);
+    push(`     Link text: "${c.say || lc(c.name)}"${c.say ? ' (the prose name: running text and the link say this, the card heading keeps the page name)' : D.scope === 'town' ? ' (the plain service name, no town)' : ' (the service name, words in order)'}, inside a sentence as "${c.link_phrase}", never at its start and never the same phrase as another card`);
   });
   if (!D.cards.length) push('  (none)');
   push(`  Also offered (no page; one sentence, no links): ${D.alsoOffered.length ? D.alsoOffered.join(', ') : 'none (write HIDDEN)'}`);
@@ -405,7 +408,7 @@ function formatCategoryBlock(D, cv, niche, ctx) {
   }
   push('');
   push(`[QUOTE_FREE]: ${D.quoteFree || '(blank — paid quotes)'}`);
-  push(`Emergency layout: ${D.emergencyOn ? 'ON' : 'off'}`);
+  push(`Emergency layout: ${D.emergencyOn ? 'ON' : 'off'}${D.emergencyWhy ? ` (${D.emergencyWhy})` : ''}`);
   push(`Primary city coastal: ${D.coastal ? 'yes. Write the travel distance as "inland and along the coast", never compass directions or "in each direction"' : 'no'}`);
   push(`Trade facts: ${D.trade_facts && D.trade_facts.included ? 'in the client block (TRADE FACTS)' : 'none for this page: name no material, method or rule the client values do not give'}`);
   push('');
@@ -425,7 +428,7 @@ function formatCategoryBlock(D, cv, niche, ctx) {
   push('  Only what CONFIRMED PRACTICES in the client block say. Never invent a way of working or a promise about it: no "nothing gets added without you saying so", "each garden gets its own plan", "we stick to the work you asked for", "the price never creeps", "we fit the visit to a time that suits you", "we arrive ready to start", no seasonal pattern of visits, no comparison between the cost of a round and a one off. Say what the work involves, not how the business runs it.');
   push('');
   push('LINKABLE PAGES:');
-  for (const p of D.linkablePages) push(`  [${p.type}] ${p.url} | H1: ${p.h1}`);
+  for (const p of D.linkablePages) push(`  [${p.type}] ${p.url} | H1: ${p.h1}${p.say ? ` | say: ${p.say}` : ''}`);
   if (!D.linkablePages.length) push('  none');
   push('');
   push('ALLOCATED ITEMS:');
@@ -467,7 +470,7 @@ function formatCategoryBlock(D, cv, niche, ctx) {
   push(`  ${PT.LABELS.hero}`);
   push(`  ${PT.LABELS.servicesIntro}`);
   push(`  ${PT.LABELS.cards}`);
-  for (const c of D.cards) push(`    - card_name: ${c.name} | card_text`);
+  for (const c of D.cards) push(`    - card_name: ${c.name}${c.say ? ` | say: ${c.say}` : ''} | card_text`);
   push(`  ${PT.LABELS.alsoOffered}${D.alsoOffered.length ? '' : ' (HIDDEN)'}`);
   push(`  ${PT.LABELS.content}`);
   push(`  ${PT.LABELS.block4}`);

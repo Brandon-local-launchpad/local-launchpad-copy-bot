@@ -23,13 +23,13 @@ class NoBriefsError extends Error {
 
 // The block entry for a service page: the parent category's type (or the client's), A2
 // when the marker holds and an A2 entry exists, the emergency variant laid over it.
-function blocksFor({ niche, cv = {}, category }) {
+function blocksFor({ niche, cv = {}, category, emergencyPage = false }) {
   const nicheName = niche._source || niche.trade_lower || niche.trade || 'this niche';
   const all = niche.service_page_blocks;
   if (!all || typeof all !== 'object' || !Object.keys(all).length) {
     throw new NoBriefsError(`no service block briefs for ${nicheName}`, { niche: nicheName });
   }
-  const t = C.typeFor({ niche, cv, category });
+  const t = C.typeFor({ niche, cv, category, emergencyPage });
   const key = t.a2 && all.A2 ? 'A2' : t.letter;
   const base = all[key];
   if (!base) throw new NoBriefsError(`no service block briefs for ${nicheName} type ${key}`, { niche: nicheName, type: key });
@@ -55,4 +55,4 @@ function briefGaps(entry) {
   return gaps;
 }
 
-module.exports = { blocksFor, briefGaps, pickFaqSlots: C.pickFaqSlots, applySeasonal: C.applySeasonal, typeFor: C.typeFor, NoBriefsError };
+module.exports = { blocksFor, briefGaps, pickFaqSlots: C.pickFaqSlots, applySeasonal: C.applySeasonal, typeFor: C.typeFor, clientEmergency: C.clientEmergency, emergencyWhy: C.emergencyWhy, NoBriefsError };

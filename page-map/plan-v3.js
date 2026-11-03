@@ -70,10 +70,12 @@ function resolveLibrary(services, lib, cats) {
   const catByKey = new Map(cats.map(c => [c.key, c]));
   // The client's tab for a fold target: the same name, or the same hub (niche-library/<niche>-categories.csv)
   const tabFor = target => catByName.get(norm(target)) || cats.find(c => norm(L.hubOf(set, c.name)) === norm(L.hubOf(set, target))) || null;
-  const page = (target, s, how) => {
+  const page = (target, s, how, fl = null) => {
     const id = norm(target);
-    if (!pages.has(id)) pages.set(id, { id, name: target, kind: s.kind, home: null, parents: [], gbp_names: [], absorbs: [], decided: true, library: 'page', outcome: null, into: null, reason: null });
+    if (!pages.has(id)) pages.set(id, { id, name: target, kind: s.kind, home: null, parents: [], gbp_names: [], absorbs: [], decided: true, library: 'page', outcome: null, into: null, reason: null, emergency: false, prose_name: null, confirm_only: false });
     const p = pages.get(id);
+    // The library flags (3 Nov 2026) ride on the page: emergency briefs, the prose name, confirm only
+    if (fl) { if (fl.emergency) p.emergency = true; if (fl.prose_name && !p.prose_name) p.prose_name = fl.prose_name; if (fl.confirm_only) p.confirm_only = true; }
     for (const k of s.parents) if (!p.parents.includes(k)) p.parents.push(k);
     if (how === 'page') { p.gbp_names.push(s.name); if (!p.home) p.home = s.home || null; }
     else p.absorbs.push(s.name);
@@ -97,10 +99,20 @@ function resolveLibrary(services, lib, cats) {
     const matched = { file: m.file, own: m.own, how: m.how, score: m.score, gbp_name: e.gbp_name };
     const exactHow = m.how === 'name+category' || m.how === 'name';
     const via = m.own && exactHow ? '' : ` (${[exactHow ? '' : `${m.how} match of "${e.gbp_name}"`, m.own ? '' : `in ${m.file}`].filter(Boolean).join(' ')})`;
-    rec.library = { verdict: e.verdict, target: e.target, note: e.note, gbp_category: e.gbp_category, matched, candidates: matches.length };
+    const fl = L.targetFlags(m.lib, e.target);
+    rec.library = { verdict: e.verdict, target: e.target, note: e.note, gbp_category: e.gbp_category, matched, candidates: matches.length, flags: fl };
     if (foldLost) rec.library.fold_lost = { target: foldLost.entry.target, file: foldLost.file };
-    if (e.verdict === 'page') { rec.page_id = page(e.target, s, 'page').id; continue; }
-    if (e.verdict === 'alias') { rec.page_id = page(e.target, s, 'alias').id; continue; }
+    // Confirm only (Brandon, 3 Nov 2026): the page is built only when the client ticked or typed the
+    // page's own name: a page row whose GBP name is the target, matched exactly. A page row under
+    // another name ("Bee extermination" for Bee removal and relocation) counts as an alias, and an
+    // alias, a loose or a fuzzy match never builds it: the name is mentioned on its category page
+    if (fl.confirm_only && (e.verdict === 'page' || e.verdict === 'alias') && !(e.verdict === 'page' && norm(e.gbp_name) === norm(e.target) && exactHow)) {
+      rec.flag = 'confirm only';
+      rest.push({ ...s, gbp_names: [s.name], library: 'confirm_only', outcome: 'mentioned', confirm_only_target: e.target, reason: `library: "${e.target}" is confirm only, a page only when the client ticks or types "${e.target}" itself; "${s.name}" is mentioned on its category page instead${via}` });
+      continue;
+    }
+    if (e.verdict === 'page') { rec.page_id = page(e.target, s, 'page', fl).id; continue; }
+    if (e.verdict === 'alias') { rec.page_id = page(e.target, s, 'alias', fl).id; continue; }
     if (e.verdict === 'fold') {
       const c = tabFor(e.target);
       if (c) {

@@ -526,11 +526,13 @@ function validateCommon(record, V) {
     for (const m of t.matchAll(/\[([^\]]+)\]\(([^)]+)\)/g)) {
       const card = ((D.d9 && D.d9.main) || []).find(c => c.url && normUrl(c.url) === normUrl(m[2]));
       if (!card) continue;
-      const want = lc(card.name).split(/\s+/);
+      // A page with a prose name (the library's prose_name, 3 Nov 2026) is linked by that name
+      const sayName = lc(card.say || card.name);
+      const want = sayName.split(/\s+/);
       const have = lc(m[1]).split(/[^a-z0-9]+/);
       let i = 0;
       for (const w of have) if (i < want.length && w === want[i]) i++;
-      if (i < want.length) flag('FLAG', 'LINK-TEXT', `The link to ${card.url} reads "${m[1]}". Link text must contain "${lc(card.name)}" in order, e.g. "our [${lc(card.name)}](${card.url}) work".`);
+      if (i < want.length) flag('FLAG', 'LINK-TEXT', `The link to ${card.url} reads "${m[1]}". Link text must contain "${sayName}" in order, e.g. "our [${sayName}](${card.url}) work".`);
     }
     // CARD-COUNT: a card names 2 or 3 services, never a list
     if (f.ref.sub === 'card_text') {
