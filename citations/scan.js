@@ -39,17 +39,37 @@ const onDomain = (host, domain) => !!host && !!domain && (host === domain || hos
 const nameWords = name => str(name).toLowerCase().replace(/&/g, ' and ').split(/[^a-z0-9]+/).filter(w => w.length >= 4 && !['limited', 'services', 'company'].includes(w));
 const inSnippet = (i, nap) => { const phone = normPhone(nap.phone); const t = `${i.title || ''} ${i.description || ''}`; return namesMatch(i.title, nap.name) || namesMatch(i.description, nap.name) || t.toLowerCase().includes(str(nap.name).toLowerCase()) || (phone.length >= 10 && normPhone(t).includes(phone)); };
 
-// The searches a person would make for the business
+// The phone as people write it, for a quoted search: the digits, and the spaced form
+// (023 8044 5123 for a 02 number, 07580 412717 or 01962 123456 for the rest)
+function phoneForms(phone) {
+  const d = normPhone(phone);
+  if (d.length !== 11) return d.length >= 10 ? [d] : [];
+  const spaced = d.startsWith('02') ? `${d.slice(0, 3)} ${d.slice(3, 7)} ${d.slice(7)}` : `${d.slice(0, 5)} ${d.slice(5)}`;
+  return [spaced, d];
+}
+
+// The searches a person would make for the business: the name with the town, the name alone,
+// the phone in both forms (3 Nov, Brandon), and the name with the postcode when there is one
 function discoveryQueries(nap, town) {
   const name = str(nap.name);
   if (!name) return [];
   const qs = [`"${name}" ${str(town)}`.trim(), `"${name}"`];
+  for (const f of phoneForms(nap.phone)) qs.push(`"${f}"`);
+  const pc = nap.address ? postcodeOf(nap.address) : '';
+  if (pc) qs.push(`"${name}" ${pc.slice(0, -3)} ${pc.slice(-3)}`);
   return [...new Set(qs)];
 }
 
-// Is this result the business's listing on this directory? Social sites: the page itself, with a
-// word of the name in its address; a post, a reel or a stranger's company page is not a listing
+// A search result whose title carries no word of the name but whose snippet carries the phone: a list page
+// (a category, a town search, a "check a business" page) the business appears on, not its listing
+const listPageHit = (item, nap) => !!item && phoneIn(item, nap) && !nameWords(nap.name).some(w => str(item.title).toLowerCase().includes(w)) && !namesMatch(item.title, nap.name);
+const phoneIn = (item, nap) => { const p = normPhone(nap.phone); return p.length >= 10 && normPhone(`${item.title || ''} ${item.description || ''}`).includes(p); };
+
+// Is this result the business's listing on this directory? A result carrying the phone number is
+// one whatever the name says. Social sites: the page itself, with a word of the name in its address;
+// a post, a reel or a stranger's company page is not a listing
 function accept(item, nap, dir) {
+  if (phoneIn(item, nap) && !SOCIAL[dir.domain]) return true;
   if (!inSnippet(item, nap)) return false;
   const rule = SOCIAL[dir.domain];
   if (!rule) return true;
@@ -103,11 +123,12 @@ async function discover({ nap, town, directories, dfs, opts = {}, live = false, 
 }
 
 // The listing for one directory from what the scan knows: the saved URL, a backlink, the search hits
-function listingFor({ dir, row, backlinks, hits }) {
+function listingFor({ dir, row, backlinks, hits, nap }) {
   if (row.live_url) return { url: row.live_url, how: row.live_url_source === 'onboarding' ? 'the page link from onboarding' : 'the saved listing URL', item: null };
   const bl = (backlinks || []).find(b => onDomain(b.domain_from, dir.domain));
   if (bl) return { url: bl.url_from, how: 'a backlink to the client\'s site', item: null };
-  const hit = (hits.get(dir.domain) || [])[0];
+  const all = hits.get(dir.domain) || [];
+  const hit = (nap && all.find(h => !listPageHit(h, nap))) || all[0]; // a listing page before a list page that carries the phone
   if (hit) return { url: hit.goto ? '' : hit.url, how: `the name search (${hit.query})`, item: hit, goto: !!hit.goto };
   return null;
 }
@@ -116,6 +137,11 @@ function listingFor({ dir, row, backlinks, hits }) {
 async function checkListing({ dir, found, nap, towns, dfs, opts, spend }) {
   const base = { how: found.how, url: found.url || '', at: new Date().toISOString(), breadcrumb: found.item ? found.item.breadcrumb : '' };
   let ex = null, method = '', read = null;
+  // The phone on a list page: the business is on this directory, but this page is not its listing. Not read
+  // (the page would show the phone beside many names); the listing itself is found by hand
+  if (listPageHit(found.item, nap)) {
+    return { listed: 'yes', live_url: '', nap_status: 'needs_review', nap_diffs: [], scan: { ...base, method: 'search snippet', fetched: false, confidence: 'medium', found: { name: '', phones: [normPhone(nap.phone)], postcodes: [], address: '', locality: '', websites: [], source: 'snippet' }, verified: ['phone'], missing: ['name', 'address'], reason: `the phone number is on a list page on this directory (${str(found.item.title).slice(0, 80)}), not on a listing page: open the directory and search the name for the listing URL`, candidate: found.url || '' }, wrong_location: false };
+  }
   if (found.url) {
     try {
       read = await dfs.contentParsing(found.url, opts);
@@ -130,15 +156,26 @@ async function checkListing({ dir, found, nap, towns, dfs, opts, spend }) {
     return { listed: found.how.startsWith('the name search') ? 'unchecked' : 'yes', live_url: found.url || '', nap_status: 'needs_review', nap_diffs: [], scan: { ...base, method: 'none', fetched: false, http_status: read && read.status, confidence: 'low', reason: `the listing page could not be read through DataForSEO (${why})` }, wrong_location: false };
   }
   const cmp = compareNap({ name: nap.name, phone: nap.phone, address: nap.address || '', website: nap.website }, { name: ex.names, phones: ex.phones, address: ex.address, postcodes: ex.postcodes, websites: ex.websites });
-  const nameOk = cmp.verified.includes('name'), phoneOk = cmp.verified.includes('phone'), addrOk = cmp.verified.includes('address');
+  let nameOk = cmp.verified.includes('name');
+  const phoneOk = cmp.verified.includes('phone'), addrOk = cmp.verified.includes('address');
   const phoneOnPage = phoneOk || ex.phones.some(p => normPhone(p) === normPhone(nap.phone));
   const postcodeOnPage = addrOk || (nap.address && ex.postcodes.includes(postcodeOf(nap.address)));
-  let confidence = nameOk && (phoneOnPage || postcodeOnPage) ? 'high' : nameOk || phoneOnPage ? 'medium' : 'low';
-  if (snippet) confidence = 'low';
+  // The phone on the page is the business (3 Nov, Brandon): high confidence even when the name differs a
+  // little; a name that shares a word with the record's passes, one with nothing in common stays a mismatch
+  if (phoneOnPage && !nameOk) {
+    const words = nameWords(nap.name);
+    const shares = ex.names.some(n => { const w = nameWords(n); return words.some(x => w.includes(x)); });
+    if (shares) { nameOk = true; cmp.diffs = cmp.diffs.filter(d => d.field !== 'name'); cmp.verified.push('name (by phone)'); cmp.status = cmp.diffs.length ? 'mismatch' : 'match'; }
+  }
+  let confidence = phoneOnPage || (nameOk && postcodeOnPage) ? 'high' : nameOk ? 'medium' : 'low';
+  if (snippet && !phoneOnPage) confidence = 'low';
+  if (snippet && phoneOnPage) confidence = 'high';
   const locality = str(ex.locality);
   const wrong = !!locality && towns.size > 0 && !towns.has(normaliseName(locality)) && nameOk;
   const scan = { ...base, method, fetched: !!(read && read.ok), http_status: read && read.status, confidence, found: { name: ex.name || ex.names[0] || '', phones: ex.phones.slice(0, 5), postcodes: ex.postcodes.slice(0, 5), address: ex.address, locality, websites: ex.websites.slice(0, 5), source: ex.source }, verified: cmp.verified, missing: cmp.missing };
   if (snippet) {
+    // A snippet with the phone number is the business: listed, high confidence, the NAP from what the snippet shows
+    if (phoneOnPage) return { listed: 'yes', live_url: found.url || '', nap_status: cmp.diffs.length ? 'mismatch' : 'needs_review', nap_diffs: cmp.diffs, scan: { ...scan, reason: `NAP from snippet, the phone number is in it${found.goto ? ' (Google hid the link: open the directory and search the name)' : ''}`, candidate: found.url || '' }, wrong_location: false };
     return { listed: nameOk ? 'yes' : 'unchecked', live_url: nameOk ? (found.url || '') : '', nap_status: 'needs_review', nap_diffs: [], scan: { ...scan, reason: found.goto ? 'NAP from snippet, low confidence (Google hid the link: open the directory and search the name)' : 'NAP from snippet, low confidence', diffs_unconfirmed: cmp.diffs, candidate: found.url || '' }, wrong_location: false };
   }
   if (confidence === 'low') return { listed: 'unchecked', live_url: '', nap_status: 'needs_review', nap_diffs: [], scan: { ...scan, reason: 'neither the name nor the phone is on the page: check by hand', candidate: found.url }, wrong_location: false };
@@ -204,6 +241,7 @@ function createScanner({ pool, store, clientCitations, dfs = DFS, env = process.
       const directories = await store.list({ includeRetired: true });
       const disc = await discover({ nap, town: view.base_town, directories, dfs, opts, live: !!directoryId, depth, spend });
       summary.queries = disc.queries;
+      summary.results = Object.fromEntries([...disc.results].map(([q, r]) => [q, (r.items || []).length])); // results per search, for the report
       summary.search_errors = disc.errors;
       summary.also_listed = [...disc.others].map(([site, items]) => ({ site, url: items[0].goto ? '' : items[0].url, title: items[0].title, count: items.length }));
       if (disc.errors.length === disc.queries.length && disc.queries.length) throw new Error(`every name search failed: ${disc.errors.join('; ')}`);
@@ -214,7 +252,7 @@ function createScanner({ pool, store, clientCitations, dfs = DFS, env = process.
           const dir = r.directory, row = r.row, at = now();
           try {
             if (!dir.domain) { summary.skipped.push({ directory: dir.name, reason: 'no fixed domain: check by hand' }); await writeRow(clientId, dir.id, { listed: row.listed, live_url: '', nap_status: row.nap_status, nap_diffs: row.nap_diffs, scan: { how: 'skipped', reason: 'no fixed domain (a pattern or a site with no URL yet): check by hand', at: at.toISOString() } }, row.status, at); continue; }
-            const found = listingFor({ dir, row, backlinks, hits: disc.hits });
+            const found = listingFor({ dir, row, backlinks, hits: disc.hits, nap });
             if (!found) {
               summary.not_found.push(dir.name);
               const result = { listed: 'no', live_url: '', nap_status: 'unchecked', nap_diffs: [], scan: { how: 'not found', method: 'search', reason: `not in Google's top ${depth} for the name (${disc.queries.length} searches)`, at: at.toISOString() } };
@@ -260,4 +298,4 @@ function createScanner({ pool, store, clientCitations, dfs = DFS, env = process.
   return { run, start, status, latest, discover, listingFor, checkListing, nextStatus };
 }
 
-module.exports = { createScanner, discover, discoveryQueries, accept, listingFor, checkListing, nextStatus, onDomain, inSnippet, DEPTH, SOCIAL };
+module.exports = { createScanner, discover, discoveryQueries, phoneForms, accept, listPageHit, listingFor, checkListing, nextStatus, onDomain, inSnippet, DEPTH, SOCIAL };

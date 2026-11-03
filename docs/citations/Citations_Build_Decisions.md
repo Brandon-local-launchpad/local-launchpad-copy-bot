@@ -36,6 +36,13 @@
 - Copybot stores the login email and item name only, never passwords.
 - On exit: share or move the client's vault to them and remove LL access.
 
+## Scanner findings (3 Nov)
+- Google ignores the site: operator, so the scanner uses queued name searches (with and without town) at depth 100, matched to directory domains via breadcrumb, plus backlinks. Next: phone-number and name+postcode query variants (phone is unique, fixes same-name confusion).
+- Cost: about $0.05 per scan, about $0.25 per gap check (queued endpoint, $0.0006 per ten results).
+- "Not found" means not in Google's top 100 on the queries run; Google varies run to run. VA rule: before submitting to any directory, search that directory's own site for the business (30 seconds) to avoid creating a duplicate.
+- Gap check is on demand only.
+- Edens Edge phone corrected to 07580 412717 (GBP is right; Fillout/Client Values had 07850).
+
 ## UI target
 The WEBRIS Directory Listing Manager look (screenshots in docs/citations/ui-reference/): client header card with Scan directories button; stat tiles (core completion, overall completion, wrong location, NAP status, needs review, waiting on client); red NAP issues banner with plain-words mismatches; filters by tier, status and done_by; one table per tier with count badge, tags, Listed?, URL, NAP OK? with Verify, status pills, action dropdown, last scanned, Scan / Edit. Their lawyer "Stakeholder" columns are replaced by Done by and the 1Password item name. Data model allows multiple locations per client later.
 

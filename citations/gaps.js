@@ -29,7 +29,7 @@ const path = require('path');
 const DFS = require('./dataforseo');
 const { registrableDomain } = require('./seed');
 const { USD_TO_GBP, costPence } = require('../ui/model-log');
-const { discover } = require('./scan');
+const { discover, discoveryQueries } = require('./scan');
 const { normName } = require('./nap');
 
 const PROMPT_FILE = path.join(__dirname, '..', 'prompts', 'Citations_Domain_Classifier_CORE.md');
@@ -132,8 +132,9 @@ function createGaps({ pool, store, clientCitations, competitorsFor, dfs = DFS, c
     let searches = 0;
     try {
       for (const c of competitors) {
-        room(2 * SEARCH_USD);
-        const d = await discover({ nap: { name: c.name, phone: c.phone, website: c.website }, town: ctx.baseTown, directories, dfs, opts, depth: 100, spend: (cst, n) => { spend(cst, n); searches += n; } });
+        const cnap = { name: c.name, phone: c.phone, website: c.website };
+        room(discoveryQueries(cnap, ctx.baseTown).length * SEARCH_USD);
+        const d = await discover({ nap: cnap, town: ctx.baseTown, directories, dfs, opts, depth: 100, spend: (cst, n) => { spend(cst, n); searches += n; } });
         searchErrors.push(...d.errors.map(e => `${c.name}: ${e}`));
         for (const [domain, items] of d.hits) { if (!listedBy.has(domain)) listedBy.set(domain, []); listedBy.get(domain).push({ name: c.name, url: items[0].goto ? '' : items[0].url, how: `the name search (${items[0].query})` }); const dir = directories.find(x => x.domain === domain); if (dir) c.listed.push(dir.name); }
         for (const [site, items] of d.others) { const cur = fromSearches.get(site) || { competitors_with: 0, competitors: [], example: items[0].goto ? '' : items[0].url, title: items[0].title }; cur.competitors_with++; cur.competitors.push(c.name); fromSearches.set(site, cur); }

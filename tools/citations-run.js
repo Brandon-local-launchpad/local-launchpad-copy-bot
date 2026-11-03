@@ -93,7 +93,7 @@ const money = n => `$${Number(n || 0).toFixed(4)}`;
       const s = x.row.scan || {};
       say(`| ${x.directory.name} | ${t.label} | ${x.row.listed} | ${x.row.nap_status}${x.row.nap_diffs.length ? ` (${x.row.nap_diffs.map(d => `${d.field}: ${d.found} vs ${d.expected}`).join('; ')})` : ''} | ${x.row.status} | ${s.confidence || ''} | ${s.method || ''} | ${s.how || ''} | ${x.row.live_url || s.candidate || ''} | ${s.reason || ''} |`);
     }
-    say(`Searches: ${(r.summary.queries || []).map(q => `"${q}"`).join(', ')}${r.summary.search_errors.length ? ` · failed: ${r.summary.search_errors.join('; ')}` : ''}`);
+    say(`Searches: ${(r.summary.queries || []).map(q => `"${q}" (${(r.summary.results || {})[q] ?? '?'} results)`).join(', ')}${r.summary.search_errors.length ? ` · failed: ${r.summary.search_errors.join('; ')}` : ''}`);
     say(`Read by: ${JSON.stringify(r.summary ? r.summary.methods : {})}`);
     if (r.summary.also_listed.length) say(`Also listed on sites not in the database (${r.summary.also_listed.length}): ${r.summary.also_listed.map(x => `${x.site}${x.url ? ` <${x.url}>` : ' (link hidden by Google)'}`).join('; ')}`);
     const S = after.stats;

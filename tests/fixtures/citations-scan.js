@@ -2,7 +2,7 @@
 // Fixture: the NAP comparison (citations/nap.js), the listing readers (citations/listing.js)
 // and the scan (citations/scan.js) on pg-mem with a fake DataForSEO. The comparison cases
 // (+44 against 0, Ltd, St against Street, the postcode with and without its space, www), the
-// readers (HTML, text, snippet), the discovery (two queued name searches at depth 100 matched
+// readers (HTML, text, snippet), the discovery (the queued searches at depth 100: the name, the phone, the postcode matched
 // to the directory database by the result's site, a Google goto link read from its breadcrumb,
 // social results accepted only for the business's own page, sites not in the database kept
 // as "also listed on"), and one Edens Edge scan: a listing found through a backlink and read
@@ -64,7 +64,9 @@ const quiet = { log() {}, info() {}, warn() {}, error() {} };
   const nap = { name: 'Edens Edge Landscaping', phone: '07850 412717' };
   chk('accept: a directory result with the name in the title; not one without it', S.accept({ url: 'https://www.yell.com/biz/x/', title: 'Edens Edge Landscaping, Southampton | Yell', description: '' }, nap, { domain: 'yell.com' }) && !S.accept({ url: 'https://www.yell.com/biz/y/', title: 'Krimpterm Ltd, Leeds', description: 'Car parts' }, nap, { domain: 'yell.com' }), '', '');
   chk('accept on a social site: the business\'s own page, not a post, a reel or another company', S.accept({ url: 'https://www.instagram.com/edensedge/', title: 'Edens Edge Landscaping (@edensedge)', description: '' }, nap, { domain: 'instagram.com' }) && !S.accept({ url: 'https://www.instagram.com/p/DWPBJMVjXKJ/', title: 'Edens Edge Landscaping on Instagram', description: '' }, nap, { domain: 'instagram.com' }) && !S.accept({ url: 'https://uk.linkedin.com/company/eglo-uk', title: 'Edens Edge Landscaping | LinkedIn', description: '' }, nap, { domain: 'linkedin.com' }) && S.accept({ url: 'https://google.com/goto?url=x', goto: true, breadcrumb: 'https://www.facebook.com › edensedgelandscaping', title: 'Edens Edge Landscaping | Facebook', description: '' }, nap, { domain: 'facebook.com' }), '', '');
-  chk('the two discovery queries: the name with the town, then alone', S.discoveryQueries(nap, 'Southampton').join(' | ') === '"Edens Edge Landscaping" Southampton | "Edens Edge Landscaping"', S.discoveryQueries(nap, 'Southampton').join(' | '), '');
+  chk('the discovery queries: the name with the town, the name alone, the phone spaced and as digits, the name with the postcode when there is an address', S.discoveryQueries(nap, 'Southampton').join(' | ') === '"Edens Edge Landscaping" Southampton | "Edens Edge Landscaping" | "07850 412717" | "07850412717"' && S.discoveryQueries({ ...nap, address: '12 High St, Southampton SO14 1AA' }, 'Southampton').slice(-1)[0] === '"Edens Edge Landscaping" SO14 1AA', S.discoveryQueries(nap, 'Southampton').join(' | '), '');
+  chk('phone forms: a 02 landline as 3 4 4, a mobile or 01 number as 5 6, both with the digits; a short or empty number gives none', S.phoneForms('02380445123').join('|') === '023 8044 5123|02380445123' && S.phoneForms('+44 7580 412717').join('|') === '07580 412717|07580412717' && S.phoneForms('01962 123456')[0] === '01962 123456' && S.phoneForms('').length === 0, JSON.stringify([S.phoneForms('02380445123'), S.phoneForms('+44 7580 412717')]), '');
+  chk('accept: a result with the phone number is the business even when the name differs', S.accept({ url: 'https://www.bizify.co.uk/x', title: 'Edens Edge Garden Services, Southampton', description: 'Tel: 07850 412717' }, nap, { domain: 'bizify.co.uk' }) && !S.accept({ url: 'https://www.bizify.co.uk/y', title: 'Edens Edge Garden Services, Southampton', description: 'Tel: 07850 999999' }, nap, { domain: 'bizify.co.uk' }), '', '');
 
   // ── The scan on pg-mem ──
   const mem = newDb();
@@ -102,6 +104,13 @@ const quiet = { log() {}, info() {}, warn() {}, error() {} };
       item('google.com', 'https://google.com/maps/x', 'Edens Edge Landscaping', ''),
     ],
     '"Edens Edge Landscaping"': [item('www.freeindex.co.uk', 'https://www.freeindex.co.uk/profile(edens-edge-landscaping)_123.htm', 'Edens Edge Landscaping - FreeIndex', '')],
+    // The phone searches: Bizify lists the business under a slightly different name, found by the phone alone; Brownbook shows a snippet with the phone and no link
+    '"07850 412717"': [item('www.bizify.co.uk', 'https://www.bizify.co.uk/edens-edge-garden-services', 'Edens Edge Garden Services - Southampton', 'Tel: 07850 412717. Landscaping.')],
+    '"07850412717"': [
+      item('www.brownbook.net', '', 'Edens Edge Gardens, Southampton', 'Phone 07850412717, SO14 1AA', true),
+      item('www.bark.com', 'https://www.bark.com/en/gb/landscapers/hampshire/southampton/', 'Find a Landscaper in Southampton', 'Edens Edge Landscaping ... 07850412717 ... 20 more'),
+      item('www.yell.com', 'https://www.yell.com/s/landscapers-southampton.html', 'Landscapers Near Me in Southampton', 'Edens Edge Landscaping, Call 07850412717'),
+    ],
   };
   const pageText = ({ name = 'Edens Edge Landscaping', phone = '07850 412717', locality = 'Southampton', postcode = 'SO14 1AA', site = 'https://edensedge.co.uk' } = {}) => ({ ok: true, status: 200, titles: [`${name} | Listing`], text: `${name}\nLandscaping and garden design\nCall ${phone}. 12 High St, ${locality}, ${postcode}.\nWebsite ${site}/`, cost: 0.0015 });
   const pages = {
@@ -112,6 +121,7 @@ const quiet = { log() {}, info() {}, warn() {}, error() {} };
     'https://www.yelp.co.uk/biz/edens-edge-southampton': { ok: true, status: 200, titles: ['Edens Edge Landscaping - Southampton - Yelp'], text: 'Edens Edge Landscaping\nGarden design. Southampton.', cost: 0.0015 },
     'https://uk.trustpilot.com/review/edensedge.co.uk': { ok: true, status: 200, titles: ['Edens Edge Landscaping Reviews | Trustpilot'], text: 'Reviews of Edens Edge Landscaping, edensedge.co.uk. Phone 07850 412717.', cost: 0.0015 },
     'https://www.facebook.com/edensedgelandscaping': { ok: false, status: 403, titles: [], text: '', cost: 0.0015 },
+    'https://www.bizify.co.uk/edens-edge-garden-services': pageText({ name: 'Edens Edge Garden Services' }),
   };
   const dfs = {
     configured: () => true,
@@ -125,13 +135,20 @@ const quiet = { log() {}, info() {}, warn() {}, error() {} };
   const result = await scanner.run(edens);
   const view = await C.view(edens);
   const rowOf = name => view.tiers.flatMap(t => t.rows).find(r => r.directory.name === name).row;
-  chk('discovery: one queued batch of the two name searches at depth 100, no live search; one search failed and the scan went on with the other', batches.length === 1 && batches[0].queries.length === 2 && batches[0].depth === 100 && live.length === 0 && result.summary.search_errors.length === 1 && /Internal SE/.test(result.summary.search_errors[0]) && result.status === 'done', JSON.stringify({ batches, live, errors: result.summary.search_errors }), '');
+  chk('discovery: one queued batch of the four searches (two name, two phone; no address so no postcode search) at depth 100, no live search; one search failed and the scan went on with the others', batches.length === 1 && batches[0].queries.length === 4 && batches[0].queries[2] === '"07850 412717"' && batches[0].depth === 100 && live.length === 0 && result.summary.search_errors.length === 1 && /Internal SE/.test(result.summary.search_errors[0]) && result.status === 'done', JSON.stringify({ batches, live, errors: result.summary.search_errors }), '');
   const yell = rowOf('Yell');
   chk('Yell found through the backlink and read through DataForSEO: listed, the URL, NAP match, live, high confidence, the method on the row', yell.listed === 'yes' && yell.live_url === 'https://www.yell.com/biz/edens-edge-landscaping-southampton-1/' && yell.nap_status === 'match' && yell.status === 'live' && yell.scan.confidence === 'high' && yell.scan.method === 'DataForSEO content parsing' && /backlink/.test(yell.scan.how), JSON.stringify(yell), '');
   const fi = rowOf('FreeIndex');
   chk('FreeIndex found by the name search and read: listed, a phone mismatch with the fields, needs fixing', fi.listed === 'yes' && fi.nap_status === 'mismatch' && fi.nap_diffs[0].field === 'phone' && fi.nap_diffs[0].found === '023 8000 0000' && fi.status === 'needs_fixing' && /name search/.test(fi.scan.how), JSON.stringify(fi), '');
   const cy = rowOf('Cylex UK');
   chk('Cylex: Google hid the link, so the site comes from the breadcrumb and the NAP from the snippet: listed, needs review, no URL, the reason says to open the directory', cy.listed === 'yes' && cy.live_url === '' && cy.nap_status === 'needs_review' && cy.scan.method === 'search snippet' && /Google hid the link/.test(cy.scan.reason) && cy.scan.found.phones.join() === '07850 412717' && /cylex-uk\.co\.uk/.test(cy.scan.breadcrumb), JSON.stringify(cy), '');
+  const bz = rowOf('Bizify');
+  chk('Bizify, found by the phone search under a slightly different name, read: listed, high confidence by the phone, the name passed by phone, NAP match', bz.listed === 'yes' && bz.scan.confidence === 'high' && bz.nap_status === 'match' && bz.scan.verified.includes('name (by phone)') && /name search/.test(bz.scan.how), JSON.stringify(bz), '');
+  const bb = rowOf('Brownbook');
+  chk('Brownbook: a snippet with the phone number and the link hidden: listed, high confidence, no URL, the reason says the phone is in it', bb.listed === 'yes' && bb.live_url === '' && bb.scan.confidence === 'high' && bb.scan.method === 'search snippet' && /phone number is in it/.test(bb.scan.reason), JSON.stringify(bb), '');
+  const bk = rowOf('Bark');
+  chk('Bark: the phone on a category page (no name word in its title): listed, no URL, medium, not read, the reason says to find the listing by hand', bk.listed === 'yes' && bk.live_url === '' && bk.scan.confidence === 'medium' && bk.scan.fetched === false && /list page/.test(bk.scan.reason) && bk.scan.candidate === 'https://www.bark.com/en/gb/landscapers/hampshire/southampton/' && !reads.includes('https://www.bark.com/en/gb/landscapers/hampshire/southampton/'), JSON.stringify(bk.scan), '');
+  chk('listPageHit: a title without a name word and the phone in the snippet; not a listing title, not a snippet without the phone', S.listPageHit({ title: 'Landscapers Near Me in Southampton', description: 'Call 07850 412717' }, nap) && !S.listPageHit({ title: 'Edens Edge Landscaping, Southampton', description: 'Call 07850 412717' }, nap) && !S.listPageHit({ title: 'Landscapers Near Me', description: 'none' }, nap), '', '');
   const sc = rowOf('Scoot');
   chk('Scoot: the page has neither the name nor the phone: low confidence, not listed, the candidate kept under needs review', sc.listed === 'unchecked' && sc.live_url === '' && sc.nap_status === 'needs_review' && sc.scan.confidence === 'low' && sc.scan.candidate === 'https://www.scoot.co.uk/southampton/edens-edge-landscaping-555', JSON.stringify(sc), '');
   const tl = rowOf('Thomson Local');
@@ -145,7 +162,7 @@ const quiet = { log() {}, info() {}, warn() {}, error() {} };
   chk('a pattern row with no domain is skipped with a note', rowOf('Reach plc newspaper directories').scan.how === 'skipped', '', '');
   chk('also listed on: a site not in the database with the name in its title (ukbusinesslist), not Google itself', result.summary.also_listed.length === 1 && result.summary.also_listed[0].site === 'ukbusinesslist.co.uk' && result.summary.also_listed[0].url === 'https://ukbusinesslist.co.uk/edens-edge', JSON.stringify(result.summary.also_listed), '');
   const total = view.tiers.flatMap(t => t.rows).length;
-  chk('the scan row: done, every row counted, the found count, the cost summed (the backlinks call, two searches, the page reads), the methods counted', result.status === 'done' && result.rows_done === total && result.found === view.tiers.flatMap(t => t.rows).filter(r => r.row.listed === 'yes').length && Math.abs(result.cost_usd - (0.02 + 0.006 + 0.003 + reads.length * 0.0015)) < 1e-6 && result.calls === 1 + 2 + reads.length && result.summary.methods['DataForSEO content parsing'] >= 4 && result.summary.methods['search snippet'] === 1, JSON.stringify({ status: result.status, rows_done: result.rows_done, total, found: result.found, cost: result.cost_usd, calls: result.calls, reads: reads.length, methods: result.summary.methods }), '');
+  chk('the scan row: done, every row counted, the found count, the cost summed (the backlinks call, four searches, the page reads), the methods counted', result.status === 'done' && result.rows_done === total && result.found === view.tiers.flatMap(t => t.rows).filter(r => r.row.listed === 'yes').length && Math.abs(result.cost_usd - (0.02 + 3 * 0.006 + 0.003 + reads.length * 0.0015)) < 1e-6 && result.calls === 1 + 4 + reads.length && result.summary.methods['DataForSEO content parsing'] >= 4 && result.summary.methods['search snippet'] === 3, JSON.stringify({ status: result.status, rows_done: result.rows_done, total, found: result.found, cost: result.cost_usd, calls: result.calls, reads: reads.length, methods: result.summary.methods }), '');
   const costs = await store.costs({ clientId: edens });
   chk('the spend is logged under scan for the client', costs.length === 1 && costs[0].kind === 'scan' && costs[0].cost_usd === result.cost_usd, JSON.stringify(costs), '');
   chk('the tiles after the scan: mismatch 1, wrong location 1, waiting on client 1, needs review counts the snippet, low and medium rows', view.stats.nap.mismatch === 1 && view.stats.wrong_location === 1 && view.stats.waiting_on_client === 1 && view.stats.needs_review >= 4 && view.stats.banner[0].text === 'FreeIndex: phone mismatch: listing shows 023 8000 0000, expected 07850 412717', JSON.stringify(view.stats), '');
@@ -153,7 +170,9 @@ const quiet = { log() {}, info() {}, warn() {}, error() {} };
   // One row again: the live search, no backlinks call, the saved URL read
   const readsBefore = reads.length;
   const one = await scanner.run(edens, { directoryId: await dirId('yell') });
-  chk('a one row scan: scope one, the two searches live (no queue), no backlinks call, the saved URL read once', one.scope === 'one' && one.rows_total === 1 && live.length === 2 && batches.length === 1 && reads.length === readsBefore + 1 && one.calls === 3, JSON.stringify({ scope: one.scope, calls: one.calls, live }), '');
+  chk('a one row scan: scope one, the four searches live (no queue), no backlinks call, the saved URL read once', one.scope === 'one' && one.rows_total === 1 && live.length === 4 && batches.length === 1 && reads.length === readsBefore + 1 && one.calls === 5, JSON.stringify({ scope: one.scope, calls: one.calls, live }), '');
+  const hitsMap = new Map([['yell.com', [{ url: 'https://www.yell.com/s/landscapers-southampton.html', title: 'Landscapers Near Me in Southampton', description: 'Edens Edge Landscaping, Call 07850412717', query: 'q' }, { url: 'https://www.yell.com/biz/edens-edge-1/', title: 'Edens Edge Landscaping, Southampton | Yell', description: '', query: 'q' }]]]);
+  chk('listingFor prefers a listing page hit over a list page that carries the phone', S.listingFor({ dir: { domain: 'yell.com' }, row: {}, backlinks: [], hits: hitsMap, nap }).url === 'https://www.yell.com/biz/edens-edge-1/', '', '');
   chk('nextStatus on its own', S.nextStatus('not_started', { listed: 'yes', nap_status: 'match' }) === 'live' && S.nextStatus('live', { listed: 'no' }) === 'not_started' && S.nextStatus('client_declined', { listed: 'yes', nap_status: 'match' }) === 'client_declined' && S.nextStatus('live', { listed: 'yes', nap_status: 'mismatch' }) === 'needs_fixing' && S.nextStatus('awaiting_email', { listed: 'yes', nap_status: 'needs_review' }) === 'awaiting_email', '', '');
   const off = S.createScanner({ pool, store, clientCitations: C, dfs: { configured: () => false }, env: {}, log: quiet });
   const refused = await off.run(edens).catch(e => e);
