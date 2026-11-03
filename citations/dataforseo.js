@@ -83,8 +83,77 @@ async function serp(keyword, { depth = 10, ...opts } = {}) {
     if (/no search results/i.test(e.message)) return { items: [], cost: 0, check_url: '', total: 0, attempts: e.attempts || 1, empty: true };
     throw e;
   }
-  const items = r.items.filter(i => i && i.type === 'organic').map(i => ({ rank: i.rank_absolute, url: i.url, domain: i.domain, title: i.title || '', description: i.description || '' }));
-  return { items, cost: r.cost, check_url: r.result.check_url || '', total: r.result.se_results_count == null ? null : Number(r.result.se_results_count), attempts: r.attempts };
+  return { items: organic(r.items), cost: r.cost, check_url: r.result.check_url || '', total: r.result.se_results_count == null ? null : Number(r.result.se_results_count), attempts: r.attempts };
+}
+
+// Many searches through the queued (standard) endpoint: task_post in batches of 100, tasks_ready
+// polled, task_get for each finished task. $0.003 a search against $0.0101 live (measured 3 Nov),
+// ready in about half a minute. A task that fails is posted once more; "No Search Results" is an
+// empty result. Returns Map keyword → { items, cost, error }; the live endpoint (dfs.serp) stays
+// for a single look-up where a person is waiting.
+const SERP_TASK = { ...UK, depth: 10, device: 'desktop', os: 'windows' };
+// Google often wraps a result in a google.com/goto link that cannot be followed (3 Nov); the real
+// host is the breadcrumb's first part, so every result carries `site`: the host as a person reads it
+const isGoto = url => /^https?:\/\/(www\.)?google\.[a-z.]+\/goto\?/i.test(String(url || ''));
+const resultSite = i => { const b = String(i.breadcrumb || ''); const m = b.match(/^https?:\/\/([^\s›/]+)/); const host = m ? m[1] : (isGoto(i.url) ? '' : String(i.domain || '')); return host.toLowerCase().replace(/^www\./, ''); };
+const organic = items => (items || []).filter(i => i && i.type === 'organic').map(i => ({ rank: i.rank_absolute, url: i.url, domain: i.domain, site: resultSite(i), goto: isGoto(i.url), breadcrumb: i.breadcrumb || '', title: i.title || '', description: i.description || '' }));
+async function serpMany(keywords, { env = process.env, fetchImpl = fetch, pollMs = 8000, timeoutMs = 900000, depth = 10, onProgress = null, sleep = ms => new Promise(r => setTimeout(r, ms)), retryDelays = RETRY_DELAYS } = {}) {
+  const list = [...new Set((keywords || []).map(k => String(k || '').trim()).filter(Boolean))];
+  const out = new Map();
+  if (!list.length) return out;
+  const creds = D.credentials(env);
+  const auth = 'Basic ' + Buffer.from(`${creds.login}:${creds.password}`).toString('base64');
+  const apiJson = async (method, endpoint, payload) => {
+    for (let attempt = 0; ; attempt++) {
+      let body = null, res = null, fail = null;
+      try {
+        res = await fetchImpl(BASE + endpoint, { method, headers: { Authorization: auth, 'Content-Type': 'application/json' }, body: payload ? JSON.stringify(payload) : undefined });
+        try { body = await res.json(); } catch (_) {}
+      } catch (e) { fail = { status: 'network', message: e.message }; }
+      if (!fail && (!res.ok || !body || body.status_code !== 20000)) fail = { status: res ? res.status : 'network', message: (body && body.status_message) || (res && res.statusText) || 'no reply' };
+      if (!fail) return body;
+      const message = D.safeMessage(fail.message, creds);
+      if (!D.isBusy(fail.status) || attempt >= retryDelays.length) throw Object.assign(new Error(`DataForSEO ${endpoint}: ${message}`), { status: fail.status });
+      await sleep(retryDelays[attempt]);
+    }
+  };
+  // Post: id → keyword
+  const pending = new Map();
+  const post = async kws => {
+    for (let i = 0; i < kws.length; i += 100) {
+      const chunk = kws.slice(i, i + 100);
+      const body = await apiJson('POST', 'serp/google/organic/task_post', chunk.map(keyword => ({ keyword, ...SERP_TASK, depth })));
+      (body.tasks || []).forEach((t, k) => {
+        const keyword = (t.data && t.data.keyword) || chunk[k];
+        if (t.status_code === 20100 && t.id) pending.set(t.id, { keyword, cost: round4(t.cost), posted: 1 });
+        else out.set(keyword, { items: [], cost: round4(t.cost), error: D.safeMessage(t.status_message || `status ${t.status_code}`, creds) });
+      });
+    }
+  };
+  await post(list);
+  const started = Date.now();
+  const retryOnce = [];
+  while (pending.size && Date.now() - started < timeoutMs) {
+    await sleep(pollMs);
+    const ready = await apiJson('GET', 'serp/google/organic/tasks_ready');
+    const ids = ((ready.tasks && ready.tasks[0] && ready.tasks[0].result) || []).map(r => r.id).filter(id => pending.has(id));
+    for (const id of ids) {
+      const p = pending.get(id);
+      let got;
+      try { got = await apiJson('GET', `serp/google/organic/task_get/advanced/${id}`); } catch (e) { continue; } // not ready after all: next poll
+      const t = (got.tasks || [])[0] || {};
+      pending.delete(id);
+      const cost = round4(t.cost != null ? t.cost : p.cost);
+      if (t.status_code === 20000) { const r = (t.result || [])[0] || {}; out.set(p.keyword, { items: organic(r.items), cost, check_url: r.check_url || '', total: r.se_results_count == null ? null : Number(r.se_results_count) }); }
+      else if (/no search results/i.test(t.status_message || '')) out.set(p.keyword, { items: [], cost, empty: true });
+      else if (p.posted < 2) retryOnce.push(p.keyword);
+      else out.set(p.keyword, { items: [], cost, error: D.safeMessage(t.status_message || `status ${t.status_code}`, creds) });
+    }
+    if (retryOnce.length) { const again = retryOnce.splice(0); await post(again); for (const [, p] of pending) if (again.includes(p.keyword)) p.posted = 2; }
+    if (onProgress) await onProgress({ done: out.size, of: list.length, pending: pending.size });
+  }
+  for (const [, p] of pending) out.set(p.keyword, { items: [], cost: p.cost, error: `not ready within ${Math.round(timeoutMs / 60000)} minutes` });
+  return out;
 }
 
 // The pages linking to `target` (a domain), one per referring domain, live index
@@ -134,4 +203,4 @@ async function businessInfo(keyword, opts = {}) {
 
 const configured = (env = process.env) => !!(env.DATAFORSEO_LOGIN && env.DATAFORSEO_PASSWORD);
 
-module.exports = { call, bulkRanks, serp, backlinks, referringDomains, contentParsing, businessInfo, configured, BASE, UK, RETRY_DELAYS };
+module.exports = { call, bulkRanks, serp, serpMany, backlinks, referringDomains, contentParsing, businessInfo, configured, resultSite, isGoto, organic, BASE, UK, RETRY_DELAYS, SERP_TASK };

@@ -72,9 +72,9 @@ const money = n => `$${Number(n || 0).toFixed(4)}`;
   for (const t of view.tiers) say(`  ${t.label}: ${t.count} rows${t.waiting ? ` (${t.waiting})` : ''}: ${t.rows.map(r => r.directory.name).join(', ')}`);
   const rows = view.tiers.flatMap(t => t.rows);
   const withDomain = rows.filter(r => r.directory.domain);
-  // The first live run (3 Nov): 56 searches came to $0.56, so a search is about $0.01, not $0.002
-  const est = withDomain.length * 2 * 0.01 + 0.02;
-  say(`Scan estimate: up to ${withDomain.length} directories × 2 searches × $0.01 + one backlinks call ≈ ${money(est)} (plus one page fetch each, free). Gap estimate: 4 referring domain calls ≈ $0.15 plus a cheap model call (about a cent).`);
+  // Two queued name searches at depth 100 (about $0.006 each), one backlinks call, a page read per listing found
+  const est = 2 * 0.006 + 0.02 + withDomain.length * 0.0015;
+  say(`Scan estimate: two queued name searches + one backlinks call + a page read for each of up to ${withDomain.length} listings ≈ ${money(est)}. Gap estimate: three profiles, six name searches, four referring domain calls, one classifier call ≈ $0.25.`);
 
   let before = null;
   try { before = await D.balance(); say(`DataForSEO balance before: ${money(before)}`); } catch (e) { say(`DataForSEO balance: ${e.message}`); }
@@ -93,8 +93,9 @@ const money = n => `$${Number(n || 0).toFixed(4)}`;
       const s = x.row.scan || {};
       say(`| ${x.directory.name} | ${t.label} | ${x.row.listed} | ${x.row.nap_status}${x.row.nap_diffs.length ? ` (${x.row.nap_diffs.map(d => `${d.field}: ${d.found} vs ${d.expected}`).join('; ')})` : ''} | ${x.row.status} | ${s.confidence || ''} | ${s.method || ''} | ${s.how || ''} | ${x.row.live_url || s.candidate || ''} | ${s.reason || ''} |`);
     }
+    say(`Searches: ${(r.summary.queries || []).map(q => `"${q}"`).join(', ')}${r.summary.search_errors.length ? ` · failed: ${r.summary.search_errors.join('; ')}` : ''}`);
     say(`Read by: ${JSON.stringify(r.summary ? r.summary.methods : {})}`);
-    if (r.summary && r.summary.retried.length) say(`Retried: ${r.summary.retried.map(x => `pass ${x.pass}: ${x.rows.join(', ')}`).join(' | ')}`);
+    if (r.summary.also_listed.length) say(`Also listed on sites not in the database (${r.summary.also_listed.length}): ${r.summary.also_listed.map(x => `${x.site}${x.url ? ` <${x.url}>` : ' (link hidden by Google)'}`).join('; ')}`);
     const S = after.stats;
     say(`\nTiles: core ${S.core.done} of ${S.core.of} (${S.core.pct}%), overall ${S.overall.done} of ${S.overall.of} (${S.overall.pct}%), wrong location ${S.wrong_location}, NAP ${S.nap.mismatch} mismatch / ${S.nap.unchecked} unchecked / ${S.nap.match} match, needs review ${S.needs_review}, waiting on client ${S.waiting_on_client}`);
     for (const b of S.banner) say(`  NAP issue: ${b.text}`);
@@ -114,7 +115,7 @@ const money = n => `$${Number(n || 0).toFixed(4)}`;
     const gaps = GP.createGaps({ pool, store, clientCitations: C, competitorsFor, dfs: DFS, callModel, log: console });
     const t0 = Date.now();
     const g = await gaps.run(client.id);
-    say(`\nGAPS in ${Math.round((Date.now() - t0) / 1000)}s for "${g.keyword}" (primary category "${g.primary}"): ${g.competitors.length} competitors kept of ${g.checked.length} checked; ${g.directories_scanned} directories searched per competitor (${g.searches} searches); ${g.gaps.length} gaps; ${g.new_domains.length} new domains from backlinks; DataForSEO ${money(g.cost_usd)}, model ${money(g.model_cost_usd)}, ${g.calls} calls${g.cap_hit ? '; THE SPEND CAP WAS HIT' : ''}`);
+    say(`\nGAPS in ${Math.round((Date.now() - t0) / 1000)}s for "${g.keyword}" (primary category "${g.primary}"): ${g.competitors.length} competitors kept of ${g.checked.length} checked; ${g.searches} name searches, matched against ${g.directories_scanned} directories on the client's list; ${g.gaps.length} gaps; ${g.new_domains.length} new domains (searches and backlinks); DataForSEO ${money(g.cost_usd)}, model ${money(g.model_cost_usd)}, ${g.calls} calls${g.cap_hit ? '; THE SPEND CAP WAS HIT' : ''}`);
     for (const n of g.notes) say(`  note: ${n}`);
     say('\n| Competitor checked | Google category | Additional | Phone | Website | Kept |');
     say('|---|---|---|---|---|---|');
@@ -122,7 +123,7 @@ const money = n => `$${Number(n || 0).toFixed(4)}`;
     for (const c of g.competitors) say(`  ${c.name}: listed on ${c.listed.length} of the client's directories${c.listed.length ? ': ' + c.listed.join(', ') : ''}`);
     say('\n| Gap (directory in the database) | Domain | Have it | Who | DA | Cost | Priority | Tier | Found by |');
     say('|---|---|---|---|---|---|---|---|---|');
-    for (const x of g.gaps) say(`| ${x.name} | ${x.domain} | ${x.competitors_with} of ${g.competitors.length} | ${x.competitors.join(', ')} | ${x.da == null ? 'unknown' : x.da} | ${x.cost || 'unknown'} | ${x.priority || ''} | ${x.tier || ''} | ${x.source} |`);
+    for (const x of g.gaps) say(`| ${x.name}${x.on_list === false ? ' (not on the client\'s list)' : ''}${x.retired ? ' (retired)' : ''} | ${x.domain} | ${x.competitors_with} of ${g.competitors.length} | ${x.competitors.join(', ')} | ${x.da == null ? 'unknown' : x.da} | ${x.cost || 'unknown'} | ${x.priority || ''} | ${x.tier || ''} | ${x.source} |`);
     if (g.also_has.length) say(`Both the client and a competitor: ${g.also_has.join(', ')}`);
     say('\n| New domain (backlinks, not in the database) | Have it | DA | Kind |');
     say('|---|---|---|---|');

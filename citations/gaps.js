@@ -29,7 +29,7 @@ const path = require('path');
 const DFS = require('./dataforseo');
 const { registrableDomain } = require('./seed');
 const { USD_TO_GBP, costPence } = require('../ui/model-log');
-const { findListing } = require('./scan');
+const { discover } = require('./scan');
 const { normName } = require('./nap');
 
 const PROMPT_FILE = path.join(__dirname, '..', 'prompts', 'Citations_Domain_Classifier_CORE.md');
@@ -37,7 +37,7 @@ const CLASSIFIER_MODEL = 'claude-haiku-5-5';
 const BATCH = 60;
 const SPAM_SCORE = 50;
 const MAX_USD = 3;
-const SEARCH_USD = 0.0101; // one live SERP, from the first run (56 searches, $0.566)
+const SEARCH_USD = 0.006; // one queued search at depth 100 (3 Nov: $0.0006 per ten results)
 const PLATFORM_RE = /(^|\.)(google|googleapis|gstatic|youtube|facebook|instagram|twitter|x|linkedin|pinterest|tiktok|wordpress|wp|blogspot|wixsite|squarespace|godaddy|webflow|weebly|shopify|amazon|amazonaws|cloudfront|cloudflare|akamaihd|github|gitlab|microsoft|apple|adobe|canva|mailchimp|hubspot|bit|t|goo|reddit|quora|medium|tumblr|vimeo|flickr|dropbox|zoom|semrush|ahrefs|moz|similarweb|archive|wikipedia|wikimedia)\.(com|co\.uk|org|net|io|ly|gl|me)$/i;
 const str = v => (v == null ? '' : String(v)).trim();
 const json = v => (v == null ? null : JSON.stringify(v));
@@ -120,36 +120,36 @@ function createGaps({ pool, store, clientCitations, competitorsFor, dfs = DFS, c
     if (!competitors.length) throw Object.assign(new Error(`None of the ${candidates.length} saved competitors has the Google category "${primary}": run the competitor check on the GBP tab again.`), { status: 400 });
     if (competitors.length < 3) notes.push(`Only ${competitors.length} of the ${candidates.length} saved competitors has the category "${primary}"; run the competitor check again for more.`);
 
-    // 2. The directory scan per competitor, on the client's list
+    // 2. The name searches per competitor (citations/scan.js discover: the same two queued searches as
+    //    the client's scan), matched to the directory database. A directory on the client's list where a
+    //    competitor is listed and the client is not is a gap; one in the database but not on the client's
+    //    list is reported too (on_list false). Sites not in the database go to the classifier below.
     const rows = view.tiers.flatMap(t => t.rows).filter(r => r.directory.domain);
-    const listedBy = new Map(); // directory id → [{ name, url }]
-    const failedSearches = [];
+    const directories = await store.list({ includeRetired: true });
+    const listedBy = new Map();      // directory domain → [{ name, url }]
+    const fromSearches = new Map();  // site not in the database → { competitors_with, competitors, example }
+    const searchErrors = [];
     let searches = 0;
     try {
       for (const c of competitors) {
-        const cnap = { name: c.name, phone: c.phone, website: c.website };
-        for (const r of rows) {
-          room(SEARCH_USD);
-          // The cap is checked before every search, the phone search inside findListing included. A search
-          // that fails at DataForSEO (a transient "Internal SE Server Error") is tried once more after a
-          // pause, then noted and skipped: one bad search never ends the run
-          let found = null;
-          for (let attempt = 1; ; attempt++) {
-            try { found = await findListing({ dir: r.directory, row: { live_url: '' }, nap: cnap, backlinks: [], dfs, opts, spend: (cst, n) => { spend(cst, n); searches += n; room(SEARCH_USD); } }); break; }
-            catch (e) {
-              if (e instanceof CapHit) throw e;
-              if (attempt < 2) { await new Promise(res => setTimeout(res, 5000)); continue; }
-              failedSearches.push(`${c.name} on ${r.directory.name}: ${e.message}`);
-              break;
-            }
-          }
-          if (found) { if (!listedBy.has(r.directory.id)) listedBy.set(r.directory.id, []); listedBy.get(r.directory.id).push({ name: c.name, url: found.url, how: found.how }); c.listed.push(r.directory.name); }
-        }
+        room(2 * SEARCH_USD);
+        const d = await discover({ nap: { name: c.name, phone: c.phone, website: c.website }, town: ctx.baseTown, directories, dfs, opts, depth: 100, spend: (cst, n) => { spend(cst, n); searches += n; } });
+        searchErrors.push(...d.errors.map(e => `${c.name}: ${e}`));
+        for (const [domain, items] of d.hits) { if (!listedBy.has(domain)) listedBy.set(domain, []); listedBy.get(domain).push({ name: c.name, url: items[0].goto ? '' : items[0].url, how: `the name search (${items[0].query})` }); const dir = directories.find(x => x.domain === domain); if (dir) c.listed.push(dir.name); }
+        for (const [site, items] of d.others) { const cur = fromSearches.get(site) || { competitors_with: 0, competitors: [], example: items[0].goto ? '' : items[0].url, title: items[0].title }; cur.competitors_with++; cur.competitors.push(c.name); fromSearches.set(site, cur); }
       }
-    } catch (e) { if (!(e instanceof CapHit)) throw e; notes.push(`The competitor scan stopped: ${e.message}; the directories after that point were not searched.`); }
-    if (failedSearches.length) notes.push(`${failedSearches.length} competitor search${failedSearches.length === 1 ? '' : 'es'} failed at DataForSEO after a retry and ${failedSearches.length === 1 ? 'was' : 'were'} skipped: ${failedSearches.slice(0, 8).join('; ')}${failedSearches.length > 8 ? '; …' : ''}`);
-    const gaps = rows.filter(r => listedBy.has(r.directory.id) && r.row.listed !== 'yes').map(r => { const who = listedBy.get(r.directory.id); return { directory_id: r.directory.id, name: r.directory.name, domain: r.directory.domain, tier: r.directory.tier, cost: r.directory.cost, priority: r.directory.priority, da: r.directory.da, competitors_with: who.length, competitors: who.map(w => w.name), urls: who.map(w => w.url), client_listed: r.row.listed, source: 'scan' }; });
-    const alsoHas = rows.filter(r => listedBy.has(r.directory.id) && r.row.listed === 'yes').map(r => r.directory.name);
+    } catch (e) { if (!(e instanceof CapHit)) throw e; notes.push(`The competitor searches stopped: ${e.message}; the competitors after that point were not searched.`); }
+    if (searchErrors.length) notes.push(`${searchErrors.length} competitor search${searchErrors.length === 1 ? '' : 'es'} failed at DataForSEO: ${searchErrors.slice(0, 6).join('; ')}${searchErrors.length > 6 ? '; …' : ''}`);
+    const byDomainRow = new Map(rows.map(r => [r.directory.domain, r]));
+    const gaps = [];
+    for (const [domain, who] of listedBy) {
+      const r = byDomainRow.get(domain);
+      const dir = r ? r.directory : directories.find(x => x.domain === domain);
+      if (!dir) continue;
+      if (r && r.row.listed === 'yes') continue;
+      gaps.push({ directory_id: dir.id, name: dir.name, domain, tier: dir.tier, cost: dir.cost, priority: dir.priority, da: dir.da, competitors_with: who.length, competitors: who.map(w => w.name), urls: who.map(w => w.url), client_listed: r ? r.row.listed : 'not on the list', on_list: !!r, retired: !!dir.retired, source: 'scan' });
+    }
+    const alsoHas = rows.filter(r => listedBy.has(r.directory.domain) && r.row.listed === 'yes').map(r => r.directory.name);
     gaps.sort((a, b) => (b.competitors_with - a.competitors_with) || ((b.da || 0) - (a.da || 0)) || a.name.localeCompare(b.name));
 
     // 3. The backlinks, for directories not in the database
@@ -181,6 +181,15 @@ function createGaps({ pool, store, clientCitations, competitorsFor, dfs = DFS, c
             seen.set(d, cur);
           }
         }
+        // The sites the competitors' name searches showed that are not in the database join the backlinks' domains
+        for (const [site, x] of fromSearches) {
+          const d = registrableDomain(site);
+          if (!d) continue;
+          const cur = seen.get(d) || { domain: d, competitors_with: 0, backlinks: 0, spam_score: null, first_seen: null, competitors: [], from_search: true, example: x.example };
+          for (const name of x.competitors) if (!cur.competitors.includes(name)) { cur.competitors.push(name); cur.competitors_with++; }
+          cur.from_search = true; cur.example = cur.example || x.example;
+          seen.set(d, cur);
+        }
         const compDomains = new Set(competitors.map(c => c.domain));
         const unknown = [];
         for (const [d, x] of seen) {
@@ -208,7 +217,7 @@ function createGaps({ pool, store, clientCitations, competitorsFor, dfs = DFS, c
             if (!v.directory) { dropped.push({ domain: d, reason: `not a directory (${v.kind || 'other'})` }); continue; }
             if (!v.uk) { dropped.push({ domain: d, reason: 'not UK' }); continue; }
             if (v.spam) { dropped.push({ domain: d, reason: 'spam (the model)' }); continue; }
-            newDomains.push({ domain: d, name: v.name || d, kind: v.kind, directory_id: null, tier: null, cost: null, priority: null, da: null, competitors_with: x.competitors_with, competitors: x.competitors, example_url: `https://${d}/`, source: 'backlinks' });
+            newDomains.push({ domain: d, name: v.name || d, kind: v.kind, directory_id: null, tier: null, cost: null, priority: null, da: null, competitors_with: x.competitors_with, competitors: x.competitors, example_url: x.example || `https://${d}/`, source: x.from_search ? (x.backlinks ? 'search and backlinks' : 'search') : 'backlinks' });
           }
           if (newDomains.length) {
             try { room(0.03); const br = await dfs.bulkRanks(newDomains.map(x => x.domain), opts); spend(br.cost, br.calls); for (const x of newDomains) { const rk = br.ranks.get(x.domain); x.da = rk == null ? null : Math.round(rk); } }
