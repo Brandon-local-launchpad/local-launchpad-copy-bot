@@ -40,7 +40,10 @@ const { createFilloutService } = require('./fillout/service');
 const { createPgAudioStore } = require('./fillout/audio-store');
 // Price extraction uses the same model and call helper as v20 generation (V20_MODEL via anthropic-call.js)
 const filloutCallModel = process.env.ANTHROPIC_API_KEY ? makeCallModel(new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY }), v20.V20_MODEL, { onUsage: modelLog.tagged('price extraction') }) : null;
-const filloutService = pool ? createFilloutService({ pool, audioStore: createPgAudioStore(pool), callModel: filloutCallModel, modelName: v20.V20_MODEL }) : null;
+// A recording Fillout sent without a transcript is transcribed from our copy (fillout/transcribe.js); OPENAI_API_KEY, else skipped
+const filloutTranscriber = require('./fillout/transcribe').createTranscriber({ apiKey: process.env.OPENAI_API_KEY || '' });
+if (!filloutTranscriber) console.warn('[fillout] OPENAI_API_KEY is not set: voice answers without a Fillout transcript will not be transcribed');
+const filloutService = pool ? createFilloutService({ pool, audioStore: createPgAudioStore(pool), callModel: filloutCallModel, modelName: v20.V20_MODEL, transcriber: filloutTranscriber }) : null;
 if (filloutService) filloutRoutes.mountWebhook(app, filloutService, { secret: process.env.FILLOUT_WEBHOOK_SECRET || '' });
 else app.post('/api/webhooks/fillout', (_req, res) => res.status(503).json({ error: 'Database not configured.' }));
 

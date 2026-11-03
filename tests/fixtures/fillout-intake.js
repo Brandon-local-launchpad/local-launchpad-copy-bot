@@ -57,7 +57,13 @@ const quiet = { info() {}, warn() {}, error() {} };
 
   // ── The app: webhook before auth, API after ──
   const processed = [];
-  const svc = createFilloutService({ pool, audioStore: createPgAudioStore(pool), log: quiet });
+  // A stand-in for fillout/transcribe.js: no network. A filename with "bad" in it fails.
+  const transcribed = [];
+  const fakeTranscriber = { model: 'fake', async transcribe({ buffer, filename }) {
+    if (/bad/.test(filename || '')) throw new Error('fake transcription failure');
+    transcribed.push(filename); return { text: `Fake transcript of ${filename} (${buffer.length} bytes)`, model: 'fake' };
+  } };
+  const svc = createFilloutService({ pool, audioStore: createPgAudioStore(pool), log: quiet, transcriber: fakeTranscriber });
   const origProcess = svc.process;
   svc.process = async id => { const r = await origProcess(id); processed.push(r); return r; };
   const app = express();
@@ -505,6 +511,65 @@ const quiet = { info() {}, warn() {}, error() {} };
     r = await put(`/api/clients/${clientId}/record/photos_received`, { value: false });
     chk('Unticking photos_received → blank again (still manual)', r.status === 200 && (await r.json()).status === 'blank', r.status, 200);
     chk('The old WhatsApp answer stays visible as information, tier optional', (() => { const f = prAfter.sections.flatMap(s => s.fields).find(f => f.key === 'photos_whatsapp'); return f && f.status === 'filled' && f.tier === 'optional'; })(), '', '');
+
+    // ── A recording Fillout sent without a transcript: Copybot transcribes it from our copy ──
+    chk('Fillout\'s transcript is marked as Fillout\'s, nothing sent to the transcriber', a.transcription_source === 'fillout' && transcribed.length === 0, `${a.transcription_source} ${transcribed.length}`, 'fillout 0');
+    const noTr = clone(payload);
+    noTr.submission.submissionId = 'no-transcript-1';
+    const idOf = key => I.fieldsForNiche(map, 'Plumbing & Heating').find(f => f.key === key).id;
+    const setQ = (id, value) => { noTr.submission.questions.find(q => q.id === id).value = value; };
+    setQ(idOf('business_name'), 'Quiet Plumbing'); setQ(idOf('business_email'), 'quiet@example.com'); setQ(idOf('business_phone'), '+44 7911 600601');
+    const noTrAudio = noTr.submission.questions.find(q => q.id === audioQ.id);
+    noTrAudio.value = { url: audioUrl, filename: 'audio_quiet_2026-11-02.mp3', duration: 26 };
+    r = await post(`/api/webhooks/fillout?token=${SECRET}`, noTr);
+    chk('Submission without a transcript accepted', r.status === 200, r.status, 200);
+    chk('…and processed', (await waitDone('no-transcript-1')) === 'processed', '', 'processed');
+    const quietId = (await pool.query(`SELECT client_id FROM fillout_submissions WHERE submission_id = 'no-transcript-1'`)).rows[0].client_id;
+    const quietName = quietId ? (await pool.query(`SELECT name FROM clients WHERE id = $1`, [quietId])).rows[0].name : null;
+    chk('A new client (different email and phone)', quietId && quietId !== clientId && quietName === 'Quiet Plumbing', quietName, 'Quiet Plumbing');
+    const waitTranscript = async (cid, key) => { for (let i = 0; i < 300; i++) { const x = (await pool.query(`SELECT * FROM client_audio WHERE client_id = $1 AND field_key = $2`, [cid, key])).rows[0]; if (x && (x.transcription || x.transcription_status === 'failed')) return x; await sleep(10); } return null; };
+    const qa = await waitTranscript(quietId, 'prices_voice');
+    chk('Copybot transcribed it in the background from the stored copy', qa && qa.transcription === `Fake transcript of audio_quiet_2026-11-02.mp3 (${MP3.length} bytes)` && qa.transcription_source === 'copybot' && qa.transcription_status === 'done' && qa.transcription_model === 'fake', qa && `${qa.transcription_source} ${qa.transcription_status} ${qa.transcription}`, 'copybot done');
+    r = await get(`/api/clients/${quietId}/record`);
+    const qrec = await r.json();
+    const qv = qrec.sections.flatMap(s => s.fields).find(f => f.key === 'prices_voice');
+    chk('Record carries the transcript and says Copybot made it', qv && qv.audio && qv.audio.transcription === qa.transcription && qv.audio.transcriptionSource === 'copybot', JSON.stringify(qv && qv.audio), 'copybot');
+    // The same file again, still no Fillout transcript: Copybot's is kept, nothing re-sent
+    const sentBefore = transcribed.length;
+    const again = clone(noTr); again.submission.submissionId = 'no-transcript-2';
+    r = await post(`/api/webhooks/fillout?token=${SECRET}`, again);
+    chk('Resubmission without a transcript processed', (await waitDone('no-transcript-2')) === 'processed', '', 'processed');
+    await sleep(50);
+    const qa2 = (await pool.query(`SELECT * FROM client_audio WHERE client_id = $1 AND field_key = 'prices_voice'`, [quietId])).rows[0];
+    chk('Copybot\'s transcript kept on the same file, not re-sent', qa2.transcription === qa.transcription && qa2.transcription_source === 'copybot' && transcribed.length === sentBefore, `${qa2.transcription_source} sent ${transcribed.length - sentBefore}`, 'copybot sent 0');
+    // Fillout transcribes it later: Fillout's wins
+    const later = clone(noTr); later.submission.submissionId = 'no-transcript-3';
+    later.submission.questions.find(q => q.id === audioQ.id).value.transcription = 'Fillout got there in the end.';
+    r = await post(`/api/webhooks/fillout?token=${SECRET}`, later);
+    chk('Resubmission with Fillout\'s transcript processed', (await waitDone('no-transcript-3')) === 'processed', '', 'processed');
+    await sleep(50);
+    const qa3 = (await pool.query(`SELECT * FROM client_audio WHERE client_id = $1 AND field_key = 'prices_voice'`, [quietId])).rows[0];
+    chk('Fillout\'s transcript replaces Copybot\'s, source fillout, status cleared', qa3.transcription === 'Fillout got there in the end.' && qa3.transcription_source === 'fillout' && qa3.transcription_status === null && qa3.transcription_model === null, `${qa3.transcription_source} ${qa3.transcription_status} ${qa3.transcription}`, 'fillout');
+    // A failed call: marked, kept for the next run; and no transcriber at all
+    const bad = clone(noTr); bad.submission.submissionId = 'no-transcript-bad';
+    bad.submission.questions.find(q => q.id === idOf('business_email')).value = 'bad@example.com';
+    bad.submission.questions.find(q => q.id === idOf('business_phone')).value = '+44 7911 600602';
+    bad.submission.questions.find(q => q.id === idOf('business_name')).value = 'Bad Audio Plumbing';
+    bad.submission.questions.find(q => q.id === audioQ.id).value = { url: audioUrl, filename: 'audio_bad.mp3', duration: 9 };
+    r = await post(`/api/webhooks/fillout?token=${SECRET}`, bad);
+    chk('Submission whose transcription will fail processed', (await waitDone('no-transcript-bad')) === 'processed', '', 'processed');
+    const badId = (await pool.query(`SELECT client_id FROM fillout_submissions WHERE submission_id = 'no-transcript-bad'`)).rows[0].client_id;
+    const ba = await waitTranscript(badId, 'prices_voice');
+    chk('A failed call marks the row, keeps the recording, no transcript', ba && ba.transcription === null && ba.transcription_status === 'failed' && /fake transcription failure/.test(ba.transcription_error) && ba.download_status === 'stored', ba && `${ba.transcription_status} ${ba.transcription_error}`, 'failed');
+    r = await get(`/api/clients/${badId}/record`);
+    const bv = (await r.json()).sections.flatMap(s => s.fields).find(f => f.key === 'prices_voice');
+    chk('Record shows the failure', bv && bv.audio && bv.audio.transcriptionStatus === 'failed' && /fake/.test(bv.audio.transcriptionError), JSON.stringify(bv && bv.audio), 'failed');
+    const svcNoKey = createFilloutService({ pool, audioStore: createPgAudioStore(pool), log: quiet });
+    const nk = await svcNoKey.transcribeMissing(badId);
+    const ba2 = (await pool.query(`SELECT transcription_status FROM client_audio WHERE client_id = $1 AND field_key = 'prices_voice'`, [badId])).rows[0];
+    chk('No transcriber (no key): the row says so and nothing is sent', nk.skipped === 'no transcriber' && nk.missing === 1 && ba2.transcription_status === 'no_transcriber', JSON.stringify(nk), 'no transcriber');
+    const retry = await svc.transcribeMissing(badId);
+    chk('A later run with a transcriber retries the failed row', retry.missing === 1 && retry.failed === 1 && retry.done === 0, JSON.stringify(retry), 'retried, still failing');
 
     // ── The fixture's real audio URL is untouched in what we commit ──
     chk('Fixture still carries the real Fillout audio URL', /prod-fillout-oregon-s3/.test(realUrl), realUrl, 'fillout s3');

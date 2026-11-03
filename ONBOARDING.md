@@ -153,6 +153,24 @@ before volume grows** (a few hundred clients): write a second store with the sam
 three methods and swap it in `server.js`. Nothing else needs to change; list and
 record queries never touch the bytes table.
 
+**Transcripts.** Copybot keeps the transcript Fillout sends with a recording
+(`client_audio.transcription`, `transcription_source = 'fillout'`). Fillout only
+sends one when "Enable transcription" (Premium) is on for that question, so keep
+it on for every voice question. When a stored recording arrives with no transcript
+(2 Nov 2026: Ethan's nine), `transcribeMissing` in `fillout/service.js` sends our
+copy of the audio to OpenAI's transcription endpoint (`fillout/transcribe.js`,
+model `gpt-4o-transcribe`, English, about half a penny a minute) in the background
+after intake, then the price extraction runs. The key is `OPENAI_API_KEY` on
+Railway (and in the local `.env` for the tool); with no key the row is marked
+`no_transcriber` and the record says "No transcript (no transcription key set)".
+A Copybot transcript is `transcription_source = 'copybot'` with the model, and the
+record page says "transcribed by Copybot". Fillout's transcript always wins: if a
+resubmission brings one, it replaces Copybot's. A failed call marks the row
+(`transcription_status = 'failed'`, the reason on the record) and the next run
+retries it: Reprocess on the inbox row, or
+`node tools/fillout-transcribe.js "<client name or id>" [--dry-run]`, which also
+runs the price extraction. Never sent: a recording that already has any text.
+
 ## Service prices from the voice answer
 
 After a submission is processed, the niche's "Prices for your services" transcript

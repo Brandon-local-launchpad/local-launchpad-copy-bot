@@ -236,7 +236,15 @@
     let inner = '';
     if (voice.status !== 'filled' && !a) inner = `<div class="vm">No recording</div>`;
     else {
-      if (a && a.playable) inner += `<audio controls preload="none" src="/api/clients/${clientId}/audio/${a.id}"></audio><div class="vm"><span>Our copy${a.duration ? `, ${a.duration}s` : ''}${a.size ? `, ${Math.round(a.size / 1024)} KB` : ''}</span>${transcript ? `<button class="linkish" onclick="toggleTranscript('${voice.key}')">${open ? 'Hide' : 'Show'} transcript</button>` : '<span>No transcript</span>'}</div>`;
+      if (a && a.playable) {
+        // Where the transcript came from: Fillout's, or Copybot's from our copy; else why there is none
+        const trNote = transcript
+          ? (a.transcriptionSource === 'copybot' ? '<span>transcribed by Copybot</span>' : '')
+          : (a.transcriptionStatus === 'failed' ? `<span class="badge b-bad">Transcription failed</span><span>${esc(a.transcriptionError || '')}</span>`
+            : a.transcriptionStatus === 'no_transcriber' ? '<span>No transcript (no transcription key set)</span>'
+            : '<span>No transcript</span>');
+        inner += `<audio controls preload="none" src="/api/clients/${clientId}/audio/${a.id}"></audio><div class="vm"><span>Our copy${a.duration ? `, ${a.duration}s` : ''}${a.size ? `, ${Math.round(a.size / 1024)} KB` : ''}</span>${transcript ? `<button class="linkish" onclick="toggleTranscript('${voice.key}')">${open ? 'Hide' : 'Show'} transcript</button>` : ''}${trNote}</div>`;
+      }
       else if (a && a.downloadStatus === 'failed') inner += `<div class="vm"><span class="badge b-bad">Audio copy failed</span><span>${esc(a.downloadError || '')}</span>${a.filloutUrl ? `<a href="${esc(a.filloutUrl)}" target="_blank" rel="noopener">Fillout link</a>` : ''}${transcript ? `<button class="linkish" onclick="toggleTranscript('${voice.key}')">${open ? 'Hide' : 'Show'} transcript</button>` : ''}</div>`;
       else inner += `<div class="vm"><span>Not yet copied</span>${a && a.filloutUrl ? `<a href="${esc(a.filloutUrl)}" target="_blank" rel="noopener">Fillout link</a>` : ''}${transcript ? `<button class="linkish" onclick="toggleTranscript('${voice.key}')">${open ? 'Hide' : 'Show'} transcript</button>` : ''}</div>`;
       if (open && transcript) inner += `<div class="tr">${esc(transcript)}</div>`;
