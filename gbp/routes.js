@@ -33,7 +33,9 @@ function profileFiles(I, record, competitors, scanAlerts = []) {
 // locate({ placeId, address, town }) → { lat, lng, from } or null: the client's position for the map signal
 // Batch 3: leadsnap (leadsnap/client.js, or the fixture's recorded one); nothing LeadSnap
 // is called on page load, only from the buttons
-function mountGbpApi(app, { pool, loadInputs, callModel, log = console, search = q => searchPlaces(q), fetchPage = fetchHtml, saveClientValue = null, locate = null, leadsnap = null }) {
+// directoryDomains(): the citation directory database's domains, so the competitor check skips every
+// directory Copybot knows (citations/store.js domains(), 3 Nov 2026); without it the built-in list
+function mountGbpApi(app, { pool, loadInputs, callModel, log = console, search = q => searchPlaces(q), fetchPage = fetchHtml, saveClientValue = null, locate = null, leadsnap = null, directoryDomains = null }) {
   const locateFn = locate || (args => locateClient({ ...args, search }));
   const needLeadsnap = () => { if (!leadsnap) throw Object.assign(new Error('LeadSnap is not configured on this server (LEADSNAP_API_TOKEN).'), { status: 503 }); return leadsnap; };
 
@@ -301,7 +303,8 @@ function mountGbpApi(app, { pool, loadInputs, callModel, log = console, search =
     const { clientId } = req.params;
     const I = await loadInputs(clientId);
     const cv = I.validatorCtx.cv || {};
-    const run = await runCompetitorCheck({ primary: I.primary, town: I.town, clientName: cv.company_name, clientPhone: cv.phone, ownPlaceId: cv.gbp_place_id || '', search });
+    const dirs = directoryDomains ? await directoryDomains().catch(() => null) : null;
+    const run = await runCompetitorCheck({ primary: I.primary, town: I.town, clientName: cv.company_name, clientPhone: cv.phone, ownPlaceId: cv.gbp_place_id || '', search, directoryDomains: dirs });
     await store.addCompetitorRun(clientId, run);
     // The client's own listing, found by phone or name on the first run, is remembered
     if (run.own && run.own.place_id && !cv.gbp_place_id && saveClientValue) await saveClientValue(clientId, 'gbp_place_id', run.own.place_id);

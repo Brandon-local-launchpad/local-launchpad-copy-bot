@@ -38,11 +38,13 @@ function isOwn(place, { ownPlaceId, clientName, clientPhone }) {
   return false;
 }
 
-// The filters, in order; null when the place is a competitor, else why it was skipped
-function skipReason(place, seenDomains) {
+// The filters, in order; null when the place is a competitor, else why it was skipped.
+// directoryDomains: the citation directory database's domains (citations/store.js domains())
+// when the routes pass them; the built-in list otherwise (3 Nov 2026)
+function skipReason(place, seenDomains, directoryDomains = DIRECTORY_DOMAINS) {
   if (place.business_status && place.business_status !== 'OPERATIONAL') return `not operating (${place.business_status.toLowerCase().replace(/_/g, ' ')})`;
   const dom = domainOf(place.website);
-  if (dom && DIRECTORY_DOMAINS.some(d => dom === d || dom.endsWith('.' + d))) return `a directory (${dom})`;
+  if (dom && directoryDomains.some(d => dom === d || dom.endsWith('.' + d))) return `a directory (${dom})`;
   if (DIRECTORY_NAMES.test(place.name)) return 'a directory';
   if (!place.address || !/\d|\b(street|road|lane|avenue|drive|close|way|court|place|park|unit|estate)\b/i.test(place.address)) return 'no street address';
   if (dom && seenDomains.has(dom)) return `a second branch of ${dom} (chain)`;
@@ -50,10 +52,11 @@ function skipReason(place, seenDomains) {
 }
 
 // search(textQuery) → [place]
-async function runCompetitorCheck({ primary, town, clientName, clientPhone, ownPlaceId, search, now = new Date() }) {
+async function runCompetitorCheck({ primary, town, clientName, clientPhone, ownPlaceId, search, directoryDomains = null, now = new Date() }) {
   const keyword = `${String(primary || '').trim()} ${String(town || '').trim()}`.trim();
   if (!keyword) throw Object.assign(new Error('The competitor check needs the primary category and the main town.'), { status: 400 });
   const results = await search(keyword);
+  const dirDomains = Array.isArray(directoryDomains) && directoryDomains.length ? [...new Set([...directoryDomains, ...DIRECTORY_DOMAINS])] : DIRECTORY_DOMAINS;
   const competitors = [], skipped = [];
   const seenDomains = new Set();
   let own = ownPlaceId ? { place_id: ownPlaceId, how: 'saved gbp_place_id' } : null;
@@ -64,7 +67,7 @@ async function runCompetitorCheck({ primary, town, clientName, clientPhone, ownP
       skipped.push({ name: p.name, place_id: p.place_id, reason: "the client's own listing" });
       continue;
     }
-    const why = skipReason(p, seenDomains);
+    const why = skipReason(p, seenDomains, dirDomains);
     if (why) { skipped.push({ name: p.name, place_id: p.place_id, maps_url: p.maps_url, reason: why }); continue; }
     const dom = domainOf(p.website);
     if (dom) seenDomains.add(dom);

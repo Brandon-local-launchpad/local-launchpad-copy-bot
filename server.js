@@ -3970,7 +3970,24 @@ if (filloutService && citationStore) {
   const siteUrlFor = async id => { const r = await pool.query(`SELECT url FROM wp_connections WHERE client_id = $1`, [id]).catch(() => ({ rows: [] })); return r.rows.length ? r.rows[0].url : ''; };
   const clientCitations = CL.createClientCitations({ pool, store: citationStore, filloutService, placesStore: require('./locations/places').createPlacesStore(pool), approvedTiers: require('./locations/approved').approvedTiers, clientValues: citationsClientValues, siteUrlFor });
   const citationScanner = require('./citations/scan').createScanner({ pool, store: citationStore, clientCitations });
-  require('./citations/client-routes').mountClientCitationsApi(app, { pool, clientCitations, scanner: citationScanner });
+  // The gap check's competitors: the latest saved competitor run (the GBP tab), else the check run
+  // now for "[primary category] [base town]" through Places and saved like the GBP tab's
+  const gbpStore = require('./gbp/store').createGbpStore(pool);
+  const competitorsFor = async clientId => {
+    const runs = await gbpStore.competitorRuns(clientId, 1);
+    if (runs.length && (runs[0].run.competitors || []).some(c => c.website)) return runs[0].run;
+    if (!process.env.GOOGLE_PLACES_API_KEY) throw Object.assign(new Error('No competitor run is saved and the Places API key is not set: run the competitor check on the GBP tab first.'), { status: 400 });
+    const ctx = await clientCitations.context(clientId);
+    let primary = String(ctx.cv.primary_category || '').trim();
+    try { const I = await gbpInputsFor(clientId); primary = I.primary || primary; } catch (_) { /* no v3 page map: the client value */ }
+    const { runCompetitorCheck } = require('./gbp/competitors');
+    const run = await runCompetitorCheck({ primary, town: ctx.baseTown, clientName: ctx.cv.company_name, clientPhone: ctx.cv.phone, ownPlaceId: ctx.cv.gbp_place_id || '', search: q => require('./gbp/places').searchPlaces(q), directoryDomains: await citationStore.domains() });
+    await gbpStore.addCompetitorRun(clientId, run);
+    return run;
+  };
+  const gapsCallModel = process.env.ANTHROPIC_API_KEY ? makeCallModel(new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY }), require('./citations/gaps').CLASSIFIER_MODEL, { onUsage: modelLog.tagged('citation gaps') }) : null;
+  const citationGaps = require('./citations/gaps').createGaps({ pool, store: citationStore, clientCitations, competitorsFor, callModel: gapsCallModel });
+  require('./citations/client-routes').mountClientCitationsApi(app, { pool, clientCitations, scanner: citationScanner, gaps: citationGaps });
 }
 // Location Determiner (locations/routes.js): which towns get location pages; the dry run first
 if (filloutService) require('./locations/routes').mountLocationsApi(app, { pool, filloutService });
@@ -4005,7 +4022,7 @@ if (pool && pageMapStore) {
   const gbpCallModel = args => makeCallModel(new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY }), GBP_MODEL, { onUsage: modelLog.tagged('GBP output') })(args);
   // LeadSnap rank scans (batch 3): the client exists only when the token is set on Railway
   const leadsnap = process.env.LEADSNAP_API_TOKEN ? require('./leadsnap/client').createLeadsnapClient() : null;
-  require('./gbp/routes').mountGbpApi(app, { pool, loadInputs: gbpInputsFor, callModel: gbpCallModel, saveClientValue, leadsnap });
+  require('./gbp/routes').mountGbpApi(app, { pool, loadInputs: gbpInputsFor, callModel: gbpCallModel, saveClientValue, leadsnap, directoryDomains: citationStore ? () => citationStore.domains() : null });
 }
 
 // Category pages (CORE (16), 23 Oct): every category page and location category page from
