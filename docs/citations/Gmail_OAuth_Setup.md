@@ -20,7 +20,15 @@ Copybot reads listings@locallaunchpad.co.uk through the Gmail API. It needs an O
    ```
    It prints a link. Open it in a browser (an incognito window is easiest), sign in as **listings@locallaunchpad.co.uk** (not your own account), accept the scope, and the browser returns to `http://localhost:53682/`. The terminal prints the refresh token once.
 8. **Railway.** On the Copybot service, add the three variables: `GMAIL_CLIENT_ID`, `GMAIL_CLIENT_SECRET`, `GMAIL_REFRESH_TOKEN`. Redeploy (Railway does it on save). The log says `[inbox] polling listings@... every minute` when it is on; the Directories page shows the last poll under "Listings inbox".
-9. **Check.** Send a test email from any account to `ednes-edge-testing@listings.locallaunchpad.co.uk`. Within a minute it appears in the inbox log on the Directories page as "ignored: unknown sender", which is right: only a directory's domain is acted on. To let a directory's emails through, put its sending domain on the directory row (Edit, "Email sender domains"), for example `mail.yell.com` for Yell, once you see what they use.
+9. **Check.** Send a test email from any account to `ednes-edge-testing@listings.locallaunchpad.co.uk` (the slug of the live test client, which is named "ednes edge testing" with that spelling; a client called Edens Edge would be `edens-edge@…`; every client's address is on its Citations tab). Within a minute it appears in the inbox log on the Directories page as "ignored: unknown sender", which is right: only a directory's domain is acted on. To let a directory's emails through, put its sending domain on the directory row (Edit, "Email sender domains"), for example `mail.yell.com` for Yell, once you see what they use.
+
+## The address form
+
+The subdomain set-up (`<slug>@listings.locallaunchpad.co.uk`) is done and working: the secondary domain in Workspace, the MX and SPF records at GoDaddy, the catch-all routing rule with the X-Gm-Original-To header (the decisions doc, 3 Nov). Nothing more is needed for a new client: addresses are invented on the fly. Plus addressing (`listings+<slug>@locallaunchpad.co.uk`) would need none of that DNS or routing, since Gmail delivers any plus form to the mailbox, but many directory sign-up forms reject a `+` in an email address, so the subdomain stays the one to give out. Copybot matches both forms, so either reaches the right client.
+
+## What is acted on
+
+Only an email whose sender passed SPF or DKIM for its own domain (Gmail's Authentication-Results header; a DMARC pass counts too) is acted on. A message from a directory's domain that fails both is recorded as "not authenticated" and its links are never opened.
 
 ## What the poller does
 

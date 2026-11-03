@@ -12,6 +12,7 @@
 // the pack says so rather than linking to nothing.
 
 const { postcodeOf } = require('./nap');
+const { liveDomain } = require('../gbp/profile');
 
 const DEFAULT_LIMITS = { name_max: 100, short_description_max: 160, description_max: 750 };
 const str = v => (v == null ? '' : String(v)).trim();
@@ -45,14 +46,16 @@ function createPacks({ pool, store, clientCitations, gbpStore = null, pageRowsFo
     const notes = [];
     if (!description) notes.push('No GBP description yet: run Generate on the GBP tab and the descriptions fill in.');
     if (!nap.address) notes.push('Service area business: leave the address blank or hidden where the form allows; use the service areas.');
-    if (!nap.website) notes.push('No site URL saved on the WordPress connection: the website field is blank.');
+    // The pack's website is the live domain alone (3 Nov, Brandon): never the WordPress connection, which may be a staging host
+    const liveSite = liveDomain(cv);
+    if (!liveSite) notes.push('No live domain in Client Values: leave the website field blank on the form rather than a staging address. Add the live domain on the Record tab when the site is up.');
     const loginEmail = (saved && saved.login_email) || view.email;
     const f = (key, label, value, limit = null, note = '') => { const v = limit ? cut(value, limit) : str(value); return { key, label, value: v, limit, length: v.length, over: !!limit && str(value).replace(/\s+/g, ' ').length > limit, cut: !!limit && v.length < str(value).replace(/\s+/g, ' ').length, note }; };
     const fields = [
       f('business_name', 'Business name', nap.name, limits.name_max, 'As on the GBP, character for character'),
       f('phone', 'Phone', nap.phone, null, 'The GBP number, never a tracking number'),
       f('email', 'Email (the login and contact email for this listing)', loginEmail, null, 'Verification emails come back to Copybot through this address'),
-      f('website', 'Website', nap.website),
+      f('website', 'Website', liveSite, null, liveSite ? 'The live domain from Client Values' : 'No live domain yet: leave blank'),
       f('address', 'Address', nap.address || '', null, nap.address ? 'The storefront address as on the GBP' : 'Service area business: no address'),
       f('postcode', 'Postcode', nap.address ? (postcodeOf(nap.address).replace(/^(.+)(\d[A-Z]{2})$/, '$1 $2')) : ''),
       f('town', 'Town', view.base_town),

@@ -35,15 +35,27 @@ async function wpPost(site, path, body) {
   return JSON.parse(text);
 }
 
+// Every page read asks for these fields only (3 Nov 2026, Brandon): a response that includes
+// `content` comes back with `acf: []` on an Elementor front page (rendering the content
+// moves ACF off the page), so the fields the dry run, the attachment check, the diff and the
+// read-back need are named and content is never asked for.
+const PAGE_FIELDS = 'id,slug,status,title,acf,meta';
+const pageQuery = `context=edit&_fields=${PAGE_FIELDS}`;
+
 // The homepage, with its ACF fields and meta (context=edit returns raw values)
 async function findHomepage(site) {
   if (site.homepageSlug) {
-    const pages = await wpGet(site, `/wp/v2/pages?slug=${encodeURIComponent(site.homepageSlug)}&status=any&context=edit`);
+    const pages = await wpGet(site, `/wp/v2/pages?slug=${encodeURIComponent(site.homepageSlug)}&status=any&${pageQuery}`);
     return pages[0] || null;
   }
   const settings = await wpGet(site, '/wp/v2/settings');
   if (!settings.page_on_front) return null;
-  return wpGet(site, `/wp/v2/pages/${settings.page_on_front}?context=edit`);
+  return readPage(site, settings.page_on_front);
 }
 
-module.exports = { findHomepage, wpGet, wpPost, authHeader };
+// One page by id, the same fields (the read-back after a push or a rollback)
+async function readPage(site, id) {
+  return wpGet(site, `/wp/v2/pages/${id}?${pageQuery}`);
+}
+
+module.exports = { findHomepage, readPage, wpGet, wpPost, authHeader, PAGE_FIELDS };

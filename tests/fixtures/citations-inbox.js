@@ -55,6 +55,12 @@ const b64url = s => Buffer.from(s, 'utf8').toString('base64').replace(/\+/g, '-'
   const pt = M.parseEmail(SAMPLES[2]);
   chk('Delivered-To gives the recipient when To is the shared mailbox; a log in link is a browser link, not a confirmation', pt.recipient.slug === 'ednes-edge-testing' && pt.confirm_links.length === 0 && pt.browser_links.length === 1, JSON.stringify(pt.links), '');
   chk('extractCodes: an alphanumeric code near "code", a year or a price alone is not a code', M.extractCodes('Your code: AB12CD9. Thanks.').join() === 'AB12CD9' && M.extractCodes('Founded in 2015, from £1500').length === 0, JSON.stringify([M.extractCodes('Your code: AB12CD9. Thanks.'), M.extractCodes('Founded in 2015, from £1500')]), '');
+  chk('authentication: Gmail\'s header read (dkim pass on mail.yell.com, spf pass, dmarc pass) and the sender counted as authenticated for yell.com', p.auth.dkim === 'pass' && p.auth.dkim_domains.join() === 'mail.yell.com' && p.auth.spf === 'pass' && p.auth.spf_domain === 'mail.yell.com' && p.auth.dmarc === 'pass' && p.authenticated === true, JSON.stringify(p.auth), '');
+  const spoof = M.parseEmail(SAMPLES.find(s => s.id === 'm-yell-spoof'));
+  chk('a spoofed Yell email (spf fail, dkim none, dmarc fail) is not authenticated; no header at all is not either', spoof.authenticated === false && spoof.auth.spf === 'fail' && M.senderAuthenticated(M.authentication({}), 'yell.com') === false, JSON.stringify(spoof.auth), '');
+  chk('a dkim pass on another domain does not authenticate the sender; spf pass on the From domain alone does; dmarc pass alone does', M.senderAuthenticated(M.authentication({ 'authentication-results': 'mx.google.com; dkim=pass header.i=@sendgrid.net; spf=none' }), 'yell.com') === false && M.senderAuthenticated(M.authentication({ 'authentication-results': 'mx.google.com; dkim=none; spf=pass smtp.mailfrom=bounces@em.yell.com' }), 'yell.com') === true && M.senderAuthenticated(M.authentication({ 'authentication-results': 'mx.google.com; dkim=fail; spf=softfail; dmarc=pass header.from=yell.com' }), 'yell.com') === true, '', '');
+  const plus = M.parseEmail(SAMPLES.find(s => s.id === 'm-plus-address'));
+  chk('the plus form listings+<slug>@locallaunchpad.co.uk gives the same slug', plus.recipient.slug === 'ednes-edge-testing' && plus.recipient.form === 'plus', JSON.stringify(plus.recipient), '');
 
   // ── The poller on pg-mem ──
   const mem = newDb();
@@ -81,7 +87,9 @@ const b64url = s => Buffer.from(s, 'utf8').toString('base64').replace(/\+/g, '-'
 
   const r = await inbox.poll();
   const act = id => r.records.find(x => x.id === id).action;
-  chk('the poll: inbox and spam read, every sample new, the five from known directories to a known client acted on', r.status === 'done' && r.listed === SAMPLES.length && r.new === SAMPLES.length && r.acted === 5, JSON.stringify({ status: r.status, listed: r.listed, new: r.new, acted: r.acted }), '');
+  chk('the poll: inbox and spam read, every sample new, the six authenticated ones from known directories to a known client acted on', r.status === 'done' && r.listed === SAMPLES.length && r.new === SAMPLES.length && r.acted === 6, JSON.stringify({ status: r.status, listed: r.listed, new: r.new, acted: r.acted }), '');
+  chk('the spoofed Yell email is ignored for failing SPF and DKIM, and its link never opened', /ignored: mail\.yell\.com not authenticated \(spf=fail, dkim=none, dmarc=fail\)/.test(act('m-yell-spoof')) && !opened.some(u => /evil/.test(u)), act('m-yell-spoof'), '');
+  chk('the plus address email reaches the same client and is recorded on the FreeIndex row', act('m-plus-address') === 'recorded on the row', act('m-plus-address'), '');
   const v = await C.view(edens);
   const rowOf = name => v.tiers.flatMap(t => t.rows).find(x => x.directory.name === name).row;
   const yr = rowOf('Yell');
@@ -91,7 +99,7 @@ const b64url = s => Buffer.from(s, 'utf8').toString('base64').replace(/\+/g, '-'
   const tp = rowOf('Trustpilot');
   chk('Trustpilot (spam, matched by the directory domain): a browser link on the row; the row made as awaiting email', tp.inbox[0].kind === 'browser_link' && /trustpilot\.com\/login/.test(tp.inbox[0].browser_links[0].url) && tp.status === 'awaiting_email' && !opened.some(u => /trustpilot/.test(u)), JSON.stringify(tp.inbox), '');
   const fi = rowOf('FreeIndex');
-  chk('FreeIndex: information recorded on the row', fi.inbox[0].kind === 'info' && act('m-freeindex-info') === 'recorded on the row', JSON.stringify(fi.inbox), '');
+  chk('FreeIndex: information recorded on the row (both emails)', fi.inbox.length === 2 && fi.inbox.every(ev => ev.kind === 'info') && act('m-freeindex-info') === 'recorded on the row', JSON.stringify(fi.inbox), '');
   const cy = rowOf('Cylex UK');
   chk('Cylex: the link answered 410: shown on the row, the status not moved', cy.inbox[0].kind === 'link_opened' && cy.inbox[0].ok === false && cy.inbox[0].status === 410 && cy.status === 'awaiting_email' && /answered 410/.test(act('m-cylex-broken-link')), JSON.stringify({ status: cy.status, action: act('m-cylex-broken-link') }), '');
   chk('an unknown sender (gmail.com) is ignored and its link never opened; an unknown slug and a non listings address are ignored', /ignored: unknown sender gmail\.com/.test(act('m-unknown-sender')) && !opened.some(u => /evil/.test(u)) && /ignored: no client for nobody-here@/.test(act('m-no-client')) && /ignored: not to a listings address/.test(act('m-not-listings')), [act('m-unknown-sender'), act('m-no-client'), act('m-not-listings')].join(' | '), '');
@@ -101,7 +109,7 @@ const b64url = s => Buffer.from(s, 'utf8').toString('base64').replace(/\+/g, '-'
   const st = await inbox.status();
   chk('status(): configured, the last poll, the emails with the client and directory names', st.configured && st.last_poll.new_count === 0 && st.emails.length === SAMPLES.length && st.emails.some(x => x.client_name === 'ednes edge testing' && x.directory_name === 'Yell'), JSON.stringify(st.last_poll), '');
   const mine = await inbox.emailsFor(edens);
-  chk('emailsFor the client: the six addressed to it (the ignored unknown sender included, so a person can see it)', mine.length === 6, mine.length, 6);
+  chk('emailsFor the client: the eight addressed to it (the ignored unknown and spoofed senders included, so a person can see them)', mine.length === 8, mine.length, 8);
 
   console.log(`\n${pass} passed, ${fail} failed`);
   process.exit(fail ? 1 : 0);

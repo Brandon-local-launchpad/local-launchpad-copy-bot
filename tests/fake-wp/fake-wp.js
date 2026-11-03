@@ -12,8 +12,10 @@ const HOME_FIELDS = require('../../wp/acf-schema').GROUPS.flatMap(g => g.fields.
 // plugin: false → the companion plugin isn't installed (its routes 404)
 function createFakeWp({ user = 'copybot', appPassword = 'test-app-password-not-real', frontId = 7, pages = [],
   plugin = true, acfPro = true, seo = 'rankmath', fieldGroups = ALL_GROUPS, clientValues = {}, pluginVersion = null,
-  failWrites = false, ignoreAcf = [] } = {}) {
-  // failWrites: page writes return 500; ignoreAcf: fields the site doesn't save (e.g. a field group that isn't there)
+  failWrites = false, ignoreAcf = [], elementorFront = true } = {}) {
+  // failWrites: page writes return 500; ignoreAcf: fields the site doesn't save (e.g. a field group that isn't there);
+  // elementorFront: as the Edens Edge test copy does (3 Nov), a read of the front page that includes `content`
+  // (no _fields, or _fields with content) comes back with `acf: []`; a read that names its fields gets the ACF
   const state = { writes: 0, pages: new Map(pages.map(p => [p.id, JSON.parse(JSON.stringify(p))])), frontId, clientValues: { ...clientValues } };
   const app = express();
   app.use(express.json({ limit: '2mb' }));
@@ -35,17 +37,21 @@ function createFakeWp({ user = 'copybot', appPassword = 'test-app-password-not-r
   // `acf` is an empty array. Other pages keep their own fields.
   const onFront = p => p.id === state.frontId;
   const own = (p, acf) => Object.fromEntries(Object.entries(acf || {}).filter(([k]) => onFront(p) || !HOME_FIELDS.includes(k)));
-  const view = p => {
-    const acf = onFront(p) ? { ...Object.fromEntries(HOME_FIELDS.map(n => [n, null])), ...p.acf } : own(p, p.acf);
-    return { ...p, acf: Object.keys(acf).length ? acf : [] };
+  const view = (p, req = null) => {
+    const fields = req && req.query._fields ? String(req.query._fields).split(',').map(s => s.trim()).filter(Boolean) : null;
+    const withContent = !fields || fields.includes('content');
+    let acf = onFront(p) ? { ...Object.fromEntries(HOME_FIELDS.map(n => [n, null])), ...p.acf } : own(p, p.acf);
+    if (elementorFront && onFront(p) && withContent) acf = {};
+    const full = { ...p, content: { raw: p.content || '', rendered: `<p>${p.content || ''}</p>` }, acf: Object.keys(acf).length ? acf : [] };
+    return fields ? Object.fromEntries(Object.entries(full).filter(([k]) => fields.includes(k))) : full;
   };
   app.get('/wp-json/wp/v2/pages', (req, res) => {
-    res.json([...state.pages.values()].filter(p => !req.query.slug || p.slug === req.query.slug).map(view));
+    res.json([...state.pages.values()].filter(p => !req.query.slug || p.slug === req.query.slug).map(p => view(p, req)));
   });
   app.get('/wp-json/wp/v2/pages/:id', (req, res) => {
     const p = state.pages.get(Number(req.params.id));
     if (!p) return res.status(404).json({ code: 'rest_post_invalid_id', message: 'Invalid post ID.' });
-    res.json(view(p));
+    res.json(view(p, req));
   });
   app.post('/wp-json/wp/v2/pages/:id', (req, res) => {
     const p = state.pages.get(Number(req.params.id));

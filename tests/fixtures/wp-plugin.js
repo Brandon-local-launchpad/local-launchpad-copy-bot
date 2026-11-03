@@ -56,7 +56,8 @@ const bad = cases.cases.filter(c => resolveTokens(c.in, cases.values, { mode: c.
 chk(`Token rules: all ${cases.cases.length} shared cases`, !bad.length, bad.map(c => `${c.in} → ${resolveTokens(c.in, cases.values, { mode: c.mode, year: cases.year })}`).join(' | '), c => 'all');
 
 // ── Plugin PHP, static checks ──
-const php = fs.readFileSync(path.join(PLUGIN, 'llp-copybot.php'), 'utf8');
+// Line endings normalised: a Windows checkout has CRLF and the multi-line checks below would miss
+const php = fs.readFileSync(path.join(PLUGIN, 'llp-copybot.php'), 'utf8').replace(/\r\n/g, '\n');
 chk('PHP token pattern matches the JS one', php.includes("'/\\[CV: ([a-z0-9_]+)\\]/'"), '', "'/\\[CV: ([a-z0-9_]+)\\]/'");
 chk('PHP registers the REST routes, filters and shortcode the push relies on',
   ["'/client-values'", "'/status'", "'acf/format_value'", "'acf/settings/load_json'", "add_shortcode(\n\t'llp_cv'", "'rank_math/frontend/title'", "'wpseo_metadesc'"].every(s => php.includes(s)), '', 'all present');

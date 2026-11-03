@@ -3036,6 +3036,9 @@ app.get('/generate', (req, res) => res.redirect('/dashboard'));
 const CLIENT_VALUES_TEMPLATE = {
   company_name: '', company_name_gbp_checked: false,
   phone: '', email: '', address: '', gbp_address_type: '', hours: '',
+  // The client's live domain (3 Nov): the website on every listing and the NAP; the WordPress
+  // connection is a fallback for the NAP only, never for a submission pack (it may be a staging host)
+  live_domain: '',
   primary_category: '', year_founded: '', jobs_completed: '',
   rating: '', review_count: '',
   guarantee_years: '', manufacturer_warranty: '', insurance_cover: '',

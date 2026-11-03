@@ -4,7 +4,8 @@
 // Every minute (server.js), the inbox and spam of listings@locallaunchpad.co.uk are read
 // for messages Copybot has not seen (citation_emails, by Gmail id). Each one is matched to
 // a client (the recipient address) and a directory (the sender's domain). Only a message
-// from a known directory to a known client is acted on:
+// from a known directory to a known client, whose SPF or DKIM passed for that sender domain
+// (Gmail's Authentication-Results header), is acted on:
 //   a plain confirmation link   opened with one GET (no login, no form); the row moves from
 //                               awaiting email verification (or not started, submitted) to
 //                               awaiting approval, and the event sits on the row
@@ -95,6 +96,7 @@ function createInbox({ pool, store, clientCitations, gmail = null, env = process
     if (!parsed.recipient) rec.action = 'ignored: not to a listings address';
     else if (!client) rec.action = `ignored: no client for ${parsed.recipient.address}`;
     else if (!dir) rec.action = `ignored: unknown sender ${parsed.from.domain}`;
+    else if (!parsed.authenticated) { rec.action = `ignored: ${parsed.from.domain} not authenticated (spf=${parsed.auth.spf}, dkim=${parsed.auth.dkim}, dmarc=${parsed.auth.dmarc})`; rec.detail = { auth: parsed.auth }; }
     else {
       const base = { at: parsed.received_at || now().toISOString(), message_id: parsed.id, subject: parsed.subject, from: parsed.from.address };
       if (parsed.confirm_links.length) {

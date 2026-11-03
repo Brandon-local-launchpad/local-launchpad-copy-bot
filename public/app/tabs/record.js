@@ -19,6 +19,7 @@ const GROUPS = [
     { key: 'year_founded', label: 'Year founded', placeholder: '4 digits only' },
     { key: 'team_size', label: 'Team size', placeholder: 'Number only' },
     { key: 'gbp_address_type', label: 'GBP address type', type: 'select', options: ['', 'storefront', 'service_area'] },
+    { key: 'live_domain', label: 'Live domain', placeholder: 'https://example.co.uk (the site the public sees; the listings and the NAP use it)' },
     { key: 'hours', label: 'Hours', placeholder: 'e.g. Mon to Sat, 8am to 6pm' },
     { key: 'emergency_primary', label: 'Emergency primary', type: 'select', options: ['', 'yes', 'no'] },
     { key: 'handles_planning', label: 'Handles planning', type: 'select', options: ['', 'yes', 'no'] },

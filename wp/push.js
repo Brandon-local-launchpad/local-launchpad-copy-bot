@@ -11,7 +11,7 @@
 // rollback(): writes a snapshot back, checks it, and logs it.
 
 const { dryRun, diffFields } = require('./dry-run');
-const { wpGet, wpPost } = require('./client');
+const { wpGet, wpPost, readPage } = require('./client');
 const { SEO_ADAPTERS } = require('./homepage-map');
 const { pageTypeOf, getPageType } = require('../page-types');
 const { versionOf } = require('../v20-record');
@@ -31,7 +31,7 @@ function claimsRefusals(record, claims, acceptClaims) {
 
 // Read back and compare with what was sent
 async function verify(site, pageId, payload, clientValues, fields) {
-  const page = await wpGet(site, `/wp/v2/pages/${pageId}?context=edit`);
+  const page = await readPage(site, pageId);
   const acf = page.acf && !Array.isArray(page.acf) ? page.acf : {};
   // A field the site left out entirely wasn't saved; one it returned with another value was changed on the way
   const mismatches = diffFields(acf, payload.acf, fields).filter(c => c.change !== 'same')

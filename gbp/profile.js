@@ -90,16 +90,27 @@ function buildProfile({ inputs: I, record = null, cv: cvIn = null, competitors =
 // listings against (citations/client.js reads this, so the two never drift): the business
 // name as typed, the address only for a storefront (gbp_address_type), the service areas
 // otherwise, the phone in one format, the site URL without a trailing slash
+// The live domain as a URL: "edensedge.co.uk" and "https://www.edensedge.co.uk/" both give
+// https://www.edensedge.co.uk (the scheme and www as typed, no trailing slash)
+function liveDomain(cv = {}) {
+  const s = str(cv.live_domain).replace(/\/+$/, '');
+  if (!s) return '';
+  return /^https?:\/\//i.test(s) ? s : `https://${s}`;
+}
+
 function buildNap({ cv = {}, site = '', areas = [] }) {
   const storefront = str(cv.gbp_address_type).toLowerCase() === 'storefront' && str(cv.address);
   const address = storefront ? expandAddress(cv.address) : '';
   const cleanSite = str(site).replace(/\/+$/, '');
+  // The website: the client's live domain (Client Values, 3 Nov), the WordPress connection only when it is blank
+  const live = liveDomain(cv);
   return {
     name: str(cv.company_name),
     address: address || null,
     service_areas: address ? null : (areas || []),
     phone: normalisePhone(cv.phone).phone,
-    website: cleanSite,
+    website: live || cleanSite,
+    website_source: live ? 'live domain' : cleanSite ? 'wordpress connection' : '',
     email: str(cv.email),
     hours: str(cv.hours),
   };
@@ -155,4 +166,4 @@ function buildTemplates({ cv, flags }) {
   };
 }
 
-module.exports = { buildProfile, buildNap, buildNote, buildTemplates, normalisePhone, expandAddress, serviceAreas, GBP_AREA_LIMIT, UTM };
+module.exports = { buildProfile, buildNap, liveDomain, buildNote, buildTemplates, normalisePhone, expandAddress, serviceAreas, GBP_AREA_LIMIT, UTM };

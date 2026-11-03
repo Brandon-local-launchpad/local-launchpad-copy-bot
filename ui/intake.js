@@ -152,6 +152,8 @@ async function createClient({ pool, identity, sources = {}, nicheKey, businessTy
   set('primary_category', identity.primary_category, sources.primary_category); set('gbp_place_id', identity.gbp_place_id, 'gbp'); set('gbp_address_type', identity.gbp_address_type, 'gbp');
   set('rating', identity.rating, 'gbp'); set('review_count', identity.review_count, 'gbp'); set('hours', identity.hours, 'gbp'); set('owner_name', identity.owner, 'website'); set('year_founded', /^\d{4}$/.test(str(identity.years)) ? identity.years : '', 'website');
   set('area_wide', identity.area, 'website');
+  // An existing site the wizard read is the live domain until a new one goes live (3 Nov)
+  if (existingSite) set('live_domain', identity.website, 'website');
   if (!str(cv.business_type) || cv.business_type === 'A') { cv.business_type = str(businessType) || 'A'; srcMap.business_type = 'hand'; }
   cv._sources = srcMap;
   cv._intake = { website: identity.website || '', existing_site: !!existingSite, multi_location: !!multiLocation, logo: identity.logo || '', socials: identity.socials || [], services_seen: identity.services || [], towns_seen: identity.towns || [], at: new Date().toISOString() };

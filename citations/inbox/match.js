@@ -17,11 +17,39 @@ const decode = s => String(s || '').replace(/&amp;/g, '&').replace(/&#39;|&apos;
 const textOf = html => decode(String(html || '').replace(/<style[\s\S]*?<\/style>/gi, ' ').replace(/<script[\s\S]*?<\/script>/gi, ' ').replace(/<br\s*\/?>|<\/p>|<\/div>|<\/tr>|<\/li>/gi, '\n').replace(/<[^>]+>/g, ' ')).replace(/[ \t]+/g, ' ').replace(/\n\s*\n+/g, '\n').trim();
 
 const addresses = header => [...String(header || '').matchAll(/[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}/g)].map(m => m[0].toLowerCase());
+// The client's address: <slug>@listings.locallaunchpad.co.uk (the subdomain, the set-up in use), or the
+// plus form listings+<slug>@locallaunchpad.co.uk, which needs no DNS or routing but some sign-up forms reject
+const PLUS_RE = /^listings\+([a-z0-9-]+)@locallaunchpad\.co\.uk$/;
 function recipientSlug(headers, domain = LISTINGS_DOMAIN) {
   for (const h of ['x-gm-original-to', 'delivered-to', 'to', 'cc', 'envelope-to', 'x-original-to']) {
-    for (const a of addresses(headers[h])) if (a.endsWith('@' + domain)) return { address: a, slug: a.split('@')[0] };
+    for (const a of addresses(headers[h])) {
+      if (a.endsWith('@' + domain)) return { address: a, slug: a.split('@')[0], form: 'subdomain' };
+      const m = a.match(PLUS_RE);
+      if (m) return { address: a, slug: m[1], form: 'plus' };
+    }
   }
   return null;
+}
+
+// Gmail's Authentication-Results header: did SPF or DKIM pass for the sender's domain? A directory's
+// email is acted on only when it did (3 Nov, Brandon), so a spoofed "from yell.com" opens nothing.
+//   dkim=pass with header.i or header.d on the From domain, or spf=pass with smtp.mailfrom on it,
+//   or dmarc=pass (which already means the passing domain lines up with From)
+function authentication(headers) {
+  const raw = [headers['authentication-results'], headers['arc-authentication-results']].filter(Boolean).join(' ; ');
+  const dkimDomains = [...raw.matchAll(/dkim=pass[^;]*?header\.(?:i|d)=@?([^\s;]+)/gi)].map(m => m[1].toLowerCase());
+  const spfDomain = ((raw.match(/spf=pass[^;]*?smtp\.mailfrom=(?:[^@\s;]+@)?([^\s;]+)/i) || [])[1] || '').toLowerCase();
+  return {
+    spf: ((raw.match(/\bspf=(\w+)/i) || [])[1] || 'none').toLowerCase(), spf_domain: spfDomain,
+    dkim: dkimDomains.length ? 'pass' : ((raw.match(/\bdkim=(\w+)/i) || [])[1] || 'none').toLowerCase(), dkim_domains: dkimDomains,
+    dmarc: ((raw.match(/\bdmarc=(\w+)/i) || [])[1] || 'none').toLowerCase(),
+    present: !!raw,
+  };
+}
+function senderAuthenticated(auth, fromRegistrable) {
+  if (!auth || !fromRegistrable) return false;
+  const same = d => !!d && registrableDomain(d) === fromRegistrable;
+  return auth.dmarc === 'pass' || auth.dkim_domains.some(same) || (auth.spf === 'pass' && same(auth.spf_domain));
 }
 function sender(headers) {
   const a = addresses(headers.from)[0] || addresses(headers['reply-to'])[0] || '';
@@ -54,9 +82,12 @@ function parseEmail(message, { listingsDomain = LISTINGS_DOMAIN } = {}) {
   const headers = message.headers || {};
   const text = str(message.text) || textOf(message.html);
   const links = extractLinks(message.html, message.text);
+  const from = sender(headers);
+  const auth = authentication(headers);
   return {
     id: message.id, received_at: message.received_at || null, subject: str(headers.subject),
-    from: sender(headers), recipient: recipientSlug(headers, listingsDomain),
+    from, recipient: recipientSlug(headers, listingsDomain),
+    auth, authenticated: senderAuthenticated(auth, from.registrable),
     text, snippet: str(message.snippet),
     links, confirm_links: links.filter(l => l.kind === 'confirm'), browser_links: links.filter(l => l.kind === 'browser'),
     codes: extractCodes(text),
@@ -79,4 +110,4 @@ function matchDirectory(from, directories) {
   return null;
 }
 
-module.exports = { parseEmail, matchClient, matchDirectory, extractLinks, extractCodes, recipientSlug, sender, textOf };
+module.exports = { parseEmail, matchClient, matchDirectory, extractLinks, extractCodes, recipientSlug, sender, authentication, senderAuthenticated, textOf };

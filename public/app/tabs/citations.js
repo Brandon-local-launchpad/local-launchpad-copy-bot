@@ -69,7 +69,7 @@ export async function render(el, ctx) {
     const filtered = rows => rows.filter(r => (!state.status || r.row.status === state.status) && (!state.done_by || r.row.done_by_effective === state.done_by));
     const header = `
       <div class="grid" style="grid-template-columns:repeat(4,minmax(0,1fr));gap:16px 24px">
-        <div><div class="small muted">Website</div>${n.website ? `<a href="${attr(n.website)}" target="_blank" rel="noopener">${h(n.website)}</a>` : '<span class="muted">no site URL saved</span>'}</div>
+        <div><div class="small muted">Website</div>${n.website ? `<a href="${attr(n.website)}" target="_blank" rel="noopener">${h(n.website)}</a>${n.website_source === 'wordpress connection' ? ` <span class="small muted">${info('No live domain in Client Values yet: this is the WordPress connection, which may be a staging host. Add the live domain on the Record tab; the submission packs leave the website blank until then.')} from the WordPress connection</span>` : ''}` : '<span class="muted">no live domain or site URL saved</span>'}</div>
         <div><div class="small muted">Phone</div>${h(n.phone || '(blank)')}</div>
         <div><div class="small muted">Address</div>${n.address ? h(n.address) : `<span class="muted">service area business, address hidden</span>`}</div>
         <div><div class="small muted">Listings email</div><span style="display:flex;gap:6px;align-items:center">${h(d.email)} ${copyBtn(d.email)}</span></div>
