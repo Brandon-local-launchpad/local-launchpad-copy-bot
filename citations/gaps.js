@@ -123,18 +123,31 @@ function createGaps({ pool, store, clientCitations, competitorsFor, dfs = DFS, c
     // 2. The directory scan per competitor, on the client's list
     const rows = view.tiers.flatMap(t => t.rows).filter(r => r.directory.domain);
     const listedBy = new Map(); // directory id → [{ name, url }]
+    const failedSearches = [];
     let searches = 0;
     try {
       for (const c of competitors) {
         const cnap = { name: c.name, phone: c.phone, website: c.website };
         for (const r of rows) {
           room(SEARCH_USD);
-          // The cap is checked before every search, the phone search inside findListing included
-          const found = await findListing({ dir: r.directory, row: { live_url: '' }, nap: cnap, backlinks: [], dfs, opts, spend: (cst, n) => { spend(cst, n); searches += n; room(SEARCH_USD); } });
+          // The cap is checked before every search, the phone search inside findListing included. A search
+          // that fails at DataForSEO (a transient "Internal SE Server Error") is tried once more after a
+          // pause, then noted and skipped: one bad search never ends the run
+          let found = null;
+          for (let attempt = 1; ; attempt++) {
+            try { found = await findListing({ dir: r.directory, row: { live_url: '' }, nap: cnap, backlinks: [], dfs, opts, spend: (cst, n) => { spend(cst, n); searches += n; room(SEARCH_USD); } }); break; }
+            catch (e) {
+              if (e instanceof CapHit) throw e;
+              if (attempt < 2) { await new Promise(res => setTimeout(res, 5000)); continue; }
+              failedSearches.push(`${c.name} on ${r.directory.name}: ${e.message}`);
+              break;
+            }
+          }
           if (found) { if (!listedBy.has(r.directory.id)) listedBy.set(r.directory.id, []); listedBy.get(r.directory.id).push({ name: c.name, url: found.url, how: found.how }); c.listed.push(r.directory.name); }
         }
       }
     } catch (e) { if (!(e instanceof CapHit)) throw e; notes.push(`The competitor scan stopped: ${e.message}; the directories after that point were not searched.`); }
+    if (failedSearches.length) notes.push(`${failedSearches.length} competitor search${failedSearches.length === 1 ? '' : 'es'} failed at DataForSEO after a retry and ${failedSearches.length === 1 ? 'was' : 'were'} skipped: ${failedSearches.slice(0, 8).join('; ')}${failedSearches.length > 8 ? '; …' : ''}`);
     const gaps = rows.filter(r => listedBy.has(r.directory.id) && r.row.listed !== 'yes').map(r => { const who = listedBy.get(r.directory.id); return { directory_id: r.directory.id, name: r.directory.name, domain: r.directory.domain, tier: r.directory.tier, cost: r.directory.cost, priority: r.directory.priority, da: r.directory.da, competitors_with: who.length, competitors: who.map(w => w.name), urls: who.map(w => w.url), client_listed: r.row.listed, source: 'scan' }; });
     const alsoHas = rows.filter(r => listedBy.has(r.directory.id) && r.row.listed === 'yes').map(r => r.directory.name);
     gaps.sort((a, b) => (b.competitors_with - a.competitors_with) || ((b.da || 0) - (a.da || 0)) || a.name.localeCompare(b.name));
@@ -151,7 +164,9 @@ function createGaps({ pool, store, clientCitations, competitorsFor, dfs = DFS, c
         for (const c of competitors) {
           if (!c.domain) continue;
           room(0.03);
-          const r = await dfs.referringDomains(c.domain, { ...opts, limit: 1000 });
+          let r;
+          try { r = await dfs.referringDomains(c.domain, { ...opts, limit: 1000 }); }
+          catch (e) { if (e instanceof CapHit) throw e; notes.push(`${c.name}: the referring domains could not be read (${e.message})`); continue; }
           spend(r.cost);
           const mine = new Set();
           for (const it of r.items) {

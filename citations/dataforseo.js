@@ -75,7 +75,14 @@ async function bulkRanks(domains, opts = {}) {
 
 // Google organic, United Kingdom, desktop, top `depth`. Items trimmed to what the scan reads.
 async function serp(keyword, { depth = 10, ...opts } = {}) {
-  const r = await call('serp/google/organic/live/advanced', { keyword, ...UK, depth, device: 'desktop', os: 'windows' }, opts);
+  let r;
+  try { r = await call('serp/google/organic/live/advanced', { keyword, ...UK, depth, device: 'desktop', os: 'windows' }, opts); }
+  catch (e) {
+    // "No Search Results" is DataForSEO's answer to a query Google shows nothing for (a site: search
+    // on a domain with no page for the name): an empty result, not a failure (3 Nov, Fixatrader)
+    if (/no search results/i.test(e.message)) return { items: [], cost: 0, check_url: '', total: 0, attempts: e.attempts || 1, empty: true };
+    throw e;
+  }
   const items = r.items.filter(i => i && i.type === 'organic').map(i => ({ rank: i.rank_absolute, url: i.url, domain: i.domain, title: i.title || '', description: i.description || '' }));
   return { items, cost: r.cost, check_url: r.result.check_url || '', total: r.result.se_results_count == null ? null : Number(r.result.se_results_count), attempts: r.attempts };
 }
