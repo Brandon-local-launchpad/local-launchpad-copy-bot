@@ -55,6 +55,7 @@ function contextFromPageMap({ rows, hand, cv = {}, niche = {} }) {
       v3: { phase: phase(r), status: r.status, h1_source: r.h1_source, copy_priority: (r.info && r.info.copy_priority) || 0, parent_keys: (r.info && r.info.parent_keys) || [] },
       // The library flags (3 Nov 2026): an emergency page, and the name running text uses
       emergency: !!(r.info && r.info.emergency),
+      desireLed: !!(r.info && r.info.desire_led),
       proseName: (r.info && r.info.prose_name) || null,
       assignedNeighbourhoods: [],
       assignedSymptoms: {},

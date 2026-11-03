@@ -11,6 +11,9 @@
 //   faq_slots  [{ slot, when?, question, answer_brief, doubt }]   five before the symptom question; the
 //              slot names by type: A cost, timing, cover, rules, scope; B frequency, cost, access, scope, timing
 //   faq_symptom, seasonal { problem_card, faq_slot }, emergency { ...overrides }
+//   desire { problems: { h2, cards x4 } ... }   (4 Nov 2026) the desire led variant: block 4 as "Is [SERVICE] right
+//              for you", four situation cards (the customer's situation, what decides it, what the work gives them),
+//              used on a page the library flags desire_led; never a symptom. The emergency variant wins over it.
 // The type is the parent category's (category_types) else the client's, as for category pages.
 // Placeholders: [SERVICE], [SERVICE_LOWER], [CAT], [CAT_LOWER], [WORK], [WORK_LOWER], [CITY], [TOWN], [SYMPTOM].
 // Until a niche has the section, the job refuses its service pages: "no service block briefs for [niche]".
@@ -22,8 +25,9 @@ class NoBriefsError extends Error {
 }
 
 // The block entry for a service page: the parent category's type (or the client's), A2
-// when the marker holds and an A2 entry exists, the emergency variant laid over it.
-function blocksFor({ niche, cv = {}, category, emergencyPage = false }) {
+// when the marker holds and an A2 entry exists, the desire led variant laid over it on a
+// desire led page, the emergency variant over that when the emergency layout is on.
+function blocksFor({ niche, cv = {}, category, emergencyPage = false, desirePage = false }) {
   const nicheName = niche._source || niche.trade_lower || niche.trade || 'this niche';
   const all = niche.service_page_blocks;
   if (!all || typeof all !== 'object' || !Object.keys(all).length) {
@@ -33,8 +37,10 @@ function blocksFor({ niche, cv = {}, category, emergencyPage = false }) {
   const key = t.a2 && all.A2 ? 'A2' : t.letter;
   const base = all[key];
   if (!base) throw new NoBriefsError(`no service block briefs for ${nicheName} type ${key}`, { niche: nicheName, type: key });
-  const entry = t.emergencyOn && base.emergency ? { ...base, ...base.emergency } : base;
-  return { ...t, key, entry, emergencyUsed: !!(t.emergencyOn && base.emergency) };
+  const desireUsed = !!(desirePage && base.desire && !(t.emergencyOn && base.emergency));
+  const withDesire = desireUsed ? { ...base, ...base.desire } : base;
+  const entry = t.emergencyOn && base.emergency ? { ...withDesire, ...base.emergency } : withDesire;
+  return { ...t, key, entry, emergencyUsed: !!(t.emergencyOn && base.emergency), desireUsed };
 }
 
 // What a block entry lacks, as F-BRIEF messages (the page still runs with what there is)

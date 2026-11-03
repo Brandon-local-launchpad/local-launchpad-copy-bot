@@ -188,7 +188,13 @@ function packIndex(text) {
   if (packCache.has(text)) return packCache.get(text);
   const grams = new Set();
   const sets = [];
-  const plain = String(text).replace(/\{\{[^}]+\}\}|\[CV: [a-z0-9_]+\]/g, ' x ').replace(/[#*_>|`]+/g, ' ');
+  // Only the pack's example copy counts (4 Nov 2026): the fenced blocks that hold its worked
+  // examples. Its prose (the readers, the craft rules, what fails) describes the trade in the
+  // words the copy will rightly share ("the mark on the ceiling"), and matching against it blocked
+  // the Roof repairs page on a different phrase every run. A pack with no fences is read whole.
+  const fenced = [...String(text).matchAll(/```[^\n]*\n([\s\S]*?)```/g)].map(m => m[1]);
+  const source = fenced.length ? fenced.join('\n\n') : String(text);
+  const plain = source.replace(/\{\{[^}]+\}\}|\[CV: [a-z0-9_]+\]/g, ' x ').replace(/[#*_>|`]+/g, ' ');
   for (const sen of plain.split(/\n+|(?<=[.!?])\s+/)) {
     const toks = lc(sen).replace(/[^a-z0-9£' ]+/g, ' ').split(/\s+/).filter(Boolean);
     for (let i = 0; i + 5 <= toks.length; i++) {
@@ -308,7 +314,8 @@ function validateCommon(record, V) {
     if (hyph.length) flag('FLAG', '1b', `Hyphenated words: ${hyph.join(', ')}. Write them without the hyphen, or rephrase if that reads like a typo.`);
 
     // 2 banned phrases (incl. the 14 Oct additions)
-    for (const p of BANNED) if (new RegExp(`\\b${esc(p)}\\b`, 'i').test(s)) flag('BLOCK', '2', `Banned phrase "${p}".`);
+    // The niche entry's own banned phrases (banned_phrases, 4 Nov 2026) block on first use like the CORE list
+    for (const p of [...BANNED, ...(niche.banned_phrases || [])]) if (new RegExp(`\\b${esc(p)}\\b`, 'i').test(s)) flag('BLOCK', '2', `Banned phrase "${p}".`);
     if (/\b(your|their|our|the|specific|individual|particular|every)\s+needs\b/i.test(s) || /\bneeds\s+of\b/i.test(s)) flag('BLOCK', '2', '"needs" used as a noun ("your needs"). Say the concrete thing instead.');
     // "As your/a/an [category]" only as a sentence opener: "our work as a landscaper in..." is fine
     for (const cat of V.categoryNames) {

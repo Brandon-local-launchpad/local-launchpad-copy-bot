@@ -264,13 +264,22 @@ chk('PACK-COPY: a sentence lifted from the calibration pack is a BLOCK; ordinary
 })(), '', 'PACK-COPY');
 chk('PACK-COPY: a run that is one of the page\'s own names (a card, a service) is a page name, not a copy (3 Nov)', (() => {
   // A pack that lists the page names, as every pack does in its section 2
-  const packWithNames = fs.readFileSync(path.join(root, 'calibration-packs', 'Landscaper_Calibration_Pack_v5.md'), 'utf8') + '\n\nThe pages here: lawn mowing and edging work, hedge trimming and shaping work.\n';
+  // (inside a fence: only a pack's fenced examples are indexed, 4 Nov)
+  const packWithNames = fs.readFileSync(path.join(root, 'calibration-packs', 'Landscaper_Calibration_Pack_v5.md'), 'utf8') + '\n\n```\nThe pages here: lawn mowing and edging work, hedge trimming and shaping work.\n```\n';
   const Vn = categoryValidationContext(G.validationContextFor({ cv, niche, decisions: D, keyValueMap: { ...kv, service_99: 'Lawn mowing and edging work' }, serviceParentMap: ctx.serviceParentMap, calibrationPack: packWithNames }), D);
   const named = withText(record, PT.LABELS.servicesIntro, 'Most calls start with lawn mowing and edging work, and the beds and hedges are done on the same visit so nothing is left half finished across the season.');
   const copied = withText(record, PT.LABELS.servicesIntro, 'Most calls start with hedge trimming and shaping work, and the beds are done on the same visit so nothing is left half finished across the season.');
   const pc = r => issuesOf(r, Vn).filter(i => i.check === 'PACK-COPY' && i.field === PT.LABELS.servicesIntro);
   return !pc(named).length && pc(copied).length === 1;
 })(), '', 'a page name passes, another pack run blocks');
+chk('banned_phrases: a niche\'s own banned phrase is a BLOCK on first use (4 Nov); the same words in words_avoid alone are not', (() => {
+  const text = 'Most calls start with the lawn, and a tidy garden is the outdoor living space most people want, with the beds and hedges done on the same visit so nothing is left half finished.';
+  const Vb = categoryValidationContext(G.validationContextFor({ cv, niche: { ...niche, banned_phrases: ['outdoor living space'] }, decisions: D, keyValueMap: kv, serviceParentMap: ctx.serviceParentMap }), D);
+  const Va = categoryValidationContext(G.validationContextFor({ cv, niche: { ...niche, banned_phrases: [], words_avoid: ['outdoor living space'] }, decisions: D, keyValueMap: kv, serviceParentMap: ctx.serviceParentMap }), D);
+  const r = withText(record, PT.LABELS.servicesIntro, text);
+  const two = v => issuesOf(r, v).filter(i => i.check === '2' && i.field === PT.LABELS.servicesIntro && /outdoor living space/.test(i.message));
+  return two(Vb).length === 1 && two(Vb)[0].type === 'BLOCK' && !two(Va).length;
+})(), '', 'BLOCK 2 from banned_phrases only');
 chk('LINK-TEXT: a card with a prose name (the library prose_name column, 3 Nov) is linked by that name; the page name alone is a FLAG', (() => {
   const Ds = JSON.parse(JSON.stringify(D)); const c = Ds.d9.main.find(x => x.name === 'Lawn mowing'); if (!c) return false; c.say = 'grass cutting';
   const Vs = categoryValidationContext(G.validationContextFor({ cv, niche, decisions: Ds, keyValueMap: kv, serviceParentMap: ctx.serviceParentMap }), Ds);

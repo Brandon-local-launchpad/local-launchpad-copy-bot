@@ -1,5 +1,7 @@
 # Landscaper entry against calibration pack v5 (3 Nov 2026)
 
+**Resolved 4 Nov 2026** (branch desire-led-and-landscaper): every item below was fixed in the entry. category_types now fixes six categories; the type A block 4 mixes situation and symptom cards and says how each reads per category; desire led service pages (flagged desire_led in landscaper.csv) read the service_page_blocks.A.desire variant; fears_by_type.B and faq_slots_by_type.B carry the maintenance reader; the lifestyle phrases are banned_phrases; the location briefs judge no garden and name no species the research did not give; the eight pack runs are reworded. The list stays as the record of what changed and why.
+
 A read of `niche-library/landscaper.json` and `Niche_Library_Landscaper.md` (written against pack v4, 23 to 27 Oct) against `calibration-packs/Landscaper_Calibration_Pack_v5.md`. Nothing in the entry has been changed; this is the list for Brandon to decide on. 20 contradictions, 3 json/md mismatches, 5 weaker cases.
 
 ## Business type per GBP category

@@ -75,7 +75,7 @@ function buildClientValues(cv, yearsTrading) {
 
 // The niche slots the model writes from, with placeholders resolved. Headings,
 // buttons, steps and FAQ briefs already arrive in DECISIONS, so they're not repeated.
-function buildNicheEntry(niche, ctx) {
+function buildNicheEntry(niche, ctx, cv = {}) {
   const L = [];
   const list = a => (a || []).join(', ') || '(none)';
   L.push(`Trade: ${niche.trade} | trade (lower case): ${niche.trade_lower} | trade person: ${niche.trade_person} / ${niche.trade_person_plural}`);
@@ -86,8 +86,9 @@ function buildNicheEntry(niche, ctx) {
   if (niche.words_avoid_exceptions) {
     L.push(`Exceptions: ${Object.entries(niche.words_avoid_exceptions).map(([w, why]) => `${w}: ${why}`).join('; ')}`);
   }
+  if (Array.isArray(niche.banned_phrases) && niche.banned_phrases.length) L.push(`Never (a block on first use): ${list(niche.banned_phrases)}`);
   L.push('Customer fears:');
-  for (const f of (niche.fears || [])) L.push(`  - ${f}`);
+  for (const f of require('./category-blocks').fearsFor(niche, cv || {})) L.push(`  - ${f}`);
   L.push('Materials and methods list (name one only if it is in [CV: materials_methods]):');
   for (const [group, items] of Object.entries(niche.materials_tick_list || {})) L.push(`  - ${group}: ${list(items)}`);
   L.push('Do not reuse these sentences:');
@@ -158,7 +159,7 @@ function buildV20Request({ cv, niche, decisions, decisionsBlock, calibrationPack
     buildPracticeList(cv, niche),
     '',
     'NICHE ENTRY',
-    buildNicheEntry(niche, ctx),
+    buildNicheEntry(niche, ctx, cv),
     ...(calibrationPack ? ['', 'CALIBRATION PACK', calibrationPack.trim()] : []),
   ].join('\n');
   return {

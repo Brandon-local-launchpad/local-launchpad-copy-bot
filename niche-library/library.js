@@ -138,7 +138,9 @@ function loadLibrary(niche, { file = fileFor(niche) } = {}) {
       const e = { gbp_name: (r[col('gbp_name')] || '').trim(), gbp_category: (r[col('gbp_category')] || '').trim(), verdict: norm(r[col('verdict')]), target: (r[col('target')] || '').trim(), note: (r[col('note')] || '').trim(), line: i + 2,
         // 3 Nov 2026: optional columns. emergency: the page gets the emergency briefs when the client confirms call outs;
         // prose_name: what running text and link text call the page; confirm_only: a page only when ticked or typed by name
-        emergency: norm(r[col('emergency')]) === 'yes', prose_name: (r[col('prose_name')] || '').trim(), confirm_only: norm(r[col('confirm_only')]) === 'yes' };
+        emergency: norm(r[col('emergency')]) === 'yes', prose_name: (r[col('prose_name')] || '').trim(), confirm_only: norm(r[col('confirm_only')]) === 'yes',
+        // desire_led (4 Nov 2026): the service page's block 4 is "Is this right for you" (the customer's situation), never "Signs you need it"
+        desire_led: norm(r[col('desire_led')]) === 'yes' };
       if (!e.gbp_name) return;
       if (!VERDICTS.includes(e.verdict)) { problems.push(`line ${e.line}: "${e.gbp_name}" has verdict "${e.verdict}", not one of ${VERDICTS.join(' / ')}`); return; }
       if (e.verdict !== 'exclude' && !e.target) { problems.push(`line ${e.line}: "${e.gbp_name}" (${e.verdict}) has no target`); return; }
@@ -247,10 +249,11 @@ function findEntries(set, name, categories = [], { fuzzy = false } = {}) {
 // and a flag never crosses into another library (the roofer's own rows are unchanged)
 function targetFlags(lib, target) {
   const t = norm(target);
-  const out = { emergency: false, prose_name: '', confirm_only: false };
+  const out = { emergency: false, prose_name: '', confirm_only: false, desire_led: false };
   for (const e of (lib && lib.rows) || []) {
     if (norm(e.target) !== t) continue;
     if (e.emergency) out.emergency = true;
+    if (e.desire_led) out.desire_led = true;
     if (e.prose_name && !out.prose_name) out.prose_name = e.prose_name;
     if (e.confirm_only) out.confirm_only = true;
   }

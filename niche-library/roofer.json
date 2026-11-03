@@ -362,7 +362,7 @@
             },
             {
               "title": "The first hour, before anyone arrives",
-              "brief": "What the customer can do from inside the house, in plain words: catch the water, move what is underneath, keep clear of a bulging ceiling, photograph what they can see from the ground for the insurer, then call. The one cause this card makes: water keeps spreading while they wait, and the quicker the roof is covered the less there is to put right. Never an instruction to go on the roof, up a ladder or to patch it themselves; never a time by which anyone arrives unless [CV: response_time] is set.",
+              "brief": "What the customer can do from inside the house, in plain words: catch the water, move what is underneath, keep clear of a bulging ceiling, and where water is near a light fitting or a socket, switch that circuit off at the consumer unit and never touch a wet fitting; photograph what they can see from the ground for the insurer, then call. The one cause this card makes: water keeps spreading while they wait, and the quicker the roof is covered the less there is to put right. Never an instruction to go on the roof, up a ladder or to patch it themselves; never a time by which anyone arrives unless [CV: response_time] is set.",
               "mechanism": "water spreading while you wait"
             }
           ]
@@ -567,6 +567,33 @@
         "frame": "[SYMPTOM]: why does it happen, and what can be done?",
         "answer_brief": "The symptom and its linked local issue, answered as asked: the usual cause here in plain words, with the fault named in the covering, what the local housing era or exposure adds, then what this service does about it. One figure at most, and it must come out of a trade facts row. Never describe how any roof in the area is today.",
         "doubt": "Process"
+      },
+      "desire": {
+        "problems": {
+          "h2": "Is [SERVICE] Right for Your Home?",
+          "cards": [
+            {
+              "title": "A loft or landing with no daylight",
+              "brief": "A loft room, a landing or a bathroom under the roof that is dark all day, or a loft conversion being planned. What decides it: the structure and the covering at the spot the light is wanted, and whether consent applies (Table A roof window installation: structure and permissions checked before the opening is formed; Table C: a window that sits close to the slope of the roof usually needs no planning application, a listed house or a flat is different; 'usually', never the measurement). What the work gives them: daylight and fresh air in a room that had neither, with the flashing made for that covering so the opening stays dry (Table B: the wrong flashing for the covering leaks). Leads on the Roof window installation page. Never a fault as the opener, never the brand (say 'roof window'), never an invented damp or condensation problem.",
+              "mechanism": "whether the roof can take an opening where the light is wanted"
+            },
+            {
+              "title": "An extension or loft room you want warm all year",
+              "brief": "A flat roofed extension or a room under a flat roof that the heating never quite reaches, or a cold roof the owner wants brought up to a warm build up while the covering is renewed. What decides it: where the insulation goes in relation to the deck, and how moisture from the rooms below is controlled through the whole build up (Table E warm versus cold roof; Table A: the deck and its moisture condition inspected, the insulation and condensation strategy worked out first). What the work gives them: a room that holds its heat and a roof designed so indoor moisture does not condense inside it; the insulation standard that can apply when a roof is renewed only from the Table C rows, with 'usually' and never the value. Leads on the page for warm and cold roof conversion. Never say the existing roof has failed, never a thickness or a U value, never a heating bill claim.",
+              "mechanism": "where the insulation sits against the deck"
+            },
+            {
+              "title": "A chimney you no longer use",
+              "brief": "A stack that served a fireplace blocked up years ago, a breast in the way of a loft conversion, a chimney the owner would rather not keep pointing. What decides it: whether the stack is shared with next door, whether any flue is still in use, and how far the removal goes (above the roofline only, or on down through the house, which needs a structural design and building control; Table A, Table C); consent where the house is listed or the chimney counts towards the street's character, and the party wall procedure where the stack is shared ('usually', never the Act's name). What the work gives them: one less thing on the roof to look after and the roof made good where the stack stood. Leads on the Chimney removal page. Never say the stack is unsafe or leaning; never a fault as the opener.",
+              "mechanism": "whether the stack is shared and whether a flue is still live"
+            },
+            {
+              "title": "New gutters or cladding as part of a bigger job",
+              "brief": "Roofline being renewed with the gutters going on at the same time, or a gable or a tired rendered wall the owner wants boarded. What decides it: for guttering, the fascia and rafter ends the brackets fix to and the run of the water to the right drain (Table A guttering installation: catchment and outlet assessed, falls set, the system water tested; Table C: roof water goes to a soakaway or watercourse before a sewer, 'usually'); for cladding, the wall behind, the moisture and fire design and any consent (Table A cladding). What the work gives them: gutters sized for the roof and set to a fall so rain goes where it should, and boards fixed to sound timber with the ventilation behind them kept open. Leads on the Guttering installation and Cladding pages. Never a sagging gutter or a rotten board as the opener (those are the problem led pages' cards); never 'maintenance free'.",
+              "mechanism": "what is behind the boards and where the water has to go"
+            }
+          ]
+        }
       },
       "emergency": {
         "problems": {

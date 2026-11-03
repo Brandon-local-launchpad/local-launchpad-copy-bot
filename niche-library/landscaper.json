@@ -13,7 +13,9 @@
   "schema_subtype": "HomeAndConstructionBusiness",
 
   "words_use": ["garden", "back garden", "front garden", "lawn", "patio", "driveway", "path", "hedge", "border", "fence", "decking"],
-  "words_avoid": ["plot", "site", "property", "grounds", "hardscape", "softscape", "outdoor living space", "green space", "curb appeal"],
+  "words_avoid": ["plot", "site", "property", "grounds", "hardscape", "softscape", "green space", "curb appeal"],
+  "words_avoid_exceptions": { "grounds": "allowed where the page is about an estate or a commercial site, where grounds is the customer's own word for it" },
+  "banned_phrases": ["outdoor living space", "outdoor living", "dream outdoor space", "dream garden", "garden of your dreams", "oasis", "sanctuary", "haven", "retreat", "outdoor room", "transform your garden", "transform your outdoor space", "al fresco", "entertaining space"],
 
   "buttons": {
     "primary_action": "Get My [QUOTE_FREE] Quote",
@@ -68,6 +70,14 @@
     "a price that grows once the job starts",
     "being left with a half finished garden and no idea what happens next"
   ],
+  "fears_by_type": {
+    "B": [
+      "visits that get missed or stop without a word",
+      "a different job each time, depending on who turns up",
+      "nobody noticing what is starting to slip (a hedge past its cut, moss taking a corner of the lawn, a bed going over)",
+      "a round that ends up costing more than was agreed"
+    ]
+  },
 
   "logo_tiers": {
     "ratings": ["Google (needs review_count 5+)", "Checkatrade", "Trustpilot", "Which? Trusted Traders"],
@@ -156,20 +166,39 @@
     {
       "slot": "faq_D",
       "question": "What is the best time of year to landscape a garden?",
-      "answer_brief": "Hard landscaping runs most of the year in dry spells; planting and turfing do best in autumn and spring. Booking ahead for spring.",
+      "answer_brief": "When each kind of work goes in and why, in the soil or the plant, from the trade facts timing cells: paving and groundwork wait for ground that is neither frozen nor sodden, because a base cannot be firmed when it is wet; turf, seed and planting go in while the soil is warm and moist so the roots take before heat or frost. Nothing about spring being busy or booking ahead. No dates, no promise about the weather.",
       "symptom_based": false,
       "is_fallback": true,
       "doubt": "Timing"
     },
     {
       "slot": "faq_planning",
-      "question": "Do I need planning permission for a patio or driveway?",
-      "answer_brief": "Most back garden patios do not. Front driveways over 5 square metres need permeable paving or drainage into the garden, otherwise permission. Conservation areas add controls.",
+      "question": "Will my patio or driveway need planning permission?",
+      "answer_brief": "Point at the trade facts rule rows (Table C) and write what usually applies, with \"usually\" or \"in most cases\": a patio in the back garden usually needs none; a new surface at the front of the house usually needs the rain to soak away inside the garden; a raised deck or a structure near a boundary is where a rule can come in. What the customer does about it only as the row gives it. No figure, no area, no height, never an Act's or an order's name. Conservation areas and listed homes add controls: say so without naming them.",
       "symptom_based": false,
       "condition": "big_ticket AND [CV: handles_planning] confirmed",
       "doubt": "Process"
     }
   ],
+  "faq_slots_by_type": {
+    "B": [
+      {
+        "slot": "faq_A",
+        "question": "How often do you need to come?",
+        "answer_brief": "What decides it, in plain words: grass and hedges grow fastest from spring to midsummer as the soil warms and slow right down in the cold months and in a dry spell, so the gap between visits follows the growth (the trade facts timing cells). A frequency only from [CV: visit_frequency_options]; otherwise say the pattern is agreed with you and nothing more. Never promise a schedule; a seasonal contract only when confirmed.",
+        "symptom_based": false,
+        "doubt": "Timing"
+      },
+      {
+        "slot": "faq_D",
+        "question": "What does a regular visit cover?",
+        "answer_brief": "The jobs on the card list said as one visit: the lawn and its edges, the beds, the hedge when it is in its cutting window. What a visit does not cover only from the services list. Nothing about design or projects unless the services list has them: a maintenance client's copy never implies design work. Link one service page where LINKABLE PAGES has one.",
+        "symptom_based": false,
+        "is_fallback": true,
+        "doubt": "Fit"
+      }
+    ]
+  },
 
   "materials_tick_list": {
     "Paving": ["porcelain", "natural stone", "concrete slabs", "block paving", "resin bound", "gravel"],
@@ -227,7 +256,11 @@
   "seasonal_trade": true,
   "category_types": {
     "gardener": "B",
-    "lawn care service": "B"
+    "lawn care service": "B",
+    "landscape gardener": "A",
+    "paving contractor": "A",
+    "deck builder": "A",
+    "tree service": "A"
   },
   "category_page_blocks": {
     "A": {
@@ -235,23 +268,23 @@
         "h2": "Common [WORK] Problems",
         "cards": [
           {
-            "title": "Water that sits where it shouldn't",
-            "brief": "Puddles on paving, a soggy corner of lawn or beds that stay wet. The one cause this card makes: a surface laid with no fall, so water has nowhere to go. Say what the fix usually involves, in plain words; what the business itself does on site only from confirmed practices. Never promise the ground will change. Not slow draining ground: the symptom FAQ may own that.",
+            "title": "A garden with nowhere to sit out",
+            "brief": "A situation card, not a fault: the household looks at the garden from the house and has nowhere flat and dry for a table and chairs, to let the children out or to stand with a coffee. What decides it: the levels and the ground by the back door (a slope, a lawn that stays wet, a step down to nothing). What the work gives them, in plain words: a patio or a deck made the size they will use, a level lawn, steps that make the lower garden reachable. By category: Paving reads it as the patio and its base; Decking as the deck, where the evening sun falls and what holds it up; Landscape Gardener as whichever fits the garden; Tree Service as the one sunny corner shaded out by a tree that has grown over it, and what lifting or thinning the crown gives back. Never a lifestyle pitch, never a fault invented for it.",
+            "mechanism": "no level, dry place to sit near the house"
+          },
+          {
+            "title": "Slabs, boards or posts that move underfoot",
+            "brief": "Problem led: a slab that rocks, blocks that have dipped, a deck board that gives, a post that leans, a young tree that rocks in its stake. The one cause this card makes: what holds it up was never made firm (a sub base not compacted, a subframe on soft supports, a post set shallow, a tree staked loosely), so the ground or the frame gives under it. Say what a sound base, footing or support involves in plain words from the trade facts stages, and that the fix starts underneath, not on top. By category: Paving reads it in the base under slabs and blocks; Decking in the joists, posts and supports; Tree Service in the stake, the planting pit or a stump left under a surface; Landscape Gardener in steps, paths and walls. No depth or figure the rows do not give.",
+            "mechanism": "what holds it up was never made firm"
+          },
+          {
+            "title": "Rain that stays where it lands",
+            "brief": "Problem led: puddles that sit on paving after rain, a deck green and slippery by autumn, a corner of lawn soft for days, a planting hole that fills with water. The one cause this card makes: a surface laid with no fall, so the rain cannot run off it. Say what the fix usually involves (a fall built into the laying, a base that drains, timber kept off wet ground, a tree planted at the right level) from the trade facts stages; what the business does on site only from confirmed practices. Never promise the ground will change. By category: Paving reads it on the surface; Decking in boards and joists that never dry; Tree Service in a tree standing in ground that holds water; Landscape Gardener across the garden. Not slow draining ground on its own: the symptom FAQ may own that.",
             "mechanism": "a surface laid with no fall"
           },
           {
-            "title": "Surfaces that sink or rock",
-            "brief": "Slabs that rock, blocks that dip, a step that moves. The one cause this card makes: a base that was never compacted, so it moves under the surface. Say what a sound base involves in plain words and that the fix starts underneath, not on top.",
-            "mechanism": "a base never compacted"
-          },
-          {
-            "title": "Timber that fails early",
-            "brief": "Fence posts that lean, boards soft at ground level, a pergola post that moves. The one cause this card makes: timber sitting in wet ground with no way for water to get away. Say what the business does differently at ground level, from confirmed practices only; otherwise what a post set properly involves.",
-            "mechanism": "timber sitting in wet ground"
-          },
-          {
-            "title": "A garden that has outgrown its layout",
-            "brief": "Borders too close to paths, a hedge that blocks the way, levels that send water to the house. The one cause this card makes: planting and levels set years ago for a different garden. Say how the business looks at the whole garden before it quotes one part of it, from confirmed practices only.",
+            "title": "Planted or built for a different garden",
+            "brief": "A situation and a warning sign in one: borders now hard against the path, a drive too small for the cars that use it, a deck in the corner the sun left years ago, a tree planted close to the house that now reaches the roof. The one cause this card makes: planting and levels set years ago for a different garden. Say how looking at the whole garden before pricing one part of it works, from confirmed practices only. By category: Landscape Gardener reads it as layout and levels; Paving as the front garden and the drive; Decking as a platform in the wrong place or at the wrong height; Tree Service as the warning signs in the tree itself (branches rubbing the building, deadwood showing, a damaged limb, from the trade facts signs row) and that which answer fits depends on what the tree is, how close it stands and what the ground is, never that a tree is or is not safe. Never a judgement about the garden's age or state.",
             "mechanism": "planting and levels set for an older garden"
           }
         ]
@@ -319,25 +352,25 @@
         {
           "slot": "timing",
           "question": "When is the best time of year for [WORK_LOWER] work?",
-          "answer_brief": "Hard landscaping runs most of the year in dry spells; planting and turf do best in autumn and spring. Booking ahead for spring. No dates, no promises about the weather.",
+          "answer_brief": "When each kind of [WORK_LOWER] work is best done and why, in the soil or the plant, from the trade facts timing cells: paving, footings and groundwork wait for ground that is neither frozen nor sodden, because a base cannot be firmed when it is wet; turf, seed and planting go in while the soil is warm and moist so roots take before heat or frost; tree work follows the species and the nest check rather than a season. Nothing about spring being busy or booking ahead. No dates, no promises about the weather.",
           "doubt": "Timing"
         }
       ],
       "faq_symptom": {
         "frame": "[SYMPTOM]: why does it happen, and what can be done?",
-        "answer_brief": "The symptom and its linked local issue, answered as asked: the usual cause here in plain words, what the local ground or housing adds, then what the business does about it. One figure at most.",
+        "answer_brief": "The symptom and its linked local issue, answered as asked. Where the symptom is a seasonal sign (moss through winter, a brown lawn in a drought, early leaf fall), say first when it is normal and then what is not, before anything else. Then the usual cause here in plain words, what the local ground or housing adds, and what the business does about it. One figure at most.",
         "doubt": "Process"
       },
       "seasonal": {
         "problem_card": {
           "title": "Damage that shows after a wet winter",
-          "brief": "Lifted slabs, a leaning post, moss across the paving, a lawn that never dried out. The one cause this card makes: frost moving what water had loosened over the winter. Say what the business looks for in spring, from confirmed practices only.",
+          "brief": "Say first what is normal at the end of winter: moss on shaded paving, a lawn slow to dry, timber dark with damp, all of which ease as the ground warms and dries. Then what is not: a slab that has lifted, a post that now moves, a step that rocks, a wall with a new crack. The one cause this card makes: frost moving what water had loosened over the winter. Say what gets looked at in spring, from confirmed practices only, and what putting it right involves from the trade facts stages. Nothing about spring being busy or booking ahead.",
           "mechanism": "frost moving what water had loosened"
         },
         "faq_slot": {
           "slot": "seasonal",
           "question": "Can you do [WORK_LOWER] work in winter?",
-          "answer_brief": "What runs in the cold months (hard landscaping in dry spells, clearance, fencing) and what waits (turf, planting in frozen ground). No dates.",
+          "answer_brief": "What runs in the cold months (hard landscaping in dry spells, clearance, fencing) and what waits (turf and planting while the ground is frozen), with the reason: a base cannot be firmed on frozen or sodden ground, and roots do not take in frozen soil. No dates.",
           "doubt": "Timing"
         }
       }
@@ -348,23 +381,23 @@
         "cards": [
           {
             "title": "A lawn full of moss and bare patches",
-            "brief": "Moss where the grass is thin and the ground stays damp, bare patches that never fill. The one cause this card makes: shade and damp ground. The fix is scarifying to lift the moss and overseeding the thin patches, linking the lawn care or lawn seeding page where LINKABLE PAGES has one; never mowing alone as the answer. Not compaction, not thatch, not the cutting height: other cards and the FAQ own those.",
+            "brief": "Say first what is normal: moss in a lawn at the end of a wet winter is usual and thins as the grass starts growing again in spring. Then what is not: moss that holds on through summer, bare patches that never fill. The one cause this card makes: shade and damp ground. The fix is scarifying to lift the moss and overseeding the thin patches, in spring or early autumn while the grass is growing and can recover, linking the lawn care or lawn seeding page where LINKABLE PAGES has one; never mowing alone as the answer, never a promise the moss will not return. On a Lawn care page the card reads as what shows in the lawn, and the season whose treatment answers it: the autumn moss treatment and scarify, the spring feed. Not compaction, not thatch, not the cutting height: other cards and the FAQ own those.",
             "mechanism": "shade and damp ground"
           },
           {
             "title": "Hedges that have got away",
-            "brief": "A hedge wide at the top and bare at the base, growth over the path. The one cause this card makes: cuts missed or made at the wrong time of year. Say how the round brings it back over more than one cut. A nesting bird check only when the nesting_bird_check practice is confirmed.",
-            "mechanism": "the timing of cuts"
+            "brief": "A hedge gone wide at the top and thin at the base, growth over the path. The one cause this card makes: cuts missed or made at the wrong time of year, so the growth went woody. Time of year and the reason: a cut before midsummer, while the season's growth is still soft, keeps the blade out of thick wood; the window differs by species (the trade facts timing cell). The nest check before any cut is a stage of the job in the trade facts; written as this business's own practice only when nesting_bird_check is confirmed. Say what bringing a hedge back involves (a cut in stages over more than one season, never one hard cut) with no promise it will thicken up or recover. On a Lawn care page the card reads as the lawn in a dry summer: grass going brown in a dry spell is normal and greens again with rain (say so first); what is not is grass scalped by a low cut or cut hard after being left, so the height and the timing of cuts are the fix.",
+            "mechanism": "the timing and height of cuts"
           },
           {
             "title": "Weeds that come straight back",
-            "brief": "Weeds through paving joints and across beds within weeks of clearing. The one cause this card makes: roots left in the ground. What the round does so they stay away, from confirmed practices only (weed_roots_out); otherwise say what stops weeds in general terms. Not bare soil or mulch: the mulching card owns that.",
+            "brief": "Weeds through paving joints and across beds within weeks of clearing. The one cause this card makes: roots left in the ground. Say what dealing with the root involves, from confirmed practices only (weed_roots_out: lifted out with the root); otherwise what stops weeds in general terms, with no promise they stay away. Time of year and the reason: hoeing and lifting while weeds are small in spring, before they set seed and before the roots go deep. On a Lawn care page the card reads as weeds in the lawn that are mown off and come back because the root stays, and the spring or early summer treatment while they are growing (a product only where [CV: materials_methods] gives it). Not bare soil or mulch: the mulching card owns that.",
             "mechanism": "roots left in the ground"
           },
           {
             "title": "Borders that dry out or get swamped",
-            "brief": "Beds bare and dry by the first warm week, or sodden all winter. The one cause this card makes: bare soil with nothing covering it. Say what the round does through the year, from confirmed practices only (soil_covered_after_clearance).",
-            "mechanism": "bare soil with no mulch"
+            "brief": "Beds bare and dry by the first warm week, or sodden all winter. The one cause this card makes: bare soil with nothing covering it. Time of year and the reason: mulch goes on in spring once the soil has warmed and is moist, or in autumn, so it holds the moisture in and keeps the light off weed seedlings; never onto frozen soil. What the round does through the year from confirmed practices only (soil_covered_after_clearance). On a Lawn care page the card reads as bare or thin patches where soil shows through the grass, and overseeding in early autumn or mid spring while the soil is warm and moist so the seed takes. No promise about how the planting or the lawn will come on.",
+            "mechanism": "bare soil with nothing covering it"
           }
         ]
       },
@@ -444,19 +477,19 @@
       ],
       "faq_symptom": {
         "frame": "[SYMPTOM]: why does it happen, and what can be done?",
-        "answer_brief": "The symptom and its linked local issue, answered as asked: the usual cause here in plain words, then what a regular round does about it. One figure at most.",
+        "answer_brief": "The symptom and its linked local issue, answered as asked. Where the symptom is a seasonal sign (moss through winter, a brown lawn in a drought, early leaf fall), say first when it is normal and then what is not, before anything else. Then the usual cause here in plain words and what a regular round does about it, in its season. One figure at most.",
         "doubt": "Process"
       },
       "seasonal": {
         "problem_card": {
           "title": "Leaves and debris burying the lawn",
-          "brief": "Leaves left on the grass through autumn, a lawn pale underneath by midwinter. The one cause this card makes: light and air kept off the grass. What the autumn visits do only from confirmed practices (autumn_leaf_clearance); otherwise what clearing the leaves does for the grass.",
+          "brief": "Leaves left on the grass through autumn, a lawn pale underneath by midwinter. Say first that leaves falling in autumn is the season, not a fault. The one cause this card makes: light and air kept off the grass where the leaves lie for weeks. Time of year and the reason: clearing through autumn, before the leaves mat down in the wet. What the autumn visits do only from confirmed practices (autumn_leaf_clearance); otherwise what clearing the leaves does for the grass.",
           "mechanism": "light and air kept off the grass"
         },
         "faq_slot": {
           "slot": "seasonal",
-          "question": "When should I book for spring?",
-          "answer_brief": "The first cut of the year is the one to book ahead for. No dates, no promise of a slot, nothing about agreeing the round before a rush.",
+          "question": "When should the first cut of the year happen?",
+          "answer_brief": "When the grass starts growing again as the soil warms in spring, and why the first cut is a light one (the top taken off, never cut hard) so the grass is not stressed. No dates, no promise of a slot, nothing about booking ahead or agreeing the round before a rush.",
           "doubt": "Timing"
         }
       }
@@ -504,23 +537,23 @@
         "cards": [
           {
             "title": "The first signs",
-            "brief": "The things a homeowner notices first, from the trade facts signs row, in their words. The one cause this card makes: the job left undone. Then what it leads to if left, from the skipped row: specific, never alarming.",
+            "brief": "The things a homeowner notices first, from the trade facts signs row, in their words. The one cause this card makes: the job left undone. Then what it leads to if left, from the skipped row: specific, never alarming. On a schedule led page (the sealing, restoring, mulching, weeding, treating, trimming and mowing pages under a project category) the card is what slips and when: a finish worn through by the end of a wet winter, mulch broken down by spring, weeds back as the soil warms, with the reason in the material or the plant from the timing cell, never in the customer's diary.",
             "mechanism": "the job left undone"
           },
           {
             "title": "It's moved, sunk or leant",
-            "brief": "A surface, a post, a level or a finish that has shifted or dropped, including where a job was done once and left roots, a loose base or a shallow grind behind. The one cause this card makes: a stage skipped underneath, so the ground gives. Say what the job does underneath so it stays put, from the trade facts stages and the done badly row; no depth or figure the rows do not give; never a dig at another trade.",
+            "brief": "A surface, a post, a level or a finish that has shifted or dropped, including where a job was done once and left roots, a loose base or a shallow grind behind. The one cause this card makes: a stage skipped underneath, so the ground gives. Say what the job does underneath so it stays put, from the trade facts stages and the done badly row; no depth or figure the rows do not give; never a dig at another trade. On a schedule led page: what a season's wear has moved, from the signs row (joints that have lost their sand so blocks shift, a fixing standing proud on a deck).",
             "mechanism": "a stage skipped underneath, so the ground gives"
           },
           {
             "title": "It's past patching up",
-            "brief": "Rot, cracking, moss in the joints, a lean that comes back: the signs from the trade facts that a repair no longer holds. The one cause this card makes: wear that a repair no longer holds. Say when a patch repair stops being worth it and what doing the job properly involves, from the stages. Not settlement or a skipped stage: card 2 owns those.",
+            "brief": "Rot, cracking, moss in the joints, a lean that comes back: the signs from the trade facts that a repair no longer holds. The one cause this card makes: wear that a repair no longer holds. Say when a patch repair stops being worth it and what doing the job properly involves, from the stages. On a schedule led page: the point where cleaning and recoating no longer holds because what is under the finish is soft or loose, from the done badly row. Not settlement or a skipped stage: card 2 owns those.",
             "mechanism": "wear that a repair no longer holds"
           },
           {
             "title": "Water in the wrong place",
-            "brief": "Puddles, a soggy patch, damp at a wall or a post. The one cause this card makes: water with nowhere to go. Say what the job does about it from the trade facts; never promise the ground will change. Not the fall of a surface or an uncompacted base: the category page owns those.",
-            "mechanism": "water with nowhere to go"
+            "brief": "Puddles, a soggy patch, damp at a wall or a post. The one cause this card makes: water held with no way out. Say what the job does about it from the trade facts; never promise the ground will change. On a schedule led page: a surface that once shed rain and now soaks it up unevenly, from the signs row. Not the fall of a surface or an uncompacted base: the category page owns those.",
+            "mechanism": "water held with no way out"
           }
         ]
       },
@@ -581,7 +614,7 @@
         {
           "slot": "rules",
           "question": "Do I need permission for [SERVICE_LOWER]?",
-          "answer_brief": "From the trade facts rule rows only, as what usually applies, with \"usually\" or \"in most cases\": the condition that brings a rule in (a boundary, a height, a protected tree, a listed home, a front garden) and what the customer does about it. Never a standard's number, an Act's name or legal advice. Where the rows give no rule, say no permission is usually needed for this work at a home and leave it there.",
+          "answer_brief": "From the trade facts rule rows only, put as the thing that usually applies, with \"usually\" or \"in most cases\": the condition that brings a rule in (a boundary, a height, a protected tree, a listed home, a front garden) and what the customer does about it. Never a standard's number, an Act's name or legal advice. Where the rows give no rule, say no permission is usually needed for this work at a home and leave it there.",
           "doubt": "Process"
         },
         {
@@ -593,20 +626,60 @@
       ],
       "faq_symptom": {
         "frame": "[SYMPTOM]: why does it happen, and what can be done?",
-        "answer_brief": "The symptom and its linked local issue, answered as asked: the usual cause here in plain words, what the local ground or housing adds, then what this service does about it. One figure at most.",
+        "answer_brief": "The symptom and its linked local issue, answered as asked. Where the symptom is a seasonal sign (moss through winter, a brown lawn in a drought, early leaf fall), say first when it is normal and then what is not, before anything else. Then the usual cause here in plain words, what the local ground or housing adds, and what this service does about it. One figure at most.",
         "doubt": "Process"
       },
       "seasonal": {
         "problem_card": {
           "title": "What a winter leaves behind",
-          "brief": "What shows in spring after the cold months: the signs from the trade facts for this job. The one cause this card makes: ground heaving and shrinking through the winter. Say what the business looks for in spring from confirmed practices only; otherwise what the job puts right. Not water sitting (card 4) and not a skipped stage (card 2).",
+          "brief": "What shows in spring after the cold months, from the trade facts signs row for this job. Say first what is normal after a winter (a green film on timber and paving, ground slow to dry, a lawn thin after the cold) and then what is not. The one cause this card makes: ground heaving and shrinking through the winter. Say what gets looked at in spring from confirmed practices only; otherwise what the job puts right. Not water sitting (card 4) and not a skipped stage (card 2).",
           "mechanism": "ground heaving and shrinking through the winter"
         },
         "faq_slot": {
           "slot": "seasonal",
           "question": "When is the best time of year for [SERVICE_LOWER], and how long does it take?",
-          "answer_brief": "From the trade facts timing row only: the season the job suits and why, then the duration where the row gives one, else what decides it. No dates, no promises about the weather. This is the one place the timing is written.",
+          "answer_brief": "From the trade facts timing row only: the season the job suits and why, in the soil or the plant, then the duration where the row gives one, else what decides it. No dates, no promises about the weather. This is the one place the timing is written.",
           "doubt": "Timing"
+        }
+      },
+      "desire": {
+        "problems": {
+          "h2": "Is [SERVICE] Right for Your Garden?",
+          "cards": [
+            {
+              "title": "The part of the garden you never use",
+              "brief": "The customer's situation: a corner, a slope or a stretch of lawn nobody goes to because it is wet, uneven, shaded or bare. What decides it: the ground there (a slope, soil that holds water, a worn patch, a change of level) and how the household wants to use it. What the work gives them, from the trade facts stages for this service: a patio or deck to sit on, a path or steps that make it reachable, a lawn or artificial grass that takes the children, a pond, a pergola or a tree that gives a reason to go down there. Never a fault invented for it, never a lifestyle pitch: the ground and the use, not the dream.",
+              "mechanism": "ground that is not level, dry or firm enough to use"
+            },
+            {
+              "title": "Doing it once, properly",
+              "brief": "The customer's situation: they have had a cheap quote or thought about doing it themselves, and want to know what the difference buys. What decides it: the layer they will never see once it is finished (the sub base, the subframe and its supports, the footings, the liner, the soil preparation, the planting pit), which is where a quick job cuts corners and where it gives way a winter or two later. What the work gives them: that layer done as the trade facts stages name it, so the surface stays put. One specific from the stages for this service; no depth or figure the rows do not give; never a dig at another trade.",
+              "mechanism": "the layer underneath, which decides how long it lasts"
+            },
+            {
+              "title": "Which option suits your garden",
+              "brief": "The customer's situation: they are weighing two or three ways of doing it (turf against seed, timber against composite, a patio against a deck, a liner against a preformed pond, natural against artificial grass, a bare root tree against a container grown one). What decides it: the garden's ground, shade, slope and use, and how much looking after they want, from the trade facts materials and methods cell for this service. What the work gives them: the option that suits their garden, never the one that is best in general. A named product only from [CV: materials_methods]. No claim about lifespan or cost unless the rows or the client values give it.",
+              "mechanism": "the ground, the shade and the use deciding the option"
+            },
+            {
+              "title": "What it will need from you afterwards",
+              "brief": "The customer's situation: they want to know what they are taking on once the job is done. What decides it: what the new surface or plant needs to settle in and then through the year, from the trade facts stages and timing cell for this service (new turf watered and kept off until it has rooted, a young tree watered through its first summers and its stake checked, artificial grass brushed, a pond's pump looked at, timber recoated, paving joints topped up). What the work gives them: an honest picture of what it saves them and what it does not. Never a promise about how it will look or last; a maintenance visit offered only where the services list has one.",
+              "mechanism": "what the new surface or plant needs to settle in"
+            }
+          ]
+        },
+        "seasonal": {
+          "problem_card": {
+            "title": "Getting it in at the right time of year",
+            "brief": "The customer's situation: they want it ready for the summer, or want to know when it should go in. What decides it: the window the soil or the plant gives, from the trade facts timing cell for this service (turf and seed while the soil is warm and moist; bare root planting in the dormant months; paving and footings when the ground is neither frozen nor sodden; pond planting as the water warms; composite boards at the maker's temperatures). What the work gives them: a job done in its window so it takes. No dates, nothing about spring being busy or booking ahead, no promise about the weather.",
+            "mechanism": "the window the soil or the plant gives"
+          },
+          "faq_slot": {
+            "slot": "seasonal",
+            "question": "When is the best time of year for [SERVICE_LOWER], and how long does it take?",
+            "answer_brief": "From the trade facts timing row only: the season the job suits and why, in the soil or the plant, then the duration where the row gives one, else what decides it. No dates, no promises about the weather. This is the one place the timing is written.",
+            "doubt": "Timing"
+          }
         }
       }
     },
@@ -650,23 +723,23 @@
         "cards": [
           {
             "title": "Growth has got ahead of you",
-            "brief": "The signs from the trade facts signs row: long grass, a hedge over the path, beds overrun. The one cause this card makes: a visit missed in the growing season. Then what the visit does, from the stages; what skipping leads to from the skipped row.",
+            "brief": "The signs from the trade facts signs row: long grass, a hedge over the path, beds overrun. The one cause this card makes: a visit missed in the growing season. Time of year and the reason: from spring to midsummer, once the soil has warmed, growth is at its fastest and a missed visit shows within a fortnight. Then what the visit does, from the stages; what skipping leads to from the skipped row (long grass cut hard is scalped, and the clumps shade what is under them).",
             "mechanism": "a visit missed in the growing season"
           },
           {
             "title": "It looks untidy from the house",
-            "brief": "The things that show from a window or the door: ragged edges, an uneven line, clumps left on the grass. The one cause this card makes: edges and lines left uncut. Say what the visit puts right.",
-            "mechanism": "edges and lines left uncut"
+            "brief": "The things that show from a window or the door: grass over the edge of the path, a ragged line against the bed, clumps left on the grass. The one cause this card makes: edge growth creeping over paths and beds between cuts, fastest in late spring when the lawn is growing hardest. Say what the visit puts right (the edge cut back to its line, the clippings collected or spread as agreed) from the stages; no promise it stays that way.",
+            "mechanism": "edge growth creeping over paths and beds"
           },
           {
             "title": "It keeps coming back",
-            "brief": "Weeds, moss or growth that returns within weeks of a tidy up. The one cause this card makes: the cause never dealt with, only what shows. Say what the visit does about the cause, from the trade facts; never a product the client values do not give. Not roots left in the ground, not shade and damp: the category page owns those.",
+            "brief": "Weeds, moss or growth that returns within weeks of a tidy up. Say first when the return is normal (moss at the end of a wet winter where the ground stays damp, a flush of growth after warm rain) and then when it is not (a weed back within weeks of a treatment in the growing season). The one cause this card makes: the cause never dealt with, only what shows. Say what the visit does about the cause, from the trade facts, and the season it is done in (treatments while the plant is growing, in spring or autumn); never a product the client values do not give, never a promise it will not return. Not roots left in the ground, not shade and damp: the category page owns those.",
             "mechanism": "the cause never dealt with, only what shows"
           },
           {
-            "title": "It's taking more of your weekend than it should",
-            "brief": "The customer's side: a job that has become a catch up every time instead of a short regular one. The one cause this card makes: a round that has turned into a catch up. Say what a regular visit changes, without a frequency unless [CV: visit_frequency_options] is set.",
-            "mechanism": "a round that has turned into a catch up"
+            "title": "Every cut is a bigger job than the last",
+            "brief": "The customer's side: a job that takes longer every time it is done. The one cause this card makes: growth that thickens and hardens the longer it is left (grass left long is harder to cut evenly and clumps, hedge growth goes woody by midsummer so a late cut goes into thicker wood, weeds left to seed come back in numbers). Time of year: late spring to midsummer, when growth is fastest. Say what a regular visit changes (a cut kept in soft growth), without a frequency unless [CV: visit_frequency_options] is set, and no promise about the result.",
+            "mechanism": "growth that thickens and hardens the longer it is left"
           }
         ]
       },
@@ -747,25 +820,25 @@
           "slot": "rules",
           "when": "rule_rows",
           "question": "Are there rules or standards for [SERVICE_LOWER]?",
-          "answer_brief": "From the trade facts rule rows only, written as what usually applies to the work, never as something the customer must comply with: a grounds maintenance standard reads as how the job is done, not as homework for the reader. Plain words with \"usually\" or \"in most cases\"; what the customer does only where the row says so. Never a standard's number, an Act's name or legal advice. This slot is used only when the service has rule rows.",
+          "answer_brief": "From the trade facts rule rows only, written as the way the work is usually done, never as something the customer must comply with: a grounds maintenance standard reads as how the job is done, not as homework for the reader. Plain words with \"usually\" or \"in most cases\"; what the customer does only where the row says so. Never a standard's number, an Act's name or legal advice. This slot is used only when the service has rule rows.",
           "doubt": "Process"
         }
       ],
       "faq_symptom": {
         "frame": "[SYMPTOM]: why does it happen, and what can be done?",
-        "answer_brief": "The symptom and its linked local issue, answered as asked: the usual cause here in plain words, then what a regular visit does about it. One figure at most.",
+        "answer_brief": "The symptom and its linked local issue, answered as asked. Where the symptom is a seasonal sign (moss through winter, a brown lawn in a drought, early leaf fall), say first when it is normal and then what is not, before anything else. Then the usual cause here in plain words and what a regular visit does about it, in its season. One figure at most.",
         "doubt": "Process"
       },
       "seasonal": {
         "problem_card": {
           "title": "What the season is about to throw at it",
-          "brief": "The growth or the fall that comes all at once: spring growth, autumn leaves, as the trade facts timing row has it for this work. The one cause this card makes: growth that comes all at once in spring. Say what getting ahead of it looks like, from the stages; no frequency unless [CV: visit_frequency_options] is set.",
+          "brief": "The growth or the fall that comes all at once: spring growth as the soil warms, autumn leaves, as the trade facts timing row has it for this work. Say first that the flush is the season doing what it does, not a fault. The one cause this card makes: growth that comes all at once in spring. Say what getting ahead of it looks like, from the stages; no frequency unless [CV: visit_frequency_options] is set; no promise about the result.",
           "mechanism": "growth that comes all at once in spring"
         },
         "faq_slot": {
           "slot": "seasonal",
-          "question": "When should I book [SERVICE_LOWER] for the season?",
-          "answer_brief": "The first visit of the year is the one to book ahead for, and what the season does to the work in plain words. No dates, no promise of a slot, nothing about agreeing the visit before a rush. The frequency question owns the season the work runs: do not repeat it.",
+          "question": "When should [SERVICE_LOWER] start for the year?",
+          "answer_brief": "When the first visit of the year should happen and the reason in the plant or the ground, from the trade facts timing cell: mowing and hedge work once growth has started as the soil warms; feeds, seeding and renovation while the soil is warm and moist; mulching before the beds have filled out. No dates, no promise of a slot, nothing about booking ahead or a rush. The frequency question owns the season the work runs: do not repeat it.",
           "doubt": "Timing"
         }
       }
@@ -779,12 +852,12 @@
         "cards": [
           {
             "title": "Ground that holds the rain",
-            "brief": "Lawns soft for days, beds that sit wet, water lying at the bottom of a slope. The one cause this card makes: the ground under the town's gardens holding water; the town profile and a symptom say which ground (clay, a high water table, a river valley, a flood setting). Say what it means for any job that goes into the ground, in plain words; never promise the ground will change. Not a surface laid with no fall, not a base left loose, not water with nowhere to go: the town's category and service pages own those.",
+            "brief": "Lawns soft for days, beds that sit wet, water lying at the bottom of a slope. The one cause this card makes: the ground under the town's gardens holding water; the town profile and a symptom say which ground (clay, a high water table, a river valley, a flood setting). Say what it means for any job that goes into the ground, in plain words; never promise the ground will change. Not a surface laid with no fall, not a base left loose, not water the surface failed to shed: the town's category and service pages own those.",
             "mechanism": "the ground under the town's gardens holding water"
           },
           {
             "title": "Boundaries as old as the houses",
-            "brief": "Panels that lean, posts soft at the base, a garden wall with a bow in it. The one cause this card makes: fences and walls put up when the houses were built, now at the end of their life; the town profile gives the era. What replacing a boundary involves, in plain words; what the business does only from confirmed practices. Not timber in wet ground, not a repair that no longer holds: other pages own those.",
+            "brief": "Panels that lean, posts soft at the base, a garden wall with a bow in it. The one cause this card makes: fences and walls put up when the houses were built, which the town profile dates. Tie the era to what replacing a boundary involves, never to a judgement on its state: a run of that age comes out with its posts and their concrete and new holes are dug (the trade facts stages); an old wall's footing was built for that wall and not a higher one; where the boundary is shared, the neighbour usually has to be told first (\"usually\", never an Act's name). What the business does only from confirmed practices. Not timber in wet ground, not a repair that no longer holds: other pages own those.",
             "mechanism": "fences and walls put up when the houses were built"
           },
           {
@@ -804,7 +877,7 @@
         "cards": [
           {
             "title": "Getting in on a terraced street",
-            "brief": "Where the back garden is reached through the house or a shared side path, materials come in by hand and the skip sits on the road. Say why that adds time (never \"the only way\": a superlative); the town profile says which streets are terraced. No figure."
+            "brief": "Where the back garden can be got to only through the house or by a shared side path, materials come in by hand and deliveries and waste wait on the road. Say why that adds time (never \"the only way\": a superlative); the town profile says which streets are terraced. No figure."
           },
           {
             "title": "Gardens on a slope",
@@ -816,7 +889,7 @@
           },
           {
             "title": "What the last owner left behind",
-            "brief": "Old concrete, a shed base, buried rubble, an overgrown hedge: what has to come out and go in a skip before anything new goes in. Older gardens in the town carry more of it; say so without unkindness. No figure."
+            "brief": "Old concrete, a shed base, buried rubble, an overgrown hedge: what has to come out and be taken away before anything new goes in. What the town's housing era usually left in the ground, from the profile only (an old path under the lawn, a coal bunker base), said as what the work meets and never as a judgement on the gardens. How it is taken away only from confirmed practices. No figure."
           }
         ]
       },
@@ -824,7 +897,7 @@
         {
           "slot": "cost",
           "question": "How much does [WORK_LOWER] cost in [TOWN]?",
-          "answer_brief": "Prices only from [CV: price_list]; otherwise what moves the price in a town like this (access, slope, what has to come out) and how the quote is given, from [CV: quote_method] only.",
+          "answer_brief": "Prices only from [CV: price_list]; otherwise the things that push the price up in a town like this (access, slope, what has to come out) and how the quote is given, from [CV: quote_method] only.",
           "doubt": "Price"
         },
         {
@@ -869,7 +942,7 @@
         {
           "slot": "timing",
           "question": "When is the best time of year for [WORK_LOWER] work?",
-          "answer_brief": "Hard landscaping runs most of the year in dry spells; planting and turf do best in autumn and spring. Booking ahead for spring. No dates, no promises about the weather.",
+          "answer_brief": "When each kind of [WORK_LOWER] work is best done and why, in the soil or the plant, from the trade facts timing cells: paving, footings and groundwork wait for ground that is neither frozen nor sodden, because a base cannot be firmed when it is wet; turf, seed and planting go in while the soil is warm and moist so roots take before heat or frost. Where the town profile gives the ground (clay still wet in spring, sand dry by June), say what it does to that window. Nothing about spring being busy or booking ahead. No dates, no promises about the weather.",
           "doubt": "Timing"
         }
       ]
@@ -880,22 +953,22 @@
         "cards": [
           {
             "title": "Lawns that struggle on this ground",
-            "brief": "Grass that browns in the first dry week, or stays mossy all winter. The one cause this card makes: the soil under the town's lawns (the profile: fast draining gravel, heavy clay, a river valley). What a regular round does about it in plain words (the height of cut, feeding, scarifying where it fits); anything the business itself promises only from confirmed practices. Not shade and damp ground: the Gardener pages own that.",
+            "brief": "Grass that goes brown in the first dry week, or stays mossy all winter. Say first what is normal (browning in a dry spell that greens again with rain, moss at the end of a wet winter that thins as growth starts) and then what is not (a lawn thin all year, moss holding on through summer). The one cause this card makes: the soil under the town's lawns (the profile: fast draining gravel, heavy clay, a river valley). What a regular round does about it in plain words and in its season (the height of cut in a dry spell, an autumn feed, scarifying or aerating in spring or autumn where it fits); anything the business itself promises only from confirmed practices; never a promise the lawn will stay green. Not shade and damp ground: the Gardener pages own that.",
             "mechanism": "the soil under the town's lawns"
           },
           {
             "title": "Hedges as old as the houses",
-            "brief": "Privet and laurel put in when the street was built, now wide at the top, bare at the base and over the pavement. The one cause this card makes: hedges planted with the houses and left to grow out. How a round brings a hedge back over more than one cut, never one hard cut. Not the timing of cuts: the Gardener pages own that.",
-            "mechanism": "hedges planted with the houses and left to grow out"
+            "brief": "Hedges planted when the street was built, now mature. Name a species only where the town profile gives it; otherwise \"the hedges\". The one cause this card makes: hedges planted with the houses, now carrying a lot of old wood. What the hedge's age means for the work, never a judgement on how it looks: thick wood at the base that is cut back in stages over more than one season rather than in one hard cut, at the species' time of year, with the nest check before each cut (a stage of the job in the trade facts). No promise it will thicken or recover. Not the timing of cuts: the Gardener pages own that.",
+            "mechanism": "hedges planted with the houses, now full of old wood"
           },
           {
             "title": "Gardens that run away in the growing season",
-            "brief": "A garden tidy in April and lost by July. The one cause this card makes: growth outpacing the time the owner has for it (the profile may say who lives here: commuters, retired owners, big gardens). What a regular round keeps on top of, from the card list; a frequency only from the confirmed practices.",
-            "mechanism": "growth outpacing the time the owner has"
+            "brief": "A garden tidy in April and lost by July. The one cause this card makes: the town's ground pushing growth on fast once the soil warms (the profile: rich or moist soil, a sheltered valley, heavy ground that holds water into summer). Never who lives here. What a regular round keeps on top of through late spring and summer, from the card list; a frequency only from the confirmed practices; no promise about the result.",
+            "mechanism": "the town's ground pushing growth on fast in spring"
           },
           {
             "title": "A garden that came with the house",
-            "brief": "New owners with planting they do not know, a lawn cut the wrong way for a season, beds left to see what comes up. The one cause this card makes: a garden inherited with the house (the profile: new estates, turnover, families moving in). What a first visit sorts out and what waits a season; promises only from confirmed practices. Never that the owner has neglected it.",
+            "brief": "New owners with planting they do not know, a lawn cut the wrong way for a season, beds left to see what comes up. The one cause this card makes: a garden inherited with the house (the profile: a new estate where the lawn is turf over compacted builder's ground, or an older garden with established planting and old hedges). What a first visit sorts out and what waits a season to see what comes up; promises only from confirmed practices. Never that the owner has neglected it, never a judgement on the previous one.",
             "mechanism": "a garden inherited with the house"
           }
         ]
