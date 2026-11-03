@@ -132,11 +132,15 @@ const step2 = c => computeDecisions({ cv: c, niche: landscaper, pages, keyValueM
 chk('Step 2 without the visit practice: the neutral step, no quote method named', step2(cv) === 'We Price Your Job', step2(cv), 'We Price Your Job');
 chk('Step 2 with the visit practice: the visit step', step2({ ...cv, confirmed_practices: ['site_visit_before_quote'] }) === 'We Visit and Price the Job', '', 'visit step');
 const roofer = require(path.join(root, 'niche-library/roofer.json'));
-const rPages = [{ pageType: 'homepage', pageTitle: 'K', urlSlug: '/', h1: 'Roofer Bournemouth', status: 'live' }, { pageType: 'service', pageTitle: 'Roof Repair', urlSlug: '/roof-repair', h1: 'Roof Repair Bournemouth', status: 'live' }];
+const rPages = [{ pageType: 'homepage', pageTitle: 'K', urlSlug: '/', h1: 'Roofer Bournemouth', status: 'live' }, { pageType: 'service', pageTitle: 'Roof Repair', urlSlug: '/roof-repair', h1: 'Roof Repair Bournemouth', status: 'live', emergency: true }];
 const rCv = { ...cv, company_name: 'Kestrel Ridge Roofing', primary_category: 'Roofing contractor', h1_override: '', jobs_completed: '1200', differentiator_1_confirmed: true };
 const rSteps = c => computeDecisions({ cv: c, niche: roofer, pages: rPages, keyValueMap: { biz_area_1: 'Bournemouth' }, serviceParentMap: {}, v20TestMode: true, allocationData: null }).decisions.niche_steps.map(s => s.title).join(' / ');
 chk('Roofer step 2 without the visit practice: no inspection step', /We Price Your Job/.test(rSteps(rCv)) && !/Inspect/.test(rSteps(rCv)), rSteps(rCv), 'no-visit');
 chk('Roofer emergency layout uses the emergency steps (was ignored before)', rSteps({ ...rCv, emergency_primary: 'yes' }) === 'Call Us / We Give You a Price and an Arrival Time / We Fix It on the Spot', rSteps({ ...rCv, emergency_primary: 'yes' }), 'emergency steps');
+// 3 Nov 2026: the switch needs a service page flagged emergency in the library; the client's yes alone is not enough
+const rNoFlag = c => computeDecisions({ cv: c, niche: roofer, pages: rPages.map(p => ({ ...p, emergency: false })), keyValueMap: { biz_area_1: 'Bournemouth' }, serviceParentMap: {}, v20TestMode: true, allocationData: null }).decisions;
+chk('Roofer emergency layout stays off with no flagged page, and the decisions block says why', !rNoFlag({ ...rCv, emergency_primary: 'yes' }).emergencyOn && /no page here is flagged emergency/.test(rNoFlag({ ...rCv, emergency_primary: 'yes' }).emergencyWhy), rNoFlag({ ...rCv, emergency_primary: 'yes' }).emergencyWhy, 'off: no flagged page');
+chk('The onboarding answer confirms call outs when the hand field is blank; a hand "no" wins over it', /We Fix It on the Spot/.test(rSteps({ ...rCv, emergency_primary: '', emergency_callouts: 'Yes' })) && !/We Fix It on the Spot/.test(rSteps({ ...rCv, emergency_primary: 'no', emergency_callouts: 'Yes' })), '', 'callouts yes on, hand no off');
 const q5v = computeDecisions({ cv, niche: landscaper, pages, keyValueMap, serviceParentMap, v20TestMode: true, allocationData }).decisions.d11_faq.find(q => q.slot === 'Q5');
 chk('FAQ 5 brief: never describe a visit without the practice', /Never describe a visit before the quote/.test(q5v.answer_brief), q5v.answer_brief, 'no visit');
 const vis = run(r => { r.home_final_cta_body = "Drop us a message and we'll come out, take a look, and give you a price before any work begins."; });

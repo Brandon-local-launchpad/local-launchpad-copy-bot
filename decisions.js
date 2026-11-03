@@ -6,6 +6,7 @@
 
 const CURRENT_YEAR = new Date().getFullYear();
 const { isAdminArea } = require('./client-files');
+const CB = require('./category-blocks');
 const FALLBACK_ORDER = ['faq_C', 'faq_D', 'faq_E'];
 
 function cap(s) { return (s && s.length) ? s[0].toUpperCase() + s.slice(1) : (s || ''); }
@@ -625,7 +626,11 @@ function computeDecisions({ cv, niche, pages, keyValueMap, serviceParentMap, v20
 
   // ── D1 years trading ──
   const { yearFounded, yearsTrading } = yearsTradingOf(cv);
-  const emergencyOn   = !!(niche.emergency_niche && cv.emergency_primary === 'yes');
+  // The emergency switch (3 Nov 2026): the client confirms call outs AND a service page is flagged
+  // emergency in the niche library (category-blocks.js); every other site gets the plain layout
+  const emergencyNames = pages.filter(p => p.pageType === 'service' && p.emergency).map(p => p.pageTitle);
+  const emergencyOn   = CB.clientEmergency(cv) && emergencyNames.length > 0;
+  const emergencyWhy  = CB.emergencyWhy(emergencyOn, emergencyNames, cv);
 
   // ── D3 title modifier ──
   const titleBuilt = seoTitleFor(d2_h1, cv, titleModifierFor(cv, { yearsTrading, yearFounded, emergencyOn }));
@@ -853,7 +858,7 @@ function computeDecisions({ cv, niche, pages, keyValueMap, serviceParentMap, v20
     .filter(p => p.pageType !== 'homepage' && p.pageType !== 'location-category')
     .filter(p => !(p.pageType === 'location' && normArea(stripAdmin(p.pageTitle)) === normArea(primaryCity)))
     .filter(p => p.pageType !== 'service' || cardServiceSet.has(p))
-    .map(p => ({ type: p.pageType, url: p.urlSlug, h1: p.h1 || '' }));
+    .map(p => ({ type: p.pageType, url: p.urlSlug, h1: p.h1 || '', say: p.proseName || null }));
 
   const decisions = {
     d1_years_trading:    yearsTrading,
@@ -875,6 +880,7 @@ function computeDecisions({ cv, niche, pages, keyValueMap, serviceParentMap, v20
     linkablePages,
     niche_steps:         stepsFor(niche, cv, emergencyOn),
     emergencyOn,
+    emergencyWhy,
     quoteFree,
     allocated,
     coastal:              cv.coastal_city === 'yes',
@@ -964,13 +970,13 @@ function formatDecisionsBlock(D, cv, niche, ctx) {
   for (const a of D.d12_areas.plain)  push(`  ${a} (plain text)`);
   push('');
   push(`D15 Buttons: ${D.d15_buttons.join(' | ')}`);
-  push(`Emergency layout: ${D.emergencyOn ? 'ON' : 'off'}`);
+  push(`Emergency layout: ${D.emergencyOn ? 'ON' : 'off'}${D.emergencyWhy ? ` (${D.emergencyWhy})` : ''}`);
   push(`[QUOTE_FREE]: ${D.quoteFree || '(blank — paid quotes)'}`);
   push(`Primary city coastal: ${D.coastal ? 'yes. Write the travel distance as "inland and along the coast", never compass directions or "in each direction"' : 'no'}`);
   push(`Locations hub: ${D.locations_hub ? `${D.locations_hub} (FAQ "Which areas do you cover?" links it)` : 'none (the areas FAQ links no hub)'}`);
   push('');
   push('LINKABLE PAGES:');
-  for (const p of D.linkablePages) push(`  [${p.type}] ${p.url} | H1: ${p.h1}`);
+  for (const p of D.linkablePages) push(`  [${p.type}] ${p.url} | H1: ${p.h1}${p.say ? ` | say: ${p.say}` : ''}`);
   push('');
   push('ALLOCATED ITEMS:');
   const A = D.allocated || { neighbourhoods: [], symptoms: {} };

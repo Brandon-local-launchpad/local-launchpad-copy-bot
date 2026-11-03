@@ -53,6 +53,9 @@ function contextFromPageMap({ rows, hand, cv = {}, niche = {} }) {
       h1: r.h1 || '',
       status: status(r),
       v3: { phase: phase(r), status: r.status, h1_source: r.h1_source, copy_priority: (r.info && r.info.copy_priority) || 0, parent_keys: (r.info && r.info.parent_keys) || [] },
+      // The library flags (3 Nov 2026): an emergency page, and the name running text uses
+      emergency: !!(r.info && r.info.emergency),
+      proseName: (r.info && r.info.prose_name) || null,
       assignedNeighbourhoods: [],
       assignedSymptoms: {},
       locationCategoryName: pageType === 'location-category' ? catName.get(r.info.category_key) || null : null,

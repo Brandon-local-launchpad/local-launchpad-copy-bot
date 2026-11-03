@@ -48,7 +48,7 @@ The keyword appears in its body copy form in the hero intro sentence 1 and the c
 - A card is never unlinked; code only lists cards that have a page.
 
 **Category and service names in prose**
-Card headings use the exact names; code sets them. In running text, a category or service name is written in lower case and used the way a person would say it ("our tree surgeon work", "a stump grinding visit"). Link text must contain the name's words in order. Never build a sentence around the label ("As a Tree Surgeon, we...").
+Card headings use the exact names; code sets them. In running text, a category or service name is written in lower case and used the way a person would say it ("our tree surgeon work", "a stump grinding visit"). Link text must contain the name's words in order. A page listed with `say: …` has a prose name: running text and link text use that name instead of the page name, and the card heading and H1 keep the page name. Never build a sentence around the label ("As a Tree Surgeon, we...").
 
 **Custom values**
 Write every business name, phone number, email and owner name as its `[CV: key]` token, never the actual words. Use only keys present in CLIENT VALUES. Live figures (`[CV: rating]`, `[CV: review_count]`, `[CV: years_trading]`) are always tokens.

@@ -22,7 +22,7 @@ Three owners read a dog trainer's site, and the copy has to know which one it is
 
 The voice is a calm trainer explaining behaviour in the owner's words. Never a drill sergeant, never a dog whisperer.
 
-**Reward based methods only.** Training is described as teaching the dog what to do and making it worth doing: food, play, distance, timing, small steps. Copy never presents corrections, choke or prong collars, shock collars or "dominance" as positive, even in passing. Remote shock collars are banned in England, and copy treats that as settled.
+**Reward based methods only.** Training is described as teaching the dog what to do and making it worth doing: food, play, distance, timing, small steps. Copy never presents corrections, choke or prong collars, shock collars or "dominance" as positive, even in passing. Copy never states the legal position on shock collars: a ban has been proposed in England but not brought into force, and the trade facts pack holds the current position.
 
 ---
 

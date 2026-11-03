@@ -28,14 +28,35 @@
 
 const lc = s => String(s || '').toLowerCase().trim();
 
+// The client has confirmed emergency call outs (3 Nov 2026): the hand set Emergency primary
+// field wins when it says no; otherwise a yes there, or a yes on the onboarding question
+// "Do you take emergency call-outs?" (emergency_callouts), confirms it.
+const yes = v => /^\s*yes/i.test(Array.isArray(v) ? v.join(' ') : String(v || ''));
+function clientEmergency(cv = {}) {
+  if (lc(cv.emergency_primary) === 'no') return false;
+  return lc(cv.emergency_primary) === 'yes' || yes(cv.emergency_callouts);
+}
+
+// Why the emergency layout is on or off, for the DECISIONS block. names: the flagged pages
+// the page's cards lead to (a service page: itself)
+function emergencyWhy(on, names, cv = {}) {
+  if (on) return `${names.join(', ')} ${names.length > 1 ? 'are emergency pages' : 'is an emergency page'} and the client confirms emergency call outs`;
+  if (!names.length) return 'no page here is flagged emergency in the niche library';
+  return clientEmergency(cv) ? '' : `${names.join(', ')} ${names.length > 1 ? 'are emergency pages' : 'is an emergency page'} but the client has not confirmed emergency call outs`;
+}
+
 // The business type a category page is written for: the category's override, else the
 // client's business_type, else the niche default. Returns the letter and the markers.
-function typeFor({ niche, cv = {}, category }) {
+// emergencyPage (3 Nov 2026): the page qualifies for the emergency briefs: a service page
+// flagged `emergency` in the niche library, or a category, location or homepage whose cards
+// lead to one. The emergency layout is on only when the client has confirmed call outs AND
+// the page qualifies; every other page gets the plain briefs.
+function typeFor({ niche, cv = {}, category, emergencyPage = false }) {
   const override = (niche.category_types || {})[lc(category)];
   const raw = lc(override || cv.business_type || niche.business_type_default || 'A');
   const letter = ['a', 'b', 'c', 'd'].includes(raw[0]) ? raw[0].toUpperCase() : 'A';
   const a2 = letter === 'A' && !!niche.big_ticket && cv.handles_planning === 'yes';
-  const emergencyOn = !!(niche.emergency_niche && cv.emergency_primary === 'yes');
+  const emergencyOn = clientEmergency(cv) && !!emergencyPage;
   return { letter, a2, emergencyOn, source: override ? 'category' : cv.business_type ? 'client' : 'niche default' };
 }
 
@@ -45,13 +66,13 @@ class NoBriefsError extends Error {
 
 // The block entry for a page: A2 when the marker is set and an A2 entry exists, the
 // emergency variant laid over it when the emergency layout is on. Throws NoBriefsError.
-function blocksFor({ niche, cv = {}, category }) {
+function blocksFor({ niche, cv = {}, category, emergencyPage = false }) {
   const nicheName = niche._source || niche.trade_lower || niche.trade || 'this niche';
   const all = niche.category_page_blocks;
   if (!all || typeof all !== 'object' || !Object.keys(all).length) {
     throw new NoBriefsError(`no category block briefs for ${nicheName}`, { niche: nicheName });
   }
-  const t = typeFor({ niche, cv, category });
+  const t = typeFor({ niche, cv, category, emergencyPage });
   const key = t.a2 && all.A2 ? 'A2' : t.letter;
   const base = all[key];
   if (!base) throw new NoBriefsError(`no category block briefs for ${nicheName} type ${key}`, { niche: nicheName, type: key });
@@ -121,4 +142,4 @@ function applySeasonal(niche, entry, { problems, faqs, letter = 'A' }) {
   return { problems: p, faqs: q, swapped: true, symptomSwap };
 }
 
-module.exports = { typeFor, blocksFor, briefGaps, pickFaqSlots, applySeasonal, NoBriefsError };
+module.exports = { typeFor, blocksFor, briefGaps, pickFaqSlots, applySeasonal, NoBriefsError, clientEmergency, emergencyWhy };

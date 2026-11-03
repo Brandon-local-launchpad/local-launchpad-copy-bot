@@ -3258,6 +3258,17 @@ async function loadV20Context(clientId, sessionId) {
     } catch (err) {
       console.error('[v20] Failed to load v20 settings for', clientId, err);
     }
+    // The onboarding answer "Do you take emergency call-outs?" (3 Nov 2026): read for the emergency
+    // switch (category-blocks.js clientEmergency); the hand set emergency_primary wins when it says no
+    if (!cv.emergency_callouts) {
+      try {
+        const { rows } = await pool.query(`SELECT value FROM client_fields WHERE client_id=$1 AND field_key='emergency_callouts' AND status='filled'`, [clientId]);
+        const v = rows.length ? rows[0].value : null;
+        if (v != null) cv.emergency_callouts = typeof v === 'string' ? v : Array.isArray(v) ? v.join(', ') : (v.value || v.text || v.label || JSON.stringify(v));
+      } catch (err) {
+        console.error('[v20] Failed to read emergency_callouts for', clientId, err);
+      }
+    }
   }
 
   const session = sessionId ? sessions.get(sessionId) : null;

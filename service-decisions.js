@@ -90,7 +90,9 @@ function computeServiceDecisions({ cv, niche, keyValueMap = {}, rows = [], page,
   // The trade facts pack is the page's main material: an unverified or missing pack refuses the page (serviceGate)
   if (!tradeFacts || !tradeFacts.verified) gates.push({ code: 'G-FACTS', msg: (tradeFacts && tradeFacts.message) || `Service pages are blocked: the trade facts pack for ${niche._source || niche.trade || 'this niche'} is ${tradeFacts ? 'not verified' : 'missing'}. Verify it on the Trade facts page.` });
   let blocks = null;
-  try { blocks = B.blocksFor({ niche, cv, category }); }
+  // The emergency switch (3 Nov 2026): on when this service page is flagged in the library
+  const emergencyNames = (baseRow && baseRow.info && baseRow.info.emergency) || (page.info && page.info.emergency) ? [serviceName] : [];
+  try { blocks = B.blocksFor({ niche, cv, category, emergencyPage: emergencyNames.length > 0 }); }
   catch (e) { if (e.code === 'G-BRIEF') gates.push({ code: 'G-BRIEF', msg: e.message }); else throw e; }
   if (gates.length) return { gates, flags, decisions: null, decisionsBlock: null };
   for (const g of B.briefGaps(blocks.entry)) flags.push({ code: 'F-BRIEF', msg: `${niche._source || niche.trade} type ${blocks.key}: ${g}.` });
@@ -115,6 +117,7 @@ function computeServiceDecisions({ cv, niche, keyValueMap = {}, rows = [], page,
   ctx.primaryAction = ph(btn.primary_action || '', ctx);
   const { yearFounded, yearsTrading } = yearsTradingOf(cv);
   const emergencyOn = blocks.emergencyOn;
+  const emergencyWhy = B.emergencyWhy(emergencyOn, emergencyNames, cv);
   const kwNatural = `${svcLower} in ${townName}`;
 
   // ── Title, meta, trust, rating, buttons (the homepage's rules) ──
@@ -185,7 +188,7 @@ function computeServiceDecisions({ cv, niche, keyValueMap = {}, rows = [], page,
   const siblings = applies.filter(r => r.type === 'service' && live(r) && r !== baseRow && !sameName(r.title, serviceName) && ((r.info && r.info.parent_keys) || []).includes(catKey));
   const townServices = scope === 'town' ? applies.filter(r => r.type === 'town_service' && live(r) && lc(r.info && r.info.town) === lc(townName)) : [];
   const townServiceFor = s => townServices.find(t => sameName(t.info && t.info.service_name, s.title) || (t.info && s.info && t.info.service_id && t.info.service_id === s.info.service_id));
-  const more = siblings.map(s => { const ts = scope === 'town' ? townServiceFor(s) : null; const target = ts || s; return { name: s.title, url: slugOf(target), h1: target.h1 || '', target: ts ? 'town' : 'base', base_url: slugOf(s), status: isLinkable({ status: target.status, urlSlug: slugOf(target), pageType: 'service' }) ? 'Launching' : 'Launching' }; });
+  const more = siblings.map(s => { const ts = scope === 'town' ? townServiceFor(s) : null; const target = ts || s; return { name: s.title, say: (s.info && s.info.prose_name) || null, url: slugOf(target), h1: target.h1 || '', target: ts ? 'town' : 'base', base_url: slugOf(s), status: isLinkable({ status: target.status, urlSlug: slugOf(target), pageType: 'service' }) ? 'Launching' : 'Launching' }; });
   if (!more.length) flags.push({ code: 'F-MORE', msg: `${category} has no other service page: the More Services block is hidden.` });
 
   // ── Blocks 4 and 5, steps, FAQ from the type's briefs ──
@@ -298,17 +301,17 @@ function computeServiceDecisions({ cv, niche, keyValueMap = {}, rows = [], page,
   const locPage = scope === 'town' ? applies.find(r => r.type === 'location' && live(r) && normArea(r.title) === normArea(townName)) : null;
   const locCatHere = scope === 'town' ? locCatFor(townName) : null;
   const linkable = [];
-  const addL = (type, r) => { const url = slugOf(r); if (url && !linkable.some(p => p.url === url)) linkable.push({ type, url, h1: r.h1 || r.title || '' }); };
+  const addL = (type, r) => { const url = slugOf(r); if (url && !linkable.some(p => p.url === url)) linkable.push({ type, url, h1: r.h1 || r.title || '', say: r.say || (r.info && r.info.prose_name) || null }); };
   if (homepage) addL('homepage', { slug: '/', h1: homepage.h1 || '' });
   if (scope === 'base') {
     addL('category', catRow);
-    for (const c of more) addL('service', { slug: c.url, h1: c.h1 });
+    for (const c of more) addL('service', { slug: c.url, h1: c.h1, say: c.say });
     for (const a of areas.linked) addL(a.type, { slug: a.url, h1: a.h1 });
   } else {
     addL('service', baseRow);
     if (locPage) addL('location', locPage);
     if (locCatHere) addL('location-category', locCatHere);
-    for (const c of more) { addL(c.target === 'town' ? 'town-service' : 'service', { slug: c.url, h1: c.h1 }); if (c.target === 'town') addL('service', { slug: c.base_url, h1: siblings.find(s => s.title === c.name).h1 }); }
+    for (const c of more) { addL(c.target === 'town' ? 'town-service' : 'service', { slug: c.url, h1: c.h1, say: c.say }); if (c.target === 'town') addL('service', { slug: c.base_url, h1: siblings.find(s => s.title === c.name).h1 }); }
   }
   const selfUrl = slugOf(page);
   const linkablePages = linkable.filter(p => p.url !== selfUrl);
@@ -337,7 +340,7 @@ function computeServiceDecisions({ cv, niche, keyValueMap = {}, rows = [], page,
     areas, faq: faqs,
     allocated, ideasUsed: Array.isArray(ideasUsed) ? ideasUsed : [], mechanismsUsed,
     locationLinks, baseLink, linkablePages,
-    quoteFree, emergencyOn, coastal: cv.coastal_city === 'yes',
+    quoteFree, emergencyOn, emergencyWhy, coastal: cv.coastal_city === 'yes',
     seasonal: seasonal.swapped,
     trade_facts: { file: tradeFacts.file || null, verified: true, included: true, rows: tradeFacts.rows.length, counts: tradeFacts.counts || {}, missing: tradeFacts.missing || [], has_rule: !!tradeFacts.hasRule, thin: !!tradeFacts.thin },
     // Fields the shared validator reads on every page type
@@ -422,7 +425,7 @@ function formatServiceBlock(D, cv, niche, ctx) {
   }
   push('');
   push(`[QUOTE_FREE]: ${D.quoteFree || '(blank — paid quotes)'}`);
-  push(`Emergency layout: ${D.emergencyOn ? 'ON' : 'off'}`);
+  push(`Emergency layout: ${D.emergencyOn ? 'ON' : 'off'}${D.emergencyWhy ? ` (${D.emergencyWhy})` : ''}`);
   push(`Primary city coastal: ${D.coastal ? 'yes. Write the travel distance as "inland and along the coast", never compass directions or "in each direction"' : 'no'}`);
   const tf = D.trade_facts;
   push(`Trade facts: in the client block (TRADE FACTS), ${tf.rows} row(s) for this service${Object.keys(tf.counts).length ? ` (${Object.entries(tf.counts).map(([k, n]) => `${n} ${k}`).join(', ')})` : ''}${tf.thin ? '. Fewer than 3 rows: say so in MODEL_FLAGS (F-FACTS-THIN) and keep paragraphs 2 and 3 to what the rows give' : ''}`);
@@ -446,7 +449,7 @@ function formatServiceBlock(D, cv, niche, ctx) {
   push('  Only what CONFIRMED PRACTICES in the client block say. Never invent a way of working or a promise about it: no "nothing gets added without you saying so", "each garden gets its own plan", "we stick to the work you asked for", "the price never creeps", "we fit the visit to a time that suits you", "we arrive ready to start", no seasonal pattern of visits, no comparison between the cost of a round and a one off. Say what the work involves, not how the business runs it.');
   push('');
   push('LINKABLE PAGES:');
-  for (const p of D.linkablePages) push(`  [${p.type}] ${p.url} | H1: ${p.h1}`);
+  for (const p of D.linkablePages) push(`  [${p.type}] ${p.url} | H1: ${p.h1}${p.say ? ` | say: ${p.say}` : ''}`);
   if (!D.linkablePages.length) push('  none');
   push('');
   push('ALLOCATED ITEMS:');
