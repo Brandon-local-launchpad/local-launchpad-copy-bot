@@ -81,17 +81,28 @@ function buildProfile({ inputs: I, record = null, cv: cvIn = null, competitors =
     { key: 'hours', label: 'Hours', value: str(cv.hours) },
   ];
 
-  const nap = {
+  const nap = buildNap({ cv, site, areas: areas.capped });
+
+  return { fields, nap, note: buildNote({ I, cv, site, competitors, scanAlerts }), templates: buildTemplates({ cv, flags }), flags };
+}
+
+// The master NAP record, as the GBP panel shows it and the citations module compares
+// listings against (citations/client.js reads this, so the two never drift): the business
+// name as typed, the address only for a storefront (gbp_address_type), the service areas
+// otherwise, the phone in one format, the site URL without a trailing slash
+function buildNap({ cv = {}, site = '', areas = [] }) {
+  const storefront = str(cv.gbp_address_type).toLowerCase() === 'storefront' && str(cv.address);
+  const address = storefront ? expandAddress(cv.address) : '';
+  const cleanSite = str(site).replace(/\/+$/, '');
+  return {
     name: str(cv.company_name),
     address: address || null,
-    service_areas: address ? null : areas.capped,
-    phone: phone.phone,
-    website: site,
+    service_areas: address ? null : (areas || []),
+    phone: normalisePhone(cv.phone).phone,
+    website: cleanSite,
     email: str(cv.email),
     hours: str(cv.hours),
   };
-
-  return { fields, nap, note: buildNote({ I, cv, site, competitors, scanAlerts }), templates: buildTemplates({ cv, flags }), flags };
 }
 
 // Four lines: the primary category and why; targets; landing page fails; blockers.
@@ -144,4 +155,4 @@ function buildTemplates({ cv, flags }) {
   };
 }
 
-module.exports = { buildProfile, buildNote, buildTemplates, normalisePhone, expandAddress, serviceAreas, GBP_AREA_LIMIT, UTM };
+module.exports = { buildProfile, buildNap, buildNote, buildTemplates, normalisePhone, expandAddress, serviceAreas, GBP_AREA_LIMIT, UTM };

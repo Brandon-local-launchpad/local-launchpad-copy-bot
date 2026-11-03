@@ -3963,6 +3963,14 @@ const v20CallModel = async ({ system, message, maxTokens }) => {
 if (filloutService) filloutRoutes.mountApi(app, filloutService);
 // Page map and the hand set-up editor (page-map/routes.js)
 if (filloutService) require('./page-map/routes').mountPageMapApi(app, { pool, filloutService });
+// Citations, the client side (citations/client.js, client-routes.js, 3 Nov): the Citations tab, the scan, the gaps
+if (filloutService && citationStore) {
+  const CL = require('./citations/client');
+  const citationsClientValues = async id => { const r = await pool.query(`SELECT content FROM client_assets WHERE client_id = $1 AND asset_type = 'client_values' ORDER BY uploaded_at DESC LIMIT 1`, [id]); return r.rows.length ? JSON.parse(r.rows[0].content) : {}; };
+  const siteUrlFor = async id => { const r = await pool.query(`SELECT url FROM wp_connections WHERE client_id = $1`, [id]).catch(() => ({ rows: [] })); return r.rows.length ? r.rows[0].url : ''; };
+  const clientCitations = CL.createClientCitations({ pool, store: citationStore, filloutService, placesStore: require('./locations/places').createPlacesStore(pool), approvedTiers: require('./locations/approved').approvedTiers, clientValues: citationsClientValues, siteUrlFor });
+  require('./citations/client-routes').mountClientCitationsApi(app, { pool, clientCitations });
+}
 // Location Determiner (locations/routes.js): which towns get location pages; the dry run first
 if (filloutService) require('./locations/routes').mountLocationsApi(app, { pool, filloutService });
 

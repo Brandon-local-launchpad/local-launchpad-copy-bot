@@ -49,6 +49,7 @@ process.env.PORT = String(PORT);
 process.env.DATABASE_URL = 'postgres://pg-mem/demo';
 process.env.COPYBOT_SECRET_KEY = process.env.COPYBOT_SECRET_KEY || crypto.randomBytes(32).toString('hex');
 process.env.APP_PASSWORD = '';
+process.env.CITATIONS_SKIP_DA = '1'; // the demo's pg-mem is fresh each start: never buy DataForSEO ranks for it
 
 (async () => {
   const { createFakeWp, seedHomepage, listen } = require(path.join(root, 'tests/fake-wp/fake-wp.js'));

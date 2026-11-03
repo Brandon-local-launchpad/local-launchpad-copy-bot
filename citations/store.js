@@ -203,6 +203,7 @@ function createCitationStore(pool, { log = console, dfs = DFS, env = process.env
 
   // The DA column from the DataForSEO domain rank, for rows with a domain and no DA yet (or every row with force)
   async function fillDa({ force = false, fetchImpl = fetch, now = new Date() } = {}) {
+    if (env.CITATIONS_SKIP_DA === '1') return { filled: 0, skipped: 'DA fill is off (CITATIONS_SKIP_DA=1)' };
     if (!dfs.configured(env)) return { filled: 0, skipped: 'DataForSEO is not configured' };
     const { rows } = await pool.query(`SELECT id, domain FROM citation_directories WHERE domain <> '' ${force ? '' : 'AND da IS NULL'}`);
     if (!rows.length) return { filled: 0, cost: 0 };
