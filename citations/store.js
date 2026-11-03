@@ -142,6 +142,11 @@ async function ensureCitationTables(pool) {
       error        TEXT
     );
   `);
+  // The gap check's second method (3 Nov): the competitors checked by category, the domains from
+  // backlinks that are not in the database, the notes (the spend cap, what could not run)
+  await pool.query(`ALTER TABLE citation_gap_runs ADD COLUMN IF NOT EXISTS new_domains TEXT`);
+  await pool.query(`ALTER TABLE citation_gap_runs ADD COLUMN IF NOT EXISTS checked TEXT`);
+  await pool.query(`ALTER TABLE citation_gap_runs ADD COLUMN IF NOT EXISTS notes TEXT`);
 }
 
 const SEED_COLUMNS = ['name', 'url', 'domain', 'tier', 'type', 'cost', 'cost_text', 'priority', 'verification_method', 'done_by', 'applies_to', 'skip_for_service_area', 'needs_live_check', 'notes', 'source_tab', 'source_url'];

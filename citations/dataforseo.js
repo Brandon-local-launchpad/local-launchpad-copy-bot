@@ -48,7 +48,7 @@ async function call(endpoint, payload, { env = process.env, fetchImpl = fetch, t
     }
     if (!fail) {
       const result = (task.result && task.result[0]) || {};
-      return { result, items: result.items || [], cost: round4(task.cost != null ? task.cost : body.cost), attempts: attempt + 1 };
+      return { result, items: result.items || [], cost: round4(task.cost != null ? task.cost : body.cost), attempts: attempt + 1, id: task.id || null };
     }
     const message = D.safeMessage(fail.message || 'request failed', creds);
     if (!D.isBusy(fail.status) || attempt >= retryDelays.length) throw Object.assign(new Error(message), { status: fail.status, attempts: attempt + 1, endpoint });
@@ -94,6 +94,37 @@ async function referringDomains(target, { limit = 1000, ...opts } = {}) {
   return { items, cost: r.cost, total: r.result.total_count == null ? null : Number(r.result.total_count), attempts: r.attempts };
 }
 
+// A listing page read through DataForSEO's OnPage content parsing (JavaScript on), so a site
+// that refuses a direct request still gives its text (3 Nov: every listing page answered 403
+// to Copybot). Returns { ok, status, text, titles, cost }: the page's text blocks joined with
+// newlines, the headings and title as name candidates. ok is false on a non 2xx status or no text.
+async function contentParsing(url, opts = {}) {
+  const r = await call('on_page/content_parsing/live', { url, enable_javascript: true, accept_language: 'en-GB' }, { timeoutMs: 120000, ...opts });
+  const it = r.items[0] || {};
+  const texts = [], titles = [];
+  const walk = (o, key = '') => {
+    if (!o || typeof o !== 'object') return;
+    if (typeof o.text === 'string' && o.text.trim()) texts.push(o.text.trim());
+    if (typeof o.h_title === 'string' && o.h_title.trim()) titles.push(o.h_title.trim());
+    for (const [k, v] of Object.entries(o)) if (v && typeof v === 'object' && k !== 'text') walk(v, k);
+  };
+  walk(it.page_content || {});
+  const pc = it.page_content || {};
+  for (const k of ['title', 'h1']) if (typeof pc[k] === 'string' && pc[k].trim()) titles.unshift(pc[k].trim());
+  const status = it.status_code == null ? null : Number(it.status_code);
+  const text = texts.join('\n');
+  return { ok: !!(status && status >= 200 && status < 300 && text.length > 40), status, text, titles: [...new Set(titles)], cost: r.cost, attempts: r.attempts };
+}
+
+// A business's Google Business Profile as Google shows it (business_data/google/my_business_info/live):
+// the category and additional categories, the phone, the site, the address. keyword: the name and
+// town (or address). Returns null when Google shows no profile for the keyword.
+async function businessInfo(keyword, opts = {}) {
+  const r = await call('business_data/google/my_business_info/live', { keyword, ...UK }, { timeoutMs: 90000, ...opts });
+  const it = r.items[0] || null;
+  return { info: it ? { title: it.title || '', category: it.category || '', additional_categories: it.additional_categories || [], phone: it.phone || '', url: it.url || '', address: it.address || '', cid: it.cid || '', place_id: it.place_id || '', rating: it.rating && it.rating.value != null ? Number(it.rating.value) : null, reviews: it.rating && it.rating.votes_count != null ? Number(it.rating.votes_count) : null } : null, cost: r.cost, attempts: r.attempts };
+}
+
 const configured = (env = process.env) => !!(env.DATAFORSEO_LOGIN && env.DATAFORSEO_PASSWORD);
 
-module.exports = { call, bulkRanks, serp, backlinks, referringDomains, configured, BASE, UK, RETRY_DELAYS };
+module.exports = { call, bulkRanks, serp, backlinks, referringDomains, contentParsing, businessInfo, configured, BASE, UK, RETRY_DELAYS };

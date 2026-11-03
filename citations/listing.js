@@ -83,4 +83,38 @@ function extractNap(html, { domain = '' } = {}) {
   return out;
 }
 
-module.exports = { fetchPage, extractNap, hostOf, UA };
+// The same reading from plain text (DataForSEO's content parsing gives text blocks and headings,
+// not HTML): the names from the titles and the first lines, the phones, the postcodes, the locality
+function extractNapFromText(text, titles = []) {
+  const t = String(text || '');
+  const out = { name: titles[0] || '', names: [...titles], phones: [], postcodes: [], address: '', locality: '', websites: [], source: 'text' };
+  for (const line of t.split('\n').slice(0, 6)) { const s = line.trim(); if (s && s.length < 120 && !/^(home|menu|log in|sign in|search)$/i.test(s)) out.names.push(s); }
+  for (const m of t.matchAll(/(?:\+44\s?\(?0?\)?\s?|0)\d[\d\s().-]{7,14}?\d(?!\d)/g)) { const d = normPhone(m[0]); if (d.length >= 10 && d.length <= 11) out.phones.push(m[0].trim()); }
+  for (const m of t.matchAll(POSTCODE_RE)) out.postcodes.push(`${m[1]}${m[2]}`.toUpperCase());
+  out.phones = [...new Set(out.phones)]; out.postcodes = [...new Set(out.postcodes)]; out.names = [...new Set(out.names.filter(Boolean))];
+  if (out.postcodes.length) {
+    const pc = out.postcodes[0];
+    const flat = t.replace(/\n/g, ', ');
+    const m = flat.match(new RegExp(`(.{0,120}?)\\s*,?\\s+${pc.slice(0, -3)}\\s?${pc.slice(-3)}`));
+    if (m) {
+      // The town is the last part before the postcode, after a comma or "in"
+      const parts = m[1].split(/,|\bin\b|\bat\b|\.|\|/).map(s => s.trim()).filter(Boolean);
+      const town = parts[parts.length - 1] || '';
+      if (town && town.length <= 40 && /^[A-Z]/.test(town)) out.locality = town;
+      out.address = parts.slice(-3).join(', ') + ` ${pc.slice(0, -3)} ${pc.slice(-3)}`;
+    }
+  }
+  for (const m of t.matchAll(/https?:\/\/[^\s"'<>)]+/g)) { const h = hostOf(m[0]); if (h && !SOCIAL_HOSTS.test(h)) out.websites.push(m[0]); }
+  out.websites = [...new Set(out.websites)];
+  return out;
+}
+
+// The last resort: a search result's title and snippet (nothing else could be read)
+function extractNapFromSnippet(item = {}) {
+  const text = `${item.title || ''}\n${item.description || ''}`;
+  const out = extractNapFromText(text, [String(item.title || '').replace(/\s[-|–•].*$/, '').trim()].filter(Boolean));
+  out.source = 'snippet';
+  return out;
+}
+
+module.exports = { fetchPage, extractNap, extractNapFromText, extractNapFromSnippet, hostOf, UA };

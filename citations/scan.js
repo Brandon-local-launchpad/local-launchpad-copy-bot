@@ -7,77 +7,91 @@
 //      client's site): a referring page on the directory's domain is the listing
 //   3. else a DataForSEO SERP: site:<directory domain> "<business name>", the first organic
 //      result on that domain whose title or snippet carries the name
-//   4. else the same with the phone number as the record writes it
-// The page found is fetched and read (citations/listing.js) and compared with the master
-// NAP (citations/nap.js). The row gets listed yes or no, the URL, the NAP status with the
-// differing fields, the status, the scan detail and the time. Confidence:
+//   4. else the same with the phone number as the record writes it, accepted only when the
+//      title or snippet carries the number or the name
+// The page found is read through DataForSEO's OnPage content parsing (JavaScript on; 3 Nov:
+// every listing page answered 403 to a direct request) and compared with the master NAP
+// (citations/nap.js). When the page still cannot be read, the search result's title and
+// snippet are read instead and the row says "NAP from snippet, low confidence". The method
+// used is on every row (scan.method). Confidence:
 //   high      the name and the phone (or the postcode) are on the page: listed, NAP match or mismatch
 //   medium    the name alone, or the phone alone: listed, NAP needs review (no guessing)
-//   low       neither: not written as listed; the candidate URL is kept in the scan detail
-//             under needs review for a person to look at
-// A page that cannot be read (a login wall, a refusal, a timeout) keeps the URL, if there was
-// one, and goes to needs review with the reason. A listing whose town is not one of the
-// client's towns is a wrong location. Statuses set by hand (waiting on client, client
-// declined) are never moved by a scan. Every DataForSEO cost is summed on the scan row and
+//   low       neither, or a snippet only: not written as listed unless the name is in the
+//             title; the candidate kept in the scan detail under needs review
+// A listing whose town is not one of the client's towns is a wrong location. Statuses set by
+// hand (waiting on client, client declined) are never moved by a scan. A search that fails
+// at DataForSEO is tried again in a second and third pass after a pause; a row that still
+// fails keeps what it had and says why. Every DataForSEO cost is summed on the scan row and
 // logged (citation_api_costs, kind "scan"). Directories with no fixed domain (the newspaper
 // patterns, city sites with no URL yet) are skipped with a note.
 
 const DFS = require('./dataforseo');
-const { compareNap, namesMatch, normPhone } = require('./nap');
-const { fetchPage, extractNap, hostOf } = require('./listing');
+const { compareNap, namesMatch, normPhone, postcodeOf } = require('./nap');
+const { extractNapFromText, extractNapFromSnippet, hostOf } = require('./listing');
 const { normaliseName } = require('../locations/places');
 
 const HAND_STATUSES = new Set(['waiting_on_client', 'client_declined']);
 const SOCIAL = new Set(['facebook.com', 'instagram.com', 'linkedin.com']);
+const RETRY_PASSES = 2;
+const RETRY_PAUSE_MS = 20000;
 const str = v => (v == null ? '' : String(v)).trim();
 const json = v => (v == null ? null : JSON.stringify(v));
 const onDomain = (host, domain) => !!host && !!domain && (host === domain || host.endsWith('.' + domain));
+const inSnippet = (i, nap) => { const phone = normPhone(nap.phone); const t = `${i.title || ''} ${i.description || ''}`; return namesMatch(i.title, nap.name) || namesMatch(i.description, nap.name) || t.toLowerCase().includes(str(nap.name).toLowerCase()) || (phone.length >= 10 && normPhone(t).includes(phone)); };
 
 // The listing page for one directory, from what the scan already knows. Returns
-// { url, how } or null; calls the SERP when the backlinks and the saved URL give nothing.
+// { url, how, item } or null; calls the SERP when the backlinks and the saved URL give nothing.
+// spend(cost, calls, what) records the DataForSEO spend; it may throw to stop (a spend cap).
 async function findListing({ dir, row, nap, backlinks, dfs, opts, spend }) {
-  if (row.live_url) return { url: row.live_url, how: row.live_url_source === 'onboarding' ? 'the page link from onboarding' : 'the saved listing URL' };
-  const bl = backlinks.find(b => onDomain(b.domain_from, dir.domain));
-  if (bl) return { url: bl.url_from, how: 'a backlink to the client\'s site' };
+  if (row.live_url) return { url: row.live_url, how: row.live_url_source === 'onboarding' ? 'the page link from onboarding' : 'the saved listing URL', item: null };
+  const bl = (backlinks || []).find(b => onDomain(b.domain_from, dir.domain));
+  if (bl) return { url: bl.url_from, how: 'a backlink to the client\'s site', item: null };
   if (!nap.name) return null;
-  const serp = async (q, test) => {
+  const serp = async q => {
     const r = await dfs.serp(q, opts);
     spend(r.cost, 1, { serp: q, results: r.items.length });
-    return r.items.find(i => onDomain(hostOf(i.url), dir.domain) && test(i)) || null;
+    return r.items.find(i => onDomain(hostOf(i.url), dir.domain) && inSnippet(i, nap)) || null;
   };
-  const byName = await serp(`site:${dir.domain} "${nap.name}"`, i => namesMatch(i.title, nap.name) || namesMatch(i.description, nap.name) || str(i.title + ' ' + i.description).toLowerCase().includes(nap.name.toLowerCase()));
-  if (byName) return { url: byName.url, how: `a search for the name on ${dir.domain}` };
+  const byName = await serp(`site:${dir.domain} "${nap.name}"`);
+  if (byName) return { url: byName.url, how: `a search for the name on ${dir.domain}`, item: byName };
   const phone = normPhone(nap.phone);
   if (phone.length >= 10) {
-    const display = str(nap.phone);
-    // A phone search result counts only when the snippet or title carries the number or the name
-    // (3 Nov: the live run took an unrelated Leeds page off yell.com otherwise)
-    const byPhone = await serp(`site:${dir.domain} "${display}"`, i => normPhone(i.description).includes(phone) || normPhone(i.title).includes(phone) || namesMatch(i.title, nap.name) || namesMatch(i.description, nap.name));
-    if (byPhone) return { url: byPhone.url, how: `a search for the phone number on ${dir.domain}` };
+    // Accepted only when the snippet or title carries the number or the name (the first live run took an unrelated page otherwise)
+    const byPhone = await serp(`site:${dir.domain} "${str(nap.phone)}"`);
+    if (byPhone) return { url: byPhone.url, how: `a search for the phone number on ${dir.domain}`, item: byPhone };
   }
   return null;
 }
 
 // Read the page and compare. Returns the fields to write on the row.
-async function checkListing({ dir, found, nap, towns, fetchFn }) {
-  const page = await fetchPage(found.url, { fetchFn });
-  const base = { how: found.how, url: found.url, final_url: page.finalUrl, fetched: page.ok, http_status: page.status, at: new Date().toISOString() };
-  if (!page.ok) {
-    return { listed: SOCIAL.has(dir.domain) || found.how !== `a search for the phone number on ${dir.domain}` ? 'yes' : 'unchecked', live_url: found.url, nap_status: 'needs_review', nap_diffs: [], scan: { ...base, confidence: 'low', reason: `the listing page could not be read: ${page.reason}` }, wrong_location: false };
+async function checkListing({ dir, found, nap, towns, dfs, opts, spend }) {
+  const base = { how: found.how, url: found.url, at: new Date().toISOString() };
+  let ex = null, method = '', read = null;
+  try {
+    read = await dfs.contentParsing(found.url, opts);
+    spend(read.cost, 1, { onpage: found.url, status: read.status });
+    if (read.ok) { ex = extractNapFromText(read.text, read.titles); method = 'DataForSEO content parsing'; }
+  } catch (e) { read = { ok: false, status: null, error: e.message }; }
+  let snippet = false;
+  if (!ex && found.item) { ex = extractNapFromSnippet(found.item); method = 'search snippet'; snippet = true; }
+  if (!ex) {
+    const why = read && read.error ? read.error : `HTTP ${read && read.status != null ? read.status : '?'}`;
+    return { listed: SOCIAL.has(dir.domain) || found.how !== `a search for the phone number on ${dir.domain}` ? 'yes' : 'unchecked', live_url: found.url, nap_status: 'needs_review', nap_diffs: [], scan: { ...base, method: 'none', fetched: false, http_status: read && read.status, confidence: 'low', reason: `the listing page could not be read through DataForSEO (${why}) and the search gave no snippet` }, wrong_location: false };
   }
-  const ex = extractNap(page.html, { domain: dir.domain });
   const cmp = compareNap({ name: nap.name, phone: nap.phone, address: nap.address || '', website: nap.website }, { name: ex.names, phones: ex.phones, address: ex.address, postcodes: ex.postcodes, websites: ex.websites });
   const nameOk = cmp.verified.includes('name'), phoneOk = cmp.verified.includes('phone'), addrOk = cmp.verified.includes('address');
   const phoneOnPage = phoneOk || ex.phones.some(p => normPhone(p) === normPhone(nap.phone));
-  const postcodeOnPage = addrOk || (nap.address && ex.postcodes.includes(require('./nap').postcodeOf(nap.address)));
-  const confidence = nameOk && (phoneOnPage || postcodeOnPage) ? 'high' : nameOk || phoneOnPage ? 'medium' : 'low';
-  // The town on the listing against the client's towns (a listing in another town is a wrong location)
+  const postcodeOnPage = addrOk || (nap.address && ex.postcodes.includes(postcodeOf(nap.address)));
+  let confidence = nameOk && (phoneOnPage || postcodeOnPage) ? 'high' : nameOk || phoneOnPage ? 'medium' : 'low';
+  if (snippet) confidence = 'low';
   const locality = str(ex.locality);
   const wrong = !!locality && towns.size > 0 && !towns.has(normaliseName(locality)) && nameOk;
-  const scan = { ...base, confidence, found: { name: ex.name || ex.names[0] || '', phones: ex.phones.slice(0, 5), postcodes: ex.postcodes.slice(0, 5), address: ex.address, locality, websites: ex.websites.slice(0, 5), source: ex.source }, verified: cmp.verified, missing: cmp.missing };
+  const scan = { ...base, method, fetched: !!(read && read.ok), http_status: read && read.status, confidence, found: { name: ex.name || ex.names[0] || '', phones: ex.phones.slice(0, 5), postcodes: ex.postcodes.slice(0, 5), address: ex.address, locality, websites: ex.websites.slice(0, 5), source: ex.source }, verified: cmp.verified, missing: cmp.missing };
+  if (snippet) {
+    // The snippet alone: listed when the name is in the result's title, the NAP left for a person
+    return { listed: nameOk ? 'yes' : 'unchecked', live_url: nameOk ? found.url : '', nap_status: 'needs_review', nap_diffs: [], scan: { ...scan, reason: 'NAP from snippet, low confidence', diffs_unconfirmed: cmp.diffs, candidate: found.url }, wrong_location: false };
+  }
   if (confidence === 'low') return { listed: 'unchecked', live_url: '', nap_status: 'needs_review', nap_diffs: [], scan: { ...scan, reason: 'neither the name nor the phone is on the page: check by hand', candidate: found.url }, wrong_location: false };
-  // A page without the business name on it may not be the client's listing at all (a category
-  // page carrying the phone): its differences are kept for a person, not reported as a mismatch
   const napStatus = !nameOk ? 'needs_review' : cmp.status === 'mismatch' ? 'mismatch' : confidence === 'high' ? cmp.status : 'needs_review';
   return { listed: 'yes', live_url: found.url, nap_status: napStatus, nap_diffs: nameOk ? cmp.diffs : [], scan: { ...scan, diffs_unconfirmed: nameOk ? undefined : cmp.diffs, reason: confidence === 'medium' ? `only the ${nameOk ? 'name' : 'phone'} was found on the page` : '' }, wrong_location: wrong };
 }
@@ -91,8 +105,8 @@ function nextStatus(current, result) {
   return current === 'not_started' ? 'submitted' : current; // found but not sure: it exists, keep what a person set
 }
 
-// dfs: citations/dataforseo.js (or a fake); fetchFn: fetch (or a fake); concurrency: pages read at once
-function createScanner({ pool, store, clientCitations, dfs = DFS, fetchFn = global.fetch, env = process.env, log = console, concurrency = 2 }) {
+// dfs: citations/dataforseo.js (or a fake); concurrency: rows worked at once
+function createScanner({ pool, store, clientCitations, dfs = DFS, env = process.env, log = console, concurrency = 2, retryPasses = RETRY_PASSES, retryPauseMs = RETRY_PAUSE_MS, sleep = ms => new Promise(r => setTimeout(r, ms)) }) {
   const running = new Map(); // clientId → the live scan row
 
   async function latest(clientId) {
@@ -126,10 +140,10 @@ function createScanner({ pool, store, clientCitations, dfs = DFS, fetchFn = glob
     const state = { id: scanId, client_id: clientId, running: true, status: 'running', scope: directoryId ? 'one' : 'all', started_at: now().toISOString(), rows_total: targets.length, rows_done: 0, found: 0, cost_usd: 0, calls: 0, detail: [] };
     running.set(clientId, state);
     const spend = (cost, calls = 1, what = null) => { state.cost_usd = Math.round((state.cost_usd + (Number(cost) || 0)) * 1e4) / 1e4; state.calls += calls; if (what) state.detail.push(what); };
-    // One retry after 4 s: DataForSEO's "Internal SE Server Error" rarely clears within a minute, and
-    // three waits per failing row made the first live run take six minutes
+    // One retry inside a call (DataForSEO's search errors are transient); the passes below retry the row later
     const opts = { env, retryDelays: [4000] };
-    const summary = { found: [], not_found: [], needs_review: [], skipped: [], errors: [] };
+    const summary = { found: [], not_found: [], needs_review: [], skipped: [], errors: [], retried: [], methods: {} };
+    const failed = new Map(); // directory id → { row, error }
     try {
       // One backlinks call per full scan: the pages linking to the client's site
       let backlinks = [];
@@ -138,35 +152,51 @@ function createScanner({ pool, store, clientCitations, dfs = DFS, fetchFn = glob
         try { const r = await dfs.backlinks(siteHost, opts); backlinks = r.items; spend(r.cost, 1, { backlinks: siteHost, results: r.items.length }); }
         catch (e) { summary.errors.push(`backlinks: ${e.message}`); log.warn(`[citations] backlinks for ${siteHost} failed: ${e.message}`); }
       }
-      const queue = [...targets];
-      const worker = async () => {
-        for (let r = queue.shift(); r; r = queue.shift()) {
-          const dir = r.directory, row = r.row;
-          const at = now();
-          try {
-            if (!dir.domain) { summary.skipped.push({ directory: dir.name, reason: 'no fixed domain: check by hand' }); await writeRow(clientId, dir.id, { listed: row.listed, live_url: '', nap_status: row.nap_status, nap_diffs: row.nap_diffs, scan: { how: 'skipped', reason: 'no fixed domain (a pattern or a site with no URL yet): check by hand', at: at.toISOString() } }, row.status, at); continue; }
-            const found = await findListing({ dir, row, nap, backlinks, dfs, opts, spend });
-            if (!found) {
-              summary.not_found.push(dir.name);
-              const result = { listed: 'no', live_url: '', nap_status: 'unchecked', nap_diffs: [], scan: { how: 'not found', reason: `no page on ${dir.domain} for the name or the phone`, at: at.toISOString() } };
-              await writeRow(clientId, dir.id, result, nextStatus(row.status, result), at);
-              continue;
-            }
-            const result = await checkListing({ dir, found, nap, towns, fetchFn });
-            if (result.listed === 'yes') state.found++;
-            (result.nap_status === 'needs_review' ? summary.needs_review : summary.found).push({ directory: dir.name, url: found.url, nap: result.nap_status, confidence: result.scan.confidence, wrong_location: result.wrong_location });
-            await writeRow(clientId, dir.id, result, nextStatus(row.status, result), at);
-          } catch (e) {
-            summary.errors.push(`${dir.name}: ${e.message}`);
-            log.warn(`[citations] scan of ${dir.name} failed: ${e.message}`);
-            // The row keeps what it had and says why the scan could not look (DataForSEO's search
-            // answered "Internal SE Server Error" on 15 of 44 rows in the first live run, 3 Nov)
-            await writeRow(clientId, dir.id, { listed: row.listed, live_url: '', nap_status: row.nap_status, nap_diffs: row.nap_diffs, scan: { how: 'failed', reason: `the search failed: ${e.message}. Scan this row again later.`, at: at.toISOString() } }, row.status, at).catch(() => {});
-            if (!DFS.configured(env) || /DataForSEO is not set up|no credit|40101/.test(e.message)) throw e;
-          } finally { state.rows_done++; }
+      const scanRow = async r => {
+        const dir = r.directory, row = r.row;
+        const at = now();
+        if (!dir.domain) { summary.skipped.push({ directory: dir.name, reason: 'no fixed domain: check by hand' }); await writeRow(clientId, dir.id, { listed: row.listed, live_url: '', nap_status: row.nap_status, nap_diffs: row.nap_diffs, scan: { how: 'skipped', reason: 'no fixed domain (a pattern or a site with no URL yet): check by hand', at: at.toISOString() } }, row.status, at); return; }
+        const found = await findListing({ dir, row, nap, backlinks, dfs, opts, spend });
+        if (!found) {
+          summary.not_found.push(dir.name);
+          const result = { listed: 'no', live_url: '', nap_status: 'unchecked', nap_diffs: [], scan: { how: 'not found', method: 'search', reason: `no page on ${dir.domain} for the name or the phone`, at: at.toISOString() } };
+          await writeRow(clientId, dir.id, result, nextStatus(row.status, result), at);
+          return;
         }
+        const result = await checkListing({ dir, found, nap, towns, dfs, opts, spend });
+        summary.methods[result.scan.method || 'none'] = (summary.methods[result.scan.method || 'none'] || 0) + 1;
+        if (result.listed === 'yes') state.found++;
+        (result.nap_status === 'needs_review' ? summary.needs_review : summary.found).push({ directory: dir.name, url: found.url, nap: result.nap_status, confidence: result.scan.confidence, method: result.scan.method, reason: result.scan.reason || '', wrong_location: result.wrong_location, diffs: result.nap_diffs });
+        await writeRow(clientId, dir.id, result, nextStatus(row.status, result), at);
       };
-      await Promise.all(Array.from({ length: Math.max(1, concurrency) }, worker));
+      const pass = async (list, n) => {
+        const queue = [...list];
+        const worker = async () => {
+          for (let r = queue.shift(); r; r = queue.shift()) {
+            try { await scanRow(r); failed.delete(r.directory.id); }
+            catch (e) {
+              failed.set(r.directory.id, { row: r, error: e.message, pass: n });
+              log.warn(`[citations] scan of ${r.directory.name} failed (pass ${n}): ${e.message}`);
+              if (!DFS.configured(env) || /DataForSEO is not set up|no credit|40101/.test(e.message)) throw e;
+            } finally { if (n === 1) state.rows_done++; }
+          }
+        };
+        await Promise.all(Array.from({ length: Math.max(1, concurrency) }, worker));
+      };
+      await pass(targets, 1);
+      // The rows whose search failed: tried again after a pause, up to retryPasses times
+      for (let n = 2; failed.size && n <= 1 + retryPasses; n++) {
+        const again = [...failed.values()].map(f => f.row);
+        summary.retried.push({ pass: n, rows: again.map(r => r.directory.name) });
+        await sleep(retryPauseMs);
+        await pass(again, n);
+      }
+      // What still failed: the error on the row
+      for (const [id, f] of failed) {
+        const dir = f.row.directory, row = f.row.row, at = now();
+        summary.errors.push(`${dir.name}: ${f.error}`);
+        await writeRow(clientId, id, { listed: row.listed, live_url: '', nap_status: row.nap_status, nap_diffs: row.nap_diffs, scan: { how: 'failed', method: 'search', reason: `the search failed ${1 + retryPasses} times: ${f.error}. Scan this row again later.`, error: f.error, at: at.toISOString() } }, row.status, at).catch(() => {});
+      }
       state.status = 'done';
     } catch (e) {
       state.status = 'failed'; state.error = e.message;
@@ -193,4 +223,4 @@ function createScanner({ pool, store, clientCitations, dfs = DFS, fetchFn = glob
   return { run, start, status, latest, findListing, checkListing, nextStatus };
 }
 
-module.exports = { createScanner, findListing, checkListing, nextStatus, onDomain };
+module.exports = { createScanner, findListing, checkListing, nextStatus, onDomain, inSnippet };
