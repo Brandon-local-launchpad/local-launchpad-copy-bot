@@ -8,7 +8,7 @@
   "customer_type": "homeowners",
   "unit_of_work": "jobs",
   "emergency_niche": true,
-  "emergency_niche_note": "storm damage and active leaks — layout only switches on when [CV: emergency_primary] is yes",
+  "emergency_niche_note": "storm damage and active leaks: since 3 Nov 2026 the layout switches on per page, from the library's emergency column, when the client confirms call outs; this marker is kept but nothing reads it",
   "big_ticket": true,
   "big_ticket_examples": ["full roof replacements"],
   "schema_subtype": "RoofingContractor",
@@ -28,9 +28,11 @@
   },
 
   "business_type_default": "A",
+  "business_type_notes": "One GBP category (Roofing services) covers the trade, so every category is A and category_types is empty. Urgent against planned is split by page, not by category: the library's emergency column (Roof repairs, Storm damage repairs, Roof window repairs) switches the emergency variant on when the client confirms call outs; every other page gets the plain briefs. Inside the planned pages the pack's split is carried in the card briefs: problem led (symptom, cause in the material, consequence if left) for roof repairs, roof replacement, flat roof replacement, felt, slate and tile roofing, dry ridge and dry verge, leadwork, chimney repairs and repointing, gutter repairs, fascias and soffits, loft ventilation, garage and conservatory roof replacement; desire led (the customer's situation, never an invented symptom) for roof window installation, warm roof and cold roof conversion, chimney removal, guttering installation and cladding; schedule led (what slips and when, with the reason in the weather or the material) for roof inspections, gutter cleaning, roof cleaning and moss removal, roof coatings and solar panel bird proofing. None of those is a recurring round, so there is no type B. EPDM, GRP and commercial roofing follow the flat roof pages. Weather led, not seasonal: seasonal_trade is off.",
 
   "priority_services": ["Emergency Roof Repair", "Roof Repair"],
   "core_services": {
+    "roofing services": ["roof repairs", "new roofs", "flat roofs", "storm damage repairs", "guttering", "roof windows"],
     "roofing contractor": ["roof repairs", "new roofs", "flat roofs"],
     "roofer": ["roof repairs", "new roofs", "flat roofs"],
     "chimney services": ["chimney repairs", "leadwork"],
@@ -56,9 +58,18 @@
   ],
 
   "steps_emergency": [
-    { "title": "Call Us" },
-    { "title": "We Give You a Price and an Arrival Time" },
-    { "title": "We Fix It on the Spot" }
+    {
+      "title": "Call Us",
+      "brief": "What to say: what is happening, where the water is coming in, when it started, whether anything is hanging loose. What to do meanwhile, in plain words: catch the water, move what is underneath, stay off the roof. The number from [CV: phone]. No promise of a reply or an arrival time unless [CV: response_time] is set."
+    },
+    {
+      "title": "We Give You a Price and an Arrival Time",
+      "brief": "An arrival time only as the business gives it on the call: no window or response time written here unless [CV: response_time] is set. The price for making it safe agreed before anyone comes out only from the price_agreed_before_work practice and [CV: quote_method]; what the permanent repair costs waits until the roof has been seen. Never restates 'free'. 'Same day' only when [CV: same_day_available] is yes."
+    },
+    {
+      "title": "We Fix It on the Spot",
+      "brief": "What usually happens on the visit: the area made safe, temporary weatherproofing where it is needed, the fault fixed on the same visit where the weather and the parts allow; otherwise the roof left weathertight and a date agreed for the permanent repair (the trade facts: urgent weatherproofing may precede permanent work). Never promise a same visit fix. Never mention the price."
+    }
   ],
 
   "step_2_no_visit": {
@@ -78,7 +89,7 @@
     "ratings": ["Google (5+ reviews)", "Checkatrade", "Trustpilot", "Which? Trusted Traders"],
     "tier1": ["NFRC (National Federation of Roofing Contractors)", "CompetentRoofer", "TrustMark"],
     "tier2": ["Marley", "Sika Liquid Plastics", "Firestone (EPDM)", "Redland"],
-    "tier3": "local press and chambers — Ray's call"
+    "tier3": "local press and chambers: Ray's call"
   },
 
   "faq_fixed_doubts": {
@@ -218,6 +229,538 @@
     "Local Experience Behind Every Job",
     "Covered If Something Goes Wrong"
   ],
+
+  "category_work_nouns": {
+    "roofing services": "roofing",
+    "roofing contractor": "roofing",
+    "roofer": "roofing",
+    "chimney services": "chimney work",
+    "gutter cleaning service": "gutter cleaning",
+    "guttering service": "guttering",
+    "waterproofing service": "flat roofing",
+    "skylight contractor": "roof window work"
+  },
+  "seasonal_trade": false,
+  "category_types": {},
+  "category_page_blocks": {
+    "A": {
+      "problems": {
+        "h2": "Common [WORK] Problems",
+        "cards": [
+          {
+            "title": "A damp patch that isn't under the fault",
+            "brief": "A stain on a bedroom ceiling, a drip by the chimney breast, a mark that comes back after every downpour. The one cause this card makes: the water has run some distance along timber or decking inside the roof, so where it shows below is seldom where it got in. Say what tracing a leak involves in plain words, from the trade facts stages for roof repairs (locate the defect, expose the detail, reinstate the laps and weathering); patching above the stain is why repairs fail. Photos of what was found only from the photos_of_faults practice. Problem led framing: symptom, cause, consequence. Not a slipped tile or a cracked ridge on its own: card 2 owns those.",
+            "mechanism": "water that has run along a batten or the deck first"
+          },
+          {
+            "title": "Tiles that slip and ridges that rock",
+            "brief": "A tile in the garden after a windy night, a slipped row, a ridge tile that rattles, verge mortar on the drive. The one cause this card makes: the nails and the mortar that held them have let go. Say what the fix usually involves from the trade facts stages (refix or replace, renew the bedding with a mechanical fixing or fit a dry fix system); a single slipped tile is a repair, not a new roof, with the underlay as the second line until it is put back. Never say mortar bedded ridges are banned and never that every tile must be clipped (Table E). Never make it sound like a collapse.",
+            "mechanism": "the nails and mortar that held them have let go"
+          },
+          {
+            "title": "Puddles that stay on a flat roof",
+            "brief": "Puddles still there days after rain, blisters in the covering, a stain under the extension or over the garage. The one cause this card makes: the fall has gone, so water sits instead of running to the outlet, and standing water finds any weak joint. Say that the fix starts with the deck and the falls, not a new layer over the old one, from the trade facts stages for flat roof replacement; a covering laid over a wet or sagging deck ponds again. No fall figure. Not the laps of felt or the seams of a rubber roof: the service pages own those.",
+            "mechanism": "a fall that has gone, so water sits instead of running off"
+          },
+          {
+            "title": "Gutters sagging and roofline going soft",
+            "brief": "A gutter pulling away from the eaves, a sag that overflows at its lowest dip, paint peeling off the fascia, a gap at the soffit. The one cause this card makes: the fascia timber behind the brackets has gone soft, so the gutter no longer holds its line. Say what putting it right involves from the trade facts stages (the old boards off and the backing timber repaired, never capped over; the gutter rehung with its fall); what the business itself does only from confirmed practices. Problem led for gutter repairs and fascias and soffits; schedule led where the page's cards include gutter cleaning (what slips once the leaves come down, explained by the season's cause rather than a busy period; never 'winter is a busy time'). Not a blocked outlet: the symptom FAQ and the gutter cleaning page own that.",
+            "mechanism": "fascia timber gone soft behind the brackets"
+          }
+        ]
+      },
+      "cost": {
+        "h2": "What Affects the Cost of [WORK] in [CITY]",
+        "cards": [
+          {
+            "title": "Getting up to the roof",
+            "brief": "Whether the job is done from a ladder, a tower or a scaffold is decided by the risk and the time up there, not by a rule that every repair needs scaffold (Table E). A two storey re-roof or most chimney work usually needs scaffold; a gutter joint or a single tile often does not. Scaffolding in the quote only from the scaffolding_in_quote practice; a scaffold on the pavement usually needs the council's licence before it goes up, never the Act's name. No figure."
+          },
+          {
+            "title": "The size and shape of the roof",
+            "brief": "More roof is more covering, more battens and more days; valleys, hips, dormers, chimneys and roof windows add cut tiles, leadwork and junctions, from the trade facts price rows. A plain gable costs less than the same area with three dormers. Say it plainly and give no figure."
+          },
+          {
+            "title": "What's found once the covering is off",
+            "brief": "Rotten battens, a wet flat roof deck, soft rafter ends behind a fascia, a chimney that needs more than pointing: what is under the covering is only known once it is lifted, from the trade facts price rows. Say the business looks before it prices, from [CV: quote_method] only; extra work priced and agreed before it is done only from the extra_work_agreed_first practice. No figure."
+          },
+          {
+            "title": "The covering you choose",
+            "brief": "Natural slate against concrete tile, a single sheet rubber roof against a built up felt system, lead against a lead alternative, an insulation upgrade with a re-cover. Name a material only if the trade facts or [CV: materials_methods] give it, and a named product only from [CV: materials_methods]. Expected life only as the Table E rows state it, with the maker named as the row names it, never as a guarantee. Code adds the price line from [CV: price_list] when there is one."
+          }
+        ]
+      },
+      "faq_slots": [
+        {
+          "slot": "cost",
+          "question": "How much does [WORK_LOWER] cost in [CITY]?",
+          "answer_brief": "Prices only from [CV: price_list]; otherwise the three things that move the price for roof work (access and scaffold, the size and shape of the roof, what is found once the covering is off) and how the quote is given, from [CV: quote_method] only. Never a figure from memory.",
+          "doubt": "Price"
+        },
+        {
+          "slot": "cover",
+          "when": "guarantee",
+          "question": "Do you guarantee your [WORK_LOWER] work?",
+          "answer_brief": "Start with yes, then the terms from [CV: guarantee_years] and [CV: guarantee_scope]: whether repairs are covered as well as new roofs only as the scope says. Insurance backed only where [CV: guarantee_scope] says so; a manufacturer's system guarantee only from [CV: manufacturer_warranty], never confused with the product's expected life (Table E). Described, never promised.",
+          "doubt": "Trust"
+        },
+        {
+          "slot": "cover",
+          "when": "insurance",
+          "question": "Are you insured for [WORK_LOWER] work?",
+          "answer_brief": "The cover figure from [CV: insurance_cover] and what the cover is for, with a plausible roofing example that does not suggest carelessness. Never what it pays or who it covers.",
+          "doubt": "Trust"
+        },
+        {
+          "slot": "cover",
+          "question": "What happens if the roof leaks again after a repair?",
+          "answer_brief": "Open with what the customer does: tell us and we look at it. Then the reasonable care and skill standard every trade works to, as the standard the work is held to, never as a defence. A return visit only from the return_visit practice. No promise to come back free. Never invent a guarantee.",
+          "doubt": "Trust"
+        },
+        {
+          "slot": "scope",
+          "question": "What [WORK_LOWER] work do you take on?",
+          "answer_brief": "The jobs on the card list and the size of job taken on, from the services list and [CV: typical_jobs] only: small jobs (one slipped tile, a leaking gutter joint) only where typical_jobs says so. Link one service page. Never a service the client does not list.",
+          "doubt": "Fit"
+        },
+        {
+          "slot": "process",
+          "question": "What happens when I ask for a quote?",
+          "answer_brief": "From [CV: quote_method] and the confirmed practices only: what the customer sends (what they have noticed and roughly where; photos from the ground help, never from a ladder), what the business looks at (the roof, and the loft where quote_method says so), what comes back (photos of every fault only from the photos_of_faults practice; a written quote only from written_quote). The pack's trust gap answered as the way a fair roofer behaves: the evidence looked at, nothing agreed on the doorstep, a second opinion welcomed; never a claim of honesty. No timescale unless [CV: response_time] is set.",
+          "doubt": "Process"
+        },
+        {
+          "slot": "timing",
+          "question": "Can roof work be done in winter?",
+          "answer_brief": "Weather led, not seasonal, from the Table A timing cells: most roof work runs all year when the roof is safe to stand on; wind, rain, frost and a slippery roof stop it for the day; flat roof coverings go down, and mortar sets, only in dry and mild spells, explained by the covering itself and with no figure. The roof left watertight each night only from the watertight_each_night practice; a rained off day rebooked only from weather_delays_rebooked. Never 'winter is a busy time'. No dates.",
+          "doubt": "Timing"
+        }
+      ],
+      "faq_symptom": {
+        "frame": "[SYMPTOM]: why does it happen, and what can be done?",
+        "answer_brief": "The symptom and its linked local issue, answered as asked: the usual cause here in plain words, with the fault named in the covering (a lap, a fixing, a fall, a junction), what the local housing era or exposure adds, then what the business does about it. One figure at most, and it must come out of a trade facts row. Never describe how any roof in the area is today.",
+        "doubt": "Process"
+      },
+      "emergency": {
+        "problems": {
+          "h2": "When Your Roof Can't Wait",
+          "cards": [
+            {
+              "title": "Water coming through the ceiling",
+              "brief": "A drip into a bucket, a bulge in the plaster, a mark spreading while it rains. The one cause this card makes: rain is reaching the underlay and battens through a gap in the covering, and every hour of rain adds to the wet timber and insulation (Table B). Write the reader's situation, the reason it won't keep, and what usually happens when they call: the area made safe, temporary weatherproofing where it is needed, then the permanent repair once the roof is safe to work on (Table A). Never a response time, round the clock cover or a call out promise unless [CV: response_time] or [CV: emergency_callouts] confirms it. Never a collapse.",
+              "mechanism": "rain reaching the underlay and battens through a gap in the covering"
+            },
+            {
+              "title": "Tiles missing after a gale",
+              "brief": "Tiles in the garden, a gap in the ridge, underlay showing, a flashing bent back. The one cause this card makes: once one tile or a length of ridge has come away, the wind gets under its neighbours and rain reaches the underlay with nothing in the way. What usually happens: made safe, a sheet over the gap, and the repair when the wind has dropped; nobody goes on the roof until it is safe (Table A). Photographs of the damage and an itemised invoice support a claim on the home insurance; the insurer decides what is covered, never the roofer (Table E). A storm is named, or a gust measured, only if the dossier gives it.",
+              "mechanism": "the next gust lifting what the storm loosened"
+            },
+            {
+              "title": "A chimney or gutter that's come loose",
+              "brief": "A pot leaning, bricks loose at the top of the stack, a gutter length hanging off its brackets and pouring down the wall. The one cause this card makes: the weight of a pot, a stack top or a full gutter with nothing left holding it, which makes it a falling hazard before it is a leak (Table B). What usually happens: the area below kept clear, the loose piece secured or taken down, then the repair. Never tell the customer to go up and look; never make a cracked pot sound like a falling chimney.",
+              "mechanism": "the weight of a pot or a full gutter with nothing left holding it"
+            },
+            {
+              "title": "The first hour, before anyone arrives",
+              "brief": "What the customer can do from inside the house, in plain words: catch the water, move what is underneath, keep clear of a bulging ceiling, photograph what they can see from the ground for the insurer, then call. The one cause this card makes: water keeps spreading while they wait, and the quicker the roof is covered the less there is to put right. Never an instruction to go on the roof, up a ladder or to patch it themselves; never a time by which anyone arrives unless [CV: response_time] is set.",
+              "mechanism": "water spreading while you wait"
+            }
+          ]
+        },
+        "steps": [
+          {
+            "title": "Call Us",
+            "brief": "What to say: what is happening, where the water is coming in, when it started, whether anything is hanging loose. What to do meanwhile, in plain words: catch the water, move what is underneath, stay off the roof. The number from [CV: phone]. No promise of a reply or an arrival time unless [CV: response_time] is set."
+          },
+          {
+            "title": "We Make It Safe and Show You What's Failed",
+            "brief": "The area made safe, temporary weatherproofing where it is needed, and the customer shown what was found (photos only from the photos_of_faults practice). The price for making it safe agreed before any work starts only from the price_agreed_before_work practice and [CV: quote_method]. Never restates 'free'."
+          },
+          {
+            "title": "We Fix It, or Book the Permanent Work",
+            "brief": "The fault fixed on the visit where the weather and the parts allow; otherwise the roof left weathertight and a date agreed for the permanent repair (Table A: urgent weatherproofing may precede permanent work). Never promise a same visit fix; 'same day' only when [CV: same_day_available] is yes. Never mention the price."
+          }
+        ],
+        "faq_slots": [
+          {
+            "slot": "cost",
+            "question": "What does an emergency roof repair cost in [CITY]?",
+            "answer_brief": "Prices and any call out charge only from [CV: price_list]; otherwise how the price is reached, from [CV: quote_method] only: making it safe is priced before the permanent repair, which is priced once the roof has been seen. The price agreed before work starts only from the price_agreed_before_work practice. No out of hours figure unless price_list gives one.",
+            "doubt": "Price"
+          },
+          {
+            "slot": "cover",
+            "when": "insurance",
+            "question": "Are you insured for emergency roof work?",
+            "answer_brief": "The cover figure from [CV: insurance_cover] and what the cover is for, with a plausible roofing example that does not suggest carelessness. Never what it pays or who it covers.",
+            "doubt": "Trust"
+          },
+          {
+            "slot": "cover",
+            "question": "What happens if the leak comes back after an emergency repair?",
+            "answer_brief": "Open with what the customer does: tell us and we look at it. Then that a temporary cover is a temporary cover: the permanent repair is what the work is held to, under the reasonable care and skill standard, never as a defence. No promise to come back free. Never invent a guarantee.",
+            "doubt": "Trust"
+          },
+          {
+            "slot": "scope",
+            "question": "Is this an emergency, or can it wait?",
+            "answer_brief": "What counts as urgent, from the card list: water coming in, a tile or a ridge length missing, a chimney or gutter hanging loose, a roof window letting rain in. What usually waits for a planned repair: a single slipped tile with nothing coming in, a damp patch that is dry today, moss (Table B, Table E). Link one service page. Planned work is never dressed up as urgent.",
+            "doubt": "Fit"
+          },
+          {
+            "slot": "process",
+            "question": "What should I do before you arrive?",
+            "answer_brief": "From inside the house only: catch the water, move what is underneath, keep clear of a bulging ceiling, photograph what can be seen from the ground and keep the itemised invoice for the insurer (Table E storm claim evidence); the roofer documents and repairs, the insurer decides cover. Never an instruction to go on the roof, up a ladder or patch it themselves. Whether the business deals with the insurer only from the client values.",
+            "doubt": "Process"
+          },
+          {
+            "slot": "timing",
+            "when": "start_time",
+            "question": "How quickly can you get to me?",
+            "answer_brief": "From [CV: response_time] and [CV: start_time] only, as given; a same day visit only when [CV: same_day_available] is yes; roof access waits until the wind has dropped and the roof is safe (Table A). Never '24/7' or 'any time' unless [CV: emergency_callouts] gives it in those words.",
+            "doubt": "Timing"
+          },
+          {
+            "slot": "timing",
+            "question": "Will you come out while the storm is still going?",
+            "answer_brief": "What usually happens: the house made safe and the damage covered as soon as the roof is safe to work on; while the wind is up the work is from inside and from the ground (Table A). No response time, no out of hours promise unless [CV: emergency_callouts] or [CV: response_time] gives it.",
+            "doubt": "Timing"
+          }
+        ]
+      }
+    }
+  },
+
+  "service_page_blocks": {
+    "A": {
+      "included": {
+        "h2": "What's Included in Our [SERVICE]",
+        "items": [
+          {
+            "title": "Looking at the roof before anything is touched",
+            "brief": "The survey or inspection stage from the trade facts: the covering, the falls, the deck, the junctions, the loft where the row names it. A part of the job, not a promise about the quote."
+          },
+          {
+            "title": "Safe access and protecting the house",
+            "brief": "The access stage from the trade facts: a ladder, a tower or a scaffold chosen by the job, never a rule that every repair needs scaffold (Table E). Scaffolding in the quote only from the scaffolding_in_quote practice; the drive, paths and garden protected only from property_protected."
+          },
+          {
+            "title": "Stripping what has failed",
+            "brief": "The removal stage from the trade facts: the old covering, the failed fittings, the rotten boards, as the row names them. The old is stripped, never capped over: the hidden layer is the job."
+          },
+          {
+            "title": "Putting right what's underneath",
+            "brief": "The deck, the battens, the rafter ends, the underlay, the falls, as the trade facts stages name them. No figure unless the row gives one, and never a standard's number."
+          },
+          {
+            "title": "The materials for the job",
+            "brief": "From the trade facts materials and methods cell or [CV: materials_methods]: the options a customer is offered, by their trade name (natural or fibre cement slate, concrete or clay tile, EPDM, GRP, a built up felt system, rolled lead). A named product only from [CV: materials_methods]; 'roof window', never the brand."
+          },
+          {
+            "title": "Laying and fixing the new covering",
+            "brief": "The central stage from the trade facts: laid and mechanically fixed, the seams and upstands formed, the lead dressed, the boards fitted, named as the trade names it."
+          },
+          {
+            "title": "Finishing the edges and junctions",
+            "brief": "The finishing stages from the trade facts: ridges, verges, hips, flashings, upstands, outlets, the water test where the row gives one. What the customer sees when the job is done."
+          },
+          {
+            "title": "Clearing up and the final check",
+            "brief": "The last stages from the trade facts: debris cleared, outlets checked, the work inspected. Waste taken away only from the waste_removal practice; what the customer gets at the end (photos, a written record, a compliance certificate) only from the confirmed practices and the client values."
+          }
+        ],
+        "note": "Fallback only: the tick items are the service's own Table A stages when the pack gives 6 or more; this set is used when it gives fewer (F-ITEMS-GENERIC)."
+      },
+      "problems": {
+        "h2": "Signs You Need [SERVICE]",
+        "cards": [
+          {
+            "title": "The first signs",
+            "brief": "The things a homeowner notices first, from the trade facts signs row, in their words: a fresh stain, tiles on the ground, a drip by the chimney, water on the inside of a roof window frame. The one cause this card makes: the job left undone. Then the consequence of leaving it, from the skipped row: specific, never alarming. Framing by page, with business_type_notes saying which pages are which: a problem led page writes symptom, cause, consequence. A desire led page writes the reason the customer wants the work (a dark landing, a cold loft room, a stack no longer used) and invents nothing. A schedule led page writes the maintenance that has been missed and the point in the year it shows, with the cause in the weather or the covering.",
+            "mechanism": "the job left undone"
+          },
+          {
+            "title": "A repair that didn't hold",
+            "brief": "A patch over the stain that leaked again, a gutter joint resealed that drips in the next rain, a new seal on a roof window whose flashing was the fault. The one cause this card makes: the visible mark was treated instead of where the water gets in (the trade facts done badly rows). Say what tracing the entry point involves from the trade facts stages (locate, expose, reinstate the laps and weathering); never a dig at another trade. On a desire led page, the situation instead: an existing window, gutter or roof that was patched and still fails.",
+            "mechanism": "the visible mark treated instead of where the water gets in"
+          },
+          {
+            "title": "The layer you can't see has gone",
+            "brief": "Daylight in the loft, damp roof timbers, a flat roof that feels soft underfoot, a gutter bracket that pulls out of the fascia by hand: the signs from the trade facts that what's underneath has gone. The one cause this card makes: the underlay, battens, deck or backing timber failing out of sight. Say when a patch stops being worth it and what doing the job properly involves, from the stages (strip, repair the deck or timber, then re-cover; never a covering over a wet deck or fresh boards fixed over rotten ones). The honest test from the pack: a roof that is sound apart from one local fault is a repair; faults turning up all over the roof mean replacing. Not the fixings and mortar: the category page owns those.",
+            "mechanism": "the underlay, battens, deck or backing timber failing out of sight"
+          },
+          {
+            "title": "Weather getting in at a junction",
+            "brief": "Damp around the chimney breast, a split in the lead, a lifting seam on a flat roof, a crack by a trim, a leak at an upstand or an outlet: the junction signs from the trade facts. The one cause this card makes: a lap, a seam, a flashing or an upstand that has opened, so concentrated runoff gets in where the covering meets something else. Say what reforming the junction involves from the stages (the detail exposed, the lap or flashing reformed, the joint weathered); the material named as the row names it. Not a fall that has gone: the category page owns that.",
+            "mechanism": "a lap, seam, flashing or upstand that has opened"
+          }
+        ]
+      },
+      "cost": {
+        "h2": "What Affects the Cost of [SERVICE] in [CITY]",
+        "cards": [
+          {
+            "title": "Getting to the work",
+            "brief": "The access factor from the trade facts price row: the height, a steep pitch, a tall exposed stack, a tower or a scaffold, a restricted side return. Scaffolding in the quote only from the scaffolding_in_quote practice; a scaffold on the pavement usually needs the council's licence first, never the Act's name. Say why height and restricted access cost more time. No figure."
+          },
+          {
+            "title": "How much there is to do",
+            "brief": "The size factor from the trade facts price row: the area of roof, the length of ridge, verge or gutter, the number of valleys, chimneys, windows, penetrations, corners and outlets. Say it plainly and give no figure."
+          },
+          {
+            "title": "What's found once it's opened up",
+            "brief": "The hidden factor from the trade facts price row: a wet or failed deck, damaged battens, rotten rafter ends, unsound masonry, a suspected asbestos cement garage roof (assessed and handled by trained people with the right controls, Table C; never that any roofer can break it up). Say the business looks before it prices, from [CV: quote_method] only; extra work priced and agreed before it is done only from the extra_work_agreed_first practice."
+          },
+          {
+            "title": "The materials and the finish",
+            "brief": "The material and finish options from the trade facts price row, the Table A materials cell and [CV: materials_methods], and why one costs more than another: slate against concrete, a warm roof build up with insulation against a straight re-cover, matched heritage slates, lead against an alternative. A named product only from [CV: materials_methods]. Expected life only as the Table E rows state it, with the maker named, never as a guarantee. Code adds the price line from [CV: price_list] when there is one."
+          }
+        ]
+      },
+      "faq_slots": [
+        {
+          "slot": "cost",
+          "question": "How much does [SERVICE_LOWER] cost in [CITY]?",
+          "answer_brief": "Prices only from [CV: price_list]; otherwise how the quote is given, from [CV: quote_method] only. The four cost cards above already give what moves the price: name one factor at most, never the list again. Never a figure from memory.",
+          "doubt": "Price"
+        },
+        {
+          "slot": "timing",
+          "question": "How long does [SERVICE_LOWER] take?",
+          "answer_brief": "From the trade facts timing cell only: the pack gives no standard duration for roof work, so say what decides it (the size of the roof, the access, the weather window of the covering: flat roof coverings go down, and mortar sets, only in dry and mild spells, with no figure unless the row gives one for a named product, named as the row names it). A manufacturer's figure only where the row gives it (roof window installation), as the manufacturer states it. The roof left watertight each night only from the watertight_each_night practice. Nothing about when the job can start unless [CV: start_time] is set. This is the one place the timing is written.",
+          "doubt": "Timing"
+        },
+        {
+          "slot": "cover",
+          "when": "guarantee",
+          "question": "Do you guarantee your [SERVICE_LOWER] work?",
+          "answer_brief": "Start with yes, then the terms from [CV: guarantee_years] and [CV: guarantee_scope]: whether repairs are covered as well as new roofs only as the scope says. Insurance backed only where [CV: guarantee_scope] says so; a manufacturer's system guarantee only from [CV: manufacturer_warranty], never confused with the product's expected life (Table E). Described, never promised.",
+          "doubt": "Trust"
+        },
+        {
+          "slot": "cover",
+          "when": "insurance",
+          "question": "Are you insured for [SERVICE_LOWER]?",
+          "answer_brief": "The cover figure from [CV: insurance_cover] and what the cover is for, with a plausible roofing example that does not suggest carelessness. Never what it pays or who it covers.",
+          "doubt": "Trust"
+        },
+        {
+          "slot": "cover",
+          "question": "What happens if it leaks again after the work?",
+          "answer_brief": "Open with what the customer does: tell us and we look at it. Then the reasonable care and skill standard every trade works to, as the standard the work is held to, never as a defence. A return visit only from the return_visit practice. No promise to come back free. Never invent a guarantee.",
+          "doubt": "Trust"
+        },
+        {
+          "slot": "rules",
+          "question": "Do I need permission for [SERVICE_LOWER]?",
+          "answer_brief": "From the trade facts rule rows only, as what usually applies, with 'usually' or 'in most cases': a like for like re-cover on an unlisted house usually needs no planning application; building control comes in for a full re-cover, a heavier covering, a structural change or an internal chimney removal, and a roofer in a competent person scheme can notify qualifying re-covering work (scheme membership only from the [CV: materials_methods] tick); listed buildings, conservation areas and a shared chimney stack bring their own checks; nesting birds and bats as something that sometimes delays the work. Never a standard's number, an Act's name, a percentage, a measurement or legal advice. Where the rows give no rule for the service, say no permission is usually needed for this work at a home and leave it there.",
+          "doubt": "Process"
+        },
+        {
+          "slot": "scope",
+          "question": "What does your [SERVICE_LOWER] service include?",
+          "answer_brief": "The What's Included items said as a sentence, in other words. What it does not cover only from the services list, with one sibling service page or the category page linked; where the trade facts row says a full replacement is a different scope (roof window repairs), say so and link it.",
+          "doubt": "Fit"
+        }
+      ],
+      "faq_symptom": {
+        "frame": "[SYMPTOM]: why does it happen, and what can be done?",
+        "answer_brief": "The symptom and its linked local issue, answered as asked: the usual cause here in plain words, with the fault named in the covering, what the local housing era or exposure adds, then what this service does about it. One figure at most, and it must come out of a trade facts row. Never describe how any roof in the area is today.",
+        "doubt": "Process"
+      },
+      "emergency": {
+        "problems": {
+          "h2": "When [SERVICE] Can't Wait",
+          "cards": [
+            {
+              "title": "A leak that won't wait for a dry day",
+              "brief": "Water into a bucket, a ceiling that is bulging, a light fitting that is wet. The one cause this card makes: an active leak with nothing slowing it, so the timber and insulation above get wetter with every shower (Table B). Write the reader's situation, the reason it won't keep, and what usually happens when they call: the water stopped temporarily, then the entry point traced and repaired once the roof is safe (Table A roof repairs: urgent weatherproofing may precede the permanent work). Leads on the Roof repairs page. Never a response time or a call out promise unless [CV: response_time] or [CV: emergency_callouts] confirms it.",
+              "mechanism": "an active leak with nothing slowing it"
+            },
+            {
+              "title": "A temporary patch that's become the repair",
+              "brief": "A tarpaulin from the last storm still tied over the ridge, tape over a split in the felt, a bucket that has become furniture. The one cause this card makes: a temporary cover left as the repair, which fails in the next wind and leaves the weathering defective (Table B storm damage done badly). What usually happens: the cover checked, the permanent scope agreed, the repair done when it is safe to work. Leads on the Storm damage repairs page; on the other urgent pages write it for the page's own fault. Never a dig at whoever put the patch on.",
+              "mechanism": "a temporary cover left as the repair"
+            },
+            {
+              "title": "Damage the insurer will ask about",
+              "brief": "Tiles already swept up, a ridge section put in the bin, a stain painted over before anyone photographed it. The one cause this card makes: evidence lost once the roof is tidied, which weakens a claim (Table B). What usually happens: the damage photographed and recorded before it is cleared, safe temporary repairs discussed, an itemised invoice kept (Table E); the roofer documents and repairs, the insurer decides cover, never the other way round. Leads on the Storm damage repairs page. Whether the business deals with the insurer only from the client values; never 'insurance approved'.",
+              "mechanism": "evidence lost once the roof is tidied"
+            },
+            {
+              "title": "Rain or wind coming in at a roof window",
+              "brief": "Water on the inside of the frame, a draught at the sash, a window that will not shut after a gale. The one cause this card makes: a flashing lifted or a sash that will not close, so rain and air get in at the opening (Table B roof window repairs). What usually happens: the opening covered, the flashing, seal or hardware replaced with compatible parts, the covering around it reinstated; a seal alone when the flashing is the fault leaves the cause. Leads on the Roof window repairs page. Say 'roof window', never the brand.",
+              "mechanism": "a flashing lifted or a sash that won't close"
+            }
+          ]
+        },
+        "steps": [
+          {
+            "title": "Call Us",
+            "brief": "What to say: what is happening, where the water is coming in, when it started, whether anything is hanging loose. What to do meanwhile, in plain words: catch the water, move what is underneath, stay off the roof. The number from [CV: phone]. No promise of a reply or an arrival time unless [CV: response_time] is set."
+          },
+          {
+            "title": "We Make It Safe and Find Where the Water Gets In",
+            "brief": "The area made safe, temporary weatherproofing where it is needed, then the entry point traced rather than the stain (Table A roof repairs); the customer shown what was found, photos only from the photos_of_faults practice. The price agreed before any work starts only from the price_agreed_before_work practice and [CV: quote_method]. Never restates 'free'."
+          },
+          {
+            "title": "We Agree the Repair and Do It Once It's Safe",
+            "brief": "The permanent repair agreed and done on the visit where the weather and the parts allow; otherwise the roof left weathertight and a date agreed. Never promise a same visit fix; 'same day' only when [CV: same_day_available] is yes. Never mention the price."
+          }
+        ],
+        "faq_slots": [
+          {
+            "slot": "cost",
+            "question": "What does an emergency [SERVICE_LOWER] call out cost in [CITY]?",
+            "answer_brief": "Prices and any call out charge only from [CV: price_list]; otherwise how the price is reached, from [CV: quote_method] only: making it safe is priced before the permanent repair, which is priced once the roof has been seen. The price agreed before work starts only from the price_agreed_before_work practice. No out of hours figure unless price_list gives one.",
+            "doubt": "Price"
+          },
+          {
+            "slot": "timing",
+            "when": "start_time",
+            "question": "How quickly can you get here?",
+            "answer_brief": "From [CV: response_time] and [CV: start_time] only, as given; a same day visit only when [CV: same_day_available] is yes; roof access waits until the wind has dropped and the roof is safe (Table A). Never '24/7' or 'any time' unless [CV: emergency_callouts] gives it in those words. This is the one place the timing is written.",
+            "doubt": "Timing"
+          },
+          {
+            "slot": "timing",
+            "question": "Will you come out while it's still raining?",
+            "answer_brief": "What usually happens: the house made safe and the damage covered as soon as the roof is safe to work on; while the wind is up the work is from inside and from the ground (Table A). No response time, no out of hours promise unless [CV: emergency_callouts] or [CV: response_time] gives it. This is the one place the timing is written.",
+            "doubt": "Timing"
+          },
+          {
+            "slot": "cover",
+            "when": "insurance",
+            "question": "Are you insured for emergency [SERVICE_LOWER]?",
+            "answer_brief": "The cover figure from [CV: insurance_cover] and what the cover is for, with a plausible roofing example that does not suggest carelessness. Never what it pays or who it covers.",
+            "doubt": "Trust"
+          },
+          {
+            "slot": "cover",
+            "question": "What happens if the leak comes back after an emergency repair?",
+            "answer_brief": "Open with what the customer does: tell us and we look at it. Then that a temporary cover is a temporary cover: the permanent repair is what the work is held to, under the reasonable care and skill standard, never as a defence. No promise to come back free. Never invent a guarantee.",
+            "doubt": "Trust"
+          },
+          {
+            "slot": "process",
+            "question": "What should I do before you arrive?",
+            "answer_brief": "From inside the house only: catch the water, move what is underneath, keep clear of a bulging ceiling, photograph what can be seen from the ground and keep the itemised invoice for the insurer (Table E storm claim evidence); the roofer documents and repairs, the insurer decides cover. Never an instruction to go on the roof, up a ladder or patch it themselves. Whether the business deals with the insurer only from the client values.",
+            "doubt": "Process"
+          },
+          {
+            "slot": "scope",
+            "question": "Is this an emergency, or can it wait?",
+            "answer_brief": "What counts as urgent for this service, from the card list and the trade facts signs row: water coming in, a gap in the covering, something hanging loose, a roof window that will not shut. What usually waits for a planned repair, from the Table B rows: a single slipped tile with nothing coming in, a mark that is dry today. Link the planned sibling page or the category page. Planned work is never dressed up as urgent.",
+            "doubt": "Fit"
+          }
+        ]
+      }
+    }
+  },
+
+  "location_page_blocks": {
+    "A": {
+      "problems": {
+        "h2": "Common [WORK] Problems in [TOWN]",
+        "cards": [
+          {
+            "title": "Roofs built with the houses",
+            "brief": "Slate on the older terraces, concrete tile on the between the wars semis, felt flat roofs on the garages and extensions of the postwar estates. The one cause this card makes: the covering a street was built with reaching the end of its life, written only as an era claim ('built with', 'originally fitted with', 'the ones not yet replaced') from the town profile. Say what that does to the job: on old slate the fixing nails give out first, then the chimney lead; on felt it is the laps. Never describe how any roof is today, never 'roofs here are failing' or 'due for replacement', never a covering the profile does not support with the era. Not water travelling along a batten, not fixings that have let go: the town's category and service pages own those.",
+            "mechanism": "the covering a street was built with reaching the end of its life"
+          },
+          {
+            "title": "Wind on the open side of town",
+            "brief": "Hilltops, the coast, the open edge of town, the side that takes the westerlies, from the town profile; sea air where the profile puts the town on the coast. The one cause this card makes: exposure working at the ridge, hip and verge fixings, which is why the fixing matters more on that exposed edge and why mortar alone is not relied on (Table C, Table E; never the standard's number, never 'banned'). Nothing about past storms or gusts beyond what the dossier itself records. Not the next gust lifting what a storm loosened: the urgent pages own that.",
+            "mechanism": "exposure working at the ridge, hip and verge fixings"
+          },
+          {
+            "title": "Moss and leaves on the shaded side",
+            "brief": "Tree lined avenues, north facing slopes, a roof under a big sycamore, from the town profile. The one cause this card makes: tree cover keeping slopes damp and gutters full, so moss builds on the shaded pitch and slides into the gutters, and outlets block after leaf fall. Say what that does to the job: a small amount of moss normally does no harm, heavy growth blocks the runoff (Table E); cleared by hand, never pressure washed (Table E). Schedule led, with the reason in the weather. Not a blocked outlet as the fault, not fascia timber gone soft: the gutter pages and the category page own those.",
+            "mechanism": "tree cover keeping slopes damp and gutters full"
+          },
+          {
+            "title": "Chimneys nobody uses any more",
+            "brief": "A stack on every house in the older streets and most of them cold, from the town profile's era. The one cause this card makes: a stack left standing after the fires went out, so the mortar, the flaunching and the pots weather at the top with nobody watching, and the lead at the junction with the roof goes with them. Say what it usually means: the defective joints repointed rather than the whole stack (Table E: comprehensive repointing is rarely necessary), lime where lime was used, or removal above the roofline as an option; the checks that sometimes apply (a listed house, a conservation area, a shared stack) with 'usually' and never an Act's name. Never that any chimney is unsafe today.",
+            "mechanism": "a stack left standing after the fires went out"
+          }
+        ]
+      },
+      "cost": {
+        "h2": "What Affects the Cost of [WORK] in [TOWN]",
+        "cards": [
+          {
+            "title": "Scaffold on a terraced street",
+            "brief": "Where the house fronts the pavement the scaffold stands on the public footway, which usually needs the council's licence before it goes up (never the Act's name), and a tower or ladders may not reach a two or three storey roof. Say why that adds time and lead in; the town profile says which streets are terraced. Scaffolding in the quote only from the scaffolding_in_quote practice. No figure."
+          },
+          {
+            "title": "Tall houses and steep pitches",
+            "brief": "Three storey Victorian houses, steep slate pitches, dormers and a stack on every party wall take longer to reach and to work on than a bungalow or a semi; from the town profile where it gives the housing. Say it plainly. No figure."
+          },
+          {
+            "title": "Conservation areas and listed roofs",
+            "brief": "Where the town has conservation areas or listed buildings, the covering a replacement can use may be set (like for like slate, no change of material or chimney) and there is paperwork before work can start. 'Usually', never the area's or the order's official name. From the dossier rules only; otherwise a check with the council as something that sometimes applies."
+          },
+          {
+            "title": "What the last re-roof left behind",
+            "brief": "Concrete tiles laid over battens meant for slate, a felt overlay over older felt, roofline capped over boards that had already gone soft, a paint coating on tiles: what has to come off and go in a skip before the new work goes on, from the trade facts done badly rows. Older streets in the town carry more of it; say so without unkindness and without a dig at another trade. No figure."
+          }
+        ]
+      },
+      "faq_slots": [
+        {
+          "slot": "cost",
+          "question": "How much does [WORK_LOWER] cost in [TOWN]?",
+          "answer_brief": "Prices only from [CV: price_list]; otherwise what pushes the price up in a town like this (scaffold and access, the height and pitch of the houses, what comes off first) and how the quote is given, from [CV: quote_method] only.",
+          "doubt": "Price"
+        },
+        {
+          "slot": "town",
+          "when": "start_time",
+          "question": "How soon can you get to [TOWN]?",
+          "answer_brief": "From [CV: start_time] and [CV: response_time] only. The town is in the area covered; nothing about distance unless [CV: travel_distance] is set. Emergency call outs in the town only when [CV: emergency_callouts] is yes.",
+          "doubt": "Timing"
+        },
+        {
+          "slot": "town",
+          "question": "Do you cover [TOWN]?",
+          "answer_brief": "Yes: the town and the villages around it (code lists them; name none). How the business reaches it from its base only from the client values. Link one page in this town.",
+          "doubt": "Fit"
+        },
+        {
+          "slot": "cover",
+          "when": "guarantee",
+          "question": "Do you guarantee your work in [TOWN]?",
+          "answer_brief": "Start with yes, then the terms from [CV: guarantee_years] and [CV: guarantee_scope]: whether repairs are covered as well as new roofs only as the scope says. Insurance backed only where [CV: guarantee_scope] says so. Described, never promised.",
+          "doubt": "Trust"
+        },
+        {
+          "slot": "cover",
+          "when": "insurance",
+          "question": "Are you insured?",
+          "answer_brief": "The cover figure from [CV: insurance_cover] and what the cover is for, with a plausible roofing example that does not suggest carelessness. Never what it pays or who it covers.",
+          "doubt": "Trust"
+        },
+        {
+          "slot": "cover",
+          "question": "What happens if the roof leaks again after a repair?",
+          "answer_brief": "Open with what the customer does: tell us and we look at it. Then the reasonable care and skill standard every trade works to, as the standard the work is held to, never as a defence. No promise to come back free. Never invent a guarantee.",
+          "doubt": "Trust"
+        },
+        {
+          "slot": "process",
+          "question": "What happens when I ask for a quote in [TOWN]?",
+          "answer_brief": "From [CV: quote_method] and the confirmed practices only: what the customer sends (what they have noticed and roughly where; photos from the ground, never from a ladder), what the business looks at, what comes back (photos of every fault only from the photos_of_faults practice). Nothing agreed on the doorstep and a second opinion welcomed, written as the way a fair roofer behaves. No timescale unless [CV: response_time] is set.",
+          "doubt": "Process"
+        },
+        {
+          "slot": "timing",
+          "question": "Can you work on roofs in [TOWN] through the winter?",
+          "answer_brief": "Weather led, not seasonal, from the Table A timing cells: most roof work runs all year when the roof is safe to stand on; wind, rain, frost and a slippery roof stop it for the day; flat roof coverings go down, and mortar sets, only in dry and mild spells, explained by the covering itself and with no figure. The roof left watertight each night only from the watertight_each_night practice. Never 'winter is a busy time'. No dates.",
+          "doubt": "Timing"
+        }
+      ]
+    }
+  },
 
   "do_not_reuse": []
 }

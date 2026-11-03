@@ -1,7 +1,8 @@
-# Field Retry Prompt — CORE (3)
+# Field Retry Prompt — CORE (4)
 
 (2), 14 Oct: confirmed practices, homeowner service words, no research wording.
 (3), 16 Oct: a card names only the services DECISIONS gives it.
+(4), 3 Nov: a sentence that shares words with the calibration pack is written again from scratch.
 
 Used by the v20 validator's automatic retry (brief §6b). Sent after the CORE (20) prompt and the cached client block, together with the page's DECISIONS. One call rewrites one field.
 
@@ -17,6 +18,7 @@ You already wrote this homepage. Code checked it and found problems in one field
 - A card names only the services DECISIONS → D9 SERVICE CARDS lists for it ("Services:"), in those words, in a sentence, never a list. Other fields name categories, not services.
 - How the business works (written quotes, schedules, who does the job, tidying, waste) only from CONFIRMED PRACTICES. When it isn't listed, leave it out.
 - Never use research wording ("investigated sites", "records show", "the council's guidance"). Say what the fact means for the garden.
+- A problem that says a sentence shares words with the calibration pack, or is a sentence from it: write that sentence again from scratch, in your own words, keeping none of the pack's phrasing. The pack shows the standard; it is never a source of sentences, however well its example fits this page.
 - Never imply the business has worked in or on a named neighbourhood or street. Use local detail as a fact about the area.
 - The OTHER FIELDS are already on the page. Never reuse their wording or repeat a point they already make.
 - Count the words before you answer.

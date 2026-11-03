@@ -262,6 +262,15 @@ chk('PACK-COPY: a sentence lifted from the calibration pack is a BLOCK; ordinary
   const bad = withText(record, PT.LABELS.servicesIntro, 'New turf that dries out in its first few weeks shrinks at the joins before it has rooted. It suits homeowners who want the garden kept in shape.');
   return has(blocks(issuesOf(bad, Vp)), 'PACK-COPY', 'services_intro', 'calibration pack') && !issuesOf(record, Vp).some(i => i.check === 'PACK-COPY');
 })(), '', 'PACK-COPY');
+chk('PACK-COPY: a run that is one of the page\'s own names (a card, a service) is a page name, not a copy (3 Nov)', (() => {
+  // A pack that lists the page names, as every pack does in its section 2
+  const packWithNames = fs.readFileSync(path.join(root, 'calibration-packs', 'Landscaper_Calibration_Pack_v5.md'), 'utf8') + '\n\nThe pages here: lawn mowing and edging work, hedge trimming and shaping work.\n';
+  const Vn = categoryValidationContext(G.validationContextFor({ cv, niche, decisions: D, keyValueMap: { ...kv, service_99: 'Lawn mowing and edging work' }, serviceParentMap: ctx.serviceParentMap, calibrationPack: packWithNames }), D);
+  const named = withText(record, PT.LABELS.servicesIntro, 'Most calls start with lawn mowing and edging work, and the beds and hedges are done on the same visit so nothing is left half finished across the season.');
+  const copied = withText(record, PT.LABELS.servicesIntro, 'Most calls start with hedge trimming and shaping work, and the beds are done on the same visit so nothing is left half finished across the season.');
+  const pc = r => issuesOf(r, Vn).filter(i => i.check === 'PACK-COPY' && i.field === PT.LABELS.servicesIntro);
+  return !pc(named).length && pc(copied).length === 1;
+})(), '', 'a page name passes, another pack run blocks');
 chk('LINK-TEXT: a card with a prose name (the library prose_name column, 3 Nov) is linked by that name; the page name alone is a FLAG', (() => {
   const Ds = JSON.parse(JSON.stringify(D)); const c = Ds.d9.main.find(x => x.name === 'Lawn mowing'); if (!c) return false; c.say = 'grass cutting';
   const Vs = categoryValidationContext(G.validationContextFor({ cv, niche, decisions: Ds, keyValueMap: kv, serviceParentMap: ctx.serviceParentMap }), Ds);
