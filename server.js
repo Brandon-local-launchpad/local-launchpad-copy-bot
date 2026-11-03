@@ -110,7 +110,9 @@ require('./trade-facts/routes').mountTradeFactsApi(app, tradeFacts);
 // ── Citations (3 Nov): the directory database and the Directories page (citations/store.js, routes.js).
 // The client side (the Citations tab, the scan, the gaps) is mounted further down with the client services.
 const citationStore = pool ? require('./citations/store').createCitationStore(pool) : null;
-require('./citations/routes').mountCitationsApi(app, { pool, store: citationStore });
+// The listings inbox (stage 6): built once the client side exists below; the routes read it through this holder
+const citationInboxHolder = { inbox: null };
+require('./citations/routes').mountCitationsApi(app, { pool, store: citationStore, inbox: () => citationInboxHolder.inbox });
 // The niche the gate checks for a client: the allocated niche key, else the trade
 async function nicheForGate(clientId, trade) {
   if (clientId && pool) {
@@ -3987,7 +3989,17 @@ if (filloutService && citationStore) {
   };
   const gapsCallModel = process.env.ANTHROPIC_API_KEY ? makeCallModel(new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY }), require('./citations/gaps').CLASSIFIER_MODEL, { onUsage: modelLog.tagged('citation gaps') }) : null;
   const citationGaps = require('./citations/gaps').createGaps({ pool, store: citationStore, clientCitations, competitorsFor, callModel: gapsCallModel });
-  require('./citations/client-routes').mountClientCitationsApi(app, { pool, clientCitations, scanner: citationScanner, gaps: citationGaps });
+  require('./citations/client-routes').mountClientCitationsApi(app, { pool, clientCitations, scanner: citationScanner, gaps: citationGaps, packs: require('./citations/packs').createPacks({ pool, store: citationStore, clientCitations, gbpStore, pageRowsFor: id => pageMapStore.saved(id).catch(() => []) }) });
+  // The listings inbox (stage 6): listings@locallaunchpad.co.uk through the Gmail API, every minute,
+  // when GMAIL_CLIENT_ID, GMAIL_CLIENT_SECRET and GMAIL_REFRESH_TOKEN are set (docs/citations/Gmail_OAuth_Setup.md)
+  const INBOX = require('./citations/inbox/poller');
+  citationInboxHolder.inbox = INBOX.createInbox({ pool, store: citationStore, clientCitations });
+  if (require('./citations/inbox/gmail').configured()) {
+    const tick = () => citationInboxHolder.inbox.poll().then(r => { if (r.new) console.log(`[inbox] ${r.new} new message${r.new === 1 ? '' : 's'}, ${r.acted} acted on`); }).catch(err => console.error('[inbox] poll failed:', err.message));
+    setTimeout(tick, 15000);
+    setInterval(tick, 60000);
+    console.log('[inbox] polling listings@locallaunchpad.co.uk every minute');
+  } else console.log('[inbox] not configured (GMAIL_CLIENT_ID, GMAIL_CLIENT_SECRET, GMAIL_REFRESH_TOKEN): the listings inbox is off');
 }
 // Location Determiner (locations/routes.js): which towns get location pages; the dry run first
 if (filloutService) require('./locations/routes').mountLocationsApi(app, { pool, filloutService });

@@ -104,6 +104,7 @@ async function initDb() {
   await require('./ui/routes').ensureUiColumns(pool);
   // Citations (3 Nov): the directory database, the places lookup, the client rows, scans, gaps, costs (citations/store.js)
   await require('./citations/store').ensureCitationTables(pool);
+  await require('./citations/inbox/poller').ensureInboxTables(pool);
   console.log('DB schema ready');
 }
 

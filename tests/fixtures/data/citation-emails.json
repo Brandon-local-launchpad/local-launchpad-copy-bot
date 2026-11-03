@@ -1,0 +1,69 @@
+{
+  "_note": "Sample listings inbox emails (3 Nov 2026) in the shape citations/inbox/gmail.js get() returns after decoding: headers, text, html. Built from the directories' real email patterns; no real client data. The fixture wraps them in the Gmail API's message format for the fake API.",
+  "messages": [
+    {
+      "id": "m-yell-confirm",
+      "label": "INBOX",
+      "received_at": "2026-11-03T09:00:00.000Z",
+      "headers": { "from": "Yell for Business <noreply@mail.yell.com>", "to": "ednes-edge-testing@listings.locallaunchpad.co.uk", "x-gm-original-to": "ednes-edge-testing@listings.locallaunchpad.co.uk", "subject": "Confirm your email address" },
+      "text": "Hi, thanks for adding Edens Edge Landscaping to Yell. Please confirm your email address by clicking the link below:\nhttps://business.yell.com/confirm-email?token=abc123def456\nIf you did not sign up, ignore this email.",
+      "html": "<html><body><p>Hi, thanks for adding Edens Edge Landscaping to Yell.</p><p><a href=\"https://business.yell.com/confirm-email?token=abc123def456\">Confirm your email address</a></p><p><a href=\"https://business.yell.com/login\">Log in</a> · <a href=\"https://business.yell.com/unsubscribe?u=1\">Unsubscribe</a></p></body></html>"
+    },
+    {
+      "id": "m-bark-code",
+      "label": "INBOX",
+      "received_at": "2026-11-03T09:05:00.000Z",
+      "headers": { "from": "Bark <team@bark.com>", "to": "ednes-edge-testing@listings.locallaunchpad.co.uk", "subject": "Your Bark verification code" },
+      "text": "Your verification code is 482913. It expires in 10 minutes. Enter it in the Bark app to finish setting up your profile.",
+      "html": "<html><body><p>Your verification code is <strong>482913</strong>. It expires in 10 minutes.</p></body></html>"
+    },
+    {
+      "id": "m-trustpilot-login",
+      "label": "SPAM",
+      "received_at": "2026-11-03T09:10:00.000Z",
+      "headers": { "from": "Trustpilot <noreply@trustpilot.com>", "to": "listings@locallaunchpad.co.uk", "delivered-to": "ednes-edge-testing@listings.locallaunchpad.co.uk", "subject": "Finish setting up your business account" },
+      "text": "Welcome to Trustpilot Business. Log in to your account to complete your profile: https://business.trustpilot.com/login?next=profile",
+      "html": "<html><body><p>Welcome to Trustpilot Business.</p><p><a href=\"https://business.trustpilot.com/login?next=profile\">Log in to your account</a> to complete your profile.</p></body></html>"
+    },
+    {
+      "id": "m-unknown-sender",
+      "label": "INBOX",
+      "received_at": "2026-11-03T09:15:00.000Z",
+      "headers": { "from": "Someone <someone@gmail.com>", "to": "ednes-edge-testing@listings.locallaunchpad.co.uk", "subject": "Hello" },
+      "text": "Please click https://evil.example/confirm?x=1 to confirm.",
+      "html": ""
+    },
+    {
+      "id": "m-no-client",
+      "label": "INBOX",
+      "received_at": "2026-11-03T09:20:00.000Z",
+      "headers": { "from": "Yell for Business <noreply@mail.yell.com>", "to": "nobody-here@listings.locallaunchpad.co.uk", "subject": "Confirm your email address" },
+      "text": "Confirm: https://business.yell.com/confirm-email?token=zzz",
+      "html": ""
+    },
+    {
+      "id": "m-not-listings",
+      "label": "INBOX",
+      "received_at": "2026-11-03T09:25:00.000Z",
+      "headers": { "from": "Yell for Business <noreply@mail.yell.com>", "to": "brandon@locallaunchpad.co.uk", "subject": "Newsletter" },
+      "text": "News from Yell.",
+      "html": ""
+    },
+    {
+      "id": "m-freeindex-info",
+      "label": "INBOX",
+      "received_at": "2026-11-03T09:30:00.000Z",
+      "headers": { "from": "FreeIndex <support@freeindex.co.uk>", "to": "ednes-edge-testing@listings.locallaunchpad.co.uk", "subject": "Your listing is live" },
+      "text": "Good news: your FreeIndex listing is now live.",
+      "html": ""
+    },
+    {
+      "id": "m-cylex-broken-link",
+      "label": "INBOX",
+      "received_at": "2026-11-03T09:35:00.000Z",
+      "headers": { "from": "Cylex <no-reply@cylex-uk.co.uk>", "to": "ednes-edge-testing@listings.locallaunchpad.co.uk", "subject": "Activate your entry" },
+      "text": "Activate your entry: https://www.cylex-uk.co.uk/activate/expired-token",
+      "html": ""
+    }
+  ]
+}

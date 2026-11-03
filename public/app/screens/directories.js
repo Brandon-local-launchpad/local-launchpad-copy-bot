@@ -27,7 +27,18 @@ export async function render(root, params, ctx) {
   ctx.setTitle('Directories');
   let data = null;
   const state = { q: '', tier: '', cost: '', priority: '', done_by: '', retired: false, sort: { key: 'name', dir: 'asc' } };
-  const load = async () => { data = await api('/api/citations/directories'); draw(); };
+  let inbox = null;
+  const load = async () => { [data, inbox] = await Promise.all([api('/api/citations/directories'), api('/api/citations/inbox').catch(() => null)]); draw(); };
+
+  // The listings inbox card: configured or not, the last poll, the latest emails and what was done with each
+  const inboxCard = () => {
+    if (!inbox) return '';
+    const lp = inbox.last_poll;
+    const body = `
+      <div class="btn-row" style="margin-bottom:10px">${inbox.configured ? pill('ok', 'connected') : pill('none', 'not set up')}<span class="small muted">${inbox.configured ? (lp ? `last read ${h(fmtDate(lp.at, true))}: ${lp.listed} messages seen, ${lp.new_count} new, ${lp.acted} acted on${lp.error ? ` · <span style="color:#b91c1c">${h(lp.error)}</span>` : ''}` : 'not read yet') : 'GMAIL_CLIENT_ID, GMAIL_CLIENT_SECRET and GMAIL_REFRESH_TOKEN on Railway turn it on (docs/citations/Gmail_OAuth_Setup.md)'}</span><span class="spacer"></span>${inbox.configured ? '<button class="btn btn-ghost btn-sm" id="pollNow">Read now</button>' : ''}</div>
+      ${inbox.emails.length ? `<div class="tbl-wrap"><table class="tbl"><thead><tr><th>Received</th><th>From</th><th>To</th><th>Subject</th><th>Client</th><th>Directory</th><th>Done</th></tr></thead><tbody>${inbox.emails.slice(0, 25).map(e => `<tr><td class="small">${h(fmtDate(e.received_at || e.seen_at, true))}</td><td class="small">${h(e.from_address)}</td><td class="small">${h(e.to_address)}</td><td>${h(e.subject || '(no subject)')}</td><td>${e.client_name ? `<a href="/clients/${h(e.client_id)}/citations" data-link>${h(e.client_name)}</a>` : '<span class="muted">–</span>'}</td><td>${h(e.directory_name || '')}</td><td class="small">${h(e.action)}</td></tr>`).join('')}</tbody></table></div>` : '<div class="muted small">No emails recorded yet.</div>'}`;
+    return `<section class="card" style="margin-bottom:14px"><div class="card-head"><h2>Listings inbox</h2><span class="sub">listings@locallaunchpad.co.uk, read every minute: the client from the address, the directory from the sender</span></div>${body}</section>`;
+  };
 
   const rows = () => {
     let list = data.directories.filter(d => state.retired ? true : !d.retired);
@@ -55,6 +66,7 @@ export async function render(root, params, ctx) {
       <div class="ph"><div class="ph-title"><h1>Directories</h1><div class="ph-meta"><span>${c.active} active · ${c.retired} retired · ${Object.entries(c.by_tier).map(([t, n]) => `${TIER[t] || t} ${n}`).join(' · ')}</span>${c.no_da ? `<span class="pill wait">${c.no_da} without DA</span>` : ''}</div></div>
         <div class="ph-actions"><button class="btn btn-primary btn-sm" id="add">Add directory</button><button class="btn btn-ghost btn-sm" id="fillDa" ${c.no_da ? '' : 'disabled'}>Fill DA (DataForSEO)</button><button class="btn btn-ghost btn-sm" id="reseed">Reseed from the CSVs</button></div></div>
       <div class="notice" style="margin-bottom:14px">${seedLine} ${info('The seed is data/citations/ (one CSV per tab of the UK Citations Master List) plus niche-map.json. A reseed updates rows nobody edited here; edited and hand added rows keep their values. DA is the DataForSEO domain rank (0 to 1000).')}${s.problems.length ? `<details class="small" style="margin-top:6px"><summary>Seed problems</summary><ul style="margin:4px 0 0 18px">${s.problems.map(p => `<li>${h(p.tab)}${p.name ? ` · ${h(p.name)}` : ''}: ${h(p.problem)}</li>`).join('')}</ul></details>` : ''}${s.skipped.length ? `<details class="small" style="margin-top:6px"><summary>${s.skipped.length} rows skipped or merged at seed</summary><ul style="margin:4px 0 0 18px">${s.skipped.map(p => `<li>${h(p.tab)} · ${h(p.name)}: ${h(p.reason)}</li>`).join('')}</ul></details>` : ''}</div>
+      ${inboxCard()}
       <section class="card card-flat">
         <div class="tbl-tools">
           <input class="input search" id="q" type="search" placeholder="Search name, domain, type, area" value="${attr(state.q)}" style="max-width:260px">
@@ -72,6 +84,7 @@ export async function render(root, params, ctx) {
     root.querySelectorAll('[data-f]').forEach(s => s.addEventListener('change', () => { state[s.dataset.f] = s.value; draw(); }));
     root.querySelector('#showRetired').addEventListener('change', e => { state.retired = e.target.checked; draw(); });
     root.querySelector('#add').addEventListener('click', () => edit(null));
+    const pollBtn = root.querySelector('#pollNow'); if (pollBtn) pollBtn.addEventListener('click', async e => { try { await busy(e.target, 'Reading…', async () => { const r = await api('/api/citations/inbox/poll', { method: 'POST' }); toast(r.result.status === 'done' ? `${r.result.new} new, ${r.result.acted} acted on` : r.result.error || r.result.status, r.result.status === 'done' ? '' : 'bad'); }); } catch (err) { toast(err.message, 'bad'); } load(); });
     root.querySelector('#reseed').addEventListener('click', async e => { if (!(await confirm({ title: 'Reseed the directory database?', text: 'Rows nobody edited here are updated from the CSVs; edited and hand added rows keep their values. Nothing is deleted.', ok: 'Reseed' }))) return; try { await busy(e.target, 'Reseeding…', async () => { const r = await api('/api/citations/directories/reseed', { method: 'POST' }); toast(`Seeded: ${r.result.inserted} added, ${r.result.updated} updated, ${r.result.kept} kept`); }); } catch (err) { toast(err.message, 'bad'); } load(); });
     root.querySelector('#fillDa').addEventListener('click', async e => { if (!(await confirm({ title: 'Fill the DA column from DataForSEO?', text: `One bulk rank call for the ${c.no_da} rows without a DA. Costs a few cents.`, ok: 'Fill DA' }))) return; try { await busy(e.target, 'Asking DataForSEO…', async () => { const r = await api('/api/citations/directories/fill-da', { method: 'POST' }); toast(r.result.skipped ? r.result.skipped : `DA filled for ${r.result.filled} of ${r.result.domains} domains ($${Number(r.result.cost || 0).toFixed(4)})`); }); } catch (err) { toast(err.message, 'bad'); } load(); });
   };
@@ -101,6 +114,7 @@ export async function render(root, params, ctx) {
         <div class="field"><label class="check"><input type="checkbox" name="needs_live_check"${d && d.needs_live_check ? ' checked' : ''}> Needs a live check (the site or add route is unconfirmed)</label></div>
         <div class="field"><label>Email sender domains (the listings inbox matches these), one per line</label><textarea class="input" name="sender_domains" rows="2">${h((d && d.sender_domains || []).join('\n'))}</textarea></div>
         <div class="field"><label>Source</label><input class="input" name="source_url" value="${attr(d ? d.source_url : '')}"></div>
+        <div class="field"><label>Field limits for the submission pack (characters: name, short description, description)</label><div class="btn-row"><input class="input" name="name_max" type="number" min="10" style="width:90px" value="${attr(d && d.fields && d.fields.name_max || '')}" placeholder="100"><input class="input" name="short_description_max" type="number" min="20" style="width:90px" value="${attr(d && d.fields && d.fields.short_description_max || '')}" placeholder="160"><input class="input" name="description_max" type="number" min="50" style="width:90px" value="${attr(d && d.fields && d.fields.description_max || '')}" placeholder="750"></div></div>
       </div>
       <div class="field"><label>Notes</label><textarea class="input" name="notes" rows="3">${h(d ? d.notes : '')}</textarea></div>
       ${d ? `<div class="small muted" style="margin-bottom:10px">Key ${h(d.key)} · from the ${h(d.source_tab || 'hand')} tab · ${d.seeded ? 'seeded' : 'added by hand'}${d.hand_edited ? ', edited here' : ''}${d.retired ? ` · retired: ${h(d.retired_reason || '')}` : ''}</div>` : ''}
@@ -113,7 +127,8 @@ export async function render(root, params, ctx) {
       const lines = n => v(n).split('\n').map(s => s.trim()).filter(Boolean);
       const kind = v('applies_kind');
       const applies = kind === 'all' ? { kind } : kind === 'niches' || kind === 'not_niches' ? { kind, niches: [...f.querySelector('[name=applies_niches]').selectedOptions].map(o => o.value) } : kind === 'councils' ? { kind, councils: lines('applies_councils') } : kind === 'towns' ? { kind, towns: lines('applies_towns') } : { kind, counties: lines('applies_counties'), towns: lines('applies_towns') };
-      const body = { name: v('name'), url: v('url'), tier: v('tier'), type: v('type'), priority: v('priority'), da: v('da'), cost: v('cost'), cost_text: v('cost_text'), verification_method: v('verification_method'), done_by: v('done_by'), applies_to: applies, skip_for_service_area: f.querySelector('[name=skip_for_service_area]').checked, needs_live_check: f.querySelector('[name=needs_live_check]').checked, sender_domains: lines('sender_domains'), source_url: v('source_url'), notes: v('notes') };
+      const limits = {}; for (const k of ['name_max', 'short_description_max', 'description_max']) if (v(k)) limits[k] = Number(v(k));
+      const body = { name: v('name'), url: v('url'), tier: v('tier'), type: v('type'), priority: v('priority'), da: v('da'), cost: v('cost'), cost_text: v('cost_text'), verification_method: v('verification_method'), done_by: v('done_by'), applies_to: applies, skip_for_service_area: f.querySelector('[name=skip_for_service_area]').checked, needs_live_check: f.querySelector('[name=needs_live_check]').checked, sender_domains: lines('sender_domains'), fields: Object.keys(limits).length ? limits : null, source_url: v('source_url'), notes: v('notes') };
       try { await busy(e.target, 'Saving…', () => api(d ? `/api/citations/directories/${d.id}` : '/api/citations/directories', { method: d ? 'PUT' : 'POST', body })); toast(d ? 'Saved' : 'Added'); dl.close(); load(); } catch (err) { toast(err.message, 'bad'); }
     });
   };

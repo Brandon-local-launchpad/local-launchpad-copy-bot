@@ -9,7 +9,8 @@
 //   GET  /api/clients/:id/citations/gaps                   the latest gap run
 //   POST /api/clients/:id/citations/gaps/add               { domain, name, tier, priority } adds a gap to the database
 
-function mountClientCitationsApi(app, { pool, clientCitations, scanner = null, gaps = null, log = console }) {
+//   GET  /api/clients/:id/citations/rows/:directoryId/pack  the prefilled submission pack (stage 7)
+function mountClientCitationsApi(app, { pool, clientCitations, scanner = null, gaps = null, packs = null, log = console }) {
   const wrap = fn => async (req, res) => {
     if (!pool) return res.status(503).json({ error: 'Database not configured.' });
     try { res.json(await fn(req)); }
@@ -27,6 +28,7 @@ function mountClientCitationsApi(app, { pool, clientCitations, scanner = null, g
     app.post('/api/clients/:id/citations/scan', wrap(async req => { await scanner.start(req.params.id, { directoryId: (req.body || {}).directory_id || null }); return full(req.params.id); }));
     app.get('/api/clients/:id/citations/scan', wrap(req => scanner.status(req.params.id)));
   }
+  if (packs) app.get('/api/clients/:id/citations/rows/:directoryId/pack', wrap(req => packs.packFor(req.params.id, req.params.directoryId)));
   if (gaps) {
     app.post('/api/clients/:id/citations/gaps', wrap(async req => { await gaps.run(req.params.id); return full(req.params.id); }));
     app.get('/api/clients/:id/citations/gaps', wrap(req => gaps.latest(req.params.id)));

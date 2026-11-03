@@ -58,7 +58,7 @@ function applies(dir, ctx) {
   }
 }
 
-function blankRow() { return { listed: 'unchecked', live_url: '', nap_status: 'unchecked', nap_diffs: [], status: 'not_started', done_by: null, last_scanned_at: null, scan: null, notes: '', onepassword_item: '', login_email: '', updated_at: null, saved: false }; }
+function blankRow() { return { listed: 'unchecked', live_url: '', nap_status: 'unchecked', nap_diffs: [], status: 'not_started', done_by: null, last_scanned_at: null, scan: null, inbox: [], notes: '', onepassword_item: '', login_email: '', updated_at: null, saved: false }; }
 
 // The tiles and the NAP banner from the rows shown
 function stats(rowsByTier) {
@@ -147,7 +147,7 @@ function createClientCitations({ pool, store, filloutService = null, placesStore
       if (d.skip_for_service_area && ctx.serviceArea) continue;
       if (!applies(d, ctx.match)) continue;
       const s = savedBy.get(d.id);
-      const row = s ? { listed: s.listed, live_url: s.live_url || '', nap_status: s.nap_status, nap_diffs: parse(s.nap_diffs) || [], status: s.status, done_by: s.done_by || null, last_scanned_at: s.last_scanned_at, scan: parse(s.scan), notes: s.notes || '', onepassword_item: s.onepassword_item || '', login_email: s.login_email || '', updated_at: s.updated_at, saved: true } : blankRow();
+      const row = s ? { listed: s.listed, live_url: s.live_url || '', nap_status: s.nap_status, nap_diffs: parse(s.nap_diffs) || [], status: s.status, done_by: s.done_by || null, last_scanned_at: s.last_scanned_at, scan: parse(s.scan), inbox: parse(s.inbox) || [], notes: s.notes || '', onepassword_item: s.onepassword_item || '', login_email: s.login_email || '', updated_at: s.updated_at, saved: true } : blankRow();
       // Facebook and Instagram: the page links from onboarding prefill the live URL
       let live_url_source = row.live_url ? 'saved' : '';
       if (!row.live_url && d.domain === 'facebook.com' && ctx.social.facebook) { row.live_url = ctx.social.facebook; live_url_source = 'onboarding'; }

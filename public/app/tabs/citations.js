@@ -33,6 +33,15 @@ export async function render(el, ctx) {
     if (s === 'not_started' && r.row.listed === 'no') return pill('wait', 'Not found');
     return pill(STATUS_KIND[s] || 'none', statusLabel(s));
   };
+  // The latest listings inbox event on the row: a code to type, a link that needs a browser, a confirmation opened
+  const inboxCell = r => {
+    const ev = (r.row.inbox || [])[0];
+    if (!ev) return '';
+    if (ev.kind === 'code') return `<div style="margin-top:4px">${tag('wait', `code ${(ev.codes || []).join(', ')}`)} ${copyBtn((ev.codes || [])[0] || '', 'Copy')}</div>`;
+    if (ev.kind === 'link_opened') return `<div style="margin-top:4px">${ev.ok ? tag('ok', 'email confirmed') : tag('block', 'confirm link failed')}${(ev.codes || []).length ? ` ${tag('wait', `code ${ev.codes.join(', ')}`)}` : ''}</div>`;
+    if (ev.kind === 'browser_link') return `<div style="margin-top:4px">${tag('wait', 'needs a browser')} <a href="${attr((ev.browser_links || [{}])[0].url || '#')}" target="_blank" rel="noopener" class="small">open</a></div>`;
+    return `<div style="margin-top:4px">${tag('', 'email received')}</div>`;
+  };
   const urlCell = r => `<span class="url-edit" data-url="${attr(r.directory.id)}">${r.row.live_url ? `<a href="${attr(r.row.live_url)}" target="_blank" rel="noopener" title="${attr(r.row.live_url)}">${h(r.row.live_url.replace(/^https?:\/\/(www\.)?/, '').slice(0, 28))}${r.row.live_url.replace(/^https?:\/\/(www\.)?/, '').length > 28 ? '…' : ''}</a>${r.row.live_url_source === 'onboarding' ? ` ${tag('', 'from onboarding')}` : ''}` : '<span class="muted">–</span>'} <button class="btn btn-ghost btn-xs" data-edit-url="${attr(r.directory.id)}" title="Edit the listing URL">✎</button></span>`;
 
   const rowHtml = r => {
@@ -42,12 +51,12 @@ export async function render(el, ctx) {
       <td data-label="Listed?">${listedCell(r)}</td>
       <td data-label="Listing URL">${urlCell(r)}</td>
       <td data-label="NAP OK?">${napCell(r)}</td>
-      <td data-label="Status">${statusCell(r)}</td>
+      <td data-label="Status">${statusCell(r)}${inboxCell(r)}</td>
       <td data-label="Action"><select class="input" style="width:auto;padding:3px 6px;font-size:12px" data-status="${attr(dir.id)}"><option value="">Set status…</option>${opts(d.options.statuses.map(([k]) => k), '', Object.fromEntries(d.options.statuses))}</select></td>
       <td data-label="Done by"><select class="input" style="width:auto;padding:3px 6px;font-size:12px" data-done="${attr(dir.id)}">${opts(['va', 'client', 'client_decision'], row.done_by_effective, DONE)}</select>${row.done_by ? '' : '<span class="sub">directory default</span>'}</td>
       <td data-label="1Password"><input class="input" style="width:150px;padding:3px 6px;font-size:12px" data-op="${attr(dir.id)}" value="${attr(row.onepassword_item)}" placeholder="${attr(`${d.client.name} — ${dir.name}`)}"></td>
       <td data-label="Last scanned" class="small muted">${row.last_scanned_at ? `<span class="tip" data-tip="${attr(fmtDate(row.last_scanned_at, true))}">${h(relTime(row.last_scanned_at))}</span>` : '–'}</td>
-      <td class="right no-label"><button class="btn btn-ghost btn-xs" data-scan-row="${attr(dir.id)}">Scan</button> <button class="btn btn-ghost btn-xs" data-edit="${attr(dir.id)}">Edit</button></td>
+      <td class="right no-label"><button class="btn btn-ghost btn-xs" data-pack="${attr(dir.id)}" title="The prefilled submission pack">Pack</button> <button class="btn btn-ghost btn-xs" data-scan-row="${attr(dir.id)}">Scan</button> <button class="btn btn-ghost btn-xs" data-edit="${attr(dir.id)}">Edit</button></td>
     </tr>`;
   };
 
@@ -119,6 +128,7 @@ export async function render(el, ctx) {
       </div>
       ${row.nap_diffs && row.nap_diffs.length ? `<div class="notice bad" style="margin-bottom:12px"><strong>NAP differences</strong><ul style="margin:4px 0 0 18px">${row.nap_diffs.map(x => `<li>${h(x.field)}: listing shows "${h(x.found || '')}", expected "${h(x.expected || '')}"</li>`).join('')}</ul></div>` : ''}
       ${row.scan ? `<details class="small" style="margin-bottom:12px"><summary>Last scan: ${h(row.scan.how || '')}${row.scan.confidence ? `, confidence ${h(row.scan.confidence)}` : ''}</summary><pre class="block" style="margin-top:6px">${h(JSON.stringify(row.scan, null, 2))}</pre></details>` : ''}
+      ${(row.inbox || []).length ? `<div class="sec-title">Listings inbox (${row.inbox.length})</div><ul class="list small" style="margin-bottom:12px">${row.inbox.map(ev => `<li><span>${h(fmtDate(ev.at, true))} · <strong>${h(ev.subject || '(no subject)')}</strong> from ${h(ev.from || '')}<br>${ev.kind === 'link_opened' ? `confirmation link opened: ${ev.ok ? `OK (HTTP ${h(ev.status)})` : `failed (${h(ev.status || ev.said || '')})`}` : ev.kind === 'code' ? `code ${h((ev.codes || []).join(', '))}` : ev.kind === 'browser_link' ? `needs a browser: ${(ev.browser_links || []).map(l => `<a href="${attr(l.url)}" target="_blank" rel="noopener">${h(l.text || l.url)}</a>`).join(', ')}` : h(ev.snippet || 'recorded')}${(ev.codes || []).length && ev.kind !== 'code' ? ` · code ${h(ev.codes.join(', '))}` : ''}</span></li>`).join('')}</ul>` : ''}
       <div class="field"><label>Notes</label><textarea class="input" name="notes" rows="3">${h(row.notes)}</textarea></div>
       <div class="btn-row"><button class="btn btn-ghost" data-close>Cancel</button><button class="btn btn-primary" id="save">Save</button></div>` });
     dl.el.querySelector('#save').addEventListener('click', async e => {
@@ -128,10 +138,26 @@ export async function render(el, ctx) {
   };
   const findRow = id => d.tiers.flatMap(t => t.rows).find(r => r.directory.id === id);
 
+  // The prefilled submission pack: every field cut to the directory's limits, with copy buttons
+  const showPack = async r => {
+    const dl = dialog({ title: `Submission pack: ${r.directory.name}`, wide: true, body: '<div class="skel" style="width:60%"></div>' });
+    try {
+      const p = await api(`${base}/rows/${encodeURIComponent(r.directory.id)}/pack`);
+      dl.el.innerHTML = `
+        <div class="small muted" style="margin-bottom:10px">${p.directory.url && !p.directory.url.includes('<') ? `<a href="${attr(p.directory.url)}" target="_blank" rel="noopener">Add or claim page</a> · ` : ''}verification ${h(p.directory.verification_method)} · ${h(DONE[p.directory.done_by])} · ${h(COST[p.directory.cost])}${p.directory.cost_text ? ` (${h(p.directory.cost_text)})` : ''} · limits: name ${p.directory.limits.name_max}, short ${p.directory.limits.short_description_max}, description ${p.directory.limits.description_max} (Edit the directory to change them)</div>
+        ${p.notes.length ? `<div class="notice warn" style="margin-bottom:10px"><ul style="margin:0 0 0 18px">${p.notes.map(n => `<li>${h(n)}</li>`).join('')}</ul></div>` : ''}
+        ${p.fields.map(f => `<div class="field" style="margin-bottom:10px"><div style="display:flex;justify-content:space-between;gap:8px;align-items:baseline"><span style="font-weight:500">${h(f.label)}</span><span class="btn-row"><span class="small ${f.over ? '' : 'muted'}" ${f.over ? 'style="color:#b91c1c"' : ''}>${f.length}${f.limit ? ` of ${f.limit}` : ''}${f.cut ? ' · cut to fit' : ''}${f.over ? ' · still over' : ''}</span>${f.value ? copyBtn(f.value) : ''}</span></div><div style="white-space:pre-wrap">${f.value ? h(f.value) : '<span class="muted">(blank)</span>'}</div>${f.note ? `<div class="small muted">${h(f.note)}</div>` : ''}</div>`).join('')}
+        ${p.downloads.length ? `<div class="sec-title">Downloads</div>${p.downloads.map(x => `<a href="${attr(x.url)}" download>${h(x.label)}</a>`).join(' · ')}` : ''}
+        <div class="btn-row" style="margin-top:12px"><button class="btn btn-ghost" data-close>Close</button></div>`;
+      wire(dl.el);
+    } catch (err) { dl.el.innerHTML = `<div class="state failed"><p>${h(err.message)}</p></div>`; }
+  };
+
   el.addEventListener('click', async e => {
-    const b = e.target.closest('[data-act], [data-edit], [data-edit-url], [data-verify], [data-scan-row], [data-add-gap]'); if (!b) return;
+    const b = e.target.closest('[data-act], [data-edit], [data-edit-url], [data-verify], [data-scan-row], [data-add-gap], [data-pack]'); if (!b) return;
     try {
       if (b.dataset.act === 'reload') return load();
+      if (b.dataset.pack !== undefined) return showPack(findRow(b.dataset.pack));
       if (b.dataset.act === 'scan') { if (!(await confirm({ title: 'Scan every directory for this client?', text: 'One DataForSEO search per directory (two when the name finds nothing, about a cent each), one backlinks call, and a fetch of each listing found. About 50 to 90 cents for a full scan; the cost is logged.', ok: 'Scan' }))) return; d.scan = { running: true, rows_done: 0, rows_total: 0, found: 0, cost_usd: 0 }; draw(); api(`${base}/scan`, { method: 'POST', body: {} }).then(r => { d = r; draw(); if (d.scan && d.scan.running) timer = setTimeout(load, 4000); }).catch(err => { toast(err.message, 'bad'); load(); }); return; }
       if (b.dataset.act === 'gaps') { if (!(await confirm({ title: 'Find the competitor gaps?', text: 'The top three map pack competitors for the primary keyword in the base town, their referring domains from DataForSEO, filtered to UK directories (known domains first, then a cheap model call). A few cents; logged.', ok: 'Find gaps' }))) return; return busy(b, 'Finding…', async () => { d = await api(`${base}/gaps`, { method: 'POST', body: {} }); draw(); }); }
       if (b.dataset.edit) return editRow(findRow(b.dataset.edit));

@@ -15,7 +15,9 @@
 
 const N = require('../fillout/niches');
 
-function mountCitationsApi(app, { pool, store, log = console }) {
+//   GET  /api/citations/inbox                       the listings inbox: configured, the last poll, the latest emails
+//   POST /api/citations/inbox/poll                  read the inbox now
+function mountCitationsApi(app, { pool, store, inbox = null, log = console }) {
   const wrap = fn => async (req, res) => {
     if (!pool) return res.status(503).json({ error: 'Database not configured.' });
     try { res.json(await fn(req)); }
@@ -39,6 +41,10 @@ function mountCitationsApi(app, { pool, store, log = console }) {
   app.post('/api/citations/directories/:id/retire', wrap(async req => ({ directory: await store.retire(req.params.id, (req.body || {}).reason || '') })));
   app.post('/api/citations/directories/:id/unretire', wrap(async req => ({ directory: await store.unretire(req.params.id) })));
   app.get('/api/citations/costs', wrap(async req => ({ costs: await store.costs({ clientId: req.query.client_id || null, limit: parseInt(req.query.limit, 10) || 50 }) })));
+  // inbox: the poller, or a function returning it (server.js builds it after the client side)
+  const ib = () => (typeof inbox === 'function' ? inbox() : inbox);
+  app.get('/api/citations/inbox', wrap(async () => (ib() ? ib().status() : { configured: false, running: false, last_poll: null, emails: [] })));
+  app.post('/api/citations/inbox/poll', wrap(async () => { if (!ib()) throw Object.assign(new Error('The listings inbox is not set up on this server.'), { status: 503 }); const r = await ib().poll(); return { result: r, ...(await ib().status()) }; }));
 }
 
 module.exports = { mountCitationsApi };
