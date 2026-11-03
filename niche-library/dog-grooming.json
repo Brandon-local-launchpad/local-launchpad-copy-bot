@@ -1,0 +1,584 @@
+{
+  "_source": "niche-library/dog-grooming.json",
+
+  "trade": "Dog Grooming",
+  "trade_lower": "dog grooming",
+  "trade_person": "dog groomer",
+  "trade_person_plural": "dog groomers",
+  "customer_type": "dog owners",
+  "unit_of_work": "grooms",
+  "emergency_niche": false,
+  "big_ticket": false,
+  "big_ticket_examples": [],
+  "schema_subtype": "LocalBusiness",
+
+  "words_use": ["dog", "coat", "undercoat", "knots", "mats", "nails", "paws", "ears", "a bath", "a trim", "a clip", "brushing", "the dryer", "the table", "puppy", "older dog", "nervous dog", "shedding", "hair on everything", "muddy walks"],
+  "words_avoid": ["pamper", "pampering", "pooch", "fur baby", "fur parent", "doggy", "spa", "spa day", "luxurious", "treat", "stylist", "sanitary trim", "hygiene trim", "dental care", "dental clean", "anal gland expression", "prevents skin problems", "stops infections", "cures itching", "breed standard finish", "coat maintenance"],
+
+  "buttons": {
+    "primary_action": "Book a Groom",
+    "meta_cta": "Book your dog's groom today.",
+    "process_h2": "Booking a Groom in 3 Simple Steps",
+    "final_h2": "Book a Groom With a Local [CATEGORY] in [CITY]",
+    "final_h2_emergency": null,
+    "cta_band_line": "Tell us about your dog and its coat and we'll get back to you within [CV: response_time].",
+    "cta_band_line_no_response": "Tell us about your dog and its coat and we'll get back to you."
+  },
+
+  "business_type_default": "C",
+  "business_type_notes": "Every grooming category is C (pet service) per the calibration pack, section 2: the groom is sold as an appointment the owner books again, not a quote. Inside C most cards are care or routine led (the coat's needs and what happens when the routine slips); Puppy grooming, Mobile dog grooming and any card about a nervous, elderly or dryer shy dog are behaviour led (how the dog copes and the handling principle that helps, never a promise the dog will come to enjoy it). The split is written into the card briefs, not into a type. Pet Sitter is C too, but the library excludes every Pet Sitter row (Pet Care niche), so that tab makes no pages. The quote wording is kept where code expects it: QUOTE_FREE on a groomer means the price is given free before booking, never a free groom.",
+
+  "priority_services": [],
+  "core_services": {
+    "pet groomer": ["full grooms", "bath and blow dry", "nail clipping", "teeth cleaning", "puppy grooming", "hand stripping", "deshedding", "mobile dog grooming", "cat grooming"],
+    "pet sitter": ["cat grooming"]
+  },
+
+  "steps": [
+    {
+      "title": "Tell Us About Your Dog",
+      "brief": "How to get in touch and what is useful to say first: the breed or coat type, the dog's age, how it copes with being handled, what they want from the groom, and a photo of the coat if they have one. No promise of a reply time unless [CV: response_time] is set."
+    },
+    {
+      "title": "We Check the Coat and Agree the Groom",
+      "brief": "The look at the coat and the dog before anything is done (the trade facts stages: consultation and coat assessment), and what is agreed with the owner first: the trim, and a short clip where mats sit against the skin, which is agreed separately as recommended practice. Follows [CV: quote_method]; only say the price is written if quote_method says so. A consent form only when the client confirms one. Never restates 'free' (FAQ 5 owns it). Never promise how the dog will behave."
+    },
+    {
+      "title": "Regular Appointments to Suit Your Dog",
+      "brief": "The first appointment goes in the diary on a day that suits the owner. A regular pattern following on only when the maintenance_schedule practice is confirmed or [CV: visit_frequency_options] is set; the trade facts give no single interval for every coat, so never name one otherwise. Never mention the price or changes to the groom (step 2 and Why choose us own them). Never restates the start time (FAQ 4 owns it)."
+    }
+  ],
+
+  "step_2_no_visit": {
+    "title": "We Agree the Groom and the Price",
+    "brief": "Say what the groom will cover and that the price is agreed before any work starts only when the price_agreed_before_work practice is confirmed. Describe how the price is reached only from [CV: quote_method]; when quote_method is blank, name no method at all (no photos, call, video or visit). Only say the price is written if quote_method says so. A short clip where mats sit against the skin is agreed with the owner first, as recommended practice. Never restates 'free' (FAQ 5 owns it)."
+  },
+  "cover_chain": ["insurance"],
+
+  "fears": [
+    "the dog being frightened, held down or handled roughly on the table",
+    "the coat coming back shorter than expected, or mats dealt with painfully, with no word first",
+    "being judged for the state of the coat",
+    "not knowing what the groom will cost or how often to book"
+  ],
+
+  "logo_tiers": {
+    "ratings": ["Google (needs review_count 5+)", "Trustpilot", "Facebook recommendations"],
+    "tier1": ["Pet Industry Federation (PIF)", "British Dog Groomers' Association (BDGA, through PIF)", "The Groomers Spotlight (a voluntary register: Ray checks the listing)"],
+    "tier2": ["City & Guilds Level 2 Dog Grooming Assistant (7863-02)", "City & Guilds Level 3 Dog Grooming (7863-03)", "iPET Network Level 3 Diploma in Dog Grooming and Salon Management", "iPET Network cat grooming awards", "International Professional Groomers (IPG) and ICMG", "International Certified Master Cat Groomer (ICMCG)", "Cat Grooming School certificate (Advanced or Master)"],
+    "tier3": "pet first aid, an insurer with animals in care cover (the figure from [CV: insurance_cover] only), a rescue partner, a vet who refers, local press features, local awards: Ray's call per client. Never the RSPCA, BSAVA, CFSG or the Kennel Club as approvals: the facts pack says none accredits a groomer."
+  },
+
+  "faq_fixed_doubts": {
+    "Q1_cost": "Price",
+    "Q6_areas": "Fit"
+  },
+
+  "faq_slots": [
+    {
+      "slot": "faq_2",
+      "question": "Are you insured to look after my dog?",
+      "answer_brief": "The cover figure from [CV: insurance_cover] and what the cover is for: the dogs in the business's care, as the policy names it. Never what it pays or who it covers beyond that. Nothing about vehicle cover unless the client values give it.",
+      "symptom_based": false,
+      "doubt": "Trust"
+    },
+    {
+      "slot": "faq_2_fallback",
+      "question": "What happens if something goes wrong during a groom?",
+      "answer_brief": "From [CV: complaints_process] only. Where nothing is on file, say what the owner does: tell us and we look at it, and leave it there. Never invent insurance or a guarantee.",
+      "symptom_based": false,
+      "doubt": "Trust"
+    },
+    {
+      "slot": "faq_3",
+      "question": "Do you guarantee your grooming?",
+      "answer_brief": "Used only when a guarantee is confirmed in [CV: guarantee_years] or [CV: guarantee_scope]. Start with yes, then the terms. No claim about the coat's regrowth, and none about the dog's behaviour at its next visit.",
+      "symptom_based": false,
+      "doubt": "Trust"
+    },
+    {
+      "slot": "faq_3_none",
+      "question": "What if my dog doesn't settle?",
+      "answer_brief": "Used when nothing in cover_chain is confirmed. Open with what happens: the groom slows down, takes a break or stops rather than forcing the dog, and the owner is called, as the way careful groomers work, drawn from the trade facts rows (no dog left on its own, a groom halted and the dog made safe, the owner phoned). Principles, never this business's practice unless a confirmed practice says so. Then what the owner does: tell us before the appointment how the dog copes. No guarantee of a calm dog, now or at a later visit. Never sedation.",
+      "symptom_based": false,
+      "doubt": "Trust"
+    },
+    {
+      "slot": "faq_4",
+      "question": "Do you have availability for new dogs?",
+      "answer_brief": "From [CV: start_time] only, as given. No waiting list, no 'book early', no season unless the client values say so.",
+      "symptom_based": false,
+      "doubt": "Timing"
+    },
+    {
+      "slot": "faq_5_free",
+      "question": "Can I get a price before I book?",
+      "answer_brief": "From [QUOTE_FREE] and [CV: quote_method]: the price is given free before the booking, by the method on file. Never a free groom. What can change the price on the day (the coat as found) only from the trade facts price rows, said once.",
+      "symptom_based": false,
+      "doubt": "Price"
+    },
+    {
+      "slot": "faq_5_not_free",
+      "question": "How do you work out the price for my dog?",
+      "answer_brief": "From [CV: quote_method] only. What can change the price on the day (the coat as found) only from the trade facts price rows, said once.",
+      "symptom_based": false,
+      "doubt": "Price"
+    },
+    {
+      "slot": "faq_A",
+      "question": "How often should my dog be groomed?",
+      "answer_brief": "The coat decides it, and the trade facts rows give no single interval for every dog: say so. Then the coat types in plain words, each with what happens between grooms (a coat that never stops growing and mats, a double coat that drops its undercoat, a wire coat that holds its dead coat until it is pulled, a short coat that mostly needs a bath and nails). A frequency only from [CV: visit_frequency_options]; otherwise say the pattern is agreed for the dog.",
+      "symptom_based": false,
+      "doubt": "Timing"
+    },
+    {
+      "slot": "faq_B",
+      "question": "Why does my dog's coat keep matting?",
+      "answer_brief": "Use the assigned symptom's meaning and its linked local issue. Three genuinely different causes in plain words: the coat rubbing where it moves (where ear meets head, along the collar line, under the front legs), a coat that gets wet and is not dried through to the skin, and brushing that only reaches the top of the coat. Then what the local walks add (mud, sand, long grass), then the fix: combing out where the mats are loose, and a close clip as the gentler route once they have tightened onto the skin, from the trade facts matted coat row. Never the owner's failure.",
+      "symptom_based": true,
+      "doubt": "Process"
+    },
+    {
+      "slot": "faq_C",
+      "question": "Should I have my dog shaved for the summer?",
+      "answer_brief": "From the trade facts double coat row only: routine shaving of a double coat to cool the dog or stop shedding is advised against, because the coat shields the skin from the sun and keeps the dog's temperature steady, and it may grow back differently; taking the loose undercoat out is the usual approach. Put the reason in fresh words of your own: nothing about insulating against heat and cold. Matting or a vet's reason can change the choice. Never a promise about regrowth, never a figure.",
+      "symptom_based": false,
+      "is_fallback": true,
+      "doubt": "Process"
+    },
+    {
+      "slot": "faq_D",
+      "question": "When can a puppy have its first groom?",
+      "answer_brief": "From the trade facts puppy rows only: no first groom age and no set wait after vaccinations is laid down, so give none. What a first session is for instead: getting the puppy used to the table, the brush and the dryer in short sessions, with the vaccination status asked about first. Never a figure, never a vet's advice on vaccines.",
+      "symptom_based": false,
+      "is_fallback": true,
+      "doubt": "Timing"
+    }
+  ],
+
+  "materials_tick_list": {
+    "Shampoos": ["coat specific shampoo", "sensitive skin shampoo", "conditioner", "deshedding shampoo", "flea shampoo (shop bought class only)", "cat specific shampoo"],
+    "Drying": ["high velocity dryer", "hand held dryer", "towel dry only on request", "drying cabinet, supervised and timed"],
+    "Tools": ["clippers", "scissors", "stripping knife", "finger stripping", "undercoat rake", "slicker brush and comb", "nail clippers", "nail grinder", "dog toothbrush and dog toothpaste", "ultrasonic toothbrush"],
+    "Handling": ["one dog at a time", "no cage drying", "muzzle only when needed", "breaks for nervous or older dogs", "owner can stay for a first groom", "written consent form", "matted coat permission agreed first"],
+    "Mobile": ["fully fitted van", "own water and power on board", "wash water taken away"],
+    "Other": ["ear cleaning (outside of the ear only)", "cat grooming tools", "dog and cat kept apart"]
+  },
+
+  "service_terms": ["full groom", "bath and blow dry", "blow dry", "hand stripping", "hand strip", "deshedding", "de shedding", "undercoat removal", "clip off", "clip", "scissor trim", "scissoring", "nail clipping", "nail trim", "nail grinding", "teeth cleaning", "tooth brushing", "ear cleaning", "ear plucking", "puppy groom", "puppy introduction", "mobile grooming", "cat grooming", "dematting", "flea treatment", "flea bath", "tick removal", "anal glands", "paw trim", "face trim", "sanitary trim", "hygiene trim", "breed trim", "pet trim", "teddy bear trim", "lamb clip", "kennel cut"],
+
+  "service_words_note": "Old path only (21 Oct 2026): this list applies when the homepage is written from the uploaded custom values CSVs. A client with a v3 page map names every service by its page title (the services library's UK name), and this list is not used. A null say means the service is never named: the library excludes it (anal gland expression, the Pet Sitter rows).",
+  "service_words": [
+    ["anal gland", null], ["boarding", null], ["day care", null], ["daycare", null], ["dog sitting", null], ["cat sitting", null], ["pet sitting", null], ["dog walking", null], ["dog training", null], ["self service", null], ["other pet", null],
+    ["mobile cat grooming", "cat grooming at your home"], ["mobile dog grooming", "grooming at your home"],
+    ["puppy grooming", "a puppy's first grooms"],
+    ["cat bathing", "cat grooming"], ["cat ear", "cat grooming"], ["cat nail", "cat grooming"], ["cat grooming", "cat grooming"],
+    ["hand stripping", "hand stripping"],
+    ["de-shedding", "a deshedding treatment"], ["deshedding", "a deshedding treatment"],
+    ["de-matting", "a full groom"], ["dematting", "a full groom"], ["breed standard", "a full groom"], ["full service grooming", "a full groom"], ["full groom", "a full groom"], ["grooming and styling", "a full groom"],
+    ["bathing and blow dry", "a bath and blow dry"], ["bath and blow dry", "a bath and blow dry"], ["ear cleaning", "a bath and blow dry"], ["flea and tick", "a bath and blow dry"],
+    ["nail trimming", "nail clipping"], ["nail clipping", "nail clipping"],
+    ["tooth brushing", "teeth cleaning"], ["teeth cleaning", "teeth cleaning"],
+    ["dog grooming", "dog grooming"]
+  ],
+
+  "general_service_words": ["dog grooming", "grooming", "full groom", "mobile dog grooming", "cat grooming", "puppy grooming"],
+  "problem_service_words": ["shedding", "matting"],
+  "why_titles_alt": [
+    "Every Coat Type, Groomed Before",
+    "Covered While Your Dog Is With Us"
+  ],
+
+  "category_work_nouns": {
+    "pet groomer": "dog grooming",
+    "pet sitter": "pet sitting"
+  },
+  "seasonal_trade": true,
+  "category_types": {},
+  "category_page_blocks": {
+    "C": {
+      "problems": {
+        "h2": "What Our [WORK] Helps With",
+        "cards": [
+          {
+            "title": "Knots that have reached the skin",
+            "brief": "Tangles where ear meets head, along the collar line and under the front legs, pulling tighter with every wet walk. The one cause this card makes: the coat rubbing where it moves, and tightening when it gets wet and is not dried through. Care led. Say what the fix usually involves in plain words: combing through while the tangles are still loose, and a close clip to start again as the gentler route once they have tightened onto the skin, agreed with the owner first (the trade facts matted coat row). Link the Full groom page where LINKABLE PAGES has one. Never combing out tight mats written up as gentler than clipping, never the owner's failure, never a promise about regrowth. Not shedding: card 2 owns that.",
+            "mechanism": "the coat rubbing where it moves and tightening when wet"
+          },
+          {
+            "title": "Hair on everything",
+            "brief": "Loose hair on clothes and furniture, a coat that feels packed, brushing that barely touches it. The one cause this card makes: a double coat dropping its undercoat in heavy spells, as the weather warms in spring and again in autumn (the pack's seasonal note). Care led. Say what gets the undercoat out, from the trade facts deshedding stages: a bath, a dryer and the combs that lift the loosened undercoat clear. Then that shaving the coat off is not the answer and does not stop the shedding (the trade facts double coat row), without lecturing. Link the Deshedding page where LINKABLE PAGES has one. Not matting: card 1 owns that.",
+            "mechanism": "a double coat dropping its undercoat"
+          },
+          {
+            "title": "Dogs who find the salon hard",
+            "brief": "A dog that shakes from the car park, a dog that hates the dryer, an older dog that is stiff on the table, a puppy that has never been held still. The one cause this card makes: too much at once: a strange room, other dogs, the noise of the dryer, being held. Behaviour led. Say what good handling does in plain words: a pause to let the dog settle, rests part way, calling a halt instead of holding on, no dog left alone, from the trade facts rows as how careful groomers work, never as this business's practice unless a confirmed practice or [CV: materials_methods] says so. Where LINKABLE PAGES has Puppy grooming or Mobile dog grooming, link one as the route that suits such dogs. No guarantee of a calm dog, now or at a later visit. Never sedation.",
+            "mechanism": "too much at once for the dog"
+          },
+          {
+            "title": "Smelling of dog again within days",
+            "brief": "A coat that smells again soon after bath day, damp to the touch deep down, flaky or itchy underneath. The one cause this card makes: a thick coat not dried through to the skin, so damp sits at the roots. Care led. Say what washing and drying done well involves from the trade facts bath stages: the rinse, then drying done under supervision until the coat is dry at the skin, not just on top. A smell coming off the ears, the breath or a single patch of skin belongs with a vet rather than another bath: say so plainly, and never name a condition. Link the client's bath service page (its name in LINKABLE PAGES) where there is one.",
+            "mechanism": "a coat not dried through to the skin"
+          }
+        ]
+      },
+      "cost": {
+        "h2": "How We Price [WORK] in [CITY]",
+        "cards": [
+          {
+            "title": "The size of the dog and the coat",
+            "brief": "A bigger dog, or more coat to brush, bath, dry and clip, takes longer: the first factor in the trade facts price rows. Say it plainly, coat type as the reason (a thick double coat against a short smooth one), and give no figure."
+          },
+          {
+            "title": "The coat on the day",
+            "brief": "A maintained coat is a shorter groom than a coat with mats, packed undercoat or dirt worked in, from the trade facts price rows. Say that the coat is looked at before the price is settled, from [CV: quote_method] only, and that a short clip for a matted coat is agreed with the owner first. Never a word that shames the coat."
+          },
+          {
+            "title": "Hand stripping and scissor work",
+            "brief": "Hand stripping a wiry coat patch by patch, or a long scissored trim, takes longer than a clip: the trade facts price rows for Full groom and Hand stripping. Say why in plain words (every patch worked by hand) and name the service only where the client offers it. No figure."
+          },
+          {
+            "title": "The time your dog needs",
+            "brief": "A nervous, elderly or first time dog is groomed with breaks and more handling, which takes longer: the trade facts price rows. Say it as the dog's needs, never as a surcharge for a difficult dog. Code adds the price line from [CV: price_list] when there is one."
+          }
+        ]
+      },
+      "steps": [
+        {
+          "title": "Tell Us About Your Dog",
+          "brief": "How to get in touch and what is useful to say first: the breed or coat type, the dog's age, how it copes with being handled, what they want from the groom, a photo of the coat if they have one. No promise of a reply time unless [CV: response_time] is set."
+        },
+        {
+          "title": "We Check the Coat and Agree the Groom",
+          "brief": "The look at the coat and the dog before anything is done (the trade facts stages: consultation and coat assessment), and what is agreed with the owner first: the trim, and a short clip where mats sit against the skin, agreed separately as recommended practice. The price agreed before any work only when the price_agreed_before_work practice is confirmed. Follows [CV: quote_method]; only say the price is written if quote_method says so. Never restates \"free\". Never promise how the dog will behave."
+        },
+        {
+          "title": "Regular Appointments to Suit Your Dog",
+          "brief": "The first appointment goes in the diary on a day that suits the owner. A regular pattern following on only when the maintenance_schedule practice is confirmed or [CV: visit_frequency_options] is set; otherwise say the pattern is agreed for the dog and name no interval. Never mention the price or changes to the groom."
+        }
+      ],
+      "faq_slots": [
+        {
+          "slot": "cost",
+          "question": "How much does [WORK_LOWER] cost in [CITY]?",
+          "answer_brief": "Prices only from [CV: price_list]; otherwise how the price is reached, from [CV: quote_method] only, and that the figure is agreed before the groom when that practice is confirmed. The four cost cards above already give what moves the price: name one factor at most (the coat on the day), never the list again.",
+          "doubt": "Price"
+        },
+        {
+          "slot": "cover",
+          "when": "insurance",
+          "question": "Are you insured to look after my dog?",
+          "answer_brief": "The cover figure from [CV: insurance_cover] and what the cover is for: the dogs in the business's care, as the policy names it. Never what it pays or who it covers beyond that.",
+          "doubt": "Trust"
+        },
+        {
+          "slot": "cover",
+          "question": "What if my dog doesn't settle?",
+          "answer_brief": "Open with what happens: the groom slows down, takes a break or stops rather than forcing the dog, and the owner is called, as the way careful groomers work, drawn from the trade facts rows (no dog left on its own, a groom halted and the dog made safe, the owner phoned). Principles, never this business's practice unless a confirmed practice says so. Then what the owner does: say before the appointment how the dog copes. No guarantee of a calm dog. Never invent insurance or a guarantee. Never sedation.",
+          "doubt": "Trust"
+        },
+        {
+          "slot": "scope",
+          "question": "Which dogs and coats do you groom?",
+          "answer_brief": "The services on the card list said as coats and dogs: the coat that never stops growing, the double coat, the wire coat, the short coat, puppies, older dogs, and cats only where Cat grooming is on the services list. Size or breed limits only from [CV: typical_jobs]. Link one service page. What is not offered only from the services list.",
+          "doubt": "Fit"
+        },
+        {
+          "slot": "process",
+          "question": "What happens at my dog's first groom?",
+          "answer_brief": "From the trade facts stages and the confirmed practices only: the chat about the dog and the look at the coat, what is agreed before anything is done, the groom, the handover and what the owner is told. Drop off or how long the dog stays only from the confirmed practices or [CV: access_handling]; never a duration. Never promise how the dog will behave.",
+          "doubt": "Process"
+        },
+        {
+          "slot": "timing",
+          "question": "How often should my dog be groomed?",
+          "answer_brief": "The coat decides it, and the trade facts give no single interval for every dog: say so, then the coat types in plain words and what happens between grooms for each. A frequency only from [CV: visit_frequency_options]; otherwise say the pattern is agreed for the dog. No dates.",
+          "doubt": "Timing"
+        }
+      ],
+      "faq_symptom": {
+        "frame": "[SYMPTOM]: why does it happen, and what can be done?",
+        "answer_brief": "The symptom and its linked local issue, answered as asked: the usual reason, found in the coat or in the dog, in plain words, what the local walks or housing add, then what the groom does about it. One figure at most. Where the answer edges towards a sore patch, something infected, a lump or discomfort, hand it to the vet: a reason to book one, never a named condition.",
+        "doubt": "Process"
+      },
+      "seasonal": {
+        "problem_card": {
+          "title": "What this season's walks leave in the coat",
+          "brief": "The pack's coat year, for the season the page is written in: undercoat shedding heavily as the weather warms and again as it cools, seeds caught in ears, feathering and toes through the warm months, mud and grit packed into the feet in the cold months. The one cause this card makes: the season's walks leaving something in the coat that brushing at home does not reach. Say what the groom checks and clears for that season from the trade facts stages (the brush out, the rinse, the paw check), and root that cause in the coat itself or in the dog itself, never 'a busy time of year'. Never a parasite, a tick outbreak or a skin condition. Not matting (card 1) and not shedding as such (card 2).",
+          "mechanism": "the season's walks leaving something in the coat"
+        },
+        "faq_slot": {
+          "slot": "seasonal",
+          "question": "Does the time of year change what my dog needs?",
+          "answer_brief": "Yes, through the coat: the undercoat coming away as the weather warms and again as it cools, seeds in the warm months, mud and grit in the cold ones, as the pack's seasonal note has it, each with what the groom does about it. The summer shave question from the trade facts double coat row only: routine shaving is advised against and taking the undercoat out is the usual approach. No dates, no promise of a slot.",
+          "doubt": "Timing"
+        }
+      }
+    }
+  },
+
+  "service_page_blocks": {
+    "C": {
+      "included": {
+        "h2": "What's Included in a [SERVICE] Appointment",
+        "items": [
+          {
+            "title": "A chat about your dog and a look at the coat",
+            "brief": "The first stage from the trade facts: the consultation and the coat check, how the dog copes, what is agreed before anything is done. A part of the appointment, not a promise about the price."
+          },
+          {
+            "title": "Brushing out and checking for knots",
+            "brief": "The brush out and detangling stage from the trade facts, where the service has one. Name only what the stages give; never scissors through a mat."
+          },
+          {
+            "title": "The bath and the rinse",
+            "brief": "The bath stage from the trade facts, where the service has one, with the shampoo named only by its type from the materials cell; a named product only from [CV: materials_methods]."
+          },
+          {
+            "title": "Drying, done under supervision",
+            "brief": "The drying stage from the trade facts: dried through, the dog watched the whole time. A drying cabinet only from [CV: materials_methods], and never unattended."
+          },
+          {
+            "title": "The main work: the clip, the strip, the comb out or the trim",
+            "brief": "The central stage from the trade facts for this service, named as the trade names it: the clip and scissor, the dead coat pulled by hand, the released undercoat combed out, nails taken back in small amounts, the teeth brushed on the surfaces the dog allows."
+          },
+          {
+            "title": "Nails, ears and the finishing checks, as agreed",
+            "brief": "The agreed extras from the trade facts stages: nails, the outside of the ears, the final check of skin and coat. Only what the rows give; never work inside the ear, never anal glands."
+          },
+          {
+            "title": "A word about anything we noticed",
+            "brief": "The handover from the trade facts: what was done and anything seen on the skin, the nails or the teeth that the owner might want a vet to look at. Observed and reported, never diagnosed."
+          },
+          {
+            "title": "The next appointment, if you want one",
+            "brief": "Only from [CV: visit_frequency_options] or the maintenance_schedule practice; when neither is set, write that the next appointment is agreed with you and name no interval."
+          }
+        ],
+        "note": "Fallback only: the tick items are the service's own Table A stages when the pack gives 6 or more; this set is used when it gives fewer (F-ITEMS-GENERIC)."
+      },
+      "problems": {
+        "h2": "Is [SERVICE] Right for Your Dog?",
+        "cards": [
+          {
+            "title": "The coats this suits",
+            "brief": "Which coats and dogs this service is for, from the trade facts materials and methods cell for the service (wiry coats for hand stripping, double coats for deshedding, coats that keep growing for a full groom, smooth coats for a bath and nails; for Cat grooming, cats with long fur, and elderly cats no longer keeping themselves clean). The one cause this card makes: the kind of coat setting the work. Care led. Say which coats it is not for, with one sibling service page linked where LINKABLE PAGES has one. No breed ever written up as a local issue.",
+            "mechanism": "the kind of coat setting the work"
+          },
+          {
+            "title": "The signs it's time",
+            "brief": "What the owner notices, from the trade facts signs row for this service, in their words (nails clicking on the floor, knots behind the ears, hair on the sofa, a wiry coat gone soft and pale). The one cause this card makes: the routine slipping between appointments. Care led. Then what it leads to if left, from the skipped row: specific, never alarming, and never implying the reader's dog has it. Never the owner's failure.",
+            "mechanism": "the routine slipping between appointments"
+          },
+          {
+            "title": "Puppies, older dogs and nervous dogs",
+            "brief": "How this service is paced for a dog that finds grooming hard: short sessions, rests part way, calling a halt instead of pressing on, no dog left alone, from the trade facts stages and rows (staged handling for a puppy, stop if the dog is distressed). The one cause this card makes: a dog that needs the groom paced to it. Behaviour led. On Puppy grooming and Mobile dog grooming this card is the page's main angle: what a first session covers (the table, the brush, the dryer, without a full trim) or what a visit at home takes away (the drive, the waiting, other dogs). On Cat grooming it says when a vet is the right place for the cat (a coat that needs clipping off; sedation is never a groomer's decision). Principles, never this business's practice unless a confirmed practice says so. No guarantee that the dog settles or ends up liking it.",
+            "mechanism": "a dog that needs the groom paced to it"
+          },
+          {
+            "title": "Why a brush or a bath at home isn't the same",
+            "brief": "What home tools do not reach, from the trade facts methods cell and facts rows for this service: a brush that only touches the top coat, a towel that leaves the roots damp, clippers that shorten a wiry coat yet leave the dead hair in place, a shave that does not stop shedding, nails that can only be shortened gradually. The one cause this card makes: home tools not reaching the undercoat, the dead coat or the skin. Care led. Said as the reason the service exists, never as a telling off. Never instructions for cutting mats or nails at home. Not the coat type (card 1) and not a slipped routine (card 2).",
+            "mechanism": "home tools not reaching the undercoat, the dead coat or the skin"
+          }
+        ]
+      },
+      "cost": {
+        "h2": "How We Price [SERVICE] in [CITY]",
+        "cards": [
+          {
+            "title": "How much coat there is to work through",
+            "brief": "The size and density factor from the trade facts price row for this service: a larger dog, a denser or longer coat, more undercoat, more wire coat ready to come out. Say it plainly and give no figure."
+          },
+          {
+            "title": "The coat on the day",
+            "brief": "What the coat is like when the dog arrives, from the trade facts price row: mats, tangles, dirt worked in, a coat left since the last groom. Say the coat is looked at before the price is settled, from [CV: quote_method] only, and that a short clip for a matted coat is agreed with the owner first. Never a word that shames the coat."
+          },
+          {
+            "title": "The time your dog needs",
+            "brief": "Breaks, slower handling and familiarisation for a nervous, elderly or first time dog, from the trade facts price row. Said as the dog's needs, never as a surcharge for a difficult dog. Not the regular pattern against a one off: the category page owns that."
+          },
+          {
+            "title": "What you add to the appointment",
+            "brief": "Work added to this appointment, from the sibling service pages and the services list only (nails with a bath, teeth with a full groom, travel for a visit at home where Mobile dog grooming is offered), and that each adds to the appointment. Code adds the price line from [CV: price_list] when there is one."
+          }
+        ]
+      },
+      "steps": [
+        {
+          "title": "Tell Us About Your Dog",
+          "brief": "How to get in touch and what is useful to say first: the breed or coat type, the dog's age, how it copes with being handled, what they want from this service, a photo of the coat if they have one. No promise of a reply time unless [CV: response_time] is set."
+        },
+        {
+          "title": "We Check the Coat and Agree the Groom",
+          "brief": "The look at the coat and the dog before anything is done (the trade facts stages: consultation and coat assessment), and what is agreed with the owner first. The price agreed before any work only when the price_agreed_before_work practice is confirmed. Follows [CV: quote_method]; only say the price is written if quote_method says so. Never restates \"free\". Never promise how the dog will behave."
+        },
+        {
+          "title": "Regular Appointments to Suit Your Dog",
+          "brief": "The first appointment goes in the diary on a day that suits the owner. A regular pattern following on only when the maintenance_schedule practice is confirmed or [CV: visit_frequency_options] is set; otherwise say the pattern is agreed for the dog and name no interval. Never mention the price or changes to the groom."
+        }
+      ],
+      "faq_slots": [
+        {
+          "slot": "fit",
+          "question": "Is [SERVICE_LOWER] right for my dog?",
+          "answer_brief": "The coats and dogs it suits, from the trade facts materials and methods cell for this service, in plain words, and the one case where something else suits better (a sibling service page linked where LINKABLE PAGES has one). For Cat grooming and Teeth cleaning, where the vet, not the groomer, is the answer, from the trade facts rows. Never a breed named as a problem.",
+          "doubt": "Fit"
+        },
+        {
+          "slot": "cost",
+          "question": "How much does [SERVICE_LOWER] cost in [CITY]?",
+          "answer_brief": "Prices only from [CV: price_list]; otherwise how the price is reached, from [CV: quote_method] only, and that the figure is agreed before the groom when that practice is confirmed. The four cost cards above already give what moves the price: name one factor at most, never the list again.",
+          "doubt": "Price"
+        },
+        {
+          "slot": "timing",
+          "question": "How long does [SERVICE_LOWER] take?",
+          "answer_brief": "From the trade facts timing row only: the rows for this trade give no standard duration, so say what decides it (the size of the dog, the coat as found, how the dog copes, breaks) and never a figure. Nothing about when an appointment is available unless [CV: start_time] is set. This is the one place the timing is written.",
+          "doubt": "Timing"
+        },
+        {
+          "slot": "cover",
+          "when": "insurance",
+          "question": "Are you insured for [SERVICE_LOWER]?",
+          "answer_brief": "The cover figure from [CV: insurance_cover] and what the cover is for: the dogs in the business's care, as the policy names it. Never what it pays or who it covers beyond that.",
+          "doubt": "Trust"
+        },
+        {
+          "slot": "cover",
+          "question": "What if my dog doesn't settle during [SERVICE_LOWER]?",
+          "answer_brief": "Open with what happens: the work slows down, takes a break or stops rather than forcing the dog, and the owner is called, as the way careful groomers work, drawn from the trade facts rows. Principles, never this business's practice unless a confirmed practice says so. Then what the owner does: say beforehand how the dog copes. No guarantee of a calm dog. Never invent insurance or a guarantee. Never sedation.",
+          "doubt": "Trust"
+        },
+        {
+          "slot": "scope",
+          "question": "What does [SERVICE_LOWER] include?",
+          "answer_brief": "The What's Included items said as a sentence, in other words. What it does not cover only from the services list and the trade facts rows (teeth cleaning is brushing the surfaces, not work under the gum; nails are trimmed, a painful or embedded nail goes to the vet; the outside of the ears only; never anal glands), with one sibling service page or the category page linked.",
+          "doubt": "Fit"
+        },
+        {
+          "slot": "rules",
+          "when": "rule_rows",
+          "question": "Is [SERVICE_LOWER] something a groomer can do, or is it a vet's job?",
+          "answer_brief": "From the trade facts rule rows and facts rows for this service only, written as where the groomer's work usually stops and the vet's begins, with \"usually\" or \"in most cases\": brushing, not dental treatment; trimming, not a painful or embedded nail; the outside of the ear, not inside it; a cat's clip off as a vet question; sedation never a groomer's. Never a standard's number, an Act's name or legal advice. Never a licence claim: the rows say grooming alone needs none, so say nothing about licences. This slot is used only when the service has rule rows.",
+          "doubt": "Process"
+        }
+      ],
+      "faq_symptom": {
+        "frame": "[SYMPTOM]: why does it happen, and what can be done?",
+        "answer_brief": "The symptom and its linked local issue, answered as asked: the usual reason, found in the coat or in the dog, in plain words, what the local walks or housing add, then what this service does about it. One figure at most. Where the answer edges towards a sore patch, something infected, a lump or discomfort, hand it to the vet: a reason to book one, never a named condition.",
+        "doubt": "Process"
+      },
+      "seasonal": {
+        "problem_card": {
+          "title": "What the season leaves in the coat",
+          "brief": "What this season's walks leave in the coat for this service, from the pack's coat year: undercoat shedding heavily as the weather warms and again as it cools, seeds in ears, feathering and toes through the warm months, mud and grit packed into the feet in the cold months. The one cause this card makes: the season's walks leaving something in the coat that home brushing does not reach. Say what this service checks and clears for that season from the trade facts stages; the cause rooted in the coat itself or the dog itself, never 'a busy time of year'. Never a parasite, a tick outbreak or a skin condition. Not the coat type (card 1) and not a slipped routine (card 2).",
+          "mechanism": "the season's walks leaving something in the coat"
+        },
+        "faq_slot": {
+          "slot": "seasonal",
+          "question": "When in the year does my dog need [SERVICE_LOWER] most, and how long does it take?",
+          "answer_brief": "From the pack's coat year and the trade facts timing row only: the season this service matters for the coat and why, then what decides how long the appointment takes (the rows give no standard duration, so never a figure). No dates, no promise of a slot. This is the one place the timing is written.",
+          "doubt": "Timing"
+        }
+      }
+    }
+  },
+
+  "location_page_blocks": {
+    "C": {
+      "problems": {
+        "h2": "What Our [WORK] Helps With in [TOWN]",
+        "cards": [
+          {
+            "title": "What the local walks bring home",
+            "brief": "Coats caked in clay through the winter, salt and sand driven right down into a thick coat after the beach, grit between the pads from the pavements. The one cause this card makes: the ground the town's dogs are walked on; the town profile says which (farmland footpaths and bridleways, a beach, heathland, a river bank, gritted streets). Say plainly what that does to the groom: the rinse and the drying a salty or muddy coat needs, the paws checked. Describes the walks, never how well kept any particular dog is, and never a parasite or an outbreak. Not matting or shedding as such: the town's category and service pages own those.",
+            "mechanism": "the ground the town's dogs are walked on"
+          },
+          {
+            "title": "Seeds and grit in paws and ears",
+            "brief": "A dog that chews its paws after a summer walk, a spaniel shaking its head, grit packed between the pads in winter. The one cause this card makes: what gets caught in feathering, ears and between the toes on the town's walks; the town profile gives the long grass, heath, verges or gritted pavements. Say what the groom looks for and clears (the paw check, the outside of the ears, the feathering trimmed where agreed), from the trade facts stages. A sore ear or a limp is a reason to see a vet: say so, name no condition. Not the mud and salt on the coat: card 1 owns that.",
+            "mechanism": "what gets caught in feathering, ears and between the toes"
+          },
+          {
+            "title": "Nowhere at home to wash a dog",
+            "brief": "A flat with no outside tap, a terraced house with a small bathroom, a big dog and a small shower. The one cause this card makes: homes with no room to wash and dry a dog properly, so a damp coat gets left; the town profile gives the housing (flats, terraces, new estates). Say what a salon or a van at the door gives such a home, in plain words, and where LINKABLE PAGES has the town's mobile grooming page or its bath service page, link one. Never that the owner has neglected the dog. Not a coat not dried to the skin: the category page owns that.",
+            "mechanism": "homes with no room to wash and dry a dog"
+          },
+          {
+            "title": "Dogs that don't travel well to a salon",
+            "brief": "An older dog stiff after the car, a nervous rescue that shakes in a waiting room, a household with three dogs and one car, an owner without transport. The one cause this card makes: the journey and the waiting room being harder on the dog than the groom; the town profile may say who lives here (retired owners, young families with crossbreeds, homes out in the country a long way from any salon). Behaviour led. Say what suits such dogs from the services the client offers only (a visit at home where Mobile dog grooming is on the services list, a quiet appointment otherwise), from confirmed practices; no guarantee of a calm dog. Not too much at once in the salon: the category page owns that.",
+            "mechanism": "the journey and the waiting room being harder than the groom"
+          }
+        ]
+      },
+      "cost": {
+        "h2": "How We Price [WORK] in [TOWN]",
+        "cards": [
+          {
+            "title": "Getting a van to your door",
+            "brief": "Only where Mobile dog grooming is on the services list: the travel, and where a van can be parked and kept running, from the trade facts price row (travel and access, parking, water and power on board). Terraced streets with no parking, flats with no bay and long rural drives each change it; the town profile says which. Never a rule about parking as the customer's homework. No figure. Where the client has no mobile service, this card is the distance from the salon only from [CV: travel_distance], else how the dog gets there is left to the owner and the card says nothing about travel cost."
+          },
+          {
+            "title": "What the walks round here do to a coat",
+            "brief": "A coat that comes in wetter, muddier or saltier takes more brushing, rinsing and drying: the trade facts price row for the bath (dense or dirty coat, longer brushing and drying). Say it plainly from the town profile where it gives the walks. No figure, and never that dogs here are dirtier than elsewhere."
+          },
+          {
+            "title": "The first groom after a long gap",
+            "brief": "A coat left since the last groom, or a dog new to grooming, is a longer first appointment than the ones that follow: the trade facts price rows (matting needing a clip off, familiarisation and breaks). Said without unkindness and never as the owner's failure; no figure; not the service pages' coat on the day card in the same words."
+          },
+          {
+            "title": "Size, coat and temperament",
+            "brief": "A bigger dog, a thicker or longer coat, and a dog that needs breaks and slower handling each take longer: the first factors in the trade facts price rows. Say it plainly as the dog's needs; no figure. Code adds the price line from [CV: price_list] when there is one."
+          }
+        ]
+      },
+      "faq_slots": [
+        {
+          "slot": "cost",
+          "question": "How much does [WORK_LOWER] cost in [TOWN]?",
+          "answer_brief": "Prices only from [CV: price_list]; otherwise how the price is reached, from [CV: quote_method] only, and that the figure is agreed before the groom when that practice is confirmed. One factor at most (travel for a visit at home, only where Mobile dog grooming is offered), never the list again.",
+          "doubt": "Price"
+        },
+        {
+          "slot": "town",
+          "when": "start_time",
+          "question": "How soon can you fit a dog in from [TOWN]?",
+          "answer_brief": "From [CV: start_time] and [CV: response_time] only. The town is in the area covered; nothing about distance unless [CV: travel_distance] is set.",
+          "doubt": "Timing"
+        },
+        {
+          "slot": "town",
+          "question": "Do you cover [TOWN]?",
+          "answer_brief": "Yes: the town and the villages around it (code lists them; name none). Whether that means a visit at home or a drive to the salon only from the services list and the client values. Link one page in this town.",
+          "doubt": "Fit"
+        },
+        {
+          "slot": "cover",
+          "when": "insurance",
+          "question": "Are you insured to look after my dog?",
+          "answer_brief": "The cover figure from [CV: insurance_cover] and what the cover is for: the dogs in the business's care, as the policy names it. Never what it pays or who it covers beyond that.",
+          "doubt": "Trust"
+        },
+        {
+          "slot": "cover",
+          "question": "What if my dog doesn't settle?",
+          "answer_brief": "Open with what happens: the groom slows down, takes a break or stops rather than forcing the dog, and the owner is called, as the way careful groomers work, drawn from the trade facts rows. Principles, never this business's practice unless a confirmed practice says so. No guarantee of a calm dog. Never invent insurance or a guarantee. Never sedation.",
+          "doubt": "Trust"
+        },
+        {
+          "slot": "process",
+          "question": "How does booking a groom work in [TOWN]?",
+          "answer_brief": "From [CV: quote_method], [CV: access_handling] and the confirmed practices only: what the owner tells us, what is agreed before the groom, where the groom happens (the salon, or at home only where Mobile dog grooming is on the services list), drop off and collection only where the practices say. No timescale unless [CV: response_time] is set. Never a duration.",
+          "doubt": "Process"
+        },
+        {
+          "slot": "timing",
+          "question": "Do you groom dogs in [TOWN] all year round?",
+          "answer_brief": "Yes: what each season brings to the coat in plain words from the pack's coat year (the undercoat coming away as the weather warms and cools, seeds in the warm months, mud and grit in the cold ones) and what the groom does about it. No dates, no promise of a slot. A visit at home in bad weather only from the confirmed practices.",
+          "doubt": "Timing"
+        }
+      ]
+    }
+  },
+  "do_not_reuse": []
+}

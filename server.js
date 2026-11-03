@@ -151,12 +151,8 @@ function readDoc(name) {
 const NICHE_DIR = path.join(__dirname, 'niche-library');
 
 // Required top-level keys in every niche JSON. G-NICHE fires if any are missing or empty.
-const NICHE_REQUIRED_KEYS = [
-  'trade', 'trade_lower', 'trade_person', 'trade_person_plural',
-  'customer_type', 'unit_of_work', 'emergency_niche', 'big_ticket',
-  'schema_subtype', 'words_use', 'words_avoid', 'buttons', 'steps',
-  'cover_chain', 'fears', 'faq_slots', 'materials_tick_list', 'why_titles_alt',
-];
+// The slots an entry must hold (niche-library/entry-schema.js; tools/niche-entry-check.js checks the rest)
+const NICHE_REQUIRED_KEYS = require('./niche-library/entry-schema').REQUIRED_KEYS;
 
 // Map from primary_category (case-insensitive) to niche JSON filename stem.
 // Extend this when new niche files are added.
@@ -169,9 +165,23 @@ const NICHE_FILE_MAP = {
   'roofer':              'roofer',
 };
 
-function loadNiche(primaryCategory) {
+// The niche file for a trade (3 Nov 2026): the old map first, else the trade read as a Fillout
+// label, a catalogue name or a legacy alias through the niche key (fillout/niches.js) and the
+// library's file stem (ui/library.js), so every niche with an entry is found: "Cleaning
+// Companies" and "Cleaning Company" both reach cleaning.json. Null when nothing matches.
+function nicheStemFor(primaryCategory) {
   const key = (primaryCategory || '').toLowerCase().trim();
-  const stem = NICHE_FILE_MAP[key];
+  if (!key) return null;
+  if (NICHE_FILE_MAP[key]) return NICHE_FILE_MAP[key];
+  const N = require('./fillout/niches');
+  const nicheKey = N.nicheKeyFor(primaryCategory);
+  if (!nicheKey || nicheKey === N.OTHER.key) return null;
+  const stem = require('./ui/library').stemFor(nicheKey);
+  return stem && fs.existsSync(path.join(NICHE_DIR, `${stem}.json`)) ? stem : null;
+}
+
+function loadNiche(primaryCategory) {
+  const stem = nicheStemFor(primaryCategory);
   if (!stem) {
     return { niche: null, error: `G-NICHE: no niche file for trade "${primaryCategory}". Add one to niche-library/.` };
   }
@@ -3275,7 +3285,7 @@ async function loadV20Context(clientId, sessionId) {
   // The niche comes from the trade. Without a session: the primary category when it
   // names a niche, else the client's trade (Step 1). The primary category is the
   // client's real GBP category ("Gardener", "Landscape Gardener"), which often isn't one.
-  const primaryIsNiche = !!NICHE_FILE_MAP[(cv.primary_category || '').toLowerCase().trim()];
+  const primaryIsNiche = !!nicheStemFor(cv.primary_category);
   const trade = session ? session.trade : (primaryIsNiche ? cv.primary_category : (clientTrade || cv.primary_category));
 
   let pages = [];

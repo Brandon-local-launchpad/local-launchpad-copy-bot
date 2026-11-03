@@ -181,7 +181,7 @@ function setField(record, ref, text) {
 const packCache = new Map();
 // The words a shared five word run must have two of: real words, four letters or more, outside the
 // stopwords and these function words (3 Nov: "at the end of each" matched the v5 landscaper pack)
-const PACK_FUNCTION = new Set('each every when what where which then than into over after before also just some most much many well done made make like only very both such them were been who how why out off up down any all one two few first last next same own'.split(' '));
+const PACK_FUNCTION = new Set('each every when what where which then than into over after before also just some most much many well done made make like only very both such them were been who how why out off up down any all one two few first last next same own right through across along within without between around still again back away even ever once really rather quite there here your their about because while until since'.split(' '));
 const packContent = g => g.filter(w => !STOPWORDS.has(w) && !PACK_FUNCTION.has(w) && w.length >= 4).length >= 2;
 function packIndex(text) {
   if (!text) return null;
@@ -205,10 +205,13 @@ function packIndex(text) {
   return idx;
 }
 // A sentence copied from the pack: a shared 4-gram, or 70% of its content words in one pack sentence
-function packCopy(sentence, idx) {
+// names (3 Nov): the page's own names (its services, cards, categories and linkable H1s, lower
+// case): a run that sits inside one of them is the name of a page, not a copy ("dog bath and blow
+// dry" is the Dog bath and blow dry page, which the pack lists as the copy must)
+function packCopy(sentence, idx, names = []) {
   if (!idx) return null;
   const toks = lc(scanText(sentence)).replace(/cvtoken/g, 'x').replace(/[^a-z0-9£' ]+/g, ' ').split(/\s+/).filter(Boolean);
-  for (let i = 0; i + 5 <= toks.length; i++) { const g = toks.slice(i, i + 5); if (packContent(g) && idx.grams.has(g.join(' '))) return { kind: 'run', match: g.join(' ') }; }
+  for (let i = 0; i + 5 <= toks.length; i++) { const g = toks.slice(i, i + 5); const run = g.join(' '); if (packContent(g) && idx.grams.has(run) && !names.some(n => n.includes(run))) return { kind: 'run', match: run }; }
   const mine = contentWords(sentence);
   if (mine.size >= 7) for (const s of idx.sets) { let shared = 0; for (const w of mine) if (s.words.has(w)) shared++; if (shared / Math.min(mine.size, s.words.size) >= 0.7) return { kind: 'sentence', match: s.text }; }
   return null;
@@ -256,6 +259,12 @@ function buildValidationContext({ cv, niche, decisions, keyValueMap = {}, servic
   return {
     cv, niche, D, keyValueMap, serviceParentMap, populatedCvKeys: populatedCvKeys || new Set(),
     pack: packIndex(calibrationPack),
+    // The page's own names, for PACK-COPY: a shared run inside one of them is a page name, not a copy
+    packNames: [...new Set([
+      ...Object.entries(keyValueMap).filter(([k]) => /^(service|mentioned|category)_\d+$/.test(k)).map(([, v]) => v),
+      ...serviceList.flatMap(s => [s.name, s.say, s.raw]), ...((D.d9 && D.d9.main) || []).flatMap(c => [c.name, c.say]), ...((D.d9 && D.d9.alsoOffer) || []),
+      ...(D.linkablePages || []).flatMap(p => [p.h1, p.say]), ...(D.cards || []).flatMap(c => [c.name, c.say]), cv.primary_category,
+    ].filter(Boolean).map(s => lc(String(s)).replace(/[^a-z0-9' ]+/g, ' ').replace(/\s+/g, ' ').trim()).filter(Boolean))],
     tradeFactsText: lc(tradeFactsText || ''),
     cvNumbers, cvText: cvText.join(' | '), researchText, researchNumbers, places: [...places],
     confirmedServices, serviceList, linkable, linkableCategories, towns,
@@ -418,7 +427,7 @@ function validateCommon(record, V) {
     // PACK-COPY: nothing lifted from the calibration pack (25 Oct: the May to July hedge line)
     if (V.pack) {
       for (const sen of sentences(t)) {
-        const hit = packCopy(sen, V.pack);
+        const hit = packCopy(sen, V.pack, V.packNames || []);
         if (hit) { flag('BLOCK', 'PACK-COPY', `"${sen.slice(0, 70)}…" ${hit.kind === 'run' ? `shares "${hit.match}" with` : 'is a sentence from'} the calibration pack. The pack is for terminology and standard, never copied: write the point for this client.`); break; }
       }
     }

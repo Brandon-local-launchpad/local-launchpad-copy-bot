@@ -1,0 +1,615 @@
+{
+  "_source": "niche-library/cleaning.json",
+
+  "trade": "Cleaning",
+  "trade_lower": "cleaning",
+  "trade_person": "cleaner",
+  "trade_person_plural": "cleaners",
+  "customer_type": "homeowners, tenants and local businesses",
+  "unit_of_work": "visits",
+  "emergency_niche": false,
+  "big_ticket": false,
+  "big_ticket_examples": [],
+  "schema_subtype": "LocalBusiness",
+
+  "words_use": ["clean", "cleaner", "regular clean", "deep clean", "end of tenancy clean", "oven", "carpet", "sofa", "mattress", "shower screen", "limescale", "grout", "stain", "smell", "checkout", "deposit", "inventory", "home", "flat", "office", "windows", "gutters", "driveway", "patio", "render", "moss", "green growth"],
+  "words_avoid": ["sparkling", "spotless", "immaculate", "pristine", "soil", "soiling", "sanitaryware", "operatives", "janitorial", "housekeeping", "biocide", "touchpoints", "property", "cleaning solutions", "hygiene solutions", "facilities management", "eco friendly"],
+  "words_avoid_exceptions": {
+    "property": "allowed once on an end of tenancy page where the check in inventory is meant",
+    "janitorial": "allowed only where the page keyword is the GBP category name itself",
+    "biocide": "allowed where a trade facts row is quoted as what usually applies to a treatment"
+  },
+
+  "buttons": {
+    "primary_action": "Get My [QUOTE_FREE] Quote",
+    "meta_cta": "Get your [QUOTE_FREE_LOWER] quote today.",
+    "process_h2": "Your [QUOTE_FREE] Quote in 3 Simple Steps",
+    "final_h2": "Get a [QUOTE_FREE] Quote From a Local [CATEGORY] in [CITY]",
+    "final_h2_emergency": null,
+    "cta_band_line": "Tell us what needs cleaning and we'll get back to you within [CV: response_time].",
+    "cta_band_line_no_response": "Tell us what needs cleaning and we'll get back to you."
+  },
+
+  "business_type_default": "B",
+  "business_type_notes": "Every cleaning category is B (the calibration pack, section 2). The split inside B is written into the briefs, not the type: recurring pages (regular domestic, office, communal, gym, clinic, school, holiday let changeovers, window and gutter rounds) are written as what builds up between visits and what a visit covers; single job situation led pages (end of tenancy, after builders, a deep clean ahead of moving out or selling up) as the customer's date or situation, never an invented symptom; single job problem led pages (rug, curtain, leather, mattress, pet stain, oven, tile and grout, stone floor, and the exterior pages) as symptom, cause and consequence. A client hand set to type A has no briefs in this entry.",
+
+  "priority_services": [],
+  "core_services": {
+    "house cleaning service": ["regular domestic cleaning", "deep cleaning", "end of tenancy cleaning", "office cleaning"],
+    "cleaners": ["regular domestic cleaning", "deep cleaning", "end of tenancy cleaning", "office cleaning"],
+    "janitorial service": ["office cleaning", "communal area cleaning", "after builders cleaning", "medical and clinic cleaning", "school cleaning", "gym and leisure centre cleaning", "specialist commercial cleaning"],
+    "carpet cleaning service": ["carpet cleaning", "rug cleaning", "pet stain and odour removal", "mattress cleaning", "curtain cleaning", "leather cleaning"],
+    "upholstery cleaning service": ["upholstery cleaning", "leather cleaning", "rug cleaning", "curtain cleaning", "pet stain and odour removal"],
+    "pressure washing service": ["driveway and patio cleaning", "roof cleaning", "soft washing", "render cleaning", "cladding cleaning"],
+    "gutter cleaning service": ["gutter cleaning", "fascia and soffit cleaning", "roof cleaning"],
+    "window cleaning service": ["window cleaning", "conservatory cleaning", "fascia and soffit cleaning"],
+    "air duct cleaning service": [],
+    "blast cleaning service": []
+  },
+
+  "steps": [
+    {
+      "title": "Tell Us What Needs Cleaning",
+      "brief": "How to get in touch and what is useful to send first (the size of the home or the premises, which rooms or which item, the date it has to be done by if there is one, a photo of the stain or the oven if they have one). No promise of a reply time unless [CV: response_time] is set."
+    },
+    {
+      "title": "We Look Round and Agree the Price",
+      "brief": "The look round (the home or the premises) and what gets looked at: the rooms or the item, how much has built up, access and parking, what the customer wants covered. Follows [CV: quote_method]; only say the quote is written if quote_method says so. The price agreed before the first visit only when the price_agreed_before_work practice is confirmed. Never restates 'free' (FAQ 5 owns it). Never a room count, a checklist length or a timing as this client's process."
+    },
+    {
+      "title": "We Clean on a Date That Suits You",
+      "brief": "The first visit or the job goes in the diary on a day that suits the customer; a regular round following on only when the maintenance_schedule practice is confirmed, with a frequency only from [CV: visit_frequency_options]. Keys and whether the customer needs to be in only from [CV: access_handling] and the customer_need_not_be_home practice. Never mention the price or changes to what is covered (step 2 and Why choose us own them). Never restates the start time (FAQ 4 owns it)."
+    }
+  ],
+
+  "step_2_no_visit": {
+    "title": "We Agree What's Covered and the Price",
+    "brief": "Say what the clean covers is agreed item by item and the price is agreed before any work starts. Describe how the price is reached only from [CV: quote_method]; when quote_method is blank, name no method at all (no photos, call, video or visit). Only say the quote is written if quote_method says so. Never restates 'free' (FAQ 5 owns it). Never a room count, a checklist length or a timing as this client's process."
+  },
+  "cover_chain": ["guarantee", "insurance"],
+
+  "fears": [
+    "a stranger in the home who moves or breaks things, or a different cleaner every visit",
+    "a standard that slips once the first few visits are done",
+    "paying out and still losing the checkout, or a stain and a smell that return",
+    "missed corners and complaints, and in a clinic or a kitchen dirt carried from one room into the next"
+  ],
+
+  "logo_tiers": {
+    "ratings": ["Google (needs review_count 5+)", "Checkatrade", "Trustpilot", "Which? Trusted Traders"],
+    "tier1": ["BICSc (British Institute of Cleaning Science)", "NCCA (National Carpet Cleaners Association)", "Domestic Cleaning Alliance", "Federation of Window Cleaners"],
+    "tier2": ["WoolSafe Approved Service Provider", "IICRC certified technician", "CHAS", "SafeContractor", "Constructionline", "Living Wage Foundation accredited"],
+    "tier3": "ISO 9001 or ISO 14001 only with the certificate, DBS checks only as the client values confirm (a check, not a membership), chamber of commerce, local press features: Ray's call per client"
+  },
+
+  "faq_fixed_doubts": {
+    "Q1_cost": "Price",
+    "Q6_areas": "Fit"
+  },
+
+  "faq_slots": [
+    {
+      "slot": "faq_2",
+      "question": "Are you insured?",
+      "answer_brief": "The cover figure from [CV: insurance_cover] and what the cover is for, with a plausible cleaning example (an ornament knocked off a shelf, a mark on a worktop) that does not suggest carelessness. Never say the cover extends to the item being cleaned or to keys unless the client values say so (the trade facts treatment risk and keys rows).",
+      "symptom_based": false,
+      "doubt": "Trust"
+    },
+    {
+      "slot": "faq_2_fallback",
+      "question": "What happens if something goes wrong?",
+      "answer_brief": "From [CV: complaints_process] only.",
+      "symptom_based": false,
+      "doubt": "Trust"
+    },
+    {
+      "slot": "faq_3",
+      "question": "Do you guarantee your work?",
+      "answer_brief": "Used only when a guarantee is confirmed. Start with yes, then the terms from [CV: guarantee_scope] (a return visit, what it covers, how soon the customer has to say). Never written as something that replaces the customer's rights (the trade facts satisfaction guarantee row). Never a promise that a stain or a smell is gone.",
+      "symptom_based": false,
+      "doubt": "Trust"
+    },
+    {
+      "slot": "faq_3_none",
+      "question": "What happens if something isn't right after a clean?",
+      "answer_brief": "Used when nothing in cover_chain other than insurance is confirmed. Open with what the customer does: tell us what isn't right and we'll look at it. Then the 'reasonable care and skill' standard every trade works to, as the standard the work is held to, never as a defence. No promise to come back or put it right for free. Never invent a guarantee.",
+      "symptom_based": false,
+      "doubt": "Trust"
+    },
+    {
+      "slot": "faq_4",
+      "question": "How soon can you start?",
+      "answer_brief": "From [CV: start_time] only, as given. A single job with a date (a checkout, a handover after builders) only as start_time allows; never a same day or a next day claim unless [CV: same_day_available] is yes.",
+      "symptom_based": false,
+      "doubt": "Timing"
+    },
+    {
+      "slot": "faq_5_free",
+      "question": "Is the quote free and no obligation?",
+      "answer_brief": "From [QUOTE_FREE] and [CV: quote_method].",
+      "symptom_based": false,
+      "doubt": "Price"
+    },
+    {
+      "slot": "faq_5_not_free",
+      "question": "How do your quotes work?",
+      "answer_brief": "From [CV: quote_method] only.",
+      "symptom_based": false,
+      "doubt": "Price"
+    },
+    {
+      "slot": "faq_A",
+      "question": "How often should a home be cleaned?",
+      "answer_brief": "What decides it, in plain words: how many people and pets live there, how the kitchen and the bathrooms are used, what the customer wants kept on top of between visits. A frequency only from [CV: visit_frequency_options]; otherwise say the pattern is agreed with you and nothing more. Never a room count or a timing as this client's process.",
+      "symptom_based": false,
+      "doubt": "Timing"
+    },
+    {
+      "slot": "faq_B",
+      "question": "Why does a stain come back after the carpet has been cleaned?",
+      "answer_brief": "Use the assigned symptom's meaning and its linked local issue. Three genuinely different causes in plain words, from the trade facts what goes wrong rows and the calibration pack: the mark has gone down to the backing or the underlay and rises again as the carpet dries; a shop product's residue left in the pile, drawing dirt to the patch; a hired machine that wets the carpet more than it can suck back. Then what the local factor adds (pets, hard water, tenure), then what a proper clean has to reach. Blame the method, never the customer's effort. Never promise the stain is gone.",
+      "symptom_based": true,
+      "doubt": "Process"
+    },
+    {
+      "slot": "faq_C",
+      "question": "Do I need to be home while you clean?",
+      "answer_brief": "From [CV: access_handling] and the confirmed practices only (customer_need_not_be_home): whether the customer needs to be in, keys, alarm codes. When nothing is on file, say the arrangements for getting in are agreed before the first visit and nothing more. Never a key policy, vetting or a DBS check stated as fact unless the client values confirm it.",
+      "symptom_based": false,
+      "is_fallback": true,
+      "doubt": "Process"
+    },
+    {
+      "slot": "faq_D",
+      "question": "Do I need to provide cleaning products and equipment?",
+      "answer_brief": "From [CV: materials_methods] and the confirmed practices only: whether the products and the equipment come with the cleaner or stay in the home. When nothing is on file, say it is agreed before the first visit. Never name a product or a brand; eco or fragrance free products only from [CV: materials_methods].",
+      "symptom_based": false,
+      "is_fallback": true,
+      "doubt": "Fit"
+    },
+    {
+      "slot": "faq_E",
+      "question": "Can my landlord insist on a professional clean?",
+      "answer_brief": "Used only when the client's services list carries the end of tenancy page. Only from the trade facts pack's rows on tenancy end (professional cleaning at tenancy end, deposit cleaning evidence): in most tenancies in England, no; a landlord's usual entitlement is the home handed back in the state of cleanliness the check in recorded, fair wear and tear allowed, and the checkout is judged against the inventory taken at check in. Phrase it as the usual position, never the Act's name, never legal advice. Never promise the deposit back.",
+      "symptom_based": false,
+      "is_fallback": true,
+      "condition": "the client's services list carries the end of tenancy page",
+      "doubt": "Process"
+    }
+  ],
+
+  "materials_tick_list": {
+    "Products": ["standard professional products", "eco or plant based products", "fragrance free products", "customer's own products used"],
+    "Carpet and upholstery methods": ["hot water extraction", "low moisture cleaning", "dry compound cleaning", "stain protection treatment after cleaning"],
+    "Exterior methods": ["pressure washing", "soft washing", "steam cleaning", "water fed pole", "re sanding block joints after cleaning", "sealing after cleaning"],
+    "Equipment": ["colour coded cloths and mops", "M or H class vacuum for builders dust", "own equipment brought to every job", "customer's equipment used"],
+    "Other": ["same cleaner each visit", "key holding", "uniformed staff", "DBS checked staff", "checkout checklist with dated photos", "itemised receipted invoice for letting agents", "linen and laundry handled", "waste taken away"]
+  },
+
+  "service_terms": ["regular cleaning", "domestic cleaning", "house cleaning", "deep clean", "deep cleaning", "spring clean", "end of tenancy clean", "end of tenancy cleaning", "move out clean", "after builders clean", "after builders cleaning", "builders clean", "sparkle clean", "changeover clean", "holiday let cleaning", "oven cleaning", "carpet cleaning", "upholstery cleaning", "sofa cleaning", "rug cleaning", "mattress cleaning", "curtain cleaning", "leather cleaning", "stain removal", "odour removal", "pet stain removal", "hot water extraction", "steam cleaning", "low moisture cleaning", "dry compound cleaning", "stain protection", "tile and grout cleaning", "grout cleaning", "grout sealing", "stone floor cleaning", "stone restoration", "marble polishing", "honing", "polishing", "sealing", "office cleaning", "commercial cleaning", "contract cleaning", "communal area cleaning", "communal cleaning", "gym cleaning", "clinic cleaning", "medical cleaning", "school cleaning", "specialist cleaning", "window cleaning", "water fed pole", "reach and wash", "conservatory cleaning", "gutter cleaning", "gutter clearing", "fascia cleaning", "soffit cleaning", "pressure washing", "jet washing", "soft washing", "roof cleaning", "moss removal", "render cleaning", "cladding cleaning", "driveway cleaning", "patio cleaning", "re sanding", "algae treatment", "descaling", "degreasing", "disinfecting", "sanitising", "colour coding", "ironing", "laundry", "linen change"],
+
+  "service_words_note": "Old path only (21 Oct 2026): this list applies when the homepage is written from the uploaded custom values CSVs. A client with a v3 page map names every service by its page title (the services library's UK name), and this list is not used.",
+  "service_words": [
+    ["regular domestic cleaning", "regular cleaning"], ["standard cleaning", "regular cleaning"], ["general housekeeping", "regular cleaning"],
+    ["deep cleaning", "deep cleaning"], ["deep clean", "deep cleaning"],
+    ["end of tenancy cleaning", "end of tenancy cleaning"], ["moving-related cleaning", "end of tenancy cleaning"], ["move-out cleaning", "end of tenancy cleaning"],
+    ["holiday let and airbnb cleaning", "holiday let cleaning"], ["holiday let", "holiday let cleaning"],
+    ["after builders cleaning", "after builders cleaning"], ["post-construction cleaning", "after builders cleaning"],
+    ["oven cleaning", "oven cleaning"],
+    ["rug cleaning", "rug cleaning"], ["area rug cleaning", "rug cleaning"],
+    ["curtain cleaning", "curtain cleaning"], ["drapes and curtain cleaning", "curtain cleaning"],
+    ["leather cleaning", "leather cleaning"],
+    ["mattress cleaning", "mattress cleaning"],
+    ["pet stain and odour removal", "pet stain and odour removal"],
+    ["carpet steam cleaning", "carpet cleaning"], ["general carpet cleaning", "carpet cleaning"],
+    ["upholstery cleaning", "sofa and upholstery cleaning"],
+    ["tile and grout cleaning", "tile and grout cleaning"],
+    ["stone floor cleaning and restoration", "stone floor cleaning"], ["marble polishing", "stone floor cleaning"],
+    ["office cleaning", "office cleaning"], ["office and workplace cleaning", "office cleaning"],
+    ["communal area cleaning", "communal area cleaning"], ["multi-tenant cleaning", "communal area cleaning"],
+    ["gym and leisure centre cleaning", "gym cleaning"], ["fitness centre", "gym cleaning"],
+    ["medical and clinic cleaning", "clinic cleaning"], ["medical institution cleaning", "clinic cleaning"],
+    ["school cleaning", "school cleaning"], ["school & campus cleaning", "school cleaning"],
+    ["specialist commercial cleaning", "specialist commercial cleaning"], ["laboratory cleaning", "specialist commercial cleaning"], ["cinema cleaning", "specialist commercial cleaning"], ["stadium cleaning", "specialist commercial cleaning"], ["post-event cleaning", "specialist commercial cleaning"], ["emergency & specialist commercial cleaning", "specialist commercial cleaning"],
+    ["roof cleaning", "roof cleaning"], ["rooftop/skylight cleaning", "roof cleaning"],
+    ["soft washing", "soft washing"], ["soft wash cleaning", "soft washing"],
+    ["conservatory cleaning", "conservatory cleaning"],
+    ["fascia and soffit cleaning", "fascia and soffit cleaning"], ["fascia & soffit cleaning", "fascia and soffit cleaning"],
+    ["cladding cleaning", "cladding cleaning"],
+    ["render cleaning", "render cleaning"],
+    ["driveway and patio cleaning", "driveway and patio cleaning"], ["driveway cleaning", "driveway and patio cleaning"], ["patio cleaning", "driveway and patio cleaning"],
+    ["power/pressure washing", "pressure washing"],
+    ["gutter cleaning", "gutter cleaning"],
+    ["window washing", "window cleaning"], ["interior and exterior window cleaning", "window cleaning"], ["glass and mirror cleaning", "window cleaning"],
+    ["a/c", null], ["hvac", null], ["ductless heating", null], ["heating system", null], ["thermostat", null], ["blast cleaning", null]
+  ],
+
+  "general_service_words": ["cleaning", "house cleaning", "domestic cleaning", "regular cleaning", "commercial cleaning", "contract cleaning", "exterior cleaning"],
+  "problem_service_words": ["stain removal", "odour removal", "limescale", "mould", "moss", "algae"],
+  "why_titles_alt": [
+    "The Same Clean Every Visit",
+    "Covered If Something Goes Wrong"
+  ],
+
+  "category_work_nouns": {
+    "house cleaning service": "house cleaning",
+    "cleaners": "house cleaning",
+    "janitorial service": "commercial cleaning",
+    "carpet cleaning service": "carpet cleaning",
+    "upholstery cleaning service": "upholstery cleaning",
+    "pressure washing service": "exterior cleaning",
+    "gutter cleaning service": "gutter cleaning",
+    "window cleaning service": "window cleaning",
+    "air duct cleaning service": "duct cleaning",
+    "blast cleaning service": "blast cleaning"
+  },
+  "seasonal_trade": false,
+  "category_types": {},
+  "category_page_blocks": {
+    "B": {
+      "problems": {
+        "h2": "Common [WORK] Problems",
+        "cards": [
+          {
+            "title": "What builds up between cleans",
+            "brief": "Recurring pages (regular domestic, office, communal, school, gym, clinic, window and gutter rounds): the things that show by midweek or between visits, from the trade facts signs rows in the customer's words (dust on the surfaces they reach, crumbs on the floor, marks on the sink and the taps, the bins, marks on the lift buttons). The one cause this card makes: visits spaced further apart than the build up. Say what a visit covers, from the card list; a frequency only from [CV: visit_frequency_options]. On a carpet, upholstery or exterior category the card is the build up the customer has lived with (the darkened traffic lane, the green side of the wall, the dark grout line), same cause. Never say the home or the premises is dirty. Not the items an inspection fails: card 2 owns those.",
+            "mechanism": "visits spaced further apart than the build up"
+          },
+          {
+            "title": "What an inspection marks down",
+            "brief": "Situation led pages (end of tenancy, a deep clean ahead of moving out or selling up, after builders, holiday let changeovers, a clinic audit): the inside of the oven, the extractor filter, the silicone round the bath, scale on the glass of the shower, fine dust on the sills, used linen left, from the trade facts signs rows. The one cause this card makes: the places a routine clean does not reach. Name the yardstick the clean is judged by (the check in inventory, the changeover checklist, the agreed scope, the audit) from the facts pack rows, and that comparable before and after records matter more than an invoice (the deposit evidence row). Never promise a deposit back. On a carpet, upholstery or exterior category the card is the item the customer's own attempt did not shift; the cause stays the same. Never a checklist length or a room count.",
+            "mechanism": "the places a routine clean does not reach"
+          },
+          {
+            "title": "A stain or a mark that came back",
+            "brief": "Problem led pages (rug, curtain, leather, mattress, pet stain, oven, tile and grout, stone floor, and the exterior pages): the mark that fades and reappears, the smell that stays, the grout that darkens again within weeks, the green that returns on the shaded wall. The one cause this card makes: the cause left underneath, only the surface cleaned (urine through to the backing that wicks back up as the carpet dries, a shop product left in the fibres pulling dirt back in, growth left in the render). From the trade facts what goes wrong rows and the calibration pack: explain what defeated the customer's own go at it, without blaming them, and what a proper clean has to reach. A method named only from [CV: materials_methods]. Never promise that the mark is gone or the smell has left. On a recurring category the card is the mark the regular clean keeps covering up (limescale, the grout line).",
+            "mechanism": "the cause left underneath, only the surface cleaned"
+          },
+          {
+            "title": "The wrong method for the surface",
+            "brief": "Every page: the damage a clean does when the method suits the cleaner, not the surface or the room, from the trade facts done badly rows: high pressure on roof tiles, render or block joints; too much water in a carpet; bleach on wool; soap and water on absorbent leather; oven cleaner on a catalytic lining; the same cloth or mop carried from the washroom to the desk or the worktop (the commercial and clinic version of this card, and every home that has both a kitchen and bathrooms). The one cause this card makes: a method chosen for speed, not for the surface. Give the usual principle (a test patch first, cloths and mops colour coded by area, a treatment after the dirt is off, not instead of it) as general practice, never as this client's process unless a tick or a practice confirms it. Never a pressure, a temperature or a dwell time: the rows give none that apply to every surface.",
+            "mechanism": "a method chosen for speed, not for the surface"
+          }
+        ]
+      },
+      "cost": {
+        "h2": "What Affects the Cost of [WORK] in [CITY]",
+        "cards": [
+          {
+            "title": "How much there is and how often",
+            "brief": "More rooms, more panels, more floor area, more cavities or faces, from the trade facts price rows. A regular round means each visit is shorter, so the price per visit is lower than one long catch up; a single job is priced as a job. Give no pricing basis beyond that (nothing priced on time, no hourly rule). A frequency only from [CV: visit_frequency_options]. No figure."
+          },
+          {
+            "title": "How much has built up",
+            "brief": "Heavier dirt, ingrained grease, scale, baked on deposits, aged stains, how far the growth has spread, from the trade facts price rows. A first visit on a home or an office left a while is a bigger job than the visits that follow. Say the business looks before it prices, from [CV: quote_method] only. No figure."
+          },
+          {
+            "title": "What's included in the clean",
+            "brief": "The oven, the inside of the windows, the carpets, the linen, the appliances, sealing after a grout clean, re sanding the joints after a paving wash: the added tasks the trade facts price rows name. From the card list and the services list only; a sibling service page linked where LINKABLE PAGES has one. Never a checklist length."
+          },
+          {
+            "title": "Access, parking and hours",
+            "brief": "Difficult access, height and the equipment it needs, nowhere to park, out of hours and operating hours for commercial work, a short changeover window, from the trade facts price rows. Say why each adds time. Nothing about urgency pricing unless [CV: price_list] gives it. Code adds the price line from [CV: price_list] when there is one."
+          }
+        ]
+      },
+      "steps": [
+        {
+          "title": "Tell Us What Needs Cleaning",
+          "brief": "How to get in touch and what is useful to send first (the size of the home or the premises, which rooms or which item, a date if there is one, a photo of the stain or the oven if they have one). No promise of a reply time unless [CV: response_time] is set."
+        },
+        {
+          "title": "We Agree What's Covered and the Price",
+          "brief": "What the visit or the job will cover, item by item, and what it costs. The price agreed before the first visit only when the price_agreed_before_work practice is confirmed. Follows [CV: quote_method]; only say the quote is written if quote_method says so. Never restates \"free\". Never a room count, a checklist length or a timing as this client's process."
+        },
+        {
+          "title": "We Clean on a Date That Suits You",
+          "brief": "The first visit or the job goes in the diary on a day that suits the customer. A regular round following on only when the maintenance_schedule practice is confirmed. Keys and whether the customer needs to be in only from [CV: access_handling] and the customer_need_not_be_home practice. Never mention the price or changes to what is covered."
+        }
+      ],
+      "faq_slots": [
+        {
+          "slot": "cost",
+          "question": "How much does [WORK_LOWER] cost in [CITY]?",
+          "answer_brief": "Prices only from [CV: price_list]; otherwise how the price is reached, from [CV: quote_method] only, and that the figure is agreed before the first visit when that practice is confirmed. The four cost cards above already give what moves the price: name one factor at most, never the list again.",
+          "doubt": "Price"
+        },
+        {
+          "slot": "cover",
+          "when": "guarantee",
+          "question": "Do you guarantee your [WORK_LOWER]?",
+          "answer_brief": "Start with yes, then the terms from [CV: guarantee_scope] (a return visit, what it covers, how soon the customer has to say). Described, never promised, and never as something that replaces the customer's rights (the trade facts satisfaction guarantee row). Never a promise that a stain or a smell is gone.",
+          "doubt": "Trust"
+        },
+        {
+          "slot": "cover",
+          "when": "insurance",
+          "question": "Are you insured?",
+          "answer_brief": "The cover figure from [CV: insurance_cover] and what the cover is for. Never what it pays or who it covers, and never that it covers the item being cleaned or keys unless the client values say so (the trade facts treatment risk and keys rows).",
+          "doubt": "Trust"
+        },
+        {
+          "slot": "cover",
+          "question": "What if something gets damaged during a clean?",
+          "answer_brief": "Open with what the customer does: tell us and we look at it. Then the reasonable care and skill standard every trade works to. No promise to put it right free. Never invent a guarantee or insurance.",
+          "doubt": "Trust"
+        },
+        {
+          "slot": "scope",
+          "question": "What does your [WORK_LOWER] include?",
+          "answer_brief": "The jobs on the card list, said as what a visit or a job covers: the rooms, the items, the surfaces. Link one service page. What is not included only from the services list. Never a room count or a checklist length.",
+          "doubt": "Fit"
+        },
+        {
+          "slot": "process",
+          "question": "What happens when I book?",
+          "answer_brief": "From [CV: quote_method] and the confirmed practices only: what the customer sends, what is agreed before the first visit, whether they need to be in (customer_need_not_be_home), keys only from [CV: access_handling]. A regular pattern only when the maintenance_schedule practice is confirmed; a frequency only from [CV: visit_frequency_options]. Never promise a schedule, a same cleaner or a key policy.",
+          "doubt": "Process"
+        },
+        {
+          "slot": "timing",
+          "question": "When is the best time to book [WORK_LOWER]?",
+          "answer_brief": "Demand timing, not seasons, from the trade facts timing rows and the calibration pack: an end of tenancy clean once the home is empty and before the checkout, an after builders clean once the dusty work has finished, changeovers between bookings, exterior washing when the weather lets the wash and the runoff be controlled, gutters after leaf fall. Say why the timing changes the job; never fall back on 'our busy season'. No dates, no promise of a slot.",
+          "doubt": "Timing"
+        }
+      ],
+      "faq_symptom": {
+        "frame": "[SYMPTOM]: why does it happen, and what can be done?",
+        "answer_brief": "The symptom and its linked local issue (hard water, tenure and turnover, shade from trees, coastal salt), answered as asked: the usual cause here in plain words, what the local factor adds, then what the clean does about it. One figure at most. Never a claim about what is inside the town's homes.",
+        "doubt": "Process"
+      }
+    }
+  },
+
+  "service_page_blocks": {
+    "B": {
+      "included": {
+        "h2": "What's Included in Our [SERVICE]",
+        "items": [
+          {
+            "title": "Agreeing what the clean covers",
+            "brief": "The first stage from the trade facts: the task schedule, the agreed scope, the zones, the starting condition recorded (dated photographs on an end of tenancy clean). A part of the job, not a promise about the quote."
+          },
+          {
+            "title": "Checking the surface, the item or the room first",
+            "brief": "The inspection and test stage from the trade facts: the fibre and the dyes, the leather finish, the oven lining, the render finish, the paving and its joints, safe access. Say why a test comes before the clean, from the done badly rows; no figure."
+          },
+          {
+            "title": "Loose dirt and debris out first",
+            "brief": "The remove loose dirt or debris stage from the trade facts: the dry dirt vacuumed, the debris swept, the used linen and the bins out; on an after builders clean the fine dust taken out with suitable extraction, never dry swept (the trade facts rows). Name only what the rows give."
+          },
+          {
+            "title": "The main clean",
+            "brief": "The central stage from the trade facts, named as the trade names it: degrease and descale, the kitchen and the bathrooms, the agitation of the grout, the treatment of the spot, the wash of the panel. A named method (extraction, low moisture or soft wash) only from [CV: materials_methods]; otherwise describe the effect on the surface or the fibres."
+          },
+          {
+            "title": "Rinse, extract or wipe down",
+            "brief": "The recover, rinse or extract stage from the trade facts: residue out so it does not pull dirt back in, the product wiped off as its instructions require, a treatment left for its labelled time where one is used (no figure: the rows give none that applies to every product)."
+          },
+          {
+            "title": "Floors, edges and the things people touch",
+            "brief": "The floors last, the edges, the door handles, the taps, the light switches, the lift buttons, from the trade facts stages. What the customer sees when the job is done."
+          },
+          {
+            "title": "A check against what was agreed",
+            "brief": "The inspect, check or record stage from the trade facts: against the scope, the checklist, the check in inventory, the audit. Photographs or an itemised receipted invoice only from the confirmed ticks; otherwise say the job is checked against what was agreed."
+          },
+          {
+            "title": "Drying and what happens next",
+            "brief": "From the trade facts timing and stages: full drying before use, a mattress not remade damp, sealing only on a clean dry surface, the block joints re sanded, the linen and supplies replaced where contracted. A drying time only from the trade facts facts rows, as method dependent, never as a promise."
+          }
+        ],
+        "note": "Fallback only: the tick items are the service's own Table A stages when the pack gives 6 or more; this set is used when it gives fewer (F-ITEMS-GENERIC)."
+      },
+      "problems": {
+        "h2": "When It's Time to Book [SERVICE]",
+        "cards": [
+          {
+            "title": "The first signs",
+            "brief": "The things a customer notices first, from the trade facts signs row, in their words. The one cause this card makes: the job left undone. Recurring pages: what shows between visits. Situation led pages (a checkout, a build just finished, a deep clean ahead of moving out or selling up): the situation and the date, never an invented symptom. Problem led pages: the stain, the smell, the dark grout, the green wall. Then what it leads to if left, from the skipped row: specific, never alarming, never a health scare.",
+            "mechanism": "the job left undone"
+          },
+          {
+            "title": "Your own attempt didn't shift it",
+            "brief": "Problem led pages: the shop product, the rented machine, the stiff brush and the hose that did not work, from the trade facts done badly and facts rows (bleach on wool, soap and water on absorbent leather, shop oven cleaner against baked on carbon, a machine that puts water in and cannot pull it out, high pressure on a surface that will not take it). The one cause this card makes: a product or a machine wrong for the material. Blame the method, never the customer's effort. Recurring and commercial pages: the in house attempt that keeps the desks tidy and misses the washrooms and the things people touch. Not the cause left underneath: the category page owns that.",
+            "mechanism": "a product or a machine wrong for the material"
+          },
+          {
+            "title": "A date you can't move",
+            "brief": "Situation led pages: the checkout, the next guest's check in, the handover after the builders, the viewing, the audit, the start of term, the reopening after a refit. The one cause this card makes: a deadline fixed by someone else. Name the yardstick the clean is judged by on that day (the check in inventory, the changeover checklist, the standard the premises work to) from the facts pack rows, and that comparable before and after records matter more than an invoice. Recurring pages: the visit that has to land before guests or an inspection. Never promise a date unless [CV: start_time] is set, and never a deposit back.",
+            "mechanism": "a deadline fixed by someone else"
+          },
+          {
+            "title": "It's taking more of your time than it should",
+            "brief": "The customer's side: a weekend lost to the catch up, an office manager fielding complaints about the washrooms, a host turning rooms between guests. The one cause this card makes: a job that has become a catch up every time instead of a short regular one. Say what a regular visit changes, without a frequency unless [CV: visit_frequency_options] is set. On a one off job's page this card is the job the customer has been putting off because it never fits in a weekend (the oven, the carpets, the driveway).",
+            "mechanism": "a job that has become a catch up every time"
+          }
+        ]
+      },
+      "cost": {
+        "h2": "How We Price [SERVICE] in [CITY]",
+        "cards": [
+          {
+            "title": "How much there is to clean",
+            "brief": "The size factor from the trade facts price row: the rooms, the panels, the floor area, the cavities and accessories, the faces of a mattress, the storeys, the length of the roofline. Say it plainly and give no figure."
+          },
+          {
+            "title": "How heavy the build up is",
+            "brief": "From the trade facts price row: ingrained grease, scale, baked on deposits, aged stains, how far the growth has spread, heavy entrance dirt. A first visit on something left a while is a bigger job; after that each visit is priced as a visit. Say the business looks before it prices, from [CV: quote_method] only. Nothing priced on time, no hourly rule."
+          },
+          {
+            "title": "What the job needs on top",
+            "brief": "From the trade facts price row and the services list only: a separate specialist treatment, the linen and the replenishment, sealing, re sanding the joints, taking curtains down and rehanging them, controlled dust extraction, keeping the runoff out of the drain, the equipment to reach the height. Say that each adds to the job. A sibling service page linked where LINKABLE PAGES has one."
+          },
+          {
+            "title": "Access, hours and how soon",
+            "brief": "From the trade facts price row: difficult access, height, restricted or out of hours access, operating hours, a short changeover window. Say why each adds time. Nothing about urgency pricing unless [CV: price_list] gives it. Code adds the price line from [CV: price_list] when there is one."
+          }
+        ]
+      },
+      "steps": [
+        {
+          "title": "Tell Us What Needs Doing",
+          "brief": "How to get in touch and what is useful to send first (the size of the room or the item, how long it has been since it was last cleaned, a date if there is one, photos if they have them). No promise of a reply time unless [CV: response_time] is set."
+        },
+        {
+          "title": "We Agree What's Covered and the Price",
+          "brief": "What the visit or the job will cover and what it costs. The price agreed before the first visit only when the price_agreed_before_work practice is confirmed. Follows [CV: quote_method]; only say the quote is written if quote_method says so. Never restates \"free\". Never a room count, a checklist length or a timing as this client's process."
+        },
+        {
+          "title": "We Clean on a Date That Suits You",
+          "brief": "The visit or the job goes in the diary on a day that suits the customer. A regular pattern following on only when the maintenance_schedule practice is confirmed. Keys and whether the customer needs to be in only from [CV: access_handling] and the customer_need_not_be_home practice. Never mention the price or changes to what is covered."
+        }
+      ],
+      "faq_slots": [
+        {
+          "slot": "frequency",
+          "question": "When should I book [SERVICE_LOWER]?",
+          "answer_brief": "From the trade facts timing row only. Recurring pages: what decides how often (how the room or the premises is used, the dirt tracked in, the use pattern) in plain words; a frequency only from [CV: visit_frequency_options], otherwise say the pattern is agreed with you and nothing more. Single job pages: when the job is booked against its date (once the home is empty and before the checkout, once the dusty work has finished, between bookings, when the weather lets the wash and the runoff be controlled). Say why the timing changes the job; never fall back on 'our busy season'. This is the one place the timing is written; a duration only where the row gives one (the rows say it varies).",
+          "doubt": "Timing"
+        },
+        {
+          "slot": "cost",
+          "question": "How much does [SERVICE_LOWER] cost in [CITY]?",
+          "answer_brief": "Prices only from [CV: price_list]; otherwise how the price is reached, from [CV: quote_method] only, and that the figure is agreed before the first visit when that practice is confirmed. The four cost cards above already give what moves the price: name one factor at most, never the list again.",
+          "doubt": "Price"
+        },
+        {
+          "slot": "cover",
+          "when": "insurance",
+          "question": "Are you insured for [SERVICE_LOWER]?",
+          "answer_brief": "The cover figure from [CV: insurance_cover] and what the cover is for. Never what it pays or who it covers, and never that it covers the item being cleaned or keys unless the client values say so (the trade facts treatment risk and keys rows).",
+          "doubt": "Trust"
+        },
+        {
+          "slot": "cover",
+          "question": "What if something gets damaged during the clean?",
+          "answer_brief": "Open with what the customer does: tell us and we look at it. Then the reasonable care and skill standard every trade works to. No promise to put it right free. Never invent a guarantee or insurance.",
+          "doubt": "Trust"
+        },
+        {
+          "slot": "access",
+          "question": "Do I need to be home for [SERVICE_LOWER]?",
+          "answer_brief": "From [CV: access_handling] and the confirmed practices only (customer_need_not_be_home): whether the customer needs to be in, keys, alarm codes; on a commercial page, out of hours access only from the client values. When nothing is on file, say the arrangements for getting in are agreed before the first visit and nothing more. Never a key policy, vetting or a DBS check stated as fact.",
+          "doubt": "Process"
+        },
+        {
+          "slot": "scope",
+          "question": "What does your [SERVICE_LOWER] include?",
+          "answer_brief": "The What's Included items said as a sentence, in other words. What it does not cover only from the services list (a separate treatment, the linen, sealing), with one sibling service page or the category page linked. Never a room count or a checklist length.",
+          "doubt": "Fit"
+        },
+        {
+          "slot": "rules",
+          "when": "rule_rows",
+          "question": "Are there rules or standards for [SERVICE_LOWER]?",
+          "answer_brief": "From the trade facts rule rows only, framed as the usual position for the work, never as homework for the reader: a tenancy rule as the landlord's usual entitlement (the home handed back as the check in recorded it, fair wear and tear allowed), a chemicals, height, waste or runoff rule as how the job is done, a healthcare or food standard as what the premises work to. Plain words with 'usually' or 'in most cases'; what the customer does only where the row says so. Never a standard's number, an Act's name, a cover figure or legal advice. This slot is used only when the service has rule rows.",
+          "doubt": "Process"
+        }
+      ],
+      "faq_symptom": {
+        "frame": "[SYMPTOM]: why does it happen, and what can be done?",
+        "answer_brief": "The symptom and its linked local issue, answered as asked: the usual cause here in plain words, what the local factor adds (hard water, tenure, shade, salt air), then what this service does about it. One figure at most. Never a claim about what is inside the town's homes.",
+        "doubt": "Process"
+      }
+    }
+  },
+
+  "location_page_blocks": {
+    "B": {
+      "problems": {
+        "h2": "Common [WORK] Problems in [TOWN]",
+        "cards": [
+          {
+            "title": "Homes that change hands every summer",
+            "brief": "Rented homes, student lets and the letting agents between them, from the town profile (tenure, turnover, where the lets cluster). The one cause this card makes: tenancies in the town turning over together, so checkouts fall in the same weeks. What follows for the job: the check in inventory the checkout is judged by, the itemised receipted invoice an agent expects, booking against a date; the receipt and the photographs only from the confirmed ticks. Never say the homes are dirty, never invent student numbers or agent names, never promise a date or a deposit back. Not the items an inspection fails: the category pages own those.",
+            "mechanism": "tenancies in the town turning over together"
+          },
+          {
+            "title": "Nobody home when the cleaning needs doing",
+            "brief": "Commuter households, families out all day, older residents who want the same face each time, from the town profile (who lives here, the commute, the ages). The one cause this card makes: households with no one in during the day. What it means for a round: the arrangements for getting in agreed before the first visit, from [CV: access_handling] and the customer_need_not_be_home practice only; the same cleaner each visit only from the confirmed ticks. Never a key policy, vetting or a DBS check as fact. Not the catch up that eats a weekend: the service pages own that.",
+            "mechanism": "households with no one in during the day"
+          },
+          {
+            "title": "What the water and the weather leave behind",
+            "brief": "Pick the one the town profile gives and vary it between towns: hard water (scale on the taps and the shower screens, the items a checkout marks down, from the trade facts signs rows), shade and damp (green growth on the north side of render, on patios and window frames), salt off the sea on the coast, leaf fall where there is tree cover (gutters and rooflines). The one cause this card makes: the town's water and its weather on the surfaces people clean. Say what follows for the job in plain words; on a client with no exterior page in LINKABLE PAGES keep to the indoor version. Never a claim about what is inside the homes. Not the cause left underneath or the wrong method: the category pages own those.",
+            "mechanism": "the town's water and its weather on the surfaces people clean"
+          },
+          {
+            "title": "The places people work in round here",
+            "brief": "The business parks, the clinics and practices, the schools, the gyms, the managed blocks and their shared halls, from the town profile. The one cause this card makes: the mix of premises in the town, each needing something different from a visit. What a room of each kind usually asks of a visit (the things people touch covered every visit, cloths and mops kept to their area, a clinic's own schedule), given as the general practice, never as this client's process. Where LINKABLE PAGES has no commercial page, the card is the town's holiday lets and short lets (changeovers between bookings, the checklist the host works to) from the profile; where there are neither, the town's landlords and agents with more than one home who want the same standard across all of them. Never name a business.",
+            "mechanism": "the mix of premises in the town"
+          }
+        ]
+      },
+      "cost": {
+        "h2": "What Affects the Cost of [WORK] in [TOWN]",
+        "cards": [
+          {
+            "title": "Parking and getting the kit in",
+            "brief": "Terraced streets with permit parking, flats above shops, a block with no lift, a long walk from the van with machines and water. Say why that adds time to a visit or a job, from the town profile where it gives the housing and the streets. No figure."
+          },
+          {
+            "title": "A home or an office left a while",
+            "brief": "The first visit on a home, a let or an office that has had a long gap is a bigger job than the visits that follow. Say it plainly, from the profile where it gives turnover or empty lets; no figure; not the service pages' first visit card in the same words."
+          },
+          {
+            "title": "Working round the town's hours",
+            "brief": "Offices cleaned out of hours, schools in the holidays, changeovers that all fall on the same day of the week, a clinic's audit, a shop before it opens. Say why a fixed window adds to the job, from the profile where it gives the premises and the let pattern. Out of hours work only where the client values confirm it. No figure."
+          },
+          {
+            "title": "Height, roofs and conservatories",
+            "brief": "Two and three storey homes, extensions and conservatories, rooflines the profile gives: the equipment to reach them safely adds time to exterior work (the trade facts price rows). Where LINKABLE PAGES has no exterior page, the card is the town's taller houses and blocks: stairs, landings and the inside of upper windows add time to a visit. No figure, never a height."
+          }
+        ]
+      },
+      "faq_slots": [
+        {
+          "slot": "cost",
+          "question": "What does [WORK_LOWER] cost in [TOWN]?",
+          "answer_brief": "Prices only from [CV: price_list]; otherwise how the price is reached, from [CV: quote_method] only, and that the figure is agreed before the first visit when that practice is confirmed. One factor at most, never the list again.",
+          "doubt": "Price"
+        },
+        {
+          "slot": "town",
+          "when": "start_time",
+          "question": "How soon can you get to [TOWN]?",
+          "answer_brief": "From [CV: start_time] and [CV: response_time] only. The town is in the area covered; nothing about distance unless [CV: travel_distance] is set.",
+          "doubt": "Timing"
+        },
+        {
+          "slot": "town",
+          "question": "Do you cover [TOWN]?",
+          "answer_brief": "Yes: the town and the villages around it (code lists them; name none). How the business reaches it from its base only from the client values. Link one page in this town.",
+          "doubt": "Fit"
+        },
+        {
+          "slot": "cover",
+          "when": "insurance",
+          "question": "Are you insured?",
+          "answer_brief": "The cover figure from [CV: insurance_cover] and what the cover is for. Never what it pays or who it covers, and never that it covers the item being cleaned or keys unless the client values say so.",
+          "doubt": "Trust"
+        },
+        {
+          "slot": "cover",
+          "question": "What happens if something gets broken during a clean?",
+          "answer_brief": "Open with what the customer does: tell us and we look at it. Then the reasonable care and skill standard. No promise to put it right free. Never invent a guarantee or insurance.",
+          "doubt": "Trust"
+        },
+        {
+          "slot": "process",
+          "question": "How do visits work in [TOWN]?",
+          "answer_brief": "From the confirmed practices only: whether the customer needs to be in (customer_need_not_be_home), keys from [CV: access_handling], how the visit is agreed, out of hours for commercial work only from the client values. A frequency only from [CV: visit_frequency_options]. Never promise a schedule, a same cleaner or a key policy.",
+          "doubt": "Process"
+        },
+        {
+          "slot": "timing",
+          "question": "When is the best time to book cleaning in [TOWN]?",
+          "answer_brief": "Demand timing from the town profile and the trade facts timing rows: lets changing hands when the academic year ends, holiday lets turned round all summer, gutters once the leaves are down, exterior washing when the weather lets the runoff be controlled. Say why the timing changes the job; never fall back on 'our busy season'. No dates, no promise of a slot.",
+          "doubt": "Timing"
+        }
+      ]
+    }
+  },
+  "do_not_reuse": []
+}

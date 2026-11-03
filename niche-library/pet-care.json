@@ -1,0 +1,563 @@
+{
+  "_source": "niche-library/pet-care.json",
+
+  "trade": "Pet Care",
+  "trade_lower": "pet care",
+  "trade_person": "dog walker",
+  "trade_person_plural": "dog walkers",
+  "customer_type": "pet owners",
+  "unit_of_work": "walks and visits",
+  "emergency_niche": false,
+  "big_ticket": false,
+  "big_ticket_examples": [],
+  "schema_subtype": "LocalBusiness",
+
+  "words_use": ["dog", "puppy", "older dog", "cat", "rabbit", "walk", "visit", "stay", "lead", "off the lead", "recall", "routine", "keys", "home", "garden", "feeding", "litter tray", "a note on how they got on"],
+  "words_avoid": ["fur babies", "pawsome", "furry friends", "pet parents", "canine", "feline", "pack walk", "pack leader", "enrichment", "socialisation", "calmer dog", "separation anxiety", "happy, healthy pets", "animal lover", "peace of mind", "bespoke", "property"],
+
+  "buttons": {
+    "primary_action": "Book a [QUOTE_FREE] Meet and Greet",
+    "meta_cta": "Book your [QUOTE_FREE_LOWER] meet and greet today.",
+    "process_h2": "Your [QUOTE_FREE] Meet and Greet in 3 Simple Steps",
+    "final_h2": "Book a [QUOTE_FREE] Meet and Greet With a Local [CATEGORY] in [CITY]",
+    "final_h2_emergency": null,
+    "cta_band_line": "Tell us about your dog or cat and we'll get back to you within [CV: response_time].",
+    "cta_band_line_no_response": "Tell us about your dog or cat and we'll get back to you."
+  },
+
+  "business_type_default": "C",
+  "business_type_notes": "The whole niche is type C (pet service) per the calibration pack, section 2: walks, visits and stays sold as bookings to an owner who has to trust the person with keys and an animal. Dog Walker and Pet sitter are both C; no category differs. Inside C the briefs split behaviour led (solo, group and secure field walks, day care, home boarding: the dog's temperament picks the service) from care led (sitting, visits, small animal care, pet taxi, wedding chaperone: the routine a visit or stay keeps).",
+
+  "priority_services": [],
+  "core_services": {
+    "dog walker": ["dog walking", "solo dog walks", "group dog walks", "puppy visits", "secure field walks"],
+    "pet sitter": ["cat sitting", "dog sitting", "drop in visits", "small animal care", "dog home boarding"]
+  },
+
+  "steps": [
+    {
+      "title": "Tell Us About Your Dog or Cat",
+      "brief": "How to get in touch and what is useful to say first (the animal and its age, what you need and on which days, anything it finds hard in the owner's words: pulls on the lead, barks once alone, off its food, hides). No promise of a reply time unless [CV: response_time] is set."
+    },
+    {
+      "title": "We Meet You and Your Pet First",
+      "brief": "The meet and greet at the customer's home and what is asked before a first walk or visit, from the trade facts Table A first stages: feeding, toileting and vet instructions, who to call, keys and access, doors and gates, how the dog is on the lead and with other dogs. Follows [CV: quote_method]; only say the price is written if quote_method says so. Never restates 'free' (FAQ 5 owns it). Never a trainer's assessment and no promise about how the animal will take to it."
+    },
+    {
+      "title": "Walks or Visits Begin on a Day That Suits You",
+      "brief": "The first walk, visit or stay goes in the diary on a day that suits the customer. A regular pattern following on only when the maintenance_schedule practice is confirmed. What comes back after each visit (a note on how they got on, anything that looked off) from the trade facts Table A report stage. Never mention the price or changes to the plan (step 2 and Why choose us own them). Never restates the start time (FAQ 4 owns it)."
+    }
+  ],
+
+  "step_2_no_visit": {
+    "title": "We Agree the Plan and the Price",
+    "brief": "Say the plan for the animal and the price are agreed before the first walk or visit. Describe how the price is reached only from [CV: quote_method]; when quote_method is blank, name no method at all (no call, video, form or visit). Only say the price is written if quote_method says so. Never restates 'free' (FAQ 5 owns it)."
+  },
+  "cover_chain": ["insurance"],
+
+  "fears": [
+    "a walker who hurries the walk, loses the dog off the lead, or simply stops turning up",
+    "handing keys and the run of the house to someone they have met once",
+    "returning to a pet that went off its food, got out past a gate or sat out the week unsettled in a strange place",
+    "a service that does not suit their animal (a nervous dog put in a group, a cat moved out of its home) and nobody saying so"
+  ],
+
+  "logo_tiers": {
+    "ratings": ["Google (needs review_count 5+)", "Trustpilot"],
+    "tier1": ["Council animal activity licence (dog home boarding, dog day care and cat boarding only; the activity, status, expiry and star rating checked on the council register)", "NarpsUK (National Association of Pet Sitters and Dog Walkers)", "Pet Industry Federation (PIF)", "Professional Dog Walkers Association"],
+    "tier2": ["Pet Professional Guild", "IMDT Professional Dog Walking Certification", "City & Guilds Level 2 Certificate of Technical Competence in Dog Walking", "Canine and Feline Behaviour Association (CFBA)"],
+    "tier3": "pet first aid certificate, DBS check, specialist pet business insurance (Cliverton, Pet Business Insurance), a rescue partner or vet referral, local press: Ray's call per client. None of these is a licence and the copy never calls one that."
+  },
+
+  "faq_fixed_doubts": {
+    "Q1_cost": "Price",
+    "Q6_areas": "Fit"
+  },
+
+  "faq_slots": [
+    {
+      "slot": "faq_2",
+      "question": "Are you insured to look after my dog or cat?",
+      "answer_brief": "The cover figure from [CV: insurance_cover] and what the cover is for. The trade facts Table E says cover for the animal in the business's care is a different question from public liability for other people: say which the client has only as the client values give it, never both by default. Never what it pays.",
+      "symptom_based": false,
+      "doubt": "Trust"
+    },
+    {
+      "slot": "faq_2_fallback",
+      "question": "What happens if something goes wrong?",
+      "answer_brief": "From [CV: complaints_process] only.",
+      "symptom_based": false,
+      "doubt": "Trust"
+    },
+    {
+      "slot": "faq_3",
+      "question": "Do you guarantee your service?",
+      "answer_brief": "Used only when a guarantee is confirmed. Start with yes, then the terms. Never a promise about the animal's behaviour or health.",
+      "symptom_based": false,
+      "doubt": "Trust"
+    },
+    {
+      "slot": "faq_3_none",
+      "question": "What if my dog doesn't settle?",
+      "answer_brief": "Used when nothing in cover_chain other than insurance is confirmed. Open with what the customer does: tell us, and we look at it together. Then what usually happens: the plan is changed to suit the dog (a solo walk instead of a group, a shorter visit, a visit at home instead of a stay), from the services the client offers only. Then the 'reasonable care and skill' standard every trade works to, as the standard the work is held to, never as a defence. No promise of a refund, a result or a change in the dog; changing how a dog behaves is a trainer's work, not ours. Never invent a guarantee.",
+      "symptom_based": false,
+      "doubt": "Trust"
+    },
+    {
+      "slot": "faq_4",
+      "question": "Do you have availability for new dogs?",
+      "answer_brief": "From [CV: start_time] only, as given. Never say the books are full or open beyond what start_time gives, and never a waiting list unless the client values say so.",
+      "symptom_based": false,
+      "doubt": "Timing"
+    },
+    {
+      "slot": "faq_5_free",
+      "question": "Is the meet and greet free?",
+      "answer_brief": "From [QUOTE_FREE] and [CV: quote_method].",
+      "symptom_based": false,
+      "doubt": "Price"
+    },
+    {
+      "slot": "faq_5_not_free",
+      "question": "How does your pricing work?",
+      "answer_brief": "From [CV: quote_method] only. Prices only from [CV: price_list].",
+      "symptom_based": false,
+      "doubt": "Price"
+    },
+    {
+      "slot": "faq_A",
+      "question": "How long is a dog walk, and what does it include?",
+      "answer_brief": "From the trade facts Table A solo and group walk stages: the collection, the walk and toileting, on the lead or off it only where the owner has agreed and it is allowed, the waste collected, water on return, the home secured and a note on how they got on. The length varies with no standard (Table A timing): a duration only from [CV: typical_jobs] or [CV: price_list]; otherwise say it is agreed with you.",
+      "symptom_based": false,
+      "doubt": "Process"
+    },
+    {
+      "slot": "faq_B",
+      "question": "Why does my dog bark or chew when left, and what helps?",
+      "answer_brief": "Use the assigned symptom's meaning and its linked local issue (flats without gardens, long commutes). Three genuinely different causes in plain words, from the trade facts Table B signs rows: a day longer than the dog can manage alone, exercise and toileting missed, a puppy too young to hold on. Then what a midday walk or a visit changes (exercise, company, a toilet break), never that it cures the barking or chewing: the behaviour itself is a trainer's work and anything that looks like illness is for the vet.",
+      "symptom_based": true,
+      "doubt": "Process"
+    },
+    {
+      "slot": "faq_C",
+      "question": "Should my dog walk alone or in a group?",
+      "answer_brief": "Which dogs suit each, from the trade facts Table B group walk signs: a dog that lunges at other dogs, goes stiff or barks at them is usually happier walked alone; a sociable dog with reliable recall may suit a small matched group. A group size only from the client values; otherwise say some councils limit the number of dogs a single walker may take out while an insurer's policy may add its own cap (Table E dog walking group size) and name no number. Never a promise the dog will get used to other dogs.",
+      "symptom_based": false,
+      "is_fallback": true,
+      "doubt": "Fit"
+    },
+    {
+      "slot": "faq_D",
+      "question": "Do you walk dogs in hot weather?",
+      "answer_brief": "From the trade facts Table E hot weather row: there is no safe temperature cut off; walks move to cooler times of day, the tarmac hand test decides, and older, overweight and flat faced dogs need particular care. What the business itself does only from confirmed practices (weather_delays_rebooked); otherwise what usually applies. No figure, no temperature.",
+      "symptom_based": false,
+      "is_fallback": true,
+      "doubt": "Timing"
+    },
+    {
+      "slot": "faq_licence",
+      "question": "Does a walker or sitter need a licence?",
+      "answer_brief": "From the trade facts Table E only: there is no general licence for walking a dog or caring for it in its own home; for boarding a dog or cat at the business's home, and for day care, a licence from the council for animal activities applies in most cases, and the council register shows it with its star rating. Name the licence as the client's only where the client values carry it; without that, describe the general position. Never an Act's name, a regulation number or a penalty.",
+      "symptom_based": false,
+      "is_fallback": true,
+      "doubt": "Trust"
+    }
+  ],
+
+  "materials_tick_list": {
+    "On a walk": ["leads and a spare lead", "long line", "harness", "poo bags", "water and a bowl", "towel for muddy dogs", "high visibility gear and a torch"],
+    "In the vehicle": ["secured crates", "dog guard", "harness restraints", "carriers for cats and small animals"],
+    "Safety": ["pet first aid kit carried", "pet first aid trained", "DBS checked", "coded key tags or a key safe", "GPS tracked walks", "photo or written update after every visit"],
+    "Boarding and day care": ["council animal activity licence held", "a room of their own for each dog", "secure private garden", "secure field used for off lead exercise"],
+    "Cats and small animals": ["familiar food and litter used", "litter trays cleaned each visit", "enclosures cleaned each visit", "cats and small animals cared for in their own home"]
+  },
+
+  "service_terms": ["dog walking", "solo walks", "solo dog walks", "group walks", "group dog walks", "secure field", "secure field walks", "off lead", "long line", "recall", "puppy visits", "drop in visits", "feeding visits", "medication visits", "dog sitting", "cat sitting", "house sitting", "overnight sitting", "live in sitting", "home boarding", "dog home boarding", "day care", "dog day care", "cattery", "cat boarding", "small animal care", "rabbit care", "pet taxi", "vet run", "wedding dog chaperone", "meet and greet", "key holding", "pet first aid", "DBS"],
+
+  "service_words_note": "Old path only (21 Oct 2026): this list applies when the homepage is written from the uploaded custom values CSVs. A client with a v3 page map names every service by its page title (the services library's UK name), and this list is not used.",
+  "service_words": [
+    ["dog boarding with training", null], ["dog training", null], ["cat grooming", null], ["dog grooming", null],
+    ["other pet grooming", null], ["other pet daycare", null],
+    ["cat boarding", "cat boarding"], ["cat sitting", "cat sitting"], ["dog boarding", "dog home boarding"], ["dog home boarding", "dog home boarding"],
+    ["dog day care", "dog day care"], ["dog sitting", "dog sitting"], ["dog walking", "dog walking"],
+    ["other pet boarding", "small animal care"], ["other pet sitting", "small animal care"], ["small animal care", "small animal care"],
+    ["solo dog walks", "solo dog walks"], ["senior dog walks", "solo dog walks"], ["reactive dog walks", "solo dog walks"],
+    ["group dog walks", "group dog walks"], ["off-lead dog walks", "group dog walks"], ["off lead dog walks", "group dog walks"],
+    ["secure field walks", "secure field walks"],
+    ["puppy walks", "puppy visits"], ["puppy visits", "puppy visits"],
+    ["feeding visits", "drop in visits"], ["medication visits", "drop in visits"], ["drop in visits", "drop in visits"],
+    ["overnight pet sitting", "dog sitting"], ["live-in pet sitting", "dog sitting"], ["live in pet sitting", "dog sitting"],
+    ["vet appointment transport", "pet taxi"], ["pet taxi", "pet taxi"],
+    ["wedding dog chaperone", "wedding dog chaperone"]
+  ],
+
+  "general_service_words": ["pet care", "dog walking", "pet sitting", "dog sitting", "cat sitting", "boarding"],
+  "problem_service_words": ["reactive", "medication", "recall"],
+  "why_titles_alt": [
+    "Local Walks We Know Well",
+    "Covered If Something Goes Wrong"
+  ],
+
+  "category_work_nouns": {
+    "dog walker": "dog walking",
+    "pet sitter": "pet sitting"
+  },
+  "seasonal_trade": false,
+  "category_types": {},
+  "category_page_blocks": {
+    "C": {
+      "problems": {
+        "h2": "What [WORK] Helps With",
+        "cards": [
+          {
+            "title": "Dogs left alone through the working day",
+            "brief": "Pacing, barking when left, scratching the door, toileting indoors: the trade facts Table B solo walk signs, in the owner's words. The one cause this card makes: a working day longer than the dog can manage without exercise, company or a toilet break. Say what a midday walk or visit gives the dog from the Table A stages (the walk and toileting, water on return, a note on how they got on), linking the solo or group walk page where LINKABLE PAGES has one. Never that it cures the barking or chewing: the behaviour itself is a trainer's work. Not which walk suits which dog: card 2 owns that.",
+            "mechanism": "a day longer than the dog can manage alone"
+          },
+          {
+            "title": "Dogs that struggle around other dogs",
+            "brief": "A dog that lunges at other dogs, goes stiff or barks at them, or comes home unsettled (Table B group walk signs). The one cause this card makes: a walk that does not fit the dog's temperament. Behaviour led: say which service suits which dog, from the services list only (a solo walk for the nervous or reactive dog, a small matched group for the sociable dog with good recall, a secure field for the dog whose recall fails when a rabbit runs), as the Table A group walk stages have it (each dog assessed, a compatible group planned). A group size only from the client values; otherwise none. Never a promise the dog will get used to other dogs.",
+            "mechanism": "a walk that does not fit the dog's temperament"
+          },
+          {
+            "title": "Puppies and older dogs who need something gentler",
+            "brief": "A puppy that cannot hold on all day or cries when alone; an older dog stiff after a long walk (Table B puppy visit signs; Table E senior dog row: little and often). The one cause this card makes: a body that cannot manage a full working day or a full walk. Say what a short visit or a shorter walk does instead, from the Table A puppy visit stages (let out, fed on schedule, company), and that visits are kept to the home and garden until the vaccinations are complete, only as the Table A methods cell has it. Never the five minute rule (Table E says it is not a rule); no age and no minutes.",
+            "mechanism": "a body that cannot manage a full day or a full walk"
+          },
+          {
+            "title": "Cats and small animals who do better at home",
+            "brief": "Care led. A cat that hides or stops eating when moved; a rabbit that needs feeding, cleaning and a daily check (Table B cat sitting and small animal care signs; Table E welfare check row). The one cause this card makes: an animal tied to its own territory and routine, so a strange place puts it off its food. Say what a visit covers from the Table A cat sitting and small animal care stages: food put down, water changed, the tray or bedding cleaned, the animal looked over, a note on whether it ate, a rabbit's rear end checked in warm weather. A cat off its food needs the vet's opinion. Not boarding: the service pages own that.",
+            "mechanism": "an animal tied to its own territory and routine"
+          }
+        ]
+      },
+      "cost": {
+        "h2": "What Affects the Cost of [WORK] in [CITY]",
+        "cards": [
+          {
+            "title": "Solo or in a group",
+            "brief": "A solo walk or visit is one animal's time; a small group shares the walker's time between dogs (Table F solo and group walk rows). Say it plainly, give no figure and no group size; a size only from the client values."
+          },
+          {
+            "title": "How long and how often",
+            "brief": "The length of the walk, visit or stay and how many visits a day or a week, from the Table F rows (walk duration, visit frequency, length of stay). No duration or frequency unless [CV: visit_frequency_options] or [CV: typical_jobs] gives one; otherwise say the pattern is agreed with you."
+          },
+          {
+            "title": "Where you are and whether we collect",
+            "brief": "Travel and collection distance, and transport to a field or to day care, from the Table F rows. Say why distance and a collection add time to a booking. Nothing about the area covered unless [CV: travel_distance] is set."
+          },
+          {
+            "title": "Extra care your animal needs",
+            "brief": "Medication, a special diet, more than one animal, out of hours and bank holidays, from the Table F rows. Medication only as the owner's vet has prescribed and instructed (Table E medication row), never a dose or a product. Bank holiday rates only from [CV: price_list]. Code adds the price line from [CV: price_list] when there is one."
+          }
+        ]
+      },
+      "steps": [
+        {
+          "title": "Tell Us About Your Dog or Cat",
+          "brief": "How to get in touch and what is useful to say first (the animal and its age, what you need and on which days, anything it finds hard in the owner's words: pulls on the lead, barks once alone, off its food). No promise of a reply time unless [CV: response_time] is set."
+        },
+        {
+          "title": "We Agree the Plan for Your Pet",
+          "brief": "The meet and greet at the customer's home and the questions asked before a first walk or visit (feeding, toileting and vet instructions, keys and access, doors and gates, how the dog is on the lead and with other dogs: the Table A first stages) only when the site_visit_before_quote practice is confirmed; otherwise how the plan and the price are agreed from [CV: quote_method] only, naming no method when it is blank. The price agreed before the first visit only when the price_agreed_before_work practice is confirmed. Never restates \"free\". No trainer's assessment."
+        },
+        {
+          "title": "Walks or Visits Begin on a Day That Suits You",
+          "brief": "The first walk, visit or stay goes in the diary on a day that suits the customer. A regular pattern following on only when the maintenance_schedule practice is confirmed. A note after each visit from the Table A report stage. Never mention the price or changes to the plan."
+        }
+      ],
+      "faq_slots": [
+        {
+          "slot": "cost",
+          "question": "How much does [WORK_LOWER] cost in [CITY]?",
+          "answer_brief": "Prices only from [CV: price_list]; otherwise how the price is reached, from [CV: quote_method] only, and that the price is agreed before the first walk or visit when the price_agreed_before_work practice is confirmed. The four cost cards above already give what moves the price: name one factor at most, never the list again.",
+          "doubt": "Price"
+        },
+        {
+          "slot": "cover",
+          "when": "insurance",
+          "question": "Are you insured to look after my pet?",
+          "answer_brief": "The cover figure from [CV: insurance_cover] and what the cover is for. Cover for the animal in the business's care is separate from public liability (Table E): say which only as the client values say. Never what it pays or who it covers.",
+          "doubt": "Trust"
+        },
+        {
+          "slot": "cover",
+          "question": "What happens if my pet is hurt or unwell while in your care?",
+          "answer_brief": "Open with what happens: the vet is called, using the vet and emergency details given before the first visit (Table A first stages), and the owner is told. Then the reasonable care and skill standard every trade works to. No promise to pay vet bills, no guarantee, never invent insurance.",
+          "doubt": "Trust"
+        },
+        {
+          "slot": "scope",
+          "question": "What does your [WORK_LOWER] service include?",
+          "answer_brief": "The services on the card list, said as what a walk, visit or stay covers, and which animals each suits, honestly (a nervous dog, a cat, a rabbit). Link one service page. What is not offered only from the services list (training and grooming are other trades).",
+          "doubt": "Fit"
+        },
+        {
+          "slot": "process",
+          "question": "What happens before the first walk or visit?",
+          "answer_brief": "From [CV: quote_method] and the confirmed practices only: the meet and greet where site_visit_before_quote is confirmed, and the questions asked first from the Table A first stages (feeding, toileting and vet instructions, keys and access, doors and gates, how the dog is on the lead and with other dogs). Keys, key safes and DBS checks only as the client values confirm them. No timescale unless [CV: response_time] is set.",
+          "doubt": "Process"
+        },
+        {
+          "slot": "timing",
+          "question": "Do you walk and visit all year round?",
+          "answer_brief": "Year round, as every Table A timing cell has it. Hot weather: walks move to cooler times of day, there is no safe temperature cut off and the tarmac hand test decides (Table E hot weather row). Winter: outdoor water for rabbits freezes (Table A small animal care). Stays and sitting book up in school holidays and summer: give the reason, never \"a busy time\". No dates, no figure, no temperature.",
+          "doubt": "Timing"
+        }
+      ],
+      "faq_symptom": {
+        "frame": "[SYMPTOM]: why does it happen, and what can be done?",
+        "answer_brief": "The symptom and its linked local issue (flats without gardens, commuter hours, grazing beside the paths outside town, a beach or common with seasonal rules), answered as asked: the usual cause in the animal in plain words, what the local walking environment or housing adds, then what a regular walk or visit does about it. Never a claim about the area's pets or the people who own them; never a behaviour or health outcome; one figure at most.",
+        "doubt": "Process"
+      }
+    }
+  },
+
+  "service_page_blocks": {
+    "C": {
+      "included": {
+        "h2": "What's Included in [SERVICE]",
+        "items": [
+          {
+            "title": "The meet and greet and your instructions",
+            "brief": "The first stage from the trade facts Table A row for this service: feeding, toileting, vet and emergency instructions, keys and access, consent for a group, for off lead exercise or for sharing a room. A part of the job, not a promise about the price."
+          },
+          {
+            "title": "A check of your animal before we start",
+            "brief": "The check stage from the Table A row: the dog, its equipment and the weather; the puppy and the room; the cat found and looked over; a rabbit's food intake and droppings; the vaccination record on a boarding or day care page."
+          },
+          {
+            "title": "The walk, visit or stay itself",
+            "brief": "The central stage from the Table A row: the walk and toileting, the feeding and fresh water, the company and exercise of a stay, the journey, named as the row names it. On the lead, or off it only where the owner has agreed and it is allowed (Table A methods cell)."
+          },
+          {
+            "title": "Food, water and clean up",
+            "brief": "Water refreshed, food as instructed, the litter tray, bedding or an accident cleaned, from the Table A stages. Medication only as the vet has prescribed and the owner has authorised (Table E medication row); never a dose or a product."
+          },
+          {
+            "title": "Doors, gates and your home secured",
+            "brief": "The securing stage from the Table A row: the dog secured before a gate opens, the enclosure closed, the home secured before leaving. Key handling and key safes only as the client values confirm."
+          },
+          {
+            "title": "A note on how they got on",
+            "brief": "The report stage from the Table A row: what was eaten, toileting, how the animal seemed, anything that looked off (a limp, hiding, food untouched) reported so a vet can be called early (Table B done badly row). Photo updates only as the client values confirm."
+          },
+          {
+            "title": "Collection and transport, where it's part of the booking",
+            "brief": "Only where the Table A row has transport (group walks, secure field walks, day care, pet taxi, the wedding chaperone): the animal secured in a harness, carrier, cage or behind a guard, as the Table C Highway Code row has it. Where the row has no transport, say the animal stays at home."
+          }
+        ],
+        "note": "Fallback only: the tick items are the service's own Table A stages when the pack gives 6 or more; this set is used when it gives fewer (F-ITEMS-GENERIC)."
+      },
+      "problems": {
+        "h2": "Is [SERVICE] Right for Your Animal?",
+        "cards": [
+          {
+            "title": "Who it suits",
+            "brief": "Which dogs or cats this service suits, from the trade facts Table B signs row for this service, in the owner's words (a dog that cannot settle alone, a cat whose food needs checking, recall that is unreliable). The one cause this card makes: the animal's needs matched to the service. Where temperament picks the service, say which fits. That is the walking pages, day care and home boarding. Where routine picks it, say which routine it keeps. That is the visit, sitting and transport pages. Never a promise of a change in the animal.",
+            "mechanism": "the animal's needs matched to the service"
+          },
+          {
+            "title": "Who would do better with something else",
+            "brief": "The honest other half: the dog that pulls towards other dogs belongs on a solo walk, not in a group; the cat that hides is better served by visits at home than by a strange place; the puppy whose vaccinations are not complete is kept to the home and garden; an ill dog is not mixed with others (Table B done badly rows for this service and its siblings). The one cause this card makes: the wrong option for this animal. Name the sibling service page where LINKABLE PAGES has one. Never run another service or another business down.",
+            "mechanism": "the wrong option for this animal"
+          },
+          {
+            "title": "What happens if it's missed",
+            "brief": "What fails when the job is skipped, from the Table B skipped row for this service (a toilet opportunity missed, water run out, illness unnoticed, a rabbit's rear unchecked in warm weather, a necessary journey missed). The one cause this card makes: a walk, visit or check missed. Specific, never alarming, never livestock or illness as a scare.",
+            "mechanism": "a walk, visit or check missed"
+          },
+          {
+            "title": "Keys, doors and your home",
+            "brief": "The trust barrier: keys, doors and gates. The one cause this card makes: an exit left unsecured, so an animal slips out (Table B done badly rows: unsecured exits, an unsecured gate, poor access security). Say what the job does about it from the Table A stages (the dog secured before the gate opens, the enclosure inspected, the home secured before leaving; on a home boarding page the barriers between a dog and the way out only as the Table C row has them, with no number). Key handling, key safes and DBS checks only as the client values confirm. Never a promise it cannot happen.",
+            "mechanism": "an exit left unsecured"
+          }
+        ]
+      },
+      "cost": {
+        "h2": "What Affects the Cost of [SERVICE] in [CITY]",
+        "cards": [
+          {
+            "title": "How long, and how often",
+            "brief": "From the Table F row for this service: the duration, the visit frequency, the length of stay or the attendance hours. Say it plainly; no duration or frequency unless [CV: visit_frequency_options] or [CV: typical_jobs] gives one, and give no figure."
+          },
+          {
+            "title": "Where you are, and whether we collect",
+            "brief": "Travel and collection distance, transport and the restraint or carrier it needs, from the Table F row. Say why distance and a collection add time. Nothing about the area covered unless [CV: travel_distance] is set."
+          },
+          {
+            "title": "How many animals, and what they need",
+            "brief": "The number of animals, medication, a special diet, individual handling or a room of their own, from the Table F row. Medication only as the vet has prescribed (Table E medication row), never a dose. Say the business asks before it prices, from [CV: quote_method] only."
+          },
+          {
+            "title": "Unsocial hours and peak weeks",
+            "brief": "Early, late and out of hours bookings, bank holidays, and the school holiday and summer weeks when stays and sitting book up, from the Table F row (unsocial hours) and the Table E cancellation and bank holiday row (terms vary, no standard). Bank holiday rates and cancellation terms only from [CV: price_list] and the client values. Code adds the price line from [CV: price_list] when there is one."
+          }
+        ]
+      },
+      "steps": [
+        {
+          "title": "Tell Us About Your Dog or Cat",
+          "brief": "How to get in touch and what is useful to say first (the animal and its age, what you need and on which days, anything it finds hard in the owner's words). No promise of a reply time unless [CV: response_time] is set."
+        },
+        {
+          "title": "We Agree the Plan for Your Pet",
+          "brief": "The meet and greet and what is asked ahead of the first booking (the Table A first stages for this service) only when the site_visit_before_quote practice is confirmed; otherwise how the plan and the price are agreed from [CV: quote_method] only, naming no method when it is blank. The price agreed before the first booking only when the price_agreed_before_work practice is confirmed. Never restates \"free\". No trainer's assessment."
+        },
+        {
+          "title": "Walks or Visits Begin on a Day That Suits You",
+          "brief": "The first walk, visit, stay or journey goes in the diary on a day that suits the customer. A regular pattern following on only when the maintenance_schedule practice is confirmed. A note after each booking from the Table A report stage. Never mention the price or changes to the plan."
+        }
+      ],
+      "faq_slots": [
+        {
+          "slot": "cost",
+          "question": "How much does [SERVICE_LOWER] cost in [CITY]?",
+          "answer_brief": "Prices only from [CV: price_list]; otherwise how the price is reached, from [CV: quote_method] only, and that the price is agreed before the first booking when the price_agreed_before_work practice is confirmed. The four cost cards above already give what moves the price: name one factor at most, never the list again.",
+          "doubt": "Price"
+        },
+        {
+          "slot": "timing",
+          "question": "How long, and how often, can I book [SERVICE_LOWER]?",
+          "answer_brief": "From the trade facts timing row for this service only: the row says the length varies with no standard, so say the length and the pattern are agreed with you; a duration only from [CV: typical_jobs], a frequency only from [CV: visit_frequency_options]. Then the season the row gives (year round; in hot weather walks move to cooler times of day; on the day care page no overnight stay, from Table A). Nothing about when a booking can start unless [CV: start_time] is set. This is the one place the timing is written.",
+          "doubt": "Timing"
+        },
+        {
+          "slot": "cover",
+          "when": "insurance",
+          "question": "Are you insured for [SERVICE_LOWER]?",
+          "answer_brief": "The cover figure from [CV: insurance_cover] and what the cover is for. Cover for the animal in the business's care is separate from public liability (Table E): say which only as the client values say. Never what it pays or who it covers.",
+          "doubt": "Trust"
+        },
+        {
+          "slot": "cover",
+          "question": "What happens if my pet is unwell during [SERVICE_LOWER]?",
+          "answer_brief": "Open with what happens: the vet is called, using the vet and emergency details given before the first booking (Table A first stages), and the owner is told. Then the reasonable care and skill standard every trade works to. No promise to pay vet bills, no guarantee, never invent insurance. Medication never beyond the vet's instructions (Table E medication row).",
+          "doubt": "Trust"
+        },
+        {
+          "slot": "access",
+          "question": "Do I need to be home, and how do you handle my keys?",
+          "answer_brief": "From [CV: access_handling] and the confirmed practices only (customer_need_not_be_home): keys, a key safe, alarm codes, side gates. Lost key cover and DBS checks only from the client values. When nothing is on file, say the arrangements for getting in are agreed before the first booking and nothing more. On a boarding, day care or pet taxi page, drop off and collection instead, from the client values.",
+          "doubt": "Process"
+        },
+        {
+          "slot": "scope",
+          "question": "What does your [SERVICE_LOWER] service include?",
+          "answer_brief": "The What's Included items said as a sentence, in other words. What it does not cover only from the services list (training and grooming are other trades), with one sibling service page or the category page linked.",
+          "doubt": "Fit"
+        },
+        {
+          "slot": "rules",
+          "when": "rule_rows",
+          "question": "Do you need a licence for [SERVICE_LOWER]?",
+          "answer_brief": "From the trade facts rule rows for this service only, written as the general position, with \"usually\" or \"in most cases\". For the three pages where a council licence applies (boarding a dog at home, day care, a cattery stay): say it is the norm, and that the council's register lists the business, its status and a star rating. This client's own licence only when the client values confirm it; otherwise the general position. On a walking, sitting, visit, small animal, pet taxi or wedding page: the rows say walking and care in the animal's own home are not by themselves licensed boarding; say so and leave it there. Never an Act's name, a regulation number, a penalty, a figure or legal advice. This slot is used only when the service has rule rows.",
+          "doubt": "Process"
+        }
+      ],
+      "faq_symptom": {
+        "frame": "[SYMPTOM]: why does it happen, and what can be done?",
+        "answer_brief": "The symptom and its linked local issue, answered as asked: the usual cause in the animal in plain words, what the local walking environment or housing adds, then what this service does about it. Never a claim about the area's pets or the people who own them; never a behaviour or health outcome; one figure at most.",
+        "doubt": "Process"
+      }
+    }
+  },
+
+  "location_page_blocks": {
+    "C": {
+      "problems": {
+        "h2": "What [WORK] in [TOWN] Works Around",
+        "cards": [
+          {
+            "title": "Footpaths through farmland outside town",
+            "brief": "Where the town profile gives farmland, grazing or lambing fields beyond the last streets. The one cause this card makes: livestock beside the footpaths, which puts dogs on the lead there (Table C open access and Table E lead rows: a lead around livestock, written as the general position; never a date range, a lead length or an Act's name). Say what that does to a walk: the route chosen, the lead kept on. Livestock is a reason, not a threat, and the town's pets and their people are never characterised.",
+            "mechanism": "livestock grazing beside the footpaths"
+          },
+          {
+            "title": "Parks, commons and the river path",
+            "brief": "Only the green spaces and waterside paths the dossier gives, by name. The one cause this card makes: where the town's daily walks happen decides how they are walked. What each place means for the work: a council order capping the dogs one walker may take, or requiring leads, a beach with seasonal restrictions, a path beside a busy road where the lead stays on (Table C public spaces order row: a local order may set leads, exclusion areas or a maximum number; no number unless the research gives it). Never a park, field or rule the research does not give.",
+            "mechanism": "where the town's daily walks happen"
+          },
+          {
+            "title": "Flats and long commutes",
+            "brief": "The housing and the commuter pattern from the town profile: flats without gardens, estates where the household is out from early until late. The one cause this card makes: no garden to let the dog into and a day too long for it, so a midday walk or a puppy visit is the dog's one chance to get outside. Only the housing and the hours; never a claim about the town's owners or pets. Not a day longer than the dog can manage: the Dog Walker page owns that.",
+            "mechanism": "a home with no garden and a long day"
+          },
+          {
+            "title": "Heathland and the open country",
+            "brief": "Where the town profile gives heath, open access land or a nature reserve. The one cause this card makes: birds nesting on the ground, so dogs usually stay on a short lead there through the nesting months (Table C open access row, written as the general position; no dates, no lead length, no Act's name). Say which walks move elsewhere or stay on the lead in those months. Not livestock: card 1 owns that.",
+            "mechanism": "birds nesting on the ground in the spring months"
+          }
+        ]
+      },
+      "cost": {
+        "h2": "What Affects the Cost of [WORK] in [TOWN]",
+        "cards": [
+          {
+            "title": "How far we travel to you",
+            "brief": "Travel and collection distance from the base town, from the Table F rows. Say why the distance adds time to each visit; nothing about the area covered unless [CV: travel_distance] is set. No figure."
+          },
+          {
+            "title": "Collecting for a field or a group walk",
+            "brief": "Where dogs in this town are collected and driven to a secure field or to a group walk: the transport, the restraints and the collection round, from the Table F group walk and secure field rows. Say why it adds time. No figure."
+          },
+          {
+            "title": "Parking and getting to the door",
+            "brief": "Terraced streets with no parking near the door, flats with an entry system, a long walk from the van: the time each visit takes before the animal is reached, from the town profile where it gives the housing. No figure."
+          },
+          {
+            "title": "Holiday weeks and bank holidays",
+            "brief": "The summer and school holiday weeks, when stays and sitting fill up, plus bank holidays, from the Table F rows (unsocial hours) and the Table E cancellation and bank holiday row (terms vary, no standard). Bank holiday rates only from [CV: price_list]; never \"a busy time\" without the reason. No figure."
+          }
+        ]
+      },
+      "faq_slots": [
+        {
+          "slot": "cost",
+          "question": "How much does [WORK_LOWER] cost in [TOWN]?",
+          "answer_brief": "Prices only from [CV: price_list]; otherwise the price movers in a town like this (travel, a collection, how long and how often) and how the price is reached, from [CV: quote_method] only.",
+          "doubt": "Price"
+        },
+        {
+          "slot": "town",
+          "when": "start_time",
+          "question": "How soon can you take on a new dog in [TOWN]?",
+          "answer_brief": "From [CV: start_time] and [CV: response_time] only. The town is in the area covered; nothing about distance unless [CV: travel_distance] is set.",
+          "doubt": "Timing"
+        },
+        {
+          "slot": "town",
+          "question": "Do you cover [TOWN]?",
+          "answer_brief": "Yes: the town and the villages around it (code lists them; name none). How the business reaches it from its base only from the client values. Link one page in this town.",
+          "doubt": "Fit"
+        },
+        {
+          "slot": "cover",
+          "when": "insurance",
+          "question": "Are you insured to look after my pet?",
+          "answer_brief": "The cover figure from [CV: insurance_cover] and what the cover is for. Cover for the animal in the business's care is separate from public liability (Table E): say which only as the client values say. Never what it pays or who it covers.",
+          "doubt": "Trust"
+        },
+        {
+          "slot": "cover",
+          "question": "What happens if my pet is unwell while you have them?",
+          "answer_brief": "Open with what happens: the vet is called, using the vet and emergency details given before the first visit, and the owner is told. Then the reasonable care and skill standard. No promise to pay vet bills, no guarantee, never invent insurance.",
+          "doubt": "Trust"
+        },
+        {
+          "slot": "process",
+          "question": "What happens before the first walk or visit in [TOWN]?",
+          "answer_brief": "From [CV: quote_method] and the confirmed practices only: the meet and greet where site_visit_before_quote is confirmed, and the questions asked first (feeding, toileting and vet instructions, keys and access, doors and gates, how the dog is on the lead and with other dogs). Keys and DBS checks only as the client values confirm them. No timescale unless [CV: response_time] is set.",
+          "doubt": "Process"
+        },
+        {
+          "slot": "timing",
+          "question": "Do you walk dogs in [TOWN] all year round?",
+          "answer_brief": "Year round, as the Table A timing cells have it. Hot weather: walks move to cooler times of day and the tarmac hand test decides (Table E hot weather row). The town's own seasonal rules only from the research (a lead on the heath in nesting season, a beach's dog months), as what usually applies. No dates, no figure, no temperature.",
+          "doubt": "Timing"
+        }
+      ]
+    }
+  },
+  "do_not_reuse": []
+}
