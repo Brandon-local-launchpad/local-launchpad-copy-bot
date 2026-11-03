@@ -155,9 +155,10 @@ record queries never touch the bytes table.
 
 **Transcripts.** Copybot keeps the transcript Fillout sends with a recording
 (`client_audio.transcription`, `transcription_source = 'fillout'`). Fillout only
-sends one when "Enable transcription" (Premium) is on for that question, so keep
-it on for every voice question. When a stored recording arrives with no transcript
-(2 Nov 2026: Ethan's nine), `transcribeMissing` in `fillout/service.js` sends our
+sends one when "Enable transcription" (Premium) is on for that question. **The
+toggle stays off on purpose (Brandon, 3 Nov 2026): Copybot transcribes every
+recording itself**, so keep the OpenAI balance topped up. When a stored recording
+arrives with no transcript, `transcribeMissing` in `fillout/service.js` sends our
 copy of the audio to OpenAI's transcription endpoint (`fillout/transcribe.js`,
 model `gpt-4o-transcribe`, English, about half a penny a minute) in the background
 after intake, then the price extraction runs. The key is `OPENAI_API_KEY` on
