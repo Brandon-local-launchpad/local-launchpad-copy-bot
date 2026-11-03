@@ -72,8 +72,9 @@ const money = n => `$${Number(n || 0).toFixed(4)}`;
   for (const t of view.tiers) say(`  ${t.label}: ${t.count} rows${t.waiting ? ` (${t.waiting})` : ''}: ${t.rows.map(r => r.directory.name).join(', ')}`);
   const rows = view.tiers.flatMap(t => t.rows);
   const withDomain = rows.filter(r => r.directory.domain);
-  const est = withDomain.length * 2 * 0.002 + 0.02;
-  say(`Scan estimate: up to ${withDomain.length} directories × 2 searches × $0.002 + one backlinks call ≈ ${money(est)} (plus one page fetch each, free). Gap estimate: 4 referring domain calls ≈ $0.10 plus a cheap model call.`);
+  // The first live run (3 Nov): 56 searches came to $0.56, so a search is about $0.01, not $0.002
+  const est = withDomain.length * 2 * 0.01 + 0.02;
+  say(`Scan estimate: up to ${withDomain.length} directories × 2 searches × $0.01 + one backlinks call ≈ ${money(est)} (plus one page fetch each, free). Gap estimate: 4 referring domain calls ≈ $0.15 plus a cheap model call (about a cent).`);
 
   let before = null;
   try { before = await D.balance(); say(`DataForSEO balance before: ${money(before)}`); } catch (e) { say(`DataForSEO balance: ${e.message}`); }

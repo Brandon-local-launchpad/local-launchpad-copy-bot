@@ -88,6 +88,8 @@ const quiet = { log() {}, info() {}, warn() {}, error() {} };
         'site:cylex-uk.co.uk "07850 412717"': [{ url: 'https://www.cylex-uk.co.uk/company/edens-edge-999.html', domain: 'www.cylex-uk.co.uk', title: 'Landscaper Southampton', description: 'tel 07850 412717' }],
         'site:scoot.co.uk "Edens Edge Landscaping"': [{ url: 'https://www.scoot.co.uk/southampton/edens-edge-landscaping-555', domain: 'www.scoot.co.uk', title: 'Edens Edge Landscaping Southampton', description: '' }],
         'site:yelp.co.uk "Edens Edge Landscaping"': [{ url: 'https://www.yelp.co.uk/biz/edens-edge-southampton', domain: 'www.yelp.co.uk', title: 'Edens Edge Landscaping - Southampton', description: 'Landscaping' }],
+        // An unrelated page on the domain for the phone query (the live run's Leeds page): not accepted
+        'site:hotfrog.co.uk "07850 412717"': [{ url: 'https://www.hotfrog.co.uk/company/krimpterm-leeds', domain: 'www.hotfrog.co.uk', title: 'Krimpterm Ltd Leeds', description: 'Another business entirely' }],
       }[q] || [];
       return { items, cost: 0.002, check_url: '', total: items.length };
     },
@@ -116,7 +118,7 @@ const quiet = { log() {}, info() {}, warn() {}, error() {} };
   const cy = rowOf('Cylex UK');
   chk('Cylex found by the phone search after the name found nothing: the phone alone is medium confidence, listed, NAP needs review (the other name on the page is kept for a person, not a mismatch), submitted', cy.listed === 'yes' && cy.nap_status === 'needs_review' && cy.nap_diffs.length === 0 && cy.scan.diffs_unconfirmed[0].field === 'name' && cy.scan.confidence === 'medium' && cy.status === 'submitted' && /phone/.test(cy.scan.how) && serps.includes('site:cylex-uk.co.uk "Edens Edge Landscaping"'), JSON.stringify(cy), '');
   const hf = rowOf('Hotfrog UK');
-  chk('Hotfrog: nothing found by either search: listed no, not started, both searches made', hf.listed === 'no' && hf.status === 'not_started' && hf.scan.how === 'not found' && serps.includes('site:hotfrog.co.uk "Edens Edge Landscaping"') && serps.includes('site:hotfrog.co.uk "07850 412717"'), JSON.stringify(hf), '');
+  chk('Hotfrog: the name search finds nothing and the phone search returns an unrelated page (no phone or name in it): not accepted, listed no, not started', hf.listed === 'no' && hf.status === 'not_started' && hf.scan.how === 'not found' && serps.includes('site:hotfrog.co.uk "Edens Edge Landscaping"') && serps.includes('site:hotfrog.co.uk "07850 412717"'), JSON.stringify(hf), '');
   const sc = rowOf('Scoot');
   chk('Scoot: the page found has neither the name nor the phone: low confidence, not listed, no URL written, needs review with the candidate kept', sc.listed === 'unchecked' && sc.live_url === '' && sc.nap_status === 'needs_review' && sc.scan.confidence === 'low' && sc.scan.candidate === 'https://www.scoot.co.uk/southampton/edens-edge-landscaping-555', JSON.stringify(sc), '');
   const tl = rowOf('Thomson Local');

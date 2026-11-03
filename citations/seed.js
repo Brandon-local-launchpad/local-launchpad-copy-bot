@@ -62,7 +62,7 @@ const normName = s => str(s).toLowerCase().replace(/&/g, ' and ').replace(/\b(th
 // The registrable domain of a URL or URL pattern, so a listing on www.yelp.co.uk is on the
 // directory whose add page is biz.yelp.co.uk: "https://biz.yelp.co.uk/" → "yelp.co.uk",
 // "https://<town>.nub.news/x" → "nub.news", "https://directory.<paper-domain>/" → "" (no fixed host)
-const TWO_PART_TLDS = /\.(co|org|gov|ac|me|net|ltd|plc|nhs|sch|police|mod)\.uk$|\.(com|net|org|edu|gov)\.au$|\.(co|com)\.(nz|za|ie)$/;
+const TWO_PART_TLDS = /\.(co|org|gov|ac|me|net|ltd|plc|nhs|sch|police|mod)\.uk$|\.(com|net|org|edu|gov)\.au$|\.(co|com|org|net|ac|gov)\.(nz|za|ie|in|jp|br|il|id|th|my|sg|hk|tw|kr|mx|ar|pk|ng|ke)$|\.(com|net|org)\.(cn|tr|ph|vn|pl|ua|ru|br|eg|sa)$/;
 function registrableDomain(host) {
   const h = String(host || '').toLowerCase().replace(/^ww+\./, '');
   const parts = h.split('.');

@@ -50,7 +50,9 @@ async function findListing({ dir, row, nap, backlinks, dfs, opts, spend }) {
   const phone = normPhone(nap.phone);
   if (phone.length >= 10) {
     const display = str(nap.phone);
-    const byPhone = await serp(`site:${dir.domain} "${display}"`, i => normPhone(i.description).includes(phone) || normPhone(i.title).includes(phone) || true);
+    // A phone search result counts only when the snippet or title carries the number or the name
+    // (3 Nov: the live run took an unrelated Leeds page off yell.com otherwise)
+    const byPhone = await serp(`site:${dir.domain} "${display}"`, i => normPhone(i.description).includes(phone) || normPhone(i.title).includes(phone) || namesMatch(i.title, nap.name) || namesMatch(i.description, nap.name));
     if (byPhone) return { url: byPhone.url, how: `a search for the phone number on ${dir.domain}` };
   }
   return null;
@@ -124,7 +126,9 @@ function createScanner({ pool, store, clientCitations, dfs = DFS, fetchFn = glob
     const state = { id: scanId, client_id: clientId, running: true, status: 'running', scope: directoryId ? 'one' : 'all', started_at: now().toISOString(), rows_total: targets.length, rows_done: 0, found: 0, cost_usd: 0, calls: 0, detail: [] };
     running.set(clientId, state);
     const spend = (cost, calls = 1, what = null) => { state.cost_usd = Math.round((state.cost_usd + (Number(cost) || 0)) * 1e4) / 1e4; state.calls += calls; if (what) state.detail.push(what); };
-    const opts = { env };
+    // One retry after 4 s: DataForSEO's "Internal SE Server Error" rarely clears within a minute, and
+    // three waits per failing row made the first live run take six minutes
+    const opts = { env, retryDelays: [4000] };
     const summary = { found: [], not_found: [], needs_review: [], skipped: [], errors: [] };
     try {
       // One backlinks call per full scan: the pages linking to the client's site
@@ -155,6 +159,9 @@ function createScanner({ pool, store, clientCitations, dfs = DFS, fetchFn = glob
           } catch (e) {
             summary.errors.push(`${dir.name}: ${e.message}`);
             log.warn(`[citations] scan of ${dir.name} failed: ${e.message}`);
+            // The row keeps what it had and says why the scan could not look (DataForSEO's search
+            // answered "Internal SE Server Error" on 15 of 44 rows in the first live run, 3 Nov)
+            await writeRow(clientId, dir.id, { listed: row.listed, live_url: '', nap_status: row.nap_status, nap_diffs: row.nap_diffs, scan: { how: 'failed', reason: `the search failed: ${e.message}. Scan this row again later.`, at: at.toISOString() } }, row.status, at).catch(() => {});
             if (!DFS.configured(env) || /DataForSEO is not set up|no credit|40101/.test(e.message)) throw e;
           } finally { state.rows_done++; }
         }
