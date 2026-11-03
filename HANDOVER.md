@@ -31,13 +31,12 @@ local-launchpad-copy-bot/
 ├── Output_Validation_Checks (4).md        Human-readable spec for all validation checks.
 │                                          Keep in sync with validate.js.
 │
-├── Cleaning_Calibration_Pack_v5.md        Trade calibration pack → "Cleaning Company"
-├── Builder_Calibration_Pack_v5.md         Trade calibration pack → "Building Company"
-├── Roofer_Calibration_Pack_v5.md          Trade calibration pack → "Roofing Company"
-├── Dog_Training_Security_Calibration_Pack_v1.md  → "Dog Training & Security Dogs"
-├── Drainage_Calibration_Pack_v1.md        Trade calibration pack → "Drainage Company"
-├── Landscaper_Calibration_Pack_v4.md      Trade calibration pack → "Landscaper Gardener"
-│   NOTE: All packs are registered in EXPLICIT_PACK_MAP in server.js (see §8 for adding more).
+├── calibration-packs/                     One calibration pack per niche (28 files, 3 Nov 2026), e.g.
+│   ├── Landscaper_Calibration_Pack_v5.md    → "Landscaper Gardener"
+│   ├── Roofer_Calibration_Pack_v6.md        → "Roofing Company"
+│   └── ...                                  (the full list is in calibration-packs.js)
+├── calibration-packs.js                   The registry: file → trade names and Fillout niche key.
+│   NOTE: All packs are registered there, not in server.js (see §8 for adding more).
 │
 ├── public/
 │   ├── app/               The app (UI redesign, 28 Oct 2026): index.html, app.css, shell.js, ui.js, screens/, tabs/, legacy/
@@ -143,7 +142,7 @@ Every page goes through `buildSitePrompt()`. The result is `{ system: [...blocks
 
 ```
 Block 1: CORE prompt for this pageType        (Homepage/Category/Service/Location CORE .md)
-Block 2: Calibration pack for this trade      (e.g. Cleaning_Calibration_Pack_v5.md)
+Block 2: Calibration pack for this trade      (e.g. calibration-packs/Cleaning_Calibration_Pack_v6.md)
 Block 3: [Dog Training only] Trade override   (TRADE_SECTION_OVERRIDES constant in server.js)
 Block 4: Client block (cache_control applied) Assembled from:
            ## CLIENT PROJECT KNOWLEDGE
@@ -215,18 +214,11 @@ The `DASH_RULE_REMINDER` constant is appended to every user message regardless o
 
 ### Calibration packs — current trades
 
-| File | Trade name in dropdown |
-|------|----------------------|
-| `Cleaning_Calibration_Pack_v5.md` | Cleaning Company |
-| `Builder_Calibration_Pack_v5.md` | Building Company |
-| `Roofer_Calibration_Pack_v5.md` | Roofing Company |
-| `Dog_Training_Security_Calibration_Pack_v1.md` | Dog Training & Security Dogs |
-| `Drainage_Calibration_Pack_v1.md` | Drainage Company |
-| `Landscaper_Calibration_Pack_v4.md` | Landscaper Gardener |
+Every one of the 28 Fillout niches has a pack in `calibration-packs/` (3 Nov 2026). The registry is `calibration-packs.js`: file → the trade catalogue names that use it and the Fillout niche key. `Dog_Training_Calibration_Pack_v2.md` serves both "Dog Training" and "Dog Training & Security Dogs". The three research modules with no Fillout niche (Carpenter, Plasterer, Skip Hire) have no pack and stay research only.
 
-To add a new trade: drop the `.md` file in the project root and add one line to `EXPLICIT_PACK_MAP` in `server.js`:
+To add a new trade: drop the `.md` file in `calibration-packs/` and add one line to `PACKS` in `calibration-packs.js`:
 ```js
-'Your_Pack_Filename.md': 'Trade Name As It Should Appear In Dropdown',
+'Your_Pack_Filename.md': { trades: ['Trade Name As In The Catalogue'], niche: 'fillout-niche-key' },
 ```
 
 ### Dog Training trade override

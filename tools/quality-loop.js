@@ -60,7 +60,7 @@ function inputsFor(name) {
       cv: snap.cv, niche: require(path.join(root, 'niche-library/landscaper.json')),
       pages: real.pages, keyValueMap: real.keyValueMap, serviceParentMap: real.serviceParentMap,
       v20TestMode: snap.v20TestMode, allocationData: snap.allocated, faqResearch: snap.faqResearch,
-      pack: 'Landscaper_Calibration_Pack_v4.md', packName: 'Landscaper Gardener',
+      pack: 'calibration-packs/Landscaper_Calibration_Pack_v5.md', packName: 'Landscaper Gardener',
     };
   }
   if (name === 'edens-edge-v3') {
@@ -74,7 +74,7 @@ function inputsFor(name) {
     return {
       cv: snap.cv, niche, pages: ctx.pages, keyValueMap: ctx.keyValueMap, serviceParentMap: ctx.serviceParentMap, cardServices: ctx.cardServices,
       v20TestMode: snap.v20TestMode, allocationData: snap.allocated, faqResearch: snap.faqResearch,
-      pack: 'Landscaper_Calibration_Pack_v4.md', packName: 'Landscaper Gardener',
+      pack: 'calibration-packs/Landscaper_Calibration_Pack_v5.md', packName: 'Landscaper Gardener',
     };
   }
   const file = { 'kestrel-rich': 'kestrel-ridge-rich', 'kestrel-thin': 'kestrel-ridge-thin-page' }[name];
@@ -84,7 +84,7 @@ function inputsFor(name) {
     cv: d.cv, niche: require(path.join(root, 'niche-library/roofer.json')),
     pages: d.pages, keyValueMap: d.keyValueMap, serviceParentMap: {},
     v20TestMode: true, allocationData: null, faqResearch: [],
-    pack: 'Roofer_Calibration_Pack_v5.md', packName: 'Roofing Company',
+    pack: 'calibration-packs/Roofer_Calibration_Pack_v6.md', packName: 'Roofing Company',
   };
 }
 

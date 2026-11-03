@@ -56,7 +56,7 @@ const RETRY_FLAGS = new Set(['N7', 'N13', 'N14', 'N15', 'N17', 'N18', 'N19', 'N2
 //   SCENERY       FLAG   a research detail with no consequence for the work (trees, greens, villas named for their own sake) (25 Oct, loop)
 //   FREQUENCY     BLOCK  a visit frequency (weekly, fortnightly, monthly) with no visit_frequency_options on file (25 Oct)
 //   CONTRADICT    BLOCK  the copy says the price is not fixed when the fixed price is the client's confirmed proof (25 Oct)
-//   PACK-COPY     BLOCK  a sentence copied from the calibration pack: five words in a row, or 70% of its content words (25 Oct)
+//   PACK-COPY     BLOCK  a sentence copied from the calibration pack: five words in a row (two of them real words, four letters or more, not function words: "at the end of each" is not a copy, 3 Nov), or 70% of its content words (25 Oct)
 //   FAQ-PAD       FLAG   a sentence after the answer that brings no new noun or number (25 Oct)
 //   LINK-TEXT     FLAG   a category link whose text drops the category's words
 //   (16 Oct, Brandon's round 2 review of Edens Edge)
@@ -179,6 +179,10 @@ function setField(record, ref, text) {
 // The calibration pack's sentences, for PACK-COPY: word 5-grams (two content words at least) and
 // content word sets. {{custom_values.x}} and [CV: x] tokens are neutral words. Cached by text.
 const packCache = new Map();
+// The words a shared five word run must have two of: real words, four letters or more, outside the
+// stopwords and these function words (3 Nov: "at the end of each" matched the v5 landscaper pack)
+const PACK_FUNCTION = new Set('each every when what where which then than into over after before also just some most much many well done made make like only very both such them were been who how why out off up down any all one two few first last next same own'.split(' '));
+const packContent = g => g.filter(w => !STOPWORDS.has(w) && !PACK_FUNCTION.has(w) && w.length >= 4).length >= 2;
 function packIndex(text) {
   if (!text) return null;
   if (packCache.has(text)) return packCache.get(text);
@@ -189,7 +193,7 @@ function packIndex(text) {
     const toks = lc(sen).replace(/[^a-z0-9£' ]+/g, ' ').split(/\s+/).filter(Boolean);
     for (let i = 0; i + 5 <= toks.length; i++) {
       const g = toks.slice(i, i + 5);
-      if (g.filter(w => !STOPWORDS.has(w) && w.length > 2).length >= 2) grams.add(g.join(' '));
+      if (packContent(g)) grams.add(g.join(' '));
     }
     // Seven content words at least: shorter sentences are generic ("the price depends on the size of
     // the garden" matched a pack FAQ at 80%), and the 5-gram run catches a short copy anyway
@@ -204,7 +208,7 @@ function packIndex(text) {
 function packCopy(sentence, idx) {
   if (!idx) return null;
   const toks = lc(scanText(sentence)).replace(/cvtoken/g, 'x').replace(/[^a-z0-9£' ]+/g, ' ').split(/\s+/).filter(Boolean);
-  for (let i = 0; i + 5 <= toks.length; i++) { const g = toks.slice(i, i + 5); if (g.filter(w => !STOPWORDS.has(w) && w.length > 2).length >= 2 && idx.grams.has(g.join(' '))) return { kind: 'run', match: g.join(' ') }; }
+  for (let i = 0; i + 5 <= toks.length; i++) { const g = toks.slice(i, i + 5); if (packContent(g) && idx.grams.has(g.join(' '))) return { kind: 'run', match: g.join(' ') }; }
   const mine = contentWords(sentence);
   if (mine.size >= 7) for (const s of idx.sets) { let shared = 0; for (const w of mine) if (s.words.has(w)) shared++; if (shared / Math.min(mine.size, s.words.size) >= 0.7) return { kind: 'sentence', match: s.text }; }
   return null;

@@ -205,55 +205,15 @@ const SERVICE_PROMPT  = readDoc('Service_Page_Copywriting_Prompt_CORE.md');
 const LOCATION_PROMPT = readDoc('Location_Page_Copywriting_Prompt_CORE.md');
 
 // ── Load calibration packs ────────────────────────────────────────────────────
-
-// Explicit filename → trade name map for packs that don't follow the legacy
-// _Calibration_Pack_All_Page_Types.md naming convention.
-const EXPLICIT_PACK_MAP = {
-  'Cleaning_Calibration_Pack_v5.md':              'Cleaning Company',
-  'Builder_Calibration_Pack_v5.md':               'Building Company',
-  'Roofer_Calibration_Pack_v5.md':                'Roofing Company',
-  'Dog_Training_Security_Calibration_Pack_v1.md': 'Dog Training & Security Dogs',
-  'Drainage_Calibration_Pack_v1.md':              'Drainage Company',
-  'Landscaper_Calibration_Pack_v4.md':            'Landscaper Gardener',
-};
-
-function loadCalibrationPacks() {
-  const packs = {};
-  const searchDirs = [
-    path.join(__dirname, 'calibration-packs'),
-    __dirname,
-  ];
-
-  console.log('Loading calibration packs...');
-  for (const dir of searchDirs) {
-    if (!fs.existsSync(dir)) continue;
-    for (const file of fs.readdirSync(dir)) {
-      let tradeName = null;
-
-      // Explicit map takes priority
-      if (EXPLICIT_PACK_MAP[file]) {
-        tradeName = EXPLICIT_PACK_MAP[file];
-      } else if (/_Calibration_Pack_All_Page_Types\.md$/i.test(file)) {
-        // Legacy naming: derive trade name from filename
-        tradeName = file
-          .replace(/_Calibration_Pack_All_Page_Types\.md$/i, '')
-          .replace(/_/g, ' ');
-      }
-
-      if (tradeName && !(tradeName in packs)) {
-        packs[tradeName] = fs.readFileSync(path.join(dir, file), 'utf8');
-        console.log(`  CALIBRATION PACK: ${file} → trade "${tradeName}"`);
-      }
-    }
-  }
-  return packs;
-}
-
-const CALIBRATION_PACKS = loadCalibrationPacks();
+// One pack per niche in calibration-packs/, registered by file name in calibration-packs.js
+// (the trade names there are this file's catalogue names; a new niche is a file and a line there).
+const calibrationPacks = require('./calibration-packs');
+console.log('Loading calibration packs...');
+const CALIBRATION_PACKS = calibrationPacks.loadAll({ log: m => console.log(m) });
 const AVAILABLE_TRADES  = Object.keys(CALIBRATION_PACKS);
 
 if (AVAILABLE_TRADES.length === 0) {
-  console.warn('WARNING: No calibration packs found. Add [Trade]_Calibration_Pack_All_Page_Types.md to /calibration-packs/ or project root.');
+  console.warn('WARNING: No calibration packs found. Add [Trade]_Calibration_Pack_vN.md to /calibration-packs/ and register it in calibration-packs.js.');
 }
 
 // Alias for legacy single-page routes (uses first loaded pack)
@@ -3766,12 +3726,15 @@ app.put('/api/clients/:clientId/allocation', async (req, res) => {
 // ── v20 homepage generation (Stage 6) ────────────────────────────────────────
 // Calibration pack for a v20 run: the Step 1 trade, else the client's trade,
 // else the pack that matches the niche.
+// The client's pack: the trade (a catalogue name, a Fillout label or a legacy alias, resolved
+// through calibration-packs.js), else the client's trade, else the niche entry's trade person
 const NICHE_PACK_TRADE = { landscaper: 'Landscaper Gardener', roofer: 'Roofing Company' };
 function v20CalibrationPack(ctx, niche) {
   for (const t of [ctx.trade, ctx.clientTrade, NICHE_PACK_TRADE[(niche.trade_person || '').toLowerCase()]]) {
-    if (t && CALIBRATION_PACKS[t]) return { name: t, text: CALIBRATION_PACKS[t] };
+    const name = t && (CALIBRATION_PACKS[t] ? t : calibrationPacks.tradeNameFor(t));
+    if (name && CALIBRATION_PACKS[name]) return { name, file: calibrationPacks.fileForTrade(name), text: CALIBRATION_PACKS[name] };
   }
-  return { name: null, text: '' };
+  return { name: null, file: null, text: '' };
 }
 
 // The client's context, niche and code decisions for the homepage, as they stand now
