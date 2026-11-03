@@ -59,7 +59,17 @@ function mountLocationsApi(app, { pool, filloutService, log = console }) {
     res.json(r);
   }));
   // Stage 5
-  app.get('/api/clients/:clientId/locations/review', wrap(async (req, res) => res.json(await review.view(req.params.clientId))));
+  // The review, plus the exclusivity check (citations/exclusivity.js, 3 Nov): other clients in the same
+  // niche whose approved towns overlap the list as it stands, so Approve can warn
+  const exclusivity = require('../citations/exclusivity').createExclusivity({ pool });
+  app.get('/api/clients/:clientId/locations/review', wrap(async (req, res) => {
+    const v = await review.view(req.params.clientId);
+    if (v && v.ok) {
+      const T = require('./approved').tiersFromReview(v);
+      v.exclusivity = T ? await exclusivity.overlapsFor(req.params.clientId, { towns: [...T.tier1.map(t => ({ ...t, tier: 1 })), ...T.tier2.map(t => ({ ...t, tier: 2 }))] }).catch(() => []) : [];
+    }
+    res.json(v);
+  }));
   app.post('/api/clients/:clientId/locations/review/move', wrap(async (req, res) => res.json(await review.move(req.params.clientId, body(req)))));
   app.post('/api/clients/:clientId/locations/review/add', wrap(async (req, res) => res.json(await review.addPlace(req.params.clientId, body(req)))));
   app.get('/api/clients/:clientId/locations/review/suggest', wrap(async (req, res) => res.json(await review.suggest(req.params.clientId, String(req.query.q || '')))));

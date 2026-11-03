@@ -80,8 +80,9 @@ function stats(rowsByTier) {
 }
 
 // pool, store (citations/store.js), filloutService (record), placesStore (locations/places.js createPlacesStore),
-// approvedTiers (locations/approved.js), clientValues(clientId) → cv, siteUrlFor(clientId) → url or ''
-function createClientCitations({ pool, store, filloutService = null, placesStore = null, approvedTiers = null, clientValues, siteUrlFor = async () => '' }) {
+// approvedTiers (locations/approved.js), clientValues(clientId) → cv, siteUrlFor(clientId) → url or '',
+// exclusivity (citations/exclusivity.js) for the overlap warning on the tab
+function createClientCitations({ pool, store, filloutService = null, placesStore = null, approvedTiers = null, clientValues, siteUrlFor = async () => '', exclusivity = null }) {
   async function clientRow(clientId) {
     const { rows } = await pool.query(`SELECT id, name, trade, niche_key, archived_at FROM clients WHERE id = $1`, [clientId]);
     if (!rows.length) throw Object.assign(new Error('Client not found.'), { status: 404 });
@@ -163,6 +164,7 @@ function createClientCitations({ pool, store, filloutService = null, placesStore
       territory: { approved: !!ctx.approved, approved_at: ctx.approved ? ctx.approved.approved_at : null, towns: ctx.towns, councils: ctx.councils, counties: ctx.counties },
       location: { id: location.id, label: location.label, count: 1 },
       social: ctx.social,
+      exclusivity: exclusivity ? await exclusivity.overlapsFor(clientId).catch(() => []) : [],
       tiers, stats: stats(rowsByTier),
       options: { statuses: STATUSES, listed: LISTED, nap_status: NAP_STATUS, done_by: DONE_BY },
     };

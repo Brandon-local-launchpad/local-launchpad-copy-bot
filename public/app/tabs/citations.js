@@ -81,6 +81,7 @@ export async function render(el, ctx) {
         ${tileHtml('Low confidence', String(S.needs_review), 'needs review', { kind: S.needs_review ? 'warn' : '' })}
         ${tileHtml('Waiting on client', String(S.waiting_on_client), S.waiting_on_client ? 'rows the client must act on' : 'nothing with the client', { kind: S.waiting_on_client ? 'warn' : '' })}
       </div>
+      ${(d.exclusivity || []).map(x => `<div class="notice warn" style="margin-bottom:16px"><strong>Exclusivity:</strong> ${h(x.message)} Two clients in one niche sharing a town compete for the same local directories. <a href="/clients/${h(x.client_id)}/citations" data-link>Open ${h(x.name)}</a></div>`).join('')}
       ${S.banner.length ? `<div class="notice bad" style="margin-bottom:16px"><strong>NAP issues: ${S.banner.length} mismatch${S.banner.length === 1 ? '' : 'es'}</strong><ul style="margin:6px 0 0 18px">${S.banner.map(b => `<li>${tag('block', 'mismatch')} <strong>${h(b.directory)}</strong>: ${h(b.lines.join('; ') || 'NAP mismatch')}</li>`).join('')}</ul></div>` : ''}
       ${d.gaps && d.gaps.gaps ? gapsHtml(d.gaps) : ''}
       <div class="btn-row" style="margin-bottom:14px">

@@ -3968,7 +3968,7 @@ if (filloutService && citationStore) {
   const CL = require('./citations/client');
   const citationsClientValues = async id => { const r = await pool.query(`SELECT content FROM client_assets WHERE client_id = $1 AND asset_type = 'client_values' ORDER BY uploaded_at DESC LIMIT 1`, [id]); return r.rows.length ? JSON.parse(r.rows[0].content) : {}; };
   const siteUrlFor = async id => { const r = await pool.query(`SELECT url FROM wp_connections WHERE client_id = $1`, [id]).catch(() => ({ rows: [] })); return r.rows.length ? r.rows[0].url : ''; };
-  const clientCitations = CL.createClientCitations({ pool, store: citationStore, filloutService, placesStore: require('./locations/places').createPlacesStore(pool), approvedTiers: require('./locations/approved').approvedTiers, clientValues: citationsClientValues, siteUrlFor });
+  const clientCitations = CL.createClientCitations({ pool, store: citationStore, filloutService, placesStore: require('./locations/places').createPlacesStore(pool), approvedTiers: require('./locations/approved').approvedTiers, clientValues: citationsClientValues, siteUrlFor, exclusivity: require('./citations/exclusivity').createExclusivity({ pool }) });
   const citationScanner = require('./citations/scan').createScanner({ pool, store: citationStore, clientCitations });
   // The gap check's competitors: the latest saved competitor run (the GBP tab), else the check run
   // now for "[primary category] [base town]" through Places and saved like the GBP tab's
