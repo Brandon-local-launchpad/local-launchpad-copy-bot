@@ -14,6 +14,7 @@ Sources, in order of authority: `calibration-packs/Tree_Surgeon_Calibration_Pack
 |---|---|
 | trade / trade_lower | Tree Surgery / tree surgery |
 | trade_person / trade_person_plural | tree surgeon / tree surgeons |
+| homepage_keyword | Tree surgeon (4 Nov 2026, Brandon: the homepage keyword is a way of saying the primary GBP category, picked on search volume; the H1 research pattern and the thin runner read it) |
 | customer_type | homeowners (the pack's other readers, landlords, schools, agents and developers, are reached through the surveys, clearance and woodland pages) |
 | unit_of_work | jobs |
 | emergency_niche | no (the pack: plain type A; the emergency variant switches on per page) |

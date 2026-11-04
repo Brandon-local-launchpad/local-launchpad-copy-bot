@@ -5,6 +5,7 @@
   "trade_lower": "garage doors",
   "trade_person": "garage door fitter",
   "trade_person_plural": "garage door fitters",
+  "homepage_keyword": "Garage doors",
   "customer_type": "homeowners",
   "unit_of_work": "jobs",
   "emergency_niche": true,

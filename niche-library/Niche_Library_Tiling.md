@@ -14,6 +14,7 @@ Sources, in order of authority: `calibration-packs/Tiling_Calibration_Pack_v1.md
 |---|---|
 | trade / trade_lower | Tiling / tiling |
 | trade_person / trade_person_plural | tiler / tilers |
+| homepage_keyword | Tiler (4 Nov 2026, Brandon: the homepage keyword is a way of saying the primary GBP category, picked on search volume; the H1 research pattern and the thin runner read it) |
 | customer_type | homeowners |
 | unit_of_work | jobs |
 | emergency_niche | no |

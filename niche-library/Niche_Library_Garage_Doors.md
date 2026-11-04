@@ -14,6 +14,7 @@ Business type: **A (project trade)**. Emergency niche: **yes**, per page: the li
 |---|---|
 | trade / trade_lower | Garage Doors / garage doors |
 | trade_person / trade_person_plural | garage door fitter / garage door fitters (the pack's voice: a fitter explaining how the door works) |
+| homepage_keyword | Garage doors (4 Nov 2026, Brandon: the homepage keyword is a way of saying the primary GBP category, picked on search volume; the H1 research pattern and the thin runner read it) |
 | customer_type | homeowners |
 | unit_of_work | jobs |
 | emergency_niche | yes (a door stuck open; a broken spring or snapped cable) |

@@ -246,14 +246,20 @@ if (!calibrationPack.name) console.log('WARNING: no calibration pack found for t
       let line;
       if (record.blocked || record.error) line = `homepage: ${record.error || 'blocked'}`;
       else {
+        // Scored twice and averaged (Brandon, 4 Nov 2026): one reading hides a change under the spread
         const review = await Q.reviewPage({ record, V, D: DR.decisions, cv, niche, callModel: call });
+        const review2 = await Q.reviewPage({ record, V, D: DR.decisions, cv, niche, callModel: call }).catch(() => null);
+        const scores = [review, review2].filter(r => r && r.score != null).map(r => r.score);
+        if (scores.length === 2) review.score = Math.round(((scores[0] + scores[1]) / 2) * 100) / 100;
+        review.readings = scores;
         fs.writeFileSync(path.join(dir, 'homepage.md'), buildReaderView(record, record.meta.client_values || {}));
-        fs.writeFileSync(path.join(dir, 'homepage-review.txt'), Q.formatReview(review) + '\n');
+        fs.writeFileSync(path.join(dir, 'homepage-review.txt'), Q.formatReview(review) + (scores.length === 2 ? `\n(Two readings: ${scores.map(s => s.toFixed(1)).join(' and ')}; the score is their average.)\n` : '') + '\n');
+        if (review2) fs.writeFileSync(path.join(dir, 'homepage-review-2.txt'), Q.formatReview(review2) + '\n');
         const vs = record.VALIDATION || record.meta.validation || {};
         const blocks = vs.block != null ? vs.block : (vs.issues || []).filter(i => i.type === 'BLOCK').length;
         const flags = vs.flag != null ? vs.flag : (vs.issues || []).filter(i => i.type === 'FLAG').length;
         const fpH = record.meta && record.meta.flag_pass; const fpTextH = fpH && fpH.before != null ? ` (flags ${fpH.before} to ${fpH.after}, ${fpH.kept} kept)` : '';
-        line = `homepage: ${blocks} BLOCK, ${flags} FLAG${fpTextH}, reviewer ${review.score != null ? review.score.toFixed(1) : '?'} (${review.items ? review.items.filter(i => i.pass).length + '/' + review.items.length + ' items' : ''})`;
+        line = `homepage: ${blocks} BLOCK, ${flags} FLAG${fpTextH}, reviewer ${review.score != null ? review.score.toFixed(1) : '?'}${review.readings && review.readings.length === 2 ? ` (${review.readings.map(s => s.toFixed(1)).join(', ')})` : ''} (${review.items ? review.items.filter(i => i.pass).length + '/' + review.items.length + ' items' : ''})`;
         await v20Store.insert(cid, record, { type: 'homepage', key: 'homepage' });
       }
       console.log('  ' + line); summary.push(line);
@@ -287,12 +293,23 @@ if (!calibrationPack.name) console.log('WARNING: no calibration pack found for t
     const V = found.record.VALIDATION || {};
     let Qr = found.record.QUALITY;
     if (flag('--quality') && !found.record.error && !found.record.blocked) {
-      try { const rv = await reviewOf(type, key, found.record); if (rv) { Qr = { score: rv.score, done: rv.done, failures: (rv.items || []).filter(i => !i.pass) }; fs.writeFileSync(path.join(dir, `${name}-review.txt`), Q.formatReview(rv) + '\n'); } }
+      // Scored twice and averaged (Brandon, 4 Nov 2026): one reading hides a change under the spread
+      try {
+        const rv = await reviewOf(type, key, found.record);
+        if (rv) {
+          const rv2 = await reviewOf(type, key, found.record).catch(() => null);
+          const readings = [rv, rv2].filter(r => r && r.score != null).map(r => r.score);
+          const score = readings.length === 2 ? Math.round(((readings[0] + readings[1]) / 2) * 100) / 100 : rv.score;
+          Qr = { score, readings, done: rv.done, failures: (rv.items || []).filter(i => !i.pass) };
+          fs.writeFileSync(path.join(dir, `${name}-review.txt`), Q.formatReview(rv) + (readings.length === 2 ? `\n(Two readings: ${readings.map(s => s.toFixed(1)).join(' and ')}; the summary score is their average.)\n` : '') + '\n');
+          if (rv2) fs.writeFileSync(path.join(dir, `${name}-review-2.txt`), Q.formatReview(rv2) + '\n');
+        }
+      }
       catch (e) { console.log(`      reviewer failed: ${e.message}`); }
     }
     const block = found.record.meta && found.record.meta.decisions_block;
     const fp = found.record.meta && found.record.meta.flag_pass; const fpText = fp && fp.before != null ? ` (flags ${fp.before} to ${fp.after}, ${fp.kept} kept)` : '';
-    const line = `${type} ${key}: ${st.status}${V.status === 'run' ? ` (${V.block} BLOCK, ${V.flag} FLAG${fpText}${found.record.CLAIMS ? `, claims ${found.record.CLAIMS.status}` : ''}${Qr && Qr.score != null ? `, reviewer ${Qr.score.toFixed(1)}` : ''})` : ''}${found.record.error ? ': ' + found.record.error : ''} · ${emergencyLine(block)}${framingLine(block) ? ' · ' + framingLine(block) : ''}`;
+    const line = `${type} ${key}: ${st.status}${V.status === 'run' ? ` (${V.block} BLOCK, ${V.flag} FLAG${fpText}${found.record.CLAIMS ? `, claims ${found.record.CLAIMS.status}` : ''}${Qr && Qr.score != null ? `, reviewer ${Qr.score.toFixed(1)}${Qr.readings && Qr.readings.length === 2 ? ` (${Qr.readings.map(s => s.toFixed(1)).join(', ')})` : ''}` : ''})` : ''}${found.record.error ? ': ' + found.record.error : ''} · ${emergencyLine(block)}${framingLine(block) ? ' · ' + framingLine(block) : ''}`;
     console.log('  ' + line); summary.push(line);
     for (const i of (V.issues || [])) if (i.type === 'BLOCK') console.log(`      BLOCK ${i.check} · ${i.field}: ${i.message}`);
     if (Qr && Qr.failures) for (const i of Qr.failures.slice(0, 6)) console.log(`      QUALITY ${i.id} ${i.title}: ${(i.reasons || []).slice(0, 1).join(' | ')}`);

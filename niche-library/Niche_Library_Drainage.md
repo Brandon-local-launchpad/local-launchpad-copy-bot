@@ -16,6 +16,7 @@ Sources, in order: calibration-packs/Drainage_Calibration_Pack_v2.md (sections 1
 |---|---|
 | trade / trade_lower | Drainage / drainage |
 | trade_person / trade_person_plural | drainage engineer / drainage engineers |
+| homepage_keyword | Drainage (4 Nov 2026, Brandon: the homepage keyword is a way of saying the primary GBP category, picked on search volume; the H1 research pattern and the thin runner read it) |
 | customer_type | homeowners (businesses read the grease trap, interceptor and maintenance contract pages; the briefs say so where it matters) |
 | unit_of_work | jobs |
 | emergency_niche | yes (sewage backing up, the only toilet blocked, flood water; per page through the library's emergency column) |

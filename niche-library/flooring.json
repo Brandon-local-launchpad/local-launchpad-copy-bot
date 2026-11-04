@@ -5,6 +5,7 @@
   "trade_lower": "flooring",
   "trade_person": "flooring fitter",
   "trade_person_plural": "flooring fitters",
+  "homepage_keyword": "Flooring",
   "customer_type": "homeowners",
   "unit_of_work": "jobs",
   "emergency_niche": false,

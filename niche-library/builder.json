@@ -5,6 +5,7 @@
   "trade_lower": "building",
   "trade_person": "builder",
   "trade_person_plural": "builders",
+  "homepage_keyword": "Builder",
   "customer_type": "homeowners",
   "unit_of_work": "jobs",
   "emergency_niche": false,

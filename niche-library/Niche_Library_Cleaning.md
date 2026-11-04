@@ -22,6 +22,7 @@ A client hand set to type A has no briefs in this entry. No emergency variant: `
 |---|---|
 | trade / trade_lower | Cleaning / cleaning |
 | trade_person / trade_person_plural | cleaner / cleaners |
+| homepage_keyword | Cleaner (4 Nov 2026, Brandon: the homepage keyword is a way of saying the primary GBP category, picked on search volume; the H1 research pattern and the thin runner read it) |
 | customer_type | homeowners, tenants and local businesses |
 | unit_of_work | visits |
 | emergency_niche | no |

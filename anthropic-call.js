@@ -11,10 +11,12 @@
 const is55 = model => /-5-5$/.test(model || '');
 
 function makeCallModel(client, defaultModel, { onUsage = null, defaultEffort = 'medium' } = {}) {
-  return async function callModel({ system, message, maxTokens = 8192, model = defaultModel, effort = defaultEffort }) {
+  // temperature (4 Nov 2026): the reviewer scores at 0 so two readings of one page agree; a call that
+  // does not set it keeps the API default
+  return async function callModel({ system, message, maxTokens = 8192, model = defaultModel, effort = defaultEffort, temperature = undefined }) {
     for (let attempt = 0; ; attempt++) {
       try {
-        const params = { model, max_tokens: is55(model) ? Math.max(maxTokens * 4, 16000) : maxTokens, system, messages: [{ role: 'user', content: message }] };
+        const params = { model, max_tokens: is55(model) ? Math.max(maxTokens * 4, 16000) : maxTokens, system, messages: [{ role: 'user', content: message }], ...(temperature != null ? { temperature } : {}) };
         const r = is55(model)
           ? await client.beta.messages.create({ ...params, output_config: { effort }, betas: ['server-side-fallback-2026-07-01'], fallbacks: 'default' })
           : await client.messages.create(params, { headers: { 'anthropic-beta': 'prompt-caching-2024-07-31' } });

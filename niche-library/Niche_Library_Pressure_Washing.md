@@ -16,6 +16,7 @@ Business type is **A (project trade) for every category** (the pack, section 2: 
 |---|---|
 | trade / trade_lower | Pressure Washing / pressure washing |
 | trade_person / trade_person_plural | exterior cleaner / exterior cleaners (a pressure washer is the machine) |
+| homepage_keyword | Pressure washing (4 Nov 2026, Brandon: the homepage keyword is a way of saying the primary GBP category, picked on search volume; the H1 research pattern and the thin runner read it) |
 | customer_type | homeowners and local businesses (the pack, section 1: the homeowner and the site manager, landlord or managing agent) |
 | unit_of_work | jobs |
 | emergency_niche | no (no page in the library is flagged emergency) |

@@ -16,6 +16,7 @@ Sources, in the order the README gives: `calibration-packs/Builder_Calibration_P
 |---|---|
 | trade / trade_lower | Building / building |
 | trade_person / trade_person_plural | builder / builders |
+| homepage_keyword | Builder (4 Nov 2026, Brandon: the homepage keyword is a way of saying the primary GBP category, picked on search volume; the H1 research pattern and the thin runner read it) |
 | customer_type | homeowners |
 | unit_of_work | jobs |
 | emergency_niche | no (builder.csv flags no page emergency; no emergency variant, no steps_emergency, final_h2_emergency null) |

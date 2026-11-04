@@ -370,7 +370,7 @@ async function reviewPage({ record, V, D, cv, niche, callModel }) {
     'FACTS ON FILE:', factsFor(record), '',
     'PAGE:', pageText(record),
   ].join('\n');
-  const r = await callModel({ system: loadReviewPrompt(), message, maxTokens: 16000, model: REVIEW_MODEL });
+  const r = await callModel({ system: loadReviewPrompt(), message, maxTokens: 16000, model: REVIEW_MODEL, temperature: 0 });
   const j = extractJsonObject(r.text);
   const judgeItems = Object.entries(judgeItemsFor(record)).map(([id, t]) => {
     const got = (j.items || []).find(x => x.id === id) || { pass: false, why: 'The reviewer did not score this item.' };

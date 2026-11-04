@@ -21,6 +21,7 @@ No page is desire led (the pack's section 2 names none, so `window-cleaning.csv`
 |---|---|
 | trade / trade_lower | Window Cleaning / window cleaning |
 | trade_person / trade_person_plural | window cleaner / window cleaners |
+| homepage_keyword | Window cleaner (4 Nov 2026, Brandon: the homepage keyword is a way of saying the primary GBP category, picked on search volume; the H1 research pattern and the thin runner read it) |
 | customer_type | homeowners, landlords and local businesses |
 | unit_of_work | visits |
 | emergency_niche | no |
