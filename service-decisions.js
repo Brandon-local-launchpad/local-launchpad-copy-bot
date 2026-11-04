@@ -210,6 +210,10 @@ function computeServiceDecisions({ cv, niche, keyValueMap = {}, rows = [], page,
     let cand;
     if (/^established/i.test(proof)) cand = `${stem}, ${proof}. ${metaCta}`;
     else if (/^(family|independent|local|owner|small|award)/i.test(proof)) cand = `${cv.company_name}, ${proof}, offers ${svcLower} in ${townName}. ${metaCta}`;
+    // A "We ..." differentiator is a clause or its own sentence, never "with we photograph" (4 Nov 2026);
+    // the homepage and category builders have the same rule
+    else if (/^we\b/i.test(proof)) { const clause = require('./decisions').weClause(proof); cand = clause ? `${stem} ${clause}. ${metaCta}` : `${stem}. ${p.replace(/[.!]?$/, '.')} ${metaCta}`; }
+    else if (/\boffer(?:s|ing)?\b/i.test(proof)) cand = `${stem} with ${proof.replace(/^offering\s+/i, '')}. ${metaCta}`;
     else if (/\bwith\b/i.test(proof)) cand = `${stem}, ${proof}. ${metaCta}`;
     else cand = `${stem} with ${proof}. ${metaCta}`;
     cand = cand.trim();
@@ -268,7 +272,7 @@ function computeServiceDecisions({ cv, niche, keyValueMap = {}, rows = [], page,
   const problemCards = ((E.problems || {}).cards || []).slice(0, 4).map(c => ({ title: phSvc(c.title, ctx), brief: phSvc(c.brief || '', ctx), mechanism: phSvc(c.mechanism || '', ctx) }));
   const costCards = ((E.cost || {}).cards || []).slice(0, 4).map(c => ({ title: phSvc(c.title, ctx), brief: phSvc(c.brief || '', ctx) }));
   const stepsRaw = Array.isArray(E.steps) && E.steps.length ? (emergencyOn && Array.isArray(E.steps_emergency) && E.steps_emergency.length ? E.steps_emergency : E.steps) : stepsFor(niche, cv, emergencyOn);
-  const steps = (stepsRaw || []).slice(0, 3).map(s => ({ title: phSvc(s.title, ctx), brief: phSvc(s.brief || '', ctx) }));
+  const steps = ((blocks.overrideUsed && !emergencyOn ? require('./category-blocks').overrideStepsFor(stepsRaw, niche, cv) : stepsRaw) || []).slice(0, 3).map(s => ({ title: phSvc(s.title, ctx), brief: phSvc(s.brief || '', ctx) }));
   if (steps.length < 3) flags.push({ code: 'F-BRIEF', msg: `Only ${steps.length} process step(s) for type ${blocks.key}.` });
 
   // A slot marked when: rule_rows (type B's "rules or standards" question) joins as a sixth when

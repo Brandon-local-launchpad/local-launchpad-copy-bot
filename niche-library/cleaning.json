@@ -612,5 +612,199 @@
       ]
     }
   },
+  "service_overrides": {
+    "end of tenancy cleaning": {
+      "cost": {
+        "h2": "How We Price [SERVICE] in [CITY]",
+        "cards": [
+          {
+            "title": "The size of the property",
+            "brief": "The rooms, the kitchen and the bathrooms to be done (the trade facts price row: more rooms). Say it plainly and give no figure, and no room count as this client's rule."
+          },
+          {
+            "title": "How heavy the build up is",
+            "brief": "Heavily soiled ovens or bathrooms, marked sanitaryware, dust and debris left behind (the trade facts price and signs rows). A single job is priced as a job. Say the business looks before it prices, from [CV: quote_method] only. Nothing priced on time, no hourly rule."
+          },
+          {
+            "title": "What is included and what is extra",
+            "brief": "What the agreed scope covers and what sits outside it: additional agreed appliances and separate specialist treatments (the trade facts price row), carpet or appliance work only if it is in the scope (the materials cell). Say the scope is agreed first because an area left out is what a check out disagreement is made of. Before and after photographs only where [CV: materials_methods] gives them. Extra work priced before it is done only when the extra_work_agreed_first practice is confirmed. A sibling service page linked where LINKABLE PAGES has one."
+          },
+          {
+            "title": "Access and the day it has to be done by",
+            "brief": "An empty, accessible property is the simplest (the trade facts lower cost row); a home still being packed up is slower. The clean falls after the property is empty and before check out, where access permits (the timing cell). Keys only from [CV: access_handling]. Nothing about urgency pricing unless [CV: price_list] gives it. Never promise a date unless [CV: start_time] is set. Code adds the price line from [CV: price_list] when there is one."
+          }
+        ]
+      },
+      "problems": {
+        "h2": "When It's Time to Book [SERVICE]",
+        "cards": [
+          {
+            "title": "The first signs",
+            "brief": "This page is situation led, so no invented symptom: the move, the check out coming and what gets noticed first, in the customer's words (a dirty oven, marked sanitaryware, dust or debris, from the trade facts signs row). The one cause this card makes: the job left undone. What it can lead to: a provable fall in cleanliness can support a deduction from the deposit (the skipped row), said specifically, never alarmingly, never a promise about the deposit.",
+            "mechanism": "the job left undone"
+          },
+          {
+            "title": "Your own attempt didn't shift it",
+            "brief": "The last weekend's clean: the shop oven cleaner that did not touch the baked on deposits, the mark on the bath that stayed (the trade facts signs, facts and done badly rows; oven cleaner can damage a catalytic lining). The one cause this card makes: a product wrong for the material. Blame the method, never the customer's effort.",
+            "mechanism": "a product wrong for the material"
+          },
+          {
+            "title": "A date you can't move",
+            "brief": "The check out date, the keys going back, the next tenant moving in. The one cause this card makes: a deadline fixed by someone else. The clean has to fall after the property is empty and before check out (the trade facts timing cell), so the date sets the order of everything else. Never promise a date unless [CV: start_time] is set. Not who looks at it on the day: card 4 owns that.",
+            "mechanism": "a deadline fixed by someone else"
+          },
+          {
+            "title": "The day it's checked and who checks it",
+            "brief": "The customer's situation on the day: a landlord or an agent walking round with the check in inventory, or a buyer on a sale, comparing the place with how it started. The one cause this card makes: a result judged on the day by someone else. Say what that means for the job: an agreed scope, nothing left out, and comparable before and after records that count for more than an invoice (the trade facts rows). The tenant has to return it as clean as it started, apart from fair wear and tear. A landlord or an agent has no power to insist that the tenant buys in a clean or to name the cleaner (the Table C end of tenancy cleaning row, in plain words, never an Act's name and never as legal advice). Never a deposit back, and no frequency.",
+            "mechanism": "a result judged on the day by someone else"
+          }
+        ]
+      }
+    },
+    "after builders cleaning": {
+      "cost": {
+        "h2": "How We Price [SERVICE] in [CITY]",
+        "cards": [
+          {
+            "title": "The size of the property",
+            "brief": "How many rooms the building work reached and how many have to be cleaned (the trade facts price row: more rooms). Say it plainly and give no figure."
+          },
+          {
+            "title": "How heavy the build up is",
+            "brief": "Fine construction dust on the sills and settling back on the floors, debris in the corners, and whether the builders have taken their waste away first (the trade facts price, signs and lower cost rows). Dust coming back because work carried on is a bigger job (the price row: repeated contamination). A single job is priced as a job. Say the business looks before it prices, from [CV: quote_method] only. Nothing priced on time, no hourly rule."
+          },
+          {
+            "title": "What is included and what is extra",
+            "brief": "What the scope covers: damp cleaning, the fixtures and surfaces, the floors, a final look round (the trade facts stages). What can add to it: controlled extraction suited to construction dust, debris handling (the price row). Suspected asbestos is outside an ordinary builders clean and goes to a licensed specialist where the work is licensable (the rule row): say it plainly, never a health scare. Extra work priced before it is done only when the extra_work_agreed_first practice is confirmed. A sibling service page linked where LINKABLE PAGES has one."
+          },
+          {
+            "title": "Access and the day it has to be done by",
+            "brief": "The clean follows the end of the dusty work, because further work dirties it again (the trade facts timing cell). Other trades still in the building, the way in and the handover day all move it. Keys only from [CV: access_handling]. Nothing about urgency pricing unless [CV: price_list] gives it. Never promise a date unless [CV: start_time] is set. Code adds the price line from [CV: price_list] when there is one."
+          }
+        ]
+      },
+      "problems": {
+        "h2": "When It's Time to Book [SERVICE]",
+        "cards": [
+          {
+            "title": "The first signs",
+            "brief": "This page is situation led: the build has just finished and the place still is not ready to use. What the customer notices first: fine powder on the sills, dust back on the floor after it was wiped, debris in the corners (the trade facts signs row). The one cause this card makes: the job left undone. What it leads to: dust left where it can be disturbed and breathed in (the skipped row), specific, never a health scare.",
+            "mechanism": "the job left undone"
+          },
+          {
+            "title": "Your own attempt didn't shift it",
+            "brief": "The broom and the household vacuum that moved the dust around and let it settle again (the trade facts done badly row: dry sweeping spreads dust, unsuitable extraction does not control fine dust). The one cause this card makes: a broom or a vacuum wrong for fine dust. Say what the job does instead from the stages and the materials cell: damp cleaning and extraction suited to it. Blame the method, never the customer's effort.",
+            "mechanism": "a broom or a vacuum wrong for fine dust"
+          },
+          {
+            "title": "A date you can't move",
+            "brief": "The handover after the builders, the moving in day, the reopening after a refit. The one cause this card makes: a deadline fixed by someone else. The clean has to land after the dusty work ends and before the date (the trade facts timing cell), so a builder running late moves it. Never promise a date unless [CV: start_time] is set. Not who looks at it on the day: card 4 owns that.",
+            "mechanism": "a deadline fixed by someone else"
+          },
+          {
+            "title": "The day it's checked and who checks it",
+            "brief": "The customer's situation on the day: their own client or the main contractor walking round at handover, a buyer or a landlord seeing the finished job, an agent taking photographs. The one cause this card makes: a result judged on the day by someone else. Say what that means for the job: an agreed scope and a final inspection (the trade facts stages), fine dust on sills and ledges being what shows. No certificate, no promise the place passes anything.",
+            "mechanism": "a result judged on the day by someone else"
+          }
+        ]
+      }
+    },
+    "deep cleaning": {
+      "cost": {
+        "h2": "How We Price [SERVICE] in [CITY]",
+        "cards": [
+          {
+            "title": "The size of the property",
+            "brief": "How much of the home or the premises is being done, and how many fittings it holds (the trade facts price row: more fittings). Say it plainly and give no figure, and no room count as this client's rule."
+          },
+          {
+            "title": "How heavy the build up is",
+            "brief": "Ingrained grease, scale, and neglected or obstructed areas (the trade facts price row). A single job is priced as a job. Say the business looks before it prices, from [CV: quote_method] only. Nothing priced on time, no hourly rule."
+          },
+          {
+            "title": "What is included and what is extra",
+            "brief": "No national list makes a deep clean a fixed set of tasks (the trade facts row), so the scope is agreed for this job: the surfaces and fittings that do not normally get reached, the degreasing and the descaling, the floors. A limited agreed scope costs less (the lower cost row). Never a checklist length and never a claim that the clean follows a set standard. Extra work priced before it is done only when the extra_work_agreed_first practice is confirmed. A sibling service page linked where LINKABLE PAGES has one."
+          },
+          {
+            "title": "Access and the day it has to be done by",
+            "brief": "Clear access is the simplest (the trade facts lower cost row); furniture or stored things in the way add time. A day it has to be ready by, for a viewing, a move or a reopening. Keys only from [CV: access_handling]. Nothing about urgency pricing unless [CV: price_list] gives it. Never promise a date unless [CV: start_time] is set. Code adds the price line from [CV: price_list] when there is one."
+          }
+        ]
+      },
+      "problems": {
+        "h2": "When It's Time to Book [SERVICE]",
+        "cards": [
+          {
+            "title": "The first signs",
+            "brief": "What the customer notices first: grease on the fittings, scale around the taps, dirt in the neglected edges (the trade facts signs row). The one cause this card makes: the job left undone, because deposits stay where routine cleaning does not reach and get in the way of any disinfecting (the skipped row). Specific, never alarming, never a health scare.",
+            "mechanism": "the job left undone"
+          },
+          {
+            "title": "Your own attempt didn't shift it",
+            "brief": "The shop descaler or degreaser that did not shift it, or marked the surface (the trade facts done badly row: surface damage from incompatible chemicals). The one cause this card makes: a product wrong for the surface. Say the product is chosen for the surface in front of it (the materials cell), a named product only from [CV: materials_methods]. Blame the method, never the customer's effort.",
+            "mechanism": "a product wrong for the surface"
+          },
+          {
+            "title": "A date you can't move",
+            "brief": "A deep clean ahead of moving out or selling up, a reopening, an audit. The one cause this card makes: a deadline fixed by someone else. Name what the date is tied to, and that the job has to be booked with it in mind. Never promise a date unless [CV: start_time] is set. Not who looks at it on the day: card 4 owns that.",
+            "mechanism": "a deadline fixed by someone else"
+          },
+          {
+            "title": "The day it's checked and who checks it",
+            "brief": "The customer's situation on the day: a buyer at a viewing, an agent or a landlord before a new tenant, whoever inspects the premises. The one cause this card makes: a result judged on the day by someone else. Say what that means for the job: an agreed scope with nothing assumed, because areas get missed where the scope was not specified (the trade facts done badly row). No certificate, no promise of a result at a viewing or an inspection.",
+            "mechanism": "a result judged on the day by someone else"
+          }
+        ]
+      }
+    },
+    "oven cleaning": {
+      "cost": {
+        "h2": "How We Price [SERVICE] in [CITY]",
+        "cards": [
+          {
+            "title": "The size of the oven",
+            "brief": "A single oven against one with more cavities, how many racks and accessories come out, a model with complicated fittings (the trade facts price row; fewer removable parts is the lower cost side). Say it plainly and give no figure."
+          },
+          {
+            "title": "How heavy the build up is",
+            "brief": "Heavy baked on deposits against light ones, grease on the racks, deposits around the door (the trade facts price and signs rows), and residues get harder to remove after repeated heating (the skipped row). A single job is priced as a job. Say the business looks before it prices, from [CV: quote_method] only. Nothing priced on time, no hourly rule."
+          },
+          {
+            "title": "What is included and what is extra",
+            "brief": "What is covered: the accessible surfaces, the racks and accessories that can come out (the trade facts stages). What the model decides: a catalytic lining takes no oven cleaner, a self clean programme follows the maker's instructions (the materials cell). A hob or an extractor only where the services list gives it. Never a certificate: a domestic oven clean is not a food safety sign off (the facts row). A named product only from [CV: materials_methods]."
+          },
+          {
+            "title": "Access and the day it has to be done by",
+            "brief": "The oven has to be cool before it is cleaned by hand, where the instructions ask for it (the trade facts timing cell), so the day is planned around the cooking. A check out or a viewing it has to be done by. Keys and whether the customer needs to be in only from [CV: access_handling] and the customer_need_not_be_home practice. Nothing about urgency pricing unless [CV: price_list] gives it. Never promise a date unless [CV: start_time] is set. Code adds the price line from [CV: price_list] when there is one."
+          }
+        ]
+      },
+      "problems": {
+        "h2": "When It's Time to Book [SERVICE]",
+        "cards": [
+          {
+            "title": "The first signs",
+            "brief": "What the customer notices first: baked on deposits, grease on the racks, deposits around the door (the trade facts signs row). The one cause this card makes: the job left undone, because the residues get harder to remove every time the oven is heated (the skipped row). Specific, never alarming, never a health scare.",
+            "mechanism": "the job left undone"
+          },
+          {
+            "title": "Your own attempt didn't shift it",
+            "brief": "The shop oven cleaner that did not touch the baked on deposits, the racks left to soak. The one cause this card makes: a product wrong for the oven: oven cleaner can damage a catalytic lining and some accessories should not go through a self clean cycle (the trade facts done badly and facts rows). Blame the method, never the customer's effort.",
+            "mechanism": "a product wrong for the oven"
+          },
+          {
+            "title": "A date you can't move",
+            "brief": "The check out, the viewing, the new owners moving in, the next guest arriving. The one cause this card makes: a deadline fixed by someone else. Name what the date is tied to. Never promise a date unless [CV: start_time] is set. Not who looks at it on the day: card 4 owns that.",
+            "mechanism": "a deadline fixed by someone else"
+          },
+          {
+            "title": "The day it's checked and who checks it",
+            "brief": "The customer's situation on the day: a landlord or an agent opening the oven door at check out, where a dirty oven is what gets written down (the end of tenancy signs row), a buyer doing the same at a viewing. The one cause this card makes: a result judged on the day by someone else. Say what that means for the job: racks, door and cavity all done, nothing left for them to find. Never a deposit back, no certificate.",
+            "mechanism": "a result judged on the day by someone else"
+          }
+        ]
+      }
+    }
+  },
   "do_not_reuse": []
 }

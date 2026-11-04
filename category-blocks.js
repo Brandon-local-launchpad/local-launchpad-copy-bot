@@ -77,6 +77,16 @@ class NoBriefsError extends Error {
 // steps or block 4 (problems) for one category, keyed by the category name in lower case, and set
 // always_emergency so the page takes the urgent framing whatever the client values say:
 //   "category_overrides": { "paving contractor": { "cost": { "h2", "cards": [x4] }, "steps": [x3] } }
+// A step 2 title that promises a look before the price ("We Walk It and Price the Round") goes back to the
+// niche's no visit step when the client has not confirmed site visits (copy quality 3, 4 Nov 2026). A step 2
+// that is the job itself ("We Measure and Draw It", "We Test on a Day That Suits You") stays.
+const VISIT_STEP_RE = /\b(?:look|walk|measure|survey|visit|count|find)\b.*\bprice\b/i;
+function overrideStepsFor(steps, niche = {}, cv = {}) {
+  if (!Array.isArray(steps) || steps.length < 2) return steps;
+  if ((cv.confirmed_practices || []).includes('site_visit_before_quote') || !niche.step_2_no_visit) return steps;
+  return steps.map((s, i) => (i === 1 && VISIT_STEP_RE.test(s.title || '') ? niche.step_2_no_visit : s));
+}
+
 function overrideFor(map, name) { return (map && typeof map === 'object' && map[lc(name)]) || null; }
 function applyOverride(entry, over) {
   if (!over) return entry;
@@ -85,6 +95,7 @@ function applyOverride(entry, over) {
   if (over.cost) out.cost = over.cost;
   if (Array.isArray(over.steps) && over.steps.length) out.steps = over.steps;
   if (Array.isArray(over.faq_slots) && over.faq_slots.length) out.faq_slots = over.faq_slots;
+  if (over.included && Array.isArray(over.included.items) && over.included.items.length) out.included = over.included;
   return out;
 }
 
@@ -127,6 +138,7 @@ function pickFaqSlots(entry, cv = {}, { quoteFree = '', ruleRows = false, max = 
     if (when === 'insurance') return !!cv.insurance_cover;
     if (when === 'price_list') return !!cv.price_list;
     if (when === 'start_time') return !!cv.start_time;
+    if (when === 'out_of_hours') return !!cv.out_of_hours_available;
     if (when === 'quote_free') return !!quoteFree;
     if (when === 'not_quote_free') return !quoteFree;
     if (when === 'rule_rows') return !!ruleRows;
@@ -189,4 +201,4 @@ function faqSlotsFor(niche = {}, cv = {}) {
   return out;
 }
 
-module.exports = { typeFor, blocksFor, briefGaps, pickFaqSlots, applySeasonal, NoBriefsError, clientEmergency, emergencyWhy, emergencySite, typeLetterFor, fearsFor, faqSlotsFor, overrideFor, applyOverride };
+module.exports = { typeFor, blocksFor, briefGaps, pickFaqSlots, applySeasonal, NoBriefsError, clientEmergency, emergencyWhy, emergencySite, typeLetterFor, fearsFor, faqSlotsFor, overrideFor, applyOverride, overrideStepsFor };

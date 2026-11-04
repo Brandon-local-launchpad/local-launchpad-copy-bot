@@ -14,6 +14,7 @@ Business type is **A (project trade)** for every page. The calibration pack's se
 |---|---|
 | trade / trade_lower | Blinds and Curtains / blinds and curtains |
 | trade_person / trade_person_plural | blind and curtain fitter / blind and curtain fitters |
+| homepage_keyword | Blinds when the client's primary GBP category is Blind Shop, else the primary category as before (the slot is a map by primary category) (4 Nov 2026, Brandon: the homepage keyword is a way of saying the primary GBP category, picked on search volume; the H1 research pattern and the thin runner read it through niche-library/keyword.js) |
 | customer_type | homeowners |
 | unit_of_work | jobs |
 | emergency_niche | no |

@@ -11,6 +11,8 @@
 //   faq_slots  [{ slot, when?, question, answer_brief, doubt }]   five before the symptom question; the
 //              slot names by type: A cost, timing, cover, rules, scope; B frequency, cost, access, scope, timing
 //   faq_symptom, seasonal { problem_card, faq_slot }, emergency { ...overrides }
+//   no_callouts { cost: { h2, cards x4 } }   (4 Nov 2026) block 5 for a page flagged emergency whose client has not
+//              confirmed call outs: booked work on the same fault. The emergency variant wins over it.
 //   desire { problems: { h2, cards x4 } ... }   (4 Nov 2026) the desire led variant: block 4 as "Is [SERVICE] right
 //              for you", four situation cards (the customer's situation, what decides it, what the work gives them),
 //              used on a page the library flags desire_led; never a symptom. The emergency variant wins over it.
@@ -40,13 +42,21 @@ function blocksFor({ niche, cv = {}, category, emergencyPage = false, desirePage
   const over = C.overrideFor(niche.service_overrides, service);
   const t = C.typeFor({ niche, cv, category, emergencyPage });
   if (over && over.always_emergency) t.emergencyOn = true;
+  // type (copy quality 3, 4 Nov 2026): a one off build under a round category (the landscaper's Fencing under
+  // Gardener) reads the type the override names instead of the category's
+  if (over && over.type && all[String(over.type).toUpperCase()]) { t.letter = String(over.type).toUpperCase(); t.a2 = false; t.source = 'service override'; }
   const key = t.a2 && all.A2 ? 'A2' : t.letter;
   const base = all[key];
   if (!base) throw new NoBriefsError(`no service block briefs for ${nicheName} type ${key}`, { niche: nicheName, type: key });
   const desireUsed = !!(desirePage && base.desire && !(t.emergencyOn && base.emergency));
   const withDesire = desireUsed ? { ...base, ...base.desire } : base;
-  const entry = C.applyOverride(t.emergencyOn && base.emergency ? { ...withDesire, ...base.emergency } : withDesire, over);
-  return { ...t, key, entry, emergencyUsed: !!(t.emergencyOn && base.emergency), desireUsed, overrideUsed: !!over, forcedEmergency: !!(over && over.always_emergency) };
+  // no_callouts (copy quality 3, 4 Nov 2026): a page flagged emergency whose client has not confirmed call outs
+  // is booked work, so it reads the type's no_callouts set (its own block 5) instead of the planned cards,
+  // which were written for new installs (a liner on a blocked toilet page)
+  const noCallouts = !!(emergencyPage && !t.emergencyOn && base.no_callouts);
+  const layered = t.emergencyOn && base.emergency ? { ...withDesire, ...base.emergency } : noCallouts ? { ...withDesire, ...base.no_callouts } : withDesire;
+  const entry = C.applyOverride(layered, over);
+  return { ...t, key, entry, emergencyUsed: !!(t.emergencyOn && base.emergency), desireUsed, noCallouts, overrideUsed: !!over, forcedEmergency: !!(over && over.always_emergency) };
 }
 
 // What a block entry lacks, as F-BRIEF messages (the page still runs with what there is)

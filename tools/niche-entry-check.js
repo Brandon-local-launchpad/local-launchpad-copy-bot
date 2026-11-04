@@ -191,7 +191,7 @@ try {
       else if (Array.isArray(v)) v.forEach((x, i) => walk(x, `${p}[${i}]`));
       else if (v && typeof v === 'object') for (const [k, x] of Object.entries(v)) walk(x, p ? `${p}.${k}` : k);
     };
-    walk({ faq_slots: n.faq_slots, faq_slots_by_type: n.faq_slots_by_type, steps: n.steps, steps_emergency: n.steps_emergency, step_2_no_visit: n.step_2_no_visit, fears: n.fears, fears_by_type: n.fears_by_type, category_page_blocks: n.category_page_blocks, service_page_blocks: n.service_page_blocks, location_page_blocks: n.location_page_blocks }, '');
+    walk({ faq_slots: n.faq_slots, faq_slots_by_type: n.faq_slots_by_type, steps: n.steps, steps_emergency: n.steps_emergency, step_2_no_visit: n.step_2_no_visit, fears: n.fears, fears_by_type: n.fears_by_type, category_page_blocks: n.category_page_blocks, service_page_blocks: n.service_page_blocks, location_page_blocks: n.location_page_blocks, service_overrides: n.service_overrides, category_overrides: n.category_overrides }, '');
     for (const h of hits) fail(`brief copies the pack (${packFile}): ${h}`);
     if (!hits.length) ok(`no brief shares a five word run with ${packFile}`);
   } else warn('no calibration pack found for this niche, so briefs were not checked against one');
@@ -210,6 +210,13 @@ else {
 }
 
 // ── Report ──
+// no_callouts: a type's block 5 for a flagged page whose client has not confirmed call outs (4 Nov 2026)
+for (const [t, e] of Object.entries(n.service_page_blocks || {})) {
+  if (!e || !e.no_callouts) continue;
+  const c = e.no_callouts.cost;
+  if (!c || !Array.isArray(c.cards) || c.cards.length !== 4 || c.cards.some(x => !x || !x.title || !x.brief)) fail(`service_page_blocks ${t} no_callouts: cost needs 4 cards with title and brief`);
+  if (!e.emergency) warn(`service_page_blocks ${t}: no_callouts with no emergency variant`);
+}
 // Per target overrides (copy quality 2, phase 2, 4 Nov 2026): service_overrides keyed by page target,
 // category_overrides keyed by category, lower case, each replacing cost, steps, problems or faq_slots
 for (const [slot, by] of [['service_overrides', 'page target'], ['category_overrides', 'category']]) {
@@ -223,7 +230,9 @@ for (const [slot, by] of [['service_overrides', 'page target'], ['category_overr
     if (v.cost && !cards4(v.cost.cards)) fail(`${slot} "${k}": cost needs 4 cards with title and brief`);
     if (v.problems && !cards4(v.problems.cards)) fail(`${slot} "${k}": problems needs 4 cards with title and brief`);
     if (v.steps && (!Array.isArray(v.steps) || v.steps.length !== 3 || v.steps.some(x => !x || !x.title || !x.brief))) fail(`${slot} "${k}": steps needs 3 entries with title and brief`);
-    for (const key of Object.keys(v)) if (!['always_emergency', 'cost', 'steps', 'problems', 'faq_slots'].includes(key)) warn(`${slot} "${k}": unknown key ${key}`);
+    if (v.type && !/^[ABCD]$/.test(String(v.type))) fail(`${slot} "${k}": type must be A, B, C or D`);
+    if (v.type && slot === 'service_overrides' && !(n.service_page_blocks || {})[v.type]) fail(`${slot} "${k}": type ${v.type} has no service_page_blocks entry`);
+    for (const key of Object.keys(v)) if (!['always_emergency', 'type', 'cost', 'steps', 'problems', 'faq_slots', 'included'].includes(key)) warn(`${slot} "${k}": unknown key ${key}`);
   }
 }
 const fails = out.filter(o => o[0] === 'FAIL').length, warns = out.filter(o => o[0] === 'WARN').length;

@@ -16,6 +16,7 @@ Sources, in the order the README gives: `calibration-packs/Kitchen_Bathroom_Cali
 |---|---|
 | trade / trade_lower | Kitchen and Bathroom Fitting / kitchen and bathroom fitting |
 | trade_person / trade_person_plural | kitchen and bathroom fitter / kitchen and bathroom fitters |
+| homepage_keyword | Kitchen fitter (4 Nov 2026, Brandon: the homepage keyword is a way of saying the primary GBP category, picked on search volume; the H1 research pattern and the thin runner read it through niche-library/keyword.js) |
 | customer_type | homeowners |
 | unit_of_work | jobs |
 | emergency_niche | no (kitchen-bathroom.csv flags no page emergency; no emergency variant, no steps_emergency, final_h2_emergency null) |
@@ -368,6 +369,39 @@ Used by the location page job (CORE (18)): block 4 (the problems the town's home
 | cover | always | What happens if something isn't right after the job? | Open with what the customer does: tell us and we look at it. Then the reasonable care and skill standard every trade works to. No promise to come back free. Never invent a guarantee. | Trust |
 | process | always | What happens when I ask for a quote in [TOWN]? | From [CV: quote_method] and the confirmed practices only: what the customer sends, what the business looks at in the room (the measurements, where the services run, the floor and the walls, how things get in), what comes back. No timescale unless [CV: response_time] is set. | Process |
 | timing | always | How long does [WORK_LOWER] take in [TOWN]? | No duration: the trade facts give none. The order of work as the reason (the strip out, first fix, plastering and its drying, units or the waterproofing and tiling, a worktop templated once the units are in, second fix, the tests and sign offs, the cure before the room is used), and where the town profile gives the housing (flats and their stairs, a terrace reached through the house, a listed home and its consent) what it does to that order. A number only from the client values. Nothing about when the job can start unless [CV: start_time] is set. | Timing |
+
+## Per page overrides (service_overrides)
+
+Copy quality 3, 4 Nov 2026: a page whose job differs from the shared type A entry gets its own briefs here, keyed by the page target in lower case. The code lays them over the type entry for that page only (service-blocks.js blocksFor).
+
+### Media walls
+
+A carpentry and electrics page: block 5 is the wall, the cables, the fire and the finish, and has no place for the shared cards on moving a sink or a toilet.
+
+Block 5 H2: What Affects the Cost of [SERVICE] in [CITY]
+
+| Card or step | Brief |
+|---|---|
+| Block 5: The size of the wall and the recesses | How wide and how high the wall is and how much is built out from it: a simple surface mounted arrangement against complex framing, a recess for the screen, more recesses for shelves or a fire (the trade facts price row: complex framing or recesses; the materials cell: stud framing and plasterboard, recessed or surface mounted equipment). More recesses mean more framing, boarding and finishing. Say it plainly and give no figure. Say the business looks before it prices, from [CV: quote_method] only. |
+| Block 5: The electrics and the cable routes | How the power and the cables reach the screen and the fire: a socket already close by against a new circuit, the cables hidden inside the frame, and a way back in to the connections once the wall is boarded (the trade facts price row: new electrical circuit, access and finishing requirements; the done badly row: hidden connections with no access cannot be inspected). A new circuit brings in a registered electrician or the notification route, from the Part P rule row in plain words. A wall or floor that holds back a fire keeps its protection where a cable goes through it (the price row: protected wall penetrations); never that every light needs a fire hood or that every media wall needs fire rated board, because the trade facts found no such rule. |
+| Block 5: The fire and what it needs | Whether a fire goes in at all, and whether the one chosen only needs power or needs a flue or a gas supply, because that decides what has to be brought to the wall and who connects it. The trade facts have no row on fires, so never call one kind cheaper, give no clearance from the screen and no rule about a flue. The one rule they do give: anyone working on a gas fitting has to be Gas Safe registered (the gas rows). Which fires this business fits only from [CV: materials_methods] or the services list. Give no figure. |
+| Block 5: The finish and the lighting | The finish on the boards and how much of it there is to get right, how many lights go in the recesses and the shelves, and whether they run on new wiring (the trade facts price row: access and finishing requirements; the timing cell: plaster and finish drying depends on the products chosen, so no drying time). Say why more detail adds time. A named product only from [CV: materials_methods]; never a brand. Code adds the price line from [CV: price_list] when there is one. |
+
+### Bathroom design
+
+A drawing job, not a fit: block 5 is what moves the price of the design, and the steps end with drawings in the customer's hands rather than a fitted room.
+
+Block 5 H2: What Affects the Cost of [SERVICE] in [CITY]
+
+| Card or step | Brief |
+|---|---|
+| Block 5: The size of the room | A cloakroom or a small en suite against a large family bathroom: how many fittings have to be placed, how many ways they could go in, how much there is to measure and draw (the trade facts stages: measure and identify the services, plan the sanitaryware and the access). A bigger or more awkward room takes longer to work out. Say it plainly and give no figure. |
+| Block 5: How far the layout moves from the services | Keeping the toilet, the basin and the shower close to where the waste, the soil pipe, the water and the electrics run now is the simpler drawing. Moving them means checking the water can still drain away and the fan can still reach outside before the layout is settled (the trade facts price row: drainage route investigation, structural or ventilation constraints; the lower cost row: an achievable existing service layout). Individual access requirements take more working out (the price row); say what the person wants to be able to do, never their age or condition. Say the business looks before it prices, from [CV: quote_method] only. |
+| Block 5: 3D visuals or a measured plan | A measured plan or CAD layout that shows where everything goes, against 3D visuals that show how the room will look, and how many rounds of changes it takes to settle it (the trade facts materials cell: measured plan or CAD layout; the price row: multiple revisions). Say what each one gives the customer. 3D visuals only where [CV: materials_methods] says this business produces them; without that, this card is the plan and the changes alone. Never a number of revisions included. |
+| Block 5: Whether we fit it as well | A design on its own against a design that the fitting follows with this business. How the design is charged either way, and whether anything comes off the fitting, only from [CV: price_list] or [CV: quote_method]; never that the design is free or that a design fee is taken off unless they say so. Designing for a room someone else will fit only where the services list or [CV: typical_jobs] says the business does it. Code adds the price line from [CV: price_list] when there is one. |
+| Step 1: Tell Us About the Room | How to get in touch and what is useful to send first: which room and who uses it, what does not work about it now (a door that hits the basin, no space beside the toilet, a shower with nowhere to drain), what has to stay, rough sizes and photos if they have them. No promise of a reply time unless [CV: response_time] is set. |
+| Step 2: We Measure and Draw It | The measuring and what gets looked at: the sizes of the room, where the water, the waste, the soil pipe, the electrics and the fan run now, whether water can drain from where the shower would go; then the layout of the bath, the shower, the toilet and the basin with room to use them (the trade facts stages). Follows [CV: quote_method]; only say the quote is written if quote_method says so. Never restates 'free' (FAQ 5 owns it). Never a number of days: the trade facts say design time varies. |
+| Step 3: You Get the Drawings and the Specification | What the customer ends up holding: the measured layout, the shower, ventilation and electrical positions marked on it, and what is specified for each place, revised with them until it is settled (the trade facts stages: specify the positions, issue and revise the layout). A named product only from [CV: materials_methods]; never a brand. Whether the fitting follows with this business only from the services list. Never a date for the drawings, never a promise of an approval, and never mention the price or the quote (step 2 and Why choose us own them). |
 
 ## do_not_reuse
 

@@ -355,6 +355,27 @@
             }
           ]
         },
+        "cost": {
+          "h2": "What Moves the Price of an Emergency Call Out in [CITY]",
+          "cards": [
+            {
+              "title": "The time and the day you call",
+              "brief": "The time of day and the day of the week move the price: a weekday afternoon against a late night or a Sunday (Table F: out of hours attendance). Say that plainly and give no figure. A call out charge or an out of hours rate only from [CV: quote_call_out_fee] and [CV: price_list]; never say there is no charge for coming out unless [CV: quote_call_out_fee] says there is none (Table E). Whether the business comes out at those hours only from [CV: out_of_hours_available]; when it is blank the card says what the hour does to the price and nothing about which hours are covered."
+            },
+            {
+              "title": "How far we come and how we reach the door",
+              "brief": "How far the address is from the base and how easy the job is to reach move the price: a house on a main road with room outside against a flat above a shop, a locked gate or a communal door, nowhere to park the van. Say why each adds time and give no figure. Never an arrival time unless [CV: response_time] is set, and then only as given; never hours of cover unless [CV: out_of_hours_available] says so. How far the business travels only from [CV: travel_distance]."
+            },
+            {
+              "title": "Getting you in, or making the door secure",
+              "brief": "What is done first on this call out and what that takes, from the Table A emergency, lockouts and burglary rows: the right to be there checked, the lock and the door looked at, the way in that leaves the least mark tried first where the lock allows it; after a break in, the opening made secure before anything else. What moves the price: a working lock opened as it stands against one that has failed or has to be drilled, one opening boarded against several damaged ones (the Table F emergency, lockouts and burglary rows). Never how a door is opened, and no promise the door comes to no harm (Table E entry damage). No figure."
+            },
+            {
+              "title": "What's on the van, and what has to be ordered",
+              "brief": "What is usually on the van against what has to be ordered (the Table F emergency, lockouts and burglary rows): a replacement cylinder or a readily available part fitted on the day against an obsolete mechanism, a hard to source matching part, or a door or frame that has to be replaced. What follows as a second visit, priced as its own job: the door left secure and a return with the part, or the boarding and then the permanent repair (Table F burglary: temporary security plus a permanent return visit). Never promise a same visit replacement. Said as what usually happens, never as what this business keeps in stock unless [CV: materials_methods] says so. Code adds the price line from [CV: price_list] when there is one."
+            }
+          ]
+        },
         "steps": [
           {
             "title": "Call Us",
@@ -372,8 +393,8 @@
         "faq_slots": [
           {
             "slot": "cost",
-            "question": "What does an emergency locksmith cost in [CITY]?",
-            "answer_brief": "Prices, any call out charge and any out of hours rate only from [CV: price_list] and [CV: quote_call_out_fee]; never 'no call out charge' unless quote_call_out_fee says there is none (Table E). Otherwise how the price is reached, from [CV: quote_method] only: what opening the door costs is settled on the phone, and a part that has to be replaced is priced once the lock has been seen (Table F lockouts: a failed lock rather than a misplaced key, replacement after drilling). The price agreed before anyone sets out only from the price_agreed_before_work practice.",
+            "question": "How much is an emergency [TRADE_PERSON] call out in [CITY]?",
+            "answer_brief": "Open with what moves the price: the time of day and the day, how far the address is from the base, how easy the door is to reach, and the parts on the day. A call out charge or an out of hours rate only from [CV: quote_call_out_fee] and [CV: price_list]; never say there is no charge for coming out unless [CV: quote_call_out_fee] says there is none. Hours only from [CV: out_of_hours_available]; an arrival time only from [CV: response_time]. How the price is reached only from [CV: quote_method]: a part that has to be replaced is priced once the lock has been seen (Table F lockouts: a failed lock rather than a misplaced key, replacement after drilling). The price agreed before anyone sets out only from the price_agreed_before_work practice. No figure beyond what those client values hold.",
             "doubt": "Price"
           },
           {
@@ -410,7 +431,7 @@
           },
           {
             "slot": "timing",
-            "question": "Do you come out at night or at the weekend?",
+            "when": "out_of_hours", "question": "Do you come out at night or at the weekend?",
             "answer_brief": "Only from [CV: emergency_callouts] and [CV: out_of_hours_available], as given; where neither is set, say what happens when they call during working hours and nothing more. An out of hours rate only from [CV: price_list]. Never a response time unless [CV: response_time] is set.",
             "doubt": "Timing"
           }
@@ -583,6 +604,29 @@
           ]
         }
       },
+      "no_callouts": {
+        "cost": {
+          "h2": "What Affects the Cost of [SERVICE] in [CITY]",
+          "cards": [
+            {
+              "title": "Whether it opens or has failed",
+              "brief": "A working lock that can be opened with no parts against a failed or damaged mechanism (Table F emergency locksmith, lockouts and gaining entry). Say it plainly and give no figure, and never how a lock is opened."
+            },
+            {
+              "title": "The part it needs",
+              "brief": "No part at all against a replacement cylinder or lock, and new keys with it (Table F: replacement hardware required). A named make only from [CV: materials_methods]."
+            },
+            {
+              "title": "The door and its locking points",
+              "brief": "A single lock on a timber door against a door with several locking points to free and check (Table F lockouts: multiple locking points). Say why one takes longer, in plain words."
+            },
+            {
+              "title": "Damage to the door or the frame",
+              "brief": "A door with no damage against a frame or a keep that has been forced and has to be made good (Table F: additional door or frame damage). Anything further is agreed first only from the extra_work_agreed_first practice. Code adds the price line from [CV: price_list] when there is one."
+            }
+          ]
+        }
+      },
       "emergency": {
         "problems": {
           "h2": "When [SERVICE] Can't Wait",
@@ -609,6 +653,27 @@
             }
           ]
         },
+        "cost": {
+          "h2": "What Moves the Price of an Emergency Call Out in [CITY]",
+          "cards": [
+            {
+              "title": "The time and the day you call",
+              "brief": "The time of day and the day of the week move the price: a weekday afternoon against a late night or a Sunday (Table F: out of hours attendance). Say that plainly and give no figure. A call out charge or an out of hours rate only from [CV: quote_call_out_fee] and [CV: price_list]; never say there is no charge for coming out unless [CV: quote_call_out_fee] says there is none (Table E). Whether the business comes out at those hours only from [CV: out_of_hours_available]; when it is blank the card says what the hour does to the price and nothing about which hours are covered."
+            },
+            {
+              "title": "How far we come and how we reach the door",
+              "brief": "How far the address is from the base and how easy the job is to reach move the price: a house on a main road with room outside against a flat above a shop, a locked gate or a communal door, nowhere to park the van. Say why each adds time and give no figure. Never an arrival time unless [CV: response_time] is set, and then only as given; never hours of cover unless [CV: out_of_hours_available] says so. How far the business travels only from [CV: travel_distance]."
+            },
+            {
+              "title": "Getting you in, or making the door secure",
+              "brief": "What is done first on this call out and what that takes, from the Table A row for this page: the right to be there checked, the lock and the door looked at, the way in that leaves the least mark tried first where the lock allows it; after a break in, the opening made secure before anything else. What moves the price: a working lock opened as it stands against one that has failed or has to be drilled, one opening boarded against several damaged ones (Table F for this service). Never how a door is opened, and no promise the door comes to no harm (Table E entry damage). No figure."
+            },
+            {
+              "title": "What's on the van, and what has to be ordered",
+              "brief": "What is usually on the van against what has to be ordered (Table F for this service): a replacement cylinder or a readily available part fitted on the day against an obsolete mechanism, a hard to source matching part, or a door or frame that has to be replaced. What follows as a second visit, priced as its own job: the door left secure and a return with the part, or the boarding and then the permanent repair (Table F burglary: temporary security plus a permanent return visit). Never promise a same visit replacement. Said as what usually happens, never as what this business keeps in stock unless [CV: materials_methods] says so. Code adds the price line from [CV: price_list] when there is one."
+            }
+          ]
+        },
         "steps": [
           {
             "title": "Call Us",
@@ -626,8 +691,8 @@
         "faq_slots": [
           {
             "slot": "cost",
-            "question": "What does an emergency [SERVICE_LOWER] call out cost in [CITY]?",
-            "answer_brief": "Prices, any call out charge and any out of hours rate only from [CV: price_list] and [CV: quote_call_out_fee]; never 'no call out charge' unless quote_call_out_fee says there is none (Table E). Otherwise how the price is reached, from [CV: quote_method] only: what the visit costs is settled on the phone, and a part that has to be replaced, or boarding with a return visit, is priced once the door has been seen (Table F for this service). The price agreed before anyone sets out only from the price_agreed_before_work practice.",
+            "question": "How much is an emergency [TRADE_PERSON] call out in [CITY]?",
+            "answer_brief": "Open with what moves the price: the time of day and the day, how far the address is from the base, how easy the door is to reach, and the parts on the day. A call out charge or an out of hours rate only from [CV: quote_call_out_fee] and [CV: price_list]; never say there is no charge for coming out unless [CV: quote_call_out_fee] says there is none. Hours only from [CV: out_of_hours_available]; an arrival time only from [CV: response_time]. How the price is reached only from [CV: quote_method]: a part that has to be replaced, or boarding with a return visit, is priced once the door has been seen (Table F for this service). The price agreed before anyone sets out only from the price_agreed_before_work practice. No figure beyond what those client values hold.",
             "doubt": "Price"
           },
           {
@@ -639,7 +704,7 @@
           },
           {
             "slot": "timing",
-            "question": "Do you come out at night or at the weekend?",
+            "when": "out_of_hours", "question": "Do you come out at night or at the weekend?",
             "answer_brief": "Only from [CV: emergency_callouts] and [CV: out_of_hours_available], as given; where neither is set, say what happens when they call during working hours and nothing more. An out of hours rate only from [CV: price_list]. This is the one place the timing is written.",
             "doubt": "Timing"
           },
@@ -769,7 +834,7 @@
         },
         {
           "slot": "timing",
-          "question": "Do you come out to [TOWN] at night or at the weekend?",
+          "when": "out_of_hours", "question": "Do you come out to [TOWN] at night or at the weekend?",
           "answer_brief": "Only from [CV: emergency_callouts] and [CV: out_of_hours_available], as given; where neither is set, say what happens when they call during working hours and nothing more. An out of hours rate only from [CV: price_list]. Never a response time unless [CV: response_time] is set. Not a seasonal trade: nothing about the time of year.",
           "doubt": "Timing"
         }
@@ -785,11 +850,11 @@
         "cards": [
           {
             "title": "The time of day you call",
-            "brief": "An evening, night or weekend call out against a daytime one: the time of the call is part of the price. Any call out charge or out of hours rate only from [CV: quote_call_out_fee] and [CV: price_list], and never \"no call out charge\" unless quote_call_out_fee says there is none (Table E). Say it plainly and give no figure."
+            "brief": "An evening, night or weekend call out against a daytime one: the time of the call is part of the price. Any call out charge or out of hours rate only from [CV: quote_call_out_fee] and [CV: price_list], and never say there is no charge for coming out unless [CV: quote_call_out_fee] says there is none (Table E). Say it plainly and give no figure."
           },
           {
             "title": "How the door was locked",
-            "brief": "A door pulled shut on the latch with the keys inside against one that was deadlocked or has its handle lifted and locked: the first can often be opened without a mark, the second takes longer and may mean the cylinder comes out (Table A lockouts, Table F lockouts). Say why in plain words; never how it is done."
+            "brief": "A door held only by its latch, the keys still indoors, against one that was deadlocked or has its handle lifted and locked: the first can often be opened without a mark, the second takes longer and may mean the cylinder comes out (Table A lockouts, Table F lockouts). Say why in plain words; never how it is done."
           },
           {
             "title": "The lock on the door",
@@ -797,10 +862,103 @@
           },
           {
             "title": "Whether the lock has to be replaced afterwards",
-            "brief": "A lock opened without damage goes straight back into use; a snapped key, a drilled cylinder or a lock that had already failed means a replacement like for like, and a lost key usually means a new cylinder so the old key opens nothing (Table F lockouts, lock fitting). Say what decides it and give no figure. Code adds the price line from [CV: price_list] when there is one."
+            "brief": "A lock opened without damage goes straight back into use; a snapped key, a drilled cylinder or a lock that had already failed means a replacement like for like, and after a lost key the cylinder is usually changed so the old key opens nothing (Table F lockouts, lock fitting). Say what decides it and give no figure. Code adds the price line from [CV: price_list] when there is one."
           }
         ]
       }
+    },
+    "key cutting": {
+      "cost": {
+        "h2": "What Affects the Cost of [SERVICE] in [CITY]",
+        "cards": [
+          {
+            "title": "How many keys, and of what kind",
+            "brief": "One copy against several; a plain cylinder key on a blank that is easy to get against a dimpled, restricted or coded key on a special blank (Table F key cutting). Say it plainly and give no figure."
+          },
+          {
+            "title": "Whether the original is still sound",
+            "brief": "A sound original copied as it is against a worn one, where a copy would carry the wear into the new key and cutting to code is the better route (Table F: cutting to code rather than a sound original; Table B key cutting). Say why it adds work; a code only where it can be authorised."
+          },
+          {
+            "title": "A restricted key and its authorised route",
+            "brief": "A key anyone can copy against one from a restricted system, which goes through an authorised dealer with the security card the system asks for (Table F key cutting; Table E restricted keys). This is particular to the system, so never 'illegal to copy' and never a blanket ban. Never a brand or a scheme's name."
+          },
+          {
+            "title": "Cut while you wait, or ordered in",
+            "brief": "A blank that is there to cut against a key that has to be ordered in (Table F: special blank, restricted key route). Say what decides it. While you wait or same day only from [CV: same_day_available]; never a time for an ordered key, since the Table A timing cell gives no standard. Code adds the price line from [CV: price_list] when there is one."
+          }
+        ]
+      },
+      "steps": [
+        {
+          "title": "Bring Us the Key",
+          "brief": "How it reaches the business: the key itself, or a photo of it and of its head sent first so the kind of key can be told before anyone makes a trip. What to say: how many copies, and whether the key has a restricted mark or came with a security card. A shop or a counter to bring it to only where the client values give an address the public can visit; otherwise the handover is arranged on the phone, from [CV: phone]. No promise of a reply time unless [CV: response_time] is set. A car key is not this page's job (Table A key cutting)."
+        },
+        {
+          "title": "We Check It Will Cut",
+          "brief": "What gets checked, from the Table A key cutting row and Table B: a blank that matches; an original too worn to copy well; a restricted key, which needs the authorised route and the card or authority its system asks for (Table E restricted keys, particular to the system, never 'illegal to copy'); a coded key, or a key cut to code where no original exists and the code can be authorised. The price from [CV: quote_method] and [CV: price_list] only. Never restates 'free' (FAQ 5 owns it)."
+        },
+        {
+          "title": "You Take the Keys Away, Tested in the Lock Where We Can",
+          "brief": "The key finished and checked for fit and operation (Table A), tried in the lock where the lock is there to try it in; otherwise the customer tries it at home, since a wrong blank or cut will not turn the cylinder (Table B). A restricted key's issue recorded where the system asks for it. While you wait or same day only from [CV: same_day_available]. What happens if a copy will not turn only from the client values. Never mention the price."
+        }
+      ]
+    },
+    "auto locksmith": {
+      "cost": {
+        "h2": "What Affects the Cost of [SERVICE] in [CITY]",
+        "cards": [
+          {
+            "title": "The kind of key",
+            "brief": "A plain blade against a remote or a transponder key, and the electronic functions that come with it (Table A auto locksmith materials cell; Table F: electronic key and remote functions). Say it plainly and give no figure. A named product only from [CV: materials_methods]."
+          },
+          {
+            "title": "Programming it to the car",
+            "brief": "A cut blade opens a door and may not start the car: a transponder has to be programmed where the car allows it, and some makes restrict that or send the job down the maker's own route (Table B auto locksmith; Table F: vehicle specific programming restrictions; Table E car keys, which varies by maker and car). Say why it adds work; never a maker's name, and never that every car can be done."
+          },
+          {
+            "title": "Where the car is",
+            "brief": "On a drive against a car park or the roadside, how a van reaches it, and whether the car has to be taken somewhere for the maker's route (Table F: vehicle transport required by manufacturer route). Say why it adds time and give no figure. Never an arrival time unless [CV: response_time] is set; how far the business travels only from [CV: travel_distance]."
+          },
+          {
+            "title": "A lost key, or a spare to copy",
+            "brief": "A working spare to copy from against every key lost, the bigger job (Table F: all keys lost; working spare available). Say what decides it and give no figure. Code adds the price line from [CV: price_list] when there is one."
+          }
+        ]
+      },
+      "steps": [
+        {
+          "title": "Tell Us About the Car",
+          "brief": "How to get in touch and what is useful to say first: the make, the model and the year; whether the key is lost, broken or locked in the car; whether a spare exists; where the car is. What to have ready: something that shows the car is theirs to instruct on (Table E V5C: one part of the check, never proof on its own). The number from [CV: phone]. No promise of a reply or an arrival time unless [CV: response_time] is set. Never a word on how a car is opened."
+        },
+        {
+          "title": "We Give You the Price",
+          "brief": "The price from the client values only: how it is reached from [CV: quote_method] and [CV: price_list], a call out charge only from [CV: quote_call_out_fee], and never say there is no charge for coming out unless it says there is none. What would change it, explained at this point: the key type, the programming, a car that has to go down the maker's route (Table F auto locksmith). The price agreed before any work only from the price_agreed_before_work practice. Never restates 'free' (FAQ 5 owns it)."
+        },
+        {
+          "title": "We Do the Work and Test the Key",
+          "brief": "What usually happens, from the Table A auto locksmith row: the right to work on the car checked, the car and its key system identified, access gained or a compatible key supplied, the blade cut and programmed where it needs it, then the doors and the starting tested. Where the car needs the maker's route, say so plainly rather than promise the key. Never how a car is opened. Same day only when [CV: same_day_available] is yes. Never mention the price."
+        }
+      ]
+    },
+    "safes": {
+      "steps": [
+        {
+          "title": "Tell Us What You Need to Keep Safe",
+          "brief": "How to get in touch and what is useful to send first: what has to be kept safe, where the safe would stand, the floor or the wall it would anchor to, and a photo of the spot if they have one. For a safe already there: what it is doing (the key will not turn, the keypad is dead, the combination is lost) and that it is theirs to open. No promise of a reply time unless [CV: response_time] is set. Never an instruction to drill or force a safe."
+        },
+        {
+          "title": "We Look at Where It Goes and Price the Job",
+          "brief": "What gets looked at, from the Table A safes row: the safe's size and anchoring conditions, what it has to resist (burglary and fire are separate ratings, Table E), and for an existing safe who is asking, what it is and what has failed. What the insurer accepts is the insurer's to say (Table E Eurograde). Whether the looking is a visit follows [CV: quote_method]; a visit only from the site_visit_before_quote practice. Never a grade's number or a brand. Only say the quote is written if quote_method says so. Never restates 'free' (FAQ 5 owns it)."
+        },
+        {
+          "title": "We Fit It and Hand Over the Keys",
+          "brief": "The date is agreed in advance, to suit the customer. What the customer gets at the end: the safe fitted and anchored, tested, the keys or the combination handed over and its certification status confirmed (Table A). After a safe has been opened, the repair goes through the maker or an accredited partner, since unauthorised drilling can nullify certification (Table E). The old safe taken away only from the waste_removal practice. Never mention the price, the quote or changes to the plan. Never restates the start time (FAQ 4 owns it)."
+        }
+      ]
+    },
+    "burglary repairs and boarding up": {
+      "always_emergency": true
     }
   }
 }

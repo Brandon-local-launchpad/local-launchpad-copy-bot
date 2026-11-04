@@ -368,6 +368,60 @@ The pack's section 3 for a town: anchors are buildings, occupiers and exposure (
 | process | always | What happens when I ask for a quote in [TOWN]? | From [CV: quote_method] and the confirmed practices only: what the customer sends (which rooms, the unit's label, photos), what the business looks at (the room's heat, the route, the power, the drain), what comes back. No timescale unless [CV: response_time] is set. | Process |
 | timing | always | Is there a best time of year for [WORK_LOWER] work in [TOWN]? | The reason in the system, from the trade facts timing cells: a service before the hot weather, because the filter, the coil and the drain are then asked to do their most and a slow leak shows as a unit that cannot keep up; fitting a system has no closed season in the rows. Where the town profile gives the exposure (salt air on the coast, a main road), say what it does to how often the outdoor coil and the filters are looked at. Nothing about summer being busy or lead times. No dates, no promise about the weather. | Timing |
 
+## Per page overrides (service_overrides)
+
+Copy quality 3, 4 Nov 2026: the shared type A steps read as an install (We Fit It on a Date That Suits You). These pages are a service, a repair, a removal, a clean or a test, so each carries its own three steps, keyed by the page target in lower case. The code lays them over the type entry for that page only (service-blocks.js blocksFor).
+
+### Air conditioning servicing
+
+A service of a system already there, so nothing about a new unit or a route for pipes.
+
+| Card or step | Brief |
+|---|---|
+| Step 1: Tell Us About the System | How to get in touch and what is useful to send first: how many units and where, when it was last serviced, any service records, what it is doing (weak air, a drip, a stale smell), a photo of the unit or the label on it. No promise of a reply time unless [CV: response_time] is set. Never ask the customer to open the unit or touch the electrics. |
+| Step 2: We Look at the System and Price the Service | What gets looked at: the equipment and its service history, how many units, how hard they are to reach, and whether the gas it holds means a leak check is part of the visit (the trade facts stages and price row, no threshold figure). Follows [CV: quote_method]; only say the quote is written if quote_method says so. Never restates 'free' (FAQ 5 owns it). Never a visit length. |
+| Step 3: We Do the Work on a Date That Suits You | The date is agreed in advance, to suit the customer; for a business, round its hours only from the confirmed practices. The filters, the coils, the drain and the controls are done and the findings written down (the trade facts stages). No frequency unless [CV: visit_frequency_options] is set. Never mention the price, the quote or changes to the plan (step 2 and Why choose us own them). Never restates the start time (FAQ 4 owns it). |
+
+### Duct cleaning
+
+A clean of ductwork already in the building: the survey is access and deposits, and the work ends with a record of what was cleaned and what could not be reached.
+
+| Card or step | Brief |
+|---|---|
+| Step 1: Tell Us About the Building and the Ducts | How to get in touch and what is useful to send first: the kind of building, general ventilation or a kitchen extract, what they are seeing (dust from the vents, grease at the canopy, an extract that has dropped off), any earlier cleaning records. No promise of a reply time unless [CV: response_time] is set. Never ask the customer to open a panel or a unit. |
+| Step 2: We Survey and Price the Job | The visit and what gets looked at: the length of the run, the access panels, the height, what the deposits are, and what evidence after the clean is needed (the trade facts stages and price row). General ventilation and kitchen extract grease are assessed separately. Follows [CV: quote_method]; only say the quote is written if quote_method says so. Never restates 'free' (FAQ 5 owns it). Never a job length. |
+| Step 3: We Do the Work on a Date That Suits You | The date is agreed in advance, to suit the customer; for a business, round its hours only from the confirmed practices. The equipment is protected and isolated, the ducts cleaned and inspected, and any section that could not be reached is recorded (the trade facts stages). A cleaning interval only as a recommendation by use from the rule rows, never a law. Never mention the price, the quote or changes to the plan (step 2 and Why choose us own them). Never restates the start time (FAQ 4 owns it). |
+
+### Air conditioning repairs
+
+A fault, not a new system: step 2 is finding the fault, and the work ends with the system tested and written up.
+
+| Card or step | Brief |
+|---|---|
+| Step 1: Tell Us What It Is Doing | How to get in touch and what is useful to send first: which unit, what it is doing (will not start, an error code and which one, warm air, water coming out, the outdoor unit running with no cooling), when it started, a photo of the label on it. No promise of a reply time unless [CV: response_time] is set. Never ask the customer to open the unit or touch the electrics. |
+| Step 2: We Find the Fault and Price the Repair | The system looked at running, and the fault found before anything is replaced: electrical, airflow, the drain or the gas (the trade facts stages). The price depends on what is found: a part that can be reached, against a circuit that has to be opened and tested, or a major part (the price row). Follows [CV: quote_method]; only say the quote is written if quote_method says so. A charge for the visit only from [CV: quote_call_out_fee]. Never restates 'free' (FAQ 5 owns it). Never a dig at the last engineer. |
+| Step 3: We Do the Work on a Date That Suits You | The date is agreed in advance, to suit the customer; for a business, round its hours only from the confirmed practices. The fault is repaired, a leak repaired before any gas goes back, the circuit tested if it was opened, and the system recommissioned and written up (the trade facts stages). No part lead time. Never mention the price, the quote or changes to the plan (step 2 and Why choose us own them). Never restates the start time (FAQ 4 owns it). |
+
+### Air conditioning removal and decommissioning
+
+Taking a system out: the steps follow the gas, from finding out what is in the unit to the record of where it went.
+
+| Card or step | Brief |
+|---|---|
+| Step 1: Tell Us What Is Coming Out | How to get in touch and what is useful to send first: how many indoor and outdoor units, where they are and how high, whether they still run, why they are coming out (a replacement, a refit, a unit no longer needed), a photo of the label showing the gas if they can see it from the ground. No promise of a reply time unless [CV: response_time] is set. Never ask the customer to open the unit, touch the electrics or disconnect anything. |
+| Step 2: We Survey and Price the Job | The visit and what gets looked at: what gas is in the system and how many circuits, the height of the units and how they are reached, the pipe and drain routes, what making good is wanted afterwards (the trade facts stages and price row). Follows [CV: quote_method]; only say the quote is written if quote_method says so. Never restates 'free' (FAQ 5 owns it). |
+| Step 3: We Do the Work on a Date That Suits You | The date is agreed in advance, to suit the customer; for a business, round its hours only from the confirmed practices. The gas is recovered first by a qualified technician into a labelled cylinder, then the electrics, the drain and the pipework are disconnected, the units come out, the waste goes by a registered waste carrier and the recovery is recorded (the trade facts stages and rule row, as what usually applies). Never mention the price, the quote or changes to the plan (step 2 and Why choose us own them). Never restates the start time (FAQ 4 owns it). |
+
+### Indoor air quality testing
+
+A test and a report, not a system: step 2 is agreeing what is measured, and the work ends with findings and their limits.
+
+| Card or step | Brief |
+|---|---|
+| Step 1: Tell Us About the Room or the Building | How to get in touch and what is useful to send first: which rooms, how they are used and by how many people, what prompted it (stale air, mould on a wall, a monitor reading that keeps rising), how the rooms are ventilated now, any existing building records. No promise of a reply time unless [CV: response_time] is set. Never a health diagnosis. |
+| Step 2: We Agree What to Test and Price the Job | What gets agreed: which pollutants and which rooms, how the building is used and ventilated. Carbon dioxide, particulates, radon and moisture or mould are separate measurements, not one air quality score (the trade facts materials and facts rows). More pollutants, rooms, a longer period or laboratory analysis add to it (the price row). Follows [CV: quote_method]; only say the quote is written if quote_method says so. Never restates 'free' (FAQ 5 owns it). Which measurements this business offers only from [CV: materials_methods]. |
+| Step 3: We Do the Work on a Date That Suits You | The date is agreed in advance, to suit the customer; for a business, round its hours only from the confirmed practices. The instruments are placed and sampling runs over a period suited to what is being measured, then the findings are reported with their limits (the trade facts stages). No test length: the facts verify none. No promise of a pass, and no threshold figure unless the rows give it for that measurement. Never mention the price, the quote or changes to the plan (step 2 and Why choose us own them). Never restates the start time (FAQ 4 owns it). |
+
 ## do_not_reuse
 
 (empty to start; add any sentence that has gone live on a client site so it is never repeated)

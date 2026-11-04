@@ -321,6 +321,27 @@
         "doubt": "Process"
       },
       "emergency": {
+        "cost": {
+          "h2": "What Moves the Price of an Emergency Call Out in [CITY]",
+          "cards": [
+            {
+              "title": "When you call",
+              "brief": "The time of day and the day of the week move the price: a Sunday evening against a weekday morning, a crew called back out against one already on its way to a job. A call out charge or an out of hours rate only from [CV: quote_call_out_fee] and [CV: price_list]; never say there is no charge for coming out unless [CV: quote_call_out_fee] says there is none. Whether the business comes out at those hours only from [CV: out_of_hours_available]; when it is not set, nothing about hours at all. Say it plainly and give no figure."
+            },
+            {
+              "title": "Getting there and getting it up",
+              "brief": "How far the job is from the yard and what is in the way once the lorry arrives: a scaffold that has to stand on a pavement with people kept past it, a parking bay to clear, a chimney over a neighbour's roof, a narrow lane with nowhere for the lorry to stand (Table F emergency scaffolding: restricted safe access, the public or the highway to keep clear). Distance and access move the price; say why in plain words. Never an arrival time unless [CV: response_time] is set; never hours of cover unless [CV: out_of_hours_available] says so."
+            },
+            {
+              "title": "Closing it off and holding it",
+              "brief": "What is done first on a call out, from Table A emergency scaffolding: the area under the hazard closed off and people kept out of it, the loose masonry or the open roof edge and what can carry a scaffold looked at, then an interim arrangement chosen: a protective fan, a holding scaffold, a platform to take the loose piece down from. How much of that is needed, and whether anything standard covers it or it needs an urgent design (Table F: urgent bespoke design; Table E: a temporary roof is among the structures that normally need a design), is what the first part of the price pays for. Never how it is done beyond this."
+            },
+            {
+              "title": "What's on the lorry and what has to follow",
+              "brief": "A first load of tube, boards and fittings comes with the crew; a bigger scaffold than that load, sheeting, a temporary roof or a stair tower means more brought from the yard, and a drawing where nothing standard covers it (Table A emergency scaffolding: a bespoke design where no standard configuration covers it). The hire runs under the contract from the day it goes up (Table E hire period), and the permanent scaffold for the repair, the alterations as the repair goes on and the licence where it stands on the pavement are priced as their own job (Table A: reviewed and altered or removed when the permanent work permits). Say what decides it and give no figure. Code adds the price line from [CV: price_list] when there is one."
+            }
+          ]
+        },
         "problems": {
           "h2": "When the Scaffold Can't Wait",
           "cards": [
@@ -363,8 +384,8 @@
         "faq_slots": [
           {
             "slot": "cost",
-            "question": "What does emergency scaffolding cost in [CITY]?",
-            "answer_brief": "Prices and any call out charge only from [CV: price_list]; otherwise how the price is reached, from [CV: quote_method] only: making the area safe and the interim scaffold are priced before the permanent work, which is priced once it has been seen. What moves it from Table F emergency scaffolding (unstable surroundings, restricted safe access, an urgent design, the public or the highway to keep clear), one factor at most. The price agreed before work starts only from the price_agreed_before_work practice. No out of hours figure unless price_list gives one.",
+            "question": "How much is an emergency [TRADE_PERSON] call out in [CITY]?",
+            "answer_brief": "What moves the price, from the cost cards: the time of day and the day of the week, how far the job is from the yard, the access and the pavement, what closing it off and holding it takes, and that the permanent scaffold for the repair is priced as its own job. A call out charge or an out of hours rate only from [CV: quote_call_out_fee] and [CV: price_list]; the hours the business comes out only from [CV: out_of_hours_available]; an arrival time only from [CV: response_time]. The price agreed before work starts only from the price_agreed_before_work practice. No figure.",
             "doubt": "Price"
           },
           {
@@ -548,6 +569,27 @@
         "doubt": "Process"
       },
       "emergency": {
+        "cost": {
+          "h2": "What Moves the Price of an Emergency Call Out in [CITY]",
+          "cards": [
+            {
+              "title": "When you call",
+              "brief": "The time of day and the day of the week move the price: a Sunday evening against a weekday morning, a crew called back out against one already on its way to a job. A call out charge or an out of hours rate only from [CV: quote_call_out_fee] and [CV: price_list]; never say there is no charge for coming out unless [CV: quote_call_out_fee] says there is none. Whether the business comes out at those hours only from [CV: out_of_hours_available]; when it is not set, nothing about hours at all. Say it plainly and give no figure."
+            },
+            {
+              "title": "Getting there and getting it up",
+              "brief": "How far the job is from the yard and what is in the way once the lorry arrives: a scaffold that has to stand on a pavement with people kept past it, a parking bay to clear, a chimney over a neighbour's roof, a narrow lane with nowhere for the lorry to stand (Table F emergency scaffolding: restricted safe access, the public or the highway to keep clear). Distance and access move the price; say why in plain words. Never an arrival time unless [CV: response_time] is set; never hours of cover unless [CV: out_of_hours_available] says so."
+            },
+            {
+              "title": "Closing it off and holding it",
+              "brief": "What is done first on a call out, from Table A emergency scaffolding: the area under the hazard closed off and people kept out of it, the loose masonry or the open roof edge and what can carry a scaffold looked at, then an interim arrangement chosen: a protective fan, a holding scaffold, a platform to take the loose piece down from. How much of that is needed, and whether anything standard covers it or it needs an urgent design (Table F: urgent bespoke design; Table E: a temporary roof is among the structures that normally need a design), is what the first part of the price pays for. Never how it is done beyond this."
+            },
+            {
+              "title": "What's on the lorry and what has to follow",
+              "brief": "A first load of tube, boards and fittings comes with the crew; a bigger scaffold than that load, sheeting, a temporary roof or a stair tower means more brought from the yard, and a drawing where nothing standard covers it (Table A emergency scaffolding: a bespoke design where no standard configuration covers it). The hire runs under the contract from the day it goes up (Table E hire period), and the permanent scaffold for the repair, the alterations as the repair goes on and the licence where it stands on the pavement are priced as their own job (Table A: reviewed and altered or removed when the permanent work permits). Say what decides it and give no figure. Code adds the price line from [CV: price_list] when there is one."
+            }
+          ]
+        },
         "problems": {
           "h2": "When [SERVICE] Can't Wait",
           "cards": [
@@ -590,8 +632,8 @@
         "faq_slots": [
           {
             "slot": "cost",
-            "question": "What does an emergency [SERVICE_LOWER] call out cost in [CITY]?",
-            "answer_brief": "Prices and any call out charge only from [CV: price_list]; otherwise how the price is reached, from [CV: quote_method] only: making the area safe and the interim scaffold are priced before the permanent work, which is priced once it has been seen. The price agreed before work starts only from the price_agreed_before_work practice. No out of hours figure unless price_list gives one.",
+            "question": "How much is an emergency [TRADE_PERSON] call out in [CITY]?",
+            "answer_brief": "What moves the price, from the cost cards: the time of day and the day of the week, how far the job is from the yard, the access and the pavement, what closing it off and holding it takes, and that the permanent scaffold for the repair is priced as its own job. A call out charge or an out of hours rate only from [CV: quote_call_out_fee] and [CV: price_list]; the hours the business comes out only from [CV: out_of_hours_available]; an arrival time only from [CV: response_time]. The price agreed before work starts only from the price_agreed_before_work practice. No figure.",
             "doubt": "Price"
           },
           {
@@ -736,6 +778,82 @@
           "question": "Do you put scaffolding up all year round in [TOWN]?",
           "answer_brief": "Yes, from Table A: the work runs all year, and what interrupts it is wind, ice and a roof too slippery to work on rather than a season; where the profile gives the town's exposure (a hilltop, a seafront), say what it does to a sheeted scaffold. No dates, no promise about the weather, nothing about busy times or booking ahead.",
           "doubt": "Timing"
+        }
+      ]
+    }
+  },
+  "service_overrides": {
+    "scaffold inspections": {
+      "cost": {
+        "h2": "What Affects the Cost of [SERVICE] in [CITY]",
+        "cards": [
+          {
+            "title": "The size of what's being inspected",
+            "brief": "A single lift on a semi against a scaffold round a whole block with several separate areas: the bigger and the more complex the structure, the longer each inspection takes and the more there is to record (Table F scaffold inspections: larger or more complex structure, more separate scaffold areas). Say it plainly and give no figure."
+          },
+          {
+            "title": "How often over the hire",
+            "brief": "How many inspections the hire needs: before first use, after a storm or an alteration, and at the interval the rules set for a construction scaffold, said as what applies and written only as the pack gives it (Table A; Table E construction scaffold inspection interval). A long hire with weather and changes means more visits than a short one (Table F: additional inspections after alterations or weather). No figure."
+          },
+          {
+            "title": "A scaffold someone else built",
+            "brief": "An inspection of the business's own scaffold against one another firm put up: a stranger's scaffold means finding its design or its compliance sheet first, and a complex structure needs an inspector with the competence to match it (Table A: identify the structure and its design or compliance sheet; Table E: who inspects). Said without a dig at whoever built it; never that only the firm that built it may inspect."
+          },
+          {
+            "title": "What the inspection finds",
+            "brief": "A clean report against one that records defects and the action they need: a loose tie, moved boards or torn sheeting leads to an alteration, priced as its own job, and the scaffold stays off limits until it is done (Table A: record defects and action, restrict unsafe access; Table B). The written report is what the rules ask for; a tag on the scaffold supplements it and does not replace it (Table E). Code adds the price line from [CV: price_list] when there is one."
+          }
+        ]
+      },
+      "steps": [
+        {
+          "title": "Tell Us About the Scaffold",
+          "brief": "What to say: where it is, who built it, what it is for, how many lifts and how long it is staying up, and whether there is a design or a compliance sheet for it. The number from [CV: phone], the form only from [CV: quote_method]."
+        },
+        {
+          "title": "We Agree the Interval and the Price",
+          "brief": "What usually happens: the inspections the hire needs worked out from what the scaffold is and how long it stands, from the rules as the pack gives them (Table A; Table E), and the price for the visits from [CV: quote_method] and [CV: price_list] only. Never restates 'free'. No interval as a figure here."
+        },
+        {
+          "title": "We Inspect, Record and Tag It",
+          "brief": "Each visit: the feet, the tube, the ties, the boards, the access and the guard rails looked at, what was found and what is to be done written up as the rules ask, the record left with the customer and the tag updated where one is used (Table A; Table E inspection record: the tag supplements the report). Anything unsafe kept off limits until it is put right. Never mention the price."
+        }
+      ]
+    },
+    "scaffold design": {
+      "cost": {
+        "h2": "What Affects the Cost of [SERVICE] in [CITY]",
+        "cards": [
+          {
+            "title": "How far from a standard arrangement",
+            "brief": "A scaffold a standard compliance sheet already covers needs no design of its own; one with an unusual shape, a temporary roof, a cantilever over something or nowhere to put standard ties has to be calculated and drawn (Table A scaffold design: check the standard scope, calculate the non standard arrangement; Table E: a temporary roof is among the structures that normally need a design). Say it plainly and give no figure; never a guide's name as a selling point."
+          },
+          {
+            "title": "What it has to carry",
+            "brief": "The loads on it: the trade's materials stacked on the platform, sheeting or netting that catches the wind, a hoist or a loading bay hung off it (Table E: sheeting and wind; the loading figure only as the pack gives it, never a class as a rule). The customer says what goes on it and the design is for that; a heavier use later means the design is looked at again (Table E handover)."
+          },
+          {
+            "title": "How many drawings and how many changes",
+            "brief": "One drawing for one arrangement against several interfaces with the building, revisions as the job changes, and a check of every proposed change before it is built (Table A: check proposed changes; Table F: multiple interfaces or revisions). Say why a change mid job costs design time again."
+          },
+          {
+            "title": "The engineer's check",
+            "brief": "A design by a competent person with the calculation behind it is what the rules ask for; a check by an engineer where the client, the main contractor or the structure asks for one is a cost on top (Table E design responsibility: HSE does not say every design legally needs a chartered engineer, so never claim that it does). Said as what usually applies. Code adds the price line from [CV: price_list] when there is one."
+          }
+        ]
+      },
+      "steps": [
+        {
+          "title": "Tell Us About the Job",
+          "brief": "What to say: the building and what is being done to it, the shape of the scaffold wanted, what goes on it and for how long, the ground it stands on and what it can tie to, and whether anything goes over a pavement or a neighbour's land (Table A: obtain site, use, load and ground information). The number from [CV: phone], the form only from [CV: quote_method]."
+        },
+        {
+          "title": "We Draw It and Price the Design",
+          "brief": "What usually happens: the standard sheets checked first; where nothing covers it, the arrangement calculated, the bases, the bracing, the ties, the wind and the access specified and the drawings produced (Table A). The price for the design from [CV: quote_method] and [CV: price_list] only; the build priced as its own job. Never restates 'free'."
+        },
+        {
+          "title": "We Issue the Drawings for the Build",
+          "brief": "The drawings and the instructions issued to whoever builds it, with what it is designed to carry; any change proposed on site goes back for a check before it is made (Table A: issue drawings and instructions, check proposed changes). Said without a time. Never mention the price."
         }
       ]
     }

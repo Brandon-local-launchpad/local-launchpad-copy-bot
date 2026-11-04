@@ -636,5 +636,87 @@
       ]
     }
   },
+  "service_overrides": {
+    "air conditioning servicing": {
+      "steps": [
+        {
+          "title": "Tell Us About the System",
+          "brief": "How to get in touch and what is useful to send first: how many units and where, when it was last serviced, any service records, what it is doing (weak air, a drip, a stale smell), a photo of the unit or the label on it. No promise of a reply time unless [CV: response_time] is set. Never ask the customer to open the unit or touch the electrics."
+        },
+        {
+          "title": "We Look at the System and Price the Service",
+          "brief": "What gets looked at: the equipment and its service history, how many units, how hard they are to reach, and whether the gas it holds means a leak check is part of the visit (the trade facts stages and price row, no threshold figure). Follows [CV: quote_method]; only say the quote is written if quote_method says so. Never restates 'free' (FAQ 5 owns it). Never a visit length."
+        },
+        {
+          "title": "We Do the Work on a Date That Suits You",
+          "brief": "The date is agreed in advance, to suit the customer; for a business, round its hours only from the confirmed practices. The filters, the coils, the drain and the controls are done and the findings written down (the trade facts stages). No frequency unless [CV: visit_frequency_options] is set. Never mention the price, the quote or changes to the plan (step 2 and Why choose us own them). Never restates the start time (FAQ 4 owns it)."
+        }
+      ]
+    },
+    "duct cleaning": {
+      "steps": [
+        {
+          "title": "Tell Us About the Building and the Ducts",
+          "brief": "How to get in touch and what is useful to send first: the kind of building, general ventilation or a kitchen extract, what they are seeing (dust from the vents, grease at the canopy, an extract that has dropped off), any earlier cleaning records. No promise of a reply time unless [CV: response_time] is set. Never ask the customer to open a panel or a unit."
+        },
+        {
+          "title": "We Survey and Price the Job",
+          "brief": "The visit and what gets looked at: the length of the run, the access panels, the height, what the deposits are, and what evidence after the clean is needed (the trade facts stages and price row). General ventilation and kitchen extract grease are assessed separately. Follows [CV: quote_method]; only say the quote is written if quote_method says so. Never restates 'free' (FAQ 5 owns it). Never a job length."
+        },
+        {
+          "title": "We Do the Work on a Date That Suits You",
+          "brief": "The date is agreed in advance, to suit the customer; for a business, round its hours only from the confirmed practices. The equipment is protected and isolated, the ducts cleaned and inspected, and any section that could not be reached is recorded (the trade facts stages). A cleaning interval only as a recommendation by use from the rule rows, never a law. Never mention the price, the quote or changes to the plan (step 2 and Why choose us own them). Never restates the start time (FAQ 4 owns it)."
+        }
+      ]
+    },
+    "air conditioning repairs": {
+      "steps": [
+        {
+          "title": "Tell Us What It Is Doing",
+          "brief": "How to get in touch and what is useful to send first: which unit, what it is doing (will not start, an error code and which one, warm air, water coming out, the outdoor unit running with no cooling), when it started, a photo of the label on it. No promise of a reply time unless [CV: response_time] is set. Never ask the customer to open the unit or touch the electrics."
+        },
+        {
+          "title": "We Find the Fault and Price the Repair",
+          "brief": "The system looked at running, and the fault found before anything is replaced: electrical, airflow, the drain or the gas (the trade facts stages). The price depends on what is found: a part that can be reached, against a circuit that has to be opened and tested, or a major part (the price row). Follows [CV: quote_method]; only say the quote is written if quote_method says so. A charge for the visit only from [CV: quote_call_out_fee]. Never restates 'free' (FAQ 5 owns it). Never a dig at the last engineer."
+        },
+        {
+          "title": "We Do the Work on a Date That Suits You",
+          "brief": "The date is agreed in advance, to suit the customer; for a business, round its hours only from the confirmed practices. The fault is repaired, a leak repaired before any gas goes back, the circuit tested if it was opened, and the system recommissioned and written up (the trade facts stages). No part lead time. Never mention the price, the quote or changes to the plan (step 2 and Why choose us own them). Never restates the start time (FAQ 4 owns it)."
+        }
+      ]
+    },
+    "air conditioning removal and decommissioning": {
+      "steps": [
+        {
+          "title": "Tell Us What Is Coming Out",
+          "brief": "How to get in touch and what is useful to send first: how many indoor and outdoor units, where they are and how high, whether they still run, why they are coming out (a replacement, a refit, a unit no longer needed), a photo of the label showing the gas if they can see it from the ground. No promise of a reply time unless [CV: response_time] is set. Never ask the customer to open the unit, touch the electrics or disconnect anything."
+        },
+        {
+          "title": "We Survey and Price the Job",
+          "brief": "The visit and what gets looked at: what gas is in the system and how many circuits, the height of the units and how they are reached, the pipe and drain routes, what making good is wanted afterwards (the trade facts stages and price row). Follows [CV: quote_method]; only say the quote is written if quote_method says so. Never restates 'free' (FAQ 5 owns it)."
+        },
+        {
+          "title": "We Do the Work on a Date That Suits You",
+          "brief": "The date is agreed in advance, to suit the customer; for a business, round its hours only from the confirmed practices. The gas is recovered first by a qualified technician into a labelled cylinder, then the electrics, the drain and the pipework are disconnected, the units come out, the waste goes by a registered waste carrier and the recovery is recorded (the trade facts stages and rule row, as what usually applies). Never mention the price, the quote or changes to the plan (step 2 and Why choose us own them). Never restates the start time (FAQ 4 owns it)."
+        }
+      ]
+    },
+    "indoor air quality testing": {
+      "steps": [
+        {
+          "title": "Tell Us About the Room or the Building",
+          "brief": "How to get in touch and what is useful to send first: which rooms, how they are used and by how many people, what prompted it (stale air, mould on a wall, a monitor reading that keeps rising), how the rooms are ventilated now, any existing building records. No promise of a reply time unless [CV: response_time] is set. Never a health diagnosis."
+        },
+        {
+          "title": "We Agree What to Test and Price the Job",
+          "brief": "What gets agreed: which pollutants and which rooms, how the building is used and ventilated. Carbon dioxide, particulates, radon and moisture or mould are separate measurements, not one air quality score (the trade facts materials and facts rows). More pollutants, rooms, a longer period or laboratory analysis add to it (the price row). Follows [CV: quote_method]; only say the quote is written if quote_method says so. Never restates 'free' (FAQ 5 owns it). Which measurements this business offers only from [CV: materials_methods]."
+        },
+        {
+          "title": "We Do the Work on a Date That Suits You",
+          "brief": "The date is agreed in advance, to suit the customer; for a business, round its hours only from the confirmed practices. The instruments are placed and sampling runs over a period suited to what is being measured, then the findings are reported with their limits (the trade facts stages). No test length: the facts verify none. No promise of a pass, and no threshold figure unless the rows give it for that measurement. Never mention the price, the quote or changes to the plan (step 2 and Why choose us own them). Never restates the start time (FAQ 4 owns it)."
+        }
+      ]
+    }
+  },
   "do_not_reuse": []
 }

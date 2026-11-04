@@ -407,6 +407,14 @@ function validateCommon(record, V) {
     if (!D.quoteFree && /\bfree\b(?![\s-]draining| of| from)/i.test(s)) flag('BLOCK', 'N5', '"Free" used but free quotes are not confirmed.');
     if (cv.same_day_available !== 'yes' && /\bsame[\s-]day\b/i.test(s)) flag('BLOCK', 'N5', '"Same day" used but same day is not confirmed.');
     if (cv.out_of_hours_available !== '24/7' && /24\/7/.test(s)) flag('BLOCK', 'N5', '"24/7" used but 24/7 cover is not confirmed.');
+    // EMERG-PROMISE (copy quality 3, Brandon, 4 Nov 2026): an emergency page says what moves the price (the
+    // time of day, the distance, the access), never an arrival time, hours of cover or a call out charge
+    // unless response_time, out_of_hours_available or a call out fee is in the client values
+    if (!cv.response_time) { const m = s.match(/\b(?:within|in under|in less than|inside)\s+(?:the|an?|\d+|half an|a few|twenty|thirty|forty|sixty)\s*(?:hour|hours|minutes?|mins)\b|\bwith(?:in)? the hour\b|\bsame hour\b|\bstraight (?:out|round|over)\b|\bon (?:our|the) way (?:within|in)\b/i); if (m) flag('BLOCK', 'EMERG-PROMISE', `"${m[0]}" promises an arrival time, and response_time is blank. Say what moves the price (the time of day, the distance, the access), not when someone arrives.`); }
+    if (!cv.out_of_hours_available) { const m = s.match(/\b(?:around the clock|day (?:and|or) night|any (?:time|hour) of (?:the )?(?:day or night|night)|24 hours? a day|all hours|night and day|whatever the hour|at any hour|through the night)\b|\b(?:evenings?|nights?|weekends?|bank holidays?)\b[^.]{0,30}\b(?:we(?:'re| are)? (?:out|open|available|there|on call)|we come out|we attend|we answer)/i); if (m) flag('BLOCK', 'EMERG-PROMISE', `"${m[0]}" states hours of cover, and out_of_hours_available is blank. Say the time of day moves the price, not when the business comes out.`); }
+    if (!cv.quote_call_out_fee && !cv.price_list) { const m = s.match(/\bcall[ -]?out\s+(?:charge|fee)s?\b|\bout[ -]of[ -]hours\s+(?:rate|charge|fee)s?\b|\b(?:free|no charge) to come out\b/i); if (m) flag('BLOCK', 'EMERG-PROMISE', `"${m[0]}" names a call out charge, and no call out fee or price list is in the client values. Say the time of day and the distance move the price, and leave any charge out.`); }
+    // NO-FACT-TALK (4 Nov 2026): the page is the business speaking; it never says what it cannot confirm
+    { const m = s.match(/\bwe (?:can't|cannot|can not|aren't able to|are unable to) (?:confirm|say|tell you|promise)\b|\bnot (?:been )?confirmed (?:here|on this page)\b|\bwe don't have (?:that|those|this) (?:on file|information|details)\b/i); if (m) flag('BLOCK', 'NO-FACT-TALK', `"${m[0]}" talks about a fact the page does not have. Leave the point out, or say what the customer can do.`); }
     if (cv.waste_carrier_registered !== 'yes' && /\bwaste carriers?\b/i.test(s)) flag('BLOCK', 'N5', 'Waste carrier registration is mentioned but not confirmed.');
     // N5 is the payment deposit; a trade's deposits ("sludge deposits", "scale deposits in the cylinder") are its own word (4 Nov 2026, the plumbing homepage)
     const sPay = s.replace(/\b(sludge|scale|limescale|lime|mineral|salt|grease|dirt|calcium|magnetite|rust|black|soot|carbon|fat)\s+deposits?\b|\bdeposits?\s+of\s+(sludge|scale|limescale|lime|minerals?|salt|grease|dirt|rust|soot|carbon|fat)\b/gi, '');
@@ -564,8 +572,13 @@ function validateCommon(record, V) {
     }
     // PRACTICE: working practices only from confirmed_practices
     const confirmedKeys = new Set(cv.confirmed_practices || []);
-    for (const c of practiceClaims(s, niche)) {
-      if (!confirmedKeys.has(c.practice.key)) flag('BLOCK', 'PRACTICE', `"${c.match}" states a practice ("${c.practice.label}") that the client hasn't confirmed. Remove it.`);
+    // A sentence written as the trade's principle in the third person is not a claim about this business
+    // (Brandon, 4 Nov 2026: "a fair roofer shows you photographs of what they found"), and it is what the
+    // claims pass asks for; "we" or "our" in the sentence makes it a claim again
+    const PRINCIPLE_RE = /^(?:(?:most|many|some)\s+)?(?:a|an|any|every)\s+(?:good|fair|careful|proper|competent|decent|qualified|responsible|reputable|experienced)\b/i;
+    const notPrinciple = sentences(t).map(x => scanText(x)).filter(x => !(PRINCIPLE_RE.test(x.trim()) && !/\b(?:we|we're|we've|we'll|our|us)\b/i.test(x))).join(' ');
+    for (const c of practiceClaims(notPrinciple, niche)) {
+      if (!confirmedKeys.has(c.practice.key)) flag('BLOCK', 'PRACTICE', `"${c.match}" states a practice ("${c.practice.label}") that the client hasn't confirmed. Remove it, or write it as the trade's principle in the third person ("a good ${(niche && niche.trade_person) || 'tradesperson'} ..."), never "we".`);
     }
 
     // RAW-GBP: homeowner words, never the raw GBP name; never-named services stay out

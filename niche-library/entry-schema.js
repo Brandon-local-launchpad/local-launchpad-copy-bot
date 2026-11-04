@@ -26,7 +26,7 @@ const PAGE_KEYS = [
 const BUTTON_KEYS = ['primary_action', 'meta_cta', 'process_h2', 'final_h2', 'cta_band_line', 'cta_band_line_no_response'];
 
 // Placeholders the briefs may use; code fills them per page
-const PLACEHOLDERS = ['[CAT]', '[CAT_LOWER]', '[WORK]', '[WORK_LOWER]', '[CITY]', '[TOWN]', '[SERVICE]', '[SERVICE_LOWER]', '[SYMPTOM]', '[QUOTE_FREE]', '[QUOTE_FREE_LOWER]', '[CV: '];
+const PLACEHOLDERS = ['[CAT]', '[CAT_LOWER]', '[WORK]', '[WORK_LOWER]', '[CITY]', '[TOWN]', '[SERVICE]', '[SERVICE_LOWER]', '[SYMPTOM]', '[QUOTE_FREE]', '[QUOTE_FREE_LOWER]', '[TRADE_PERSON]', '[CV: '];
 
 // The five doubts a FAQ question answers (CORE (20) and the FAQ framework)
 const DOUBTS = ['Price', 'Trust', 'Fit', 'Process', 'Timing'];

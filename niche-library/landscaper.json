@@ -1091,6 +1091,391 @@
           }
         ]
       }
+    },
+    "tree service": {
+      "cost": {
+        "h2": "What Affects the Cost of [WORK] in [CITY]",
+        "cards": [
+          {
+            "title": "How big the tree is and how much comes off",
+            "brief": "The size of the tree and the extent of the work move the price more than anything else: a bigger crown, more to climb, more to take down and lower, more to chip and clear, a wider stump with more root under it, from the trade facts price rows for the tree pages (tree size; crown size and specified extent; stump diameter and roots). Say it plainly and give no figure. Nothing here about an area of ground, a base or a surface: this hub is the trees."
+          },
+          {
+            "title": "Climbing, platforms and lowering",
+            "brief": "A tree that can be felled in one into a clear space costs less than one taken down in sections over a roof, a conservatory or a neighbour's garden, with each piece lowered on a rope or a platform brought in, from the trade facts price rows (difficult rigging; aerial access). Say why that takes more people and more time, in plain words. No figure."
+          },
+          {
+            "title": "Getting to the tree",
+            "brief": "A back garden reached only through the house, a side path too narrow for the chipper or the stump grinder, nowhere for a lorry to stand, a tree close to a building, a road or an overhead line, from the trade facts price rows (access; nearby structures; restricted machine access). Say why tight access and what stands round the tree cost time. No figure."
+          },
+          {
+            "title": "Paperwork and what happens to the timber",
+            "brief": "A protected tree or a tree in a conservation area needs the council's consent or a notice before the work, and that adds time before anything starts, from the trade facts rules row written as what usually applies, never as legal advice, never the fine, never the Act's name. Then the timber, logs and chippings: left for the customer, left in the garden for a use, or taken away (timber and stump removal; arisings removal). Whether the business takes it away and is registered to carry waste only from [CV: waste_carrier_registered] and the confirmed practices. Code adds the price line from [CV: price_list] when there is one."
+          }
+        ]
+      }
+    }
+  },
+  "service_overrides": {
+    "fencing": {
+      "type": "A",
+      "cost": {
+        "h2": "What Affects the Cost of [SERVICE] in [CITY]",
+        "cards": [
+          {
+            "title": "How long and how high the run is",
+            "brief": "The size factor from the trade facts price row: the length of the boundary, the height it has to stand at, so how many posts and how many panels or boards go in, and whether a gate is part of it. Say it plainly and give no figure. Nothing about an area of ground: this page is the fence line."
+          },
+          {
+            "title": "What has to come out first",
+            "brief": "What comes out or is worked round before a post hole is dug, from the trade facts price row: the old fence and its posts set in concrete, a hedge along the line, growth over the boundary, hard or stony ground. Say the business looks before it prices, from [CV: quote_method] only; where the old fence goes only from confirmed practices (waste_removal), and whether the business is registered to carry it away only from [CV: waste_carrier_registered]."
+          },
+          {
+            "title": "Slopes, corners and access",
+            "brief": "A garden that falls away so the panels step down the slope, a boundary that turns a corner, a run reached only through the house or down a side path with every post and panel carried by hand, pipes and cables under the line that are checked for before the digging starts, from the trade facts price row and the checking stage. Say why each adds time."
+          },
+          {
+            "title": "The posts, boards and finish you choose",
+            "brief": "Close board against panels against post and rail, timber posts against concrete posts, and what each is set in, from the trade facts materials cell and [CV: materials_methods], and why one costs more than another. A named product only from [CV: materials_methods]. Nothing about slabs, a sub base or decking. Code adds the price line from [CV: price_list] when there is one."
+          }
+        ]
+      }
+    },
+    "lawn seeding": {
+      "type": "A",
+      "cost": {
+        "h2": "What Affects the Cost of [SERVICE] in [CITY]",
+        "cards": [
+          {
+            "title": "The size of the lawn",
+            "brief": "The size factor from the trade facts price row: the area to be sown, and whether it is a whole lawn from bare ground or the thin and worn patches in a lawn that is otherwise fine (new seeding against overseeding, from the materials cell). Say it plainly and give no figure."
+          },
+          {
+            "title": "What comes out first: old turf and levelling",
+            "brief": "What has to go before a seedbed can be made, from the trade facts price row (ground preparation; weed clearance; uneven soil): the old turf and the weeds cleared, a lawn that rises and dips levelled, stones and roots raked out, and how much of that there is. Say the business looks before it prices, from [CV: quote_method] only."
+          },
+          {
+            "title": "Getting the topsoil and the machinery in",
+            "brief": "Whether topsoil has to be brought in to make a level bed, and how it and the machines reach the lawn: a rear garden down a side path or through the house, where a load can be tipped, what is barrowed by hand, from the trade facts price row (imported topsoil; access). Say why each adds time. Nothing about a sub base or slabs."
+          },
+          {
+            "title": "Seed or turf, and the preparation each needs",
+            "brief": "Seed against turf, from the trade facts stages: seed goes into a prepared, firmed and raked bed and is watered until it has come through, turf is laid on prepared soil and kept off until it has rooted, and a seed mixture is chosen for the garden (the materials cell). Say why the preparation and the watering move the price more than the seed does, and which the business offers only from the services list and confirmed practices. The season is for the FAQ, not here. A named product only from [CV: materials_methods]. Code adds the price line from [CV: price_list] when there is one."
+          }
+        ]
+      }
+    },
+    "garden irrigation": {
+      "type": "A",
+      "cost": {
+        "h2": "What Affects the Cost of [SERVICE] in [CITY]",
+        "cards": [
+          {
+            "title": "How many zones and how big the area is",
+            "brief": "The size factor from the trade facts price row (number of zones): how many parts of the garden are watered on their own (the lawn, the borders, the pots, the vegetable beds), how big each is and how much pipe or dripline runs through it. Say it plainly and give no figure."
+          },
+          {
+            "title": "The water supply and its pressure",
+            "brief": "Where the water comes from and what it can give, from the trade facts price row (water source changes; backflow protection) and the survey stage: an outside tap by the garden against a supply that has to be brought out or changed, the pressure and flow the system can draw on, and the fitting at the connection that stops water running back into the house supply. Say the business looks at the supply before it prices, from [CV: quote_method] only. Nothing about a hosepipe ban: the supplier's notice decides that and the copy makes no promise about it."
+          },
+          {
+            "title": "The digging, and putting the lawn and beds back",
+            "brief": "Pipe under a lawn or across a border has to be trenched in and the ground made good after, from the trade facts price row (trenching): turf lifted and relaid, a bed dug through and planted back, a path crossed. Say why a garden already planted costs more to pipe than one still being made, and that the system can go in before the planting (the trade facts timing cell). Nothing about a sub base or slabs."
+          },
+          {
+            "title": "The controller, the heads and the pipe chosen",
+            "brief": "Dripline or soaker hose in the borders against sprinklers on the lawn, a plain timer against a controller with a rain or moisture sensor, from the trade facts materials cell and [CV: materials_methods], and why one costs more than another. A named product only from [CV: materials_methods]. Code adds the price line from [CV: price_list] when there is one."
+          }
+        ]
+      }
+    },
+    "tree removal and felling": {
+      "cost": {
+        "h2": "What Affects the Cost of [SERVICE] in [CITY]",
+        "cards": [
+          {
+            "title": "How big the tree is",
+            "brief": "The size factor from the trade facts price row (tree size): the height and the girth of the tree, the spread of its crown, how much timber and brash comes down with it. Say it plainly and give no figure."
+          },
+          {
+            "title": "What's around it",
+            "brief": "The house, a conservatory, a shed, a road, an overhead line, a neighbour's garden under the crown, from the trade facts price row (nearby structures): what has to be lowered rather than dropped and what has to be protected. Say the business looks before it prices, from [CV: quote_method] only."
+          },
+          {
+            "title": "Felled in one or taken down in pieces",
+            "brief": "A tree with a clear space to fall into against one climbed and dismantled in sections, each piece roped down, a platform brought in where climbing is not the safe way, from the trade facts price row (difficult rigging) and the stages (felling or dismantling method). Say why coming down in pieces takes more people and more time. Nothing about the ground being dug or surfaced."
+          },
+          {
+            "title": "The timber, the brash and the stump",
+            "brief": "What happens to what comes down, from the trade facts price row (timber and stump removal): logged and left for the customer, chipped and left for the beds, or taken away; and whether the stump is left or taken out as well (the stump page for the grinding). Whether the business takes the waste away only from the confirmed practices and [CV: waste_carrier_registered]; logs left only from the client values. Code adds the price line from [CV: price_list] when there is one."
+          }
+        ]
+      },
+      "problems": {
+        "h2": "Signs You Need [SERVICE]",
+        "cards": [
+          {
+            "title": "Dead, split, leaning or in the way",
+            "mechanism": "a tree that has stopped being safe to keep, or stopped fitting the garden",
+            "brief": "The things a homeowner notices first, from the trade facts signs row: the tree is dead, a big limb has broken off, the trunk has split, it leans more since the storm, it stands where an extension or a drive with permission is going. The one cause this card makes: a tree that has stopped being safe to keep, or stopped fitting the garden. Then what it leads to if left, from the skipped row: specific, never alarming (a failed part falls in its own time; the clash with the building work stays). Never that the tree is or is not safe from a photo, never felling as the first answer where pruning would do."
+          },
+          {
+            "title": "Topped or cut back hard once, and never the same since",
+            "mechanism": "an old cut the tree has grown round",
+            "brief": "A tree cut back to stubs years ago and now a thick head of weak shoots on rotting stumps of branch, a trunk with a hollow where a big cut never closed, a tree felled once that keeps shooting from what was left, from the trade facts done badly rows (indiscriminate topping; roots left where the grinding was shallow). The one cause this card makes: an old cut the tree has grown round. Say honestly when such a tree is kept and worked on and when taking it down is the right answer, from the stages (inspect, assess, choose the method); never a dig at whoever did it."
+          },
+          {
+            "title": "It's getting worse, not settling down",
+            "mechanism": "a defect outpacing what holds the tree up",
+            "brief": "A lean the customer is sure has grown, a split that has opened wider, a crown thinner this summer than last, a limb that has dropped since the last one, from the trade facts signs row (a significant defect in the trunk; a major limb has failed). The one cause this card makes: a defect outpacing what holds the tree up. Say when watching, pruning or support stops being enough and removal becomes the answer, written as what usually applies; never that the tree is safe, never that it is doomed. Not an old cut left behind: card 2 owns that."
+          },
+          {
+            "title": "A protected tree, or one the council has written about",
+            "mechanism": "a tree that cannot come down without someone's say so",
+            "brief": "The customer has a letter or a worry about permission: the tree may be protected, the house is in a conservation area, a neighbour or the council has raised branches over the pavement, the planning consent for the building work names the tree. The one cause this card makes: a tree that cannot come down without someone's say so. Say what usually applies from the trade facts rules row: consent is applied for before a protected tree is cut down, a tree that looks dangerous is not a blanket exception, the work waits for the answer, and nesting birds are checked for before anything starts. Never legal advice, never the fine, never the Act's name."
+          }
+        ]
+      }
+    },
+    "tree stump removal": {
+      "cost": {
+        "h2": "What Affects the Cost of [SERVICE] in [CITY]",
+        "cards": [
+          {
+            "title": "How big the stump is",
+            "brief": "The size factor from the trade facts price row (stump diameter and roots): the width of the stump, how far its main roots spread, and how many stumps there are. Say it plainly and give no figure."
+          },
+          {
+            "title": "What's next to it and under it",
+            "brief": "Pipes, cables and drains near the stump that are found before anything is ground or dug, a path, a wall or a patio hard against it, from the trade facts price row (hidden services; services or hard surfaces nearby) and the inspection stage. Say the business looks before it prices, from [CV: quote_method] only."
+          },
+          {
+            "title": "Getting the grinder to it",
+            "brief": "A stump in a back garden reached only through the house or down a narrow side path, a machine that fits through the gate against one that does not, winching or digging out by hand where no machine can reach, from the trade facts price row (restricted machine access) and the methods cell. Say why tight access costs more time."
+          },
+          {
+            "title": "How deep it goes, and what happens to the grindings",
+            "brief": "What the ground is wanted for afterwards sets how far down the stump is taken: less where grass goes over it, more where something is to be planted or built, from the trade facts price row (deeper specified finish) and the rule row, with no measurement given. Then the grindings and the spoil: left to fill the hole, spread on the beds or taken away, and whether the hole is topped up and turfed. Whether the business takes the spoil away only from the confirmed practices and [CV: waste_carrier_registered]. Code adds the price line from [CV: price_list] when there is one."
+          }
+        ]
+      },
+      "problems": {
+        "h2": "Signs You Need [SERVICE]",
+        "cards": [
+          {
+            "title": "A stump that catches the mower or is in the way",
+            "mechanism": "the stump left in the ground after the tree came down",
+            "brief": "The things a homeowner notices first, from the trade facts signs row: the stump catches the mower, shoots keep coming up round it, a new lawn, patio or bed cannot be laid level over it. The one cause this card makes: the stump left in the ground after the tree came down. Then what it leads to if left, from the skipped row: it stays in the way, and as it rots a hollow can open under whatever is laid over it. Never a number of years for it to rot: the facts give none."
+          },
+          {
+            "title": "Ground once, and still there under the surface",
+            "mechanism": "a job finished at the wrong depth for what the ground was wanted for",
+            "brief": "A stump ground shallow years ago that keeps sending up shoots, roots met every time a spade goes in where a bed was planned, a dip where the grindings were left in the hole and have sunk, from the trade facts done badly rows. The one cause this card makes: a job finished at the wrong depth for what the ground was wanted for. Say what the job does differently, from the stages: the finish and the depth agreed to the intended use before the machine starts, the hole backfilled and firmed; never a dig at whoever did it."
+          },
+          {
+            "title": "Shoots that keep coming back",
+            "mechanism": "live roots left with the energy to shoot",
+            "brief": "Shoots coming up from the stump and from roots some way from it, a tree that keeps trying to grow back. The one cause this card makes: live roots left with the energy to shoot (the trade facts: some trees sucker from living roots). Say honestly what grinding does and does not do: it takes the stump and the main root plate, the smaller roots stay and rot in their own time, and a separate stump treatment is specified where it is wanted; never a promise that nothing grows back, never a product or a chemical the client values do not give."
+          },
+          {
+            "title": "Ground you want to use for something else",
+            "mechanism": "a stump in the way of what the garden is for next",
+            "brief": "The customer's situation rather than a fault: a lawn, a bed, a shed base, a drive or a fence line planned where the stump sits. The one cause this card makes: a stump in the way of what the garden is for next. Say what the job gives them, from the stages: the stump out to a depth that suits the plan, the ground backfilled and left ready to level, plant or build on, and an honest picture of what stays underneath. On a landscaper's own pages this is where the stump page hands on to the lawn, paving and fencing pages, by link only where they are LINKABLE PAGES. Never a figure."
+          }
+        ]
+      }
+    },
+    "tree pruning and crown reduction": {
+      "cost": {
+        "h2": "What Affects the Cost of [SERVICE] in [CITY]",
+        "cards": [
+          {
+            "title": "How big the crown is and how much comes off",
+            "brief": "The size factor from the trade facts price row (crown size; specified extent): the size of the crown and how far it is to come back, whether it is a few low branches lifted for clearance, deadwood taken out, or the whole crown reduced. Say it plainly and give no figure. A reduction is described by how much smaller the tree ends up, never as a percentage."
+          },
+          {
+            "title": "What's around the tree",
+            "brief": "Branches over the roof, the conservatory, the neighbour's garden or the road, a lawn and borders under the crown that have to be protected, from the trade facts price row and the drop zone stage: what can be dropped and what has to be lowered. Say the business looks before it prices, from [CV: quote_method] only."
+          },
+          {
+            "title": "Climbing, a platform and the paperwork",
+            "brief": "A tree climbed against one worked from a platform, a crown over the road that needs managing, and a protected tree or a conservation area that needs the council's consent before a cut is made, from the trade facts price row (aerial access; protected tree paperwork). Say why each adds time before and during the job, written as what usually applies; never legal advice, never the fine."
+          },
+          {
+            "title": "What happens to the branches",
+            "brief": "The brash chipped and left for the borders, the bigger wood logged and left for the customer, or all of it taken away, from the trade facts price row (arisings removal). Each moves the price. Whether the business takes it away only from the confirmed practices and [CV: waste_carrier_registered]; logs left only from the client values. Code adds the price line from [CV: price_list] when there is one."
+          }
+        ]
+      },
+      "problems": {
+        "h2": "Signs You Need [SERVICE]",
+        "cards": [
+          {
+            "title": "Branches on the roof, dead wood you can see from the lawn",
+            "mechanism": "growth the tree has put on past where the garden can carry it",
+            "brief": "The things a homeowner notices first, from the trade facts signs row: branches rubbing the building or the gutters, deadwood showing in the crown, a limb hanging damaged after wind, the garden in shade by the afternoon. The one cause this card makes: growth the tree has put on past where the garden can carry it. Then what it leads to if left, from the skipped row: the dead branch falls in its own time, the contact keeps wearing the roof. Never a scare, never felling as the answer."
+          },
+          {
+            "title": "Topped once and never the same since",
+            "mechanism": "a cut the tree could not close",
+            "brief": "A tree cut back hard to stubs years ago and now a dense head of thin shoots, cuts made flush to the trunk that never healed over, from the trade facts done badly row (indiscriminate topping; decay from poor cuts). The one cause this card makes: a cut the tree could not close. Say what the job does differently, from the stages and the methods cell: each cut back to a suitable side branch so the tree keeps its shape and closes the wound, the crown reduced to a size and never topped; never a dig at whoever did it."
+          },
+          {
+            "title": "Too big for where it stands",
+            "mechanism": "a tree growing to its full size in a space planned for a young one",
+            "brief": "The customer's situation: the tree has outgrown the corner it was planted in, it shades the lawn and the patio, the crown reaches the house, a view or a street lamp is lost behind it. The one cause this card makes: a tree growing to its full size in a space planned for a young one. Say what each kind of work gives them, from the methods cell: a reduction brings the crown back and keeps its outline, a lift takes the lower branches for clearance over a path or a lawn, a thin lets light through without changing the size; and that which suits depends on the species, since not every tree takes a hard cut into old wood. Never a percentage, never a promise it will not grow back."
+          },
+          {
+            "title": "The right time of year for this tree",
+            "mechanism": "a window set by the species, not the diary",
+            "brief": "The customer wants it done before summer, or asks when it should be cut. The one cause this card makes: a window set by the species, not the diary (the trade facts timing cell: many deciduous trees suit pruning while dormant, cherry and plum are pruned in the growing season instead, and other groups have their own windows; a nest being built or in use leaves that part of the tree until it is empty). Say that the tree is looked at and the timing agreed to it, written as what usually applies; no dates, nothing about busy seasons, no blanket ban on any month."
+          }
+        ]
+      }
+    },
+    "tree cabling and bracing": {
+      "cost": {
+        "h2": "What Affects the Cost of [SERVICE] in [CITY]",
+        "cards": [
+          {
+            "title": "How much of the tree needs holding",
+            "brief": "The size factor from the trade facts price row (number and type of supports): how many weak points there are, how many supports go in and of what kind, how big the limbs being held are. Say it plainly and give no figure."
+          },
+          {
+            "title": "Working out whether the tree should be kept",
+            "brief": "The look at the tree before anything is fitted, from the trade facts stages (assess whether retention is appropriate) and price row (assessment complexity): whether the weak fork or the split is one a support can hold, or whether the honest answer is a reduction to take weight off it, or removal. Say the business looks before it prices, from [CV: quote_method] only; never that a support makes a tree safe."
+          },
+          {
+            "title": "Getting up into the crown",
+            "brief": "How high the weak point is and how hard it is to reach, a tree climbed against one worked from a platform, what stands under it that has to be protected, from the trade facts price row (difficult canopy access). Say why that takes more people and more time."
+          },
+          {
+            "title": "The hardware, the record and the checks after",
+            "brief": "A fixed cable against a rope or belt system that lets the limb move a little, from the trade facts materials cell (static or dynamic cable, rope or belt bracing), chosen for the defect; then the written record of what was fitted and the inspection arranged after, since a support is looked at again rather than fitted and forgotten (the stages: record installation; inspect periodically). A named product only from [CV: materials_methods]; no inspection interval, the facts give none. Code adds the price line from [CV: price_list] when there is one."
+          }
+        ]
+      },
+      "problems": {
+        "h2": "Signs You Need [SERVICE]",
+        "cards": [
+          {
+            "title": "A fork that has opened, a limb that moves more than it did",
+            "mechanism": "a join in the tree that no longer holds its own weight",
+            "brief": "The things a homeowner notices first, from the trade facts signs row: the trunk forks tightly and a crack shows in the join, the fork has opened, a big limb swings more in wind than it used to, a cable someone fitted years ago is frayed or cutting in. The one cause this card makes: a join in the tree that no longer holds its own weight. Then what it leads to if left, from the skipped row: the weak join fails in wind, the old support fails on its own. Never a scare, never that the tree is safe or unsafe from a description."
+          },
+          {
+            "title": "Fitted once and never looked at again",
+            "mechanism": "a support left without the checks that go with it",
+            "brief": "A cable or a brace put in years ago and left: the anchor grown over, the cable slack or cutting into the bark, nobody sure it still does anything, from the trade facts done badly row (poorly chosen anchors; support treated as a cure). The one cause this card makes: a support left without the checks that go with it. Say what the job does differently, from the stages: the system specified for the defect, the installation recorded and an inspection arranged; never a dig at whoever fitted it."
+          },
+          {
+            "title": "Support, or something more",
+            "mechanism": "a weakness that may be outrunning the support",
+            "brief": "The customer wants to keep the tree and asks whether holding it together is enough. The one cause this card makes: a weakness that may be outrunning the support (the trade facts: a support limits movement, it does not mend decayed wood, and deterioration can outpace it). Say honestly, as what usually applies, when a brace is the right answer and when a reduction to take weight off the limb, or removal, is, and that the tree is assessed for it first; never that the tree is doomed, never a promise the support will hold."
+          },
+          {
+            "title": "A tree worth keeping",
+            "mechanism": "one weak point in a tree that is otherwise sound",
+            "brief": "The customer's situation rather than a fault: a tree they love, one that screens the road, one that is protected, with one weak join in it. The one cause this card makes: one weak point in a tree that is otherwise sound. Say what the work gives them, from the stages: the weak part held so the tree can be kept, the limb's weight managed, the paperwork for a protected tree checked first (written as what usually applies, never legal advice). Never a promise about how long it lasts."
+          }
+        ]
+      }
+    },
+    "tree planting": {
+      "cost": {
+        "h2": "What Affects the Cost of [SERVICE] in [CITY]",
+        "cards": [
+          {
+            "title": "The tree you choose and its size",
+            "brief": "The size factor from the trade facts price row (tree stock size and form): the size of the tree bought, from a small bare root whip to a tall container grown or root balled specimen, how many go in, and how much handling a big one needs to reach the hole. Say it plainly and give no figure. Bare root, root balled and container grown only as the materials cell gives them."
+          },
+          {
+            "title": "The hole and the ground",
+            "brief": "What the ground is like where the tree is going, from the trade facts price row (poor soil; the ground prepared) and the stages: pipes and cables checked for first, compacted or poor soil opened up, the planting area prepared, topsoil brought in where the ground needs it. Say the business looks before it prices, from [CV: quote_method] only."
+          },
+          {
+            "title": "The stake, the guard and the mulch",
+            "brief": "What the tree needs to stand and to start: a stake only where the tree needs one, a guard where it needs one, mulch over the roots, from the trade facts price row (staking and guards) and the materials cell (specified stakes, guards and mulch). Say why a bigger or more exposed tree needs more of this. A named product only from [CV: materials_methods]."
+          },
+          {
+            "title": "Watering and the visits after",
+            "brief": "Getting the tree through its first seasons: who waters it, how often it is looked at, and whether the business comes back to check the stake, the ties and the mulch, from the trade facts price row (establishment visits) and the stages (arrange establishment care). Say that a tree planted and left is the one that fails, and what the aftercare covers only from the confirmed practices. The season is for the FAQ, not here. Code adds the price line from [CV: price_list] when there is one."
+          }
+        ]
+      },
+      "problems": {
+        "h2": "Is [SERVICE] Right for You?",
+        "cards": [
+          {
+            "title": "A tree where there is none, or one to replace a tree that died",
+            "mechanism": "the tree chosen for the space it will fill when grown",
+            "brief": "A situation card, not a fault: a bare corner, a tree that came down last year, screening wanted from the road or a neighbour's window, shade wanted over the patio in time. What decides it: the tree chosen for the space it will fill when grown (the trade facts stages: select tree and position; check services and soil). What the work gives them: a tree in the right place, one that will not reach the house or the drains, planted so it settles in rather than sits. Never a promise it will take, never a growth rate, never a lifestyle pitch."
+          },
+          {
+            "title": "The hole and the ground it's going into",
+            "mechanism": "the roots taking hold in the ground they are given",
+            "brief": "The customer's situation: heavy clay, a spot that holds water after rain, a place by a wall or the drive, a bed full of roots from the old tree. What decides it: the roots taking hold in the ground they are given (the stages: check the soil, prepare the planting area, set the tree at the right level, backfill, firm). What the work gives them: a tree planted at the right level in ground opened up for it, rather than pushed into a hole. Never a promise that the ground will drain better."
+          },
+          {
+            "title": "The stake, the tie and the first summers",
+            "mechanism": "the support and the water the tree gets while its roots are still small",
+            "brief": "The customer's situation: a young tree that rocks in the wind, one that leans, leaves wilting in July despite watering, a tie that has cut into the trunk of a tree planted a few years ago (the trade facts signs row and done badly row). What decides it: the support and the water the tree gets while its roots are still small (staked only where it needs it, the stake checked and taken off in time, watered through its first seasons). What the work gives them: a tree that stands on its own roots rather than on its stake, and a plain list of what they do for it in the first summers. No watering schedule; nothing about a hosepipe ban allowance, since the supplier's notice decides it."
+          },
+          {
+            "title": "The season it goes in",
+            "mechanism": "the window the tree's roots give",
+            "brief": "The customer's situation: wanting the garden finished before summer, or a tree already bought and nowhere ready for it. What decides it: the window the tree's roots give (the trade facts timing cell: October to April is generally best, bare root stock goes in while dormant, a container grown tree can go in outside that but needs more watering). What the work gives them: a tree planted in its window so it settles before it has to carry leaves. No dates beyond the months the facts give, nothing about busy seasons, no promise about the weather."
+          }
+        ]
+      }
+    },
+    "tree transplanting": {
+      "cost": {
+        "h2": "What Affects the Cost of [SERVICE] in [CITY]",
+        "cards": [
+          {
+            "title": "How big the tree and its root ball are",
+            "brief": "The size factor from the trade facts price row (tree size and rootball): the height and the spread of the tree and the size of the root ball that has to come out with it, from a small tree lifted by hand to one that needs a machine. Say it plainly and give no figure."
+          },
+          {
+            "title": "Getting the roots ready, and the ground it's going to",
+            "brief": "Whether the tree is prepared a season ahead so the root ball holds together, and what the new position needs: the pit dug ready, the soil opened up, topsoil brought in, from the trade facts price row (advance root preparation; a difficult new position) and the stages. Say the business looks at both places before it prices, from [CV: quote_method] only."
+          },
+          {
+            "title": "Lifting it and moving it",
+            "brief": "A tree carried across the lawn against one lifted by machine and driven across town, the kit that needs and how it gets to both ends, from the trade facts price row (lifting equipment and transport; access). Say why a big tree or a long move takes more people and more time."
+          },
+          {
+            "title": "Settling it in afterwards",
+            "brief": "The support, the mulch and the watering through the first seasons in its new place, and whether the business comes back to check on it, from the trade facts price row (aftercare) and the stages (support, mulch and water; monitor establishment); what the aftercare covers only from the confirmed practices. The season for the move is for the FAQ, not here. Code adds the price line from [CV: price_list] when there is one."
+          }
+        ]
+      },
+      "problems": {
+        "h2": "Is [SERVICE] Right for You?",
+        "cards": [
+          {
+            "title": "A tree in the way of building work",
+            "mechanism": "whether the tree is one that will survive the move",
+            "brief": "A situation card, not a fault: the extension, the drive or the garden room is going where the tree stands, and they would rather move it than lose it. What decides it: whether the tree is one that will survive the move (its kind, its size, its health, how long it has stood there, from the assess suitability stage); a protected tree is checked first, written as what usually applies and never as legal advice. What the work gives them: the tree kept, in a position that suits the new plan. Never a promise it will take."
+          },
+          {
+            "title": "Planted in the wrong place",
+            "mechanism": "the size of root ball the tree needs to come up with",
+            "brief": "The customer's situation: a tree too close to the house, one shading the vegetable beds, one across the path, a gift tree in a corner it has outgrown. What decides it: the size of root ball the tree needs to come up with (the trade facts signs row: a root ball too large to lift by hand; the done badly row: an undersized or dried root ball). What the work gives them: the tree where it should have gone, with enough root to start again. Never a measurement."
+          },
+          {
+            "title": "Moved before and struggling",
+            "mechanism": "the root ball kept whole and moist from lifting to replanting",
+            "brief": "The customer's situation: a tree moved last year that wilts in summer, leans, rocks in its hole, or has not put on growth since (the trade facts signs and done badly rows). What decides it: the root ball kept whole and moist from lifting to replanting (the stages: protect and lift the rootball, transport without drying, replant and secure). What the work gives them: honest advice on whether the tree can be helped where it is (support, water, mulch) or whether it is past that, with no promise either way."
+          },
+          {
+            "title": "The window for the move",
+            "mechanism": "the dormant window the species gives",
+            "brief": "The customer's situation: they want it done when the builders start, or before summer. What decides it: the dormant window the species gives (the trade facts timing cell: late October to mid March for a deciduous tree, October or late March for an evergreen), and that preparing the roots a season ahead can make the move possible for an established tree (the facts: putting off the preparation can make moving it less feasible). What the work gives them: a move planned to the tree's calendar rather than the builder's, so it has the best chance. No dates beyond the facts, no promise about the weather."
+          }
+        ]
+      }
     }
   }
 }

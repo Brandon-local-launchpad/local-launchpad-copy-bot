@@ -16,6 +16,7 @@ Sources, in the order the README gives: `calibration-packs/Loft_Conversions_Cali
 |---|---|
 | trade / trade_lower | Loft Conversions and Extensions / loft conversions and extensions |
 | trade_person / trade_person_plural | loft and extension builder / loft and extension builders |
+| homepage_keyword | Loft conversion (4 Nov 2026, Brandon: the homepage keyword is a way of saying the primary GBP category, picked on search volume; the H1 research pattern and the thin runner read it through niche-library/keyword.js) |
 | customer_type | homeowners |
 | unit_of_work | jobs |
 | emergency_niche | no (loft-conversions.csv flags no page emergency; no emergency variant, no steps_emergency, final_h2_emergency null) |
@@ -333,6 +334,26 @@ Used by the location page job (CORE (18)): block 4 (what the town's houses decid
 | cover | always | What happens if something isn't right after the job? | Open with what the customer does: tell us and we look at it. Then the reasonable care and skill standard every trade works to. No promise to come back free. Never invent a guarantee. | Trust |
 | process | always | What happens when I ask for a quote in [TOWN]? | From [CV: quote_method] and the confirmed practices only: what the customer sends, what the business looks at on site (the height and the timbers of the roof, where a stair could land, the garden and the drains, the access for a scaffold and a skip, a shared wall, the planning position for that street), what comes back. Approvals handled on the customer's behalf only from [CV: handles_planning]. No timescale unless [CV: response_time] is set. | Process |
 | timing | always | How long do [WORK_LOWER] take in [TOWN]? | No duration: the trade facts give none. The stages in order as the reason (approvals before a start, the scaffold and the roof opened or the foundations inspected before concrete, the structure, the shell made weathertight, the stair, first fix, plaster and its drying, fire doors and alarms, the final inspection), and where the town profile gives the roofs, the ground or the planning position, what it does to that order (trusses replaced before a floor goes in, an application before anything can start in a conservation area, deeper footings on clay, a wait on a notice to the neighbours). A number only from the client values. Nothing about when the job can start unless [CV: start_time] is set. | Timing |
+
+## Per page overrides (service_overrides)
+
+Copy quality 3, 4 Nov 2026: a page whose job differs from the shared type A entry gets its own briefs here, keyed by the page target in lower case. The code lays them over the type entry for that page only (service-blocks.js blocksFor).
+
+### Loft boarding and insulation
+
+A storage job, not a new room: block 5 and the steps are about boards, insulation and getting into the loft, so the shared cards on rebuilding a roof and on who else the job needs do not apply.
+
+Block 5 H2: What Affects the Cost of [SERVICE] in [CITY]
+
+| Card or step | Brief |
+|---|---|
+| Block 5: How much of the loft is boarded | The area boarded: a walkway and a patch for a few boxes against most of the floor, and what is going up there, because stored weight sits on ceiling joists (the trade facts signs and skipped rows: stored boxes on the ceiling joists, excessive stored loads can overload them; the price row: joist strengthening). Say it plainly, with no figure and no weight limit. |
+| Block 5: Raising the boards over the insulation | Boards laid straight on the joists press down on the insulation and squashed insulation works poorly (the trade facts done badly row), so the boards are raised above it where the depth of the insulation needs it (the stages: raise boarding where needed; the materials cell: raised storage boarding). Deeper insulation or more floor means more to raise. No depth, no height, no insulation figure and no rule about how deep it has to be. A named raised system only from [CV: materials_methods]. Say the business looks before it prices, from [CV: quote_method] only. |
+| Block 5: The hatch and a loft ladder | Whether the boards and the insulation go up through the hatch as it is, whether the way in stays safe and easy afterwards, and whether a ladder is wanted (the trade facts stages: protect access, check access; the price row's lower cost side: an accessible loft). The trade facts give no rule on hatches or ladders, so a loft ladder or a bigger hatch only where the services list or [CV: materials_methods] gives it. Say why a harder way in adds time. No figure. |
+| Block 5: What has to be cleared and the insulation top up | What is up there now: boxes to move, old boards to lift, cables and pipes that need protecting, a damp patch or a roof leak looked at before anything is covered over, the edges of the loft kept clear so the air still moves (the trade facts price row: services needing protection, existing moisture or ventilation defects; the done badly row: blocked ventilation). Then the insulation: thin or missing, and how much of a top up it needs, in mineral fibre or cellulose quilt or loose fill (the materials cell); a named product only from [CV: materials_methods]. Waste taken away only when the waste_removal practice is confirmed. Code adds the price line from [CV: price_list] when there is one. |
+| Step 1: Tell Us About the Loft | How to get in touch and what is useful to send first: the kind of house, what they want to store up there, whether there is insulation now and how thick it looks from the hatch, a photo from the hatch if it is easy to take. Never ask the customer to walk on the joists. No promise of a reply time unless [CV: response_time] is set. |
+| Step 2: We Look in the Loft and Price the Job | The visit and what gets looked at in the loft: the joists and what they will be carrying, the insulation there now, the ventilation, the cables and pipes in the way, any sign of damp or a leak, the hatch (the trade facts stages: inspect the joists, the roof and the ventilation, assess the intended storage load). Follows [CV: quote_method]; only say the quote is written if quote_method says so. Never restates 'free' (FAQ 5 owns it). No insulation figure. |
+| Step 3: We Board It on a Day That Suits You | The day is agreed in advance, to suit the customer. Who clears the loft beforehand only from the client values, and whether the customer needs to be in only from [CV: access_handling] and the customer_need_not_be_home practice. No duration and no promise it is finished in a day: the trade facts give no standard. Never mention the price, the quote or changes to the plan (step 2 and Why choose us own them). Never restates the start time (FAQ 4 owns it). |
 
 ## do_not_reuse
 
