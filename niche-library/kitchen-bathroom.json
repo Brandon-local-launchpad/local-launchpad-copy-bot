@@ -1,0 +1,589 @@
+{
+  "_source": "niche-library/kitchen-bathroom.json",
+
+  "trade": "Kitchen and Bathroom Fitting",
+  "trade_lower": "kitchen and bathroom fitting",
+  "trade_person": "kitchen and bathroom fitter",
+  "trade_person_plural": "kitchen and bathroom fitters",
+  "customer_type": "homeowners",
+  "unit_of_work": "jobs",
+  "emergency_niche": false,
+  "big_ticket": true,
+  "big_ticket_examples": ["full kitchens", "full bathrooms", "wet rooms"],
+  "schema_subtype": "HomeAndConstructionBusiness",
+
+  "words_use": ["kitchen", "bathroom", "en suite", "cloakroom", "downstairs toilet", "utility room", "units", "cupboards", "drawers", "worktop", "sink", "hob", "tap", "bath", "shower", "shower tray", "screen", "toilet", "basin", "tiles", "grout", "silicone", "extractor fan", "the ceiling below", "leak", "layout", "plasterboard", "the boards under the floor"],
+  "words_avoid": ["sanitaryware", "substrate", "carcass", "carcasses", "special location", "notifiable", "remodel", "remodelling", "bathtub", "refinishing", "reglazing", "cabinetry", "vanity", "fixtures and fittings", "wet area", "property", "premises", "dwelling", "the client", "bespoke", "specification", "spec", "IP rating", "RCD", "disabled", "elderly", "the elderly", "mobility issues", "infirm"],
+  "words_avoid_exceptions": {
+    "remodelling": "allowed only where a Google Business Profile service name is quoted as the client's (Kitchen remodelling, Bathroom remodelling); the page names are Kitchen fitting and Bathroom fitting",
+    "disabled": "allowed only inside an intake name the client typed and the page quotes as their service (Disabled bathroom adaptations); the page is Accessible and mobility bathrooms, and the person is never described by the word",
+    "bespoke": "allowed only inside an intake name the client typed (Bespoke storage solutions); the page is Fitted shelving and storage"
+  },
+  "banned_phrases": ["dream kitchen", "dream bathroom", "your dream kitchen", "your dream bathroom", "kitchen of your dreams", "bathroom of your dreams", "spa retreat", "spa like", "spa bathroom", "sanctuary", "oasis", "haven", "stunning", "luxury", "luxurious", "heart of the home", "transform your kitchen", "transform your bathroom", "transform your home", "transform your space", "signs you need a new kitchen", "signs you need a new bathroom", "fully project managed", "all trades in house", "one stop shop", "hassle free", "stress free", "bring your vision to life", "turn your vision into reality", "no job too small"],
+
+  "buttons": {
+    "primary_action": "Get My [QUOTE_FREE] Quote",
+    "meta_cta": "Get your [QUOTE_FREE_LOWER] quote today.",
+    "process_h2": "Your [QUOTE_FREE] Quote in 3 Simple Steps",
+    "final_h2": "Get a [QUOTE_FREE] Quote From a Local [CATEGORY] in [CITY]",
+    "final_h2_emergency": null,
+    "cta_band_line": "Tell us about the room and we'll get back to you within [CV: response_time].",
+    "cta_band_line_no_response": "Tell us about the room and we'll get back to you."
+  },
+
+  "business_type_default": "A",
+  "business_type_notes": "Both categories in the pack's section 2 (Kitchen Renovator, Bathroom Renovator) are A, project work. There is no type B: a fitter whose work is resealing, tray swaps and resurfacing is still A and reads the problem led lines in the briefs. Big ticket is on (full kitchens, full bathrooms, wet rooms), so [CV: handles_planning] switches the planning and building control FAQ in. No page is flagged emergency: leaks that cannot wait belong to Plumbing and Heating (the pack's notes).",
+
+  "priority_services": [],
+  "core_services": {
+    "kitchen renovator": ["kitchen fitting", "kitchen design", "kitchen worktops", "kitchen door replacement and refacing", "utility rooms"],
+    "bathroom renovator": ["bathroom fitting", "wet rooms", "walk in showers", "cloakrooms and en suites", "bath installation and replacement", "accessible and mobility bathrooms"],
+    "remodeller": ["kitchen fitting", "bathroom fitting", "bath and shower resurfacing"],
+    "construction company": ["kitchen fitting", "bathroom fitting", "utility rooms", "media walls"]
+  },
+
+  "steps": [
+    {
+      "title": "Tell Us About the Room",
+      "brief": "How to get in touch and what is useful to send first (which room, roughly what they want changed, whether the sink, the toilet or the shower is staying where it is, photos if they have them). No promise of a reply time unless [CV: response_time] is set."
+    },
+    {
+      "title": "We Visit and Measure Up",
+      "brief": "The visit and what gets looked at in the room (the measurements, where the water, the waste, the soil pipe and the electrics run now, the floor and the walls behind what is coming out, how the units, the bath or a worktop get in). Follows [CV: quote_method]; only say the quote is written if quote_method says so. Never restates 'free' (FAQ 5 owns it). Nothing about design drawings unless the services list has a design page or [CV: materials_methods] gives drawings."
+    },
+    {
+      "title": "We Fit on Dates That Suit You",
+      "brief": "The start date is agreed in advance, to suit the customer, and the room is out of use between the strip out and the hand over, said as a fact of the job and never with a number of days. Never mention the price, the quote or changes to the plan (step 2 and Why choose us own them). Never restates the start time (FAQ 4 owns it). No supplier lead time unless the client values give one."
+    }
+  ],
+
+  "step_2_no_visit": {
+    "title": "We Price Your Job",
+    "brief": "Say a price is agreed before any work starts. Describe how the price is reached only from [CV: quote_method]; when quote_method is blank, name no method at all (no photos, call, video or visit). Only say the quote is written if quote_method says so. Never restates 'free' (FAQ 5 owns it)."
+  },
+  "cover_chain": ["guarantee", "manufacturer_warranty", "insurance"],
+
+  "fears": [
+    "weeks without a working kitchen or bathroom, and no clear picture of when it comes back",
+    "trades turning up in the wrong order, so the job stalls between them (a worktop that arrives a fortnight after the units, a tiler waiting on a plumber)",
+    "what is behind the tiles and under the units being skipped, and showing up as a leak later",
+    "a price that grows once the old room is out and the walls are open"
+  ],
+  "fears_by_type": {},
+
+  "logo_tiers": {
+    "ratings": ["Google (needs review_count 5+)", "Checkatrade", "Trustpilot", "Which? Trusted Traders"],
+    "tier1": ["BIFIS (British Institute of Fitted Interiors Specialists, formerly BiKBBI: an installer registration, never authority for gas or certified electrical work)", "TrustMark", "KBSA (Kitchen Bathroom Bedroom Specialists Association: a retailers' body; its deposit scheme shown only where the client's own contract is registered under it)"],
+    "tier2": ["The Tile Association (TTA)", "WaterSafe (the plumbing side, only where the client itself is listed)", "Gas Safe Register (the client's own registration and work categories only, never a subcontractor's)", "NICEIC or NAPIT (the client's own electrical registration only, for the scope it covers)", "Worktop Fabricators Federation (a fabricator's body; never shown as a quality mark unless the client holds that separately)", "Mira Pro Network (a manufacturer's installer network: checkable, never certification)"],
+    "tier3": "chamber of commerce, local press features, local awards: Ray's call per client. A retailer's installation arrangement attaches to that retailer's own service and is never shown as the client's approval; a trade account with a kitchen supplier is no scheme at all (the trade facts Table D)."
+  },
+
+  "faq_fixed_doubts": {
+    "Q1_cost": "Price",
+    "Q6_areas": "Fit"
+  },
+
+  "faq_slots": [
+    {
+      "slot": "faq_2",
+      "question": "Are you insured?",
+      "answer_brief": "The cover figure and what it means for the customer if something is damaged during the job (a floor, a ceiling below, a neighbour's flat).",
+      "symptom_based": false,
+      "doubt": "Trust"
+    },
+    {
+      "slot": "faq_2_fallback",
+      "question": "What happens if something goes wrong?",
+      "answer_brief": "From [CV: complaints_process] only.",
+      "symptom_based": false,
+      "doubt": "Trust"
+    },
+    {
+      "slot": "faq_3",
+      "question": "Do you guarantee your work?",
+      "answer_brief": "Used only when a guarantee or manufacturer warranty is confirmed. Start with yes, then the terms. Keep the fitting guarantee and a maker's warranty on the units, the bath or the shower apart: the trade facts Table E keeps a supply and fit contract and a fit only one apart, so say which this business gives only from the client values.",
+      "symptom_based": false,
+      "doubt": "Trust"
+    },
+    {
+      "slot": "faq_3_none",
+      "question": "What happens if something isn't right after the job?",
+      "answer_brief": "Used when nothing in cover_chain other than insurance is confirmed. Open with what the customer does: tell us what isn't right and we'll look at it. Then the 'reasonable care and skill' standard every trade works to, as the standard the work is held to, never as a defence. No promise to come back or put it right for free. Never invent a guarantee. A certificate from a registered electrician or building control is a record that the work was signed off, never a guarantee against a later fault.",
+      "symptom_based": false,
+      "doubt": "Trust"
+    },
+    {
+      "slot": "faq_4",
+      "question": "How soon can you start?",
+      "answer_brief": "From [CV: start_time] only, as given. Code adds \"bigger projects are booked further ahead\" only when that practice is confirmed. Nothing about supplier lead times unless the client values give them.",
+      "symptom_based": false,
+      "doubt": "Timing"
+    },
+    {
+      "slot": "faq_5_free",
+      "question": "Is the quote free and no obligation?",
+      "answer_brief": "From [QUOTE_FREE] and [CV: quote_method]. Never a free design visit or free drawings unless the client values say so.",
+      "symptom_based": false,
+      "doubt": "Price"
+    },
+    {
+      "slot": "faq_5_not_free",
+      "question": "How do your quotes work?",
+      "answer_brief": "From [CV: quote_method] only.",
+      "symptom_based": false,
+      "doubt": "Price"
+    },
+    {
+      "slot": "faq_A",
+      "question": "How long does a new kitchen or bathroom take?",
+      "answer_brief": "No duration: the trade facts Table A says the time varies for every service and Table G confirms no standard range exists. Give the order of work as the reason the time is what it is: the strip out, first fix plumbing and electrics, plastering and its drying, units or the waterproofing and tiling, a worktop templated only once the units are fixed and made away from the house, second fix, then the tests and the sign offs. Then what moves it: adhesive, tanking, grout and any coating that have to cure before the room is used; a sink, a toilet or a shower moved away from the pipes it has now. A number only from the client values.",
+      "symptom_based": false,
+      "doubt": "Timing"
+    },
+    {
+      "slot": "faq_B",
+      "question": "Why does water come through the ceiling under the shower?",
+      "answer_brief": "Use the assigned symptom's meaning and its linked local issue. Three genuinely different routes in plain words: a seal round the tray or the bath that has let go, a waste joint under the floor, grout or a tray that flexes letting water behind the tiles. Say that the water runs along the boards and the joists before it shows, so the damp patch and the leak are seldom in the same place, and that a new bead of silicone over the old one is not the fix where the floor is already wet. Then what the local housing adds (an upstairs bathroom over a kitchen, a flat over a neighbour), then what the fitter looks at. Never a step the customer could try on electrics near the leak.",
+      "symptom_based": true,
+      "doubt": "Process"
+    },
+    {
+      "slot": "faq_C",
+      "question": "Can the toilet, the sink or the shower move to a different wall?",
+      "answer_brief": "What decides it, from the trade facts stages and rule rows, in plain words: a waste pipe has to run downhill to the drain, so a basin or a shower moves more easily than a toilet, which usually stays close to the soil pipe; moved further, a toilet usually needs a new soil connection or a pumped unit, and a pumped unit usually depends on there being another toilet in the home that drains by gravity. New or altered drainage can bring building control in. 'Usually' throughout; never a document's name; no figure.",
+      "symptom_based": false,
+      "is_fallback": true,
+      "doubt": "Process"
+    },
+    {
+      "slot": "faq_D",
+      "question": "Who does the gas and electrical work in a new kitchen or bathroom?",
+      "answer_brief": "The rule of the trade from the trade facts Table C and E rows, never a boast. Gas first: a hob, a cooker or a boiler is connected or moved by an engineer on the Gas Safe Register, registered for that kind of work. Then the electrics: a new circuit, a new fuse board, and wiring in or close to a bath or shower are the jobs that need a sign off. A registered electrician certifies that work themselves; otherwise building control has to be told and inspects it. A like for like swap elsewhere in the house usually needs no notice, though it is still tested. The customer keeps the paperwork. This business's own registrations only from [CV: verified_logos] and the accreditation client values; when none is on file, the rule alone and nothing about who this business uses. Never a step the customer could try.",
+      "symptom_based": false,
+      "is_fallback": true,
+      "doubt": "Trust"
+    },
+    {
+      "slot": "faq_planning",
+      "question": "Will my new kitchen or bathroom need planning permission or building control?",
+      "answer_brief": "Point at the trade facts rule rows (Table C) and write what usually applies, with \"usually\" or \"in most cases\", keeping the two approvals apart: an ordinary refit inside the house usually needs no planning permission; a listed home usually needs consent even for work inside; a conservation area on its own does not change an internal refit. Building control is a different question and comes in where the job moves or adds drainage, puts a bathroom or a toilet where there was none, alters the structure, or includes electrical work that has to be certified; a registered installer can certify some of that work themselves, otherwise an application is made. Gas work is done by an engineer on the Gas Safe Register. What the customer does about it only as the row gives it; what this business arranges only from [CV: handles_planning]. No figure; never an Act's, a document's or a part's name.",
+      "symptom_based": false,
+      "condition": "big_ticket AND [CV: handles_planning] confirmed",
+      "doubt": "Process"
+    }
+  ],
+  "faq_slots_by_type": {},
+
+  "materials_tick_list": {
+    "Kitchen units": ["rigid (preassembled) units", "flat pack units", "replacement doors on existing units"],
+    "Worktops": ["laminate", "timber", "solid surface", "granite", "quartz (engineered stone)"],
+    "Bathroom walls and floors": ["tiles", "wall panels", "waterproof backer board", "tanking membrane", "floor tiles", "vinyl"],
+    "Showers and baths": ["low profile tray", "level access former", "wet room floor", "fixed screen", "enclosure", "electric shower", "mixer shower", "straight bath", "shower bath", "accessible bath"],
+    "Other": ["supply and fit", "fit only", "design drawings provided", "waste taken away", "gas connections by our own engineer on the Gas Safe Register", "electrical work certified by our own registered electrician", "extractor fan fitted and ducted outside"]
+  },
+
+  "service_terms": ["kitchen fitting", "kitchen design", "kitchen worktops", "worktop replacement", "door replacement", "refacing", "utility room", "bathroom fitting", "bathroom design", "wet room", "walk in shower", "shower room", "en suite", "cloakroom", "downstairs toilet", "bath replacement", "bath resurfacing", "shower resurfacing", "accessible bathroom", "level access shower", "media wall", "fitted shelving", "fitted storage", "splashback", "tiling", "tanking", "waterproofing", "underfloor heating", "extractor fan", "plumbing", "electrics", "plastering"],
+
+  "service_words_note": "Old path only (21 Oct 2026): this list applies when the homepage is written from the uploaded custom values CSVs. A client with a v3 page map names every service by its page title (the services library's UK name), and this list is not used.",
+  "service_words": [
+    ["outdoor kitchen", null], ["furniture assembly", null], ["tv mounting", null],
+    ["custom kitchen cabinet", "kitchen fitting"], ["kitchen cabinet installation", "kitchen fitting"], ["kitchen island", "kitchen islands"], ["breakfast bar", "breakfast bars"],
+    ["kitchen supply and fit", "kitchen fitting"], ["kitchen remodelling", "kitchen fitting"], ["kitchen fitting", "kitchen fitting"],
+    ["kitchen cabinet design", "kitchen design"], ["kitchen design", "kitchen design"],
+    ["kitchen cabinet door replacement", "kitchen door replacement"], ["kitchen cabinet refacing", "kitchen door replacement and refacing"], ["kitchen cabinet refinishing", "kitchen door replacement and refacing"],
+    ["granite worktop", "kitchen worktops"], ["kitchen worktop", "kitchen worktops"], ["quartz worktop", "kitchen worktops"], ["solid surface worktop", "kitchen worktops"], ["laminate worktop", "kitchen worktops"], ["splashback", "splashbacks"],
+    ["utility room", "utility rooms"], ["boot room", "utility rooms"],
+    ["media wall", "media walls"], ["bespoke storage", "fitted storage"], ["wine rack", "fitted storage"],
+    ["bathroom remodelling", "bathroom fitting"], ["shower room", "shower rooms"], ["bathroom fitting", "bathroom fitting"], ["bathroom design", "bathroom design"],
+    ["wet room", "wet rooms"], ["walk-in shower", "walk in showers"], ["walk in shower", "walk in showers"], ["shower panel", "shower panels"],
+    ["accessible bathroom", "accessible bathrooms"], ["disabled bathroom", "accessible bathrooms"],
+    ["cloakroom", "cloakrooms"], ["en-suite", "en suites"], ["en suite", "en suites"],
+    ["bathtub installation", "bath installation"], ["bathtub replacement", "bath replacement"], ["bathtub repair", "bath repairs"],
+    ["bathtub refinishing", "bath resurfacing"], ["bathtub reglazing", "bath resurfacing"], ["bathtub resurfacing", "bath resurfacing"], ["shower refinishing", "shower resurfacing"],
+    ["bathroom tile reglazing", "bath and shower resurfacing"], ["bathroom worktop resurfacing", "bath and shower resurfacing"],
+    ["underfloor heating", "underfloor heating"], ["fan installation", "extractor fans"], ["tile work", "tiling"], ["plumbing fixture", "plumbing"], ["drywall", "plastering"]
+  ],
+
+  "general_service_words": ["kitchen fitting", "bathroom fitting", "new kitchens", "new bathrooms", "kitchen renovation", "bathroom renovation", "kitchen design", "bathroom design"],
+  "problem_service_words": ["leak", "leaking", "resealing"],
+  "why_titles_alt": [
+    "Local Experience Behind Every Job",
+    "Covered If Something Goes Wrong"
+  ],
+
+  "category_work_nouns": {
+    "kitchen renovator": "kitchen fitting",
+    "bathroom renovator": "bathroom fitting",
+    "remodeller": "renovation work",
+    "construction company": "building work"
+  },
+  "seasonal_trade": false,
+  "category_types": {},
+  "category_page_blocks": {
+    "A": {
+      "problems": {
+        "h2": "Common [WORK] Problems",
+        "cards": [
+          {
+            "title": "A room laid out for someone else",
+            "brief": "A situation card, not a fault: in a kitchen, nowhere beside the hob to set a pan down, a fridge door that swings across the only way through, a table nobody can get round, one person cooking while the rest stand in the doorway; in a bathroom, a queue at breakfast for the one bathroom in the house, a bath nobody uses on the wall a shower could have, no toilet downstairs. The one cause this card makes: a layout set for a different household. What decides it is the layout, not the size: where the sink, the hob and the fridge sit and the worktop between them; in a bathroom, where the soil pipe and the waste run, which fixes how far the toilet can move (the trade facts design and survey stages). What the work gives them, in plain words: the room planned round how they use it (worktop either side of the hob, a straight run reshaped into an L, a bath swapped for a walk in shower, an en suite or a cloakroom where the drainage allows it). By category: Kitchen Renovator reads it in the kitchen; Bathroom Renovator as the bathroom, the en suite or the cloakroom; Remodeller and Construction Company as whichever room the client's services cover. Never a lifestyle pitch, never a fault invented for it, never a judgement on the room they have now.",
+            "mechanism": "a layout set for a different household"
+          },
+          {
+            "title": "Water showing up where it should not",
+            "brief": "Problem led, from the trade facts signs rows: in a kitchen, a worktop joint that has lifted or an edge by the sink gone swollen, the cupboard under the sink soft at the base; in a bathroom, silicone gone black and lifting, cracked grout, water on the floor outside the shower, a damp patch on the ceiling of the room below. The one cause this card makes: a seal or a joint at the surface that has let water through, so the board, the floor or the ceiling behind it is wetter than it looks. Say the route the water takes in plain words (along the top of the board and into its cut edge, down behind the tiles, along the floorboards and the joists before it shows) and that the fix starts with finding where it gets in, never with a new bead of silicone run over the old one; what putting it right usually involves from the done badly rows (a sink cut out sealed, a tray bedded solid, a joint remade). What the business does only from confirmed practices. Never alarming, never a promise that the leak is small. Not the tanking behind the tiles: the service pages own that.",
+            "mechanism": "a seal or a joint at the surface that has let water through"
+          },
+          {
+            "title": "Things that move when they should not",
+            "brief": "Problem led: doors that rub and gaps that widen, a worktop joint that has opened, a shower tray that gives underfoot, tiles that sound hollow, a basin or a rail that shifts when leant on. The one cause this card makes: whatever it was fixed to was never made solid and level (units not levelled before the worktop went on, a tray on nothing solid, tiles on a wall that flexes, a rail into plasterboard with nothing behind it), so every use works the joint or the fixing loose (the trade facts done badly rows). Say what the fix usually involves in plain words from the stages: units set level and fixed to the wall before a worktop is templated, a tray on a solid and level bed before anything is tiled, timber or board fixed inside the wall before it is tiled wherever anything heavy hangs or is held. By category: Kitchen Renovator reads it in the units and the worktop; Bathroom Renovator in the tray, the tiles, a wall hung basin or toilet and the rails. No figure (no tile weight, no board thickness), never a dig at another trade.",
+            "mechanism": "fixed to something that was never made solid and level"
+          },
+          {
+            "title": "A room that has become hard to use",
+            "brief": "A situation and the pack's need led split in one: a bath side that has become a climb, a shower with a step up onto the tray, nothing solid to hold, a toilet too low or too far from a wall; in a kitchen, an oven at floor level, cupboards out of reach, a corner nobody can get into. The one cause this card makes: the room asking more of the person than it used to (the step, the reach, the grip, the room to turn). What decides the answer is the room and its drainage, from the trade facts stages: a shower with no step needs the floor formed with a fall to the drain and waterproofed as a wet room floor; a rail needs a fixing into something solid behind the tiles; a toilet raised or moved within reach of the soil pipe; an oven raised, drawers in place of low cupboards, a worktop at a height that suits. What the work gives them is written as what the person will be able to do (shower standing or seated, get in without a step, hold something that takes their weight, reach what they use), never their age, their diagnosis or their condition. A council grant towards adaptations only as something that may be available after the council's own assessment and can be means tested, never promised, no figure. By category: Bathroom Renovator reads it in the bathroom; Kitchen Renovator as reach and working height. Never clinical, never pitying.",
+            "mechanism": "the room asking more of the person than it used to"
+          }
+        ]
+      },
+      "cost": {
+        "h2": "What Affects the Cost of [WORK] in [CITY]",
+        "cards": [
+          {
+            "title": "Whether the sink, the toilet or the shower moves",
+            "brief": "Moving anything away from the water, the waste and the soil pipe it has now means new pipe runs, a new connection or the floor up; a layout that keeps them where they are costs less (the trade facts price rows: moving sanitary fittings, service relocation). Say it plainly and give no figure."
+          },
+          {
+            "title": "What the strip out finds",
+            "brief": "Walls out of level and floors out of true under the old room, a floor softened by an old leak, plaster that has to be made good before units or tiles go on, and in an older home old materials that have to be checked before they are disturbed (no year). Say the business looks before it prices, from [CV: quote_method] only. No figure."
+          },
+          {
+            "title": "Gas, electrics and the sign offs",
+            "brief": "A new circuit, electrics in and around a bath or shower, a hob moved: each brings a registered trade and a certificate into the job, from the trade facts price rows and rule rows. Said as what the job needs, never as a service this business supplies unless [CV: verified_logos] or the accreditation client values give the registration. No figure."
+          },
+          {
+            "title": "Units, worktops and tiles",
+            "brief": "Rigid against flat pack units, laminate against stone that is templated and cut away from the house, the area of tiling and the waterproofing behind it, tiles against panels. Name a material only if the trade facts materials cells or [CV: materials_methods] give it; never a product or a brand. Code adds the price line from [CV: price_list] when there is one."
+          }
+        ]
+      },
+      "faq_slots": [
+        {
+          "slot": "cost",
+          "question": "How much does [WORK_LOWER] cost in [CITY]?",
+          "answer_brief": "Prices only from [CV: price_list]; otherwise the three things that move the price for this kind of work (whether the services move, what the strip out finds, the materials) and how the quote is given, from [CV: quote_method] only. Supply and fit against fit only from the client values.",
+          "doubt": "Price"
+        },
+        {
+          "slot": "cover",
+          "when": "guarantee",
+          "question": "Do you guarantee your [WORK_LOWER] work?",
+          "answer_brief": "Start with yes, then the terms from [CV: guarantee_years] and [CV: guarantee_scope]. The fitting guarantee kept apart from a maker's warranty on the units or the shower. Described, never promised.",
+          "doubt": "Trust"
+        },
+        {
+          "slot": "cover",
+          "when": "insurance",
+          "question": "Are you insured for [WORK_LOWER] work?",
+          "answer_brief": "The cover figure from [CV: insurance_cover] and what the cover is for. Never what it pays or who it covers.",
+          "doubt": "Trust"
+        },
+        {
+          "slot": "cover",
+          "question": "What happens if something isn't right after the job?",
+          "answer_brief": "Open with what the customer does: tell us and we look at it. Then the reasonable care and skill standard every trade works to. No promise to come back free. Never invent a guarantee. A certificate for the electrics or from building control is a record of a sign off, never a guarantee.",
+          "doubt": "Trust"
+        },
+        {
+          "slot": "scope",
+          "question": "What does your [WORK_LOWER] work include?",
+          "answer_brief": "The jobs themselves, named from the card list (kitchen design, fitting, worktops, doors; bathroom fitting, en suites, cloakrooms), and the size of job taken on, from the services list and [CV: typical_jobs] only. Supply and fit or fit only from the client values. Design only where the services list has a design page; fitting only where it has a fitting page (the pack's section 7). Link one service page. Never 'on this page', 'listed above' or 'the card list' as words: the reader sees no list, so name the work.",
+          "doubt": "Fit"
+        },
+        {
+          "slot": "process",
+          "question": "What happens when I ask for a quote?",
+          "answer_brief": "From [CV: quote_method] and the confirmed practices only: what the customer sends, what the business looks at in the room (the measurements, where the water, the waste and the electrics run, the floor and walls behind what comes out), what comes back. Drawings only where the services list has a design page or [CV: materials_methods] gives them. No timescale unless [CV: response_time] is set.",
+          "doubt": "Process"
+        },
+        {
+          "slot": "timing",
+          "question": "How long does [WORK_LOWER] take?",
+          "answer_brief": "No duration: the trade facts give none for any service (Table A, Table G). The order of work as the reason, in plain words: the strip out, first fix plumbing and electrics, plastering and its drying, units or the waterproofing and tiling, a worktop templated once the units are fixed and made away from the house, second fix, the tests and the sign offs. Then what moves it: adhesive, tanking, grout or a coating that have to cure before the room is used, a sink or a toilet moved away from its pipes, a stone top made off site. A number only from the client values. Nothing about when the job can start unless [CV: start_time] is set.",
+          "doubt": "Timing"
+        }
+      ],
+      "faq_symptom": {
+        "frame": "[SYMPTOM]: why does it happen, and what can be done?",
+        "answer_brief": "The symptom and its linked local issue, answered as asked. Say where the water or the fault comes from in plain words and the route it takes before it shows (water shows where it drips, not where it gets in), then what the local housing or water adds (hard water on screens and valves, an upstairs bathroom over the kitchen, a flat's shared soil stack, the layout an era built with), then what the business does about it. One figure at most. Never a step the customer could try on gas or electrics; never a bead of silicone as the fix for a wet floor."
+      }
+    }
+  },
+
+  "service_page_blocks": {
+    "A": {
+      "included": {
+        "h2": "What's Included in Our [SERVICE]",
+        "items": [
+          {
+            "title": "Measuring up and checking the services",
+            "brief": "The survey and measure stage from the trade facts: the room, where the water, the waste, the soil pipe and the electrics run, the floor and the walls, how the units, the bath or a worktop get in. A part of the job, not a promise about the quote."
+          },
+          {
+            "title": "Isolating the water and stripping out",
+            "brief": "The isolate and strip out stages from the trade facts: the water off, the old units, bath or tiles out, and in an older home old materials checked before they are disturbed (no year). Name only what the rows give. Whether the waste leaves with us only from confirmed practices (waste_removal)."
+          },
+          {
+            "title": "First fix: pipes, wires and the extractor",
+            "brief": "The first fix water, drainage, electrics and ventilation stages from the trade facts: the pipe runs and the wastes with their fall, the cables, the duct for the extractor. Who does the gas and the certified electrics as the rule of the trade (an engineer on the Gas Safe Register; a registered electrician or building control); this business's own registration only from [CV: verified_logos]."
+          },
+          {
+            "title": "Preparing the walls and floor, and the waterproofing",
+            "brief": "The prepare and waterproof stages from the trade facts: walls and floor made level and sound, and in a wet area the tanking behind the tiles with its joints and the places pipes pass through, the tray or the former on a solid and level bed with its fall to the drain. No figure, never a standard's number."
+          },
+          {
+            "title": "Fitting the units, the bath or the shower",
+            "brief": "The central stage from the trade facts: units installed and levelled and fixed to the wall, the bath supported and connected, the shower, the toilet and the basin fitted, named as the trade names it."
+          },
+          {
+            "title": "Worktops, tiling and the finishes",
+            "brief": "The template or fit worktops stage (a stone top templated once the units are fixed and made away from the house, a laminate top cut and sealed on site) and the tiling, panelling and sealing stages. A named product only from [CV: materials_methods]."
+          },
+          {
+            "title": "Second fix, testing and handing over",
+            "brief": "The connect, test and hand over stages from the trade facts: appliances connected, the water, the wastes and any overflow tested, the certificates for the electrics and gas handed to the customer, the room cleared. What the customer sees when the job is done."
+          }
+        ],
+        "note": "Fallback only: the tick items are the service's own Table A stages when the pack gives 6 or more; this set is used when it gives fewer (F-ITEMS-GENERIC)."
+      },
+      "problems": {
+        "h2": "Signs You Need [SERVICE]",
+        "cards": [
+          {
+            "title": "What you notice first",
+            "brief": "The things a homeowner notices first, from the trade facts signs row for this service, in their words: water outside the shower, a tray that moves, silicone lifting, a bath that flexes, a coating peeling, tiles that sound hollow, a toilet that drains slowly, a room that stays steamy. The one cause this card makes: the job left undone. Then what it leads to if left, from the skipped row: water into the floor and the ceiling below, boards softening, mould where the steam never clears, a trap that lets drain smells back in. Specific, never alarming. On the Accessible and mobility bathrooms page (the pack's need led split) there is no sign and no fault: the card is what the person wants to be able to do (step in without climbing over a bath side, shower seated, hold something that takes their weight), never their age, diagnosis or condition.",
+            "mechanism": "the job left undone"
+          },
+          {
+            "title": "Water that has found a way through",
+            "brief": "A damp patch on the ceiling below, a floor soft beside the shower, a wall damp next to the tray, a smell of damp in the cupboard under the sink. The one cause this card makes: water past the finish at a joint, a corner, a waste or where a pipe passes through, because the waterproofing behind the finish was missing or stopped short (the trade facts done badly rows: a membrane broken at the corners, joints and wastes; tiles with no tanking behind them let water past). Say that it travels along the floorboards and the joists before it shows, so where it shows is not where it gets in, and what the job does about it from the stages: the walls and the floor of a wet area tanked including the joints and the pipe penetrations, the tray or the former bedded solid, the falls to the drain, the waste trapped so it keeps its seal. Never that a new bead of silicone is the fix where the floor is already wet. On an accessible bathroom page the same route read as a shower with no step that leaks because its floor was never built as a wet room floor. Not the silicone or the grout at the surface: the category page owns that.",
+            "mechanism": "waterproofing behind the finish that was missing or stopped short"
+          },
+          {
+            "title": "It moves, flexes or sounds hollow",
+            "brief": "A tray that gives underfoot, a bath that rocks, tiles that sound hollow, a rail that shifts when held, a worktop joint that has opened, doors that no longer line up. The one cause this card makes: no solid support under or behind it, so every use works the seal or the fixing loose (the trade facts done badly rows: a tray without support moves and breaks its seals; a rail fixed without support pulls away; units out of level give misaligned doors and open joints). Say what the job does about it from the stages: the tray or the bath on a solid and level bed with its supports checked, timber or board fixed in the wall where anything hangs or is held, units levelled and fixed to the wall before the worktop goes on. Never a figure, never a dig at another trade. Not the route of the water: card 2 owns that.",
+            "mechanism": "no solid support under or behind it"
+          },
+          {
+            "title": "Past the point of patching",
+            "brief": "Silicone that goes black again within months of being redone, a coating that peels where it was touched up, grout recut that cracks again, chips in a bath that keep coming back, an extractor that never clears the room. The one cause this card makes: wear or damp that a surface repair no longer holds, because what is behind or under the finish is soft, wet or moving (the trade facts skipped and done badly rows). Say when a patch stops being worth it and what doing the job properly involves, from the stages: resurfacing only where the surface underneath is sound, with the coating left to cure before the bath is used; a new tray or bath where the support has gone; a strip back to the boards where the floor is wet; an extractor ducted outside where the room never dries. Never a cure time as a figure, never a lifespan. Not movement (card 3) or the water's route (card 2).",
+            "mechanism": "wear or damp that a surface repair no longer holds"
+          }
+        ]
+      },
+      "cost": {
+        "h2": "What Affects the Cost of [SERVICE] in [CITY]",
+        "cards": [
+          {
+            "title": "How much of the room is changing",
+            "brief": "The size factor from the trade facts price row: more units and appliances, a larger tiled area, more joints and cut outs in a worktop, partitions for a new en suite. Say it plainly and give no figure."
+          },
+          {
+            "title": "Where the pipes and wires run now",
+            "brief": "Moving the sink, the toilet, the shower or the hob away from the water, the waste, the soil pipe and the circuits it has now, from the trade facts price row: a new waste route, a new soil connection, a new circuit. Say the business looks before it prices, from [CV: quote_method] only."
+          },
+          {
+            "title": "What is under the old room",
+            "brief": "Floor and wall repairs, a floor softened by an old leak, walls out of level under the units, and in an older home old materials assessed before they are disturbed (no year), from the trade facts price row. Say why it is only known once the old room is out."
+          },
+          {
+            "title": "The finish you choose and who fits it",
+            "brief": "The material and finish options from the trade facts price row and [CV: materials_methods] (laminate against stone templated and cut away from the house, tiles against panels, rigid against flat pack) and why one costs more than another; and the registered trades a choice brings in (a gas hob, an electric shower on its own circuit). A named product only from [CV: materials_methods]; never a brand. Code adds the price line from [CV: price_list] when there is one."
+          }
+        ]
+      },
+      "faq_slots": [
+        {
+          "slot": "cost",
+          "question": "How much does [SERVICE_LOWER] cost in [CITY]?",
+          "answer_brief": "Prices only from [CV: price_list]; otherwise how the quote is given, from [CV: quote_method] only, and supply and fit against fit only from the client values. The four cost cards above already give what moves the price: name one factor at most, never the list again.",
+          "doubt": "Price"
+        },
+        {
+          "slot": "timing",
+          "question": "How long does [SERVICE_LOWER] take?",
+          "answer_brief": "No duration: the trade facts timing row says it varies for this service and Table G confirms no standard. The stages for this service in order as the reason, from the trade facts: what is stripped out, first fix, the waterproofing or the units, the finishes, the tests. Then what moves it: tanking, adhesive, grout or a coating that has to cure before the room is used; a worktop templated once the units are in and made off site; a sink or a toilet moved from its pipes. A number only from the client values. Nothing about when the job can start unless [CV: start_time] is set. This is the one place the timing is written.",
+          "doubt": "Timing"
+        },
+        {
+          "slot": "cover",
+          "when": "guarantee",
+          "question": "Do you guarantee your [SERVICE_LOWER] work?",
+          "answer_brief": "Start with yes, then the terms from [CV: guarantee_years] and [CV: guarantee_scope]. The fitting guarantee kept apart from a maker's warranty on what was fitted. Described, never promised.",
+          "doubt": "Trust"
+        },
+        {
+          "slot": "cover",
+          "when": "insurance",
+          "question": "Are you insured for [SERVICE_LOWER]?",
+          "answer_brief": "The cover figure from [CV: insurance_cover] and what the cover is for. Never what it pays or who it covers.",
+          "doubt": "Trust"
+        },
+        {
+          "slot": "cover",
+          "question": "What happens if something isn't right after the job?",
+          "answer_brief": "Open with what the customer does: tell us and we look at it. Then the reasonable care and skill standard every trade works to. No promise to come back free. Never invent a guarantee.",
+          "doubt": "Trust"
+        },
+        {
+          "slot": "rules",
+          "question": "Does [SERVICE_LOWER] need building control or permission?",
+          "answer_brief": "From the trade facts rule rows for this service only, put as what usually applies, with \"usually\" or \"in most cases\", and the approvals kept apart. Planning: work inside the house usually needs none; a listed home usually needs consent even inside. Building control: it comes in where drains are moved or added, where a bathroom or a toilet goes where there was none, where the structure changes, and for electrical work that has to be certified (a new circuit, work in and around a bath or shower), which a registered electrician certifies themselves, otherwise building control is told. Gas by an engineer on the Gas Safe Register. Where the rows give them: an unusually large bath usually has to be notified to the water company before it goes in, and a pumped toilet usually depends on another toilet in the home draining by gravity. What the customer does only as the row gives it; what this business arranges only from [CV: handles_planning]. Never a figure, a document's name or a part letter; never a step the customer could try. Where the rows give no rule, say no permission is usually needed for this work at a home and leave it there.",
+          "doubt": "Process"
+        },
+        {
+          "slot": "scope",
+          "question": "What does your [SERVICE_LOWER] service include?",
+          "answer_brief": "The What's Included items said as a sentence, in other words: the measuring, the strip out, first fix, the waterproofing or the units, the finishes, the tests. Supply and fit or fit only from the client values. What it does not cover (the gas connection, the certified electrics where this business holds no registration) only from the services list and [CV: verified_logos], with one sibling service page or the category page linked. Never 'on this page' or 'listed above': name the work.",
+          "doubt": "Fit"
+        }
+      ],
+      "faq_symptom": {
+        "frame": "[SYMPTOM]: why does it happen, and what can be done?",
+        "answer_brief": "The symptom and its linked local issue, answered as asked. Say where the water or the fault comes from in plain words and the route it takes before it shows, then what the local housing or water adds (hard water on screens and valves, an upstairs bathroom over the kitchen, a flat's shared stack, the layout an era built with), then what this service does about it. One figure at most. Never a step the customer could try on gas or electrics; never a bead of silicone as the fix for a wet floor."
+      },
+      "desire": {
+        "problems": {
+          "h2": "Is [SERVICE] Right for Your Home?",
+          "cards": [
+            {
+              "title": "The room that gets in the way of the day",
+              "brief": "The customer's situation: cooking with nowhere to set a pan down, a fridge door that swings across the only way through, washing dried on the radiators because there is nowhere for a machine, a queue for the one bathroom at breakfast, a guest sent upstairs because there is no toilet down, a television on a stand with its cables across the floor, an alcove no cupboard fits. What decides it: the layout and what the room already has to give (where the water, the waste and the soil pipe run and how far they can move, the length of worktop between the sink and the hob, an alcove or the space under the stairs with the depth for a toilet or a run of shelves, a wall that will carry the weight and the wiring of a media wall), from the trade facts survey and design stages for this service. What the work gives them: the room planned round the way they use it, named from the stages for this service. Never a fault invented for it, never a lifestyle pitch, never a judgement on the room they have.",
+              "mechanism": "a layout that does not fit how the household uses the room"
+            },
+            {
+              "title": "Which way to do it",
+              "brief": "The customer's situation: they are weighing two or three ways of doing it (a bath against a walk in shower, tiles against panels, laminate against stone, rigid against flat pack units, new doors against new units, an en suite shower against a cloakroom with a basin, electric against water fed heating under a new floor, a recessed against a surface mounted media wall). What decides it: the room (where the drains fall, what the floor is made of, the water pressure and the hot water system a shower will run on, what the wall is made of where anything heavy hangs), how the household uses it and how much looking after they want, from the trade facts materials and methods cell for this service. What the work gives them: the option that suits their room, never the one that is best in general. A named product only from [CV: materials_methods]; never a brand. No claim about cost, lifespan or value unless the rows or the client values give it.",
+              "mechanism": "the room's services and its use deciding the option"
+            },
+            {
+              "title": "The part you will never see again",
+              "brief": "The customer's situation: they have a cheaper quote, or a plan to do it themselves, and want to know what the difference buys. What decides it: the layer hidden once the room is finished (units set level and fixed to the wall before the worktop is templated, the tanking behind the tiles and round every joint and pipe, the tray or the former on a solid and level bed with its fall to the drain, wastes with enough fall and a trap that keeps its seal, timber or board in the wall for anything that hangs or is held, the extractor ducted outside, a new circuit certified and a hob connected by an engineer on the Gas Safe Register), which is where a quick job cuts corners and shows a year or two later as a swollen edge, a black bead or a damp patch on the ceiling below (the trade facts done badly rows). What the work gives them: that layer done as the stages name it, with the certificates for the parts that need them. One specific from the stages for this service; no figure, no standard's number; never a dig at another trade.",
+              "mechanism": "the layer behind the finish deciding how long it lasts"
+            },
+            {
+              "title": "Living without the room while it is done",
+              "brief": "The customer's situation: they want to know how long they will be without a kitchen or a bathroom and what happens in which order. What decides it: the order of work from the trade facts stages for this service (the strip out; first fix plumbing and electrics; plastering and its drying; units, or the waterproofing and the tiling; a worktop templated only once the units are fixed and made away from the house; second fix; the tests and the sign offs; the cure of tanking, adhesive, grout or a coating before the room is used). What the work gives them: an honest picture of which stages take the room out of use, which wait on something made elsewhere, and what can be kept running. What this business does about it (a temporary sink, the other bathroom kept usable, the washing machine reconnected each night, the same team start to finish) only from confirmed practices (same_team_throughout, stage_updates, tidy_each_day). Never a duration, a date or a day by day plan: the trade facts give none; never a claim to manage every trade unless the client values give it.",
+              "mechanism": "the order of work deciding how long the room is out of use"
+            }
+          ]
+        }
+      }
+    }
+  },
+
+  "location_page_blocks": {
+    "A": {
+      "problems": {
+        "h2": "Common [WORK] Problems in [TOWN]",
+        "cards": [
+          {
+            "title": "Kitchens and bathrooms where the house put them",
+            "brief": "The town profile's housing era and what it was built with: a terrace with the kitchen in a narrow wing at the back, so the units run along one wall; a semi built with the toilet and the bathroom as two small rooms upstairs, often knocked into one; a post war house with a small kitchen and a larder beside it; a new build with stud walls and a compact en suite. The one cause this card makes: the houses built with the kitchen and the bathroom where their decade put them. Say what that means for the work (a long single run, a wall taken down between two small rooms, a soil pipe on the outside wall deciding where the toilet can go), from the profile only; where it gives no era, the general point and nothing about this town's houses. Never the state of anyone's room today, never that the kitchens or bathrooms here are dated.",
+            "mechanism": "the houses built with the kitchen and the bathroom where their decade put them"
+          },
+          {
+            "title": "Limescale on everything the water touches",
+            "brief": "Screens that fog within weeks, taps crusted at the spout, a shower that loses its flow. Say first that scale in a hard water area is the water, not a fault. The one cause this card makes: the hardness of the town's water, from the profile or the water company's published data only, never invented. What it changes in the work: the shower valve and the screen chosen for it, the sealant round the screen, a softener only where the client's services list has one and never by brand. Where the research gives no hardness, say nothing about the water and read the card instead as the steam of a bathroom with no outside wall or a small window, and the extractor it needs ducted outside. Never a health claim, never a promise the scale will not return.",
+            "mechanism": "the hardness of the town's water"
+          },
+          {
+            "title": "Flats, stairs and the shared stack",
+            "brief": "A toilet that cannot move far, a leak that shows in the flat below, units carried up three flights, nowhere to park a van or sit a skip. The one cause this card makes: the shared soil stack and the shared floors of a flat. What it means for the work: the layout kept close to the stack, the floor treated as the neighbour's ceiling (the waterproofing and the water tests done before the floor is closed), the freeholder or the lease usually having to agree before a bathroom moves ('usually', never an Act's name), deliveries and waste planned round the stairs. From the profile where it gives the flats; otherwise read as the house's own upstairs bathroom and the room beneath it. Never a judgement on the flats.",
+            "mechanism": "a bathroom or a kitchen tied to a soil stack shared with the flats above and below"
+          },
+          {
+            "title": "Older homes and what the strip out meets",
+            "brief": "A listed home where even work inside usually needs consent (the trade facts rule rows), an older house where materials are checked before anything is cut into (no year), walls out of plumb and floors out of level under the old units. The one cause this card makes: what an older house was built with, met once the room is out. Say it as what the work meets and allows for, never as a claim about what is behind the walls of any street (no pipework, no wiring claimed in advance: the pack's section 3): 'often' and 'can', never 'will'. What the business does about it (a survey before suspect material is disturbed, levelling and packing, making good in the quote) only from confirmed practices and the stages. Never a judgement on the houses.",
+            "mechanism": "what an older house was built with, met once the room is out"
+          }
+        ]
+      },
+      "cost": {
+        "h2": "What Affects the Cost of [WORK] in [TOWN]",
+        "cards": [
+          {
+            "title": "Carrying it up and getting it in",
+            "brief": "Terraced streets with no parking outside, flats with stairs and no lift, a kitchen at the back reached through the house: units, a bath and a stone worktop carried by hand, deliveries timed to the street. Say why that adds time, from the profile where it gives the housing. No figure."
+          },
+          {
+            "title": "Moving the room away from the stack",
+            "brief": "In a flat, or an older house with the soil pipe on the back wall, moving the toilet means a new connection or a pumped unit with its own conditions; a layout that keeps it near costs less. 'Usually'; never a document's name. No figure."
+          },
+          {
+            "title": "Listed homes and the lease",
+            "brief": "Consent before work inside a listed home, a lease that usually has to agree before a bathroom moves: the paperwork adds time and some things are not allowed. From the dossier rules only; never the law's name. No figure."
+          },
+          {
+            "title": "What the old room was built on",
+            "brief": "Floors out of level, walls that need plastering before units go on, an old leak under the floor, older materials checked before they are disturbed (no year): what has to be put right before anything new goes in. Said as what the work meets, never as a judgement on the homes. No figure."
+          }
+        ]
+      },
+      "faq_slots": [
+        {
+          "slot": "cost",
+          "question": "How much does [WORK_LOWER] cost in [TOWN]?",
+          "answer_brief": "Prices only from [CV: price_list]; otherwise the things that push the price up in a town like this (getting it in, moving the room from the stack, what the old room was built on) and how the quote is given, from [CV: quote_method] only.",
+          "doubt": "Price"
+        },
+        {
+          "slot": "town",
+          "when": "start_time",
+          "question": "How soon can you get to [TOWN]?",
+          "answer_brief": "From [CV: start_time] and [CV: response_time] only. The town is in the area covered; nothing about distance unless [CV: travel_distance] is set.",
+          "doubt": "Timing"
+        },
+        {
+          "slot": "town",
+          "question": "Do you cover [TOWN]?",
+          "answer_brief": "Yes: the town and the villages around it (code lists them; name none). How the business reaches it from its base only from the client values. Link one page in this town.",
+          "doubt": "Fit"
+        },
+        {
+          "slot": "cover",
+          "when": "guarantee",
+          "question": "Do you guarantee your work in [TOWN]?",
+          "answer_brief": "Start with yes, then the terms from [CV: guarantee_years] and [CV: guarantee_scope]. Described, never promised.",
+          "doubt": "Trust"
+        },
+        {
+          "slot": "cover",
+          "when": "insurance",
+          "question": "Are you insured?",
+          "answer_brief": "The cover figure from [CV: insurance_cover] and what the cover is for. Never what it pays or who it covers.",
+          "doubt": "Trust"
+        },
+        {
+          "slot": "cover",
+          "question": "What happens if something isn't right after the job?",
+          "answer_brief": "Open with what the customer does: tell us and we look at it. Then the reasonable care and skill standard every trade works to. No promise to come back free. Never invent a guarantee.",
+          "doubt": "Trust"
+        },
+        {
+          "slot": "process",
+          "question": "What happens when I ask for a quote in [TOWN]?",
+          "answer_brief": "From [CV: quote_method] and the confirmed practices only: what the customer sends, what the business looks at in the room (the measurements, where the services run, the floor and the walls, how things get in), what comes back. No timescale unless [CV: response_time] is set.",
+          "doubt": "Process"
+        },
+        {
+          "slot": "timing",
+          "question": "How long does [WORK_LOWER] take in [TOWN]?",
+          "answer_brief": "No duration: the trade facts give none. The order of work as the reason (the strip out, first fix, plastering and its drying, units or the waterproofing and tiling, a worktop templated once the units are in, second fix, the tests and sign offs, the cure before the room is used), and where the town profile gives the housing (flats and their stairs, a terrace reached through the house, a listed home and its consent) what it does to that order. A number only from the client values. Nothing about when the job can start unless [CV: start_time] is set.",
+          "doubt": "Timing"
+        }
+      ]
+    }
+  },
+  "do_not_reuse": []
+}

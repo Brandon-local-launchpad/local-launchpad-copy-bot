@@ -1,0 +1,598 @@
+{
+  "_source": "niche-library/loft-conversions.json (Loft Conversions and Extensions, 4 Nov 2026; the human copy is Niche_Library_Loft_Conversions.md)",
+
+  "trade": "Loft Conversions and Extensions",
+  "trade_lower": "loft conversions and extensions",
+  "trade_person": "loft and extension builder",
+  "trade_person_plural": "loft and extension builders",
+  "customer_type": "homeowners",
+  "unit_of_work": "jobs",
+  "emergency_niche": false,
+  "big_ticket": true,
+  "big_ticket_examples": ["loft conversions", "house extensions", "double storey extensions"],
+  "schema_subtype": "GeneralContractor",
+
+  "words_use": ["house", "home", "loft", "roof", "headroom", "dormer", "stair", "landing", "bedroom", "kitchen", "back wall", "side return", "garage", "cellar", "steel beam", "floor joists", "scaffold", "skip", "plans", "building control", "planning permission", "party wall", "the neighbours", "fire door"],
+  "words_avoid": ["dwelling", "property", "premises", "habitable", "curtilage", "principal elevation", "fabric", "envelope", "load path", "means of escape", "protected route", "interstitial", "thermal element", "u value", "dutyholder", "programme", "remodel", "remodelling", "massing", "footprint", "Velux"],
+  "words_avoid_exceptions": { "Velux": "allowed as the page's own H1, title and card heading where the library keeps that page name; running text and link text say roof light loft conversion (the library's prose_name)" },
+  "banned_phrases": ["dream home", "home of your dreams", "forever home", "dream space", "transform your home", "transform your space", "transform your loft", "bring your vision to life", "turn your vision into reality", "the home you've always wanted", "unlock the potential", "unlock your home's potential", "add value to your home", "increase the value of your home", "adds value", "adds thousands", "signs you need a loft conversion", "signs you need an extension", "signs your home needs", "no job too small", "one stop shop", "turnkey"],
+
+  "buttons": {
+    "primary_action": "Get My [QUOTE_FREE] Quote",
+    "meta_cta": "Get your [QUOTE_FREE_LOWER] quote today.",
+    "process_h2": "Your [QUOTE_FREE] Quote in 3 Simple Steps",
+    "final_h2": "Get a [QUOTE_FREE] Quote From a Local [CATEGORY] in [CITY]",
+    "final_h2_emergency": null,
+    "cta_band_line": "Tell us about your house and the room you need, and we'll get back to you within [CV: response_time].",
+    "cta_band_line_no_response": "Tell us about your house and the room you need, and we'll get back to you."
+  },
+
+  "business_type_default": "A",
+  "business_type_notes": "Every Fillout tab is a project category (the pack's section 2: Home Builder for the extension pages, Building Firm for the loft and conversion pages, both type A). Construction Company, Contractor, General Contractor and Carpenter are not in the pack's table and take the client's type, A by default. There is no type B and no maintenance round: a loft boarding client is still A. Desire led throughout: every page target in the library is flagged desire_led, so every service page reads the desire variant.",
+
+  "priority_services": [],
+  "core_services": {
+    "building firm": ["loft conversions", "dormer loft conversions", "hip to gable loft conversions", "roof light loft conversions", "mansard loft conversions", "garage conversions", "basement conversions", "loft boarding and insulation"],
+    "home builder": ["house extensions", "single storey extensions", "double storey extensions", "side return extensions", "wraparound extensions", "conservatories and orangeries", "annexes and granny flats", "garden rooms and outbuildings"],
+    "construction company": ["house extensions", "double storey extensions", "structural alterations and steel beams", "basement conversions"],
+    "contractor": ["basement conversions", "garage conversions", "structural alterations and steel beams"],
+    "general contractor": ["house extensions", "structural alterations and steel beams", "annexes and granny flats"],
+    "carpenter": ["loft boarding and insulation", "garden rooms and outbuildings"]
+  },
+
+  "steps": [
+    {
+      "title": "Tell Us About Your House and the Room You Need",
+      "brief": "How to get in touch and what is useful to send first: the kind of house (a terrace, a semi, a bungalow, a flat), what the new room is for, photos of the loft from the hatch or of the back of the house, drawings if they already have them. No promise of a reply time unless [CV: response_time] is set."
+    },
+    {
+      "title": "We Visit, Measure and Price the Job",
+      "brief": "The visit and what gets looked at on site: the height under the ridge and how the roof is built (a cut roof with purlins, or trusses crossing the loft), where a stair could land and what it takes from the floor below, the side return or the garden and where the drains run, how a scaffold and a skip get to the house, whether the job touches a wall the neighbour shares, and what the planning position looks like for that house (looked at on the day, never settled on the day). Follows [CV: quote_method]; only say the quote is written if quote_method says so. Never restates 'free' (FAQ 5 owns it). Never a free survey, a fixed price, a start date or a verdict that the loft will convert."
+    },
+    {
+      "title": "We Start on a Date That Suits You",
+      "brief": "The start date is agreed in advance, to suit the customer. Never mention the price, the quote or changes to the plan (step 2 and Why choose us own them). Never restates the start time (FAQ 4 owns it). No finish date, duration or week by week plan: the trade facts give none. One line on the order of work only as a principle (a loft is built from the scaffold outside and the ceiling is opened for the stair late; an extension is made weathertight before the wall into the house comes down), never as this business's timetable."
+    }
+  ],
+
+  "step_2_no_visit": {
+    "title": "We Price Your Job",
+    "brief": "Say a price is agreed before any work starts. Describe how the price is reached only from [CV: quote_method]; when quote_method is blank, name no method at all (no photos, call, video or visit). Only say the quote is written if quote_method says so. Never restates 'free' (FAQ 5 owns it). Never a verdict that a loft will convert before the house has been seen."
+  },
+  "cover_chain": ["guarantee", "manufacturer_warranty", "insurance"],
+
+  "fears": [
+    "costs that appear once the roof or the back wall is open and the job is half done",
+    "a build that overruns while the family lives in the dust",
+    "a loft that ends up too low to stand in, or a stair that eats a bedroom",
+    "work that fails its building control inspection, or comes back to bite when the house is sold"
+  ],
+  "fears_by_type": {},
+
+  "logo_tiers": {
+    "ratings": ["Google (needs review_count 5+)", "Checkatrade", "Trustpilot", "Which? Trusted Traders"],
+    "tier1": ["FMB (Federation of Master Builders)", "TrustMark", "CIOB (Chartered Institute of Building: an individual's grade, never the firm's)"],
+    "tier2": ["LABC Warranty, Premier Guarantee or NHBC Buildmark (a structural warranty on a new dwelling, an annex built as a separate home included; never on an ordinary loft or extension; shown as the policy it is, never as approval of the work)", "QANW or HomePro (an insurance backed guarantee, only where the client holds one)", "GGF (Glass and Glazing Federation: conservatory and orangery work only)", "CHAS or SafeContractor (a health and safety assessment, never a mark on the workmanship)", "Considerate Constructors Scheme (site conduct, only where the client is registered)"],
+    "tier3": "chamber of commerce, local press features, local awards: Ray's call per client. Gas Safe, NICEIC, NAPIT, FENSA and CERTASS belong to whoever is registered for that work; shown only when the client itself is registered for that scope, never for a subcontractor's registration. A 'pyramid of loft specialists' badge is not a body the trade facts could verify (Table D) and is never shown."
+  },
+
+  "faq_fixed_doubts": {
+    "Q1_cost": "Price",
+    "Q6_areas": "Fit"
+  },
+
+  "faq_slots": [
+    {
+      "slot": "faq_2",
+      "question": "Are you insured?",
+      "answer_brief": "The cover figure from [CV: insurance_cover] and what it means for the customer if something is damaged during the job. Never what it pays or who it covers.",
+      "symptom_based": false,
+      "doubt": "Trust"
+    },
+    {
+      "slot": "faq_2_fallback",
+      "question": "What happens if something goes wrong?",
+      "answer_brief": "From [CV: complaints_process] only.",
+      "symptom_based": false,
+      "doubt": "Trust"
+    },
+    {
+      "slot": "faq_3",
+      "question": "Do you guarantee your work?",
+      "answer_brief": "Used only when a guarantee or a warranty is confirmed. Start with yes, then the terms from [CV: guarantee_years] and [CV: guarantee_scope]. A structural warranty on a new dwelling from [CV: manufacturer_warranty] as the policy it is, never as approval of the work and never implied for a loft or an extension. An insurance backed guarantee only where the client holds one. Described, never promised.",
+      "symptom_based": false,
+      "doubt": "Trust"
+    },
+    {
+      "slot": "faq_3_none",
+      "question": "What happens if something isn't right after the job?",
+      "answer_brief": "Used when nothing in cover_chain other than insurance is confirmed. Open with what the customer does: tell us what isn't right and we'll look at it. Then the 'reasonable care and skill' standard every trade works to, as the standard the work is held to, never as a defence. No promise to come back or put it right for free. Never invent a guarantee. Where building control inspected the work, the completion certificate records that it was signed off; it is evidence of that and never a guarantee against a later defect (the trade facts fact row).",
+      "symptom_based": false,
+      "doubt": "Trust"
+    },
+    {
+      "slot": "faq_4",
+      "question": "How soon can you start?",
+      "answer_brief": "From [CV: start_time] only, as given. Code adds \"bigger projects are booked further ahead\" only when that practice is confirmed. Never a finish date. Nothing about the approvals taking time unless [CV: handles_planning] is confirmed and the client values give it.",
+      "symptom_based": false,
+      "doubt": "Timing"
+    },
+    {
+      "slot": "faq_5_free",
+      "question": "Is the quote free and no obligation?",
+      "answer_brief": "From [QUOTE_FREE] and [CV: quote_method].",
+      "symptom_based": false,
+      "doubt": "Price"
+    },
+    {
+      "slot": "faq_5_not_free",
+      "question": "How do your quotes work?",
+      "answer_brief": "From [CV: quote_method] only.",
+      "symptom_based": false,
+      "doubt": "Price"
+    },
+    {
+      "slot": "faq_A",
+      "question": "Is my loft tall enough to convert?",
+      "answer_brief": "It is measured, never assumed: the pack's section 3 bans claiming the lofts in an area are tall enough, and the trade facts give a feasibility guide rather than a legal minimum, so no figure. What decides it, in plain words: how much height there is beneath the ridge, the way the roof is built (a cut roof with purlins leaves the loft open; trusses cross it and are swapped for new floor joists and beams before anything else), and where there is room for a stair to come up. Where the height is short the usual answers each change the roof's shape (a dormer adds a box with a flat ceiling at the back, a hip to gable builds the sloping side up into a wall, a mansard rebuilds the back slope almost upright), and changing the shape can change the planning position (the rules FAQ owns that). Never that a loft will or will not convert before it has been seen.",
+      "symptom_based": false,
+      "doubt": "Fit"
+    },
+    {
+      "slot": "faq_B",
+      "question": "Why does my loft floor bounce when I walk on it?",
+      "answer_brief": "Use the assigned symptom's meaning and its linked local issue. Say first what is normal: ceiling joists were sized to hold a ceiling and a little stored weight, so they give underfoot, and boxes stacked on them squash the insulation and do nothing worse than that. Then what is not: joists that flex with every step, a ceiling below that has cracked along a line, boards fixed straight to the joists and a bedroom made of the space. Three genuinely different causes in plain words: the joists carrying a load they were never sized for; boards or a partition sitting on them without new support; a roof whose timbers have been cut or moved. Then what the local housing adds (the era of the roofs from the town profile, never the inside of anyone's home), then what putting it right involves from the trade facts: new floor joists or beams designed for a room, spanning to the walls, with building control looking at the design; boarding on raised legs for storage only. Never a verdict that a ceiling is unsafe; never boarding sold as a room.",
+      "symptom_based": true,
+      "doubt": "Process"
+    },
+    {
+      "slot": "faq_C",
+      "question": "Planning permission or building regulations: which does my project need?",
+      "answer_brief": "Two approvals, kept apart, from the trade facts rule rows. Planning asks whether the thing may be built at all: how big it is, how high, how it looks from the street and what it does to the neighbours. Building regulations ask whether it is sound and safe once built: the structure and the new floor, the foundations, the way down in a fire, insulation, drains and ventilation, with building control looking at the work as it goes and issuing a completion certificate at the end. A single floor added behind the house, a loft that keeps its roof as it is apart from a dormer at the back or roof lights, and a garage made into a room inside its own walls usually need no application to the council and still go through building control. Telling the people next door in writing about work on a wall they share is a third thing, separate from both. 'Usually' throughout; never an Act's, an order's, a class's or a document's name; no figure.",
+      "symptom_based": false,
+      "is_fallback": true,
+      "doubt": "Process"
+    },
+    {
+      "slot": "faq_D",
+      "question": "Can we live in the house while the loft or extension is built?",
+      "answer_brief": "The order of work as the reason, from the trade facts stages: a loft is reached from the scaffold outside, the roof is opened and made weathertight again before the ceiling below is cut for the stair, so the bedrooms underneath carry on until the stair goes in; an extension is built and roofed before the back wall comes down, so the knock through is the last big day and the house stays closed to the weather until then; a garage or a cellar is worked on from its own door. Written as the principle, never as this business's timetable. What the business does for the household (dust sheets and screens, a temporary kitchen, a site toilet) only from confirmed practices. The home insurer is usually told about work on this scale (the trade facts fact row), said as a thing the customer does. No duration.",
+      "symptom_based": false,
+      "is_fallback": true,
+      "doubt": "Process"
+    },
+    {
+      "slot": "faq_planning",
+      "question": "Will my loft or extension need planning permission?",
+      "answer_brief": "Point at the trade facts rule rows (Table C) and write what usually applies, with \"usually\" or \"in most cases\": a dormer at the back or roof lights that keep the roof as it is, a single floor added behind the house, and a garage made into a room inside its own walls usually fall within what a house may do without asking the council. A dormer facing the road, a mansard, a roof raised above its ridge, a second floor added on top, building out beside the house or round its corner, a flat or a maisonette, a listed home, a conservation area, and an estate where the council has withdrawn the allowance are more likely to need permission. A certificate from the council is the usual way to confirm that a job needs none. The building regulations side is a different question: every loft conversion and almost every extension goes through building control whether or not planning was needed. What the customer does about it only as the row gives it; what this business arranges only from [CV: handles_planning]. No figure, no depth, height or volume, never an Act's, an order's or a class's name; never that a job will or will not need permission before the house has been seen.",
+      "symptom_based": false,
+      "condition": "big_ticket AND [CV: handles_planning] confirmed",
+      "doubt": "Process"
+    }
+  ],
+  "faq_slots_by_type": {},
+
+  "materials_tick_list": {
+    "Loft types": ["rear dormer", "L shaped dormer", "hip to gable", "mansard", "roof light conversion", "bungalow loft conversion"],
+    "Loft structure": ["new floor joists", "steel beams", "timber beams", "insulation between and under the rafters", "flat roofed dormer", "pitched roofed dormer", "tile hung dormer sides", "rendered dormer sides", "cladded dormer sides"],
+    "Extensions": ["brick and block cavity walls", "timber frame", "strip foundations", "engineered foundations", "pitched roof", "flat roof in fibreglass", "flat roof in rubber", "flat roof in felt", "rooflights and roof lanterns", "large glazed doors", "steel beams and padstones"],
+    "Conservatories and garden rooms": ["glazed roof", "solid roof", "insulated timber frame garden room", "masonry garden room", "separate heating"],
+    "Garages, cellars and annexes": ["infill wall with a window", "damp proof membrane", "insulated floor", "tanking", "cavity drain membrane with a pump", "separate services for an annex"],
+    "Other": ["drawings arranged", "structural engineer arranged", "building control application made for you", "party wall notices handled", "scaffold and skip arranged", "waste carrier registered", "fire doors and alarms fitted as part of the job"]
+  },
+
+  "service_terms": ["loft conversion", "loft conversions", "dormer", "rear dormer", "L shaped dormer", "flat roof dormer", "hip to gable", "mansard", "Velux", "roof light conversion", "rooflight", "roof light", "roof windows", "bungalow loft conversion", "loft boarding", "loft insulation", "loft ladder", "loft hatch", "house extension", "extensions", "single storey extension", "double storey extension", "two storey extension", "rear extension", "side return", "side return extension", "wraparound extension", "kitchen extension", "conservatory", "orangery", "garden room", "outbuilding", "garage conversion", "integral garage conversion", "basement conversion", "cellar conversion", "annexe", "annex", "granny flat", "structural alterations", "steel beam", "RSJ", "knock through", "open plan", "staircase", "stair", "fire door", "floor joists", "foundations", "footings", "scaffold", "en suite", "roof lantern", "bifold doors"],
+
+  "service_words_note": "Old path only (21 Oct 2026): this list applies when the homepage is written from the uploaded custom values CSVs. A client with a v3 page map names every service by its page title (the services library's UK name), and this list is not used.",
+  "service_words": [
+    ["crawl space", null], ["pole building", null], ["metal building", null], ["steel building", null], ["tv mounting", null], ["fan installation", null], ["fan repair", null],
+    ["road construction", null], ["furniture assembly", null], ["gutter cleaning", null], ["tiny home", null], ["prefabricated", null], ["commercial machinery", null],
+    ["civil engineering", null], ["a/c", null], ["plumbing", null], ["electrical", null], ["landscaping", null], ["painting", null], ["interior decorating", null],
+    ["drywall", null], ["tile work", null], ["flooring", null], ["floor fitting", null], ["kitchen remodelling", null], ["bathroom remodelling", null], ["water fixture", null],
+    ["cabinet", null], ["wardrobe", null], ["shelving", null], ["staircase", null], ["trim carpentry", null], ["finish carpentry", null], ["rough carpentry", null],
+    ["general repairs", null], ["home repairs", null], ["repairs and maintenance", null], ["demolition", null], ["patio", null], ["deck", null], ["roof installation", null], ["roof repair", null],
+    ["dormer", "dormer loft conversions"], ["l-shaped", "dormer loft conversions"], ["l shaped", "dormer loft conversions"], ["bungalow loft", "dormer loft conversions"],
+    ["hip-to-gable", "hip to gable loft conversions"], ["hip to gable", "hip to gable loft conversions"], ["mansard", "mansard loft conversions"],
+    ["velux", "roof light loft conversions"], ["roof light", "roof light loft conversions"], ["rooflight", "roof light loft conversions"],
+    ["loft boarding", "loft boarding and insulation"], ["loft insulation", "loft boarding and insulation"], ["loft ladder", "loft boarding and insulation"],
+    ["loft", "loft conversions"], ["attic", "loft conversions"],
+    ["garage conversion", "garage conversions"], ["integral garage", "garage conversions"], ["garage", null],
+    ["double-storey", "double storey extensions"], ["double storey", "double storey extensions"], ["two storey", "double storey extensions"], ["two-storey", "double storey extensions"],
+    ["single-storey", "single storey extensions"], ["single storey", "single storey extensions"], ["side return", "side return extensions"],
+    ["wraparound", "wraparound extensions"], ["wrap around", "wraparound extensions"], ["wrap-around", "wraparound extensions"],
+    ["orangery", "conservatories and orangeries"], ["conservatory", "conservatories and orangeries"],
+    ["annex", "annexes and granny flats"], ["granny", "annexes and granny flats"],
+    ["garden room", "garden rooms and outbuildings"], ["outbuilding", "garden rooms and outbuildings"], ["accessory building", "garden rooms and outbuildings"], ["garden office", "garden rooms and outbuildings"],
+    ["rsj", "structural alterations and steel beams"], ["structural steel", "structural alterations and steel beams"], ["steel beam", "structural alterations and steel beams"], ["knock through", "structural alterations and steel beams"], ["structural alteration", "structural alterations and steel beams"],
+    ["basement", "basement conversions"], ["cellar", "basement conversions"],
+    ["home addition", "house extensions"], ["home extension", "house extensions"], ["house extension", "house extensions"], ["extension", "house extensions"],
+    ["building construction", "house extensions"], ["general construction", "house extensions"], ["home building", "house extensions"], ["custom home", null], ["new building", null]
+  ],
+
+  "general_service_words": ["loft conversions", "extensions", "conversions", "building work", "loft and extension work"],
+  "problem_service_words": ["damp", "cold", "condensation"],
+  "why_titles_alt": [
+    "Local Experience Behind Every Loft and Extension",
+    "Covered If Something Goes Wrong"
+  ],
+
+  "category_work_nouns": {
+    "building firm": "loft conversions",
+    "home builder": "house extensions",
+    "construction company": "house extensions",
+    "contractor": "conversions",
+    "general contractor": "house extensions",
+    "carpenter": "loft conversions"
+  },
+  "seasonal_trade": false,
+  "category_types": {},
+  "category_page_blocks": {
+    "A": {
+      "problems": {
+        "h2": "Which [WORK] Suit Your Home",
+        "cards": [
+          {
+            "title": "A bedroom short, or a kitchen too small",
+            "brief": "A situation card, not a fault: a second child and two bedrooms, a parent who wants to be near, a desk on the landing, everyone eating in a kitchen made for two with the table in the front room. What decides it: what the house already has to give (a roof with enough height and the right form for a room, a garden deep enough to build into, a side return doing nothing, a garage with sound walls, a cellar) and the planning position for that house from the trade facts rule rows. Say it with \"usually\". A dormer at the back or roof lights that keep the roof as it is, a single floor added behind the house, and a garage made into a room inside its own walls usually need no permission from the council. A dormer on the street side, a mansard, a second floor on top, building out beside the house, a flat or a maisonette, a listed home or a conservation area is more likely to need it. Never a figure, an Act or an order. What the work gives them, in plain words: the room, the stair, the layout. By category: Building Firm reads it as the loft and the conversions (which kind of loft the roof allows, the garage, the cellar); Home Builder as the extension (the kitchen, the side return, the second floor, the annex); Construction Company and General Contractor as the extension and the beam that opens the back of the house; Contractor as the cellar and the garage; Carpenter as the loft floor and the storage that a boarded loft gives (storage, never a bedroom). Never a lifestyle pitch, never a fault invented for it, never a word about the value of the house.",
+            "mechanism": "rooms laid out for a smaller household than lives there now"
+          },
+          {
+            "title": "Headroom, trusses and the hip",
+            "brief": "A constraint card, the pack's second kind: what the reader can see from the loft hatch and what it means for the job. Standing room under the ridge: the height is measured on the visit and never assumed from the street (the pack's section 3; the trade facts give a feasibility guide, not a legal minimum, so no figure). The timbers: a cut roof leaves the loft open; a roof made of factory trusses has diagonal timbers crossing it, each one holding the roof up; such a roof is not a dead end, because new floor joists and beams designed for the room take over the job before the trusses come out, which is why the timbers are looked at before a line is drawn. The shape: a hipped roof comes down at the side as well as at the front and the back, so the loft is narrow, and a hip to gable builds that side up into a straight wall, usually with a dormer behind. Say what each means for the design, never a verdict that the loft will or will not convert. By category: Building Firm and Carpenter read it as the roof; Home Builder, Construction Company and General Contractor read it as the plot instead (the width of the side return, the depth of the garden, the drains and the trees beside where the extension will stand, from the trade facts price rows); Contractor as the garage floor below the house floor and the cellar's height. No height, depth or volume figure anywhere.",
+            "mechanism": "whether there is a room in the roof at all: its height, its timbers and its shape"
+          },
+          {
+            "title": "Where the stair lands",
+            "brief": "A constraint card: the stair decides the layout more than the dormer does (the pack's craft rule 2). The new flight usually rises over the existing stair so it takes the least from the floor below; where it cannot, it takes a slice of a bedroom or a bathroom, and the reader should know that before the drawings. The stair also brings the building regulations point customers learn about last: a loft that makes a third floor needs a protected way down to the front door, with fire doors on the rooms off the stair (upgraded where they need to be) and linked alarms, from the trade facts rule rows; said in plain words, never a rating, a pitch or a height. By category: Building Firm and Carpenter read it as the stair and the fire route; Home Builder, Construction Company and General Contractor read it as the opening into the house instead (the steel beam over the knock through on its padstones, the new part built and roofed before the back wall comes down); Contractor as the stair down into a cellar and the way out of it. Never an Act's or a document's name; never a figure.",
+            "mechanism": "the stair taking its room from the floor below"
+          },
+          {
+            "title": "A relative with a door of their own",
+            "brief": "A situation card: a relative moving in who wants some independence, a grown child back home, a home office that needs a door to shut. What decides it: the space already there or apart from the house (a garage with sound walls and a slab below the house floor, a cellar that lets water in, the end of the garden) and how the new space will be lived in, from the trade facts rule rows: planning usually looks differently at an annex the household itself uses than at one someone lives in on their own, which usually needs permission; a garden building nobody sleeps in usually needs no application, and using it as a bedroom or a self contained home changes that; a garage converted inside its own walls and an existing cellar fitted out usually need no application, while digging a new basement usually does. Building control applies wherever someone will live: a damp proof membrane and insulation under a garage floor, a designed waterproofing system with a drain or a pump in a cellar, the services and the drains of an annex. What the work gives them: a room with its own door, dry, warm and signed off. By category: Home Builder, General Contractor and Carpenter read it as the annex and the garden room; Building Firm and Contractor as the garage and the cellar; Construction Company as the annex built new. Never a figure, never an Act's or a class's name, never a council tax or a VAT claim.",
+            "mechanism": "how the new space will be lived in"
+          }
+        ]
+      },
+      "cost": {
+        "h2": "What Affects the Cost of [WORK] in [CITY]",
+        "cards": [
+          {
+            "title": "How much of the roof or the house changes",
+            "brief": "Size moves the price more than anything else, and in a loft it is how much of the roof is rebuilt as well as the floor area: roof lights keep the roof as it is, a dormer rebuilds part of the back slope, a hip to gable rebuilds the side and a mansard most of the roof (the trade facts price rows). In an extension it is the floor area and the storeys. More structure, more scaffold, more days. Say it plainly and give no figure."
+          },
+          {
+            "title": "What the roof and the ground are made of",
+            "brief": "What has to be worked round or replaced before the new work starts, from the trade facts price rows: trusses that come out for new joists and beams, a complex roof with awkward support points, clay or trees under where the foundations go and what building control asks to see before concrete is poured, a public drain or sewer where the extension would stand (the water company usually has to agree, said without a distance), an older home checked for asbestos in what will be disturbed, and how the scaffold, the skip and the materials get in. Say the business looks before it prices, from [CV: quote_method] only, and that some of it is only seen for certain once the roof or the ground is open."
+          },
+          {
+            "title": "Steel, the stair and the sign offs",
+            "brief": "The hidden work and the people it brings in, from the trade facts price rows and rule rows: the beams and the points that carry them, the stair and the fire route it brings with it, foundations an engineer designs, drains moved, the building control fee and its inspections, a surveyor where a shared wall comes into it, drawings. Each adds a professional, an inspection or a wait. Which of them this business arranges only from confirmed practices and [CV: handles_planning]. No figure."
+          },
+          {
+            "title": "Windows, bathrooms and the finish",
+            "brief": "What goes into the new room, from the trade facts price rows and [CV: materials_methods]: the number and position of roof windows, an en suite with its pipes and its drain, large glazed doors and the energy design they bring with them, the dormer's cladding, the roof covering, the floor and the decoration. Why one costs more than another, in plain words. A named product only from [CV: materials_methods]. Code adds the price line from [CV: price_list] when there is one."
+          }
+        ]
+      },
+      "faq_slots": [
+        {
+          "slot": "cost",
+          "question": "How much do [WORK_LOWER] cost in [CITY]?",
+          "answer_brief": "Prices only from [CV: price_list]; otherwise the three things that move the price for this kind of work (how much of the roof or the house changes, what is found in the roof or the ground, the structure and the sign offs it needs) and how the quote is given, from [CV: quote_method] only. Say that what is found once the roof or the ground is opened is the reason a builder looks first, never a promise that the price cannot change.",
+          "doubt": "Price"
+        },
+        {
+          "slot": "cover",
+          "when": "guarantee",
+          "question": "Do you guarantee your [WORK_LOWER]?",
+          "answer_brief": "Start with yes, then the terms from [CV: guarantee_years] and [CV: guarantee_scope]. Described, never promised. A completion certificate from building control is a record that the work was signed off, never a guarantee.",
+          "doubt": "Trust"
+        },
+        {
+          "slot": "cover",
+          "when": "insurance",
+          "question": "Are you insured for [WORK_LOWER]?",
+          "answer_brief": "The cover figure from [CV: insurance_cover] and what the cover is for. Never what it pays or who it covers.",
+          "doubt": "Trust"
+        },
+        {
+          "slot": "cover",
+          "question": "What happens if something isn't right after the job?",
+          "answer_brief": "Open with what the customer does: tell us and we look at it. Then the reasonable care and skill standard every trade works to. No promise to come back free. Never invent a guarantee.",
+          "doubt": "Trust"
+        },
+        {
+          "slot": "scope",
+          "question": "What [WORK_LOWER] do you take on?",
+          "answer_brief": "The jobs themselves, named from the card list (the kinds of loft: dormer, hip to gable, mansard, roof light; the kinds of extension: single storey, double storey, side return, wraparound; the conversions), and the size of job taken on, from the services list and [CV: typical_jobs] only. Link one service page. Design, drawings, structural engineering and the planning application only where [CV: handles_planning] or the confirmed practices say so; otherwise say those come from the customer's own architect or engineer and the builder works to them. Never 'on this page', 'listed above' or 'the card list' as words: the reader sees no list, so name the work.",
+          "doubt": "Fit"
+        },
+        {
+          "slot": "process",
+          "question": "What happens when I ask for a quote?",
+          "answer_brief": "From [CV: quote_method] and the confirmed practices only: what the customer sends (photos from the loft hatch, the back of the house, any drawings), what the business looks at on site (the height and the timbers of the roof, where a stair could land, the garden and the drains, the access for a scaffold and a skip, whether a shared wall comes into it, what the planning position looks like for that house), what comes back. Approvals handled on the customer's behalf only from [CV: handles_planning]. No timescale unless [CV: response_time] is set.",
+          "doubt": "Process"
+        },
+        {
+          "slot": "timing",
+          "question": "How long do [WORK_LOWER] take?",
+          "answer_brief": "No duration: the trade facts give none for any job (Table G). The stages in order as the reason the time is what it is: the approvals before a start; the scaffold up and the roof opened, or the foundations dug and looked at before the concrete; the new floor joists and beams; the dormer or the walls framed and made weathertight; the stair; first fix and insulation; plaster and its drying; fire doors and alarms; the final inspection. Then what moves it: the ground, steel, drains, the weather on the exposed stages, plaster drying before decoration. By category: Building Firm and Carpenter lead with the roof stages; Home Builder, Construction Company and General Contractor with the ground and the shell; Contractor with waterproofing that has to be tested before it is covered. A number only from the client values. Nothing about when the job can start unless [CV: start_time] is set.",
+          "doubt": "Timing"
+        }
+      ],
+      "faq_symptom": {
+        "frame": "[SYMPTOM]: why does it happen, and what can be done?",
+        "answer_brief": "The symptom and its linked local issue, answered as asked. Where the symptom is one that can be normal (a ceiling that gives a little under stored boxes, condensation on a cold roof window on a winter morning, a hairline crack in new plaster as it dries), say first when it is normal and then what is not, before anything else. Then the usual cause here in plain words, what the local housing or ground adds, what finding the cause involves, and what the business does about it. Never the biggest fix by default, never boarding sold as a room, never a verdict that a house is unsafe. One figure at most.",
+        "doubt": "Process"
+      }
+    }
+  },
+
+  "service_page_blocks": {
+    "A": {
+      "included": {
+        "h2": "What's Included in Our [SERVICE]",
+        "items": [
+          {
+            "title": "Measuring the roof, the ground and what is there",
+            "brief": "The survey stage from the trade facts: the height and the timbers of the roof, the ground where it can be seen, the drains and the services, what will be disturbed (an older home checked for asbestos in the parts that will be opened, from the rule rows), how the scaffold and the materials get in. A part of the job, not a promise about the quote and never a verdict that the loft will convert."
+          },
+          {
+            "title": "The approvals the job needs",
+            "brief": "The approvals stage from the trade facts: the building control application and its inspections, the planning position for that house, a notice to the neighbours where a shared wall or their footings are involved, the water company's agreement where a public sewer runs close. Which of them this business arranges only from [CV: handles_planning] and the confirmed practices; otherwise said as a stage of the job that is agreed with the customer. Never an Act's, an order's, a class's or a document's name."
+          },
+          {
+            "title": "Scaffold, weather protection and making safe",
+            "brief": "The scaffold and the temporary cover as the trade facts stages name them for this service: the roof opened under a cover, the wall propped before it is opened, the garage door opening held while it is filled, the excavation supported, the dust kept to the room. Name only what the rows give."
+          },
+          {
+            "title": "The structure: beams, joists and foundations",
+            "brief": "The structural stages as the trade facts name them for this service: the new floor joists spanning to the walls and the beams that carry them, the trusses replaced, the hip taken down and the gable built, the foundations dug and looked at before the concrete goes in, the beam on its padstones over the opening, the underpinning where it is designed. No figure unless the rows give one, and never a standard's number."
+          },
+          {
+            "title": "The stair, the openings and the roof work",
+            "brief": "The forming stages from the trade facts: the dormer framed and roofed, the roof windows and their flashings, the stair opening cut and the flight fitted, the new walls and roof of an extension, the window in the garage infill. The weathertight line reached before anything inside starts."
+          },
+          {
+            "title": "First fix, insulation and fire protection",
+            "brief": "The first fix stage from the trade facts: the pipes, cables and ducts run before anything is closed up, the insulation between and under the rafters or in the walls and floor with the moisture detailing that stops condensation, the damp proof membrane or the waterproofing system tested before it is covered, the fire doors and the linked alarms where the job makes a new floor. Electrics by whoever is registered to sign them off, said without a scheme's name unless the client itself is registered."
+          },
+          {
+            "title": "Plaster, finishes, the final inspection and the clear up",
+            "brief": "The finishing stages from the trade facts: plaster or board and skim, the second fix joinery, the en suite, the decoration once the plaster is dry; then the final inspection and the completion certificate that follows it (a record of the sign off, never a guarantee), the electrical certificate, the scaffold down, the site cleared and the waste taken by a registered carrier (from the rule rows). Whether this business holds the certificates for the customer only from confirmed practices."
+          }
+        ],
+        "note": "Fallback only: the tick items are the service's own Table A stages when the pack gives 6 or more; this set is used when it gives fewer (F-ITEMS-GENERIC)."
+      },
+      "problems": {
+        "h2": "When [SERVICE] Is the Answer",
+        "cards": [
+          {
+            "title": "What you can see from the hatch or the garden",
+            "brief": "Fallback only: every library page is flagged desire led and reads the desire variant below, so this block serves a page added outside the library. The things the trade facts signs row gives for this service, in the homeowner's words: a loft with no proper stair and joists that give underfoot, a garage with a cold concrete floor and a door the size of a car, water on a cellar wall, an unused strip beside the kitchen, a dark loft with no windows. Say plainly that these are reasons to have the house looked at, never proof that the job will work (the trade facts say so in the row). The one cause this card makes: a space never built for the use it is getting. Then what it leads to if the use carries on, from the skipped row: specific, never alarming (stored weight on joists sized for a ceiling, damp that stays).",
+            "mechanism": "a space never built for the use it is getting"
+          },
+          {
+            "title": "It flexes, cracks or sags",
+            "brief": "A ceiling that moves under the boarded loft, a crack over a wide opening, a beam that was never designed, a lintel that has dropped where a garage door was filled in. The one cause this card makes: a load going where it was never designed to go (ceiling joists used as a floor, a wall taken out without a proper beam, a beam on a bearing too small for it, a garage infill with no footing under it, from the trade facts done badly row). Say what the job does so it stays put, from the stages: an engineer's design, temporary props while the opening is formed, padstones under the beam, new joists spanning to the walls, building control looking at the structure; no size or figure the rows do not give; never a dig at another trade. Never a verdict that a house is unsafe.",
+            "mechanism": "a load going where it was never designed to go"
+          },
+          {
+            "title": "Converted, boarded or opened up without sign off",
+            "brief": "A loft boarded and slept in with no proper stair, a garage made into a room with no record at building control, an earlier conversion with no completion certificate, a wall taken out years ago with nothing to show for it. The one cause this card makes: work done without the approvals it needed, which comes back when the house is sold or when the room is used as what it was never approved as. Say what putting it right involves, from the trade facts rule rows in plain words: the council can look at earlier work and certify it, sometimes after alterations (never the procedure's name); a loft slept in needs the full conversion with its floor, its stair and its fire route; an indemnity policy is not a sign off. Never a date or a year, never legal advice.",
+            "mechanism": "work done without the approvals it needed"
+          },
+          {
+            "title": "Cold, damp or dripping",
+            "brief": "A loft room cold under its slopes and wet on the window in the morning, a garage conversion with a floor that strikes cold, a cellar that smells damp, a stain where a dormer meets the roof. The one cause this card makes: warm air meeting a cold surface with nowhere for the moisture to go (insulation with gaps or squashed flat, a roof build up with no thought for moisture, a membrane left out of a garage floor, a cellar kept dry by paint instead of a designed system, a roof junction poorly weathered, from the trade facts done badly row). Say what the job does to close it, from the stages for this service: the insulation and its ventilation designed together, the membrane continuous, the waterproofing tested before it is covered, the junctions flashed; never a product by name, never a treatment sold by default, never a figure for insulation.",
+            "mechanism": "warm air meeting a cold surface with nowhere for the moisture to go"
+          }
+        ]
+      },
+      "cost": {
+        "h2": "What Affects the Cost of [SERVICE] in [CITY]",
+        "cards": [
+          {
+            "title": "How much of the roof or the house this job changes",
+            "brief": "The size factor from the trade facts price row for this service: how much of the roof is rebuilt (roof lights keep it, a dormer rebuilds part of the back, a hip to gable the side, a mansard most of it), the floor area and the storeys of an extension, the span of the opening, the depth of the dig. Say it plainly and give no figure."
+          },
+          {
+            "title": "What we find in the roof or the ground",
+            "brief": "What has to come out or be worked round, from the trade facts price row for this service: trusses that are replaced, awkward support points, clay or trees under the foundations, a drain or a sewer in the way, water in the ground under a cellar, an old slab with no membrane, asbestos in an older home. Say the business looks before it prices, from [CV: quote_method] only, and that some of it is only seen for certain once the roof or the ground is open."
+          },
+          {
+            "title": "Who else the job needs on it",
+            "brief": "The people and the sign offs from the trade facts price row and rule rows for this service: an engineer's design for the beams, the floor or the foundations, building control and its inspections, a surveyor where a shared wall comes into it, the water company where a public sewer runs close, a registered electrician, a scaffold firm with its licence where the scaffold stands on the pavement. Each adds a fee, an inspection or a wait. Which of them this business arranges only from confirmed practices and [CV: handles_planning]. No figure."
+          },
+          {
+            "title": "Windows, finishes and access",
+            "brief": "What goes into the room and how the job is reached, from the trade facts price row and [CV: materials_methods]: the number of roof windows, an en suite and its drain, large glazed doors and the energy design they need, the dormer's cladding and roof covering, the floor and the decoration; then a skip on the road with the council's permit, a terraced street with everything carried through the house, a narrow side return with no room for a machine. A named product only from [CV: materials_methods]. Code adds the price line from [CV: price_list] when there is one."
+          }
+        ]
+      },
+      "faq_slots": [
+        {
+          "slot": "cost",
+          "question": "How much does [SERVICE_LOWER] cost in [CITY]?",
+          "answer_brief": "Prices only from [CV: price_list]; otherwise how the quote is given, from [CV: quote_method] only. The four cost cards above already give what moves the price: name one factor at most, never the list again. Never a fixed price or a promise the price cannot change.",
+          "doubt": "Price"
+        },
+        {
+          "slot": "timing",
+          "question": "How long does [SERVICE_LOWER] take?",
+          "answer_brief": "From the trade facts timing row only: the row gives no duration for any job in this trade, so give the stages in order and what decides the time (the roof opened under cover, the ground, steel, drains, the weather on the exposed stages, plaster drying, the inspections). A number only from the client values. Nothing about when the job can start unless [CV: start_time] is set. This is the one place the timing is written.",
+          "doubt": "Timing"
+        },
+        {
+          "slot": "cover",
+          "when": "guarantee",
+          "question": "Do you guarantee your [SERVICE_LOWER]?",
+          "answer_brief": "Start with yes, then the terms from [CV: guarantee_years] and [CV: guarantee_scope]. Described, never promised. A completion certificate is a record of the sign off, never a guarantee.",
+          "doubt": "Trust"
+        },
+        {
+          "slot": "cover",
+          "when": "insurance",
+          "question": "Are you insured for [SERVICE_LOWER]?",
+          "answer_brief": "The cover figure from [CV: insurance_cover] and what the cover is for. Never what it pays or who it covers.",
+          "doubt": "Trust"
+        },
+        {
+          "slot": "cover",
+          "question": "What happens if something isn't right after the job?",
+          "answer_brief": "Open with what the customer does: tell us and we look at it. Then the reasonable care and skill standard every trade works to. No promise to come back free. Never invent a guarantee.",
+          "doubt": "Trust"
+        },
+        {
+          "slot": "rules",
+          "question": "Do I need permission for [SERVICE_LOWER]?",
+          "answer_brief": "From the trade facts rule rows for this service only, put as what usually applies, with \"usually\" or \"in most cases\", and the two approvals kept apart. First whether planning permission is usually needed, by the service. A dormer at the back or roof lights that keep the roof as it is usually need no application. A dormer facing the road, a mansard or a roof raised above its ridge, a flat or a maisonette, a listed home and a conservation area more often need one, and a mansard is checked against the same allowance rather than assumed to fit. A single floor added behind the house usually needs none; a deeper one sometimes goes through a lighter route where the council asks the neighbours first; a second floor on top, building out beside the house or round its corner more often needs one. A garage made into a room inside its own walls and an existing cellar fitted out usually need none; a new basement dug out usually does. Planning usually draws a line between an annex the household itself uses and one that someone lives in on their own. A garden building nobody sleeps in usually needs none. A certificate from the council is the usual way to confirm a job needs none. Then whether building control has to be involved: it is for every loft conversion (the new floor, the stair, the protected way down in a fire, insulation) and almost every extension, conversion, new opening and new bathroom with its drains and electrics, while a garden building nobody sleeps in, or a conservatory on the ground floor kept separate from the house by outside doors with its own heating, is often outside it; open the conservatory into the house and it is treated as an extension. Then telling the people next door, in writing, where the job touches a wall they own half of or digs beside their footings; on a terrace or a semi a loft's new floor and its beams usually sit on that wall. What the customer does about it only as the row gives it; what this business arranges only from [CV: handles_planning]. Never a figure, an area, a height, a volume, a distance or a notice period; never an Act's, an order's, a class's or a document's name; never legal advice; never that this job will or will not need permission before the house has been seen. Where the rows give no rule for this service, say no permission is usually needed for this work at a home and leave it there.",
+          "doubt": "Process"
+        },
+        {
+          "slot": "scope",
+          "question": "What does your [SERVICE_LOWER] service include?",
+          "answer_brief": "The What's Included items said as a sentence, in other words: the survey, the approvals, the structure, the roof or the shell, the stair, first fix, the finishes, the sign off. What it does not cover only from the services list (design, drawings, engineering and the planning application only where [CV: handles_planning] or the confirmed practices say so; loft boarding is storage and never a room), with one sibling service page or the category page linked.",
+          "doubt": "Fit"
+        }
+      ],
+      "faq_symptom": {
+        "frame": "[SYMPTOM]: why does it happen, and what can be done?",
+        "answer_brief": "The symptom and its linked local issue, answered as asked. Where the symptom is one that can be normal (a ceiling that gives a little under stored boxes, condensation on a cold roof window on a winter morning, a hairline crack in new plaster as it dries), say first when it is normal and then what is not, before anything else. Then the usual cause here in plain words, what the local housing or ground adds, and what this service does about it. Never the biggest fix by default, never boarding sold as a room, never a verdict that a house is unsafe. One figure at most.",
+        "doubt": "Process"
+      },
+      "desire": {
+        "problems": {
+          "h2": "Are [SERVICE] Right for Your House?",
+          "cards": [
+            {
+              "title": "The room you need and the house you have",
+              "brief": "The customer's situation: a second child and two bedrooms, a parent who wants to be near, a desk on the landing, a queue for the one bathroom, a kitchen the household crowds into, a garage full of everything except the car, a cellar used for nothing. What decides it: the use the room is for, matched to the part of the house that can give it, from the trade facts stages for this service (a loft for a bedroom and an en suite, the back of the house for the kitchen, the side return for width, a garage or a cellar for a room with its own door, the garden for an annex or an office) and the planning position for that house from the rule rows, said with \"usually\" and never a figure, an Act or an order. What the work gives them, from the stages: the room, the stair, the opening, the dry warm floor, the door of their own. Never a fault invented for it, never a lifestyle pitch, never a dream, never a word about value: the house and the use.",
+              "mechanism": "the use the room is for, matched to the part of the house that can give it"
+            },
+            {
+              "title": "Dormer, hip to gable, mansard or roof lights",
+              "brief": "The customer's situation: they are weighing two or three ways of doing it (roof lights against a dormer, a dormer against a hip to gable, a mansard against moving house, a loft against an extension, a single floor against two, a side return against a full width extension, a conservatory against an orangery, a garage conversion against a garden room, an annex against an extension). What decides it: the form of the roof or the plot choosing between the options, from the trade facts materials and methods cell for this service (enough height along the middle suits roof lights; a gable end or a terrace suits a dormer; a hipped roof suits a hip to gable, usually with a dormer behind; a mansard gives the most room and rebuilds the roof most; a deep garden takes depth, a side return takes width), which approval each needs from the rule rows, and how much upheaval the household can take. What the work gives them: the option that suits their house, never the one that is best in general. A named product only from [CV: materials_methods]. No claim about cost, value or lifespan unless the rows or the client values give it; never a verdict that the loft will convert before it is measured.",
+              "mechanism": "the form of the roof or the plot choosing between the options"
+            },
+            {
+              "title": "The parts you will never see again",
+              "brief": "The customer's situation: they have a cheaper quote, or a neighbour who had it done, and want to know what the difference buys. What decides it: the layer hidden once the plaster is on (the new floor joists spanning to the walls and the beams that carry them, instead of boards on the old ceiling joists; the steel on its padstones; the dormer's junctions with the roof, which is where water gets in when they are rushed; the insulation and its ventilation designed together so the room does not run with condensation; the foundations taken down to firm ground and looked at before the pour; the membrane under a garage floor; the waterproofing system behind a cellar's walls), which is where a quick job cuts corners and where it shows a winter or two later, from the trade facts done badly row. What the work gives them: that layer done as the stages name it, inspected where building control asks to see it. One specific from the stages for this service; no depth or figure the rows do not give; never a dig at another trade.",
+              "mechanism": "the layer underneath, inspected before it is covered"
+            },
+            {
+              "title": "What the build does to the household",
+              "brief": "The customer's situation: they want to know whether they can stay, where they sleep and cook, how long the roof is open, where the scaffold and the skip go. What decides it: the order of work, from the trade facts stages for this service (a loft is built from the scaffold outside, the roof opened and made weathertight again under cover before the ceiling below is cut for the stair, so the bedrooms underneath carry on until then; an extension is built and roofed before the back wall comes down, so the knock through is the last big day; a garage, a cellar or a garden room is worked on from its own door; an en suite's drains mean a day or two with the water off). What the work gives them: an honest picture of which parts are the hard ones and what is kept running. What this business does about it (dust screens, a temporary kitchen, a site toilet) only from confirmed practices. The home insurer is usually told about work on this scale (the trade facts fact row), said as a thing the customer does. Never a duration, a date or a week by week plan: the trade facts give none.",
+              "mechanism": "the order of work deciding how the household lives through it"
+            }
+          ]
+        }
+      }
+    }
+  },
+
+  "location_page_blocks": {
+    "A": {
+      "problems": {
+        "h2": "[WORK] in [TOWN]: What the Houses Decide",
+        "cards": [
+          {
+            "title": "Roofs built the way their decade built them",
+            "brief": "The town profile's housing, read for what the roof allows and never for a judgement on the houses or anything inside them: semis from between the wars with hipped roofs, older terraces with a back addition and a valley between, estates from the later decades with roofs made of factory trusses, bungalows where the roof is most of what there is to work with. The one cause this card makes: the era of the town's roofs setting which loft conversion fits. Tie each to the work (the pack's section 3: every anchor changes the work): a hipped roof points to a hip to gable with a dormer behind; a terrace with a back addition points to a dormer that turns the corner of it; a trussed roof is converted once the trusses are swapped for new joists and beams; a bungalow's roof is read the same way as any other: its height, its timbers and its shape. Never that the lofts here are tall enough: the height is measured house by house (the pack's section 3). Never a year or a figure, never the inside of anyone's home.",
+            "mechanism": "the era of the town's roofs setting which loft conversion fits"
+          },
+          {
+            "title": "Side returns, deep gardens and built in garages",
+            "brief": "The shape of the town's plots, from the town profile: the narrow strip beside a terrace's back addition, the deep gardens on the roads between the wars, estates after the war where the garage is built into the house, new estates with little garden at all. The one cause this card makes: the plot shape setting which extension or conversion fits. Tie each to the work: the strip beside the kitchen is where a side return goes, and the wall the neighbour shares usually comes into it; a deep garden takes a single floor behind the house, which usually needs no application; a garage built into the house suits conversion inside its own walls and brings the fire separation and the floor insulation with it; a tight plot points up into the roof. Never the inside of anyone's home, never a figure, never a planning verdict before the house has been seen.",
+            "mechanism": "the plot shape setting which extension fits"
+          },
+          {
+            "title": "Streets where the council has a say",
+            "brief": "The town profile's conservation areas, listed buildings, estates where the council has taken the usual allowance away, and green belt edges, only where the research confirms them. The one cause this card makes: the council's rules for that street changing which approval the job needs. Say what it means for the work, with \"usually\" throughout: a dormer or an addition at the back that elsewhere needs no application goes through one on these streets; a dormer facing the road needs its own application on any street, and here the materials are expected to match as well; a listed home needs consent for work that touches its character, inside as well as out; materials are expected to match. Building control is a separate matter and applies either way. Never the order's, the area's or the Act's name, never a figure. Where the profile gives none, say the general position and that the house has to be seen.",
+            "mechanism": "the council's rules for that street changing which approval the job needs"
+          },
+          {
+            "title": "The neighbour's wall on a terrace or a semi",
+            "brief": "The town's terraces and semis mean most lofts, side returns and knock throughs touch a wall the neighbour owns half of, or dig close to their footings. The one cause this card makes: a loft floor or a footing meeting a shared wall. What usually applies, from the trade facts rule rows: the neighbour is told in writing before the work starts and can agree or have a surveyor act for them; it is separate from planning and from building control; a loft's new floor and its beams usually bear on that wall at the sides, and the wall between two lofts sometimes has to be built up for sound as part of the job. Never the Act's name, never a notice period, a distance or a depth; never that every loft needs a surveyor. What the business does about it only from confirmed practices. Not the planning position: card 3 owns that.",
+            "mechanism": "a loft floor or a footing meeting a shared wall"
+          }
+        ]
+      },
+      "cost": {
+        "h2": "What Affects the Cost of [WORK] in [TOWN]",
+        "cards": [
+          {
+            "title": "Scaffold and a skip on a terraced street",
+            "brief": "On a terraced street with no drive the scaffold stands on the pavement and usually needs its licence, the skip sits on the road and usually needs the council's permit (from the rule rows), and the materials come through the house or over the roof. Say why that adds time and cost, never \"the only way\"; the town profile says which streets are terraced. No figure."
+          },
+          {
+            "title": "Clay and trees under the foundations",
+            "brief": "Where the town profile gives clay, soft ground, mature trees or a high water table: an extension's foundations go deeper and may need an engineer's design, mean more spoil to take away, and are looked at by building control before the concrete goes in; a cellar meets the water in the ground. Say it plainly from the profile; no depth, no figure. A loft is the extension that needs no foundations, said only where the profile makes the ground a problem."
+          },
+          {
+            "title": "Conservation areas and listed homes",
+            "brief": "Where the town has conservation areas or listed buildings, the paperwork, the drawings and the wait before work can start add time, materials have to match, and a dormer on the street side needs its own application. \"Usually\", never the order's or the area's official name. From the dossier rules only; otherwise the general position as something that sometimes applies."
+          },
+          {
+            "title": "What an earlier conversion left behind",
+            "brief": "In older homes: a loft boarded on the old ceiling joists and slept in, an earlier extension on shallow footings that a second floor cannot sit on, a garage slab with no membrane under it, a chimney breast taken out with nothing holding up what is above, cables and pipes where no drawing says they are. What the work meets once things are opened up, said as what the era usually left and never as a judgement on the houses; from the town profile only. How it is dealt with only from confirmed practices. No figure."
+          }
+        ]
+      },
+      "faq_slots": [
+        {
+          "slot": "cost",
+          "question": "How much do [WORK_LOWER] cost in [TOWN]?",
+          "answer_brief": "Prices only from [CV: price_list]; otherwise the things that push the price up in a town like this (access on the street, the roofs the houses have, the ground under the foundations, what an older house hides) and how the quote is given, from [CV: quote_method] only.",
+          "doubt": "Price"
+        },
+        {
+          "slot": "town",
+          "when": "start_time",
+          "question": "How soon can you get to [TOWN]?",
+          "answer_brief": "From [CV: start_time] and [CV: response_time] only. The town is in the area covered; nothing about distance unless [CV: travel_distance] is set.",
+          "doubt": "Timing"
+        },
+        {
+          "slot": "town",
+          "question": "Do you cover [TOWN]?",
+          "answer_brief": "Yes: the town and the villages around it (code lists them; name none). How the business reaches it from its base only from the client values. Link one page in this town.",
+          "doubt": "Fit"
+        },
+        {
+          "slot": "cover",
+          "when": "guarantee",
+          "question": "Do you guarantee your work in [TOWN]?",
+          "answer_brief": "Start with yes, then the terms from [CV: guarantee_years] and [CV: guarantee_scope]. Described, never promised.",
+          "doubt": "Trust"
+        },
+        {
+          "slot": "cover",
+          "when": "insurance",
+          "question": "Are you insured?",
+          "answer_brief": "The cover figure from [CV: insurance_cover] and what the cover is for. Never what it pays or who it covers.",
+          "doubt": "Trust"
+        },
+        {
+          "slot": "cover",
+          "question": "What happens if something isn't right after the job?",
+          "answer_brief": "Open with what the customer does: tell us and we look at it. Then the reasonable care and skill standard every trade works to. No promise to come back free. Never invent a guarantee.",
+          "doubt": "Trust"
+        },
+        {
+          "slot": "process",
+          "question": "What happens when I ask for a quote in [TOWN]?",
+          "answer_brief": "From [CV: quote_method] and the confirmed practices only: what the customer sends, what the business looks at on site (the height and the timbers of the roof, where a stair could land, the garden and the drains, the access for a scaffold and a skip, a shared wall, the planning position for that street), what comes back. Approvals handled on the customer's behalf only from [CV: handles_planning]. No timescale unless [CV: response_time] is set.",
+          "doubt": "Process"
+        },
+        {
+          "slot": "timing",
+          "question": "How long do [WORK_LOWER] take in [TOWN]?",
+          "answer_brief": "No duration: the trade facts give none. The stages in order as the reason (approvals before a start, the scaffold and the roof opened or the foundations inspected before concrete, the structure, the shell made weathertight, the stair, first fix, plaster and its drying, fire doors and alarms, the final inspection), and where the town profile gives the roofs, the ground or the planning position, what it does to that order (trusses replaced before a floor goes in, an application before anything can start in a conservation area, deeper footings on clay, a wait on a notice to the neighbours). A number only from the client values. Nothing about when the job can start unless [CV: start_time] is set.",
+          "doubt": "Timing"
+        }
+      ]
+    }
+  },
+  "do_not_reuse": []
+}
