@@ -194,7 +194,7 @@ The work noun every category page H2 reads in place of the category name, except
 
 - `seasonal_trade`: no
 - `category_types`: none (one category, type A)
-- The emergency variant (below) replaces block 4, the steps and the FAQ slots when the page is flagged emergency in the library and the client confirms call outs.
+- The emergency variant (below) replaces block 4, block 5, the steps and the FAQ slots when the page is flagged emergency in the library and the client confirms call outs.
 
 ### Type A (project trade: Roofing services, every planned page)
 
@@ -233,7 +233,7 @@ The work noun every category page H2 reads in place of the category name, except
 
 ### Type A, emergency variant (Roof repairs, Storm damage repairs, Roof window repairs, when the client confirms call outs)
 
-Replaces block 4, the steps and the FAQ slots; block 5 and the symptom question stay as above. The reader has water coming in now: situation, why it can't wait, what happens when they call. Never a response time, round the clock cover or a call out promise unless the client values confirm it.
+Replaces block 4, block 5, the steps and the FAQ slots; the symptom question stays as above. The reader has water coming in now: situation, why it can't wait, what happens when they call. Never a response time, round the clock cover or a call out promise unless the client values confirm it.
 
 **Block 4, when this can't wait.** H2: When Your Roof Can't Wait
 
@@ -243,6 +243,17 @@ Replaces block 4, the steps and the FAQ slots; block 5 and the symptom question 
 | Tiles missing after a gale | the next gust lifting what the storm loosened | Tiles in the garden, a gap in the ridge, underlay showing, a flashing bent back. The one cause this card makes: once one tile or a length of ridge has come away, the wind gets under its neighbours and rain reaches the underlay with nothing in the way. What usually happens: made safe, a sheet over the gap, and the repair when the wind has dropped; nobody goes on the roof until it is safe (Table A). Photographs of the damage and an itemised invoice support a claim on the home insurance; the insurer decides what is covered, never the roofer (Table E). A storm is named, or a gust measured, only if the dossier gives it. |
 | A chimney or gutter that's come loose | the weight of a pot or a full gutter with nothing left holding it | A pot leaning, bricks loose at the top of the stack, a gutter length hanging off its brackets and pouring down the wall. The one cause this card makes: the weight of a pot, a stack top or a full gutter with nothing left holding it, which makes it a falling hazard before it is a leak (Table B). What usually happens: the area below kept clear, the loose piece secured or taken down, then the repair. Never tell the customer to go up and look; never make a cracked pot sound like a falling chimney. |
 | The first hour, before anyone arrives | water spreading while you wait | What the customer can do from inside the house, in plain words: catch the water, move what is underneath, keep clear of a bulging ceiling, and where water is near a light fitting or a socket, switch that circuit off at the consumer unit and never touch a wet fitting; photograph what they can see from the ground for the insurer, then call. The one cause this card makes: water keeps spreading while they wait, and the quicker the roof is covered the less there is to put right. Never an instruction to go on the roof, up a ladder or to patch it themselves; never a time by which anyone arrives unless [CV: response_time] is set. |
+
+**Block 5, what moves the price of a call out.** H2: What Moves the Price of an Emergency Call Out in [CITY]
+
+Every emergency page reads these cards in place of the type A cost cards. They say what moves the price (the time of day, the distance, the access), never an arrival time, hours of cover or a call out charge unless `response_time`, `out_of_hours_available` or `quote_call_out_fee` holds it (the validator's EMERG-PROMISE).
+
+| Card | Brief |
+|---|---|
+| When you call | The time of day and the day of the week move the price: a Sunday night with water through the ceiling against a weekday morning with a slipped tile (Table F storm damage repairs: emergency access). A call out charge or an out of hours rate only from [CV: quote_call_out_fee] and [CV: price_list]; never say there is no charge for coming out unless [CV: quote_call_out_fee] says there is none. Whether the business comes out at those hours only from [CV: out_of_hours_available]; when it is not set, nothing about hours at all. Say it plainly and give no figure. |
+| Getting to the roof | How far the job is from the base, and what it takes to get up there safely: a roof with no scaffold, a tall gable or chimney, a side return too tight for a ladder, a conservatory in the way, a rural lane (Table F roof repairs: high or restricted access). Roof access waits until conditions are safe (Table A storm damage repairs). Distance and access move the price; say why in plain words. Never an arrival time unless [CV: response_time] is set; never hours of cover unless [CV: out_of_hours_available] says so. |
+| Making it safe first | What is done first on a call out, from Table A storm damage repairs and roof repairs: the area made safe, anything loose dealt with, the damage recorded, temporary weatherproofing over the opening where it is needed, then the place the water gets in traced. What that takes moves the price (Table F storm damage repairs: emergency access, temporary protection). A temporary cover is never the repair (Table B: a patch treated as permanent leaves the roof exposed). What the insurer pays is for the insurer to say (Table E). Say what decides it and give no figure. |
+| What's on the van and what comes later | Everyday repairs usually come off the van: common tiles, battens, an underlay patch, flashing to refix (Table A roof repairs). A tile that has to match, a heritage slate or an obsolete roof window part has to be found or ordered (Table F roof repairs: specialist replacement materials; roof window repairs: obsolete parts). The permanent repair then follows as a second visit priced as its own job, with the roof left weathertight in the meantime. Never a same visit promise. Say what decides it and give no figure. Code adds the price line from [CV: price_list] when there is one. |
 
 **Steps.**
 
@@ -254,7 +265,7 @@ Replaces block 4, the steps and the FAQ slots; block 5 and the symptom question 
 
 | Slot | When | Question | Answer brief | Doubt |
 |---|---|---|---|---|
-| cost | always | What does an emergency roof repair cost in [CITY]? | Prices and any call out charge only from [CV: price_list]; otherwise how the price is reached, from [CV: quote_method] only: making it safe is priced before the permanent repair, which is priced once the roof has been seen. The price agreed before work starts only from the price_agreed_before_work practice. No out of hours figure unless price_list gives one. | Price |
+| cost | always | How much is an emergency [TRADE_PERSON] call out in [CITY]? | What moves the price, from the cost cards: the time of day and the day of the week, how far the job is from the base, getting up to the roof, what making it safe takes, and that the permanent repair is priced as its own job once the roof has been seen. A call out charge or an out of hours rate only from [CV: quote_call_out_fee] and [CV: price_list]; the hours the business comes out only from [CV: out_of_hours_available]; an arrival time only from [CV: response_time]. How the price is reached only from [CV: quote_method]; the price agreed before work starts only from the price_agreed_before_work practice. No figure beyond what those values give. | Price |
 | cover | insurance | Are you insured for emergency roof work? | The cover figure from [CV: insurance_cover] and what the cover is for, with a plausible roofing example that does not suggest carelessness. Never what it pays or who it covers. | Trust |
 | cover | always | What happens if the leak comes back after an emergency repair? | Open with what the customer does: tell us and we look at it. Then that a temporary cover is a temporary cover: the permanent repair is what the work is held to, under the reasonable care and skill standard, never as a defence. No promise to come back free. Never invent a guarantee. | Trust |
 | scope | always | Is this an emergency, or can it wait? | What counts as urgent, from the card list: water coming in, a tile or a ridge length missing, a chimney or gutter hanging loose, a roof window letting rain in. What usually waits for a planned repair: a single slipped tile with nothing coming in, a damp patch that is dry today, moss (Table B, Table E). Link one service page. Planned work is never dressed up as urgent. | Fit |
@@ -331,7 +342,7 @@ The library's `desire_led` column flags these five page targets (4 Nov 2026); a 
 
 ### Type A, emergency variant (Roof repairs, Storm damage repairs, Roof window repairs, when the client confirms call outs)
 
-Replaces block 4, the steps and the FAQ slots; What's Included, block 5 and the symptom question stay as above. Each card says which urgent page it leads on; on the other urgent pages it is written for the page's own fault.
+Replaces block 4, block 5, the steps and the FAQ slots; What's Included and the symptom question stay as above. Each card says which urgent page it leads on; on the other urgent pages it is written for the page's own fault.
 
 **Block 4, when this can't wait.** H2: When [SERVICE] Can't Wait
 
@@ -341,6 +352,17 @@ Replaces block 4, the steps and the FAQ slots; What's Included, block 5 and the 
 | A temporary patch that's become the repair | a temporary cover left as the repair | A tarpaulin from the last storm still tied over the ridge, tape over a split in the felt, a bucket that has become furniture. The one cause this card makes: a temporary cover left as the repair, which fails in the next wind and leaves the weathering defective (Table B storm damage done badly). What usually happens: the cover checked, the permanent scope agreed, the repair done when it is safe to work. Leads on the Storm damage repairs page; on the other urgent pages write it for the page's own fault. Never a dig at whoever put the patch on. |
 | Damage the insurer will ask about | evidence lost once the roof is tidied | Tiles already swept up, a ridge section put in the bin, a stain painted over before anyone photographed it. The one cause this card makes: evidence lost once the roof is tidied, which weakens a claim (Table B). What usually happens: the damage photographed and recorded before it is cleared, safe temporary repairs discussed, an itemised invoice kept (Table E); the roofer documents and repairs, the insurer decides cover, never the other way round. Leads on the Storm damage repairs page. Whether the business deals with the insurer only from the client values; never "insurance approved". |
 | Rain or wind coming in at a roof window | a flashing lifted or a sash that won't close | Water on the inside of the frame, a draught at the sash, a window that will not shut after a gale. The one cause this card makes: a flashing lifted or a sash that will not close, so rain and air get in at the opening (Table B roof window repairs). What usually happens: the opening covered, the flashing, seal or hardware replaced with compatible parts, the covering around it reinstated; a seal alone when the flashing is the fault leaves the cause. Leads on the Roof window repairs page. Say "roof window", never the brand. |
+
+**Block 5, what moves the price of a call out.** H2: What Moves the Price of an Emergency Call Out in [CITY]
+
+Every emergency page reads these cards in place of the type A cost cards. They say what moves the price (the time of day, the distance, the access), never an arrival time, hours of cover or a call out charge unless `response_time`, `out_of_hours_available` or `quote_call_out_fee` holds it (the validator's EMERG-PROMISE).
+
+| Card | Brief |
+|---|---|
+| When you call | The time of day and the day of the week move the price: a Sunday night with water through the ceiling against a weekday morning with a slipped tile (Table F storm damage repairs: emergency access). A call out charge or an out of hours rate only from [CV: quote_call_out_fee] and [CV: price_list]; never say there is no charge for coming out unless [CV: quote_call_out_fee] says there is none. Whether the business comes out at those hours only from [CV: out_of_hours_available]; when it is not set, nothing about hours at all. Say it plainly and give no figure. |
+| Getting to the roof | How far the job is from the base, and what it takes to get up there safely: a roof with no scaffold, a tall gable or chimney, a side return too tight for a ladder, a conservatory in the way, a rural lane (Table F roof repairs: high or restricted access). Roof access waits until conditions are safe (Table A storm damage repairs). Distance and access move the price; say why in plain words. Never an arrival time unless [CV: response_time] is set; never hours of cover unless [CV: out_of_hours_available] says so. |
+| Making it safe first | What is done first on a call out, from Table A storm damage repairs and roof repairs: the area made safe, anything loose dealt with, the damage recorded, temporary weatherproofing over the opening where it is needed, then the place the water gets in traced. What that takes moves the price (Table F storm damage repairs: emergency access, temporary protection). A temporary cover is never the repair (Table B: a patch treated as permanent leaves the roof exposed). What the insurer pays is for the insurer to say (Table E). Say what decides it and give no figure. |
+| What's on the van and what comes later | Everyday repairs usually come off the van: common tiles, battens, an underlay patch, flashing to refix (Table A roof repairs). A tile that has to match, a heritage slate or an obsolete roof window part has to be found or ordered (Table F roof repairs: specialist replacement materials; roof window repairs: obsolete parts). The permanent repair then follows as a second visit priced as its own job, with the roof left weathertight in the meantime. Never a same visit promise. Say what decides it and give no figure. Code adds the price line from [CV: price_list] when there is one. |
 
 **Steps.**
 
@@ -352,7 +374,7 @@ Replaces block 4, the steps and the FAQ slots; What's Included, block 5 and the 
 
 | Slot | When | Question | Answer brief | Doubt |
 |---|---|---|---|---|
-| cost | always | What does an emergency [SERVICE_LOWER] call out cost in [CITY]? | Prices and any call out charge only from [CV: price_list]; otherwise how the price is reached, from [CV: quote_method] only: making it safe is priced before the permanent repair, which is priced once the roof has been seen. The price agreed before work starts only from the price_agreed_before_work practice. No out of hours figure unless price_list gives one. | Price |
+| cost | always | How much is an emergency [TRADE_PERSON] call out in [CITY]? | What moves the price, from the cost cards: the time of day and the day of the week, how far the job is from the base, getting up to the roof, what making it safe takes, and that the permanent repair is priced as its own job once the roof has been seen. A call out charge or an out of hours rate only from [CV: quote_call_out_fee] and [CV: price_list]; the hours the business comes out only from [CV: out_of_hours_available]; an arrival time only from [CV: response_time]. How the price is reached only from [CV: quote_method]; the price agreed before work starts only from the price_agreed_before_work practice. No figure beyond what those values give. | Price |
 | timing | start_time | How quickly can you get here? | From [CV: response_time] and [CV: start_time] only, as given; a same day visit only when [CV: same_day_available] is yes; roof access waits until the wind has dropped and the roof is safe (Table A). Never "24/7" or "any time" unless [CV: emergency_callouts] gives it in those words. This is the one place the timing is written. | Timing |
 | timing | always | Will you come out while it's still raining? | What usually happens: the house made safe and the damage covered as soon as the roof is safe to work on; while the wind is up the work is from inside and from the ground (Table A). No response time, no out of hours promise unless [CV: emergency_callouts] or [CV: response_time] gives it. This is the one place the timing is written. | Timing |
 | cover | insurance | Are you insured for emergency [SERVICE_LOWER]? | The cover figure from [CV: insurance_cover] and what the cover is for, with a plausible roofing example that does not suggest carelessness. Never what it pays or who it covers. | Trust |
@@ -398,6 +420,62 @@ Replaces block 4, the steps and the FAQ slots; What's Included, block 5 and the 
 | cover | always | What happens if the roof leaks again after a repair? | Open with what the customer does: tell us and we look at it. Then the reasonable care and skill standard every trade works to, as the standard the work is held to, never as a defence. No promise to come back free. Never invent a guarantee. | Trust |
 | process | always | What happens when I ask for a quote in [TOWN]? | From [CV: quote_method] and the confirmed practices only: what the customer sends (what they have noticed and roughly where; photos from the ground, never from a ladder), what the business looks at, what comes back (photos of every fault only from the photos_of_faults practice). Nothing agreed on the doorstep and a second opinion welcomed, written as the way a fair roofer behaves. No timescale unless [CV: response_time] is set. | Process |
 | timing | always | Can you work on roofs in [TOWN] through the winter? | Weather led, not seasonal, from the Table A timing cells: most roof work runs all year when the roof is safe to stand on; wind, rain, frost and a slippery roof stop it for the day; flat roof coverings go down, and mortar sets, only in dry and mild spells, explained by the covering itself and with no figure. The roof left watertight each night only from the watertight_each_night practice. Never "winter is a busy time". No dates. | Timing |
+
+## Per page overrides (service_overrides)
+
+Brandon, 4 Nov 2026 (copy quality 3): a page whose job differs from the shared type entry gets its own briefs here, keyed by the page target in lower case. The code lays them over the type entry for that page only.
+
+### Gutter cleaning
+
+A clean, not a repair: nothing about decks, battens or slate against concrete.
+
+H2: What Affects the Cost of [SERVICE] in [CITY]
+
+| Card | Brief |
+|---|---|
+| Getting to the work | How many storeys, a conservatory or an extension under the gutter, a restricted side return, whether it can be reached with equipment from the ground (Table F gutter cleaning: multiple storeys, difficult access; Table A: hand removal or ground operated equipment). Scaffolding in the quote only from the scaffolding_in_quote practice. Say why height and restricted access cost more time. Give no figure. |
+| How much there is to do | The length of gutter, how many outlets and downpipes, light debris against heavy sediment, weeds growing in it (Table F gutter cleaning: heavy sediment; accessible gutters with light debris cost less). Say it plainly and give no figure. |
+| What the visit finds | A downpipe blocked as well as the gutter, moss packed in the valleys, a joint or a bracket gone, a slipped tile seen while up there (Table A gutter cleaning: joints and brackets checked, flow tested; Table F: obstructed downpipe, roof valleys needing clearance). A blocked downpipe is part of getting the water away; a slipped tile is a repair. Priced as a separate job and agreed first only from the extra_work_agreed_first practice; photos only from the photos_of_faults practice. |
+| What's fitted after | A guard or a brush insert named only from [CV: materials_methods]; the trade facts name none for this job, so with no value there nothing fitted is mentioned and the clean is the job. Never that a guard means the gutter never needs cleaning again. Code adds the price line from [CV: price_list] when there is one. |
+
+### Roof cleaning and moss removal
+
+Removal by hand or from the ground, decided after looking: small amounts of moss normally do not harm the covering.
+
+H2: What Affects the Cost of [SERVICE] in [CITY]
+
+| Card | Brief |
+|---|---|
+| Getting to the work | A steep or fragile covering, the need for a scaffold, sensitive surroundings below, against targeted clearance that can be done from the ground (Table F roof cleaning and moss removal). Walking on a tile roof can break it, which is part of why access takes planning (Table B). Scaffolding in the quote only from the scaffolding_in_quote practice. Say why height and restricted access cost more time. Give no figure. |
+| How much there is to do | How much of the roof has growth on it, clearance round the outlets against a whole slope done by hand, how much blocked drainage goes with it (Table F roof cleaning and moss removal: extensive blocked drainage; limited growth at the outlets costs less). Small amounts normally do no harm, so the first question is whether it needs doing at all (Table B, Table A). Give no figure. |
+| What the visit finds | Moss packed in the valleys, a blocked outlet or downpipe, a cracked or slipped tile once the growth is off, an active nest that holds the work up (Table A: growth, drainage and covering inspected, damage inspected for; active nests left alone). Clearing the gutters goes with the job (Table A); a tile is a repair. Priced as a separate job and agreed first only from the extra_work_agreed_first practice; photos only from the photos_of_faults practice. |
+| What's fitted after | A treatment or anything fitted to slow the moss coming back named only from [CV: materials_methods], and a chemical treatment only with that product's precautions (Table A). Never pressure washing as the method (Table B: it forces water under the covering). Never a promise it will not grow back. Code adds the price line from [CV: price_list] when there is one. |
+
+### Roof inspections
+
+The inspection is priced as an inspection; what it finds comes after.
+
+H2: What Affects the Cost of [SERVICE] in [CITY]
+
+| Card | Brief |
+|---|---|
+| Getting to the work | Whether the roof can be read from safe vantage points and the loft, or a far side needs specialist access, and whether anything needs opening up, which only happens where the question calls for it (Table A roof inspections; Table F: inaccessible elevations, specialist access, opening up). Scaffolding in the quote only from the scaffolding_in_quote practice. Say why height and restricted access cost more time. Give no figure. |
+| How much there is to do | One reported stain or slipped tile against the whole of a complex roof, and a short answer against a written report with photographs and every defect mapped (Table F roof inspections: complex roof, detailed written defect mapping; a clear view of a localised issue costs less). Say it plainly and give no figure. |
+| What the visit finds | A slipped tile, moss packed in the valleys, a downpipe blocked as well as the gutter, damp loft timbers (Table B roof inspections). They are recorded with photographs and reported with the work proposed (Table A roof inspections), and each is priced as a separate job. Photographs given to the customer only from the photos_of_faults practice. Never that the visit always finds something. |
+| What's fitted after | Nothing is fitted on the inspection itself. What the report leads to is named only from the trade facts row for that repair or [CV: materials_methods], and priced as its own job, never as a sales pitch. Code adds the price line from [CV: price_list] when there is one. |
+
+### Solar panel bird proofing
+
+Named kit from the trade facts only: exclusion mesh and fixings that do not go through the panels or the roof.
+
+H2: What Affects the Cost of [SERVICE] in [CITY]
+
+| Card | Brief |
+|---|---|
+| Getting to the work | How high the array sits, a steep pitch, a side of the house that is hard to get to (Table F solar panel bird proofing: high or difficult access; an accessible simple array costs less). Scaffolding in the quote only from the scaffolding_in_quote practice. Say why height and restricted access cost more time. Give no figure. |
+| How much there is to do | How many panels, how they are laid out, and how far the mesh has to run round them; one tidy block against an array broken up by a chimney or a roof window; how much debris has built up underneath (Table F solar panel bird proofing: complex array, accumulated debris). Say it plainly and give no figure. |
+| What the visit finds | An active nest, which holds the job back until it is no longer in use (Table A: nests checked for; Table F: active nest delay; Table C: active nests are protected), nest material and droppings to clear, a slipped tile seen while up there, old fixings that will not suit (Table F). Clearing under the panels goes with the job (Table A); a tile is a repair. Priced as a separate job and agreed first only from the extra_work_agreed_first practice; photos only from the photos_of_faults practice. |
+| What's fitted after | Exclusion mesh round the edge of the array on fixings that suit the panels, with nothing drilled through the panels or the roof (Table A; Table B: mesh fixed through them causes damage), drainage and ventilation left clear. Clips or a brand only from [CV: materials_methods]; the trade facts verify no one system. Code adds the price line from [CV: price_list] when there is one. |
 
 ## do_not_reuse
 
