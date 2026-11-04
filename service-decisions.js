@@ -210,6 +210,10 @@ function computeServiceDecisions({ cv, niche, keyValueMap = {}, rows = [], page,
     let cand;
     if (/^established/i.test(proof)) cand = `${stem}, ${proof}. ${metaCta}`;
     else if (/^(family|independent|local|owner|small|award)/i.test(proof)) cand = `${cv.company_name}, ${proof}, offers ${svcLower} in ${townName}. ${metaCta}`;
+    // A "We ..." differentiator is a clause or its own sentence, never "with we photograph" (4 Nov 2026);
+    // the homepage and category builders have the same rule
+    else if (/^we\b/i.test(proof)) { const clause = require('./decisions').weClause(proof); cand = clause ? `${stem} ${clause}. ${metaCta}` : `${stem}. ${p.replace(/[.!]?$/, '.')} ${metaCta}`; }
+    else if (/\boffer(?:s|ing)?\b/i.test(proof)) cand = `${stem} with ${proof.replace(/^offering\s+/i, '')}. ${metaCta}`;
     else if (/\bwith\b/i.test(proof)) cand = `${stem}, ${proof}. ${metaCta}`;
     else cand = `${stem} with ${proof}. ${metaCta}`;
     cand = cand.trim();
