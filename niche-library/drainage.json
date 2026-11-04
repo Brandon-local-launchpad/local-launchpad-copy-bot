@@ -604,6 +604,29 @@
           "doubt": "Timing"
         }
       },
+      "no_callouts": {
+        "cost": {
+          "h2": "What Affects the Cost of [SERVICE] in [CITY]",
+          "cards": [
+            {
+              "title": "Where it's blocked and how far along",
+              "brief": "One fixture with the obstruction close to hand against a blockage further down that backs up several fixtures, and a short run against a long one (Table F drain unblocking, blocked toilets). Say it plainly and give no figure."
+            },
+            {
+              "title": "What's causing it",
+              "brief": "A one off obstruction against one that is heavy or keeps coming back, where a camera is needed to find a defect, or a fault in the pipe sits behind the repeat blockages; that repair is priced as its own job (Table F). Say what decides it, and never a repair before the cause is known."
+            },
+            {
+              "title": "Getting to it",
+              "brief": "A usable access point close to the problem against a chamber that cannot be reached or a run with no way in (Table F: long or inaccessible run, inaccessible chamber). Say the business looks before it prices, from [CV: quote_method] only."
+            },
+            {
+              "title": "What has to be taken away",
+              "brief": "Whether what comes out of the drain has to be taken off site rather than cleared down the line (Table F: waste requiring removal). Whether the business carries it itself only from [CV: waste_carrier_registered]. Code adds the price line from [CV: price_list] when there is one."
+            }
+          ]
+        }
+      },
       "emergency": {
         "problems": {
           "h2": "When [SERVICE] Can't Wait",

@@ -394,6 +394,19 @@ Replaces block 4, the steps and the FAQ slots on a flagged page when the client 
 | process | always | What should I do before you arrive? | From the trade facts rows only: keep people and pets clear of a nest entrance and neither block nor spray it (Table B); food into sealed containers and gnawed packets cleared (Table B); nothing laid from the shop, no poison and no glue board (Table B and C, as what usually applies); pets kept out of the room where the activity is; note where and when it was seen or heard. Never an instruction to go into the loft, up a ladder or near the nest. Never 'safe for pets' or any version of it. | Process |
 | scope | always | Is this an emergency, or can it wait? | What counts as urgent for this service, from the card list and the trade facts signs row: a nest beside a door, a window, a bin store or where children play, anyone who reacts badly to stings, a rat or a mouse inside the living space, rodents where food is prepared. What usually waits for a planned visit, from Table A and E: a nest high on a gable away from the doors, a nest found in autumn or winter (the colony abandons it; a low risk nest may be left), droppings in a shed with nothing indoors. Bees are never an urgent treatment: identified first, a beekeeper where a swarm can be collected. Link the planned sibling page or the category page. Planned work is never dressed up as urgent. | Fit |
 
+### Type A, flagged pages with no confirmed call outs (no_callouts)
+
+Copy quality 3, 4 Nov 2026: a page flagged emergency whose client has not confirmed call outs is booked work on the same fault, so block 5 is this set instead of the planned cards. The emergency variant wins when call outs are confirmed.
+
+H2: What Affects the Cost of [SERVICE] in [CITY]
+
+| Card | Brief |
+|---|---|
+| Where it is and how high | A single exposed nest that is safe to reach against one high on a wall or hidden in a cavity, and activity in one room against activity you only hear (Table F wasp nest removal, rat and mouse control). Say it plainly and give no figure. |
+| How far it has spread | One spot against several: more than one nest location, or rats and mice across several rooms or buildings (Table F: multiple affected locations, extent of infestation). |
+| Getting to it | Whether access equipment is needed to reach a high nest, and whether the way in has to be traced through the drains for rats (Table F: special access equipment, drain investigation). Say the business looks before it prices, from [CV: quote_method] only. |
+| Follow up and closing the way in | A return visit to check the activity has stopped, and how much proofing the ways in need once it has (Table F: follow up and extensive proofing). What the price includes only from [CV: quote_method] and [CV: price_list]. Code adds the price line from [CV: price_list] when there is one. |
+
 ## Location page blocks by business type (location_page_blocks)
 
 4 Nov 2026. Used by the location page job (CORE (18)): block 4 and block 5 are town wide, the pest problems and price movers of the town's homes across the trade, never one category; the FAQ slots carry the town question. No seasonal swap and no symptom question here: the town's category pages own those. The type is the client's (A). Every local anchor follows the pack's section 3: housing era and construction, rivers and canals, farmland and woodland at the edge, roofs where gulls nest, a high street of food businesses, each only where the town profile gives it and each tied to what it changes in the work; never a judgement about people or homes, never an area rat claim, never council figures the research does not give. Placeholders: `[WORK]`, `[WORK_LOWER]`, `[TOWN]`, `[CITY]`.

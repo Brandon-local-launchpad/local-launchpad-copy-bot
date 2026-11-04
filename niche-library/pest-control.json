@@ -598,6 +598,29 @@
           "doubt": "Timing"
         }
       },
+      "no_callouts": {
+        "cost": {
+          "h2": "What Affects the Cost of [SERVICE] in [CITY]",
+          "cards": [
+            {
+              "title": "Where it is and how high",
+              "brief": "A single exposed nest that is safe to reach against one high on a wall or hidden in a cavity, and activity in one room against activity you only hear (Table F wasp nest removal, rat and mouse control). Say it plainly and give no figure."
+            },
+            {
+              "title": "How far it has spread",
+              "brief": "One spot against several: more than one nest location, or rats and mice across several rooms or buildings (Table F: multiple affected locations, extent of infestation)."
+            },
+            {
+              "title": "Getting to it",
+              "brief": "Whether access equipment is needed to reach a high nest, and whether the way in has to be traced through the drains for rats (Table F: special access equipment, drain investigation). Say the business looks before it prices, from [CV: quote_method] only."
+            },
+            {
+              "title": "Follow up and closing the way in",
+              "brief": "A return visit to check the activity has stopped, and how much proofing the ways in need once it has (Table F: follow up and extensive proofing). What the price includes only from [CV: quote_method] and [CV: price_list]. Code adds the price line from [CV: price_list] when there is one."
+            }
+          ]
+        }
+      },
       "emergency": {
         "cost": {
           "h2": "What Moves the Price of an Emergency Call Out in [CITY]",

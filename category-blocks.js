@@ -77,6 +77,16 @@ class NoBriefsError extends Error {
 // steps or block 4 (problems) for one category, keyed by the category name in lower case, and set
 // always_emergency so the page takes the urgent framing whatever the client values say:
 //   "category_overrides": { "paving contractor": { "cost": { "h2", "cards": [x4] }, "steps": [x3] } }
+// A step 2 title that promises a look before the price ("We Walk It and Price the Round") goes back to the
+// niche's no visit step when the client has not confirmed site visits (copy quality 3, 4 Nov 2026). A step 2
+// that is the job itself ("We Measure and Draw It", "We Test on a Day That Suits You") stays.
+const VISIT_STEP_RE = /\b(?:look|walk|measure|survey|visit|count|find)\b.*\bprice\b/i;
+function overrideStepsFor(steps, niche = {}, cv = {}) {
+  if (!Array.isArray(steps) || steps.length < 2) return steps;
+  if ((cv.confirmed_practices || []).includes('site_visit_before_quote') || !niche.step_2_no_visit) return steps;
+  return steps.map((s, i) => (i === 1 && VISIT_STEP_RE.test(s.title || '') ? niche.step_2_no_visit : s));
+}
+
 function overrideFor(map, name) { return (map && typeof map === 'object' && map[lc(name)]) || null; }
 function applyOverride(entry, over) {
   if (!over) return entry;
@@ -190,4 +200,4 @@ function faqSlotsFor(niche = {}, cv = {}) {
   return out;
 }
 
-module.exports = { typeFor, blocksFor, briefGaps, pickFaqSlots, applySeasonal, NoBriefsError, clientEmergency, emergencyWhy, emergencySite, typeLetterFor, fearsFor, faqSlotsFor, overrideFor, applyOverride };
+module.exports = { typeFor, blocksFor, briefGaps, pickFaqSlots, applySeasonal, NoBriefsError, clientEmergency, emergencyWhy, emergencySite, typeLetterFor, fearsFor, faqSlotsFor, overrideFor, applyOverride, overrideStepsFor };

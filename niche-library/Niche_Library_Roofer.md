@@ -382,6 +382,19 @@ Every emergency page reads these cards in place of the type A cost cards. They s
 | process | always | What should I do before you arrive? | From inside the house only: catch the water, move what is underneath, keep clear of a bulging ceiling, photograph what can be seen from the ground and keep the itemised invoice for the insurer (Table E storm claim evidence); the roofer documents and repairs, the insurer decides cover. Never an instruction to go on the roof, up a ladder or patch it themselves. Whether the business deals with the insurer only from the client values. | Process |
 | scope | always | Is this an emergency, or can it wait? | What counts as urgent for this service, from the card list and the trade facts signs row: water coming in, a gap in the covering, something hanging loose, a roof window that will not shut. What usually waits for a planned repair, from the Table B rows: a single slipped tile with nothing coming in, a mark that is dry today. Link the planned sibling page or the category page. Planned work is never dressed up as urgent. | Fit |
 
+### Type A, flagged pages with no confirmed call outs (no_callouts)
+
+Copy quality 3, 4 Nov 2026: a page flagged emergency whose client has not confirmed call outs is booked work on the same fault, so block 5 is this set instead of the planned cards. The emergency variant wins when call outs are confirmed.
+
+H2: What Affects the Cost of [SERVICE] in [CITY]
+
+| Card | Brief |
+|---|---|
+| Finding where it gets in | A defect you can point to against a leak that is hard to trace, since water travels before it shows on a ceiling (Table F roof repairs: hard to locate leak, localised known defect). Say it plainly and give no figure. |
+| Getting up to it | A low roof with safe access against a high one, a restricted way in, or a roof that needs access equipment before anyone can work on it (Table F: high or restricted access). Say the business looks before it prices, from [CV: quote_method] only. |
+| What it has done underneath | One slipped piece against a covering displaced across the slope, several failed junctions, or water damage hidden under the tiles that only shows once they are lifted (Table F roof repairs, storm damage repairs). Anything found is agreed first only from the extra_work_agreed_first practice. |
+| Matching what is there | A matching tile or slate that is easy to get against a specialist one that has to be sourced, and the photographs and record an insurer may ask for after storm damage (Table F: specialist replacement materials, insurance documentation). Never what an insurer will pay. Code adds the price line from [CV: price_list] when there is one. |
+
 ## Location page blocks by business type (location_page_blocks)
 
 3 Nov 2026. Used by the location page job (CORE (18)): block 4 (the problems the town's roofs have across the trade) and block 5 (what moves the price in this town) are an H2 and four card titles with a brief each, block 4 cards with their one mechanism; the type also gives the FAQ slots (five, one of them the town question). The steps are the niche steps. The briefs are town wide, not per category: the town profile, the allocated neighbourhoods and the assigned symptoms are the material, and every mechanism differs from the category and service briefs' on purpose (MECHANISMS USED). Era claims only ("built with", "originally fitted with", "the ones not yet replaced"), never the current state of any roof, never an invented storm (the pack, section 3). No seasonal swap and no symptom question on a location page. Placeholders: `[WORK]`, `[WORK_LOWER]`, `[TOWN]`, `[CITY]`.

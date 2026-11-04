@@ -617,6 +617,29 @@
           ]
         }
       },
+      "no_callouts": {
+        "cost": {
+          "h2": "What Affects the Cost of [SERVICE] in [CITY]",
+          "cards": [
+            {
+              "title": "Finding where it gets in",
+              "brief": "A defect you can point to against a leak that is hard to trace, since water travels before it shows on a ceiling (Table F roof repairs: hard to locate leak, localised known defect). Say it plainly and give no figure."
+            },
+            {
+              "title": "Getting up to it",
+              "brief": "A low roof with safe access against a high one, a restricted way in, or a roof that needs access equipment before anyone can work on it (Table F: high or restricted access). Say the business looks before it prices, from [CV: quote_method] only."
+            },
+            {
+              "title": "What it has done underneath",
+              "brief": "One slipped piece against a covering displaced across the slope, several failed junctions, or water damage hidden under the tiles that only shows once they are lifted (Table F roof repairs, storm damage repairs). Anything found is agreed first only from the extra_work_agreed_first practice."
+            },
+            {
+              "title": "Matching what is there",
+              "brief": "A matching tile or slate that is easy to get against a specialist one that has to be sourced, and the photographs and record an insurer may ask for after storm damage (Table F: specialist replacement materials, insurance documentation). Never what an insurer will pay. Code adds the price line from [CV: price_list] when there is one."
+            }
+          ]
+        }
+      },
       "emergency": {
         "problems": {
           "h2": "When [SERVICE] Can't Wait",

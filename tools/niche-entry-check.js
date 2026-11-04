@@ -210,6 +210,13 @@ else {
 }
 
 // ── Report ──
+// no_callouts: a type's block 5 for a flagged page whose client has not confirmed call outs (4 Nov 2026)
+for (const [t, e] of Object.entries(n.service_page_blocks || {})) {
+  if (!e || !e.no_callouts) continue;
+  const c = e.no_callouts.cost;
+  if (!c || !Array.isArray(c.cards) || c.cards.length !== 4 || c.cards.some(x => !x || !x.title || !x.brief)) fail(`service_page_blocks ${t} no_callouts: cost needs 4 cards with title and brief`);
+  if (!e.emergency) warn(`service_page_blocks ${t}: no_callouts with no emergency variant`);
+}
 // Per target overrides (copy quality 2, phase 2, 4 Nov 2026): service_overrides keyed by page target,
 // category_overrides keyed by category, lower case, each replacing cost, steps, problems or faq_slots
 for (const [slot, by] of [['service_overrides', 'page target'], ['category_overrides', 'category']]) {

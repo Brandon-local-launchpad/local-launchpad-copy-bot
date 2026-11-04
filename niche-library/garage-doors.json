@@ -594,6 +594,29 @@
           ]
         }
       },
+      "no_callouts": {
+        "cost": {
+          "h2": "What Affects the Cost of [SERVICE] in [CITY]",
+          "cards": [
+            {
+              "title": "What has failed",
+              "brief": "One identifiable fault on an otherwise sound door against several damaged components (Table F garage door repairs). Say it plainly and give no figure."
+            },
+            {
+              "title": "Whether the part is still made",
+              "brief": "A compatible part that is readily available against a specialist spring or a part for a door so old it is no longer made (Table F: specialist springs or obsolete parts). Say when a repair stops being the sensible answer, and never a lifespan."
+            },
+            {
+              "title": "The tracks and the frame",
+              "brief": "A fault in the moving parts against damage to the tracks or the frame the door runs in (Table F: damage to tracks or frame). Say why that is a bigger job, in plain words."
+            },
+            {
+              "title": "Electric doors and getting to it",
+              "brief": "A safety fault on a powered door, which has to be put right before it runs again, and a door with restricted access round it (Table F: powered door safety faults, restricted access). Say the business looks before it prices, from [CV: quote_method] only. Code adds the price line from [CV: price_list] when there is one."
+            }
+          ]
+        }
+      },
       "emergency": {
         "problems": {
           "h2": "When [SERVICE] Can't Wait",

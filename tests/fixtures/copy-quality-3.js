@@ -45,6 +45,18 @@ chk('Landscaper: Fencing, Lawn seeding and Garden irrigation each read type A wi
   return ok1 && tree.overrideUsed && /tree|climb|timber|crown|branch/i.test(treeText) && !/square metres|slabs|composite|softwood/i.test(treeText) && pruning.overrideUsed && !/square metres|slab|composite/i.test(JSON.stringify(pruning.entry.cost));
 })(), '', 'A for the one off pages, tree cards on the tree pages');
 
+// ── A step 2 that promises a look, and a flagged page with no confirmed call outs ──
+const nicheNV = { step_2_no_visit: { title: 'We Price Your Job', brief: 'No method named.' } };
+const threeSteps = [{ title: 'Tell Us', brief: 'a' }, { title: 'We Walk It and Price the Round', brief: 'b' }, { title: 'We Visit on the Dates Agreed', brief: 'c' }];
+chk('overrideStepsFor: a step 2 promising a look goes to the no visit step when site visits are not confirmed, and stays when they are', CB.overrideStepsFor(threeSteps, nicheNV, { confirmed_practices: [] })[1].title === 'We Price Your Job' && CB.overrideStepsFor(threeSteps, nicheNV, { confirmed_practices: ['site_visit_before_quote'] })[1].title === 'We Walk It and Price the Round', '', 'swap only when unconfirmed');
+chk('overrideStepsFor: a step 2 that is the job itself stays (We Measure and Draw It, We Test on a Day That Suits You)', ['We Measure and Draw It', 'We Test on a Day That Suits You', 'We Agree the Interval and the Price'].every(t => CB.overrideStepsFor([threeSteps[0], { title: t, brief: 'b' }, threeSteps[2]], nicheNV, {})[1].title === t), '', 'unchanged');
+const nc = { h2: 'What Affects the Cost', cards: [1, 2, 3, 4].map(i => ({ title: `Booked ${i}`, brief: 'b' })) };
+const nicheNC = { ...land, service_page_blocks: { ...land.service_page_blocks, A: { ...land.service_page_blocks.A, no_callouts: { cost: nc }, emergency: { ...(land.service_page_blocks.A.emergency || {}), cost: { h2: 'Emergency', cards: nc.cards } } } } };
+const ncOff = SB.blocksFor({ niche: nicheNC, cv: { business_type: 'A' }, category: 'Paving Contractor', service: 'Patios', emergencyPage: true });
+const ncOn = SB.blocksFor({ niche: nicheNC, cv: { business_type: 'A', emergency_primary: 'yes' }, category: 'Paving Contractor', service: 'Patios', emergencyPage: true });
+const ncPlain = SB.blocksFor({ niche: nicheNC, cv: { business_type: 'A' }, category: 'Paving Contractor', service: 'Patios', emergencyPage: false });
+chk('no_callouts: a flagged page with no confirmed call outs reads it; with call outs the emergency cost set wins; an unflagged page reads neither', ncOff.noCallouts && ncOff.entry.cost.h2 === 'What Affects the Cost' && !ncOn.noCallouts && ncOn.entry.cost.h2 === 'Emergency' && !ncPlain.noCallouts && ncPlain.entry.cost.h2 !== 'Emergency' && ncPlain.entry.cost.h2 !== 'What Affects the Cost', JSON.stringify([ncOff.entry.cost.h2, ncOn.entry.cost.h2, ncPlain.entry.cost.h2]), 'booked, emergency, planned');
+
 // ── EMERG-PROMISE on a client with no response time, hours or call out fee ──
 const parsed = parseDossier(fs.readFileSync(path.join(__dirname, 'southampton-dossier.md'), 'utf8'));
 const reply = JSON.parse(fs.readFileSync(path.join(__dirname, 'allocation-replies/edens-edge-bassett-heath-portswood.json'), 'utf8'));

@@ -398,6 +398,19 @@ Every emergency page reads these cards in place of the type A cost cards. They s
 | process | always | What should I do before you arrive? | Leave the door where it is, switch the motor off at the wall or unplug it, never pull the release cord with the door up, keep children, pets and the car clear of the opening, never touch a spring, cable or drum, lock the door from the garage into the house where there is one, and say on the call whether the car is trapped (Table B, Table E springs). Never an instruction to prop, wedge, lift or patch the door. Whether the business deals with an insurer only from the client values. | Process |
 | scope | always | Is this an emergency, or can it wait until a planned visit? | What counts as urgent for this service, from the card list and the Table B signs row: a door that will not shut, a snapped spring or cable, a door off its track or hanging to one side, a motor straining against a door that will not move, a car trapped. What usually waits for a planned repair, from the Table B rows: a noisy door, a remote that works some of the time, a worn bottom seal, a door that is slow but still runs true. Link the planned sibling page or the category page. Planned work is never dressed up as urgent. | Fit |
 
+### Type A, flagged pages with no confirmed call outs (no_callouts)
+
+Copy quality 3, 4 Nov 2026: a page flagged emergency whose client has not confirmed call outs is booked work on the same fault, so block 5 is this set instead of the planned cards. The emergency variant wins when call outs are confirmed.
+
+H2: What Affects the Cost of [SERVICE] in [CITY]
+
+| Card | Brief |
+|---|---|
+| What has failed | One identifiable fault on an otherwise sound door against several damaged components (Table F garage door repairs). Say it plainly and give no figure. |
+| Whether the part is still made | A compatible part that is readily available against a specialist spring or a part for a door so old it is no longer made (Table F: specialist springs or obsolete parts). Say when a repair stops being the sensible answer, and never a lifespan. |
+| The tracks and the frame | A fault in the moving parts against damage to the tracks or the frame the door runs in (Table F: damage to tracks or frame). Say why that is a bigger job, in plain words. |
+| Electric doors and getting to it | A safety fault on a powered door, which has to be put right before it runs again, and a door with restricted access round it (Table F: powered door safety faults, restricted access). Say the business looks before it prices, from [CV: quote_method] only. Code adds the price line from [CV: price_list] when there is one. |
+
 ## Location page blocks by business type (location_page_blocks)
 
 4 Nov 2026. Used by the location page job (CORE (18)): block 4 (the problems the town's garages have across the trade) and block 5 (what moves the price in this town) are an H2 and four card titles with a brief each, block 4 cards with their one mechanism; the type also gives the FAQ slots (five, one of them the town question: "How soon can you get to [TOWN]?" when `start_time` is set, else "Do you cover [TOWN]?"). The steps are the niche steps (no entry of its own). The briefs are town wide, not per category: the pack's section 3 anchors (housing era and what it was built with, drive length and slope, integral garages, lock up blocks behind terraces, coastal or exposed sites) from the town profile, and every mechanism differs from the category and service briefs' on purpose (MECHANISMS USED). Every anchor must change the work; none may say the town's doors are old, failing or insecure, and no break in figure is ever invented. No seasonal swap and no symptom question on a location page. The type is the client's (`business_type`), never a category override. Placeholders: `[WORK]` the primary category's work noun (Garage Door), `[WORK_LOWER]`, `[TOWN]` the page's town, `[CITY]` the base town.
