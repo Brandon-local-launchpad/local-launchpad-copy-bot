@@ -47,9 +47,8 @@ function keywordWord(h1, town, category) {
   return h || category;
 }
 
-// "gardener" → a person word (is a gardener); "driveways", "garden design" → work (offers)
-const PERSON_RE = /(?:er|or|ist|ian|eon|man|men|smith|wright)s?$/i;
-const isPersonWord = w => PERSON_RE.test(String(w || '').trim().split(/\s+/).pop() || '') && !/^(?:cover|water|timber|render|plaster|shutter|gutter|order|floor|paver)s?$/i.test(String(w || '').trim().split(/\s+/).pop());
+// isPersonWord lives in decisions.js since 4 Nov 2026 (the homepage meta uses it too)
+const { isPersonWord, weClause } = require('./decisions');
 
 // The meta description: "[company] is a [category_lower] in [town] with [proof]" (Brandon, 25 Oct),
 // or "offers" for a work word; the years fallback keeps its comma. A proof that itself says
@@ -67,6 +66,11 @@ function metaFor({ cv, isPerson, kwNatural, metaCta, yearsTrading, yearFounded, 
     let cand;
     if (/^established/i.test(proof)) cand = `${cv.company_name} ${verb} ${kwNatural}, ${proof}. ${metaCta}`;
     else if (/^(family|independent|local|owner|small|award)/i.test(proof) && verb === 'is a') cand = `${cv.company_name} is a ${proof} ${kwNatural}. ${metaCta}`;
+    // A "We ..." differentiator turns into a clause ("and photographs every fault before quoting") or
+    // stands as its own sentence, never "with we photograph" (4 Nov 2026); a proof that says "offering"
+    // joins with "with", one that says "with" joins with "offering"
+    else if (/^we\b/i.test(proof)) { const clause = weClause(proof); cand = clause ? `${cv.company_name} ${verb} ${kwNatural} ${clause}. ${metaCta}` : `${cv.company_name} ${verb} ${kwNatural}. ${p.replace(/[.!]?$/, '.')} ${metaCta}`; }
+    else if (/\boffer(?:s|ing)?\b/i.test(proof)) cand = `${cv.company_name} ${verb} ${kwNatural} with ${proof.replace(/^offering\s+/i, '')}. ${metaCta}`;
     else if (/\bwith\b/i.test(proof)) cand = `${cv.company_name} ${verb} ${kwNatural} offering ${proof}. ${metaCta}`;
     else cand = `${cv.company_name} ${verb} ${kwNatural} with ${proof}. ${metaCta}`;
     cand = cand.trim();

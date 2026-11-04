@@ -31,9 +31,39 @@ const lc = s => String(s || '').toLowerCase().trim();
 // The service page placeholders, then the category and shared ones
 function phSvc(text, ctx) {
   if (!text) return text;
-  return phCat(String(text)
-    .replace(/\[SERVICE_LOWER\]/g, ctx.svcLower || '')
-    .replace(/\[SERVICE\]/g, ctx.svc || ''), ctx);
+  // A question (a FAQ question, a question H2) names the service in its question form: the
+  // library's question_name, else a singular with its article ("How much does a patio cost in
+  // Southampton?", "Is a patio right for your garden?"), never "does patios cost" (4 Nov 2026)
+  let t = String(text);
+  const question = /\?\s*$/.test(t.trim()) && ctx.svcQuestion;
+  // A question heading reads in sentence case ("Is a patio right for your garden?"), the template's
+  // Title Case lowered outside its placeholders so a town or a token keeps its capitals
+  if (question) t = t.replace(/\[[A-Z_: a-z0-9]+\]|[^\[]+/g, seg => seg.startsWith('[') ? seg : seg.toLowerCase());
+  let out = phCat(t
+    .replace(/\[SERVICE_LOWER\]/g, (question ? ctx.svcQuestion : ctx.svcLower) || '')
+    .replace(/\[SERVICE\]/g, (question ? ctx.svcQuestion : ctx.svc) || ''), ctx);
+  if (question && out) out = out[0].toUpperCase() + out.slice(1);
+  return out;
+}
+
+// The singular of a page name with its article, for a question (4 Nov 2026): "Patios" → "a patio",
+// "Roof repairs" → "a roof repair", "Ant control" → "ant control" (no plural, no article), a name
+// with "and" or ending in a word that is not a plain plural stays as it is. The library's
+// question_name column overrides this wherever it is filled (Brandon approves the list first).
+function singularQuestionName(name) {
+  const n = String(name || '').trim().toLowerCase();
+  if (!n) return '';
+  if (/\band\b|&/.test(n)) return n;
+  const words = n.split(/\s+/);
+  const last = words[words.length - 1];
+  let single = null;
+  if (/ies$/.test(last) && last.length > 4) single = last.slice(0, -3) + 'y';
+  else if (/(?:ss|us|is|ous|ics|ness|ance|ence|ment|ing)$/.test(last)) single = null;
+  else if (/(?:sh|ch|x|z)es$/.test(last)) single = last.slice(0, -2);
+  else if (/[^s]s$/.test(last)) single = last.slice(0, -1);
+  if (!single) return n;
+  const out = [...words.slice(0, -1), single].join(' ');
+  return `${/^[aeiou]/.test(out) ? 'an' : 'a'} ${out}`;
 }
 
 const live = r => r && r.applies !== false && ((r.info && r.info.phase) || 1) === 1;
@@ -101,8 +131,13 @@ function computeServiceDecisions({ cv, niche, keyValueMap = {}, rows = [], page,
 
   // ── Context ──
   const quoteFree = cv.free_quotes === 'yes' ? 'Free' : '';
-  const svc = titleCase(keywordWord(h1, townName, serviceName));
+  // The service name as the page writes it, not Title Cased word by word (4 Nov 2026: "Signs You
+  // Need Lockouts and gaining entry", never "Lockouts And Gaining Entry"); its question form for
+  // questions, from the library's question_name when filled, else the singular with an article
+  const svcRaw = keywordWord(h1, townName, serviceName);
+  const svc = /^[a-z]/.test(svcRaw) ? svcRaw[0].toUpperCase() + svcRaw.slice(1) : svcRaw;
   const svcLower = lc(svc);
+  const svcQuestion = (baseRow && baseRow.info && baseRow.info.question_name) || (page.info && page.info.question_name) || singularQuestionName(svcLower);
   const cat = titleCase(category);
   const catLower = lc(cat);
   const workNoun = (niche.category_work_nouns || {})[lc(category)] || null;
@@ -110,7 +145,7 @@ function computeServiceDecisions({ cv, niche, keyValueMap = {}, rows = [], page,
   const work = workNoun ? titleCase(workNoun) : `${cat} Services`;
   const workLower = lc(work);
   const ctx = {
-    kwPhrase: h1, service: serviceName, svc, svcLower, category, cat, catLower, work, workLower, town: townName, city: townName,
+    kwPhrase: h1, service: serviceName, svc, svcLower, svcQuestion, category, cat, catLower, work, workLower, town: townName, city: townName,
     trade: niche.trade || '', tradeLower: niche.trade_lower || '', tradePerson: niche.trade_person || '', tradePersonPlural: niche.trade_person_plural || '',
     customerType: niche.customer_type || '', unitOfWork: niche.unit_of_work || '', areaWide: scope === 'base' ? (cv.area_wide || '') : '',
     companyName: cv.company_name || '', quoteFree,
@@ -330,7 +365,7 @@ function computeServiceDecisions({ cv, niche, keyValueMap = {}, rows = [], page,
     page_type: 'service', scope, service: serviceName, service_names: namesOf(baseRow), category, category_key: catKey, town: townName, city, slug: selfUrl,
     type: { letter: blocks.letter, key: blocks.key, a2: blocks.a2, emergency: blocks.emergencyUsed, desire: !!blocks.desireUsed, desire_page: desirePage, source: blocks.source },
     d1_years_trading: yearsTrading,
-    d2_h1: h1, keyword: kwNatural, svc, svc_lower: svcLower, cat, cat_lower: catLower, work, work_lower: workLower,
+    d2_h1: h1, keyword: kwNatural, svc, svc_lower: svcLower, svc_question: svcQuestion, cat, cat_lower: catLower, work, work_lower: workLower,
     d3_title: built.title, d4_meta: meta, d5_trust: trust.line, d6_rating: rating,
     d15_buttons: buttons, breadcrumb,
     h2,
@@ -515,4 +550,4 @@ function formatServiceBlock(D, cv, niche, ctx) {
   return L.join('\n');
 }
 
-module.exports = { computeServiceDecisions, formatServiceBlock, phSvc, namesOf, baseRowOf };
+module.exports = { computeServiceDecisions, formatServiceBlock, phSvc, namesOf, baseRowOf, singularQuestionName };

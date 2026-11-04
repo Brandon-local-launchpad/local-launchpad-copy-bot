@@ -5,6 +5,7 @@
   "trade_lower": "roofing",
   "trade_person": "roofer",
   "trade_person_plural": "roofers",
+  "homepage_keyword": "Roofer",
   "customer_type": "homeowners",
   "unit_of_work": "jobs",
   "emergency_niche": true,

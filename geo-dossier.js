@@ -44,6 +44,10 @@ function parseHeading(heading) {
 }
 
 // Value of a "Label: value" field, running until the next known label
+// A sentence that only says something varies (the soil, the geology, the housing) tells the copy
+// nothing and reached the page as filler (4 Nov 2026): dropped from profiles and issue details here
+const VAGUE_RE = /(?:\b(?:the|its|local)\s+)?\b(?:soils?|geology|ground|ground conditions|housing|housing stock|house types|the picture|conditions)\b[^.;]*\b(?:varies|vary|differs?|is mixed|are mixed)\b[^.;]*[.;]?|\bvaries (?:widely |a lot |considerably |greatly )?(?:across|between|from) [^.;]*[.;]?/gi;
+function dropVague(text) { return String(text || '').replace(VAGUE_RE, '').replace(/\s{2,}/g, ' ').replace(/^\s*[,;]\s*/, '').trim(); }
 function field(body, label, nextLabels) {
   const re = new RegExp(`^\\s*\\**${label}\\**\\s*:\\s*`, 'im');
   const m = re.exec(body);
@@ -87,7 +91,7 @@ function parseNeighbourhoods(sectionText, warnings) {
   if (!splitBlocks(sectionText).length) {
     // | ID | Name | Type | Profile | Linked issues |
     for (const c of tableRows(sectionText)) {
-      const profile = c[3] || '';
+      const profile = dropVague(c[3] || '');
       out.push({ id: c[0], name: c[1] || c[0], type: (c[2] || '').toLowerCase(), profile, linkedIssues: ((c[4] || '').match(ID_RE_G) || []), sourced: hasSource(profile) });
     }
     return out;
@@ -95,7 +99,7 @@ function parseNeighbourhoods(sectionText, warnings) {
   for (const { heading, body } of splitBlocks(sectionText)) {
     const h = parseHeading(heading);
     if (!h) { warnings.push(`Neighbourhood heading without an ID: "${heading.slice(0, 60)}"`); continue; }
-    const profile = field(body, 'Profile', ['Linked issues']) || body.replace(/^\s*Linked issues\s*:.*$/im, '').trim();
+    const profile = dropVague(field(body, 'Profile', ['Linked issues']) || body.replace(/^\s*Linked issues\s*:.*$/im, '').trim());
     const linked  = (field(body, 'Linked issues', []).match(ID_RE_G) || []);
     out.push({ id: h.id, name: h.rest[0] || h.id, type: (h.rest[1] || '').toLowerCase(), profile, linkedIssues: linked, sourced: hasSource(profile) });
   }
@@ -111,7 +115,7 @@ function parseIssues(sectionText, warnings) {
     for (const c of tableRows(sectionText)) {
       const [id, title, detail, scope, cats, svcs, angles, question, answer] = c;
       const body = [`Detail: ${detail || ''}`, scope ? `Scope: ${scope}` : '', cats ? `Category tags: ${cats}` : '', svcs ? `Service tags: ${svcs}` : '', angles ? `Angles: ${angles}` : '', question ? `Condition question: ${question}` : '', answer ? `Answer material: ${answer}` : ''].filter(Boolean).join('\n');
-      out.push({ id, title: title || id, detail: detail || '', categoryTags: splitList(cats), serviceTags: splitList(svcs), body });
+      out.push({ id, title: title || id, detail: dropVague(detail || ''), categoryTags: splitList(cats), serviceTags: splitList(svcs), body });
     }
     return out;
   }
@@ -122,7 +126,7 @@ function parseIssues(sectionText, warnings) {
     out.push({
       id: h.id,
       title: h.rest.join(' | ') || h.id,
-      detail: field(body, 'Detail', others('Detail')),
+      detail: dropVague(field(body, 'Detail', others('Detail'))),
       categoryTags: splitList(field(body, 'Category tags', others('Category tags'))),
       serviceTags:  splitList(field(body, 'Service tags', others('Service tags'))),
       body,
@@ -222,4 +226,4 @@ function cleanForCopy(text, nameById = {}) {
     .trim();
 }
 
-module.exports = { parseDossier, cleanForCopy, coastalLine };
+module.exports = { parseDossier, cleanForCopy, coastalLine, dropVague };

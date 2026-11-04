@@ -87,7 +87,11 @@ const RETRY_FLAGS = new Set(['N7', 'N13', 'N14', 'N15', 'N17', 'N18', 'N19', 'N2
 const RESEARCH_WORDS = ['investigated sites?', 'records? shows?', 'recorded (at|in|by)', 'council (guidance|records|data|maps?|says)',
   'strategic flood', 'flood (risk )?assessments?', 'suds', 'according to', 'research', 'dossier', 'data (shows|suggests)',
   'mapped', 'appraisal', 'neighbourhood plan', 'evidence base', 'studies show', 'surveys? (show|found)',
-  '(slowly |more slowly |less )?permeable', 'groundwater', 'water table', 'tidal-flat', 'river-terrace', 'plateaux?'];
+  '(slowly |more slowly |less )?permeable', 'groundwater', 'water table', 'tidal-flat', 'river-terrace', 'plateaux?',
+  // Research filler (4 Nov 2026): a line that only says something varies tells the reader nothing
+  '(soils?|geology|ground|ground conditions|housing|housing stock|the picture|conditions) (varies|vary|differs?|is mixed|are mixed)',
+  'varies (widely|a lot|considerably|greatly)?\\s*(across|between|from) (the (city|town|area|district|borough)|street to street|one (street|road|area) to (the next|another)|place to place)',
+  'varies across', 'mixed (geology|soils?|housing)', 'a (mix|mixture|patchwork) of (soils?|ground|housing|house types)'];
 const STOPWORDS = new Set('a an the and or of to in on for with at by from as is are be it its this that we our you your they their there here so if not no but more than can will has have'.split(' '));
 
 const NUM_WORDS = { one: 1, two: 2, three: 3, four: 4, five: 5, six: 6, seven: 7, eight: 8, nine: 9, ten: 10, eleven: 11, twelve: 12 };

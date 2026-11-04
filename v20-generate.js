@@ -198,7 +198,7 @@ function validationContextFor({ cv, niche, decisions, keyValueMap, serviceParent
 
 // Generate the homepage record. `callModel({ system, message, maxTokens })` returns
 // { text, usage }. With a failed gate there is no call: the record holds the gates.
-async function generateV20Homepage({ cv, niche, keyValueMap, serviceParentMap = {}, decisionsResult, calibrationPack, calibrationPackName, callModel, extraFlags = [], allocationSource = null, retries = true, claimsReview = true, qualityReview = false }) {
+async function generateV20Homepage({ cv, niche, keyValueMap, serviceParentMap = {}, decisionsResult, calibrationPack, calibrationPackName, callModel, extraFlags = [], allocationSource = null, retries = true, claimsReview = true, qualityReview = false, flagPass = true }) {
   const { buildPageRecord, expectedFromDecisions } = require('./v20-record');
   const { parseV20Output } = require('./v20-parse');
   const { validateV20 } = require('./validate-v20');
@@ -270,6 +270,17 @@ async function generateV20Homepage({ cv, niche, keyValueMap, serviceParentMap = 
     // Quality review (16 Oct, docs/seo/COPY_QUALITY_RUBRIC.md): the rubric reviewer reads the
     // page, the fields it quotes are rewritten and the page is reviewed again; then the
     // claims check runs once more on what the rewrites changed
+    // Flag pass (4 Nov 2026, copy quality 2): the fields still carrying FLAGs after the BLOCKs and the
+    // claims are dealt with get one targeted rewrite each, with their flag messages; kept only when the
+    // field's flags drop and the page gains no BLOCK
+    if (flagPass) {
+      const { runFlagPass } = require('./v20-retry');
+      try {
+        const fp = await runFlagPass({ record, V, callRetry, validate: rec => validateV20(rec, V) });
+        record.meta.flag_pass = { before: fp.before, after: fp.after, kept: fp.kept, calls: fp.usage.calls };
+        record.VALIDATION = validationSummary(validateV20(record, V), [...((record.VALIDATION && record.VALIDATION.retries) || []), ...fp.log.map(x => ({ ...x, round: `flag pass ${x.round}` }))], retryUsage);
+      } catch (e) { record.meta.flag_pass = { error: e.message }; }
+    }
     if (qualityReview) {
       const { runQualityRetries, runClaimRetries } = require('./v20-retry');
       const Q = require('./quality-review');
