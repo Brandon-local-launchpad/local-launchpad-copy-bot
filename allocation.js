@@ -337,11 +337,10 @@ function symptomsForService(parsed, { service, names = [], category, emergencyNi
     }
     return out;
   };
-  const mine = pick(byService);
-  if (mine.length >= limit || !category) return mine;
-  const seen = new Set(mine.map(s => s.issueId));
-  const rest = pick((s, issue) => !seen.has(issue.id) && issue.categoryTags.some(t => norm(t) === norm(category))).map(s => ({ ...s, by: 'category' }));
-  return [...mine, ...rest].slice(0, limit);
+  // Only the page's own service target (Brandon, 4 Nov 2026): a page with no symptom of its own drops
+  // the symptom question, never borrowing another service's from the category (turf and hosepipes
+  // on a Fencing page)
+  return pick(byService);
 }
 
 // The symptoms a location page may use (CORE (18), 27 Oct): the town is the subject, not one

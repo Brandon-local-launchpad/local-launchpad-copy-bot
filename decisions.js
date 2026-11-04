@@ -922,7 +922,7 @@ function computeDecisions({ cv, niche, pages, keyValueMap, serviceParentMap, v20
     d14_town:            d14,
     d15_buttons:         d15,
     linkablePages,
-    niche_steps:         stepsFor(niche, cv, emergencyOn),
+    niche_steps:         CB.gateStepTitles(stepsFor(niche, cv, emergencyOn), { niche, cv, emergencyOn }),
     emergencyOn,
     emergencyWhy,
     quoteFree,

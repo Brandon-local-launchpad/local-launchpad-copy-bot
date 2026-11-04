@@ -53,6 +53,18 @@ function extractIdeas(record, { names = [], proofs = [] } = {}) {
 // Technical points: the mechanisms a page explains once
 const TECH_RE = /\b(?:drain|drainage|soakaway|clay|chalk|sandy|soil|sub ?base|base under|hardcore|compact|membrane|root|roots|slope|level|fall|falls|water ?table|flood|frost|shade|moss|thatch|aerat|scarif|mulch|weed|hedge|prun|fell|stump|cut|mow|seed|turf|feed|fertil|paving|slab|block|gravel|resin|timber|post|rail|panel|deck|joist|pergola|patio|fence|fencing|retaining|wall|step|path|lighting|irrigat|planting|border|lawn|tree|branch|canopy|crown|conservation|tpo|preservation order|permit|planning|council)\w*\b/i;
 
+// A sentence that is only a list of towns (Brandon, 4 Nov 2026): the area links code picks for paragraph 4,
+// which a neighbouring page's list will share by design. Two or more towns named and little else left.
+function isTownListSentence(sentence, towns = []) {
+  let rest = scanText(sentence);
+  let named = 0;
+  for (const t of [...towns].filter(Boolean).sort((a, b) => String(b).length - String(a).length)) {
+    const re = new RegExp('\\b' + String(t).replace(/[.*+?^$(){}|[\]\\]/g, '\\$&') + '\\b', 'gi');
+    if (re.test(rest)) { named++; rest = rest.replace(re, ' '); }
+  }
+  return named >= 2 && contentWords(rest).size <= 4;
+}
+
 // Does a sentence remake a stored idea? Returns the matching idea or null
 function matchIdea(sentence, ideas) {
   const mine = contentWords(sentence);
@@ -79,4 +91,4 @@ function ideasFromRecords(records) {
   return out;
 }
 
-module.exports = { extractIdeas, matchIdea, ideasFromRecords, contentWords, MIN_WORDS, SHARE };
+module.exports = { extractIdeas, matchIdea, ideasFromRecords, contentWords, isTownListSentence, MIN_WORDS, SHARE };

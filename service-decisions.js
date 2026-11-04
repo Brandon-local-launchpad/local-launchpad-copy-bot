@@ -78,6 +78,20 @@ function article(word) {
   return /^[aeiou]/.test(w) ? 'an' : 'a';
 }
 
+// The 2 or 3 area pages a base service page links (Brandon, 4 Nov 2026): the least linked towns so far, counting
+// the parent category's and each earlier sibling's, so a page and its neighbours link different towns where enough
+// exist and share as evenly as they can where they don't
+function rotateTowns(linked = [], { avoid = [], index = 0, n = 3 } = {}) {
+  const avoided = avoid.map(lc);
+  const used = new Map(linked.map(a => [lc(a.name), avoided.includes(lc(a.name)) ? 1 : 0]));
+  let picks = [];
+  for (let i = 0; i <= index; i++) {
+    picks = [...linked].sort((a, b) => used.get(lc(a.name)) - used.get(lc(b.name))).slice(0, n);
+    for (const a of picks) used.set(lc(a.name), used.get(lc(a.name)) + 1);
+  }
+  return picks;
+}
+
 // The singular of a page name with its article, for a question (4 Nov 2026): "Patios" → "a patio",
 // "Roof repairs" → "a roof repair", "Ant control" → "ant control" (no plural, no article), a name
 // with "and" or ending in a word that is not a plain plural stays as it is. The library's
@@ -272,12 +286,14 @@ function computeServiceDecisions({ cv, niche, keyValueMap = {}, rows = [], page,
   const problemCards = ((E.problems || {}).cards || []).slice(0, 4).map(c => ({ title: phSvc(c.title, ctx), brief: phSvc(c.brief || '', ctx), mechanism: phSvc(c.mechanism || '', ctx) }));
   const costCards = ((E.cost || {}).cards || []).slice(0, 4).map(c => ({ title: phSvc(c.title, ctx), brief: phSvc(c.brief || '', ctx) }));
   const stepsRaw = Array.isArray(E.steps) && E.steps.length ? (emergencyOn && Array.isArray(E.steps_emergency) && E.steps_emergency.length ? E.steps_emergency : E.steps) : stepsFor(niche, cv, emergencyOn);
-  const steps = ((blocks.overrideUsed && !emergencyOn ? require('./category-blocks').overrideStepsFor(stepsRaw, niche, cv) : stepsRaw) || []).slice(0, 3).map(s => ({ title: phSvc(s.title, ctx), brief: phSvc(s.brief || '', ctx) }));
+  const steps = (require('./category-blocks').gateStepTitles(stepsRaw, { niche, cv, emergencyOn }) || []).slice(0, 3).map(s => ({ title: phSvc(s.title, ctx), brief: phSvc(s.brief || '', ctx) }));
   if (steps.length < 3) flags.push({ code: 'F-BRIEF', msg: `Only ${steps.length} process step(s) for type ${blocks.key}.` });
 
   // A slot marked when: rule_rows (type B's "rules or standards" question) joins as a sixth when
   // the service has Table C rule rows (Brandon, 25 Oct)
-  let faqs = B.pickFaqSlots(E, cv, { quoteFree, ruleRows: !!tradeFacts.hasRule, max: 5 + (tradeFacts.hasRule && (E.faq_slots || []).some(s => s.when === 'rule_rows') ? 1 : 0) }).map(q => ({ ...q, question: phSvc(q.question, ctx), answer_brief: phSvc(q.answer_brief, ctx) }));
+  // No symptom of its own: the niche's next FAQ slot takes the symptom question's place (4 Nov 2026)
+  const noSymptomSlot = !symptoms.length && !(niche.seasonal_trade && E.seasonal && blocks.letter === 'B') ? 1 : 0;
+  let faqs = B.pickFaqSlots(E, cv, { quoteFree, ruleRows: !!tradeFacts.hasRule, max: 5 + noSymptomSlot + (tradeFacts.hasRule && (E.faq_slots || []).some(s => s.when === 'rule_rows') ? 1 : 0) }).map(q => ({ ...q, question: phSvc(q.question, ctx), answer_brief: phSvc(q.answer_brief, ctx) }));
   const freq = String(cv.visit_frequency_options || '').trim();
   for (const q of faqs) {
     if (!/\b(?:regular visits|how often|visits work|visit frequency|frequency)\b/i.test(`${q.slot} ${q.question}`)) continue;
@@ -312,7 +328,7 @@ function computeServiceDecisions({ cv, niche, keyValueMap = {}, rows = [], page,
     const otherCause = used.length ? ` Give a cause none of the block 4 cards and none of MECHANISMS USED use (they use: ${used.join('; ')}).` : '';
     faqs.push({ slot: 'symptom', question: phSvc(frame, sctx), answer_brief: phSvc(fs.answer_brief || 'Answer from the assigned symptom and its local issue: the usual cause here in plain words, then what this service does about it.', sctx) + otherCause, doubt: fs.doubt || 'Process', symptom: true });
   } else {
-    flags.push({ code: 'F-ALLOC', msg: `No local symptom tagged ${serviceName} or ${category} for the symptom question${scope === 'town' ? ` (${townName} dossier)` : ''}.` });
+    flags.push({ code: 'F-ALLOC', msg: `No local symptom tagged ${serviceName}: no symptom question on this page${scope === 'town' ? ` (${townName} dossier)` : ''}.` });
   }
   const doubts = new Set(faqs.map(q => q.doubt).filter(Boolean));
   const missing5 = ['Price', 'Trust', 'Fit', 'Process', 'Timing'].filter(d => !doubts.has(d));
@@ -393,7 +409,11 @@ function computeServiceDecisions({ cv, niche, keyValueMap = {}, rows = [], page,
   const selfUrl = slugOf(page);
   const linkablePages = linkable.filter(p => p.url !== selfUrl);
   // Paragraph 4: base page links 2 or 3 of the area pages; town page links the base page once
-  const locationLinks = scope === 'base' ? areas.linked.slice(0, 3).map(a => ({ name: a.name, url: a.url, h1: a.h1 })) : [];
+  // Code picks them, rotating (Brandon, 4 Nov 2026): away from the towns the parent category links, and
+  // each sibling service page starts further along the list, so pages link different towns where enough exist
+  const categoryTowns = towns.filter(t => !isAdminArea(t)).map(locCatFor).filter(r => r && live(r)).slice(0, 3).map(r => lc((r.info && r.info.town) || ''));
+  const serviceIndex = Math.max(0, applies.filter(r => r.type === 'service' && live(r) && ((r.info && r.info.parent_keys) || []).includes(catKey)).findIndex(r => r === baseRow || (baseRow && sameName(r.title, baseRow.title))));
+  const locationLinks = scope === 'base' ? rotateTowns(areas.linked, { avoid: categoryTowns, index: serviceIndex }).map(a => ({ name: a.name, url: a.url, h1: a.h1 })) : [];
   const baseLink = scope === 'town' ? { name: baseRow.title, url: slugOf(baseRow), h1: baseRow.h1 || '' } : null;
 
   // ── Breadcrumb ──
@@ -482,7 +502,7 @@ function formatServiceBlock(D, cv, niche, ctx) {
   for (const q of D.faq) { push(`  ${q.slot}: ${q.question} [${q.doubt}${q.symptom ? ', symptom' : ''}]`); if (q.answer_brief) push(`    → ${q.answer_brief}`); }
   push('');
   if (D.scope === 'base') {
-    push('--- AREA PAGES FOR PARAGRAPH 4 (link 2 or 3, written as the town name or "[service_lower] in [town]", never the bare H1) ---');
+    push('--- AREA PAGES FOR PARAGRAPH 4 (link exactly these, code picked them so this page and its neighbours link different towns; written as the town name or "[service_lower] in [town]", never the bare H1) ---');
     for (const l of D.locationLinks) push(`  ${l.name} → ${l.url}`);
     if (!D.locationLinks.length) push('  none (no town has a page for this service or its category yet: paragraph 4 names the wider area without links)');
   } else {
@@ -594,4 +614,4 @@ function formatServiceBlock(D, cv, niche, ctx) {
   return L.join('\n');
 }
 
-module.exports = { computeServiceDecisions, formatServiceBlock, phSvc, namesOf, baseRowOf, singularQuestionName };
+module.exports = { computeServiceDecisions, formatServiceBlock, phSvc, namesOf, baseRowOf, singularQuestionName, rotateTowns };

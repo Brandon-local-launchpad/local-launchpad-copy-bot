@@ -99,6 +99,7 @@ function buildCategoryReaderView(record, values = {}) {
   if (Qr) {
     if (Qr.status === 'failed') push(`Quality review: failed (${Qr.error}).`, '');
     else {
+      push(`**Verdict: ${require('./verdict').verdictLine(require('./verdict').verdictOfRecord(record))}**`, '');
       push(`Quality review: **${Qr.score === null || Qr.score === undefined ? 'n/a' : Qr.score.toFixed(1)} / 10**${(Qr.rounds || []).length ? ` (rounds ${Qr.rounds.map(r => r.score).join(', ')})` : ''}, ${(Qr.failed || []).length ? `failing ${Qr.failed.join(', ')}` : 'every rubric item passes'}.`, '');
       for (const i of Qr.failures || []) {
         push(`- **${i.id} ${i.title}** (${i.by})`);

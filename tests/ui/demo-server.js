@@ -96,6 +96,9 @@ process.env.CITATIONS_SKIP_DA = '1'; // the demo's pg-mem is fresh each start: n
     if (k === 'VALIDATION') ordered.CLAIMS = { for: record.meta.generated_at, status: 'needs acceptance', first_review: 3, rounds: [],
       findings: [{ field: 'faq_answer (How soon can you start?)', quote: 'We can usually start the same week.', why: '"usually" qualifies the confirmed start time' }] };
   }
+  // A reviewed page, so the Quality card and its verdict can be seen: three judge items failed
+  ordered.QUALITY = { at: record.meta.generated_at, model: 'demo', score: 7.5, done: false, failed: ['S10', 'P6', 'Y6'], other_problems: [], missing_facts: [],
+    failures: [{ id: 'S10', by: 'judge', title: 'No filler', pass: false, reasons: ['The opening of the services paragraph could sit on any site.'] }, { id: 'P6', by: 'judge', title: 'Plain words', pass: false, reasons: ['Two sentences lean on trade terms.'] }, { id: 'Y6', by: 'judge', title: 'Varied rhythm', pass: false, reasons: ['Three sections open the same way.'] }] };
   await asset('v20_page_record', 'homepage_v20.json', JSON.stringify(ordered));
 
   // No FAQ research or sorted questions: the FAQ questions card shows the real empty state
