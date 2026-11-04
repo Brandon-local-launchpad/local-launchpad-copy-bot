@@ -390,17 +390,22 @@ async function reviewPage({ record, V, D, cv, niche, callModel }) {
     done: !failed.length && score !== null && score >= PASS_SCORE,
     failed: failed.map(i => i.id), items, other_problems: j.other_problems || [], missing_facts: j.missing_facts || [],
     validator: { block: issues.filter(i => i.type === 'BLOCK').length, flag: issues.filter(i => i.type === 'FLAG').length },
+    // The gate (Brandon, 4 Nov 2026); the score stays for tracking
+    verdict: require('./verdict').verdictFor({ block: issues.filter(i => i.type === 'BLOCK').length, failures: failed }),
     usage: r.usage || null,
   };
 }
 
 function formatReview(rv) {
   const fixable = rv.items.filter(x => !x.pass && x.needs !== 'client fact'), needFact = rv.items.filter(x => !x.pass && x.needs === 'client fact');
-  const L = [`Score: ${rv.score === null ? 'n/a' : rv.score.toFixed(1)} / 10 · ${rv.items.length - rv.failed.length}/${rv.items.length} rubric items pass · ${rv.done ? 'DONE' : 'not done'}`,
+  const V_ = rv.verdict || require('./verdict').verdictFor({ block: (rv.validator && rv.validator.block) || 0, failures: rv.items.filter(x => !x.pass) });
+  const L = [`Verdict: ${require('./verdict').verdictLine(V_)}`,
+    `Score (for tracking): ${rv.score === null ? 'n/a' : rv.score.toFixed(1)} / 10 · ${rv.items.length - rv.failed.length}/${rv.items.length} rubric items pass · ${rv.done ? 'DONE' : 'not done'}`,
     ...(rv.score_writing != null && rv.score !== null ? [`Counting only what the writing can fix: ${rv.score_writing.toFixed(1)} / 10 (${fixable.length} failure(s) fixable in the writing, ${needFact.length} need a client fact)`] : []),
     `Validator: ${rv.validator.block} BLOCK, ${rv.validator.flag} FLAG`, ''];
   // Every rubric item, failures first with the reviewer's reasons, then the passes (4 Nov 2026:
   // the file next to each page is the whole mark sheet, not only what was marked down)
+  if (V_.judge_failed.length) { L.push('For a person to read (failed judge items):'); for (const j of V_.judge_failed) L.push(`  - ${j.id}: ${(j.reasons || []).join(' | ') || j.title}`); L.push(''); }
   const failLines = list => { for (const i of list) { L.push(`FAIL ${i.id} (${i.by}) ${i.title}`); for (const r of i.reasons) L.push(`  - ${r}`); } };
   if (needFact.length) { L.push('Fixable in the writing:'); failLines(fixable); L.push('', 'Needs a client fact:'); failLines(needFact); }
   else failLines(fixable);

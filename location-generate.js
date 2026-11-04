@@ -148,7 +148,7 @@ async function generateLocationPage({ cv, niche, keyValueMap, serviceParentMap =
       const Q = require('./quality-review');
       try {
         const { review: rv, rounds: qRounds } = await runQualityRetries({ record, V, callRetry, review: rec => Q.reviewPage({ record: rec, V, D, cv, niche, callModel }), maxRounds: qualityRounds, validate });
-        record.QUALITY = { at: rv.at, model: rv.model, score: rv.score, done: rv.done, failed: rv.failed, failures: rv.items.filter(i => !i.pass), other_problems: rv.other_problems, missing_facts: rv.missing_facts, rounds: qRounds };
+        record.QUALITY = { at: rv.at, verdict: rv.verdict, score_writing: rv.score_writing, model: rv.model, score: rv.score, done: rv.done, failed: rv.failed, failures: rv.items.filter(i => !i.pass), other_problems: rv.other_problems, missing_facts: rv.missing_facts, rounds: qRounds };
         if (claimsReview && qRounds.some(r => r.retries.some(x => x.kept))) {
           const { runClaimsReview, factsFromRecord } = require('./wp/claims-review');
           const { claims, rounds } = await runClaimRetries({ record, V, callRetry, review: rec => runClaimsReview(rec, factsFromRecord(rec), callModel), maxRounds: 1, validate });

@@ -156,6 +156,9 @@ function validateService(record, V) {
       const linked = linkUrls(cb.text).map(normUrl).filter(u => targets.has(u));
       if (targets.size && !linked.length) issue('FLAG', 'CB-LINKS', cb.label, 'Paragraph 4 links none of the area pages given in DECISIONS. Link 2 or 3 of them, as the town name or "[service_lower] in [town]".', cb.ref);
       if (linked.length > 3) issue('BLOCK', 'CB-LINKS', cb.label, `The content block links ${linked.length} area pages. Link 3 at most.`, cb.ref);
+      const picks = new Set((D.locationLinks || []).map(l => normUrl(l.url)));
+      const others = picks.size ? [...new Set(linked.filter(u => !picks.has(u)))] : [];
+      if (others.length) issue('FLAG', 'CB-LINKS', cb.label, `Paragraph 4 links ${others.join(', ')}. Code picked the towns so neighbouring pages link different ones: link only ${[...picks].join(', ')}.`, cb.ref);
     }
   }
   if (scope === 'town' && D.baseLink) {
@@ -221,9 +224,11 @@ function validateService(record, V) {
   // says; first real run, 25 Oct) ──
   const ideas = D.ideasUsed || [];
   if (ideas.length) {
+    const townNames = [...(D.locationLinks || []).map(l => l.name), ...((D.areas && D.areas.linked) || []).map(l => l.name), ...((D.areas && D.areas.plain) || [])];
     for (const f of fields) {
       if (f.ref.key === LABELS.areasIntro) continue;
       for (const s of sentences(f.text)) {
+        if (require('./ideas').isTownListSentence(s, townNames)) continue;
         const hit = matchIdea(s, ideas);
         if (hit) { issue('BLOCK', 'IDEAS', f.label, `"${scanText(s).slice(0, 80)}…" remakes an idea the ${hit.page} already made ("${hit.text.slice(0, 80)}…"). Find a different angle.`, f.ref); break; }
       }

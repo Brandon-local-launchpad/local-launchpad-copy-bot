@@ -154,8 +154,10 @@ function validateCategory(record, V) {
   // ── Nothing from IDEAS USED ELSEWHERE ──
   const ideas = D.ideasUsed || [];
   if (ideas.length) {
+    const townNames = [...(D.locationLinks || []).map(l => l.name), ...((D.areas && D.areas.linked) || []).map(l => l.name), ...((D.areas && D.areas.plain) || [])];
     for (const f of fields) {
       for (const s of sentences(f.text)) {
+        if (require('./ideas').isTownListSentence(s, townNames)) continue;
         const hit = matchIdea(s, ideas);
         if (hit) { issue('BLOCK', 'IDEAS', f.label, `"${scanText(s).slice(0, 80)}…" remakes an idea the ${hit.page} already made ("${hit.text.slice(0, 80)}…"). Find a different angle.`, f.ref); break; }
       }

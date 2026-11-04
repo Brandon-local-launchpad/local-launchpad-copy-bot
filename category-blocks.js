@@ -87,6 +87,31 @@ function overrideStepsFor(steps, niche = {}, cv = {}) {
   return steps.map((s, i) => (i === 1 && VISIT_STEP_RE.test(s.title || '') ? niche.step_2_no_visit : s));
 }
 
+// A step title is a claim the reader sees (Brandon, 4 Nov 2026). Emergency step 2 promising the price or
+// an arrival needs [CV: quote_method] (and [CV: response_time] for an arrival), else it reads "We Come
+// Out and Make It Safe"; a step 2 promising a look before the price needs site_visit_before_quote; any
+// other title that states an unconfirmed practice goes to a plain one. The brief stays with the step.
+const EMERGENCY_STEP_2 = { title: 'We Come Out and Make It Safe', brief: 'What usually happens first when someone arrives, from the trade facts stages for this service: what is looked at, what is made safe, and what the customer is told. No arrival time unless [CV: response_time] is set. Nothing about how the price is reached. Never restates \'free\'.' };
+const PLAIN_STEP = ['Tell Us What You Need', 'We Price Your Job', 'We Do the Work'];
+function gateStepTitles(steps, { niche = {}, cv = {}, emergencyOn = false } = {}) {
+  if (!Array.isArray(steps)) return steps;
+  const { practiceClaims } = require('./practices');
+  const confirmed = new Set(cv.confirmed_practices || []);
+  return steps.map((s, i) => {
+    if (!s || !s.title) return s;
+    if (i === 1 && emergencyOn && /\b(?:price|quote|arrival)\b/i.test(s.title)) {
+      const ok = String(cv.quote_method || '').trim() && (!/\barrival\b/i.test(s.title) || String(cv.response_time || '').trim());
+      return ok ? s : EMERGENCY_STEP_2;
+    }
+    if (i === 1 && !emergencyOn && VISIT_STEP_RE.test(s.title) && !confirmed.has('site_visit_before_quote') && niche.step_2_no_visit) return niche.step_2_no_visit;
+    if (practiceClaims(s.title, niche).some(c => !confirmed.has(c.practice.key))) {
+      if (i === 1 && niche.step_2_no_visit) return niche.step_2_no_visit;
+      return { ...s, title: PLAIN_STEP[Math.min(i, PLAIN_STEP.length - 1)] };
+    }
+    return s;
+  });
+}
+
 function overrideFor(map, name) { return (map && typeof map === 'object' && map[lc(name)]) || null; }
 function applyOverride(entry, over) {
   if (!over) return entry;
@@ -201,4 +226,4 @@ function faqSlotsFor(niche = {}, cv = {}) {
   return out;
 }
 
-module.exports = { typeFor, blocksFor, briefGaps, pickFaqSlots, applySeasonal, NoBriefsError, clientEmergency, emergencyWhy, emergencySite, typeLetterFor, fearsFor, faqSlotsFor, overrideFor, applyOverride, overrideStepsFor };
+module.exports = { typeFor, blocksFor, briefGaps, pickFaqSlots, applySeasonal, NoBriefsError, clientEmergency, emergencyWhy, emergencySite, typeLetterFor, fearsFor, faqSlotsFor, overrideFor, applyOverride, overrideStepsFor, gateStepTitles, EMERGENCY_STEP_2 };

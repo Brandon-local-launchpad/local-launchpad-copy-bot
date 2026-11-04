@@ -287,7 +287,7 @@ async function generateV20Homepage({ cv, niche, keyValueMap, serviceParentMap = 
       try {
         const { review: rv, rounds: qRounds } = await runQualityRetries({ record, V, callRetry, review: rec => Q.reviewPage({ record: rec, V, D, cv, niche, callModel }) });
         record.QUALITY = {
-          at: rv.at, model: rv.model, score: rv.score, done: rv.done, failed: rv.failed,
+          at: rv.at, verdict: rv.verdict, score_writing: rv.score_writing, model: rv.model, score: rv.score, done: rv.done, failed: rv.failed,
           failures: rv.items.filter(i => !i.pass), other_problems: rv.other_problems, missing_facts: rv.missing_facts, rounds: qRounds,
         };
         if (claimsReview && qRounds.some(r => r.retries.some(x => x.kept))) {

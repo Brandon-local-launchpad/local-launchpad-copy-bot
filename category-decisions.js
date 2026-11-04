@@ -208,7 +208,7 @@ function computeCategoryDecisions({ cv, niche, keyValueMap = {}, rows = [], page
   const problemCards = ((blocks.entry.problems || {}).cards || []).slice(0, 4).map(c => ({ title: phCat(c.title, ctx), brief: phCat(c.brief || '', ctx), mechanism: phCat(c.mechanism || '', ctx) }));
   const costCards = ((blocks.entry.cost || {}).cards || []).slice(0, 4).map(c => ({ title: phCat(c.title, ctx), brief: phCat(c.brief || '', ctx) }));
   const stepsRaw = Array.isArray(blocks.entry.steps) && blocks.entry.steps.length ? (emergencyOn && Array.isArray(blocks.entry.steps_emergency) && blocks.entry.steps_emergency.length ? blocks.entry.steps_emergency : blocks.entry.steps) : stepsFor(niche, cv, emergencyOn);
-  const steps = (stepsRaw || []).slice(0, 3).map(s => ({ title: phCat(s.title, ctx), brief: phCat(s.brief || '', ctx) }));
+  const steps = (require('./category-blocks').gateStepTitles(stepsRaw, { niche, cv, emergencyOn }) || []).slice(0, 3).map(s => ({ title: phCat(s.title, ctx), brief: phCat(s.brief || '', ctx) }));
   if (steps.length < 3) flags.push({ code: 'F-BRIEF', msg: `Only ${steps.length} process step(s) for type ${blocks.key}.` });
 
   let faqs = B.pickFaqSlots(blocks.entry, cv, { quoteFree }).map(q => ({ ...q, question: phCat(q.question, ctx), answer_brief: phCat(q.answer_brief, ctx) }));

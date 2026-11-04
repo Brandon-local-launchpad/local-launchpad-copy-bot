@@ -175,7 +175,7 @@ function computeLocationDecisions({ cv, niche, keyValueMap = {}, rows = [], page
   const problems = ((E.problems || {}).cards || []).slice(0, 4).map(c => ({ title: phCat(c.title, ctx), brief: phCat(c.brief || '', ctx), mechanism: phCat(c.mechanism || '', ctx) }));
   const costCards = ((E.cost || {}).cards || []).slice(0, 4).map(c => ({ title: phCat(c.title, ctx), brief: phCat(c.brief || '', ctx) }));
   const stepsRaw = LB.stepsFor(niche, blocks.key, E, { emergencyOn }) || stepsFor(niche, cv, emergencyOn);
-  const steps = (stepsRaw || []).slice(0, 3).map(s => ({ title: phCat(s.title, ctx), brief: phCat(s.brief || '', ctx) }));
+  const steps = (require('./category-blocks').gateStepTitles(stepsRaw, { niche, cv, emergencyOn }) || []).slice(0, 3).map(s => ({ title: phCat(s.title, ctx), brief: phCat(s.brief || '', ctx) }));
   if (steps.length < 3) flags.push({ code: 'F-BRIEF', msg: `Only ${steps.length} process step(s) for type ${blocks.key}.` });
   const faqs = LB.pickFaqSlots(E, cv, { quoteFree, max: 5 }).map(q => ({ ...q, question: phCat(q.question, ctx), answer_brief: phCat(q.answer_brief, ctx) }));
   const freq = String(cv.visit_frequency_options || '').trim();

@@ -262,7 +262,9 @@ if (!calibrationPack.name) console.log('WARNING: no calibration pack found for t
         const blocks = vs.block != null ? vs.block : (vs.issues || []).filter(i => i.type === 'BLOCK').length;
         const flags = vs.flag != null ? vs.flag : (vs.issues || []).filter(i => i.type === 'FLAG').length;
         const fpH = record.meta && record.meta.flag_pass; const fpTextH = fpH && fpH.before != null ? ` (flags ${fpH.before} to ${fpH.after}, ${fpH.kept} kept)` : '';
-        line = `homepage: ${blocks} BLOCK, ${flags} FLAG${fpTextH}, reviewer ${review.score != null ? review.score.toFixed(1) : '?'}${review.readings && review.readings.length === 2 ? ` (${review.readings.map(s => s.toFixed(1)).join(', ')})` : ''}${review.score_writing != null ? `, writing only ${review.score_writing.toFixed(1)}${review.writings && review.writings.length === 2 ? ` (${review.writings.map(s => s.toFixed(1)).join(', ')})` : ''}` : ''} (${review.items ? review.items.filter(i => i.pass).length + '/' + review.items.length + ' items' : ''})`;
+        const pubH = !!(review.verdict && review.verdict.publishable && (!review2 || (review2.verdict && review2.verdict.publishable)));
+        const verdictH = pubH ? 'PUBLISHABLE' : require(path.join(root, 'verdict.js')).verdictLine(review.verdict && review.verdict.publishable && review2 ? review2.verdict : review.verdict);
+        line = `homepage: ${blocks} BLOCK, ${flags} FLAG${fpTextH}, ${verdictH}, reviewer ${review.score != null ? review.score.toFixed(1) : '?'}${review.readings && review.readings.length === 2 ? ` (${review.readings.map(s => s.toFixed(1)).join(', ')})` : ''}${review.score_writing != null ? `, writing only ${review.score_writing.toFixed(1)}${review.writings && review.writings.length === 2 ? ` (${review.writings.map(s => s.toFixed(1)).join(', ')})` : ''}` : ''} (${review.items ? review.items.filter(i => i.pass).length + '/' + review.items.length + ' items' : ''})`;
         await v20Store.insert(cid, record, { type: 'homepage', key: 'homepage' });
       }
       console.log('  ' + line); summary.push(line);
@@ -305,7 +307,8 @@ if (!calibrationPack.name) console.log('WARNING: no calibration pack found for t
           const score = readings.length === 2 ? Math.round(((readings[0] + readings[1]) / 2) * 100) / 100 : rv.score;
           const writings = [rv, rv2].filter(r => r && r.score_writing != null).map(r => r.score_writing);
           const score_writing = writings.length ? Math.round((writings.reduce((a, b) => a + b, 0) / writings.length) * 100) / 100 : null;
-          Qr = { score, score_writing, readings, writings, done: rv.done, failures: (rv.items || []).filter(i => !i.pass), needs_fact: rv.needs_fact || [] };
+          const publishable = !!(rv.verdict && rv.verdict.publishable && (!rv2 || (rv2.verdict && rv2.verdict.publishable)));
+          Qr = { score, score_writing, readings, writings, done: rv.done, failures: (rv.items || []).filter(i => !i.pass), needs_fact: rv.needs_fact || [], verdict: publishable ? 'PUBLISHABLE' : require(path.join(root, 'verdict.js')).verdictLine(rv.verdict && rv.verdict.publishable && rv2 ? rv2.verdict : rv.verdict) };
           fs.writeFileSync(path.join(dir, `${name}-review.txt`), Q.formatReview(rv) + (readings.length === 2 ? `\n(Two readings: ${readings.map(s => s.toFixed(1)).join(' and ')}; the summary score is their average.)\n` : '') + '\n');
           if (rv2) fs.writeFileSync(path.join(dir, `${name}-review-2.txt`), Q.formatReview(rv2) + '\n');
         }
@@ -314,7 +317,7 @@ if (!calibrationPack.name) console.log('WARNING: no calibration pack found for t
     }
     const block = found.record.meta && found.record.meta.decisions_block;
     const fp = found.record.meta && found.record.meta.flag_pass; const fpText = fp && fp.before != null ? ` (flags ${fp.before} to ${fp.after}, ${fp.kept} kept)` : '';
-    const line = `${type} ${key}: ${st.status}${V.status === 'run' ? ` (${V.block} BLOCK, ${V.flag} FLAG${fpText}${found.record.CLAIMS ? `, claims ${found.record.CLAIMS.status}` : ''}${Qr && Qr.score != null ? `, reviewer ${Qr.score.toFixed(1)}${Qr.readings && Qr.readings.length === 2 ? ` (${Qr.readings.map(s => s.toFixed(1)).join(', ')})` : ''}${Qr.score_writing != null ? `, writing only ${Qr.score_writing.toFixed(1)}${Qr.writings && Qr.writings.length === 2 ? ` (${Qr.writings.map(s => s.toFixed(1)).join(', ')})` : ''}` : ''}` : ''})` : ''}${found.record.error ? ': ' + found.record.error : ''} · ${emergencyLine(block)}${framingLine(block) ? ' · ' + framingLine(block) : ''}`;
+    const line = `${type} ${key}: ${st.status}${V.status === 'run' ? ` (${V.block} BLOCK, ${V.flag} FLAG${fpText}${found.record.CLAIMS ? `, claims ${found.record.CLAIMS.status}` : ''}${Qr && Qr.verdict ? `, ${Qr.verdict}` : ''}${Qr && Qr.score != null ? `, reviewer ${Qr.score.toFixed(1)}${Qr.readings && Qr.readings.length === 2 ? ` (${Qr.readings.map(s => s.toFixed(1)).join(', ')})` : ''}${Qr.score_writing != null ? `, writing only ${Qr.score_writing.toFixed(1)}${Qr.writings && Qr.writings.length === 2 ? ` (${Qr.writings.map(s => s.toFixed(1)).join(', ')})` : ''}` : ''}` : ''})` : ''}${found.record.error ? ': ' + found.record.error : ''} · ${emergencyLine(block)}${framingLine(block) ? ' · ' + framingLine(block) : ''}`;
     console.log('  ' + line); summary.push(line);
     for (const i of (V.issues || [])) if (i.type === 'BLOCK') console.log(`      BLOCK ${i.check} · ${i.field}: ${i.message}`);
     if (Qr && Qr.failures) for (const i of Qr.failures.slice(0, 6)) console.log(`      QUALITY ${i.id} ${i.title}: ${(i.reasons || []).slice(0, 1).join(' | ')}`);
