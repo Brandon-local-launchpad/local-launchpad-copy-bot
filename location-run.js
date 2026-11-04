@@ -138,7 +138,7 @@ function createLocationRunner({ pool, v20Store, loadInputs, generate, allocate =
       }
       if (picks) allocation = A.resolveAllocatedItems({ neighbourhoods: picks.neighbourhoods, symptoms: {}, conservation_areas: picks.conservation_areas || [] }, townInfo.parsed);
       const categories = [...new Set([ctx.cv.primary_category, ...rows.filter(r => r.applies !== false && r.type === 'category').map(r => r.title)].filter(Boolean))];
-      symptoms = A.symptomsForLocation(townInfo.parsed, { categories, emergencyNiche: !!niche.emergency_niche, limit: 4 + takenS.size }).filter(s => !takenS.has(lc(s.text))).slice(0, 4)
+      symptoms = A.symptomsForLocation(townInfo.parsed, { categories, emergencyNiche: require('./category-blocks').emergencySite(ctx.cv, rows), limit: 4 + takenS.size }).filter(s => !takenS.has(lc(s.text))).slice(0, 4)
         .map(s => { const issue = townInfo.parsed.issues.find(i => i.id === s.issueId); return { id: s.id, text: s.text, issueTitle: issue ? issue.title : '', issueText: issue ? cleanForCopy(issue.body, townInfo.names) : '' }; });
     }
 

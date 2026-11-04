@@ -87,7 +87,7 @@ function createCategoryRunner({ pool, v20Store, loadInputs, generate, allocate =
     // Local research: the city dossier for a base page, the town's for a town page
     const cityDossier = (dossiers || []).find(d => normLoc(d.locationName) === normLoc(ctx.keyValueMap.biz_area_1));
     let allocation = null, townInfo = null, symptoms = [];
-    const emergencyNiche = !!niche.emergency_niche;
+    const emergencyNiche = require('./category-blocks').emergencySite(ctx.cv, rows);
     const takenS = takenSymptoms(prior);
     if (scope === 'base') {
       if (!cityDossier) extraFlags.push({ code: 'F-ALLOC', msg: `No saved dossier for ${ctx.keyValueMap.biz_area_1 || 'the base town'}.`, source: 'allocation' });

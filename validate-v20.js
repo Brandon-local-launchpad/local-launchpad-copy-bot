@@ -370,7 +370,9 @@ function validateCommon(record, V) {
     if (cv.same_day_available !== 'yes' && /\bsame[\s-]day\b/i.test(s)) flag('BLOCK', 'N5', '"Same day" used but same day is not confirmed.');
     if (cv.out_of_hours_available !== '24/7' && /24\/7/.test(s)) flag('BLOCK', 'N5', '"24/7" used but 24/7 cover is not confirmed.');
     if (cv.waste_carrier_registered !== 'yes' && /\bwaste carriers?\b/i.test(s)) flag('BLOCK', 'N5', 'Waste carrier registration is mentioned but not confirmed.');
-    if (!cv.deposit_terms && /\bdeposits?\b/i.test(s)) flag('BLOCK', 'N5', 'A deposit is mentioned but deposit_terms is blank.');
+    // N5 is the payment deposit; a trade's deposits ("sludge deposits", "scale deposits in the cylinder") are its own word (4 Nov 2026, the plumbing homepage)
+    const sPay = s.replace(/\b(sludge|scale|limescale|lime|mineral|salt|grease|dirt|calcium|magnetite|rust|black|soot|carbon|fat)\s+deposits?\b|\bdeposits?\s+of\s+(sludge|scale|limescale|lime|minerals?|salt|grease|dirt|rust|soot|carbon|fat)\b/gi, '');
+    if (!cv.deposit_terms && /\bdeposits?\b/i.test(sPay)) flag('BLOCK', 'N5', 'A deposit is mentioned but deposit_terms is blank.');
     // RIVALS: the client's own site never sends the reader to other businesses
     const rivals = s.match(/\b(?:get|getting|ask for|asking for|collect|obtain|request)\s+(?:at least\s+)?(?:two|three|four|several|a few|multiple|more|other|\d+)(?:\s+or\s+(?:two|three|four|more))?\s+(?:\w+\s+)?quotes?\b|\bcompare\s+(?:\w+\s+)?(?:quotes|firms|companies|businesses|landscapers|gardeners|roofers|tradespeople|traders)\b|\bshop(?:ping)? around\b|\bother (?:firms|companies|landscapers|gardeners|roofers|tradespeople|traders|contractors)\b/i);
     if (rivals) flag('BLOCK', 'RIVALS', `"${rivals[0]}" sends the reader to other businesses. Answer as this business; leave it out.`);

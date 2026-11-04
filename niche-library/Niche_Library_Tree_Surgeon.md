@@ -1,0 +1,445 @@
+# Niche Library Entry: Tree Surgeon
+
+Format: Homepage Structure, Layer 2, section 3 (Niche slot entry). Every slot is required; an empty slot stops the run (G-NICHE). Code reads `niche-library/tree-surgeon.json`; this file is the same content for people, kept in the same commit.
+
+Business type: **A (project trade)** for the one GBP category, Tree Service (Tree Surgeon Calibration Pack v1, section 2; it matches the Tree service row of the Landscaper pack). Emergency niche: **no** (the pack: plain type A, not A with the emergency marker; `emergency_niche` is false, so the allocation never hands a planned page an urgent symptom). The emergency layout switches on per page: the library's emergency column (Emergency tree work) when the client confirms call outs (the hand set Emergency primary, or the onboarding answer). Seasonal: **yes** (nests, sap, leaves and dormancy decide the month, never a busy season).
+
+Sources, in order of authority: `calibration-packs/Tree_Surgeon_Calibration_Pack_v1.md` (sections 1, 2, 4, 7), `trade-facts/tree-surgeon.md` (Tables A to G; header says verified: no), `niche-library/tree-surgeon.csv` and `fillout/services/tree-surgeons.json`.
+
+---
+
+## Trade words
+
+| Slot | Value |
+|---|---|
+| trade / trade_lower | Tree Surgery / tree surgery |
+| trade_person / trade_person_plural | tree surgeon / tree surgeons |
+| customer_type | homeowners (the pack's other readers, landlords, schools, agents and developers, are reached through the surveys, clearance and woodland pages) |
+| unit_of_work | jobs |
+| emergency_niche | no (the pack: plain type A; the emergency variant switches on per page) |
+| big_ticket | yes (large tree removals taken down in sections, tree surveys for building work, woodland management) |
+| schema_subtype | HomeAndConstructionBusiness (schema.org has no tree surgeon subtype; do not invent one) |
+
+## Priority services
+
+None. Emergency tree work is written only when the client confirms call outs (the pack, section 2), so it is not placed first by default.
+
+## Words customers use / words to avoid
+
+| Use | Avoid (twice on the page at most) | Banned (a block on first use: banned_phrases) |
+|---|---|---|
+| tree, branch, trunk, crown, stump, hedge, roots, the garden, the lawn, next door, the gutters, the roof, the drive, the council | arisings, brash, arboricultural, arb, MEWP, rigging, specimen, canopy management, vegetation, site, plot, property, tree works, lopping, topping, tree care solutions (words_avoid_exceptions: topping is allowed only to say what the work is not, a reduction cut back to growth points is not topping, never as a service; site is allowed on a Site and vegetation clearance page and a Tree surveys page where the customer is a developer or an agent and site is their own word) | could fall at any moment, ticking time bomb, accident waiting to happen, before it's too late, a danger to your family, your tree is safe, completely safe, will last for years, in harmony with nature, bringing nature back into balance, at one with nature, lop and top, lopping and topping, tree care experts, no job too big or too small (the pack's section 7: fear selling, promises a tree is safe, woodsman romance, the outdated lop and top) |
+
+## Buttons and headings
+
+| Slot | Value |
+|---|---|
+| primary_action | Get My [QUOTE_FREE] Quote |
+| meta_cta | Get your [QUOTE_FREE_LOWER] quote today. |
+| process_h2 | Your [QUOTE_FREE] Quote in 3 Simple Steps |
+| final_h2 | Get a [QUOTE_FREE] Quote From a Local [CATEGORY] in [CITY] |
+| final_h2_emergency | A Tree Down in [CITY]? Call [CV: phone] |
+| cta_band_line | Tell us about the tree and we'll get back to you within [CV: response_time]. |
+| cta_band_line_no_response | Tell us about the tree and we'll get back to you. |
+
+## Steps
+
+Standard (type A):
+1. **Tell Us About the Tree.** Brief: how to get in touch and what is useful to send first: what the tree is if they know, roughly how tall it stands against the house, what they have noticed and where it stands (near the house, the road, next door, an overhead line), photos taken from the ground if they have them. Never ask the customer to climb, get a ladder out or go near a hanging branch. No promise of a reply time unless [CV: response_time] is set.
+2. **We Come and Look at the Tree.** (only when the `site_visit_before_quote` practice is confirmed) Brief: the visit and what gets looked at: the tree itself, what stands under and around it, how the crew and the chippings get in and out, and whether an order or a conservation area covers the tree, checked as part of the quote (Table A: inspect and establish permissions); nests and roosts are part of planning the work, written as what usually applies. Follows [CV: quote_method]; only say the quote is written if quote_method says so. Never restates "free" (FAQ 5 owns it). Never promise what the visit will find, and never that a tree is safe.
+   Without the practice (`step_2_no_visit`): **We Price the Work.** Brief: a price is agreed before any work starts. Describe how the price is reached only from [CV: quote_method]; when quote_method is blank, name no method at all (no photos, call, video or visit). Only say the quote is written if quote_method says so. Never restates "free". Never say the tree has been judged safe or unsafe from a photo.
+3. **We Do the Work on a Date That Suits You.** Brief: the date is agreed in advance, to suit the customer; on the day the work area is set up and the garden cleared as agreed (Table A: clear arisings; whether the chippings and logs leave with the crew only from the client values). Never mention the price, the quote or changes to the plan (step 2 and Why choose us own them). Never restates the start time (FAQ 4 owns it). A nest found on the day can move that part of the work to later: say so only as what usually applies, with no date.
+
+Emergency (`steps_emergency`; only when the emergency layout is on: the page is flagged emergency in the library and the client confirms call outs):
+1. **Call Us.** Brief: what to say: what has happened, where the tree or the branch is (across the road or the drive, on a roof or a car, caught up in the crown, touching or near an overhead line), whether anyone is hurt, whether anything is still hanging. What to do meanwhile, in plain words: keep people, cars and pets away from it and from anything it could still fall on; never try to cut it, drag it or prop it; anything touching a line is left alone and the electricity network operator is called (Table C: a line is treated as live until the operator says otherwise). The number from [CV: phone]. No promise of a reply or an arrival time unless [CV: response_time] is set.
+2. **We Make the Area Safe.** Brief: on arrival the danger is judged from the ground first, the area closed off, lines and protections checked, then only the immediate hazard is brought down or lowered under control (Table A emergency tree work). The price for making it safe agreed before anyone comes out only from the price_agreed_before_work practice and [CV: quote_method]; what the rest costs waits until the tree has been seen. Never restates "free". "Same day" only when [CV: same_day_available] is yes.
+3. **We Clear the Danger and Plan the Rest.** Brief: what usually happens: the hazard removed, the area left safe, the work written up and any notice the council needs sent (Table A: document the work and the required notices; Table C: a protected tree made safe because it was an immediate danger has only the necessary work done and the council told as soon as practicable, with "usually" and never the rule's name). What is left of the tree, the stump and the timber is dealt with as planned work on another day (Table A: follow up work may be separate). Never promise everything is done on the first visit. Never mention the price.
+
+The category and service page emergency variants carry the same three steps.
+
+## Proof and fears
+
+| Slot | Value |
+|---|---|
+| cover_chain | guarantee → insurance (tree work has no manufacturer warranty) |
+| fears (in order, one per Why choose us point; the pack's section 1) | 1. being talked into felling a tree that only needed a prune; 2. a tree left worse than it was (topped, torn, or cut flush so it rots from the wound); 3. nobody checking whether the tree was protected, or had a nest in it, before the saw went in; 4. the mess and the surprises: branches left in a heap, a stump nobody mentioned, a price that grew on the day |
+| fears_by_type | none (one type) |
+
+## Logo schemes (Trusted & Rated By)
+
+Only shown when Ray has verified the client on the register. Never padded. From the trade facts Table D.
+
+- **Ratings (always first):** Google (needs [CV: review_count] 5+), then Checkatrade, Trustpilot, Which? Trusted Traders or Trading Standards Buy With Confidence.
+- **Tier 1, trade bodies and assessed contractors:** ARB Approved Contractor (Arboricultural Association), TrustMark, Arboricultural Association membership, ISA Certified Arborist, Institute of Chartered Foresters.
+- **Tier 2, assessed systems and qualifications:** CHAS, Alcumus SafeContractor, Lantra and NPTC City and Guilds chainsaw and climbing awards, Royal Forestry Society certification.
+- **Tier 3, local credibility:** chamber of commerce, local press features, local awards. Ray's call per client.
+
+## FAQ slots
+
+Fixed homepage questions and their doubts: Q1 cost = Price; Q6 areas = Fit.
+
+| Slot | Question | Answer brief | Symptom based | Doubt |
+|---|---|---|---|---|
+| faq_2 | Are you insured for tree work? | The cover figure from [CV: insurance_cover] and what it means for the customer if something is damaged during the job (a fence, a greenhouse, a neighbour's roof). Work at height with saws is why the question is a fair one: say so plainly, with no figure beyond the cover itself and no scheme minimum. | no | Trust |
+| faq_2_fallback | What happens if something goes wrong? | From [CV: complaints_process] only. | no | Trust |
+| faq_3 | Do you guarantee your work? | Used only when a guarantee is confirmed. Start with yes, then the terms from [CV: guarantee_years] and [CV: guarantee_scope]: the workmanship, or a planted tree's first season only if guarantee_scope says so. Never that a tree is safe, will recover or will not fail: a guarantee covers the work, not the tree. | no | Trust |
+| faq_3_none | What happens if something isn't right after the job? | Used when nothing in cover_chain other than insurance is confirmed. Open with what the customer does: tell us what isn't right and we'll look at it. Then the "reasonable care and skill" standard every trade works to, as the standard the work is held to, never as a defence. No promise to come back or put it right for free. Never invent a guarantee. | no | Trust |
+| faq_4 | How soon can you start? | From [CV: start_time] only, as given. Code adds "bigger projects are booked further ahead" only when that practice is confirmed. A nest or a notice period can move a date: say so only as what usually applies, with no weeks given. | no | Timing |
+| faq_5_free | Is the quote free and no obligation? | From [QUOTE_FREE] and [CV: quote_method]. | no | Price |
+| faq_5_not_free | How do your quotes work? | From [CV: quote_method] only. | no | Price |
+| faq_A | Does my tree need to come down, or can it be pruned? | Felling is not the default. Say when removal is right: a tree that is dead, decayed through, structurally failed, or standing where its size can never fit (Table A and B tree removal). Then that most worries are answered by a reduction back to growth points, a lift of the lower crown, dead wood taken out, or support for a weak fork (Table A pruning and cabling: support, not a cure). What decides it: what the tree is, what is wrong with it, what stands under it, and what is found when it is looked at. Never that a tree is safe or unsafe, never a percentage of crown, never topping as an option. | no | Process |
+| faq_B | Why is my tree dropping branches or going thin at the top? | Use the assigned symptom's meaning and its linked local issue. Say first when it is normal: some trees shed small dead wood every year and most drop leaves early in a dry summer. Then three genuinely different causes in plain words: dead wood the tree has given up on, disease showing in the crown (ash dieback where the research supports it locally: blackened leaves, bare patches, dark marks on the bark, Table B and E), and damage at the roots from digging, compacted ground or a change in the water around them. Then what the local ground adds, then what a look at the tree decides. Never that the tree is dying. | **yes** | Process |
+| faq_C (fallback) | Should a stump be ground out or left to rot? | What decides it: what the ground is wanted for afterwards (Table A and E stump removal: the finish and the depth are agreed to the intended use, deeper for planting than for grass, with no measurement given). Leaving it: slow to break down, and some species send up shoots from live roots (Table B and E). Grinding: the stump and the main root plate ground out, the chippings cleared or left as agreed, the hole backfilled, the larger roots staying in the ground to rot in their own time (no number of years: the facts give none). Never say grinding stops every shoot. | no | Process |
+| faq_D (fallback) | What time of year is best for tree work? | From the trade facts timing cells, with the reason in the tree or in what usually applies: felling, dismantling, stump grinding and making safe run through the year subject to wildlife, ground and safe weather; pruning generally after the leaves have hardened in late spring and summer, with species differences (some bleed sap if cut as growth starts, so they are cut in summer or midwinter; a few are summer only); planting and moving a tree while it is dormant, from autumn to early spring; a deciduous hedge renovated in midwinter and an evergreen one in mid spring. A nest being built or used stops that part of the work until it is empty, and there is no blanket ban on the season. No dates, nothing about a busy time of year. | no | Timing |
+| faq_planning (big ticket, only if [CV: handles_planning] confirmed) | Will I need permission before work on my tree? | Point at the trade facts rule rows (Table C) and write what usually applies, with "usually" or "in most cases". A tree with an order on it: the council's consent comes first, and the business makes that application for the customer only where [CV: handles_planning] says so. A tree in a conservation area: the council is told ahead of the work, the number of weeks only as the rule row gives it. A dead tree or an immediate danger has a narrower route of its own (notice, or only the necessary work and the council told after). A garden tree usually needs no felling licence. Nests and roosts stay protected whether or not the tree is. No figure, no diameter, never an Act's or an order's name. | no | Process |
+
+Sources for faq_A to faq_D: the pack's section 1 worries and craft rules, answered from the trade facts rows. Replace with real customer questions when Brandon or the client supplies them.
+
+## Materials and methods tick list (onboarding)
+
+The model may only name what the client ticks (`[CV: materials_methods]`).
+- Access: climbing / mobile platform (cherry picker) / lowering by rope / crane lifts / tracked chipper for tight access
+- Stumps: stump grinding / stump dug out / stump treatment by a certificated applicator
+- Waste: all waste taken away / wood chip left on site if wanted / logs cut and left for the customer / registered waste carrier
+- Paperwork: protected tree checks and applications made for the customer / conservation area notices sent for the customer / written tree reports / photos before and after
+- Planting: bare root / root balled / container grown / stakes and guards
+- Other: nesting bird and bat check before work / work recorded in writing after an emergency
+
+## Service terms (validator)
+
+Services the validator looks for in cards and FAQ answers. Each one it finds must match one of the client's GBP services, categories or ticked materials, or it is flagged.
+
+crown reduction, crown lifting, crown thinning, deadwooding, dead wooding, dead wood removal, crown cleaning, pollarding, coppicing, tree felling, tree removal, sectional dismantling, stump grinding, stump removal, stump treatment, cabling, bracing, tree planting, tree transplanting, hedge trimming, hedge cutting, hedge reduction, hedge removal, ivy removal, tree survey, tree report, tree inspection, tree risk assessment, ash dieback, site clearance, vegetation clearance, woodland management, forestry, wood chipping, firewood, logs, root barrier, emergency tree work, storm damage
+
+## Service words (validator and client block)
+
+GBP service names are shown to the model in the words a homeowner uses. The first row whose text appears in the GBP name wins; with no match, the GBP name is used in lower case. Old path only: a client with a v3 page map names every service by its page title and this list is not used.
+
+| GBP name contains | Say |
+|---|---|
+| cabling and bracing | tree bracing |
+| crown reduction | crown reduction |
+| crown lifting | crown lifting |
+| crown thinning | crown thinning |
+| deadwood | dead wood removal |
+| crown cleaning | crown cleaning |
+| trimming and pruning | tree pruning |
+| tree trimming | tree pruning |
+| tree pruning | tree pruning |
+| stump grinding | stump grinding |
+| stump removal | stump removal |
+| stump treatment | stump treatment |
+| tree planting | tree planting |
+| tree transplanting | moving trees |
+| tree removal | tree removal |
+| tree felling | tree felling |
+| emergency tree | emergency tree work |
+| storm damage | storm damage |
+| pollarding | pollarding |
+| coppicing | coppicing |
+| hedge cutting | hedge trimming |
+| hedge trimming | hedge trimming |
+| hedge reduction | hedge reduction |
+| hedge removal | hedge removal |
+| tree survey | tree surveys |
+| tree inspection | tree surveys |
+| risk assessment | tree surveys |
+| health assessment | tree surveys |
+| disease diagnosis | tree surveys |
+| ash dieback | ash dieback management |
+| ivy removal | ivy removal |
+| site clearance | site clearance |
+| vegetation clearance | vegetation clearance |
+| woodland management | woodland management |
+| forestry | woodland management |
+| firewood | firewood and logs |
+| log splitting | firewood and logs |
+| wood chipping | wood chipping |
+| root barrier | root barriers |
+
+## General service words (FAQ page matching)
+
+Core services per category (homepage cards), in the words a homeowner uses, in the order code picks them (after the client's jobs_wanted). JSON slot: core_services.
+
+- Tree Service: tree pruning and crown reduction, tree removal, stump grinding, tree planting, hedge reduction, tree surveys
+
+Service words for the whole job rather than one service: tree surgery, tree work, tree care, arborist, tree services. An FAQ question about one of these goes to the category page, never to a narrow service page that happens to share it. JSON slot: general_service_words.
+
+Problem words: storm damage, subsidence, ivy. When an FAQ question names the job as well as the problem ("Does a tree on clay need a root barrier before the extension?"), it goes to the job's page, not the problem's. JSON slot: problem_service_words.
+
+## Confirmed practices (onboarding)
+
+The copy may only state a working practice the client has ticked in confirmed_practices (niche-library/practices.json, shared by all niches). The briefs here name: price_agreed_before_work (the emergency steps and cost FAQs), site_visit_before_quote (step 2), nesting_bird_check (the seasonal card and FAQ: the nest check as this business's own practice), photos_of_faults where a client has it. No tree surgeon only practice exists yet; see the questions at the end.
+
+## Onboarding questions this niche needs
+
+The cost and "how long" FAQs can only say what affects the answer unless the client gives figures (the trade facts give no standard duration for any tree job, Table G). Ask every tree surgeon client for:
+- a "from" price for 3 typical jobs (a crown reduction on a garden tree, a medium tree taken down in sections, a stump ground out);
+- whether there is a call out charge and an out of hours charge for emergency work;
+- whether quotes are written, and whether the price is fixed once agreed;
+- whether they make protected tree applications and conservation area notices for the customer (handles_planning);
+- whether waste is taken away and they are registered to carry it; whether logs and chip can be left for the customer;
+- team size, and who climbs.
+
+## Section 5 alternative titles (why_titles_alt)
+
+Type A defaults from the Homepage Structure:
+1. Track record → **Local Trees We've Worked On for Years**
+2. Cover → **Covered for Work at Height**
+
+## Business type notes (business_type_notes)
+
+One GBP category (Tree Service) covers the trade, so every category is A and `category_types` is empty. Urgent against planned is split by page, not by category: the library's emergency column (Emergency tree work) switches the emergency variant on when the client confirms call outs; every other page gets the plain briefs, and a storm on a planned page is written as planned work after a storm (what to check from the ground, what makes damage urgent enough to keep clear of). Inside the planned pages the pack's split (section 2) is carried in the card briefs and the library's `desire_led` column:
+
+- **Problem led** (warning sign, cause in the tree, consequence): tree removal and felling where the tree is the problem, ash dieback management, tree cabling and bracing, tree surveys and reports when something has been noticed, root barriers, ivy removal, and emergency tree work where confirmed.
+- **Desire led** (the customer's situation, never an invented symptom; the `desire_led` column in tree-surgeon.csv): tree pruning and crown reduction for light or clearance, tree stump removal, hedge reduction and removal, site and vegetation clearance, woodland management, wood chipping, firewood and logs. Tree planting and tree transplanting are desire led too; their page rows live in landscaper.csv (Tree planting is flagged there; Tree transplanting is not yet).
+- **Schedule led** (what slips and when, with the reason in the tree): hedge trimming (shared with the Landscaper pack, where it is schedule led too), pollarding and coppicing on a cycle, repeat crown work on trees kept to a size, surveys on a set cycle for landlords and estates.
+
+None of those is a recurring round, so there is no type B. Seasonal: on.
+
+## Category work nouns (category_work_nouns)
+
+tree service → tree surgery. The category page briefs use `[WORK]` and `[WORK_LOWER]` for it; block 4's H2 reads "Common Tree Problems in [CITY]" because "tree surgery problems" is not what a customer has.
+
+## Category page blocks by business type (category_page_blocks)
+
+Used by the category page job (CORE (16)): block 4 (common problems) and block 5 (cost factors) are an H2 and four card titles with a one line brief each; the type also gives the process steps (A uses the niche steps above), the FAQ slots and, with `seasonal_trade` on, the one card and one FAQ that swap in. Placeholders: `[CAT]`, `[CAT_LOWER]`, `[WORK]`, `[WORK_LOWER]`, `[CITY]`, `[SYMPTOM]`. The copy rules of CORE (16) apply to every brief: claims only from client values, no figures, no promises, never an Act's or an order's name.
+
+- `seasonal_trade`: yes
+- `category_types`: empty (one category, type A)
+- The emergency variant (below) replaces block 4, the steps, the FAQ slots and the seasonal swap when the page's cards lead to Emergency tree work and the client confirms call outs.
+
+### Type A (project trade: Tree Service)
+
+The pack's section 2 split inside type A: cards 1 and 4 are situations (a tree that has outgrown its place; roots and what is built near them), cards 2 and 3 warning signs with the cause in the tree (a split, a crack, a lean; fungus, dead wood, dieback). Every brief says what decides it and what the choices are, and no brief makes felling the default or a tree safe.
+
+**Block 4, common problems.** H2: Common Tree Problems in [CITY]
+
+| Card | Mechanism (its one cause) | Brief |
+|---|---|---|
+| A tree that's outgrown its place | growth the garden has run out of room for | A situation card, not a fault: a tree that now shades the whole garden, branches at the gutters or across the roof, a hedge wider than the path it stands beside, a crown blocking the light to a room. The one cause this card makes: growth the garden has run out of room for. What decides it: what the tree is and how it responds to a cut (Table A pruning: a reduction specified by its size back to suitable side branches, a lift of the lower crown for clearance, a thinning that keeps the outline; Table E: never topping, which leaves a mass of shoots and open wounds). What the work gives them, in plain words: light back in the garden, clearance from the house, a hedge brought back to a width in stages at its season. Never a lifestyle pitch, never a fault invented for it, never a percentage of crown. |
+| A split, a crack or a lean that wasn't there before | a fork or a lean that has started to move | Problem led: a trunk that has split, a fork that has opened, a limb that has torn, a lean that has appeared or grown since the last storm, cracked or lifted soil at the base (Table B tree removal and cabling signs). The one cause this card makes: a fork or a lean that has started to move. Put the cause in the tree: a tight fork with bark grown into the join, old decay where a branch was torn off, roots cut or waterlogged. The honest answer: what it needs depends on what the tree is, how much solid wood remains, and what stands under it; the choices are support for a weak fork (Table A cabling: support, never a repair of decayed wood), a reduction that takes the load off, or removal in sections where the tree cannot be kept (Table A removal). Never that a tree is or is not safe, never felling as the default, never a scare. |
+| Fungus at the base, dead wood in the crown, leaves going early | decay or disease working where it can't be seen | Problem led: brackets or toadstools at the foot of the trunk, dead branches high in the crown, a top going thin, leaves blackening and wilting in summer, dark marks on the bark (Table B and E ash dieback signs; Table B surveys). The one cause this card makes: decay or disease working where it can't be seen. Say first what is normal: a dry summer drops leaves early, and some trees shed small dead wood every year. Then what is not: dieback spreading year on year, a crown thinning from the top, fungus feeding inside the root plate or at the base of the trunk. What decides it is a proper look (Table A surveys: inspect, record, assess), and not every diseased tree comes down (Table E: not every infected ash must be felled; some are kept and watched). Never name a disease the research does not support for the area; never that the tree is dying. |
+| Roots under the paving, the drains or the house | roots spreading further than the space left for them | A situation and a warning sign in one: paving lifting beside a tree, roots showing through the lawn, a new surface planned close to a trunk, cracks in a wall near a large tree where the ground is clay (Table B root barriers and surveys; Table E subsidence). The one cause this card makes: roots spreading further than the space left for them. On clay, say what usually applies: the ground gives up its moisture to a big tree through a dry summer and takes it back in winter, so a worry about cracks is investigated before anything is cut, because felling can bring movement of its own (Table E). The options in plain words: a root barrier to steer roots away from what is being built, a reduction to cut the water the tree draws, a survey first where a house is involved (Table A root barriers and surveys). Never promise the cracks stop, never that a tree caused them, never that removal is the answer. |
+
+**Block 5, cost factors.** H2: What Affects the Cost of [WORK] in [CITY]
+
+| Card | Brief |
+|---|---|
+| How big the tree is and how much comes off | The size of the crown and the extent of the cut specified move the price more than anything else: more to climb, more to lower, more to chip (Table F pruning and removal). Say it plainly and give no figure. |
+| Climbing, platforms and lowering | A tree that can be felled in one into a clear space costs less than one taken down in sections over a roof, a conservatory or a road, with every piece lowered by rope or a platform brought in (Table F removal: sectional dismantling instead of a clear fell; unstable timber). Say why that takes more people and more time, in plain words. |
+| Getting to the tree | A back garden reached only through the house, a narrow side path for the chipper, nowhere for a lorry to stand, a tree close to an overhead line or a road that needs managing (Table F: restricted access; roads or live lines). Say why tight access and nearby hazards cost time. No figure. |
+| Paperwork and what happens to the timber | A protected tree or a conservation area adds the notice or the application before the work; a survey or a report adds its own time (Table F: additional survey or notice work). Then the timber and the chippings: left for the customer, left on site for a use, or taken away (Table F: timber handling and removal; arisings retained as agreed). Whether the business takes it away and is registered to carry waste only from [CV: waste_carrier_registered] and the confirmed practices. Code adds the price line from [CV: price_list] when there is one. |
+
+**Steps.** The niche steps above (type A).
+
+**FAQ slots.** Five before the symptom question: cost, one cover question (the first whose condition holds), scope, process, timing (the seasonal question replaces timing).
+
+| Slot | When | Question | Answer brief | Doubt |
+|---|---|---|---|---|
+| cost | always | How much does [WORK_LOWER] cost in [CITY]? | Prices only from [CV: price_list]; otherwise the three things that move the price for tree work (the size of the tree and the cut, how it has to come down, the access) and how the quote is given, from [CV: quote_method] only. Never a call out figure unless price_list gives one. | Price |
+| cover | guarantee | Do you guarantee your [WORK_LOWER] work? | Start with yes, then the terms from [CV: guarantee_years] and [CV: guarantee_scope]. Described, never promised. A guarantee covers the work done, never the tree's future. | Trust |
+| cover | insurance | Are you insured for [WORK_LOWER] work? | The cover figure from [CV: insurance_cover] and what the cover is for, with a plausible tree work example that does not suggest carelessness (a fence panel, a greenhouse pane). Never what it pays or who it covers; never a scheme's minimum as the business's own figure. | Trust |
+| cover | always | What happens if something isn't right after the job? | Open with what the customer does: tell us and we look at it. Then the reasonable care and skill standard every trade works to. No promise to come back free. Never invent a guarantee. | Trust |
+| scope | always | What tree work do you take on? | The jobs themselves, named from the card list (pruning and reduction, removal in sections, stumps, hedges, surveys, as the client has them), and the size of job taken on, from the services list and [CV: typical_jobs] only: one small garden tree only where typical_jobs says so. Link one service page. Never "on this page", "listed above" or "the card list" as words: the reader sees no list, so name the work. Emergency call outs only where the client confirms them. | Fit |
+| process | always | What happens when I ask for a quote? | From [CV: quote_method] and the confirmed practices only: what the customer sends (what they have noticed, where the tree stands, photos from the ground), what the business looks at (the tree, what is under it, the access, and whether an order or a conservation area covers the tree: Table A, inspect and establish permissions), what comes back (a written quote only where quote_method says so; the permission paperwork handled for the customer only where [CV: handles_planning] says so). No timescale unless [CV: response_time] is set. | Process |
+| timing | always | When is the best time of year for [WORK_LOWER] work? | When each kind of tree work is best done and why, in the tree or in what usually applies, from the trade facts timing cells: felling, dismantling, stump grinding and making safe run through the year subject to wildlife, ground and safe weather; pruning generally after the leaves have hardened in late spring and summer, species permitting (some bleed sap if cut as growth starts, so they are cut in summer or midwinter); planting and moving while dormant; deciduous hedges renovated in midwinter, evergreens in mid spring; a nest being built or used stops that part of the work until it is empty, and there is no blanket ban on the season. Nothing about autumn or winter being busy. No dates, no promises about the weather. | Timing |
+| symptom | a symptom tagged with the category | [SYMPTOM]: why does it happen, and what can be done? | The symptom and its linked local issue, answered as asked. Where the symptom is a seasonal sign (leaves dropping early in a dry summer, small dead twigs on the lawn after a windy night, a bare ash crown in winter), say first when it is normal and then what is not, before anything else. Then the usual cause here in plain words, with the cause put in the tree (a weak fork, decay behind an old wound, roots cut or waterlogged, a disease the research supports locally), what the local ground or housing adds, and what the business does about it. One figure at most, and it must come out of a trade facts row. Never that any tree in the area is dangerous. | Process |
+
+**Seasonal swap** (card 4 of block 4 and the timing FAQ): **What a winter gale leaves in the tree** (mechanism: wind finding the dead and weak wood first): Planned work after a storm, never a call out (the emergency variant owns those): say first what is normal after a gale, small dead wood and twigs on the lawn, a few leaves and seed down early. Then what is not: a limb torn and still hanging, a fresh split at a fork, a lean that was not there before the wind, soil lifted on one side of the base (Table B removal and cabling signs). The one cause this card makes: wind finding the dead and weak wood first. What the customer does: keep clear of anything hanging and of the area under it, photograph it from the ground, and never go near it with a ladder or a saw. What usually happens: the tree looked at from the ground, the damage brought down under control, the wound it leaves assessed before any decision about the rest of the tree (Table A pruning and removal). Nothing about winter being busy or booking ahead. A storm is named only if the dossier gives it. FAQ: Can tree work be done in winter, or while birds are nesting? (Timing): What the time of year changes, from the trade facts timing cells and rule rows, with the reason in the tree or in what usually applies: most felling, dismantling and stump work runs through the cold months when the ground and the weather allow; a bare tree is easier to see into and to drop, while the crown's health is easier to judge in leaf (Table A surveys); pruning of many species waits until the leaves have hardened, and the sap bleeders are cut in summer or midwinter; planting and moving happen while the tree is dormant. In spring and summer there is no blanket ban on tree work, but a nest being built or used is left until the young have gone and the work round it waits (Table C and E). Bats roost in old trees and are protected too: a check before the work, written as what usually applies. The nest check as this business's own practice only when nesting_bird_check is confirmed. No dates.
+
+### Type A, emergency variant (Emergency tree work, when the client confirms call outs)
+
+Replaces block 4, the steps, the FAQ slots and the seasonal swap; block 5 and the symptom question stay as above. The reader has a tree down or hanging now: situation, why it can't wait, what they do first (keep clear, never cut it themselves), what happens when they call. Never a response time, round the clock cover or a call out promise unless the client values confirm it. The variant carries its own seasonal entry so the plain storm card and the winter FAQ do not land on an emergency page: its seasonal card is card 4 again, and its seasonal FAQ is the storm question, which takes the timing slot (so the arrival time from the client values is written inside that answer).
+
+**Block 4, when this can't wait.** H2: When a Tree Can't Wait
+
+| Card | Mechanism (its one cause) | Brief |
+|---|---|---|
+| A tree down across the drive or the road | a fallen tree across the way in or out | A tree or a big limb across the way in or out, on the pavement, or across the lane with traffic trying to get round it (Table B emergency signs). The one cause this card makes: a fallen tree across the way in or out, which stays a hazard to everyone passing until it is cleared, and a blocked road is a hazard in itself (Table B). What the customer does first: keep people and cars off it and away from the root plate and the crown, never try to cut or drag it, and tell the council or the police where a public road is blocked, as what usually applies. What usually happens when they call: the danger judged from the ground, the area closed off, lines and protections checked, the trunk cut into pieces under control and the way cleared; the stump and the rest of the timber dealt with as planned work (Table A emergency tree work). Never a response time or a round the clock promise unless [CV: response_time] or [CV: emergency_callouts] confirms it. |
+| A split branch hanging over the path | a broken branch still caught in the tree | A limb torn by the wind and still held up in the tree, swinging over the path, the drive, the shed or next door's garden (Table B emergency: hanging timber). The one cause this card makes: a broken branch still caught in the tree, resting on nothing that can be trusted, so it can fall with no warning and no second gust needed. What the customer does first: keep everyone and everything out from under it, including the car, and never put a ladder or a rope anywhere near it (Table B: working beneath unstable timber is where people get hurt). What usually happens: the branch lowered under control from a safe anchor or a platform, then the tear it leaves behind looked at, because a torn stub is where decay starts (Table A and B pruning). Never promise a time, never that the tree is fine once the branch is down. |
+| Branches on or near a power line | a line that has to be treated as live | A tree or a limb leaning on an overhead line, a line pulled down into the garden, a branch sparking in the wind (Table B emergency signs). The one cause this card makes: a line that has to be treated as live, because nobody on the ground can tell whether it is, and touching the tree, a fence it leans on or the wet ground near a downed line can kill (Table C: lines are treated as live unless the network operator confirms otherwise). What the customer does first: stay well back, keep children and pets indoors, touch nothing in contact with the tree, and call the electricity network operator before anyone else, as what usually applies; the tree surgeon cannot start until the operator has made the line safe or confirmed it is dead. Never a distance in metres, never a voltage, never an instruction to move anything themselves. |
+| What to do while you wait for us | whatever is still under it | What the customer can do from a safe distance, in plain words: keep people, cars and pets away from the tree and from anything it could still fall on, including the part that is still standing; shut the gate or the door that leads under it; if the tree is on the house, stay out of the rooms beneath it until it has been looked at; photograph what can be seen from the ground, then call (whether the business deals with an insurer only from the client values). The one cause this card makes: whatever is still under it, because a tree that has half fallen is not finished moving. Never an instruction to cut, pull, prop or climb anything; never a chainsaw as a job for the reader; never a time by which anyone arrives unless [CV: response_time] is set. |
+
+**Steps.** Call Us; We Make the Area Safe; We Clear the Danger and Plan the Rest (the emergency steps above).
+
+**FAQ slots.** Five before the symptom question: cost, one cover question, scope, process, timing (the storm question replaces timing through the variant's seasonal entry).
+
+| Slot | When | Question | Answer brief | Doubt |
+|---|---|---|---|---|
+| cost | always | What does emergency tree work cost in [CITY]? | Prices and any call out charge only from [CV: price_list]; otherwise how the price is reached, from [CV: quote_method] only: making it safe is priced first, and the rest of the tree, the stump and the timber are priced once the tree has been seen (Table F emergency: the price falls where the hazard can be isolated and dealt with by limited safe making work, with the rest planned separately). The price agreed before work starts only from the price_agreed_before_work practice. No out of hours figure unless price_list gives one. | Price |
+| cover | insurance | Are you insured for emergency tree work? | The cover figure from [CV: insurance_cover] and what the cover is for, with a plausible tree work example that does not suggest carelessness. Never what it pays or who it covers. | Trust |
+| cover | always | What happens if something isn't right after an emergency job? | Open with what the customer does: tell us and we look at it. Then that making safe is making safe: the planned work that follows is where the tree, the stump and the timber are dealt with properly, under the reasonable care and skill standard, never as a defence. No promise to come back free. Never invent a guarantee. | Trust |
+| scope | always | Is this an emergency, or can it wait? | What counts as urgent, from the card list and Table B: a tree or a limb down across a road, a drive, a roof or a car; a torn branch still hanging over where people go; anything touching or near an overhead line; a trunk split or a tree leaning freshly after a storm. What usually waits for planned work: a stump, a tree that has simply grown too big, a hedge over the path, dead wood high in a crown over a bed nobody uses, a lean the tree has had for years. Link one service page. Planned work is never dressed up as urgent. | Fit |
+| process | always | What should I do before you arrive? | From a safe distance only: keep people, cars and pets clear of the tree and of anything it could still fall on, stay out of rooms under a tree on the roof, touch nothing in contact with an overhead line and call the network operator about the line first, photograph what can be seen from the ground (Table B and C emergency). Never an instruction to cut, pull, prop or climb. Whether the business deals with the insurer only from the client values. | Process |
+| timing | start_time | How quickly can you get to me? | From [CV: response_time] and [CV: start_time] only, as given; a same day visit only when [CV: same_day_available] is yes; work in the tree waits until the wind has dropped and the timber can be reached safely, and a line is dealt with by the network operator first (Table A emergency: wind damage, unstable timber and live lines decide whether work can go ahead). Never "24/7" or "any time" unless [CV: emergency_callouts] gives it in those words. | Timing |
+| timing | always | Will you come out while the storm is still going? | What usually happens: the area made safe and the danger judged from the ground as soon as it is safe to be there; while the wind is still up nobody climbs or works under hung up timber, and a live line waits for the network operator (Table A emergency). Any arrival time from [CV: response_time] and [CV: start_time] only; no out of hours promise unless [CV: emergency_callouts] or [CV: response_time] gives it. | Timing |
+
+**Seasonal entry inside the variant** (so the plain swap does not apply): card: **What to do while you wait for us** again (same brief and mechanism as card 4); FAQ: Will you come out while the storm is still going? (Timing), the same answer with the arrival time from [CV: response_time] and [CV: start_time] and a same day visit only when [CV: same_day_available] is yes.
+
+## Service page blocks by business type (service_page_blocks)
+
+Used by the service page job (CORE (17)): What's Included is an H2; its tick item titles are the service's own Table A stages (6 to 8, in order, from the trade facts) and the role based set below is the fallback when the pack gives fewer than 6 stages (F-ITEMS-GENERIC); block 4 (signs you need it) and block 5 (cost) are an H2 and four card titles with a brief each, block 4 cards with their one mechanism; the type also gives the FAQ slots (A: cost, timing, cover, rules, scope) and, with `seasonal_trade` on, the one card and one FAQ that swap in (the FAQ replaces the timing slot). Type A uses the niche steps; the emergency variant carries its own. A page the library flags `desire_led` reads the desire led variant (below) in place of block 4 and the seasonal card. The service's own trade facts rows (`trade-facts/pack.js rowsForService`) are the material every brief points at, so one type A entry serves a crown reduction, a stump and a survey alike. Placeholders: `[SERVICE]`, `[SERVICE_LOWER]`, `[CAT]`, `[WORK]`, `[CITY]`, `[SYMPTOM]`.
+
+- A niche with no section here has its service pages refused: "no service block briefs for tree-surgeon".
+- The block 4 mechanisms differ from the category page briefs' on purpose (MECHANISMS USED).
+
+### Type A (project trade: every planned page)
+
+Three framings share this one entry, per the pack's section 2: a problem led page (removal and felling, ash dieback, cabling and bracing, surveys and reports, root barriers, ivy removal) uses block 4 below as written; a schedule led page (hedge trimming, pollarding and coppicing, repeat crown work, cyclical surveys) reads the "on a schedule led page" line in each brief, what slips and when; a desire led page (the library's `desire_led` column) swaps block 4 and the seasonal card for the desire variant below.
+
+**What's Included.** H2: What's Included in Our [SERVICE]. The items below are the fallback set; a service with 6 or more Table A stages uses the stages as its items.
+
+| Item | Brief |
+|---|---|
+| Looking at the tree and what's around it | The inspection stage from the trade facts: the tree, what is wrong with it, what stands under it and around it (the house, the road, the neighbour's garden, overhead lines, buried services), and how the crew and the chippings get in and out. A part of the job, not a promise about the quote. |
+| Checking whether the tree is protected, and for nests | The checks before the work, from the trade facts stages: whether an order or a conservation area covers the tree, and whether a nest is in use or a roost is likely. Written as what usually applies. Who sends the notice or makes the application only from [CV: handles_planning]. Never an Act's or an order's name. |
+| Setting up the work area | The exclusion area, the escape routes and the rescue arrangements from the trade facts stages: the part of the garden or the road that is kept clear while the work is on, and why. Said as how the job is done, never as homework for the reader. |
+| Getting into the tree | Climbing or a platform, as the trade facts methods cell has it for this service; which one depends on the tree, its condition and what is around it. A named machine only where [CV: materials_methods] gives it. |
+| The cuts, the sections or the grind | The central stage of the job from the trade facts: the reduction cut back to growth points, the lift, the sections taken down from the top, the stump ground out, the cable fitted, the tree planted, named as the trade names it and in the customer's words. Never a percentage, never a depth. |
+| Lowering and processing what comes down | The lowering, cross cutting and chipping stages from the trade facts: pieces lowered by rope where they cannot be dropped, the timber cut up, the brash chipped. What the customer sees happen in the garden. |
+| Clearing up and what happens to the timber | The last stage from the trade facts: the garden cleared, the chippings and logs taken away, left for a use or stacked for the customer as agreed. Whether it leaves with the crew only from the confirmed practices and [CV: waste_carrier_registered]; otherwise say it is cleared or kept as agreed. Logs left for the customer only from the client values. |
+
+**Block 4, signs you need it.** H2: Signs You Need [SERVICE]
+
+| Card | Mechanism (its one cause) | Brief |
+|---|---|---|
+| Dead wood, a dropped branch or a crack you can see from the ground | a part of the tree that has stopped holding its own weight | The things a homeowner notices first, from the trade facts signs row for this service, in their words: a dead branch over the path, branches on the roof, a trunk that has split, a fork that has opened, leaves blackening in summer, ivy hiding the trunk, paving lifting by the roots. The one cause this card makes: a part of the tree that has stopped holding its own weight, or holding its place. Put the cause in the tree, from the rows. Then what it leads to if left, from the skipped row: specific, never alarming (a dead branch falls; a weak fork fails in wind; a hidden cavity goes unseen). On a schedule led page (hedge trimming, pollarding and coppicing, repeat crown work, surveys on a cycle) the card is what slips and when: shoots spoiling the line of a hedge by midsummer, old pollard heads carrying long heavy growth, a cycle missed so the next cut goes into bigger wood, with the reason in the tree from the timing cell, never in the customer's diary. Never a scare, never felling as the answer. |
+| Something done to the tree once, and left | an old cut or a half job the tree has grown round | A tree topped years ago and now a mass of thin shoots on rotting stubs, a cut made flush to the trunk that never closed, a stump ground shallow so it keeps shooting, ivy pulled off and the bark torn with it, a stake left on until it cut into the trunk, a cable fitted and never looked at again (Table B done badly rows for this service). The one cause this card makes: an old cut or a half job the tree has grown round. Say what the job does differently, from the Table A stages and the Table E facts (a cut kept outside the collar so the tree can close it; a reduction specified by size, never a percentage; support fitted with an inspection arranged); never a dig at whoever did it. On a schedule led page: a pollard or a hedge left past its cycle, and what bringing it back in stages involves, with no promise it will thicken or recover. |
+| It's getting worse, not settling down | a defect outpacing what holds it | A supported branch moving more than it did, a fork that has opened wider, an ash crown thinner this summer than last, shoots coming back from a stump, a lean the customer is sure has grown (Table B signs for cabling, ash dieback, stumps and removal). The one cause this card makes: a defect outpacing what holds it. Say honestly when support, pruning or watching stops being enough and removal becomes the right answer, from the trade facts: a support is not a cure and deterioration can outrun it; a diseased tree is assessed for risk and kept where it is safe to keep (Table A and E). Never that the tree is safe, never that it is doomed. Not an old cut left behind: card 2 owns that. |
+| A report someone else has asked you for | a question about the tree that needs a written answer | The customer has been asked for something in writing: a lender wants a tree report before a mortgage, building plans show trees close to the works, a council has sent a notice about branches over the pavement, an insurer wants a cause investigated, a landlord or an agent needs the trees looked at on a cycle (Table B surveys; Table C highway notice, with "usually" and never the Act's name). The one cause this card makes: a question about the tree that needs a written answer. Say what a report does and does not do, from Table A and E: its scope is what was asked for, a lender's report is not a development survey, and no report proves a tree caused subsidence on its own. On a page other than Tree surveys and reports, the card reads as the written record of what was done (the work documented after an emergency; a support's inspection arrangement), from the Table A stages. Never legal advice, never a standard's number. |
+
+**Block 5, cost factors.** H2: What Affects the Cost of [SERVICE] in [CITY]
+
+| Card | Brief |
+|---|---|
+| How much there is to take off or take out | The size factor from the trade facts price row for this service: the size of the crown and how far it comes back, the height and girth of a tree coming down, the size of the stump and its root plate, the length and height of a hedge, the number of trees in a survey. Say it plainly and give no figure. |
+| What's around the tree | Buildings, roads, overhead lines, buried services and hard surfaces near the work, from the trade facts price row: what has to be lowered rather than dropped, what has to be protected, what has to be worked round. Say the business looks before it prices, from [CV: quote_method] only. |
+| How it comes down, or how we get to it | Climbing against a platform, sections lowered by rope against a clear fell, a grinder that fits through the side gate against one that does not, a back garden reached only through the house, from the trade facts price row. Say why tight access and a tree that has to come down in pieces cost more time and more people. |
+| Timber, logs and chippings | What happens to what comes off, from the trade facts price row: taken away, chipped and left for a use, or logged and left for the customer. Each moves the price. Whether the business takes it away only from the confirmed practices and [CV: waste_carrier_registered]; logs left only from the client values. Code adds the price line from [CV: price_list] when there is one. |
+
+**Steps.** The niche steps above (Tell Us About the Tree; We Come and Look at the Tree, or We Price the Work without the site visit practice; We Do the Work on a Date That Suits You); the emergency variant's steps when the emergency layout is on.
+
+**FAQ slots.** Five before the symptom question: cost, timing, one cover question (the first whose condition holds), rules, scope.
+
+| Slot | When | Question | Answer brief | Doubt |
+|---|---|---|---|---|
+| cost | always | How much does [SERVICE_LOWER] cost in [CITY]? | Prices only from [CV: price_list]; otherwise how the quote is given, from [CV: quote_method] only. The four cost cards above already give what moves the price: name one factor at most, never the list again. | Price |
+| timing | always | How long does [SERVICE_LOWER] take? | From the trade facts timing row only: the facts give no standard duration for any tree job, so say what decides it (the size of the tree, how it has to come down or be reached, what is around it, the amount to chip and clear) and never a number of hours or days. Nothing about when the job can start unless [CV: start_time] is set. This is the one place the timing is written. | Timing |
+| cover | guarantee | Do you guarantee your [SERVICE_LOWER] work? | Start with yes, then the terms from [CV: guarantee_years] and [CV: guarantee_scope]. Described, never promised. The guarantee covers the work, never the tree's future. | Trust |
+| cover | insurance | Are you insured for [SERVICE_LOWER]? | The cover figure from [CV: insurance_cover] and what the cover is for, with a plausible example for this service that does not suggest carelessness. Never what it pays or who it covers. | Trust |
+| cover | always | What happens if something gets damaged during the work? | Open with what the customer does: tell us and we look at it. Then the reasonable care and skill standard every trade works to. No promise to put it right free. Never invent a guarantee or insurance. | Trust |
+| rules | always | Do I need permission for [SERVICE_LOWER]? | From the trade facts rule rows for this service only, put as the thing that usually applies, with "usually" or "in most cases". A tree with an order on it: the council's consent comes first, in most cases. A tree in a conservation area: the council is told ahead of the work, the number of weeks only as the rule row gives it. A dead tree or an immediate danger has a narrower route (notice, or the necessary work and the council told after). A garden tree usually needs no felling licence. A nest in use, a bat roost or a badger sett changes the timing or the method. A countryside hedge has its own notice and cutting season; a garden hedge does not. What the customer does about it only as the row gives it, and whether the business does the paperwork only from [CV: handles_planning]. Never a standard's number, an Act's or an order's name, a diameter or legal advice. Where the rows give no rule, say no permission is usually needed for this work at a home and leave it there. | Process |
+| scope | always | What does your [SERVICE_LOWER] service include? | The What's Included items said as a sentence, in other words: the work itself named (the cuts, the sections, the grind, the planting), the checks before it and the clearing after it. What it does not cover only from the services list, with one sibling service page or the category page linked. Never "on this page" or "listed above". | Fit |
+| symptom | a symptom tagged with the service or its category | [SYMPTOM]: why does it happen, and what can be done? | The symptom and its linked local issue, answered as asked. Where the symptom is a seasonal sign (leaves down early in a dry summer, small dead twigs after a windy night, a bare ash in winter), say first when it is normal and then what is not, before anything else. Then the usual cause here in plain words, put in the tree, what the local ground or housing adds, and what this service does about it. One figure at most, and it must come out of a trade facts row. Never that the reader's tree is dangerous. | Process |
+
+**Seasonal swap** (card 4 of block 4 and the timing FAQ): **Work that waits for the tree's own calendar** (mechanism: sap, leaves and nests deciding the month): What the time of year does to this job, from the trade facts timing row for this service. Say first what is normal for the season: a tree bare in winter, leaves down early in a dry August, birds in the hedge in spring. The one cause this card makes: sap, leaves and nests deciding the month. Then the reason in the tree: pruning of most species after the leaves have hardened, the sap bleeders in summer or midwinter so they do not weep; planting and moving while dormant so the roots are not asked to work; a deciduous hedge renovated in midwinter and an evergreen in mid spring; the crown's health judged in leaf; and in spring and summer a nest being built or used stops that part until it is empty, with no blanket ban on the season (Table C and E). What the business itself checks only from confirmed practices (nesting_bird_check). No dates, nothing about a busy time of year. FAQ: When is the best time of year for [SERVICE_LOWER], and how long does it take? (Timing): From the trade facts timing row only: the season the job suits and why, in the tree or in what usually applies (the leaves, the sap, the dormant months, the nest), then what decides how long it takes, since the facts give no standard duration for any tree job (the size, the access, what is around it, what has to be cleared). No dates, no number of hours or days, no promises about the weather. This is the one place the timing is written.
+
+### Type A, desire led variant (Tree pruning and crown reduction, Tree stump removal, Tree planting, Tree transplanting, Hedge reduction and removal, Site and vegetation clearance, Woodland management, Wood chipping, Firewood and logs)
+
+The library's `desire_led` column flags these page targets (the pack's section 2); a service page so flagged reads this variant in place of block 4 ("Signs You Need [SERVICE]"). Nobody has symptoms of wanting a stump gone: every card is the customer's situation, what decides whether the work is right for them (the mechanism), and what the work gives them. What's Included, block 5, the steps, the FAQ slots and the symptom question stay as the type A entry above. An emergency page is problem led, so the emergency variant wins over this one. Each brief says which pages the situation leads on.
+
+**Block 4, is it right for you.** H2: Is [SERVICE] Right for You?
+
+| Card (the situation) | What decides it (mechanism) | Brief |
+|---|---|---|
+| More light, more room or a clearer line | how the tree or hedge regrows after the cut | The customer's situation: a garden in shade by the afternoon, branches at the gutters or over the roof, a hedge too wide for the path, a view or a lamp lost behind growth, scrub taking the end of the garden. What decides it: how the tree or hedge regrows after the cut, from the trade facts for this service (a reduction cut back to suitable side branches keeps the shape and regrows evenly; a lift takes the lower branches for clearance; some evergreens never refill a cut into old wood; a hedge comes back to a width in stages over more than one season; topping leaves a mass of shoots on rotting stubs and is never offered). What the work gives them: light on the lawn, clearance from the house, a hedge back to a size that can be kept, a path through the scrub, with the tree looking like itself next summer. Leads on the crown reduction, hedge reduction and clearance pages. Never a fault invented for it, never a percentage, never a lifestyle pitch. |
+| A stump, a hedge or scrub where you want to use the ground | what the ground is wanted for afterwards | The customer's situation: a stump where a lawn, a bed, a shed base or a drive is planned, an old hedge where a fence is going, brambles over the ground that building work needs. What decides it: what the ground is wanted for afterwards, from the trade facts for this service (Table A and E stumps: the finish and the depth agreed to the intended use, deeper for planting than for grass, with no measurement given; the chippings cleared or left, the hole backfilled; some species shoot again from live roots and the bigger roots rot in their own time; Table A hedge removal and clearance: cut in sections, stumps out only if specified, protected hedges and nests checked first, written as what usually applies). What the work gives them: ground they can level, plant or build on, and an honest picture of what stays underneath. Leads on Tree stump removal, Hedge reduction and removal and Site and vegetation clearance. Never a number of years, never a promise that nothing grows back. |
+| A new tree, or one you'd rather move than lose | the roots taking hold in the new ground | The customer's situation: they want a tree where there is none, a tree to replace one that came down, screening from the road, or a tree that stands where an extension is going and they would rather move it than fell it. What decides it: the roots taking hold in the new ground, from the trade facts for this service (Table A planting: the position prepared, the roots kept from drying, the tree set at the right level, firmed, staked or guarded only where it needs it, watered through its first seasons; Table A transplanting: the root ball prepared, lifted and moved without drying, replanted and watched; Table A and E timing: while the tree is dormant, from autumn to early spring, bare root stock only in those months). The choice between bare root, root balled and container grown from the materials cell, with the reason. What the work gives them: a tree planted so it establishes rather than sits, and what it will need from them in its first summers. Leads on Tree planting and Tree transplanting. Never a promise it will take. |
+| Logs, chippings and what the work leaves behind | what the timber is worth to you where it stands | The customer's situation: they have a wood burner and want the timber, they want chip for the paths or the beds, they have a pile of brash from the last job, or they own a piece of woodland and want it looked after rather than left. What decides it: what the timber is worth to you where it stands, from the trade facts for this service (Table A chipping: chips left on site for a use or taken away; Table A firewood: cut, split and stacked under cover to dry, with the sale rules for logs only as the rule row gives them and never a moisture figure or a volume; Table A woodland: a plan, thinning or coppicing to it, licences and designations checked, written as what usually applies). What the work gives them: timber and chip that are useful rather than a heap, and a wood managed to a plan. Logs left for the customer, or sold, only from the client values. Leads on Wood chipping, Firewood and logs and Woodland management. Never a seasoning time in months. |
+
+**Desire led seasonal swap** (card 4): **Getting the timing right for the tree** (mechanism: the window the species gives): The customer's situation: they want the garden sorted before summer, or want to know when a tree should go in or come back. What decides it: the window the species gives, from the trade facts timing cell for this service (planting and moving while dormant, from autumn to early spring; a reduction once the leaves have hardened, the sap bleeders in summer or midwinter; a deciduous hedge renovated in midwinter and an evergreen one in mid spring; clearance and stump work when the ground carries the machines; a nest being built or used leaving that part until it is empty, with no blanket ban on the season). What the work gives them: a job done in its window so the tree or the hedge takes it well. No dates, nothing about spring or autumn being busy, no promise about the weather. FAQ: When is the best time of year for [SERVICE_LOWER], and how long does it take? (Timing): the type A seasonal answer above.
+
+### Type A, emergency variant (Emergency tree work, when the client confirms call outs)
+
+Replaces block 4, the steps, the FAQ slots and the seasonal swap; What's Included, block 5 and the symptom question stay as above. The mechanisms differ from the category page's emergency cards on purpose. The variant's seasonal entry repeats card 4 and makes the storm question the timing slot, so the plain calendar card never lands on the emergency page.
+
+**Block 4, when this can't wait.** H2: When [SERVICE] Can't Wait
+
+| Card | Mechanism (its one cause) | Brief |
+|---|---|---|
+| A tree on the house, the shed or the car | the weight of the tree still on what it fell on | A tree or a big limb that has come down onto the roof, through a fence, across a car or a conservatory, or into next door's garden (Table B emergency and removal: a misjudged fall or a failed tree onto an occupied area). The one cause this card makes: the weight of the tree still on what it fell on, which can shift as the structure under it gives or as the wind moves the crown. Write the reader's situation, why it won't keep, and what usually happens when they call: the danger judged from the ground, the area and the rooms beneath kept clear, the weight taken off in pieces under control from the top down, the building left for whoever repairs it (Table A emergency: remove only the immediate hazard, make the site safe). Never a response time or a call out promise unless [CV: response_time] or [CV: emergency_callouts] confirms it; whether the business deals with the insurer only from the client values. |
+| A storm damaged tree that's still standing | a split or a new lean the wind has not finished with | A trunk split down the middle, a tree leaning since last night, large branches torn out and the rest of the crown lopsided, soil lifted on one side of the base (Table B removal signs). The one cause this card makes: a split or a new lean the wind has not finished with, because a tree that has part failed carries the rest on wood that has already given once. What the customer does first: keep clear of the side it leans to and of anything under it, never try to rope or prop it. What usually happens: the tree looked at from the ground, the immediate danger taken down in sections, and the decision about what is left made once it can be seen properly (Table A removal: dismantle in sections where the fall zone is not clear). Never that the tree will be fine, never that it must all come down before it has been looked at. |
+| Made safe today, the rest planned properly | only the immediate danger removed on the day | The reader wants to know what an emergency visit does and does not do. The one cause this card makes: only the immediate danger removed on the day, because working under unstable timber and in a storm is where people get hurt, and the stump, the timber and the rest of the tree are safer and cheaper done as planned work (Table A emergency: remove only the immediate hazard, make safe, document; follow up work may be separate; Table F: the price falls where the hazard can be isolated by limited safe making work). Say what usually happens on the day (the area closed off, lines and protections checked, the hanging or fallen wood brought down under control, the way cleared) and what comes back as a quote for another day. Never promise everything is finished on the first visit; never a price. |
+| A protected tree that's become dangerous | the council told after the danger is dealt with, not before | The customer knows or suspects the tree has an order on it or stands in a conservation area, and it is now hanging over the road or split to the ground. The one cause this card makes: the council told after the danger is dealt with, not before, which is the narrow route that usually applies where there is an immediate risk of serious harm: only the work needed to remove the danger is done, and the council is told in writing as soon as practicable; a dead tree with no immediate danger usually has notice given first instead; a duty to plant a replacement can follow (Table C, written as what usually applies, never the Act's or the order's name). Say what the business records and sends only from the Table A documenting stage and [CV: handles_planning]. Never advice to the customer to skip the council because it is urgent, and never that inconvenience or worry counts as danger. |
+
+**Steps.** Call Us; We Make the Area Safe; We Clear the Danger and Plan the Rest (the emergency steps above).
+
+**FAQ slots.** Five before the symptom question: cost, timing, one cover question, process, scope (the storm question replaces timing through the variant's seasonal entry).
+
+| Slot | When | Question | Answer brief | Doubt |
+|---|---|---|---|---|
+| cost | always | What does an emergency tree call out cost in [CITY]? | Prices and any call out charge only from [CV: price_list]; otherwise how the price is reached, from [CV: quote_method] only: making it safe is priced first, and the rest of the tree, the stump and the timber are priced once the tree has been seen (Table F emergency). The price agreed before work starts only from the price_agreed_before_work practice. No out of hours figure unless price_list gives one. | Price |
+| timing | start_time | How quickly can you get here? | From [CV: response_time] and [CV: start_time] only, as given; a same day visit only when [CV: same_day_available] is yes; work in the tree waits until the wind has dropped and the timber can be reached safely, and a line is dealt with by the network operator first (Table A emergency). Never "24/7" or "any time" unless [CV: emergency_callouts] gives it in those words. This is the one place the timing is written. | Timing |
+| timing | always | Will you come out while the storm is still going? | What usually happens: the area made safe and the danger judged from the ground as soon as it is safe to be there; while the wind is still up nobody climbs or works under hung up timber, and a live line waits for the network operator (Table A emergency). Any arrival time from [CV: response_time] and [CV: start_time] only; no out of hours promise unless [CV: emergency_callouts] or [CV: response_time] gives it. This is the one place the timing is written. | Timing |
+| cover | insurance | Are you insured for emergency [SERVICE_LOWER]? | The cover figure from [CV: insurance_cover] and what the cover is for, with a plausible tree work example that does not suggest carelessness. Never what it pays or who it covers. | Trust |
+| cover | always | What happens if something isn't right after an emergency job? | Open with what the customer does: tell us and we look at it. Then that making safe is making safe: the planned work that follows is where the tree, the stump and the timber are dealt with properly, under the reasonable care and skill standard, never as a defence. No promise to come back free. Never invent a guarantee. | Trust |
+| process | always | What should I do before you arrive? | From a safe distance only: keep people, cars and pets clear of the tree and of anything it could still fall on, stay out of rooms under a tree on the roof, touch nothing in contact with an overhead line and call the network operator about the line first, photograph what can be seen from the ground (Table B and C emergency). Never an instruction to cut, pull, prop or climb. Whether the business deals with the insurer only from the client values. | Process |
+| scope | always | Is this an emergency, or can it wait? | What counts as urgent for this service, from the card list and the trade facts signs row: a tree or a limb down across a road, a drive, a roof or a car; a torn branch still hanging over where people go; anything touching or near an overhead line; a trunk split or a tree leaning freshly after a storm. What usually waits for planned work, from the Table B rows: a stump, a tree that has simply grown too big, a hedge over the path, dead wood high in a crown over a bed nobody uses, a lean the tree has had for years. Link the planned sibling page or the category page. Planned work is never dressed up as urgent. | Fit |
+
+**Seasonal entry inside the variant:** card: **A protected tree that's become dangerous** again (same brief and mechanism as card 4); FAQ: Will you come out while the storm is still going? (Timing), the same answer with a same day visit only when [CV: same_day_available] is yes.
+
+## Location page blocks by business type (location_page_blocks)
+
+Used by the location page job (CORE (18)): block 4 (the problems the town's trees and homes have across the trade) and block 5 (what moves the price in this town) are an H2 and four card titles with a brief each, block 4 cards with their one mechanism; the type also gives the FAQ slots (five, one of them the town question). The steps are the niche steps. The briefs are town wide, not per category: the town profile, the allocated neighbourhoods and the assigned symptoms are the material, and every mechanism differs from the category and service briefs' on purpose. No seasonal swap and no symptom question on a location page. The pack's section 3 anchors: conservation areas and protected trees where the research confirms them and which council handles them; soil (shrinkable clay; thin soil over chalk or rock); exposure; housing era and plot shape as size and access, never who lives there; terraces with no rear access; woodland and estate land nearby; ash dieback only where confirmed locally. Every anchor must change the work. Placeholders: `[WORK]`, `[WORK_LOWER]`, `[TOWN]`, `[CITY]`.
+
+- A niche with no section here has its location pages refused: "no location block briefs for tree-surgeon".
+
+### Type A (project trade: the client's type is A)
+
+**Block 4, common problems in the town.** H2: Common Tree Problems in [TOWN]
+
+| Card | Mechanism (its one cause) | Brief |
+|---|---|---|
+| Trees older than the houses around them | mature trees left from before the street was built | Big mature trees in the older streets: a crown over three gardens, roots under a shared wall, branches at the bedroom windows of a house that was built close to a tree already there. The one cause this card makes: mature trees left from before the street was built, which the town profile dates (villas with their original planting, a street tree line, a park edge). Tie the age to what the work involves, never to a judgement on the trees' state: a tree of that size comes down in sections lowered by rope rather than felled, pruning is specified by size back to growth points, and in the older parts of a town an order or a conservation area usually covers the tree, so the council has a say first ("usually", never the order's or the area's official name; from the dossier rules only). Never that the town's old trees are dangerous or neglected. |
+| Streets where the council has a say first | a notice or a consent before the first cut | An owner who wants a tree reduced or taken down and is told it cannot simply be booked. The one cause this card makes: a notice or a consent before the first cut, where the town profile and the dossier rules give conservation areas or protected trees. What usually applies, in plain words and without an Act's or an order's name. A tree with an order on it: the council's consent comes first, in most cases. A tree in a conservation area: the council is told ahead of the work, the number of weeks only as the trade facts rule row gives it, and only where the dossier says the street is covered. A dead tree or an immediate danger has a narrower route of its own. Which council handles it only from the dossier. Whether the business sends the notice or makes the application for the customer only from [CV: handles_planning]. Never claim a street or an estate is covered without the research. |
+| Ground that moves with the trees | the town's soil shrinking, or staying shallow, under its trees | Cracks a house near a big tree shows at the end of a dry summer, a tree blown over in the first autumn gale, paths lifted by roots that stay near the surface. The one cause this card makes: the town's soil shrinking, or staying shallow, under its trees; the town profile and a symptom say which (clay that gives up its moisture to a big tree through a dry summer and takes it back in winter, so the ground under a house rises and falls; thin soil over chalk or rock where roots stay shallow and a tree catches the wind; an exposed hill or coast). Say what it means for the work in plain words: on clay a worry about a house is investigated before anything is cut, because felling can bring movement of its own (Table E subsidence), and a reduction, or a barrier that steers the roots, is often the better answer; on shallow ground a leaning tree after a gale is looked at from the ground first. Never diagnose any house, never promise the ground will settle. |
+| Young trees planted close to new houses | trees planted small against a house they have now reached | A tree put in by the builder a stride from the wall, now at the gutters; a row of the same species along a new estate's road; a small garden with a tree that will be twice the house's height. The one cause this card makes: trees planted small against a house they have now reached, where the town profile gives the newer estates. What it means for the work, never a judgement on the planting: a reduction specified by size to keep the clearance, repeated as the tree grows, or an honest conversation about replacing it with a tree that fits the space (Table A pruning and planting); on clay, the distance to the house is part of that conversation (Table E). Ash dieback on an estate's ash only where the research confirms it locally. Never name a species the profile does not give. |
+
+**Block 5, cost factors.** H2: What Affects the Cost of [WORK] in [TOWN]
+
+| Card | Brief |
+|---|---|
+| Getting a tree out through a terrace | Where the back garden can be got to only through the house or over a neighbour's wall, every piece of timber and every barrow of chip comes out by hand or over the roof with a crane, and the chipper stays on the road. Say why that adds time and people (never "the only way": a superlative); the town profile says which streets are terraced. No figure. |
+| Working next to roads and overhead lines | A tree over a pavement or a road needs the road managed while pieces come down; a tree near an overhead line waits for the network operator and is worked differently. Say it plainly, from the profile where it gives the street pattern and the lines. No figure, no distance. |
+| Paperwork before the first cut | Where the town has conservation areas or orders on its trees, the notice or the application before work can start adds time, and some things cannot be done at all. "Usually", never the order's or the area's official name. From the dossier rules only; otherwise a survey or a report as something that sometimes applies. Whether the business does the paperwork only from [CV: handles_planning]. |
+| Big old trees that come down in pieces | A mature tree in a town garden rarely has a clear space to fall into, so it is dismantled from the top and every piece lowered by rope, with more people on the ground and more to chip and carry than a tree of the same height in a field. Say it plainly, from the profile where it gives the mature trees. No figure. |
+
+**Steps.** The niche steps (Tell Us About the Tree; We Come and Look at the Tree; We Do the Work on a Date That Suits You).
+
+**FAQ slots.** Five: cost, the town question, one cover question (the first whose condition holds), process, timing.
+
+| Slot | When | Question | Answer brief | Doubt |
+|---|---|---|---|---|
+| cost | always | How much does [WORK_LOWER] cost in [TOWN]? | Prices only from [CV: price_list]; otherwise the things that push the price up in a town like this (access through a terrace, roads and lines, big trees that come down in pieces, the paperwork first) and how the quote is given, from [CV: quote_method] only. | Price |
+| town | start_time | How soon can you get to [TOWN]? | From [CV: start_time] and [CV: response_time] only. The town is in the area covered; nothing about distance unless [CV: travel_distance] is set. Emergency call outs in the town only when [CV: emergency_callouts] is yes. | Timing |
+| town | always | Do you cover [TOWN]? | Yes: the town and the villages around it (code lists them; name none). How the business reaches it from its base only from the client values. Link one page in this town. | Fit |
+| cover | guarantee | Do you guarantee your work in [TOWN]? | Start with yes, then the terms from [CV: guarantee_years] and [CV: guarantee_scope]. Described, never promised. The guarantee covers the work, never the tree's future. | Trust |
+| cover | insurance | Are you insured? | The cover figure from [CV: insurance_cover] and what the cover is for. Never what it pays or who it covers. | Trust |
+| cover | always | What happens if something isn't right after the job? | Open with what the customer does: tell us and we look at it. Then the reasonable care and skill standard every trade works to. No promise to come back free. Never invent a guarantee. | Trust |
+| process | always | What happens when I ask for a quote in [TOWN]? | From [CV: quote_method] and the confirmed practices only: what the customer sends, what the business looks at (the tree, what is under it, the access, and whether an order or a conservation area covers the tree, which in this town the dossier may already say), what comes back. No timescale unless [CV: response_time] is set. | Process |
+| timing | always | When is the best time of year for [WORK_LOWER] work? | When each kind of tree work is best done and why, in the tree or in what usually applies, from the trade facts timing cells: felling, dismantling and stump work through the year when the ground and the weather allow; pruning generally after the leaves have hardened, the sap bleeders in summer or midwinter; planting and moving while dormant; a nest being built or used leaving that part until it is empty, with no blanket ban on the season. Where the town profile gives the ground or the exposure (clay still wet in spring, an exposed edge of town after the winter gales), say what it does to that window. Nothing about autumn or winter being busy. No dates, no promises about the weather. | Timing |
+
+## do_not_reuse
+
+(empty to start; add any sentence that has gone live on a client site so it is never repeated)
+
+## What the sources lacked (questions for the client or for Ray)
+
+For the client (no client value carries these today, so the briefs say "only from the client values"):
+1. Is there a call out charge, and an out of hours charge, for emergency tree work? The emergency cost briefs can only take a figure from price_list.
+2. Do they make protected tree applications and conservation area notices for the customer? The briefs read handles_planning for it; a tree surgeon field of its own would be cleaner, since "planning" to a tree surgeon means the council's tree officer, not a planning application.
+3. Is waste taken away, and are they registered to carry it? Can logs and wood chip be left for the customer? The pack's section 7 bans stating any of this unconfirmed; the briefs read waste_carrier_registered and the client values.
+4. On a tree that has fallen on a building or a car, do they deal with the insurer, or only record and photograph the work? No trade facts row covers insurance evidence for tree work (the roofer pack had one), so the briefs leave it to the client values.
+5. Does the business take small jobs (one garden tree, a single hedge)? The scope brief reads typical_jobs only.
+6. Which qualifications and which insurance cover do they hold? Table D gives the schemes and the ARB Approved Contractor minimum; the copy may only name the client's own, from the client values, never a scheme's minimum as theirs.
+7. Do they check for nests and bats before work? The nesting_bird_check practice exists; a bat check is not a practice yet, so the briefs write it as what usually applies.
+
+For Ray and the trade facts pack (Table G records most as not found; the briefs give no figure):
+8. A duration for any tree job: Table G says none was found from an originating authority, so every timing brief says what decides it and never a number.
+9. Fungus at the base of a tree, the pack's section 1 worry and its block 4 example: no Table B or E row covers fungus, so the category card names it as a sign the reader sees and sends the cause to a survey; a row on what brackets at the base mean would let the copy say more.
+10. A leaning tree that has leant for years against a new lean: the pack's blog example makes the distinction; the facts rows give only "the tree is leaning after the storm". The emergency scope brief uses "a lean the tree has had for years" as planned work on the pack's authority.
+11. The council or the police as who to tell about a tree across a public road: not in Table C (the highway row covers notices served on an owner, not the reverse). The emergency card says it as what usually applies; a row would make it a fact.
+12. Whether the `emergency_niche` marker should follow the client's confirmation: the pack asks for plain type A, so it is false here, which means `allocation.js` never hands a page an urgent symptom even for a client who confirms call outs. Brandon's call.
+13. The pack's header still says verified: no; the service page gate refuses a run until it is verified on the Trade facts screen.
+14. Tree transplanting is desire led in the pack but its row lives in landscaper.csv without the desire_led flag; Tree planting is flagged there. One line in landscaper.csv would align them (not changed here: this entry touches tree-surgeon.csv only).

@@ -55,7 +55,7 @@ Tree stump removal,Tree service,page,Tree stump removal,Has volume,,,,
 Tree planting,Tree service,page,Tree planting,,,,,yes
 Tree removal,Tree service,page,Tree removal and felling,,,,,
 Tree stump grinding,Tree service,alias,Tree stump removal,Grinding is the method; one page,,,,
-Tree transplanting,Tree service,page,Tree transplanting,Low priority,,,,
+Tree transplanting,Tree service,page,Tree transplanting,Low priority,,,,yes
 Tree trimming and pruning,Tree service,page,Tree pruning and crown reduction,,,,,
 Asphalt milling,Paving contractor,exclude,,Road works,,,,
 Asphalt paving & repair,Paving contractor,alias,Tarmac surfacing,UK term is tarmac,,,,

@@ -287,6 +287,12 @@ chk('CB-LINKS: three town links in one sentence of the content block pass (parag
   const cb = r => issuesOf(r).filter(i => i.check === 'CB-LINKS' && i.type === 'BLOCK' && /in one sentence/.test(i.message));
   return !cb(towns).length && cb(svcs).length === 1;
 })(), '', 'towns pass, services block');
+chk('N5: "sludge deposits" and "deposits of scale" are the trade\'s word, not a payment deposit; "a deposit" with no deposit_terms is still a BLOCK (4 Nov)', (() => {
+  const n5 = r => issuesOf(r).filter(i => i.check === 'N5' && i.field === PT.LABELS.servicesIntro);
+  const trade = withText(record, PT.LABELS.servicesIntro, 'Most calls start with the lawn, and the beds are cleared of the grey sludge deposits and deposits of scale that a wet winter leaves behind, so nothing is left half finished across the season.');
+  const pay = withText(record, PT.LABELS.servicesIntro, 'Most calls start with the lawn, and we take a deposit before the first visit, so nothing is left half finished across the season.');
+  return !n5(trade).length && n5(pay).length === 1;
+})(), '', 'trade deposits pass, a payment deposit blocks');
 chk('LINK-TEXT: a card with a prose name (the library prose_name column, 3 Nov) is linked by that name; the page name alone is a FLAG', (() => {
   const Ds = JSON.parse(JSON.stringify(D)); const c = Ds.d9.main.find(x => x.name === 'Lawn mowing'); if (!c) return false; c.say = 'grass cutting';
   const Vs = categoryValidationContext(G.validationContextFor({ cv, niche, decisions: Ds, keyValueMap: kv, serviceParentMap: ctx.serviceParentMap }), Ds);

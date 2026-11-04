@@ -180,6 +180,17 @@ chk('fearsFor and faqSlotsFor: a B client reads the B fears and the B slot repla
 const tHome = computeDecisions({ cv: { ...cv, business_type: 'B' }, niche: tNiche, pages: ctx.pages, keyValueMap: ctx.keyValueMap, serviceParentMap: ctx.serviceParentMap, v20TestMode: true, allocationData: null, faqResearch: [] });
 chk('homepage decisions: a B client\'s Why points carry the B fears and its FAQ takes the B question', !tHome.gates.length && tHome.decisions.d10_why.some(p => tNiche.fears_by_type.B.includes(p.fear)) && JSON.stringify(tHome.decisions.d11_faq).includes('How often do you need to come?'), tHome.gates.length ? JSON.stringify(tHome.gates) : JSON.stringify(tHome.decisions.d10_why.map(p => p.fear)), 'B fears and question');
 
+// ── Urgent symptoms in the allocation pass follow the page flags, not the niche marker (4 Nov 2026) ──
+chk('emergencySite: urgent symptoms are eligible only when the client confirms call outs and a service page is flagged emergency (rows or v3 pages)', CB.emergencySite({ emergency_primary: 'yes' }, km.rows) && !CB.emergencySite({ emergency_primary: '' }, km.rows) && !CB.emergencySite({ emergency_primary: 'yes' }, edensRows) && CB.emergencySite({ emergency_callouts: 'Yes' }, kCtx.pages) && !CB.emergencySite({ emergency_primary: 'yes' }, kRowsNoRepairs), '', 'flags decide, not emergency_niche');
+chk('allocation: the eligible items take the same answer (an urgent symptom is kept for Kestrel, dropped for Edens Edge)', (() => {
+  const A = require(path.join(root, 'allocation.js'));
+  const parsed = { neighbourhoods: [], issues: [{ id: 'i1', categoryTags: ['roofer'] }], symptoms: [{ id: 's1', issueId: 'i1', text: 'Water coming through the ceiling', urgent: true }, { id: 's2', issueId: 'i1', text: 'Moss on the north slope', urgent: false }], conservation_areas: [] };
+  const cats = new Set(['roofer']);
+  const on = A.eligibleItems(parsed, { emergencyNiche: CB.emergencySite({ emergency_primary: 'yes' }, km.rows), categories: cats });
+  const off = A.eligibleItems(parsed, { emergencyNiche: CB.emergencySite({ emergency_primary: 'yes' }, edensRows), categories: cats });
+  return on.symptoms.some(s => s.id === 's1') && !off.symptoms.some(s => s.id === 's1') && off.symptoms.some(s => s.id === 's2');
+})(), '', 'urgent kept for Kestrel only');
+
 fs.unlinkSync(file);
 fs.unlinkSync(dFile);
 console.log(`\n${pass + fail} checks: ${pass} passed, ${fail} failed`);

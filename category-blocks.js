@@ -37,6 +37,13 @@ function clientEmergency(cv = {}) {
   return lc(cv.emergency_primary) === 'yes' || yes(cv.emergency_callouts);
 }
 
+// The site takes urgent symptoms in the allocation pass (4 Nov 2026): the client confirms call
+// outs and the page map has a service page flagged emergency (page map rows, or the v3 context's
+// pages). The old niche level emergency_niche marker used to decide this; nothing reads it now.
+function emergencySite(cv = {}, rows = []) {
+  return clientEmergency(cv) && (rows || []).some(r => r && (r.type === 'service' || r.type === 'town_service' || r.pageType === 'service') && !!(r.emergency || (r.info && r.info.emergency)));
+}
+
 // Why the emergency layout is on or off, for the DECISIONS block. names: the flagged pages
 // the page's cards lead to (a service page: itself)
 function emergencyWhy(on, names, cv = {}) {
@@ -165,4 +172,4 @@ function faqSlotsFor(niche = {}, cv = {}) {
   return out;
 }
 
-module.exports = { typeFor, blocksFor, briefGaps, pickFaqSlots, applySeasonal, NoBriefsError, clientEmergency, emergencyWhy, typeLetterFor, fearsFor, faqSlotsFor };
+module.exports = { typeFor, blocksFor, briefGaps, pickFaqSlots, applySeasonal, NoBriefsError, clientEmergency, emergencyWhy, emergencySite, typeLetterFor, fearsFor, faqSlotsFor };

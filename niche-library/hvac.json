@@ -1,0 +1,639 @@
+{
+  "_source": "niche-library/hvac.json",
+
+  "trade": "Air Conditioning",
+  "trade_lower": "air conditioning",
+  "trade_person": "air conditioning engineer",
+  "trade_person_plural": "air conditioning engineers",
+  "customer_type": "homeowners and local businesses",
+  "unit_of_work": "jobs",
+  "emergency_niche": false,
+  "big_ticket": true,
+  "big_ticket_examples": ["air conditioning installation", "ductwork and ventilation installation", "cold rooms"],
+  "schema_subtype": "HVACBusiness",
+
+  "words_use": ["air conditioning", "air con", "unit", "indoor unit", "outdoor unit", "filter", "warm air", "dripping", "noise", "regas", "ventilation", "extract fan", "stuffy", "condensation", "server room", "cold room", "kitchen extract", "F gas"],
+  "words_avoid": ["comfort cooling", "solutions", "evaporator", "condenser", "fan coil unit", "refrigerant charge", "property", "state of the art", "cutting edge", "bespoke", "hassle free"],
+  "words_avoid_exceptions": { "condenser": "allowed on a commercial refrigeration or cold room page where the condensing unit is the customer's own word for the plant outside", "property": "allowed where the page speaks to a landlord or a letting agent, where property is their own word" },
+  "banned_phrases": ["climate control", "the perfect indoor environment", "perfect indoor environment", "indoor comfort systems", "indoor comfort", "total comfort", "year round comfort", "perfect temperature", "eliminates allergies", "prevents illness", "breathe easy", "signs you need air conditioning"],
+
+  "buttons": {
+    "primary_action": "Get My [QUOTE_FREE] Quote",
+    "meta_cta": "Get your [QUOTE_FREE_LOWER] quote today.",
+    "process_h2": "Your [QUOTE_FREE] Quote in 3 Simple Steps",
+    "final_h2": "Get a [QUOTE_FREE] Quote From a Local [CATEGORY] in [CITY]",
+    "final_h2_emergency": null,
+    "cta_band_line": "Tell us about the room or the building and we'll get back to you within [CV: response_time].",
+    "cta_band_line_no_response": "Tell us about the room or the building and we'll get back to you."
+  },
+
+  "business_type_default": "A",
+  "business_type_notes": "Every GBP category is A (HVAC Calibration Pack v1, section 2: the whole trade is mapped to type A, led by the servicing schedule), so category_types is empty. The pack's split inside type A is carried in the card briefs and the library's desire_led column, not in a type: schedule led (what slips and when, with the reason in the system) for Air conditioning servicing, Duct cleaning, MVHR servicing, Commercial HVAC maintenance, Commercial refrigeration maintenance, Server room cooling maintenance and Cold rooms maintenance; problem led (symptom, cause in the airflow, the coil, the drain or the refrigerant circuit, consequence if left) for Air conditioning repairs, Air conditioning removal and decommissioning, Indoor air quality testing and repair work on refrigeration and cold rooms; desire led (the customer's situation, never an invented symptom; the service_page_blocks.A.desire variant, switched by the library's desire_led column) for Air conditioning installation, Split system air conditioning, Ductwork and ventilation installation, MVHR heat recovery ventilation, Server room cooling and Cold rooms. Domestic and commercial readers share every type: [CV: customer_types] decides which leads a page, and the two are never in one sentence. Breakdown call outs on refrigeration, cold rooms and server rooms are written only from [CV: emergency_callouts], with no response time; no page is flagged emergency in hvac.csv, so there is no emergency variant. The Central Heating Service and Furnace Repair Service tabs carry only this niche's air conditioning services (heating pages belong to the Plumbing and Heating niche), so their nouns and core services are the air conditioning ones. Hot spells make the trade seasonal: seasonal_trade is on and the swap gives its reason in the system, never in the diary.",
+
+  "priority_services": ["Air conditioning servicing"],
+  "core_services": {
+    "hvac contractor": ["air conditioning servicing", "air conditioning repairs", "air conditioning installation", "ductwork and ventilation installation", "duct cleaning"],
+    "air conditioning contractor": ["air conditioning installation", "split system air conditioning", "air conditioning servicing", "air conditioning removal and decommissioning"],
+    "air conditioning repair shop": ["air conditioning repairs", "air conditioning servicing"],
+    "air duct cleaning service": ["duct cleaning", "ductwork and ventilation installation"],
+    "central heating service": ["air conditioning servicing", "air conditioning repairs", "air conditioning installation"],
+    "furnace repair service": ["air conditioning repairs", "air conditioning servicing"]
+  },
+
+  "steps": [
+    {
+      "title": "Tell Us About the Room or the Building",
+      "brief": "How to get in touch and what is useful to send first: which rooms or which part of the building, what system is there already if any, what it is doing, and a photo of the indoor unit, the outdoor unit or the label on it. No promise of a reply time unless [CV: response_time] is set. Never ask the customer to open the unit or touch the electrics."
+    },
+    {
+      "title": "We Survey and Price the Job",
+      "brief": "The visit and what gets looked at: on a new system the room's heat, where the indoor and outdoor units can go, the pipe and drain route and the power; on a fault, the system running. Follows [CV: quote_method]; only say the quote is written if quote_method says so. Never restates 'free' (FAQ 5 owns it). Never a sizing figure or a unit size."
+    },
+    {
+      "title": "We Fit It on a Date That Suits You",
+      "brief": "The date is agreed in advance, to suit the customer; for a business, round its hours only from the confirmed practices. Never mention the price, the quote or changes to the plan (step 2 and Why choose us own them). Never restates the start time (FAQ 4 owns it)."
+    }
+  ],
+
+  "step_2_no_visit": {
+    "title": "We Price Your Job",
+    "brief": "Say a price is agreed before any work starts. Describe how the price is reached only from [CV: quote_method]; when quote_method is blank, name no method at all (no photos, call, video, survey or visit). Only say the quote is written if quote_method says so. Never restates 'free' (FAQ 5 owns it)."
+  },
+  "cover_chain": ["guarantee", "manufacturer_warranty", "insurance"],
+
+  "fears": [
+    "a unit that is noisy, or sized wrong for the room, so it never does what it was bought for",
+    "an outdoor unit stuck on the wall where everyone sees it and the neighbours hear it",
+    "a repair that tops up the gas and leaves the leak, so the system is down again within weeks",
+    "a price that grows once the engineer is on site, with running costs nobody mentioned"
+  ],
+
+  "logo_tiers": {
+    "ratings": ["Google (needs review_count 5+)", "Checkatrade", "Trustpilot", "Which? Trusted Traders"],
+    "tier1": ["Refcom (F gas company certificate, checked on the register)", "Quidos F Gas Register (F gas company certificate)", "Bureau Veritas (F gas company certificate)", "BESA (Building Engineering Services Association, Competence Assessment Standard)", "BESCA Competent Person Scheme", "NAPIT (scope checked)", "Certsure or NICEIC (scope checked: the brand alone proves nothing for air conditioning work)", "TrustMark", "MCS (heat pump pages only)"],
+    "tier2": ["Daikin D1+ Premium Partner", "Mitsubishi Electric Business Solutions Partner", "Panasonic PRO Partner", "Fujitsu installer programme (its current name and criteria are unverified in the facts pack: show only what the client's certificate says)"],
+    "tier3": "CHAS, SafeContractor, Institute of Refrigeration and CIBSE grades, FETA, HEVAC and BRA membership, chamber of commerce, local press: Ray's call per client. An individual's ACRIB SKILLcard or City and Guilds certificate is never shown as the company's certificate."
+  },
+
+  "faq_fixed_doubts": {
+    "Q1_cost": "Price",
+    "Q6_areas": "Fit"
+  },
+
+  "faq_slots": [
+    {
+      "slot": "faq_2",
+      "question": "Are you insured?",
+      "answer_brief": "The cover figure and what it means for the customer if something is damaged during the job.",
+      "symptom_based": false,
+      "doubt": "Trust"
+    },
+    {
+      "slot": "faq_2_fallback",
+      "question": "What happens if something goes wrong?",
+      "answer_brief": "From [CV: complaints_process] only.",
+      "symptom_based": false,
+      "doubt": "Trust"
+    },
+    {
+      "slot": "faq_3",
+      "question": "Do you guarantee your work?",
+      "answer_brief": "Used only when a guarantee or manufacturer warranty is confirmed. Start with yes, then the terms. A maker's warranty from [CV: manufacturer_warranty] only, and any servicing condition on it only as that maker's terms give it (the trade facts say the conditions differ by maker and product: never generalised).",
+      "symptom_based": false,
+      "doubt": "Trust"
+    },
+    {
+      "slot": "faq_3_none",
+      "question": "What happens if something isn't right after the job?",
+      "answer_brief": "Used when nothing in cover_chain other than insurance is confirmed. Open with what the customer does: tell us what isn't right and we'll look at it. Then the 'reasonable care and skill' standard every trade works to, as the standard the work is held to, never as a defence. No promise to come back or put it right for free. Never invent a guarantee.",
+      "symptom_based": false,
+      "doubt": "Trust"
+    },
+    {
+      "slot": "faq_4",
+      "question": "How soon can you start?",
+      "answer_brief": "From [CV: start_time] only, as given. Code adds \"bigger projects are booked further ahead\" only when that practice is confirmed. Nothing about summer lead times.",
+      "symptom_based": false,
+      "doubt": "Timing"
+    },
+    {
+      "slot": "faq_5_free",
+      "question": "Is the quote free and no obligation?",
+      "answer_brief": "From [QUOTE_FREE] and [CV: quote_method].",
+      "symptom_based": false,
+      "doubt": "Price"
+    },
+    {
+      "slot": "faq_5_not_free",
+      "question": "How do your quotes work?",
+      "answer_brief": "From [CV: quote_method] only.",
+      "symptom_based": false,
+      "doubt": "Price"
+    },
+    {
+      "slot": "faq_A",
+      "question": "How often should air conditioning be serviced?",
+      "answer_brief": "What decides it rather than a number (the trade facts servicing interval row: varies, no universal legal interval): the maker's instructions for the unit, a warranty condition that asks for a service record where the client's maker has one, and on larger commercial systems the leak checks the rules set by how much gas the system holds, which are a separate duty from a service. Why a check before the hot weather: dust on the filter and the indoor coil cuts the air crossing it, so the unit works harder on the first warm days and a slow leak shows as a unit that cannot keep up. A frequency only from [CV: visit_frequency_options] or the facts rows; never 'a yearly service is required by law'.",
+      "symptom_based": false,
+      "doubt": "Timing"
+    },
+    {
+      "slot": "faq_B",
+      "question": "Why is my air conditioning blowing warm air?",
+      "answer_brief": "Use the assigned symptom's meaning and its linked local issue. Three genuinely different causes in plain words: too little air crossing the indoor coil (a filter or a coil clogged with dust), gas lost through a leak so there is less of it to carry the heat out of the room, and a control or sensor fault. Then what the local buildings or air add (a busy road loading the filters, salt air on the outdoor coil), then the fix in the order the trade facts repair stages give it: the fault found first, a leak repaired and the circuit tested before any gas goes back. A top up without finding the leak lasts weeks, never say it is a fix.",
+      "symptom_based": true,
+      "doubt": "Process"
+    },
+    {
+      "slot": "faq_C",
+      "question": "Does my air conditioning need regassing?",
+      "answer_brief": "The refrigerant is sealed in and is not consumed, so a system short of gas has a leak somewhere (the trade facts leak found row). What the work involves from the repair stages: the leak located and repaired, the circuit tested and evacuated, then the gas put back and the repair checked again. Never regassing on its own as the answer. Sealed system work as something the trade's rules keep to engineers with the refrigerant handling certificate, as what usually applies to anyone doing it; this business's own certificate only from [CV: credentials].",
+      "symptom_based": false,
+      "is_fallback": true,
+      "doubt": "Process"
+    },
+    {
+      "slot": "faq_D",
+      "question": "When is the best time of year to have air conditioning fitted or serviced?",
+      "answer_brief": "The reason in the system, never in the diary: a service before the hot weather finds a tired filter, a dirty coil, a slow drain or a slow leak before the unit is asked to work hard; a unit that heats as well as cools is in use through winter, so its service follows the maker's instructions rather than the season. The facts rows give no closed season and no duration for fitting a system, so say the timing of an install is decided by when the room or the building can spare it. Nothing about summer being busy or lead times stretching. No dates, no promise about the weather.",
+      "symptom_based": false,
+      "is_fallback": true,
+      "doubt": "Timing"
+    },
+    {
+      "slot": "faq_E",
+      "question": "Can I clean the air conditioning filters myself?",
+      "answer_brief": "Yes to the indoor filter, done the way the maker's leaflet for that unit says, and why it helps (the air across the coil). Then the line: the sealed circuit, the gas and the electrics are work for an engineer who holds the refrigerant handling certificate, as the trade's rule and never as this business's own certificate unless [CV: credentials] gives it. No health claim about the air.",
+      "symptom_based": false,
+      "is_fallback": true,
+      "doubt": "Process"
+    },
+    {
+      "slot": "faq_planning",
+      "question": "Will the outdoor unit need planning permission?",
+      "answer_brief": "Point at the trade facts rule rows (Table C) and write what usually applies, with \"usually\" or \"in most cases\": a unit that only cools falls outside the automatic right at a house, so a check with the council is usual; a unit that heats as well can qualify when its conditions are met; a listed home or a conservation area usually needs permission; in a flat the freeholder usually has to agree first; a business's plant has no automatic right. What the customer does only as the row gives it (apply where the conditions are not met). No volume, no count of units, no noise figure, never an Order's or an Act's name.",
+      "symptom_based": false,
+      "condition": "big_ticket AND [CV: handles_planning] confirmed",
+      "doubt": "Process"
+    }
+  ],
+
+  "materials_tick_list": {
+    "Systems": ["wall mounted split", "multi split", "ducted system", "ceiling cassette", "floor standing unit", "VRF system", "heating and cooling (reversible) units"],
+    "Refrigerants": ["R32", "R290 propane", "R410A on existing systems"],
+    "Condensate": ["gravity drain", "condensate pump"],
+    "Ventilation": ["rigid ductwork", "sheet metal ductwork", "MVHR unit", "kitchen extract canopy", "flexible duct on final connections only"],
+    "Refrigeration": ["integral cabinets", "remote condensing unit", "insulated panel cold room", "temperature alarms"],
+    "Other": ["refrigerant recovered and recorded", "commissioning records handed over", "service records kept for the customer", "manufacturer approved installer", "new circuits by a registered electrician", "work outside opening hours for businesses"]
+  },
+
+  "service_terms": ["air conditioning installation", "split system", "multi split", "ducted air conditioning", "ceiling cassette", "air conditioning servicing", "air conditioning repairs", "regas", "regassing", "leak test", "leak check", "pressure test", "evacuation", "vacuum", "commissioning", "decommissioning", "refrigerant recovery", "condensate pump", "condensate drain", "ductwork", "ventilation", "extract fan", "kitchen extract", "duct cleaning", "MVHR", "heat recovery ventilation", "indoor air quality testing", "air quality testing", "server room cooling", "close control", "cold room", "commercial refrigeration", "chiller", "VRF", "air handling unit", "TM44 inspection", "F gas leak check", "air balancing", "heat pump"],
+
+  "service_words_note": "Old path only (21 Oct 2026): this list applies when the homepage is written from the uploaded custom values CSVs. A client with a v3 page map names every service by its page title (the services library's UK name), and this list is not used.",
+  "service_words": [
+    ["heating system maintenance", null], ["heating system installation", null], ["heating system repair", null],
+    ["portable a/c services", null], ["ventilated ceiling", null],
+    ["a/c system maintenance", "air conditioning servicing"], ["hvac system maintenance", "air conditioning servicing"],
+    ["a/c preventive maintenance", "air conditioning servicing"], ["a/c filter replacement", "air conditioning servicing"],
+    ["f-gas leak testing", "air conditioning servicing"], ["f gas leak testing", "air conditioning servicing"],
+    ["hvac duct and vent cleaning", "duct cleaning"], ["a/c system vent cleaning", "duct cleaning"],
+    ["ductless heating and a/c", "split system air conditioning"], ["multi split", "split system air conditioning"], ["split system", "split system air conditioning"],
+    ["hvac system repair", "air conditioning repairs"], ["a/c system repair", "air conditioning repairs"], ["hvac repair", "air conditioning repairs"],
+    ["thermostat repair", "air conditioning repairs"], ["thermostat installation", "air conditioning installation"], ["ac installation", "air conditioning installation"],
+    ["hvac duct and vent installation", "ductwork and ventilation installation"], ["hvac duct and vent repair", "ductwork and ventilation installation"],
+    ["air balancing", "ductwork and ventilation installation"],
+    ["a/c system dismantlement", "air conditioning removal and decommissioning"],
+    ["air source heat pump", "air source heat pumps"], ["ground source heat pump", "ground source heat pumps"],
+    ["heat recovery ventilation", "heat recovery ventilation"], ["mvhr", "heat recovery ventilation"],
+    ["commercial hvac", "commercial air conditioning and ventilation"], ["chiller", "commercial air conditioning and ventilation"], ["vrf", "commercial air conditioning and ventilation"],
+    ["refrigeration system", "commercial refrigeration"], ["cold room", "cold rooms"], ["server room cooling", "server room cooling"],
+    ["indoor air quality testing", "air quality testing"],
+    ["cleaning", "air conditioning servicing"], ["installation", null]
+  ],
+
+  "general_service_words": ["air conditioning", "hvac", "ventilation", "refrigeration", "heating and cooling", "commercial air conditioning"],
+  "problem_service_words": ["air conditioning repairs", "regas", "air quality testing"],
+  "why_titles_alt": [
+    "Local Experience Behind Every Job",
+    "Covered If Something Goes Wrong"
+  ],
+
+  "category_work_nouns": {
+    "hvac contractor": "air conditioning and ventilation",
+    "air conditioning contractor": "air conditioning",
+    "air conditioning repair shop": "air conditioning repair",
+    "air duct cleaning service": "duct cleaning",
+    "central heating service": "air conditioning and ventilation",
+    "furnace repair service": "air conditioning and ventilation"
+  },
+  "seasonal_trade": true,
+  "category_types": {},
+  "category_page_blocks": {
+    "A": {
+      "problems": {
+        "h2": "Common [WORK] Problems",
+        "cards": [
+          {
+            "title": "Servicing that slipped a year or two",
+            "brief": "Schedule led: what slips when nobody services the system, from the trade facts servicing signs row: the airflow weaker each summer, the unit running longer and cooling less, a stale smell when it starts, a drip from the indoor unit. The one cause this card makes: dust building on the filter and the indoor coil, so less air crosses it, with the drain and the pressures never looked at behind it. Time of year and the reason: a check before the hot weather, because that is when the filter and the coil are asked to pass the most air and a slow leak shows as a unit that cannot keep up; never that summer is busy. What a service does, from the servicing stages: the filters and heat exchangers cleaned, the condensate run checked, the controls, a leak check where the system's gas content asks for one, the test run and the record. No interval unless the facts rows or [CV: visit_frequency_options] give one; never 'required by law every year' (the trade facts servicing interval row). By category: Air Conditioning Contractor and HVAC Contractor read it as the service itself; Repair Shop as the repairs that trace back to a missed service; Duct Cleaning as the ducts: dust at the grilles, a kitchen canopy heavy with grease, from the duct cleaning signs row.",
+            "mechanism": "dust building on the filter and the indoor coil, so less air crosses it"
+          },
+          {
+            "title": "A drip from the indoor unit",
+            "brief": "Problem led: a wet patch or a run mark on the wall under the indoor unit, a stain spreading on the ceiling under a cassette, water in the tray that never clears. The one cause this card makes: the drain that carries the condensate away has blocked with the dust and the film washed off a coil nobody cleaned, or was run without a fall when the unit went in, so the tray fills and spills (the trade facts servicing and split system rows). Say what the fix usually involves, from the repair stages in plain words: the drain cleared or re run, a pump where gravity cannot do it (the materials cell), the coil cleaned so it does not block again; what it leads to if left, from the skipped row: stained finishes and water near the electrics, specific and never alarming. Never that a drip proves a gas leak (the trade facts condensate row). By category: Repair Shop and HVAC Contractor read it as the fault; Air Conditioning Contractor as the drain route on a new system; Duct Cleaning as damp at a grille where moist air sits in a duct. Not weak cooling: card 1 and the symptom FAQ own that.",
+            "mechanism": "a condensate drain that has blocked, so the tray overflows"
+          },
+          {
+            "title": "Warm air, or a unit that never catches up",
+            "brief": "Problem led: air from the indoor unit no cooler than the room, the outdoor unit running with nothing changing indoors, ice on the pipes, a unit that trips. The one cause this card makes: gas lost through a leak, so there is less of it to carry the heat out of the room; the refrigerant is sealed in and not consumed, so a system short of it has a leak (the trade facts leak found row). Say the honest order of the work from the repair stages: the fault found, the leak located and repaired, the circuit tested and evacuated, and only then the gas put back; a top up on its own lasts weeks, never say it is a fix. Sealed system work as something the trade's rules keep to engineers with the refrigerant handling certificate, as what usually applies to anyone doing it; this business's own certificate only from [CV: credentials]. Not a filter or a coil clogged with dust: card 1 owns that; not a unit sized wrong for the room: card 4 owns that. By category: Repair Shop and HVAC Contractor read it as the fault; Air Conditioning Contractor as the joint that was never tested when the system went in (the done badly row); Duct Cleaning as a ducted system whose air cannot get through, from the ductwork signs row.",
+            "mechanism": "gas lost through a leak, so less heat is carried out"
+          },
+          {
+            "title": "A room the house can't keep cool",
+            "brief": "A situation card, not a fault: a bedroom under the roof still warm at midnight, a home office where the afternoon sun comes through the glass, a meeting room full of people, a server cupboard whose kit trips in a hot week. What decides it: where the heat comes in (the roof, the glass, the people, the equipment) and whether anything is sized to take it out; a portable unit in the doorway does not spread cool air through the room the way a fixed system does (the trade facts installation skipped row), with no performance figure (none is verified). What the work gives them: a split sized to that room from a heat gain survey (the installation stages), the indoor unit where the air reaches the whole room, the outdoor unit where the neighbours will not hear it and an engineer can reach it; a unit too big stops and starts and leaves the room clammy, one too small runs flat out and never gets there (the sizing guidance, no percentage). By category: Air Conditioning Contractor and HVAC Contractor read it as the install; Duct Cleaning as a room that is stuffy rather than hot, where the extract barely draws (the ductwork signs row), and what a proper supply and extract gives it; Repair Shop as an old unit that never kept up because it was never sized to the room. Never a lifestyle line, never a symptom invented for it; domestic and commercial never in one sentence: [CV: customer_types] decides which leads.",
+            "mechanism": "the room's heat gain, and nothing sized to take it out"
+          }
+        ]
+      },
+      "cost": {
+        "h2": "What Affects the Cost of [WORK] in [CITY]",
+        "cards": [
+          {
+            "title": "How many rooms or units",
+            "brief": "The number of indoor units and cooling zones moves the price more than anything else (the trade facts price rows for installation, servicing and removal): each one is a unit, a pipe run, a drain and a connection. Say it plainly and give no figure."
+          },
+          {
+            "title": "The route between indoors and out",
+            "brief": "The pipe, drain and cable run from the indoor unit to the outdoor one: its length, whether it is concealed, a pump where the drain cannot fall, height access to the outdoor unit (the price rows). Say why a long or hidden route costs more time."
+          },
+          {
+            "title": "Power and permissions",
+            "brief": "A new electrical circuit where one is needed (notifiable work in a home, said without the rule's name, from the rule rows; never 'every unit needs its own circuit', the trade facts electrical row), and planning or noise work where the outdoor unit's position asks for it. Say the business looks before it prices, from [CV: quote_method] only."
+          },
+          {
+            "title": "The state of what's already there",
+            "brief": "On a service or a repair: coils heavily soiled, drain parts that have failed, a fault that needs the circuit opened, tested and recharged, a leak check the system's size asks for; on a removal, more than one circuit and the making good (the price rows). Code adds the price line from [CV: price_list] when there is one."
+          }
+        ]
+      },
+      "faq_slots": [
+        {
+          "slot": "cost",
+          "question": "How much does [WORK_LOWER] cost in [CITY]?",
+          "answer_brief": "Prices only from [CV: price_list]; otherwise the three things that move the price for this kind of work (the number of units, the route, the power) and how the quote is given, from [CV: quote_method] only.",
+          "doubt": "Price"
+        },
+        {
+          "slot": "cover",
+          "when": "guarantee",
+          "question": "Do you guarantee your [WORK_LOWER] work?",
+          "answer_brief": "Start with yes, then the terms from [CV: guarantee_years] and [CV: guarantee_scope]. A maker's warranty only from [CV: manufacturer_warranty], its servicing condition only as that maker's terms give it. Described, never promised.",
+          "doubt": "Trust"
+        },
+        {
+          "slot": "cover",
+          "when": "insurance",
+          "question": "Are you insured for [WORK_LOWER] work?",
+          "answer_brief": "The cover figure from [CV: insurance_cover] and what the cover is for. Never what it pays or who it covers.",
+          "doubt": "Trust"
+        },
+        {
+          "slot": "cover",
+          "question": "What happens if something isn't right after the job?",
+          "answer_brief": "Open with what the customer does: tell us and we look at it. Then the reasonable care and skill standard every trade works to. No promise to come back free. Never invent a guarantee.",
+          "doubt": "Trust"
+        },
+        {
+          "slot": "scope",
+          "question": "What [WORK_LOWER] work do you take on?",
+          "answer_brief": "The jobs themselves, named from the card list (the servicing, the repairs, the new systems, the ductwork: name the work, never 'on this page', 'listed above' or 'the card list'), whether the business works in homes, in businesses or both from [CV: customer_types], and the size of job from [CV: typical_jobs] only. Link one service page. Heating and heat pumps only where the services list has them.",
+          "doubt": "Fit"
+        },
+        {
+          "slot": "process",
+          "question": "What happens when I ask for a quote?",
+          "answer_brief": "From [CV: quote_method] and the confirmed practices only: what the customer sends (which rooms, the unit's label, photos), what the business looks at (the room's heat, the route, the power, the drain), what comes back. No timescale unless [CV: response_time] is set.",
+          "doubt": "Process"
+        },
+        {
+          "slot": "timing",
+          "question": "When is the best time of year to have [WORK_LOWER] work done?",
+          "answer_brief": "The reason in the system, from the trade facts timing cells: a service before the hot weather, because the filter, the coil and the drain are then asked to do their most and a slow leak shows as a unit that cannot keep up; a system that heats as well is in use through winter, so its service follows the maker's instructions. Fitting a system or ductwork has no closed season in the facts rows; a changeover in a working building is planned round when the system can be off. Nothing about summer being busy or lead times. No dates, no promise about the weather.",
+          "doubt": "Timing"
+        }
+      ],
+      "faq_symptom": {
+        "frame": "[SYMPTOM]: why does it happen, and what can be done?",
+        "answer_brief": "The symptom and its linked local issue, answered as asked, with the cause put in the airflow, the coil, the drain or the refrigerant circuit. Say first when a sign is normal (a drip outside on a humid day, the fan running on after the unit is switched off, a smell on the first start of the year that clears in minutes) and then what is not, before anything else. Then the usual cause here in plain words, what the local buildings or air add (salt air on the outdoor coil, a busy road loading the filters, a flat where the unit's position is settled with the freeholder), and what the business does about it. Never a health claim. One figure at most.",
+        "doubt": "Process"
+      },
+      "seasonal": {
+        "problem_card": {
+          "title": "The first hot week finds every weak spot",
+          "brief": "Say first what is normal when a system is switched on after months off: a stale smell for a minute, a drip outside, the outdoor fan running on. Then what is not: warm air, ice on the pipe, a unit that trips, a drip indoors. The one cause this card makes: a system asked for its most after months of idling, so whatever built up on the filter and the coil, or leaked out slowly over the winter, shows all at once. Say what a check before the hot weather looks at, from the servicing stages; what the business does only from confirmed practices. The reason in the system, never that summer is busy, never a lead time.",
+          "mechanism": "a system asked for its most after months of idling"
+        },
+        "faq_slot": {
+          "slot": "seasonal",
+          "question": "Can you service or fit air conditioning in winter?",
+          "answer_brief": "What the cold months suit: a service or a repair while the system is not being relied on, a new system fitted while the room can do without it (the facts rows give no closed season for either); a unit that heats as well as cools is in use through winter, so its service follows the maker's instructions rather than the season (the trade facts split system heating row). No dates, no lead times.",
+          "doubt": "Timing"
+        }
+      }
+    }
+  },
+
+  "service_page_blocks": {
+    "A": {
+      "included": {
+        "h2": "What's Included in Our [SERVICE]",
+        "items": [
+          {
+            "title": "Finding out what you have and what it's doing",
+            "brief": "The first stage from the trade facts: the system and its history, the room's heat or the building's use, the storage duty or the IT load, as the stages name it for this service. A part of the job, not a promise about the quote."
+          },
+          {
+            "title": "Isolating the system safely",
+            "brief": "The isolation stage from the trade facts: power off, the system made safe before anything is opened. Name only what the rows give."
+          },
+          {
+            "title": "The airflow side",
+            "brief": "Filters, heat exchangers, grilles, fans and ducts: the cleaning, fitting or balancing stages as the trade names them. No figure unless the rows give one, and never a standard's number."
+          },
+          {
+            "title": "The drain and the pipework",
+            "brief": "The condensate run and the pipe and cable connections, from the stages: a gravity drain or a pump, insulated pipework, the connections made and checked. A named product only from [CV: materials_methods]."
+          },
+          {
+            "title": "The refrigerant circuit",
+            "brief": "The leak test, the evacuation, the recovery or the recharge, only where the stages for this service open the circuit. The certificate the trade needs for it said as what usually applies; this business's own only from [CV: credentials]."
+          },
+          {
+            "title": "Testing and commissioning",
+            "brief": "The test run from the stages: the pressures, the flows balanced, the temperatures held, the controls and alarms proved. What the customer sees when the job is done."
+          },
+          {
+            "title": "The record you're left with",
+            "brief": "The findings recorded, the recovery recorded, the handover instructions, as the stages give them for this service. A record only as the rows name it; never a certificate the client values do not give."
+          }
+        ],
+        "note": "Fallback only: the tick items are the service's own Table A stages when the pack gives 6 or more; this set is used when it gives fewer (F-ITEMS-GENERIC)."
+      },
+      "problems": {
+        "h2": "Signs You Need [SERVICE]",
+        "cards": [
+          {
+            "title": "The first signs",
+            "brief": "The things an owner notices first, from the trade facts signs row for this service, in their words: weak airflow, a dusty filter, a stale smell, a drip, a unit that will not start, an error code, a room that stays warm, a cabinet that runs without stopping. The one cause this card makes: the job left undone. Then what it leads to if left, from the skipped row: specific, never alarming. On a schedule led page (servicing, duct cleaning, MVHR servicing, the maintenance side of commercial systems, server rooms and cold rooms) the card is what slips and when, with the reason in the system: a filter clogging so the air drops, grease building in a kitchen canopy with the hours it runs (a cleaning band only from the rule rows, read as a recommendation by use and never a law), a door seal icing, never the customer's diary. No figure.",
+            "mechanism": "the job left undone"
+          },
+          {
+            "title": "Topped up, then back where it started",
+            "brief": "Problem led: a regas that lasted weeks, a unit cooling again for a month and then not. The one cause this card makes: a leak left in the circuit while the gas was replaced, so it went the same way. Say what the job does instead, from the trade facts repair stages and the leak found row: the leak located and repaired, the circuit tested and evacuated, the gas put back and the repair checked again; never a dig at the last engineer. On a schedule led page: the leak check as a stage of the service where the system's gas content asks for one, and the record kept of it. On a decommissioning page: the gas left in a dead unit on the wall is the job left undone, and why it is recovered before anything is disconnected (the removal stages, the recovery rule as what usually applies).",
+            "mechanism": "a leak left in the circuit while the gas was replaced"
+          },
+          {
+            "title": "A fault that keeps coming back",
+            "brief": "A unit that trips again, an error code that returns, a cabinet that misses its temperature again a week after a visit. The one cause this card makes: the part dealt with, never the cause behind it (the trade facts done badly rows: a part swapped without the controls retested, a drain cleared without the coil cleaned, a cabinet commissioned without the target temperature proved, a damaged fin left to choke the heat exchange). Say what doing the job properly involves, from the stages: the fault diagnosed before anything is replaced, and the system recommissioned and documented after. On a schedule led page: the point where cleaning no longer holds because what is behind it is worn or blocked, from the done badly row. Not a leak: card 2 owns that.",
+            "mechanism": "the part dealt with, never the cause behind it"
+          },
+          {
+            "title": "Ice, frost or water where it shouldn't be",
+            "brief": "Ice on the pipe or the indoor coil and then a flood when it thaws, frost thick on a cold room's cooler, condensation on a duct run or a panel. The one cause this card makes: a coil starved of air or of gas, so it runs colder than it should, ices over, and the melt water overflows the tray (the trade facts servicing and refrigeration rows). Say what the job does about it from the stages; never promise the room's moisture will change. On a cold room page the card reads as a door seal letting warm damp air in, from the cold rooms signs row, and what sealing and the drain route do about it. On a schedule led page: the filter, drain and seal checks of a service. Not a drain blocked on its own: the category page owns that.",
+            "mechanism": "a coil starved of air that ices and then thaws"
+          }
+        ]
+      },
+      "cost": {
+        "h2": "What Affects the Cost of [SERVICE] in [CITY]",
+        "cards": [
+          {
+            "title": "How many units, and how big the system is",
+            "brief": "The size factor from the trade facts price row: the number of indoor units or cabinets, the cooling zones, the IT load, the length of duct. Say it plainly and give no figure."
+          },
+          {
+            "title": "Getting at it",
+            "brief": "Plant that is hard to reach, height access, few access panels in a duct run, a room that cannot be shut down while the work is done, from the price row. Say why that adds time."
+          },
+          {
+            "title": "What we find when we look",
+            "brief": "On a new system, the route and whether a new circuit is needed; on a fault, how hard it is to find and whether the circuit has to be opened, tested and recharged, or a major part replaced; on a service, coils heavily soiled or drain parts that have failed, from the price row. Say the business looks before it prices, from [CV: quote_method] only."
+          },
+          {
+            "title": "The records and the making good",
+            "brief": "The post clean evidence, the recovery record, the reinstatement after a removal, the planning or noise work a position asks for, from the price row. Code adds the price line from [CV: price_list] when there is one."
+          }
+        ]
+      },
+      "faq_slots": [
+        {
+          "slot": "cost",
+          "question": "How much does [SERVICE_LOWER] cost in [CITY]?",
+          "answer_brief": "Prices only from [CV: price_list]; otherwise how the quote is given, from [CV: quote_method] only. The four cost cards above already give what moves the price: name one factor at most, never the list again.",
+          "doubt": "Price"
+        },
+        {
+          "slot": "timing",
+          "question": "How long does [SERVICE_LOWER] take?",
+          "answer_brief": "From the trade facts timing row only: the rows give no duration for any job in this trade, so say what decides it (the number of units, the route, the access, whether the circuit is opened) and, in a working building, that the changeover is planned round when the system can be off. Nothing about when the job can start unless [CV: start_time] is set. This is the one place the timing is written.",
+          "doubt": "Timing"
+        },
+        {
+          "slot": "cover",
+          "when": "guarantee",
+          "question": "Do you guarantee your [SERVICE_LOWER] work?",
+          "answer_brief": "Start with yes, then the terms from [CV: guarantee_years] and [CV: guarantee_scope]. A maker's warranty only from [CV: manufacturer_warranty], its servicing condition only as that maker's terms give it. Described, never promised.",
+          "doubt": "Trust"
+        },
+        {
+          "slot": "cover",
+          "when": "insurance",
+          "question": "Are you insured for [SERVICE_LOWER]?",
+          "answer_brief": "The cover figure from [CV: insurance_cover] and what the cover is for. Never what it pays or who it covers.",
+          "doubt": "Trust"
+        },
+        {
+          "slot": "cover",
+          "question": "What happens if something isn't right after the job?",
+          "answer_brief": "Open with what the customer does: tell us and we look at it. Then the reasonable care and skill standard every trade works to. No promise to come back free. Never invent a guarantee.",
+          "doubt": "Trust"
+        },
+        {
+          "slot": "rules",
+          "question": "Do I need permission or a certificate for [SERVICE_LOWER]?",
+          "answer_brief": "From the trade facts rule rows only, put as the thing that usually applies, with \"usually\" or \"in most cases\": the outdoor unit's position (a unit that only cools at a house is usually checked with the council; a listed home or a conservation area; a flat where the freeholder usually has to agree); a new circuit notified through the electrical route; sealed system work done by a certified company and a qualified engineer, as the trade's rule and never this business's certificate unless [CV: credentials] gives it; on larger commercial systems the leak checks, the records and the energy inspection as duties on whoever runs the building, banded by the gas held and the output, never a figure; kitchen extract cleaning as a risk based recommendation, never a law. Never a regulation's name or number, never legal advice. Where the rows give no rule for this service, say none usually applies and leave it there.",
+          "doubt": "Process"
+        },
+        {
+          "slot": "scope",
+          "question": "What does your [SERVICE_LOWER] service include?",
+          "answer_brief": "The What's Included items said as a sentence, in other words: the survey, the filters and coils, the drain, the circuit test, the commissioning and the record, as they apply to this work. What it does not cover only from the services list (heating, heat pumps, portable units), with one sibling service page or the category page linked. Homes, businesses or both from [CV: customer_types].",
+          "doubt": "Fit"
+        }
+      ],
+      "faq_symptom": {
+        "frame": "[SYMPTOM]: why does it happen, and what can be done?",
+        "answer_brief": "The symptom and its linked local issue, answered as asked, with the cause put in the airflow, the coil, the drain or the refrigerant circuit. Say first when a sign is normal (a drip outside on a humid day, the fan running on after the unit is switched off, a smell on the first start of the year that clears in minutes) and then what is not, before anything else. Then the usual cause here in plain words, what the local buildings or air add, and what this service does about it. Never a health claim. One figure at most.",
+        "doubt": "Process"
+      },
+      "seasonal": {
+        "problem_card": {
+          "title": "Asked for its most after months idle",
+          "brief": "What shows on the first warm days after a system has sat through the cold months, from the trade facts signs row for this service. Say first what is normal (a stale smell for a minute, a drip outside, the outdoor fan running on) and then what is not (warm air, ice on the pipe, a trip, a drip indoors). The one cause this card makes: dust settling and a slow leak creeping while the system idled, now showing together. Say what gets looked at before the hot weather from confirmed practices only; otherwise what the job puts right. Not a coil icing for want of air (card 4) and not a leak left behind a top up (card 2).",
+          "mechanism": "dust settling and a slow leak creeping while the system idled"
+        },
+        "faq_slot": {
+          "slot": "seasonal",
+          "question": "When is the best time of year for [SERVICE_LOWER], and how long does it take?",
+          "answer_brief": "From the trade facts timing row only: the season the work suits and why, in the system (a service before the cooling season as the maker's guidance has it; nothing else in the rows has a season), then what decides how long it takes, since the rows give no duration (the units, the route, the access, whether the circuit is opened). No dates, no lead times, no promise about the weather. This is the one place the timing is written.",
+          "doubt": "Timing"
+        }
+      },
+      "desire": {
+        "problems": {
+          "h2": "Is [SERVICE] Right for You?",
+          "cards": [
+            {
+              "title": "A room that holds the heat",
+              "brief": "The customer's situation: a bedroom under the roof still warm at midnight, an office where the afternoon sun comes through the glass, a shop floor or a meeting room full of people, a server cupboard whose kit trips in a hot week, a new build or an extension that needs its ventilation (the trade facts signs rows for installation, split systems, ductwork, MVHR, server rooms and cold rooms). What decides it: where the heat or the moisture comes from (the roof, the glass, the people, the equipment, the cooking and the showers) and the building it is in (a flat, a terrace where the pipe run is harder, a listed home, a live kitchen). What the work gives them, from the stages for this service: a system sized from a heat gain survey, the indoor unit placed to reach the whole room, the outdoor unit where it is quiet and reachable, a ventilation design that supplies the living rooms and extracts the wet ones, a cold room built to its storage duty, cooling designed to the IT load with the failover written down. Homes and businesses never in one sentence: [CV: customer_types] decides which leads. Never a fault invented for it, never a lifestyle line.",
+              "mechanism": "where the heat comes in, and nothing sized to take it out"
+            },
+            {
+              "title": "Sized and sited, not just fitted",
+              "brief": "The customer's situation: they have had a quote by the brochure, or a cheap one, and want to know what the difference buys. What decides it: the heat gain calculation (a unit too big stops and starts and leaves the room clammy, one too small runs flat out: the sizing guidance, no percentage), the outdoor unit's position (noise to the neighbours, the air round it, service access, permission), the drain given a fall or a pump, the nitrogen test and the vacuum before any gas goes in (the split system stages; the done badly rows: joints that leak, moisture left in the circuit, a drain that leaks). For ductwork and MVHR: rigid runs where they can be, joints sealed, the flows measured and balanced (the done badly rows: unsealed joints, crushed flexible runs, terminals that miss their flow). What the work gives them: a system that does what it was bought for. One specific from the stages for this service; never a dig at another installer.",
+              "mechanism": "the sizing and the siting, which decide noise, airflow and running"
+            },
+            {
+              "title": "Which system suits the room",
+              "brief": "The customer's situation: they are weighing a wall mounted split against a multi split, a ducted system above the ceiling against a cassette, a unit that heats as well as cools against one that only cools, a heat recovery unit against extract fans in a new build, an integral cabinet against remote plant, close control against a split for a server room (the trade facts materials and methods cells). What decides it: how many rooms, where the units can go, whether it must heat too (a unit that only cools is never described as heating: the trade facts split system heating row), how airtight the home is for heat recovery (the MVHR operation row), the storage duty of a cold room. What the work gives them: the option that suits their building, never the one that is best in general. A named maker or product only from [CV: materials_methods]; no running cost, lifespan or energy rating claim unless the rows or the client values give it; never that air conditioning improves the home's energy rating (the trade facts EPC row).",
+              "mechanism": "the room, the building and its use deciding the kind of system"
+            },
+            {
+              "title": "What it will ask of you once it's in",
+              "brief": "The customer's situation: they want to know what they are taking on once the system is in. What decides it: the indoor filter they can clean themselves following the maker's instructions; a service at the interval the maker's instructions and any warranty condition set (that condition from the client's maker's terms only, never generalised: the trade facts warranty row); on a business's system the leak checks and records the rules ask for by the gas held, and the energy inspection on larger systems, said as duties banded by size with no figure; a kitchen canopy cleaned to a risk based band; a cold room's alarms and door seals; the handover information that comes with a ventilation system (the ventilation handover row). What the work gives them: an honest picture of what it saves them and what it does not. A servicing plan or a contract only where the services list has one; no response time; no health claim.",
+              "mechanism": "what the system needs to keep doing its job"
+            }
+          ]
+        },
+        "seasonal": {
+          "problem_card": {
+            "title": "Getting it in before it's needed",
+            "brief": "The customer's situation: they want it in before the hot weather, or want to know when it should be fitted. What decides it: the facts rows give no closed season for fitting, so the timing is set by the building: a room not yet relying on it, a shutdown window on a working site, a stock move planned for a cold room, a live server room changed over without losing cooling (the trade facts timing cells for installation, commercial systems, server rooms and cold rooms). What the work gives them: a system in and commissioned while the building can spare it. No dates, nothing about summer being busy or lead times stretching, no promise about the weather.",
+            "mechanism": "a system fitted while the building can spare it"
+          },
+          "faq_slot": {
+            "slot": "seasonal",
+            "question": "When is the best time of year for [SERVICE_LOWER], and how long does it take?",
+            "answer_brief": "From the trade facts timing row only: the rows give no season and no duration for fitting a system, so say what sets the timing (when the room or the building can spare it, a shutdown window, a stock move) and what decides how long it takes (the units, the route, the access). No dates, no lead times, no promise about the weather. This is the one place the timing is written.",
+            "doubt": "Timing"
+          }
+        }
+      }
+    }
+  },
+
+  "location_page_blocks": {
+    "A": {
+      "problems": {
+        "h2": "Common [WORK] Problems in [TOWN]",
+        "cards": [
+          {
+            "title": "Rooms under the roof that hold the heat",
+            "brief": "Loft rooms, top floor flats and rooms behind big glass that stay warm into the night. The one cause this card makes: the town's housing, which the town profile gives (loft conversions, top floor flats, new build estates with their mechanical ventilation, glass fronted offices). Say what the housing means for the work in plain words: where a unit can go in a loft room, what a top floor flat needs agreed before anything is fitted, what a new estate's ventilation unit needs looking after; never that the town's homes are overheating or unhealthy (the pack's local detail rule). Not the heat gain of one room: the service pages own that.",
+            "mechanism": "the town's housing: loft rooms and top floors the sun gets into"
+          },
+          {
+            "title": "Nowhere obvious for the outdoor unit",
+            "brief": "Period terraces where the pipe run is long and the back wall is the only wall, flats where the unit must go on a balcony or the roof, streets where a unit on the front would be seen from the road. The one cause this card makes: buildings that limit where the outdoor unit can sit, from the town profile (the terraces, the flats, the conservation areas, only where the profile confirms them). What usually applies, with \"usually\" and never an Order's name: a flat's freeholder has to agree first; in a conservation area or at a listed home the unit's position is settled with the council before it is fitted. Say what it means for the route and the noise to the neighbours. Not the sizing: the service pages own that.",
+            "mechanism": "buildings that limit where the outdoor unit can sit"
+          },
+          {
+            "title": "Salt, traffic and the outdoor coil",
+            "brief": "Outdoor units that corrode early near the sea, filters that clog early on a main road, units whose noise carries on a dense street. The one cause this card makes: the town's air loading the coils and the filters, from the town profile only (the coast, the busy roads, the tight streets). Every anchor changes the work: salt on the outdoor coil means it is looked at more often and the fins kept clean; a main road means the filters are checked sooner; a tight street means the outdoor unit's position is chosen for the neighbours. Not the servicing schedule itself: the servicing page owns that. Never a local temperature record.",
+            "mechanism": "the town's air loading the coils and the filters"
+          },
+          {
+            "title": "Kitchens, shops and server rooms on the high street",
+            "brief": "Restaurant streets whose canopies fill with grease as the hours run, food shops with cold rooms holding stock, offices and business parks with a server room that must not stop. The one cause this card makes: the town's commercial mix and what each building asks of its system, from the town profile only. Say what each means for the work (the canopy cleaned to a risk based band, the cold room's temperature held and alarmed, the server room's cooling changed over without losing it), as what the work meets and never as a judgement on anyone's system. Homes and businesses never in one sentence; this card leads commercial only where [CV: customer_types] says so.",
+            "mechanism": "the town's commercial mix and what each building asks of its system"
+          }
+        ]
+      },
+      "cost": {
+        "h2": "What Affects the Cost of [WORK] in [TOWN]",
+        "cards": [
+          {
+            "title": "Where the outdoor unit can go",
+            "brief": "A terrace with no side access, a flat where the unit goes on a balcony or the roof, a wall only reached from height: the outdoor unit's position and the access to it move the price (the trade facts price rows). From the town profile where it gives the housing. No figure."
+          },
+          {
+            "title": "Long runs through older houses",
+            "brief": "Period houses where the pipe and drain route is long or has to be hidden, and a pump where the drain cannot fall (the price rows). From the profile where it gives the housing era. Say why a long or concealed route costs more time."
+          },
+          {
+            "title": "Permissions and the neighbours",
+            "brief": "Where the town has conservation areas, listed homes or many flats, the planning or noise work and the freeholder's agreement before a unit is fitted add time. \"Usually\", never the Order's or the area's official name. From the dossier rules only."
+          },
+          {
+            "title": "Working round a business's hours",
+            "brief": "Commercial premises where the changeover waits for a shutdown window, a live room kept cool while the plant is swapped, stock moved before a cold room is touched (the price rows). Only where the profile gives the commercial mix; work outside opening hours only from the confirmed practices. No figure."
+          }
+        ]
+      },
+      "faq_slots": [
+        {
+          "slot": "cost",
+          "question": "How much does [WORK_LOWER] cost in [TOWN]?",
+          "answer_brief": "Prices only from [CV: price_list]; otherwise the things that push the price up in a town like this (where the outdoor unit can go, the route, permissions) and how the quote is given, from [CV: quote_method] only.",
+          "doubt": "Price"
+        },
+        {
+          "slot": "town",
+          "when": "start_time",
+          "question": "How soon can you get to [TOWN]?",
+          "answer_brief": "From [CV: start_time] and [CV: response_time] only. The town is in the area covered; nothing about distance unless [CV: travel_distance] is set.",
+          "doubt": "Timing"
+        },
+        {
+          "slot": "town",
+          "question": "Do you cover [TOWN]?",
+          "answer_brief": "Yes: the town and the villages around it (code lists them; name none). How the business reaches it from its base only from the client values. Link one page in this town.",
+          "doubt": "Fit"
+        },
+        {
+          "slot": "cover",
+          "when": "guarantee",
+          "question": "Do you guarantee your work in [TOWN]?",
+          "answer_brief": "Start with yes, then the terms from [CV: guarantee_years] and [CV: guarantee_scope]. A maker's warranty only from [CV: manufacturer_warranty]. Described, never promised.",
+          "doubt": "Trust"
+        },
+        {
+          "slot": "cover",
+          "when": "insurance",
+          "question": "Are you insured?",
+          "answer_brief": "The cover figure from [CV: insurance_cover] and what the cover is for. Never what it pays or who it covers.",
+          "doubt": "Trust"
+        },
+        {
+          "slot": "cover",
+          "question": "What happens if something isn't right after the job?",
+          "answer_brief": "Open with what the customer does: tell us and we look at it. Then the reasonable care and skill standard every trade works to. No promise to come back free. Never invent a guarantee.",
+          "doubt": "Trust"
+        },
+        {
+          "slot": "process",
+          "question": "What happens when I ask for a quote in [TOWN]?",
+          "answer_brief": "From [CV: quote_method] and the confirmed practices only: what the customer sends (which rooms, the unit's label, photos), what the business looks at (the room's heat, the route, the power, the drain), what comes back. No timescale unless [CV: response_time] is set.",
+          "doubt": "Process"
+        },
+        {
+          "slot": "timing",
+          "question": "Is there a best time of year for [WORK_LOWER] work in [TOWN]?",
+          "answer_brief": "The reason in the system, from the trade facts timing cells: a service before the hot weather, because the filter, the coil and the drain are then asked to do their most and a slow leak shows as a unit that cannot keep up; fitting a system has no closed season in the rows. Where the town profile gives the exposure (salt air on the coast, a main road), say what it does to how often the outdoor coil and the filters are looked at. Nothing about summer being busy or lead times. No dates, no promise about the weather.",
+          "doubt": "Timing"
+        }
+      ]
+    }
+  },
+  "do_not_reuse": []
+}
