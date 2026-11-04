@@ -439,7 +439,7 @@
           },
           {
             "slot": "timing",
-            "question": "Do you come out in the evening or at the weekend?",
+            "when": "out_of_hours", "question": "Do you come out in the evening or at the weekend?",
             "answer_brief": "From [CV: out_of_hours_available] and [CV: emergency_callouts] only; when neither is set, what usually happens on the first visit (the insect or animal identified, the nest or the activity dealt with, the follow up booked) and nothing about hours. Never a response time or an out of hours promise unless the client values give it.",
             "doubt": "Timing"
           }
@@ -698,7 +698,7 @@
           },
           {
             "slot": "timing",
-            "question": "Do you come out in the evening or at the weekend?",
+            "when": "out_of_hours", "question": "Do you come out in the evening or at the weekend?",
             "answer_brief": "From [CV: out_of_hours_available] and [CV: emergency_callouts] only; when neither is set, what usually happens on the first visit (the insect or animal identified, the nest or the activity dealt with, the follow up booked) and nothing about hours. Never a response time or an out of hours promise unless the client values give it. This is the one place the timing is written.",
             "doubt": "Timing"
           },

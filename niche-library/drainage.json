@@ -445,7 +445,7 @@
           },
           {
             "slot": "timing",
-            "question": "Do you come out at night and at weekends?",
+            "when": "out_of_hours", "question": "Do you come out at night and at weekends?",
             "answer_brief": "Only from [CV: out_of_hours_available] and [CV: emergency_callouts], in their words; when neither is set, say what happens on a call (what is backing up talked through, whose pipe it is likely to be, the first safe step, the earliest visit agreed) and nothing about hours. Never '24/7' or 'round the clock' unless the client value gives it in those words.",
             "doubt": "Timing"
           }
@@ -704,7 +704,7 @@
           },
           {
             "slot": "timing",
-            "question": "Do you come out at night and at weekends?",
+            "when": "out_of_hours", "question": "Do you come out at night and at weekends?",
             "answer_brief": "Only from [CV: out_of_hours_available] and [CV: emergency_callouts], in their words; when neither is set, say what happens on a call (what is backing up talked through, whose pipe it is likely to be, the first safe step, the earliest visit agreed) and nothing about hours. Never '24/7' or 'round the clock' unless the client value gives it in those words. This is the one place the timing is written.",
             "doubt": "Timing"
           },

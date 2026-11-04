@@ -138,6 +138,7 @@ function pickFaqSlots(entry, cv = {}, { quoteFree = '', ruleRows = false, max = 
     if (when === 'insurance') return !!cv.insurance_cover;
     if (when === 'price_list') return !!cv.price_list;
     if (when === 'start_time') return !!cv.start_time;
+    if (when === 'out_of_hours') return !!cv.out_of_hours_available;
     if (when === 'quote_free') return !!quoteFree;
     if (when === 'not_quote_free') return !quoteFree;
     if (when === 'rule_rows') return !!ruleRows;

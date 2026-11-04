@@ -439,7 +439,7 @@
           },
           {
             "slot": "timing",
-            "question": "Do you come out at night or at the weekend?",
+            "when": "out_of_hours", "question": "Do you come out at night or at the weekend?",
             "answer_brief": "Only from [CV: emergency_callouts] and [CV: out_of_hours_available], as given; where neither is set, say what happens when they call during working hours and nothing more. An out of hours rate only from [CV: price_list]. Never a response time unless [CV: response_time] is set.",
             "doubt": "Timing"
           }
@@ -712,7 +712,7 @@
           },
           {
             "slot": "timing",
-            "question": "Do you come out at night or at the weekend?",
+            "when": "out_of_hours", "question": "Do you come out at night or at the weekend?",
             "answer_brief": "Only from [CV: emergency_callouts] and [CV: out_of_hours_available], as given; where neither is set, say what happens when they call during working hours and nothing more. An out of hours rate only from [CV: price_list]. This is the one place the timing is written.",
             "doubt": "Timing"
           },
