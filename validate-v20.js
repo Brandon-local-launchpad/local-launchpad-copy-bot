@@ -572,8 +572,13 @@ function validateCommon(record, V) {
     }
     // PRACTICE: working practices only from confirmed_practices
     const confirmedKeys = new Set(cv.confirmed_practices || []);
-    for (const c of practiceClaims(s, niche)) {
-      if (!confirmedKeys.has(c.practice.key)) flag('BLOCK', 'PRACTICE', `"${c.match}" states a practice ("${c.practice.label}") that the client hasn't confirmed. Remove it.`);
+    // A sentence written as the trade's principle in the third person is not a claim about this business
+    // (Brandon, 4 Nov 2026: "a fair roofer shows you photographs of what they found"), and it is what the
+    // claims pass asks for; "we" or "our" in the sentence makes it a claim again
+    const PRINCIPLE_RE = /^(?:(?:most|many|some)\s+)?(?:a|an|any|every)\s+(?:good|fair|careful|proper|competent|decent|qualified|responsible|reputable|experienced)\b/i;
+    const notPrinciple = sentences(t).map(x => scanText(x)).filter(x => !(PRINCIPLE_RE.test(x.trim()) && !/\b(?:we|we're|we've|we'll|our|us)\b/i.test(x))).join(' ');
+    for (const c of practiceClaims(notPrinciple, niche)) {
+      if (!confirmedKeys.has(c.practice.key)) flag('BLOCK', 'PRACTICE', `"${c.match}" states a practice ("${c.practice.label}") that the client hasn't confirmed. Remove it, or write it as the trade's principle in the third person ("a good ${(niche && niche.trade_person) || 'tradesperson'} ..."), never "we".`);
     }
 
     // RAW-GBP: homeowner words, never the raw GBP name; never-named services stay out

@@ -78,6 +78,9 @@ const lockN = require(path.join(root, 'niche-library/locksmith.json'));
 const hoursQ = cv => CB.pickFaqSlots({ ...lockN.service_page_blocks.A, ...lockN.service_page_blocks.A.emergency }, cv, { max: 8 }).map(s => s.question).join(' | ');
 chk('The hours question shows only when out_of_hours_available is set (a client with none of the values never sees it)', !/at night or at the weekend/.test(hoursQ({})) && /at night or at the weekend/.test(hoursQ({ out_of_hours_available: 'yes' })), hoursQ({}), 'no hours question for the bare client');
 
+const pracOf = text => { const r = JSON.parse(JSON.stringify(rec)); r.home_services_intro = text + ' We cover the city and the villages around it for lawns, hedges and fences.'; return validateV20(r, V).filter(i => i.check === 'PRACTICE' && i.field === 'home_services_intro'); };
+chk('PRACTICE: "we check for nests" is a BLOCK that offers the third person; the same point as the principle of the trade passes; a principle with "we" in it is still a claim', (() => { const a = pracOf('We check for nests before any cutting.'); return a.length === 1 && /third person/.test(a[0].message) && pracOf('A good landscaper will check for nests before any cutting.').length === 0 && pracOf('A good landscaper will check for nests before any cutting, as we do.').length === 1; })(), [pracOf('We check for nests before any cutting.'), pracOf('A good landscaper will check for nests before any cutting.'), pracOf('A good landscaper will check for nests before any cutting, as we do.')].map(l => `${l.length}: ${l.map(i => i.message.slice(0, 60)).join(' / ')}`).join(' || '), 'BLOCK, pass, BLOCK');
+
 // ── The emergency cost sets and the call out question in every emergency niche ──
 const emergencyNiches = ['locksmith', 'drainage', 'plumbing-heating', 'electrician', 'roofer', 'garage-doors', 'pest-control', 'tree-surgeon', 'scaffolding'];
 for (const stem of emergencyNiches) {
