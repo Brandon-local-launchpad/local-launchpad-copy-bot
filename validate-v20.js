@@ -238,7 +238,16 @@ function packCopy(sentence, idx, names = []) {
   // A run inside one of the page's own names is that name, not a copy (3 Nov); so is a run that
   // bridges two names listed side by side (4 Nov 2026: "interior painting and decorating, exterior
   // painting" in a services card): the run's head ends one name and its tail starts another
-  const isName = run => names.some(n => n.includes(run));
+  // A name with "our", "good" or "the" in front, or "work", "service" or "page" after it, is still the
+  // name ("our lockouts and gaining entry work", 4 Nov 2026)
+  // A run with three or more of its words sitting together inside one page name ("our lockouts
+  // and gaining entry work", "and edging work starts with") is the name being used, not a copy
+  const isName = run => {
+    if (names.some(n => n.includes(run))) return true;
+    const w = run.split(' ');
+    for (let k = w.length - 1; k >= 3; k--) for (let i = 0; i + k <= w.length; i++) { const part = w.slice(i, i + k).join(' '); if (names.some(n => n.includes(part))) return true; }
+    return false;
+  };
   const bridges = g => { for (let k = 1; k < g.length; k++) { const head = g.slice(0, k).join(' '), tail = g.slice(k).join(' '); if (names.some(n => n === head || n.endsWith(' ' + head)) && names.some(n => n === tail || n.startsWith(tail + ' '))) return true; } return false; };
   for (let i = 0; i + 5 <= toks.length; i++) { const g = toks.slice(i, i + 5); const run = g.join(' '); if (packContent(g) && idx.grams.has(run) && !isName(run) && !bridges(g)) return { kind: 'run', match: run }; }
   // The page's own names are not a copy here either (4 Nov 2026): a pack example line "card_name:

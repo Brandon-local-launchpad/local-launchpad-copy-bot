@@ -288,6 +288,14 @@ chk('PACK-COPY: a run that bridges two page names in a list is not a copy either
   const pc = r => issuesOf(r, Vn).filter(i => i.check === 'PACK-COPY' && i.field === PT.LABELS.servicesIntro);
   return !pc(listed).length && pc(copied).length === 1;
 })(), '', 'the list of names passes, the copied sentence blocks');
+chk('PACK-COPY: a page name with our in front and work after it is still the name (4 Nov: "our lockouts and gaining entry work")', (() => {
+  const packLine = fs.readFileSync(path.join(root, 'calibration-packs', 'Landscaper_Calibration_Pack_v5.md'), 'utf8') + '\n\n```\nGood lawn mowing and edging work starts with the mower blade set sharp for the season.\n```\n';
+  const Vn = categoryValidationContext(G.validationContextFor({ cv, niche, decisions: D, keyValueMap: { ...kv, service_98: 'Lawn mowing and edging work' }, serviceParentMap: ctx.serviceParentMap, calibrationPack: packLine }), D);
+  const named = withText(record, PT.LABELS.servicesIntro, 'Our lawn mowing and edging work starts with a look at how the lawn has been cut before, then the edges.');
+  const copied = withText(record, PT.LABELS.servicesIntro, 'Good lawn mowing and edging work starts with the mower set right for the season, then the edges.');
+  const pc = r => issuesOf(r, Vn).filter(i => i.check === 'PACK-COPY' && i.field === PT.LABELS.servicesIntro);
+  return !pc(named).length && pc(copied).length === 1;
+})(), '', 'the name with work passes, the copied sentence blocks');
 chk('banned_phrases: a niche\'s own banned phrase is a BLOCK on first use (4 Nov); the same words in words_avoid alone are not', (() => {
   const text = 'Most calls start with the lawn, and a tidy garden is the outdoor living space most people want, with the beds and hedges done on the same visit so nothing is left half finished.';
   const Vb = categoryValidationContext(G.validationContextFor({ cv, niche: { ...niche, banned_phrases: ['outdoor living space'] }, decisions: D, keyValueMap: kv, serviceParentMap: ctx.serviceParentMap }), D);
