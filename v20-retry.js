@@ -211,7 +211,7 @@ async function runClaimRetries({ record, V, callRetry, review, maxRounds = 2, co
 // padding, research wording), each field given every flag message it carries. A rewrite is kept
 // only when that field's FLAG count drops and the whole page gains no BLOCK; a field is tried
 // once per round. Returns the log, the usage and the flag counts before and after.
-const FLAG_PASS = new Set(['N7', 'N18', 'N21', 'N24', 'REPEAT-PAGE', 'REPEAT-IN', 'PAD-OPENER', 'ITEM-REPEAT', 'SERVICE', 'SCENERY', 'RESEARCH-LANG', 'FAQ-PAD', 'INTRO-PAD', 'CARD-FILLER', 'MORE-REPEAT', 'PRACTICE-REPEAT', 'PROOF-REPEAT', 'TRUST-REPEAT']);
+const FLAG_PASS = new Set(['N7', 'N18', 'N21', 'N24', 'REPEAT-PAGE', 'REPEAT-IN', 'PAD-OPENER', 'ITEM-REPEAT', 'SERVICE', 'SCENERY', 'RESEARCH-LANG', 'FAQ-PAD', 'INTRO-PAD', 'CARD-FILLER', 'MORE-REPEAT', 'PRACTICE-REPEAT', 'PROOF-REPEAT', 'TRUST-REPEAT', 'LINK-TEXT', '6c', 'CARD-LOCAL', 'OUTCOME']);
 async function runFlagPass({ record, V, callRetry, maxRounds = 2, concurrency = CONCURRENCY, validate = null, checks = FLAG_PASS }) {
   const check = validate || (rec => validateV20(rec, V));
   const log = [];

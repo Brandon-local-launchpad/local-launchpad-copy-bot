@@ -35,15 +35,40 @@ function phSvc(text, ctx) {
   // library's question_name, else a singular with its article ("How much does a patio cost in
   // Southampton?", "Is a patio right for your garden?"), never "does patios cost" (4 Nov 2026)
   let t = String(text);
-  const question = /\?\s*$/.test(t.trim()) && ctx.svcQuestion;
+  const question = /\?\s*$/.test(t.trim());
+  const lower = ctx.svcLower || '';
+  const q = ctx.svcQuestion || lower;
   // A question heading reads in sentence case ("Is a patio right for your garden?"), the template's
   // Title Case lowered outside its placeholders so a town or a token keeps its capitals
   if (question) t = t.replace(/\[[A-Z_: a-z0-9]+\]|[^\[]+/g, seg => seg.startsWith('[') ? seg : seg.toLowerCase());
-  let out = phCat(t
-    .replace(/\[SERVICE_LOWER\]/g, (question ? ctx.svcQuestion : ctx.svcLower) || '')
-    .replace(/\[SERVICE\]/g, (question ? ctx.svcQuestion : ctx.svc) || ''), ctx);
+  // "[SERVICE] work" on a name that ends in work, "[SERVICE] service" on one that ends in service:
+  // the name alone, never "tree work work"
+  t = t.replace(/\[SERVICE(?:_LOWER)?\] (work|service)\b/gi, (m, w) => new RegExp(`\\b${w}$`, 'i').test(lower) ? (question ? lower : ctx.svc || '') : m);
+  if (question) {
+    // The question form only where the service is the subject or object of the question ("does a
+    // patio cost", "is a patio right"); after "your" or before "work" or "service" the plain name
+    // ("your patios work", "insured for patios"), never "your a patio work"
+    t = t.replace(/\b(does|is|do|would|will|can|should|are) \[SERVICE(?:_LOWER)?\](?! (?:work|service)\b)/gi, (m, v) => `${v} ${q}`);
+    t = t.replace(/\[SERVICE_LOWER\]|\[SERVICE\]/g, lower);
+  } else {
+    t = t.replace(/\[SERVICE_LOWER\]/g, lower).replace(/\[SERVICE\]/g, ctx.svc || '');
+  }
+  let out = phCat(t, ctx);
   if (question && out) out = out[0].toUpperCase() + out.slice(1);
   return out;
+}
+
+// Lower case that keeps an acronym's capitals ("CCTV drain surveys" → "CCTV drain surveys",
+// "Roof Repairs" → "roof repairs"), 4 Nov 2026: a question never reads "cctv" or "ev charger"
+function lcKeepAcronyms(s) {
+  return String(s || '').trim().replace(/\S+/g, w => /^[A-Z]{2,5}s?$/.test(w) ? w : w.toLowerCase());
+}
+// "a" or "an" by sound, not by letter: a utility room, a used car, an hour
+function article(word) {
+  const w = String(word || '').toLowerCase();
+  if (/^(?:hour|honest|heir|honour)/.test(w)) return 'an';
+  if (/^u(?:ni|se|su|ti|ro|te|be)/.test(w) || /^(?:eu|one|once)/.test(w)) return 'a';
+  return /^[aeiou]/.test(w) ? 'an' : 'a';
 }
 
 // The singular of a page name with its article, for a question (4 Nov 2026): "Patios" → "a patio",
@@ -51,19 +76,23 @@ function phSvc(text, ctx) {
 // with "and" or ending in a word that is not a plain plural stays as it is. The library's
 // question_name column overrides this wherever it is filled (Brandon approves the list first).
 function singularQuestionName(name) {
-  const n = String(name || '').trim().toLowerCase();
+  // Acronyms keep their capitals, a bracketed note ("(Velux)") goes
+  const n = lcKeepAcronyms(String(name || '').replace(/\s*\([^)]*\)/g, ''));
   if (!n) return '';
   if (/\band\b|&/.test(n)) return n;
   const words = n.split(/\s+/);
   const last = words[words.length - 1];
+  const lastLc = last.toLowerCase();
+  // "Tree root removal from drains": the last word belongs to a phrase, not the job; leave it
+  if (words.length > 2 && /^(?:from|of|to|in|for|on|with|at|by|into|under|over)$/.test(words[words.length - 2])) return n;
   let single = null;
-  if (/ies$/.test(last) && last.length > 4) single = last.slice(0, -3) + 'y';
-  else if (/(?:ss|us|is|ous|ics|ness|ance|ence|ment|ing)$/.test(last)) single = null;
-  else if (/(?:sh|ch|x|z)es$/.test(last)) single = last.slice(0, -2);
-  else if (/[^s]s$/.test(last)) single = last.slice(0, -1);
+  if (/ies$/.test(lastLc) && lastLc.length > 4) single = last.slice(0, -3) + 'y';
+  else if (/(?:ss|us|is|ous|ics|ness|ance|ence|ment|ing)$/.test(lastLc)) single = null;
+  else if (/(?:sh|ch|x|z)es$/.test(lastLc)) single = last.slice(0, -2);
+  else if (/[^s]s$/.test(lastLc)) single = last.slice(0, -1);
   if (!single) return n;
   const out = [...words.slice(0, -1), single].join(' ');
-  return `${/^[aeiou]/.test(out) ? 'an' : 'a'} ${out}`;
+  return `${article(out)} ${out}`;
 }
 
 const live = r => r && r.applies !== false && ((r.info && r.info.phase) || 1) === 1;
@@ -136,14 +165,14 @@ function computeServiceDecisions({ cv, niche, keyValueMap = {}, rows = [], page,
   // questions, from the library's question_name when filled, else the singular with an article
   const svcRaw = keywordWord(h1, townName, serviceName);
   const svc = /^[a-z]/.test(svcRaw) ? svcRaw[0].toUpperCase() + svcRaw.slice(1) : svcRaw;
-  const svcLower = lc(svc);
+  const svcLower = lcKeepAcronyms(svc);
   const svcQuestion = (baseRow && baseRow.info && baseRow.info.question_name) || (page.info && page.info.question_name) || singularQuestionName(svcLower);
   const cat = titleCase(category);
-  const catLower = lc(cat);
+  const catLower = lcKeepAcronyms(cat);
   const workNoun = (niche.category_work_nouns || {})[lc(category)] || null;
   if (!workNoun) flags.push({ code: 'F-WORK-NOUN', msg: `No work noun for "${category}" in the niche entry (category_work_nouns): the More Services H2 reads "${cat} Services".` });
   const work = workNoun ? titleCase(workNoun) : `${cat} Services`;
-  const workLower = lc(work);
+  const workLower = lcKeepAcronyms(work);
   const ctx = {
     kwPhrase: h1, service: serviceName, svc, svcLower, svcQuestion, category, cat, catLower, work, workLower, town: townName, city: townName,
     trade: niche.trade || '', tradeLower: niche.trade_lower || '', tradePerson: niche.trade_person || '', tradePersonPlural: niche.trade_person_plural || '',

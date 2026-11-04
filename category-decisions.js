@@ -49,6 +49,8 @@ function keywordWord(h1, town, category) {
 
 // isPersonWord lives in decisions.js since 4 Nov 2026 (the homepage meta uses it too)
 const { isPersonWord, weClause } = require('./decisions');
+// Lower case that keeps an acronym's capitals ("HVAC Contractor" → "HVAC contractor"), 4 Nov 2026
+const lcKeepAcronyms = s => String(s || '').trim().replace(/\S+/g, w => /^[A-Z]{2,5}s?$/.test(w) ? w : w.toLowerCase());
 
 // The meta description: "[company] is a [category_lower] in [town] with [proof]" (Brandon, 25 Oct),
 // or "offers" for a work word; the years fallback keeps its comma. A proof that itself says
@@ -122,12 +124,12 @@ function computeCategoryDecisions({ cv, niche, keyValueMap = {}, rows = [], page
   // ── Context ──
   const quoteFree = cv.free_quotes === 'yes' ? 'Free' : '';
   const cat = titleCase(keywordWord(h1, townName, category));
-  const catLower = lc(cat);
+  const catLower = lcKeepAcronyms(cat);
   // The work noun: every H2 but the H1 and the services line reads "Gardening", never "Gardener"
   const workNoun = (niche.category_work_nouns || {})[lc(category)] || (niche.category_work_nouns || {})[catLower] || null;
   if (!workNoun) flags.push({ code: 'F-WORK-NOUN', msg: `No work noun for "${category}" in the niche entry (category_work_nouns): the H2s read "${cat} Services".` });
   const work = workNoun ? titleCase(workNoun) : `${cat} Services`;
-  const workLower = lc(work);
+  const workLower = lcKeepAcronyms(work);
   const ctx = {
     kwPhrase: h1, category, cat, catLower, work, workLower, town: townName, city: townName,
     trade: niche.trade || '', tradeLower: niche.trade_lower || '', tradePerson: niche.trade_person || '', tradePersonPlural: niche.trade_person_plural || '',
