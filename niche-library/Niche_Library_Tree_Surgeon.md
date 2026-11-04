@@ -251,6 +251,16 @@ The pack's section 2 split inside type A: cards 1 and 4 are situations (a tree t
 
 ### Type A, emergency variant (Emergency tree work, when the client confirms call outs)
 
+Block 5 cost set (`cost`), H2 "What Moves the Price of an Emergency Call Out in [CITY]": what moves the price of a call out, never an arrival time, hours of cover or a call out charge unless `response_time`, `out_of_hours_available` or a call out fee is in the client values.
+
+| Card | Brief |
+|---|---|
+| When you call | The time of day and the day of the week move the price: an evening, a night or a weekend against a weekday morning, and a crew called out from home against one already on the road (Table F emergency tree work: out of hours mobilisation). A call out charge or an out of hours rate only from [CV: quote_call_out_fee] and [CV: price_list]; never say there is no charge for coming out unless [CV: quote_call_out_fee] says there is none. Whether the business comes out at those hours only from [CV: out_of_hours_available]; when it is not set, nothing about hours at all. Say it plainly and give no figure. |
+| Getting to you | How far the tree is from the base and what is between the van and the tree: a tree across a road with traffic to keep back, a limb on a neighbour's roof, a back garden with no way in for a chipper or a platform, a lane too narrow for the lorry (Table F emergency tree work: roads or live lines, restricted access). Distance and access move the price; say why in plain words. Never an arrival time unless [CV: response_time] is set; never hours of cover unless [CV: out_of_hours_available] says so. |
+| Making it safe first | What is done first on a call out, from Table A emergency tree work: the danger judged from the ground, the area closed off, lines and anything the tree could still fall on checked, then only the hung up limb or the split stem brought down or lowered under control. How long that takes and how many people it needs is what the first part of the price pays for: a limb caught over a path is one thing, a tree on a roof with the timber still loaded is another (Table F: unstable or suspended wood). Never how it is done beyond this; never a promise that it is all finished on the day. |
+| What's on the van and what has to come later | The saws, the ropes and a chipper come with the crew; a platform, a crane or a bigger chipper has to be booked and brought, and a line waits for the network operator (Table A emergency tree work: a platform or mechanical methods according to the tree; Table F: specialist equipment). What is left once the danger is dealt with, the rest of the tree, the stump and the timber, is a second visit priced as its own job (Table A: follow up work may be separate). Say what decides it and give no figure. Code adds the price line from [CV: price_list] when there is one. |
+
+
 Replaces block 4, the steps, the FAQ slots and the seasonal swap; block 5 and the symptom question stay as above. The reader has a tree down or hanging now: situation, why it can't wait, what they do first (keep clear, never cut it themselves), what happens when they call. Never a response time, round the clock cover or a call out promise unless the client values confirm it. The variant carries its own seasonal entry so the plain storm card and the winter FAQ do not land on an emergency page: its seasonal card is card 4 again, and its seasonal FAQ is the storm question, which takes the timing slot (so the arrival time from the client values is written inside that answer).
 
 **Block 4, when this can't wait.** H2: When a Tree Can't Wait
@@ -268,7 +278,7 @@ Replaces block 4, the steps, the FAQ slots and the seasonal swap; block 5 and th
 
 | Slot | When | Question | Answer brief | Doubt |
 |---|---|---|---|---|
-| cost | always | What does emergency tree work cost in [CITY]? | Prices and any call out charge only from [CV: price_list]; otherwise how the price is reached, from [CV: quote_method] only: making it safe is priced first, and the rest of the tree, the stump and the timber are priced once the tree has been seen (Table F emergency: the price falls where the hazard can be isolated and dealt with by limited safe making work, with the rest planned separately). The price agreed before work starts only from the price_agreed_before_work practice. No out of hours figure unless price_list gives one. | Price |
+| cost | always | How much is an emergency [TRADE_PERSON] call out in [CITY]? | What moves the price, from the cost cards: the time of day and the day of the week, how far the tree is from the base, the access, what making it safe takes, and that the rest of the tree, the stump and the timber are a second visit priced as its own job. A call out charge or an out of hours rate only from [CV: quote_call_out_fee] and [CV: price_list]; the hours the business comes out only from [CV: out_of_hours_available]; an arrival time only from [CV: response_time]. The price agreed before work starts only from the price_agreed_before_work practice. No figure. | Price |
 | cover | insurance | Are you insured for emergency tree work? | The cover figure from [CV: insurance_cover] and what the cover is for, with a plausible tree work example that does not suggest carelessness. Never what it pays or who it covers. | Trust |
 | cover | always | What happens if something isn't right after an emergency job? | Open with what the customer does: tell us and we look at it. Then that making safe is making safe: the planned work that follows is where the tree, the stump and the timber are dealt with properly, under the reasonable care and skill standard, never as a defence. No promise to come back free. Never invent a guarantee. | Trust |
 | scope | always | Is this an emergency, or can it wait? | What counts as urgent, from the card list and Table B: a tree or a limb down across a road, a drive, a roof or a car; a torn branch still hanging over where people go; anything touching or near an overhead line; a trunk split or a tree leaning freshly after a storm. What usually waits for planned work: a stump, a tree that has simply grown too big, a hedge over the path, dead wood high in a crown over a bed nobody uses, a lean the tree has had for years. Link one service page. Planned work is never dressed up as urgent. | Fit |
@@ -353,6 +363,16 @@ The library's `desire_led` column flags these page targets (the pack's section 2
 
 ### Type A, emergency variant (Emergency tree work, when the client confirms call outs)
 
+Block 5 cost set (`cost`), H2 "What Moves the Price of an Emergency Call Out in [CITY]": what moves the price of a call out, never an arrival time, hours of cover or a call out charge unless `response_time`, `out_of_hours_available` or a call out fee is in the client values.
+
+| Card | Brief |
+|---|---|
+| When you call | The time of day and the day of the week move the price: an evening, a night or a weekend against a weekday morning, and a crew called out from home against one already on the road (Table F emergency tree work: out of hours mobilisation). A call out charge or an out of hours rate only from [CV: quote_call_out_fee] and [CV: price_list]; never say there is no charge for coming out unless [CV: quote_call_out_fee] says there is none. Whether the business comes out at those hours only from [CV: out_of_hours_available]; when it is not set, nothing about hours at all. Say it plainly and give no figure. |
+| Getting to you | How far the tree is from the base and what is between the van and the tree: a tree across a road with traffic to keep back, a limb on a neighbour's roof, a back garden with no way in for a chipper or a platform, a lane too narrow for the lorry (Table F emergency tree work: roads or live lines, restricted access). Distance and access move the price; say why in plain words. Never an arrival time unless [CV: response_time] is set; never hours of cover unless [CV: out_of_hours_available] says so. |
+| Making it safe first | What is done first on a call out, from Table A emergency tree work: the danger judged from the ground, the area closed off, lines and anything the tree could still fall on checked, then only the hung up limb or the split stem brought down or lowered under control. How long that takes and how many people it needs is what the first part of the price pays for: a limb caught over a path is one thing, a tree on a roof with the timber still loaded is another (Table F: unstable or suspended wood). Never how it is done beyond this; never a promise that it is all finished on the day. |
+| What's on the van and what has to come later | The saws, the ropes and a chipper come with the crew; a platform, a crane or a bigger chipper has to be booked and brought, and a line waits for the network operator (Table A emergency tree work: a platform or mechanical methods according to the tree; Table F: specialist equipment). What is left once the danger is dealt with, the rest of the tree, the stump and the timber, is a second visit priced as its own job (Table A: follow up work may be separate). Say what decides it and give no figure. Code adds the price line from [CV: price_list] when there is one. |
+
+
 Replaces block 4, the steps, the FAQ slots and the seasonal swap; What's Included, block 5 and the symptom question stay as above. The mechanisms differ from the category page's emergency cards on purpose. The variant's seasonal entry repeats card 4 and makes the storm question the timing slot, so the plain calendar card never lands on the emergency page.
 
 **Block 4, when this can't wait.** H2: When [SERVICE] Can't Wait
@@ -370,7 +390,7 @@ Replaces block 4, the steps, the FAQ slots and the seasonal swap; What's Include
 
 | Slot | When | Question | Answer brief | Doubt |
 |---|---|---|---|---|
-| cost | always | What does an emergency tree call out cost in [CITY]? | Prices and any call out charge only from [CV: price_list]; otherwise how the price is reached, from [CV: quote_method] only: making it safe is priced first, and the rest of the tree, the stump and the timber are priced once the tree has been seen (Table F emergency). The price agreed before work starts only from the price_agreed_before_work practice. No out of hours figure unless price_list gives one. | Price |
+| cost | always | How much is an emergency [TRADE_PERSON] call out in [CITY]? | What moves the price, from the cost cards: the time of day and the day of the week, how far the tree is from the base, the access, what making it safe takes, and that the rest of the tree, the stump and the timber are a second visit priced as its own job. A call out charge or an out of hours rate only from [CV: quote_call_out_fee] and [CV: price_list]; the hours the business comes out only from [CV: out_of_hours_available]; an arrival time only from [CV: response_time]. The price agreed before work starts only from the price_agreed_before_work practice. No figure. | Price |
 | timing | start_time | How quickly can you get here? | From [CV: response_time] and [CV: start_time] only, as given; a same day visit only when [CV: same_day_available] is yes; work in the tree waits until the wind has dropped and the timber can be reached safely, and a line is dealt with by the network operator first (Table A emergency). Never "24/7" or "any time" unless [CV: emergency_callouts] gives it in those words. This is the one place the timing is written. | Timing |
 | timing | always | Will you come out while the storm is still going? | What usually happens: the area made safe and the danger judged from the ground as soon as it is safe to be there; while the wind is still up nobody climbs or works under hung up timber, and a live line waits for the network operator (Table A emergency). Any arrival time from [CV: response_time] and [CV: start_time] only; no out of hours promise unless [CV: emergency_callouts] or [CV: response_time] gives it. This is the one place the timing is written. | Timing |
 | cover | insurance | Are you insured for emergency [SERVICE_LOWER]? | The cover figure from [CV: insurance_cover] and what the cover is for, with a plausible tree work example that does not suggest carelessness. Never what it pays or who it covers. | Trust |
@@ -420,6 +440,62 @@ Used by the location page job (CORE (18)): block 4 (the problems the town's tree
 | cover | always | What happens if something isn't right after the job? | Open with what the customer does: tell us and we look at it. Then the reasonable care and skill standard every trade works to. No promise to come back free. Never invent a guarantee. | Trust |
 | process | always | What happens when I ask for a quote in [TOWN]? | From [CV: quote_method] and the confirmed practices only: what the customer sends, what the business looks at (the tree, what is under it, the access, and whether an order or a conservation area covers the tree, which in this town the dossier may already say), what comes back. No timescale unless [CV: response_time] is set. | Process |
 | timing | always | When is the best time of year for [WORK_LOWER] work? | When each kind of tree work is best done and why, in the tree or in what usually applies, from the trade facts timing cells: felling, dismantling and stump work through the year when the ground and the weather allow; pruning generally after the leaves have hardened, the sap bleeders in summer or midwinter; planting and moving while dormant; a nest being built or used leaving that part until it is empty, with no blanket ban on the season. Where the town profile gives the ground or the exposure (clay still wet in spring, an exposed edge of town after the winter gales), say what it does to that window. Nothing about autumn or winter being busy. No dates, no promises about the weather. | Timing |
+
+## Per page overrides (service_overrides)
+
+Copy quality 3, 4 Nov 2026: a page whose job differs from the shared type entry gets its own briefs here, keyed by the page target in lower case. The code lays them over the type entry for that page only.
+
+### Firewood and logs
+
+Cost cards, H2 "What Affects the Cost of [SERVICE] in [CITY]":
+
+| Card | Brief |
+|---|---|
+| How much you order | A bag, a bulk bag or a loose load: the quantity moves the price more than anything else, and timber that still has to be cut to length and split costs more than logs already processed (Table F firewood and logs: cross cutting and splitting required, handling and storage). Say it plainly and give no figure. |
+| Seasoned or kiln dried against green | Green timber straight from a job against logs that have been stacked under cover and dried, or kiln dried: the drying, the storage and the moisture check are time and space the price has to carry (Table A: season or otherwise dry, check moisture; Table F: drying and moisture checking, certification where required). A load sold as certified only where the client values say the business holds the certification; never a time in the stack as proof the logs are dry (Table E: elapsed time is not certification). No figure. |
+| Hardwood against softwood | What the logs are: hardwood against softwood, a mixed load from the week's work against a load of one kind picked out for the customer (Table A: select suitable timber). Say that what the customer burns and what they burn it in decides it, in their words; never a species list as a promise of what is in stock. |
+| Delivery and stacking | How far the logs travel from the yard, whether the van can tip at the door or the bags are carried through to the store, and whether the logs are left in the bag or stacked where they will keep dry (Table F: delivery handling; Table A: stack with ventilation and weather protection). Collection from the yard only where the client values say it is offered. Code adds the price line from [CV: price_list] when there is one. |
+
+Steps:
+
+| Step | Brief |
+|---|---|
+| Tell Us What You Burn and How Much You Need | What to say: the stove or the open fire they burn in, whether they want seasoned, kiln dried or green logs to dry themselves, how much (a bag, a bulk bag, a load) and where it goes when it arrives. The number from [CV: phone], the form only from [CV: quote_method]. Nothing about what is in stock here. |
+| We Confirm What's in Stock and the Price | What usually happens: the business says what it has (timber from its own work, cut and split, seasoned or green), whether the quantity asked for is there, and the price for the load and the delivery, from [CV: quote_method] and [CV: price_list] only. Dryness said as what has been done to the logs and the moisture check (Table A), never as a time in the stack (Table E). Never restates 'free'. |
+| We Deliver on a Day That Suits You | The delivery: the load tipped or the bags carried to where it was agreed, stacked only where that was part of the price. Said without a day or a window unless [CV: start_time] gives one. Never mention the price. |
+
+### Wood chipping
+
+Cost cards, H2 "What Affects the Cost of [SERVICE] in [CITY]":
+
+| Card | Brief |
+|---|---|
+| How much brash there is | The volume and the bulk of what goes through the chipper: a heap of hedge trimmings against the crown of a felled tree, brash already dragged to one place against branches left where they fell (Table F wood chipping: volume and bulk of brash, distance from the chipper). Say it plainly and give no figure. |
+| Getting the chipper to it | Where the chipper can stand and how far the brash has to be carried to it: a drive beside the heap against a back garden reached through a side gate too narrow for the machine, nowhere for the lorry to park, a lane that has to be kept clear (Table F: restricted vehicle access; Table A: set the chipper and the exclusion area). Say the business looks before it prices, from [CV: quote_method] only. |
+| Whether the chip stays or goes | Chip blown into a corner of the garden for the beds and the paths against chip loaded and taken away: taking it costs the transport and the destination (Table F: off site transport and destination; Table E: chip from ordinary tree work may be left on site under the agency's conditions, said as what usually applies and never as an exemption's name). Whether the business takes it away only from the confirmed practices and [CV: waste_carrier_registered]. |
+| The time on site | How long the crew and the machine are there, which the three cards above set between them: clean brash fed steadily goes quickly, brash tangled with wire, soil or stone has to be sorted first (Table A: segregate suitable brash; Table F: suitable clean feedstock). Say what decides it and give no figure. Code adds the price line from [CV: price_list] when there is one. |
+
+### Tree surveys and reports
+
+Cost cards, H2 "What Affects the Cost of [SERVICE] in [CITY]":
+
+| Card | Brief |
+|---|---|
+| How many trees and how big the site is | One tree in a garden against a line of trees on a boundary or every tree on a development plot: the number of trees and the ground to cover move the price first (Table F tree surveys and reports: number of trees, site complexity). Say it plainly and give no figure. |
+| What kind of report you've been asked for | A report for a mortgage lender, a survey for a planning application, or a decay or subsidence investigation: each has its own scope and its own method, and a lender's report has the scope the lender asks for, not the planning survey's (Table A: agree the report purpose, apply the relevant assessment method; Table E: a mortgage tree report is not automatically the development survey). Say that the customer tells us who wants it and why, and the report is scoped to that. Never a standard's number. |
+| From the ground or from the tree | A visual inspection from the ground against a climbing inspection or decay testing where a defect high up or inside the stem has to be looked at closely (Table A: inspect and measure the trees, apply the relevant method; Table F: specialist decay or subsidence investigation). Say why a closer look costs more time and more kit, in plain words. |
+| One visit or a cycle | A single report against an estate, a school or a business that wants its trees looked at again on a cycle, with the plans and the records from last time reused (Table F: repeat visits; existing usable plans and records lower the price). No interval given as a rule: the pack says the revisit interval varies, and the duty is proportionate care, not a universal inspection interval (Table A; Table C occupiers' liability). Code adds the price line from [CV: price_list] when there is one. |
+
+### Root barriers
+
+Cost cards, H2 "What Affects the Cost of [SERVICE] in [CITY]":
+
+| Card | Brief |
+|---|---|
+| How long and how deep the trench is | The length of the line the barrier has to run and the depth it has to go to, which the product and the roots set, not a rule of thumb (Table F root barriers: trench length, product specific depth; Table A: depth and position are product and site specific). Say it plainly and give no figure. |
+| What has to come up and go back | A trench in open ground against one through a patio, a path or a drive that has to be lifted and relaid behind it (Table F: hard surface removal and reinstatement). Say the business looks before it prices, from [CV: quote_method] only. |
+| What's crossing the line | Pipes, cables and drains in the way of the trench, found before anything is dug, and roots that have to be worked round rather than cut through so the tree is not harmed (Table A: locate buried services, excavate while managing root impacts; Table F: buried services, root sensitive excavation). Say why a crowded trench is slower work. |
+| The barrier itself | A plain barrier against a ribbed one that steers the roots, and the length and depth of it: the product only from [CV: materials_methods], never a brand or a make the client values do not give (Table A: a linear root barrier or a ribbed root directing system). Say what decides it and give no figure. Code adds the price line from [CV: price_list] when there is one. |
 
 ## do_not_reuse
 

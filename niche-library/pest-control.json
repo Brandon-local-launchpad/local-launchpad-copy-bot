@@ -338,6 +338,27 @@
         }
       },
       "emergency": {
+        "cost": {
+          "h2": "What Moves the Price of an Emergency Call Out in [CITY]",
+          "cards": [
+            {
+              "title": "When you call",
+              "brief": "The time of day and the day of the week move the price: an evening or a weekend call for a nest by the back door against a weekday morning. A call out charge or an out of hours rate only from [CV: quote_call_out_fee] and [CV: price_list]; never say there is no charge for coming out unless [CV: quote_call_out_fee] says there is none. Whether the business comes out at those hours only from [CV: out_of_hours_available]; when it is not set, nothing about hours at all. Say it plainly and give no figure."
+            },
+            {
+              "title": "Getting to the nest or the run",
+              "brief": "How far the house is from the base and what it takes to reach the problem once there: a nest under the eaves three storeys up or inside a cavity, a loft with no boards, a run behind fitted units, a flat roof with no ladder access (Table F wasp nest removal: nest height, concealed location, special access equipment; Table F rat and mouse control: the number of rooms or buildings). Distance and access move the price; say why in plain words. Never an arrival time unless [CV: response_time] is set; never hours of cover unless [CV: out_of_hours_available] says so."
+            },
+            {
+              "title": "Finding it and dealing with it on the day",
+              "brief": "What is done first on a call out, from Table A: wasps confirmed rather than bees before anything is used (Table E: a cluster of honey bees can be a swarm), the nest found and how exposed it is judged, people and pets kept clear and access made safe, then the nest treated at its entrance; for rats and mice the species confirmed, the runs, the food and the ways in found, and traps or protected bait points set where justified. How long that takes is what the first part of the price pays for: a single nest reached from the ground against one in a wall void with a second entrance (Table F: multiple affected locations). Never a product's name unless [CV: materials_methods] gives it; never how a treatment is applied."
+            },
+            {
+              "title": "What's in the van and what comes back later",
+              "brief": "The treatments, the traps and the bait points come with the technician; a longer ladder or a platform for a high nest, or drain equipment where the rats are coming up that way, may have to be brought (Table F: special access equipment; Table E: rats can travel through drains). What follows is a second visit priced as its own job: the activity at a treated nest checked and the empty nest taken down only if needed, the bait points and traps checked and cleared, the proofing of the ways in (Table A: monitoring and follow up, spent bait and bodies removed, entry points proofed). Say what decides it and give no figure. Code adds the price line from [CV: price_list] when there is one."
+            }
+          ]
+        },
         "problems": {
           "h2": "[WORK] Problems That Can't Wait",
           "cards": [
@@ -380,8 +401,8 @@
         "faq_slots": [
           {
             "slot": "cost",
-            "question": "What does an emergency pest call out cost in [CITY]?",
-            "answer_brief": "Prices and any call out charge only from [CV: price_list] and [CV: quote_call_out_fee]; otherwise how the price is reached, from [CV: quote_method] only: the visit and the treatment priced once the insect or animal has been identified and the nest or the activity found. The price agreed before treatment starts only from the price_agreed_before_work practice. No out of hours figure unless price_list gives one.",
+            "question": "How much is an emergency [TRADE_PERSON] call out in [CITY]?",
+            "answer_brief": "What moves the price, from the cost cards: the time of day and the day of the week, how far the house is from the base, the access to the nest or the run, what finding it and dealing with it takes on the day, and that the follow up visit is priced as its own job. A call out charge or an out of hours rate only from [CV: quote_call_out_fee] and [CV: price_list]; the hours the business comes out only from [CV: out_of_hours_available]; an arrival time only from [CV: response_time]. The price agreed before treatment starts only from the price_agreed_before_work practice. No figure.",
             "doubt": "Price"
           },
           {
@@ -578,6 +599,27 @@
         }
       },
       "emergency": {
+        "cost": {
+          "h2": "What Moves the Price of an Emergency Call Out in [CITY]",
+          "cards": [
+            {
+              "title": "When you call",
+              "brief": "The time of day and the day of the week move the price: an evening or a weekend call for a nest by the back door against a weekday morning. A call out charge or an out of hours rate only from [CV: quote_call_out_fee] and [CV: price_list]; never say there is no charge for coming out unless [CV: quote_call_out_fee] says there is none. Whether the business comes out at those hours only from [CV: out_of_hours_available]; when it is not set, nothing about hours at all. Say it plainly and give no figure."
+            },
+            {
+              "title": "Getting to the nest or the run",
+              "brief": "How far the house is from the base and what it takes to reach the problem once there: a nest under the eaves three storeys up or inside a cavity, a loft with no boards, a run behind fitted units, a flat roof with no ladder access (Table F wasp nest removal: nest height, concealed location, special access equipment; Table F rat and mouse control: the number of rooms or buildings). Distance and access move the price; say why in plain words. Never an arrival time unless [CV: response_time] is set; never hours of cover unless [CV: out_of_hours_available] says so."
+            },
+            {
+              "title": "Finding it and dealing with it on the day",
+              "brief": "What is done first on a call out, from Table A: wasps confirmed rather than bees before anything is used (Table E: a cluster of honey bees can be a swarm), the nest found and how exposed it is judged, people and pets kept clear and access made safe, then the nest treated at its entrance; for rats and mice the species confirmed, the runs, the food and the ways in found, and traps or protected bait points set where justified. How long that takes is what the first part of the price pays for: a single nest reached from the ground against one in a wall void with a second entrance (Table F: multiple affected locations). Never a product's name unless [CV: materials_methods] gives it; never how a treatment is applied."
+            },
+            {
+              "title": "What's in the van and what comes back later",
+              "brief": "The treatments, the traps and the bait points come with the technician; a longer ladder or a platform for a high nest, or drain equipment where the rats are coming up that way, may have to be brought (Table F: special access equipment; Table E: rats can travel through drains). What follows is a second visit priced as its own job: the activity at a treated nest checked and the empty nest taken down only if needed, the bait points and traps checked and cleared, the proofing of the ways in (Table A: monitoring and follow up, spent bait and bodies removed, entry points proofed). Say what decides it and give no figure. Code adds the price line from [CV: price_list] when there is one."
+            }
+          ]
+        },
         "problems": {
           "h2": "When [SERVICE] Can't Wait",
           "cards": [
@@ -620,8 +662,8 @@
         "faq_slots": [
           {
             "slot": "cost",
-            "question": "What does an emergency [SERVICE_LOWER] call out cost in [CITY]?",
-            "answer_brief": "Prices and any call out charge only from [CV: price_list] and [CV: quote_call_out_fee]; otherwise how the price is reached, from [CV: quote_method] only: the visit and the treatment priced once the insect or animal has been identified and the nest or the activity found. The price agreed before treatment starts only from the price_agreed_before_work practice. No out of hours figure unless price_list gives one.",
+            "question": "How much is an emergency [TRADE_PERSON] call out in [CITY]?",
+            "answer_brief": "What moves the price, from the cost cards: the time of day and the day of the week, how far the house is from the base, the access to the nest or the run, what finding it and dealing with it takes on the day, and that the follow up visit is priced as its own job. A call out charge or an out of hours rate only from [CV: quote_call_out_fee] and [CV: price_list]; the hours the business comes out only from [CV: out_of_hours_available]; an arrival time only from [CV: response_time]. The price agreed before treatment starts only from the price_agreed_before_work practice. No figure.",
             "doubt": "Price"
           },
           {
@@ -768,6 +810,77 @@
           "doubt": "Timing"
         }
       ]
+    }
+  },
+  "service_overrides": {
+    "bee removal and relocation": {
+      "cost": {
+        "h2": "What Affects the Cost of [SERVICE] in [CITY]",
+        "cards": [
+          {
+            "title": "Where the comb is and how high",
+            "brief": "A swarm clustered on a branch at head height against a colony that has moved into a chimney, a soffit or a cavity wall two or three storeys up: where the bees are and what reaching them takes move the price first (Table F bee removal and relocation: whether it is a swarm or an established colony, roof access; Table B: collection attempted at height is a safety risk). Say it plainly and give no figure."
+          },
+          {
+            "title": "A swarm a beekeeper can take against comb inside the wall",
+            "brief": "A collectable honey bee swarm referred to a beekeeper against an established colony with comb inside the fabric of the house, which has to be opened up, the comb and the bees taken out and the cavity dealt with so other bees are not drawn back to it (Table A: refer a collectable swarm, address exposed comb; Table E: beekeepers generally do not remove bumblebees or inaccessible cavity colonies). Never that a beekeeper will take any bees from any roof; bumblebee and solitary bee nests usually left undisturbed (Table A)."
+          },
+          {
+            "title": "What has to be opened and made good",
+            "brief": "Tiles lifted, a soffit board taken down, a section of wall or ceiling opened to reach the comb, and the making good after (Table F: comb inside building fabric, opening and reinstatement). Whether the business does the making good itself or leaves it to a builder only from the confirmed practices. Say the business looks before it prices, from [CV: quote_method] only."
+          },
+          {
+            "title": "The visit after",
+            "brief": "A check that the bees have not come back and that nothing is drawing others to the spot, and the entrance closed once it is safe to do so (Table A: check for return or contamination; Table B: blocking live bees in redirects them). Treatment only as a last resort where it is justified, never as the plan (Table A). Code adds the price line from [CV: price_list] when there is one."
+          }
+        ]
+      }
+    },
+    "dead animal removal": {
+      "cost": {
+        "h2": "What Affects the Cost of [SERVICE] in [CITY]",
+        "cards": [
+          {
+            "title": "Finding it and getting it out",
+            "brief": "A body in sight on the loft floor against one somewhere behind a wall, under the floor or in the roof void, found by the smell and the flies: a wall or floor void opened to reach it and made good after, the body contained and bagged with the insulation and the droppings round it (Table A dead animal removal: locate, assess access, contain and remove, access opening only where necessary; Table F: inaccessible wall, roof or floor void, opening and reinstatement). Say it plainly and give no figure."
+          },
+          {
+            "title": "The clean and the disinfection after",
+            "brief": "Where it lay cleaned and treated so the smell and what it left behind go with it, with the dust kept down rather than swept up (Table A: clean the affected area where appropriate; Table E: methods that limit airborne material). The flies that came with it dealt with where they have taken hold. Say what is included in plain words; never a product's name unless [CV: materials_methods] gives it."
+          },
+          {
+            "title": "Taking it away",
+            "brief": "The body, the soiled insulation and the cleaning waste taken away by the right route, which depends on what the animal was and whether disease is suspected (Table A: arrange appropriate disposal; Table F: suspected disease or sharps, specialist disposal). Whether the business carries the waste itself only from [CV: waste_carrier_registered]."
+          },
+          {
+            "title": "Getting to it",
+            "brief": "A loft with a hatch and boards against a crawl space under a floor, a flat roof with no way in, or a void that can only be reached from the neighbour's side: the access and the time it takes move the price (Table F: inaccessible void). How it got in looked at while the business is there, so the next one does not follow (Table A: investigate entry or death source); the proofing priced as its own job. Code adds the price line from [CV: price_list] when there is one."
+          }
+        ]
+      }
+    },
+    "loft clearance and decontamination": {
+      "cost": {
+        "h2": "What Affects the Cost of [SERVICE] in [CITY]",
+        "cards": [
+          {
+            "title": "Finding it and getting it out",
+            "brief": "How much of the loft is affected: a corner where the squirrels nested against every roll of insulation soiled from eaves to eaves, the droppings, the nesting material and any bodies bagged with the insulation they lie in, and a void or a boxed in eave opened to reach it and made good after (Table A loft clearance and decontamination: contain the work area, remove contaminated material; Table F: volume of contaminated material). The pests controlled or kept out before the clearance, or it is done twice (Table A; Table B). Say it plainly and give no figure."
+          },
+          {
+            "title": "The clean and the disinfection after",
+            "brief": "The timbers, the ceiling tops and the eaves cleaned without the dust being thrown into the air, then treated, with the right breathing protection for whoever does it (Table A: clean without dispersing contaminated dust, task appropriate respiratory protection; Table E: methods that limit airborne material). New insulation only where it was asked for, priced as its own item (Table A: reinstatement as a separate scope item). Never a product's name unless [CV: materials_methods] gives it."
+          },
+          {
+            "title": "Taking it away",
+            "brief": "The bags of insulation, droppings and nesting material taken away by the right route; anything that looks like old asbestos board or lagging stops the work until it has been assessed (Table A: suspected asbestos stops the work pending assessment; Table F: waste transport and disposal, suspect asbestos or sharps). Whether the business carries the waste itself only from [CV: waste_carrier_registered]; never a figure for a skip or a tip."
+          },
+          {
+            "title": "Getting to it",
+            "brief": "A loft with a wide hatch, a ladder and boards against one reached through a cupboard with nothing to stand on, wiring and water tanks to work round, and the bags carried down through the house (Table F: restricted loft access; Table A: assess loft access, insulation and wiring). Say the business looks before it prices, from [CV: quote_method] only. Code adds the price line from [CV: price_list] when there is one."
+          }
+        ]
+      }
     }
   },
   "do_not_reuse": []
