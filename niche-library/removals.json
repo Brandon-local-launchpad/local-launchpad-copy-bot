@@ -1,0 +1,583 @@
+{
+  "_source": "niche-library/removals.json",
+
+  "trade": "Removals",
+  "trade_lower": "removals",
+  "trade_person": "removals firm",
+  "trade_person_plural": "removals firms",
+  "customer_type": "homeowners, renters and local businesses",
+  "unit_of_work": "moves",
+  "emergency_niche": false,
+  "big_ticket": false,
+  "big_ticket_examples": [],
+  "schema_subtype": "MovingCompany",
+
+  "words_use": ["move", "moving day", "completion day", "the keys", "van", "lorry", "boxes", "packing", "unpacking", "furniture", "sofa", "wardrobe", "bed", "piano", "stairs", "lift", "parking", "flat", "house", "old home", "new home", "storage", "survey", "quote", "crew"],
+  "words_avoid": ["relocation", "relocate", "logistics", "consignment", "goods", "assets", "household effects", "effects", "operatives", "premises", "property", "residence", "solutions", "white glove", "bespoke", "end to end"],
+  "words_avoid_exceptions": {
+    "goods": "allowed in the phrase goods in transit, the name the cover goes by, where [CV: insurance_cover] gives it",
+    "premises": "allowed on an office and commercial removals page where the customer's building is meant and no plainer word fits",
+    "property": "allowed once on a house clearance page where the house being cleared is meant and the client's own words use it"
+  },
+  "banned_phrases": ["seamless", "seamless relocation", "seamless move", "stress free", "stress free move", "hassle free", "treat your belongings like our own", "like our own", "we never break anything", "nothing will break", "moving made easy", "smooth move", "peace of mind", "take the stress out of moving", "your move, our priority"],
+
+  "buttons": {
+    "primary_action": "Get My [QUOTE_FREE] Quote",
+    "meta_cta": "Get your [QUOTE_FREE_LOWER] moving quote today.",
+    "process_h2": "Your [QUOTE_FREE] Quote in 3 Simple Steps",
+    "final_h2": "Get a [QUOTE_FREE] Quote From a Local [CATEGORY] in [CITY]",
+    "final_h2_emergency": null,
+    "cta_band_line": "Tell us about your move and we'll get back to you within [CV: response_time].",
+    "cta_band_line_no_response": "Tell us about your move and we'll get back to you."
+  },
+
+  "business_type_default": "D",
+  "business_type_notes": "The whole niche is type D (a move: a dated event with the customer's belongings in someone else's hands) per the calibration pack, section 2: every GBP category (Removals Company, Removals Service, Self Storage Facility) and every page target, including office moves, storage, single items, pianos, antiques and house clearance. No category differs. The split inside D is by the stage of the move, written into the briefs, not the type: a home move reads the stages of moving day (survey and pack, load, the wait between homes, unload and place); an office move the stages of a business move (out of hours timing, labelling, IT and furniture, open by opening time); packing and dismantling the preparation stage; storage the stage between homes; single items and pianos one short day for one piece; house clearance the stages of a clearance (authority, what is kept, what goes where, the house left empty). No page is desire led, problem led or symptom led: type D has no symptoms and no faults. A client hand set to type A has no briefs in this entry (the hand set-up defaults to A: set D).",
+
+  "priority_services": [],
+  "core_services": {
+    "removals company": ["local house removals", "packing services", "storage", "office and commercial removals"],
+    "removals service": ["local house removals", "long distance removals", "packing services", "storage"],
+    "self storage facility": ["storage", "packing services"]
+  },
+
+  "steps": [
+    {
+      "title": "Tell Us About Your Move",
+      "brief": "How to get in touch and what is useful to say first (where from and where to, the date if there is one, how many rooms, anything big, heavy or awkward, the stairs, lifts and parking at both ends, a video or photos if they have them). No promise of a reply time unless [CV: response_time] is set."
+    },
+    {
+      "title": "We Survey and Price Your Move",
+      "brief": "The survey (at the home or by video, only as [CV: quote_method] gives it) and what it settles, from the trade facts Table A first stages: what is going and what is staying, what has to come apart, the doors, stairs, lifts and parking at both homes, whether packing is wanted. Say that the van, the crew and the day are planned off that list, never a size or a number. Follows [CV: quote_method]; only say the quote is written if quote_method says so; a price fixed before the day only when the price_agreed_before_work practice is confirmed. Never restates 'free' (FAQ 5 owns it)."
+    },
+    {
+      "title": "We Pack, Load and Move You In",
+      "brief": "The day in order, from the trade facts Table A stages: packing beforehand where it is booked, the home protected, the van loaded, the wait for the new home to be open where the move completes that day, then unloading to the room each box is labelled for. Beds and furniture put back together only where dismantling and reassembly is in the services list or confirmed. The date is agreed in advance. Never a time of day, an arrival time, a crew size or a finish time. Never mention the price or the quote (step 2 and Why choose us own them). Never restates the start time (FAQ 4 owns it)."
+    }
+  ],
+
+  "step_2_no_visit": {
+    "title": "We Price Your Move",
+    "brief": "Say a price is agreed before the day. Describe how the price is reached only from [CV: quote_method]; when quote_method is blank, name no method at all (no video, call, form or visit). Only say the quote is written if quote_method says so. Never restates 'free' (FAQ 5 owns it)."
+  },
+  "cover_chain": ["insurance", "guarantee"],
+
+  "fears": [
+    "a van that does not turn up on the day, or turns up late with no word",
+    "the keys arriving late and the day running out before everything is in",
+    "a scratched table, a box of broken plates, and nobody owning up to it",
+    "a sofa or a wardrobe that will not go through the new door or up the stairs"
+  ],
+
+  "logo_tiers": {
+    "ratings": ["Google (needs review_count 5+)", "Checkatrade", "Trustpilot", "Which? Trusted Traders"],
+    "tier1": ["BAR (British Association of Removers)", "NGRS (National Guild of Removers and Storers)", "Move Assured"],
+    "tier2": ["BAR Overseas Group", "FIDI FAIM (international moves)", "ICEFAT (fine art transport)", "Self Storage Association UK"],
+    "tier3": "an operator licence or a waste carrier registration is a check, not a badge, and is named only as the client values confirm it; chamber of commerce, local press features, local awards: Ray's call per client"
+  },
+
+  "faq_fixed_doubts": {
+    "Q1_cost": "Price",
+    "Q6_areas": "Fit"
+  },
+
+  "faq_slots": [
+    {
+      "slot": "faq_2",
+      "question": "Are you insured if something gets damaged on the move?",
+      "answer_brief": "The cover figure from [CV: insurance_cover] and what it is for (the load in transit, or public liability: only as the client values say which). From the trade facts Table E: the van's own motor insurance is not cover for what it carries, so cover for the load is a separate thing; its limits and what it leaves out (boxes the customer packed, items of high value) sit in the policy and the contract, so say it is worth asking what the terms say. Never a figure the client values do not give, never a scheme's name unless confirmed.",
+      "symptom_based": false,
+      "doubt": "Trust"
+    },
+    {
+      "slot": "faq_2_fallback",
+      "question": "What happens if something goes wrong?",
+      "answer_brief": "From [CV: complaints_process] only.",
+      "symptom_based": false,
+      "doubt": "Trust"
+    },
+    {
+      "slot": "faq_3",
+      "question": "Do you guarantee your service?",
+      "answer_brief": "Used only when a guarantee is confirmed. Start with yes, then the terms from [CV: guarantee_scope]. Never a promise that nothing will break, never a fixed arrival or finish time, never a scheme's guarantee (an advance payment guarantee covers a deposit if a member firm fails, not damage: the trade facts Table D) as this client's unless the client values carry it.",
+      "symptom_based": false,
+      "doubt": "Trust"
+    },
+    {
+      "slot": "faq_3_none",
+      "question": "What happens if something is damaged during the move?",
+      "answer_brief": "Used when nothing in cover_chain other than insurance is confirmed. Open with what the customer does: tell us as soon as it is seen, and we look at it. Then the 'reasonable care and skill' standard every trade works to, as the standard the work is held to, never as a defence. Then what usually applies, from the trade facts Table E: what the cover pays and what it leaves out sits in the policy and the contract, so it is worth reading them before the day. No promise to replace or pay out. Never invent a guarantee or a cover figure.",
+      "symptom_based": false,
+      "doubt": "Trust"
+    },
+    {
+      "slot": "faq_4",
+      "question": "How far ahead do I need to book?",
+      "answer_brief": "From [CV: start_time] only, as given. The reason moving dates bunch, only as the calibration pack gives it: completion days and tenancy dates fall at month ends, on Fridays and through the summer, so those dates go first. Never 'we get busy', never a lead time the client values do not give.",
+      "symptom_based": false,
+      "doubt": "Timing"
+    },
+    {
+      "slot": "faq_5_free",
+      "question": "Is the survey and quote free?",
+      "answer_brief": "From [QUOTE_FREE] and [CV: quote_method].",
+      "symptom_based": false,
+      "doubt": "Price"
+    },
+    {
+      "slot": "faq_5_not_free",
+      "question": "How do your quotes work?",
+      "answer_brief": "From [CV: quote_method] only.",
+      "symptom_based": false,
+      "doubt": "Price"
+    },
+    {
+      "slot": "faq_A",
+      "question": "What happens if the keys are late on moving day?",
+      "answer_brief": "Why the wait happens and what the crew does, as what usually applies: the old home can be loaded before the new one is open, and the crew waits for the call; the reason keys come late (the money moving between the solicitors) from the calibration pack's craft rules, never as a time of day or a promise. From the trade facts: a late handover changes the shape of the day (Table A timing), and unloading cannot start until the new home is open (Table B). What happens when the day slips to the next (the load held, or put into store) only where the services list has Storage or the client values confirm it; how that is charged only from [CV: price_list].",
+      "symptom_based": false,
+      "doubt": "Timing"
+    },
+    {
+      "slot": "faq_B",
+      "question": "Will my furniture fit into the new place?",
+      "answer_brief": "Use the assigned local situation (an access situation, not a fault: terrace stairs with a turn at the top, a flat above a shop, a third floor with no lift, a parking court the lorry cannot enter) and its linked local issue. Three genuinely different things that decide it, from the trade facts Table B signs rows: the route itself (doors, stairs, landings and the turns between them), the piece (beds and wardrobes come apart; a sofa loses its feet and doors; a piano goes on its own equipment), and where the van can stand (a long carry, or a smaller van to shuttle). Then what the survey settles about it before the day. Dismantling in the quote only as the services list has it. Never promise it will fit, never force it (Table B done badly).",
+      "symptom_based": true,
+      "doubt": "Process"
+    },
+    {
+      "slot": "faq_C",
+      "question": "Should I pack myself or have you pack?",
+      "answer_brief": "From the trade facts Table A packing stages and Table E: what a packing service covers (the contents and what is left out agreed, materials chosen, items wrapped and packed, every box labelled for its room, an inventory where agreed), what the customer's own packing changes (Table E owner packed row: damage in boxes the customer packed can be left out of the cover under the policy's terms, so say it is worth checking, never that it is or is not covered), and that boxes and materials are included only as the quotation says. A packing service only where the services list has one; link the page where LINKABLE PAGES has it. Never a number of boxes or a packing time.",
+      "symptom_based": false,
+      "is_fallback": true,
+      "doubt": "Fit"
+    },
+    {
+      "slot": "faq_D",
+      "question": "Do I need to arrange parking for the van?",
+      "answer_brief": "From the trade facts Table C parking row only: whether a bay suspension or a dispensation is needed depends on the council and the street, and where one is, the application goes to the council; who applies (the customer or the firm) only from the confirmed practices or the client values. Say it is worth looking at the parking at both addresses before the day. No lead time, no fee, no council named. Never that parking in the area is impossible.",
+      "symptom_based": false,
+      "is_fallback": true,
+      "doubt": "Process"
+    },
+    {
+      "slot": "faq_E",
+      "question": "Can you store my things if the dates don't line up?",
+      "answer_brief": "Used only when the client's services list carries the Storage page. From the trade facts Table A storage stages and Table E storage row: what goes into store is listed on an inventory or a receipt as agreed, wrapped and held until release; the term, what is included and whether redelivery is in the price come from the agreement, never a shortest or longest term. Link the storage page. Never a facility described as this client's (a container, a warehouse) unless [CV: materials_methods] ticks it.",
+      "symptom_based": false,
+      "is_fallback": true,
+      "condition": "the client's services list carries the Storage page",
+      "doubt": "Fit"
+    },
+    {
+      "slot": "faq_clearance",
+      "question": "Can you take away the things I don't want?",
+      "answer_brief": "Used only when the client's services list carries the House clearance page. From the trade facts Table E waste rows: moving a customer's belongings is not the same as taking their rubbish; a business that carries other people's waste usually needs to be registered as a waste carrier, and the householder is expected to check the register before handing waste over. Registration as this client's only from [CV: waste_carrier_registered]; otherwise say the general position and that the customer can check the public register. Where it goes (reuse, donation, recycling, an authorised route for electricals) from the Table A clearance stages. Never a penalty figure, never an Act's name.",
+      "symptom_based": false,
+      "is_fallback": true,
+      "condition": "the client's services list carries the House clearance page",
+      "doubt": "Trust"
+    }
+  ],
+
+  "materials_tick_list": {
+    "Packing": ["full packing service", "fragile items only packing", "unpacking service", "wardrobe cartons", "boxes and materials supplied", "crate hire"],
+    "Protection": ["floor runners", "door and banister guards", "furniture blankets", "mattress and sofa covers", "export wrapping and crates"],
+    "Vehicles and lifting": ["removals lorry", "Luton van", "small van for single items and shuttles", "tail lift", "piano moving equipment"],
+    "Storage": ["containerised storage", "self storage units", "short term storage between homes", "archive and document storage"],
+    "Other": ["furniture dismantling and reassembly", "parking suspensions applied for on the customer's behalf", "out of hours office moves", "registered waste carrier for clearances", "house clearance with reuse and recycling"]
+  },
+
+  "service_terms": ["removals", "house removals", "home removals", "local removals", "long distance removals", "international removals", "office removals", "commercial removals", "business removals", "packing", "packing service", "unpacking", "export packing", "crate hire", "furniture dismantling", "furniture reassembly", "furniture assembly", "storage", "containerised storage", "self storage", "archive storage", "document storage", "single item removals", "small moves", "man and van", "piano removals", "antique removals", "fine art removals", "safe removals", "house clearance", "end of tenancy clearance", "office clearance", "student removals", "pre move survey", "video survey", "inventory", "parking suspension", "goods in transit"],
+
+  "service_words_note": "Old path only (21 Oct 2026): this list applies when the homepage is written from the uploaded custom values CSVs. A client with a v3 page map names every service by its page title (the services library's UK name), and this list is not used.",
+  "service_words": [
+    ["furniture assembly", "furniture dismantling and reassembly"], ["furniture disassembly", "furniture dismantling and reassembly"],
+    ["furniture storage", "storage"], ["moving-related storage", "storage"], ["warehouse storage services", "storage"], ["self storage", "storage"],
+    ["archive storage", "storage"], ["document storage", "storage"], ["container storage", "storage"],
+    ["in-county moving", "local house removals"], ["local moving", "local house removals"], ["student removals", "local house removals"],
+    ["inter-county moving", "long distance removals"], ["long-distance moving", "long distance removals"],
+    ["international moving", "international removals"], ["export packing", "international removals"],
+    ["business and corporate-related moving", "office and commercial removals"], ["it equipment relocation", "office and commercial removals"],
+    ["object-related moving assistance", "single item and small moves"], ["oversized item moving", "single item and small moves"],
+    ["shared moving services", "single item and small moves"], ["small furniture moving", "single item and small moves"],
+    ["safe removals", "single item and small moves"], ["man and van", "single item and small moves"],
+    ["moving-related packing", "packing services"], ["packing & moving supplies", "packing services"], ["unpacking service", "packing services"], ["crate hire", "packing services"],
+    ["moving-related waste removal", "house clearance"], ["end of tenancy clearance", "house clearance"], ["house clearance", "house clearance"], ["office clearance", "house clearance"],
+    ["piano removals", "piano removals"], ["antique removals", "antique and fine art removals"], ["fine art removals", "antique and fine art removals"],
+    ["senior moving", null], ["vehicle transport", null],
+    ["alarm monitoring", null], ["carry-in service", null], ["climate controlling", null], ["dollies", null], ["forklift rental", null], ["move-in trucks", null], ["online payments", null], ["package placement", null]
+  ],
+
+  "general_service_words": ["removals", "house removals", "home removals", "moving house", "moving", "a move"],
+  "problem_service_words": [],
+  "why_titles_alt": [
+    "Moving Days Planned in Order",
+    "Covered If Something Goes Wrong"
+  ],
+
+  "category_work_nouns": {
+    "removals company": "removals",
+    "removals service": "removals",
+    "self storage facility": "storage"
+  },
+  "seasonal_trade": false,
+  "category_types": {},
+  "category_page_blocks": {
+    "D": {
+      "problems": {
+        "h2": "How [WORK] Works, Stage by Stage",
+        "cards": [
+          {
+            "title": "The survey that sets up the day",
+            "brief": "A stage card, never a fault: the survey (at the home or by video, only as [CV: quote_method] gives it) and what it settles, from the trade facts Table A first stages: what is going and what stays, what has to come apart, anything heavy, fragile or awkward, the doors, stairs, lifts and parking at both ends, whether packing is wanted and when it happens (usually before the day, from the Table A packing stages). Why it matters, from Table B done badly: a list that misses things is where lost items and a slow unload start, so the van, the crew and the day are planned off an accurate list. By page: Removals Company and Removals Service read it as the home move's survey; Self Storage Facility as what is going into store, listed and measured; where the category's cards lead with office moves, as the site survey, the move plan and the labelling of every desk and box to where it goes. Never a crew or van size, never a fixed price or a written quote as this client's unless the client values confirm it.",
+            "mechanism": "the list the whole day is planned from"
+          },
+          {
+            "title": "Loading at the old home",
+            "brief": "The load stage from the trade facts Table A: the home protected before anything is carried (floors, door frames, the banister: name one specific from the protection ticks where there is one, otherwise as what careful work involves and never this client's kit), furniture wrapped, the heavy pieces on first and boxes packed round them so nothing moves on the road, the things wanted first at the other end on last. Why it matters: what goes on first comes off last, so the loading plan is the unloading plan. Nothing lifted by a set number of people and no weight: lifting follows the piece and the route (Table C manual handling). By page: Self Storage Facility reads it as the load for the store, listed as it goes on; office moves as loading in phases by floor or department, every item labelled; single items and pianos as the protection and securing of one piece. Never 'nothing will break'.",
+            "mechanism": "the order things go on decides the order they come off"
+          },
+          {
+            "title": "The wait between the two homes",
+            "brief": "The gap stage: on a sale, loading goes ahead at the old home while the new one is not yet released, and the crew waits for the call. Why keys come late is the calibration pack's craft rules (the money moving between the solicitors), given as what usually happens and never as a time of day or a promise. From the trade facts: a late handover changes the shape of the day (Table A timing), and unloading cannot start until the new home is open (Table B). What happens when the day slips to the next (the load held overnight, or put into store) only where the services list has Storage or the client values confirm it; how that is charged only from [CV: price_list]. By page: a long distance move reads this as the journey and its plan, a dedicated van or a shared load as agreed (Table A); Self Storage Facility as the weeks or months in store, listed and wrapped until release, with no term named; an office move as the window between close of business and opening time. Never a promise about when completion happens.",
+            "mechanism": "unloading waits on the new home being open"
+          },
+          {
+            "title": "Unloading and getting furniture in",
+            "brief": "The unload and place stage from the trade facts Table A: each box to the room on its label, furniture where it is asked for, the beds first so there is somewhere to sleep that night, pieces that came apart put back together only where dismantling and reassembly is in the services list or confirmed (Table E: it has to be said in or out of the quote), then the delivery check that closes the job. The thing the customer fears most, from the Table B signs rows (the sofa that will not go through the doorway, the wardrobe too big for the route): how it is usually got in (the sofa stripped of its legs and cushions, a bed or a wardrobe broken down into its panels, a smaller van to shuttle where the lorry cannot get near) and that the route at the new address is measured at the survey, so the right kit is on the van. By page: where the category's cards lead with clearances, the card is the end of a clearance (the house left empty, what was kept handed over, the rest gone for reuse, donation or recycling, the disposal records kept: Table A clearance stages); an office move as desks and kit in place and checked against the asset list before opening. Never force a piece through a door (Table B done badly).",
+            "mechanism": "the new home's doors, stairs and turns decide what comes apart"
+          }
+        ]
+      },
+      "cost": {
+        "h2": "What Affects the Cost of [WORK] in [CITY]",
+        "cards": [
+          {
+            "title": "How much is going",
+            "brief": "The volume factor from the trade facts Table F: the number of rooms and how full they are, and the loft, garage and shed that get forgotten. Say it plainly and give no figure, never a van size or a number of loads."
+          },
+          {
+            "title": "Access at both ends",
+            "brief": "The access factor from the trade facts Table F: stairs with no lift, a long carry from where the van can stand, parking that has to be arranged, a narrow route that means furniture comes apart. Say why each adds time, and that both addresses count. No figure."
+          },
+          {
+            "title": "Packing, dismantling and the extras",
+            "brief": "From the trade facts Table F and Table E: a packing service, items that need their own handling (a piano, antiques), dismantling and reassembly, each in or out of the quote as the quotation says, and boxes and materials included only as it says. From the services list only; a sibling service page linked where LINKABLE PAGES has one. Code adds the price line from [CV: price_list] when there is one."
+          },
+          {
+            "title": "Distance, dates and a wait between homes",
+            "brief": "From the trade facts Table F: the distance and whether the move runs over more than a day, a dedicated van against a shared load, a delayed delivery or storage in between. Month end, Friday and summer dates only with the completion reason from the calibration pack, never 'busy'. How a hold or a night on the van is charged only from [CV: price_list]. No figure."
+          }
+        ]
+      },
+      "steps": [
+        {
+          "title": "Tell Us About Your Move",
+          "brief": "How to get in touch and what is useful to say first (where from and where to, the date if there is one, how many rooms, anything big or awkward, the stairs, lifts and parking at both ends, a video or photos if they have them). No promise of a reply time unless [CV: response_time] is set."
+        },
+        {
+          "title": "We Survey and Price Your Move",
+          "brief": "The survey (at the home or by video, only as [CV: quote_method] gives it) and what it settles: what is going and what stays, what has to come apart, the access and parking at both homes, whether packing is wanted. Follows [CV: quote_method]; only say the quote is written if quote_method says so; a price fixed before the day only when the price_agreed_before_work practice is confirmed. Never restates \"free\". Never a crew or van size."
+        },
+        {
+          "title": "We Pack, Load and Move You In",
+          "brief": "The day in order: packing beforehand where it is booked, the home protected, the van loaded, the wait for the new home to be open where the move completes that day, then unloading to the room each box is labelled for. Reassembly only where it is in the services list or confirmed. Never a time of day, an arrival time, a crew size or a finish time. Never mention the price or changes to the plan."
+        }
+      ],
+      "faq_slots": [
+        {
+          "slot": "cost",
+          "question": "How much does [WORK_LOWER] cost in [CITY]?",
+          "answer_brief": "Prices only from [CV: price_list]; otherwise how the quote is reached, from [CV: quote_method] only (a survey at the home or by video only as it gives it), and that the price is agreed before the day when the price_agreed_before_work practice is confirmed. The four cost cards above already give what moves the price: name one factor at most, never the list again.",
+          "doubt": "Price"
+        },
+        {
+          "slot": "cover",
+          "when": "insurance",
+          "question": "Are you insured for [WORK_LOWER]?",
+          "answer_brief": "The cover figure from [CV: insurance_cover] and what it is for (the load in transit, or public liability: only as the client values say which). From the trade facts Table E, the limits and what the cover leaves out sit in the policy and the contract, so say it is worth asking. Never what it pays or who it covers, never a figure the client values do not give, never a scheme's name unless confirmed.",
+          "doubt": "Trust"
+        },
+        {
+          "slot": "cover",
+          "question": "What happens if something is damaged on the move?",
+          "answer_brief": "Open with what the customer does: tell us as soon as it is seen, and we look at it. Then the reasonable care and skill standard every trade works to. No promise to pay out or replace. Never invent a guarantee or insurance.",
+          "doubt": "Trust"
+        },
+        {
+          "slot": "scope",
+          "question": "What does your [WORK_LOWER] service cover?",
+          "answer_brief": "The work itself, named from the card list (the home moves, the packing, the storage, the single items, the office moves and the clearances, only those the services list has) and the size of move taken on, from [CV: typical_jobs] only. Whether beds are taken apart and put back, and whether boxes are supplied, only from the services list and the client values (the trade facts Table E). Link one service page. Never 'on this page', 'listed above' or 'the card list' as words: the reader sees no list, so name the work.",
+          "doubt": "Fit"
+        },
+        {
+          "slot": "process",
+          "question": "What happens when I ask for a quote?",
+          "answer_brief": "From [CV: quote_method] and the confirmed practices only: what the customer sends or shows, what the survey covers (the list, the access and parking at both ends), what comes back and whether it is written. No timescale unless [CV: response_time] is set. No fixed price claim unless the price_agreed_before_work practice is confirmed.",
+          "doubt": "Process"
+        },
+        {
+          "slot": "timing",
+          "question": "When should I book my move?",
+          "answer_brief": "From [CV: start_time] where it is set. Otherwise the reason moving dates bunch, from the calibration pack: completion days and tenancy ends land at month ends, on Fridays and through the summer, so those dates are taken first and a date with more room is easier to get. Never 'we are busy', never a lead time the client values do not give, no dates.",
+          "doubt": "Timing"
+        }
+      ],
+      "faq_symptom": {
+        "frame": "[SYMPTOM]: what does it mean for a move?",
+        "answer_brief": "The assigned local situation (a street of permit parking, terraces with narrow stairs, flats with no lift, a parking court the lorry cannot enter, a lane with a width limit) and its linked local issue, answered as asked: what it changes about the day in plain words (where the van stands, how far things are carried, what comes apart, whether a smaller van shuttles), what is checked at the survey, and what the customer does about it (a suspension applied for with the council where the street needs one: the trade facts Table C, no lead time, no fee). One figure at most. Never that parking in the town is impossible or the streets dangerous; never what is inside anyone's home; never who is moving in or out.",
+        "doubt": "Process"
+      }
+    }
+  },
+
+  "service_page_blocks": {
+    "D": {
+      "included": {
+        "h2": "What's Included in Our [SERVICE]",
+        "items": [
+          {
+            "title": "Agreeing what's moving and what isn't",
+            "brief": "The survey and inventory stage from the trade facts Table A for this service: the list the job is planned from, what stays, anything heavy, fragile or awkward. A part of the job, not a promise about the quote."
+          },
+          {
+            "title": "Checking the access at both ends",
+            "brief": "Doors, stairs, lifts, turns and where the van can stand, from the Table A assessment stages. Parking arranged, and who arranges it, only as the confirmed practices give it."
+          },
+          {
+            "title": "Protecting the home and the furniture",
+            "brief": "Floors, door frames and banisters covered, furniture wrapped, from the Table A protection stages. A specific from the protection ticks where there is one; otherwise what careful work involves, never this client's kit."
+          },
+          {
+            "title": "Packing, or checking what's packed",
+            "brief": "The packing stage from Table A where packing is booked; where the customer packs, the boxes checked as sealed and labelled before loading. Boxes and materials included only as the quotation says (Table E)."
+          },
+          {
+            "title": "Loading in the order it comes off",
+            "brief": "The loading stage from Table A: the heavy pieces first, boxes built round them, what is wanted first at the other end on last. Never a number of people per lift or a weight (Table C manual handling)."
+          },
+          {
+            "title": "The journey and any wait",
+            "brief": "The transport stage from Table A, and the wait for the new home to be open where the move completes that day. A hold or storage in between only where the services list has it."
+          },
+          {
+            "title": "Unloading, placing and the final check",
+            "brief": "Each box to the room on its label, furniture where asked, reassembly only where it is in the services list, and the delivery check that closes the job, from the Table A final stages."
+          }
+        ],
+        "note": "Fallback only: the tick items are the service's own Table A stages when the pack gives 6 or more; this set is used when it gives fewer (F-ITEMS-GENERIC)."
+      },
+      "problems": {
+        "h2": "How [SERVICE] Works, Stage by Stage",
+        "cards": [
+          {
+            "title": "What gets settled before the day",
+            "brief": "A stage card, never a fault: the first Table A stage for this service as the customer sees it. For a home move, the survey and the move plan; for packing, what is being packed and what is left out; for storage, what is going in and for how long, listed; for an office move, the site survey, the move plan and every desk and box labelled to where it goes; for a piano or an antique, the route checked at both ends and the piece's condition noted (Table A: condition and the agreed value recorded before collection); for a clearance, who has the authority to clear the house (an executor or administrator where it is an estate: Table E probate row, said plainly, never as legal advice) and what the family keeps. Why it matters, from Table B done badly: a list that misses things is where lost items and delays start. Never a fixed price or a written quote as this client's unless the client values confirm it; never a crew or van size.",
+            "mechanism": "the stage the rest of the job is planned off"
+          },
+          {
+            "title": "Protection before anything is lifted",
+            "brief": "The protect and wrap stage from Table A for this service: furniture wrapped, floors and door frames covered, a mattress or a sofa in its cover, fragile items wrapped and packed upright, a piano or an artwork in its own protection or a crate (Table A piano and antique rows), things going into store wrapped so dust stays off (Storage). Name one specific from the confirmed ticks where there is one; otherwise what careful work involves, never this client's kit. Why it matters, from Table B done badly: scratches and breakages come from unsuitable protection and packing, not from the road. On a house clearance page the card is what is set aside first: what the family keeps, what goes for reuse or donation, electricals and upholstered furniture kept apart for their own routes (Table A clearance stages). Never 'nothing will break'.",
+            "mechanism": "the layer between the piece and the doorway"
+          },
+          {
+            "title": "Lifting, loading and the road",
+            "brief": "The move and load stages from Table A for this service: the route through the house walked first, pieces that will not go taken apart (dismantling only where it is in the services list or the quote: Table E bed dismantling row), each piece lifted and secured on the van so nothing shifts, then the journey. The number of people on a lift and the kit (a piano on its own equipment, a tail lift, a smaller van for a lane or a parking court) follow the piece and the route, never a rule (Table C manual handling: no set weight, no set number). For a long distance or international move, the journey's plan: a dedicated van or a shared load as agreed (Table A); customs paperwork for an international move only as the client confirms it handles it, never a form's name or a relief's detail. For storage, the load into the store checked against the inventory. For a clearance, the sorted contents out and the waste to an authorised route (Table A). Never force a piece through (Table B done badly).",
+            "mechanism": "what is heavy, awkward or valuable sets the method"
+          },
+          {
+            "title": "Placing, rebuilding and checking",
+            "brief": "The final Table A stage for this service: boxes to the room on their label, furniture where asked, beds rebuilt first where reassembly is in the scope, the delivery check against the list. For a piano, placed, with a technician's check and tune recommended after any move (Table E piano row: no interval). For antiques, unpacked and the condition checked against the record made before collection. For storage, release and redelivery as the agreement sets out (whether redelivery is in the price only from the client values: Table E). For an office move, desks and kit checked against the asset list before opening. For a clearance, the house left empty and the disposal records kept (Table A). Never a finish time; unpacking included only where the services list has it.",
+            "mechanism": "the job ends when everything is where it was asked for"
+          }
+        ]
+      },
+      "cost": {
+        "h2": "What Affects the Cost of [SERVICE] in [CITY]",
+        "cards": [
+          {
+            "title": "How much there is to move",
+            "brief": "The volume factor from the trade facts Table F price row for this service: the rooms and how full they are, the loft and the garage; for packing, the contents and the fragile items; for storage, the space taken and the agreed term; for a clearance, how much is going and how many kinds of waste. Say it plainly and give no figure."
+          },
+          {
+            "title": "Stairs, lifts and where the van can stand",
+            "brief": "The access factor from the Table F price row: stairs with no lift, a long carry, a building with restricted hours or access for an office move, a tight route for a piano, parking that has to be arranged. Say why each adds time; both addresses count. No figure."
+          },
+          {
+            "title": "The handling the job needs",
+            "brief": "From the Table F price row: dismantling and reassembly, piano equipment, crating, export packing, a condition record for antiques, hazardous or specialist disposal on a clearance, IT handling on an office move. From the services list and the confirmed ticks only; a sibling service page linked where LINKABLE PAGES has one. Code adds the price line from [CV: price_list] when there is one."
+          },
+          {
+            "title": "Distance, dates and holds",
+            "brief": "From the Table F price row: the distance and a move that runs over more than a day, a dedicated van against a shared load, storage or redelivery, a wait between homes. Month end, Friday and summer dates only with the completion reason from the calibration pack, never 'busy'. How a hold or a night on the van is charged only from [CV: price_list]. No figure."
+          }
+        ]
+      },
+      "steps": [
+        {
+          "title": "Tell Us About Your Move",
+          "brief": "How to get in touch and what is useful to say first (where from and where to, the date if there is one, what is going, anything big or awkward, the stairs, lifts and parking at both ends, a video or photos if they have them). No promise of a reply time unless [CV: response_time] is set."
+        },
+        {
+          "title": "We Survey and Price Your Move",
+          "brief": "The survey (at the home or by video, only as [CV: quote_method] gives it) and what it settles: what is going and what stays, what has to come apart, the access and parking at both homes, whether packing is wanted. Follows [CV: quote_method]; only say the quote is written if quote_method says so; a price fixed before the day only when the price_agreed_before_work practice is confirmed. Never restates \"free\". Never a crew or van size."
+        },
+        {
+          "title": "We Pack, Load and Move You In",
+          "brief": "The day in order: packing beforehand where it is booked, the home protected, the van loaded, the wait for the new home to be open where the move completes that day, then unloading to the room each box is labelled for. Reassembly only where it is in the services list or confirmed. Never a time of day, an arrival time, a crew size or a finish time. Never mention the price or changes to the plan."
+        }
+      ],
+      "faq_slots": [
+        {
+          "slot": "cost",
+          "question": "How much does [SERVICE_LOWER] cost in [CITY]?",
+          "answer_brief": "Prices only from [CV: price_list]; otherwise how the quote is reached, from [CV: quote_method] only, and that the price is agreed before the day when the price_agreed_before_work practice is confirmed. The four cost cards above already give what moves the price: name one factor at most, never the list again.",
+          "doubt": "Price"
+        },
+        {
+          "slot": "timing",
+          "question": "How long does [SERVICE_LOWER] take?",
+          "answer_brief": "From the trade facts timing row only: the rows say it varies and give no standard, so give what decides it (how much is going, the access at both ends, whether packing is in the job, the wait for the new home to be open, the distance) and the order of the day rather than its clock. Never an arrival time, a finish time or a number of hours. Nothing about when the job can start unless [CV: start_time] is set. This is the one place the timing is written.",
+          "doubt": "Timing"
+        },
+        {
+          "slot": "cover",
+          "when": "insurance",
+          "question": "Are you insured for [SERVICE_LOWER]?",
+          "answer_brief": "The cover figure from [CV: insurance_cover] and what it is for (the load in transit, or public liability: only as the client values say which). From the trade facts Table E: the van's motor insurance is not cover for what it carries; the limits, and what is left out (boxes the customer packed, items of high value), sit in the policy and the contract, so say it is worth asking. On an antiques page, a value agreed before the move (Table A) only as the client values confirm the arrangement. Never what it pays or who it covers, never a figure or a scheme the client values do not give.",
+          "doubt": "Trust"
+        },
+        {
+          "slot": "cover",
+          "question": "What happens if something is damaged during [SERVICE_LOWER]?",
+          "answer_brief": "Open with what the customer does: tell us as soon as it is seen, and we look at it. Then the reasonable care and skill standard every trade works to. No promise to pay out or replace. Never invent a guarantee or insurance.",
+          "doubt": "Trust"
+        },
+        {
+          "slot": "access",
+          "question": "Do I need to sort parking or be there on the day?",
+          "answer_brief": "From [CV: access_handling] and the confirmed practices only: whether the customer is there at each end, keys, who applies for a bay suspension where the street needs one (the trade facts Table C: it depends on the council and the street; no lead time, no fee), a lift booked in a block. When nothing is on file, say the arrangements are agreed at the survey and nothing more. Never a council rule or a lead time the research does not give.",
+          "doubt": "Process"
+        },
+        {
+          "slot": "scope",
+          "question": "What does your [SERVICE_LOWER] service include?",
+          "answer_brief": "The What's Included items said as a sentence, in other words. What it does not cover only from the services list (packing, dismantling, storage and unpacking are each in or out as the quotation says: the trade facts Table E), with one sibling service page or the category page linked. Never 'on this page' or 'listed above': name the work.",
+          "doubt": "Fit"
+        },
+        {
+          "slot": "rules",
+          "when": "rule_rows",
+          "question": "Is there anything I need to arrange or check for [SERVICE_LOWER]?",
+          "answer_brief": "From the trade facts rule rows only, put as what usually applies, in plain words. The licences, drivers' rules and vehicle rules are the firm's to hold and need nothing from the customer: say so without an Act's name, a weight or a number. What is the customer's: a parking suspension where the street needs one (apply to the council); on a clearance, checking the clearer is a registered waste carrier on the public register; on an international move, the customs paperwork the move needs, only as the client confirms it handles it; on a storage contract, what the agreement says about release and redelivery. The usual cooling off right for a service booked at a distance does not usually apply to a move booked for a set date (Table C), said as something worth knowing, never as advice. Never a standard's number, a penalty figure or legal advice. This slot is used only when the service has rule rows.",
+          "doubt": "Process"
+        }
+      ],
+      "faq_symptom": {
+        "frame": "[SYMPTOM]: what does it mean for [SERVICE_LOWER]?",
+        "answer_brief": "The assigned local situation (an access situation: permit parking, terrace stairs with a turn, a flat with no lift, a parking court, a lane with a width limit) and its linked local issue, answered as asked: what it changes about this job in plain words (where the van stands, how far things are carried, what comes apart, whether a smaller van shuttles), what is checked at the survey, and what the customer does about it (a suspension applied for with the council where the street needs one: the trade facts Table C, no lead time). One figure at most. Never that parking in the town is impossible; never what is inside anyone's home; never who is moving in or out.",
+        "doubt": "Process"
+      }
+    }
+  },
+
+  "location_page_blocks": {
+    "D": {
+      "problems": {
+        "h2": "[WORK] in [TOWN]: What Shapes the Day",
+        "cards": [
+          {
+            "title": "Permit streets and where the van can stand",
+            "brief": "The town's parking from the profile: residents' permit zones, controlled bays, loading restrictions on the main roads, terraces where a lorry blocks the road. The one thing this card makes: the kerb the van can use decides how far everything is carried. What it changes, in plain words: a bay suspension or a dispensation applied for with the council where the street needs one (the trade facts Table C: it depends on the council and the street; no lead time, no fee; where the research gives nothing, say to check with the council), a smaller van shuttled where the lorry cannot stand near the door, a longer carry priced in. Never that parking in the town is impossible or the streets congested; never a lead time the research does not give; never who lives on the street.",
+            "mechanism": "the kerb the van can use decides how far everything is carried"
+          },
+          {
+            "title": "Old houses, narrow stairs",
+            "brief": "The housing from the profile: the older terraces with narrow stairs and a turn at the top, cottages with low doors, converted houses with shared stairs. The one thing this card makes: the way the town's houses were built sets what has to come apart. What it changes: wardrobes, beds and sofas measured at the survey and taken apart or stripped of feet and doors before they come down (dismantling in the quote only as the services list has it), the banister and the door frames protected first. An era says what the work meets, never a judgement on the homes, and never what is inside them. Not the new home's doors: the service pages own that.",
+            "mechanism": "the way the town's houses were built sets what has to come apart"
+          },
+          {
+            "title": "Flats, lifts and long carries",
+            "brief": "The town's flats from the profile: purpose built blocks with or without a lift, flats above shops with one stair, new blocks with a lift to book and a parking court the lorry cannot enter. The one thing this card makes: the floors between the van and the front door. What it changes: a lift booked with the managing agent where there is one (as this client's practice only from the confirmed practices), a carry up the stairs that takes longer with every floor, a shuttle van from the court to the door. Never a floor count as a price, never a judgement on a block or its residents.",
+            "mechanism": "the floors between the van and the front door"
+          },
+          {
+            "title": "Lanes, estates and the way in",
+            "brief": "From the profile: rural lanes with width or weight limits, new estates with tight cul de sacs and parking courts, a market town's one way streets. The one thing this card makes: the route the lorry can take to the door. What it changes: a smaller van for the last stretch and the load transferred, more of the day spent on the road. A limit only as the profile gives it, never a figure. Where the town is all one kind of street, the card is the drive from the base and what it takes out of the day, from [CV: travel_distance] only and never as a time.",
+            "mechanism": "the route the lorry can take to the door"
+          }
+        ]
+      },
+      "cost": {
+        "h2": "What Affects the Cost of [WORK] in [TOWN]",
+        "cards": [
+          {
+            "title": "Parking and the carry",
+            "brief": "Where the van can stand and how far it is to the door, the suspension where the street needs one, from the town profile where it gives the streets. Say why a long carry adds time. No figure."
+          },
+          {
+            "title": "Stairs and lifts",
+            "brief": "Floors without a lift, a lift to book, narrow stairs that mean furniture comes apart, from the profile where it gives the housing. Say why each adds time. No figure."
+          },
+          {
+            "title": "Getting the lorry to the door",
+            "brief": "Lanes and limits, cul de sacs and parking courts, a shuttle van for the last stretch, from the profile where it gives them. Say it plainly. No figure, no limit as a number."
+          },
+          {
+            "title": "The date and the distance",
+            "brief": "The drive from the base only where [CV: travel_distance] gives it; month end, Friday and summer dates with the completion reason from the calibration pack, never 'busy'; a wait or a night on the van charged only from [CV: price_list]. No figure."
+          }
+        ]
+      },
+      "faq_slots": [
+        {
+          "slot": "cost",
+          "question": "How much does [WORK_LOWER] cost in [TOWN]?",
+          "answer_brief": "Prices only from [CV: price_list]; otherwise the things that push the price up in a town like this (parking, stairs, the carry, the drive) and how the quote is reached, from [CV: quote_method] only.",
+          "doubt": "Price"
+        },
+        {
+          "slot": "town",
+          "when": "start_time",
+          "question": "How far ahead should I book a move in [TOWN]?",
+          "answer_brief": "From [CV: start_time] and [CV: response_time] only. The town is in the area covered; nothing about distance unless [CV: travel_distance] is set.",
+          "doubt": "Timing"
+        },
+        {
+          "slot": "town",
+          "question": "Do you cover [TOWN]?",
+          "answer_brief": "Yes: the town and the villages around it (code lists them; name none). How the business reaches it from its base only from the client values. Link one page in this town.",
+          "doubt": "Fit"
+        },
+        {
+          "slot": "cover",
+          "when": "insurance",
+          "question": "Are you insured?",
+          "answer_brief": "The cover figure from [CV: insurance_cover] and what it is for (the load in transit, or public liability: only as the client values say which). Never what it pays or who it covers; the limits sit in the policy and the contract (the trade facts Table E), so say it is worth asking. Never a scheme's name unless confirmed.",
+          "doubt": "Trust"
+        },
+        {
+          "slot": "cover",
+          "question": "What happens if something is damaged on the move?",
+          "answer_brief": "Open with what the customer does: tell us as soon as it is seen, and we look at it. Then the reasonable care and skill standard. No promise to pay out or replace. Never invent a guarantee or insurance.",
+          "doubt": "Trust"
+        },
+        {
+          "slot": "process",
+          "question": "What happens when I ask for a quote in [TOWN]?",
+          "answer_brief": "From [CV: quote_method] and the confirmed practices only: a survey at the home or by video only as it gives it, what gets checked at both ends (the list, the stairs, the parking), what comes back and whether it is written. No timescale unless [CV: response_time] is set.",
+          "doubt": "Process"
+        },
+        {
+          "slot": "timing",
+          "question": "When do most people move in [TOWN], and does it matter?",
+          "answer_brief": "The reason moving dates bunch, from the calibration pack: completion days and tenancy ends fall at month ends, on Fridays and through the summer, so those dates are taken first. Where the profile confirms it, the town's own pattern (a university's year end, holiday lets changing hands) said as when moves cluster, never as who is leaving or arriving. Never 'busy', no dates, no lead time the client values do not give.",
+          "doubt": "Timing"
+        }
+      ]
+    }
+  },
+  "do_not_reuse": []
+}
