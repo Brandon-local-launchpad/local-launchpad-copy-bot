@@ -586,5 +586,67 @@
       ]
     }
   },
+  "service_overrides": {
+    "media walls": {
+      "cost": {
+        "h2": "What Affects the Cost of [SERVICE] in [CITY]",
+        "cards": [
+          {
+            "title": "The size of the wall and the recesses",
+            "brief": "How wide and how high the wall is and how much is built out from it: a simple surface mounted arrangement against complex framing, a recess for the screen, more recesses for shelves or a fire (the trade facts price row: complex framing or recesses; the materials cell: stud framing and plasterboard, recessed or surface mounted equipment). More recesses mean more framing, boarding and finishing. Say it plainly and give no figure. Say the business looks before it prices, from [CV: quote_method] only."
+          },
+          {
+            "title": "The electrics and the cable routes",
+            "brief": "How the power and the cables reach the screen and the fire: a socket already close by against a new circuit, the cables hidden inside the frame, and a way back in to the connections once the wall is boarded (the trade facts price row: new electrical circuit, access and finishing requirements; the done badly row: hidden connections with no access cannot be inspected). A new circuit brings in a registered electrician or the notification route, from the Part P rule row in plain words. A wall or floor that holds back a fire keeps its protection where a cable goes through it (the price row: protected wall penetrations); never that every light needs a fire hood or that every media wall needs fire rated board, because the trade facts found no such rule."
+          },
+          {
+            "title": "The fire and what it needs",
+            "brief": "Whether a fire goes in at all, and whether the one chosen only needs power or needs a flue or a gas supply, because that decides what has to be brought to the wall and who connects it. The trade facts have no row on fires, so never call one kind cheaper, give no clearance from the screen and no rule about a flue. The one rule they do give: anyone working on a gas fitting has to be Gas Safe registered (the gas rows). Which fires this business fits only from [CV: materials_methods] or the services list. Give no figure."
+          },
+          {
+            "title": "The finish and the lighting",
+            "brief": "The finish on the boards and how much of it there is to get right, how many lights go in the recesses and the shelves, and whether they run on new wiring (the trade facts price row: access and finishing requirements; the timing cell: plaster and finish drying depends on the products chosen, so no drying time). Say why more detail adds time. A named product only from [CV: materials_methods]; never a brand. Code adds the price line from [CV: price_list] when there is one."
+          }
+        ]
+      }
+    },
+    "bathroom design": {
+      "cost": {
+        "h2": "What Affects the Cost of [SERVICE] in [CITY]",
+        "cards": [
+          {
+            "title": "The size of the room",
+            "brief": "A cloakroom or a small en suite against a large family bathroom: how many fittings have to be placed, how many ways they could go in, how much there is to measure and draw (the trade facts stages: measure and identify the services, plan the sanitaryware and the access). A bigger or more awkward room takes longer to work out. Say it plainly and give no figure."
+          },
+          {
+            "title": "How far the layout moves from the services",
+            "brief": "Keeping the toilet, the basin and the shower close to where the waste, the soil pipe, the water and the electrics run now is the simpler drawing. Moving them means checking the water can still drain away and the fan can still reach outside before the layout is settled (the trade facts price row: drainage route investigation, structural or ventilation constraints; the lower cost row: an achievable existing service layout). Individual access requirements take more working out (the price row); say what the person wants to be able to do, never their age or condition. Say the business looks before it prices, from [CV: quote_method] only."
+          },
+          {
+            "title": "3D visuals or a measured plan",
+            "brief": "A measured plan or CAD layout that shows where everything goes, against 3D visuals that show how the room will look, and how many rounds of changes it takes to settle it (the trade facts materials cell: measured plan or CAD layout; the price row: multiple revisions). Say what each one gives the customer. 3D visuals only where [CV: materials_methods] says this business produces them; without that, this card is the plan and the changes alone. Never a number of revisions included."
+          },
+          {
+            "title": "Whether we fit it as well",
+            "brief": "A design on its own against a design that the fitting follows with this business. How the design is charged either way, and whether anything comes off the fitting, only from [CV: price_list] or [CV: quote_method]; never that the design is free or that a design fee is taken off unless they say so. Designing for a room someone else will fit only where the services list or [CV: typical_jobs] says the business does it. Code adds the price line from [CV: price_list] when there is one."
+          }
+        ]
+      },
+      "steps": [
+        {
+          "title": "Tell Us About the Room",
+          "brief": "How to get in touch and what is useful to send first: which room and who uses it, what does not work about it now (a door that hits the basin, no space beside the toilet, a shower with nowhere to drain), what has to stay, rough sizes and photos if they have them. No promise of a reply time unless [CV: response_time] is set."
+        },
+        {
+          "title": "We Measure and Draw It",
+          "brief": "The measuring and what gets looked at: the sizes of the room, where the water, the waste, the soil pipe, the electrics and the fan run now, whether water can drain from where the shower would go; then the layout of the bath, the shower, the toilet and the basin with room to use them (the trade facts stages). Follows [CV: quote_method]; only say the quote is written if quote_method says so. Never restates 'free' (FAQ 5 owns it). Never a number of days: the trade facts say design time varies."
+        },
+        {
+          "title": "You Get the Drawings and the Specification",
+          "brief": "What the customer ends up holding: the measured layout, the shower, ventilation and electrical positions marked on it, and what is specified for each place, revised with them until it is settled (the trade facts stages: specify the positions, issue and revise the layout). A named product only from [CV: materials_methods]; never a brand. Whether the fitting follows with this business only from the services list. Never a date for the drawings, never a promise of an approval, and never mention the price or the quote (step 2 and Why choose us own them)."
+        }
+      ]
+    }
+  },
   "do_not_reuse": []
 }
