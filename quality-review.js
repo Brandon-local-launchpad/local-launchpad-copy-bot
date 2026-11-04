@@ -391,9 +391,16 @@ async function reviewPage({ record, V, D, cv, niche, callModel }) {
 function formatReview(rv) {
   const L = [`Score: ${rv.score === null ? 'n/a' : rv.score.toFixed(1)} / 10 · ${rv.items.length - rv.failed.length}/${rv.items.length} rubric items pass · ${rv.done ? 'DONE' : 'not done'}`,
     `Validator: ${rv.validator.block} BLOCK, ${rv.validator.flag} FLAG`, ''];
+  // Every rubric item, failures first with the reviewer's reasons, then the passes (4 Nov 2026:
+  // the file next to each page is the whole mark sheet, not only what was marked down)
   for (const i of rv.items.filter(x => !x.pass)) {
     L.push(`FAIL ${i.id} (${i.by}) ${i.title}`);
     for (const r of i.reasons) L.push(`  - ${r}`);
+  }
+  const passed = rv.items.filter(x => x.pass);
+  if (passed.length) {
+    L.push('', `Passed (${passed.length}):`);
+    for (const i of passed) L.push(`PASS ${i.id} (${i.by}) ${i.title}`);
   }
   if ((rv.missing_facts || []).length) {
     L.push('', 'Client facts that would make the page better:');
