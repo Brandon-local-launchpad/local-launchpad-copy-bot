@@ -85,6 +85,7 @@ function applyOverride(entry, over) {
   if (over.cost) out.cost = over.cost;
   if (Array.isArray(over.steps) && over.steps.length) out.steps = over.steps;
   if (Array.isArray(over.faq_slots) && over.faq_slots.length) out.faq_slots = over.faq_slots;
+  if (over.included && Array.isArray(over.included.items) && over.included.items.length) out.included = over.included;
   return out;
 }
 

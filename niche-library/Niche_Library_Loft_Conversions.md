@@ -16,6 +16,7 @@ Sources, in the order the README gives: `calibration-packs/Loft_Conversions_Cali
 |---|---|
 | trade / trade_lower | Loft Conversions and Extensions / loft conversions and extensions |
 | trade_person / trade_person_plural | loft and extension builder / loft and extension builders |
+| homepage_keyword | Loft conversion (4 Nov 2026, Brandon: the homepage keyword is a way of saying the primary GBP category, picked on search volume; the H1 research pattern and the thin runner read it through niche-library/keyword.js) |
 | customer_type | homeowners |
 | unit_of_work | jobs |
 | emergency_niche | no (loft-conversions.csv flags no page emergency; no emergency variant, no steps_emergency, final_h2_emergency null) |

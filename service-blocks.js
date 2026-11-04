@@ -40,6 +40,9 @@ function blocksFor({ niche, cv = {}, category, emergencyPage = false, desirePage
   const over = C.overrideFor(niche.service_overrides, service);
   const t = C.typeFor({ niche, cv, category, emergencyPage });
   if (over && over.always_emergency) t.emergencyOn = true;
+  // type (copy quality 3, 4 Nov 2026): a one off build under a round category (the landscaper's Fencing under
+  // Gardener) reads the type the override names instead of the category's
+  if (over && over.type && all[String(over.type).toUpperCase()]) { t.letter = String(over.type).toUpperCase(); t.a2 = false; t.source = 'service override'; }
   const key = t.a2 && all.A2 ? 'A2' : t.letter;
   const base = all[key];
   if (!base) throw new NoBriefsError(`no service block briefs for ${nicheName} type ${key}`, { niche: nicheName, type: key });

@@ -14,6 +14,7 @@ Business type is **A (project trade)** for the one GBP category, Pest control se
 |---|---|
 | trade / trade_lower | Pest Control / pest control |
 | trade_person / trade_person_plural | pest controller / pest controllers |
+| homepage_keyword | Pest control (4 Nov 2026, Brandon: the homepage keyword is a way of saying the primary GBP category, picked on search volume; the H1 research pattern and the thin runner read it through niche-library/keyword.js) |
 | customer_type | homeowners |
 | unit_of_work | jobs |
 | emergency_niche | yes (the old marker; nothing reads it. Emergency is per page through the library's emergency column) |

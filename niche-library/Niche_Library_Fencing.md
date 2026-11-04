@@ -14,6 +14,7 @@ Business type is **A (project trade)** for every page. Fencing has one GBP categ
 |---|---|
 | trade / trade_lower | Fencing / fencing |
 | trade_person / trade_person_plural | fencer / fencers |
+| homepage_keyword | Fencing (4 Nov 2026, Brandon: the homepage keyword is a way of saying the primary GBP category, picked on search volume; the H1 research pattern and the thin runner read it through niche-library/keyword.js) |
 | customer_type | homeowners |
 | unit_of_work | jobs |
 | emergency_niche | no (no page in fencing.csv is flagged emergency; a storm repair is urgent to the customer but the pack writes it as a diagnosis, not a call out) |

@@ -223,7 +223,9 @@ for (const [slot, by] of [['service_overrides', 'page target'], ['category_overr
     if (v.cost && !cards4(v.cost.cards)) fail(`${slot} "${k}": cost needs 4 cards with title and brief`);
     if (v.problems && !cards4(v.problems.cards)) fail(`${slot} "${k}": problems needs 4 cards with title and brief`);
     if (v.steps && (!Array.isArray(v.steps) || v.steps.length !== 3 || v.steps.some(x => !x || !x.title || !x.brief))) fail(`${slot} "${k}": steps needs 3 entries with title and brief`);
-    for (const key of Object.keys(v)) if (!['always_emergency', 'cost', 'steps', 'problems', 'faq_slots'].includes(key)) warn(`${slot} "${k}": unknown key ${key}`);
+    if (v.type && !/^[ABCD]$/.test(String(v.type))) fail(`${slot} "${k}": type must be A, B, C or D`);
+    if (v.type && slot === 'service_overrides' && !(n.service_page_blocks || {})[v.type]) fail(`${slot} "${k}": type ${v.type} has no service_page_blocks entry`);
+    for (const key of Object.keys(v)) if (!['always_emergency', 'type', 'cost', 'steps', 'problems', 'faq_slots', 'included'].includes(key)) warn(`${slot} "${k}": unknown key ${key}`);
   }
 }
 const fails = out.filter(o => o[0] === 'FAIL').length, warns = out.filter(o => o[0] === 'WARN').length;

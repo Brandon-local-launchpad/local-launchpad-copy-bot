@@ -16,6 +16,7 @@ Sources, in order of authority: `calibration-packs/Driveways_Calibration_Pack_v1
 |---|---|
 | trade / trade_lower | Driveways and Paving / driveways and paving |
 | trade_person / trade_person_plural | driveway contractor / driveway contractors |
+| homepage_keyword | Driveways (4 Nov 2026, Brandon: the homepage keyword is a way of saying the primary GBP category, picked on search volume; the H1 research pattern and the thin runner read it through niche-library/keyword.js) |
 | customer_type | homeowners |
 | unit_of_work | jobs |
 | emergency_niche | no |

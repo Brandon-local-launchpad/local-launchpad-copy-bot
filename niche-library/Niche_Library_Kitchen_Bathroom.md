@@ -16,6 +16,7 @@ Sources, in the order the README gives: `calibration-packs/Kitchen_Bathroom_Cali
 |---|---|
 | trade / trade_lower | Kitchen and Bathroom Fitting / kitchen and bathroom fitting |
 | trade_person / trade_person_plural | kitchen and bathroom fitter / kitchen and bathroom fitters |
+| homepage_keyword | Kitchen fitter (4 Nov 2026, Brandon: the homepage keyword is a way of saying the primary GBP category, picked on search volume; the H1 research pattern and the thin runner read it through niche-library/keyword.js) |
 | customer_type | homeowners |
 | unit_of_work | jobs |
 | emergency_niche | no (kitchen-bathroom.csv flags no page emergency; no emergency variant, no steps_emergency, final_h2_emergency null) |
