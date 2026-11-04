@@ -214,6 +214,20 @@ function packIndex(text) {
   packCache.set(text, idx);
   return idx;
 }
+// The word ranges a page is held to (copy quality 2, phase 2, 4 Nov 2026): the page type's, with every
+// minimum a third lower on a thin page (V.thin: the homepage's F-THIN, or no allocated neighbourhoods on
+// any page), so the model is not pushed to pad a page that has less to say
+function thinRange(r, thin) {
+  if (!thin || !r || !r.min) return r;
+  const min = Math.ceil(r.min * 2 / 3);
+  return { ...r, min, label: `${min} to ${r.max}` };
+}
+function effectiveRanges(record, V) {
+  const base = (require('./page-types').pageTypeOf(record).ranges) || RANGES;
+  if (!V || !V.thin) return base;
+  return Object.fromEntries(Object.entries(base).map(([k, r]) => [k, thinRange(r, true)]));
+}
+
 // A sentence copied from the pack: a shared 4-gram, or 70% of its content words in one pack sentence
 // names (3 Nov): the page's own names (its services, cards, categories and linkable H1s, lower
 // case): a run that sits inside one of them is the name of a page, not a copy ("dog bath and blow
@@ -278,6 +292,8 @@ function buildValidationContext({ cv, niche, decisions, keyValueMap = {}, servic
   return {
     cv, niche, D, keyValueMap, serviceParentMap, populatedCvKeys: populatedCvKeys || new Set(),
     pack: packIndex(calibrationPack),
+    // thin (4 Nov 2026): the word minimums drop by a third (D.thin: F-THIN on the homepage, no allocated neighbourhoods on any page)
+    thin: !!D.thin,
     // The page's own names, for PACK-COPY: a shared run inside one of them is a page name, not a copy
     packNames: [...new Set([
       ...Object.entries(keyValueMap).filter(([k]) => /^(service|mentioned|category)_\d+$/.test(k)).map(([, v]) => v),
@@ -307,7 +323,7 @@ function validateCommon(record, V) {
   if (record.blocked) return { issues, issue, fields: [] };
   const { cv, niche, D } = V;
   const K = V.keys || HOMEPAGE_KEYS;
-  const ranges = (require('./page-types').pageTypeOf(record).ranges) || RANGES;
+  const ranges = effectiveRanges(record, V);
   const fields = modelFields(record);
 
   // ── Per field ──
@@ -399,7 +415,7 @@ function validateCommon(record, V) {
     // N7: word ranges and long sentences
     const r = ranges[f.rangeKey];
     if (r) {
-      const range = f.rangeKey === K.content && D.d13_expands ? { min: 200, max: 300, label: '200 to 300' } : r;
+      const range = f.rangeKey === K.content && D.d13_expands ? thinRange({ min: 200, max: 300, label: '200 to 300' }, V.thin) : r;
       const n = wordCount(t);
       if ((range.min && n < range.min) || n > range.max) flag('FLAG', 'N7', `${n} words: it must be ${range.label}.`);
     }
@@ -1018,6 +1034,7 @@ function summarise(issues) {
 }
 
 module.exports = {
+  effectiveRanges, thinRange,
   validateV20, validateCommon, sharedCrossChecks, buildValidationContext, modelFields, getField, setField, summarise, wordCount, RANGES, RETRY_FLAGS, BANNED, STOCK, HOMEPAGE_KEYS,
   // Text helpers for a page type's own checks
   helpers: { esc, stripLinks, linkUrls, normUrl, scanText, words, sentences, lc, stem, STOPWORDS, contentWords, packIndex, packCopy },

@@ -26,6 +26,7 @@
 
 const { ph, cap, titleCase, isLinkable, stepsFor, yearsTradingOf, titleModifierFor, seoTitleFor, trustLineFor, ratingLineFor, buttonsFor } = require('./decisions');
 const { keywordWord, isPersonWord, phCat, metaFor } = require('./category-decisions');
+const IH = require('./idea-homes');
 const LB = require('./location-blocks');
 
 const lc = s => String(s || '').toLowerCase().trim();
@@ -251,7 +252,7 @@ function computeLocationDecisions({ cv, niche, keyValueMap = {}, rows = [], page
     reviews: { show: reviewsShow, items: picked, count: reviewCount },
     niche_steps: steps,
     areas, faq: faqs,
-    allocated, ideasUsed: Array.isArray(ideasUsed) ? ideasUsed : [], mechanismsUsed,
+    allocated, thin: !allocated.neighbourhoods.length, ideasUsed: Array.isArray(ideasUsed) ? ideasUsed : [], mechanismsUsed,
     contentLinks, linkablePages, townPagePrefix,
     quoteFree, emergencyOn, emergencyWhy,
     // The shared COAST rule ("inland and along the coast") is the base page's travel sentence: a
@@ -352,6 +353,9 @@ function formatLocationBlock(D, cv, niche, ctx) {
   push('--- HOW THE BUSINESS WORKS ---');
   push('  Only what CONFIRMED PRACTICES in the client block say. Never invent a way of working or a promise about it: no "nothing gets added without you saying so", "each garden gets its own plan", "we stick to the work you asked for", "the price never creeps", "we fit the visit to a time that suits you", "we arrive ready to start", no seasonal pattern of visits, no comparison between the cost of a round and a one off. Say what the work involves, not how the business runs it. Never imply the business has worked in a named place unless [CV: areas_worked] names it.');
   push('');
+  if (D.thin) { const R = require('./page-types/location').ranges; push(''); push('THIN PAGE (no allocated neighbourhoods): every word minimum below is a third lower than the prompt says; do not pad to reach the prompt\'s figure. The ranges on this page:'); for (const [k, r] of Object.entries(R)) if (r && r.min) push(`  ${k}: ${Math.ceil(r.min * 2 / 3)} to ${r.max} words`); }
+  for (const l of IH.ideaHomeLines('location')) push(l);
+  push('');
   push('LINKABLE PAGES:');
   for (const p of D.linkablePages) push(`  [${p.type}] ${p.url} | H1: ${p.h1}${p.say ? ` | say: ${p.say}` : ''}`);
   if (!D.linkablePages.length) push('  none');
@@ -391,17 +395,17 @@ function formatLocationBlock(D, cv, niche, ctx) {
   push(`  ${PT.LABELS.servicesIntro}`);
   push(`  ${PT.LABELS.cards}`);
   for (const c of D.cards) push(`    - card_name: ${c.name} | card_text`);
-  push(`  ${PT.LABELS.content}`);
+  push(`  ${PT.LABELS.content} (${IH.ideaNote('content')})`);
   push(`  ${PT.LABELS.block4}`);
   for (const p of D.problems) push(`    - ${PT.LIST_KEYS[PT.LABELS.block4][0]}: ${p.title} | ${PT.LIST_KEYS[PT.LABELS.block4][1]}`);
-  push(`  ${PT.LABELS.costIntro}`);
-  push(`  ${PT.LABELS.block5}`);
+  push(`  ${PT.LABELS.costIntro} (${IH.ideaNote('costIntro')})`);
+  push(`  ${PT.LABELS.block5} (${IH.ideaNote('block5')})`);
   for (const p of D.cost) push(`    - ${PT.LIST_KEYS[PT.LABELS.block5][0]}: ${p.title} | ${PT.LIST_KEYS[PT.LABELS.block5][1]}`);
   push(`  ${PT.LABELS.steps}`);
-  for (const s of D.niche_steps) push(`    - step_title: ${s.title} | step_body`);
+  D.niche_steps.forEach((s, i) => push(`    - step_title: ${s.title} | step_body${i === 0 ? ` (${IH.ideaNote('step1')})` : ''}`));
   push(`  ${PT.LABELS.areasIntro}`);
   push(`  ${PT.LABELS.faq}`);
-  for (const q of D.faq) push(`    - faq_question: ${q.question} | faq_answer`);
+  for (const q of D.faq) { const role = IH.faqRole(q.question); push(`    - faq_question: ${q.question} | faq_answer${role ? ` (${IH.ideaNote(role, 'location')})` : ''}`); }
   push(`  ${PT.LABELS.finalCta}`);
   push('  MODEL_FLAGS');
   return L.join('\n');

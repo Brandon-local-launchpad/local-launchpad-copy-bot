@@ -27,20 +27,26 @@ class NoBriefsError extends Error {
 // The block entry for a service page: the parent category's type (or the client's), A2
 // when the marker holds and an A2 entry exists, the desire led variant laid over it on a
 // desire led page, the emergency variant over that when the emergency layout is on.
-function blocksFor({ niche, cv = {}, category, emergencyPage = false, desirePage = false }) {
+// service_overrides (copy quality 2, phase 2, 4 Nov 2026): the entry may replace block 5 (cost), the
+// steps, block 4 or the FAQ slots for one service page, keyed by the page target in lower case, and set
+// always_emergency so the page takes the urgent framing and steps whatever the client values say:
+//   "service_overrides": { "lockouts and gaining entry": { "always_emergency": true, "cost": { "h2", "cards": [x4] } } }
+function blocksFor({ niche, cv = {}, category, emergencyPage = false, desirePage = false, service = '' }) {
   const nicheName = niche._source || niche.trade_lower || niche.trade || 'this niche';
   const all = niche.service_page_blocks;
   if (!all || typeof all !== 'object' || !Object.keys(all).length) {
     throw new NoBriefsError(`no service block briefs for ${nicheName}`, { niche: nicheName });
   }
+  const over = C.overrideFor(niche.service_overrides, service);
   const t = C.typeFor({ niche, cv, category, emergencyPage });
+  if (over && over.always_emergency) t.emergencyOn = true;
   const key = t.a2 && all.A2 ? 'A2' : t.letter;
   const base = all[key];
   if (!base) throw new NoBriefsError(`no service block briefs for ${nicheName} type ${key}`, { niche: nicheName, type: key });
   const desireUsed = !!(desirePage && base.desire && !(t.emergencyOn && base.emergency));
   const withDesire = desireUsed ? { ...base, ...base.desire } : base;
-  const entry = t.emergencyOn && base.emergency ? { ...withDesire, ...base.emergency } : withDesire;
-  return { ...t, key, entry, emergencyUsed: !!(t.emergencyOn && base.emergency), desireUsed };
+  const entry = C.applyOverride(t.emergencyOn && base.emergency ? { ...withDesire, ...base.emergency } : withDesire, over);
+  return { ...t, key, entry, emergencyUsed: !!(t.emergencyOn && base.emergency), desireUsed, overrideUsed: !!over, forcedEmergency: !!(over && over.always_emergency) };
 }
 
 // What a block entry lacks, as F-BRIEF messages (the page still runs with what there is)

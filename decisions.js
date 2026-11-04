@@ -7,6 +7,7 @@
 const CURRENT_YEAR = new Date().getFullYear();
 const { isAdminArea } = require('./client-files');
 const CB = require('./category-blocks');
+const IH = require('./idea-homes');
 const FALLBACK_ORDER = ['faq_C', 'faq_D', 'faq_E'];
 
 function cap(s) { return (s && s.length) ? s[0].toUpperCase() + s.slice(1) : (s || ''); }
@@ -931,6 +932,8 @@ function computeDecisions({ cv, niche, pages, keyValueMap, serviceParentMap, v20
     cta_band:             ctaBand,
     final_cta_trust_lines: finalCtaTrustLines,
     trusted_logos:        trustedLogos,
+    // thin (4 Nov 2026): F-THIN, or no allocated neighbourhoods: the word minimums drop by a third
+    thin:                 flags.some(f => f.code === 'F-THIN') || !((allocated.neighbourhoods) || []).length,
   };
 
   const decisionsBlock = formatDecisionsBlock(decisions, cv, niche, ctx);
@@ -1018,6 +1021,9 @@ function formatDecisionsBlock(D, cv, niche, ctx) {
   push(`Primary city coastal: ${D.coastal ? 'yes. Write the travel distance as "inland and along the coast", never compass directions or "in each direction"' : 'no'}`);
   push(`Locations hub: ${D.locations_hub ? `${D.locations_hub} (FAQ "Which areas do you cover?" links it)` : 'none (the areas FAQ links no hub)'}`);
   push('');
+  if (D.thin) { const R = require('./validate-v20').RANGES; push(''); push('THIN PAGE (few proofs or no allocated neighbourhoods): every word minimum below is a third lower than the prompt says; do not pad to reach the prompt\'s figure. The ranges on this page:'); for (const [k, r] of Object.entries(R)) if (r && r.min) push(`  ${k}: ${Math.ceil(r.min * 2 / 3)} to ${r.max} words`); }
+  for (const l of IH.ideaHomeLines('homepage')) push(l);
+  push('');
   push('LINKABLE PAGES:');
   for (const p of D.linkablePages) push(`  [${p.type}] ${p.url} | H1: ${p.h1}${p.say ? ` | say: ${p.say}` : ''}`);
   push('');
@@ -1039,7 +1045,7 @@ function formatDecisionsBlock(D, cv, niche, ctx) {
   // Field names and list keys match the CORE (20) OUTPUT block exactly.
   push('MODEL FIELDS:');
   push('  home_hero_intro');
-  push(`  home_content_block_body${D.d13_expands ? ' (expand: up to 300 words)' : ''}`);
+  push(`  home_content_block_body${D.d13_expands ? ' (expand: up to 300 words)' : ''} (${IH.ideaNote('content')})`);
   push('  home_services_intro');
   push('  home_services_cards');
   for (const c of D.d9.main) push(`    - card_name: ${c.name} | card_text${c.linked ? '' : ' (unlinked: no link)'}${c.services && c.services.length ? ` (names: ${c.services.join(', ')})` : ''}`);
@@ -1047,11 +1053,11 @@ function formatDecisionsBlock(D, cv, niche, ctx) {
   push('  home_why_points');
   for (const p of D.d10_why) push(`    - point_title: ${p.title} | point_body`);
   push('  home_process_steps');
-  for (const s of D.niche_steps) push(`    - step_title: ${s.title} | step_body`);
+  D.niche_steps.forEach((s, i) => push(`    - step_title: ${s.title} | step_body${i === 0 ? ` (${IH.ideaNote('step1')})` : ''}`));
   push(`  home_owner_body${D.d7.sec9 === 'HIDDEN' ? ' (HIDDEN)' : ''}`);
   push('  home_areas_intro');
   push('  home_faq_items');
-  for (const q of D.d11_faq) push(`    - faq_question: ${q.question} | faq_answer`);
+  for (const q of D.d11_faq) { const role = IH.faqRole(q.question); push(`    - faq_question: ${q.question} | faq_answer${role ? ` (${IH.ideaNote(role, 'homepage')})` : ''}`); }
   push('  home_final_cta_body');
   push('  MODEL_FLAGS');
 

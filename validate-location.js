@@ -55,7 +55,7 @@ function locationValidationContext(base, D, { howItsDone = null } = {}) {
   // town is allowed in more than one paragraph here (the third real run, 27 Oct)
   const town = lc(D.town || '');
   const neighbourhoodNames = (base.neighbourhoodNames || []).filter(n => lc(n) !== town);
-  return { ...base, neighbourhoodNames, keys: { ...KEYS, selfUrl: D.slug || '/' }, howItsDone: howItsDone || { paragraphs: [], rows: [] } };
+  return { ...base, thin: !!D.thin, neighbourhoodNames, keys: { ...KEYS, selfUrl: D.slug || '/' }, howItsDone: howItsDone || { paragraphs: [], rows: [] } };
 }
 
 const STAGE_OPENER_RE = /\b(?:first,? we|then we|next,? we|the next step|the first step|we start by|we begin by|after that,? we|once that is done|step one|step two)\b/i;

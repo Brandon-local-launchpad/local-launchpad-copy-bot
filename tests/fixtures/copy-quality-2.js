@@ -81,7 +81,7 @@ chk('RESEARCH-LANG: "the soil varies across the city" and "geology varies" are f
     return { text: '', usage: {} };
   } });
   const mine = calls.find(c => c.field === 'home_services_intro');
-  chk('Flag pass: a field with an N7 range flag is rewritten with its flag message and the shorter text is kept', r1.home_services_intro === short && out.log.some(l => l.field === 'home_services_intro' && l.kept) && mine && /words: it must be 30 to 60/.test(mine.message), JSON.stringify(out.log.filter(l => l.field === 'home_services_intro').map(l => [l.kept, l.error, l.flags_before, l.flags_after])), 'kept, flags dropped');
+  chk('Flag pass: a field with an N7 range flag is rewritten with its flag message and the shorter text is kept', r1.home_services_intro === short && out.log.some(l => l.field === 'home_services_intro' && l.kept) && mine && /words: it must be \d+ to 60/.test(mine.message), JSON.stringify(out.log.filter(l => l.field === 'home_services_intro').map(l => [l.kept, l.error, l.flags_before, l.flags_after])), 'kept, flags dropped');
   chk('Flag pass: before and after counts and the kept count come back', out.before > out.after && out.kept >= 1, `${out.before} -> ${out.after}, kept ${out.kept}`, 'fewer flags after');
   chk('Flag pass: only fields with a pass flag are tried (every call was for a flagged field)', calls.every(c => validateV20(JSON.parse(JSON.stringify(rec)), V).concat(validateV20(r1, V)).some(i => i.field === c.field && i.type === 'FLAG')), calls.map(c => c.field).join(', '), 'flagged fields only');
   const r2 = JSON.parse(JSON.stringify(rec));
@@ -117,8 +117,39 @@ chk('RESEARCH-LANG: "the soil varies across the city" and "geology varies" are f
   fs.writeFileSync(file, csv);
   const lib = L.loadLibrary('Question Niche', { file });
   chk('library: question_name is read and the target carries it; a blank stays blank', L.targetFlags(lib, 'Lockouts and gaining entry').question_name === 'a lockout call out' && L.targetFlags(lib, 'Patios').question_name === '', JSON.stringify(L.targetFlags(lib, 'Lockouts and gaining entry')), 'a lockout call out');
-  const lib2 = L.loadLibrary('Old Niche', { file: path.join(root, 'niche-library/roofer.csv') });
+  const file2 = path.join(os.tmpdir(), `copybot-qn-old-${process.pid}.csv`);
+  fs.writeFileSync(file2, 'gbp_name,gbp_category,verdict,target,note,emergency,prose_name,confirm_only,desire_led\nPatio paving,Paving contractor,page,Patios,,,,,yes\n');
+  const lib2 = L.loadLibrary('Old Niche', { file: file2 });
   chk('library: a CSV without the column still loads (question_name blank)', lib2.rows.length > 0 && lib2.rows.every(r => r.question_name === ''), '', 'blank');
+
+  // ── Phase 2: thin page minimums, idea homes, per target overrides ──
+  const { effectiveRanges, thinRange } = require(path.join(root, 'validate-v20.js'));
+  chk('thinRange: a minimum drops by a third, the maximum and a range with no minimum stay', JSON.stringify(thinRange({ min: 250, max: 300, label: '250 to 300' }, true)) === JSON.stringify({ min: 167, max: 300, label: '167 to 300' }) && thinRange({ max: 49, label: 'under 50' }, true).max === 49 && thinRange({ min: 30, max: 60, label: '30 to 60' }, false).min === 30, JSON.stringify(thinRange({ min: 250, max: 300, label: '250 to 300' }, true)), '167 to 300');
+  chk('effectiveRanges: the page type ranges, scaled only when V.thin', effectiveRanges(rec, { thin: true }).home_content_block_body.min === 134 && effectiveRanges(rec, { thin: false }).home_content_block_body.min === 200, JSON.stringify(effectiveRanges(rec, { thin: true }).home_content_block_body), '134 to 250 when thin');
+  const thinRec = JSON.parse(JSON.stringify(rec)); thinRec.home_services_intro = 'We look after gardens across the city and the villages around it. Every visit starts with a walk round the garden.';
+  const nThin = validateV20(thinRec, { ...V, thin: true }).filter(i => i.check === 'N7' && i.field === 'home_services_intro' && /words: it must be/.test(i.message));
+  const nFull = validateV20(thinRec, { ...V, thin: false }).filter(i => i.check === 'N7' && i.field === 'home_services_intro' && /words: it must be/.test(i.message));
+  chk('N7: 22 words in a 30 to 60 field passes on a thin page (minimum 20) and flags on a full one', nThin.length === 0 && nFull.length === 1, `${nThin.length} / ${nFull.length}`, '0 / 1');
+  const thinD = decide({ ...E.cv, review_count: '', rating: '', year_founded: '' }, landscaper);
+  chk('Homepage decisions carry thin and the DECISIONS block lists IDEA HOMES', typeof DR.decisions.thin === 'boolean' && /IDEA HOMES \(one home per idea/.test(DR.decisionsBlock) && /the home of what to tell us and send/.test(DR.decisionsBlock) && /the only home of the insurer point|the one factor people do not expect/.test(DR.decisionsBlock), DR.decisionsBlock.split('\n').filter(l => /IDEA HOMES|THIN PAGE/.test(l)).join(' | '), 'IDEA HOMES present');
+  const decisionsNoAlloc = computeDecisions({ cv: E.cv, niche: landscaper, pages: E.pages, keyValueMap: E.keyValueMap, serviceParentMap: {}, v20TestMode: true, allocationData: null });
+  chk('A homepage with no allocated neighbourhoods is thin: THIN PAGE lists the lower minimums', decisionsNoAlloc.decisions.thin === true && /THIN PAGE/.test(decisionsNoAlloc.decisionsBlock) && /home_content_block_body: 134 to 250 words/.test(decisionsNoAlloc.decisionsBlock), decisionsNoAlloc.decisionsBlock.split('\n').filter(l => /THIN PAGE|home_content_block_body:/.test(l)).join(' | '), 'thin, 134 to 250');
+  const SB = require(path.join(root, 'service-blocks.js'));
+  const CB = require(path.join(root, 'category-blocks.js'));
+  const overCards = { h2: 'What Affects the Cost of [SERVICE] in [CITY]', cards: [1, 2, 3, 4].map(i => ({ title: `Override ${i}`, brief: `Override brief ${i}.` })) };
+  const nicheO = { ...landscaper, service_overrides: { 'patios': { cost: overCards, always_emergency: true } }, category_overrides: { 'paving contractor': { cost: overCards } } };
+  const so = SB.blocksFor({ niche: nicheO, cv: { business_type: 'A' }, category: 'Paving Contractor', service: 'Patios' });
+  const soOther = SB.blocksFor({ niche: nicheO, cv: { business_type: 'A' }, category: 'Paving Contractor', service: 'Garden paths' });
+  chk('service_overrides: the named page takes the override cost cards and the forced urgent framing; another page does not', so.overrideUsed && so.entry.cost.cards[0].title === 'Override 1' && so.emergencyOn && so.forcedEmergency && !soOther.overrideUsed && soOther.entry.cost.cards[0].title !== 'Override 1' && !soOther.emergencyOn, JSON.stringify([so.overrideUsed, so.emergencyOn, soOther.overrideUsed]), 'override on Patios only');
+  const co = CB.blocksFor({ niche: nicheO, cv: { business_type: 'A' }, category: 'Paving Contractor' });
+  const coOther = CB.blocksFor({ niche: nicheO, cv: { business_type: 'A' }, category: 'Gardener' });
+  chk('category_overrides: the named category takes the override cost cards; another category does not', co.overrideUsed && co.entry.cost.cards[1].title === 'Override 2' && !coOther.overrideUsed, JSON.stringify([co.overrideUsed, coOther.overrideUsed]), 'override on Paving contractor only');
+  const lock = require(path.join(root, 'niche-library/locksmith.json'));
+  const lockBlocks = SB.blocksFor({ niche: lock, cv: { business_type: 'A' }, category: 'Locksmith', service: 'Lockouts and gaining entry', emergencyPage: true });
+  chk('Locksmith entry: Lockouts and gaining entry always takes the urgent framing with its own cost cards (no safes, windows or keys)', lockBlocks.forcedEmergency && lockBlocks.emergencyOn && lockBlocks.overrideUsed && !/safe|window|key cutting|keys to cut/i.test(JSON.stringify(lockBlocks.entry.cost)), JSON.stringify(lockBlocks.entry.cost.cards.map(c => c.title)), 'urgent cost cards');
+  const land = require(path.join(root, 'niche-library/landscaper.json'));
+  const pav = CB.blocksFor({ niche: land, cv: { business_type: 'A' }, category: 'Paving contractor' });
+  chk('Landscaper entry: the Paving contractor category has its own cost cards about slabs, blocks and bases, no boards or posts', pav.overrideUsed && /slab|block|base/i.test(JSON.stringify(pav.entry.cost)) && !/board|post|composite|softwood/i.test(JSON.stringify(pav.entry.cost)), JSON.stringify(pav.entry.cost.cards.map(c => c.title)), 'paving cost cards');
 
   console.log(`\n${pass + fail} checks: ${pass} passed, ${fail} failed`);
   if (fail > 0) process.exit(1);
