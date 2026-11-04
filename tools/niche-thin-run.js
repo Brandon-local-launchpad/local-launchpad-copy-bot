@@ -222,7 +222,9 @@ if (!calibrationPack.name) console.log('WARNING: no calibration pack found for t
   const writer = arg('--model');
   const callFor = dflt => makeCallModel(client, writer || dflt, { onUsage });
   const allocate = args => A.runAllocation({ ...args, callModel: async (system, message) => { const r = await client.messages.create({ model: A.ALLOCATION_MODEL, max_tokens: 2048, system, messages: [{ role: 'user', content: message }] }); return r.content.map(c => c.text || '').join(''); } });
-  const dir = path.join(root, 'tests/quality-runs/thin', clientArg ? `${stem}-${clientArg}` : stem, new Date().toISOString().replace(/[:.]/g, '-'));
+  // The folder carries the process id too (4 Nov 2026): two runs of one niche started in the same second
+  // shared a folder and the second overwrote the first's pages
+  const dir = path.join(root, 'tests/quality-runs/thin', clientArg ? `${stem}-${clientArg}` : stem, `${new Date().toISOString().replace(/[:.]/g, '-')}-${process.pid}`);
   fs.mkdirSync(dir, { recursive: true });
   const t0 = Date.now();
   const summary = [];
