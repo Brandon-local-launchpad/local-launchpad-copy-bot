@@ -76,7 +76,7 @@ const BLOCKS = {
 };
 // A type B entry with the seasonal pair, for the rule that the seasonal question takes the symptom question's place
 const B_SEASONAL = { ...BLOCKS.B, seasonal: { problem_card: card('What the season is about to throw at it', 'Spring.', 'growth that comes all at once in spring'), faq_slot: { question: 'When should I book [SERVICE_LOWER] for the season?', answer_brief: 'Book ahead.', doubt: 'Timing' } } };
-const niche = { ...landscaper, _source: 'landscaper', service_words: [], service_page_blocks: BLOCKS, category_types: { gardener: 'B' } };
+const niche = { ...landscaper, _source: 'landscaper', service_words: [], service_page_blocks: BLOCKS, service_overrides: {}, category_overrides: {}, category_types: { gardener: 'B' } };
 const TICKED = ['price_agreed_before_work', 'green_waste_choice', 'clippings_collected', 'maintenance_schedule', 'strimmer_edges', 'paths_swept_after_mowing', 'customer_need_not_be_home', 'pre_season_clearing'];
 const cv = { ...E.ethanValues(), jobs_wanted: ['Landscape Gardener', 'Landscape Designer'], h1_override: 'Landscaper Southampton', coastal_city: 'yes', insurance_cover: '5m', hours: 'Monday to Saturday, 7am to 6pm', confirmed_practices: TICKED };
 const hand = { baseTown: 'Southampton', otherTowns: ['Romsey', 'Winchester', 'Eastleigh', 'Chandlers Ford', 'Ampfield', 'Stockbridge', 'Awbridge', 'Chilworth', 'Hedge End', 'Lyndhurst', 'New Forest District', 'Lockerley', 'Kings Worthy'].join('\n') };
