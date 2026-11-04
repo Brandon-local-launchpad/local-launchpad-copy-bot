@@ -17,6 +17,18 @@ const { inputsFor } = require('../page-map/store');
 const G = require('../page-map/generator');
 
 const CACHE_DAYS = 90;
+
+// The niche entry's homepage keyword word (4 Nov 2026): niche-library/<stem>.json homepage_keyword,
+// found through the library stem; null when the niche has none (the primary category is used)
+function homepageKeywordFor(niche) {
+  try {
+    const stem = require('../ui/library').stemFor(niche);
+    const file = stem && require('path').join(__dirname, '..', 'niche-library', `${stem}.json`);
+    if (!file || !require('fs').existsSync(file)) return null;
+    const entry = JSON.parse(require('fs').readFileSync(file, 'utf8'));
+    return (entry.homepage_keyword || '').trim() || null;
+  } catch (_) { return null; }
+}
 const ACTIVE = ['queued', 'building', 'researching'];
 
 async function ensureH1Tables(pool) {
@@ -179,7 +191,7 @@ function createH1Research({ pool, filloutService, pageMapStore, searchVolume = D
     const st = await pageMapStore.state(clientId);
     const inputs = await inputsFor(filloutService, clientId, { categoryTabRule: (st && st.category_tab_rule) || 'ticked_only' });
     const cats = inputs.resolved ? inputs.resolved.categories : [];
-    const ctx = { primaryName: inputs.resolved && inputs.resolved.primaryName, primaryKey: inputs.resolved && inputs.resolved.primary, baseTown: inputs.baseTown, categoryName: key => (cats.find(c => c.key === key) || {}).name, terms: H.searchTerms(inputs.niche) };
+    const ctx = { primaryName: inputs.resolved && inputs.resolved.primaryName, primaryKey: inputs.resolved && inputs.resolved.primary, baseTown: inputs.baseTown, categoryName: key => (cats.find(c => c.key === key) || {}).name, terms: H.searchTerms(inputs.niche), homepageKeyword: homepageKeywordFor(inputs.niche) };
     const keywords = [...new Set(rows.flatMap(r => C.candidatesV2(r, ctx).map(c => c.keyword)))];
     await onStage({ pages: rows.length, keywords: keywords.length });
     const { volumes, fetched: missing, cost } = await lookup(keywords, { onRetry });

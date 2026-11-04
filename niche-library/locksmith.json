@@ -776,5 +776,31 @@
       ]
     }
   },
-  "do_not_reuse": []
+  "do_not_reuse": [],
+  "service_overrides": {
+    "lockouts and gaining entry": {
+      "always_emergency": true,
+      "cost": {
+        "h2": "What Affects the Cost of [SERVICE] in [CITY]",
+        "cards": [
+          {
+            "title": "The time of day you call",
+            "brief": "An evening, night or weekend call out against a daytime one: the time of the call is part of the price. Any call out charge or out of hours rate only from [CV: quote_call_out_fee] and [CV: price_list], and never \"no call out charge\" unless quote_call_out_fee says there is none (Table E). Say it plainly and give no figure."
+          },
+          {
+            "title": "How the door was locked",
+            "brief": "A door pulled shut on the latch with the keys inside against one that was deadlocked or has its handle lifted and locked: the first can often be opened without a mark, the second takes longer and may mean the cylinder comes out (Table A lockouts, Table F lockouts). Say why in plain words; never how it is done."
+          },
+          {
+            "title": "The lock on the door",
+            "brief": "A standard cylinder against an anti snap or higher security one, a timber door with a mortice lock against a uPVC or composite door with several locking points: what opens cleanly on one needs a different way in on another (Table F lockouts, uPVC repairs). Named kit only from [CV: materials_methods]; never a brand or a standard's number."
+          },
+          {
+            "title": "Whether the lock has to be replaced afterwards",
+            "brief": "A lock opened without damage goes straight back into use; a snapped key, a drilled cylinder or a lock that had already failed means a replacement like for like, and a lost key usually means a new cylinder so the old key opens nothing (Table F lockouts, lock fitting). Say what decides it and give no figure. Code adds the price line from [CV: price_list] when there is one."
+          }
+        ]
+      }
+    }
+  }
 }

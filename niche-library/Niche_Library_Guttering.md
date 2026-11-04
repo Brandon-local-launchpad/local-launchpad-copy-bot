@@ -14,6 +14,7 @@ Sources, in order of authority: `calibration-packs/Guttering_Calibration_Pack_v1
 |---|---|
 | trade / trade_lower | Guttering / guttering |
 | trade_person / trade_person_plural | guttering specialist / guttering specialists |
+| homepage_keyword | Guttering (4 Nov 2026, Brandon: the homepage keyword is a way of saying the primary GBP category, picked on search volume; the H1 research pattern and the thin runner read it) |
 | customer_type | homeowners |
 | unit_of_work | jobs |
 | emergency_niche | no (No page in guttering.csv is flagged emergency (4 Nov 2026): an overflowing gutter is urgent to the reader but is booked as a visit, not a call out. If a client confirms call outs the pages still get the plain briefs; an emergency variant would be a new section here, not code.) |

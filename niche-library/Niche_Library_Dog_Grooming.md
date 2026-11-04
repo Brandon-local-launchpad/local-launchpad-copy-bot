@@ -16,6 +16,7 @@ Sources: `calibration-packs/Dog_Grooming_Calibration_Pack_v1.md` (sections 1, 2,
 |---|---|
 | trade / trade_lower | Dog Grooming / dog grooming |
 | trade_person / trade_person_plural | dog groomer / dog groomers |
+| homepage_keyword | Dog groomer (4 Nov 2026, Brandon: the homepage keyword is a way of saying the primary GBP category, picked on search volume; the H1 research pattern and the thin runner read it) |
 | customer_type | dog owners |
 | unit_of_work | grooms |
 | emergency_niche | no (the library flags no emergency page) |

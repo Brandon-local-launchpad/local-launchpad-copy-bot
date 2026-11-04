@@ -7,10 +7,45 @@
 const CURRENT_YEAR = new Date().getFullYear();
 const { isAdminArea } = require('./client-files');
 const CB = require('./category-blocks');
+const IH = require('./idea-homes');
 const FALLBACK_ORDER = ['faq_C', 'faq_D', 'faq_E'];
 
 function cap(s) { return (s && s.length) ? s[0].toUpperCase() + s.slice(1) : (s || ''); }
 function titleCase(s) { return (s || '').replace(/\w\S*/g, w => w[0].toUpperCase() + w.slice(1)); }
+const esc = s => String(s || '').replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+const lc = s => String(s || '').toLowerCase().trim();
+
+// "gardener" → a person word (is a gardener); "driveways", "garden design" → work (offers).
+// Here since 4 Nov 2026 (the homepage meta uses it too); category-decisions re-exports it.
+const PERSON_RE = /(?:er|or|ist|ian|eon|man|men|smith|wright)s?$/i;
+const isPersonWord = w => PERSON_RE.test(String(w || '').trim().split(/\s+/).pop() || '') && !/^(?:cover|water|timber|render|plaster|shutter|gutter|order|floor|paver)s?$/i.test(String(w || '').trim().split(/\s+/).pop() || '');
+
+// A "We ..." differentiator as a clause after "[company] is a [trade] in [city]" (4 Nov 2026):
+// "We photograph every fault before we quote" → "and photographs every fault before quoting".
+// Only the plain shapes turn; anything else returns null and the sentence stands alone.
+function weClause(proof) {
+  let p = String(proof || '').trim().replace(/[.!]+$/, '');
+  const m = p.match(/^we\s+([a-z]+)\s+(.*)$/i);
+  if (!m) return null;
+  const verb = m[1].toLowerCase();
+  let rest = m[2];
+  if (/^(are|were|have|had|do|did|can|will|would|never|always|also|only)$/.test(verb)) return null;
+  if (/\bwe\s+(?:are|were|have|had|can|will|would)\b/i.test(rest)) return null;
+  rest = rest.replace(/\bbefore we ([a-z]+)\b/gi, (_, v) => `before ${gerund(v)}`).replace(/\bafter we ([a-z]+)\b/gi, (_, v) => `after ${gerund(v)}`).replace(/\bwhen we ([a-z]+)\b/gi, (_, v) => `when ${gerund(v)}`);
+  if (/\b(we|our|us)\b/i.test(rest)) return null;
+  return `and ${thirdPerson(verb)} ${rest}`;
+}
+function thirdPerson(v) { return /(?:s|sh|ch|x|z|o)$/.test(v) ? `${v}es` : /[^aeiou]y$/.test(v) ? `${v.slice(0, -1)}ies` : `${v}s`; }
+function gerund(v) { return /ie$/.test(v) ? `${v.slice(0, -2)}ying` : /[^e]e$/.test(v) && !/ee$/.test(v) ? `${v.slice(0, -1)}ing` : `${v}ing`; }
+
+// The first customer type, for headings (Brandon, 4 Nov 2026): "homeowners and landlords" →
+// "Homeowners"; a business, landlord or trade type reads "Customers"
+function headingCustomers(customerType) {
+  const first = String(customerType || '').split(/\s*(?:,|\band\b)\s*/)[0].trim();
+  if (!first) return 'Customers';
+  if (/\b(business|businesses|landlord|landlords|trade|trades|tradespeople|companies|company|offices|shops|tenants|renters|letting)\b/i.test(first)) return 'Customers';
+  return first.replace(/^\w/, c => c.toUpperCase());
+}
 // Handle both old string[] and new {theme,approved}[] formats
 function approvedThemes(arr) {
   if (!Array.isArray(arr)) return [];
@@ -262,7 +297,9 @@ function buildFaq(cv, niche, ctx, emergencyOn, faqResearch = []) {
 function buildWhyH2(cv, niche, ctx) {
   const tradeWords = [ctx.trade.toLowerCase(), ctx.tradeLower, ctx.tradePerson.toLowerCase(), ctx.tradePersonPlural.toLowerCase()].filter(Boolean);
   const nameHasTradeWord = tradeWords.some(w => w && cv.company_name.toLowerCase().includes(w));
-  const base = `Why ${ctx.city} ${cap(ctx.customerType)} Choose ${cv.company_name}`;
+  // The first customer type only, never the list spliced in (4 Nov 2026): "Why Southampton
+  // Homeowners Choose X"; a business, landlord or trade type reads "Customers"
+  const base = `Why ${ctx.city} ${headingCustomers(ctx.customerType)} Choose ${cv.company_name}`;
   return nameHasTradeWord ? base : `${base} for ${ctx.trade}`;
 }
 
@@ -659,16 +696,23 @@ function computeDecisions({ cv, niche, pages, keyValueMap, serviceParentMap, v20
     ? `${d2_h1.slice(0, d2_h1.length - primaryCity.length).trim().toLowerCase()} in ${primaryCity}`
     : d2_h1;
   const lowerFirst = s => s ? s[0].toLowerCase() + s.slice(1) : s;
+  // The meta is built from the trade person when the keyword is a work word (4 Nov 2026: "is a
+  // roofing services in Southampton" on a guttering client under Roofing services; "is a roofer in
+  // Southampton" instead). A keyword that is a person word ("landscaper in Southampton") stays.
+  const kwWord = kwNatural.replace(new RegExp(`\\s+in\\s+${esc(primaryCity || '')}$`, 'i'), '');
+  const metaWho = isPersonWord(kwWord) || !niche.trade_person ? kwNatural : `${lc(niche.trade_person)} in ${primaryCity}`;
   const metaSentence = proof => {
-    const base = `${cv.company_name} is a ${kwNatural}`;
+    const base = `${cv.company_name} is a ${metaWho}`;
     if (!proof) return `${base}.`;
     if (/^Rated /.test(proof)) return `${base}, ${lowerFirst(proof)}.`;
     if (/year workmanship guarantee$/.test(proof)) return `${base} with a ${proof}.`;
     if (/^Established in /.test(proof)) return `${base}, ${lowerFirst(proof)}.`;
-    // A differentiator: a "We ..." sentence stands alone; a description of the business
-    // ("Family run and independent") goes before the trade; anything else is offered
-    if (/^we\b/i.test(proof)) return `${base}. ${proof.replace(/[.!]?$/, '.')}`;
-    if (/^(family|independent|local|owner|small|award)/i.test(proof)) return `${cv.company_name} is a ${lowerFirst(proof)} ${kwNatural}.`;
+    // A differentiator: a "We ..." sentence becomes a clause ("and photographs every fault before
+    // quoting") when it turns cleanly, else stands alone; a description of the business ("Family run
+    // and independent") goes before the trade; a proof that says "offering" joins with "with"
+    if (/^we\b/i.test(proof)) { const clause = weClause(proof); return clause ? `${base} ${clause}.` : `${base}. ${proof.replace(/[.!]?$/, '.')}`; }
+    if (/^(family|independent|local|owner|small|award)/i.test(proof)) return `${cv.company_name} is a ${lowerFirst(proof)} ${metaWho}.`;
+    if (/\boffer(?:s|ing)?\b/i.test(proof)) return `${base} with ${lowerFirst(proof).replace(/^offering\s+/i, '')}.`;
     return `${base} offering ${lowerFirst(proof)}.`;
   };
   let d4_meta = null;
@@ -730,7 +774,7 @@ function computeDecisions({ cv, niche, pages, keyValueMap, serviceParentMap, v20
     content:   ctx.areaWide ? `Local ${ctx.trade} Serving ${ctx.city} & ${ctx.areaWide}` : `Local ${ctx.trade} in ${ctx.city} and Nearby Towns`,
     services:  `Our ${ctx.trade} Services in ${ctx.city}`,
     why:       buildWhyH2(cv, niche, ctx),
-    reviews:   reviewCount >= 20 ? `${reviewCount}+ Google Reviews From ${ctx.city} ${cap(ctx.customerType)}` : reviewCount >= 3 ? `What ${ctx.city} ${cap(ctx.customerType)} Say About Us` : 'What Our Customers Say',
+    reviews:   reviewCount >= 20 ? `${reviewCount}+ Google Reviews From ${ctx.city} ${headingCustomers(ctx.customerType)}` : reviewCount >= 3 ? `What ${ctx.city} ${headingCustomers(ctx.customerType)} Say About Us` : 'What Our Customers Say',
     process:   ph(btnBase.process_h2 || '', ctx),
     // CTA band is a sentence, not a heading — trade_person stays lower case
     cta_band:  `Ready to talk to a local ${ctx.tradePerson}?`,
@@ -888,6 +932,8 @@ function computeDecisions({ cv, niche, pages, keyValueMap, serviceParentMap, v20
     cta_band:             ctaBand,
     final_cta_trust_lines: finalCtaTrustLines,
     trusted_logos:        trustedLogos,
+    // thin (4 Nov 2026): F-THIN, or no allocated neighbourhoods: the word minimums drop by a third
+    thin:                 flags.some(f => f.code === 'F-THIN') || !((allocated.neighbourhoods) || []).length,
   };
 
   const decisionsBlock = formatDecisionsBlock(decisions, cv, niche, ctx);
@@ -975,6 +1021,9 @@ function formatDecisionsBlock(D, cv, niche, ctx) {
   push(`Primary city coastal: ${D.coastal ? 'yes. Write the travel distance as "inland and along the coast", never compass directions or "in each direction"' : 'no'}`);
   push(`Locations hub: ${D.locations_hub ? `${D.locations_hub} (FAQ "Which areas do you cover?" links it)` : 'none (the areas FAQ links no hub)'}`);
   push('');
+  if (D.thin) { const R = require('./validate-v20').RANGES; push(''); push('THIN PAGE (few proofs or no allocated neighbourhoods): every word minimum below is a third lower than the prompt says; do not pad to reach the prompt\'s figure. The ranges on this page:'); for (const [k, r] of Object.entries(R)) if (r && r.min) push(`  ${k}: ${Math.ceil(r.min * 2 / 3)} to ${r.max} words`); }
+  for (const l of IH.ideaHomeLines('homepage')) push(l);
+  push('');
   push('LINKABLE PAGES:');
   for (const p of D.linkablePages) push(`  [${p.type}] ${p.url} | H1: ${p.h1}${p.say ? ` | say: ${p.say}` : ''}`);
   push('');
@@ -996,7 +1045,7 @@ function formatDecisionsBlock(D, cv, niche, ctx) {
   // Field names and list keys match the CORE (20) OUTPUT block exactly.
   push('MODEL FIELDS:');
   push('  home_hero_intro');
-  push(`  home_content_block_body${D.d13_expands ? ' (expand: up to 300 words)' : ''}`);
+  push(`  home_content_block_body${D.d13_expands ? ' (expand: up to 300 words)' : ''} (${IH.ideaNote('content')})`);
   push('  home_services_intro');
   push('  home_services_cards');
   for (const c of D.d9.main) push(`    - card_name: ${c.name} | card_text${c.linked ? '' : ' (unlinked: no link)'}${c.services && c.services.length ? ` (names: ${c.services.join(', ')})` : ''}`);
@@ -1004,15 +1053,15 @@ function formatDecisionsBlock(D, cv, niche, ctx) {
   push('  home_why_points');
   for (const p of D.d10_why) push(`    - point_title: ${p.title} | point_body`);
   push('  home_process_steps');
-  for (const s of D.niche_steps) push(`    - step_title: ${s.title} | step_body`);
+  D.niche_steps.forEach((s, i) => push(`    - step_title: ${s.title} | step_body${i === 0 ? ` (${IH.ideaNote('step1')})` : ''}`));
   push(`  home_owner_body${D.d7.sec9 === 'HIDDEN' ? ' (HIDDEN)' : ''}`);
   push('  home_areas_intro');
   push('  home_faq_items');
-  for (const q of D.d11_faq) push(`    - faq_question: ${q.question} | faq_answer`);
+  for (const q of D.d11_faq) { const role = IH.faqRole(q.question); push(`    - faq_question: ${q.question} | faq_answer${role ? ` (${IH.ideaNote(role, 'homepage')})` : ''}`); }
   push('  home_final_cta_body');
   push('  MODEL_FLAGS');
 
   return lines.join('\n');
 }
 
-module.exports = { computeDecisions, ph, cap, titleCase, normArea, stripAdmin, isLinkable, getLinkStatus, stepsFor, yearsTradingOf, titleModifierFor, seoTitleFor, trustLineFor, ratingLineFor, buttonsFor, approvedThemes };
+module.exports = { computeDecisions, isPersonWord, headingCustomers, weClause, ph, cap, titleCase, normArea, stripAdmin, isLinkable, getLinkStatus, stepsFor, yearsTradingOf, titleModifierFor, seoTitleFor, trustLineFor, ratingLineFor, buttonsFor, approvedThemes };

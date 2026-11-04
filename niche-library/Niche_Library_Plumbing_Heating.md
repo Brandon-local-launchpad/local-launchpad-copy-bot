@@ -14,6 +14,7 @@ Business type: **A (project trade)** for every category. Emergency niche: **yes*
 |---|---|
 | trade / trade_lower | Plumbing and Heating / plumbing and heating |
 | trade_person / trade_person_plural | plumber and heating engineer / plumbers and heating engineers |
+| homepage_keyword | Plumber (4 Nov 2026, Brandon: the homepage keyword is a way of saying the primary GBP category, picked on search volume; the H1 research pattern and the thin runner read it) |
 | customer_type | homeowners and landlords |
 | unit_of_work | jobs |
 | emergency_niche | yes (burst pipes, no heating in winter, a smell of gas) |

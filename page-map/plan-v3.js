@@ -75,7 +75,7 @@ function resolveLibrary(services, lib, cats) {
     if (!pages.has(id)) pages.set(id, { id, name: target, kind: s.kind, home: null, parents: [], gbp_names: [], absorbs: [], decided: true, library: 'page', outcome: null, into: null, reason: null, emergency: false, prose_name: null, confirm_only: false, desire_led: false });
     const p = pages.get(id);
     // The library flags (3 Nov 2026) ride on the page: emergency briefs, the prose name, confirm only
-    if (fl) { if (fl.emergency) p.emergency = true; if (fl.prose_name && !p.prose_name) p.prose_name = fl.prose_name; if (fl.confirm_only) p.confirm_only = true; if (fl.desire_led) p.desire_led = true; }
+    if (fl) { if (fl.emergency) p.emergency = true; if (fl.prose_name && !p.prose_name) p.prose_name = fl.prose_name; if (fl.question_name && !p.question_name) p.question_name = fl.question_name; if (fl.confirm_only) p.confirm_only = true; if (fl.desire_led) p.desire_led = true; }
     for (const k of s.parents) if (!p.parents.includes(k)) p.parents.push(k);
     if (how === 'page') { p.gbp_names.push(s.name); if (!p.home) p.home = s.home || null; }
     else p.absorbs.push(s.name);

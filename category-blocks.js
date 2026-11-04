@@ -73,18 +73,35 @@ class NoBriefsError extends Error {
 
 // The block entry for a page: A2 when the marker is set and an A2 entry exists, the
 // emergency variant laid over it when the emergency layout is on. Throws NoBriefsError.
+// category_overrides (copy quality 2, phase 2, 4 Nov 2026): the entry may replace block 5 (cost), the
+// steps or block 4 (problems) for one category, keyed by the category name in lower case, and set
+// always_emergency so the page takes the urgent framing whatever the client values say:
+//   "category_overrides": { "paving contractor": { "cost": { "h2", "cards": [x4] }, "steps": [x3] } }
+function overrideFor(map, name) { return (map && typeof map === 'object' && map[lc(name)]) || null; }
+function applyOverride(entry, over) {
+  if (!over) return entry;
+  const out = { ...entry };
+  if (over.problems) out.problems = over.problems;
+  if (over.cost) out.cost = over.cost;
+  if (Array.isArray(over.steps) && over.steps.length) out.steps = over.steps;
+  if (Array.isArray(over.faq_slots) && over.faq_slots.length) out.faq_slots = over.faq_slots;
+  return out;
+}
+
 function blocksFor({ niche, cv = {}, category, emergencyPage = false }) {
   const nicheName = niche._source || niche.trade_lower || niche.trade || 'this niche';
   const all = niche.category_page_blocks;
   if (!all || typeof all !== 'object' || !Object.keys(all).length) {
     throw new NoBriefsError(`no category block briefs for ${nicheName}`, { niche: nicheName });
   }
+  const over = overrideFor(niche.category_overrides, category);
   const t = typeFor({ niche, cv, category, emergencyPage });
+  if (over && over.always_emergency) t.emergencyOn = true;
   const key = t.a2 && all.A2 ? 'A2' : t.letter;
   const base = all[key];
   if (!base) throw new NoBriefsError(`no category block briefs for ${nicheName} type ${key}`, { niche: nicheName, type: key });
-  const entry = t.emergencyOn && base.emergency ? { ...base, ...base.emergency } : base;
-  return { ...t, key, entry, emergencyUsed: !!(t.emergencyOn && base.emergency) };
+  const entry = applyOverride(t.emergencyOn && base.emergency ? { ...base, ...base.emergency } : base, over);
+  return { ...t, key, entry, emergencyUsed: !!(t.emergencyOn && base.emergency), overrideUsed: !!over, forcedEmergency: !!(over && over.always_emergency) };
 }
 
 // What a block entry lacks, as F-BRIEF messages (the page still runs with what there is)
@@ -172,4 +189,4 @@ function faqSlotsFor(niche = {}, cv = {}) {
   return out;
 }
 
-module.exports = { typeFor, blocksFor, briefGaps, pickFaqSlots, applySeasonal, NoBriefsError, clientEmergency, emergencyWhy, emergencySite, typeLetterFor, fearsFor, faqSlotsFor };
+module.exports = { typeFor, blocksFor, briefGaps, pickFaqSlots, applySeasonal, NoBriefsError, clientEmergency, emergencyWhy, emergencySite, typeLetterFor, fearsFor, faqSlotsFor, overrideFor, applyOverride };

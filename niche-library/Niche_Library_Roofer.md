@@ -12,6 +12,7 @@ Business type: **A (project trade)**. Emergency niche: **yes** (storm damage and
 |---|---|
 | trade / trade_lower | Roofing / roofing |
 | trade_person / trade_person_plural | roofer / roofers |
+| homepage_keyword | Roofer (4 Nov 2026, Brandon: the homepage keyword is "Roofer [city]", not "Roofing services [city]"; the H1 research pattern and the thin runner read it; other niches wait for the search volume table) |
 | customer_type | homeowners |
 | unit_of_work | jobs |
 | emergency_niche | yes (storm damage) |

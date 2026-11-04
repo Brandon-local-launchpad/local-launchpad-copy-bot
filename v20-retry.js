@@ -8,12 +8,13 @@
 
 const fs   = require('fs');
 const path = require('path');
-const { modelFields, getField, setField, summarise, wordCount } = require('./validate-v20');
+const { modelFields, getField, setField, summarise, wordCount, effectiveRanges } = require('./validate-v20');
 const { pageTypeOf } = require('./page-types');
 
 // The record's own page type validates it and gives its word ranges
 const validateV20 = (record, V) => pageTypeOf(record).validate(record, V);
-const rangesFor = record => pageTypeOf(record).ranges || {};
+// The ranges a page is held to: the page type's, a third lower on a thin page (V.thin, 4 Nov 2026)
+const rangesFor = (record, V = null) => effectiveRanges(record, V) || {};
 
 // 3 since 16 Oct (copy quality loop: flags were left after 2)
 const MAX_RETRIES = 3;
@@ -32,18 +33,18 @@ const clone = o => JSON.parse(JSON.stringify(o));
 
 // The label the model must return, and the range it must hit
 function returnLabel(ref) { return ref.sub || ref.key; }
-function rangeText(f, D, record) {
-  const r = rangesFor(record)[f.rangeKey];
+function rangeText(f, D, record, V = null) {
+  const r = rangesFor(record, V)[f.rangeKey];
   if (!r) return '';
-  if (f.rangeKey === 'home_content_block_body' && D.d13_expands) return '200 to 300 words';
+  if (f.rangeKey === 'home_content_block_body' && D.d13_expands) return V && V.thin ? '134 to 300 words' : '200 to 300 words';
   return `${r.label} words`;
 }
 
-function buildRetryMessage(f, problems, record, D, earlier = []) {
+function buildRetryMessage(f, problems, record, D, earlier = [], V = null) {
   const others = modelFields(record).filter(o => o.label !== f.label).map(o => `${o.label}: ${o.text.replace(/\n\n/g, '\\n\\n')}`);
   const stillAvoid = earlier.filter(p => !problems.includes(p));
   return [
-    `FIELD: ${f.label}${rangeText(f, D, record) ? ` (${rangeText(f, D, record)})` : ''}`,
+    `FIELD: ${f.label}${rangeText(f, D, record, V) ? ` (${rangeText(f, D, record, V)})` : ''}`,
     '',
     'CURRENT TEXT:',
     f.text.replace(/\n\n/g, '\\n\\n'),
@@ -73,8 +74,8 @@ function parseRetryReply(text, ref) {
 }
 
 // A reply that carries other fields' labels, or is far outside the field's range, isn't one field
-function notSingleField(raw, after, f, record) {
-  const range = rangesFor(record)[f.rangeKey];
+function notSingleField(raw, after, f, record, V = null) {
+  const range = rangesFor(record, V)[f.rangeKey];
   const own = returnLabel(f.ref);
   const labels = [...(raw || '').matchAll(new RegExp(`^\\s*[-*]?\\s*(${pageTypeOf(record).replyLabels.source})\\s*:`, 'gm'))].map(m => m[1]);
   return labels.some(l => l !== own) || /=== MODEL OUTPUT/.test(after) ||
@@ -121,7 +122,7 @@ async function runRetries({ record, V, callRetry, maxRetries = MAX_RETRIES, conc
       const earlier = history[label] || [];
       history[label] = [...new Set([...earlier, ...problems])];
       try {
-        const r = await callRetry({ message: buildRetryMessage(f, problems, base, V.D, earlier) });
+        const r = await callRetry({ message: buildRetryMessage(f, problems, base, V.D, earlier, V) });
         usage.calls++;
         for (const k of ['input_tokens', 'output_tokens', 'cache_read_input_tokens']) usage[k] += (r.usage && r.usage[k]) || 0;
         return { label, f, problems, before: f.text, after: parseRetryReply(r.text, f.ref), raw: r.text || '' };
@@ -135,7 +136,7 @@ async function runRetries({ record, V, callRetry, maxRetries = MAX_RETRIES, conc
     for (const r of results) {
       const entry = { round, field: r.label, problems: r.problems, before: r.before, after: r.after, kept: false };
       if (r.error || !r.after) { entry.error = r.error || 'empty reply'; log.push(entry); continue; }
-      if (notSingleField(r.raw, r.after, r.f, record)) { entry.error = 'reply was not a single field'; log.push(entry); continue; }
+      if (notSingleField(r.raw, r.after, r.f, record, V)) { entry.error = 'reply was not a single field'; log.push(entry); continue; }
       const cand = clone(base);
       setField(cand, r.f.ref, r.after);
       const was = fieldScore(base, r.label);
@@ -176,11 +177,13 @@ async function runClaimRetries({ record, V, callRetry, review, maxRounds = 2, co
     const blocksIn = (rec, label) => check(rec).filter(i => i.field === label && i.type === 'BLOCK').length;
     const results = await mapLimit([...byField.values()], concurrency, async g => {
       const problems = [
-        ...g.findings.map(c => `Unsupported claim: "${c.quote}". ${c.why} Remove it, or say only what the facts on file support.`),
+        // 4 Nov 2026 (copy quality 2): an unconfirmed practice becomes the trade's principle in the third
+        // person, or goes; never "we" for something the client has not confirmed
+        ...g.findings.map(c => `Unsupported claim: "${c.quote}". ${c.why} Either delete the sentence, or rewrite it as the trade's principle in the third person, about what a fair ${(V.niche && V.niche.trade_person) || 'tradesperson'} does ("a fair roofer shows you photographs of what they found"), never "we" or "our" for a practice the client has not confirmed.`),
         ...check(base).filter(i => i.field === g.f.label).map(i => i.message),
       ];
       try {
-        const r = await callRetry({ message: buildRetryMessage(g.f, [...new Set(problems)], base, V.D) });
+        const r = await callRetry({ message: buildRetryMessage(g.f, [...new Set(problems)], base, V.D, [], V) });
         return { g, raw: r.text || '', after: parseRetryReply(r.text, g.f.ref) };
       } catch (e) { return { g, error: e.message }; }
     });
@@ -188,7 +191,7 @@ async function runClaimRetries({ record, V, callRetry, review, maxRounds = 2, co
     for (const r of results) {
       const entry = { round, field: r.g.f.label, claims: r.g.findings.map(c => c.quote), before: r.g.f.text, after: r.after || null, kept: false };
       if (r.error || !r.after) { entry.error = r.error || 'empty reply'; log.push(entry); continue; }
-      if (notSingleField(r.raw, r.after, r.g.f, record)) { entry.error = 'reply was not a single field'; log.push(entry); continue; }
+      if (notSingleField(r.raw, r.after, r.g.f, record, V)) { entry.error = 'reply was not a single field'; log.push(entry); continue; }
       const cand = clone(base);
       setField(cand, r.g.f.ref, r.after);
       const gone = r.g.findings.every(c => !normq(r.after).includes(normq(c.quote)));
@@ -201,6 +204,61 @@ async function runClaimRetries({ record, V, callRetry, review, maxRounds = 2, co
     claims = await review(record);
   }
   return { claims, rounds, first };
+}
+
+// ── Flag pass (4 Nov 2026, copy quality 2) ────────────────────────────────────
+// After the BLOCKs are clear and the claims pass has run: one targeted rewrite, two rounds at
+// most, of only the fields that still carry one of these FLAGs (length and range, repeats,
+// padding, research wording), each field given every flag message it carries. A rewrite is kept
+// only when that field's FLAG count drops and the whole page gains no BLOCK; a field is tried
+// once per round. Returns the log, the usage and the flag counts before and after.
+const FLAG_PASS = new Set(['N7', 'N18', 'N21', 'N24', 'REPEAT-PAGE', 'REPEAT-IN', 'PAD-OPENER', 'ITEM-REPEAT', 'SERVICE', 'SCENERY', 'RESEARCH-LANG', 'FAQ-PAD', 'INTRO-PAD', 'CARD-FILLER', 'MORE-REPEAT', 'PRACTICE-REPEAT', 'PROOF-REPEAT', 'TRUST-REPEAT', 'LINK-TEXT', '6c', 'CARD-LOCAL', 'OUTCOME']);
+async function runFlagPass({ record, V, callRetry, maxRounds = 2, concurrency = CONCURRENCY, validate = null, checks = FLAG_PASS }) {
+  const check = validate || (rec => validateV20(rec, V));
+  const log = [];
+  const usage = { calls: 0, input_tokens: 0, output_tokens: 0, cache_read_input_tokens: 0 };
+  const flagsIn = (rec, label) => check(rec).filter(i => i.type === 'FLAG' && i.field === label).length;
+  const blocksOn = rec => check(rec).filter(i => i.type === 'BLOCK').length;
+  const before = check(record).filter(i => i.type === 'FLAG').length;
+  for (let round = 1; round <= maxRounds; round++) {
+    const issues = check(record);
+    const byField = new Map();
+    for (const i of issues) {
+      if (i.type !== 'FLAG' || !i.ref || !checks.has(i.check)) continue;
+      if (!byField.has(i.field)) byField.set(i.field, { ref: i.ref });
+    }
+    if (!byField.size) break;
+    const base = clone(record);
+    const baseBlocks = blocksOn(base);
+    const results = await mapLimit([...byField.keys()], concurrency, async label => {
+      const f = modelFields(base).find(x => x.label === label);
+      if (!f) return { label, error: 'field not found' };
+      const problems = [...new Set(issues.filter(i => i.field === label).map(i => i.message))];
+      try {
+        const r = await callRetry({ message: buildRetryMessage(f, problems, base, V.D, [], V) });
+        usage.calls++;
+        for (const k of ['input_tokens', 'output_tokens', 'cache_read_input_tokens']) usage[k] += (r.usage && r.usage[k]) || 0;
+        return { label, f, problems, before: f.text, after: parseRetryReply(r.text, f.ref), raw: r.text || '' };
+      } catch (e) {
+        return { label, f, problems, before: f.text, after: null, error: e.message };
+      }
+    });
+    for (const r of results) {
+      const entry = { round, field: r.label, problems: r.problems, before: r.before, after: r.after, kept: false, source: 'flags' };
+      if (r.error || !r.after) { entry.error = r.error || 'empty reply'; log.push(entry); continue; }
+      if (notSingleField(r.raw, r.after, r.f, record, V)) { entry.error = 'reply was not a single field'; log.push(entry); continue; }
+      const cand = clone(base);
+      setField(cand, r.f.ref, r.after);
+      const was = flagsIn(base, r.label), now = flagsIn(cand, r.label);
+      entry.flags_before = was;
+      entry.flags_after = now;
+      if (now < was && blocksOn(cand) <= baseBlocks) { setField(record, r.f.ref, r.after); entry.kept = true; }
+      else entry.error = now >= was ? 'the flags did not drop' : 'the rewrite added a BLOCK';
+      log.push(entry);
+    }
+  }
+  const after = check(record).filter(i => i.type === 'FLAG').length;
+  return { log, usage, before, after, kept: log.filter(x => x.kept).length };
 }
 
 // ── Quality review into the retries (16 Oct, copy quality loop) ───────────────
@@ -246,7 +304,7 @@ async function runQualityRetries({ record, V, callRetry, review, maxRounds = 3, 
     for (const r of results) {
       const entry = { round, field: r.g.f.label, problems: r.g.problems.map(p => p.quote), before: r.g.f.text, after: r.after || null, kept: false };
       if (r.error || !r.after) { entry.error = r.error || 'empty reply'; log.push(entry); continue; }
-      if (notSingleField(r.raw, r.after, r.g.f, record)) { entry.error = 'reply was not a single field'; log.push(entry); continue; }
+      if (notSingleField(r.raw, r.after, r.g.f, record, V)) { entry.error = 'reply was not a single field'; log.push(entry); continue; }
       const cand = clone(base);
       setField(cand, r.g.f.ref, r.after);
       const gone = r.g.problems.every(p => !normq(fillTokens(r.after, record)).includes(normq(p.quote)));
@@ -277,4 +335,4 @@ function validationSummary(issues, log, usage) {
   };
 }
 
-module.exports = { runRetries, runClaimRetries, runQualityRetries, buildRetryMessage, parseRetryReply, loadRetryPrompt, validationSummary, MAX_RETRIES };
+module.exports = { runRetries, runClaimRetries, runFlagPass, runQualityRetries, buildRetryMessage, parseRetryReply, loadRetryPrompt, validationSummary, MAX_RETRIES, FLAG_PASS };

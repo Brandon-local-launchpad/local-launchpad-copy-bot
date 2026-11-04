@@ -424,6 +424,23 @@ Replaces block 4, the steps and the FAQ slots; What's Included, block 5 and the 
 | process | always | What happens when I call you out in [TOWN]? | From [CV: quote_method] and the confirmed practices only: what the customer says on the phone (the door, what has happened, the address), the price settled before anyone sets out only from the price_agreed_before_work practice, what the locksmith asks for at the door (Table E lockout authority, said as the trade's practice), what comes back. No timescale unless [CV: response_time] is set. For a booked job the same shape: what they send, what is looked at, what comes back. | Process |
 | timing | always | Do you come out to [TOWN] at night or at the weekend? | Only from [CV: emergency_callouts] and [CV: out_of_hours_available], as given; where neither is set, say what happens when they call during working hours and nothing more. An out of hours rate only from [CV: price_list]. Never a response time unless [CV: response_time] is set. Not a seasonal trade: nothing about the time of year. | Timing |
 
+## Per page overrides (service_overrides)
+
+Brandon, 4 Nov 2026 (copy quality 2, phase 2): a page whose job differs from the shared type entry gets its own briefs here, keyed by the page target in lower case. The code lays them over the type entry (and its emergency or desire variant) for that page only.
+
+### Lockouts and gaining entry
+
+`always_emergency: true`: the page always takes the urgent framing (the A emergency block 4 "when it can't wait", the urgent steps and FAQ slots), whatever the client values say about call outs. Its block 5 cost cards are its own: nothing about safes, windows or keys to cut, and no "date agreed in advance".
+
+H2: What Affects the Cost of [SERVICE] in [CITY]
+
+| Card | Brief |
+|---|---|
+| The time of day you call | An evening, night or weekend call out against a daytime one: the time of the call is part of the price. Any call out charge or out of hours rate only from [CV: quote_call_out_fee] and [CV: price_list], and never "no call out charge" unless quote_call_out_fee says there is none (Table E). Say it plainly and give no figure. |
+| How the door was locked | A door pulled shut on the latch with the keys inside against one that was deadlocked or has its handle lifted and locked: the first can often be opened without a mark, the second takes longer and may mean the cylinder comes out (Table A lockouts, Table F lockouts). Say why in plain words; never how it is done. |
+| The lock on the door | A standard cylinder against an anti snap or higher security one, a timber door with a mortice lock against a uPVC or composite door with several locking points: what opens cleanly on one needs a different way in on another (Table F lockouts, uPVC repairs). Named kit only from [CV: materials_methods]; never a brand or a standard's number. |
+| Whether the lock has to be replaced afterwards | A lock opened without damage goes straight back into use; a snapped key, a drilled cylinder or a lock that had already failed means a replacement like for like, and a lost key usually means a new cylinder so the old key opens nothing (Table F lockouts, lock fitting). Say what decides it and give no figure. Code adds the price line from [CV: price_list] when there is one. |
+
 ## do_not_reuse
 
 (empty to start; add any sentence that has gone live on a client site so it is never repeated)

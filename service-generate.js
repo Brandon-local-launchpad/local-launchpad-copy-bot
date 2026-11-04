@@ -72,7 +72,7 @@ function buildServiceRequest({ cv, niche, decisions, decisionsBlock, calibration
 }
 
 // Generate one service page record. With a failed gate there is no call.
-async function generateServicePage({ cv, niche, keyValueMap, serviceParentMap = {}, decisionsResult, calibrationPack, calibrationPackName, callModel, tradeFacts = null, extraFlags = [], retries = true, claimsReview = true, qualityReview = false, qualityRounds = 3 }) {
+async function generateServicePage({ cv, niche, keyValueMap, serviceParentMap = {}, decisionsResult, calibrationPack, calibrationPackName, callModel, tradeFacts = null, extraFlags = [], retries = true, claimsReview = true, qualityReview = false, flagPass = true, qualityRounds = 3 }) {
   const { runRetries, loadRetryPrompt, validationSummary } = require('./v20-retry');
   const D = decisionsResult.decisions;
   const meta = {
@@ -137,6 +137,17 @@ async function generateServicePage({ cv, niche, keyValueMap, serviceParentMap = 
       } catch (e) {
         record.CLAIMS = { for: meta.generated_at, status: 'failed', error: e.message, findings: [] };
       }
+    }
+    // Flag pass (4 Nov 2026, copy quality 2): the fields still carrying FLAGs after the BLOCKs and the
+    // claims are dealt with get one targeted rewrite each, with their flag messages; kept only when the
+    // field's flags drop and the page gains no BLOCK
+    if (flagPass) {
+      const { runFlagPass } = require('./v20-retry');
+      try {
+        const fp = await runFlagPass({ record, V, callRetry, validate });
+        record.meta.flag_pass = { before: fp.before, after: fp.after, kept: fp.kept, calls: fp.usage.calls };
+        record.VALIDATION = validationSummary(validate(record), [...((record.VALIDATION && record.VALIDATION.retries) || []), ...fp.log.map(x => ({ ...x, round: `flag pass ${x.round}` }))], retryUsage);
+      } catch (e) { record.meta.flag_pass = { error: e.message }; }
     }
     if (qualityReview) {
       const { runQualityRetries, runClaimRetries } = require('./v20-retry');

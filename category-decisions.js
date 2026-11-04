@@ -47,9 +47,11 @@ function keywordWord(h1, town, category) {
   return h || category;
 }
 
-// "gardener" → a person word (is a gardener); "driveways", "garden design" → work (offers)
-const PERSON_RE = /(?:er|or|ist|ian|eon|man|men|smith|wright)s?$/i;
-const isPersonWord = w => PERSON_RE.test(String(w || '').trim().split(/\s+/).pop() || '') && !/^(?:cover|water|timber|render|plaster|shutter|gutter|order|floor|paver)s?$/i.test(String(w || '').trim().split(/\s+/).pop());
+// isPersonWord lives in decisions.js since 4 Nov 2026 (the homepage meta uses it too)
+const { isPersonWord, weClause } = require('./decisions');
+const IH = require('./idea-homes');
+// Lower case that keeps an acronym's capitals ("HVAC Contractor" → "HVAC contractor"), 4 Nov 2026
+const lcKeepAcronyms = s => String(s || '').trim().replace(/\S+/g, w => /^[A-Z]{2,5}s?$/.test(w) ? w : w.toLowerCase());
 
 // The meta description: "[company] is a [category_lower] in [town] with [proof]" (Brandon, 25 Oct),
 // or "offers" for a work word; the years fallback keeps its comma. A proof that itself says
@@ -67,6 +69,11 @@ function metaFor({ cv, isPerson, kwNatural, metaCta, yearsTrading, yearFounded, 
     let cand;
     if (/^established/i.test(proof)) cand = `${cv.company_name} ${verb} ${kwNatural}, ${proof}. ${metaCta}`;
     else if (/^(family|independent|local|owner|small|award)/i.test(proof) && verb === 'is a') cand = `${cv.company_name} is a ${proof} ${kwNatural}. ${metaCta}`;
+    // A "We ..." differentiator turns into a clause ("and photographs every fault before quoting") or
+    // stands as its own sentence, never "with we photograph" (4 Nov 2026); a proof that says "offering"
+    // joins with "with", one that says "with" joins with "offering"
+    else if (/^we\b/i.test(proof)) { const clause = weClause(proof); cand = clause ? `${cv.company_name} ${verb} ${kwNatural} ${clause}. ${metaCta}` : `${cv.company_name} ${verb} ${kwNatural}. ${p.replace(/[.!]?$/, '.')} ${metaCta}`; }
+    else if (/\boffer(?:s|ing)?\b/i.test(proof)) cand = `${cv.company_name} ${verb} ${kwNatural} with ${proof.replace(/^offering\s+/i, '')}. ${metaCta}`;
     else if (/\bwith\b/i.test(proof)) cand = `${cv.company_name} ${verb} ${kwNatural} offering ${proof}. ${metaCta}`;
     else cand = `${cv.company_name} ${verb} ${kwNatural} with ${proof}. ${metaCta}`;
     cand = cand.trim();
@@ -118,12 +125,12 @@ function computeCategoryDecisions({ cv, niche, keyValueMap = {}, rows = [], page
   // ── Context ──
   const quoteFree = cv.free_quotes === 'yes' ? 'Free' : '';
   const cat = titleCase(keywordWord(h1, townName, category));
-  const catLower = lc(cat);
+  const catLower = lcKeepAcronyms(cat);
   // The work noun: every H2 but the H1 and the services line reads "Gardening", never "Gardener"
   const workNoun = (niche.category_work_nouns || {})[lc(category)] || (niche.category_work_nouns || {})[catLower] || null;
   if (!workNoun) flags.push({ code: 'F-WORK-NOUN', msg: `No work noun for "${category}" in the niche entry (category_work_nouns): the H2s read "${cat} Services".` });
   const work = workNoun ? titleCase(workNoun) : `${cat} Services`;
-  const workLower = lc(work);
+  const workLower = lcKeepAcronyms(work);
   const ctx = {
     kwPhrase: h1, category, cat, catLower, work, workLower, town: townName, city: townName,
     trade: niche.trade || '', tradeLower: niche.trade_lower || '', tradePerson: niche.trade_person || '', tradePersonPlural: niche.trade_person_plural || '',
@@ -324,7 +331,7 @@ function computeCategoryDecisions({ cv, niche, keyValueMap = {}, rows = [], page
     reviews: { show: reviewsShow, items: picked, count: reviewCount },
     niche_steps: steps,
     areas, faq: faqs,
-    allocated, ideasUsed: Array.isArray(ideasUsed) ? ideasUsed : [],
+    allocated, thin: !allocated.neighbourhoods.length, overrideUsed: !!blocks.overrideUsed, ideasUsed: Array.isArray(ideasUsed) ? ideasUsed : [],
     contentLinks, locationLinks, linkablePages,
     quoteFree, emergencyOn, emergencyWhy, coastal: cv.coastal_city === 'yes',
     seasonal: seasonal.swapped,
@@ -427,6 +434,10 @@ function formatCategoryBlock(D, cv, niche, ctx) {
   push('--- HOW THE BUSINESS WORKS ---');
   push('  Only what CONFIRMED PRACTICES in the client block say. Never invent a way of working or a promise about it: no "nothing gets added without you saying so", "each garden gets its own plan", "we stick to the work you asked for", "the price never creeps", "we fit the visit to a time that suits you", "we arrive ready to start", no seasonal pattern of visits, no comparison between the cost of a round and a one off. Say what the work involves, not how the business runs it.');
   push('');
+  if (D.thin) { const R = require('./page-types/category').ranges; push(''); push('THIN PAGE (no allocated neighbourhoods): every word minimum below is a third lower than the prompt says; do not pad to reach the prompt\'s figure. The ranges on this page:'); for (const [k, r] of Object.entries(R)) if (r && r.min) push(`  ${k}: ${Math.ceil(r.min * 2 / 3)} to ${r.max} words`); }
+  if (D.overrideUsed) push('Per page briefs: this category has its own block 5 cards or steps in the niche entry (category_overrides).');
+  for (const l of IH.ideaHomeLines('category')) push(l);
+  push('');
   push('LINKABLE PAGES:');
   for (const p of D.linkablePages) push(`  [${p.type}] ${p.url} | H1: ${p.h1}${p.say ? ` | say: ${p.say}` : ''}`);
   if (!D.linkablePages.length) push('  none');
@@ -472,17 +483,17 @@ function formatCategoryBlock(D, cv, niche, ctx) {
   push(`  ${PT.LABELS.cards}`);
   for (const c of D.cards) push(`    - card_name: ${c.name}${c.say ? ` | say: ${c.say}` : ''} | card_text`);
   push(`  ${PT.LABELS.alsoOffered}${D.alsoOffered.length ? '' : ' (HIDDEN)'}`);
-  push(`  ${PT.LABELS.content}`);
+  push(`  ${PT.LABELS.content} (${IH.ideaNote('content')})`);
   push(`  ${PT.LABELS.block4}`);
   for (const p of D.problems) push(`    - ${PT.LIST_KEYS[PT.LABELS.block4][0]}: ${p.title} | ${PT.LIST_KEYS[PT.LABELS.block4][1]}`);
-  push(`  ${PT.LABELS.costIntro}`);
-  push(`  ${PT.LABELS.block5}`);
+  push(`  ${PT.LABELS.costIntro} (${IH.ideaNote('costIntro')})`);
+  push(`  ${PT.LABELS.block5} (${IH.ideaNote('block5')})`);
   for (const p of D.cost) push(`    - ${PT.LIST_KEYS[PT.LABELS.block5][0]}: ${p.title} | ${PT.LIST_KEYS[PT.LABELS.block5][1]}`);
   push(`  ${PT.LABELS.steps}`);
-  for (const s of D.niche_steps) push(`    - step_title: ${s.title} | step_body`);
+  D.niche_steps.forEach((s, i) => push(`    - step_title: ${s.title} | step_body${i === 0 ? ` (${IH.ideaNote('step1')})` : ''}`));
   push(`  ${PT.LABELS.areasIntro}`);
   push(`  ${PT.LABELS.faq}`);
-  for (const q of D.faq) push(`    - faq_question: ${q.question} | faq_answer`);
+  for (const q of D.faq) { const role = IH.faqRole(q.question); push(`    - faq_question: ${q.question} | faq_answer${role ? ` (${IH.ideaNote(role, 'category')})` : ''}`); }
   push(`  ${PT.LABELS.finalCta}`);
   push('  MODEL_FLAGS');
   return L.join('\n');

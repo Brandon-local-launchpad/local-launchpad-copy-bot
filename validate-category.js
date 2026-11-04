@@ -37,7 +37,7 @@ const KEYS = {
 
 // The context: the shared one plus the category page's keys and lists
 function categoryValidationContext(base, D) {
-  return { ...base, keys: { ...KEYS, selfUrl: D.slug || '/' } };
+  return { ...base, thin: !!D.thin, keys: { ...KEYS, selfUrl: D.slug || '/' } };
 }
 
 function validateCategory(record, V) {

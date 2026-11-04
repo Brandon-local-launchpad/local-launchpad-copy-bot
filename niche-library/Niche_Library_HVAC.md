@@ -14,6 +14,7 @@ Business type: **A (project trade)** for every GBP category (HVAC Calibration Pa
 |---|---|
 | trade / trade_lower | Air Conditioning / air conditioning |
 | trade_person / trade_person_plural | air conditioning engineer / air conditioning engineers |
+| homepage_keyword | Air conditioning (4 Nov 2026, Brandon: the homepage keyword is a way of saying the primary GBP category, picked on search volume; the H1 research pattern and the thin runner read it) |
 | customer_type | homeowners and local businesses |
 | unit_of_work | jobs |
 | emergency_niche | no (breakdown call outs on refrigeration, cold rooms and server rooms are written only from [CV: emergency_callouts]; no page is flagged emergency in hvac.csv) |

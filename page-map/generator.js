@@ -145,7 +145,7 @@ function buildPageMap(input, opts = {}) {
   const add = (type, title, slug, info) => rows.push({ page_key: pageKey(type, slug), type, title, slug, h1: '', h1_source: 'needed', meta_title: '', meta_description: '', status: 'Not Started', applies: true, links_to: [], links_from: [], info, sort_order: rows.length });
   add('homepage', `${companyName} Homepage`.trim(), '/', { phase: 1 });
   for (const c of cats) add('category', c.name, catPath(c), { category_key: c.key, primary: c.primary, phase: 1 });
-  for (const s of paged) add('service', s.name, svcPath(s), { service_id: s.id, emergency: !!s.emergency, desire_led: !!s.desire_led, prose_name: s.prose_name || null, additional: s.kind === 'additional', parent_keys: s.parents.filter(k => cats.some(c => c.key === k)), merged_from: s.merged_from || [], gbp_names: s.gbp_names, absorbs: s.absorbs || [], copy_priority: s.copy_priority || 0, phase: 1 });
+  for (const s of paged) add('service', s.name, svcPath(s), { service_id: s.id, emergency: !!s.emergency, desire_led: !!s.desire_led, prose_name: s.prose_name || null, question_name: s.question_name || null, additional: s.kind === 'additional', parent_keys: s.parents.filter(k => cats.some(c => c.key === k)), merged_from: s.merged_from || [], gbp_names: s.gbp_names, absorbs: s.absorbs || [], copy_priority: s.copy_priority || 0, phase: 1 });
   const tiers = opts.tiers || null;
   const tierOf = t => (tiers ? (tiers.tier1.has(t.slug) ? 1 : tiers.tier2.has(t.slug) ? 2 : null) : undefined);
   const combinationPassed = (t, c) => !tiers || !tiers.categories || !tiers.categories.has(t.slug) || tiers.categories.get(t.slug).has(c.key);
@@ -155,7 +155,7 @@ function buildPageMap(input, opts = {}) {
   for (const t of townSlugs) for (const s of paged) {
     if (!V3.usable(vol(keywordOf(`${s.name} ${t.name}`)))) continue;
     const parents = s.parents.filter(k => cats.some(c => c.key === k));
-    add('town_service', `${s.name} ${t.name}`, townSvcPath(t, s), { town: t.name, service_id: s.id, service_name: s.name, emergency: !!s.emergency, desire_led: !!s.desire_led, prose_name: s.prose_name || null, parent_keys: parents, category_key: s.home && parents.includes(s.home) ? s.home : parents[0], phase: 1 });
+    add('town_service', `${s.name} ${t.name}`, townSvcPath(t, s), { town: t.name, service_id: s.id, service_name: s.name, emergency: !!s.emergency, desire_led: !!s.desire_led, prose_name: s.prose_name || null, question_name: s.question_name || null, parent_keys: parents, category_key: s.home && parents.includes(s.home) ? s.home : parents[0], phase: 1 });
   }
 
   // The H1 rules decide which town service pages win their keyword; the rest are not pages.

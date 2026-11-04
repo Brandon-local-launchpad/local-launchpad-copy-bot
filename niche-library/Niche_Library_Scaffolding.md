@@ -14,6 +14,7 @@ Two readers, both written into every brief (the pack's section 1): the homeowner
 |---|---|
 | trade / trade_lower | Scaffolding / scaffolding |
 | trade_person / trade_person_plural | scaffolder / scaffolders |
+| homepage_keyword | Scaffolder (4 Nov 2026, Brandon: the homepage keyword is a way of saying the primary GBP category, picked on search volume; the H1 research pattern and the thin runner read it) |
 | customer_type | homeowners and other trades |
 | unit_of_work | scaffolds |
 | emergency_niche | no (the old marker; nothing reads it. Emergency is per page through the library's emergency column) |

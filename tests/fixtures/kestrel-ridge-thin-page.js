@@ -37,8 +37,8 @@ chk('No gate failures', !result.gates || result.gates.length === 0,
 
 chk('Title has no modifier (under 5 years, no guarantee, no rating)',
   D.d3_title === 'Roofer Bournemouth | Kestrel Ridge Roofing', D.d3_title, 'Roofer Bournemouth | Kestrel Ridge Roofing');
-chk('Meta proof = differentiator_1 sentence',
-  D.d4_meta.includes('We photograph every fault before we quote.'), D.d4_meta, 'contains differentiator_1 sentence');
+chk('Meta proof = differentiator_1 sentence, turned into a clause (4 Nov 2026: "and photographs every fault before quoting", never "with we photograph")',
+  D.d4_meta.includes('and photographs every fault before quoting.') && !/with we/.test(D.d4_meta), D.d4_meta, 'contains the differentiator as a clause');
 
 chk('Trust line = 40+ Jobs Completed', D.d5_trust === '40+ Jobs Completed', D.d5_trust, '40+ Jobs Completed');
 chk('Rating line = none', D.d6_rating === null, D.d6_rating, 'null');

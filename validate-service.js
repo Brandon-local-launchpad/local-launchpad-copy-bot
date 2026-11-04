@@ -42,7 +42,7 @@ const KEYS = {
 
 // The context: the shared one plus the service page's keys and the tagged trade facts rows
 function serviceValidationContext(base, D, { tradeFactsRows = [] } = {}) {
-  return { ...base, keys: { ...KEYS, selfUrl: D.slug || '/' }, tradeFactsRows };
+  return { ...base, thin: !!D.thin, keys: { ...KEYS, selfUrl: D.slug || '/' }, tradeFactsRows };
 }
 
 const BENEFIT_RE = /\b(?:ensur(?:e|es|ing)|enjoy(?:s|ing)?|peace of mind|hassle free|stress free|worry free|rest assured|you can relax|guarantee[ds]?|reliable|trusted|expert|professional)\b/i;

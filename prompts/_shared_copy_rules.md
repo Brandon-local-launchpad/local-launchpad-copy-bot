@@ -32,6 +32,7 @@ The keyword appears in its body copy form in the hero intro sentence 1 and the c
 - No superlatives or unprovable comparisons. Say the concrete thing instead.
 - Stock phrases ("before you decide", "in between", "from the start", "no surprises", "peace of mind", "take a look") appear once on the page at most, in any wording.
 - **One home per idea.** A technical point (drainage, the base under paving, tree roots, timing) is made in one place on the page, plus one FAQ at most.
+- **Never "we" for an unconfirmed practice.** A working practice the client values do not confirm (photographs before quoting, the roof left watertight each night, a written quote, a follow up visit) is never written as what this business does. Either leave it out, or write it as the trade's principle in the third person: "a fair roofer shows you photographs of what they found", "a good fitter measures the recess twice". The same for anything the claims review leaves open.
 - **Repeat a proof, never its wording.** A second mention of a proof is in completely different words.
 - Natural sentences, a soft cap of 25 words each. Paragraphs of 2 to 4 sentences.
 - Every paragraph carries one concrete, checkable detail: a place, a number, a named service or a process step.

@@ -14,6 +14,7 @@ Business type is **A (project trade)** for every page. The calibration pack's se
 |---|---|
 | trade / trade_lower | Flooring / flooring |
 | trade_person / trade_person_plural | flooring fitter / flooring fitters |
+| homepage_keyword | Flooring (4 Nov 2026, Brandon: the homepage keyword is a way of saying the primary GBP category, picked on search volume; the H1 research pattern and the thin runner read it) |
 | customer_type | homeowners |
 | unit_of_work | jobs |
 | emergency_niche | no |

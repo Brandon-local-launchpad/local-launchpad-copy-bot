@@ -94,7 +94,10 @@ function candidatesV2(row, ctx) {
     const seen = new Set();
     return [...own.map(k => ({ keyword: k, fit: 'own' })), ...syn.map(k => ({ keyword: k, fit: 'synonym' }))].filter(c => c.keyword && !seen.has(c.keyword) && seen.add(c.keyword));
   };
-  if (row.type === 'homepage') return ctx.primaryName ? make(ctx.primaryName, ctx.primaryKey, ctx.baseTown, true) : [];
+  // The homepage keyword word (4 Nov 2026): the niche entry's homepage_keyword when set (the roofer's
+  // is "Roofer", not "Roofing services"), else the primary category; the primary category's own
+  // pattern stays a candidate so the volume data can still prefer it
+  if (row.type === 'homepage') { const word = ctx.homepageKeyword || ctx.primaryName; if (!word) return []; const own = make(word, ctx.primaryKey, ctx.baseTown, true); const alt = ctx.homepageKeyword && ctx.primaryName && ctx.primaryName !== ctx.homepageKeyword ? make(ctx.primaryName, ctx.primaryKey, ctx.baseTown, false).map(c => ({ ...c, fit: 'synonym' })) : []; const seen = new Set(); return [...own, ...alt].filter(c => !seen.has(c.keyword) && seen.add(c.keyword)); }
   if (row.type === 'category') return make(row.title, info.category_key, ctx.baseTown, false);
   if (row.type === 'service') return make(row.title, null, ctx.baseTown, false);
   if (row.type === 'location') return ctx.primaryName ? make(ctx.primaryName, ctx.primaryKey, info.town || row.title, true) : [];

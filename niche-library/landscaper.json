@@ -1042,5 +1042,55 @@
       ]
     }
   },
-  "do_not_reuse": []
+  "do_not_reuse": [],
+  "category_overrides": {
+    "paving contractor": {
+      "problems": {
+        "h2": "Common [WORK] Problems",
+        "cards": [
+          {
+            "title": "A garden with nowhere to sit out",
+            "brief": "A situation card, not a fault: the household looks at the garden from the house and has nowhere flat and dry for a table and chairs, to let the children out or to stand with a coffee. What decides it: the levels and the ground by the back door (a slope, a lawn that stays wet, a step down to nothing). What the work gives them, in plain words: a patio or a deck made the size they will use, a level lawn, steps that make the lower garden reachable. By category: Paving reads it as the patio and its base; Decking as the deck, where the evening sun falls and what holds it up; Landscape Gardener as whichever fits the garden; Tree Service as the one sunny corner shaded out by a tree that has grown over it, and what lifting or thinning the crown gives back. Never a lifestyle pitch, never a fault invented for it.",
+            "mechanism": "no level, dry place to sit near the house"
+          },
+          {
+            "title": "Slabs and blocks that rock or have sunk",
+            "mechanism": "a sub base too thin or too soft for what sits on it",
+            "brief": "A slab that rocks when it is stepped on, a line of blocks that has dipped by the drain, a joint that has opened: the sub base under it was never compacted or was too thin for the ground. Say the fix starts underneath (the area lifted, the base made good, the slabs or blocks relaid), from the trade facts stages; no depth, no figure, and nothing about boards or posts."
+          },
+          {
+            "title": "Rain that stays where it lands",
+            "brief": "Problem led: puddles that sit on paving after rain, a deck green and slippery by autumn, a corner of lawn soft for days, a planting hole that fills with water. The one cause this card makes: a surface laid with no fall, so the rain cannot run off it. Say what the fix usually involves (a fall built into the laying, a base that drains, timber kept off wet ground, a tree planted at the right level) from the trade facts stages; what the business does on site only from confirmed practices. Never promise the ground will change. By category: Paving reads it on the surface; Decking in boards and joists that never dry; Tree Service in a tree standing in ground that holds water; Landscape Gardener across the garden. Not slow draining ground on its own: the symptom FAQ may own that.",
+            "mechanism": "a surface laid with no fall"
+          },
+          {
+            "title": "Planted or built for a different garden",
+            "brief": "A situation and a warning sign in one: borders now hard against the path, a drive too small for the cars that use it, a deck in the corner the sun left years ago, a tree planted close to the house that now reaches the roof. The one cause this card makes: planting and levels set years ago for a different garden. Say how looking at the whole garden before pricing one part of it works, from confirmed practices only. By category: Landscape Gardener reads it as layout and levels; Paving as the front garden and the drive; Decking as a platform in the wrong place or at the wrong height; Tree Service as the warning signs in the tree itself (branches rubbing the building, deadwood showing, a damaged limb, from the trade facts signs row) and that which answer fits depends on what the tree is, how close it stands and what the ground is, never that a tree is or is not safe. Never a judgement about the garden's age or state.",
+            "mechanism": "planting and levels set for an older garden"
+          }
+        ]
+      },
+      "cost": {
+        "h2": "What Affects the Cost of [WORK] in [CITY]",
+        "cards": [
+          {
+            "title": "The size of the area",
+            "brief": "Square metres move the price more than anything else: more digging, more sub base, more slabs or blocks, more days. Say it plainly and give no figure."
+          },
+          {
+            "title": "What is underneath",
+            "brief": "Topsoil, clay, an old slab base or concrete that has to come out before a new sub base goes in: the dig and the waste set the number of days. Say the business looks before it prices, from [CV: quote_method] only."
+          },
+          {
+            "title": "Getting to the garden",
+            "brief": "Rear access, a path down the side, where a skip can sit and how far the sub base and the slabs are carried by hand. Say why a tight access costs more time."
+          },
+          {
+            "title": "The slabs or blocks you choose",
+            "brief": "Natural stone against concrete slabs against porcelain, block paving against slabs, and the bed and the edging each needs: a porcelain slab wants a primed full bed, blocks want a compacted laying course and a kerb to hold them. Name a material only if the trade facts or [CV: materials_methods] give it; nothing here about timber, decking or fencing. Code adds the price line from [CV: price_list] when there is one."
+          }
+        ]
+      }
+    }
+  }
 }

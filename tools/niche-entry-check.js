@@ -210,6 +210,22 @@ else {
 }
 
 // ── Report ──
+// Per target overrides (copy quality 2, phase 2, 4 Nov 2026): service_overrides keyed by page target,
+// category_overrides keyed by category, lower case, each replacing cost, steps, problems or faq_slots
+for (const [slot, by] of [['service_overrides', 'page target'], ['category_overrides', 'category']]) {
+  const o = n[slot];
+  if (o == null) continue;
+  if (typeof o !== 'object' || Array.isArray(o)) { fail(`${slot} must be an object keyed by ${by} in lower case`); continue; }
+  for (const [k, v] of Object.entries(o)) {
+    if (k !== k.toLowerCase()) fail(`${slot} key "${k}" must be lower case`);
+    if (!v || typeof v !== 'object') { fail(`${slot} "${k}" must be an object`); continue; }
+    const cards4 = c => Array.isArray(c) && c.length === 4 && c.every(x => x && x.title && x.brief);
+    if (v.cost && !cards4(v.cost.cards)) fail(`${slot} "${k}": cost needs 4 cards with title and brief`);
+    if (v.problems && !cards4(v.problems.cards)) fail(`${slot} "${k}": problems needs 4 cards with title and brief`);
+    if (v.steps && (!Array.isArray(v.steps) || v.steps.length !== 3 || v.steps.some(x => !x || !x.title || !x.brief))) fail(`${slot} "${k}": steps needs 3 entries with title and brief`);
+    for (const key of Object.keys(v)) if (!['always_emergency', 'cost', 'steps', 'problems', 'faq_slots'].includes(key)) warn(`${slot} "${k}": unknown key ${key}`);
+  }
+}
 const fails = out.filter(o => o[0] === 'FAIL').length, warns = out.filter(o => o[0] === 'WARN').length;
 for (const [k, m] of out) console.log(`${k === 'ok' ? '  ok ' : k === 'WARN' ? 'WARN ' : 'FAIL '}${m}`);
 console.log(`\n${stem}: ${fails} FAIL, ${warns} WARN`);

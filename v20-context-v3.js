@@ -57,6 +57,7 @@ function contextFromPageMap({ rows, hand, cv = {}, niche = {} }) {
       emergency: !!(r.info && r.info.emergency),
       desireLed: !!(r.info && r.info.desire_led),
       proseName: (r.info && r.info.prose_name) || null,
+      questionName: (r.info && r.info.question_name) || null,
       assignedNeighbourhoods: [],
       assignedSymptoms: {},
       locationCategoryName: pageType === 'location-category' ? catName.get(r.info.category_key) || null : null,

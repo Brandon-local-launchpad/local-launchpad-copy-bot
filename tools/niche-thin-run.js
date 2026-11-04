@@ -101,7 +101,7 @@ const flagsFor = title => { const m = L.findEntries(libSet, title, []); const ow
 const decorate = rows => rows.map(r => {
   if (!['service', 'town_service'].includes(r.type)) return r;
   const fl = flagsFor(r.type === 'service' ? r.title : (r.info && r.info.service_name) || r.title);
-  return { ...r, info: { ...r.info, emergency: !!(r.info.emergency || fl.emergency), desire_led: !!(r.info.desire_led || fl.desire_led), prose_name: r.info.prose_name || fl.prose_name || null } };
+  return { ...r, info: { ...r.info, emergency: !!(r.info.emergency || fl.emergency), desire_led: !!(r.info.desire_led || fl.desire_led), prose_name: r.info.prose_name || fl.prose_name || null, question_name: r.info.question_name || fl.question_name || null } };
 });
 
 // ── The client ──
@@ -169,7 +169,7 @@ if (clientArg === 'edens-edge') {
   const primaryName = resolved.primaryName || primaryCat.name;
   for (const r of map.rows) {
     if (r.h1) continue;
-    r.h1 = r.type === 'homepage' ? `${primaryName} ${baseTown}` : r.type === 'category' || r.type === 'service' ? `${r.title} ${baseTown}` : r.type === 'location' ? `${primaryName} ${r.title}` : r.title;
+    r.h1 = r.type === 'homepage' ? `${entry.homepage_keyword || primaryName} ${baseTown}` : r.type === 'category' || r.type === 'service' ? `${r.title} ${baseTown}` : r.type === 'location' ? `${primaryName} ${r.title}` : r.title;
     r.h1_source = 'pattern';
   }
   rows = map.rows;
@@ -222,7 +222,9 @@ if (!calibrationPack.name) console.log('WARNING: no calibration pack found for t
   const writer = arg('--model');
   const callFor = dflt => makeCallModel(client, writer || dflt, { onUsage });
   const allocate = args => A.runAllocation({ ...args, callModel: async (system, message) => { const r = await client.messages.create({ model: A.ALLOCATION_MODEL, max_tokens: 2048, system, messages: [{ role: 'user', content: message }] }); return r.content.map(c => c.text || '').join(''); } });
-  const dir = path.join(root, 'tests/quality-runs/thin', clientArg ? `${stem}-${clientArg}` : stem, new Date().toISOString().replace(/[:.]/g, '-'));
+  // The folder carries the process id too (4 Nov 2026): two runs of one niche started in the same second
+  // shared a folder and the second overwrote the first's pages
+  const dir = path.join(root, 'tests/quality-runs/thin', clientArg ? `${stem}-${clientArg}` : stem, `${new Date().toISOString().replace(/[:.]/g, '-')}-${process.pid}`);
   fs.mkdirSync(dir, { recursive: true });
   const t0 = Date.now();
   const summary = [];
@@ -244,13 +246,22 @@ if (!calibrationPack.name) console.log('WARNING: no calibration pack found for t
       let line;
       if (record.blocked || record.error) line = `homepage: ${record.error || 'blocked'}`;
       else {
+        // Scored twice and averaged (Brandon, 4 Nov 2026): one reading hides a change under the spread
         const review = await Q.reviewPage({ record, V, D: DR.decisions, cv, niche, callModel: call });
+        const review2 = await Q.reviewPage({ record, V, D: DR.decisions, cv, niche, callModel: call }).catch(() => null);
+        const scores = [review, review2].filter(r => r && r.score != null).map(r => r.score);
+        if (scores.length === 2) review.score = Math.round(((scores[0] + scores[1]) / 2) * 100) / 100;
+        const writingsH = [review, review2].filter(r => r && r.score_writing != null).map(r => r.score_writing);
+        if (writingsH.length) review.score_writing = Math.round((writingsH.reduce((a, b) => a + b, 0) / writingsH.length) * 100) / 100;
+        review.readings = scores;
         fs.writeFileSync(path.join(dir, 'homepage.md'), buildReaderView(record, record.meta.client_values || {}));
-        fs.writeFileSync(path.join(dir, 'homepage-review.txt'), Q.formatReview(review) + '\n');
+        fs.writeFileSync(path.join(dir, 'homepage-review.txt'), Q.formatReview(review) + (scores.length === 2 ? `\n(Two readings: ${scores.map(s => s.toFixed(1)).join(' and ')}; the score is their average.)\n` : '') + '\n');
+        if (review2) fs.writeFileSync(path.join(dir, 'homepage-review-2.txt'), Q.formatReview(review2) + '\n');
         const vs = record.VALIDATION || record.meta.validation || {};
         const blocks = vs.block != null ? vs.block : (vs.issues || []).filter(i => i.type === 'BLOCK').length;
         const flags = vs.flag != null ? vs.flag : (vs.issues || []).filter(i => i.type === 'FLAG').length;
-        line = `homepage: ${blocks} BLOCK, ${flags} FLAG, reviewer ${review.score != null ? review.score.toFixed(1) : '?'} (${review.items ? review.items.filter(i => i.pass).length + '/' + review.items.length + ' items' : ''})`;
+        const fpH = record.meta && record.meta.flag_pass; const fpTextH = fpH && fpH.before != null ? ` (flags ${fpH.before} to ${fpH.after}, ${fpH.kept} kept)` : '';
+        line = `homepage: ${blocks} BLOCK, ${flags} FLAG${fpTextH}, reviewer ${review.score != null ? review.score.toFixed(1) : '?'}${review.readings && review.readings.length === 2 ? ` (${review.readings.map(s => s.toFixed(1)).join(', ')})` : ''}${review.score_writing != null && review.score_writing !== review.score ? `, writing only ${review.score_writing.toFixed(1)}` : ''} (${review.items ? review.items.filter(i => i.pass).length + '/' + review.items.length + ' items' : ''})`;
         await v20Store.insert(cid, record, { type: 'homepage', key: 'homepage' });
       }
       console.log('  ' + line); summary.push(line);
@@ -284,11 +295,25 @@ if (!calibrationPack.name) console.log('WARNING: no calibration pack found for t
     const V = found.record.VALIDATION || {};
     let Qr = found.record.QUALITY;
     if (flag('--quality') && !found.record.error && !found.record.blocked) {
-      try { const rv = await reviewOf(type, key, found.record); if (rv) { Qr = { score: rv.score, done: rv.done, failures: (rv.items || []).filter(i => !i.pass) }; fs.writeFileSync(path.join(dir, `${name}-review.txt`), Q.formatReview(rv) + '\n'); } }
+      // Scored twice and averaged (Brandon, 4 Nov 2026): one reading hides a change under the spread
+      try {
+        const rv = await reviewOf(type, key, found.record);
+        if (rv) {
+          const rv2 = await reviewOf(type, key, found.record).catch(() => null);
+          const readings = [rv, rv2].filter(r => r && r.score != null).map(r => r.score);
+          const score = readings.length === 2 ? Math.round(((readings[0] + readings[1]) / 2) * 100) / 100 : rv.score;
+          const writings = [rv, rv2].filter(r => r && r.score_writing != null).map(r => r.score_writing);
+          const score_writing = writings.length ? Math.round((writings.reduce((a, b) => a + b, 0) / writings.length) * 100) / 100 : null;
+          Qr = { score, score_writing, readings, done: rv.done, failures: (rv.items || []).filter(i => !i.pass), needs_fact: rv.needs_fact || [] };
+          fs.writeFileSync(path.join(dir, `${name}-review.txt`), Q.formatReview(rv) + (readings.length === 2 ? `\n(Two readings: ${readings.map(s => s.toFixed(1)).join(' and ')}; the summary score is their average.)\n` : '') + '\n');
+          if (rv2) fs.writeFileSync(path.join(dir, `${name}-review-2.txt`), Q.formatReview(rv2) + '\n');
+        }
+      }
       catch (e) { console.log(`      reviewer failed: ${e.message}`); }
     }
     const block = found.record.meta && found.record.meta.decisions_block;
-    const line = `${type} ${key}: ${st.status}${V.status === 'run' ? ` (${V.block} BLOCK, ${V.flag} FLAG${found.record.CLAIMS ? `, claims ${found.record.CLAIMS.status}` : ''}${Qr && Qr.score != null ? `, reviewer ${Qr.score.toFixed(1)}` : ''})` : ''}${found.record.error ? ': ' + found.record.error : ''} · ${emergencyLine(block)}${framingLine(block) ? ' · ' + framingLine(block) : ''}`;
+    const fp = found.record.meta && found.record.meta.flag_pass; const fpText = fp && fp.before != null ? ` (flags ${fp.before} to ${fp.after}, ${fp.kept} kept)` : '';
+    const line = `${type} ${key}: ${st.status}${V.status === 'run' ? ` (${V.block} BLOCK, ${V.flag} FLAG${fpText}${found.record.CLAIMS ? `, claims ${found.record.CLAIMS.status}` : ''}${Qr && Qr.score != null ? `, reviewer ${Qr.score.toFixed(1)}${Qr.readings && Qr.readings.length === 2 ? ` (${Qr.readings.map(s => s.toFixed(1)).join(', ')})` : ''}${Qr.score_writing != null && Qr.score_writing !== Qr.score ? `, writing only ${Qr.score_writing.toFixed(1)}` : ''}` : ''})` : ''}${found.record.error ? ': ' + found.record.error : ''} · ${emergencyLine(block)}${framingLine(block) ? ' · ' + framingLine(block) : ''}`;
     console.log('  ' + line); summary.push(line);
     for (const i of (V.issues || [])) if (i.type === 'BLOCK') console.log(`      BLOCK ${i.check} · ${i.field}: ${i.message}`);
     if (Qr && Qr.failures) for (const i of Qr.failures.slice(0, 6)) console.log(`      QUALITY ${i.id} ${i.title}: ${(i.reasons || []).slice(0, 1).join(' | ')}`);

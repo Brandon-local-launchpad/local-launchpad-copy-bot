@@ -87,7 +87,11 @@ const RETRY_FLAGS = new Set(['N7', 'N13', 'N14', 'N15', 'N17', 'N18', 'N19', 'N2
 const RESEARCH_WORDS = ['investigated sites?', 'records? shows?', 'recorded (at|in|by)', 'council (guidance|records|data|maps?|says)',
   'strategic flood', 'flood (risk )?assessments?', 'suds', 'according to', 'research', 'dossier', 'data (shows|suggests)',
   'mapped', 'appraisal', 'neighbourhood plan', 'evidence base', 'studies show', 'surveys? (show|found)',
-  '(slowly |more slowly |less )?permeable', 'groundwater', 'water table', 'tidal-flat', 'river-terrace', 'plateaux?'];
+  '(slowly |more slowly |less )?permeable', 'groundwater', 'water table', 'tidal-flat', 'river-terrace', 'plateaux?',
+  // Research filler (4 Nov 2026): a line that only says something varies tells the reader nothing
+  '(soils?|geology|ground|ground conditions|housing|housing stock|the picture|conditions) (varies|vary|differs?|is mixed|are mixed)',
+  'varies (widely|a lot|considerably|greatly)?\\s*(across|between|from) (the (city|town|area|district|borough)|street to street|one (street|road|area) to (the next|another)|place to place)',
+  'varies across', 'mixed (geology|soils?|housing)', 'a (mix|mixture|patchwork) of (soils?|ground|housing|house types)'];
 const STOPWORDS = new Set('a an the and or of to in on for with at by from as is are be it its this that we our you your they their there here so if not no but more than can will has have'.split(' '));
 
 const NUM_WORDS = { one: 1, two: 2, three: 3, four: 4, five: 5, six: 6, seven: 7, eight: 8, nine: 9, ten: 10, eleven: 11, twelve: 12 };
@@ -210,6 +214,20 @@ function packIndex(text) {
   packCache.set(text, idx);
   return idx;
 }
+// The word ranges a page is held to (copy quality 2, phase 2, 4 Nov 2026): the page type's, with every
+// minimum a third lower on a thin page (V.thin: the homepage's F-THIN, or no allocated neighbourhoods on
+// any page), so the model is not pushed to pad a page that has less to say
+function thinRange(r, thin) {
+  if (!thin || !r || !r.min) return r;
+  const min = Math.ceil(r.min * 2 / 3);
+  return { ...r, min, label: `${min} to ${r.max}` };
+}
+function effectiveRanges(record, V) {
+  const base = (require('./page-types').pageTypeOf(record).ranges) || RANGES;
+  if (!V || !V.thin) return base;
+  return Object.fromEntries(Object.entries(base).map(([k, r]) => [k, thinRange(r, true)]));
+}
+
 // A sentence copied from the pack: a shared 4-gram, or 70% of its content words in one pack sentence
 // names (3 Nov): the page's own names (its services, cards, categories and linkable H1s, lower
 // case): a run that sits inside one of them is the name of a page, not a copy ("dog bath and blow
@@ -220,7 +238,16 @@ function packCopy(sentence, idx, names = []) {
   // A run inside one of the page's own names is that name, not a copy (3 Nov); so is a run that
   // bridges two names listed side by side (4 Nov 2026: "interior painting and decorating, exterior
   // painting" in a services card): the run's head ends one name and its tail starts another
-  const isName = run => names.some(n => n.includes(run));
+  // A name with "our", "good" or "the" in front, or "work", "service" or "page" after it, is still the
+  // name ("our lockouts and gaining entry work", 4 Nov 2026)
+  // A run with three or more of its words sitting together inside one page name ("our lockouts
+  // and gaining entry work", "and edging work starts with") is the name being used, not a copy
+  const isName = run => {
+    if (names.some(n => n.includes(run))) return true;
+    const w = run.split(' ');
+    for (let k = w.length - 1; k >= 3; k--) for (let i = 0; i + k <= w.length; i++) { const part = w.slice(i, i + k).join(' '); if (names.some(n => n.includes(part))) return true; }
+    return false;
+  };
   const bridges = g => { for (let k = 1; k < g.length; k++) { const head = g.slice(0, k).join(' '), tail = g.slice(k).join(' '); if (names.some(n => n === head || n.endsWith(' ' + head)) && names.some(n => n === tail || n.startsWith(tail + ' '))) return true; } return false; };
   for (let i = 0; i + 5 <= toks.length; i++) { const g = toks.slice(i, i + 5); const run = g.join(' '); if (packContent(g) && idx.grams.has(run) && !isName(run) && !bridges(g)) return { kind: 'run', match: run }; }
   // The page's own names are not a copy here either (4 Nov 2026): a pack example line "card_name:
@@ -274,6 +301,8 @@ function buildValidationContext({ cv, niche, decisions, keyValueMap = {}, servic
   return {
     cv, niche, D, keyValueMap, serviceParentMap, populatedCvKeys: populatedCvKeys || new Set(),
     pack: packIndex(calibrationPack),
+    // thin (4 Nov 2026): the word minimums drop by a third (D.thin: F-THIN on the homepage, no allocated neighbourhoods on any page)
+    thin: !!D.thin,
     // The page's own names, for PACK-COPY: a shared run inside one of them is a page name, not a copy
     packNames: [...new Set([
       ...Object.entries(keyValueMap).filter(([k]) => /^(service|mentioned|category)_\d+$/.test(k)).map(([, v]) => v),
@@ -303,7 +332,7 @@ function validateCommon(record, V) {
   if (record.blocked) return { issues, issue, fields: [] };
   const { cv, niche, D } = V;
   const K = V.keys || HOMEPAGE_KEYS;
-  const ranges = (require('./page-types').pageTypeOf(record).ranges) || RANGES;
+  const ranges = effectiveRanges(record, V);
   const fields = modelFields(record);
 
   // ── Per field ──
@@ -395,7 +424,7 @@ function validateCommon(record, V) {
     // N7: word ranges and long sentences
     const r = ranges[f.rangeKey];
     if (r) {
-      const range = f.rangeKey === K.content && D.d13_expands ? { min: 200, max: 300, label: '200 to 300' } : r;
+      const range = f.rangeKey === K.content && D.d13_expands ? thinRange({ min: 200, max: 300, label: '200 to 300' }, V.thin) : r;
       const n = wordCount(t);
       if ((range.min && n < range.min) || n > range.max) flag('FLAG', 'N7', `${n} words: it must be ${range.label}.`);
     }
@@ -483,10 +512,16 @@ function validateCommon(record, V) {
       if (hit) flag('BLOCK', 'WORKED', `Implies the business has worked in or on ${hit}. Use the local detail as a fact about the area, not as a job they've done.`);
     }
 
-    // NUM: numbers and timescales must come from client values (or the allocated research)
+    // NUM: numbers and timescales must come from client values (or the allocated research). A figure from
+    // a verified trade facts rule row passes when the sentence states the condition it belongs to ("usually",
+    // "in most cases", "unless", "where", 4 Nov 2026); a regulation's name or number is validate-service's STANDARD
+    const ruleText = lc((V.tradeFactsRows || []).filter(r => r && r.kind === 'rule').map(r => r.text).join(' '));
+    const conditioned = /\b(?:usually|in most cases|normally|unless|where|provided|as long as|if)\b/i.test(s);
     for (const m of s.matchAll(/£?\s?\d[\d,]*(?:\.\d+)?/g)) {
       const n = m[0].replace(/[£,\s]/g, '');
-      if (!V.cvNumbers.has(n) && !V.researchNumbers.has(n)) flag('BLOCK', 'NUM', `"${m[0].trim()}" is not in the client values. Remove the figure or describe it without a number.`);
+      if (V.cvNumbers.has(n) || V.researchNumbers.has(n)) continue;
+      if (conditioned && ruleText && new RegExp(`(?:^|[^\\d.])${esc(n)}(?![\\d])`).test(ruleText)) continue;
+      flag('BLOCK', 'NUM', `"${m[0].trim()}" is not in the client values. Remove the figure or describe it without a number.`);
     }
     for (const m of s.matchAll(/\b(?:in|within|for|after|over)\s+(?:a\s+(?:few|couple\s+of)\s+|just\s+|only\s+)?(?:days|weeks|months)\b/gi)) {
       if (!V.cvText.includes(lc(m[0])) && !V.researchText.includes(lc(m[0]))) flag('BLOCK', 'NUM', `The timescale "${m[0]}" is not in the client values. Give the factors that decide it, without a time.`);
@@ -1014,6 +1049,7 @@ function summarise(issues) {
 }
 
 module.exports = {
+  effectiveRanges, thinRange,
   validateV20, validateCommon, sharedCrossChecks, buildValidationContext, modelFields, getField, setField, summarise, wordCount, RANGES, RETRY_FLAGS, BANNED, STOCK, HOMEPAGE_KEYS,
   // Text helpers for a page type's own checks
   helpers: { esc, stripLinks, linkUrls, normUrl, scanText, words, sentences, lc, stem, STOPWORDS, contentWords, packIndex, packCopy },

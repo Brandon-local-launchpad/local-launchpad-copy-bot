@@ -5,6 +5,7 @@
   "trade_lower": "cleaning",
   "trade_person": "cleaner",
   "trade_person_plural": "cleaners",
+  "homepage_keyword": "Cleaner",
   "customer_type": "homeowners, tenants and local businesses",
   "unit_of_work": "visits",
   "emergency_niche": false,

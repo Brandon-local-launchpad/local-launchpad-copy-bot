@@ -5,6 +5,7 @@
   "trade_lower": "tiling",
   "trade_person": "tiler",
   "trade_person_plural": "tilers",
+  "homepage_keyword": "Tiler",
   "customer_type": "homeowners",
   "unit_of_work": "jobs",
   "emergency_niche": false,

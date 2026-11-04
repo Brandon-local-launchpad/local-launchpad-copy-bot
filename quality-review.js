@@ -155,7 +155,7 @@ const JUDGE_ITEMS = {
   S10: 'Each card says what the customer gets, in sentences that read naturally (no retry artefacts like "We also handle our tree service work for…").',
   C3j: 'No claim of experience with kinds of property or job ("large rural properties", "conservation area gardens") unless the facts say so.',
   P6: 'Each idea has one home: the same point (the base under paving, an insurance example, a technical explanation) isn\'t made in several sections. A confirmed proof (a differentiator, the jobs count, the insurance figure) may appear up to 3 times: code scores that (P1, P2), so don\'t fail P6 for it.',
-  F5: 'Each FAQ answer answers the question as asked and the doubt behind it. When the facts don\'t say what the business does (no guarantee, no complaints process, no visit frequency on file), an answer that says what the customer can do and the standard the work is held to passes, and a visits answer that says the schedule is agreed with the customer and no more passes: put the missing fact in missing_facts instead.',
+  F5: 'Each FAQ answer answers the question as asked and the doubt behind it. When the facts don\'t say what the business does (no guarantee, no complaints process, no visit frequency on file), an answer that says what the customer can do and the standard the work is held to passes, and a visits answer that says the schedule is agreed with the customer and no more passes: put the missing fact in missing_facts instead. A cost answer with no price list on file passes when it names the one factor that moves the price most and what the customer can do about it (a quote, photos, a measurement): put the prices in missing_facts, never fail the answer for having none.',
   T2: 'Step bodies follow their step titles and never restate the free quote, the fixed price promise or the start time. Step 2 saying a price is agreed before work starts is the step itself, not a restatement.',
   Y6: 'No padding (a sentence that could sit on any website: "there is a service here for you", "we bring that experience to every job") and no pasted research ("gardens that date mostly from 1908 to 1930", "the geology varies widely"). Memberships and logos only when they are in the facts.',
   Y5: 'Every sentence reads naturally to a homeowner: grammatical, specific, no padding, no contradiction, nothing a reader would stumble on or doubt.',
@@ -170,7 +170,7 @@ function judgeItemsFor(record) {
     out.B1j = 'The content block explains the job: paragraph 2 gives the stages in order from the trade facts in plain words (any trade term explained in the same sentence), paragraph 3 names one concrete consequence of skipping the job or doing it badly without alarming the reader, and paragraph 4 says where the team works (a base page links 2 or 3 area pages as the town name or "[service] in [town]"; a town page links its base page once and names no other town).';
     out.P6 = 'Each idea has one home: the same point (a cause, a stage, a cost factor, an insurance example) isn\'t made in several sections; the What\'s Included items name the stages and paragraph 2 explains them without repeating their wording; nothing under IDEAS USED ELSEWHERE or MECHANISMS USED is made again in other words. A confirmed proof may appear up to 3 times: code scores that (P1, P2), so don\'t fail P6 for it.';
     out.S10 = 'Each What\'s Included item reads as a part of the job someone could check off (a stage, a material, a check, a finish), not a benefit, and each block 4 card reads naturally: the sign, what is behind it, what it leads to if left.';
-    out.V9j = 'A rule from the trade facts (planning, building regulations, a standard, a licence) is written as what usually applies, with "usually" or "in most cases", never as legal advice and never with a number; a how long question is answered from the trade facts timing only.';
+    out.V9j = 'A rule from the trade facts (planning, building regulations, a standard, a licence) is written as what usually applies, with "usually" or "in most cases", never as legal advice. A figure passes only when it comes from a verified trade facts rule row and the sentence states the full condition (what it applies to, the size and the exception: "a surface water can\'t soak through, over five square metres, usually needs permission unless it drains to a lawn or border"); a regulation\'s name or number never passes; a how long question is answered from the trade facts timing only.';
     if (record.scope === 'town') out.T6j = 'A town page reads as about that town only: no other town is named or implied anywhere (the city, a neighbouring town, "the surrounding towns"), every link reads as the plain service or page name, and the base service page is linked once.';
     return out;
   }
@@ -370,17 +370,23 @@ async function reviewPage({ record, V, D, cv, niche, callModel }) {
     'FACTS ON FILE:', factsFor(record), '',
     'PAGE:', pageText(record),
   ].join('\n');
-  const r = await callModel({ system: loadReviewPrompt(), message, maxTokens: 16000, model: REVIEW_MODEL });
+  const r = await callModel({ system: loadReviewPrompt(), message, maxTokens: 16000, model: REVIEW_MODEL, temperature: 0 });
   const j = extractJsonObject(r.text);
   const judgeItems = Object.entries(judgeItemsFor(record)).map(([id, t]) => {
     const got = (j.items || []).find(x => x.id === id) || { pass: false, why: 'The reviewer did not score this item.' };
-    return { id, title: t, by: 'judge', pass: !!got.pass, reasons: got.pass ? [] : [`"${got.quote || ''}": ${got.why || ''}`] };
+    const needs = !got.pass && /client/i.test(String(got.needs || '')) ? 'client fact' : 'writing';
+    return { id, title: t, by: 'judge', pass: !!got.pass, needs: got.pass ? null : needs, reasons: got.pass ? [] : [`"${got.quote || ''}": ${got.why || ''}`] };
   });
-  const items = [...codeItems, ...judgeItems];
+  // A code item's failure is always fixable in the writing (a claim can be removed, a repeat reworded)
+  const items = [...codeItems.map(i => ({ ...i, needs: i.pass ? null : 'writing' })), ...judgeItems];
   const failed = items.filter(i => !i.pass);
   const score = typeof j.score === 'number' ? j.score : null;
+  // score_writing (copy quality 2, phase 3, 4 Nov 2026): the score counting only the failures fixable in the
+  // writing, as the reviewer gives it; the failures that need a client fact are listed apart
+  const score_writing = typeof j.score_writing === 'number' ? j.score_writing : score;
   return {
-    at: new Date().toISOString(), model: REVIEW_MODEL, score, passAll: !failed.length,
+    at: new Date().toISOString(), model: REVIEW_MODEL, score, score_writing, passAll: !failed.length,
+    needs_fact: failed.filter(i => i.needs === 'client fact').map(i => i.id),
     done: !failed.length && score !== null && score >= PASS_SCORE,
     failed: failed.map(i => i.id), items, other_problems: j.other_problems || [], missing_facts: j.missing_facts || [],
     validator: { block: issues.filter(i => i.type === 'BLOCK').length, flag: issues.filter(i => i.type === 'FLAG').length },
@@ -389,14 +395,15 @@ async function reviewPage({ record, V, D, cv, niche, callModel }) {
 }
 
 function formatReview(rv) {
+  const fixable = rv.items.filter(x => !x.pass && x.needs !== 'client fact'), needFact = rv.items.filter(x => !x.pass && x.needs === 'client fact');
   const L = [`Score: ${rv.score === null ? 'n/a' : rv.score.toFixed(1)} / 10 · ${rv.items.length - rv.failed.length}/${rv.items.length} rubric items pass · ${rv.done ? 'DONE' : 'not done'}`,
+    ...(rv.score_writing != null && rv.score !== null ? [`Counting only what the writing can fix: ${rv.score_writing.toFixed(1)} / 10 (${fixable.length} failure(s) fixable in the writing, ${needFact.length} need a client fact)`] : []),
     `Validator: ${rv.validator.block} BLOCK, ${rv.validator.flag} FLAG`, ''];
   // Every rubric item, failures first with the reviewer's reasons, then the passes (4 Nov 2026:
   // the file next to each page is the whole mark sheet, not only what was marked down)
-  for (const i of rv.items.filter(x => !x.pass)) {
-    L.push(`FAIL ${i.id} (${i.by}) ${i.title}`);
-    for (const r of i.reasons) L.push(`  - ${r}`);
-  }
+  const failLines = list => { for (const i of list) { L.push(`FAIL ${i.id} (${i.by}) ${i.title}`); for (const r of i.reasons) L.push(`  - ${r}`); } };
+  if (needFact.length) { L.push('Fixable in the writing:'); failLines(fixable); L.push('', 'Needs a client fact:'); failLines(needFact); }
+  else failLines(fixable);
   const passed = rv.items.filter(x => x.pass);
   if (passed.length) {
     L.push('', `Passed (${passed.length}):`);

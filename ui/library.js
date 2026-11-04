@@ -22,9 +22,12 @@ const PROMPTS = path.join(ROOT, 'prompts');
 // Niche key → the library's file stem (niche-library/<stem>.csv, <stem>.json)
 const STEM = { landscapers: 'landscaper', roofers: 'roofer', builders: 'builder', cleaning: 'cleaning', 'dog-walkers': 'pet-care', 'driveways-paving': 'driveways', electricians: 'electrician', 'loft-extensions': 'loft-conversions', 'tree-surgeons': 'tree-surgeon' };
 function stemFor(key) {
+  // A Fillout niche key spells its words with underscores (dog_walkers); the stems and the map
+  // use hyphens (4 Nov 2026: half the niches missed the map through that alone)
+  const k = String(key || '').toLowerCase().replace(/_/g, '-');
   if (STEM[key]) return STEM[key];
+  if (STEM[k]) return STEM[k];
   const files = fs.existsSync(LIB) ? fs.readdirSync(LIB) : [];
-  const k = String(key || '').toLowerCase();
   const direct = files.find(f => f.endsWith('.csv') && !f.endsWith('-categories.csv') && f.replace(/\.csv$/, '') === k);
   if (direct) return direct.replace(/\.csv$/, '');
   const first = k.split('-')[0];

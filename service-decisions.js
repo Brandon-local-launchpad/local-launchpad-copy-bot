@@ -27,13 +27,79 @@ const { keywordWord, isPersonWord, phCat } = require('./category-decisions');
 const B = require('./service-blocks');
 
 const lc = s => String(s || '').toLowerCase().trim();
+const IH = require('./idea-homes');
 
 // The service page placeholders, then the category and shared ones
 function phSvc(text, ctx) {
   if (!text) return text;
-  return phCat(String(text)
-    .replace(/\[SERVICE_LOWER\]/g, ctx.svcLower || '')
-    .replace(/\[SERVICE\]/g, ctx.svc || ''), ctx);
+  // A question (a FAQ question, a question H2) names the service in its question form: the
+  // library's question_name, else a singular with its article ("How much does a patio cost in
+  // Southampton?", "Is a patio right for your garden?"), never "does patios cost" (4 Nov 2026)
+  let t = String(text);
+  const question = /\?\s*$/.test(t.trim());
+  const lower = ctx.svcLower || '';
+  const q = ctx.svcQuestion || lower;
+  // A Title Case question heading ("Is [SERVICE] Right for Your Garden?") reads in sentence case
+  // ("Is a patio right for your garden?"): its words are lowered outside the placeholders, except
+  // "I", an acronym, the town and the city, so a question already in sentence case, or one that
+  // comes through here twice, is left alone
+  const titled = (t.match(/(?:^|\s)[A-Z][a-z]+/g) || []).length >= 3;
+  if (question && titled) {
+    const keep = new Set([ctx.city, ctx.town].filter(Boolean).map(s => String(s).toLowerCase()));
+    t = t.replace(/\[[A-Z_: a-z0-9]+\]|[^\[]+/g, seg => seg.startsWith('[') ? seg : seg.replace(/\b[A-Za-z]+\b/g, w => (w === 'I' || /^[A-Z]{2,}$/.test(w) || keep.has(w.toLowerCase())) ? w : w.toLowerCase()));
+  }
+  // "[SERVICE] work" on a name that ends in work, "[SERVICE] service" on one that ends in service:
+  // the name alone, never "tree work work"
+  t = t.replace(/\[SERVICE(?:_LOWER)?\] (work|service)\b/gi, (m, w) => new RegExp(`\\b${w}$`, 'i').test(lower) ? (question ? lower : ctx.svc || '') : m);
+  if (question) {
+    // The question form only where the service is the subject or object of the question ("does a
+    // patio cost", "is a patio right"); after "your" or before "work" or "service" the plain name
+    // ("your patios work", "insured for patios"), never "your a patio work"
+    t = t.replace(/\b(does|is|do|would|will|can|should|are) \[SERVICE(?:_LOWER)?\](?! (?:work|service)\b)/gi, (m, v) => `${v} ${q}`);
+    t = t.replace(/\[SERVICE_LOWER\]|\[SERVICE\]/g, lower);
+  } else {
+    t = t.replace(/\[SERVICE_LOWER\]/g, lower).replace(/\[SERVICE\]/g, ctx.svc || '');
+  }
+  let out = phCat(t, ctx);
+  if (question && out) out = out[0].toUpperCase() + out.slice(1);
+  return out;
+}
+
+// Lower case that keeps an acronym's capitals ("CCTV drain surveys" → "CCTV drain surveys",
+// "Roof Repairs" → "roof repairs"), 4 Nov 2026: a question never reads "cctv" or "ev charger"
+function lcKeepAcronyms(s) {
+  return String(s || '').trim().replace(/\S+/g, w => /^[A-Z]{2,5}s?$/.test(w) ? w : w.toLowerCase());
+}
+// "a" or "an" by sound, not by letter: a utility room, a used car, an hour
+function article(word) {
+  const w = String(word || '').toLowerCase();
+  if (/^(?:hour|honest|heir|honour)/.test(w)) return 'an';
+  if (/^u(?:ni|se|su|ti|ro|te|be)/.test(w) || /^(?:eu|one|once)/.test(w)) return 'a';
+  return /^[aeiou]/.test(w) ? 'an' : 'a';
+}
+
+// The singular of a page name with its article, for a question (4 Nov 2026): "Patios" → "a patio",
+// "Roof repairs" → "a roof repair", "Ant control" → "ant control" (no plural, no article), a name
+// with "and" or ending in a word that is not a plain plural stays as it is. The library's
+// question_name column overrides this wherever it is filled (Brandon approves the list first).
+function singularQuestionName(name) {
+  // Acronyms keep their capitals, a bracketed note ("(Velux)") goes
+  const n = lcKeepAcronyms(String(name || '').replace(/\s*\([^)]*\)/g, ''));
+  if (!n) return '';
+  if (/\band\b|&/.test(n)) return n;
+  const words = n.split(/\s+/);
+  const last = words[words.length - 1];
+  const lastLc = last.toLowerCase();
+  // "Tree root removal from drains": the last word belongs to a phrase, not the job; leave it
+  if (words.length > 2 && /^(?:from|of|to|in|for|on|with|at|by|into|under|over)$/.test(words[words.length - 2])) return n;
+  let single = null;
+  if (/ies$/.test(lastLc) && lastLc.length > 4) single = last.slice(0, -3) + 'y';
+  else if (/(?:ss|us|is|ous|ics|ness|ance|ence|ment|ing)$/.test(lastLc)) single = null;
+  else if (/(?:sh|ch|x|z)es$/.test(lastLc)) single = last.slice(0, -2);
+  else if (/[^s]s$/.test(lastLc)) single = last.slice(0, -1);
+  if (!single) return n;
+  const out = [...words.slice(0, -1), single].join(' ');
+  return `${article(out)} ${out}`;
 }
 
 const live = r => r && r.applies !== false && ((r.info && r.info.phase) || 1) === 1;
@@ -94,23 +160,28 @@ function computeServiceDecisions({ cv, niche, keyValueMap = {}, rows = [], page,
   const emergencyNames = (baseRow && baseRow.info && baseRow.info.emergency) || (page.info && page.info.emergency) ? [serviceName] : [];
   // The desire led framing (4 Nov 2026): the library flags the page desire_led, so block 4 is "Is this right for you"
   const desirePage = !!((baseRow && baseRow.info && baseRow.info.desire_led) || (page.info && page.info.desire_led));
-  try { blocks = B.blocksFor({ niche, cv, category, emergencyPage: emergencyNames.length > 0, desirePage }); }
+  try { blocks = B.blocksFor({ niche, cv, category, emergencyPage: emergencyNames.length > 0, desirePage, service: serviceName }); }
   catch (e) { if (e.code === 'G-BRIEF') gates.push({ code: 'G-BRIEF', msg: e.message }); else throw e; }
   if (gates.length) return { gates, flags, decisions: null, decisionsBlock: null };
   for (const g of B.briefGaps(blocks.entry)) flags.push({ code: 'F-BRIEF', msg: `${niche._source || niche.trade} type ${blocks.key}: ${g}.` });
 
   // ── Context ──
   const quoteFree = cv.free_quotes === 'yes' ? 'Free' : '';
-  const svc = titleCase(keywordWord(h1, townName, serviceName));
-  const svcLower = lc(svc);
+  // The service name as the page writes it, not Title Cased word by word (4 Nov 2026: "Signs You
+  // Need Lockouts and gaining entry", never "Lockouts And Gaining Entry"); its question form for
+  // questions, from the library's question_name when filled, else the singular with an article
+  const svcRaw = keywordWord(h1, townName, serviceName);
+  const svc = /^[a-z]/.test(svcRaw) ? svcRaw[0].toUpperCase() + svcRaw.slice(1) : svcRaw;
+  const svcLower = lcKeepAcronyms(svc);
+  const svcQuestion = (baseRow && baseRow.info && baseRow.info.question_name) || (page.info && page.info.question_name) || singularQuestionName(svcLower);
   const cat = titleCase(category);
-  const catLower = lc(cat);
+  const catLower = lcKeepAcronyms(cat);
   const workNoun = (niche.category_work_nouns || {})[lc(category)] || null;
   if (!workNoun) flags.push({ code: 'F-WORK-NOUN', msg: `No work noun for "${category}" in the niche entry (category_work_nouns): the More Services H2 reads "${cat} Services".` });
   const work = workNoun ? titleCase(workNoun) : `${cat} Services`;
-  const workLower = lc(work);
+  const workLower = lcKeepAcronyms(work);
   const ctx = {
-    kwPhrase: h1, service: serviceName, svc, svcLower, category, cat, catLower, work, workLower, town: townName, city: townName,
+    kwPhrase: h1, service: serviceName, svc, svcLower, svcQuestion, category, cat, catLower, work, workLower, town: townName, city: townName,
     trade: niche.trade || '', tradeLower: niche.trade_lower || '', tradePerson: niche.trade_person || '', tradePersonPlural: niche.trade_person_plural || '',
     customerType: niche.customer_type || '', unitOfWork: niche.unit_of_work || '', areaWide: scope === 'base' ? (cv.area_wide || '') : '',
     companyName: cv.company_name || '', quoteFree,
@@ -119,7 +190,7 @@ function computeServiceDecisions({ cv, niche, keyValueMap = {}, rows = [], page,
   ctx.primaryAction = ph(btn.primary_action || '', ctx);
   const { yearFounded, yearsTrading } = yearsTradingOf(cv);
   const emergencyOn = blocks.emergencyOn;
-  const emergencyWhy = B.emergencyWhy(emergencyOn, emergencyNames, cv);
+  const emergencyWhy = blocks.forcedEmergency ? `${serviceName} always takes the urgent framing (service_overrides)` : B.emergencyWhy(emergencyOn, emergencyNames, cv);
   const kwNatural = `${svcLower} in ${townName}`;
 
   // ── Title, meta, trust, rating, buttons (the homepage's rules) ──
@@ -330,7 +401,7 @@ function computeServiceDecisions({ cv, niche, keyValueMap = {}, rows = [], page,
     page_type: 'service', scope, service: serviceName, service_names: namesOf(baseRow), category, category_key: catKey, town: townName, city, slug: selfUrl,
     type: { letter: blocks.letter, key: blocks.key, a2: blocks.a2, emergency: blocks.emergencyUsed, desire: !!blocks.desireUsed, desire_page: desirePage, source: blocks.source },
     d1_years_trading: yearsTrading,
-    d2_h1: h1, keyword: kwNatural, svc, svc_lower: svcLower, cat, cat_lower: catLower, work, work_lower: workLower,
+    d2_h1: h1, keyword: kwNatural, svc, svc_lower: svcLower, svc_question: svcQuestion, cat, cat_lower: catLower, work, work_lower: workLower,
     d3_title: built.title, d4_meta: meta, d5_trust: trust.line, d6_rating: rating,
     d15_buttons: buttons, breadcrumb,
     h2,
@@ -340,7 +411,7 @@ function computeServiceDecisions({ cv, niche, keyValueMap = {}, rows = [], page,
     reviews: { show: reviewsShow, items: picked, count: reviewCount },
     niche_steps: steps,
     areas, faq: faqs,
-    allocated, ideasUsed: Array.isArray(ideasUsed) ? ideasUsed : [], mechanismsUsed,
+    allocated, thin: !allocated.neighbourhoods.length, overrideUsed: !!blocks.overrideUsed, ideasUsed: Array.isArray(ideasUsed) ? ideasUsed : [], mechanismsUsed,
     locationLinks, baseLink, linkablePages,
     quoteFree, emergencyOn, emergencyWhy, coastal: cv.coastal_city === 'yes',
     seasonal: seasonal.swapped,
@@ -451,6 +522,10 @@ function formatServiceBlock(D, cv, niche, ctx) {
   push('--- HOW THE BUSINESS WORKS ---');
   push('  Only what CONFIRMED PRACTICES in the client block say. Never invent a way of working or a promise about it: no "nothing gets added without you saying so", "each garden gets its own plan", "we stick to the work you asked for", "the price never creeps", "we fit the visit to a time that suits you", "we arrive ready to start", no seasonal pattern of visits, no comparison between the cost of a round and a one off. Say what the work involves, not how the business runs it.');
   push('');
+  if (D.thin) { const R = require('./page-types/service').ranges; push(''); push('THIN PAGE (no allocated neighbourhoods): every word minimum below is a third lower than the prompt says; do not pad to reach the prompt\'s figure. The ranges on this page:'); for (const [k, r] of Object.entries(R)) if (r && r.min) push(`  ${k}: ${Math.ceil(r.min * 2 / 3)} to ${r.max} words`); }
+  if (D.overrideUsed) push('Per page briefs: this service has its own block 5 cards or steps in the niche entry (service_overrides).');
+  for (const l of IH.ideaHomeLines('service')) push(l);
+  push('');
   push('LINKABLE PAGES:');
   for (const p of D.linkablePages) push(`  [${p.type}] ${p.url} | H1: ${p.h1}${p.say ? ` | say: ${p.say}` : ''}`);
   if (!D.linkablePages.length) push('  none');
@@ -498,21 +573,21 @@ function formatServiceBlock(D, cv, niche, ctx) {
   push(`  ${PT.LABELS.includedIntro}`);
   push(`  ${PT.LABELS.included}`);
   for (const it of D.included) push(`    - ${PT.LIST_KEYS[PT.LABELS.included][0]}: ${it.title} | ${PT.LIST_KEYS[PT.LABELS.included][1]}`);
-  push(`  ${PT.LABELS.content}`);
+  push(`  ${PT.LABELS.content} (${IH.ideaNote('content')})`);
   push(`  ${PT.LABELS.block4}`);
   for (const p of D.problems) push(`    - ${PT.LIST_KEYS[PT.LABELS.block4][0]}: ${p.title} | ${PT.LIST_KEYS[PT.LABELS.block4][1]}`);
   push(`  ${PT.LABELS.steps}`);
-  for (const s of D.niche_steps) push(`    - step_title: ${s.title} | step_body`);
-  push(`  ${PT.LABELS.costIntro}`);
-  push(`  ${PT.LABELS.block5}`);
+  D.niche_steps.forEach((s, i) => push(`    - step_title: ${s.title} | step_body${i === 0 ? ` (${IH.ideaNote('step1')})` : ''}`));
+  push(`  ${PT.LABELS.costIntro} (${IH.ideaNote('costIntro')})`);
+  push(`  ${PT.LABELS.block5} (${IH.ideaNote('block5')})`);
   for (const p of D.cost) push(`    - ${PT.LIST_KEYS[PT.LABELS.block5][0]}: ${p.title} | ${PT.LIST_KEYS[PT.LABELS.block5][1]}`);
   push(`  ${PT.LABELS.areasIntro}`);
   push(`  ${PT.LABELS.faq}`);
-  for (const q of D.faq) push(`    - faq_question: ${q.question} | faq_answer`);
+  for (const q of D.faq) { const role = IH.faqRole(q.question); push(`    - faq_question: ${q.question} | faq_answer${role ? ` (${IH.ideaNote(role, 'service')})` : ''}`); }
   push(`  ${PT.LABELS.moreIntro}${D.more.length ? '' : ' (HIDDEN)'}`);
   push(`  ${PT.LABELS.finalCta}`);
   push('  MODEL_FLAGS');
   return L.join('\n');
 }
 
-module.exports = { computeServiceDecisions, formatServiceBlock, phSvc, namesOf, baseRowOf };
+module.exports = { computeServiceDecisions, formatServiceBlock, phSvc, namesOf, baseRowOf, singularQuestionName };
