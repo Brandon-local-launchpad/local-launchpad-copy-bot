@@ -503,10 +503,16 @@ function validateCommon(record, V) {
       if (hit) flag('BLOCK', 'WORKED', `Implies the business has worked in or on ${hit}. Use the local detail as a fact about the area, not as a job they've done.`);
     }
 
-    // NUM: numbers and timescales must come from client values (or the allocated research)
+    // NUM: numbers and timescales must come from client values (or the allocated research). A figure from
+    // a verified trade facts rule row passes when the sentence states the condition it belongs to ("usually",
+    // "in most cases", "unless", "where", 4 Nov 2026); a regulation's name or number is validate-service's STANDARD
+    const ruleText = lc((V.tradeFactsRows || []).filter(r => r && r.kind === 'rule').map(r => r.text).join(' '));
+    const conditioned = /\b(?:usually|in most cases|normally|unless|where|provided|as long as|if)\b/i.test(s);
     for (const m of s.matchAll(/£?\s?\d[\d,]*(?:\.\d+)?/g)) {
       const n = m[0].replace(/[£,\s]/g, '');
-      if (!V.cvNumbers.has(n) && !V.researchNumbers.has(n)) flag('BLOCK', 'NUM', `"${m[0].trim()}" is not in the client values. Remove the figure or describe it without a number.`);
+      if (V.cvNumbers.has(n) || V.researchNumbers.has(n)) continue;
+      if (conditioned && ruleText && new RegExp(`(?:^|[^\\d.])${esc(n)}(?![\\d])`).test(ruleText)) continue;
+      flag('BLOCK', 'NUM', `"${m[0].trim()}" is not in the client values. Remove the figure or describe it without a number.`);
     }
     for (const m of s.matchAll(/\b(?:in|within|for|after|over)\s+(?:a\s+(?:few|couple\s+of)\s+|just\s+|only\s+)?(?:days|weeks|months)\b/gi)) {
       if (!V.cvText.includes(lc(m[0])) && !V.researchText.includes(lc(m[0]))) flag('BLOCK', 'NUM', `The timescale "${m[0]}" is not in the client values. Give the factors that decide it, without a time.`);

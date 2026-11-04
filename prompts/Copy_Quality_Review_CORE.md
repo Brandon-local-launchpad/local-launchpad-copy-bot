@@ -15,7 +15,7 @@ You get:
 - FACTS ON FILE: the client values, confirmed practices and services the copy may use, and the TRADE FACTS rows for the page's services. Anything about the business not in the facts is a claim with no support. A method the TRADE FACTS rows give for a confirmed service (edging during mowing, the cutting height, taking no more than a third off a hedge, lifting weeds out by the root, raking moss, a compacted base, seed sown on firm level soil) is how the job is done, never an unconfirmed practice: do not fail an item or list a problem for it. What counts as a claim about this business is a client-specific practice that is not in CONFIRMED PRACTICES: how often visits come, what happens to the waste, a check made before the work, a timing or response time, who turns up or how many.
 - PAGE: the page as a visitor reads it, in page order.
 
-For each judge item, decide pass or fail. A fail must quote the exact words from the page that break the test (one quote per problem, the shortest that shows it) and say in one sentence why. Fail only on a real problem a careful reader would notice; never on taste alone.
+For each judge item, decide pass or fail. A fail must quote the exact words from the page that break the test (one quote per problem, the shortest that shows it) and say in one sentence why. Fail only on a real problem a careful reader would notice; never on taste alone. For each fail, say what it needs: "writing" when a rewrite of the page can fix it with the facts on file, or "client fact" when only a fact the client has not given (a guarantee, a price, a practice, a response time) would let the page pass.
 
 Then give the overall score, 0 to 10, to one decimal place, as the agency owner would rate the page. Anchors:
 - 7.5: services listed in the content block, cards listing 5 or 6 services, "our deck builder team", the fixed price four times, "Yes" opening a "Which areas" answer, unconfirmed practices ("we don't hand jobs off").
@@ -28,5 +28,7 @@ Then list up to 8 other problems you noticed that no rubric item covers (quote a
 
 Finally list the client facts that would let the page say more (a guarantee, what happens if something isn't right, a confirmed practice), each with why. Never mark the page down for a fact that is missing: a page that leaves the claim out is right.
 
+Give the score twice: "score" as above, and "score_writing", the score the page would get if every failure marked "client fact" were resolved and only the failures marked "writing" remained (the two are equal when no failure needs a client fact).
+
 Return only JSON:
-{"items": [{"id": "E2", "pass": true, "quote": "", "why": ""}], "score": 8.7, "other_problems": [{"quote": "", "why": ""}], "missing_facts": [{"fact": "", "why": ""}]}
+{"items": [{"id": "E2", "pass": true, "quote": "", "why": "", "needs": ""}], "score": 8.7, "score_writing": 8.7, "other_problems": [{"quote": "", "why": ""}], "missing_facts": [{"fact": "", "why": ""}]}

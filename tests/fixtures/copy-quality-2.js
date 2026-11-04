@@ -151,6 +151,22 @@ chk('RESEARCH-LANG: "the soil varies across the city" and "geology varies" are f
   const pav = CB.blocksFor({ niche: land, cv: { business_type: 'A' }, category: 'Paving contractor' });
   chk('Landscaper entry: the Paving contractor category has its own cost cards about slabs, blocks and bases, no boards or posts', pav.overrideUsed && /slab|block|base/i.test(JSON.stringify(pav.entry.cost)) && !/board|post|composite|softwood/i.test(JSON.stringify(pav.entry.cost)), JSON.stringify(pav.entry.cost.cards.map(c => c.title)), 'paving cost cards');
 
+  // ── Phase 3: rubric fairness ──
+  const Q = require(path.join(root, 'quality-review.js'));
+  chk('F5 and V9j carry the phase 3 rules (a cost answer with no price list; a figure from a verified rule row with its condition)', /one factor that moves the price most/.test(Q.JUDGE_ITEMS.F5) && /verified trade facts rule row/.test(Q.judgeItemsFor({ page_type: 'service' }).V9j), '', 'rules present');
+  chk('The reviewer prompt asks for needs (writing or client fact) and score_writing', (() => { const p = fs.readFileSync(path.join(root, 'prompts/Copy_Quality_Review_CORE.md'), 'utf8'); return /"needs"/.test(p) && /score_writing/.test(p) && /client fact/.test(p); })(), '', 'both in the prompt');
+  const rvDemo = { score: 7.2, score_writing: 8.1, done: false, failed: ['P4', 'F5'], validator: { block: 0, flag: 3 }, other_problems: [], missing_facts: [{ fact: 'A workmanship guarantee', why: 'The cover answer could then say so.' }], items: [{ id: 'P4', by: 'code', pass: false, needs: 'writing', title: 'No five word run shared by two fields', reasons: ['x'] }, { id: 'F5', by: 'judge', pass: false, needs: 'client fact', title: 'Each FAQ answer answers the question', reasons: ['"…": no guarantee on file'] }, { id: 'E2', by: 'judge', pass: true, needs: null, title: 'Hero sentence 2', reasons: [] }] };
+  const fr = Q.formatReview(rvDemo);
+  chk('formatReview: both scores, the failures split into fixable in the writing and needs a client fact, the passes listed', /Counting only what the writing can fix: 8\.1 \/ 10 \(1 failure\(s\) fixable in the writing, 1 need a client fact\)/.test(fr) && /Fixable in the writing:\nFAIL P4/.test(fr) && /Needs a client fact:\nFAIL F5/.test(fr) && /PASS E2/.test(fr), fr.split('\n').slice(0, 4).join(' | '), 'split mark sheet');
+  const Vrule = { ...V, tradeFactsRows: [{ kind: 'rule', name: 'Front garden paving', text: 'A new or replacement front garden surface over 23 square metres that water cannot soak through usually needs planning permission unless it drains to a lawn or border.' }] };
+  const recRule = JSON.parse(JSON.stringify(rec));
+  recRule.home_areas_intro = 'A front garden surface over 23 square metres that water cannot soak through usually needs permission unless it drains to a lawn or border in the garden. We cover Romsey and the villages.';
+  const recBare = JSON.parse(JSON.stringify(rec));
+  recBare.home_areas_intro = 'A front garden surface over 23 square metres needs permission. We cover Romsey and the villages.';
+  const recNoRow = JSON.parse(JSON.stringify(recRule));
+  const numOf = (r, v) => validateV20(r, v).filter(i => i.check === 'NUM' && i.field === 'home_areas_intro').length;
+  chk('NUM: a figure from a verified rule row passes with its condition stated; without the condition, or without the row, it blocks', numOf(recRule, Vrule) === 0 && numOf(recBare, Vrule) === 1 && numOf(recNoRow, V) === 1, `${numOf(recRule, Vrule)} / ${numOf(recBare, Vrule)} / ${numOf(recNoRow, V)}`, '0 / 1 / 1');
+
   console.log(`\n${pass + fail} checks: ${pass} passed, ${fail} failed`);
   if (fail > 0) process.exit(1);
 })().catch(e => { console.error(e); process.exit(1); });
