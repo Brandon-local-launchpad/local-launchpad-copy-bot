@@ -130,7 +130,7 @@ function buildWhyPoints(cv, niche, yearsTrading, trustProof, ctx) {
 // only with its own doubt or one still uncovered, so the page keeps all five doubts.
 function buildFaq(cv, niche, ctx, emergencyOn, faqResearch = []) {
   const faqMap = {};
-  for (const f of (niche.faq_slots || [])) faqMap[f.slot] = f;
+  for (const f of CB.faqSlotsFor(niche, cv)) faqMap[f.slot] = f;
 
   const usedFallbacks = [];
   function nicheFallback() {
@@ -842,7 +842,7 @@ function computeDecisions({ cv, niche, pages, keyValueMap, serviceParentMap, v20
   const contentBlockExpands = d13.length === 4;
 
   // Pair Why points with niche fears (cycled if fewer fears than points)
-  const fears = niche.fears || [];
+  const fears = CB.fearsFor(niche, cv);
   const whyWithFears = whyPoints.map((p, i) => ({
     ...p,
     fear: fears.length > 0 ? fears[i % fears.length] : null,

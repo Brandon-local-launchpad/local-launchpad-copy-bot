@@ -264,13 +264,51 @@ chk('PACK-COPY: a sentence lifted from the calibration pack is a BLOCK; ordinary
 })(), '', 'PACK-COPY');
 chk('PACK-COPY: a run that is one of the page\'s own names (a card, a service) is a page name, not a copy (3 Nov)', (() => {
   // A pack that lists the page names, as every pack does in its section 2
-  const packWithNames = fs.readFileSync(path.join(root, 'calibration-packs', 'Landscaper_Calibration_Pack_v5.md'), 'utf8') + '\n\nThe pages here: lawn mowing and edging work, hedge trimming and shaping work.\n';
+  // (inside a fence: only a pack's fenced examples are indexed, 4 Nov)
+  const packWithNames = fs.readFileSync(path.join(root, 'calibration-packs', 'Landscaper_Calibration_Pack_v5.md'), 'utf8') + '\n\n```\nThe pages here: lawn mowing and edging work, hedge trimming and shaping work.\n```\n';
   const Vn = categoryValidationContext(G.validationContextFor({ cv, niche, decisions: D, keyValueMap: { ...kv, service_99: 'Lawn mowing and edging work' }, serviceParentMap: ctx.serviceParentMap, calibrationPack: packWithNames }), D);
   const named = withText(record, PT.LABELS.servicesIntro, 'Most calls start with lawn mowing and edging work, and the beds and hedges are done on the same visit so nothing is left half finished across the season.');
   const copied = withText(record, PT.LABELS.servicesIntro, 'Most calls start with hedge trimming and shaping work, and the beds are done on the same visit so nothing is left half finished across the season.');
   const pc = r => issuesOf(r, Vn).filter(i => i.check === 'PACK-COPY' && i.field === PT.LABELS.servicesIntro);
   return !pc(named).length && pc(copied).length === 1;
 })(), '', 'a page name passes, another pack run blocks');
+chk('PACK-COPY: the page name words are left out of the whole sentence comparison too (4 Nov: "card_name: Lockouts and gaining entry | card_text: ..." in a pack example)', (() => {
+  const packLine = fs.readFileSync(path.join(root, 'calibration-packs', 'Landscaper_Calibration_Pack_v5.md'), 'utf8') + '\n\n```\n- card_name: Lawn mowing and edging work | card_text: A lawn pulled shut on a latch is a different job from one locked with a key, and the difference decides whether entry leaves any mark.\n```\n';
+  const Vn = categoryValidationContext(G.validationContextFor({ cv, niche, decisions: D, keyValueMap: { ...kv, service_99: 'Lawn mowing and edging work' }, serviceParentMap: ctx.serviceParentMap, calibrationPack: packLine }), D);
+  const named = withText(record, PT.LABELS.servicesIntro, 'Lawn mowing and edging work in Southampton starts with one question: is the gate shut on a latch, or locked with a key?');
+  const copied = withText(record, PT.LABELS.servicesIntro, 'A lawn pulled shut on a latch is a different job from one locked with a key, and the difference decides whether the entry leaves a mark.');
+  const pc = r => issuesOf(r, Vn).filter(i => i.check === 'PACK-COPY' && i.field === PT.LABELS.servicesIntro);
+  return !pc(named).length && pc(copied).length === 1;
+})(), '', 'the page name sentence passes, the copied sentence blocks');
+chk('PACK-COPY: a run that bridges two page names in a list is not a copy either (4 Nov: "interior painting and decorating, exterior painting")', (() => {
+  const packLine = fs.readFileSync(path.join(root, 'calibration-packs', 'Landscaper_Calibration_Pack_v5.md'), 'utf8') + '\n\n```\nWe take on lawn mowing and edging work, hedge trimming and shaping work and more besides for homes across the city.\n```\n';
+  const Vn = categoryValidationContext(G.validationContextFor({ cv, niche, decisions: D, keyValueMap: { ...kv, service_98: 'Lawn mowing and edging work', service_99: 'Hedge trimming and shaping work' }, serviceParentMap: ctx.serviceParentMap, calibrationPack: packLine }), D);
+  const listed = withText(record, PT.LABELS.servicesIntro, 'Through the year we cover lawn mowing and edging work, hedge trimming and shaping work, then the beds between them on one visit.');
+  const copied = withText(record, PT.LABELS.servicesIntro, 'We take on lawn mowing and edging work, hedge trimming and shaping work and more besides for homes across the city.');
+  const pc = r => issuesOf(r, Vn).filter(i => i.check === 'PACK-COPY' && i.field === PT.LABELS.servicesIntro);
+  return !pc(listed).length && pc(copied).length === 1;
+})(), '', 'the list of names passes, the copied sentence blocks');
+chk('banned_phrases: a niche\'s own banned phrase is a BLOCK on first use (4 Nov); the same words in words_avoid alone are not', (() => {
+  const text = 'Most calls start with the lawn, and a tidy garden is the outdoor living space most people want, with the beds and hedges done on the same visit so nothing is left half finished.';
+  const Vb = categoryValidationContext(G.validationContextFor({ cv, niche: { ...niche, banned_phrases: ['outdoor living space'] }, decisions: D, keyValueMap: kv, serviceParentMap: ctx.serviceParentMap }), D);
+  const Va = categoryValidationContext(G.validationContextFor({ cv, niche: { ...niche, banned_phrases: [], words_avoid: ['outdoor living space'] }, decisions: D, keyValueMap: kv, serviceParentMap: ctx.serviceParentMap }), D);
+  const r = withText(record, PT.LABELS.servicesIntro, text);
+  const two = v => issuesOf(r, v).filter(i => i.check === '2' && i.field === PT.LABELS.servicesIntro && /outdoor living space/.test(i.message));
+  return two(Vb).length === 1 && two(Vb)[0].type === 'BLOCK' && !two(Va).length;
+})(), '', 'BLOCK 2 from banned_phrases only');
+chk('CB-LINKS: three town links in one sentence of the content block pass (paragraph 4 names the towns DECISIONS gives it); three service links in one sentence are a BLOCK (4 Nov)', (() => {
+  const base = record[PT.LABELS.content];
+  const towns = withText(record, PT.LABELS.content, base + '\n\nWe take the same work to [Romsey](/locations/romsey/gardener), [Winchester](/locations/winchester/gardener) and [Eastleigh](/locations/eastleigh/gardener) as well.');
+  const svcs = withText(record, PT.LABELS.content, base + '\n\nWe also do [mulching](/services/mulching), [weed control](/services/weed-control) and [hedge trimming](/services/hedge-trimming) on the same visit.');
+  const cb = r => issuesOf(r).filter(i => i.check === 'CB-LINKS' && i.type === 'BLOCK' && /in one sentence/.test(i.message));
+  return !cb(towns).length && cb(svcs).length === 1;
+})(), '', 'towns pass, services block');
+chk('N5: "sludge deposits" and "deposits of scale" are the trade\'s word, not a payment deposit; "a deposit" with no deposit_terms is still a BLOCK (4 Nov)', (() => {
+  const n5 = r => issuesOf(r).filter(i => i.check === 'N5' && i.field === PT.LABELS.servicesIntro);
+  const trade = withText(record, PT.LABELS.servicesIntro, 'Most calls start with the lawn, and the beds are cleared of the grey sludge deposits and deposits of scale that a wet winter leaves behind, so nothing is left half finished across the season.');
+  const pay = withText(record, PT.LABELS.servicesIntro, 'Most calls start with the lawn, and we take a deposit before the first visit, so nothing is left half finished across the season.');
+  return !n5(trade).length && n5(pay).length === 1;
+})(), '', 'trade deposits pass, a payment deposit blocks');
 chk('LINK-TEXT: a card with a prose name (the library prose_name column, 3 Nov) is linked by that name; the page name alone is a FLAG', (() => {
   const Ds = JSON.parse(JSON.stringify(D)); const c = Ds.d9.main.find(x => x.name === 'Lawn mowing'); if (!c) return false; c.say = 'grass cutting';
   const Vs = categoryValidationContext(G.validationContextFor({ cv, niche, decisions: Ds, keyValueMap: kv, serviceParentMap: ctx.serviceParentMap }), Ds);

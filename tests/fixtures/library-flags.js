@@ -146,6 +146,68 @@ const fHome = computeDecisions({ cv: cvYes, niche, pages: contextFromPageMap({ r
 const fPages = contextFromPageMap({ rows: flagged, hand, cv: cvYes, niche }).pages;
 chk('Homepage: on through the flagged service page (a multi category client: service pages are not homepage links, but the v3 context carries the flag and the prose name)', !fHome.gates.length && fHome.decisions.emergencyOn && /Lawn mowing is an emergency page/.test(fHome.decisions.emergencyWhy) && fPages.some(p => p.urlSlug === '/services/lawn-mowing' && p.emergency === true && p.proseName === 'grass cutting'), fHome.gates.length ? JSON.stringify(fHome.gates) : fHome.decisions.emergencyWhy, 'on, flag and prose name on the page');
 
+// ── Desire led service pages (4 Nov 2026) ──
+const dCsv = `gbp_name,gbp_category,verdict,target,note,emergency,prose_name,confirm_only,desire_led
+Patio paving,Paving contractor,page,Patios,,,,,yes
+Patio laying,Paving contractor,alias,Patios,,,,,
+Roof repair,Roofing services,page,Roof repairs,,yes,,,
+`;
+const dFile = path.join(os.tmpdir(), `copybot-desire-${process.pid}.csv`);
+fs.writeFileSync(dFile, dCsv);
+const dLib = L.loadLibrary('Desire Niche', { file: dFile });
+chk('desire_led: the loader reads the column and the target carries it from any of its rows', dLib.rows.find(e => e.gbp_name === 'Patio paving').desire_led === true && L.targetFlags(dLib, 'Patios').desire_led && !L.targetFlags(dLib, 'Roof repairs').desire_led, '', 'Patios desire led');
+const dCats = [{ key: 'paving', name: 'Paving contractor', primary: true, rows: [{ id: 'patio laying', name: 'Patio laying', kind: 'unique' }, { id: 'roof repair', name: 'Roof repair', kind: 'unique' }] }];
+const dMap = G.buildPageMap({ resolved: { categories: dCats, primary: 'paving', primaryName: 'Paving contractor', crossRef: [], flags: [] }, baseTown: 'Southampton', otherTowns: 'Romsey', companyName: 'Acme', terms: { paving: ['paving'], _sitewide: [] }, waiting: [] }, { volumes: vol({ 'patios romsey': [30, 2] }), library: dLib, launchTowns: new Set(['romsey']) });
+chk('desire_led rides from the planner into the service and town service rows (through an alias row too); an emergency page is not desire led', find(dMap, '/services/patios').info.desire_led === true && find(dMap, '/locations/romsey/patios').info.desire_led === true && find(dMap, '/services/roof-repairs').info.desire_led === false && find(dMap, '/services/roof-repairs').info.emergency === true, JSON.stringify(dMap.rows.filter(r => r.type !== 'homepage').map(r => [r.slug, r.info.desire_led, r.info.emergency])), 'patios desire led, roof repairs emergency');
+// The own library's flags win for a target it names (4 Nov 2026): a driveways client ticks Concrete work, whose
+// page row lives in the landscaper library, and its own alias rows say Concrete bases and paths is desire led
+const oCsv = `gbp_name,gbp_category,verdict,target,note,emergency,prose_name,confirm_only,desire_led
+Concrete footings,Paving contractor,alias,Concrete bases and paths,Page defined elsewhere,,,,yes
+Resin laying,Paving contractor,page,Resin bound driveways,,,,,
+`;
+const pCsv = `gbp_name,gbp_category,verdict,target,note,emergency,prose_name,confirm_only,desire_led
+Concrete work,Paving contractor,page,Concrete bases and paths,,,,,
+Patio paving,Paving contractor,page,Patios,,yes,,,
+`;
+const oFile = path.join(os.tmpdir(), `copybot-own-${process.pid}.csv`), pFile = path.join(os.tmpdir(), `copybot-other-${process.pid}.csv`);
+fs.writeFileSync(oFile, oCsv); fs.writeFileSync(pFile, pCsv);
+const oSet = { niche: 'own', file: oFile, own: L.loadLibrary('Own Niche', { file: oFile }), others: [L.loadLibrary('Other Niche', { file: pFile })], hubs: null, problems: [] };
+const oCats = [{ key: 'paving', name: 'Paving contractor', primary: true, rows: [{ id: 'concrete work', name: 'Concrete work', kind: 'unique' }, { id: 'patio paving', name: 'Patio paving', kind: 'unique' }] }];
+const oMap = G.buildPageMap({ resolved: { categories: oCats, primary: 'paving', primaryName: 'Paving contractor', crossRef: [], flags: [] }, baseTown: 'Southampton', otherTowns: 'Romsey', companyName: 'Acme', terms: { paving: ['paving'], _sitewide: [] }, waiting: [] }, { volumes: vol({}), library: oSet, launchTowns: new Set(['romsey']) });
+chk('The own library flags a target it names even when the ticked row is matched in another library (Concrete bases and paths desire led); a target the own library never names keeps the matched library flags (Patios emergency)', find(oMap, '/services/concrete-bases-and-paths').info.desire_led === true && find(oMap, '/services/patios').info.emergency === true && find(oMap, '/services/patios').info.desire_led === false, JSON.stringify(oMap.rows.filter(r => r.type === 'service').map(r => [r.slug, r.info.desire_led, r.info.emergency])), 'own flags first');
+const SB = require(path.join(root, 'service-blocks.js'));
+const desireVariant = { problems: { h2: 'Is [SERVICE] Right for Your Garden?', cards: [1, 2, 3, 4].map(i => ({ title: `Situation ${i}`, mechanism: `what decides it ${i}`, brief: `The customer's situation ${i}, what decides it and what the work gives them.` })) } };
+const dNiche = { ...landscaper, service_words: [], service_page_blocks: { ...landscaper.service_page_blocks, A: { ...landscaper.service_page_blocks.A, desire: desireVariant } } };
+const dPlain = SB.blocksFor({ niche: dNiche, cv: { business_type: 'A' }, category: 'Paving Contractor' });
+const dDesire = SB.blocksFor({ niche: dNiche, cv: { business_type: 'A' }, category: 'Paving Contractor', desirePage: true });
+chk('service-blocks: a desire led page reads the desire variant (its H2 and situation cards); a plain page keeps "Signs you need it"', dDesire.desireUsed && dDesire.entry.problems.h2 === desireVariant.problems.h2 && dDesire.entry.problems.cards[0].title === 'Situation 1' && dDesire.entry.included === landscaper.service_page_blocks.A.included && !dPlain.desireUsed && dPlain.entry.problems.h2 === landscaper.service_page_blocks.A.problems.h2, '', 'desire variant on the flagged page only');
+const rNiche = { ...roofer, service_words: [], service_page_blocks: { ...roofer.service_page_blocks, A: { ...roofer.service_page_blocks.A, desire: desireVariant } } };
+const rBoth = SB.blocksFor({ niche: rNiche, cv: { business_type: 'A', emergency_primary: 'yes' }, category: 'Roofing services', desirePage: true, emergencyPage: true });
+chk('service-blocks: the emergency variant wins over the desire variant on a page that is somehow both', rBoth.emergencyUsed && !rBoth.desireUsed && rBoth.entry.problems.h2 === roofer.service_page_blocks.A.emergency.problems.h2, rBoth.entry.problems.h2, 'the emergency H2');
+const patios = edensRows.find(r => r.slug === '/services/patios');
+const dRows = edensRows.map(r => r === patios ? { ...r, info: { ...r.info, desire_led: true } } : r);
+const dSvc = computeServiceDecisions({ cv, niche: dNiche, keyValueMap: ctx.keyValueMap, rows: dRows, page: dRows.find(r => r.slug === '/services/patios'), tradeFacts: facts });
+const dSvc2 = computeServiceDecisions({ cv, niche: dNiche, keyValueMap: ctx.keyValueMap, rows: dRows, page: dRows.find(r => r.slug === '/services/hedge-trimming'), tradeFacts: facts });
+chk('service decisions: Patios flagged desire led gets the desire H2 and the framing line; Hedge trimming stays problem led', !dSvc.gates.length && dSvc.decisions.type.desire && dSvc.decisions.h2.problems === 'Is Patios Right for Your Garden?' && /Block 4 framing: desire led/.test(dSvc.decisionsBlock) && !dSvc2.gates.length && !dSvc2.decisions.type.desire && /Block 4 framing: problem led/.test(dSvc2.decisionsBlock), JSON.stringify([dSvc.gates, dSvc.decisions && dSvc.decisions.h2.problems, dSvc2.gates]), 'desire on Patios only');
+
+// ── Type keyed fears and FAQ slots, the niche's banned phrases (4 Nov 2026) ──
+const tNiche = { ...landscaper, service_words: [], fears_by_type: { B: ['visits that stop without warning', 'a different job each time', 'things left to slip'] }, faq_slots_by_type: { B: [{ slot: 'faq_A', question: 'How often do you need to come?', answer_brief: 'From [CV: visit_frequency_options] only.', doubt: 'Process' }, { slot: 'faq_B_extra', question: 'What does a visit cover?', answer_brief: 'The round.', doubt: 'Fit' }] } };
+chk('fearsFor and faqSlotsFor: a B client reads the B fears and the B slot replaces the shared faq_A; an A client reads the shared lists', JSON.stringify(CB.fearsFor(tNiche, { business_type: 'B' })) === JSON.stringify(tNiche.fears_by_type.B) && CB.fearsFor(tNiche, { business_type: 'A' }) === landscaper.fears && CB.faqSlotsFor(tNiche, { business_type: 'B' }).find(s => s.slot === 'faq_A').question === 'How often do you need to come?' && CB.faqSlotsFor(tNiche, { business_type: 'B' }).some(s => s.slot === 'faq_B_extra') && CB.faqSlotsFor(tNiche, { business_type: 'A' }) === landscaper.faq_slots && CB.faqSlotsFor(tNiche, { business_type: 'B' }).length === landscaper.faq_slots.length + 1, '', 'B overrides, A shared');
+const tHome = computeDecisions({ cv: { ...cv, business_type: 'B' }, niche: tNiche, pages: ctx.pages, keyValueMap: ctx.keyValueMap, serviceParentMap: ctx.serviceParentMap, v20TestMode: true, allocationData: null, faqResearch: [] });
+chk('homepage decisions: a B client\'s Why points carry the B fears and its FAQ takes the B question', !tHome.gates.length && tHome.decisions.d10_why.some(p => tNiche.fears_by_type.B.includes(p.fear)) && JSON.stringify(tHome.decisions.d11_faq).includes('How often do you need to come?'), tHome.gates.length ? JSON.stringify(tHome.gates) : JSON.stringify(tHome.decisions.d10_why.map(p => p.fear)), 'B fears and question');
+
+// ── Urgent symptoms in the allocation pass follow the page flags, not the niche marker (4 Nov 2026) ──
+chk('emergencySite: urgent symptoms are eligible only when the client confirms call outs and a service page is flagged emergency (rows or v3 pages)', CB.emergencySite({ emergency_primary: 'yes' }, km.rows) && !CB.emergencySite({ emergency_primary: '' }, km.rows) && !CB.emergencySite({ emergency_primary: 'yes' }, edensRows) && CB.emergencySite({ emergency_callouts: 'Yes' }, kCtx.pages) && !CB.emergencySite({ emergency_primary: 'yes' }, kRowsNoRepairs), '', 'flags decide, not emergency_niche');
+chk('allocation: the eligible items take the same answer (an urgent symptom is kept for Kestrel, dropped for Edens Edge)', (() => {
+  const A = require(path.join(root, 'allocation.js'));
+  const parsed = { neighbourhoods: [], issues: [{ id: 'i1', categoryTags: ['roofer'] }], symptoms: [{ id: 's1', issueId: 'i1', text: 'Water coming through the ceiling', urgent: true }, { id: 's2', issueId: 'i1', text: 'Moss on the north slope', urgent: false }], conservation_areas: [] };
+  const cats = new Set(['roofer']);
+  const on = A.eligibleItems(parsed, { emergencyNiche: CB.emergencySite({ emergency_primary: 'yes' }, km.rows), categories: cats });
+  const off = A.eligibleItems(parsed, { emergencyNiche: CB.emergencySite({ emergency_primary: 'yes' }, edensRows), categories: cats });
+  return on.symptoms.some(s => s.id === 's1') && !off.symptoms.some(s => s.id === 's1') && off.symptoms.some(s => s.id === 's2');
+})(), '', 'urgent kept for Kestrel only');
+
 fs.unlinkSync(file);
+fs.unlinkSync(dFile);
 console.log(`\n${pass + fail} checks: ${pass} passed, ${fail} failed`);
 process.exit(fail ? 1 : 0);

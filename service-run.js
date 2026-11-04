@@ -129,7 +129,7 @@ function createServiceRunner({ pool, v20Store, loadInputs, generate, allocate = 
     // Local research: the city dossier for a base page, the town's for a town page
     const cityDossier = (dossiers || []).find(d => normLoc(d.locationName) === normLoc(ctx.keyValueMap.biz_area_1));
     let allocation = null, townInfo = null, symptoms = [];
-    const emergencyNiche = !!niche.emergency_niche;
+    const emergencyNiche = require('./category-blocks').emergencySite(ctx.cv, rows);
     const takenS = takenSymptoms([...prior, ...Object.values(written.categories || {}).map(record => ({ record }))]);
     const symptomArgs = parsed => ({ service: baseRow ? baseRow.title : serviceName, names: namesOf(baseRow), category, emergencyNiche, limit: 5 });
     if (scope === 'base') {

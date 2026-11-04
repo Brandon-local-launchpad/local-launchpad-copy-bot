@@ -1,0 +1,587 @@
+{
+  "_source": "niche-library/tiling.json",
+
+  "trade": "Tiling",
+  "trade_lower": "tiling",
+  "trade_person": "tiler",
+  "trade_person_plural": "tilers",
+  "customer_type": "homeowners",
+  "unit_of_work": "jobs",
+  "emergency_niche": false,
+  "big_ticket": true,
+  "big_ticket_examples": ["wet rooms", "whole house floor tiling", "porcelain patios"],
+  "schema_subtype": "HomeAndConstructionBusiness",
+
+  "words_use": ["tiles", "tiling", "grout", "silicone", "bathroom", "shower", "wet room", "kitchen", "splashback", "floor", "hallway", "hall floor", "patio", "fireplace", "hearth", "the wall behind", "the floor underneath", "the board", "the screed", "the floorboards", "waterproof layer", "tanking"],
+  "words_avoid": ["substrate", "background", "setting out", "back buttering", "debond", "debonding", "penetrations", "changes of plane", "cementitious", "reaction resin", "uncoupling membrane", "calibrated", "bespoke", "luxury", "non slip", "anti slip", "contemporary", "on trend", "statement"],
+  "words_avoid_exceptions": {
+    "substrate": "allowed once where a What's Included item is the Table A stage named with it; elsewhere say what the tiles are fixed to: the board, the screed, the plaster, the floorboards",
+    "setting out": "allowed once where a What's Included item is the Table A stage of that name; elsewhere say where the cuts fall"
+  },
+  "banned_phrases": ["waterproof grout", "waterproof tiles", "grout is waterproof", "flawless", "stunning", "dust free", "will never crack", "never crack", "stay white", "stays white", "transform your bathroom", "transform your kitchen", "transform your home", "dream bathroom", "dream kitchen", "spa like", "hotel style", "showroom finish", "designer look", "wow factor"],
+
+  "buttons": {
+    "primary_action": "Get My [QUOTE_FREE] Quote",
+    "meta_cta": "Get your [QUOTE_FREE_LOWER] quote today.",
+    "process_h2": "Your [QUOTE_FREE] Quote in 3 Simple Steps",
+    "final_h2": "Get a [QUOTE_FREE] Quote From a Local [CATEGORY] in [CITY]",
+    "final_h2_emergency": null,
+    "cta_band_line": "Tell us about the room and we'll get back to you within [CV: response_time].",
+    "cta_band_line_no_response": "Tell us about the room and we'll get back to you."
+  },
+
+  "business_type_default": "A",
+  "business_type_notes": "One GBP category, Tile contractor, and every page group under it is type A (Tiling Calibration Pack v1, section 2). Tile repairs and regrouting stay problem led inside A: silicone and stone sealing recur, but nobody books a tiler on a round. No type B entry exists; a client set to B by hand falls back to the niche default.",
+
+  "priority_services": [],
+  "core_services": {
+    "tile contractor": ["bathroom and shower tiling", "floor tiling", "kitchen splashbacks", "wet room tiling", "tile repairs", "regrouting"]
+  },
+
+  "steps": [
+    {
+      "title": "Tell Us About the Job",
+      "brief": "How to get in touch and what is useful to send first (which room, roughly how much wall or floor, what is on it now, whether the tiles are chosen, photos if they have them). No promise of a reply time unless [CV: response_time] is set."
+    },
+    {
+      "title": "We Check the Room and Price the Job",
+      "brief": "The visit and what gets looked at (what the tiles will be fixed to and whether it is flat, dry and sound, whether old tiles are coming off, the shower or bath edge and what needs a waterproof layer, where the floor meets the walls, how the tiles get in). Follows [CV: quote_method]; only say the quote is written if quote_method says so. Never restates 'free' (FAQ 5 owns it)."
+    },
+    {
+      "title": "We Start on a Date That Suits You",
+      "brief": "The start date is agreed in advance, to suit the customer. Never mention the price, the quote or changes to the plan (step 2 and Why choose us own them). Never restates the start time (FAQ 4 owns it). Nothing about drying or curing waits: the timing FAQ owns them."
+    }
+  ],
+
+  "step_2_no_visit": {
+    "title": "We Price Your Job",
+    "brief": "Say a price is agreed before any work starts. Describe how the price is reached only from [CV: quote_method]; when quote_method is blank, name no method at all (no photos, call, video or visit). Only say the quote is written if quote_method says so. Never restates 'free' (FAQ 5 owns it)."
+  },
+  "cover_chain": ["guarantee", "manufacturer_warranty", "insurance"],
+
+  "fears": [
+    "tiles that look right on the day and crack, loosen or let water through within a year or two",
+    "a shower that leaks into the wall or the ceiling below where nobody can see it",
+    "a tiler who tiles over a wall or floor that was never ready for it (a floor that flexes, a wall that cannot take the weight)",
+    "a price that grows once the old tiles come off and what is behind them shows"
+  ],
+  "fears_by_type": {},
+
+  "logo_tiers": {
+    "ratings": ["Google (needs review_count 5+)", "Checkatrade", "Trustpilot", "Which? Trusted Traders"],
+    "tier1": ["The Tile Association (TTA)", "TTA Master Tile Fixer", "TrustMark", "Stone Federation Great Britain"],
+    "tier2": ["YOU+BAL partnership profile (shown as a partnership, never as an approval)", "ARDEXacademy training (shown as training, never as an approval)"],
+    "tier3": "chamber of commerce, local press features, local awards: Ray's call per client"
+  },
+
+  "faq_fixed_doubts": {
+    "Q1_cost": "Price",
+    "Q6_areas": "Fit"
+  },
+
+  "faq_slots": [
+    {
+      "slot": "faq_2",
+      "question": "Are you insured?",
+      "answer_brief": "The cover figure and what it means for the customer if something is damaged during the job.",
+      "symptom_based": false,
+      "doubt": "Trust"
+    },
+    {
+      "slot": "faq_2_fallback",
+      "question": "What happens if something goes wrong?",
+      "answer_brief": "From [CV: complaints_process] only.",
+      "symptom_based": false,
+      "doubt": "Trust"
+    },
+    {
+      "slot": "faq_3",
+      "question": "Do you guarantee your work?",
+      "answer_brief": "Used only when a guarantee or manufacturer warranty is confirmed. Start with yes, then the terms. A tanking system's warranty only from [CV: manufacturer_warranty], as its own thing and never as the tiler's guarantee.",
+      "symptom_based": false,
+      "doubt": "Trust"
+    },
+    {
+      "slot": "faq_3_none",
+      "question": "What happens if something isn't right after the job?",
+      "answer_brief": "Used when nothing in cover_chain other than insurance is confirmed. Open with what the customer does: tell us what isn't right and we'll look at it. Then the 'reasonable care and skill' standard every trade works to, as the standard the work is held to, never as a defence. No promise to come back or put it right for free. Never invent a guarantee.",
+      "symptom_based": false,
+      "doubt": "Trust"
+    },
+    {
+      "slot": "faq_4",
+      "question": "How soon can you start?",
+      "answer_brief": "From [CV: start_time] only, as given. Code adds \"bigger projects are booked further ahead\" only when that practice is confirmed.",
+      "symptom_based": false,
+      "doubt": "Timing"
+    },
+    {
+      "slot": "faq_5_free",
+      "question": "Is the quote free and no obligation?",
+      "answer_brief": "From [QUOTE_FREE] and [CV: quote_method].",
+      "symptom_based": false,
+      "doubt": "Price"
+    },
+    {
+      "slot": "faq_5_not_free",
+      "question": "How do your quotes work?",
+      "answer_brief": "From [CV: quote_method] only.",
+      "symptom_based": false,
+      "doubt": "Price"
+    },
+    {
+      "slot": "faq_A",
+      "question": "How long does tiling a bathroom or a floor take?",
+      "answer_brief": "No number unless [CV: typical_jobs] gives one: the Table A timing cells say it varies and give no standard. Give what decides it (the size, what comes off first, what has to go on before the tiles) and the waits that sit inside the job as the Table E rows give them: new plaster or a new screed dries before tiling, a tanking layer cures before it is tiled over, the adhesive sets before grouting and before a floor is walked on. Nothing about when the job can start (FAQ 4 owns it).",
+      "symptom_based": false,
+      "doubt": "Timing"
+    },
+    {
+      "slot": "faq_B",
+      "question": "Why has a tile come loose, and will the others follow?",
+      "answer_brief": "Use the assigned symptom's meaning and its linked local issue. Three genuinely different causes in plain words: adhesive that never gripped the whole back of the tile (dabs, not a solid bed, or a dusty or painted wall), a floor or wall that moves under it (floorboards that flex, no gap left for movement), and water that got behind and softened what the tile was stuck to. Then what the local housing adds, then the fix: the cause first, the tile second.",
+      "symptom_based": true,
+      "doubt": "Process"
+    },
+    {
+      "slot": "faq_C",
+      "question": "Porcelain or ceramic: which is better for a floor?",
+      "answer_brief": "From the Table E porcelain and ceramic row: porcelain is a ceramic tile that takes in very little water, which suits floors, wet rooms and outside, but the right tile depends on where it goes and what it has to put up with (wear, slip where it gets wet, frost outside), not on the name. Never a rating as proof (the Table E slip row), never that porcelain is always better.",
+      "symptom_based": false,
+      "is_fallback": true,
+      "doubt": "Process"
+    },
+    {
+      "slot": "faq_D",
+      "question": "Does new plaster or a new floor need to dry before it's tiled?",
+      "answer_brief": "Yes: from the Table E new plaster and concrete row, new plaster and a new screed are left to dry and checked before a tile goes on, the waits as the row gives them and no other figure; a heated screed is run up and cooled before tiling (the Table E UFH row). Say why: tiles fixed over a wet base let go or crack as it dries out. No dates.",
+      "symptom_based": false,
+      "is_fallback": true,
+      "doubt": "Timing"
+    },
+    {
+      "slot": "faq_planning",
+      "question": "Do I need permission for tiling work?",
+      "answer_brief": "Point at the trade facts rule rows (Table C) and write what usually applies, with \"usually\" or \"in most cases\": tiling at a home usually needs no permission; a listed home where the floor or wall is part of what is listed usually needs consent before it is altered; a hard surface at the front of the house usually needs the rain to soak away inside the garden; electrical work for a heated floor in a bathroom is notified through the electrician, never the tiler; a drain moved in a wet room goes through building control. What the customer does about it only as the row gives it. No figure, no area, never an Act's or a document's name.",
+      "symptom_based": false,
+      "condition": "big_ticket AND [CV: handles_planning] confirmed",
+      "doubt": "Process"
+    }
+  ],
+  "faq_slots_by_type": {},
+
+  "materials_tick_list": {
+    "Tiles": ["ceramic", "porcelain", "natural stone (limestone, marble, slate, granite, sandstone)", "mosaic", "large format", "Victorian geometric and encaustic reproduction tiles"],
+    "What the tiles go on": ["tile backer board", "cement board", "plasterboard", "sand and cement screed", "levelling compound", "decoupling membrane", "plywood overlay on timber floors"],
+    "Waterproofing": ["liquid applied tanking", "sheet membrane tanking", "waterproof boards", "wet room former with falls built in"],
+    "Adhesive, grout and seals": ["cement based adhesive", "flexible adhesive", "epoxy adhesive and grout", "cement based grout", "grout colourant", "sanitary silicone", "edge trims", "stone sealer or impregnator"],
+    "Other": ["old tiles removed", "dust extraction on cutting tools", "waste taken away", "tiling over underfloor heating", "asbestos test arranged before an old floor is lifted"]
+  },
+
+  "service_terms": ["wall tiling", "floor tiling", "bathroom tiling", "shower tiling", "wet room tiling", "tanking", "waterproofing", "kitchen tiling", "splashback", "splashbacks", "mosaic tiling", "feature wall tiling", "hearth tiling", "fireplace tiling", "natural stone tiling", "limestone", "marble", "slate", "porcelain tiling", "large format tiling", "outdoor tiling", "porcelain paving", "swimming pool tiling", "Victorian floor tiling", "period floor tiling", "encaustic tiles", "geometric tiles", "tile repairs", "tile replacement", "regrouting", "grout repair", "grout cleaning", "grout sealing", "grout colouring", "silicone sealing", "resealing", "stone sealing", "tile removal", "screeding", "floor levelling", "underfloor heating", "tile and grout cleaning", "backer boards"],
+
+  "service_words_note": "Old path only (21 Oct 2026): this list applies when the homepage is written from the uploaded custom values CSVs. A client with a v3 page map names every service by its page title (the services library's UK name), and this list is not used.",
+  "service_words": [
+    ["furniture assembly", null], ["gutter cleaning", null], ["remodelling", null], ["drywall", null], ["fan installation", null], ["fan repair", null],
+    ["floor fitting", null], ["plumbing fixture", null], ["tv mounting", null], ["interior decorating", null], ["exterior painting", null],
+    ["flooring repair", null], ["water fixture", null], ["tile design", null], ["tile refinishing", null],
+    ["dust-free tile removal", "tile removal"], ["tile removal", "tile removal"],
+    ["grout cleaning", "grout cleaning"], ["grout repair", "grout repair"], ["grout sealing", "grout sealing"], ["grout staining", "grout colouring"],
+    ["tile grouting", "grouting"], ["tile regrouting", "regrouting"],
+    ["tile work installation", "tiling"], ["tile work replacement", "tile replacement"], ["tile replacement", "tile replacement"],
+    ["bathroom tile repair", "bathroom tile repairs"], ["kitchen tile repair", "kitchen tile repairs"], ["shower tile repair", "shower tile repairs"], ["tile flooring repair", "floor tile repairs"],
+    ["shower tile installation", "shower tiling"], ["tile backsplash installation", "kitchen splashbacks"], ["kitchen splashback", "kitchen splashbacks"],
+    ["tile cleaning", "tile and grout cleaning"], ["tile restoration", "period floor restoration"],
+    ["wall tiling", "wall tiling"], ["floor tiling", "floor tiling"], ["bathroom tiling", "bathroom tiling"], ["mosaic tiling", "mosaic tiling"],
+    ["wet room", "wet room tiling"], ["underfloor heating", "underfloor heating"], ["underlay board", "backer boards"], ["screed", "screeding"], ["levelling", "floor levelling"],
+    ["silicone", "silicone sealing"], ["natural stone", "natural stone tiling"], ["victorian", "Victorian floor tiling"], ["outdoor tiling", "outdoor tiling"],
+    ["swimming pool", "swimming pool tiling"], ["hearth", "hearth tiling"], ["feature wall", "feature wall tiling"], ["edge trim", "tile trims"],
+    ["tanking", "tanking"], ["large format", "large format tiling"]
+  ],
+
+  "general_service_words": ["tiling", "wall and floor tiling", "bathroom tiling", "retiling", "tile fitting"],
+  "problem_service_words": ["tile repairs", "regrouting", "leak"],
+  "why_titles_alt": [
+    "Years of Local Tiling Behind Us",
+    "Covered If Something Goes Wrong"
+  ],
+
+  "category_work_nouns": {
+    "tile contractor": "tiling"
+  },
+  "seasonal_trade": false,
+  "category_types": {},
+  "category_page_blocks": {
+    "A": {
+      "problems": {
+        "h2": "Common [WORK] Problems",
+        "cards": [
+          {
+            "title": "A bathroom, kitchen or floor you're redoing",
+            "brief": "A situation card, not a fault: the household is refitting a bathroom, a kitchen or a hall floor, the old tiles or the paint are still up, and the tiles are chosen or nearly. What decides it: what is behind or under them (plaster, plasterboard, cement board, a screed, floorboards on joists) and whether it can carry the weight of the tiles they want (the Table E plaster and plasterboard row, with no figure), whether a shower or bath edge needs a waterproof layer first, and whether anything new, plaster or a screed, still has to dry out (the Table E new plaster and concrete row, the wait as the row gives it). What the work gives them, in plain words: the right board or layer put on first, the tiles fixed so they stay put, silicone where the surfaces meet. On a page whose services are mostly repairs the card reads as the room they are patching up and whether it is worth tiling again from the wall out. Never a lifestyle pitch, never the finish sold on its own, never a fault invented for a new room.",
+            "mechanism": "whether the wall or floor is ready to carry tiles"
+          },
+          {
+            "title": "Water getting behind the tiles",
+            "brief": "Problem led: grout missing or dark in one corner of the shower however often it is cleaned, a wall that feels damp, a tile near the bath that has gone loose, a mark on the ceiling of the room below (the Table B bathroom and wet room signs). The one cause this card makes: there is nothing waterproof under the tiles, so what gets through the grout reaches the board or plaster behind, which softens and lets go (the Table E rows: tiles are not tanking; plasterboard in a shower). Say what putting it right usually involves from the Table A bathroom and wet room stages: the tiles off in the wet area, soft board replaced, a tanking layer over it and its corners, then the tiles, with silicone and not grout where the wall meets the bath, the tray or the floor. New grout over the old joints is not the fix, and the card says so without alarm. Never 'waterproof grout', never a system or membrane name unless [CV: materials_methods] gives it, never that this business tanks every job unless confirmed. Not a joint that was sealed rigid: the service pages own that.",
+            "mechanism": "nothing waterproof beneath the tiles in a wet area"
+          },
+          {
+            "title": "Cracks that run from one tile to the next",
+            "brief": "Problem led: a crack through several tiles in a row, grout breaking up along one line, tiles that rock or sound hollow, a floor that feels uneven (the Table B floor tiling signs). The one cause this card makes: the floor is moving and the tiles were fixed rigid to it, so the movement comes through them: floorboards that flex, a crack or joint in the screed below, no gap left at the edges or across a large floor. Say what the fix usually involves from the Table A floor stages and the Table E movement joint rows: the floor checked for flatness and give before anything goes down, stiffened or overlaid where it flexes, a decoupling layer as one option on a timber floor, joints left where the floor needs them and filled with something that gives. Swapping only the cracked tiles sets fresh tiles on top of the same moving floor. Never a joint spacing or width figure (the rows carry them). On a page with period floors the card also reads as loose and missing pieces over a base that has shifted or gone damp; with outdoor tiling, slabs that have lifted after a winter on a base that moved.",
+            "mechanism": "a floor that moves under tiles fixed rigid to it"
+          },
+          {
+            "title": "One broken tile, and whether a swap will hold",
+            "brief": "The repair customer's situation and the honest answer to it: a floor tile cracked by something dropped, a chipped edge, a tile fallen off the splashback, grout splitting round one tile (the Table B repairs signs). What decides it: whether the knock did it, in which case one tile out and a matching one in is a fair repair (the Table A repair stages: the neighbours checked, the tile removed without harming the ones round it), or whether the cause sits behind or under it, water, movement or adhesive in dabs, in which case a new tile goes the same way (the Table B repairs row: a replacement fails if the cause is not put right). What the work gives them: a straight answer on which it is before anything is ordered, and a matching spare where one exists, never promised. Never a scare, never a dig at whoever laid it, never that every crack is a floor problem: card 3 owns the line of cracks.",
+            "mechanism": "whether the knock or what sits under the tile did the damage"
+          }
+        ]
+      },
+      "cost": {
+        "h2": "What Affects the Cost of [WORK] in [CITY]",
+        "cards": [
+          {
+            "title": "How much wall and floor there is",
+            "brief": "Square metres move the price more than anything else: more tiles, more adhesive and grout, more cuts, more days. A whole bathroom against a splashback, a hall against a kitchen floor. Say it plainly and give no figure."
+          },
+          {
+            "title": "What has to come off first",
+            "brief": "Old tiles off, the adhesive left behind ground back, loose paint or plaster made good, and what shows once the wall or floor is bare (the Table F removal and preparation factors). Where an old floor covering may be the kind that needs a test before it is lifted, the test is a stage of the job and never said casually (the Table C and E asbestos rows). Say the business looks before it prices, from [CV: quote_method] only."
+          },
+          {
+            "title": "Boards, waterproofing and levelling",
+            "brief": "What has to go on before the first tile: a backer board, a levelling compound, a tanking layer in a shower or wet room, a floor stiffened where it flexes, a drain moved or falls formed in a wet room (the Table F factors by service). Say why each adds a stage and a wait; never a system name unless [CV: materials_methods] gives it."
+          },
+          {
+            "title": "The tiles, the pattern and the cuts",
+            "brief": "Large format and stone take longer to handle and fix, mosaics and small tiles mean more joints to grout, a herringbone or diagonal layout wastes more and takes longer to set out, and every socket, pipe and window reveal is a cut (the Table F factors). Name a tile type only if the trade facts or [CV: materials_methods] give it. Code adds the price line from [CV: price_list] when there is one."
+          }
+        ]
+      },
+      "faq_slots": [
+        {
+          "slot": "cost",
+          "question": "How much does [WORK_LOWER] cost in [CITY]?",
+          "answer_brief": "Prices only from [CV: price_list]; otherwise the three things that move the price for tiling (the area, what has to come off and go on first, the tiles chosen) and how the quote is given, from [CV: quote_method] only.",
+          "doubt": "Price"
+        },
+        {
+          "slot": "cover",
+          "when": "guarantee",
+          "question": "Do you guarantee your [WORK_LOWER] work?",
+          "answer_brief": "Start with yes, then the terms from [CV: guarantee_years] and [CV: guarantee_scope]. Described, never promised. A tanking system's warranty only from [CV: manufacturer_warranty], kept apart from the tiler's own guarantee.",
+          "doubt": "Trust"
+        },
+        {
+          "slot": "cover",
+          "when": "insurance",
+          "question": "Are you insured for [WORK_LOWER] work?",
+          "answer_brief": "The cover figure from [CV: insurance_cover] and what the cover is for. Never what it pays or who it covers.",
+          "doubt": "Trust"
+        },
+        {
+          "slot": "cover",
+          "question": "What happens if something isn't right after the job?",
+          "answer_brief": "Open with what the customer does: tell us and we look at it. Then the reasonable care and skill standard every trade works to. No promise to come back free. Never invent a guarantee.",
+          "doubt": "Trust"
+        },
+        {
+          "slot": "scope",
+          "question": "What [WORK_LOWER] work do you take on?",
+          "answer_brief": "The jobs themselves, named from the card list (bathrooms and showers, floors, splashbacks, repairs and regrouting, as the client has them), and the size of job taken on, from the services list and [CV: typical_jobs] only. Link one service page. Never 'on this page', 'listed above' or 'the card list' as words: the reader sees no list, so name the work. Supplying the tiles as well as fixing them only from the client values.",
+          "doubt": "Fit"
+        },
+        {
+          "slot": "process",
+          "question": "What happens when I ask for a quote?",
+          "answer_brief": "From [CV: quote_method] and the confirmed practices only: what the customer sends, what the business looks at (what the tiles will go on, whether old tiles are coming off, the wet areas), what comes back. No timescale unless [CV: response_time] is set.",
+          "doubt": "Process"
+        },
+        {
+          "slot": "timing",
+          "question": "How long does [WORK_LOWER] take, and what has to dry first?",
+          "answer_brief": "No duration: the Table A timing cells say it varies and give no standard, so give what decides it (the size, what comes off first, what has to go on before the tiles) and the waits the Table E rows give: new plaster and a new screed dry before tiling, a tanking layer cures before it is tiled over, the adhesive sets before grouting and before a floor is walked on, a heated screed is run up and cooled first. Figures only as those rows state them, else none. Outdoor tiling waits for weather clear of frost (the Table A outdoor timing cell). No dates, nothing about being busy.",
+          "doubt": "Timing"
+        }
+      ],
+      "faq_symptom": {
+        "frame": "[SYMPTOM]: why does it happen, and what can be done?",
+        "answer_brief": "The symptom and its linked local issue, answered as asked. The cause behind or under the tile first, in plain words: what the tiles are fixed to, whether there is a waterproof layer beneath them, whether the floor or wall has room to move. Then what the local housing adds, from the town profile only (timber floors and lime plaster in the older terraces, plasterboard walls and chipboard floors in new builds that settle, hard water marking grout and glass), said as how the houses were built and never as the state of anyone's bathroom. Then what the business does about it, from confirmed practices only. One figure at most.",
+        "doubt": "Process"
+      }
+    }
+  },
+
+  "service_page_blocks": {
+    "A": {
+      "included": {
+        "h2": "What's Included in Our [SERVICE]",
+        "items": [
+          {
+            "title": "Checking what the tiles will be fixed to",
+            "brief": "The inspection stage from the Table A row for this service: the wall or floor, whether it is flat, dry and sound, whether it can take the weight of the tiles, what has to come off. A part of the job, not a promise about the quote."
+          },
+          {
+            "title": "Taking off what's there and making good",
+            "brief": "The removal and preparation stages from the Table A row: old tiles, loose paint or plaster, adhesive left behind, the base repaired. Where an old floor covering may need a test before it is lifted, the check is named as a stage, plainly and never casually (the Table A tile removal row). Name only what the rows give."
+          },
+          {
+            "title": "Boards, levelling and waterproofing",
+            "brief": "What goes on before the first tile, as the Table A row names it for this service: a backer board, a levelling compound, a tanking layer in a shower or wet room, falls formed in a wet room. Never a system or board name unless [CV: materials_methods] gives it, and never a standard's number."
+          },
+          {
+            "title": "Working out where the cuts fall",
+            "brief": "The setting out stage from the Table A row: where the full tiles sit and where the cuts go, around sockets, the worktop, the window, the drain, so the awkward slivers are not where the eye lands (the Table B kitchen done badly row)."
+          },
+          {
+            "title": "Fixing every tile on a solid bed of adhesive",
+            "brief": "The fixing stage: the adhesive spread over the whole back of the tile, not in dabs, so there is no hollow behind it (the Table E solid bed and dot and dab rows). The adhesive chosen for the tile and what it goes on, from the Table A materials cell; a named product only from [CV: materials_methods]."
+          },
+          {
+            "title": "Room to move at the corners and edges",
+            "brief": "The movement stage from the Table A and E rows: silicone where the wall meets the bath, the tray, the worktop or the floor and in the internal corners, joints left where a large floor needs them and filled with something that gives. Never a spacing or width figure: the Table E rows carry them."
+          },
+          {
+            "title": "Grouting, sealing and cleaning off",
+            "brief": "The finishing stages from the Table A row: grout once the adhesive has set, with the wait as the Table E row gives it, the tile faces cleaned, stone sealed where its row says so, trims and edges finished. What the customer sees when the job is done."
+          },
+          {
+            "title": "Clearing up and the waste",
+            "brief": "What comes off the job and what happens to it. Dust sheets and floors covered only from the property_protected practice; the rubble taken away only from the waste_removal practice; otherwise say it is cleared or left as agreed."
+          }
+        ],
+        "note": "Fallback only: the tick items are the service's own Table A stages when the pack gives 6 or more; this set is used when it gives fewer (F-ITEMS-GENERIC)."
+      },
+      "problems": {
+        "h2": "Signs You Need [SERVICE]",
+        "cards": [
+          {
+            "title": "What you noticed first",
+            "brief": "The things a homeowner notices first, from the Table B signs row for this service, in their words: grout falling out, a tile that moves underfoot, water past the bath edge, a splashback that never looks clean, pieces missing from a hall floor. The one cause this card makes: the job left undone. Then what it leads to if left, from the skipped row: specific, never alarming. On a repair, regrouting or removal page the card is symptom, cause, consequence in that order; on a wet room page after a leak it opens on the damp next door or in the room below.",
+            "mechanism": "the job left undone"
+          },
+          {
+            "title": "Hollow, loose or lifting",
+            "brief": "A tile that sounds different from its neighbours when tapped, one that rocks, one that has come away whole with clean dabs of adhesive on its back. The one cause this card makes: adhesive that never held the whole tile, because it went on in spots rather than a solid bed, or onto a dusty, painted or unsound surface (the Table B done badly rows; the Table E dot and dab row). Say what the job does so the new tiles hold, from the Table A stages for this service: the surface checked and primed where its row says so, the adhesive spread over the whole back; no figure the rows do not give; never a dig at whoever did it. Not water behind the tiles and not a floor that moves: the category page owns those.",
+            "mechanism": "adhesive that never held the whole back of the tile"
+          },
+          {
+            "title": "When a repair won't hold",
+            "brief": "Grout that has been redone and fallen out again, a replacement tile that has cracked the same way, a corner that keeps opening up (the Table B repairs and regrouting rows). The one cause this card makes: a cause behind the tile that the last repair covered over rather than fixed: loose material left in the joint, a joint that moves filled with rigid grout, water still getting in, a floor still flexing. Say when a patch repair is still worth doing and when the job starts further back, from the Table A diagnose stage for this service; honest about which, never a scare. Not adhesive in dabs: card 2 owns that.",
+            "mechanism": "a cause behind the tile that new grout or a new tile covers over"
+          },
+          {
+            "title": "Where the sealant has given up",
+            "brief": "A gap or a dark line along the bath edge, grout cracked in the corner of the shower, water on the worktop finding its way behind the splashback, a crack where the wall meets the floor (the Table B bathroom, kitchen and regrouting rows). The one cause this card makes: a joint that moves was filled with rigid grout, or the silicone has come away, where two surfaces meet. Say what the job does about it from the Table A stages: the old sealant out, the joint cleaned and dried, silicone where the surfaces meet and grout only where they do not (the Table E corners row). Never 'waterproof grout'. Not a missing waterproof layer under the tiles: the category page owns that.",
+            "mechanism": "a joint sealed rigid, or a seal that has come away, where two surfaces meet"
+          }
+        ]
+      },
+      "cost": {
+        "h2": "What Affects the Cost of [SERVICE] in [CITY]",
+        "cards": [
+          {
+            "title": "How much there is to tile",
+            "brief": "The size factor from the Table F row for this service: the area of wall or floor, the number of tiles to replace, the length of joint to regrout. Say it plainly and give no figure."
+          },
+          {
+            "title": "What's there now and what's behind it",
+            "brief": "What has to come off or be put right before the job starts, from the Table F row: old tiles, a painted or flaking wall, an uneven or damp floor, a leak behind the tiles, a floor covering that needs a test before it is lifted. Say the business looks before it prices, from [CV: quote_method] only."
+          },
+          {
+            "title": "Waterproofing, boards and drains",
+            "brief": "The layers under the tiles that the service needs, from the Table F row: how much tanking, a backer board, a levelling compound, a wet room former or a drain moved, a heated floor's joints, a stone's sealing. Say why each adds a stage and a wait. Never a system name unless [CV: materials_methods] gives it."
+          },
+          {
+            "title": "The tiles, the pattern and the cuts",
+            "brief": "Mosaics and small tiles, large format and stone, a pattern with more cuts, trims and returns, sockets and pipes to cut round, from the Table F row and [CV: materials_methods]. A named product only from [CV: materials_methods]. Code adds the price line from [CV: price_list] when there is one."
+          }
+        ]
+      },
+      "faq_slots": [
+        {
+          "slot": "cost",
+          "question": "How much does [SERVICE_LOWER] cost in [CITY]?",
+          "answer_brief": "Prices only from [CV: price_list]; otherwise how the quote is given, from [CV: quote_method] only. The four cost cards above already give what moves the price: name one factor at most, never the list again.",
+          "doubt": "Price"
+        },
+        {
+          "slot": "timing",
+          "question": "How long does [SERVICE_LOWER] take?",
+          "answer_brief": "From the Table A timing cell for this service only: it says the duration varies and gives no standard, so say what decides it (the size, what comes off first, what has to go on and dry before the tiles) and the waits as the Table E rows give them (a tanking layer cured before tiling, the adhesive set before grouting and before a floor is walked on, new plaster or a screed dry first). No figure beyond those rows. Nothing about when the job can start unless [CV: start_time] is set. This is the one place the timing is written.",
+          "doubt": "Timing"
+        },
+        {
+          "slot": "cover",
+          "when": "guarantee",
+          "question": "Do you guarantee your [SERVICE_LOWER] work?",
+          "answer_brief": "Start with yes, then the terms from [CV: guarantee_years] and [CV: guarantee_scope]. Described, never promised. A tanking system's warranty only from [CV: manufacturer_warranty], kept apart from the tiler's own guarantee.",
+          "doubt": "Trust"
+        },
+        {
+          "slot": "cover",
+          "when": "insurance",
+          "question": "Are you insured for [SERVICE_LOWER]?",
+          "answer_brief": "The cover figure from [CV: insurance_cover] and what the cover is for. Never what it pays or who it covers.",
+          "doubt": "Trust"
+        },
+        {
+          "slot": "cover",
+          "question": "What happens if something isn't right after the job?",
+          "answer_brief": "Open with what the customer does: tell us and we look at it. Then the reasonable care and skill standard every trade works to. No promise to come back free. Never invent a guarantee.",
+          "doubt": "Trust"
+        },
+        {
+          "slot": "rules",
+          "question": "Are there any rules I should know about for [SERVICE_LOWER]?",
+          "answer_brief": "From the Table C rows for this service only, put as what usually applies, with \"usually\" or \"in most cases\": tiling at a home usually needs no permission; the exceptions are a listed home where the floor or wall is part of what is listed (consent before it is altered), a hard surface at the front of the house where rain cannot soak away inside the garden, electrical work for a heated floor in a bathroom (notified through the electrician, never the tiler), a drain moved in a wet room (building control), and an old floor covering checked for asbestos before it is lifted. What the customer does only as the row gives it. Never a standard's number, an Act's name or legal advice. Where the rows give no rule for this service, say no permission is usually needed and leave it there.",
+          "doubt": "Process"
+        },
+        {
+          "slot": "scope",
+          "question": "What does your [SERVICE_LOWER] service include?",
+          "answer_brief": "The What's Included items said as a sentence, in other words. Whether the tiles are supplied as well as fixed only from the client values. What it does not cover only from the services list, with one sibling service page or the category page linked.",
+          "doubt": "Fit"
+        }
+      ],
+      "faq_symptom": {
+        "frame": "[SYMPTOM]: why does it happen, and what can be done?",
+        "answer_brief": "The symptom and its linked local issue, answered as asked. The cause behind or under the tile first, in plain words: what the tiles are fixed to, whether there is a waterproof layer beneath them, whether the floor or wall has room to move. Then what the local housing adds, from the town profile only, said as how the houses were built and never as the state of anyone's bathroom. Then what this service does about it. One figure at most.",
+        "doubt": "Process"
+      },
+      "desire": {
+        "problems": {
+          "h2": "Is [SERVICE] Right for Your Home?",
+          "cards": [
+            {
+              "title": "The room you're about to redo",
+              "brief": "The customer's situation: a bathroom, a shower room, a kitchen, a hall or a patio being refitted, the old finish still up, the tiles chosen or nearly. What decides it: how the room is used, from the Table A row for this service: a shower wall that is wet every day needs a waterproof layer under the tiles and silicone where it meets the tray; a kitchen wall behind the hob needs a surface that wipes clean, taken up to the units rather than stopped in a strip; a hall floor takes grit and wheels; a patio takes frost and has to shed rain; a fireplace takes heat, with the hearth done as its appliance needs; a pool shell is tested watertight before a tile goes near it (the Swimming pool page, on confirm only). What the work gives them: the layer underneath chosen for that use and the tiles fixed so they stay. Never a fault invented for a new room, never the finish sold on its own: the use, not the look.",
+              "mechanism": "how the room is used: wet or dry, walked on or looked at"
+            },
+            {
+              "title": "What the price difference buys",
+              "brief": "The customer's situation: they have a cheaper quote, or have thought about doing it themselves, and want to know what the difference pays for. What decides it: the layers they will never see once the grout is in: the board or the floor made ready, the waterproof layer in a wet area, adhesive over the whole back of every tile rather than dabs, room left to move at the corners and across a big floor (the Table A stages for this service and the Table E solid bed, tanking and movement rows). That is where a quick job cuts corners and where it shows a year or two later as hollow tiles, dark corners or a crack along a line. What the work gives them: those layers done as the rows name them, so the surface stays put. One specific from the stages for this service; no figure the rows do not give; never a dig at another trade.",
+              "mechanism": "the layers under the tiles that nobody sees once it is done"
+            },
+            {
+              "title": "Which tile suits the room",
+              "brief": "The customer's situation: they are weighing two or three options (porcelain against ceramic, stone against a stone look porcelain, large format against a standard size, a splashback to the underside of the units against a strip at worktop height, mosaic against a plain tile, reproduction pieces against salvaged ones on a period floor). What decides it: the room's use and wear, whether it is wet or outside, the weight the wall can carry, slip where the floor gets wet (never a rating as proof: the Table E slip row), and how much looking after they want, since some stones need sealing and the right cleaner (the Table E stone rows), from the Table A materials cell for this service. What the work gives them: the option that suits their room, never the one that is best in general. A named product only from [CV: materials_methods]. No claim about lifespan or cost unless the rows or the client values give it.",
+              "mechanism": "the room, the wear and the care deciding the tile"
+            },
+            {
+              "title": "What it will need from you afterwards",
+              "brief": "The customer's situation: they want to know what they are taking on once the job is done. What decides it: what the tiles, the grout and the seals need, from the Table A and E rows for this service: grout lets a little water through and dries out between uses, so a shower is aired and the corners watched; silicone is renewed when it comes away rather than grouted over; some stones are resealed on a timetable that depends on the stone, the product and the use (never an interval: the Table E stone sealing row) and are never cleaned with anything acidic; a heated floor is brought up to temperature gradually; outside, the joints and the drainage are kept clear so water does not sit and freeze. What the work gives them: an honest picture of what it saves them and what it does not. Never a promise about how it will look or last; a return visit or aftercare only where the services list or the confirmed practices (aftercare_advice) have it.",
+              "mechanism": "what the tiles, the grout and the seals need through the years"
+            }
+          ]
+        }
+      }
+    }
+  },
+
+  "location_page_blocks": {
+    "A": {
+      "problems": {
+        "h2": "Common [WORK] Problems in [TOWN]",
+        "cards": [
+          {
+            "title": "Floors that flex in the older streets",
+            "brief": "Tiles that crack along a line, grout that breaks up, a hall floor that bounces. The one cause this card makes: timber floors on joists and lime plaster, from the era the town's older streets were built in, which the town profile dates; 'were built with', never 'have', and never the state of anyone's bathroom today. Tie the era to what it means for the work and nothing else: a timber floor stiffened or overlaid before tiles go down, an adhesive chosen for a floor that moves, a decoupling layer as one option, and a lime plastered wall checked for the weight it can carry (the Table A floor stages and the Table E rows, with no figure). Not a floor that moves under rigid tiles as the cause: the category page owns that; here the cause is how the era built.",
+            "mechanism": "timber floors on joists from the era the older streets were built in"
+          },
+          {
+            "title": "Period hallways with pieces missing",
+            "brief": "Loose or missing pieces in a geometric hall floor, white salts that keep coming back, a hall that feels damp underfoot (the Table B period floor signs). The one cause this card makes: a floor laid straight on the ground in the era the town profile gives, with damp and salts moving up through it; an era claim (built with such floors), never that the hallways are in a state. What it means for the work, from the Table A and E period floor rows: sound pieces kept, lifting only where there is a reason, compatible replacements and a bedding that suits the original, and no sealer that traps the damp in. Where the home is listed, consent before the floor is altered, as 'usually' and never the Act's name. Not a tile cracked by a knock: the repair pages own that.",
+            "mechanism": "damp and salts moving up through a floor laid on the ground"
+          },
+          {
+            "title": "New estates settling in their first years",
+            "brief": "Hairline cracks in grout, a tile gone hollow in a bathroom a few years old, a floor tile that rocks. The one cause this card makes: the plasterboard walls and chipboard floors the newer estates were built with, which dry out and settle after the build (the town profile gives the estates). What it means for the work: the weight a plasterboard wall can carry before it needs a board over it (the Table E plaster and plasterboard row, no figure), a chipboard floor overlaid or decoupled before tiles, joints left where the floor needs them. Never a judgement on the builder or the homes. Not adhesive in dabs: the service pages own that.",
+            "mechanism": "plasterboard walls and chipboard floors drying out and settling after the build"
+          },
+          {
+            "title": "Hard water marking the grout",
+            "brief": "Grout lines that go pale and rough, a shower screen that will not come clean, dark corners that come back. Only where the town profile gives the water hardness from the supplier's data; otherwise the card reads as flats and their leases (some leases restrict hard floors or ask for a sound deadening layer under them, from the profile only). The one cause this card makes: limescale from the water settling into grout that lets water through, and on glass. What it means for the work: the grout chosen with that in mind (a resin grout as one option from the Table A regrouting cell, never a brand), silicone kept sound, and the aftercare that goes with it. Never a hardness figure the research does not give.",
+            "mechanism": "limescale from the town's water settling into porous grout and on glass"
+          }
+        ]
+      },
+      "cost": {
+        "h2": "What Affects the Cost of [WORK] in [TOWN]",
+        "cards": [
+          {
+            "title": "Flats, stairs and the lease",
+            "brief": "Where the town profile gives a high share of flats: tiles, boards and bagged adhesive carried up by hand, a skip that has to sit on the road (the skip firm's permit, said plainly), and a lease that asks for a sound deadening layer under a hard floor. Say why each adds time or a stage; no figure."
+          },
+          {
+            "title": "What the houses were built with",
+            "brief": "Lime plaster and timber floors in the older terraces mean more preparation before a tile goes on; plasterboard in the newer homes decides what it can carry (the profile for the era; the Table A and E rows for what it means). Said as what the work meets, never as the state of the homes. No figure."
+          },
+          {
+            "title": "Old floors that need a test before they come up",
+            "brief": "In older homes an old floor covering, and the dark adhesive under it, can be the kind that is tested before it is lifted (the Table C and E asbestos rows); if the test is positive the removal follows the safe method, which adds time and cost. Said plainly and never casually; no year or figure. From the profile where it gives the housing era."
+          },
+          {
+            "title": "Patios on exposed ground",
+            "brief": "Outdoor tiling on an exposed site waits for weather clear of frost, needs a base and falls that shed water, and a tile declared for outside (the Table A and E outdoor rows). From the profile where it gives the exposure; only where the client has an outdoor page. No figure."
+          }
+        ]
+      },
+      "faq_slots": [
+        {
+          "slot": "cost",
+          "question": "How much does [WORK_LOWER] cost in [TOWN]?",
+          "answer_brief": "Prices only from [CV: price_list]; otherwise the things that push the price up in a town like this (what the houses were built with, flats and access, what has to come off first) and how the quote is given, from [CV: quote_method] only.",
+          "doubt": "Price"
+        },
+        {
+          "slot": "town",
+          "when": "start_time",
+          "question": "How soon can you get to [TOWN]?",
+          "answer_brief": "From [CV: start_time] and [CV: response_time] only. The town is in the area covered; nothing about distance unless [CV: travel_distance] is set.",
+          "doubt": "Timing"
+        },
+        {
+          "slot": "town",
+          "question": "Do you cover [TOWN]?",
+          "answer_brief": "Yes: the town and the villages around it (code lists them; name none). How the business reaches it from its base only from the client values. Link one page in this town.",
+          "doubt": "Fit"
+        },
+        {
+          "slot": "cover",
+          "when": "guarantee",
+          "question": "Do you guarantee your work in [TOWN]?",
+          "answer_brief": "Start with yes, then the terms from [CV: guarantee_years] and [CV: guarantee_scope]. Described, never promised.",
+          "doubt": "Trust"
+        },
+        {
+          "slot": "cover",
+          "when": "insurance",
+          "question": "Are you insured?",
+          "answer_brief": "The cover figure from [CV: insurance_cover] and what the cover is for. Never what it pays or who it covers.",
+          "doubt": "Trust"
+        },
+        {
+          "slot": "cover",
+          "question": "What happens if something isn't right after the job?",
+          "answer_brief": "Open with what the customer does: tell us and we look at it. Then the reasonable care and skill standard every trade works to. No promise to come back free. Never invent a guarantee.",
+          "doubt": "Trust"
+        },
+        {
+          "slot": "process",
+          "question": "What happens when I ask for a quote in [TOWN]?",
+          "answer_brief": "From [CV: quote_method] and the confirmed practices only: what the customer sends, what the business looks at, what comes back. No timescale unless [CV: response_time] is set.",
+          "doubt": "Process"
+        },
+        {
+          "slot": "timing",
+          "question": "Can tiling be done at any time of year in [TOWN]?",
+          "answer_brief": "Indoors, yes, subject to what has to dry first (the Table A timing cells: new plaster and a new screed, a tanking layer, the adhesive before grouting, with the waits as the Table E rows give them). Outdoor tiling waits for weather clear of frost and for the base to cure; where the town profile gives the exposure, say what it means for a porcelain patio. No dates, no promise about the weather, nothing about being busy.",
+          "doubt": "Timing"
+        }
+      ]
+    }
+  },
+  "do_not_reuse": []
+}

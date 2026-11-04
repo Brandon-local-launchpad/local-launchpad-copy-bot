@@ -1,0 +1,583 @@
+{
+  "_source": "niche-library/painters-decorators.json",
+
+  "trade": "Painting and Decorating",
+  "trade_lower": "painting and decorating",
+  "trade_person": "painter and decorator",
+  "trade_person_plural": "painters and decorators",
+  "customer_type": "homeowners",
+  "unit_of_work": "jobs",
+  "emergency_niche": false,
+  "big_ticket": true,
+  "big_ticket_examples": ["the whole outside of a house repainted", "a full interior redecoration", "a hand painted kitchen"],
+  "schema_subtype": "HousePainter",
+
+  "words_use": ["walls", "ceilings", "woodwork", "skirting boards", "doors", "window frames", "sills", "gloss", "emulsion", "wallpaper", "colour", "room", "hallway", "stairwell", "kitchen units", "flaking", "peeling", "patchy", "stain", "damp", "mould", "filler", "sanding", "primer", "undercoat", "coats", "render", "textured ceiling", "dust sheets"],
+  "words_avoid": ["substrate", "coating", "coating system", "film build", "adhesion", "abrade", "application", "specification", "property", "premises", "snagging", "decorative scheme", "colour scheme", "refurbishment", "makeover", "Artex"],
+  "words_avoid_exceptions": {
+    "specification": "allowed on the Commercial decorating and Intumescent and fire protection coatings pages, where the work is done to one the customer holds",
+    "coating": "allowed on the Intumescent and fire protection coatings page (the product is a coating and the page name says so) and on the Artex removal page as textured coating, the facts pack's own term; everywhere else say paint",
+    "premises": "allowed on the Commercial decorating page, where it is the customer's own word for the building",
+    "property": "allowed on the Commercial decorating page for a landlord's or an agent's buildings",
+    "Artex": "allowed in the Artex removal page's name, H1, title, card heading and FAQ question, as the word customers search for (the pack's note: a trade mark gone generic); the running text says textured ceiling"
+  },
+  "banned_phrases": ["transform your space", "transform your home", "transform your room", "transform any room", "fresh new look", "new lease of life", "breathe new life", "bring your vision to life", "sanctuary", "oasis", "haven", "flawless finish", "perfect finish", "showroom finish", "premium paint", "premium finish", "premium products", "dust free", "mess free", "no mess", "on trend", "colour of the year", "mood board", "interior design"],
+
+  "buttons": {
+    "primary_action": "Get My [QUOTE_FREE] Quote",
+    "meta_cta": "Get your [QUOTE_FREE_LOWER] quote today.",
+    "process_h2": "Your [QUOTE_FREE] Quote in 3 Simple Steps",
+    "final_h2": "Get a [QUOTE_FREE] Quote From a Local [CATEGORY] in [CITY]",
+    "final_h2_emergency": null,
+    "cta_band_line": "Tell us what needs painting and we'll get back to you within [CV: response_time].",
+    "cta_band_line_no_response": "Tell us what needs painting and we'll get back to you."
+  },
+
+  "business_type_default": "A",
+  "business_type_notes": "The pack's section 2 maps both GBP categories (Painter, Painter and Decorator) to type A, so category_types is empty and every category page reads the A briefs; there is no type B (nothing in this trade is a round: a landlord's rolling programme is quoted as projects, so it is schedule led inside A) and no emergency variant (painters-decorators.csv flags no page emergency). The split inside type A is carried in the card briefs and the library's desire_led column: desire led (the customer's situation, never an invented symptom; service_page_blocks.A.desire) for Interior painting and decorating, Wallpapering, Decorative finishes and murals, Furniture and kitchen painting, Spray painting and Coving and cornice; problem led (the symptom, the cause under the paint, the consequence) for Exterior painting where paint is failing, Woodwork and timber finishing, Sash window and timber restoration, Plaster repairs and skimming and Artex removal; schedule led (what slips and when, the reason in the sun, the rain and the timber, never the diary) for exterior repainting on a cycle, Commercial decorating between tenancies and Intumescent and fire protection coatings, which have to stay intact and as tested. seasonal_trade is off: the pack calls exterior painting seasonal and interior work not, and the code's seasonal swap is niche wide (every type A page would get the weather card, wallpapering included), so the exterior weather lives in the exterior briefs and the timing FAQs instead (damp timber and masonry hold moisture under the paint, cold slows the drying, dew late in the day spoils the finish; the limits are the paint's own, never a season or a temperature).",
+
+  "priority_services": [],
+  "core_services": {
+    "painter": ["interior painting and decorating", "exterior painting", "woodwork and timber finishing", "wallpapering", "furniture and kitchen painting", "spray painting"],
+    "painter and decorator": ["decorative finishes and murals", "interior painting and decorating", "wallpapering", "exterior painting", "furniture and kitchen painting"]
+  },
+
+  "steps": [
+    {
+      "title": "Tell Us What Needs Painting",
+      "brief": "How to get in touch and what is useful to send first: which rooms, or which side of the house; whether it is walls and ceilings, the woodwork, paper or the lot; how the surfaces look to them now (flaking, a stain, old paper, fresh plaster); photos if they have them. No promise of a reply time unless [CV: response_time] is set."
+    },
+    {
+      "title": "We Look at the Surfaces and Price the Job",
+      "brief": "The visit and what gets looked at: what is on each surface now and what it will need before any paint goes on (filling, old paper off, loose paint back to a sound edge, a stain sealed, a damp patch whose cause has to be found first), the woodwork, how high the ceilings and stairwells are, what has to be moved or covered, and outside how the walls and the timber are reached. Follows [CV: quote_method]; only say the quote is written if quote_method says so; the quote setting out the surfaces, the preparation and the coats only when written_quote or itemised_quote is confirmed. Never restates \"free\" (FAQ 5 owns it)."
+    },
+    {
+      "title": "We Start on a Date That Suits You",
+      "brief": "The start date is agreed in advance, to suit the customer, room by room where the house stays lived in. Never mention the price, the quote or changes to the plan (step 2 and Why choose us own them). Never restates the start time (FAQ 4 owns it). Floors and furniture covered only when property_protected is confirmed; the room left tidy each evening only when tidy_each_day is confirmed; an outside job moved by the weather and rebooked only when weather_delays_rebooked is confirmed."
+    }
+  ],
+
+  "step_2_no_visit": {
+    "title": "We Price Your Job",
+    "brief": "Say a price is agreed before any work starts. Describe how the price is reached only from [CV: quote_method]; when quote_method is blank, name no method at all (no photos, call, video or visit). Only say the quote is written if quote_method says so. Never restates \"free\" (FAQ 5 owns it)."
+  },
+  "cover_chain": ["guarantee", "manufacturer_warranty", "insurance"],
+
+  "fears": [
+    "a finish that shows every patch, ridge and brush mark when low sun falls along the wall",
+    "paint on the carpet, the furniture or the glass, and a house left in a state between days",
+    "a job that overruns, with rooms out of use for longer than was said",
+    "another coat put over a problem (flaking, a stain, damp) that comes straight back through"
+  ],
+  "fears_by_type": {},
+
+  "logo_tiers": {
+    "ratings": ["Google (needs review_count 5+)", "Checkatrade", "Trustpilot", "Which? Trusted Traders"],
+    "tier1": ["PDA (Painting and Decorating Association)", "TrustMark", "Guild of Master Craftsmen"],
+    "tier2": ["Dulux Select Decorators (the one manufacturer assessed scheme the facts pack verifies; a Crown or Farrow and Ball badge is not one, Table D)", "CHAS", "Alcumus SafeContractor (commercial clients)"],
+    "tier3": "chamber of commerce, local press features, local awards; a PASMA or Ladder Association card is training, not approval, and is never shown as a scheme; Ray's call per client"
+  },
+
+  "faq_fixed_doubts": {
+    "Q1_cost": "Price",
+    "Q6_areas": "Fit"
+  },
+
+  "faq_slots": [
+    {
+      "slot": "faq_2",
+      "question": "Are you insured?",
+      "answer_brief": "The cover figure and what it means for the customer if something is damaged during the job (a carpet, a worktop, a window).",
+      "symptom_based": false,
+      "doubt": "Trust"
+    },
+    {
+      "slot": "faq_2_fallback",
+      "question": "What happens if something goes wrong?",
+      "answer_brief": "From [CV: complaints_process] only.",
+      "symptom_based": false,
+      "doubt": "Trust"
+    },
+    {
+      "slot": "faq_3",
+      "question": "Do you guarantee your work?",
+      "answer_brief": "Used only when a guarantee or manufacturer warranty is confirmed. Start with yes, then the terms. A scheme's workmanship guarantee only when the client is verified on that scheme (Dulux Select, Table D).",
+      "symptom_based": false,
+      "doubt": "Trust"
+    },
+    {
+      "slot": "faq_3_none",
+      "question": "What happens if something isn't right after the job?",
+      "answer_brief": "Used when nothing in cover_chain other than insurance is confirmed. Open with what the customer does: tell us what isn't right and we'll look at it. Then the 'reasonable care and skill' standard every trade works to, as the standard the work is held to, never as a defence. No promise to come back or put it right for free. Never invent a guarantee.",
+      "symptom_based": false,
+      "doubt": "Trust"
+    },
+    {
+      "slot": "faq_4",
+      "question": "How soon can you start?",
+      "answer_brief": "From [CV: start_time] only, as given. Code adds \"bigger projects are booked further ahead\" only when that practice is confirmed. Outside work waiting on the weather only when weather_delays_rebooked is confirmed.",
+      "symptom_based": false,
+      "doubt": "Timing"
+    },
+    {
+      "slot": "faq_5_free",
+      "question": "Is the quote free and no obligation?",
+      "answer_brief": "From [QUOTE_FREE] and [CV: quote_method].",
+      "symptom_based": false,
+      "doubt": "Price"
+    },
+    {
+      "slot": "faq_5_not_free",
+      "question": "How do your quotes work?",
+      "answer_brief": "From [CV: quote_method] only.",
+      "symptom_based": false,
+      "doubt": "Price"
+    },
+    {
+      "slot": "faq_A",
+      "question": "How long does it take to decorate a room?",
+      "answer_brief": "The facts pack gives no standard duration for any decorating job, so give what decides it and no number unless [CV: typical_jobs] confirms one: the state of the surfaces and the preparation they need before paint (filling, stripping, sealing), how much woodwork there is, and the drying between coats, which follows the paint's own instructions and the warmth and air in the room rather than the clock. A big change of colour can take more coats. Nothing about this business's own speed.",
+      "symptom_based": false,
+      "doubt": "Timing"
+    },
+    {
+      "slot": "faq_B",
+      "question": "Why does paint keep peeling off my walls or woodwork?",
+      "answer_brief": "Use the assigned symptom's meaning and its linked local issue. Three genuinely different causes in plain words, from the trade facts done badly rows: moisture behind the paint (a damp wall or wet timber painted over, so the film lifts); a surface the paint could never hold to (dust, loose old paint, grease or a shiny finish under it, with no key or primer); a stain or an old loose layer that was never sealed or taken off, so each new coat comes away with it. Then what the local housing adds (older layers of paint, pebbledash and render, fresh plaster on a new estate), then the fix: the cause dealt with, the loose paint off, the bare areas primed, before any finish. Never that another coat will hold it.",
+      "symptom_based": true,
+      "doubt": "Process"
+    },
+    {
+      "slot": "faq_C",
+      "question": "Is it better to paint over wallpaper or strip it?",
+      "answer_brief": "From the trade facts painting over wallpaper row: sound, well stuck paper can be painted after the seams are checked and the right preparation is used, and some papers bubble or lift under a water based primer, so it is not always the better answer; paper that is lifting, bubbled or layered is stripped. What decides it is the state of the paper and the wall under it, never a general rule. No product named.",
+      "symptom_based": false,
+      "is_fallback": true,
+      "doubt": "Process"
+    },
+    {
+      "slot": "faq_D",
+      "question": "How long does new plaster need before it can be painted?",
+      "answer_brief": "From the trade facts plaster drying and new plaster first coat rows: plaster has to be properly dry before ordinary paint goes on, and how long that takes depends on the wall, the plaster and how warm and aired the room is, so give no number of days or weeks; it shows as the colour evening out and the darker patches going. On bare plaster the paint goes on thinned for its first coat where the paint's instructions call for it, so it goes into the surface rather than sitting on it; painting too soon traps the water and the paint flakes or blisters. No product named.",
+      "symptom_based": false,
+      "is_fallback": true,
+      "doubt": "Timing"
+    },
+    {
+      "slot": "faq_planning",
+      "question": "Do I need permission to repaint the outside of my house?",
+      "answer_brief": "Point at the trade facts rule rows (Table C) and write what usually applies, with \"usually\" or \"in most cases\": repainting a house in its existing colour usually needs no application; a listed home can need consent where the change touches what makes it special (a new colour, painting brick or stone that was never painted, taking off old plaster inside), and in some conservation areas a local restriction can take away the right to change the colour of the front. What the customer does about it only as the row gives it (check with the council before the work; whether the business handles that only from [CV: handles_planning]). Never an Act's, an order's or a direction's name, no figure.",
+      "symptom_based": false,
+      "condition": "big_ticket AND [CV: handles_planning] confirmed",
+      "doubt": "Process"
+    }
+  ],
+  "faq_slots_by_type": {},
+
+  "materials_tick_list": {
+    "Interior paints": ["matt emulsion", "silk emulsion", "durable or washable emulsion", "water based gloss", "water based satin", "water based eggshell", "solvent based gloss"],
+    "Woodwork and timber": ["stain", "varnish", "knotting and primer on bare timber", "hand painted finish", "sprayed finish"],
+    "Wallpaper": ["paste the wall paper", "paste the paper", "lining paper", "wallpaper stripping"],
+    "Exterior": ["masonry paint", "breathable finish or limewash for older solid walls", "exterior wood paint", "fascias and soffits painted", "render repairs"],
+    "Preparation and repairs": ["filling and sanding", "skimming", "stain sealing primer", "mould treatment", "textured ceiling testing arranged", "lead safe stripping methods"],
+    "Access": ["ladders", "tower", "scaffold arranged"],
+    "Other": ["dust sheets and floor protection", "furniture moved and covered", "waste taken away", "HVLP spraying", "airless spraying"]
+  },
+
+  "service_terms": ["emulsion", "gloss", "satinwood", "satin", "eggshell", "undercoat", "primer", "mist coat", "lining paper", "wallpaper stripping", "wallpaper hanging", "wallpapering", "skimming", "plastering", "plaster repairs", "filling", "caulking", "sanding", "knotting", "stain block", "stain sealing", "masonry paint", "limewash", "render repairs", "fascias and soffits", "sash windows", "sash cords", "draught proofing", "putty", "spraying", "HVLP", "airless spraying", "hand painted kitchen", "kitchen cabinet painting", "cabinet painting", "furniture painting", "coving", "cornice", "Artex removal", "textured ceiling", "intumescent paint", "fire protection coatings", "commercial decorating", "office decorating", "wood staining", "varnishing", "paint stripping", "murals", "decorative finishes"],
+
+  "service_words_note": "Old path only (21 Oct 2026): this list applies when the homepage is written from the uploaded custom values CSVs. A client with a v3 page map names every service by its page title (the services library's UK name), and this list is not used.",
+  "service_words": [
+    ["custom painting", null], ["roof painting", null], ["waterproofing", null],
+    ["exterior painting", "exterior painting"], ["siding painting", "painting cladding and render"], ["deck painting", "painting decking"],
+    ["furniture painting", "furniture and kitchen painting"], ["cabinet painting", "kitchen cabinet painting"],
+    ["interior painting", "interior painting and decorating"], ["drywall painting", "painting walls and ceilings"], ["door painting", "door painting"],
+    ["metal painting", "painting metalwork"], ["speciality design painting", "decorative finishes"], ["faux finishes", "decorative finishes"], ["mural painting", "murals"],
+    ["drywall repair", "plaster repairs"], ["water-damage repair", "plaster repairs after a leak"],
+    ["spray painting", "spray painting"], ["wood staining", "wood staining"], ["wood varnishing", "varnishing"], ["wood painting", "painting woodwork"],
+    ["wallpaper hanging", "wallpapering"], ["wallpaper removal", "wallpaper stripping"]
+  ],
+
+  "general_service_words": ["painting and decorating", "decorating", "painting", "interior decorating", "redecoration", "house painting"],
+  "problem_service_words": ["plaster repairs", "stains", "mould", "damp"],
+  "why_titles_alt": [
+    "Local Experience Behind Every Finish",
+    "Covered If Something Goes Wrong"
+  ],
+
+  "category_work_nouns": {
+    "painter": "painting",
+    "painter and decorator": "decorating"
+  },
+  "seasonal_trade": false,
+  "category_types": {},
+  "category_page_blocks": {
+    "A": {
+      "problems": {
+        "h2": "Common [WORK] Problems",
+        "cards": [
+          {
+            "title": "A room that's ready for a new colour",
+            "brief": "A situation card, not a fault: the household wants a change (a colour on the walls, paper in the hall, the woodwork back to white, a kitchen that feels new without new units). What decides it: what is on the surfaces now (filled holes, old gloss, a wall papered twice, a textured ceiling, fresh plaster), because that sets the preparation and how the finish reads when the light comes across it. What the work gives them, in plain words from the trade facts stages: the surface cleaned, made good, sanded and sealed where it is bare or stained, then the finish coats, then the colour. On a Painter page the card reads as the interior refresh, the wallpaper or the units; on a Painter and Decorator page as the plain wall the owner wants to carry a painted effect or a mural, and the sound, primed base it needs first. Light and surfaces, never trends; never a lifestyle pitch, never a fault invented for it.",
+            "mechanism": "what is on the surface now, which sets the preparation"
+          },
+          {
+            "title": "Paint lifting off sills, frames and doors",
+            "brief": "Problem led: paint flaking from sills, window frames, doors and fascias, bare wood showing through, a sill that gives under a thumb, putty falling out (the trade facts signs rows for exterior painting, woodwork and sash windows). The one cause this card makes: the paint film opened by the weather on the sunny, rain facing sides of the house, so water gets under it and the timber starts to take it in. Say what the fix usually involves from the stages: the loose paint off back to a firm edge, soft wood repaired, bare areas primed, undercoat and finish, in dry weather, because damp timber holds moisture under new paint. Exterior copy spends its words on the timber, not the walls. On older paintwork the layers are assessed before they are stripped, as the normal first step, never a claim about the reader's house. Never that another coat will cure it; not the walls (card 3 owns them).",
+            "mechanism": "the paint film opened by the weather, letting water under it"
+          },
+          {
+            "title": "Walls where paint blisters, flakes or stains come back",
+            "brief": "Problem led: inside, a mark on a ceiling back within weeks of being painted over, paint coming off in sheets, a patch that reads darker or duller than the rest; outside, masonry paint blistering, green growth back within a season, white salts showing through (the trade facts signs and done badly rows). The one cause this card makes: paint put onto a surface it could not hold to, or that was still carrying moisture or a stain (dust, loose old paint, an unsealed repair, a damp wall). More paint over the same fault fails the same way, in the brief's own words. Say what the fix usually involves from the stages: the cause of any damp found and dealt with first, the loose material off, the stain sealed with a primer that stops it, repairs sealed so they do not drink the paint, then the finish; an old solid wall given a finish that lets it breathe where the facts row has it. Never a promise the stain or the growth will not return where the cause is still live. Not timber (card 2 owns it).",
+            "mechanism": "paint put onto dust, loose paint, damp or a stain it could not hold to"
+          },
+          {
+            "title": "Units, doors and stairs you want kept, not replaced",
+            "brief": "A situation card: the kitchen carcasses are sound and the room works as it is, the doors, the staircase or a wardrobe just look tired, chipped at the handles or gone yellow. What decides it: the finish that is on them now (old gloss, lacquer, grease by the handles, worn varnish), which a new coat will not hold to unless it is cleaned, rubbed back to a key and primed with a primer that grips, from the trade facts furniture and woodwork stages (degrease, take off the loose finish and dull the shiny one, repair, primer, finish coats, left to dry before the doors go back on). What the work gives them: the piece kept and the finish renewed, by brush or sprayed; spray and brush are two methods, not a ranking (the trade facts). On a Painter and Decorator page the same, or a painted effect on a piece. White gloss gone yellow is the old solvent based finish ageing, most away from daylight (the trade facts), never a fault in the house. No claim about how long a painted kitchen lasts.",
+            "mechanism": "a shiny or greasy finish that new paint will not grip without a key"
+          }
+        ]
+      },
+      "cost": {
+        "h2": "What Affects the Cost of [WORK] in [CITY]",
+        "cards": [
+          {
+            "title": "How many rooms and how much wall",
+            "brief": "The number of rooms, the ceiling heights, a stairwell, the outside of a house against one wall: more surface is more preparation, more paint and more days. Say it plainly and give no figure."
+          },
+          {
+            "title": "The state of the surfaces",
+            "brief": "Filling and sanding, old paper to strip, flaking paint to take back, a stain to seal, loose plaster, growth or failed render outside: the preparation is most of the job and moves the price most (the trade facts price rows). Say the business looks before it prices, from [CV: quote_method] only."
+          },
+          {
+            "title": "Woodwork, high ceilings and getting up to it",
+            "brief": "Doors, skirting, spindles, sash windows and coving take longer than flat wall; a tall stairwell or an outside wall needs a tower or scaffold, and an occupied building needs the work phased round the people in it (the trade facts price rows). Say why they add time; access only from the client values, never a scaffold promised."
+          },
+          {
+            "title": "Colour changes, coats and the finish you choose",
+            "brief": "A big change of colour takes more coats than a freshen up in the same shade (the trade facts coat count row); a durable or washable finish against a plain matt, water based against solvent based, brush against spray, a patterned paper to match against a plain one. Name a finish only if the trade facts or [CV: materials_methods] give it; a product only from [CV: materials_methods]. Code adds the price line from [CV: price_list] when there is one."
+          }
+        ]
+      },
+      "faq_slots": [
+        {
+          "slot": "cost",
+          "question": "How much does [WORK_LOWER] cost in [CITY]?",
+          "answer_brief": "Prices only from [CV: price_list]; otherwise the three things that move the price for this kind of work (the state of the surfaces and the preparation they need, how much wall and woodwork there is, the coats a change of colour takes) and how the quote is given, from [CV: quote_method] only.",
+          "doubt": "Price"
+        },
+        {
+          "slot": "cover",
+          "when": "guarantee",
+          "question": "Do you guarantee your [WORK_LOWER] work?",
+          "answer_brief": "Start with yes, then the terms from [CV: guarantee_years] and [CV: guarantee_scope]. Described, never promised.",
+          "doubt": "Trust"
+        },
+        {
+          "slot": "cover",
+          "when": "insurance",
+          "question": "Are you insured for [WORK_LOWER] work?",
+          "answer_brief": "The cover figure from [CV: insurance_cover] and what the cover is for. Never what it pays or who it covers.",
+          "doubt": "Trust"
+        },
+        {
+          "slot": "cover",
+          "question": "What happens if something isn't right after the job?",
+          "answer_brief": "Open with what the customer does: tell us and we look at it. Then the reasonable care and skill standard every trade works to. No promise to come back free. Never invent a guarantee.",
+          "doubt": "Trust"
+        },
+        {
+          "slot": "scope",
+          "question": "What does your [WORK_LOWER] work include?",
+          "answer_brief": "The jobs themselves, named from the card list (walls and ceilings, the woodwork, paper, the outside of the house, the units), and the size of job taken on, from the services list and [CV: typical_jobs] only. Link one service page. Never 'on this page', 'listed above' or 'the card list' as words: the reader sees no list, so name the work.",
+          "doubt": "Fit"
+        },
+        {
+          "slot": "process",
+          "question": "What happens when I ask for a quote?",
+          "answer_brief": "From [CV: quote_method] and the confirmed practices only: what the customer sends, what the business looks at (the surfaces and what they need before paint), what comes back. The quote setting out the surfaces, the preparation, the coats and what is left out (the trade facts quote scope row) only where written_quote or itemised_quote is confirmed. No timescale unless [CV: response_time] is set.",
+          "doubt": "Process"
+        },
+        {
+          "slot": "timing",
+          "question": "When is the best time of year for [WORK_LOWER] work?",
+          "answer_brief": "Inside, any time of year, with the reason the drying slows in a cold, damp room with no air moving (the trade facts timing cells). Outside, a dry, settled spell, and why from the paint's side: damp timber and masonry hold moisture under a new film, cold slows the drying and the hardening, dew settling late in the day spoils the finish, and rain, fog or heavy air stop the work whatever the thermometer says; the limits are the chosen paint's own, not a season, so winter work outside depends on the paint and the week's weather (the trade facts exterior temperature and weather rows). No temperature, no month, nothing about spring being busy or booking ahead, no promise about the weather.",
+          "doubt": "Timing"
+        }
+      ],
+      "faq_symptom": {
+        "frame": "[SYMPTOM]: why does it happen, and what can be done?",
+        "answer_brief": "The symptom and its linked local issue, answered as asked. Then the usual cause under the paint in plain words (moisture behind it, a surface it could not grip, a stain never sealed, a joint that moves, old layers coming away), what the local housing adds (sash windows and older paint layers, pebbledash and render, textured ceilings, fresh plaster on a new estate) and what the business does about it. Lead or asbestos only as something older homes can have, with testing as the normal step, never as a claim about the reader's street or house, and never as removal instructions. One figure at most.",
+        "doubt": "Process"
+      }
+    }
+  },
+
+  "service_page_blocks": {
+    "A": {
+      "included": {
+        "h2": "What's Included in Our [SERVICE]",
+        "items": [
+          {
+            "title": "Looking at what's on the surface now",
+            "brief": "The survey stage from the trade facts: the existing paint or paper, damp, stains, cracks, loose material, and on older paintwork or a textured ceiling the layers that have to be assessed before they are disturbed. A part of the job, not a promise about the quote."
+          },
+          {
+            "title": "Covering floors, furniture and fittings",
+            "brief": "The protection stage from the trade facts: floors, furniture, fittings and the surfaces next to the work covered or masked. What this business moves or covers only from the confirmed practices (property_protected); otherwise the stage as the trade does it."
+          },
+          {
+            "title": "Stripping, washing and making good",
+            "brief": "The preparation stages from the trade facts: old paper or loose paint off, the surface washed down, holes and cracks filled, render or timber repaired, the cause of any damp dealt with first. Name only what the rows give for this service."
+          },
+          {
+            "title": "Sanding and dusting off",
+            "brief": "The sanding stage from the trade facts: filled areas rubbed flat, shiny finishes dulled to a key, the dust taken off before anything goes on. On older paintwork never dry sanded or burned off until the layers are assessed (the trade facts), said as the normal method."
+          },
+          {
+            "title": "Priming and sealing bare or stained areas",
+            "brief": "The priming stage from the trade facts: bare timber, bare plaster, filled patches and stains primed or sealed so they take the finish evenly; a wall sized or lined before paper where the row has it. A named product only from [CV: materials_methods]; the thinned first coat on new plaster only where the paint's instructions call for it."
+          },
+          {
+            "title": "The finish coats",
+            "brief": "The central stage from the trade facts: the walls and ceilings cut in and rolled or brushed, the paper hung to a plumb line and the pattern matched, the woodwork undercoated and finished, or the surface sprayed, as the trade names it for this service. The number of coats from the paint's own instructions, never a universal number; more for a big change of colour."
+          },
+          {
+            "title": "Checking the finish and clearing up",
+            "brief": "The last stages from the trade facts: the finish inspected and touched up, masking off, paste cleaned away, doors and handles back on once the paint has dried. Left tidy each day only from tidy_each_day; the waste taken away only from waste_removal; otherwise say it is cleared as agreed."
+          }
+        ],
+        "note": "Fallback only: the tick items are the service's own Table A stages when the pack gives 6 or more; this set is used when it gives fewer (F-ITEMS-GENERIC)."
+      },
+      "problems": {
+        "h2": "Signs You Need [SERVICE]",
+        "cards": [
+          {
+            "title": "The first signs",
+            "brief": "The things a homeowner notices first, from the trade facts signs row for this service, in their words: the gloss peeling, hairline cracks, putty falling out, a sash that sticks, a crack that has come back, a chip in a coating on steel. The one cause this card makes: the job left undone. Then what it leads to if left, from the skipped row: specific, never alarming. On a schedule led page (exterior repainting on a cycle, commercial decorating between tenancies, fire protection coatings) the card is what slips and when: the film on the sunny sides dulls, then cracks, then lets water in and the timber greys; corridor walls scuffed through to the plaster before the next cycle; a coating chipped back to bare steel, so it is no longer what was tested; with the reason in the sun, the rain, the traffic or the steel, never in the customer's diary.",
+            "mechanism": "the job left undone"
+          },
+          {
+            "title": "Damp or a stain that keeps coming back",
+            "brief": "Paint that has been redone and failed the same way: the mark back on the ceiling, blisters again on the same wall, mould back in the same corner, paint lifting again on the same stretch of render. The one cause this card makes: a source of water that is still live (a leak above, condensation, water getting in through cracked render or open joints) feeding the surface, so every new coat is painted onto a problem that has not stopped. Say what the job does first from the trade facts stages: the cause found and dealt with before any paint, the surface left to dry, loose material off, then sealed and finished; never a promise the mark or the mould stays away while the cause is live. Never a dig at the last decorator. On an Artex page: a damaged or dropping textured ceiling, with testing before anything is touched (the trade facts), never removal instructions.",
+            "mechanism": "a source of water that is still live, feeding the surface"
+          },
+          {
+            "title": "Bare wood, soft spots and open joints",
+            "brief": "Grey bare wood on a sill, a soft spot under a thumb, putty gone from the glass, a joint open at the corner of a frame, a fascia with no paint left on it (the trade facts signs rows). The one cause this card makes: timber taking in water once there is nothing left on it to keep the water out, so it swells, the joints open and the wood starts to decay. Say what the job does from the stages: decayed wood cut out and new pieced in rather than the whole window replaced, joints and putty made good, bare timber primed before any finish, the sashes painted so the paint never reaches the cords and the moving parts, and new putty left to reach the state its maker says can be painted. Older paintwork assessed before it is stripped and never burned off with a flame, as the normal method. On an interior page the card reads as the woodwork: white gloss gone yellow (the old solvent based finish ageing, most away from daylight), doors and skirting chipped through, varnish worn to the wood. Not the film opened by the weather: the category page owns that.",
+            "mechanism": "timber taking in water once nothing is left on it"
+          },
+          {
+            "title": "Past the point of touching up",
+            "brief": "A wall filled so often it is more filler than plaster, a ceiling crack that opens every winter, render cracked across rather than in one place, a textured ceiling patched with a mismatch, a kitchen door chipped through every layer: the signs from the trade facts that a touch up no longer holds. The one cause this card makes: a background that has broken down under the finish (loose or hollow plaster, filler in a joint that still moves, a coating with nothing sound to hold to). Say when touching up stops being worth it and what doing the job properly involves, from the stages: loose material off, the wall skimmed or the render repaired, left to dry, primed, then decorated. On a schedule led page: the point on a cycle where a wash down and a recoat no longer holds because what is under the finish is soft or loose, from the done badly row. Not a live source of water: card 2 owns that.",
+            "mechanism": "a background that has broken down under the finish"
+          }
+        ]
+      },
+      "cost": {
+        "h2": "What Affects the Cost of [SERVICE] in [CITY]",
+        "cards": [
+          {
+            "title": "How much there is to paint",
+            "brief": "The size factor from the trade facts price row: the rooms, the ceilings, the drops of paper, the number of doors, sashes or units, the length of steel. Say it plainly and give no figure."
+          },
+          {
+            "title": "What's on the surface now",
+            "brief": "What has to come off or be put right before the job starts, from the trade facts price row: failed paint, old paper, grease, loose plaster, a damp source, growth or cracked render outside, an older coating that needs testing. Say the business looks before it prices, from [CV: quote_method] only."
+          },
+          {
+            "title": "Getting to it",
+            "brief": "A tall stairwell, high ceilings, an outside wall that needs a tower or scaffold, a kitchen in use, an occupied building worked round its people, masking for spraying, from the trade facts price row. Say why they add time; never a scaffold or out of hours work promised unless the client values give it."
+          },
+          {
+            "title": "The finish you choose",
+            "brief": "The options from the trade facts price row and [CV: materials_methods], and why one costs more than another: a washable finish against a plain matt, a pattern to match against a plain paper, brush against spray, a big change of colour that takes more coats. A named product only from [CV: materials_methods]. Code adds the price line from [CV: price_list] when there is one."
+          }
+        ]
+      },
+      "faq_slots": [
+        {
+          "slot": "cost",
+          "question": "How much does [SERVICE_LOWER] cost in [CITY]?",
+          "answer_brief": "Prices only from [CV: price_list]; otherwise how the quote is given, from [CV: quote_method] only. The four cost cards above already give what moves the price: name one factor at most, never the list again.",
+          "doubt": "Price"
+        },
+        {
+          "slot": "timing",
+          "question": "How long does [SERVICE_LOWER] take?",
+          "answer_brief": "From the trade facts timing row only: the pack gives no standard duration for any decorating job, so give what decides it (the preparation the surfaces need, the coats and the drying between them, which follows the paint and the warmth and air in the room; outside, a dry spell) and no number unless [CV: typical_jobs] confirms one. Nothing about when the job can start unless [CV: start_time] is set. This is the one place the timing is written.",
+          "doubt": "Timing"
+        },
+        {
+          "slot": "cover",
+          "when": "guarantee",
+          "question": "Do you guarantee your [SERVICE_LOWER] work?",
+          "answer_brief": "Start with yes, then the terms from [CV: guarantee_years] and [CV: guarantee_scope]. Described, never promised.",
+          "doubt": "Trust"
+        },
+        {
+          "slot": "cover",
+          "when": "insurance",
+          "question": "Are you insured for [SERVICE_LOWER]?",
+          "answer_brief": "The cover figure from [CV: insurance_cover] and what the cover is for. Never what it pays or who it covers.",
+          "doubt": "Trust"
+        },
+        {
+          "slot": "cover",
+          "question": "What happens if something isn't right after the job?",
+          "answer_brief": "Open with what the customer does: tell us and we look at it. Then the reasonable care and skill standard every trade works to. No promise to come back free. Never invent a guarantee.",
+          "doubt": "Trust"
+        },
+        {
+          "slot": "rules",
+          "question": "Do I need permission for [SERVICE_LOWER]?",
+          "answer_brief": "From the trade facts rule rows only, put as the thing that usually applies, with \"usually\" or \"in most cases\": decorating inside a home needs none; repainting the outside in its colour usually needs no application; a listed home, or a conservation area with a local restriction, can bring consent in for a change of colour, for painting brick or stone never painted before, or for taking off old plaster; a textured ceiling is tested, or treated as if it holds asbestos, before it is disturbed, as the way the work is done, not as homework for the reader; a fire protection coating is applied to the building's own fire specification, held by whoever is responsible for the building. What the customer does only where the row says so; whether the business handles it only from [CV: handles_planning]. Never a standard's number, an Act's name or legal advice. Where the rows give no rule, say no permission is usually needed for this work at a home and leave it there.",
+          "doubt": "Process"
+        },
+        {
+          "slot": "scope",
+          "question": "What does your [SERVICE_LOWER] service include?",
+          "answer_brief": "The What's Included items said as a sentence, in other words: the surfaces looked at, covered, prepared, primed and finished, named as the work itself. What it does not cover only from the services list, with one sibling service page or the category page linked.",
+          "doubt": "Fit"
+        }
+      ],
+      "faq_symptom": {
+        "frame": "[SYMPTOM]: why does it happen, and what can be done?",
+        "answer_brief": "The symptom and its linked local issue, answered as asked. Then the usual cause under the paint in plain words (moisture behind it, a surface it could not grip, a stain never sealed, a joint that moves, old layers coming away), what the local housing adds (sash windows and older paint layers, pebbledash and render, textured ceilings, fresh plaster) and what this service does about it. Lead or asbestos only as something older homes can have, with testing as the normal step, never a claim about the reader's house and never removal instructions. One figure at most.",
+        "doubt": "Process"
+      },
+      "desire": {
+        "problems": {
+          "h2": "Is [SERVICE] Right for Your Home?",
+          "cards": [
+            {
+              "title": "The room you want changed, not rebuilt",
+              "brief": "The customer's situation: they want the room, the hall, the kitchen or a piece of furniture to look different, and the bones are fine (the plaster sound, the carcasses solid, the layout as they want it). What decides it: the surface as it is now (fresh plaster, old paper, a shiny finish, a textured ceiling, a wall with a history of filler), which sets what has to happen first and whether the result will hold. What the work gives them, from the trade facts stages for this service: on an interior painting page the colour on walls and woodwork; on a wallpapering page a papered wall or a whole hall, lined first where the wall is uneven; on a furniture and kitchen page the units kept and the doors repainted; on a spray painting page units and doors given a smooth sprayed finish where the room can be masked and aired; on a coving page a clean line where wall meets ceiling; on a decorative finishes page a plain wall carrying a painted effect or a mural on a sound, primed base. Never a fault invented for it, never a lifestyle pitch: the surface and the room, not the dream.",
+              "mechanism": "the surface as it is now, which sets what has to happen first"
+            },
+            {
+              "title": "How it will look when the light comes across it",
+              "brief": "The customer's situation: they have seen patchy walls, seams that show, brush marks on doors and bubbles in paper in other houses, and want to know what stops that happening in theirs. What decides it: the preparation and the method, which they will never see once it is done: holes filled and rubbed flat, a repair sealed so it does not drink the paint, lining paper on a wall that is not flat, a key and a primer on a shiny door, a plumb line and a pattern match, the masking and the clean air that spraying needs, the adhesive set before a cove is decorated (the trade facts stages and done badly rows for this service). What the work gives them: a finish that holds up in daylight across the wall. One specific from the stages for this service; never a dig at another trade.",
+              "mechanism": "the preparation under the finish, which shows in low light"
+            },
+            {
+              "title": "Which way of doing it suits the room",
+              "brief": "The customer's situation: they are weighing two or three ways of doing it (paint against paper, a plain matt against a washable finish, water based against solvent based on the woodwork, hand painted against sprayed units, lining paper against a skim, one cove profile against another, a painted effect against a patterned paper). What decides it: the surface, how the room is used (a hall that gets knocked, a bathroom's steam, a kitchen's grease), the light and how it will be cleaned, from the trade facts materials and methods cell for this service. What the work gives them: the option that suits that room, never the one that is best in general; spray and brush are two methods, not a ranking (the trade facts). A named product only from [CV: materials_methods]. No claim about how long a finish lasts or what it costs unless the rows or the client values give it.",
+              "mechanism": "the room's use and light deciding the method"
+            },
+            {
+              "title": "What it will need from you afterwards",
+              "brief": "The customer's situation: they want to know what they are taking on once the job is done: when the room can be used, when the doors go back on the units, how long before a paintable paper can be painted, how the finish is cleaned, when a touch up will show. What decides it: the drying and the hardening, which follow the paint's own instructions and the warmth and air in the room rather than the clock (the trade facts: the adhesive dry before paper is painted, the doors back on only once the finish has dried, the cove adhesive set before it is decorated), and what the finish was chosen for. What the work gives them: an honest picture of what the new surface will put up with and what it will not. Aftercare advice as this business's own only when aftercare_advice is confirmed. No times, no promise about how it will look or last.",
+              "mechanism": "drying that follows the paint and the room, not the clock"
+            }
+          ]
+        }
+      }
+    }
+  },
+
+  "location_page_blocks": {
+    "A": {
+      "problems": {
+        "h2": "Common [WORK] Problems in [TOWN]",
+        "cards": [
+          {
+            "title": "Older houses with paint laid on paint",
+            "brief": "The town's housing era from the profile (Victorian and Edwardian terraces with timber sash windows and lime plaster, interwar semis with pebbledash or render, post war homes with textured ceilings). The one cause this card makes: layers of paint and coatings built up over the decades on the town's older timber, walls and ceilings. Tie the era to what it means for the work, never to a judgement on anyone's paintwork: old paint layers assessed before they are sanded or stripped, and never burned off with a flame; a textured ceiling tested, or treated as if it holds asbestos, before it is disturbed; an old solid wall given a finish that lets it breathe (the trade facts rows), said as the normal first step. Older homes can have lead in earlier layers and asbestos in older textured coatings: never that a street or a house does, never removal instructions. Not what is under one surface: the service pages own that.",
+            "mechanism": "layers of paint and coatings built up over the decades"
+          },
+          {
+            "title": "Outside walls and timber facing the weather",
+            "brief": "The town's exposure from the profile: coastal salt air, a hilltop that catches wind driven rain, fronts that face south or west, a valley that stays damp. The one cause this card makes: the weather the town's elevations face, which decides which sills, frames, doors and rendered fronts fail first and how long they stay wet. What it means for the work in plain words: the weather side needs more preparation and waits for a dry, settled spell, because damp timber and masonry hold moisture under new paint (the trade facts exterior rows); pebbledash and render that hold water blister paint sooner where their cracks are left. Never that the town's houses are peeling or overdue; never a temperature. Not the paint film opened by the weather as such: the category page owns that.",
+            "mechanism": "the weather the town's elevations face"
+          },
+          {
+            "title": "New builds and fresh plaster",
+            "brief": "The profile's new estates, extensions and loft conversions. The one cause this card makes: plaster still drying out in a new or newly extended home. What it means for the work: fresh plaster has to be properly dry before ordinary paint goes on, the first coat is a thinned one where the paint's instructions call for it, and the hairline cracks that open as a new house dries are filled after that coat, when they can be seen (the trade facts plaster rows); painting too soon traps the water and the paint flakes or blisters. No number of days or weeks, no promise about a developer's finish, never a judgement on the estate.",
+            "mechanism": "plaster still drying out in a new or newly extended home"
+          },
+          {
+            "title": "Shops, offices and lets turned round between tenants",
+            "brief": "The town's commercial mix from the profile: a high street, offices, lets and HMOs, a school or a surgery. The one cause this card makes: a building that has to stay in use while it is decorated, so the work is phased round the people, the trades and the opening hours in it (the trade facts commercial row). What it means for the work: access and sequence agreed before the first day, finishes chosen for how the walls will be cleaned, a landlord's rooms redecorated between tenancies; out of hours work as an arrangement for a job, never a given, and only from the client values. Written only where the services list has a Commercial decorating page; otherwise the card reads as the town's rented homes between tenants. Never fixed hours, never a fire rating or a class promised.",
+            "mechanism": "a building that has to stay in use while it is decorated"
+          }
+        ]
+      },
+      "cost": {
+        "h2": "What Affects the Cost of [WORK] in [TOWN]",
+        "cards": [
+          {
+            "title": "Tall stairwells, bay fronts and getting up to it",
+            "brief": "Where the town's houses are tall terraces with long stairwells, or fronts with bays and no room for a tower, the work needs more access and more time; parking for the van and somewhere for a scaffold matter on a tight street. Say why that adds time; the town profile says which streets are which. No figure, never a scaffold promised."
+          },
+          {
+            "title": "The age of the surfaces",
+            "brief": "Older paint layers, lime plaster, textured ceilings and sash windows take assessment, testing or slower methods before they can be touched, and more making good after. From the profile's housing era only, said as what the work meets and never as a judgement on the houses. No figure."
+          },
+          {
+            "title": "Conservation areas and listed homes",
+            "brief": "Where the town has conservation areas or listed buildings, a change of colour outside or a window repair can need checking with the council first, which adds time before the work can start. \"Usually\", never the order's, the area's or the Act's name. From the dossier rules only; whether the business handles it only from [CV: handles_planning]."
+          },
+          {
+            "title": "The weather side of the house",
+            "brief": "An exposed front or a seafront elevation needs more preparation and a settled spell to paint, so an outside job there takes longer than the same wall in a sheltered street. From the profile where it gives the exposure. A day moved by the weather and rebooked only from weather_delays_rebooked. No figure."
+          }
+        ]
+      },
+      "faq_slots": [
+        {
+          "slot": "cost",
+          "question": "How much does [WORK_LOWER] cost in [TOWN]?",
+          "answer_brief": "Prices only from [CV: price_list]; otherwise the things that push the price up in a town like this (the age of the surfaces, tall or awkward access, an exposed front) and how the quote is given, from [CV: quote_method] only.",
+          "doubt": "Price"
+        },
+        {
+          "slot": "town",
+          "when": "start_time",
+          "question": "How soon can you get to [TOWN]?",
+          "answer_brief": "From [CV: start_time] and [CV: response_time] only. The town is in the area covered; nothing about distance unless [CV: travel_distance] is set.",
+          "doubt": "Timing"
+        },
+        {
+          "slot": "town",
+          "question": "Do you cover [TOWN]?",
+          "answer_brief": "Yes: the town and the villages around it (code lists them; name none). How the business reaches it from its base only from the client values. Link one page in this town.",
+          "doubt": "Fit"
+        },
+        {
+          "slot": "cover",
+          "when": "guarantee",
+          "question": "Do you guarantee your work in [TOWN]?",
+          "answer_brief": "Start with yes, then the terms from [CV: guarantee_years] and [CV: guarantee_scope]. Described, never promised.",
+          "doubt": "Trust"
+        },
+        {
+          "slot": "cover",
+          "when": "insurance",
+          "question": "Are you insured?",
+          "answer_brief": "The cover figure from [CV: insurance_cover] and what the cover is for. Never what it pays or who it covers.",
+          "doubt": "Trust"
+        },
+        {
+          "slot": "cover",
+          "question": "What happens if something isn't right after the job?",
+          "answer_brief": "Open with what the customer does: tell us and we look at it. Then the reasonable care and skill standard every trade works to. No promise to come back free. Never invent a guarantee.",
+          "doubt": "Trust"
+        },
+        {
+          "slot": "process",
+          "question": "What happens when I ask for a quote in [TOWN]?",
+          "answer_brief": "From [CV: quote_method] and the confirmed practices only: what the customer sends, what the business looks at (the surfaces and what they need before paint), what comes back. Where the town's conservation areas or listed homes bring a check in for an outside colour change, say it is settled before the work, with \"usually\"; whether the business handles it only from [CV: handles_planning]. No timescale unless [CV: response_time] is set.",
+          "doubt": "Process"
+        },
+        {
+          "slot": "timing",
+          "question": "When is the best time of year for [WORK_LOWER] work?",
+          "answer_brief": "Inside, any time of year, with the reason the drying slows in a cold, damp room with no air moving. Outside, a dry, settled spell, and why from the paint's side: damp timber and masonry hold moisture under a new film, cold slows the drying, dew late in the day spoils the finish, and the limits are the chosen paint's own, not a season (the trade facts exterior rows). Where the town profile gives the exposure (a seafront, a hilltop, a damp valley), say what it does to that window. No temperature, no month, nothing about spring being busy or booking ahead, no promise about the weather.",
+          "doubt": "Timing"
+        }
+      ]
+    }
+  },
+  "do_not_reuse": []
+}

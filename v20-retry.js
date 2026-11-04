@@ -92,14 +92,18 @@ async function mapLimit(items, limit, fn) {
 }
 
 // callRetry({ message }) → { text, usage }. The caller adds the system blocks.
-async function runRetries({ record, V, callRetry, maxRetries = MAX_RETRIES, concurrency = CONCURRENCY }) {
+// validate (4 Nov 2026): the page type's validator (page-types/<type>.js validate). Without it the
+// homepage's validateV20 judged every page, so a category, service or location rule never drove
+// a retry and a rewrite that broke one was kept.
+async function runRetries({ record, V, callRetry, maxRetries = MAX_RETRIES, concurrency = CONCURRENCY, validate = null }) {
+  const check = validate || (rec => validateV20(rec, V));
   const log = [];
   const attempts = {};
   const history = {}; // every problem a field has had, so a later round doesn't bring one back
   const usage = { calls: 0, input_tokens: 0, output_tokens: 0, cache_read_input_tokens: 0 };
 
   for (let round = 1; round <= maxRetries; round++) {
-    const issues = validateV20(record, V);
+    const issues = check(record);
     const byField = new Map();
     for (const i of issues) {
       if (!i.retry || !i.ref) continue;
@@ -127,7 +131,7 @@ async function runRetries({ record, V, callRetry, maxRetries = MAX_RETRIES, conc
     });
 
     // Judge each rewrite against the page as it stood at the start of the round
-    const fieldScore = (rec, label) => score(validateV20(rec, V).filter(i => i.field === label));
+    const fieldScore = (rec, label) => score(check(rec).filter(i => i.field === label));
     for (const r of results) {
       const entry = { round, field: r.label, problems: r.problems, before: r.before, after: r.after, kept: false };
       if (r.error || !r.after) { entry.error = r.error || 'empty reply'; log.push(entry); continue; }
@@ -143,7 +147,7 @@ async function runRetries({ record, V, callRetry, maxRetries = MAX_RETRIES, conc
     }
   }
 
-  const finalIssues = validateV20(record, V);
+  const finalIssues = check(record);
   return { log, usage, finalIssues };
 }
 
@@ -154,7 +158,8 @@ async function runRetries({ record, V, callRetry, maxRetries = MAX_RETRIES, conc
 // the whole page again. What's left after maxRounds is for a person to accept.
 const normq = s => String(s || '').replace(/[‘’]/g, "'").replace(/[“”]/g, '"').replace(/\s+/g, ' ').trim().toLowerCase();
 
-async function runClaimRetries({ record, V, callRetry, review, maxRounds = 2, concurrency = CONCURRENCY }) {
+async function runClaimRetries({ record, V, callRetry, review, maxRounds = 2, concurrency = CONCURRENCY, validate = null }) {
+  const check = validate || (rec => validateV20(rec, V));
   const rounds = [];
   let claims = await review(record);
   const first = claims.findings.length;
@@ -168,11 +173,11 @@ async function runClaimRetries({ record, V, callRetry, review, maxRounds = 2, co
       byField.get(c.field).findings.push(c);
     }
     const base = clone(record);
-    const blocksIn = (rec, label) => validateV20(rec, V).filter(i => i.field === label && i.type === 'BLOCK').length;
+    const blocksIn = (rec, label) => check(rec).filter(i => i.field === label && i.type === 'BLOCK').length;
     const results = await mapLimit([...byField.values()], concurrency, async g => {
       const problems = [
         ...g.findings.map(c => `Unsupported claim: "${c.quote}". ${c.why} Remove it, or say only what the facts on file support.`),
-        ...validateV20(base, V).filter(i => i.field === g.f.label).map(i => i.message),
+        ...check(base).filter(i => i.field === g.f.label).map(i => i.message),
       ];
       try {
         const r = await callRetry({ message: buildRetryMessage(g.f, [...new Set(problems)], base, V.D) });
@@ -203,7 +208,8 @@ async function runClaimRetries({ record, V, callRetry, review, maxRounds = 2, co
 // problems, each quoting the page. Each round: rewrite every field a quote is in, keep a
 // rewrite only when its quotes are gone and the field has no more BLOCKs or FLAGs than
 // before, then review again. Returns the last review, which scores the page as it stands.
-async function runQualityRetries({ record, V, callRetry, review, maxRounds = 3, concurrency = CONCURRENCY }) {
+async function runQualityRetries({ record, V, callRetry, review, maxRounds = 3, concurrency = CONCURRENCY, validate = null }) {
+  const check = validate || (rec => validateV20(rec, V));
   const rounds = [];
   let rv = await review(record);
   for (let round = 1; round <= maxRounds && !rv.done; round++) {
@@ -225,7 +231,7 @@ async function runQualityRetries({ record, V, callRetry, review, maxRounds = 3, 
     }
     if (!byField.size) break;
     const base = clone(record);
-    const fieldIssues = (rec, label) => validateV20(rec, V).filter(i => i.field === label);
+    const fieldIssues = (rec, label) => check(rec).filter(i => i.field === label);
     const results = await mapLimit([...byField.values()], concurrency, async g => {
       const problems = [
         ...g.problems.map(p => `A reviewer flagged "${p.quote}": ${p.why} Rewrite it so the problem is gone.`),

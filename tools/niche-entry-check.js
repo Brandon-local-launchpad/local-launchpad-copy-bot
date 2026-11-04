@@ -85,6 +85,20 @@ const config = fs.readdirSync(configDir).filter(f => f.endsWith('.json')).map(f 
 const libCats = config ? config.categories.map(c => lc(c.name)) : lib ? [...new Set(lib.rows.map(e => lc(e.gbp_category)).filter(c => c && c !== 'additional services'))] : [];
 if (config) ok(`Fillout tabs (${path.basename(config.niche || config.nicheKey)}): ${config.categories.map(c => c.name).join(', ')}`);
 const emergencyTargets = lib ? [...new Set(lib.rows.filter(e => e.emergency).map(e => e.target))] : [];
+const desireTargets = lib ? [...new Set(lib.rows.filter(e => e.desire_led).map(e => e.target))] : [];
+// The type keyed overrides (4 Nov 2026) and the niche's own banned phrases
+for (const [k, kind] of [['fears_by_type', 'array'], ['faq_slots_by_type', 'slots']]) {
+  if (n[k] === undefined) continue;
+  if (!n[k] || typeof n[k] !== 'object' || Array.isArray(n[k])) { fail(`${k} must be an object keyed by business type letter`); continue; }
+  for (const [t, v] of Object.entries(n[k])) {
+    if (!S.TYPES.includes(t)) fail(`${k}: "${t}" is not a business type`);
+    if (!Array.isArray(v)) { fail(`${k}.${t} must be an array`); continue; }
+    if (kind === 'array' && !v.every(isStr)) fail(`${k}.${t} must be an array of strings`);
+    if (kind === 'slots') for (const s of v) { if (!isStr(s.slot) || !isStr(s.question) || !isStr(s.answer_brief) || !isStr(s.doubt)) fail(`${k}.${t}: slot "${s.slot || s.question || '?'}" needs slot, question, answer_brief and doubt`); else if (!S.DOUBTS.includes(s.doubt)) fail(`${k}.${t}: slot "${s.slot}" doubt "${s.doubt}" is not one of ${S.DOUBTS.join(', ')}`); }
+  }
+}
+if (n.banned_phrases !== undefined && !(Array.isArray(n.banned_phrases) && n.banned_phrases.every(isStr))) fail('banned_phrases must be an array of strings');
+if (Array.isArray(n.banned_phrases) && Array.isArray(n.words_avoid)) { const both = n.banned_phrases.filter(p => n.words_avoid.map(lc).includes(lc(p))); if (both.length) warn(`in both banned_phrases and words_avoid (the ban wins; drop them from words_avoid): ${both.join(', ')}`); }
 if (lib) {
   const nouns = Object.keys(n.category_work_nouns || {});
   const missingNouns = libCats.filter(c => !nouns.includes(c));
@@ -137,6 +151,18 @@ for (const [section, gaps] of sections) {
       checkEntry(section, `${t}+emergency`, merged, gaps, { steps: false });
       if (!Array.isArray(entry.emergency.steps)) warn(`${section} type ${t}+emergency: no steps in the variant (the plain steps or steps_emergency are used)`);
     }
+    // The desire led variant (service pages, 4 Nov 2026): block 4 as "Is this right for you", situation cards
+    if (entry.desire) {
+      if (section !== 'service_page_blocks') warn(`${section} type ${t}: a desire variant is read on service pages only`);
+      checkEntry(section, `${t}+desire`, { ...entry, ...entry.desire }, gaps, { steps: false });
+      const h2 = lc((entry.desire.problems || {}).h2 || '');
+      if (/\bsigns?\b|symptom/.test(h2)) fail(`${section} type ${t}+desire: the block 4 H2 "${(entry.desire.problems || {}).h2}" reads as symptoms; a desire led page asks whether the work is right for the reader`);
+      for (const c of arr(entry.desire.problems && entry.desire.problems.cards)) if (/\bsymptom|\bsigns? (you|that|of)\b/i.test(`${c.title} ${c.brief}`)) warn(`${section} type ${t}+desire: card "${c.title}" talks of signs or symptoms; a desire led card is the customer's situation`);
+    }
+  }
+  if (section === 'service_page_blocks' && desireTargets.length) {
+    const dflt = all[n.business_type_default || 'A'];
+    if (dflt && !dflt.desire) warn(`${section}: the library flags ${desireTargets.length} desire led page(s) (${desireTargets.slice(0, 4).join(', ')}${desireTargets.length > 4 ? ', …' : ''}) but type ${n.business_type_default || 'A'} has no desire variant: those pages get "Signs you need it"`);
   }
   if (emergencyTargets.length && section !== 'location_page_blocks') {
     const dflt = all[n.business_type_default || 'A'];
@@ -165,7 +191,7 @@ try {
       else if (Array.isArray(v)) v.forEach((x, i) => walk(x, `${p}[${i}]`));
       else if (v && typeof v === 'object') for (const [k, x] of Object.entries(v)) walk(x, p ? `${p}.${k}` : k);
     };
-    walk({ faq_slots: n.faq_slots, steps: n.steps, steps_emergency: n.steps_emergency, step_2_no_visit: n.step_2_no_visit, fears: n.fears, category_page_blocks: n.category_page_blocks, service_page_blocks: n.service_page_blocks, location_page_blocks: n.location_page_blocks }, '');
+    walk({ faq_slots: n.faq_slots, faq_slots_by_type: n.faq_slots_by_type, steps: n.steps, steps_emergency: n.steps_emergency, step_2_no_visit: n.step_2_no_visit, fears: n.fears, fears_by_type: n.fears_by_type, category_page_blocks: n.category_page_blocks, service_page_blocks: n.service_page_blocks, location_page_blocks: n.location_page_blocks }, '');
     for (const h of hits) fail(`brief copies the pack (${packFile}): ${h}`);
     if (!hits.length) ok(`no brief shares a five word run with ${packFile}`);
   } else warn('no calibration pack found for this niche, so briefs were not checked against one');

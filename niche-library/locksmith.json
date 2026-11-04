@@ -1,0 +1,780 @@
+{
+  "_source": "niche-library/locksmith.json",
+
+  "trade": "Locksmith work",
+  "trade_lower": "locksmith work",
+  "trade_person": "locksmith",
+  "trade_person_plural": "locksmiths",
+  "customer_type": "homeowners, landlords and small businesses",
+  "unit_of_work": "jobs",
+  "emergency_niche": true,
+  "emergency_niche_note": "lockouts, snapped keys, failed locks and break ins: the layout switches on per page, from the library's emergency column (Emergency locksmith, Lockouts and gaining entry, Burglary repairs and boarding up), when the client confirms call outs; this marker is kept but nothing reads it",
+  "big_ticket": false,
+  "big_ticket_examples": [],
+  "schema_subtype": "Locksmith",
+
+  "words_use": ["door", "front door", "back door", "timber door", "uPVC door", "composite door", "key", "keys", "spare key", "lock", "cylinder", "handle", "latch", "deadlock", "nightlatch", "window lock", "locked out", "snapped key", "insurer", "policy", "landlord", "tenant", "home"],
+  "words_avoid": ["property", "premises", "dwelling", "egress", "ingress", "lock assembly", "lockcase", "strike plate", "door furniture", "security furniture", "security solutions", "access solutions", "locksmithing", "insurance approved", "non destructive", "licensed"],
+  "words_avoid_exceptions": {
+    "insurance approved": "allowed in the page name British Standard and insurance approved locks and in link text to it; in running text say the locks your policy asks for, never that a lock is insurance approved (Table E: insurers confer no such certification)",
+    "property": "allowed on a landlord or letting page where property is the landlord's own word for the let",
+    "non destructive": "allowed once on an emergency page as the trade's own name for entry that leaves no mark, written as how the work is approached and never as this business's promise",
+    "licensed": "allowed only in the sentence that says England has no government locksmith licence (Table E)"
+  },
+  "banned_phrases": ["pick the lock", "picking the lock", "lock picking", "picked open", "bump key", "lock bumping", "snap the lock", "snapping the cylinder", "how to snap", "drill it open", "police approved locksmith", "police approved", "police registered", "police vetted", "licensed locksmith", "fully licensed", "is your home at risk", "easy target", "sitting duck", "burglars are", "break ins are rising", "could be next", "burglary hotspot", "never damage your door", "no damage guaranteed", "damage free entry guaranteed", "guaranteed non destructive"],
+
+  "buttons": {
+    "primary_action": "Get My [QUOTE_FREE] Quote",
+    "meta_cta": "Get your [QUOTE_FREE_LOWER] quote today.",
+    "process_h2": "Your [QUOTE_FREE] Quote in 3 Simple Steps",
+    "final_h2": "Get a [QUOTE_FREE] Quote From a Local [CATEGORY] in [CITY]",
+    "final_h2_emergency": "Need a Locksmith in [CITY] Now? Call [CV: phone]",
+    "cta_band_line": "Tell us what's happened with your door or your keys and we'll get back to you within [CV: response_time].",
+    "cta_band_line_no_response": "Tell us what's happened with your door or your keys and we'll get back to you."
+  },
+
+  "business_type_default": "A",
+  "business_type_notes": "One GBP category, Locksmith, type A plus emergency (Locksmith Calibration Pack v1, section 2). The Fillout tabs Emergency Locksmith Service and Key Duplication Service fold into the Locksmith hub (locksmith-categories.csv); Security System Supplier is a tab whose pages (CCTV installation, Access control and door entry) are defined in electrician.csv and has no locksmith facts rows, so it takes the default type and the briefs keep to doors and locks. Urgent against planned is split by page, not by category: the library's emergency column (Emergency locksmith, Lockouts and gaining entry, Burglary repairs and boarding up) switches the emergency variant on when the client confirms call outs; Auto locksmith sits in the urgent group only when offered and is not flagged, so it reads the plain briefs. Inside the planned pages the pack's split is carried in the card briefs: problem led (symptom, cause in the mechanism, consequence) for Lock repairs and uPVC door and window lock repairs; situation led, which is the library's desire_led column, for Lock fitting and replacement, British Standard and insurance approved locks, Window locks, Smart locks, Master key systems, Safes and Key cutting. None of the work is a recurring round, so there is no type B. Not a seasonal trade (Table A: year round); the one weather fact, a uPVC door that binds in warm weather, sits in one card.",
+
+  "priority_services": [],
+  "core_services": {
+    "locksmith": ["lockouts and gaining entry", "lock fitting and replacement", "uPVC door and window lock repairs", "window locks", "British Standard and insurance approved locks"],
+    "emergency locksmith service": ["emergency locksmith", "lockouts and gaining entry", "burglary repairs and boarding up"],
+    "key duplication service": ["key cutting"],
+    "security system supplier": ["access control and door entry", "CCTV installation"]
+  },
+
+  "steps": [
+    {
+      "title": "Tell Us About the Door",
+      "brief": "How to get in touch and what is useful to send first: what the door is (timber, uPVC or composite), what the lock is doing or what they want (a change after moving in, a lock the policy asks for, a stiffening handle), a photo of the lock from inside and outside if they have one, how many doors or windows. No promise of a reply time unless [CV: response_time] is set. Never an instruction to take a lock or a handle apart."
+    },
+    {
+      "title": "We Look at the Lock and Price the Job",
+      "brief": "The visit and what gets looked at: the door and how it is built, the lock on it and whether it still works with the door open and shut, what the policy or the escape route needs (the Table A stages for lock fitting and the British Standard page). Follows [CV: quote_method]; only say the quote is written if quote_method says so. Never restates 'free' (FAQ 5 owns it). Never 'insurance approved' as a lock's status."
+    },
+    {
+      "title": "We Fit It and Hand Over the Keys",
+      "brief": "The date is agreed in advance, to suit the customer. What the customer gets at the end: the lock tested from both sides, every key tried, the keys handed over and, on a British Standard lock, its identification recorded for them (Table A). The old lock taken away only from the waste_removal practice. Never mention the price, the quote or changes to the plan (step 2 and Why choose us own them). Never restates the start time (FAQ 4 owns it)."
+    }
+  ],
+
+  "step_2_no_visit": {
+    "title": "We Price Your Job",
+    "brief": "Say a price is agreed before any work starts. Describe how the price is reached only from [CV: quote_method]; when quote_method is blank, name no method at all (no photos, call, video or visit). Only say the quote is written if quote_method says so. Never restates 'free' (FAQ 5 owns it)."
+  },
+
+  "steps_emergency": [
+    {
+      "title": "Call Us",
+      "brief": "What to say: where they are, what the door is (timber with a key lock, uPVC or composite with a handle), what has happened (shut on the latch with the keys inside, the key snapped, the lock will not turn, a break in), whether anyone is inside. What to have ready for when the locksmith arrives: something that shows they belong at that address, since the Table E lockout authority row has the trade asking (a licence with the address, other identification, a neighbour who can vouch; a business sends an authority letter). What to do meanwhile: leave the key and the door alone rather than force either, and keep clear of broken glass after a break in. Never a word on how the door will be opened. The number from [CV: phone]. No promise of a reply or an arrival time unless [CV: response_time] is set."
+    },
+    {
+      "title": "We Agree the Price on the Phone",
+      "brief": "The price settled before anyone drives out only from the price_agreed_before_work practice and [CV: quote_method]; any call out charge or out of hours rate only from [CV: quote_call_out_fee] and [CV: price_list], and never 'no call out charge' unless quote_call_out_fee says there is none (Table E: the claim misleads where a compulsory charge exists under any name). What the price covers and what would change it (a lock that has failed rather than a key left inside, parts needed: Table F lockouts) said as what is explained on the call. An arrival time only as the business gives it on the call; no window written here unless [CV: response_time] is set. 'Same day' only when [CV: same_day_available] is yes; round the clock cover only when [CV: emergency_callouts] or [CV: out_of_hours_available] gives it. Never restates 'free'."
+    },
+    {
+      "title": "We Get You In and Leave the Door Secure",
+      "brief": "What usually happens on arrival, from the Table A lockouts and emergency rows: the right to be there checked, the lock and the door looked at, the way in that leaves the least mark chosen where the lock allows it, with drilling the last option and a replacement lock after it; then whatever failed found and put right or replaced if authorised, the lock tested and the keys handed over. Written as how the work is approached, never as a promise the door comes to no harm (Table E: entry without damage is an option, not a guarantee). Nothing on how entry is made. Never promise a same visit replacement where a part is obsolete. Never mention the price."
+    }
+  ],
+  "cover_chain": ["guarantee", "manufacturer_warranty", "insurance"],
+
+  "fears": [
+    "a door or a lock wrecked getting them back in",
+    "a price that climbs once the van is on the drive",
+    "a national call centre dressed up as a local firm, and a stranger at the door with no way to check them",
+    "being sold a whole new lock, or the dearest one, when a smaller change would do"
+  ],
+  "fears_by_type": {},
+
+  "logo_tiers": {
+    "ratings": ["Google (needs review_count 5+)", "Checkatrade", "Trustpilot", "Which? Trusted Traders"],
+    "tier1": ["MLA Approved Company (Master Locksmiths Association)", "TrustMark", "Trading Standards Buy With Confidence"],
+    "tier2": ["UK Locksmiths Association", "Door and Hardware Federation (DHF)", "British Security Industry Association (BSIA)", "Glass and Glazing Federation (GGF)"],
+    "tier3": "chamber of commerce, local press features, local awards: Ray's call per client. Table D and Table E: a logo goes up only after Ray has checked the business on the current register; Secured by Design, Sold Secure, LPCB and Thatcham certify products, not locksmiths, so none is shown as this business's approval; there is no police register of locksmiths and no government licence; the Institute of Certified Locksmiths could not be verified (Table G) and is not shown"
+  },
+
+  "faq_fixed_doubts": {
+    "Q1_cost": "Price",
+    "Q6_areas": "Fit"
+  },
+
+  "faq_slots": [
+    {
+      "slot": "faq_2",
+      "question": "Are you insured?",
+      "answer_brief": "The cover figure and what it means for the customer if something is damaged during the job, with a plausible example that does not suggest carelessness (a door edge marked while a lock is let in, a frame chipped fitting a keep). Never what it pays or who it covers.",
+      "symptom_based": false,
+      "doubt": "Trust"
+    },
+    {
+      "slot": "faq_2_fallback",
+      "question": "What happens if something goes wrong?",
+      "answer_brief": "From [CV: complaints_process] only.",
+      "symptom_based": false,
+      "doubt": "Trust"
+    },
+    {
+      "slot": "faq_3",
+      "question": "Do you guarantee your work?",
+      "answer_brief": "Used only when a guarantee or manufacturer warranty is confirmed. Start with yes, then the terms. A maker's warranty on a lock, a cylinder, a smart lock or a safe only from [CV: manufacturer_warranty]. Described, never promised.",
+      "symptom_based": false,
+      "doubt": "Trust"
+    },
+    {
+      "slot": "faq_3_none",
+      "question": "What happens if something isn't right after the job?",
+      "answer_brief": "Used when nothing in cover_chain other than insurance is confirmed. Open with what the customer does: tell us what isn't right and we'll look at it. Then the 'reasonable care and skill' standard every trade works to (the Table C consumer rights row), as the standard the work is held to, never as a defence. No promise to come back or put it right for free. Never invent a guarantee.",
+      "symptom_based": false,
+      "doubt": "Trust"
+    },
+    {
+      "slot": "faq_4",
+      "question": "How soon can you start?",
+      "answer_brief": "From [CV: start_time] only, as given. Code adds \"bigger projects are booked further ahead\" only when that practice is confirmed. Lockouts and break ins handled differently only when [CV: same_day_available] or [CV: emergency_callouts] says so.",
+      "symptom_based": false,
+      "doubt": "Timing"
+    },
+    {
+      "slot": "faq_5_free",
+      "question": "Is the quote free and no obligation?",
+      "answer_brief": "From [QUOTE_FREE] and [CV: quote_method]. A call out to open a door is work, not a quote: say so only where [CV: quote_call_out_fee] separates the two, and never 'no call out charge' unless it says there is none (Table E).",
+      "symptom_based": false,
+      "doubt": "Price"
+    },
+    {
+      "slot": "faq_5_not_free",
+      "question": "How do your quotes work?",
+      "answer_brief": "From [CV: quote_method] only.",
+      "symptom_based": false,
+      "doubt": "Price"
+    },
+    {
+      "slot": "faq_A",
+      "question": "How long does a locksmith take?",
+      "answer_brief": "No standard duration exists (Table A: varies, no standard; Table G): give what decides it, in plain words, from the Table F rows: whether the door only needs opening or a part has failed, whether a like for like lock goes into the existing cut out or the door has to be prepared for a different one, how many doors or windows, and whether a part has to be ordered for an old mechanism. A figure only from [CV: typical_jobs]. Nothing about arrival times unless [CV: response_time] is set.",
+      "symptom_based": false,
+      "doubt": "Timing"
+    },
+    {
+      "slot": "faq_B",
+      "question": "Why will my uPVC door only lock if I lift the handle hard?",
+      "answer_brief": "Use the assigned symptom's meaning and its linked local issue. Say first that a door which locks when it is open but fights when it is shut is pointing at the door, not the key (Table E uPVC multipoint faults). Then three genuinely different causes in plain words from the Table B and Table E rows: the door has dropped on its hinges so the locking points no longer line up with their keeps; the gearbox hidden in the door edge has worn and will soon refuse to lift at all; the door has swollen tight in warm weather and is pressing the mechanism (Table E hot weather). Then what the local housing adds (the age of the estate's doors, from the dossier), then the fix: hinges and keeps adjusted first, the gearbox replaced only where it has failed, never a new cylinder as the cure (Table B done badly). Never how a lock is opened.",
+      "symptom_based": true,
+      "doubt": "Process"
+    },
+    {
+      "slot": "faq_C",
+      "question": "Do I need a whole new lock, or just a new cylinder?",
+      "answer_brief": "Honest first: on most uPVC and composite doors, and many timber ones, the part the key goes into comes out on its own (Table A lock fitting materials), so after a move, a loss or years of wear the smaller job is swapping that part and cutting fresh keys (Table F: like for like hardware in sound existing preparations costs less). Then when the whole lock is the job: a lock body or gearbox that has failed, a timber door with no lock to the standard the policy asks for, a door being brought up to what an insurer or an escape route needs (Table A British Standard stages; Table E door insurance). A cylinder that resists being forced where the Table E snapping row applies, said as what it resists and never how the attack works. Never a standard's number, never a brand.",
+      "symptom_based": false,
+      "is_fallback": true,
+      "doubt": "Process"
+    },
+    {
+      "slot": "faq_D",
+      "question": "Do locksmiths have to be licensed or vetted?",
+      "answer_brief": "The straight answer from the Table E licence row: England has no government licence for locksmiths, and there is no police register of approved locksmiths (Table E police approval: a police preferred mark belongs to a product). What does exist, from Table D, said generally: voluntary trade body schemes that vet and inspect a company and examine its locksmiths, and Trading Standards schemes that check a business. This business's own membership, vetting or checks only from the client values (the accreditation fields), named as they are recorded there and never implied; where nothing is recorded, close on how the customer can check who is at the door: the name on the van and the invoice matching the business they rang, and a price agreed before the visit only where the price_agreed_before_work practice is confirmed. Never 'licensed locksmith', never 'police approved'.",
+      "symptom_based": false,
+      "is_fallback": true,
+      "doubt": "Trust"
+    }
+  ],
+  "faq_slots_by_type": {},
+
+  "materials_tick_list": {
+    "Door locks": ["British Standard mortice deadlock", "British Standard sashlock", "nightlatch with keyless exit", "thumb turn cylinder (keyless exit)", "anti snap three star cylinder", "one star cylinder with two star handle", "multipoint gearbox replacement", "full multipoint mechanism replacement", "hinge and keep adjustment"],
+    "Windows": ["key operated window handles", "casement window locks", "sash window locks", "multipoint window locking", "keyless handles on escape windows"],
+    "Smart locks": ["retrofit smart lock keeping the key", "keypad smart lock", "smart lock with mechanical override", "app controlled lock"],
+    "Keys": ["keys cut to code", "keyed alike cylinders", "master keyed cylinders", "restricted keys with a security card"],
+    "Safes": ["burglary rated safe", "fire rated document safe", "key safe", "combination safe", "electronic safe lock", "safe bolted to the floor"],
+    "Emergency": ["boarding up", "temporary door and frame repair", "broken glass boarded"],
+    "Other": ["old locks and keys taken away", "identification checked before a door is opened", "every key tried before we leave"]
+  },
+
+  "service_terms": ["lock change", "lock changes", "lock replacement", "lock fitting", "lock repair", "lock repairs", "lockout", "lockouts", "gaining entry", "emergency locksmith", "boarding up", "burglary repairs", "cylinder change", "euro cylinder", "anti snap", "multipoint lock", "gearbox", "uPVC door repairs", "window locks", "smart lock", "smart locks", "master key", "master key system", "keyed alike", "key cutting", "key copying", "safe opening", "safes", "auto locksmith", "car keys", "key fob", "access control", "door entry", "CCTV", "British Standard locks", "insurance approved locks", "nightlatch", "mortice lock", "deadlock", "rekeying", "lock upgrades"],
+
+  "service_words_note": "Old path only (21 Oct 2026): this list applies when the homepage is written from the uploaded custom values CSVs. A client with a v3 page map names every service by its page title (the services library's UK name), and this list is not used. The first row whose text appears in the GBP name wins, so the specific rows (car key copying) sit before the general ones (key copying).",
+  "service_words": [
+    ["delivery", null], ["knife sharpening", null], ["technical support", null],
+    ["building lockouts", "lockouts and gaining entry"], ["car lockouts", "car lockouts"],
+    ["car digital and remote key reprogramming", "car key programming"], ["car key copying", "car keys"], ["new key fob creation", "key fobs"],
+    ["coded key copying", "key cutting"], ["building key copying", "key cutting"], ["magnetic key copying", "key cutting"],
+    ["multi-point key copying", "key cutting"], ["pantographic key copying", "key cutting"], ["tubular key copying", "key cutting"],
+    ["standard key copying", "key cutting"], ["key copying", "key cutting"], ["key cutting", "key cutting"],
+    ["door lock and bolt hardware repair", "lock repairs"], ["repair hardware", "lock repairs"], ["general repairs", "lock repairs"],
+    ["door lock and bolt hardware installation", "lock fitting"], ["general lock installation", "lock fitting"], ["lock rekeying", "lock changes"],
+    ["electronic lock installation", "smart locks"], ["smart lock", "smart locks"],
+    ["safe lock install", "safes"], ["safe opening", "safe opening"],
+    ["security door locks", "British Standard locks"], ["anti-snap", "anti snap locks"], ["lock upgrades", "lock upgrades"],
+    ["window locks", "window locks"], ["garage door locks", "garage door locks"],
+    ["security cameras", "CCTV"], ["access control", "access control and door entry"],
+    ["emergency locksmith", "emergency locksmith"], ["upvc door lock repairs", "uPVC door lock repairs"],
+    ["lock replacement", "lock replacement"], ["lock changes", "lock changes"], ["master key", "master key systems"],
+    ["burglary repairs", "burglary repairs"], ["installation", null]
+  ],
+
+  "general_service_words": ["locksmith", "locksmith services", "lock changes", "lock fitting", "emergency locksmith", "locked out"],
+  "problem_service_words": ["locked out", "lockout", "snapped key", "burglary repairs"],
+  "why_titles_alt": [
+    "Local Experience on Every Kind of Door",
+    "Covered If Something Goes Wrong"
+  ],
+
+  "category_work_nouns": {
+    "locksmith": "locksmith work",
+    "emergency locksmith service": "emergency locksmith work",
+    "key duplication service": "key cutting",
+    "security system supplier": "security systems"
+  },
+  "seasonal_trade": false,
+  "category_types": {},
+  "category_page_blocks": {
+    "A": {
+      "problems": {
+        "h2": "When to Call a Locksmith",
+        "cards": [
+          {
+            "title": "Your insurer has asked what locks are on the doors",
+            "brief": "A situation card, not a fault: a renewal form that asks about the locks, a new policy with a security condition, a claim turned down somewhere else that the customer has heard about. The one cause this card makes: a condition in the policy wording, not anything wrong with the door. Say what usually applies from the Table E door and window insurance rows only: each insurer sets its own conditions; some name the kind of lock they expect on the outside doors, fitted and used, and some ask for locks on ground floor opening windows; where the condition is not met a theft claim can be affected. Always 'check the policy wording': the policy decides, never this page. What the work gives them, from the Table A British Standard stages: the policy read, the marks on the existing locks checked, the right kind of lock chosen for the door and the escape route, fitted and its identification recorded. Proportionate: often the lock body or the cylinder, not the door. Never a standard's number or a kitemark's name on the page; the standard only as the Table C and Table E rows state it. Never 'insurance approved' as a lock's status (Table E). On a Security System Supplier page the card reads as an insurer or a landlord asking for door entry on a shared door; otherwise it reads as the Locksmith's.",
+            "mechanism": "a condition in the policy wording, not a fault in the door"
+          },
+          {
+            "title": "Moved in, and not sure who still has a key",
+            "brief": "A situation card: a completion day, a new tenancy, a lodger gone, a set of keys lost on a night out with nothing to say whose they were. The one cause this card makes: keys cut for the lock over the years that were never handed back, and still turn it. Say what the work usually involves in plain words from the Table A lock fitting and lock repairs rows: on a uPVC, composite or many a timber door the cylinder comes out and a new one goes in with new keys, so the old keys turn nothing; a whole new lock only where the lock body itself is worn or the policy wants a different kind (card 1 owns that). Say who the customer is, never a scare: nothing about burglars or risk. A landlord's change between tenancies reads as after a tenant has left, never as a way to keep one out while they still live there (Table E landlord lock changes; a tenant's change does not shut out another lawful occupier either: Table E tenant lock changes). Never how a key or a lock is defeated. On a Security System Supplier page the card reads as codes or fobs handed out over the years on a door entry system and never cancelled.",
+            "mechanism": "keys cut for the lock over the years that were never handed back"
+          },
+          {
+            "title": "A lock that's getting harder to use",
+            "brief": "Problem led, the early warning across the trade: a handle that needs more force each month, a key that has to be wiggled, a door that has to be lifted or pulled before it will lock, a latch that no longer catches (Table B lock repairs and uPVC rows, in the customer's words). The one cause this card makes: wear in the mechanism that shows as stiffness long before it fails. Why it matters without alarm, from the Table B skipped rows: the strain keeps loading the mechanism until it will not lock, or will not open, and that tends to happen with the door shut; a repair while it is only stiff is the smaller job. What the fix usually involves from Table A lock repairs: the cylinder, the lock body, the keep and the alignment looked at together, the worn part adjusted or replaced, the door tested from both sides; never a new cylinder alone as the cure for a worn gearbox (Table B done badly). Link the lock repairs or uPVC repairs page where LINKABLE PAGES has one. Not the dropped door, not the worn gearbox, not the worn key by name: the service pages own those causes. On a Security System Supplier page the card reads as a door release or a reader that works some days and not others, from the wiring or the door's alignment; otherwise as the Locksmith's.",
+            "mechanism": "wear in the mechanism that shows as stiffness long before it fails"
+          },
+          {
+            "title": "Keys for a let, a shop or a block",
+            "brief": "A situation card for the landlord and business reader (the pack's third reader): a let changing hands, a shop with staff who come and go, a block with one shared door and many flats, an office where nobody is sure how many keys are out. The one cause this card makes: too many keys in circulation and no record of who holds which (Table B master key systems: a missing master key, copies nobody can account for). What the work gives them, from the Table A master key and key cutting rows: the doors mapped and who needs to get through which, cylinders keyed to that plan, keys issued against a record, and where it suits a restricted key that is only cut through an authorised route with the card (Table E restricted keys: system specific, never a ban on copying every key). On a shared or commercial door the escape side comes first: an exit door has to open easily from inside, as the Table C fire safety and HMO rows state it, said in plain words and never with an Act's name. Records that name people bring duties for whoever runs the system (Table C data protection), said in one plain line. Never fear, never 'control who gets in' as a pitch: keys and access, plainly. On a Security System Supplier page the card reads as fobs and codes in place of keys, with the same record and the same escape rule.",
+            "mechanism": "too many keys in circulation and no record of who holds which"
+          }
+        ]
+      },
+      "cost": {
+        "h2": "What Affects the Cost of [WORK] in [CITY]",
+        "cards": [
+          {
+            "title": "The time of day you call",
+            "brief": "A call in the evening, at night or at the weekend costs more than one in working hours, as the Table F emergency and lockouts rows have it (out of hours attendance). Say it plainly and give no figure; a call out charge or an out of hours rate only from [CV: quote_call_out_fee] and [CV: price_list]; never 'no call out charge' unless quote_call_out_fee says there is none (Table E). Whether the business comes out at those hours only from [CV: emergency_callouts] and [CV: out_of_hours_available]."
+          },
+          {
+            "title": "The door and the lock on it",
+            "brief": "A timber door with one lock against a uPVC or composite door with several locking points, a lock that goes straight into the existing cut out against a door that has to be prepared for a different one, a mechanism still made against an obsolete one that has to be sourced (Table F lock fitting, uPVC repairs, lock repairs). Say why each adds time or parts; name a lock type only from the Table A materials cells or [CV: materials_methods]."
+          },
+          {
+            "title": "Whether anything has to be replaced",
+            "brief": "A door that only needs opening against a lock that has failed and has to come out; a worn part adjusted against a gearbox or lock body replaced; one damaged component against several (Table F lockouts, emergency, lock repairs). Say the business looks before it prices, from [CV: quote_method] only, and that what is found is priced as it is found, never as a surprise at the end; the extra_work_agreed_first practice only when confirmed."
+          },
+          {
+            "title": "How many doors, windows or keys",
+            "brief": "More doors, doors with different locks, several windows, more people and access levels on a key plan, more keys or fobs to issue (Table F lock fitting, British Standard, window locks, master key, smart locks). Say it plainly and give no figure. Code adds the price line from [CV: price_list] when there is one."
+          }
+        ]
+      },
+      "faq_slots": [
+        {
+          "slot": "cost",
+          "question": "How much does [WORK_LOWER] cost in [CITY]?",
+          "answer_brief": "Prices, any call out charge and any out of hours rate only from [CV: price_list] and [CV: quote_call_out_fee]; otherwise the three things that move the price for this kind of work (the time of day, the door and its lock, whether a part has to be replaced) and how the price is given, from [CV: quote_method] only. The price settled before the visit only from the price_agreed_before_work practice.",
+          "doubt": "Price"
+        },
+        {
+          "slot": "cover",
+          "when": "guarantee",
+          "question": "Do you guarantee your [WORK_LOWER]?",
+          "answer_brief": "Start with yes, then the terms from [CV: guarantee_years] and [CV: guarantee_scope]. A maker's warranty on a lock, a cylinder or a safe only from [CV: manufacturer_warranty]. Described, never promised.",
+          "doubt": "Trust"
+        },
+        {
+          "slot": "cover",
+          "when": "insurance",
+          "question": "Are you insured for [WORK_LOWER]?",
+          "answer_brief": "The cover figure from [CV: insurance_cover] and what the cover is for, with a plausible example that does not suggest carelessness (a door edge marked letting a lock in). Never what it pays or who it covers.",
+          "doubt": "Trust"
+        },
+        {
+          "slot": "cover",
+          "question": "What happens if something isn't right after the job?",
+          "answer_brief": "Open with what the customer does: tell us and we look at it. Then the reasonable care and skill standard every trade works to (Table C). No promise to come back free. Never invent a guarantee.",
+          "doubt": "Trust"
+        },
+        {
+          "slot": "scope",
+          "question": "What [WORK_LOWER] do you take on?",
+          "answer_brief": "The jobs themselves, named from the card list (opening doors, changing and fitting locks, uPVC door and window repairs, window locks, keys, safes, master key plans), and the size of job taken on, from the services list and [CV: typical_jobs] only. Link one service page. Never 'on this page', 'listed above' or 'the card list' as words: the reader sees no list, so name the work. Car keys and car lockouts only where the services list has the Auto locksmith page; landlord, shop and block work only where the services list has it.",
+          "doubt": "Fit"
+        },
+        {
+          "slot": "process",
+          "question": "What happens when I ask for a quote?",
+          "answer_brief": "From [CV: quote_method] and the confirmed practices only: what the customer sends (what the door is, a photo of the lock, how many doors), what the business looks at (the door, the lock, the policy or escape requirement: the Table A stages), what comes back. No timescale unless [CV: response_time] is set. Nothing about lockouts here: the emergency pages own them.",
+          "doubt": "Process"
+        },
+        {
+          "slot": "timing",
+          "question": "How long does [WORK_LOWER] take?",
+          "answer_brief": "No standard duration exists (Table A: varies; Table G): give what decides it in plain words from the Table F rows: a like for like lock in the existing cut out against a door prepared for a different one, a part on the van against one ordered for an old mechanism, how many doors or windows. A figure only from [CV: typical_jobs]. Nothing about when the job can start unless [CV: start_time] is set. Not a seasonal trade: say nothing about the time of year.",
+          "doubt": "Timing"
+        }
+      ],
+      "faq_symptom": {
+        "frame": "[SYMPTOM]: why does it happen, and what can be done?",
+        "answer_brief": "The symptom and its linked local issue, answered as asked. Put the cause in the mechanism, in plain words from the Table B and Table E rows (a door dropped so the locking points miss their keeps, a gearbox worn inside the door, a worn key or cylinder, a door swollen tight in warm weather, a latch out of line with its keep). Then what the local housing adds, said as the doors and locks the era was built with and may still have, never that they are weak or that the area is a target (the pack's section 3). Then what the business does about it: the proportionate fix from Table A (adjust before replacing, a cylinder before a lock), tested from both sides. Never how a lock is opened or attacked. One figure at most, and only one the facts rows state.",
+        "doubt": "Process"
+      },
+      "emergency": {
+        "problems": {
+          "h2": "When It Can't Wait",
+          "cards": [
+            {
+              "title": "Locked out, with the keys on the wrong side",
+              "brief": "The door swung shut on the latch with the keys on the table, keys lost on the way home, a phone running down on a doorstep after dark (Table B lockouts, in the customer's words). The one cause this card makes: a door that locked behind them and nothing in their hand to open it. Why it cannot wait: nobody is getting in, and a lock left jammed stays jammed (Table B skipped). What the customer does first: ring from where they are, have something that shows they belong at the address ready for when the locksmith arrives (Table E lockout authority: a licence with the address, other identification, a neighbour who can vouch), and leave the door alone rather than force it. What usually happens when they call, from the Table A lockouts stages: the right to enter checked, the lock and the door looked at, the way in that leaves the least mark chosen where the lock allows it, drilling only as the last option and a replacement lock after it, anything that failed found and the door tested before the locksmith leaves. Written as how the trade works, never as this business's promise that the door comes to no harm (Table E entry damage). Nothing on how entry is made. Never a response time, round the clock cover or a call out promise unless [CV: response_time], [CV: emergency_callouts] or [CV: out_of_hours_available] confirms it. On a Security System Supplier page the card reads as a door entry system that has locked everyone out of a block.",
+              "mechanism": "a door that locked behind you and nothing to open it with"
+            },
+            {
+              "title": "A key that's snapped, or a lock that won't turn",
+              "brief": "Half a key in the hand and half in the door, a key that turns and turns with the door staying shut, a uPVC handle that will not lift with the door closed (Table B emergency and lockouts rows: 'the key has snapped', 'the key turns but the door stays shut', 'the handle moves but nothing opens'). The one cause this card makes: a broken key or a mechanism that has failed in the locked position, so the door is stuck whichever way it is tried. Why it cannot wait: the door will not open or will not lock, and forcing it adds damage to the repair (Table B done badly). What the customer does first: stop turning or pulling at it, keep the broken piece if it came out, and say on the phone what kind of door and lock it is. What usually happens when they call, from the Table A emergency stages: the fault identified, the door opened, the failed part (a cylinder, a gearbox, a lock body) repaired or replaced if authorised, the lock tested and the keys handed over; entry alone is not the job, since a mechanism that has failed once fails again (Table B lockouts skipped). Never promise a part on the van for an obsolete mechanism (Table F). Nothing on how the key is removed or the door opened. On the Security System Supplier page the card reads as a door release that has failed shut.",
+              "mechanism": "a broken key or a mechanism failed in the locked position"
+            },
+            {
+              "title": "A door that won't shut after a break in",
+              "brief": "Glass gone from a panel, a lock forced, a frame split at the keep, a door that no longer closes, a hole where a lock was (Table B burglary repairs, in the customer's words). The one cause this card makes: a forced lock or a split frame with nothing left to hold the door shut. Why it cannot wait: an opening that will not close cannot be secured until it is boarded or repaired (Table B skipped). What the customer does first, from the Table E after a burglary row: the police report and the insurance claim are theirs to make, and the insurer will want the emergency repairs recorded and the receipts kept; keep clear of broken glass; the locksmith's part is making the opening secure and recording what was done, not the investigation and not the claim decision. What usually happens when they call, from the Table A stages: the opening checked as safe, the broken glass or gap boarded for now, the door and frame repaired where that can be done, the forced locks replaced, the work tested and written up; a cylinder alone where the frame is split leaves the door weak (Table B done badly), so the permanent repair may be a return visit (Table F). Never a crime figure, never 'they will be back', never the neighbourhood as unsafe. Whether the business deals with the insurer only from the client values.",
+              "mechanism": "a forced lock or a split frame with nothing left to hold the door"
+            },
+            {
+              "title": "Keys gone missing that still fit the door",
+              "brief": "A bag taken with the keys and a letter in it, a key ring lost with a fob that names the building, a tenant gone without handing keys back, a key lent and never returned (Table B lock fitting: 'I have lost control of who has keys'). The one cause this card makes: a key in someone else's hands that still turns the lock. Why it is a same day matter rather than a someday one, said once and plainly without fear: for as long as the old key fits, the lock is not doing its job. What the customer does first: nothing to the door; ring and say which doors the keys opened. From the Table A lock fitting and lock repairs rows: the cylinder is swapped and fresh keys cut, which leaves the missing set useless. A complete replacement only where the body is worn or the policy wants a different kind (Table F: like for like in the existing cut out is the smaller job). A landlord's change only after the tenant has lawfully left (Table E landlord lock changes), never as a way to shut one out. Never burglary statistics, never a neighbourhood described as a target. On a Security System Supplier page the card reads as a lost fob cancelled on the system.",
+              "mechanism": "a key in someone else's hands that still turns the lock"
+            }
+          ]
+        },
+        "steps": [
+          {
+            "title": "Call Us",
+            "brief": "What to say: where they are, what the door is (timber with a key lock, uPVC or composite with a handle), what has happened (shut on the latch, the key snapped, the lock will not turn, a break in), whether anyone is inside. What to have ready for the arrival: something showing they belong at the address, as the Table E lockout authority row has the trade asking (a licence with the address, other identification, a neighbour who can vouch; a business sends an authority letter). What to do meanwhile: leave the key and the door alone rather than force either; keep clear of broken glass. Nothing on how the door will be opened. The number from [CV: phone]. No promise of a reply or an arrival time unless [CV: response_time] is set."
+          },
+          {
+            "title": "We Agree the Price Before We Set Out",
+            "brief": "The price settled on the phone before anyone drives out only from the price_agreed_before_work practice and [CV: quote_method]; a call out charge or an out of hours rate only from [CV: quote_call_out_fee] and [CV: price_list], and never 'no call out charge' unless quote_call_out_fee says there is none (Table E). What would change the price (a lock that has failed rather than a key left inside, a part needed: Table F lockouts) said as what is explained on the call. An arrival time only as the business gives it on the call; no window written here unless [CV: response_time] is set. 'Same day' only when [CV: same_day_available] is yes. Never restates 'free'."
+          },
+          {
+            "title": "We Get You In and Make the Door Secure",
+            "brief": "What usually happens on arrival, from the Table A lockouts, emergency and burglary rows: the right to be there checked, the lock and the door looked at, the way in that leaves the least mark chosen where the lock allows it, drilling the last option with a replacement lock after it; whatever failed repaired or replaced if authorised, or the opening boarded and the broken locks replaced after a break in; the lock tested from both sides and the keys handed over. Written as how the work is approached, never as a promise the door comes to no harm (Table E entry damage). Nothing on how entry is made. Never promise a same visit replacement where a part is obsolete. Never mention the price."
+          }
+        ],
+        "faq_slots": [
+          {
+            "slot": "cost",
+            "question": "What does an emergency locksmith cost in [CITY]?",
+            "answer_brief": "Prices, any call out charge and any out of hours rate only from [CV: price_list] and [CV: quote_call_out_fee]; never 'no call out charge' unless quote_call_out_fee says there is none (Table E). Otherwise how the price is reached, from [CV: quote_method] only: what opening the door costs is settled on the phone, and a part that has to be replaced is priced once the lock has been seen (Table F lockouts: a failed lock rather than a misplaced key, replacement after drilling). The price agreed before anyone sets out only from the price_agreed_before_work practice.",
+            "doubt": "Price"
+          },
+          {
+            "slot": "cover",
+            "when": "insurance",
+            "question": "Are you insured for emergency locksmith work?",
+            "answer_brief": "The cover figure from [CV: insurance_cover] and what the cover is for, with a plausible example that does not suggest carelessness (a door edge marked while a lock is changed at night). Never what it pays or who it covers.",
+            "doubt": "Trust"
+          },
+          {
+            "slot": "cover",
+            "question": "Will you have to damage my door to get in?",
+            "answer_brief": "Honest, from Table A and Table E: the gentlest way in is tried first wherever the mechanism permits, drilling only when nothing else will do, with a new lock fitted afterwards. Some mechanisms cannot be opened any other way, so no promise is made. Who pays for any damage depends on what was agreed and the care taken, under the reasonable care and skill standard, never a universal rule (Table E). 'Without damage' as this business's own practice only from the client values. Nothing on how a door is opened. Never 'never damages your door'.",
+            "doubt": "Trust"
+          },
+          {
+            "slot": "scope",
+            "question": "Is this an emergency, or can it wait?",
+            "answer_brief": "What counts as urgent, from the card list and the Table B emergency, lockouts and burglary rows: locked out, a key snapped in the door, a lock that will not turn or a handle that will not lift with the door shut, a door that will not close after a break in, keys lost that still fit. What usually waits for a booked visit: a handle that is stiff but still locks, a key that catches, a lock change after a move, locks a policy asks for (Table B lock repairs, uPVC and lock fitting rows). Link one service page. Planned work is never dressed up as urgent.",
+            "doubt": "Fit"
+          },
+          {
+            "slot": "process",
+            "question": "What should I have ready before you arrive?",
+            "answer_brief": "From the Table E lockout authority row, said as what the trade asks rather than a law: something that shows they belong at the address (a licence with the address on it, other identification, a neighbour who can confirm who they are; a business sends a letter or an order), because a door is opened only for someone with the right to be behind it. Then what not to do: force the door, dig at a snapped key, or clear up after a break in before it has been photographed for the insurer (Table E after a burglary: record the emergency repairs and keep receipts). Never a word on how the door will be opened. Nothing about the insurer dealing with this business unless the client values give it.",
+            "doubt": "Process"
+          },
+          {
+            "slot": "timing",
+            "when": "start_time",
+            "question": "How quickly can you get to me?",
+            "answer_brief": "From [CV: response_time] and [CV: start_time] only, as given; a same day visit only when [CV: same_day_available] is yes. Never 'round the clock' or 'any time' unless [CV: emergency_callouts] or [CV: out_of_hours_available] gives it in those words.",
+            "doubt": "Timing"
+          },
+          {
+            "slot": "timing",
+            "question": "Do you come out at night or at the weekend?",
+            "answer_brief": "Only from [CV: emergency_callouts] and [CV: out_of_hours_available], as given; where neither is set, say what happens when they call during working hours and nothing more. An out of hours rate only from [CV: price_list]. Never a response time unless [CV: response_time] is set.",
+            "doubt": "Timing"
+          }
+        ]
+      }
+    }
+  },
+
+  "service_page_blocks": {
+    "A": {
+      "included": {
+        "h2": "What's Included in Our [SERVICE]",
+        "items": [
+          {
+            "title": "Looking at the door and the lock first",
+            "brief": "The first stage from the Table A row for this service: how the door is built, what lock is on it and whether it works with the door open and shut, who is asking and whether they have the right to (the authority check on an entry or a safe job). A part of the job, not a promise about the quote."
+          },
+          {
+            "title": "Checking what your policy and the escape route need",
+            "brief": "The requirement stage where the Table A row has one (lock fitting, British Standard locks, window locks, smart locks, master keys): the policy wording read, the marks on the existing lock checked, whether the door or window is an escape route and so has to open from inside without a key (Table C and Table E rows, with 'usually'; never an Act's or a standard's number). Said as a stage of the job, never as homework for the reader."
+          },
+          {
+            "title": "Choosing the right lock, key or safe for the job",
+            "brief": "The selection stage from the Table A row: the options a customer is offered, by their plain name from the materials cell (a mortice deadlock or sashlock, a nightlatch, a cylinder, a multipoint mechanism, key operated window handles, a smart lock that keeps a key, a burglary rated or a fire rated safe, keys cut from the original or to code). A named product or brand only from [CV: materials_methods]. The right one for the door, never the dearest."
+          },
+          {
+            "title": "Preparing the door and fitting it",
+            "brief": "The main stage from the Table A row: the fixing positions prepared or adapted, the lock, cylinder, handle, window lock or device fitted with its keep or striking plate, a safe installed or anchored as the row has it. Named as the trade names it; nothing on how any lock is got past."
+          },
+          {
+            "title": "Adjusting the hinges and the keeps",
+            "brief": "The alignment stage where the Table A row has one (lock repairs, uPVC door and window repairs, lock fitting): the hinges and keeps adjusted so the locking points meet without the door being lifted or pulled, since a lock fitted to a door that binds will bind again (Table B done badly)."
+          },
+          {
+            "title": "Testing it from both sides",
+            "brief": "The test stage every Table A row ends with: the lock worked from inside and outside with the door open and shut, every locking point checked, every key tried, the escape side tried where the row names it, a smart lock's backup way in tried as the maker gives it (Table E smart lock battery: model specific)."
+          },
+          {
+            "title": "Handing over the keys and the record",
+            "brief": "The hand over from the Table A row: the keys counted out, a British Standard lock's identification recorded for the customer, keys on a master plan issued against a record, a smart lock's administration passed over, a restricted key's issue noted. Only as the row for this service has it; nothing about records the business keeps unless the client values say so."
+          },
+          {
+            "title": "Taking the old lock away",
+            "brief": "The old lock, cylinder or keys taken away only from the waste_removal practice (Table C waste duty of care: carrier registration only if [CV: waste_carrier_registered] is yes); otherwise say the old parts are left with the customer or dealt with as agreed. Dust from drilling masonry kept down as the Table C row has it, said in one plain line where a safe or a frame is drilled."
+          }
+        ],
+        "note": "Fallback only: the tick items are the service's own Table A stages when the pack gives 6 or more; this set is used when it gives fewer (F-ITEMS-GENERIC)."
+      },
+      "problems": {
+        "h2": "Signs You Need [SERVICE]",
+        "cards": [
+          {
+            "title": "The door only locks if you lift or pull it",
+            "brief": "Problem led: the handle has to be heaved up, the door pulled towards you or lifted before the key will turn, and it locks easily with the door open (Table B uPVC: 'I have to pull the door to lock it', 'it locks when open but not when shut'). The one cause this card makes: a door that has dropped on its hinges, so the locking points miss their keeps. Say why it matters without alarm, from the Table B skipped row: every forced lock loads the mechanism a little more until it fails. What the fix usually involves from Table A uPVC repairs: the door checked open and closed, the hinges and keeps adjusted, every locking point checked, and only then any part replaced; a new cylinder cures nothing here (Table B done badly). Leads on uPVC door and window lock repairs and Lock repairs. On an urgent page when the emergency layout is off (the client has not confirmed call outs) the card reads as the door that will one day refuse to open, from the Table B row for that page. On the Auto locksmith page the card reads as a key that opens the door but will not start the car (Table B auto): the cut blade is not the whole key.",
+            "mechanism": "a door dropped on its hinges, so the locking points miss their keeps"
+          },
+          {
+            "title": "The handle won't lift, even with the door open",
+            "brief": "Problem led: the handle flops or jams, nothing happens when it is lifted, and it does the same with the door wide open (Table B uPVC: 'the handle won't lift'; Table E uPVC faults: a door that will not lock even open points at the gearbox). The one cause this card makes: the gearbox in the door edge has worn out. Why it matters, from the Table B skipped row: a failed gearbox can stop the door locking or opening, and it tends to go with the door shut. What the fix usually involves from Table A: the gearbox or the full mechanism replaced, the hinges and keeps checked at the same time so the new one is not loaded as the old one was (Table B done badly: adjusting only the keep leaves a failed gearbox); an obsolete mechanism may have to be sourced (Table F), said without a promise of a part on the day. Leads on uPVC door and window lock repairs. Never how the door is opened when it has already failed shut: the emergency pages own that.",
+            "mechanism": "a gearbox worn out in the edge of the door"
+          },
+          {
+            "title": "A key that's getting harder to turn",
+            "brief": "Problem led: a key that has to be jiggled, one that goes in but will not turn without a push, a spare that sticks where the original does not (Table B lock repairs: 'the key is hard to turn'; lock fitting: 'the key sticks'; key cutting: 'the spare sticks', 'a copied key won't turn'). The one cause this card makes: a worn key, or a cylinder worn to match it. Say what that means plainly: a key cut from a worn original carries the wear into the copy (Table B key cutting done badly), so a spare that sticks is often the original's fault, not the cutting. What the fix usually involves from Table A lock repairs and key cutting: the cylinder, the lock body and the alignment looked at, the worn cylinder replaced with new keys, or a key cut to code rather than copied from the worn one. Leads on Lock repairs and Key cutting; on the Auto locksmith page the card reads as a worn or broken blade (Table B auto). Never how a lock is picked or got past; never a brand.",
+            "mechanism": "a worn key, or a cylinder worn to match it"
+          },
+          {
+            "title": "A door that sticks when the weather warms up",
+            "brief": "Problem led, the one weather fact in this trade: a door that locked fine all winter and binds on the first warm week, a latch that no longer catches, a handle that has worked loose (Table B uPVC: 'the door sticks in hot weather'; Table B lock repairs: 'the latch doesn't catch', 'the handle is loose'; Table A uPVC timing: warm weather exposes alignment faults). The one cause this card makes: a door swollen tight in warm weather, pressing the mechanism against its keeps. Say first that a tight door in a heatwave is common and does not mean the lock has failed (Table E hot weather: the wrong version is that summer heat proves the cylinder has gone). What the fix usually involves from Table A: the hinges and keeps checked and adjusted as well as the mechanism, the loose handle refixed, the latch lined up with its keep. Leads on uPVC door and window lock repairs and Lock repairs. Not the dropped door (card 1) and not the gearbox (card 2).",
+            "mechanism": "a door swollen tight in warm weather, pressing the mechanism against its keeps"
+          }
+        ]
+      },
+      "cost": {
+        "h2": "What Affects the Cost of [SERVICE] in [CITY]",
+        "cards": [
+          {
+            "title": "Whether it's an adjustment, a part or the whole lock",
+            "brief": "An adjustment or one readily available component against a failed gearbox or lock body; a cylinder against a complete lock; a like for like lock in the existing cut out against a door prepared for a different kind (the Table F rows for lock repairs, uPVC repairs and lock fitting). Say it plainly and give no figure."
+          },
+          {
+            "title": "The door it's going on",
+            "brief": "A timber door with one lock against a uPVC or composite door with several locking points; a frame or keep that has to be altered; an obsolete mechanism that has to be sourced; a window high up that needs safe access (Table F lock fitting, British Standard, uPVC repairs, window locks). Say why each adds time or parts; a method only from the Table A materials cells or [CV: materials_methods]."
+          },
+          {
+            "title": "How many doors, windows or keys",
+            "brief": "More doors, doors with different locks, several windows, more people and access levels on a key plan, more credentials on a smart lock, more keys to cut (Table F lock fitting, British Standard, window locks, master key, smart locks, key cutting). Say it plainly and give no figure."
+          },
+          {
+            "title": "What the lock or the safe has to meet",
+            "brief": "A certified lock and its accessories against a standard one, a different escape function on each door, a restricted key that goes through an authorised route, a safe chosen for a burglary or a fire rating and anchored, a smart lock that needs the door's mechanism changed to suit (Table F British Standard, key cutting, safes, smart locks). Why one costs more than another in plain words; never a standard's number or a brand. Code adds the price line from [CV: price_list] when there is one."
+          }
+        ]
+      },
+      "faq_slots": [
+        {
+          "slot": "cost",
+          "question": "How much does [SERVICE_LOWER] cost in [CITY]?",
+          "answer_brief": "Prices only from [CV: price_list]; otherwise how the quote is given, from [CV: quote_method] only. The four cost cards above already give what moves the price: name one factor at most, never the list again. A call out charge only from [CV: quote_call_out_fee].",
+          "doubt": "Price"
+        },
+        {
+          "slot": "timing",
+          "question": "How long does [SERVICE_LOWER] take?",
+          "answer_brief": "From the trade facts timing row only, which gives no standard duration for any locksmith job (Table A: varies; Table G): so what decides it, from the Table F row for this service (a like for like lock against a new preparation, a part on the van against one ordered, how many doors or windows), in plain words. A figure only from [CV: typical_jobs]. Nothing about when the job can start unless [CV: start_time] is set. This is the one place the timing is written.",
+          "doubt": "Timing"
+        },
+        {
+          "slot": "cover",
+          "when": "guarantee",
+          "question": "Do you guarantee your [SERVICE_LOWER] work?",
+          "answer_brief": "Start with yes, then the terms from [CV: guarantee_years] and [CV: guarantee_scope]. A maker's warranty on the lock, the cylinder, the device or the safe only from [CV: manufacturer_warranty]. Described, never promised.",
+          "doubt": "Trust"
+        },
+        {
+          "slot": "cover",
+          "when": "insurance",
+          "question": "Are you insured for [SERVICE_LOWER]?",
+          "answer_brief": "The cover figure from [CV: insurance_cover] and what the cover is for, with a plausible example that does not suggest carelessness. Never what it pays or who it covers.",
+          "doubt": "Trust"
+        },
+        {
+          "slot": "cover",
+          "question": "What happens if something isn't right after the job?",
+          "answer_brief": "Open with what the customer does: tell us and we look at it. Then the reasonable care and skill standard every trade works to (Table C). No promise to come back free. Never invent a guarantee.",
+          "doubt": "Trust"
+        },
+        {
+          "slot": "rules",
+          "question": "Does [SERVICE_LOWER] have to meet a standard or my insurance?",
+          "answer_brief": "From the Table C and Table E rule rows for this service only, put as what usually applies, with 'usually' or 'in most cases': the policy sets the lock condition and each insurer's differs, so the policy wording is checked (Table E door and window insurance); an exit door is kept easy to open from inside, and on a shared or rented building the manager has duties about that (Table C fire safety and HMO rows, plain words); a listed home's old door furniture can need consent before it is changed (Table C listed buildings); a new lock on an existing door needs no building control sign off on its own (Table C Approved Document Q row). What the customer does only where the row says so. Never a standard's number, an Act's name, a kitemark's name or legal advice; the standard a lock is made to is named on the lock itself, not on the page. Where the rows give no rule, say no permission is usually needed for this work at a home and leave it there.",
+          "doubt": "Process"
+        },
+        {
+          "slot": "scope",
+          "question": "What does your [SERVICE_LOWER] service include?",
+          "answer_brief": "The What's Included items said as a sentence, in other words, naming the work itself (the door looked at, the lock chosen for it, fitted and adjusted, tested from both sides, the keys handed over). What it does not cover only from the services list, with one sibling service page or the category page linked. Never 'on this page' or 'listed above'.",
+          "doubt": "Fit"
+        }
+      ],
+      "faq_symptom": {
+        "frame": "[SYMPTOM]: why does it happen, and what can be done?",
+        "answer_brief": "The symptom and its linked local issue, answered as asked. Put the cause in the mechanism, in plain words from the Table B and Table E rows for this service. Then what the local housing adds, said as the doors and locks the era was built with and may still have, never that they are weak or that the area is a target. Then what this service does about it: the proportionate fix from Table A, tested from both sides. Never how a lock is opened or attacked. One figure at most, and only one the facts rows state.",
+        "doubt": "Process"
+      },
+      "desire": {
+        "problems": {
+          "h2": "Is [SERVICE] Right for You?",
+          "cards": [
+            {
+              "title": "Not sure who else has a key",
+              "brief": "The customer's situation: they have just completed on a house, a tenant or a lodger has moved out, a cleaner or a builder had a key for a while, a set went missing with nothing to say whose they were, or there is one key to the house and no spare. What decides it: the keys already cut for that lock over the years and who holds them, which nobody can know; and whether the cylinder comes out on its own (most uPVC, composite and many timber doors) or the lock is one piece (Table A lock fitting materials). What the work gives them, from the Table A stages for this service: on Lock fitting and replacement a new cylinder and new keys so the old keys turn nothing, the whole lock only where the body is worn or the policy wants a different kind; on Key cutting a spare cut from a sound original or to code before the only key is lost (Table B key cutting skipped); on Master key systems keys issued against a record so the question never comes up again. A landlord's change only after the tenant has lawfully left (Table E). Never a fault invented for it, never burglars or risk: who has a key, plainly.",
+              "mechanism": "the keys already cut for the lock, and who holds them"
+            },
+            {
+              "title": "Your policy names the locks it expects",
+              "brief": "The customer's situation: a renewal form that asks what locks are on the doors and windows, a new policy with a security condition, a mortgage lender or a letting agent asking the same. What decides it, from the Table E door and window insurance rows: the conditions in that insurer's own wording, which tend to specify the sort of lock an outside door carries and, with some policies, a lock on each opening window downstairs; whether the door is a timber door that takes a lock to that standard or a uPVC or composite door whose cylinder and handle are what the condition turns on (Table E snapping and TS rows, said as what the cylinder resists and never how); whether the door or window is an escape route, which decides keyless exit (Table A British Standard and window locks stages; Table C escape rows, with 'usually'). What the work gives them: the policy read, the marks on the existing locks checked, the right kind fitted and its identification recorded, so the condition is met and they can show it. Leads on British Standard and insurance approved locks and Window locks; on Smart locks the insurer's position on the whole door arrangement is asked for first, since a smart device alone settles nothing (Table E smart lock insurance). Always 'check the policy wording'. Never a standard's number, a kitemark's name or a brand; never 'insurance approved' as a status.",
+              "mechanism": "what the policy wording asks for on that door or window, and what the escape route allows"
+            },
+            {
+              "title": "Keys for more than one person, or more than one door",
+              "brief": "The customer's situation: a holiday let with guests every week, a carer or a cleaner who needs to get in while they are out, a family that keeps losing keys, a shop or an office with staff who change, a block or a site with doors that different people may and may not open. What decides it, from the Table A smart lock and master key rows: who needs to get through which door and when; what happens when a key, a code or a fob is lost (a code changed in a minute, a cylinder rekeyed, a fob cancelled); how the lock behaves when the battery goes, which differs by model (Table E smart lock battery) and is tried at hand over; whether a restricted key that is only cut with the card suits (Table E restricted keys); and the escape side on a shared or commercial door, which has to open easily from inside (Table C). What the work gives them: one key or one code per person that opens only what it should, a record of who holds what, and a way in that still works when the power or the network does not. Leads on Smart locks and Master key systems; on Key cutting as keyed alike cylinders so one key does every door. Records that name people bring duties for whoever runs the system (Table C data protection), one plain line. Never 'control who gets in' as a pitch; never a product or app name unless [CV: materials_methods] gives it.",
+              "mechanism": "who needs to get through which door, and what happens when a key or code is lost"
+            },
+            {
+              "title": "Which option suits your door and what's behind it",
+              "brief": "The customer's situation: they are weighing two or three ways of doing it (a deadlock against a nightlatch on a timber door, a thumb turn inside against a key both sides, key operated window handles against separate window locks, a smart lock that keeps the key against one that replaces it, a key copied from the original against one cut to code, a safe rated for burglary against one rated for paper in a fire, bolted down against freestanding). What decides it, from the Table A materials cell for this service and the Table E rows: the door or window itself and how it is built, whether it is an escape route, what the policy asks for, what is being kept in the safe and where it can be fixed down, and for a safe the insurer's agreement where the cover depends on the grade (Table C safes row; Table E: a burglary grade is not a fire rating and not a cash limit). What the work gives them: the option that suits that door, that window or that safe, never the one that is best in general or the dearest. A named product or brand only from [CV: materials_methods]. No claim about lifespan or cost unless the rows or the client values give it; never a grade, a star count or a standard's number on the page.",
+              "mechanism": "the door, the window or the safe deciding the option, never the dearest one"
+            }
+          ]
+        }
+      },
+      "emergency": {
+        "problems": {
+          "h2": "When [SERVICE] Can't Wait",
+          "cards": [
+            {
+              "title": "Getting back in without wrecking the door",
+              "brief": "The locked out customer's first fear, written as how good work goes rather than as a promise: a door that swung shut on its latch is a different problem from one somebody locked with a key, and which of the two it is decides how the locksmith goes about it and whether anything is left to show for it (Table A lockouts: identify the lock and the door's condition, assess entry without damage, drilling as the last resort followed by a replacement lock). The one cause this card makes: which lock is actually holding the door, the latch or the deadlock. What usually happens when they call: the right to enter checked (Table E lockout authority), the door looked at, the way in that leaves the least mark tried first where the lock allows it, and where a lock has to be drilled a new one fitted before the locksmith leaves. Some locks cannot be opened any other way, so no promise is made (Table E entry damage); 'without damage' as this business's practice only from the client values. Leads on Lockouts and gaining entry; Emergency locksmith reads it the same. Nothing on how entry is made, on any page. Never a response time or a call out promise unless [CV: response_time] or [CV: emergency_callouts] confirms it.",
+              "mechanism": "which lock is actually holding the door: the latch or the deadlock"
+            },
+            {
+              "title": "A lock that has failed with the door shut",
+              "brief": "The handle moves and nothing opens, the key turns and the door stays locked, a uPVC handle that will not lift with the door closed (Table B lockouts: 'the lock is jammed', 'the handle moves but nothing opens'; Table E uPVC faults: gearbox failure can prevent locking or opening). The one cause this card makes: a failed gearbox or lock body, so the door stays shut whatever the key does. Why it cannot wait: the door is out of use, and forcing it adds a frame repair to a lock repair. What usually happens when they call, from the Table A emergency stages: the door opened, the failed part identified and replaced if authorised, the lock tested from both sides, the keys handed over; getting in alone is not the job, since a mechanism that has failed once fails again (Table B lockouts skipped). An obsolete mechanism may need a part ordered, so the door is left secure in the meantime and a date agreed (Table F); never promise a part on the van. Leads on Emergency locksmith; Lockouts and gaining entry reads it the same. Nothing on how the door is opened.",
+              "mechanism": "a failed gearbox or lock body, so the door stays shut whatever the key does"
+            },
+            {
+              "title": "Boarded tonight, repaired properly after",
+              "brief": "Glass gone from a door or window, a frame split where the lock was forced, a door that will not close (Table B burglary repairs, in the customer's words). The one cause this card makes: an opening that cannot be secured until the glass, the frame or the lock is replaced. What usually happens when they call, from the Table A burglary stages: the opening checked as safe to work on, the gap or the glass boarded, the door and frame repaired where that can be done tonight, the forced locks replaced, the work tested and written up; where the frame or a whole door has to be replaced the boarding holds until the return visit (Table F: temporary security plus a permanent return visit). What the insurer will want, from the Table E after a burglary row: the emergency repairs recorded and the receipts kept; the locksmith secures and documents, the insurer decides the claim and the police the investigation, never the other way round. A cylinder alone with a split frame leaves the door weak (Table B done badly). Leads on Burglary repairs and boarding up. Never a crime figure, never the street as a target, never 'they come back'. Whether the business deals with the insurer only from the client values.",
+              "mechanism": "an opening that can't be secured until the glass, frame or lock is replaced"
+            },
+            {
+              "title": "Proving it's your door",
+              "brief": "The honest card about the one question every locksmith asks on a doorstep at night. The one cause this card makes: a door is opened only for someone with the right to be behind it. From the Table E lockout authority row, said as the trade's own practice and never as a law: a licence with the address on it, other identification, a neighbour who can confirm who they are, or an officer present; a business sends a letter or an order; for a car the keeper's document is one part of the check, not proof on its own (Table E V5C). Why the customer should be glad of it: the same check is what stops a stranger having their door opened. Then the two cases the trade says no to, in plain words and without an Act's name: a landlord asking for a lock change to keep out a tenant who still lives there (Table E landlord lock changes), and a door forced on an enforcement job without the proper authority behind it (Table C enforcement row). Leads on Lockouts and gaining entry and Emergency locksmith; on Burglary repairs the card reads as whose home it is and who instructs the repair (the tenant or the landlord, from the client values where the business has a rule). Never a document list as a legal requirement (Table G). Never 'police approved'.",
+              "mechanism": "a door opened only for someone with the right to be behind it"
+            }
+          ]
+        },
+        "steps": [
+          {
+            "title": "Call Us",
+            "brief": "What to say: where they are, what the door is (timber with a key lock, uPVC or composite with a handle), what has happened (shut on the latch, the key snapped, the lock will not turn, a break in), whether anyone is inside. What to have ready for the arrival: something showing they belong at the address, as the Table E lockout authority row has the trade asking (a licence with the address, other identification, a neighbour who can vouch; a business sends an authority letter). What to do meanwhile: leave the key and the door alone rather than force either; keep clear of broken glass. Nothing on how the door will be opened. The number from [CV: phone]. No promise of a reply or an arrival time unless [CV: response_time] is set."
+          },
+          {
+            "title": "We Agree the Price Before We Set Out",
+            "brief": "The price settled on the phone before anyone drives out only from the price_agreed_before_work practice and [CV: quote_method]; a call out charge or an out of hours rate only from [CV: quote_call_out_fee] and [CV: price_list], and never 'no call out charge' unless quote_call_out_fee says there is none (Table E). What would change the price (a lock that has failed rather than a key left inside, a part needed, boarding plus a return visit: Table F) said as what is explained on the call. An arrival time only as the business gives it on the call; no window written here unless [CV: response_time] is set. 'Same day' only when [CV: same_day_available] is yes. Never restates 'free'."
+          },
+          {
+            "title": "We Get You In, or Make the Opening Secure",
+            "brief": "What usually happens on arrival, from the Table A row for this page: the right to be there checked, the lock and the door looked at, the way in that leaves the least mark chosen where the lock allows it with drilling the last option and a replacement lock after it; the failed part repaired or replaced if authorised; after a break in the opening boarded, the frame repaired where it can be and the forced locks replaced; the lock tested from both sides and the keys handed over. Written as how the work is approached, never as a promise the door comes to no harm (Table E entry damage). Nothing on how entry is made. Never promise a same visit replacement where a part is obsolete or a door has to be made. Never mention the price."
+          }
+        ],
+        "faq_slots": [
+          {
+            "slot": "cost",
+            "question": "What does an emergency [SERVICE_LOWER] call out cost in [CITY]?",
+            "answer_brief": "Prices, any call out charge and any out of hours rate only from [CV: price_list] and [CV: quote_call_out_fee]; never 'no call out charge' unless quote_call_out_fee says there is none (Table E). Otherwise how the price is reached, from [CV: quote_method] only: what the visit costs is settled on the phone, and a part that has to be replaced, or boarding with a return visit, is priced once the door has been seen (Table F for this service). The price agreed before anyone sets out only from the price_agreed_before_work practice.",
+            "doubt": "Price"
+          },
+          {
+            "slot": "timing",
+            "when": "start_time",
+            "question": "How quickly can you get here?",
+            "answer_brief": "From [CV: response_time] and [CV: start_time] only, as given; a same day visit only when [CV: same_day_available] is yes. Never 'round the clock' or 'any time' unless [CV: emergency_callouts] or [CV: out_of_hours_available] gives it in those words. This is the one place the timing is written.",
+            "doubt": "Timing"
+          },
+          {
+            "slot": "timing",
+            "question": "Do you come out at night or at the weekend?",
+            "answer_brief": "Only from [CV: emergency_callouts] and [CV: out_of_hours_available], as given; where neither is set, say what happens when they call during working hours and nothing more. An out of hours rate only from [CV: price_list]. This is the one place the timing is written.",
+            "doubt": "Timing"
+          },
+          {
+            "slot": "cover",
+            "when": "insurance",
+            "question": "Are you insured for emergency [SERVICE_LOWER]?",
+            "answer_brief": "The cover figure from [CV: insurance_cover] and what the cover is for, with a plausible example that does not suggest carelessness. Never what it pays or who it covers.",
+            "doubt": "Trust"
+          },
+          {
+            "slot": "cover",
+            "question": "Will you have to damage my door to get in?",
+            "answer_brief": "Honest, from the Table A row for this service and Table E: the gentlest way in is tried first wherever the mechanism permits, drilling only when nothing else will do, with a new lock fitted afterwards. Some mechanisms cannot be opened any other way, so no promise is made. Who pays for any damage depends on what was agreed and the care taken, under the reasonable care and skill standard, never a universal rule (Table E). 'Without damage' as this business's own practice only from the client values. On Burglary repairs the question reads as whether the door can be saved or has to be replaced: from the Table A and Table F rows, decided when it is seen. Nothing on how a door is opened. Never 'never damages your door'.",
+            "doubt": "Trust"
+          },
+          {
+            "slot": "process",
+            "question": "What should I have ready before you arrive?",
+            "answer_brief": "From the Table E lockout authority row, said as what the trade asks rather than a law: something that shows they belong at the address (a licence with the address on it, other identification, a neighbour who can confirm who they are; a business sends a letter or an order). Then what not to do: force the door, dig at a snapped key, or clear up after a break in before it has been photographed for the insurer (Table E after a burglary: record the emergency repairs and keep receipts). Never a word on how the door will be opened. Nothing about the insurer dealing with this business unless the client values give it.",
+            "doubt": "Process"
+          },
+          {
+            "slot": "scope",
+            "question": "Is this an emergency, or can it wait?",
+            "answer_brief": "What counts as urgent for this service, from the card list and the Table B row for it: locked out, a key snapped in the door, a lock that will not turn or a handle that will not lift with the door shut, a door that will not close after a break in, keys lost that still fit. What usually waits for a booked visit, from the Table B lock repairs, uPVC and lock fitting rows: a handle that is stiff but still locks, a key that catches, a lock change after a move, locks a policy asks for. Link the planned sibling page or the category page. Planned work is never dressed up as urgent.",
+            "doubt": "Fit"
+          }
+        ]
+      }
+    }
+  },
+
+  "location_page_blocks": {
+    "A": {
+      "problems": {
+        "h2": "Common Lock and Door Problems in [TOWN]",
+        "cards": [
+          {
+            "title": "Terraced streets with timber front doors",
+            "brief": "The older streets of the town, where the front door is timber and carries a latch lock and often a separate deadlock; the town profile dates the housing and says which streets. The one cause this card makes: a timber door built for a latch and a mortice lock, which decides the work on it: a lockout there turns on which of the two was locked; a policy condition is usually met with a deadlock to the kind the wording names, let into the existing door (Table A lock fitting and British Standard stages); a worn key or a sticking latch is a cylinder, a lock body or a keep (Table B lock repairs). Say the era as what the door was built with, never as a judgement on the doors today or on the locks in the area (the pack's section 3). Never a crime figure or a street named as a target. Not the gearbox, not the dropped door: the uPVC pages own those.",
+            "mechanism": "a timber door built for a latch and a mortice lock"
+          },
+          {
+            "title": "Estates on uPVC and composite doors",
+            "brief": "Estates put up from the later decades of the last century onwards, where the typical door is uPVC or composite with a multipoint lock worked by a cylinder; the town profile names the estates and their era. The one cause this card makes: multipoint doors whose gearboxes and cylinders wear with age, so the common jobs there are the stiffening handle, the door that has to be lifted to lock, the gearbox replaced, and the cylinder changed for one that resists being forced (Table A uPVC repairs; Table E snapping: the attack is on the cylinder and the answer is the tested cylinder or the cylinder with its protective handle, said as what it resists and never how). Say the era as what the doors are, never that an estate's locks are weak or that it is a target. The town's statistic on that kind of attack only where the dossier gives it from a named source (Table E: the one figure in the facts is local to another force area and never travels). Not the stiff handle's cause by name: the service pages own it.",
+            "mechanism": "multipoint doors whose gearboxes and cylinders wear with age"
+          },
+          {
+            "title": "Flats and blocks with one shared door",
+            "brief": "Blocks and converted houses where one front door serves many homes, with door entry, a post room and a bin store; the town profile gives the blocks and the conversions. The one cause this card makes: one communal door serving many keys, so a lost key or a leaver means the question of who else can get in, and a change means every household; where it suits, keys on a plan issued against a record or fobs that can be cancelled (Table A master key systems). On that door the escape side comes first: it has to open easily from inside, as the Table C fire safety and HMO rows state it, said in plain words and never with an Act's name; who is responsible is the building's manager, not the resident. Never fear, never a block named as a target. Not who holds a key to a single home: the category page owns that.",
+            "mechanism": "one communal door serving many keys"
+          },
+          {
+            "title": "Lets and student houses that change hands",
+            "brief": "Streets with a high share of rented homes, a student quarter that turns over at the end of term, holiday lets by the coast or the park; the town profile gives the tenure and the term dates where it has them. The one cause this card makes: tenancies turning over and keys that leave with the tenants, so locks are changed between lets and spare keys multiply. Say what the work usually is from Table A lock fitting: a cylinder changed between tenancies with new keys, keyed alike cylinders so one key does the flat and the front door, a landlord's record of what was issued. A landlord's change only after the tenant has lawfully left, never as a way to shut one out (Table E landlord lock changes), and a tenant's change does not shut out another lawful occupier (Table E tenant lock changes), each said in one plain line without an Act's name. Never who lives here as a judgement, never an area described as unsafe.",
+            "mechanism": "tenancies turning over and keys that leave with the tenants"
+          }
+        ]
+      },
+      "cost": {
+        "h2": "What Affects the Cost of [WORK] in [TOWN]",
+        "cards": [
+          {
+            "title": "How far out of town you are",
+            "brief": "Where the town profile has villages, farms and outbuildings spread along lanes, the drive to the door is part of the visit, as the pack's local detail has it. Say why that adds to a call out, in plain words; the charge or how it is worked out only from [CV: quote_call_out_fee] and [CV: price_list], and never 'the only way' or a figure."
+          },
+          {
+            "title": "Calling after hours",
+            "brief": "A lockout at night or at the weekend costs more than a lock change booked for a weekday, as the Table F emergency and lockouts rows have it. No figure; an out of hours rate only from [CV: price_list]; whether the business comes out at those hours only from [CV: emergency_callouts] and [CV: out_of_hours_available]."
+          },
+          {
+            "title": "The doors on your street",
+            "brief": "A timber door with one lock against a multipoint door; an estate whose mechanisms are no longer made and have to be sourced; a conservation area or a listed home where the old door furniture can need consent before it is changed (Table C listed buildings, 'usually', never the Act's name). From the town profile where it gives the housing and the designations. No figure."
+          },
+          {
+            "title": "Shared doors, key plans and fobs",
+            "brief": "A block, an office or a shop with more doors and more people on the plan costs more than one front door: more cylinders, more keys issued against a record, a restricted key route, fobs on a system (Table F master key systems, smart locks). Say it plainly; the escape side of a shared door as part of the work, not an extra. No figure."
+          }
+        ]
+      },
+      "faq_slots": [
+        {
+          "slot": "cost",
+          "question": "How much does [WORK_LOWER] cost in [TOWN]?",
+          "answer_brief": "Prices, any call out charge and any out of hours rate only from [CV: price_list] and [CV: quote_call_out_fee]; otherwise the things that push the price up in a town like this (the drive out, the time of day, the door and its lock) and how the price is given, from [CV: quote_method] only.",
+          "doubt": "Price"
+        },
+        {
+          "slot": "town",
+          "when": "start_time",
+          "question": "How soon can you get to [TOWN]?",
+          "answer_brief": "From [CV: start_time] and [CV: response_time] only. The town is in the area covered; nothing about distance unless [CV: travel_distance] is set. A same day visit only when [CV: same_day_available] is yes.",
+          "doubt": "Timing"
+        },
+        {
+          "slot": "town",
+          "question": "Do you cover [TOWN]?",
+          "answer_brief": "Yes: the town and the villages around it (code lists them; name none). How the business reaches it from its base only from the client values. Link one page in this town.",
+          "doubt": "Fit"
+        },
+        {
+          "slot": "cover",
+          "when": "guarantee",
+          "question": "Do you guarantee your work in [TOWN]?",
+          "answer_brief": "Start with yes, then the terms from [CV: guarantee_years] and [CV: guarantee_scope]. Described, never promised.",
+          "doubt": "Trust"
+        },
+        {
+          "slot": "cover",
+          "when": "insurance",
+          "question": "Are you insured?",
+          "answer_brief": "The cover figure from [CV: insurance_cover] and what the cover is for. Never what it pays or who it covers.",
+          "doubt": "Trust"
+        },
+        {
+          "slot": "cover",
+          "question": "What happens if something isn't right after the job?",
+          "answer_brief": "Open with what the customer does: tell us and we look at it. Then the reasonable care and skill standard every trade works to. No promise to come back free. Never invent a guarantee.",
+          "doubt": "Trust"
+        },
+        {
+          "slot": "process",
+          "question": "What happens when I call you out in [TOWN]?",
+          "answer_brief": "From [CV: quote_method] and the confirmed practices only: what the customer says on the phone (the door, what has happened, the address), the price settled before anyone sets out only from the price_agreed_before_work practice, what the locksmith asks for at the door (Table E lockout authority, said as the trade's practice), what comes back. No timescale unless [CV: response_time] is set. For a booked job the same shape: what they send, what is looked at, what comes back.",
+          "doubt": "Process"
+        },
+        {
+          "slot": "timing",
+          "question": "Do you come out to [TOWN] at night or at the weekend?",
+          "answer_brief": "Only from [CV: emergency_callouts] and [CV: out_of_hours_available], as given; where neither is set, say what happens when they call during working hours and nothing more. An out of hours rate only from [CV: price_list]. Never a response time unless [CV: response_time] is set. Not a seasonal trade: nothing about the time of year.",
+          "doubt": "Timing"
+        }
+      ]
+    }
+  },
+  "do_not_reuse": []
+}

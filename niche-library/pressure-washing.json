@@ -1,0 +1,615 @@
+{
+  "_source": "niche-library/pressure-washing.json",
+
+  "trade": "Pressure Washing",
+  "trade_lower": "pressure washing",
+  "trade_person": "exterior cleaner",
+  "trade_person_plural": "exterior cleaners",
+  "customer_type": "homeowners and local businesses",
+  "unit_of_work": "jobs",
+  "emergency_niche": false,
+  "big_ticket": false,
+  "big_ticket_examples": [],
+  "schema_subtype": "LocalBusiness",
+
+  "words_use": ["drive", "driveway", "patio", "path", "block paving", "slabs", "decking", "render", "walls", "brickwork", "roof", "gutters", "fascias", "conservatory", "cladding", "solar panels", "green", "slippery", "moss", "algae", "black spots", "lichen", "streaks", "oil stain", "rust mark", "weeds in the joints", "sand in the joints", "sealer", "jet wash", "pressure washer", "soft wash", "treatment", "wash water", "drain", "car park", "walkways"],
+  "words_avoid": ["substrate", "biocide", "biocidal", "effluent", "soiling", "soil", "deposits", "operatives", "property", "premises", "dwell time", "hypochlorite", "sodium hypochlorite", "surfactant", "MEWP", "DOFF", "TORC", "detailing", "restoration", "showroom finish"],
+  "words_avoid_exceptions": { "biocide": "allowed where a trade facts row is quoted as what usually applies to a treatment, and on the Soft washing page where the treatment is named", "property": "allowed on a page written for a landlord or a managing agent, where it is the reader's own word", "premises": "allowed on the car park, industrial and warehouse pages, where it is the site manager's own word" },
+  "banned_phrases": ["like new", "as new", "good as new", "as good as new", "brand new again", "former glory", "transform your driveway", "transform your home", "transform your property", "kerb appeal", "curb appeal", "sparkling", "gleaming", "pristine", "spotless", "immaculate", "guaranteed results", "no damage guarantee", "safe for pets", "pet safe", "safe for plants", "safe for children", "completely safe", "eco friendly", "before and after"],
+
+  "buttons": {
+    "primary_action": "Get My [QUOTE_FREE] Quote",
+    "meta_cta": "Get your [QUOTE_FREE_LOWER] quote today.",
+    "process_h2": "Your [QUOTE_FREE] Quote in 3 Simple Steps",
+    "final_h2": "Get a [QUOTE_FREE] Quote From a Local [CATEGORY] in [CITY]",
+    "final_h2_emergency": null,
+    "cta_band_line": "Tell us which surfaces need cleaning and we'll get back to you within [CV: response_time].",
+    "cta_band_line_no_response": "Tell us which surfaces need cleaning and we'll get back to you."
+  },
+
+  "business_type_default": "A",
+  "business_type_notes": "Every category is A (the calibration pack, section 2): a job is quoted per surface, booked once and done in a visit, and the customer comes back when the growth returns, not on a round. The split inside A is written into the briefs, not the type: problem led pages (soft washing, roof, render, cladding, driveway and patio, brick and stone, decking, oil and rust stains, graffiti, fascia and soffit, conservatory) read block 4 as symptom, cause and consequence; schedule led pages (block paving and concrete sealing, solar panel cleaning, and commercial cleaning where the client confirms planned visits) read the 'on a schedule led page' line in each brief, what slips and when; the commercial pages (car park, tennis court and sports surface, industrial and warehouse) read the 'on a commercial page' line, the symptom in use and what it costs the site. The pack's only desire led case (a clean before a sale or an event) is a situation line inside the briefs, because no page target is desire led: no page is flagged in the library and there is no desire variant. The Window Cleaning Service and Gutter Cleaning Service tabs are not in the pack's section 2 table and take the default. A client hand set to type B (planned commercial contracts, the pack's note to Brandon) reads fears_by_type.B and faq_slots_by_type.B on the homepage and has no block briefs in this entry.",
+
+  "priority_services": [],
+  "core_services": {
+    "pressure washing service": ["driveway and patio cleaning", "soft washing", "render cleaning", "roof cleaning", "decking cleaning", "block paving and concrete sealing"],
+    "window cleaning service": ["window cleaning", "conservatory cleaning", "fascia and soffit cleaning", "solar panel cleaning"],
+    "gutter cleaning service": ["gutter cleaning", "fascia and soffit cleaning", "roof cleaning"]
+  },
+
+  "steps": [
+    {
+      "title": "Tell Us Which Surfaces Need Cleaning",
+      "brief": "How to get in touch and what is useful to send first (which surfaces, a rough size, a photo of the growth or the stain, whether there is an outside tap and where the water runs to). No promise of a reply time unless [CV: response_time] is set."
+    },
+    {
+      "title": "We Look at the Surface and Price the Job",
+      "brief": "The visit and what gets looked at: what the surface is made of and how it is finished, how much growth or staining it carries, the state of the joints or the pointing, height and access, where the wash water will go. Follows [CV: quote_method]; only say the quote is written if quote_method says so. Never restates 'free' (FAQ 5 owns it). Never a pressure, a product or a dwell time as this client's method."
+    },
+    {
+      "title": "We Clean on a Date That Suits You",
+      "brief": "The date is agreed in advance, to suit the customer. The weather only as the reason a date can move, from the trade facts timing cells (wet cleaning of walls and paving is held off when frost threatens; a treatment and a sealer need a dry surface), and only when the weather_delays_rebooked practice is confirmed. Never mention the price, the quote or changes to the plan (step 2 and Why choose us own them). Never restates the start time (FAQ 4 owns it)."
+    }
+  ],
+
+  "step_2_no_visit": {
+    "title": "We Price Your Job",
+    "brief": "Say a price is agreed before any work starts. Describe how the price is reached only from [CV: quote_method]; when quote_method is blank, name no method at all (no photos, call, video or visit). Only say the quote is written if quote_method says so. Never restates 'free' (FAQ 5 owns it)."
+  },
+  "cover_chain": ["guarantee", "insurance"],
+
+  "fears": [
+    "a bigger machine doing the damage their hired jet wash did (stripes across the patio, sand blasted out of the joints, a scar on the render)",
+    "green that is back within months because the growth was knocked off the top and its roots left behind",
+    "a price that grows on the day, or a job that stops at the wash and leaves the joints empty",
+    "wash water and chemicals going where they should not: over the plants and the pond, into the drain that runs to the stream, onto next door's car"
+  ],
+  "fears_by_type": {
+    "B": [
+      "a slippery walkway or bay between visits, and the complaint that follows it",
+      "a contractor who cannot work round opening hours, deliveries and parked cars",
+      "wash water sent down the wrong drain, with the site answering for it",
+      "a standard that slips once the contract is signed"
+    ]
+  },
+
+  "logo_tiers": {
+    "ratings": ["Google (needs review_count 5+)", "Checkatrade", "Trustpilot", "Which? Trusted Traders"],
+    "tier1": ["Federation of Window Cleaners", "Water Jetting Association", "CHAS", "SafeContractor"],
+    "tier2": ["Smartseal approved installer", "IPAF PAL card", "PASMA Towers for Users", "BASIS Professional Register (checked against the product and the task)"],
+    "tier3": "Environment Agency waste carrier registration (a check, not a membership), chamber of commerce, local press features: Ray's call per client. Never the British Cleaning Council: a cleaning firm cannot be a member (the trade facts Table D), so a claimed membership is not shown"
+  },
+
+  "faq_fixed_doubts": {
+    "Q1_cost": "Price",
+    "Q6_areas": "Fit"
+  },
+
+  "faq_slots": [
+    {
+      "slot": "faq_2",
+      "question": "Are you insured?",
+      "answer_brief": "The cover figure from [CV: insurance_cover] and what the cover is for, with a plausible example for this trade (a cracked pane, a mark on a car parked too close, a plant caught by the spray) that does not suggest carelessness. Never say the cover extends to the surface being cleaned unless the client values say so.",
+      "symptom_based": false,
+      "doubt": "Trust"
+    },
+    {
+      "slot": "faq_2_fallback",
+      "question": "What happens if something goes wrong?",
+      "answer_brief": "From [CV: complaints_process] only.",
+      "symptom_based": false,
+      "doubt": "Trust"
+    },
+    {
+      "slot": "faq_3",
+      "question": "Do you guarantee your work?",
+      "answer_brief": "Used only when a guarantee is confirmed. Start with yes, then the terms from [CV: guarantee_scope] and [CV: guarantee_years]. Never a promise that the growth will not return or that a stain is gone; never written as something that replaces the customer's rights (the trade facts no damage guarantee row).",
+      "symptom_based": false,
+      "doubt": "Trust"
+    },
+    {
+      "slot": "faq_3_none",
+      "question": "What happens if something isn't right after the clean?",
+      "answer_brief": "Used when nothing in cover_chain other than insurance is confirmed. Open with what the customer does: tell us what isn't right and we'll look at it. Then the 'reasonable care and skill' standard every trade works to, as the standard the work is held to, never as a defence. No promise to come back or put it right for free. Never invent a guarantee.",
+      "symptom_based": false,
+      "doubt": "Trust"
+    },
+    {
+      "slot": "faq_4",
+      "question": "How soon can you start?",
+      "answer_brief": "From [CV: start_time] only, as given. The weather as a reason a booking can move only from the trade facts timing cells (frost, a surface that has to be dry for a treatment or a sealer) and never as an excuse in advance. Never a same day claim unless [CV: same_day_available] is yes.",
+      "symptom_based": false,
+      "doubt": "Timing"
+    },
+    {
+      "slot": "faq_5_free",
+      "question": "Is the quote free and no obligation?",
+      "answer_brief": "From [QUOTE_FREE] and [CV: quote_method].",
+      "symptom_based": false,
+      "doubt": "Price"
+    },
+    {
+      "slot": "faq_5_not_free",
+      "question": "How do your quotes work?",
+      "answer_brief": "From [CV: quote_method] only.",
+      "symptom_based": false,
+      "doubt": "Price"
+    },
+    {
+      "slot": "faq_A",
+      "question": "How long will my drive or patio stay clean?",
+      "answer_brief": "No promise of a time. What decides it, in plain words: how much shade and damp the surface sits in, trees and a north facing side, and whether the growth was treated or only knocked off the top (the trade facts soft washing rows: growth that a treatment did not reach stays and regrows). Say what slows the return (a treatment after the wash, joints refilled so they hold less water) as the principle of good work, never as this client's process unless [CV: materials_methods] or a practice confirms it. Nothing about an annual clean: the facts pack gives no interval.",
+      "symptom_based": false,
+      "doubt": "Timing"
+    },
+    {
+      "slot": "faq_B",
+      "question": "Why has my drive gone green again so soon after it was cleaned?",
+      "answer_brief": "Use the assigned symptom's meaning and its linked local issue. Three genuinely different causes in plain words, from the trade facts what goes wrong rows: the top of the growth was washed off and what lives down in the pores and the joints was left to grow back; a side that never dries (shade, a tree, the north side of the house) that any surface greens on; joints washed empty, which hold water and seed. Then what the local factor adds (tree cover, a damp valley, coastal air, the housing era's surfaces), then what a proper clean has to do: treat what is left, and refill the joints. Blame the method, never the customer's effort. Never promise it stays clean.",
+      "symptom_based": true,
+      "doubt": "Process"
+    },
+    {
+      "slot": "faq_C",
+      "question": "Can a jet wash harm my paving?",
+      "answer_brief": "Yes, when the pressure and the distance are wrong for the surface, from the trade facts facts rows: there is no one safe setting for every surface; the paving maker's guidance is a moderate pressure with the lance held at an angle and back from the surface; natural stone, including sandstone, takes a low setting because a hard jet wears it; a jet run across block joints empties them, and the sand is then brushed back in; a mortar joint that is damaged is made good. Say what a careful job does first (the surface identified, a test patch) as the principle of good work. No figure, no distance, no named product unless [CV: materials_methods] gives it.",
+      "symptom_based": false,
+      "is_fallback": true,
+      "doubt": "Process"
+    },
+    {
+      "slot": "faq_D",
+      "question": "What's the difference between a soft wash and a jet wash?",
+      "answer_brief": "From the trade facts soft washing and render rows, in plain words: a soft wash puts a treatment on at low pressure, leaves it for the time its label gives, and then rinses it off or leaves it to weather, so the growth is killed where it lives; a jet wash takes off what it hits and nothing more. Which one a surface gets is decided by the surface: render, roof tiles, soft brick, timber and painted surfaces take the low pressure route, hard concrete and block paving can take a controlled wash, and many jobs use both. Never a dilution, a dwell time or a product; a soft wash as this business's method only from [CV: materials_methods] or where the page is the Soft washing page.",
+      "symptom_based": false,
+      "is_fallback": true,
+      "doubt": "Process"
+    },
+    {
+      "slot": "faq_E",
+      "question": "Do I need permission to have my walls cleaned?",
+      "answer_brief": "Used only when the client's services list carries brick and stone cleaning or graffiti removal. From the trade facts rule rows only, with \"usually\" or \"in most cases\": cleaning is maintenance and usually needs no building approval; a listed building is different, because consent is usually needed where the cleaning would affect what makes it special, abrasive methods most of all, and paint taken off a listed building usually needs consent first; a conservation area on its own does not stop a wall being cleaned, though controls can apply. What the customer does: the owner of a listed building asks the council before the work. Never an Act's name, never legal advice.",
+      "symptom_based": false,
+      "is_fallback": true,
+      "condition": "the client's services list carries brick and stone cleaning or graffiti removal",
+      "doubt": "Process"
+    },
+    {
+      "slot": "faq_F",
+      "question": "Can you still clean my drive during a hosepipe ban?",
+      "answer_brief": "From the trade facts hosepipe ban rows only: a ban can cover cleaning paths, patios and walls with a hose whoever does the work, so a paid cleaner is not automatically exempt; the water company's own notice says what is and is not allowed in the area, and cleaning done for safety reasons is treated differently. Say the business checks the notice before booking in a ban, and nothing more. No promise of a way round it; never the regulation's name.",
+      "symptom_based": false,
+      "is_fallback": true,
+      "doubt": "Timing"
+    }
+  ],
+  "faq_slots_by_type": {
+    "B": [
+      {
+        "slot": "faq_A",
+        "question": "How often do planned cleaning visits need to be?",
+        "answer_brief": "What decides it, in plain words, from the trade facts rows: how fast the dirt, the growth or the oil builds on that surface, the traffic across it, how much shade and damp it sits in, and when the site can be closed for the work. No national rule sets an interval for any surface (the cleaning frequency fact). A frequency only from [CV: visit_frequency_options]; otherwise say the pattern is agreed with the site and nothing more. Never promise a schedule.",
+        "symptom_based": false,
+        "doubt": "Timing"
+      },
+      {
+        "slot": "faq_D",
+        "question": "What does a planned visit cover?",
+        "answer_brief": "The jobs on the card list said as one visit: the bays and the walkways, the entrance, the cladding or the panels, whichever the services list has. The site kept open or closed in sections, with the wet area barriered until it is dry (the trade facts wet surfaces row) and the wash water collected, as the principle of good work. What a visit does not cover only from the services list. Link one service page where LINKABLE PAGES has one.",
+        "symptom_based": false,
+        "is_fallback": true,
+        "doubt": "Fit"
+      }
+    ]
+  },
+
+  "materials_tick_list": {
+    "Methods": ["pressure washing with a rotary surface cleaner", "soft washing (a low pressure treatment)", "hot water or steam cleaning", "hand brushing", "water fed pole"],
+    "After the clean": ["kiln dried sand brushed into block joints", "mortar joints repointed", "block paving sealed", "imprinted concrete sealed", "oil and rust stain treatment", "growth treatment after the wash"],
+    "Protection": ["wash water collected and taken off site", "drains covered during the wash", "plants, ponds and lawns protected", "windows, vents and electrics covered"],
+    "Access": ["ladders and towers", "cherry picker", "roof moss removed from the ground or from supported access", "gutters cleared after roof work"],
+    "Other": ["waste taken away", "registered waste carrier", "out of hours working for commercial sites", "site barriered and reopened once dry"]
+  },
+
+  "service_terms": ["pressure washing", "jet washing", "power washing", "soft washing", "soft wash", "driveway cleaning", "patio cleaning", "block paving cleaning", "path cleaning", "decking cleaning", "render cleaning", "brick cleaning", "stone cleaning", "masonry cleaning", "roof cleaning", "moss removal", "conservatory cleaning", "fascia cleaning", "soffit cleaning", "cladding cleaning", "solar panel cleaning", "gutter cleaning", "window cleaning", "graffiti removal", "chewing gum removal", "gum removal", "oil stain removal", "rust stain removal", "stain removal", "car park cleaning", "tennis court cleaning", "sports surface cleaning", "playground cleaning", "industrial cleaning", "warehouse cleaning", "warehouse floor cleaning", "block paving sealing", "concrete sealing", "imprinted concrete sealing", "sealing", "re sanding", "repointing", "steam cleaning", "hot water cleaning", "algae treatment", "moss treatment", "lichen treatment", "growth treatment", "water fed pole", "rotary surface cleaner"],
+
+  "service_words_note": "Old path only (21 Oct 2026): this list applies when the homepage is written from the uploaded custom values CSVs. A client with a v3 page map names every service by its page title (the services library's UK name), and this list is not used.",
+  "service_words": [
+    ["power/pressure washing", "pressure washing"], ["pressure washing", "pressure washing"], ["power washing", "pressure washing"], ["jet washing", "pressure washing"],
+    ["soft wash", "soft washing"], ["roof cleaning", "roof cleaning"], ["rooftop/skylight", "roof cleaning"],
+    ["gutter cleaning", "gutter cleaning"], ["glass and mirror", "window cleaning"], ["interior and exterior window", "window cleaning"], ["window washing", "window cleaning"],
+    ["driveway", "driveway cleaning"], ["patio", "patio cleaning"], ["decking", "decking cleaning"], ["render", "render cleaning"],
+    ["brick", "brick cleaning"], ["stone cleaning", "stone cleaning"], ["cladding", "cladding cleaning"], ["conservatory", "conservatory cleaning"],
+    ["solar panel", "solar panel cleaning"], ["fascia", "fascia and soffit cleaning"], ["graffiti", "graffiti removal"], ["gum removal", "chewing gum removal"],
+    ["oil stain", "oil stain removal"], ["rust stain", "rust stain removal"], ["car park", "car park cleaning"], ["tennis court", "tennis court cleaning"],
+    ["playground", "playground cleaning"], ["industrial", "industrial cleaning"], ["warehouse", "warehouse floor cleaning"],
+    ["concrete sealing", "concrete sealing"], ["block paving sealing", "block paving sealing"], ["re-sanding", "block paving re sanding"]
+  ],
+
+  "general_service_words": ["pressure washing", "jet washing", "exterior cleaning", "soft washing", "outside cleaning"],
+  "problem_service_words": ["moss removal", "algae", "lichen", "black spots", "oil stain", "rust stain", "graffiti"],
+  "why_titles_alt": [
+    "The Right Method for Every Surface",
+    "Covered If Something Goes Wrong"
+  ],
+
+  "category_work_nouns": {
+    "pressure washing service": "pressure washing",
+    "window cleaning service": "window cleaning",
+    "gutter cleaning service": "gutter cleaning"
+  },
+  "seasonal_trade": true,
+  "category_types": {},
+  "category_page_blocks": {
+    "A": {
+      "problems": {
+        "h2": "Common Problems [WORK] Puts Right",
+        "cards": [
+          {
+            "title": "Green and slippery by the end of winter",
+            "brief": "Problem led: the drive or the patio green by February, slippery when wet, a path by the back door nobody trusts in the rain, from the trade facts signs rows in the customer's words. The one cause this card makes: a surface that stays damp in the shade, where algae and moss can live in the pores and the joints. Say what the fix usually involves from the trade facts stages (the loose growth cleared, a test patch, a controlled wash, a treatment for what the wash leaves, and on block paving the joints refilled where the sand has gone), and that a wash on its own takes the top off and leaves the roots, so the treatment is the part that matters (the soft washing what goes wrong row). On a window cleaning page the card reads as green on the frames, the sills and the conservatory roof; on a gutter cleaning page as the green line below an overflowing gutter. On a commercial reading: a slippery walkway or bay and what it costs the site, never a slip figure. Where the reader is cleaning before a sale or an event, the card reads as the situation (the date, and the surfaces that show from the road), never a symptom invented for it. Never promise the growth will not return; never a pressure or a product.",
+            "mechanism": "a surface that stays damp in the shade"
+          },
+          {
+            "title": "Black spots and streaks a brush won't shift",
+            "brief": "Problem led: dark spots across a patio or a wall, black runs down render under the sills and below a gutter joint, from the trade facts signs rows. The one cause this card makes: growth rooted into the surface, not resting on top of it (lichen on slabs and stone, black growth on a sheltered wall). Say honestly what a clean does from the facts rows: a treatment is put on and left to work, and lichen spots then shrink and weather away over the months that follow rather than coming off on the day; a jet hard enough to take them off marks the stone first (the driveway and patio done badly row). Never name the growth from its colour alone (the render growth colours fact). On a window cleaning page the card reads as the black run down a conservatory frame and the film on the roof panels; on a gutter cleaning page as the streak under a leaking joint. Never a dwell time, never a product unless [CV: materials_methods] gives it, never a promise the spots are gone. Not the surface staying damp: card 1 owns that.",
+            "mechanism": "growth rooted into the surface, not resting on top of it"
+          },
+          {
+            "title": "Moss on the roof and in the gutters",
+            "brief": "Problem led, and kept in proportion: clumps of moss on the tiles, moss and silt in the gutters, water backing up at an outlet, drips down the fascia, from the trade facts roof cleaning signs row. The one cause this card makes: moss shed from the tiles and lying in the gutters where the water should run. Say first what the facts rows say: a mossy roof is rarely a problem in itself; it matters once the gutters and their downpipe openings are choked. Then the principle of good work from the roof cleaning stages: the roof looked at first to decide whether removal is needed at all, removal from the ground or from supported access rather than by walking the tiles, a treatment afterwards only where it suits the roof, the gutters cleared of what comes down. The damage the wrong method does, from the done badly row: a jet drives water into the roof and lifts the tile surface, a foot cracks a tile. On a gutter cleaning page the card leads with the gutter; on a window cleaning page it reads as the conservatory roof and its gutter. Never treat moss as an emergency; never a pressure or a product; the business's own access and method only from [CV: materials_methods].",
+            "mechanism": "moss shed from the tiles, choking the gutters"
+          },
+          {
+            "title": "Marks left by the last clean",
+            "brief": "The customer's real fear: stripes and arcs across a patio, joints with no sand in them and weeds coming through, a scarred patch on render that no longer matches the wall, decking gone furry, mortar raked out of a brick wall, from the trade facts done badly rows. The one cause this card makes: pressure and distance set for the machine, not for the surface. Say what the facts rows give, in plain words and with no figure: there is no one safe setting for every surface; paving makers ask for a moderate pressure with the lance angled and held back; natural stone takes a low setting because a hard jet wears it; render and roof tiles are not jetted at all. Then what a careful job does first (the surface identified, a test patch) as the principle of good work, and what is put back afterwards (joint sand brushed in, a damaged mortar joint made good). Never a dig at another trade, never that the customer did it wrong. Not the growth returning: cards 1 and 2 own that.",
+            "mechanism": "pressure and distance set for the machine, not the surface"
+          }
+        ]
+      },
+      "cost": {
+        "h2": "What Affects the Cost of [WORK] in [CITY]",
+        "cards": [
+          {
+            "title": "How much surface there is",
+            "brief": "Square metres of paving, the number of walls, the length of the roofline: more surface is more time and more water, from the trade facts price rows (a larger or divided surface, several elevations). Say it plainly and give no figure."
+          },
+          {
+            "title": "How much has built up",
+            "brief": "Light green against thick moss, a fresh mark against oil that has soaked in for years, from the trade facts price rows: heavy growth or a stain that has gone in needs a treatment, sometimes a repeat, and more time. Say the business looks before it prices, from [CV: quote_method] only."
+          },
+          {
+            "title": "Height and getting to it",
+            "brief": "A ground floor wall against a gable, a rear patio reached through the house, a roof that needs a tower or a lift, from the trade facts price rows (height and access equipment, restricted access). Say why height and a tight access add time; never a height."
+          },
+          {
+            "title": "What happens after the wash",
+            "brief": "Joints refilled with kiln dried sand, a mortar joint repointed, a sealer applied once the surface is dry, a stain treated, the wash water collected where it cannot go to the drain, from the trade facts price rows. Each is part of finishing the job and each adds to it; the business's own practice only from [CV: materials_methods]. Code adds the price line from [CV: price_list] when there is one."
+          }
+        ]
+      },
+      "faq_slots": [
+        {
+          "slot": "cost",
+          "question": "How much does [WORK_LOWER] cost in [CITY]?",
+          "answer_brief": "Prices only from [CV: price_list]; otherwise the three things that move the price for this work (the size of the surface, how much has built up, height and access) and how the quote is given, from [CV: quote_method] only.",
+          "doubt": "Price"
+        },
+        {
+          "slot": "cover",
+          "when": "guarantee",
+          "question": "Do you guarantee your [WORK_LOWER] work?",
+          "answer_brief": "Start with yes, then the terms from [CV: guarantee_years] and [CV: guarantee_scope]. Described, never promised; never a promise the growth will not return.",
+          "doubt": "Trust"
+        },
+        {
+          "slot": "cover",
+          "when": "insurance",
+          "question": "Are you insured for [WORK_LOWER] work?",
+          "answer_brief": "The cover figure from [CV: insurance_cover] and what the cover is for. Never what it pays or who it covers.",
+          "doubt": "Trust"
+        },
+        {
+          "slot": "cover",
+          "question": "What happens if something isn't right after the clean?",
+          "answer_brief": "Open with what the customer does: tell us and we look at it. Then the reasonable care and skill standard every trade works to. No promise to come back free. Never invent a guarantee.",
+          "doubt": "Trust"
+        },
+        {
+          "slot": "scope",
+          "question": "What does your [WORK_LOWER] work cover?",
+          "answer_brief": "The surfaces themselves, named from the card list (drives and patios, render and walls, roofs, decking, whichever the client has), and the size of job taken on, from the services list and [CV: typical_jobs] only. Link one service page. Never 'on this page', 'listed above' or 'the card list' as words: the reader sees no list, so name the work.",
+          "doubt": "Fit"
+        },
+        {
+          "slot": "process",
+          "question": "What happens when I ask for a quote?",
+          "answer_brief": "From [CV: quote_method] and the confirmed practices only: what the customer sends (which surfaces, a photo), what the business looks at (the surface, the growth, access, where the water goes), what comes back. No timescale unless [CV: response_time] is set.",
+          "doubt": "Process"
+        },
+        {
+          "slot": "timing",
+          "question": "When is the best time of year for [WORK_LOWER]?",
+          "answer_brief": "From the trade facts timing cells, with the reason in the weather or the surface: most cleaning runs through the year; wet cleaning of walls and paving is held off when frost threatens, because water left in the surface freezes; a treatment needs its time to work and a sealer needs a surface that has dried, so both wait for a dry spell. Growth comes back fastest on a surface that stays damp, so a clean before the wet months is a clean that lasts into them. Nothing about spring being busy or booking ahead. No dates, no promise about the weather.",
+          "doubt": "Timing"
+        }
+      ],
+      "faq_symptom": {
+        "frame": "[SYMPTOM]: why does it happen, and what can be done?",
+        "answer_brief": "The symptom and its linked local issue, answered as asked. Where the symptom is a seasonal sign (a green film on the shaded side after a wet winter, moss in the gutters after autumn), say first when it is normal and then what is not, before anything else. Then the usual cause here in plain words, what the local shade, damp or housing adds (tree cover, a north facing side, a damp valley, coastal air, the surfaces the town's houses were built with), and what the business does about it. Never a claim that the town's drives or walls are dirty. One figure at most.",
+        "doubt": "Process"
+      },
+      "seasonal": {
+        "problem_card": {
+          "title": "Surfaces that never dry out in the wet months",
+          "brief": "Say first what is normal from autumn to spring: a green film on the shaded side of a drive, a patio slippery after a week of rain, moss showing in the gutters once the leaves are down, all of which any surface does when it stays damp. Then what is not: a path that is slippery all year, growth that has gone black, water backing up at an outlet. The one cause this card makes: the damp months, when nothing dries between showers and growth gets ahead. Say what gets looked at and what waits, from the trade facts timing cells: wet cleaning of walls and paving is held off when frost threatens, a treatment and a sealer wait for a dry spell. Nothing about spring being busy or booking ahead.",
+          "mechanism": "the damp months, when nothing dries between showers"
+        },
+        "faq_slot": {
+          "slot": "seasonal",
+          "question": "Can you clean my drive or walls in winter?",
+          "answer_brief": "What runs in the cold months and what waits, from the trade facts timing cells with the reason: a wash on hard paving runs when it is above freezing; wet cleaning of walls, brick and stone stops when frost threatens, because water left in the surface freezes and damages it; a treatment needs its time to work and a sealer a surface that has dried, so both wait for a dry spell. No dates, no temperature, no promise about the weather.",
+          "doubt": "Timing"
+        }
+      }
+    }
+  },
+
+  "service_page_blocks": {
+    "A": {
+      "included": {
+        "h2": "What's Included in Our [SERVICE]",
+        "items": [
+          {
+            "title": "Checking what the surface is and how it's finished",
+            "brief": "The first stage from the trade facts: the surface and its finish identified (the paving and its joints, the render and its defects, the coating on the cladding or the decking, the tiles, the panel maker's instructions), and what must not be touched. A part of the job, not a promise about the quote."
+          },
+          {
+            "title": "Protecting what's around it",
+            "brief": "The protection stage from the trade facts: openings, vents, electrics, planting, ponds, cars and the neighbour's side covered or moved before any water goes on. Name only what the rows give for this service."
+          },
+          {
+            "title": "A test patch first",
+            "brief": "The trial stage from the trade facts: the least forceful method tried on a small patch and the result checked before the whole surface is done. Say why, from the done badly rows; no figure."
+          },
+          {
+            "title": "Keeping the wash water where it should be",
+            "brief": "The run off stage from the trade facts: drains covered or isolated, the wash water held back or collected where it carries a treatment, oil or paint, because only clean water belongs in a surface water drain (the facts row). Written as the principle of good work; the business's own practice only from [CV: materials_methods]."
+          },
+          {
+            "title": "The clean itself",
+            "brief": "The central stage from the trade facts, named as the trade names it for this service: a brush or a controlled wash, a treatment put on at low pressure and left for its labelled time, a hand clean, a scrub. A named method (a soft wash, a rotary cleaner, hot water) only from [CV: materials_methods]; never a pressure, a dilution or a dwell time."
+          },
+          {
+            "title": "Treating what the wash leaves",
+            "brief": "The treatment stage from the trade facts: growth or a stain that is still there after the wash treated rather than jetted harder, and left to work. Honest about what fades over weeks rather than vanishing (lichen spots, oil that has gone in, a rust shadow). A product only from [CV: materials_methods]."
+          },
+          {
+            "title": "Putting the joints and the finish back",
+            "brief": "The reinstatement stage from the trade facts for this service: kiln dried sand brushed into block joints where the wash moved it, a mortar joint made good, the exposed edges of render looked at, the connectors on a panel left dry, the seals on a conservatory checked. Name only what the rows give."
+          },
+          {
+            "title": "Checking it over before we go",
+            "brief": "The last stage from the trade facts: the surface inspected, the collected debris cleared, the gutters cleared of what came down, a commercial area reopened only once it is dry. What the customer sees when the job is done."
+          }
+        ],
+        "note": "Fallback only: the tick items are the service's own Table A stages when the pack gives 6 or more; this set is used when it gives fewer (F-ITEMS-GENERIC)."
+      },
+      "problems": {
+        "h2": "Signs You Need [SERVICE]",
+        "cards": [
+          {
+            "title": "What you've started to notice",
+            "brief": "The things a homeowner notices first, from the trade facts signs row for this service, in their words: green slippery patches, black spots, weeds in the joints, tyre marks, dark patches on the decking, streaks on the fascias, a film on the roof panels, moss in the gutters. The one cause this card makes: dirt and growth the surface has held onto. Then what it leads to if left, from the skipped row (growth stays on the surface people walk on, oil goes further in, moss sits over the outlets): specific, never alarming, never a slip figure. On a schedule led page (block paving and concrete sealing, solar panel cleaning, commercial cleaning with planned visits) the card is what slips and when: a seal thinning on the turning spots and the low spots where water lies, so stains soak in again and the joints lose their sand; a film on the panels as the dirt builds, at the pace the roof's position sets; bays greasy again between visits. The reason in the surface or the weather, never in the customer's diary. On a commercial page: the symptom in use (slippery bays, moss on a court, grime on the cladding) and what it costs the site in complaints and closed areas. Where the reader is cleaning before a sale or an event, the card is the situation (the date, the surfaces that show first), never a symptom invented for it.",
+            "mechanism": "dirt and growth the surface has held onto"
+          },
+          {
+            "title": "It came back within months of the last clean",
+            "brief": "Green back on the drive, black patches back on the wall, within months of a wash. The one cause this card makes: growth knocked off the top with its roots left in the pores and the joints. From the trade facts soft washing rows: growth a treatment did not reach stays and regrows, and a treatment that was not left for its labelled time does the same. Say what this service does differently as the principle of good work: a treatment after the wash, left to work, so what lives in the surface is dealt with; honest that lichen spots shrink over the months rather than coming off on the day. On a schedule led page: a seal put on over an old coating that was never tested, so it did not bond and wore through early (the sealing done badly row); the old coating identified and tested first. Blame the method, never the customer's effort. Never promise it will not return; never a product unless [CV: materials_methods] gives it. Not the surface staying damp in the shade: the category page owns that.",
+            "mechanism": "growth knocked off the top with its roots left in the pores"
+          },
+          {
+            "title": "A stain that's soaked in",
+            "brief": "An oil patch dark in the middle of the drive, an orange rust mark under a planter or a gate, paint caught in the pores of brick, a tyre mark that a wash did not lift, from the trade facts signs rows. The one cause this card makes: a spill or a mark that went into the surface before it was dealt with. From the facts rows: oil soaks into paving, a fresh spill is soaked up rather than wiped (wiping spreads it), oil that has gone deep may lighten rather than vanish and a badly contaminated block is sometimes replaced; a rust shadow can stay; paint gets harder to shift the longer it sits. Say what the service does in plain words (the stain identified, the source stopped, a stain treatment tried on a patch, left to work, the contaminated water collected) and be honest about the result. On a growth page the card is the black lichen spot that is treated and left to fade rather than jetted. On a schedule led sealing page: stains soaking into an unsealed surface, which is what the seal is for. Never a product unless [CV: materials_methods] gives it; never promise the mark is gone.",
+            "mechanism": "a spill or a mark that went into the surface before it was dealt with"
+          },
+          {
+            "title": "Weeds and water in the joints",
+            "brief": "Weeds up through the block joints, sand gone from between the blocks so they rock, moss along the gaps between decking boards, dirt packed into the joints of cladding panels, debris at the conservatory gutter, from the trade facts signs rows. The one cause this card makes: joints left open, so weeds root in them and water gets in. From the facts rows: a wash across block joints takes the sand out, and kiln dried sand is brushed back into them so the blocks lock again; a damaged mortar joint is made good rather than re sanded; on render, cracks and loose patches show once the growth is off and need their own repair rather than being hidden; on cladding, dirt in the joints can hide a joint that is failing. Say what the service does at the joints as the principle of good work; the business's own practice only from [CV: materials_methods]. On a commercial page: debris at the gullies and water standing on a court. Not the pressure that emptied them: the category page owns that.",
+            "mechanism": "joints left open, so weeds root in them and water gets in"
+          }
+        ]
+      },
+      "cost": {
+        "h2": "What Affects the Cost of [SERVICE] in [CITY]",
+        "cards": [
+          {
+            "title": "How much surface there is",
+            "brief": "The size factor from the trade facts price row for this service: the square metres, the number of walls, the length of the roofline, the number of panels, the layout of the car park. Say it plainly and give no figure."
+          },
+          {
+            "title": "How much has built up",
+            "brief": "Light growth against thick moss, a fresh spill against oil that has been there for years, several layers of paint, from the trade facts price row: heavier growth or an older stain needs a treatment, sometimes a repeat, and more time. Say the business looks before it prices, from [CV: quote_method] only."
+          },
+          {
+            "title": "Height and getting to it",
+            "brief": "A ground floor wall against a gable, a rear patio reached through the house, a roof or a solar array that needs a tower or a lift, a site that can only be done out of hours, from the trade facts price row. Say why height, a tight access and a short window add time; never a height."
+          },
+          {
+            "title": "What comes after the wash",
+            "brief": "Joints refilled, a mortar joint repointed, a sealer applied in its coats once the surface is dry, a stain treated, the wash water collected and taken away where it cannot go to the drain, from the trade facts price row. Each is part of finishing the job and each adds to it; the business's own practice only from [CV: materials_methods]. Code adds the price line from [CV: price_list] when there is one."
+          }
+        ]
+      },
+      "faq_slots": [
+        {
+          "slot": "cost",
+          "question": "How much does [SERVICE_LOWER] cost in [CITY]?",
+          "answer_brief": "Prices only from [CV: price_list]; otherwise how the quote is given, from [CV: quote_method] only. The four cost cards above already give what moves the price: name one factor at most, never the list again.",
+          "doubt": "Price"
+        },
+        {
+          "slot": "timing",
+          "question": "How long does [SERVICE_LOWER] take?",
+          "answer_brief": "From the trade facts timing row only: the pack gives no standard duration for any of this trade's jobs, so say what decides it (the size of the surface, how much has built up, height and access) and where the waiting is (a treatment left for the time its label gives, a sealer that goes on only once the surface has dried and then needs keeping off while it cures). No figure. Nothing about when the job can start unless [CV: start_time] is set. This is the one place the timing is written.",
+          "doubt": "Timing"
+        },
+        {
+          "slot": "cover",
+          "when": "guarantee",
+          "question": "Do you guarantee your [SERVICE_LOWER] work?",
+          "answer_brief": "Start with yes, then the terms from [CV: guarantee_years] and [CV: guarantee_scope]. Described, never promised; never a promise the growth will not return or the stain is gone.",
+          "doubt": "Trust"
+        },
+        {
+          "slot": "cover",
+          "when": "insurance",
+          "question": "Are you insured for [SERVICE_LOWER]?",
+          "answer_brief": "The cover figure from [CV: insurance_cover] and what the cover is for. Never what it pays or who it covers.",
+          "doubt": "Trust"
+        },
+        {
+          "slot": "cover",
+          "question": "What happens if something isn't right after the clean?",
+          "answer_brief": "Open with what the customer does: tell us and we look at it. Then the reasonable care and skill standard every trade works to. No promise to come back free. Never invent a guarantee.",
+          "doubt": "Trust"
+        },
+        {
+          "slot": "rules",
+          "question": "Do I need permission for [SERVICE_LOWER]?",
+          "answer_brief": "From the trade facts rule rows only, put as the thing that usually applies, with \"usually\" or \"in most cases\": cleaning is maintenance and usually needs no building approval; a listed building is where consent usually comes in, where the cleaning would affect what makes it special (abrasive methods most of all, and paint taken off a listed wall); a conservation area on its own does not stop the work; on a commercial site, wash water to the sewer is the site's consent to arrange, and anything taken off site goes with a registered waste carrier. During a hosepipe ban the water company's notice decides what can be done. What the customer does only as the row gives it. Never a standard's number, an Act's name or legal advice. Where the rows give no rule for this service, say no permission is usually needed for this work at a home and leave it there.",
+          "doubt": "Process"
+        },
+        {
+          "slot": "scope",
+          "question": "What does your [SERVICE_LOWER] service include?",
+          "answer_brief": "The What's Included items said as a sentence, in other words, naming the work itself (the surface checked, protected and test patched, the clean, the treatment, the joints put back, the wash water dealt with). What it does not cover only from the services list, with one sibling service page or the category page linked. Never 'on this page' or 'listed above'.",
+          "doubt": "Fit"
+        }
+      ],
+      "faq_symptom": {
+        "frame": "[SYMPTOM]: why does it happen, and what can be done?",
+        "answer_brief": "The symptom and its linked local issue, answered as asked. Where the symptom is a seasonal sign (a green film on the shaded side after a wet winter, moss in the gutters after autumn), say first when it is normal and then what is not, before anything else. Then the usual cause here in plain words, what the local shade, damp or housing adds, and what this service does about it. Never a claim that the town's surfaces are dirty. One figure at most.",
+        "doubt": "Process"
+      },
+      "seasonal": {
+        "problem_card": {
+          "title": "What the wet months leave behind",
+          "brief": "What shows in spring after the cold months, from the trade facts signs row for this service. Say first what is normal after a wet winter (a green film across the shaded side of the paving, a slippery patch by the back door, the gutters full after autumn, boards dark with damp) and then what is not (growth gone black and rooted in, a joint washed empty, water backing up at an outlet). The one cause this card makes: water left on the surface through the cold months with nothing to dry it. Say what gets looked at in spring from confirmed practices only; otherwise what the job puts right, and why it waits for a dry spell (a treatment needs its time to work, a sealer a dry surface, from the timing cells). Not the roots left behind (card 2) and not the joints (card 4).",
+          "mechanism": "water left on the surface through the cold months"
+        },
+        "faq_slot": {
+          "slot": "seasonal",
+          "question": "When is the best time of year for [SERVICE_LOWER], and how long does it take?",
+          "answer_brief": "From the trade facts timing row only: the weather the job needs and why (a dry spell for a treatment to work and a sealer to go on; no wet cleaning of walls and paving when frost threatens), then what decides how long it takes, since the row gives no standard duration. No dates, no figures, no promise about the weather. This is the one place the timing is written.",
+          "doubt": "Timing"
+        }
+      }
+    }
+  },
+
+  "location_page_blocks": {
+    "A": {
+      "problems": {
+        "h2": "Common [WORK] Problems in [TOWN]",
+        "cards": [
+          {
+            "title": "The shaded side that never dries",
+            "brief": "A drive green on one side and clean on the other, a patio under a tree slippery by the end of winter, render streaked on the side the sun never reaches. The one cause this card makes: the town's tree cover and the sides of its houses that sit in shade; the town profile and a symptom say which (mature trees along the older roads, a north facing slope, a wooded edge). Say what it means for the work in plain words: a shaded surface greens over faster, so what slows the return matters more there, and the anchor is only worth naming where it explains that. Never a claim that the town's drives are dirty; never a promise the growth stays away. Not the roots left behind or the joints: the town's service pages own those.",
+            "mechanism": "the town's tree cover and the sides it keeps in shade"
+          },
+          {
+            "title": "Surfaces that go with the houses",
+            "brief": "Block paved drives on the estates of one era, render and cladding on the newer homes, soft old brick and lime pointing on the terraces, local stone where the research confirms it. The one cause this card makes: what the town's houses were built and surfaced with, which the town profile dates. Tie the era to the method, never to the state of anyone's house: an older brick face wears under a hard jet and is cleaned gently; render takes a low pressure treatment, not a jet; block paving takes a controlled wash and then its joints refilled (the trade facts facts rows). A material only where the profile or the research gives it. Not the damage a wrong setting does: the town's category page owns that.",
+            "mechanism": "what the town's houses were built and surfaced with"
+          },
+          {
+            "title": "Damp air off the river or the sea",
+            "brief": "Walls that stay dark for days after rain, decking that never quite dries, green on every north facing fence and shed. The one cause this card makes: damp air from the town's river valley, its low ground or the coast, which the town profile gives; coastal air also leaves salt on glass, frames and panels. Say what it does to the work in plain words: a surface that is damp more of the year greens faster and needs the growth treated, not only washed, and a treatment waits for a dry spell to work. Only where the profile gives the water or the coast; otherwise the card takes the town's low lying or sheltered streets. Never a judgement about the town's homes. Not shade: card 1 owns that.",
+            "mechanism": "damp air from the town's river, low ground or coast"
+          },
+          {
+            "title": "Drains that run straight to the stream",
+            "brief": "A gully in the drive that comes out in the brook at the bottom of the road, a soakaway under the front garden, a pond or a border right beside the patio. The one cause this card makes: surface water drains that run to the town's river or stream, so what goes down them matters more here; the town profile gives the river, the stream or the flood setting. Say the principle of good work from the trade facts rows, not this business's process: only clean water belongs in a surface water drain or a soakaway; water carrying a treatment, oil or paint is held back, collected or taken away; plants and ponds beside the work are covered. Never the regulation's name; the business's own practice only from [CV: materials_methods]. Not the joints or the growth: other pages own those.",
+            "mechanism": "surface water drains that run to the town's river or stream"
+          }
+        ]
+      },
+      "cost": {
+        "h2": "What Affects the Cost of [WORK] in [TOWN]",
+        "cards": [
+          {
+            "title": "Getting water and a machine to the back",
+            "brief": "Where the back patio can be got to only through the house or by a shared side path, the hose and the machine come through and the van stays on the road. Say why that adds time (never \"the only way\": a superlative); the town profile says which streets are terraced. No figure."
+          },
+          {
+            "title": "Height on the town's houses",
+            "brief": "Three storey terraces, tall rendered gables, roofs and solar arrays that need a tower or a lift rather than a ladder, from the profile where it gives the housing. Say why height adds time and equipment, from the trade facts price rows. No figure, never a height."
+          },
+          {
+            "title": "Conservation areas and listed buildings",
+            "brief": "Where the town has conservation areas or listed buildings, the checks before a wall is cleaned add time, trials come before the clean, and some methods cannot be used at all. \"Usually\", never the Act's or the area's official name. From the dossier rules only; otherwise a gentle method and a test patch as what sometimes applies."
+          },
+          {
+            "title": "Where the wash water has to go",
+            "brief": "A drive beside a stream, a site on a soakaway, a car park with an oil trap: wash water that cannot go to the drain is held back, collected and taken away, and that adds time and kit (the trade facts price rows: drain isolation and water recovery). From the profile where it gives the river or the ground; the business's own practice only from [CV: materials_methods]. No figure."
+          }
+        ]
+      },
+      "faq_slots": [
+        {
+          "slot": "cost",
+          "question": "How much does [WORK_LOWER] cost in [TOWN]?",
+          "answer_brief": "Prices only from [CV: price_list]; otherwise the things that push the price up in a town like this (access through the house, height, where the wash water goes) and how the quote is given, from [CV: quote_method] only.",
+          "doubt": "Price"
+        },
+        {
+          "slot": "town",
+          "when": "start_time",
+          "question": "How soon can you get to [TOWN]?",
+          "answer_brief": "From [CV: start_time] and [CV: response_time] only. The town is in the area covered; nothing about distance unless [CV: travel_distance] is set.",
+          "doubt": "Timing"
+        },
+        {
+          "slot": "town",
+          "question": "Do you cover [TOWN]?",
+          "answer_brief": "Yes: the town and the villages around it (code lists them; name none). How the business reaches it from its base only from the client values. Link one page in this town.",
+          "doubt": "Fit"
+        },
+        {
+          "slot": "cover",
+          "when": "guarantee",
+          "question": "Do you guarantee your work in [TOWN]?",
+          "answer_brief": "Start with yes, then the terms from [CV: guarantee_years] and [CV: guarantee_scope]. Described, never promised; never a promise the growth will not return.",
+          "doubt": "Trust"
+        },
+        {
+          "slot": "cover",
+          "when": "insurance",
+          "question": "Are you insured?",
+          "answer_brief": "The cover figure from [CV: insurance_cover] and what the cover is for. Never what it pays or who it covers.",
+          "doubt": "Trust"
+        },
+        {
+          "slot": "cover",
+          "question": "What happens if something isn't right after the clean?",
+          "answer_brief": "Open with what the customer does: tell us and we look at it. Then the reasonable care and skill standard every trade works to. No promise to come back free. Never invent a guarantee.",
+          "doubt": "Trust"
+        },
+        {
+          "slot": "process",
+          "question": "What happens when I ask for a quote in [TOWN]?",
+          "answer_brief": "From [CV: quote_method] and the confirmed practices only: what the customer sends (which surfaces, a photo), what the business looks at (the surface, the growth, access, where the water goes), what comes back. No timescale unless [CV: response_time] is set.",
+          "doubt": "Process"
+        },
+        {
+          "slot": "timing",
+          "question": "When is the best time of year for [WORK_LOWER] in [TOWN]?",
+          "answer_brief": "From the trade facts timing cells, with the reason in the weather or the surface: most cleaning runs through the year; wet cleaning of walls and paving is held off when frost threatens; a treatment needs its time to work and a sealer a surface that has dried, so both wait for a dry spell. Where the town profile gives the shade or the damp (a wooded side of town, a river valley, the coast), say what it does to how fast growth returns there. Nothing about spring being busy or booking ahead. No dates, no promise about the weather.",
+          "doubt": "Timing"
+        }
+      ]
+    }
+  },
+  "do_not_reuse": []
+}

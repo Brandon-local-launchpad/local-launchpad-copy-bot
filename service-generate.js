@@ -123,16 +123,16 @@ async function generateServicePage({ cv, niche, keyValueMap, serviceParentMap = 
       { type: 'text', text: `${loadRetryPrompt().replace(/this homepage/g, 'this service page')}\n\nTHE PAGE'S MESSAGE (PAGE, DECISIONS, LINKABLE PAGES, ALLOCATED ITEMS, MODEL FIELDS):\n\n${decisionsResult.decisionsBlock}`, cache_control: { type: 'ephemeral' } },
     ];
     const callRetry = ({ message }) => callModel({ system: retrySystem, message, maxTokens: 2048 });
-    const { log, usage: retryUsage, finalIssues } = await runRetries({ record, V, callRetry });
+    const { log, usage: retryUsage, finalIssues } = await runRetries({ record, V, callRetry, validate });
     record.VALIDATION = validationSummary(finalIssues, log, retryUsage);
     if (claimsReview) {
       const { runClaimRetries } = require('./v20-retry');
       const { runClaimsReview, factsFromRecord } = require('./wp/claims-review');
       const review = rec => runClaimsReview(rec, factsFromRecord(rec), callModel);
       try {
-        const { claims, rounds, first } = await runClaimRetries({ record, V, callRetry, review });
+        const { claims, rounds, first } = await runClaimRetries({ record, V, callRetry, review, validate });
         record.CLAIMS = { for: meta.generated_at, at: claims.at, status: claims.findings.length ? 'needs acceptance' : 'clear', first_review: first, findings: claims.findings, rounds };
-        const after = rounds.some(r => r.retries.some(x => x.kept)) ? await runRetries({ record, V, callRetry, maxRetries: 1 }) : { log: [] };
+        const after = rounds.some(r => r.retries.some(x => x.kept)) ? await runRetries({ record, V, callRetry, maxRetries: 1, validate }) : { log: [] };
         record.VALIDATION = validationSummary(validate(record), [...log, ...rounds.flatMap(r => r.retries.map(x => ({ ...x, problems: x.claims, source: 'claims' }))), ...after.log.map(x => ({ ...x, round: `after claims ${x.round}` }))], retryUsage);
       } catch (e) {
         record.CLAIMS = { for: meta.generated_at, status: 'failed', error: e.message, findings: [] };
@@ -142,11 +142,11 @@ async function generateServicePage({ cv, niche, keyValueMap, serviceParentMap = 
       const { runQualityRetries, runClaimRetries } = require('./v20-retry');
       const Q = require('./quality-review');
       try {
-        const { review: rv, rounds: qRounds } = await runQualityRetries({ record, V, callRetry, review: rec => Q.reviewPage({ record: rec, V, D, cv, niche, callModel }), maxRounds: qualityRounds });
+        const { review: rv, rounds: qRounds } = await runQualityRetries({ record, V, callRetry, review: rec => Q.reviewPage({ record: rec, V, D, cv, niche, callModel }), maxRounds: qualityRounds, validate });
         record.QUALITY = { at: rv.at, model: rv.model, score: rv.score, done: rv.done, failed: rv.failed, failures: rv.items.filter(i => !i.pass), other_problems: rv.other_problems, missing_facts: rv.missing_facts, rounds: qRounds };
         if (claimsReview && qRounds.some(r => r.retries.some(x => x.kept))) {
           const { runClaimsReview, factsFromRecord } = require('./wp/claims-review');
-          const { claims, rounds } = await runClaimRetries({ record, V, callRetry, review: rec => runClaimsReview(rec, factsFromRecord(rec), callModel), maxRounds: 1 });
+          const { claims, rounds } = await runClaimRetries({ record, V, callRetry, review: rec => runClaimsReview(rec, factsFromRecord(rec), callModel), maxRounds: 1, validate });
           record.CLAIMS = { ...(record.CLAIMS || {}), at: claims.at, status: claims.findings.length ? 'needs acceptance' : 'clear', findings: claims.findings, rounds: [...((record.CLAIMS || {}).rounds || []), ...rounds.map(r => ({ ...r, round: `after quality ${r.round}` }))] };
         }
         const earlier = (record.VALIDATION && record.VALIDATION.retries) || [];

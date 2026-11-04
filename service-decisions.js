@@ -92,7 +92,9 @@ function computeServiceDecisions({ cv, niche, keyValueMap = {}, rows = [], page,
   let blocks = null;
   // The emergency switch (3 Nov 2026): on when this service page is flagged in the library
   const emergencyNames = (baseRow && baseRow.info && baseRow.info.emergency) || (page.info && page.info.emergency) ? [serviceName] : [];
-  try { blocks = B.blocksFor({ niche, cv, category, emergencyPage: emergencyNames.length > 0 }); }
+  // The desire led framing (4 Nov 2026): the library flags the page desire_led, so block 4 is "Is this right for you"
+  const desirePage = !!((baseRow && baseRow.info && baseRow.info.desire_led) || (page.info && page.info.desire_led));
+  try { blocks = B.blocksFor({ niche, cv, category, emergencyPage: emergencyNames.length > 0, desirePage }); }
   catch (e) { if (e.code === 'G-BRIEF') gates.push({ code: 'G-BRIEF', msg: e.message }); else throw e; }
   if (gates.length) return { gates, flags, decisions: null, decisionsBlock: null };
   for (const g of B.briefGaps(blocks.entry)) flags.push({ code: 'F-BRIEF', msg: `${niche._source || niche.trade} type ${blocks.key}: ${g}.` });
@@ -326,7 +328,7 @@ function computeServiceDecisions({ cv, niche, keyValueMap = {}, rows = [], page,
 
   const decisions = {
     page_type: 'service', scope, service: serviceName, service_names: namesOf(baseRow), category, category_key: catKey, town: townName, city, slug: selfUrl,
-    type: { letter: blocks.letter, key: blocks.key, a2: blocks.a2, emergency: blocks.emergencyUsed, source: blocks.source },
+    type: { letter: blocks.letter, key: blocks.key, a2: blocks.a2, emergency: blocks.emergencyUsed, desire: !!blocks.desireUsed, desire_page: desirePage, source: blocks.source },
     d1_years_trading: yearsTrading,
     d2_h1: h1, keyword: kwNatural, svc, svc_lower: svcLower, cat, cat_lower: catLower, work, work_lower: workLower,
     d3_title: built.title, d4_meta: meta, d5_trust: trust.line, d6_rating: rating,
@@ -366,6 +368,7 @@ function formatServiceBlock(D, cv, niche, ctx) {
   push(`Breadcrumb: ${D.breadcrumb.map(b => b.name).join(' › ')}`);
   push(`Buttons: ${D.d15_buttons.join(' | ')}`);
   push(`Business type: ${D.type.key}${D.type.emergency ? ' (emergency layout)' : ''}${D.seasonal ? ', seasonal swap on' : ''}`);
+  push(`Block 4 framing: ${D.type.emergency ? 'emergency (when it can\'t wait)' : D.type.desire ? 'desire led: the customer\'s situation, what decides it and what the work gives them; this page has no symptoms, so never invent one' : D.type.desire_page ? 'desire led page, but the niche entry has no desire variant for this type: write situations, never symptoms' : 'problem led (the signs you need it)'}`);
   push(`Reviews block: ${D.reviews.show ? 'SHOWN (the three hand picked reviews are placed by code)' : 'HIDDEN'}`);
   push(`More Services block: ${D.more.length ? `SHOWN (${D.more.length} cards placed by code; the intro names none of them)` : 'HIDDEN (no other service page in this category: write HIDDEN)'}`);
   push('');

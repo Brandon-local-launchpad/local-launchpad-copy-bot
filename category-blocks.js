@@ -37,6 +37,13 @@ function clientEmergency(cv = {}) {
   return lc(cv.emergency_primary) === 'yes' || yes(cv.emergency_callouts);
 }
 
+// The site takes urgent symptoms in the allocation pass (4 Nov 2026): the client confirms call
+// outs and the page map has a service page flagged emergency (page map rows, or the v3 context's
+// pages). The old niche level emergency_niche marker used to decide this; nothing reads it now.
+function emergencySite(cv = {}, rows = []) {
+  return clientEmergency(cv) && (rows || []).some(r => r && (r.type === 'service' || r.type === 'town_service' || r.pageType === 'service') && !!(r.emergency || (r.info && r.info.emergency)));
+}
+
 // Why the emergency layout is on or off, for the DECISIONS block. names: the flagged pages
 // the page's cards lead to (a service page: itself)
 function emergencyWhy(on, names, cv = {}) {
@@ -142,4 +149,27 @@ function applySeasonal(niche, entry, { problems, faqs, letter = 'A' }) {
   return { problems: p, faqs: q, swapped: true, symptomSwap };
 }
 
-module.exports = { typeFor, blocksFor, briefGaps, pickFaqSlots, applySeasonal, NoBriefsError, clientEmergency, emergencyWhy };
+// The client's business type letter (the niche default when unset), for the homepage
+function typeLetterFor(cv = {}, niche = {}) {
+  const raw = lc(cv.business_type || niche.business_type_default || 'A');
+  return ['a', 'b', 'c', 'd'].includes(raw[0]) ? raw[0].toUpperCase() : 'A';
+}
+
+// The niche's fears and homepage FAQ slots for a client's type (4 Nov 2026): fears_by_type and
+// faq_slots_by_type override the shared lists by type letter, so a maintenance client is not
+// sold project fears and project questions. A slot override replaces the shared slot of the
+// same name; a new slot name is added after the shared ones.
+function fearsFor(niche = {}, cv = {}) {
+  const by = niche.fears_by_type || {};
+  const t = typeLetterFor(cv, niche);
+  return Array.isArray(by[t]) && by[t].length ? by[t] : (niche.fears || []);
+}
+function faqSlotsFor(niche = {}, cv = {}) {
+  const over = ((niche.faq_slots_by_type || {})[typeLetterFor(cv, niche)]) || [];
+  if (!Array.isArray(over) || !over.length) return niche.faq_slots || [];
+  const out = (niche.faq_slots || []).map(s => over.find(o => o.slot === s.slot) || s);
+  for (const o of over) if (!out.some(s => s.slot === o.slot)) out.push(o);
+  return out;
+}
+
+module.exports = { typeFor, blocksFor, briefGaps, pickFaqSlots, applySeasonal, NoBriefsError, clientEmergency, emergencyWhy, emergencySite, typeLetterFor, fearsFor, faqSlotsFor };

@@ -169,7 +169,9 @@ async function runAllocation({ dossierText, cv, niche, keyValueMap, pages, callM
   const city = (keyValueMap['biz_area_1'] || '').trim();
   const categories = clientCategories(cv, keyValueMap, pages);
   const slots = page ? (page.slots || []) : symptomSlots(niche);
-  const eligible = eligibleItems(parsed, { emergencyNiche: !!niche.emergency_niche, categories });
+  // Urgent symptoms are eligible when the client confirms call outs and the site has an emergency
+  // page (4 Nov 2026: category-blocks.js emergencySite; the niche marker used to decide this)
+  const eligible = eligibleItems(parsed, { emergencyNiche: require('./category-blocks').emergencySite(cv, pages), categories });
   const takenIds = new Set((page && page.takenNeighbourhoods) || []);
   if (takenIds.size) {
     const names = parsed.neighbourhoods.filter(n => takenIds.has(n.id)).map(n => n.name);

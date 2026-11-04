@@ -188,7 +188,13 @@ function packIndex(text) {
   if (packCache.has(text)) return packCache.get(text);
   const grams = new Set();
   const sets = [];
-  const plain = String(text).replace(/\{\{[^}]+\}\}|\[CV: [a-z0-9_]+\]/g, ' x ').replace(/[#*_>|`]+/g, ' ');
+  // Only the pack's example copy counts (4 Nov 2026): the fenced blocks that hold its worked
+  // examples. Its prose (the readers, the craft rules, what fails) describes the trade in the
+  // words the copy will rightly share ("the mark on the ceiling"), and matching against it blocked
+  // the Roof repairs page on a different phrase every run. A pack with no fences is read whole.
+  const fenced = [...String(text).matchAll(/```[^\n]*\n([\s\S]*?)```/g)].map(m => m[1]);
+  const source = fenced.length ? fenced.join('\n\n') : String(text);
+  const plain = source.replace(/\{\{[^}]+\}\}|\[CV: [a-z0-9_]+\]/g, ' x ').replace(/[#*_>|`]+/g, ' ');
   for (const sen of plain.split(/\n+|(?<=[.!?])\s+/)) {
     const toks = lc(sen).replace(/[^a-z0-9£' ]+/g, ' ').split(/\s+/).filter(Boolean);
     for (let i = 0; i + 5 <= toks.length; i++) {
@@ -211,8 +217,17 @@ function packIndex(text) {
 function packCopy(sentence, idx, names = []) {
   if (!idx) return null;
   const toks = lc(scanText(sentence)).replace(/cvtoken/g, 'x').replace(/[^a-z0-9£' ]+/g, ' ').split(/\s+/).filter(Boolean);
-  for (let i = 0; i + 5 <= toks.length; i++) { const g = toks.slice(i, i + 5); const run = g.join(' '); if (packContent(g) && idx.grams.has(run) && !names.some(n => n.includes(run))) return { kind: 'run', match: run }; }
-  const mine = contentWords(sentence);
+  // A run inside one of the page's own names is that name, not a copy (3 Nov); so is a run that
+  // bridges two names listed side by side (4 Nov 2026: "interior painting and decorating, exterior
+  // painting" in a services card): the run's head ends one name and its tail starts another
+  const isName = run => names.some(n => n.includes(run));
+  const bridges = g => { for (let k = 1; k < g.length; k++) { const head = g.slice(0, k).join(' '), tail = g.slice(k).join(' '); if (names.some(n => n === head || n.endsWith(' ' + head)) && names.some(n => n === tail || n.startsWith(tail + ' '))) return true; } return false; };
+  for (let i = 0; i + 5 <= toks.length; i++) { const g = toks.slice(i, i + 5); const run = g.join(' '); if (packContent(g) && idx.grams.has(run) && !isName(run) && !bridges(g)) return { kind: 'run', match: run }; }
+  // The page's own names are not a copy here either (4 Nov 2026): a pack example line "card_name:
+  // Lockouts and gaining entry | card_text: A door pulled shut on a latch..." shares the page name's
+  // words with every sentence that names the page, so they are left out of the comparison
+  const nameWords = new Set(names.flatMap(n => [...contentWords(n)]));
+  const mine = new Set([...contentWords(sentence)].filter(w => !nameWords.has(w)));
   if (mine.size >= 7) for (const s of idx.sets) { let shared = 0; for (const w of mine) if (s.words.has(w)) shared++; if (shared / Math.min(mine.size, s.words.size) >= 0.7) return { kind: 'sentence', match: s.text }; }
   return null;
 }
@@ -308,7 +323,8 @@ function validateCommon(record, V) {
     if (hyph.length) flag('FLAG', '1b', `Hyphenated words: ${hyph.join(', ')}. Write them without the hyphen, or rephrase if that reads like a typo.`);
 
     // 2 banned phrases (incl. the 14 Oct additions)
-    for (const p of BANNED) if (new RegExp(`\\b${esc(p)}\\b`, 'i').test(s)) flag('BLOCK', '2', `Banned phrase "${p}".`);
+    // The niche entry's own banned phrases (banned_phrases, 4 Nov 2026) block on first use like the CORE list
+    for (const p of [...BANNED, ...(niche.banned_phrases || [])]) if (new RegExp(`\\b${esc(p)}\\b`, 'i').test(s)) flag('BLOCK', '2', `Banned phrase "${p}".`);
     if (/\b(your|their|our|the|specific|individual|particular|every)\s+needs\b/i.test(s) || /\bneeds\s+of\b/i.test(s)) flag('BLOCK', '2', '"needs" used as a noun ("your needs"). Say the concrete thing instead.');
     // "As your/a/an [category]" only as a sentence opener: "our work as a landscaper in..." is fine
     for (const cat of V.categoryNames) {
@@ -363,7 +379,9 @@ function validateCommon(record, V) {
     if (cv.same_day_available !== 'yes' && /\bsame[\s-]day\b/i.test(s)) flag('BLOCK', 'N5', '"Same day" used but same day is not confirmed.');
     if (cv.out_of_hours_available !== '24/7' && /24\/7/.test(s)) flag('BLOCK', 'N5', '"24/7" used but 24/7 cover is not confirmed.');
     if (cv.waste_carrier_registered !== 'yes' && /\bwaste carriers?\b/i.test(s)) flag('BLOCK', 'N5', 'Waste carrier registration is mentioned but not confirmed.');
-    if (!cv.deposit_terms && /\bdeposits?\b/i.test(s)) flag('BLOCK', 'N5', 'A deposit is mentioned but deposit_terms is blank.');
+    // N5 is the payment deposit; a trade's deposits ("sludge deposits", "scale deposits in the cylinder") are its own word (4 Nov 2026, the plumbing homepage)
+    const sPay = s.replace(/\b(sludge|scale|limescale|lime|mineral|salt|grease|dirt|calcium|magnetite|rust|black|soot|carbon|fat)\s+deposits?\b|\bdeposits?\s+of\s+(sludge|scale|limescale|lime|minerals?|salt|grease|dirt|rust|soot|carbon|fat)\b/gi, '');
+    if (!cv.deposit_terms && /\bdeposits?\b/i.test(sPay)) flag('BLOCK', 'N5', 'A deposit is mentioned but deposit_terms is blank.');
     // RIVALS: the client's own site never sends the reader to other businesses
     const rivals = s.match(/\b(?:get|getting|ask for|asking for|collect|obtain|request)\s+(?:at least\s+)?(?:two|three|four|several|a few|multiple|more|other|\d+)(?:\s+or\s+(?:two|three|four|more))?\s+(?:\w+\s+)?quotes?\b|\bcompare\s+(?:\w+\s+)?(?:quotes|firms|companies|businesses|landscapers|gardeners|roofers|tradespeople|traders)\b|\bshop(?:ping)? around\b|\bother (?:firms|companies|landscapers|gardeners|roofers|tradespeople|traders|contractors)\b/i);
     if (rivals) flag('BLOCK', 'RIVALS', `"${rivals[0]}" sends the reader to other businesses. Answer as this business; leave it out.`);
@@ -704,7 +722,12 @@ function validateV20(record, V) {
     const problems = [];
     const blockers = []; // the keyword is the point of sentence 1: losing it is a BLOCK
     if (!/\[CV: company_name\]/.test(s1)) problems.push('it has no [CV: company_name]');
-    if (city && tp && !new RegExp(`\\b${tp}s?\\s+(?:\\w+\\s+){0,2}?in\\s+${city}\\b|\\b${city}\\s+${tp}`, 'i').test(lc(s1))) blockers.push(`the keyword "${niche.trade_person} in ${V.city}" isn't there as a phrase`);
+    // The phrase sentence 1 carries (4 Nov 2026): the trade person in the city, or the page keyword
+    // itself when the H1 names something else (a guttering client under the Roofing services
+    // category writes "offers roofing services in Southampton"; CORE (20) asks for the PAGE keyword)
+    const kwWords = esc(lc(String(D.d2_h1 || '').replace(new RegExp(`\\s+${esc(V.city || '')}\\s*$`, 'i'), '').trim()));
+    const phraseRe = w => new RegExp(`\\b${w}s?\\s+(?:\\w+\\s+){0,2}?in\\s+${city}\\b|\\b${city}\\s+${w}`, 'i');
+    if (city && tp && !phraseRe(tp).test(lc(s1)) && !(kwWords && phraseRe(kwWords).test(lc(s1)))) blockers.push(`the keyword "${niche.trade_person} in ${V.city}"${kwWords && kwWords !== tp ? ` (or "${lc(D.d2_h1)}" as a phrase)` : ''} isn't there as a phrase`);
     if (town && city && (new RegExp(`\\b${esc(lc(town))},?\\s+${city}\\b`).test(lc(s1)) || new RegExp(`\\bin\\s+${city},\\s+${esc(lc(town))}\\b`).test(lc(s1)))) {
       blockers.push(`listing ${town} beside ${V.city} reads as if the business is based in both; say "${niche.trade_person} in ${V.city}", then ${town} as a place it works (e.g. "covering ${town} and the surrounding areas")`);
     }

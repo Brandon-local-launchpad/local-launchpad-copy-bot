@@ -3489,7 +3489,7 @@ async function resolveHomepageAllocation(clientId, ctx, niche) {
     flags.push(...applied.flags);
   }
   const categories = allocation.clientCategories(ctx.cv, ctx.keyValueMap, ctx.pages);
-  const eligible = allocation.eligibleItems(parsed, { emergencyNiche: !!niche.emergency_niche, categories });
+  const eligible = allocation.eligibleItems(parsed, { emergencyNiche: require('./category-blocks').emergencySite(ctx.cv, ctx.pages), categories });
   const view = {
     dossierLocation: dossier.locationName,
     stale,
@@ -3705,7 +3705,7 @@ app.put('/api/clients/:clientId/allocation', async (req, res) => {
     if (!dossier) return res.status(400).json({ error: 'No saved dossier for the primary city.' });
     const parsed = parseDossier(dossier.text);
     const categories = allocation.clientCategories(ctx.cv, ctx.keyValueMap, ctx.pages);
-    const eligible = allocation.eligibleItems(parsed, { emergencyNiche: !!niche.emergency_niche, categories });
+    const eligible = allocation.eligibleItems(parsed, { emergencyNiche: require('./category-blocks').emergencySite(ctx.cv, ctx.pages), categories });
     const slots = allocation.symptomSlots(niche);
     const { picks, errors } = allocation.checkPicks(
       { homepage: { neighbourhoods, symptoms, conservation_areas: [] } }, { eligible, slots }
