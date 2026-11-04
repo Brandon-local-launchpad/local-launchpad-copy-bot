@@ -1,0 +1,621 @@
+{
+  "_source": "niche-library/builder.json (Builder, 4 Nov 2026; the human copy is Niche_Library_Builder.md)",
+
+  "trade": "Building",
+  "trade_lower": "building",
+  "trade_person": "builder",
+  "trade_person_plural": "builders",
+  "customer_type": "homeowners",
+  "unit_of_work": "jobs",
+  "emergency_niche": false,
+  "big_ticket": true,
+  "big_ticket_examples": ["house extensions", "loft conversions", "new build homes"],
+  "schema_subtype": "GeneralContractor",
+
+  "words_use": ["house", "home", "extension", "loft", "garage", "kitchen", "bathroom", "back wall", "knock through", "steel beam", "foundations", "roof", "crack", "damp", "plans", "building control", "planning permission", "party wall", "the neighbours", "skip", "scaffolding"],
+  "words_avoid": ["dwelling", "property", "premises", "fabric", "envelope", "substrate", "formation", "load path", "habitable", "curtilage", "principal elevation", "thermal element", "means of escape", "dutyholder", "programme", "remodel", "remodelling", "drywall", "baseboard"],
+  "words_avoid_exceptions": { "property": "allowed inside a page name the library gives it (Property refurbishment, Property repairs and maintenance) and in the link text to those pages" },
+  "banned_phrases": ["dream home", "home of your dreams", "forever home", "transform your home", "transform your space", "bring your vision to life", "turn your vision into reality", "the home you've always wanted", "unlock the potential", "unlock your home's potential", "add value to your home", "increase the value of your home", "no job too small", "one stop shop", "turnkey", "signs you need an extension"],
+
+  "buttons": {
+    "primary_action": "Get My [QUOTE_FREE] Quote",
+    "meta_cta": "Get your [QUOTE_FREE_LOWER] quote today.",
+    "process_h2": "Your [QUOTE_FREE] Quote in 3 Simple Steps",
+    "final_h2": "Get a [QUOTE_FREE] Quote From a Local [CATEGORY] in [CITY]",
+    "final_h2_emergency": null,
+    "cta_band_line": "Tell us about the job and we'll get back to you within [CV: response_time].",
+    "cta_band_line_no_response": "Tell us about the job and we'll get back to you."
+  },
+
+  "business_type_default": "A",
+  "business_type_notes": "Every Fillout tab is a project category (the pack's section 2): A throughout. Remodeller and Property Developer are not in the pack's table and take the client's type, A by default. There is no type B: a builder whose work is all repairs and maintenance is still A, and reads the problem led and schedule led lines in the briefs.",
+
+  "priority_services": [],
+  "core_services": {
+    "building firm": ["house extensions", "loft conversions", "garage conversions", "property refurbishment", "property repairs and maintenance", "design and build"],
+    "construction company": ["new build homes", "foundations and underpinning", "structural repairs", "property refurbishment", "demolition and strip out", "concrete bases and groundworks", "patios"],
+    "contractor": ["basement conversions", "property repairs and maintenance"],
+    "general contractor": ["design and build", "commercial building work", "brickwork and masonry", "property repairs and maintenance", "property refurbishment", "painting and decorating"],
+    "remodeller": ["property refurbishment", "bath and shower resurfacing"],
+    "property developer": ["new build homes"],
+    "home builder": ["house extensions", "garage construction", "new build homes", "design and build", "roofing", "damp proofing and waterproofing"],
+    "kitchen renovator": ["kitchen fitting", "kitchen design", "kitchen worktops", "kitchen door replacement and refacing"],
+    "carpenter": ["bespoke carpentry and joinery", "fitted wardrobes", "fitted shelving and storage", "staircases", "first fix carpentry", "second fix carpentry"],
+    "flooring contractor": ["wood flooring", "laminate and LVT flooring", "carpet fitting", "wall and floor tiling", "floor sanding and restoration", "floor repairs", "resin flooring", "polished concrete floors", "skirting boards and architrave"],
+    "bathroom renovator": ["bathroom fitting", "wet rooms", "bath installation and replacement", "bath and shower resurfacing"],
+    "deck builder": ["decking installation", "composite decking", "decking repairs", "pergolas", "porch extensions"]
+  },
+
+  "steps": [
+    {
+      "title": "Tell Us About the Job",
+      "brief": "How to get in touch and what is useful to send first (the house and what they want done, rough sizes, drawings if they already have them, photos of the room or the wall). No promise of a reply time unless [CV: response_time] is set."
+    },
+    {
+      "title": "We Visit and Price the Job",
+      "brief": "The visit and what gets looked at on site: the ground where it can be seen, where the drains run, how a skip and the materials get in, whether the job touches a wall the neighbour shares, and what the planning position looks like for that house (looked at on the day, never settled on the day). Follows [CV: quote_method]; only say the quote is written if quote_method says so. Never restates 'free' (FAQ 5 owns it). Never a free survey, a fixed price or a start date."
+    },
+    {
+      "title": "We Start on a Date That Suits You",
+      "brief": "The start date is agreed in advance, to suit the customer. Never mention the price, the quote or changes to the plan (step 2 and Why choose us own them). Never restates the start time (FAQ 4 owns it). No finish date, duration or week by week plan: the trade facts give none. One line on the order of work only as a principle (the house stays closed to the weather until the new part is ready to be joined to it), never as this business's timetable."
+    }
+  ],
+
+  "step_2_no_visit": {
+    "title": "We Price Your Job",
+    "brief": "Say a price is agreed before any work starts. Describe how the price is reached only from [CV: quote_method]; when quote_method is blank, name no method at all (no photos, call, video or visit). Only say the quote is written if quote_method says so. Never restates 'free' (FAQ 5 owns it)."
+  },
+  "cover_chain": ["guarantee", "manufacturer_warranty", "insurance"],
+
+  "fears": [
+    "costs that appear once the walls are open and the job is half done",
+    "a build that runs months past the date they were given",
+    "a builder who disappears to another site halfway through",
+    "work that fails its building control inspection, or was never signed off at all"
+  ],
+  "fears_by_type": {},
+
+  "logo_tiers": {
+    "ratings": ["Google (needs review_count 5+)", "Checkatrade", "Trustpilot", "Which? Trusted Traders"],
+    "tier1": ["FMB (Federation of Master Builders)", "TrustMark", "CIOB (Chartered Institute of Building: an individual's grade, never the firm's)", "NHBC registered builder (new build clients only)"],
+    "tier2": ["PCA (Property Care Association: damp and waterproofing work)", "BiKBBI (kitchen and bathroom installers)", "NICF or CFA (flooring)", "Guild of Master Craftsmen", "LABC Warranty, Premier Guarantee or NHBC Buildmark (a new build's structural warranty, shown as the policy it is and never as approval of the work)", "QANW or HomePro (an insurance backed guarantee, only where the client holds one)"],
+    "tier3": "chamber of commerce, local press features, local awards: Ray's call per client. Gas Safe, NICEIC, NAPIT, FENSA, CERTASS and HETAS belong to whoever is registered for that work; shown only when the client itself is registered for that scope, never for a subcontractor's registration."
+  },
+
+  "faq_fixed_doubts": {
+    "Q1_cost": "Price",
+    "Q6_areas": "Fit"
+  },
+
+  "faq_slots": [
+    {
+      "slot": "faq_2",
+      "question": "Are you insured?",
+      "answer_brief": "The cover figure from [CV: insurance_cover] and what it means for the customer if something is damaged during the job. Never what it pays or who it covers.",
+      "symptom_based": false,
+      "doubt": "Trust"
+    },
+    {
+      "slot": "faq_2_fallback",
+      "question": "What happens if something goes wrong?",
+      "answer_brief": "From [CV: complaints_process] only.",
+      "symptom_based": false,
+      "doubt": "Trust"
+    },
+    {
+      "slot": "faq_3",
+      "question": "Do you guarantee your work?",
+      "answer_brief": "Used only when a guarantee or a warranty is confirmed. Start with yes, then the terms from [CV: guarantee_years] and [CV: guarantee_scope]. A new build's structural warranty from [CV: manufacturer_warranty] as the policy it is, never as approval of the work. An insurance backed guarantee only where the client holds one. Described, never promised.",
+      "symptom_based": false,
+      "doubt": "Trust"
+    },
+    {
+      "slot": "faq_3_none",
+      "question": "What happens if something isn't right after the job?",
+      "answer_brief": "Used when nothing in cover_chain other than insurance is confirmed. Open with what the customer does: tell us what isn't right and we'll look at it. Then the 'reasonable care and skill' standard every trade works to, as the standard the work is held to, never as a defence. No promise to come back or put it right for free. Never invent a guarantee. Where the work was inspected by building control, the completion certificate is a record that the work was signed off, never a guarantee against a later defect.",
+      "symptom_based": false,
+      "doubt": "Trust"
+    },
+    {
+      "slot": "faq_4",
+      "question": "How soon can you start?",
+      "answer_brief": "From [CV: start_time] only, as given. Code adds \"bigger projects are booked further ahead\" only when that practice is confirmed. Never a finish date.",
+      "symptom_based": false,
+      "doubt": "Timing"
+    },
+    {
+      "slot": "faq_5_free",
+      "question": "Is the quote free and no obligation?",
+      "answer_brief": "From [QUOTE_FREE] and [CV: quote_method].",
+      "symptom_based": false,
+      "doubt": "Price"
+    },
+    {
+      "slot": "faq_5_not_free",
+      "question": "How do your quotes work?",
+      "answer_brief": "From [CV: quote_method] only.",
+      "symptom_based": false,
+      "doubt": "Price"
+    },
+    {
+      "slot": "faq_A",
+      "question": "How long does an extension or a conversion take?",
+      "answer_brief": "No duration: the trade facts give none for any job (Table G). Give the stages instead, in order and as the reason the time is what it is: the approvals before anything starts, the foundations dug and looked at by building control before any concrete goes in, the shell and the roof, first fix, plaster, second fix, the final inspection. Then what moves it: the ground, steel, drains, the weather on the exposed stages, plaster drying before decoration. A number only from the client values.",
+      "symptom_based": false,
+      "doubt": "Timing"
+    },
+    {
+      "slot": "faq_B",
+      "question": "Why does a crack in my wall keep coming back?",
+      "answer_brief": "Use the assigned symptom's meaning and its linked local issue. Say first what is normal (hairline cracks on shrinkable ground that widen in a dry spell and close up once the ground is wet again) and then what is not (a crack that widens each year, one that splits the bricks and not just the joints between them, a door that has started to bind, a floor that slopes). Three genuinely different causes in plain words: ground under the foundations that shrinks and swells, or has been softened by a leaking drain or dried by a tree; a lintel or a beam over an opening that has dropped; filler moving over a joint between old work and new. Then what the local ground adds, then what finding the cause involves (an engineer's look, monitoring where the movement is in doubt) before any repair is sold. Never underpinning as the default answer, never a verdict on whether the house is safe.",
+      "symptom_based": true,
+      "doubt": "Process"
+    },
+    {
+      "slot": "faq_C",
+      "question": "Planning permission or building regulations: which does my job need?",
+      "answer_brief": "Two approvals, kept apart, from the trade facts rule rows. Planning asks whether a thing may be built at all: how big, how high, how it looks from the street and what it does to the neighbours. Building regulations ask whether the work is sound and safe once built: the structure, the foundations, the way out in a fire, the insulation, the drains and the ventilation, with building control looking at the stages and issuing a completion certificate at the end. An extension on one floor behind the house, a loft kept within the roof's shape and a garage converted within its own walls usually need no planning application and still need building regulations approval. Telling the neighbours about work on a shared wall is a third thing, separate from both. 'Usually' throughout; never an Act's, an order's or a document's name; no figure.",
+      "symptom_based": false,
+      "is_fallback": true,
+      "doubt": "Process"
+    },
+    {
+      "slot": "faq_D",
+      "question": "Can we stay in the house while the work is done?",
+      "answer_brief": "The order of work as the reason, from the trade facts stages: the new structure goes up and is made weathertight first and the wall into the existing house comes down last, so the house stays closed to the weather for most of the build; a loft is reached from the scaffold outside until the stair goes in; a kitchen or a bathroom is out of use between strip out and second fix. Written as the principle, never as this business's timetable. What the business does for the household (a temporary kitchen, dust screens, a site toilet) only from confirmed practices. No duration.",
+      "symptom_based": false,
+      "is_fallback": true,
+      "doubt": "Process"
+    },
+    {
+      "slot": "faq_planning",
+      "question": "Will my extension or loft need planning permission?",
+      "answer_brief": "Point at the trade facts rule rows (Table C) and write what usually applies, with \"usually\" or \"in most cases\": an extension on one floor behind the house, a loft with a rear dormer or rooflights that keeps the roof's shape, and a garage converted within its own walls usually fall within what a house may do without an application; a second floor added on top, building out beside the house or round the corner of it, a dormer facing the road, every extension to a flat, and a home in a conservation area or on an estate where the council has taken the allowance away are more likely to need one; a certificate from the council is the usual way to confirm that a job needs none. The building regulations side is a different question: an extension or a conversion goes through building control whether or not planning was needed. What the customer does about it only as the row gives it; what this business arranges only from [CV: handles_planning]. No figure, no depth, height or volume, never an Act's or an order's name; never that a job will or will not need permission before the house has been seen.",
+      "symptom_based": false,
+      "condition": "big_ticket AND [CV: handles_planning] confirmed",
+      "doubt": "Process"
+    }
+  ],
+  "faq_slots_by_type": {},
+
+  "materials_tick_list": {
+    "Walls and structure": ["brick and block cavity walls", "timber frame", "steel beams and lintels", "lime mortar on older walls"],
+    "Foundations": ["strip foundations", "trench fill", "piled or engineered foundations", "underpinning"],
+    "Roofs": ["pitched roof, tiled or slated", "flat roof in fibreglass", "flat roof in rubber", "flat roof in felt", "rooflights"],
+    "Lofts": ["rear dormer", "hip to gable", "rooflight conversion", "mansard"],
+    "Damp and below ground": ["injected damp proof course", "tanking", "cavity drain membrane with a pump"],
+    "Kitchens and bathrooms": ["rigid units", "flat pack units", "laminate worktops", "quartz worktops", "granite worktops", "timber worktops", "tiled walls", "wall panels", "wet room tanking"],
+    "Floors": ["carpet", "laminate", "LVT", "engineered wood", "solid wood", "resin", "polished concrete", "floor tiles"],
+    "Decking": ["softwood", "hardwood", "composite"],
+    "Other": ["drawings arranged", "structural engineer arranged", "building control application made for you", "party wall notices handled", "skip and scaffold arranged", "waste carrier registered"]
+  },
+
+  "service_terms": ["house extension", "extensions", "single storey extension", "two storey extension", "side return", "wraparound extension", "loft conversion", "dormer", "hip to gable", "garage conversion", "basement conversion", "barn conversion", "porch", "conservatory", "orangery", "garden room", "outbuilding", "new build", "new build homes", "design and build", "refurbishment", "renovation", "property repairs", "maintenance", "listed building", "heritage work", "insurance repair", "disability adaptations", "demolition", "strip out", "structural alterations", "steel beam", "RSJ", "knock through", "open plan", "structural repairs", "underpinning", "foundations", "footings", "groundworks", "concrete base", "slab", "brickwork", "blockwork", "masonry", "repointing", "pointing", "damp proofing", "damp proof course", "tanking", "waterproofing", "roofing", "re roof", "plastering", "drylining", "skimming", "painting and decorating", "tiling", "patio", "kitchen fitting", "kitchen design", "worktops", "kitchen doors", "refacing", "bathroom fitting", "wet room", "bath installation", "bath resurfacing", "shower resurfacing", "joinery", "bespoke carpentry", "first fix", "second fix", "fitted wardrobes", "fitted shelving", "staircase", "skirting", "architrave", "carpet fitting", "laminate flooring", "LVT", "wood flooring", "floor sanding", "floor repairs", "resin flooring", "polished concrete", "decking", "composite decking", "decking repairs", "decking restoration", "pergola", "commercial building", "shop fitting", "office fit out"],
+
+  "service_words_note": "Old path only (21 Oct 2026): this list applies when the homepage is written from the uploaded custom values CSVs. A client with a v3 page map names every service by its page title (the services library's UK name), and this list is not used.",
+  "service_words": [
+    ["crawl space", null], ["pole building", null], ["metal building", null], ["steel building", null], ["tv mounting", null], ["fan installation", null], ["fan repair", null],
+    ["road construction", null], ["furniture assembly", null], ["gutter cleaning", null], ["appraisals", null], ["tiny home", null], ["prefabricated", null],
+    ["commercial machinery", null], ["civil engineering", null], ["outdoor kitchen", null], ["patio enclosure", null], ["water fixture", null], ["plumbing", null], ["electrical", null], ["a/c", null],
+    ["home addition", "house extensions"], ["home extension", "house extensions"], ["basement remodel", "basement conversions"], ["basement waterproofing", "damp proofing and waterproofing"],
+    ["waterproofing", "damp proofing and waterproofing"], ["water and moisture", "damp proofing"], ["foundation drainage", "damp proofing and waterproofing"],
+    ["custom home", "new build homes"], ["home building", "new build homes"], ["new building construction", "new build homes"], ["new construction", "new build homes"],
+    ["country home", "new build homes"], ["luxury home", "new build homes"], ["accessory building", "garden rooms and outbuildings"],
+    ["foundation", "foundations and underpinning"], ["steel pier", "foundations and underpinning"], ["concrete", "concrete bases and groundworks"], ["excavation", "groundworks"],
+    ["demolition", "demolition and strip out"], ["structural repair", "structural repairs"], ["repairs and maintenance", "property repairs and maintenance"],
+    ["general repairs", "property repairs and maintenance"], ["home repairs", "property repairs and maintenance"], ["remodel", "property refurbishment"],
+    ["renovation", "property refurbishment"], ["refurbishment", "property refurbishment"], ["interior finishing", "property refurbishment"],
+    ["drywall", "plastering and drylining"], ["tile work", "wall and floor tiling"], ["interior decorating", "painting and decorating"], ["exterior painting", "painting and decorating"],
+    ["painting", "painting and decorating"], ["patio", "patios"], ["roof", "roofing"], ["masonry", "brickwork and masonry"],
+    ["project management", "design and build"], ["construction management", "design and build"], ["building design", "design and build"],
+    ["architectural design", "design and build"], ["blueprint", "design and build"], ["exterior design", "design and build"], ["commercial projects", "commercial building work"],
+    ["garage design and building", "garage construction"], ["garage construction", "garage construction"], ["garage design", "garage construction"],
+    ["kitchen cabinet door", "kitchen door replacement"], ["cabinet refacing", "kitchen door replacement and refacing"], ["cabinet refinishing", "kitchen door replacement and refacing"],
+    ["kitchen cabinet design", "kitchen design"], ["kitchen design", "kitchen design"], ["worktop", "kitchen worktops"], ["kitchen cabinet", "kitchen fitting"], ["custom kitchen", "kitchen fitting"],
+    ["bathtub installation", "bath installation"], ["bathtub replacement", "bath installation and replacement"], ["bathtub", "bath and shower resurfacing"],
+    ["shower refinishing", "bath and shower resurfacing"], ["bathroom worktop resurfacing", "bath and shower resurfacing"], ["tile reglazing", "bath and shower resurfacing"],
+    ["wardrobe", "fitted wardrobes"], ["shelving", "fitted shelving and storage"], ["staircase", "staircases"], ["finish carpentry", "second fix carpentry"], ["trim carpentry", "second fix carpentry"],
+    ["rough carpentry", "first fix carpentry"], ["cabinet", "bespoke carpentry and joinery"], ["custom carpentry", "bespoke carpentry and joinery"], ["carpentry", "carpentry"],
+    ["baseboard", "skirting boards and architrave"], ["carpet", "carpet fitting"], ["stair flooring", "carpet fitting"], ["laminate", "laminate and LVT flooring"],
+    ["epoxy", "resin flooring"], ["floor coating", "resin flooring"], ["concrete floor polishing", "polished concrete floors"], ["concrete staining", "polished concrete floors"],
+    ["wood floor refinishing", "floor sanding and restoration"], ["wood floor sanding", "floor sanding and restoration"], ["wood floor restoration", "floor sanding and restoration"],
+    ["floor refinishing", "floor sanding and restoration"], ["floor polishing", "floor sanding and restoration"], ["wood floor repair", "floor repairs"], ["floor repair", "floor repairs"],
+    ["wood floor", "wood flooring"], ["marble floor", "wall and floor tiling"], ["tile floor", "wall and floor tiling"], ["ceramic tile", "wall and floor tiling"],
+    ["composite deck", "composite decking"], ["deck repair", "decking repairs"], ["deck railing", "decking repairs"], ["deck cleaning", "decking restoration"],
+    ["deck refinishing", "decking restoration"], ["deck painting", "decking restoration"], ["wood staining", "decking restoration"], ["deck", "decking"],
+    ["pergola", "pergolas"], ["porch", "porch extensions"]
+  ],
+
+  "general_service_words": ["building work", "extensions", "conversions", "renovations", "refurbishment", "new builds", "design and build", "general building"],
+  "problem_service_words": ["damp", "subsidence", "cracks"],
+  "why_titles_alt": [
+    "Local Experience Behind Every Build",
+    "Covered If Something Goes Wrong"
+  ],
+
+  "category_work_nouns": {
+    "building firm": "building work",
+    "construction company": "construction work",
+    "contractor": "building work",
+    "general contractor": "building work",
+    "remodeller": "renovation work",
+    "property developer": "new build work",
+    "home builder": "home building",
+    "kitchen renovator": "kitchen fitting",
+    "bathroom renovator": "bathroom fitting",
+    "carpenter": "carpentry",
+    "flooring contractor": "flooring",
+    "deck builder": "decking"
+  },
+  "seasonal_trade": false,
+  "category_types": {},
+  "category_page_blocks": {
+    "A": {
+      "problems": {
+        "h2": "Common [WORK] Problems",
+        "cards": [
+          {
+            "title": "A house the family has outgrown",
+            "brief": "A situation card, not a fault: a kitchen made for a couple with the whole household in it and the table in the front room, a third child and two bedrooms, an office on the landing, a garage that holds everything except the car, a loft nobody can get to. What decides it: what the house already has to give (a garden to build into, a roof with the height for a room, a garage with sound walls, a cellar, an alcove) and the planning position for that house from the trade facts rule rows, said with \"usually\": an extension on one floor behind the house, a loft kept within the roof's shape and a garage converted within its own walls usually need no application; a second floor added on top, an addition beside the house or in front of it, a flat, or a home in a conservation area is more likely to need one; never a figure, an Act or an order. What the work gives them, in plain words: the room, the layout, the stair. By category: Building Firm and Home Builder read it as the extension, the loft and the garage; Construction Company as the refurbishment or the new build; Contractor as the cellar; Kitchen Renovator and Bathroom Renovator as a layout that does not work; Carpenter as the awkward alcove and the unused corner; Flooring Contractor as a new floor for a room that has changed its use; Deck Builder as a garden with nowhere level to sit. Never a lifestyle pitch, never a fault invented for it.",
+            "mechanism": "rooms laid out for a smaller household"
+          },
+          {
+            "title": "Cracks that keep coming back",
+            "brief": "Problem led: a crack that was filled and has opened again, a door that has started to stick, a step in the brickwork at a corner. Say first what is normal on shrinkable ground (hairline cracks that widen in a dry spell and close up once the ground is wet again, from the trade facts and the town profile) and then what is not: a crack that is wider at the top than at the bottom, one that splits the bricks and not just the joints between them, one that steps away from a window corner, a floor that has started to slope. The one cause this card makes: something under or over the wall still moving (a foundation on ground that shrinks, a drain leaking into it, a tree drying it, a lintel or a beam that has dropped), so a filled crack opens again. Say what finding the cause involves from the trade facts stages (an engineer's design before any repair, monitoring where the movement is in doubt) and that a patch over the crack is not a repair; never underpinning as the default answer. By category: Construction Company and General Contractor read it in foundations, structural repairs and brickwork; Flooring Contractor as a floor that slopes or bounces, read from the subfloor; Carpenter as a stair or a door frame that has moved; Kitchen Renovator and Bathroom Renovator as units or tiles cracking over a wall or a floor that moves; Home Builder and Building Firm as the wall an extension will tie into. Never a verdict on whether a house is safe.",
+            "mechanism": "ground or a beam still moving under the wall"
+          },
+          {
+            "title": "Damp that comes back after it was treated",
+            "brief": "Problem led: a tide mark low on a wall that was injected and replastered and has marked again, mould in a corner, a musty cellar, paint peeling at the skirting. Say first what is normal (condensation on a cold wall in winter in a room that is not aired, which clears with heat and ventilation) and then what is not (a patch that stays wet through summer, plaster that sounds hollow and blows). The one cause this card makes: rain reaching the wall from outside and being read as rising damp (pointing that has gone, a leaking gutter or downpipe, a path or a flower bed built up over the old damp course, a bridged cavity), so a chemical course does nothing for it. Say what finding the source involves from the trade facts stages (the source diagnosed first, leaks and bridging put right, then the right treatment for what is left) and that an injected course is for confirmed rising damp only; below ground, that a cellar is kept dry by a designed system with a drain or a pump that needs looking after, never by a coat of paint. By category: Construction Company, Contractor and Home Builder read it in cellars, basements and waterproofing; General Contractor in the pointing and the brickwork; Bathroom Renovator and Kitchen Renovator as a stain on the ceiling below a bathroom or a swollen worktop joint, water from a seal that has failed; Flooring Contractor as boards that cup or a floor that lifts over a wet subfloor; Carpenter as skirting or a frame that has swollen; Deck Builder as a joist soft where it sits on wet ground. Never a product by name, never a treatment sold by default.",
+            "mechanism": "rain reaching the wall from outside, read as rising damp"
+          },
+          {
+            "title": "Worn out, but not worth ripping out",
+            "brief": "A situation and a decision in one: kitchen units that are sound with doors scratched and hinges that sag, a bath with a chipped surface, a floor with a worn finish over good boards, a staircase that creaks, a brick wall with its pointing gone but its bricks sound. What decides it: whether what is underneath is sound (the carcasses square and dry, the bath supported, the boards and joists firm, the stair's strings and treads, the bricks themselves), from the trade facts signs row and the done badly row. What the work gives them: new fronts on sound carcasses, a resurfaced bath, a floor sanded and refinished, a stair re fixed, a wall repointed in a mortar softer than the brick; or, where what is underneath has gone, the honest answer that a facelift will not hold (a coating peels where the old finish was not removed, new doors bind on carcasses out of square, a patch over a failed subfloor moves, hard cement pointing on an old soft brick makes the brick face flake instead). By category: Kitchen Renovator reads it as doors and worktops; Bathroom Renovator as resurfacing against replacement; Flooring Contractor as sanding against a new floor; Carpenter as the stair and the joinery; General Contractor as the brickwork; Building Firm, Construction Company, Contractor, Remodeller and Home Builder as the refurbishment that keeps the sound parts; Deck Builder as boards replaced on a sound frame, or a frame that has gone. Never a judgement on the home's state.",
+            "mechanism": "what is underneath deciding whether a facelift holds"
+          }
+        ]
+      },
+      "cost": {
+        "h2": "What Affects the Cost of [WORK] in [CITY]",
+        "cards": [
+          {
+            "title": "How much is being built or fitted",
+            "brief": "Size moves the price more than anything else: the floor area and the number of storeys of an extension, the number of rooms in a refurbishment, the length of a kitchen run, the square metres of a floor or a deck. More foundations, more wall, more roof, more days. Say it plainly and give no figure."
+          },
+          {
+            "title": "What is already there",
+            "brief": "What has to come out, be dug through or be worked round before the new work starts, from the trade facts price rows: the ground where the foundations go (clay, made ground, water, roots) and what building control asks to see before concrete goes in; drains that run where the extension will stand; an old slab; walls and floors out of true; a wet subfloor or an old coating under a new floor; an older home checked for asbestos in what will be disturbed before it is stripped; and how the skip, the scaffold and the materials get in (a terraced street, a shared side path, everything carried through the house). Say the business looks before it prices, from [CV: quote_method] only, and that what lies below the garden is only seen for certain at the dig."
+          },
+          {
+            "title": "Steel, services and sign offs",
+            "brief": "The hidden work and the people it brings in, from the trade facts price rows and rule rows: a steel beam and the opening it holds up, foundations an engineer has to design, drains moved, electrics and plumbing run by someone registered to sign them off, the building control fee and its inspections, a surveyor where a shared wall comes into it, drawings. Each adds a professional, an inspection or a wait. Which of them this business arranges only from confirmed practices and [CV: handles_planning]. By category: Kitchen Renovator and Bathroom Renovator read it as moving the services and the electrical certificate; Flooring Contractor as levelling and underfloor heating; Deck Builder as a raised deck's supports and its guarding. No figure."
+          },
+          {
+            "title": "The finish you choose",
+            "brief": "Units, worktops, tiles, flooring, glazing, doors and the roof covering: the options from the trade facts materials cells and [CV: materials_methods], and why one costs more than another (a stone worktop is templated and fitted by its own fitter, a tiled wet room is tanked under the tiles, a hardwood deck against a softwood one). A named product only from [CV: materials_methods]. Code adds the price line from [CV: price_list] when there is one."
+          }
+        ]
+      },
+      "faq_slots": [
+        {
+          "slot": "cost",
+          "question": "How much does [WORK_LOWER] cost in [CITY]?",
+          "answer_brief": "Prices only from [CV: price_list]; otherwise the three things that move the price for this kind of work (how much is being built, what is already there, the structure and services it needs) and how the quote is given, from [CV: quote_method] only. Say that what is found once the work is opened up is the reason a builder looks first, never a promise that the price cannot change.",
+          "doubt": "Price"
+        },
+        {
+          "slot": "cover",
+          "when": "guarantee",
+          "question": "Do you guarantee your [WORK_LOWER] work?",
+          "answer_brief": "Start with yes, then the terms from [CV: guarantee_years] and [CV: guarantee_scope]. Described, never promised. A completion certificate from building control is a record that the work was signed off, never a guarantee.",
+          "doubt": "Trust"
+        },
+        {
+          "slot": "cover",
+          "when": "insurance",
+          "question": "Are you insured for [WORK_LOWER] work?",
+          "answer_brief": "The cover figure from [CV: insurance_cover] and what the cover is for. Never what it pays or who it covers.",
+          "doubt": "Trust"
+        },
+        {
+          "slot": "cover",
+          "question": "What happens if something isn't right after the job?",
+          "answer_brief": "Open with what the customer does: tell us and we look at it. Then the reasonable care and skill standard every trade works to. No promise to come back free. Never invent a guarantee.",
+          "doubt": "Trust"
+        },
+        {
+          "slot": "scope",
+          "question": "What does your [WORK_LOWER] work include?",
+          "answer_brief": "The jobs themselves, named from the card list, and the size of job taken on, from the services list and [CV: typical_jobs] only. Link one service page. Design, drawings, structural engineering and planning applications only where [CV: handles_planning] or the confirmed practices say so; otherwise say those come from the customer's own architect or engineer and the builder works to them. Never 'on this page', 'listed above' or 'the card list' as words: the reader sees no list, so name the work.",
+          "doubt": "Fit"
+        },
+        {
+          "slot": "process",
+          "question": "What happens when I ask for a quote?",
+          "answer_brief": "From [CV: quote_method] and the confirmed practices only: what the customer sends, what the business looks at on site (the ground where it can be seen, the drains, the access, whether a shared wall comes into it, what the planning position looks like for that house), what comes back. Approvals handled on the customer's behalf only from [CV: handles_planning]. No timescale unless [CV: response_time] is set.",
+          "doubt": "Process"
+        },
+        {
+          "slot": "timing",
+          "question": "How long does [WORK_LOWER] usually take?",
+          "answer_brief": "No duration: the trade facts give none (Table G). The stages in order as the reason the time is what it is (approvals before a start, the foundations inspected before concrete, the shell made weathertight, first fix, plaster and its drying, second fix, the final inspection) and what moves it (the ground, steel, drains, the weather on the exposed stages). By category: Kitchen Renovator, Bathroom Renovator, Carpenter and Flooring Contractor read it as strip out, first fix, the fit, the finishes and the curing or drying the products need. A number only from the client values. Nothing about when the job can start unless [CV: start_time] is set.",
+          "doubt": "Timing"
+        }
+      ],
+      "faq_symptom": {
+        "frame": "[SYMPTOM]: why does it happen, and what can be done?",
+        "answer_brief": "The symptom and its linked local issue, answered as asked. Where the symptom is one that can be normal (fine cracks on clay in a dry spell, condensation on a cold wall in winter, a hairline crack in new plaster as it dries), say first when it is normal and then what is not, before anything else. Then the usual cause here in plain words, what the local ground or housing adds, what finding the cause involves, and what the business does about it. Never the biggest fix by default. One figure at most.",
+        "doubt": "Process"
+      }
+    }
+  },
+
+  "service_page_blocks": {
+    "A": {
+      "included": {
+        "h2": "What's Included in Our [SERVICE]",
+        "items": [
+          {
+            "title": "Looking at what is there before anything starts",
+            "brief": "The survey stage from the trade facts: the structure, the ground where it can be seen, the drains and the services, what will be disturbed (an older home checked for asbestos in the parts that will be opened, from the rule rows), how the materials get in. A part of the job, not a promise about the quote."
+          },
+          {
+            "title": "The approvals the job needs",
+            "brief": "The approvals stage from the trade facts: the building control application and its inspections, the planning position for that house, a notice to the neighbours where a shared wall or their footings are involved. Which of them this business arranges only from [CV: handles_planning] and the confirmed practices; otherwise said as a stage of the job that is agreed with the customer. Never an Act's, an order's or a document's name."
+          },
+          {
+            "title": "Making safe, stripping out and protecting what stays",
+            "brief": "The strip out, the temporary props and the protection of what is kept, as the trade facts stages name them for this service: the old kitchen out, the wall propped before it is opened, the floor covered, the dust kept to the room. Name only what the rows give."
+          },
+          {
+            "title": "The structure underneath and above",
+            "brief": "The structural stages as the trade facts name them for this service: foundations dug and looked at before the concrete goes in, the beam on its padstones, the shell and the roof, the floor strengthened, the subfloor levelled and dried, the deck's supports. No figure unless the rows give one, and never a standard's number."
+          },
+          {
+            "title": "First fix: what goes inside the walls and floors",
+            "brief": "The first fix stage from the trade facts: the pipes, cables, ducts and timbers run before anything is closed up, the insulation, the membrane under a floor or behind a wall. Electrics and gas by whoever is registered to sign them off, said without a scheme's name unless the client itself is registered."
+          },
+          {
+            "title": "Plaster, second fix and the finishes",
+            "brief": "The finishing stages from the trade facts: plaster or board and skim, tiling, the second fix joinery, the units and the worktop, the flooring, decoration once the plaster is dry. What the customer sees when the job is done; a named product only from [CV: materials_methods]."
+          },
+          {
+            "title": "The final inspection, the paperwork and the clear up",
+            "brief": "The last stage from the trade facts: the final inspection where the work was regulated and the completion certificate that follows it (a record of the sign off, never a guarantee), the electrical certificate from the registered installer, the site cleared and the waste taken by a registered carrier (from the rule rows). Whether this business holds the certificates for the customer only from confirmed practices."
+          }
+        ],
+        "note": "Fallback only: the tick items are the service's own Table A stages when the pack gives 6 or more; this set is used when it gives fewer (F-ITEMS-GENERIC)."
+      },
+      "problems": {
+        "h2": "Signs You Need [SERVICE]",
+        "cards": [
+          {
+            "title": "The first things you notice",
+            "brief": "The things a homeowner notices first, from the trade facts signs row for this service, in their words: a slipped tile, a stain on the ceiling under the bathroom, a door that binds, a board that moves, plaster that sounds hollow, a worktop joint that has swollen. The one cause this card makes: a fault left to spread while it is small. Then what it leads to if left, from the skipped row: specific, never alarming (water into the timber behind, a repair that grows each season). On a schedule led page (repointing, and the maintenance side of property repairs) the card is what slips and when: sandy pointing that takes in rain which freezes and widens the joint each winter, a flat roof's seams opening, outside paint worn through to bare timber, with the reason in the material and the weather, never in the customer's diary.",
+            "mechanism": "a fault left to spread while it is small"
+          },
+          {
+            "title": "It has moved, dropped or opened up",
+            "brief": "A lintel that sags, a crack that steps through a wall, a floor that slopes or bounces, a stair that moves, a deck frame that gives, a slab that has cracked across. The one cause this card makes: a load going where it was never designed to go (a beam on a bearing too small for it, a wall taken out without a proper beam, joists cut through for pipes, a foundation on ground that has given, a support left out of a deck). Say what the job does so it stays put, from the trade facts stages and the done badly row: an engineer's design, temporary props while the opening is formed, padstones under the beam, building control looking at the bottom of the trench before the concrete; no size or figure the rows do not give; never a dig at another trade. On a schedule led page: what a season's weather has moved, from the signs row. Not a crack on clay that comes and goes: the category page owns that.",
+            "mechanism": "the load going somewhere it was never designed to go"
+          },
+          {
+            "title": "Past patching up",
+            "brief": "Plaster patched over a crack that opened again, a bath recoated over a chip that has lifted, paint over a damp patch, a new board on a rotten joist, new doors on carcasses out of square, cement pointing on an old soft brick: the signs from the trade facts done badly row that a repair no longer holds. The one cause this card makes: a repair that treats the finish and not the cause. Say when a patch stops being worth it and what doing it properly involves, from the stages: strip back to sound material, find and fix the cause, then reinstate. On a schedule led page: the point where cleaning and recoating no longer holds because what is under the finish is soft or loose. Not movement: card 2 owns that.",
+            "mechanism": "a repair that treats the finish, not the cause"
+          },
+          {
+            "title": "Water where it should not be",
+            "brief": "A stain under a bathroom, a wet patch after rain where new work meets old, a musty cellar, a swollen worktop joint, a damp garage wall, boards cupping over a wet subfloor. The one cause this card makes: a path for water that nobody has closed (a failed seal, a flashing, the junction between an extension and the old wall, a membrane left out, a bridged damp course, a blocked drain in a cellar system). Say what the job does to close it, from the trade facts stages for this service (the source found first, the system tested before it is covered up); never a product by name, never a treatment sold by default. The category page owns damp misread as rising damp, so this card is the path the water takes, not the diagnosis. On a schedule led page: a seal or a joint that once kept the rain out and now lets it through.",
+            "mechanism": "a path for water that nobody has closed"
+          }
+        ]
+      },
+      "cost": {
+        "h2": "What Affects the Cost of [SERVICE] in [CITY]",
+        "cards": [
+          {
+            "title": "The size of this job",
+            "brief": "The size factor from the trade facts price row: the floor area, the storeys, the number of rooms, the span of the opening, the length of the run, the height of the wall. Say it plainly and give no figure."
+          },
+          {
+            "title": "What we find when it is opened up",
+            "brief": "What has to come out or be worked round, from the trade facts price row: an old slab, walls out of true, services in the way, a wet or uneven subfloor, an old coating, a rotten joist behind a sound board, asbestos in an older home. Say the business looks before it prices, from [CV: quote_method] only, and that some of it is only seen for certain once the work is open."
+          },
+          {
+            "title": "Who else the job needs on it",
+            "brief": "The people and the sign offs from the trade facts price row and rule rows for this service: an engineer's design for a beam or a foundation, building control and its inspections, a surveyor where a shared wall comes into it, a registered electrician or gas engineer, a stone fitter for a worktop. Each adds a fee, an inspection or a wait. Which of them this business arranges only from confirmed practices and [CV: handles_planning]. No figure."
+          },
+          {
+            "title": "Materials, finish and access",
+            "brief": "The material and finish options from the trade facts price row and [CV: materials_methods], and why one costs more than another; then how the job is reached: a skip on the road needs the council's permit, scaffold on the pavement its licence (from the rule rows, said as what usually applies), a terraced street with everything carried through the house. A named product only from [CV: materials_methods]. Code adds the price line from [CV: price_list] when there is one."
+          }
+        ]
+      },
+      "faq_slots": [
+        {
+          "slot": "cost",
+          "question": "How much does [SERVICE_LOWER] cost in [CITY]?",
+          "answer_brief": "Prices only from [CV: price_list]; otherwise how the quote is given, from [CV: quote_method] only. The four cost cards above already give what moves the price: name one factor at most, never the list again. Never a fixed price or a promise the price cannot change.",
+          "doubt": "Price"
+        },
+        {
+          "slot": "timing",
+          "question": "How long does [SERVICE_LOWER] take?",
+          "answer_brief": "From the trade facts timing row only: the row gives no duration for any building job, so give the stages in order and what decides the time (the ground, steel, drains, the weather on exposed stages, the drying or curing a product needs from the rows). A number only from the client values. Nothing about when the job can start unless [CV: start_time] is set. This is the one place the timing is written.",
+          "doubt": "Timing"
+        },
+        {
+          "slot": "cover",
+          "when": "guarantee",
+          "question": "Do you guarantee your [SERVICE_LOWER] work?",
+          "answer_brief": "Start with yes, then the terms from [CV: guarantee_years] and [CV: guarantee_scope]. Described, never promised. A completion certificate is a record of the sign off, never a guarantee.",
+          "doubt": "Trust"
+        },
+        {
+          "slot": "cover",
+          "when": "insurance",
+          "question": "Are you insured for [SERVICE_LOWER]?",
+          "answer_brief": "The cover figure from [CV: insurance_cover] and what the cover is for. Never what it pays or who it covers.",
+          "doubt": "Trust"
+        },
+        {
+          "slot": "cover",
+          "question": "What happens if something isn't right after the job?",
+          "answer_brief": "Open with what the customer does: tell us and we look at it. Then the reasonable care and skill standard every trade works to. No promise to come back free. Never invent a guarantee.",
+          "doubt": "Trust"
+        },
+        {
+          "slot": "rules",
+          "question": "Do I need permission for [SERVICE_LOWER]?",
+          "answer_brief": "From the trade facts rule rows for this service only, put as what usually applies, with \"usually\" or \"in most cases\", and the two approvals kept apart: first whether planning permission is usually needed (the condition that brings it in: a second floor on top, building out beside the house or round the corner of it, a dormer facing the road, a flat, a listed home, a conservation area, an estate where the council has taken the allowance away; a certificate from the council as the way to confirm). Then whether building control has to be involved: it is, for almost any extension, conversion, new opening, new stair or new bathroom with its drains and electrics, while a small detached garden building, or a conservatory kept separate from the house, is often outside it. Then telling the people next door, in writing, where the job touches a wall they own half of or digs beside their footings. What the customer does about it only as the row gives it; what this business arranges only from [CV: handles_planning]. Never a figure, an area, a height, a volume or a distance; never an Act's, an order's or a document's name; never legal advice; never that this job will or will not need permission before the house has been seen. Where the rows give no rule for this service, say no permission is usually needed for this work at a home and leave it there.",
+          "doubt": "Process"
+        },
+        {
+          "slot": "scope",
+          "question": "What does your [SERVICE_LOWER] service include?",
+          "answer_brief": "The What's Included items said as a sentence, in other words. What it does not cover only from the services list (design, drawings, engineering and the planning application only where [CV: handles_planning] or the confirmed practices say so), with one sibling service page or the category page linked.",
+          "doubt": "Fit"
+        }
+      ],
+      "faq_symptom": {
+        "frame": "[SYMPTOM]: why does it happen, and what can be done?",
+        "answer_brief": "The symptom and its linked local issue, answered as asked. Where the symptom is one that can be normal (fine cracks on clay in a dry spell, condensation on a cold wall in winter, a hairline crack in new plaster as it dries), say first when it is normal and then what is not, before anything else. Then the usual cause here in plain words, what the local ground or housing adds, and what this service does about it. Never the biggest fix by default. One figure at most.",
+        "doubt": "Process"
+      },
+      "desire": {
+        "problems": {
+          "h2": "Is [SERVICE] Right for Your Home?",
+          "cards": [
+            {
+              "title": "The room you have run out of",
+              "brief": "The customer's situation: a kitchen the whole household crowds into, a third child and two bedrooms, a desk on the landing, a queue for the one bathroom, a garage full of everything except the car, a loft nobody can reach, a garden with nowhere level to sit. What decides it: what the house already has to give (a garden to build into, a roof with the height for a room, a garage with sound walls and a dry slab, a cellar, an alcove, a sound subfloor) and the planning position for that house from the trade facts rule rows, said with \"usually\" and never a figure, an Act or an order. What the work gives them, from the trade facts stages for this service: the room, the stair, the opening, the fitted run, the floor. Never a fault invented for it, never a lifestyle pitch, never a dream: the house and the use.",
+              "mechanism": "what the house already has to give"
+            },
+            {
+              "title": "Which way to get the space",
+              "brief": "The customer's situation: they are weighing two or three ways of doing it (an extension against a loft, a garage conversion against a garden room, a wet room against a bathroom, new doors against a new kitchen, engineered wood against laminate, timber against composite decking, a straight flight against a turn). What decides it: the house (the roof's shape and height for a loft, the garden's depth and its ground for an extension, a garage's slab and walls, a floor's moisture and level), which approvals each needs from the trade facts rule rows, and how much upheaval the household can take. What the work gives them: the option that suits their house, never the one that is best in general. A named product only from [CV: materials_methods]. No claim about cost, value or lifespan unless the rows or the client values give it.",
+              "mechanism": "the house, the ground and the approvals deciding the option"
+            },
+            {
+              "title": "What is hidden once it is finished",
+              "brief": "The customer's situation: they have a cheaper quote, or a friend who did it themselves, and want to know what the difference buys. What decides it: the layer they will never see once it is finished (the foundations taken to firm ground and looked at before the pour, the steel on its padstones, the new damp course joined to the old one, the floor strengthened under a loft, the tanking behind the tiles of a wet room, the subfloor levelled and dried before the boards go down, the joists and posts under a deck), which is where a quick job cuts corners and where it shows a winter or two later, from the done badly row. What the work gives them: that layer done as the trade facts stages name it, inspected where building control asks to see it. One specific from the stages for this service; no depth or figure the rows do not give; never a dig at another trade.",
+              "mechanism": "the layer underneath, inspected before it is covered"
+            },
+            {
+              "title": "Living through the build",
+              "brief": "The customer's situation: they want to know what the job does to the household: whether they can stay, where they cook, how long the house is open to the weather, where the skip and the scaffold go. What decides it: the order of work, from the trade facts stages for this service (the new structure built and made weathertight before the wall into the old house comes down, so the knock through is the last big day; a loft reached from the scaffold outside until the stair goes in; a kitchen or a bathroom out of use between strip out and second fix; a floor cleared of furniture and kept off until the finish has cured). What the work gives them: an honest picture of which parts are the hard ones and what is kept running. What this business does about it (a temporary kitchen, dust screens, a site toilet) only from confirmed practices. Never a duration, a date or a week by week plan: the trade facts give none.",
+              "mechanism": "the order of work deciding how the household lives through it"
+            }
+          ]
+        }
+      }
+    }
+  },
+
+  "location_page_blocks": {
+    "A": {
+      "problems": {
+        "h2": "Common [WORK] Problems in [TOWN]",
+        "cards": [
+          {
+            "title": "Ground that moves with the seasons",
+            "brief": "Hairline cracks that widen in a dry spell and close up once the ground is wet again, a path that has lifted, doors that stick in autumn. Say first what is normal on the town's ground, from the town profile and a symptom (shrinkable clay, made ground, a river valley, chalk), and then what is not (a crack that widens year on year, a step in the brickwork, a floor that slopes). The one cause this card makes: the ground under the town's houses taking up water and giving it back. What it means for any job that goes into the ground, in plain words: foundations for an extension go deeper on ground like this and building control looks at the bottom of the trench before the concrete; a tree near the house is part of the picture; a cellar or a basement meets the water in the ground. Never promise the ground will change, never a verdict on a house. Not a beam or a drain still moving one wall: the town's service pages own that.",
+            "mechanism": "the ground under the town's houses taking up water and giving it back"
+          },
+          {
+            "title": "Houses built the way their decade built them",
+            "brief": "The town profile's housing, read for what the work meets and never for a judgement on the houses or anything inside them: terraces with walls one brick thick and footings barely below the garden, semis from between the wars with a hipped roof, estates after the war where the garage is built into the house, new estates with roofs made of factory trusses. The one cause this card makes: the era of the houses setting what an extension, a loft or a conversion meets. Tie each to the work: a hipped roof points to one kind of loft conversion and a trussed roof to a different, bigger one; a wall one brick thick changes how an extension ties in, how it is insulated and how damp in it is read; a garage built into the house suits conversion and brings the fire separation with it; an older home is presumed to need a check for asbestos in what will be disturbed (from the rule rows, no year). Never the inside of anyone's home, never that the houses are tired, damp or badly wired.",
+            "mechanism": "the era of the houses setting what the work meets"
+          },
+          {
+            "title": "Streets where the council has a say",
+            "brief": "The town profile's conservation areas, listed buildings, estates where the council has taken the usual allowance away, and green belt edges, only where the research confirms them. The one cause this card makes: a conservation area or a removed allowance changing which approval the job needs. Say what it means for the work, with \"usually\" throughout: an addition at the back or a new dormer that elsewhere needs no application goes through one on these streets; a listed home needs consent for work that touches its character, inside as well as out; knocking a building down in a conservation area can need permission; materials are expected to match. Building control is a separate matter and applies either way. Never the order's, the area's or the Act's name, never a figure. Where the profile gives none, say the general position and that the house has to be seen.",
+            "mechanism": "a conservation area or a removed allowance changing which approval the job needs"
+          },
+          {
+            "title": "Terraces, semis and the neighbour's wall",
+            "brief": "The town's terraces and semis mean most extensions, lofts and knock throughs touch a wall the neighbour owns half of, or dig close to their footings. The one cause this card makes: work on or next to a shared wall. What usually applies, from the trade facts rule rows: the neighbour is told in writing before the work starts and can agree or have a surveyor act for them; it is separate from planning and from building control; a loft's new floor and its steel beams usually sit on that shared wall at the sides. Never the Act's name, never a notice period, never a distance or a depth. What the business does about it only from confirmed practices. Not the planning position: card 3 owns that.",
+            "mechanism": "work on or next to a shared wall"
+          }
+        ]
+      },
+      "cost": {
+        "h2": "What Affects the Cost of [WORK] in [TOWN]",
+        "cards": [
+          {
+            "title": "Getting a skip and a scaffold onto the street",
+            "brief": "On a terraced street with no drive the skip sits on the road and usually needs the council's permit, scaffold on the pavement its licence (from the rule rows), and the materials come through the house. Say why that adds time and cost, never \"the only way\"; the town profile says which streets are terraced. No figure."
+          },
+          {
+            "title": "Deeper foundations on this ground",
+            "brief": "Where the town profile gives clay, soft ground or a high water table: foundations go deeper, may need an engineer's design, mean more spoil to take away, and are looked at by building control before the concrete goes in. Say it plainly from the profile; no depth, no figure."
+          },
+          {
+            "title": "Conservation areas and listed homes",
+            "brief": "Where the town has conservation areas or listed buildings, the application, the drawings and the wait before work can start add time, materials have to match, and some things cannot be done at all. \"Usually\", never the order's or the area's official name. From the dossier rules only; otherwise the general position as something that sometimes applies."
+          },
+          {
+            "title": "What the last builder left behind",
+            "brief": "In older homes: an earlier extension on shallow footings, a chimney breast taken out with nothing holding up what is above, a garage slab with no membrane under it, cables and pipes where no drawing says they are. What the work meets once things are opened up, said as what the era usually left and never as a judgement on the houses; from the town profile only. How it is dealt with only from confirmed practices. No figure."
+          }
+        ]
+      },
+      "faq_slots": [
+        {
+          "slot": "cost",
+          "question": "How much does [WORK_LOWER] cost in [TOWN]?",
+          "answer_brief": "Prices only from [CV: price_list]; otherwise the things that push the price up in a town like this (access on the street, the ground under the foundations, what an older house hides) and how the quote is given, from [CV: quote_method] only.",
+          "doubt": "Price"
+        },
+        {
+          "slot": "town",
+          "when": "start_time",
+          "question": "How soon can you get to [TOWN]?",
+          "answer_brief": "From [CV: start_time] and [CV: response_time] only. The town is in the area covered; nothing about distance unless [CV: travel_distance] is set.",
+          "doubt": "Timing"
+        },
+        {
+          "slot": "town",
+          "question": "Do you cover [TOWN]?",
+          "answer_brief": "Yes: the town and the villages around it (code lists them; name none). How the business reaches it from its base only from the client values. Link one page in this town.",
+          "doubt": "Fit"
+        },
+        {
+          "slot": "cover",
+          "when": "guarantee",
+          "question": "Do you guarantee your work in [TOWN]?",
+          "answer_brief": "Start with yes, then the terms from [CV: guarantee_years] and [CV: guarantee_scope]. Described, never promised.",
+          "doubt": "Trust"
+        },
+        {
+          "slot": "cover",
+          "when": "insurance",
+          "question": "Are you insured?",
+          "answer_brief": "The cover figure from [CV: insurance_cover] and what the cover is for. Never what it pays or who it covers.",
+          "doubt": "Trust"
+        },
+        {
+          "slot": "cover",
+          "question": "What happens if something isn't right after the job?",
+          "answer_brief": "Open with what the customer does: tell us and we look at it. Then the reasonable care and skill standard every trade works to. No promise to come back free. Never invent a guarantee.",
+          "doubt": "Trust"
+        },
+        {
+          "slot": "process",
+          "question": "What happens when I ask for a quote in [TOWN]?",
+          "answer_brief": "From [CV: quote_method] and the confirmed practices only: what the customer sends, what the business looks at on site (the ground where it can be seen, the drains, the access, a shared wall, the planning position for that street), what comes back. Approvals handled on the customer's behalf only from [CV: handles_planning]. No timescale unless [CV: response_time] is set.",
+          "doubt": "Process"
+        },
+        {
+          "slot": "timing",
+          "question": "How long does [WORK_LOWER] take in [TOWN]?",
+          "answer_brief": "No duration: the trade facts give none. The stages in order as the reason (approvals before a start, foundations inspected before concrete, the shell made weathertight, first fix, plaster and its drying, second fix, the final inspection), and where the town profile gives the ground or the planning position, what it does to that order (an application before anything can start in a conservation area, deeper footings on clay, a wait on a notice to the neighbours). A number only from the client values. Nothing about when the job can start unless [CV: start_time] is set.",
+          "doubt": "Timing"
+        }
+      ]
+    }
+  },
+  "do_not_reuse": []
+}

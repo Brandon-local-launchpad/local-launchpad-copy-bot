@@ -1,0 +1,773 @@
+{
+  "_source": "niche-library/pest-control.json",
+
+  "trade": "Pest Control",
+  "trade_lower": "pest control",
+  "trade_person": "pest controller",
+  "trade_person_plural": "pest controllers",
+  "customer_type": "homeowners",
+  "unit_of_work": "jobs",
+  "emergency_niche": true,
+  "big_ticket": false,
+  "big_ticket_examples": [],
+  "schema_subtype": "LocalBusiness",
+
+  "words_use": ["rats", "mice", "wasps", "wasp nest", "bees", "ants", "fleas", "bed bugs", "cockroaches", "squirrels", "pigeons", "droppings", "scratching", "bites", "nest", "the way in", "gap", "air brick", "eaves", "loft", "roof space", "under the floor", "drain", "kitchen", "bedroom", "garden", "bins", "pets", "children", "home", "house"],
+  "words_avoid": ["infestation", "harbourage", "rodenticide", "biocide", "anticoagulant", "residual", "non target", "integrated pest management", "IPM", "treatment programme", "pest issue", "property", "premises", "sanitation", "remedial", "solutions"],
+  "words_avoid_exceptions": {
+    "premises": "allowed on the Commercial pest control page and in a commercial FAQ answer, where the reader runs the business and premises is their own word",
+    "infestation": "allowed once in an FAQ answer where it is the customer's question's own word (bed bugs, cockroaches), never in a card or a heading"
+  },
+  "banned_phrases": ["exterminate", "exterminator", "extermination", "eradicate", "eradication", "pest free", "guaranteed pest free", "never return", "never come back", "gone for good", "rat problem", "mouse problem", "vermin", "plague", "dirty home", "safe for pets and children", "safe for children and pets", "pet safe", "child safe", "pet friendly", "child friendly", "around the clock", "within the hour", "rapid response", "fast response", "peace of mind", "no job too small", "fully qualified", "termite", "termites"],
+
+  "buttons": {
+    "primary_action": "Get My [QUOTE_FREE] Quote",
+    "meta_cta": "Get your [QUOTE_FREE_LOWER] quote today.",
+    "process_h2": "Your [QUOTE_FREE] Quote in 3 Simple Steps",
+    "final_h2": "Get a [QUOTE_FREE] Quote From a Local [CATEGORY] in [CITY]",
+    "final_h2_emergency": "Wasps by the Door or Rats Indoors in [CITY]? Call [CV: phone]",
+    "cta_band_line": "Tell us what you've seen or heard and we'll get back to you within [CV: response_time].",
+    "cta_band_line_no_response": "Tell us what you've seen or heard and we'll get back to you."
+  },
+
+  "business_type_default": "A",
+  "business_type_notes": "The pack's section 2 has one GBP category, Pest control service, and keeps it type A throughout, so category_types is empty and the one category page reads the A briefs. Urgent against planned is split by page, not by category: the library's emergency column (Wasp nest removal, Rat and mouse control, with Drain inspections for rodents as an alias of the second) switches the emergency variant on when the client confirms call outs; every other page gets the plain briefs, and a client with no call outs gets the plain briefs on those two pages as well (the pack: emergency language only where call outs are confirmed). Inside the planned pages the pack's registers are carried in the card briefs: problem led (the sign the customer sees, the pest behind it, the way in and what stops the return) for bed bugs, ants, cockroaches, fleas, squirrels, moles, rabbits, foxes and wildlife, moths and textile pests, woodworm, insect control, dead animal removal, loft clearance and decontamination, fumigation and heat treatment, and for pest surveys and inspections at a home (an investigation register: what the survey settles); schedule led (what slips and when, with the reason in the site and the season, and what an inspector expects on paper) for Commercial pest control and for surveys and monitoring at a business; no desire led page: the pack's section 2 lists none (pest proofing is problem led and commercial is schedule led), so the library's desire_led column is blank throughout and there is no desire variant; the proofing, bird and commercial pages read the planned block 4 with their own lines in its briefs. Bee removal and relocation is confirm_only in the library and keeps the pack's angle (which bee it is, and why honey bees are moved rather than destroyed) inside the planned card briefs; the briefs never write a legal bee protection, because the trade facts record none. Nothing here is a type B diary round in the template's sense: a commercial contract is a schedule led page under type A, as the pack has it, so there is no B entry; a client set to B by hand would find no briefs and should be set back to A. Seasonal: wasp nests run mainly spring to autumn and the colony abandons the nest in autumn, honey bee swarms come in late spring and early summer, ant activity shows more in warm months and rodent activity indoors shows more in the cold months (Table A timing cells), so seasonal_trade is on and the seasonal swap carries that with the reason in the animal's year, never a busy season.",
+
+  "priority_services": ["Rat and mouse control", "Wasp nest removal"],
+  "core_services": {
+    "pest control service": ["rat and mouse control", "wasp nest removal", "bed bug treatment", "ant control", "flea treatment", "cockroach control", "pest proofing"]
+  },
+
+  "steps": [
+    {
+      "title": "Tell Us What You've Seen or Heard",
+      "brief": "How to get in touch and what is useful to say first: what they have seen or heard (droppings, scratching, insects going in and out of one spot, bites, holes in timber or in clothes) and where and when (at night, in the daytime, in the loft, behind the cooker, under the floor); whether anyone in the house reacts badly to stings; whether there are pets or small children, because that shapes what is used and where (the trade facts: bait kept from children and animals that are not the target, hosts treated separately for fleas); a photo taken from a distance if it is safe, since the insect or animal is identified before anything is treated (Table E: a cluster of honey bees can be a swarm, not a wasp nest). Nothing from the shop meanwhile, with the reason from Table B only: a nest disturbed without proper control means more stings, trails treated without the colony leave the source, bait left in the open puts pets and other animals at risk. Never how to use any product. No promise of a reply time unless [CV: response_time] is set."
+    },
+    {
+      "title": "We Identify the Pest and Price the Job",
+      "brief": "The visit and what gets looked at: which insect or animal it is (every Table A row starts there: wasp against bee, rat against mouse, active against historic woodworm), where it lives and how it gets in (harbourage, food, water and entry points; the drain where rat entry is suspected; the roof line and the vents for squirrels and birds), and what has to be weighed before anything is used (children, pets, other animals, a protected animal or a nest in use, access and height). Then the price. On a survey page the survey is the job that is priced, and any treatment is priced off what it finds. Follows [CV: quote_method]; only say the quote is written if quote_method says so. Never restates 'free' (FAQ 5 owns it)."
+    },
+    {
+      "title": "We Treat It and Deal With the Way In",
+      "brief": "The date is agreed in advance, to suit the customer. What the visit does only from the Table A stages for that pest, in plain words: traps or protected bait points for rodents, the nest treated at its entrance, a treatment or heat for bed bugs, bait the ants carry back to the colony; a follow up visit written as part of the method with its reason in the animal (eggs, pupae or egg cases that a treatment does not reach; traps and bait points that are checked and cleared), never as a fixed number of visits (Table G: none exists); proofing as the last stage where the services list has it, otherwise recommended. Never mention the price, the quote or changes to the plan (step 2 and Why choose us own them). Never restates the start time (FAQ 4 owns it). Never a promise the pest will not return."
+    }
+  ],
+
+  "step_2_no_visit": {
+    "title": "We Price Your Job",
+    "brief": "Say a price is agreed before any work starts. Describe how the price is reached only from [CV: quote_method]; when quote_method is blank, name no method at all (no photos, call, video or visit). The insect or animal is still identified on the first visit before anything is used (Table A). Only say the quote is written if quote_method says so. Never restates 'free' (FAQ 5 owns it)."
+  },
+
+  "steps_emergency": [
+    {
+      "title": "Call Us",
+      "brief": "What to say: what they have seen (a stream of wasps at one spot by a door, a window or where children play; a rat or a mouse seen indoors; droppings in the kitchen), where it is, whether anyone in the house reacts badly to stings, whether there are pets or small children. What to do meanwhile, from the trade facts rows only: keep people and pets away from a nest entrance and leave it alone (Table B: an occupied nest disturbed without proper control means more stings); put food away in sealed containers and clear what has been gnawed (Table B: accessible food keeps rodents active); nothing laid or sprayed from the shop (Table B: exposed bait puts pets and other animals at risk; a body left behind a wall is the smell they fear). Never an instruction to go into the loft or up a ladder. The number from [CV: phone]. No promise of a reply or an arrival time unless [CV: response_time] is set."
+    },
+    {
+      "title": "We Come Out, Identify It and Agree the Price",
+      "brief": "What usually happens first on the visit, from Table A: the insect or animal confirmed before anything is used (Table E: a cluster of honey bees can be a swarm, and treating the wrong insect harms bees), the nest or the activity located and its exposure assessed, who is at risk and how access is made safe. The customer told what was found. A call out charge only from [CV: quote_call_out_fee]; the price agreed before any treatment only from the price_agreed_before_work practice and [CV: quote_method]. An arrival time only as the business gives it on the call: no window written here unless [CV: response_time] is set; 'same day' only when [CV: same_day_available] is yes. Never restates 'free'."
+    },
+    {
+      "title": "We Treat It, Then Close the Way In",
+      "brief": "What the visit does, from Table A: a wasp nest treated at its entrance with access made safe and people kept clear, the activity checked afterwards and the empty nest removed only if needed; for rats and mice, traps or protected bait points where justified, follow up visits to check them and to remove spent bait and bodies, then the entry points proofed (Table A stages; Table C: bait points protected, recorded and cleared at the end, as what the professional usually does, never the code's name). The follow up is part of the method with its reason in the animal, never a fixed number of visits. Never promise a one visit fix; never mention the price; never a promise the pest will not return."
+    }
+  ],
+  "cover_chain": ["guarantee", "manufacturer_warranty", "insurance"],
+
+  "fears": [
+    "poison put down where children or pets could get at it",
+    "a treatment that clears what is there and leaves the way in open",
+    "a smell from inside a wall or a ceiling after rodents have been baited",
+    "being sold a contract or follow up visits they do not need"
+  ],
+  "fears_by_type": {},
+
+  "logo_tiers": {
+    "ratings": ["Google (needs review_count 5+)", "Checkatrade", "Trustpilot", "Which? Trusted Traders"],
+    "tier1": ["BPCA (British Pest Control Association)", "NPTA (National Pest Technicians Association; say which membership the business holds, ordinary or accredited)", "TrustMark (through the BPCA scheme)"],
+    "tier2": ["CEPA Certified (an audited company certification)", "RSPH Level 2 Award in Pest Management (a technician's qualification, shown as the person's, never the company's)", "Lantra Level 2 Award in Rodent Management (a technician's qualification)", "BASIS PROMPT (an individual's CPD register)", "PCA (Property Care Association, woodworm pages only)", "Buy With Confidence (Trading Standards approval where the council runs it)"],
+    "tier3": "chamber of commerce, local press features, local awards: Ray's call per client. Never 'Natural England approved' (Table D: a licence is a licence, not an accreditation); never CRRU as a badge (Table D: a stewardship code, it accredits nobody); never a hygiene rating as the pest firm's award"
+  },
+
+  "faq_fixed_doubts": {
+    "Q1_cost": "Price",
+    "Q6_areas": "Fit"
+  },
+
+  "faq_slots": [
+    {
+      "slot": "faq_2",
+      "question": "Are you insured?",
+      "answer_brief": "The cover figure and what it means for the customer if something is damaged during the job: a loft hatch, a ceiling, a roof tile moved for access, a carpet. Never what it pays or who it covers.",
+      "symptom_based": false,
+      "doubt": "Trust"
+    },
+    {
+      "slot": "faq_2_fallback",
+      "question": "What happens if something goes wrong?",
+      "answer_brief": "From [CV: complaints_process] only.",
+      "symptom_based": false,
+      "doubt": "Trust"
+    },
+    {
+      "slot": "faq_3",
+      "question": "Do you guarantee your work?",
+      "answer_brief": "Used only when a guarantee or manufacturer warranty is confirmed. Start with yes, then the terms from the client values. A guarantee is the client's own written terms (Table E: consumer law asks for reasonable care and skill, not a promise that no pest ever returns), so it is described, with its length and what it covers as given, and never written as the pest never coming back.",
+      "symptom_based": false,
+      "doubt": "Trust"
+    },
+    {
+      "slot": "faq_3_none",
+      "question": "What happens if the pests come back after treatment?",
+      "answer_brief": "Used when nothing in cover_chain other than insurance is confirmed. Open with what the customer does: tell us and we look at it. Then the honest reasons a pest shows again, from the trade facts: eggs, pupae or egg cases that sit out a treatment and emerge afterwards (Table E: fleas seen after treatment do not on their own show the treatment failed), which is why a follow up is part of the method, or a way in that was never closed, which is why proofing follows a rodent treatment. Then the 'reasonable care and skill' standard every trade works to, as the standard the work is held to, never as a defence. No promise to come back or treat again for free. Never invent a guarantee.",
+      "symptom_based": false,
+      "doubt": "Trust"
+    },
+    {
+      "slot": "faq_4",
+      "question": "How soon can you come out?",
+      "answer_brief": "From [CV: start_time] and [CV: response_time] only, as given; a same day visit only when [CV: same_day_available] is yes. Never '24/7' or 'any time' unless [CV: emergency_callouts] gives it in those words. The trade facts record no standard attendance time, so never a typical one. Code adds \"bigger projects are booked further ahead\" only when that practice is confirmed.",
+      "symptom_based": false,
+      "doubt": "Timing"
+    },
+    {
+      "slot": "faq_5_free",
+      "question": "Is the quote free and no obligation?",
+      "answer_brief": "From [QUOTE_FREE] and [CV: quote_method]. A call out charge only from [CV: quote_call_out_fee]; a survey is priced as a survey where the services list has one, said plainly so a free quote is never read as a free survey (Table E: 'no obligation survey' is a business's own offer, never a feature of the trade).",
+      "symptom_based": false,
+      "doubt": "Price"
+    },
+    {
+      "slot": "faq_5_not_free",
+      "question": "How do your quotes work?",
+      "answer_brief": "From [CV: quote_method] only. A call out charge only from [CV: quote_call_out_fee].",
+      "symptom_based": false,
+      "doubt": "Price"
+    },
+    {
+      "slot": "faq_A",
+      "question": "What about my children and pets while the house is being treated?",
+      "answer_brief": "Never 'safe for pets and children' or any version of it: a claim. What the professional usually does, from the Table C and E rows as what usually applies and never the code's or an Act's name: bait in protected points out of reach, the points recorded and checked, bodies and spilled bait collected, uneaten bait removed when the treatment ends; a product used only as its label allows. What the customer is asked to do during and after a treatment only as it is given on the day for that job (Table C: the re entry and access restrictions for the particular job), so name no time out of the room. For fleas, the pet is treated separately through the vet (Table A: animal hosts treated separately). Never a product named.",
+      "symptom_based": false,
+      "doubt": "Trust"
+    },
+    {
+      "slot": "faq_B",
+      "question": "What is making the scratching noise in my loft?",
+      "answer_brief": "Use the assigned symptom's meaning and its linked local issue. Help the reader narrow it down from the Table B signs rows, in plain words and never as certain from the sound alone: scratching in the walls or overhead once the house is quiet with droppings and gnawed packaging points to rats or mice; scratching in the daytime with disturbed insulation and damaged vents points more to grey squirrels; birds under the eaves bring nesting material and droppings below. Bats are protected and a roost means advice, never a treatment (Table C and E, as what usually applies, never the Act). Then that whichever it is, there is a way in, at the roof line, a vent or an air brick (Table A: entry points located, closed after exclusion). Then what the local housing adds (connected roof spaces on older terraces, trees close to the roofs), as the research gives it, never as the current state of anyone's home. Then what finding it involves: the survey, and the way in closed only once the animals are out (Table B: sealing before they are out traps them).",
+      "symptom_based": true,
+      "doubt": "Process"
+    },
+    {
+      "slot": "faq_C",
+      "question": "Do I have to tell the council or my landlord?",
+      "answer_brief": "From the trade facts rule rows only, written as what usually applies and never with an Act's or a regulation's name: an occupier who knows rats or mice are living on the land in substantial numbers usually has to tell the council in writing (Table C), which is about rats and mice in numbers, not every mouse and not bed bugs (Table E); a tenant tells the landlord about a problem, and who pays depends on the cause and the tenancy, with no rule that either side always pays (Table E). Council treatment and charges vary by area, so never 'the council does it free' (Table E). Never legal advice.",
+      "symptom_based": false,
+      "is_fallback": true,
+      "doubt": "Process"
+    },
+    {
+      "slot": "faq_D",
+      "question": "Will one visit be enough?",
+      "answer_brief": "It depends on the pest and the method, from the Table A and E rows: a wasp nest is treated at its entrance and the activity checked afterwards; rats and mice need follow up visits to check the traps or the bait points, remove spent bait and bodies, then proofing; fleas, bed bugs and cockroaches have eggs, pupae or egg cases that a treatment does not reach, so monitoring and a follow up are part of the method and a flea seen afterwards is usually a newly emerged one, not a failed treatment. Never a fixed number of visits (Table G: none is established); never a promise it ends with one.",
+      "symptom_based": false,
+      "is_fallback": true,
+      "doubt": "Process"
+    },
+    {
+      "slot": "faq_planning",
+      "question": "Does bird proofing need permission?",
+      "answer_brief": "Point at the trade facts rule rows (Table C) and write what usually applies, with \"usually\" or \"in most cases\": netting, spikes or mesh on an ordinary house usually need no permission; on a listed building a fixture that affects its character usually needs consent first; a nest in use is protected whenever it is in use, with no calendar date, so the work is timed around it. What the customer does about it only as the row gives it. No figure, never an Act's or a licence's name.",
+      "symptom_based": false,
+      "condition": "big_ticket AND [CV: handles_planning] confirmed",
+      "doubt": "Process"
+    }
+  ],
+  "faq_slots_by_type": {},
+
+  "materials_tick_list": {
+    "Rodents": ["snap traps", "live catch traps", "secured bait stations", "drain camera check for rat entry", "one way drain valve"],
+    "Insects": ["residual spray treatment", "insecticidal dust", "gel bait", "whole room heat treatment", "steam treatment", "insect growth regulator", "monitoring traps"],
+    "Proofing": ["metal mesh", "wire wool set in cement", "pipe collars and seals", "vent grilles that keep the airflow", "drain barriers"],
+    "Birds": ["bird netting", "ledge spikes", "bird mesh", "solar panel perimeter mesh"],
+    "Wildlife": ["cage traps", "approved spring traps", "fox proof fencing", "specialist mole gassing by a certificated operator"],
+    "Other": ["written report after a survey", "site folder and visit records for commercial sites", "registered waste carrier", "out of hours call outs", "monitoring stations"]
+  },
+
+  "service_terms": ["rodent control", "rat control", "mouse control", "rat and mouse control", "wasp nest treatment", "wasp nest removal", "hornet nest", "bee removal", "swarm collection", "bed bug treatment", "heat treatment", "steam treatment", "flea treatment", "ant control", "cockroach control", "moth treatment", "carpet beetle treatment", "woodworm treatment", "woodworm survey", "insect control", "cluster fly treatment", "fumigation", "fogging", "bird proofing", "bird control", "bird netting", "bird spikes", "pigeon control", "gull control", "solar panel bird proofing", "pest proofing", "proofing", "rodent proofing", "drain survey", "rat blocker", "squirrel control", "mole control", "rabbit control", "fox control", "wildlife control", "dead animal removal", "loft clearance", "loft decontamination", "pest survey", "pest inspection", "commercial pest control", "pest control contract", "routine monitoring", "monitoring visits"],
+
+  "service_words_note": "Old path only (21 Oct 2026): this list applies when the homepage is written from the uploaded custom values CSVs. A client with a v3 page map names every service by its page title (the services library's UK name), and this list is not used. The GBP names say extermination; the UK page names never do.",
+  "service_words": [
+    ["termite", null], ["mosquito", null], ["spider", null], ["bat extermination", null],
+    ["solar panel", "solar panel bird proofing"], ["bird", "bird control and proofing"], ["pigeon", "bird control and proofing"],
+    ["rodent", "rat and mouse control"], ["drain inspection", "rat and mouse control"], ["mole", "mole control"], ["rabbit", "rabbit control"],
+    ["fox", "fox and wildlife control"], ["general wildlife removal", "fox and wildlife control"], ["squirrel", "squirrel control"],
+    ["hornet and wasp", "wasp nest removal"], ["wasp", "wasp nest removal"], ["bee extermination", "bee removal and relocation"], ["bee", "bee removal and relocation"],
+    ["ant extermination", "ant control"], ["bed bug", "bed bug treatment"], ["cockroach", "cockroach control"], ["flea", "flea treatment"],
+    ["carpet beetle", "moth and textile pest control"], ["clothes moth", "moth and textile pest control"], ["moth", "moth and textile pest control"],
+    ["woodworm", "woodworm treatment"], ["silverfish", "insect control"], ["cluster fly", "insect control"], ["beetle", "insect control"],
+    ["bug and insect", "insect control"], ["insect control", "insect control"],
+    ["fumigation", "fumigation and heat treatment"], ["proofing", "pest proofing"], ["dead animal", "dead animal removal"],
+    ["loft clearance", "loft clearance and decontamination"], ["home inspection", "pest surveys and inspections"], ["pest inspection", "pest surveys and inspections"],
+    ["restaurant pest control", "commercial pest control"], ["warehouse pest control", "commercial pest control"], ["office pest control", "commercial pest control"], ["commercial pest control", "commercial pest control"]
+  ],
+
+  "general_service_words": ["pest control", "pest treatment", "pest removal", "pests", "pest problems", "proofing"],
+  "problem_service_words": ["droppings", "scratching", "bites", "smell", "nest"],
+  "why_titles_alt": [
+    "Local Experience With Every Pest",
+    "Covered If Something Goes Wrong"
+  ],
+
+  "category_work_nouns": {
+    "pest control service": "pest control"
+  },
+  "seasonal_trade": true,
+  "category_types": {},
+  "category_page_blocks": {
+    "A": {
+      "problems": {
+        "h2": "Common [WORK] Problems",
+        "cards": [
+          {
+            "title": "Scratching you hear after dark, or in the day",
+            "brief": "Problem led, the pack's planned register: what they hear and when, from the Table B signs rows: scratching in the walls or above a bedroom ceiling at night with droppings and gnawed packaging below (rats and mice); scratching in the loft in the daytime with disturbed insulation and a damaged vent (grey squirrels); nesting material and droppings under the eaves (birds). The one cause this card makes: an animal that has found a gap into the roof or the floor void. Help the reader narrow it down without making it certain from the sound alone; say what finding it involves from Table A: the species confirmed, the loft and the roof access inspected, a check for protected wildlife before anything is done (bats and a roost are advice, never a treatment; a nest in use is protected whenever it is in use: Table C and E, as what usually applies and never the Act), then traps or protected bait where justified for rodents, cage traps for squirrels, and the entry closed only once the animals are out (Table B: sealing first traps them). A captured grey squirrel is not released (Table E), said plainly as the law the trade works to, never the order's name. What it leads to if left, from the skipped rows: gnawed cables and insulation, young born in the loft. Never a scare; never 'infestation'.",
+            "mechanism": "an animal that has found a gap into the roof or the floor void"
+          },
+          {
+            "title": "Droppings under the sink or along a skirting",
+            "brief": "Problem led: droppings near food or the bins, gnawed packaging, holes round the pipes, a urine smell (Table B rat and mouse signs). The one cause this card makes: food and warmth within reach of an opening low down or in the drains: a hole where a pipe comes through, a broken air brick, a failed joint in an older drain that lets rats up into the floor void (Table E: rats can travel through drains). Say what the fix usually involves from Table A: the species identified, harbourage, food and entry points located, a plan that weighs children, pets and other animals, traps or protected bait points where justified, follow up to check them and remove spent bait and bodies, then the entry points proofed with mesh and cement; a drain camera where drain entry is suspected and a one way valve only where it fits, never as compulsory (Table E). The stewardship as what the professional usually does (Table C), never the code's name. Where rats or mice are there in numbers, the occupier usually has to tell the council in writing (Table C, with 'usually'). Rodents can carry disease: said once and plainly, never a statistic (the pack's craft rule). Never DIY poison, never shame.",
+            "mechanism": "food and warmth within reach of an opening low down or in the drains"
+          },
+          {
+            "title": "Wasps, bees or ants going in at one spot",
+            "brief": "Problem led: wasps in and out of one hole under the eaves or in the brickwork, bees entering a cavity or clustered on a branch, ants in a line to food with small soil pellets at an entrance (Table B signs). The one cause this card makes: a colony living inside the fabric of the house or the ground, with its entrance where the traffic shows. Which insect it is decides everything (Table E: species identified before treatment; a cluster of honey bees may be a swarm). Wasps: the nest located, its exposure assessed, treatment at the entrance with a professional product chosen for the nest position, never named, the activity checked and the empty nest removed only if needed (Table A); a low risk nest in autumn may be left, since the colony abandons it (Table E). Bees: honey bees usually referred to a beekeeper where a swarm can be collected, a settled colony inside a wall needing the comb dealt with as well, bumblebee nests usually left because they finish by autumn, treatment only as a last resort (Table A and E); never 'all bees are protected' (Table E records no such law). Ants: the trail traced to the nest and a bait the workers carry back, since treating the trail alone leaves the colony, and some species spread into new nests when disturbed, which is why identification comes first (Table A and B). Never a product, never how to use a shop spray. Urgent nests by a door go to the emergency variant where it is on.",
+            "mechanism": "a colony living inside the fabric of the house, with its entrance where the traffic is"
+          },
+          {
+            "title": "Bites, and insects you only see at night",
+            "brief": "Problem led: bites noticed after sleep with spotting at the mattress seams and cast skins (bed bugs); bites round the ankles, insects where a pet rests, activity after vacuuming (fleas); insects seen when a light goes on, around warm appliances, egg cases in cracks (cockroaches) (Table B signs). The one cause this card makes: eggs, pupae or egg cases in the fabric of the room that an incomplete treatment does not reach, so the numbers come back (Table B skipped rows). Say what the fix involves from Table A: inspection and identification, the harbourages and rooms mapped, contents prepared, a residual treatment or specialist heat or steam for bed bugs, pets treated separately through the vet and floors vacuumed for fleas, gel bait and monitors with harbourages sealed for cockroaches, then monitoring and a follow up where surviving stages emerge (Table E: a flea seen after treatment is usually newly emerged, not a failed job). A follow up as part of the method, never a fixed number of visits (Table G). Why the shop attempt fell short only as Table B states it (eggs that survive an incomplete intervention). Never shame, never 'dirty', never a product.",
+            "mechanism": "eggs, pupae or egg cases that an incomplete treatment never reaches"
+          }
+        ]
+      },
+      "cost": {
+        "h2": "What Affects the Cost of [WORK] in [CITY]",
+        "cards": [
+          {
+            "title": "How far it has spread",
+            "brief": "The extent, the number of rooms or buildings affected, the area of floor and furnishings, the number of places a pet rests (Table F rat and mouse, bed bug, flea and cockroach rows). Early and in one room costs less than spread through the house. Say it plainly and give no figure."
+          },
+          {
+            "title": "The pest and what it takes to reach it",
+            "brief": "A species that needs a specialist plan, a colony that is hard to find, a nest concealed in a wall or a roof, a drain to investigate, comb inside the building fabric (Table F ant, wasp, rat and mouse and bee rows). Say the business looks before it prices, from [CV: quote_method] only."
+          },
+          {
+            "title": "Getting to the nest or the loft",
+            "brief": "Nest height, special access equipment, a difficult roof or loft, an inaccessible wall or floor void, opening up and making good afterwards (Table F wasp, squirrel, dead animal and bee rows). Say why height and a closed void cost more time and kit; never that every job needs a scaffold."
+          },
+          {
+            "title": "Follow up visits and the proofing afterwards",
+            "brief": "Monitoring and follow up visits, repairs to damaged vents, the proofing that stops a return, the waste taken away (Table F rat and mouse, squirrel, bed bug, flea and loft clearance rows). A call out charge only from [CV: quote_call_out_fee]. Code adds the price line from [CV: price_list] when there is one."
+          }
+        ]
+      },
+      "faq_slots": [
+        {
+          "slot": "cost",
+          "question": "How much does [WORK_LOWER] cost in [CITY]?",
+          "answer_brief": "Prices only from [CV: price_list]; a call out charge only from [CV: quote_call_out_fee]; otherwise the things that move the price for this kind of work (how far it has spread, the pest and where it is, the access, the follow up and the proofing) and how the quote is given, from [CV: quote_method] only. Council treatment and its charges vary by area, so never 'the council does it free' (Table E).",
+          "doubt": "Price"
+        },
+        {
+          "slot": "cover",
+          "when": "guarantee",
+          "question": "Do you guarantee your [WORK_LOWER] work?",
+          "answer_brief": "Start with yes, then the terms from [CV: guarantee_years] and [CV: guarantee_scope]. A guarantee is the client's own written terms, described and never written as the pest never returning (Table E: reasonable care and skill, not a promise of no return). Described, never promised.",
+          "doubt": "Trust"
+        },
+        {
+          "slot": "cover",
+          "when": "insurance",
+          "question": "Are you insured for [WORK_LOWER] work?",
+          "answer_brief": "The cover figure from [CV: insurance_cover] and what the cover is for, with a plausible example that does not suggest carelessness (a loft hatch, a ceiling, a tile moved for access). Never what it pays or who it covers.",
+          "doubt": "Trust"
+        },
+        {
+          "slot": "cover",
+          "question": "What happens if the pests come back after treatment?",
+          "answer_brief": "Open with what the customer does: tell us and we look at it. Then why a pest shows again, from the trade facts: stages a treatment does not reach that emerge afterwards (Table E fleas and bed bugs), or a way in left open (Table B). Then the reasonable care and skill standard every trade works to, as the standard the work is held to, never as a defence. No promise to come back free. Never invent a guarantee.",
+          "doubt": "Trust"
+        },
+        {
+          "slot": "scope",
+          "question": "Which pests do you deal with?",
+          "answer_brief": "The pests themselves, named from the card list and the services list only (rats and mice, wasps, bed bugs, fleas, ants, cockroaches, squirrels, birds, as the client has them), and the size of job taken on from [CV: typical_jobs] only. What is never done, from Table C and E as what usually applies: bats are protected and get advice, not a treatment; a nest in use is left until it is finished; honey bees are moved or referred rather than destroyed where the client has that page. Link one service page. Never 'on this page', 'listed above' or 'the card list' as words: the reader sees no list, so name the pests.",
+          "doubt": "Fit"
+        },
+        {
+          "slot": "process",
+          "question": "What happens when I get in touch?",
+          "answer_brief": "From [CV: quote_method] and the confirmed practices only: what the customer says (what they have seen or heard, where and when, pets and children in the house, anyone who reacts badly to stings), what the business looks at (the insect or animal identified, where it lives and how it gets in, what has to be weighed before anything is used: Table A), what comes back (a plan and a price; a written report only from the written_quote or itemised_quote practice). No timescale unless [CV: response_time] is set.",
+          "doubt": "Process"
+        },
+        {
+          "slot": "timing",
+          "question": "Is [WORK_LOWER] a one visit job?",
+          "answer_brief": "From the Table A timing and stages cells, in plain words: it depends on the pest and the method. A wasp nest is treated at its entrance and the activity checked; rats and mice need follow up visits to check traps or bait points, clear spent bait and bodies, then proofing; fleas, bed bugs and cockroaches carry eggs, pupae or egg cases that a treatment does not reach, so monitoring and a follow up are part of the method. Never a fixed number of visits or a duration (Table G: none is established). Nothing about when the job can start unless [CV: start_time] is set.",
+          "doubt": "Timing"
+        }
+      ],
+      "faq_symptom": {
+        "frame": "[SYMPTOM]: why does it happen, and what can be done?",
+        "answer_brief": "The symptom and its linked local issue, answered as asked. Where the symptom is a seasonal sign (wasps gone quiet in autumn, a flea seen after a treatment, rodents heard as the nights draw in), say first when it is normal and then what is not, before anything else. Then the pest behind it and the way in, in plain words, what the local housing or water adds, and what the business does about it (identification, treatment, the entry closed). One figure at most, and it must come out of a trade facts row. Never a disease statistic, never a judgement about the home.",
+        "doubt": "Process"
+      },
+      "seasonal": {
+        "problem_card": {
+          "title": "Rodents moving indoors as the nights turn cold",
+          "brief": "Say first what is normal at the turn of the year: wasps gone quiet and a nest found in winter usually empty, since the colony abandons it in autumn (Table A and E); ants not seen until the weather warms (Table A). Then what is not: scratching that starts as the nights draw in, droppings where there were none, gnawed packets in a cupboard. The one cause this card makes: the cold pushing rats and mice in to where there is warmth and food (Table A rat and mouse timing: indoor activity more apparent in colder weather). Say what gets looked at from Table A: the way in (pipes, air bricks, the roof line, the drain), food within reach, then traps or protected bait where justified and the proofing that follows; the farmland edge of town only where the town profile gives it. Nothing about autumn being busy or booking ahead; no dates.",
+          "mechanism": "the cold pushing rats and mice in to where there is warmth and food"
+        },
+        "faq_slot": {
+          "slot": "seasonal",
+          "question": "Do you still deal with wasp nests in the autumn and winter?",
+          "answer_brief": "From the Table A and E rows: wasp work runs mainly from spring to autumn; the colony abandons the nest in autumn, so a nest found in winter usually needs nothing, and a low risk nest can be left alone; what matters in the cold months is the rodent side, since indoor activity shows more in colder weather. Said with the reason in the animal's year, never as a busy or a quiet season. No dates.",
+          "doubt": "Timing"
+        }
+      },
+      "emergency": {
+        "problems": {
+          "h2": "[WORK] Problems That Can't Wait",
+          "cards": [
+            {
+              "title": "A wasp nest beside a door you use",
+              "brief": "The reader's situation: a stream of wasps at a spot beside a back door, by the bins, at a window that is opened, or where children play. The reason it won't keep: activity can increase as the colony develops and an occupied nest is a sting risk when disturbed (Table B); the strongest reason is someone in the house who reacts badly to a sting (the pack's section 2). The one cause this card makes: a colony defending its entrance where people have to pass. What usually happens when they call, from Table A: wasps confirmed rather than bees (treating the wrong insect harms bees: Table B), the nest located and its exposure assessed, access made safe and people kept clear, the treatment at the entrance, the activity checked afterwards. Meanwhile: keep people and pets away from the entrance and leave it alone; never a shop spray at it (Table B: disturbing an occupied nest without adequate control increases stings). Never a response time, round the clock cover or a call out promise unless [CV: response_time] or [CV: emergency_callouts] confirms it. Never medical detail about a reaction.",
+              "mechanism": "a colony defending its entrance where people have to pass"
+            },
+            {
+              "title": "Rats or mice inside the living space",
+              "brief": "The reader's situation: a rat seen in the kitchen, droppings on a worktop or in a cupboard, gnawed food packets, scratching in the wall at night (Table B). The reason it won't keep: food within reach keeps them active, and gnawing damages cables, pipes and timber (Table B skipped row); rodents can carry disease, said once, plainly, never a statistic (the pack's craft rule 6). The one cause this card makes: rodents with a way in and food within reach. What usually happens when they call, from Table A: the species confirmed, harbourage, food and entry points found, a plan that weighs children, pets and other animals, traps or protected bait points where justified, follow up visits to check them and to remove spent bait and bodies, then the entry points proofed; a drain looked at where that is the route (Table A and E). Meanwhile: food into sealed containers, nothing laid from the shop (Table B: exposed bait risks pets and other animals; a body left behind a wall is the smell they fear). Never 'infestation', never shame, never a figure for how many.",
+              "mechanism": "rodents with a way in and food within reach"
+            },
+            {
+              "title": "Droppings in a kitchen that serves the public",
+              "brief": "The reader's situation: a cafe, a shop or a kitchen with droppings in a store, gnawed packaging, insects in a monitoring point, a sighting near the deliveries (Table B commercial signs). The reason it won't keep: pests can contaminate food (Table B), and a food business usually has to be able to show adequate procedures for controlling them, which an inspector will usually want to see on paper (Table C and E, as what usually applies, never the regulation's name; the hygiene rating is the council's, never the pest firm's). The one cause this card makes: activity that reaches the food before the next visit would have found it. What usually happens when they call, from Table A commercial: the site surveyed and the critical areas identified, controls and monitoring placed, the visit recorded with what was found and done, proofing and housekeeping recommended. Links the Commercial pest control page where LINKABLE PAGES has it. A contract never pushed on the back of a call out; a visit pattern only from [CV: visit_frequency_options]; records as this business's own practice only from the confirmed practices.",
+              "mechanism": "activity that reaches the food before the next visit would have found it"
+            },
+            {
+              "title": "The first hour, before anyone arrives",
+              "brief": "What the customer can do now, from the trade facts rows only and in plain words: keep people and pets away from a nest entrance and neither block it nor spray it (Table B: an occupied nest disturbed without adequate control increases stings; blocking live bees in redirects them); put food away in sealed containers and clear what has been gnawed (Table B: accessible food keeps rodents active); lay no poison and no glue board (Table B: exposed bait risks pets and other animals; Table C and E: a glue board is for a licensed professional in exceptional cases only, said as usually and never the Act); note where and when they saw or heard it, and take a picture from a safe distance, because the insect or animal is identified before anything is used (Table E). The one cause this card makes: what is done in the first hour deciding how much there is to put right. Never an instruction to go into the loft, up a ladder or near the nest; never a time by which anyone arrives unless [CV: response_time] is set.",
+              "mechanism": "what is done in the first hour deciding how much there is to put right"
+            }
+          ]
+        },
+        "steps": [
+          {
+            "title": "Call Us",
+            "brief": "What to say: what they have seen (a stream of wasps at one spot by a door, a window or where children play; a rat or a mouse seen indoors; droppings in the kitchen), where it is, whether anyone in the house reacts badly to stings, whether there are pets or small children. What to do meanwhile, from the trade facts rows only: keep people and pets away from a nest entrance and leave it alone (Table B: an occupied nest disturbed without proper control means more stings); put food away in sealed containers and clear what has been gnawed (Table B: accessible food keeps rodents active); nothing laid or sprayed from the shop (Table B: exposed bait puts pets and other animals at risk; a body left behind a wall is the smell they fear). Never an instruction to go into the loft or up a ladder. The number from [CV: phone]. No promise of a reply or an arrival time unless [CV: response_time] is set."
+          },
+          {
+            "title": "We Come Out, Identify It and Agree the Price",
+            "brief": "What usually happens first on the visit, from Table A: the insect or animal confirmed before anything is used (Table E: a cluster of honey bees can be a swarm, and treating the wrong insect harms bees), the nest or the activity located and its exposure assessed, who is at risk and how access is made safe. The customer told what was found. A call out charge only from [CV: quote_call_out_fee]; the price agreed before any treatment only from the price_agreed_before_work practice and [CV: quote_method]. An arrival time only as the business gives it on the call: no window written here unless [CV: response_time] is set; 'same day' only when [CV: same_day_available] is yes. Never restates 'free'."
+          },
+          {
+            "title": "We Treat It, Then Close the Way In",
+            "brief": "What the visit does, from Table A: a wasp nest treated at its entrance with access made safe and people kept clear, the activity checked afterwards and the empty nest removed only if needed; for rats and mice, traps or protected bait points where justified, follow up visits to check them and to remove spent bait and bodies, then the entry points proofed (Table A stages; Table C: bait points protected, recorded and cleared at the end, as what the professional usually does, never the code's name). The follow up is part of the method with its reason in the animal, never a fixed number of visits. Never promise a one visit fix; never mention the price; never a promise the pest will not return."
+          }
+        ],
+        "faq_slots": [
+          {
+            "slot": "cost",
+            "question": "What does an emergency pest call out cost in [CITY]?",
+            "answer_brief": "Prices and any call out charge only from [CV: price_list] and [CV: quote_call_out_fee]; otherwise how the price is reached, from [CV: quote_method] only: the visit and the treatment priced once the insect or animal has been identified and the nest or the activity found. The price agreed before treatment starts only from the price_agreed_before_work practice. No out of hours figure unless price_list gives one.",
+            "doubt": "Price"
+          },
+          {
+            "slot": "cover",
+            "when": "insurance",
+            "question": "Are you insured for emergency pest work?",
+            "answer_brief": "The cover figure from [CV: insurance_cover] and what the cover is for, with a plausible example that does not suggest carelessness (a tile moved to reach a nest, a loft hatch). Never what it pays or who it covers.",
+            "doubt": "Trust"
+          },
+          {
+            "slot": "cover",
+            "question": "What happens if the wasps or the rodents are back after a call out?",
+            "answer_brief": "Open with what the customer does: tell us and we look at it. Then the honest reasons, from the trade facts: a treated nest dies off and the colony abandons it, so wasps a few weeks later are usually a different colony; rodents return where the way in was left open, which is why proofing follows the treatment and a follow up visit checks the bait points and the traps (Table A). Then the reasonable care and skill standard every trade works to, never as a defence. No promise to come back free. Never invent a guarantee.",
+            "doubt": "Trust"
+          },
+          {
+            "slot": "scope",
+            "question": "Is this an emergency, or can it wait?",
+            "answer_brief": "What counts as urgent, from the card list: a nest beside a door, a window, a bin store or where children play, anyone in the house who reacts badly to stings, a rat or a mouse inside the living space, rodents in a food business. What usually waits for a planned visit, from Table A and E: a nest high on a gable away from the doors, a nest found in autumn or winter (the colony abandons it and a low risk nest may be left), ants on a path, a few flies. Bees are never an urgent treatment: the insect identified first and a beekeeper where a swarm can be collected. Link one service page. Planned work is never dressed up as urgent.",
+            "doubt": "Fit"
+          },
+          {
+            "slot": "process",
+            "question": "What should I do before you arrive?",
+            "answer_brief": "From the trade facts rows only: keep people and pets clear of a nest entrance and neither block nor spray it (Table B); food into sealed containers and gnawed packets cleared (Table B); nothing laid from the shop, no poison and no glue board (Table B and C, as what usually applies); pets kept out of the room where the activity is; note where and when it was seen or heard. Never an instruction to go into the loft, up a ladder or near the nest. Never 'safe for pets' or any version of it.",
+            "doubt": "Process"
+          },
+          {
+            "slot": "timing",
+            "when": "start_time",
+            "question": "How quickly can you get to me?",
+            "answer_brief": "From [CV: response_time] and [CV: start_time] only, as given; a same day visit only when [CV: same_day_available] is yes; a nest at height waits for safe access and weather (Table A and C work at height, as the way the job is done). Never '24/7' or 'any time' unless [CV: emergency_callouts] gives it in those words.",
+            "doubt": "Timing"
+          },
+          {
+            "slot": "timing",
+            "question": "Do you come out in the evening or at the weekend?",
+            "answer_brief": "From [CV: out_of_hours_available] and [CV: emergency_callouts] only; when neither is set, what usually happens on the first visit (the insect or animal identified, the nest or the activity dealt with, the follow up booked) and nothing about hours. Never a response time or an out of hours promise unless the client values give it.",
+            "doubt": "Timing"
+          }
+        ]
+      }
+    }
+  },
+
+  "service_page_blocks": {
+    "A": {
+      "included": {
+        "h2": "What's Included in Our [SERVICE]",
+        "items": [
+          {
+            "title": "Identifying the pest first",
+            "brief": "The first stage of every Table A row: the insect or animal confirmed (wasp against bee, rat against mouse, grey squirrel, active against historic woodworm, which moth), because the method follows the species. A part of the job, not a promise about the quote."
+          },
+          {
+            "title": "Finding where it lives and how it gets in",
+            "brief": "The survey stages from the trade facts: harbourage, food, water and entry points located; the drain where rat entry is suspected; roof access and vents for squirrels and birds; the source and the affected items for moths and stored food insects. Name only what the rows give."
+          },
+          {
+            "title": "Weighing the risks before anything is used",
+            "brief": "The risk assessment and control plan from the trade facts: children, pets and other animals, a protected animal or a nest in use, dependent young, access and height, suspect asbestos in a loft. Said as what the professional usually does, never a code's or an Act's name."
+          },
+          {
+            "title": "Preparing the area",
+            "brief": "The preparation stages from the trade facts: contents prepared and floors vacuumed for bed bugs and fleas, food and water sources removed for cockroaches and ants, the work area contained for a loft or a carcass, safe access and exclusion set up for a nest."
+          },
+          {
+            "title": "The treatment or the trapping",
+            "brief": "The central stage from the trade facts, named as the trade names it: traps or protected bait points, the nest treated at its entrance, a residual treatment or specialist heat or steam, bait the ants carry to the colony, cage traps, humane exclusion for birds, in situ timber treatment. A named product only from [CV: materials_methods]."
+          },
+          {
+            "title": "Checking it has worked",
+            "brief": "The monitoring and follow up stages from the trade facts: traps inspected, the nest's activity checked, monitors reviewed, a repeat where surviving eggs, pupae or egg cases emerge. Never a fixed number of visits: the rows give none."
+          },
+          {
+            "title": "Clearing up afterwards",
+            "brief": "The finishing stages from the trade facts: spent bait and bodies removed, the empty nest removed only if needed, a carcass contained and taken away, contaminated material bagged and the area cleaned without raising dust, disturbed ground put back. Waste through a registered carrier as the rule rows have it, and this business's own registration only from [CV: waste_carrier_registered]."
+          },
+          {
+            "title": "Closing the way in",
+            "brief": "The proofing stage from the trade facts: entry points sealed with mesh, cement, collars or grilles that keep the airflow (Table E: an air brick is never filled solid), drain barriers where the drain is the route, the opening closed only once the animals are out. Done as part of this job where the services list has proofing; otherwise recommended and the proofing page linked."
+          }
+        ],
+        "note": "Fallback only: the tick items are the service's own Table A stages when the pack gives 6 or more; this set is used when it gives fewer (F-ITEMS-GENERIC)."
+      },
+      "problems": {
+        "h2": "Signs You Need [SERVICE]",
+        "cards": [
+          {
+            "title": "The first signs",
+            "brief": "The things a customer notices first, from the trade facts signs row for this service, in their words: droppings, a gnawed packet, a line of ants, a bite, a hole in a jumper, fresh pale dust under a beam, flies gathering at a void. The one cause this card makes: a pest that has been there longer than the first sign suggests, feeding or nesting out of sight before anything showed. Then what it leads to if left, from the skipped row: specific, never alarming. On a schedule led page (Commercial pest control, a survey or monitoring for a business) the card is what slips between visits: a monitoring station nobody has looked at, an opening that appeared since the last visit, a log with no recent entry, with the reason in the site and the season and never in a busy period; what an inspector will usually want to see (Table C and E, never the regulation's name). On an investigation page (Pest surveys and inspections at a home) the card is the sign nobody can place (unidentified droppings, recurring scratching, unexplained holes in timber) and what the survey settles: the pest, the way in, whether treatment is justified at all (Table A and E: historic woodworm needs none).",
+            "mechanism": "a pest that has been there longer than the first sign suggests"
+          },
+          {
+            "title": "It came back after a shop treatment",
+            "brief": "Sprayed or baited from the shop and back within weeks. The one cause this card makes: the stage of the life cycle the treatment never reached, so the numbers refill: eggs that survive an incomplete intervention, pupae that emerge afterwards, a colony left when only the trail was treated, a nest disturbed without proper control (Table B done badly rows for bed bugs, fleas, ants and wasps). Say what the job does differently from Table A: identification first, the source and the harbourage found, a method suited to the species, monitoring until the emerging stages are caught. Why some attempts make it worse only as Table B states it (some ants spread into new nests when disturbed; a disturbed nest means more stings; exposed bait puts pets and other animals at risk). Never how to use any product, never a product named, never a dig at the customer for trying.",
+            "mechanism": "the stage of the life cycle the treatment never reached"
+          },
+          {
+            "title": "Damage you can see",
+            "brief": "Gnawed cables and packaging, disturbed insulation and a damaged vent, holes in wool or stored food, small round holes in timber with fresh dust below, cropped plants and bark damage, droppings below a roof (Table B signs rows). The one cause this card makes: the animal or the larva living off, or in, the fabric of the house and the garden. What it leads to from the skipped rows: insulation and fittings damaged, timber weakened and never assessed, plants fed on until the way in is closed. What the job does from Table A: active against historic established before any timber is treated (Table E: exit holes alone can be old); contaminated insulation cleared only after the animals are excluded, and replaced only where specified (Table A loft clearance); exclusion or fencing where the damage is in the garden. Never 'infestation'; never a repair the services list does not carry.",
+            "mechanism": "the animal or the larva living off the fabric of the house"
+          },
+          {
+            "title": "It keeps getting in",
+            "brief": "Activity back soon after a treatment, gaps at the pipes, gnawing at an opening, a damaged vent grille, birds back under the panels or on the ledge (Table B pest proofing, bird control and solar panel signs rows). The one cause this card makes: a way in that treatment on its own never closes. What the job does from Table A pest proofing: the routes identified, the openings that must stay ventilated told apart from the gaps, mesh, cement, collars and grilles that keep the airflow (Table E: filling an air brick solid is not proofing), a drain barrier where the drain is the route; never sealing an occupied void (it traps animals: Table B) and never proofing across a nest in use or a roost (Table A, as what usually applies). On a bird page: humane exclusion fitted after the nest check (netting, spikes, mesh); lethal control is separate and licensed, never written as offered unless the services list has it. Not the gap under the cooker on a rodent page: the category page owns that.",
+            "mechanism": "a way in that treatment on its own never closes"
+          }
+        ]
+      },
+      "cost": {
+        "h2": "What Affects the Cost of [SERVICE] in [CITY]",
+        "cards": [
+          {
+            "title": "How far it has spread",
+            "brief": "The extent factor from the trade facts price row for this service: the number of rooms or buildings, the area of floor, the volume of textiles, the number of active runs or burrows, the length of ledge. Say it plainly and give no figure."
+          },
+          {
+            "title": "What's needed to reach it",
+            "brief": "A concealed nest, height and access equipment, a loft or a roof that is hard to get into, a wall or floor void opened and made good, comb inside the fabric, clutter to work round (Table F rows). Say the business looks before it prices, from [CV: quote_method] only."
+          },
+          {
+            "title": "The method that suits the pest",
+            "brief": "Heat against a residual treatment for bed bugs, a species that needs a specialist plan, a drain investigation, specialist gassing by a certificated operator for moles, a fumigation that needs the area isolated and cleared (Table F and A rows): why one costs more than another, in plain words. A named product only from [CV: materials_methods]."
+          },
+          {
+            "title": "Follow up visits and the proofing afterwards",
+            "brief": "Monitoring and repeat visits, trap inspections, the proofing and the vent repairs that stop a return, the waste taken away and its disposal (Table F rows). A call out charge only from [CV: quote_call_out_fee]. Code adds the price line from [CV: price_list] when there is one."
+          }
+        ]
+      },
+      "faq_slots": [
+        {
+          "slot": "cost",
+          "question": "How much does [SERVICE_LOWER] cost in [CITY]?",
+          "answer_brief": "Prices only from [CV: price_list]; a call out charge only from [CV: quote_call_out_fee]; otherwise how the quote is given, from [CV: quote_method] only. The four cost cards above already give what moves the price: name one factor at most, never the list again. Never 'the council does it free' (Table E: provision varies).",
+          "doubt": "Price"
+        },
+        {
+          "slot": "timing",
+          "question": "How long does [SERVICE_LOWER] take, and how many visits?",
+          "answer_brief": "From the trade facts timing row only: the rows give no duration and no visit count (Table G), so what decides it: the pest, the method, the stages a treatment does not reach (eggs, pupae, egg cases), traps and bait points that have to be checked and cleared, a nest whose activity is checked afterwards, a nest in use that proofing waits for. Nothing about when the job can start unless [CV: start_time] is set. This is the one place the timing is written.",
+          "doubt": "Timing"
+        },
+        {
+          "slot": "cover",
+          "when": "guarantee",
+          "question": "Do you guarantee your [SERVICE_LOWER] work?",
+          "answer_brief": "Start with yes, then the terms from [CV: guarantee_years] and [CV: guarantee_scope]. The client's own written terms, described and never written as the pest never returning (Table E). Described, never promised.",
+          "doubt": "Trust"
+        },
+        {
+          "slot": "cover",
+          "when": "insurance",
+          "question": "Are you insured for [SERVICE_LOWER]?",
+          "answer_brief": "The cover figure from [CV: insurance_cover] and what the cover is for. Never what it pays or who it covers.",
+          "doubt": "Trust"
+        },
+        {
+          "slot": "cover",
+          "question": "What happens if the pests come back after [SERVICE_LOWER]?",
+          "answer_brief": "Open with what the customer does: tell us and we look at it. Then why this pest shows again, from the trade facts rows for this service: a stage that emerged after the treatment, a way in left open, a host not treated. Then the reasonable care and skill standard every trade works to, never as a defence. No promise to come back free. Never invent a guarantee.",
+          "doubt": "Trust"
+        },
+        {
+          "slot": "rules",
+          "question": "Are there rules about [SERVICE_LOWER]?",
+          "answer_brief": "From the trade facts rule rows for this service only, put as what usually applies, with \"usually\" or \"in most cases\": a professional product used only as its label allows, by a trained technician; bait points protected, recorded and cleared; a bird's nest in use protected whenever it is in use, with no calendar date; bats never treated and a roost a matter for advice; a captured grey squirrel not released; a glue board only under a licence in exceptional cases; honey bees usually referred or relocated as the trade's practice, not a law; consent before fixtures go on a listed building. What the customer does about it only as the row gives it. Never a standard's number, an Act's or a licence's name, or legal advice. Where the rows give no rule, say none usually applies to this work at a home and leave it there.",
+          "doubt": "Process"
+        },
+        {
+          "slot": "scope",
+          "question": "What does your [SERVICE_LOWER] service include?",
+          "answer_brief": "The What's Included items said as a sentence, in other words, naming the work itself. What it does not cover only from the services list (proofing, a loft clearance, a repair), with one sibling service page or the category page linked. Never 'on this page' or 'listed above'.",
+          "doubt": "Fit"
+        }
+      ],
+      "faq_symptom": {
+        "frame": "[SYMPTOM]: why does it happen, and what can be done?",
+        "answer_brief": "The symptom and its linked local issue, answered as asked. Where the symptom is a seasonal sign (wasps gone quiet in autumn, a flea seen after a treatment, rodents heard as the nights draw in), say first when it is normal and then what is not, before anything else. Then the pest behind it and the way in, in plain words, what the local housing or water adds, and what this service does about it. One figure at most, and it must come out of a trade facts row.",
+        "doubt": "Process"
+      },
+      "seasonal": {
+        "problem_card": {
+          "title": "The time of year it shows up",
+          "brief": "What shows and when, from the Table A timing cell for this service: wasp nests mainly spring to autumn, with the colony abandoning the nest in autumn; honey bee swarms in late spring and early summer and bumblebee nests finished by autumn; ants seen more in warm months; rats and mice heard indoors more in the cold months; fresh woodworm emergence in the beetle's flight period; a bird's nest protected whenever it is in use, with no fixed date. Say first what is normal (wasps going quiet in autumn, a nest found in winter usually empty) and then what is not. The one cause this card makes: the pest's own calendar, not the household's. Say what the job does in its season from the stages, and what waits (proofing until the nest is finished and the animals are out). Nothing about summer or autumn being busy; no dates.",
+          "mechanism": "the pest's own calendar, not the household's"
+        },
+        "faq_slot": {
+          "slot": "seasonal",
+          "question": "Is there a best time of year for [SERVICE_LOWER], and how long does it take?",
+          "answer_brief": "From the trade facts timing row only: the season the pest is active and why, in the animal's year, then what decides how long it takes, with no number, since the rows give none. A nest in use or dependent young delay proofing and exclusion, as the rows have it. No dates, no busy season. This is the one place the timing is written.",
+          "doubt": "Timing"
+        }
+      },
+      "emergency": {
+        "problems": {
+          "h2": "When [SERVICE] Can't Wait",
+          "cards": [
+            {
+              "title": "A wasp nest beside a door you use",
+              "brief": "The reader's situation: a stream of wasps at a spot beside a door, by the bins, at an open window or where children play. The reason it won't keep: activity can increase as the colony develops and an occupied nest is a sting risk when disturbed (Table B); someone in the house who reacts badly to stings makes it the first job of the day (the pack's section 2). The one cause this card makes: a colony defending its entrance where people have to pass. What usually happens when they call, from Table A: wasps confirmed rather than bees, the nest located and its exposure assessed, access made safe and people kept clear, the treatment at the entrance, the activity checked. Meanwhile: keep clear of the entrance and leave it alone; no shop spray (Table B). Leads on the Wasp nest removal page. Never a response time or a call out promise unless [CV: response_time] or [CV: emergency_callouts] confirms it.",
+              "mechanism": "a colony defending its entrance where people have to pass"
+            },
+            {
+              "title": "A rat in the kitchen",
+              "brief": "The reader's situation: a rat or a mouse seen indoors, droppings on a worktop, a gnawed packet in a cupboard, scratching behind the units at night (Table B). The reason it won't keep: food within reach keeps them active, gnawing reaches cables and pipes (Table B skipped row); rodents can carry disease, said once and plainly. The one cause this card makes: rodents with a way in and food within reach. What usually happens when they call, from Table A: the species confirmed, harbourage, food and entry points found, a plan that weighs children, pets and other animals, traps or protected bait points where justified, follow up to check them and remove spent bait and bodies, then proofing; the drain looked at where that is the route (Table E). Meanwhile: food sealed away, nothing laid from the shop (Table B). Leads on the Rat and mouse control page. Never 'infestation', never shame.",
+              "mechanism": "rodents with a way in and food within reach"
+            },
+            {
+              "title": "Noises or a smell that started this week",
+              "brief": "The reader's situation: scratching that started a few nights ago, a smell that is getting stronger behind a wall or under the floor, flies gathering at a gap (Table B rat and mouse and dead animal signs). The reason it won't keep: a body or an active run behind a wall gets worse, not better, and a route left open brings the next animal (Table B skipped rows). The one cause this card makes: an animal, alive or dead, inside the fabric of the house. What usually happens when they call, from Table A: the source located, access assessed, the carcass contained and removed where that is the cause, the area cleaned, and the route it used investigated; where the animal is alive, the rodent stages. Leads on the Rat and mouse control page; a Dead animal removal page linked where LINKABLE PAGES has it. Never a scare about what the smell is; never an instruction to open the wall themselves.",
+              "mechanism": "an animal, alive or dead, inside the fabric of the house"
+            },
+            {
+              "title": "The first hour, before anyone arrives",
+              "brief": "What the customer can do now, from the trade facts rows only: keep people and pets away from a nest entrance and neither block nor spray it (Table B); food into sealed containers and gnawed packets cleared (Table B); no poison and no glue board laid (Table B: exposed bait risks pets and other animals; Table C and E: a glue board is a licensed professional's in exceptional cases only, said as usually); note where and when, and a picture from a safe distance so the insect or animal can be identified (Table E). The one cause this card makes: what is done in the first hour deciding how much there is to put right. Reads the same on both emergency pages. Never an instruction to go into the loft, up a ladder or near the nest; never a time by which anyone arrives unless [CV: response_time] is set.",
+              "mechanism": "what is done in the first hour deciding how much there is to put right"
+            }
+          ]
+        },
+        "steps": [
+          {
+            "title": "Call Us",
+            "brief": "What to say: what they have seen (a stream of wasps at one spot by a door, a window or where children play; a rat or a mouse seen indoors; droppings in the kitchen), where it is, whether anyone in the house reacts badly to stings, whether there are pets or small children. What to do meanwhile, from the trade facts rows only: keep people and pets away from a nest entrance and leave it alone (Table B: an occupied nest disturbed without proper control means more stings); put food away in sealed containers and clear what has been gnawed (Table B: accessible food keeps rodents active); nothing laid or sprayed from the shop (Table B: exposed bait puts pets and other animals at risk; a body left behind a wall is the smell they fear). Never an instruction to go into the loft or up a ladder. The number from [CV: phone]. No promise of a reply or an arrival time unless [CV: response_time] is set."
+          },
+          {
+            "title": "We Come Out, Identify It and Agree the Price",
+            "brief": "What usually happens first on the visit, from Table A: the insect or animal confirmed before anything is used (Table E: a cluster of honey bees can be a swarm, and treating the wrong insect harms bees), the nest or the activity located and its exposure assessed, who is at risk and how access is made safe. The customer told what was found. A call out charge only from [CV: quote_call_out_fee]; the price agreed before any treatment only from the price_agreed_before_work practice and [CV: quote_method]. An arrival time only as the business gives it on the call: no window written here unless [CV: response_time] is set; 'same day' only when [CV: same_day_available] is yes. Never restates 'free'."
+          },
+          {
+            "title": "We Treat It, Then Close the Way In",
+            "brief": "What the visit does, from Table A for this page: a wasp nest treated at its entrance with access made safe and people kept clear, the activity checked afterwards and the empty nest removed only if needed; rats and mice with traps or protected bait points where justified, follow up visits to check them and to remove spent bait and bodies, then the entry points proofed (Table C: bait points protected, recorded and cleared at the end, as what the professional usually does, never the code's name). The follow up is part of the method with its reason in the animal, never a fixed number of visits. Never promise a one visit fix; never mention the price; never a promise the pest will not return."
+          }
+        ],
+        "faq_slots": [
+          {
+            "slot": "cost",
+            "question": "What does an emergency [SERVICE_LOWER] call out cost in [CITY]?",
+            "answer_brief": "Prices and any call out charge only from [CV: price_list] and [CV: quote_call_out_fee]; otherwise how the price is reached, from [CV: quote_method] only: the visit and the treatment priced once the insect or animal has been identified and the nest or the activity found. The price agreed before treatment starts only from the price_agreed_before_work practice. No out of hours figure unless price_list gives one.",
+            "doubt": "Price"
+          },
+          {
+            "slot": "timing",
+            "when": "start_time",
+            "question": "How quickly can you get here?",
+            "answer_brief": "From [CV: response_time] and [CV: start_time] only, as given; a same day visit only when [CV: same_day_available] is yes; a nest at height waits for safe access and weather (Table A and C work at height, as the way the job is done). Never '24/7' or 'any time' unless [CV: emergency_callouts] gives it in those words. This is the one place the timing is written.",
+            "doubt": "Timing"
+          },
+          {
+            "slot": "timing",
+            "question": "Do you come out in the evening or at the weekend?",
+            "answer_brief": "From [CV: out_of_hours_available] and [CV: emergency_callouts] only; when neither is set, what usually happens on the first visit (the insect or animal identified, the nest or the activity dealt with, the follow up booked) and nothing about hours. Never a response time or an out of hours promise unless the client values give it. This is the one place the timing is written.",
+            "doubt": "Timing"
+          },
+          {
+            "slot": "cover",
+            "when": "insurance",
+            "question": "Are you insured for emergency [SERVICE_LOWER]?",
+            "answer_brief": "The cover figure from [CV: insurance_cover] and what the cover is for, with a plausible example that does not suggest carelessness (a tile moved to reach a nest, a loft hatch). Never what it pays or who it covers.",
+            "doubt": "Trust"
+          },
+          {
+            "slot": "cover",
+            "question": "What happens if they're back after the call out?",
+            "answer_brief": "Open with what the customer does: tell us and we look at it. Then the honest reasons from the trade facts for this page: a treated nest dies off and the colony abandons it, so wasps weeks later are usually a different colony; rodents return where the way in was left open, which is why the follow up checks the bait points and the traps and proofing follows (Table A). Then the reasonable care and skill standard every trade works to, never as a defence. No promise to come back free. Never invent a guarantee.",
+            "doubt": "Trust"
+          },
+          {
+            "slot": "process",
+            "question": "What should I do before you arrive?",
+            "answer_brief": "From the trade facts rows only: keep people and pets clear of a nest entrance and neither block nor spray it (Table B); food into sealed containers and gnawed packets cleared (Table B); nothing laid from the shop, no poison and no glue board (Table B and C, as what usually applies); pets kept out of the room where the activity is; note where and when it was seen or heard. Never an instruction to go into the loft, up a ladder or near the nest. Never 'safe for pets' or any version of it.",
+            "doubt": "Process"
+          },
+          {
+            "slot": "scope",
+            "question": "Is this an emergency, or can it wait?",
+            "answer_brief": "What counts as urgent for this service, from the card list and the trade facts signs row: a nest beside a door, a window, a bin store or where children play, anyone who reacts badly to stings, a rat or a mouse inside the living space, rodents where food is prepared. What usually waits for a planned visit, from Table A and E: a nest high on a gable away from the doors, a nest found in autumn or winter (the colony abandons it; a low risk nest may be left), droppings in a shed with nothing indoors. Bees are never an urgent treatment: identified first, a beekeeper where a swarm can be collected. Link the planned sibling page or the category page. Planned work is never dressed up as urgent.",
+            "doubt": "Fit"
+          }
+        ]
+      }
+    }
+  },
+
+  "location_page_blocks": {
+    "A": {
+      "problems": {
+        "h2": "Common [WORK] Problems in [TOWN]",
+        "cards": [
+          {
+            "title": "Terraces that share their roof spaces",
+            "brief": "Mice heard in one house and then the next, activity back a month after one house was treated, droppings in a loft nobody uses. The one cause this card makes: roof voids and suspended floors that run from house to house on the older terraces, which the town profile dates (the pack's section 3; never an era as the current state of the houses). Tie the era to what the work involves, never to a judgement on the homes: proofing that takes in the party walls and the house's own gaps, a treatment in one house that is often part of the row's, neighbours spoken to where the client values allow. Never 'the terraces here have mice'; never a street or a resident named. Not the gap at ground level or the drain: the service pages own those.",
+            "mechanism": "roof voids and floor voids that run from house to house"
+          },
+          {
+            "title": "Water, farmland and woodland at the edge of town",
+            "brief": "Rat activity in gardens near a river, a canal or a brook that carries on through the year, rodents moving into houses on the farmland edge as the weather turns cold, squirrels and foxes from woodland that comes up to the gardens (Table A rat and mouse timing: indoor activity more apparent in colder weather; the pack's section 3 anchors, only where the town profile gives the water, the fields or the woods). The one cause this card makes: rats and other animals following the water, the food and the shelter nearby. What it means for the work, in plain words: the outside looked at with the inside, bait used only as its label allows around buildings and in protected points (Table C and E, as what usually applies and never the code's name), proofing before the cold months, foxes deterred and proofed out rather than poisoned, badger setts left alone (Table C and E, with 'usually'). Never 'the river has rats'; never council figures the research does not give (the pack's section 3).",
+            "mechanism": "rats and other animals following the water and the food nearby"
+          },
+          {
+            "title": "Older drains and air bricks",
+            "brief": "A rat in a kitchen on an older street, a smell under the floor, droppings by a pipe entry, a broken air brick nobody noticed. The one cause this card makes: a failed joint in an older jointed drain or an open vent giving rodents a route under the floor (Table E: rats can travel through drains; Table B pest proofing signs; the town profile gives the housing era). What it means for the work: a drain camera where drain entry is suspected and a one way valve only where it fits, never as compulsory (Table E); vent grilles that keep the airflow instead of a blocked air brick (Table E); whose pipe it is as what usually applies, the owner's to the boundary and the sewerage company's beyond, with no Act named (Table E). Never a claim about the state of the town's drains; never a dig at whoever owns them.",
+            "mechanism": "a broken joint or an open vent giving rodents a route under the floor"
+          },
+          {
+            "title": "Roofs the gulls and pigeons have taken",
+            "brief": "Gulls nesting on roofs near the centre, pigeons on ledges and under solar panels, droppings on the pavement below, nesting material at the panel edges (Table B bird and solar panel signs; the pack's section 3: roofs where gulls nest, a high street with food businesses, only where the town profile gives them). The one cause this card makes: ledges, flat roofs and panel edges with nothing to stop a nest, and food close by. What it means for the work: a nest in use is protected whenever it is in use, so proofing is timed around it (Table C and E, as usually, never the Act or a licence); netting, spikes and mesh fitted after the check; droppings cleaned in a way that keeps the dust down (Table E); on a listed building, consent where a fixture affects its character (Table C, as usually), where the town has them. Never 'a gull problem in the town'; never lethal control written as offered.",
+            "mechanism": "ledges, flat roofs and solar panels with nothing to stop a nest"
+          }
+        ]
+      },
+      "cost": {
+        "h2": "What Affects the Cost of [WORK] in [TOWN]",
+        "cards": [
+          {
+            "title": "Getting to a nest on a tall building",
+            "brief": "A nest high on a gable, a chimney or a three storey terrace, a roof with no safe way up: the access equipment and the planning that work at height needs, from the Table F wasp, bird and solar panel rows and Table C as the way the job is done. From the town profile where it gives the housing. No figure."
+          },
+          {
+            "title": "Rows that have to be looked at as one",
+            "brief": "Connected terraces mean proofing that considers the party wall and sometimes more than one house (Table F rat and mouse: the number of affected buildings). Say why that adds visits and talking to neighbours; never a judgement on the row. No figure."
+          },
+          {
+            "title": "Drains, vents and what they lead to",
+            "brief": "A drain investigation, a camera survey, the number and location of openings and detailing that keeps the ventilation working (Table F rat and mouse and pest proofing rows). Where the town profile gives the housing era, say what it usually means for the openings. No figure."
+          },
+          {
+            "title": "Listed buildings and conservation areas",
+            "brief": "Bird proofing on a listed building and fixings that have to suit it, consent before anything goes on (Table F bird control: heritage constraints; Table C listed building consent, as usually and never the Act). From the dossier rules only; otherwise the check as something that sometimes applies. No figure."
+          }
+        ]
+      },
+      "faq_slots": [
+        {
+          "slot": "cost",
+          "question": "How much does [WORK_LOWER] cost in [TOWN]?",
+          "answer_brief": "Prices only from [CV: price_list]; a call out charge only from [CV: quote_call_out_fee]; otherwise the things that push the price up in a town like this (height and access, connected houses, drains and vents) and how the quote is given, from [CV: quote_method] only.",
+          "doubt": "Price"
+        },
+        {
+          "slot": "town",
+          "when": "start_time",
+          "question": "How soon can you get to [TOWN]?",
+          "answer_brief": "From [CV: start_time] and [CV: response_time] only. The town is in the area covered; nothing about distance unless [CV: travel_distance] is set. Emergency call outs in the town only when [CV: emergency_callouts] is yes.",
+          "doubt": "Timing"
+        },
+        {
+          "slot": "town",
+          "question": "Do you cover [TOWN]?",
+          "answer_brief": "Yes: the town and the villages around it (code lists them; name none). How the business reaches it from its base only from the client values. Link one page in this town.",
+          "doubt": "Fit"
+        },
+        {
+          "slot": "cover",
+          "when": "guarantee",
+          "question": "Do you guarantee your work in [TOWN]?",
+          "answer_brief": "Start with yes, then the terms from [CV: guarantee_years] and [CV: guarantee_scope]. Described, never promised, and never written as the pest never returning.",
+          "doubt": "Trust"
+        },
+        {
+          "slot": "cover",
+          "when": "insurance",
+          "question": "Are you insured?",
+          "answer_brief": "The cover figure from [CV: insurance_cover] and what the cover is for. Never what it pays or who it covers.",
+          "doubt": "Trust"
+        },
+        {
+          "slot": "cover",
+          "question": "What happens if the pests come back?",
+          "answer_brief": "Open with what the customer does: tell us and we look at it. Then why a pest shows again, from the trade facts: a stage that emerged after the treatment, a way in left open. Then the reasonable care and skill standard every trade works to. No promise to come back free. Never invent a guarantee.",
+          "doubt": "Trust"
+        },
+        {
+          "slot": "process",
+          "question": "What happens when I call about pests in [TOWN]?",
+          "answer_brief": "From [CV: quote_method] and the confirmed practices only: what the customer says (what they have seen or heard, where and when, pets and children, anyone who reacts badly to stings), what the business looks at (the insect or animal identified, the way in, food and shelter), what comes back. Who else is usually told, from the trade facts rule rows with 'usually' and never an Act's name: the council in writing where rats or mice are there in numbers, the landlord in a rented home, with no rule on who pays (Table E). No timescale unless [CV: response_time] is set.",
+          "doubt": "Process"
+        },
+        {
+          "slot": "timing",
+          "question": "Do pests in [TOWN] follow the seasons?",
+          "answer_brief": "From the Table A timing cells: wasp nests mainly spring to autumn, abandoned in autumn; rats and mice heard indoors more in the cold months; ants seen more in warm weather; honey bee swarms in late spring and early summer; a bird's nest protected whenever it is in use, with no calendar date. Where the town profile gives farmland, water or woodland, say what it does to that, as the research gives it. Nothing about a busy season or booking ahead. No dates.",
+          "doubt": "Timing"
+        }
+      ]
+    }
+  },
+  "do_not_reuse": []
+}
