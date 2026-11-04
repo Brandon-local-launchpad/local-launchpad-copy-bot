@@ -340,7 +340,7 @@
         {
           "slot": "scope",
           "question": "What does your [WORK_LOWER] work include?",
-          "answer_brief": "The jobs on the card list and the size of job taken on, from the services list and [CV: typical_jobs] only. Link one service page.",
+          "answer_brief": "The jobs themselves, named from the card list, and the size of job taken on, from the services list and [CV: typical_jobs] only. Link one service page. Never 'on this page', 'listed above' or 'the card list' as words: the reader sees no list, so name the work.",
           "doubt": "Fit"
         },
         {
@@ -459,7 +459,7 @@
         {
           "slot": "scope",
           "question": "What does a [WORK_LOWER] visit include?",
-          "answer_brief": "The jobs on the card list, said as a visit: the lawn, the edges, the beds, the hedges. Link one service page. What is not included only from the services list.",
+          "answer_brief": "The jobs named from the card list (never 'on this page' or 'listed above': name the work), said as a visit: the lawn, the edges, the beds, the hedges. Link one service page. What is not included only from the services list.",
           "doubt": "Fit"
         },
         {

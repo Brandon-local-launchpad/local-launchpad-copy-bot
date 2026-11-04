@@ -135,10 +135,13 @@ function validateCategory(record, V) {
     if (targets.size && !s3.length) issue('FLAG', 'CB-LINKS', cb.label, 'Paragraph 2 links none of the section 3 pages. Link up to 3 of the service pages given in DECISIONS, each with a reason.', cb.ref);
     if (s3.length > 3) issue('BLOCK', 'CB-LINKS', cb.label, `The content block links ${s3.length} service pages. Link 3 at most, each with its own reason: the cards already link every service.`, cb.ref);
     for (const sen of sentences(cb.text)) {
-      // sentences() strips the links, so count them on the raw text of the sentence
+      // sentences() strips the links, so count them on the raw text of the sentence. Only the
+      // section 3 links count (4 Nov 2026): paragraph 3 names the towns DECISIONS gives it, three
+      // in one sentence ("Romsey, Winchester and Eastleigh"), which this rule had blocked and no
+      // retry could satisfy against the instruction
       const rawSen = cb.text.split(/\n\n+|(?<=[.!?])\s+(?=["“A-Z0-9£\[])/).find(x => scanText(x).trim() === sen);
-      const n = rawSen ? linkUrls(rawSen).length : 0;
-      if (n > 2) issue('BLOCK', 'CB-LINKS', cb.label, `A sentence carries ${n} links. Two in one sentence at most, each with a reason.`, cb.ref);
+      const n = rawSen ? linkUrls(rawSen).map(normUrl).filter(u => targets.has(u)).length : 0;
+      if (n > 2) issue('BLOCK', 'CB-LINKS', cb.label, `A sentence carries ${n} service page links. Two in one sentence at most, each with a reason.`, cb.ref);
     }
   }
   // ── The areas intro never claims every town has a page ──

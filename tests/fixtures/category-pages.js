@@ -280,6 +280,13 @@ chk('banned_phrases: a niche\'s own banned phrase is a BLOCK on first use (4 Nov
   const two = v => issuesOf(r, v).filter(i => i.check === '2' && i.field === PT.LABELS.servicesIntro && /outdoor living space/.test(i.message));
   return two(Vb).length === 1 && two(Vb)[0].type === 'BLOCK' && !two(Va).length;
 })(), '', 'BLOCK 2 from banned_phrases only');
+chk('CB-LINKS: three town links in one sentence of the content block pass (paragraph 4 names the towns DECISIONS gives it); three service links in one sentence are a BLOCK (4 Nov)', (() => {
+  const base = record[PT.LABELS.content];
+  const towns = withText(record, PT.LABELS.content, base + '\n\nWe take the same work to [Romsey](/locations/romsey/gardener), [Winchester](/locations/winchester/gardener) and [Eastleigh](/locations/eastleigh/gardener) as well.');
+  const svcs = withText(record, PT.LABELS.content, base + '\n\nWe also do [mulching](/services/mulching), [weed control](/services/weed-control) and [hedge trimming](/services/hedge-trimming) on the same visit.');
+  const cb = r => issuesOf(r).filter(i => i.check === 'CB-LINKS' && i.type === 'BLOCK' && /in one sentence/.test(i.message));
+  return !cb(towns).length && cb(svcs).length === 1;
+})(), '', 'towns pass, services block');
 chk('LINK-TEXT: a card with a prose name (the library prose_name column, 3 Nov) is linked by that name; the page name alone is a FLAG', (() => {
   const Ds = JSON.parse(JSON.stringify(D)); const c = Ds.d9.main.find(x => x.name === 'Lawn mowing'); if (!c) return false; c.say = 'grass cutting';
   const Vs = categoryValidationContext(G.validationContextFor({ cv, niche, decisions: Ds, keyValueMap: kv, serviceParentMap: ctx.serviceParentMap }), Ds);
