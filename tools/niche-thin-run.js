@@ -16,6 +16,9 @@
 //                       tests/fixtures/trade-facts-gate.js proves it.
 //        --emergency    the client confirms emergency call outs (cv.emergency_primary = yes)
 //        --services     the service page slugs to write (default: the primary category's first page)
+//        --tick         extra service names for the primary category, comma separated: a tab service is
+//                       ticked, any other name is a typed additional service confirmed under it, so a
+//                       page the default ticks miss (Emergency scaffolding) is in the map for --services
 //        --category     the category page slug to write (default: the primary category)
 //        --client       edens-edge: the real Edens Edge client (the live page map rows snapshot, the live
 //                       client values when tests/live-snapshots/edens-edge.json is there, the town
@@ -154,7 +157,12 @@ if (clientArg === 'edens-edge') {
   // installation (the desire led Roof window installation page), then the next pages in config order
   if (isRoofer) ticks[primaryCat.tickGroup] = [...new Set(['Roof repair', 'Roof installation', 'Skylight installation', ...pick(primaryCat, 4)])].filter(s => primaryCat.services.includes(s));
   else { ticks[primaryCat.tickGroup] = pick(primaryCat, 3); if (secondCat) ticks[secondCat.tickGroup] = pick(secondCat, 3); }
-  const resolved = R.resolve(ticks, config);
+  const extraTicks = arg("--tick") ? arg("--tick").split(",").map(x => x.trim()).filter(Boolean) : [];
+  // A name the tab carries is ticked; any other is a typed additional service confirmed under the
+  // primary category (Emergency scaffolding is a free text intake name in the library)
+  const typedTicks = extraTicks.filter(t => !primaryCat.services.includes(t));
+  if (extraTicks.length) ticks[primaryCat.tickGroup] = [...new Set([...(ticks[primaryCat.tickGroup] || []), ...extraTicks.filter(t => primaryCat.services.includes(t))])];
+  const resolved = R.resolve(ticks, config, typedTicks.length ? { additional: typedTicks.map(service => ({ service, categoryKey: primaryCat.key })) } : {});
   if (!resolved.categories.length) { console.error('The resolver gave no category tabs for these ticks:', JSON.stringify(ticks)); process.exit(1); }
   // The page map: the niche library, no volumes, stand in H1s
   const map = PM.buildPageMap({ resolved, baseTown, otherTowns: otherTown, companyName, terms: { _sitewide: [] }, waiting: [] }, { volumes: new Map(), library: libSet, launchTowns: new Set([slugify(otherTown)]), exclude: new Set(), saved: [] });

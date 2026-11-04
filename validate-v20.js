@@ -218,7 +218,11 @@ function packCopy(sentence, idx, names = []) {
   if (!idx) return null;
   const toks = lc(scanText(sentence)).replace(/cvtoken/g, 'x').replace(/[^a-z0-9£' ]+/g, ' ').split(/\s+/).filter(Boolean);
   for (let i = 0; i + 5 <= toks.length; i++) { const g = toks.slice(i, i + 5); const run = g.join(' '); if (packContent(g) && idx.grams.has(run) && !names.some(n => n.includes(run))) return { kind: 'run', match: run }; }
-  const mine = contentWords(sentence);
+  // The page's own names are not a copy here either (4 Nov 2026): a pack example line "card_name:
+  // Lockouts and gaining entry | card_text: A door pulled shut on a latch..." shares the page name's
+  // words with every sentence that names the page, so they are left out of the comparison
+  const nameWords = new Set(names.flatMap(n => [...contentWords(n)]));
+  const mine = new Set([...contentWords(sentence)].filter(w => !nameWords.has(w)));
   if (mine.size >= 7) for (const s of idx.sets) { let shared = 0; for (const w of mine) if (s.words.has(w)) shared++; if (shared / Math.min(mine.size, s.words.size) >= 0.7) return { kind: 'sentence', match: s.text }; }
   return null;
 }
@@ -713,7 +717,12 @@ function validateV20(record, V) {
     const problems = [];
     const blockers = []; // the keyword is the point of sentence 1: losing it is a BLOCK
     if (!/\[CV: company_name\]/.test(s1)) problems.push('it has no [CV: company_name]');
-    if (city && tp && !new RegExp(`\\b${tp}s?\\s+(?:\\w+\\s+){0,2}?in\\s+${city}\\b|\\b${city}\\s+${tp}`, 'i').test(lc(s1))) blockers.push(`the keyword "${niche.trade_person} in ${V.city}" isn't there as a phrase`);
+    // The phrase sentence 1 carries (4 Nov 2026): the trade person in the city, or the page keyword
+    // itself when the H1 names something else (a guttering client under the Roofing services
+    // category writes "offers roofing services in Southampton"; CORE (20) asks for the PAGE keyword)
+    const kwWords = esc(lc(String(D.d2_h1 || '').replace(new RegExp(`\\s+${esc(V.city || '')}\\s*$`, 'i'), '').trim()));
+    const phraseRe = w => new RegExp(`\\b${w}s?\\s+(?:\\w+\\s+){0,2}?in\\s+${city}\\b|\\b${city}\\s+${w}`, 'i');
+    if (city && tp && !phraseRe(tp).test(lc(s1)) && !(kwWords && phraseRe(kwWords).test(lc(s1)))) blockers.push(`the keyword "${niche.trade_person} in ${V.city}"${kwWords && kwWords !== tp ? ` (or "${lc(D.d2_h1)}" as a phrase)` : ''} isn't there as a phrase`);
     if (town && city && (new RegExp(`\\b${esc(lc(town))},?\\s+${city}\\b`).test(lc(s1)) || new RegExp(`\\bin\\s+${city},\\s+${esc(lc(town))}\\b`).test(lc(s1)))) {
       blockers.push(`listing ${town} beside ${V.city} reads as if the business is based in both; say "${niche.trade_person} in ${V.city}", then ${town} as a place it works (e.g. "covering ${town} and the surrounding areas")`);
     }

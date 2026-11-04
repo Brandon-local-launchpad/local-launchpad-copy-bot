@@ -96,6 +96,16 @@ rec5.faq_items[6].faq_answer = "It depends on the scope. A new lawn is often a d
 rec5.home_final_cta_body = 'Call us on [CV: phone] or use the form below and we will come out and look at your garden.';
 const i5 = validateV20(rec5, V);
 chk('HERO: a lost keyword is a BLOCK', i5.some(i => i.check === 'HERO' && i.type === 'BLOCK' && /keyword/.test(i.message)), i5.filter(i=>i.check==='HERO').map(i=>i.type+' '+i.message).join(';'), 'BLOCK');
+// The page keyword when the H1 names something other than the trade person (4 Nov 2026): a guttering client under
+// the Roofing services category writes "offers roofing services in Southampton" and that is the keyword CORE (20) asks for
+const V6 = { ...V, D: { ...V.D, d2_h1: 'Roofing services Southampton' } };
+const rec6 = JSON.parse(JSON.stringify(rec));
+rec6.home_hero_intro = '[CV: company_name] offers roofing services in Southampton, covering Romsey and the surrounding areas. ' + rec.home_hero_intro.split(/(?<=[.!?])s+/).slice(1).join(' ');
+const i6 = validateV20(rec6, V6);
+chk('HERO: the page keyword as the phrase passes when the H1 is not the trade person', !i6.some(i => i.check === 'HERO' && i.type === 'BLOCK'), i6.filter(i=>i.check==='HERO').map(i=>i.type+' '+i.message).join(';'), 'no BLOCK');
+const rec6b = JSON.parse(JSON.stringify(rec6));
+rec6b.home_hero_intro = rec6.home_hero_intro.replace('offers roofing services in Southampton', 'works on roofs in Southampton');
+chk('HERO: neither phrase is still a BLOCK, naming both', validateV20(rec6b, V6).some(i => i.check === 'HERO' && i.type === 'BLOCK' && /roofing services southampton/.test(i.message)), '', 'BLOCK naming the page keyword');
 chk("NUM: \"two-week\" and \"a day's work\"", i5.some(i => i.check === 'NUM' && /two-week/.test(i.message)) && i5.some(i => i.check === 'NUM' && /day.s/.test(i.message)), i5.filter(i=>i.check==='NUM').map(i=>i.message).join(';'), 'both');
 chk('2: "the form below" (no form on the page)', i5.some(i => i.check === '2' && /form/.test(i.message)), '', 'BLOCK');
 

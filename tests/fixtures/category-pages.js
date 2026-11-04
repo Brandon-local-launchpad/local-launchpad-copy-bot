@@ -272,6 +272,14 @@ chk('PACK-COPY: a run that is one of the page\'s own names (a card, a service) i
   const pc = r => issuesOf(r, Vn).filter(i => i.check === 'PACK-COPY' && i.field === PT.LABELS.servicesIntro);
   return !pc(named).length && pc(copied).length === 1;
 })(), '', 'a page name passes, another pack run blocks');
+chk('PACK-COPY: the page name words are left out of the whole sentence comparison too (4 Nov: "card_name: Lockouts and gaining entry | card_text: ..." in a pack example)', (() => {
+  const packLine = fs.readFileSync(path.join(root, 'calibration-packs', 'Landscaper_Calibration_Pack_v5.md'), 'utf8') + '\n\n```\n- card_name: Lawn mowing and edging work | card_text: A lawn pulled shut on a latch is a different job from one locked with a key, and the difference decides whether entry leaves any mark.\n```\n';
+  const Vn = categoryValidationContext(G.validationContextFor({ cv, niche, decisions: D, keyValueMap: { ...kv, service_99: 'Lawn mowing and edging work' }, serviceParentMap: ctx.serviceParentMap, calibrationPack: packLine }), D);
+  const named = withText(record, PT.LABELS.servicesIntro, 'Lawn mowing and edging work in Southampton starts with one question: is the gate shut on a latch, or locked with a key?');
+  const copied = withText(record, PT.LABELS.servicesIntro, 'A lawn pulled shut on a latch is a different job from one locked with a key, and the difference decides whether the entry leaves a mark.');
+  const pc = r => issuesOf(r, Vn).filter(i => i.check === 'PACK-COPY' && i.field === PT.LABELS.servicesIntro);
+  return !pc(named).length && pc(copied).length === 1;
+})(), '', 'the page name sentence passes, the copied sentence blocks');
 chk('banned_phrases: a niche\'s own banned phrase is a BLOCK on first use (4 Nov); the same words in words_avoid alone are not', (() => {
   const text = 'Most calls start with the lawn, and a tidy garden is the outdoor living space most people want, with the beds and hedges done on the same visit so nothing is left half finished.';
   const Vb = categoryValidationContext(G.validationContextFor({ cv, niche: { ...niche, banned_phrases: ['outdoor living space'] }, decisions: D, keyValueMap: kv, serviceParentMap: ctx.serviceParentMap }), D);
