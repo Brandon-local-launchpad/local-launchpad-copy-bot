@@ -38,9 +38,15 @@ function phSvc(text, ctx) {
   const question = /\?\s*$/.test(t.trim());
   const lower = ctx.svcLower || '';
   const q = ctx.svcQuestion || lower;
-  // A question heading reads in sentence case ("Is a patio right for your garden?"), the template's
-  // Title Case lowered outside its placeholders so a town or a token keeps its capitals
-  if (question) t = t.replace(/\[[A-Z_: a-z0-9]+\]|[^\[]+/g, seg => seg.startsWith('[') ? seg : seg.toLowerCase());
+  // A Title Case question heading ("Is [SERVICE] Right for Your Garden?") reads in sentence case
+  // ("Is a patio right for your garden?"): its words are lowered outside the placeholders, except
+  // "I", an acronym, the town and the city, so a question already in sentence case, or one that
+  // comes through here twice, is left alone
+  const titled = (t.match(/(?:^|\s)[A-Z][a-z]+/g) || []).length >= 3;
+  if (question && titled) {
+    const keep = new Set([ctx.city, ctx.town].filter(Boolean).map(s => String(s).toLowerCase()));
+    t = t.replace(/\[[A-Z_: a-z0-9]+\]|[^\[]+/g, seg => seg.startsWith('[') ? seg : seg.replace(/\b[A-Za-z]+\b/g, w => (w === 'I' || /^[A-Z]{2,}$/.test(w) || keep.has(w.toLowerCase())) ? w : w.toLowerCase()));
+  }
   // "[SERVICE] work" on a name that ends in work, "[SERVICE] service" on one that ends in service:
   // the name alone, never "tree work work"
   t = t.replace(/\[SERVICE(?:_LOWER)?\] (work|service)\b/gi, (m, w) => new RegExp(`\\b${w}$`, 'i').test(lower) ? (question ? lower : ctx.svc || '') : m);
