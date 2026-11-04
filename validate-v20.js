@@ -217,7 +217,12 @@ function packIndex(text) {
 function packCopy(sentence, idx, names = []) {
   if (!idx) return null;
   const toks = lc(scanText(sentence)).replace(/cvtoken/g, 'x').replace(/[^a-z0-9£' ]+/g, ' ').split(/\s+/).filter(Boolean);
-  for (let i = 0; i + 5 <= toks.length; i++) { const g = toks.slice(i, i + 5); const run = g.join(' '); if (packContent(g) && idx.grams.has(run) && !names.some(n => n.includes(run))) return { kind: 'run', match: run }; }
+  // A run inside one of the page's own names is that name, not a copy (3 Nov); so is a run that
+  // bridges two names listed side by side (4 Nov 2026: "interior painting and decorating, exterior
+  // painting" in a services card): the run's head ends one name and its tail starts another
+  const isName = run => names.some(n => n.includes(run));
+  const bridges = g => { for (let k = 1; k < g.length; k++) { const head = g.slice(0, k).join(' '), tail = g.slice(k).join(' '); if (names.some(n => n === head || n.endsWith(' ' + head)) && names.some(n => n === tail || n.startsWith(tail + ' '))) return true; } return false; };
+  for (let i = 0; i + 5 <= toks.length; i++) { const g = toks.slice(i, i + 5); const run = g.join(' '); if (packContent(g) && idx.grams.has(run) && !isName(run) && !bridges(g)) return { kind: 'run', match: run }; }
   // The page's own names are not a copy here either (4 Nov 2026): a pack example line "card_name:
   // Lockouts and gaining entry | card_text: A door pulled shut on a latch..." shares the page name's
   // words with every sentence that names the page, so they are left out of the comparison

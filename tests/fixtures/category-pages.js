@@ -280,6 +280,14 @@ chk('PACK-COPY: the page name words are left out of the whole sentence compariso
   const pc = r => issuesOf(r, Vn).filter(i => i.check === 'PACK-COPY' && i.field === PT.LABELS.servicesIntro);
   return !pc(named).length && pc(copied).length === 1;
 })(), '', 'the page name sentence passes, the copied sentence blocks');
+chk('PACK-COPY: a run that bridges two page names in a list is not a copy either (4 Nov: "interior painting and decorating, exterior painting")', (() => {
+  const packLine = fs.readFileSync(path.join(root, 'calibration-packs', 'Landscaper_Calibration_Pack_v5.md'), 'utf8') + '\n\n```\nWe take on lawn mowing and edging work, hedge trimming and shaping work and more besides for homes across the city.\n```\n';
+  const Vn = categoryValidationContext(G.validationContextFor({ cv, niche, decisions: D, keyValueMap: { ...kv, service_98: 'Lawn mowing and edging work', service_99: 'Hedge trimming and shaping work' }, serviceParentMap: ctx.serviceParentMap, calibrationPack: packLine }), D);
+  const listed = withText(record, PT.LABELS.servicesIntro, 'Through the year we cover lawn mowing and edging work, hedge trimming and shaping work, then the beds between them on one visit.');
+  const copied = withText(record, PT.LABELS.servicesIntro, 'We take on lawn mowing and edging work, hedge trimming and shaping work and more besides for homes across the city.');
+  const pc = r => issuesOf(r, Vn).filter(i => i.check === 'PACK-COPY' && i.field === PT.LABELS.servicesIntro);
+  return !pc(listed).length && pc(copied).length === 1;
+})(), '', 'the list of names passes, the copied sentence blocks');
 chk('banned_phrases: a niche\'s own banned phrase is a BLOCK on first use (4 Nov); the same words in words_avoid alone are not', (() => {
   const text = 'Most calls start with the lawn, and a tidy garden is the outdoor living space most people want, with the beds and hedges done on the same visit so nothing is left half finished.';
   const Vb = categoryValidationContext(G.validationContextFor({ cv, niche: { ...niche, banned_phrases: ['outdoor living space'] }, decisions: D, keyValueMap: kv, serviceParentMap: ctx.serviceParentMap }), D);
