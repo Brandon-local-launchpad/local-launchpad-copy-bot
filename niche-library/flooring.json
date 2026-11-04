@@ -592,5 +592,81 @@
       ]
     }
   },
-  "do_not_reuse": []
+  "do_not_reuse": [],
+  "service_overrides": {
+    "floor surveys and moisture testing": {
+      "cost": {
+        "h2": "What Affects the Cost of [SERVICE] in [CITY]",
+        "cards": [
+          {
+            "title": "How much floor and how many rooms",
+            "brief": "The area, the number of rooms and the number of places tested in each, more where the floor changes from boards to concrete between rooms (the trade facts price row: additional test locations, more than one kind of base). Say it plainly and give no figure."
+          },
+          {
+            "title": "The kind of test",
+            "brief": "A reading taken off the surface against one taken from inside the slab, a hygrometer left in place until it has settled against a quick meter reading, the test some screeds call for that a meter cannot give (the trade facts materials cell: surface hygrometer, a probe in the slab, electronic screening, the carbide test; the fact row: a method that suits the base and the floor going on it, and a screening reading is not the specified test). Say why one kind takes a second visit (the price row: a return visit for suitable conditions). No percentage, no number of days, never a standard's number."
+          },
+          {
+            "title": "What's written down",
+            "brief": "A reading given over the phone against a written report with the readings, where they were taken, what the floor is made of and what has to happen before a covering goes down, for a builder, an insurer or the flooring maker's guarantee conditions (the trade facts stages: record readings and locations, specify preparation or further investigation; the fact row: the test method and any heating system need recording). Say what the report is for. A guarantee only as the maker's condition, never this business's."
+          },
+          {
+            "title": "Getting at the floor",
+            "brief": "Rooms cleared or furniture moved, a covering lifted to reach the base, underfloor heating run through its cycle or switched off before a reading means anything (the trade facts price row: hidden defects, underfloor heating investigation; the fact row on heating before a covering). Furniture moved only where confirmed practices say the business does it. Code adds the price line from [CV: price_list] when there is one."
+          }
+        ]
+      },
+      "steps": [
+        {
+          "title": "Tell Us About the Floor",
+          "brief": "How to get in touch and what is useful to send first (which rooms, what the floor is made of if they know, concrete, a new screed or boards, what they want to lay on it, what went wrong before, whether there is underfloor heating). No promise of a reply time unless [CV: response_time] is set."
+        },
+        {
+          "title": "We Test on a Day That Suits You",
+          "brief": "The visit and what happens: the floor looked over for flatness and faults, the test chosen to suit the base and the floor going on it, left to settle as the method requires (the trade facts stages). A second visit when the room is not yet in a state for a reading that means anything (the trade facts timing cell), with no number of days. The price settled as [CV: quote_method] says and no other way. Never restates 'free' (FAQ 5 owns it)."
+        },
+        {
+          "title": "You Get the Reading in Writing",
+          "brief": "What comes back: the readings and where they were taken, what the floor needs before a covering goes down, whether anything needs looking into further (the trade facts stages: record readings and locations, specify preparation or further investigation). The form it takes (a report, an email) only from confirmed practices. Never a pass mark or a figure. Never mention the price or the quote."
+        }
+      ]
+    },
+    "floor removal and uplift": {
+      "cost": {
+        "h2": "What Affects the Cost of [SERVICE] in [CITY]",
+        "cards": [
+          {
+            "title": "What's down now and how it was fixed",
+            "brief": "Carpet on gripper, vinyl or tiles glued down, boards nailed, a floating floor clicked together: each comes up a different way and the glued ones take longest (the trade facts stages: lift the covering and its fixings; the price row: adhesive that will not let go). Say it plainly and give no figure."
+          },
+          {
+            "title": "Layers on top of each other",
+            "brief": "A floor laid over a floor, sometimes more than once, with old adhesive under each one and the base hidden until the last comes up (the trade facts signs row: several coverings layered, the substrate hidden; the price row: multiple floor layers). Say the business looks before it prices, from [CV: quote_method] only."
+          },
+          {
+            "title": "Old tiles and black adhesive",
+            "brief": "Where old floor tiles or a black adhesive under them are suspected, they are checked before anything disturbs them, and the result changes the method and who does the work (the trade facts stages: check suspected hazardous materials; the fact row on old vinyl tiles and adhesive; the price row: suspected hazardous material). Said as a check, never an age or a date, never a guess by eye. What the business does from there only from the services list and confirmed practices."
+          },
+          {
+            "title": "The waste and what's left behind",
+            "brief": "How much comes out and down the stairs, how it has to be separated, a skip or the van, and the base left clean and ready for the next floor or a survey (the trade facts stages: segregate the waste, leave the base ready for assessment; the price row: difficult waste separation, restricted access). The waste taken away only from confirmed practices (waste_removal). Code adds the price line from [CV: price_list] when there is one."
+          }
+        ]
+      },
+      "steps": [
+        {
+          "title": "Tell Us What's Down Now",
+          "brief": "How to get in touch and what is useful to send first (which rooms, what the floor is, carpet, vinyl, tiles, boards or laminate, whether they know of anything under it, photos if they have them). No promise of a reply time unless [CV: response_time] is set."
+        },
+        {
+          "title": "We Look and Price the Job",
+          "brief": "The visit and what gets looked at: a corner lifted to see the layers and how each is fixed, anything that needs checking before it is touched, how the waste gets out. Follows [CV: quote_method]; only say the quote is written if quote_method says so. Never restates 'free' (FAQ 5 owns it)."
+        },
+        {
+          "title": "We Clear It and Leave the Floor Ready",
+          "brief": "The date is agreed in advance, to suit the customer. The room closed off while the old floor comes up where the method asks for it, the adhesive dealt with by a method that suits it, the waste out, the base left ready for the next floor or a survey (the trade facts stages). Never a promise about what is found under it. Never mention the price, the quote or changes to the plan (step 2 and Why choose us own them). Never restates the start time (FAQ 4 owns it)."
+        }
+      ]
+    }
+  }
 }

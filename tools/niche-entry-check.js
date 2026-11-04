@@ -191,7 +191,7 @@ try {
       else if (Array.isArray(v)) v.forEach((x, i) => walk(x, `${p}[${i}]`));
       else if (v && typeof v === 'object') for (const [k, x] of Object.entries(v)) walk(x, p ? `${p}.${k}` : k);
     };
-    walk({ faq_slots: n.faq_slots, faq_slots_by_type: n.faq_slots_by_type, steps: n.steps, steps_emergency: n.steps_emergency, step_2_no_visit: n.step_2_no_visit, fears: n.fears, fears_by_type: n.fears_by_type, category_page_blocks: n.category_page_blocks, service_page_blocks: n.service_page_blocks, location_page_blocks: n.location_page_blocks }, '');
+    walk({ faq_slots: n.faq_slots, faq_slots_by_type: n.faq_slots_by_type, steps: n.steps, steps_emergency: n.steps_emergency, step_2_no_visit: n.step_2_no_visit, fears: n.fears, fears_by_type: n.fears_by_type, category_page_blocks: n.category_page_blocks, service_page_blocks: n.service_page_blocks, location_page_blocks: n.location_page_blocks, service_overrides: n.service_overrides, category_overrides: n.category_overrides }, '');
     for (const h of hits) fail(`brief copies the pack (${packFile}): ${h}`);
     if (!hits.length) ok(`no brief shares a five word run with ${packFile}`);
   } else warn('no calibration pack found for this niche, so briefs were not checked against one');

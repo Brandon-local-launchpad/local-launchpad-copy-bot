@@ -373,6 +373,36 @@ The pack's section 3 rules carried into every card: an era "was built with" its 
 | process | always | What happens when I ask for a quote in [TOWN]? | From [CV: quote_method] and the confirmed practices only: what the customer sends, what the business looks at, what comes back. No timescale unless [CV: response_time] is set. | Process |
 | timing | always | Can tiling be done at any time of year in [TOWN]? | Indoors, yes, subject to what has to dry first (the Table A timing cells: new plaster and a new screed, a tanking layer, the adhesive before grouting, with the waits as the Table E rows give them). Outdoor tiling waits for weather clear of frost and for the base to cure; where the town profile gives the exposure, say what it means for a porcelain patio. No dates, no promise about the weather, nothing about being busy. | Timing |
 
+## Per page overrides (service_overrides)
+
+Brandon, 4 Nov 2026 (copy quality 3): a page whose job differs from the shared type A entry gets its own briefs here, keyed by the page target in lower case. The code lays them over the type entry for that page only (service-blocks.js blocksFor).
+
+### Tile removal
+
+Nothing is tiled: block 5 is the area coming off, how the tiles were fixed and what they are on, the adhesive ground back, and the old floor covering check and the waste.
+
+H2: What Affects the Cost of [SERVICE] in [CITY]
+
+| Card | Brief |
+|---|---|
+| How much is coming off | The area of wall or floor, one room or several, a splashback against a whole bathroom, floor tiles on a thick bed against wall tiles. Say it plainly and give no figure. |
+| How they were fixed and what they're on | Tiles on plaster that comes away with them and has to be made good, on cement board that stays and is used again, on a screed or on boards, floor tiles on a thick old bed (the Table A stages: inspect the substrate; the Table B signs row: the background breaks away with the tiles; the Table F row: a difficult substrate or thick bedding). Say the business looks before it prices, from [CV: quote_method] only. |
+| Grinding the old adhesive back | The ridges of adhesive left when the tiles come off, ground back or made safe so the next finish sits flat, with the dust kept down by extraction or water as the job needs (the Table A stages: remove or make safe the residual bedding; the Table E cutting dust row; the Table F row: dust control). Never "dust free" (Table G). |
+| An old floor covering and the waste | Old floor tiles or a black adhesive under them checked before anything disturbs them, because the result changes the method (the Table A stages: check the age, the substrate and potential asbestos; the Table E row on asbestos beneath old finishes), said as a check, never an age or a date; the rubble bagged, carried out and taken away by a registered carrier (Table C waste duty of care). The waste taken away only from confirmed practices (waste_removal). Code adds the price line from [CV: price_list] when there is one. |
+
+### Regrouting and grout repair
+
+Block 5 reads "What's under the old grout" (the joint raked to full depth, a leak or movement behind it that regrouting will not fix, the silicone joints redone with it) in place of the waterproofing, boards and drains card; the other cards read as the length of joint, the state of the tiles round the joints, and the grout and the corners.
+
+H2: What Affects the Cost of [SERVICE] in [CITY]
+
+| Card | Brief |
+|---|---|
+| How much joint there is to do | The length of joint: one shower corner against every wall in the room, a floor against a splashback, small tiles with far more joint in the same area (the Table F row for this service). Say it plainly and give no figure. |
+| The state of the tiles round the joints | Tiles sound and well stuck, so the joints can be raked out without them moving, against tiles loose or cracked that come into the job; grout stained through, so it comes out rather than being coloured over, which only suits grout that is still sound (the Table A materials cell; the Table F row: localised repair with clean, sound tiles and a dry substrate). Say the business looks before it prices, from [CV: quote_method] only. |
+| What's under the old grout | A joint raked out to its full depth so the new grout has something to hold, never a skim over the old (the Table B done badly row: new grout fails if loose material is left behind); a leak behind the tiles or a floor that moves, which regrouting will not fix and which the job finds first (the Table A stages: inspect the joints and identify leaks or movement; the Table F row: substrate or leak repair); the silicone joints at the bath, the corners and the floor redone with it, never filled rigid (the Table E corners row). Say why each adds a stage. |
+| The grout and the corners | An ordinary cement grout against a resin one, a colour matched to what is there, mosaics with far more joint to fill, a reach into a tight shower corner, the silicone renewed with it (the Table A materials cell; the Table F row: reaction resin grout or renewed seals, hard to access corners). Never a grout class or a standard's number. A named product only from [CV: materials_methods]. Code adds the price line from [CV: price_list] when there is one. |
+
 ## do_not_reuse
 
 (empty to start; add any sentence that has gone live on a client site so it is never repeated)

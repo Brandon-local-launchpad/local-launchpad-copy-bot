@@ -358,6 +358,44 @@ Used by the location page job (CORE (18)): block 4 (the problems the town's home
 | process | always | What happens when I ask for a quote in [TOWN]? | From [CV: quote_method] and the confirmed practices only: what the customer sends, what the business looks at, what comes back. Where the town's roads or front garden controls bring a rule in, say it is settled before the design, with "usually"; whether the business handles the application only from [CV: handles_planning]. No timescale unless [CV: response_time] is set. | Process |
 | timing | always | When is the best time of year for [WORK_LOWER] work? | Most of the year, with the reasons a laying day is chosen from the trade facts timing cells: a base cannot be compacted on frozen or saturated ground; tarmac has to be rolled before it cools; fresh concrete is kept from frost while it cures; resin goes down dry, inside its system's limits. Where the town profile gives the ground (clay still wet in spring, chalk dry early), say what it does to that window. Nothing about spring being busy or booking ahead. No dates, no promises about the weather, never this business's own laying or curing times. | Timing |
 
+## Per page overrides (service_overrides)
+
+Brandon, 4 Nov 2026 (copy quality 3): a page whose job differs from the shared type A entry gets its own briefs here, keyed by the page target in lower case. The code lays them over the type entry for that page only (service-blocks.js blocksFor).
+
+### Car park line marking
+
+A schedule led, commercial page: block 5 is the bays and the line, the old lines, the surface and working round a live car park; the steps are the car park's, not the drive's.
+
+H2: What Affects the Cost of [SERVICE] in [CITY]
+
+| Card | Brief |
+|---|---|
+| How many bays and how much line | The number of bays and the length of line, the arrows, numbers, hatching and accessible bays, and how much of the layout repeats (the trade facts price row: a complex bay layout against simple repeated markings). Say it plainly and give no figure. |
+| The old lines | Old markings to burn off or black out before the new ones go on, a layout being changed rather than refreshed, bays set out again from scratch (the trade facts price row: removing old markings; the done badly row: bays in the wrong place from poor setting out). Say the business looks before it prices, from [CV: quote_method] only. |
+| The surface and the state it's in | Tarmac, concrete or blocks; clean and dry, or oily and dusty; potholes and broken patches that have to be repaired before a line will stay on (the trade facts stages: clean and dry the surface; the price row: substrate repairs; the done badly row: peeling from poor surface preparation or a product that did not suit). Say why a line put on a dirty or wet surface lifts. |
+| Working round a live car park | Cars moved out in sections, an evening or a weekend so the car park stays open, the area kept closed until the product allows cars back over it (the trade facts stages: allow to dry or cure, then reopen; the price row: traffic phasing). The paint or thermoplastic only from [CV: materials_methods]; never a highway specification or a bay size as a rule for a private car park (the trade facts gaps). Out of hours working only from confirmed practices. Code adds the price line from [CV: price_list] when there is one. |
+
+Steps:
+
+| Step | Brief |
+|---|---|
+| Tell Us About the Car Park | How to get in touch and what is useful to send first (roughly how many bays, a plan or a photo, what is painted now, whether the layout is changing, when the car park is quiet). No promise of a reply time unless [CV: response_time] is set. |
+| We Measure the Bays and Price the Job | The visit and what gets looked at: the surface and its state, what old lines come off, the layout measured and set out, how the cars are kept off while the work is done. Follows [CV: quote_method]; only say the quote is written if quote_method says so. Never restates 'free' (FAQ 5 owns it). Never a bay size as a rule (the trade facts gaps: no private bay dimension verified). |
+| We Mark It When the Car Park Is Clear | The date and the hours are agreed in advance, to suit the people who run the car park; a dry surface and a dry day, the marked area kept closed until the product allows traffic (the trade facts timing cell), with no number of hours. Evening or weekend work only from confirmed practices. Never mention the price, the quote or changes to the plan (step 2 and Why choose us own them). Never restates the start time (FAQ 4 owns it). |
+
+### Bollards
+
+No surface is laid: block 5 is the number and the kind, what the post goes through and its footing, power to a lit or rising one, and access for the dig with the consent checked first.
+
+H2: What Affects the Cost of [SERVICE] in [CITY]
+
+| Card | Brief |
+|---|---|
+| How many and what kind | The number, and whether they are fixed, removable, telescopic ones that drop into the ground, or lit: each is a different thing in the ground (the trade facts materials cell: fixed, removable or retractable; the price row: retractable or removable operation). Say it plainly and give no figure. |
+| What it goes through and what holds it | Tarmac, blocks or concrete cut through and made good round the post, the footing each kind needs and the ground under it, what is buried where it is going (the trade facts stages: buried services checked, the foundation dug and fixed; the price row: buried services, excavation or substantial foundations). Say the business looks before it prices, from [CV: quote_method] only. |
+| Power to a lit or rising bollard | A cable run from the house or the building, the trench for it across the drive, the electrical connection and who makes it (only from the services list or confirmed practices; never a qualification beyond the accreditation fields). Say why a plain fixed post has none of this. |
+| Getting the dig done | Access for the digging and the concrete, a shared drive or a pavement edge, whose land it is and any consent to check first (the trade facts stages: establish ownership and obtain any consent; the gaps: not every bollard needs planning permission, so "check" and never a rule), the footing left alone until it has hardened (the trade facts timing cell, with no number of days). Whether the business handles the permission side only from [CV: handles_planning]. Code adds the price line from [CV: price_list] when there is one. |
+
 ## do_not_reuse
 
 (empty to start; add any sentence that has gone live on a client site so it is never repeated)

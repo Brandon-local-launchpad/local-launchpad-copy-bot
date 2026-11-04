@@ -594,5 +594,67 @@
       ]
     }
   },
-  "do_not_reuse": []
+  "do_not_reuse": [],
+  "service_overrides": {
+    "car park line marking": {
+      "cost": {
+        "h2": "What Affects the Cost of [SERVICE] in [CITY]",
+        "cards": [
+          {
+            "title": "How many bays and how much line",
+            "brief": "The number of bays and the length of line, the arrows, numbers, hatching and accessible bays, and how much of the layout repeats (the trade facts price row: a complex bay layout against simple repeated markings). Say it plainly and give no figure."
+          },
+          {
+            "title": "The old lines",
+            "brief": "Old markings to burn off or black out before the new ones go on, a layout being changed rather than refreshed, bays set out again from scratch (the trade facts price row: removing old markings; the done badly row: bays in the wrong place from poor setting out). Say the business looks before it prices, from [CV: quote_method] only."
+          },
+          {
+            "title": "The surface and the state it's in",
+            "brief": "Tarmac, concrete or blocks; clean and dry, or oily and dusty; potholes and broken patches that have to be repaired before a line will stay on (the trade facts stages: clean and dry the surface; the price row: substrate repairs; the done badly row: peeling from poor surface preparation or a product that did not suit). Say why a line put on a dirty or wet surface lifts."
+          },
+          {
+            "title": "Working round a live car park",
+            "brief": "Cars moved out in sections, an evening or a weekend so the car park stays open, the area kept closed until the product allows cars back over it (the trade facts stages: allow to dry or cure, then reopen; the price row: traffic phasing). The paint or thermoplastic only from [CV: materials_methods]; never a highway specification or a bay size as a rule for a private car park (the trade facts gaps). Out of hours working only from confirmed practices. Code adds the price line from [CV: price_list] when there is one."
+          }
+        ]
+      },
+      "steps": [
+        {
+          "title": "Tell Us About the Car Park",
+          "brief": "How to get in touch and what is useful to send first (roughly how many bays, a plan or a photo, what is painted now, whether the layout is changing, when the car park is quiet). No promise of a reply time unless [CV: response_time] is set."
+        },
+        {
+          "title": "We Measure the Bays and Price the Job",
+          "brief": "The visit and what gets looked at: the surface and its state, what old lines come off, the layout measured and set out, how the cars are kept off while the work is done. Follows [CV: quote_method]; only say the quote is written if quote_method says so. Never restates 'free' (FAQ 5 owns it). Never a bay size as a rule (the trade facts gaps: no private bay dimension verified)."
+        },
+        {
+          "title": "We Mark It When the Car Park Is Clear",
+          "brief": "The date and the hours are agreed in advance, to suit the people who run the car park; a dry surface and a dry day, the marked area kept closed until the product allows traffic (the trade facts timing cell), with no number of hours. Evening or weekend work only from confirmed practices. Never mention the price, the quote or changes to the plan (step 2 and Why choose us own them). Never restates the start time (FAQ 4 owns it)."
+        }
+      ]
+    },
+    "bollards": {
+      "cost": {
+        "h2": "What Affects the Cost of [SERVICE] in [CITY]",
+        "cards": [
+          {
+            "title": "How many and what kind",
+            "brief": "The number, and whether they are fixed, removable, telescopic ones that drop into the ground, or lit: each is a different thing in the ground (the trade facts materials cell: fixed, removable or retractable; the price row: retractable or removable operation). Say it plainly and give no figure."
+          },
+          {
+            "title": "What it goes through and what holds it",
+            "brief": "Tarmac, blocks or concrete cut through and made good round the post, the footing each kind needs and the ground under it, what is buried where it is going (the trade facts stages: buried services checked, the foundation dug and fixed; the price row: buried services, excavation or substantial foundations). Say the business looks before it prices, from [CV: quote_method] only."
+          },
+          {
+            "title": "Power to a lit or rising bollard",
+            "brief": "A cable run from the house or the building, the trench for it across the drive, the electrical connection and who makes it (only from the services list or confirmed practices; never a qualification beyond the accreditation fields). Say why a plain fixed post has none of this."
+          },
+          {
+            "title": "Getting the dig done",
+            "brief": "Access for the digging and the concrete, a shared drive or a pavement edge, whose land it is and any consent to check first (the trade facts stages: establish ownership and obtain any consent; the gaps: not every bollard needs planning permission, so \"check\" and never a rule), the footing left alone until it has hardened (the trade facts timing cell, with no number of days). Whether the business handles the permission side only from [CV: handles_planning]. Code adds the price line from [CV: price_list] when there is one."
+          }
+        ]
+      }
+    }
+  }
 }

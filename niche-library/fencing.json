@@ -638,5 +638,90 @@
       ]
     }
   },
-  "do_not_reuse": []
+  "do_not_reuse": [],
+  "service_overrides": {
+    "fence staining and treatment": {
+      "cost": {
+        "h2": "What Affects the Cost of [SERVICE] in [CITY]",
+        "cards": [
+          {
+            "title": "How much fence there is to coat",
+            "brief": "The length of the run and whether one face or both are being done, the height, the gates and the posts counted in (the trade facts price row: access to both faces, the number of coats the product asks for). Say it plainly and give no figure."
+          },
+          {
+            "title": "The state of the timber",
+            "brief": "Bare new timber, timber gone grey, an old coating peeling that has to come off, green growth to wash off before anything goes on, timber still wet that has to dry first (the trade facts stages: clean and prepare, let the timber dry as the product requires; the price row: surface preparation, how much old coating comes off). Say the business looks before it prices, from [CV: quote_method] only."
+          },
+          {
+            "title": "Getting at both faces and what has to be covered",
+            "brief": "A fence reached from the garden only or from next door's side as well, a border planted hard against it, a patio, a shed, a wall or a brick pier the brush must keep off, what is sheeted and masked before a coat goes on (the trade facts stages: protect adjoining surfaces; the price row: access to both faces). Say why each adds time. Never a promise about what next door will allow."
+          },
+          {
+            "title": "The stain or treatment you choose",
+            "brief": "A stain, a paint or a clear preserver, and the number of coats the product asks for; brush against spray only as the trade facts give them. A named product only from [CV: materials_methods]. A coat on the surface is not the pressure treatment the posts had at the yard (the trade facts materials cell), so never say it stops a post rotting in the ground, and no wait before coating fresh timber as a rule (the facts verify none). Code adds the price line from [CV: price_list] when there is one."
+          }
+        ]
+      },
+      "steps": [
+        {
+          "title": "Tell Us About the Fence",
+          "brief": "How to get in touch and what is useful to send first (roughly how long the run is, one face or both, what is on it now, a photo of the worst patch). No promise of a reply time unless [CV: response_time] is set."
+        },
+        {
+          "title": "We Look at the Timber and Price the Job",
+          "brief": "The visit and what gets looked at: how dry the timber is, what old coating has to come off, growth to wash off, which faces can be reached and what is planted or built against them. Follows [CV: quote_method]; only say the quote is written if quote_method says so. Never restates 'free' (FAQ 5 owns it)."
+        },
+        {
+          "title": "We Treat It in a Dry Spell That Suits You",
+          "brief": "The date is agreed in advance, to suit the customer, and it waits for dry timber and the weather the coating maker allows (the trade facts timing cell); no number of dry days, no promise about the weather. A day moved by the rain and rebooked only when the weather_delays_rebooked practice is confirmed. Never mention the price, the quote or changes to the plan (step 2 and Why choose us own them). Never restates the start time (FAQ 4 owns it)."
+        }
+      ]
+    },
+    "bin and log stores": {
+      "cost": {
+        "h2": "What Affects the Cost of [SERVICE] in [CITY]",
+        "cards": [
+          {
+            "title": "What it has to hold",
+            "brief": "How many bins and which sizes, or how much wood it has to keep dry for the winter: the width, the depth and the height follow from that (the trade facts price row: custom dimensions against repeated or standard components). Say it plainly and give no figure."
+          },
+          {
+            "title": "A roof, doors and how it opens",
+            "brief": "A sloping roof that throws the rain off, a lid that lifts for the bins, doors or an open front, slatted sides so air gets through the logs (the trade facts stages: cladding, roof and doors; the price row: roof and door detailing). Say why each adds work, in plain words."
+          },
+          {
+            "title": "Where it stands and what it fixes to",
+            "brief": "On paving or a slab that is already there, or on a base that has to be made first; freestanding, or built onto the fence or a wall; how it is reached with the timber (the trade facts stages: measure the location and access, prepare the base; the price row: base preparation, site access). Say the business looks before it prices, from [CV: quote_method] only. Whether the business lays a base only from the services list or confirmed practices."
+          },
+          {
+            "title": "The timber and the finish",
+            "brief": "The timber and its treatment, the cladding pattern, a coat of stain or preserver, only from [CV: materials_methods]; what keeps the frame off the wet ground and sheds the rain, because a store stands outside all year (the trade facts done badly row: rain let in by a poor detail, decay where the timber treatment did not suit). No lifespan figure. Code adds the price line from [CV: price_list] when there is one."
+          }
+        ]
+      }
+    },
+    "automatic gates": {
+      "cost": {
+        "h2": "What Affects the Cost of [SERVICE] in [CITY]",
+        "cards": [
+          {
+            "title": "The gate and what moves it",
+            "brief": "One leaf against two, sliding against swing, the posts or piers it hangs on, the motor and its safety devices, the power run to it (the trade facts stages: foundations, the gate and its operator, the protective devices; the price row: gate fabrication, the electrical supply and the civil works, the safety device design). Say it plainly and give no figure. Never a brand of motor unless [CV: materials_methods] names it."
+          },
+          {
+            "title": "What has to come out or go in the ground first",
+            "brief": "An old gate and its posts, piers that are not up to the weight of a powered gate, the foundation for new posts or for a slide track, the trench for the cable across the drive (the trade facts stages: build foundations; the price row: civil works). Say the business looks before it prices, from [CV: quote_method] only."
+          },
+          {
+            "title": "The slope, the opening and the power",
+            "brief": "A drive that rises behind the gate so a swing leaf cannot clear it, a drive too short for a leaf to swing in so it slides instead, where the power comes from and how far it has to run, pipes and cables under the line of the trench (the trade facts price row: electrical supply and civil works). Say why each adds time. Who does the electrical work only from the services list or confirmed practices."
+          },
+          {
+            "title": "The gate, the safety kit and the extras",
+            "brief": "Timber or metal leaves and their finish, an intercom or keypad, a remote for each car, from [CV: materials_methods] only; the safety devices the risk assessment calls for (edges that stop the gate when it meets something, detection so it does not close on a person, the closing force tested at the end) and the paperwork handed over, from the trade facts stages and the done badly row. Say plainly that the safety side is part of the job and never a thing to leave off, with no figure and no standard's number; never say photocells alone make a gate safe (the trade facts fact row). Code adds the price line from [CV: price_list] when there is one."
+          }
+        ]
+      }
+    }
+  }
 }

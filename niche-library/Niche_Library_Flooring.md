@@ -362,6 +362,52 @@ Used by the location page job (CORE (18)): block 4 (the problems the town's home
 | process | always | What happens when I ask for a quote in [TOWN]? | From [CV: quote_method] and the confirmed practices only: what the customer sends, what the business looks at (the rooms, what is under the floor), what comes back. No timescale unless [CV: response_time] is set. | Process |
 | timing | always | How long does [WORK_LOWER] work take in [TOWN]? | From the trade facts timing cells only: no flooring job has a standard duration in the rows, so what decides it (the rooms, what comes up, what the floor underneath needs first). Where the town profile gives the housing (timber boards over a void on the older streets, a slab on the estates built after the war), say what it does to the preparation. The waits before the fitting day only as the rows give them (a screed dried until the test says so, the material's time in the room as its instructions require). No number of days, nothing about a busy time of year. | Timing |
 
+## Per page overrides (service_overrides)
+
+Brandon, 4 Nov 2026 (copy quality 3): a page whose job differs from the shared type A entry gets its own briefs here, keyed by the page target in lower case. The code lays them over the type entry for that page only (service-blocks.js blocksFor).
+
+### Floor surveys and moisture testing
+
+A survey, not a fitting: block 5 is the area and the rooms, the kind of test, what is written down and the access; the steps end with the reading in writing, not a fitting day.
+
+H2: What Affects the Cost of [SERVICE] in [CITY]
+
+| Card | Brief |
+|---|---|
+| How much floor and how many rooms | The area, the number of rooms and the number of places tested in each, more where the floor changes from boards to concrete between rooms (the trade facts price row: additional test locations, more than one kind of base). Say it plainly and give no figure. |
+| The kind of test | A reading taken off the surface against one taken from inside the slab, a hygrometer left in place until it has settled against a quick meter reading, the test some screeds call for that a meter cannot give (the trade facts materials cell: surface hygrometer, a probe in the slab, electronic screening, the carbide test; the fact row: a method that suits the base and the floor going on it, and a screening reading is not the specified test). Say why one kind takes a second visit (the price row: a return visit for suitable conditions). No percentage, no number of days, never a standard's number. |
+| What's written down | A reading given over the phone against a written report with the readings, where they were taken, what the floor is made of and what has to happen before a covering goes down, for a builder, an insurer or the flooring maker's guarantee conditions (the trade facts stages: record readings and locations, specify preparation or further investigation; the fact row: the test method and any heating system need recording). Say what the report is for. A guarantee only as the maker's condition, never this business's. |
+| Getting at the floor | Rooms cleared or furniture moved, a covering lifted to reach the base, underfloor heating run through its cycle or switched off before a reading means anything (the trade facts price row: hidden defects, underfloor heating investigation; the fact row on heating before a covering). Furniture moved only where confirmed practices say the business does it. Code adds the price line from [CV: price_list] when there is one. |
+
+Steps:
+
+| Step | Brief |
+|---|---|
+| Tell Us About the Floor | How to get in touch and what is useful to send first (which rooms, what the floor is made of if they know, concrete, a new screed or boards, what they want to lay on it, what went wrong before, whether there is underfloor heating). No promise of a reply time unless [CV: response_time] is set. |
+| We Test on a Day That Suits You | The visit and what happens: the floor looked over for flatness and faults, the test chosen to suit the base and the floor going on it, left to settle as the method requires (the trade facts stages). A second visit when the room is not yet in a state for a reading that means anything (the trade facts timing cell), with no number of days. The price settled as [CV: quote_method] says and no other way. Never restates 'free' (FAQ 5 owns it). |
+| You Get the Reading in Writing | What comes back: the readings and where they were taken, what the floor needs before a covering goes down, whether anything needs looking into further (the trade facts stages: record readings and locations, specify preparation or further investigation). The form it takes (a report, an email) only from confirmed practices. Never a pass mark or a figure. Never mention the price or the quote. |
+
+### Floor removal and uplift
+
+Taking up, not laying: block 5 is what is down and how it was fixed, the layers, the check on old tiles and black adhesive, and the waste; the steps end with the base left ready.
+
+H2: What Affects the Cost of [SERVICE] in [CITY]
+
+| Card | Brief |
+|---|---|
+| What's down now and how it was fixed | Carpet on gripper, vinyl or tiles glued down, boards nailed, a floating floor clicked together: each comes up a different way and the glued ones take longest (the trade facts stages: lift the covering and its fixings; the price row: adhesive that will not let go). Say it plainly and give no figure. |
+| Layers on top of each other | A floor laid over a floor, sometimes more than once, with old adhesive under each one and the base hidden until the last comes up (the trade facts signs row: several coverings layered, the substrate hidden; the price row: multiple floor layers). Say the business looks before it prices, from [CV: quote_method] only. |
+| Old tiles and black adhesive | Where old floor tiles or a black adhesive under them are suspected, they are checked before anything disturbs them, and the result changes the method and who does the work (the trade facts stages: check suspected hazardous materials; the fact row on old vinyl tiles and adhesive; the price row: suspected hazardous material). Said as a check, never an age or a date, never a guess by eye. What the business does from there only from the services list and confirmed practices. |
+| The waste and what's left behind | How much comes out and down the stairs, how it has to be separated, a skip or the van, and the base left clean and ready for the next floor or a survey (the trade facts stages: segregate the waste, leave the base ready for assessment; the price row: difficult waste separation, restricted access). The waste taken away only from confirmed practices (waste_removal). Code adds the price line from [CV: price_list] when there is one. |
+
+Steps:
+
+| Step | Brief |
+|---|---|
+| Tell Us What's Down Now | How to get in touch and what is useful to send first (which rooms, what the floor is, carpet, vinyl, tiles, boards or laminate, whether they know of anything under it, photos if they have them). No promise of a reply time unless [CV: response_time] is set. |
+| We Look and Price the Job | The visit and what gets looked at: a corner lifted to see the layers and how each is fixed, anything that needs checking before it is touched, how the waste gets out. Follows [CV: quote_method]; only say the quote is written if quote_method says so. Never restates 'free' (FAQ 5 owns it). |
+| We Clear It and Leave the Floor Ready | The date is agreed in advance, to suit the customer. The room closed off while the old floor comes up where the method asks for it, the adhesive dealt with by a method that suits it, the waste out, the base left ready for the next floor or a survey (the trade facts stages). Never a promise about what is found under it. Never mention the price, the quote or changes to the plan (step 2 and Why choose us own them). Never restates the start time (FAQ 4 owns it). |
+
 ## do_not_reuse
 
 (empty to start; add any sentence that has gone live on a client site so it is never repeated)
