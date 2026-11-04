@@ -57,6 +57,7 @@ const CODE_ITEMS = {
   P1: { title: 'Fixed price 3 times at most, never in a step', checks: ['PROOF-FIXED'] },
   P2: { title: 'Other proofs 3 times at most', checks: ['PROOF-REPEAT', 'N4', 'N20'] },
   P3: { title: 'No phrase in more than two fields', checks: ['REPEAT-PAGE'] },
+  C14: { title: 'No sentence about how a business in the trade behaves', checks: ['TRADE-VOICE'] },
   P7: { title: '"A price agreed before work starts" once outside step 2', checks: ['PRICE-FIRST'] },
   P8: { title: 'Quote method and the price practice 3 times at most, never in both the cost FAQ and the visits FAQ', checks: ['PROOF-QUOTE'] },
   P4: { title: 'No five word run shared by two fields', checks: ['N21'] },
@@ -270,27 +271,56 @@ function decisionsTests({ record, D, cv, niche }) {
   return out;
 }
 
+// The issues behind a code item, each with the reason the mark sheet prints
+const CONTENT_FIELD = { category: /cat_content_body/, service: /svc_content_body/, location: /loc_content_body/ };
+const contentFieldOf = record => CONTENT_FIELD[pageTypeId(record)] || /home_content_block_body/;
+function itemIssues(item, issues, contentField) {
+  const out = [];
+  if (item.checks) for (const i of issues) if (item.checks.includes(i.check) && !(item.skip && item.skip.test(i.message)) && !(item.only && !item.only.test(i.message))) out.push({ issue: i, reason: `${i.check} · ${i.field}: ${i.message}` });
+  if (item.range) {
+    for (const i of issues.filter(x => x.check === 'N7' && /words: it must be/.test(x.message))) {
+      const isCb = contentField.test(i.field), isFaq = /^faq_answer/.test(i.field);
+      if ((item.range === 'home_content_block_body' && isCb) || (item.range === 'faq_answer' && isFaq) || (item.range === 'other' && !isCb && !isFaq)) out.push({ issue: i, reason: `${i.field}: ${i.message}` });
+    }
+    if (item.longSentence) {
+      for (const i of issues.filter(x => x.check === 'N7' && /A sentence of (\d+) words/.test(x.message))) {
+        if (parseInt(i.message.match(/A sentence of (\d+) words/)[1], 10) > item.longSentence) out.push({ issue: i, reason: `${i.field}: ${i.message}` });
+      }
+    }
+  }
+  return out;
+}
+
+// The code items these issues fail, for the page as it stands (no reviewer, no decisions)
+function codeFailuresFromIssues(record, issues) {
+  const out = [];
+  const contentField = contentFieldOf(record);
+  for (const [id, item] of Object.entries(codeItemsFor(record))) {
+    const hits = itemIssues(item, issues, contentField);
+    if (hits.length) out.push({ id, title: item.title, by: 'code', pass: false, reasons: hits.map(x => x.reason), issues: hits.map(x => x.issue) });
+  }
+  return out;
+}
+
+// What the targeted round rewrites (Brandon, copy quality 5): every BLOCK, and the issues behind the listed code items
+function targetIssues(record, issues) {
+  const { TARGET_ITEMS } = require('./verdict');
+  const contentField = contentFieldOf(record);
+  const items = codeItemsFor(record);
+  const out = new Set(issues.filter(i => i.type === 'BLOCK'));
+  for (const id of TARGET_ITEMS) if (items[id]) for (const x of itemIssues(items[id], issues, contentField)) out.add(x.issue);
+  return [...out];
+}
+
 // Code items: pass or fail with the reasons
 function scoreCodeItems({ record, V, D, cv, niche }) {
   const issues = validateV20(record, V);
   const dec = decisionsTests({ record, D, cv, niche });
   const items = [];
-  const contentField = { category: /cat_content_body/, service: /svc_content_body/, location: /loc_content_body/ }[pageTypeId(record)] || /home_content_block_body/;
+  const contentField = contentFieldOf(record);
   for (const [id, item] of Object.entries(codeItemsFor(record))) {
-    const reasons = [];
-    if (item.checks) for (const i of issues) if (item.checks.includes(i.check) && !(item.skip && item.skip.test(i.message)) && !(item.only && !item.only.test(i.message))) reasons.push(`${i.check} · ${i.field}: ${i.message}`);
+    const reasons = itemIssues(item, issues, contentField).map(x => x.reason);
     if (item.decisions && dec[item.decisions]) reasons.push(dec[item.decisions]);
-    if (item.range) {
-      for (const i of issues.filter(x => x.check === 'N7' && /words: it must be/.test(x.message))) {
-        const isCb = contentField.test(i.field), isFaq = /^faq_answer/.test(i.field);
-        if ((item.range === 'home_content_block_body' && isCb) || (item.range === 'faq_answer' && isFaq) || (item.range === 'other' && !isCb && !isFaq)) reasons.push(`${i.field}: ${i.message}`);
-      }
-      if (item.longSentence) {
-        for (const i of issues.filter(x => x.check === 'N7' && /A sentence of (\d+) words/.test(x.message))) {
-          if (parseInt(i.message.match(/A sentence of (\d+) words/)[1], 10) > item.longSentence) reasons.push(`${i.field}: ${i.message}`);
-        }
-      }
-    }
     items.push({ id, title: item.title, by: 'code', pass: !reasons.length, reasons });
   }
   return { items, issues };
@@ -390,22 +420,23 @@ async function reviewPage({ record, V, D, cv, niche, callModel }) {
     done: !failed.length && score !== null && score >= PASS_SCORE,
     failed: failed.map(i => i.id), items, other_problems: j.other_problems || [], missing_facts: j.missing_facts || [],
     validator: { block: issues.filter(i => i.type === 'BLOCK').length, flag: issues.filter(i => i.type === 'FLAG').length },
-    // The gate (Brandon, 4 Nov 2026); the score stays for tracking
-    verdict: require('./verdict').verdictFor({ block: issues.filter(i => i.type === 'BLOCK').length, failures: failed }),
+    // The gate and the edit list (Brandon, copy quality 5); the score stays for tracking
+    verdict: require('./verdict').verdictFor({ block: issues.filter(i => i.type === 'BLOCK').length, failures: failed, claims: record.CLAIMS || null }),
+    edit_list: require('./verdict').editList({ record, issues, judge: failed.filter(i => i.by !== 'code'), codeFailed: codeFailuresFromIssues(record, issues) }),
     usage: r.usage || null,
   };
 }
 
 function formatReview(rv) {
   const fixable = rv.items.filter(x => !x.pass && x.needs !== 'client fact'), needFact = rv.items.filter(x => !x.pass && x.needs === 'client fact');
-  const V_ = rv.verdict || require('./verdict').verdictFor({ block: (rv.validator && rv.validator.block) || 0, failures: rv.items.filter(x => !x.pass) });
+  const V_ = rv.verdict && rv.verdict.state ? rv.verdict : require('./verdict').verdictFor({ block: (rv.validator && rv.validator.block) || 0, failures: rv.items.filter(x => !x.pass) });
   const L = [`Verdict: ${require('./verdict').verdictLine(V_)}`,
     `Score (for tracking): ${rv.score === null ? 'n/a' : rv.score.toFixed(1)} / 10 · ${rv.items.length - rv.failed.length}/${rv.items.length} rubric items pass · ${rv.done ? 'DONE' : 'not done'}`,
     ...(rv.score_writing != null && rv.score !== null ? [`Counting only what the writing can fix: ${rv.score_writing.toFixed(1)} / 10 (${fixable.length} failure(s) fixable in the writing, ${needFact.length} need a client fact)`] : []),
     `Validator: ${rv.validator.block} BLOCK, ${rv.validator.flag} FLAG`, ''];
   // Every rubric item, failures first with the reviewer's reasons, then the passes (4 Nov 2026:
   // the file next to each page is the whole mark sheet, not only what was marked down)
-  if (V_.judge_failed.length) { L.push('For a person to read (failed judge items):'); for (const j of V_.judge_failed) L.push(`  - ${j.id}: ${(j.reasons || []).join(' | ') || j.title}`); L.push(''); }
+  if ((rv.edit_list || []).length) { L.push(`Edit before publishing (${rv.edit_list.length}):`); L.push(...require('./verdict').editListLines(rv.edit_list)); L.push(''); }
   const failLines = list => { for (const i of list) { L.push(`FAIL ${i.id} (${i.by}) ${i.title}`); for (const r of i.reasons) L.push(`  - ${r}`); } };
   if (needFact.length) { L.push('Fixable in the writing:'); failLines(fixable); L.push('', 'Needs a client fact:'); failLines(needFact); }
   else failLines(fixable);
@@ -425,4 +456,4 @@ function formatReview(rv) {
   return L.join('\n');
 }
 
-module.exports = { reviewPage, scoreCodeItems, decisionsTests, decisionsSummary, formatReview, pageText, CODE_ITEMS, CATEGORY_ITEMS, SERVICE_ITEMS, LOCATION_ITEMS, JUDGE_ITEMS, codeItemsFor, judgeItemsFor, REVIEW_MODEL, PASS_SCORE, loadReviewPrompt };
+module.exports = { reviewPage, scoreCodeItems, codeFailuresFromIssues, targetIssues, decisionsTests, decisionsSummary, formatReview, pageText, CODE_ITEMS, CATEGORY_ITEMS, SERVICE_ITEMS, LOCATION_ITEMS, JUDGE_ITEMS, codeItemsFor, judgeItemsFor, REVIEW_MODEL, PASS_SCORE, loadReviewPrompt };

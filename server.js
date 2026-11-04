@@ -4288,7 +4288,9 @@ for (const base of V20_PAGE_BASES) {
     let issues = null, issuesError = null;
     try { issues = v20Edit.revalidate(found.record, await v20CurrentFacts(req.params.clientId, req.query.sessionId || null, found.record)).VALIDATION.issues; }
     catch (e) { issuesError = e.message; }
-    return { recordId: found.id, fields: v20Edit.editableFields(found.record), issues, issuesError };
+    let verdict = null;
+    try { verdict = require('./verdict').liveVerdict({ record: found.record, issues }); } catch (e) { console.warn('[v20] verdict:', e.message); }
+    return { recordId: found.id, fields: v20Edit.editableFields(found.record), issues, issuesError, verdict };
   }));
 
   // Save an edit as a new version (validated and claims-reviewed; see v20-edit.js)

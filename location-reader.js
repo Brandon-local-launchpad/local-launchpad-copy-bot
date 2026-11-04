@@ -94,6 +94,7 @@ function buildLocationReaderView(record, values = {}) {
     if (Qr.status === 'failed') push(`Quality review: failed (${Qr.error}).`, '');
     else {
       push(`**Verdict: ${require('./verdict').verdictLine(require('./verdict').verdictOfRecord(record))}**`, '');
+      if ((Qr.edit_list || []).length) push(`Edit before publishing (${Qr.edit_list.length}):`, ...require('./verdict').editListLines(Qr.edit_list), '');
       push(`Quality review: **${Qr.score === null || Qr.score === undefined ? 'n/a' : Qr.score.toFixed(1)} / 10**${(Qr.rounds || []).length ? ` (rounds ${Qr.rounds.map(x => x.score).join(', ')})` : ''}, ${(Qr.failed || []).length ? `failing ${Qr.failed.join(', ')}` : 'every rubric item passes'}.`, '');
       for (const i of Qr.failures || []) {
         push(`- **${i.id} ${i.title}** (${i.by})`);

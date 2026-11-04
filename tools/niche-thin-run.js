@@ -248,7 +248,7 @@ if (!calibrationPack.name) console.log('WARNING: no calibration pack found for t
       else {
         // Scored twice and averaged (Brandon, 4 Nov 2026): one reading hides a change under the spread
         const review = await Q.reviewPage({ record, V, D: DR.decisions, cv, niche, callModel: call });
-        const review2 = await Q.reviewPage({ record, V, D: DR.decisions, cv, niche, callModel: call }).catch(() => null);
+        const review2 = flag('--one-reading') ? null : await Q.reviewPage({ record, V, D: DR.decisions, cv, niche, callModel: call }).catch(() => null);
         const scores = [review, review2].filter(r => r && r.score != null).map(r => r.score);
         if (scores.length === 2) review.score = Math.round(((scores[0] + scores[1]) / 2) * 100) / 100;
         const writingsH = [review, review2].filter(r => r && r.score_writing != null).map(r => r.score_writing);
@@ -262,8 +262,7 @@ if (!calibrationPack.name) console.log('WARNING: no calibration pack found for t
         const blocks = vs.block != null ? vs.block : (vs.issues || []).filter(i => i.type === 'BLOCK').length;
         const flags = vs.flag != null ? vs.flag : (vs.issues || []).filter(i => i.type === 'FLAG').length;
         const fpH = record.meta && record.meta.flag_pass; const fpTextH = fpH && fpH.before != null ? ` (flags ${fpH.before} to ${fpH.after}, ${fpH.kept} kept)` : '';
-        const pubH = !!(review.verdict && review.verdict.publishable && (!review2 || (review2.verdict && review2.verdict.publishable)));
-        const verdictH = pubH ? 'PUBLISHABLE' : require(path.join(root, 'verdict.js')).verdictLine(review.verdict && review.verdict.publishable && review2 ? review2.verdict : review.verdict);
+        const verdictH = `${require(path.join(root, 'verdict.js')).verdictLine(review.verdict)}, ${(review.edit_list || []).length} on the edit list`;
         line = `homepage: ${blocks} BLOCK, ${flags} FLAG${fpTextH}, ${verdictH}, reviewer ${review.score != null ? review.score.toFixed(1) : '?'}${review.readings && review.readings.length === 2 ? ` (${review.readings.map(s => s.toFixed(1)).join(', ')})` : ''}${review.score_writing != null ? `, writing only ${review.score_writing.toFixed(1)}${review.writings && review.writings.length === 2 ? ` (${review.writings.map(s => s.toFixed(1)).join(', ')})` : ''}` : ''} (${review.items ? review.items.filter(i => i.pass).length + '/' + review.items.length + ' items' : ''})`;
         await v20Store.insert(cid, record, { type: 'homepage', key: 'homepage' });
       }
@@ -302,13 +301,12 @@ if (!calibrationPack.name) console.log('WARNING: no calibration pack found for t
       try {
         const rv = await reviewOf(type, key, found.record);
         if (rv) {
-          const rv2 = await reviewOf(type, key, found.record).catch(() => null);
+          const rv2 = flag('--one-reading') ? null : await reviewOf(type, key, found.record).catch(() => null);
           const readings = [rv, rv2].filter(r => r && r.score != null).map(r => r.score);
           const score = readings.length === 2 ? Math.round(((readings[0] + readings[1]) / 2) * 100) / 100 : rv.score;
           const writings = [rv, rv2].filter(r => r && r.score_writing != null).map(r => r.score_writing);
           const score_writing = writings.length ? Math.round((writings.reduce((a, b) => a + b, 0) / writings.length) * 100) / 100 : null;
-          const publishable = !!(rv.verdict && rv.verdict.publishable && (!rv2 || (rv2.verdict && rv2.verdict.publishable)));
-          Qr = { score, score_writing, readings, writings, done: rv.done, failures: (rv.items || []).filter(i => !i.pass), needs_fact: rv.needs_fact || [], verdict: publishable ? 'PUBLISHABLE' : require(path.join(root, 'verdict.js')).verdictLine(rv.verdict && rv.verdict.publishable && rv2 ? rv2.verdict : rv.verdict) };
+          Qr = { score, score_writing, readings, writings, done: rv.done, failures: (rv.items || []).filter(i => !i.pass), needs_fact: rv.needs_fact || [], verdict: `${require(path.join(root, 'verdict.js')).verdictLine(rv.verdict)}, ${(rv.edit_list || []).length} on the edit list` };
           fs.writeFileSync(path.join(dir, `${name}-review.txt`), Q.formatReview(rv) + (readings.length === 2 ? `\n(Two readings: ${readings.map(s => s.toFixed(1)).join(' and ')}; the summary score is their average.)\n` : '') + '\n');
           if (rv2) fs.writeFileSync(path.join(dir, `${name}-review-2.txt`), Q.formatReview(rv2) + '\n');
         }

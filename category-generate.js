@@ -158,13 +158,25 @@ async function generateCategoryPage({ cv, niche, keyValueMap, serviceParentMap =
         record.meta.flag_pass = { before: fp.before, after: fp.after, kept: fp.kept, calls: fp.usage.calls };
         record.VALIDATION = validationSummary(validate(record), [...((record.VALIDATION && record.VALIDATION.retries) || []), ...fp.log.map(x => ({ ...x, round: `flag pass ${x.round}` }))], retryUsage);
       } catch (e) { record.meta.flag_pass = { error: e.message }; }
+      // The targeted round (copy quality 5), then the claims review reads the text as it now stands
+      const { runTargetedPass } = require('./v20-retry');
+      try {
+        const tp = await runTargetedPass({ record, V, callRetry, validate: validate });
+        record.meta.targeted_pass = { before: tp.before, after: tp.after, kept: tp.kept, calls: tp.usage.calls, left: tp.left };
+        record.VALIDATION = validationSummary(validate(record), [...((record.VALIDATION && record.VALIDATION.retries) || []), ...tp.log.map(x => ({ ...x, round: 'targeted' }))], retryUsage);
+        if (claimsReview && (tp.kept || (record.meta.flag_pass && record.meta.flag_pass.kept))) {
+          const { runClaimsReview, factsFromRecord } = require('./wp/claims-review');
+          const claims = await runClaimsReview(record, factsFromRecord(record), callModel);
+          record.CLAIMS = { ...(record.CLAIMS || {}), at: claims.at, status: claims.findings.length ? 'needs acceptance' : 'clear', findings: claims.findings };
+        }
+      } catch (e) { record.meta.targeted_pass = { error: e.message }; }
     }
     if (qualityReview) {
       const { runQualityRetries, runClaimRetries } = require('./v20-retry');
       const Q = require('./quality-review');
       try {
         const { review: rv, rounds: qRounds } = await runQualityRetries({ record, V, callRetry, review: rec => Q.reviewPage({ record: rec, V, D, cv, niche, callModel }), maxRounds: qualityRounds, validate });
-        record.QUALITY = { at: rv.at, verdict: rv.verdict, score_writing: rv.score_writing, model: rv.model, score: rv.score, done: rv.done, failed: rv.failed, failures: rv.items.filter(i => !i.pass), other_problems: rv.other_problems, missing_facts: rv.missing_facts, rounds: qRounds };
+        record.QUALITY = { at: rv.at, verdict: rv.verdict, edit_list: rv.edit_list, score_writing: rv.score_writing, model: rv.model, score: rv.score, done: rv.done, failed: rv.failed, failures: rv.items.filter(i => !i.pass), other_problems: rv.other_problems, missing_facts: rv.missing_facts, rounds: qRounds };
         if (claimsReview && qRounds.some(r => r.retries.some(x => x.kept))) {
           const { runClaimsReview, factsFromRecord } = require('./wp/claims-review');
           const { claims, rounds } = await runClaimRetries({ record, V, callRetry, review: rec => runClaimsReview(rec, factsFromRecord(rec), callModel), maxRounds: 1, validate });

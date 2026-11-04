@@ -572,13 +572,24 @@ function validateCommon(record, V) {
     }
     // PRACTICE: working practices only from confirmed_practices
     const confirmedKeys = new Set(cv.confirmed_practices || []);
-    // A sentence written as the trade's principle in the third person is not a claim about this business
-    // (Brandon, 4 Nov 2026: "a fair roofer shows you photographs of what they found"), and it is what the
-    // claims pass asks for; "we" or "our" in the sentence makes it a claim again
-    const PRINCIPLE_RE = /^(?:(?:most|many|some)\s+)?(?:a|an|any|every)\s+(?:good|fair|careful|proper|competent|decent|qualified|responsible|reputable|experienced)\b/i;
-    const notPrinciple = sentences(t).map(x => scanText(x)).filter(x => !(PRINCIPLE_RE.test(x.trim()) && !/\b(?:we|we're|we've|we'll|our|us)\b/i.test(x))).join(' ');
-    for (const c of practiceClaims(notPrinciple, niche)) {
-      if (!confirmedKeys.has(c.practice.key)) flag('BLOCK', 'PRACTICE', `"${c.match}" states a practice ("${c.practice.label}") that the client hasn't confirmed. Remove it, or write it as the trade's principle in the third person ("a good ${(niche && niche.trade_person) || 'tradesperson'} ..."), never "we".`);
+    for (const c of practiceClaims(sentences(t).map(x => scanText(x)).join(' '), niche)) {
+      if (!confirmedKeys.has(c.practice.key)) flag('BLOCK', 'PRACTICE', `"${c.match}" states a practice ("${c.practice.label}") that the client hasn't confirmed. Delete it, or describe the job itself: what the work involves, with no "we", no "a fair [trade]" and no claim about how any business behaves.`);
+    }
+    // TRADE-VOICE (copy quality 5, 4 Nov 2026): "a fair roofer shows you photographs", "a locksmith won't ...": how
+    // a business in the trade behaves reads as a promise about this one
+    {
+      const person = [niche && niche.trade_person, niche && niche.trade_person_plural].filter(Boolean).map(x => esc(lc(x)));
+      const generic = 'tradesperson|tradespeople|tradesman|tradesmen|firm|firms|company|companies|business|businesses|contractor|contractors|trader|traders';
+      const who = [...person, generic].join('|');
+      const hits = [
+        new RegExp('\\b(?:fair|honest|decent|reputable|trustworthy)\\s+(?:' + who + '|[a-z]+(?:er|ers|or|ors|ist|ists|ian|ians|smith|smiths|surgeon|surgeons)|[a-z]+\\s+(?:surgeons?|fitters?|engineers?|contractors?)|one)\\b(?<!\\b(?:fair|honest|decent)\\s+(?:number|amount|quarter|proportion|answer|price|offer|order|colour|floor|border|corner|cover|weather|water|winter|summer|paper|power|layer|timber|filter))', 'i'),
+        new RegExp('\\b(?:good|careful|proper|responsible|sensible)\\s+(?:' + who + ')\\b', 'i'),
+        person.length ? new RegExp('\\b(?:a|an|any|every|no)\\s+(?:' + person.join('|') + ")\\s+(?:should|will|would|won't|wouldn't|must|ought|never|always|shows|agrees|refuses)\\b", 'i') : null,
+      ].filter(Boolean);
+      for (const re of hits) {
+        const m = s.match(re);
+        if (m) { flag('BLOCK', 'TRADE-VOICE', `"${m[0]}" says how a business in the trade behaves. Delete the sentence, or describe the job itself: what the work involves, with no "we", no "a fair [trade]" and no claim about how any business behaves.`); break; }
+      }
     }
 
     // RAW-GBP: homeowner words, never the raw GBP name; never-named services stay out

@@ -1,7 +1,7 @@
 'use strict';
 // Fixture: copy quality 4 (4 Nov 2026). Symptoms from the page's own service only, with the next FAQ
 // slot in their place; the town links code picks and rotates, exempt from the cross page check; step
-// titles that promise a practice; the publishable verdict. No API calls.
+// titles that promise a practice. The verdict is in copy-quality-5.js. No API calls.
 const path = require('path');
 const fs = require('fs');
 const root = path.join(__dirname, '../..');
@@ -9,8 +9,6 @@ const A = require(path.join(root, 'allocation.js'));
 const CB = require(path.join(root, 'category-blocks.js'));
 const { rotateTowns } = require(path.join(root, 'service-decisions.js'));
 const { isTownListSentence, matchIdea } = require(path.join(root, 'ideas.js'));
-const { verdictFor, verdictLine, verdictOfRecord } = require(path.join(root, 'verdict.js'));
-const { formatReview } = require(path.join(root, 'quality-review.js'));
 const { parseDossier } = require(path.join(root, 'geo-dossier.js'));
 
 let pass = 0, fail = 0;
@@ -79,29 +77,6 @@ for (const f of fs.readdirSync(dir).filter(x => x.endsWith('.json') && !['client
   }
 }
 chk('Every niche: no emergency step 2 promises a price or an arrival on a client with neither', !bad.length, bad.join('; '), 'none');
-
-// ── 4. The verdict ──
-const J = id => ({ id, by: 'judge', title: id + ' title', pass: false, reasons: ['why ' + id] });
-const K = id => ({ id, by: 'code', title: id + ' title', pass: false, reasons: ['why ' + id] });
-chk('Verdict: nothing failed is publishable', verdictFor({ block: 0, failures: [] }).publishable, false, true);
-const two = verdictFor({ block: 0, failures: [J('S10'), J('P6')] });
-chk('Verdict: two judge failures are publishable, and listed for a person', two.publishable && two.judge_failed.map(j => j.id).join() === 'S10,P6' && two.judge_failed[0].reasons[0] === 'why S10', JSON.stringify(two), 'publishable');
-chk('Verdict: three judge failures are not', !verdictFor({ block: 0, failures: [J('S10'), J('P6'), J('Y6')] }).publishable, true, false);
-chk('Verdict: one BLOCK is not', !verdictFor({ block: 1, failures: [] }).publishable, true, false);
-chk('Verdict: one failed code item is not', !verdictFor({ block: 0, failures: [K('H1')] }).publishable, true, false);
-const c9 = verdictFor({ block: 0, failures: [K('C9')] });
-chk('Verdict: the claims review not clear is not, named as the claims and not as a code item', !c9.publishable && !c9.claims_clear && !c9.code_failed.length && c9.reasons[0].includes('C9'), JSON.stringify(c9), 'C9');
-chk('Verdict line: says what stops it', verdictLine(verdictFor({ block: 2, failures: [] })).startsWith('NOT PUBLISHABLE: 2 BLOCK'), verdictLine(verdictFor({ block: 2 })), '2 BLOCK');
-chk('Verdict line: a publishable page names what a person reads', verdictLine(two) === 'PUBLISHABLE (a person reads: S10, P6)', verdictLine(two), 'PUBLISHABLE (a person reads: S10, P6)');
-chk('Verdict of an older record: worked out from its failures and validation', verdictOfRecord({ QUALITY: { failures: [J('S10')] }, VALIDATION: { block: 1 } }).reasons[0] === '1 BLOCK', '', '1 BLOCK');
-chk('Verdict of a failed review: none', verdictOfRecord({ QUALITY: { status: 'failed' } }) === null, '', 'null');
-const rv = { score: 7.5, score_writing: 7.5, done: false, failed: ['S10', 'P6', 'Y6'], items: [J('S10'), J('P6'), J('Y6')], other_problems: [], missing_facts: [], needs_fact: [], validator: { block: 0, flag: 0 }, verdict: verdictFor({ block: 0, failures: [J('S10'), J('P6'), J('Y6')] }) };
-const sheet = formatReview(rv);
-const vAt = sheet.indexOf('Verdict: NOT PUBLISHABLE'), sAt = sheet.indexOf('Score (for tracking): 7.5');
-chk('Mark sheet: the verdict sits next to the score, which stays for tracking', vAt === 0 && sAt > 0 && sAt < 200, sheet.slice(0, 200), 'Verdict line, then Score');
-chk('Mark sheet: the judge failures are listed for a person', sheet.includes('For a person to read') && sheet.includes('S10: why S10'), sheet, 'the list');
-const pageJs = fs.readFileSync(path.join(root, 'public/app/screens/page.js'), 'utf8');
-chk('Page view: the Quality card shows the verdict and the judge failures', pageJs.includes('verdictHtml(Q, V, C)') && pageJs.includes('For a person to read') && pageJs.includes('Not publishable'), '', 'present');
 
 console.log(`\n=== copy quality 4: ${pass} passed, ${fail} failed ===\n`);
 if (fail) process.exitCode = 1;

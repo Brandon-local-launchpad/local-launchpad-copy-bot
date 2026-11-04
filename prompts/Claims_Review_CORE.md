@@ -1,10 +1,11 @@
-# Claims Review Prompt — CORE (6)
+# Claims Review Prompt — CORE (7)
 
 (2), 14 Oct: code-made decisions (step titles and briefs, FAQ questions, headings) count as facts; list only unsupported statements.
 (3), 15 Oct: the coastal travel wording is a code decision; a body that says what its step title says is supported; a finding the reviewer withdraws is left out.
 (4), 16 Oct (copy quality loop): ordinary contact and next steps, a confirmed service described in plain trade terms (including the standard way any firm does it), the required insurance wording, a confirmed free quote and start time, and review themes are not claims; check the service list before listing a service.
 (5), 25 Oct (category pages, Brandon): an outcome stated as what a confirmed service does passes; a result the business can't control or guarantee wording fails. Team size, years, jobs and the insurance figure from the client values pass wherever they appear (the one-home limit is code's). The final CTA body never carries [CV: phone]; code blocks it.
 (6), 25 Oct (Brandon, after the quality loop): a method the TRADE FACTS rows give for a confirmed service is how the job is done and passes; only client-specific practices fail when they are not confirmed (frequency, waste handling, checks, timings, staffing).
+(7), 4 Nov 2026 (Brandon, copy quality 5): a sentence that describes the job itself passes; a sentence about how a fair or good firm in the trade behaves fails.
 
 Used before a WordPress push (Stage 10, slice 3) and after every page is generated. Reads the finished page copy (homepage or category page) against the facts on file and lists every statement about the business that the facts don't support. Code checks each quote is really in the copy, then refuses the push until a person accepts or fixes the findings.
 
@@ -27,9 +28,11 @@ List each sentence, or part of a sentence, that tells the reader something about
 - experience: places, streets or kinds of job the business says it has done, or how often
 - services, materials or products the business says it offers or uses
 - figures: counts, years, prices, sizes, percentages
+- how a fair, good or decent firm in the trade behaves ("a fair cleaner agrees what each room needs before the first visit"): it reads as a promise about this business
 
 Do **not** list:
 - general facts about the trade, gardens, homes or the area ("clay holds water", "Article 4 controls limit front garden changes")
+- a sentence that describes the job itself, with the work as its subject and no "we" or "our": what the work involves and the order it goes in ("slabs are laid working outwards from one corner", "the cut wood is cleared afterwards"). It says what the job is, not how this business behaves. "Every", "always" or "wherever" still makes it a promise
 - anything FACTS ON FILE support, even in different words
 - the `[CV: key]` tokens themselves (they are filled from the client values)
 - style, tone or grammar

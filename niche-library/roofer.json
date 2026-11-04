@@ -327,7 +327,7 @@
         {
           "slot": "process",
           "question": "What happens when I ask for a quote?",
-          "answer_brief": "From [CV: quote_method] and the confirmed practices only: what the customer sends (what they have noticed and roughly where; photos from the ground help, never from a ladder), what the business looks at (the roof, and the loft where quote_method says so), what comes back (photos of every fault only from the photos_of_faults practice; a written quote only from written_quote). The pack's trust gap answered as the way a fair roofer behaves: the evidence looked at, nothing agreed on the doorstep, a second opinion welcomed; never a claim of honesty. No timescale unless [CV: response_time] is set.",
+          "answer_brief": "From [CV: quote_method] and the confirmed practices only: what the customer sends (what they have noticed and roughly where; photos from the ground help, never from a ladder), what the business looks at (the roof, and the loft where quote_method says so), what comes back (photos of every fault only from the photos_of_faults practice; a written quote only from written_quote). The pack's trust gap answered as what the job itself involves: the evidence to look at, nothing that needs agreeing on the doorstep, a second opinion always reasonable; never how a roofer behaves, never a claim of honesty. No timescale unless [CV: response_time] is set.",
           "doubt": "Process"
         },
         {
@@ -842,7 +842,7 @@
         {
           "slot": "process",
           "question": "What happens when I ask for a quote in [TOWN]?",
-          "answer_brief": "From [CV: quote_method] and the confirmed practices only: what the customer sends (what they have noticed and roughly where; photos from the ground, never from a ladder), what the business looks at, what comes back (photos of every fault only from the photos_of_faults practice). Nothing agreed on the doorstep and a second opinion welcomed, written as the way a fair roofer behaves. No timescale unless [CV: response_time] is set.",
+          "answer_brief": "From [CV: quote_method] and the confirmed practices only: what the customer sends (what they have noticed and roughly where; photos from the ground, never from a ladder), what the business looks at, what comes back (photos of every fault only from the photos_of_faults practice). Nothing that needs agreeing on the doorstep and a second opinion always reasonable, written as what the job itself involves, never how a roofer behaves. No timescale unless [CV: response_time] is set.",
           "doubt": "Process"
         },
         {
