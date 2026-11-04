@@ -99,7 +99,11 @@ function resolveLibrary(services, lib, cats) {
     const matched = { file: m.file, own: m.own, how: m.how, score: m.score, gbp_name: e.gbp_name };
     const exactHow = m.how === 'name+category' || m.how === 'name';
     const via = m.own && exactHow ? '' : ` (${[exactHow ? '' : `${m.how} match of "${e.gbp_name}"`, m.own ? '' : `in ${m.file}`].filter(Boolean).join(' ')})`;
-    const fl = L.targetFlags(m.lib, e.target);
+    // The flags (3 Nov 2026; the own library first, 4 Nov): the client's own library decides a target it has
+    // any row for (a driveways client's Concrete bases and paths is desire led through its alias rows even when
+    // the ticked GBP name's page row lives in landscaper.csv); a target it never names takes the matched library's
+    const ownNames = !!(set.own && !m.own && set.own.rows.some(r => norm(r.target) === norm(e.target)));
+    const fl = L.targetFlags(ownNames ? set.own : m.lib, e.target);
     rec.library = { verdict: e.verdict, target: e.target, note: e.note, gbp_category: e.gbp_category, matched, candidates: matches.length, flags: fl };
     if (foldLost) rec.library.fold_lost = { target: foldLost.entry.target, file: foldLost.file };
     // Confirm only (Brandon, 3 Nov 2026): the page is built only when the client ticked or typed the

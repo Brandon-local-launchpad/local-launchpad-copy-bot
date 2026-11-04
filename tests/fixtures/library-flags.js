@@ -159,6 +159,22 @@ chk('desire_led: the loader reads the column and the target carries it from any 
 const dCats = [{ key: 'paving', name: 'Paving contractor', primary: true, rows: [{ id: 'patio laying', name: 'Patio laying', kind: 'unique' }, { id: 'roof repair', name: 'Roof repair', kind: 'unique' }] }];
 const dMap = G.buildPageMap({ resolved: { categories: dCats, primary: 'paving', primaryName: 'Paving contractor', crossRef: [], flags: [] }, baseTown: 'Southampton', otherTowns: 'Romsey', companyName: 'Acme', terms: { paving: ['paving'], _sitewide: [] }, waiting: [] }, { volumes: vol({ 'patios romsey': [30, 2] }), library: dLib, launchTowns: new Set(['romsey']) });
 chk('desire_led rides from the planner into the service and town service rows (through an alias row too); an emergency page is not desire led', find(dMap, '/services/patios').info.desire_led === true && find(dMap, '/locations/romsey/patios').info.desire_led === true && find(dMap, '/services/roof-repairs').info.desire_led === false && find(dMap, '/services/roof-repairs').info.emergency === true, JSON.stringify(dMap.rows.filter(r => r.type !== 'homepage').map(r => [r.slug, r.info.desire_led, r.info.emergency])), 'patios desire led, roof repairs emergency');
+// The own library's flags win for a target it names (4 Nov 2026): a driveways client ticks Concrete work, whose
+// page row lives in the landscaper library, and its own alias rows say Concrete bases and paths is desire led
+const oCsv = `gbp_name,gbp_category,verdict,target,note,emergency,prose_name,confirm_only,desire_led
+Concrete footings,Paving contractor,alias,Concrete bases and paths,Page defined elsewhere,,,,yes
+Resin laying,Paving contractor,page,Resin bound driveways,,,,,
+`;
+const pCsv = `gbp_name,gbp_category,verdict,target,note,emergency,prose_name,confirm_only,desire_led
+Concrete work,Paving contractor,page,Concrete bases and paths,,,,,
+Patio paving,Paving contractor,page,Patios,,yes,,,
+`;
+const oFile = path.join(os.tmpdir(), `copybot-own-${process.pid}.csv`), pFile = path.join(os.tmpdir(), `copybot-other-${process.pid}.csv`);
+fs.writeFileSync(oFile, oCsv); fs.writeFileSync(pFile, pCsv);
+const oSet = { niche: 'own', file: oFile, own: L.loadLibrary('Own Niche', { file: oFile }), others: [L.loadLibrary('Other Niche', { file: pFile })], hubs: null, problems: [] };
+const oCats = [{ key: 'paving', name: 'Paving contractor', primary: true, rows: [{ id: 'concrete work', name: 'Concrete work', kind: 'unique' }, { id: 'patio paving', name: 'Patio paving', kind: 'unique' }] }];
+const oMap = G.buildPageMap({ resolved: { categories: oCats, primary: 'paving', primaryName: 'Paving contractor', crossRef: [], flags: [] }, baseTown: 'Southampton', otherTowns: 'Romsey', companyName: 'Acme', terms: { paving: ['paving'], _sitewide: [] }, waiting: [] }, { volumes: vol({}), library: oSet, launchTowns: new Set(['romsey']) });
+chk('The own library flags a target it names even when the ticked row is matched in another library (Concrete bases and paths desire led); a target the own library never names keeps the matched library flags (Patios emergency)', find(oMap, '/services/concrete-bases-and-paths').info.desire_led === true && find(oMap, '/services/patios').info.emergency === true && find(oMap, '/services/patios').info.desire_led === false, JSON.stringify(oMap.rows.filter(r => r.type === 'service').map(r => [r.slug, r.info.desire_led, r.info.emergency])), 'own flags first');
 const SB = require(path.join(root, 'service-blocks.js'));
 const desireVariant = { problems: { h2: 'Is [SERVICE] Right for Your Garden?', cards: [1, 2, 3, 4].map(i => ({ title: `Situation ${i}`, mechanism: `what decides it ${i}`, brief: `The customer's situation ${i}, what decides it and what the work gives them.` })) } };
 const dNiche = { ...landscaper, service_words: [], service_page_blocks: { ...landscaper.service_page_blocks, A: { ...landscaper.service_page_blocks.A, desire: desireVariant } } };
