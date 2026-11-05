@@ -57,6 +57,9 @@ function buildServiceRecord({ cv, decisionsResult, parsed, meta, extraFlags = []
     page_slug:              D.slug,
     seo_title:              D.d3_title,
     meta_description:       D.d4_meta,
+    // Rank Math's focus keyword: the page's keyword, as its H1 holds it (spec: "Focus keyword: [KW]"). On the record
+    // only: the push can't send it until the plugin registers the meta (docs/WordPress_Field_Map.md)
+    focus_keyword:          D.d2_h1,
     breadcrumb:             D.breadcrumb,
     svc_hero_h1:            D.d2_h1,
     svc_hero_trust_line:    D.d5_trust || '',

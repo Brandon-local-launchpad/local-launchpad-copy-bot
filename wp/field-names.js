@@ -49,6 +49,8 @@ function fieldNames(record) {
   const add = (name, text, source) => { if (text !== null && text !== undefined && text !== '' && text !== false && text !== 'HIDDEN') fields.push({ name, text: String(text), source }); };
   add('seo_title', record.seo_title, 'code');
   add('meta_description', record.meta_description, 'code');
+  // A record from before 5 Nov 2026 has no focus_keyword: it is the page's H1
+  add('focus_keyword', record.focus_keyword || record.home_hero_h1 || (p && record[`${p}_hero_h1`]), 'code');
   for (const [key, value] of Object.entries(record)) {
     if (lists[key]) {
       if (!Array.isArray(value)) continue;

@@ -23,7 +23,7 @@ chk('Homepage: the names are the site\'s, and it says so', home.onSite === true,
 const base = n => n.split('[')[0];
 const pushed = new Set(HOMEPAGE_FIELDS.map(([n]) => n));
 const acf = new Set(GROUPS.flatMap(g => g.fields.map(f => f.name)));
-const stray = [...new Set(names.map(base))].filter(n => !acf.has(n) && !['seo_title', 'meta_description', 'home_hero_rating_line', 'home_final_cta_trust_lines'].includes(n));
+const stray = [...new Set(names.map(base))].filter(n => !acf.has(n) && !['seo_title', 'meta_description', 'focus_keyword', 'home_hero_rating_line', 'home_final_cta_trust_lines'].includes(n));
 chk('Homepage: every name listed is an ACF field, or one of the four the push sends elsewhere', !stray.length, stray.join(), 'none');
 chk('Homepage: the fields the push writes that carry text are all listed', ['home_hero_h1', 'home_hero_intro', 'home_services_cards', 'home_why_points', 'home_process_steps', 'home_cta_band_heading', 'home_areas_links', 'home_faq_items', 'home_final_cta_h2'].every(n => names.some(x => base(x) === n) && (pushed.has(n))), names.slice(0, 8).join(), 'all');
 const of = n => home.fields.find(f => f.name === n) || {};
@@ -42,6 +42,15 @@ const page = fs.readFileSync(path.join(root, 'public/app/screens/page.js'), 'utf
 chk('Page view: the toggle is there, in both directions', page.includes('Show field names') && page.includes('Hide field names') && page.includes("act === 'field-names'"), '', 'present');
 chk('Page view: it says when a page type has no ACF fields yet', page.includes('has no ACF fields on the site yet'), '', 'present');
 chk('The fields route gives the names', fs.readFileSync(path.join(root, 'server.js'), 'utf8').includes("require('./wp/field-names').fieldNames(found.record)"), '', 'present');
+
+// The focus keyword
+const stub = { d2_h1: 'Fencing Southampton', d3_title: 'T', d4_meta: 'M' };
+chk('Focus keyword: an older record reads its H1', of('focus_keyword').text === rec.home_hero_h1, of('focus_keyword').text, rec.home_hero_h1);
+chk('Focus keyword: on a service page, the record\'s own wins, else the H1', fieldNames({ ...service, focus_keyword: 'Own' }).fields.find(f => f.name === 'focus_keyword').text === 'Own' && svc.fields.find(f => f.name === 'focus_keyword').text === 'Fencing Southampton', '', 'both');
+for (const f of ['v20-record.js', 'category-record.js', 'service-record.js', 'location-record.js']) chk('Focus keyword: ' + f + ' sets it from the H1', /focus_keyword:\s+D\.d2_h1/.test(fs.readFileSync(path.join(root, f), 'utf8')), '', 'set');
+const mapSrc = fs.readFileSync(path.join(root, 'wp/homepage-map.js'), 'utf8');
+const phpSrc = fs.readFileSync(path.join(root, 'wp-plugin/llp-copybot/llp-copybot.php'), 'utf8');
+chk('Focus keyword: nothing pushes it until the plugin registers the meta, and the plugin does not yet', !mapSrc.includes('focus') && !phpSrc.includes('focus_keyword'), '', 'held');
 
 // The map embed
 chk('Client values: the map embed is on the record\'s values', clientValueMap({ map_embed: 'https://maps.example/embed' }, null).map_embed === 'https://maps.example/embed', '', 'kept');
