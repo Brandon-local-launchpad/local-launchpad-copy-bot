@@ -9,6 +9,7 @@ Installed on every client site (through MainWP). It is the WordPress half of the
 - **`[llp_cv key="phone"]`** shortcode, and `llp_cv( 'phone' )` in PHP, for the template (buttons, rating line, footer, map).
 - **Homepage ACF field groups**: the master copy, in `acf-json/`, set to show on the site's front page. They load automatically (ACF local JSON). If the site already has hand-made groups with the same field names, delete those so these are the only ones.
 - **REST access** for Copybot: `GET/POST /wp-json/llp-copybot/v1/client-values`, `GET /wp-json/llp-copybot/v1/status`, and the SEO title and description on `/wp-json/wp/v2/pages`.
+- **Copybot redirects** (`redirects.php`): the old site redirects, into Rank Math through its own classes. Copybot pushes them switched off and tags them on this plugin's own list, since Rank Math has no tag column. They go live on launch day with the button on **Settings → Copybot redirects**, which rebuilds each destination from this site's address. `GET/POST /wp-json/llp-copybot/v1/redirects`, `/redirects/delete`, `/redirects/status`, `/redirects/check`. Rank Math's Redirections module must be on.
 
 Needs ACF Pro. Works with Rank Math (default) or Yoast.
 

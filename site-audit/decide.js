@@ -21,6 +21,12 @@ const PATTERNS = require('./url-patterns.json');
 const CANT_KEEP = PATTERNS.cant_keep.map(p => ({ re: new RegExp(p.pattern), why: p.why }));
 const HOME = PATTERNS.homepage_variants.map(p => new RegExp(p, 'i'));
 const MASS = PATTERNS.mass_page_patterns.map(p => new RegExp(p, 'i'));
+const GALLERY = PATTERNS.gallery_patterns.map(p => new RegExp(p, 'i'));
+
+// An image with no links, rankings or clicks needs nothing (Brandon, 5 Nov): no decision and no row in
+// the map, shown as one collapsed group. An image with any of those stays in the map.
+const noActionNeeded = u => u.kind === 'image' && !Number(u.all_rd || 0) && !Number(u.keywords_count || 0) && !Number(u.clicks || 0);
+const looksLikeGallery = u => GALLERY.some(re => re.test(u.path.replace(/\?.*$/, '')) || re.test(titleHead(u.title)));
 
 const GENERIC = new Set(['a', 'an', 'and', 'area', 'areas', 'co', 'company', 'for', 'in', 'limited', 'location', 'locations', 'ltd', 'near', 'me', 'my', 'of', 'on', 'our', 'page', 'pages', 'service', 'services', 'the', 'to', 'uk', 'us', 'with', 'html', 'htm', 'php', 'aspx', 'asp']);
 function stem(w) {
@@ -55,13 +61,15 @@ function prepare(pages, settings, baseTown) {
   const candidates = pages
     .filter(p => p.applies !== false && p.type !== 'homepage' && ((p.info && p.info.phase) || 1) !== 2 && !neverDestination(p.slug, settings))
     .map(p => ({ ...p, slugTokens: strip(tokens(p.slug)), titleTokens: strip(tokens(p.title)), h1Tokens: strip(tokens(p.h1)), local: isLocal(p) }));
-  for (const s of settings.site_pages || []) {
+  // The gallery or projects page, once Given confirms the template has one: left empty until then
+  for (const s of [...(settings.site_pages || []), settings.gallery_page].filter(Boolean)) {
     if (s === '/' || neverDestination(s, settings) || candidates.some(c => c.slug === s)) continue;
     const t = tokens(s);
     candidates.push({ type: 'site', page_key: `site:${s}`, slug: s, title: s.replace(/^\//, '').replace(/-/g, ' '), slugTokens: t, titleTokens: t, h1Tokens: t, local: false });
   }
   const primary = candidates.find(c => c.type === 'category' && c.info && c.info.primary) || candidates.find(c => c.type === 'category') || candidates.find(c => c.type === 'service') || null;
-  return { candidates, primary, towns, strip };
+  const gallery = settings.gallery_page ? candidates.find(c => c.slug === settings.gallery_page) || null : null;
+  return { candidates, primary, towns, strip, gallery };
 }
 
 // The page this old URL most looks like. A URL naming a town only matches town pages, and one
@@ -112,6 +120,7 @@ function suggestAll({ urls, pages, settings, baseTown = '', hasSearchConsole = f
   const leftover = [];
   for (const u of urls) {
     if (u.path === '/') { set(u, 'Keep', 'The homepage keeps its address.', homeRow || null); continue; }
+    if (noActionNeeded(u)) { out.set(u.url, { no_action: true }); continue; }
     if (u.kind !== 'page') { later.push(u); continue; }
     if (isHomeVariant(u.path)) { set(u, 'Merge', 'Another address for the homepage, so it redirects there.', '/'); continue; }
     if (u.injected && !u.matters) { set(u, 'Remove', `${String((u.matters_why || ['Looks injected'])[0]).replace(/, so its rankings.*$/, '')}. It gets a 410 and no redirect.`); continue; }
@@ -120,6 +129,8 @@ function suggestAll({ urls, pages, settings, baseTown = '', hasSearchConsole = f
     if (u.fetch_state === 'skipped' && !u.matters) { set(u, 'Retire', "Not a page, and nothing depends on it, so it needs no redirect.", '', { redirect_type: 'none' }); continue; }
     const exact = exactBy.get(u.path);
     if (exact) { const g = groups.get(exact.slug) || { page: exact, members: [] }; g.members.push({ u, exact: true }); groups.set(exact.slug, g); continue; }
+    // Old gallery, portfolio and project pages go to the gallery page first, when the template has one
+    if (world.gallery && looksLikeGallery(u)) { const g = groups.get(world.gallery.slug) || { page: world.gallery, members: [] }; g.members.push({ u, exact: false }); groups.set(world.gallery.slug, g); continue; }
     const { match, closest } = bestFor(u, world, settings);
     if (match) { const g = groups.get(match.slug) || { page: match, members: [] }; g.members.push({ u, exact: false, closest }); groups.set(match.slug, g); continue; }
     leftover.push({ u, closest });
@@ -208,4 +219,4 @@ function proposalFor(u, pages, settings, baseTown) {
   return match && match.type !== 'site' ? { page_key: match.page_key, title: match.title, from: match.slug, to: u.path } : null;
 }
 
-module.exports = { suggestAll, proposalFor, keepProblem, isHomeVariant, neverDestination, tokens, dice };
+module.exports = { suggestAll, proposalFor, keepProblem, isHomeVariant, neverDestination, noActionNeeded, looksLikeGallery, tokens, dice };

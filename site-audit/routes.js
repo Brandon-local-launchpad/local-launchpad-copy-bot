@@ -12,6 +12,13 @@
 //   POST /api/clients/:id/site-audit/page-map-changes/undo { identity }: back to the planned address
 //   GET  /api/clients/:id/site-audit/export/:which       old-site-audit.csv or url-map.csv
 //   GET  /api/clients/:id/site-audit/page-content?path=  the old text behind a new page, for the page view
+//   GET  /api/clients/:id/site-audit/redirects           the push log, the latest snapshot, the latest checks
+//   POST /api/clients/:id/site-audit/redirects/dry-run   what a push would do. Writes nothing
+//   POST /api/clients/:id/site-audit/redirects/push      { confirm: true }: inactive, read back, snapshot
+//   POST /api/clients/:id/site-audit/redirects/rollback  { snapshot_id, confirm: true }
+//   POST /api/clients/:id/site-audit/redirects/validate  the pre launch check: the map, staging, the domain's forms
+//   POST /api/clients/:id/site-audit/redirects/test      { confirm: true }: on at staging, request each, always off
+//   POST /api/clients/:id/site-audit/redirects/after-launch  every version of the live domain in one hop. Read only
 //   POST /api/clients/:id/site-audit/search-console      { csv, filename } or { zip_base64, filename }
 //   PUT  /api/clients/:id/site-audit/settings            the numbers on the Settings card
 function mountSiteAuditApi(app, { pool, siteAudit, log = console }) {
@@ -43,6 +50,14 @@ function mountSiteAuditApi(app, { pool, siteAudit, log = console }) {
       res.send(`﻿${csv}`);
     } catch (err) { fail(res, err); }
   });
+  // The redirect push and the pre launch check. Staging only: the service refuses anything else.
+  app.get('/api/clients/:id/site-audit/redirects', wrap(req => siteAudit.redirectsView(req.params.id)));
+  app.post('/api/clients/:id/site-audit/redirects/dry-run', wrap(req => siteAudit.redirectsDryRun(req.params.id)));
+  app.post('/api/clients/:id/site-audit/redirects/push', wrap(req => siteAudit.redirectsPush(req.params.id, { confirm: (req.body || {}).confirm === true, who: who(req) })));
+  app.post('/api/clients/:id/site-audit/redirects/rollback', wrap(req => siteAudit.redirectsRollback(req.params.id, { snapshotId: (req.body || {}).snapshot_id, confirm: (req.body || {}).confirm === true, who: who(req) })));
+  app.post('/api/clients/:id/site-audit/redirects/validate', wrap(req => siteAudit.validate(req.params.id)));
+  app.post('/api/clients/:id/site-audit/redirects/after-launch', wrap(req => siteAudit.checkAfterLaunch(req.params.id)));
+  app.post('/api/clients/:id/site-audit/redirects/test', wrap(req => siteAudit.testOnStaging(req.params.id, { confirm: (req.body || {}).confirm === true, who: who(req) })));
   app.post('/api/clients/:id/site-audit/search-console', wrap(async req => { const r = await siteAudit.uploadSearchConsole(req.params.id, req.body || {}); return { ...(await siteAudit.view(req.params.id)), uploaded: r.saved }; }));
   app.put('/api/clients/:id/site-audit/settings', wrap(req => siteAudit.saveSettings(req.params.id, req.body || {})));
 }

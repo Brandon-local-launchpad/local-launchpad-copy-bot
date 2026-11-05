@@ -119,6 +119,10 @@ process.env.CITATIONS_SKIP_DA = '1'; // the demo's pg-mem is fresh each start: n
   const standIn = JSON.parse(fs.readFileSync(path.join(root, 'tests/fixtures/data/edens-edge-v3-page-map.json'), 'utf8')).rows.filter(r => r.applies !== false);
   for (const [i, r] of standIn.entries()) await pool.query(`INSERT INTO client_page_map (client_id, page_key, type, title, slug, h1, h1_source, status, applies, info, sort_order) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, TRUE, $9, $10)`, [auditId, `${r.type}:${r.slug}`, r.type, r.title, r.slug, r.h1 || '', r.h1_source || 'needed', r.status || 'Not Started', JSON.stringify(r.info || {}), i]);
   await pool.query(`INSERT INTO client_page_map_state (client_id, generated_at, inputs) VALUES ($1, NOW(), $2)`, [auditId, JSON.stringify({ baseTown: 'Southampton' })]);
+  // Its redirects go to the fake site, marked staging. The fake site answers only the pages it has.
+  const { encrypt } = require(path.join(root, 'wp/secrets.js'));
+  await pool.query(`INSERT INTO wp_connections (client_id, url, wp_user, app_password_enc, staging, seo) VALUES ($1, $2, 'copybot', $3, TRUE, 'rankmath')`, [auditId, wp.url, encrypt('test-app-password-not-real')]);
+  for (const p of ['/contact', '/landscape-designer']) fake.state.publicPaths.add(p);
   const replayed = require(path.join(root, 'site-audit/service.js')).createSiteAudit({
     pool, loadValues: async () => ({ live_domain: liveDomain }), env: { DATAFORSEO_LOGIN: 'replay', DATAFORSEO_PASSWORD: 'replay' },
     fetchImpl: require(path.join(root, 'site-audit/replay.js')).replayer(path.join(root, 'tests/fixtures/data/site-audit-southamptonhomes-recorded.json')),

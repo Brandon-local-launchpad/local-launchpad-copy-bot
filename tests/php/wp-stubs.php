@@ -43,3 +43,13 @@ function settings_fields( $g ) {}
 function submit_button() {}
 class WP_Error { public $code; public $message; public $data; public function __construct( $c = '', $m = '', $d = null ) { $this->code = $c; $this->message = $m; $this->data = $d; } }
 class WP_REST_Request { private $json; public function __construct( $json ) { $this->json = $json; } public function get_json_params() { return $this->json; } }
+
+// For redirects.php
+function maybe_serialize( $d ) { return is_array( $d ) || is_object( $d ) ? serialize( $d ) : $d; }
+function maybe_unserialize( $d ) { if ( is_string( $d ) ) { $u = @unserialize( $d ); if ( false !== $u || 'b:0;' === $d ) { return $u; } } return $d; }
+function home_url( $path = '' ) { return ( $GLOBALS['llp_test']['site_url'] ?? 'https://site.test' ) . $path; }
+function admin_url( $path = '' ) { return 'https://site.test/wp-admin/' . $path; }
+function wp_nonce_field( $a ) { echo '<input type="hidden" name="_wpnonce" value="x">'; }
+function check_admin_referer( $a ) { return true; }
+function wp_safe_redirect( $u ) { return true; }
+function wp_die( $m ) { throw new Exception( $m ); }

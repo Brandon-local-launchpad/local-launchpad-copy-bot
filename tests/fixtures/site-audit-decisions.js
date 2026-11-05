@@ -174,7 +174,7 @@ const one = (u, opts) => suggest([u], opts).get(u.url);
   m = suggest([row('/a', { status_code: 301, redirect_target: 'https://x.co.uk/b' }), row('/b', { status_code: 301, redirect_target: 'https://x.co.uk/a' })]);
   chk('a redirect loop does not hang, and is marked to check', m.get('https://x.co.uk/a').check, [...m.values()], '');
   m = suggest([row('/services/patios', { links_out: ['https://x.co.uk/p.jpg', 'https://x.co.uk/q.pdf'] }), row('/p.jpg', { kind: 'image' }), row('/q.pdf', { kind: 'pdf', matters: true, real_rd: 1 })]);
-  chk('an image nothing depends on: Retire with no redirect', m.get('https://x.co.uk/p.jpg').decision === 'Retire' && m.get('https://x.co.uk/p.jpg').redirect_type === 'none', m.get('https://x.co.uk/p.jpg'), '');
+  chk('an image nothing depends on has no decision: no action needed', m.get('https://x.co.uk/p.jpg').no_action === true, m.get('https://x.co.uk/p.jpg'), '');
   chk('a PDF with a real link: Reuse, 301 to where the page it sat on now lives', m.get('https://x.co.uk/q.pdf').decision === 'Reuse' && m.get('https://x.co.uk/q.pdf').new_url === '/services/patios', m.get('https://x.co.uk/q.pdf'), '');
   s = one(row('/x', { fetch_state: 'blocked', status_code: null }));
   chk('a URL that was not fetched says so', /not fetched/.test(s.reason), s, '');
@@ -219,9 +219,9 @@ const one = (u, opts) => suggest([u], opts).get(u.url);
   chk('test site: the homepage and /contact are kept', pathOf(v, '/').plan.decision === 'Keep' && pathOf(v, '/contact').plan.decision === 'Keep' && pathOf(v, '/contact').plan.new_url === '/contact', [pathOf(v, '/').plan, pathOf(v, '/contact').plan], '');
   chk('test site: /garden-design-service is Retire, 301, not Reuse (Brandon, 5 Nov)', pathOf(v, '/garden-design-service').plan.decision === 'Retire' && pathOf(v, '/garden-design-service').plan.redirect_type === '301' && !!pathOf(v, '/garden-design-service').plan.new_url, pathOf(v, '/garden-design-service').plan, '');
   chk('test site: /inspiration is Retire, 301, marked to check', pathOf(v, '/inspiration').plan.decision === 'Retire' && pathOf(v, '/inspiration').plan.redirect_type === '301' && pathOf(v, '/inspiration').plan.check, pathOf(v, '/inspiration').plan, '');
-  chk('test site: the 50 images get no redirect', v.urls.filter(u => u.kind === 'image').length === 50 && v.urls.filter(u => u.kind === 'image').every(u => u.plan.decision === 'Retire' && u.plan.redirect_type === 'none'));
+  chk('test site: the 50 images have no decision, and are out of the map', v.urls.filter(u => u.kind === 'image').length === 50 && v.urls.filter(u => u.kind === 'image').every(u => u.plan.no_action && !u.plan.decision));
   chk('test site: nothing goes to the homepage, nothing is a 410', v.urls.every(u => u.path === '/' || u.plan.new_url !== '/') && v.urls.every(u => u.plan.redirect_type !== '410'));
-  chk('test site: every URL has a row, and nothing is approved yet', v.urls.every(u => u.plan.decision) && v.scan.summary.decisions.approved === 0 && v.scan.summary.decisions.total === 54, v.scan.summary.decisions, '');
+  chk('test site: every page has a row, and nothing is approved yet', v.urls.filter(u => u.kind === 'page').every(u => u.plan.decision) && v.scan.summary.decisions.approved === 0 && v.scan.summary.decisions.total === 4, v.scan.summary.decisions, '');
 
   // The text of every HTML page is saved, whatever its decision (Brandon, 5 Nov)
   const garden = pathOf(v, '/garden-design-service');
@@ -237,7 +237,7 @@ const one = (u, opts) => suggest([u], opts).get(u.url);
   let r = await a.approve(id, { url_ids: [pathOf(v, '/').id, pathOf(v, '/contact').id] });
   chk('approve some rows', r.approval.approved === 2 && pathOf(r, '/').plan.approved && !pathOf(r, '/inspiration').plan.approved && r.scan.summary.decisions.approved === 2, r.approval, '');
   r = await a.approve(id, { all: true });
-  chk('approve all takes the rest', r.approval.approved === 52 && r.scan.summary.decisions.approved === 54, r.approval, '');
+  chk('approve all takes the rest', r.approval.approved === 2 && r.scan.summary.decisions.approved === 4, r.approval, '');
   let threw = '';
   try { await a.approve(id, {}); } catch (e) { threw = e.message; }
   chk('approving nothing is refused', /Choose some rows/.test(threw), threw, '');
@@ -282,7 +282,7 @@ const one = (u, opts) => suggest([u], opts).get(u.url);
   const map = await b.exportCsv(id, 'url-map');
   const audit = await b.exportCsv(id, 'old-site-audit');
   const lines = map.trim().split('\r\n');
-  chk('URL map CSV: a row per old URL, with the columns the sheet needs', lines.length === 55 && lines[0].startsWith('Old URL,Decision,New URL,Redirect type'), lines.slice(0, 2), '');
+  chk('URL map CSV: a row per URL in the map, with the columns the sheet needs', lines.length === 5 && lines[0].startsWith('Old URL,Decision,New URL,Redirect type'), lines.slice(0, 2), '');
   chk('URL map CSV: kept pages map to themselves, full addresses', lines.some(l => l.startsWith('https://southamptonhomes.co.uk/contact,Keep,https://southamptonhomes.co.uk/contact,None')), lines.slice(1, 4), '');
   chk('Old Site Audit CSV: a row per old URL with its findings', audit.trim().split('\r\n').length === 55 && audit.startsWith('Old URL,Type,Found by,Status') && audit.includes('landscaping southampton'), audit.slice(0, 200), '');
   const { toCsv } = require(path.join(root, 'site-audit/export.js'));

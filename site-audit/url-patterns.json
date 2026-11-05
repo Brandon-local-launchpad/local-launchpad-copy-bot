@@ -13,5 +13,6 @@
     { "pattern": "%[0-9A-Fa-f]{2}", "why": "it has encoded characters" }
   ],
   "homepage_variants": ["^/(home|home-page|homepage|welcome)$", "^/(index|default)(\\.(html?|php|aspx?))?$"],
-  "mass_page_patterns": ["^/tag/"]
+  "mass_page_patterns": ["^/tag/"],
+  "gallery_patterns": ["\\bgaller(y|ies)\\b", "\\bportfolios?\\b", "\\bprojects?\\b", "\\bour[- ]work\\b", "\\brecent[- ]work\\b", "\\bcase[- ]stud(y|ies)\\b", "\\bshowcase\\b", "\\binspiration\\b"]
 }

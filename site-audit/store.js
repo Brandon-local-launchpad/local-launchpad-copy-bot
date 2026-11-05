@@ -110,6 +110,7 @@ const TABLES = {
       suggested_page_key TEXT,
       proposal         JSONB,
       proposal_declined BOOLEAN NOT NULL DEFAULT FALSE,
+      no_action        BOOLEAN NOT NULL DEFAULT FALSE,
       needs_page       BOOLEAN NOT NULL DEFAULT FALSE,
       needs_check      BOOLEAN NOT NULL DEFAULT FALSE,
       decision         TEXT,
@@ -122,6 +123,17 @@ const TABLES = {
       approved_by      TEXT,
       updated_at       TIMESTAMPTZ NOT NULL DEFAULT NOW(),
       UNIQUE (client_id, url)
+    );`,
+  site_redirect_checks: `
+    CREATE TABLE IF NOT EXISTS site_redirect_checks (
+      id         UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+      client_id  UUID NOT NULL REFERENCES clients(id) ON DELETE CASCADE,
+      kind       TEXT NOT NULL,
+      site       TEXT,
+      block      INTEGER NOT NULL DEFAULT 0,
+      warn       INTEGER NOT NULL DEFAULT 0,
+      result     JSONB NOT NULL DEFAULT '{}',
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
     );`,
   site_audit_settings: `
     CREATE TABLE IF NOT EXISTS site_audit_settings (

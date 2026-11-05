@@ -29,6 +29,7 @@ const { parseSearchConsoleCsv } = require('./search-console-csv');
 const SD = require('./dfs');
 const { createDecisions, effective } = require('./decisions');
 const { auditCsv, urlMapCsv } = require('./export');
+const { createRedirects } = require('./redirects');
 const { liveDomain } = require('../gbp/profile');
 
 const j = v => JSON.stringify(v);
@@ -57,7 +58,7 @@ const pageMapLoader = pool => async clientId => {
   return { rows: rows.map(r => ({ ...r, info: typeof r.info === 'string' ? JSON.parse(r.info) : (r.info || {}) })), baseTown: (typeof inputs === 'string' ? JSON.parse(inputs) : inputs || {}).baseTown || '' };
 };
 
-function createSiteAudit({ pool, loadValues, getConnection = async () => null, logCost = async () => {}, env = process.env, fetchImpl = (...a) => fetch(...a), sleep = ms => new Promise(r => setTimeout(r, ms)), log = console, lookup = host => dns.promises.lookup(host), dfs = SD, retryDelays = undefined, loadPages = null, pageMap = null }) {
+function createSiteAudit({ pool, loadValues, getConnection = async () => null, logCost = async () => {}, env = process.env, fetchImpl = (...a) => fetch(...a), sleep = ms => new Promise(r => setTimeout(r, ms)), log = console, lookup = host => dns.promises.lookup(host), dfs = SD, retryDelays = undefined, loadPages = null, pageMap = null, getSite = null, createLog = null }) {
   const running = new Map(); // clientId → the promise of the run under way
   const pagesOf = loadPages || pageMapLoader(pool);
   const decisions = createDecisions({ pool, getSettings: id => getSettings(id), loadPages: pagesOf, pageMap, rework: id => analyse(id) });
@@ -485,15 +486,17 @@ function createSiteAudit({ pool, loadValues, getConnection = async () => null, l
     if (refreshed.ready) {
       const now = await decisions.rowsFor(clientId);
       const counts = { Keep: 0, Reuse: 0, Merge: 0, Retire: 0, Remove: 0 };
-      let approved = 0, redirects = 0, gone = 0;
+      let approved = 0, redirects = 0, gone = 0, total = 0, noAction = 0;
       for (const u of final.rows) {
         const e = effective(now.get(u.url));
+        if (e.no_action) { noAction++; continue; }
+        total++;
         if (counts[e.decision] !== undefined) counts[e.decision]++;
         if (e.approved) approved++;
         if (e.redirect_type === '301') redirects++;
         if (e.redirect_type === '410') gone++;
       }
-      summary.decisions = { counts, approved, redirects, gone, total: final.rows.length };
+      summary.decisions = { counts, approved, redirects, gone, total, no_action: noAction };
     } else summary.decisions = null;
     await pool.query(`UPDATE site_scans SET summary = $2, issues = $3, warnings = $4, benchmark = $5 WHERE id = $1`, [scanId, j(summary), j(issues), j(warn), benchmark]);
     return summary;
@@ -513,7 +516,7 @@ function createSiteAudit({ pool, loadValues, getConnection = async () => null, l
     const { rows: mapRows } = await pagesOf(clientId);
     const pageOptions = [
       ...mapRows.filter(p => ((p.info && p.info.phase) || 1) !== 2).map(p => ({ path: p.slug, title: p.title, type: p.type })),
-      ...settings.site_pages.filter(s => !mapRows.some(p => p.slug === s)).map(s => ({ path: s, title: s.replace(/^\//, '') || 'homepage', type: 'site' })),
+      ...[...settings.site_pages, settings.gallery_page].filter(Boolean).filter(s => !mapRows.some(p => p.slug === s)).map(s => ({ path: s, title: s.replace(/^\//, '') || 'homepage', type: 'site' })),
     ];
     const decided = await decisions.rowsFor(clientId);
     if (scan) {
@@ -657,7 +660,17 @@ function createSiteAudit({ pool, loadValues, getConnection = async () => null, l
     return { saved: out };
   }
 
-  return { start, resume, wait, recover, run, analyse, view, urlDetail, setOverride, saveSettings, getSettings, uploadSearchConsole, setDecision, approve, proposalYes, proposalNo, proposalUndo, pageContent, exportCsv };
+  // ── The redirect push and the validator (redirects.js, validator.js) ──
+  const redirects = createRedirects({ view, getSite: id => (getSite ? getSite(id) : null), loadValues, createLog, pool });
+  const politeOpts = () => {
+    let last = 0;
+    return { fetchImpl, wait: async () => { const gap = last ? DEFAULTS.request_delay_ms - (Date.now() - last) : 0; if (gap > 0) await sleep(gap); last = Date.now(); } };
+  };
+  const redirectsView = async clientId => ({ log: await redirects.log(clientId), latest_snapshot: await redirects.latestSnapshot(clientId), checks: await redirects.latestChecks(clientId) });
+
+  return { start, resume, wait, recover, run, analyse, view, urlDetail, setOverride, saveSettings, getSettings, uploadSearchConsole, setDecision, approve, proposalYes, proposalNo, proposalUndo, pageContent, exportCsv,
+    redirectsView, redirectsDryRun: id => redirects.dryRun(id), redirectsPush: (id, o) => redirects.push(id, o), redirectsRollback: (id, o) => redirects.rollback(id, o),
+    validate: id => redirects.validate(id, politeOpts()), checkAfterLaunch: id => redirects.afterLaunch(id, politeOpts()), testOnStaging: (id, o = {}) => redirects.testOnStaging(id, { ...o, ...politeOpts() }) };
 }
 
 module.exports = { createSiteAudit, domainCheck, DEFAULTS };

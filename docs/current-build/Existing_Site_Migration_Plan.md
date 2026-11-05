@@ -20,6 +20,19 @@ All four open decision answers in section 9 are approved. Build order: the scan 
 
 Stop and show the southamptonhomes decisions and URL map before the plugin and redirect push.
 
+## Brandon's notes after the URL map (5 Nov, these win too)
+
+1. **His reading is confirmed: Page Map slugs win unless the old URL matters.**
+2. **Images with no backlinks, rankings or clicks have no decision.** They're one collapsed group ("50 images, no action needed") and don't count in the decision summary. An image with any of those stays in the map. PDFs stay in the map either way.
+3. **A gallery or projects page slot:** `gallery_page` in `site-audit/defaults.json`, left empty until Given confirms the template has one. When it's set, old gallery, portfolio and project pages match to it first (`gallery_patterns` in `url-patterns.json`).
+4. **Then plugin 0.3.0 with the Rank Math push and the validator, and stop after the first real push and rollback on Edens Edge staging.**
+
+What building those stages settled:
+
+- **The push is gated on the map's BLOCKs, not staging's.** Staging's BLOCKs (pages not built yet) don't stop a push, because the redirects are off and the pages come later. They stop a launch: the launch day button on the site shows the last check's BLOCK count.
+- **A URL with a query string** needs the plugin: Rank Math compares against the address with the query taken off, so its own matching can never fire it. The plugin serves those rows on `rank_math/redirection/pre_search`, only while their Rank Math row is active.
+- **The first real push uses a test client.** Edens Edge has no old site, so its URLs come from southamptonhomes.co.uk, through "Site audit test (Southampton Homes)", which points at the Edens Edge staging site. Ray's steps are `Redirects_First_Push_Ray_Steps.md`.
+
 ## How the rules were read in stage 3 (for Brandon to overrule)
 
 - **A page that doesn't matter and matches a Page Map page at another address is Retire, 301 to that page, with no slug proposal.** The Keep row says "matches a Page Map page, and its URL can be kept as is". The slug rule says an old URL that matters beats the Page Map, so one that doesn't, doesn't. Its URL can't be kept, because the Page Map's address stands. The other reading would move Page Map pages to URLs with no traffic or links.

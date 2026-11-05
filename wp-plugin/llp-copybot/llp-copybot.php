@@ -1,8 +1,8 @@
 <?php
 /**
  * Plugin Name: Local Launchpad Copybot
- * Description: Client Values, [CV: key] token replacement, the homepage ACF field groups (master copy) and REST access for Copybot pushes.
- * Version:     0.2.1
+ * Description: Client Values, [CV: key] token replacement, the homepage ACF field groups (master copy), REST access for Copybot pushes, and old site redirects into Rank Math.
+ * Version:     0.3.0
  * Requires at least: 6.2
  * Requires PHP: 7.4
  * Author:      Local Launchpad
@@ -17,8 +17,9 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'LLP_COPYBOT_VERSION', '0.2.1' );
+define( 'LLP_COPYBOT_VERSION', '0.3.0' );
 define( 'LLP_COPYBOT_OPTION', 'llp_client_values' );
+require_once __DIR__ . '/redirects.php';
 
 // ── Client Values ────────────────────────────────────────────────────────────
 
@@ -262,6 +263,7 @@ add_action(
 							'acf_pro'      => defined( 'ACF_PRO' ) && ACF_PRO,
 							'seo'          => defined( 'RANK_MATH_VERSION' ) ? 'rankmath' : ( defined( 'WPSEO_VERSION' ) ? 'yoast' : 'none' ),
 							'front_page'   => (int) get_option( 'page_on_front' ),
+							'redirects'    => llp_redirects_ready(),
 							'field_groups' => $groups,
 						)
 					);

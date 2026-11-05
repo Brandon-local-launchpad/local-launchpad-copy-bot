@@ -3956,6 +3956,13 @@ const pageMapApi = filloutService ? require('./page-map/routes').mountPageMapApi
 const siteAudit = (pool && citationStore) ? require('./site-audit/service').createSiteAudit({
   pool,
   pageMap: pageMapApi && pageMapApi.store,
+  // The WordPress connection, with its password: the redirect push's site (staging only, site-audit/redirects.js)
+  getSite: async id => {
+    const row = await require('./wp/db-store').getConnectionRow(pool, id);
+    if (!row || !row.app_password_enc) return null;
+    return { url: row.url, user: row.wp_user, appPassword: require('./wp/secrets').decrypt(row.app_password_enc, process.env.COPYBOT_SECRET_KEY), staging: !!row.staging, seo: row.seo };
+  },
+  createLog: id => require('./wp/db-store').createDbStore(pool, id),
   loadValues: async id => { const r = await pool.query(`SELECT content FROM client_assets WHERE client_id = $1 AND asset_type = 'client_values' ORDER BY uploaded_at DESC LIMIT 1`, [id]); return r.rows.length ? JSON.parse(r.rows[0].content) : {}; },
   getConnection: async id => { const r = await pool.query(`SELECT url, staging FROM wp_connections WHERE client_id = $1`, [id]); return r.rows[0] || null; },
   logCost: entry => citationStore.logCost(entry),

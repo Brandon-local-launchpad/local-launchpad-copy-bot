@@ -49,11 +49,18 @@ export async function render(el, ctx) {
   const { clientId } = ctx;
   const base = `/api/clients/${clientId}/site-audit`;
   let d = null, timer = null, loadError = '';
-  const S = { filter: 'all', settings: false, picked: new Set(), showAll: false };
+  const S = { filter: 'all', settings: false, picked: new Set(), showAll: false, dry: null, push: null, rollback: null, check: null, test: null, after: null, redirects: null, redirectsError: '', busy: '' };
 
+  // The push and the checks load on their own: if they fail, the URL map still works
+  const loadRedirects = async () => {
+    try { S.redirects = await api(`${base}/redirects`); S.redirectsError = ''; }
+    catch (e) { console.error('[site-audit redirects]', e); S.redirectsError = e.message; }
+  };
+  const mainUrls = () => d.urls.filter(u => !(u.plan && u.plan.no_action));
   const load = async () => {
     try { d = await api(base); loadError = ''; }
     catch (e) { console.error('[site-audit]', e); loadError = e.message; }
+    await loadRedirects();
     draw();
     clearTimeout(timer);
     if (d && d.running && document.contains(el)) timer = setTimeout(load, 3000);
@@ -131,7 +138,7 @@ export async function render(el, ctx) {
   function urlTable() {
     if (!d.urls.length) return '';
     const test = (FILTERS.find(f => f[0] === S.filter) || FILTERS[0])[2];
-    const rows = d.urls.filter(test);
+    const rows = mainUrls().filter(test);
     const shownRows = S.showAll ? rows : rows.slice(0, ROW_LIMIT);
     const gsc = d.scan.benchmark === 'search_console';
     const ready = d.page_map_ready;
@@ -148,13 +155,49 @@ export async function render(el, ctx) {
         { key: 'reason', label: 'Why', render: u => `<div class="small" style="min-width:220px;max-width:340px">${h(u.plan.reason)}${u.plan.check ? ` ${tag('wait', 'Check this')}` : ''}${u.plan.needs_page ? ` ${tag('wait', 'Needs a page')}` : ''}${u.plan.lifted ? `<div class="notice warn" style="margin-top:4px">${h(u.plan.lifted)}</div>` : ''}${u.plan.differs ? `<div class="muted">Suggested: ${h(u.plan.suggested.decision)}${u.plan.suggested.new_url ? ` to ${h(u.plan.suggested.new_url)}` : ''}.</div>` : ''}${u.plan.approved ? ` <a href="#" class="muted" data-reset="${attr(u.id)}">Back to the suggestion</a>` : ''}</div>` },
       ] : []),
     ];
-    const chips = FILTERS.filter(([k, , fn]) => k === 'all' || d.urls.some(fn)).map(([k, label, fn]) => `<button class="btn btn-sm ${S.filter === k ? 'btn-primary' : 'btn-ghost'}" data-filter="${k}">${h(label)} (${d.urls.filter(fn).length})</button>`).join(' ');
+    const chips = FILTERS.filter(([k, , fn]) => k === 'all' || mainUrls().some(fn)).map(([k, label, fn]) => `<button class="btn btn-sm ${S.filter === k ? 'btn-primary' : 'btn-ghost'}" data-filter="${k}">${h(label)} (${mainUrls().filter(fn).length})</button>`).join(' ');
     const picked = [...S.picked].filter(id => d.urls.some(u => u.id === id && !u.plan.approved)).length;
     const tools = ready ? `<div class="btn-row" style="flex-wrap:wrap;margin-bottom:12px"><button class="btn btn-primary btn-sm" id="approvePicked" ${picked ? '' : 'disabled'}>Approve selected${picked ? ` (${picked})` : ''}</button><button class="btn btn-ghost btn-sm" id="pickShown">Select all shown</button><button class="btn btn-ghost btn-sm" id="approveAll" ${d.urls.some(u => u.plan.decision && !u.plan.approved) ? '' : 'disabled'}>Approve all suggestions</button><a class="btn btn-ghost btn-sm" href="${attr(base)}/export/old-site-audit.csv" download>Export Old Site Audit CSV</a><a class="btn btn-ghost btn-sm" href="${attr(base)}/export/url-map.csv" download>Export URL map CSV</a></div>` : '';
     const waitNote = ready ? '' : `<div class="notice warn" style="margin-bottom:12px">The suggested decisions wait for the Page Map, because each URL is matched against it. Approve the locations first, and the Page Map builds.</div>`;
     const more = rows.length > shownRows.length ? `<div style="margin-top:12px"><button class="btn btn-ghost btn-sm" id="showAll">Show all ${rows.length}</button></div>` : '';
     const options = `<datalist id="pageOptions">${(d.page_options || []).map(o => `<option value="${attr(o.path)}">${h(o.title)}</option>`).join('')}</datalist>`;
     return card({ title: 'URL map', sub: ready ? 'Every old URL with a suggested decision and new URL. Change any row and it counts as approved. Click a URL for its searches, its links and the saved text.' : 'Every URL on the old site. Click a URL for its searches, its links and the saved text.', body: `${waitNote}<div class="btn-row" style="flex-wrap:wrap;margin-bottom:12px">${chips}</div>${tools}${options}${table({ columns: cols, rows: shownRows, rowId: u => u.id, cards: true, emptyText: 'Nothing in this filter.' })}${more}` });
+  }
+
+  // Images nothing depends on: one collapsed group, with no decision (Brandon, 5 Nov)
+  function noActionGroup() {
+    const list = d.urls.filter(u => u.plan && u.plan.no_action);
+    if (!list.length) return '';
+    const word = list.length === 1 ? 'image' : 'images';
+    return `<details class="card" style="padding:14px 20px"><summary><strong>${list.length} ${word}, no action needed</strong> <span class="muted small">No links, rankings or clicks, so they have no decision and aren't in the map.</span></summary><ul class="small muted" style="margin:10px 0 0;padding-left:18px;max-height:220px;overflow:auto">${list.map(u => `<li style="overflow-wrap:anywhere">${h(u.path)}</li>`).join('')}</ul></details>`;
+  }
+
+  const issueList = (items, kind) => (items || []).map(i => `<div class="notice ${kind}" style="margin-top:6px">${h(i.text)}</div>`).join('');
+  const checkLine = (c, label) => (c ? `<div style="margin-top:12px"><strong>${h(label)}:</strong> ${c.block.length ? pill('block', `${c.block.length} BLOCK`) : pill('ok', 'No BLOCK')} ${c.warn.length ? pill('wait', `${c.warn.length} WARN`) : ''} <span class="muted small">${c.at ? h(fmtDate(c.at, true)) : ''}</span>${issueList(c.block, 'bad')}${issueList(c.warn, 'warn')}</div>` : '');
+
+  // The approved map into Rank Math. Inactive, staging only, with a rollback.
+  function redirectsCard() {
+    if (!d.page_map_ready) return '';
+    const dry = S.dry, last = S.redirects && S.redirects.latest_snapshot, log = (S.redirects && S.redirects.log) || [];
+    const rowsOf = (list, verb) => list.slice(0, 200).map(x => `<tr><td>${h(verb)}</td><td style="overflow-wrap:anywhere">${h(x.source)}</td><td>${h(String(x.code || ''))}</td><td style="overflow-wrap:anywhere">${h(x.path || 'Gone')}</td></tr>`).join('');
+    const dryBody = dry ? `<div style="margin-top:12px">${dry.refusals.length ? dry.refusals.map(t => `<div class="notice bad" style="margin-top:6px">${h(t)}</div>`).join('') : `<div class="notice" style="margin-top:6px">A push would be allowed. Nothing has been written.</div>`}
+      <div class="small" style="margin-top:8px"><strong>${h(dry.site)}</strong>${dry.staging ? ' (staging)' : ''}: ${dry.add.length} to add, ${dry.change.length} to change, ${dry.remove.length} to remove, ${dry.same.length} already right.</div>
+      ${dry.add.length || dry.change.length || dry.remove.length ? `<div class="tbl-wrap" style="margin-top:8px;max-height:280px;overflow:auto"><table class="tbl"><thead><tr><th></th><th>Old URL</th><th>Type</th><th>New URL</th></tr></thead><tbody>${rowsOf(dry.add, 'Add')}${rowsOf(dry.change, 'Change')}${rowsOf(dry.remove, 'Remove')}</tbody></table></div>` : ''}</div>` : '';
+    const pushBody = S.push ? `<div class="notice ${S.push.ok ? '' : 'bad'}" style="margin-top:10px">${S.push.ok ? `Pushed ${S.push.count} redirects, all inactive, and the read back matches.` : `The push ${S.push.refusals && S.push.refusals.length ? 'was refused' : 'did not finish cleanly'}: ${h([...(S.push.refusals || []), ...(S.push.problems || []), S.push.error || ''].filter(Boolean).join(' '))}`}</div>` : '';
+    const rollBody = S.rollback ? `<div class="notice ${S.rollback.ok ? '' : 'bad'}" style="margin-top:10px">${S.rollback.ok ? `Rolled back: ${S.rollback.removed} removed, ${S.rollback.restored} restored, ${S.rollback.left} left on the site, and the read back matches.` : `The rollback did not finish cleanly: ${h([...(S.rollback.refusals || []), ...(S.rollback.problems || []), S.rollback.error || ''].filter(Boolean).join(' '))}`}</div>` : '';
+    const logBody = log.length ? `<details style="margin-top:12px"><summary class="small muted">Push log (${log.length})</summary><ul class="small muted" style="margin:8px 0 0;padding-left:18px">${log.slice(0, 20).map(l => `<li>${h(fmtDate(l.at, true))}: ${h(String(l.action).replace('redirects_', ''))}, ${h(l.result)}${l.count != null ? `, ${l.count} redirects` : ''}</li>`).join('')}</ul></details>` : '';
+    return card({ title: 'Redirects on staging', sub: 'Into Rank Math through the Copybot plugin. They arrive switched off, and stay off until launch. Staging sites only.', body: `<div class="btn-row" style="flex-wrap:wrap"><button class="btn btn-ghost btn-sm" id="rDry" ${S.busy ? 'disabled' : ''}>Dry run</button><button class="btn btn-primary btn-sm" id="rPush" ${dry && dry.pushable && !S.busy ? '' : 'disabled'}>Push, inactive</button><button class="btn btn-ghost btn-sm" id="rRollback" ${last && !S.busy ? '' : 'disabled'}>Roll back the last push</button></div>${S.redirectsError ? `<div class="notice bad" style="margin-top:10px">${h(S.redirectsError)}</div>` : ''}${dryBody}${pushBody}${rollBody}${logBody}` });
+  }
+
+  function validatorCard() {
+    if (!d.page_map_ready) return '';
+    const saved = (S.redirects && S.redirects.checks) || {};
+    const pre = S.check || (saved.pre_launch && { ...saved.pre_launch.result, at: saved.pre_launch.at });
+    const test = S.test || (saved.staging_test && { ...saved.staging_test.result, at: saved.staging_test.at });
+    const after = S.after || (saved.after_launch && { ...saved.after_launch.result, at: saved.after_launch.at });
+    const results = test && (test.results || []).length ? `<div class="tbl-wrap" style="margin-top:8px;max-height:240px;overflow:auto"><table class="tbl"><thead><tr><th>Old URL</th><th>Should be</th><th>Answered</th></tr></thead><tbody>${test.results.map(r => `<tr><td style="overflow-wrap:anywhere">${h(r.source)}</td><td>${h(r.expected)}</td><td style="overflow-wrap:anywhere">${h(String(r.error || r.status || ''))}${r.location ? ` to ${h(r.location)}` : ''}</td></tr>`).join('')}</tbody></table></div><div class="small muted" style="margin-top:6px">${test.turned_off ? 'All switched back off, and read back to prove it.' : ''}</div>` : '';
+    const forms = pre && (pre.forms || []).length ? `<details style="margin-top:8px"><summary class="small muted">The domain's versions today</summary><ul class="small muted" style="margin:6px 0 0;padding-left:18px">${pre.forms.map(f => `<li>${h(f.url)}: ${f.error ? h(f.error) : `${f.hops} ${f.hops === 1 ? 'hop' : 'hops'} to ${h(f.final)}`}</li>`).join('')}</ul></details>` : '';
+    return card({ title: 'Pre launch check', sub: 'BLOCK stops a launch, and WARN is for a person to read. Before launch the live domain is still the old site, so its versions only warn.', body: `<div class="btn-row" style="flex-wrap:wrap"><button class="btn btn-primary btn-sm" id="vRun" ${S.busy ? 'disabled' : ''}>Run the check</button><button class="btn btn-ghost btn-sm" id="vTest" ${S.busy ? 'disabled' : ''}>Test on staging</button><button class="btn btn-ghost btn-sm" id="vAfter" ${S.busy ? 'disabled' : ''}>Check the live domain after launch</button></div>${S.busy ? `<div class="muted small" style="margin-top:8px">${h(S.busy)}</div>` : ''}${checkLine(pre, 'The check')}${forms}${checkLine(test, 'The staging test')}${results}${checkLine(after, 'The live domain after launch')}` });
   }
 
   // The Page Map moves only when a person says so, because the page's address changes everywhere
@@ -182,7 +225,7 @@ export async function render(el, ctx) {
     if (d.running && d.scan) parts.push(progress());
     if (d.scan) {
       parts.push(warnings());
-      if (d.scan.summary) parts.push(tiles(), benchmark(), issues(), pageMapCard(), urlTable(), settingsCard());
+      if (d.scan.summary) parts.push(tiles(), benchmark(), issues(), pageMapCard(), urlTable(), noActionGroup(), redirectsCard(), validatorCard(), settingsCard());
       else if (!d.running) parts.push(card({ body: empty({ title: 'No results from that scan', text: 'Resume carries on from where it stopped.' }) }));
     } else {
       parts.push(card({ body: empty({ title: 'No scan yet', text: 'Scan old site reads every page it can find, then asks DataForSEO for rankings and backlinks. It usually costs 6 to 15 cents and writes nothing to the site.' }) }), settingsCard());
@@ -209,6 +252,31 @@ export async function render(el, ctx) {
         draw(); clearTimeout(timer); timer = setTimeout(load, 2000);
       });
     });
+    // The push and the checks: one at a time, each says how it went where it was asked
+    const task = async (label, fn) => {
+      S.busy = label; draw();
+      try { await fn(); }
+      catch (err) { console.error('[site-audit redirects]', err); toast(err.message, 'error'); }
+      S.busy = '';
+      await loadRedirects();
+      draw();
+    };
+    on('#rDry', () => task('Comparing the map with the site', async () => { S.push = null; S.rollback = null; S.dry = await api(`${base}/redirects/dry-run`, { method: 'POST', body: {} }); }));
+    on('#rPush', async () => {
+      if (!(await confirm({ title: `Push ${S.dry.want} redirects to ${S.dry.site}?`, text: 'They go into Rank Math switched off, so nothing changes for visitors. This writes to the staging site, and you can roll it back.', ok: 'Push them' }))) return;
+      task('Pushing and reading back', async () => { S.push = await api(`${base}/redirects/push`, { method: 'POST', body: { confirm: true } }); S.dry = null; });
+    });
+    on('#rRollback', async () => {
+      if (!(await confirm({ title: 'Roll back the last push?', text: 'The site goes back to what it held before that push, and anything switched on is switched off.', ok: 'Roll it back', danger: true }))) return;
+      task('Rolling back and reading back', async () => { S.rollback = await api(`${base}/redirects/rollback`, { method: 'POST', body: { snapshot_id: S.redirects.latest_snapshot, confirm: true } }); S.dry = null; S.push = null; });
+    });
+    on('#vRun', () => task('Checking the map, staging and the domain. About a second a page', async () => { S.check = await api(`${base}/redirects/validate`, { method: 'POST', body: {} }); }));
+    on('#vTest', async () => {
+      if (!(await confirm({ title: 'Test the redirects on staging?', text: "This turns Copybot's redirects on at the staging site, requests each old URL, and always turns them off again, even if the check fails part way. It refuses to run if the connection is the live domain.", ok: 'Run the test' }))) return;
+      task('Testing on staging, then switching back off', async () => { S.test = await api(`${base}/redirects/test`, { method: 'POST', body: { confirm: true } }); });
+    });
+    on('#vAfter', () => task('Checking every version of the live domain', async () => { S.after = await api(`${base}/redirects/after-launch`, { method: 'POST', body: {} }); }));
+
     el.querySelectorAll('[data-filter]').forEach(b => b.addEventListener('click', () => { S.filter = b.dataset.filter; S.showAll = false; draw(); }));
     on('#showAll', () => { S.showAll = true; draw(); });
 
@@ -240,7 +308,7 @@ export async function render(el, ctx) {
     el.querySelectorAll('[data-pick]').forEach(c => c.addEventListener('change', () => { if (c.checked) S.picked.add(c.dataset.pick); else S.picked.delete(c.dataset.pick); draw(); }));
     on('#pickShown', () => {
       const test = (FILTERS.find(f => f[0] === S.filter) || FILTERS[0])[2];
-      for (const u of d.urls.filter(test)) if (!u.plan.approved && !u.plan.proposal) S.picked.add(u.id);
+      for (const u of mainUrls().filter(test)) if (!u.plan.approved && !u.plan.proposal) S.picked.add(u.id);
       draw();
     });
     const afterApprove = out => { S.picked.clear(); d = out; const { approved, waiting } = out.approval; toast(`${approved} approved.${waiting ? ` ${waiting} wait for a Page Map change.` : ''}`); draw(); };

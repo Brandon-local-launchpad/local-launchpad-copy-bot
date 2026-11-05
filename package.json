@@ -14,7 +14,8 @@
     "demo:wp": "node tests/ui/demo-server.js",
     "demo:fillout": "node tests/ui/demo-fillout.js",
     "test:fillout": "node tests/fixtures/fillout-intake.js",
-    "wp:plugin-version": "node wp/plugin-version.js"
+    "wp:plugin-version": "node wp/plugin-version.js",
+    "wp:plugin-zip": "node wp/build-plugin-zip.js"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.36.0",

@@ -17,6 +17,7 @@ const err = (status, message) => Object.assign(new Error(message), { status });
 const effective = d => {
   if (!d) return { decision: '', new_url: '', redirect_type: 'none', reason: '', approved: false };
   const approved = !!d.approved_at;
+  if (d.no_action && !approved) return { decision: '', new_url: '', redirect_type: 'none', reason: 'An image with no links, rankings or clicks, so no action is needed.', approved: false, no_action: true };
   return {
     decision: approved ? d.decision : d.suggested_decision,
     new_url: (approved ? d.new_url : d.suggested_new_url) || '',
@@ -56,7 +57,7 @@ function createDecisions({ pool, getSettings, loadPages, pageMap = null, rework 
     const settings = await getSettings(clientId);
     const { rows: pages, baseTown } = await loadPages(clientId);
     if (!pages.length) return { ready: false, counts: null };
-    const { rows: urls } = await pool.query(`SELECT id, url, path, kind, fetch_state, status_code, redirect_target, title, h1, links_out, clicks, est_traffic, real_rd, matters, matters_why, injected FROM site_scan_urls WHERE scan_id = $1`, [scanId]);
+    const { rows: urls } = await pool.query(`SELECT id, url, path, kind, fetch_state, status_code, redirect_target, title, h1, links_out, clicks, est_traffic, real_rd, all_rd, keywords_count, matters, matters_why, injected FROM site_scan_urls WHERE scan_id = $1`, [scanId]);
     const existing = await rowsFor(clientId);
     const declined = new Set([...existing.values()].filter(r => r.proposal_declined).map(r => r.url));
     const { suggestions } = suggestAll({ urls, pages, settings, baseTown, hasSearchConsole, declined, keyOf: createUrlTools(origin).key });
@@ -64,7 +65,15 @@ function createDecisions({ pool, getSettings, loadPages, pageMap = null, rework 
       const s = suggestions.get(u.url);
       if (!s) continue;
       const was = existing.get(u.url);
-      const fields = { suggested_decision: s.decision, suggested_reason: s.reason, suggested_new_url: s.new_url, suggested_redirect: s.redirect_type, suggested_page_key: s.page_key, proposal: j(s.proposal), needs_page: s.needs_page, needs_check: s.check };
+      // An image nothing depends on leaves the map. A decision a person set by hand stays.
+      if (s.no_action) {
+        const kept = was && was.approved_at && was.by_hand;
+        const clear = { no_action: !kept, suggested_decision: null, suggested_reason: null, suggested_new_url: null, suggested_redirect: null, suggested_page_key: null, proposal: j(null), needs_page: false, needs_check: false };
+        if (!kept) Object.assign(clear, { approved_at: null, approved_by: null, by_hand: false, decision: null, new_url: null, redirect_type: null, hand_note: null, lifted_note: null });
+        await upsert(clientId, u.url, was, clear);
+        continue;
+      }
+      const fields = { no_action: false, suggested_decision: s.decision, suggested_reason: s.reason, suggested_new_url: s.new_url, suggested_redirect: s.redirect_type, suggested_page_key: s.page_key, proposal: j(s.proposal), needs_page: s.needs_page, needs_check: s.check };
       if (was && was.approved_at) {
         // A person set Keep by hand: the page they mean may be at another slug
         if (was.decision === 'Keep' && was.by_hand && u.path !== '/') { const p = proposalFor(u, pages, settings, baseTown); fields.proposal = j(was.proposal_declined ? null : p); fields.needs_page = !p && !pages.some(x => x.slug === u.path) && !(settings.site_pages || []).includes(u.path); }
@@ -187,7 +196,7 @@ function createDecisions({ pool, getSettings, loadPages, pageMap = null, rework 
     const out = [];
     for (const r of rows) {
       const e = effective(existing.get(r.url));
-      if (!r.main_text || e.new_url !== path) continue;
+      if (!r.main_text || e.new_url !== path) continue; // the saved text is all there; the page view shows what lands here
       out.push({ url: r.url, path: r.path, title: r.title, word_count: r.word_count, main_text: r.main_text, matters: r.matters, top_searches: r.top_searches || [], decision: e.decision, approved: e.approved });
     }
     return out.sort((a, b) => Number(b.matters) - Number(a.matters) || (b.word_count || 0) - (a.word_count || 0));
