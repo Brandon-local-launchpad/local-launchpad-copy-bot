@@ -177,9 +177,9 @@ async function runClaimRetries({ record, V, callRetry, review, maxRounds = 2, co
     const blocksIn = (rec, label) => check(rec).filter(i => i.field === label && i.type === 'BLOCK').length;
     const results = await mapLimit([...byField.values()], concurrency, async g => {
       const problems = [
-        // 4 Nov 2026 (copy quality 2): an unconfirmed practice becomes the trade's principle in the third
-        // person, or goes; never "we" for something the client has not confirmed
-        ...g.findings.map(c => `Unsupported claim: "${c.quote}". ${c.why} Either delete the sentence, or rewrite it as the trade's principle in the third person, about what a fair ${(V.niche && V.niche.trade_person) || 'tradesperson'} does ("a fair roofer shows you photographs of what they found"), never "we" or "our" for a practice the client has not confirmed.`),
+        // Copy quality 5 (Brandon, 4 Nov 2026): an unconfirmed practice goes, or the sentence describes the
+        // job itself. The third person "a fair [trade]" rewrite is dropped: it read as a claim and an artefact
+        ...g.findings.map(c => `Unsupported claim: "${c.quote}". ${c.why} Delete the sentence, or rewrite it to describe the job itself: what the work involves. No "we", no "a fair [trade]", and no claim about how any business behaves.`),
         ...check(base).filter(i => i.field === g.f.label).map(i => i.message),
       ];
       try {
@@ -261,6 +261,51 @@ async function runFlagPass({ record, V, callRetry, maxRounds = 2, concurrency = 
   return { log, usage, before, after, kept: log.filter(x => x.kept).length };
 }
 
+// ── Targeted round (Brandon, copy quality 5, 4 Nov 2026) ─────────────────────
+// After the flag pass: the fields still carrying a BLOCK, or an issue behind code item Y2, P3, P4, F1,
+// P5, Y11, Y12, K1, I1, S7 or B3, are rewritten once more with every failure message on the field. A rewrite is
+// kept only when the page has fewer of those issues and gains no BLOCK. No more retries after this:
+// what is left goes on the page's edit list.
+async function runTargetedPass({ record, V, callRetry, concurrency = CONCURRENCY, validate = null }) {
+  const { targetIssues } = require('./quality-review');
+  const check = validate || (rec => validateV20(rec, V));
+  const targetsOf = rec => targetIssues(rec, check(rec));
+  const blocksOn = rec => check(rec).filter(i => i.type === 'BLOCK').length;
+  const log = [];
+  const usage = { calls: 0, input_tokens: 0, output_tokens: 0, cache_read_input_tokens: 0 };
+  const first = targetsOf(record);
+  const labels = [...new Set(first.filter(i => i.ref).map(i => i.field))];
+  const base = clone(record);
+  const allIssues = check(base);
+  const results = await mapLimit(labels, concurrency, async label => {
+    const f = modelFields(base).find(x => x.label === label);
+    if (!f) return { label, error: 'field not found' };
+    const problems = [...new Set(allIssues.filter(i => i.field === label).map(i => i.message))];
+    try {
+      const r = await callRetry({ message: buildRetryMessage(f, problems, base, V.D, [], V) });
+      usage.calls++;
+      for (const k of ['input_tokens', 'output_tokens', 'cache_read_input_tokens']) usage[k] += (r.usage && r.usage[k]) || 0;
+      return { label, f, problems, before: f.text, after: parseRetryReply(r.text, f.ref), raw: r.text || '' };
+    } catch (e) {
+      return { label, f, problems, before: f.text, after: null, error: e.message };
+    }
+  });
+  // One at a time against the page as it now stands, so two rewrites can't add up to a new repeat
+  for (const r of results) {
+    const entry = { round: 1, field: r.label, problems: r.problems, before: r.before, after: r.after, kept: false, source: 'targeted' };
+    if (r.error || !r.after) { entry.error = r.error || 'empty reply'; log.push(entry); continue; }
+    if (notSingleField(r.raw, r.after, r.f, record, V)) { entry.error = 'reply was not a single field'; log.push(entry); continue; }
+    const cand = clone(record);
+    setField(cand, r.f.ref, r.after);
+    const was = targetsOf(record).length, now = targetsOf(cand).length;
+    if (now < was && blocksOn(cand) <= blocksOn(record)) { setField(record, r.f.ref, r.after); entry.kept = true; }
+    else entry.error = now >= was ? 'the failures did not drop' : 'the rewrite added a BLOCK';
+    log.push(entry);
+  }
+  const left = targetsOf(record).map(i => ({ field: i.field, check: i.check, type: i.type, message: i.message }));
+  return { log, usage, before: first.length, after: left.length, kept: log.filter(x => x.kept).length, left };
+}
+
 // ── Quality review into the retries (16 Oct, copy quality loop) ───────────────
 // review(record) → the quality review (quality-review.js): failed judge items and other
 // problems, each quoting the page. Each round: rewrite every field a quote is in, keep a
@@ -335,4 +380,4 @@ function validationSummary(issues, log, usage) {
   };
 }
 
-module.exports = { runRetries, runClaimRetries, runFlagPass, runQualityRetries, buildRetryMessage, parseRetryReply, loadRetryPrompt, validationSummary, MAX_RETRIES, FLAG_PASS };
+module.exports = { runRetries, runClaimRetries, runFlagPass, runTargetedPass, runQualityRetries, buildRetryMessage, parseRetryReply, loadRetryPrompt, validationSummary, MAX_RETRIES, FLAG_PASS };

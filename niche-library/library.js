@@ -44,6 +44,19 @@ function keyFor(niche) {
   if (!key || key === 'other') return direct;
   return KEY_TO_FILE[key] || key;
 }
+// The library for a niche entry: an entry's own _source names the file it was written from
+// ("Niche_Library_Landscaper (2).md"), a runner's is the stem, and either way the trade name is the fallback
+function stemOfEntry(entry) {
+  if (!entry) return null;
+  const src = String(entry._source || '');
+  const m = src.match(/^Niche_Library_(.+?)(?: \(\d+\))?\.md$/i);
+  const j = src.match(/niche-library\/([a-z-]+)\.json/);
+  for (const name of [j ? j[1] : m ? m[1].replace(/_/g, '-') : src, entry.trade, entry.trade_person].filter(Boolean)) {
+    const k = keyFor(name);
+    if (k && fs.existsSync(path.join(__dirname, `${k}.csv`))) return k;
+  }
+  return null;
+}
 function fileFor(niche) {
   const file = path.join(__dirname, `${keyFor(niche)}.csv`);
   return fs.existsSync(file) ? file : null;
@@ -268,4 +281,4 @@ function hubOf(set, categoryName) {
   return h || categoryName;
 }
 
-module.exports = { loadLibrary, loadLibrarySet, loadAllLibraries, loadHubs, findEntries, targetFlags, hubOf, asSet, fileFor, categoriesFileFor, keyFor, parseCsv, norm, matchKey, similarity, VERDICTS, FUZZY_MIN };
+module.exports = { stemOfEntry, loadLibrary, loadLibrarySet, loadAllLibraries, loadHubs, findEntries, targetFlags, hubOf, asSet, fileFor, categoriesFileFor, keyFor, parseCsv, norm, matchKey, similarity, VERDICTS, FUZZY_MIN };

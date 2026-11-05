@@ -243,7 +243,7 @@ Every cleaning category is B. One entry serves the rounds (House Cleaning, Janit
 
 | Slot | When | Question | Answer brief | Doubt |
 |---|---|---|---|---|
-| cost | always | How much does [WORK_LOWER] cost in [CITY]? | Prices only from [CV: price_list]; otherwise how the price is reached, from [CV: quote_method] only, and that the figure is agreed before the first visit when that practice is confirmed. The four cost cards above already give what moves the price: name one factor at most, never the list again. | Price |
+| cost | always | How much does [WORK_LOWER] cost in [CITY]? | Prices only from [CV: price_list]; otherwise how the price is reached, from [CV: quote_method] only, and that the figure is agreed before the first visit when that practice is confirmed. The cost cards hold the list: never repeat it or point to it. | Price |
 | cover | guarantee | Do you guarantee your [WORK_LOWER]? | Start with yes, then the terms from [CV: guarantee_scope] (a return visit, what it covers, how soon the customer has to say). Described, never promised, and never as something that replaces the customer's rights (the trade facts satisfaction guarantee row). Never a promise that a stain or a smell is gone. | Trust |
 | cover | insurance | Are you insured? | The cover figure from [CV: insurance_cover] and what the cover is for. Never what it pays or who it covers, and never that it covers the item being cleaned or keys unless the client values say so (the trade facts treatment risk and keys rows). | Trust |
 | cover | always | What if something gets damaged during a clean? | Open with what the customer does: tell us and we look at it. Then the reasonable care and skill standard every trade works to. No promise to put it right free. Never invent a guarantee or insurance. | Trust |
@@ -309,7 +309,7 @@ Used by the service page job (CORE (17)): What's Included is an H2; its tick ite
 | Slot | When | Question | Answer brief | Doubt |
 |---|---|---|---|---|
 | frequency | always | When should I book [SERVICE_LOWER]? | From the trade facts timing row only. Recurring pages: what decides how often (how the room or the premises is used, the dirt tracked in, the use pattern) in plain words; a frequency only from [CV: visit_frequency_options], otherwise say the pattern is agreed with you and nothing more. Single job pages: when the job is booked against its date (once the home is empty and before the checkout, once the dusty work has finished, between bookings, when the weather lets the wash and the runoff be controlled). Say why the timing changes the job; never fall back on "our busy season". This is the one place the timing is written; a duration only where the row gives one (the rows say it varies). | Timing |
-| cost | always | How much does [SERVICE_LOWER] cost in [CITY]? | Prices only from [CV: price_list]; otherwise how the price is reached, from [CV: quote_method] only, and that the figure is agreed before the first visit when that practice is confirmed. The four cost cards above already give what moves the price: name one factor at most, never the list again. | Price |
+| cost | always | How much does [SERVICE_LOWER] cost in [CITY]? | Prices only from [CV: price_list]; otherwise how the price is reached, from [CV: quote_method] only, and that the figure is agreed before the first visit when that practice is confirmed. The cost cards hold the list: never repeat it or point to it. | Price |
 | cover | insurance | Are you insured for [SERVICE_LOWER]? | The cover figure from [CV: insurance_cover] and what the cover is for. Never what it pays or who it covers, and never that it covers the item being cleaned or keys unless the client values say so (the trade facts treatment risk and keys rows). | Trust |
 | cover | always | What if something gets damaged during the clean? | Open with what the customer does: tell us and we look at it. Then the reasonable care and skill standard every trade works to. No promise to put it right free. Never invent a guarantee or insurance. | Trust |
 | access | always | Do I need to be home for [SERVICE_LOWER]? | From [CV: access_handling] and the confirmed practices only (customer_need_not_be_home): whether the customer needs to be in, keys, alarm codes; on a commercial page, out of hours access only from the client values. When nothing is on file, say the arrangements for getting in are agreed before the first visit and nothing more. Never a key policy, vetting or a DBS check stated as fact. | Process |
@@ -452,3 +452,34 @@ Block 4 H2: When It's Time to Book [SERVICE]
 ## do_not_reuse
 
 (empty to start; add any sentence that has gone live on a client site so it is never repeated)
+
+## Alternate Why title that promises a practice (why_title_practice)
+
+"The Same Clean Every Visit" stands only with same_team_throughout confirmed; otherwise the point reads "Our Track Record".
+
+## Service tags
+
+An element is dropped, and the next eligible one used, when the client has confirmed none of these services. The paths are in the .json as `needs`.
+
+| Element | Needs |
+|---|---|
+| How often should a home be cleaned? | Regular domestic cleaning |
+| Why does a stain come back after the carpet has been cleaned? | Carpet Cleaning Service |
+| Can my landlord insist on a professional clean? | End of tenancy cleaning |
+| Homes that change hands every summer | End of tenancy cleaning |
+| Nobody home when the cleaning needs doing | Regular domestic cleaning; Window Cleaning Service |
+| The places people work in round here | Office cleaning; Specialist commercial cleaning; Medical and clinic cleaning; School cleaning; Gym and leisure centre cleaning; Communal area cleaning |
+| Working round the town's hours | Office cleaning; Specialist commercial cleaning; Medical and clinic cleaning; School cleaning; Gym and leisure centre cleaning; Holiday let and Airbnb cleaning |
+
+## Idea homes
+
+- **how the price is reached (the look before pricing, from quote_method)** (homepage): home is the 'How do your quotes work?' FAQ. Elsewhere: step 2 says only that the price is agreed before work, without describing the method; the free quote FAQ answers only whether it is free.
+- **how the price is reached (the look before pricing, from quote_method)** (service): home is the 'How much does [SERVICE_LOWER] cost in [CITY]?' FAQ. Elsewhere: the build up cost card says only that a heavier build up is a bigger job; step 2 says the price is agreed before work without describing the method.
+- **how the price is reached (the look before pricing, from quote_method)** (category): home is the 'How much does [WORK_LOWER] cost in [CITY]?' FAQ. Elsewhere: the 'How much has built up' card and step 2 do not describe the method; the 'What happens when I book?' FAQ does not restate it.
+- **keys and whether the customer needs to be in** (service): home is the 'Do I need to be home for [SERVICE_LOWER]?' FAQ. Elsewhere: step 3 and the 'Access and the day it has to be done by' cost card do not mention keys or being in.
+- **a regular round and how often it comes** (service): home is the 'When should I book [SERVICE_LOWER]?' FAQ. Elsewhere: step 3 only puts the visit in the diary; the 'It's taking more of your time' card names the catch up without a frequency or round pattern.
+- **a regular round and how often it comes** (category): home is the 'What happens when I book?' FAQ. Elsewhere: step 3 only puts the visit in the diary; the 'How much there is and how often' card says only that regular visits are shorter, with no frequency.
+- **the fixed date and the order the clean must fall in (after the place is empty or the dusty work ends, before the checkout or handover)** (service): home is the 'A date you can't move' block 4 card. Elsewhere: the 'Access and the day it has to be done by' cost card covers access only and says a fixed day adds time without restating the order; the 'When should I book' FAQ does not retell the deadline.
+- **agreeing the scope first so nothing is left out** (service): home is the 'What is included and what is extra' cost card. Elsewhere: the 'The day it's checked' card says who checks and what they compare against, not the scope argument; step 2 and the 'What does your [SERVICE_LOWER] include?' FAQ list the cover without the why.
+- **the check in inventory the checkout is judged against** (service): home is the 'The day it's checked and who checks it' block 4 card. Elsewhere: the rules FAQ gives the landlord's entitlement without the walk round; the scope cost card and the oven checkout card do not name the inventory.
+- **lets in the town turning over together** (location): home is the 'Homes that change hands every summer' block 4 card. Elsewhere: the best time FAQ gives the timing without restating the turnover; the 'left a while' cost card speaks of the gap, not lets changing hands.

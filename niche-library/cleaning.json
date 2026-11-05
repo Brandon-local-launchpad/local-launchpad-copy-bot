@@ -143,14 +143,16 @@
       "question": "How often should a home be cleaned?",
       "answer_brief": "What decides it, in plain words: how many people and pets live there, how the kitchen and the bathrooms are used, what the customer wants kept on top of between visits. A frequency only from [CV: visit_frequency_options]; otherwise say the pattern is agreed with you and nothing more. Never a room count or a timing as this client's process.",
       "symptom_based": false,
-      "doubt": "Timing"
+      "doubt": "Timing",
+      "needs": ["Regular domestic cleaning"]
     },
     {
       "slot": "faq_B",
       "question": "Why does a stain come back after the carpet has been cleaned?",
       "answer_brief": "Use the assigned symptom's meaning and its linked local issue. Three genuinely different causes in plain words, from the trade facts what goes wrong rows and the calibration pack: the mark has gone down to the backing or the underlay and rises again as the carpet dries; a shop product's residue left in the pile, drawing dirt to the patch; a hired machine that wets the carpet more than it can suck back. Then what the local factor adds (pets, hard water, tenure), then what a proper clean has to reach. Blame the method, never the customer's effort. Never promise the stain is gone.",
       "symptom_based": true,
-      "doubt": "Process"
+      "doubt": "Process",
+      "needs": ["Carpet Cleaning Service"]
     },
     {
       "slot": "faq_C",
@@ -175,7 +177,8 @@
       "symptom_based": false,
       "is_fallback": true,
       "condition": "the client's services list carries the end of tenancy page",
-      "doubt": "Process"
+      "doubt": "Process",
+      "needs": ["End of tenancy cleaning"]
     }
   ],
 
@@ -312,7 +315,7 @@
         {
           "slot": "cost",
           "question": "How much does [WORK_LOWER] cost in [CITY]?",
-          "answer_brief": "Prices only from [CV: price_list]; otherwise how the price is reached, from [CV: quote_method] only, and that the figure is agreed before the first visit when that practice is confirmed. The four cost cards above already give what moves the price: name one factor at most, never the list again.",
+          "answer_brief": "Prices only from [CV: price_list]; otherwise how the price is reached, from [CV: quote_method] only, and that the figure is agreed before the first visit when that practice is confirmed. The cost cards hold the list: never repeat it or point to it.",
           "doubt": "Price"
         },
         {
@@ -472,7 +475,7 @@
         {
           "slot": "cost",
           "question": "How much does [SERVICE_LOWER] cost in [CITY]?",
-          "answer_brief": "Prices only from [CV: price_list]; otherwise how the price is reached, from [CV: quote_method] only, and that the figure is agreed before the first visit when that practice is confirmed. The four cost cards above already give what moves the price: name one factor at most, never the list again.",
+          "answer_brief": "Prices only from [CV: price_list]; otherwise how the price is reached, from [CV: quote_method] only, and that the figure is agreed before the first visit when that practice is confirmed. The cost cards hold the list: never repeat it or point to it.",
           "doubt": "Price"
         },
         {
@@ -524,12 +527,14 @@
           {
             "title": "Homes that change hands every summer",
             "brief": "Rented homes, student lets and the letting agents between them, from the town profile (tenure, turnover, where the lets cluster). The one cause this card makes: tenancies in the town turning over together, so checkouts fall in the same weeks. What follows for the job: the check in inventory the checkout is judged by, the itemised receipted invoice an agent expects, booking against a date; the receipt and the photographs only from the confirmed ticks. Never say the homes are dirty, never invent student numbers or agent names, never promise a date or a deposit back. Not the items an inspection fails: the category pages own those.",
-            "mechanism": "tenancies in the town turning over together"
+            "mechanism": "tenancies in the town turning over together",
+            "needs": ["End of tenancy cleaning"]
           },
           {
             "title": "Nobody home when the cleaning needs doing",
             "brief": "Commuter households, families out all day, older residents who want the same face each time, from the town profile (who lives here, the commute, the ages). The one cause this card makes: households with no one in during the day. What it means for a round: the arrangements for getting in agreed before the first visit, from [CV: access_handling] and the customer_need_not_be_home practice only; the same cleaner each visit only from the confirmed ticks. Never a key policy, vetting or a DBS check as fact. Not the catch up that eats a weekend: the service pages own that.",
-            "mechanism": "households with no one in during the day"
+            "mechanism": "households with no one in during the day",
+            "needs": ["Regular domestic cleaning","Window Cleaning Service"]
           },
           {
             "title": "What the water and the weather leave behind",
@@ -539,7 +544,8 @@
           {
             "title": "The places people work in round here",
             "brief": "The business parks, the clinics and practices, the schools, the gyms, the managed blocks and their shared halls, from the town profile. The one cause this card makes: the mix of premises in the town, each needing something different from a visit. What a room of each kind usually asks of a visit (the things people touch covered every visit, cloths and mops kept to their area, a clinic's own schedule), given as the general practice, never as this client's process. Where LINKABLE PAGES has no commercial page, the card is the town's holiday lets and short lets (changeovers between bookings, the checklist the host works to) from the profile; where there are neither, the town's landlords and agents with more than one home who want the same standard across all of them. Never name a business.",
-            "mechanism": "the mix of premises in the town"
+            "mechanism": "the mix of premises in the town",
+            "needs": ["Office cleaning","Specialist commercial cleaning","Medical and clinic cleaning","School cleaning","Gym and leisure centre cleaning","Communal area cleaning"]
           }
         ]
       },
@@ -556,7 +562,8 @@
           },
           {
             "title": "Working round the town's hours",
-            "brief": "Offices cleaned out of hours, schools in the holidays, changeovers that all fall on the same day of the week, a clinic's audit, a shop before it opens. Say why a fixed window adds to the job, from the profile where it gives the premises and the let pattern. Out of hours work only where the client values confirm it. No figure."
+            "brief": "Offices cleaned out of hours, schools in the holidays, changeovers that all fall on the same day of the week, a clinic's audit, a shop before it opens. Say why a fixed window adds to the job, from the profile where it gives the premises and the let pattern. Out of hours work only where the client values confirm it. No figure.",
+            "needs": ["Office cleaning","Specialist commercial cleaning","Medical and clinic cleaning","School cleaning","Gym and leisure centre cleaning","Holiday let and Airbnb cleaning"]
           },
           {
             "title": "Height, roofs and conservatories",
@@ -806,5 +813,88 @@
       }
     }
   },
-  "do_not_reuse": []
+  "do_not_reuse": [],
+  "why_title_practice": {"The Same Clean Every Visit":["same_team_throughout"]},
+  "idea_homes": [
+    {
+      "topic": "how the price is reached (the look before pricing, from quote_method)",
+      "home": "the 'How do your quotes work?' FAQ",
+      "elsewhere": "step 2 says only that the price is agreed before work, without describing the method; the free quote FAQ answers only whether it is free",
+      "pages": [
+        "homepage"
+      ]
+    },
+    {
+      "topic": "how the price is reached (the look before pricing, from quote_method)",
+      "home": "the 'How much does [SERVICE_LOWER] cost in [CITY]?' FAQ",
+      "elsewhere": "the build up cost card says only that a heavier build up is a bigger job; step 2 says the price is agreed before work without describing the method",
+      "pages": [
+        "service"
+      ]
+    },
+    {
+      "topic": "how the price is reached (the look before pricing, from quote_method)",
+      "home": "the 'How much does [WORK_LOWER] cost in [CITY]?' FAQ",
+      "elsewhere": "the 'How much has built up' card and step 2 do not describe the method; the 'What happens when I book?' FAQ does not restate it",
+      "pages": [
+        "category"
+      ]
+    },
+    {
+      "topic": "keys and whether the customer needs to be in",
+      "home": "the 'Do I need to be home for [SERVICE_LOWER]?' FAQ",
+      "elsewhere": "step 3 and the 'Access and the day it has to be done by' cost card do not mention keys or being in",
+      "pages": [
+        "service"
+      ]
+    },
+    {
+      "topic": "a regular round and how often it comes",
+      "home": "the 'When should I book [SERVICE_LOWER]?' FAQ",
+      "elsewhere": "step 3 only puts the visit in the diary; the 'It's taking more of your time' card names the catch up without a frequency or round pattern",
+      "pages": [
+        "service"
+      ]
+    },
+    {
+      "topic": "a regular round and how often it comes",
+      "home": "the 'What happens when I book?' FAQ",
+      "elsewhere": "step 3 only puts the visit in the diary; the 'How much there is and how often' card says only that regular visits are shorter, with no frequency",
+      "pages": [
+        "category"
+      ]
+    },
+    {
+      "topic": "the fixed date and the order the clean must fall in (after the place is empty or the dusty work ends, before the checkout or handover)",
+      "home": "the 'A date you can't move' block 4 card",
+      "elsewhere": "the 'Access and the day it has to be done by' cost card covers access only and says a fixed day adds time without restating the order; the 'When should I book' FAQ does not retell the deadline",
+      "pages": [
+        "service"
+      ]
+    },
+    {
+      "topic": "agreeing the scope first so nothing is left out",
+      "home": "the 'What is included and what is extra' cost card",
+      "elsewhere": "the 'The day it's checked' card says who checks and what they compare against, not the scope argument; step 2 and the 'What does your [SERVICE_LOWER] include?' FAQ list the cover without the why",
+      "pages": [
+        "service"
+      ]
+    },
+    {
+      "topic": "the check in inventory the checkout is judged against",
+      "home": "the 'The day it's checked and who checks it' block 4 card",
+      "elsewhere": "the rules FAQ gives the landlord's entitlement without the walk round; the scope cost card and the oven checkout card do not name the inventory",
+      "pages": [
+        "service"
+      ]
+    },
+    {
+      "topic": "lets in the town turning over together",
+      "home": "the 'Homes that change hands every summer' block 4 card",
+      "elsewhere": "the best time FAQ gives the timing without restating the turnover; the 'left a while' cost card speaks of the gap, not lets changing hands",
+      "pages": [
+        "location"
+      ]
+    }
+  ]
 }

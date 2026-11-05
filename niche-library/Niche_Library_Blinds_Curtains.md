@@ -299,7 +299,7 @@ Three framings share this one entry, per the pack's section 2: a problem led pag
 
 | Slot | When | Question | Answer brief | Doubt |
 |---|---|---|---|---|
-| cost | always | How much does [SERVICE_LOWER] cost in [CITY]? | Prices only from [CV: price_list]; otherwise how the quote is given, from [CV: quote_method] only. The four cost cards above already give what moves the price: name one factor at most, never the list again. | Price |
+| cost | always | How much does [SERVICE_LOWER] cost in [CITY]? | Prices only from [CV: price_list]; otherwise how the quote is given, from [CV: quote_method] only. The cost cards hold the list: never repeat it or point to it. | Price |
 | timing | always | How long does [SERVICE_LOWER] take? | From the trade facts timing row only: every row for this trade says the time varies and gives no standard, so never a number; a maker's minutes for one product in the rows is not the job and is never written. What decides it instead (the number of windows, the access, a motor to set up, a track to bend) and that the fitting runs all year indoors; an awning waits for suitable weather. The gap between the measure and the fitting only from [CV: start_time]. This is the one place the timing is written. | Timing |
 | cover | guarantee | Do you guarantee your [SERVICE_LOWER] work? | Start with yes, then the terms from [CV: guarantee_years] and [CV: guarantee_scope]. A maker's warranty on a motor, a mechanism or a fabric is the maker's, from [CV: manufacturer_warranty] only. Described, never promised. | Trust |
 | cover | insurance | Are you insured for [SERVICE_LOWER]? | The cover figure from [CV: insurance_cover] and what the cover is for. Never what it pays or who it covers. | Trust |
@@ -380,3 +380,21 @@ Things a brief wanted that neither the calibration pack nor the trade facts pack
 10. **Awnings and the weather.** Table E gives one maker's minimum pitch for rain as that maker's figure, not a rule. The briefs say an awning is brought in when the wind gets up or the rain sets in and never put away wet, and give no angle. Awnings is confirm only in the library; the planning FAQ fires only when [CV: handles_planning] is confirmed.
 11. **Motorised blinds and wiring.** Table C says a hard wired motor is electrical work with notification only for the specified cases in England, and battery, solar and plug in motors create none. The briefs say "in some cases" and name no Part, no circuit and no room; who does the wiring (the client or an electrician) is an onboarding question.
 12. **The pack's homepage voice.** Section 1 names four readers and gives the home customer's fears in one line (a blind too narrow, curtains that hang short, a fitting that pulls out of the wall); the fourth fear above is drawn from its first paragraph (chooses a look but buys a result). Brandon to confirm they are the right four.
+
+## Service tags
+
+An element is dropped, and the next eligible one used, when the client has confirmed none of these services. The paths are in the .json as `needs`.
+
+| Element | Needs |
+|---|---|
+| Will my blind sit in the recess or on the wall? | Made to measure blinds; Blind Shop; Roller blinds; Roman blinds; Venetian and wooden blinds; Vertical blinds; Perfect fit and intu blinds; Conservatory blinds; Child safe blinds |
+| What makes a blind child safe? | Child safe blinds |
+| Will an awning or outside shutters need planning permission? | Awnings; Plantation shutters |
+| Repair it, make it safer, or replace it | Blind repairs; Curtain alterations and repairs |
+| Rooms under the roof and glass extensions | Conservatory blinds; Roof window and skylight blinds |
+| Listed homes and conservation areas | Awnings; Plantation shutters |
+
+## Idea homes
+
+- **the made-to-order gap between measuring and fitting, with no number unless start_time gives one** (homepage): home is the 'How long does it take from measuring to fitting?' FAQ. Elsewhere: the 'We Fit on a Date That Suits You' step only says the date is agreed once the order is made; the 'How soon can you fit them?' FAQ gives only the start_time figure and does not explain the making stage.
+- **recess depth against handles, tiles and sill deciding whether the blind sits in the recess or on the wall** (homepage): home is the 'Will my blind sit in the recess or on the wall?' FAQ. Elsewhere: the 'We Measure and Price the Job' step lists the recess and handles as things measured without explaining the choice; the blackout light FAQ names the side gap without re-explaining recess versus wall.

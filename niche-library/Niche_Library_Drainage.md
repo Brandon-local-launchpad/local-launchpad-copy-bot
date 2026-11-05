@@ -368,7 +368,7 @@ Four framings share this one entry, per the pack's section 2: a problem led page
 
 | Slot | When | Question | Answer brief | Doubt |
 |---|---|---|---|---|
-| cost | always | How much does [SERVICE_LOWER] cost in [CITY]? | Prices only from [CV: price_list]; otherwise how the quote is given, from [CV: quote_method] only, and a call out fee only from [CV: quote_call_out_fee]. The four cost cards above already give what moves the price: name one factor at most, never the list again. Never 'no fix no fee' unless the client values give it in those words. | Price |
+| cost | always | How much does [SERVICE_LOWER] cost in [CITY]? | Prices only from [CV: price_list]; otherwise how the quote is given, from [CV: quote_method] only, and a call out fee only from [CV: quote_call_out_fee]. The cost cards hold the list: never repeat it or point to it. Never 'no fix no fee' unless the client values give it in those words. | Price |
 | timing | always | How long does [SERVICE_LOWER] take? | From the trade facts timing row only: the trade facts give no standard duration for most of this work, so give what decides it (the length of the run, the access, whether cleaning comes first, what the camera finds, a liner's cure in its maker's conditions, a part or a tank to order) and no number; the duration only where the row gives one (the survey of an ordinary three bedroom house has one, with cleaning on top). Nothing about when the job can start unless [CV: start_time] is set. This is the one place the timing is written. | Timing |
 | cover | guarantee | Do you guarantee your [SERVICE_LOWER] work? | Start with yes, then the terms from [CV: guarantee_years] and [CV: guarantee_scope]. A liner's or a tank's warranty is the maker's, on its named product, described from the client values and never promised; the trade facts give no universal lining lifespan, so never a number of years the client values do not give. | Trust |
 | cover | insurance | Are you insured for [SERVICE_LOWER]? | The cover figure from [CV: insurance_cover] and what the cover is for. Never what it pays or who it covers. | Trust |
@@ -618,3 +618,35 @@ For Ray and the trade facts pack (Table G records most as not found; the briefs 
 13. What a customer may safely do themselves before an engineer arrives: Table E gives the hazards (chemical cleaners, confined spaces, contaminated water, pumping too early) and nothing positive, so the emergency briefs are written as what not to do plus what to check and say on the call. The pack's example tells the reader to stop using water; no facts row supports it, so the briefs do not.
 14. Clay ground working joints loose, and roots seeking cracked joints: both come from the pack's section 3, not from a facts row; the location briefs carry them as mechanisms, never as a rule or a figure.
 15. The pack's header still says verified: no; the service page gate refuses a run until it is verified on the Trade facts screen.
+
+## Service tags
+
+An element is dropped, and the next eligible one used, when the client has confirmed none of these services. The paths are in the .json as `needs`.
+
+| Element | Needs |
+|---|---|
+| Will jetting damage old pipes? | Drain jetting |
+| Do I need a drain survey before buying a house? | Home buyer drain surveys; CCTV drain surveys |
+| Water rising in a cellar or across a floor | Flood water pumping |
+| A house with no drain to connect to | Septic tank and treatment plant installation |
+| Septic tank or treatment plant | Septic tank and treatment plant installation |
+| Doing it once, properly | Septic tank and treatment plant installation |
+| What it will need from you afterwards | Septic tank and treatment plant installation |
+| Getting it in when the ground allows | Septic tank and treatment plant installation; Soakaways |
+| Is there a best time of year for [SERVICE_LOWER], and how long does it take? | Septic tank and treatment plant installation; Soakaways |
+| What the camera leads to | Drain relining; Drain repairs |
+
+## Idea homes
+
+- **why a cleared blockage comes back: debris left, or a fault only the camera shows, so a repeat is investigated** (category): home is the 'what happens if the drain blocks again' FAQ. Elsewhere: the repeat-blockage card names the symptom only and does not explain the cause or the camera follow-up.
+- **why the fault returns: the cause left in place, and a repeat put under the camera rather than cleared again** (service): home is the 'what happens if the problem comes back' FAQ. Elsewhere: the 'It keeps coming back' card describes the symptom only; step 3 says only that a found fault is recorded.
+- **whose pipe it is and calling the water company first** (category): home is the 'who should I call first, you or the water company' FAQ. Elsewhere: steps and the 'making it safe' cost card say only that ownership is established; the 'who to call first' card covers only what not to do while waiting.
+- **whose pipe it is and calling the water company first** (service): home is the 'who should I call first, you or the water company' FAQ. Elsewhere: step 2 and the 'making it safe' cost card say only that ownership is established; the 'whose job it is' card covers what to do while waiting.
+- **whose pipe it is: private or the water company's** (homepage): home is the 'is a blocked drain mine to sort out, or the water company's' FAQ. Elsewhere: the steps say only that ownership is checked and do not set out the rule.
+- **shared runs on older streets and where the private pipe stops** (location): home is the 'Shared runs and whose they are' cost card. Elsewhere: the 'drains laid with the street' card gives the age of the pipework only; the 'where the drain runs' card and the 'what happens when I call' FAQ do not explain ownership.
+- **what to do while waiting: keep out of the water, pour nothing down the drain, stay out of the chamber** (category): home is the 'what should I do before you arrive' FAQ. Elsewhere: the emergency cards give the situation and the urgency; the 'Call Us' step covers only what to say.
+- **what to do while waiting: keep out of the water, pour nothing down the drain, stay out of the chamber** (service): home is the 'Call Us' step. Elsewhere: the emergency cards give the situation and the cause, not the safety steps.
+- **a fault found behind the blockage is recorded and priced as its own later job** (service): home is the 'What's on the van and what comes later' cost card. Elsewhere: step 3 says only that the fault is recorded; the call-out FAQ does not restate that the repair is priced separately.
+- **what decides how long the job takes** (service): home is the 'how long does it take' FAQ. Elsewhere: the seasonal FAQs cover the weather and the ground only.
+- **wet-season limits: soakaway ground test, sodden ground, leaves on grates** (category): home is the seasonal 'can the work be done in winter' FAQ. Elsewhere: the seasonal card describes symptoms only; the base time-of-year FAQ is not used alongside it.
+- **one fixture points at its own trap, several outlets point at the shared run** (homepage): home is the 'why does my toilet gurgle' FAQ. Elsewhere: the steps only ask whether it is one fixture or several, without explaining what that means.

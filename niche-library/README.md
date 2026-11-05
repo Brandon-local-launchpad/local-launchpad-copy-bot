@@ -27,3 +27,10 @@ A niche entry is `niche-library/<stem>.json` (the file the code reads) and `nich
 ## A new niche
 
 A new niche is a new entry, not code: `server.js` finds the file from the client's trade through the niche key and the library stem (`ui/library.js stemFor`), the page jobs read the briefs by business type, and the Niche library screen shows the entry and its briefs. Test it with `node tools/niche-thin-run.js <stem>` (a thin client of that niche: one homepage, one category page and one service page with the real model) before it is used on a client.
+
+## Service tags, idea homes and alternate Why titles (copy quality 6)
+
+- `needs` on a block 4 card, block 5 card, FAQ slot or step: page targets from the niche's library. The element is true only of a firm offering one of them. Code drops it when the client has confirmed none and uses the next eligible one (`category-blocks.js filterEntry`). Most elements carry no tag. Never tag trade vocabulary or the trade's core work. `node tools/niche-tag-briefs.js --report` counts them.
+- `idea_homes`: `[{ topic, home, elsewhere, pages }]`. A specific idea this trade's briefs ask for in three or more slots, and its one home on the page. Read by `idea-homes.js`.
+- `why_title_practice`: an alternate Why title that promises a practice, with the practice keys that confirm it (an empty list: no tick does). Unconfirmed, the point reads "Our Track Record". An alternate title that claims experience stands only with a years or jobs figure on file, and never when it says "every".
+- A cost FAQ brief says what the customer can do to get a figure and never points to another section: code adds that rule to every slot named `cost`.

@@ -229,7 +229,8 @@
           {
             "title": "Nowhere on the ground to build from",
             "brief": "Access led, a situation and not a fault: the chimney sits on the ridge of a terrace with nothing under it but next door's roof, the gable is over a neighbour's extension, the back wall rises straight out of a conservatory or a lean to, the rear faces an alley a lorry cannot use. What decides it: what is directly below the work and whether it can take a scaffold's feet. What the work gives them, from Table A as what usually applies: a platform built off the slope of the roof, climbed to from an ordinary scaffold on the front or the back elevation (chimney scaffolding); a section that projects out from the building over the glass or the neighbour's side (cantilever and truss out); a bridged bay over what is in the way. Two readings in one card: the homeowner hears what will stand where and what it will touch; the roofer hears which arrangement it is and that a projecting or roof borne one is usually a drawn design rather than a standard arrangement (Table E), never the guidance's name. Never 'difficult access', never a symptom invented for it.",
-            "mechanism": "nothing under the work that can take a scaffold's feet"
+            "mechanism": "nothing under the work that can take a scaffold's feet",
+            "needs": ["Chimney scaffolding","Cantilever and truss out scaffolding"]
           },
           {
             "title": "The pavement, the road or next door in the way",
@@ -239,12 +240,14 @@
           {
             "title": "A roof stripped with the weather coming",
             "brief": "Protection led: write what the weather or a fall would do, why, and what prevents it. The situation: a re roof or a loft conversion that leaves the roof open for weeks, a long repointing job on a face above a path or a parked car, a flat roof with an open edge. The one cause this card makes: once the covering is off, nothing stands between the rain and the timbers and ceilings but what is put over them, and on an open face old mortar and offcuts fall on whoever is below (Table B temporary roofs, debris netting). What prevents it, from Table A: a temporary roof designed for its span and the wind with its covering kept up while the job runs; netting or sheeting on the face, told to the scaffolder before it goes on because a covered face catches the wind, which means more ties in most cases (Table E sheeting and wind); guard rails and toe boards at the edge. The homeowner reading: the rooms, the car and the path underneath. The trade reading: a sheeted or roofed scaffold is usually a designed one, so say so when the job is specified. Never a promise about the weather, never the guidance's name.",
-            "mechanism": "nothing between the weather and the timbers once the covering is off"
+            "mechanism": "nothing between the weather and the timbers once the covering is off",
+            "needs": ["Temporary roofs","Debris netting and sheeting","Edge protection"]
           },
           {
             "title": "Every tile carried up a ladder",
             "brief": "What slows a job down, from Table B hoists and loading bays and stair towers: materials carried up ladders by hand, nowhere to land a pallet of tiles, loads left on an ordinary working platform, several trades on one ladder all day. The one cause this card makes: the scaffold has no place made for materials to land and sit. What the work gives them, from Table A: a loading bay with a gate at the level the materials are used, a hoist where the loads warrant one, a stair tower where people are up and down all day. The trade reading: the loads and the trades told to the scaffolder when the job is specified, because a platform put up for one trade's work is not automatically up to another's loads (Table E handover). The homeowner reading: tiles and bags off the lawn and the drive, fewer trips past the windows. Never a load figure (the figures stay in the facts pack), never a safety lecture.",
-            "mechanism": "no place on the scaffold made for materials to land"
+            "mechanism": "no place on the scaffold made for materials to land",
+            "needs": ["Hoists and loading bays","Stair towers and temporary stairs"]
           }
         ]
       },
@@ -358,7 +361,8 @@
             {
               "title": "A scaffold that has moved or been hit",
               "brief": "From Table B scaffold inspections and emergency scaffolding: a scaffold (anyone's) leaning after a gale, a lorry that has clipped a standard, sheeting torn and flogging in the wind, boards gone, a tie pulled out of the wall. The one cause this card makes: a base or a tie that has given, so the whole thing can shift. What usually happens, from Table A scaffold inspections: nobody on it and access kept off it until a competent person has looked at the feet, the ties, the boards and the guard rails and recorded what was found; a check after bad weather or anything that could affect it is what usually applies (Table E, the interval stays in the facts). The trade reading: the written record of the check. The homeowner reading: who to call when it is not their scaffolder's scaffold, only as the business says. Never a dig at the firm that put it up, never 'unsafe' as a verdict from the ground.",
-              "mechanism": "the whole scaffold shifting on a base or a tie that has given"
+              "mechanism": "the whole scaffold shifting on a base or a tie that has given",
+              "needs": ["Scaffold inspections"]
             },
             {
               "title": "What to do before we get there",
@@ -521,7 +525,7 @@
         {
           "slot": "cost",
           "question": "How much does [SERVICE_LOWER] cost in [CITY]?",
-          "answer_brief": "Prices only from [CV: price_list]; otherwise how the quote is given, from [CV: quote_method] only. The four cost cards above already give what moves the price: name one factor at most, never the list again. No hire period or weekly figure unless price_list gives one.",
+          "answer_brief": "Prices only from [CV: price_list]; otherwise how the quote is given, from [CV: quote_method] only. The cost cards hold the list: never repeat it or point to it. No hire period or weekly figure unless price_list gives one.",
           "doubt": "Price"
         },
         {
@@ -687,12 +691,14 @@
           {
             "title": "Front doors that open onto the pavement",
             "brief": "The town profile gives the terraces and the streets with no front garden; the card says what that changes in the work, never that the streets are dangerous. The one cause this card makes: with no front garden, the scaffold's feet stand on the highway. What usually follows, from Table C and Table E as what usually applies: the council's licence before anything goes up (the scaffolder usually applies), lighting at night and a clear way past for people on foot as the usual conditions, a parking bay suspended separately where the street is parked up, and the licence date as the earliest the scaffold can go up. Which council, only where the dossier gives it; never a fee or a lead time (Table G: none is national), never an Act's or a section's name. Not next door's land, not what the feet stand on in a garden: the town's category and service pages own those.",
-            "mechanism": "no front garden, so the feet stand on the highway"
+            "mechanism": "no front garden, so the feet stand on the highway",
+            "needs": ["Pavement and road scaffolding"]
           },
           {
             "title": "Chimneys and gables with nothing below them",
             "brief": "The profile gives the terraces and semis: stacks on a shared ridge, a gable on the boundary, a flank wall over next door's extension. The one cause this card makes: the stack or the gable has only a neighbour's roof or garden under it, so the scaffold is built off the roof slope or projected out from the building rather than up from the ground (Table A chimney scaffolding, cantilever and truss out), and where it reaches over next door's side their agreement usually comes first (Table E oversailing). Said as what the work involves, never as a judgement on the roofs. Not the stack itself, not the arrangement in detail: the Chimney scaffolding and Cantilever pages own those.",
-            "mechanism": "stacks and gables with only a neighbour's roof or garden beneath them"
+            "mechanism": "stacks and gables with only a neighbour's roof or garden beneath them",
+            "needs": ["Chimney scaffolding","Cantilever and truss out scaffolding"]
           },
           {
             "title": "Three storeys against two",
@@ -702,7 +708,8 @@
           {
             "title": "Wind where the town stands open",
             "brief": "The profile gives the exposure: a hilltop, a seafront, an estuary, a ridge road. The one cause this card makes: a sheeted, netted or roofed scaffold on an exposed face catches the wind, so it is usually a drawn design with more ties, and the sheeting is told to the scaffolder before it goes on (Table E sheeting and wind, temporary roof). Where the town is sheltered, the card reads instead as conservatories and lean tos under the eaves of the estates, where the feet cannot go and a bridged or projecting section is used (Table B cantilever signs). Never a promise about the weather, never the guidance's name. Not a stripped roof: the category page owns that.",
-            "mechanism": "a covered scaffold catching the wind on an exposed face"
+            "mechanism": "a covered scaffold catching the wind on an exposed face",
+            "needs": ["Debris netting and sheeting","Temporary roofs"]
           }
         ]
       },
@@ -711,7 +718,8 @@
         "cards": [
           {
             "title": "A scaffold on the pavement",
-            "brief": "Where the town's streets put the feet on the highway (the profile says which), the council's conditions (lighting, a way past, signs), a parking suspension and sometimes a protective gantry add to the job (Table F pavement and road scaffolding). No fee, no lead time, never an Act's name."
+            "brief": "Where the town's streets put the feet on the highway (the profile says which), the council's conditions (lighting, a way past, signs), a parking suspension and sometimes a protective gantry add to the job (Table F pavement and road scaffolding). No fee, no lead time, never an Act's name.",
+            "needs": ["Pavement and road scaffolding"]
           },
           {
             "title": "Tall houses and tight alleys",
@@ -719,11 +727,13 @@
           },
           {
             "title": "Wind on the hill or the front",
-            "brief": "A sheeted or roofed scaffold on an exposed face usually needs a design and more ties, and that is more scaffold and more time (Table F temporary roofs, debris netting and sheeting: wind exposure). From the profile where it gives the exposure. Never a promise about the weather."
+            "brief": "A sheeted or roofed scaffold on an exposed face usually needs a design and more ties, and that is more scaffold and more time (Table F temporary roofs, debris netting and sheeting: wind exposure). From the profile where it gives the exposure. Never a promise about the weather.",
+            "needs": ["Debris netting and sheeting","Temporary roofs"]
           },
           {
             "title": "Conservation areas and listed fronts",
-            "brief": "Where the town has them, consent can be needed before fixings go into a listed building, and old stonework may take no ties at all, so a freestanding or alternative support and padded contact points are used (Table F heritage and listed building scaffolding, Table E conservation area and listed fabric). Sheeting in a conservation area is not automatically ruled out: local controls apply. \"Usually\", never the Act's or the area's official name; from the dossier rules only."
+            "brief": "Where the town has them, consent can be needed before fixings go into a listed building, and old stonework may take no ties at all, so a freestanding or alternative support and padded contact points are used (Table F heritage and listed building scaffolding, Table E conservation area and listed fabric). Sheeting in a conservation area is not automatically ruled out: local controls apply. \"Usually\", never the Act's or the area's official name; from the dossier rules only.",
+            "needs": ["Heritage and listed building scaffolding"]
           }
         ]
       },
@@ -858,5 +868,112 @@
       ]
     }
   },
-  "do_not_reuse": []
+  "do_not_reuse": [],
+  "why_title_practice": {"Built Around the Other Trade's Dates":[]},
+  "idea_homes": [
+    {
+      "topic": "the council's licence before a scaffold on the pavement",
+      "home": "the 'Do I need permission to put scaffolding up at my house?' FAQ",
+      "elsewhere": "the survey step, the start FAQ and the how-long FAQ name the licence in one clause at most and never explain it",
+      "pages": [
+        "homepage"
+      ]
+    },
+    {
+      "topic": "the council's licence before a scaffold on the pavement",
+      "home": "the 'Is a licence or permission needed for [SERVICE_LOWER]?' FAQ",
+      "elsewhere": "the 'Paperwork and the public' cost card gives it only as a cost and the how-long FAQ names it in one clause",
+      "pages": [
+        "service"
+      ]
+    },
+    {
+      "topic": "waiting for the wind to drop before building",
+      "home": "the 'Can you put it up while the wind is still up?' FAQ",
+      "elsewhere": "step 3 and the 'How quickly can you get here?' FAQ say only 'once it is safe to build'",
+      "pages": [
+        "service"
+      ]
+    },
+    {
+      "topic": "closing off the area and looking at the hazard first",
+      "home": "the step 'We Close It Off and Look at What's Holding'",
+      "elsewhere": "the 'Closing it off and holding it' cost card gives it only as a cost and the wind FAQ answers only the wind",
+      "pages": [
+        "service"
+      ]
+    },
+    {
+      "topic": "the interim scaffold reviewed and altered as the repair goes on",
+      "home": "the 'What if the interim scaffold has to change once the repair starts?' FAQ",
+      "elsewhere": "step 3 stops at handover and the 'Until the permanent repair' card names the situation without the review",
+      "pages": [
+        "service"
+      ]
+    },
+    {
+      "topic": "what to do from the ground before the crew arrives",
+      "home": "the 'What should we do before you arrive?' FAQ",
+      "elsewhere": "the 'What to do before we get there' card and the Call Us step say only 'keep everyone clear' in one clause",
+      "pages": [
+        "category"
+      ]
+    },
+    {
+      "topic": "waiting for the wind to drop before building",
+      "home": "the 'Will you come out while the storm is still going?' FAQ",
+      "elsewhere": "step 3 and the 'How quickly can you get here?' FAQ say only 'once it is safe to build'",
+      "pages": [
+        "category"
+      ]
+    },
+    {
+      "topic": "closing off the area and looking at the hazard first",
+      "home": "the step 'We Make the Area Safe and Agree What Goes Up'",
+      "elsewhere": "the 'Closing it off and holding it' cost card gives it only as a cost and the storm FAQ answers only the weather",
+      "pages": [
+        "category"
+      ]
+    },
+    {
+      "topic": "the pavement licence and the council's conditions",
+      "home": "the block 4 card 'The pavement, the road or next door in the way'",
+      "elsewhere": "the pavement cost card gives it only as a cost, and the quote FAQ and the timing FAQ name the licence in one clause",
+      "pages": [
+        "category"
+      ]
+    },
+    {
+      "topic": "the hire period set by the quote and the contract",
+      "home": "the cost card 'The extras and the weeks of hire'",
+      "elsewhere": "the cost FAQ and the timing FAQ say only that the quote sets the period",
+      "pages": [
+        "category"
+      ]
+    },
+    {
+      "topic": "the town's pavement-fronted streets and the council's permit",
+      "home": "the block 4 card 'Front doors that open onto the pavement'",
+      "elsewhere": "the 'A scaffold on the pavement' cost card gives it only as a cost, and the soon FAQ and the quote FAQ name the permit in one clause",
+      "pages": [
+        "location"
+      ]
+    },
+    {
+      "topic": "wind on an exposed town and the sheeted scaffold",
+      "home": "the block 4 card 'Wind where the town stands open'",
+      "elsewhere": "the wind cost card gives it only as a cost, the cost FAQ names exposure in a word, and the all-year FAQ does not repeat the design and ties point",
+      "pages": [
+        "location"
+      ]
+    },
+    {
+      "topic": "the town's three-storey houses",
+      "home": "the block 4 card 'Three storeys against two'",
+      "elsewhere": "the 'Tall houses and tight alleys' cost card gives height only as a cost and the cost FAQ names it in a word",
+      "pages": [
+        "location"
+      ]
+    }
+  ]
 }

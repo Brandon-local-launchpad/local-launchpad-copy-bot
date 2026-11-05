@@ -49,8 +49,8 @@ chk('Section 9 (owner) HIDDEN', D.d7.sec9 === 'HIDDEN', D.d7.sec9, 'HIDDEN');
 chk('Owner heading marked hidden', D.d8.owner === '(section hidden)', D.d8.owner, '(section hidden)');
 
 chk('3 Why points: alt title, insurance, differentiator_1 (differentiator_2 unconfirmed)',
-  D.d10_why.map(p => p.title).join(' / ') === 'Local Experience Behind Every Job / Insured up to £2m / Photos of Every Fault Before We Quote',
-  D.d10_why.map(p => p.title).join(' / '), 'Local Experience Behind Every Job / Insured up to £2m / Photos of Every Fault Before We Quote');
+  D.d10_why.map(p => p.title).join(' / ') === 'Our Track Record / Insured up to £2m / Photos of Every Fault Before We Quote',
+  D.d10_why.map(p => p.title).join(' / '), 'Our Track Record / Insured up to £2m / Photos of Every Fault Before We Quote');
 
 chk('F-THIN, F-REVIEWS flags present', hasFlag('F-THIN') && hasFlag('F-REVIEWS'),
   (result.flags || []).map(f => f.code).join(', '), 'F-THIN, F-REVIEWS');

@@ -317,7 +317,7 @@ Three framings share this one entry, per the pack's section 2: a problem led pag
 
 | Slot | When | Question | Answer brief | Doubt |
 |---|---|---|---|---|
-| cost | always | How much does [SERVICE_LOWER] cost in [CITY]? | Prices only from [CV: price_list]; otherwise how the quote is given, from [CV: quote_method] only. The four cost cards above already give what moves the price: name one factor at most, never the list again. Never a fixed price or a promise the price cannot change. | Price |
+| cost | always | How much does [SERVICE_LOWER] cost in [CITY]? | Prices only from [CV: price_list]; otherwise how the quote is given, from [CV: quote_method] only. The cost cards hold the list: never repeat it or point to it. Never a fixed price or a promise the price cannot change. | Price |
 | timing | always | How long does [SERVICE_LOWER] take? | From the trade facts timing row only: the row gives no duration for any building job, so give the stages in order and what decides the time (the ground, steel, drains, the weather on exposed stages, the drying or curing a product needs from the rows). A number only from the client values. Nothing about when the job can start unless [CV: start_time] is set. This is the one place the timing is written. | Timing |
 | cover | guarantee | Do you guarantee your [SERVICE_LOWER] work? | Start with yes, then the terms from [CV: guarantee_years] and [CV: guarantee_scope]. Described, never promised. A completion certificate is a record of the sign off, never a guarantee. | Trust |
 | cover | insurance | Are you insured for [SERVICE_LOWER]? | The cover figure from [CV: insurance_cover] and what the cover is for. Never what it pays or who it covers. | Trust |
@@ -415,3 +415,28 @@ The pack's section 2 says its extensions, planning and building regulations bloc
 10. Never a figure, an area, a depth, a height, a volume, a distance or a notice period; never an Act's, an order's, a class's or an approved document's name; never "no permission needed" stated before the house has been seen; the planning position is looked at on the site visit and never settled there.
 11. Who does it: the application, the notice and the engineer are arranged by this business only from [CV: handles_planning] and the confirmed practices; otherwise the copy says they are a stage of the job agreed with the customer, and never implies design, engineering or drawing capability.
 12. Local claims: a conservation area, a removed allowance or green belt is named only where the town research confirms it, and only when it changes which approval the job needs; otherwise the general position and the site visit.
+
+## Service tags
+
+An element is dropped, and the next eligible one used, when the client has confirmed none of these services. The paths are in the .json as `needs`.
+
+| Element | Needs |
+|---|---|
+| We Visit and Price the Job | House extensions; Loft conversions; Garage conversions; Basement conversions; New build homes; Garden rooms and outbuildings; Conservatories and orangeries; Porch extensions; Garage construction; Structural alterations and steel beams; Foundations and underpinning; Barn conversions |
+| How long does an extension or a conversion take? | House extensions; Loft conversions; Garage conversions; Basement conversions; Barn conversions |
+| Why does a crack in my wall keep coming back? | Structural repairs; Foundations and underpinning |
+| Will my extension or loft need planning permission? | House extensions; Loft conversions; Garage conversions |
+| A house the family has outgrown | House extensions; Loft conversions; Garage conversions; Basement conversions; Garden rooms and outbuildings; Conservatories and orangeries; Porch extensions |
+| Cracks that keep coming back | Structural repairs; Foundations and underpinning |
+| Damp that comes back after it was treated | Damp proofing and waterproofing |
+| Worn out, but not worth ripping out | Kitchen door replacement and refacing; Bath and shower resurfacing; Floor sanding and restoration; Staircases; Brickwork and masonry; Property repairs and maintenance; Property refurbishment |
+| Ground that moves with the seasons | Structural repairs; Foundations and underpinning |
+| Terraces, semis and the neighbour's wall | House extensions; Loft conversions; Structural alterations and steel beams; Foundations and underpinning |
+| Deeper foundations on this ground | House extensions; Foundations and underpinning; New build homes; Garage construction; Conservatories and orangeries; Porch extensions; Garden rooms and outbuildings; Concrete bases and groundworks |
+
+## Idea homes
+
+- **the stages and order of the build** (homepage): home is the 'How long does an extension or a conversion take?' FAQ. Elsewhere: the stay-in-the-house FAQ gives only the weathertight-first, wall-down-last point; the start-date step names no stages.
+- **whether the job needs planning permission** (homepage): home is the 'Planning permission or building regulations: which does my job need?' FAQ. Elsewhere: the extension/loft planning FAQ lists only which jobs usually fall within the allowance without re-explaining the two approvals; the visit step says the planning position is looked at, nothing more.
+- **building control inspecting the foundations before concrete goes in** (category): home is the 'How long does [WORK_LOWER] usually take?' FAQ. Elsewhere: the 'What is already there' and 'Steel, services and sign offs' cost cards name the inspection as a cost only, without describing it.
+- **conservation areas and removed allowances changing the approval** (location): home is the 'Streets where the council has a say' block 4 card. Elsewhere: the conservation cost card covers only the added time and matching materials; the quote and timing FAQs mention the planning position in one clause without explaining it.

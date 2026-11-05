@@ -146,7 +146,8 @@
       "question": "Why does water come through the ceiling under the shower?",
       "answer_brief": "Use the assigned symptom's meaning and its linked local issue. Three genuinely different routes in plain words: a seal round the tray or the bath that has let go, a waste joint under the floor, grout or a tray that flexes letting water behind the tiles. Say that the water runs along the boards and the joists before it shows, so the damp patch and the leak are seldom in the same place, and that a new bead of silicone over the old one is not the fix where the floor is already wet. Then what the local housing adds (an upstairs bathroom over a kitchen, a flat over a neighbour), then what the fitter looks at. Never a step the customer could try on electrics near the leak.",
       "symptom_based": true,
-      "doubt": "Process"
+      "doubt": "Process",
+      "needs": ["Bathroom fitting","Wet rooms","Walk in showers","Cloakrooms and en suites"]
     },
     {
       "slot": "faq_C",
@@ -243,7 +244,8 @@
           {
             "title": "A room that has become hard to use",
             "brief": "A situation and the pack's need led split in one: a bath side that has become a climb, a shower with a step up onto the tray, nothing solid to hold, a toilet too low or too far from a wall; in a kitchen, an oven at floor level, cupboards out of reach, a corner nobody can get into. The one cause this card makes: the room asking more of the person than it used to (the step, the reach, the grip, the room to turn). What decides the answer is the room and its drainage, from the trade facts stages: a shower with no step needs the floor formed with a fall to the drain and waterproofed as a wet room floor; a rail needs a fixing into something solid behind the tiles; a toilet raised or moved within reach of the soil pipe; an oven raised, drawers in place of low cupboards, a worktop at a height that suits. What the work gives them is written as what the person will be able to do (shower standing or seated, get in without a step, hold something that takes their weight, reach what they use), never their age, their diagnosis or their condition. A council grant towards adaptations only as something that may be available after the council's own assessment and can be means tested, never promised, no figure. By category: Bathroom Renovator reads it in the bathroom; Kitchen Renovator as reach and working height. Never clinical, never pitying.",
-            "mechanism": "the room asking more of the person than it used to"
+            "mechanism": "the room asking more of the person than it used to",
+            "needs": ["Accessible and mobility bathrooms","Walk in showers","Wet rooms"]
           }
         ]
       },
@@ -407,7 +409,7 @@
         {
           "slot": "cost",
           "question": "How much does [SERVICE_LOWER] cost in [CITY]?",
-          "answer_brief": "Prices only from [CV: price_list]; otherwise how the quote is given, from [CV: quote_method] only, and supply and fit against fit only from the client values. The four cost cards above already give what moves the price: name one factor at most, never the list again.",
+          "answer_brief": "Prices only from [CV: price_list]; otherwise how the quote is given, from [CV: quote_method] only, and supply and fit against fit only from the client values. The cost cards hold the list: never repeat it or point to it.",
           "doubt": "Price"
         },
         {
@@ -628,7 +630,8 @@
           },
           {
             "title": "Whether we fit it as well",
-            "brief": "A design on its own against a design that the fitting follows with this business. How the design is charged either way, and whether anything comes off the fitting, only from [CV: price_list] or [CV: quote_method]; never that the design is free or that a design fee is taken off unless they say so. Designing for a room someone else will fit only where the services list or [CV: typical_jobs] says the business does it. Code adds the price line from [CV: price_list] when there is one."
+            "brief": "A design on its own against a design that the fitting follows with this business. How the design is charged either way, and whether anything comes off the fitting, only from [CV: price_list] or [CV: quote_method]; never that the design is free or that a design fee is taken off unless they say so. Designing for a room someone else will fit only where the services list or [CV: typical_jobs] says the business does it. Code adds the price line from [CV: price_list] when there is one.",
+            "needs": ["Bathroom fitting"]
           }
         ]
       },
@@ -648,5 +651,39 @@
       ]
     }
   },
-  "do_not_reuse": []
+  "do_not_reuse": [],
+  "idea_homes": [
+    {
+      "topic": "the order of work as the reason the job takes as long as it does (strip out, first fix, units or waterproofing, finishes, tests)",
+      "home": "the 'How long does [SERVICE_LOWER] take?' FAQ",
+      "elsewhere": "the 'Living without the room while it is done' card keeps to the customer's situation and does not list the stages; the 'What does your [SERVICE_LOWER] service include?' FAQ names what is included without setting it out as a sequence or timeline",
+      "pages": [
+        "service"
+      ]
+    },
+    {
+      "topic": "the toilet kept close to the shared soil stack, with a new connection or pumped unit if it moves",
+      "home": "the 'Moving the room away from the stack' cost card",
+      "elsewhere": "the 'Flats, stairs and the shared stack' card names the stack as the cause without the pumped unit or the cost; the price FAQ only names it as one thing that pushes the price up",
+      "pages": [
+        "location"
+      ]
+    },
+    {
+      "topic": "what an older house's strip out meets (floors out of level, walls out of plumb, old materials checked before they are disturbed)",
+      "home": "the 'What the old room was built on' cost card",
+      "elsewhere": "the 'Older homes and what the strip out meets' card keeps to the listed home consent and the cause, without re-listing floors, walls and materials; the price FAQ only names it",
+      "pages": [
+        "location"
+      ]
+    },
+    {
+      "topic": "getting units, a bath and a worktop in: stairs, no lift, no parking",
+      "home": "the 'Carrying it up and getting it in' cost card",
+      "elsewhere": "the 'Flats, stairs and the shared stack' card keeps to the stack and the neighbour below, not the carrying or the parking; the quote FAQ says only that access is looked at",
+      "pages": [
+        "location"
+      ]
+    }
+  ]
 }

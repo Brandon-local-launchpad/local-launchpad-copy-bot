@@ -225,17 +225,20 @@
           {
             "title": "Water getting behind the tiles",
             "brief": "Problem led: grout missing or dark in one corner of the shower however often it is cleaned, a wall that feels damp, a tile near the bath that has gone loose, a mark on the ceiling of the room below (the Table B bathroom and wet room signs). The one cause this card makes: there is nothing waterproof under the tiles, so what gets through the grout reaches the board or plaster behind, which softens and lets go (the Table E rows: tiles are not tanking; plasterboard in a shower). Say what putting it right usually involves from the Table A bathroom and wet room stages: the tiles off in the wet area, soft board replaced, a tanking layer over it and its corners, then the tiles, with silicone and not grout where the wall meets the bath, the tray or the floor. New grout over the old joints is not the fix, and the card says so without alarm. Never 'waterproof grout', never a system or membrane name unless [CV: materials_methods] gives it, never that this business tanks every job unless confirmed. Not a joint that was sealed rigid: the service pages own that.",
-            "mechanism": "nothing waterproof beneath the tiles in a wet area"
+            "mechanism": "nothing waterproof beneath the tiles in a wet area",
+            "needs": ["Bathroom and shower tiling","Wet room tiling and tanking"]
           },
           {
             "title": "Cracks that run from one tile to the next",
             "brief": "Problem led: a crack through several tiles in a row, grout breaking up along one line, tiles that rock or sound hollow, a floor that feels uneven (the Table B floor tiling signs). The one cause this card makes: the floor is moving and the tiles were fixed rigid to it, so the movement comes through them: floorboards that flex, a crack or joint in the screed below, no gap left at the edges or across a large floor. Say what the fix usually involves from the Table A floor stages and the Table E movement joint rows: the floor checked for flatness and give before anything goes down, stiffened or overlaid where it flexes, a decoupling layer as one option on a timber floor, joints left where the floor needs them and filled with something that gives. Swapping only the cracked tiles sets fresh tiles on top of the same moving floor. Never a joint spacing or width figure (the rows carry them). On a page with period floors the card also reads as loose and missing pieces over a base that has shifted or gone damp; with outdoor tiling, slabs that have lifted after a winter on a base that moved.",
-            "mechanism": "a floor that moves under tiles fixed rigid to it"
+            "mechanism": "a floor that moves under tiles fixed rigid to it",
+            "needs": ["Floor tiling"]
           },
           {
             "title": "One broken tile, and whether a swap will hold",
             "brief": "The repair customer's situation and the honest answer to it: a floor tile cracked by something dropped, a chipped edge, a tile fallen off the splashback, grout splitting round one tile (the Table B repairs signs). What decides it: whether the knock did it, in which case one tile out and a matching one in is a fair repair (the Table A repair stages: the neighbours checked, the tile removed without harming the ones round it), or whether the cause sits behind or under it, water, movement or adhesive in dabs, in which case a new tile goes the same way (the Table B repairs row: a replacement fails if the cause is not put right). What the work gives them: a straight answer on which it is before anything is ordered, and a matching spare where one exists, never promised. Never a scare, never a dig at whoever laid it, never that every crack is a floor problem: card 3 owns the line of cracks.",
-            "mechanism": "whether the knock or what sits under the tile did the damage"
+            "mechanism": "whether the knock or what sits under the tile did the damage",
+            "needs": ["Tile repairs and replacement"]
           }
         ]
       },
@@ -404,7 +407,7 @@
         {
           "slot": "cost",
           "question": "How much does [SERVICE_LOWER] cost in [CITY]?",
-          "answer_brief": "Prices only from [CV: price_list]; otherwise how the quote is given, from [CV: quote_method] only. The four cost cards above already give what moves the price: name one factor at most, never the list again.",
+          "answer_brief": "Prices only from [CV: price_list]; otherwise how the quote is given, from [CV: quote_method] only. The cost cards hold the list: never repeat it or point to it.",
           "doubt": "Price"
         },
         {
@@ -489,12 +492,14 @@
           {
             "title": "Floors that flex in the older streets",
             "brief": "Tiles that crack along a line, grout that breaks up, a hall floor that bounces. The one cause this card makes: timber floors on joists and lime plaster, from the era the town's older streets were built in, which the town profile dates; 'were built with', never 'have', and never the state of anyone's bathroom today. Tie the era to what it means for the work and nothing else: a timber floor stiffened or overlaid before tiles go down, an adhesive chosen for a floor that moves, a decoupling layer as one option, and a lime plastered wall checked for the weight it can carry (the Table A floor stages and the Table E rows, with no figure). Not a floor that moves under rigid tiles as the cause: the category page owns that; here the cause is how the era built.",
-            "mechanism": "timber floors on joists from the era the older streets were built in"
+            "mechanism": "timber floors on joists from the era the older streets were built in",
+            "needs": ["Floor tiling"]
           },
           {
             "title": "Period hallways with pieces missing",
             "brief": "Loose or missing pieces in a geometric hall floor, white salts that keep coming back, a hall that feels damp underfoot (the Table B period floor signs). The one cause this card makes: a floor laid straight on the ground in the era the town profile gives, with damp and salts moving up through it; an era claim (built with such floors), never that the hallways are in a state. What it means for the work, from the Table A and E period floor rows: sound pieces kept, lifting only where there is a reason, compatible replacements and a bedding that suits the original, and no sealer that traps the damp in. Where the home is listed, consent before the floor is altered, as 'usually' and never the Act's name. Not a tile cracked by a knock: the repair pages own that.",
-            "mechanism": "damp and salts moving up through a floor laid on the ground"
+            "mechanism": "damp and salts moving up through a floor laid on the ground",
+            "needs": ["Victorian and period floor tiling"]
           },
           {
             "title": "New estates settling in their first years",
@@ -521,11 +526,13 @@
           },
           {
             "title": "Old floors that need a test before they come up",
-            "brief": "In older homes an old floor covering, and the dark adhesive under it, can be the kind that is tested before it is lifted (the Table C and E asbestos rows); if the test is positive the removal follows the safe method, which adds time and cost. Said plainly and never casually; no year or figure. From the profile where it gives the housing era."
+            "brief": "In older homes an old floor covering, and the dark adhesive under it, can be the kind that is tested before it is lifted (the Table C and E asbestos rows); if the test is positive the removal follows the safe method, which adds time and cost. Said plainly and never casually; no year or figure. From the profile where it gives the housing era.",
+            "needs": ["Tile removal","Floor tiling"]
           },
           {
             "title": "Patios on exposed ground",
-            "brief": "Outdoor tiling on an exposed site waits for weather clear of frost, needs a base and falls that shed water, and a tile declared for outside (the Table A and E outdoor rows). From the profile where it gives the exposure; only where the client has an outdoor page. No figure."
+            "brief": "Outdoor tiling on an exposed site waits for weather clear of frost, needs a base and falls that shed water, and a tile declared for outside (the Table A and E outdoor rows). From the profile where it gives the exposure; only where the client has an outdoor page. No figure.",
+            "needs": ["Outdoor and porcelain paving tiling"]
           }
         ]
       },
@@ -619,7 +626,8 @@
           },
           {
             "title": "The state of the tiles round the joints",
-            "brief": "Tiles sound and well stuck, so the joints can be raked out without them moving, against tiles loose or cracked that come into the job; grout stained through, so it comes out rather than being coloured over, which only suits grout that is still sound (the Table A materials cell; the Table F row: localised repair with clean, sound tiles and a dry substrate). Say the business looks before it prices, from [CV: quote_method] only."
+            "brief": "Tiles sound and well stuck, so the joints can be raked out without them moving, against tiles loose or cracked that come into the job; grout stained through, so it comes out rather than being coloured over, which only suits grout that is still sound (the Table A materials cell; the Table F row: localised repair with clean, sound tiles and a dry substrate). Say the business looks before it prices, from [CV: quote_method] only.",
+            "needs": ["Tile repairs and replacement"]
           },
           {
             "title": "What's under the old grout",
@@ -632,5 +640,39 @@
         ]
       }
     }
-  }
+  },
+  "idea_homes": [
+    {
+      "topic": "silicone, not rigid grout, at joints that move (bath edge, shower corners, wall-floor line)",
+      "home": "the 'Where the sealant has given up' block 4 card",
+      "elsewhere": "'The room you're about to redo' card and the 'What it will need from you afterwards' card do not explain why silicone goes where grout would crack. The aftercare card only says the silicone is renewed in time.",
+      "pages": [
+        "service"
+      ]
+    },
+    {
+      "topic": "floorboards that flex under rigid tiles",
+      "home": "the 'Cracks that run from one tile to the next' block 4 card",
+      "elsewhere": "'A bathroom, kitchen or floor you're redoing' card names what is underneath without explaining flex. The 'Boards, waterproofing and levelling' cost card lists stiffening only as a stage that adds time.",
+      "pages": [
+        "category"
+      ]
+    },
+    {
+      "topic": "lime plaster and timber floors in the town's older streets",
+      "home": "the 'Floors that flex in the older streets' block 4 card",
+      "elsewhere": "the 'What the houses were built with' cost card says only that it means more preparation. The cost FAQ names it in a phrase with no explanation.",
+      "pages": [
+        "location"
+      ]
+    },
+    {
+      "topic": "flats, carrying up by hand and a lease asking for a sound deadening layer under hard floors",
+      "home": "the 'Flats, stairs and the lease' block 5 card",
+      "elsewhere": "the hard water card's fallback does not restate the sound deadening layer. The cost FAQ names flats and access in a phrase only.",
+      "pages": [
+        "location"
+      ]
+    }
+  ]
 }

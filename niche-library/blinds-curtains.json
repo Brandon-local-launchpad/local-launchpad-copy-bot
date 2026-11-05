@@ -157,7 +157,8 @@
       "answer_brief": "What decides it, from the trade facts stages: the depth of the recess against the handles, tiles or a sill that stands proud. A shallow recess, or a room where the dark matters, sends the blind onto the wall across the recess, covering some wall either side of the frame. A blind framed to the glass is the third choice on a uPVC window: it is held by clips at the beading, so nothing is screwed into the frame. What the brackets go into decides the fixing (plasterboard, a steel or concrete lintel, uPVC), checked for hidden cables and pipes first. Never a figure.",
       "symptom_based": false,
       "is_fallback": true,
-      "doubt": "Process"
+      "doubt": "Process",
+      "needs": ["Made to measure blinds","Blind Shop","Roller blinds","Roman blinds","Venetian and wooden blinds","Vertical blinds","Perfect fit and intu blinds","Conservatory blinds","Child safe blinds"]
     },
     {
       "slot": "faq_D",
@@ -165,7 +166,8 @@
       "answer_brief": "Calm, and as what usually applies, from the trade facts rule and fact rows: a new blind with a looped cord or chain is sold with a part that holds the loop taut or lets it separate under a pull, and the fitter screws that part to the wall high enough to be out of a small child's reach; a blind made with no cord needs none. This holds in every home, not only where children live. The fitter leaves the warning labels on and shows how the part works. An older blind can have one added. Never a standard's number, never the height as a measurement, never a scare, never blame, never 'completely safe'.",
       "symptom_based": false,
       "is_fallback": true,
-      "doubt": "Process"
+      "doubt": "Process",
+      "needs": ["Child safe blinds"]
     },
     {
       "slot": "faq_planning",
@@ -173,7 +175,8 @@
       "answer_brief": "Point at the trade facts rule rows (Table C) and write what usually applies, with \"usually\" or \"in most cases\": an awning on a house is often allowed without an application but not always; a listed home, a conservation area, a flat, or an awning that reaches out over the pavement is where a consent or a licence can come in; a shop's name on the fabric can need its own consent; blinds, curtains and inside shutters need none. What the customer does about it only as the row gives it (check with the council, apply where it is needed). Never an Act's or an order's name, never a size or a height.",
       "symptom_based": false,
       "condition": "big_ticket AND [CV: handles_planning] confirmed",
-      "doubt": "Process"
+      "doubt": "Process",
+      "needs": ["Awnings","Plantation shutters"]
     }
   ],
   "faq_slots_by_type": {},
@@ -392,7 +395,8 @@
           {
             "title": "Repair it, make it safer, or replace it",
             "brief": "The customer's question on every problem led page: whether what they have is worth keeping. The one cause this card makes: wear or age past the point a part can be matched. From the trade facts stages and fact rows: a part is matched to the make and replaced where one exists (parts availability decides what can be done; a part of an unknown make may have no match); a fabric still good is relined, shortened or rehung rather than replaced; an older corded blind has a device added, or is replaced with one made with no cord, as what usually applies, with the warning labels left on; a repair that touches the controls refits the safety devices. Honest that a repair or an alteration is often the better answer, and plain about when it is not (a frame distorted, a fabric frayed from running unevenly, a part no longer made). Never a scare, never blame, never a standard's number, never 'completely safe', never a dig at another trade. On a window led page: an old flat blind under a sloping pane, or a blind cut down for a roof window, against one made for that glass. Not a fixing (card 2) and not a gap (card 3).",
-            "mechanism": "wear or age past the point a part can be matched"
+            "mechanism": "wear or age past the point a part can be matched",
+            "needs": ["Blind repairs","Curtain alterations and repairs"]
           }
         ]
       },
@@ -421,7 +425,7 @@
         {
           "slot": "cost",
           "question": "How much does [SERVICE_LOWER] cost in [CITY]?",
-          "answer_brief": "Prices only from [CV: price_list]; otherwise how the quote is given, from [CV: quote_method] only. The four cost cards above already give what moves the price: name one factor at most, never the list again.",
+          "answer_brief": "Prices only from [CV: price_list]; otherwise how the quote is given, from [CV: quote_method] only. The cost cards hold the list: never repeat it or point to it.",
           "doubt": "Price"
         },
         {
@@ -516,7 +520,8 @@
           {
             "title": "Rooms under the roof and glass extensions",
             "brief": "A loft bedroom light from overhead at dawn, a conservatory nobody sits in from late spring until the sun is off it, a kitchen extension with a glass roof that is a greenhouse by midday. The one cause this card makes: glass overhead, which the sun reaches all day long with nothing in the way; the town profile says where lofts have been converted and where the estates were built with conservatories (the pack's section 3: only where the research confirms it). What the work gives, from the trade facts stages: a roof window blind chosen by the window's make and size code, with side rails where the dark matters; conservatory roof blinds measured pane by pane, with a reflective backing against the heat; the fitting planned round safe access to a roof. Said as what it reduces, never a temperature promised. Not a window a ready made blind will not fit: the category page owns that.",
-            "mechanism": "glass overhead, which the sun reaches all day"
+            "mechanism": "glass overhead, which the sun reaches all day",
+            "needs": ["Conservatory blinds","Roof window and skylight blinds"]
           },
           {
             "title": "Blinds and curtains that came with the house",
@@ -542,7 +547,8 @@
           },
           {
             "title": "Listed homes and conservation areas",
-            "brief": "Where the town has listed buildings or conservation areas, an awning or outside shutters can need consent before they go up, and some things cannot be done at all; a blind or curtain inside usually needs nothing. \"Usually\", never the order's or the area's official name. From the dossier rules only; otherwise a check with the council as something that sometimes applies. No figure."
+            "brief": "Where the town has listed buildings or conservation areas, an awning or outside shutters can need consent before they go up, and some things cannot be done at all; a blind or curtain inside usually needs nothing. \"Usually\", never the order's or the area's official name. From the dossier rules only; otherwise a check with the council as something that sometimes applies. No figure.",
+            "needs": ["Awnings","Plantation shutters"]
           }
         ]
       },
@@ -601,5 +607,23 @@
       ]
     }
   },
-  "do_not_reuse": []
+  "do_not_reuse": [],
+  "idea_homes": [
+    {
+      "topic": "the made-to-order gap between measuring and fitting, with no number unless start_time gives one",
+      "home": "the 'How long does it take from measuring to fitting?' FAQ",
+      "elsewhere": "the 'We Fit on a Date That Suits You' step only says the date is agreed once the order is made; the 'How soon can you fit them?' FAQ gives only the start_time figure and does not explain the making stage",
+      "pages": [
+        "homepage"
+      ]
+    },
+    {
+      "topic": "recess depth against handles, tiles and sill deciding whether the blind sits in the recess or on the wall",
+      "home": "the 'Will my blind sit in the recess or on the wall?' FAQ",
+      "elsewhere": "the 'We Measure and Price the Job' step lists the recess and handles as things measured without explaining the choice; the blackout light FAQ names the side gap without re-explaining recess versus wall",
+      "pages": [
+        "homepage"
+      ]
+    }
+  ]
 }

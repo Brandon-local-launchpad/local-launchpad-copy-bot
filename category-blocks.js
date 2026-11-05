@@ -156,6 +156,112 @@ function briefGaps(entry) {
 // The FAQ slots a page uses: one per slot name in the entry's order, the first whose
 // `when` holds (none = always). Five at most before the symptom question (max), unless the
 // caller allows a sixth for a slot marked when: rule_rows (a service with Table C rule rows).
+// ── Elements tagged with the services they depend on (copy quality 6, 5 Nov 2026) ─
+// A block 4 card, block 5 card, FAQ slot or step may carry "needs": [page targets from the niche's library]:
+// it is true only of a firm that offers one of them ("Boarded tonight" needs Burglary repairs and boarding up).
+// Code drops an element whose service the client hasn't confirmed and uses the next eligible one.
+// confirmed: a Set of lower case names, or null when the client's list isn't known (nothing is dropped).
+const eligibleFor = (el, confirmed) => !confirmed || !el || !Array.isArray(el.needs) || !el.needs.length || el.needs.some(n => confirmed.has(lc(n)));
+
+// The services a client has confirmed, from the page map: its service pages and what its categories mention
+function confirmedFromRows(rows = [], own = '') {
+  const out = new Set();
+  for (const r of rows || []) {
+    if (!r || r.applies === false) continue;
+    if (r.type === 'service') out.add(lc(r.title));
+    if (r.type === 'town_service' && r.info && r.info.service_name) out.add(lc(r.info.service_name));
+    const mentioned = (r.type === 'category' && r.info && r.info.links && r.info.links.mentioned) || [];
+    for (const m of mentioned) out.add(lc(m));
+  }
+  if (!out.size) return null;
+  if (own) out.add(lc(own));
+  return out;
+}
+// The same from the homepage's context: every key with a parent category is a confirmed service
+// A client on the older uploaded page map carries its own service names, so each is read through the library to its target
+function confirmedFromContext(keyValueMap = {}, serviceParentMap = {}, niche = null) {
+  const names = Object.keys(serviceParentMap || {}).map(k => keyValueMap[k]).filter(Boolean);
+  const out = new Set(names.map(lc));
+  if (niche) {
+    try {
+      const L = require('./niche-library/library');
+      const stem = L.stemOfEntry(niche);
+      const set = stem ? L.loadLibrarySet(stem) : null;
+      if (set) for (const n of names) for (const m of L.findEntries(set, n, [], { fuzzy: true })) if (m.entry && m.entry.target) out.add(lc(m.entry.target));
+    } catch (e) { /* no library for this niche: the names as they stand */ }
+  }
+  return out.size ? out : null;
+}
+// Where the next eligible element comes from: the type's plain set, its no call outs set, then the other types
+function sparesFor(all = {}, key = 'A') {
+  const base = (all || {})[key] || {};
+  const others = Object.keys(all || {}).filter(k => k !== key).map(k => all[k]);
+  return [base, base.no_callouts, base.emergency, ...others].filter(Boolean);
+}
+function filterCards(block, confirmed, spares, section) {
+  if (!block || !Array.isArray(block.cards)) return block;
+  const kept = block.cards.filter(c => eligibleFor(c, confirmed));
+  if (kept.length === block.cards.length) return block;
+  const want = Math.min(4, block.cards.length);
+  const used = new Set(kept.map(c => lc(c.title)));
+  for (const s of spares) {
+    for (const c of (s[section] && s[section].cards) || []) {
+      if (kept.length >= want) break;
+      if (used.has(lc(c.title)) || !eligibleFor(c, confirmed)) continue;
+      used.add(lc(c.title));
+      kept.push(c);
+    }
+  }
+  return { ...block, cards: kept };
+}
+// A step keeps its place: a dropped step takes the same place from the first set that has an eligible one
+function filterSteps(steps, confirmed, ...fallbacks) {
+  if (!Array.isArray(steps) || !confirmed) return steps;
+  return steps.map((s, i) => {
+    if (eligibleFor(s, confirmed)) return s;
+    for (const set of fallbacks) if (Array.isArray(set) && set[i] && eligibleFor(set[i], confirmed)) return set[i];
+    return { title: ['Tell Us What You Need', 'We Price Your Job', 'We Do the Work'][Math.min(i, 2)], brief: s.brief };
+  });
+}
+function filterSlots(slots, confirmed, spares) {
+  if (!Array.isArray(slots)) return slots;
+  const kept = slots.filter(s => eligibleFor(s, confirmed));
+  const droppedNames = new Set(slots.filter(s => !eligibleFor(s, confirmed)).map(s => s.slot));
+  // A slot name with an eligible variant left needs no spare. No more questions than the entry had
+  const open = [...droppedNames].filter(n => !kept.some(s => s.slot === n)).length;
+  const names = new Set(kept.map(s => s.slot));
+  let added = 0;
+  for (const s of spares) {
+    for (const f of (Array.isArray(s.faq_slots) ? s.faq_slots : [])) {
+      if (added >= open) break;
+      if (names.has(f.slot) || !eligibleFor(f, confirmed) || f.when) continue;
+      names.add(f.slot);
+      kept.push(f);
+      added++;
+    }
+  }
+  return kept;
+}
+function filterEntry(entry, { confirmed = null, spares = [] } = {}) {
+  if (!entry || !confirmed) return entry;
+  const out = { ...entry };
+  if (out.problems) out.problems = filterCards(out.problems, confirmed, spares, 'problems');
+  if (out.cost) out.cost = filterCards(out.cost, confirmed, spares, 'cost');
+  if (out.steps) out.steps = filterSteps(out.steps, confirmed, ...spares.map(s => s.steps));
+  if (out.steps_emergency) out.steps_emergency = filterSteps(out.steps_emergency, confirmed, out.steps, ...spares.map(s => s.steps));
+  if (out.faq_slots) out.faq_slots = filterSlots(out.faq_slots, confirmed, spares);
+  if (out.seasonal) {
+    const pc = out.seasonal.problem_card, fs = out.seasonal.faq_slot;
+    if (!eligibleFor(pc, confirmed) || !eligibleFor(fs, confirmed)) delete out.seasonal;
+  }
+  return out;
+}
+// A homepage FAQ slot the page always asks for stays whatever its tag says: Q2 and Q3 have no other source
+const HOMEPAGE_FIXED_SLOTS = new Set(['faq_2', 'faq_2_fallback', 'faq_3', 'faq_3_none']);
+const homepageSlotKept = (slot, confirmed) => HOMEPAGE_FIXED_SLOTS.has(slot.slot) || eligibleFor(slot, confirmed);
+
+// The cost question answers it (copy quality 6): the factor that moves the price most and what the customer can do
+const COST_FAQ_RULE = ' Name the factor that moves the price most, then what the customer can do to get a figure (ask for a quote, send photos). Never point to another section.';
 function pickFaqSlots(entry, cv = {}, { quoteFree = '', ruleRows = false, max = 5 } = {}) {
   const holds = when => {
     if (!when) return true;
@@ -174,7 +280,7 @@ function pickFaqSlots(entry, cv = {}, { quoteFree = '', ruleRows = false, max = 
   for (const s of (Array.isArray(entry.faq_slots) ? entry.faq_slots : [])) {
     if (!s || !s.slot || seen.has(s.slot) || !holds(s.when)) continue;
     seen.add(s.slot);
-    out.push({ slot: s.slot, question: s.question, answer_brief: s.answer_brief || '', doubt: s.doubt || '' });
+    out.push({ slot: s.slot, question: s.question, answer_brief: `${s.answer_brief || ''}${s.slot === 'cost' ? COST_FAQ_RULE : ''}`, doubt: s.doubt || '' });
   }
   return out.slice(0, max);
 }
@@ -226,4 +332,4 @@ function faqSlotsFor(niche = {}, cv = {}) {
   return out;
 }
 
-module.exports = { typeFor, blocksFor, briefGaps, pickFaqSlots, applySeasonal, NoBriefsError, clientEmergency, emergencyWhy, emergencySite, typeLetterFor, fearsFor, faqSlotsFor, overrideFor, applyOverride, overrideStepsFor, gateStepTitles, EMERGENCY_STEP_2 };
+module.exports = { typeFor, blocksFor, briefGaps, pickFaqSlots, applySeasonal, NoBriefsError, clientEmergency, emergencyWhy, emergencySite, typeLetterFor, fearsFor, faqSlotsFor, overrideFor, applyOverride, overrideStepsFor, gateStepTitles, EMERGENCY_STEP_2, eligibleFor, confirmedFromRows, confirmedFromContext, sparesFor, filterEntry, filterSteps, filterSlots, homepageSlotKept, COST_FAQ_RULE };

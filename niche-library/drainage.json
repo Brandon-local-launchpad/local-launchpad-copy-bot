@@ -165,7 +165,8 @@
       "answer_brief": "From the trade facts rows on jetting only: the equipment and the pressure are chosen for the blockage and the pipe, so a pipe already weak, cracked or out of shape is looked at before a jetter goes in, and sometimes rods or a camera come first. Say honestly that jetting neither always nor never harms a drain: it depends on the pipe. Then why it clears better than rods for grease, scale and silt (the whole inside of the pipe scoured, not a hole through the middle), as the pack's craft rule has it, in other words. No pressure figure: the trade facts give none for domestic drains.",
       "symptom_based": false,
       "is_fallback": true,
-      "doubt": "Process"
+      "doubt": "Process",
+      "needs": ["Drain jetting"]
     },
     {
       "slot": "faq_D",
@@ -173,7 +174,8 @@
       "answer_brief": "The investigation register, from the trade facts home buyer drain surveys rows: what a survey records (the condition of the runs the camera can reach, where they go, wrong connections, whose pipes they are, a plan) and what it cannot do (a run that is blocked, dirty or out of reach is not inspected, so a survey never proves there is nothing wrong underground). When it earns its place: an older house, a drain under an extension, signs the facts list (a chamber holding sewage, settled paving over a run, a smell that stays). What the report is then used for: a price talked down, a repair agreed before exchange, or nothing because nothing was found. Timing before exchange where practicable, as the row has it. Never a legal requirement; never a validity period.",
       "symptom_based": false,
       "is_fallback": true,
-      "doubt": "Process"
+      "doubt": "Process",
+      "needs": ["Home buyer drain surveys","CCTV drain surveys"]
     },
     {
       "slot": "faq_planning",
@@ -360,7 +362,8 @@
             {
               "title": "Water rising in a cellar or across a floor",
               "brief": "The reader's situation: standing water indoors that is not going down, a cellar filling, water climbing an inside wall, a flooded drive with a gully under it somewhere (Table B flood water pumping signs row). The one cause this card makes: water coming in faster than any drain can take it away, from a river, the road or a blocked surface water drain. What they do first, from the trade facts: keep clear of water that may carry sewage (Table E), and know that pumping a building out starts when the water outside is lower than the water inside, because emptying it sooner can harm the structure (Table E pumping floodwater), so nobody bails or pumps it themselves before that. Why it can't wait: the longer the water stands against walls and floors the more it damages, and contaminated water is a hazard while it sits (Table B skipped row). What usually happens when they call: the level, the contamination and where the water can be sent assessed, the area protected, a pump set when the outside level permits, the levels watched, the damage recorded (Table A flood water pumping); the water is never pumped to a place that floods or pollutes somewhere else (Table B done badly). By category: Drainage Service leads; Plumbing reads it as a burst or a leak indoors that is the plumber's before the drain; Sewage Disposal Service as a pump chamber overtopping. Never a promise about the flood, the river or the council's drains; a flood history only from the dossier.",
-              "mechanism": "water coming in faster than any drain can take it away"
+              "mechanism": "water coming in faster than any drain can take it away",
+              "needs": ["Flood water pumping"]
             },
             {
               "title": "Who to call first, and what not to do while you wait",
@@ -544,7 +547,7 @@
         {
           "slot": "cost",
           "question": "How much does [SERVICE_LOWER] cost in [CITY]?",
-          "answer_brief": "Prices only from [CV: price_list]; otherwise how the quote is given, from [CV: quote_method] only, and a call out fee only from [CV: quote_call_out_fee]. The four cost cards above already give what moves the price: name one factor at most, never the list again. Never 'no fix no fee' unless the client values give it in those words.",
+          "answer_brief": "Prices only from [CV: price_list]; otherwise how the quote is given, from [CV: quote_method] only, and a call out fee only from [CV: quote_call_out_fee]. The cost cards hold the list: never repeat it or point to it. Never 'no fix no fee' unless the client values give it in those words.",
           "doubt": "Price"
         },
         {
@@ -644,7 +647,8 @@
             {
               "title": "Water rising in a cellar or across a floor",
               "brief": "Standing water indoors that is not going down, a cellar filling, water climbing an inside wall, a drive under water with its gully somewhere beneath (Table B flood water pumping signs row). The one cause this card makes: water coming in faster than any drain can take it away. What they do first, from the trade facts: keep clear of water that may carry sewage (Table E Weil's disease); pumping a building out starts when the water outside is lower than the water inside, because emptying it sooner can harm the structure (Table E pumping floodwater), so nobody pumps or bails it themselves before that. Why it can't wait: the longer the water stands against walls and floors the more it damages, and contaminated water is a hazard while it sits (Table B skipped row). What usually happens when they call: the level, the contamination and where the water can go assessed, the area protected, the pump set when the outside level permits, the levels watched, the equipment taken away and the damage recorded (Table A flood water pumping); never pumped to a place that floods or pollutes somewhere else (Table B done badly; the rule rows on where water may be discharged, with 'usually'). Leads on the Flood water pumping page; on Emergency drainage it is the surface water side. Never a promise about the flood, the river or the council's drains; a flood history only from the dossier.",
-              "mechanism": "water coming in faster than any drain can take it away"
+              "mechanism": "water coming in faster than any drain can take it away",
+              "needs": ["Flood water pumping"]
             },
             {
               "title": "Whose job it is, and what to do while you wait",
@@ -742,22 +746,26 @@
             {
               "title": "A house with no drain to connect to",
               "brief": "The customer's situation: a new build, a barn or a conversion, or a house bought off the mains with a tank nobody knows the age of; the drains have to go somewhere and there is no public sewer at the gate. What decides it: whether a sewer is within reach, because the trade facts order of choice runs public sewer first, then a suitable private one, then a treatment system, then a cesspool as the last resort (Table A septic tank and treatment plant installation: sewer availability and the discharge route assessed first; Table C with 'usually' and never the distance or the regulation's name); then the ground, the groundwater and how many people live there, which size the tank or the plant and its drainage field (Table A: flow calculated and the ground tested). What the work gives them: a system sized for the house with an outlet that is allowed, approved before it goes in and commissioned and handed over at the end (Table A stages). Leads on the Septic tank and treatment plant installation page. Never a fault invented for it; never 'your tank is illegal'; never a figure or a deadline.",
-              "mechanism": "whether a sewer is within reach, and what the ground will take"
+              "mechanism": "whether a sewer is within reach, and what the ground will take",
+              "needs": ["Septic tank and treatment plant installation"]
             },
             {
               "title": "Septic tank or treatment plant",
               "brief": "The customer's situation: they are choosing between a plain septic tank and a packaged treatment plant, or have been told their old tank runs straight to the stream and must change. What decides it: where the treated water can go, from the trade facts rows as what usually applies: a septic tank's outlet goes to a drainage field in ground that can take it, never to a stream; a discharge to a stream or a ditch needs a treatment plant; a tank that today discharges straight to a watercourse is connected, replaced or redirected to a drainage field, with the owner expected to plan it within a reasonable time (Table E the 2020 rule, with 'usually' and never the year, the volume or the months); and the ground test that says whether a field will work at all (Table E percolation tests: the test that suits the system). What the work gives them: the system that fits their ground and their outlet, with the approvals the rule rows ask for handled before the dig, and a pump only where gravity cannot do it (Table A materials and methods). Leads on the Septic tank and treatment plant installation page. A named product only from [CV: materials_methods]. Never a product as 'the one to choose'; never a running cost or a lifespan.",
-              "mechanism": "where the treated water can go"
+              "mechanism": "where the treated water can go",
+              "needs": ["Septic tank and treatment plant installation"]
             },
             {
               "title": "Doing it once, properly",
               "brief": "The customer's situation: they have a cheaper quote, or a tank the last owner put in that has never worked right, and want to know what the difference buys. What decides it: the parts they will never see once the ground is back: the drainage field laid in tested ground at the distances the rule rows give (Table C, with 'usually' and never the figure), the outlet that matches the system, the plant sized and commissioned for the house (Table B done badly: the wrong outlet, unsuitable ground, wrong sizing or commissioning are what fail; Table A: approvals secured, ground tested, field constructed, commissioned and handed over). What the work gives them: a system that treats what the house sends it and a field that keeps taking it, with the paperwork that goes with a new system. One specific from the stages; no distance or figure the rows do not give; never a dig at another installer.",
-              "mechanism": "the field and the outlet they will never see once the ground is back"
+              "mechanism": "the field and the outlet they will never see once the ground is back",
+              "needs": ["Septic tank and treatment plant installation"]
             },
             {
               "title": "What it will need from you afterwards",
               "brief": "The customer's situation: they want to know what they are taking on with a tank or a plant of their own. What decides it: what the system needs to keep working, from the trade facts rows: the sludge emptied before it reaches the tank's capacity, on the interval the maker's instructions give and the guidance has it (Table E septic emptying frequency, with 'usually' and never a fixed date of the business's own); the equipment kept working and repaired when it is not; the tanker firm a registered waste carrier (Table E septic sludge disposal); the system's information kept and passed on when the house is sold (Table C maintenance row). What the work gives them: an honest picture of the schedule a system runs on, and the emptying and repair pages linked where the services list has them. Never a promise about how long it lasts; never 'maintenance free'; an emptying contract only where the services list has one.",
-              "mechanism": "the emptying and the care the system runs on"
+              "mechanism": "the emptying and the care the system runs on",
+              "needs": ["Septic tank and treatment plant installation"]
             }
           ]
         },
@@ -765,13 +773,15 @@
           "problem_card": {
             "title": "Getting it in when the ground allows",
             "brief": "The customer's situation: they want the system in before they move in, or want to know when the work can happen. What decides it: the ground and the weather, from the trade facts timing cells for this service: the work runs all year, subject to groundwater, weather and a dig that can be made safe, and the ground test is not done in a downpour, a hard frost or a drought because the result would not be true of the ground (Table A septic tank and treatment plant installation and soakaways). What the work gives them: a field tested when the test means something and a dig made when the ground will hold. No dates, nothing about spring being busy or booking ahead, no promise about the weather.",
-            "mechanism": "groundwater and the weather deciding when the dig and the test can happen"
+            "mechanism": "groundwater and the weather deciding when the dig and the test can happen",
+            "needs": ["Septic tank and treatment plant installation","Soakaways"]
           },
           "faq_slot": {
             "slot": "seasonal",
             "question": "Is there a best time of year for [SERVICE_LOWER], and how long does it take?",
             "answer_brief": "From the trade facts timing row only: this work runs all year, subject to groundwater, the weather and a dig that can be made safe, and the ground test waits for ground that is neither flooded, frozen nor baked dry; then what decides how long it takes (the approvals, the ground test, the dig, the plant to order, the commissioning), with no number, since the row gives none. Nothing about winter being busy. No dates. This is the one place the timing is written.",
-            "doubt": "Timing"
+            "doubt": "Timing",
+            "needs": ["Septic tank and treatment plant installation","Soakaways"]
           }
         }
       }
@@ -970,7 +980,8 @@
           },
           {
             "title": "What the camera leads to",
-            "brief": "The camera finds the way in before the cut and checks the run after it (Table A tree root removal). Roots cut with the joint left open can come back (Table B), so a local repair or a liner is specified where the joint stays open and priced as its own job off the footage (Table F: follow on structural repair). A product only from [CV: materials_methods]. Code adds the price line from [CV: price_list] when there is one."
+            "brief": "The camera finds the way in before the cut and checks the run after it (Table A tree root removal). Roots cut with the joint left open can come back (Table B), so a local repair or a liner is specified where the joint stays open and priced as its own job off the footage (Table F: follow on structural repair). A product only from [CV: materials_methods]. Code adds the price line from [CV: price_list] when there is one.",
+            "needs": ["Drain relining","Drain repairs"]
           }
         ]
       }
@@ -1058,5 +1069,103 @@
         }
       ]
     }
-  }
+  },
+  "idea_homes": [
+    {
+      "topic": "why a cleared blockage comes back: debris left, or a fault only the camera shows, so a repeat is investigated",
+      "home": "the 'what happens if the drain blocks again' FAQ",
+      "elsewhere": "the repeat-blockage card names the symptom only and does not explain the cause or the camera follow-up",
+      "pages": [
+        "category"
+      ]
+    },
+    {
+      "topic": "why the fault returns: the cause left in place, and a repeat put under the camera rather than cleared again",
+      "home": "the 'what happens if the problem comes back' FAQ",
+      "elsewhere": "the 'It keeps coming back' card describes the symptom only; step 3 says only that a found fault is recorded",
+      "pages": [
+        "service"
+      ]
+    },
+    {
+      "topic": "whose pipe it is and calling the water company first",
+      "home": "the 'who should I call first, you or the water company' FAQ",
+      "elsewhere": "steps and the 'making it safe' cost card say only that ownership is established; the 'who to call first' card covers only what not to do while waiting",
+      "pages": [
+        "category"
+      ]
+    },
+    {
+      "topic": "whose pipe it is and calling the water company first",
+      "home": "the 'who should I call first, you or the water company' FAQ",
+      "elsewhere": "step 2 and the 'making it safe' cost card say only that ownership is established; the 'whose job it is' card covers what to do while waiting",
+      "pages": [
+        "service"
+      ]
+    },
+    {
+      "topic": "whose pipe it is: private or the water company's",
+      "home": "the 'is a blocked drain mine to sort out, or the water company's' FAQ",
+      "elsewhere": "the steps say only that ownership is checked and do not set out the rule",
+      "pages": [
+        "homepage"
+      ]
+    },
+    {
+      "topic": "shared runs on older streets and where the private pipe stops",
+      "home": "the 'Shared runs and whose they are' cost card",
+      "elsewhere": "the 'drains laid with the street' card gives the age of the pipework only; the 'where the drain runs' card and the 'what happens when I call' FAQ do not explain ownership",
+      "pages": [
+        "location"
+      ]
+    },
+    {
+      "topic": "what to do while waiting: keep out of the water, pour nothing down the drain, stay out of the chamber",
+      "home": "the 'what should I do before you arrive' FAQ",
+      "elsewhere": "the emergency cards give the situation and the urgency; the 'Call Us' step covers only what to say",
+      "pages": [
+        "category"
+      ]
+    },
+    {
+      "topic": "what to do while waiting: keep out of the water, pour nothing down the drain, stay out of the chamber",
+      "home": "the 'Call Us' step",
+      "elsewhere": "the emergency cards give the situation and the cause, not the safety steps",
+      "pages": [
+        "service"
+      ]
+    },
+    {
+      "topic": "a fault found behind the blockage is recorded and priced as its own later job",
+      "home": "the 'What's on the van and what comes later' cost card",
+      "elsewhere": "step 3 says only that the fault is recorded; the call-out FAQ does not restate that the repair is priced separately",
+      "pages": [
+        "service"
+      ]
+    },
+    {
+      "topic": "what decides how long the job takes",
+      "home": "the 'how long does it take' FAQ",
+      "elsewhere": "the seasonal FAQs cover the weather and the ground only",
+      "pages": [
+        "service"
+      ]
+    },
+    {
+      "topic": "wet-season limits: soakaway ground test, sodden ground, leaves on grates",
+      "home": "the seasonal 'can the work be done in winter' FAQ",
+      "elsewhere": "the seasonal card describes symptoms only; the base time-of-year FAQ is not used alongside it",
+      "pages": [
+        "category"
+      ]
+    },
+    {
+      "topic": "one fixture points at its own trap, several outlets point at the shared run",
+      "home": "the 'why does my toilet gurgle' FAQ",
+      "elsewhere": "the steps only ask whether it is one fixture or several, without explaining what that means",
+      "pages": [
+        "homepage"
+      ]
+    }
+  ]
 }

@@ -47,6 +47,8 @@ function cvValue(key, cv, yearsTrading) {
       .map(t => typeof t === 'string' ? t : t.theme).join('; ');
   }
   if (key === 'typical_jobs') {
+    // The Record tab keeps job rows; a value typed as a sentence is on file too, and was being dropped (copy quality 7)
+    if (typeof v === 'string') return v.trim();
     return (Array.isArray(v) ? v : [])
       .map(j => [j.job, (j.price || j.from_price) && `from ${j.price || j.from_price}`, j.duration && `typically ${j.duration}`].filter(Boolean).join(', '))
       .filter(Boolean).join('; ');
@@ -280,6 +282,18 @@ async function generateV20Homepage({ cv, niche, keyValueMap, serviceParentMap = 
         record.meta.flag_pass = { before: fp.before, after: fp.after, kept: fp.kept, calls: fp.usage.calls };
         record.VALIDATION = validationSummary(validateV20(record, V), [...((record.VALIDATION && record.VALIDATION.retries) || []), ...fp.log.map(x => ({ ...x, round: `flag pass ${x.round}` }))], retryUsage);
       } catch (e) { record.meta.flag_pass = { error: e.message }; }
+      // The targeted round (copy quality 5), then the claims review reads the text as it now stands
+      const { runTargetedPass } = require('./v20-retry');
+      try {
+        const tp = await runTargetedPass({ record, V, callRetry, validate: rec => validateV20(rec, V) });
+        record.meta.targeted_pass = { before: tp.before, after: tp.after, kept: tp.kept, calls: tp.usage.calls, left: tp.left };
+        record.VALIDATION = validationSummary(validateV20(record, V), [...((record.VALIDATION && record.VALIDATION.retries) || []), ...tp.log.map(x => ({ ...x, round: 'targeted' }))], retryUsage);
+        if (claimsReview && (tp.kept || (record.meta.flag_pass && record.meta.flag_pass.kept))) {
+          const { runClaimsReview, factsFromRecord } = require('./wp/claims-review');
+          const claims = await runClaimsReview(record, factsFromRecord(record), callModel);
+          record.CLAIMS = { ...(record.CLAIMS || {}), at: claims.at, status: claims.findings.length ? 'needs acceptance' : 'clear', findings: claims.findings };
+        }
+      } catch (e) { record.meta.targeted_pass = { error: e.message }; }
     }
     if (qualityReview) {
       const { runQualityRetries, runClaimRetries } = require('./v20-retry');
@@ -287,7 +301,7 @@ async function generateV20Homepage({ cv, niche, keyValueMap, serviceParentMap = 
       try {
         const { review: rv, rounds: qRounds } = await runQualityRetries({ record, V, callRetry, review: rec => Q.reviewPage({ record: rec, V, D, cv, niche, callModel }) });
         record.QUALITY = {
-          at: rv.at, verdict: rv.verdict, score_writing: rv.score_writing, model: rv.model, score: rv.score, done: rv.done, failed: rv.failed,
+          at: rv.at, verdict: rv.verdict, edit_list: rv.edit_list, score_writing: rv.score_writing, model: rv.model, score: rv.score, done: rv.done, failed: rv.failed,
           failures: rv.items.filter(i => !i.pass), other_problems: rv.other_problems, missing_facts: rv.missing_facts, rounds: qRounds,
         };
         if (claimsReview && qRounds.some(r => r.retries.some(x => x.kept))) {

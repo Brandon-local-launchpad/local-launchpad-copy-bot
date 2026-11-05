@@ -62,10 +62,25 @@ function stripAdmin(name) {
 function normArea(name) { return (name || '').toLowerCase().replace(/[^a-z0-9]/g, ' ').replace(/\s+/g, ' ').trim(); }
 
 // Resolve [PLACEHOLDER] tokens using context object
+// The article goes with the word it ends up in front of (copy quality 6, 5 Nov 2026): "an auto locksmith"
+function articleFor(word) {
+  const w = String(word || '').replace(/^\[/, '').toLowerCase();
+  if (/^(?:hour|honest|heir|honour)/.test(w)) return 'an';
+  if (/^u(?:ni|se|su|ti|ro|te|be)/.test(w) || /^(?:eu|one|once|upvc)/.test(w)) return 'a';
+  return /^[aeiou]/.test(w) ? 'an' : 'a';
+}
+// "a [NAME]" in a template, before [NAME] is replaced: the article the value needs
+function articleBefore(text, values) {
+  return String(text).replace(/\b([Aa]) \[([A-Z_]+)\]/g, (m, a, name) => {
+    if (!(name in values) || !values[name]) return m;
+    const art = articleFor(values[name]);
+    return `${a === 'A' ? art[0].toUpperCase() + art.slice(1) : art} [${name}]`;
+  });
+}
 function ph(text, ctx) {
   if (!text) return text;
   const qf = ctx.quoteFree;
-  return text
+  return articleBefore(text, { KW_PHRASE: ctx.kwPhrase, CATEGORY: ctx.category, TRADE: ctx.trade, TRADE_LOWER: ctx.tradeLower, TRADE_PERSON: ctx.tradePerson, CUSTOMER_TYPE: ctx.customerType, UNIT_OF_WORK: ctx.unitOfWork, AREA_WIDE: ctx.areaWide })
     .replace(/\[QUOTE_FREE\] /g,        qf ? qf + ' ' : '')
     .replace(/\[QUOTE_FREE\]/g,          qf || '')
     .replace(/\[QUOTE_FREE_LOWER\] /g,   qf ? qf.toLowerCase() + ' ' : '')
@@ -98,6 +113,34 @@ function getLinkStatus(page) {
 function isLinkable(page) { const ls = getLinkStatus(page); return ls === 'Live' || ls === 'Launching'; }
 
 // ── Build Why-choose-us points (D10) ─────────────────────────────────────────
+// An alternate Why title that promises a practice (why_title_practice in the entry: the title and the practice
+// keys that confirm it; an empty list means no tick confirms it) or states one the practice list knows
+// (copy quality 6, 5 Nov 2026) stands only when confirmed; otherwise the plain title
+const PLAIN_WHY_TITLE = 'Our Track Record';
+// A title that claims experience (copy quality 7): "every" says more than any client value can, and the rest need
+// a years or jobs figure on file
+const EXPERIENCE_TITLE_RE = /\b(?:experience|experienced|worked on|know well|years of|groomed before)\b/i;
+function whyAltTitle(title, niche, cv) {
+  const confirmed = new Set(cv.confirmed_practices || []);
+  if (EXPERIENCE_TITLE_RE.test(title) && (/\bevery\b/i.test(title) || !(cv.year_founded || cv.years_trading || cv.jobs_completed))) return PLAIN_WHY_TITLE;
+  const needs = (niche.why_title_practice || {})[title];
+  if (needs && !needs.some(k => confirmed.has(k))) return PLAIN_WHY_TITLE;
+  const { practiceClaims } = require('./practices');
+  if (practiceClaims(title, niche).some(c => !confirmed.has(c.practice.key))) return PLAIN_WHY_TITLE;
+  return title;
+}
+
+// The CTA band says "within [CV: response_time]" (copy quality 6): a value that already says "within" loses
+// the template's, and a value that isn't a length of time ("we reply the same working day") takes the line without it
+function ctaBandLine(base, cv) {
+  const v = String(cv.response_time || '').trim();
+  if (!v) return base.cta_band_line_no_response || '';
+  const line = base.cta_band_line || '';
+  if (/^(?:usually |normally |often |typically )?within\b/i.test(v)) return line.replace('within [CV: response_time]', '[CV: response_time]');
+  if (/^(?:about |around |roughly |an? |one |two |three |\d|the (?:hour|day)|24)/i.test(v)) return line;
+  return base.cta_band_line_no_response || '';
+}
+
 function buildWhyPoints(cv, niche, yearsTrading, trustProof, ctx) {
   const points = [];
 
@@ -113,7 +156,7 @@ function buildWhyPoints(cv, niche, yearsTrading, trustProof, ctx) {
   }
   if (p1) {
     if (p1.proof === trustProof && niche.why_titles_alt && niche.why_titles_alt[0]) {
-      p1 = { ...p1, title: niche.why_titles_alt[0] };
+      p1 = { ...p1, title: whyAltTitle(niche.why_titles_alt[0], niche, cv) };
     }
     points.push({ key: 'track_record', title: p1.title, proof: p1.proof });
   }
@@ -165,7 +208,7 @@ function buildWhyPoints(cv, niche, yearsTrading, trustProof, ctx) {
 // only with its own doubt or one still uncovered, so the page keeps all five doubts.
 function buildFaq(cv, niche, ctx, emergencyOn, faqResearch = []) {
   const faqMap = {};
-  for (const f of CB.faqSlotsFor(niche, cv)) faqMap[f.slot] = f;
+  for (const f of CB.faqSlotsFor(niche, cv)) if (CB.homepageSlotKept(f, ctx.confirmedServices)) faqMap[f.slot] = f;
 
   const usedFallbacks = [];
   function nicheFallback() {
@@ -434,7 +477,7 @@ const LINK_PHRASES = ['our [X] work', 'a [X] visit', '[X] work from us', 'what a
 function assignCardShapes(main) {
   main.forEach((c, i) => {
     c.shape = CARD_SHAPES[i % CARD_SHAPES.length];
-    if (c.linked) c.link_phrase = LINK_PHRASES[i % LINK_PHRASES.length].replace('X', (c.name || '').toLowerCase());
+    if (c.linked) c.link_phrase = articleBefore(LINK_PHRASES[i % LINK_PHRASES.length], { X: (c.name || '').toLowerCase() }).replace('X', (c.name || '').toLowerCase());
   });
   return main;
 }
@@ -612,6 +655,7 @@ function computeDecisions({ cv, niche, pages, keyValueMap, serviceParentMap, v20
   const d2_h1 = h1Override || kwPhrase;
 
   const ctx = {
+    confirmedServices: CB.confirmedFromContext(keyValueMap, serviceParentMap, niche),
     kwPhrase:          d2_h1,
     category:          cv.primary_category || '',
     city:              primaryCity,
@@ -825,7 +869,7 @@ function computeDecisions({ cv, niche, pages, keyValueMap, serviceParentMap, v20
   // The response time lives here and nowhere else on the page.
   const ctaBand = {
     heading: d8.cta_band,
-    line: ph(cv.response_time ? (btnBase.cta_band_line || '') : (btnBase.cta_band_line_no_response || ''), ctx),
+    line: ph(ctaBandLine(btnBase, cv), ctx),
     buttons: d15,
   };
 
@@ -885,12 +929,9 @@ function computeDecisions({ cv, niche, pages, keyValueMap, serviceParentMap, v20
   // Content block expands when D13 has the full set of 4 links
   const contentBlockExpands = d13.length === 4;
 
-  // Pair Why points with niche fears (cycled if fewer fears than points)
+  // Pair Why points with niche fears by what each is about (why-fears.js), never by position
   const fears = CB.fearsFor(niche, cv);
-  const whyWithFears = whyPoints.map((p, i) => ({
-    ...p,
-    fear: fears.length > 0 ? fears[i % fears.length] : null,
-  }));
+  const whyWithFears = require('./why-fears').matchFears(whyPoints, fears);
 
   // Build linkable pages list (Live or Launching), trimmed to pages the homepage
   // can link: never itself, never location-category pages, and only the services
@@ -922,7 +963,7 @@ function computeDecisions({ cv, niche, pages, keyValueMap, serviceParentMap, v20
     d14_town:            d14,
     d15_buttons:         d15,
     linkablePages,
-    niche_steps:         CB.gateStepTitles(stepsFor(niche, cv, emergencyOn), { niche, cv, emergencyOn }),
+    niche_steps:         CB.gateStepTitles(CB.filterSteps(stepsFor(niche, cv, emergencyOn), CB.confirmedFromContext(keyValueMap, serviceParentMap, niche), niche.steps), { niche, cv, emergencyOn }),
     emergencyOn,
     emergencyWhy,
     quoteFree,
@@ -1022,7 +1063,7 @@ function formatDecisionsBlock(D, cv, niche, ctx) {
   push(`Locations hub: ${D.locations_hub ? `${D.locations_hub} (FAQ "Which areas do you cover?" links it)` : 'none (the areas FAQ links no hub)'}`);
   push('');
   if (D.thin) { const R = require('./validate-v20').RANGES; push(''); push('THIN PAGE (few proofs or no allocated neighbourhoods): every word minimum below is a third lower than the prompt says; do not pad to reach the prompt\'s figure. The ranges on this page:'); for (const [k, r] of Object.entries(R)) if (r && r.min) push(`  ${k}: ${Math.ceil(r.min * 2 / 3)} to ${r.max} words`); }
-  for (const l of IH.ideaHomeLines('homepage')) push(l);
+  for (const l of IH.ideaHomeLines('homepage', niche)) push(l);
   push('');
   push('LINKABLE PAGES:');
   for (const p of D.linkablePages) push(`  [${p.type}] ${p.url} | H1: ${p.h1}${p.say ? ` | say: ${p.say}` : ''}`);
@@ -1064,4 +1105,4 @@ function formatDecisionsBlock(D, cv, niche, ctx) {
   return lines.join('\n');
 }
 
-module.exports = { computeDecisions, isPersonWord, headingCustomers, weClause, ph, cap, titleCase, normArea, stripAdmin, isLinkable, getLinkStatus, stepsFor, yearsTradingOf, titleModifierFor, seoTitleFor, trustLineFor, ratingLineFor, buttonsFor, approvedThemes };
+module.exports = { ctaBandLine, articleFor, articleBefore, whyAltTitle, computeDecisions, isPersonWord, headingCustomers, weClause, ph, cap, titleCase, normArea, stripAdmin, isLinkable, getLinkStatus, stepsFor, yearsTradingOf, titleModifierFor, seoTitleFor, trustLineFor, ratingLineFor, buttonsFor, approvedThemes };

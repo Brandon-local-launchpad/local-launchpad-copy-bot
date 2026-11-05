@@ -299,7 +299,7 @@ Three framings share this one entry, per the pack's section 2: a problem led pag
 
 | Slot | When | Question | Answer brief | Doubt |
 |---|---|---|---|---|
-| cost | always | How much does [SERVICE_LOWER] cost in [CITY]? | Prices only from [CV: price_list]; otherwise how the quote is given, from [CV: quote_method] only. The four cost cards above already give what moves the price: name one factor at most, never the list again. | Price |
+| cost | always | How much does [SERVICE_LOWER] cost in [CITY]? | Prices only from [CV: price_list]; otherwise how the quote is given, from [CV: quote_method] only. The cost cards hold the list: never repeat it or point to it. | Price |
 | timing | always | How long does [SERVICE_LOWER] take? | From the trade facts timing row only: no flooring job has a standard duration in the rows, so what decides it (the rooms, what comes up, the preparation underneath), then the waits that come before or after the fitting day where the rows give them for this service (a screed dried until the test says so, the heating cycle run first, the material's time in the room as its instructions require, a finish curing before the furniture goes back). A figure only where the row gives one and only as the row gives it (a cited lacquer's times are one product's, never every finish's). Nothing about when the job can start unless [CV: start_time] is set. This is the one place the timing is written. | Timing |
 | cover | guarantee | Do you guarantee your [SERVICE_LOWER] work? | Start with yes, then the terms from [CV: guarantee_years] and [CV: guarantee_scope]. Described, never promised. The fitting guarantee and the product's own warranty are two things; never a lifespan. | Trust |
 | cover | insurance | Are you insured for [SERVICE_LOWER]? | The cover figure from [CV: insurance_cover] and what the cover is for. Never what it pays or who it covers. | Trust |
@@ -426,3 +426,20 @@ Things a brief wanted that neither the calibration pack nor the trade facts pack
 8. **Leases in flats.** Table E says a lease may restrict hard floors and must be checked individually, and that the acoustic rule is a performance figure for the whole floor construction, never an underlay. The briefs say "the lease checked, never assumed" and "never an underlay claim on its own", with no figure. A client who fits in blocks often will know the usual lease wording; it goes in client facts, not here.
 9. **Safety and commercial flooring.** The pack's requirement led split is written into card 1 of the service block 4 and into the words_avoid exception for "specification". Table C and E say slip, fire and acoustic performance come from the product data and the premises' own assessment, so no brief names a rating, a class or a scheme. A client who does this work should confirm it in jobs_wanted before those pages are made.
 10. **The pack's homepage voice.** Section 1 names three readers but gives no fears list as such; the four fears above are drawn from its first reader's paragraph and its section 7 (a floor laid over whatever is underneath, a new floor sold where a repair would do). Brandon to confirm they are the right four.
+
+## Service tags
+
+An element is dropped, and the next eligible one used, when the client has confirmed none of these services. The paths are in the .json as `needs`.
+
+| Element | Needs |
+|---|---|
+| Is it better to repair a worn floor or replace it? | Floor repairs; Floor sanding and restoration; Carpet repairs and re stretching |
+| Can I have a wood or LVT floor over underfloor heating? | Wood flooring; LVT flooring; Laminate and LVT flooring; Parquet and herringbone flooring |
+| What the last owner left on the floor | Floor removal and uplift |
+
+## Idea homes
+
+- **a new screed left to dry until a moisture test says it is ready** (service): home is the 'how long does [SERVICE_LOWER] take' FAQ. Elsewhere: the 'A floor that went down too soon' card names the cause without the drying wait or the test; the 'What it will need from you' card leaves out the screed wait.
+- **damp in a solid floor or new screed tested for before a floor goes down** (category): home is the 'A floor spoiled from underneath by damp' card. Elsewhere: the 'What is under the floor now' cost card names damp only as a price item; the how long FAQ gives the wait only, not the cause.
+- **the town's housing eras: timber boards over a void against a slab** (location): home is the 'Floors built the way the houses were' card. Elsewhere: the 'What the house was built on' cost card gives only the work it adds; the cost FAQ names it in a phrase; the how long FAQ gives only the effect on time.
+- **old floors layered on top of each other** (location): home is the 'Old floors with more than one layer' card. Elsewhere: the 'What the last owner left on the floor' cost card gives only what it adds to the work; the cost FAQ names it in a phrase.

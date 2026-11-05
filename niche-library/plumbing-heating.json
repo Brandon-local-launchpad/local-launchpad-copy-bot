@@ -150,14 +150,16 @@
       "question": "How long does it take to fit a new boiler?",
       "answer_brief": "The trade facts give no standard duration, so give what decides it and no number: a boiler going back in the same place with its connections reused against a change of type or position, the flue and condensate route, whether the system needs cleaning first, access. Say plainly that the heating and hot water are off while the change is made. Nothing about when the job can start (FAQ 4 owns it).",
       "symptom_based": false,
-      "doubt": "Timing"
+      "doubt": "Timing",
+      "needs": ["Boiler installation","Oil boilers"]
     },
     {
       "slot": "faq_B",
       "question": "Why are some of my radiators cold when the heating is on?",
       "answer_brief": "Use the assigned symptom's meaning and its linked local issue. Three genuinely different causes in plain words, each with its part: air trapped at the top of a radiator; sludge settled along the bottom, the deposit a system leaves as it corrodes inside; one radiator cold all over while the rest are hot, which is a valve stuck or the flow never balanced between them. Then what the local water or housing adds, then what is done about each. Never 'needs a new boiler'.",
       "symptom_based": true,
-      "doubt": "Process"
+      "doubt": "Process",
+      "needs": ["Radiators","Central heating repairs","Central heating servicing","Power flushing"]
     },
     {
       "slot": "faq_C",
@@ -165,7 +167,8 @@
       "answer_brief": "Most faults are one part, and a repair is not a replacement. Say honestly what tips it: parts no longer made, a heat exchanger gone, the same fault back more than once in a winter. Never an age as the reason (the trade facts record no verified lifespan) and never a rule that old boilers are banned (the trade facts: no in force ban on replacing a gas boiler in an existing home). Link the boiler repairs or boiler installation page where LINKABLE PAGES has one.",
       "symptom_based": false,
       "is_fallback": true,
-      "doubt": "Process"
+      "doubt": "Process",
+      "needs": ["Boiler repairs","Boiler installation","Oil boilers"]
     },
     {
       "slot": "faq_D",
@@ -173,7 +176,8 @@
       "answer_brief": "From the trade facts rows only: no yearly legal duty for an owner occupier was established; a maker's guarantee usually asks for a yearly service and a record of it; a landlord has a separate yearly gas safety check and record. Say what a service covers (the trade facts boiler servicing stages: the burner, the flue, the safety devices, the maker's own tests) and that it is more than a safety check. No fear selling on carbon monoxide, nothing about the reader's boiler being unsafe. No dates.",
       "symptom_based": false,
       "is_fallback": true,
-      "doubt": "Timing"
+      "doubt": "Timing",
+      "needs": ["Boiler servicing"]
     },
     {
       "slot": "faq_E",
@@ -181,7 +185,8 @@
       "answer_brief": "The legal position as a fact of the trade, from the trade facts rows: paid gas work in a home is done by an engineer on the Gas Safe Register, registered for that kind of work, and the customer can check the card and the register. The business's own registration and number only from [CV: verified_logos] and the accreditation client values; when none is on file, the rule alone and nothing about this business. Never a boast, never 'approved' or 'certified' (the register registers).",
       "symptom_based": false,
       "is_fallback": true,
-      "doubt": "Trust"
+      "doubt": "Trust",
+      "needs": ["Boiler installation","Boiler servicing","Boiler repairs","Gas safety certificates","Gas appliance installation"]
     },
     {
       "slot": "faq_planning",
@@ -189,7 +194,8 @@
       "answer_brief": "Point at the trade facts rule rows (Table C) and write what usually applies, with \"usually\" or \"in most cases\": a new boiler is notified to building control, which an installer on the right competent person scheme does for the customer; an unvented cylinder the same; an air source heat pump in a garden is usually allowed without a planning application when it meets the conditions on size, position and noise, and a listed home or a flat is different; a ground source heat pump has its own environmental permissions. What the customer does about it only as the row gives it. No figure, no volume, no decibel, never a regulation's, an order's or a scheme's number.",
       "symptom_based": false,
       "condition": "big_ticket AND [CV: handles_planning] confirmed",
-      "doubt": "Process"
+      "doubt": "Process",
+      "needs": ["Boiler installation","Oil boilers","Air source heat pumps","Ground source heat pumps"]
     }
   ],
   "faq_slots_by_type": {},
@@ -249,17 +255,20 @@
           {
             "title": "Radiators that never get properly hot",
             "brief": "Problem led, the pack's Central Heating Service brief: a radiator cold across the top, one cold along its bottom edge, one cold all over while the rest are hot, a room that never warms. The one cause this card makes: water not getting round every radiator. Separate the three in plain words with the part named: air trapped at the top; the deposit a system leaves as it corrodes inside, settled along the bottom; a valve stuck or the flow never balanced between the radiators (the trade facts radiators and power flushing rows). What is done about each, from the stages: bled, cleaned or flushed and treated, the valve freed or changed and the system balanced; the cleaning method chosen for the system, never a machine flush as compulsory (the trade facts). By category: Central Heating Service reads it as the system, its circulation and its water; Gas Engineer as what a service or a flush finds (the water condition and the filter, from the servicing stages); Plumber as a valve weeping or a joint at the radiator letting water out. Never a product, never 'needs a new boiler'.",
-            "mechanism": "water not getting round every radiator"
+            "mechanism": "water not getting round every radiator",
+            "needs": ["Radiators","Central heating repairs","Central heating servicing","Power flushing"]
           },
           {
             "title": "A boiler that keeps cutting out or needing topping up",
             "brief": "Problem led: a fault code on the display, a lockout on a cold morning, the pressure gauge down again a week after it was topped up, water under the boiler (the trade facts boiler repairs signs row). The one cause this card makes: water leaving a sealed system somewhere. Name where it usually goes, in plain words: a radiator valve weeping onto the floor, a joint leaking beneath a floor, or the relief valve passing water out through its overflow pipe outside because the expansion vessel has lost its charge of air. Topping the pressure up each week only puts off the find. What a visit does: the fault recorded, the system made safe, the diagnosis made against the maker's instructions, the part changed and the boiler tested (the trade facts stages). By category: Gas Engineer reads it inside the boiler, which is registered gas work and never a job for the reader beyond reading the code and the gauge; Central Heating Service on the system side, the valves and joints, linking the leak detection page where LINKABLE PAGES has one; Plumber as the leak itself. Not a frozen condensate pipe: the seasonal card owns that.",
-            "mechanism": "water leaving a sealed system somewhere"
+            "mechanism": "water leaving a sealed system somewhere",
+            "needs": ["Boiler repairs","Central heating repairs","Oil boilers"]
           },
           {
             "title": "A service or gas check that has slipped",
             "brief": "Schedule led, the pack's Gas Engineer brief for planned pages: what slips when a service or a check is missed, written as what the visit catches and never as fear. The one cause this card makes: wear nobody has looked at since the last service. Gas Engineer reads it as the yearly boiler service (the trade facts stages: the installation and its history checked, the boiler and the flue inspected, the maker's own cleaning and tests, the safety devices, the record), what a missed service leaves to wear on through another winter (the skipped row: faults in the flue or the burner found by nobody, deterioration carrying on), and the landlord's yearly check and record: who needs it and when, the record given to the tenants, the early check window as the trade facts rule row gives it, with 'usually' and never the regulation's name; a service is more than a safety check (the trade facts: the maker's inspection and tests on top). For an owner occupier the yearly service is a maker's guarantee condition where the trade facts guarantee row has it, never a legal duty. Central Heating Service reads it as the system check: the water condition, the inhibitor, the filter, the controls (the central heating servicing stages). Plumber reads it as the unvented cylinder's check only as the maker's instructions give it (the trade facts: no universal yearly interval), else the stopcock, the tank in the loft and the overflow looked at. Never fear selling on carbon monoxide, never that the reader's boiler is unsafe.",
-            "mechanism": "wear nobody has looked at since the last service"
+            "mechanism": "wear nobody has looked at since the last service",
+            "needs": ["Boiler servicing","Gas safety certificates","Central heating servicing"]
           },
           {
             "title": "Water where it shouldn't be",
@@ -365,7 +374,8 @@
             {
               "title": "No heating or hot water in the cold",
               "brief": "The reader's situation: a fault code on the display, a boiler that will not fire, the pressure gauge at nothing, radiators stone cold in a frost (the trade facts boiler repairs signs row). The one cause this card makes: one fault locking the whole boiler out. What the customer can safely do first: read the fault code and the pressure gauge and tell us what they say; nothing inside the casing, which is registered gas work. Why it can't wait: a cold house, and water standing in pipes that can freeze while the heating is off. What usually happens: the fault diagnosed against the maker's instructions, the part changed where it is to hand, the boiler tested and put back into service; where the part has to be ordered, the system left safe and a return booked (the trade facts stages and the parts availability line). Most faults are one part: never 'needs a new boiler'. A gas fitting found unsafe is turned off with the customer's permission and not used until it is put right (the trade facts unsafe situations rows), written calmly. By category: Gas Engineer leads; Central Heating Service reads it as the pump, a motorised valve or the controls (the central heating repairs stages); Plumber as the hot water cylinder or its immersion heater. Never a same day promise unless [CV: same_day_available] is yes.",
-              "mechanism": "one fault locking the whole boiler out"
+              "mechanism": "one fault locking the whole boiler out",
+              "needs": ["Boiler repairs","Central heating repairs","Oil boilers"]
             },
             {
               "title": "A smell of gas, or a carbon monoxide alarm sounding",
@@ -375,7 +385,8 @@
             {
               "title": "The only toilet blocked, or a sink that won't go down",
               "brief": "The reader's situation: the only toilet in the house blocked, waste water coming back up a sink or a shower tray, a gurgle from the plughole, a smell from the drain outside (the trade facts blocked drains signs row). The one cause this card makes: a blockage sending waste water back the way it came. Why it can't wait: the waste backs up into the fixtures and can overflow (the skipped row). What usually happens: the fixtures affected identified, the trap or the inspection point checked, the obstruction cleared, the flow tested, and a blockage that keeps coming back investigated for a damaged drain (the trade facts stages). Whose drain it is, from the trade facts: the homeowner's own drain against the sewer company's shared and public sections, with 'usually' and never the Act's name; no water or a flood on the whole street is the water company, said so the reader calls the right people. By category: Plumber leads; Gas Engineer and Central Heating Service read it as the condensate pipe blocked or frozen, which locks the boiler out. Never a chemical the client values do not give.",
-              "mechanism": "a blockage sending waste water back the way it came"
+              "mechanism": "a blockage sending waste water back the way it came",
+              "needs": ["Blocked drains and sinks"]
             }
           ]
         },
@@ -554,7 +565,7 @@
         {
           "slot": "cost",
           "question": "How much does [SERVICE_LOWER] cost in [CITY]?",
-          "answer_brief": "Prices only from [CV: price_list]; otherwise how the quote is given, from [CV: quote_method] only, and a call out fee only from [CV: quote_call_out_fee]. The four cost cards above already give what moves the price: name one factor at most, never the list again.",
+          "answer_brief": "Prices only from [CV: price_list]; otherwise how the quote is given, from [CV: quote_method] only, and a call out fee only from [CV: quote_call_out_fee]. The cost cards hold the list: never repeat it or point to it.",
           "doubt": "Price"
         },
         {
@@ -621,22 +632,26 @@
             {
               "title": "An old boiler you're deciding whether to keep",
               "brief": "The customer's situation: a boiler that has had a repair or two, a house bought with a boiler nobody knows, an extension to heat, a gas fire or cooker to add. What decides it: what the boiler sits on and whether its parts are still made: the pipework and the system water a new boiler would inherit (the trade facts boiler installation stages: the system cleaned and treated before the new one goes on), the heating demand and the hot water demand that choose a combi or a system boiler (the trade facts: no bedroom count rule), the flue and condensate route, and the faults the old one has been having (parts no longer made, a heat exchanger gone, the same fault back more than once). What the work gives them: the right type of boiler for the house on a clean system, set up and recorded, notified to building control, with the controls the trade facts rule row asks for on a combi in an existing home ('usually', never the standard's name). Leads on the Boiler installation page; Gas appliance installation reads it as the fire, cooker or LPG boiler and the supply, ventilation and flue it needs (the trade facts stages). Never an age as the reason, never a ban or a deadline (the trade facts: no in force ban), never 'hydrogen ready' as more than a maker's description.",
-              "mechanism": "what the boiler sits on, and whether its parts are still made"
+              "mechanism": "what the boiler sits on, and whether its parts are still made",
+              "needs": ["Boiler installation","Oil boilers"]
             },
             {
               "title": "A house, an extension or a room the heating never reached",
               "brief": "The customer's situation: a house with no central heating or with storage heaters, an extension or a loft room, a conservatory, one room that is always cold. What decides it: the heat each room loses and what can deliver it: a room by room heat loss calculation, the radiators or the floor that can give that heat at the flow temperature the heat source runs at, the pipe routes, the floor build up and the covering on top for underfloor heating (the trade facts central heating installation and underfloor heating stages and the covering row: tiles conduct, thick carpet holds the heat back). What the work gives them: a system designed for the house, filled, cleaned, treated and balanced so every room reaches its temperature (the trade facts stages); a warm floor laid on insulation so the heat goes up and not down (the skipped row). Leads on the Central heating installation and Underfloor heating pages. Never a running cost or a saving; the screed's drying time only as the trade facts row gives it, never written here.",
-              "mechanism": "the heat each room loses and what can deliver it"
+              "mechanism": "the heat each room loses and what can deliver it",
+              "needs": ["Central heating installation","Radiators","Underfloor heating"]
             },
             {
               "title": "Thinking about a heat pump",
               "brief": "The customer's situation: off the gas grid with an oil tank, a boiler near the end of its useful life, an extension, a wish to come off gas. What decides it: whether the house, its radiators and its hot water suit lower temperature heating: a heat loss survey, the radiators assessed at the lower water temperature rather than all replaced (the trade facts radiator sizing row), a cylinder for the hot water, where the outdoor unit can stand and the noise conditions it has to meet, or the ground for a loop or a borehole (the trade facts air source and ground source stages, the planning rows with 'usually' and never the volume, the distance or the decibel figure). What the work gives them: a design for their house and a certified installation; the grant only as the trade facts rows give it, the installer applying and the owner confirming, never a figure or eligibility written here. Leads on the Air source heat pumps and Ground source heat pumps pages. Never a bill saving (the trade facts: a performance figure does not establish a household's running cost), never 'heat pumps don't work in old houses' or its opposite as a promise.",
-              "mechanism": "whether the house, its radiators and its hot water suit lower temperature heating"
+              "mechanism": "whether the house, its radiators and its hot water suit lower temperature heating",
+              "needs": ["Air source heat pumps","Ground source heat pumps"]
             },
             {
               "title": "A bathroom, shower, softener or garden tap you've been meaning to sort",
               "brief": "The customer's situation: a new bathroom, a proper shower in place of a trickle over the bath, hard water furring up every kettle and shower head, a tap in the garden for the hose. What decides it: the supply, the waste and the wiring the new fitting needs: the pressure and the hot water supply that choose a mixer or an electric shower and whether a new electrical circuit is needed (the trade facts shower stages and the electrical rule row, with 'usually'), where the waste can run and how the wet area is waterproofed (bathroom installation stages), a drinking tap left unsoftened (the trade facts water softener rows), the route for an outside tap and the protection it needs against backflow and frost (the outside taps stages and rule row: an ordinary hose tap usually needs no water company notice, and does need its check valve). What the work gives them: a fitting that suits the supply the house has, tested and left dry. Leads on the Bathroom installation, Shower installation and repair (a new shower; a shower that has failed is written from the trade facts signs row instead), Water softeners and Outside taps and garden plumbing pages. Never an invented leak or a weak shower as the opener on a new bathroom.",
-              "mechanism": "the supply, the waste and the wiring the new fitting needs"
+              "mechanism": "the supply, the waste and the wiring the new fitting needs",
+              "needs": ["Bathroom installation","Shower installation and repair","Water softeners","Outside taps and garden plumbing"]
             }
           ]
         },
@@ -689,7 +704,8 @@
             {
               "title": "A boiler that's stopped in a cold spell",
               "brief": "A fault code, a lockout, the pressure gauge at nothing, radiators cold in a frost, no hot water (the trade facts boiler repairs signs row). The one cause this card makes: a frozen condensate pipe or a single failed part. What the customer safely does first: read the fault code and the gauge and tell us; nothing inside the casing, which is registered gas work. What usually happens: a frozen condensate pipe thawed and the boiler reset (the pack's seasonal line); otherwise the fault diagnosed against the maker's instructions, the part changed where it is to hand, the boiler tested; a part to order means the system left safe and a return booked (the trade facts stages and the parts availability line). A gas fitting found unsafe is turned off with the customer's permission and not used until put right (the trade facts unsafe situations rows), said calmly. Leads on the Boiler repairs page; Central heating repairs reads it as one circuit cold, a pump or a motorised valve, a joint leaking on the heating side (the trade facts stages). On the Emergency plumber and heating engineer page the card also carries the smell of gas and the carbon monoxide alarm: the gas emergency line first, with the number only as the trade facts CO row gives it, the fitting off, the windows open; this business comes after. Most faults are one part: never 'needs a new boiler', never a same day promise unless [CV: same_day_available] is yes.",
-              "mechanism": "a frozen condensate pipe or a single failed part"
+              "mechanism": "a frozen condensate pipe or a single failed part",
+              "needs": ["Boiler repairs","Oil boilers"]
             },
             {
               "title": "A smell of gas, or an alarm going off",
@@ -699,7 +715,8 @@
             {
               "title": "Waste water that comes back after you've cleared it",
               "brief": "The only toilet blocked, a sink or a shower tray filling with grey water, a gurgle from another plughole when one is emptied, a smell from the drain outside (the trade facts blocked drains signs row). The one cause this card makes: a blockage further down than the trap, so clearing the trap or plunging the bowl brings it back (the done badly row). Why it can't wait: the waste backs up into the fixtures and can overflow (the skipped row). What usually happens: the fixtures affected identified, the trap and then the inspection point checked, the obstruction cleared, the flow tested, a blockage that keeps returning investigated for a damaged drain (the trade facts stages). Whose drain it is, from the trade facts drain ownership row, with 'usually' and never the Act's name. Leads on the Blocked drains and sinks page; on Boiler repairs and the heating pages it reads as a condensate pipe blocked or frozen. Never a chemical the client values do not give.",
-              "mechanism": "a blockage further down than the trap"
+              "mechanism": "a blockage further down than the trap",
+              "needs": ["Blocked drains and sinks"]
             }
           ]
         },
@@ -811,7 +828,8 @@
           {
             "title": "Off the gas grid, or in a flat",
             "brief": "A village with no gas main where the houses run on oil, LPG or a heat pump; flats and conversions where a flue has nowhere to go and the supply is shared. The one cause this card makes: the fuel the street has and where a flue can go, from the town profile only. Say what it means for the work in plain words: an oil boiler brings its tank and the tank's siting into the job (the trade facts oil boiler stages; a bund only as the rule row gives it, never the litres), a heat pump needs a place for its outdoor unit that meets the conditions ('usually', never the figures), a flat's boiler goes where the flue can be taken out. Never a grant figure or eligibility. Not whether a heat pump suits the house: the service page owns that.",
-            "mechanism": "the fuel the street has and where a flue can go"
+            "mechanism": "the fuel the street has and where a flue can go",
+            "needs": ["Oil boilers","Air source heat pumps","Ground source heat pumps","Boiler installation"]
           }
         ]
       },
@@ -820,7 +838,8 @@
         "cards": [
           {
             "title": "Where the boiler can go and where the flue comes out",
-            "brief": "A terrace with one outside wall, a flat where the flue has to reach the open air, a listed house or a conservation area where consent comes first ('usually', never the area's official name), a boiler moved from a chimney breast to an outside wall: what the route in and the route out add to a job, from the trade facts price rows. The town profile says which streets are which. No figure."
+            "brief": "A terrace with one outside wall, a flat where the flue has to reach the open air, a listed house or a conservation area where consent comes first ('usually', never the area's official name), a boiler moved from a chimney breast to an outside wall: what the route in and the route out add to a job, from the trade facts price rows. The town profile says which streets are which. No figure.",
+            "needs": ["Boiler installation","Gas appliance installation","Oil boilers"]
           },
           {
             "title": "What the old system leaves to deal with",
@@ -886,7 +905,8 @@
           "slot": "timing",
           "question": "Can you do heating work in [TOWN] through the winter?",
           "answer_brief": "From the trade facts timing cells: yes, this work runs all year; a boiler or heating change means a spell without heating while it is done, said plainly; a frost is when exposed pipes and condensate pipes freeze, so a burst found in a cold snap is repaired with protection against the next one. Where the town profile gives the housing (pipes in a cold loft, an outside tap on every house), say what it means for that. Nothing about winter being busy. No dates.",
-          "doubt": "Timing"
+          "doubt": "Timing",
+          "needs": ["Central heating installation","Central heating repairs","Boiler installation","Boiler repairs","Boiler servicing"]
         }
       ]
     }
@@ -1100,5 +1120,79 @@
         }
       ]
     }
-  }
+  },
+  "idea_homes": [
+    {
+      "topic": "what to do before the engineer arrives: the stopcock shut, wet electrics left alone, the fault code and gauge read, nothing inside the casing",
+      "home": "the 'What should I do before you arrive?' FAQ",
+      "elsewhere": "the block 4 cards, the 'Stopping the water and making it safe' cost card and the 'Call Us' step name the situation without restating the stopcock or fault code instructions",
+      "pages": [
+        "service"
+      ]
+    },
+    {
+      "topic": "a smell of gas: the gas emergency line first, the fitting off, the windows open",
+      "home": "the block 4 card 'A smell of gas, or an alarm going off'",
+      "elsewhere": "the cost card, the 'Call Us' step and the before-you-arrive and is-this-an-emergency FAQs say only that gas goes to the emergency line, without repeating the steps",
+      "pages": [
+        "service"
+      ]
+    },
+    {
+      "topic": "what to do before the engineer arrives: the stopcock shut, wet electrics left alone, the fault code and gauge read",
+      "home": "the 'What should I do before you arrive?' FAQ",
+      "elsewhere": "the emergency block 4 cards, the 'Stopping the water and making it safe' cost card and the 'Call Us' step do not restate the stopcock or fault code instructions",
+      "pages": [
+        "category"
+      ]
+    },
+    {
+      "topic": "a smell of gas or a carbon monoxide alarm: the gas emergency line first, the fitting off, the windows open",
+      "home": "the block 4 card 'A smell of gas, or a carbon monoxide alarm sounding'",
+      "elsewhere": "the cost card, the 'Call Us' step and the FAQs say only that gas goes to the emergency line, without repeating the steps",
+      "pages": [
+        "category"
+      ]
+    },
+    {
+      "topic": "the spell without heating or hot water while the work is done",
+      "home": "the 'How long does [SERVICE_LOWER] take?' FAQ",
+      "elsewhere": "the seasonal card, the seasonal FAQ and the fit steps do not describe the spell without heating again",
+      "pages": [
+        "service"
+      ]
+    },
+    {
+      "topic": "frost freezing condensate and exposed pipes, with protection added when they are repaired",
+      "home": "the seasonal block 4 card 'What the first frost does to it'",
+      "elsewhere": "the winter FAQ and the boiler emergency card do not explain freezing pipes again",
+      "pages": [
+        "service"
+      ]
+    },
+    {
+      "topic": "frost freezing condensate and exposed pipes, with protection added when they are repaired",
+      "home": "the seasonal block 4 card 'The first cold snap finds the weak spot'",
+      "elsewhere": "the 'good time of year' and 'done in winter' FAQs do not explain freezing pipes again",
+      "pages": [
+        "category"
+      ]
+    },
+    {
+      "topic": "gas work done by an engineer on the Gas Safe Register",
+      "home": "the 'Does [SERVICE_LOWER] need anything signed off or notified?' FAQ",
+      "elsewhere": "the servicing and installation steps do not restate the register",
+      "pages": [
+        "service"
+      ]
+    },
+    {
+      "topic": "the room by room heat loss survey",
+      "home": "step 2, 'We Look at the ... and Price the Job'",
+      "elsewhere": "the desire cards say what decides the job without describing the survey",
+      "pages": [
+        "service"
+      ]
+    }
+  ]
 }

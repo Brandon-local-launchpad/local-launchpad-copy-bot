@@ -131,7 +131,7 @@ Why it works: one chain of consequence the customer would recognise, from cracke
 
 ```
 cat_faq_items:
-  - faq_question: Someone knocked and said my roof needs work. Should I worry? | faq_answer: Not until someone you chose has looked at it. Doorstep callers often point to a loose tile or ridge to start a conversation, and some push for a decision or payment on the day. A fair roofer is happy to show you photographs of what they found and to put the work in writing, and a second opinion is always reasonable.
+  - faq_question: Someone knocked and said my roof needs work. Should I worry? | faq_answer: Not until someone you chose has looked at it. Doorstep callers often point to a loose tile or ridge to start a conversation, and some push for a decision or payment on the day. Photographs of what was found and the work set out in writing let you check it for yourself, and a second opinion is always reasonable.
 ```
 
 Why it works: the answer comes first in under 15 words, it speaks to the trade's trust gap honestly, and it describes what fair practice looks like without claiming it as this business's own.

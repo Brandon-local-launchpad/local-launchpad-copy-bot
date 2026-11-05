@@ -291,7 +291,7 @@ Three framings share this one entry, per the pack's section 2: a problem led pag
 
 | Slot | When | Question | Answer brief | Doubt |
 |---|---|---|---|---|
-| cost | always | How much does [SERVICE_LOWER] cost in [CITY]? | Prices only from [CV: price_list]; otherwise how the quote is given, from [CV: quote_method] only. The four cost cards above already give what moves the price: name one factor at most, never the list again. | Price |
+| cost | always | How much does [SERVICE_LOWER] cost in [CITY]? | Prices only from [CV: price_list]; otherwise how the quote is given, from [CV: quote_method] only. The cost cards hold the list: never repeat it or point to it. | Price |
 | timing | always | How long does [SERVICE_LOWER] take? | From the trade facts timing row only: the pack gives no standard duration for any of this trade's jobs, so say what decides it (the size of the surface, how much has built up, height and access) and where the waiting is (a treatment left for the time its label gives, a sealer that goes on only once the surface has dried and then needs keeping off while it cures). No figure. Nothing about when the job can start unless [CV: start_time] is set. This is the one place the timing is written. | Timing |
 | cover | guarantee | Do you guarantee your [SERVICE_LOWER] work? | Start with yes, then the terms from [CV: guarantee_years] and [CV: guarantee_scope]. Described, never promised; never a promise the growth will not return or the stain is gone. | Trust |
 | cover | insurance | Are you insured for [SERVICE_LOWER]? | The cover figure from [CV: insurance_cover] and what the cover is for. Never what it pays or who it covers. | Trust |
@@ -361,3 +361,27 @@ Draft, 4 Nov 2026. Used by the location page job (CORE (18)): block 4 (the probl
 - **Hosepipe bans.** The facts give the rule (a paid cleaner is not automatically exempt; the water company's notice governs). Ask the client what they do in a ban, so faq_F can say it.
 - **Commercial sites.** Trade effluent consent and oil traps are the site's to arrange (Table C). Ask a commercial client whether they collect wash water and hold a waste carrier registration, so the car park, industrial and sealing pages can say so.
 - **Trade bodies.** The Soft Washing Association, the Pressure Washing Association (UK) and Resiblock approved installers could not be verified (Table G) and are not in the logo tiers; a client who claims one needs the certificate for Ray.
+
+## Alternate Why title that promises a practice (why_title_practice)
+
+"The Right Method for Every Surface" stands only with a practice no tick confirms, so never by default; otherwise the point reads "Our Track Record".
+
+## Service tags
+
+An element is dropped, and the next eligible one used, when the client has confirmed none of these services. The paths are in the .json as `needs`.
+
+| Element | Needs |
+|---|---|
+| How long will my drive or patio stay clean? | Driveway and patio cleaning |
+| Why has my drive gone green again so soon after it was cleaned? | Driveway and patio cleaning |
+| Can a jet wash harm my paving? | Driveway and patio cleaning |
+| Do I need permission to have my walls cleaned? | Brick and stone cleaning; Graffiti removal |
+| A stain that's soaked in | Oil and rust stain removal; Graffiti removal |
+| Conservation areas and listed buildings | Brick and stone cleaning; Render cleaning; Graffiti removal |
+
+## Idea homes
+
+- **growth regrows when the clean only knocked off the top and left the roots in the pores and joints** (homepage): home is the 'Why has my drive gone green again so soon after it was cleaned?' FAQ. Elsewhere: the 'How long will my drive or patio stay clean?' FAQ names only what slows the return and does not explain roots left behind; the soft wash FAQ sticks to how the two methods differ.
+- **how the price is reached (visit, photos, call)** (homepage): home is the 'How do your quotes work?' FAQ. Elsewhere: the pricing step says only that a price is agreed before work starts; the 'free and no obligation' FAQ answers only the free question.
+- **how the quote is given and that the business looks before it prices** (category): home is the 'What happens when I ask for a quote?' FAQ. Elsewhere: the 'How much has built up' cost card and the cost FAQ do not describe the quoting method.
+- **wash water kept out of drains that run to the local stream, then collected and taken away** (location): home is the 'Where the wash water has to go' cost card. Elsewhere: the 'Drains that run straight to the stream' card names the drain and the stream but does not describe collecting the water; the cost FAQ names the water only as one price factor in a few words.

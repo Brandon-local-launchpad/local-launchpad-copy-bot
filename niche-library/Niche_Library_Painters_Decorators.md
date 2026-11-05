@@ -275,7 +275,7 @@ Three framings share this one entry, per the pack's section 2: a problem led pag
 
 | Slot | When | Question | Answer brief | Doubt |
 |---|---|---|---|---|
-| cost | always | How much does [SERVICE_LOWER] cost in [CITY]? | Prices only from [CV: price_list]; otherwise how the quote is given, from [CV: quote_method] only. The four cost cards above already give what moves the price: name one factor at most, never the list again. | Price |
+| cost | always | How much does [SERVICE_LOWER] cost in [CITY]? | Prices only from [CV: price_list]; otherwise how the quote is given, from [CV: quote_method] only. The cost cards hold the list: never repeat it or point to it. | Price |
 | timing | always | How long does [SERVICE_LOWER] take? | From the trade facts timing row only: the pack gives no standard duration for any decorating job, so give what decides it (the preparation the surfaces need, the coats and the drying between them, which follows the paint and the warmth and air in the room; outside, a dry spell) and no number unless [CV: typical_jobs] confirms one. Nothing about when the job can start unless [CV: start_time] is set. This is the one place the timing is written. | Timing |
 | cover | guarantee | Do you guarantee your [SERVICE_LOWER] work? | Start with yes, then the terms from [CV: guarantee_years] and [CV: guarantee_scope]. Described, never promised. | Trust |
 | cover | insurance | Are you insured for [SERVICE_LOWER]? | The cover figure from [CV: insurance_cover] and what the cover is for. Never what it pays or who it covers. | Trust |
@@ -355,3 +355,22 @@ Used by the location page job (CORE (18)): block 4 (the problems the town's home
 - **Commercial decorating** has no client value of its own (out of hours, phasing, a landlord's cycle). The briefs write it only where the services list has the page and only as an arrangement for a job; ask Ray whether a `[CV: commercial_work]` style value should gate it.
 - **Dulux Select's workmanship guarantee** (Table D: a two year guarantee under the scheme's terms) is never written unless the client is verified on the scheme and the guarantee is in [CV: guarantee_years] and [CV: guarantee_scope]; the Crown and Farrow and Ball schemes are not verified and are never shown.
 - **Fence and gate painting** are aliased from this library to the fencing library's Fence staining and treatment page; their briefs are that entry's. Ask Ray whether a decorator who lists them should read a woodwork card here instead.
+
+## Service tags
+
+An element is dropped, and the next eligible one used, when the client has confirmed none of these services. The paths are in the .json as `needs`.
+
+| Element | Needs |
+|---|---|
+| Do I need permission to repaint the outside of my house? | Exterior painting |
+| Paint lifting off sills, frames and doors | Exterior painting; Woodwork and timber finishing; Sash window and timber restoration |
+| Units, doors and stairs you want kept, not replaced | Furniture and kitchen painting; Woodwork and timber finishing |
+| Outside walls and timber facing the weather | Exterior painting |
+| Shops, offices and lets turned round between tenants | Commercial decorating |
+| Conservation areas and listed homes | Exterior painting; Sash window and timber restoration |
+| The weather side of the house | Exterior painting |
+
+## Idea homes
+
+- **the exposed elevation and painting it in a dry, settled spell** (location): home is the 'Outside walls and timber facing the weather' card. Elsewhere: the 'weather side of the house' cost card says only that exposure adds time, and the 'best time of year' FAQ gives the season without describing the town's exposure.
+- **old paint layers and older surfaces in the town's housing** (location): home is the 'Older houses with paint laid on paint' card. Elsewhere: the 'age of the surfaces' cost card says only that this adds time, and the cost FAQ names it in a phrase without explaining the layers.

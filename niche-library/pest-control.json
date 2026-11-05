@@ -70,7 +70,8 @@
     },
     {
       "title": "We Treat It, Then Close the Way In",
-      "brief": "What the visit does, from Table A: a wasp nest treated at its entrance with access made safe and people kept clear, the activity checked afterwards and the empty nest removed only if needed; for rats and mice, traps or protected bait points where justified, follow up visits to check them and to remove spent bait and bodies, then the entry points proofed (Table A stages; Table C: bait points protected, recorded and cleared at the end, as what the professional usually does, never the code's name). The follow up is part of the method with its reason in the animal, never a fixed number of visits. Never promise a one visit fix; never mention the price; never a promise the pest will not return."
+      "brief": "What the visit does, from Table A: a wasp nest treated at its entrance with access made safe and people kept clear, the activity checked afterwards and the empty nest removed only if needed; for rats and mice, traps or protected bait points where justified, follow up visits to check them and to remove spent bait and bodies, then the entry points proofed (Table A stages; Table C: bait points protected, recorded and cleared at the end, as what the professional usually does, never the code's name). The follow up is part of the method with its reason in the animal, never a fixed number of visits. Never promise a one visit fix; never mention the price; never a promise the pest will not return.",
+      "needs": ["Wasp nest removal","Rat and mouse control"]
     }
   ],
   "cover_chain": ["guarantee", "manufacturer_warranty", "insurance"],
@@ -181,7 +182,8 @@
       "answer_brief": "Point at the trade facts rule rows (Table C) and write what usually applies, with \"usually\" or \"in most cases\": netting, spikes or mesh on an ordinary house usually need no permission; on a listed building a fixture that affects its character usually needs consent first; a nest in use is protected whenever it is in use, with no calendar date, so the work is timed around it. What the customer does about it only as the row gives it. No figure, never an Act's or a licence's name.",
       "symptom_based": false,
       "condition": "big_ticket AND [CV: handles_planning] confirmed",
-      "doubt": "Process"
+      "doubt": "Process",
+      "needs": ["Bird control and proofing","Solar panel bird proofing"]
     }
   ],
   "faq_slots_by_type": {},
@@ -233,22 +235,26 @@
           {
             "title": "Scratching you hear after dark, or in the day",
             "brief": "Problem led, the pack's planned register: what they hear and when, from the Table B signs rows: scratching in the walls or above a bedroom ceiling at night with droppings and gnawed packaging below (rats and mice); scratching in the loft in the daytime with disturbed insulation and a damaged vent (grey squirrels); nesting material and droppings under the eaves (birds). The one cause this card makes: an animal that has found a gap into the roof or the floor void. Help the reader narrow it down without making it certain from the sound alone; say what finding it involves from Table A: the species confirmed, the loft and the roof access inspected, a check for protected wildlife before anything is done (bats and a roost are advice, never a treatment; a nest in use is protected whenever it is in use: Table C and E, as what usually applies and never the Act), then traps or protected bait where justified for rodents, cage traps for squirrels, and the entry closed only once the animals are out (Table B: sealing first traps them). A captured grey squirrel is not released (Table E), said plainly as the law the trade works to, never the order's name. What it leads to if left, from the skipped rows: gnawed cables and insulation, young born in the loft. Never a scare; never 'infestation'.",
-            "mechanism": "an animal that has found a gap into the roof or the floor void"
+            "mechanism": "an animal that has found a gap into the roof or the floor void",
+            "needs": ["Rat and mouse control","Squirrel control"]
           },
           {
             "title": "Droppings under the sink or along a skirting",
             "brief": "Problem led: droppings near food or the bins, gnawed packaging, holes round the pipes, a urine smell (Table B rat and mouse signs). The one cause this card makes: food and warmth within reach of an opening low down or in the drains: a hole where a pipe comes through, a broken air brick, a failed joint in an older drain that lets rats up into the floor void (Table E: rats can travel through drains). Say what the fix usually involves from Table A: the species identified, harbourage, food and entry points located, a plan that weighs children, pets and other animals, traps or protected bait points where justified, follow up to check them and remove spent bait and bodies, then the entry points proofed with mesh and cement; a drain camera where drain entry is suspected and a one way valve only where it fits, never as compulsory (Table E). The stewardship as what the professional usually does (Table C), never the code's name. Where rats or mice are there in numbers, the occupier usually has to tell the council in writing (Table C, with 'usually'). Rodents can carry disease: said once and plainly, never a statistic (the pack's craft rule). Never DIY poison, never shame.",
-            "mechanism": "food and warmth within reach of an opening low down or in the drains"
+            "mechanism": "food and warmth within reach of an opening low down or in the drains",
+            "needs": ["Rat and mouse control"]
           },
           {
             "title": "Wasps, bees or ants going in at one spot",
             "brief": "Problem led: wasps in and out of one hole under the eaves or in the brickwork, bees entering a cavity or clustered on a branch, ants in a line to food with small soil pellets at an entrance (Table B signs). The one cause this card makes: a colony living inside the fabric of the house or the ground, with its entrance where the traffic shows. Which insect it is decides everything (Table E: species identified before treatment; a cluster of honey bees may be a swarm). Wasps: the nest located, its exposure assessed, treatment at the entrance with a professional product chosen for the nest position, never named, the activity checked and the empty nest removed only if needed (Table A); a low risk nest in autumn may be left, since the colony abandons it (Table E). Bees: honey bees usually referred to a beekeeper where a swarm can be collected, a settled colony inside a wall needing the comb dealt with as well, bumblebee nests usually left because they finish by autumn, treatment only as a last resort (Table A and E); never 'all bees are protected' (Table E records no such law). Ants: the trail traced to the nest and a bait the workers carry back, since treating the trail alone leaves the colony, and some species spread into new nests when disturbed, which is why identification comes first (Table A and B). Never a product, never how to use a shop spray. Urgent nests by a door go to the emergency variant where it is on.",
-            "mechanism": "a colony living inside the fabric of the house, with its entrance where the traffic is"
+            "mechanism": "a colony living inside the fabric of the house, with its entrance where the traffic is",
+            "needs": ["Wasp nest removal","Bee removal and relocation","Ant control","Insect control"]
           },
           {
             "title": "Bites, and insects you only see at night",
             "brief": "Problem led: bites noticed after sleep with spotting at the mattress seams and cast skins (bed bugs); bites round the ankles, insects where a pet rests, activity after vacuuming (fleas); insects seen when a light goes on, around warm appliances, egg cases in cracks (cockroaches) (Table B signs). The one cause this card makes: eggs, pupae or egg cases in the fabric of the room that an incomplete treatment does not reach, so the numbers come back (Table B skipped rows). Say what the fix involves from Table A: inspection and identification, the harbourages and rooms mapped, contents prepared, a residual treatment or specialist heat or steam for bed bugs, pets treated separately through the vet and floors vacuumed for fleas, gel bait and monitors with harbourages sealed for cockroaches, then monitoring and a follow up where surviving stages emerge (Table E: a flea seen after treatment is usually newly emerged, not a failed job). A follow up as part of the method, never a fixed number of visits (Table G). Why the shop attempt fell short only as Table B states it (eggs that survive an incomplete intervention). Never shame, never 'dirty', never a product.",
-            "mechanism": "eggs, pupae or egg cases that an incomplete treatment never reaches"
+            "mechanism": "eggs, pupae or egg cases that an incomplete treatment never reaches",
+            "needs": ["Bed bug treatment","Flea treatment","Cockroach control","Insect control"]
           }
         ]
       },
@@ -328,13 +334,15 @@
         "problem_card": {
           "title": "Rodents moving indoors as the nights turn cold",
           "brief": "Say first what is normal at the turn of the year: wasps gone quiet and a nest found in winter usually empty, since the colony abandons it in autumn (Table A and E); ants not seen until the weather warms (Table A). Then what is not: scratching that starts as the nights draw in, droppings where there were none, gnawed packets in a cupboard. The one cause this card makes: the cold pushing rats and mice in to where there is warmth and food (Table A rat and mouse timing: indoor activity more apparent in colder weather). Say what gets looked at from Table A: the way in (pipes, air bricks, the roof line, the drain), food within reach, then traps or protected bait where justified and the proofing that follows; the farmland edge of town only where the town profile gives it. Nothing about autumn being busy or booking ahead; no dates.",
-          "mechanism": "the cold pushing rats and mice in to where there is warmth and food"
+          "mechanism": "the cold pushing rats and mice in to where there is warmth and food",
+          "needs": ["Rat and mouse control"]
         },
         "faq_slot": {
           "slot": "seasonal",
           "question": "Do you still deal with wasp nests in the autumn and winter?",
           "answer_brief": "From the Table A and E rows: wasp work runs mainly from spring to autumn; the colony abandons the nest in autumn, so a nest found in winter usually needs nothing, and a low risk nest can be left alone; what matters in the cold months is the rodent side, since indoor activity shows more in colder weather. Said with the reason in the animal's year, never as a busy or a quiet season. No dates.",
-          "doubt": "Timing"
+          "doubt": "Timing",
+          "needs": ["Wasp nest removal"]
         }
       },
       "emergency": {
@@ -347,15 +355,18 @@
             },
             {
               "title": "Getting to the nest or the run",
-              "brief": "How far the house is from the base and what it takes to reach the problem once there: a nest under the eaves three storeys up or inside a cavity, a loft with no boards, a run behind fitted units, a flat roof with no ladder access (Table F wasp nest removal: nest height, concealed location, special access equipment; Table F rat and mouse control: the number of rooms or buildings). Distance and access move the price; say why in plain words. Never an arrival time unless [CV: response_time] is set; never hours of cover unless [CV: out_of_hours_available] says so."
+              "brief": "How far the house is from the base and what it takes to reach the problem once there: a nest under the eaves three storeys up or inside a cavity, a loft with no boards, a run behind fitted units, a flat roof with no ladder access (Table F wasp nest removal: nest height, concealed location, special access equipment; Table F rat and mouse control: the number of rooms or buildings). Distance and access move the price; say why in plain words. Never an arrival time unless [CV: response_time] is set; never hours of cover unless [CV: out_of_hours_available] says so.",
+              "needs": ["Wasp nest removal","Rat and mouse control"]
             },
             {
               "title": "Finding it and dealing with it on the day",
-              "brief": "What is done first on a call out, from Table A: wasps confirmed rather than bees before anything is used (Table E: a cluster of honey bees can be a swarm), the nest found and how exposed it is judged, people and pets kept clear and access made safe, then the nest treated at its entrance; for rats and mice the species confirmed, the runs, the food and the ways in found, and traps or protected bait points set where justified. How long that takes is what the first part of the price pays for: a single nest reached from the ground against one in a wall void with a second entrance (Table F: multiple affected locations). Never a product's name unless [CV: materials_methods] gives it; never how a treatment is applied."
+              "brief": "What is done first on a call out, from Table A: wasps confirmed rather than bees before anything is used (Table E: a cluster of honey bees can be a swarm), the nest found and how exposed it is judged, people and pets kept clear and access made safe, then the nest treated at its entrance; for rats and mice the species confirmed, the runs, the food and the ways in found, and traps or protected bait points set where justified. How long that takes is what the first part of the price pays for: a single nest reached from the ground against one in a wall void with a second entrance (Table F: multiple affected locations). Never a product's name unless [CV: materials_methods] gives it; never how a treatment is applied.",
+              "needs": ["Wasp nest removal","Rat and mouse control"]
             },
             {
               "title": "What's in the van and what comes back later",
-              "brief": "The treatments, the traps and the bait points come with the technician; a longer ladder or a platform for a high nest, or drain equipment where the rats are coming up that way, may have to be brought (Table F: special access equipment; Table E: rats can travel through drains). What follows is a second visit priced as its own job: the activity at a treated nest checked and the empty nest taken down only if needed, the bait points and traps checked and cleared, the proofing of the ways in (Table A: monitoring and follow up, spent bait and bodies removed, entry points proofed). Say what decides it and give no figure. Code adds the price line from [CV: price_list] when there is one."
+              "brief": "The treatments, the traps and the bait points come with the technician; a longer ladder or a platform for a high nest, or drain equipment where the rats are coming up that way, may have to be brought (Table F: special access equipment; Table E: rats can travel through drains). What follows is a second visit priced as its own job: the activity at a treated nest checked and the empty nest taken down only if needed, the bait points and traps checked and cleared, the proofing of the ways in (Table A: monitoring and follow up, spent bait and bodies removed, entry points proofed). Say what decides it and give no figure. Code adds the price line from [CV: price_list] when there is one.",
+              "needs": ["Wasp nest removal","Rat and mouse control"]
             }
           ]
         },
@@ -365,17 +376,20 @@
             {
               "title": "A wasp nest beside a door you use",
               "brief": "The reader's situation: a stream of wasps at a spot beside a back door, by the bins, at a window that is opened, or where children play. The reason it won't keep: activity can increase as the colony develops and an occupied nest is a sting risk when disturbed (Table B); the strongest reason is someone in the house who reacts badly to a sting (the pack's section 2). The one cause this card makes: a colony defending its entrance where people have to pass. What usually happens when they call, from Table A: wasps confirmed rather than bees (treating the wrong insect harms bees: Table B), the nest located and its exposure assessed, access made safe and people kept clear, the treatment at the entrance, the activity checked afterwards. Meanwhile: keep people and pets away from the entrance and leave it alone; never a shop spray at it (Table B: disturbing an occupied nest without adequate control increases stings). Never a response time, round the clock cover or a call out promise unless [CV: response_time] or [CV: emergency_callouts] confirms it. Never medical detail about a reaction.",
-              "mechanism": "a colony defending its entrance where people have to pass"
+              "mechanism": "a colony defending its entrance where people have to pass",
+              "needs": ["Wasp nest removal"]
             },
             {
               "title": "Rats or mice inside the living space",
               "brief": "The reader's situation: a rat seen in the kitchen, droppings on a worktop or in a cupboard, gnawed food packets, scratching in the wall at night (Table B). The reason it won't keep: food within reach keeps them active, and gnawing damages cables, pipes and timber (Table B skipped row); rodents can carry disease, said once, plainly, never a statistic (the pack's craft rule 6). The one cause this card makes: rodents with a way in and food within reach. What usually happens when they call, from Table A: the species confirmed, harbourage, food and entry points found, a plan that weighs children, pets and other animals, traps or protected bait points where justified, follow up visits to check them and to remove spent bait and bodies, then the entry points proofed; a drain looked at where that is the route (Table A and E). Meanwhile: food into sealed containers, nothing laid from the shop (Table B: exposed bait risks pets and other animals; a body left behind a wall is the smell they fear). Never 'infestation', never shame, never a figure for how many.",
-              "mechanism": "rodents with a way in and food within reach"
+              "mechanism": "rodents with a way in and food within reach",
+              "needs": ["Rat and mouse control"]
             },
             {
               "title": "Droppings in a kitchen that serves the public",
               "brief": "The reader's situation: a cafe, a shop or a kitchen with droppings in a store, gnawed packaging, insects in a monitoring point, a sighting near the deliveries (Table B commercial signs). The reason it won't keep: pests can contaminate food (Table B), and a food business usually has to be able to show adequate procedures for controlling them, which an inspector will usually want to see on paper (Table C and E, as what usually applies, never the regulation's name; the hygiene rating is the council's, never the pest firm's). The one cause this card makes: activity that reaches the food before the next visit would have found it. What usually happens when they call, from Table A commercial: the site surveyed and the critical areas identified, controls and monitoring placed, the visit recorded with what was found and done, proofing and housekeeping recommended. Links the Commercial pest control page where LINKABLE PAGES has it. A contract never pushed on the back of a call out; a visit pattern only from [CV: visit_frequency_options]; records as this business's own practice only from the confirmed practices.",
-              "mechanism": "activity that reaches the food before the next visit would have found it"
+              "mechanism": "activity that reaches the food before the next visit would have found it",
+              "needs": ["Commercial pest control"]
             },
             {
               "title": "The first hour, before anyone arrives",
@@ -395,7 +409,8 @@
           },
           {
             "title": "We Treat It, Then Close the Way In",
-            "brief": "What the visit does, from Table A: a wasp nest treated at its entrance with access made safe and people kept clear, the activity checked afterwards and the empty nest removed only if needed; for rats and mice, traps or protected bait points where justified, follow up visits to check them and to remove spent bait and bodies, then the entry points proofed (Table A stages; Table C: bait points protected, recorded and cleared at the end, as what the professional usually does, never the code's name). The follow up is part of the method with its reason in the animal, never a fixed number of visits. Never promise a one visit fix; never mention the price; never a promise the pest will not return."
+            "brief": "What the visit does, from Table A: a wasp nest treated at its entrance with access made safe and people kept clear, the activity checked afterwards and the empty nest removed only if needed; for rats and mice, traps or protected bait points where justified, follow up visits to check them and to remove spent bait and bodies, then the entry points proofed (Table A stages; Table C: bait points protected, recorded and cleared at the end, as what the professional usually does, never the code's name). The follow up is part of the method with its reason in the animal, never a fixed number of visits. Never promise a one visit fix; never mention the price; never a promise the pest will not return.",
+            "needs": ["Wasp nest removal","Rat and mouse control"]
           }
         ],
         "faq_slots": [
@@ -416,7 +431,8 @@
             "slot": "cover",
             "question": "What happens if the wasps or the rodents are back after a call out?",
             "answer_brief": "Open with what the customer does: tell us and we look at it. Then the honest reasons, from the trade facts: a treated nest dies off and the colony abandons it, so wasps a few weeks later are usually a different colony; rodents return where the way in was left open, which is why proofing follows the treatment and a follow up visit checks the bait points and the traps (Table A). Then the reasonable care and skill standard every trade works to, never as a defence. No promise to come back free. Never invent a guarantee.",
-            "doubt": "Trust"
+            "doubt": "Trust",
+            "needs": ["Wasp nest removal","Rat and mouse control"]
           },
           {
             "slot": "scope",
@@ -538,7 +554,7 @@
         {
           "slot": "cost",
           "question": "How much does [SERVICE_LOWER] cost in [CITY]?",
-          "answer_brief": "Prices only from [CV: price_list]; a call out charge only from [CV: quote_call_out_fee]; otherwise how the quote is given, from [CV: quote_method] only. The four cost cards above already give what moves the price: name one factor at most, never the list again. Never 'the council does it free' (Table E: provision varies).",
+          "answer_brief": "Prices only from [CV: price_list]; a call out charge only from [CV: quote_call_out_fee]; otherwise how the quote is given, from [CV: quote_method] only. The cost cards hold the list: never repeat it or point to it. Never 'the council does it free' (Table E: provision varies).",
           "doubt": "Price"
         },
         {
@@ -604,15 +620,18 @@
           "cards": [
             {
               "title": "Where it is and how high",
-              "brief": "A single exposed nest that is safe to reach against one high on a wall or hidden in a cavity, and activity in one room against activity you only hear (Table F wasp nest removal, rat and mouse control). Say it plainly and give no figure."
+              "brief": "A single exposed nest that is safe to reach against one high on a wall or hidden in a cavity, and activity in one room against activity you only hear (Table F wasp nest removal, rat and mouse control). Say it plainly and give no figure.",
+              "needs": ["Wasp nest removal","Rat and mouse control"]
             },
             {
               "title": "How far it has spread",
-              "brief": "One spot against several: more than one nest location, or rats and mice across several rooms or buildings (Table F: multiple affected locations, extent of infestation)."
+              "brief": "One spot against several: more than one nest location, or rats and mice across several rooms or buildings (Table F: multiple affected locations, extent of infestation).",
+              "needs": ["Wasp nest removal","Rat and mouse control"]
             },
             {
               "title": "Getting to it",
-              "brief": "Whether access equipment is needed to reach a high nest, and whether the way in has to be traced through the drains for rats (Table F: special access equipment, drain investigation). Say the business looks before it prices, from [CV: quote_method] only."
+              "brief": "Whether access equipment is needed to reach a high nest, and whether the way in has to be traced through the drains for rats (Table F: special access equipment, drain investigation). Say the business looks before it prices, from [CV: quote_method] only.",
+              "needs": ["Wasp nest removal","Rat and mouse control"]
             },
             {
               "title": "Follow up and closing the way in",
@@ -631,15 +650,18 @@
             },
             {
               "title": "Getting to the nest or the run",
-              "brief": "How far the house is from the base and what it takes to reach the problem once there: a nest under the eaves three storeys up or inside a cavity, a loft with no boards, a run behind fitted units, a flat roof with no ladder access (Table F wasp nest removal: nest height, concealed location, special access equipment; Table F rat and mouse control: the number of rooms or buildings). Distance and access move the price; say why in plain words. Never an arrival time unless [CV: response_time] is set; never hours of cover unless [CV: out_of_hours_available] says so."
+              "brief": "How far the house is from the base and what it takes to reach the problem once there: a nest under the eaves three storeys up or inside a cavity, a loft with no boards, a run behind fitted units, a flat roof with no ladder access (Table F wasp nest removal: nest height, concealed location, special access equipment; Table F rat and mouse control: the number of rooms or buildings). Distance and access move the price; say why in plain words. Never an arrival time unless [CV: response_time] is set; never hours of cover unless [CV: out_of_hours_available] says so.",
+              "needs": ["Wasp nest removal","Rat and mouse control"]
             },
             {
               "title": "Finding it and dealing with it on the day",
-              "brief": "What is done first on a call out, from Table A: wasps confirmed rather than bees before anything is used (Table E: a cluster of honey bees can be a swarm), the nest found and how exposed it is judged, people and pets kept clear and access made safe, then the nest treated at its entrance; for rats and mice the species confirmed, the runs, the food and the ways in found, and traps or protected bait points set where justified. How long that takes is what the first part of the price pays for: a single nest reached from the ground against one in a wall void with a second entrance (Table F: multiple affected locations). Never a product's name unless [CV: materials_methods] gives it; never how a treatment is applied."
+              "brief": "What is done first on a call out, from Table A: wasps confirmed rather than bees before anything is used (Table E: a cluster of honey bees can be a swarm), the nest found and how exposed it is judged, people and pets kept clear and access made safe, then the nest treated at its entrance; for rats and mice the species confirmed, the runs, the food and the ways in found, and traps or protected bait points set where justified. How long that takes is what the first part of the price pays for: a single nest reached from the ground against one in a wall void with a second entrance (Table F: multiple affected locations). Never a product's name unless [CV: materials_methods] gives it; never how a treatment is applied.",
+              "needs": ["Wasp nest removal","Rat and mouse control"]
             },
             {
               "title": "What's in the van and what comes back later",
-              "brief": "The treatments, the traps and the bait points come with the technician; a longer ladder or a platform for a high nest, or drain equipment where the rats are coming up that way, may have to be brought (Table F: special access equipment; Table E: rats can travel through drains). What follows is a second visit priced as its own job: the activity at a treated nest checked and the empty nest taken down only if needed, the bait points and traps checked and cleared, the proofing of the ways in (Table A: monitoring and follow up, spent bait and bodies removed, entry points proofed). Say what decides it and give no figure. Code adds the price line from [CV: price_list] when there is one."
+              "brief": "The treatments, the traps and the bait points come with the technician; a longer ladder or a platform for a high nest, or drain equipment where the rats are coming up that way, may have to be brought (Table F: special access equipment; Table E: rats can travel through drains). What follows is a second visit priced as its own job: the activity at a treated nest checked and the empty nest taken down only if needed, the bait points and traps checked and cleared, the proofing of the ways in (Table A: monitoring and follow up, spent bait and bodies removed, entry points proofed). Say what decides it and give no figure. Code adds the price line from [CV: price_list] when there is one.",
+              "needs": ["Wasp nest removal","Rat and mouse control"]
             }
           ]
         },
@@ -649,17 +671,20 @@
             {
               "title": "A wasp nest beside a door you use",
               "brief": "The reader's situation: a stream of wasps at a spot beside a door, by the bins, at an open window or where children play. The reason it won't keep: activity can increase as the colony develops and an occupied nest is a sting risk when disturbed (Table B); someone in the house who reacts badly to stings makes it the first job of the day (the pack's section 2). The one cause this card makes: a colony defending its entrance where people have to pass. What usually happens when they call, from Table A: wasps confirmed rather than bees, the nest located and its exposure assessed, access made safe and people kept clear, the treatment at the entrance, the activity checked. Meanwhile: keep clear of the entrance and leave it alone; no shop spray (Table B). Leads on the Wasp nest removal page. Never a response time or a call out promise unless [CV: response_time] or [CV: emergency_callouts] confirms it.",
-              "mechanism": "a colony defending its entrance where people have to pass"
+              "mechanism": "a colony defending its entrance where people have to pass",
+              "needs": ["Wasp nest removal"]
             },
             {
               "title": "A rat in the kitchen",
               "brief": "The reader's situation: a rat or a mouse seen indoors, droppings on a worktop, a gnawed packet in a cupboard, scratching behind the units at night (Table B). The reason it won't keep: food within reach keeps them active, gnawing reaches cables and pipes (Table B skipped row); rodents can carry disease, said once and plainly. The one cause this card makes: rodents with a way in and food within reach. What usually happens when they call, from Table A: the species confirmed, harbourage, food and entry points found, a plan that weighs children, pets and other animals, traps or protected bait points where justified, follow up to check them and remove spent bait and bodies, then proofing; the drain looked at where that is the route (Table E). Meanwhile: food sealed away, nothing laid from the shop (Table B). Leads on the Rat and mouse control page. Never 'infestation', never shame.",
-              "mechanism": "rodents with a way in and food within reach"
+              "mechanism": "rodents with a way in and food within reach",
+              "needs": ["Rat and mouse control"]
             },
             {
               "title": "Noises or a smell that started this week",
               "brief": "The reader's situation: scratching that started a few nights ago, a smell that is getting stronger behind a wall or under the floor, flies gathering at a gap (Table B rat and mouse and dead animal signs). The reason it won't keep: a body or an active run behind a wall gets worse, not better, and a route left open brings the next animal (Table B skipped rows). The one cause this card makes: an animal, alive or dead, inside the fabric of the house. What usually happens when they call, from Table A: the source located, access assessed, the carcass contained and removed where that is the cause, the area cleaned, and the route it used investigated; where the animal is alive, the rodent stages. Leads on the Rat and mouse control page; a Dead animal removal page linked where LINKABLE PAGES has it. Never a scare about what the smell is; never an instruction to open the wall themselves.",
-              "mechanism": "an animal, alive or dead, inside the fabric of the house"
+              "mechanism": "an animal, alive or dead, inside the fabric of the house",
+              "needs": ["Rat and mouse control","Dead animal removal"]
             },
             {
               "title": "The first hour, before anyone arrives",
@@ -679,7 +704,8 @@
           },
           {
             "title": "We Treat It, Then Close the Way In",
-            "brief": "What the visit does, from Table A for this page: a wasp nest treated at its entrance with access made safe and people kept clear, the activity checked afterwards and the empty nest removed only if needed; rats and mice with traps or protected bait points where justified, follow up visits to check them and to remove spent bait and bodies, then the entry points proofed (Table C: bait points protected, recorded and cleared at the end, as what the professional usually does, never the code's name). The follow up is part of the method with its reason in the animal, never a fixed number of visits. Never promise a one visit fix; never mention the price; never a promise the pest will not return."
+            "brief": "What the visit does, from Table A for this page: a wasp nest treated at its entrance with access made safe and people kept clear, the activity checked afterwards and the empty nest removed only if needed; rats and mice with traps or protected bait points where justified, follow up visits to check them and to remove spent bait and bodies, then the entry points proofed (Table C: bait points protected, recorded and cleared at the end, as what the professional usually does, never the code's name). The follow up is part of the method with its reason in the animal, never a fixed number of visits. Never promise a one visit fix; never mention the price; never a promise the pest will not return.",
+            "needs": ["Wasp nest removal","Rat and mouse control"]
           }
         ],
         "faq_slots": [
@@ -713,7 +739,8 @@
             "slot": "cover",
             "question": "What happens if they're back after the call out?",
             "answer_brief": "Open with what the customer does: tell us and we look at it. Then the honest reasons from the trade facts for this page: a treated nest dies off and the colony abandons it, so wasps weeks later are usually a different colony; rodents return where the way in was left open, which is why the follow up checks the bait points and the traps and proofing follows (Table A). Then the reasonable care and skill standard every trade works to, never as a defence. No promise to come back free. Never invent a guarantee.",
-            "doubt": "Trust"
+            "doubt": "Trust",
+            "needs": ["Wasp nest removal","Rat and mouse control"]
           },
           {
             "slot": "process",
@@ -740,22 +767,26 @@
           {
             "title": "Terraces that share their roof spaces",
             "brief": "Mice heard in one house and then the next, activity back a month after one house was treated, droppings in a loft nobody uses. The one cause this card makes: roof voids and suspended floors that run from house to house on the older terraces, which the town profile dates (the pack's section 3; never an era as the current state of the houses). Tie the era to what the work involves, never to a judgement on the homes: proofing that takes in the party walls and the house's own gaps, a treatment in one house that is often part of the row's, neighbours spoken to where the client values allow. Never 'the terraces here have mice'; never a street or a resident named. Not the gap at ground level or the drain: the service pages own those.",
-            "mechanism": "roof voids and floor voids that run from house to house"
+            "mechanism": "roof voids and floor voids that run from house to house",
+            "needs": ["Rat and mouse control"]
           },
           {
             "title": "Water, farmland and woodland at the edge of town",
             "brief": "Rat activity in gardens near a river, a canal or a brook that carries on through the year, rodents moving into houses on the farmland edge as the weather turns cold, squirrels and foxes from woodland that comes up to the gardens (Table A rat and mouse timing: indoor activity more apparent in colder weather; the pack's section 3 anchors, only where the town profile gives the water, the fields or the woods). The one cause this card makes: rats and other animals following the water, the food and the shelter nearby. What it means for the work, in plain words: the outside looked at with the inside, bait used only as its label allows around buildings and in protected points (Table C and E, as what usually applies and never the code's name), proofing before the cold months, foxes deterred and proofed out rather than poisoned, badger setts left alone (Table C and E, with 'usually'). Never 'the river has rats'; never council figures the research does not give (the pack's section 3).",
-            "mechanism": "rats and other animals following the water and the food nearby"
+            "mechanism": "rats and other animals following the water and the food nearby",
+            "needs": ["Rat and mouse control","Squirrel control","Fox and wildlife control"]
           },
           {
             "title": "Older drains and air bricks",
             "brief": "A rat in a kitchen on an older street, a smell under the floor, droppings by a pipe entry, a broken air brick nobody noticed. The one cause this card makes: a failed joint in an older jointed drain or an open vent giving rodents a route under the floor (Table E: rats can travel through drains; Table B pest proofing signs; the town profile gives the housing era). What it means for the work: a drain camera where drain entry is suspected and a one way valve only where it fits, never as compulsory (Table E); vent grilles that keep the airflow instead of a blocked air brick (Table E); whose pipe it is as what usually applies, the owner's to the boundary and the sewerage company's beyond, with no Act named (Table E). Never a claim about the state of the town's drains; never a dig at whoever owns them.",
-            "mechanism": "a broken joint or an open vent giving rodents a route under the floor"
+            "mechanism": "a broken joint or an open vent giving rodents a route under the floor",
+            "needs": ["Rat and mouse control"]
           },
           {
             "title": "Roofs the gulls and pigeons have taken",
             "brief": "Gulls nesting on roofs near the centre, pigeons on ledges and under solar panels, droppings on the pavement below, nesting material at the panel edges (Table B bird and solar panel signs; the pack's section 3: roofs where gulls nest, a high street with food businesses, only where the town profile gives them). The one cause this card makes: ledges, flat roofs and panel edges with nothing to stop a nest, and food close by. What it means for the work: a nest in use is protected whenever it is in use, so proofing is timed around it (Table C and E, as usually, never the Act or a licence); netting, spikes and mesh fitted after the check; droppings cleaned in a way that keeps the dust down (Table E); on a listed building, consent where a fixture affects its character (Table C, as usually), where the town has them. Never 'a gull problem in the town'; never lethal control written as offered.",
-            "mechanism": "ledges, flat roofs and solar panels with nothing to stop a nest"
+            "mechanism": "ledges, flat roofs and solar panels with nothing to stop a nest",
+            "needs": ["Bird control and proofing","Solar panel bird proofing"]
           }
         ]
       },
@@ -764,19 +795,23 @@
         "cards": [
           {
             "title": "Getting to a nest on a tall building",
-            "brief": "A nest high on a gable, a chimney or a three storey terrace, a roof with no safe way up: the access equipment and the planning that work at height needs, from the Table F wasp, bird and solar panel rows and Table C as the way the job is done. From the town profile where it gives the housing. No figure."
+            "brief": "A nest high on a gable, a chimney or a three storey terrace, a roof with no safe way up: the access equipment and the planning that work at height needs, from the Table F wasp, bird and solar panel rows and Table C as the way the job is done. From the town profile where it gives the housing. No figure.",
+            "needs": ["Wasp nest removal","Bird control and proofing","Solar panel bird proofing"]
           },
           {
             "title": "Rows that have to be looked at as one",
-            "brief": "Connected terraces mean proofing that considers the party wall and sometimes more than one house (Table F rat and mouse: the number of affected buildings). Say why that adds visits and talking to neighbours; never a judgement on the row. No figure."
+            "brief": "Connected terraces mean proofing that considers the party wall and sometimes more than one house (Table F rat and mouse: the number of affected buildings). Say why that adds visits and talking to neighbours; never a judgement on the row. No figure.",
+            "needs": ["Rat and mouse control","Pest proofing"]
           },
           {
             "title": "Drains, vents and what they lead to",
-            "brief": "A drain investigation, a camera survey, the number and location of openings and detailing that keeps the ventilation working (Table F rat and mouse and pest proofing rows). Where the town profile gives the housing era, say what it usually means for the openings. No figure."
+            "brief": "A drain investigation, a camera survey, the number and location of openings and detailing that keeps the ventilation working (Table F rat and mouse and pest proofing rows). Where the town profile gives the housing era, say what it usually means for the openings. No figure.",
+            "needs": ["Rat and mouse control","Pest proofing"]
           },
           {
             "title": "Listed buildings and conservation areas",
-            "brief": "Bird proofing on a listed building and fixings that have to suit it, consent before anything goes on (Table F bird control: heritage constraints; Table C listed building consent, as usually and never the Act). From the dossier rules only; otherwise the check as something that sometimes applies. No figure."
+            "brief": "Bird proofing on a listed building and fixings that have to suit it, consent before anything goes on (Table F bird control: heritage constraints; Table C listed building consent, as usually and never the Act). From the dossier rules only; otherwise the check as something that sometimes applies. No figure.",
+            "needs": ["Bird control and proofing","Solar panel bird proofing"]
           }
         ]
       },
@@ -906,5 +941,71 @@
       }
     }
   },
-  "do_not_reuse": []
+  "do_not_reuse": [],
+  "idea_homes": [
+    {
+      "topic": "the insect or animal confirmed (wasp rather than bee) before anything is used",
+      "home": "the 'We Come Out, Identify It and Agree the Price' step",
+      "elsewhere": "the 'Finding it and dealing with it on the day' cost card and the evening and weekend FAQ do not explain the wasp/bee check or the swarm",
+      "pages": [
+        "service"
+      ]
+    },
+    {
+      "topic": "the insect or animal confirmed (wasp rather than bee) before anything is used",
+      "home": "the 'We Come Out, Identify It and Agree the Price' step",
+      "elsewhere": "the 'Finding it and dealing with it on the day' cost card, the evening and weekend FAQ and the 'what happens when I get in touch' FAQ do not explain the wasp/bee check",
+      "pages": [
+        "category"
+      ]
+    },
+    {
+      "topic": "what to do before the technician arrives (keep clear of the nest, don't block or spray it, food sealed away, no shop poison or glue boards)",
+      "home": "the 'The first hour, before anyone arrives' block 4 card",
+      "elsewhere": "the 'What should I do before you arrive?' FAQ and the 'Call Us' step give at most one line and do not repeat the list",
+      "pages": [
+        "service"
+      ]
+    },
+    {
+      "topic": "what to do before the technician arrives (keep clear of the nest, don't block or spray it, food sealed away, no shop poison or glue boards)",
+      "home": "the 'The first hour, before anyone arrives' block 4 card",
+      "elsewhere": "the 'What should I do before you arrive?' FAQ and the 'Call Us' step give at most one line and do not repeat the list",
+      "pages": [
+        "category"
+      ]
+    },
+    {
+      "topic": "someone in the house who reacts badly to stings makes it urgent",
+      "home": "the 'A wasp nest beside a door you use' block 4 card",
+      "elsewhere": "the 'Call Us' step asks the question in a few words without explaining why; the 'Is this an emergency, or can it wait?' FAQ does not restate it",
+      "pages": [
+        "service"
+      ]
+    },
+    {
+      "topic": "someone in the house who reacts badly to stings makes it urgent",
+      "home": "the 'A wasp nest beside a door you use' block 4 card",
+      "elsewhere": "the 'Call Us' step asks the question in a few words without explaining why; the 'Is this an emergency, or can it wait?' FAQ does not restate it",
+      "pages": [
+        "category"
+      ]
+    },
+    {
+      "topic": "eggs, pupae or egg cases that outlive a treatment and emerge afterwards",
+      "home": "the 'It came back after a shop treatment' block 4 card",
+      "elsewhere": "the 'how long does it take, and how many visits' FAQ names the stages only as a reason for more visits, and the 'what happens if the pests come back' FAQ gives the way in left open rather than explaining the life cycle again",
+      "pages": [
+        "service"
+      ]
+    },
+    {
+      "topic": "the colony abandons a wasp nest in autumn, so a winter nest is usually empty",
+      "home": "the 'Do you still deal with wasp nests in the autumn and winter?' FAQ",
+      "elsewhere": "the 'Rodents moving indoors as the nights turn cold' card and the 'wasps or rodents back after a call out' FAQ do not explain the abandoned nest",
+      "pages": [
+        "category"
+      ]
+    }
+  ]
 }

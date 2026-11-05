@@ -177,7 +177,8 @@
       "symptom_based": false,
       "is_fallback": true,
       "condition": "the client's services list carries the conservatory cleaning or solar panel cleaning page",
-      "doubt": "Trust"
+      "doubt": "Trust",
+      "needs": ["Conservatory cleaning","Solar panel cleaning"]
     }
   ],
   "faq_slots_by_type": {
@@ -258,7 +259,8 @@
           {
             "title": "Green creeping over the roof, the frames and the sills",
             "brief": "Periodic extras: roof panels gone green or cloudy, grime along the glazing bars, green patches on the roofline, a green film on cladding, the shaded side of a patio dark and slippery, from the conservatory, fascia and cladding signs rows. The one cause this card makes: algae and moss settling wherever a surface stays damp and shaded (under trees, the north side, a roof at a shallow pitch, a sill the sun never reaches). What the visit covers, from the trade facts stages: loose debris comes off first. Then the frames, the roof and the bars are washed by pole, a soft brush and purified water doing the work. Nobody stands on the roof (the conservatory roof access row). Polycarbonate and self cleaning glass get the gentler method their maker asks for (the polycarbonate and self cleaning glass rows), and a pressure wash only where the surface and the job allow it. Say why these are booked once or twice a year rather than on the round: the growth comes back slowly, so round customers add them to a visit when the sign shows. On a round page the card reads as the frames and sills going green on the shaded side between visits, the same cause. No pressure figure, no interval as this client's offer (only from [CV: visit_frequency_options]). Never promise it will not come back.",
-            "mechanism": "algae and moss settling where a surface stays damp and shaded"
+            "mechanism": "algae and moss settling where a surface stays damp and shaded",
+            "needs": ["Conservatory cleaning","Fascia and soffit cleaning","Cladding cleaning","Driveway and patio cleaning"]
           },
           {
             "title": "Upstairs glass nobody gets close to",
@@ -268,7 +270,8 @@
           {
             "title": "A schedule that lapsed",
             "brief": "Commercial, sign and bin store pages: the shopfront marked by opening time, fingerprints on the door glass, a sign dulled, a bin store that smells and draws flies between collections (the commercial, sign and bin store signs rows). The one cause this card makes: the gap between visits longer than the build up, so every clean has become a catch up. What a regular visit takes in around trading hours (the front glass, the door, the frames, the sign, with the upper floors on a longer cycle) as what usually happens; visits outside opening hours only from [CV: out_of_hours_available]. A bin store washed and disinfected after the products have been assessed, with the wash water kept out of the surface drains (the bin store stages and the contaminated wash water row), never a product name. On a residential round page the card reads as the first visit after a long gap: a bigger job, because the frames hold what has built up and it runs on to the glass over the first clean or two (say so honestly), and then each visit is shorter. On the Gutter cleaning category the card reads as a gutter overflowing in a downpour, weeds sprouting from it, a downpipe that no longer drains (the gutter signs row). Same cause: the gap since the last clear was longer than the leaves and moss took to fill it. The consequence from the skipped row: a wet wall, soaked brickwork, damp indoors. The manufacturer's guidance (a clear at least once a year, more often under trees) is given as guidance and never as a rule. A frequency as this client's offer only from [CV: visit_frequency_options].",
-            "mechanism": "the gap between visits longer than the build up"
+            "mechanism": "the gap between visits longer than the build up",
+            "needs": ["Commercial window cleaning","Sign and canopy cleaning","Bin store cleaning"]
           }
         ]
       },
@@ -311,7 +314,7 @@
         {
           "slot": "cost",
           "question": "How much does [WORK_LOWER] cost in [CITY]?",
-          "answer_brief": "Prices only from [CV: price_list]; otherwise how the price is reached, from [CV: quote_method] only, and that the figure is agreed before the first visit when that practice is confirmed. The four cost cards above already give what moves the price: name one factor at most, never the list again.",
+          "answer_brief": "Prices only from [CV: price_list]; otherwise how the price is reached, from [CV: quote_method] only, and that the figure is agreed before the first visit when that practice is confirmed. The cost cards hold the list: never repeat it or point to it.",
           "doubt": "Price"
         },
         {
@@ -471,7 +474,7 @@
         {
           "slot": "cost",
           "question": "How much does a [SERVICE_LOWER] visit cost in [CITY]?",
-          "answer_brief": "Prices only from [CV: price_list]; otherwise how the price is reached, from [CV: quote_method] only, and that the figure is agreed before the first visit when that practice is confirmed. The four cost cards above already give what moves the price: name one factor at most, never the list again.",
+          "answer_brief": "Prices only from [CV: price_list]; otherwise how the price is reached, from [CV: quote_method] only, and that the figure is agreed before the first visit when that practice is confirmed. The cost cards hold the list: never repeat it or point to it.",
           "doubt": "Price"
         },
         {
@@ -538,7 +541,8 @@
           {
             "title": "Shopfronts that have to look right by nine",
             "brief": "The high street, the business park, the school, the managing agents' blocks, from the town profile. The one cause this card makes: the town's trading hours, with glass that has to be clean by opening time and pavements that are busy by then. What follows for the work: visits timed before the shop opens or after it closes (outside opening hours only from [CV: out_of_hours_available]), passers by kept clear of hoses and poles on the pavement (the highway row, in plain words and never the Act's name), upper glass on a longer cycle than the frontage. Where LINKABLE PAGES has no commercial page in this town, the card is the town's conservatories and extensions (the profile: estates of a certain age) and their roofs going green. Never name a business.",
-            "mechanism": "the town's trading hours and the frontages they keep"
+            "mechanism": "the town's trading hours and the frontages they keep",
+            "needs": ["Commercial window cleaning"]
           }
         ]
       },
@@ -559,7 +563,8 @@
           },
           {
             "title": "Working round the town's hours and pavements",
-            "brief": "A shop street done before opening, an office out of hours, a school in the holidays, a busy pavement where people have to be kept clear of the kit. Say why a fixed window and a crowded pavement add to the visit, from the profile where it gives the premises. Out of hours work only where [CV: out_of_hours_available] confirms it. No figure."
+            "brief": "A shop street done before opening, an office out of hours, a school in the holidays, a busy pavement where people have to be kept clear of the kit. Say why a fixed window and a crowded pavement add to the visit, from the profile where it gives the premises. Out of hours work only where [CV: out_of_hours_available] confirms it. No figure.",
+            "needs": ["Commercial window cleaning"]
           }
         ]
       },
@@ -611,5 +616,16 @@
       ]
     }
   },
-  "do_not_reuse": []
+  "do_not_reuse": [],
+  "why_title_practice": {"Regular Visits, Not One Big Clean":["maintenance_schedule"]},
+  "idea_homes": [
+    {
+      "topic": "visits timed before opening or out of hours for shops and offices",
+      "home": "the 'Shopfronts that have to look right by nine' block 4 card",
+      "elsewhere": "the 'Working round the town's hours and pavements' cost card says only that a fixed time slot adds to the visit, and the 'How do regular visits work in [TOWN]?' FAQ does not explain why visits are timed round opening hours",
+      "pages": [
+        "location"
+      ]
+    }
+  ]
 }

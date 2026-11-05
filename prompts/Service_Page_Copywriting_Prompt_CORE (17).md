@@ -90,7 +90,7 @@ One `card_body` per card title in DECISIONS → block 4, in order. 40 to 60 word
 One `step_body` per step title given. 20 to 30 words each, following the type's step brief. Step 2 follows `[CV: quote_method]` if set. Never restate the free quote or the start time.
 
 ### svc_cost_intro
-30 to 50 words, 2 sentences. Why the price for this service varies, and what the customer can expect from a quote or booking (from `[CV: quote_method]` only). No figures unless `[CV: price_list]` has a figure for this service.
+30 to 50 words, 2 sentences. Open on the factor that moves the price most for this service, then what the customer can expect from a quote or booking (from `[CV: quote_method]` only). No figures unless `[CV: price_list]` has a figure for this service.
 
 ### svc_block5
 One `card_body` per card title in DECISIONS → block 5, in order. 30 to 45 words each, following each card's brief. What moves the price and why, from the trade facts and niche entry. No figures, no "from £", no ranges; code adds the price line from `[CV: price_list]` when it exists.

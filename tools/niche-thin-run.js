@@ -77,6 +77,7 @@ const { categoryValidationContext } = require(path.join(root, 'validate-category
 const { serviceValidationContext } = require(path.join(root, 'validate-service.js'));
 
 const arg = name => { const i = process.argv.indexOf(name); return i >= 0 ? process.argv[i + 1] : null; };
+const { parseDossier } = require(path.join(root, 'geo-dossier.js'));
 const flag = name => process.argv.includes(name);
 const stem = process.argv[2];
 if (!stem || stem.startsWith('--')) { console.error('Usage: node tools/niche-thin-run.js <stem> [--trust-pack] [--emergency] [--services /services/a,/services/b] [--category /slug] [--client edens-edge] [--quality]'); process.exit(2); }
@@ -93,7 +94,10 @@ const entry = JSON.parse(fs.readFileSync(entryFile, 'utf8'));
 const niche = { ...entry, _source: stem, service_words: [] };
 const libSet = L.loadLibrarySet(nicheKey);
 const clientArg = arg('--client');
-if (clientArg && clientArg !== 'edens-edge') { console.error(`Unknown client "${clientArg}": only edens-edge is known.`); process.exit(2); }
+// A realistic test client (copy quality 6): tests/fixtures/data/realistic-clients.js
+const REAL = clientArg && clientArg !== 'edens-edge' ? require(path.join(root, 'tests/fixtures/data/realistic-clients.js')).CLIENTS[clientArg] : null;
+if (clientArg && clientArg !== 'edens-edge' && !REAL) { console.error(`Unknown client "${clientArg}": edens-edge, or a key of tests/fixtures/data/realistic-clients.js.`); process.exit(2); }
+if (REAL && REAL.stem !== stem) { console.error(`${clientArg} runs on the ${REAL.stem} entry.`); process.exit(2); }
 if (clientArg === 'edens-edge' && stem !== 'landscaper') { console.error('--client edens-edge runs on the landscaper entry: node tools/niche-thin-run.js landscaper --client edens-edge'); process.exit(2); }
 
 // The library's page flags for a page title (the real client's rows predate the flags)
@@ -128,9 +132,9 @@ if (clientArg === 'edens-edge') {
   const K = isRoofer ? require(path.join(root, 'tests/fixtures/data/kestrel-ridge-thin-page.js')) : null;
   const primaryCat = config.categories.find(c => c.key === config.primaryDefault) || config.categories[0];
   const secondCat = config.categories.find(c => c !== primaryCat) || null;
-  baseTown = isRoofer ? 'Bournemouth' : 'Southampton';
-  const otherTown = isRoofer ? 'Poole' : 'Romsey';
-  companyName = isRoofer ? K.cv.company_name : `${nicheLabel.replace(/\s*\(.*\)$/, '').replace(/\//g, ' and ')} Test Co`;
+  baseTown = REAL ? REAL.baseTown : isRoofer ? 'Bournemouth' : 'Southampton';
+  const otherTown = REAL ? REAL.towns.join('\n') : isRoofer ? 'Poole' : 'Romsey';
+  companyName = REAL ? REAL.companyName : isRoofer ? K.cv.company_name : `${nicheLabel.replace(/\s*\(.*\)$/, '').replace(/\//g, ' and ')} Test Co`;
   cv = isRoofer ? { ...K.cv } : {
     company_name: companyName, company_name_gbp_checked: true, phone: '023 8000 0000', email: '', address: '', gbp_address_type: 'service_area', hours: '',
     primary_category: primaryCat.name, year_founded: '2021', jobs_completed: '60', rating: '', review_count: '',
@@ -142,6 +146,7 @@ if (clientArg === 'edens-edge') {
     business_type: entry.business_type_default || 'A', emergency_primary: '', handles_planning: '', confirmed_practices: [], materials_methods: [], jobs_wanted: [], hand_reviews: [],
     coastal_city: 'yes', area_wide: '',
   };
+  if (REAL) cv = { ...cv, ...REAL.cv, company_name: REAL.companyName };
   // Kestrel's confirmed differentiator is "Photos of Every Fault Before We Quote"; the practice tick
   // that says the same thing (photos_of_faults) goes with it, else the PRACTICE check blocks the
   // sentence the differentiator invites (the live client ticks both on Client Values)
@@ -156,8 +161,9 @@ if (clientArg === 'edens-edge') {
   // Kestrel ticks Roof repair (an emergency page), Roof installation (Roof replacement) and Skylight
   // installation (the desire led Roof window installation page), then the next pages in config order
   if (isRoofer) ticks[primaryCat.tickGroup] = [...new Set(['Roof repair', 'Roof installation', 'Skylight installation', ...pick(primaryCat, 4)])].filter(s => primaryCat.services.includes(s));
+  else if (REAL) Object.assign(ticks, REAL.ticks);
   else { ticks[primaryCat.tickGroup] = pick(primaryCat, 3); if (secondCat) ticks[secondCat.tickGroup] = pick(secondCat, 3); }
-  const extraTicks = arg("--tick") ? arg("--tick").split(",").map(x => x.trim()).filter(Boolean) : [];
+  const extraTicks = [...(arg("--tick") ? arg("--tick").split(",").map(x => x.trim()).filter(Boolean) : []), ...(REAL ? REAL.typed : [])];
   // A name the tab carries is ticked; any other is a typed additional service confirmed under the
   // primary category (Emergency scaffolding is a free text intake name in the library)
   const typedTicks = extraTicks.filter(t => !primaryCat.services.includes(t));
@@ -165,7 +171,7 @@ if (clientArg === 'edens-edge') {
   const resolved = R.resolve(ticks, config, typedTicks.length ? { additional: typedTicks.map(service => ({ service, categoryKey: primaryCat.key })) } : {});
   if (!resolved.categories.length) { console.error('The resolver gave no category tabs for these ticks:', JSON.stringify(ticks)); process.exit(1); }
   // The page map: the niche library, no volumes, stand in H1s
-  const map = PM.buildPageMap({ resolved, baseTown, otherTowns: otherTown, companyName, terms: { _sitewide: [] }, waiting: [] }, { volumes: new Map(), library: libSet, launchTowns: new Set([slugify(otherTown)]), exclude: new Set(), saved: [] });
+  const map = PM.buildPageMap({ resolved, baseTown, otherTowns: otherTown, companyName, terms: { _sitewide: [] }, waiting: [] }, { volumes: new Map(), library: libSet, launchTowns: new Set(String(otherTown).split('\n').map(t => slugify(t))), exclude: new Set(), saved: [] });
   const primaryName = resolved.primaryName || primaryCat.name;
   for (const r of map.rows) {
     if (r.h1) continue;
@@ -176,6 +182,12 @@ if (clientArg === 'edens-edge') {
   hand = { baseTown, otherTowns: otherTown };
   tabsLine = `tabs ${resolved.categories.map(c => `${c.name} (${c.rows.length})`).join(', ')}`;
   if (isRoofer) defaultServices = ['/services/roof-repairs', '/services/roof-replacement'];
+  if (REAL) {
+    defaultServices = REAL.services;
+    dossiers = [{ id: 'southampton', locationName: baseTown, text: fs.readFileSync(path.join(root, 'tests/fixtures/southampton-dossier.md'), 'utf8') }];
+    const townDir = path.join(root, 'tests/live-snapshots/dossiers');
+    for (const t of REAL.towns) { const file = path.join(townDir, `${slugify(t)}.md`); if (fs.existsSync(file)) dossiers.push({ id: slugify(t), locationName: t, text: fs.readFileSync(file, 'utf8') }); }
+  }
 }
 if (flag('--emergency')) cv.emergency_primary = 'yes';
 const ctx = { ...contextFromPageMap({ rows, hand, cv, niche }), cv };
@@ -207,6 +219,8 @@ console.log(`Pages in the map: ${rows.length} · calibration pack ${calibrationP
 console.log(`Writing: homepage, ${catRows.length ? catRows.map(c => c.slug).join(' + ') : '(no category)'}, ${serviceKeys.map(k => `${k} (${framing(rows.find(r => r.slug === k))})`).join(', ')}`);
 if (!calibrationPack.name) console.log('WARNING: no calibration pack found for this niche; the pages are written without one.');
 
+if (flag('--dry')) { console.log(rows.filter(r => r.type === 'service' || r.type === 'category').map(r => `${r.type} ${r.slug}: ${r.title}`).join('\n')); process.exit(0); }
+
 (async () => {
   const mem = newDb();
   mem.public.registerFunction({ name: 'gen_random_uuid', returns: DataType.uuid, implementation: () => crypto.randomUUID(), impure: true });
@@ -232,6 +246,13 @@ if (!calibrationPack.name) console.log('WARNING: no calibration pack found for t
   const emergencyLine = block => lineOf(block, /Emergency layout:[^\n]*/) || 'Emergency layout: (not in the block)';
   const framingLine = block => lineOf(block, /Block 4 framing:[^\n]*/);
 
+  // A realistic client's homepage has its allocation from the base town's dossier, as a live client's does
+  if (REAL && !flag('--skip-homepage') && dossiers[0]) {
+    const picks = await allocate({ dossierText: dossiers[0].text, cv, niche, keyValueMap: ctx.keyValueMap, pages: ctx.pages });
+    allocationData = A.resolveAllocatedItems(picks, parseDossier(dossiers[0].text));
+    console.log(`Allocation: ${picks.neighbourhoods.length} neighbourhoods, ${Object.keys(picks.symptoms || {}).length} symptoms`);
+  }
+
   // ── Homepage ──
   if (!flag('--skip-homepage')) {
     const DR = computeDecisions({ cv, niche, pages: ctx.pages, keyValueMap: ctx.keyValueMap, serviceParentMap: ctx.serviceParentMap, v20TestMode: true, allocationData, faqResearch, cardServices: ctx.cardServices || null });
@@ -248,7 +269,7 @@ if (!calibrationPack.name) console.log('WARNING: no calibration pack found for t
       else {
         // Scored twice and averaged (Brandon, 4 Nov 2026): one reading hides a change under the spread
         const review = await Q.reviewPage({ record, V, D: DR.decisions, cv, niche, callModel: call });
-        const review2 = await Q.reviewPage({ record, V, D: DR.decisions, cv, niche, callModel: call }).catch(() => null);
+        const review2 = flag('--one-reading') ? null : await Q.reviewPage({ record, V, D: DR.decisions, cv, niche, callModel: call }).catch(() => null);
         const scores = [review, review2].filter(r => r && r.score != null).map(r => r.score);
         if (scores.length === 2) review.score = Math.round(((scores[0] + scores[1]) / 2) * 100) / 100;
         const writingsH = [review, review2].filter(r => r && r.score_writing != null).map(r => r.score_writing);
@@ -262,8 +283,7 @@ if (!calibrationPack.name) console.log('WARNING: no calibration pack found for t
         const blocks = vs.block != null ? vs.block : (vs.issues || []).filter(i => i.type === 'BLOCK').length;
         const flags = vs.flag != null ? vs.flag : (vs.issues || []).filter(i => i.type === 'FLAG').length;
         const fpH = record.meta && record.meta.flag_pass; const fpTextH = fpH && fpH.before != null ? ` (flags ${fpH.before} to ${fpH.after}, ${fpH.kept} kept)` : '';
-        const pubH = !!(review.verdict && review.verdict.publishable && (!review2 || (review2.verdict && review2.verdict.publishable)));
-        const verdictH = pubH ? 'PUBLISHABLE' : require(path.join(root, 'verdict.js')).verdictLine(review.verdict && review.verdict.publishable && review2 ? review2.verdict : review.verdict);
+        const verdictH = `${require(path.join(root, 'verdict.js')).verdictLine(review.verdict)}, ${(review.edit_list || []).length} on the edit list`;
         line = `homepage: ${blocks} BLOCK, ${flags} FLAG${fpTextH}, ${verdictH}, reviewer ${review.score != null ? review.score.toFixed(1) : '?'}${review.readings && review.readings.length === 2 ? ` (${review.readings.map(s => s.toFixed(1)).join(', ')})` : ''}${review.score_writing != null ? `, writing only ${review.score_writing.toFixed(1)}${review.writings && review.writings.length === 2 ? ` (${review.writings.map(s => s.toFixed(1)).join(', ')})` : ''}` : ''} (${review.items ? review.items.filter(i => i.pass).length + '/' + review.items.length + ' items' : ''})`;
         await v20Store.insert(cid, record, { type: 'homepage', key: 'homepage' });
       }
@@ -302,13 +322,12 @@ if (!calibrationPack.name) console.log('WARNING: no calibration pack found for t
       try {
         const rv = await reviewOf(type, key, found.record);
         if (rv) {
-          const rv2 = await reviewOf(type, key, found.record).catch(() => null);
+          const rv2 = flag('--one-reading') ? null : await reviewOf(type, key, found.record).catch(() => null);
           const readings = [rv, rv2].filter(r => r && r.score != null).map(r => r.score);
           const score = readings.length === 2 ? Math.round(((readings[0] + readings[1]) / 2) * 100) / 100 : rv.score;
           const writings = [rv, rv2].filter(r => r && r.score_writing != null).map(r => r.score_writing);
           const score_writing = writings.length ? Math.round((writings.reduce((a, b) => a + b, 0) / writings.length) * 100) / 100 : null;
-          const publishable = !!(rv.verdict && rv.verdict.publishable && (!rv2 || (rv2.verdict && rv2.verdict.publishable)));
-          Qr = { score, score_writing, readings, writings, done: rv.done, failures: (rv.items || []).filter(i => !i.pass), needs_fact: rv.needs_fact || [], verdict: publishable ? 'PUBLISHABLE' : require(path.join(root, 'verdict.js')).verdictLine(rv.verdict && rv.verdict.publishable && rv2 ? rv2.verdict : rv.verdict) };
+          Qr = { score, score_writing, readings, writings, done: rv.done, failures: (rv.items || []).filter(i => !i.pass), needs_fact: rv.needs_fact || [], verdict: `${require(path.join(root, 'verdict.js')).verdictLine(rv.verdict)}, ${(rv.edit_list || []).length} on the edit list` };
           fs.writeFileSync(path.join(dir, `${name}-review.txt`), Q.formatReview(rv) + (readings.length === 2 ? `\n(Two readings: ${readings.map(s => s.toFixed(1)).join(' and ')}; the summary score is their average.)\n` : '') + '\n');
           if (rv2) fs.writeFileSync(path.join(dir, `${name}-review-2.txt`), Q.formatReview(rv2) + '\n');
         }

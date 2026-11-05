@@ -301,7 +301,7 @@ Three framings share this one entry, per the pack's section 2: a problem led pag
 
 | Slot | When | Question | Answer brief | Doubt |
 |---|---|---|---|---|
-| cost | always | How much does [SERVICE_LOWER] cost in [CITY]? | Prices only from [CV: price_list]; otherwise how the quote is given, from [CV: quote_method] only. The four cost cards above already give what moves the price: name one factor at most, never the list again. | Price |
+| cost | always | How much does [SERVICE_LOWER] cost in [CITY]? | Prices only from [CV: price_list]; otherwise how the quote is given, from [CV: quote_method] only. The cost cards hold the list: never repeat it or point to it. | Price |
 | timing | always | How long does [SERVICE_LOWER] take? | From the trade facts timing row only: the rows give no duration for any job in this trade, so say what decides it (the number of units, the route, the access, whether the circuit is opened) and, in a working building, that the changeover is planned round when the system can be off. Nothing about when the job can start unless [CV: start_time] is set. This is the one place the timing is written. | Timing |
 | cover | guarantee | Do you guarantee your [SERVICE_LOWER] work? | Start with yes, then the terms from [CV: guarantee_years] and [CV: guarantee_scope]. A maker's warranty only from [CV: manufacturer_warranty], its servicing condition only as that maker's terms give it. Described, never promised. | Trust |
 | cover | insurance | Are you insured for [SERVICE_LOWER]? | The cover figure from [CV: insurance_cover] and what the cover is for. Never what it pays or who it covers. | Trust |
@@ -446,3 +446,34 @@ For Ray and the trade facts pack (Table G records most of these as not found; th
 13. Whether a client's ventilation work falls under a competent person scheme or the building control route: Table C names both; the rules brief says only that the work is notified through one of them.
 14. The pack's header still says verified: no; the service page gate refuses a run until it is verified on the Trade facts screen.
 15. The freeholder's agreement before an outdoor unit goes on a flat: the calibration pack states it as a principle (sections 3 and 4) and the briefs carry it with "usually", but the facts pack has no row for it. A Table C row would let the briefs point at it like every other rule.
+
+## Service tags
+
+An element is dropped, and the next eligible one used, when the client has confirmed none of these services. The paths are in the .json as `needs`.
+
+| Element | Needs |
+|---|---|
+| Does my air conditioning need regassing? | Air conditioning repairs |
+| Topped up, then back where it started | Air conditioning repairs |
+| A fault that keeps coming back | Air conditioning repairs; Air conditioning servicing |
+| Servicing that slipped a year or two | Air conditioning servicing |
+| A drip from the indoor unit | Air conditioning servicing; Air conditioning repairs |
+| Warm air, or a unit that never catches up | Air conditioning repairs |
+| A room the house can't keep cool | Air conditioning installation; Split system air conditioning |
+| The route between indoors and out | Air conditioning installation; Split system air conditioning |
+| Power and permissions | Air conditioning installation; Split system air conditioning |
+| Rooms under the roof that hold the heat | Air conditioning installation; Split system air conditioning |
+| Nowhere obvious for the outdoor unit | Air conditioning installation; Split system air conditioning |
+| Kitchens, shops and server rooms on the high street | Commercial HVAC; Commercial refrigeration; Cold rooms; Server room cooling; Duct cleaning |
+| Where the outdoor unit can go | Air conditioning installation; Split system air conditioning |
+| Long runs through older houses | Air conditioning installation; Split system air conditioning |
+| Permissions and the neighbours | Air conditioning installation; Split system air conditioning |
+| Working round a business's hours | Commercial HVAC; Commercial refrigeration; Cold rooms; Server room cooling |
+
+## Idea homes
+
+- **the maker's instructions and any warranty condition set when a unit is serviced** (homepage): home is the 'How often should air conditioning be serviced?' FAQ. Elsewhere: the best-time FAQ gives only the seasonal reason; the guarantee FAQ gives warranty terms without service-interval advice.
+- **what decides how long the job takes (units, route, access, whether the circuit is opened)** (service): home is the 'How long does [SERVICE_LOWER] take?' FAQ. Elsewhere: the seasonal FAQs give the season or timing reason only, not the duration factors.
+- **timing set by when the building can spare the system or a shutdown window** (service): home is the 'Getting it in before it's needed' card. Elsewhere: the FAQs do not repeat shutdown windows or when the room can do without it.
+- **a service before the hot weather, because the first hot week finds every weak spot** (category): home is the 'When is the best time of year to have [WORK_LOWER] work done?' FAQ. Elsewhere: the 'first hot week' card gives the symptoms only; the winter FAQ says what the cold months suit without the hot-weather reasoning.
+- **where the outdoor unit can sit on the town's buildings** (location): home is the 'Nowhere obvious for the outdoor unit' card. Elsewhere: the cost card and the cost FAQ name it only as a price factor, without describing the buildings again.

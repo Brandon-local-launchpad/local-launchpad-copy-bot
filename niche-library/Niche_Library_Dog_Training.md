@@ -223,7 +223,7 @@ Used by the category page job (CORE (16)): block 4 (what we help with) and block
 
 | Slot | When | Question | Answer brief | Doubt |
 |---|---|---|---|---|
-| cost | always | How much does [WORK_LOWER] cost in [CITY]? | Prices only from [CV: price_list]; otherwise how the quote is given, from [CV: quote_method] only. The four cost cards above already give what moves the price: name one factor at most, never the list again. | Price |
+| cost | always | How much does [WORK_LOWER] cost in [CITY]? | Prices only from [CV: price_list]; otherwise how the quote is given, from [CV: quote_method] only. The cost cards hold the list: never repeat it or point to it. | Price |
 | cover | insurance | Are you insured? | The cover figure from [CV: insurance_cover] and what the cover is for. Never what it pays, who it covers or which policy a trainer must hold (Table G: no universal requirement is verified). | Trust |
 | cover | always | What if the training isn't working for my dog? | Open with what the owner does: tell us, and the plan is looked at again. Then that progress happens between sessions and depends on the practice at home, and that a behaviour which changed suddenly, or an older dog that is not shifting, means a vet check first (Table A: behaviour modification). Then the reasonable care and skill standard every service works to, as the standard, never as a defence. No promise of an outcome, no promise to come back free. Never invent a guarantee. | Trust |
 | scope | always | What dogs and problems do you take on? | The services on the card list, said in the owner's words (pulling, not coming back, barking at other dogs, a new puppy), and the dogs and ages taken on only from [CV: typical_jobs] and the services list. The pages about a skill (assistance, scent, gundog work) are described by what the dog is trained to do and which owner wants that, not by a problem. Protection or security dog services, where the services list includes them, named once in one plain sentence with their page linked, never in this page's owner voice. Link one service page. | Fit |
@@ -279,7 +279,7 @@ Used by the service page job (CORE (17)): What's Included is an H2; its tick ite
 
 | Slot | When | Question | Answer brief | Doubt |
 |---|---|---|---|---|
-| cost | always | How much does [SERVICE_LOWER] cost in [CITY]? | Prices only from [CV: price_list]; otherwise how the quote is given, from [CV: quote_method] only. The four cost cards above already give what moves the price: name one factor at most, never the list again. | Price |
+| cost | always | How much does [SERVICE_LOWER] cost in [CITY]? | Prices only from [CV: price_list]; otherwise how the quote is given, from [CV: quote_method] only. The cost cards hold the list: never repeat it or point to it. | Price |
 | timing | always | How long does [SERVICE_LOWER] take? | From the trade facts timing row only. The rows give no standard duration for any training service (Table G), so give what decides it (the behaviour, how long it has been practised, the dog's age, the practice between sessions) and never a number of sessions or weeks. For a day care page the row's daytime only rule; for a stay, that the length is agreed for the dog. Nothing about when sessions can start unless [CV: start_time] is set. This is the one place the timing is written. | Timing |
 | cover | insurance | Are you insured for [SERVICE_LOWER]? | The cover figure from [CV: insurance_cover] and what the cover is for. Never what it pays, who it covers or which policy a trainer must hold (Table G: no universal requirement is verified). | Trust |
 | cover | always | What if it isn't working for my dog? | Open with what the owner does: tell us, and the plan is looked at again. Then that progress happens between sessions and depends on the practice at home, and that a behaviour which changed suddenly, or an older dog that is not shifting, means a vet check first (Table A: behaviour modification). Then the reasonable care and skill standard every service works to, as the standard, never as a defence. No promise of an outcome, no promise to come back free. Never invent a guarantee. | Trust |
@@ -345,3 +345,18 @@ Briefs that wanted a fact the pack or the facts pack does not state point at the
 ## do_not_reuse
 
 (empty to start; add any sentence that has gone live on a client site so it is never repeated)
+
+## Service tags
+
+An element is dropped, and the next eligible one used, when the client has confirmed none of these services. The paths are in the .json as `needs`.
+
+| Element | Needs |
+|---|---|
+| When should puppy training start? | Puppy training |
+| The puppy months and the teenage wobble | Puppy training |
+| Home alone, and not coping | Behaviour modification; Nervous and anxious dog training |
+
+## Idea homes
+
+- **progress comes from short practice at home between sessions** (homepage, service): home is the 'We Start on a Date That Suits You' step. Elsewhere: the 'how many sessions' and 'how long does it take' FAQs name home practice only as one decider in a few words; the 'isn't working for my dog' FAQ does not explain it again.
+- **a vet check first when behaviour changes suddenly or an older dog stops coping** (service): home is the 'When to see the vet first' block 4 card. Elsewhere: the 'We Get to Know Your Dog' step says only that the first meeting checks whether a vet should come first, with no reasons; the 'isn't working for my dog' FAQ gives no list of warning signs.

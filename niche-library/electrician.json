@@ -62,15 +62,18 @@
   "steps_emergency": [
     {
       "title": "Call Us",
-      "brief": "What to say: what is happening, which rooms have lost power, whether anything smells hot or has scorch marks, whether the trip switch goes straight back off. What to do meanwhile, in plain words from the Table B emergency row and the pack's safe basics: turn that circuit off at the fuse box, or the main switch if they cannot tell which, unplug what was on it, keep away from anything scorched or wet. Nothing beyond that: never an instruction to open or touch a fitting or the board. The number from [CV: phone]. No promise of a reply or an arrival time unless [CV: response_time] is set."
+      "brief": "What to say: what is happening, which rooms have lost power, whether anything smells hot or has scorch marks, whether the trip switch goes straight back off. What to do meanwhile, in plain words from the Table B emergency row and the pack's safe basics: turn that circuit off at the fuse box, or the main switch if they cannot tell which, unplug what was on it, keep away from anything scorched or wet. Nothing beyond that: never an instruction to open or touch a fitting or the board. The number from [CV: phone]. No promise of a reply or an arrival time unless [CV: response_time] is set.",
+      "needs": ["Emergency electrician"]
     },
     {
       "title": "We Make It Safe",
-      "brief": "What usually happens on arrival: the fault assessed, the dangerous part switched off or otherwise made safe, the immediate fault found where it can be (the Table A emergency electrician stages). An arrival time only as the business gives it on the call; no window written here unless [CV: response_time] is set. The price for the call out agreed before anyone comes out only from the price_agreed_before_work practice and [CV: quote_method]; a call out charge or an out of hours rate only from [CV: price_list]. Never restates 'free'. 'Same day' only when [CV: same_day_available] is yes; round the clock cover only when [CV: emergency_callouts] or [CV: out_of_hours_available] gives it."
+      "brief": "What usually happens on arrival: the fault assessed, the dangerous part switched off or otherwise made safe, the immediate fault found where it can be (the Table A emergency electrician stages). An arrival time only as the business gives it on the call; no window written here unless [CV: response_time] is set. The price for the call out agreed before anyone comes out only from the price_agreed_before_work practice and [CV: quote_method]; a call out charge or an out of hours rate only from [CV: price_list]. Never restates 'free'. 'Same day' only when [CV: same_day_available] is yes; round the clock cover only when [CV: emergency_callouts] or [CV: out_of_hours_available] gives it.",
+      "needs": ["Emergency electrician"]
     },
     {
       "title": "We Fix It, or Book the Repair",
-      "brief": "The fault repaired on the visit where it is found and the part is to hand; otherwise the house left safe with that circuit off and the rest back on, and a date agreed for the fault finding and the permanent repair (Table A: a call out may finish with the wiring made safe rather than fully repaired; Table E: an emergency visit and a full diagnosis can be separate work). The customer told plainly what is off and why (Table B: a circuit left off without a clear handover gets switched back on). Never promise a same visit fix. Never mention the price."
+      "brief": "The fault repaired on the visit where it is found and the part is to hand; otherwise the house left safe with that circuit off and the rest back on, and a date agreed for the fault finding and the permanent repair (Table A: a call out may finish with the wiring made safe rather than fully repaired; Table E: an emergency visit and a full diagnosis can be separate work). The customer told plainly what is off and why (Table B: a circuit left off without a clear handover gets switched back on). Never promise a same visit fix. Never mention the price.",
+      "needs": ["Emergency electrician"]
     }
   ],
 
@@ -251,7 +254,8 @@
           {
             "title": "A report or certificate you need by a date",
             "brief": "Obligation led, never a symptom: a landlord with a let coming up for its inspection, a seller whose buyer's solicitor has asked for a report, a business whose insurer wants the alarm and the emergency lights tested with the records to show. The one cause this card makes: a date set by a tenancy, a sale or an insurer, not by the state of the wiring. Say who the test is for and what the result is used for, from the Table C and Table E rows only: the landlord's interval and the time allowed to put faults right as the rows give them, the copies that go to the tenant, the owner's interval as advice; an EICR comes back satisfactory or unsatisfactory and what each code means only as the Table C codes row states it. Then the practical point: a test booked well ahead of the date leaves room for anything it finds. On a Security System Supplier page: the standard a monitoring company or an insurer asks for, from the Table C intruder alarm and Table D rows only; otherwise the card reads as the Electrician's. Never a regulation's name, edition or number; never a test written as the first step to a sale.",
-            "mechanism": "a date set by a tenancy, a sale or an insurer, not by the wiring"
+            "mechanism": "a date set by a tenancy, a sale or an insurer, not by the wiring",
+            "needs": ["EICR and electrical testing","Landlord electrical certificates","PAT testing","Fire alarm systems","Emergency lighting"]
           },
           {
             "title": "Scorch marks or a hot smell at a socket or switch",
@@ -261,7 +265,8 @@
           {
             "title": "Adding something the house was never wired for",
             "brief": "A situation card, not a fault: an electric car on the drive, a gas hob going and an induction one coming in, an electric shower, power to a garden office or a workshop, a loft room with no sockets. The one cause this card makes: a new load or a new circuit asked of a supply, a fuse board and an earth sized for the house as it was. What decides it, from the Table A survey stages and the Table E bonding row: how much the supply has in hand, whether the board has room for another circuit, whether the earthing and bonding are sound before anything is added, and the route the cable takes. What the work gives them in plain words: a circuit of its own with its own protection, tested and certificated. For a charger the network operator is told as the Table C row has it, said without the acronym where the copy can. On a Security System Supplier page the card is the situation that leads to cameras or an alarm: a side gate nobody can see from the kitchen, a drive that delivery vans use, a shop door after closing (Table A CCTV: the views and the positions surveyed first). Never a symptom invented for it, never a charging speed, a grant or a saving unless the client values give it.",
-            "mechanism": "a new load on a supply and a board sized for the old house"
+            "mechanism": "a new load on a supply and a board sized for the old house",
+            "needs": ["EV charger installation","Cooker and hob installation","Electric shower installation","Solar PV and battery storage"]
           }
         ]
       },
@@ -499,17 +504,20 @@
           {
             "title": "A date you have to meet",
             "brief": "Obligation led, never a symptom: write who the work is for, what brings the date and what the result is used for, from the Table C and Table E rows only. EICR and electrical testing: a let on the landlord's interval, a sale where the buyer asks, an owner on the recommended interval as advice. Landlord electrical certificates: the copies that go to the tenant and when, the time allowed to put faults right, the written confirmation afterwards, all as the rows state them. PAT testing: no fixed interval; what the equipment is and how it is used decides it (Table C and E PAT rows). Smoke and heat alarms: the landlord's duty by storey and the check at the start of a tenancy; mains linked alarms where building work requires them, never as a blanket rule (Table C rows). Fire alarm systems and Emergency lighting: what the premises' own fire risk assessment calls for and the testing routines, with the records to show (Table C rows). On a problem led page the card is the report that found it: a code on a condition report that has to be put right in the time the row gives, a survey before a sale, an insurer's request. Never a regulation's name, edition or number; never a figure the rows do not state; never a test as a route to a sale.",
-            "mechanism": "a date set by a tenancy, a sale, an insurer or the last report"
+            "mechanism": "a date set by a tenancy, a sale, an insurer or the last report",
+            "needs": ["EICR and electrical testing","Landlord electrical certificates","PAT testing","Fire alarm systems","Emergency lighting"]
           },
           {
             "title": "A board or wiring from another era",
             "brief": "Problem led, said honestly: rewireable fuses and no trip switches, cable with a rubber or lead sheath, old braided flex, a board nobody can read, the signs from the Table B rewiring and consumer unit rows. Say first that an older board or older cable is not dangerous by its age alone (Table E metal consumer units, RCDs in existing houses and rewire scope rows; Table G: no rewire age exists). The one cause this card makes: protection and cable that predate what the circuits are asked to carry now. Then what a newer board adds, from the Table C RCD row with 'usually', and why a change begins by testing each circuit first (Table A consumer unit: test before change; Table E: a new board may reveal faults the old fuses let pass). Consumer unit upgrades reads it as the board; Rewiring as the cable, and on a renovation as the situation (the floors up and the plaster off, the one time a rewire costs least in disruption: the pack's timing) rather than a fault; Sockets and switches as the fittings. Never 'death trap', never a fire statistic, never a regulation's year.",
-            "mechanism": "protection and cable that predate what the circuits carry now"
+            "mechanism": "protection and cable that predate what the circuits carry now",
+            "needs": ["Rewiring","Consumer unit upgrades"]
           },
           {
             "title": "Damp, steam or rain getting to the electrics",
             "brief": "Problem led: a bathroom mirror that stays steamed up and black mould in the corners, a fan that runs but moves little air, an outside light that trips after rain, water inside a garden fitting, a shower isolator that feels hot (the Table B extractor fan, garden lighting and electric shower rows). The one cause this card makes: moisture reaching a fitting, a duct or a connection that was never made for it. Say what the job does about it from the Table A rows: a fan and duct chosen for the room and the airflow checked when it is finished (Table B done badly: a long or kinked duct and an uninsulated duct through a cold loft are the usual faults), outdoor rated fittings on a protected route, a bathroom circuit with the protection the location needs. Extractor fan installation leads on this card; Sockets and switches and Rewiring read it as the wet rooms. On an obligation led page damp is what the report records, not a reason to sell work. Never a flow rate or a zone measurement (Table C gives them; the copy does not).",
-            "mechanism": "moisture reaching a fitting, duct or connection never made for it"
+            "mechanism": "moisture reaching a fitting, duct or connection never made for it",
+            "needs": ["Extractor fan installation","Garden and outdoor lighting","Electric shower installation"]
           }
         ]
       },
@@ -538,7 +546,7 @@
         {
           "slot": "cost",
           "question": "How much does [SERVICE_LOWER] cost in [CITY]?",
-          "answer_brief": "Prices only from [CV: price_list]; otherwise how the quote is given, from [CV: quote_method] only. The four cost cards above already give what moves the price: name one factor at most, never the list again.",
+          "answer_brief": "Prices only from [CV: price_list]; otherwise how the quote is given, from [CV: quote_method] only. The cost cards hold the list: never repeat it or point to it.",
           "doubt": "Price"
         },
         {
@@ -592,22 +600,26 @@
             {
               "title": "A new load the house was never wired for",
               "brief": "The customer's situation: an electric car charged from an extension lead, a gas hob going and an induction one coming, an electric shower where there was a mixer, a garden office that needs power, or a roof that could be making the house its own electricity. What decides it, from the Table A survey stages: how much the supply has in hand, whether the fuse board has room for another circuit, whether the earthing is sound for the job (outdoors and for a charger the earthing is checked and sometimes improved, as the Table C EV row has it, said without the terms), the route the cable takes to where it is needed, and for a charger or solar whether the network operator is told before or after, as the Table C rows state. What the work gives them: a circuit of its own, with its own protection, tested and certificated, so the charger, the shower or the hob is not sharing with the kettle. Leads on EV charger installation, Electric shower installation, Cooker and hob installation and Solar PV and battery storage; garden power on Garden and outdoor lighting. Never a fault invented for it; never a charging speed, a grant, a saving or a payback unless the client values or the Table E rows give it; where a battery sits only as a system specific decision (Table E battery row).",
-              "mechanism": "whether the supply, the board and the earthing can take another circuit"
+              "mechanism": "whether the supply, the board and the earthing can take another circuit",
+              "needs": ["EV charger installation","Cooker and hob installation","Electric shower installation","Solar PV and battery storage"]
             },
             {
               "title": "Light where you need it, switched where you stand",
               "brief": "The customer's situation: a kitchen worktop in its own shadow, a landing with one switch at the bottom of the stairs, a back door that opens onto a dark path, a drive with no light at the gate, a workshop lit by one bulb. What decides it, from the Table A lighting and garden lighting rows: whether the existing circuit can take the extra fittings, whether the ceiling can be got into for recessed lights, where the switches and sensors should go, outdoors the route for the cable and a safe way to run it, the controls (a sensor, a timer, a dusk switch), and the state of the decoration, since lighting work and ceilings go together (the Table A timing cell). The pack's timing: outdoor circuits go in most easily before paving and planting. What the work gives them: light placed for the job, switched from where they stand, fittings made for outside where they are outside. Leads on Lighting installation and Garden and outdoor lighting. Never a flickering light as the opener (the fault pages own it), never an energy figure, never a product name unless [CV: materials_methods] gives it.",
-              "mechanism": "where the fittings and the switching go, and what the ceiling or the ground allows"
+              "mechanism": "where the fittings and the switching go, and what the ceiling or the ground allows",
+              "needs": ["Lighting installation","Garden and outdoor lighting"]
             },
             {
               "title": "Knowing who's at the door and what's happening while you're out",
               "brief": "The customer's situation: a side gate that cannot be seen from the kitchen, a drive the delivery vans use, a front door an older parent would like to answer from a phone, a shop or a yard after closing, a building where the keys keep going missing. What decides it, from the Table A CCTV, intruder alarm and access control rows: what the cameras or sensors need to see and from where, what the camera would take in beyond the boundary (the Table C data protection row: cameras that cover the street or next door bring duties for the owner, said plainly), wired or wireless, whether anybody is meant to respond (a bell on the wall against a monitored system; a police response only on the route the Table C intruder row gives, never promised), and for door entry the door's own hardware and the fire escape it must not block. What the work gives them: a picture they can read at night, a recording that is kept, an alarm set up so it does not cry wolf, a door they can answer from wherever they are. Leads on CCTV installation, Intruder alarms and Access control and door entry; a camera or a lock on a phone also on Smart home installation. Never 'deters burglars', never a crime figure, never a police response as a promise.",
-              "mechanism": "what the cameras and sensors need to see, and where the signal goes"
+              "mechanism": "what the cameras and sensors need to see, and where the signal goes",
+              "needs": ["CCTV installation","Intruder alarms","Access control and door entry"]
             },
             {
               "title": "Wiring for the way you live and work now",
               "brief": "The customer's situation: a home office at the far end of the house where the Wi-Fi fades, a television going on a wall with nowhere for the leads, speakers wanted in more than one room, lights and heating they would like to run from one place, a shop or office being fitted out, a renovation with the plaster off. What decides it, from the Table A data cabling, home cinema, smart home and commercial rows: the routes the cable can take and whether they are open now (concealed routes need doing before decoration: the pack's timing, a rewire or a cable run costs least in disruption before the decorating and the flooring go in), what the equipment needs where it sits, how the new system talks to what is already there, and on a commercial job the shutdown windows and the hours the place is in use. What the work gives them: outlets where the devices are, links tested and labelled, controls that still work by hand when the network drops (Table B smart home: controlled functions fail when communications fail), and a hand over of how it all works. Leads on Data and network cabling, Home cinema and audio visual, Smart home installation and Commercial electrical work as a fit out. Never a dropped connection as the opener, never a speed or a figure, never a product name unless [CV: materials_methods] gives it.",
-              "mechanism": "the routes the cable can take while the walls and floors are open"
+              "mechanism": "the routes the cable can take while the walls and floors are open",
+              "needs": ["Data and network cabling","Home cinema and audio visual","Smart home installation","Commercial electrical work"]
             }
           ]
         }
@@ -754,17 +766,20 @@
           {
             "title": "Homes wired for a different decade",
             "brief": "Rewireable fuses in the hall cupboard, two pin sockets behind the wardrobe, one socket a room with an extension lead doing the rest. The one cause this card makes: wiring and boards put in when the houses were built and added to in pieces ever since; the town profile dates the housing. Say what homes of that era were built with and what they may still have (the pack's anchor: cable with a rubber or a lead sheath and rewireable fuses in the older stock, estates wired once and extended since), never that they have it or that they are dangerous or overdue a rewire (Table E: age alone does not decide it). Tie the era to the work: testing before anything is added (Table E bonding row), a board change that starts with every circuit tested (Table A). Not a hot socket, not a tripping switch: the town's category and service pages own those.",
-            "mechanism": "wiring and boards put in with the houses and added to in pieces since"
+            "mechanism": "wiring and boards put in with the houses and added to in pieces since",
+            "needs": ["Rewiring","Consumer unit upgrades"]
           },
           {
             "title": "Lets, shared houses and the inspection cycle",
             "brief": "A landlord with several houses in the same streets, a letting agent with a list of dates, a shared student house with a licence to renew. The one cause this card makes: a tenancy calendar that sets the test dates, not the state of the wiring; the town profile gives the share of rented and shared homes. What it means for the work: condition reports on the interval the Table C landlord row gives, the time allowed to put faults right, the copies to tenants, all only as the rows state them; a licence condition only as the dossier gives it (Table G: licence conditions vary by council, never a national checklist). Never that the town's landlords are behind, never a regulation's name. Not the report itself: the testing pages own what it checks.",
-            "mechanism": "a tenancy calendar that sets the test dates"
+            "mechanism": "a tenancy calendar that sets the test dates",
+            "needs": ["Landlord electrical certificates","EICR and electrical testing"]
           },
           {
             "title": "Terraces with nowhere to park a charger",
             "brief": "An electric car and a front door that opens onto the pavement, a cable across the path, a charger wanted where the only parking is on the street. The one cause this card makes: the gap between the house's supply and where the car actually stands; the town profile gives the street pattern (terraces on street parking, estates with drives). What it means for the work: a drive makes a charger straightforward (Table A EV: supply assessed, the network operator told, the earthing designed), while a charger across a public pavement is not covered by the home permission (Table C permitted development row) and depends on whatever the council allows, said only as the dossier gives it; never a council rule invented. Not the earthing itself: the next card and the EV page own that.",
-            "mechanism": "the gap between the house's supply and where the car stands"
+            "mechanism": "the gap between the house's supply and where the car stands",
+            "needs": ["EV charger installation"]
           },
           {
             "title": "Supplies that come in on poles",
@@ -782,11 +797,13 @@
           },
           {
             "title": "Flats, shared houses and tenants' diaries",
-            "brief": "Access arranged round several tenants, a report that needs every circuit reachable and the interruptions agreed first, work in rooms that are lived in (Table F landlord certificates: difficult tenant access; Table A EICR timing cell). Say it plainly, from the profile where it gives the tenure. No figure."
+            "brief": "Access arranged round several tenants, a report that needs every circuit reachable and the interruptions agreed first, work in rooms that are lived in (Table F landlord certificates: difficult tenant access; Table A EICR timing cell). Say it plainly, from the profile where it gives the tenure. No figure.",
+            "needs": ["Landlord electrical certificates","EICR and electrical testing"]
           },
           {
             "title": "The supply the street was given",
-            "brief": "An older street's supply with less in hand for a charger, a shower or a battery, a long cable run to the board, the network operator's process where the supply has to be looked at first (Table F EV and solar rows: supply upgrade, long run, the application). Said as what the work meets, never as a judgement on the street. No figure."
+            "brief": "An older street's supply with less in hand for a charger, a shower or a battery, a long cable run to the board, the network operator's process where the supply has to be looked at first (Table F EV and solar rows: supply upgrade, long run, the application). Said as what the work meets, never as a judgement on the street. No figure.",
+            "needs": ["EV charger installation","Solar PV and battery storage","Electric shower installation"]
           },
           {
             "title": "Conservation areas and listed homes",
@@ -934,5 +951,40 @@
         }
       ]
     }
-  }
+  },
+  "why_title_practice": {"Tested and Certificated, Every Job":[]},
+  "idea_homes": [
+    {
+      "topic": "making safe on the call-out and the permanent repair being separate pieces of work",
+      "home": "the 'Made safe tonight, fixed on a date' block 4 card",
+      "elsewhere": "the steps, the cost cards and the 'What if the fault comes back' FAQ state their own part without re-explaining the two-visit split",
+      "pages": [
+        "service"
+      ]
+    },
+    {
+      "topic": "what to do before the electrician arrives (circuit off, unplug, keep away)",
+      "home": "the 'What should I do before you arrive?' FAQ",
+      "elsewhere": "the Call Us step covers only what to say on the call, and the problem cards do not list the safe basics",
+      "pages": [
+        "service"
+      ]
+    },
+    {
+      "topic": "making safe on the call-out and the permanent repair being separate pieces of work",
+      "home": "the 'We Fix It, or Book the Repair' step",
+      "elsewhere": "the cost cards and the 'What if the fault comes back after an emergency visit?' FAQ do not re-explain the two-visit split",
+      "pages": [
+        "category"
+      ]
+    },
+    {
+      "topic": "what to do before the electrician arrives (circuit off, unplug, keep away)",
+      "home": "the 'What should I do before you arrive?' FAQ",
+      "elsewhere": "the Call Us step covers only what to say on the call, and the problem cards do not list the safe basics",
+      "pages": [
+        "category"
+      ]
+    }
+  ]
 }

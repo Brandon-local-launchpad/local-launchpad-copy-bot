@@ -336,7 +336,7 @@ Three framings share this one entry, per the pack's section 2: a problem led pag
 
 | Slot | When | Question | Answer brief | Doubt |
 |---|---|---|---|---|
-| cost | always | How much does [SERVICE_LOWER] cost in [CITY]? | Prices only from [CV: price_list]; otherwise how the quote is given, from [CV: quote_method] only. The four cost cards above already give what moves the price: name one factor at most, never the list again. Never a figure from memory. | Price |
+| cost | always | How much does [SERVICE_LOWER] cost in [CITY]? | Prices only from [CV: price_list]; otherwise how the quote is given, from [CV: quote_method] only. The cost cards hold the list: never repeat it or point to it. Never a figure from memory. | Price |
 | timing | always | How long does [SERVICE_LOWER] take? | From the trade facts timing cell only: the pack gives no standard duration for any door job (Table G), so say what decides it: whether the door is a stock size or made to measure (the maker's lead time, Table A), work to the opening or the frame, electric operation and its testing; on a repair page, whether the compatible part is to hand (Table A: parts availability varies). No figure. Nothing about when the job can start unless [CV: start_time] is set. This is the one place the timing is written. | Timing |
 | cover | guarantee | Do you guarantee your [SERVICE_LOWER] work? | Start with yes, then the terms from [CV: guarantee_years] and [CV: guarantee_scope]: whether repairs are covered as well as new doors only as the scope says. A manufacturer's warranty only from [CV: manufacturer_warranty], said by part because the door, the motor and the finish carry different periods and a service record can be a condition (Table E). Described, never promised; never a number of years the client values do not give. | Trust |
 | cover | insurance | Are you insured for [SERVICE_LOWER]? | The cover figure from [CV: insurance_cover] and what the cover is for, with an example that does not suggest carelessness. Never what it pays or who it covers. | Trust |
@@ -475,3 +475,46 @@ For Ray and the trade facts pack (Table G records most as not found; the briefs 
 12. Door type lifespans and a basis for the salt air card: Table G has no lifespan figure and no exposure row; the location card says only that weather gets at steel, tracks and finishes, and reads from the town profile.
 13. A plain words row on the manual release cord (when it is safe to pull): the briefs say only never with the door raised, from the pack's safety rule and the Table E manual release row.
 14. The pack's header still says verified: no; the service page gate refuses a run until it is verified on the Trade facts screen.
+
+## Alternate Why title that promises a practice (why_title_practice)
+
+"Doors Fitted to the Opening You Have" stands only with a practice no tick confirms, so never by default; otherwise the point reads "Our Track Record".
+
+## Service tags
+
+An element is dropped, and the next eligible one used, when the client has confirmed none of these services. The paths are in the .json as `needs`.
+
+| Element | Needs |
+|---|---|
+| Should I repair my garage door or replace it? | Garage door repairs |
+| Can my existing garage door be made electric? | Electric garage doors |
+| The motor works but the door doesn't | Electric garage doors; Garage door repairs |
+| The size of the opening | Made to measure garage doors |
+| Electric operation and its safety devices | Electric garage doors |
+| A short drive, or a tight opening | Sectional garage doors; Roller garage doors |
+| A garage you use as a room | Insulated garage doors |
+| Lifting the door by hand has had its day | Electric garage doors |
+| A door you walk through, not just drive through | Personnel and side doors; Side hinged garage doors; Front and entrance doors |
+| What has failed | Garage door repairs |
+| Whether the part is still made | Garage door repairs |
+| The tracks and the frame | Garage door repairs |
+| Electric doors and getting to it | Garage door repairs |
+| A garage that's no longer just for the car | Insulated garage doors |
+| Heavy to lift, or won't stay up | Garage door repairs |
+| Nowhere to stand while the door opens | Sectional garage doors; Roller garage doors |
+| Electric operation and its safety kit | Electric garage doors |
+| Integral garages under the bedrooms | Insulated garage doors |
+| Short drives onto the pavement | Sectional garage doors; Roller garage doors |
+| Openings that aren't a standard size | Made to measure garage doors |
+| A power supply for an electric door | Electric garage doors |
+
+## Idea homes
+
+- **what to do while waiting (leave the door, motor off, never pull the release cord, keep clear, don't touch springs)** (category): home is the 'What should I do before you arrive?' FAQ. Elsewhere: the Call Us step says only what to tell us on the call, and no block 4 card lists the safety steps.
+- **a part that has to be ordered: the door is left shut and secure and a return visit is booked** (service): home is the 'We Agree the Repair and Do It Once It's Safe' step. Elsewhere: the 'The part on the day' cost card says only how the part moves the price, the call out FAQ doesn't explain the second visit, and the first visit FAQ covers only bringing the door down.
+- **a part that has to be ordered: the door is left shut and secure and a return visit is booked** (category): home is the 'We Fix It, or Order the Part and Come Back' step. Elsewhere: the 'The part on the day' cost card says only how the part moves the price, the call out FAQ doesn't explain the second visit, and the first visit FAQ covers only bringing the door down.
+- **the door made safe and secured before anything is replaced** (service): home is the 'We Make the Door Safe and Find What's Gone' step. Elsewhere: the 'Making the door safe' cost card says only what moves the price, and the first visit FAQ doesn't describe the securing.
+- **the door made safe and secured before anything is replaced** (category): home is the 'We Make the Door Safe and Show You What's Failed' step. Elsewhere: the 'Making the door safe' cost card says only what moves the price, and the first visit FAQ doesn't describe the securing.
+- **the springs carry the door, and a motor only moves a balanced door and never lifts a heavy one** (service): home is the 'Lifting the door by hand has had its day' card. Elsewhere: the snapped spring and humming motor cards name the failed part without explaining spring balance.
+- **a garage with a door through to the house left exposed** (service): home is the 'What should I do before you arrive?' FAQ. Elsewhere: the Call Us step only asks whether there is such a door, and the door won't shut card doesn't dwell on the house.
+- **a garage with a door through to the house left exposed** (category): home is the 'What should I do before you arrive?' FAQ. Elsewhere: the Call Us step only asks whether there is such a door, and the door won't shut card doesn't dwell on the house.

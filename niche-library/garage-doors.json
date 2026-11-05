@@ -165,7 +165,8 @@
       "answer_brief": "The honest test, from Table A repairs and Table B: a door whose panel and its frame are still good but whose springs, cables, rollers or lock have worn is repaired, because every one of those is a replaceable part. A steel panel rusted right through along the bottom edge, timber gone soft at the foot or where the frame stays wet, or a door bent so it cannot run square in its tracks is replaced, because no part puts that right. Say which is which; never push either way.",
       "symptom_based": false,
       "is_fallback": true,
-      "doubt": "Fit"
+      "doubt": "Fit",
+      "needs": ["Garage door repairs"]
     },
     {
       "slot": "faq_D",
@@ -173,7 +174,8 @@
       "answer_brief": "Often, and the door is checked before the motor is chosen: a motor moves a door the springs already balance, it does not lift a heavy one, so the door's condition and balance come first (Table A electric: the door's condition and compatibility surveyed before the drive is picked). What follows from Table A and Table E: the motor matched to the door, the safety devices fitted and tested on the fitted door, a way to open it by hand in a power cut, and the paperwork handed over. Never promise that any door can take a motor; a side hinged door is not assumed to (Table G). No figure, no brand unless [CV: materials_methods] gives it.",
       "symptom_based": false,
       "is_fallback": true,
-      "doubt": "Process"
+      "doubt": "Process",
+      "needs": ["Electric garage doors"]
     },
     {
       "slot": "faq_planning",
@@ -232,12 +234,14 @@
           {
             "title": "A garage that's no longer just for the car",
             "brief": "A situation card, not a fault: the garage is a workshop, a gym or a utility room, or there is a bedroom over it or a door from it into the house, and the door is a single skin of steel with a draught round it and daylight under it (Table B insulated: a draught, daylight at the bottom, the garage still feels cold). What decides it: whether the garage sits inside the heated part of the house and whether the opening and the floor are sound enough to seal (Table A insulated: the intended thermal boundary surveyed, perimeter and bottom seals fitted). What the work gives them, in plain words: an insulated door sealed all the way round, and the honest line that the door's insulation on its own does not turn an unheated garage into a warm room (Table E). Link the Insulated garage doors page where LINKABLE PAGES has it. Never a U value or any figure, never a heating bill claim, never a lifestyle pitch.",
-            "mechanism": "a door chosen when the garage only held a car"
+            "mechanism": "a door chosen when the garage only held a car",
+            "needs": ["Insulated garage doors"]
           },
           {
             "title": "Heavy to lift, or won't stay up",
             "brief": "Problem led: the door takes real effort to raise, drops back when let go, or went suddenly heavy after a bang from the garage (Table B up and over: heavy to lift, drops back; Table B repairs: suddenly heavy, a spring has snapped, a cable hanging loose). The one cause this card makes: the springs carry the door's weight, and one has broken or gone slack, so the weight is on whoever lifts it or on the motor. What the repair involves, from the Table A repairs stages: the fault found, the door secured, a matched spring or cable fitted, the door rebalanced and tested. Spring work is specialist work (Table E): the card never tells the reader how to adjust, wind, release or replace anything, and says only what to avoid: using the door, running the motor. Link the Garage door repairs page. On a plain page this is a planned repair with no promise of speed; the urgent framing belongs to the emergency variant.",
-            "mechanism": "a spring broken or gone slack, so the weight is on you"
+            "mechanism": "a spring broken or gone slack, so the weight is on you",
+            "needs": ["Garage door repairs"]
           },
           {
             "title": "Rusted through, rotten or twisted",
@@ -247,7 +251,8 @@
           {
             "title": "Nowhere to stand while the door opens",
             "brief": "A situation card: a short drive that ends at the pavement, a car that has to be backed off the drive before the door will open, an opening the car only just clears, nowhere to stand when the door comes out. What decides it: how each kind of door moves, from Table E: an up and over travels outward as it opens and needs clearance in front; a sectional has no outward swing and runs back on tracks under the ceiling; a roller rolls up into a compact box over the opening and leaves the ceiling clear; a side hinged pair opens outward and lets a person in without lifting the whole door. And what the garage has above and beside the opening (Table A survey stages: headroom, guide positions, swing clearance). What the work gives them: the door type whose movement fits their drive and their garage, chosen after measuring, never the best door in general. No headroom or side room figure (Table G: none verified). Never that any door fits any garage. Link the door type page LINKABLE PAGES has.",
-            "mechanism": "how the door moves as it opens"
+            "mechanism": "how the door moves as it opens",
+            "needs": ["Sectional garage doors","Roller garage doors"]
           }
         ]
       },
@@ -256,7 +261,8 @@
         "cards": [
           {
             "title": "The size of the opening",
-            "brief": "A larger or non standard opening means a made to measure door rather than a stock size (Table F sectional, roller and made to measure rows). Say it plainly and give no figure."
+            "brief": "A larger or non standard opening means a made to measure door rather than a stock size (Table F sectional, roller and made to measure rows). Say it plainly and give no figure.",
+            "needs": ["Made to measure garage doors"]
           },
           {
             "title": "Which door, and what it's made of",
@@ -264,7 +270,8 @@
           },
           {
             "title": "Electric operation and its safety kit",
-            "brief": "A motor, the protective devices that go with it, a new electrical circuit where the garage has no supply, and an outside release where the garage has no other way in (Table F electric, sectional, roller). Say why each adds to the job; no figure, no brand unless [CV: materials_methods] gives it."
+            "brief": "A motor, the protective devices that go with it, a new electrical circuit where the garage has no supply, and an outside release where the garage has no other way in (Table F electric, sectional, roller). Say why each adds to the job; no figure, no brand unless [CV: materials_methods] gives it.",
+            "needs": ["Electric garage doors"]
           },
           {
             "title": "What has to come out or be put right first",
@@ -486,7 +493,8 @@
           {
             "title": "The motor works but the door doesn't",
             "brief": "The remote lights up and nothing moves, the door reverses for no reason, it will not meet the floor, it cannot be opened in a power cut (Table B electric, roller). The one cause this card makes: something is stopping the motor, either its own safety devices doing their job (a beam broken, force met on the way down), travel limits set wrong, or a door that has lost its balance, which the motor was never built to lift. What the job does from Table A electric: the door's condition and balance checked, the limits set, the safety performance and the release tested on the fitted door. A power cut: the manual release, and an outside release where the garage has no other way in (Table E manual release). Never tell the reader to turn the force up, bypass a sensor or run the motor against a heavy door; never a spring instruction. Not the spring itself: the category page owns that.",
-            "mechanism": "a safety device, a limit or an unbalanced door stopping the motor"
+            "mechanism": "a safety device, a limit or an unbalanced door stopping the motor",
+            "needs": ["Electric garage doors","Garage door repairs"]
           },
           {
             "title": "A lock that won't line up",
@@ -500,7 +508,8 @@
         "cards": [
           {
             "title": "The size of the opening",
-            "brief": "The size factor from the trade facts price row: a larger, unusual or non standard opening means a made to measure door; a large or heavily used opening on a commercial page. Say it plainly and give no figure."
+            "brief": "The size factor from the trade facts price row: a larger, unusual or non standard opening means a made to measure door; a large or heavily used opening on a commercial page. Say it plainly and give no figure.",
+            "needs": ["Made to measure garage doors"]
           },
           {
             "title": "The door's specification",
@@ -508,7 +517,8 @@
           },
           {
             "title": "Electric operation and its safety devices",
-            "brief": "A motor and the protective devices that go with it, a new electrical circuit where the garage has no supply, an outside release where the garage has no other door, more involved controls (the trade facts price row). Say why each adds to the job; no figure, no brand unless [CV: materials_methods] gives it."
+            "brief": "A motor and the protective devices that go with it, a new electrical circuit where the garage has no supply, an outside release where the garage has no other door, more involved controls (the trade facts price row). Say why each adds to the job; no figure, no brand unless [CV: materials_methods] gives it.",
+            "needs": ["Electric garage doors"]
           },
           {
             "title": "Work to the opening, and what has to come out",
@@ -520,7 +530,7 @@
         {
           "slot": "cost",
           "question": "How much does [SERVICE_LOWER] cost in [CITY]?",
-          "answer_brief": "Prices only from [CV: price_list]; otherwise how the quote is given, from [CV: quote_method] only. The four cost cards above already give what moves the price: name one factor at most, never the list again. Never a figure from memory.",
+          "answer_brief": "Prices only from [CV: price_list]; otherwise how the quote is given, from [CV: quote_method] only. The cost cards hold the list: never repeat it or point to it. Never a figure from memory.",
           "doubt": "Price"
         },
         {
@@ -574,22 +584,26 @@
             {
               "title": "A short drive, or a tight opening",
               "brief": "The customer's situation: the car has to be backed off the drive before the door will open, the drive ends at the pavement, the opening is one the car only just clears, or the ceiling is low. What decides it: how this door moves and what room that movement needs, from Table E and the Table A survey stages: a sectional rises and runs back on tracks under the ceiling with nothing coming out in front; a roller rolls up into a box over the opening and leaves the ceiling clear; a made to measure door suits an opening no stock size fits. What the work gives them: a door set back behind the brickwork so the opening stays as wide as it was built, and a car parked right up to it. Leads on the Sectional, Roller and Made to measure garage doors pages. No headroom or side room figure (Table G: none verified), never that any door fits any garage, never a fault invented for the old door.",
-              "mechanism": "how much room the door needs to move"
+              "mechanism": "how much room the door needs to move",
+              "needs": ["Sectional garage doors","Roller garage doors"]
             },
             {
               "title": "A garage you use as a room",
               "brief": "The customer's situation: the garage is a gym, a workshop, a utility room or an office, there is a bedroom over it, or a door from it leads into the house. What decides it: whether the garage sits inside the heated part of the house, and whether the opening and the floor are sound enough to seal all the way round (Table A insulated: the intended thermal boundary surveyed, perimeter and bottom seals fitted). What the work gives them: an insulated door with its seals, and the honest line that the insulation in the door does not on its own make an unheated garage warm or airtight (Table E). Leads on the Insulated garage doors page, and on the Sectional and Roller pages where the insulated version is the one being chosen. Never a U value or a figure, never a heating bill claim, never a draught invented as the opener.",
-              "mechanism": "whether the garage sits inside the heated house"
+              "mechanism": "whether the garage sits inside the heated house",
+              "needs": ["Insulated garage doors"]
             },
             {
               "title": "Lifting the door by hand has had its day",
               "brief": "The customer's situation: getting out of the car in the rain to open the door, a door that is heavy to lift, no side door into the garage, wanting to open it from the car or the phone. What decides it: whether the door they have is balanced and sound, because a motor moves a door the springs already carry and does not lift a heavy one (Table A electric: the door's condition and compatibility surveyed before the drive is chosen); the power supply (a motor on an existing supply against a new circuit, Table C, with 'usually' and no name); a second way in, because a garage with no other door usually needs a release that works from outside (Table E manual release). What the work gives them: a door that opens from the car, with the safety devices fitted and tested on the fitted door (Table E) and the paperwork handed over (Table A). Leads on the Electric garage doors page. Never promise any door can take a motor; a side hinged door is not assumed to (Table G); no brand unless [CV: materials_methods] gives it.",
-              "mechanism": "whether the door is balanced enough for a motor"
+              "mechanism": "whether the door is balanced enough for a motor",
+              "needs": ["Electric garage doors"]
             },
             {
               "title": "A door you walk through, not just drive through",
               "brief": "The customer's situation: bikes, bins and the mower going in and out daily without lifting the whole door, a period house or a street where the doors match, a front door and a garage door the owner wants to go together. What decides it: the shape and size of the opening (Table A made to measure row: the dimensions and the structural opening surveyed first), what the material asks of the owner afterwards (a timber door primed and finished after fitting and refinished in time: Table E timber finishing, Table F), and for a front or entrance door the approvals that come with it (a registered installer or building control, Table C, with 'usually' and no name). What the work gives them: a pair of side hinged leaves that open outward so one leaf lets a person in (Table E), a personnel door beside the main door, a timber or made to measure door made for that opening, a front door fitted to the rules that apply, with an honest picture of the finishing a timber door needs. Leads on the Side hinged, Timber and Made to measure garage doors pages, the Personnel and side doors page and the Front and entrance doors page. Never a security rating or grade, never a brand, never a word about the look that the door's movement or material does not earn.",
-              "mechanism": "the shape of the opening and what the material asks of you"
+              "mechanism": "the shape of the opening and what the material asks of you",
+              "needs": ["Personnel and side doors","Side hinged garage doors","Front and entrance doors"]
             }
           ]
         }
@@ -600,19 +614,23 @@
           "cards": [
             {
               "title": "What has failed",
-              "brief": "One identifiable fault on an otherwise sound door against several damaged components (Table F garage door repairs). Say it plainly and give no figure."
+              "brief": "One identifiable fault on an otherwise sound door against several damaged components (Table F garage door repairs). Say it plainly and give no figure.",
+              "needs": ["Garage door repairs"]
             },
             {
               "title": "Whether the part is still made",
-              "brief": "A compatible part that is readily available against a specialist spring or a part for a door so old it is no longer made (Table F: specialist springs or obsolete parts). Say when a repair stops being the sensible answer, and never a lifespan."
+              "brief": "A compatible part that is readily available against a specialist spring or a part for a door so old it is no longer made (Table F: specialist springs or obsolete parts). Say when a repair stops being the sensible answer, and never a lifespan.",
+              "needs": ["Garage door repairs"]
             },
             {
               "title": "The tracks and the frame",
-              "brief": "A fault in the moving parts against damage to the tracks or the frame the door runs in (Table F: damage to tracks or frame). Say why that is a bigger job, in plain words."
+              "brief": "A fault in the moving parts against damage to the tracks or the frame the door runs in (Table F: damage to tracks or frame). Say why that is a bigger job, in plain words.",
+              "needs": ["Garage door repairs"]
             },
             {
               "title": "Electric doors and getting to it",
-              "brief": "A safety fault on a powered door, which has to be put right before it runs again, and a door with restricted access round it (Table F: powered door safety faults, restricted access). Say the business looks before it prices, from [CV: quote_method] only. Code adds the price line from [CV: price_list] when there is one."
+              "brief": "A safety fault on a powered door, which has to be put right before it runs again, and a door with restricted access round it (Table F: powered door safety faults, restricted access). Say the business looks before it prices, from [CV: quote_method] only. Code adds the price line from [CV: price_list] when there is one.",
+              "needs": ["Garage door repairs"]
             }
           ]
         }
@@ -741,12 +759,14 @@
           {
             "title": "Integral garages under the bedrooms",
             "brief": "The newer streets the profile gives, built with the garage inside the house, a bedroom over it and a door from it into the hall. The one cause this card makes: a garage that is part of the heated house, so its door is part of the house's outer skin. What that means for the work, in plain words: insulation and seals all the way round count for more (Table A insulated), the lock counts for more, and the door from the garage into the house usually has to shut itself and hold back fire (Table C, 'usually', never the rating or the document's name). Never a security rating or grade, never an invented break in figure, never that the door's insulation alone makes the garage warm (Table E).",
-            "mechanism": "a garage that is part of the heated house"
+            "mechanism": "a garage that is part of the heated house",
+            "needs": ["Insulated garage doors"]
           },
           {
             "title": "Short drives onto the pavement",
             "brief": "Drives the length of a car, or less, that end at the footpath, and drives that slope down to the garage, where the profile gives the street layout. The one cause this card makes: the length and fall of the drive, which decides how a door may move and how its bottom seal meets the floor. What it means for the work: a short drive favours a door that goes straight up or rolls up, because an up and over travels outward as it opens (Table E); a floor that is not level needs more sealing work at the bottom of the door (Table F insulated: a level floor costs less). Never a figure, never that any door fits any drive. Not the door type choice itself: the service pages own that.",
-            "mechanism": "the length and fall of the drive"
+            "mechanism": "the length and fall of the drive",
+            "needs": ["Sectional garage doors","Roller garage doors"]
           },
           {
             "title": "Salt air and exposed sites",
@@ -764,7 +784,8 @@
           },
           {
             "title": "Openings that aren't a standard size",
-            "brief": "Where the housing era the profile gives left openings off today's stock sizes, the door is made to measure and the maker's lead time applies (Table F, and the Table A made to measure row). Say it plainly; no figure; never a judgement on the garages."
+            "brief": "Where the housing era the profile gives left openings off today's stock sizes, the door is made to measure and the maker's lead time applies (Table F, and the Table A made to measure row). Say it plainly; no figure; never a judgement on the garages.",
+            "needs": ["Made to measure garage doors"]
           },
           {
             "title": "Conservation areas and listed houses",
@@ -772,7 +793,8 @@
           },
           {
             "title": "A power supply for an electric door",
-            "brief": "Where the garage has no power yet, a new circuit from the fuse board is work the council's building control usually has to hear about or a registered electrician signs off (Table C, 'usually', never the document's name); a motor wired to a supply already in the garage usually is not. Say why that adds to the job; no figure."
+            "brief": "Where the garage has no power yet, a new circuit from the fuse board is work the council's building control usually has to hear about or a registered electrician signs off (Table C, 'usually', never the document's name); a motor wired to a supply already in the garage usually is not. Say why that adds to the job; no figure.",
+            "needs": ["Electric garage doors"]
           }
         ]
       },
@@ -831,5 +853,72 @@
       ]
     }
   },
-  "do_not_reuse": []
+  "do_not_reuse": [],
+  "why_title_practice": {"Doors Fitted to the Opening You Have":[]},
+  "idea_homes": [
+    {
+      "topic": "what to do while waiting (leave the door, motor off, never pull the release cord, keep clear, don't touch springs)",
+      "home": "the 'What should I do before you arrive?' FAQ",
+      "elsewhere": "the Call Us step says only what to tell us on the call, and no block 4 card lists the safety steps",
+      "pages": [
+        "category"
+      ]
+    },
+    {
+      "topic": "a part that has to be ordered: the door is left shut and secure and a return visit is booked",
+      "home": "the 'We Agree the Repair and Do It Once It's Safe' step",
+      "elsewhere": "the 'The part on the day' cost card says only how the part moves the price, the call out FAQ doesn't explain the second visit, and the first visit FAQ covers only bringing the door down",
+      "pages": [
+        "service"
+      ]
+    },
+    {
+      "topic": "a part that has to be ordered: the door is left shut and secure and a return visit is booked",
+      "home": "the 'We Fix It, or Order the Part and Come Back' step",
+      "elsewhere": "the 'The part on the day' cost card says only how the part moves the price, the call out FAQ doesn't explain the second visit, and the first visit FAQ covers only bringing the door down",
+      "pages": [
+        "category"
+      ]
+    },
+    {
+      "topic": "the door made safe and secured before anything is replaced",
+      "home": "the 'We Make the Door Safe and Find What's Gone' step",
+      "elsewhere": "the 'Making the door safe' cost card says only what moves the price, and the first visit FAQ doesn't describe the securing",
+      "pages": [
+        "service"
+      ]
+    },
+    {
+      "topic": "the door made safe and secured before anything is replaced",
+      "home": "the 'We Make the Door Safe and Show You What's Failed' step",
+      "elsewhere": "the 'Making the door safe' cost card says only what moves the price, and the first visit FAQ doesn't describe the securing",
+      "pages": [
+        "category"
+      ]
+    },
+    {
+      "topic": "the springs carry the door, and a motor only moves a balanced door and never lifts a heavy one",
+      "home": "the 'Lifting the door by hand has had its day' card",
+      "elsewhere": "the snapped spring and humming motor cards name the failed part without explaining spring balance",
+      "pages": [
+        "service"
+      ]
+    },
+    {
+      "topic": "a garage with a door through to the house left exposed",
+      "home": "the 'What should I do before you arrive?' FAQ",
+      "elsewhere": "the Call Us step only asks whether there is such a door, and the door won't shut card doesn't dwell on the house",
+      "pages": [
+        "service"
+      ]
+    },
+    {
+      "topic": "a garage with a door through to the house left exposed",
+      "home": "the 'What should I do before you arrive?' FAQ",
+      "elsewhere": "the Call Us step only asks whether there is such a door, and the door won't shut card doesn't dwell on the house",
+      "pages": [
+        "category"
+      ]
+    }
+  ]
 }

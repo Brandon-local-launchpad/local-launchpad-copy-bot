@@ -205,7 +205,7 @@ Used by the category page job (CORE (16)): block 4 (what we help with) and block
 
 | Slot | When | Question | Answer brief | Doubt |
 |---|---|---|---|---|
-| cost | always | How much does [WORK_LOWER] cost in [CITY]? | Prices only from [CV: price_list]; otherwise how the price is reached, from [CV: quote_method] only, and that the figure is agreed before the groom when that practice is confirmed. The four cost cards above already give what moves the price: name one factor at most (the coat on the day), never the list again. | Price |
+| cost | always | How much does [WORK_LOWER] cost in [CITY]? | Prices only from [CV: price_list]; otherwise how the price is reached, from [CV: quote_method] only, and that the figure is agreed before the groom when that practice is confirmed. The cost cards hold the list: never repeat it or point to it (the coat on the day). | Price |
 | cover | insurance | Are you insured to look after my dog? | The cover figure from [CV: insurance_cover] and what the cover is for: the dogs in the business's care, as the policy names it. Never what it pays or who it covers beyond that. | Trust |
 | cover | always | What if my dog doesn't settle? | Open with what happens: the groom slows down, takes a break or stops rather than forcing the dog, and the owner is called, as the way careful groomers work, drawn from the trade facts rows (no dog left on its own, a groom halted and the dog made safe, the owner phoned). Principles, never this business's practice unless a confirmed practice says so. Then what the owner does: say before the appointment how the dog copes. No guarantee of a calm dog. Never invent insurance or a guarantee. Never sedation. | Trust |
 | scope | always | Which dogs and coats do you groom? | The services on the card list said as coats and dogs: the coat that never stops growing, the double coat, the wire coat, the short coat, puppies, older dogs, and cats only where Cat grooming is on the services list. Size or breed limits only from [CV: typical_jobs]. Link one service page. What is not offered only from the services list. | Fit |
@@ -270,7 +270,7 @@ Used by the service page job (CORE (17)): What's Included is an H2; its tick ite
 | Slot | When | Question | Answer brief | Doubt |
 |---|---|---|---|---|
 | fit | always | Is [SERVICE_LOWER] right for my dog? | The coats and dogs it suits, from the trade facts materials and methods cell for this service, in plain words, and the one case where something else suits better (a sibling service page linked where LINKABLE PAGES has one). For Cat grooming and Teeth cleaning, where the vet, not the groomer, is the answer, from the trade facts rows. Never a breed named as a problem. | Fit |
-| cost | always | How much does [SERVICE_LOWER] cost in [CITY]? | Prices only from [CV: price_list]; otherwise how the price is reached, from [CV: quote_method] only, and that the figure is agreed before the groom when that practice is confirmed. The four cost cards above already give what moves the price: name one factor at most, never the list again. | Price |
+| cost | always | How much does [SERVICE_LOWER] cost in [CITY]? | Prices only from [CV: price_list]; otherwise how the price is reached, from [CV: quote_method] only, and that the figure is agreed before the groom when that practice is confirmed. The cost cards hold the list: never repeat it or point to it. | Price |
 | timing | always | How long does [SERVICE_LOWER] take? | From the trade facts timing row only: the rows for this trade give no standard duration, so say what decides it (the size of the dog, the coat as found, how the dog copes, breaks) and never a figure. Nothing about when an appointment is available unless [CV: start_time] is set. This is the one place the timing is written. | Timing |
 | cover | insurance | Are you insured for [SERVICE_LOWER]? | The cover figure from [CV: insurance_cover] and what the cover is for: the dogs in the business's care, as the policy names it. Never what it pays or who it covers beyond that. | Trust |
 | cover | always | What if my dog doesn't settle during [SERVICE_LOWER]? | Open with what happens: the work slows down, takes a break or stops rather than forcing the dog, and the owner is called, as the way careful groomers work, drawn from the trade facts rows. Principles, never this business's practice unless a confirmed practice says so. Then what the owner does: say beforehand how the dog copes. No guarantee of a calm dog. Never invent insurance or a guarantee. Never sedation. | Trust |
@@ -333,3 +333,33 @@ Used by the location page job (CORE (18)): block 4 (what the town's dogs and own
 - The business's handling practices (one dog at a time, no cage drying, breaks): written as the principles of good grooming from the facts rows, never as this client's practice, until the client ticks them.
 - Cat only groomers: the pack says they may need their own block 4 angle; this entry carries cats inside card 1 and card 3 of the service page and the scope and rules FAQs.
 - Whether a client lists anal gland expression or ear plucking as a service: the library excludes the first and the facts pack gives no rule for the second; both need a conversation with the client, not copy.
+
+## Alternate Why title that promises a practice (why_title_practice)
+
+"Every Coat Type, Groomed Before" stands only with a practice no tick confirms, so never by default; otherwise the point reads "Our Track Record".
+
+## Service tags
+
+An element is dropped, and the next eligible one used, when the client has confirmed none of these services. The paths are in the .json as `needs`.
+
+| Element | Needs |
+|---|---|
+| When can a puppy have its first groom? | Puppy grooming |
+| Hair on everything | Deshedding; Full groom; Dog bath and blow dry |
+| Smelling of dog again within days | Dog bath and blow dry; Full groom |
+| Hand stripping and scissor work | Hand stripping; Full groom |
+| Nowhere at home to wash a dog | Dog bath and blow dry; Full groom |
+| Dogs that don't travel well to a salon | Mobile dog grooming |
+| Getting a van to your door | Mobile dog grooming |
+| What the walks round here do to a coat | Dog bath and blow dry; Full groom |
+
+## Idea homes
+
+- **how the price is reached and agreed before the groom** (homepage): home is the 'How do you work out the price for my dog?' FAQ. Elsewhere: the agree-price step and the price-before-booking FAQ say only that a price is agreed first, without describing the method again.
+- **pacing the groom for a nervous, young or older dog** (service): home is the 'Puppies, older dogs and nervous dogs' block 4 card. Elsewhere: the settle FAQ covers only what the owner does and is told, and the time cost card names extra time without describing the handling.
+- **the coat looked at and the price settled by the quote method before work** (service): home is the 'How much does [SERVICE_LOWER] cost' FAQ. Elsewhere: the coat on the day card and the check-the-coat step do not restate how the price is reached.
+- **the coat looked at and the price settled by the quote method before work** (category): home is the 'How much does [WORK_LOWER] cost' FAQ. Elsewhere: the coat on the day card and the check-the-coat step do not restate how the price is reached.
+- **handling a dog that finds grooming hard** (category): home is the 'Dogs who find the salon hard' block 4 card. Elsewhere: the settle FAQ covers only what happens if a groom is stopped and what the owner does, and the time cost card names extra time only.
+- **undercoat shedding as the weather warms and cools** (category): home is the 'Does the time of year change what my dog needs?' FAQ. Elsewhere: the 'Hair on everything' card gives the cause without the spring and autumn timing, and the seasonal card covers seeds and mud only.
+- **seeds and grit caught in paws, toes and ears** (location): home is the 'Seeds and grit in paws and ears' block 4 card. Elsewhere: the local walks card keeps to mud and salt in the coat, and the all-year FAQ names the seasons without grit between the pads.
+- **grooming at home from a van** (location): home is the 'Dogs that don't travel well to a salon' block 4 card. Elsewhere: the other cards and FAQs only say where the groom happens, without making the case for a visit at home again.

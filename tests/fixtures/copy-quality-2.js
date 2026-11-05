@@ -99,7 +99,7 @@ chk('RESEARCH-LANG: "the soil varies across the city" and "geology varies" are f
   let claimMessage = '';
   let round = 0;
   await runClaimRetries({ record: r3, V, maxRounds: 1, review: async () => ({ at: 'now', findings: round++ ? [] : [{ field: 'home_final_cta_body', quote: r3.home_final_cta_body.split('. ')[0], why: 'No practice on file says so.' }] }), callRetry: async ({ message }) => { claimMessage = message; return { text: 'home_final_cta_body: Call us on [CV: phone] and tell us about the garden.', usage: {} }; } });
-  chk('Claims pass: the rewrite instruction asks for the trade\'s principle in the third person, never "we" for an unconfirmed practice', /third person/.test(claimMessage) && /a fair landscaper/.test(claimMessage) && /never "we" or "our"/.test(claimMessage), claimMessage.split('\n').find(l => /Unsupported claim/.test(l)) || '', 'third person, a fair landscaper, never we');
+  chk('Claims pass: the rewrite instruction asks to delete the sentence or describe the job itself, never "we" and never the third person (copy quality 5)', /describe the job itself/.test(claimMessage) && !/third person/.test(claimMessage), claimMessage.split('\n').find(l => /Unsupported claim/.test(l)) || '', 'the job itself');
   chk('Shared copy rules carry the rule', /Never "we" for an unconfirmed practice/.test(fs.readFileSync(path.join(root, 'prompts/_shared_copy_rules.md'), 'utf8')), '', 'rule present');
 
   // ── The homepage keyword word ──

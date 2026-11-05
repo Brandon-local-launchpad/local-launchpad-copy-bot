@@ -104,7 +104,7 @@ One `card_body` per card title in DECISIONS → block 4, in order. 40 to 60 word
 - One figure at most across all four. No source names, no standards numbers.
 
 ### cat_cost_intro
-30 to 50 words, 2 sentences. Why the price varies for this category's work, and what the customer can expect from a quote or booking (from `[CV: quote_method]` only). No figures unless `[CV: price_list]` is set.
+30 to 50 words, 2 sentences. Open on the factor that moves the price most for this category's work, then what the customer can expect from a quote or booking (from `[CV: quote_method]` only). No figures unless `[CV: price_list]` is set.
 
 ### cat_block5
 One `card_body` per card title in DECISIONS → block 5, in order. 30 to 45 words each. Each title arrives with a brief; follow it.

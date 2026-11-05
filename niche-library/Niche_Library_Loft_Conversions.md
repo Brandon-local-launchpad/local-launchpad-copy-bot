@@ -274,7 +274,7 @@ Every page target in the library is flagged `desire_led` (the pack's section 2: 
 
 | Slot | When | Question | Answer brief | Doubt |
 |---|---|---|---|---|
-| cost | always | How much does [SERVICE_LOWER] cost in [CITY]? | Prices only from [CV: price_list]; otherwise how the quote is given, from [CV: quote_method] only. The four cost cards above already give what moves the price: name one factor at most, never the list again. Never a fixed price or a promise the price cannot change. | Price |
+| cost | always | How much does [SERVICE_LOWER] cost in [CITY]? | Prices only from [CV: price_list]; otherwise how the quote is given, from [CV: quote_method] only. The cost cards hold the list: never repeat it or point to it. Never a fixed price or a promise the price cannot change. | Price |
 | timing | always | How long does [SERVICE_LOWER] take? | From the trade facts timing row only: the row gives no duration for any job in this trade, so give the stages in order and what decides the time (the roof opened under cover, the ground, steel, drains, the weather on the exposed stages, plaster drying, the inspections). A number only from the client values. Nothing about when the job can start unless [CV: start_time] is set. This is the one place the timing is written. | Timing |
 | cover | guarantee | Do you guarantee your [SERVICE_LOWER]? | Start with yes, then the terms from [CV: guarantee_years] and [CV: guarantee_scope]. Described, never promised. A completion certificate is a record of the sign off, never a guarantee. | Trust |
 | cover | insurance | Are you insured for [SERVICE_LOWER]? | The cover figure from [CV: insurance_cover] and what the cover is for. Never what it pays or who it covers. | Trust |
@@ -408,3 +408,27 @@ Where the loft conversions facts pack made this entry differ from, or add to, th
 - **Position 5, the public sewer.** Table C and E add the water company's say where an extension stands over or close to a public sewer, as something checked rather than an automatic agreement. The cost and What's Included briefs say "the water company usually has to agree", with no distance.
 - **Position 10, sign off after the event.** Table C adds that the council can look at earlier unapproved work and certify it, sometimes after alterations, and that an indemnity policy is not a sign off. The fallback problem led card says so without the procedure's name or its date.
 - **Trusses, the hip and the stair.** Not planning, but the pack's craft rules 1 and 2 and Table A, B and E give this entry two constraint cards the builder does not have (what the roof allows; where the stair lands and what it takes from the floor below) and the line that existing ceiling joists are not a floor. The builder's "a hipped roof points to one kind of loft conversion and a trussed roof to a different, bigger one" is said here in full.
+
+## Service tags
+
+An element is dropped, and the next eligible one used, when the client has confirmed none of these services. The paths are in the .json as `needs`.
+
+| Element | Needs |
+|---|---|
+| Is my loft tall enough to convert? | Loft conversions; Dormer loft conversions; Hip to gable loft conversions; Mansard loft conversions; Velux loft conversions |
+| Why does my loft floor bounce when I walk on it? | Loft boarding and insulation; Loft conversions; Dormer loft conversions; Hip to gable loft conversions; Mansard loft conversions; Velux loft conversions |
+| Dormer, hip to gable, mansard or roof lights | Loft conversions; Dormer loft conversions; Hip to gable loft conversions; Mansard loft conversions; Velux loft conversions |
+| Headroom, trusses and the hip | Loft conversions; Dormer loft conversions; Hip to gable loft conversions; Mansard loft conversions; Velux loft conversions |
+| Where the stair lands | Loft conversions; Dormer loft conversions; Hip to gable loft conversions; Mansard loft conversions; Velux loft conversions |
+| A relative with a door of their own | Annexes and granny flats; Garage conversions; Garden rooms and outbuildings; Basement conversions |
+| Roofs built the way their decade built them | Loft conversions; Dormer loft conversions; Hip to gable loft conversions; Mansard loft conversions; Velux loft conversions |
+| Side returns, deep gardens and built in garages | House extensions; Single storey extensions; Double storey extensions; Side return extensions; Wraparound extensions; Garage conversions |
+| Clay and trees under the foundations | House extensions; Single storey extensions; Double storey extensions; Side return extensions; Wraparound extensions; Conservatories and orangeries; Annexes and granny flats; Basement conversions |
+
+## Idea homes
+
+- **the stair and where it lands** (category): home is the 'Where the stair lands' block 4 card. Elsewhere: the cost card names the stair only as a cost line; the quote FAQ lists it only as one thing looked at, without explaining it.
+- **loft headroom measured on the visit, never assumed** (category): home is the 'Headroom, trusses and the hip' block 4 card. Elsewhere: the 'bedroom short' card and the quote FAQ do not discuss height or say it is measured.
+- **scaffold licence and skip permit on a terraced street** (location): home is the 'Scaffold and a skip on a terraced street' block 5 card. Elsewhere: the cost FAQ and the quote FAQ do not explain licences, permits or street access.
+- **the council's say on the street (conservation areas, listed homes, removed allowances)** (location): home is the 'Streets where the council has a say' block 4 card. Elsewhere: the conservation cost card covers only the added time and matching materials; the quote FAQ only names the planning position as something checked.
+- **clay, trees and ground under the foundations** (location): home is the 'Clay and trees under the foundations' block 5 card. Elsewhere: the cost FAQ and the timing FAQ do not explain the ground or the inspection before concrete.

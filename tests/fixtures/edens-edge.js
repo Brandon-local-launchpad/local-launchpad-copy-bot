@@ -168,8 +168,8 @@ chk('4 Why points',
   D.d10_why.length === 4, D.d10_why.length, 4);
 
 chk('Why P1 = alt title (jobs is trust line)',
-  D.d10_why[0] && D.d10_why[0].title === 'Local Experience Behind Every Job',
-  D.d10_why[0] && D.d10_why[0].title, 'Local Experience Behind Every Job');
+  D.d10_why[0] && D.d10_why[0].title === 'Our Track Record',
+  D.d10_why[0] && D.d10_why[0].title, 'Our Track Record');
 
 chk('Why P2 = Insured up to £5m',
   D.d10_why[1] && D.d10_why[1].title === 'Insured up to £5m',
@@ -184,7 +184,8 @@ chk('Why P4 = Family Run and Independent',
   D.d10_why[3] && D.d10_why[3].title, 'Family Run and Independent');
 
 const faq = D.d11_faq;
-chk('8 FAQ questions', faq.length === 8, faq.length, 8);
+// faq_C asks about turf or seed, which this client does not offer (copy quality 6): it drops, no fallback left
+chk('7 FAQ questions: the turf question drops, this client has no turf or seeding page', faq.length === 7 && !faq.some(q => /turf/i.test(q.question)), faq.length, 7);
 
 const q3 = faq.find(q => q.slot === 'Q3');
 chk('Q3 = faq_3_none (no guarantee, type A)',

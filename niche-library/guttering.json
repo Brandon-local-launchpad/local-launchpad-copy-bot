@@ -159,7 +159,8 @@
       "answer_brief": "An honest answer from the trade facts: a guard or a brush insert slows what gets into the gutter, but seed, silt and moss still gather on and under it, and a guard has to suit the gutter's profile or it sits loose. The gutters still want looking at, with the outlets kept reachable; nothing ends clearing for good. Fitted only where the services list has the page; a product only from [CV: materials_methods].",
       "symptom_based": false,
       "is_fallback": true,
-      "doubt": "Process"
+      "doubt": "Process",
+      "needs": ["Gutter guards and leaf protection"]
     },
     {
       "slot": "faq_planning",
@@ -167,7 +168,8 @@
       "answer_brief": "From the trade facts rule rows, as what usually applies, with \"usually\" or \"in most cases\": replacing fascias, soffits and gutters like for like on an ordinary house usually needs no planning application; a conservation area or a listed house can change that, most of all where cast iron or timber would be swapped for another material, and cladding a house in a conservation area usually does need permission. What the customer does about it only as the row gives it. Never an Act's or an order's name, never legal advice.",
       "symptom_based": false,
       "condition": "big_ticket AND [CV: handles_planning] confirmed",
-      "doubt": "Process"
+      "doubt": "Process",
+      "needs": ["Fascias and soffits"]
     },
     {
       "slot": "faq_E",
@@ -237,17 +239,20 @@
           {
             "title": "Drips at the joints and a dip in the run",
             "brief": "Problem led: the Gutter repairs card, and the cast iron and aluminium repair card where the client has those pages. What the customer sees: a drip from a joint in rain, a length that has dropped between two brackets, a bracket hanging loose, water running down the back of the gutter (the trade facts signs row). The one cause this card makes: a bracket that has given, so the run has lost its fall and water stands at the low point and works at the seals. Say that the joint is not always the fault (the trade facts fact row): a packed outlet raises the water at a joint, a length fitted with no room to move pushes a seal, so the cause is checked before anything is resealed. What the fix usually involves from the stages: the bracket refixed or added, the fall reset, the seal, length or fitting replaced with a matching one, the run water tested; a section replaced rather than patched where the run is unsound. Not the board behind the bracket: card 3 owns that. Never a dig at whoever fitted it.",
-            "mechanism": "a bracket that has given, so water stands and works at the seals"
+            "mechanism": "a bracket that has given, so water stands and works at the seals",
+            "needs": ["Gutter repairs"]
           },
           {
             "title": "A gutter coming away from the house",
             "brief": "Problem led: the Fascias and soffits and Bargeboards card. What the customer sees: a gutter pulling off the roofline, paint peeling and a board that feels soft when pressed, a gap at the soffit, the gable board open at the top (the trade facts signs rows). The one cause this card makes: the board the brackets screw into has gone soft, so nothing holds the gutter's line or its fall. Where the water goes: behind the gutter and into the board, then to the rafter ends it is fixed to. What putting it right involves from the stages: the old boards off to show the rafter ends, any soft timber repaired, fresh boards screwed to timber that is sound, the vents and eaves protection put back, the gutter rehung with its fall. Say plainly what the cheap job does: boards capped over damp or rotten timber hide the rot and keep it damp (the trade facts fact row); capping is for sound, dry timber that has been looked at, and only a look at the boards on the day says which this is. Never 'rooflines here are rotting' or any claim about the state of the houses in the town. What the business itself does only from confirmed practices.",
-            "mechanism": "the board the brackets screw into gone soft"
+            "mechanism": "the board the brackets screw into gone soft",
+            "needs": ["Fascias and soffits","Bargeboards"]
           },
           {
             "title": "Boards you keep having to paint",
             "brief": "A situation card, not a fault: the desire led card for Guttering installation, Aluminium guttering and a whole roofline replaced. The household repaints timber fascias and gutters every few years and the paint is flaking again a season later; or an extension or a conservatory roof was never given a gutter and water sheets off its edge; or the gutters are a patchwork of profiles from past repairs. The one cause this card makes: a roofline and gutters chosen for the house as it was built, now asking for more looking after than the owner wants to give. What the work gives them, from the trade facts stages: the boards and the gutters renewed together, each screwed to timber that is sound, a run chosen for the roof it drains with the outlets where they do most good, water tested before the job is left; uPVC, aluminium or cast iron only as [CV: materials_methods] gives them. A product guarantee only from [CV: manufacturer_warranty] with the maker named as the trade facts name it; never a lifespan, never 'maintenance free', never a lifestyle pitch. On a Gutter Cleaning Service page this card reads instead as the gutter that is full again weeks after a clear under heavy trees, and guards or brush inserts as an option that still needs the outlets kept reachable and the gutters looked at (the trade facts fact row), never as an end to clearing.",
-            "mechanism": "a roofline chosen for the house as it was built, now needing more looking after than the owner wants"
+            "mechanism": "a roofline chosen for the house as it was built, now needing more looking after than the owner wants",
+            "needs": ["Fascias and soffits"]
           }
         ]
       },
@@ -400,7 +405,8 @@
           {
             "title": "Water where it lands at the bottom",
             "brief": "Problem led, and the lead card on a Downpipes page: water gushing from the gutter outlet with no pipe under it, a pipe come away from its clips, a shoe pointing at the brickwork, a gully that backs up and floods the path, water lying against the wall after rain (the trade facts signs rows). The one cause this card makes: rainwater collected off the whole roof and then let go against the house instead of into a drain. Say what the fix usually involves from the stages: the pipe reconnected and clipped, a shoe turning the water onto a surface that drains, the gully cleared, the receiving drain checked, a soakaway kept away from the house as the rules give it (never the distance). Where the water goes if left, from the skipped row: the brickwork at the foot of the wall and the ground beside the footings, said plainly and never as a scare. On a clearing page: the downpipe blocked as well as the gutter, so emptying the gutter alone moves the water a few feet. Not the outlet packed with debris: the category page owns that.",
-            "mechanism": "rainwater let go at the foot of the wall instead of into a drain"
+            "mechanism": "rainwater let go at the foot of the wall instead of into a drain",
+            "needs": ["Downpipes"]
           }
         ]
       },
@@ -429,7 +435,7 @@
         {
           "slot": "cost",
           "question": "How much does [SERVICE_LOWER] cost in [CITY]?",
-          "answer_brief": "Prices only from [CV: price_list]; otherwise how the quote is given, from [CV: quote_method] only. The four cost cards above already give what moves the price: name one factor at most, never the list again. Never a figure from memory.",
+          "answer_brief": "Prices only from [CV: price_list]; otherwise how the quote is given, from [CV: quote_method] only. The cost cards hold the list: never repeat it or point to it. Never a figure from memory.",
           "doubt": "Price"
         },
         {
@@ -496,7 +502,8 @@
             {
               "title": "A roofline you keep having to paint",
               "brief": "The customer's situation: timber fascias, soffits and gutters that get repainted every few years and flake again a season later, or a gable and a rendered wall the owner would rather board than paint again. What decides it: the timber behind the paint and the rafter ends the boards fix to, which only a look at the boards tells (the trade facts stages: the timber surveyed, the old boards removed or a sound board assessed; the fact row: boards capped over damp or rotten timber hide the rot and feed it, so capping is for sound, dry timber only); for cladding, the wall behind, the moisture and air detail behind the boards and consent where the house is in a conservation area ('usually', never the order's name). What the work gives them: fresh boards on timber that is sound with the soffit vents kept, the gutter rehung on new brackets at the same time, so the roofline is done once; a maker's guarantee only from [CV: manufacturer_warranty], named as the trade facts name it. Leads on the Fascias and soffits, Bargeboards and Cladding pages. Never a rotten board as the opener, never a lifespan, never 'maintenance free'.",
-              "mechanism": "whether the timber behind the paint is still sound"
+              "mechanism": "whether the timber behind the paint is still sound",
+              "needs": ["Fascias and soffits","Cladding"]
             },
             {
               "title": "A roof that never had the right gutters",
@@ -506,7 +513,8 @@
             {
               "title": "uPVC, aluminium or cast iron for your house",
               "brief": "The customer's situation: they are weighing the materials: a period house whose cast iron they want kept or matched, a modern house where they want a run that will not need painting, a quote for aluminium against one for uPVC. What decides it: the house and its setting (a listed house or a conservation area can mean cast iron is matched like for like, 'usually'), the profile and capacity the roof needs, and how much looking after they want, from the trade facts materials cells and fact rows: aluminium lengths are jointed like any other, so 'seamless' is never the reason; cast iron's finish is looked after on its condition, with no repainting interval; how long any of them lasts only as the maker states it for its own system, named, never as a comparison. What the work gives them: the option that suits their house, never the one that is best in general. A named product only from [CV: materials_methods]. Leads on the Aluminium guttering, Cast iron guttering and Guttering installation pages.",
-              "mechanism": "the house, the roof it drains and how much looking after the owner wants"
+              "mechanism": "the house, the roof it drains and how much looking after the owner wants",
+              "needs": ["Aluminium guttering","Cast iron guttering"]
             },
             {
               "title": "What a new roofline still asks of you",
@@ -636,5 +644,23 @@
     }
   },
 
-  "do_not_reuse": []
+  "do_not_reuse": [],
+  "idea_homes": [
+    {
+      "topic": "the work runs all year and only wind, ice and heavy rain stop it for the day",
+      "home": "the 'How long does [SERVICE_LOWER] take?' FAQ",
+      "elsewhere": "the seasonal block 4 card and the seasonal FAQ talk about the season and do not list again what stops work at height",
+      "pages": [
+        "service"
+      ]
+    },
+    {
+      "topic": "clear after the leaves are down and before the winter rain, because wet leaves break down to silt that packs the outlet",
+      "home": "the 'When is the best time of year to have the gutters cleared?' FAQ",
+      "elsewhere": "the winter FAQ says only that the weather stops work for the day; the seasonal card names the silt cause but gives no timing advice",
+      "pages": [
+        "category"
+      ]
+    }
+  ]
 }

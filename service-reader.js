@@ -107,6 +107,7 @@ function buildServiceReaderView(record, values = {}) {
     if (Qr.status === 'failed') push(`Quality review: failed (${Qr.error}).`, '');
     else {
       push(`**Verdict: ${require('./verdict').verdictLine(require('./verdict').verdictOfRecord(record))}**`, '');
+      if ((Qr.edit_list || []).length) push(`Edit before publishing (${Qr.edit_list.length}):`, ...require('./verdict').editListLines(Qr.edit_list), '');
       push(`Quality review: **${Qr.score === null || Qr.score === undefined ? 'n/a' : Qr.score.toFixed(1)} / 10**${(Qr.rounds || []).length ? ` (rounds ${Qr.rounds.map(x => x.score).join(', ')})` : ''}, ${(Qr.failed || []).length ? `failing ${Qr.failed.join(', ')}` : 'every rubric item passes'}.`, '');
       for (const i of Qr.failures || []) {
         push(`- **${i.id} ${i.title}** (${i.by})`);
@@ -127,7 +128,8 @@ function buildServiceReaderView(record, values = {}) {
   }
   const flags = record.FLAGS || [];
   if (flags.length) { push('Flags:'); for (const f of flags) push(`- ${f.code} (${f.source}): ${f.msg}`); push(''); }
-  const unresolved = [...new Set((L.join('\n').match(/\[CV: [a-z0-9_]+\]/g) || []))];
+  // The page only: the review notes quote the raw field text, tokens and all, and those were reported as missing values
+  const unresolved = [...new Set((L.join('\n').split('## Review notes')[0].match(/\[CV: [a-z0-9_]+\]/g) || []))];
   if (unresolved.length) push(`Tokens with no value on file: ${unresolved.join(', ')}`, '');
   if (record.meta && record.meta.generated_at) push(`Generated ${record.meta.generated_at} with ${record.meta.model || ''}.`);
   for (const e of (record.meta && record.meta.edit_history) || []) push(`Edited by hand ${e.at}: ${e.fields.join(', ')}.`);

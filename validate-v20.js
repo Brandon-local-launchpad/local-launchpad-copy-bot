@@ -115,6 +115,69 @@ const DATED = ['currently', 'at the moment', 'right now', 'this year'];
 // Copy that points at another part of the page (SELF-REF)
 const SELF_REF_RE = /\b(?:see|listed|shown|set out|find|found|included|detailed)\b[^.]{0,30}\b(?:below|above)\b|\b(?:list|section|links?|map) (?:below|above)\b|\b(?:areas?|services?|faq|questions?|reviews?|locations?) section\b|\b(?:on|of|further down|up|elsewhere on) this page\b|\bthe full list\b|\bscroll (?:down|up)\b|\b(?:visit|see|check|read|head to|take a look at) (?:our|the) (?:\[[^\]]+\]\([^)]*\) |[a-z ]{0,30})?page\b/i;
 // Outcome promises about the finished work (OUTCOME)
+const META_TALK_RE = /\b(?:the\s+)?(?:cards?|sections?|points?|answers?|questions?|services?|factors?|steps?|list)\s+(?:that\s+|which\s+)?(?:follows?|below|above|here)\b|\bset out (?:here|below|above)\b|\bno (?:figure|price|number) (?:is|can be) (?:given|quoted|shown|listed|stated|put)\b|\b(?:below|above|here),? we (?:explain|set out|cover|list|look at|go through)\b|\bwe (?:explain|set out|cover|list) (?:below|above|here)\b|\bas (?:set out|explained|described|covered|listed)\b(?: (?:above|below|here|earlier))?|\b(?:are|is) (?:explained|set out|listed|covered|laid out) (?:under|here|below|above)\b|\b(?:are|is) under (?:What|How|Common|Signs)\b|\bunder (?:What Affects|How We Price)\b|\bwhat follows\b|\bread on\b/i;
+// A phrase that names a symptom the customer has ("a handle that won't lift", "if the lock won't turn"), not a
+// promise about the work. A clause that says what the firm builds or gives stays a promise ("a patio that won't crack")
+const PROMISE_VERB_RE = /\b(?:we|our|you'll get|you get|gives? you|leaves? you|built|build|builds|laid|lay|lays|fitted|fits|fit|install\w*|finish\w*|so (?:it|they|the|your))\b/i;
+function isSymptomPhrase(text, index) {
+  const before = String(text).slice(0, index);
+  const clause = before.slice(Math.max(before.lastIndexOf('.'), before.lastIndexOf('?'), before.lastIndexOf('!')) + 1);
+  if (PROMISE_VERB_RE.test(clause)) return false;
+  return /\b(?:that|which)\s+$/i.test(clause) || /\b(?:if|when|where)\b[^,]*$/i.test(clause);
+}
+// SERVICE fires only on a name from the services library, a page target or a GBP name, or one whole part of a
+// name ("crown reduction" in "Tree pruning and crown reduction"). Trade vocabulary (lock parts, materials) never does.
+const LIBRARY_TERMS = new Map();
+function libraryTerms(niche) {
+  const stem = niche ? require('./niche-library/library').stemOfEntry(niche) : null;
+  if (!stem) return null;
+  if (LIBRARY_TERMS.has(stem)) return LIBRARY_TERMS.get(stem);
+  let out = null;
+  try {
+    const lib = require('./niche-library/library').loadLibrary(stem);
+    const norm = x => lc(x).replace(/[^a-z0-9]+/g, ' ').trim();
+    const names = new Set(), targets = new Set();
+    for (const r of lib.rows || []) {
+      if (r.verdict === 'exclude') continue;
+      for (const n of [r.gbp_name, r.target].filter(Boolean)) {
+        names.add(norm(n));
+        for (const part of String(n).split(/\s+and\s+|,|&|\//i).map(norm)) if (part.split(' ').length >= 2) names.add(part);
+      }
+      if (r.target) targets.add(r.target);
+    }
+    if (names.size) out = { names, targets: [...targets], norm };
+  } catch (e) { out = null; }
+  LIBRARY_TERMS.set(stem, out);
+  return out;
+}
+function serviceTermsToCheck(niche) {
+  const terms = (niche && niche.service_terms) || [];
+  const lib = libraryTerms(niche);
+  if (!lib) return terms;
+  const known = new Set();
+  const out = [];
+  for (const t of [...terms, ...lib.targets]) {
+    const n = lib.norm(t);
+    if (known.has(n) || !lib.names.has(n)) continue;
+    known.add(n);
+    out.push(t);
+  }
+  return out;
+}
+// What K1 and the link rules require in several fields is no repeat: the keyword phrase, the service or category
+// name, the card names, and link text. They are cut out before the repeat checks count anything.
+function requiredWording(V, D = {}) {
+  const names = [V.guaranteeScope, D.keyword, D.d2_h1, D.svc, D.svc_lower, D.svc_question, D.cat, D.cat_lower, D.work, D.work_lower, ...((V.serviceList || []).flatMap(x => [x.gbp, x.say, x.name])), ...(((D.d9 && D.d9.main) || []).map(c => c.name)), ...((D.cards || []).map(c => c.name))];
+  return [...new Set(names.filter(Boolean).map(lc))].filter(n => n.length >= 4).sort((a, b) => b.length - a.length);
+}
+const BREAK = ' xbrkx ';
+function cutRequired(text, phrases) {
+  let t = String(text || '').replace(/\[([^\]]+)\]\([^)]*\)/g, BREAK);
+  t = scanText(t);
+  let l = lc(t);
+  for (const p of phrases) l = l.split(p).join(BREAK);
+  return l;
+}
 const OUTCOME_RE = /\b(?:won't|will not|wouldn't|never|doesn't|does not|don't|do not)\s+(?:ever\s+)?(?:crack|settle|sink|rot|fade|leak|move|shift|lift|warp|split|sag|flood|puddle|pool|fail|need (?:annual |any )?(?:treatment|maintenance|painting|staining))\w*\b|\bstay(?:s|ing)? (?:green|level|flat|watertight|dry|healthy|weed free|looking (?:good|new|great))\b|\b(?:last|lasts) (?:for )?(?:years|decades|a lifetime)\b|\bbuilt to last\b|\bfor years to come\b|\bproblem free\b|\bmaintenance free\b|\bwithout (?:cracking|leaking|lifting|sagging|rotting|splitting)\b|\bfor the long term\b|\bstay(?:s|ing)? (?:sound|dry and sound)\b/i;
 // Claims about the kinds of property or job the business has worked on (EXPERIENCE)
 const EXPERIENCE_RE = /\b(?:we've|we have|we|our team|our work)\b[^.]{0,120}\b(?:worked|completed|done|covered|covering|handled|tackled|seen|experience)\b[^.]{0,70}\b(rural|country|estate|period|listed|commercial|heritage|historic|large|grand|luxury|acre)\w*\b/i;
@@ -311,7 +374,7 @@ function buildValidationContext({ cv, niche, decisions, keyValueMap = {}, servic
     ].filter(Boolean).map(s => lc(String(s)).replace(/[^a-z0-9' ]+/g, ' ').replace(/\s+/g, ' ').trim()).filter(Boolean))],
     tradeFactsText: lc(tradeFactsText || ''),
     cvNumbers, cvText: cvText.join(' | '), researchText, researchNumbers, places: [...places],
-    confirmedServices, serviceList, linkable, linkableCategories, towns,
+    guaranteeScope: (cv && cv.guarantee_scope) || '', confirmedServices, serviceList, linkable, linkableCategories, towns,
     // Council areas, by their short name too ("New Forest" for "New Forest District")
     adminAreas: [...new Set(towns.filter(isAdminArea).flatMap(a => [a, a.replace(/\s+\b(District|Borough|Council|County|Authority|Region|National Park)\b.*$/i, '').trim()]).filter(a => a.length > 3))],
     neighbourhoodNames: allocated.neighbourhoods.map(n => n.name.split(/[\s,’']/)[0]).filter(n => n.length > 3),
@@ -448,7 +511,7 @@ function validateCommon(record, V) {
     for (const w of DATED) if (new RegExp(`\\b${esc(w)}\\b`, 'i').test(s)) flag('FLAG', 'N9', `"${w}" presents a dated fact as current.`);
     if (/\b[A-Z]{2,4}-[NISR]\d{2}\b/.test(t)) flag('BLOCK', 'N10', 'Contains a research reference ID.');
     if (/https?:\/\//.test(stripLinks(t).replace(/\]\([^)]*\)/g, ''))) flag('BLOCK', 'N10', 'Contains a URL that is not a Markdown link.');
-    for (const w of OVERPROMISE) if (new RegExp(`\\b${esc(w)}\\b`).test(l)) flag('BLOCK', 'N11', `Insurance overpromise: "${w}" promises an outcome. Describe what the cover is for, never what it pays or who it covers.`);
+    for (const w of OVERPROMISE) if (new RegExp(`\\b${esc(w)}\\b`).test(l) && !(w === 'nothing to pay' && !sentences(l).some(x => x.includes(w) && /insur|cover|claim|policy|liabil/.test(x)))) flag('BLOCK', 'N11', `Insurance overpromise: "${w}" promises an outcome. Describe what the cover is for, never what it pays or who it covers.`);
     // N12 team/crew
     if ((!cv.team_size || parseInt(cv.team_size, 10) <= 1) && /\b(team|crew)\b/i.test(s)) flag('FLAG', 'N12', '"Team" or "crew" used but the team size is not above 1.');
     // N15 pronouns
@@ -572,13 +635,24 @@ function validateCommon(record, V) {
     }
     // PRACTICE: working practices only from confirmed_practices
     const confirmedKeys = new Set(cv.confirmed_practices || []);
-    // A sentence written as the trade's principle in the third person is not a claim about this business
-    // (Brandon, 4 Nov 2026: "a fair roofer shows you photographs of what they found"), and it is what the
-    // claims pass asks for; "we" or "our" in the sentence makes it a claim again
-    const PRINCIPLE_RE = /^(?:(?:most|many|some)\s+)?(?:a|an|any|every)\s+(?:good|fair|careful|proper|competent|decent|qualified|responsible|reputable|experienced)\b/i;
-    const notPrinciple = sentences(t).map(x => scanText(x)).filter(x => !(PRINCIPLE_RE.test(x.trim()) && !/\b(?:we|we're|we've|we'll|our|us)\b/i.test(x))).join(' ');
-    for (const c of practiceClaims(notPrinciple, niche)) {
-      if (!confirmedKeys.has(c.practice.key)) flag('BLOCK', 'PRACTICE', `"${c.match}" states a practice ("${c.practice.label}") that the client hasn't confirmed. Remove it, or write it as the trade's principle in the third person ("a good ${(niche && niche.trade_person) || 'tradesperson'} ..."), never "we".`);
+    for (const c of practiceClaims(sentences(t).map(x => scanText(x)).join(' '), niche)) {
+      if (!confirmedKeys.has(c.practice.key)) flag('BLOCK', 'PRACTICE', `"${c.match}" states a practice ("${c.practice.label}") that the client hasn't confirmed. Delete it, or describe the job itself: what the work involves, with no "we", no "a fair [trade]" and no claim about how any business behaves.`);
+    }
+    // TRADE-VOICE (copy quality 5, 4 Nov 2026): "a fair roofer shows you photographs", "a locksmith won't ...": how
+    // a business in the trade behaves reads as a promise about this one
+    {
+      const person = [niche && niche.trade_person, niche && niche.trade_person_plural].filter(Boolean).map(x => esc(lc(x)));
+      const generic = 'tradesperson|tradespeople|tradesman|tradesmen|firm|firms|company|companies|business|businesses|contractor|contractors|trader|traders';
+      const who = [...person, generic].join('|');
+      const hits = [
+        new RegExp('\\b(?:fair|honest|decent|reputable|trustworthy)\\s+(?:' + who + '|[a-z]+(?:er|ers|or|ors|ist|ists|ian|ians|smith|smiths|surgeon|surgeons)|[a-z]+\\s+(?:surgeons?|fitters?|engineers?|contractors?)|one)\\b(?<!\\b(?:fair|honest|decent)\\s+(?:number|amount|quarter|proportion|answer|price|offer|order|colour|floor|border|corner|cover|weather|water|winter|summer|paper|power|layer|timber|filter))', 'i'),
+        new RegExp('\\b(?:good|careful|proper|responsible|sensible)\\s+(?:' + who + ')\\b', 'i'),
+        person.length ? new RegExp('\\b(?:a|an|any|every|no)\\s+(?:' + person.join('|') + ")\\s+(?:should|will|would|won't|wouldn't|must|ought|never|always|shows|agrees|refuses)\\b", 'i') : null,
+      ].filter(Boolean);
+      for (const re of hits) {
+        const m = s.match(re);
+        if (m) { flag('BLOCK', 'TRADE-VOICE', `"${m[0]}" says how a business in the trade behaves. Delete the sentence, or describe the job itself: what the work involves, with no "we", no "a fair [trade]" and no claim about how any business behaves.`); break; }
+      }
     }
 
     // RAW-GBP: homeowner words, never the raw GBP name; never-named services stay out
@@ -629,8 +703,12 @@ function validateCommon(record, V) {
     }
     // SELF-REF: the page never points at itself; each section stands on its own (16 Oct, round 3)
     { const m = s.match(SELF_REF_RE); if (m) flag('BLOCK', 'SELF-REF', `"${m[0]}" points at another part of the page. Say the thing itself, or leave it out.`); }
+    // META-TALK (copy quality 6, 5 Nov 2026): a sentence about the page itself, or one that points the reader at
+    // another section, says nothing to the customer
+    { const m = s.match(META_TALK_RE); if (m) flag('BLOCK', 'META-TALK', `"${m[0]}" is about the page, not the job. Say the thing itself, or leave the sentence out.`); }
     // OUTCOME: promises about how the finished work behaves are claims (16 Oct, round 3)
     for (const m of s.matchAll(new RegExp(OUTCOME_RE.source, 'gi'))) {
+      if (isSymptomPhrase(s, m.index)) continue;
       if (!V.cvText.includes(lc(m[0]))) flag('FLAG', 'OUTCOME', `"${m[0]}" promises an outcome the client hasn't confirmed. Say what the work involves, not how it will perform.`);
     }
     // EXPERIENCE: kinds of property or job worked on need a client value (16 Oct, round 3)
@@ -713,11 +791,11 @@ function validateCommon(record, V) {
     }
     // REPEAT-IN: one point made once inside a field
     {
-      const toks = lc(s).replace(/cvtoken/g, ' ').replace(/[^a-z0-9£' ]+/g, ' ').split(/\s+/).filter(Boolean);
+      const toks = cutRequired(f.text, requiredWording(V, D)).replace(/cvtoken/g, ' ').replace(/[^a-z0-9£' ]+/g, ' ').split(/\s+/).filter(Boolean);
       const seen = new Map();
       for (let i = 0; i + 4 <= toks.length; i++) {
         const g = toks.slice(i, i + 4);
-        if (g.filter(w => !STOPWORDS.has(w)).length < 2) continue;
+        if (g.includes('xbrkx') || g.filter(w => !STOPWORDS.has(w)).length < 2) continue;
         const k = g.join(' ');
         if (seen.has(k) && i - seen.get(k) >= 4) { flag('FLAG', 'REPEAT-IN', `"${k}" appears twice in this field. Make each point once.`); break; }
         if (!seen.has(k)) seen.set(k, i);
@@ -735,7 +813,7 @@ function validateCommon(record, V) {
     // FAQs (14 Oct); applied to every model field, because the first Stage 7 run
     // named "crown reduction" in the content block.
     {
-      for (const term of (niche.service_terms || [])) {
+      for (const term of serviceTermsToCheck(niche)) {
         if (!new RegExp(`\\b${esc(term)}`, 'i').test(s)) continue;
         const need = lc(term).split(/[^a-z0-9]+/).filter(w => w && !GENERIC_SERVICE_WORDS.has(w)).map(stem);
         if (!need.length || V.confirmedServices.some(set => need.every(w => set.has(w)))) continue;
@@ -899,7 +977,7 @@ function sharedCrossChecks(record, V, { issues, issue, fields, cb, K }) {
         seenFaq.add(kind);
       }
       count += n;
-      if (count > 3) { issue('BLOCK', 'PROOF-QUOTE', f.label, `The quote method or the price agreed before work is already on the page 3 times (${homes.join(', ')}). Leave it out here, in any wording.`, f.ref); continue; }
+      if (count > 3 && faqKind(f) !== 'cost') { issue('BLOCK', 'PROOF-QUOTE', f.label, `The quote method or the price agreed before work is already on the page 3 times (${homes.join(', ')}). Leave it out here, in any wording.`, f.ref); continue; }
       homes.push(f.label);
     }
   }
@@ -997,10 +1075,11 @@ function sharedCrossChecks(record, V, { issues, issue, fields, cb, K }) {
   if (finalF && closing && firstTwo(finalF.text) === firstTwo(closing)) issue('FLAG', 'N14', finalF.label, 'Opens with the same two words as the content block closing line.', finalF.ref);
 
   // N21: a five word run shared by two fields (the later field is rewritten)
+  const needWords = requiredWording(V, D);
   const grams = f => {
-    const w = scanText(f.text).replace(REQUIRED, ' ').replace(/CVTOKEN/g, ' ').toLowerCase().replace(/[^a-z0-9£ ]+/g, ' ').split(/\s+/).filter(Boolean);
+    const w = cutRequired(f.text, needWords).replace(REQUIRED, ' ').replace(/cvtoken/g, ' ').replace(/[^a-z0-9£ ]+/g, ' ').split(/\s+/).filter(Boolean);
     const out = new Set();
-    for (let i = 0; i + 5 <= w.length; i++) out.add(w.slice(i, i + 5).join(' '));
+    for (let i = 0; i + 5 <= w.length; i++) { const g = w.slice(i, i + 5); if (!g.includes('xbrkx')) out.add(g.join(' ')); }
     return out;
   };
   // Wording the rules require in several places isn't a repeat (16 Oct)
@@ -1021,12 +1100,12 @@ function sharedCrossChecks(record, V, { issues, issue, fields, cb, K }) {
     const seenIn = new Map();
     const flagged = new Set();
     for (const f of fields) {
-      const toks = lc(scanText(f.text)).replace(/inland and along the coast|reasonable care and skill/g, ' ').replace(/cvtoken/g, ' ').replace(/[^a-z0-9£' ]+/g, ' ').split(/\s+/)
+      const toks = cutRequired(f.text, needWords).replace(/inland and along the coast|reasonable care and skill/g, ' ').replace(/cvtoken/g, ' ').replace(/[^a-z0-9£' ]+/g, ' ').split(/\s+/)
         .filter(w => w && !DROP.has(w)).map(w => FOLD[w] || w);
       const mine = new Set();
       for (let i = 0; i + 3 <= toks.length; i++) {
         const g = toks.slice(i, i + 3);
-        if (g.filter(w => !STOPWORDS.has(w)).length < 2) continue;
+        if (g.includes('xbrkx') || g.filter(w => !STOPWORDS.has(w)).length < 2) continue;
         mine.add(g.join(' '));
       }
       for (const g of mine) {
@@ -1065,5 +1144,5 @@ module.exports = {
   effectiveRanges, thinRange,
   validateV20, validateCommon, sharedCrossChecks, buildValidationContext, modelFields, getField, setField, summarise, wordCount, RANGES, RETRY_FLAGS, BANNED, STOCK, HOMEPAGE_KEYS,
   // Text helpers for a page type's own checks
-  helpers: { esc, stripLinks, linkUrls, normUrl, scanText, words, sentences, lc, stem, STOPWORDS, contentWords, packIndex, packCopy },
+  helpers: { serviceTermsToCheck, isSymptomPhrase, META_TALK_RE, requiredWording, cutRequired, esc, stripLinks, linkUrls, normUrl, scanText, words, sentences, lc, stem, STOPWORDS, contentWords, packIndex, packCopy },
 };

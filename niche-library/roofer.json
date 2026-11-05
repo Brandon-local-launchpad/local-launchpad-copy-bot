@@ -167,7 +167,8 @@
       "question": "Why are my gutters overflowing when it rains?",
       "answer_brief": "Use the assigned symptom and issue. Three distinct causes: blocked outlet or downpipe, a run that has dropped out of level, an opened joint. Then the local factor.",
       "symptom_based": true,
-      "doubt": "Fit"
+      "doubt": "Fit",
+      "needs": ["Gutter repairs","Gutter cleaning","Guttering installation"]
     },
     {
       "slot": "faq_C",
@@ -191,7 +192,8 @@
       "answer_brief": "Like for like on an unlisted house usually no; conservation areas and listed buildings can need consent, especially changing materials or chimneys. If an allocated neighbourhood is a conservation area, name it.",
       "symptom_based": false,
       "condition": "big_ticket AND [CV: handles_planning] confirmed",
-      "doubt": "Process"
+      "doubt": "Process",
+      "needs": ["Roof replacement","Flat roof replacement","Garage roof replacement","Conservatory roof replacement"]
     },
     {
       "slot": "faq_E",
@@ -200,7 +202,8 @@
       "needs_trade_check": true,
       "symptom_based": false,
       "is_fallback": true,
-      "doubt": "Process"
+      "doubt": "Process",
+      "needs": ["Roof replacement","Flat roof replacement","Garage roof replacement","Conservatory roof replacement"]
     }
   ],
 
@@ -261,12 +264,14 @@
           {
             "title": "Puddles that stay on a flat roof",
             "brief": "Puddles still there days after rain, blisters in the covering, a stain under the extension or over the garage. The one cause this card makes: the fall has gone, so water sits instead of running to the outlet, and standing water finds any weak joint. Say that the fix starts with the deck and the falls, not a new layer over the old one, from the trade facts stages for flat roof replacement; a covering laid over a wet or sagging deck ponds again. No fall figure. Not the laps of felt or the seams of a rubber roof: the service pages own those.",
-            "mechanism": "a fall that has gone, so water sits instead of running off"
+            "mechanism": "a fall that has gone, so water sits instead of running off",
+            "needs": ["Flat roof replacement","EPDM rubber roofing","GRP fibreglass roofing","Felt roofing"]
           },
           {
             "title": "Gutters sagging and roofline going soft",
             "brief": "A gutter pulling away from the eaves, a sag that overflows at its lowest dip, paint peeling off the fascia, a gap at the soffit. The one cause this card makes: the fascia timber behind the brackets has gone soft, so the gutter no longer holds its line. Say what putting it right involves from the trade facts stages (the old boards off and the backing timber repaired, never capped over; the gutter rehung with its fall); what the business itself does only from confirmed practices. Problem led for gutter repairs and fascias and soffits; schedule led where the page's cards include gutter cleaning (what slips once the leaves come down, explained by the season's cause rather than a busy period; never 'winter is a busy time'). Not a blocked outlet: the symptom FAQ and the gutter cleaning page own that.",
-            "mechanism": "fascia timber gone soft behind the brackets"
+            "mechanism": "fascia timber gone soft behind the brackets",
+            "needs": ["Fascias and soffits","Gutter repairs","Guttering installation"]
           }
         ]
       },
@@ -327,7 +332,7 @@
         {
           "slot": "process",
           "question": "What happens when I ask for a quote?",
-          "answer_brief": "From [CV: quote_method] and the confirmed practices only: what the customer sends (what they have noticed and roughly where; photos from the ground help, never from a ladder), what the business looks at (the roof, and the loft where quote_method says so), what comes back (photos of every fault only from the photos_of_faults practice; a written quote only from written_quote). The pack's trust gap answered as the way a fair roofer behaves: the evidence looked at, nothing agreed on the doorstep, a second opinion welcomed; never a claim of honesty. No timescale unless [CV: response_time] is set.",
+          "answer_brief": "From [CV: quote_method] and the confirmed practices only: what the customer sends (what they have noticed and roughly where; photos from the ground help, never from a ladder), what the business looks at (the roof, and the loft where quote_method says so), what comes back (photos of every fault only from the photos_of_faults practice; a written quote only from written_quote). The pack's trust gap answered as what the job itself involves: the evidence to look at, nothing that needs agreeing on the doorstep, a second opinion always reasonable; never how a roofer behaves, never a claim of honesty. No timescale unless [CV: response_time] is set.",
           "doubt": "Process"
         },
         {
@@ -543,7 +548,7 @@
         {
           "slot": "cost",
           "question": "How much does [SERVICE_LOWER] cost in [CITY]?",
-          "answer_brief": "Prices only from [CV: price_list]; otherwise how the quote is given, from [CV: quote_method] only. The four cost cards above already give what moves the price: name one factor at most, never the list again. Never a figure from memory.",
+          "answer_brief": "Prices only from [CV: price_list]; otherwise how the quote is given, from [CV: quote_method] only. The cost cards hold the list: never repeat it or point to it. Never a figure from memory.",
           "doubt": "Price"
         },
         {
@@ -597,22 +602,26 @@
             {
               "title": "A loft or landing with no daylight",
               "brief": "A loft room, a landing or a bathroom under the roof that is dark all day, or a loft conversion being planned. What decides it: the structure and the covering at the spot the light is wanted, and whether consent applies (Table A roof window installation: structure and permissions checked before the opening is formed; Table C: a window that sits close to the slope of the roof usually needs no planning application, a listed house or a flat is different; 'usually', never the measurement). What the work gives them: daylight and fresh air in a room that had neither, with the flashing made for that covering so the opening stays dry (Table B: the wrong flashing for the covering leaks). Leads on the Roof window installation page. Never a fault as the opener, never the brand (say 'roof window'), never an invented damp or condensation problem.",
-              "mechanism": "whether the roof can take an opening where the light is wanted"
+              "mechanism": "whether the roof can take an opening where the light is wanted",
+              "needs": ["Roof window installation (Velux)"]
             },
             {
               "title": "An extension or loft room you want warm all year",
               "brief": "A flat roofed extension or a room under a flat roof that the heating never quite reaches, or a cold roof the owner wants brought up to a warm build up while the covering is renewed. What decides it: where the insulation goes in relation to the deck, and how moisture from the rooms below is controlled through the whole build up (Table E warm versus cold roof; Table A: the deck and its moisture condition inspected, the insulation and condensation strategy worked out first). What the work gives them: a room that holds its heat and a roof designed so indoor moisture does not condense inside it; the insulation standard that can apply when a roof is renewed only from the Table C rows, with 'usually' and never the value. Leads on the page for warm and cold roof conversion. Never say the existing roof has failed, never a thickness or a U value, never a heating bill claim.",
-              "mechanism": "where the insulation sits against the deck"
+              "mechanism": "where the insulation sits against the deck",
+              "needs": ["Warm roof and cold roof conversion"]
             },
             {
               "title": "A chimney you no longer use",
               "brief": "A stack that served a fireplace blocked up years ago, a breast in the way of a loft conversion, a chimney the owner would rather not keep pointing. What decides it: whether the stack is shared with next door, whether any flue is still in use, and how far the removal goes (above the roofline only, or on down through the house, which needs a structural design and building control; Table A, Table C); consent where the house is listed or the chimney counts towards the street's character, and the party wall procedure where the stack is shared ('usually', never the Act's name). What the work gives them: one less thing on the roof to look after and the roof made good where the stack stood. Leads on the Chimney removal page. Never say the stack is unsafe or leaning; never a fault as the opener.",
-              "mechanism": "whether the stack is shared and whether a flue is still live"
+              "mechanism": "whether the stack is shared and whether a flue is still live",
+              "needs": ["Chimney removal"]
             },
             {
               "title": "New gutters or cladding as part of a bigger job",
               "brief": "Roofline being renewed with the gutters going on at the same time, or a gable or a tired rendered wall the owner wants boarded. What decides it: for guttering, the fascia and rafter ends the brackets fix to and the run of the water to the right drain (Table A guttering installation: catchment and outlet assessed, falls set, the system water tested; Table C: roof water goes to a soakaway or watercourse before a sewer, 'usually'); for cladding, the wall behind, the moisture and fire design and any consent (Table A cladding). What the work gives them: gutters sized for the roof and set to a fall so rain goes where it should, and boards fixed to sound timber with the ventilation behind them kept open. Leads on the Guttering installation and Cladding pages. Never a sagging gutter or a rotten board as the opener (those are the problem led pages' cards); never 'maintenance free'.",
-              "mechanism": "what is behind the boards and where the water has to go"
+              "mechanism": "what is behind the boards and where the water has to go",
+              "needs": ["Guttering installation","Cladding"]
             }
           ]
         }
@@ -662,7 +671,8 @@
             {
               "title": "Rain or wind coming in at a roof window",
               "brief": "Water on the inside of the frame, a draught at the sash, a window that will not shut after a gale. The one cause this card makes: a flashing lifted or a sash that will not close, so rain and air get in at the opening (Table B roof window repairs). What usually happens: the opening covered, the flashing, seal or hardware replaced with compatible parts, the covering around it reinstated; a seal alone when the flashing is the fault leaves the cause. Leads on the Roof window repairs page. Say 'roof window', never the brand.",
-              "mechanism": "a flashing lifted or a sash that won't close"
+              "mechanism": "a flashing lifted or a sash that won't close",
+              "needs": ["Roof window repairs"]
             }
           ]
         },
@@ -769,12 +779,14 @@
           {
             "title": "Moss and leaves on the shaded side",
             "brief": "Tree lined avenues, north facing slopes, a roof under a big sycamore, from the town profile. The one cause this card makes: tree cover keeping slopes damp and gutters full, so moss builds on the shaded pitch and slides into the gutters, and outlets block after leaf fall. Say what that does to the job: a small amount of moss normally does no harm, heavy growth blocks the runoff (Table E); cleared by hand, never pressure washed (Table E). Schedule led, with the reason in the weather. Not a blocked outlet as the fault, not fascia timber gone soft: the gutter pages and the category page own those.",
-            "mechanism": "tree cover keeping slopes damp and gutters full"
+            "mechanism": "tree cover keeping slopes damp and gutters full",
+            "needs": ["Roof cleaning and moss removal","Gutter cleaning"]
           },
           {
             "title": "Chimneys nobody uses any more",
             "brief": "A stack on every house in the older streets and most of them cold, from the town profile's era. The one cause this card makes: a stack left standing after the fires went out, so the mortar, the flaunching and the pots weather at the top with nobody watching, and the lead at the junction with the roof goes with them. Say what it usually means: the defective joints repointed rather than the whole stack (Table E: comprehensive repointing is rarely necessary), lime where lime was used, or removal above the roofline as an option; the checks that sometimes apply (a listed house, a conservation area, a shared stack) with 'usually' and never an Act's name. Never that any chimney is unsafe today.",
-            "mechanism": "a stack left standing after the fires went out"
+            "mechanism": "a stack left standing after the fires went out",
+            "needs": ["Chimney repairs and repointing","Chimney removal"]
           }
         ]
       },
@@ -795,7 +807,8 @@
           },
           {
             "title": "What the last re-roof left behind",
-            "brief": "Concrete tiles laid over battens meant for slate, a felt overlay over older felt, roofline capped over boards that had already gone soft, a paint coating on tiles: what has to come off and go in a skip before the new work goes on, from the trade facts done badly rows. Older streets in the town carry more of it; say so without unkindness and without a dig at another trade. No figure."
+            "brief": "Concrete tiles laid over battens meant for slate, a felt overlay over older felt, roofline capped over boards that had already gone soft, a paint coating on tiles: what has to come off and go in a skip before the new work goes on, from the trade facts done badly rows. Older streets in the town carry more of it; say so without unkindness and without a dig at another trade. No figure.",
+            "needs": ["Roof replacement","Flat roof replacement","Garage roof replacement"]
           }
         ]
       },
@@ -842,7 +855,7 @@
         {
           "slot": "process",
           "question": "What happens when I ask for a quote in [TOWN]?",
-          "answer_brief": "From [CV: quote_method] and the confirmed practices only: what the customer sends (what they have noticed and roughly where; photos from the ground, never from a ladder), what the business looks at, what comes back (photos of every fault only from the photos_of_faults practice). Nothing agreed on the doorstep and a second opinion welcomed, written as the way a fair roofer behaves. No timescale unless [CV: response_time] is set.",
+          "answer_brief": "From [CV: quote_method] and the confirmed practices only: what the customer sends (what they have noticed and roughly where; photos from the ground, never from a ladder), what the business looks at, what comes back (photos of every fault only from the photos_of_faults practice). Nothing that needs agreeing on the doorstep and a second opinion always reasonable, written as what the job itself involves, never how a roofer behaves. No timescale unless [CV: response_time] is set.",
           "doubt": "Process"
         },
         {
@@ -949,5 +962,41 @@
         ]
       }
     }
-  }
+  },
+  "idea_homes": [
+    {
+      "topic": "tracing where the water gets in rather than treating the stain",
+      "home": "the 'A repair that didn't hold' block 4 card",
+      "elsewhere": "the 'Making it safe first' cost card and the 'We Make It Safe and Find Where the Water Gets In' step say only that the entry point is traced, without explaining how or why the stain misleads",
+      "pages": [
+        "service"
+      ]
+    },
+    {
+      "topic": "made safe and weathertight now, permanent repair on the visit if weather and parts allow, otherwise on an agreed date",
+      "home": "the third emergency step ('We Agree the Repair and Do It Once It's Safe' on service pages, 'We Fix It, or Book the Permanent Work' on category pages)",
+      "elsewhere": "the 'Making it safe first' cost card covers only how the make-safe work moves the price, and the second emergency step stops at making safe and showing what was found, with no mention of the later permanent repair",
+      "pages": [
+        "service",
+        "category"
+      ]
+    },
+    {
+      "topic": "no one goes on the roof until the wind has dropped and it is safe; until then the work is done from inside and from the ground",
+      "home": "the 'Will you come out while it's still raining?' FAQ (category: 'Will you come out while the storm is still going?')",
+      "elsewhere": "the 'Getting to the roof' cost card and the 'How quickly can you get here/to me?' FAQ do not restate the wait for safe conditions",
+      "pages": [
+        "service",
+        "category"
+      ]
+    },
+    {
+      "topic": "what to do from inside before the roofer arrives: catch the water, move what is underneath, stay off the roof",
+      "home": "the 'What should I do before you arrive?' FAQ",
+      "elsewhere": "the Call Us step covers only what to say on the call, and 'The first hour, before anyone arrives' card keeps to the electrics safety point (switching off the circuit near wet fittings)",
+      "pages": [
+        "category"
+      ]
+    }
+  ]
 }

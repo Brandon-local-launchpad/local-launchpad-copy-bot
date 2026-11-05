@@ -37,6 +37,7 @@ function phSvc(text, ctx) {
   // Southampton?", "Is a patio right for your garden?"), never "does patios cost" (4 Nov 2026)
   let t = String(text);
   const question = /\?\s*$/.test(t.trim());
+  if (!question) t = require('./decisions').articleBefore(t, { SERVICE: ctx.svc, SERVICE_LOWER: ctx.svcLower });
   const lower = ctx.svcLower || '';
   const q = ctx.svcQuestion || lower;
   // A Title Case question heading ("Is [SERVICE] Right for Your Garden?") reads in sentence case
@@ -174,7 +175,7 @@ function computeServiceDecisions({ cv, niche, keyValueMap = {}, rows = [], page,
   const emergencyNames = (baseRow && baseRow.info && baseRow.info.emergency) || (page.info && page.info.emergency) ? [serviceName] : [];
   // The desire led framing (4 Nov 2026): the library flags the page desire_led, so block 4 is "Is this right for you"
   const desirePage = !!((baseRow && baseRow.info && baseRow.info.desire_led) || (page.info && page.info.desire_led));
-  try { blocks = B.blocksFor({ niche, cv, category, emergencyPage: emergencyNames.length > 0, desirePage, service: serviceName }); }
+  try { blocks = B.blocksFor({ niche, cv, category, emergencyPage: emergencyNames.length > 0, desirePage, service: serviceName }); const CBF = require('./category-blocks'); blocks.entry = CBF.filterEntry(blocks.entry, { confirmed: CBF.confirmedFromRows(rows, serviceName), spares: CBF.sparesFor(niche.service_page_blocks, blocks.key) }); }
   catch (e) { if (e.code === 'G-BRIEF') gates.push({ code: 'G-BRIEF', msg: e.message }); else throw e; }
   if (gates.length) return { gates, flags, decisions: null, decisionsBlock: null };
   for (const g of B.briefGaps(blocks.entry)) flags.push({ code: 'F-BRIEF', msg: `${niche._source || niche.trade} type ${blocks.key}: ${g}.` });
@@ -229,6 +230,8 @@ function computeServiceDecisions({ cv, niche, keyValueMap = {}, rows = [], page,
     else if (/^we\b/i.test(proof)) { const clause = require('./decisions').weClause(proof); cand = clause ? `${stem} ${clause}. ${metaCta}` : `${stem}. ${p.replace(/[.!]?$/, '.')} ${metaCta}`; }
     else if (/\boffer(?:s|ing)?\b/i.test(proof)) cand = `${stem} with ${proof.replace(/^offering\s+/i, '')}. ${metaCta}`;
     else if (/\bwith\b/i.test(proof)) cand = `${stem}, ${proof}. ${metaCta}`;
+    // A proof that is a whole sentence ("The price is agreed on the phone before we set out") stands on its own
+    else if (/^(?:the|our|your)\b.*\b(?:is|are|was|were)\b/i.test(proof)) cand = `${stem}. ${p.replace(/[.!]?$/, '.')} ${metaCta}`;
     else cand = `${stem} with ${proof}. ${metaCta}`;
     cand = cand.trim();
     if (cand.length <= 155) { meta = cand; break; }
@@ -548,7 +551,7 @@ function formatServiceBlock(D, cv, niche, ctx) {
   push('');
   if (D.thin) { const R = require('./page-types/service').ranges; push(''); push('THIN PAGE (no allocated neighbourhoods): every word minimum below is a third lower than the prompt says; do not pad to reach the prompt\'s figure. The ranges on this page:'); for (const [k, r] of Object.entries(R)) if (r && r.min) push(`  ${k}: ${Math.ceil(r.min * 2 / 3)} to ${r.max} words`); }
   if (D.overrideUsed) push('Per page briefs: this service has its own block 5 cards or steps in the niche entry (service_overrides).');
-  for (const l of IH.ideaHomeLines('service')) push(l);
+  for (const l of IH.ideaHomeLines('service', niche)) push(l);
   push('');
   push('LINKABLE PAGES:');
   for (const p of D.linkablePages) push(`  [${p.type}] ${p.url} | H1: ${p.h1}${p.say ? ` | say: ${p.say}` : ''}`);

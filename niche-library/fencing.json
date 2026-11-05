@@ -159,7 +159,8 @@
       "answer_brief": "From the trade facts fence repairs rows: a repair can keep a run whose other posts are still firm, and a new panel on a failed post leaves the fault where it was. What decides it is whether the posts either side of the damage are still firm at the ground: a few new posts with the sound panels rehung where they are, or the run replaced where the posts along it have all gone soft. Never which neighbour pays (the fact row: a blown down fence is not automatically next door's bill), never a named storm.",
       "symptom_based": false,
       "is_fallback": true,
-      "doubt": "Process"
+      "doubt": "Process",
+      "needs": ["Fence repairs"]
     },
     {
       "slot": "faq_D",
@@ -239,7 +240,8 @@
           {
             "title": "A fence down or leaning after the wind",
             "brief": "Problem led, the storm anchor: a panel out, a post snapped at the ground, a run leaning after a gale (the trade facts signs row for fence repairs). Write the diagnosis, never the drama. The one cause this card makes: a post gone soft where it comes out of the ground, so the wind pushed it over; a panel lifted out of its slot on an otherwise firm run is a different, smaller job, and the card says so. What it says about the rest of the run: posts put in together, in the same ground, tend to go soft at the same time, so the posts on each side of the damage get looked at before one is replaced (the done badly row: a new panel on a failed post leaves the fault in place). What the fix usually involves, from the fence repairs stages: the failed part found, the section made safe, the posts replaced or refixed and the sound panels rehung, or the run replaced where every post has gone. What the business does on site only from confirmed practices (photos_of_faults, extra_work_agreed_first). Never a named storm, never which neighbour pays (the fact row: a blown down fence is not automatically next door's bill), never storm proof.",
-            "mechanism": "a post gone soft where it comes out of the ground"
+            "mechanism": "a post gone soft where it comes out of the ground",
+            "needs": ["Fence repairs"]
           },
           {
             "title": "Overlooked, open to the road, or both",
@@ -249,12 +251,14 @@
           {
             "title": "When the fence has one job to do",
             "brief": "Function and specification led in one card: the fence is bought for what it must hold in or keep out. The one cause this card makes: pressure the fence was never built to take, from the animal, the people or the noise on the other side of it. Say what each does to a fence and what answers it, from the trade facts rows for that service, and name only the services the client has: a dog that digs under or pushes through finds the gap under the gate, the hole beside a post, the loose bottom edge (the dog proof rows: close mesh or a solid face, the bottom edge secured, the gate detail made for that dog; no universal height or gap, because the facts verify none); a horse leans on a rail, rubs along it and chews it, so post and rail is fixed so that a pushing horse presses the rails against the posts, and anything projecting is a hazard (the equestrian rows); sheep and cattle put their weight on netting, so stock fencing stands or falls on its end posts and the tension in the wires (the agricultural rows); a yard or a building site that must stay shut gets a tested system with its own matching gates, because an untested part put into a certified run undoes it (the security rows), sold on what the fence does and never on fear, crime figures or invented break ins; road noise is cut by a barrier with no gaps, its joints sealed and the boards close fitting (the acoustic rows), with no figure for how much quieter the garden will be (the fact row: a laboratory figure is not a garden figure). The customer's words throughout: the dog, the horses, the sheep, the yard, the road; never perimeter or specification.",
-            "mechanism": "pressure the fence was never built to take"
+            "mechanism": "pressure the fence was never built to take",
+            "needs": ["Dog proof fencing","Security fencing","Acoustic fencing","Agricultural and stock fencing","Equestrian fencing","Electric fencing"]
           },
           {
             "title": "Timber going grey, green or soft",
             "brief": "Schedule led, the upkeep group (fence staining and treatment): what slips and when. What the customer sees, from the trade facts signs row: a coating peeling, bare patches, timber that looks wet long after the rain has gone, boards going green on the shaded face. Say first what is normal: new timber silvering in its first year is the sun, not a fault. The one cause this card makes: timber left bare to the weather once the coating has worn through, so the rain gets into the surface and the cut ends (the skipped row). When treatment is due, in the timber and the weather, never in the diary: when the timber is dry through and the maker's conditions for the product hold (the staining stages: the timber dried as the product requires, the coats applied in the maker's weather), never a fixed interval, because the facts verify none. A coat put on damp timber fails early (the done badly row). A brush on treatment never replaces the pressure treatment a post needs where it goes into the ground (the done badly and fact rows), so a soft post at the ground is card 1's job, not this card's. A product only from [CV: materials_methods]; a return visit for recoating only where the services list has it.",
-            "mechanism": "timber left bare to the weather"
+            "mechanism": "timber left bare to the weather",
+            "needs": ["Fence staining and treatment"]
           }
         ]
       },
@@ -432,7 +436,7 @@
         {
           "slot": "cost",
           "question": "How much does [SERVICE_LOWER] cost in [CITY]?",
-          "answer_brief": "Prices only from [CV: price_list]; otherwise how the quote is given, from [CV: quote_method] only. The four cost cards above already give what moves the price: name one factor at most, never the list again.",
+          "answer_brief": "Prices only from [CV: price_list]; otherwise how the quote is given, from [CV: quote_method] only. The cost cards hold the list: never repeat it or point to it.",
           "doubt": "Price"
         },
         {
@@ -723,5 +727,32 @@
         ]
       }
     }
-  }
+  },
+  "why_title_practice": {"The Post Comes First on Every Job":[]},
+  "idea_homes": [
+    {
+      "topic": "how the quote is reached and whether it is given in writing",
+      "home": "the 'How do your quotes work?' FAQ",
+      "elsewhere": "step 2 (either version) describes the visit or says a price is agreed before work starts, without explaining the quote method again; the 'Is the quote free' FAQ says only free and no obligation",
+      "pages": [
+        "homepage"
+      ]
+    },
+    {
+      "topic": "what decides how long the job takes (length of run, what comes out, ground, access, weather) with no number",
+      "home": "the 'How long does [SERVICE_LOWER] take?' FAQ",
+      "elsewhere": "the seasonal 'When is the best time of year' FAQ covers only what the season changes and does not list the duration factors again",
+      "pages": [
+        "service"
+      ]
+    },
+    {
+      "topic": "what the season changes: concrete setting slowly in the cold, staining waiting for dry timber, nests checked in a hedge",
+      "home": "the seasonal 'When is the best time of year for [SERVICE_LOWER]' FAQ",
+      "elsewhere": "the 'Getting it up in the right weather' card names the customer's wish to be closed in before summer and does not list the weather conditions",
+      "pages": [
+        "service"
+      ]
+    }
+  ]
 }
