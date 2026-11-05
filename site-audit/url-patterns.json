@@ -31,5 +31,6 @@
   },
   "homepage_variants": ["^/(home|home-page|homepage|welcome)$", "^/(index|default)(\\.(html?|php|aspx?))?$"],
   "mass_page_patterns": ["^/tag/"],
+  "location_path_prefixes": ["locations?", "areas?", "service-areas?", "areas-we-(cover|serve)", "where-we-work", "towns?"],
   "gallery_patterns": ["\\bgaller(y|ies)\\b", "\\bportfolios?\\b", "\\bprojects?\\b", "\\bour[- ]work\\b", "\\brecent[- ]work\\b", "\\bcase[- ]stud(y|ies)\\b", "\\bshowcase\\b", "\\binspiration\\b"]
 }

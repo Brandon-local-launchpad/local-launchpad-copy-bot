@@ -164,6 +164,28 @@ const one = (u, opts) => suggest([u], opts).get(u.url);
   chk('a thank-you page is never a destination, even listed', withThanks.new_url !== '/thank-you', withThanks, '');
   chk('a thank-you page test catches its spellings', ['/thank-you', '/thankyou', '/thanks'].every(p => D.neverDestination(p, DEFAULTS)) && !D.neverDestination('/contact', DEFAULTS));
 
+  // ── Town pages ──
+  // The real scan of edensedge-landscaping.co.uk (5 Nov): /locations/southampton, which matters, was moving the Gardener category
+  for (const p of ['/locations/southampton', '/location/southampton', '/southampton', '/areas/southampton', '/service-areas/southampton/', '/areas-we-cover/Southampton']) {
+    s = one(row(p.replace(/\/$/, ''), { matters: true, est_traffic: 0.4, title: 'Gardener Southampton', h1: 'Landscape Gardener Southampton' }));
+    chk(`base town page ${p}: it moves nothing, goes to the homepage, and is flagged`, s.new_url === '/' && !s.proposal && s.check && /base town/.test(s.reason) && s.decision === 'Reuse' && s.redirect_type === '301', s, '');
+  }
+  s = one(row('/locations/southampton', { title: 'Gardener Southampton' }));
+  chk('base town page that does not matter: Retire, to the homepage, and flagged', s.decision === 'Retire' && s.new_url === '/' && s.check, s, '');
+  s = one(row('/locations/winchester'));
+  chk('another town\'s page at its Page Map address is untouched', s.decision === 'Keep' && s.new_url === '/locations/winchester', s, '');
+  s = one(row('/locations/southampton/patios', { matters: true, est_traffic: 2, title: 'Patios Southampton' }));
+  chk('a base town page about a service never moves that service: Reuse, 301 to it, saying why', s.decision === 'Reuse' && s.new_url === '/services/patios' && !s.proposal && /town page/.test(s.reason), s, '');
+  s = one(row('/patios-southampton', { matters: true, est_traffic: 2 }));
+  chk('a non location URL that matters still moves its page, as the brief says', s.decision === 'Keep' && s.proposal && s.proposal.from === '/services/patios', s, '');
+  chk('a page named after the base town only, with no town named here, is left alone', D.isBaseTownPage('/southampton', '') === false && D.isBaseTownPage('/southampton-patios', 'Southampton') === false && D.isBaseTownPage('/locations/winchester', 'Southampton') === false);
+  chk('a two word base town is matched whole', D.isBaseTownPage('/locations/st-albans', 'St Albans') && D.isBaseTownPage('/st-albans', 'St Albans') && !D.isBaseTownPage('/locations/st-ives', 'St Albans'));
+  chk('a hand set Keep on the base town page offers no Page Map move', D.proposalFor(row('/locations/southampton', { title: 'Gardener Southampton', h1: 'Landscape Gardener' }), pages, DEFAULTS, 'Southampton') === null);
+  chk('nor on a town page about a service', D.proposalFor(row('/locations/southampton/patios', { title: 'Patios' }), pages, DEFAULTS, 'Southampton') === null);
+  const V = require(path.join(root, 'site-audit/validator.js'));
+  const townMap = V.mapCheck({ settings: DEFAULTS, urls: [{ url: 'u', path: '/locations/southampton', kind: 'page', matters: true, top20: true, all_rd: 0, plan: { decision: 'Reuse', redirect_type: '301', new_url: '/' } }] });
+  chk('the validator lets it through with a WARN to read, because it goes to the homepage', !townMap.block.length && townMap.warn.some(i => /goes to the homepage/.test(i.text)), townMap, '');
+
   // ── Redirects and images ──
   m = suggest([row('/old', { status_code: 301, redirect_target: 'https://x.co.uk/services/patios' }), row('/services/patios')]);
   chk('an old redirect carries on to where its target now lives', m.get('https://x.co.uk/old').decision === 'Retire' && m.get('https://x.co.uk/old').new_url === '/services/patios', m.get('https://x.co.uk/old'), '');

@@ -16,6 +16,8 @@
   "mass_page_minimum": 10,
   "crawl_short_ratio": 0.5,
   "crawl_short_min": 3,
+  "dead_link_min_pages": 5,
+  "dead_link_share": 0.3,
   "site_pages": ["/", "/contact", "/about", "/privacy-policy", "/terms", "/blog"],
   "gallery_page": "",
   "never_destination_words": ["thank-you", "thankyou", "thank_you", "thanks"]

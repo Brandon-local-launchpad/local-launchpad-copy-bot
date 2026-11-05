@@ -182,6 +182,18 @@ const byPath = (v, p) => v.urls.find(u => u.path === p);
   chk('mixed links, a two hop form, a form that fails, a form showing a second copy', ['mixed_http', 'mixed_www', 'variant_chain', 'variant_fails'].every(k => kinds.includes(k)) && !issues.some(i => i.kind === 'variant_duplicate' && i.text.includes('https://x.co.uk/ shows')), kinds, '');
   chk('a staging subdomain of the site is a temporary host; the site itself is not', IS.isNonLive('staging.x.co.uk', 'x.co.uk') && !IS.isNonLive('x.co.uk', 'x.co.uk') && !IS.isNonLive('www.facebook.com', 'x.co.uk'));
 
+  // ── A URL many pages link to, answering 404 ──
+  const site10 = Array.from({ length: 10 }, (_, i) => ({ url: `https://x.co.uk/p${i}`, path: `/p${i}`, status_code: 200, links_out: ['https://x.co.uk/', 'https://x.co.uk/contact', i < 2 ? 'https://x.co.uk/rare' : 'https://x.co.uk/p0'] }));
+  const dead = IS.deadLinks([...site10, { url: 'https://x.co.uk/', path: '/', status_code: 404, links_out: null }, { url: 'https://x.co.uk/contact', path: '/contact', status_code: 410, links_out: null }, { url: 'https://x.co.uk/rare', path: '/rare', status_code: 404, links_out: null }], { minPages: 5, share: 0.3 });
+  chk('dead links: a URL every page links to, answering 404 or 410, is found, worst first', dead.length === 2 && dead[0].from.length === 10 && dead.map(d => d.path).sort().join() === '/,/contact', dead, '');
+  chk('dead links: a URL only two of ten pages link to is not "many"', !dead.some(d => d.path === '/rare'), dead, '');
+  const small = [{ url: 'u/a', path: '/a', status_code: 200, links_out: ['u/x'] }, { url: 'u/b', path: '/b', status_code: 200, links_out: ['u/x'] }, { url: 'u/c', path: '/c', status_code: 200, links_out: [] }, { url: 'u/x', path: '/x', status_code: 404, links_out: null }];
+  chk('dead links: on a small site two pages can be many', IS.deadLinks(small).length === 1);
+  chk('dead links: one page is never many', IS.deadLinks([small[0], { ...small[1], links_out: [] }, small[3]]).length === 0);
+  chk('dead links: a live URL is never reported, nor a page linking to itself', IS.deadLinks([{ url: 'u/a', path: '/a', status_code: 200, links_out: ['u/a', 'u/b'] }, { url: 'u/b', path: '/b', status_code: 200, links_out: ['u/a'] }]).length === 0 && IS.deadLinks([{ url: 'u/a', path: '/a', status_code: 404, links_out: ['u/a'] }, { url: 'u/b', path: '/b', status_code: 200, links_out: [] }]).length === 0);
+  const deadIssue = IS.buildIssues({ pages: [], dead: dead.slice(0, 1) }).find(i => i.kind === 'dead_internal_link');
+  chk('dead links: the issue names the URL, its answer and how many pages link to it, in plain English', deadIssue && new RegExp(`${dead[0].path} answers ${dead[0].status}, and 10 pages link to it`).test(deadIssue.text) && deadIssue.page_count === 10, deadIssue, '');
+
   // ── The domain check: one field, live_domain ──
   const dc = domainCheck;
   chk('no live domain: the scan asks for it', /Add the live domain/.test(dc({ cv: {} }).stop));
@@ -452,7 +464,8 @@ const byPath = (v, p) => v.urls.find(u => u.path === p);
     chk('GHL: / is listed with its 404', byPath(v, '/').status_code === 404, byPath(v, '/').status_code, 404);
     chk('GHL: the crawl goes on from /home and reads every page it links to', ['/home', ...svcLinks].every(p => byPath(v, p) && byPath(v, p).status_code === 200 && byPath(v, p).word_count >= 120), v.urls.map(u => [u.path, u.status_code]), '');
     chk('GHL: a dead link it finds is listed too', byPath(v, '/contact').status_code === 404);
-    chk('GHL: internal links are counted', byPath(v, '/home').inlinks === 3 && byPath(v, '/hedge-trimming').inlinks === 1, [byPath(v, '/home').inlinks, byPath(v, '/hedge-trimming').inlinks], '');
+    chk('GHL: one page linking to a dead /contact is not many, so it is not an issue', !s.issues.some(i => i.kind === 'dead_internal_link' && i.text.startsWith('/contact')), s.issues, '');
+    chk('GHL: internal links are counted',byPath(v, '/home').inlinks === 3 && byPath(v, '/hedge-trimming').inlinks === 1, [byPath(v, '/home').inlinks, byPath(v, '/hedge-trimming').inlinks], '');
     const kinds = s.warnings.filter(w => w.loud).map(w => w.kind);
     chk('GHL: a loud warning that / answers 404, naming the homepage it found', s.warnings.some(w => w.kind === 'root_not_page' && w.loud && /answers 404/.test(w.text) && /\/home/.test(w.text)), s.warnings, '');
     chk('GHL: a loud warning that there is no sitemap', s.warnings.some(w => w.kind === 'sitemap_missing' && w.loud), kinds, '');

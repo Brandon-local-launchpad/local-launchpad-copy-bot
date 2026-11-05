@@ -33,6 +33,13 @@ What building those stages settled:
 - **A URL with a query string** needs the plugin: Rank Math compares against the address with the query taken off, so its own matching can never fire it. The plugin serves those rows on `rank_math/redirection/pre_search`, only while their Rank Math row is active.
 - **The first real push uses a test client.** Edens Edge has no live domain stored (5 Nov: its site is edensedge-landscaping.co.uk, on GoHighLevel; the record is left for Brandon to set), so the URLs come from southamptonhomes.co.uk, through "Site audit test (Southampton Homes)", which points at the Edens Edge staging site. Ray's steps are `Redirects_First_Push_Ray_Steps.md`.
 
+## Brandon's notes after the real scan of edensedge-landscaping.co.uk (5 Nov, these win too)
+
+1. **Nothing more specific to GoHighLevel.** Those sites barely matter for SEO (Edens Edge: about 1 visit a month, no backlinks).
+2. **An old page for the client's base town never moves a category page.** It goes to the homepage, with a reason, flagged for Ray. Going further than the note: any URL under a location path never moves a category or service page.
+3. **A URL many pages link to that answers 404 is an issue.**
+4. **Everything stays on the branch, not merged, until Ray's first real push results are in.**
+
 ## How the rules were read in stage 3 (for Brandon to overrule)
 
 - **A page that doesn't matter and matches a Page Map page at another address is Retire, 301 to that page, with no slug proposal.** The Keep row says "matches a Page Map page, and its URL can be kept as is". The slug rule says an old URL that matters beats the Page Map, so one that doesn't, doesn't. Its URL can't be kept, because the Page Map's address stands. The other reading would move Page Map pages to URLs with no traffic or links.

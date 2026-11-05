@@ -26,6 +26,20 @@ const GALLERY = PATTERNS.gallery_patterns.map(p => new RegExp(p, 'i'));
 // An image with no links, rankings or clicks needs nothing (Brandon, 5 Nov): no decision and no row in
 // the map, shown as one collapsed group. An image with any of those stays in the map.
 const noActionNeeded = u => u.kind === 'image' && !Number(u.all_rd || 0) && !Number(u.keywords_count || 0) && !Number(u.clicks || 0);
+// Town pages. A URL under a location path is a page about a town, so it never moves a category or
+// service page. The Page Map has no page for the base town, because the homepage is that page
+// (Brandon, 5 Nov: the real scan of edensedge-landscaping.co.uk had /locations/southampton moving the
+// Gardener category). Its own page goes to the homepage, marked for a person to check.
+const LOCATION_PREFIX = new RegExp(`^(${PATTERNS.location_path_prefixes.join('|')})$`, 'i');
+const segmentsOf = path => String(path || '').replace(/\?.*$/, '').split('/').filter(Boolean);
+const isLocationPath = path => { const s = segmentsOf(path); return s.length >= 2 && LOCATION_PREFIX.test(s[0]); };
+function isBaseTownPage(path, baseTown) {
+  const base = tokens(baseTown).join(' ');
+  if (!base) return false;
+  const s = segmentsOf(path);
+  const town = isLocationPath(path) ? (s.length === 2 ? s[1] : null) : (s.length === 1 ? s[0] : null);
+  return !!town && tokens(town).join(' ') === base;
+}
 const looksLikeGallery = u => GALLERY.some(re => re.test(u.path.replace(/\?.*$/, '')) || re.test(titleHead(u.title)));
 
 const GENERIC = new Set(['a', 'an', 'and', 'area', 'areas', 'co', 'company', 'for', 'in', 'limited', 'location', 'locations', 'ltd', 'near', 'me', 'my', 'of', 'on', 'our', 'page', 'pages', 'service', 'services', 'the', 'to', 'uk', 'us', 'with', 'html', 'htm', 'php', 'aspx', 'asp']);
@@ -131,6 +145,11 @@ function suggestAll({ urls, pages, settings, baseTown = '', hasSearchConsole = f
     if (u.fetch_state === 'skipped' && !u.matters) { set(u, 'Retire', "Not a page, and nothing depends on it, so it needs no redirect.", '', { redirect_type: 'none' }); continue; }
     const exact = exactBy.get(u.path);
     if (exact) { const g = groups.get(exact.slug) || { page: exact, members: [] }; g.members.push({ u, exact: true }); groups.set(exact.slug, g); continue; }
+    if (isBaseTownPage(u.path, baseTown)) {
+      const why = `The old page for ${baseTown}, the base town. On the new site the homepage is that page, so it redirects to / and moves nothing in the Page Map. Check this one.${notFetched(u)}`;
+      set(u, u.matters ? 'Reuse' : 'Retire', why, '/', { check: true });
+      continue;
+    }
     // Old gallery, portfolio and project pages go to the gallery page first, when the template has one
     if (world.gallery && looksLikeGallery(u)) { const g = groups.get(world.gallery.slug) || { page: world.gallery, members: [] }; g.members.push({ u, exact: false }); groups.set(world.gallery.slug, g); continue; }
     const { match, closest } = bestFor(u, world, settings);
@@ -141,7 +160,7 @@ function suggestAll({ urls, pages, settings, baseTown = '', hasSearchConsole = f
   // One new page, one or several old ones
   for (const { page, members } of groups.values()) {
     const exactMember = members.find(m => m.exact);
-    const keepers = members.filter(m => !m.exact && m.u.matters && live(m.u) && !keepProblem(m.u.path) && page.type !== 'site' && !declined.has(m.u.url)).sort((a, b) => better(a.u, b.u));
+    const keepers = members.filter(m => !m.exact && m.u.matters && live(m.u) && !keepProblem(m.u.path) && page.type !== 'site' && !declined.has(m.u.url) && !(isLocationPath(m.u.path) && !page.local)).sort((a, b) => better(a.u, b.u));
     const winner = exactMember || keepers[0] || null;
     if (winner) {
       if (winner.exact) set(winner.u, 'Keep', page.type === 'site' ? `Every new site has this page at this address.${notFetched(winner.u)}` : `The same address as the Page Map page ${shown(page)}.${notFetched(winner.u)}`, page);
@@ -156,7 +175,7 @@ function suggestAll({ urls, pages, settings, baseTown = '', hasSearchConsole = f
     for (const m of others) {
       const u = m.u;
       if (u.matters) {
-        const why = declined.has(u.url) ? 'the Page Map change was turned down' : keepProblem(u.path) || (live(u) ? `every new site has ${page.slug} at its own address` : 'the page no longer loads');
+        const why = declined.has(u.url) ? 'the Page Map change was turned down' : keepProblem(u.path) || (!live(u) ? 'the page no longer loads' : isLocationPath(u.path) && !page.local ? 'it is a town page, and a town page never moves a category or service page' : `every new site has ${page.slug} at its own address`);
         set(u, 'Reuse', `It matters but its address can't be kept: ${why}. It redirects to ${shown(page)}.${notFetched(u)}`, page);
       } else {
         set(u, 'Retire', `It doesn't matter, so the Page Map address stands. It redirects to ${shown(page)}, the page it matches.${notFetched(u)}`, page);
@@ -216,9 +235,10 @@ function suggestAll({ urls, pages, settings, baseTown = '', hasSearchConsole = f
 // The page a kept URL would need to be, for a person who sets Keep by hand: a proposal, or none
 function proposalFor(u, pages, settings, baseTown) {
   const world = prepare(pages, settings, baseTown);
-  if (world.candidates.some(c => c.slug === u.path)) return null;
+  if (world.candidates.some(c => c.slug === u.path) || isBaseTownPage(u.path, baseTown)) return null;
   const { match } = bestFor(u, world, settings);
+  if (match && isLocationPath(u.path) && !match.local) return null;
   return match && match.type !== 'site' ? { page_key: match.page_key, title: match.title, from: match.slug, to: u.path } : null;
 }
 
-module.exports = { suggestAll, proposalFor, keepProblem, isHomeVariant, neverDestination, noActionNeeded, looksLikeGallery, tokens, dice };
+module.exports = { suggestAll, proposalFor, keepProblem, isHomeVariant, neverDestination, noActionNeeded, looksLikeGallery, isBaseTownPage, isLocationPath, tokens, dice };

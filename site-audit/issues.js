@@ -21,9 +21,27 @@ const pagesWord = n => `${n} ${n === 1 ? 'page' : 'pages'}`;
 const WHERE = { logo: 'The logo links to', link: 'A link goes to', image: 'An image loads from', canonical: 'The canonical tag points at' };
 
 // pages: [{ url, path, facts }], variants: [{ url, hops, final, status, ok }], cv: client values, siteHost
-function buildIssues({ pages, variants = [], cv = {}, siteHost = '', origin = '' }) {
+// URLs that answer an error while many of the site's own pages link to them. Many means the setting's
+// number of pages, or that share of the pages read, whichever is fewer, and always at least 2.
+// urls: [{ path, status_code, links_out, url }]. Returns [{ path, status, from: [paths] }], worst first.
+function deadLinks(urls, { minPages = 5, share = 0.3 } = {}) {
+  const read = urls.filter(u => Array.isArray(u.links_out));
+  const need = Math.max(2, Math.min(minPages, Math.ceil(read.length * share)));
+  const out = [];
+  for (const u of urls) {
+    if (!(u.status_code >= 400)) continue;
+    const from = read.filter(p => p.url !== u.url && p.links_out.includes(u.url)).map(p => p.path);
+    if (from.length >= need) out.push({ path: u.path, status: u.status_code, from });
+  }
+  return out.sort((a, b) => b.from.length - a.from.length);
+}
+
+function buildIssues({ pages, variants = [], cv = {}, siteHost = '', origin = '', dead = [] }) {
   const issues = [];
   const add = (kind, text, detail, urls = []) => issues.push({ kind, text, detail, pages: urls.slice(0, 25), page_count: urls.length });
+
+  // A dead end most of the site points at
+  for (const d of dead) add('dead_internal_link', `${d.path} answers ${d.status}, and ${pagesWord(d.from.length)} ${d.from.length === 1 ? 'links' : 'link'} to it`, "Visitors following that link hit a dead end today. Check the new site has a page there, and that the template's links are right.", d.from);
 
   // The page's own phone against its tap to call link
   const pairs = new Map();
@@ -91,4 +109,4 @@ function buildIssues({ pages, variants = [], cv = {}, siteHost = '', origin = ''
   return issues;
 }
 
-module.exports = { buildIssues, isNonLive };
+module.exports = { buildIssues, isNonLive, deadLinks };

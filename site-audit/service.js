@@ -25,7 +25,7 @@ const URL_PATTERNS = require('./url-patterns.json');
 const { injectedReason } = require('./matters');
 const { parseRobots, allowedBy, parseSitemap } = require('./sitemap');
 const { analysePages } = require('./matters');
-const { buildIssues } = require('./issues');
+const { buildIssues, deadLinks } = require('./issues');
 const { classifyLink, countDomains } = require('./spam');
 const { parseSearchConsoleCsv } = require('./search-console-csv');
 const SD = require('./dfs');
@@ -510,7 +510,8 @@ function createSiteAudit({ pool, loadValues, getConnection = async () => null, l
     // The site wide counts: every link on the site, as one set of domains
     const site = countDomains(bl, settings);
     const cv = await loadValues(clientId);
-    const issues = buildIssues({ pages: urls.filter(u => u.facts).map(u => ({ url: u.url, path: u.path, facts: u.facts })), variants: state.variants || [], cv, siteHost: tools.siteHost, origin: state.origin });
+    const dead = deadLinks(urls, { minPages: settings.dead_link_min_pages, share: settings.dead_link_share });
+    const issues = buildIssues({ pages: urls.filter(u => u.facts).map(u => ({ url: u.url, path: u.path, facts: u.facts })), variants: state.variants || [], cv, siteHost: tools.siteHost, origin: state.origin, dead });
 
     const warn = [];
     if (state.bot_block) warn.push({ kind: 'bot_block', text: `The crawl was blocked: ${state.bot_block}. The page list below is incomplete, so check the site by hand.` });
