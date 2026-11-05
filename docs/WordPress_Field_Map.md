@@ -12,11 +12,13 @@ For Given, who builds the WordPress templates. Written on 5 Nov 2026 from the co
 | Service | No | No | Yes |
 | Town service | No | No | Yes |
 | Location | No | No | Yes |
-| Blog | No | No | No: Copybot has no blog page type |
+| Blog post | Only on the `blog` branch, 7 groups | Only on the `blog` branch | Only on the `blog` branch |
 
-**Only the homepage is mapped to WordPress.** For the other five page types, the names below are Copybot's own, taken from its records and prompts. They are the proposed ACF names, and nothing on a site uses them yet. The types shown for them are proposed too. In the code each of those page types says: "the WordPress mapping waits for the template's field map".
+**On the main branch, only the homepage is mapped to WordPress.** For the other five page types, the names below are Copybot's own, taken from its records and prompts. They are the proposed ACF names, and nothing on a site uses them yet. The types shown for them are proposed too. In the code each of those page types says: "the WordPress mapping waits for the template's field map".
 
-**Blog has no spec and no code.** It is not in the page structure document, which lists six page types and four templates, and Copybot has no prompt, record, validator or field for it. So there is nothing to map.
+**Blog is built on its own branch, not on main.** The `blog` branch has its own spec, prompt, records, validator, 7 ACF groups, a push and a handover for Given. It has not been merged and is about 100 commits behind main, so none of it is live. See the Blog post section.
+
+**The five inner page types have a proposal.** See Proposed for Given. Nothing in it is in the plugin yet, and the plugin won't change until it's agreed.
 
 ### How the fields behave
 
@@ -30,6 +32,8 @@ For Given, who builds the WordPress templates. Written on 5 Nov 2026 from the co
 
 **Homepage:** if the connection has a homepage slug, it reads `/wp/v2/pages?slug=<slug>&status=any` and takes the first result. Otherwise it reads `page_on_front` from `/wp/v2/settings` and uses that page. Set the homepage in Settings, Reading.
 
+**Blog post, on the `blog` branch:** it looks up the post by slug in any status, `/wp/v2/posts?slug=<slug>&status=any`, and creates it if there is none.
+
 **Every other page type:** there is no matching. `findPage` returns nothing and the payload builder refuses with "cannot be pushed yet". Each record does carry `page_slug` (for example `/services/patios`), which is the natural key once a mapping exists. How it should match, by slug or by a stored page ID, is still to decide.
 
 **What the push refuses, and what it never changes:**
@@ -42,7 +46,7 @@ For Given, who builds the WordPress templates. Written on 5 Nov 2026 from the co
 
 **Yes for the homepage, at version 0.2.1.** The files in `wp-plugin/llp-copybot` match the recorded fingerprint, and the generated field groups and Client Values keys match `wp/acf-schema.js` and `wp/client-values.js`. A fixture fails if they drift. The plugin's code last changed on 3 Nov 2026 and its generated files on 2 Nov 2026.
 
-**It has no field groups for the other page types.** I can't tell from the repo which version each client site runs. Copybot's connection test and dry run compare the site's reported version with 0.2.1 and refuse a push on a mismatch.
+**It has no field groups for the other page types.** The `blog` branch carries its own plugin at 0.2.0 with the blog groups, split off before 0.2.1, so the two need merging into one version. I can't tell from the repo which version each client site runs. Copybot's connection test and dry run compare the site's reported version with 0.2.1 and refuse a push on a mismatch.
 
 ## Where to see a page's field names in Copybot
 
@@ -118,6 +122,7 @@ All fields below exist in ACF. Edens Edge has no reviews, verified logos or owne
 |---|---|---|
 | `rank_math_title` (`_yoast_wpseo_title` on Yoast) | Code: H1, then a modifier from `out_of_hours_available`, `year_founded`, `guarantee_years`, `rating`, then `company_name`; 60 characters at most | Landscaper Southampton \| Edens Edge Landscaping |
 | `rank_math_description` (`_yoast_wpseo_metadesc` on Yoast) | Code: keyword, `company_name` and the first proof that is true; 155 characters at most | Edens Edge Landscaping is a landscaper in Southampton offering fixed prices with no hidden costs. Get your fr... |
+| `rank_math_focus_keyword` (`_yoast_wpseo_focuskw` on Yoast), not pushed yet | Code: the page's keyword, as its H1 holds it. On the record since 5 Nov 2026, not pushed yet | Landscaper Southampton |
 
 ### Homepage: when a field is hidden
 
@@ -208,6 +213,7 @@ The push writes these to the site's Settings, Client Values. Use them for tokens
 |---|---|---|---|---|
 | `seo_title` | SEO meta | Page level | Code: H1, then a modifier from `out_of_hours_available`, `year_founded`, `guarantee_years`, `rating`, then `company_name`; 60 characters at most | Driveways Southampton \| Edens Edge Landscaping |
 | `meta_description` | SEO meta | Page level | Code: keyword, `company_name` and the first proof that is true; 155 characters at most | Edens Edge Landscaping offers driveways in Southampton offering fixed prices with no hidden costs. Get your f... |
+| `focus_keyword` | SEO meta (proposed) | Page level | Code: the page's keyword, as its H1 holds it. On the record since 5 Nov 2026, not pushed yet | Driveways Southampton |
 | `page_slug` | none: identifies the page | Page level | Code: page map slug | /paving-contractor |
 | `breadcrumb` | list | Page level | Code: page map parents | Home > Paving Contractor |
 | `cat_hero_h1` | text | Hero | Code: the page map H1 | Driveways Southampton |
@@ -269,6 +275,7 @@ What differs from the category page: the copy covers that town only, `cat_areas_
 |---|---|---|---|---|
 | `seo_title` | SEO meta | Page level | Code: H1, then a modifier from `out_of_hours_available`, `year_founded`, `guarantee_years`, `rating`, then `company_name`; 60 characters at most | Gardener Romsey \| Edens Edge Landscaping |
 | `meta_description` | SEO meta | Page level | Code: keyword, `company_name` and the first proof that is true; 155 characters at most | Edens Edge Landscaping is a gardener in Romsey offering fixed prices with no hidden costs. Get your free quot... |
+| `focus_keyword` | SEO meta (proposed) | Page level | Code: the page's keyword, as its H1 holds it. On the record since 5 Nov 2026, not pushed yet | Gardener Romsey |
 | `page_slug` | none: identifies the page | Page level | Code: page map slug | /locations/romsey/gardener |
 | `breadcrumb` | list | Page level | Code: page map parents | Home > Romsey > Gardener |
 | `cat_hero_h1` | text | Hero | Code: the page map H1 | Gardener Romsey |
@@ -328,6 +335,7 @@ What differs from the category page: the copy covers that town only, `cat_areas_
 |---|---|---|---|---|
 | `seo_title` | SEO meta | Page level | Code: H1, then a modifier from `out_of_hours_available`, `year_founded`, `guarantee_years`, `rating`, then `company_name`; 60 characters at most | Patios Southampton \| Edens Edge Landscaping |
 | `meta_description` | SEO meta | Page level | Code: keyword, `company_name` and the first proof that is true; 155 characters at most | Edens Edge Landscaping offers patios in Southampton, fixed prices with no hidden costs. Get your free quote t... |
+| `focus_keyword` | SEO meta (proposed) | Page level | Code: the page's keyword, as its H1 holds it. On the record since 5 Nov 2026, not pushed yet | Patios Southampton |
 | `page_slug` | none: identifies the page | Page level | Code: page map slug | /services/patios |
 | `breadcrumb` | list | Page level | Code: page map parents | Home > Landscape Designer > Patios |
 | `svc_hero_h1` | text | Hero | Code: the page map H1 | Patios Southampton |
@@ -392,6 +400,7 @@ What differs from the service page: the copy covers that town and service only, 
 |---|---|---|---|---|
 | `seo_title` | SEO meta | Page level | Code: H1, then a modifier from `out_of_hours_available`, `year_founded`, `guarantee_years`, `rating`, then `company_name`; 60 characters at most | Tree Stump Removal Romsey \| Edens Edge Landscaping |
 | `meta_description` | SEO meta | Page level | Code: keyword, `company_name` and the first proof that is true; 155 characters at most | Edens Edge Landscaping offers tree stump removal in Romsey, fixed prices with no hidden costs. Get your free... |
+| `focus_keyword` | SEO meta (proposed) | Page level | Code: the page's keyword, as its H1 holds it. On the record since 5 Nov 2026, not pushed yet | Tree Stump Removal Romsey |
 | `page_slug` | none: identifies the page | Page level | Code: page map slug | /locations/romsey/tree-stump-removal |
 | `breadcrumb` | list | Page level | Code: page map parents | Home > Romsey > Tree stump removal |
 | `svc_hero_h1` | text | Hero | Code: the page map H1 | Tree Stump Removal Romsey |
@@ -454,6 +463,7 @@ What differs from the service page: the copy covers that town and service only, 
 |---|---|---|---|---|
 | `seo_title` | SEO meta | Page level | Code: H1, then a modifier from `out_of_hours_available`, `year_founded`, `guarantee_years`, `rating`, then `company_name`; 60 characters at most | Gardener Services in and around Romsey \| Edens Edge Landscaping |
 | `meta_description` | SEO meta | Page level | Code: keyword, `company_name` and the first proof that is true; 155 characters at most | Edens Edge Landscaping is a gardener in Romsey offering fixed prices with no hidden costs. Get your free quot... |
+| `focus_keyword` | SEO meta (proposed) | Page level | Code: the page's keyword, as its H1 holds it. On the record since 5 Nov 2026, not pushed yet | Gardener Services in and around Romsey |
 | `page_slug` | none: identifies the page | Page level | Code: page map slug | /locations/romsey |
 | `breadcrumb` | list | Page level | Code: page map parents | Home > Romsey |
 | `loc_hero_h1` | text | Hero | Code: the page map H1 | Gardener Services in and around Romsey |
@@ -503,9 +513,48 @@ What differs from the service page: the copy covers that town and service only, 
 | `loc_final_cta_body` | wysiwyg | Final CTA | Model | Ring or message with a photo of the garden and the job you have in mind, and your project gets its place in o... |
 | `loc_final_cta_trust_lines` | list | Final CTA | Code: `hours`, rating line | [CV: hours] |
 
-## Blog
+## Blog post
 
-Copybot has no blog page type, so there are no fields, records or prompts to list.
+**This is on the `blog` branch, not on main, so it isn't live.** The branch was last changed on 29 Oct 2026 and is about 100 commits behind main, so details could change when it merges. Its push has only been tested against Copybot's fake WordPress server.
+
+It is a WordPress **post**, not a page, in the Guides category at `/guides/<slug>/`. The groups are `group_llp_blog_*`, attached to post type `post` in the Guides category. The branch has a fuller handover for Given, `docs/seo/current-build/Blog_WordPress_Handover.md`. The example is "When Is the Best Time for Spring Lawn Care in Southampton?", an Edens Edge test run from 28 Oct 2026.
+
+| Field | Type | Section | Set by | Example |
+|---|---|---|---|---|
+| `blog_h1` | text | Header | Code: the target question from the question bank | When Is the Best Time for Spring Lawn Care in Southampton? |
+| `blog_byline` | text | Header | Code: `owner_name`, `company_name` | By Ethan, owner at [CV: company_name] |
+| `blog_last_checked` | text | Header | Code: the date written | 28 October 2026 |
+| `blog_review_due` | text | Header, not shown | Code: a year on | 2027-10-28 |
+| `blog_image` | image | Header | Not Copybot: filled on the site | (image) |
+| `blog_image_alt` | text | Header | Not Copybot: filled on the site | (alt text) |
+| `blog_answer` | wysiwyg | Quick answer | Model | Spring suits lawn renovation in Southampton because the grass can still recover, provided the ground isn't wa... |
+| `blog_sections` | repeater | Question sections | Code: from the post type and the bank | 3 rows |
+| `blog_sections[].section_h2` | text | Question sections | Code | Do We Actually Need a Lawn, or Are There Other Options? |
+| `blog_sections[].section_body` | wysiwyg | Question sections | Model | Yes, if the garden has room for one and you're happy to look after it, though not every Southampton garden do... |
+| `table_show` | true_false | Table | Code | false |
+| `table_after` | text | Table | Code: which section it sits under | (empty on Edens Edge) |
+| `table_columns` | repeater | Table | Code | (empty on Edens Edge) |
+| `table_columns[].column_label` | text | Table | Code | (not on this record) |
+| `table_rows` | repeater | Table | Model | (empty on Edens Edge) |
+| `table_rows[].row_label` | text | Table | Model | (empty on Edens Edge) |
+| `table_rows[].cell_1, cell_2, cell_3` | text | Table | Model | (empty on Edens Edge) |
+| `blog_business_show` | true_false | How we handle it | Code | false |
+| `blog_business_h2` | text | How we handle it | Code | (hidden on Edens Edge) |
+| `blog_business` | wysiwyg | How we handle it | Model | (hidden on Edens Edge) |
+| `blog_faq_h2` | text | FAQ | Code | Common Questions About Lawn Care |
+| `blog_faq_items` | repeater | FAQ | Code: the questions | 3 rows |
+| `blog_faq_items[].faq_question` | text | FAQ | Code: from the bank | When Can Children and Pets Use a Newly Turfed Lawn? |
+| `blog_faq_items[].faq_answer` | wysiwyg | FAQ | Model | Follow the instructions for whatever was applied, and ask your operator. Any feed or treatment has to be used... |
+| `blog_cta_h2` | text | Next step | Code | Talk to a Local Landscaper About Lawn Care |
+| `blog_closing` | wysiwyg | Next step | Model | Thin, mossy or hard underfoot? Our [lawn care](/services/lawn-care) work covers mowing, scarifying, aerating,... |
+| `blog_buttons` | repeater | Next step | Code | Get My Free Quote, Call [CV: phone] |
+| `blog_buttons[].button_label` | text | Next step | Code: niche primary action, `phone` | Get My Free Quote |
+| `blog_buttons[].button_url` | text | Next step | Code: `/contact/`, or `tel:[CV: phone]` | /contact/ |
+| `blog_schema` | textarea | Next step | Code: JSON-LD for BlogPosting, FAQPage and BreadcrumbList; the publisher is `[CV: business_schema_id]` | (JSON, printed by the template) |
+
+**When a field is hidden:** the template hides the table when `table_show` is false, and "How we handle it" when `blog_business_show` is false. Their other fields then arrive empty.
+
+**Set on the post itself:** the title (the H1), the slug, the Guides category, and the status with its date. A post with a future date goes out as Scheduled for 09:00 UK time. A push never publishes one directly.
 
 ## Inner pages: when a field is hidden
 
@@ -521,6 +570,840 @@ Unlike the homepage, these records hold the literal word `HIDDEN`. There is no p
 | `*_areas_links[].page_url` empty | Town page's villages | Show plain text |
 | `*_hero_trust_line`, `*_hero_rating_line` empty | Nothing on file | Show nothing there |
 
+## Proposed for Given
+
+**This is a proposal for Given to agree or change.** None of it is in the plugin, and Copybot has no push for these pages. The plugin won't be regenerated and the push won't be built until Brandon confirms Given has agreed it.
+
+The page structure document says four templates cover every page, so the five page types need three sets of groups. A base page and its town version share one set, and only the content and link targets differ.
+
+| Template | Page types | Field prefix | Groups |
+|---|---|---|---|
+| Category | Category, location category | `cat_` | 11 |
+| Service | Service, town service | `svc_` | 12 |
+| Location | Location | `loc_` | 11 |
+
+### What is proposed
+
+- **Names:** the names in the tables above, unchanged. Group keys are `group_llp_<name>` and field keys `field_llp_<name>`, as on the homepage.
+- **Settings:** the same as the homepage. Every field and group has Show in REST on, wysiwyg uses the basic toolbar with no media upload, and images return an array.
+- **Hidden sections:** the push would send `false`, an empty string or an empty list, never the word `HIDDEN`. The template treats empty as hidden.
+- **Tokens:** `[CV: key]` tokens stay in the copy and the plugin resolves them on display, as on the homepage.
+
+**Fields added beyond the tables above:** the structure document and the homepage pattern call for these, and Copybot has no value for them. The site fills them, like the homepage's images.
+
+- A hero background image.
+- A content block image and its alt text.
+- A card image, on cards that have copy.
+- A step icon.
+- A gallery repeater with an image and alt text.
+
+**One shape I changed from the tables above:** `*_areas_also_cover` is a list in the record. I propose a plain text field holding the names separated by commas, for the template to print after "We also cover". A repeater would also work if Given prefers it.
+
+**Left out of ACF on purpose:**
+
+| Copybot field | Where it goes instead |
+|---|---|
+| `seo_title`, `meta_description`, `focus_keyword` | Rank Math or Yoast post meta |
+| `page_slug` | Finds the page to write to, and is not stored on it |
+| `breadcrumb` | The Rank Math trail, which the spec already uses on inner pages |
+| `buttons` | The template, from Client Values `primary_action` and `phone`, as on the homepage |
+| `*_hero_rating_line` | The template, from Client Value `rating_line`, as on the homepage |
+| `*_final_cta_trust_lines` | The template, from `hours` and `rating_line`, as on the homepage |
+| `card_target` | Nowhere: Copybot uses it for its own checks |
+
+### What Given needs to decide
+
+1. **Location rules.** The homepage groups attach to the front page. These need something else, and ACF only saves a field on a page its group attaches to. I suggest one page template per set (`page_template` equals the category, service or location template). Does that work with how the Elementor templates are assigned?
+2. **Finding the page.** Copybot holds each page's slug, such as `/services/patios` or `/locations/romsey/gardener`. Would the pages already exist at those paths, with Copybot writing to them, or should Copybot create them as drafts?
+3. **Nested town URLs.** A location category slug has three levels. Does the site's page hierarchy produce that path, with Romsey as the parent page?
+4. **The also cover field and the gallery.** Are a text field and one repeater the shapes Given wants?
+
+### Category template
+
+| Group | Field | Type | Filled by |
+|---|---|---|---|
+| `group_llp_cat_hero` | `cat_hero_h1` | text | Copybot |
+| `group_llp_cat_hero` | `cat_hero_trust_line` | text | Copybot |
+| `group_llp_cat_hero` | `cat_hero_intro` | wysiwyg | Copybot |
+| `group_llp_cat_hero` | `cat_hero_background_image` | image | The site (new) |
+| `group_llp_cat_services` | `cat_services_h2` | text | Copybot |
+| `group_llp_cat_services` | `cat_services_intro` | wysiwyg | Copybot |
+| `group_llp_cat_services` | `cat_services_cards` | repeater | Copybot |
+| `group_llp_cat_services` | `cat_services_cards[].card_name` | text | Copybot |
+| `group_llp_cat_services` | `cat_services_cards[].card_text` | wysiwyg | Copybot |
+| `group_llp_cat_services` | `cat_services_cards[].card_image` | image | The site (new) |
+| `group_llp_cat_services` | `cat_services_cards[].card_url` | text | Copybot |
+| `group_llp_cat_services` | `cat_also_offered` | wysiwyg | Copybot |
+| `group_llp_cat_content` | `cat_content_h2` | text | Copybot |
+| `group_llp_cat_content` | `cat_content_body` | wysiwyg | Copybot |
+| `group_llp_cat_content` | `cat_content_image` | image | The site (new) |
+| `group_llp_cat_content` | `cat_content_image_alt` | text | The site (new) |
+| `group_llp_cat_block4` | `cat_block4_h2` | text | Copybot |
+| `group_llp_cat_block4` | `cat_block4` | repeater | Copybot |
+| `group_llp_cat_block4` | `cat_block4[].card_title` | text | Copybot |
+| `group_llp_cat_block4` | `cat_block4[].card_body` | wysiwyg | Copybot |
+| `group_llp_cat_block5` | `cat_block5_h2` | text | Copybot |
+| `group_llp_cat_block5` | `cat_cost_intro` | wysiwyg | Copybot |
+| `group_llp_cat_block5` | `cat_block5` | repeater | Copybot |
+| `group_llp_cat_block5` | `cat_block5[].card_title` | text | Copybot |
+| `group_llp_cat_block5` | `cat_block5[].card_body` | wysiwyg | Copybot |
+| `group_llp_cat_block5` | `cat_cost_price_line` | text | Copybot |
+| `group_llp_cat_reviews` | `cat_reviews_show` | true_false | Copybot |
+| `group_llp_cat_reviews` | `cat_reviews_h2` | text | Copybot |
+| `group_llp_cat_reviews` | `cat_reviews` | repeater | Copybot |
+| `group_llp_cat_reviews` | `cat_reviews[].review_text` | wysiwyg | Copybot |
+| `group_llp_cat_reviews` | `cat_reviews[].review_name` | text | Copybot |
+| `group_llp_cat_reviews` | `cat_reviews[].review_town` | text | Copybot |
+| `group_llp_cat_process` | `cat_process_h2` | text | Copybot |
+| `group_llp_cat_process` | `cat_process_steps` | repeater | Copybot |
+| `group_llp_cat_process` | `cat_process_steps[].step_title` | text | Copybot |
+| `group_llp_cat_process` | `cat_process_steps[].step_body` | wysiwyg | Copybot |
+| `group_llp_cat_process` | `cat_process_steps[].step_icon` | image | The site (new) |
+| `group_llp_cat_areas` | `cat_areas_h2` | text | Copybot |
+| `group_llp_cat_areas` | `cat_areas_intro` | wysiwyg | Copybot |
+| `group_llp_cat_areas` | `cat_areas_links` | repeater | Copybot |
+| `group_llp_cat_areas` | `cat_areas_links[].area_name` | text | Copybot |
+| `group_llp_cat_areas` | `cat_areas_links[].page_url` | text | Copybot |
+| `group_llp_cat_areas` | `cat_areas_also_cover` | text | Copybot |
+| `group_llp_cat_faq` | `cat_faq_h2` | text | Copybot |
+| `group_llp_cat_faq` | `cat_faq_items` | repeater | Copybot |
+| `group_llp_cat_faq` | `cat_faq_items[].faq_question` | text | Copybot |
+| `group_llp_cat_faq` | `cat_faq_items[].faq_answer` | wysiwyg | Copybot |
+| `group_llp_cat_final_cta` | `cat_final_cta_h2` | text | Copybot |
+| `group_llp_cat_final_cta` | `cat_final_cta_body` | wysiwyg | Copybot |
+| `group_llp_cat_gallery` | `cat_gallery` | repeater | The site (new) |
+| `group_llp_cat_gallery` | `cat_gallery[].gallery_image` | image | The site (new) |
+| `group_llp_cat_gallery` | `cat_gallery[].gallery_alt` | text | The site (new) |
+
+### Service template
+
+| Group | Field | Type | Filled by |
+|---|---|---|---|
+| `group_llp_svc_hero` | `svc_hero_h1` | text | Copybot |
+| `group_llp_svc_hero` | `svc_hero_trust_line` | text | Copybot |
+| `group_llp_svc_hero` | `svc_hero_intro` | wysiwyg | Copybot |
+| `group_llp_svc_hero` | `svc_hero_background_image` | image | The site (new) |
+| `group_llp_svc_included` | `svc_included_h2` | text | Copybot |
+| `group_llp_svc_included` | `svc_included_intro` | wysiwyg | Copybot |
+| `group_llp_svc_included` | `svc_included_items` | repeater | Copybot |
+| `group_llp_svc_included` | `svc_included_items[].item_title` | text | Copybot |
+| `group_llp_svc_included` | `svc_included_items[].item_text` | text | Copybot |
+| `group_llp_svc_content` | `svc_content_h2` | text | Copybot |
+| `group_llp_svc_content` | `svc_content_body` | wysiwyg | Copybot |
+| `group_llp_svc_content` | `svc_content_image` | image | The site (new) |
+| `group_llp_svc_content` | `svc_content_image_alt` | text | The site (new) |
+| `group_llp_svc_block4` | `svc_block4_h2` | text | Copybot |
+| `group_llp_svc_block4` | `svc_block4` | repeater | Copybot |
+| `group_llp_svc_block4` | `svc_block4[].card_title` | text | Copybot |
+| `group_llp_svc_block4` | `svc_block4[].card_body` | wysiwyg | Copybot |
+| `group_llp_svc_process` | `svc_process_h2` | text | Copybot |
+| `group_llp_svc_process` | `svc_process_steps` | repeater | Copybot |
+| `group_llp_svc_process` | `svc_process_steps[].step_title` | text | Copybot |
+| `group_llp_svc_process` | `svc_process_steps[].step_body` | wysiwyg | Copybot |
+| `group_llp_svc_process` | `svc_process_steps[].step_icon` | image | The site (new) |
+| `group_llp_svc_block5` | `svc_block5_h2` | text | Copybot |
+| `group_llp_svc_block5` | `svc_cost_intro` | wysiwyg | Copybot |
+| `group_llp_svc_block5` | `svc_block5` | repeater | Copybot |
+| `group_llp_svc_block5` | `svc_block5[].card_title` | text | Copybot |
+| `group_llp_svc_block5` | `svc_block5[].card_body` | wysiwyg | Copybot |
+| `group_llp_svc_block5` | `svc_cost_price_line` | text | Copybot |
+| `group_llp_svc_reviews` | `svc_reviews_show` | true_false | Copybot |
+| `group_llp_svc_reviews` | `svc_reviews_h2` | text | Copybot |
+| `group_llp_svc_reviews` | `svc_reviews` | repeater | Copybot |
+| `group_llp_svc_reviews` | `svc_reviews[].review_text` | wysiwyg | Copybot |
+| `group_llp_svc_reviews` | `svc_reviews[].review_name` | text | Copybot |
+| `group_llp_svc_reviews` | `svc_reviews[].review_town` | text | Copybot |
+| `group_llp_svc_areas` | `svc_areas_h2` | text | Copybot |
+| `group_llp_svc_areas` | `svc_areas_intro` | wysiwyg | Copybot |
+| `group_llp_svc_areas` | `svc_areas_links` | repeater | Copybot |
+| `group_llp_svc_areas` | `svc_areas_links[].area_name` | text | Copybot |
+| `group_llp_svc_areas` | `svc_areas_links[].page_url` | text | Copybot |
+| `group_llp_svc_areas` | `svc_areas_also_cover` | text | Copybot |
+| `group_llp_svc_faq` | `svc_faq_h2` | text | Copybot |
+| `group_llp_svc_faq` | `svc_faq_items` | repeater | Copybot |
+| `group_llp_svc_faq` | `svc_faq_items[].faq_question` | text | Copybot |
+| `group_llp_svc_faq` | `svc_faq_items[].faq_answer` | wysiwyg | Copybot |
+| `group_llp_svc_more` | `svc_more_h2` | text | Copybot |
+| `group_llp_svc_more` | `svc_more_intro` | wysiwyg | Copybot |
+| `group_llp_svc_more` | `svc_more_cards` | repeater | Copybot |
+| `group_llp_svc_more` | `svc_more_cards[].card_name` | text | Copybot |
+| `group_llp_svc_more` | `svc_more_cards[].card_url` | text | Copybot |
+| `group_llp_svc_final_cta` | `svc_final_cta_h2` | text | Copybot |
+| `group_llp_svc_final_cta` | `svc_final_cta_body` | wysiwyg | Copybot |
+| `group_llp_svc_gallery` | `svc_gallery` | repeater | The site (new) |
+| `group_llp_svc_gallery` | `svc_gallery[].gallery_image` | image | The site (new) |
+| `group_llp_svc_gallery` | `svc_gallery[].gallery_alt` | text | The site (new) |
+
+### Location template
+
+| Group | Field | Type | Filled by |
+|---|---|---|---|
+| `group_llp_loc_hero` | `loc_hero_h1` | text | Copybot |
+| `group_llp_loc_hero` | `loc_hero_trust_line` | text | Copybot |
+| `group_llp_loc_hero` | `loc_hero_intro` | wysiwyg | Copybot |
+| `group_llp_loc_hero` | `loc_hero_background_image` | image | The site (new) |
+| `group_llp_loc_services` | `loc_services_h2` | text | Copybot |
+| `group_llp_loc_services` | `loc_services_intro` | wysiwyg | Copybot |
+| `group_llp_loc_services` | `loc_services_cards` | repeater | Copybot |
+| `group_llp_loc_services` | `loc_services_cards[].card_name` | text | Copybot |
+| `group_llp_loc_services` | `loc_services_cards[].card_text` | wysiwyg | Copybot |
+| `group_llp_loc_services` | `loc_services_cards[].card_image` | image | The site (new) |
+| `group_llp_loc_services` | `loc_services_cards[].card_url` | text | Copybot |
+| `group_llp_loc_content` | `loc_content_h2` | text | Copybot |
+| `group_llp_loc_content` | `loc_content_body` | wysiwyg | Copybot |
+| `group_llp_loc_content` | `loc_content_image` | image | The site (new) |
+| `group_llp_loc_content` | `loc_content_image_alt` | text | The site (new) |
+| `group_llp_loc_block4` | `loc_block4_h2` | text | Copybot |
+| `group_llp_loc_block4` | `loc_block4` | repeater | Copybot |
+| `group_llp_loc_block4` | `loc_block4[].card_title` | text | Copybot |
+| `group_llp_loc_block4` | `loc_block4[].card_body` | wysiwyg | Copybot |
+| `group_llp_loc_block5` | `loc_block5_h2` | text | Copybot |
+| `group_llp_loc_block5` | `loc_cost_intro` | wysiwyg | Copybot |
+| `group_llp_loc_block5` | `loc_block5` | repeater | Copybot |
+| `group_llp_loc_block5` | `loc_block5[].card_title` | text | Copybot |
+| `group_llp_loc_block5` | `loc_block5[].card_body` | wysiwyg | Copybot |
+| `group_llp_loc_block5` | `loc_cost_price_line` | text | Copybot |
+| `group_llp_loc_reviews` | `loc_reviews_show` | true_false | Copybot |
+| `group_llp_loc_reviews` | `loc_reviews_h2` | text | Copybot |
+| `group_llp_loc_reviews` | `loc_reviews` | repeater | Copybot |
+| `group_llp_loc_reviews` | `loc_reviews[].review_text` | wysiwyg | Copybot |
+| `group_llp_loc_reviews` | `loc_reviews[].review_name` | text | Copybot |
+| `group_llp_loc_reviews` | `loc_reviews[].review_town` | text | Copybot |
+| `group_llp_loc_process` | `loc_process_h2` | text | Copybot |
+| `group_llp_loc_process` | `loc_process_steps` | repeater | Copybot |
+| `group_llp_loc_process` | `loc_process_steps[].step_title` | text | Copybot |
+| `group_llp_loc_process` | `loc_process_steps[].step_body` | wysiwyg | Copybot |
+| `group_llp_loc_process` | `loc_process_steps[].step_icon` | image | The site (new) |
+| `group_llp_loc_areas` | `loc_areas_h2` | text | Copybot |
+| `group_llp_loc_areas` | `loc_areas_intro` | wysiwyg | Copybot |
+| `group_llp_loc_areas` | `loc_areas_links` | repeater | Copybot |
+| `group_llp_loc_areas` | `loc_areas_links[].area_name` | text | Copybot |
+| `group_llp_loc_areas` | `loc_areas_links[].page_url` | text | Copybot |
+| `group_llp_loc_faq` | `loc_faq_h2` | text | Copybot |
+| `group_llp_loc_faq` | `loc_faq_items` | repeater | Copybot |
+| `group_llp_loc_faq` | `loc_faq_items[].faq_question` | text | Copybot |
+| `group_llp_loc_faq` | `loc_faq_items[].faq_answer` | wysiwyg | Copybot |
+| `group_llp_loc_final_cta` | `loc_final_cta_h2` | text | Copybot |
+| `group_llp_loc_final_cta` | `loc_final_cta_body` | wysiwyg | Copybot |
+| `group_llp_loc_gallery` | `loc_gallery` | repeater | The site (new) |
+| `group_llp_loc_gallery` | `loc_gallery[].gallery_image` | image | The site (new) |
+| `group_llp_loc_gallery` | `loc_gallery[].gallery_alt` | text | The site (new) |
+
+### One example page per type, from Edens Edge
+
+Each example shows what Copybot would send under these names. I worked them out from the saved records for this document, and no such push exists. The site filled fields aren't included, long text is shortened and lists stop at two rows. The first and third are from 4 Nov 2026 and the others from 27 Oct 2026, so their wording is older.
+
+### Category: Paving Contractor, Southampton
+
+Page `/paving-contractor`, H1 "Driveways Southampton".
+
+<details><summary>What Copybot would send for this page</summary>
+
+```json
+{
+  "target_page": "/paving-contractor",
+  "acf": {
+    "cat_hero_h1": "Driveways Southampton",
+    "cat_hero_trust_line": "100+ Jobs Completed",
+    "cat_hero_intro": "<p>[CV: company_name] lays driveways in Southampton, along with patios and paths, across the city and the surrounding Hampshire towns. We're a family run, independent fi...",
+    "cat_services_h2": "Our Driveways Services in Southampton",
+    "cat_services_intro": "<p>Driveways, patios and the groundwork behind them are built for homeowners across the whole area, from digging out to the finished surface. The work covers concrete ba...",
+    "cat_services_cards": [
+      {
+        "card_name": "Concrete bases and paths",
+        "card_text": "<p>A shed, a drive apron or a path to the back door all need something firm under them. Our <a href=\"/services/concrete-bases-and-paths\">concrete bases and paths</a> wor...",
+        "card_url": "/services/concrete-bases-and-paths"
+      },
+      {
+        "card_name": "Garden levelling",
+        "card_text": "<p>Will the ground take a drive or a patio the way it is? A <a href=\"/services/garden-levelling\">garden levelling</a> visit evens out hollows and humps by cutting and fi...",
+        "card_url": "/services/garden-levelling"
+      },
+      "(2 more rows)"
+    ],
+    "cat_also_offered": "<p>We also take on driveway landscaping, driveway or path paving and driveway replacement.</p>",
+    "cat_content_h2": "Local Paving for Southampton Homeowners",
+    "cat_content_body": "<p>Driveways in Southampton are built on very different ground, and that shapes the work. In Oakmount Triangle the front gardens are small and sit behind low brick walls...",
+    "cat_block4_h2": "Common Paving Problems",
+    "cat_block4": [
+      {
+        "card_title": "A garden with nowhere to sit out",
+        "card_body": "<p>The garden looks fine from the kitchen window, but there's no flat, dry spot for a table. It usually comes down to the ground by the back door: a slope, a lawn that s..."
+      },
+      {
+        "card_title": "Slabs and blocks that rock or have sunk",
+        "card_body": "<p>A slab that rocks underfoot, a line of blocks dipped by the drain or a joint that has opened up all point to one cause. The base under them was too thin or too soft f..."
+      },
+      "(2 more rows)"
+    ],
+    "cat_block5_h2": "What Affects the Cost of Paving in Southampton",
+    "cat_cost_intro": "<p>No two paving jobs cost the same, because every garden is different and the work takes a different number of days. The four points here show where a figure comes from...",
+    "cat_block5": [
+      {
+        "card_title": "The size of the area",
+        "card_body": "<p>Square metres move the price more than anything else. A bigger area means more digging, more stone for the base and more slabs or blocks to lay. That adds days on sit..."
+      },
+      {
+        "card_title": "What is underneath",
+        "card_body": "<p>What's under the surface sets the number of days. Topsoil, clay, an old slab base or concrete that has to come out all mean more digging before a new sub base can go..."
+      },
+      "(2 more rows)"
+    ],
+    "cat_cost_price_line": "",
+    "cat_reviews_show": false,
+    "cat_reviews_h2": "",
+    "cat_reviews": [],
+    "cat_process_h2": "Your Free Quote in 3 Simple Steps",
+    "cat_process_steps": [
+      {
+        "step_title": "Tell Us About Your Garden",
+        "step_body": "<p>Ring [CV: phone] or send a message. Tell us the rough size of the area and what you want done, and add photos of the garden as it stands.</p>"
+      },
+      {
+        "step_title": "We Price Your Job",
+        "step_body": "<p>Pricing starts from what the job involves: the size of the area, what's under it and how the stone and slabs get to the garden. Those shape the figure.</p>"
+      },
+      "(1 more rows)"
+    ],
+    "cat_areas_h2": "Where We Provide Paving Across Southampton and Nearby Towns",
+    "cat_areas_intro": "<p>We're based in Southampton and travel [CV: travel_distance] from there, inland and along the coast. That takes in the Hampshire villages and towns beyond the city, an...",
+    "cat_areas_links": [
+      {
+        "area_name": "Chandlers Ford",
+        "page_url": "/locations/chandlers-ford/paving-contractor"
+      },
+      {
+        "area_name": "Eastleigh",
+        "page_url": "/locations/eastleigh/paving-contractor"
+      },
+      "(3 more rows)"
+    ],
+    "cat_areas_also_cover": "Ampfield, Awbridge, Chilworth, Kings Worthy, Lockerley, Lyndhurst, Stockbridge",
+    "cat_faq_h2": "Paving Questions Answered",
+    "cat_faq_items": [
+      {
+        "faq_question": "How much does paving cost in Southampton?",
+        "faq_answer": "<p>It depends on the job, and one thing people rarely expect is drainage. At the front of a house, a new surface over 5 square metres needs planning permission unless ra..."
+      },
+      {
+        "faq_question": "Are you insured for paving work?",
+        "faq_answer": "<p>Yes, we're insured up to £[CV: insurance_cover] for the work we do. The cover is for accidents while work is under way. A buried pipe or cable struck when the ground..."
+      },
+      "(4 more rows)"
+    ],
+    "cat_final_cta_h2": "Get a Free Paving Quote in Southampton",
+    "cat_final_cta_body": "<p>Send a few photos and a line on what you'd like built, and a driveway, patio or path can be priced from there.</p>"
+  },
+  "meta": {
+    "rank_math_title": "Driveways Southampton | Edens Edge Landscaping",
+    "rank_math_description": "Edens Edge Landscaping offers driveways in Southampton offering fixed prices with no hidden costs. Get your free quote today.",
+    "rank_math_focus_keyword": "Driveways Southampton"
+  }
+}
+```
+
+</details>
+
+### Location category: Gardener, Romsey
+
+Page `/locations/romsey/gardener`, H1 "Gardener Romsey". The same template as the category page.
+
+<details><summary>What Copybot would send for this page</summary>
+
+```json
+{
+  "target_page": "/locations/romsey/gardener",
+  "acf": {
+    "cat_hero_h1": "Gardener Romsey",
+    "cat_hero_trust_line": "100+ Jobs Completed",
+    "cat_hero_intro": "<p>[CV: company_name] is a local gardener in Romsey, looking after lawns, hedges and borders for homeowners across the town. Our prices are fixed, with no hidden costs a...",
+    "cat_services_h2": "Our Gardener Services in Romsey",
+    "cat_services_intro": "<p>Our gardener work covers the jobs that keep a Romsey garden under control: cutting lawns, trimming hedges, clearing beds and keeping weeds down. It suits homeowners w...",
+    "cat_services_cards": [
+      {
+        "card_name": "Lawn mowing",
+        "card_text": "<p>Grass that gets ahead of you ends up clumped and uneven, and a rushed cut can take too much off at once. Our <a href=\"/services/lawn-mowing\">lawn mowing</a> work sets...",
+        "card_url": "/services/lawn-mowing"
+      },
+      {
+        "card_name": "Fencing",
+        "card_text": "<p>Is that fence leaning, or rattling every time the wind picks up? A <a href=\"/locations/romsey/fencing\">fencing</a> visit can mean new close board or panel runs, with...",
+        "card_url": "/locations/romsey/fencing"
+      },
+      "(4 more rows)"
+    ],
+    "cat_also_offered": "",
+    "cat_content_h2": "Local Gardening for Romsey Homeowners",
+    "cat_content_body": "<p>Being a gardener in Romsey means working across very different gardens. Great Woodley's Radburn layout often puts the vehicle route behind the house, which changes ho...",
+    "cat_block4_h2": "Common Gardening Problems",
+    "cat_block4": [
+      {
+        "card_title": "A lawn full of moss and bare patches",
+        "card_body": "<p>Moss takes hold where the grass is thin and the ground stays damp, and bare patches there never fill on their own. Shade and damp ground are behind it. We scarify to..."
+      },
+      {
+        "card_title": "Hedges that have got away",
+        "card_body": "<p>A hedge can end up wide at the top and bare at the base, with growth pushing over the path. Usually cuts were missed or made at the wrong time of year, so the top thi..."
+      },
+      "(2 more rows)"
+    ],
+    "cat_block5_h2": "What Affects the Cost of Gardening in Romsey",
+    "cat_cost_intro": "<p>The price of gardening moves with how much there is to do and how often you'd like us here. You'll get a quote once we know what the garden involves.</p>",
+    "cat_block5": [
+      {
+        "card_title": "How often we visit",
+        "card_body": "<p>A regular round makes each visit shorter, so the price per visit is lower than an occasional big tidy up. How often you want us here is one of the first things that s..."
+      },
+      {
+        "card_title": "The size of the garden",
+        "card_body": "<p>Every extra square metre of grass, border and hedge adds work to each visit. A small terrace plot takes less time than a long back garden with deep beds and a boundar..."
+      },
+      "(2 more rows)"
+    ],
+    "cat_cost_price_line": "",
+    "cat_reviews_show": false,
+    "cat_reviews_h2": "",
+    "cat_reviews": [],
+    "cat_process_h2": "Your Free Quote in 3 Simple Steps",
+    "cat_process_steps": [
+      {
+        "step_title": "Tell Us About Your Garden",
+        "step_body": "<p>Call [CV: phone] or send a message with the size of the garden, what you want kept on top of, and photos if you have them.</p>"
+      },
+      {
+        "step_title": "We Agree the Round and the Price",
+        "step_body": "<p>We go through what each visit will include and what it comes to in price, so you know what the round involves before it begins.</p>"
+      },
+      "(1 more rows)"
+    ],
+    "cat_areas_h2": "Where We Provide Gardening Across Romsey",
+    "cat_areas_intro": "<p>We cover all of Romsey and the villages around it, and we travel up to [CV: travel_distance] inland and along the coast. Wherever your garden sits, whether on the edg...",
+    "cat_areas_links": [
+      {
+        "area_name": "Whitenap",
+        "page_url": ""
+      },
+      {
+        "area_name": "Halterworth",
+        "page_url": ""
+      },
+      "(10 more rows)"
+    ],
+    "cat_areas_also_cover": "",
+    "cat_faq_h2": "Gardening Questions Answered",
+    "cat_faq_items": [
+      {
+        "faq_question": "How much does gardening cost in Romsey?",
+        "faq_answer": "<p>There's no standard price, but the quote is free. Tell us what your Romsey garden has, such as the lawn, the borders and a front hedge. Photos help, but they aren't e..."
+      },
+      {
+        "faq_question": "Are you insured?",
+        "faq_answer": "<p>Yes, we're insured up to £[CV: insurance_cover]. That cover is in place for accidents that can happen while garden work is under way, such as a damaged fence or a bro..."
+      },
+      "(4 more rows)"
+    ],
+    "cat_final_cta_h2": "Get a Free Gardening Quote in Romsey",
+    "cat_final_cta_body": "<p>Describe your garden and the work you'd like done, and we'll put together a quote for you.</p>"
+  },
+  "meta": {
+    "rank_math_title": "Gardener Romsey | Edens Edge Landscaping",
+    "rank_math_description": "Edens Edge Landscaping is a gardener in Romsey offering fixed prices with no hidden costs. Get your free quote today.",
+    "rank_math_focus_keyword": "Gardener Romsey"
+  }
+}
+```
+
+</details>
+
+### Service: Patios, Southampton
+
+Page `/services/patios`, H1 "Patios Southampton".
+
+<details><summary>What Copybot would send for this page</summary>
+
+```json
+{
+  "target_page": "/services/patios",
+  "acf": {
+    "svc_hero_h1": "Patios Southampton",
+    "svc_hero_trust_line": "100+ Jobs Completed",
+    "svc_hero_intro": "<p>[CV: company_name] builds patios in Southampton and across the towns around it, inland and along the coast. Every patio we build has a fixed price with no hidden cost...",
+    "svc_included_h2": "What's Included in Our Patios",
+    "svc_included_intro": "<p>A patio is a firm, level area of paving at the back of the house, built for a table and chairs. You're left with a surface that's dug out, built up on a compacted bas...",
+    "svc_included_items": [
+      {
+        "item_title": "Set out levels and falls",
+        "item_text": "Mark out finished levels and the falls"
+      },
+      {
+        "item_title": "Excavate",
+        "item_text": "Dig out to the depth the paving needs"
+      },
+      "(5 more rows)"
+    ],
+    "svc_content_h2": "Local Patios for Southampton Homeowners",
+    "svc_content_body": "<p>Patios in Southampton are built on very different ground, from Lordswood to Townhill Park. Lordswood is mostly detached family housing, so a patio there is often size...",
+    "svc_block4_h2": "Is a patio right for your garden?",
+    "svc_block4": [
+      {
+        "card_title": "The part of the garden you never use",
+        "card_body": "<p>If one corner is somewhere nobody goes, it's often because the ground is wet, uneven or too soft to stand a chair on. What decides the answer is the ground itself, a..."
+      },
+      {
+        "card_title": "Doing it once, properly",
+        "card_body": "<p>A cheaper quote, or doing it yourself, comes down to what you can't see once it's finished. The dig and the compacted base under the slabs are where a quick job saves..."
+      },
+      "(2 more rows)"
+    ],
+    "svc_process_h2": "Your Free Quote in 3 Simple Steps",
+    "svc_process_steps": [
+      {
+        "step_title": "Tell Us About Your Garden",
+        "step_body": "<p>Call or message us with the rough size of the area and what you'd like built. A few photos of the garden help too, if you have them.</p>"
+      },
+      {
+        "step_title": "We Price Your Job",
+        "step_body": "<p>Once we know what's involved, we put a price to the job and settle it with you before the first dig.</p>"
+      },
+      "(1 more rows)"
+    ],
+    "svc_block5_h2": "What Affects the Cost of Patios in Southampton",
+    "svc_cost_intro": "<p>A patio's price is set by the dig and the slabs, so it moves with the job in front of us. Quotes are free, and the four cards that follow explain what makes one patio...",
+    "svc_block5": [
+      {
+        "card_title": "How much there is to do",
+        "card_body": "<p>The area comes first: more square metres means more digging, more base and more slabs to lay. A small patio by the back door and a large one across the garden are ver..."
+      },
+      {
+        "card_title": "What's there now",
+        "card_body": "<p>Anything already there changes the starting point. An old surface has to be broken up and removed, soft ground may need digging deeper before a base will hold, and wh..."
+      },
+      "(2 more rows)"
+    ],
+    "svc_cost_price_line": "",
+    "svc_reviews_show": false,
+    "svc_reviews_h2": "",
+    "svc_reviews": [],
+    "svc_areas_h2": "Where We Provide Patios Across Southampton and Nearby Towns",
+    "svc_areas_intro": "<p>We're based in Southampton and work within [CV: travel_distance] of it, inland and along the coast. Patios are part of the work everywhere in that area, whether the g...",
+    "svc_areas_links": [
+      {
+        "area_name": "Chandlers Ford",
+        "page_url": "/locations/chandlers-ford/landscape-designer"
+      },
+      {
+        "area_name": "Eastleigh",
+        "page_url": "/locations/eastleigh/landscape-designer"
+      },
+      "(3 more rows)"
+    ],
+    "svc_areas_also_cover": "Ampfield, Awbridge, Chilworth, Kings Worthy, Lockerley, Lyndhurst, Stockbridge",
+    "svc_faq_h2": "Patios Questions Answered",
+    "svc_faq_items": [
+      {
+        "faq_question": "How much does a patio cost in Southampton?",
+        "faq_answer": "<p>The price depends on your garden, and it's agreed with you before any work starts. Quotes are free. One thing that surprises people is the cutting. Paving that meets..."
+      },
+      {
+        "faq_question": "When is the best time of year for patios, and how long does it take?",
+        "faq_answer": "<p>Dry, frost free weather suits a patio, because fresh bedding and joints need protecting. Frost or heavy rain on fresh work can spoil it before it has set. How long it..."
+      },
+      "(4 more rows)"
+    ],
+    "svc_more_h2": "Our Other Garden Design Services",
+    "svc_more_intro": "<p>A patio is often one part of a bigger garden plan. These are the other garden design jobs we build for homeowners across the area.</p>",
+    "svc_more_cards": [
+      {
+        "card_name": "Lawn seeding",
+        "card_url": "/services/lawn-seeding"
+      },
+      {
+        "card_name": "Artificial grass installation",
+        "card_url": "/services/artificial-grass-installation"
+      },
+      "(10 more rows)"
+    ],
+    "svc_final_cta_h2": "Get a Free Patios Quote in Southampton",
+    "svc_final_cta_body": "<p>Share the spot you have in mind with us, and we'll work out what a patio there would involve for your garden.</p>"
+  },
+  "meta": {
+    "rank_math_title": "Patios Southampton | Edens Edge Landscaping",
+    "rank_math_description": "Edens Edge Landscaping offers patios in Southampton, fixed prices with no hidden costs. Get your free quote today.",
+    "rank_math_focus_keyword": "Patios Southampton"
+  }
+}
+```
+
+</details>
+
+### Town service: Tree stump removal, Romsey
+
+Page `/locations/romsey/tree-stump-removal`, H1 "Tree Stump Removal Romsey". The same template as the service page.
+
+<details><summary>What Copybot would send for this page</summary>
+
+```json
+{
+  "target_page": "/locations/romsey/tree-stump-removal",
+  "acf": {
+    "svc_hero_h1": "Tree Stump Removal Romsey",
+    "svc_hero_trust_line": "100+ Jobs Completed",
+    "svc_hero_intro": "<p>[CV: company_name] carries out tree stump removal in Romsey, grinding or digging out old stumps for homeowners across the town. Most jobs are booked for a [CV: start_...",
+    "svc_included_h2": "What's Included in Our Tree Stump Removal",
+    "svc_included_intro": "<p>Tree stump removal deals with the stump a felled tree leaves behind, for homeowners who want a lawn, path or bed where it stood. The job runs from the first look at t...",
+    "svc_included_items": [
+      {
+        "item_title": "Inspect stump and underground hazards",
+        "item_text": "Check the stump and what's buried nearby"
+      },
+      {
+        "item_title": "Select removal method",
+        "item_text": "Choose between grinding and excavation or winching"
+      },
+      "(4 more rows)"
+    ],
+    "svc_content_h2": "Local Tree Stump Removal for Romsey Homeowners",
+    "svc_content_body": "<p>Romsey sits across the lower Test valley, with low streets near the river and housing climbing the valley sides, so tree stump removal in the town rarely means the sa...",
+    "svc_block4_h2": "Signs You Need Tree Stump Removal",
+    "svc_block4": [
+      {
+        "card_title": "The first signs",
+        "card_body": "<p>Shoots keep sprouting from the ground nearby, or the spot where a tree came down has never quite gone back to normal. A new lawn or path can't be laid level there. Le..."
+      },
+      {
+        "card_title": "It's moved, sunk or leant",
+        "card_body": "<p>A new surface that's dipped, or a patch of ground that's dropped where a stump used to be, usually comes from a stage skipped underneath. Chippings packed in loosely..."
+      },
+      "(2 more rows)"
+    ],
+    "svc_process_h2": "Your Free Quote in 3 Simple Steps",
+    "svc_process_steps": [
+      {
+        "step_title": "Tell Us About Your Garden",
+        "step_body": "<p>Message or call with the stump's rough size, where it stands and what's going in its place. Photos of the stump and the way in help if you have them.</p>"
+      },
+      {
+        "step_title": "We Price Your Job",
+        "step_body": "<p>A price is agreed with you before any work begins, so you know exactly what the stump removal covers and what it'll cost.</p>"
+      },
+      "(1 more rows)"
+    ],
+    "svc_block5_h2": "What Affects the Cost of Tree Stump Removal in Romsey",
+    "svc_cost_intro": "<p>Stump removal is priced job by job, because no two stumps sit in the same ground. You'll have the price settled before work begins, and the four things below are what...",
+    "svc_block5": [
+      {
+        "card_title": "How much there is to do",
+        "card_body": "<p>A wide stump with long roots means more to grind through, and a deeper grind adds time again. More than one stump in the garden means that much more work.</p>"
+      },
+      {
+        "card_title": "What's there now",
+        "card_body": "<p>Roots running under a path or lawn edge, old concrete or a hard layer in the ground all add cutting time. A stump with a lot of wood below the surface takes longer to..."
+      },
+      "(2 more rows)"
+    ],
+    "svc_cost_price_line": "",
+    "svc_reviews_show": false,
+    "svc_reviews_h2": "",
+    "svc_reviews": [],
+    "svc_areas_h2": "Where We Provide Tree Stump Removal Across Romsey",
+    "svc_areas_intro": "<p>We're based locally and travel up to [CV: travel_distance], inland and along the coast. That takes in the whole of Romsey and the villages around it, so this work goe...",
+    "svc_areas_links": [
+      {
+        "area_name": "Whitenap",
+        "page_url": ""
+      },
+      {
+        "area_name": "Halterworth",
+        "page_url": ""
+      },
+      "(10 more rows)"
+    ],
+    "svc_areas_also_cover": "",
+    "svc_faq_h2": "Tree Stump Removal Questions Answered",
+    "svc_faq_items": [
+      {
+        "faq_question": "How much does tree stump removal cost in Romsey?",
+        "faq_answer": "<p>Every stump is quoted individually, and the quote is free. How wide the stump is and how far its roots spread usually move the figure most. Send us a few details abou..."
+      },
+      {
+        "faq_question": "When is the best time of year for tree stump removal, and how long does it take?",
+        "faq_answer": "<p>There's no fixed season or standard time for stump removal. Grinding can usually be planned whenever the stump can be reached. How long it takes depends on how easily..."
+      },
+      "(3 more rows)"
+    ],
+    "svc_more_h2": "Our Other Tree Surgery Services in Romsey",
+    "svc_more_intro": "<p>Stump work often sits alongside other jobs on the same trees. The cards below show the rest of our tree surgery work, each with its own page for the detail.</p>",
+    "svc_more_cards": [
+      {
+        "card_name": "Tree cabling and bracing",
+        "card_url": "/services/tree-cabling-and-bracing"
+      },
+      {
+        "card_name": "Tree planting",
+        "card_url": "/services/tree-planting"
+      },
+      "(3 more rows)"
+    ],
+    "svc_final_cta_h2": "Get a Free Tree Stump Removal Quote in Romsey",
+    "svc_final_cta_body": "<p>Send us the stump's size and where it stands, and we'll price the job and agree a start date with you.</p>"
+  },
+  "meta": {
+    "rank_math_title": "Tree Stump Removal Romsey | Edens Edge Landscaping",
+    "rank_math_description": "Edens Edge Landscaping offers tree stump removal in Romsey, fixed prices with no hidden costs. Get your free quote today.",
+    "rank_math_focus_keyword": "Tree Stump Removal Romsey"
+  }
+}
+```
+
+</details>
+
+### Location: Romsey
+
+Page `/locations/romsey`, H1 "Gardener Services in and around Romsey".
+
+<details><summary>What Copybot would send for this page</summary>
+
+```json
+{
+  "target_page": "/locations/romsey",
+  "acf": {
+    "loc_hero_h1": "Gardener Services in and around Romsey",
+    "loc_hero_trust_line": "100+ Jobs Completed",
+    "loc_hero_intro": "<p>[CV: company_name] is a gardener in Romsey, taking on everything from a simple tidy up to a full makeover with groundwork, patios and decking. Every price we give is...",
+    "loc_services_h2": "Our Landscaping Services in Romsey",
+    "loc_services_intro": "<p>Romsey gardens run from deep lawns by the river to small terrace yards. Homeowners here look for lawn care, groundwork, patios, decking and tree work, and the cards b...",
+    "loc_services_cards": [
+      {
+        "card_name": "Gardening",
+        "card_text": "<p>Borders lost under weeds and grass that's got ahead of you make a garden feel neglected fast. Our <a href=\"/locations/romsey/gardener\">gardening</a> work is the upkee...",
+        "card_url": "/locations/romsey/gardener"
+      },
+      {
+        "card_name": "Landscape Gardening",
+        "card_text": "<p>Is the garden awkward to use, with a slope that makes every trip down it a chore? The <a href=\"/locations/romsey/landscape-gardener\">landscape gardening</a> we do res...",
+        "card_url": "/locations/romsey/landscape-gardener"
+      },
+      "(4 more rows)"
+    ],
+    "loc_content_h2": "Local Landscaping for Romsey Homeowners",
+    "loc_content_body": "<p>Romsey sits low beside the River Test, and that shapes the work of any gardener in Romsey. Housing climbs to flatter ground to the east, away from the water. Gardens...",
+    "loc_block4_h2": "Common Landscaping Problems in Romsey",
+    "loc_block4": [
+      {
+        "card_title": "Ground that holds the rain",
+        "card_body": "<p>A lawn beside a stream that stays soggy for days after rain is common here. Some gardens sit near the Test and others near the Tadburn. The fields to the west hold fl..."
+      },
+      {
+        "card_title": "Boundaries as old as the houses",
+        "card_body": "<p>Panels that lean, posts soft at the base and a garden wall with a bow in it usually belong to the original boundary. Romsey's post war estates and older streets were..."
+      },
+      "(2 more rows)"
+    ],
+    "loc_block5_h2": "What Affects the Cost of Landscaping in Romsey",
+    "loc_cost_intro": "<p>What a landscaping job costs in Romsey comes down to the hours of work and what has to be carried or cleared. The four points below are the ones that usually add or s...",
+    "loc_block5": [
+      {
+        "card_title": "Getting in on a terraced street",
+        "card_body": "<p>On terraced streets such as those around Riverside Gardens and Rivermead Close, there's no vehicle access outside the front door. Materials are carried in by hand and..."
+      },
+      {
+        "card_title": "Gardens on a slope",
+        "card_body": "<p>A garden that falls or rises from the house needs its levels taken, steps or a retaining edge, and more digging than a flat one. Streets east of the river rise up the..."
+      },
+      "(2 more rows)"
+    ],
+    "loc_cost_price_line": "",
+    "loc_reviews_show": false,
+    "loc_reviews_h2": "",
+    "loc_reviews": [],
+    "loc_process_h2": "Your Free Quote in 3 Simple Steps",
+    "loc_process_steps": [
+      {
+        "step_title": "Tell Us About Your Garden",
+        "step_body": "<p>Call us on [CV: phone] (we're open [CV: hours]) and tell us the rough size, what you'd like done, and send photos if you have them.</p>"
+      },
+      {
+        "step_title": "We Price Your Job",
+        "step_body": "<p>Once we know what you want done, a price is agreed with you before any work starts, so you know exactly what the job covers.</p>"
+      },
+      "(1 more rows)"
+    ],
+    "loc_areas_h2": "Where We Provide Landscaping Around Romsey",
+    "loc_areas_intro": "<p>We cover Romsey and the villages and neighbourhoods around it, and we travel up to [CV: travel_distance] to reach them. That takes in the older streets by the river a...",
+    "loc_areas_links": [
+      {
+        "area_name": "Whitenap",
+        "page_url": ""
+      },
+      {
+        "area_name": "Halterworth",
+        "page_url": ""
+      },
+      "(10 more rows)"
+    ],
+    "loc_faq_h2": "Landscaping Questions Answered",
+    "loc_faq_items": [
+      {
+        "faq_question": "How much does landscaping cost in Romsey?",
+        "faq_answer": "<p>Price follows the size of the job, the ground and the way in. A patio with steps and a retaining wall takes longer than a short path, and a garden reached only throug..."
+      },
+      {
+        "faq_question": "How soon can you get to Romsey?",
+        "faq_answer": "<p>Our usual start is the [CV: start_time], and that holds across the whole town. A full garden makeover or a patio with steps needs more planning than a quick tidy. Fro..."
+      },
+      "(3 more rows)"
+    ],
+    "loc_final_cta_h2": "Get a Free Landscaping Quote in Romsey",
+    "loc_final_cta_body": "<p>Ring or message with a photo of the garden and the job you have in mind, and your project gets its place in our diary.</p>"
+  },
+  "meta": {
+    "rank_math_title": "Gardener Services in and around Romsey | Edens Edge Landscaping",
+    "rank_math_description": "Edens Edge Landscaping is a gardener in Romsey offering fixed prices with no hidden costs. Get your free quote today.",
+    "rank_math_focus_keyword": "Gardener Services in and around Romsey"
+  }
+}
+```
+
+</details>
+
+## The focus keyword
+
+The spec says "Focus keyword (Rank Math): [KW]", and [KW] is the page's H1 keyword from the page map. Every homepage, category, service and location record now carries it as `focus_keyword`, including their town versions. It is set to the H1. A record written before 5 Nov 2026 has no such field, and Show field names uses its H1.
+
+| Page type | Example from Edens Edge |
+|---|---|
+| Homepage | Landscaper Southampton |
+| Category | Driveways Southampton |
+| Location category | Gardener Romsey |
+| Service | Patios Southampton |
+| Town service | Tree Stump Removal Romsey |
+| Location | Gardener Services in and around Romsey |
+| Blog post | Not added: that record is on the `blog` branch, and its keyword is the target query |
+
+**It is not sent to WordPress yet.** The plugin only lets Copybot write the meta keys it registers, and the focus keyword isn't one of them. Sending it now would be dropped by the site, and the push's read back would report a mismatch. So it waits with the plugin change:
+
+1. Add `rank_math_focus_keyword` and `_yoast_wpseo_focuskw` to the plugin's registered meta, and bump its version.
+2. Add the key to the push's SEO adapters in `wp/homepage-map.js`.
+
+## What business_schema_id needs
+
+The spec has one LocalBusiness block for each site. Every other page refers to it by its `@id`, held in `[CV: business_schema_id]`. **Main has no such value.** The `blog` branch adds the key, and its blog posts use it as the publisher, but that branch has no way to enter a value and a push would send it empty.
+
+**What Copybot would need:**
+
+1. **The key:** add it to `SITE_KEYS` in `wp/client-values.js`, which regenerates the plugin's `client-value-keys.json` and needs a plugin version bump. This waits with the other plugin changes. The `blog` branch already has it, so that merge should bring the same key.
+2. **A place to enter it:** a field on the Record tab, and the client record's default, next to `map_embed`.
+3. **Carrying it to the site:** copy it into `clientValueMap` in `v20-generate.js`, as `map_embed` now is.
+4. **Not clearing it:** leave it out of a push when it's empty, as `map_embed` now is. Otherwise each push wipes it. The `blog` branch has this problem as written.
+5. **A rule for when it's empty:** the value only exists after the homepage is published. A blog post pushed before then would print an empty publisher, so its push should wait or leave the publisher out.
+6. **A check:** a fixture for the steps above.
+
+**What Given would need to decide or build:**
+
+1. **Where the LocalBusiness block comes from.** Copybot doesn't write schema for pages. The spec says the "master kit" does. It needs the subtype, which Copybot holds per niche as `schema_subtype`, and the name, address and phone exactly as on the Google profile, with no street address for a hidden address business.
+2. **The form of the `@id`.** The spec has someone publish the homepage, run it through validator.schema.org and copy the `@id` by hand. If every site used a fixed form such as `https://<site>/#localbusiness`, Copybot could work it out and skip that step.
+3. **How inner templates refer to it.** They would print `llp_cv( 'business_schema_id' )` in their schema and never add a second LocalBusiness block. The spec then checks one inner page shows the same `@id`.
+
 ## Gaps
 
 ### In the template spec, with no Copybot field
@@ -529,8 +1412,8 @@ Unlike the homepage, these records hold the literal word `HIDDEN`. There is no p
 
 | Spec item | Today |
 |---|---|
-| Rank Math focus keyword | Not pushed. Only the title and description are |
-| `[CV: business_schema_id]` for the LocalBusiness `@id` | No such Client Value |
+| Rank Math focus keyword | On every record, not pushed yet. See The focus keyword |
+| `[CV: business_schema_id]` for the LocalBusiness `@id` | Not on main. See What business_schema_id needs |
 | Button under Why choose us; "Start Step 1" under Process | No field. Build from `primary_action` and `phone` in the template |
 | Footer name, address and phone; hidden address rule | No field. Client Values hold `company_name`, `address`, `phone` and `gbp_address_type` |
 | Map in Service areas | No page field, as the spec says. Use `map_embed` |
