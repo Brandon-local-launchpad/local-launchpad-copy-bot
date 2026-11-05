@@ -336,7 +336,7 @@ Used by the location page job (CORE (18)): block 4 (what the town's streets and 
 
 ## Alternate Why title that promises a practice (why_title_practice)
 
-"Moving Days Planned in Order" stands only with a practice no tick confirms, so never by default; otherwise the point reads "Local Experience Behind Every Job".
+"Moving Days Planned in Order" stands only with a practice no tick confirms, so never by default; otherwise the point reads "Our Track Record".
 
 ## Service tags
 

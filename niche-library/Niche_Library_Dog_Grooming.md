@@ -336,7 +336,7 @@ Used by the location page job (CORE (18)): block 4 (what the town's dogs and own
 
 ## Alternate Why title that promises a practice (why_title_practice)
 
-"Every Coat Type, Groomed Before" stands only with a practice no tick confirms, so never by default; otherwise the point reads "Local Experience Behind Every Job".
+"Every Coat Type, Groomed Before" stands only with a practice no tick confirms, so never by default; otherwise the point reads "Our Track Record".
 
 ## Service tags
 

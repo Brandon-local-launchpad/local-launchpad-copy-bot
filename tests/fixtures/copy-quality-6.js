@@ -141,8 +141,8 @@ chk('Why: the jobs count answers the slipping standard', /standard|slip/i.test(f
 chk('Why: the insurance answers the fear of damage', /breaks|losing|stain/i.test(fearOf('cover')), fearOf('cover'), 'breaks things');
 chk('Why: a fear is used once', new Set(paired.map(p => p.fear).filter(Boolean)).size === paired.filter(p => p.fear).length, JSON.stringify(paired.map(p => p.fear)), 'distinct');
 chk('Why: a point with nothing in common gets no fear, never one by position', matchFears([{ key: 'x', title: 'Blue Vans', proof: 'theme' }], fearsClean)[0].fear === null, '', 'null');
-chk('Why title: "The Same Clean Every Visit" only with the practice confirmed', whyAltTitle('The Same Clean Every Visit', cleaning, {}) === 'Local Experience Behind Every Job' && whyAltTitle('The Same Clean Every Visit', cleaning, { confirmed_practices: ['same_team_throughout'] }) === 'The Same Clean Every Visit', '', 'gated');
-chk('Why title: a title with no promise stands', whyAltTitle('Local Experience on Every Kind of Door', locksmith, {}) === 'Local Experience on Every Kind of Door', '', 'kept');
+chk('Why title: "The Same Clean Every Visit" only with the practice confirmed', whyAltTitle('The Same Clean Every Visit', cleaning, {}) === 'Our Track Record' && whyAltTitle('The Same Clean Every Visit', cleaning, { confirmed_practices: ['same_team_throughout'] }) === 'The Same Clean Every Visit', '', 'gated');
+chk('Why title: a title with no promise stands', whyAltTitle('Covered If Something Goes Wrong', locksmith, {}) === 'Covered If Something Goes Wrong', '', 'kept');
 const alts = fs.readdirSync(path.join(root, 'niche-library')).filter(x => x.endsWith('.json') && !['client-facts.json', 'practices.json'].includes(x)).map(x => JSON.parse(fs.readFileSync(path.join(root, 'niche-library', x), 'utf8')));
 chk('Why title: the eleven titles that promise a practice are marked', alts.filter(e => e.why_title_practice).length === 11, alts.filter(e => e.why_title_practice).length, 11);
 const rec = JSON.parse(fs.readFileSync(path.join(__dirname, 'v20-outputs/edens-edge-2026-10-14-record.json'), 'utf8'));

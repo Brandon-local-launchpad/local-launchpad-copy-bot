@@ -18,19 +18,19 @@ const HOMES = {
   ],
   category: [
     { topic: 'What to tell us and send with an enquiry', home: 'the first process step (its step_body)', elsewhere: 'the quote FAQ answers the "free, no obligation" doubt and nothing about what to send; no other field lists it' },
-    { topic: 'The cost factors', home: 'the block 5 cost cards', elsewhere: 'the cost intro says why prices vary in one line and names no factor; the cost FAQ gives the factor that moves the price most and what the customer can do (ask for a quote, send photos) and sends the reader to the cost section by its heading (never "above", "below" or "on this page"); the content block, the service cards and the other FAQs never list factors' },
+    { topic: 'The cost factors', home: 'the block 5 cost cards', elsewhere: 'the cost intro opens on the factor that moves the price most and lists no others; the cost FAQ gives the factor that moves the price most and what the customer can do (ask for a quote, send photos) and sends the reader to the cost section by its heading (never "above", "below" or "on this page"); the content block, the service cards and the other FAQs never list factors' },
     { topic: 'The insurer point', home: 'the insurance FAQ', elsewhere: 'no card or other answer mentions the insurer, the policy or a claim' },
     { topic: 'The hidden layer (the base, the membrane, the fixings, what sits behind the finish)', home: 'the content block', elsewhere: 'the block 4 cards name the sign and the cause, never the layer again; the FAQs never restate it' },
   ],
   service: [
     { topic: 'What to tell us and send with an enquiry', home: 'the first process step (its step_body)', elsewhere: 'no FAQ, card or intro lists what to send' },
-    { topic: 'The cost factors', home: 'the block 5 cost cards', elsewhere: 'the cost intro says why prices vary in one line and names no factor; the cost FAQ gives the factor that moves the price most and what the customer can do (ask for a quote, send photos) and sends the reader to the cost section by its heading (never "above", "below" or "on this page"); the content block, the What\'s Included items and the other FAQs never list factors' },
+    { topic: 'The cost factors', home: 'the block 5 cost cards', elsewhere: 'the cost intro opens on the factor that moves the price most and lists no others; the cost FAQ gives the factor that moves the price most and what the customer can do (ask for a quote, send photos) and sends the reader to the cost section by its heading (never "above", "below" or "on this page"); the content block, the What\'s Included items and the other FAQs never list factors' },
     { topic: 'The insurer point', home: 'the insurance FAQ', elsewhere: 'no card or other answer mentions the insurer, the policy or a claim' },
     { topic: 'The hidden layer (the base, the membrane, the fixings, what sits behind the finish)', home: 'paragraph 3 of the content block', elsewhere: 'the block 4 cards name the sign and the cause, never the layer again; the What\'s Included items name the stage in four to ten words; the FAQs never restate it' },
   ],
   location: [
     { topic: 'What to tell us and send with an enquiry', home: 'the first process step (its step_body)', elsewhere: 'the quote FAQ answers the "free, no obligation" doubt and nothing about what to send; no other field lists it' },
-    { topic: 'The cost factors', home: 'the block 5 cost cards', elsewhere: 'the cost intro says why prices vary in one line and names no factor; the cost FAQ gives the factor that moves the price most and what the customer can do (ask for a quote, send photos) and sends the reader to the cost section by its heading (never "above", "below" or "on this page"); the content block and the other FAQs never list factors' },
+    { topic: 'The cost factors', home: 'the block 5 cost cards', elsewhere: 'the cost intro opens on the factor that moves the price most and lists no others; the cost FAQ gives the factor that moves the price most and what the customer can do (ask for a quote, send photos) and sends the reader to the cost section by its heading (never "above", "below" or "on this page"); the content block and the other FAQs never list factors' },
     { topic: 'The insurer point', home: 'the insurance FAQ', elsewhere: 'no card or other answer mentions the insurer, the policy or a claim' },
     { topic: 'The hidden layer (the base, the membrane, the fixings, what sits behind the finish)', home: 'the content block', elsewhere: 'the block 4 cards name the sign and the cause, never the layer again; the FAQs never restate it' },
   ],
@@ -50,7 +50,7 @@ function ideaHomeLines(type, niche = null) {
 // insuranceFaq, content, cards
 const NOTES = {
   step1: 'the home of what to tell us and send',
-  costIntro: 'one line on why prices vary; the factors live in the cost cards',
+  costIntro: 'open on the factor that moves the price most; the other factors live in the cost cards',
   block5: 'the only home of the cost factors',
   costFaq: 'the factor that moves the price most, then what the customer can do to get a figure (ask for a quote, send photos); never point to another section',
   costFaqHome: 'the factor that moves the price most, then what the customer can do to get a figure (ask for a quote, send photos); never point to another section',

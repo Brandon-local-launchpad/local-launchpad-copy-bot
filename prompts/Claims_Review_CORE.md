@@ -1,4 +1,4 @@
-# Claims Review Prompt — CORE (7)
+# Claims Review Prompt — CORE (8)
 
 (2), 14 Oct: code-made decisions (step titles and briefs, FAQ questions, headings) count as facts; list only unsupported statements.
 (3), 15 Oct: the coastal travel wording is a code decision; a body that says what its step title says is supported; a finding the reviewer withdraws is left out.
@@ -6,6 +6,7 @@
 (5), 25 Oct (category pages, Brandon): an outcome stated as what a confirmed service does passes; a result the business can't control or guarantee wording fails. Team size, years, jobs and the insurance figure from the client values pass wherever they appear (the one-home limit is code's). The final CTA body never carries [CV: phone]; code blocks it.
 (6), 25 Oct (Brandon, after the quality loop): a method the TRADE FACTS rows give for a confirmed service is how the job is done and passes; only client-specific practices fail when they are not confirmed (frequency, waste handling, checks, timings, staffing).
 (7), 4 Nov 2026 (Brandon, copy quality 5): a sentence that describes the job itself passes; a sentence about how a fair or good firm in the trade behaves fails.
+(8), 5 Nov 2026 (Brandon, copy quality 7): read every value before listing a statement. A full client's answers were on file and findings cited only the nearest one.
 
 Used before a WordPress push (Stage 10, slice 3) and after every page is generated. Reads the finished page copy (homepage or category page) against the facts on file and lists every statement about the business that the facts don't support. Code checks each quote is really in the copy, then refuses the push until a person accepts or fixes the findings.
 
@@ -33,7 +34,8 @@ List each sentence, or part of a sentence, that tells the reader something about
 Do **not** list:
 - general facts about the trade, gardens, homes or the area ("clay holds water", "Article 4 controls limit front garden changes")
 - a sentence that describes the job itself, with the work as its subject and no "we" or "our": what the work involves and the order it goes in ("slabs are laid working outwards from one corner", "the cut wood is cleared afterwards"). It says what the job is, not how this business behaves. "Every", "always" or "wherever" still makes it a promise
-- anything FACTS ON FILE support, even in different words
+- anything FACTS ON FILE support, even in different words. Read every value before you list a statement, not only the one nearest to it. A statement is supported when any value supports it: [CV: if_not_happy], [CV: complaints_process], [CV: owner_promise] and [CV: guarantee_scope] all say what happens when something isn't right; [CV: typical_jobs] says what kinds of job the business does; [CV: areas_worked] says where; [CV: hours] and [CV: out_of_hours_available] say when; [CV: quote_method], [CV: quote_includes] and [CV: free_quotes] say how the price is reached and that a quote costs nothing; [CV: materials_methods] says what is used; CONFIRMED PRACTICES say how the business works
+- a value on file said with the same hedge ("usually", "most", "often"), or a confirmed practice said of one kind of job when it covers all of them. Only a word that goes beyond the value is a finding: "every", "always", "never", a result the business can't control
 - the `[CV: key]` tokens themselves (they are filled from the client values)
 - style, tone or grammar
 - ordinary contact and next steps every business offers: call or message us, we'll talk through what you'd like, we'll agree a day that suits you, we'll answer your questions

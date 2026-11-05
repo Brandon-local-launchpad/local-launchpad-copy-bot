@@ -69,7 +69,7 @@ Never state the guarantee length or the insurance figure here.
 One `card_body` per card title, in order. 40 to 60 words, following each card's brief and mechanism. Town-wide, one mechanism each, none from MECHANISMS USED. The assigned symptoms supply the local cause where they fit; the rest come from the niche entry's fears for the type. One figure at most across all four.
 
 ### loc_cost_intro
-30 to 50 words, 2 sentences. Why prices vary for this trade in this town, and what the customer can expect from a quote (from `[CV: quote_method]` only). No figures unless `[CV: price_list]` is set.
+30 to 50 words, 2 sentences. Open on the factor that moves the price most for this trade in this town, then what the customer can expect from a quote (from `[CV: quote_method]` only). No figures unless `[CV: price_list]` is set.
 
 ### loc_block5
 One `card_body` per card title, in order. 30 to 45 words, following each brief. What moves the price for this trade here; where the town profile gives a reason (access on terraced streets, slopes, conservation controls, long gardens), use it once. No figures.

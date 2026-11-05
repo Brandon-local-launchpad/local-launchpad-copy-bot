@@ -40,7 +40,7 @@ function checkDecisions(result) {
     cards.length === 7 && D.d9.main.every(c => c.linked) && CARDS.every(c => cards.some(x => lc(x) === lc(c))),
     'Card headings use the page map titles in title case ("Lawn Care Service"), as the card heading rule says');
   const why = D.d10_why.map(p => p.title);
-  const wantWhy = ['Local Experience Behind Every Job', 'Insured up to £5m', 'Fixed Prices With No Hidden Costs', 'Family Run and Independent'];
+  const wantWhy = ['Our Track Record', 'Insured up to £5m', 'Fixed Prices With No Hidden Costs', 'Family Run and Independent'];
   row('Why points', wantWhy.join('; '), why.join('; '), why.join('|') === wantWhy.join('|'));
   const faq = D.d11_faq.map(q => q.question);
   const faqOk = faq.length === 8 && /cost/i.test(faq[0]) && /insured/i.test(faq[1]) && /isn't right after the job/.test(faq[2]) &&

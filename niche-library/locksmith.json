@@ -672,7 +672,7 @@
             },
             {
               "title": "Proving it's your door",
-              "brief": "The honest card about the one question every locksmith asks on a doorstep at night. The one cause this card makes: a door is opened only for someone with the right to be behind it. From the Table E lockout authority row, said as the trade's own practice and never as a law: a licence with the address on it, other identification, a neighbour who can confirm who they are, or an officer present; a business sends a letter or an order; for a car the keeper's document is one part of the check, not proof on its own (Table E V5C). Why the customer should be glad of it: the same check is what stops a stranger having their door opened. Then the two cases the trade says no to, in plain words and without an Act's name: a landlord asking for a lock change to keep out a tenant who still lives there (Table E landlord lock changes), and a door forced on an enforcement job without the proper authority behind it (Table C enforcement row). Leads on Lockouts and gaining entry and Emergency locksmith; on Burglary repairs the card reads as whose home it is and who instructs the repair (the tenant or the landlord, from the client values where the business has a rule). Never a document list as a legal requirement (Table G). Never 'police approved'.",
+              "brief": "What to have to hand when the locksmith arrives, and why the check protects the customer. The one cause this card makes: a door is opened only for someone with the right to be behind it, which is the same check that stops a stranger having their door opened. In a line, what usually settles it, from the Table E lockout authority row, said as the trade's own practice and never as a law: something with the address on it, other identification, or a neighbour who can confirm who they are; a business sends a letter. No refusals and no legal cases: never a landlord, a tenant, an enforcement job, an Act's name or what a locksmith will not do. Leads on Lockouts and gaining entry and Emergency locksmith. Never a document list as a legal requirement (Table G). Never 'police approved'.",
               "mechanism": "a door opened only for someone with the right to be behind it",
               "needs": ["Lockouts and gaining entry","Emergency locksmith"]
             }
@@ -997,7 +997,7 @@
     {
       "topic": "the right to be there checked at the door (proof of address)",
       "home": "the 'What should I have ready before you arrive?' FAQ",
-      "elsewhere": "the 'Proving it's your door' card gives only the reason, that a door is opened only for someone with the right to be behind it, and lists no documents; the Call Us step, the arrival step and the 'Getting you in' cost card do not list documents or repeat the check",
+      "elsewhere": "the 'Proving it's your door' card says in a line what to have to hand and why the check protects the customer; the full list is the FAQ's; the Call Us step, the arrival step and the 'Getting you in' cost card do not list documents or repeat the check",
       "pages": [
         "service"
       ]

@@ -54,18 +54,19 @@ const K = id => ({ id, by: 'code', title: id + ' title', pass: false, reasons: [
 const FIVE = ['S10', 'P6', 'Y6', 'Y5', 'V9j'].map(id => J(id));
 chk('Verdict: judge failures do not gate', verdictFor({ block: 0, failures: FIVE }).state === 'ready', JSON.stringify(verdictFor({ block: 0, failures: FIVE })), 'ready');
 chk('Verdict: nothing failed is Ready to edit', verdictFor({}).label === 'Ready to edit', verdictFor({}).label, 'Ready to edit');
-chk('Verdict: a BLOCK is Needs another run', verdictFor({ block: 1 }).label === 'Needs another run', '', 'Needs another run');
-chk('Verdict: a failed code item is Needs another run', verdictFor({ failures: [K('Y2')] }).label === 'Needs another run', '', 'Needs another run');
-chk('Verdict: claims not accepted is Claims to accept, which is not a failed code item', (() => { const v = verdictFor({ failures: [K('C9')] }); return v.state === 'claims' && !v.code_failed.length; })(), '', 'claims');
+chk('Verdict: a BLOCK reads Has a BLOCK', verdictFor({ block: 1 }).label === 'Has a BLOCK', verdictFor({ block: 1 }).label, 'Has a BLOCK');
+chk('Verdict: a BLOCK and a failed code item still read Has a BLOCK', verdictFor({ block: 1, failures: [K('Y2')] }).label === 'Has a BLOCK', '', 'Has a BLOCK');
+chk('Verdict: a failed code item with no BLOCK reads Needs another run', verdictFor({ failures: [K('Y2')] }).label === 'Needs another run', '', 'Needs another run');
+chk('Verdict: only claims to accept counts as ready for the human edit, with the claims shown apart', (() => { const v = verdictFor({ failures: [K('C9'), J('Y5')] }); return v.state === 'ready' && v.ready && v.claims_open === 1 && !v.code_failed.length; })(), JSON.stringify(verdictFor({ failures: [K('C9')] })), 'ready, 1 open');
 const CL = { status: 'needs acceptance', findings: [{ quote: 'a' }, { quote: 'b' }], accepted: [{ quote: 'a' }] };
-chk('Verdict: one of two claims accepted is still Claims to accept', verdictFor({ failures: [K('C9')], claims: CL }).state === 'claims', '', 'claims');
-chk('Verdict: every claim accepted is Ready to edit, though C9 failed on the mark sheet', verdictFor({ failures: [K('C9')], claims: { ...CL, accepted: [{ quote: 'a' }, { quote: 'b' }] } }).state === 'ready', '', 'ready');
-chk('Verdict: a claims review that failed to run is not clear', verdictFor({ claims: { status: 'failed', findings: [] } }).state === 'claims', '', 'claims');
-chk('Verdict: a BLOCK outranks accepted claims', verdictFor({ block: 2, claims: { findings: [] } }).state === 'run', '', 'run');
-chk('Verdict line: says what stops it, and says nothing about the judge items', verdictLine(verdictFor({ block: 1, failures: [K('P3'), J('Y5')] })) === 'NEEDS ANOTHER RUN: 1 BLOCK; 1 failed code item (P3)', verdictLine(verdictFor({ block: 1, failures: [K('P3'), J('Y5')] })), 'the line');
-chk('Verdict line: ready', verdictLine(verdictFor({ failures: [J('Y5')] })) === 'READY TO EDIT', verdictLine(verdictFor({ failures: [J('Y5')] })), 'READY TO EDIT');
+chk('Verdict: one of two claims accepted leaves one to accept, and the page ready', (() => { const v = verdictFor({ failures: [K('C9')], claims: CL }); return v.state === 'ready' && v.claims_open === 1; })(), '', '1 open');
+chk('Verdict: every claim accepted leaves none', verdictFor({ failures: [K('C9')], claims: { ...CL, accepted: [{ quote: 'a' }, { quote: 'b' }] } }).claims_open === 0, '', 'none');
+chk('Verdict: a claims review that failed to run is still open', verdictFor({ claims: { status: 'failed', findings: [] } }).claims_open === 1, '', '1');
+chk('Verdict line: says what stops it, then the claims, and nothing about the judge items', verdictLine(verdictFor({ block: 1, failures: [K('P3'), J('Y5')], claims: CL })) === 'HAS A BLOCK: 1 BLOCK; 1 failed code item (P3); 1 claim to accept', verdictLine(verdictFor({ block: 1, failures: [K('P3'), J('Y5')], claims: CL })), 'the line');
+chk('Verdict line: ready, with claims apart', verdictLine(verdictFor({ failures: [J('Y5')] })) === 'READY TO EDIT' && verdictLine(verdictFor({ claims: { findings: [{ quote: 'a' }, { quote: 'b' }] } })) === 'READY TO EDIT; 2 claims to accept', '', 'ready');
+chk('Verdict line: a failed code item', verdictLine(verdictFor({ failures: [K('P5')] })) === 'NEEDS ANOTHER RUN: 1 failed code item (P5)', verdictLine(verdictFor({ failures: [K('P5')] })), 'the line');
 chk('Verdict of a failed review: none', verdictOfRecord({ QUALITY: { status: 'failed' } }) === null, '', 'null');
-chk('Verdict of an older record: worked out again from its failures', verdictOfRecord({ QUALITY: { verdict: { publishable: false }, failures: [J('S10')] }, VALIDATION: { block: 0 } }).state === 'ready', '', 'ready');
+chk('Verdict of an older record: worked out again from its failures', verdictOfRecord({ QUALITY: { verdict: { state: 'claims', label: 'Claims to accept' }, failures: [J('S10')] }, VALIDATION: { block: 0 } }).state === 'ready', '', 'ready');
 
 // ── The edit list ──
 const r0 = copy(rec);
@@ -93,7 +94,8 @@ const live = (over = {}, issues = []) => liveVerdict({ record: { ...r0, CLAIMS: 
 chk('Live verdict: no issues and a judge failure is Ready to edit, with the sentence on the list', (() => { const v = live(); return v.state === 'ready' && v.reviewed && v.edit_list.length === 1 && v.edit_list[0].sentence === whole; })(), JSON.stringify(live()), 'ready');
 chk('Live verdict: a code failure in today\'s issues is Needs another run', live({}, [rangeIssue]).state === 'run', JSON.stringify(live({}, [rangeIssue])), 'run');
 chk('Live verdict: a person fixing the field clears the code failure without another review', (() => { const stale = { failures: [{ ...K('Y2'), reasons: ['home_services_intro: 500 words: it must be 40 to 60.'] }] }; return live({ QUALITY: stale }, []).state === 'ready'; })(), '', 'ready');
-chk('Live verdict: unaccepted claims are Claims to accept; accepted, Ready to edit', live({ CLAIMS: CL }).state === 'claims' && live({ CLAIMS: { ...CL, accepted: [{ quote: 'a' }, { quote: 'b' }] } }).state === 'ready', '', 'claims, then ready');
+chk('Live verdict: unaccepted claims leave the page ready, with the count apart', live({ CLAIMS: CL }).state === 'ready' && live({ CLAIMS: CL }).claims_open === 1 && live({ CLAIMS: { ...CL, accepted: [{ quote: 'a' }, { quote: 'b' }] } }).claims_open === 0, '', 'ready');
+chk('Live verdict: a BLOCK today reads Has a BLOCK', live({}, [{ type: 'BLOCK', check: 'WHATEVER', field: 'home_services_intro', message: 'x' }]).label === 'Has a BLOCK', '', 'Has a BLOCK');
 chk('Live verdict: no rubric review still gives the verdict, with no judge items', (() => { const v = live({ QUALITY: undefined }); return v.state === 'ready' && !v.reviewed && v.edit_list.length === 0; })(), '', 'ready, unreviewed');
 
 // ── The mark sheet and the page view ──
@@ -103,12 +105,12 @@ const sheet = Q.formatReview(rv);
 chk('Mark sheet: the verdict comes first, the score stays for tracking', sheet.startsWith('Verdict: READY TO EDIT') && sheet.includes('Score (for tracking): 7.5'), sheet.slice(0, 160), 'Verdict, then Score');
 chk('Mark sheet: Edit before publishing lists the sentence and the reason', sheet.includes('Edit before publishing (3):') && sheet.includes(whole) && sheet.includes('Clumsy.'), sheet, 'the list');
 const pageJs = fs.readFileSync(path.join(root, 'public/app/screens/page.js'), 'utf8');
-chk('Page view: the three verdicts and the Edit before publishing card, with a button into the page editor', ['Ready to edit', 'Claims to accept', 'Needs another run', 'Edit before publishing', 'data-edit-field'].every(x => pageJs.includes(x)), '', 'present');
+chk('Page view: the three verdicts and the Edit before publishing card, with a button into the page editor', ['Ready to edit', 'Claims to accept', 'Has a BLOCK', 'Needs another run', 'Edit before publishing', 'data-edit-field'].every(x => pageJs.includes(x)), '', 'present');
 const server = fs.readFileSync(path.join(root, 'server.js'), 'utf8');
 chk('The fields route gives the live verdict', server.includes('liveVerdict({ record: found.record, issues })'), '', 'present');
 
 // ── 3. The targeted round ──
-chk('Target items: the nine Brandon named', TARGET_ITEMS.join(' ') === 'Y2 P3 P4 F1 Y11 K1 I1 S7 B3', TARGET_ITEMS.join(' '), 'the nine');
+chk('Target items: the eleven Brandon named', TARGET_ITEMS.join(' ') === 'Y2 P3 P4 P5 F1 Y11 Y12 K1 I1 S7 B3', TARGET_ITEMS.join(' '), 'the eleven');
 const LONG = 'We look after gardens for homeowners across the city and the villages around it, and every visit starts with a walk round so the work suits the garden rather than a standard list, and the lawns, the hedges, the beds and the paths between them are all part of what a visit covers through the year, whatever the season brings and whatever the garden needs most at the time.';
 const SHORT = 'We look after gardens across the city and the villages around it. Every visit starts with a walk round the garden, so the work suits what is there rather than a standard list. Lawns, hedges, beds and paths are all part of it.';
 const fieldOf = message => message.match(/^FIELD: (.+?)(?: \((?:\d+ to \d+|under \d+) words\))?$/m)[1];
@@ -138,7 +140,9 @@ const check = r => validateV20(r, V);
 
   // A flag behind no listed item is not a target (P5, sentence openers)
   const p5 = { type: 'FLAG', check: 'N18', field: 'home_services_intro', message: 'Back to back sentences start with "the".', ref: {} };
-  chk('Target issues: a code item Brandon did not list is not a target on its own', Q.targetIssues(r1, [p5]).length === 0, '', 'none');
+  chk('Target issues: P5 is a target since copy quality 7', Q.targetIssues(r1, [p5]).length === 1, '', 'one');
+  const other = { type: 'FLAG', check: 'CARD-PATTERN', field: 'home_services_intro', message: 'x', ref: {} };
+  chk('Target issues: a code item Brandon did not list is not a target on its own', Q.targetIssues(r1, [other]).length === 0, '', 'none');
   chk('Target issues: every BLOCK is', Q.targetIssues(r1, [{ ...blockIssue, check: 'WHATEVER' }]).length === 1, '', 'one');
 
   // ── The claims pass instruction ──

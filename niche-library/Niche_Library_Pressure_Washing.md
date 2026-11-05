@@ -364,7 +364,7 @@ Draft, 4 Nov 2026. Used by the location page job (CORE (18)): block 4 (the probl
 
 ## Alternate Why title that promises a practice (why_title_practice)
 
-"The Right Method for Every Surface" stands only with a practice no tick confirms, so never by default; otherwise the point reads "Local Experience Behind Every Job".
+"The Right Method for Every Surface" stands only with a practice no tick confirms, so never by default; otherwise the point reads "Our Track Record".
 
 ## Service tags
 

@@ -1,9 +1,10 @@
 'use strict';
 
-// ── The verdict and the edit list (Brandon, copy quality 5, 4 Nov 2026) ───────
-// Ready to edit: 0 BLOCK, the claims review clear or every claim accepted, no failed code item.
-// Claims to accept: the same, with claims a person has still to accept.
-// Needs another run: a BLOCK or a failed code item after the passes.
+// ── The verdict and the edit list (Brandon, copy quality 5 and 7) ─────────────
+// Has a BLOCK: a BLOCK is what stops the page.
+// Needs another run: no BLOCK, but a failed code item after the passes.
+// Ready to edit: neither. A page with only claims to accept and an edit list is ready for the human edit.
+// Claims to accept are shown beside the verdict and never change it (claims_open).
 // Judge failures don't gate. They go on the edit list ("Edit before publishing"), each with the
 // exact sentence and the reviewer's reason, and so does a field the targeted round could not clear.
 // The score stays for tracking only.
@@ -11,34 +12,35 @@ const { modelFields, helpers } = require('./validate-v20');
 const { sentences } = helpers;
 
 // The code items the targeted round rewrites, on top of every BLOCK
-const TARGET_ITEMS = ['Y2', 'P3', 'P4', 'F1', 'Y11', 'K1', 'I1', 'S7', 'B3'];
-const LABEL = { ready: 'Ready to edit', claims: 'Claims to accept', run: 'Needs another run' };
+const TARGET_ITEMS = ['Y2', 'P3', 'P4', 'P5', 'F1', 'Y11', 'Y12', 'K1', 'I1', 'S7', 'B3'];
+const LABEL = { ready: 'Ready to edit', block: 'Has a BLOCK', run: 'Needs another run' };
 
-function claimsClear(claims, failures) {
+// How many claims a person still has to accept: a count, or 1 when the review failed or only the mark sheet is known
+function openClaims(claims, failures) {
   if (claims) {
-    if (claims.status === 'failed') return false;
+    if (claims.status === 'failed') return 1;
     const accepted = new Set((claims.accepted || []).map(a => a.quote));
-    return (claims.findings || []).every(f => accepted.has(f.quote));
+    return (claims.findings || []).filter(f => !accepted.has(f.quote)).length;
   }
-  return !failures.some(i => i.id === 'C9');
+  return failures.some(i => i.id === 'C9') ? 1 : 0;
 }
 
 function verdictFor({ block = 0, failures = [], claims = null } = {}) {
   const failed = (failures || []).filter(i => i && i.pass !== true);
-  const clear = claimsClear(claims, failed);
+  const open = openClaims(claims, failed);
   const code = failed.filter(i => i.by === 'code' && i.id !== 'C9');
   const judge = failed.filter(i => i.by !== 'code');
-  const state = block > 0 || code.length ? 'run' : !clear ? 'claims' : 'ready';
+  const state = block > 0 ? 'block' : code.length ? 'run' : 'ready';
   const reasons = [];
   if (block > 0) reasons.push(`${block} BLOCK`);
   if (code.length) reasons.push(`${code.length} failed code item${code.length === 1 ? '' : 's'} (${code.map(i => i.id).join(', ')})`);
-  if (!clear) reasons.push('claims not clear or accepted (C9)');
-  return { state, label: LABEL[state], ready: state === 'ready', block, claims_clear: clear, code_failed: code.map(i => i.id), judge_failed: judge.map(i => i.id), reasons };
+  return { state, label: LABEL[state], ready: state === 'ready', block, claims_open: open, claims_clear: open === 0, code_failed: code.map(i => i.id), judge_failed: judge.map(i => i.id), reasons };
 }
 
 function verdictLine(v) {
   if (!v) return '';
-  return v.state === 'ready' ? 'READY TO EDIT' : `${v.label.toUpperCase()}: ${v.reasons.join('; ')}`;
+  const claims = v.claims_open ? `; ${v.claims_open} claim${v.claims_open === 1 ? '' : 's'} to accept` : '';
+  return v.state === 'ready' ? `READY TO EDIT${claims}` : `${v.label.toUpperCase()}: ${v.reasons.join('; ')}${claims}`;
 }
 
 // ── Finding the sentence ──────────────────────────────────────────────────────
@@ -133,11 +135,10 @@ function liveVerdict({ record, issues }) {
   return { ...v, reviewed: !!Q, edit_list: editList({ record, issues: list, judge, codeFailed: fromIssues }) };
 }
 
-// The reader views: the stored verdict, else one worked out from a record reviewed before this existed
+// The reader views: worked out from the record, so an older record reads in today's wording
 function verdictOfRecord(record) {
   const Q = record && record.QUALITY;
   if (!Q || Q.status === 'failed') return null;
-  if (Q.verdict && Q.verdict.state) return Q.verdict;
   return verdictFor({ block: (record.VALIDATION && record.VALIDATION.block) || 0, failures: Q.failures || [], claims: record.CLAIMS || null });
 }
 

@@ -115,10 +115,14 @@ function isLinkable(page) { const ls = getLinkStatus(page); return ls === 'Live'
 // ── Build Why-choose-us points (D10) ─────────────────────────────────────────
 // An alternate Why title that promises a practice (why_title_practice in the entry: the title and the practice
 // keys that confirm it; an empty list means no tick confirms it) or states one the practice list knows
-// (copy quality 6, 5 Nov 2026) stands only when confirmed; otherwise the plain track record title
-const PLAIN_WHY_TITLE = 'Local Experience Behind Every Job';
+// (copy quality 6, 5 Nov 2026) stands only when confirmed; otherwise the plain title
+const PLAIN_WHY_TITLE = 'Our Track Record';
+// A title that claims experience (copy quality 7): "every" says more than any client value can, and the rest need
+// a years or jobs figure on file
+const EXPERIENCE_TITLE_RE = /\b(?:experience|experienced|worked on|know well|years of|groomed before)\b/i;
 function whyAltTitle(title, niche, cv) {
   const confirmed = new Set(cv.confirmed_practices || []);
+  if (EXPERIENCE_TITLE_RE.test(title) && (/\bevery\b/i.test(title) || !(cv.year_founded || cv.years_trading || cv.jobs_completed))) return PLAIN_WHY_TITLE;
   const needs = (niche.why_title_practice || {})[title];
   if (needs && !needs.some(k => confirmed.has(k))) return PLAIN_WHY_TITLE;
   const { practiceClaims } = require('./practices');

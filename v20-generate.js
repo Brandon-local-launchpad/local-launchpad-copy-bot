@@ -47,6 +47,8 @@ function cvValue(key, cv, yearsTrading) {
       .map(t => typeof t === 'string' ? t : t.theme).join('; ');
   }
   if (key === 'typical_jobs') {
+    // The Record tab keeps job rows; a value typed as a sentence is on file too, and was being dropped (copy quality 7)
+    if (typeof v === 'string') return v.trim();
     return (Array.isArray(v) ? v : [])
       .map(j => [j.job, (j.price || j.from_price) && `from ${j.price || j.from_price}`, j.duration && `typically ${j.duration}`].filter(Boolean).join(', '))
       .filter(Boolean).join('; ');

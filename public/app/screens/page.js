@@ -64,15 +64,15 @@ export async function render(root, params, ctx) {
   const fieldClaims = field => ((S.record.CLAIMS && S.record.CLAIMS.findings) || []).filter(x => x.field === field);
   const issueLine = x => `<span class="${x.type === 'BLOCK' ? 'pill block' : 'pill wait'}">${h(x.type)} ${h(x.check)}</span> ${h(x.message)}`;
 
-  // The verdict (verdict.js, worked out by the server for the page as it stands). Accepting a claim here
-  // moves it without a reload. Judge failures don't gate: they go on the edit list.
+  // The verdict (verdict.js, worked out by the server for the page as it stands). Claims to accept sit beside
+  // it and never change it; accepting one here updates the count without a reload. Judge failures don't gate.
   function verdictHtml(C) {
     const v = S.verdict; if (!v) return '';
-    const open = !C || C.status === 'failed' || (C.findings || []).some(f => !accepted().has(f.quote));
-    const state = v.block > 0 || (v.code_failed || []).length ? 'run' : open ? 'claims' : 'ready';
-    const kinds = { ready: ['ok', 'Ready to edit'], claims: ['wait', 'Claims to accept'], run: ['block', 'Needs another run'] }[state];
-    const why = (v.reasons || []).filter(x => state === 'run' ? !/claims/i.test(x) || open : false);
-    return `<div style="margin-bottom:10px" id="verdict">${pill(kinds[0], kinds[1])}${why.length ? `<ul class="list" style="margin-top:6px">${why.map(x => `<li>${h(x)}</li>`).join('')}</ul>` : ''}</div>`;
+    const open = !C || C.status === 'failed' ? 1 : (C.findings || []).filter(f => !accepted().has(f.quote)).length;
+    const state = v.block > 0 ? 'block' : (v.code_failed || []).length ? 'run' : 'ready';
+    const kinds = { ready: ['ok', 'Ready to edit'], block: ['block', 'Has a BLOCK'], run: ['wait', 'Needs another run'] }[state];
+    const claims = open ? ' ' + pill('wait', !C ? 'Claims review not run' : C.status === 'failed' ? 'Claims review failed' : `Claims to accept: ${open}`) : '';
+    return `<div style="margin-bottom:10px" id="verdict">${pill(kinds[0], kinds[1])}${claims}${state !== 'ready' && (v.reasons || []).length ? `<ul class="list" style="margin-top:6px">${v.reasons.map(x => `<li>${h(x)}</li>`).join('')}</ul>` : ''}</div>`;
   }
   function editListHtml() {
     const list = (S.verdict && S.verdict.edit_list) || [];

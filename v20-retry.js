@@ -263,7 +263,7 @@ async function runFlagPass({ record, V, callRetry, maxRounds = 2, concurrency = 
 
 // ── Targeted round (Brandon, copy quality 5, 4 Nov 2026) ─────────────────────
 // After the flag pass: the fields still carrying a BLOCK, or an issue behind code item Y2, P3, P4, F1,
-// Y11, K1, I1, S7 or B3, are rewritten once more with every failure message on the field. A rewrite is
+// P5, Y11, Y12, K1, I1, S7 or B3, are rewritten once more with every failure message on the field. A rewrite is
 // kept only when the page has fewer of those issues and gains no BLOCK. No more retries after this:
 // what is left goes on the page's edit list.
 async function runTargetedPass({ record, V, callRetry, concurrency = CONCURRENCY, validate = null }) {
