@@ -122,7 +122,7 @@ All fields below exist in ACF. Edens Edge has no reviews, verified logos or owne
 |---|---|---|
 | `rank_math_title` (`_yoast_wpseo_title` on Yoast) | Code: H1, then a modifier from `out_of_hours_available`, `year_founded`, `guarantee_years`, `rating`, then `company_name`; 60 characters at most | Landscaper Southampton \| Edens Edge Landscaping |
 | `rank_math_description` (`_yoast_wpseo_metadesc` on Yoast) | Code: keyword, `company_name` and the first proof that is true; 155 characters at most | Edens Edge Landscaping is a landscaper in Southampton offering fixed prices with no hidden costs. Get your fr... |
-| `rank_math_focus_keyword` (`_yoast_wpseo_focuskw` on Yoast), not pushed yet | Code: the page's target keyword from the page map. On the record since 5 Nov 2026, not pushed yet | Landscaper Southampton |
+| `rank_math_focus_keyword` (`_yoast_wpseo_focuskw` on Yoast), not pushed yet | Code: the page's target keyword from the page map, blank on a hub page whose keyword another page targets. On the record since 5 Nov 2026, not pushed yet | Landscaper Southampton |
 
 ### Homepage: when a field is hidden
 
@@ -213,7 +213,7 @@ The push writes these to the site's Settings, Client Values. Use them for tokens
 |---|---|---|---|---|
 | `seo_title` | SEO meta | Page level | Code: H1, then a modifier from `out_of_hours_available`, `year_founded`, `guarantee_years`, `rating`, then `company_name`; 60 characters at most | Driveways Southampton \| Edens Edge Landscaping |
 | `meta_description` | SEO meta | Page level | Code: keyword, `company_name` and the first proof that is true; 155 characters at most | Edens Edge Landscaping offers driveways in Southampton offering fixed prices with no hidden costs. Get your f... |
-| `focus_keyword` | SEO meta (proposed) | Page level | Code: the page's target keyword from the page map. On the record since 5 Nov 2026, not pushed yet | Driveways Southampton |
+| `focus_keyword` | SEO meta (proposed) | Page level | Code: the page's target keyword from the page map, blank on a hub page whose keyword another page targets. On the record since 5 Nov 2026, not pushed yet | Driveways Southampton |
 | `page_slug` | none: identifies the page | Page level | Code: page map slug | /paving-contractor |
 | `breadcrumb` | list | Page level | Code: page map parents | Home > Paving Contractor |
 | `cat_hero_h1` | text | Hero | Code: the page map H1 | Driveways Southampton |
@@ -275,7 +275,7 @@ What differs from the category page: the copy covers that town only, `cat_areas_
 |---|---|---|---|---|
 | `seo_title` | SEO meta | Page level | Code: H1, then a modifier from `out_of_hours_available`, `year_founded`, `guarantee_years`, `rating`, then `company_name`; 60 characters at most | Gardener Romsey \| Edens Edge Landscaping |
 | `meta_description` | SEO meta | Page level | Code: keyword, `company_name` and the first proof that is true; 155 characters at most | Edens Edge Landscaping is a gardener in Romsey offering fixed prices with no hidden costs. Get your free quot... |
-| `focus_keyword` | SEO meta (proposed) | Page level | Code: the page's target keyword from the page map. On the record since 5 Nov 2026, not pushed yet | Gardener Romsey |
+| `focus_keyword` | SEO meta (proposed) | Page level | Code: the page's target keyword from the page map, blank on a hub page whose keyword another page targets. On the record since 5 Nov 2026, not pushed yet | Gardener Romsey |
 | `page_slug` | none: identifies the page | Page level | Code: page map slug | /locations/romsey/gardener |
 | `breadcrumb` | list | Page level | Code: page map parents | Home > Romsey > Gardener |
 | `cat_hero_h1` | text | Hero | Code: the page map H1 | Gardener Romsey |
@@ -335,7 +335,7 @@ What differs from the category page: the copy covers that town only, `cat_areas_
 |---|---|---|---|---|
 | `seo_title` | SEO meta | Page level | Code: H1, then a modifier from `out_of_hours_available`, `year_founded`, `guarantee_years`, `rating`, then `company_name`; 60 characters at most | Patios Southampton \| Edens Edge Landscaping |
 | `meta_description` | SEO meta | Page level | Code: keyword, `company_name` and the first proof that is true; 155 characters at most | Edens Edge Landscaping offers patios in Southampton, fixed prices with no hidden costs. Get your free quote t... |
-| `focus_keyword` | SEO meta (proposed) | Page level | Code: the page's target keyword from the page map. On the record since 5 Nov 2026, not pushed yet | Patios Southampton |
+| `focus_keyword` | SEO meta (proposed) | Page level | Code: the page's target keyword from the page map, blank on a hub page whose keyword another page targets. On the record since 5 Nov 2026, not pushed yet | Patios Southampton |
 | `page_slug` | none: identifies the page | Page level | Code: page map slug | /services/patios |
 | `breadcrumb` | list | Page level | Code: page map parents | Home > Landscape Designer > Patios |
 | `svc_hero_h1` | text | Hero | Code: the page map H1 | Patios Southampton |
@@ -400,7 +400,7 @@ What differs from the service page: the copy covers that town and service only, 
 |---|---|---|---|---|
 | `seo_title` | SEO meta | Page level | Code: H1, then a modifier from `out_of_hours_available`, `year_founded`, `guarantee_years`, `rating`, then `company_name`; 60 characters at most | Tree Stump Removal Romsey \| Edens Edge Landscaping |
 | `meta_description` | SEO meta | Page level | Code: keyword, `company_name` and the first proof that is true; 155 characters at most | Edens Edge Landscaping offers tree stump removal in Romsey, fixed prices with no hidden costs. Get your free... |
-| `focus_keyword` | SEO meta (proposed) | Page level | Code: the page's target keyword from the page map. On the record since 5 Nov 2026, not pushed yet | Tree Stump Removal Romsey |
+| `focus_keyword` | SEO meta (proposed) | Page level | Code: the page's target keyword from the page map, blank on a hub page whose keyword another page targets. On the record since 5 Nov 2026, not pushed yet | Tree Stump Removal Romsey |
 | `page_slug` | none: identifies the page | Page level | Code: page map slug | /locations/romsey/tree-stump-removal |
 | `breadcrumb` | list | Page level | Code: page map parents | Home > Romsey > Tree stump removal |
 | `svc_hero_h1` | text | Hero | Code: the page map H1 | Tree Stump Removal Romsey |
@@ -463,7 +463,7 @@ What differs from the service page: the copy covers that town and service only, 
 |---|---|---|---|---|
 | `seo_title` | SEO meta | Page level | Code: H1, then a modifier from `out_of_hours_available`, `year_founded`, `guarantee_years`, `rating`, then `company_name`; 60 characters at most | Gardener Services in and around Romsey \| Edens Edge Landscaping |
 | `meta_description` | SEO meta | Page level | Code: keyword, `company_name` and the first proof that is true; 155 characters at most | Edens Edge Landscaping is a gardener in Romsey offering fixed prices with no hidden costs. Get your free quot... |
-| `focus_keyword` | SEO meta (proposed) | Page level | Code: the page's target keyword from the page map. On the record since 5 Nov 2026, not pushed yet | Gardener Romsey |
+| `focus_keyword` | SEO meta (proposed) | Page level | Code: the page's target keyword from the page map, blank on a hub page whose keyword another page targets. On the record since 5 Nov 2026, not pushed yet | (empty on Edens Edge) |
 | `page_slug` | none: identifies the page | Page level | Code: page map slug | /locations/romsey |
 | `breadcrumb` | list | Page level | Code: page map parents | Home > Romsey |
 | `loc_hero_h1` | text | Hero | Code: the page map H1 | Gardener Services in and around Romsey |
@@ -1359,7 +1359,7 @@ Page `/locations/romsey`, H1 "Gardener Services in and around Romsey".
   "meta": {
     "rank_math_title": "Gardener Services in and around Romsey | Edens Edge Landscaping",
     "rank_math_description": "Edens Edge Landscaping is a gardener in Romsey offering fixed prices with no hidden costs. Get your free quote today.",
-    "rank_math_focus_keyword": "Gardener Romsey"
+    "rank_math_focus_keyword": ""
   }
 }
 ```
@@ -1370,7 +1370,11 @@ Page `/locations/romsey`, H1 "Gardener Services in and around Romsey".
 
 The focus keyword is the page's target keyword from the page map, not its H1. Every homepage, category, service and location record now carries it as `focus_keyword`, including their town versions.
 
-**Where it comes from:** the page map's `h1_keyword`, which the H1 research sets. On most pages that matches the H1. A hub page is the exception: its H1 is a pattern such as "Gardener Services in and around Romsey", so its target keyword is read out of that pattern as "Gardener Romsey". A typed H1 override on the homepage is used as the keyword. A record written before 5 Nov 2026 has none, and Show field names works it out from the H1.
+**Where it comes from:** the page map's `h1_keyword`, which the H1 research sets. On most pages that matches the H1. A typed H1 override on the homepage is used as the keyword.
+
+**No two pages share a focus keyword.** A hub page has a pattern for its H1, such as "Gardener Services in and around Romsey". If the keyword behind the pattern, "Gardener Romsey", is already another page's target, the hub page's focus keyword is blank. If no other page targets it, the hub page keeps it. A fixture fails if any page map in the repo gives two pages the same one.
+
+**What the template or site should do with a blank:** nothing. Copybot would send an empty value, and Rank Math then has no focus keyword for that page.
 
 | Page type | Example from Edens Edge |
 |---|---|
@@ -1379,10 +1383,8 @@ The focus keyword is the page's target keyword from the page map, not its H1. Ev
 | Location category | Gardener Romsey |
 | Service | Patios Southampton |
 | Town service | Tree Stump Removal Romsey |
-| Location | Gardener Romsey (its H1 is "Gardener Services in and around Romsey") |
+| Location | Blank: its H1 is "Gardener Services in and around Romsey", and "Gardener Romsey" is the target of its Gardener location category page |
 | Blog post | Not added: that record is on the `blog` branch, which is parked |
-
-**A hub page shares its keyword.** Romsey's location page and its Gardener location category page both have "Gardener Romsey" as their focus keyword, because the research gave that keyword to the category page as its H1. Rank Math may warn about the repeat.
 
 **It is not sent to WordPress yet.** The plugin only lets Copybot write the meta keys it registers, and the focus keyword isn't one of them. Sending it now would be dropped by the site, and the push's read back would report a mismatch. So it waits with the plugin change:
 
