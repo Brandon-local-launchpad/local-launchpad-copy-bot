@@ -32,6 +32,8 @@ function buildClientValuesPayload(record, extra = {}) {
     rating_line: record.home_hero_rating_line || '',
     ...extra,
   });
+  // A record with no map embed says nothing about the site's: a push must not clear it
+  if (!out.map_embed) delete out.map_embed;
   return out;
 }
 

@@ -29,7 +29,7 @@ export async function render(root, params, ctx) {
     S.record = r.record; S.history = r.history || []; S.recordId = S.history[0] ? S.history[0].id : null; S.dry = null;
     if (S.record) {
       const [md, f] = await Promise.all([fetch(`${base}/download?format=md&id=${encodeURIComponent(S.recordId)}`).then(x => x.ok ? x.text() : ''), api(`${base}/fields?id=${encodeURIComponent(S.recordId)}`).catch(() => ({ fields: [], issues: null }))]);
-      S.md = md; S.fields = f.fields || []; S.verdict = f.verdict || null; S.freshRun = !!f.issues; S.issues = f.issues || (S.record.VALIDATION && S.record.VALIDATION.issues) || []; S.issuesError = f.issuesError || null;
+      S.md = md; S.fields = f.fields || []; S.verdict = f.verdict || null; S.fieldNames = f.fieldNames || { onSite: false, fields: [] }; S.freshRun = !!f.issues; S.issues = f.issues || (S.record.VALIDATION && S.record.VALIDATION.issues) || []; S.issuesError = f.issuesError || null;
     }
     draw();
   }
@@ -43,6 +43,30 @@ export async function render(root, params, ctx) {
     if (S.pushedAt) return ['ok', 'pushed']; if (m.approved_at) return ['ok', 'approved'];
     if (claims > 0) return ['wait', 'waiting on a person']; return ['ok', 'written'];
   };
+
+  // "Show field names": each block in the reader labelled with its field, and the fields the reader doesn't print listed after it
+  function labelFieldNames(blocks) {
+    // A heading or title must match its block exactly; only prose, eight words or more, may match on its opening.
+    // A URL isn't printed as text, so it goes in the list after the page.
+    const raw = blocks.map(b => norm(b.textContent));
+    const texts = blocks.map(b => norm(b.textContent).replace(/^\d+ /, ''));
+    S.unlabelled = [];
+    for (const f of (S.fieldNames && S.fieldNames.fields) || []) {
+      const want = norm(f.text);
+      const words = want.split(' ');
+      const probe = words.slice(0, 8).join(' ');
+      let i = !want || /^(?:\/|https?:)/.test(f.text) ? -1 : Math.max(texts.indexOf(want), raw.indexOf(want));
+      if (i < 0 && words.length >= 8 && !/^(?:\/|https?:)/.test(f.text)) i = texts.findIndex(t => t.includes(probe));
+      if (i < 0) { S.unlabelled.push(f); continue; }
+      blocks[i].insertAdjacentHTML('afterbegin', `<code class="acf-name ${h(f.source)}" title="${f.source === 'model' ? 'Written by the model' : 'Set by code'}">${h(f.name)}</code> `);
+    }
+  }
+  function fieldNamesHtml() {
+    if (!S.showNames) return '';
+    const fn = S.fieldNames || {};
+    const left = S.unlabelled || [];
+    return `<div class="acf-note small">${fn.onSite ? 'These are the ACF field names on the site.' : 'This page type has no ACF fields on the site yet: these are the names a field map would use.'} <code class="acf-name model">model</code> written by the model, <code class="acf-name code">code</code> set by code.</div>${left.length ? `<div class="sec-title">Not printed in the page above</div><ul class="list acf-left">${left.map(f => `<li><div><code class="acf-name ${h(f.source)}">${h(f.name)}</code> ${h(f.text)}</div></li>`).join('')}</ul>` : ''}`;
+  }
 
   // Left: the reader view with the fields marked up
   const norm = s => String(s || '').replace(/\[CV: [a-z0-9_]+\]/g, ' ').replace(/\[([^\]]+)\]\([^)]+\)/g, '$1').replace(/[^a-z0-9]+/gi, ' ').trim().toLowerCase();
@@ -58,6 +82,7 @@ export async function render(root, params, ctx) {
       for (const b of blocks) { if (used.has(b)) continue; const t = norm(b.textContent); if (t === want || (probe.length > 12 && t.includes(probe)) || (t.length > 20 && want.includes(t))) { best = b; break; } }
       if (best) { used.add(best); best.classList.add('ed'); best.dataset.field = f.field; best.title = 'Click to edit'; f.matched = true; }
     }
+    if (S.showNames) labelFieldNames(blocks);
     return wrap.innerHTML;
   }
   const fieldIssues = field => S.issues.filter(x => x.field === field);
@@ -105,7 +130,7 @@ export async function render(root, params, ctx) {
       <div class="two-col">
         <section class="card">
           <div class="muted small" style="margin-bottom:12px">Click a highlighted passage to edit it. Headings, FAQ questions, card names, buttons and links are set by code: change the client values and regenerate for those. Saving makes a new version and re-checks the whole page.</div>
-          <div class="copy" id="reader">${readerHtml()}</div>
+          <div class="btn-row" style="margin-bottom:8px"><button class="btn btn-ghost btn-sm" data-act="field-names">${S.showNames ? 'Hide field names' : 'Show field names'}</button></div><div class="copy" id="reader">${readerHtml()}</div>${fieldNamesHtml()}
           ${S.fields.some(f => !f.matched) ? `<hr class="sep"><div class="sec-title">Other editable fields</div>${S.fields.filter(f => !f.matched).map(f => `<div class="field"><div class="lbl">${h(f.field)}</div><div class="copy"><p class="ed" data-field="${attr(f.field)}" title="Click to edit">${h(f.text)}</p></div></div>`).join('')}` : ''}
         </section>
         <aside class="side stack">
@@ -222,6 +247,7 @@ export async function render(root, params, ctx) {
       if (act === 'push') return push(b);
       if (act === 'claims') return busy(b, 'Reviewing…', async () => { await api(wp('claims-review'), { method: 'POST', body: { recordId: S.recordId } }); await loadRecord(); });
       if (act === 'approve') { const on = !(S.record.meta || {}).approved_at; const r = await api(`${base}/approve`, { method: 'POST', body: { recordId: S.recordId, approved: on, by: ctx.userName() } }); S.record.meta = { ...(S.record.meta || {}), approved_at: r.approved_at, approved_by: r.approved_by }; toast(on ? 'Approved' : 'Approval removed'); return draw(); }
+      if (act === 'field-names') { S.showNames = !S.showNames; draw(); return; }
       if (act === 'regenerate') {
         if (!(await confirm({ title: `Write ${title} again?`, text: 'The current version is kept in the history. The run takes a minute or two per page.', ok: 'Regenerate' }))) return;
         if (type === 'homepage') { api(`/api/clients/${clientId}/v20/homepage/generate`, { method: 'POST', body: {} }).then(() => { toast('Homepage written'); loadRecord(); }).catch(err => toast(err.message, 'bad')); toast('Writing the homepage'); }

@@ -4290,7 +4290,7 @@ for (const base of V20_PAGE_BASES) {
     catch (e) { issuesError = e.message; }
     let verdict = null;
     try { verdict = require('./verdict').liveVerdict({ record: found.record, issues }); } catch (e) { console.warn('[v20] verdict:', e.message); }
-    return { recordId: found.id, fields: v20Edit.editableFields(found.record), issues, issuesError, verdict };
+    return { recordId: found.id, fields: v20Edit.editableFields(found.record), issues, issuesError, verdict, fieldNames: require('./wp/field-names').fieldNames(found.record) };
   }));
 
   // Save an edit as a new version (validated and claims-reviewed; see v20-edit.js)
