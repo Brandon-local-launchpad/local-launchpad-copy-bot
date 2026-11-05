@@ -105,6 +105,8 @@ async function initDb() {
   // Citations (3 Nov): the directory database, the places lookup, the client rows, scans, gaps, costs (citations/store.js)
   await require('./citations/store').ensureCitationTables(pool);
   await require('./citations/inbox/poller').ensureInboxTables(pool);
+  // Site audit (5 Nov): the old site scan, its URLs, links and keywords (site-audit/store.js)
+  await require('./site-audit/store').ensureSiteAuditTables(pool);
   console.log('DB schema ready');
 }
 

@@ -31,7 +31,7 @@ export function tabDots(row, summary) {
     gbp: row.gbp_done ? 'ok' : row.stage === 'GBP' ? 'run' : 'none',
     citations: 'none',
     rankings: row.has_scans ? 'ok' : 'none',
-    images: 'none', 'site-audit': 'none',
+    images: 'none', 'site-audit': row.site_audit || 'none',
   };
 }
 

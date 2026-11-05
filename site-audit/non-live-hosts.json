@@ -1,0 +1,4 @@
+{
+  "hosts": ["myftpupload.com", "secureserver.net", "wpengine.com", "wpenginepowered.com", "kinsta.cloud", "hostingersite.com", "pantheonsite.io", "flywheelsites.com", "cloudwaysapps.com", "netlify.app", "vercel.app", "pages.dev", "github.io", "herokuapp.com", "onrender.com", "up.railway.app", "webflow.io", "wixsite.com", "wpcomstaging.com", "ngrok.io", "ngrok-free.app", "localhost"],
+  "subdomain_prefixes": ["staging", "stage", "dev", "test", "demo", "temp", "old", "beta"]
+}

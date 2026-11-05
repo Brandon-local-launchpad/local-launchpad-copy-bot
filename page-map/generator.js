@@ -136,11 +136,14 @@ function buildPageMap(input, opts = {}) {
     else { s.outcome = 'mentioned'; s.reason = `its slug collides with another page's (see collisions), so it is mentioned instead`; }
   }
 
-  const catPath = c => `/${c.slug}`;
-  const svcPath = s => `/services/${s.slug}`;
-  const locPath = t => `/locations/${t.slug}`;
-  const locCatPath = (t, c) => `/locations/${t.slug}/${c.slug}`;
-  const townSvcPath = (t, s) => `/locations/${t.slug}/${s.slug}`;
+  // A kept old URL beats the planned address (site audit, 5 Nov): opts.urlOverrides, Map of
+  // identityOf(row) → path, so every link to the page follows it
+  const moved = opts.urlOverrides || new Map();
+  const catPath = c => moved.get(`category:${c.key}`) || `/${c.slug}`;
+  const svcPath = s => moved.get(`service:${s.id}`) || `/services/${s.slug}`;
+  const locPath = t => moved.get(`location:${t.slug}`) || `/locations/${t.slug}`;
+  const locCatPath = (t, c) => moved.get(`location_category:${t.slug}:${c.key}`) || `/locations/${t.slug}/${c.slug}`;
+  const townSvcPath = (t, s) => moved.get(`town_service:${t.slug}:${s.id}`) || `/locations/${t.slug}/${s.slug}`;
   const rows = [];
   const add = (type, title, slug, info) => rows.push({ page_key: pageKey(type, slug), type, title, slug, h1: '', h1_source: 'needed', meta_title: '', meta_description: '', status: 'Not Started', applies: true, links_to: [], links_from: [], info, sort_order: rows.length });
   add('homepage', `${companyName} Homepage`.trim(), '/', { phase: 1 });
@@ -257,4 +260,17 @@ function toCsv(rows, { includeRetired = false } = {}) {
   return lines.join('\r\n') + '\r\n';
 }
 
-module.exports = { TYPES, TYPE_LABEL, STATUSES, CSV_COLUMNS, WP_STATUS, slugify, pageKey, cleanTowns, contextFor, keywordsFor, buildPageMap, diffPlan, toCsv };
+// What a page is, whatever its address: the key a kept URL is stored against. The slug and page key
+// change when a page moves; this doesn't. Null for the homepage, which never moves.
+function identityOf(row) {
+  const i = row.info || {};
+  const town = i.town ? slugify(i.town) : '';
+  if (row.type === 'category') return `category:${i.category_key}`;
+  if (row.type === 'service') return `service:${i.service_id}`;
+  if (row.type === 'location') return `location:${town}`;
+  if (row.type === 'location_category') return `location_category:${town}:${i.category_key}`;
+  if (row.type === 'town_service') return `town_service:${town}:${i.service_id}`;
+  return null;
+}
+
+module.exports = { TYPES, TYPE_LABEL, STATUSES, CSV_COLUMNS, WP_STATUS, slugify, pageKey, cleanTowns, contextFor, keywordsFor, buildPageMap, diffPlan, toCsv, identityOf };

@@ -3951,7 +3951,23 @@ const v20CallModel = async ({ system, message, maxTokens }) => {
 // Fillout intake: inbox, client record, audio, archive (fillout/routes.js)
 if (filloutService) filloutRoutes.mountApi(app, filloutService);
 // Page map and the hand set-up editor (page-map/routes.js)
-if (filloutService) require('./page-map/routes').mountPageMapApi(app, { pool, filloutService });
+const pageMapApi = filloutService ? require('./page-map/routes').mountPageMapApi(app, { pool, filloutService }) : null;
+// Site audit (5 Nov): Scan old site for existing-site clients (site-audit/service.js, routes.js). Read only on the old site.
+const siteAudit = (pool && citationStore) ? require('./site-audit/service').createSiteAudit({
+  pool,
+  pageMap: pageMapApi && pageMapApi.store,
+  // The WordPress connection, with its password: the redirect push's site (staging only, site-audit/redirects.js)
+  getSite: async id => {
+    const row = await require('./wp/db-store').getConnectionRow(pool, id);
+    if (!row || !row.app_password_enc) return null;
+    return { url: row.url, user: row.wp_user, appPassword: require('./wp/secrets').decrypt(row.app_password_enc, process.env.COPYBOT_SECRET_KEY), staging: !!row.staging, seo: row.seo };
+  },
+  createLog: id => require('./wp/db-store').createDbStore(pool, id),
+  loadValues: async id => { const r = await pool.query(`SELECT content FROM client_assets WHERE client_id = $1 AND asset_type = 'client_values' ORDER BY uploaded_at DESC LIMIT 1`, [id]); return r.rows.length ? JSON.parse(r.rows[0].content) : {}; },
+  getConnection: async id => { const r = await pool.query(`SELECT url, staging FROM wp_connections WHERE client_id = $1`, [id]); return r.rows[0] || null; },
+  logCost: entry => citationStore.logCost(entry),
+}) : null;
+if (siteAudit) require('./site-audit/routes').mountSiteAuditApi(app, { pool, siteAudit });
 // Citations, the client side (citations/client.js, client-routes.js, 3 Nov): the Citations tab, the scan, the gaps
 if (filloutService && citationStore) {
   const CL = require('./citations/client');
@@ -4496,6 +4512,8 @@ initDb().then(async () => {
     const n = await filloutService.recoverPending().catch(err => { console.error('[fillout] recovery failed:', err); return 0; });
     if (n) console.log(`[fillout] processed ${n} submission(s) left waiting by a restart`);
   }
+  // Site scans a restart cut off: marked interrupted, and the tab offers Resume
+  if (siteAudit) await siteAudit.recover().catch(err => console.error('[site-audit] recovery failed:', err));
   // A preview environment's demo client (tools/seed-demo-client.js): only when SEED_DEMO_CLIENT=1, never on production
   if (pool && process.env.SEED_DEMO_CLIENT === '1') await require('./tools/seed-demo-client').seedDemoClient(pool, { v20HomepageInputs, filloutService }).catch(err => console.error('[seed-demo] failed:', err));
   app.listen(PORT, () => console.log(`Copy bot running at http://localhost:${PORT}`));

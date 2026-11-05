@@ -1,0 +1,18 @@
+{
+  "cant_keep": [
+    { "pattern": "\\?", "why": "it has a query string" },
+    { "pattern": "\\.(html?|php|aspx?|cfm|jsp)$", "why": "it ends in a file extension WordPress won't serve" },
+    { "pattern": "^/post/", "why": "it uses Wix's /post/ pattern" },
+    { "pattern": "^/single-post/", "why": "it uses Wix's /single-post/ pattern" },
+    { "pattern": "^/blog-1(/|$)", "why": "it uses a Wix style /blog-1 address" },
+    { "pattern": "/copy-of-", "why": "it is a builder's \"copy of\" address" },
+    { "pattern": "^/product-page/", "why": "it uses Wix's /product-page/ pattern" },
+    { "pattern": "^/s/", "why": "it uses a Squarespace /s/ address" },
+    { "pattern": "^/f/", "why": "it uses a GoDaddy builder /f/ address" },
+    { "pattern": "[A-Z]", "why": "it has capital letters, which WordPress addresses don't" },
+    { "pattern": "%[0-9A-Fa-f]{2}", "why": "it has encoded characters" }
+  ],
+  "homepage_variants": ["^/(home|home-page|homepage|welcome)$", "^/(index|default)(\\.(html?|php|aspx?))?$"],
+  "mass_page_patterns": ["^/tag/"],
+  "gallery_patterns": ["\\bgaller(y|ies)\\b", "\\bportfolios?\\b", "\\bprojects?\\b", "\\bour[- ]work\\b", "\\brecent[- ]work\\b", "\\bcase[- ]stud(y|ies)\\b", "\\bshowcase\\b", "\\binspiration\\b"]
+}

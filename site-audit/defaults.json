@@ -1,0 +1,20 @@
+{
+  "spam_threshold": 60,
+  "outgoing_link_limit": 500,
+  "min_estimated_traffic": 0,
+  "top_n": 20,
+  "top_extra_real_domains": 3,
+  "top_searches": 5,
+  "page_cap": 2000,
+  "request_delay_ms": 1000,
+  "low_text_words": 40,
+  "max_usd": 2,
+  "backlink_row_cap": 20000,
+  "keyword_row_cap": 5000,
+  "match_min": 0.6,
+  "closest_min": 0.25,
+  "mass_page_minimum": 10,
+  "site_pages": ["/", "/contact", "/about", "/privacy-policy", "/terms", "/blog"],
+  "gallery_page": "",
+  "never_destination_words": ["thank-you", "thankyou", "thank_you", "thanks"]
+}
