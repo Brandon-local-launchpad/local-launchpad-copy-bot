@@ -183,6 +183,8 @@ chk('Why P4 = Family Run and Independent',
   D.d10_why[3] && D.d10_why[3].title === 'Family Run and Independent',
   D.d10_why[3] && D.d10_why[3].title, 'Family Run and Independent');
 
+chk('Target keyword: the homepage has one', D.target_keyword === 'Landscaper Southampton', D.target_keyword, 'Landscaper Southampton');
+
 const faq = D.d11_faq;
 // faq_C asks about turf or seed, which this client does not offer (copy quality 6): it drops, no fallback left
 chk('7 FAQ questions: the turf question drops, this client has no turf or seeding page', faq.length === 7 && !faq.some(q => /turf/i.test(q.question)), faq.length, 7);

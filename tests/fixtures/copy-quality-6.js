@@ -93,6 +93,9 @@ const fullCards = lockoutD(lockFull, CLIENTS['locksmith-full'].cv).problems.map(
 chk('Lockouts page, thin client (no burglary service): four cards, no boarding up card', thinCards.length === 4 && !thinCards.some(t => /^Boarded/.test(t)), thinCards.join(' | '), 'no Boarded');
 chk('Lockouts page, full client (burglary service confirmed): the boarding up card stays', fullCards.some(t => /^Boarded/.test(t)), fullCards.join(' | '), 'Boarded');
 
+const withKw = { ...lockFull, rows: lockFull.rows.map(r => (r.slug === '/services/lockouts-and-gaining-entry' ? { ...r, h1: 'Locked Out in Southampton', h1_keyword: 'lockouts southampton' } : r)) };
+chk('Target keyword: a real service page takes it from the page map row, not the H1', lockoutD(withKw, CLIENTS['locksmith-full'].cv).target_keyword === 'Lockouts Southampton', lockoutD(withKw, CLIENTS['locksmith-full'].cv).target_keyword, 'Lockouts Southampton');
+
 // ── 2. The validator ──
 const terms = helpers.serviceTermsToCheck({ _source: 'locksmith', service_terms: ['anti snap', 'multipoint', 'Master key systems', 'gearbox', 'Safes', 'Burglary repairs'] });
 chk('SERVICE: trade vocabulary is not checked; library names are', !terms.includes('anti snap') && !terms.includes('multipoint') && !terms.includes('gearbox') && terms.includes('Master key systems') && terms.includes('Safes') && terms.includes('Burglary repairs'), terms.slice(0, 12).join(', '), 'names only');

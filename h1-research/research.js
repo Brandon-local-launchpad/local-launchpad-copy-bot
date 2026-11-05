@@ -37,4 +37,16 @@ function searchTerms(niche) {
   return (niche ? TERMS[niche] : TERMS) || {};
 }
 
-module.exports = { MIN_USABLE, keywordOf, displayOf, titleCase, searchTerms };
+// A page's target keyword, the page map's h1_keyword, for Rank Math's focus keyword (Brandon, 5 Nov 2026), in the
+// H1's form where they match. A hub page's stored keyword is its pattern ("gardener services in and around romsey"),
+// which nobody searches: its target is the keyword the pattern stands in for ("Gardener Romsey"), which another page
+// owns as its H1 (claims.js). No keyword stored: the H1.
+function targetKeyword({ h1 = '', keyword = '' } = {}) {
+  const heading = String(h1 || '').trim();
+  const k = String(keyword || '').trim() || heading;
+  const hub = k.match(/^(.+?)\s+services\s+in\s+and\s+around\s+(.+)$/i);
+  if (hub) return titleCase(hub[1] + ' ' + hub[2]);
+  return heading && heading.toLowerCase() === k.toLowerCase() ? heading : titleCase(k);
+}
+
+module.exports = { MIN_USABLE, keywordOf, displayOf, titleCase, searchTerms, targetKeyword };

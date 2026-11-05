@@ -242,6 +242,7 @@ function computeLocationDecisions({ cv, niche, keyValueMap = {}, rows = [], page
     page_type: 'location', scope: 'town', town: townName, city, slug: selfUrl, primary_category: primary,
     type: { letter: blocks.letter, key: blocks.key, a2: blocks.a2, emergency: blocks.emergencyUsed, source: blocks.source },
     d1_years_trading: yearsTrading,
+    target_keyword: require('./h1-research/research').targetKeyword({ h1, keyword: page.h1_keyword }),
     d2_h1: h1, h1_source: page.h1 ? 'page map' : 'fallback', keyword: kwNatural, cat, cat_lower: catLower, work, work_lower: workLower,
     d3_title: built.title, d4_meta: meta, d5_trust: trust.line, d6_rating: rating,
     d15_buttons: buttons, breadcrumb,

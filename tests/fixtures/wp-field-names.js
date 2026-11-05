@@ -6,7 +6,8 @@ const root = path.join(__dirname, '../..');
 const { fieldNames } = require(path.join(root, 'wp/field-names.js'));
 const { GROUPS } = require(path.join(root, 'wp/acf-schema.js'));
 const { HOMEPAGE_FIELDS } = require(path.join(root, 'wp/homepage-map.js'));
-const { buildClientValuesPayload } = require(path.join(root, 'wp/client-values.js'));
+const { buildClientValuesPayload, businessSchemaId, ALL_KEYS } = require(path.join(root, 'wp/client-values.js'));
+const { targetKeyword } = require(path.join(root, 'h1-research/research.js'));
 const { clientValueMap } = require(path.join(root, 'v20-generate.js'));
 
 let pass = 0, fail = 0;
@@ -45,12 +46,21 @@ chk('The fields route gives the names', fs.readFileSync(path.join(root, 'server.
 
 // The focus keyword
 const stub = { d2_h1: 'Fencing Southampton', d3_title: 'T', d4_meta: 'M' };
-chk('Focus keyword: an older record reads its H1', of('focus_keyword').text === rec.home_hero_h1, of('focus_keyword').text, rec.home_hero_h1);
+chk('Target keyword: the page map keyword, in the H1 form where they match', targetKeyword({ h1: 'Gardener Romsey', keyword: 'gardener romsey' }) === 'Gardener Romsey', targetKeyword({ h1: 'Gardener Romsey', keyword: 'gardener romsey' }), 'Gardener Romsey');
+chk('Target keyword: the page map keyword wins over a different H1', targetKeyword({ h1: 'Garden Care in Romsey', keyword: 'gardener romsey' }) === 'Gardener Romsey', targetKeyword({ h1: 'Garden Care in Romsey', keyword: 'gardener romsey' }), 'Gardener Romsey');
+chk('Target keyword: a hub page reads the keyword out of its pattern, never the pattern', targetKeyword({ h1: 'Gardener Services in and around Romsey', keyword: 'gardener services in and around romsey' }) === 'Gardener Romsey' && targetKeyword({ h1: 'Gardener Services in and around Chandlers Ford' }) === 'Gardener Chandlers Ford', targetKeyword({ h1: 'Gardener Services in and around Romsey', keyword: 'gardener services in and around romsey' }), 'Gardener Romsey');
+chk('Target keyword: no keyword stored, the H1', targetKeyword({ h1: 'Lawn Mowing Southampton' }) === 'Lawn Mowing Southampton', '', 'the H1');
+chk('Focus keyword: an older record reads it from its H1', of('focus_keyword').text === rec.home_hero_h1, of('focus_keyword').text, rec.home_hero_h1);
 chk('Focus keyword: on a service page, the record\'s own wins, else the H1', fieldNames({ ...service, focus_keyword: 'Own' }).fields.find(f => f.name === 'focus_keyword').text === 'Own' && svc.fields.find(f => f.name === 'focus_keyword').text === 'Fencing Southampton', '', 'both');
-for (const f of ['v20-record.js', 'category-record.js', 'service-record.js', 'location-record.js']) chk('Focus keyword: ' + f + ' sets it from the H1', /focus_keyword:\s+D\.d2_h1/.test(fs.readFileSync(path.join(root, f), 'utf8')), '', 'set');
+for (const f of ['v20-record.js', 'category-record.js', 'service-record.js', 'location-record.js']) chk('Focus keyword: ' + f + ' sets it from the target keyword', /focus_keyword:\s+D\.target_keyword/.test(fs.readFileSync(path.join(root, f), 'utf8')), '', 'set');
 const mapSrc = fs.readFileSync(path.join(root, 'wp/homepage-map.js'), 'utf8');
 const phpSrc = fs.readFileSync(path.join(root, 'wp-plugin/llp-copybot/llp-copybot.php'), 'utf8');
 chk('Focus keyword: nothing pushes it until the plugin registers the meta, and the plugin does not yet', !mapSrc.includes('focus') && !phpSrc.includes('focus_keyword'), '', 'held');
+
+// business_schema_id
+chk('Schema id: the fixed form from the site URL', businessSchemaId('https://www.edensedge.co.uk') === 'https://www.edensedge.co.uk/#localbusiness' && businessSchemaId('https://www.edensedge.co.uk/some/path/') === 'https://www.edensedge.co.uk/#localbusiness', businessSchemaId('https://www.edensedge.co.uk/some/path/'), 'origin only');
+chk('Schema id: no site URL is an error, never a blank', (() => { try { businessSchemaId(''); return false; } catch (e) { return true; } })(), '', 'throws');
+chk('Schema id: not a Client Value yet, so nothing sends it before the plugin changes', !ALL_KEYS.some(k => k.key === 'business_schema_id'), '', 'held');
 
 // The map embed
 chk('Client values: the map embed is on the record\'s values', clientValueMap({ map_embed: 'https://maps.example/embed' }, null).map_embed === 'https://maps.example/embed', '', 'kept');

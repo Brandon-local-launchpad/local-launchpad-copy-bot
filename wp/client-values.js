@@ -19,6 +19,12 @@ const SITE_KEYS = [
 const label = k => k.replace(/_/g, ' ').replace(/^./, c => c.toUpperCase());
 const ALL_KEYS = [...CV_KEYS.map(k => ({ key: k, label: label(k) })), ...SITE_KEYS];
 
+// The site's LocalBusiness @id (Brandon, 5 Nov 2026): a fixed form from the site's URL, never blank and never typed in.
+// Not sent yet: the plugin only keeps the keys it knows, and business_schema_id isn't one until it is regenerated.
+function businessSchemaId(siteUrl) {
+  return `${new URL(siteUrl).origin}/#localbusiness`;
+}
+
 // Values to push for a record. Empty values are sent as '' so a value removed in
 // Copybot is cleared on the site too.
 function buildClientValuesPayload(record, extra = {}) {
@@ -37,4 +43,4 @@ function buildClientValuesPayload(record, extra = {}) {
   return out;
 }
 
-module.exports = { ALL_KEYS, SITE_KEYS, buildClientValuesPayload };
+module.exports = { ALL_KEYS, SITE_KEYS, buildClientValuesPayload, businessSchemaId };
