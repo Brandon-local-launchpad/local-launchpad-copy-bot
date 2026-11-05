@@ -110,6 +110,14 @@ chk('P3/P4: other wording still counts', cut('the way in that leaves the least m
 for (const t of ['The cards that follow set out what moves the price.', 'The factors are set out here.', 'No figure is given on this site.', 'Below we explain how it works.', 'The cost factors are under What Affects the Cost.', 'All use the services below.', 'As set out earlier, the price varies.']) chk(`META-TALK: fires on "${t}"`, helpers.META_TALK_RE.test(t), false, true);
 for (const t of ['The handle below the cylinder is the one that fails.', 'Set out your needs when you call.', 'The figure depends on the door.', 'The steps up to the door matter.', 'Read the meter first.', 'Under the slabs sits the sub base.']) chk(`META-TALK: passes "${t}"`, !helpers.META_TALK_RE.test(t), true, false);
 
+const { ctaBandLine } = require(path.join(root, 'decisions.js'));
+const band = { cta_band_line: 'Tell us and we will get back to you within [CV: response_time].', cta_band_line_no_response: 'Tell us and we will get back to you.' };
+chk('CTA band: a length of time follows "within"', ctaBandLine(band, { response_time: '2 hours' }).includes('within [CV: response_time]') && ctaBandLine(band, { response_time: 'an hour' }).includes('within [CV: response_time]'), '', 'kept');
+chk('CTA band: a value that says within loses the template\'s', ctaBandLine(band, { response_time: 'usually within the hour' }) === 'Tell us and we will get back to you [CV: response_time].', ctaBandLine(band, { response_time: 'usually within the hour' }), 'one within');
+chk('CTA band: a sentence or no value takes the plain line', ctaBandLine(band, { response_time: 'we reply the same working day' }) === band.cta_band_line_no_response && ctaBandLine(band, {}) === band.cta_band_line_no_response, '', 'plain');
+const repeatPhrases = helpers.requiredWording({ guaranteeScope: 'the locks we fit and the repairs we make' }, {});
+chk('P4: the client\'s own guarantee wording is no repeat', helpers.cutRequired('We guarantee the locks we fit and the repairs we make.', repeatPhrases).includes('xbrkx'), '', 'cut');
+
 // ── 3. Idea homes and the cost FAQ ──
 const stub = { idea_homes: [{ topic: 'the ID check', home: 'the what to have ready FAQ', elsewhere: 'no card', pages: ['service'] }, { topic: 'everywhere', home: 'x', elsewhere: 'y' }] };
 chk('ideaHomeLines: the niche\'s own ideas come first, on the pages they name', (() => { const s = IH.ideaHomeLines('service', stub).join('\n'), c = IH.ideaHomeLines('category', stub).join('\n'); return s.indexOf('the ID check') > 0 && s.indexOf('the ID check') < s.indexOf('The cost factors') && !c.includes('the ID check') && c.includes('everywhere'); })(), '', 'filtered');

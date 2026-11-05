@@ -126,6 +126,17 @@ function whyAltTitle(title, niche, cv) {
   return title;
 }
 
+// The CTA band says "within [CV: response_time]" (copy quality 6): a value that already says "within" loses
+// the template's, and a value that isn't a length of time ("we reply the same working day") takes the line without it
+function ctaBandLine(base, cv) {
+  const v = String(cv.response_time || '').trim();
+  if (!v) return base.cta_band_line_no_response || '';
+  const line = base.cta_band_line || '';
+  if (/^(?:usually |normally |often |typically )?within\b/i.test(v)) return line.replace('within [CV: response_time]', '[CV: response_time]');
+  if (/^(?:about |around |roughly |an? |one |two |three |\d|the (?:hour|day)|24)/i.test(v)) return line;
+  return base.cta_band_line_no_response || '';
+}
+
 function buildWhyPoints(cv, niche, yearsTrading, trustProof, ctx) {
   const points = [];
 
@@ -854,7 +865,7 @@ function computeDecisions({ cv, niche, pages, keyValueMap, serviceParentMap, v20
   // The response time lives here and nowhere else on the page.
   const ctaBand = {
     heading: d8.cta_band,
-    line: ph(cv.response_time ? (btnBase.cta_band_line || '') : (btnBase.cta_band_line_no_response || ''), ctx),
+    line: ph(ctaBandLine(btnBase, cv), ctx),
     buttons: d15,
   };
 
@@ -1090,4 +1101,4 @@ function formatDecisionsBlock(D, cv, niche, ctx) {
   return lines.join('\n');
 }
 
-module.exports = { articleFor, articleBefore, whyAltTitle, computeDecisions, isPersonWord, headingCustomers, weClause, ph, cap, titleCase, normArea, stripAdmin, isLinkable, getLinkStatus, stepsFor, yearsTradingOf, titleModifierFor, seoTitleFor, trustLineFor, ratingLineFor, buttonsFor, approvedThemes };
+module.exports = { ctaBandLine, articleFor, articleBefore, whyAltTitle, computeDecisions, isPersonWord, headingCustomers, weClause, ph, cap, titleCase, normArea, stripAdmin, isLinkable, getLinkStatus, stepsFor, yearsTradingOf, titleModifierFor, seoTitleFor, trustLineFor, ratingLineFor, buttonsFor, approvedThemes };

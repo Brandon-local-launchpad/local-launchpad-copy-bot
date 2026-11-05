@@ -167,7 +167,7 @@ function serviceTermsToCheck(niche) {
 // What K1 and the link rules require in several fields is no repeat: the keyword phrase, the service or category
 // name, the card names, and link text. They are cut out before the repeat checks count anything.
 function requiredWording(V, D = {}) {
-  const names = [D.keyword, D.d2_h1, D.svc, D.svc_lower, D.svc_question, D.cat, D.cat_lower, D.work, D.work_lower, ...((V.serviceList || []).flatMap(x => [x.gbp, x.say, x.name])), ...(((D.d9 && D.d9.main) || []).map(c => c.name)), ...((D.cards || []).map(c => c.name))];
+  const names = [V.guaranteeScope, D.keyword, D.d2_h1, D.svc, D.svc_lower, D.svc_question, D.cat, D.cat_lower, D.work, D.work_lower, ...((V.serviceList || []).flatMap(x => [x.gbp, x.say, x.name])), ...(((D.d9 && D.d9.main) || []).map(c => c.name)), ...((D.cards || []).map(c => c.name))];
   return [...new Set(names.filter(Boolean).map(lc))].filter(n => n.length >= 4).sort((a, b) => b.length - a.length);
 }
 const BREAK = ' xbrkx ';
@@ -374,7 +374,7 @@ function buildValidationContext({ cv, niche, decisions, keyValueMap = {}, servic
     ].filter(Boolean).map(s => lc(String(s)).replace(/[^a-z0-9' ]+/g, ' ').replace(/\s+/g, ' ').trim()).filter(Boolean))],
     tradeFactsText: lc(tradeFactsText || ''),
     cvNumbers, cvText: cvText.join(' | '), researchText, researchNumbers, places: [...places],
-    confirmedServices, serviceList, linkable, linkableCategories, towns,
+    guaranteeScope: (cv && cv.guarantee_scope) || '', confirmedServices, serviceList, linkable, linkableCategories, towns,
     // Council areas, by their short name too ("New Forest" for "New Forest District")
     adminAreas: [...new Set(towns.filter(isAdminArea).flatMap(a => [a, a.replace(/\s+\b(District|Borough|Council|County|Authority|Region|National Park)\b.*$/i, '').trim()]).filter(a => a.length > 3))],
     neighbourhoodNames: allocated.neighbourhoods.map(n => n.name.split(/[\s,’']/)[0]).filter(n => n.length > 3),
@@ -511,7 +511,7 @@ function validateCommon(record, V) {
     for (const w of DATED) if (new RegExp(`\\b${esc(w)}\\b`, 'i').test(s)) flag('FLAG', 'N9', `"${w}" presents a dated fact as current.`);
     if (/\b[A-Z]{2,4}-[NISR]\d{2}\b/.test(t)) flag('BLOCK', 'N10', 'Contains a research reference ID.');
     if (/https?:\/\//.test(stripLinks(t).replace(/\]\([^)]*\)/g, ''))) flag('BLOCK', 'N10', 'Contains a URL that is not a Markdown link.');
-    for (const w of OVERPROMISE) if (new RegExp(`\\b${esc(w)}\\b`).test(l)) flag('BLOCK', 'N11', `Insurance overpromise: "${w}" promises an outcome. Describe what the cover is for, never what it pays or who it covers.`);
+    for (const w of OVERPROMISE) if (new RegExp(`\\b${esc(w)}\\b`).test(l) && !(w === 'nothing to pay' && !sentences(l).some(x => x.includes(w) && /insur|cover|claim|policy|liabil/.test(x)))) flag('BLOCK', 'N11', `Insurance overpromise: "${w}" promises an outcome. Describe what the cover is for, never what it pays or who it covers.`);
     // N12 team/crew
     if ((!cv.team_size || parseInt(cv.team_size, 10) <= 1) && /\b(team|crew)\b/i.test(s)) flag('FLAG', 'N12', '"Team" or "crew" used but the team size is not above 1.');
     // N15 pronouns
@@ -791,11 +791,11 @@ function validateCommon(record, V) {
     }
     // REPEAT-IN: one point made once inside a field
     {
-      const toks = lc(s).replace(/cvtoken/g, ' ').replace(/[^a-z0-9£' ]+/g, ' ').split(/\s+/).filter(Boolean);
+      const toks = cutRequired(f.text, requiredWording(V, D)).replace(/cvtoken/g, ' ').replace(/[^a-z0-9£' ]+/g, ' ').split(/\s+/).filter(Boolean);
       const seen = new Map();
       for (let i = 0; i + 4 <= toks.length; i++) {
         const g = toks.slice(i, i + 4);
-        if (g.filter(w => !STOPWORDS.has(w)).length < 2) continue;
+        if (g.includes('xbrkx') || g.filter(w => !STOPWORDS.has(w)).length < 2) continue;
         const k = g.join(' ');
         if (seen.has(k) && i - seen.get(k) >= 4) { flag('FLAG', 'REPEAT-IN', `"${k}" appears twice in this field. Make each point once.`); break; }
         if (!seen.has(k)) seen.set(k, i);
@@ -977,7 +977,7 @@ function sharedCrossChecks(record, V, { issues, issue, fields, cb, K }) {
         seenFaq.add(kind);
       }
       count += n;
-      if (count > 3) { issue('BLOCK', 'PROOF-QUOTE', f.label, `The quote method or the price agreed before work is already on the page 3 times (${homes.join(', ')}). Leave it out here, in any wording.`, f.ref); continue; }
+      if (count > 3 && faqKind(f) !== 'cost') { issue('BLOCK', 'PROOF-QUOTE', f.label, `The quote method or the price agreed before work is already on the page 3 times (${homes.join(', ')}). Leave it out here, in any wording.`, f.ref); continue; }
       homes.push(f.label);
     }
   }
