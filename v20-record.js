@@ -53,7 +53,8 @@ function buildPageRecord({ cv, decisionsResult, parsed, meta, extraFlags = [] })
   Object.assign(record, {
     seo_title:              D.d3_title,
     meta_description:       D.d4_meta,
-    // Rank Math's focus keyword: the page's target keyword from the page map (research.js targetKeyword). On the record
+    // Rank Math's focus keyword: the page's target keyword from the page map, blank on a hub page whose keyword another
+    // page targets, so no two pages share one (research.js focusKeywords). On the record
     // only: the push can't send it until the plugin registers the meta (docs/WordPress_Field_Map.md)
     focus_keyword:          D.target_keyword,
     home_hero_h1:           D.d2_h1,

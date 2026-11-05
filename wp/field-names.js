@@ -49,8 +49,13 @@ function fieldNames(record) {
   const add = (name, text, source) => { if (text !== null && text !== undefined && text !== '' && text !== false && text !== 'HIDDEN') fields.push({ name, text: String(text), source }); };
   add('seo_title', record.seo_title, 'code');
   add('meta_description', record.meta_description, 'code');
-  // A record from before 5 Nov 2026 has no focus_keyword: read it from the H1
-  add('focus_keyword', record.focus_keyword || require('../h1-research/research').targetKeyword({ h1: record.home_hero_h1 || (p && record[`${p}_hero_h1`]) }), 'code');
+  // A record from before 5 Nov 2026 has no focus_keyword: read it from the H1. A hub page's stays blank, as this record
+  // alone can't show its keyword is free
+  {
+    const R = require('../h1-research/research');
+    const h1 = record.home_hero_h1 || (p && record[`${p}_hero_h1`]);
+    add('focus_keyword', record.focus_keyword !== undefined ? record.focus_keyword : (R.isHubPattern(h1) ? '' : R.targetKeyword({ h1 })), 'code');
+  }
   for (const [key, value] of Object.entries(record)) {
     if (lists[key]) {
       if (!Array.isArray(value)) continue;

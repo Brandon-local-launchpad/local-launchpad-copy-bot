@@ -55,7 +55,8 @@ function buildCategoryRecord({ cv, decisionsResult, parsed, meta, extraFlags = [
     page_slug:              D.slug,
     seo_title:              D.d3_title,
     meta_description:       D.d4_meta,
-    // Rank Math's focus keyword: the page's target keyword from the page map (research.js targetKeyword). On the record
+    // Rank Math's focus keyword: the page's target keyword from the page map, blank on a hub page whose keyword another
+    // page targets, so no two pages share one (research.js focusKeywords). On the record
     // only: the push can't send it until the plugin registers the meta (docs/WordPress_Field_Map.md)
     focus_keyword:          D.target_keyword,
     breadcrumb:             D.breadcrumb,

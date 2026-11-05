@@ -321,7 +321,7 @@ function computeCategoryDecisions({ cv, niche, keyValueMap = {}, rows = [], page
     page_type: 'category', scope, category, category_key: catKey, town: townName, city, slug: selfUrl,
     type: { letter: blocks.letter, key: blocks.key, a2: blocks.a2, emergency: blocks.emergencyUsed, source: blocks.source },
     d1_years_trading: yearsTrading,
-    target_keyword: require('./h1-research/research').targetKeyword({ h1, keyword: page.h1_keyword }),
+    target_keyword: require('./h1-research/research').focusKeywordFor(page, rows, h1),
     d2_h1: h1, keyword: kwNatural, cat, cat_lower: catLower, work, work_lower: workLower,
     d3_title: built.title, d4_meta: meta, d5_trust: trust.line, d6_rating: rating,
     d15_buttons: buttons, breadcrumb,
