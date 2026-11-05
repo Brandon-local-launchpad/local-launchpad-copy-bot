@@ -94,11 +94,14 @@ async function main() {
   say(`Platform: ${s.platform} (${(s.platform_evidence || []).join(', ')})`);
   say(`Benchmark: ${s.benchmark === 'search_console' ? 'Search Console' : 'Estimated, no Search Console'}`);
   say(`Total URLs: ${s.summary.total_urls}: ${s.summary.pages} pages, ${s.summary.media} images and PDFs (${JSON.stringify(s.summary.by_source)}), sitemap ${JSON.stringify(s.summary.sitemap)}`);
+  say(s.summary.complete ? 'Complete: no loud warnings' : `MAY BE INCOMPLETE: ${s.warnings.filter(w => w.loud).length} loud warnings below`);
+  say(`Homepage: ${s.summary.homepage ? `${s.summary.homepage.path || 'NOT FOUND'} (${s.summary.homepage.how}; / answered ${s.summary.homepage.root_status})` : 'unknown'}`);
+  say(`Crawl: reached ${s.summary.crawl.reached} pages by links; other sources know of ${s.summary.crawl.known_elsewhere} live pages, ${s.summary.crawl.not_linked} not linked from anything crawled`);
   say(`Matter: ${s.summary.matters}, top list: ${s.summary.top20}, orphans: ${s.summary.orphans}`);
   say(`Sites linking, all: ${s.summary.all_domains}, real: ${s.summary.real_domains} (${s.summary.real_domain_names.join(', ')}); links: ${s.summary.links}`);
   say(`Rankings: ${s.summary.keywords}, estimated visits a month: ${s.summary.est_traffic}`);
   say('\nWARNINGS');
-  for (const w of s.warnings) say(`  - ${w.text}`);
+  for (const w of s.warnings) say(`  ${w.loud ? 'LOUD' : '   -'} ${w.text}`);
   if (!s.warnings.length) say('  none');
   say('\nISSUES');
   for (const i of s.issues) say(`  - ${i.text}\n      ${i.pages.join(', ')}`);

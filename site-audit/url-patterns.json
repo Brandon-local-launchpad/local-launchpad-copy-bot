@@ -10,8 +10,25 @@
     { "pattern": "^/s/", "why": "it uses a Squarespace /s/ address" },
     { "pattern": "^/f/", "why": "it uses a GoDaddy builder /f/ address" },
     { "pattern": "[A-Z]", "why": "it has capital letters, which WordPress addresses don't" },
-    { "pattern": "%[0-9A-Fa-f]{2}", "why": "it has encoded characters" }
+    { "pattern": "%[0-9A-Fa-f]{2}", "why": "it has encoded characters" },
+    { "pattern": "^/v2/preview/", "why": "it is a GoHighLevel preview address" },
+    { "pattern": "^/widget/", "why": "it is a GoHighLevel form or widget address" }
   ],
+  "homepage_paths": ["/home", "/index", "/index.html", "/index.php", "/home-page", "/homepage", "/welcome", "/default.aspx"],
+  "platforms": {
+    "GoHighLevel": {
+      "note": "Seen on edensedge-landscaping.co.uk, 5 Nov 2026. / answers 404 and the homepage is /home, with no sitemap and an empty robots.txt, so a crawl from / alone finds nothing. Service pages are plain top level slugs (/hedge-trimming), which can be kept. Pages are built on the server, so the HTML has the text and the links.",
+      "markers": [
+        { "pattern": "stcdn\\.leadconnectorhq\\.com", "why": "files on stcdn.leadconnectorhq.com" },
+        { "pattern": "images\\.leadconnectorhq\\.com", "why": "images on images.leadconnectorhq.com" },
+        { "pattern": "assets\\.cdn\\.filesafe\\.space", "why": "files on assets.cdn.filesafe.space" },
+        { "pattern": "msgsndr", "why": "GoHighLevel's msgsndr references" },
+        { "pattern": "app\\.gohighlevel\\.com", "why": "a link to app.gohighlevel.com" }
+      ],
+      "homepage_paths": ["/home"],
+      "not_pages": ["^/widget/", "^/v2/preview/"]
+    }
+  },
   "homepage_variants": ["^/(home|home-page|homepage|welcome)$", "^/(index|default)(\\.(html?|php|aspx?))?$"],
   "mass_page_patterns": ["^/tag/"],
   "gallery_patterns": ["\\bgaller(y|ies)\\b", "\\bportfolios?\\b", "\\bprojects?\\b", "\\bour[- ]work\\b", "\\brecent[- ]work\\b", "\\bcase[- ]stud(y|ies)\\b", "\\bshowcase\\b", "\\binspiration\\b"]

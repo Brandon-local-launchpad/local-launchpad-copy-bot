@@ -8,7 +8,7 @@
 // ?id=5 URL is its own page to redirect. A subdomain keeps its own host.
 
 const TRACKING = /^(utm_.+|gclid|fbclid|msclkid|_ga|_gl|mc_cid|mc_eid)$/i;
-const SKIP_PATH = /^\/(wp-json|wp-admin|wp-login\.php|xmlrpc\.php|cdn-cgi|wp-cron\.php)(\/|$)|\/(feed|embed|trackback)\/?$/i;
+const SKIP_PATH = /^\/(wp-json|wp-admin|wp-login\.php|xmlrpc\.php|cdn-cgi|wp-cron\.php)(\/|$)|^\/(widget|v2\/preview)\/|\/(feed|embed|trackback)\/?$/i;
 const SKIP_QUERY = /(^|&)(replytocom|add-to-cart|share|preview|s|wc-ajax|rest_route|elementor-preview)=/i;
 const ASSET = /\.(css|js|mjs|map|woff2?|ttf|eot|otf|json|xml|xsl|txt|gz|zip|rar|mp3|mp4|mov|webm|avi)$/i;
 const IMAGE = /\.(png|jpe?g|gif|webp|svg|avif|bmp|ico|tiff?)$/i;

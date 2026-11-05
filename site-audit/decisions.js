@@ -53,14 +53,14 @@ function createDecisions({ pool, getSettings, loadPages, pageMap = null, rework 
   }
 
   // After every rework: the suggestion for every URL in the scan, and the rule check on what was approved
-  async function refresh(clientId, scanId, { hasSearchConsole, origin }) {
+  async function refresh(clientId, scanId, { hasSearchConsole, origin, oldHomepage = null, rootStatus = null }) {
     const settings = await getSettings(clientId);
     const { rows: pages, baseTown } = await loadPages(clientId);
     if (!pages.length) return { ready: false, counts: null };
     const { rows: urls } = await pool.query(`SELECT id, url, path, kind, fetch_state, status_code, redirect_target, title, h1, links_out, clicks, est_traffic, real_rd, all_rd, keywords_count, matters, matters_why, injected FROM site_scan_urls WHERE scan_id = $1`, [scanId]);
     const existing = await rowsFor(clientId);
     const declined = new Set([...existing.values()].filter(r => r.proposal_declined).map(r => r.url));
-    const { suggestions } = suggestAll({ urls, pages, settings, baseTown, hasSearchConsole, declined, keyOf: createUrlTools(origin).key });
+    const { suggestions } = suggestAll({ urls, pages, settings, baseTown, hasSearchConsole, declined, keyOf: createUrlTools(origin).key, oldHomepage, rootStatus });
     for (const u of urls) {
       const s = suggestions.get(u.url);
       if (!s) continue;

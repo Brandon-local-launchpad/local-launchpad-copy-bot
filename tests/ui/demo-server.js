@@ -131,8 +131,26 @@ process.env.CITATIONS_SKIP_DA = '1'; // the demo's pg-mem is fresh each start: n
   await replayed.start(auditId);
   await replayed.wait(auditId);
 
+  // A site in GoHighLevel's pattern: 404 at /, the homepage at /home, no sitemap, so the tab shows its warnings
+  const ghlId = (await pool.query(`INSERT INTO clients (name, trade) VALUES ('GoHighLevel pattern (site audit test)', 'Landscaper Gardener') RETURNING id`)).rows[0].id;
+  const ghlDomain = 'https://ghl-pattern.example';
+  await pool.query(`INSERT INTO client_assets (client_id, asset_type, filename, content) VALUES ($1, 'client_values', 'client-values.json', $2)`, [ghlId, JSON.stringify({ company_name: 'GoHighLevel Pattern Ltd', live_domain: ghlDomain })]);
+  const ghlBody = `<img src="https://images.leadconnectorhq.com/a.jpg"><main><h1>Welcome</h1><p>${Array.from({ length: 80 }, (_, i) => `word${i}`).join(' ')}</p><a href="/hedge-trimming">Hedge trimming</a></main>`;
+  const ghlAudit = require(path.join(root, 'site-audit/service.js')).createSiteAudit({
+    pool, loadValues: async () => ({ live_domain: ghlDomain }), env: { DATAFORSEO_LOGIN: 'replay', DATAFORSEO_PASSWORD: 'replay' }, sleep: async () => {}, lookup: async () => ({ address: '8.8.8.8' }),
+    fetchImpl: async url => {
+      const u = new URL(String(url));
+      if (u.hostname === 'api.dataforseo.com') return new Response(JSON.stringify({ status_code: 20000, cost: 0, tasks: [{ id: 't', status_code: 20000, cost: 0, result: [{ total_count: 0, items: [] }] }] }), { status: 200 });
+      const html = { '/home': ghlBody, '/hedge-trimming': ghlBody }[u.pathname];
+      return new Response(html || 'Not found', { status: html ? 200 : 404, headers: { 'content-type': 'text/html' } });
+    },
+  });
+  await ghlAudit.start(ghlId);
+  await ghlAudit.wait(ghlId);
+
   console.log('\nDEMO READY');
   console.log(`  Site audit:   http://localhost:${PORT}/clients/${auditId}/site-audit`);
+  console.log(`  GHL pattern:  http://localhost:${PORT}/clients/${ghlId}/site-audit`);
   console.log(`  Client:       http://localhost:${PORT}/clients/${clientId}/record`);
   console.log(`  Pages:        http://localhost:${PORT}/clients/${clientId}/pages`);
   console.log(`  Page view:    http://localhost:${PORT}/clients/${clientId}/pages/homepage/homepage`);

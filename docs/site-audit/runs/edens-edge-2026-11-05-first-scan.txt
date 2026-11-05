@@ -1,0 +1,562 @@
+SITE AUDIT: https://edensedge-landscaping.co.uk
+Status done, 191 seconds, DataForSEO 3 calls, $0.0612
+Platform: GoHighLevel (files on stcdn.leadconnectorhq.com, images on images.leadconnectorhq.com, files on assets.cdn.filesafe.space, GoHighLevel's msgsndr references, a link to app.gohighlevel.com)
+Benchmark: Estimated, no Search Console
+Total URLs: 106: 106 pages, 0 images and PDFs ({"crawl":106,"sitemap":0,"rankings":5,"backlinks":0,"search_console":0}), sitemap {"files":3,"urls":0}
+MAY BE INCOMPLETE: 2 loud warnings below
+Homepage: /home (common path; / answered 404)
+Crawl: reached 100 pages by links; other sources know of 5 live pages, 0 not linked from anything crawled
+Matter: 5, top list: 5, orphans: 0
+Sites linking, all: 0, real: 0 (); links: 0
+Rankings: 10, estimated visits a month: 0.84
+
+WARNINGS
+  LOUD https://edensedge-landscaping.co.uk/ answers 404, so the site has no page at its own address. Its homepage was found at /home (a common address). Check that's right. The URL map suggests a 301 from it to / on the new site.
+  LOUD No sitemap was found in the 3 places tried. Pages that nothing links to can't be found by the crawl, so the list may be short. Ask for a list of pages if the client has one, or upload a Search Console file.
+
+ISSUES
+  - +44 7850 412717 is on the site, but the client's phone on the Record tab is 07580 412717 (100 pages)
+      /locations/southampton/tree-service, /home, /locations/southampton/paving-contractor, /locations/southampton, /locations/southampton/deck-builder, /tree-trimming-and-pruning, /locations/new-forest-district, /locations/winchester, /fence-installation, /locations/eastleigh, /lawn-mowing-and-maintenance, /locations/chilworth, /garden-work, /patio-enclosure-construction, /locations/hedge-end, /deck-design, /pergola-construction, /locations/lyndhurst, /brick-paver-installation, /deck-installation, /wood-staining, /locations/lockerley, /pond-maintenance, /bumper-block-and-post-installation, /deck-painting
+  - A link goes to app.gohighlevel.com, a temporary host and not the live site (5 pages)
+      /locations/southampton/tree-service, /locations/southampton/paving-contractor, /locations/southampton/deck-builder, /locations/southampton/gardener, /locations/southampton/lawn-care-service
+  - http://www.edensedge-landscaping.co.uk/ takes 2 redirects to reach the live homepage
+      
+
+URLS
+  /locations/southampton  [page]  status 200  found by rankings+crawl
+      words 1807, inlinks 99, sites real/all 0/0, est visits 0.4276, keywords 1, TOP (Number 1 by estimated traffic)
+      MATTERS: Ranks for 1 search, about 0.43 estimated visits a month
+      top searches: edens landscaping (pos 26)
+  /tree-trimming-and-pruning  [page]  status 200  found by rankings+crawl
+      words 1859, inlinks 99, sites real/all 0/0, est visits 0.1555, keywords 1, TOP (Number 2 by estimated traffic)
+      MATTERS: Ranks for 1 search, about 0.16 estimated visits a month
+      top searches: cut edge landscaping (pos 6)
+  /locations/winchester  [page]  status 200  found by rankings+crawl
+      words 1857, inlinks 99, sites real/all 0/0, est visits 0.1211, keywords 5, TOP (Number 3 by estimated traffic)
+      MATTERS: Ranks for 5 searches, about 0.12 estimated visits a month
+      top searches: gardener in winchester (pos 34); landscaping winchester (pos 38); winchester gardeners (pos 40); landscapers in winchester (pos 47); landscapers winchester (pos 49)
+  /locations/new-forest-district  [page]  status 200  found by rankings+crawl
+      words 1927, inlinks 99, sites real/all 0/0, est visits 0.0923, keywords 1, TOP (Number 4 by estimated traffic)
+      MATTERS: Ranks for 1 search, about 0.09 estimated visits a month
+      top searches: new forest landscaping (pos 15)
+  /locations/eastleigh  [page]  status 200  found by rankings+crawl
+      words 1789, inlinks 99, sites real/all 0/0, est visits 0.0452, keywords 2, TOP (Number 5 by estimated traffic)
+      MATTERS: Ranks for 2 searches, about 0.05 estimated visits a month
+      top searches: gardener eastleigh (pos 30); gardeners in eastleigh (pos 38)
+  /  [page]  status 404  found by crawl
+      words -, inlinks 100, sites real/all 0/0, est visits 0, keywords 0
+      does not matter: No clicks, no rankings and no real sites linking
+  /artificial-turf-installation  [page]  status 200  found by crawl
+      words 1707, inlinks 99, sites real/all 0/0, est visits 0, keywords 0
+      does not matter: No clicks, no rankings and no real sites linking
+  /brick-paver-installation  [page]  status 200  found by crawl
+      words 1758, inlinks 99, sites real/all 0/0, est visits 0, keywords 0
+      does not matter: No clicks, no rankings and no real sites linking
+  /bumper-block-and-post-installation  [page]  status 200  found by crawl
+      words 1742, inlinks 99, sites real/all 0/0, est visits 0, keywords 0
+      does not matter: No clicks, no rankings and no real sites linking
+  /cabling-and-bracing  [page]  status 200  found by crawl
+      words 2007, inlinks 99, sites real/all 0/0, est visits 0, keywords 0
+      does not matter: No clicks, no rankings and no real sites linking
+  /cdn-cgi/l/email-protection  [page]  status skipped  found by crawl
+      words -, inlinks 100, sites real/all 0/0, est visits 0, keywords 0
+      does not matter: No clicks, no rankings and no real sites linking
+  /composite-decks  [page]  status 200  found by crawl
+      words 1734, inlinks 99, sites real/all 0/0, est visits 0, keywords 0
+      does not matter: No clicks, no rankings and no real sites linking
+  /concrete-masonry  [page]  status 200  found by crawl
+      words 1706, inlinks 99, sites real/all 0/0, est visits 0, keywords 0
+      does not matter: No clicks, no rankings and no real sites linking
+  /concrete-work  [page]  status 200  found by crawl
+      words 1664, inlinks 99, sites real/all 0/0, est visits 0, keywords 0
+      does not matter: No clicks, no rankings and no real sites linking
+  /contact  [page]  status 404  found by crawl
+      words -, inlinks 100, sites real/all 0/0, est visits 0, keywords 0
+      does not matter: No clicks, no rankings and no real sites linking
+  /custom-landscape-design  [page]  status 200  found by crawl
+      words 2050, inlinks 99, sites real/all 0/0, est visits 0, keywords 0
+      does not matter: No clicks, no rankings and no real sites linking
+  /deck-cleaning  [page]  status 200  found by crawl
+      words 1702, inlinks 99, sites real/all 0/0, est visits 0, keywords 0
+      does not matter: No clicks, no rankings and no real sites linking
+  /deck-design  [page]  status 200  found by crawl
+      words 1771, inlinks 99, sites real/all 0/0, est visits 0, keywords 0
+      does not matter: No clicks, no rankings and no real sites linking
+  /deck-installation  [page]  status 200  found by crawl
+      words 1574, inlinks 99, sites real/all 0/0, est visits 0, keywords 0
+      does not matter: No clicks, no rankings and no real sites linking
+  /deck-painting  [page]  status 200  found by crawl
+      words 1641, inlinks 99, sites real/all 0/0, est visits 0, keywords 0
+      does not matter: No clicks, no rankings and no real sites linking
+  /deck-railing-repair  [page]  status 200  found by crawl
+      words 1674, inlinks 99, sites real/all 0/0, est visits 0, keywords 0
+      does not matter: No clicks, no rankings and no real sites linking
+  /deck-refinishing  [page]  status 200  found by crawl
+      words 1642, inlinks 99, sites real/all 0/0, est visits 0, keywords 0
+      does not matter: No clicks, no rankings and no real sites linking
+  /deck-remodelling  [page]  status 200  found by crawl
+      words 1611, inlinks 99, sites real/all 0/0, est visits 0, keywords 0
+      does not matter: No clicks, no rankings and no real sites linking
+  /deck-repair  [page]  status 200  found by crawl
+      words 1726, inlinks 99, sites real/all 0/0, est visits 0, keywords 0
+      does not matter: No clicks, no rankings and no real sites linking
+  /deck-replacement  [page]  status 200  found by crawl
+      words 1629, inlinks 99, sites real/all 0/0, est visits 0, keywords 0
+      does not matter: No clicks, no rankings and no real sites linking
+  /desert-landscaping  [page]  status 200  found by crawl
+      words 2283, inlinks 99, sites real/all 0/0, est visits 0, keywords 0
+      does not matter: No clicks, no rankings and no real sites linking
+  /drainage-solutions  [page]  status 200  found by crawl
+      words 1951, inlinks 99, sites real/all 0/0, est visits 0, keywords 0
+      does not matter: No clicks, no rankings and no real sites linking
+  /driveway-installation  [page]  status 200  found by crawl
+      words 1601, inlinks 99, sites real/all 0/0, est visits 0, keywords 0
+      does not matter: No clicks, no rankings and no real sites linking
+  /driveway-landscaping  [page]  status 200  found by crawl
+      words 1706, inlinks 99, sites real/all 0/0, est visits 0, keywords 0
+      does not matter: No clicks, no rankings and no real sites linking
+  /driveway-or-path-paving  [page]  status 200  found by crawl
+      words 1708, inlinks 99, sites real/all 0/0, est visits 0, keywords 0
+      does not matter: No clicks, no rankings and no real sites linking
+  /driveway-replacement  [page]  status 200  found by crawl
+      words 1735, inlinks 99, sites real/all 0/0, est visits 0, keywords 0
+      does not matter: No clicks, no rankings and no real sites linking
+  /excavation-grading  [page]  status 200  found by crawl
+      words 1735, inlinks 99, sites real/all 0/0, est visits 0, keywords 0
+      does not matter: No clicks, no rankings and no real sites linking
+  /fence-building  [page]  status 200  found by crawl
+      words 1684, inlinks 99, sites real/all 0/0, est visits 0, keywords 0
+      does not matter: No clicks, no rankings and no real sites linking
+  /fence-installation  [page]  status 200  found by crawl
+      words 2208, inlinks 14, sites real/all 0/0, est visits 0, keywords 0
+      does not matter: No clicks, no rankings and no real sites linking
+  /fencing-installation  [page]  status 404  found by crawl
+      words -, inlinks 100, sites real/all 0/0, est visits 0, keywords 0
+      does not matter: No clicks, no rankings and no real sites linking
+  /garden-decorating  [page]  status 200  found by crawl
+      words 1706, inlinks 99, sites real/all 0/0, est visits 0, keywords 0
+      does not matter: No clicks, no rankings and no real sites linking
+  /garden-design  [page]  status 200  found by crawl
+      words 1706, inlinks 99, sites real/all 0/0, est visits 0, keywords 0
+      does not matter: No clicks, no rankings and no real sites linking
+  /garden-designs  [page]  status 200  found by crawl
+      words 1869, inlinks 99, sites real/all 0/0, est visits 0, keywords 0
+      does not matter: No clicks, no rankings and no real sites linking
+  /garden-drainage  [page]  status 200  found by crawl
+      words 2121, inlinks 99, sites real/all 0/0, est visits 0, keywords 0
+      does not matter: No clicks, no rankings and no real sites linking
+  /garden-landscaping  [page]  status 200  found by crawl
+      words 1645, inlinks 99, sites real/all 0/0, est visits 0, keywords 0
+      does not matter: No clicks, no rankings and no real sites linking
+  /garden-levelling  [page]  status 200  found by crawl
+      words 2077, inlinks 99, sites real/all 0/0, est visits 0, keywords 0
+      does not matter: No clicks, no rankings and no real sites linking
+  /garden-work  [page]  status 200  found by crawl
+      words 2122, inlinks 99, sites real/all 0/0, est visits 0, keywords 0
+      does not matter: No clicks, no rankings and no real sites linking
+  /gardening-services  [page]  status 200  found by crawl
+      words 1706, inlinks 99, sites real/all 0/0, est visits 0, keywords 0
+      does not matter: No clicks, no rankings and no real sites linking
+  /general-construction  [page]  status 200  found by crawl
+      words 1680, inlinks 99, sites real/all 0/0, est visits 0, keywords 0
+      does not matter: No clicks, no rankings and no real sites linking
+  /grading-and-resloping  [page]  status 200  found by crawl
+      words 1707, inlinks 99, sites real/all 0/0, est visits 0, keywords 0
+      does not matter: No clicks, no rankings and no real sites linking
+  /grass-seeding  [page]  status 200  found by crawl
+      words 1706, inlinks 99, sites real/all 0/0, est visits 0, keywords 0
+      does not matter: No clicks, no rankings and no real sites linking
+  /green-landscaping  [page]  status 200  found by crawl
+      words 1706, inlinks 99, sites real/all 0/0, est visits 0, keywords 0
+      does not matter: No clicks, no rankings and no real sites linking
+  /groundskeeping  [page]  status 200  found by crawl
+      words 1705, inlinks 99, sites real/all 0/0, est visits 0, keywords 0
+      does not matter: No clicks, no rankings and no real sites linking
+  /hardscaping  [page]  status 200  found by crawl
+      words 1705, inlinks 99, sites real/all 0/0, est visits 0, keywords 0
+      does not matter: No clicks, no rankings and no real sites linking
+  /hedge-trimming  [page]  status 200  found by crawl
+      words 1706, inlinks 99, sites real/all 0/0, est visits 0, keywords 0
+      does not matter: No clicks, no rankings and no real sites linking
+  /home  [page]  status 200  found by crawl
+      words 1587, inlinks 99, sites real/all 0/0, est visits 0, keywords 0
+      does not matter: No clicks, no rankings and no real sites linking
+  /landscape-architecture-services  [page]  status 200  found by crawl
+      words 1949, inlinks 99, sites real/all 0/0, est visits 0, keywords 0
+      does not matter: No clicks, no rankings and no real sites linking
+  /landscape-design  [page]  status 200  found by crawl
+      words 1706, inlinks 99, sites real/all 0/0, est visits 0, keywords 0
+      does not matter: No clicks, no rankings and no real sites linking
+  /landscape-design-construction  [page]  status 200  found by crawl
+      words 1869, inlinks 99, sites real/all 0/0, est visits 0, keywords 0
+      does not matter: No clicks, no rankings and no real sites linking
+  /landscape-installations  [page]  status 200  found by crawl
+      words 2215, inlinks 99, sites real/all 0/0, est visits 0, keywords 0
+      does not matter: No clicks, no rankings and no real sites linking
+  /landscape-management  [page]  status 200  found by crawl
+      words 2302, inlinks 99, sites real/all 0/0, est visits 0, keywords 0
+      does not matter: No clicks, no rankings and no real sites linking
+  /landscaping-design  [page]  status 200  found by crawl
+      words 2318, inlinks 99, sites real/all 0/0, est visits 0, keywords 0
+      does not matter: No clicks, no rankings and no real sites linking
+  /landscaping-maintenance  [page]  status 200  found by crawl
+      words 2393, inlinks 99, sites real/all 0/0, est visits 0, keywords 0
+      does not matter: No clicks, no rankings and no real sites linking
+  /lawn-care  [page]  status 200  found by crawl
+      words 2321, inlinks 99, sites real/all 0/0, est visits 0, keywords 0
+      does not matter: No clicks, no rankings and no real sites linking
+  /lawn-landscaping  [page]  status 200  found by crawl
+      words 2340, inlinks 99, sites real/all 0/0, est visits 0, keywords 0
+      does not matter: No clicks, no rankings and no real sites linking
+  /lawn-mowing-and-maintenance  [page]  status 200  found by crawl
+      words 1708, inlinks 99, sites real/all 0/0, est visits 0, keywords 0
+      does not matter: No clicks, no rankings and no real sites linking
+  /locations/ampfield  [page]  status 200  found by crawl
+      words 1829, inlinks 99, sites real/all 0/0, est visits 0, keywords 0
+      does not matter: No clicks, no rankings and no real sites linking
+  /locations/awbridge  [page]  status 200  found by crawl
+      words 1885, inlinks 99, sites real/all 0/0, est visits 0, keywords 0
+      does not matter: No clicks, no rankings and no real sites linking
+  /locations/chandlers-ford  [page]  status 200  found by crawl
+      words 1832, inlinks 99, sites real/all 0/0, est visits 0, keywords 0
+      does not matter: No clicks, no rankings and no real sites linking
+  /locations/chilworth  [page]  status 200  found by crawl
+      words 1815, inlinks 99, sites real/all 0/0, est visits 0, keywords 0
+      does not matter: No clicks, no rankings and no real sites linking
+  /locations/hedge-end  [page]  status 200  found by crawl
+      words 1790, inlinks 99, sites real/all 0/0, est visits 0, keywords 0
+      does not matter: No clicks, no rankings and no real sites linking
+  /locations/kings-worthy  [page]  status 200  found by crawl
+      words 1833, inlinks 99, sites real/all 0/0, est visits 0, keywords 0
+      does not matter: No clicks, no rankings and no real sites linking
+  /locations/lockerley  [page]  status 200  found by crawl
+      words 1817, inlinks 99, sites real/all 0/0, est visits 0, keywords 0
+      does not matter: No clicks, no rankings and no real sites linking
+  /locations/lyndhurst  [page]  status 200  found by crawl
+      words 1830, inlinks 99, sites real/all 0/0, est visits 0, keywords 0
+      does not matter: No clicks, no rankings and no real sites linking
+  /locations/romsey  [page]  status 200  found by crawl
+      words 1885, inlinks 99, sites real/all 0/0, est visits 0, keywords 0
+      does not matter: No clicks, no rankings and no real sites linking
+  /locations/southampton/deck-builder  [page]  status 200  found by crawl
+      words 3856, inlinks 1, sites real/all 0/0, est visits 0, keywords 0
+      does not matter: No clicks, no rankings and no real sites linking
+  /locations/southampton/gardener  [page]  status 200  found by crawl
+      words 3034, inlinks 1, sites real/all 0/0, est visits 0, keywords 0
+      does not matter: No clicks, no rankings and no real sites linking
+  /locations/southampton/landscape-designer  [page]  status 200  found by crawl
+      words 5247, inlinks 1, sites real/all 0/0, est visits 0, keywords 0
+      does not matter: No clicks, no rankings and no real sites linking
+  /locations/southampton/landscape-gardener  [page]  status 200  found by crawl
+      words 5930, inlinks 1, sites real/all 0/0, est visits 0, keywords 0
+      does not matter: No clicks, no rankings and no real sites linking
+  /locations/southampton/lawn-care-service  [page]  status 200  found by crawl
+      words 2333, inlinks 1, sites real/all 0/0, est visits 0, keywords 0
+      does not matter: No clicks, no rankings and no real sites linking
+  /locations/southampton/paving-contractor  [page]  status 200  found by crawl
+      words 3126, inlinks 1, sites real/all 0/0, est visits 0, keywords 0
+      does not matter: No clicks, no rankings and no real sites linking
+  /locations/southampton/tree-service  [page]  status 200  found by crawl
+      words 2276, inlinks 1, sites real/all 0/0, est visits 0, keywords 0
+      does not matter: No clicks, no rankings and no real sites linking
+  /locations/stockbridge  [page]  status 200  found by crawl
+      words 1797, inlinks 99, sites real/all 0/0, est visits 0, keywords 0
+      does not matter: No clicks, no rankings and no real sites linking
+  /mulching  [page]  status 200  found by crawl
+      words 1705, inlinks 99, sites real/all 0/0, est visits 0, keywords 0
+      does not matter: No clicks, no rankings and no real sites linking
+  /outdoor-step-construction  [page]  status 200  found by crawl
+      words 2332, inlinks 99, sites real/all 0/0, est visits 0, keywords 0
+      does not matter: No clicks, no rankings and no real sites linking
+  /outdoor-water-feature-design  [page]  status 200  found by crawl
+      words 2306, inlinks 99, sites real/all 0/0, est visits 0, keywords 0
+      does not matter: No clicks, no rankings and no real sites linking
+  /path-landscaping  [page]  status 200  found by crawl
+      words 2104, inlinks 99, sites real/all 0/0, est visits 0, keywords 0
+      does not matter: No clicks, no rankings and no real sites linking
+  /patio-decks  [page]  status 200  found by crawl
+      words 1668, inlinks 99, sites real/all 0/0, est visits 0, keywords 0
+      does not matter: No clicks, no rankings and no real sites linking
+  /patio-design  [page]  status 200  found by crawl
+      words 1928, inlinks 99, sites real/all 0/0, est visits 0, keywords 0
+      does not matter: No clicks, no rankings and no real sites linking
+  /patio-enclosure-construction  [page]  status 200  found by crawl
+      words 1552, inlinks 99, sites real/all 0/0, est visits 0, keywords 0
+      does not matter: No clicks, no rankings and no real sites linking
+  /patio-paving  [page]  status 200  found by crawl
+      words 1640, inlinks 99, sites real/all 0/0, est visits 0, keywords 0
+      does not matter: No clicks, no rankings and no real sites linking
+  /pergola-construction  [page]  status 200  found by crawl
+      words 1614, inlinks 99, sites real/all 0/0, est visits 0, keywords 0
+      does not matter: No clicks, no rankings and no real sites linking
+  /pond-maintenance  [page]  status 200  found by crawl
+      words 1968, inlinks 99, sites real/all 0/0, est visits 0, keywords 0
+      does not matter: No clicks, no rankings and no real sites linking
+  /pool-landscaping  [page]  status 200  found by crawl
+      words 2307, inlinks 99, sites real/all 0/0, est visits 0, keywords 0
+      does not matter: No clicks, no rankings and no real sites linking
+  /projects  [page]  status 404  found by crawl
+      words -, inlinks 100, sites real/all 0/0, est visits 0, keywords 0
+      does not matter: No clicks, no rankings and no real sites linking
+  /retaining-wall-design  [page]  status 200  found by crawl
+      words 1925, inlinks 99, sites real/all 0/0, est visits 0, keywords 0
+      does not matter: No clicks, no rankings and no real sites linking
+  /retaining-walls  [page]  status 200  found by crawl
+      words 2299, inlinks 99, sites real/all 0/0, est visits 0, keywords 0
+      does not matter: No clicks, no rankings and no real sites linking
+  /rock-landscaping  [page]  status 200  found by crawl
+      words 2006, inlinks 99, sites real/all 0/0, est visits 0, keywords 0
+      does not matter: No clicks, no rankings and no real sites linking
+  /sod-installation  [page]  status 200  found by crawl
+      words 2066, inlinks 99, sites real/all 0/0, est visits 0, keywords 0
+      does not matter: No clicks, no rankings and no real sites linking
+  /stone-landscaping  [page]  status 200  found by crawl
+      words 1929, inlinks 99, sites real/all 0/0, est visits 0, keywords 0
+      does not matter: No clicks, no rankings and no real sites linking
+  /stone-masonry  [page]  status 200  found by crawl
+      words 2112, inlinks 99, sites real/all 0/0, est visits 0, keywords 0
+      does not matter: No clicks, no rankings and no real sites linking
+  /terms  [page]  status 404  found by crawl
+      words -, inlinks 100, sites real/all 0/0, est visits 0, keywords 0
+      does not matter: No clicks, no rankings and no real sites linking
+  /tree-planting  [page]  status 200  found by crawl
+      words 1933, inlinks 99, sites real/all 0/0, est visits 0, keywords 0
+      does not matter: No clicks, no rankings and no real sites linking
+  /tree-removal  [page]  status 200  found by crawl
+      words 1923, inlinks 99, sites real/all 0/0, est visits 0, keywords 0
+      does not matter: No clicks, no rankings and no real sites linking
+  /tree-stump-grinding  [page]  status 200  found by crawl
+      words 1721, inlinks 99, sites real/all 0/0, est visits 0, keywords 0
+      does not matter: No clicks, no rankings and no real sites linking
+  /tree-stump-removal  [page]  status 200  found by crawl
+      words 1899, inlinks 99, sites real/all 0/0, est visits 0, keywords 0
+      does not matter: No clicks, no rankings and no real sites linking
+  /tree-transplanting  [page]  status 200  found by crawl
+      words 1750, inlinks 99, sites real/all 0/0, est visits 0, keywords 0
+      does not matter: No clicks, no rankings and no real sites linking
+  /turf-management  [page]  status 200  found by crawl
+      words 1870, inlinks 99, sites real/all 0/0, est visits 0, keywords 0
+      does not matter: No clicks, no rankings and no real sites linking
+  /weed-control  [page]  status 200  found by crawl
+      words 1706, inlinks 99, sites real/all 0/0, est visits 0, keywords 0
+      does not matter: No clicks, no rankings and no real sites linking
+  /wood-deck-construction  [page]  status 200  found by crawl
+      words 1549, inlinks 99, sites real/all 0/0, est visits 0, keywords 0
+      does not matter: No clicks, no rankings and no real sites linking
+  /wood-staining  [page]  status 200  found by crawl
+      words 1651, inlinks 99, sites real/all 0/0, est visits 0, keywords 0
+      does not matter: No clicks, no rankings and no real sites linking
+
+URL MAP (against Edens Edge's live Page Map, read 5 Nov: 126 pages): Keep 11, Reuse 1, Merge 42, Retire 52; 94 redirects, 0 410s
+  Keep    /locations/southampton           no redirect  /locations/southampton
+          It matters, so its address beats the Page Map's /gardener for "Gardener". Approve the Page Map change.
+  Keep    /tree-trimming-and-pruning       no redirect  /tree-trimming-and-pruning
+          It matters, so it keeps its address. The Page Map has no page for it, so one needs building.
+  Keep    /locations/winchester            no redirect  /locations/winchester
+          The same address as the Page Map page "Winchester".
+  Keep    /locations/new-forest-district   no redirect  /locations/new-forest-district
+          It matters, so it keeps its address. The Page Map has no page for it, so one needs building.
+  Keep    /locations/eastleigh             no redirect  /locations/eastleigh
+          The same address as the Page Map page "Eastleigh".
+  Keep    /                                no redirect  /
+          The new homepage lives here. On the old site this address answers 404, and the homepage was /home.
+  Retire  /artificial-turf-installation    301          /services/artificial-grass-installation
+          It doesn't matter, so the Page Map address stands. It redirects to "Artificial grass installation", the page it matches.
+  Retire  /brick-paver-installation        301          /landscape-gardener
+          It doesn't matter and has no match. It redirects to "Landscape Gardener", the closest page.
+  Retire  /bumper-block-and-post-installation 301          /landscape-gardener
+          It doesn't matter and has no match. It redirects to "Landscape Gardener", the closest page.
+  Retire  /cabling-and-bracing             301          /services/tree-cabling-and-bracing
+          It doesn't matter, so the Page Map address stands. It redirects to "Tree cabling and bracing", the page it matches.
+  Retire  /cdn-cgi/l/email-protection      no redirect  -
+          Not a page, and nothing depends on it, so it needs no redirect.
+  Retire  /composite-decks                 301          /services/composite-decking
+          It doesn't matter, so the Page Map address stands. It redirects to "Composite decking", the page it matches.
+  Retire  /concrete-masonry                301          /landscape-gardener
+          It doesn't matter and has no match. It redirects to "Landscape Gardener", the closest page.
+  Retire  /concrete-work                   301          /landscape-gardener
+          It doesn't matter and has no match. It redirects to "Landscape Gardener", the closest page.
+  Keep    /contact                         no redirect  /contact
+          Every new site has this page at this address.
+  Merge   /custom-landscape-design         301          /landscape-designer
+          One of 8 old pages covering "Landscape Designer", so it redirects to /landscape-designer.
+  Merge   /deck-cleaning                   301          /deck-builder
+          One of 8 old pages covering "Deck Builder", so it redirects to /deck-builder.
+  Merge   /deck-design                     301          /deck-builder
+          One of 8 old pages covering "Deck Builder", so it redirects to /deck-builder.
+  Retire  /deck-installation               301          /services/decking-installation
+          It doesn't matter, so the Page Map address stands. It redirects to "Decking installation", the page it matches.
+  Merge   /deck-painting                   301          /deck-builder
+          One of 8 old pages covering "Deck Builder", so it redirects to /deck-builder.
+  Merge   /deck-railing-repair             301          /services/decking-repairs
+          One of 2 old pages covering "Decking repairs", so it redirects to /services/decking-repairs.
+  Merge   /deck-refinishing                301          /deck-builder
+          One of 8 old pages covering "Deck Builder", so it redirects to /deck-builder.
+  Merge   /deck-remodelling                301          /deck-builder
+          One of 8 old pages covering "Deck Builder", so it redirects to /deck-builder.
+  Merge   /deck-repair                     301          /services/decking-repairs
+          One of 2 old pages covering "Decking repairs", so it redirects to /services/decking-repairs.
+  Merge   /deck-replacement                301          /deck-builder
+          One of 8 old pages covering "Deck Builder", so it redirects to /deck-builder.
+  Retire  /desert-landscaping              301          /landscape-gardener
+          It doesn't matter and has no match. It redirects to "Landscape Gardener", the closest page.
+  Retire  /drainage-solutions              301          /services/garden-drainage
+          It doesn't matter and has no match. It redirects to "Garden drainage", the closest page.
+  Merge   /driveway-installation           301          /paving-contractor
+          One of 4 old pages covering "Paving Contractor", so it redirects to /paving-contractor.
+  Merge   /driveway-landscaping            301          /paving-contractor
+          One of 4 old pages covering "Paving Contractor", so it redirects to /paving-contractor.
+  Retire  /driveway-or-path-paving         301          /landscape-gardener
+          It doesn't matter and has no match. It redirects to "Landscape Gardener", the closest page.
+  Merge   /driveway-replacement            301          /paving-contractor
+          One of 4 old pages covering "Paving Contractor", so it redirects to /paving-contractor.
+  Retire  /excavation-grading              301          /landscape-gardener
+          It doesn't matter and has no match. It redirects to "Landscape Gardener", the closest page.
+  Merge   /fence-building                  301          /services/fencing
+          One of 3 old pages covering "Fencing", so it redirects to /services/fencing.
+  Merge   /fence-installation              301          /services/fencing
+          One of 3 old pages covering "Fencing", so it redirects to /services/fencing.
+  Merge   /fencing-installation            301          /services/fencing
+          One of 3 old pages covering "Fencing", so it redirects to /services/fencing.
+  Merge   /garden-decorating               301          /locations/southampton
+          One of 9 old pages covering "Gardener", so it redirects to /locations/southampton.
+  Merge   /garden-design                   301          /landscape-designer
+          One of 8 old pages covering "Landscape Designer", so it redirects to /landscape-designer.
+  Merge   /garden-designs                  301          /landscape-designer
+          One of 8 old pages covering "Landscape Designer", so it redirects to /landscape-designer.
+  Retire  /garden-drainage                 301          /services/garden-drainage
+          It doesn't matter, so the Page Map address stands. It redirects to "Garden drainage", the page it matches.
+  Merge   /garden-landscaping              301          /landscape-gardener
+          One of 2 old pages covering "Landscape Gardener", so it redirects to /landscape-gardener.
+  Retire  /garden-levelling                301          /services/garden-levelling
+          It doesn't matter, so the Page Map address stands. It redirects to "Garden levelling", the page it matches.
+  Merge   /garden-work                     301          /locations/southampton
+          One of 9 old pages covering "Gardener", so it redirects to /locations/southampton.
+  Merge   /gardening-services              301          /locations/southampton
+          One of 9 old pages covering "Gardener", so it redirects to /locations/southampton.
+  Retire  /general-construction            301          /landscape-gardener
+          It doesn't matter and has no match. It redirects to "Landscape Gardener", the closest page.
+  Retire  /grading-and-resloping           301          /landscape-gardener
+          It doesn't matter and has no match. It redirects to "Landscape Gardener", the closest page.
+  Retire  /grass-seeding                   301          /services/lawn-seeding
+          It doesn't matter and has no match. It redirects to "Lawn seeding", the closest page.
+  Retire  /green-landscaping               301          /landscape-gardener
+          It doesn't matter and has no match. It redirects to "Landscape Gardener", the closest page.
+  Retire  /groundskeeping                  301          /landscape-gardener
+          It doesn't matter and has no match. It redirects to "Landscape Gardener", the closest page.
+  Retire  /hardscaping                     301          /landscape-gardener
+          It doesn't matter and has no match. It redirects to "Landscape Gardener", the closest page.
+  Retire  /hedge-trimming                  301          /services/hedge-trimming
+          It doesn't matter and has no match. It redirects to "Hedge trimming", the closest page.
+  Reuse   /home                            301          /
+          The old site's homepage, at its own address. It redirects to /, the new homepage, and its text is kept for it.
+  Retire  /landscape-architecture-services 301          /landscape-gardener
+          It doesn't matter and has no match. It redirects to "Landscape Gardener", the closest page.
+  Merge   /landscape-design                301          /landscape-designer
+          One of 8 old pages covering "Landscape Designer", so it redirects to /landscape-designer.
+  Merge   /landscape-design-construction   301          /landscape-designer
+          One of 8 old pages covering "Landscape Designer", so it redirects to /landscape-designer.
+  Retire  /landscape-installations         301          /landscape-gardener
+          It doesn't matter and has no match. It redirects to "Landscape Gardener", the closest page.
+  Retire  /landscape-management            301          /landscape-gardener
+          It doesn't matter and has no match. It redirects to "Landscape Gardener", the closest page.
+  Merge   /landscaping-design              301          /landscape-designer
+          One of 8 old pages covering "Landscape Designer", so it redirects to /landscape-designer.
+  Retire  /landscaping-maintenance         301          /landscape-gardener
+          It doesn't matter and has no match. It redirects to "Landscape Gardener", the closest page.
+  Merge   /lawn-care                       301          /landscape-designer
+          One of 8 old pages covering "Landscape Designer", so it redirects to /landscape-designer.
+  Retire  /lawn-landscaping                301          /landscape-gardener
+          It doesn't matter and has no match. It redirects to "Landscape Gardener", the closest page.
+  Retire  /lawn-mowing-and-maintenance     301          /services/lawn-mowing
+          It doesn't matter, so the Page Map address stands. It redirects to "Lawn mowing", the page it matches.
+  Merge   /locations/ampfield              301          /locations/southampton
+          One of 9 old pages covering "Gardener", so it redirects to /locations/southampton.
+  Merge   /locations/awbridge              301          /locations/southampton
+          One of 9 old pages covering "Gardener", so it redirects to /locations/southampton.
+  Keep    /locations/chandlers-ford        no redirect  /locations/chandlers-ford
+          The same address as the Page Map page "Chandler's Ford".
+  Merge   /locations/chilworth             301          /locations/southampton
+          One of 9 old pages covering "Gardener", so it redirects to /locations/southampton.
+  Keep    /locations/hedge-end             no redirect  /locations/hedge-end
+          The same address as the Page Map page "Hedge End".
+  Retire  /locations/kings-worthy          301          /gardener
+          It doesn't matter and has no match. It redirects to "Gardener", the closest page.
+  Merge   /locations/lockerley             301          /locations/southampton
+          One of 9 old pages covering "Gardener", so it redirects to /locations/southampton.
+  Retire  /locations/lyndhurst             301          /gardener
+          It doesn't matter and has no match. It redirects to "Gardener", the closest page.
+  Keep    /locations/romsey                no redirect  /locations/romsey
+          The same address as the Page Map page "Romsey".
+  Merge   /locations/southampton/deck-builder 301          /deck-builder
+          One of 8 old pages covering "Deck Builder", so it redirects to /deck-builder.
+  Merge   /locations/southampton/gardener  301          /locations/southampton
+          One of 9 old pages covering "Gardener", so it redirects to /locations/southampton.
+  Merge   /locations/southampton/landscape-designer 301          /landscape-designer
+          One of 8 old pages covering "Landscape Designer", so it redirects to /landscape-designer.
+  Merge   /locations/southampton/landscape-gardener 301          /landscape-gardener
+          One of 2 old pages covering "Landscape Gardener", so it redirects to /landscape-gardener.
+  Retire  /locations/southampton/lawn-care-service 301          /services/lawn-care
+          It doesn't matter, so the Page Map address stands. It redirects to "Lawn care", the page it matches.
+  Merge   /locations/southampton/paving-contractor 301          /paving-contractor
+          One of 4 old pages covering "Paving Contractor", so it redirects to /paving-contractor.
+  Retire  /locations/southampton/tree-service 301          /tree-service
+          It doesn't matter, so the Page Map address stands. It redirects to "Tree Service", the page it matches.
+  Retire  /locations/stockbridge           301          /gardener
+          It doesn't matter and has no match. It redirects to "Gardener", the closest page.
+  Retire  /mulching                        301          /services/mulching
+          It doesn't matter, so the Page Map address stands. It redirects to "Mulching", the page it matches.
+  Retire  /outdoor-step-construction       301          /landscape-gardener
+          It doesn't matter and has no match. It redirects to "Landscape Gardener", the closest page.
+  Retire  /outdoor-water-feature-design    301          /services/ponds-and-water-features
+          It doesn't matter and has no match. It redirects to "Ponds and water features", the closest page.
+  Retire  /path-landscaping                301          /landscape-gardener
+          It doesn't matter and has no match. It redirects to "Landscape Gardener", the closest page.
+  Merge   /patio-decks                     301          /deck-builder
+          One of 8 old pages covering "Deck Builder", so it redirects to /deck-builder.
+  Merge   /patio-design                    301          /services/patios
+          One of 2 old pages covering "Patios", so it redirects to /services/patios.
+  Retire  /patio-enclosure-construction    301          /services/patios
+          It doesn't matter and has no match. It redirects to "Patios", the closest page.
+  Merge   /patio-paving                    301          /services/patios
+          One of 2 old pages covering "Patios", so it redirects to /services/patios.
+  Retire  /pergola-construction            301          /services/pergolas
+          It doesn't matter, so the Page Map address stands. It redirects to "Pergolas", the page it matches.
+  Retire  /pond-maintenance                301          /services/garden-maintenance
+          It doesn't matter and has no match. It redirects to "Garden maintenance", the closest page.
+  Retire  /pool-landscaping                301          /landscape-gardener
+          It doesn't matter and has no match. It redirects to "Landscape Gardener", the closest page.
+  Retire  /projects                        301          /gardener
+          It doesn't matter and has no match. Without Search Console it still redirects, to "Gardener": nothing closer was found, so check this one.
+  Merge   /retaining-wall-design           301          /services/retaining-walls
+          One of 2 old pages covering "Retaining walls", so it redirects to /services/retaining-walls.
+  Merge   /retaining-walls                 301          /services/retaining-walls
+          One of 2 old pages covering "Retaining walls", so it redirects to /services/retaining-walls.
+  Retire  /rock-landscaping                301          /landscape-gardener
+          It doesn't matter and has no match. It redirects to "Landscape Gardener", the closest page.
+  Retire  /sod-installation                301          /services/decking-installation
+          It doesn't matter and has no match. It redirects to "Decking installation", the closest page.
+  Retire  /stone-landscaping               301          /landscape-gardener
+          It doesn't matter and has no match. It redirects to "Landscape Gardener", the closest page.
+  Retire  /stone-masonry                   301          /landscape-gardener
+          It doesn't matter and has no match. It redirects to "Landscape Gardener", the closest page.
+  Keep    /terms                           no redirect  /terms
+          Every new site has this page at this address.
+  Retire  /tree-planting                   301          /services/tree-planting
+          It doesn't matter, so the Page Map address stands. It redirects to "Tree planting", the page it matches.
+  Merge   /tree-removal                    301          /services/tree-stump-removal
+          One of 3 old pages covering "Tree stump removal", so it redirects to /services/tree-stump-removal.
+  Merge   /tree-stump-grinding             301          /services/tree-stump-removal
+          One of 3 old pages covering "Tree stump removal", so it redirects to /services/tree-stump-removal.
+  Merge   /tree-stump-removal              301          /services/tree-stump-removal
+          One of 3 old pages covering "Tree stump removal", so it redirects to /services/tree-stump-removal.
+  Retire  /tree-transplanting              301          /services/tree-transplanting
+          It doesn't matter, so the Page Map address stands. It redirects to "Tree transplanting", the page it matches.
+  Retire  /turf-management                 301          /services/turf-laying
+          It doesn't matter and has no match. It redirects to "Turf laying", the closest page.
+  Retire  /weed-control                    301          /services/weed-control
+          It doesn't matter, so the Page Map address stands. It redirects to "Weed control", the page it matches.
+  Retire  /wood-deck-construction          301          /deck-builder
+          It doesn't matter and has no match. It redirects to "Deck Builder", the closest page.
+  Retire  /wood-staining                   301          /landscape-gardener
+          It doesn't matter and has no match. It redirects to "Landscape Gardener", the closest page.

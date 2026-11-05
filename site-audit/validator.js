@@ -26,6 +26,10 @@ function mapCheck(v) {
   const rows = v.urls.filter(u => !(u.plan && u.plan.no_action));
   const redirects = new Map(rows.filter(u => u.plan.redirect_type === '301' && u.plan.new_url).map(u => [stripSlash(u.path), stripSlash(u.plan.new_url)]));
   const settings = v.settings || {};
+  const summary = (v.scan && v.scan.summary) || {};
+  const oldHomepage = summary.old_homepage || null;
+  // An audit that isn't complete can't vouch for the map: a person reads this before launch
+  for (const w of (v.scan && v.scan.warnings) || []) if (w.loud) out.push(issue('WARN', `The scan may be incomplete, so this map may be too: ${w.text}`));
   for (const u of rows) {
     const p = u.plan;
     if (u.matters && !p.decision) out.push(issue('BLOCK', `${u.path} matters and has no row in the map. Give it a decision.`, u.url));
@@ -38,7 +42,7 @@ function mapCheck(v) {
       else if (/^https?:\/\//i.test(to) || !to.startsWith('/')) out.push(issue('BLOCK', `${u.path} goes to ${to}, which is off the domain. Choose a page on this site.`, u.url));
       else if (neverDestination(to, settings)) out.push(issue('BLOCK', `${u.path} goes to ${to}. A thank-you page is never a destination.`, u.url));
       else if (stripSlash(to) === stripSlash(u.path)) out.push(issue('BLOCK', `${u.path} redirects to itself. Choose Keep, or another page.`, u.url));
-      else if (to === '/' && !isHomeVariant(u.path)) out.push(issue('WARN', `${u.path} goes to the homepage. A closer page is better, if there is one.`, u.url));
+      else if (to === '/' && !isHomeVariant(u.path) && u.path !== oldHomepage) out.push(issue('WARN', `${u.path} goes to the homepage. A closer page is better, if there is one.`, u.url));
       // Chains and loops inside the map: a destination that is itself redirected
       const seen = new Set([stripSlash(u.path)]);
       let at = stripSlash(to), hops = 0;

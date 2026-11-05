@@ -20,7 +20,9 @@ const AdmZip = require('adm-zip');
 const DEFAULTS = require('./defaults.json');
 const { createUrlTools, targetOf, stripWww } = require('./urls');
 const { fetchChain } = require('./crawl');
-const { parsePage, detectPlatform, blockReason } = require('./html');
+const { parsePage, detectPlatform, blockReason, looksNotFound } = require('./html');
+const URL_PATTERNS = require('./url-patterns.json');
+const { injectedReason } = require('./matters');
 const { parseRobots, allowedBy, parseSitemap } = require('./sitemap');
 const { analysePages } = require('./matters');
 const { buildIssues } = require('./issues');
@@ -49,6 +51,7 @@ function domainCheck({ cv = {}, connection = null }) {
 }
 
 const numericSettings = Object.keys(DEFAULTS).filter(k => typeof DEFAULTS[k] === 'number');
+const LOUD = new Set(['bot_block', 'homepage_elsewhere', 'no_homepage', 'root_not_page', 'sitemap_missing', 'crawl_short', 'js_only', 'page_cap', 'fetch_failed', 'source_failed', 'source_capped']);
 
 // The Page Map rows the decisions match against, and the base town. Empty until the Page Map exists.
 const pageMapLoader = pool => async clientId => {
@@ -130,6 +133,7 @@ function createSiteAudit({ pool, loadValues, getConnection = async () => null, l
       await discover(ctx);
       await addSearchConsoleUrls(ctx);
       await gather(ctx);
+      await homepageFromDataForSeo(ctx);
       await crawl(ctx);
       await setPhase(ctx, 'analyse');
       await analyse(scanId);
@@ -174,6 +178,77 @@ function createSiteAudit({ pool, loadValues, getConnection = async () => null, l
     return row;
   }
 
+  // ── The real homepage ──
+  // A GoHighLevel site answers 404 at / and keeps its homepage at /home, and most of Local Launchpad's
+  // old clients are on GoHighLevel (Brandon, 5 Nov). So / isn't assumed: follow its redirects, try the
+  // common paths, and only then ask DataForSEO for the most linked URL, once its rows are in.
+  const setPlatform = async (ctx, res) => {
+    const p = detectPlatform(res.text, res.headers);
+    await pool.query(`UPDATE site_scans SET platform = $2, platform_evidence = $3 WHERE id = $1`, [ctx.scanId, p.platform, j(p.evidence)]);
+  };
+  const isRealPage = (res, settings) => !res.error && !res.offsite && !res.loop && res.status >= 200 && res.status < 300 && /html/i.test(res.contentType || 'text/html') && !!(res.text || '').trim() && !blockReason(res.status, res.text) && !looksNotFound(res.text, settings);
+
+  async function findHomepage(ctx, root, rootKey) {
+    const { state, tools, settings } = ctx;
+    const rootStatus = (root.hops && root.hops[0] && root.hops[0].status) || root.status;
+    if (isRealPage(root, settings)) {
+      const finalKey = tools.key(root.finalUrl);
+      if (finalKey === rootKey) state.homepage = { path: '/', how: 'root', root_status: rootStatus };
+      else {
+        state.homepage = { path: tools.pathOf(finalKey), how: 'redirect', root_status: rootStatus };
+        ctx.pre.set(finalKey, root);
+        await addUrl(ctx, finalKey, 'crawl', -1);
+      }
+      await setPlatform(ctx, root);
+      return;
+    }
+    for (const p of URL_PATTERNS.homepage_paths) {
+      const res = await fetchOf(ctx, `${state.origin}${p}`);
+      const k = res.error ? null : tools.key(res.finalUrl);
+      if (k && k !== rootKey && isRealPage(res, settings)) {
+        state.homepage = { path: tools.pathOf(k), how: 'common path', root_status: rootStatus };
+        ctx.pre.set(k, res);
+        await addUrl(ctx, k, 'crawl', -1);
+        await setPlatform(ctx, res);
+        return;
+      }
+    }
+    // Still none. DataForSEO's rows arrive next, so that's asked after them
+    state.homepage = { path: null, how: 'none', root_status: rootStatus, pending: true };
+    if (root.text) await setPlatform(ctx, root);
+  }
+
+  // The URL other sites link to most, then the one with the most traffic: it's the likeliest homepage
+  async function homepageFromDataForSeo(ctx) {
+    const { state, tools, settings } = ctx;
+    if (!state.homepage || !state.homepage.pending) return;
+    const { rows: links } = await pool.query(`SELECT url, domain_from, url_from, anchor, spam_score, external_links FROM site_scan_backlinks WHERE scan_id = $1`, [ctx.scanId]);
+    const { rows: keywords } = await pool.query(`SELECT url, etv FROM site_scan_keywords WHERE scan_id = $1`, [ctx.scanId]);
+    const by = new Map();
+    const row = u => { if (!by.has(u)) by.set(u, { url: u, links: [], etv: 0 }); return by.get(u); };
+    for (const l of links) row(l.url).links.push(l);
+    for (const k of keywords) row(k.url).etv += Number(k.etv || 0);
+    const rootKey = tools.key(`${state.origin}/`);
+    const ranked = [...by.values()]
+      .filter(c => c.url !== rootKey && tools.kind(c.url) === 'page' && tools.crawlable(c.url) && !injectedReason(tools.pathOf(c.url)))
+      .map(c => { const n = countDomains(c.links, settings); return { ...c, real: n.real, all: n.all }; })
+      .sort((a, b) => b.real - a.real || b.all - a.all || b.etv - a.etv);
+    for (const c of ranked.slice(0, 5)) {
+      const res = await fetchOf(ctx, c.url);
+      const k = res.error ? null : tools.key(res.finalUrl);
+      if (k && k !== rootKey && isRealPage(res, settings)) {
+        state.homepage = { path: tools.pathOf(k), how: c.real || c.all ? 'most linked' : 'most traffic', root_status: state.homepage.root_status, sites: c.all };
+        ctx.pre.set(k, res);
+        await addUrl(ctx, k, 'crawl', -1);
+        await setPlatform(ctx, res);
+        await saveState(ctx);
+        return;
+      }
+    }
+    state.homepage = { ...state.homepage, pending: false };
+    await saveState(ctx);
+  }
+
   // ── Homepage, the four forms of the address, robots.txt, the sitemaps ──
   async function discover(ctx) {
     const { state } = ctx;
@@ -196,10 +271,7 @@ function createSiteAudit({ pool, loadValues, getConnection = async () => null, l
 
     const block = blockReason(home.status, home.text);
     if (block) state.bot_block = block;
-    if (home.status && home.status >= 200 && home.status < 300 && !block) {
-      const p = detectPlatform(home.text, home.headers);
-      await pool.query(`UPDATE site_scans SET platform = $2, platform_evidence = $3 WHERE id = $1`, [ctx.scanId, p.platform, j(p.evidence)]);
-    }
+    if (!block && !home.offsite) await findHomepage(ctx, home, key);
 
     if (!block) {
       // The four forms of the address
@@ -421,12 +493,13 @@ function createSiteAudit({ pool, loadValues, getConnection = async () => null, l
     // Internal links: which crawled pages link where
     const inlinks = new Map();
     for (const u of urls) for (const k of u.links_out || []) inlinks.set(k, (inlinks.get(k) || 0) + 1);
-    const homeKey = tools.key(`${state.origin}/`);
+    const rootKey = tools.key(`${state.origin}/`);
+    const homeKey = state.homepage && state.homepage.path ? tools.key(`${state.origin}${state.homepage.path}`) : rootKey;
     const linksCut = state.dfs && state.dfs.backlinks && state.dfs.backlinks.capped;
     for (const u of urls) {
       const a = pages.get(u.url);
       const inl = inlinks.get(u.url) || 0;
-      const orphan = (u.sources || []).includes('sitemap') && inl === 0 && u.url !== homeKey;
+      const orphan = (u.sources || []).includes('sitemap') && inl === 0 && u.url !== homeKey && u.url !== rootKey;
       // The link list was cut off and this page has links the list didn't reach: the safe answer
       if (linksCut && Number(u.summary_rd || 0) > a.all_rd && !a.injected && overrides.get(u.url) !== false && !a.matters) { a.matters = true; a.matters_why = ['The list of links was cut off before this page was reached, so it counts as mattering until checked']; }
       await pool.query(
@@ -446,6 +519,19 @@ function createSiteAudit({ pool, loadValues, getConnection = async () => null, l
     const low = fetchedPages.filter(u => u.low_text);
     const homeLow = low.some(u => u.url === homeKey);
     if (fetchedPages.length && (homeLow || low.length / fetchedPages.length >= 0.3)) warn.push({ kind: 'js_only', text: `${low.length} of ${fetchedPages.length} pages have almost no text in their HTML. The site probably builds its pages with JavaScript, so the crawl may have missed pages and text.` });
+    // The real homepage, and whether the list can be trusted as complete
+    const hp = state.homepage;
+    if (hp && hp.how === 'none') warn.push({ kind: 'no_homepage', text: `${state.origin}/ answers ${hp.root_status || 'with no page'}, and no homepage could be found at the common addresses or from DataForSEO. The crawl had no homepage to start from, so this list is short. Find the homepage by hand.` });
+    else if (hp && hp.path !== '/' && hp.how === 'redirect') warn.push({ kind: 'homepage_moved', text: `${state.origin}/ redirects to ${hp.path}, so that was read as the old homepage. The URL map suggests a 301 from it to / on the new site.` });
+    else if (hp && hp.path !== '/') warn.push({ kind: 'root_not_page', text: `${state.origin}/ answers ${hp.root_status || 'with no page'}, so the site has no page at its own address. Its homepage was found at ${hp.path} (${{ 'common path': 'a common address', 'most linked': `the URL most sites link to${hp.sites ? `: ${hp.sites}` : ''}`, 'most traffic': 'the URL with the most traffic' }[hp.how] || hp.how}). Check that's right. The URL map suggests a 301 from it to / on the new site.` });
+    if (state.sitemap && !state.sitemap.urls) warn.push({ kind: 'sitemap_missing', text: `No sitemap was found${state.sitemap.files ? ` in the ${state.sitemap.files} places tried` : ''}. Pages that nothing links to can't be found by the crawl, so the list may be short. Ask for a list of pages if the client has one, or upload a Search Console file.` });
+    const liveKnown = fetchedPages.filter(u => (u.sources || []).some(s => s !== 'crawl'));
+    const reached = new Set(fetchedPages.filter(u => (inlinks.get(u.url) || 0) > 0 || u.url === homeKey).map(u => u.url));
+    const unreached = liveKnown.filter(u => !reached.has(u.url));
+    if (liveKnown.length >= settings.crawl_short_min && reached.size < liveKnown.length * settings.crawl_short_ratio) warn.push({ kind: 'crawl_short', text: `The crawl reached ${reached.size} ${reached.size === 1 ? 'page' : 'pages'} by following links, but other sources know of ${liveKnown.length} live pages, ${unreached.length} of them not linked from anything crawled. The site's links aren't all readable, so expect more pages than this list shows. Check with Screaming Frog.` });
+    else if (reached.size <= 1 && hp && hp.how !== 'none' && !state.bot_block) warn.push({ kind: 'crawl_short', text: `The crawl reached only ${reached.size} ${reached.size === 1 ? 'page' : 'pages'}, with no links to follow. A real site has more than that, so this list is probably short. Check with Screaming Frog.` });
+    const failedFetches = urls.filter(u => u.fetch_state === 'failed');
+    if (failedFetches.length >= 3 && failedFetches.length / urls.length >= 0.1) warn.push({ kind: 'fetch_failed', text: `${failedFetches.length} of ${urls.length} URLs couldn't be read at all. Resume tries nothing again, so scan again later.` });
     if (state.page_cap_hit) warn.push({ kind: 'page_cap', text: `The crawl stopped at the limit of ${settings.page_cap} URLs. ${urls.filter(u => u.fetch_state === 'cap').length} URLs found weren't fetched.` });
     if (state.robots_skipped) warn.push({ kind: 'robots', text: `robots.txt asks crawlers to stay out of ${state.robots_skipped} URLs, so they weren't fetched.` });
     for (const [key, label] of [['pages', 'linked pages'], ['backlinks', 'backlinks'], ['keywords', 'rankings']]) {
@@ -461,6 +547,8 @@ function createSiteAudit({ pool, loadValues, getConnection = async () => null, l
       if (gsc.sitewideQueries && !gsc.queries.size) warn.push({ kind: 'gsc_queries', text: "Search Console's queries file doesn't link queries to pages, so the top searches per page come from DataForSEO." });
     }
 
+    // The scan must never look complete when it isn't: anything here puts a red banner over the list
+    for (const w of warn) w.loud = LOUD.has(w.kind);
     const final = await pool.query(`SELECT url, matters, top20, kind, orphan, sources, fetch_state FROM site_scan_urls WHERE scan_id = $1`, [scanId]);
     const by = { crawl: 0, sitemap: 0, rankings: 0, backlinks: 0, search_console: 0 };
     for (const u of final.rows) for (const s of u.sources || []) by[s] = (by[s] || 0) + 1;
@@ -480,9 +568,13 @@ function createSiteAudit({ pool, loadValues, getConnection = async () => null, l
       keywords: kw.length,
       est_traffic: Math.round(kw.reduce((s, k) => s + Number(k.etv || 0), 0) * 100) / 100,
       sitemap: state.sitemap || null,
+      homepage: hp ? { path: hp.path, how: hp.how, root_status: hp.root_status } : null,
+      old_homepage: hp && hp.path && hp.path !== '/' ? hp.path : null,
+      crawl: { reached: reached.size, known_elsewhere: liveKnown.length, not_linked: unreached.length },
+      complete: !warn.some(w => w.loud),
     };
     // The suggested decision for every URL. They wait until there is a Page Map to match against.
-    const refreshed = await decisions.refresh(clientId, scanId, { hasSearchConsole: gsc.hasFile, origin: state.origin });
+    const refreshed = await decisions.refresh(clientId, scanId, { hasSearchConsole: gsc.hasFile, origin: state.origin, oldHomepage: summary.old_homepage, rootStatus: hp ? hp.root_status : null });
     if (refreshed.ready) {
       const now = await decisions.rowsFor(clientId);
       const counts = { Keep: 0, Reuse: 0, Merge: 0, Retire: 0, Remove: 0 };

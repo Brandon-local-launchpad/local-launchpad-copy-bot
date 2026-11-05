@@ -7,6 +7,7 @@
 
 const cheerio = require('cheerio');
 const { normPhone, POSTCODE_RE } = require('../citations/nap');
+const URL_PATTERNS = require('./url-patterns.json');
 
 const BLOCK = new Set(['address', 'article', 'aside', 'blockquote', 'br', 'dd', 'div', 'dl', 'dt', 'figcaption', 'figure', 'footer', 'form', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'header', 'hr', 'li', 'main', 'nav', 'ol', 'p', 'pre', 'section', 'table', 'td', 'th', 'tr', 'ul']);
 const NEVER = new Set(['script', 'style', 'noscript', 'template', 'svg', 'iframe']);
@@ -132,6 +133,8 @@ function detectPlatform(html, headers = {}) {
     ['WordPress', [[/\/wp-content\//i, 'files under /wp-content/'], [/\/wp-includes\//i, 'files under /wp-includes/'], [/\/wp-json\//i, 'a /wp-json/ link'], [/generator["'][^>]*content=["']WordPress/i, 'the generator tag']]],
     ['Wix', [[/wixstatic\.com/i, 'images on wixstatic.com'], [/generator["'][^>]*content=["']Wix/i, 'the generator tag'], [/_wix(Code|Fonts|_)/, 'Wix scripts']]],
     ['Squarespace', [[/static1\.squarespace\.com|assets\.squarespace\.com/i, 'files on squarespace.com'], [/Static\.SQUARESPACE_CONTEXT/, 'the Squarespace context script'], [/generator["'][^>]*content=["']Squarespace/i, 'the generator tag']]],
+    // After the builders above: their sites often carry a LeadConnector chat widget, which proves nothing
+    ['GoHighLevel', URL_PATTERNS.platforms.GoHighLevel.markers.map(m => [new RegExp(m.pattern, 'i'), m.why])],
     ['GoDaddy builder', [[/generator["'][^>]*content=["'][^"']*(Go ?Daddy|Starfield)/i, 'the generator tag'], [/img\d*\.wsimg\.com/i, 'images on wsimg.com'], [/GoDaddy Website Builder/i, 'the page text']]],
   ];
   for (const [name, marks] of tests) {
@@ -140,6 +143,14 @@ function detectPlatform(html, headers = {}) {
     if (hit.length) return { platform: name, evidence: hit };
   }
   return { platform: 'Other', evidence: generator ? [`the generator tag says "${generator.slice(0, 80)}"`] : ['no known markers on the homepage'] };
+}
+
+// A page that answers 200 and says it isn't there: not a homepage
+function looksNotFound(html) {
+  const s = String(html || '');
+  const title = (s.match(/<title[^>]*>([^<]*)/i) || [])[1] || '';
+  const visible = s.replace(/<script[\s\S]*?<\/script>|<style[\s\S]*?<\/style>|<[^>]+>/g, ' ');
+  return words(visible) < 150 && (/\b404\b|not found/i.test(title) || /page (was )?not found|page (does not|doesn't) exist/i.test(visible));
 }
 
 // A challenge or refusal instead of the page: the reason in plain English, else ''
@@ -158,4 +169,4 @@ function blockReason(status, html) {
   return '';
 }
 
-module.exports = { parsePage, detectPlatform, blockReason, textOf, words };
+module.exports = { parsePage, detectPlatform, blockReason, looksNotFound, textOf, words };

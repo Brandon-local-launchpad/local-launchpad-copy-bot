@@ -99,7 +99,7 @@ const redirectFor = (decision, newUrl) => (decision === 'Keep' ? 'none' : decisi
 // urls: the scan's rows with their analysis. pages: the Page Map's rows that apply. declined: Set of
 // URLs whose slug proposal a person turned down. Returns Map url → { decision, reason, new_url,
 // redirect_type, page_key, proposal, needs_page, check }.
-function suggestAll({ urls, pages, settings, baseTown = '', hasSearchConsole = false, declined = new Set(), keyOf = x => x }) {
+function suggestAll({ urls, pages, settings, baseTown = '', hasSearchConsole = false, declined = new Set(), keyOf = x => x, oldHomepage = null, rootStatus = null }) {
   const world = prepare(pages, settings, baseTown);
   const exactBy = new Map(world.candidates.map(c => [c.slug, c]));
   const homeRow = pages.find(p => p.type === 'homepage' && p.applies !== false);
@@ -119,7 +119,9 @@ function suggestAll({ urls, pages, settings, baseTown = '', hasSearchConsole = f
   const later = []; // redirects and images: their destination depends on another URL's answer
   const leftover = [];
   for (const u of urls) {
-    if (u.path === '/') { set(u, 'Keep', 'The homepage keeps its address.', homeRow || null); continue; }
+    if (u.path === '/') { set(u, 'Keep', oldHomepage ? `The new homepage lives here. On the old site this address ${rootStatus && rootStatus >= 300 && rootStatus < 400 ? 'redirects' : `answers ${rootStatus || 'with no page'}`}, and the homepage was ${oldHomepage}.` : 'The homepage keeps its address.', homeRow || null); continue; }
+    // The old site's real homepage, wherever it was: its text feeds the new homepage, and it 301s there
+    if (oldHomepage && u.path === oldHomepage) { set(u, 'Reuse', "The old site's homepage, at its own address. It redirects to /, the new homepage, and its text is kept for it.", '/'); continue; }
     if (noActionNeeded(u)) { out.set(u.url, { no_action: true }); continue; }
     if (u.kind !== 'page') { later.push(u); continue; }
     if (isHomeVariant(u.path)) { set(u, 'Merge', 'Another address for the homepage, so it redirects there.', '/'); continue; }

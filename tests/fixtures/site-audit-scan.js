@@ -434,6 +434,124 @@ const byPath = (v, p) => v.urls.find(u => u.path === p);
     chk('Resume finishes the pages left and pays DataForSEO nothing more', v.scan.status === 'done' && byPath(v, '/a').status_code === 200 && byPath(v, '/b').status_code === 200 && JSON.stringify(web.calls.dfs) === JSON.stringify(paid), { dfs: web.calls.dfs, paid, urls: v.urls.map(u => [u.path, u.status_code]) }, '');
   }
 
+  // ── A GoHighLevel site, copying edensedge-landscaping.co.uk's pattern (5 Nov): 404 at /, homepage at /home, no sitemap ──
+  const GHL_HEAD = '<img src="https://images.leadconnectorhq.com/image/a.jpg"><link href="https://stcdn.leadconnectorhq.com/x.css">';
+  const svcLinks = ['/hedge-trimming', '/fencing-installation', '/lawn-mowing-and-maintenance'];
+  const ghlPages = () => ({
+    '/home': pageHtml('Home - Test Landscaping', `${WORDS}${svcLinks.map(p => `<a href="${p}">${p}</a>`).join('')}<a href="/contact">Contact</a>`, { head: GHL_HEAD, nav: '<a href="/home">Home</a>' }),
+    '/hedge-trimming': pageHtml('Hedge trimming', WORDS, { head: GHL_HEAD, nav: '<a href="/home">Home</a>' }),
+    '/fencing-installation': pageHtml('Fencing', WORDS, { head: GHL_HEAD, nav: '<a href="/home">Home</a>' }),
+    '/lawn-mowing-and-maintenance': pageHtml('Lawn mowing', WORDS, { head: GHL_HEAD, nav: '<a href="/home">Home</a>' }),
+  });
+  {
+    const site = { host: 'ghl.co.uk', robots: '', pages: ghlPages() };
+    const { view: v } = await scanOf(pool, fakeWeb(site, { keywords: [{ url: 'https://ghl.co.uk/hedge-trimming', keyword: 'hedge trimming', etv: 2 }] }), { live_domain: 'ghl.co.uk' });
+    const s = v.scan;
+    chk('GHL: the platform comes from the page', s.platform === 'GoHighLevel' && s.platform_evidence.length > 0, [s.platform, s.platform_evidence], '');
+    chk('GHL: /home is recorded as the old homepage, found at a common address', s.summary.homepage.path === '/home' && s.summary.homepage.how === 'common path' && s.summary.homepage.root_status === 404 && s.summary.old_homepage === '/home', s.summary.homepage, '');
+    chk('GHL: / is listed with its 404', byPath(v, '/').status_code === 404, byPath(v, '/').status_code, 404);
+    chk('GHL: the crawl goes on from /home and reads every page it links to', ['/home', ...svcLinks].every(p => byPath(v, p) && byPath(v, p).status_code === 200 && byPath(v, p).word_count >= 120), v.urls.map(u => [u.path, u.status_code]), '');
+    chk('GHL: a dead link it finds is listed too', byPath(v, '/contact').status_code === 404);
+    chk('GHL: internal links are counted', byPath(v, '/home').inlinks === 3 && byPath(v, '/hedge-trimming').inlinks === 1, [byPath(v, '/home').inlinks, byPath(v, '/hedge-trimming').inlinks], '');
+    const kinds = s.warnings.filter(w => w.loud).map(w => w.kind);
+    chk('GHL: a loud warning that / answers 404, naming the homepage it found', s.warnings.some(w => w.kind === 'root_not_page' && w.loud && /answers 404/.test(w.text) && /\/home/.test(w.text)), s.warnings, '');
+    chk('GHL: a loud warning that there is no sitemap', s.warnings.some(w => w.kind === 'sitemap_missing' && w.loud), kinds, '');
+    chk('GHL: it does not call itself complete', s.summary.complete === false, s.summary.complete, false);
+    chk('GHL: the crawl counts are on the scan', s.summary.crawl.reached === 4, s.summary.crawl, '');
+  }
+  // The same site with a Page Map: a 301 from the old homepage to /
+  {
+    const site = { host: 'ghl2.co.uk', robots: '', pages: ghlPages() };
+    const pages = [{ page_key: 'homepage:/', type: 'homepage', title: 'Home', slug: '/', h1: '', applies: true, info: { phase: 1 } }, { page_key: 'category:/gardener', type: 'category', title: 'Gardener', slug: '/gardener', h1: '', applies: true, info: { primary: true, phase: 1 } }];
+    const { rows } = await pool.query(`INSERT INTO clients (name) VALUES ('GHL') RETURNING id`);
+    const a = createSiteAudit({ pool, loadValues: async () => ({ live_domain: 'ghl2.co.uk' }), env, fetchImpl: fakeWeb(site).impl, sleep: async () => {}, log: quiet, lookup: async () => ({ address: '93.184.216.34' }), loadPages: async () => ({ rows: pages, baseTown: '' }), retryDelays: [] });
+    await a.start(rows[0].id); await a.wait(rows[0].id);
+    const v = await a.view(rows[0].id);
+    const home = byPath(v, '/home').plan;
+    chk('GHL map: the old homepage gets a 301 to /', home.decision === 'Reuse' && home.redirect_type === '301' && home.new_url === '/' && /old site's homepage/.test(home.reason), home, '');
+    chk('GHL map: / is the new homepage, kept, saying what happened', byPath(v, '/').plan.decision === 'Keep' && /answers 404/.test(byPath(v, '/').plan.reason) && /\/home/.test(byPath(v, '/').plan.reason), byPath(v, '/').plan, '');
+    const text = await a.pageContent(rows[0].id, '/');
+    chk('GHL map: its text is saved for the new homepage\'s page view', text.pages.length === 1 && text.pages[0].path === '/home', text.pages.map(p => p.path), '');
+    const Val = require(path.join(root, 'site-audit/validator.js'));
+    const check = Val.mapCheck(v);
+    chk('GHL map: the validator doesn\'t warn about the old homepage going to the homepage', !check.warn.some(i => /\/home goes to the homepage/.test(i.text)), check.warn, '');
+    chk('GHL map: it does warn that the scan may be incomplete', check.warn.some(i => /may be incomplete/.test(i.text)), check.warn, '');
+  }
+  // / redirects to the homepage
+  {
+    const site = { host: 'moved.co.uk', robots: '', pages: { ...ghlPages(), '/': { status: 301, location: '/home' } } };
+    const { view: v } = await scanOf(pool, fakeWeb(site), { live_domain: 'moved.co.uk' });
+    chk('redirect: / redirecting to the homepage is followed and recorded', v.scan.summary.homepage.path === '/home' && v.scan.summary.homepage.how === 'redirect' && byPath(v, '/').status_code === 301 && byPath(v, '/home').status_code === 200, v.scan.summary.homepage, '');
+    chk('redirect: it says so, and the crawl carries on from it', v.scan.warnings.some(w => w.kind === 'homepage_moved') && byPath(v, '/hedge-trimming').status_code === 200, v.scan.warnings, '');
+  }
+  // No common address: the most linked URL from DataForSEO
+  {
+    const pages = { '/landscaping-services': pageHtml('Our Landscaping', `${WORDS}<a href="/a-page">A page</a>`), '/a-page': pageHtml('A page', WORDS), '/little': pageHtml('Little', WORDS) };
+    const data = { links: [{ to: 'https://nocommon.co.uk/little', from: 'one.co.uk', score: 0 }, { to: 'https://nocommon.co.uk/landscaping-services', from: 'paper.co.uk', score: 0 }, { to: 'https://nocommon.co.uk/landscaping-services', from: 'club.co.uk', score: 0 }, { to: 'https://nocommon.co.uk/landscaping-services', from: 'cralto.shop', score: 60, ext: 5000 }] };
+    const web = fakeWeb({ host: 'nocommon.co.uk', robots: '', pages }, data);
+    const { view: v } = await scanOf(pool, web, { live_domain: 'nocommon.co.uk' });
+    chk('most linked: the common addresses were tried first', web.calls.urls.some(u => u.endsWith('/home')) && web.calls.urls.some(u => u.endsWith('/index')), web.calls.urls.slice(0, 12), '');
+    chk('most linked: the URL most real sites link to is the old homepage', v.scan.summary.homepage.path === '/landscaping-services' && v.scan.summary.homepage.how === 'most linked', v.scan.summary.homepage, '');
+    chk('most linked: the warning says how it was found, to check', v.scan.warnings.some(w => w.kind === 'root_not_page' && /most sites link to/.test(w.text) && /Check that's right/.test(w.text)), v.scan.warnings, '');
+    chk('most linked: the crawl follows its links', byPath(v, '/a-page').status_code === 200);
+  }
+  // A /home that says it isn't there
+  {
+    const pages = { '/home': '<html><head><title>404 - Page Not Found</title></head><body><h1>Page not found</h1></body></html>', '/real-home': pageHtml('Real', WORDS) };
+    const { view: v } = await scanOf(pool, fakeWeb({ host: 'soft.co.uk', robots: '', pages }, { links: [{ to: 'https://soft.co.uk/real-home', from: 'paper.co.uk', score: 0 }] }), { live_domain: 'soft.co.uk' });
+    chk('a /home answering 200 with "page not found" isn\'t a homepage', v.scan.summary.homepage.path === '/real-home', v.scan.summary.homepage, '');
+  }
+  // Nothing anywhere
+  {
+    const { view: v } = await scanOf(pool, fakeWeb({ host: 'nothing.co.uk', robots: '', pages: {} }), { live_domain: 'nothing.co.uk' });
+    chk('no homepage at all: loud, not silent, and not complete', v.scan.status === 'done' && v.scan.summary.homepage.how === 'none' && v.scan.warnings.some(w => w.kind === 'no_homepage' && w.loud && /Find the homepage by hand/.test(w.text)) && v.scan.summary.complete === false, v.scan.warnings, '');
+  }
+  // Every known URL seeds the crawl, and what they link to is followed
+  {
+    const pages = ghlPages();
+    pages['/only-in-sitemap'] = pageHtml('Sitemap', `${WORDS}<a href="/linked-from-sitemap-page">x</a>`);
+    pages['/linked-from-sitemap-page'] = pageHtml('Linked', WORDS);
+    pages['/only-ranked'] = pageHtml('Ranked', `${WORDS}<a href="/linked-from-ranked-page">x</a>`);
+    pages['/linked-from-ranked-page'] = pageHtml('Linked 2', WORDS);
+    pages['/only-backlinked'] = pageHtml('Backlinked', `${WORDS}<a href="/linked-from-backlinked-page">x</a>`);
+    pages['/linked-from-backlinked-page'] = pageHtml('Linked 3', WORDS);
+    pages['/only-in-gsc'] = pageHtml('GSC', `${WORDS}<a href="/linked-from-gsc-page">x</a>`);
+    pages['/linked-from-gsc-page'] = pageHtml('Linked 4', WORDS);
+    pages['/sitemap.xml'] = { type: 'application/xml', html: sitemapOf('seeds.co.uk', ['/only-in-sitemap']) };
+    const web = fakeWeb({ host: 'seeds.co.uk', robots: '', pages }, { keywords: [{ url: 'https://seeds.co.uk/only-ranked', keyword: 'k', etv: 1 }], links: [{ to: 'https://seeds.co.uk/only-backlinked', from: 'paper.co.uk', score: 0 }] });
+    const { rows } = await pool.query(`INSERT INTO clients (name) VALUES ('Seeds') RETURNING id`);
+    const a = createSiteAudit({ pool, loadValues: async () => ({ live_domain: 'seeds.co.uk' }), env, fetchImpl: web.impl, sleep: async () => {}, log: quiet, lookup: async () => ({ address: '93.184.216.34' }), retryDelays: [] });
+    await a.uploadSearchConsole(rows[0].id, { csv: 'Top pages,Clicks,Impressions,CTR,Position\nhttps://seeds.co.uk/only-in-gsc,4,50,8%,3\n', filename: 'p.csv' });
+    await a.start(rows[0].id); await a.wait(rows[0].id);
+    const v = await a.view(rows[0].id);
+    for (const [p, from] of [['/only-in-sitemap', 'sitemap'], ['/only-ranked', 'rankings'], ['/only-backlinked', 'backlinks'], ['/only-in-gsc', 'search_console']]) chk(`seeds: ${p} is read, found by ${from}`, byPath(v, p).status_code === 200 && byPath(v, p).sources.includes(from) && byPath(v, p).word_count > 100, byPath(v, p), '');
+    for (const p of ['/linked-from-sitemap-page', '/linked-from-ranked-page', '/linked-from-backlinked-page', '/linked-from-gsc-page']) chk(`seeds: ${p}, reachable only from a seeded page, is crawled too`, byPath(v, p) && byPath(v, p).status_code === 200 && byPath(v, p).sources.includes('crawl'), byPath(v, p), '');
+  }
+  // The crawl finding far fewer pages than the other sources
+  {
+    const pages = { '/': pageHtml('Home', WORDS, { nav: '' }) };
+    const links = [];
+    for (let i = 0; i < 8; i++) { pages[`/known-${i}`] = pageHtml(`Known ${i}`, WORDS, { nav: '' }); links.push({ to: `https://short.co.uk/known-${i}`, from: `s${i}.co.uk`, score: 0 }); }
+    pages['/sitemap.xml'] = { type: 'application/xml', html: sitemapOf('short.co.uk', ['/']) };
+    const { view: v } = await scanOf(pool, fakeWeb({ host: 'short.co.uk', robots: '', pages }, { links }), { live_domain: 'short.co.uk' });
+    const w = v.scan.warnings.find(x => x.kind === 'crawl_short');
+    chk('crawl short: a loud warning with the numbers', w && w.loud && /reached 1 page/.test(w.text) && /know of 9 live pages/.test(w.text) && /8 of them not linked/.test(w.text), v.scan.warnings, '');
+    chk('crawl short: not complete, though it found them all another way', v.scan.summary.complete === false && v.scan.summary.crawl.reached === 1 && v.scan.summary.crawl.known_elsewhere === 9, v.scan.summary.crawl, '');
+  }
+  // A healthy site says nothing
+  {
+    const site = { host: 'healthy.co.uk', robots: 'Sitemap: https://healthy.co.uk/sitemap.xml', pages: { '/': pageHtml('Home', `${WORDS}<a href="/a">A</a><a href="/b">B</a>`), '/a': pageHtml('A', WORDS), '/b': pageHtml('B', WORDS), '/sitemap.xml': { type: 'application/xml', html: sitemapOf('healthy.co.uk', ['/', '/a', '/b']) } } };
+    const web = fakeWeb(site);
+    const { view: v } = await scanOf(pool, web, { live_domain: 'healthy.co.uk' });
+    chk('healthy: no loud warnings, and it counts as complete', v.scan.summary.complete === true && !v.scan.warnings.some(w => w.loud) && v.scan.summary.homepage.path === '/' && v.scan.summary.homepage.how === 'root' && !v.scan.summary.old_homepage, v.scan.warnings, '');
+    chk('healthy: no common address is tried when / is a page', !web.calls.urls.some(u => u.endsWith('/home')), web.calls.urls, '');
+  }
+  // The platform
+  chk('platform: GoHighLevel from its files', H.detectPlatform(`<html>${GHL_HEAD}</html>`).platform === 'GoHighLevel');
+  chk('platform: a LeadConnector chat widget doesn\'t make a site GoHighLevel', H.detectPlatform('<script src="https://widgets.leadconnectorhq.com/loader.js"></script>').platform === 'Other' && H.detectPlatform('<link href="/wp-content/a.css"><img src="https://images.leadconnectorhq.com/a.jpg">').platform === 'WordPress');
+  chk('platform: the GoHighLevel patterns are noted in url-patterns.json', !!require(path.join(root, 'site-audit/url-patterns.json')).platforms.GoHighLevel.note);
+  chk('GHL preview and widget addresses aren\'t crawled', !t.crawlable('https://example.co.uk/widget/form/abc') && !t.crawlable('https://example.co.uk/v2/preview/abc'));
+
   // ── The real run on the test site, replayed: nothing spent, nothing fetched ──
   {
     const { replayer } = require(path.join(root, 'site-audit/replay.js'));

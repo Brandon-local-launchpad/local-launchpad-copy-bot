@@ -88,7 +88,9 @@ export async function render(el, ctx) {
     const list = [...((d.scan && d.scan.warnings) || [])];
     if (d.scan && d.scan.error) list.unshift({ kind: 'error', text: d.scan.error });
     if (!list.length) return '';
-    return `<div class="stack" style="gap:8px">${list.map(w => `<div class="notice ${w.kind === 'bot_block' || w.kind === 'error' ? 'bad' : 'warn'}">${h(w.text)}</div>`).join('')}</div>`;
+    const loud = list.filter(w => w.loud || w.kind === 'error');
+    const banner = loud.length ? `<div class="notice bad"><strong>This list may be incomplete. Don't treat it as every page on the old site.</strong> ${loud.length} ${loud.length === 1 ? 'problem' : 'problems'} below.</div>` : '';
+    return `<div class="stack" style="gap:8px">${banner}${list.map(w => `<div class="notice ${w.loud || w.kind === 'error' ? 'bad' : 'warn'}">${h(w.text)}</div>`).join('')}</div>`;
   }
 
   function tiles() {
@@ -96,7 +98,7 @@ export async function render(el, ctx) {
     if (!s) return '';
     const src = Object.entries(s.by_source || {}).filter(([, n]) => n).map(([k, n]) => `${SOURCE[k] || k} ${n}`).join(', ');
     return `<div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(170px,1fr))">
-      ${tile({ label: 'Total URLs', value: s.total_urls, tip: 'Compare this with the free Screaming Frog on the first 3 real migrations.', foot: `${s.pages} pages, ${s.media} images and PDFs. ${h(src)}` })}
+      ${tile({ label: 'Total URLs', value: s.total_urls, tip: 'Compare this with the free Screaming Frog on the first 3 real migrations.', foot: `${s.complete === false ? '<strong>May be incomplete.</strong> ' : ''}${s.pages} pages, ${s.media} images and PDFs. ${h(src)}${s.homepage && s.homepage.path && s.homepage.path !== '/' ? `. Old homepage ${h(s.homepage.path)}` : ''}` })}
       ${tile({ label: 'Pages that matter', value: s.matters, foot: `of ${s.total_urls} URLs` })}
       ${tile({ label: 'Top list', value: s.top20, foot: s.top20 ? 'with traffic or real links' : 'nothing has traffic yet' })}
       ${tile({ label: 'Sites linking: real / all', value: `${s.real_domains} / ${s.all_domains}`, tip: 'Junk sites are left out of the real count. Only real ones can make a page matter.', foot: `${s.links.toLocaleString('en-GB')} links` })}
