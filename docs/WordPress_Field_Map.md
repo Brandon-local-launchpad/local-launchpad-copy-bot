@@ -16,7 +16,7 @@ For Given, who builds the WordPress templates. Written on 5 Nov 2026 from the co
 
 **On the main branch, only the homepage is mapped to WordPress.** For the other five page types, the names below are Copybot's own, taken from its records and prompts. They are the proposed ACF names, and nothing on a site uses them yet. The types shown for them are proposed too. In the code each of those page types says: "the WordPress mapping waits for the template's field map".
 
-**Blog is built on its own branch, not on main.** The `blog` branch has its own spec, prompt, records, validator, 7 ACF groups, a push and a handover for Given. It has not been merged and is about 100 commits behind main, so none of it is live. See the Blog post section.
+**Blog is built on its own branch, not on main, and is parked until Edens Edge is live.** The `blog` branch has its own spec, prompt, records, validator, 7 ACF groups, a push and a handover for Given. It is about 100 commits behind main, so none of it is live. See the Blog post section.
 
 **The five inner page types have a proposal.** See Proposed for Given. Nothing in it is in the plugin yet, and the plugin won't change until it's agreed.
 
@@ -122,7 +122,7 @@ All fields below exist in ACF. Edens Edge has no reviews, verified logos or owne
 |---|---|---|
 | `rank_math_title` (`_yoast_wpseo_title` on Yoast) | Code: H1, then a modifier from `out_of_hours_available`, `year_founded`, `guarantee_years`, `rating`, then `company_name`; 60 characters at most | Landscaper Southampton \| Edens Edge Landscaping |
 | `rank_math_description` (`_yoast_wpseo_metadesc` on Yoast) | Code: keyword, `company_name` and the first proof that is true; 155 characters at most | Edens Edge Landscaping is a landscaper in Southampton offering fixed prices with no hidden costs. Get your fr... |
-| `rank_math_focus_keyword` (`_yoast_wpseo_focuskw` on Yoast), not pushed yet | Code: the page's keyword, as its H1 holds it. On the record since 5 Nov 2026, not pushed yet | Landscaper Southampton |
+| `rank_math_focus_keyword` (`_yoast_wpseo_focuskw` on Yoast), not pushed yet | Code: the page's target keyword from the page map. On the record since 5 Nov 2026, not pushed yet | Landscaper Southampton |
 
 ### Homepage: when a field is hidden
 
@@ -213,7 +213,7 @@ The push writes these to the site's Settings, Client Values. Use them for tokens
 |---|---|---|---|---|
 | `seo_title` | SEO meta | Page level | Code: H1, then a modifier from `out_of_hours_available`, `year_founded`, `guarantee_years`, `rating`, then `company_name`; 60 characters at most | Driveways Southampton \| Edens Edge Landscaping |
 | `meta_description` | SEO meta | Page level | Code: keyword, `company_name` and the first proof that is true; 155 characters at most | Edens Edge Landscaping offers driveways in Southampton offering fixed prices with no hidden costs. Get your f... |
-| `focus_keyword` | SEO meta (proposed) | Page level | Code: the page's keyword, as its H1 holds it. On the record since 5 Nov 2026, not pushed yet | Driveways Southampton |
+| `focus_keyword` | SEO meta (proposed) | Page level | Code: the page's target keyword from the page map. On the record since 5 Nov 2026, not pushed yet | Driveways Southampton |
 | `page_slug` | none: identifies the page | Page level | Code: page map slug | /paving-contractor |
 | `breadcrumb` | list | Page level | Code: page map parents | Home > Paving Contractor |
 | `cat_hero_h1` | text | Hero | Code: the page map H1 | Driveways Southampton |
@@ -275,7 +275,7 @@ What differs from the category page: the copy covers that town only, `cat_areas_
 |---|---|---|---|---|
 | `seo_title` | SEO meta | Page level | Code: H1, then a modifier from `out_of_hours_available`, `year_founded`, `guarantee_years`, `rating`, then `company_name`; 60 characters at most | Gardener Romsey \| Edens Edge Landscaping |
 | `meta_description` | SEO meta | Page level | Code: keyword, `company_name` and the first proof that is true; 155 characters at most | Edens Edge Landscaping is a gardener in Romsey offering fixed prices with no hidden costs. Get your free quot... |
-| `focus_keyword` | SEO meta (proposed) | Page level | Code: the page's keyword, as its H1 holds it. On the record since 5 Nov 2026, not pushed yet | Gardener Romsey |
+| `focus_keyword` | SEO meta (proposed) | Page level | Code: the page's target keyword from the page map. On the record since 5 Nov 2026, not pushed yet | Gardener Romsey |
 | `page_slug` | none: identifies the page | Page level | Code: page map slug | /locations/romsey/gardener |
 | `breadcrumb` | list | Page level | Code: page map parents | Home > Romsey > Gardener |
 | `cat_hero_h1` | text | Hero | Code: the page map H1 | Gardener Romsey |
@@ -335,7 +335,7 @@ What differs from the category page: the copy covers that town only, `cat_areas_
 |---|---|---|---|---|
 | `seo_title` | SEO meta | Page level | Code: H1, then a modifier from `out_of_hours_available`, `year_founded`, `guarantee_years`, `rating`, then `company_name`; 60 characters at most | Patios Southampton \| Edens Edge Landscaping |
 | `meta_description` | SEO meta | Page level | Code: keyword, `company_name` and the first proof that is true; 155 characters at most | Edens Edge Landscaping offers patios in Southampton, fixed prices with no hidden costs. Get your free quote t... |
-| `focus_keyword` | SEO meta (proposed) | Page level | Code: the page's keyword, as its H1 holds it. On the record since 5 Nov 2026, not pushed yet | Patios Southampton |
+| `focus_keyword` | SEO meta (proposed) | Page level | Code: the page's target keyword from the page map. On the record since 5 Nov 2026, not pushed yet | Patios Southampton |
 | `page_slug` | none: identifies the page | Page level | Code: page map slug | /services/patios |
 | `breadcrumb` | list | Page level | Code: page map parents | Home > Landscape Designer > Patios |
 | `svc_hero_h1` | text | Hero | Code: the page map H1 | Patios Southampton |
@@ -400,7 +400,7 @@ What differs from the service page: the copy covers that town and service only, 
 |---|---|---|---|---|
 | `seo_title` | SEO meta | Page level | Code: H1, then a modifier from `out_of_hours_available`, `year_founded`, `guarantee_years`, `rating`, then `company_name`; 60 characters at most | Tree Stump Removal Romsey \| Edens Edge Landscaping |
 | `meta_description` | SEO meta | Page level | Code: keyword, `company_name` and the first proof that is true; 155 characters at most | Edens Edge Landscaping offers tree stump removal in Romsey, fixed prices with no hidden costs. Get your free... |
-| `focus_keyword` | SEO meta (proposed) | Page level | Code: the page's keyword, as its H1 holds it. On the record since 5 Nov 2026, not pushed yet | Tree Stump Removal Romsey |
+| `focus_keyword` | SEO meta (proposed) | Page level | Code: the page's target keyword from the page map. On the record since 5 Nov 2026, not pushed yet | Tree Stump Removal Romsey |
 | `page_slug` | none: identifies the page | Page level | Code: page map slug | /locations/romsey/tree-stump-removal |
 | `breadcrumb` | list | Page level | Code: page map parents | Home > Romsey > Tree stump removal |
 | `svc_hero_h1` | text | Hero | Code: the page map H1 | Tree Stump Removal Romsey |
@@ -463,7 +463,7 @@ What differs from the service page: the copy covers that town and service only, 
 |---|---|---|---|---|
 | `seo_title` | SEO meta | Page level | Code: H1, then a modifier from `out_of_hours_available`, `year_founded`, `guarantee_years`, `rating`, then `company_name`; 60 characters at most | Gardener Services in and around Romsey \| Edens Edge Landscaping |
 | `meta_description` | SEO meta | Page level | Code: keyword, `company_name` and the first proof that is true; 155 characters at most | Edens Edge Landscaping is a gardener in Romsey offering fixed prices with no hidden costs. Get your free quot... |
-| `focus_keyword` | SEO meta (proposed) | Page level | Code: the page's keyword, as its H1 holds it. On the record since 5 Nov 2026, not pushed yet | Gardener Services in and around Romsey |
+| `focus_keyword` | SEO meta (proposed) | Page level | Code: the page's target keyword from the page map. On the record since 5 Nov 2026, not pushed yet | Gardener Romsey |
 | `page_slug` | none: identifies the page | Page level | Code: page map slug | /locations/romsey |
 | `breadcrumb` | list | Page level | Code: page map parents | Home > Romsey |
 | `loc_hero_h1` | text | Hero | Code: the page map H1 | Gardener Services in and around Romsey |
@@ -515,7 +515,7 @@ What differs from the service page: the copy covers that town and service only, 
 
 ## Blog post
 
-**This is on the `blog` branch, not on main, so it isn't live.** The branch was last changed on 29 Oct 2026 and is about 100 commits behind main, so details could change when it merges. Its push has only been tested against Copybot's fake WordPress server.
+**This is on the `blog` branch, not on main, so it isn't live, and it's parked until Edens Edge is live.** Merging it needs the plugin versions reconciled, 0.2.0 on the branch and 0.2.1 on main. The branch was last changed on 29 Oct 2026 and is about 100 commits behind main, so details could change when it merges. Its push has only been tested against Copybot's fake WordPress server.
 
 It is a WordPress **post**, not a page, in the Guides category at `/guides/<slug>/`. The groups are `group_llp_blog_*`, attached to post type `post` in the Guides category. The branch has a fuller handover for Given, `docs/seo/current-build/Blog_WordPress_Handover.md`. The example is "When Is the Best Time for Spring Lawn Care in Southampton?", an Edens Edge test run from 28 Oct 2026.
 
@@ -1359,7 +1359,7 @@ Page `/locations/romsey`, H1 "Gardener Services in and around Romsey".
   "meta": {
     "rank_math_title": "Gardener Services in and around Romsey | Edens Edge Landscaping",
     "rank_math_description": "Edens Edge Landscaping is a gardener in Romsey offering fixed prices with no hidden costs. Get your free quote today.",
-    "rank_math_focus_keyword": "Gardener Services in and around Romsey"
+    "rank_math_focus_keyword": "Gardener Romsey"
   }
 }
 ```
@@ -1368,7 +1368,9 @@ Page `/locations/romsey`, H1 "Gardener Services in and around Romsey".
 
 ## The focus keyword
 
-The spec says "Focus keyword (Rank Math): [KW]", and [KW] is the page's H1 keyword from the page map. Every homepage, category, service and location record now carries it as `focus_keyword`, including their town versions. It is set to the H1. A record written before 5 Nov 2026 has no such field, and Show field names uses its H1.
+The focus keyword is the page's target keyword from the page map, not its H1. Every homepage, category, service and location record now carries it as `focus_keyword`, including their town versions.
+
+**Where it comes from:** the page map's `h1_keyword`, which the H1 research sets. On most pages that matches the H1. A hub page is the exception: its H1 is a pattern such as "Gardener Services in and around Romsey", so its target keyword is read out of that pattern as "Gardener Romsey". A typed H1 override on the homepage is used as the keyword. A record written before 5 Nov 2026 has none, and Show field names works it out from the H1.
 
 | Page type | Example from Edens Edge |
 |---|---|
@@ -1377,32 +1379,28 @@ The spec says "Focus keyword (Rank Math): [KW]", and [KW] is the page's H1 keywo
 | Location category | Gardener Romsey |
 | Service | Patios Southampton |
 | Town service | Tree Stump Removal Romsey |
-| Location | Gardener Services in and around Romsey |
-| Blog post | Not added: that record is on the `blog` branch, and its keyword is the target query |
+| Location | Gardener Romsey (its H1 is "Gardener Services in and around Romsey") |
+| Blog post | Not added: that record is on the `blog` branch, which is parked |
+
+**A hub page shares its keyword.** Romsey's location page and its Gardener location category page both have "Gardener Romsey" as their focus keyword, because the research gave that keyword to the category page as its H1. Rank Math may warn about the repeat.
 
 **It is not sent to WordPress yet.** The plugin only lets Copybot write the meta keys it registers, and the focus keyword isn't one of them. Sending it now would be dropped by the site, and the push's read back would report a mismatch. So it waits with the plugin change:
 
 1. Add `rank_math_focus_keyword` and `_yoast_wpseo_focuskw` to the plugin's registered meta, and bump its version.
 2. Add the key to the push's SEO adapters in `wp/homepage-map.js`.
 
-## What business_schema_id needs
+## business_schema_id
 
-The spec has one LocalBusiness block for each site. Every other page refers to it by its `@id`, held in `[CV: business_schema_id]`. **Main has no such value.** The `blog` branch adds the key, and its blog posts use it as the publisher, but that branch has no way to enter a value and a push would send it empty.
+**Decided: the LocalBusiness `@id` on every site is `https://<site>/#localbusiness`.** Copybot derives it from the site's URL. It is never blank and nobody types it in, so the spec's step of copying the `@id` from validator.schema.org by hand goes away. For example, a site at `https://www.example.co.uk` has `https://www.example.co.uk/#localbusiness`.
 
-**What Copybot would need:**
+**What Given needs to do:**
 
-1. **The key:** add it to `SITE_KEYS` in `wp/client-values.js`, which regenerates the plugin's `client-value-keys.json` and needs a plugin version bump. This waits with the other plugin changes. The `blog` branch already has it, so that merge should bring the same key.
-2. **A place to enter it:** a field on the Record tab, and the client record's default, next to `map_embed`.
-3. **Carrying it to the site:** copy it into `clientValueMap` in `v20-generate.js`, as `map_embed` now is.
-4. **Not clearing it:** leave it out of a push when it's empty, as `map_embed` now is. Otherwise each push wipes it. The `blog` branch has this problem as written.
-5. **A rule for when it's empty:** the value only exists after the homepage is published. A blog post pushed before then would print an empty publisher, so its push should wait or leave the publisher out.
-6. **A check:** a fixture for the steps above.
+1. **Give the one LocalBusiness block exactly this `@id`.** Copybot doesn't write schema for pages: the spec says the "master kit" does. It needs the subtype, which Copybot holds per niche as `schema_subtype`, and the name, address and phone exactly as on the Google profile, with no street address for a hidden address business.
+2. **Refer to it from every other template.** Print `llp_cv( 'business_schema_id' )` in the schema, and never add a second LocalBusiness block. The spec then checks one inner page shows the same `@id`.
 
-**What Given would need to decide or build:**
+**The value follows the site's address.** On a staging site it holds the staging address, and the push to the live site corrects it. A site that moves address changes its `@id` at the next push.
 
-1. **Where the LocalBusiness block comes from.** Copybot doesn't write schema for pages. The spec says the "master kit" does. It needs the subtype, which Copybot holds per niche as `schema_subtype`, and the name, address and phone exactly as on the Google profile, with no street address for a hidden address business.
-2. **The form of the `@id`.** The spec has someone publish the homepage, run it through validator.schema.org and copy the `@id` by hand. If every site used a fixed form such as `https://<site>/#localbusiness`, Copybot could work it out and skip that step.
-3. **How inner templates refer to it.** They would print `llp_cv( 'business_schema_id' )` in their schema and never add a second LocalBusiness block. The spec then checks one inner page shows the same `@id`.
+**What is left on the Copybot side, with the plugin change:** the function that derives it is on main (`businessSchemaId` in `wp/client-values.js`), but nothing sends it yet, because the plugin only keeps the Client Values keys it knows. Until the plugin has this key, `llp_cv( 'business_schema_id' )` returns nothing. Adding the key regenerates `client-value-keys.json` and bumps the plugin version, then the push sends the value on every page push. No field is needed on the Record tab.
 
 ## Gaps
 
@@ -1413,7 +1411,7 @@ The spec has one LocalBusiness block for each site. Every other page refers to i
 | Spec item | Today |
 |---|---|
 | Rank Math focus keyword | On every record, not pushed yet. See The focus keyword |
-| `[CV: business_schema_id]` for the LocalBusiness `@id` | Not on main. See What business_schema_id needs |
+| `[CV: business_schema_id]` for the LocalBusiness `@id` | Decided, not sent yet. See business_schema_id |
 | Button under Why choose us; "Start Step 1" under Process | No field. Build from `primary_action` and `phone` in the template |
 | Footer name, address and phone; hidden address rule | No field. Client Values hold `company_name`, `address`, `phone` and `gbp_address_type` |
 | Map in Service areas | No page field, as the spec says. Use `map_embed` |
