@@ -309,7 +309,7 @@ Three framings share this one entry, per the pack's section 2: a problem led pag
 
 | Slot | When | Question | Answer brief | Doubt |
 |---|---|---|---|---|
-| cost | always | How much does [SERVICE_LOWER] cost in [CITY]? | Prices only from [CV: price_list]; otherwise how the quote is given, from [CV: quote_method] only, and supply and fit against fit only from the client values. The four cost cards above already give what moves the price: name one factor at most, never the list again. | Price |
+| cost | always | How much does [SERVICE_LOWER] cost in [CITY]? | Prices only from [CV: price_list]; otherwise how the quote is given, from [CV: quote_method] only, and supply and fit against fit only from the client values. The cost cards hold the list: never repeat it or point to it. | Price |
 | timing | always | How long does [SERVICE_LOWER] take? | No duration: the trade facts timing row says it varies for this service and Table G confirms no standard. The stages for this service in order as the reason, from the trade facts: what is stripped out, first fix, the waterproofing or the units, the finishes, the tests. Then what moves it: tanking, adhesive, grout or a coating that has to cure before the room is used; a worktop templated once the units are in and made off site; a sink or a toilet moved from its pipes. A number only from the client values. Nothing about when the job can start unless [CV: start_time] is set. This is the one place the timing is written. | Timing |
 | cover | guarantee | Do you guarantee your [SERVICE_LOWER] work? | Start with yes, then the terms from [CV: guarantee_years] and [CV: guarantee_scope]. The fitting guarantee kept apart from a maker's warranty on what was fitted. Described, never promised. | Trust |
 | cover | insurance | Are you insured for [SERVICE_LOWER]? | The cover figure from [CV: insurance_cover] and what the cover is for. Never what it pays or who it covers. | Trust |
@@ -425,3 +425,20 @@ Things a brief wanted that neither the calibration pack nor the trade facts pack
 12. **Asbestos in older rooms.** Table C and E give the year before which a home's materials cannot be assumed clear. The briefs say "an older home" and no year, because a year on a town page reads as a claim about the houses. The client's own practice (whether they commission the survey) decides what the copy says.
 13. **Water hardness.** The pack's section 3 makes hard water a strong anchor only from the water company's published data. The location brief says so and gives a fallback (steam and extraction) where the research has no hardness; nothing in the dossier parser is checked here to confirm the research carries it.
 14. **The leak customer's fears.** The pack's section 1 gives three readers; `fears` carries the renovation customer's four. The leak customer and the adaptation customer have no type keyed slot since every category is A. Their fears are answered in the block 4 briefs instead. Brandon decides whether a repairs only fitter needs anything more.
+
+## Service tags
+
+An element is dropped, and the next eligible one used, when the client has confirmed none of these services. The paths are in the .json as `needs`.
+
+| Element | Needs |
+|---|---|
+| Why does water come through the ceiling under the shower? | Bathroom fitting; Wet rooms; Walk in showers; Cloakrooms and en suites |
+| A room that has become hard to use | Accessible and mobility bathrooms; Walk in showers; Wet rooms |
+| Whether we fit it as well | Bathroom fitting |
+
+## Idea homes
+
+- **the order of work as the reason the job takes as long as it does (strip out, first fix, units or waterproofing, finishes, tests)** (service): home is the 'How long does [SERVICE_LOWER] take?' FAQ. Elsewhere: the 'Living without the room while it is done' card keeps to the customer's situation and does not list the stages; the 'What does your [SERVICE_LOWER] service include?' FAQ names what is included without setting it out as a sequence or timeline.
+- **the toilet kept close to the shared soil stack, with a new connection or pumped unit if it moves** (location): home is the 'Moving the room away from the stack' cost card. Elsewhere: the 'Flats, stairs and the shared stack' card names the stack as the cause without the pumped unit or the cost; the price FAQ only names it as one thing that pushes the price up.
+- **what an older house's strip out meets (floors out of level, walls out of plumb, old materials checked before they are disturbed)** (location): home is the 'What the old room was built on' cost card. Elsewhere: the 'Older homes and what the strip out meets' card keeps to the listed home consent and the cause, without re-listing floors, walls and materials; the price FAQ only names it.
+- **getting units, a bath and a worktop in: stairs, no lift, no parking** (location): home is the 'Carrying it up and getting it in' cost card. Elsewhere: the 'Flats, stairs and the shared stack' card keeps to the stack and the neighbour below, not the carrying or the parking; the quote FAQ says only that access is looked at.

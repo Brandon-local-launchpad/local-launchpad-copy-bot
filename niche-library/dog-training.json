@@ -152,7 +152,8 @@
       "answer_brief": "From the trade facts Table E rows only: the early socialisation window, safe experiences at home before the vaccination course is finished, and classes that usually accept healthy puppies after their first vaccination, subject to the vet's advice. No age in weeks and no promise. Never that the owner should wait for every vaccination before any new experience.",
       "symptom_based": false,
       "is_fallback": true,
-      "doubt": "Timing"
+      "doubt": "Timing",
+      "needs": ["Puppy training"]
     }
   ],
 
@@ -209,12 +210,14 @@
           {
             "title": "The puppy months and the teenage wobble",
             "brief": "Mouthing, jumping up, crying when left, a puppy that hides from visitors; then, in adolescence, a recall that seems to vanish. The one cause this card makes: the first months and adolescence are when habits set, good or bad, so what is practised now tends to carry into adult life. Say what training usually involves at this stage: short practice, managed meetings with people, places and dogs, and keeping up the practice through the wobble (Table A: puppy training). When classes usually start, and what can begin at home before the vaccination course is finished, only from the trade facts Table E rows, with the vet's advice first; no age or week count the rows do not give. Puppy training follows this card as a care or routine led service. Never that the training has failed when adolescence hits.",
-            "mechanism": "habits setting while the dog grows up"
+            "mechanism": "habits setting while the dog grows up",
+            "needs": ["Puppy training"]
           },
           {
             "title": "Home alone, and not coping",
             "brief": "Crying or barking when the door shuts, chewing, a note from a neighbour, a dog pacing by the door at the first sound of keys. The one cause this card makes: the dog was never taught, in small steps, that being alone is safe. Say what usually helps: building up time alone gradually, worked on at home because that is where it happens (Table A: the row for nervous dogs). A vet's view first where the distress is severe or new (Table A). Where the services list includes day care or boarding: a day broken up with exercise, company and quiet time (Table A: dog day care). Never promise the dog will settle, never name a diagnosis, never that the owner leaves the dog too long.",
-            "mechanism": "being alone never taught in small steps"
+            "mechanism": "being alone never taught in small steps",
+            "needs": ["Behaviour modification","Nervous and anxious dog training"]
           }
         ]
       },
@@ -257,7 +260,7 @@
         {
           "slot": "cost",
           "question": "How much does [WORK_LOWER] cost in [CITY]?",
-          "answer_brief": "Prices only from [CV: price_list]; otherwise how the quote is given, from [CV: quote_method] only. The four cost cards above already give what moves the price: name one factor at most, never the list again.",
+          "answer_brief": "Prices only from [CV: price_list]; otherwise how the quote is given, from [CV: quote_method] only. The cost cards hold the list: never repeat it or point to it.",
           "doubt": "Price"
         },
         {
@@ -404,7 +407,7 @@
         {
           "slot": "cost",
           "question": "How much does [SERVICE_LOWER] cost in [CITY]?",
-          "answer_brief": "Prices only from [CV: price_list]; otherwise how the quote is given, from [CV: quote_method] only. The four cost cards above already give what moves the price: name one factor at most, never the list again.",
+          "answer_brief": "Prices only from [CV: price_list]; otherwise how the quote is given, from [CV: quote_method] only. The cost cards hold the list: never repeat it or point to it.",
           "doubt": "Price"
         },
         {
@@ -550,5 +553,24 @@
       ]
     }
   },
-  "do_not_reuse": []
+  "do_not_reuse": [],
+  "idea_homes": [
+    {
+      "topic": "progress comes from short practice at home between sessions",
+      "home": "the 'We Start on a Date That Suits You' step",
+      "elsewhere": "the 'how many sessions' and 'how long does it take' FAQs name home practice only as one decider in a few words; the 'isn't working for my dog' FAQ does not explain it again",
+      "pages": [
+        "homepage",
+        "service"
+      ]
+    },
+    {
+      "topic": "a vet check first when behaviour changes suddenly or an older dog stops coping",
+      "home": "the 'When to see the vet first' block 4 card",
+      "elsewhere": "the 'We Get to Know Your Dog' step says only that the first meeting checks whether a vet should come first, with no reasons; the 'isn't working for my dog' FAQ gives no list of warning signs",
+      "pages": [
+        "service"
+      ]
+    }
+  ]
 }

@@ -339,7 +339,7 @@ Replaces block 4, block 5 (the call out cost set), the steps and the FAQ slots; 
 
 | Slot | When | Question | Answer brief | Doubt |
 |---|---|---|---|---|
-| cost | always | How much does [SERVICE_LOWER] cost in [CITY]? | Prices only from [CV: price_list]; otherwise how the quote is given, from [CV: quote_method] only. The four cost cards above already give what moves the price: name one factor at most, never the list again. A call out charge only from [CV: quote_call_out_fee]. | Price |
+| cost | always | How much does [SERVICE_LOWER] cost in [CITY]? | Prices only from [CV: price_list]; otherwise how the quote is given, from [CV: quote_method] only. The cost cards hold the list: never repeat it or point to it. A call out charge only from [CV: quote_call_out_fee]. | Price |
 | timing | always | How long does [SERVICE_LOWER] take? | From the trade facts timing row only, which gives no standard duration for any locksmith job (Table A: varies; Table G): so what decides it, from the Table F row for this service (a like for like lock against a new preparation, a part on the van against one ordered, how many doors or windows), in plain words. A figure only from [CV: typical_jobs]. Nothing about when the job can start unless [CV: start_time] is set. This is the one place the timing is written. | Timing |
 | cover | guarantee | Do you guarantee your [SERVICE_LOWER] work? | Start with yes, then the terms from [CV: guarantee_years] and [CV: guarantee_scope]. A maker's warranty on the lock, the cylinder, the device or the safe only from [CV: manufacturer_warranty]. Described, never promised. | Trust |
 | cover | insurance | Are you insured for [SERVICE_LOWER]? | The cover figure from [CV: insurance_cover] and what the cover is for, with a plausible example that does not suggest carelessness. Never what it pays or who it covers. | Trust |
@@ -540,3 +540,47 @@ For Ray and the trade facts pack (Table G records most as not found; the briefs 
 11. Whether a drilled safe keeps its rating (Table G: case by case), so the safes briefs say the maker or accredited partner assesses it after opening and name no rule.
 12. The Security System Supplier tab: the locksmith pack and facts have no CCTV or door entry rows (the pages are defined in electrician.csv), so the briefs give that tab one line per card about the door the system controls and nothing about cameras.
 13. The pack's header still says verified: no; the service page gate refuses a run until it is verified on the Trade facts screen.
+
+## Service tags
+
+An element is dropped, and the next eligible one used, when the client has confirmed none of these services. The paths are in the .json as `needs`.
+
+| Element | Needs |
+|---|---|
+| Why will my uPVC door only lock if I lift the handle hard? | uPVC door and window lock repairs; Lock repairs |
+| Do I need a whole new lock, or just a new cylinder? | Lock fitting and replacement |
+| The door only locks if you lift or pull it | uPVC door and window lock repairs; Lock repairs |
+| The handle won't lift, even with the door open | uPVC door and window lock repairs; Lock repairs |
+| A key that's getting harder to turn | Lock repairs; Lock fitting and replacement; Key cutting |
+| A door that sticks when the weather warms up | uPVC door and window lock repairs; Lock repairs |
+| Getting back in without wrecking the door | Lockouts and gaining entry; Emergency locksmith |
+| A lock that has failed with the door shut | Lockouts and gaining entry; Emergency locksmith; Lock repairs |
+| Boarded tonight, repaired properly after | Burglary repairs and boarding up |
+| Proving it's your door | Lockouts and gaining entry; Emergency locksmith |
+| Will you have to damage my door to get in? | Lockouts and gaining entry; Emergency locksmith |
+| What should I have ready before you arrive? | Lockouts and gaining entry; Emergency locksmith |
+| Not sure who else has a key | Lock fitting and replacement |
+| Your policy names the locks it expects | British Standard and insurance approved locks |
+| Keys for more than one person, or more than one door | Smart locks; Master key systems; Access control and door entry |
+| Whether it opens or has failed | Lockouts and gaining entry; Emergency locksmith |
+| The door and its locking points | Lockouts and gaining entry; Emergency locksmith |
+| Your insurer has asked what locks are on the doors | British Standard and insurance approved locks |
+| Moved in, and not sure who still has a key | Lock fitting and replacement |
+| A lock that's getting harder to use | Lock repairs; uPVC door and window lock repairs |
+| Keys for a let, a shop or a block | Master key systems |
+| Locked out, with the keys on the wrong side | Lockouts and gaining entry; Emergency locksmith |
+| A key that's snapped, or a lock that won't turn | Lockouts and gaining entry; Emergency locksmith; Lock repairs |
+| A door that won't shut after a break in | Burglary repairs and boarding up |
+| Keys gone missing that still fit the door | Lock fitting and replacement; Emergency locksmith |
+| Estates on uPVC and composite doors | uPVC door and window lock repairs; Lock repairs; Lock fitting and replacement |
+| Flats and blocks with one shared door | Master key systems; Access control and door entry |
+| Lets and student houses that change hands | Lock fitting and replacement |
+| Shared doors, key plans and fobs | Master key systems; Access control and door entry; Smart locks |
+| What happens when I call you out in [TOWN]? | Emergency locksmith; Lockouts and gaining entry |
+
+## Idea homes
+
+- **the right to be there checked at the door (proof of address)** (service): home is the 'What should I have ready before you arrive?' FAQ. Elsewhere: the 'Proving it's your door' card gives only the reason, that a door is opened only for someone with the right to be behind it, and lists no documents; the Call Us step, the arrival step and the 'Getting you in' cost card do not list documents or repeat the check.
+- **the way in that leaves the least mark, with drilling last** (service): home is paragraph 2 of the content block. Elsewhere: the FAQ on damage answers the question in a line and leaves the reasoning out; no card, step or cost card says gentlest first or drilling last.
+- **the right to be there checked at the door (proof of address)** (category): home is the 'What should I have ready before you arrive?' FAQ. Elsewhere: the Call Us step, the arrival step and the 'Getting you in' cost card do not list documents or explain the check.
+- **the way in that leaves the least mark, with drilling last** (category): home is paragraph 2 of the content block. Elsewhere: the FAQ on damage answers the question in a line and leaves the reasoning out; no card, step or cost card says gentlest first or drilling last.

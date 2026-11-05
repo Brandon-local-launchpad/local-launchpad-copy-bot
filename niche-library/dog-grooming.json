@@ -153,7 +153,8 @@
       "answer_brief": "From the trade facts puppy rows only: no first groom age and no set wait after vaccinations is laid down, so give none. What a first session is for instead: getting the puppy used to the table, the brush and the dryer in short sessions, with the vaccination status asked about first. Never a figure, never a vet's advice on vaccines.",
       "symptom_based": false,
       "is_fallback": true,
-      "doubt": "Timing"
+      "doubt": "Timing",
+      "needs": ["Puppy grooming"]
     }
   ],
 
@@ -209,7 +210,8 @@
           {
             "title": "Hair on everything",
             "brief": "Loose hair on clothes and furniture, a coat that feels packed, brushing that barely touches it. The one cause this card makes: a double coat dropping its undercoat in heavy spells, as the weather warms in spring and again in autumn (the pack's seasonal note). Care led. Say what gets the undercoat out, from the trade facts deshedding stages: a bath, a dryer and the combs that lift the loosened undercoat clear. Then that shaving the coat off is not the answer and does not stop the shedding (the trade facts double coat row), without lecturing. Link the Deshedding page where LINKABLE PAGES has one. Not matting: card 1 owns that.",
-            "mechanism": "a double coat dropping its undercoat"
+            "mechanism": "a double coat dropping its undercoat",
+            "needs": ["Deshedding","Full groom","Dog bath and blow dry"]
           },
           {
             "title": "Dogs who find the salon hard",
@@ -219,7 +221,8 @@
           {
             "title": "Smelling of dog again within days",
             "brief": "A coat that smells again soon after bath day, damp to the touch deep down, flaky or itchy underneath. The one cause this card makes: a thick coat not dried through to the skin, so damp sits at the roots. Care led. Say what washing and drying done well involves from the trade facts bath stages: the rinse, then drying done under supervision until the coat is dry at the skin, not just on top. A smell coming off the ears, the breath or a single patch of skin belongs with a vet rather than another bath: say so plainly, and never name a condition. Link the client's bath service page (its name in LINKABLE PAGES) where there is one.",
-            "mechanism": "a coat not dried through to the skin"
+            "mechanism": "a coat not dried through to the skin",
+            "needs": ["Dog bath and blow dry","Full groom"]
           }
         ]
       },
@@ -236,7 +239,8 @@
           },
           {
             "title": "Hand stripping and scissor work",
-            "brief": "Hand stripping a wiry coat patch by patch, or a long scissored trim, takes longer than a clip: the trade facts price rows for Full groom and Hand stripping. Say why in plain words (every patch worked by hand) and name the service only where the client offers it. No figure."
+            "brief": "Hand stripping a wiry coat patch by patch, or a long scissored trim, takes longer than a clip: the trade facts price rows for Full groom and Hand stripping. Say why in plain words (every patch worked by hand) and name the service only where the client offers it. No figure.",
+            "needs": ["Hand stripping","Full groom"]
           },
           {
             "title": "The time your dog needs",
@@ -262,7 +266,7 @@
         {
           "slot": "cost",
           "question": "How much does [WORK_LOWER] cost in [CITY]?",
-          "answer_brief": "Prices only from [CV: price_list]; otherwise how the price is reached, from [CV: quote_method] only, and that the figure is agreed before the groom when that practice is confirmed. The four cost cards above already give what moves the price: name one factor at most (the coat on the day), never the list again.",
+          "answer_brief": "Prices only from [CV: price_list]; otherwise how the price is reached, from [CV: quote_method] only, and that the figure is agreed before the groom when that practice is confirmed. The cost cards hold the list: never repeat it or point to it (the coat on the day).",
           "doubt": "Price"
         },
         {
@@ -428,7 +432,7 @@
         {
           "slot": "cost",
           "question": "How much does [SERVICE_LOWER] cost in [CITY]?",
-          "answer_brief": "Prices only from [CV: price_list]; otherwise how the price is reached, from [CV: quote_method] only, and that the figure is agreed before the groom when that practice is confirmed. The four cost cards above already give what moves the price: name one factor at most, never the list again.",
+          "answer_brief": "Prices only from [CV: price_list]; otherwise how the price is reached, from [CV: quote_method] only, and that the figure is agreed before the groom when that practice is confirmed. The cost cards hold the list: never repeat it or point to it.",
           "doubt": "Price"
         },
         {
@@ -503,12 +507,14 @@
           {
             "title": "Nowhere at home to wash a dog",
             "brief": "A flat with no outside tap, a terraced house with a small bathroom, a big dog and a small shower. The one cause this card makes: homes with no room to wash and dry a dog properly, so a damp coat gets left; the town profile gives the housing (flats, terraces, new estates). Say what a salon or a van at the door gives such a home, in plain words, and where LINKABLE PAGES has the town's mobile grooming page or its bath service page, link one. Never that the owner has neglected the dog. Not a coat not dried to the skin: the category page owns that.",
-            "mechanism": "homes with no room to wash and dry a dog"
+            "mechanism": "homes with no room to wash and dry a dog",
+            "needs": ["Dog bath and blow dry","Full groom"]
           },
           {
             "title": "Dogs that don't travel well to a salon",
             "brief": "An older dog stiff after the car, a nervous rescue that shakes in a waiting room, a household with three dogs and one car, an owner without transport. The one cause this card makes: the journey and the waiting room being harder on the dog than the groom; the town profile may say who lives here (retired owners, young families with crossbreeds, homes out in the country a long way from any salon). Behaviour led. Say what suits such dogs from the services the client offers only (a visit at home where Mobile dog grooming is on the services list, a quiet appointment otherwise), from confirmed practices; no guarantee of a calm dog. Not too much at once in the salon: the category page owns that.",
-            "mechanism": "the journey and the waiting room being harder than the groom"
+            "mechanism": "the journey and the waiting room being harder than the groom",
+            "needs": ["Mobile dog grooming"]
           }
         ]
       },
@@ -517,11 +523,13 @@
         "cards": [
           {
             "title": "Getting a van to your door",
-            "brief": "Only where Mobile dog grooming is on the services list: the travel, and where a van can be parked and kept running, from the trade facts price row (travel and access, parking, water and power on board). Terraced streets with no parking, flats with no bay and long rural drives each change it; the town profile says which. Never a rule about parking as the customer's homework. No figure. Where the client has no mobile service, this card is the distance from the salon only from [CV: travel_distance], else how the dog gets there is left to the owner and the card says nothing about travel cost."
+            "brief": "Only where Mobile dog grooming is on the services list: the travel, and where a van can be parked and kept running, from the trade facts price row (travel and access, parking, water and power on board). Terraced streets with no parking, flats with no bay and long rural drives each change it; the town profile says which. Never a rule about parking as the customer's homework. No figure. Where the client has no mobile service, this card is the distance from the salon only from [CV: travel_distance], else how the dog gets there is left to the owner and the card says nothing about travel cost.",
+            "needs": ["Mobile dog grooming"]
           },
           {
             "title": "What the walks round here do to a coat",
-            "brief": "A coat that comes in wetter, muddier or saltier takes more brushing, rinsing and drying: the trade facts price row for the bath (dense or dirty coat, longer brushing and drying). Say it plainly from the town profile where it gives the walks. No figure, and never that dogs here are dirtier than elsewhere."
+            "brief": "A coat that comes in wetter, muddier or saltier takes more brushing, rinsing and drying: the trade facts price row for the bath (dense or dirty coat, longer brushing and drying). Say it plainly from the town profile where it gives the walks. No figure, and never that dogs here are dirtier than elsewhere.",
+            "needs": ["Dog bath and blow dry","Full groom"]
           },
           {
             "title": "The first groom after a long gap",
@@ -581,5 +589,72 @@
       ]
     }
   },
-  "do_not_reuse": []
+  "do_not_reuse": [],
+  "why_title_practice": {"Every Coat Type, Groomed Before":[]},
+  "idea_homes": [
+    {
+      "topic": "how the price is reached and agreed before the groom",
+      "home": "the 'How do you work out the price for my dog?' FAQ",
+      "elsewhere": "the agree-price step and the price-before-booking FAQ say only that a price is agreed first, without describing the method again",
+      "pages": [
+        "homepage"
+      ]
+    },
+    {
+      "topic": "pacing the groom for a nervous, young or older dog",
+      "home": "the 'Puppies, older dogs and nervous dogs' block 4 card",
+      "elsewhere": "the settle FAQ covers only what the owner does and is told, and the time cost card names extra time without describing the handling",
+      "pages": [
+        "service"
+      ]
+    },
+    {
+      "topic": "the coat looked at and the price settled by the quote method before work",
+      "home": "the 'How much does [SERVICE_LOWER] cost' FAQ",
+      "elsewhere": "the coat on the day card and the check-the-coat step do not restate how the price is reached",
+      "pages": [
+        "service"
+      ]
+    },
+    {
+      "topic": "the coat looked at and the price settled by the quote method before work",
+      "home": "the 'How much does [WORK_LOWER] cost' FAQ",
+      "elsewhere": "the coat on the day card and the check-the-coat step do not restate how the price is reached",
+      "pages": [
+        "category"
+      ]
+    },
+    {
+      "topic": "handling a dog that finds grooming hard",
+      "home": "the 'Dogs who find the salon hard' block 4 card",
+      "elsewhere": "the settle FAQ covers only what happens if a groom is stopped and what the owner does, and the time cost card names extra time only",
+      "pages": [
+        "category"
+      ]
+    },
+    {
+      "topic": "undercoat shedding as the weather warms and cools",
+      "home": "the 'Does the time of year change what my dog needs?' FAQ",
+      "elsewhere": "the 'Hair on everything' card gives the cause without the spring and autumn timing, and the seasonal card covers seeds and mud only",
+      "pages": [
+        "category"
+      ]
+    },
+    {
+      "topic": "seeds and grit caught in paws, toes and ears",
+      "home": "the 'Seeds and grit in paws and ears' block 4 card",
+      "elsewhere": "the local walks card keeps to mud and salt in the coat, and the all-year FAQ names the seasons without grit between the pads",
+      "pages": [
+        "location"
+      ]
+    },
+    {
+      "topic": "grooming at home from a van",
+      "home": "the 'Dogs that don't travel well to a salon' block 4 card",
+      "elsewhere": "the other cards and FAQs only say where the groom happens, without making the case for a visit at home again",
+      "pages": [
+        "location"
+      ]
+    }
+  ]
 }

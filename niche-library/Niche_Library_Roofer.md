@@ -318,7 +318,7 @@ Every emergency page reads these cards in place of the type A cost cards. They s
 
 | Slot | When | Question | Answer brief | Doubt |
 |---|---|---|---|---|
-| cost | always | How much does [SERVICE_LOWER] cost in [CITY]? | Prices only from [CV: price_list]; otherwise how the quote is given, from [CV: quote_method] only. The four cost cards above already give what moves the price: name one factor at most, never the list again. Never a figure from memory. | Price |
+| cost | always | How much does [SERVICE_LOWER] cost in [CITY]? | Prices only from [CV: price_list]; otherwise how the quote is given, from [CV: quote_method] only. The cost cards hold the list: never repeat it or point to it. Never a figure from memory. | Price |
 | timing | always | How long does [SERVICE_LOWER] take? | From the trade facts timing cell only: the pack gives no standard duration for roof work, so say what decides it (the size of the roof, the access, the weather window of the covering: flat roof coverings go down, and mortar sets, only in dry and mild spells, with no figure unless the row gives one for a named product, named as the row names it). A manufacturer's figure only where the row gives it (roof window installation), as the manufacturer states it. The roof left watertight each night only from the watertight_each_night practice. Nothing about when the job can start unless [CV: start_time] is set. This is the one place the timing is written. | Timing |
 | cover | guarantee | Do you guarantee your [SERVICE_LOWER] work? | Start with yes, then the terms from [CV: guarantee_years] and [CV: guarantee_scope]: whether repairs are covered as well as new roofs only as the scope says. Insurance backed only where [CV: guarantee_scope] says so; a manufacturer's system guarantee only from [CV: manufacturer_warranty], never confused with the product's expected life (Table E). Described, never promised. | Trust |
 | cover | insurance | Are you insured for [SERVICE_LOWER]? | The cover figure from [CV: insurance_cover] and what the cover is for, with a plausible roofing example that does not suggest carelessness. Never what it pays or who it covers. | Trust |
@@ -509,3 +509,30 @@ For Ray and the trade facts pack (Table G records most as not found; the briefs 
 8. The fibre cement slate lifespan.
 9. Any guidance on how long a roofer's own temporary cover may stay; the "temporary patch" card says only that it fails in the next wind.
 10. The pack's header still says verified: no; the service page gate refuses a run until it is verified on the Trade facts screen.
+
+## Service tags
+
+An element is dropped, and the next eligible one used, when the client has confirmed none of these services. The paths are in the .json as `needs`.
+
+| Element | Needs |
+|---|---|
+| Why are my gutters overflowing when it rains? | Gutter repairs; Gutter cleaning; Guttering installation |
+| Do I need planning permission for a new roof? | Roof replacement; Flat roof replacement; Garage roof replacement; Conservatory roof replacement |
+| Does a new roof need building regulations approval? | Roof replacement; Flat roof replacement; Garage roof replacement; Conservatory roof replacement |
+| Rain or wind coming in at a roof window | Roof window repairs |
+| A loft or landing with no daylight | Roof window installation (Velux) |
+| An extension or loft room you want warm all year | Warm roof and cold roof conversion |
+| A chimney you no longer use | Chimney removal |
+| New gutters or cladding as part of a bigger job | Guttering installation; Cladding |
+| Puddles that stay on a flat roof | Flat roof replacement; EPDM rubber roofing; GRP fibreglass roofing; Felt roofing |
+| Gutters sagging and roofline going soft | Fascias and soffits; Gutter repairs; Guttering installation |
+| Moss and leaves on the shaded side | Roof cleaning and moss removal; Gutter cleaning |
+| Chimneys nobody uses any more | Chimney repairs and repointing; Chimney removal |
+| What the last re-roof left behind | Roof replacement; Flat roof replacement; Garage roof replacement |
+
+## Idea homes
+
+- **tracing where the water gets in rather than treating the stain** (service): home is the 'A repair that didn't hold' block 4 card. Elsewhere: the 'Making it safe first' cost card and the 'We Make It Safe and Find Where the Water Gets In' step say only that the entry point is traced, without explaining how or why the stain misleads.
+- **made safe and weathertight now, permanent repair on the visit if weather and parts allow, otherwise on an agreed date** (service, category): home is the third emergency step ('We Agree the Repair and Do It Once It's Safe' on service pages, 'We Fix It, or Book the Permanent Work' on category pages). Elsewhere: the 'Making it safe first' cost card covers only how the make-safe work moves the price, and the second emergency step stops at making safe and showing what was found, with no mention of the later permanent repair.
+- **no one goes on the roof until the wind has dropped and it is safe; until then the work is done from inside and from the ground** (service, category): home is the 'Will you come out while it's still raining?' FAQ (category: 'Will you come out while the storm is still going?'). Elsewhere: the 'Getting to the roof' cost card and the 'How quickly can you get here/to me?' FAQ do not restate the wait for safe conditions.
+- **what to do from inside before the roofer arrives: catch the water, move what is underneath, stay off the roof** (category): home is the 'What should I do before you arrive?' FAQ. Elsewhere: the Call Us step covers only what to say on the call, and 'The first hour, before anyone arrives' card keeps to the electrics safety point (switching off the circuit near wet fittings).

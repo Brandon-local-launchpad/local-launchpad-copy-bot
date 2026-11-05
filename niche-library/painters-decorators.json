@@ -169,7 +169,8 @@
       "answer_brief": "Point at the trade facts rule rows (Table C) and write what usually applies, with \"usually\" or \"in most cases\": repainting a house in its existing colour usually needs no application; a listed home can need consent where the change touches what makes it special (a new colour, painting brick or stone that was never painted, taking off old plaster inside), and in some conservation areas a local restriction can take away the right to change the colour of the front. What the customer does about it only as the row gives it (check with the council before the work; whether the business handles that only from [CV: handles_planning]). Never an Act's, an order's or a direction's name, no figure.",
       "symptom_based": false,
       "condition": "big_ticket AND [CV: handles_planning] confirmed",
-      "doubt": "Process"
+      "doubt": "Process",
+      "needs": ["Exterior painting"]
     }
   ],
   "faq_slots_by_type": {},
@@ -224,7 +225,8 @@
           {
             "title": "Paint lifting off sills, frames and doors",
             "brief": "Problem led: paint flaking from sills, window frames, doors and fascias, bare wood showing through, a sill that gives under a thumb, putty falling out (the trade facts signs rows for exterior painting, woodwork and sash windows). The one cause this card makes: the paint film opened by the weather on the sunny, rain facing sides of the house, so water gets under it and the timber starts to take it in. Say what the fix usually involves from the stages: the loose paint off back to a firm edge, soft wood repaired, bare areas primed, undercoat and finish, in dry weather, because damp timber holds moisture under new paint. Exterior copy spends its words on the timber, not the walls. On older paintwork the layers are assessed before they are stripped, as the normal first step, never a claim about the reader's house. Never that another coat will cure it; not the walls (card 3 owns them).",
-            "mechanism": "the paint film opened by the weather, letting water under it"
+            "mechanism": "the paint film opened by the weather, letting water under it",
+            "needs": ["Exterior painting","Woodwork and timber finishing","Sash window and timber restoration"]
           },
           {
             "title": "Walls where paint blisters, flakes or stains come back",
@@ -234,7 +236,8 @@
           {
             "title": "Units, doors and stairs you want kept, not replaced",
             "brief": "A situation card: the kitchen carcasses are sound and the room works as it is, the doors, the staircase or a wardrobe just look tired, chipped at the handles or gone yellow. What decides it: the finish that is on them now (old gloss, lacquer, grease by the handles, worn varnish), which a new coat will not hold to unless it is cleaned, rubbed back to a key and primed with a primer that grips, from the trade facts furniture and woodwork stages (degrease, take off the loose finish and dull the shiny one, repair, primer, finish coats, left to dry before the doors go back on). What the work gives them: the piece kept and the finish renewed, by brush or sprayed; spray and brush are two methods, not a ranking (the trade facts). On a Painter and Decorator page the same, or a painted effect on a piece. White gloss gone yellow is the old solvent based finish ageing, most away from daylight (the trade facts), never a fault in the house. No claim about how long a painted kitchen lasts.",
-            "mechanism": "a shiny or greasy finish that new paint will not grip without a key"
+            "mechanism": "a shiny or greasy finish that new paint will not grip without a key",
+            "needs": ["Furniture and kitchen painting","Woodwork and timber finishing"]
           }
         ]
       },
@@ -399,7 +402,7 @@
         {
           "slot": "cost",
           "question": "How much does [SERVICE_LOWER] cost in [CITY]?",
-          "answer_brief": "Prices only from [CV: price_list]; otherwise how the quote is given, from [CV: quote_method] only. The four cost cards above already give what moves the price: name one factor at most, never the list again.",
+          "answer_brief": "Prices only from [CV: price_list]; otherwise how the quote is given, from [CV: quote_method] only. The cost cards hold the list: never repeat it or point to it.",
           "doubt": "Price"
         },
         {
@@ -489,7 +492,8 @@
           {
             "title": "Outside walls and timber facing the weather",
             "brief": "The town's exposure from the profile: coastal salt air, a hilltop that catches wind driven rain, fronts that face south or west, a valley that stays damp. The one cause this card makes: the weather the town's elevations face, which decides which sills, frames, doors and rendered fronts fail first and how long they stay wet. What it means for the work in plain words: the weather side needs more preparation and waits for a dry, settled spell, because damp timber and masonry hold moisture under new paint (the trade facts exterior rows); pebbledash and render that hold water blister paint sooner where their cracks are left. Never that the town's houses are peeling or overdue; never a temperature. Not the paint film opened by the weather as such: the category page owns that.",
-            "mechanism": "the weather the town's elevations face"
+            "mechanism": "the weather the town's elevations face",
+            "needs": ["Exterior painting"]
           },
           {
             "title": "New builds and fresh plaster",
@@ -499,7 +503,8 @@
           {
             "title": "Shops, offices and lets turned round between tenants",
             "brief": "The town's commercial mix from the profile: a high street, offices, lets and HMOs, a school or a surgery. The one cause this card makes: a building that has to stay in use while it is decorated, so the work is phased round the people, the trades and the opening hours in it (the trade facts commercial row). What it means for the work: access and sequence agreed before the first day, finishes chosen for how the walls will be cleaned, a landlord's rooms redecorated between tenancies; out of hours work as an arrangement for a job, never a given, and only from the client values. Written only where the services list has a Commercial decorating page; otherwise the card reads as the town's rented homes between tenants. Never fixed hours, never a fire rating or a class promised.",
-            "mechanism": "a building that has to stay in use while it is decorated"
+            "mechanism": "a building that has to stay in use while it is decorated",
+            "needs": ["Commercial decorating"]
           }
         ]
       },
@@ -516,11 +521,13 @@
           },
           {
             "title": "Conservation areas and listed homes",
-            "brief": "Where the town has conservation areas or listed buildings, a change of colour outside or a window repair can need checking with the council first, which adds time before the work can start. \"Usually\", never the order's, the area's or the Act's name. From the dossier rules only; whether the business handles it only from [CV: handles_planning]."
+            "brief": "Where the town has conservation areas or listed buildings, a change of colour outside or a window repair can need checking with the council first, which adds time before the work can start. \"Usually\", never the order's, the area's or the Act's name. From the dossier rules only; whether the business handles it only from [CV: handles_planning].",
+            "needs": ["Exterior painting","Sash window and timber restoration"]
           },
           {
             "title": "The weather side of the house",
-            "brief": "An exposed front or a seafront elevation needs more preparation and a settled spell to paint, so an outside job there takes longer than the same wall in a sheltered street. From the profile where it gives the exposure. A day moved by the weather and rebooked only from weather_delays_rebooked. No figure."
+            "brief": "An exposed front or a seafront elevation needs more preparation and a settled spell to paint, so an outside job there takes longer than the same wall in a sheltered street. From the profile where it gives the exposure. A day moved by the weather and rebooked only from weather_delays_rebooked. No figure.",
+            "needs": ["Exterior painting"]
           }
         ]
       },
@@ -579,5 +586,23 @@
       ]
     }
   },
-  "do_not_reuse": []
+  "do_not_reuse": [],
+  "idea_homes": [
+    {
+      "topic": "the exposed elevation and painting it in a dry, settled spell",
+      "home": "the 'Outside walls and timber facing the weather' card",
+      "elsewhere": "the 'weather side of the house' cost card says only that exposure adds time, and the 'best time of year' FAQ gives the season without describing the town's exposure",
+      "pages": [
+        "location"
+      ]
+    },
+    {
+      "topic": "old paint layers and older surfaces in the town's housing",
+      "home": "the 'Older houses with paint laid on paint' card",
+      "elsewhere": "the 'age of the surfaces' cost card says only that this adds time, and the cost FAQ names it in a phrase without explaining the layers",
+      "pages": [
+        "location"
+      ]
+    }
+  ]
 }

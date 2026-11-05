@@ -245,7 +245,8 @@
           {
             "title": "A back garden you cross on wet grass",
             "brief": "A situation card: the back door opens onto grass or onto an old patio of cracked slabs, the bins and the shed are reached across the lawn, a step down from the door lands on nothing. What decides it: the levels at the door and the fall away from the house, the ground there, and how the household uses the garden. What the work gives them, in plain words: a patio laid to fall away from the house, a path that is a path in every weather, steps with treads that do not rock. By category: Paving reads it as the patio, path or steps and their base; Concrete Contractor as a concrete base or path, or an imprinted patio and the sealer it will need looking after (schedule led: what slips and when, the reason in the sealer worn by feet and sun, never the diary); Road Construction Company as a footway or forecourt laid to a fall, only where the services list carries a car park page. Never a lifestyle pitch, never a fault invented for it.",
-            "mechanism": "no level, dry surface where the garden is used"
+            "mechanism": "no level, dry surface where the garden is used",
+            "needs": ["Patios","Garden paths","Garden steps"]
           }
         ]
       },
@@ -414,7 +415,7 @@
         {
           "slot": "cost",
           "question": "How much does [SERVICE_LOWER] cost in [CITY]?",
-          "answer_brief": "Prices only from [CV: price_list]; otherwise how the quote is given, from [CV: quote_method] only. The four cost cards above already give what moves the price: name one factor at most, never the list again.",
+          "answer_brief": "Prices only from [CV: price_list]; otherwise how the quote is given, from [CV: quote_method] only. The cost cards hold the list: never repeat it or point to it.",
           "doubt": "Price"
         },
         {
@@ -509,7 +510,8 @@
           {
             "title": "Kerbs the council has to agree to",
             "brief": "A full height kerb outside a house with room to park, a crossing that was never agreed, a tree or a lamp post where the kerb would need to drop. The one cause this card makes: the pavement belongs to the council whose road it is, so the council has to agree before it is lowered, and a classified main road adds a planning application (\"usually\", never the Act's name). What the town adds, from the profile and the research only: the classified roads through the town, trees on the pavement line and lamp posts that fix where a kerb can drop, controlled parking zones where the research confirms them. Never the council's process, fees or timescales unless the research gives them, never its approved contractors, never a promise about its answer.",
-            "mechanism": "a crossing the council has to agree to"
+            "mechanism": "a crossing the council has to agree to",
+            "needs": ["Dropped kerbs"]
           },
           {
             "title": "Rain with nowhere to go on a paved street",
@@ -656,5 +658,23 @@
         ]
       }
     }
-  }
+  },
+  "idea_homes": [
+    {
+      "topic": "the council has to agree before the kerb is lowered for a drive",
+      "home": "the 'Nowhere to park off the street' block 4 card",
+      "elsewhere": "the 'The surface and the edges' cost card names the dropped kerb only as a council charge, with no consent explanation; the 'What happens when I ask for a quote?' FAQ says only that any rule is settled before the design; the 'What does your work include?' FAQ says only whether the business builds the crossing",
+      "pages": [
+        "category"
+      ]
+    },
+    {
+      "topic": "a planning application needed for a classified road or a conservation area front garden",
+      "home": "the 'Conservation areas and classified roads' cost card",
+      "elsewhere": "the 'Kerbs the council has to agree to' card covers only the council's agreement to lower the kerb, with no planning application; the 'What happens when I ask for a quote in [TOWN]?' FAQ says only that a rule is settled before the design, without naming the roads or controls again",
+      "pages": [
+        "location"
+      ]
+    }
+  ]
 }

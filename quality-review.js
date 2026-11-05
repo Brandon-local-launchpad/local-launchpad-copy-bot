@@ -58,6 +58,7 @@ const CODE_ITEMS = {
   P2: { title: 'Other proofs 3 times at most', checks: ['PROOF-REPEAT', 'N4', 'N20'] },
   P3: { title: 'No phrase in more than two fields', checks: ['REPEAT-PAGE'] },
   C14: { title: 'No sentence about how a business in the trade behaves', checks: ['TRADE-VOICE'] },
+  Y13: { title: 'No sentence about the page itself', checks: ['META-TALK'] },
   P7: { title: '"A price agreed before work starts" once outside step 2', checks: ['PRICE-FIRST'] },
   P8: { title: 'Quote method and the price practice 3 times at most, never in both the cost FAQ and the visits FAQ', checks: ['PROOF-QUOTE'] },
   P4: { title: 'No five word run shared by two fields', checks: ['N21'] },

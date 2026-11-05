@@ -120,7 +120,7 @@ const checkTexts = (where, obj) => {
       if (/[—–]/.test(v)) warn(`${where} ${p}: an em or en dash in a brief (the copy rules forbid them; a brief is read by the model)`);
       if (figure.test(v)) warn(`${where} ${p}: a figure or rule "${v.match(figure)[0]}": the trade facts pack must state it (Table C or E), else take it out`);
     } else if (Array.isArray(v)) v.forEach((x, i) => walk(x, `${p}[${i}]`));
-    else if (v && typeof v === 'object') for (const [k, x] of Object.entries(v)) walk(x, p ? `${p}.${k}` : k);
+    else if (v && typeof v === 'object') for (const [k, x] of Object.entries(v)) { if (k === 'needs') continue; walk(x, p ? `${p}.${k}` : k); }
   };
   walk(obj, '');
 };
@@ -189,7 +189,7 @@ try {
     const walk = (v, p) => {
       if (typeof v === 'string') { for (const sen of H.sentences(v)) { const h = H.packCopy(sen, idx); if (h) hits.push(`${p}: shares "${h.match}" with the pack: "${sen.slice(0, 80)}"`); } }
       else if (Array.isArray(v)) v.forEach((x, i) => walk(x, `${p}[${i}]`));
-      else if (v && typeof v === 'object') for (const [k, x] of Object.entries(v)) walk(x, p ? `${p}.${k}` : k);
+      else if (v && typeof v === 'object') for (const [k, x] of Object.entries(v)) { if (k === 'needs') continue; walk(x, p ? `${p}.${k}` : k); }
     };
     walk({ faq_slots: n.faq_slots, faq_slots_by_type: n.faq_slots_by_type, steps: n.steps, steps_emergency: n.steps_emergency, step_2_no_visit: n.step_2_no_visit, fears: n.fears, fears_by_type: n.fears_by_type, category_page_blocks: n.category_page_blocks, service_page_blocks: n.service_page_blocks, location_page_blocks: n.location_page_blocks, service_overrides: n.service_overrides, category_overrides: n.category_overrides }, '');
     for (const h of hits) fail(`brief copies the pack (${packFile}): ${h}`);
@@ -234,6 +234,18 @@ for (const [slot, by] of [['service_overrides', 'page target'], ['category_overr
     if (v.type && slot === 'service_overrides' && !(n.service_page_blocks || {})[v.type]) fail(`${slot} "${k}": type ${v.type} has no service_page_blocks entry`);
     for (const key of Object.keys(v)) if (!['always_emergency', 'type', 'cost', 'steps', 'problems', 'faq_slots', 'included'].includes(key)) warn(`${slot} "${k}": unknown key ${key}`);
   }
+}
+// ── Service tags and idea homes (copy quality 6, 5 Nov 2026) ──
+{
+  const { elements, targetsOf } = require('./niche-tag-briefs');
+  let targets = [];
+  try { targets = targetsOf(stem).map(t => t.toLowerCase()); } catch (e) { warn(`no services library for ${stem}: tags not checked`); }
+  if (targets.length) for (const e of elements(n)) for (const name of e.needs || []) if (!targets.includes(String(name).toLowerCase())) fail(`${e.path}: needs "${name}", which is no page target in the library`);
+  for (const [i, h] of (n.idea_homes || []).entries()) {
+    if (!h || !h.topic || !h.home || !h.elsewhere) fail(`idea_homes ${i}: needs topic, home and elsewhere`);
+    for (const p of (h && h.pages) || []) if (!['homepage', 'category', 'service', 'location'].includes(p)) fail(`idea_homes ${i}: unknown page type ${p}`);
+  }
+  for (const [t, keys] of Object.entries(n.why_title_practice || {})) if (!(n.why_titles_alt || []).includes(t) || !Array.isArray(keys)) fail(`why_title_practice "${t}": must be an alternate Why title with a list of practice keys`);
 }
 const fails = out.filter(o => o[0] === 'FAIL').length, warns = out.filter(o => o[0] === 'WARN').length;
 for (const [k, m] of out) console.log(`${k === 'ok' ? '  ok ' : k === 'WARN' ? 'WARN ' : 'FAIL '}${m}`);

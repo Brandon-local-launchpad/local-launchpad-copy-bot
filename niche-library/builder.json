@@ -54,7 +54,8 @@
     },
     {
       "title": "We Visit and Price the Job",
-      "brief": "The visit and what gets looked at on site: the ground where it can be seen, where the drains run, how a skip and the materials get in, whether the job touches a wall the neighbour shares, and what the planning position looks like for that house (looked at on the day, never settled on the day). Follows [CV: quote_method]; only say the quote is written if quote_method says so. Never restates 'free' (FAQ 5 owns it). Never a free survey, a fixed price or a start date."
+      "brief": "The visit and what gets looked at on site: the ground where it can be seen, where the drains run, how a skip and the materials get in, whether the job touches a wall the neighbour shares, and what the planning position looks like for that house (looked at on the day, never settled on the day). Follows [CV: quote_method]; only say the quote is written if quote_method says so. Never restates 'free' (FAQ 5 owns it). Never a free survey, a fixed price or a start date.",
+      "needs": ["House extensions","Loft conversions","Garage conversions","Basement conversions","New build homes","Garden rooms and outbuildings","Conservatories and orangeries","Porch extensions","Garage construction","Structural alterations and steel beams","Foundations and underpinning","Barn conversions"]
     },
     {
       "title": "We Start on a Date That Suits You",
@@ -143,14 +144,16 @@
       "question": "How long does an extension or a conversion take?",
       "answer_brief": "No duration: the trade facts give none for any job (Table G). Give the stages instead, in order and as the reason the time is what it is: the approvals before anything starts, the foundations dug and looked at by building control before any concrete goes in, the shell and the roof, first fix, plaster, second fix, the final inspection. Then what moves it: the ground, steel, drains, the weather on the exposed stages, plaster drying before decoration. A number only from the client values.",
       "symptom_based": false,
-      "doubt": "Timing"
+      "doubt": "Timing",
+      "needs": ["House extensions","Loft conversions","Garage conversions","Basement conversions","Barn conversions"]
     },
     {
       "slot": "faq_B",
       "question": "Why does a crack in my wall keep coming back?",
       "answer_brief": "Use the assigned symptom's meaning and its linked local issue. Say first what is normal (hairline cracks on shrinkable ground that widen in a dry spell and close up once the ground is wet again) and then what is not (a crack that widens each year, one that splits the bricks and not just the joints between them, a door that has started to bind, a floor that slopes). Three genuinely different causes in plain words: ground under the foundations that shrinks and swells, or has been softened by a leaking drain or dried by a tree; a lintel or a beam over an opening that has dropped; filler moving over a joint between old work and new. Then what the local ground adds, then what finding the cause involves (an engineer's look, monitoring where the movement is in doubt) before any repair is sold. Never underpinning as the default answer, never a verdict on whether the house is safe.",
       "symptom_based": true,
-      "doubt": "Process"
+      "doubt": "Process",
+      "needs": ["Structural repairs","Foundations and underpinning"]
     },
     {
       "slot": "faq_C",
@@ -174,7 +177,8 @@
       "answer_brief": "Point at the trade facts rule rows (Table C) and write what usually applies, with \"usually\" or \"in most cases\": an extension on one floor behind the house, a loft with a rear dormer or rooflights that keeps the roof's shape, and a garage converted within its own walls usually fall within what a house may do without an application; a second floor added on top, building out beside the house or round the corner of it, a dormer facing the road, every extension to a flat, and a home in a conservation area or on an estate where the council has taken the allowance away are more likely to need one; a certificate from the council is the usual way to confirm that a job needs none. The building regulations side is a different question: an extension or a conversion goes through building control whether or not planning was needed. What the customer does about it only as the row gives it; what this business arranges only from [CV: handles_planning]. No figure, no depth, height or volume, never an Act's or an order's name; never that a job will or will not need permission before the house has been seen.",
       "symptom_based": false,
       "condition": "big_ticket AND [CV: handles_planning] confirmed",
-      "doubt": "Process"
+      "doubt": "Process",
+      "needs": ["House extensions","Loft conversions","Garage conversions"]
     }
   ],
   "faq_slots_by_type": {},
@@ -258,22 +262,26 @@
           {
             "title": "A house the family has outgrown",
             "brief": "A situation card, not a fault: a kitchen made for a couple with the whole household in it and the table in the front room, a third child and two bedrooms, an office on the landing, a garage that holds everything except the car, a loft nobody can get to. What decides it: what the house already has to give (a garden to build into, a roof with the height for a room, a garage with sound walls, a cellar, an alcove) and the planning position for that house from the trade facts rule rows, said with \"usually\": an extension on one floor behind the house, a loft kept within the roof's shape and a garage converted within its own walls usually need no application; a second floor added on top, an addition beside the house or in front of it, a flat, or a home in a conservation area is more likely to need one; never a figure, an Act or an order. What the work gives them, in plain words: the room, the layout, the stair. By category: Building Firm and Home Builder read it as the extension, the loft and the garage; Construction Company as the refurbishment or the new build; Contractor as the cellar; Kitchen Renovator and Bathroom Renovator as a layout that does not work; Carpenter as the awkward alcove and the unused corner; Flooring Contractor as a new floor for a room that has changed its use; Deck Builder as a garden with nowhere level to sit. Never a lifestyle pitch, never a fault invented for it.",
-            "mechanism": "rooms laid out for a smaller household"
+            "mechanism": "rooms laid out for a smaller household",
+            "needs": ["House extensions","Loft conversions","Garage conversions","Basement conversions","Garden rooms and outbuildings","Conservatories and orangeries","Porch extensions"]
           },
           {
             "title": "Cracks that keep coming back",
             "brief": "Problem led: a crack that was filled and has opened again, a door that has started to stick, a step in the brickwork at a corner. Say first what is normal on shrinkable ground (hairline cracks that widen in a dry spell and close up once the ground is wet again, from the trade facts and the town profile) and then what is not: a crack that is wider at the top than at the bottom, one that splits the bricks and not just the joints between them, one that steps away from a window corner, a floor that has started to slope. The one cause this card makes: something under or over the wall still moving (a foundation on ground that shrinks, a drain leaking into it, a tree drying it, a lintel or a beam that has dropped), so a filled crack opens again. Say what finding the cause involves from the trade facts stages (an engineer's design before any repair, monitoring where the movement is in doubt) and that a patch over the crack is not a repair; never underpinning as the default answer. By category: Construction Company and General Contractor read it in foundations, structural repairs and brickwork; Flooring Contractor as a floor that slopes or bounces, read from the subfloor; Carpenter as a stair or a door frame that has moved; Kitchen Renovator and Bathroom Renovator as units or tiles cracking over a wall or a floor that moves; Home Builder and Building Firm as the wall an extension will tie into. Never a verdict on whether a house is safe.",
-            "mechanism": "ground or a beam still moving under the wall"
+            "mechanism": "ground or a beam still moving under the wall",
+            "needs": ["Structural repairs","Foundations and underpinning"]
           },
           {
             "title": "Damp that comes back after it was treated",
             "brief": "Problem led: a tide mark low on a wall that was injected and replastered and has marked again, mould in a corner, a musty cellar, paint peeling at the skirting. Say first what is normal (condensation on a cold wall in winter in a room that is not aired, which clears with heat and ventilation) and then what is not (a patch that stays wet through summer, plaster that sounds hollow and blows). The one cause this card makes: rain reaching the wall from outside and being read as rising damp (pointing that has gone, a leaking gutter or downpipe, a path or a flower bed built up over the old damp course, a bridged cavity), so a chemical course does nothing for it. Say what finding the source involves from the trade facts stages (the source diagnosed first, leaks and bridging put right, then the right treatment for what is left) and that an injected course is for confirmed rising damp only; below ground, that a cellar is kept dry by a designed system with a drain or a pump that needs looking after, never by a coat of paint. By category: Construction Company, Contractor and Home Builder read it in cellars, basements and waterproofing; General Contractor in the pointing and the brickwork; Bathroom Renovator and Kitchen Renovator as a stain on the ceiling below a bathroom or a swollen worktop joint, water from a seal that has failed; Flooring Contractor as boards that cup or a floor that lifts over a wet subfloor; Carpenter as skirting or a frame that has swollen; Deck Builder as a joist soft where it sits on wet ground. Never a product by name, never a treatment sold by default.",
-            "mechanism": "rain reaching the wall from outside, read as rising damp"
+            "mechanism": "rain reaching the wall from outside, read as rising damp",
+            "needs": ["Damp proofing and waterproofing"]
           },
           {
             "title": "Worn out, but not worth ripping out",
             "brief": "A situation and a decision in one: kitchen units that are sound with doors scratched and hinges that sag, a bath with a chipped surface, a floor with a worn finish over good boards, a staircase that creaks, a brick wall with its pointing gone but its bricks sound. What decides it: whether what is underneath is sound (the carcasses square and dry, the bath supported, the boards and joists firm, the stair's strings and treads, the bricks themselves), from the trade facts signs row and the done badly row. What the work gives them: new fronts on sound carcasses, a resurfaced bath, a floor sanded and refinished, a stair re fixed, a wall repointed in a mortar softer than the brick; or, where what is underneath has gone, the honest answer that a facelift will not hold (a coating peels where the old finish was not removed, new doors bind on carcasses out of square, a patch over a failed subfloor moves, hard cement pointing on an old soft brick makes the brick face flake instead). By category: Kitchen Renovator reads it as doors and worktops; Bathroom Renovator as resurfacing against replacement; Flooring Contractor as sanding against a new floor; Carpenter as the stair and the joinery; General Contractor as the brickwork; Building Firm, Construction Company, Contractor, Remodeller and Home Builder as the refurbishment that keeps the sound parts; Deck Builder as boards replaced on a sound frame, or a frame that has gone. Never a judgement on the home's state.",
-            "mechanism": "what is underneath deciding whether a facelift holds"
+            "mechanism": "what is underneath deciding whether a facelift holds",
+            "needs": ["Kitchen door replacement and refacing","Bath and shower resurfacing","Floor sanding and restoration","Staircases","Brickwork and masonry","Property repairs and maintenance","Property refurbishment"]
           }
         ]
       },
@@ -438,7 +446,7 @@
         {
           "slot": "cost",
           "question": "How much does [SERVICE_LOWER] cost in [CITY]?",
-          "answer_brief": "Prices only from [CV: price_list]; otherwise how the quote is given, from [CV: quote_method] only. The four cost cards above already give what moves the price: name one factor at most, never the list again. Never a fixed price or a promise the price cannot change.",
+          "answer_brief": "Prices only from [CV: price_list]; otherwise how the quote is given, from [CV: quote_method] only. The cost cards hold the list: never repeat it or point to it. Never a fixed price or a promise the price cannot change.",
           "doubt": "Price"
         },
         {
@@ -523,7 +531,8 @@
           {
             "title": "Ground that moves with the seasons",
             "brief": "Hairline cracks that widen in a dry spell and close up once the ground is wet again, a path that has lifted, doors that stick in autumn. Say first what is normal on the town's ground, from the town profile and a symptom (shrinkable clay, made ground, a river valley, chalk), and then what is not (a crack that widens year on year, a step in the brickwork, a floor that slopes). The one cause this card makes: the ground under the town's houses taking up water and giving it back. What it means for any job that goes into the ground, in plain words: foundations for an extension go deeper on ground like this and building control looks at the bottom of the trench before the concrete; a tree near the house is part of the picture; a cellar or a basement meets the water in the ground. Never promise the ground will change, never a verdict on a house. Not a beam or a drain still moving one wall: the town's service pages own that.",
-            "mechanism": "the ground under the town's houses taking up water and giving it back"
+            "mechanism": "the ground under the town's houses taking up water and giving it back",
+            "needs": ["Structural repairs","Foundations and underpinning"]
           },
           {
             "title": "Houses built the way their decade built them",
@@ -538,7 +547,8 @@
           {
             "title": "Terraces, semis and the neighbour's wall",
             "brief": "The town's terraces and semis mean most extensions, lofts and knock throughs touch a wall the neighbour owns half of, or dig close to their footings. The one cause this card makes: work on or next to a shared wall. What usually applies, from the trade facts rule rows: the neighbour is told in writing before the work starts and can agree or have a surveyor act for them; it is separate from planning and from building control; a loft's new floor and its steel beams usually sit on that shared wall at the sides. Never the Act's name, never a notice period, never a distance or a depth. What the business does about it only from confirmed practices. Not the planning position: card 3 owns that.",
-            "mechanism": "work on or next to a shared wall"
+            "mechanism": "work on or next to a shared wall",
+            "needs": ["House extensions","Loft conversions","Structural alterations and steel beams","Foundations and underpinning"]
           }
         ]
       },
@@ -551,7 +561,8 @@
           },
           {
             "title": "Deeper foundations on this ground",
-            "brief": "Where the town profile gives clay, soft ground or a high water table: foundations go deeper, may need an engineer's design, mean more spoil to take away, and are looked at by building control before the concrete goes in. Say it plainly from the profile; no depth, no figure."
+            "brief": "Where the town profile gives clay, soft ground or a high water table: foundations go deeper, may need an engineer's design, mean more spoil to take away, and are looked at by building control before the concrete goes in. Say it plainly from the profile; no depth, no figure.",
+            "needs": ["House extensions","Foundations and underpinning","New build homes","Garage construction","Conservatories and orangeries","Porch extensions","Garden rooms and outbuildings","Concrete bases and groundworks"]
           },
           {
             "title": "Conservation areas and listed homes",
@@ -618,5 +629,39 @@
       ]
     }
   },
-  "do_not_reuse": []
+  "do_not_reuse": [],
+  "idea_homes": [
+    {
+      "topic": "the stages and order of the build",
+      "home": "the 'How long does an extension or a conversion take?' FAQ",
+      "elsewhere": "the stay-in-the-house FAQ gives only the weathertight-first, wall-down-last point; the start-date step names no stages",
+      "pages": [
+        "homepage"
+      ]
+    },
+    {
+      "topic": "whether the job needs planning permission",
+      "home": "the 'Planning permission or building regulations: which does my job need?' FAQ",
+      "elsewhere": "the extension/loft planning FAQ lists only which jobs usually fall within the allowance without re-explaining the two approvals; the visit step says the planning position is looked at, nothing more",
+      "pages": [
+        "homepage"
+      ]
+    },
+    {
+      "topic": "building control inspecting the foundations before concrete goes in",
+      "home": "the 'How long does [WORK_LOWER] usually take?' FAQ",
+      "elsewhere": "the 'What is already there' and 'Steel, services and sign offs' cost cards name the inspection as a cost only, without describing it",
+      "pages": [
+        "category"
+      ]
+    },
+    {
+      "topic": "conservation areas and removed allowances changing the approval",
+      "home": "the 'Streets where the council has a say' block 4 card",
+      "elsewhere": "the conservation cost card covers only the added time and matching materials; the quote and timing FAQs mention the planning position in one clause without explaining it",
+      "pages": [
+        "location"
+      ]
+    }
+  ]
 }

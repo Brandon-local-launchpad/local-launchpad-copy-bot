@@ -141,14 +141,16 @@
       "question": "How long will my drive or patio stay clean?",
       "answer_brief": "No promise of a time. What decides it, in plain words: how much shade and damp the surface sits in, trees and a north facing side, and whether the growth was treated or only knocked off the top (the trade facts soft washing rows: growth that a treatment did not reach stays and regrows). Say what slows the return (a treatment after the wash, joints refilled so they hold less water) as the principle of good work, never as this client's process unless [CV: materials_methods] or a practice confirms it. Nothing about an annual clean: the facts pack gives no interval.",
       "symptom_based": false,
-      "doubt": "Timing"
+      "doubt": "Timing",
+      "needs": ["Driveway and patio cleaning"]
     },
     {
       "slot": "faq_B",
       "question": "Why has my drive gone green again so soon after it was cleaned?",
       "answer_brief": "Use the assigned symptom's meaning and its linked local issue. Three genuinely different causes in plain words, from the trade facts what goes wrong rows: the top of the growth was washed off and what lives down in the pores and the joints was left to grow back; a side that never dries (shade, a tree, the north side of the house) that any surface greens on; joints washed empty, which hold water and seed. Then what the local factor adds (tree cover, a damp valley, coastal air, the housing era's surfaces), then what a proper clean has to do: treat what is left, and refill the joints. Blame the method, never the customer's effort. Never promise it stays clean.",
       "symptom_based": true,
-      "doubt": "Process"
+      "doubt": "Process",
+      "needs": ["Driveway and patio cleaning"]
     },
     {
       "slot": "faq_C",
@@ -156,7 +158,8 @@
       "answer_brief": "Yes, when the pressure and the distance are wrong for the surface, from the trade facts facts rows: there is no one safe setting for every surface; the paving maker's guidance is a moderate pressure with the lance held at an angle and back from the surface; natural stone, including sandstone, takes a low setting because a hard jet wears it; a jet run across block joints empties them, and the sand is then brushed back in; a mortar joint that is damaged is made good. Say what a careful job does first (the surface identified, a test patch) as the principle of good work. No figure, no distance, no named product unless [CV: materials_methods] gives it.",
       "symptom_based": false,
       "is_fallback": true,
-      "doubt": "Process"
+      "doubt": "Process",
+      "needs": ["Driveway and patio cleaning"]
     },
     {
       "slot": "faq_D",
@@ -173,7 +176,8 @@
       "symptom_based": false,
       "is_fallback": true,
       "condition": "the client's services list carries brick and stone cleaning or graffiti removal",
-      "doubt": "Process"
+      "doubt": "Process",
+      "needs": ["Brick and stone cleaning","Graffiti removal"]
     },
     {
       "slot": "faq_F",
@@ -412,7 +416,8 @@
           {
             "title": "A stain that's soaked in",
             "brief": "An oil patch dark in the middle of the drive, an orange rust mark under a planter or a gate, paint caught in the pores of brick, a tyre mark that a wash did not lift, from the trade facts signs rows. The one cause this card makes: a spill or a mark that went into the surface before it was dealt with. From the facts rows: oil soaks into paving, a fresh spill is soaked up rather than wiped (wiping spreads it), oil that has gone deep may lighten rather than vanish and a badly contaminated block is sometimes replaced; a rust shadow can stay; paint gets harder to shift the longer it sits. Say what the service does in plain words (the stain identified, the source stopped, a stain treatment tried on a patch, left to work, the contaminated water collected) and be honest about the result. On a growth page the card is the black lichen spot that is treated and left to fade rather than jetted. On a schedule led sealing page: stains soaking into an unsealed surface, which is what the seal is for. Never a product unless [CV: materials_methods] gives it; never promise the mark is gone.",
-            "mechanism": "a spill or a mark that went into the surface before it was dealt with"
+            "mechanism": "a spill or a mark that went into the surface before it was dealt with",
+            "needs": ["Oil and rust stain removal","Graffiti removal"]
           },
           {
             "title": "Weeds and water in the joints",
@@ -446,7 +451,7 @@
         {
           "slot": "cost",
           "question": "How much does [SERVICE_LOWER] cost in [CITY]?",
-          "answer_brief": "Prices only from [CV: price_list]; otherwise how the quote is given, from [CV: quote_method] only. The four cost cards above already give what moves the price: name one factor at most, never the list again.",
+          "answer_brief": "Prices only from [CV: price_list]; otherwise how the quote is given, from [CV: quote_method] only. The cost cards hold the list: never repeat it or point to it.",
           "doubt": "Price"
         },
         {
@@ -549,7 +554,8 @@
           },
           {
             "title": "Conservation areas and listed buildings",
-            "brief": "Where the town has conservation areas or listed buildings, the checks before a wall is cleaned add time, trials come before the clean, and some methods cannot be used at all. \"Usually\", never the Act's or the area's official name. From the dossier rules only; otherwise a gentle method and a test patch as what sometimes applies."
+            "brief": "Where the town has conservation areas or listed buildings, the checks before a wall is cleaned add time, trials come before the clean, and some methods cannot be used at all. \"Usually\", never the Act's or the area's official name. From the dossier rules only; otherwise a gentle method and a test patch as what sometimes applies.",
+            "needs": ["Brick and stone cleaning","Render cleaning","Graffiti removal"]
           },
           {
             "title": "Where the wash water has to go",
@@ -612,5 +618,40 @@
       ]
     }
   },
-  "do_not_reuse": []
+  "do_not_reuse": [],
+  "why_title_practice": {"The Right Method for Every Surface":[]},
+  "idea_homes": [
+    {
+      "topic": "growth regrows when the clean only knocked off the top and left the roots in the pores and joints",
+      "home": "the 'Why has my drive gone green again so soon after it was cleaned?' FAQ",
+      "elsewhere": "the 'How long will my drive or patio stay clean?' FAQ names only what slows the return and does not explain roots left behind; the soft wash FAQ sticks to how the two methods differ",
+      "pages": [
+        "homepage"
+      ]
+    },
+    {
+      "topic": "how the price is reached (visit, photos, call)",
+      "home": "the 'How do your quotes work?' FAQ",
+      "elsewhere": "the pricing step says only that a price is agreed before work starts; the 'free and no obligation' FAQ answers only the free question",
+      "pages": [
+        "homepage"
+      ]
+    },
+    {
+      "topic": "how the quote is given and that the business looks before it prices",
+      "home": "the 'What happens when I ask for a quote?' FAQ",
+      "elsewhere": "the 'How much has built up' cost card and the cost FAQ do not describe the quoting method",
+      "pages": [
+        "category"
+      ]
+    },
+    {
+      "topic": "wash water kept out of drains that run to the local stream, then collected and taken away",
+      "home": "the 'Where the wash water has to go' cost card",
+      "elsewhere": "the 'Drains that run straight to the stream' card names the drain and the stream but does not describe collecting the water; the cost FAQ names the water only as one price factor in a few words",
+      "pages": [
+        "location"
+      ]
+    }
+  ]
 }

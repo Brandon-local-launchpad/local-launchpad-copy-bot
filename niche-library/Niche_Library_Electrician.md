@@ -359,7 +359,7 @@ Three framings share this one entry, per the pack's section 2: a problem led pag
 
 | Slot | When | Question | Answer brief | Doubt |
 |---|---|---|---|---|
-| cost | always | How much does [SERVICE_LOWER] cost in [CITY]? | Prices only from [CV: price_list]; otherwise how the quote is given, from [CV: quote_method] only. The four cost cards above already give what moves the price: name one factor at most, never the list again. | Price |
+| cost | always | How much does [SERVICE_LOWER] cost in [CITY]? | Prices only from [CV: price_list]; otherwise how the quote is given, from [CV: quote_method] only. The cost cards hold the list: never repeat it or point to it. | Price |
 | timing | always | How long does [SERVICE_LOWER] take, and will the power be off? | From the Table A timing cell for this service only: no standard duration exists (Table G), so give what decides it (the number of circuits, the route, access, rooms in use) and whether the power, or the water as well, has to go off and that it is arranged first, as the cell says. Nothing about when the job can start unless [CV: start_time] is set. This is the one place the timing is written. | Timing |
 | cover | guarantee | Do you guarantee your [SERVICE_LOWER] work? | Start with yes, then the terms from [CV: guarantee_years] and [CV: guarantee_scope]. A maker's warranty on the charger, the board, the fan or the alarm only from [CV: manufacturer_warranty]. Described, never promised. | Trust |
 | cover | insurance | Are you insured for [SERVICE_LOWER]? | The cover figure from [CV: insurance_cover] and what the cover is for. Never what it pays or who it covers. | Trust |
@@ -542,3 +542,38 @@ For Ray and the trade facts pack (Table G records most as not found; the briefs 
 10. The AFDD socket circuit list (Table G: omitted from Table C), so arc fault detection is a tick and never a rule.
 11. A word on power cuts from the network side (the pack and the facts cover the house's wiring only), so the "power gone in part of the house" card says only that lights off next door point away from the house.
 12. The pack's header still says verified: no; the service page gate refuses a run until it is verified on the Trade facts screen.
+
+## Alternate Why title that promises a practice (why_title_practice)
+
+"Tested and Certificated, Every Job" stands only with a practice no tick confirms, so never by default; otherwise the point reads "Local Experience Behind Every Job".
+
+## Service tags
+
+An element is dropped, and the next eligible one used, when the client has confirmed none of these services. The paths are in the .json as `needs`.
+
+| Element | Needs |
+|---|---|
+| Call Us | Emergency electrician |
+| We Make It Safe | Emergency electrician |
+| We Fix It, or Book the Repair | Emergency electrician |
+| A date you have to meet | EICR and electrical testing; Landlord electrical certificates; PAT testing; Fire alarm systems; Emergency lighting |
+| A board or wiring from another era | Rewiring; Consumer unit upgrades |
+| Damp, steam or rain getting to the electrics | Extractor fan installation; Garden and outdoor lighting; Electric shower installation |
+| A new load the house was never wired for | EV charger installation; Cooker and hob installation; Electric shower installation; Solar PV and battery storage |
+| Light where you need it, switched where you stand | Lighting installation; Garden and outdoor lighting |
+| Knowing who's at the door and what's happening while you're out | CCTV installation; Intruder alarms; Access control and door entry |
+| Wiring for the way you live and work now | Data and network cabling; Home cinema and audio visual; Smart home installation; Commercial electrical work |
+| A report or certificate you need by a date | EICR and electrical testing; Landlord electrical certificates; PAT testing; Fire alarm systems; Emergency lighting |
+| Adding something the house was never wired for | EV charger installation; Cooker and hob installation; Electric shower installation; Solar PV and battery storage |
+| Homes wired for a different decade | Rewiring; Consumer unit upgrades |
+| Lets, shared houses and the inspection cycle | Landlord electrical certificates; EICR and electrical testing |
+| Terraces with nowhere to park a charger | EV charger installation |
+| Flats, shared houses and tenants' diaries | Landlord electrical certificates; EICR and electrical testing |
+| The supply the street was given | EV charger installation; Solar PV and battery storage; Electric shower installation |
+
+## Idea homes
+
+- **making safe on the call-out and the permanent repair being separate pieces of work** (service): home is the 'Made safe tonight, fixed on a date' block 4 card. Elsewhere: the steps, the cost cards and the 'What if the fault comes back' FAQ state their own part without re-explaining the two-visit split.
+- **what to do before the electrician arrives (circuit off, unplug, keep away)** (service): home is the 'What should I do before you arrive?' FAQ. Elsewhere: the Call Us step covers only what to say on the call, and the problem cards do not list the safe basics.
+- **making safe on the call-out and the permanent repair being separate pieces of work** (category): home is the 'We Fix It, or Book the Repair' step. Elsewhere: the cost cards and the 'What if the fault comes back after an emergency visit?' FAQ do not re-explain the two-visit split.
+- **what to do before the electrician arrives (circuit off, unplug, keep away)** (category): home is the 'What should I do before you arrive?' FAQ. Elsewhere: the Call Us step covers only what to say on the call, and the problem cards do not list the safe basics.

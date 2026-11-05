@@ -12,33 +12,36 @@
 const HOMES = {
   homepage: [
     { topic: 'What to tell us and send with an enquiry (the size, photos, which side of the house, what the problem is doing)', home: 'the first process step (its step_body)', elsewhere: 'the quote FAQ answers the "free, no obligation" doubt and nothing about what to send; the hero, the cards, the areas intro and the final CTA never list it' },
-    { topic: 'The cost factors (size, access, what is underneath, materials)', home: 'the cost FAQ: one line on why prices vary, then the one factor people do not expect', elsewhere: 'no card, point or other answer lists what moves the price' },
+    { topic: 'The cost factors (size, access, what is underneath, materials)', home: 'the cost FAQ: the factor that moves the price most, then what the customer can do (ask for a quote, send photos)', elsewhere: 'no card, point or other answer lists what moves the price' },
     { topic: 'The insurer point (what the policy or the insurer decides)', home: 'the insurance FAQ', elsewhere: 'no other field mentions the insurer, the policy or a claim' },
     { topic: 'The hidden layer (the base, the membrane, the fixings, what sits behind the finish)', home: 'the content block', elsewhere: 'the cards and the FAQs never restate it' },
   ],
   category: [
     { topic: 'What to tell us and send with an enquiry', home: 'the first process step (its step_body)', elsewhere: 'the quote FAQ answers the "free, no obligation" doubt and nothing about what to send; no other field lists it' },
-    { topic: 'The cost factors', home: 'the block 5 cost cards', elsewhere: 'the cost intro says why prices vary in one line and names no factor; the cost FAQ gives the one factor people do not expect and sends the reader to the cost section by its heading (never "above", "below" or "on this page"); the content block, the service cards and the other FAQs never list factors' },
+    { topic: 'The cost factors', home: 'the block 5 cost cards', elsewhere: 'the cost intro says why prices vary in one line and names no factor; the cost FAQ gives the factor that moves the price most and what the customer can do (ask for a quote, send photos) and sends the reader to the cost section by its heading (never "above", "below" or "on this page"); the content block, the service cards and the other FAQs never list factors' },
     { topic: 'The insurer point', home: 'the insurance FAQ', elsewhere: 'no card or other answer mentions the insurer, the policy or a claim' },
     { topic: 'The hidden layer (the base, the membrane, the fixings, what sits behind the finish)', home: 'the content block', elsewhere: 'the block 4 cards name the sign and the cause, never the layer again; the FAQs never restate it' },
   ],
   service: [
     { topic: 'What to tell us and send with an enquiry', home: 'the first process step (its step_body)', elsewhere: 'no FAQ, card or intro lists what to send' },
-    { topic: 'The cost factors', home: 'the block 5 cost cards', elsewhere: 'the cost intro says why prices vary in one line and names no factor; the cost FAQ gives the one factor people do not expect and sends the reader to the cost section by its heading (never "above", "below" or "on this page"); the content block, the What\'s Included items and the other FAQs never list factors' },
+    { topic: 'The cost factors', home: 'the block 5 cost cards', elsewhere: 'the cost intro says why prices vary in one line and names no factor; the cost FAQ gives the factor that moves the price most and what the customer can do (ask for a quote, send photos) and sends the reader to the cost section by its heading (never "above", "below" or "on this page"); the content block, the What\'s Included items and the other FAQs never list factors' },
     { topic: 'The insurer point', home: 'the insurance FAQ', elsewhere: 'no card or other answer mentions the insurer, the policy or a claim' },
     { topic: 'The hidden layer (the base, the membrane, the fixings, what sits behind the finish)', home: 'paragraph 3 of the content block', elsewhere: 'the block 4 cards name the sign and the cause, never the layer again; the What\'s Included items name the stage in four to ten words; the FAQs never restate it' },
   ],
   location: [
     { topic: 'What to tell us and send with an enquiry', home: 'the first process step (its step_body)', elsewhere: 'the quote FAQ answers the "free, no obligation" doubt and nothing about what to send; no other field lists it' },
-    { topic: 'The cost factors', home: 'the block 5 cost cards', elsewhere: 'the cost intro says why prices vary in one line and names no factor; the cost FAQ gives the one factor people do not expect and sends the reader to the cost section by its heading (never "above", "below" or "on this page"); the content block and the other FAQs never list factors' },
+    { topic: 'The cost factors', home: 'the block 5 cost cards', elsewhere: 'the cost intro says why prices vary in one line and names no factor; the cost FAQ gives the factor that moves the price most and what the customer can do (ask for a quote, send photos) and sends the reader to the cost section by its heading (never "above", "below" or "on this page"); the content block and the other FAQs never list factors' },
     { topic: 'The insurer point', home: 'the insurance FAQ', elsewhere: 'no card or other answer mentions the insurer, the policy or a claim' },
     { topic: 'The hidden layer (the base, the membrane, the fixings, what sits behind the finish)', home: 'the content block', elsewhere: 'the block 4 cards name the sign and the cause, never the layer again; the FAQs never restate it' },
   ],
 };
 
 // The lines for the DECISIONS block
-function ideaHomeLines(type) {
-  const rows = HOMES[type] || HOMES.category;
+// A niche's own recurring ideas (copy quality 6, 5 Nov 2026): the entry's idea_homes, [{ topic, home, elsewhere, pages }],
+// pages being the page types it applies to (all when left out). They come first: they name this trade's ideas
+function ideaHomeLines(type, niche = null) {
+  const own = ((niche && niche.idea_homes) || []).filter(r => !Array.isArray(r.pages) || !r.pages.length || r.pages.includes(type));
+  const rows = [...own, ...(HOMES[type] || HOMES.category)];
   return ['', 'IDEA HOMES (one home per idea; a field that is not the home never makes the point, in any words):',
     ...rows.map(r => `  ${r.topic}: ${r.home}. Elsewhere: ${r.elsewhere}.`)];
 }
@@ -49,8 +52,8 @@ const NOTES = {
   step1: 'the home of what to tell us and send',
   costIntro: 'one line on why prices vary; the factors live in the cost cards',
   block5: 'the only home of the cost factors',
-  costFaq: 'the one factor people do not expect, then send the reader to the cost section by its heading in words ("the cost factors are under What Affects the Cost"), never "above", "below", "on this page" or the list itself',
-  costFaqHome: 'one line on why prices vary, then the one factor people do not expect',
+  costFaq: 'the factor that moves the price most, then what the customer can do to get a figure (ask for a quote, send photos); never point to another section',
+  costFaqHome: 'the factor that moves the price most, then what the customer can do to get a figure (ask for a quote, send photos); never point to another section',
   quoteFaq: 'the free, no obligation doubt; never what to send',
   insuranceFaq: 'the only home of the insurer point',
   content: 'the home of the hidden layer',

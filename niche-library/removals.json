@@ -151,7 +151,8 @@
       "answer_brief": "From the trade facts Table A packing stages and Table E: what a packing service covers (the contents and what is left out agreed, materials chosen, items wrapped and packed, every box labelled for its room, an inventory where agreed), what the customer's own packing changes (Table E owner packed row: damage in boxes the customer packed can be left out of the cover under the policy's terms, so say it is worth checking, never that it is or is not covered), and that boxes and materials are included only as the quotation says. A packing service only where the services list has one; link the page where LINKABLE PAGES has it. Never a number of boxes or a packing time.",
       "symptom_based": false,
       "is_fallback": true,
-      "doubt": "Fit"
+      "doubt": "Fit",
+      "needs": ["Packing services"]
     },
     {
       "slot": "faq_D",
@@ -168,7 +169,8 @@
       "symptom_based": false,
       "is_fallback": true,
       "condition": "the client's services list carries the Storage page",
-      "doubt": "Fit"
+      "doubt": "Fit",
+      "needs": ["Storage"]
     },
     {
       "slot": "faq_clearance",
@@ -177,7 +179,8 @@
       "symptom_based": false,
       "is_fallback": true,
       "condition": "the client's services list carries the House clearance page",
-      "doubt": "Trust"
+      "doubt": "Trust",
+      "needs": ["House clearance"]
     }
   ],
 
@@ -290,7 +293,7 @@
         {
           "slot": "cost",
           "question": "How much does [WORK_LOWER] cost in [CITY]?",
-          "answer_brief": "Prices only from [CV: price_list]; otherwise how the quote is reached, from [CV: quote_method] only (a survey at the home or by video only as it gives it), and that the price is agreed before the day when the price_agreed_before_work practice is confirmed. The four cost cards above already give what moves the price: name one factor at most, never the list again.",
+          "answer_brief": "Prices only from [CV: price_list]; otherwise how the quote is reached, from [CV: quote_method] only (a survey at the home or by video only as it gives it), and that the price is agreed before the day when the price_agreed_before_work practice is confirmed. The cost cards hold the list: never repeat it or point to it.",
           "doubt": "Price"
         },
         {
@@ -433,7 +436,7 @@
         {
           "slot": "cost",
           "question": "How much does [SERVICE_LOWER] cost in [CITY]?",
-          "answer_brief": "Prices only from [CV: price_list]; otherwise how the quote is reached, from [CV: quote_method] only, and that the price is agreed before the day when the price_agreed_before_work practice is confirmed. The four cost cards above already give what moves the price: name one factor at most, never the list again.",
+          "answer_brief": "Prices only from [CV: price_list]; otherwise how the quote is reached, from [CV: quote_method] only, and that the price is agreed before the day when the price_agreed_before_work practice is confirmed. The cost cards hold the list: never repeat it or point to it.",
           "doubt": "Price"
         },
         {
@@ -579,5 +582,48 @@
       ]
     }
   },
-  "do_not_reuse": []
+  "do_not_reuse": [],
+  "why_title_practice": {"Moving Days Planned in Order":[]},
+  "idea_homes": [
+    {
+      "topic": "how the quote is reached (survey at the home or by video, from quote_method)",
+      "home": "the 'How do your quotes work?' FAQ",
+      "elsewhere": "step 2 says what gets settled and that a price comes before the day, without explaining the quote method again; the 'Is the survey and quote free?' FAQ answers only whether it is free",
+      "pages": [
+        "homepage"
+      ]
+    },
+    {
+      "topic": "the survey and what it settles before the day",
+      "home": "step 2 'We Survey and Price Your Move'",
+      "elsewhere": "the 'What gets settled before the day' card gives the stage in one line without listing the survey's checks again; the cost FAQ gives only prices or how the quote comes back",
+      "pages": [
+        "service"
+      ]
+    },
+    {
+      "topic": "whether dismantling and reassembly are in the job",
+      "home": "the 'What does your service include?' FAQ",
+      "elsewhere": "the lifting and placing cards and step 3 mention pieces coming apart or beds rebuilt only as a stage, never restating whether it is in or out of scope",
+      "pages": [
+        "service"
+      ]
+    },
+    {
+      "topic": "the survey and what it settles before the day",
+      "home": "the 'The survey that sets up the day' block 4 card",
+      "elsewhere": "step 2 names the survey in one line and moves on to the price; the cost FAQ and the 'What happens when I ask for a quote?' FAQ say what comes back, not the survey's checklist",
+      "pages": [
+        "category"
+      ]
+    },
+    {
+      "topic": "whether dismantling and reassembly are in the job",
+      "home": "the 'What does your service cover?' FAQ",
+      "elsewhere": "the 'Unloading and getting furniture in' card and step 3 mention reassembly only as a stage, never restating whether it is in or out of scope",
+      "pages": [
+        "category"
+      ]
+    }
+  ]
 }

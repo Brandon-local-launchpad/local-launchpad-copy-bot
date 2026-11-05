@@ -303,7 +303,7 @@ Three framings share this one entry, per the pack's section 2: a problem led pag
 | Slot | When | Question | Answer brief | Doubt |
 |---|---|---|---|---|
 
-| cost | always | How much does [SERVICE_LOWER] cost in [CITY]? | Prices only from [CV: price_list]; otherwise how the quote is given, from [CV: quote_method] only. The four cost cards above already give what moves the price: name one factor at most, never the list again. Never a figure from memory. | Price |
+| cost | always | How much does [SERVICE_LOWER] cost in [CITY]? | Prices only from [CV: price_list]; otherwise how the quote is given, from [CV: quote_method] only. The cost cards hold the list: never repeat it or point to it. Never a figure from memory. | Price |
 | timing | always | How long does [SERVICE_LOWER] take? | From the trade facts timing cell only: the pack gives no standard duration for any roofline job, so say what decides it (the length of the run, the number of downpipes, how the roofline is reached, the weather on the day: wind, ice and heavy rain stop work at height). No figure. Nothing about when the job can start unless [CV: start_time] is set. This is the one place the timing is written. | Timing |
 | cover | guarantee | Do you guarantee your [SERVICE_LOWER] work? | Start with yes, then the terms from [CV: guarantee_years] and [CV: guarantee_scope]: whether a repair is covered as well as a new run only as the scope says. Insurance backed only where [CV: guarantee_scope] says so; a maker's roofline guarantee only from [CV: manufacturer_warranty], named as the trade facts name it and never stretched into a lifespan. Described, never promised. | Trust |
 | cover | insurance | Are you insured for [SERVICE_LOWER]? | The cover figure from [CV: insurance_cover] and what the cover is for, with a plausible roofline example that does not suggest carelessness. Never what it pays or who it covers. | Trust |
@@ -404,3 +404,23 @@ For Ray and the trade facts pack (Table G records most as not found; the briefs 
 14. Independent evidence on gutter guards: only manufacturer claims were found, so the guards briefs say they slow debris and still need the outlets reachable and the gutters looked at.
 15. What a wet winter does to a run already standing water (ice, weight on brackets): the pack has no row for it, so the service seasonal card on a problem led page points at the signs row and nothing more.
 16. The pack's header still says verified: no; the service page gate refuses a run until it is verified on the Trade facts screen.
+
+## Service tags
+
+An element is dropped, and the next eligible one used, when the client has confirmed none of these services. The paths are in the .json as `needs`.
+
+| Element | Needs |
+|---|---|
+| Do gutter guards stop gutters blocking up? | Gutter guards and leaf protection |
+| Do I need permission to replace my fascias and gutters? | Fascias and soffits |
+| Water where it lands at the bottom | Downpipes |
+| A roofline you keep having to paint | Fascias and soffits; Cladding |
+| uPVC, aluminium or cast iron for your house | Aluminium guttering; Cast iron guttering |
+| Drips at the joints and a dip in the run | Gutter repairs |
+| A gutter coming away from the house | Fascias and soffits; Bargeboards |
+| Boards you keep having to paint | Fascias and soffits |
+
+## Idea homes
+
+- **the work runs all year and only wind, ice and heavy rain stop it for the day** (service): home is the 'How long does [SERVICE_LOWER] take?' FAQ. Elsewhere: the seasonal block 4 card and the seasonal FAQ talk about the season and do not list again what stops work at height.
+- **clear after the leaves are down and before the winter rain, because wet leaves break down to silt that packs the outlet** (category): home is the 'When is the best time of year to have the gutters cleared?' FAQ. Elsewhere: the winter FAQ says only that the weather stops work for the day; the seasonal card names the silt cause but gives no timing advice.

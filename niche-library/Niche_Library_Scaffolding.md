@@ -326,7 +326,7 @@ Three framings share this one entry, per the pack's section 2: an access led pag
 
 | Slot | When | Question | Answer brief | Doubt |
 |---|---|---|---|---|
-| cost | always | How much does [SERVICE_LOWER] cost in [CITY]? | Prices only from [CV: price_list]; otherwise how the quote is given, from [CV: quote_method] only. The four cost cards above already give what moves the price: name one factor at most, never the list again. No hire period or weekly figure unless price_list gives one. | Price |
+| cost | always | How much does [SERVICE_LOWER] cost in [CITY]? | Prices only from [CV: price_list]; otherwise how the quote is given, from [CV: quote_method] only. The cost cards hold the list: never repeat it or point to it. No hire period or weekly figure unless price_list gives one. | Price |
 | timing | always | How long does [SERVICE_LOWER] take to put up? | From the trade facts timing row for this service only, which gives no standard: what decides it (the sides, the height, the arrangement, whether drawings come first, the licence where it stands on the pavement) and the weather that stops a safe build (wind, ice, a slippery roof). Nothing about when the job can start unless [CV: start_time] is set; a duration only from the client values. This is the one place the timing is written. | Timing |
 | cover | guarantee | Do you guarantee your [SERVICE_LOWER] work? | Start with yes, then the terms from [CV: guarantee_years] and [CV: guarantee_scope]. Described, never promised. | Trust |
 | cover | insurance | Are you insured for [SERVICE_LOWER]? | The cover figure from [CV: insurance_cover] and what the cover is for, named only as the client value gives it. Never what it pays or who it covers; never a legal minimum (Table E). | Trust |
@@ -482,3 +482,40 @@ For Ray and the trade facts pack (Table G records most as not found; the briefs 
 12. A load figure a homeowner page could use. Table E gives HSE's general purpose figure; the briefs keep every load figure in the facts and say "no load figure".
 13. The inspection interval. Table C and Table E give it with its height condition; the briefs say "at regular intervals" or "on a regular cycle" and point at the rows, so the figure is the facts pack's to state.
 14. The pack's header says verified: no; the service page gate refuses a run until it is verified on the Trade facts screen.
+
+## Alternate Why title that promises a practice (why_title_practice)
+
+"Built Around the Other Trade's Dates" stands only with a practice no tick confirms, so never by default; otherwise the point reads "Local Experience Behind Every Job".
+
+## Service tags
+
+An element is dropped, and the next eligible one used, when the client has confirmed none of these services. The paths are in the .json as `needs`.
+
+| Element | Needs |
+|---|---|
+| Nowhere on the ground to build from | Chimney scaffolding; Cantilever and truss out scaffolding |
+| A roof stripped with the weather coming | Temporary roofs; Debris netting and sheeting; Edge protection |
+| Every tile carried up a ladder | Hoists and loading bays; Stair towers and temporary stairs |
+| A scaffold that has moved or been hit | Scaffold inspections |
+| Front doors that open onto the pavement | Pavement and road scaffolding |
+| Chimneys and gables with nothing below them | Chimney scaffolding; Cantilever and truss out scaffolding |
+| Wind where the town stands open | Debris netting and sheeting; Temporary roofs |
+| A scaffold on the pavement | Pavement and road scaffolding |
+| Wind on the hill or the front | Debris netting and sheeting; Temporary roofs |
+| Conservation areas and listed fronts | Heritage and listed building scaffolding |
+
+## Idea homes
+
+- **the council's licence before a scaffold on the pavement** (homepage): home is the 'Do I need permission to put scaffolding up at my house?' FAQ. Elsewhere: the survey step, the start FAQ and the how-long FAQ name the licence in one clause at most and never explain it.
+- **the council's licence before a scaffold on the pavement** (service): home is the 'Is a licence or permission needed for [SERVICE_LOWER]?' FAQ. Elsewhere: the 'Paperwork and the public' cost card gives it only as a cost and the how-long FAQ names it in one clause.
+- **waiting for the wind to drop before building** (service): home is the 'Can you put it up while the wind is still up?' FAQ. Elsewhere: step 3 and the 'How quickly can you get here?' FAQ say only 'once it is safe to build'.
+- **closing off the area and looking at the hazard first** (service): home is the step 'We Close It Off and Look at What's Holding'. Elsewhere: the 'Closing it off and holding it' cost card gives it only as a cost and the wind FAQ answers only the wind.
+- **the interim scaffold reviewed and altered as the repair goes on** (service): home is the 'What if the interim scaffold has to change once the repair starts?' FAQ. Elsewhere: step 3 stops at handover and the 'Until the permanent repair' card names the situation without the review.
+- **what to do from the ground before the crew arrives** (category): home is the 'What should we do before you arrive?' FAQ. Elsewhere: the 'What to do before we get there' card and the Call Us step say only 'keep everyone clear' in one clause.
+- **waiting for the wind to drop before building** (category): home is the 'Will you come out while the storm is still going?' FAQ. Elsewhere: step 3 and the 'How quickly can you get here?' FAQ say only 'once it is safe to build'.
+- **closing off the area and looking at the hazard first** (category): home is the step 'We Make the Area Safe and Agree What Goes Up'. Elsewhere: the 'Closing it off and holding it' cost card gives it only as a cost and the storm FAQ answers only the weather.
+- **the pavement licence and the council's conditions** (category): home is the block 4 card 'The pavement, the road or next door in the way'. Elsewhere: the pavement cost card gives it only as a cost, and the quote FAQ and the timing FAQ name the licence in one clause.
+- **the hire period set by the quote and the contract** (category): home is the cost card 'The extras and the weeks of hire'. Elsewhere: the cost FAQ and the timing FAQ say only that the quote sets the period.
+- **the town's pavement-fronted streets and the council's permit** (location): home is the block 4 card 'Front doors that open onto the pavement'. Elsewhere: the 'A scaffold on the pavement' cost card gives it only as a cost, and the soon FAQ and the quote FAQ name the permit in one clause.
+- **wind on an exposed town and the sheeted scaffold** (location): home is the block 4 card 'Wind where the town stands open'. Elsewhere: the wind cost card gives it only as a cost, the cost FAQ names exposure in a word, and the all-year FAQ does not repeat the design and ties point.
+- **the town's three-storey houses** (location): home is the block 4 card 'Three storeys against two'. Elsewhere: the 'Tall houses and tight alleys' cost card gives height only as a cost and the cost FAQ names it in a word.

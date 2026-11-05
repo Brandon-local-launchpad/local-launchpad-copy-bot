@@ -344,7 +344,7 @@ Three framings share this one entry, per the pack's section 2: a problem led pag
 
 | Slot | When | Question | Answer brief | Doubt |
 |---|---|---|---|---|
-| cost | always | How much does [SERVICE_LOWER] cost in [CITY]? | Prices only from [CV: price_list]; a call out charge only from [CV: quote_call_out_fee]; otherwise how the quote is given, from [CV: quote_method] only. The four cost cards above already give what moves the price: name one factor at most, never the list again. Never 'the council does it free' (Table E: provision varies). | Price |
+| cost | always | How much does [SERVICE_LOWER] cost in [CITY]? | Prices only from [CV: price_list]; a call out charge only from [CV: quote_call_out_fee]; otherwise how the quote is given, from [CV: quote_method] only. The cost cards hold the list: never repeat it or point to it. Never 'the council does it free' (Table E: provision varies). | Price |
 | timing | always | How long does [SERVICE_LOWER] take, and how many visits? | From the trade facts timing row only: the rows give no duration and no visit count (Table G), so what decides it: the pest, the method, the stages a treatment does not reach (eggs, pupae, egg cases), traps and bait points that have to be checked and cleared, a nest whose activity is checked afterwards, a nest in use that proofing waits for. Nothing about when the job can start unless [CV: start_time] is set. This is the one place the timing is written. | Timing |
 | cover | guarantee | Do you guarantee your [SERVICE_LOWER] work? | Start with yes, then the terms from [CV: guarantee_years] and [CV: guarantee_scope]. The client's own written terms, described and never written as the pest never returning (Table E). Described, never promised. | Trust |
 | cover | insurance | Are you insured for [SERVICE_LOWER]? | The cover figure from [CV: insurance_cover] and what the cover is for. Never what it pays or who it covers. | Trust |
@@ -511,3 +511,50 @@ For Ray and the trade facts pack (Table G records most as not found; the briefs 
 16. What a customer may safely do before a technician arrives: Table B and C give the hazards (a disturbed nest, exposed bait, glue boards, accessible food) and nothing positive beyond that, so the first hour briefs are written as what not to do plus what to note and photograph from a distance.
 17. Whether a nest at height is a work at height job needing equipment: Table C and F give the rule and the price factor but no threshold, so the briefs say "safe access" and never a height.
 18. The pack's header still says verified: no; the service page gate refuses a run until it is verified on the Trade facts screen.
+
+## Service tags
+
+An element is dropped, and the next eligible one used, when the client has confirmed none of these services. The paths are in the .json as `needs`.
+
+| Element | Needs |
+|---|---|
+| We Treat It, Then Close the Way In | Wasp nest removal; Rat and mouse control |
+| Does bird proofing need permission? | Bird control and proofing; Solar panel bird proofing |
+| A wasp nest beside a door you use | Wasp nest removal |
+| A rat in the kitchen | Rat and mouse control |
+| Noises or a smell that started this week | Rat and mouse control; Dead animal removal |
+| Getting to the nest or the run | Wasp nest removal; Rat and mouse control |
+| Finding it and dealing with it on the day | Wasp nest removal; Rat and mouse control |
+| What's in the van and what comes back later | Wasp nest removal; Rat and mouse control |
+| What happens if they're back after the call out? | Wasp nest removal; Rat and mouse control |
+| Where it is and how high | Wasp nest removal; Rat and mouse control |
+| How far it has spread | Wasp nest removal; Rat and mouse control |
+| Getting to it | Wasp nest removal; Rat and mouse control |
+| Scratching you hear after dark, or in the day | Rat and mouse control; Squirrel control |
+| Droppings under the sink or along a skirting | Rat and mouse control |
+| Wasps, bees or ants going in at one spot | Wasp nest removal; Bee removal and relocation; Ant control; Insect control |
+| Bites, and insects you only see at night | Bed bug treatment; Flea treatment; Cockroach control; Insect control |
+| Rodents moving indoors as the nights turn cold | Rat and mouse control |
+| Do you still deal with wasp nests in the autumn and winter? | Wasp nest removal |
+| Rats or mice inside the living space | Rat and mouse control |
+| Droppings in a kitchen that serves the public | Commercial pest control |
+| What happens if the wasps or the rodents are back after a call out? | Wasp nest removal; Rat and mouse control |
+| Terraces that share their roof spaces | Rat and mouse control |
+| Water, farmland and woodland at the edge of town | Rat and mouse control; Squirrel control; Fox and wildlife control |
+| Older drains and air bricks | Rat and mouse control |
+| Roofs the gulls and pigeons have taken | Bird control and proofing; Solar panel bird proofing |
+| Getting to a nest on a tall building | Wasp nest removal; Bird control and proofing; Solar panel bird proofing |
+| Rows that have to be looked at as one | Rat and mouse control; Pest proofing |
+| Drains, vents and what they lead to | Rat and mouse control; Pest proofing |
+| Listed buildings and conservation areas | Bird control and proofing; Solar panel bird proofing |
+
+## Idea homes
+
+- **the insect or animal confirmed (wasp rather than bee) before anything is used** (service): home is the 'We Come Out, Identify It and Agree the Price' step. Elsewhere: the 'Finding it and dealing with it on the day' cost card and the evening and weekend FAQ do not explain the wasp/bee check or the swarm.
+- **the insect or animal confirmed (wasp rather than bee) before anything is used** (category): home is the 'We Come Out, Identify It and Agree the Price' step. Elsewhere: the 'Finding it and dealing with it on the day' cost card, the evening and weekend FAQ and the 'what happens when I get in touch' FAQ do not explain the wasp/bee check.
+- **what to do before the technician arrives (keep clear of the nest, don't block or spray it, food sealed away, no shop poison or glue boards)** (service): home is the 'The first hour, before anyone arrives' block 4 card. Elsewhere: the 'What should I do before you arrive?' FAQ and the 'Call Us' step give at most one line and do not repeat the list.
+- **what to do before the technician arrives (keep clear of the nest, don't block or spray it, food sealed away, no shop poison or glue boards)** (category): home is the 'The first hour, before anyone arrives' block 4 card. Elsewhere: the 'What should I do before you arrive?' FAQ and the 'Call Us' step give at most one line and do not repeat the list.
+- **someone in the house who reacts badly to stings makes it urgent** (service): home is the 'A wasp nest beside a door you use' block 4 card. Elsewhere: the 'Call Us' step asks the question in a few words without explaining why; the 'Is this an emergency, or can it wait?' FAQ does not restate it.
+- **someone in the house who reacts badly to stings makes it urgent** (category): home is the 'A wasp nest beside a door you use' block 4 card. Elsewhere: the 'Call Us' step asks the question in a few words without explaining why; the 'Is this an emergency, or can it wait?' FAQ does not restate it.
+- **eggs, pupae or egg cases that outlive a treatment and emerge afterwards** (service): home is the 'It came back after a shop treatment' block 4 card. Elsewhere: the 'how long does it take, and how many visits' FAQ names the stages only as a reason for more visits, and the 'what happens if the pests come back' FAQ gives the way in left open rather than explaining the life cycle again.
+- **the colony abandons a wasp nest in autumn, so a winter nest is usually empty** (category): home is the 'Do you still deal with wasp nests in the autumn and winter?' FAQ. Elsewhere: the 'Rodents moving indoors as the nights turn cold' card and the 'wasps or rodents back after a call out' FAQ do not explain the abandoned nest.

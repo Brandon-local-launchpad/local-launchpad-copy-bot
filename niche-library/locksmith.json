@@ -162,7 +162,8 @@
       "question": "Why will my uPVC door only lock if I lift the handle hard?",
       "answer_brief": "Use the assigned symptom's meaning and its linked local issue. Say first that a door which locks when it is open but fights when it is shut is pointing at the door, not the key (Table E uPVC multipoint faults). Then three genuinely different causes in plain words from the Table B and Table E rows: the door has dropped on its hinges so the locking points no longer line up with their keeps; the gearbox hidden in the door edge has worn and will soon refuse to lift at all; the door has swollen tight in warm weather and is pressing the mechanism (Table E hot weather). Then what the local housing adds (the age of the estate's doors, from the dossier), then the fix: hinges and keeps adjusted first, the gearbox replaced only where it has failed, never a new cylinder as the cure (Table B done badly). Never how a lock is opened.",
       "symptom_based": true,
-      "doubt": "Process"
+      "doubt": "Process",
+      "needs": ["uPVC door and window lock repairs","Lock repairs"]
     },
     {
       "slot": "faq_C",
@@ -170,7 +171,8 @@
       "answer_brief": "Honest first: on most uPVC and composite doors, and many timber ones, the part the key goes into comes out on its own (Table A lock fitting materials), so after a move, a loss or years of wear the smaller job is swapping that part and cutting fresh keys (Table F: like for like hardware in sound existing preparations costs less). Then when the whole lock is the job: a lock body or gearbox that has failed, a timber door with no lock to the standard the policy asks for, a door being brought up to what an insurer or an escape route needs (Table A British Standard stages; Table E door insurance). A cylinder that resists being forced where the Table E snapping row applies, said as what it resists and never how the attack works. Never a standard's number, never a brand.",
       "symptom_based": false,
       "is_fallback": true,
-      "doubt": "Process"
+      "doubt": "Process",
+      "needs": ["Lock fitting and replacement"]
     },
     {
       "slot": "faq_D",
@@ -238,22 +240,26 @@
           {
             "title": "Your insurer has asked what locks are on the doors",
             "brief": "A situation card, not a fault: a renewal form that asks about the locks, a new policy with a security condition, a claim turned down somewhere else that the customer has heard about. The one cause this card makes: a condition in the policy wording, not anything wrong with the door. Say what usually applies from the Table E door and window insurance rows only: each insurer sets its own conditions; some name the kind of lock they expect on the outside doors, fitted and used, and some ask for locks on ground floor opening windows; where the condition is not met a theft claim can be affected. Always 'check the policy wording': the policy decides, never this page. What the work gives them, from the Table A British Standard stages: the policy read, the marks on the existing locks checked, the right kind of lock chosen for the door and the escape route, fitted and its identification recorded. Proportionate: often the lock body or the cylinder, not the door. Never a standard's number or a kitemark's name on the page; the standard only as the Table C and Table E rows state it. Never 'insurance approved' as a lock's status (Table E). On a Security System Supplier page the card reads as an insurer or a landlord asking for door entry on a shared door; otherwise it reads as the Locksmith's.",
-            "mechanism": "a condition in the policy wording, not a fault in the door"
+            "mechanism": "a condition in the policy wording, not a fault in the door",
+            "needs": ["British Standard and insurance approved locks"]
           },
           {
             "title": "Moved in, and not sure who still has a key",
             "brief": "A situation card: a completion day, a new tenancy, a lodger gone, a set of keys lost on a night out with nothing to say whose they were. The one cause this card makes: keys cut for the lock over the years that were never handed back, and still turn it. Say what the work usually involves in plain words from the Table A lock fitting and lock repairs rows: on a uPVC, composite or many a timber door the cylinder comes out and a new one goes in with new keys, so the old keys turn nothing; a whole new lock only where the lock body itself is worn or the policy wants a different kind (card 1 owns that). Say who the customer is, never a scare: nothing about burglars or risk. A landlord's change between tenancies reads as after a tenant has left, never as a way to keep one out while they still live there (Table E landlord lock changes; a tenant's change does not shut out another lawful occupier either: Table E tenant lock changes). Never how a key or a lock is defeated. On a Security System Supplier page the card reads as codes or fobs handed out over the years on a door entry system and never cancelled.",
-            "mechanism": "keys cut for the lock over the years that were never handed back"
+            "mechanism": "keys cut for the lock over the years that were never handed back",
+            "needs": ["Lock fitting and replacement"]
           },
           {
             "title": "A lock that's getting harder to use",
             "brief": "Problem led, the early warning across the trade: a handle that needs more force each month, a key that has to be wiggled, a door that has to be lifted or pulled before it will lock, a latch that no longer catches (Table B lock repairs and uPVC rows, in the customer's words). The one cause this card makes: wear in the mechanism that shows as stiffness long before it fails. Why it matters without alarm, from the Table B skipped rows: the strain keeps loading the mechanism until it will not lock, or will not open, and that tends to happen with the door shut; a repair while it is only stiff is the smaller job. What the fix usually involves from Table A lock repairs: the cylinder, the lock body, the keep and the alignment looked at together, the worn part adjusted or replaced, the door tested from both sides; never a new cylinder alone as the cure for a worn gearbox (Table B done badly). Link the lock repairs or uPVC repairs page where LINKABLE PAGES has one. Not the dropped door, not the worn gearbox, not the worn key by name: the service pages own those causes. On a Security System Supplier page the card reads as a door release or a reader that works some days and not others, from the wiring or the door's alignment; otherwise as the Locksmith's.",
-            "mechanism": "wear in the mechanism that shows as stiffness long before it fails"
+            "mechanism": "wear in the mechanism that shows as stiffness long before it fails",
+            "needs": ["Lock repairs","uPVC door and window lock repairs"]
           },
           {
             "title": "Keys for a let, a shop or a block",
             "brief": "A situation card for the landlord and business reader (the pack's third reader): a let changing hands, a shop with staff who come and go, a block with one shared door and many flats, an office where nobody is sure how many keys are out. The one cause this card makes: too many keys in circulation and no record of who holds which (Table B master key systems: a missing master key, copies nobody can account for). What the work gives them, from the Table A master key and key cutting rows: the doors mapped and who needs to get through which, cylinders keyed to that plan, keys issued against a record, and where it suits a restricted key that is only cut through an authorised route with the card (Table E restricted keys: system specific, never a ban on copying every key). On a shared or commercial door the escape side comes first: an exit door has to open easily from inside, as the Table C fire safety and HMO rows state it, said in plain words and never with an Act's name. Records that name people bring duties for whoever runs the system (Table C data protection), said in one plain line. Never fear, never 'control who gets in' as a pitch: keys and access, plainly. On a Security System Supplier page the card reads as fobs and codes in place of keys, with the same record and the same escape rule.",
-            "mechanism": "too many keys in circulation and no record of who holds which"
+            "mechanism": "too many keys in circulation and no record of who holds which",
+            "needs": ["Master key systems"]
           }
         ]
       },
@@ -336,22 +342,26 @@
             {
               "title": "Locked out, with the keys on the wrong side",
               "brief": "The door swung shut on the latch with the keys on the table, keys lost on the way home, a phone running down on a doorstep after dark (Table B lockouts, in the customer's words). The one cause this card makes: a door that locked behind them and nothing in their hand to open it. Why it cannot wait: nobody is getting in, and a lock left jammed stays jammed (Table B skipped). What the customer does first: ring from where they are, have something that shows they belong at the address ready for when the locksmith arrives (Table E lockout authority: a licence with the address, other identification, a neighbour who can vouch), and leave the door alone rather than force it. What usually happens when they call, from the Table A lockouts stages: the right to enter checked, the lock and the door looked at, the way in that leaves the least mark chosen where the lock allows it, drilling only as the last option and a replacement lock after it, anything that failed found and the door tested before the locksmith leaves. Written as how the trade works, never as this business's promise that the door comes to no harm (Table E entry damage). Nothing on how entry is made. Never a response time, round the clock cover or a call out promise unless [CV: response_time], [CV: emergency_callouts] or [CV: out_of_hours_available] confirms it. On a Security System Supplier page the card reads as a door entry system that has locked everyone out of a block.",
-              "mechanism": "a door that locked behind you and nothing to open it with"
+              "mechanism": "a door that locked behind you and nothing to open it with",
+              "needs": ["Lockouts and gaining entry","Emergency locksmith"]
             },
             {
               "title": "A key that's snapped, or a lock that won't turn",
               "brief": "Half a key in the hand and half in the door, a key that turns and turns with the door staying shut, a uPVC handle that will not lift with the door closed (Table B emergency and lockouts rows: 'the key has snapped', 'the key turns but the door stays shut', 'the handle moves but nothing opens'). The one cause this card makes: a broken key or a mechanism that has failed in the locked position, so the door is stuck whichever way it is tried. Why it cannot wait: the door will not open or will not lock, and forcing it adds damage to the repair (Table B done badly). What the customer does first: stop turning or pulling at it, keep the broken piece if it came out, and say on the phone what kind of door and lock it is. What usually happens when they call, from the Table A emergency stages: the fault identified, the door opened, the failed part (a cylinder, a gearbox, a lock body) repaired or replaced if authorised, the lock tested and the keys handed over; entry alone is not the job, since a mechanism that has failed once fails again (Table B lockouts skipped). Never promise a part on the van for an obsolete mechanism (Table F). Nothing on how the key is removed or the door opened. On the Security System Supplier page the card reads as a door release that has failed shut.",
-              "mechanism": "a broken key or a mechanism failed in the locked position"
+              "mechanism": "a broken key or a mechanism failed in the locked position",
+              "needs": ["Lockouts and gaining entry","Emergency locksmith","Lock repairs"]
             },
             {
               "title": "A door that won't shut after a break in",
               "brief": "Glass gone from a panel, a lock forced, a frame split at the keep, a door that no longer closes, a hole where a lock was (Table B burglary repairs, in the customer's words). The one cause this card makes: a forced lock or a split frame with nothing left to hold the door shut. Why it cannot wait: an opening that will not close cannot be secured until it is boarded or repaired (Table B skipped). What the customer does first, from the Table E after a burglary row: the police report and the insurance claim are theirs to make, and the insurer will want the emergency repairs recorded and the receipts kept; keep clear of broken glass; the locksmith's part is making the opening secure and recording what was done, not the investigation and not the claim decision. What usually happens when they call, from the Table A stages: the opening checked as safe, the broken glass or gap boarded for now, the door and frame repaired where that can be done, the forced locks replaced, the work tested and written up; a cylinder alone where the frame is split leaves the door weak (Table B done badly), so the permanent repair may be a return visit (Table F). Never a crime figure, never 'they will be back', never the neighbourhood as unsafe. Whether the business deals with the insurer only from the client values.",
-              "mechanism": "a forced lock or a split frame with nothing left to hold the door"
+              "mechanism": "a forced lock or a split frame with nothing left to hold the door",
+              "needs": ["Burglary repairs and boarding up"]
             },
             {
               "title": "Keys gone missing that still fit the door",
               "brief": "A bag taken with the keys and a letter in it, a key ring lost with a fob that names the building, a tenant gone without handing keys back, a key lent and never returned (Table B lock fitting: 'I have lost control of who has keys'). The one cause this card makes: a key in someone else's hands that still turns the lock. Why it is a same day matter rather than a someday one, said once and plainly without fear: for as long as the old key fits, the lock is not doing its job. What the customer does first: nothing to the door; ring and say which doors the keys opened. From the Table A lock fitting and lock repairs rows: the cylinder is swapped and fresh keys cut, which leaves the missing set useless. A complete replacement only where the body is worn or the policy wants a different kind (Table F: like for like in the existing cut out is the smaller job). A landlord's change only after the tenant has lawfully left (Table E landlord lock changes), never as a way to shut one out. Never burglary statistics, never a neighbourhood described as a target. On a Security System Supplier page the card reads as a lost fob cancelled on the system.",
-              "mechanism": "a key in someone else's hands that still turns the lock"
+              "mechanism": "a key in someone else's hands that still turns the lock",
+              "needs": ["Lock fitting and replacement","Emergency locksmith"]
             }
           ]
         },
@@ -408,7 +418,8 @@
             "slot": "cover",
             "question": "Will you have to damage my door to get in?",
             "answer_brief": "Honest, from Table A and Table E: the gentlest way in is tried first wherever the mechanism permits, drilling only when nothing else will do, with a new lock fitted afterwards. Some mechanisms cannot be opened any other way, so no promise is made. Who pays for any damage depends on what was agreed and the care taken, under the reasonable care and skill standard, never a universal rule (Table E). 'Without damage' as this business's own practice only from the client values. Nothing on how a door is opened. Never 'never damages your door'.",
-            "doubt": "Trust"
+            "doubt": "Trust",
+            "needs": ["Lockouts and gaining entry","Emergency locksmith"]
           },
           {
             "slot": "scope",
@@ -420,7 +431,8 @@
             "slot": "process",
             "question": "What should I have ready before you arrive?",
             "answer_brief": "From the Table E lockout authority row, said as what the trade asks rather than a law: something that shows they belong at the address (a licence with the address on it, other identification, a neighbour who can confirm who they are; a business sends a letter or an order), because a door is opened only for someone with the right to be behind it. Then what not to do: force the door, dig at a snapped key, or clear up after a break in before it has been photographed for the insurer (Table E after a burglary: record the emergency repairs and keep receipts). Never a word on how the door will be opened. Nothing about the insurer dealing with this business unless the client values give it.",
-            "doubt": "Process"
+            "doubt": "Process",
+            "needs": ["Lockouts and gaining entry","Emergency locksmith"]
           },
           {
             "slot": "timing",
@@ -486,22 +498,26 @@
           {
             "title": "The door only locks if you lift or pull it",
             "brief": "Problem led: the handle has to be heaved up, the door pulled towards you or lifted before the key will turn, and it locks easily with the door open (Table B uPVC: 'I have to pull the door to lock it', 'it locks when open but not when shut'). The one cause this card makes: a door that has dropped on its hinges, so the locking points miss their keeps. Say why it matters without alarm, from the Table B skipped row: every forced lock loads the mechanism a little more until it fails. What the fix usually involves from Table A uPVC repairs: the door checked open and closed, the hinges and keeps adjusted, every locking point checked, and only then any part replaced; a new cylinder cures nothing here (Table B done badly). Leads on uPVC door and window lock repairs and Lock repairs. On an urgent page when the emergency layout is off (the client has not confirmed call outs) the card reads as the door that will one day refuse to open, from the Table B row for that page. On the Auto locksmith page the card reads as a key that opens the door but will not start the car (Table B auto): the cut blade is not the whole key.",
-            "mechanism": "a door dropped on its hinges, so the locking points miss their keeps"
+            "mechanism": "a door dropped on its hinges, so the locking points miss their keeps",
+            "needs": ["uPVC door and window lock repairs","Lock repairs"]
           },
           {
             "title": "The handle won't lift, even with the door open",
             "brief": "Problem led: the handle flops or jams, nothing happens when it is lifted, and it does the same with the door wide open (Table B uPVC: 'the handle won't lift'; Table E uPVC faults: a door that will not lock even open points at the gearbox). The one cause this card makes: the gearbox in the door edge has worn out. Why it matters, from the Table B skipped row: a failed gearbox can stop the door locking or opening, and it tends to go with the door shut. What the fix usually involves from Table A: the gearbox or the full mechanism replaced, the hinges and keeps checked at the same time so the new one is not loaded as the old one was (Table B done badly: adjusting only the keep leaves a failed gearbox); an obsolete mechanism may have to be sourced (Table F), said without a promise of a part on the day. Leads on uPVC door and window lock repairs. Never how the door is opened when it has already failed shut: the emergency pages own that.",
-            "mechanism": "a gearbox worn out in the edge of the door"
+            "mechanism": "a gearbox worn out in the edge of the door",
+            "needs": ["uPVC door and window lock repairs","Lock repairs"]
           },
           {
             "title": "A key that's getting harder to turn",
             "brief": "Problem led: a key that has to be jiggled, one that goes in but will not turn without a push, a spare that sticks where the original does not (Table B lock repairs: 'the key is hard to turn'; lock fitting: 'the key sticks'; key cutting: 'the spare sticks', 'a copied key won't turn'). The one cause this card makes: a worn key, or a cylinder worn to match it. Say what that means plainly: a key cut from a worn original carries the wear into the copy (Table B key cutting done badly), so a spare that sticks is often the original's fault, not the cutting. What the fix usually involves from Table A lock repairs and key cutting: the cylinder, the lock body and the alignment looked at, the worn cylinder replaced with new keys, or a key cut to code rather than copied from the worn one. Leads on Lock repairs and Key cutting; on the Auto locksmith page the card reads as a worn or broken blade (Table B auto). Never how a lock is picked or got past; never a brand.",
-            "mechanism": "a worn key, or a cylinder worn to match it"
+            "mechanism": "a worn key, or a cylinder worn to match it",
+            "needs": ["Lock repairs","Lock fitting and replacement","Key cutting"]
           },
           {
             "title": "A door that sticks when the weather warms up",
             "brief": "Problem led, the one weather fact in this trade: a door that locked fine all winter and binds on the first warm week, a latch that no longer catches, a handle that has worked loose (Table B uPVC: 'the door sticks in hot weather'; Table B lock repairs: 'the latch doesn't catch', 'the handle is loose'; Table A uPVC timing: warm weather exposes alignment faults). The one cause this card makes: a door swollen tight in warm weather, pressing the mechanism against its keeps. Say first that a tight door in a heatwave is common and does not mean the lock has failed (Table E hot weather: the wrong version is that summer heat proves the cylinder has gone). What the fix usually involves from Table A: the hinges and keeps checked and adjusted as well as the mechanism, the loose handle refixed, the latch lined up with its keep. Leads on uPVC door and window lock repairs and Lock repairs. Not the dropped door (card 1) and not the gearbox (card 2).",
-            "mechanism": "a door swollen tight in warm weather, pressing the mechanism against its keeps"
+            "mechanism": "a door swollen tight in warm weather, pressing the mechanism against its keeps",
+            "needs": ["uPVC door and window lock repairs","Lock repairs"]
           }
         ]
       },
@@ -530,7 +546,7 @@
         {
           "slot": "cost",
           "question": "How much does [SERVICE_LOWER] cost in [CITY]?",
-          "answer_brief": "Prices only from [CV: price_list]; otherwise how the quote is given, from [CV: quote_method] only. The four cost cards above already give what moves the price: name one factor at most, never the list again. A call out charge only from [CV: quote_call_out_fee].",
+          "answer_brief": "Prices only from [CV: price_list]; otherwise how the quote is given, from [CV: quote_method] only. The cost cards hold the list: never repeat it or point to it. A call out charge only from [CV: quote_call_out_fee].",
           "doubt": "Price"
         },
         {
@@ -584,17 +600,20 @@
             {
               "title": "Not sure who else has a key",
               "brief": "The customer's situation: they have just completed on a house, a tenant or a lodger has moved out, a cleaner or a builder had a key for a while, a set went missing with nothing to say whose they were, or there is one key to the house and no spare. What decides it: the keys already cut for that lock over the years and who holds them, which nobody can know; and whether the cylinder comes out on its own (most uPVC, composite and many timber doors) or the lock is one piece (Table A lock fitting materials). What the work gives them, from the Table A stages for this service: on Lock fitting and replacement a new cylinder and new keys so the old keys turn nothing, the whole lock only where the body is worn or the policy wants a different kind; on Key cutting a spare cut from a sound original or to code before the only key is lost (Table B key cutting skipped); on Master key systems keys issued against a record so the question never comes up again. A landlord's change only after the tenant has lawfully left (Table E). Never a fault invented for it, never burglars or risk: who has a key, plainly.",
-              "mechanism": "the keys already cut for the lock, and who holds them"
+              "mechanism": "the keys already cut for the lock, and who holds them",
+              "needs": ["Lock fitting and replacement"]
             },
             {
               "title": "Your policy names the locks it expects",
               "brief": "The customer's situation: a renewal form that asks what locks are on the doors and windows, a new policy with a security condition, a mortgage lender or a letting agent asking the same. What decides it, from the Table E door and window insurance rows: the conditions in that insurer's own wording, which tend to specify the sort of lock an outside door carries and, with some policies, a lock on each opening window downstairs; whether the door is a timber door that takes a lock to that standard or a uPVC or composite door whose cylinder and handle are what the condition turns on (Table E snapping and TS rows, said as what the cylinder resists and never how); whether the door or window is an escape route, which decides keyless exit (Table A British Standard and window locks stages; Table C escape rows, with 'usually'). What the work gives them: the policy read, the marks on the existing locks checked, the right kind fitted and its identification recorded, so the condition is met and they can show it. Leads on British Standard and insurance approved locks and Window locks; on Smart locks the insurer's position on the whole door arrangement is asked for first, since a smart device alone settles nothing (Table E smart lock insurance). Always 'check the policy wording'. Never a standard's number, a kitemark's name or a brand; never 'insurance approved' as a status.",
-              "mechanism": "what the policy wording asks for on that door or window, and what the escape route allows"
+              "mechanism": "what the policy wording asks for on that door or window, and what the escape route allows",
+              "needs": ["British Standard and insurance approved locks"]
             },
             {
               "title": "Keys for more than one person, or more than one door",
               "brief": "The customer's situation: a holiday let with guests every week, a carer or a cleaner who needs to get in while they are out, a family that keeps losing keys, a shop or an office with staff who change, a block or a site with doors that different people may and may not open. What decides it, from the Table A smart lock and master key rows: who needs to get through which door and when; what happens when a key, a code or a fob is lost (a code changed in a minute, a cylinder rekeyed, a fob cancelled); how the lock behaves when the battery goes, which differs by model (Table E smart lock battery) and is tried at hand over; whether a restricted key that is only cut with the card suits (Table E restricted keys); and the escape side on a shared or commercial door, which has to open easily from inside (Table C). What the work gives them: one key or one code per person that opens only what it should, a record of who holds what, and a way in that still works when the power or the network does not. Leads on Smart locks and Master key systems; on Key cutting as keyed alike cylinders so one key does every door. Records that name people bring duties for whoever runs the system (Table C data protection), one plain line. Never 'control who gets in' as a pitch; never a product or app name unless [CV: materials_methods] gives it.",
-              "mechanism": "who needs to get through which door, and what happens when a key or code is lost"
+              "mechanism": "who needs to get through which door, and what happens when a key or code is lost",
+              "needs": ["Smart locks","Master key systems","Access control and door entry"]
             },
             {
               "title": "Which option suits your door and what's behind it",
@@ -610,7 +629,8 @@
           "cards": [
             {
               "title": "Whether it opens or has failed",
-              "brief": "A working lock that can be opened with no parts against a failed or damaged mechanism (Table F emergency locksmith, lockouts and gaining entry). Say it plainly and give no figure, and never how a lock is opened."
+              "brief": "A working lock that can be opened with no parts against a failed or damaged mechanism (Table F emergency locksmith, lockouts and gaining entry). Say it plainly and give no figure, and never how a lock is opened.",
+              "needs": ["Lockouts and gaining entry","Emergency locksmith"]
             },
             {
               "title": "The part it needs",
@@ -618,7 +638,8 @@
             },
             {
               "title": "The door and its locking points",
-              "brief": "A single lock on a timber door against a door with several locking points to free and check (Table F lockouts: multiple locking points). Say why one takes longer, in plain words."
+              "brief": "A single lock on a timber door against a door with several locking points to free and check (Table F lockouts: multiple locking points). Say why one takes longer, in plain words.",
+              "needs": ["Lockouts and gaining entry","Emergency locksmith"]
             },
             {
               "title": "Damage to the door or the frame",
@@ -634,22 +655,26 @@
             {
               "title": "Getting back in without wrecking the door",
               "brief": "The locked out customer's first fear, written as how good work goes rather than as a promise: a door that swung shut on its latch is a different problem from one somebody locked with a key, and which of the two it is decides how the locksmith goes about it and whether anything is left to show for it (Table A lockouts: identify the lock and the door's condition, assess entry without damage, drilling as the last resort followed by a replacement lock). The one cause this card makes: which lock is actually holding the door, the latch or the deadlock. What usually happens when they call: the right to enter checked (Table E lockout authority), the door looked at, the way in that leaves the least mark tried first where the lock allows it, and where a lock has to be drilled a new one fitted before the locksmith leaves. Some locks cannot be opened any other way, so no promise is made (Table E entry damage); 'without damage' as this business's practice only from the client values. Leads on Lockouts and gaining entry; Emergency locksmith reads it the same. Nothing on how entry is made, on any page. Never a response time or a call out promise unless [CV: response_time] or [CV: emergency_callouts] confirms it.",
-              "mechanism": "which lock is actually holding the door: the latch or the deadlock"
+              "mechanism": "which lock is actually holding the door: the latch or the deadlock",
+              "needs": ["Lockouts and gaining entry","Emergency locksmith"]
             },
             {
               "title": "A lock that has failed with the door shut",
               "brief": "The handle moves and nothing opens, the key turns and the door stays locked, a uPVC handle that will not lift with the door closed (Table B lockouts: 'the lock is jammed', 'the handle moves but nothing opens'; Table E uPVC faults: gearbox failure can prevent locking or opening). The one cause this card makes: a failed gearbox or lock body, so the door stays shut whatever the key does. Why it cannot wait: the door is out of use, and forcing it adds a frame repair to a lock repair. What usually happens when they call, from the Table A emergency stages: the door opened, the failed part identified and replaced if authorised, the lock tested from both sides, the keys handed over; getting in alone is not the job, since a mechanism that has failed once fails again (Table B lockouts skipped). An obsolete mechanism may need a part ordered, so the door is left secure in the meantime and a date agreed (Table F); never promise a part on the van. Leads on Emergency locksmith; Lockouts and gaining entry reads it the same. Nothing on how the door is opened.",
-              "mechanism": "a failed gearbox or lock body, so the door stays shut whatever the key does"
+              "mechanism": "a failed gearbox or lock body, so the door stays shut whatever the key does",
+              "needs": ["Lockouts and gaining entry","Emergency locksmith","Lock repairs"]
             },
             {
               "title": "Boarded tonight, repaired properly after",
               "brief": "Glass gone from a door or window, a frame split where the lock was forced, a door that will not close (Table B burglary repairs, in the customer's words). The one cause this card makes: an opening that cannot be secured until the glass, the frame or the lock is replaced. What usually happens when they call, from the Table A burglary stages: the opening checked as safe to work on, the gap or the glass boarded, the door and frame repaired where that can be done tonight, the forced locks replaced, the work tested and written up; where the frame or a whole door has to be replaced the boarding holds until the return visit (Table F: temporary security plus a permanent return visit). What the insurer will want, from the Table E after a burglary row: the emergency repairs recorded and the receipts kept; the locksmith secures and documents, the insurer decides the claim and the police the investigation, never the other way round. A cylinder alone with a split frame leaves the door weak (Table B done badly). Leads on Burglary repairs and boarding up. Never a crime figure, never the street as a target, never 'they come back'. Whether the business deals with the insurer only from the client values.",
-              "mechanism": "an opening that can't be secured until the glass, frame or lock is replaced"
+              "mechanism": "an opening that can't be secured until the glass, frame or lock is replaced",
+              "needs": ["Burglary repairs and boarding up"]
             },
             {
               "title": "Proving it's your door",
               "brief": "The honest card about the one question every locksmith asks on a doorstep at night. The one cause this card makes: a door is opened only for someone with the right to be behind it. From the Table E lockout authority row, said as the trade's own practice and never as a law: a licence with the address on it, other identification, a neighbour who can confirm who they are, or an officer present; a business sends a letter or an order; for a car the keeper's document is one part of the check, not proof on its own (Table E V5C). Why the customer should be glad of it: the same check is what stops a stranger having their door opened. Then the two cases the trade says no to, in plain words and without an Act's name: a landlord asking for a lock change to keep out a tenant who still lives there (Table E landlord lock changes), and a door forced on an enforcement job without the proper authority behind it (Table C enforcement row). Leads on Lockouts and gaining entry and Emergency locksmith; on Burglary repairs the card reads as whose home it is and who instructs the repair (the tenant or the landlord, from the client values where the business has a rule). Never a document list as a legal requirement (Table G). Never 'police approved'.",
-              "mechanism": "a door opened only for someone with the right to be behind it"
+              "mechanism": "a door opened only for someone with the right to be behind it",
+              "needs": ["Lockouts and gaining entry","Emergency locksmith"]
             }
           ]
         },
@@ -719,13 +744,15 @@
             "slot": "cover",
             "question": "Will you have to damage my door to get in?",
             "answer_brief": "Honest, from the Table A row for this service and Table E: the gentlest way in is tried first wherever the mechanism permits, drilling only when nothing else will do, with a new lock fitted afterwards. Some mechanisms cannot be opened any other way, so no promise is made. Who pays for any damage depends on what was agreed and the care taken, under the reasonable care and skill standard, never a universal rule (Table E). 'Without damage' as this business's own practice only from the client values. On Burglary repairs the question reads as whether the door can be saved or has to be replaced: from the Table A and Table F rows, decided when it is seen. Nothing on how a door is opened. Never 'never damages your door'.",
-            "doubt": "Trust"
+            "doubt": "Trust",
+            "needs": ["Lockouts and gaining entry","Emergency locksmith"]
           },
           {
             "slot": "process",
             "question": "What should I have ready before you arrive?",
             "answer_brief": "From the Table E lockout authority row, said as what the trade asks rather than a law: something that shows they belong at the address (a licence with the address on it, other identification, a neighbour who can confirm who they are; a business sends a letter or an order). Then what not to do: force the door, dig at a snapped key, or clear up after a break in before it has been photographed for the insurer (Table E after a burglary: record the emergency repairs and keep receipts). Never a word on how the door will be opened. Nothing about the insurer dealing with this business unless the client values give it.",
-            "doubt": "Process"
+            "doubt": "Process",
+            "needs": ["Lockouts and gaining entry","Emergency locksmith"]
           },
           {
             "slot": "scope",
@@ -751,17 +778,20 @@
           {
             "title": "Estates on uPVC and composite doors",
             "brief": "Estates put up from the later decades of the last century onwards, where the typical door is uPVC or composite with a multipoint lock worked by a cylinder; the town profile names the estates and their era. The one cause this card makes: multipoint doors whose gearboxes and cylinders wear with age, so the common jobs there are the stiffening handle, the door that has to be lifted to lock, the gearbox replaced, and the cylinder changed for one that resists being forced (Table A uPVC repairs; Table E snapping: the attack is on the cylinder and the answer is the tested cylinder or the cylinder with its protective handle, said as what it resists and never how). Say the era as what the doors are, never that an estate's locks are weak or that it is a target. The town's statistic on that kind of attack only where the dossier gives it from a named source (Table E: the one figure in the facts is local to another force area and never travels). Not the stiff handle's cause by name: the service pages own it.",
-            "mechanism": "multipoint doors whose gearboxes and cylinders wear with age"
+            "mechanism": "multipoint doors whose gearboxes and cylinders wear with age",
+            "needs": ["uPVC door and window lock repairs","Lock repairs","Lock fitting and replacement"]
           },
           {
             "title": "Flats and blocks with one shared door",
             "brief": "Blocks and converted houses where one front door serves many homes, with door entry, a post room and a bin store; the town profile gives the blocks and the conversions. The one cause this card makes: one communal door serving many keys, so a lost key or a leaver means the question of who else can get in, and a change means every household; where it suits, keys on a plan issued against a record or fobs that can be cancelled (Table A master key systems). On that door the escape side comes first: it has to open easily from inside, as the Table C fire safety and HMO rows state it, said in plain words and never with an Act's name; who is responsible is the building's manager, not the resident. Never fear, never a block named as a target. Not who holds a key to a single home: the category page owns that.",
-            "mechanism": "one communal door serving many keys"
+            "mechanism": "one communal door serving many keys",
+            "needs": ["Master key systems","Access control and door entry"]
           },
           {
             "title": "Lets and student houses that change hands",
             "brief": "Streets with a high share of rented homes, a student quarter that turns over at the end of term, holiday lets by the coast or the park; the town profile gives the tenure and the term dates where it has them. The one cause this card makes: tenancies turning over and keys that leave with the tenants, so locks are changed between lets and spare keys multiply. Say what the work usually is from Table A lock fitting: a cylinder changed between tenancies with new keys, keyed alike cylinders so one key does the flat and the front door, a landlord's record of what was issued. A landlord's change only after the tenant has lawfully left, never as a way to shut one out (Table E landlord lock changes), and a tenant's change does not shut out another lawful occupier (Table E tenant lock changes), each said in one plain line without an Act's name. Never who lives here as a judgement, never an area described as unsafe.",
-            "mechanism": "tenancies turning over and keys that leave with the tenants"
+            "mechanism": "tenancies turning over and keys that leave with the tenants",
+            "needs": ["Lock fitting and replacement"]
           }
         ]
       },
@@ -782,7 +812,8 @@
           },
           {
             "title": "Shared doors, key plans and fobs",
-            "brief": "A block, an office or a shop with more doors and more people on the plan costs more than one front door: more cylinders, more keys issued against a record, a restricted key route, fobs on a system (Table F master key systems, smart locks). Say it plainly; the escape side of a shared door as part of the work, not an extra. No figure."
+            "brief": "A block, an office or a shop with more doors and more people on the plan costs more than one front door: more cylinders, more keys issued against a record, a restricted key route, fobs on a system (Table F master key systems, smart locks). Say it plainly; the escape side of a shared door as part of the work, not an extra. No figure.",
+            "needs": ["Master key systems","Access control and door entry","Smart locks"]
           }
         ]
       },
@@ -830,7 +861,8 @@
           "slot": "process",
           "question": "What happens when I call you out in [TOWN]?",
           "answer_brief": "From [CV: quote_method] and the confirmed practices only: what the customer says on the phone (the door, what has happened, the address), the price settled before anyone sets out only from the price_agreed_before_work practice, what the locksmith asks for at the door (Table E lockout authority, said as the trade's practice), what comes back. No timescale unless [CV: response_time] is set. For a booked job the same shape: what they send, what is looked at, what comes back.",
-          "doubt": "Process"
+          "doubt": "Process",
+          "needs": ["Emergency locksmith","Lockouts and gaining entry"]
         },
         {
           "slot": "timing",
@@ -960,5 +992,39 @@
     "burglary repairs and boarding up": {
       "always_emergency": true
     }
-  }
+  },
+  "idea_homes": [
+    {
+      "topic": "the right to be there checked at the door (proof of address)",
+      "home": "the 'What should I have ready before you arrive?' FAQ",
+      "elsewhere": "the 'Proving it's your door' card gives only the reason, that a door is opened only for someone with the right to be behind it, and lists no documents; the Call Us step, the arrival step and the 'Getting you in' cost card do not list documents or repeat the check",
+      "pages": [
+        "service"
+      ]
+    },
+    {
+      "topic": "the way in that leaves the least mark, with drilling last",
+      "home": "paragraph 2 of the content block",
+      "elsewhere": "the FAQ on damage answers the question in a line and leaves the reasoning out; no card, step or cost card says gentlest first or drilling last",
+      "pages": [
+        "service"
+      ]
+    },
+    {
+      "topic": "the right to be there checked at the door (proof of address)",
+      "home": "the 'What should I have ready before you arrive?' FAQ",
+      "elsewhere": "the Call Us step, the arrival step and the 'Getting you in' cost card do not list documents or explain the check",
+      "pages": [
+        "category"
+      ]
+    },
+    {
+      "topic": "the way in that leaves the least mark, with drilling last",
+      "home": "paragraph 2 of the content block",
+      "elsewhere": "the FAQ on damage answers the question in a line and leaves the reasoning out; no card, step or cost card says gentlest first or drilling last",
+      "pages": [
+        "category"
+      ]
+    }
+  ]
 }

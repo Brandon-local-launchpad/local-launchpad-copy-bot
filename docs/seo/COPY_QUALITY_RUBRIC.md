@@ -65,6 +65,7 @@ Where a test needs a client fact that isn't on file, the page passes by leaving 
 | C7 | Step 2 names no quote method (photos, a call, a visit) when none is confirmed. | code: QUOTE-METHOD | 15 Oct review |
 | C8 | Claim words ("trusted", "expert", "reliable") only with proof. | code: N5 | standing rule |
 | C9 | The claims review leaves no statement about the business that the facts don't support. | judge: claims review | every run |
+| Y13 | No sentence about the page itself or pointing at another section ("the cards that follow", "set out here", "no figure is given", "below we explain"). | code: META-TALK | copy quality 6 |
 | C14 | No sentence about how a business in the trade behaves ("a fair roofer shows you photographs"). An unconfirmed practice is deleted or describes the job itself. | code: TRADE-VOICE | copy quality 5 |
 | C11 | A confirmed practice is stated twice on the page at most, in different words (the one-home rule extended to practices). | code: PRACTICE-REPEAT | Gardener read, 25 Oct |
 

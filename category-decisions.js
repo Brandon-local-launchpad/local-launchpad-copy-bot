@@ -19,7 +19,7 @@
 //   reviews     the hand picked reviews [{ text, name, town }]
 //   tradeFacts  { markdown, missing, verified, file } or null
 
-const { ph, cap, titleCase, normArea, stripAdmin, isLinkable, stepsFor, yearsTradingOf, titleModifierFor, seoTitleFor, trustLineFor, ratingLineFor, buttonsFor } = require('./decisions');
+const { ph, cap, titleCase, normArea, stripAdmin, isLinkable, stepsFor, yearsTradingOf, titleModifierFor, seoTitleFor, trustLineFor, ratingLineFor, buttonsFor, articleBefore } = require('./decisions');
 const { isAdminArea } = require('./client-files');
 const B = require('./category-blocks');
 
@@ -31,7 +31,7 @@ const esc = s => String(s).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 // niche entry's category_work_nouns, else "[CAT] Services" (Brandon, 23 Oct).
 function phCat(text, ctx) {
   if (!text) return text;
-  return ph(String(text)
+  return ph(articleBefore(String(text), { CAT_LOWER: ctx.catLower, CAT: ctx.cat, WORK_LOWER: ctx.workLower, WORK: ctx.work, TOWN: ctx.town })
     .replace(/\[CAT_LOWER\]/g, ctx.catLower || '')
     .replace(/\[CAT\]/g, ctx.cat || '')
     .replace(/\[WORK_LOWER\]/g, ctx.workLower || '')
@@ -117,7 +117,7 @@ function computeCategoryDecisions({ cv, niche, keyValueMap = {}, rows = [], page
   let blocks = null;
   // The emergency switch (3 Nov 2026): on when a card leads to a service page flagged in the library
   const emergencyNames = applies.filter(r => r.type === 'service' && live(r) && r.info && r.info.emergency && ((r.info.parent_keys) || []).includes(catKey)).map(r => r.title);
-  try { blocks = B.blocksFor({ niche, cv, category, emergencyPage: emergencyNames.length > 0 }); }
+  try { blocks = B.blocksFor({ niche, cv, category, emergencyPage: emergencyNames.length > 0 }); blocks.entry = B.filterEntry(blocks.entry, { confirmed: B.confirmedFromRows(rows), spares: B.sparesFor(niche.category_page_blocks, blocks.key) }); }
   catch (e) { if (e.code === 'G-BRIEF') gates.push({ code: 'G-BRIEF', msg: e.message }); else throw e; }
   if (gates.length) return { gates, flags, decisions: null, decisionsBlock: null };
   for (const g of B.briefGaps(blocks.entry)) flags.push({ code: 'F-BRIEF', msg: `${niche._source || niche.trade} type ${blocks.key}: ${g}.` });
@@ -202,7 +202,7 @@ function computeCategoryDecisions({ cv, niche, keyValueMap = {}, rows = [], page
   // ...and its own way of carrying the link, so the cards don't all read "Our [service] work…"
   // (loop round 1: five of six cards opened that way because every card was shown the same example)
   const LINK_PHRASES = ['our [X] work', 'a [X] visit', 'booking [X]', 'our [X] rounds', 'a [X] job', 'the [X] we do'];
-  cards.forEach((c, i) => { c.shape = SHAPES[i % SHAPES.length]; c.link_phrase = LINK_PHRASES[i % LINK_PHRASES.length].replace('[X]', `[${c.say || lc(c.name)}](${c.url})`); });
+  cards.forEach((c, i) => { c.shape = SHAPES[i % SHAPES.length]; c.link_phrase = articleBefore(LINK_PHRASES[i % LINK_PHRASES.length], { X: c.say || lc(c.name) }).replace('[X]', `[${c.say || lc(c.name)}](${c.url})`); });
 
   // ── Blocks 4 and 5, steps, FAQ from the type's briefs ──
   const problemCards = ((blocks.entry.problems || {}).cards || []).slice(0, 4).map(c => ({ title: phCat(c.title, ctx), brief: phCat(c.brief || '', ctx), mechanism: phCat(c.mechanism || '', ctx) }));
@@ -436,7 +436,7 @@ function formatCategoryBlock(D, cv, niche, ctx) {
   push('');
   if (D.thin) { const R = require('./page-types/category').ranges; push(''); push('THIN PAGE (no allocated neighbourhoods): every word minimum below is a third lower than the prompt says; do not pad to reach the prompt\'s figure. The ranges on this page:'); for (const [k, r] of Object.entries(R)) if (r && r.min) push(`  ${k}: ${Math.ceil(r.min * 2 / 3)} to ${r.max} words`); }
   if (D.overrideUsed) push('Per page briefs: this category has its own block 5 cards or steps in the niche entry (category_overrides).');
-  for (const l of IH.ideaHomeLines('category')) push(l);
+  for (const l of IH.ideaHomeLines('category', niche)) push(l);
   push('');
   push('LINKABLE PAGES:');
   for (const p of D.linkablePages) push(`  [${p.type}] ${p.url} | H1: ${p.h1}${p.say ? ` | say: ${p.say}` : ''}`);

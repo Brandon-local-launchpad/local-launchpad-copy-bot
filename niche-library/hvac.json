@@ -151,7 +151,8 @@
       "answer_brief": "The refrigerant is sealed in and is not consumed, so a system short of gas has a leak somewhere (the trade facts leak found row). What the work involves from the repair stages: the leak located and repaired, the circuit tested and evacuated, then the gas put back and the repair checked again. Never regassing on its own as the answer. Sealed system work as something the trade's rules keep to engineers with the refrigerant handling certificate, as what usually applies to anyone doing it; this business's own certificate only from [CV: credentials].",
       "symptom_based": false,
       "is_fallback": true,
-      "doubt": "Process"
+      "doubt": "Process",
+      "needs": ["Air conditioning repairs"]
     },
     {
       "slot": "faq_D",
@@ -237,22 +238,26 @@
           {
             "title": "Servicing that slipped a year or two",
             "brief": "Schedule led: what slips when nobody services the system, from the trade facts servicing signs row: the airflow weaker each summer, the unit running longer and cooling less, a stale smell when it starts, a drip from the indoor unit. The one cause this card makes: dust building on the filter and the indoor coil, so less air crosses it, with the drain and the pressures never looked at behind it. Time of year and the reason: a check before the hot weather, because that is when the filter and the coil are asked to pass the most air and a slow leak shows as a unit that cannot keep up; never that summer is busy. What a service does, from the servicing stages: the filters and heat exchangers cleaned, the condensate run checked, the controls, a leak check where the system's gas content asks for one, the test run and the record. No interval unless the facts rows or [CV: visit_frequency_options] give one; never 'required by law every year' (the trade facts servicing interval row). By category: Air Conditioning Contractor and HVAC Contractor read it as the service itself; Repair Shop as the repairs that trace back to a missed service; Duct Cleaning as the ducts: dust at the grilles, a kitchen canopy heavy with grease, from the duct cleaning signs row.",
-            "mechanism": "dust building on the filter and the indoor coil, so less air crosses it"
+            "mechanism": "dust building on the filter and the indoor coil, so less air crosses it",
+            "needs": ["Air conditioning servicing"]
           },
           {
             "title": "A drip from the indoor unit",
             "brief": "Problem led: a wet patch or a run mark on the wall under the indoor unit, a stain spreading on the ceiling under a cassette, water in the tray that never clears. The one cause this card makes: the drain that carries the condensate away has blocked with the dust and the film washed off a coil nobody cleaned, or was run without a fall when the unit went in, so the tray fills and spills (the trade facts servicing and split system rows). Say what the fix usually involves, from the repair stages in plain words: the drain cleared or re run, a pump where gravity cannot do it (the materials cell), the coil cleaned so it does not block again; what it leads to if left, from the skipped row: stained finishes and water near the electrics, specific and never alarming. Never that a drip proves a gas leak (the trade facts condensate row). By category: Repair Shop and HVAC Contractor read it as the fault; Air Conditioning Contractor as the drain route on a new system; Duct Cleaning as damp at a grille where moist air sits in a duct. Not weak cooling: card 1 and the symptom FAQ own that.",
-            "mechanism": "a condensate drain that has blocked, so the tray overflows"
+            "mechanism": "a condensate drain that has blocked, so the tray overflows",
+            "needs": ["Air conditioning servicing","Air conditioning repairs"]
           },
           {
             "title": "Warm air, or a unit that never catches up",
             "brief": "Problem led: air from the indoor unit no cooler than the room, the outdoor unit running with nothing changing indoors, ice on the pipes, a unit that trips. The one cause this card makes: gas lost through a leak, so there is less of it to carry the heat out of the room; the refrigerant is sealed in and not consumed, so a system short of it has a leak (the trade facts leak found row). Say the honest order of the work from the repair stages: the fault found, the leak located and repaired, the circuit tested and evacuated, and only then the gas put back; a top up on its own lasts weeks, never say it is a fix. Sealed system work as something the trade's rules keep to engineers with the refrigerant handling certificate, as what usually applies to anyone doing it; this business's own certificate only from [CV: credentials]. Not a filter or a coil clogged with dust: card 1 owns that; not a unit sized wrong for the room: card 4 owns that. By category: Repair Shop and HVAC Contractor read it as the fault; Air Conditioning Contractor as the joint that was never tested when the system went in (the done badly row); Duct Cleaning as a ducted system whose air cannot get through, from the ductwork signs row.",
-            "mechanism": "gas lost through a leak, so less heat is carried out"
+            "mechanism": "gas lost through a leak, so less heat is carried out",
+            "needs": ["Air conditioning repairs"]
           },
           {
             "title": "A room the house can't keep cool",
             "brief": "A situation card, not a fault: a bedroom under the roof still warm at midnight, a home office where the afternoon sun comes through the glass, a meeting room full of people, a server cupboard whose kit trips in a hot week. What decides it: where the heat comes in (the roof, the glass, the people, the equipment) and whether anything is sized to take it out; a portable unit in the doorway does not spread cool air through the room the way a fixed system does (the trade facts installation skipped row), with no performance figure (none is verified). What the work gives them: a split sized to that room from a heat gain survey (the installation stages), the indoor unit where the air reaches the whole room, the outdoor unit where the neighbours will not hear it and an engineer can reach it; a unit too big stops and starts and leaves the room clammy, one too small runs flat out and never gets there (the sizing guidance, no percentage). By category: Air Conditioning Contractor and HVAC Contractor read it as the install; Duct Cleaning as a room that is stuffy rather than hot, where the extract barely draws (the ductwork signs row), and what a proper supply and extract gives it; Repair Shop as an old unit that never kept up because it was never sized to the room. Never a lifestyle line, never a symptom invented for it; domestic and commercial never in one sentence: [CV: customer_types] decides which leads.",
-            "mechanism": "the room's heat gain, and nothing sized to take it out"
+            "mechanism": "the room's heat gain, and nothing sized to take it out",
+            "needs": ["Air conditioning installation","Split system air conditioning"]
           }
         ]
       },
@@ -265,11 +270,13 @@
           },
           {
             "title": "The route between indoors and out",
-            "brief": "The pipe, drain and cable run from the indoor unit to the outdoor one: its length, whether it is concealed, a pump where the drain cannot fall, height access to the outdoor unit (the price rows). Say why a long or hidden route costs more time."
+            "brief": "The pipe, drain and cable run from the indoor unit to the outdoor one: its length, whether it is concealed, a pump where the drain cannot fall, height access to the outdoor unit (the price rows). Say why a long or hidden route costs more time.",
+            "needs": ["Air conditioning installation","Split system air conditioning"]
           },
           {
             "title": "Power and permissions",
-            "brief": "A new electrical circuit where one is needed (notifiable work in a home, said without the rule's name, from the rule rows; never 'every unit needs its own circuit', the trade facts electrical row), and planning or noise work where the outdoor unit's position asks for it. Say the business looks before it prices, from [CV: quote_method] only."
+            "brief": "A new electrical circuit where one is needed (notifiable work in a home, said without the rule's name, from the rule rows; never 'every unit needs its own circuit', the trade facts electrical row), and planning or noise work where the outdoor unit's position asks for it. Say the business looks before it prices, from [CV: quote_method] only.",
+            "needs": ["Air conditioning installation","Split system air conditioning"]
           },
           {
             "title": "The state of what's already there",
@@ -391,12 +398,14 @@
           {
             "title": "Topped up, then back where it started",
             "brief": "Problem led: a regas that lasted weeks, a unit cooling again for a month and then not. The one cause this card makes: a leak left in the circuit while the gas was replaced, so it went the same way. Say what the job does instead, from the trade facts repair stages and the leak found row: the leak located and repaired, the circuit tested and evacuated, the gas put back and the repair checked again; never a dig at the last engineer. On a schedule led page: the leak check as a stage of the service where the system's gas content asks for one, and the record kept of it. On a decommissioning page: the gas left in a dead unit on the wall is the job left undone, and why it is recovered before anything is disconnected (the removal stages, the recovery rule as what usually applies).",
-            "mechanism": "a leak left in the circuit while the gas was replaced"
+            "mechanism": "a leak left in the circuit while the gas was replaced",
+            "needs": ["Air conditioning repairs"]
           },
           {
             "title": "A fault that keeps coming back",
             "brief": "A unit that trips again, an error code that returns, a cabinet that misses its temperature again a week after a visit. The one cause this card makes: the part dealt with, never the cause behind it (the trade facts done badly rows: a part swapped without the controls retested, a drain cleared without the coil cleaned, a cabinet commissioned without the target temperature proved, a damaged fin left to choke the heat exchange). Say what doing the job properly involves, from the stages: the fault diagnosed before anything is replaced, and the system recommissioned and documented after. On a schedule led page: the point where cleaning no longer holds because what is behind it is worn or blocked, from the done badly row. Not a leak: card 2 owns that.",
-            "mechanism": "the part dealt with, never the cause behind it"
+            "mechanism": "the part dealt with, never the cause behind it",
+            "needs": ["Air conditioning repairs","Air conditioning servicing"]
           },
           {
             "title": "Ice, frost or water where it shouldn't be",
@@ -430,7 +439,7 @@
         {
           "slot": "cost",
           "question": "How much does [SERVICE_LOWER] cost in [CITY]?",
-          "answer_brief": "Prices only from [CV: price_list]; otherwise how the quote is given, from [CV: quote_method] only. The four cost cards above already give what moves the price: name one factor at most, never the list again.",
+          "answer_brief": "Prices only from [CV: price_list]; otherwise how the quote is given, from [CV: quote_method] only. The cost cards hold the list: never repeat it or point to it.",
           "doubt": "Price"
         },
         {
@@ -541,12 +550,14 @@
           {
             "title": "Rooms under the roof that hold the heat",
             "brief": "Loft rooms, top floor flats and rooms behind big glass that stay warm into the night. The one cause this card makes: the town's housing, which the town profile gives (loft conversions, top floor flats, new build estates with their mechanical ventilation, glass fronted offices). Say what the housing means for the work in plain words: where a unit can go in a loft room, what a top floor flat needs agreed before anything is fitted, what a new estate's ventilation unit needs looking after; never that the town's homes are overheating or unhealthy (the pack's local detail rule). Not the heat gain of one room: the service pages own that.",
-            "mechanism": "the town's housing: loft rooms and top floors the sun gets into"
+            "mechanism": "the town's housing: loft rooms and top floors the sun gets into",
+            "needs": ["Air conditioning installation","Split system air conditioning"]
           },
           {
             "title": "Nowhere obvious for the outdoor unit",
             "brief": "Period terraces where the pipe run is long and the back wall is the only wall, flats where the unit must go on a balcony or the roof, streets where a unit on the front would be seen from the road. The one cause this card makes: buildings that limit where the outdoor unit can sit, from the town profile (the terraces, the flats, the conservation areas, only where the profile confirms them). What usually applies, with \"usually\" and never an Order's name: a flat's freeholder has to agree first; in a conservation area or at a listed home the unit's position is settled with the council before it is fitted. Say what it means for the route and the noise to the neighbours. Not the sizing: the service pages own that.",
-            "mechanism": "buildings that limit where the outdoor unit can sit"
+            "mechanism": "buildings that limit where the outdoor unit can sit",
+            "needs": ["Air conditioning installation","Split system air conditioning"]
           },
           {
             "title": "Salt, traffic and the outdoor coil",
@@ -556,7 +567,8 @@
           {
             "title": "Kitchens, shops and server rooms on the high street",
             "brief": "Restaurant streets whose canopies fill with grease as the hours run, food shops with cold rooms holding stock, offices and business parks with a server room that must not stop. The one cause this card makes: the town's commercial mix and what each building asks of its system, from the town profile only. Say what each means for the work (the canopy cleaned to a risk based band, the cold room's temperature held and alarmed, the server room's cooling changed over without losing it), as what the work meets and never as a judgement on anyone's system. Homes and businesses never in one sentence; this card leads commercial only where [CV: customer_types] says so.",
-            "mechanism": "the town's commercial mix and what each building asks of its system"
+            "mechanism": "the town's commercial mix and what each building asks of its system",
+            "needs": ["Commercial HVAC","Commercial refrigeration","Cold rooms","Server room cooling","Duct cleaning"]
           }
         ]
       },
@@ -565,19 +577,23 @@
         "cards": [
           {
             "title": "Where the outdoor unit can go",
-            "brief": "A terrace with no side access, a flat where the unit goes on a balcony or the roof, a wall only reached from height: the outdoor unit's position and the access to it move the price (the trade facts price rows). From the town profile where it gives the housing. No figure."
+            "brief": "A terrace with no side access, a flat where the unit goes on a balcony or the roof, a wall only reached from height: the outdoor unit's position and the access to it move the price (the trade facts price rows). From the town profile where it gives the housing. No figure.",
+            "needs": ["Air conditioning installation","Split system air conditioning"]
           },
           {
             "title": "Long runs through older houses",
-            "brief": "Period houses where the pipe and drain route is long or has to be hidden, and a pump where the drain cannot fall (the price rows). From the profile where it gives the housing era. Say why a long or concealed route costs more time."
+            "brief": "Period houses where the pipe and drain route is long or has to be hidden, and a pump where the drain cannot fall (the price rows). From the profile where it gives the housing era. Say why a long or concealed route costs more time.",
+            "needs": ["Air conditioning installation","Split system air conditioning"]
           },
           {
             "title": "Permissions and the neighbours",
-            "brief": "Where the town has conservation areas, listed homes or many flats, the planning or noise work and the freeholder's agreement before a unit is fitted add time. \"Usually\", never the Order's or the area's official name. From the dossier rules only."
+            "brief": "Where the town has conservation areas, listed homes or many flats, the planning or noise work and the freeholder's agreement before a unit is fitted add time. \"Usually\", never the Order's or the area's official name. From the dossier rules only.",
+            "needs": ["Air conditioning installation","Split system air conditioning"]
           },
           {
             "title": "Working round a business's hours",
-            "brief": "Commercial premises where the changeover waits for a shutdown window, a live room kept cool while the plant is swapped, stock moved before a cold room is touched (the price rows). Only where the profile gives the commercial mix; work outside opening hours only from the confirmed practices. No figure."
+            "brief": "Commercial premises where the changeover waits for a shutdown window, a live room kept cool while the plant is swapped, stock moved before a cold room is touched (the price rows). Only where the profile gives the commercial mix; work outside opening hours only from the confirmed practices. No figure.",
+            "needs": ["Commercial HVAC","Commercial refrigeration","Cold rooms","Server room cooling"]
           }
         ]
       },
@@ -718,5 +734,47 @@
       ]
     }
   },
-  "do_not_reuse": []
+  "do_not_reuse": [],
+  "idea_homes": [
+    {
+      "topic": "the maker's instructions and any warranty condition set when a unit is serviced",
+      "home": "the 'How often should air conditioning be serviced?' FAQ",
+      "elsewhere": "the best-time FAQ gives only the seasonal reason; the guarantee FAQ gives warranty terms without service-interval advice",
+      "pages": [
+        "homepage"
+      ]
+    },
+    {
+      "topic": "what decides how long the job takes (units, route, access, whether the circuit is opened)",
+      "home": "the 'How long does [SERVICE_LOWER] take?' FAQ",
+      "elsewhere": "the seasonal FAQs give the season or timing reason only, not the duration factors",
+      "pages": [
+        "service"
+      ]
+    },
+    {
+      "topic": "timing set by when the building can spare the system or a shutdown window",
+      "home": "the 'Getting it in before it's needed' card",
+      "elsewhere": "the FAQs do not repeat shutdown windows or when the room can do without it",
+      "pages": [
+        "service"
+      ]
+    },
+    {
+      "topic": "a service before the hot weather, because the first hot week finds every weak spot",
+      "home": "the 'When is the best time of year to have [WORK_LOWER] work done?' FAQ",
+      "elsewhere": "the 'first hot week' card gives the symptoms only; the winter FAQ says what the cold months suit without the hot-weather reasoning",
+      "pages": [
+        "category"
+      ]
+    },
+    {
+      "topic": "where the outdoor unit can sit on the town's buildings",
+      "home": "the 'Nowhere obvious for the outdoor unit' card",
+      "elsewhere": "the cost card and the cost FAQ name it only as a price factor, without describing the buildings again",
+      "pages": [
+        "location"
+      ]
+    }
+  ]
 }

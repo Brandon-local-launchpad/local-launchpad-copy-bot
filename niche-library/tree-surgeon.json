@@ -58,15 +58,18 @@
   "steps_emergency": [
     {
       "title": "Call Us",
-      "brief": "What to say: what has happened, where the tree or the branch is (across the road or the drive, on a roof or a car, caught up in the crown, touching or near an overhead line), whether anyone is hurt, whether anything is still hanging. What to do meanwhile, in plain words: keep people, cars and pets away from it and from anything it could still fall on; never try to cut it, drag it or prop it; anything touching a line is left alone and the electricity network operator is called (Table C: a line is treated as live until the operator says otherwise). The number from [CV: phone]. No promise of a reply or an arrival time unless [CV: response_time] is set."
+      "brief": "What to say: what has happened, where the tree or the branch is (across the road or the drive, on a roof or a car, caught up in the crown, touching or near an overhead line), whether anyone is hurt, whether anything is still hanging. What to do meanwhile, in plain words: keep people, cars and pets away from it and from anything it could still fall on; never try to cut it, drag it or prop it; anything touching a line is left alone and the electricity network operator is called (Table C: a line is treated as live until the operator says otherwise). The number from [CV: phone]. No promise of a reply or an arrival time unless [CV: response_time] is set.",
+      "needs": ["Emergency tree work"]
     },
     {
       "title": "We Make the Area Safe",
-      "brief": "On arrival the danger is judged from the ground first, the area closed off, lines and protections checked, then only the immediate hazard is brought down or lowered under control (Table A emergency tree work). The price for making it safe agreed before anyone comes out only from the price_agreed_before_work practice and [CV: quote_method]; what the rest costs waits until the tree has been seen. Never restates 'free'. 'Same day' only when [CV: same_day_available] is yes."
+      "brief": "On arrival the danger is judged from the ground first, the area closed off, lines and protections checked, then only the immediate hazard is brought down or lowered under control (Table A emergency tree work). The price for making it safe agreed before anyone comes out only from the price_agreed_before_work practice and [CV: quote_method]; what the rest costs waits until the tree has been seen. Never restates 'free'. 'Same day' only when [CV: same_day_available] is yes.",
+      "needs": ["Emergency tree work"]
     },
     {
       "title": "We Clear the Danger and Plan the Rest",
-      "brief": "What usually happens: the hazard removed, the area left safe, the work written up and any notice the council needs sent (Table A: document the work and the required notices; Table C: a protected tree made safe because it was an immediate danger has only the necessary work done and the council told as soon as practicable, with 'usually' and never the rule's name). What is left of the tree, the stump and the timber is dealt with as planned work on another day (Table A: follow up work may be separate). Never promise everything is done on the first visit. Never mention the price."
+      "brief": "What usually happens: the hazard removed, the area left safe, the work written up and any notice the council needs sent (Table A: document the work and the required notices; Table C: a protected tree made safe because it was an immediate danger has only the necessary work done and the council told as soon as practicable, with 'usually' and never the rule's name). What is left of the tree, the stump and the timber is dealt with as planned work on another day (Table A: follow up work may be separate). Never promise everything is done on the first visit. Never mention the price.",
+      "needs": ["Emergency tree work"]
     }
   ],
   "cover_chain": ["guarantee", "insurance"],
@@ -145,7 +148,8 @@
       "question": "Does my tree need to come down, or can it be pruned?",
       "answer_brief": "Felling is not the default. Say when removal is right: a tree that is dead, decayed through, structurally failed, or standing where its size can never fit (Table A and B tree removal). Then that most worries are answered by a reduction back to growth points, a lift of the lower crown, dead wood taken out, or support for a weak fork (Table A pruning and cabling: support, not a cure). What decides it: what the tree is, what is wrong with it, what stands under it, and what is found when it is looked at. Never that a tree is safe or unsafe, never a percentage of crown, never topping as an option.",
       "symptom_based": false,
-      "doubt": "Process"
+      "doubt": "Process",
+      "needs": ["Tree removal and felling","Tree pruning and crown reduction"]
     },
     {
       "slot": "faq_B",
@@ -160,7 +164,8 @@
       "answer_brief": "What decides it: what the ground is wanted for afterwards (Table A and E stump removal: the finish and the depth are agreed to the intended use, deeper for planting than for grass, with no measurement given). Leaving it: slow to break down, and some species send up shoots from live roots (Table B and E). Grinding: the stump and the main root plate ground out, the chippings cleared or left as agreed, the hole backfilled, the larger roots staying in the ground to rot in their own time (no number of years: the facts give none). Never say grinding stops every shoot.",
       "symptom_based": false,
       "is_fallback": true,
-      "doubt": "Process"
+      "doubt": "Process",
+      "needs": ["Tree stump removal"]
     },
     {
       "slot": "faq_D",
@@ -243,7 +248,8 @@
           {
             "title": "Roots under the paving, the drains or the house",
             "brief": "A situation and a warning sign in one: paving lifting beside a tree, roots showing through the lawn, a new surface planned close to a trunk, cracks in a wall near a large tree where the ground is clay (Table B root barriers and surveys; Table E subsidence). The one cause this card makes: roots spreading further than the space left for them. On clay, say what usually applies: the ground gives up its moisture to a big tree through a dry summer and takes it back in winter, so a worry about cracks is investigated before anything is cut, because felling can bring movement of its own (Table E). The options in plain words: a root barrier to steer roots away from what is being built, a reduction to cut the water the tree draws, a survey first where a house is involved (Table A root barriers and surveys). Never promise the cracks stop, never that a tree caused them, never that removal is the answer.",
-            "mechanism": "roots spreading further than the space left for them"
+            "mechanism": "roots spreading further than the space left for them",
+            "needs": ["Root barriers","Tree surveys and reports"]
           }
         ]
       },
@@ -256,7 +262,8 @@
           },
           {
             "title": "Climbing, platforms and lowering",
-            "brief": "A tree that can be felled in one into a clear space costs less than one taken down in sections over a roof, a conservatory or a road, with every piece lowered by rope or a platform brought in (Table F removal: sectional dismantling instead of a clear fell; unstable timber). Say why that takes more people and more time, in plain words."
+            "brief": "A tree that can be felled in one into a clear space costs less than one taken down in sections over a roof, a conservatory or a road, with every piece lowered by rope or a platform brought in (Table F removal: sectional dismantling instead of a clear fell; unstable timber). Say why that takes more people and more time, in plain words.",
+            "needs": ["Tree removal and felling"]
           },
           {
             "title": "Getting to the tree",
@@ -513,7 +520,8 @@
           {
             "title": "A report someone else has asked you for",
             "brief": "The customer has been asked for something in writing: a lender wants a tree report before a mortgage, building plans show trees close to the works, a council has sent a notice about branches over the pavement, an insurer wants a cause investigated, a landlord or an agent needs the trees looked at on a cycle (Table B surveys; Table C highway notice, with 'usually' and never the Act's name). The one cause this card makes: a question about the tree that needs a written answer. Say what a report does and does not do, from Table A and E: its scope is what was asked for, a lender's report is not a development survey, and no report proves a tree caused subsidence on its own. On a page other than Tree surveys and reports, the card reads as the written record of what was done (the work documented after an emergency; a support's inspection arrangement), from the Table A stages. Never legal advice, never a standard's number.",
-            "mechanism": "a question about the tree that needs a written answer"
+            "mechanism": "a question about the tree that needs a written answer",
+            "needs": ["Tree surveys and reports"]
           }
         ]
       },
@@ -542,7 +550,7 @@
         {
           "slot": "cost",
           "question": "How much does [SERVICE_LOWER] cost in [CITY]?",
-          "answer_brief": "Prices only from [CV: price_list]; otherwise how the quote is given, from [CV: quote_method] only. The four cost cards above already give what moves the price: name one factor at most, never the list again.",
+          "answer_brief": "Prices only from [CV: price_list]; otherwise how the quote is given, from [CV: quote_method] only. The cost cards hold the list: never repeat it or point to it.",
           "doubt": "Price"
         },
         {
@@ -609,12 +617,14 @@
             {
               "title": "More light, more room or a clearer line",
               "brief": "The customer's situation: a garden in shade by the afternoon, branches at the gutters or over the roof, a hedge too wide for the path, a view or a lamp lost behind growth, scrub taking the end of the garden. What decides it: how the tree or hedge regrows after the cut, from the trade facts for this service (a reduction cut back to suitable side branches keeps the shape and regrows evenly; a lift takes the lower branches for clearance; some evergreens never refill a cut into old wood; a hedge comes back to a width in stages over more than one season; topping leaves a mass of shoots on rotting stubs and is never offered). What the work gives them: light on the lawn, clearance from the house, a hedge back to a size that can be kept, a path through the scrub, with the tree looking like itself next summer. Leads on the crown reduction, hedge reduction and clearance pages. Never a fault invented for it, never a percentage, never a lifestyle pitch.",
-              "mechanism": "how the tree or hedge regrows after the cut"
+              "mechanism": "how the tree or hedge regrows after the cut",
+              "needs": ["Tree pruning and crown reduction","Hedge trimming","Hedge reduction and removal","Site and vegetation clearance"]
             },
             {
               "title": "A stump, a hedge or scrub where you want to use the ground",
               "brief": "The customer's situation: a stump where a lawn, a bed, a shed base or a drive is planned, an old hedge where a fence is going, brambles over the ground that building work needs. What decides it: what the ground is wanted for afterwards, from the trade facts for this service (Table A and E stumps: the finish and the depth agreed to the intended use, deeper for planting than for grass, with no measurement given; the chippings cleared or left, the hole backfilled; some species shoot again from live roots and the bigger roots rot in their own time; Table A hedge removal and clearance: cut in sections, stumps out only if specified, protected hedges and nests checked first, written as what usually applies). What the work gives them: ground they can level, plant or build on, and an honest picture of what stays underneath. Leads on Tree stump removal, Hedge reduction and removal and Site and vegetation clearance. Never a number of years, never a promise that nothing grows back.",
-              "mechanism": "what the ground is wanted for afterwards"
+              "mechanism": "what the ground is wanted for afterwards",
+              "needs": ["Tree stump removal","Hedge reduction and removal","Site and vegetation clearance"]
             },
             {
               "title": "A new tree, or one you'd rather move than lose",
@@ -624,7 +634,8 @@
             {
               "title": "Logs, chippings and what the work leaves behind",
               "brief": "The customer's situation: they have a wood burner and want the timber, they want chip for the paths or the beds, they have a pile of brash from the last job, or they own a piece of woodland and want it looked after rather than left. What decides it: what the timber is worth to you where it stands, from the trade facts for this service (Table A chipping: chips left on site for a use or taken away; Table A firewood: cut, split and stacked under cover to dry, with the sale rules for logs only as the rule row gives them and never a moisture figure or a volume; Table A woodland: a plan, thinning or coppicing to it, licences and designations checked, written as what usually applies). What the work gives them: timber and chip that are useful rather than a heap, and a wood managed to a plan. Logs left for the customer, or sold, only from the client values. Leads on Wood chipping, Firewood and logs and Woodland management. Never a seasoning time in months.",
-              "mechanism": "what the timber is worth to you where it stands"
+              "mechanism": "what the timber is worth to you where it stands",
+              "needs": ["Firewood and logs","Wood chipping","Woodland management"]
             }
           ]
         },
@@ -810,7 +821,8 @@
           },
           {
             "title": "Big old trees that come down in pieces",
-            "brief": "A mature tree in a town garden rarely has a clear space to fall into, so it is dismantled from the top and every piece lowered by rope, with more people on the ground and more to chip and carry than a tree of the same height in a field. Say it plainly, from the profile where it gives the mature trees. No figure."
+            "brief": "A mature tree in a town garden rarely has a clear space to fall into, so it is dismantled from the top and every piece lowered by rope, with more people on the ground and more to chip and carry than a tree of the same height in a field. Say it plainly, from the profile where it gives the mature trees. No figure.",
+            "needs": ["Tree removal and felling"]
           }
         ]
       },
@@ -977,5 +989,96 @@
       }
     }
   },
-  "do_not_reuse": []
+  "do_not_reuse": [],
+  "why_title_practice": {"Local Trees We've Worked On for Years":[]},
+  "idea_homes": [
+    {
+      "topic": "only the immediate danger made safe on the day, the rest priced and done as planned work",
+      "home": "the 'Made safe today, the rest planned properly' card",
+      "elsewhere": "no cost card, step or FAQ explains the second visit; they name the making-safe work only",
+      "pages": [
+        "service"
+      ]
+    },
+    {
+      "topic": "nobody climbs or works under hung up timber while the wind is still up",
+      "home": "the 'Will you come out while the storm is still going?' FAQ",
+      "elsewhere": "the 'How quickly can you get here?' FAQ gives arrival only",
+      "pages": [
+        "service"
+      ]
+    },
+    {
+      "topic": "an overhead line is treated as live and waits for the network operator",
+      "home": "the 'What should I do before you arrive?' FAQ",
+      "elsewhere": "no cost card or other FAQ repeats the network operator wait",
+      "pages": [
+        "service"
+      ]
+    },
+    {
+      "topic": "no standard duration: size, access, surroundings and clearing decide how long",
+      "home": "the 'How long does [SERVICE_LOWER] take?' FAQ",
+      "elsewhere": "the seasonal 'best time of year' FAQs cover the season only",
+      "pages": [
+        "service"
+      ]
+    },
+    {
+      "topic": "only the immediate danger made safe on the day, the rest a separate planned job",
+      "home": "the 'We Clear the Danger and Plan the Rest' step",
+      "elsewhere": "no cost card or FAQ explains the second visit",
+      "pages": [
+        "category"
+      ]
+    },
+    {
+      "topic": "nobody climbs or works under hung up timber while the wind is still up",
+      "home": "the 'Will you come out while the storm is still going?' FAQ",
+      "elsewhere": "the 'How quickly can you get to me?' FAQ gives arrival only",
+      "pages": [
+        "category"
+      ]
+    },
+    {
+      "topic": "an overhead line is treated as live and waits for the network operator",
+      "home": "the 'Branches on or near a power line' card",
+      "elsewhere": "no cost card, FAQ or step repeats the network operator wait",
+      "pages": [
+        "category"
+      ]
+    },
+    {
+      "topic": "keep people, cars and pets clear while waiting",
+      "home": "the 'What to do while you wait for us' card",
+      "elsewhere": "the 'Call Us' step and the 'What should I do before you arrive?' FAQ do not repeat the safety advice",
+      "pages": [
+        "category"
+      ]
+    },
+    {
+      "topic": "protected trees and conservation areas needing the council first",
+      "home": "the 'Streets where the council has a say first' card",
+      "elsewhere": "the paperwork cost card and the quote FAQ do not restate the rule",
+      "pages": [
+        "location"
+      ]
+    },
+    {
+      "topic": "orders and conservation areas checked and the council told",
+      "home": "the 'Will I need permission before work on my tree?' FAQ",
+      "elsewhere": "no step explains the permission rules",
+      "pages": [
+        "homepage"
+      ]
+    },
+    {
+      "topic": "nesting birds and wildlife deciding when work can be done",
+      "home": "the 'What time of year is best for tree work?' FAQ",
+      "elsewhere": "the visit step and the 'How soon can you start?' FAQ do not mention nests",
+      "pages": [
+        "homepage"
+      ]
+    }
+  ]
 }

@@ -184,7 +184,8 @@ chk('Why P4 = Family Run and Independent',
   D.d10_why[3] && D.d10_why[3].title, 'Family Run and Independent');
 
 const faq = D.d11_faq;
-chk('8 FAQ questions', faq.length === 8, faq.length, 8);
+// faq_C asks about turf or seed, which this client does not offer (copy quality 6): it drops, no fallback left
+chk('7 FAQ questions: the turf question drops, this client has no turf or seeding page', faq.length === 7 && !faq.some(q => /turf/i.test(q.question)), faq.length, 7);
 
 const q3 = faq.find(q => q.slot === 'Q3');
 chk('Q3 = faq_3_none (no guarantee, type A)',

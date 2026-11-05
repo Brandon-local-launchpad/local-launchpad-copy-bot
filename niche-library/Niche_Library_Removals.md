@@ -207,7 +207,7 @@ The pack's section 2: type D has no symptoms and no faults. Every block 4 card i
 
 | Slot | When | Question | Answer brief | Doubt |
 |---|---|---|---|---|
-| cost | always | How much does [WORK_LOWER] cost in [CITY]? | Prices only from [CV: price_list]; otherwise how the quote is reached, from [CV: quote_method] only (a survey at the home or by video only as it gives it), and that the price is agreed before the day when the price_agreed_before_work practice is confirmed. The four cost cards above already give what moves the price: name one factor at most, never the list again. | Price |
+| cost | always | How much does [WORK_LOWER] cost in [CITY]? | Prices only from [CV: price_list]; otherwise how the quote is reached, from [CV: quote_method] only (a survey at the home or by video only as it gives it), and that the price is agreed before the day when the price_agreed_before_work practice is confirmed. The cost cards hold the list: never repeat it or point to it. | Price |
 | cover | insurance | Are you insured for [WORK_LOWER]? | The cover figure from [CV: insurance_cover] and what it is for (the load in transit, or public liability: only as the client values say which). From Table E, the limits and what the cover leaves out sit in the policy and the contract, so say it is worth asking. Never what it pays or who it covers, never a figure the client values do not give, never a scheme's name unless confirmed. | Trust |
 | cover | always | What happens if something is damaged on the move? | Open with what the customer does: tell us as soon as it is seen, and we look at it. Then the reasonable care and skill standard every trade works to. No promise to pay out or replace. Never invent a guarantee or insurance. | Trust |
 | scope | always | What does your [WORK_LOWER] service cover? | The work itself, named from the card list (the home moves, the packing, the storage, the single items, the office moves and the clearances, only those the services list has) and the size of move taken on, from [CV: typical_jobs] only. Whether beds are taken apart and put back, and whether boxes are supplied, only from the services list and the client values (Table E). Link one service page. Never "on this page", "listed above" or "the card list" as words: the reader sees no list, so name the work. | Fit |
@@ -265,7 +265,7 @@ Seven framings share this one entry, per the pack's section 2, and each brief sa
 
 | Slot | When | Question | Answer brief | Doubt |
 |---|---|---|---|---|
-| cost | always | How much does [SERVICE_LOWER] cost in [CITY]? | Prices only from [CV: price_list]; otherwise how the quote is reached, from [CV: quote_method] only, and that the price is agreed before the day when the price_agreed_before_work practice is confirmed. The four cost cards above already give what moves the price: name one factor at most, never the list again. | Price |
+| cost | always | How much does [SERVICE_LOWER] cost in [CITY]? | Prices only from [CV: price_list]; otherwise how the quote is reached, from [CV: quote_method] only, and that the price is agreed before the day when the price_agreed_before_work practice is confirmed. The cost cards hold the list: never repeat it or point to it. | Price |
 | timing | always | How long does [SERVICE_LOWER] take? | From the trade facts timing row only: the rows say it varies and give no standard, so give what decides it (how much is going, the access at both ends, whether packing is in the job, the wait for the new home to be open, the distance) and the order of the day rather than its clock. Never an arrival time, a finish time or a number of hours. Nothing about when the job can start unless [CV: start_time] is set. This is the one place the timing is written. | Timing |
 | cover | insurance | Are you insured for [SERVICE_LOWER]? | The cover figure from [CV: insurance_cover] and what it is for (the load in transit, or public liability: only as the client values say which). From Table E: the van's motor insurance is not cover for what it carries; the limits, and what is left out (boxes the customer packed, items of high value), sit in the policy and the contract, so say it is worth asking. On an antiques page, a value agreed before the move (Table A) only as the client values confirm the arrangement. Never what it pays or who it covers, never a figure or a scheme the client values do not give. | Trust |
 | cover | always | What happens if something is damaged during [SERVICE_LOWER]? | Open with what the customer does: tell us as soon as it is seen, and we look at it. Then the reasonable care and skill standard every trade works to. No promise to pay out or replace. Never invent a guarantee or insurance. | Trust |
@@ -333,3 +333,25 @@ Used by the location page job (CORE (18)): block 4 (what the town's streets and 
 - **Durations.** Table G: no duration range or seasonal window was found for any of the 11 services, so every timing brief gives what decides the time and the order of the day, never a number of hours, an arrival or a finish time.
 - **International moves.** The facts carry customs and relief detail (ToR1 for inward moves, declarations by route). The pack's section 7 bans customs or visa detail the client has not confirmed, so the briefs allow customs paperwork only as the client confirms it handles it and never a form's name. Ask an international client what paperwork they handle.
 - **The hand set-up defaults business_type to A** (`server.js`), and this entry has D briefs only, like the cleaning (B) and pet care (C) entries. A removals client set up by hand must be set to D, or its category, service and location pages are refused.
+
+## Alternate Why title that promises a practice (why_title_practice)
+
+"Moving Days Planned in Order" stands only with a practice no tick confirms, so never by default; otherwise the point reads "Local Experience Behind Every Job".
+
+## Service tags
+
+An element is dropped, and the next eligible one used, when the client has confirmed none of these services. The paths are in the .json as `needs`.
+
+| Element | Needs |
+|---|---|
+| Should I pack myself or have you pack? | Packing services |
+| Can you store my things if the dates don't line up? | Storage |
+| Can you take away the things I don't want? | House clearance |
+
+## Idea homes
+
+- **how the quote is reached (survey at the home or by video, from quote_method)** (homepage): home is the 'How do your quotes work?' FAQ. Elsewhere: step 2 says what gets settled and that a price comes before the day, without explaining the quote method again; the 'Is the survey and quote free?' FAQ answers only whether it is free.
+- **the survey and what it settles before the day** (service): home is step 2 'We Survey and Price Your Move'. Elsewhere: the 'What gets settled before the day' card gives the stage in one line without listing the survey's checks again; the cost FAQ gives only prices or how the quote comes back.
+- **whether dismantling and reassembly are in the job** (service): home is the 'What does your service include?' FAQ. Elsewhere: the lifting and placing cards and step 3 mention pieces coming apart or beds rebuilt only as a stage, never restating whether it is in or out of scope.
+- **the survey and what it settles before the day** (category): home is the 'The survey that sets up the day' block 4 card. Elsewhere: step 2 names the survey in one line and moves on to the price; the cost FAQ and the 'What happens when I ask for a quote?' FAQ say what comes back, not the survey's checklist.
+- **whether dismantling and reassembly are in the job** (category): home is the 'What does your service cover?' FAQ. Elsewhere: the 'Unloading and getting furniture in' card and step 3 mention reassembly only as a stage, never restating whether it is in or out of scope.

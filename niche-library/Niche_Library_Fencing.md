@@ -303,7 +303,7 @@ Four framings share this one entry, per the pack's section 2: a problem led page
 
 | Slot | When | Question | Answer brief | Doubt |
 |---|---|---|---|---|
-| cost | always | How much does [SERVICE_LOWER] cost in [CITY]? | Prices only from [CV: price_list]; otherwise how the quote is given, from [CV: quote_method] only. The four cost cards above already give what moves the price: name one factor at most, never the list again. | Price |
+| cost | always | How much does [SERVICE_LOWER] cost in [CITY]? | Prices only from [CV: price_list]; otherwise how the quote is given, from [CV: quote_method] only. The cost cards hold the list: never repeat it or point to it. | Price |
 | timing | always | How long does [SERVICE_LOWER] take? | From the trade facts timing row only: the pack gives no standard duration for any fencing job, so give what decides it (the length of the run, what comes out first, the ground, the access, the weather for setting posts) and no number. Nothing about when the job can start unless [CV: start_time] is set. This is the one place the timing is written. | Timing |
 | cover | guarantee | Do you guarantee your [SERVICE_LOWER] work? | Start with yes, then the terms from [CV: guarantee_years] and [CV: guarantee_scope]. A maker's guarantee on a post, a panel or a gate operator covers that product and not the job as put up (the trade facts fact row on guarantees): keep the two apart. Described, never promised. | Trust |
 | cover | insurance | Are you insured for [SERVICE_LOWER]? | The cover figure from [CV: insurance_cover] and what the cover is for. Never what it pays or who it covers. | Trust |
@@ -436,3 +436,24 @@ Things a brief wanted that neither the calibration pack nor the trade facts pack
 9. **The other Fillout tabs.** A fencing client's form can tick Deck Builder, Gardener, Landscape Gardener, Landscape Designer, Lawn Care Service, Tree Service and Paving Contractor. The pack's section 2 assigns them no type, so they take A and the fencing briefs, which do not fit a gardening round. If such a client arrives, Brandon decides whether those categories read the landscaper entry's B briefs (code change) or the client is set up as a landscaper.
 10. **Automatic gate sign off.** Table C and D say the finished gate must be tested and documented and that no named scheme is a legal requirement. The briefs say "tested for force and fitted with its safety devices" and name no scheme; Gate Safe and DHF go on the logo strip only when Ray has verified the client on them.
 11. **Rural work.** The pack's rural and commercial customer "is buying a function" and the specification led lines in the service cards serve those pages, but Table G verifies no stock mesh specification, no deer fence height as law, no electric fence sign spacing and no footpath crossing width, so those pages lean on the client's own practice more than most. Confirm with each client that they do that work before the pages are made.
+
+## Alternate Why title that promises a practice (why_title_practice)
+
+"The Post Comes First on Every Job" stands only with a practice no tick confirms, so never by default; otherwise the point reads "Local Experience Behind Every Job".
+
+## Service tags
+
+An element is dropped, and the next eligible one used, when the client has confirmed none of these services. The paths are in the .json as `needs`.
+
+| Element | Needs |
+|---|---|
+| Can a storm damaged fence be repaired, or does it all need replacing? | Fence repairs |
+| A fence down or leaning after the wind | Fence repairs |
+| When the fence has one job to do | Dog proof fencing; Security fencing; Acoustic fencing; Agricultural and stock fencing; Equestrian fencing; Electric fencing |
+| Timber going grey, green or soft | Fence staining and treatment |
+
+## Idea homes
+
+- **how the quote is reached and whether it is given in writing** (homepage): home is the 'How do your quotes work?' FAQ. Elsewhere: step 2 (either version) describes the visit or says a price is agreed before work starts, without explaining the quote method again; the 'Is the quote free' FAQ says only free and no obligation.
+- **what decides how long the job takes (length of run, what comes out, ground, access, weather) with no number** (service): home is the 'How long does [SERVICE_LOWER] take?' FAQ. Elsewhere: the seasonal 'When is the best time of year' FAQ covers only what the season changes and does not list the duration factors again.
+- **what the season changes: concrete setting slowly in the cold, staining waiting for dry timber, nests checked in a hedge** (service): home is the seasonal 'When is the best time of year for [SERVICE_LOWER]' FAQ. Elsewhere: the 'Getting it up in the right weather' card names the customer's wish to be closed in before summer and does not list the weather conditions.

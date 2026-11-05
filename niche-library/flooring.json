@@ -153,7 +153,8 @@
       "answer_brief": "Repair before replace, honestly, from the trade facts: a board that squeaks is most often fixed back to its joist; boards worn grey are often sound under the old finish and sand back to bare wood; a carpet in ripples is usually tightened again onto its gripper. Then when a repair will not hold: the floor underneath has failed (damp, a hollow, a loose base) or the material has peaked or cupped and will not sit flat again. Never a verdict on the reader's own floor; never a dig at whoever fitted it.",
       "symptom_based": false,
       "is_fallback": true,
-      "doubt": "Process"
+      "doubt": "Process",
+      "needs": ["Floor repairs","Floor sanding and restoration","Carpet repairs and re stretching"]
     },
     {
       "slot": "faq_D",
@@ -161,7 +162,8 @@
       "answer_brief": "From the trade facts fact rows only: some wood floor systems and some LVT products are made for heating under the floor and each product's own instructions decide, including the surface temperature limit it sets (named only as a limit the product gives, no figure, never a maker's name); the facts do not rule solid wood out, since a maker permits its specified solid systems. A new heated screed is run through its heating cycle before any floor goes over it and its moisture checked after. Nothing about this business's own products unless [CV: materials_methods] gives them.",
       "symptom_based": false,
       "is_fallback": true,
-      "doubt": "Fit"
+      "doubt": "Fit",
+      "needs": ["Wood flooring","LVT flooring","Laminate and LVT flooring","Parquet and herringbone flooring"]
     },
     {
       "slot": "faq_planning",
@@ -412,7 +414,7 @@
         {
           "slot": "cost",
           "question": "How much does [SERVICE_LOWER] cost in [CITY]?",
-          "answer_brief": "Prices only from [CV: price_list]; otherwise how the quote is given, from [CV: quote_method] only. The four cost cards above already give what moves the price: name one factor at most, never the list again.",
+          "answer_brief": "Prices only from [CV: price_list]; otherwise how the quote is given, from [CV: quote_method] only. The cost cards hold the list: never repeat it or point to it.",
           "doubt": "Price"
         },
         {
@@ -533,7 +535,8 @@
           },
           {
             "title": "What the last owner left on the floor",
-            "brief": "Old coverings layered up, adhesive on the slab, hardboard over boards, a carpet glued down: what comes up before anything new goes down and what the check for old vinyl tiles and their adhesive changes about the method (the trade facts rule and price rows). Said as what the work meets and never as a judgement on the homes. How it is taken away only from confirmed practices (waste_removal). No figure."
+            "brief": "Old coverings layered up, adhesive on the slab, hardboard over boards, a carpet glued down: what comes up before anything new goes down and what the check for old vinyl tiles and their adhesive changes about the method (the trade facts rule and price rows). Said as what the work meets and never as a judgement on the homes. How it is taken away only from confirmed practices (waste_removal). No figure.",
+            "needs": ["Floor removal and uplift"]
           }
         ]
       },
@@ -668,5 +671,39 @@
         }
       ]
     }
-  }
+  },
+  "idea_homes": [
+    {
+      "topic": "a new screed left to dry until a moisture test says it is ready",
+      "home": "the 'how long does [SERVICE_LOWER] take' FAQ",
+      "elsewhere": "the 'A floor that went down too soon' card names the cause without the drying wait or the test; the 'What it will need from you' card leaves out the screed wait",
+      "pages": [
+        "service"
+      ]
+    },
+    {
+      "topic": "damp in a solid floor or new screed tested for before a floor goes down",
+      "home": "the 'A floor spoiled from underneath by damp' card",
+      "elsewhere": "the 'What is under the floor now' cost card names damp only as a price item; the how long FAQ gives the wait only, not the cause",
+      "pages": [
+        "category"
+      ]
+    },
+    {
+      "topic": "the town's housing eras: timber boards over a void against a slab",
+      "home": "the 'Floors built the way the houses were' card",
+      "elsewhere": "the 'What the house was built on' cost card gives only the work it adds; the cost FAQ names it in a phrase; the how long FAQ gives only the effect on time",
+      "pages": [
+        "location"
+      ]
+    },
+    {
+      "topic": "old floors layered on top of each other",
+      "home": "the 'Old floors with more than one layer' card",
+      "elsewhere": "the 'What the last owner left on the floor' cost card gives only what it adds to the work; the cost FAQ names it in a phrase",
+      "pages": [
+        "location"
+      ]
+    }
+  ]
 }

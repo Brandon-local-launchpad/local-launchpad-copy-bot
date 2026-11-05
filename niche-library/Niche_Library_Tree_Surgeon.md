@@ -335,7 +335,7 @@ Three framings share this one entry, per the pack's section 2: a problem led pag
 
 | Slot | When | Question | Answer brief | Doubt |
 |---|---|---|---|---|
-| cost | always | How much does [SERVICE_LOWER] cost in [CITY]? | Prices only from [CV: price_list]; otherwise how the quote is given, from [CV: quote_method] only. The four cost cards above already give what moves the price: name one factor at most, never the list again. | Price |
+| cost | always | How much does [SERVICE_LOWER] cost in [CITY]? | Prices only from [CV: price_list]; otherwise how the quote is given, from [CV: quote_method] only. The cost cards hold the list: never repeat it or point to it. | Price |
 | timing | always | How long does [SERVICE_LOWER] take? | From the trade facts timing row only: the facts give no standard duration for any tree job, so say what decides it (the size of the tree, how it has to come down or be reached, what is around it, the amount to chip and clear) and never a number of hours or days. Nothing about when the job can start unless [CV: start_time] is set. This is the one place the timing is written. | Timing |
 | cover | guarantee | Do you guarantee your [SERVICE_LOWER] work? | Start with yes, then the terms from [CV: guarantee_years] and [CV: guarantee_scope]. Described, never promised. The guarantee covers the work, never the tree's future. | Trust |
 | cover | insurance | Are you insured for [SERVICE_LOWER]? | The cover figure from [CV: insurance_cover] and what the cover is for, with a plausible example for this service that does not suggest carelessness. Never what it pays or who it covers. | Trust |
@@ -520,3 +520,40 @@ For Ray and the trade facts pack (Table G records most as not found; the briefs 
 12. Whether the `emergency_niche` marker should follow the client's confirmation: the pack asks for plain type A, so it is false here, which means `allocation.js` never hands a page an urgent symptom even for a client who confirms call outs. Brandon's call.
 13. The pack's header still says verified: no; the service page gate refuses a run until it is verified on the Trade facts screen.
 14. Tree transplanting is desire led in the pack but its row lives in landscaper.csv without the desire_led flag; Tree planting is flagged there. One line in landscaper.csv would align them (not changed here: this entry touches tree-surgeon.csv only).
+
+## Alternate Why title that promises a practice (why_title_practice)
+
+"Local Trees We've Worked On for Years" stands only with a practice no tick confirms, so never by default; otherwise the point reads "Local Experience Behind Every Job".
+
+## Service tags
+
+An element is dropped, and the next eligible one used, when the client has confirmed none of these services. The paths are in the .json as `needs`.
+
+| Element | Needs |
+|---|---|
+| Call Us | Emergency tree work |
+| We Make the Area Safe | Emergency tree work |
+| We Clear the Danger and Plan the Rest | Emergency tree work |
+| Does my tree need to come down, or can it be pruned? | Tree removal and felling; Tree pruning and crown reduction |
+| Should a stump be ground out or left to rot? | Tree stump removal |
+| A report someone else has asked you for | Tree surveys and reports |
+| More light, more room or a clearer line | Tree pruning and crown reduction; Hedge trimming; Hedge reduction and removal; Site and vegetation clearance |
+| A stump, a hedge or scrub where you want to use the ground | Tree stump removal; Hedge reduction and removal; Site and vegetation clearance |
+| Logs, chippings and what the work leaves behind | Firewood and logs; Wood chipping; Woodland management |
+| Roots under the paving, the drains or the house | Root barriers; Tree surveys and reports |
+| Climbing, platforms and lowering | Tree removal and felling |
+| Big old trees that come down in pieces | Tree removal and felling |
+
+## Idea homes
+
+- **only the immediate danger made safe on the day, the rest priced and done as planned work** (service): home is the 'Made safe today, the rest planned properly' card. Elsewhere: no cost card, step or FAQ explains the second visit; they name the making-safe work only.
+- **nobody climbs or works under hung up timber while the wind is still up** (service): home is the 'Will you come out while the storm is still going?' FAQ. Elsewhere: the 'How quickly can you get here?' FAQ gives arrival only.
+- **an overhead line is treated as live and waits for the network operator** (service): home is the 'What should I do before you arrive?' FAQ. Elsewhere: no cost card or other FAQ repeats the network operator wait.
+- **no standard duration: size, access, surroundings and clearing decide how long** (service): home is the 'How long does [SERVICE_LOWER] take?' FAQ. Elsewhere: the seasonal 'best time of year' FAQs cover the season only.
+- **only the immediate danger made safe on the day, the rest a separate planned job** (category): home is the 'We Clear the Danger and Plan the Rest' step. Elsewhere: no cost card or FAQ explains the second visit.
+- **nobody climbs or works under hung up timber while the wind is still up** (category): home is the 'Will you come out while the storm is still going?' FAQ. Elsewhere: the 'How quickly can you get to me?' FAQ gives arrival only.
+- **an overhead line is treated as live and waits for the network operator** (category): home is the 'Branches on or near a power line' card. Elsewhere: no cost card, FAQ or step repeats the network operator wait.
+- **keep people, cars and pets clear while waiting** (category): home is the 'What to do while you wait for us' card. Elsewhere: the 'Call Us' step and the 'What should I do before you arrive?' FAQ do not repeat the safety advice.
+- **protected trees and conservation areas needing the council first** (location): home is the 'Streets where the council has a say first' card. Elsewhere: the paperwork cost card and the quote FAQ do not restate the rule.
+- **orders and conservation areas checked and the council told** (homepage): home is the 'Will I need permission before work on my tree?' FAQ. Elsewhere: no step explains the permission rules.
+- **nesting birds and wildlife deciding when work can be done** (homepage): home is the 'What time of year is best for tree work?' FAQ. Elsewhere: the visit step and the 'How soon can you start?' FAQ do not mention nests.

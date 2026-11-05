@@ -252,7 +252,7 @@ The pack's section 2 inside type B: round pages are the rhythm and what a regula
 
 | Slot | When | Question | Answer brief | Doubt |
 |---|---|---|---|---|
-| cost | always | How much does [WORK_LOWER] cost in [CITY]? | Prices only from [CV: price_list]; otherwise how the price is reached, from [CV: quote_method] only, and that the figure is agreed before the first visit when that practice is confirmed. The four cost cards above already give what moves the price: name one factor at most, never the list again. | Price |
+| cost | always | How much does [WORK_LOWER] cost in [CITY]? | Prices only from [CV: price_list]; otherwise how the price is reached, from [CV: quote_method] only, and that the figure is agreed before the first visit when that practice is confirmed. The cost cards hold the list: never repeat it or point to it. | Price |
 | cover | guarantee | Do you guarantee your [WORK_LOWER]? | Start with yes, then the terms from [CV: guarantee_scope] (a return visit, what it covers, how soon the customer has to say). Described, never promised, and never as something that replaces the customer's rights. Never a promise the glass stays clean or a streak free guarantee in those words unless guarantee_scope says exactly that. | Trust |
 | cover | insurance | Are you insured? | The cover figure from [CV: insurance_cover] and what the cover is for. Never what it pays or who it covers, and never that a broken or cracked pane is covered unless the client values say so (the trade facts broken glass and insurance row). | Trust |
 | cover | always | What if something gets damaged during a visit? | Open with what the customer does: tell us and we look at it. Then the reasonable care and skill standard every trade works to. No promise to put it right free. Never invent a guarantee or insurance. | Trust |
@@ -320,7 +320,7 @@ Round pages read the cards as what shows between visits and what a regular patte
 | Slot | When | Question | Answer brief | Doubt |
 |---|---|---|---|---|
 | frequency | always | How often should [SERVICE_LOWER] be done? | What decides it, from the trade facts timing row, in plain words: what settles on the surface and how fast (traffic film by a road, sap and pollen under trees in spring, salt near the sea, bird fouling on a panel, leaf fall into a gutter) and the setting of the house. The facts pack found no standard gap for a window round, a manufacturer's guidance of a gutter clear at least once a year and more often under trees, and a site specific schedule for panels: give these as guidance, never as a rule or as this client's offer. A frequency as this client's offer only from [CV: visit_frequency_options]; otherwise say the pattern is agreed with you and nothing more. This is the one place the timing is written; a duration only where the row gives one (the rows say it varies). | Timing |
-| cost | always | How much does a [SERVICE_LOWER] visit cost in [CITY]? | Prices only from [CV: price_list]; otherwise how the price is reached, from [CV: quote_method] only, and that the figure is agreed before the first visit when that practice is confirmed. The four cost cards above already give what moves the price: name one factor at most, never the list again. | Price |
+| cost | always | How much does a [SERVICE_LOWER] visit cost in [CITY]? | Prices only from [CV: price_list]; otherwise how the price is reached, from [CV: quote_method] only, and that the figure is agreed before the first visit when that practice is confirmed. The cost cards hold the list: never repeat it or point to it. | Price |
 | cover | insurance | Are you insured for [SERVICE_LOWER]? | The cover figure from [CV: insurance_cover] and what the cover is for. Never what it pays or who it covers, and never that a broken or cracked pane is covered unless the client values say so (the trade facts broken glass and insurance row). | Trust |
 | cover | always | What if something gets damaged during a visit? | Open with what the customer does: tell us and we look at it. Then the reasonable care and skill standard every trade works to. No promise to put it right free. Never invent a guarantee or insurance. | Trust |
 | access | always | Do I need to be in for a [SERVICE_LOWER] visit? | From [CV: access_handling] and the confirmed practices only (customer_need_not_be_home): whether the customer needs to be in, the side gate, keys or a contact for a commercial site; visits outside opening hours only from [CV: out_of_hours_available]. When nothing is on file, say the arrangements for getting in are agreed before the first visit and nothing more. A note or a message when no one was home only from the confirmed ticks. Never a key policy, vetting or a DBS check stated as fact. | Process |
@@ -388,3 +388,23 @@ Briefs that wanted a fact the pack or the facts pack does not give point at "the
 ## do_not_reuse
 
 (empty to start; add any sentence that has gone live on a client site so it is never repeated)
+
+## Alternate Why title that promises a practice (why_title_practice)
+
+"Regular Visits, Not One Big Clean" stands only with maintenance_schedule confirmed; otherwise the point reads "Local Experience Behind Every Job".
+
+## Service tags
+
+An element is dropped, and the next eligible one used, when the client has confirmed none of these services. The paths are in the .json as `needs`.
+
+| Element | Needs |
+|---|---|
+| Will you need to walk on the conservatory roof or the solar panels? | Conservatory cleaning; Solar panel cleaning |
+| Green creeping over the roof, the frames and the sills | Conservatory cleaning; Fascia and soffit cleaning; Cladding cleaning; Driveway and patio cleaning |
+| A schedule that lapsed | Commercial window cleaning; Sign and canopy cleaning; Bin store cleaning |
+| Shopfronts that have to look right by nine | Commercial window cleaning |
+| Working round the town's hours and pavements | Commercial window cleaning |
+
+## Idea homes
+
+- **visits timed before opening or out of hours for shops and offices** (location): home is the 'Shopfronts that have to look right by nine' block 4 card. Elsewhere: the 'Working round the town's hours and pavements' cost card says only that a fixed time slot adds to the visit, and the 'How do regular visits work in [TOWN]?' FAQ does not explain why visits are timed round opening hours.

@@ -129,14 +129,16 @@
       "question": "How long is a dog walk, and what does it include?",
       "answer_brief": "From the trade facts Table A solo and group walk stages: the collection, the walk and toileting, on the lead or off it only where the owner has agreed and it is allowed, the waste collected, water on return, the home secured and a note on how they got on. The length varies with no standard (Table A timing): a duration only from [CV: typical_jobs] or [CV: price_list]; otherwise say it is agreed with you.",
       "symptom_based": false,
-      "doubt": "Process"
+      "doubt": "Process",
+      "needs": ["Dog Walker","Solo dog walks","Group dog walks"]
     },
     {
       "slot": "faq_B",
       "question": "Why does my dog bark or chew when left, and what helps?",
       "answer_brief": "Use the assigned symptom's meaning and its linked local issue (flats without gardens, long commutes). Three genuinely different causes in plain words, from the trade facts Table B signs rows: a day longer than the dog can manage alone, exercise and toileting missed, a puppy too young to hold on. Then what a midday walk or a visit changes (exercise, company, a toilet break), never that it cures the barking or chewing: the behaviour itself is a trainer's work and anything that looks like illness is for the vet.",
       "symptom_based": true,
-      "doubt": "Process"
+      "doubt": "Process",
+      "needs": ["Dog Walker","Solo dog walks","Group dog walks","Puppy visits"]
     },
     {
       "slot": "faq_C",
@@ -144,7 +146,8 @@
       "answer_brief": "Which dogs suit each, from the trade facts Table B group walk signs: a dog that lunges at other dogs, goes stiff or barks at them is usually happier walked alone; a sociable dog with reliable recall may suit a small matched group. A group size only from the client values; otherwise say some councils limit the number of dogs a single walker may take out while an insurer's policy may add its own cap (Table E dog walking group size) and name no number. Never a promise the dog will get used to other dogs.",
       "symptom_based": false,
       "is_fallback": true,
-      "doubt": "Fit"
+      "doubt": "Fit",
+      "needs": ["Dog Walker","Solo dog walks","Group dog walks"]
     },
     {
       "slot": "faq_D",
@@ -152,7 +155,8 @@
       "answer_brief": "From the trade facts Table E hot weather row: there is no safe temperature cut off; walks move to cooler times of day, the tarmac hand test decides, and older, overweight and flat faced dogs need particular care. What the business itself does only from confirmed practices (weather_delays_rebooked); otherwise what usually applies. No figure, no temperature.",
       "symptom_based": false,
       "is_fallback": true,
-      "doubt": "Timing"
+      "doubt": "Timing",
+      "needs": ["Dog Walker","Solo dog walks","Group dog walks","Secure field walks"]
     },
     {
       "slot": "faq_licence",
@@ -212,22 +216,26 @@
           {
             "title": "Dogs left alone through the working day",
             "brief": "Pacing, barking when left, scratching the door, toileting indoors: the trade facts Table B solo walk signs, in the owner's words. The one cause this card makes: a working day longer than the dog can manage without exercise, company or a toilet break. Say what a midday walk or visit gives the dog from the Table A stages (the walk and toileting, water on return, a note on how they got on), linking the solo or group walk page where LINKABLE PAGES has one. Never that it cures the barking or chewing: the behaviour itself is a trainer's work. Not which walk suits which dog: card 2 owns that.",
-            "mechanism": "a day longer than the dog can manage alone"
+            "mechanism": "a day longer than the dog can manage alone",
+            "needs": ["Dog Walker","Solo dog walks","Group dog walks","Puppy visits","Drop in visits","Dog day care"]
           },
           {
             "title": "Dogs that struggle around other dogs",
             "brief": "A dog that lunges at other dogs, goes stiff or barks at them, or comes home unsettled (Table B group walk signs). The one cause this card makes: a walk that does not fit the dog's temperament. Behaviour led: say which service suits which dog, from the services list only (a solo walk for the nervous or reactive dog, a small matched group for the sociable dog with good recall, a secure field for the dog whose recall fails when a rabbit runs), as the Table A group walk stages have it (each dog assessed, a compatible group planned). A group size only from the client values; otherwise none. Never a promise the dog will get used to other dogs.",
-            "mechanism": "a walk that does not fit the dog's temperament"
+            "mechanism": "a walk that does not fit the dog's temperament",
+            "needs": ["Dog Walker","Solo dog walks","Group dog walks","Secure field walks"]
           },
           {
             "title": "Puppies and older dogs who need something gentler",
             "brief": "A puppy that cannot hold on all day or cries when alone; an older dog stiff after a long walk (Table B puppy visit signs; Table E senior dog row: little and often). The one cause this card makes: a body that cannot manage a full working day or a full walk. Say what a short visit or a shorter walk does instead, from the Table A puppy visit stages (let out, fed on schedule, company), and that visits are kept to the home and garden until the vaccinations are complete, only as the Table A methods cell has it. Never the five minute rule (Table E says it is not a rule); no age and no minutes.",
-            "mechanism": "a body that cannot manage a full day or a full walk"
+            "mechanism": "a body that cannot manage a full day or a full walk",
+            "needs": ["Puppy visits","Dog Walker","Solo dog walks","Drop in visits"]
           },
           {
             "title": "Cats and small animals who do better at home",
             "brief": "Care led. A cat that hides or stops eating when moved; a rabbit that needs feeding, cleaning and a daily check (Table B cat sitting and small animal care signs; Table E welfare check row). The one cause this card makes: an animal tied to its own territory and routine, so a strange place puts it off its food. Say what a visit covers from the Table A cat sitting and small animal care stages: food put down, water changed, the tray or bedding cleaned, the animal looked over, a note on whether it ate, a rabbit's rear end checked in warm weather. A cat off its food needs the vet's opinion. Not boarding: the service pages own that.",
-            "mechanism": "an animal tied to its own territory and routine"
+            "mechanism": "an animal tied to its own territory and routine",
+            "needs": ["Cat sitting","Small animal care","Drop in visits"]
           }
         ]
       },
@@ -236,7 +244,8 @@
         "cards": [
           {
             "title": "Solo or in a group",
-            "brief": "A solo walk or visit is one animal's time; a small group shares the walker's time between dogs (Table F solo and group walk rows). Say it plainly, give no figure and no group size; a size only from the client values."
+            "brief": "A solo walk or visit is one animal's time; a small group shares the walker's time between dogs (Table F solo and group walk rows). Say it plainly, give no figure and no group size; a size only from the client values.",
+            "needs": ["Dog Walker","Solo dog walks","Group dog walks"]
           },
           {
             "title": "How long and how often",
@@ -270,7 +279,7 @@
         {
           "slot": "cost",
           "question": "How much does [WORK_LOWER] cost in [CITY]?",
-          "answer_brief": "Prices only from [CV: price_list]; otherwise how the price is reached, from [CV: quote_method] only, and that the price is agreed before the first walk or visit when the price_agreed_before_work practice is confirmed. The four cost cards above already give what moves the price: name one factor at most, never the list again.",
+          "answer_brief": "Prices only from [CV: price_list]; otherwise how the price is reached, from [CV: quote_method] only, and that the price is agreed before the first walk or visit when the price_agreed_before_work practice is confirmed. The cost cards hold the list: never repeat it or point to it.",
           "doubt": "Price"
         },
         {
@@ -413,7 +422,7 @@
         {
           "slot": "cost",
           "question": "How much does [SERVICE_LOWER] cost in [CITY]?",
-          "answer_brief": "Prices only from [CV: price_list]; otherwise how the price is reached, from [CV: quote_method] only, and that the price is agreed before the first booking when the price_agreed_before_work practice is confirmed. The four cost cards above already give what moves the price: name one factor at most, never the list again.",
+          "answer_brief": "Prices only from [CV: price_list]; otherwise how the price is reached, from [CV: quote_method] only, and that the price is agreed before the first booking when the price_agreed_before_work practice is confirmed. The cost cards hold the list: never repeat it or point to it.",
           "doubt": "Price"
         },
         {
@@ -471,22 +480,26 @@
           {
             "title": "Footpaths through farmland outside town",
             "brief": "Where the town profile gives farmland, grazing or lambing fields beyond the last streets. The one cause this card makes: livestock beside the footpaths, which puts dogs on the lead there (Table C open access and Table E lead rows: a lead around livestock, written as the general position; never a date range, a lead length or an Act's name). Say what that does to a walk: the route chosen, the lead kept on. Livestock is a reason, not a threat, and the town's pets and their people are never characterised.",
-            "mechanism": "livestock grazing beside the footpaths"
+            "mechanism": "livestock grazing beside the footpaths",
+            "needs": ["Dog Walker","Solo dog walks","Group dog walks"]
           },
           {
             "title": "Parks, commons and the river path",
             "brief": "Only the green spaces and waterside paths the dossier gives, by name. The one cause this card makes: where the town's daily walks happen decides how they are walked. What each place means for the work: a council order capping the dogs one walker may take, or requiring leads, a beach with seasonal restrictions, a path beside a busy road where the lead stays on (Table C public spaces order row: a local order may set leads, exclusion areas or a maximum number; no number unless the research gives it). Never a park, field or rule the research does not give.",
-            "mechanism": "where the town's daily walks happen"
+            "mechanism": "where the town's daily walks happen",
+            "needs": ["Dog Walker","Solo dog walks","Group dog walks"]
           },
           {
             "title": "Flats and long commutes",
             "brief": "The housing and the commuter pattern from the town profile: flats without gardens, estates where the household is out from early until late. The one cause this card makes: no garden to let the dog into and a day too long for it, so a midday walk or a puppy visit is the dog's one chance to get outside. Only the housing and the hours; never a claim about the town's owners or pets. Not a day longer than the dog can manage: the Dog Walker page owns that.",
-            "mechanism": "a home with no garden and a long day"
+            "mechanism": "a home with no garden and a long day",
+            "needs": ["Dog Walker","Solo dog walks","Group dog walks","Puppy visits","Drop in visits"]
           },
           {
             "title": "Heathland and the open country",
             "brief": "Where the town profile gives heath, open access land or a nature reserve. The one cause this card makes: birds nesting on the ground, so dogs usually stay on a short lead there through the nesting months (Table C open access row, written as the general position; no dates, no lead length, no Act's name). Say which walks move elsewhere or stay on the lead in those months. Not livestock: card 1 owns that.",
-            "mechanism": "birds nesting on the ground in the spring months"
+            "mechanism": "birds nesting on the ground in the spring months",
+            "needs": ["Dog Walker","Solo dog walks","Group dog walks"]
           }
         ]
       },
@@ -499,7 +512,8 @@
           },
           {
             "title": "Collecting for a field or a group walk",
-            "brief": "Where dogs in this town are collected and driven to a secure field or to a group walk: the transport, the restraints and the collection round, from the Table F group walk and secure field rows. Say why it adds time. No figure."
+            "brief": "Where dogs in this town are collected and driven to a secure field or to a group walk: the transport, the restraints and the collection round, from the Table F group walk and secure field rows. Say why it adds time. No figure.",
+            "needs": ["Secure field walks","Group dog walks"]
           },
           {
             "title": "Parking and getting to the door",
@@ -554,10 +568,22 @@
           "slot": "timing",
           "question": "Do you walk dogs in [TOWN] all year round?",
           "answer_brief": "Year round, as the Table A timing cells have it. Hot weather: walks move to cooler times of day and the tarmac hand test decides (Table E hot weather row). The town's own seasonal rules only from the research (a lead on the heath in nesting season, a beach's dog months), as what usually applies. No dates, no figure, no temperature.",
-          "doubt": "Timing"
+          "doubt": "Timing",
+          "needs": ["Dog Walker","Solo dog walks","Group dog walks","Secure field walks"]
         }
       ]
     }
   },
-  "do_not_reuse": []
+  "do_not_reuse": [],
+  "why_title_practice": {"Local Walks We Know Well":[]},
+  "idea_homes": [
+    {
+      "topic": "the town's seasonal lead and access rules on its walking ground (nesting heath, lambing fields, a beach's dog months)",
+      "home": "the 'Do you walk dogs in [TOWN] all year round?' FAQ",
+      "elsewhere": "the farmland, parks and heathland cards name the place and why dogs are kept on a lead or walked differently there, but give no season, nesting months, lambing time or beach months",
+      "pages": [
+        "location"
+      ]
+    }
+  ]
 }

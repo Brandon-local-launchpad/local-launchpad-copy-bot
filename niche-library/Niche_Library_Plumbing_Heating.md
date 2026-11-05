@@ -361,7 +361,7 @@ Replaces block 4, block 5 (the call out cost set), the steps and the FAQ slots; 
 
 | Slot | When | Question | Answer brief | Doubt |
 |---|---|---|---|---|
-| cost | always | How much does [SERVICE_LOWER] cost in [CITY]? | Prices only from [CV: price_list]; otherwise how the quote is given, from [CV: quote_method] only, and a call out fee only from [CV: quote_call_out_fee]. The four cost cards above already give what moves the price: name one factor at most, never the list again. | Price |
+| cost | always | How much does [SERVICE_LOWER] cost in [CITY]? | Prices only from [CV: price_list]; otherwise how the quote is given, from [CV: quote_method] only, and a call out fee only from [CV: quote_call_out_fee]. The cost cards hold the list: never repeat it or point to it. | Price |
 | timing | always | How long does [SERVICE_LOWER] take? | From the trade facts timing row only: the trade facts give no standard duration for this work, so give what decides it (a like for like swap against a change, access, whether the system needs cleaning first, a part to order) and no number; the spell without heating or hot water where the row gives one; a screed's drying time only as the underfloor heating row gives it. Nothing about when the job can start unless [CV: start_time] is set. This is the one place the timing is written. | Timing |
 | cover | guarantee | Do you guarantee your [SERVICE_LOWER] work? | Start with yes, then the terms from [CV: guarantee_years] and [CV: guarantee_scope]. A maker's guarantee is the maker's, with its conditions (the yearly service, the records, the registration) described from the trade facts guarantee rows, never promised. | Trust |
 | cover | insurance | Are you insured for [SERVICE_LOWER]? | The cover figure from [CV: insurance_cover] and what the cover is for. Never what it pays or who it covers. | Trust |
@@ -607,3 +607,42 @@ For Ray and the trade facts pack (Table G records most as not found; the briefs 
 12. The brown tinge from a lead pipe and the pressure drop on a hill are the pack's section 3 anchors, not facts rows; the location card uses them only where the research gives them.
 13. The pack's header still says verified: no; the service page gate refuses a run until it is verified on the Trade facts screen.
 14. schema_subtype: Plumber is set; a heating only client (Gas Engineer primary) might want HVACBusiness. One slot, Ray's call.
+
+## Service tags
+
+An element is dropped, and the next eligible one used, when the client has confirmed none of these services. The paths are in the .json as `needs`.
+
+| Element | Needs |
+|---|---|
+| How long does it take to fit a new boiler? | Boiler installation; Oil boilers |
+| Why are some of my radiators cold when the heating is on? | Radiators; Central heating repairs; Central heating servicing; Power flushing |
+| Should I repair my boiler or replace it? | Boiler repairs; Boiler installation; Oil boilers |
+| Does my boiler really need servicing every year? | Boiler servicing |
+| Who does the gas work? | Boiler installation; Boiler servicing; Boiler repairs; Gas safety certificates; Gas appliance installation |
+| Does a new boiler or heat pump need any permission or paperwork? | Boiler installation; Oil boilers; Air source heat pumps; Ground source heat pumps |
+| A boiler that's stopped in a cold spell | Boiler repairs; Oil boilers |
+| Waste water that comes back after you've cleared it | Blocked drains and sinks |
+| An old boiler you're deciding whether to keep | Boiler installation; Oil boilers |
+| A house, an extension or a room the heating never reached | Central heating installation; Radiators; Underfloor heating |
+| Thinking about a heat pump | Air source heat pumps; Ground source heat pumps |
+| A bathroom, shower, softener or garden tap you've been meaning to sort | Bathroom installation; Shower installation and repair; Water softeners; Outside taps and garden plumbing |
+| Radiators that never get properly hot | Radiators; Central heating repairs; Central heating servicing; Power flushing |
+| A boiler that keeps cutting out or needing topping up | Boiler repairs; Central heating repairs; Oil boilers |
+| A service or gas check that has slipped | Boiler servicing; Gas safety certificates; Central heating servicing |
+| No heating or hot water in the cold | Boiler repairs; Central heating repairs; Oil boilers |
+| The only toilet blocked, or a sink that won't go down | Blocked drains and sinks |
+| Off the gas grid, or in a flat | Oil boilers; Air source heat pumps; Ground source heat pumps; Boiler installation |
+| Where the boiler can go and where the flue comes out | Boiler installation; Gas appliance installation; Oil boilers |
+| Can you do heating work in [TOWN] through the winter? | Central heating installation; Central heating repairs; Boiler installation; Boiler repairs; Boiler servicing |
+
+## Idea homes
+
+- **what to do before the engineer arrives: the stopcock shut, wet electrics left alone, the fault code and gauge read, nothing inside the casing** (service): home is the 'What should I do before you arrive?' FAQ. Elsewhere: the block 4 cards, the 'Stopping the water and making it safe' cost card and the 'Call Us' step name the situation without restating the stopcock or fault code instructions.
+- **a smell of gas: the gas emergency line first, the fitting off, the windows open** (service): home is the block 4 card 'A smell of gas, or an alarm going off'. Elsewhere: the cost card, the 'Call Us' step and the before-you-arrive and is-this-an-emergency FAQs say only that gas goes to the emergency line, without repeating the steps.
+- **what to do before the engineer arrives: the stopcock shut, wet electrics left alone, the fault code and gauge read** (category): home is the 'What should I do before you arrive?' FAQ. Elsewhere: the emergency block 4 cards, the 'Stopping the water and making it safe' cost card and the 'Call Us' step do not restate the stopcock or fault code instructions.
+- **a smell of gas or a carbon monoxide alarm: the gas emergency line first, the fitting off, the windows open** (category): home is the block 4 card 'A smell of gas, or a carbon monoxide alarm sounding'. Elsewhere: the cost card, the 'Call Us' step and the FAQs say only that gas goes to the emergency line, without repeating the steps.
+- **the spell without heating or hot water while the work is done** (service): home is the 'How long does [SERVICE_LOWER] take?' FAQ. Elsewhere: the seasonal card, the seasonal FAQ and the fit steps do not describe the spell without heating again.
+- **frost freezing condensate and exposed pipes, with protection added when they are repaired** (service): home is the seasonal block 4 card 'What the first frost does to it'. Elsewhere: the winter FAQ and the boiler emergency card do not explain freezing pipes again.
+- **frost freezing condensate and exposed pipes, with protection added when they are repaired** (category): home is the seasonal block 4 card 'The first cold snap finds the weak spot'. Elsewhere: the 'good time of year' and 'done in winter' FAQs do not explain freezing pipes again.
+- **gas work done by an engineer on the Gas Safe Register** (service): home is the 'Does [SERVICE_LOWER] need anything signed off or notified?' FAQ. Elsewhere: the servicing and installation steps do not restate the register.
+- **the room by room heat loss survey** (service): home is step 2, 'We Look at the ... and Price the Job'. Elsewhere: the desire cards say what decides the job without describing the survey.

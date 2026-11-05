@@ -224,7 +224,7 @@ Draft, 3 Nov 2026, for Brandon's read against the calibration pack. Used by the 
 
 | Slot | When | Question | Answer brief | Doubt |
 |---|---|---|---|---|
-| cost | always | How much does [WORK_LOWER] cost in [CITY]? | Prices only from [CV: price_list]; otherwise how the price is reached, from [CV: quote_method] only, and that the price is agreed before the first walk or visit when the price_agreed_before_work practice is confirmed. The four cost cards above already give what moves the price: name one factor at most, never the list again. | Price |
+| cost | always | How much does [WORK_LOWER] cost in [CITY]? | Prices only from [CV: price_list]; otherwise how the price is reached, from [CV: quote_method] only, and that the price is agreed before the first walk or visit when the price_agreed_before_work practice is confirmed. The cost cards hold the list: never repeat it or point to it. | Price |
 | cover | insurance | Are you insured to look after my pet? | The cover figure from [CV: insurance_cover] and what the cover is for. Cover for the animal in the business's care is separate from public liability (Table E): say which only as the client values say. Never what it pays or who it covers. | Trust |
 | cover | always | What happens if my pet is hurt or unwell while in your care? | Open with what happens: the vet is called, using the vet and emergency details given before the first visit (Table A first stages), and the owner is told. Then the reasonable care and skill standard every trade works to. No promise to pay vet bills, no guarantee, never invent insurance. | Trust |
 | scope | always | What does your [WORK_LOWER] service include? | The services on the card list, said as what a walk, visit or stay covers, and which animals each suits, honestly (a nervous dog, a cat, a rabbit). Link one service page. What is not offered only from the services list (training and grooming are other trades). | Fit |
@@ -286,7 +286,7 @@ Draft, 3 Nov 2026, for Brandon's read against the calibration pack. Used by the 
 
 | Slot | When | Question | Answer brief | Doubt |
 |---|---|---|---|---|
-| cost | always | How much does [SERVICE_LOWER] cost in [CITY]? | Prices only from [CV: price_list]; otherwise how the price is reached, from [CV: quote_method] only, and that the price is agreed before the first booking when the price_agreed_before_work practice is confirmed. The four cost cards above already give what moves the price: name one factor at most, never the list again. | Price |
+| cost | always | How much does [SERVICE_LOWER] cost in [CITY]? | Prices only from [CV: price_list]; otherwise how the price is reached, from [CV: quote_method] only, and that the price is agreed before the first booking when the price_agreed_before_work practice is confirmed. The cost cards hold the list: never repeat it or point to it. | Price |
 | timing | always | How long, and how often, can I book [SERVICE_LOWER]? | From the trade facts timing row for this service only: the row says the length varies with no standard, so say the length and the pattern are agreed with you; a duration only from [CV: typical_jobs], a frequency only from [CV: visit_frequency_options]. Then the season the row gives (year round; in hot weather walks move to cooler times of day; on the day care page no overnight stay, from Table A). Nothing about when a booking can start unless [CV: start_time] is set. This is the one place the timing is written. | Timing |
 | cover | insurance | Are you insured for [SERVICE_LOWER]? | The cover figure from [CV: insurance_cover] and what the cover is for. Cover for the animal in the business's care is separate from public liability (Table E): say which only as the client values say. Never what it pays or who it covers. | Trust |
 | cover | always | What happens if my pet is unwell during [SERVICE_LOWER]? | Open with what happens: the vet is called, using the vet and emergency details given before the first booking (Table A first stages), and the owner is told. Then the reasonable care and skill standard every trade works to. No promise to pay vet bills, no guarantee, never invent insurance. Medication never beyond the vet's instructions (Table E medication row). | Trust |
@@ -352,3 +352,33 @@ Draft, 3 Nov 2026, for Brandon's read before the first live run. Used by the loc
 7. Insurance: Table E says cover for the animal in care is separate from public liability. Client: which they hold, so FAQ 2 says the right one.
 8. The cover chain: code reads guarantee, manufacturer_warranty and insurance only; the spec's type C chain (qualification plus method, pet first aid) has no code path. The entry sets ["insurance"]. For Brandon.
 9. Rating sites: Table D says Checkatrade is not a pet care register, so ratings are Google and Trustpilot. Ray: any other rating site for this trade?
+
+## Alternate Why title that promises a practice (why_title_practice)
+
+"Local Walks We Know Well" stands only with a practice no tick confirms, so never by default; otherwise the point reads "Local Experience Behind Every Job".
+
+## Service tags
+
+An element is dropped, and the next eligible one used, when the client has confirmed none of these services. The paths are in the .json as `needs`.
+
+| Element | Needs |
+|---|---|
+| How long is a dog walk, and what does it include? | Dog Walker; Solo dog walks; Group dog walks |
+| Why does my dog bark or chew when left, and what helps? | Dog Walker; Solo dog walks; Group dog walks; Puppy visits |
+| Should my dog walk alone or in a group? | Dog Walker; Solo dog walks; Group dog walks |
+| Do you walk dogs in hot weather? | Dog Walker; Solo dog walks; Group dog walks; Secure field walks |
+| Dogs left alone through the working day | Dog Walker; Solo dog walks; Group dog walks; Puppy visits; Drop in visits; Dog day care |
+| Dogs that struggle around other dogs | Dog Walker; Solo dog walks; Group dog walks; Secure field walks |
+| Puppies and older dogs who need something gentler | Puppy visits; Dog Walker; Solo dog walks; Drop in visits |
+| Cats and small animals who do better at home | Cat sitting; Small animal care; Drop in visits |
+| Solo or in a group | Dog Walker; Solo dog walks; Group dog walks |
+| Footpaths through farmland outside town | Dog Walker; Solo dog walks; Group dog walks |
+| Parks, commons and the river path | Dog Walker; Solo dog walks; Group dog walks |
+| Flats and long commutes | Dog Walker; Solo dog walks; Group dog walks; Puppy visits; Drop in visits |
+| Heathland and the open country | Dog Walker; Solo dog walks; Group dog walks |
+| Collecting for a field or a group walk | Secure field walks; Group dog walks |
+| Do you walk dogs in [TOWN] all year round? | Dog Walker; Solo dog walks; Group dog walks; Secure field walks |
+
+## Idea homes
+
+- **the town's seasonal lead and access rules on its walking ground (nesting heath, lambing fields, a beach's dog months)** (location): home is the 'Do you walk dogs in [TOWN] all year round?' FAQ. Elsewhere: the farmland, parks and heathland cards name the place and why dogs are kept on a lead or walked differently there, but give no season, nesting months, lambing time or beach months.

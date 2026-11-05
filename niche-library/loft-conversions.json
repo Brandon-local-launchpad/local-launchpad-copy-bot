@@ -137,14 +137,16 @@
       "question": "Is my loft tall enough to convert?",
       "answer_brief": "It is measured, never assumed: the pack's section 3 bans claiming the lofts in an area are tall enough, and the trade facts give a feasibility guide rather than a legal minimum, so no figure. What decides it, in plain words: how much height there is beneath the ridge, the way the roof is built (a cut roof with purlins leaves the loft open; trusses cross it and are swapped for new floor joists and beams before anything else), and where there is room for a stair to come up. Where the height is short the usual answers each change the roof's shape (a dormer adds a box with a flat ceiling at the back, a hip to gable builds the sloping side up into a wall, a mansard rebuilds the back slope almost upright), and changing the shape can change the planning position (the rules FAQ owns that). Never that a loft will or will not convert before it has been seen.",
       "symptom_based": false,
-      "doubt": "Fit"
+      "doubt": "Fit",
+      "needs": ["Loft conversions","Dormer loft conversions","Hip to gable loft conversions","Mansard loft conversions","Velux loft conversions"]
     },
     {
       "slot": "faq_B",
       "question": "Why does my loft floor bounce when I walk on it?",
       "answer_brief": "Use the assigned symptom's meaning and its linked local issue. Say first what is normal: ceiling joists were sized to hold a ceiling and a little stored weight, so they give underfoot, and boxes stacked on them squash the insulation and do nothing worse than that. Then what is not: joists that flex with every step, a ceiling below that has cracked along a line, boards fixed straight to the joists and a bedroom made of the space. Three genuinely different causes in plain words: the joists carrying a load they were never sized for; boards or a partition sitting on them without new support; a roof whose timbers have been cut or moved. Then what the local housing adds (the era of the roofs from the town profile, never the inside of anyone's home), then what putting it right involves from the trade facts: new floor joists or beams designed for a room, spanning to the walls, with building control looking at the design; boarding on raised legs for storage only. Never a verdict that a ceiling is unsafe; never boarding sold as a room.",
       "symptom_based": true,
-      "doubt": "Process"
+      "doubt": "Process",
+      "needs": ["Loft boarding and insulation","Loft conversions","Dormer loft conversions","Hip to gable loft conversions","Mansard loft conversions","Velux loft conversions"]
     },
     {
       "slot": "faq_C",
@@ -240,17 +242,20 @@
           {
             "title": "Headroom, trusses and the hip",
             "brief": "A constraint card, the pack's second kind: what the reader can see from the loft hatch and what it means for the job. Standing room under the ridge: the height is measured on the visit and never assumed from the street (the pack's section 3; the trade facts give a feasibility guide, not a legal minimum, so no figure). The timbers: a cut roof leaves the loft open; a roof made of factory trusses has diagonal timbers crossing it, each one holding the roof up; such a roof is not a dead end, because new floor joists and beams designed for the room take over the job before the trusses come out, which is why the timbers are looked at before a line is drawn. The shape: a hipped roof comes down at the side as well as at the front and the back, so the loft is narrow, and a hip to gable builds that side up into a straight wall, usually with a dormer behind. Say what each means for the design, never a verdict that the loft will or will not convert. By category: Building Firm and Carpenter read it as the roof; Home Builder, Construction Company and General Contractor read it as the plot instead (the width of the side return, the depth of the garden, the drains and the trees beside where the extension will stand, from the trade facts price rows); Contractor as the garage floor below the house floor and the cellar's height. No height, depth or volume figure anywhere.",
-            "mechanism": "whether there is a room in the roof at all: its height, its timbers and its shape"
+            "mechanism": "whether there is a room in the roof at all: its height, its timbers and its shape",
+            "needs": ["Loft conversions","Dormer loft conversions","Hip to gable loft conversions","Mansard loft conversions","Velux loft conversions"]
           },
           {
             "title": "Where the stair lands",
             "brief": "A constraint card: the stair decides the layout more than the dormer does (the pack's craft rule 2). The new flight usually rises over the existing stair so it takes the least from the floor below; where it cannot, it takes a slice of a bedroom or a bathroom, and the reader should know that before the drawings. The stair also brings the building regulations point customers learn about last: a loft that makes a third floor needs a protected way down to the front door, with fire doors on the rooms off the stair (upgraded where they need to be) and linked alarms, from the trade facts rule rows; said in plain words, never a rating, a pitch or a height. By category: Building Firm and Carpenter read it as the stair and the fire route; Home Builder, Construction Company and General Contractor read it as the opening into the house instead (the steel beam over the knock through on its padstones, the new part built and roofed before the back wall comes down); Contractor as the stair down into a cellar and the way out of it. Never an Act's or a document's name; never a figure.",
-            "mechanism": "the stair taking its room from the floor below"
+            "mechanism": "the stair taking its room from the floor below",
+            "needs": ["Loft conversions","Dormer loft conversions","Hip to gable loft conversions","Mansard loft conversions","Velux loft conversions"]
           },
           {
             "title": "A relative with a door of their own",
             "brief": "A situation card: a relative moving in who wants some independence, a grown child back home, a home office that needs a door to shut. What decides it: the space already there or apart from the house (a garage with sound walls and a slab below the house floor, a cellar that lets water in, the end of the garden) and how the new space will be lived in, from the trade facts rule rows: planning usually looks differently at an annex the household itself uses than at one someone lives in on their own, which usually needs permission; a garden building nobody sleeps in usually needs no application, and using it as a bedroom or a self contained home changes that; a garage converted inside its own walls and an existing cellar fitted out usually need no application, while digging a new basement usually does. Building control applies wherever someone will live: a damp proof membrane and insulation under a garage floor, a designed waterproofing system with a drain or a pump in a cellar, the services and the drains of an annex. What the work gives them: a room with its own door, dry, warm and signed off. By category: Home Builder, General Contractor and Carpenter read it as the annex and the garden room; Building Firm and Contractor as the garage and the cellar; Construction Company as the annex built new. Never a figure, never an Act's or a class's name, never a council tax or a VAT claim.",
-            "mechanism": "how the new space will be lived in"
+            "mechanism": "how the new space will be lived in",
+            "needs": ["Annexes and granny flats","Garage conversions","Garden rooms and outbuildings","Basement conversions"]
           }
         ]
       },
@@ -415,7 +420,7 @@
         {
           "slot": "cost",
           "question": "How much does [SERVICE_LOWER] cost in [CITY]?",
-          "answer_brief": "Prices only from [CV: price_list]; otherwise how the quote is given, from [CV: quote_method] only. The four cost cards above already give what moves the price: name one factor at most, never the list again. Never a fixed price or a promise the price cannot change.",
+          "answer_brief": "Prices only from [CV: price_list]; otherwise how the quote is given, from [CV: quote_method] only. The cost cards hold the list: never repeat it or point to it. Never a fixed price or a promise the price cannot change.",
           "doubt": "Price"
         },
         {
@@ -474,7 +479,8 @@
             {
               "title": "Dormer, hip to gable, mansard or roof lights",
               "brief": "The customer's situation: they are weighing two or three ways of doing it (roof lights against a dormer, a dormer against a hip to gable, a mansard against moving house, a loft against an extension, a single floor against two, a side return against a full width extension, a conservatory against an orangery, a garage conversion against a garden room, an annex against an extension). What decides it: the form of the roof or the plot choosing between the options, from the trade facts materials and methods cell for this service (enough height along the middle suits roof lights; a gable end or a terrace suits a dormer; a hipped roof suits a hip to gable, usually with a dormer behind; a mansard gives the most room and rebuilds the roof most; a deep garden takes depth, a side return takes width), which approval each needs from the rule rows, and how much upheaval the household can take. What the work gives them: the option that suits their house, never the one that is best in general. A named product only from [CV: materials_methods]. No claim about cost, value or lifespan unless the rows or the client values give it; never a verdict that the loft will convert before it is measured.",
-              "mechanism": "the form of the roof or the plot choosing between the options"
+              "mechanism": "the form of the roof or the plot choosing between the options",
+              "needs": ["Loft conversions","Dormer loft conversions","Hip to gable loft conversions","Mansard loft conversions","Velux loft conversions"]
             },
             {
               "title": "The parts you will never see again",
@@ -500,12 +506,14 @@
           {
             "title": "Roofs built the way their decade built them",
             "brief": "The town profile's housing, read for what the roof allows and never for a judgement on the houses or anything inside them: semis from between the wars with hipped roofs, older terraces with a back addition and a valley between, estates from the later decades with roofs made of factory trusses, bungalows where the roof is most of what there is to work with. The one cause this card makes: the era of the town's roofs setting which loft conversion fits. Tie each to the work (the pack's section 3: every anchor changes the work): a hipped roof points to a hip to gable with a dormer behind; a terrace with a back addition points to a dormer that turns the corner of it; a trussed roof is converted once the trusses are swapped for new joists and beams; a bungalow's roof is read the same way as any other: its height, its timbers and its shape. Never that the lofts here are tall enough: the height is measured house by house (the pack's section 3). Never a year or a figure, never the inside of anyone's home.",
-            "mechanism": "the era of the town's roofs setting which loft conversion fits"
+            "mechanism": "the era of the town's roofs setting which loft conversion fits",
+            "needs": ["Loft conversions","Dormer loft conversions","Hip to gable loft conversions","Mansard loft conversions","Velux loft conversions"]
           },
           {
             "title": "Side returns, deep gardens and built in garages",
             "brief": "The shape of the town's plots, from the town profile: the narrow strip beside a terrace's back addition, the deep gardens on the roads between the wars, estates after the war where the garage is built into the house, new estates with little garden at all. The one cause this card makes: the plot shape setting which extension or conversion fits. Tie each to the work: the strip beside the kitchen is where a side return goes, and the wall the neighbour shares usually comes into it; a deep garden takes a single floor behind the house, which usually needs no application; a garage built into the house suits conversion inside its own walls and brings the fire separation and the floor insulation with it; a tight plot points up into the roof. Never the inside of anyone's home, never a figure, never a planning verdict before the house has been seen.",
-            "mechanism": "the plot shape setting which extension fits"
+            "mechanism": "the plot shape setting which extension fits",
+            "needs": ["House extensions","Single storey extensions","Double storey extensions","Side return extensions","Wraparound extensions","Garage conversions"]
           },
           {
             "title": "Streets where the council has a say",
@@ -528,7 +536,8 @@
           },
           {
             "title": "Clay and trees under the foundations",
-            "brief": "Where the town profile gives clay, soft ground, mature trees or a high water table: an extension's foundations go deeper and may need an engineer's design, mean more spoil to take away, and are looked at by building control before the concrete goes in; a cellar meets the water in the ground. Say it plainly from the profile; no depth, no figure. A loft is the extension that needs no foundations, said only where the profile makes the ground a problem."
+            "brief": "Where the town profile gives clay, soft ground, mature trees or a high water table: an extension's foundations go deeper and may need an engineer's design, mean more spoil to take away, and are looked at by building control before the concrete goes in; a cellar meets the water in the ground. Say it plainly from the profile; no depth, no figure. A loft is the extension that needs no foundations, said only where the profile makes the ground a problem.",
+            "needs": ["House extensions","Single storey extensions","Double storey extensions","Side return extensions","Wraparound extensions","Conservatories and orangeries","Annexes and granny flats","Basement conversions"]
           },
           {
             "title": "Conservation areas and listed homes",
@@ -634,5 +643,47 @@
       ]
     }
   },
-  "do_not_reuse": []
+  "do_not_reuse": [],
+  "idea_homes": [
+    {
+      "topic": "the stair and where it lands",
+      "home": "the 'Where the stair lands' block 4 card",
+      "elsewhere": "the cost card names the stair only as a cost line; the quote FAQ lists it only as one thing looked at, without explaining it",
+      "pages": [
+        "category"
+      ]
+    },
+    {
+      "topic": "loft headroom measured on the visit, never assumed",
+      "home": "the 'Headroom, trusses and the hip' block 4 card",
+      "elsewhere": "the 'bedroom short' card and the quote FAQ do not discuss height or say it is measured",
+      "pages": [
+        "category"
+      ]
+    },
+    {
+      "topic": "scaffold licence and skip permit on a terraced street",
+      "home": "the 'Scaffold and a skip on a terraced street' block 5 card",
+      "elsewhere": "the cost FAQ and the quote FAQ do not explain licences, permits or street access",
+      "pages": [
+        "location"
+      ]
+    },
+    {
+      "topic": "the council's say on the street (conservation areas, listed homes, removed allowances)",
+      "home": "the 'Streets where the council has a say' block 4 card",
+      "elsewhere": "the conservation cost card covers only the added time and matching materials; the quote FAQ only names the planning position as something checked",
+      "pages": [
+        "location"
+      ]
+    },
+    {
+      "topic": "clay, trees and ground under the foundations",
+      "home": "the 'Clay and trees under the foundations' block 5 card",
+      "elsewhere": "the cost FAQ and the timing FAQ do not explain the ground or the inspection before concrete",
+      "pages": [
+        "location"
+      ]
+    }
+  ]
 }

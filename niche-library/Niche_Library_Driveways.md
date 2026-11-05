@@ -297,7 +297,7 @@ Three framings share this one entry, per the pack's section 2: a problem led pag
 
 | Slot | When | Question | Answer brief | Doubt |
 |---|---|---|---|---|
-| cost | always | How much does [SERVICE_LOWER] cost in [CITY]? | Prices only from [CV: price_list]; otherwise how the quote is given, from [CV: quote_method] only. The four cost cards above already give what moves the price: name one factor at most, never the list again. | Price |
+| cost | always | How much does [SERVICE_LOWER] cost in [CITY]? | Prices only from [CV: price_list]; otherwise how the quote is given, from [CV: quote_method] only. The cost cards hold the list: never repeat it or point to it. | Price |
 | timing | always | How long does [SERVICE_LOWER] take? | From the trade facts timing row only: the facts give no duration for these jobs, so what decides it (the size, what comes out, the base the ground needs, the weather on the day) and the time the surface needs before a car or feet go on it, which depends on the material and the weather and is given only as the facts' cell gives it, never as this business's figure. Nothing about when the job can start unless [CV: start_time] is set. This is the one place the timing is written. | Timing |
 | cover | guarantee | Do you guarantee your [SERVICE_LOWER] work? | Start with yes, then the terms from [CV: guarantee_years] and [CV: guarantee_scope]. Described, never promised. A manufacturer scheme's guarantee is the scheme's, under its terms. | Trust |
 | cover | insurance | Are you insured for [SERVICE_LOWER]? | The cover figure from [CV: insurance_cover] and what the cover is for. Never what it pays or who it covers. | Trust |
@@ -412,3 +412,17 @@ H2: What Affects the Cost of [SERVICE] in [CITY]
 - **Comparative lifespans and prices** of tarmac, blocks and resin: none verified (Table G). The desire card on choosing a surface makes no such claim; a client who wants one must give a source.
 - **The Resin Bound Association** has no verified membership page (Table D); it is not in the logo tiers.
 - **Garden levelling and retaining walls** are aliased into this library from the landscaper's; their briefs are the problem led type A set here, with no card of their own. Ask Ray whether a driveways client who lists them should read the landscaper entry's pages instead.
+
+## Service tags
+
+An element is dropped, and the next eligible one used, when the client has confirmed none of these services. The paths are in the .json as `needs`.
+
+| Element | Needs |
+|---|---|
+| A back garden you cross on wet grass | Patios; Garden paths; Garden steps |
+| Kerbs the council has to agree to | Dropped kerbs |
+
+## Idea homes
+
+- **the council has to agree before the kerb is lowered for a drive** (category): home is the 'Nowhere to park off the street' block 4 card. Elsewhere: the 'The surface and the edges' cost card names the dropped kerb only as a council charge, with no consent explanation; the 'What happens when I ask for a quote?' FAQ says only that any rule is settled before the design; the 'What does your work include?' FAQ says only whether the business builds the crossing.
+- **a planning application needed for a classified road or a conservation area front garden** (location): home is the 'Conservation areas and classified roads' cost card. Elsewhere: the 'Kerbs the council has to agree to' card covers only the council's agreement to lower the kerb, with no planning application; the 'What happens when I ask for a quote in [TOWN]?' FAQ says only that a rule is settled before the design, without naming the roads or controls again.

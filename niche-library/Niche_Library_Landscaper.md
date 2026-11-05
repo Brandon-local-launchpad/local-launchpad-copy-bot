@@ -312,7 +312,7 @@ The pack's section 2: a Gardener page's block 4 is what slips when visits stop a
 
 | Slot | When | Question | Answer brief | Doubt |
 |---|---|---|---|---|
-| cost | always | How much does [WORK_LOWER] cost in [CITY]? | Prices only from [CV: price_list]; otherwise how the price is reached, from [CV: quote_method] only, and that the figure is agreed before the first visit when that practice is confirmed. The four cost cards above already give what moves the price: name one factor at most, never the list again. | Price |
+| cost | always | How much does [WORK_LOWER] cost in [CITY]? | Prices only from [CV: price_list]; otherwise how the price is reached, from [CV: quote_method] only, and that the figure is agreed before the first visit when that practice is confirmed. The cost cards hold the list: never repeat it or point to it. | Price |
 | cover | insurance | Are you insured? | The cover figure from [CV: insurance_cover] and what the cover is for. Never what it pays or who it covers. | Trust |
 | cover | always | What if something gets damaged during a visit? | Open with what the customer does: tell us and we look at it. Then the reasonable care and skill standard every trade works to. No promise to put it right free. Never invent a guarantee or insurance. | Trust |
 | scope | always | What does a [WORK_LOWER] visit include? | The jobs named from the card list (never 'on this page' or 'listed above': name the work), said as a visit: the lawn, the edges, the beds, the hedges. Link one service page. What is not included only from the services list. | Fit |
@@ -369,7 +369,7 @@ Three framings share this one entry, per the pack's section 2: a problem led pag
 
 | Slot | When | Question | Answer brief | Doubt |
 |---|---|---|---|---|
-| cost | always | How much does [SERVICE_LOWER] cost in [CITY]? | Prices only from [CV: price_list]; otherwise how the quote is given, from [CV: quote_method] only. The four cost cards above already give what moves the price: name one factor at most, never the list again. | Price |
+| cost | always | How much does [SERVICE_LOWER] cost in [CITY]? | Prices only from [CV: price_list]; otherwise how the quote is given, from [CV: quote_method] only. The cost cards hold the list: never repeat it or point to it. | Price |
 | timing | always | How long does [SERVICE_LOWER] take? | From the trade facts timing row only: the duration where the row gives one, else what decides it (the size, the ground, the access). Nothing about when the job can start unless [CV: start_time] is set. This is the one place the timing is written. | Timing |
 | cover | guarantee | Do you guarantee your [SERVICE_LOWER] work? | Start with yes, then the terms from [CV: guarantee_years] and [CV: guarantee_scope]. Described, never promised. | Trust |
 | cover | insurance | Are you insured for [SERVICE_LOWER]? | The cover figure from [CV: insurance_cover] and what the cover is for. Never what it pays or who it covers. | Trust |
@@ -437,7 +437,7 @@ Three framings share this one entry, per the pack's section 2: a problem led pag
 | Slot | When | Question | Answer brief | Doubt |
 |---|---|---|---|---|
 | frequency | always | How often should [SERVICE_LOWER] be done? | What decides it, from the trade facts timing row (the growing season, the weather, the species) in plain words, and the season the work runs. A frequency only from [CV: visit_frequency_options]; otherwise say the pattern is agreed with you and nothing more. This is the one place the timing is written. | Timing |
-| cost | always | How much does a [SERVICE_LOWER] visit cost in [CITY]? | Prices only from [CV: price_list]; otherwise how the price is reached, from [CV: quote_method] only, and that the figure is agreed before the first visit when that practice is confirmed. The four cost cards above already give what moves the price: name one factor at most, never the list again. | Price |
+| cost | always | How much does a [SERVICE_LOWER] visit cost in [CITY]? | Prices only from [CV: price_list]; otherwise how the price is reached, from [CV: quote_method] only, and that the figure is agreed before the first visit when that practice is confirmed. The cost cards hold the list: never repeat it or point to it. | Price |
 | cover | insurance | Are you insured for [SERVICE_LOWER]? | The cover figure from [CV: insurance_cover] and what the cover is for. Never what it pays or who it covers. | Trust |
 | cover | always | What if something gets damaged during a visit? | Open with what the customer does: tell us and we look at it. Then the reasonable care and skill standard every trade works to. No promise to put it right free. Never invent a guarantee or insurance. | Trust |
 | access | always | Do I need to be home for a [SERVICE_LOWER] visit? | From [CV: access_handling] and the confirmed practices only: whether the customer needs to be in, side gates, keys. When nothing is on file, say the arrangements for getting in are agreed before the first visit and nothing more. | Process |
@@ -744,3 +744,40 @@ H2: What Affects the Cost of [SERVICE] in [CITY]
 ## do_not_reuse
 
 (empty to start; add any sentence that has gone live on a client site so it is never repeated)
+
+## Service tags
+
+An element is dropped, and the next eligible one used, when the client has confirmed none of these services. The paths are in the .json as `needs`.
+
+| Element | Needs |
+|---|---|
+| Why does water sit on my patio or lawn after rain? | Garden drainage; Patios; Garden levelling; Paving Contractor |
+| Is it better to lay turf or sow grass seed? | Turf laying; Lawn seeding |
+| Will my patio or driveway need planning permission? | Patios; Paving Contractor; Block paving; Tarmac surfacing; Driveway repairs; Decking installation; Composite decking |
+| A garden with nowhere to sit out | Patios; Decking installation; Composite decking; Block paving |
+| A lawn full of moss and bare patches | Lawn treatments; Lawn care; Lawn seeding |
+| Hedges that have got away | Hedge trimming; Garden maintenance; Gardener |
+| Weeds that come straight back | Weed control; Garden maintenance; Gardener |
+| Borders that dry out or get swamped | Mulching; Garden maintenance; Gardener |
+| When should the first cut of the year happen? | Lawn mowing; Lawn care; Garden maintenance; Gardener |
+| Boundaries as old as the houses | Fencing; Garden walls and stonework |
+| Trees that have outgrown the garden | Tree pruning and crown reduction; Tree removal and felling |
+| Front gardens turned over to parking | Block paving; Paving Contractor; Tarmac surfacing; Garden drainage |
+| Lawns that struggle on this ground | Lawn care; Lawn mowing; Lawn treatments; Garden maintenance; Gardener |
+| Hedges as old as the houses | Hedge trimming; Garden maintenance; Gardener |
+| Getting the mower round the back | Lawn mowing; Lawn care; Garden maintenance; Gardener |
+| Banks and sloping lawns | Lawn mowing; Lawn care; Garden maintenance; Gardener |
+| Big hedges and old trees | Hedge trimming; Garden maintenance; Gardener |
+| Seed or turf, and the preparation each needs | Turf laying |
+| The timber, the brash and the stump | Tree stump removal |
+
+## Idea homes
+
+- **the season the job suits and the reason in the soil or the plant** (service): home is the 'When is the best time of year for [SERVICE_LOWER], and how long does it take?' FAQ. Elsewhere: Timing cards name the customer's situation and point to the window in one clause, with no soil or plant reason. The 'How long does it take' FAQ gives duration only..
+- **staking, ties and watering a young tree through its first seasons** (service): home is the 'The stake, the tie and the first summers' card. Elsewhere: The stake/guard/mulch and watering cost cards say only that these move the price, not why the tree needs them..
+- **the size of root ball a tree must come up with** (service): home is the 'Planted in the wrong place' card. Elsewhere: The root ball cost card gives size as a price factor only. The 'Moved before and struggling' card covers keeping the ball whole and moist, not its size..
+- **shoots coming back from a stump and its roots** (service): home is the 'Shoots that keep coming back' card. Elsewhere: The first-signs and shallow-grind cards name the shoots as a sign only, with no explanation of suckering roots..
+- **grinding depth set by what the ground is wanted for next** (service): home is the 'Ground you want to use for something else' card. Elsewhere: The depth cost card says only that depth moves the price. The shallow-grind card gives wrong depth as its cause and does not explain choosing a depth..
+- **whether a support is enough or a reduction or removal is the honest answer** (service): home is the 'Support, or something more' card. Elsewhere: The assessment cost card says only that the tree is looked at before pricing. The 'Fitted once' card stays on missed checks..
+- **growth surging in spring as the soil warms** (service): home is the 'What the season is about to throw at it' card. Elsewhere: Problem cards name their signs and their own cause without the soil-warming explanation. The start-of-year FAQ says only when the first visit goes in..
+- **how often the regular round visits** (category): home is the 'How do regular visits work?' FAQ. Elsewhere: The frequency cost card says only that a regular round makes each visit shorter. The start step says only that a round follows the first visit..

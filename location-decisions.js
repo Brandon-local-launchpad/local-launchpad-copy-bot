@@ -24,7 +24,7 @@
 // primary category); a row with no H1 gets "[primary category] [town]" and a flag. The keyword
 // word for the hero and content sentence is read off the H1, else it is the primary category.
 
-const { ph, cap, titleCase, isLinkable, stepsFor, yearsTradingOf, titleModifierFor, seoTitleFor, trustLineFor, ratingLineFor, buttonsFor } = require('./decisions');
+const { ph, cap, titleCase, isLinkable, stepsFor, yearsTradingOf, titleModifierFor, seoTitleFor, trustLineFor, ratingLineFor, buttonsFor, articleBefore } = require('./decisions');
 const { keywordWord, isPersonWord, phCat, metaFor } = require('./category-decisions');
 const IH = require('./idea-homes');
 const LB = require('./location-blocks');
@@ -84,7 +84,7 @@ function computeLocationDecisions({ cv, niche, keyValueMap = {}, rows = [], page
     ...applies.filter(r => r.type === 'town_service' && live(r) && sameTown(r) && flaggedServices.some(s => lc(s.title) === lc(r.info && r.info.service_name))).map(r => r.info.service_name),
     ...applies.filter(r => r.type === 'location_category' && live(r) && sameTown(r)).flatMap(r => flaggedServices.filter(s => ((s.info.parent_keys) || []).includes(r.info.category_key)).map(s => s.title)),
   ])];
-  try { blocks = LB.blocksFor({ niche, cv, emergencyPage: emergencyNames.length > 0 }); }
+  try { blocks = LB.blocksFor({ niche, cv, emergencyPage: emergencyNames.length > 0 }); const CBF = require('./category-blocks'); blocks.entry = CBF.filterEntry(blocks.entry, { confirmed: CBF.confirmedFromRows(rows), spares: CBF.sparesFor(niche.location_page_blocks, blocks.key) }); }
   catch (e) { if (e.code === 'G-BRIEF') gates.push({ code: 'G-BRIEF', msg: e.message }); else throw e; }
   if (gates.length) return { gates, flags, decisions: null, decisionsBlock: null };
   for (const g of LB.briefGaps(blocks.entry)) flags.push({ code: 'F-BRIEF', msg: `${niche._source || niche.trade} type ${blocks.key}: ${g}.` });
@@ -169,7 +169,7 @@ function computeLocationDecisions({ cv, niche, keyValueMap = {}, rows = [], page
   // contractor] page", never "paving contractor visits" or "the deck builder side of what we do"
   // (the first real run, 27 Oct: both read as written around the link)
   const LINK_PHRASES = ['our [X] work', 'the [X] we do', 'a [X] job', 'our [X] jobs', 'booking [X]', 'our [X] service'];
-  cards.forEach((c, i) => { c.shape = SHAPES[i % SHAPES.length]; c.link_phrase = LINK_PHRASES[i % LINK_PHRASES.length].replace('[X]', `[${c.say || lc(c.name)}](${c.url})`); });
+  cards.forEach((c, i) => { c.shape = SHAPES[i % SHAPES.length]; c.link_phrase = articleBefore(LINK_PHRASES[i % LINK_PHRASES.length], { X: c.say || lc(c.name) }).replace('[X]', `[${c.say || lc(c.name)}](${c.url})`); });
 
   // ── Blocks 4 and 5, steps, FAQ from the type's town wide briefs (no seasonal swap, no symptom question) ──
   const problems = ((E.problems || {}).cards || []).slice(0, 4).map(c => ({ title: phCat(c.title, ctx), brief: phCat(c.brief || '', ctx), mechanism: phCat(c.mechanism || '', ctx) }));
@@ -354,7 +354,7 @@ function formatLocationBlock(D, cv, niche, ctx) {
   push('  Only what CONFIRMED PRACTICES in the client block say. Never invent a way of working or a promise about it: no "nothing gets added without you saying so", "each garden gets its own plan", "we stick to the work you asked for", "the price never creeps", "we fit the visit to a time that suits you", "we arrive ready to start", no seasonal pattern of visits, no comparison between the cost of a round and a one off. Say what the work involves, not how the business runs it. Never imply the business has worked in a named place unless [CV: areas_worked] names it.');
   push('');
   if (D.thin) { const R = require('./page-types/location').ranges; push(''); push('THIN PAGE (no allocated neighbourhoods): every word minimum below is a third lower than the prompt says; do not pad to reach the prompt\'s figure. The ranges on this page:'); for (const [k, r] of Object.entries(R)) if (r && r.min) push(`  ${k}: ${Math.ceil(r.min * 2 / 3)} to ${r.max} words`); }
-  for (const l of IH.ideaHomeLines('location')) push(l);
+  for (const l of IH.ideaHomeLines('location', niche)) push(l);
   push('');
   push('LINKABLE PAGES:');
   for (const p of D.linkablePages) push(`  [${p.type}] ${p.url} | H1: ${p.h1}${p.say ? ` | say: ${p.say}` : ''}`);

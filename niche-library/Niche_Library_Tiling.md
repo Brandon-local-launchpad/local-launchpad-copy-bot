@@ -310,7 +310,7 @@ Two framings share this one entry, per the pack's section 2: a problem led page 
 
 | Slot | When | Question | Answer brief | Doubt |
 |---|---|---|---|---|
-| cost | always | How much does [SERVICE_LOWER] cost in [CITY]? | Prices only from [CV: price_list]; otherwise how the quote is given, from [CV: quote_method] only. The four cost cards above already give what moves the price: name one factor at most, never the list again. | Price |
+| cost | always | How much does [SERVICE_LOWER] cost in [CITY]? | Prices only from [CV: price_list]; otherwise how the quote is given, from [CV: quote_method] only. The cost cards hold the list: never repeat it or point to it. | Price |
 | timing | always | How long does [SERVICE_LOWER] take? | From the Table A timing cell for this service only: it says the duration varies and gives no standard, so say what decides it (the size, what comes off first, what has to go on and dry before the tiles) and the waits as the Table E rows give them (a tanking layer cured before tiling, the adhesive set before grouting and before a floor is walked on, new plaster or a screed dry first). No figure beyond those rows. Nothing about when the job can start unless [CV: start_time] is set. This is the one place the timing is written. | Timing |
 | cover | guarantee | Do you guarantee your [SERVICE_LOWER] work? | Start with yes, then the terms from [CV: guarantee_years] and [CV: guarantee_scope]. Described, never promised. A tanking system's warranty only from [CV: manufacturer_warranty], kept apart from the tiler's own guarantee. | Trust |
 | cover | insurance | Are you insured for [SERVICE_LOWER]? | The cover figure from [CV: insurance_cover] and what the cover is for. Never what it pays or who it covers. | Trust |
@@ -423,3 +423,25 @@ Things a brief wanted that neither the calibration pack nor the trade facts pack
 10. **Hard water.** The pack's section 3 says water hardness from the supplier's published data is a strong anchor and that a figure the research does not give is never named. The location card reads it only where the town profile carries the hardness, and falls back to flats and leases otherwise. The town research does not yet collect water hardness; until it does the card will usually take its fallback.
 11. **Asbestos and the year.** The pack's example FAQ and Table E's asbestos row give a date before which old floor tiles and bitumen adhesive are suspect. No brief carries the year: it is a figure, and on a town page it reads as a claim about the houses. The briefs say "older homes" and "tested before it is lifted"; the service page's own Table C row supplies the rest on the day.
 12. **Swimming pool tiling.** A different job from domestic tiling (the pack's notes). The library marks it confirm only; the desire variant mentions the pool shell only as the situation of a shell tested watertight (Table A). No brief says what a pool test involves: Table G says no single test or duration was established.
+
+## Service tags
+
+An element is dropped, and the next eligible one used, when the client has confirmed none of these services. The paths are in the .json as `needs`.
+
+| Element | Needs |
+|---|---|
+| Water getting behind the tiles | Bathroom and shower tiling; Wet room tiling and tanking |
+| Cracks that run from one tile to the next | Floor tiling |
+| One broken tile, and whether a swap will hold | Tile repairs and replacement |
+| Floors that flex in the older streets | Floor tiling |
+| Period hallways with pieces missing | Victorian and period floor tiling |
+| Old floors that need a test before they come up | Tile removal; Floor tiling |
+| Patios on exposed ground | Outdoor and porcelain paving tiling |
+| The state of the tiles round the joints | Tile repairs and replacement |
+
+## Idea homes
+
+- **silicone, not rigid grout, at joints that move (bath edge, shower corners, wall-floor line)** (service): home is the 'Where the sealant has given up' block 4 card. Elsewhere: 'The room you're about to redo' card and the 'What it will need from you afterwards' card do not explain why silicone goes where grout would crack. The aftercare card only says the silicone is renewed in time..
+- **floorboards that flex under rigid tiles** (category): home is the 'Cracks that run from one tile to the next' block 4 card. Elsewhere: 'A bathroom, kitchen or floor you're redoing' card names what is underneath without explaining flex. The 'Boards, waterproofing and levelling' cost card lists stiffening only as a stage that adds time..
+- **lime plaster and timber floors in the town's older streets** (location): home is the 'Floors that flex in the older streets' block 4 card. Elsewhere: the 'What the houses were built with' cost card says only that it means more preparation. The cost FAQ names it in a phrase with no explanation..
+- **flats, carrying up by hand and a lease asking for a sound deadening layer under hard floors** (location): home is the 'Flats, stairs and the lease' block 5 card. Elsewhere: the hard water card's fallback does not restate the sound deadening layer. The cost FAQ names flats and access in a phrase only..
