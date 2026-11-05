@@ -4,7 +4,7 @@ For Ray, on the Edens Edge staging site: https://mediumturquoise-parr-749549.hos
 
 **What this proves:** that Copybot's redirects work against real Rank Math, which the fixtures can't show. It writes only to the staging site, and everything is rolled back at the end. Visitors to any live site see nothing. It takes about 15 minutes.
 
-**Why the Copybot side uses a test client:** Edens Edge has no old site, because edensedge.co.uk doesn't answer. So the test uses the URLs of southamptonhomes.co.uk, through a client called **Site audit test (Southampton Homes)**. That client points at the Edens Edge staging site, and Edens Edge's own record isn't touched. Brandon creates it first with `node tools/site-audit-test-client.js --create`, which copies the staging connection still encrypted, so you don't need to enter any passwords in Copybot. **If the client isn't on the client list, ask Brandon before starting Part 2.** When the test is over, `node tools/site-audit-test-client.js --archive` archives it.
+**Why the Copybot side uses a test client:** Edens Edge has no live domain stored on its record, and a test shouldn't change its record. So the test uses the URLs of southamptonhomes.co.uk, through a client called **Site audit test (Southampton Homes)**. That client points at the Edens Edge staging site, and Edens Edge's own record isn't touched. It has been created, with the staging connection copied still encrypted, so you don't need to enter any passwords in Copybot. When the test is over, Brandon archives it.
 
 ## Part 1: on the staging site's WordPress admin
 

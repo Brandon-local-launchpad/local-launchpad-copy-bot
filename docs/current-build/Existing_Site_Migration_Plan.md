@@ -31,7 +31,7 @@ What building those stages settled:
 
 - **The push is gated on the map's BLOCKs, not staging's.** Staging's BLOCKs (pages not built yet) don't stop a push, because the redirects are off and the pages come later. They stop a launch: the launch day button on the site shows the last check's BLOCK count.
 - **A URL with a query string** needs the plugin: Rank Math compares against the address with the query taken off, so its own matching can never fire it. The plugin serves those rows on `rank_math/redirection/pre_search`, only while their Rank Math row is active.
-- **The first real push uses a test client.** Edens Edge has no old site, so its URLs come from southamptonhomes.co.uk, through "Site audit test (Southampton Homes)", which points at the Edens Edge staging site. Ray's steps are `Redirects_First_Push_Ray_Steps.md`.
+- **The first real push uses a test client.** Edens Edge has no live domain stored (5 Nov: its site is edensedge-landscaping.co.uk, on GoHighLevel; the record is left for Brandon to set), so the URLs come from southamptonhomes.co.uk, through "Site audit test (Southampton Homes)", which points at the Edens Edge staging site. Ray's steps are `Redirects_First_Push_Ray_Steps.md`.
 
 ## How the rules were read in stage 3 (for Brandon to overrule)
 

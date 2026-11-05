@@ -6,8 +6,8 @@
 //   node tools/site-audit-test-client.js --create     makes it on the live database
 //   node tools/site-audit-test-client.js --archive    archives it when the test is over
 //
-// Edens Edge has no old site (edensedge.co.uk's nameservers refuse queries, 5 Nov 2026), so it has no
-// URLs to redirect, and setting its live domain to another site would put that site on its NAP and
+// Edens Edge has no live domain on its record (5 Nov 2026), so a scan of it has nowhere to go, and it has no
+// URLs to redirect. Setting its live domain to another site would put that site on its NAP and
 // citations. So the test has its own client: "Site audit test (Southampton Homes)". Its old site is
 // southamptonhomes.co.uk, its Page Map is a copy of Edens Edge's, and its WordPress connection is a
 // copy of Edens Edge's staging connection, marked staging. The stored password is copied still
