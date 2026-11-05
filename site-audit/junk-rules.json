@@ -1,0 +1,8 @@
+{
+  "junk_endings": ["shop", "online", "cyou", "site", "website", "party", "fyi", "link", "xyz", "top", "click", "icu", "buzz", "sbs", "cfd", "monster", "rest", "quest", "lol", "pw", "tk", "ml", "ga", "gq", "cf"],
+  "anchor_patterns": ["backlink", "link building", "dofollow", "do follow", "\\bpbn\\b", "guest post", "tiered", "\\bDA ?\\d+", "\\bseo\\b"],
+  "domain_patterns": ["casino", "poker", "slots\\b", "gacor", "betting", "\\bbet\\b", "betwin", "viagra", "cialis", "pharma", "porn", "escort", "loan", "payday", "crypto", "essay"],
+  "link_path_patterns": ["pbn", "backlink", "link-?build", "guest-?post", "white-?hat", "seo-authority", "ranking-signals"],
+  "injected_page_patterns": ["viagra", "cialis", "levitra", "casino", "poker", "online-slots", "slot-online", "slot-gacor", "gacor", "sportsbook", "betting", "payday", "porn", "escort", "essay-writing", "replica-", "jordans?-outlet", "nike-outlet"],
+  "foreign_path_prefixes": ["ja", "zh", "zh-cn", "ko", "ru", "th", "vi", "ar", "tr", "id"]
+}

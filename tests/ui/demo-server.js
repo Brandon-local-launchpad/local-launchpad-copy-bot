@@ -110,7 +110,21 @@ process.env.CITATIONS_SKIP_DA = '1'; // the demo's pg-mem is fresh each start: n
   const runs = fs.existsSync(runsDir) ? fs.readdirSync(runsDir).filter(d => fs.existsSync(path.join(runsDir, d, 'record.json'))).sort() : [];
   if (runs.length) await asset('gbp_output', 'gbp.json', fs.readFileSync(path.join(runsDir, runs[runs.length - 1], 'record.json'), 'utf8'));
 
+  // The Site audit tab on the real test site (5 Nov): the recording of the real scan played back
+  // into the database, so nothing is fetched or bought. Scan again needs real credentials in the environment.
+  const liveDomain = 'https://southamptonhomes.co.uk';
+  const auditId = (await pool.query(`INSERT INTO clients (name, trade) VALUES ('Southampton Homes (site audit test)', 'Landscaper Gardener') RETURNING id`)).rows[0].id;
+  await pool.query(`INSERT INTO client_assets (client_id, asset_type, filename, content) VALUES ($1, 'client_values', 'client-values.json', $2)`, [auditId, JSON.stringify({ company_name: 'Southampton Homes Ltd', live_domain: liveDomain })]);
+  const replayed = require(path.join(root, 'site-audit/service.js')).createSiteAudit({
+    pool, loadValues: async () => ({ live_domain: liveDomain }), env: { DATAFORSEO_LOGIN: 'replay', DATAFORSEO_PASSWORD: 'replay' },
+    fetchImpl: require(path.join(root, 'site-audit/replay.js')).replayer(path.join(root, 'tests/fixtures/data/site-audit-southamptonhomes-recorded.json')),
+    sleep: async () => {}, lookup: async () => ({ address: '8.8.8.8' }),
+  });
+  await replayed.start(auditId);
+  await replayed.wait(auditId);
+
   console.log('\nDEMO READY');
+  console.log(`  Site audit:   http://localhost:${PORT}/clients/${auditId}/site-audit`);
   console.log(`  Client:       http://localhost:${PORT}/clients/${clientId}/record`);
   console.log(`  Pages:        http://localhost:${PORT}/clients/${clientId}/pages`);
   console.log(`  Page view:    http://localhost:${PORT}/clients/${clientId}/pages/homepage/homepage`);
