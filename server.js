@@ -3951,10 +3951,11 @@ const v20CallModel = async ({ system, message, maxTokens }) => {
 // Fillout intake: inbox, client record, audio, archive (fillout/routes.js)
 if (filloutService) filloutRoutes.mountApi(app, filloutService);
 // Page map and the hand set-up editor (page-map/routes.js)
-if (filloutService) require('./page-map/routes').mountPageMapApi(app, { pool, filloutService });
+const pageMapApi = filloutService ? require('./page-map/routes').mountPageMapApi(app, { pool, filloutService }) : null;
 // Site audit (5 Nov): Scan old site for existing-site clients (site-audit/service.js, routes.js). Read only on the old site.
 const siteAudit = (pool && citationStore) ? require('./site-audit/service').createSiteAudit({
   pool,
+  pageMap: pageMapApi && pageMapApi.store,
   loadValues: async id => { const r = await pool.query(`SELECT content FROM client_assets WHERE client_id = $1 AND asset_type = 'client_values' ORDER BY uploaded_at DESC LIMIT 1`, [id]); return r.rows.length ? JSON.parse(r.rows[0].content) : {}; },
   getConnection: async id => { const r = await pool.query(`SELECT url, staging FROM wp_connections WHERE client_id = $1`, [id]); return r.rows[0] || null; },
   logCost: entry => citationStore.logCost(entry),

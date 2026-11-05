@@ -119,6 +119,15 @@ async function loadDashboard({ pool, tradeFacts = null, runners = {}, homepageRu
   const locRuns = new Set(locRunAt.keys());
   let locApproved = new Map();
   try { locApproved = new Map((await q(`SELECT client_id, MAX(approved_at) AS approved_at, MAX(run_at) AS run_at FROM client_location_tiers GROUP BY client_id`)).map(r => [r.client_id, r])); } catch (_) { /* the table is made on first use */ }
+  // The Site audit tab's dot: scanning, waiting for decisions, or every decision approved
+  let siteAudits = new Map();
+  try {
+    const audits = await q(`SELECT client_id, status, summary, started_at FROM site_scans ORDER BY started_at`);
+    siteAudits = new Map(audits.map(a => {
+      const s = parse(a.summary), dec = s && s.decisions;
+      return [a.client_id, a.status === 'running' ? 'run' : dec && dec.total && dec.approved === dec.total ? 'ok' : 'wait'];
+    }));
+  } catch (_) { /* the fixtures that build this row don't all make the site audit tables */ }
   // A run saved more than a minute after the run the approval was made on: the locations changed since the approval
   const locChanged = id => { const a = locApproved.get(id); const r = locRunAt.get(id); return !!(a && r && a.run_at && new Date(r).getTime() > new Date(a.run_at).getTime() + 60000); };
 
@@ -232,6 +241,7 @@ async function loadDashboard({ pool, tradeFacts = null, runners = {}, homepageRu
       cost: (() => { const spent = pages.reduce((n, p) => n + (p.cost_pence || 0), 0); let est = 0; for (const t of PAGE_TYPES) { const done = pages.filter(p => p.type === t && p.cost_pence !== null); const avg = done.length ? done.reduce((n, p) => n + p.cost_pence, 0) / done.length : DEFAULT_COST[t]; est += pages.filter(p => p.type === t && !p.good).length * avg; } return { spent_pence: Math.round(spent * 100) / 100, estimate_pence: Math.round(est), logged: pages.filter(p => p.cost_pence !== null).length }; })(),
       // The wizard's answer: an existing site to replace (the Site audit tab shows), or a new build
       existing_site: cv && cv._intake ? cv._intake.existing_site !== false : null,
+      site_audit: siteAudits.get(c.id) || 'none',
       gbp_done: !!(g && g.steps && ['description', 'services', 'products'].every(k => g.steps[k] && g.steps[k].status === 'done')), has_scans: (scansByClient.get(c.id) || []).length > 0,
       locations_run: locRuns.has(c.id), locations_approved: locApproved.has(c.id), locations_approved_at: locApproved.has(c.id) ? locApproved.get(c.id).approved_at : null, locations_run_at: locRunAt.get(c.id) || null, locations_changed: locChanged(c.id),
       missing_fields: summary.missing, pack_unverified: packUnverified,

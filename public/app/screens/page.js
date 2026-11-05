@@ -24,6 +24,23 @@ export async function render(root, params, ctx) {
   const title = S.order[idx] ? S.order[idx].title : type === 'homepage' ? 'Homepage' : key;
   ctx.setTitle(`${title} · ${client.name}`);
 
+  // The old site's text behind this page (site audit, 5 Nov): every old URL whose new home is this
+  // page, whatever its decision. Loads on its own, so a failure here leaves the page view working.
+  const pagePath = type === 'homepage' ? '/' : key;
+  const fetchOldSite = async () => {
+    try { S.oldSite = (await api(`/api/clients/${clientId}/site-audit/page-content?path=${encodeURIComponent(pagePath)}`)).pages || []; S.oldSiteError = ''; }
+    catch (e) { console.error('[old site text]', e); S.oldSite = []; S.oldSiteError = e.message; }
+    drawOldSite();
+  };
+  function drawOldSite() {
+    const box = root.querySelector('#oldSite');
+    if (!box) return;
+    const list = S.oldSite || [];
+    if (S.oldSiteError) { box.innerHTML = `<div class="notice bad" style="margin-bottom:16px">The old site text didn't load: ${h(S.oldSiteError)}</div>`; return; }
+    if (!list.length) { box.innerHTML = ''; return; }
+    box.innerHTML = card({ title: `Old site text (${list.length})`, sub: 'Saved from the old site, for reference. It is not sent to the writer, and its claims are not confirmed facts.', body: list.map(o => `<details style="margin-top:6px"><summary><strong>${h(o.path)}</strong> ${tag(o.decision === 'Keep' ? 'ok' : o.decision === 'Remove' ? 'block' : 'run', o.decision)} <span class="muted small">${h(String(o.word_count == null ? 0 : o.word_count))} words${o.matters ? ', matters' : ''}</span></summary>${(o.top_searches || []).length ? `<div class="muted small" style="margin-top:6px">Top searches: ${o.top_searches.map(t => h(t.search)).join(', ')}</div>` : ''}<div style="white-space:pre-wrap;max-height:320px;overflow:auto;border:1px solid var(--border);padding:12px;border-radius:8px;margin-top:6px">${h(o.main_text)}</div></details>`).join('') }) + '<div style="height:16px"></div>';
+  }
+
   async function loadRecord() {
     const r = await api(base);
     S.record = r.record; S.history = r.history || []; S.recordId = S.history[0] ? S.history[0].id : null; S.dry = null;
@@ -126,6 +143,7 @@ export async function render(root, params, ctx) {
           <button class="btn btn-primary" data-act="push" ${canPush ? '' : 'disabled'} title="${attr(!approved ? 'Approve the page first' : !fieldMapOk ? 'No WordPress site connected: set it up on the client settings' : !S.dry ? 'Run the dry run first' : 'Push to WordPress')}">Push</button>
         </div>
       </div>
+      <div id="oldSite"></div>
       ${!r ? `<div class="card">${empty({ title: 'Not written yet', text: 'Write it from the Pages tab, or Regenerate here.', action: '<button class="btn btn-primary" data-act="regenerate">Write this page</button>' })}</div>` : `
       <div class="two-col">
         <section class="card">
@@ -148,6 +166,7 @@ export async function render(root, params, ctx) {
         </aside>
       </div>`}`;
     if (r) loadLog();
+    drawOldSite();
   }
 
   // Editing in place
@@ -257,4 +276,5 @@ export async function render(root, params, ctx) {
     } catch (err) { toast(err.message, 'bad'); }
   });
   await loadRecord();
+  fetchOldSite();
 }

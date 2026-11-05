@@ -27,6 +27,8 @@ const { buildIssues } = require('./issues');
 const { classifyLink, countDomains } = require('./spam');
 const { parseSearchConsoleCsv } = require('./search-console-csv');
 const SD = require('./dfs');
+const { createDecisions, effective } = require('./decisions');
+const { auditCsv, urlMapCsv } = require('./export');
 const { liveDomain } = require('../gbp/profile');
 
 const j = v => JSON.stringify(v);
@@ -47,8 +49,18 @@ function domainCheck({ cv = {}, connection = null }) {
 
 const numericSettings = Object.keys(DEFAULTS).filter(k => typeof DEFAULTS[k] === 'number');
 
-function createSiteAudit({ pool, loadValues, getConnection = async () => null, logCost = async () => {}, env = process.env, fetchImpl = (...a) => fetch(...a), sleep = ms => new Promise(r => setTimeout(r, ms)), log = console, lookup = host => dns.promises.lookup(host), dfs = SD, retryDelays = undefined }) {
+// The Page Map rows the decisions match against, and the base town. Empty until the Page Map exists.
+const pageMapLoader = pool => async clientId => {
+  const { rows } = await pool.query(`SELECT page_key, type, title, slug, h1, applies, info FROM client_page_map WHERE client_id = $1 AND applies = TRUE ORDER BY sort_order`, [clientId]);
+  const { rows: st } = await pool.query(`SELECT inputs FROM client_page_map_state WHERE client_id = $1`, [clientId]);
+  const inputs = st[0] && st[0].inputs;
+  return { rows: rows.map(r => ({ ...r, info: typeof r.info === 'string' ? JSON.parse(r.info) : (r.info || {}) })), baseTown: (typeof inputs === 'string' ? JSON.parse(inputs) : inputs || {}).baseTown || '' };
+};
+
+function createSiteAudit({ pool, loadValues, getConnection = async () => null, logCost = async () => {}, env = process.env, fetchImpl = (...a) => fetch(...a), sleep = ms => new Promise(r => setTimeout(r, ms)), log = console, lookup = host => dns.promises.lookup(host), dfs = SD, retryDelays = undefined, loadPages = null, pageMap = null }) {
   const running = new Map(); // clientId → the promise of the run under way
+  const pagesOf = loadPages || pageMapLoader(pool);
+  const decisions = createDecisions({ pool, getSettings: id => getSettings(id), loadPages: pagesOf, pageMap, rework: id => analyse(id) });
 
   async function getSettings(clientId) {
     const { rows } = await pool.query(`SELECT settings FROM site_audit_settings WHERE client_id = $1`, [clientId]);
@@ -448,7 +460,7 @@ function createSiteAudit({ pool, loadValues, getConnection = async () => null, l
       if (gsc.sitewideQueries && !gsc.queries.size) warn.push({ kind: 'gsc_queries', text: "Search Console's queries file doesn't link queries to pages, so the top searches per page come from DataForSEO." });
     }
 
-    const final = await pool.query(`SELECT matters, top20, kind, orphan, sources, fetch_state FROM site_scan_urls WHERE scan_id = $1`, [scanId]);
+    const final = await pool.query(`SELECT url, matters, top20, kind, orphan, sources, fetch_state FROM site_scan_urls WHERE scan_id = $1`, [scanId]);
     const by = { crawl: 0, sitemap: 0, rankings: 0, backlinks: 0, search_console: 0 };
     for (const u of final.rows) for (const s of u.sources || []) by[s] = (by[s] || 0) + 1;
     const summary = {
@@ -468,6 +480,21 @@ function createSiteAudit({ pool, loadValues, getConnection = async () => null, l
       est_traffic: Math.round(kw.reduce((s, k) => s + Number(k.etv || 0), 0) * 100) / 100,
       sitemap: state.sitemap || null,
     };
+    // The suggested decision for every URL. They wait until there is a Page Map to match against.
+    const refreshed = await decisions.refresh(clientId, scanId, { hasSearchConsole: gsc.hasFile, origin: state.origin });
+    if (refreshed.ready) {
+      const now = await decisions.rowsFor(clientId);
+      const counts = { Keep: 0, Reuse: 0, Merge: 0, Retire: 0, Remove: 0 };
+      let approved = 0, redirects = 0, gone = 0;
+      for (const u of final.rows) {
+        const e = effective(now.get(u.url));
+        if (counts[e.decision] !== undefined) counts[e.decision]++;
+        if (e.approved) approved++;
+        if (e.redirect_type === '301') redirects++;
+        if (e.redirect_type === '410') gone++;
+      }
+      summary.decisions = { counts, approved, redirects, gone, total: final.rows.length };
+    } else summary.decisions = null;
     await pool.query(`UPDATE site_scans SET summary = $2, issues = $3, warnings = $4, benchmark = $5 WHERE id = $1`, [scanId, j(summary), j(issues), j(warn), benchmark]);
     return summary;
   }
@@ -483,9 +510,15 @@ function createSiteAudit({ pool, loadValues, getConnection = async () => null, l
     const scan = await latestScan(clientId);
     let urls = [], gsc = { files: [] };
     const overrides = new Map();
+    const { rows: mapRows } = await pagesOf(clientId);
+    const pageOptions = [
+      ...mapRows.filter(p => ((p.info && p.info.phase) || 1) !== 2).map(p => ({ path: p.slug, title: p.title, type: p.type })),
+      ...settings.site_pages.filter(s => !mapRows.some(p => p.slug === s)).map(s => ({ path: s, title: s.replace(/^\//, '') || 'homepage', type: 'site' })),
+    ];
+    const decided = await decisions.rowsFor(clientId);
     if (scan) {
       const { rows } = await pool.query(`SELECT ${URL_COLS} FROM site_scan_urls WHERE scan_id = $1`, [scan.id]);
-      urls = rows.map(numeric).sort((a, b) => (Number(b.top20) - Number(a.top20)) || (Number(b.matters) - Number(a.matters)) || (b.clicks - a.clicks) || (b.est_traffic - a.est_traffic) || (b.real_rd - a.real_rd) || a.url.localeCompare(b.url));
+      urls = rows.map(numeric).sort((a, b) => (Number(a.kind !== 'page') - Number(b.kind !== 'page')) || (Number(b.top20) - Number(a.top20)) || (Number(b.matters) - Number(a.matters)) || (b.clicks - a.clicks) || (b.est_traffic - a.est_traffic) || (b.real_rd - a.real_rd) || a.url.localeCompare(b.url));
       const { rows: over } = await pool.query(`SELECT url, matters_override, override_note FROM site_url_decisions WHERE client_id = $1`, [clientId]);
       for (const o of over) if (o.matters_override != null) overrides.set(o.url, o);
       if (scan.state && scan.state.origin) gsc = await loadGsc(clientId, createUrlTools(scan.state.origin));
@@ -497,9 +530,54 @@ function createSiteAudit({ pool, loadValues, getConnection = async () => null, l
       running: running.has(clientId),
       settings, defaults: DEFAULTS,
       scan: scan ? { id: scan.id, status: scan.status, phase: scan.phase, target: scan.target, origin: scan.state && scan.state.origin, current_url: scan.current_url, pages_done: scan.pages_done, pages_total: scan.pages_total, platform: scan.platform, platform_evidence: scan.platform_evidence, summary: scan.summary, issues: scan.issues || [], warnings: scan.warnings || [], benchmark: scan.benchmark, cost_usd: Number(scan.cost_usd), calls: scan.calls, error: scan.error, started_at: scan.started_at, finished_at: scan.finished_at } : null,
-      urls: urls.map(u => ({ ...u, override: overrides.has(u.url) ? overrides.get(u.url).matters_override : null })),
+      urls: urls.map(u => ({ ...u, override: overrides.has(u.url) ? overrides.get(u.url).matters_override : null, plan: effective(decided.get(u.url)) })),
       search_console: { files: gsc.files },
+      page_map_ready: mapRows.length > 0,
+      page_options: pageOptions,
+      page_map_changes: pageMap ? await pageMap.listUrlOverrides(clientId) : [],
     };
+  }
+
+  // ── Decisions ──
+  const scanFor = async clientId => {
+    const s = await latestScan(clientId);
+    if (!s || !s.state || !s.state.origin) throw err(404, 'Scan the old site first.');
+    return s;
+  };
+  async function setDecision(clientId, urlId, input = {}, who = '') {
+    const s = await scanFor(clientId);
+    await decisions.setDecision(clientId, urlId, input, { origin: s.state.origin, who });
+    await analyse(s.id);
+    return view(clientId);
+  }
+  async function approve(clientId, input = {}, who = '') {
+    const s = await scanFor(clientId);
+    const result = await decisions.approve(clientId, { url_ids: input.url_ids, all: !!input.all, scanId: s.id, who });
+    await analyse(s.id);
+    return { ...(await view(clientId)), approval: result };
+  }
+  async function proposalYes(clientId, urlId, who = '') {
+    const result = await decisions.proposalYes(clientId, urlId, { who });
+    return { ...(await view(clientId)), page_map_change: result };
+  }
+  async function proposalNo(clientId, urlId, who = '') {
+    await decisions.proposalNo(clientId, urlId, { who });
+    return view(clientId);
+  }
+  async function proposalUndo(clientId, identity) {
+    const s = await latestScan(clientId);
+    const result = await decisions.proposalUndo(clientId, identity, { scanId: s && s.id });
+    return { ...(await view(clientId)), page_map_change: result };
+  }
+  async function pageContent(clientId, path) {
+    const s = await latestScan(clientId);
+    return { pages: s ? await decisions.pageContent(clientId, s.id, String(path || '')) : [] };
+  }
+  async function exportCsv(clientId, which) {
+    const s = await scanFor(clientId);
+    const v = await view(clientId);
+    const origin = s.state.origin;
+    return which === 'url-map' ? urlMapCsv(v.urls, origin) : auditCsv(v.urls);
   }
 
   async function urlDetail(clientId, urlId) {
@@ -579,7 +657,7 @@ function createSiteAudit({ pool, loadValues, getConnection = async () => null, l
     return { saved: out };
   }
 
-  return { start, resume, wait, recover, run, analyse, view, urlDetail, setOverride, saveSettings, getSettings, uploadSearchConsole };
+  return { start, resume, wait, recover, run, analyse, view, urlDetail, setOverride, saveSettings, getSettings, uploadSearchConsole, setDecision, approve, proposalYes, proposalNo, proposalUndo, pageContent, exportCsv };
 }
 
 module.exports = { createSiteAudit, domainCheck, DEFAULTS };

@@ -6,6 +6,8 @@
 //   options: --name "<business>"   --phone "<Client Values phone>"   --address "<address>"
 //            --csv <Search Console file>      --record <file>   saves the responses so a fixture can replay them
 //            --replay <file>                  uses saved responses: no network, spends nothing
+//            --page-map <file> --base-town <town>   a Page Map to match against ({ rows }, as tests/fixtures/data/edens-edge-v3-page-map.json)
+//            --export <folder>                writes the two CSVs for the client sheet there
 //
 // Buys from DataForSEO with the .env login and reads the site politely, as the app does. Nothing
 // goes to the live database or to any site. The report prints here and is saved under
@@ -27,6 +29,7 @@ const { newDb, DataType } = require('pg-mem');
 const { ensureSiteAuditTables } = require(path.join(root, 'site-audit/store.js'));
 const { createSiteAudit } = require(path.join(root, 'site-audit/service.js'));
 const { replayer } = require(path.join(root, 'site-audit/replay.js'));
+const { ensurePageMapTables } = require(path.join(root, 'page-map/store.js'));
 
 // What's worth keeping of a page in a recording: scripts and styles out, the rest as it was
 const slim = text => String(text).replace(/<script[\s\S]*?<\/script>/gi, '').replace(/<style[\s\S]*?<\/style>/gi, '').replace(/<!--[\s\S]*?-->/g, '');
@@ -55,7 +58,9 @@ async function main() {
   const { Pool } = mem.adapters.createPg();
   const pool = new Pool();
   await pool.query(`CREATE TABLE clients (id UUID PRIMARY KEY DEFAULT gen_random_uuid(), name TEXT)`);
+  await ensurePageMapTables(pool);
   await ensureSiteAuditTables(pool);
+  const mapRows = val('--page-map', '') ? JSON.parse(fs.readFileSync(val('--page-map', ''), 'utf8')).rows.filter(r => r.applies !== false).map((r, i) => ({ page_key: `${r.type}:${r.slug}`, sort_order: i, info: {}, ...r })) : [];
   const { rows } = await pool.query(`INSERT INTO clients (name) VALUES ($1) RETURNING id`, [val('--name', url)]);
   const clientId = rows[0].id;
   const cv = { live_domain: url, company_name: val('--name', ''), phone: val('--phone', ''), address: val('--address', '') };
@@ -71,6 +76,7 @@ async function main() {
     fetchImpl: replay ? replayer(replay) : rec ? rec.impl : undefined,
     sleep: replay ? async () => {} : undefined,
     lookup: replay ? async () => ({ address: '8.8.8.8' }) : undefined,
+    loadPages: mapRows.length ? async () => ({ rows: mapRows, baseTown: val('--base-town', '') }) : null,
   });
   await audit.saveSettings(clientId, { max_usd: val('--max-usd', '2') });
   if (val('--csv', '')) await audit.uploadSearchConsole(clientId, { csv: fs.readFileSync(val('--csv', ''), 'utf8'), filename: path.basename(val('--csv', '')) });
@@ -103,6 +109,22 @@ async function main() {
     say(`      words ${u.word_count == null ? '-' : u.word_count}, inlinks ${u.inlinks}, sites real/all ${u.real_rd}/${u.all_rd}, est visits ${u.est_traffic}, keywords ${u.keywords_count}${u.orphan ? ', ORPHAN' : ''}${u.top20 ? `, TOP (${u.top20_why})` : ''}`);
     say(`      ${u.matters ? 'MATTERS' : 'does not matter'}: ${(u.matters_why || []).join('. ')}`);
     if (u.top_searches && u.top_searches.length) say(`      top searches: ${u.top_searches.map(t => `${t.search} (pos ${t.position})`).join('; ')}`);
+  }
+  if (v.page_map_ready) {
+    const c = s.summary.decisions;
+    say(`\nURL MAP${mapRows.length ? ` (against ${val('--page-map', '')}: ${mapRows.length} pages)` : ''}: ${Object.entries(c.counts).filter(([, n]) => n).map(([k, n]) => `${k} ${n}`).join(', ')}; ${c.redirects} redirects, ${c.gone} 410s`);
+    const grouped = new Map();
+    for (const u of v.urls) {
+      const line = `  ${u.plan.decision.padEnd(7)} ${(u.path || u.url).padEnd(32)} ${(u.plan.redirect_type === 'none' ? 'no redirect' : u.plan.redirect_type).padEnd(12)} ${u.plan.new_url || '-'}`;
+      if (u.kind !== 'page') { const k = `${u.plan.decision}|${u.plan.redirect_type}|${u.plan.reason}`; grouped.set(k, (grouped.get(k) || 0) + 1); continue; }
+      say(line);
+      say(`          ${u.plan.reason}`);
+    }
+    for (const [k, n] of grouped) { const [d, r, why] = k.split('|'); say(`  ${d.padEnd(7)} ${`${n} images and files`.padEnd(32)} ${(r === 'none' ? 'no redirect' : r).padEnd(12)} -`); say(`          ${why}`); }
+  }
+  if (val('--export', '')) {
+    fs.mkdirSync(val('--export', ''), { recursive: true });
+    for (const which of ['old-site-audit', 'url-map']) fs.writeFileSync(path.join(val('--export', ''), `${which}.csv`), await audit.exportCsv(clientId, which));
   }
   const out = L.join('\n');
   console.log(out);

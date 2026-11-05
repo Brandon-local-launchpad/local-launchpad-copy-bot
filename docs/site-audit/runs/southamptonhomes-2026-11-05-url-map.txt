@@ -1,0 +1,197 @@
+SITE AUDIT: https://southamptonhomes.co.uk (replayed, nothing spent)
+Status done, 1 seconds, DataForSEO 3 calls, $0.0644
+Platform: WordPress (files under /wp-content/, files under /wp-includes/, a /wp-json/ link)
+Benchmark: Estimated, no Search Console
+Total URLs: 54: 4 pages, 50 images and PDFs ({"crawl":54,"sitemap":4,"rankings":2,"backlinks":1,"search_console":0}), sitemap {"files":2,"urls":4}
+Matter: 2, top list: 2, orphans: 0
+Sites linking, all: 75, real: 3 (localnow.net, trustaine.com, ukpavingtalkgroup.com); links: 82
+Rankings: 11, estimated visits a month: 0.97
+
+WARNINGS
+  none
+
+ISSUES
+  - The page shows 02381 550155, but the tap to call link dials 023 8155 0183 (4 pages)
+      /contact, /inspiration, /garden-design-service, /
+  - The logo links to hh9.f77.myftpupload.com, a temporary host and not the live site (4 pages)
+      /contact, /inspiration, /garden-design-service, /
+  - http://www.southamptonhomes.co.uk/ takes 2 redirects to reach the live homepage
+      
+
+URLS
+  /  [page]  status 200  found by crawl+sitemap+backlinks+rankings
+      words 225, inlinks 0, sites real/all 3/75, est visits 0.9653, keywords 10, TOP (Number 1 by estimated traffic)
+      MATTERS: Ranks for 10 searches, about 0.97 estimated visits a month. 3 real sites link to it
+      top searches: landscaping southampton (pos 13); patio southampton (pos 14); southampton landscape gardeners (pos 21); landscapes homes (pos 13); landscape gardeners in southampton (pos 16)
+  /contact  [page]  status 200  found by sitemap+rankings+crawl
+      words 65, inlinks 3, sites real/all 0/0, est visits 0.0033, keywords 1, TOP (Number 2 by estimated traffic)
+      MATTERS: Ranks for 1 search, under 0.01 estimated visits a month
+      top searches: southampton home (pos 26)
+  /garden-design-service  [page]  status 200  found by sitemap+crawl
+      words 1122, inlinks 3, sites real/all 0/0, est visits 0, keywords 0
+      does not matter: No clicks, no rankings and no real sites linking
+  /inspiration  [page]  status 200  found by sitemap+crawl
+      words 14, inlinks 3, sites real/all 0/0, est visits 0, keywords 0
+      does not matter: No clicks, no rankings and no real sites linking
+  /wp-content/uploads/2022/04/13.jpeg  [image]  status 200  found by crawl
+      words -, inlinks 1, sites real/all 0/0, est visits 0, keywords 0
+      does not matter: No clicks, no rankings and no real sites linking
+  /wp-content/uploads/2022/04/14.jpeg  [image]  status 200  found by crawl
+      words -, inlinks 1, sites real/all 0/0, est visits 0, keywords 0
+      does not matter: No clicks, no rankings and no real sites linking
+  /wp-content/uploads/2022/04/15.jpeg  [image]  status 200  found by crawl
+      words -, inlinks 1, sites real/all 0/0, est visits 0, keywords 0
+      does not matter: No clicks, no rankings and no real sites linking
+  /wp-content/uploads/2022/04/16.jpeg  [image]  status 200  found by crawl
+      words -, inlinks 1, sites real/all 0/0, est visits 0, keywords 0
+      does not matter: No clicks, no rankings and no real sites linking
+  /wp-content/uploads/2022/04/21.jpeg  [image]  status 200  found by crawl
+      words -, inlinks 1, sites real/all 0/0, est visits 0, keywords 0
+      does not matter: No clicks, no rankings and no real sites linking
+  /wp-content/uploads/2022/04/22.jpeg  [image]  status 200  found by crawl
+      words -, inlinks 1, sites real/all 0/0, est visits 0, keywords 0
+      does not matter: No clicks, no rankings and no real sites linking
+  /wp-content/uploads/2022/04/3.jpeg  [image]  status 200  found by crawl
+      words -, inlinks 1, sites real/all 0/0, est visits 0, keywords 0
+      does not matter: No clicks, no rankings and no real sites linking
+  /wp-content/uploads/2022/04/4-e1721056417469.jpeg  [image]  status 200  found by crawl
+      words -, inlinks 1, sites real/all 0/0, est visits 0, keywords 0
+      does not matter: No clicks, no rankings and no real sites linking
+  /wp-content/uploads/2022/04/5.jpeg  [image]  status 200  found by crawl
+      words -, inlinks 1, sites real/all 0/0, est visits 0, keywords 0
+      does not matter: No clicks, no rankings and no real sites linking
+  /wp-content/uploads/2022/04/6.jpeg  [image]  status 200  found by crawl
+      words -, inlinks 1, sites real/all 0/0, est visits 0, keywords 0
+      does not matter: No clicks, no rankings and no real sites linking
+  /wp-content/uploads/2023/01/002-Millboard-Coppered-oak-with-stainless-steel-wires-cedar-screening-North-London.jpg  [image]  status 200  found by crawl
+      words -, inlinks 1, sites real/all 0/0, est visits 0, keywords 0
+      does not matter: No clicks, no rankings and no real sites linking
+  /wp-content/uploads/2023/01/chelsea-tumbled-setts-2Isk.jpg  [image]  status 200  found by crawl
+      words -, inlinks 1, sites real/all 0/0, est visits 0, keywords 0
+      does not matter: No clicks, no rankings and no real sites linking
+  /wp-content/uploads/2023/01/image-1.jpg  [image]  status 200  found by crawl
+      words -, inlinks 1, sites real/all 0/0, est visits 0, keywords 0
+      does not matter: No clicks, no rankings and no real sites linking
+  /wp-content/uploads/2023/01/img_0356-1024x768-1.jpg  [image]  status 200  found by crawl
+      words -, inlinks 1, sites real/all 0/0, est visits 0, keywords 0
+      does not matter: No clicks, no rankings and no real sites linking
+  /wp-content/uploads/2023/01/Patio.jpg  [image]  status 200  found by crawl
+      words -, inlinks 1, sites real/all 0/0, est visits 0, keywords 0
+      does not matter: No clicks, no rankings and no real sites linking
+  /wp-content/uploads/2023/06/garden-design-2.jpg  [image]  status 200  found by crawl
+      words -, inlinks 1, sites real/all 0/0, est visits 0, keywords 0
+      does not matter: No clicks, no rankings and no real sites linking
+  /wp-content/uploads/2024/01/SL-104.jpg  [image]  status 200  found by crawl
+      words -, inlinks 1, sites real/all 0/0, est visits 0, keywords 0
+      does not matter: No clicks, no rankings and no real sites linking
+  /wp-content/uploads/2024/01/SL-107.jpg  [image]  status 200  found by crawl
+      words -, inlinks 1, sites real/all 0/0, est visits 0, keywords 0
+      does not matter: No clicks, no rankings and no real sites linking
+  /wp-content/uploads/2024/01/SL-123.jpg  [image]  status 200  found by crawl
+      words -, inlinks 1, sites real/all 0/0, est visits 0, keywords 0
+      does not matter: No clicks, no rankings and no real sites linking
+  /wp-content/uploads/2024/01/SL-130.jpg  [image]  status 200  found by crawl
+      words -, inlinks 1, sites real/all 0/0, est visits 0, keywords 0
+      does not matter: No clicks, no rankings and no real sites linking
+  /wp-content/uploads/2024/01/SL-143.jpg  [image]  status 200  found by crawl
+      words -, inlinks 1, sites real/all 0/0, est visits 0, keywords 0
+      does not matter: No clicks, no rankings and no real sites linking
+  /wp-content/uploads/2024/01/SL-154.jpg  [image]  status 200  found by crawl
+      words -, inlinks 1, sites real/all 0/0, est visits 0, keywords 0
+      does not matter: No clicks, no rankings and no real sites linking
+  /wp-content/uploads/2024/01/SL-45.jpg  [image]  status 200  found by crawl
+      words -, inlinks 1, sites real/all 0/0, est visits 0, keywords 0
+      does not matter: No clicks, no rankings and no real sites linking
+  /wp-content/uploads/2024/01/SL-80.jpg  [image]  status 200  found by crawl
+      words -, inlinks 1, sites real/all 0/0, est visits 0, keywords 0
+      does not matter: No clicks, no rankings and no real sites linking
+  /wp-content/uploads/2024/01/SL-9.jpg  [image]  status 200  found by crawl
+      words -, inlinks 1, sites real/all 0/0, est visits 0, keywords 0
+      does not matter: No clicks, no rankings and no real sites linking
+  /wp-content/uploads/2024/07/1fe777eb-bcc7-42e9-86bb-07fa7aeaa842.jpg  [image]  status 200  found by crawl
+      words -, inlinks 1, sites real/all 0/0, est visits 0, keywords 0
+      does not matter: No clicks, no rankings and no real sites linking
+  /wp-content/uploads/2024/07/3fea1be9-c3cb-4314-93e8-731706a440a6.jpg  [image]  status 200  found by crawl
+      words -, inlinks 1, sites real/all 0/0, est visits 0, keywords 0
+      does not matter: No clicks, no rankings and no real sites linking
+  /wp-content/uploads/2024/07/b8229ef7-40ff-4c27-aff0-5eb364cb637f.jpg  [image]  status 200  found by crawl
+      words -, inlinks 1, sites real/all 0/0, est visits 0, keywords 0
+      does not matter: No clicks, no rankings and no real sites linking
+  /wp-content/uploads/2024/07/c5dfa537-2ef1-49ea-a0c9-311b765a7ae4.jpg  [image]  status 200  found by crawl
+      words -, inlinks 1, sites real/all 0/0, est visits 0, keywords 0
+      does not matter: No clicks, no rankings and no real sites linking
+  /wp-content/uploads/2024/07/c7c5a46d-359a-47ee-a5cb-d4f764ac9056.jpg  [image]  status 200  found by crawl
+      words -, inlinks 1, sites real/all 0/0, est visits 0, keywords 0
+      does not matter: No clicks, no rankings and no real sites linking
+  /wp-content/uploads/2024/07/d9db7855-beac-4040-bc50-fb98cfef7033.jpg  [image]  status 200  found by crawl
+      words -, inlinks 1, sites real/all 0/0, est visits 0, keywords 0
+      does not matter: No clicks, no rankings and no real sites linking
+  /wp-content/uploads/2024/07/ea23467d-1c1a-4e95-98f0-02a53fb91245.jpg  [image]  status 200  found by crawl
+      words -, inlinks 1, sites real/all 0/0, est visits 0, keywords 0
+      does not matter: No clicks, no rankings and no real sites linking
+  /wp-content/uploads/2024/07/fb26ed37-e461-4b4a-b79d-8686d09feb93.jpg  [image]  status 200  found by crawl
+      words -, inlinks 1, sites real/all 0/0, est visits 0, keywords 0
+      does not matter: No clicks, no rankings and no real sites linking
+  /wp-content/uploads/2025/01/IMG-20250123-WA0001.jpg  [image]  status 200  found by crawl
+      words -, inlinks 1, sites real/all 0/0, est visits 0, keywords 0
+      does not matter: No clicks, no rankings and no real sites linking
+  /wp-content/uploads/2025/01/IMG-20250123-WA0002.jpg  [image]  status 200  found by crawl
+      words -, inlinks 1, sites real/all 0/0, est visits 0, keywords 0
+      does not matter: No clicks, no rankings and no real sites linking
+  /wp-content/uploads/2025/01/IMG-20250123-WA0003.jpg  [image]  status 200  found by crawl
+      words -, inlinks 1, sites real/all 0/0, est visits 0, keywords 0
+      does not matter: No clicks, no rankings and no real sites linking
+  /wp-content/uploads/2025/01/IMG-20250123-WA0004.jpg  [image]  status 200  found by crawl
+      words -, inlinks 1, sites real/all 0/0, est visits 0, keywords 0
+      does not matter: No clicks, no rankings and no real sites linking
+  /wp-content/uploads/2025/01/IMG-20250123-WA0005.jpg  [image]  status 200  found by crawl
+      words -, inlinks 1, sites real/all 0/0, est visits 0, keywords 0
+      does not matter: No clicks, no rankings and no real sites linking
+  /wp-content/uploads/2025/01/IMG-20250123-WA0006.jpg  [image]  status 200  found by crawl
+      words -, inlinks 1, sites real/all 0/0, est visits 0, keywords 0
+      does not matter: No clicks, no rankings and no real sites linking
+  /wp-content/uploads/2025/01/IMG-20250123-WA0007.jpg  [image]  status 200  found by crawl
+      words -, inlinks 1, sites real/all 0/0, est visits 0, keywords 0
+      does not matter: No clicks, no rankings and no real sites linking
+  /wp-content/uploads/2025/01/IMG-20250123-WA0008.jpg  [image]  status 200  found by crawl
+      words -, inlinks 1, sites real/all 0/0, est visits 0, keywords 0
+      does not matter: No clicks, no rankings and no real sites linking
+  /wp-content/uploads/2025/01/IMG-20250123-WA0009-1.jpg  [image]  status 200  found by crawl
+      words -, inlinks 1, sites real/all 0/0, est visits 0, keywords 0
+      does not matter: No clicks, no rankings and no real sites linking
+  /wp-content/uploads/2025/01/IMG-20250123-WA0010.jpg  [image]  status 200  found by crawl
+      words -, inlinks 1, sites real/all 0/0, est visits 0, keywords 0
+      does not matter: No clicks, no rankings and no real sites linking
+  /wp-content/uploads/2025/01/IMG-20250123-WA0011.jpg  [image]  status 200  found by crawl
+      words -, inlinks 1, sites real/all 0/0, est visits 0, keywords 0
+      does not matter: No clicks, no rankings and no real sites linking
+  /wp-content/uploads/2025/01/IMG-20250123-WA0012.jpg  [image]  status 200  found by crawl
+      words -, inlinks 1, sites real/all 0/0, est visits 0, keywords 0
+      does not matter: No clicks, no rankings and no real sites linking
+  /wp-content/uploads/2025/01/IMG-20250123-WA0013.jpg  [image]  status 200  found by crawl
+      words -, inlinks 1, sites real/all 0/0, est visits 0, keywords 0
+      does not matter: No clicks, no rankings and no real sites linking
+  /wp-content/uploads/2025/01/IMG-20250123-WA0014.jpg  [image]  status 200  found by crawl
+      words -, inlinks 1, sites real/all 0/0, est visits 0, keywords 0
+      does not matter: No clicks, no rankings and no real sites linking
+  /wp-content/uploads/2025/01/IMG-20250123-WA0015.jpg  [image]  status 200  found by crawl
+      words -, inlinks 1, sites real/all 0/0, est visits 0, keywords 0
+      does not matter: No clicks, no rankings and no real sites linking
+  /wp-content/uploads/2025/01/IMG-20250123-WA0016.jpg  [image]  status 200  found by crawl
+      words -, inlinks 1, sites real/all 0/0, est visits 0, keywords 0
+      does not matter: No clicks, no rankings and no real sites linking
+  /wp-content/uploads/2025/01/IMG-20250123-WA0018.jpg  [image]  status 200  found by crawl
+      words -, inlinks 1, sites real/all 0/0, est visits 0, keywords 0
+      does not matter: No clicks, no rankings and no real sites linking
+
+URL MAP (against tests/fixtures/data/edens-edge-v3-page-map.json: 139 pages): Keep 2, Retire 52; 2 redirects, 0 410s
+  Keep    /                                no redirect  /
+          The homepage keeps its address.
+  Keep    /contact                         no redirect  /contact
+          Every new site has this page at this address.
+  Retire  /garden-design-service           301          /landscape-designer
+          It doesn't matter, so the Page Map address stands. It redirects to "Landscape Designer", the page it matches.
+  Retire  /inspiration                     301          /gardener
+          It doesn't matter and has no match. Without Search Console it still redirects, to "Gardener": nothing closer was found, so check this one.
+  Retire  50 images and files              no redirect  -
+          A linked image nothing depends on, so it needs no redirect.

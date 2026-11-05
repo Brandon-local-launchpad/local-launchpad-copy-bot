@@ -11,6 +11,25 @@ Date: 5 Nov 2026 · Brief: `Existing_Site_Migration_Build_Brief.md` · Status: a
 
 All four open decision answers in section 9 are approved. Build order: the scan and the spam filter, then stop and show the southamptonhomes results before the decisions and URL map.
 
+## Brandon's notes after the scan results (5 Nov, these win too)
+
+1. **"Matters" stays at estimated traffic above 0 for now.**
+2. **Reuse isn't stretched.** Assumption E in section 3 is withdrawn. Instead the main text of every HTML page is saved at scan time, whatever its decision, and shown in the page view. Decisions follow the brief's rules as written. `site_old_content` is not needed: the text stays on the scan's URL row.
+3. **Validator stage:** every version of the domain (http, https, www, non-www) must reach the final URL in one hop after launch.
+4. **The domain move gap is fine.** It's covered by sign-off in the SOP.
+
+Stop and show the southamptonhomes decisions and URL map before the plugin and redirect push.
+
+## How the rules were read in stage 3 (for Brandon to overrule)
+
+- **A page that doesn't matter and matches a Page Map page at another address is Retire, 301 to that page, with no slug proposal.** The Keep row says "matches a Page Map page, and its URL can be kept as is". The slug rule says an old URL that matters beats the Page Map, so one that doesn't, doesn't. Its URL can't be kept, because the Page Map's address stands. The other reading would move Page Map pages to URLs with no traffic or links.
+- **Several old pages on one new page:** a page already at the Page Map address wins. Otherwise the one that matters most and can keep its URL wins, and the Page Map moves if a person approves. The rest are Merge. If none can be kept, all are Merge to the Page Map page.
+- **A phase 2 page is never a destination,** because it wouldn't exist at launch and the validator would block it.
+- **An old URL already redirecting** carries on to wherever its target now lives: Reuse if it matters, else Retire.
+- **Mass tag pages** means 10 or more (`mass_page_minimum`). A lone tag page is treated like any other.
+- **Declining a slug change** makes the row Reuse, 301 to the Page Map page.
+- **Undo** is on the Page Map changes card, beyond the brief, because a page move is otherwise hard to reverse.
+
 To base this on real numbers I made read only DataForSEO calls ($0.44 in total, not logged in Copybot) and crawled the test site's 4 pages. Nothing was written to the database or to any site.
 
 ## 1. DataForSEO: endpoints and cost per scan
@@ -190,10 +209,10 @@ Code goes in a new `site-audit/` folder. Reused: `citations/dataforseo.js call`,
 |---|---|
 | 1 | Scan job: crawl, sitemap, DataForSEO, CSV, platform and warnings, issues, cost, top of the tab |
 | 2 | Spam filter, matters, top 20, top 5 searches |
-| 3 | Suggestions, URL map, bulk approve, CSV exports, Page Map override |
-| 4 | Saved content and the page view card |
+| 3 | Suggestions, URL map, bulk approve, CSV exports, Page Map override (built 5 Nov) |
+| 4 | Saved text of every HTML page and the page view card (built 5 Nov) |
 | 5 | Plugin 0.3.0, push, read back, rollback |
-| 6 | Pre launch validator |
+| 6 | Pre launch validator, including every version of the domain reaching the final URL in one hop after launch |
 
 Things the test site already showed the crawler must handle:
 

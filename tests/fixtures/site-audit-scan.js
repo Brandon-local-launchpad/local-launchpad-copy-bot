@@ -18,6 +18,7 @@ const SP = require(path.join(root, 'site-audit/spam.js'));
 const M = require(path.join(root, 'site-audit/matters.js'));
 const IS = require(path.join(root, 'site-audit/issues.js'));
 const { ensureSiteAuditTables } = require(path.join(root, 'site-audit/store.js'));
+const { ensurePageMapTables } = require(path.join(root, 'page-map/store.js'));
 const { createSiteAudit, domainCheck, DEFAULTS } = require(path.join(root, 'site-audit/service.js'));
 
 let pass = 0, fail = 0;
@@ -88,6 +89,7 @@ async function db() {
   const { Pool } = mem.adapters.createPg();
   const pool = new Pool();
   await pool.query(`CREATE TABLE clients (id UUID PRIMARY KEY DEFAULT gen_random_uuid(), name TEXT)`);
+  await ensurePageMapTables(pool);
   await ensureSiteAuditTables(pool);
   return pool;
 }

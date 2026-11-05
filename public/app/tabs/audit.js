@@ -1,7 +1,8 @@
 // Site audit tab (existing-site clients). Scan old site: one list of every URL the old site has,
 // from the crawl, the sitemap, DataForSEO and an optional Search Console file; which pages matter
-// and why, real against all sites linking, the top 20, the issues found. Decisions, the URL map and
-// the redirects come in the next stages. Reads and writes /api/clients/:id/site-audit.
+// and why, real against all sites linking, the top 20, the issues found. Then the URL map: a suggested
+// decision and new URL for every old URL, which a person approves or changes. The redirects come in
+// the next stage. Reads and writes /api/clients/:id/site-audit.
 
 import { h, attr, api, card, tile, pill, tag, toast, confirm, dialog, busy, info, fmtDate, empty, failed, running, table } from '../ui.js';
 
@@ -24,7 +25,12 @@ const FILTERS = [
   ['orphans', 'Orphans', u => u.orphan],
   ['media', 'Images & PDFs', u => u.kind !== 'page'],
   ['problems', "Didn't load", u => u.status_code == null || u.status_code >= 400],
+  ['waiting', 'Not approved', u => u.plan && u.plan.decision && !u.plan.approved],
+  ['check', 'Check these', u => u.plan && (u.plan.check || u.plan.needs_page)],
+  ...['Keep', 'Reuse', 'Merge', 'Retire', 'Remove'].map(x => [x, x, u => u.plan && u.plan.decision === x]),
 ];
+const DECISION_KIND = { Keep: 'ok', Reuse: 'run', Merge: 'run', Retire: 'wait', Remove: 'block' };
+const ROW_LIMIT = 200;
 
 const SETTINGS = [
   ['spam_threshold', 'A real link scores under', 'The spam score limit. Links at this score or above are junk.'],
@@ -43,7 +49,7 @@ export async function render(el, ctx) {
   const { clientId } = ctx;
   const base = `/api/clients/${clientId}/site-audit`;
   let d = null, timer = null, loadError = '';
-  const S = { filter: 'all', settings: false };
+  const S = { filter: 'all', settings: false, picked: new Set(), showAll: false };
 
   const load = async () => {
     try { d = await api(base); loadError = ''; }
@@ -88,6 +94,7 @@ export async function render(el, ctx) {
       ${tile({ label: 'Top list', value: s.top20, foot: s.top20 ? 'with traffic or real links' : 'nothing has traffic yet' })}
       ${tile({ label: 'Sites linking: real / all', value: `${s.real_domains} / ${s.all_domains}`, tip: 'Junk sites are left out of the real count. Only real ones can make a page matter.', foot: `${s.links.toLocaleString('en-GB')} links` })}
       ${tile({ label: 'Rankings', value: s.keywords, foot: `about ${traffic(s.est_traffic)} estimated visits a month` })}
+      ${s.decisions ? tile({ label: 'Decisions approved', value: `${s.decisions.approved} of ${s.decisions.total}`, foot: Object.entries(s.decisions.counts).filter(([, n]) => n).map(([k, n]) => `${k} ${n}`).join(', ') }) : ''}
     </div>`;
   }
 
@@ -125,17 +132,39 @@ export async function render(el, ctx) {
     if (!d.urls.length) return '';
     const test = (FILTERS.find(f => f[0] === S.filter) || FILTERS[0])[2];
     const rows = d.urls.filter(test);
+    const shownRows = S.showAll ? rows : rows.slice(0, ROW_LIMIT);
     const gsc = d.scan.benchmark === 'search_console';
+    const ready = d.page_map_ready;
     const cols = [
-      { key: 'url', label: 'Old URL', render: u => `<div style="max-width:320px;overflow-wrap:anywhere"><a href="#" class="open" data-id="${attr(u.id)}">${h(u.path || u.url)}</a>${u.title ? `<div class="muted small">${h(u.title)}</div>` : ''}</div>` },
-      { key: 'sources', label: 'Found by', render: u => (u.sources || []).map(s => h(SOURCE[s] || s)).join(', ') + (u.orphan ? ` ${tag('wait', 'Orphan')}` : '') },
-      { key: 'status_code', label: 'Status', render: statusCell },
+      ...(ready ? [{ key: 'pick', label: '', render: u => (u.plan.approved ? '' : `<input type="checkbox" data-pick="${attr(u.id)}" aria-label="Pick ${attr(u.path)}"${S.picked.has(u.id) ? ' checked' : ''}>`) }] : []),
+      { key: 'url', label: 'Old URL', render: u => `<div style="max-width:280px;overflow-wrap:anywhere"><a href="#" class="open" data-id="${attr(u.id)}">${h(u.path || u.url)}</a> ${statusCell(u)}${u.title ? `<div class="muted small">${h(u.title)}</div>` : ''}<div class="muted small">${(u.sources || []).map(s => h(SOURCE[s] || s)).join(', ')}${u.orphan ? ` ${tag('wait', 'Orphan')}` : ''}</div></div>` },
       { key: 'real_rd', label: 'Sites: real / all', num: true, render: u => `${u.real_rd} / ${u.all_rd}` },
       { key: 'est_traffic', label: gsc ? 'Clicks' : 'Est. visits', num: true, render: u => (gsc ? u.clicks : traffic(u.est_traffic)) },
-      { key: 'matters', label: 'Matters?', render: u => `<div style="min-width:220px">${u.matters ? pill('ok', 'Yes') : pill('none', 'No')}${u.top20 ? ` ${tag('accent', 'Top list')}` : ''}${u.injected ? ` ${tag('block', 'Looks injected')}` : ''}${u.override != null ? ` ${tag('', 'By hand')}` : ''}<div class="muted small">${h((u.matters_why || []).join('. '))}</div></div>` },
+      { key: 'matters', label: 'Matters?', render: u => `<div style="min-width:${ready ? 90 : 220}px">${u.matters ? pill('ok', 'Yes') : pill('none', 'No')} ${info((u.matters_why || []).join('. '))}${u.top20 ? ` ${tag('accent', 'Top list')}` : ''}${u.injected ? ` ${tag('block', 'Looks injected')}` : ''}${u.override != null ? ` ${tag('', 'By hand')}` : ''}${ready ? '' : `<div class="muted small">${h((u.matters_why || []).join('. '))}</div>`}</div>` },
+      ...(ready ? [
+        { key: 'decision', label: 'Decision', render: u => `<select class="input" style="min-width:96px" data-decision="${attr(u.id)}" aria-label="Decision for ${attr(u.path)}">${['Keep', 'Reuse', 'Merge', 'Retire', 'Remove'].map(x => `<option${u.plan.decision === x ? ' selected' : ''}>${x}</option>`).join('')}</select>${u.plan.approved ? `<div style="margin-top:4px">${tag('ok', u.plan.by_hand ? 'Set by hand' : 'Approved')}</div>` : `<div style="margin-top:4px"><button class="btn btn-ghost btn-xs" data-approve="${attr(u.id)}" ${u.plan.proposal ? 'disabled' : ''}>Approve</button></div>`}` },
+        { key: 'new_url', label: 'New URL', render: u => `<input class="input" style="min-width:170px" list="pageOptions" data-newurl="${attr(u.id)}" value="${attr(u.plan.new_url)}" placeholder="${u.plan.decision === 'Remove' || u.plan.redirect_type === 'none' || u.plan.redirect_type === '410' ? 'None' : '/page'}" aria-label="New URL for ${attr(u.path)}" ${u.plan.decision === 'Keep' || u.plan.decision === 'Remove' ? 'disabled' : ''}>` },
+        { key: 'redirect', label: 'Redirect', render: u => (u.plan.decision === 'Retire' ? `<select class="input" style="min-width:80px" data-redirect="${attr(u.id)}" aria-label="Redirect for ${attr(u.path)}">${[['301', '301'], ['410', '410'], ['none', 'None']].map(([v, l]) => `<option value="${v}"${u.plan.redirect_type === v ? ' selected' : ''}>${l}</option>`).join('')}</select>` : tag(u.plan.redirect_type === '410' ? 'block' : u.plan.redirect_type === '301' ? 'run' : '', u.plan.redirect_type === 'none' ? 'None' : u.plan.redirect_type)) },
+        { key: 'reason', label: 'Why', render: u => `<div class="small" style="min-width:220px;max-width:340px">${h(u.plan.reason)}${u.plan.check ? ` ${tag('wait', 'Check this')}` : ''}${u.plan.needs_page ? ` ${tag('wait', 'Needs a page')}` : ''}${u.plan.lifted ? `<div class="notice warn" style="margin-top:4px">${h(u.plan.lifted)}</div>` : ''}${u.plan.differs ? `<div class="muted">Suggested: ${h(u.plan.suggested.decision)}${u.plan.suggested.new_url ? ` to ${h(u.plan.suggested.new_url)}` : ''}.</div>` : ''}${u.plan.approved ? ` <a href="#" class="muted" data-reset="${attr(u.id)}">Back to the suggestion</a>` : ''}</div>` },
+      ] : []),
     ];
-    const chips = FILTERS.map(([k, label, fn]) => `<button class="btn btn-sm ${S.filter === k ? 'btn-primary' : 'btn-ghost'}" data-filter="${k}">${h(label)} (${d.urls.filter(fn).length})</button>`).join(' ');
-    return card({ title: 'URLs on the old site', sub: 'Click a URL for its searches, its links and the saved text. Decisions and the URL map come next.', body: `<div class="btn-row" style="flex-wrap:wrap;margin-bottom:12px">${chips}</div>${table({ columns: cols, rows, rowId: u => u.id, cards: true, emptyText: 'Nothing in this filter.' })}` });
+    const chips = FILTERS.filter(([k, , fn]) => k === 'all' || d.urls.some(fn)).map(([k, label, fn]) => `<button class="btn btn-sm ${S.filter === k ? 'btn-primary' : 'btn-ghost'}" data-filter="${k}">${h(label)} (${d.urls.filter(fn).length})</button>`).join(' ');
+    const picked = [...S.picked].filter(id => d.urls.some(u => u.id === id && !u.plan.approved)).length;
+    const tools = ready ? `<div class="btn-row" style="flex-wrap:wrap;margin-bottom:12px"><button class="btn btn-primary btn-sm" id="approvePicked" ${picked ? '' : 'disabled'}>Approve selected${picked ? ` (${picked})` : ''}</button><button class="btn btn-ghost btn-sm" id="pickShown">Select all shown</button><button class="btn btn-ghost btn-sm" id="approveAll" ${d.urls.some(u => u.plan.decision && !u.plan.approved) ? '' : 'disabled'}>Approve all suggestions</button><a class="btn btn-ghost btn-sm" href="${attr(base)}/export/old-site-audit.csv" download>Export Old Site Audit CSV</a><a class="btn btn-ghost btn-sm" href="${attr(base)}/export/url-map.csv" download>Export URL map CSV</a></div>` : '';
+    const waitNote = ready ? '' : `<div class="notice warn" style="margin-bottom:12px">The suggested decisions wait for the Page Map, because each URL is matched against it. Approve the locations first, and the Page Map builds.</div>`;
+    const more = rows.length > shownRows.length ? `<div style="margin-top:12px"><button class="btn btn-ghost btn-sm" id="showAll">Show all ${rows.length}</button></div>` : '';
+    const options = `<datalist id="pageOptions">${(d.page_options || []).map(o => `<option value="${attr(o.path)}">${h(o.title)}</option>`).join('')}</datalist>`;
+    return card({ title: 'URL map', sub: ready ? 'Every old URL with a suggested decision and new URL. Change any row and it counts as approved. Click a URL for its searches, its links and the saved text.' : 'Every URL on the old site. Click a URL for its searches, its links and the saved text.', body: `${waitNote}<div class="btn-row" style="flex-wrap:wrap;margin-bottom:12px">${chips}</div>${tools}${options}${table({ columns: cols, rows: shownRows, rowId: u => u.id, cards: true, emptyText: 'Nothing in this filter.' })}${more}` });
+  }
+
+  // The Page Map moves only when a person says so, because the page's address changes everywhere
+  function pageMapCard() {
+    const waiting = d.urls.filter(u => u.plan && u.plan.proposal && !u.plan.approved);
+    const done = d.page_map_changes || [];
+    if (!waiting.length && !done.length) return '';
+    const rowsW = waiting.map(u => `<li><strong>Keep ${h(u.path)}.</strong> The Page Map has "${h(u.plan.proposal.title)}" at ${h(u.plan.proposal.from)}. Moving the page to the old address means one page for the service, with no redirect.<div class="btn-row" style="margin-top:6px"><button class="btn btn-primary btn-sm" data-proposal-yes="${attr(u.id)}">Move the page to ${h(u.path)}</button><button class="btn btn-ghost btn-sm" data-proposal-no="${attr(u.id)}">No, redirect to ${h(u.plan.proposal.from)}</button></div></li>`).join('');
+    const rowsD = done.map(o => `<li>"${h(o.title || o.identity)}" moved from ${h(o.from_path || '')} to <strong>${h(o.path)}</strong>. <a href="#" data-proposal-undo="${attr(o.identity)}">Undo</a></li>`).join('');
+    return card({ title: 'Page Map changes', sub: 'An old URL that matters beats the Page Map address.', body: `<ul class="stack" style="list-style:none;margin:0;padding:0;gap:12px">${rowsW}${rowsD}</ul>` });
   }
 
   function settingsCard() {
@@ -153,7 +182,7 @@ export async function render(el, ctx) {
     if (d.running && d.scan) parts.push(progress());
     if (d.scan) {
       parts.push(warnings());
-      if (d.scan.summary) parts.push(tiles(), benchmark(), issues(), urlTable(), settingsCard());
+      if (d.scan.summary) parts.push(tiles(), benchmark(), issues(), pageMapCard(), urlTable(), settingsCard());
       else if (!d.running) parts.push(card({ body: empty({ title: 'No results from that scan', text: 'Resume carries on from where it stopped.' }) }));
     } else {
       parts.push(card({ body: empty({ title: 'No scan yet', text: 'Scan old site reads every page it can find, then asks DataForSEO for rankings and backlinks. It usually costs 6 to 15 cents and writes nothing to the site.' }) }), settingsCard());
@@ -180,7 +209,72 @@ export async function render(el, ctx) {
         draw(); clearTimeout(timer); timer = setTimeout(load, 2000);
       });
     });
-    el.querySelectorAll('[data-filter]').forEach(b => b.addEventListener('click', () => { S.filter = b.dataset.filter; draw(); }));
+    el.querySelectorAll('[data-filter]').forEach(b => b.addEventListener('click', () => { S.filter = b.dataset.filter; S.showAll = false; draw(); }));
+    on('#showAll', () => { S.showAll = true; draw(); });
+
+    // A write, then the new state. A refused edit says why and the row goes back to what's saved.
+    const act = async (label, fn) => {
+      try {
+        const out = await fn();
+        if (out) d = out;
+        if (label) toast(label);
+      } catch (err) { console.error('[site-audit]', err); toast(err.message, 'error'); }
+      draw();
+    };
+    const rowOf = id => d.urls.find(u => u.id === id);
+    const saveRow = (id, body) => act('', () => api(`${base}/urls/${encodeURIComponent(id)}/decision`, { method: 'PUT', body }));
+    el.querySelectorAll('[data-decision]').forEach(s => s.addEventListener('change', () => {
+      const id = s.dataset.decision, u = rowOf(id);
+      saveRow(id, { decision: s.value, new_url: u.plan.new_url || (s.value === 'Keep' ? u.path : '') });
+    }));
+    el.querySelectorAll('[data-newurl]').forEach(i => i.addEventListener('change', () => {
+      const id = i.dataset.newurl, u = rowOf(id);
+      saveRow(id, { decision: u.plan.decision, new_url: i.value, redirect_type: i.value ? '301' : u.plan.redirect_type === '301' ? 'none' : u.plan.redirect_type });
+    }));
+    el.querySelectorAll('[data-redirect]').forEach(s => s.addEventListener('change', () => {
+      const id = s.dataset.redirect, u = rowOf(id);
+      saveRow(id, { decision: 'Retire', new_url: s.value === '301' ? u.plan.new_url || u.plan.suggested.new_url : '', redirect_type: s.value });
+    }));
+    el.querySelectorAll('[data-reset]').forEach(a => a.addEventListener('click', e => { e.preventDefault(); saveRow(a.dataset.reset, { reset: true }); }));
+    el.querySelectorAll('[data-approve]').forEach(b => b.addEventListener('click', () => act('Approved.', () => api(`${base}/approve`, { method: 'POST', body: { url_ids: [b.dataset.approve] } }))));
+    el.querySelectorAll('[data-pick]').forEach(c => c.addEventListener('change', () => { if (c.checked) S.picked.add(c.dataset.pick); else S.picked.delete(c.dataset.pick); draw(); }));
+    on('#pickShown', () => {
+      const test = (FILTERS.find(f => f[0] === S.filter) || FILTERS[0])[2];
+      for (const u of d.urls.filter(test)) if (!u.plan.approved && !u.plan.proposal) S.picked.add(u.id);
+      draw();
+    });
+    const afterApprove = out => { S.picked.clear(); d = out; const { approved, waiting } = out.approval; toast(`${approved} approved.${waiting ? ` ${waiting} wait for a Page Map change.` : ''}`); draw(); };
+    on('#approvePicked', async e => {
+      await busy(e.target, 'Approving', async () => {
+        try { afterApprove(await api(`${base}/approve`, { method: 'POST', body: { url_ids: [...S.picked] } })); }
+        catch (err) { console.error('[site-audit]', err); toast(err.message, 'error'); }
+      });
+    });
+    on('#approveAll', async e => {
+      const left = d.urls.filter(u => u.plan.decision && !u.plan.approved);
+      const check = left.filter(u => u.plan.check || u.plan.needs_page).length;
+      if (!(await confirm({ title: `Approve ${left.length} suggestions?`, text: `Each row is approved as it stands, and you can still change any of them afterwards.${check ? ` ${check} are marked to check: the Check these filter shows them.` : ''} Nothing goes to the site.`, ok: 'Approve them' }))) return;
+      await busy(e.target, 'Approving', async () => {
+        try { afterApprove(await api(`${base}/approve`, { method: 'POST', body: { all: true } })); }
+        catch (err) { console.error('[site-audit]', err); toast(err.message, 'error'); }
+      });
+    });
+    el.querySelectorAll('[data-proposal-yes]').forEach(b => b.addEventListener('click', async () => {
+      const id = b.dataset.proposalYes, u = rowOf(id);
+      if (!(await confirm({ title: `Move "${u.plan.proposal.title}" to ${u.path}?`, text: `The Page Map page moves from ${u.plan.proposal.from} to ${u.path}, every link to it follows, and the old URL stays with no redirect. Copy already written keeps the old link until it's regenerated.`, ok: 'Move the page' }))) return;
+      await act('', async () => {
+        const out = await api(`${base}/urls/${encodeURIComponent(id)}/page-map-change`, { method: 'POST', body: { accept: true } });
+        const stale = (out.page_map_change && out.page_map_change.copy_linking_old) || [];
+        toast(stale.length ? `Moved. ${stale.length} written ${stale.length === 1 ? 'page still links' : 'pages still link'} to the old address, so regenerate ${stale.length === 1 ? 'it' : 'them'}.` : 'Moved.');
+        return out;
+      });
+    }));
+    el.querySelectorAll('[data-proposal-no]').forEach(b => b.addEventListener('click', () => act('The Page Map stays as it is, and the old URL redirects to it.', () => api(`${base}/urls/${encodeURIComponent(b.dataset.proposalNo)}/page-map-change`, { method: 'POST', body: { accept: false } }))));
+    el.querySelectorAll('[data-proposal-undo]').forEach(a => a.addEventListener('click', async e => {
+      e.preventDefault();
+      if (!(await confirm({ title: 'Undo this Page Map change?', text: 'The page goes back to its planned address, and the old URL goes back to a suggestion.', ok: 'Undo it' }))) return;
+      await act('Undone.', () => api(`${base}/page-map-changes/undo`, { method: 'POST', body: { identity: a.dataset.proposalUndo } }));
+    }));
     el.querySelectorAll('.open').forEach(a => a.addEventListener('click', e => { e.preventDefault(); openUrl(a.dataset.id); }));
     on('#toggleSettings', () => { S.settings = !S.settings; draw(); });
     on('#saveSettings', async e => {

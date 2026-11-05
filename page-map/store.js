@@ -76,6 +76,18 @@ async function ensurePageMapTables(pool) {
       inputs             JSONB,
       counts             JSONB
     );
+    CREATE TABLE IF NOT EXISTS client_page_url_overrides (
+      id          UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+      client_id   UUID NOT NULL REFERENCES clients(id) ON DELETE CASCADE,
+      identity    TEXT NOT NULL,
+      path        TEXT NOT NULL,
+      from_path   TEXT,
+      old_url     TEXT,
+      title       TEXT,
+      approved_by TEXT,
+      approved_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      UNIQUE (client_id, identity)
+    );
     CREATE TABLE IF NOT EXISTS client_town_flags (
       client_id   UUID NOT NULL REFERENCES clients(id) ON DELETE CASCADE,
       town_slug   TEXT NOT NULL,
@@ -209,7 +221,7 @@ function createPageMapStore({ pool, filloutService, volumesFor = async () => new
       const ready = inputs.resolved && inputs.resolved.categories.length && String(inputs.baseTown || '').trim();
       const volumes = opts.volumes || (ready ? await volumesFor(G.keywordsFor(inputs)) : new Map());
       const st = await state(clientId);
-      plan = G.buildPageMap(inputs, { volumes, exclude: await excludeFlags(clientId), launchTowns: await launchTownsWith(clientId, tiers), phase2Published: !!(st && st.phase2_published_at), saved: rows, tiers: tiers ? { tier1: new Set(tiers.tier1.map(t => t.slug)), tier2: new Set(tiers.tier2.map(t => t.slug)), categories: tiers.categories } : null });
+      plan = G.buildPageMap(inputs, { volumes, urlOverrides: opts.urlOverrides || await urlOverrides(clientId), exclude: await excludeFlags(clientId), launchTowns: await launchTownsWith(clientId, tiers), phase2Published: !!(st && st.phase2_published_at), saved: rows, tiers: tiers ? { tier1: new Set(tiers.tier1.map(t => t.slug)), tier2: new Set(tiers.tier2.map(t => t.slug)), categories: tiers.categories } : null });
       plan.volumesFrom = opts.volumes ? 'lookup' : 'cache';
       plan.locationTiers = inputs.locationTiers || null;
     }
@@ -287,7 +299,110 @@ function createPageMapStore({ pool, filloutService, volumesFor = async () => new
 
   async function csv(clientId, opts) { return G.toCsv(await saved(clientId), opts); }
 
-  return { saved, state, preview, generate, setRow, csv, excludeFlags, setExclude, launchTowns, townFlags, launchTownsWith, setLaunchTown, publishPhase2, tiersFor };
+  // ── A kept old URL (site audit, 5 Nov) ──
+  // Page records, allocations and H1 candidates are all keyed by the slug, and the next regeneration
+  // matches rows by it. So a page moves in one transaction: the override is saved against the page's
+  // stable identity, then the row and everything keyed by its slug are renamed, and regenerating
+  // sees no change and redraws every link. Written copy isn't touched: copyLinking says which
+  // pages still link to the old address, for regenerating.
+  async function urlOverrides(clientId) {
+    const { rows } = await pool.query(`SELECT identity, path FROM client_page_url_overrides WHERE client_id = $1`, [clientId]);
+    return new Map(rows.map(r => [r.identity, r.path]));
+  }
+  async function listUrlOverrides(clientId) {
+    const { rows } = await pool.query(`SELECT identity, path, from_path, old_url, title, approved_by, approved_at FROM client_page_url_overrides WHERE client_id = $1 ORDER BY approved_at`, [clientId]);
+    return rows;
+  }
+  async function hasH1Candidates() {
+    try { await pool.query(`SELECT 1 FROM h1_candidates LIMIT 1`); return true; }
+    catch (_) { return false; } // the H1 research tables aren't there, so there is nothing to rename
+  }
+  async function inTransaction(fn) {
+    const c = await pool.connect();
+    try {
+      await c.query('BEGIN');
+      const out = await fn(c);
+      await c.query('COMMIT');
+      return out;
+    } catch (e) {
+      await c.query('ROLLBACK');
+      throw e;
+    } finally { c.release(); }
+  }
+  async function renameEverywhere(q, clientId, row, toSlug, withH1) {
+    const from = row.slug;
+    const toKey = G.pageKey(row.type, toSlug);
+    await q.query(`UPDATE client_page_map SET page_key = $3, slug = $4, updated_at = NOW() WHERE id = $1 AND client_id = $2`, [row.id, clientId, toKey, toSlug]);
+    if (withH1) await q.query(`UPDATE h1_candidates SET page_key = $3 WHERE client_id = $1 AND page_key = $2`, [clientId, row.page_key, toKey]);
+    const { rows: assets } = await q.query(`SELECT id, asset_type, content, metadata FROM client_assets WHERE client_id = $1 AND asset_type IN ('v20_page_record', 'allocation')`, [clientId]);
+    for (const a of assets) {
+      if (a.asset_type === 'v20_page_record') {
+        const m = parse(a.metadata) || {};
+        if (m.page_key === from) await q.query(`UPDATE client_assets SET metadata = $2 WHERE id = $1`, [a.id, JSON.stringify({ ...m, page_key: toSlug })]);
+      } else {
+        const content = parse(a.content) || {};
+        const pages = content.pages || {};
+        const stale = Object.keys(pages).filter(k => k.endsWith(`:${from}`));
+        if (!stale.length) continue;
+        for (const k of stale) { pages[`${k.slice(0, k.length - from.length)}${toSlug}`] = pages[k]; delete pages[k]; }
+        await q.query(`UPDATE client_assets SET content = $2 WHERE id = $1`, [a.id, JSON.stringify(content)]);
+      }
+    }
+  }
+  // Written pages whose copy still carries the address the page moved from
+  async function copyLinking(clientId, path) {
+    const { rows } = await pool.query(`SELECT content, metadata FROM client_assets WHERE client_id = $1 AND asset_type = 'v20_page_record'`, [clientId]);
+    const keys = new Set();
+    for (const r of rows) { const m = parse(r.metadata) || {}; if (String(r.content).includes(`](${path})`) || String(r.content).includes(`"${path}"`)) keys.add(m.page_key || 'homepage'); }
+    return [...keys];
+  }
+
+  async function applyUrlOverride(clientId, { page_key: pageKey, path, old_url: oldUrl = '', who = '' }) {
+    const rows = await saved(clientId);
+    const row = rows.find(r => r.page_key === pageKey && r.applies !== false);
+    if (!row) throw Object.assign(new Error('That page is no longer on the Page Map.'), { status: 404 });
+    const identity = G.identityOf(row);
+    if (!identity) throw Object.assign(new Error("The homepage can't move."), { status: 400 });
+    if (!/^\/[^?#]*$/.test(String(path || ''))) throw Object.assign(new Error(`"${path}" isn't an address a page can have.`), { status: 400 });
+    const taken = rows.find(r => r.slug === path && r.applies !== false && r.id !== row.id);
+    if (taken) throw Object.assign(new Error(`"${taken.title}" is already at ${path}, so "${row.title}" can't move there.`), { status: 409 });
+    // Plan it first: nothing is saved if the Page Map can't be built this way
+    const next = await urlOverrides(clientId);
+    next.set(identity, path);
+    const { plan } = await preview(clientId, { urlOverrides: next });
+    if (!plan.ok) throw Object.assign(new Error(plan.problems.map(p => p.msg).join(' ')), { status: 400 });
+    const withH1 = await hasH1Candidates();
+    await inTransaction(async c => {
+      await c.query(`DELETE FROM client_page_url_overrides WHERE client_id = $1 AND identity = $2`, [clientId, identity]);
+      await c.query(`INSERT INTO client_page_url_overrides (client_id, identity, path, from_path, old_url, title, approved_by) VALUES ($1, $2, $3, $4, $5, $6, $7)`, [clientId, identity, path, row.slug, oldUrl, row.title, who]);
+      await renameEverywhere(c, clientId, row, path, withH1);
+    });
+    const generated = await generate(clientId);
+    return { identity, title: row.title, from: row.slug, to: path, pages: generated.rows.filter(r => r.applies !== false).length, copy_linking_old: await copyLinking(clientId, row.slug) };
+  }
+
+  // Back to the planned address
+  async function clearUrlOverride(clientId, identity) {
+    const rows = await saved(clientId);
+    const row = rows.find(r => r.applies !== false && G.identityOf(r) === identity);
+    const { rows: found } = await pool.query(`SELECT path FROM client_page_url_overrides WHERE client_id = $1 AND identity = $2`, [clientId, identity]);
+    if (!found.length) throw Object.assign(new Error('That change is not on file.'), { status: 404 });
+    const next = await urlOverrides(clientId);
+    next.delete(identity);
+    const { plan } = await preview(clientId, { urlOverrides: next });
+    if (!plan.ok) throw Object.assign(new Error(plan.problems.map(p => p.msg).join(' ')), { status: 400 });
+    const planned = plan.rows.find(r => G.identityOf(r) === identity);
+    if (row && planned && rows.some(r => r.slug === planned.slug && r.applies !== false && r.id !== row.id)) throw Object.assign(new Error(`Another page is now at ${planned.slug}, so this one can't go back.`), { status: 409 });
+    const withH1 = await hasH1Candidates();
+    await inTransaction(async c => {
+      await c.query(`DELETE FROM client_page_url_overrides WHERE client_id = $1 AND identity = $2`, [clientId, identity]);
+      if (row && planned) await renameEverywhere(c, clientId, row, planned.slug, withH1);
+    });
+    await generate(clientId);
+    return { identity, from: found[0].path, to: planned ? planned.slug : null, copy_linking_old: await copyLinking(clientId, found[0].path) };
+  }
+
+  return { saved, state, preview, generate, setRow, csv, excludeFlags, setExclude, launchTowns, townFlags, launchTownsWith, setLaunchTown, publishPhase2, tiersFor, urlOverrides, listUrlOverrides, applyUrlOverride, clearUrlOverride };
 }
 
 module.exports = { ensurePageMapTables, createPageMapStore, inputsFor, retiredReason };
