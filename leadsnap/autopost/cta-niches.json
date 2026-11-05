@@ -1,0 +1,5 @@
+{
+  "_about": "Which niche key (fillout/niches.js) gets which default call to action. A new niche goes here, not in code. Anything not listed gets Learn More. The spec's list: docs/leadsnap/Autopost_Spec.md, Settings.",
+  "call_now": ["plumbing-heating", "electricians", "roofers", "locksmith"],
+  "book": ["dog-walkers", "cleaning", "dog-grooming", "beauty"]
+}

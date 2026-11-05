@@ -114,6 +114,7 @@ async function loadDashboard({ pool, tradeFacts = null, runners = {}, homepageRu
   for (const [t, asset] of Object.entries(RUN_ASSET)) runStates[t] = new Map((await latest(asset)).map(r => [r.client_id, parse(r.content)]));
   const values = new Map((await latest('client_values')).map(r => [r.client_id, parse(r.content) || {}]));
   const gbp = new Map((await latest('gbp_output')).map(r => [r.client_id, parse(r.content) || {}]));
+  const leadSnap = new Map((await latest('leadsnap_autopost')).map(r => [r.client_id, parse(r.content) || {}]));
   // The Location Determiner (the Locations tab dot): a run saved, an approved list
   const locRunAt = new Map((await q(`SELECT client_id, MAX(uploaded_at) AS at FROM client_assets WHERE asset_type = 'locations_run' GROUP BY client_id`)).map(r => [r.client_id, r.at]));
   const locRuns = new Set(locRunAt.keys());
@@ -242,7 +243,7 @@ async function loadDashboard({ pool, tradeFacts = null, runners = {}, homepageRu
       // The wizard's answer: an existing site to replace (the Site audit tab shows), or a new build
       existing_site: cv && cv._intake ? cv._intake.existing_site !== false : null,
       site_audit: siteAudits.get(c.id) || 'none',
-      gbp_done: !!(g && g.steps && ['description', 'services', 'products'].every(k => g.steps[k] && g.steps[k].status === 'done')), has_scans: (scansByClient.get(c.id) || []).length > 0,
+      gbp_done: !!(g && g.steps && ['description', 'services', 'products'].every(k => g.steps[k] && g.steps[k].status === 'done')), lead_snap_done: !!(leadSnap.get(c.id) && leadSnap.get(c.id).sheet), has_scans: (scansByClient.get(c.id) || []).length > 0,
       locations_run: locRuns.has(c.id), locations_approved: locApproved.has(c.id), locations_approved_at: locApproved.has(c.id) ? locApproved.get(c.id).approved_at : null, locations_run_at: locRunAt.get(c.id) || null, locations_changed: locChanged(c.id),
       missing_fields: summary.missing, pack_unverified: packUnverified,
       // The page list (type, key, title, good, block, claims, score, at) only for one client's summary

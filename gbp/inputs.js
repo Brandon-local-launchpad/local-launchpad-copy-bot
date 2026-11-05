@@ -134,6 +134,8 @@ function buildGbpInputs({ cv = {}, niche = {}, rows = [], keyValueMap = {}, site
     years, accreditations, proofPoints, showPrices, prices, timeframes,
     competitorCount: Number.isFinite(competitorCount) ? competitorCount : null, minServices,
     included, siteUrl: base, flags, serviceAreasPageMap, serviceAreasFrom,
+    // The primary category's page, for the Lead Snap Learn More link
+    primarySlug: ((cats.find(c => norm(c.title) === norm(primary)) || cats[0] || {}).slug) || '',
     // The pages with a search volume, for the rank scan keywords (service rows carry copy_priority,
     // their best volume; category rows carry none today, so they come through with 0)
     volumePages: live.filter(r => r.type === 'category' || r.type === 'service').map(r => ({ type: r.type, title: r.title, h1: r.h1 || '', h1_source: r.h1_source || '', volume: (r.info && (r.info.volume || r.info.copy_priority)) || 0 })),

@@ -119,6 +119,16 @@ process.env.CITATIONS_SKIP_DA = '1'; // the demo's pg-mem is fresh each start: n
   const standIn = JSON.parse(fs.readFileSync(path.join(root, 'tests/fixtures/data/edens-edge-v3-page-map.json'), 'utf8')).rows.filter(r => r.applies !== false);
   for (const [i, r] of standIn.entries()) await pool.query(`INSERT INTO client_page_map (client_id, page_key, type, title, slug, h1, h1_source, status, applies, info, sort_order) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, TRUE, $9, $10)`, [auditId, `${r.type}:${r.slug}`, r.type, r.title, r.slug, r.h1 || '', r.h1_source || 'needed', r.status || 'Not Started', JSON.stringify(r.info || {}), i]);
   await pool.query(`INSERT INTO client_page_map_state (client_id, generated_at, inputs) VALUES ($1, NOW(), $2)`, [auditId, JSON.stringify({ baseTown: 'Southampton' })]);
+  // The Lead Snap tab: the newest local real run (node tools/leadsnap-autopost-run.js edens-edge) when there is
+  // one, so the config can be seen with real prompts. Generate here gets the demo's canned model, so it shows the failed state.
+  const lsDir = path.join(root, 'tests/quality-runs/leadsnap/edens-edge');
+  const lsRuns = fs.existsSync(lsDir) ? fs.readdirSync(lsDir).filter(d => fs.existsSync(path.join(lsDir, d, 'autopost-config.txt'))).sort() : [];
+  if (lsRuns.length) {
+    const lsRec = fs.readFileSync(path.join(lsDir, lsRuns[lsRuns.length - 1], 'record.json'), 'utf8');
+    const lsParsed = JSON.parse(lsRec);
+    await pool.query(`INSERT INTO client_assets (client_id, asset_type, filename, content) VALUES ($1, 'leadsnap_autopost', 'leadsnap_autopost.json', $2)`, [auditId, lsRec]);
+    await pool.query(`INSERT INTO client_assets (client_id, asset_type, filename, content) VALUES ($1, 'leadsnap_autopost_hand', 'leadsnap_autopost_hand.json', $2)`, [auditId, JSON.stringify({ counts: Object.fromEntries(lsParsed.intake.groups.map(g => [g.key, g.photos])), brand: lsParsed.intake.brand })]);
+  }
   // Its redirects go to the fake site, marked staging. The fake site answers only the pages it has.
   const { encrypt } = require(path.join(root, 'wp/secrets.js'));
   await pool.query(`INSERT INTO wp_connections (client_id, url, wp_user, app_password_enc, staging, seo) VALUES ($1, $2, 'copybot', $3, TRUE, 'rankmath')`, [auditId, wp.url, encrypt('test-app-password-not-real')]);
