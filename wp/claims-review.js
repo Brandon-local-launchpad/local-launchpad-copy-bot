@@ -110,7 +110,7 @@ function parseFindings(text, record) {
   const kept = [], dropped = [];
   // A finding the model cleared itself ("no issue", "supported") isn't a finding
   // (also "Withdrawing this finding." and "not an unsupported claim", seen live 15 Oct)
-  const selfCleared = w => /\bno issue\b|\bnot a claim about (the|this) business\b|\bis supported\b|\bfine as is\b|\bnothing to flag\b|\bwithdraw(?:ing|n)?\s+(?:this|the)\s+finding\b|\bnot an unsupported (?:factual )?claim\b|\brather than an unsupported (?:factual )?claim\b/i.test(w || '');
+  const selfCleared = w => /\bno issue\b|\bnot a finding\b|\bnot a claim about (the|this) business\b|\bis supported\b|\bfine as is\b|\bnothing to flag\b|\bwithdraw(?:ing|n)?\s+(?:this|the)\s+finding\b|\bnot an unsupported (?:factual )?claim\b|\brather than an unsupported (?:factual )?claim\b/i.test(w || '');
   // Wording the rules require is approved, whatever the reviewer says about it (15 Oct)
   const required = requiredWording(record);
   const isRequired = f => required.some(r => norm(f.quote).includes(r.phrase) && r.topic.test(`${f.quote} ${f.why || ''}`));

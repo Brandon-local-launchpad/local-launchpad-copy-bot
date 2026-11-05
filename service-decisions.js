@@ -230,6 +230,8 @@ function computeServiceDecisions({ cv, niche, keyValueMap = {}, rows = [], page,
     else if (/^we\b/i.test(proof)) { const clause = require('./decisions').weClause(proof); cand = clause ? `${stem} ${clause}. ${metaCta}` : `${stem}. ${p.replace(/[.!]?$/, '.')} ${metaCta}`; }
     else if (/\boffer(?:s|ing)?\b/i.test(proof)) cand = `${stem} with ${proof.replace(/^offering\s+/i, '')}. ${metaCta}`;
     else if (/\bwith\b/i.test(proof)) cand = `${stem}, ${proof}. ${metaCta}`;
+    // A proof that is a whole sentence ("The price is agreed on the phone before we set out") stands on its own
+    else if (/^(?:the|our|your)\b.*\b(?:is|are|was|were)\b/i.test(proof)) cand = `${stem}. ${p.replace(/[.!]?$/, '.')} ${metaCta}`;
     else cand = `${stem} with ${proof}. ${metaCta}`;
     cand = cand.trim();
     if (cand.length <= 155) { meta = cand; break; }

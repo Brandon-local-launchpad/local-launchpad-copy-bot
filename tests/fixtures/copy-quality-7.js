@@ -29,6 +29,12 @@ const prompt = fs.readFileSync(path.join(root, 'prompts/Claims_Review_CORE.md'),
 chk('Claims prompt: reads every value before listing, and names the onboarding fields', prompt.includes('CORE (8)') && prompt.includes('Read every value before you list') && ['if_not_happy', 'typical_jobs', 'areas_worked', 'out_of_hours_available', 'quote_includes', 'materials_methods'].every(k => prompt.includes('[CV: ' + k + ']')), '', 'the rule');
 chk('Claims prompt: a word beyond the value is still a finding', prompt.includes('Only a word that goes beyond the value is a finding'), '', 'kept');
 
+const { computeServiceDecisions } = require(path.join(root, 'service-decisions.js'));
+const SV = fs.readFileSync(path.join(root, 'service-decisions.js'), 'utf8');
+chk('Service meta: a proof that is a whole sentence stands on its own, never "with the price is agreed"', SV.includes('stands on its own') && /\(\?:the\|our\|your\)/.test(SV), '', 'the rule');
+const CR = fs.readFileSync(path.join(root, 'wp/claims-review.js'), 'utf8');
+chk('Claims: a finding the checker itself calls "not a finding" is dropped', CR.includes('not a finding'), '', 'dropped');
+
 // ── "Proving it's your door" ──
 const card = locksmith.service_page_blocks.A.emergency.problems.cards[3];
 chk('The card is about what to have ready and why the check protects the customer', card.title === "Proving it's your door" && card.brief.startsWith('What to have to hand') && card.brief.includes('protects the customer'), card.brief.slice(0, 120), 'that');
