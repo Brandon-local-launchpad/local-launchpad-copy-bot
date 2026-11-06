@@ -34,11 +34,11 @@ const simple = ({ name, primary, town, areas, services, proofPoints = [], accred
 function client(name) {
   if (name === 'plumber') {
     const I = simple({ name: 'Hartley Plumbing & Heating', primary: 'Plumber', town: 'Romford', areas: ['Hornchurch', 'Upminster', 'Gidea Park', 'Harold Wood', 'Collier Row', 'Dagenham', 'Brentwood'], services: [['Boiler repair', 900], ['Boiler installation', 800], ['Leak repair', 300], ['Bathroom fitting', 200], ['Drain unblocking', 100]], years_trading: '15', accreditations: 'Gas Safe registered', proofPoints: ['same day callouts', 'fixed prices agreed before work starts'], phone: '01708 123456' });
-    return { I, trade: 'Plumbing & Heating', answers: { tone: 'Friendly, plain-spoken', words_to_avoid: '' }, hand: { counts: { boilers: 6, leaks: 4, bathrooms: 0, drains: 2 }, brand: 5, offer: 'Free boiler quote' } };
+    return { I, trade: 'Plumbing & Heating', answers: { tone: 'Friendly, plain-spoken', words_to_avoid: '' }, hand: { counts: { boilers: 6, 'leak-repair': 4, 'bathroom-fitting': 0, 'drain-unblocking': 2 }, brand: 5, offer: 'Free boiler quote' } };
   }
   if (name === 'dog-walker') {
     const I = simple({ name: 'Happy Tails', primary: 'Dog Walker', town: 'Bath', areas: ['Keynsham', 'Saltford', 'Bathford', 'Batheaston', 'Combe Down', 'Odd Down', 'Weston'], services: [['Dog walking', 50], ['Puppy visits', 20], ['Pet sitting', 10]], proofPoints: ['insured and DBS checked', 'small groups only', 'photo updates after every walk'], site: 'https://happytails.example' });
-    return { I, trade: 'Pet Care Services (Dog Walkers)', answers: {}, hand: { counts: { dogs: 8, 'puppy-visits': 4, 'pet-sitting': 1 }, brand: 3, booking_url: 'https://happytails.example/book' } };
+    return { I, trade: 'Pet Care Services (Dog Walkers)', answers: {}, hand: { counts: { 'dog-walking': 8, 'puppy-visits': 4, 'pet-sitting': 1 }, brand: 3, booking_url: 'https://happytails.example/book' } };
   }
   if (name === 'kestrel-thin') {
     // A thin client: no USPs, few photos, no brand photos, no site

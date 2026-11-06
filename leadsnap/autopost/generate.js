@@ -22,12 +22,14 @@ const loadSystem = () => `${readPrompt('LeadSnap_Autopost_CORE.md')}\n\n${readPr
 const imagesLine = folder => `Choose specific images from GBP or upload -> select from folder: ${folder}`;
 const list = a => (a && a.length ? a.join(', ') : 'none');
 
+const withPages = g => `${g.label}${g.services.length > 1 || g.services[0] !== g.label ? ` (${g.services.join(', ')})` : ''}`;
+
 function buildMessage(intake, D) {
   return [
     'CLIENT INTAKE',
     `Business name: ${intake.business}`,
     `Niche: ${intake.niche}`,
-    `Services, ranked by value: ${intake.groups.map(g => g.label).join('; ')}`,
+    `Services, ranked by value (each is a short name; the pages it covers follow in brackets): ${intake.groups.map(withPages).join('; ')}`,
     `Main town: ${intake.mainTown}`,
     `Nearby areas: ${list(intake.nearby)}`,
     `USPs (the facts, as given): ${list(intake.usps)}`,
@@ -41,7 +43,7 @@ function buildMessage(intake, D) {
     `CTA sentence for the end of every prompt: ${intake.cta.sentence}`,
     `Area list for every prompt: ${intake.areas.join(', ')}`,
     `Write exactly ${D.prompts.length} prompts, in this order:`,
-    ...D.prompts.map(p => `PROMPT ${p.n} - ${p.label} | type: ${p.kind}${p.kind === 'service' ? ` | covers: ${p.services.join(', ')}` : ''}${p.kind === 'other' ? ` | one of these per post, chosen at random: ${p.services.join('; ')}` : ''} | Images folder: ${p.folder}`),
+    ...D.prompts.map(p => `PROMPT ${p.n} - ${p.label} | type: ${p.kind}${p.kind === 'service' ? ` | covers: ${p.services.join(', ')}` : ''}${p.kind === 'other' ? ` | one of these per post, chosen at random: ${p.covers.map(withPages).join('; ')}` : ''} | Images folder: ${p.folder}`),
     '',
     D.gaps.length ? `PHOTO GAPS to write, one line each, in this order: ${D.gaps.map(g => `${g.label} (${g.photos} photos)`).join('; ')}` : 'PHOTO GAPS: none.',
   ].join('\n');
@@ -108,7 +110,7 @@ function validateSheet(parsed, intake, D) {
     if (bullets < minBullets || bullets > 6) fail(d.n, `has ${bullets} angles; write ${minBullets} to 6, one per line starting "- ".`);
     for (const u of intake.usps) if (!has(t, u)) fail(d.n, `is missing the fact "${u}"; list every fact as given.`);
     if (d.kind === 'service' && !d.services.some(s => has(t, s))) fail(d.n, `does not name the service (${d.services.join(', ')}).`);
-    if (d.kind === 'other') for (const s of d.services) if (!has(t, s)) fail(d.n, `does not list "${s}".`);
+    if (d.kind === 'other') for (const c of d.covers) if (![c.label, ...c.services].some(s => has(t, s))) fail(d.n, `does not list "${c.label}".`);
     if (d.kind === 'offer' && !has(t, intake.offer)) fail(d.n, `does not state the offer, "${intake.offer}".`);
     if (/[–—]/.test(t)) fail(d.n, 'has an em or en dash; use commas or full stops.');
     const body = strip(t);
@@ -126,7 +128,7 @@ function validateSheet(parsed, intake, D) {
 function gapLine(gap, reply) {
   const given = (reply || []).find(l => l.toLowerCase().startsWith(`${gap.label.toLowerCase()}:`));
   const m = given && given.match(/Ask the client for .*$/i);
-  const ask = m ? m[0].replace(/\.?$/, '.') : `Ask the client for 3-4 photos of finished ${gap.label.toLowerCase()} jobs.`;
+  const ask = m ? m[0].replace(/\.?$/, '.') : `Ask the client for 3-4 photos of finished ${(gap.services || [gap.label]).slice(0, 2).join(' and ').toLowerCase()} jobs.`;
   return `${gap.label}: ${gap.photos} photo${gap.photos === 1 ? '' : 's'}. ${ask}`;
 }
 
@@ -138,11 +140,12 @@ function assemble(parsed, intake, D) {
   });
   const gaps = D.gaps.map(g => ({ ...g, line: gapLine(g, parsed.gaps) }));
   const settings = { frequency: FREQUENCY, cta: intake.cta.line, cta_type: intake.cta.type, cta_url: intake.cta.url, tone: intake.tone };
-  return { business: intake.business, settings, prompts, gaps, checklist: CHECKLIST, notes: D.notes };
+  return { business: intake.business, settings, prompts, gaps, checklist: CHECKLIST, notes: D.notes, tooFew: D.tooFew || null };
 }
 
 function sheetText(o) {
-  const L = [`LEAD SNAP AUTOPOST CONFIG - ${o.business}`, '', 'SETTINGS', `Frequency: ${o.settings.frequency}`, `Call to action: ${o.settings.cta}`, ''];
+  const warn = o.tooFew ? [`WARNING: ${o.tooFew.message}`, ...o.tooFew.unlock.map(u => `- ${u}`), ''] : [];
+  const L = [`LEAD SNAP AUTOPOST CONFIG - ${o.business}`, '', ...warn, 'SETTINGS', `Frequency: ${o.settings.frequency}`, `Call to action: ${o.settings.cta}`, ''];
   for (const p of o.prompts) L.push(`PROMPT ${p.n} - ${p.label}`, `Tone: ${p.tone}`, `Images: ${p.images}`, 'Prompt:', p.text, '');
   L.push('PHOTO GAPS', ...(o.gaps.length ? o.gaps.map(g => `- ${g.line}`) : ['None.']), '', 'VA CHECKLIST', ...o.checklist.map(c => `[ ] ${c}`));
   return L.join('\n');
@@ -173,13 +176,13 @@ async function runAutopost({ intake, callModel, previous = null, log = null }) {
   const output = assemble(parsed, intake, D);
   return {
     version: 1, model: MODEL, generated_at: at, attempts, usage, output, sheet: sheetText(output), flags: validation.flags, failure: null,
-    intake: { business: intake.business, niche: intake.niche, areas: intake.areas, areasWhy: intake.areasWhy, usps: intake.usps, groups: intake.groups, brand: intake.brand, offer: intake.offer, cta: intake.cta, tone: intake.tone, avoid: intake.avoid },
+    intake: { offerSource: intake.offerSource, business: intake.business, niche: intake.niche, areas: intake.areas, areasWhy: intake.areasWhy, usps: intake.usps, groups: intake.groups, brand: intake.brand, offer: intake.offer, cta: intake.cta, tone: intake.tone, avoid: intake.avoid },
   };
 }
 
 function filesFor(rec) {
   if (!rec || !rec.sheet) return {};
-  return { 'autopost-config.txt': rec.sheet, 'validation.json': JSON.stringify({ generated_at: rec.generated_at, model: rec.model, attempts: rec.attempts, flags: rec.flags, intake: rec.intake, notes: rec.output.notes }, null, 2) };
+  return { 'autopost-config.txt': rec.sheet, 'validation.json': JSON.stringify({ generated_at: rec.generated_at, model: rec.model, attempts: rec.attempts, flags: rec.flags, intake: rec.intake, notes: rec.output.notes, too_few: rec.output.tooFew || null }, null, 2) };
 }
 
 module.exports = { MODEL, MAX_TOKENS, CHECKLIST, loadSystem, buildMessage, parseSheet, validateSheet, assemble, sheetText, runAutopost, filesFor };

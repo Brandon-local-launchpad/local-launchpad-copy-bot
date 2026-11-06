@@ -15,6 +15,7 @@ const CTA_NICHES = require('./cta-niches.json');
 
 const AREA_OTHERS = 7;                // main town + 7, as the spec's worked example
 const MIN_NEARBY = 6;
+const FREE_QUOTE_OFFER = 'free, no-obligation quote';
 const NOT_A_TOWN = /\b(district|council|borough|county)\b/i;
 
 const str = v => (v == null ? '' : String(v)).trim();
@@ -34,24 +35,18 @@ const cap = s => (s ? s.charAt(0).toUpperCase() + s.slice(1) : s);
 // Things sold by the load or the area have no plural: "Turf laying" is the Turf folder
 const MASS = new Set(['turf', 'grass', 'gravel', 'concrete', 'tarmac', 'resin', 'glass', 'plaster', 'insulation', 'carpet', 'artificial']);
 const plural = w => (/(ing|s)$/.test(w) || MASS.has(w) ? w : `${w}s`);
-const singular = w => (/[^s]s$/.test(w) ? w.slice(0, -1) : w);
 const keyOf = s => norm(s).replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
 
-function namesFor(g) {
-  const first = g.members[0];
-  if (g.members.length === 1) {
-    // "Leak repair" is the Leaks folder; a name with more to it keeps its whole name
-    const w = words(first);
-    const oneThing = g.head && w[0] === g.head && w.slice(1).every(x => !isThing(x));
-    return { label: first, folder: oneThing ? cap(plural(g.head)) : first };
-  }
-  const folder = cap(plural(g.head));
-  const lead = new RegExp(`^${g.head}\\s+`, 'i');
-  if (g.members.length === 2 && g.members.every(m => lead.test(m))) {
-    return { label: `${first} and ${g.members[1].replace(lead, '').toLowerCase()}`, folder };
-  }
-  return { label: `${cap(singular(g.head))} services`, folder };
+// One or two words (Brandon, 6 Nov), and the name is also the folder: GBP Posts / [name], which
+// the photo sort skill creates. Pages sharing a thing are that thing ("Boilers"); a lone page keeps
+// its own name, cut down: "Artificial grass installation" is "Artificial grass", "Ponds and water
+// features" is "Ponds".
+function shortName(title) {
+  let w = str(title).split(/\s+(?:and|or|&)\s+/i)[0].split(/\s+/);
+  if (w.length > 2) { const kept = w.filter(x => !JOB_WORDS.has(x.toLowerCase())); if (kept.length) w = kept; }
+  return cap(w.slice(0, 2).join(' '));
 }
+const nameFor = g => (g.members.length === 1 ? shortName(g.members[0]) : cap(plural(g.head)));
 
 // locked: [{ service, copyPriority }]. Returns the groups ranked highest value first: a service
 // the client said they want most (jobs_wanted) first, then best search volume, then most pages.
@@ -76,9 +71,9 @@ function groupServices(locked = [], jobsWanted = []) {
     return wanted.length;
   };
   const out = [...groups.values()].map((g, order) => {
-    const named = namesFor(g);
+    const name = nameFor(g);
     const rank = wantedRank(g);
-    return { key: keyOf(named.folder), label: named.label, folder: named.folder, services: g.members, volume: g.volume, wanted: rank < wanted.length, rank, order };
+    return { key: keyOf(name), label: name, folder: name, services: g.members, volume: g.volume, wanted: rank < wanted.length, rank, order };
   });
   out.sort((a, b) => (a.rank - b.rank) || (b.volume - a.volume) || (b.services.length - a.services.length) || (a.order - b.order));
   // The key is what the typed counts hang on, so two groups never share one
@@ -148,7 +143,12 @@ function buildIntake({ I, trade = '', answers = {}, hand = {} }) {
   const toneAnswer = Array.isArray(answers.tone) ? answers.tone.map(str).filter(Boolean).join(', ') : str(answers.tone);
   const tone = str(hand.tone) || toneAnswer.toLowerCase() || 'friendly and professional';
   const avoid = [str(answers.words_to_avoid), str(hand.avoid)].filter(Boolean).join('; ');
-  const offer = str(hand.offer);
+  // A typed offer wins. Otherwise confirmed free quotes are the offer (Brandon, 6 Nov): a confirmed
+  // fact, not an invented one. Nothing else becomes an offer on its own.
+  const typedOffer = str(hand.offer);
+  const freeQuotes = str(cv.free_quotes).toLowerCase() === 'yes';
+  const offer = typedOffer || (freeQuotes ? FREE_QUOTE_OFFER : '');
+  const offerSource = typedOffer ? 'typed' : freeQuotes ? 'free_quotes' : '';
   // The live domain only: a public post never links to the WordPress connection, which may be a
   // staging host (the same rule as the citation packs)
   const website = liveDomain(cv);
@@ -171,14 +171,17 @@ function buildIntake({ I, trade = '', answers = {}, hand = {} }) {
   if (cta.type === 'Book' && !cta.url) warnings.push('Book needs a booking URL: type it in below.');
   if (cta.type === 'Learn More' && !cta.url) warnings.push('No live domain is saved, so Learn More has nowhere to go. Save it on Client Values.');
   if (cta.type === 'Learn More' && CTA_NICHES.book.includes(nicheKey) && !str(hand.cta_type)) warnings.push('This niche normally uses Book, but no booking URL is saved, so the call to action falls back to Learn More. Type the booking URL below if the client has one.');
+  // Counts saved under a name the services no longer have would quietly read as 0
+  const stale = counts ? Object.keys(counts).filter(k => Number(counts[k]) > 0 && !groups.some(g => g.key === k)) : [];
+  if (stale.length) warnings.push(`Saved photo counts no longer match a service (${stale.join(', ')}). Check the counts below and save again.`);
   if (photosEntered && !groups.some(g => g.photos > 0) && brand === 0) warnings.push('Every photo count is 0, so no prompt has any photos yet. Get photos from the client before pasting this in.');
 
   return {
     business: str(cv.company_name) || str(I.name), phone: str(nap.phone), niche, nicheKey,
     mainTown: areas.main, areas: areas.all, nearby: areas.nearby, areasWhy: areas.why,
-    groups, brand, photosEntered, usps, offer, tone, avoid, cta,
+    groups, brand, photosEntered, usps, offer, offerSource, tone, avoid, cta,
     missing, warnings, ok: missing.length === 0,
   };
 }
 
-module.exports = { buildIntake, groupServices, pickAreas, pickUsps, pickCta, AREA_OTHERS };
+module.exports = { buildIntake, groupServices, shortName, pickAreas, pickUsps, pickCta, AREA_OTHERS, FREE_QUOTE_OFFER };
