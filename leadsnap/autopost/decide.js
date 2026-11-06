@@ -20,12 +20,17 @@ const more = n => `${n} more photo${n === 1 ? '' : 's'}`;
 const POSTS_ROOT = 'GBP Photos – Posts';
 const folderOf = f => `${POSTS_ROOT} / ${f}`;
 
+// The model still wrote "the question we hear most" with this angle, so generate.js adds
+// QUESTION_RULE to every prompt that has it, word for word (Brandon, 6 Nov)
+const QUESTION_ANGLE = 'one practical question answered directly, without saying who asks it or how often';
+const QUESTION_RULE = 'Open with the answer or the question itself. Never say how often it is asked or who asks it.';
+
 // In the order a service takes them. A client with few services runs further down the list.
 const SERVICE_ANGLES = [
   'the problem customers notice',
   'how the job is done',
   // Not "a common question": that wording had the model write "one of the questions we hear most"
-  'one practical question answered directly, without saying who asks it or how often',
+  QUESTION_ANGLE,
   'why doing it properly matters',
   'what to expect when booking',
   'what a good finished job looks like',
@@ -129,4 +134,4 @@ function decide(intake) {
   return { prompts: ordered, gaps, notes, jobPhotos, folders: folders.size, tooFew };
 }
 
-module.exports = { decide, POSTS_ROOT, THRESHOLD, MAX_PROMPTS, MIN_FOLDERS, TIPS, TRUST, MAX_OTHER, SERVICE_ANGLES, ALL_JOBS, NONE_YET, TOO_FEW };
+module.exports = { decide, QUESTION_ANGLE, QUESTION_RULE, POSTS_ROOT, THRESHOLD, MAX_PROMPTS, MIN_FOLDERS, TIPS, TRUST, MAX_OTHER, SERVICE_ANGLES, ALL_JOBS, NONE_YET, TOO_FEW };

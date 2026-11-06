@@ -115,7 +115,7 @@ Each prompt is an instruction to Lead Snap's AI and must be fully self-contained
 - What the post is about: the one service, or the prompt type. Never list other services.
 - The facts it may use: the USPs, plus the offer on the offer prompt. Nothing else. Introduce them as: "Facts you may use (no more than two, chosen to fit the angle):"
 - The one angle, written to fit this niche, after the instruction: "Build the whole post around this angle:"
-  Service angles: the problem customers notice; how the job is done; one practical question answered directly, without saying who asks it or how often; why doing it properly matters; what to expect when booking; what a good finished job looks like; the mistakes to avoid; how to choose who does the work.
+  Service angles: the problem customers notice; how the job is done; one practical question answered directly, without saying who asks it or how often ("Open with the answer or the question itself. Never say how often it is asked or who asks it."); why doing it properly matters; what to expect when booking; what a good finished job looks like; the mistakes to avoid; how to choose who does the work.
   Trust angles: experience and how long local; accreditations and guarantees from the USPs; how we work with customers; why choose a local business.
   Tips: one practical, year-round tip specific to this niche, a different one on each prompt, after the instruction: "Build the whole post around this tip:"
   Offer angle: what the offer includes, who it suits and how to claim it.

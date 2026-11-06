@@ -224,6 +224,7 @@ const canned = text => async () => ({ text, usage: { input_tokens: 10, output_to
   chk('a fenced reply still parses', !(await G.runAutopost({ intake: plumber, callModel: canned('```text\n' + goodSheet(plumber, P) + '\n```') })).failure, '', '');
   chk('a gap with no line from the model still gets one', (await G.runAutopost({ intake: plumber, callModel: canned(goodSheet(plumber, P).replace(/^- Drain unblocking.*$/m, '')) })).output.gaps[1].line === 'Drain unblocking: 2 photos. Ask the client for 3-4 photos of finished drain unblocking jobs.', '', '');
 
+  const Pv_check = t => require(path.join(root, 'leadsnap/autopost/preview.js')).checkSample(`Hartley Plumbing & Heating in Romford. ${t}`, { area: 'Romford' }, plumber).checks.find(c => c.id === 'claims').level;
   const failsFor = text => G.validateSheet(G.parseSheet(text), plumber, P).fails.map(f => f.message).join(' | ');
   const good = goodSheet(plumber, P);
   chk('check: a missing prompt', /has 19 prompts/.test(failsFor(good.replace(/PROMPT 20 - [\s\S]*?(?=PHOTO GAPS)/, ''))), failsFor(good.replace(/PROMPT 20 - [\s\S]*?(?=PHOTO GAPS)/, '')), '');
@@ -283,6 +284,13 @@ const canned = text => async () => ({ text, usage: { input_tokens: 10, output_to
   for (const want of ['Do not give measurements, sizes or figures unless they are in the facts.', 'Do not describe customers, what they say, how many there are or how often you work for them.', 'Mention Romford once or twice and no other towns.', 'Use the business name once, written exactly like this: Hartley Plumbing & Heating.', 'Do not mention warranties, guarantees or accreditations unless they are in the facts.', 'Do not mention seasons, weather, holidays, dates or time words such as "today", "this week", "right now" or "at the moment".', 'Facts you may use (no more than two, chosen to fit the angle): over 15 years trading; Gas Safe registered;', 'about boiler repair.', 'Use "boiler repair" naturally once or twice.']) chk(`every prompt carries, word for word: ${want.slice(0, 50)}`, firstP.includes(want), firstP.slice(0, 200), want);
   chk('all 20 carry the claims rule', bareRec.output.prompts.every(p => p.text.includes('unless they are in the facts')), '', '');
   chk('the fixed text does not say the name twice over as an instruction', !firstP.includes('write the name exactly like that'), '', '');
+  const { QUESTION_ANGLE, QUESTION_RULE } = require(path.join(root, 'leadsnap/autopost/decide.js'));
+  const asked = bareRec.output.prompts.filter(p => p.angle === QUESTION_ANGLE);
+  chk('every practical question prompt carries its instruction, word for word', asked.length >= 2 && QUESTION_RULE === 'Open with the answer or the question itself. Never say how often it is asked or who asks it.' && asked.every(p => p.text.includes(QUESTION_RULE)), asked.map(p => p.n).join(), '');
+  chk('no other prompt carries it', bareRec.output.prompts.filter(p => p.angle !== QUESTION_ANGLE).every(p => !p.text.includes(QUESTION_RULE)), '', '');
+  { const reworded = good.replace(/(Build the whole post around this angle: )one practical question answered directly[^\n]*/g, '$1how much space a pergola needs.'); const r = await G.runAutopost({ intake: plumber, callModel: canned(reworded) }); chk('it survives the model rewording the angle', r.output.prompts.filter(p => p.angle === QUESTION_ANGLE).every(p => p.text.includes('how much space a pergola needs. ' + QUESTION_RULE)), '', ''); }
+  chk('the instruction does not trip the claims check', !bareRec.failure, '', '');
+  for (const q of ['It is the question we hear most.', 'It is the question we get asked most often.']) chk(`still a FAIL: "${q}"`, Pv_check(q) === 'fail', q, 'fail');
   const offerP = bareRec.output.prompts.find(p => p.kind === 'offer').text;
   chk('only the offer prompt has the offer among its facts', offerP.includes('; Free boiler quote. Do not use') && !firstP.includes('Free boiler quote'), offerP.slice(0, 260), '');
   chk('tips prompts say tip', bareRec.output.prompts.find(p => p.kind === 'tips').text.includes('around this tip:'), '', '');

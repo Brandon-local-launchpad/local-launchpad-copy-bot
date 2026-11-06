@@ -9,7 +9,7 @@
 
 const fs = require('fs');
 const path = require('path');
-const { decide } = require('./decide');
+const { decide, QUESTION_ANGLE, QUESTION_RULE } = require('./decide');
 const { sampleOpenings, othersInFolder, addDontStart } = require('./openings');
 
 const MODEL = 'claude-sonnet-5-5';
@@ -92,7 +92,7 @@ function promptText(d, intake, angle) {
     `Write a Google Business Profile post for ${intake.business}, ${article} ${niche}, about ${about}.`,
     `Facts you may use (no more than two, chosen to fit the angle): ${facts.length ? facts.join('; ') : 'none'}. Do not use any other facts.`,
     `Mention ${d.area} once or twice and no other towns.`,
-    `Build the whole post around this ${tip ? 'tip' : 'angle'}: ${angle}`,
+    `Build the whole post around this ${tip ? 'tip' : 'angle'}: ${angle}${d.angle === QUESTION_ANGLE ? ` ${QUESTION_RULE}` : ''}`,
     `${tip ? `Explain the tip clearly, then say when it's time to call ${article} ${niche}. ` : ''}Write 150-250 words in plain UK English, no headings, no hashtags, no emoji. Don't start with "If". Use the business name once, written exactly like this: ${intake.business}. Use "${keyword}" naturally once or twice. Never invent specific jobs, customers, reviews, prices, timescales, discounts or accreditations; use only the facts given here. Do not describe customers, what they say, how many there are or how often you work for them. Do not mention warranties, guarantees or accreditations unless they are in the facts. Do not give measurements, sizes or figures unless they are in the facts. Do not mention seasons, weather, holidays, dates or time words such as "today", "this week", "right now" or "at the moment". No generic filler. Tone: ${intake.tone}. End with one sentence that leads into the button: ${intake.cta.sentence}.`,
   ].join('\n\n');
 }
