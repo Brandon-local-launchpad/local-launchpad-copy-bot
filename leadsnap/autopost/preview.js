@@ -10,6 +10,7 @@
 
 const { wordsDetect } = require('../../gbp/inputs');
 const { MODEL, CLAIMS } = require('./generate');
+const { SYSTEM } = require('./openings');
 const { USD_TO_GBP, priceFor } = require('../../ui/model-log');
 
 const SAMPLES = 4;
@@ -22,9 +23,8 @@ const [USD_IN_PER_M, USD_OUT_PER_M] = priceFor(MODEL);
 // for every 2.7 characters of prompt
 const OUTPUT_TOKENS_EACH = 460;
 const CHARS_PER_TOKEN = 2.7;
-const SYSTEM = 'Write the Google Business Profile post the user asks for. Return only the post text.';
 
-const DATED = /\b(spring|summer|autumn|winter|christmas|easter|new year|bank holiday|january|february|march|april|june|july|august|september|october|november|december|today|tomorrow|this (?:week|month|year)|next (?:week|month|year)|weather|rain|rainy|rainfall|storms?|frost|frosty|snow|heatwave|freezing|sunshine)\b/i;
+const DATED = /\b(spring|summer|autumn|winter|christmas|easter|new year|bank holiday|january|february|march|april|june|july|august|september|october|november|december|today|tomorrow|right now|at the moment|this (?:week|month|year)|next (?:week|month|year)|weather|rain|rainy|rainfall|storms?|frost|frosty|snow|heatwave|freezing|sunshine)\b/i;
 
 const esc = s => String(s).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 const wordsOf = t => String(t).trim().split(/\s+/).filter(Boolean);
@@ -33,6 +33,7 @@ const costUsd = u => ((u.input_tokens || 0) * USD_IN_PER_M + (u.output_tokens ||
 const pence = usd => Math.max(1, Math.round(usd * USD_TO_GBP * 100));
 const pass = (id, label, detail = '') => ({ id, label, level: 'pass', detail });
 const warn = (id, label, detail) => ({ id, label, level: 'warn', detail });
+const fail = (id, label, detail) => ({ id, label, level: 'fail', detail });
 
 function estimate(prompts = []) {
   const samples = prompts.length * SAMPLES;
@@ -46,7 +47,10 @@ function estimate(prompts = []) {
 function checkName(text, business) {
   const label = 'Business name spelled exactly';
   const exact = new RegExp(esc(business), 'g');
-  if (!exact.test(text)) return warn('name', label, `"${business}" does not appear exactly`);
+  if (!exact.test(text)) {
+    const nearly = String(text).match(new RegExp(`\\b${esc(business.split(/\s+/)[0])}\\b[^.,;!?\\n]{0,30}`, 'i'));
+    return warn('name', label, nearly ? `written as "${nearly[0].trim()}"` : 'the business name is missing');
+  }
   const short = business.split(/\s+/).slice(0, 2).join(' ');
   const rest = String(text).replace(exact, ' ');
   const stray = rest.match(new RegExp(`\\b${esc(short)}\\b[^.,;!?\\n]{0,24}`, 'i'));
@@ -99,13 +103,23 @@ function checkFacts(text, intake) {
   return used.length <= 2 ? pass('facts', label, used.join('; ')) : warn('facts', label, `seems to use ${used.length}: ${used.join('; ')}`);
 }
 
+// A claim the facts do not make is a FAIL (Brandon, 6 Nov): it could go out under the client's name.
+// A bare number is a warning: "two or three coats" style detail may be fine, and a human can tell.
+const factsAndName = intake => [...(intake.usps || []), intake.offer || '', intake.business || ''].join(' ; ');
 function checkClaims(text, intake) {
-  const label = 'No numbers, prices or claims beyond the facts';
-  const facts = [...(intake.usps || []), intake.offer || '', intake.business || ''].join(' ; ');
+  const label = 'No claims beyond the facts';
+  const facts = factsAndName(intake);
   const found = [];
   for (const [re, what] of CLAIMS) { const m = String(text).match(re); if (m && !re.test(facts)) found.push(`${what} ("${m[0]}")`); }
-  for (const n of String(text).match(/\d[\d,.]*\d|\d/g) || []) if (!facts.includes(n) && !found.some(f => f.includes(n))) found.push(`the number ${n}`);
-  return found.length ? warn('claims', label, found.join('; ')) : pass('claims', label);
+  return found.length ? fail('claims', label, found.join('; ')) : pass('claims', label);
+}
+
+function checkNumbers(text, intake) {
+  const label = 'No numbers beyond the facts';
+  const facts = factsAndName(intake);
+  const claimed = CLAIMS.map(([re]) => String(text).match(re)).filter(Boolean).map(m => m[0]).join(' ');
+  const found = (String(text).match(/\d[\d,.]*\d|\d/g) || []).filter(n => !facts.includes(n) && !claimed.includes(n));
+  return found.length ? warn('numbers', label, found.join(', ')) : pass('numbers', label);
 }
 
 // Rain is what a drainage post is about (Brandon, 6 Nov), so its prompts may say so
@@ -130,10 +144,11 @@ function checkSample(text, prompt, intake) {
     checkGroup(text, prompt),
     checkFacts(text, intake),
     checkClaims(text, intake),
+    checkNumbers(text, intake),
     checkDated(text, intake, prompt),
     /^\W*if\b/i.test(String(text)) ? warn('if', 'Does not start with "If"', `starts "${wordsOf(text).slice(0, 5).join(' ')}"`) : pass('if', 'Does not start with "If"'),
   ];
-  return { words, checks, warnings: checks.filter(c => c.level === 'warn').length };
+  return { words, checks, warnings: checks.filter(c => c.level === 'warn').length, fails: checks.filter(c => c.level === 'fail').length };
 }
 
 const nList = a => (a.length > 1 ? `${a.slice(0, -1).join(', ')} and ${a[a.length - 1]}` : String(a[0]));
@@ -219,7 +234,7 @@ async function runPreview({ record, callModel, samples = SAMPLES, log = null }) 
         results.get(p.n)[i] = { n: i + 1, text, ...checkSample(text, p, record.intake) };
       } catch (e) {
         if (log) log(`[lead snap] preview of prompt ${p.n} failed: ${e.message}`);
-        results.get(p.n)[i] = { n: i + 1, text: '', error: e.message, words: 0, checks: [], warnings: 0 };
+        results.get(p.n)[i] = { n: i + 1, text: '', error: e.message, words: 0, checks: [], warnings: 0, fails: 0 };
       }
     }
   };
@@ -233,7 +248,7 @@ async function runPreview({ record, callModel, samples = SAMPLES, log = null }) 
   const usd = costUsd(usage);
   return {
     version: 1, at: new Date().toISOString(), config_at: record.generated_at, model: MODEL, effort: EFFORT, per_prompt: samples, usage, usd: Math.round(usd * 1000) / 1000, pence: usage.calls ? pence(usd) : 0,
-    summary: { samples: all.length, clean: all.filter(s => !s.error && !s.warnings).length, warned: all.filter(s => s.warnings).length, failed: all.filter(s => s.error).length, prompts: outPrompts.length, folders: folders.length, opening_pairs: folders.reduce((n, f) => n + f.opening_pairs, 0), compared: folders.reduce((n, f) => n + f.compared, 0) },
+    summary: { samples: all.length, clean: all.filter(s => !s.error && !s.warnings && !s.fails).length, warned: all.filter(s => s.warnings && !s.fails).length, claim_failed: all.filter(s => s.fails).length, failed: all.filter(s => s.error).length, prompts: outPrompts.length, folders: folders.length, opening_pairs: folders.reduce((n, f) => n + f.opening_pairs, 0), compared: folders.reduce((n, f) => n + f.compared, 0) },
     prompts: outPrompts,
     folders,
   };

@@ -86,7 +86,7 @@ function client(name) {
     console.log(`\nPreview: ${estimate(rec.output.prompts).samples} samples, about ${estimate(rec.output.prompts).pence}p`);
     const pv = await runPreview({ record: rec, callModel: args => callModel(args), log: m => console.log(m) });
     fs.writeFileSync(path.join(dir, 'previews.json'), JSON.stringify(pv, null, 2));
-    console.log(`PREVIEW ${pv.summary.clean} of ${pv.summary.samples} clean, ${pv.summary.warned} warned, ${pv.summary.failed} failed, ${pv.summary.opening_pairs} of ${pv.summary.compared} cross prompt pairs share an opening, cost ${pv.pence}p (${pv.usage.input_tokens} in, ${pv.usage.output_tokens} out)`);
+    console.log(`PREVIEW ${pv.summary.clean} of ${pv.summary.samples} clean, ${pv.summary.warned} warned, ${pv.summary.claim_failed} with an unconfirmed claim, ${pv.summary.failed} failed, ${pv.summary.opening_pairs} of ${pv.summary.compared} cross prompt pairs share an opening, cost ${pv.pence}p (${pv.usage.input_tokens} in, ${pv.usage.output_tokens} out)`);
     for (const p of pv.prompts) {
       console.log(`\n## ${p.n}. ${p.label}`);
       for (const s of p.samples) console.log(`  sample ${s.n}: ${s.words} words | ${s.error || s.checks.filter(c => c.level === 'warn').map(c => `${c.id}: ${c.detail}`).join(' | ') || 'clean'} | opens: ${s.text.split(/\s+/).slice(0, 9).join(' ')}`);

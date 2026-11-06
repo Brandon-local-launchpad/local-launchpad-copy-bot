@@ -206,7 +206,7 @@ function goodSheet(intake, D) {
     L.push(`PROMPT ${p.n} - ${p.label}`, `Tone: ${intake.tone}`, `Images: Choose specific images from GBP or upload -> select from folder: ${p.folder}`, 'Prompt:');
     const about = p.service || (p.kind === 'offer' ? intake.offer : p.label);
 
-    L.push(`Write a Google Business Profile post for ${intake.business} (write the name exactly like that), a ${intake.niche} based in ${intake.mainTown}, about ${about}.`, '', `Facts you may use (no more than two, chosen to fit the angle): ${intake.usps.join(', ')}. Do not use any other facts.`, '', `Areas: ${intake.areas.join(', ')}. Pick ONE area from the list. Use it once or twice and mention no other towns.`, '', `Build the whole post around this ${p.kind === 'tips' ? 'tip' : 'angle'}: ${p.angle}.`, '', `Write 150-250 words in plain UK English, no headings, no hashtags, no emoji. Don't start with "If". Use the service name naturally once or twice. Never invent specific jobs, customers, reviews, prices, timescales, discounts or accreditations; use only the facts given here. Do not mention seasons, weather, holidays or dates. No generic filler. Tone: ${intake.tone}. End with one sentence that leads into the button: ${intake.cta.sentence}.`, '');
+    L.push(`Write a Google Business Profile post for ${intake.business}, a ${intake.niche} based in ${intake.mainTown}, about ${about}.`, '', `Facts you may use (no more than two, chosen to fit the angle): ${intake.usps.join(', ')}. Do not use any other facts.`, '', `Areas: ${intake.areas.join(', ')}. Pick ONE area from the list. Use it once or twice and mention no other towns.`, '', `Build the whole post around this ${p.kind === 'tips' ? 'tip' : 'angle'}: ${p.angle}.`, '', `Write 150-250 words in plain UK English, no headings, no hashtags, no emoji. Don't start with "If". Use the business name once, written exactly like this: ${intake.business}. Use the service name naturally once or twice. Never invent specific jobs, customers, reviews, prices, timescales, discounts or accreditations; use only the facts given here. Do not mention warranties, guarantees or accreditations unless they are in the facts. Do not mention seasons, weather, holidays, dates or time words such as "today", "this week", "right now" or "at the moment". No generic filler. Tone: ${intake.tone}. End with one sentence that leads into the button: ${intake.cta.sentence}.`, '');
   }
   L.push('PHOTO GAPS', ...D.gaps.map(g => `- ${g.label}: ${g.photos} photos. Ask the client for 3-4 photos of finished ${g.label.toLowerCase()} from the customer's side.`), '', 'VA CHECKLIST', '[ ] Settings set');
   return L.join('\n');
@@ -228,7 +228,7 @@ const canned = text => async () => ({ text, usage: { input_tokens: 10, output_to
   const good = goodSheet(plumber, P);
   chk('check: a missing prompt', /has 19 prompts/.test(failsFor(good.replace(/PROMPT 20 - [\s\S]*?(?=PHOTO GAPS)/, ''))), failsFor(good.replace(/PROMPT 20 - [\s\S]*?(?=PHOTO GAPS)/, '')), '');
   chk('check: a missing area', /missing Dagenham/.test(failsFor(good.replace(/Dagenham, /g, ''))), '', '');
-  chk('check: a rule dropped', /Do not mention seasons/.test(failsFor(good.replace(/Do not mention seasons, weather, holidays or dates\. /g, ''))), '', '');
+  chk('check: a rule dropped', /Do not mention seasons/.test(failsFor(good.replace(/Do not mention seasons, weather, holidays, dates or time words such as [^.]*\. /g, ''))), '', '');
   chk('check: a fact dropped', /missing the fact "Gas Safe registered"/.test(failsFor(good.replace(/Gas Safe registered, /g, ''))), '', '');
   chk('check: an angle list is refused', /has a list/.test(failsFor(good.replace(ANGLE, ANGLE + '\n- One angle\n- Another angle'))), '', '');
   chk('check: asking the AI to choose is refused', /asks the AI to choose/.test(failsFor(good.replace(ANGLE, 'Choose ONE of these. ' + ANGLE))), '', '');
@@ -261,19 +261,41 @@ const canned = text => async () => ({ text, usage: { input_tokens: 10, output_to
   chk('other services may name a group by its pages', (() => { const t = goodSheet(trees, treesD).replace(/Trees, /g, 'Tree stump removal, '); return !G.validateSheet(G.parseSheet(t), trees, treesD).fails.some(f => /does not list "Trees"/.test(f.message)); })(), '', '');
 
   // ── The new prompt rules (Brandon, 6 Nov) ──
-  chk('check: the name without its instruction', /write the name exactly like that/.test(failsFor(good.replace(/ \(write the name exactly like that\)/g, ''))), '', '');
+  chk('check: the name without its instruction', /written exactly like this/.test(failsFor(good.replace(/Use the business name once, written exactly like this: [^.]*\. /g, ''))), '', '');
+  chk('check: the claims rule on every prompt', /unless they are in the facts/.test(failsFor(good.replace(/Do not mention warranties, guarantees or accreditations unless they are in the facts\. /g, ''))), '', '');
+  chk('check: the time words rule on every prompt', /time words/.test(failsFor(good.replace(/, dates or time words such as [^.]*\./g, ' or dates.'))), '', '');
+  chk('check: a prompt that says today', /mentions "today"/.test(failsFor(good.replace(ANGLE, ANGLE + ' why to call today'))), failsFor(good.replace(ANGLE, ANGLE + ' why to call today')), '');
   chk('check: a prompt must name its one service', /does not name its service, Boiler repair/.test(failsFor(good.replace(/about Boiler repair\./, 'about boilers.'))), '', '');
 
 
   chk('check: facts without "no more than two"', /no more than two/.test(failsFor(good.replace(/ \(no more than two, chosen to fit the angle\)/g, ''))), '', '');
   chk('check: "Choose ONE angle" is the old rule', /Build the whole post around this angle/.test(failsFor(good.replace(ANGLE, 'Choose ONE angle and build the whole post around it:'))), '', '');
   chk('check: the local area angle is dropped', /drop the local area angle/.test(failsFor(good.replace(ANGLE, ANGLE + ' Serving homes in the chosen area'))), '', '');
+  { const trustN = P.prompts.find(p => p.kind === 'trust').n; const parts = good.split(/(?=^PROMPT \d+ - )/m); parts[trustN] = parts[trustN].replace(/(Build the whole post around this angle: )[^\n]*/, '$1how long the business has been serving local people.'); chk('a trust prompt may talk about serving local people', !/local area angle/.test(failsFor(parts.join(''))), failsFor(parts.join('')), ''); }
+  chk('a service prompt about serving homes in an area is still the dropped angle', /drop the local area angle/.test(failsFor(good.replace(ANGLE, ANGLE + ' serving homes in the chosen town'))), '', '');
+  // Code writes the fixed text: a reply with only its angles still gives the whole prompt
+  const bare = P.prompts.map(p => `PROMPT ${p.n} - x\nPrompt:\nBuild the whole post around this ${p.kind === 'tips' ? 'tip' : 'angle'}: ${p.angle}, written for this trade.\n`).join('\n') + '\nPHOTO GAPS\n';
+  const bareRec = await G.runAutopost({ intake: plumber, callModel: canned(bare) });
+  chk('code writes the fixed text: a reply with only its angles passes every check, first time', !bareRec.failure && bareRec.attempts === 1, JSON.stringify(bareRec.failure && bareRec.failure.fails.slice(0, 2)), '');
+  const firstP = bareRec.output.prompts[0].text;
+  for (const want of ['Use the business name once, written exactly like this: Hartley Plumbing & Heating.', 'Do not mention warranties, guarantees or accreditations unless they are in the facts.', 'Do not mention seasons, weather, holidays, dates or time words such as "today", "this week", "right now" or "at the moment".', 'Facts you may use (no more than two, chosen to fit the angle): over 15 years trading; Gas Safe registered;', 'about boiler repair.', 'Use "boiler repair" naturally once or twice.']) chk(`every prompt carries, word for word: ${want.slice(0, 50)}`, firstP.includes(want), firstP.slice(0, 200), want);
+  chk('all 20 carry the claims rule', bareRec.output.prompts.every(p => p.text.includes('unless they are in the facts')), '', '');
+  chk('the fixed text does not say the name twice over as an instruction', !firstP.includes('write the name exactly like that'), '', '');
+  const offerP = bareRec.output.prompts.find(p => p.kind === 'offer').text;
+  chk('only the offer prompt has the offer among its facts', offerP.includes('; Free boiler quote. Do not use') && !firstP.includes('Free boiler quote'), offerP.slice(0, 260), '');
+  chk('tips prompts say tip', bareRec.output.prompts.find(p => p.kind === 'tips').text.includes('around this tip:'), '', '');
+  chk('an angle on the next line is still found, a list gives its first', G.angleFrom('Build the whole post around this angle:\n- One\n- Two') === 'One', G.angleFrom('Build the whole post around this angle:\n- One\n- Two'), 'One');
+  const noAngle = await G.runAutopost({ intake: plumber, callModel: canned(good.replace(/Build the whole post around this (angle|tip):[^\n]*\n/, '')) });
+  chk('a reply with no angle for a prompt still fails, and says which rule', noAngle.failure && noAngle.failure.fails.some(f => /Prompt 1: is missing the rule "Build the whole post/.test(f.message)), JSON.stringify(noAngle.failure && noAngle.failure.fails.slice(0, 2)), '');
+  const inventing = await G.runAutopost({ intake: noFacts, callModel: canned(goodSheet(noFacts, dN).replace(ANGLE, ANGLE + ' our 10 year guarantee')) });
+  chk('a claim in the model\'s angle is still refused', inventing.failure && inventing.failure.fails.some(f => /claims a guarantee/.test(f.message)), JSON.stringify(inventing.failure && inventing.failure.fails.slice(0, 2)), '');
   chk('check: the old 150-300 words', /150-250 words/.test(failsFor(good.replace(/150-250 words/, '150-300 words'))), '', '');
   chk('check: no "Don\'t start with If"', /start with/.test(failsFor(good.replace(/Don't start with "If"\. /, ''))), '', '');
   chk('check: the old area rule', /mention no other towns/.test(failsFor(good.replace(/Use it once or twice and mention no other towns\./, 'Mention it naturally once.'))), '', '');
   { const listed = good.replace(ANGLE, ANGLE + ' We do Leak repair, Bathroom fitting and Drain unblocking.'); chk('check: a list of other services', /Prompt 1: lists other services/.test(failsFor(listed)), failsFor(listed), ''); }
   const longP = G.validateSheet(G.parseSheet(good.replace(ANGLE, ANGLE + ' ' + 'x'.repeat(1400))), plumber, P);
-  chk('over 1,500 characters is a flag to check, not a failure', longP.ok && longP.flags.some(f => /aim for under 1,500/.test(f.message)), JSON.stringify(longP.flags), '');
+  const longRec = await G.runAutopost({ intake: plumber, callModel: canned(good.replace(ANGLE, ANGLE + ' ' + 'x'.repeat(1400))) });
+  chk('over 1,500 characters is a flag to check, not a failure', longP.ok && !longRec.failure && longRec.flags.some(f => /aim for under 1,500/.test(f.message)), JSON.stringify(longRec.flags), '');
 
   // ── Preview posts ──
   const Pv = require(path.join(root, 'leadsnap/autopost/preview.js'));
@@ -282,14 +304,15 @@ const canned = text => async () => ({ text, usage: { input_tokens: 10, output_to
   const words = n => Array.from({ length: n }, (_, i) => `word${'abcdefghij'[i % 10]}`).join(' ');
   const clean = `Hartley Plumbing & Heating looks after homes in Hornchurch. A boiler repair starts with a proper look at what went wrong. ${words(170)} Give us a call.`;
   const levelOf = (text, id, p = boilerP) => Pv.checkSample(text, p, pvRec.intake).checks.find(c => c.id === id);
-  chk('a clean sample passes all eight checks', Pv.checkSample(clean, boilerP, pvRec.intake).warnings === 0 && Pv.checkSample(clean, boilerP, pvRec.intake).checks.length === 8, JSON.stringify(Pv.checkSample(clean, boilerP, pvRec.intake).checks.filter(c => c.level === 'warn')), '');
+  chk('a clean sample passes all nine checks', Pv.checkSample(clean, boilerP, pvRec.intake).warnings === 0 && Pv.checkSample(clean, boilerP, pvRec.intake).fails === 0 && Pv.checkSample(clean, boilerP, pvRec.intake).checks.length === 9, JSON.stringify(Pv.checkSample(clean, boilerP, pvRec.intake).checks.filter(c => c.level === 'warn')), '');
   chk('preview: a short post does not warn: only a long overrun does', levelOf('Hartley Plumbing & Heating in Hornchurch.', 'words').level === 'pass', '', 'pass');
   chk('preview: 251 to 300 words pass, over 300 warns', levelOf(clean + ' ' + words(60), 'words').level === 'pass' && levelOf(clean + ' ' + words(130), 'words').level === 'warn', Pv.checkSample(clean + ' ' + words(130), boilerP, pvRec.intake).words, '');
   const edens = { ...pvRec.intake, business: 'Edens Edge Landscaping' };
   chk('preview: the name Lead Snap really wrote is caught', Pv.checkName('Edens edge landscaping LTD did this.', 'Edens Edge Landscaping').level === 'warn', '', 'warn');
   chk('preview: the right name with LTD after it is caught', Pv.checkName('Edens Edge Landscaping LTD did this.', 'Edens Edge Landscaping').level === 'warn', '', 'warn');
   chk('preview: a shortened name is caught', Pv.checkName('Edens Edge Landscaping is local. Call Edens Edge today.', 'Edens Edge Landscaping').level === 'warn', '', 'warn');
-  chk('preview: no name is caught', Pv.checkName('A local firm.', 'Edens Edge Landscaping').level === 'warn', '', 'warn');
+  chk('preview: a missing name warns, and says it is missing', Pv.checkName('A local firm.', 'Edens Edge Landscaping').level === 'warn' && /is missing/.test(Pv.checkName('A local firm.', 'Edens Edge Landscaping').detail), '', 'warn');
+  chk('preview: a misspelled name says how it was written', /written as "Edens edge landscaping/.test(Pv.checkName('Edens edge landscaping LTD did this.', 'Edens Edge Landscaping').detail), Pv.checkName('Edens edge landscaping LTD did this.', 'Edens Edge Landscaping').detail, '');
   chk('preview: the exact name passes', Pv.checkName('Edens Edge Landscaping is local. Edens Edge Landscaping can help.', 'Edens Edge Landscaping').level === 'pass', '', 'pass');
   chk('preview: the main town and one area pass, a third town warns', levelOf(clean + ' Also Romford.', 'town').level === 'pass' && levelOf(clean + ' Also Romford and Dagenham.', 'town').level === 'warn', JSON.stringify(levelOf(clean + ' Also Romford and Dagenham.', 'town')), '');
   chk('preview: no town does not warn', levelOf(clean.replace('Hornchurch', 'the area'), 'town').level === 'pass', '', 'pass');
@@ -299,9 +322,12 @@ const canned = text => async () => ({ text, usage: { input_tokens: 10, output_to
   chk('preview: one service from other services passes', levelOf(clean.replace('A boiler repair starts', 'Bathroom fitting starts'), 'group', otherP).level === 'pass', '', 'pass');
   chk('preview: three facts warn, two pass', levelOf(clean + ' Gas Safe registered, same day visits available, fixed prices agreed before work starts.', 'facts').level === 'warn' && levelOf(clean + ' Gas Safe registered, with fixed prices agreed before work starts.', 'facts').level === 'pass', JSON.stringify(levelOf(clean + ' Gas Safe registered, with fixed prices agreed before work starts.', 'facts')), '');
   chk('preview: the offer and a free quotes USP count as one fact', Pv.factsUsed('Our free no-obligation quote, a free quote for all.', { usps: ['free quotes'], offer: 'free, no-obligation quote' }).length === 1, '', 1);
-  for (const [phrase, what] of [['It costs £80.', 'price'], ['We have 300 happy customers.', 'number'], ['A 10 year guarantee.', 'guarantee']]) chk(`preview: an invented ${what} warns`, Pv.checkSample(clean + ' ' + phrase, boilerP, { ...pvRec.intake, usps: [] }).checks.find(c => c.id === 'claims').level === 'warn', '', 'warn');
-  chk('preview: a number in the facts passes', levelOf(clean + ' Over 15 years trading.', 'claims').level === 'pass', JSON.stringify(levelOf(clean + ' Over 15 years trading.', 'claims')), 'pass');
-  for (const w of ['this winter', 'in December', 'heavy rain', 'by Christmas', 'in 2027']) chk(`preview: "${w}" warns`, levelOf(clean + ' ' + w, 'dated').level === 'warn', '', 'warn');
+  for (const [phrase, what] of [['It costs £80.', 'price'], ['A 10 year guarantee.', 'guarantee'], ['A full warranty.', 'warranty'], ['We are NICEIC accredited.', 'accreditation']]) { const c = Pv.checkSample(clean + ' ' + phrase, boilerP, { ...pvRec.intake, usps: [] }); chk(`preview: an invented ${what} is a FAIL, not a warning`, c.checks.find(x => x.id === 'claims').level === 'fail' && c.fails === 1, JSON.stringify(c.checks.find(x => x.id === 'claims')), 'fail'); }
+  chk('preview: a claim in the facts passes', levelOf(clean + ' We are Gas Safe registered.', 'claims').level === 'pass', '', 'pass');
+  chk('preview: a bare number is a warning', levelOf(clean + ' We have 300 happy customers.', 'numbers').level === 'warn' && levelOf(clean + ' We have 300 happy customers.', 'claims').level === 'pass', '', 'warn');
+  chk('preview: a number in the facts passes', levelOf(clean + ' Over 15 years trading.', 'numbers').level === 'pass', JSON.stringify(levelOf(clean + ' Over 15 years trading.', 'numbers')), 'pass');
+  chk('preview: a number already failed as a claim is not warned twice', Pv.checkSample(clean + ' A 10 year guarantee.', boilerP, { ...pvRec.intake, usps: [] }).checks.find(x => x.id === 'numbers').level === 'pass', '', 'pass');
+  for (const w of ['this winter', 'in December', 'heavy rain', 'by Christmas', 'in 2027', 'call us today', 'free this week', 'book right now', 'busy at the moment']) chk(`preview: "${w}" warns`, levelOf(clean + ' ' + w, 'dated').level === 'warn', '', 'warn');
   for (const w of ['a blocked drain', 'garden drainage', 'the drains', 'grain', 'we train staff', 'a rainwater butt']) chk(`preview: "${w}" is not the word rain`, levelOf(clean + ' ' + w, 'dated').level === 'pass', levelOf(clean + ' ' + w, 'dated').detail, 'pass');
   chk('preview: a year that is a fact passes', Pv.checkSample(clean + ' Trading since 2015.', boilerP, { ...pvRec.intake, usps: ['trading since 2015'] }).checks.find(c => c.id === 'dated').level === 'pass', '', 'pass');
   chk('preview: starting with If warns, in any case', levelOf('If your boiler stops.', 'if').level === 'warn' && levelOf('"if your boiler stops', 'if').level === 'warn', '', 'warn');
@@ -346,6 +372,27 @@ const canned = text => async () => ({ text, usage: { input_tokens: 10, output_to
   chk('a phrase outside the facts and the CTA is still found', cross5[0].phrase_pairs === 1, JSON.stringify(cross5[0]), '');
   chk('across prompts: a lone prompt in a folder has nothing to compare', Pv.folderSameness([{ n: 1, samples: [{ n: 1, text: 'x' }] }], { output: { prompts: [{ n: 1, folder: 'F' }] } }).length === 0, '', '');
   chk('run: it remembers which config it tested', pv.config_at === pvRec.generated_at, pv.config_at, pvRec.generated_at);
+
+  // ── Don't start with ──
+  const O = require(path.join(root, 'leadsnap/autopost/openings.js'));
+  chk('an opening is the first 5 words, lower case, no punctuation', O.openingOf('Thinking about a new boiler? Call.') === 'thinking about a new boiler', O.openingOf('Thinking about a new boiler? Call.'), '');
+  const openRec = await G.runAutopost({ intake: plumber, callModel: async a => (a.system[0].text === O.SYSTEM ? { text: `Opening for ${a.message.match(/this (?:angle|tip): ([^.]{0,12})/)[1]} and more words here.`, usage: { input_tokens: 500, output_tokens: 400 } } : { text: good, usage: { input_tokens: 2000, output_tokens: 5000 } }) });
+  const boilerPs = openRec.output.prompts.filter(p => p.folder.endsWith('/ Boilers'));
+  const leakPs = openRec.output.prompts.filter(p => p.folder.endsWith('/ Leak repair'));
+  const lineOf = p => (p.text.match(/Don't start with any of these openings: ([^\n]*)/) || [])[1] || '';
+  const openingOfP = p => `opening for ${p.angle.slice(0, 12).toLowerCase().replace(/[^a-z0-9' ]/g, ' ').split(/\s+/).filter(Boolean).join(' ')}`;
+  chk("every prompt in a shared folder gets a Don't start with line", openRec.output.prompts.every(p => lineOf(p)), openRec.output.prompts.filter(p => !lineOf(p)).map(p => p.n).join(), '');
+  chk('it lists the other prompts in the folder, and not its own', lineOf(boilerPs[1]).includes('the problem') && !lineOf(boilerPs[0]).includes('the problem'), lineOf(boilerPs[0]), '');
+  chk('it lists nothing from another folder', !lineOf(openRec.output.prompts[19]).includes('how the job'), lineOf(openRec.output.prompts[19]), '');
+  chk('the line goes above the writing rules', boilerPs[0].text.indexOf("Don't start with any") < boilerPs[0].text.indexOf('Write 150-250'), '', '');
+  chk('a folder with one prompt has no line', O.othersInFolder(1, [{ n: 1, folder: 'F' }, { n: 2, folder: 'G' }], new Map([[1, 'a'], [2, 'b']])).length === 0, '', '');
+  chk('the same opening is listed once', O.othersInFolder(1, [{ n: 1, folder: 'F' }, { n: 2, folder: 'F' }, { n: 3, folder: 'F' }], new Map([[1, 'a'], [2, 'b'], [3, 'b']])).join() === 'b', '', '');
+  chk('the test posts are counted in the cost: one per prompt', openRec.usage.calls === 21 && openRec.usage.input_tokens === 12000, JSON.stringify(openRec.usage), '');
+  chk('the sheet carries the line', openRec.sheet.includes("Don't start with any of these openings:"), '', '');
+  const noTests = await G.runAutopost({ intake: plumber, callModel: async a => { if (a.system[0].text === O.SYSTEM) throw new Error('down'); return { text: good, usage: {} }; } });
+  chk('test posts failing still gives a config, and says so', !noTests.failure && noTests.flags.some(f => /test posts could not be written/.test(f.message)) && !noTests.sheet.includes("Don't start with any"), JSON.stringify(noTests.flags), '');
+  const longLine = O.addDontStart('x\n\nWrite 150-250 words', ['a', 'b']);
+  chk('the line reads as written', longLine === 'x\n\nDon\'t start with any of these openings: "a"; "b".\n\nWrite 150-250 words', longLine, '');
 
   // Retry and failure
   const calls = [];

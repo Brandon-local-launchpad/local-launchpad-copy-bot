@@ -20,7 +20,8 @@ Each prompt has ONE fixed angle. No angle lists. Variety comes from having more 
 
 STEP 3 - WRITE EACH PROMPT
 Each prompt is an instruction to Lead Snap's AI and must be fully self-contained. Aim for under 1,500 characters per prompt. Include:
-- The business name followed by "(write the name exactly like that)", the niche, the main town and the full area list.
+- The business name, the niche, the main town and the full area list.
+
 - What the post is about: the one service, or the prompt type. Never list other services.
 - The facts it may use: the USPs, plus the offer on the offer prompt. Nothing else. Introduce them as: "Facts you may use (no more than two, chosen to fit the angle):"
 - The one angle, written to fit this niche, after the instruction: "Build the whole post around this angle:"
@@ -29,7 +30,7 @@ Each prompt is an instruction to Lead Snap's AI and must be fully self-contained
   Tips: one practical, year-round tip specific to this niche, a different one on each prompt, after the instruction: "Build the whole post around this tip:"
   Offer angle: what the offer includes, who it suits and how to claim it.
 - These rules, word for word:
-  "Pick ONE area from the list. Use it once or twice and mention no other towns. Write 150-250 words in plain UK English, no headings, no hashtags, no emoji. Don't start with "If". Use the service name naturally once or twice. Never invent specific jobs, customers, reviews, prices, timescales, discounts or accreditations; use only the facts given here. Do not mention seasons, weather, holidays or dates. No generic filler. End with one sentence that leads into the button: [CTA sentence]."
+  "Pick ONE area from the list. Use it once or twice and mention no other towns. Write 150-250 words in plain UK English, no headings, no hashtags, no emoji. Don't start with "If". Use the business name once, written exactly like this: [name]. Use the service name naturally once or twice. Never invent specific jobs, customers, reviews, prices, timescales, discounts or accreditations; use only the facts given here. Do not mention warranties, guarantees or accreditations unless they are in the facts. Do not mention seasons, weather, holidays, dates or time words such as "today", "this week", "right now" or "at the moment". No generic filler. End with one sentence that leads into the button: [CTA sentence]."
 
 STEP 4 - OUTPUT
 Return the config sheet in the format below, then the gap list. Do not add commentary.

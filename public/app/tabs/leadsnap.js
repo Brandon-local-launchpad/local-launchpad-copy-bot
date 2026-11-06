@@ -21,13 +21,13 @@ export async function render(el, ctx) {
   const previewBar = () => {
     const P = S.preview || {}, E = P.estimate, L = P.saved;
     if (!E) return '';
-    const last = L ? `Last preview ${h(fmtDate(L.at, true))}: ${L.summary.clean} of ${L.summary.samples} samples clean, ${L.summary.warned} with warnings${L.summary.failed ? `, ${L.summary.failed} failed` : ''}${L.summary.opening_pairs ? `. ${L.summary.opening_pairs} pairs of posts from different prompts share an opening` : ''}. It cost ${L.pence}p.` : '';
+    const last = L ? `Last preview ${h(fmtDate(L.at, true))}: ${L.summary.clean} of ${L.summary.samples} samples clean, ${L.summary.warned} with warnings${L.summary.claim_failed ? `, <strong style="color:#991b1b">${L.summary.claim_failed} with an unconfirmed claim</strong>` : ''}${L.summary.failed ? `, ${L.summary.failed} failed` : ''}${L.summary.opening_pairs ? `. ${L.summary.opening_pairs} pairs of posts from different prompts share an opening` : ''}. It cost ${L.pence}p.` : '';
     return `<div class="notice" data-preview-bar style="margin-bottom:10px"><div class="btn-row"><button class="btn btn-ghost" data-act="preview" ${P.running ? 'disabled' : ''}>${L ? 'Preview posts again' : 'Preview posts'}</button><span class="small">${E.samples} sample posts (${E.per_prompt} per prompt), about ${E.pence}p. Nothing goes to Lead Snap.</span></div>${P.running ? `<div style="margin-top:8px">${running({ now: 'Writing the sample posts', next: 'Then each one is checked' })}</div>` : ''}${last ? `<div class="small" style="margin-top:6px">${last}</div>` : ''}${P.stale ? '<div class="small" style="margin-top:4px;color:#b45309">These samples are from an earlier config. Preview again to test this one.</div>' : ''}</div>`;
   };
   const samplesFor = n => {
     const L = S.preview && S.preview.saved; const p = L && L.prompts.find(x => x.n === n);
     if (!p || S.preview.stale) return '';
-    const one = s => s.error ? `<div class="notice bad small" style="margin-bottom:6px">Sample ${s.n} failed: ${h(s.error)}</div>` : `<details style="margin-bottom:6px" data-sample><summary>Sample ${s.n} · ${s.words} words ${pill(s.warnings ? 'wait' : 'ok', s.warnings ? `${s.warnings} to check` : 'pass')}</summary><div style="white-space:pre-wrap;margin:6px 0">${h(s.text)}</div><div style="display:flex;gap:6px;justify-content:flex-end">${copyBtn(s.text)}</div><ul class="small" style="margin:6px 0 0;padding:0;list-style:none">${s.checks.map(c => `<li>${pill(c.level === 'warn' ? 'wait' : 'ok', c.level)} ${h(c.label)}${c.detail ? `: <span class="muted">${h(c.detail)}</span>` : ''}</li>`).join('')}</ul></details>`;
+    const one = s => s.error ? `<div class="notice bad small" style="margin-bottom:6px">Sample ${s.n} failed: ${h(s.error)}</div>` : `<details style="margin-bottom:6px" data-sample><summary>Sample ${s.n} · ${s.words} words ${s.fails ? pill('block', 'FAIL: unconfirmed claim') : pill(s.warnings ? 'wait' : 'ok', s.warnings ? `${s.warnings} to check` : 'pass')}</summary><div style="white-space:pre-wrap;margin:6px 0">${h(s.text)}</div><div style="display:flex;gap:6px;justify-content:flex-end">${copyBtn(s.text)}</div><ul class="small" style="margin:6px 0 0;padding:0;list-style:none">${s.checks.map(c => `<li>${pill(c.level === 'fail' ? 'block' : c.level === 'warn' ? 'wait' : 'ok', c.level)} ${h(c.label)}${c.detail ? `: <span class="muted">${h(c.detail)}</span>` : ''}</li>`).join('')}</ul></details>`;
     return `<div class="sec-title">Sample posts</div>${p.samples.map(one).join('')}`;
   };
 
@@ -45,7 +45,7 @@ export async function render(el, ctx) {
     if (!I) return empty({ title: 'Nothing to build from yet', text: S.error || '' });
     const notes = [...I.missing.map(m => `Needed: ${m}`), ...I.warnings, ...(P && I.photosEntered ? P.notes : [])];
     let b = `<div class="btn-row" style="margin-bottom:10px"><button class="btn btn-primary" data-act="generate" ${S.running ? 'disabled' : ''}>${done ? 'Generate again' : 'Generate config'}</button>${R && R.generated_at ? `<span class="muted small">Last run ${h(fmtDate(R.generated_at, true))}</span>` : ''}</div>`;
-    if (S.running) b += running({ now: 'Writing the prompts', next: 'Then the checks run; a config that fails is rewritten once' });
+    if (S.running) b += running({ now: 'Writing the prompts', next: "Then the checks run, then a test post from each prompt for its Don't start with line" });
     b += tooFew();
     if (notes.length) b += `<div class="notice warn" style="margin-bottom:10px"><ul style="margin:0 0 0 18px">${notes.map(n => `<li>${h(n)}</li>`).join('')}</ul></div>`;
     if (R && R.failure) b += `<div class="notice bad" style="margin-bottom:10px"><strong>${h(R.failure.error)}</strong><ul style="margin:6px 0 0 18px">${R.failure.fails.map(f => `<li>${h(f.message)}</li>`).join('')}</ul></div>`;

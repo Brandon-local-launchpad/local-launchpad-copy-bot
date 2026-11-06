@@ -10,6 +10,7 @@
 const fs = require('fs');
 const path = require('path');
 const { decide } = require('./decide');
+const { sampleOpenings, othersInFolder, addDontStart } = require('./openings');
 
 const MODEL = 'claude-sonnet-5-5';
 const MAX_TOKENS = 12000;
@@ -66,6 +67,47 @@ function parseSheet(text) {
   return { prompts, gaps };
 }
 
+// ── The fixed text is code's ──
+// Everything in a prompt but its one angle is the same words every time, so code writes it and a
+// required sentence cannot go missing. (The model dropped one somewhere in 2 of 3 real plumber runs,
+// and one slip in 20 prompts failed the whole config.) The model's part is the angle sentence.
+const angleFrom = text => {
+  const lines = String(text).split('\n');
+  const i = lines.findIndex(l => /around this (?:angle|tip):/i.test(l));
+  if (i < 0) return '';
+  const same = lines[i].replace(/^.*around this (?:angle|tip):\s*/i, '').trim();
+  if (same) return same;
+  const next = lines.slice(i + 1).find(l => l.trim());
+  return next ? next.replace(/^\s*[-*\u2022]\s*/, '').trim() : '';
+};
+
+function promptText(d, intake, angle) {
+  const niche = String(intake.niche || '').toLowerCase();
+  const article = /^[aeiou]/.test(niche) ? 'an' : 'a';
+  const offer = String(intake.offer || '');
+  const about = d.service ? d.service.toLowerCase() : d.kind === 'trust' ? `why customers choose ${intake.business}` : d.kind === 'offer' ? `its ${offer}` : 'one practical tip for its customers';
+  const keyword = d.service ? d.service.toLowerCase() : d.kind === 'offer' ? offer : niche;
+  const facts = [...intake.usps, ...(d.kind === 'offer' && offer ? [offer] : [])];
+  const tip = d.kind === 'tips';
+  return [
+    `Write a Google Business Profile post for ${intake.business}, ${article} ${niche} based in ${intake.mainTown}, about ${about}.`,
+    `Facts you may use (no more than two, chosen to fit the angle): ${facts.length ? facts.join('; ') : 'none'}. Do not use any other facts.`,
+    `Areas: ${intake.areas.join(', ')}. Pick ONE area from the list. Use it once or twice and mention no other towns.`,
+    `Build the whole post around this ${tip ? 'tip' : 'angle'}: ${angle}`,
+    `${tip ? `Explain the tip clearly, then say when it's time to call ${article} ${niche}. ` : ''}Write 150-250 words in plain UK English, no headings, no hashtags, no emoji. Don't start with "If". Use the business name once, written exactly like this: ${intake.business}. Use "${keyword}" naturally once or twice. Never invent specific jobs, customers, reviews, prices, timescales, discounts or accreditations; use only the facts given here. Do not mention warranties, guarantees or accreditations unless they are in the facts. Do not mention seasons, weather, holidays, dates or time words such as "today", "this week", "right now" or "at the moment". No generic filler. Tone: ${intake.tone}. End with one sentence that leads into the button: ${intake.cta.sentence}.`,
+  ].join('\n\n');
+}
+
+// The model's angle sentence in code's text. A prompt with no angle stays empty, for the checks to catch.
+function rebuildPrompts(parsed, intake, D) {
+  for (const p of parsed.prompts) {
+    const d = D.prompts.find(x => x.n === p.n);
+    const angle = d && angleFrom(p.text);
+    if (d && angle) p.text = promptText(d, intake, angle);
+  }
+  return parsed;
+}
+
 // ── The checks ──
 const has = (t, s) => String(t).toLowerCase().includes(String(s).toLowerCase());
 const RULES = [
@@ -76,7 +118,8 @@ const RULES = [
   [/Don['\u2019]t start with ["\u201c]If["\u201d]/i, '"Don\'t start with \"If\"."'],
   [/naturally once or twice/i, 'the service name "naturally once or twice"'],
   [/Never invent specific jobs, customers, reviews, prices, timescales, discounts or accreditations; use only the facts given here/i, '"Never invent specific jobs, customers, reviews, prices, timescales, discounts or accreditations; use only the facts given here."'],
-  [/Do not mention seasons, weather, holidays or dates/i, '"Do not mention seasons, weather, holidays or dates."'],
+  [/Do not mention warranties, guarantees or accreditations unless they are in the facts/i, '"Do not mention warranties, guarantees or accreditations unless they are in the facts."'],
+  [/Do not mention seasons, weather, holidays, dates or time words such as ["\u201c]today["\u201d], ["\u201c]this week["\u201d], ["\u201c]right now["\u201d] or ["\u201c]at the moment["\u201d]/i, "\"Do not mention seasons, weather, holidays, dates or time words such as 'today', 'this week', 'right now' or 'at the moment'.\""],
   [/No generic filler/i, '"No generic filler."'],
   [/End with one sentence that leads into the button:/i, '"End with one sentence that leads into the button: [CTA sentence]."'],
 ];
@@ -88,7 +131,7 @@ const CLAIMS = [
   [/\bguarantee|\bwarrant(y|ies)\b/i, 'a guarantee'], [/\b\d+\+?\s+years?\b/i, 'a number of years'], [/\binsured\b|\binsurance\b/i, 'insurance'],
   [/\baccredit|\bcertified\b|\bregistered\b|\bGas Safe\b|\bNICEIC\b|\bCheckatrade\b|\bTrustMark\b/i, 'an accreditation'], [/\b\d+\s+(star|reviews?)\b/i, 'a review count'],
 ];
-const DATED = /\b(spring|summer|autumn|winter|christmas|easter|new year|bank holiday|january|february|march|april|june|july|august|september|october|november|december)\b/i;
+const DATED = /\b(today|tomorrow|this week|this month|this year|right now|at the moment|spring|summer|autumn|winter|christmas|easter|new year|bank holiday|january|february|march|april|june|july|august|september|october|november|december)\b/i;
 const WEATHER = /\b(storms?|frost|snow|heatwave|freezing)\b/i;
 const strip = t => { let s = String(t); for (const [re] of RULES) s = s.replace(re, ''); return s; };
 
@@ -104,7 +147,7 @@ function validateSheet(parsed, intake, D) {
     const p = parsed.prompts.find(x => x.n === d.n);
     if (!p || !p.text) { fail(d.n, 'has no text under "Prompt:".'); continue; }
     const t = p.text;
-    if (!t.includes(`${intake.business} (write the name exactly like that)`)) fail(d.n, `must name the business as "${intake.business} (write the name exactly like that)".`);
+    if (!t.includes(`Use the business name once, written exactly like this: ${intake.business}`)) fail(d.n, `must say "Use the business name once, written exactly like this: ${intake.business}."`);
     for (const a of intake.areas) if (!has(t, a)) fail(d.n, `the area list is missing ${a}.`);
     for (const [re, want] of RULES) if (!re.test(t)) fail(d.n, `is missing the rule ${want}`);
     if (!has(t, intake.cta.sentence)) fail(d.n, `must end the rules with the CTA sentence: "${intake.cta.sentence}".`);
@@ -112,7 +155,8 @@ function validateSheet(parsed, intake, D) {
     if (t.split('\n').some(l => /^\s*[-*\u2022]\s+\S/.test(l))) fail(d.n, 'has a list; a prompt has ONE fixed angle and no bullet points.');
     if (/\bChoose ONE\b|\bat random\b/i.test(t)) fail(d.n, 'asks the AI to choose; a prompt has its one service and one angle fixed.');
     const angleLine = (t.match(/around this (?:angle|tip):\s*([^\n]+)/i) || [])[1] || '';
-    if (/\bserving\b|\blocal area\b|\bchosen area\b/i.test(angleLine)) fail(d.n, `drop the local area angle: "${angleLine}".`);
+    // Only the dropped angle itself: a trust prompt may well talk about serving local people
+    if (d.kind !== 'trust' && /\bserving\b[^.]*\b(area|homes in|customers in|people in|town)\b|\blocal area\b|\bchosen area\b/i.test(angleLine)) fail(d.n, `drop the local area angle: "${angleLine}".`);
     const angleKey = `${d.service}|${angleLine.toLowerCase()}`;
     if (angleLine && seenAngles.has(angleKey)) fail(d.n, `has the same angle as prompt ${seenAngles.get(angleKey)}: "${angleLine}".`);
     seenAngles.set(angleKey, d.n);
@@ -129,7 +173,6 @@ function validateSheet(parsed, intake, D) {
     const dated = body.match(DATED);
     if (dated) fail(d.n, `mentions "${dated[0]}"; prompts stay accurate in any month.`);
     for (const w of avoid) if (new RegExp(`\\b${w.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`, 'i').test(body)) fail(d.n, `uses "${w}", which the client wants avoided.`);
-    if ([...t].length > AIM_CHARS) flag(d.n, `is ${[...t].length} characters; aim for under ${AIM_CHARS.toLocaleString('en-GB')}.`);
     const wet = body.match(WEATHER);
     if (wet) flag(d.n, `mentions "${wet[0]}"; check it reads true in any month.`);
   }
@@ -174,7 +217,7 @@ async function runAutopost({ intake, callModel, previous = null, log = null }) {
     const r = await callModel({ system: [{ type: 'text', text: system }], message: msg, maxTokens: MAX_TOKENS });
     raw = r.text;
     if (r.usage) { usage.input_tokens += r.usage.input_tokens || 0; usage.output_tokens += r.usage.output_tokens || 0; usage.calls += 1; }
-    parsed = parseSheet(raw);
+    parsed = rebuildPrompts(parseSheet(raw), intake, D);
     validation = validateSheet(parsed, intake, D);
     if (validation.ok) break;
     if (log) log(`[lead snap] attempt ${attempts} failed ${validation.fails.length} check(s)`);
@@ -184,6 +227,13 @@ async function runAutopost({ intake, callModel, previous = null, log = null }) {
   if (!validation.ok) {
     return { ...(previous || {}), version: 1, model: MODEL, failure: { at, error: `The config failed ${validation.fails.length} check(s) after a retry${previous && previous.sheet ? '; the last good config is kept' : ''}.`, fails: validation.fails, attempts, raw } };
   }
+  // The other prompts' openings in each folder to avoid, from one test post per prompt
+  const texts = D.prompts.map(d => ({ n: d.n, folder: d.folder, text: parsed.prompts.find(p => p.n === d.n).text }));
+  const { openings, usage: testUsage } = await sampleOpenings(texts, callModel, log);
+  usage.input_tokens += testUsage.input_tokens; usage.output_tokens += testUsage.output_tokens; usage.calls += testUsage.calls;
+  for (const p of parsed.prompts) p.text = addDontStart(p.text, othersInFolder(p.n, D.prompts, openings));
+  if (!openings.size) validation.flags.push({ field: 'sheet', message: "The test posts could not be written, so these prompts have no \"Don't start with\" line. Generate again to add them." });
+  for (const p of parsed.prompts) if ([...p.text].length > AIM_CHARS) validation.flags.push({ field: `Prompt ${p.n}`, message: `Prompt ${p.n}: is ${[...p.text].length} characters; aim for under ${AIM_CHARS.toLocaleString('en-GB')}.` });
   const output = assemble(parsed, intake, D);
   return {
     version: 1, model: MODEL, generated_at: at, attempts, usage, output, sheet: sheetText(output), flags: validation.flags, failure: null,
@@ -196,4 +246,4 @@ function filesFor(rec) {
   return { 'autopost-config.txt': rec.sheet, 'validation.json': JSON.stringify({ generated_at: rec.generated_at, model: rec.model, attempts: rec.attempts, flags: rec.flags, intake: rec.intake, notes: rec.output.notes, too_few: rec.output.tooFew || null, folders_renamed: rec.renames || [] }, null, 2) };
 }
 
-module.exports = { CLAIMS, MODEL, MAX_TOKENS, CHECKLIST, loadSystem, buildMessage, parseSheet, validateSheet, assemble, sheetText, runAutopost, filesFor };
+module.exports = { promptText, angleFrom, rebuildPrompts, CLAIMS, MODEL, MAX_TOKENS, CHECKLIST, loadSystem, buildMessage, parseSheet, validateSheet, assemble, sheetText, runAutopost, filesFor };
