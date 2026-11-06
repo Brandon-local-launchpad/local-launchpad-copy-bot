@@ -93,7 +93,7 @@ function promptText(d, intake, angle) {
     `Facts you may use (no more than two, chosen to fit the angle): ${facts.length ? facts.join('; ') : 'none'}. Do not use any other facts.`,
     `Mention ${d.area} once or twice and no other towns.`,
     `Build the whole post around this ${tip ? 'tip' : 'angle'}: ${angle}`,
-    `${tip ? `Explain the tip clearly, then say when it's time to call ${article} ${niche}. ` : ''}Write 150-250 words in plain UK English, no headings, no hashtags, no emoji. Don't start with "If". Use the business name once, written exactly like this: ${intake.business}. Use "${keyword}" naturally once or twice. Never invent specific jobs, customers, reviews, prices, timescales, discounts or accreditations; use only the facts given here. Do not describe customers, what they say, how many there are or how often you work for them. Do not mention warranties, guarantees or accreditations unless they are in the facts. Do not mention seasons, weather, holidays, dates or time words such as "today", "this week", "right now" or "at the moment". No generic filler. Tone: ${intake.tone}. End with one sentence that leads into the button: ${intake.cta.sentence}.`,
+    `${tip ? `Explain the tip clearly, then say when it's time to call ${article} ${niche}. ` : ''}Write 150-250 words in plain UK English, no headings, no hashtags, no emoji. Don't start with "If". Use the business name once, written exactly like this: ${intake.business}. Use "${keyword}" naturally once or twice. Never invent specific jobs, customers, reviews, prices, timescales, discounts or accreditations; use only the facts given here. Do not describe customers, what they say, how many there are or how often you work for them. Do not mention warranties, guarantees or accreditations unless they are in the facts. Do not give measurements, sizes or figures unless they are in the facts. Do not mention seasons, weather, holidays, dates or time words such as "today", "this week", "right now" or "at the moment". No generic filler. Tone: ${intake.tone}. End with one sentence that leads into the button: ${intake.cta.sentence}.`,
   ].join('\n\n');
 }
 
@@ -118,6 +118,7 @@ const RULES = [
   [/naturally once or twice/i, 'the service name "naturally once or twice"'],
   [/Never invent specific jobs, customers, reviews, prices, timescales, discounts or accreditations; use only the facts given here/i, '"Never invent specific jobs, customers, reviews, prices, timescales, discounts or accreditations; use only the facts given here."'],
   [/Do not describe customers, what they say, how many there are or how often you work for them/i, '"Do not describe customers, what they say, how many there are or how often you work for them."'],
+  [/Do not give measurements, sizes or figures unless they are in the facts/i, '"Do not give measurements, sizes or figures unless they are in the facts."'],
   [/Do not mention warranties, guarantees or accreditations unless they are in the facts/i, '"Do not mention warranties, guarantees or accreditations unless they are in the facts."'],
   [/Do not mention seasons, weather, holidays, dates or time words such as ["\u201c]today["\u201d], ["\u201c]this week["\u201d], ["\u201c]right now["\u201d] or ["\u201c]at the moment["\u201d]/i, "\"Do not mention seasons, weather, holidays, dates or time words such as 'today', 'this week', 'right now' or 'at the moment'.\""],
   [/No generic filler/i, '"No generic filler."'],
@@ -131,6 +132,10 @@ const CLAIMS = [
   [/\bfree\s+(\w+\s+)?(quotes?|estimates?|inspections?|surveys?|visits?|consultations?)\b/i, 'something free'], [/\bfixed[- ]price/i, 'fixed prices'],
   [/\bguarantee|\bwarrant(y|ies)\b/i, 'a guarantee'], [/\b\d+\+?\s+years?\b/i, 'a number of years'], [/\binsured\b|\binsurance\b/i, 'insurance'],
   [/\baccredit|\bcertified\b|\bregistered\b|\bGas Safe\b|\bNICEIC\b|\bCheckatrade\b|\bTrustMark\b/i, 'an accreditation'], [/\b\d+\s+(star|reviews?)\b/i, 'a review count'],
+  // An invented measurement (Brandon, 6 Nov): a number with a unit, or a decimal. Not a price (£5m) or
+  // a percentage. The third item means the very figure must be in the facts, not just any measurement.
+  [/(?<![£$\d.,])\b(?:\d+(?:\.\d+)?|one|two|three|four|five|six|seven|eight|nine|ten|twelve|half\s+a)[\s-]*(?:mm|cm|km|m|metres?|meters?|millimetres?|centimetres?|ft|feet|foot|inch(?:es)?|yards?|miles?|m2|m\u00b2|sq\s?m|square\s+(?:metres?|meters?|feet|foot)|litres?|liters?|kg|kilos?|tonnes?|degrees?)(?![\w\u00b2])/i, 'a measurement', true],
+  [/(?<![£$\d.,])\b\d+\.\d+\b(?!\s*%)/, 'a measurement', true],
   // Invented social proof (Brandon, 6 Nov). Each reads as something about this firm's customers:
   // "most homeowners ignore a dripping tap" is a statement about taps, and passes.
   [/\b(?:most|many|all|some|lots|plenty|several|a lot)\s+of\s+our\s+(?:customers|clients)\b/i, 'what customers do'],
@@ -143,6 +148,24 @@ const CLAIMS = [
   [/\bwe(?:'re| are|'ve| have)?\s+(?:\w+\s+)?(?:regularly|often|frequently|routinely|constantly|usually)\s+(?:help(?:ed|ing)?|work(?:ed|ing)?|serv(?:e|ed|ing)|visit(?:ed|ing)?|see|seen|hear|heard|asked|called|get\s+asked)\b/i, 'how often the firm works'],
   [/\bquestions?\s+we\s+(?:\w+\s+)?(?:hear|get|are\s+asked)\b|\bthings?\s+we\s+(?:\w+\s+)?(?:hear|are\s+asked|get\s+asked)\b|\bwe(?:'re| are)\s+(?:\w+\s+)?asked\b/i, 'what customers say'],
 ];
+// The claims a text makes that the facts do not. Most claims need the facts to make the same kind of
+// claim; a measurement needs that exact figure.
+const allMatches = (re, text) => [...String(text).matchAll(new RegExp(re.source, re.flags.includes('g') ? re.flags : `${re.flags}g`))].map(m => m[0]);
+function unconfirmedClaims(text, facts) {
+  const found = [];
+  for (const [re, what, exact] of CLAIMS) {
+    if (exact) {
+      // Every figure counts, and each must be a figure the facts give
+      const given = new Set(allMatches(re, facts).map(m => m.toLowerCase()));
+      for (const m of allMatches(re, text)) if (!given.has(m.toLowerCase())) found.push({ what, match: m });
+      continue;
+    }
+    const m = String(text).match(re);
+    if (m && !re.test(facts)) found.push({ what, match: m[0] });
+  }
+  return found;
+}
+
 const DATED = /\b(today|tomorrow|this week|this month|this year|right now|at the moment|spring|summer|autumn|winter|christmas|easter|new year|bank holiday|january|february|march|april|june|july|august|september|october|november|december)\b/i;
 const WEATHER = /\b(storms?|frost|snow|heatwave|freezing)\b/i;
 const strip = t => { let s = String(t); for (const [re] of RULES) s = s.replace(re, ''); return s; };
@@ -181,7 +204,7 @@ function validateSheet(parsed, intake, D) {
     if (d.kind === 'offer' && !has(t, intake.offer)) fail(d.n, `does not state the offer, "${intake.offer}".`);
     if (/[–—]/.test(t)) fail(d.n, 'has an em or en dash; use commas or full stops.');
     const body = strip(t);
-    for (const [re, what] of CLAIMS) { const m = body.match(re); if (m && !re.test(factsText)) fail(d.n, `claims ${what} ("${m[0]}"), which is not in the facts. Remove it.`); }
+    for (const c of unconfirmedClaims(body, factsText)) fail(d.n, `claims ${c.what} ("${c.match}"), which is not in the facts. Remove it.`);
     const dated = body.match(DATED);
     if (dated) fail(d.n, `mentions "${dated[0]}"; prompts stay accurate in any month.`);
     for (const w of avoid) if (new RegExp(`\\b${w.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`, 'i').test(body)) fail(d.n, `uses "${w}", which the client wants avoided.`);
@@ -258,4 +281,4 @@ function filesFor(rec) {
   return { 'autopost-config.txt': rec.sheet, 'validation.json': JSON.stringify({ generated_at: rec.generated_at, model: rec.model, attempts: rec.attempts, flags: rec.flags, intake: rec.intake, notes: rec.output.notes, too_few: rec.output.tooFew || null, folders_renamed: rec.renames || [] }, null, 2) };
 }
 
-module.exports = { promptText, angleFrom, rebuildPrompts, CLAIMS, MODEL, MAX_TOKENS, CHECKLIST, loadSystem, buildMessage, parseSheet, validateSheet, assemble, sheetText, runAutopost, filesFor };
+module.exports = { unconfirmedClaims, promptText, angleFrom, rebuildPrompts, CLAIMS, MODEL, MAX_TOKENS, CHECKLIST, loadSystem, buildMessage, parseSheet, validateSheet, assemble, sheetText, runAutopost, filesFor };

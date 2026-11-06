@@ -9,7 +9,7 @@
 // every 10 weeks or so with a different photo, so samples of one prompt are not compared.
 
 const { wordsDetect } = require('../../gbp/inputs');
-const { MODEL, CLAIMS } = require('./generate');
+const { MODEL, CLAIMS, unconfirmedClaims } = require('./generate');
 const { SYSTEM } = require('./openings');
 const { USD_TO_GBP, priceFor } = require('../../ui/model-log');
 
@@ -116,15 +116,14 @@ const factsAndName = intake => [...(intake.usps || []), intake.offer || '', inta
 function checkClaims(text, intake) {
   const label = 'No claims beyond the facts';
   const facts = factsAndName(intake);
-  const found = [];
-  for (const [re, what] of CLAIMS) { const m = String(text).match(re); if (m && !re.test(facts)) found.push(`${what} ("${m[0]}")`); }
+  const found = unconfirmedClaims(text, facts).map(c => `${c.what} ("${c.match}")`);
   return found.length ? fail('claims', label, found.join('; ')) : pass('claims', label);
 }
 
 function checkNumbers(text, intake) {
   const label = 'No numbers beyond the facts';
   const facts = factsAndName(intake);
-  const claimed = CLAIMS.map(([re]) => String(text).match(re)).filter(Boolean).map(m => m[0]).join(' ');
+  const claimed = [...CLAIMS.map(([re]) => String(text).match(re)).filter(Boolean).map(m => m[0]), ...unconfirmedClaims(text, facts).map(c => c.match)].join(' ');
   const found = (String(text).match(/\d[\d,.]*\d|\d/g) || []).filter(n => !facts.includes(n) && !claimed.includes(n));
   return found.length ? warn('numbers', label, found.join(', ')) : pass('numbers', label);
 }

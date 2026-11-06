@@ -78,6 +78,7 @@ Lead Snap splits posts evenly across prompts. With 20 prompts at 2 posts a week,
 8. **Never invent** specific jobs, customers, reviews, prices, timescales, discounts or accreditations. Only use facts given in the prompt.
 9. Do not describe customers, what they say, how many there are or how often you work for them.
 9a. Do not mention warranties, guarantees or accreditations unless they are in the facts.
+9b. Do not give measurements, sizes or figures unless they are in the facts.
 10. No seasonal, date or time references ("today", "this week", "right now", "at the moment"), so the post stays accurate any month.
 11. No generic filler ("Happy Monday", "We're here for you").
 12. End with one sentence leading into the CTA (e.g. "Give us a call" for Call Now, "Book online" for Book).
@@ -119,7 +120,7 @@ Each prompt is an instruction to Lead Snap's AI and must be fully self-contained
   Tips: one practical, year-round tip specific to this niche, a different one on each prompt, after the instruction: "Build the whole post around this tip:"
   Offer angle: what the offer includes, who it suits and how to claim it.
 - These rules, word for word:
-  "Mention [area] once or twice and no other towns. Write 150-250 words in plain UK English, no headings, no hashtags, no emoji. Don't start with "If". Use the business name once, written exactly like this: [name]. Use the service name naturally once or twice. Never invent specific jobs, customers, reviews, prices, timescales, discounts or accreditations; use only the facts given here. Do not describe customers, what they say, how many there are or how often you work for them. Do not mention warranties, guarantees or accreditations unless they are in the facts. Do not mention seasons, weather, holidays, dates or time words such as "today", "this week", "right now" or "at the moment". No generic filler. End with one sentence that leads into the button: [CTA sentence]."
+  "Mention [area] once or twice and no other towns. Write 150-250 words in plain UK English, no headings, no hashtags, no emoji. Don't start with "If". Use the business name once, written exactly like this: [name]. Use the service name naturally once or twice. Never invent specific jobs, customers, reviews, prices, timescales, discounts or accreditations; use only the facts given here. Do not describe customers, what they say, how many there are or how often you work for them. Do not mention warranties, guarantees or accreditations unless they are in the facts. Do not give measurements, sizes or figures unless they are in the facts. Do not mention seasons, weather, holidays, dates or time words such as "today", "this week", "right now" or "at the moment". No generic filler. End with one sentence that leads into the button: [CTA sentence]."
 
 STEP 4 - OUTPUT
 Return the config sheet in the format below, then the gap list. Do not add commentary.
@@ -186,7 +187,7 @@ Mention Hornchurch once or twice and no other towns.
 
 Build the whole post around this angle: the signs customers notice that a boiler needs repair, such as no hot water, dropping pressure or strange noises.
 
-Write 150-250 words in plain UK English, no headings, no hashtags, no emoji. Don't start with "If". Use the business name once, written exactly like this: Hartley Plumbing & Heating. Use "boiler repair" naturally once or twice. Never invent specific jobs, customers, reviews, prices, timescales, discounts or accreditations; use only the facts given here. Do not describe customers, what they say, how many there are or how often you work for them. Do not mention warranties, guarantees or accreditations unless they are in the facts. Do not mention seasons, weather, holidays, dates or time words such as "today", "this week", "right now" or "at the moment". No generic filler. Tone: friendly, plain-spoken. End with one sentence that leads into the button: invite them to give us a call.
+Write 150-250 words in plain UK English, no headings, no hashtags, no emoji. Don't start with "If". Use the business name once, written exactly like this: Hartley Plumbing & Heating. Use "boiler repair" naturally once or twice. Never invent specific jobs, customers, reviews, prices, timescales, discounts or accreditations; use only the facts given here. Do not describe customers, what they say, how many there are or how often you work for them. Do not mention warranties, guarantees or accreditations unless they are in the facts. Do not give measurements, sizes or figures unless they are in the facts. Do not mention seasons, weather, holidays, dates or time words such as "today", "this week", "right now" or "at the moment". No generic filler. Tone: friendly, plain-spoken. End with one sentence that leads into the button: invite them to give us a call.
 ```
 
 ### One tip prompt in full
@@ -200,7 +201,7 @@ Mention Hornchurch once or twice and no other towns.
 
 Build the whole post around this tip: how to find and turn off your stopcock, and why to check it before you need it.
 
-Explain the tip clearly, then say when it's time to call a plumber. Write 150-250 words in plain UK English, no headings, no hashtags, no emoji. Don't start with "If". Use the business name once, written exactly like this: Hartley Plumbing & Heating. Use "plumber" naturally once or twice. Never invent specific jobs, customers, reviews, prices, timescales, discounts or accreditations; use only the facts given here. Do not describe customers, what they say, how many there are or how often you work for them. Do not mention warranties, guarantees or accreditations unless they are in the facts. Do not mention seasons, weather, holidays, dates or time words such as "today", "this week", "right now" or "at the moment". No generic filler. Tone: friendly, plain-spoken. End with one sentence that leads into the button: invite them to give us a call.
+Explain the tip clearly, then say when it's time to call a plumber. Write 150-250 words in plain UK English, no headings, no hashtags, no emoji. Don't start with "If". Use the business name once, written exactly like this: Hartley Plumbing & Heating. Use "plumber" naturally once or twice. Never invent specific jobs, customers, reviews, prices, timescales, discounts or accreditations; use only the facts given here. Do not describe customers, what they say, how many there are or how often you work for them. Do not mention warranties, guarantees or accreditations unless they are in the facts. Do not give measurements, sizes or figures unless they are in the facts. Do not mention seasons, weather, holidays, dates or time words such as "today", "this week", "right now" or "at the moment". No generic filler. Tone: friendly, plain-spoken. End with one sentence that leads into the button: invite them to give us a call.
 ```
 
 ## One-time tests and open questions
