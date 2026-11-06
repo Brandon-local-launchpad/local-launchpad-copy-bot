@@ -18,7 +18,8 @@ const { locationValidationContext } = require('./validate-location');
 const PT = require('./page-types/location');
 const { extractIdeas } = require('./ideas');
 
-const LOCATION_MODEL = G.V20_MODEL;
+const PM = require('./page-models');
+const LOCATION_MODEL = PM.forPage('location').model;
 const LOCATION_MAX_TOKENS = 12000;
 // The master copy; the unbracketed name is how the file was first saved (Brandon, 25 Oct)
 const PROMPT_NAMES = ['Location_Page_Copywriting_Prompt_CORE (18).md', 'Location_Page_Copywriting_Prompt_CORE 18.md', 'Location_Page_Copywriting_Prompt_CORE (18) (1).md'];
@@ -68,7 +69,7 @@ function buildLocationRequest({ cv, niche, decisions, decisionsBlock, calibratio
 
 // Generate one location page record. With a failed gate there is no call.
 // howItsDone: { paragraphs: [{ page, text }], rows: [{ service, text }] } for the validator's HOW-DONE rule
-async function generateLocationPage({ cv, niche, keyValueMap, serviceParentMap = {}, decisionsResult, calibrationPack, calibrationPackName, callModel, howItsDone = null, extraFlags = [], retries = true, claimsReview = true, qualityReview = false, flagPass = true, qualityRounds = 3 }) {
+async function generateLocationPage({ modelConfig = PM.forPage('location'), cv, niche, keyValueMap, serviceParentMap = {}, decisionsResult, calibrationPack, calibrationPackName, callModel, howItsDone = null, extraFlags = [], retries = true, claimsReview = true, qualityReview = false, flagPass = true, qualityRounds = 3 }) {
   const { runRetries, loadRetryPrompt, validationSummary } = require('./v20-retry');
   const D = decisionsResult.decisions;
   const meta = {
@@ -77,7 +78,7 @@ async function generateLocationPage({ cv, niche, keyValueMap, serviceParentMap =
     scope: 'town',
     town: D ? D.town : null,
     generated_at: new Date().toISOString(),
-    model: LOCATION_MODEL,
+    model: modelConfig.model,
     prompt: promptFile().name,
     shared_rules: loadSharedRules().source,
     niche: niche._source || niche.trade,
@@ -116,7 +117,7 @@ async function generateLocationPage({ cv, niche, keyValueMap, serviceParentMap =
       ...req.system,
       { type: 'text', text: `${loadRetryPrompt().replace(/this homepage/g, 'this location page')}\n\nTHE PAGE'S MESSAGE (PAGE, DECISIONS, LINKABLE PAGES, ALLOCATED ITEMS, MODEL FIELDS):\n\n${decisionsResult.decisionsBlock}`, cache_control: { type: 'ephemeral' } },
     ];
-    const callRetry = ({ message }) => callModel({ system: retrySystem, message, maxTokens: 2048 });
+    const callRetry = PM.retryCaller(callModel, retrySystem, modelConfig);
     const { log, usage: retryUsage, finalIssues } = await runRetries({ record, V, callRetry, validate });
     record.VALIDATION = validationSummary(finalIssues, log, retryUsage);
     if (claimsReview) {

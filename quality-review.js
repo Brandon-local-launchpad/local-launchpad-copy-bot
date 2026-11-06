@@ -18,7 +18,8 @@ const validateV20 = (record, V) => pageTypeOf(record).validate(record, V);
 const buildReaderView = (record, values) => pageTypeOf(record).readerView(record, values);
 const { extractJsonObject } = require('./json-extract');
 
-const REVIEW_MODEL = 'claude-opus-5-5';
+const PM = require('./page-models');
+const REVIEW_MODEL = PM.judge().model;
 const PASS_SCORE = 8.5;
 
 // Rubric items scored by code: the validator checks behind each
@@ -392,7 +393,7 @@ function pageText(record) {
   return cut >= 0 ? md.slice(0, cut).trim() : md;
 }
 
-async function reviewPage({ record, V, D, cv, niche, callModel }) {
+async function reviewPage({ record, V, D, cv, niche, callModel, judge = PM.judge() }) {
   const { items: codeItems, issues } = scoreCodeItems({ record, V, D, cv, niche });
   const message = [
     'JUDGE ITEMS:', ...Object.entries(judgeItemsFor(record)).map(([id, t]) => `${id}: ${t}`), '',
@@ -401,7 +402,7 @@ async function reviewPage({ record, V, D, cv, niche, callModel }) {
     'FACTS ON FILE:', factsFor(record), '',
     'PAGE:', pageText(record),
   ].join('\n');
-  const r = await callModel({ system: loadReviewPrompt(), message, maxTokens: 16000, model: REVIEW_MODEL, temperature: 0 });
+  const r = await callModel({ system: loadReviewPrompt(), message, maxTokens: 16000, model: judge.model, effort: judge.effort, temperature: 0 });
   const j = extractJsonObject(r.text);
   const judgeItems = Object.entries(judgeItemsFor(record)).map(([id, t]) => {
     const got = (j.items || []).find(x => x.id === id) || { pass: false, why: 'The reviewer did not score this item.' };
@@ -416,7 +417,7 @@ async function reviewPage({ record, V, D, cv, niche, callModel }) {
   // writing, as the reviewer gives it; the failures that need a client fact are listed apart
   const score_writing = typeof j.score_writing === 'number' ? j.score_writing : score;
   return {
-    at: new Date().toISOString(), model: REVIEW_MODEL, score, score_writing, passAll: !failed.length,
+    at: new Date().toISOString(), model: judge.model, score, score_writing, passAll: !failed.length,
     needs_fact: failed.filter(i => i.needs === 'client fact').map(i => i.id),
     done: !failed.length && score !== null && score >= PASS_SCORE,
     failed: failed.map(i => i.id), items, other_problems: j.other_problems || [], missing_facts: j.missing_facts || [],

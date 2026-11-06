@@ -102,16 +102,16 @@ function promptText(name) {
 // ── Settings ──
 const KEYS = [['ANTHROPIC_API_KEY', 'Anthropic (the writer, the reviewer, the claims check)'], ['PERPLEXITY_API_KEY', 'Perplexity (area research, FAQ research, trade facts)'], ['DATAFORSEO_LOGIN', 'DataForSEO login (H1 search volumes)'], ['DATAFORSEO_PASSWORD', 'DataForSEO password'], ['GOOGLE_PLACES_API_KEY', 'Google Places (the GBP competitor check, the wizard)'], ['LEADSNAP_API_TOKEN', 'LeadSnap (rank scans)'], ['FILLOUT_WEBHOOK_SECRET', 'Fillout webhook secret'], ['FILLOUT_API_KEY', 'Fillout API key (the form options tool)'], ['FILLOUT_FORM_URL', 'Fillout form link (the wizard shows it)'], ['APP_PASSWORD', 'App password'], ['DATABASE_URL', 'Database']];
 function modelRouting() {
-  const G = require('../v20-generate');
+  const PM = require('../page-models');
   const read = (file, re) => { try { const m = fs.readFileSync(path.join(ROOT, file), 'utf8').match(re); return m ? m[1] : null; } catch (_) { return null; } };
   return [
-    { call: 'Homepage (CORE 20)', model: G.V20_MODEL, where: 'v20-generate.js' },
-    { call: 'Category pages (CORE 16)', model: read('category-generate.js', /CATEGORY_MODEL = (G\.V20_MODEL|'[^']+')/) === 'G.V20_MODEL' ? G.V20_MODEL : read('category-generate.js', /CATEGORY_MODEL = '([^']+)'/), where: 'category-generate.js' },
-    { call: 'Service pages (CORE 17)', model: read('service-generate.js', /SERVICE_MODEL = (G\.V20_MODEL|'[^']+')/) === 'G.V20_MODEL' ? G.V20_MODEL : read('service-generate.js', /SERVICE_MODEL = '([^']+)'/), where: 'service-generate.js' },
-    { call: 'Location pages (CORE 18)', model: read('location-generate.js', /LOCATION_MODEL = (G\.V20_MODEL|'[^']+')/) === 'G.V20_MODEL' ? G.V20_MODEL : read('location-generate.js', /LOCATION_MODEL = '([^']+)'/), where: 'location-generate.js' },
-    { call: 'Field retries', model: G.V20_MODEL, where: 'v20-retry.js (the writer\'s model)' },
-    { call: 'Quality review (the rubric judge)', model: read('quality-review.js', /REVIEW_MODEL = '([^']+)'/), where: 'quality-review.js' },
-    { call: 'Claims review', model: read('wp/claims-review.js', /CLAIMS_MODEL = '([^']+)'/), where: 'wp/claims-review.js' },
+    { call: 'Homepage (CORE 20)', model: PM.forPage('homepage').model, where: 'page-models.json' },
+    { call: 'Category pages (CORE 16)', model: PM.forPage('category').model, where: 'page-models.json' },
+    { call: 'Service pages (CORE 17)', model: PM.forPage('service').model, where: 'page-models.json' },
+    { call: 'Location pages (CORE 18)', model: PM.forPage('location').model, where: 'page-models.json' },
+    { call: 'Field retries', model: 'the page type\'s writer', where: 'page-models.json (block_rewrite for a field with a BLOCK)' },
+    { call: 'Quality review (the rubric judge)', model: PM.judge().model, where: 'page-models.json' },
+    { call: 'Claims review', model: 'the page type\'s writer', where: 'wp/claims-review.js' },
     { call: 'Allocation pass', model: read('allocation.js', /ALLOCATION_MODEL\s*=\s*'([^']+)'/), where: 'allocation.js' },
     { call: 'FAQ sorting', model: read('faq-sort.js', /FAQ_SORT_MODEL\s*=\s*'([^']+)'/), where: 'faq-sort.js' },
     { call: 'GBP output', model: read('gbp/generate.js', /GBP_MODEL = '([^']+)'/), where: 'gbp/generate.js' },

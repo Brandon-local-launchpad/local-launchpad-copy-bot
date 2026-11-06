@@ -13,7 +13,8 @@ const { ph } = require('./decisions');
 
 // Sonnet 5.5 since 16 Oct (Brandon): far fewer copy rule breaks than Sonnet 4.6 in the quality loop,
 // and cheaper. anthropic-call.js gives it an effort, room to think and the refusal fallback.
-const V20_MODEL       = 'claude-sonnet-5-5';
+const V20_MODEL       = 'claude-sonnet-5-5'; // the non page calls that share it (price extraction); page types read page-models.json
+const PM = require('./page-models');
 const V20_PROMPT_FILE = 'Homepage_Copywriting_Prompt_CORE (20).md';
 const V20_MAX_TOKENS  = 8192;
 
@@ -202,7 +203,7 @@ function validationContextFor({ cv, niche, decisions, keyValueMap, serviceParent
 
 // Generate the homepage record. `callModel({ system, message, maxTokens })` returns
 // { text, usage }. With a failed gate there is no call: the record holds the gates.
-async function generateV20Homepage({ cv, niche, keyValueMap, serviceParentMap = {}, decisionsResult, calibrationPack, calibrationPackName, callModel, extraFlags = [], allocationSource = null, retries = true, claimsReview = true, qualityReview = false, flagPass = true }) {
+async function generateV20Homepage({ modelConfig = PM.forPage('homepage'), cv, niche, keyValueMap, serviceParentMap = {}, decisionsResult, calibrationPack, calibrationPackName, callModel, extraFlags = [], allocationSource = null, retries = true, claimsReview = true, qualityReview = false, flagPass = true }) {
   const { buildPageRecord, expectedFromDecisions } = require('./v20-record');
   const { parseV20Output } = require('./v20-parse');
   const { validateV20 } = require('./validate-v20');
@@ -210,7 +211,7 @@ async function generateV20Homepage({ cv, niche, keyValueMap, serviceParentMap = 
   const meta = {
     page_type: 'homepage',
     generated_at: new Date().toISOString(),
-    model: V20_MODEL,
+    model: modelConfig.model,
     prompt: V20_PROMPT_FILE,
     niche: niche._source || niche.trade,
     calibration_pack: calibrationPack ? (calibrationPackName || 'yes') : 'none',
@@ -244,7 +245,7 @@ async function generateV20Homepage({ cv, niche, keyValueMap, serviceParentMap = 
       req.system[0], req.system[1],
       { type: 'text', text: `${loadRetryPrompt()}\n\nTHE PAGE'S MESSAGE (PAGE, DECISIONS, LINKABLE PAGES, ALLOCATED ITEMS, MODEL FIELDS):\n\n${decisionsResult.decisionsBlock}`, cache_control: { type: 'ephemeral' } },
     ];
-    const callRetry = ({ message }) => callModel({ system: retrySystem, message, maxTokens: 2048 });
+    const callRetry = PM.retryCaller(callModel, retrySystem, modelConfig);
     const { log, usage: retryUsage, finalIssues } = await runRetries({ record, V, callRetry });
     record.VALIDATION = validationSummary(finalIssues, log, retryUsage);
 

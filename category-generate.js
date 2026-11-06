@@ -18,7 +18,8 @@ const { categoryValidationContext } = require('./validate-category');
 const PT = require('./page-types/category');
 const { extractIdeas } = require('./ideas');
 
-const CATEGORY_MODEL = G.V20_MODEL;
+const PM = require('./page-models');
+const CATEGORY_MODEL = PM.forPage('category').model;
 const CATEGORY_MAX_TOKENS = 12000;
 // The prompt file: the master copy of CORE (16) in prompts/. A download copy with a
 // " (1)" suffix is read when the plain name is missing (Brandon pastes it in by hand).
@@ -79,7 +80,7 @@ function buildCategoryRequest({ cv, niche, decisions, decisionsBlock, calibratio
 }
 
 // Generate one category page record. With a failed gate there is no call.
-async function generateCategoryPage({ cv, niche, keyValueMap, serviceParentMap = {}, decisionsResult, calibrationPack, calibrationPackName, callModel, tradeFacts = null, extraFlags = [], retries = true, claimsReview = true, qualityReview = false, flagPass = true, qualityRounds = 3 }) {
+async function generateCategoryPage({ modelConfig = PM.forPage('category'), cv, niche, keyValueMap, serviceParentMap = {}, decisionsResult, calibrationPack, calibrationPackName, callModel, tradeFacts = null, extraFlags = [], retries = true, claimsReview = true, qualityReview = false, flagPass = true, qualityRounds = 3 }) {
   const { runRetries, loadRetryPrompt, validationSummary } = require('./v20-retry');
   const D = decisionsResult.decisions;
   const meta = {
@@ -89,7 +90,7 @@ async function generateCategoryPage({ cv, niche, keyValueMap, serviceParentMap =
     category: D ? D.category : null,
     town: D ? D.town : null,
     generated_at: new Date().toISOString(),
-    model: CATEGORY_MODEL,
+    model: modelConfig.model,
     prompt: promptFile().name,
     niche: niche._source || niche.trade,
     business_type: D ? D.type : null,
@@ -130,7 +131,7 @@ async function generateCategoryPage({ cv, niche, keyValueMap, serviceParentMap =
       ...req.system,
       { type: 'text', text: `${loadRetryPrompt().replace(/this homepage/g, 'this category page')}\n\nTHE PAGE'S MESSAGE (PAGE, DECISIONS, LINKABLE PAGES, ALLOCATED ITEMS, MODEL FIELDS):\n\n${decisionsResult.decisionsBlock}`, cache_control: { type: 'ephemeral' } },
     ];
-    const callRetry = ({ message }) => callModel({ system: retrySystem, message, maxTokens: 2048 });
+    const callRetry = PM.retryCaller(callModel, retrySystem, modelConfig);
     const { log, usage: retryUsage, finalIssues } = await runRetries({ record, V, callRetry, validate });
     record.VALIDATION = validationSummary(finalIssues, log, retryUsage);
     if (claimsReview) {

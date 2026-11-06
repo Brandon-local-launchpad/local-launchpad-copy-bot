@@ -14,7 +14,7 @@ function makeCallModel(client, defaultModel, { onUsage = null, defaultEffort = '
   // temperature (4 Nov 2026): the reviewer asks for 0 so two readings of one page agree. The 5.5 models
   // refuse the parameter ("temperature is deprecated for this model"), so it is sent only to the
   // others; on a 5.5 model the two readings are the only control over the spread
-  return async function callModel({ system, message, maxTokens = 8192, model = defaultModel, effort = defaultEffort, temperature = undefined }) {
+  return async function callModel({ system, message, maxTokens = 8192, model = defaultModel, effort = defaultEffort, temperature = undefined, loweredFrom = null }) {
     for (let attempt = 0; ; attempt++) {
       try {
         const params = { model, max_tokens: is55(model) ? Math.max(maxTokens * 4, 16000) : maxTokens, system, messages: [{ role: 'user', content: message }], ...(temperature != null && !is55(model) ? { temperature } : {}) };
@@ -26,7 +26,14 @@ function makeCallModel(client, defaultModel, { onUsage = null, defaultEffort = '
         if (r.stop_reason === 'max_tokens' && !text) {
           // It thought until it ran out: once more at low effort (16 Oct: Opus 5.5 at medium
           // thought through 32k tokens on the whole homepage)
-          if (effort !== 'low') return callModel({ system, message, maxTokens, model, effort: 'low' });
+          // The spent attempt is billed: it is logged and travels on the answer's usage (6 Nov 2026)
+          if (effort !== 'low') {
+            const spent = { input_tokens: r.usage.input_tokens, output_tokens: r.usage.output_tokens, cache_read_input_tokens: r.usage.cache_read_input_tokens || 0, cache_creation_input_tokens: r.usage.cache_creation_input_tokens || 0, stop_reason: r.stop_reason, model: r.model || model, requested_model: model, effort, raw_usage: r.usage };
+            if (onUsage) onUsage(model, spent);
+            const again = await callModel({ system, message, maxTokens, model, effort: 'low', loweredFrom: effort });
+            again.usage.spent_attempt = spent;
+            return again;
+          }
           throw new Error(`${model} used all ${params.max_tokens} tokens without writing an answer.`);
         }
         const usage = {
@@ -34,6 +41,8 @@ function makeCallModel(client, defaultModel, { onUsage = null, defaultEffort = '
           cache_read_input_tokens: r.usage.cache_read_input_tokens || 0,
           cache_creation_input_tokens: r.usage.cache_creation_input_tokens || 0,
           stop_reason: r.stop_reason, model: r.model || model,
+          // What was asked for, and the API's own usage block as it came: tools/model-test.js reads these
+          requested_model: model, effort, lowered_from: loweredFrom, rate_limit_waits: attempt, raw_usage: r.usage,
         };
         if (onUsage) onUsage(model, usage);
         return { text, usage };

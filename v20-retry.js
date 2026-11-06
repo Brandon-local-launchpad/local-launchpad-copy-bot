@@ -122,7 +122,7 @@ async function runRetries({ record, V, callRetry, maxRetries = MAX_RETRIES, conc
       const earlier = history[label] || [];
       history[label] = [...new Set([...earlier, ...problems])];
       try {
-        const r = await callRetry({ message: buildRetryMessage(f, problems, base, V.D, earlier, V) });
+        const r = await callRetry({ message: buildRetryMessage(f, problems, base, V.D, earlier, V), hasBlock: g.issues.some(i => i.type === 'BLOCK') });
         usage.calls++;
         for (const k of ['input_tokens', 'output_tokens', 'cache_read_input_tokens']) usage[k] += (r.usage && r.usage[k]) || 0;
         return { label, f, problems, before: f.text, after: parseRetryReply(r.text, f.ref), raw: r.text || '' };
@@ -235,7 +235,7 @@ async function runFlagPass({ record, V, callRetry, maxRounds = 2, concurrency = 
       if (!f) return { label, error: 'field not found' };
       const problems = [...new Set(issues.filter(i => i.field === label).map(i => i.message))];
       try {
-        const r = await callRetry({ message: buildRetryMessage(f, problems, base, V.D, [], V) });
+        const r = await callRetry({ message: buildRetryMessage(f, problems, base, V.D, [], V), hasBlock: issues.some(i => i.field === label && i.type === 'BLOCK') });
         usage.calls++;
         for (const k of ['input_tokens', 'output_tokens', 'cache_read_input_tokens']) usage[k] += (r.usage && r.usage[k]) || 0;
         return { label, f, problems, before: f.text, after: parseRetryReply(r.text, f.ref), raw: r.text || '' };
@@ -282,7 +282,7 @@ async function runTargetedPass({ record, V, callRetry, concurrency = CONCURRENCY
     if (!f) return { label, error: 'field not found' };
     const problems = [...new Set(allIssues.filter(i => i.field === label).map(i => i.message))];
     try {
-      const r = await callRetry({ message: buildRetryMessage(f, problems, base, V.D, [], V) });
+      const r = await callRetry({ message: buildRetryMessage(f, problems, base, V.D, [], V), hasBlock: allIssues.some(i => i.field === label && i.type === 'BLOCK') });
       usage.calls++;
       for (const k of ['input_tokens', 'output_tokens', 'cache_read_input_tokens']) usage[k] += (r.usage && r.usage[k]) || 0;
       return { label, f, problems, before: f.text, after: parseRetryReply(r.text, f.ref), raw: r.text || '' };

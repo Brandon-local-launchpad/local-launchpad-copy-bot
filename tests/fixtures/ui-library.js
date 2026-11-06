@@ -58,12 +58,12 @@ console.log('\n=== FIXTURE: the UI library, settings, model log and intake ===\n
   // ── Model log ──
   const usage = { input_tokens: 10000, output_tokens: 2000, cache_read_input_tokens: 50000, cache_creation_input_tokens: 0 };
   const pence = M.costPence('claude-sonnet-5-5', usage);
-  chk('Cost: Sonnet 5.5, 10k in, 2k out, 50k cached read = (0.03 + 0.03 + 0.015) USD = 5.85p', pence === 5.85, pence, 5.85);
+  chk('Cost: Sonnet 5.5, 10k in, 2k out, 50k cached read = (0.02 + 0.02 + 0.005) USD = 3.51p', pence === 3.51, pence, 3.51);
   await log.record({ model: 'claude-sonnet-5-5', usage, call_type: 'category pages', page_type: 'category', page_key: '/landscaper' });
   log.tagged('homepage', { page_type: 'homepage' })('claude-opus-5-5', { input_tokens: 1000, output_tokens: 500 });
   await new Promise(r => setTimeout(r, 50));
   const sp = await log.spend();
-  chk('Spend this month adds the two calls and groups by call type and model', sp.calls === 2 && sp.by.length === 2 && sp.total_pence === Math.round((5.85 + M.costPence('claude-opus-5-5', { input_tokens: 1000, output_tokens: 500 })) * 100) / 100 && sp.last.length === 2, JSON.stringify(sp), '');
+  chk('Spend this month adds the two calls and groups by call type and model', sp.calls === 2 && sp.by.length === 2 && sp.total_pence === Math.round((3.51 + M.costPence('claude-opus-5-5', { input_tokens: 1000, output_tokens: 500 })) * 100) / 100 && sp.last.length === 2, JSON.stringify(sp), '');
 
   // ── Intake: the scrape, the Maps link, the merge, the create ──
   const html = `<html><head><title>Edens Edge Landscaping | Southampton</title><meta name="description" content="Garden design in Southampton"><link rel="icon" href="/fav.png"></head><body><img src="/img/logo-main.png"><p>Call 023 8012 3456 or email hello@edensedge.co.uk. SO16 7AB.</p><a href="https://www.facebook.com/edensedge">fb</a></body></html>`;

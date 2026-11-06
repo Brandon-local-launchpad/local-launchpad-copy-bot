@@ -3788,7 +3788,8 @@ app.post('/api/clients/:clientId/v20/homepage/generate', async (req, res) => {
     const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
     // One call helper for every model the generation uses (the writer, the claims and
     // quality reviewers): anthropic-call.js handles the 5.5 models' effort and fallback
-    const callModel = makeCallModel(client, v20.V20_MODEL, { onUsage: modelLog.tagged('homepage', { client_id: clientId, page_type: 'homepage', page_key: 'homepage' }) });
+    const homepageModel = require('./page-models').forPage('homepage');
+    const callModel = makeCallModel(client, homepageModel.model, { defaultEffort: homepageModel.effort, onUsage: modelLog.tagged('homepage', { client_id: clientId, page_type: 'homepage', page_key: 'homepage' }) });
     const record = await v20.generateV20Homepage({
       cv: ctx.cv, niche, keyValueMap: ctx.keyValueMap, serviceParentMap: ctx.serviceParentMap, decisionsResult,
       calibrationPack: pack.text, calibrationPackName: pack.name, callModel,
@@ -4092,7 +4093,8 @@ if (pool && pageMapStore && v20Store) {
   const CG = require('./category-generate');
   const { createCategoryRunner } = require('./category-run');
   const P = require('./trade-facts/pack');
-  const callModel = args => makeCallModel(new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY }), CG.CATEGORY_MODEL, { onUsage: modelLog.tagged('category pages', { page_type: 'category' }) })(args);
+  const categoryModel = require('./page-models').forPage('category');
+  const callModel = args => makeCallModel(new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY }), categoryModel.model, { defaultEffort: categoryModel.effort, onUsage: modelLog.tagged('category pages', { page_type: 'category' }) })(args);
   categoryRunner = createCategoryRunner({
     pool, v20Store,
     loadInputs: categoryInputsFor,
@@ -4149,7 +4151,8 @@ if (pool && pageMapStore && v20Store) {
   // service-decisions.js the decisions. The trade facts pack must be verified (serviceGate).
   const SG = require('./service-generate');
   const { createServiceRunner } = require('./service-run');
-  const serviceCallModel = args => makeCallModel(new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY }), SG.SERVICE_MODEL, { onUsage: modelLog.tagged('service pages', { page_type: 'service' }) })(args);
+  const serviceModel = require('./page-models').forPage('service');
+  const serviceCallModel = args => makeCallModel(new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY }), serviceModel.model, { defaultEffort: serviceModel.effort, onUsage: modelLog.tagged('service pages', { page_type: 'service' }) })(args);
   serviceRunner = createServiceRunner({
     pool, v20Store,
     loadInputs: serviceInputsFor,
@@ -4200,7 +4203,8 @@ if (pool && pageMapStore && v20Store) {
   // location-decisions.js the decisions. No trade facts are sent (the page explains the town).
   const LG = require('./location-generate');
   const { createLocationRunner } = require('./location-run');
-  const locationCallModel = args => makeCallModel(new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY }), LG.LOCATION_MODEL, { onUsage: modelLog.tagged('location pages', { page_type: 'location' }) })(args);
+  const locationModel = require('./page-models').forPage('location');
+  const locationCallModel = args => makeCallModel(new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY }), locationModel.model, { defaultEffort: locationModel.effort, onUsage: modelLog.tagged('location pages', { page_type: 'location' }) })(args);
   locationRunner = createLocationRunner({
     pool, v20Store,
     loadInputs: categoryInputsFor,

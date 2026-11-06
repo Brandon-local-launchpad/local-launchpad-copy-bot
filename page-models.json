@@ -1,0 +1,8 @@
+{
+  "_note": "Which model writes each page type. model and effort are the writer's, used for the first draft, the retries and the claims review. block_rewrite, when set, is the model and effort that rewrite a field carrying a BLOCK (the hybrid: a cheap writer, a stronger model on what fails). judge is the rubric reviewer in quality-review.js.",
+  "homepage": { "model": "claude-sonnet-5-5", "effort": "medium", "block_rewrite": null },
+  "category": { "model": "claude-sonnet-5-5", "effort": "medium", "block_rewrite": null },
+  "service":  { "model": "claude-sonnet-5-5", "effort": "medium", "block_rewrite": null },
+  "location": { "model": "claude-sonnet-5-5", "effort": "medium", "block_rewrite": null },
+  "judge":    { "model": "claude-opus-5-5", "effort": "medium" }
+}

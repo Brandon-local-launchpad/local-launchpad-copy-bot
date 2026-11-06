@@ -19,7 +19,8 @@ const { serviceValidationContext } = require('./validate-service');
 const PT = require('./page-types/service');
 const { extractIdeas } = require('./ideas');
 
-const SERVICE_MODEL = G.V20_MODEL;
+const PM = require('./page-models');
+const SERVICE_MODEL = PM.forPage('service').model;
 const SERVICE_MAX_TOKENS = 12000;
 const PROMPT_NAMES = ['Service_Page_Copywriting_Prompt_CORE (17).md', 'Service_Page_Copywriting_Prompt_CORE (17) (1).md'];
 const SHARED_RULES = '_shared_copy_rules.md';
@@ -72,7 +73,7 @@ function buildServiceRequest({ cv, niche, decisions, decisionsBlock, calibration
 }
 
 // Generate one service page record. With a failed gate there is no call.
-async function generateServicePage({ cv, niche, keyValueMap, serviceParentMap = {}, decisionsResult, calibrationPack, calibrationPackName, callModel, tradeFacts = null, extraFlags = [], retries = true, claimsReview = true, qualityReview = false, flagPass = true, qualityRounds = 3 }) {
+async function generateServicePage({ modelConfig = PM.forPage('service'), cv, niche, keyValueMap, serviceParentMap = {}, decisionsResult, calibrationPack, calibrationPackName, callModel, tradeFacts = null, extraFlags = [], retries = true, claimsReview = true, qualityReview = false, flagPass = true, qualityRounds = 3 }) {
   const { runRetries, loadRetryPrompt, validationSummary } = require('./v20-retry');
   const D = decisionsResult.decisions;
   const meta = {
@@ -83,7 +84,7 @@ async function generateServicePage({ cv, niche, keyValueMap, serviceParentMap = 
     category: D ? D.category : null,
     town: D ? D.town : null,
     generated_at: new Date().toISOString(),
-    model: SERVICE_MODEL,
+    model: modelConfig.model,
     prompt: promptFile().name,
     shared_rules: loadSharedRules().source,
     niche: niche._source || niche.trade,
@@ -122,7 +123,7 @@ async function generateServicePage({ cv, niche, keyValueMap, serviceParentMap = 
       ...req.system,
       { type: 'text', text: `${loadRetryPrompt().replace(/this homepage/g, 'this service page')}\n\nTHE PAGE'S MESSAGE (PAGE, DECISIONS, LINKABLE PAGES, ALLOCATED ITEMS, MODEL FIELDS):\n\n${decisionsResult.decisionsBlock}`, cache_control: { type: 'ephemeral' } },
     ];
-    const callRetry = ({ message }) => callModel({ system: retrySystem, message, maxTokens: 2048 });
+    const callRetry = PM.retryCaller(callModel, retrySystem, modelConfig);
     const { log, usage: retryUsage, finalIssues } = await runRetries({ record, V, callRetry, validate });
     record.VALIDATION = validationSummary(finalIssues, log, retryUsage);
     if (claimsReview) {

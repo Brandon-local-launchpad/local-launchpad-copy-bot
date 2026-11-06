@@ -9,7 +9,7 @@
 const USD_TO_GBP = 0.78;
 // [input, output, cache read, cache write] per million tokens, USD
 const PRICES = {
-  'claude-opus-5-5': [15, 75, 1.5, 18.75], 'claude-sonnet-5-5': [3, 15, 0.3, 3.75], 'claude-haiku-5-5': [0.8, 4, 0.08, 1],
+  'claude-opus-5-5': [4, 20, 0.2, 5], 'claude-sonnet-5-5': [2, 10, 0.1, 2.5], 'claude-haiku-5-5': [0.1, 0.5, 0.01, 0.125],
   'claude-sonnet-4-6': [3, 15, 0.3, 3.75], 'claude-opus-4-6': [15, 75, 1.5, 18.75], 'claude-haiku-4-5': [0.8, 4, 0.08, 1],
 };
 const priceFor = model => { const m = String(model || ''); const k = Object.keys(PRICES).find(p => m.startsWith(p)); return k ? PRICES[k] : [3, 15, 0.3, 3.75]; };
