@@ -135,7 +135,8 @@ const withCouncil = buildIntake({ I: inputs({ name: 'X', primary: 'Roofer', town
 chk('a council area is never offered as a place, and is explained', !withCouncil.areas.includes('New Forest District') && /New Forest District/.test(withCouncil.areasWhy), withCouncil.areasWhy, '');
 chk('too few areas warns', withCouncil.warnings.some(w => /Only 1 nearby areas/.test(w)), withCouncil.warnings, '');
 const noPhone = buildIntake({ I: inputs({ name: 'X', primary: 'Roofer', town: 'Lymington', areas: [], services: [['Roof repair']] }), trade: 'Roofers', hand: { counts: {} } });
-chk('Call Now with no phone warns; no USPs warns', noPhone.warnings.some(w => /no phone is saved/.test(w)) && noPhone.warnings.some(w => /No confirmed USPs/.test(w)), noPhone.warnings, '');
+chk('Call Now with no phone warns; no USPs warns', noPhone.warnings.some(w => /no phone is saved/.test(w)) && noPhone.warnings.includes('Few USPs. Posts will repeat the same facts; confirm more with the client.'), noPhone.warnings, '');
+chk('3 USPs warns, word for word; 4 does not', buildIntake({ I: { ...plumberI, proofPoints: ['same day visits available'] }, trade: 'Plumbing & Heating', hand: plumberHand }).warnings.includes('Few USPs. Posts will repeat the same facts; confirm more with the client.') && !plumber.warnings.some(w => /Few USPs/.test(w)), plumber.warnings, '');
 const stale = buildIntake({ I: { ...plumberI, proofPoints: ['rated 4.9 from 88 reviews', '300 jobs completed', 'work starts within 2 weeks', 'payment terms: 20% deposit', 'a team of 3'] }, trade: 'Plumbing & Heating', hand: { counts: {} } });
 chk('USPs that go out of date are left out: prompts run for years', stale.usps.includes('a team of 3') && !stale.usps.some(u => /reviews|jobs completed|work starts|deposit/.test(u)), stale.usps, '');
 
@@ -282,17 +283,17 @@ const canned = text => async () => ({ text, usage: { input_tokens: 10, output_to
   const clean = `Hartley Plumbing & Heating looks after homes in Hornchurch. A boiler repair starts with a proper look at what went wrong. ${words(170)} Give us a call.`;
   const levelOf = (text, id, p = boilerP) => Pv.checkSample(text, p, pvRec.intake).checks.find(c => c.id === id);
   chk('a clean sample passes all eight checks', Pv.checkSample(clean, boilerP, pvRec.intake).warnings === 0 && Pv.checkSample(clean, boilerP, pvRec.intake).checks.length === 8, JSON.stringify(Pv.checkSample(clean, boilerP, pvRec.intake).checks.filter(c => c.level === 'warn')), '');
-  chk('preview: under 150 words warns', levelOf('Hartley Plumbing & Heating in Hornchurch.', 'words').level === 'warn', '', 'warn');
-  chk('preview: over 250 words warns', levelOf(clean + words(100), 'words').level === 'warn', '', 'warn');
+  chk('preview: a short post does not warn: only a long overrun does', levelOf('Hartley Plumbing & Heating in Hornchurch.', 'words').level === 'pass', '', 'pass');
+  chk('preview: 251 to 300 words pass, over 300 warns', levelOf(clean + ' ' + words(60), 'words').level === 'pass' && levelOf(clean + ' ' + words(130), 'words').level === 'warn', Pv.checkSample(clean + ' ' + words(130), boilerP, pvRec.intake).words, '');
   const edens = { ...pvRec.intake, business: 'Edens Edge Landscaping' };
   chk('preview: the name Lead Snap really wrote is caught', Pv.checkName('Edens edge landscaping LTD did this.', 'Edens Edge Landscaping').level === 'warn', '', 'warn');
   chk('preview: the right name with LTD after it is caught', Pv.checkName('Edens Edge Landscaping LTD did this.', 'Edens Edge Landscaping').level === 'warn', '', 'warn');
   chk('preview: a shortened name is caught', Pv.checkName('Edens Edge Landscaping is local. Call Edens Edge today.', 'Edens Edge Landscaping').level === 'warn', '', 'warn');
   chk('preview: no name is caught', Pv.checkName('A local firm.', 'Edens Edge Landscaping').level === 'warn', '', 'warn');
   chk('preview: the exact name passes', Pv.checkName('Edens Edge Landscaping is local. Edens Edge Landscaping can help.', 'Edens Edge Landscaping').level === 'pass', '', 'pass');
-  chk('preview: two towns from the list warn', levelOf(clean + ' Also Dagenham.', 'town').level === 'warn', '', 'warn');
-  chk('preview: no town warns', levelOf(clean.replace('Hornchurch', 'the area'), 'town').level === 'warn', '', 'warn');
-  chk('preview: a town off the short list is still caught', Pv.checkSample(clean + ' Also Basildon.', boilerP, { ...pvRec.intake, allAreas: [...pvRec.intake.areas, 'Basildon'] }).checks.find(c => c.id === 'town').level === 'warn', '', 'warn');
+  chk('preview: the main town and one area pass, a third town warns', levelOf(clean + ' Also Romford.', 'town').level === 'pass' && levelOf(clean + ' Also Romford and Dagenham.', 'town').level === 'warn', JSON.stringify(levelOf(clean + ' Also Romford and Dagenham.', 'town')), '');
+  chk('preview: no town does not warn', levelOf(clean.replace('Hornchurch', 'the area'), 'town').level === 'pass', '', 'pass');
+  chk('preview: a town off the short list still counts', Pv.checkSample(clean + ' Also Romford and Basildon.', boilerP, { ...pvRec.intake, allAreas: [...pvRec.intake.areas, 'Basildon'] }).checks.find(c => c.id === 'town').level === 'warn', '', 'warn');
   chk('preview: a second service of a group warns', levelOf(clean + ' We also do boiler installation.', 'group').level === 'warn', '', 'warn');
   chk('preview: the other services prompt warns on a second service', levelOf(clean.replace('A boiler repair starts', 'Bathroom fitting starts') + ' Drain unblocking too.', 'group', otherP).level === 'warn', '', 'warn');
   chk('preview: one service from other services passes', levelOf(clean.replace('A boiler repair starts', 'Bathroom fitting starts'), 'group', otherP).level === 'pass', '', 'pass');
@@ -305,40 +306,44 @@ const canned = text => async () => ({ text, usage: { input_tokens: 10, output_to
   chk('preview: a year that is a fact passes', Pv.checkSample(clean + ' Trading since 2015.', boilerP, { ...pvRec.intake, usps: ['trading since 2015'] }).checks.find(c => c.id === 'dated').level === 'pass', '', 'pass');
   chk('preview: starting with If warns, in any case', levelOf('If your boiler stops.', 'if').level === 'warn' && levelOf('"if your boiler stops', 'if').level === 'warn', '', 'warn');
   chk('preview: "Iffy" and If later on pass', levelOf('Iffy boilers. If yours stops.', 'if').level === 'pass', '', 'pass');
-  const sameOpen = Pv.sameness(['A boiler that stops working is a worry', 'A boiler that stops working needs a look', 'Something else entirely here now']);
-  chk('sameness: two opening with the same 5 words warn', sameOpen.length === 1 && sameOpen[0].type === 'opening' && sameOpen[0].samples.join() === '1,2', JSON.stringify(sameOpen), '');
-  const sharedRun = 'we always check the pressure before anything else happens here';
-  const samePhrase = Pv.sameness([`First off ${sharedRun} today`, `Quite simply ${sharedRun} anyway`]);
-  chk('sameness: a long identical phrase warns, and quotes it', samePhrase.length === 1 && samePhrase[0].type === 'phrase' && samePhrase[0].text === sharedRun, JSON.stringify(samePhrase), '');
-  chk('sameness: punctuation and case do not hide it', Pv.sameness(['One two three four five six seven eight nine.', 'one, two; three four FIVE six seven eight nine']).length >= 1, '', '');
-  chk('sameness: different samples are clean, and 7 shared words are not "long"', !Pv.sameness(['aa bb cc dd ee ff gg hh ii', 'zz aa bb cc dd ee ff gg yy']).length, JSON.stringify(Pv.sameness(['aa bb cc dd ee ff gg hh ii', 'zz aa bb cc dd ee ff gg yy'])), '');
-  const fourSame = Pv.sameness(['one two three four five aa', 'one two three four five bb', 'one two three four five cc', 'different words at the start here']);
-  chk('sameness: one line for an opening, however many samples share it', fourSame.length === 1 && fourSame[0].samples.join() === '1,2,3' && /Samples 1, 2 and 3 start/.test(fourSame[0].message), JSON.stringify(fourSame), '');
-  const run = 'we always check the pressure before anything else happens here';
-  const nested = Pv.sameness([`aa ${run} bb`, `cc ${run} dd`, `ee ${run} extra words now ff`, `gg ${run} extra words now hh`]);
-  chk('sameness: a phrase inside a longer one is not repeated', nested.filter(x => x.type === 'phrase').length === 1 && nested[0].text.endsWith('extra words now'), JSON.stringify(nested.map(x => x.text)), '');
+  const drainP = pvRec.output.prompts.find(p => p.service === 'Drain unblocking');
+  chk('rain: a drainage prompt may say it', levelOf(clean + ' after heavy rain', 'dated', drainP).level === 'pass' && levelOf(clean + ' after the rainfall', 'dated', drainP).level === 'pass', '', 'pass');
+  chk('rain: other weather words still warn on a drainage prompt', levelOf(clean + ' after a storm', 'dated', drainP).level === 'warn' && levelOf(clean + ' this winter', 'dated', drainP).level === 'warn', '', 'warn');
+  chk('rain: every other prompt still warns', levelOf(clean + ' after heavy rain', 'dated').level === 'warn', '', 'warn');
+  const noWithin = await Pv.runPreview({ record: pvRec, callModel: async () => ({ text: clean, usage: {} }) });
+  chk('within a prompt: identical samples no longer warn', noWithin.prompts.every(p => !('sameness' in p)) && !('alike' in noWithin.summary), JSON.stringify(Object.keys(noWithin.prompts[0])), '');
   const est = Pv.estimate(pvRec.output.prompts);
   chk('the estimate: 4 samples per prompt, in pence, before anything runs', est.samples === 80 && est.per_prompt === 4 && est.pence >= 25 && est.pence <= 45, JSON.stringify(est), '25 to 45p');
   const pvCalls = [];
   const pv = await Pv.runPreview({ record: pvRec, callModel: async a => { pvCalls.push(a); if (pvCalls.length === 3) throw new Error('overloaded'); return { text: clean, usage: { input_tokens: 500, output_tokens: 450 } }; } });
   chk('run: each prompt goes 4 times, the prompt text alone as the message', pvCalls.length === 80 && pvCalls.filter(c => c.message === boilerP.text).length === 4 && pv.prompts.every(p => p.samples.length === 4), pvCalls.length, 80);
   chk('run: a failed call is one failed sample, and the rest stand', pv.summary.failed === 1 && pv.summary.samples === 80 && pv.prompts.flatMap(p => p.samples).find(s => s.error).error === 'overloaded', JSON.stringify(pv.summary), '');
-  chk('run: identical samples get the sameness warning', pv.prompts[1].sameness.length >= 1, JSON.stringify(pv.prompts[1].sameness), '');
   chk('run: the cost is worked out from what was really used, 79 calls', pv.usage.calls === 79 && pv.usd > 0.3 && pv.pence >= 30, JSON.stringify([pv.usage, pv.usd, pv.pence]), '');
   const boilersFolder = pv.folders.find(f => f.folder.endsWith('/ Boilers'));
   chk('across prompts: every folder with 2 or more prompts is compared, and only those', pv.folders.map(f => f.folder.split('/').pop().trim()).join() === 'Boilers,Leak repair,Brand,All job photos' && boilersFolder.prompts.length === 7, pv.folders.map(f => f.folder).join(), '');
   chk('across prompts: only pairs from different prompts are counted', pv.folders.find(f => f.folder === 'All job photos').compared === 48, pv.folders.find(f => f.folder === 'All job photos').compared, '48: 3 prompts of 4 samples, cross pairs only');
-  chk('across prompts: identical posts show as shared openings and phrases, with where they are', boilersFolder.opening_pairs > 0 && boilersFolder.phrase_pairs > 0 && boilersFolder.warnings.some(w => w.type === 'opening' && /^P1\.1, /.test(w.message)), JSON.stringify(boilersFolder.warnings[0]), '');
+  chk('across prompts: identical posts warn on the opening, placed, and only on the opening', boilersFolder.opening_pairs > 0 && boilersFolder.warnings.every(w => w.type === 'opening') && /^P1\.1, /.test(boilersFolder.warnings[0].message), JSON.stringify(boilersFolder.warnings[0]), '');
   const twoP = { output: { prompts: [{ n: 1, folder: 'F' }, { n: 2, folder: 'F' }, { n: 3, folder: 'G' }] } };
   const shared = 'we always check the pressure before anything else happens here';
   const cross = Pv.folderSameness([
-    { n: 1, samples: [{ n: 1, text: `one two ${shared}` }, { n: 2, text: `three four ${shared}` }] },
-    { n: 2, samples: [{ n: 1, text: 'entirely different words in this one' }, { n: 2, text: 'and these are different again too' }] },
-    { n: 3, samples: [{ n: 1, text: `five six ${shared}` }] },
+    { n: 1, samples: [{ n: 1, text: `one two ${shared}. Call us.` }, { n: 2, text: `three four ${shared}. Call us.` }] },
+    { n: 2, samples: [{ n: 1, text: 'entirely different words in this one. Call us.' }, { n: 2, text: 'and these are different again too. Call us.' }] },
+    { n: 3, samples: [{ n: 1, text: `five six ${shared}. Call us.` }] },
   ], twoP);
-  chk('across prompts: samples alike within one prompt are not counted here, nor another folder', cross.length === 1 && cross[0].folder === 'F' && cross[0].phrase_pairs === 0 && cross[0].opening_pairs === 0 && !cross[0].warnings.length && cross[0].compared === 4, JSON.stringify(cross), '');
-  const cross2 = Pv.folderSameness([{ n: 1, samples: [{ n: 1, text: `one two ${shared}` }] }, { n: 2, samples: [{ n: 3, text: `three four ${shared}` }] }], { output: { prompts: [{ n: 1, folder: 'F' }, { n: 2, folder: 'F' }] } });
-  chk('across prompts: a phrase shared by two prompts is caught and placed', cross2[0].phrase_pairs === 1 && cross2[0].longest === 10 && /^P1\.1 and P2\.3 share 10 words/.test(cross2[0].warnings[0].message), JSON.stringify(cross2[0]), '');
+  chk('across prompts: samples alike within one prompt are not counted, nor another folder', cross.length === 1 && cross[0].folder === 'F' && cross[0].phrase_pairs === 0 && cross[0].opening_pairs === 0 && !cross[0].warnings.length && cross[0].compared === 4, JSON.stringify(cross), '');
+  const fTwo = { output: { prompts: [{ n: 1, folder: 'F' }, { n: 2, folder: 'F' }] } };
+  const cross2 = Pv.folderSameness([{ n: 1, samples: [{ n: 1, text: `one two ${shared}. Call us.` }] }, { n: 2, samples: [{ n: 3, text: `three four ${shared}. Call us.` }] }], fTwo);
+  chk('a shared phrase is kept for information and does not warn', cross2[0].phrase_pairs === 1 && cross2[0].longest === 10 && cross2[0].phrases[0].refs.join() === 'P1.1,P2.3' && !cross2[0].warnings.length, JSON.stringify(cross2[0]), '');
+  const cross3 = Pv.folderSameness([{ n: 1, samples: [{ n: 1, text: 'Thinking about a new boiler for you. Call us.' }] }, { n: 2, samples: [{ n: 1, text: 'Thinking about a new boiler this time? Call us.' }] }], fTwo);
+  chk('a shared opening between different prompts warns', cross3[0].opening_pairs === 1 && /^P1\.1 and P2\.1 start with the same 5 words: "thinking about a new boiler"/.test(cross3[0].warnings[0].message), JSON.stringify(cross3[0].warnings), '');
+  const cta = 'read more about our patio work on our website today please';
+  const factLine = 'we offer free quotes and fixed prices with no hidden costs for every job';
+  const withFacts = { ...fTwo, intake: { usps: ['free quotes', 'fixed prices with no hidden costs'] } };
+  const cross4 = Pv.folderSameness([{ n: 1, samples: [{ n: 1, text: `Aaa bbb ccc. ${factLine}. ${cta}.` }] }, { n: 2, samples: [{ n: 1, text: `Ddd eee fff. ${factLine}. ${cta}.` }] }], withFacts);
+  chk('the facts sentence and the CTA sentence are left out of the phrases', cross4[0].phrase_pairs === 0, JSON.stringify(cross4[0].phrases), '');
+  chk('what is left of a post after that', Pv.withoutFactsAndCta(`Aaa bbb. ${factLine}. Ccc ddd. ${cta}.`, withFacts.intake) === 'Aaa bbb. Ccc ddd.', Pv.withoutFactsAndCta(`Aaa bbb. ${factLine}. Ccc ddd. ${cta}.`, withFacts.intake), '');
+  const cross5 = Pv.folderSameness([{ n: 1, samples: [{ n: 1, text: `A long ${shared}, truly. Call us.` }] }, { n: 2, samples: [{ n: 1, text: `Quite ${shared}, truly. Call us.` }] }], withFacts);
+  chk('a phrase outside the facts and the CTA is still found', cross5[0].phrase_pairs === 1, JSON.stringify(cross5[0]), '');
   chk('across prompts: a lone prompt in a folder has nothing to compare', Pv.folderSameness([{ n: 1, samples: [{ n: 1, text: 'x' }] }], { output: { prompts: [{ n: 1, folder: 'F' }] } }).length === 0, '', '');
   chk('run: it remembers which config it tested', pv.config_at === pvRec.generated_at, pv.config_at, pvRec.generated_at);
 

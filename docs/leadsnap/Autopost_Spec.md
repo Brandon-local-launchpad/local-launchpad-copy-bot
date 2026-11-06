@@ -58,6 +58,8 @@ Maximum 20 prompts, around Lead Snap's limit. If a client has fewer services, th
 
 Under 4 distinct photo folders, the tab warns: "Too few prompts. Don't start autopost until the client sends more photos." and lists the photos that would unlock more.
 
+Under 4 confirmed USPs, the tab warns: "Few USPs. Posts will repeat the same facts; confirm more with the client."
+
 Lead Snap splits posts evenly across prompts. With 20 prompts at 2 posts a week, each prompt runs about once every 10 weeks.
 
 ### Rules every prompt must carry

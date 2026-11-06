@@ -21,21 +21,23 @@ export async function render(el, ctx) {
   const previewBar = () => {
     const P = S.preview || {}, E = P.estimate, L = P.saved;
     if (!E) return '';
-    const last = L ? `Last preview ${h(fmtDate(L.at, true))}: ${L.summary.clean} of ${L.summary.samples} samples clean, ${L.summary.warned} with warnings${L.summary.failed ? `, ${L.summary.failed} failed` : ''}${L.summary.alike ? `. ${L.summary.alike} of ${L.summary.prompts} prompts read alike across their samples` : ''}${L.summary.folders ? `. ${L.summary.folders_alike || 0} of ${L.summary.folders} shared folders have prompts reading alike` : ''}. It cost ${L.pence}p.` : '';
+    const last = L ? `Last preview ${h(fmtDate(L.at, true))}: ${L.summary.clean} of ${L.summary.samples} samples clean, ${L.summary.warned} with warnings${L.summary.failed ? `, ${L.summary.failed} failed` : ''}${L.summary.opening_pairs ? `. ${L.summary.opening_pairs} pairs of posts from different prompts share an opening` : ''}. It cost ${L.pence}p.` : '';
     return `<div class="notice" data-preview-bar style="margin-bottom:10px"><div class="btn-row"><button class="btn btn-ghost" data-act="preview" ${P.running ? 'disabled' : ''}>${L ? 'Preview posts again' : 'Preview posts'}</button><span class="small">${E.samples} sample posts (${E.per_prompt} per prompt), about ${E.pence}p. Nothing goes to Lead Snap.</span></div>${P.running ? `<div style="margin-top:8px">${running({ now: 'Writing the sample posts', next: 'Then each one is checked' })}</div>` : ''}${last ? `<div class="small" style="margin-top:6px">${last}</div>` : ''}${P.stale ? '<div class="small" style="margin-top:4px;color:#b45309">These samples are from an earlier config. Preview again to test this one.</div>' : ''}</div>`;
   };
   const samplesFor = n => {
     const L = S.preview && S.preview.saved; const p = L && L.prompts.find(x => x.n === n);
     if (!p || S.preview.stale) return '';
     const one = s => s.error ? `<div class="notice bad small" style="margin-bottom:6px">Sample ${s.n} failed: ${h(s.error)}</div>` : `<details style="margin-bottom:6px" data-sample><summary>Sample ${s.n} · ${s.words} words ${pill(s.warnings ? 'wait' : 'ok', s.warnings ? `${s.warnings} to check` : 'pass')}</summary><div style="white-space:pre-wrap;margin:6px 0">${h(s.text)}</div><div style="display:flex;gap:6px;justify-content:flex-end">${copyBtn(s.text)}</div><ul class="small" style="margin:6px 0 0;padding:0;list-style:none">${s.checks.map(c => `<li>${pill(c.level === 'warn' ? 'wait' : 'ok', c.level)} ${h(c.label)}${c.detail ? `: <span class="muted">${h(c.detail)}</span>` : ''}</li>`).join('')}</ul></details>`;
-    return `<div class="sec-title">Sample posts</div>${p.sameness.length ? `<div class="notice warn" style="margin-bottom:8px"><strong>These samples read alike.</strong><ul style="margin:4px 0 0 18px">${p.sameness.map(w => `<li>${h(w.message)}</li>`).join('')}</ul></div>` : ''}${p.samples.map(one).join('')}`;
+    return `<div class="sec-title">Sample posts</div>${p.samples.map(one).join('')}`;
   };
 
   const folderAlike = folder => {
     const L = S.preview && S.preview.saved;
     const f = L && !S.preview.stale && (L.folders || []).find(x => x.folder === folder);
-    if (!f || !f.warnings.length) return '';
-    return `<div class="notice warn" data-folder-alike style="margin-bottom:10px"><strong>Prompts in this folder read alike.</strong> P3.1 means prompt 3, sample 1.<ul style="margin:4px 0 0 18px">${f.warnings.map(w => `<li>${h(w.message)}</li>`).join('')}</ul></div>`;
+    if (!f) return '';
+    const open = f.warnings.length ? `<div class="notice warn" data-folder-alike style="margin-bottom:10px"><strong>Prompts in this folder open the same way.</strong> P3.1 means prompt 3, sample 1.<ul style="margin:4px 0 0 18px">${f.warnings.map(w => `<li>${h(w.message)}</li>`).join('')}</ul></div>` : '';
+    const info = f.phrase_pairs ? `<div class="muted small" data-folder-phrases style="margin-bottom:10px">For information: leaving out facts and calls to action, ${f.phrase_pairs} of ${f.compared} pairs share 8 or more words in a row, the longest ${f.longest}.</div>` : '';
+    return open + info;
   };
 
   const generateCard = () => {

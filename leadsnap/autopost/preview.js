@@ -4,7 +4,9 @@
 // A sandbox: each prompt goes to the model 4 times with nothing else around it, the way Lead Snap
 // sends one, and the samples are checked. Nothing goes to Lead Snap. Which model Lead Snap's AI
 // really is, nobody here knows, so a preview shows how the prompt reads, not exactly what Lead Snap
-// will write. The checks only ever warn: the human reads the samples and decides.
+// will write. The checks only ever warn: the human reads the samples and decides. They warn on what
+// is worth stopping for (Brandon, 6 Nov): one prompt repeating itself is accepted, at one repeat
+// every 10 weeks or so with a different photo, so samples of one prompt are not compared.
 
 const { wordsDetect } = require('../../gbp/inputs');
 const { MODEL, CLAIMS } = require('./generate');
@@ -13,8 +15,7 @@ const { USD_TO_GBP } = require('../../ui/model-log');
 const SAMPLES = 4;
 const CONCURRENCY = 8;
 const EFFORT = 'low';
-const MIN_WORDS = 150;
-const MAX_WORDS = 250;
+const MAX_WORDS = 300;            // the prompt still asks for 150-250; only a long overrun is worth a warning
 const LONG_PHRASE = 8;            // words in a row shared by two samples
 const USD_PER_M = { input: 2, output: 10 };   // claude-sonnet-5-5
 // Measured on real samples (6 Nov 2026): about 460 tokens out, thinking included, and a token
@@ -68,11 +69,11 @@ function mentioned(text, names) {
   return hits;
 }
 
+// The main town and one chosen area are fine. A third town is the one to catch.
 function checkTown(text, intake) {
-  const label = 'Only one town from the area list';
+  const label = 'No more than the main town and one area';
   const towns = mentioned(text, [...(intake.areas || []), ...(intake.allAreas || [])]);
-  if (towns.length === 1) return pass('town', label, towns[0]);
-  return warn('town', label, towns.length ? `names ${towns.length}: ${towns.join(', ')}` : 'names none');
+  return towns.length <= 2 ? pass('town', label, towns.join(', ') || 'names none') : warn('town', label, `names ${towns.length}: ${towns.join(', ')}`);
 }
 
 // Each prompt has its one service. Naming another from its group is what this catches: Trees'
@@ -107,11 +108,15 @@ function checkClaims(text, intake) {
   return found.length ? warn('claims', label, found.join('; ')) : pass('claims', label);
 }
 
-function checkDated(text, intake) {
+// Rain is what a drainage post is about (Brandon, 6 Nov), so its prompts may say so
+const isDrainage = prompt => /\bdrain/i.test(`${(prompt && prompt.service) || ''} ${(prompt && prompt.label) || ''}`);
+
+function checkDated(text, intake, prompt) {
   const label = 'No season, weather or date words';
-  const m = String(text).match(DATED);
+  const body = isDrainage(prompt) ? String(text).replace(/\brain(y|fall)?\b/gi, ' ') : String(text);
+  const m = body.match(DATED);
   if (m) return warn('dated', label, `"${m[0]}"`);
-  const year = String(text).match(/\b(19|20)\d\d\b/);
+  const year = body.match(/\b(19|20)\d\d\b/);
   if (year && !(intake.usps || []).join(' ').includes(year[0])) return warn('dated', label, `"${year[0]}"`);
   return pass('dated', label);
 }
@@ -119,63 +124,64 @@ function checkDated(text, intake) {
 function checkSample(text, prompt, intake) {
   const words = wordsOf(text).length;
   const checks = [
-    words >= MIN_WORDS && words <= MAX_WORDS ? pass('words', `${MIN_WORDS}-${MAX_WORDS} words`, `${words} words`) : warn('words', `${MIN_WORDS}-${MAX_WORDS} words`, `${words} words`),
+    words <= MAX_WORDS ? pass('words', `No more than ${MAX_WORDS} words`, `${words} words`) : warn('words', `No more than ${MAX_WORDS} words`, `${words} words`),
     checkName(text, intake.business || ''),
     checkTown(text, intake),
     checkGroup(text, prompt),
     checkFacts(text, intake),
     checkClaims(text, intake),
-    checkDated(text, intake),
+    checkDated(text, intake, prompt),
     /^\W*if\b/i.test(String(text)) ? warn('if', 'Does not start with "If"', `starts "${wordsOf(text).slice(0, 5).join(' ')}"`) : pass('if', 'Does not start with "If"'),
   ];
   return { words, checks, warnings: checks.filter(c => c.level === 'warn').length };
 }
 
-// Across one prompt's samples: two opening the same way, or sharing a long run of words. Four
-// samples are six pairs, so what comes back is condensed: one line per shared opening, and the
-// longest phrases only, with none repeated inside a longer one.
 const nList = a => (a.length > 1 ? `${a.slice(0, -1).join(', ')} and ${a[a.length - 1]}` : String(a[0]));
 const MAX_PHRASES = 3;
 
-// items: [{ ref, group, text }]. crossOnly: only pairs from different groups are compared.
-function comparePairs(items, { crossOnly = false } = {}) {
-  const list = items.map(x => ({ ...x, t: tokens(x.text) })).filter(x => x.t.length);
+// A sample without its call to action (the last sentence) and any sentence carrying a fact. Those
+// repeat on purpose, so a phrase shared there says nothing about the writing.
+function withoutFactsAndCta(text, intake = {}) {
+  const sentences = String(text).trim().split(/(?<=[.!?])\s+/);
+  return sentences.slice(0, -1).filter(s => !factsUsed(s, intake).length).join(' ');
+}
+
+// items: [{ ref, group, text, body }]: only pairs from different prompts are compared. The opening
+// is read from the whole post, the phrases from the body.
+function comparePairs(items) {
+  const list = items.map(x => ({ ...x, t: tokens(x.text), b: tokens(x.body) })).filter(x => x.t.length);
   const out = [];
   let compared = 0;
   for (let a = 0; a < list.length; a++) for (let b = a + 1; b < list.length; b++) {
     const A = list[a], B = list[b];
-    if (crossOnly && A.group === B.group) continue;
+    if (A.group === B.group) continue;
     compared++;
     if (A.t.length >= 5 && A.t.slice(0, 5).join(' ') === B.t.slice(0, 5).join(' ')) out.push({ type: 'opening', refs: [A.ref, B.ref], text: A.t.slice(0, 5).join(' ') });
     // The longest run of words the two share
     let best = 0, at = 0;
-    const prev = new Array(B.t.length + 1).fill(0);
-    for (let i = 1; i <= A.t.length; i++) {
+    const prev = new Array(B.b.length + 1).fill(0);
+    for (let i = 1; i <= A.b.length; i++) {
       let diag = 0;
-      for (let j = 1; j <= B.t.length; j++) {
-        const here = A.t[i - 1] === B.t[j - 1] ? diag + 1 : 0;
+      for (let j = 1; j <= B.b.length; j++) {
+        const here = A.b[i - 1] === B.b[j - 1] ? diag + 1 : 0;
         diag = prev[j]; prev[j] = here;
         if (here > best) { best = here; at = i; }
       }
     }
-    if (best >= LONG_PHRASE) out.push({ type: 'phrase', refs: [A.ref, B.ref], words: best, text: A.t.slice(at - best, at).join(' ') });
+    if (best >= LONG_PHRASE) out.push({ type: 'phrase', refs: [A.ref, B.ref], words: best, text: A.b.slice(at - best, at).join(' ') });
   }
   return { pairs: out, compared };
 }
 
-function condense(pairs, name) {
+// Only a shared opening warns. The phrases are kept for information: the longest few, none repeated
+// inside a longer one.
+function condense(pairs) {
   const openings = new Map();
   for (const p of pairs.filter(x => x.type === 'opening')) { if (!openings.has(p.text)) openings.set(p.text, new Set()); p.refs.forEach(r => openings.get(p.text).add(r)); }
-  const out = [...openings].map(([text, set]) => { const refs = [...set]; return { type: 'opening', refs, text, message: `${name(refs)} start with the same 5 words: "${text}"` }; });
+  const warnings = [...openings].map(([text, set]) => { const refs = [...set]; return { type: 'opening', refs, text, message: `${nList(refs)} start with the same 5 words: "${text}"` }; });
   const kept = [];
   for (const p of pairs.filter(x => x.type === 'phrase').sort((a, b) => b.text.length - a.text.length)) if (!kept.some(k => k.text.includes(p.text))) kept.push(p);
-  return [...out, ...kept.slice(0, MAX_PHRASES).map(p => ({ ...p, message: `${name(p.refs)} share ${p.words} words in a row: "${p.text}"` }))];
-}
-
-// Within one prompt
-function sameness(texts) {
-  const { pairs } = comparePairs(texts.map((text, i) => ({ ref: i + 1, group: 0, text })));
-  return condense(pairs, refs => `Samples ${nList([...refs].sort((a, b) => a - b))}`).map(w => ({ ...w, samples: w.refs }));
+  return { warnings, phrases: kept.slice(0, MAX_PHRASES).map(p => ({ refs: p.refs, words: p.words, text: p.text })) };
 }
 
 // Across the prompts that share a photo folder: posts that sit side by side on one set of photos
@@ -186,12 +192,12 @@ function folderSameness(prompts, record) {
   const out = [];
   for (const [folder, list] of byFolder) {
     if (list.length < 2 || folder === 'None yet') continue;
-    const items = list.flatMap(p => p.samples.filter(s => !s.error).map(s => ({ ref: `P${p.n}.${s.n}`, group: p.n, text: s.text })));
-    const { pairs, compared } = comparePairs(items, { crossOnly: true });
+    const intake = record.intake || {};
+    const items = list.flatMap(p => p.samples.filter(s => !s.error).map(s => ({ ref: `P${p.n}.${s.n}`, group: p.n, text: s.text, body: withoutFactsAndCta(s.text, intake) })));
+    const { pairs, compared } = comparePairs(items);
     const openings = pairs.filter(x => x.type === 'opening');
     const phrases = pairs.filter(x => x.type === 'phrase');
-    const warnings = condense(pairs, refs => nList(refs));
-    out.push({ folder, prompts: list.map(p => p.n), compared, opening_pairs: openings.length, phrase_pairs: phrases.length, longest: phrases.reduce((n, x) => Math.max(n, x.words), 0), warnings });
+    out.push({ folder, prompts: list.map(p => p.n), compared, opening_pairs: openings.length, phrase_pairs: phrases.length, longest: phrases.reduce((n, x) => Math.max(n, x.words), 0), ...condense(pairs) });
   }
   return out;
 }
@@ -220,17 +226,17 @@ async function runPreview({ record, callModel, samples = SAMPLES, log = null }) 
   await Promise.all(Array.from({ length: Math.min(CONCURRENCY, jobs.length) }, worker));
   const outPrompts = prompts.map(p => {
     const list = results.get(p.n);
-    return { n: p.n, label: p.label, samples: list, sameness: sameness(list.filter(s => !s.error).map(s => s.text)) };
+    return { n: p.n, label: p.label, samples: list };
   });
   const all = outPrompts.flatMap(p => p.samples);
   const folders = folderSameness(outPrompts, record);
   const usd = costUsd(usage);
   return {
     version: 1, at: new Date().toISOString(), config_at: record.generated_at, model: MODEL, effort: EFFORT, per_prompt: samples, usage, usd: Math.round(usd * 1000) / 1000, pence: usage.calls ? pence(usd) : 0,
-    summary: { samples: all.length, clean: all.filter(s => !s.error && !s.warnings).length, warned: all.filter(s => s.warnings).length, failed: all.filter(s => s.error).length, alike: outPrompts.filter(p => p.sameness.length).length, prompts: outPrompts.length, folders_alike: folders.filter(f => f.warnings.length).length, folders: folders.length },
+    summary: { samples: all.length, clean: all.filter(s => !s.error && !s.warnings).length, warned: all.filter(s => s.warnings).length, failed: all.filter(s => s.error).length, prompts: outPrompts.length, folders: folders.length, opening_pairs: folders.reduce((n, f) => n + f.opening_pairs, 0), compared: folders.reduce((n, f) => n + f.compared, 0) },
     prompts: outPrompts,
     folders,
   };
 }
 
-module.exports = { folderSameness, SAMPLES, MIN_WORDS, MAX_WORDS, LONG_PHRASE, estimate, checkSample, checkName, factsUsed, sameness, runPreview };
+module.exports = { folderSameness, withoutFactsAndCta, SAMPLES, MAX_WORDS, LONG_PHRASE, estimate, checkSample, checkName, factsUsed, runPreview };
