@@ -42,9 +42,8 @@ function buildMessage(intake, D) {
     '',
     'DECISIONS (already made by code; follow them exactly)',
     `CTA sentence for the end of every prompt: ${intake.cta.sentence}`,
-    `Area list for every prompt: ${intake.areas.join(', ')}`,
-    `Write exactly ${D.prompts.length} prompts, in this order:`,
-    ...D.prompts.map(p => `PROMPT ${p.n} - ${p.label} | type: ${p.kind}${p.service ? ` | the one service, in lower case as in running text: ${p.service.toLowerCase()}` : ''} | the one angle: ${p.angle} | Images folder: ${p.folder}`),
+        `Write exactly ${D.prompts.length} prompts, in this order:`,
+    ...D.prompts.map(p => `PROMPT ${p.n} - ${p.label} | type: ${p.kind}${p.service ? ` | the one service, in lower case as in running text: ${p.service.toLowerCase()}` : ''} | the one angle: ${p.angle} | the one area: ${p.area} | Images folder: ${p.folder}`),
     '',
     D.gaps.length ? `PHOTO GAPS to write, one line each, in this order: ${D.gaps.map(g => `${g.label} (${g.photos} photos)`).join('; ')}` : 'PHOTO GAPS: none.',
   ].join('\n');
@@ -90,11 +89,11 @@ function promptText(d, intake, angle) {
   const facts = [...intake.usps, ...(d.kind === 'offer' && offer ? [offer] : [])];
   const tip = d.kind === 'tips';
   return [
-    `Write a Google Business Profile post for ${intake.business}, ${article} ${niche} based in ${intake.mainTown}, about ${about}.`,
+    `Write a Google Business Profile post for ${intake.business}, ${article} ${niche}, about ${about}.`,
     `Facts you may use (no more than two, chosen to fit the angle): ${facts.length ? facts.join('; ') : 'none'}. Do not use any other facts.`,
-    `Areas: ${intake.areas.join(', ')}. Pick ONE area from the list. Use it once or twice and mention no other towns.`,
+    `Mention ${d.area} once or twice and no other towns.`,
     `Build the whole post around this ${tip ? 'tip' : 'angle'}: ${angle}`,
-    `${tip ? `Explain the tip clearly, then say when it's time to call ${article} ${niche}. ` : ''}Write 150-250 words in plain UK English, no headings, no hashtags, no emoji. Don't start with "If". Use the business name once, written exactly like this: ${intake.business}. Use "${keyword}" naturally once or twice. Never invent specific jobs, customers, reviews, prices, timescales, discounts or accreditations; use only the facts given here. Do not mention warranties, guarantees or accreditations unless they are in the facts. Do not mention seasons, weather, holidays, dates or time words such as "today", "this week", "right now" or "at the moment". No generic filler. Tone: ${intake.tone}. End with one sentence that leads into the button: ${intake.cta.sentence}.`,
+    `${tip ? `Explain the tip clearly, then say when it's time to call ${article} ${niche}. ` : ''}Write 150-250 words in plain UK English, no headings, no hashtags, no emoji. Don't start with "If". Use the business name once, written exactly like this: ${intake.business}. Use "${keyword}" naturally once or twice. Never invent specific jobs, customers, reviews, prices, timescales, discounts or accreditations; use only the facts given here. Do not describe customers, what they say, how many there are or how often you work for them. Do not mention warranties, guarantees or accreditations unless they are in the facts. Do not mention seasons, weather, holidays, dates or time words such as "today", "this week", "right now" or "at the moment". No generic filler. Tone: ${intake.tone}. End with one sentence that leads into the button: ${intake.cta.sentence}.`,
   ].join('\n\n');
 }
 
@@ -111,25 +110,38 @@ function rebuildPrompts(parsed, intake, D) {
 // ── The checks ──
 const has = (t, s) => String(t).toLowerCase().includes(String(s).toLowerCase());
 const RULES = [
-  [/Pick ONE area from the list\. Use it once or twice and mention no other towns/i, '"Pick ONE area from the list. Use it once or twice and mention no other towns."'],
+  [/Mention [^.\n]+ once or twice and no other towns/, '"Mention [area] once or twice and no other towns."'],
   [/no more than two, chosen to fit the angle/i, '"Facts you may use (no more than two, chosen to fit the angle):"'],
   [/Build the whole post around this (angle|tip):/i, '"Build the whole post around this angle:" (for tips, "... this tip:")'],
   [/Write 150-250 words in plain UK English, no headings, no hashtags, no emoji/i, '"Write 150-250 words in plain UK English, no headings, no hashtags, no emoji."'],
   [/Don['\u2019]t start with ["\u201c]If["\u201d]/i, '"Don\'t start with \"If\"."'],
   [/naturally once or twice/i, 'the service name "naturally once or twice"'],
   [/Never invent specific jobs, customers, reviews, prices, timescales, discounts or accreditations; use only the facts given here/i, '"Never invent specific jobs, customers, reviews, prices, timescales, discounts or accreditations; use only the facts given here."'],
+  [/Do not describe customers, what they say, how many there are or how often you work for them/i, '"Do not describe customers, what they say, how many there are or how often you work for them."'],
   [/Do not mention warranties, guarantees or accreditations unless they are in the facts/i, '"Do not mention warranties, guarantees or accreditations unless they are in the facts."'],
   [/Do not mention seasons, weather, holidays, dates or time words such as ["\u201c]today["\u201d], ["\u201c]this week["\u201d], ["\u201c]right now["\u201d] or ["\u201c]at the moment["\u201d]/i, "\"Do not mention seasons, weather, holidays, dates or time words such as 'today', 'this week', 'right now' or 'at the moment'.\""],
   [/No generic filler/i, '"No generic filler."'],
   [/End with one sentence that leads into the button:/i, '"End with one sentence that leads into the button: [CTA sentence]."'],
 ];
-const AIM_CHARS = 1500;
+// Lead Snap's real limit is not known yet, so nothing warns on length (Brandon, 6 Nov). When it is, set it here.
+const PROMPT_CHAR_LIMIT = null;
 // A claim a prompt may only make when the facts make it (CLAUDE.md, the claims rule)
 const CLAIMS = [
   [/£\s?\d/, 'a price'], [/\b24\/7\b|\b24 hours\b/i, '24/7 cover'], [/\bsame[- ]day\b/i, 'same day work'],
   [/\bfree\s+(\w+\s+)?(quotes?|estimates?|inspections?|surveys?|visits?|consultations?)\b/i, 'something free'], [/\bfixed[- ]price/i, 'fixed prices'],
   [/\bguarantee|\bwarrant(y|ies)\b/i, 'a guarantee'], [/\b\d+\+?\s+years?\b/i, 'a number of years'], [/\binsured\b|\binsurance\b/i, 'insurance'],
   [/\baccredit|\bcertified\b|\bregistered\b|\bGas Safe\b|\bNICEIC\b|\bCheckatrade\b|\bTrustMark\b/i, 'an accreditation'], [/\b\d+\s+(star|reviews?)\b/i, 'a review count'],
+  // Invented social proof (Brandon, 6 Nov). Each reads as something about this firm's customers:
+  // "most homeowners ignore a dripping tap" is a statement about taps, and passes.
+  [/\b(?:most|many|all|some|lots|plenty|several|a lot)\s+of\s+our\s+(?:customers|clients)\b/i, 'what customers do'],
+  [/\bour\s+(?:customers|clients)\s+(?:\w+\s+)?(?:tell|say|ask|love|recommend|keep|come|came|return|choose|often|always|regularly|usually)\b/i, 'what customers say'],
+  [/\b(?:customers|clients|people|homeowners|residents|families|neighbours)\s+(?:\w+\s+)?(?:tell|ask|asks|recommend|recommends)\s+us\b/i, 'what customers say'],
+  [/\bwhy\s+so\s+many\b/i, 'how many customers'],
+  [/\b(?:[Cc]ustomers|[Cc]lients|[Pp]eople|[Hh]omeowners|[Rr]esidents|[Ff]amilies|[Nn]eighbours)(?:\s+(?:in|around|across|from)\s+[A-Z][\w']*(?:\s+[A-Z][\w']*)?)?\s+(?:often|regularly|always|usually|frequently|sometimes|tend\s+to)\s+(?:ask|tell|say|want\s+to\s+know|call|come\s+to\s+us|get\s+in\s+touch)\b/, 'what customers say'],
+  [/\b(?:so many|many|most|lots of|plenty of|hundreds of|thousands of|countless|more and more)\s+(?:local\s+|of\s+the\s+)?(?:people|customers|clients|homeowners|families|residents|households)\b[^.!?\n]{0,50}\b(?:ask(?:ing)? for us|get(?:ting)? in touch|call(?:ing)? us|choos(?:e|ing) us|come (?:back )?to us|recommend(?:ing)? us|us(?:e|ing) us|trust(?:ing)? us|rely(?:ing)? on us|turn(?:ing)? to us|contact(?:ing)? us|book(?:ing)? (?:with )?us)\b/i, 'how many customers'],
+  [/\b(?:recommend(?:s|ed)?\s+us|ask(?:s|ed)?\s+for\s+us(?:\s+again)?|(?:customers|clients|people|homeowners|they)\s+(?:\w+\s+)?come\s+back\s+to\s+us|keep\s+coming\s+back|repeat\s+(?:customers?|business|work)|word\s+of\s+mouth|(?:happy|satisfied|delighted|loyal|regular|returning)\s+(?:customers?|clients?))\b/i, 'what customers do'],
+  [/\bwe(?:'re| are|'ve| have)?\s+(?:\w+\s+)?(?:regularly|often|frequently|routinely|constantly|usually)\s+(?:help(?:ed|ing)?|work(?:ed|ing)?|serv(?:e|ed|ing)|visit(?:ed|ing)?|see|seen|hear|heard|asked|called|get\s+asked)\b/i, 'how often the firm works'],
+  [/\bquestions?\s+we\s+(?:\w+\s+)?(?:hear|get|are\s+asked)\b|\bthings?\s+we\s+(?:\w+\s+)?(?:hear|are\s+asked|get\s+asked)\b|\bwe(?:'re| are)\s+(?:\w+\s+)?asked\b/i, 'what customers say'],
 ];
 const DATED = /\b(today|tomorrow|this week|this month|this year|right now|at the moment|spring|summer|autumn|winter|christmas|easter|new year|bank holiday|january|february|march|april|june|july|august|september|october|november|december)\b/i;
 const WEATHER = /\b(storms?|frost|snow|heatwave|freezing)\b/i;
@@ -148,7 +160,7 @@ function validateSheet(parsed, intake, D) {
     if (!p || !p.text) { fail(d.n, 'has no text under "Prompt:".'); continue; }
     const t = p.text;
     if (!t.includes(`Use the business name once, written exactly like this: ${intake.business}`)) fail(d.n, `must say "Use the business name once, written exactly like this: ${intake.business}."`);
-    for (const a of intake.areas) if (!has(t, a)) fail(d.n, `the area list is missing ${a}.`);
+    if (d.area && !t.includes(`Mention ${d.area} once or twice and no other towns.`)) fail(d.n, `must say "Mention ${d.area} once or twice and no other towns."`);
     for (const [re, want] of RULES) if (!re.test(t)) fail(d.n, `is missing the rule ${want}`);
     if (!has(t, intake.cta.sentence)) fail(d.n, `must end the rules with the CTA sentence: "${intake.cta.sentence}".`);
     // One fixed angle, no lists (Brandon, 6 Nov): the model does not rotate through a list
@@ -190,7 +202,7 @@ function gapLine(gap, reply) {
 function assemble(parsed, intake, D) {
   const prompts = D.prompts.map(d => {
     const text = parsed.prompts.find(p => p.n === d.n).text;
-    return { n: d.n, kind: d.kind, label: d.label, tone: intake.tone, service: d.service, services: d.services, group: d.group, angle: d.angle, folder: d.folder, photos: d.photos, why: d.why, images: imagesLine(d.folder), text, chars: [...text].length };
+    return { n: d.n, kind: d.kind, label: d.label, tone: intake.tone, service: d.service, services: d.services, group: d.group, angle: d.angle, area: d.area, folder: d.folder, photos: d.photos, why: d.why, images: imagesLine(d.folder), text, chars: [...text].length };
   });
   const gaps = D.gaps.map(g => ({ ...g, line: gapLine(g, parsed.gaps) }));
   const settings = { frequency: FREQUENCY, cta: intake.cta.line, cta_type: intake.cta.type, cta_url: intake.cta.url, tone: intake.tone };
@@ -233,11 +245,11 @@ async function runAutopost({ intake, callModel, previous = null, log = null }) {
   usage.input_tokens += testUsage.input_tokens; usage.output_tokens += testUsage.output_tokens; usage.calls += testUsage.calls;
   for (const p of parsed.prompts) p.text = addDontStart(p.text, othersInFolder(p.n, D.prompts, openings));
   if (!openings.size) validation.flags.push({ field: 'sheet', message: "The test posts could not be written, so these prompts have no \"Don't start with\" line. Generate again to add them." });
-  for (const p of parsed.prompts) if ([...p.text].length > AIM_CHARS) validation.flags.push({ field: `Prompt ${p.n}`, message: `Prompt ${p.n}: is ${[...p.text].length} characters; aim for under ${AIM_CHARS.toLocaleString('en-GB')}.` });
+  if (PROMPT_CHAR_LIMIT) for (const p of parsed.prompts) if ([...p.text].length > PROMPT_CHAR_LIMIT) validation.flags.push({ field: `Prompt ${p.n}`, message: `Prompt ${p.n}: is ${[...p.text].length} characters; Lead Snap's limit is ${PROMPT_CHAR_LIMIT.toLocaleString('en-GB')}.` });
   const output = assemble(parsed, intake, D);
   return {
     version: 1, model: MODEL, generated_at: at, attempts, usage, output, sheet: sheetText(output), flags: validation.flags, failure: null,
-    intake: { offerSource: intake.offerSource, business: intake.business, niche: intake.niche, areas: intake.areas, allAreas: intake.allAreas, areasWhy: intake.areasWhy, usps: intake.usps, groups: intake.groups, brand: intake.brand, offer: intake.offer, cta: intake.cta, tone: intake.tone, avoid: intake.avoid },
+    intake: { offerSource: intake.offerSource, business: intake.business, niche: intake.niche, mainTown: intake.mainTown, areas: intake.areas, allAreas: intake.allAreas, areasWhy: intake.areasWhy, usps: intake.usps, groups: intake.groups, brand: intake.brand, offer: intake.offer, cta: intake.cta, tone: intake.tone, avoid: intake.avoid },
   };
 }
 

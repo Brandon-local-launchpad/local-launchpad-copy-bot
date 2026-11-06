@@ -17,6 +17,7 @@ const SAMPLES = 4;
 const CONCURRENCY = 8;
 const EFFORT = 'low';
 const MAX_WORDS = 300;            // the prompt still asks for 150-250; only a long overrun is worth a warning
+const MAX_FACTS_WARN = 5;
 const LONG_PHRASE = 8;            // words in a row shared by two samples
 const [USD_IN_PER_M, USD_OUT_PER_M] = priceFor(MODEL);
 // Measured on real samples (6 Nov 2026): about 460 tokens out, thinking included, and a token
@@ -73,11 +74,16 @@ function mentioned(text, names) {
   return hits;
 }
 
-// The main town and one chosen area are fine. A third town is the one to catch.
-function checkTown(text, intake) {
-  const label = 'No more than the main town and one area';
+// A prompt has its one area. It should name it, and the main town is fine beside it. Any other is the catch.
+function checkTown(text, intake, prompt) {
+  const label = 'Names its area, and no other town but the main one';
   const towns = mentioned(text, [...(intake.areas || []), ...(intake.allAreas || [])]);
-  return towns.length <= 2 ? pass('town', label, towns.join(', ') || 'names none') : warn('town', label, `names ${towns.length}: ${towns.join(', ')}`);
+  const area = prompt && prompt.area;
+  if (!area) return towns.length <= 2 ? pass('town', label, towns.join(', ') || 'names none') : warn('town', label, `names ${towns.length}: ${towns.join(', ')}`);
+  const main = intake.mainTown || (intake.areas || [])[0];
+  const others = towns.filter(t => t !== area && t !== main);
+  if (others.length) return warn('town', label, `should be ${area}, also names ${others.join(', ')}`);
+  return towns.includes(area) ? pass('town', label, towns.join(', ')) : warn('town', label, `should name ${area}; names ${towns.join(', ') || 'none'}`);
 }
 
 // Each prompt has its one service. Naming another from its group is what this catches: Trees'
@@ -98,9 +104,10 @@ function factsUsed(text, intake) {
 }
 
 function checkFacts(text, intake) {
-  const label = 'No more than two facts';
+  // The prompt asks for two. Reading facts from words is approximate, so only a real pile up warns.
+  const label = 'Not piling up facts (warns at 5)';
   const used = factsUsed(text, intake);
-  return used.length <= 2 ? pass('facts', label, used.join('; ')) : warn('facts', label, `seems to use ${used.length}: ${used.join('; ')}`);
+  return used.length < MAX_FACTS_WARN ? pass('facts', label, used.join('; ')) : warn('facts', label, `seems to use ${used.length}: ${used.join('; ')}`);
 }
 
 // A claim the facts do not make is a FAIL (Brandon, 6 Nov): it could go out under the client's name.
@@ -140,7 +147,7 @@ function checkSample(text, prompt, intake) {
   const checks = [
     words <= MAX_WORDS ? pass('words', `No more than ${MAX_WORDS} words`, `${words} words`) : warn('words', `No more than ${MAX_WORDS} words`, `${words} words`),
     checkName(text, intake.business || ''),
-    checkTown(text, intake),
+    checkTown(text, intake, prompt),
     checkGroup(text, prompt),
     checkFacts(text, intake),
     checkClaims(text, intake),
@@ -217,6 +224,26 @@ function folderSameness(prompts, record) {
   return out;
 }
 
+// Which towns the prompts were given and the samples named, across the whole client
+function areaSpread(prompts, record) {
+  const intake = record.intake || {};
+  const list = [...new Set([...(intake.areas || []), ...(intake.allAreas || [])])];
+  const assigned = Object.fromEntries((intake.areas || []).map(a => [a, 0]));
+  const named = Object.fromEntries(list.map(a => [a, 0]));
+  let onArea = 0, samples = 0;
+  for (const p of prompts) {
+    const rp = record.output.prompts.find(x => x.n === p.n) || {};
+    if (rp.area) assigned[rp.area] = (assigned[rp.area] || 0) + 1;
+    for (const s of p.samples.filter(x => !x.error)) {
+      samples++;
+      const towns = mentioned(s.text, list);
+      towns.forEach(t => { named[t] = (named[t] || 0) + 1; });
+      if (rp.area && towns.includes(rp.area)) onArea++;
+    }
+  }
+  return { assigned, named, on_area: onArea, samples };
+}
+
 // record: the saved config. A call that fails is one failed sample; the rest stand.
 async function runPreview({ record, callModel, samples = SAMPLES, log = null }) {
   const prompts = record.output.prompts;
@@ -245,13 +272,15 @@ async function runPreview({ record, callModel, samples = SAMPLES, log = null }) 
   });
   const all = outPrompts.flatMap(p => p.samples);
   const folders = folderSameness(outPrompts, record);
+  const areas = areaSpread(outPrompts, record);
   const usd = costUsd(usage);
   return {
     version: 1, at: new Date().toISOString(), config_at: record.generated_at, model: MODEL, effort: EFFORT, per_prompt: samples, usage, usd: Math.round(usd * 1000) / 1000, pence: usage.calls ? pence(usd) : 0,
     summary: { samples: all.length, clean: all.filter(s => !s.error && !s.warnings && !s.fails).length, warned: all.filter(s => s.warnings && !s.fails).length, claim_failed: all.filter(s => s.fails).length, failed: all.filter(s => s.error).length, prompts: outPrompts.length, folders: folders.length, opening_pairs: folders.reduce((n, f) => n + f.opening_pairs, 0), compared: folders.reduce((n, f) => n + f.compared, 0) },
     prompts: outPrompts,
     folders,
+    areas,
   };
 }
 
-module.exports = { folderSameness, withoutFactsAndCta, SAMPLES, MAX_WORDS, LONG_PHRASE, estimate, checkSample, checkName, factsUsed, runPreview };
+module.exports = { areaSpread, folderSameness, withoutFactsAndCta, SAMPLES, MAX_WORDS, LONG_PHRASE, estimate, checkSample, checkName, factsUsed, runPreview };
