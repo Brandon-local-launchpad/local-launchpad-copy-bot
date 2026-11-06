@@ -17,6 +17,20 @@ export async function render(el, ctx) {
   // Too few prompts: the plan as it stands now, so it clears as soon as new photo counts are saved
   const tooFew = () => { const F = S.plan && S.intake && S.intake.photosEntered && S.plan.tooFew; return F ? `<div class="notice bad" data-too-few style="margin-bottom:10px"><strong>${h(F.message)}</strong><ul style="margin:6px 0 0 18px">${F.unlock.map(u => `<li>${h(u)}</li>`).join('')}</ul></div>` : ''; };
 
+  // Preview posts: the button with its cost, and what the last run found
+  const previewBar = () => {
+    const P = S.preview || {}, E = P.estimate, L = P.saved;
+    if (!E) return '';
+    const last = L ? `Last preview ${h(fmtDate(L.at, true))}: ${L.summary.clean} of ${L.summary.samples} samples clean, ${L.summary.warned} with warnings${L.summary.failed ? `, ${L.summary.failed} failed` : ''}${L.summary.alike ? `. ${L.summary.alike} of ${L.summary.prompts} prompts read alike across their samples` : ''}. It cost ${L.pence}p.` : '';
+    return `<div class="notice" data-preview-bar style="margin-bottom:10px"><div class="btn-row"><button class="btn btn-ghost" data-act="preview" ${P.running ? 'disabled' : ''}>${L ? 'Preview posts again' : 'Preview posts'}</button><span class="small">${E.samples} sample posts (${E.per_prompt} per prompt), about ${E.pence}p. Nothing goes to Lead Snap.</span></div>${P.running ? `<div style="margin-top:8px">${running({ now: 'Writing the sample posts', next: 'Then each one is checked' })}</div>` : ''}${last ? `<div class="small" style="margin-top:6px">${last}</div>` : ''}${P.stale ? '<div class="small" style="margin-top:4px;color:#b45309">These samples are from an earlier config. Preview again to test this one.</div>' : ''}</div>`;
+  };
+  const samplesFor = n => {
+    const L = S.preview && S.preview.saved; const p = L && L.prompts.find(x => x.n === n);
+    if (!p || S.preview.stale) return '';
+    const one = s => s.error ? `<div class="notice bad small" style="margin-bottom:6px">Sample ${s.n} failed: ${h(s.error)}</div>` : `<details style="margin-bottom:6px" data-sample><summary>Sample ${s.n} · ${s.words} words ${pill(s.warnings ? 'wait' : 'ok', s.warnings ? `${s.warnings} to check` : 'pass')}</summary><div style="white-space:pre-wrap;margin:6px 0">${h(s.text)}</div><div style="display:flex;gap:6px;justify-content:flex-end">${copyBtn(s.text)}</div><ul class="small" style="margin:6px 0 0;padding:0;list-style:none">${s.checks.map(c => `<li>${pill(c.level === 'warn' ? 'wait' : 'ok', c.level)} ${h(c.label)}${c.detail ? `: <span class="muted">${h(c.detail)}</span>` : ''}</li>`).join('')}</ul></details>`;
+    return `<div class="sec-title">Sample posts</div>${p.sameness.length ? `<div class="notice warn" style="margin-bottom:8px"><strong>These samples read alike.</strong><ul style="margin:4px 0 0 18px">${p.sameness.map(w => `<li>${h(w.message)}</li>`).join('')}</ul></div>` : ''}${p.samples.map(one).join('')}`;
+  };
+
   const generateCard = () => {
     const I = S.intake, R = S.record, P = S.plan, done = R && R.sheet;
     if (!I) return empty({ title: 'Nothing to build from yet', text: S.error || '' });
@@ -53,8 +67,8 @@ export async function render(el, ctx) {
     if (!O) return card({ title: 'Autopost config', body: empty({ title: 'No config yet', text: 'Type the photo counts, then generate. The config comes out here in Lead Snap\'s screen order.' }) });
     const flags = (R.flags || []).length ? `<div class="notice warn" style="margin-bottom:10px"><ul style="margin:0 0 0 18px">${R.flags.map(f => `<li>${h(f.message)}</li>`).join('')}</ul></div>` : '';
     const moved = (R.renames || []).length ? `<div class="notice warn" style="margin-bottom:10px"><strong>Folders renamed in this config.</strong> Rename them in Drive and reselect their photos in Lead Snap.<ul style="margin:6px 0 0 18px">${R.renames.map(r => `<li>${h(r.from)} to ${h(r.to)}</li>`).join('')}</ul></div>` : '';
-    const out = [card({ title: 'Settings', sub: 'Set these first', actions: copyBtn(R.sheet, 'Copy whole config'), body: tooFew() + moved + flags + row('Frequency', O.settings.frequency) + row('Call to action', O.settings.cta) })];
-    for (const p of O.prompts) out.push(card({ title: `Prompt ${p.n}: ${p.label}`, sub: p.why, body: row('Tone', p.tone) + row('Images: select from folder', p.folder, `${p.photos} photos`) + row('Prompt', p.text, `${p.chars} characters`) }));
+    const out = [card({ title: 'Settings', sub: 'Set these first', actions: copyBtn(R.sheet, 'Copy whole config'), body: tooFew() + moved + previewBar() + flags + row('Frequency', O.settings.frequency) + row('Call to action', O.settings.cta) })];
+    for (const p of O.prompts) out.push(card({ title: `Prompt ${p.n}: ${p.label}`, sub: p.why, body: row('Tone', p.tone) + row('Images: select from folder', p.folder, `${p.photos} photos`) + row('Prompt', p.text, `${p.chars} characters`) + samplesFor(p.n) }));
     out.push(card({ title: 'Photo gaps', sub: 'Send these to the client', body: O.gaps.length ? `<div class="btn-row" style="margin-bottom:8px">${copyBtn(O.gaps.map(g => g.line).join('\n'), 'Copy all')}</div><ul style="margin:0 0 0 18px">${O.gaps.map(g => `<li>${h(g.line)}</li>`).join('')}</ul>` : pill('ok', 'No gaps') }));
     out.push(card({ title: 'VA checklist', sub: 'Lead Snap writes the first post as soon as you save, so read that one before leaving it running', body: `<ul style="margin:0;list-style:none;padding:0">${O.checklist.map(c => `<li><label><input type="checkbox"> ${h(c)}</label></li>`).join('')}</ul>` }));
     return out.join('');
@@ -78,6 +92,12 @@ export async function render(el, ctx) {
     try {
       if (b.dataset.act === 'reload') return load();
       if (b.dataset.act === 'save') { await save(); draw(); toast('Saved'); return; }
+      if (b.dataset.act === 'preview') {
+        S.preview.running = true; draw();
+        S = await api(`${url}/preview`, { method: 'POST' }); draw();
+        toast('Preview finished');
+        return;
+      }
       if (b.dataset.act === 'generate') {
         await save();
         const renames = (S.intake && S.intake.pending && S.intake.pending.renames) || [];

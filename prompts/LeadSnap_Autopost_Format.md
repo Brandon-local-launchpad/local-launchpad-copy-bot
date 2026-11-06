@@ -25,16 +25,18 @@ VA CHECKLIST
 [ ] Saved and started; first post checked on All Posts page
 
 SHAPE OF EACH PROMPT
-Write a Google Business Profile post for [business name], a [niche] based in [main town], about [the service or the prompt type].
+Write a Google Business Profile post for [business name] (write the name exactly like that), a [niche] based in [main town], about [the service or the prompt type].
 
-Facts you may use: [every fact in the intake, as given]. Do not use any other facts.
+[Only on a prompt that covers several services:] Choose ONE of these services and write the whole post about it. Do not mention the others: [the services, on one line, each with one name only].
 
-Areas: [main town and the full area list]. Pick ONE area from the list and mention it naturally once.
+Facts you may use (no more than two, chosen to fit the angle): [the USPs, each exactly as given; on the offer prompt also the offer]. Do not use any other facts.
 
-Pick one angle at random for this post:
-- [4 to 6 angles, one per line]
+Areas: [main town and the full area list]. Pick ONE area from the list. Use it once or twice and mention no other towns.
 
-Write 150-300 words in plain UK English, no headings, no hashtags, no emoji. Use [the service name] with the town or area naturally once or twice. Never invent specific jobs, customers, reviews, prices, timescales, discounts or accreditations; use only the facts given here. Do not mention seasons, weather, holidays or dates. No generic filler. Tone: [tone]. End with one sentence that leads into the button: [CTA sentence].
+Choose ONE angle and build the whole post around it:
+- [4 to 5 angles, one per line]
 
-For the tips prompt, say "Pick one tip at random for this post:". An angle or tip may only lean on a claim (a guarantee, an accreditation, insurance, a price, same day work, free quotes, years trading) when that claim is in the facts. No em dashes or en dashes in the prompt text (the folder name on the Images line keeps its own).
+Write 150-250 words in plain UK English, no headings, no hashtags, no emoji. Don't start with "If". Use [the service name] naturally once or twice. Never invent specific jobs, customers, reviews, prices, timescales, discounts or accreditations; use only the facts given here. Do not mention seasons, weather, holidays or dates. No generic filler. Tone: [tone]. End with one sentence that leads into the button: [CTA sentence].
+
+For the tips prompt, say "Choose ONE tip and build the whole post around it:". Service lists are never bullet points, because bullet points are for angles. In the other services prompt a group shown with pages in brackets gets one name only, the page a customer would most likely search for, with no brackets. An angle or tip may only lean on a claim (a guarantee, an accreditation, insurance, a price, same day work, free quotes, years trading) when that claim is in the facts. No em dashes or en dashes in the prompt text (the folder name on the Images line keeps its own).
 If there are no photo gaps, write "None." under PHOTO GAPS.

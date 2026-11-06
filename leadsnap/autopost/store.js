@@ -2,7 +2,8 @@
 
 // ── Lead Snap autopost storage ───────────────────────────────────────────────
 // Two client_assets rows per client, updated in place, as the GBP tab keeps its record:
-// the config ('leadsnap_autopost') and the fields typed on the tab ('leadsnap_autopost_hand').
+// the config ('leadsnap_autopost') and the fields typed on the tab ('leadsnap_autopost_hand'). A
+// third holds the latest Preview posts samples ('leadsnap_previews', served as previews.json).
 
 const parse = c => (typeof c === 'string' ? JSON.parse(c) : c);
 
@@ -20,6 +21,8 @@ function createAutopostStore(pool) {
   return {
     latest: clientId => read('leadsnap_autopost', clientId),
     save: (clientId, record) => put('leadsnap_autopost', 'leadsnap_autopost.json', clientId, record),
+    previews: clientId => read('leadsnap_previews', clientId),
+    savePreviews: (clientId, data) => put('leadsnap_previews', 'previews.json', clientId, data),
     hand: async clientId => (await read('leadsnap_autopost_hand', clientId)) || {},
     saveHand: (clientId, data) => put('leadsnap_autopost_hand', 'leadsnap_autopost_hand.json', clientId, data),
   };

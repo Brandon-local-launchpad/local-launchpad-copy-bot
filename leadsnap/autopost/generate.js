@@ -69,14 +69,19 @@ function parseSheet(text) {
 // ── The checks ──
 const has = (t, s) => String(t).toLowerCase().includes(String(s).toLowerCase());
 const RULES = [
-  [/Pick ONE area( from the list)? and mention it naturally once/i, '"Pick ONE area from the list and mention it naturally once."'],
-  [/Write 150-300 words in plain UK English, no headings, no hashtags, no emoji/i, '"Write 150-300 words in plain UK English, no headings, no hashtags, no emoji."'],
-  [/with the town or area naturally/i, 'the service name "with the town or area naturally once or twice"'],
+  [/Pick ONE area from the list\. Use it once or twice and mention no other towns/i, '"Pick ONE area from the list. Use it once or twice and mention no other towns."'],
+  [/no more than two, chosen to fit the angle/i, '"Facts you may use (no more than two, chosen to fit the angle):"'],
+  [/Choose ONE (angle|tip) and build the whole post around it/i, '"Choose ONE angle and build the whole post around it:" (for tips, "Choose ONE tip ...")'],
+  [/Write 150-250 words in plain UK English, no headings, no hashtags, no emoji/i, '"Write 150-250 words in plain UK English, no headings, no hashtags, no emoji."'],
+  [/Don['\u2019]t start with ["\u201c]If["\u201d]/i, '"Don\'t start with \"If\"."'],
+  [/naturally once or twice/i, 'the service name "naturally once or twice"'],
   [/Never invent specific jobs, customers, reviews, prices, timescales, discounts or accreditations; use only the facts given here/i, '"Never invent specific jobs, customers, reviews, prices, timescales, discounts or accreditations; use only the facts given here."'],
   [/Do not mention seasons, weather, holidays or dates/i, '"Do not mention seasons, weather, holidays or dates."'],
   [/No generic filler/i, '"No generic filler."'],
   [/End with one sentence that leads into the button:/i, '"End with one sentence that leads into the button: [CTA sentence]."'],
 ];
+const CHOOSE_ONE = 'Choose ONE of these services and write the whole post about it. Do not mention the others';
+const AIM_CHARS = 1500;
 // A claim a prompt may only make when the facts make it (CLAUDE.md, the claims rule)
 const CLAIMS = [
   [/£\s?\d/, 'a price'], [/\b24\/7\b|\b24 hours\b/i, '24/7 cover'], [/\bsame[- ]day\b/i, 'same day work'],
@@ -99,15 +104,25 @@ function validateSheet(parsed, intake, D) {
     const p = parsed.prompts.find(x => x.n === d.n);
     if (!p || !p.text) { fail(d.n, 'has no text under "Prompt:".'); continue; }
     const t = p.text;
-    if (!has(t, intake.business)) fail(d.n, `does not name the business, "${intake.business}".`);
+    if (!t.includes(`${intake.business} (write the name exactly like that)`)) fail(d.n, `must name the business as "${intake.business} (write the name exactly like that)".`);
     for (const a of intake.areas) if (!has(t, a)) fail(d.n, `the area list is missing ${a}.`);
     for (const [re, want] of RULES) if (!re.test(t)) fail(d.n, `is missing the rule ${want}`);
     if (!has(t, intake.cta.sentence)) fail(d.n, `must end the rules with the CTA sentence: "${intake.cta.sentence}".`);
-    if (!/Pick one (angle|tip)\b[^\n]*at random/i.test(t)) fail(d.n, 'needs the instruction "Pick one angle at random for this post:" (for tips, "Pick one tip at random for this post:").');
+    const grouped = d.kind === 'other' || (d.kind === 'service' && d.services.length > 1);
+    if (grouped && !t.includes(CHOOSE_ONE)) fail(d.n, `covers several services, so it needs: "${CHOOSE_ONE}".`);
     const bullets = t.split('\n').filter(l => /^\s*-\s+\S/.test(l)).length;
-    // The spec lists three offer angles and points the other services prompt at the service angles
+    // The spec lists three offer angles; the prompt asks for 4 to 5 elsewhere and a sixth is let through
     const minBullets = d.kind === 'offer' ? 3 : 4;
     if (bullets < minBullets || bullets > 6) fail(d.n, `has ${bullets} angles; write ${minBullets} to 6, one per line starting "- ".`);
+    // The "serving a local area" angle is gone (Brandon, 6 Nov): posts read the same with it
+    const areaAngle = t.split('\n').find(l => /^\s*-\s/.test(l) && /\bserving\b|\blocal area\b|\bchosen area\b/i.test(l));
+    if (areaAngle) fail(d.n, `drop the local area angle: "${areaAngle.replace(/^\s*-\s*/, '')}".`);
+    // No full list of services outside a prompt that chooses from them
+    if (!grouped) {
+      const own = new Set((d.services || []).map(s => s.toLowerCase()));
+      const others = intake.groups.flatMap(g => g.services).filter(s => !own.has(s.toLowerCase()) && has(t, s));
+      if (others.length >= 3) fail(d.n, `lists other services (${others.join(', ')}); write about this one only.`);
+    }
     for (const u of intake.usps) if (!has(t, u)) fail(d.n, `is missing the fact "${u}"; list every fact as given.`);
     if (d.kind === 'service' && !d.services.some(s => has(t, s))) fail(d.n, `does not name the service (${d.services.join(', ')}).`);
     if (d.kind === 'other') for (const c of d.covers) if (![c.label, ...c.services].some(s => has(t, s))) fail(d.n, `does not list "${c.label}".`);
@@ -118,6 +133,7 @@ function validateSheet(parsed, intake, D) {
     const dated = body.match(DATED);
     if (dated) fail(d.n, `mentions "${dated[0]}"; prompts stay accurate in any month.`);
     for (const w of avoid) if (new RegExp(`\\b${w.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`, 'i').test(body)) fail(d.n, `uses "${w}", which the client wants avoided.`);
+    if ([...t].length > AIM_CHARS) flag(d.n, `is ${[...t].length} characters; aim for under ${AIM_CHARS.toLocaleString('en-GB')}.`);
     const wet = body.match(WEATHER);
     if (wet) flag(d.n, `mentions "${wet[0]}"; check it reads true in any month.`);
   }
@@ -136,7 +152,7 @@ function assemble(parsed, intake, D) {
   const prompts = D.prompts.map(d => {
     const text = parsed.prompts.find(p => p.n === d.n).text;
     const label = d.kind === 'other' ? `Other services: ${d.services.map(s => s.toLowerCase()).join(', ')}` : d.label;
-    return { n: d.n, kind: d.kind, label, tone: intake.tone, folder: d.folder, photos: d.photos, why: d.why, images: imagesLine(d.folder), text, chars: [...text].length };
+    return { n: d.n, kind: d.kind, label, tone: intake.tone, services: d.services, covers: d.covers || null, folder: d.folder, photos: d.photos, why: d.why, images: imagesLine(d.folder), text, chars: [...text].length };
   });
   const gaps = D.gaps.map(g => ({ ...g, line: gapLine(g, parsed.gaps) }));
   const settings = { frequency: FREQUENCY, cta: intake.cta.line, cta_type: intake.cta.type, cta_url: intake.cta.url, tone: intake.tone };
@@ -176,7 +192,7 @@ async function runAutopost({ intake, callModel, previous = null, log = null }) {
   const output = assemble(parsed, intake, D);
   return {
     version: 1, model: MODEL, generated_at: at, attempts, usage, output, sheet: sheetText(output), flags: validation.flags, failure: null,
-    intake: { offerSource: intake.offerSource, business: intake.business, niche: intake.niche, areas: intake.areas, areasWhy: intake.areasWhy, usps: intake.usps, groups: intake.groups, brand: intake.brand, offer: intake.offer, cta: intake.cta, tone: intake.tone, avoid: intake.avoid },
+    intake: { offerSource: intake.offerSource, business: intake.business, niche: intake.niche, areas: intake.areas, allAreas: intake.allAreas, areasWhy: intake.areasWhy, usps: intake.usps, groups: intake.groups, brand: intake.brand, offer: intake.offer, cta: intake.cta, tone: intake.tone, avoid: intake.avoid },
   };
 }
 
@@ -185,4 +201,4 @@ function filesFor(rec) {
   return { 'autopost-config.txt': rec.sheet, 'validation.json': JSON.stringify({ generated_at: rec.generated_at, model: rec.model, attempts: rec.attempts, flags: rec.flags, intake: rec.intake, notes: rec.output.notes, too_few: rec.output.tooFew || null, folders_renamed: rec.renames || [] }, null, 2) };
 }
 
-module.exports = { MODEL, MAX_TOKENS, CHECKLIST, loadSystem, buildMessage, parseSheet, validateSheet, assemble, sheetText, runAutopost, filesFor };
+module.exports = { CLAIMS, MODEL, MAX_TOKENS, CHECKLIST, loadSystem, buildMessage, parseSheet, validateSheet, assemble, sheetText, runAutopost, filesFor };

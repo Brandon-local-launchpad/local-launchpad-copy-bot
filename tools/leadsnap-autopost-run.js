@@ -7,6 +7,7 @@
 //   node tools/leadsnap-autopost-run.js edens-edge     the Edens Edge page map (31 service pages)
 //   node tools/leadsnap-autopost-run.js dog-walker     Book, with a booking URL
 //   node tools/leadsnap-autopost-run.js kestrel-thin   no USPs, no brand photos, few photos
+//   add --preview to run Preview posts on the result: about 13p more, saved as previews.json
 //
 // Needs ANTHROPIC_API_KEY in the environment or .env. A run costs a few pence.
 
@@ -24,6 +25,7 @@ const { makeCallModel } = require(path.join(root, 'anthropic-call.js'));
 const { buildIntake, groupServices } = require(path.join(root, 'leadsnap/autopost/intake.js'));
 const { decide } = require(path.join(root, 'leadsnap/autopost/decide.js'));
 const G = require(path.join(root, 'leadsnap/autopost/generate.js'));
+const { runPreview, estimate } = require(path.join(root, 'leadsnap/autopost/preview.js'));
 
 const simple = ({ name, primary, town, areas, services, proofPoints = [], accreditations = 'none', years_trading = '', site = '', phone = '' }) => ({
   name, primary, town, areas: [town, ...areas], serviceAreasPageMap: [town, ...areas], serviceAreasFrom: 'the page map', siteUrl: site, primarySlug: `/${primary.toLowerCase().replace(/\s+/g, '-')}`,
@@ -80,4 +82,15 @@ function client(name) {
   if (rec.failure) { console.log(`\nFAILED: ${rec.failure.error}\n${rec.failure.fails.map(f => `- ${f.message}`).join('\n')}\nSaved to ${dir}`); process.exit(1); }
   fs.writeFileSync(path.join(dir, 'autopost-config.txt'), rec.sheet);
   console.log(`\nPassed in ${rec.attempts} attempt(s). Flags: ${rec.flags.map(f => f.message).join(' | ') || 'none'}. Longest prompt ${Math.max(...rec.output.prompts.map(p => p.chars))} characters.\nSaved to ${dir}\n\n${rec.sheet}`);
+  if (process.argv.includes('--preview')) {
+    console.log(`\nPreview: ${estimate(rec.output.prompts).samples} samples, about ${estimate(rec.output.prompts).pence}p`);
+    const pv = await runPreview({ record: rec, callModel: args => callModel(args), log: m => console.log(m) });
+    fs.writeFileSync(path.join(dir, 'previews.json'), JSON.stringify(pv, null, 2));
+    console.log(`PREVIEW ${pv.summary.clean} of ${pv.summary.samples} clean, ${pv.summary.warned} warned, ${pv.summary.failed} failed, ${pv.summary.alike} of ${pv.summary.prompts} prompts read alike, cost ${pv.pence}p (${pv.usage.input_tokens} in, ${pv.usage.output_tokens} out)`);
+    for (const p of pv.prompts) {
+      console.log(`\n## ${p.n}. ${p.label}`);
+      for (const s of p.samples) console.log(`  sample ${s.n}: ${s.words} words | ${s.error || s.checks.filter(c => c.level === 'warn').map(c => `${c.id}: ${c.detail}`).join(' | ') || 'clean'} | opens: ${s.text.split(/\s+/).slice(0, 9).join(' ')}`);
+      for (const w of p.sameness) console.log(`  SAME: ${w.message}`);
+    }
+  }
 })().catch(e => { console.error(e); process.exit(1); });

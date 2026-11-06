@@ -135,7 +135,7 @@ function pickAreas(I) {
   const nearby = towns.slice(0, AREA_OTHERS);
   const order = I.serviceAreasFrom === 'the approved locations list' ? 'the approved locations list, Tier 1 first' : 'page map order, nearest first';
   const why = `${main || 'The main town'} plus the first ${nearby.length} of ${towns.length} other service areas, in ${order}.${skipped.length ? ` Left out as not a place a customer would name: ${skipped.join(', ')}.` : ''}`;
-  return { main, nearby, all: [main, ...nearby].filter(Boolean), why };
+  return { main, nearby, all: [main, ...nearby].filter(Boolean), every: [main, ...towns].filter(Boolean), why };
 }
 
 // ── What the client can be said to offer ──
@@ -229,7 +229,7 @@ function buildIntake({ I, trade = '', answers = {}, hand = {}, locked = null }) 
 
   return {
     business: str(cv.company_name) || str(I.name), phone: str(nap.phone), niche, nicheKey,
-    mainTown: areas.main, areas: areas.all, nearby: areas.nearby, areasWhy: areas.why,
+    mainTown: areas.main, areas: areas.all, allAreas: areas.every, nearby: areas.nearby, areasWhy: areas.why,
     groups, labelsLocked: !!locked, pending, brand, photosEntered, usps, offer, offerSource, tone, avoid, cta,
     missing, warnings, ok: missing.length === 0,
   };

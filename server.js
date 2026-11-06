@@ -4040,7 +4040,8 @@ if (pool && pageMapStore) {
   require('./gbp/routes').mountGbpApi(app, { pool, loadInputs: gbpInputsFor, callModel: gbpCallModel, saveClientValue, leadsnap, directoryDomains: citationStore ? () => citationStore.domains() : null });
   // The Lead Snap tab (5 Nov): the autopost config, from the GBP inputs and the Fillout voice answers
   const leadSnapCallModel = args => makeCallModel(new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY }), require('./leadsnap/autopost/generate').MODEL, { onUsage: modelLog.tagged('Lead Snap autopost') })(args);
-  require('./leadsnap/autopost/routes').mountLeadSnapApi(app, { pool, callModel: leadSnapCallModel, loadInputs: async clientId => {
+  const leadSnapPreviewCallModel = args => makeCallModel(new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY }), require('./leadsnap/autopost/generate').MODEL, { onUsage: modelLog.tagged('Lead Snap preview') })(args);
+  require('./leadsnap/autopost/routes').mountLeadSnapApi(app, { pool, callModel: leadSnapCallModel, previewCallModel: leadSnapPreviewCallModel, loadInputs: async clientId => {
     const I = await gbpInputsFor(clientId);
     const { rows } = await pool.query(`SELECT trade FROM clients WHERE id=$1`, [clientId]);
     const rec = filloutService ? await filloutService.record(clientId).catch(() => null) : null;

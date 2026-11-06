@@ -5,7 +5,8 @@
 //   PUT  /api/clients/:id/lead-snap/intake     the typed fields: photo counts, offer, booking URL
 //   POST /api/clients/:id/lead-snap/generate   write the config (spends one or two model calls); takes up
 //                                              the page map's names, so a folder rename needs { accept_renames: true }
-//   GET  /clients/:slug/lead-snap/:file        autopost-config.txt, validation.json
+//   POST /api/clients/:id/lead-snap/preview    Preview posts: each prompt 4 times, nothing goes to Lead Snap
+//   GET  /clients/:slug/lead-snap/:file        autopost-config.txt, validation.json, previews.json
 //
 // loadInputs(clientId) → { I, trade, answers }: the GBP inputs and the Fillout answers.
 
@@ -14,8 +15,9 @@ const { createAutopostStore } = require('./store');
 const { buildIntake, lockedFrom, labelChanges, carryCounts } = require('./intake');
 const { decide, POSTS_ROOT } = require('./decide');
 const { runAutopost, filesFor } = require('./generate');
+const { estimate, runPreview } = require('./preview');
 
-const CONTENT_TYPES = { 'autopost-config.txt': 'text/plain; charset=utf-8', 'validation.json': 'application/json; charset=utf-8' };
+const CONTENT_TYPES = { 'autopost-config.txt': 'text/plain; charset=utf-8', 'validation.json': 'application/json; charset=utf-8', 'previews.json': 'application/json; charset=utf-8' };
 const CTA_TYPES = ['', 'Call Now', 'Book', 'Learn More'];
 
 function cleanHand(body = {}, groups = []) {
@@ -31,9 +33,11 @@ function cleanHand(body = {}, groups = []) {
   return { counts, brand: count(body.brand, 'Brand photos'), offer: text('offer'), booking_url: booking, cta_type: cta, tone: text('tone'), avoid: text('avoid') };
 }
 
-function mountLeadSnapApi(app, { pool, loadInputs, callModel, log = console }) {
+// previewCallModel: the same model, logged under its own name; callModel when not given
+function mountLeadSnapApi(app, { pool, loadInputs, callModel, previewCallModel = null, log = console }) {
   const store = createAutopostStore(pool);
   const running = new Set();
+  const previewing = new Set();
   const wrap = fn => async (req, res) => {
     try { await fn(req, res); }
     catch (err) { if (!err.status || err.status >= 500) log.error('[lead snap]', err); res.status(err.status || 500).json({ error: err.message }); }
@@ -48,14 +52,18 @@ function mountLeadSnapApi(app, { pool, loadInputs, callModel, log = console }) {
     if (!rows.length) throw Object.assign(new Error('Client not found.'), { status: 404 });
     const slug = slugify(rows[0].name);
     const record = await store.latest(clientId);
+    const previews = await store.previews(clientId);
     const files = Object.fromEntries(Object.keys(filesFor(record)).map(f => [f, `/clients/${slug}/lead-snap/${f}`]));
+    if (previews) files['previews.json'] = `/clients/${slug}/lead-snap/previews.json`;
     let intake = null, hand = {}, plan = null, error = null;
     try {
       ({ intake, hand } = await intakeFor(clientId)); plan = decide(intake);
       // A config saved before the path changed still names the old folders
       if (record && record.sheet && /select from folder: GBP Posts \//.test(record.sheet)) intake.warnings.push(`This config still uses the old folder path, GBP Posts. Generate again to change it to ${POSTS_ROOT}.`);
     } catch (e) { if (!e.status) log.error('[lead snap]', e); error = e.message; }
-    return { slug, record, files, intake, hand, plan, error, running: running.has(clientId) };
+    // The samples belong to the config they were written from
+    const preview = { saved: previews, stale: !!(previews && record && previews.config_at !== record.generated_at), running: previewing.has(clientId), estimate: record && record.output ? estimate(record.output.prompts) : null };
+    return { slug, record, files, intake, hand, plan, error, preview, running: running.has(clientId) };
   };
 
   app.get('/api/clients/:clientId/lead-snap', wrap(async (req, res) => res.json(await view(req.params.clientId))));
@@ -96,6 +104,25 @@ function mountLeadSnapApi(app, { pool, loadInputs, callModel, log = console }) {
     res.json(await view(clientId));
   }));
 
+  app.post('/api/clients/:clientId/lead-snap/preview', wrap(async (req, res) => {
+    const { clientId } = req.params;
+    if (previewing.has(clientId)) throw Object.assign(new Error('A preview is already running for this client.'), { status: 409 });
+    const record = await store.latest(clientId);
+    if (!record || !record.output) throw Object.assign(new Error('Generate the config first: a preview tests its prompts.'), { status: 400 });
+    previewing.add(clientId);
+    try {
+      const saved = await runPreview({ record, callModel: previewCallModel || callModel, log: m => log.log(m) });
+      // Every call failing says nothing about the prompts: the last good samples stay
+      if (saved.summary.failed === saved.summary.samples) {
+        const first = saved.prompts.flatMap(p => p.samples).find(s => s.error);
+        throw Object.assign(new Error(`The preview could not reach the model, so the last samples are kept. ${first ? first.error : ''}`.trim()), { status: 502 });
+      }
+      await store.savePreviews(clientId, saved);
+      log.log(`[lead snap] ${clientId}: preview of ${saved.summary.samples} samples, ${saved.summary.warned} with warnings`);
+    } finally { previewing.delete(clientId); }
+    res.json(await view(clientId));
+  }));
+
   app.get('/clients/:slug/lead-snap/:file', wrap(async (req, res) => {
     const { slug, file } = req.params;
     if (!CONTENT_TYPES[file]) throw Object.assign(new Error(`No such file. The files are ${Object.keys(CONTENT_TYPES).join(', ')}.`), { status: 404 });
@@ -103,7 +130,9 @@ function mountLeadSnapApi(app, { pool, loadInputs, callModel, log = console }) {
     const client = rows.find(r => slugify(r.name) === slug);
     if (!client) throw Object.assign(new Error('No client with that slug.'), { status: 404 });
     const files = filesFor(await store.latest(client.id));
-    if (!(file in files)) throw Object.assign(new Error('No Lead Snap config has been generated for this client.'), { status: 404 });
+    const previews = await store.previews(client.id);
+    if (previews) files['previews.json'] = JSON.stringify(previews, null, 2);
+    if (!(file in files)) throw Object.assign(new Error(file === 'previews.json' ? 'No preview has been run for this client.' : 'No Lead Snap config has been generated for this client.'), { status: 404 });
     res.set('Content-Type', CONTENT_TYPES[file]);
     res.set('Content-Disposition', `inline; filename="${file}"`);
     res.send(files[file]);

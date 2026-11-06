@@ -191,8 +191,9 @@ function goodSheet(intake, D) {
   const L = [`LEAD SNAP AUTOPOST CONFIG - ${intake.business}`, '', 'SETTINGS', 'Frequency: Custom - twice per week', `Call to action: ${intake.cta.line}`, ''];
   for (const p of D.prompts) {
     L.push(`PROMPT ${p.n} - ${p.label}`, `Tone: ${intake.tone}`, `Images: Choose specific images from GBP or upload -> select from folder: ${p.folder}`, 'Prompt:');
-    const about = p.kind === 'service' ? p.services.join(' and ') : p.kind === 'other' ? `one of ${p.services.join(', ')}` : p.kind === 'offer' ? intake.offer : p.label;
-    L.push(`Write a Google Business Profile post for ${intake.business}, a ${intake.niche} based in ${intake.mainTown}, about ${about}.`, '', `Facts you may use: ${intake.usps.join(', ')}. Do not use any other facts.`, '', `Areas: ${intake.areas.join(', ')}. Pick ONE area from the list and mention it naturally once.`, '', `Pick one ${p.kind === 'tips' ? 'tip' : 'angle'} at random for this post:`, ...angles(p.kind).map(a => `- ${a}`), '', `Write 150-300 words in plain UK English, no headings, no hashtags, no emoji. Use the service name with the town or area naturally once or twice. Never invent specific jobs, customers, reviews, prices, timescales, discounts or accreditations; use only the facts given here. Do not mention seasons, weather, holidays or dates. No generic filler. Tone: ${intake.tone}. End with one sentence that leads into the button: ${intake.cta.sentence}.`, '');
+    const about = p.kind === 'service' ? p.label : p.kind === 'other' ? 'one other service' : p.kind === 'offer' ? intake.offer : p.label;
+    const grouped = p.kind === 'other' || (p.kind === 'service' && p.services.length > 1);
+    L.push(`Write a Google Business Profile post for ${intake.business} (write the name exactly like that), a ${intake.niche} based in ${intake.mainTown}, about ${about}.`, '', ...(grouped ? [`Choose ONE of these services and write the whole post about it. Do not mention the others: ${p.services.join(', ')}.`, ''] : []), `Facts you may use (no more than two, chosen to fit the angle): ${intake.usps.join(', ')}. Do not use any other facts.`, '', `Areas: ${intake.areas.join(', ')}. Pick ONE area from the list. Use it once or twice and mention no other towns.`, '', `Choose ONE ${p.kind === 'tips' ? 'tip' : 'angle'} and build the whole post around it:`, ...angles(p.kind).map(a => `- ${a}`), '', `Write 150-250 words in plain UK English, no headings, no hashtags, no emoji. Don't start with "If". Use the service name naturally once or twice. Never invent specific jobs, customers, reviews, prices, timescales, discounts or accreditations; use only the facts given here. Do not mention seasons, weather, holidays or dates. No generic filler. Tone: ${intake.tone}. End with one sentence that leads into the button: ${intake.cta.sentence}.`, '');
   }
   L.push('PHOTO GAPS', ...D.gaps.map(g => `- ${g.label}: ${g.photos} photos. Ask the client for 3-4 photos of finished ${g.label.toLowerCase()} from the customer's side.`), '', 'VA CHECKLIST', '[ ] Settings set');
   return L.join('\n');
@@ -244,6 +245,73 @@ const canned = text => async () => ({ text, usage: { input_tokens: 10, output_to
   chk('the message tells the model the pages behind a short name', /Trees \(Tree cabling and bracing, Tree stump removal/.test(msg), msg.slice(0, 300), '');
   chk('other services may name a group by its pages', (() => { const t = goodSheet(trees, treesD).replace(/Trees, /g, 'Tree stump removal, '); return !G.validateSheet(G.parseSheet(t), trees, treesD).fails.some(f => /does not list "Trees"/.test(f.message)); })(), '', '');
 
+  // ── The new prompt rules (Brandon, 6 Nov) ──
+  chk('check: the name without its instruction', /write the name exactly like that/.test(failsFor(good.replace(/ \(write the name exactly like that\)/g, ''))), '', '');
+  chk('check: a grouped label without "Choose ONE of these services"', /Prompt 1: covers several services/.test(failsFor(good.replace(/Choose ONE of these services and write the whole post about it\. Do not mention the others: Boiler repair, Boiler installation\.\n\n/, ''))), '', '');
+  chk('check: other services without it', /Prompt 3: covers several services/.test(failsFor(good.replace(/Choose ONE of these services and write the whole post about it\. Do not mention the others: Bathroom fitting, Drain unblocking\.\n\n/, ''))), '', '');
+  chk('a single service prompt does not need it', !/Prompt 2: covers several/.test(failsFor(good)), failsFor(good), '');
+  chk('check: facts without "no more than two"', /no more than two/.test(failsFor(good.replace(/ \(no more than two, chosen to fit the angle\)/g, ''))), '', '');
+  chk('check: "Pick one angle at random" is the old rule', /Choose ONE angle/.test(failsFor(good.replace(/Choose ONE angle and build the whole post around it:/, 'Pick one angle at random for this post:'))), '', '');
+  chk('check: the local area angle is dropped', /drop the local area angle/.test(failsFor(good.replace('- How the job is done', '- Serving homes in the chosen area'))), '', '');
+  chk('check: the old 150-300 words', /150-250 words/.test(failsFor(good.replace(/150-250 words/, '150-300 words'))), '', '');
+  chk('check: no "Don\'t start with If"', /start with/.test(failsFor(good.replace(/Don't start with "If"\. /, ''))), '', '');
+  chk('check: the old area rule', /mention no other towns/.test(failsFor(good.replace(/Use it once or twice and mention no other towns\./, 'Mention it naturally once.'))), '', '');
+  chk('check: a full service list outside a choosing prompt', /Prompt 4: lists other services/.test(failsFor(good.replace(/(about Trust \/ why us\.)/, '$1 We do Leak repair, Bathroom fitting and Drain unblocking.'))), failsFor(good.replace(/(about Trust \/ why us\.)/, '$1 We do Leak repair, Bathroom fitting and Drain unblocking.')), '');
+  const longP = G.validateSheet(G.parseSheet(good.replace('- How the job is done', '- How the job is done ' + 'x'.repeat(1400))), plumber, P);
+  chk('over 1,500 characters is a flag to check, not a failure', longP.ok && longP.flags.some(f => /aim for under 1,500/.test(f.message)), JSON.stringify(longP.flags), '');
+
+  // ── Preview posts ──
+  const Pv = require(path.join(root, 'leadsnap/autopost/preview.js'));
+  const pvRec = await G.runAutopost({ intake: plumber, callModel: canned(good) });
+  const boilerP = pvRec.output.prompts[0], otherP = pvRec.output.prompts[2];
+  const words = n => Array.from({ length: n }, (_, i) => `word${'abcdefghij'[i % 10]}`).join(' ');
+  const clean = `Hartley Plumbing & Heating looks after homes in Hornchurch. A boiler repair starts with a proper look at what went wrong. ${words(170)} Give us a call.`;
+  const levelOf = (text, id, p = boilerP) => Pv.checkSample(text, p, pvRec.intake).checks.find(c => c.id === id);
+  chk('a clean sample passes all eight checks', Pv.checkSample(clean, boilerP, pvRec.intake).warnings === 0 && Pv.checkSample(clean, boilerP, pvRec.intake).checks.length === 8, JSON.stringify(Pv.checkSample(clean, boilerP, pvRec.intake).checks.filter(c => c.level === 'warn')), '');
+  chk('preview: under 150 words warns', levelOf('Hartley Plumbing & Heating in Hornchurch.', 'words').level === 'warn', '', 'warn');
+  chk('preview: over 250 words warns', levelOf(clean + words(100), 'words').level === 'warn', '', 'warn');
+  const edens = { ...pvRec.intake, business: 'Edens Edge Landscaping' };
+  chk('preview: the name Lead Snap really wrote is caught', Pv.checkName('Edens edge landscaping LTD did this.', 'Edens Edge Landscaping').level === 'warn', '', 'warn');
+  chk('preview: the right name with LTD after it is caught', Pv.checkName('Edens Edge Landscaping LTD did this.', 'Edens Edge Landscaping').level === 'warn', '', 'warn');
+  chk('preview: a shortened name is caught', Pv.checkName('Edens Edge Landscaping is local. Call Edens Edge today.', 'Edens Edge Landscaping').level === 'warn', '', 'warn');
+  chk('preview: no name is caught', Pv.checkName('A local firm.', 'Edens Edge Landscaping').level === 'warn', '', 'warn');
+  chk('preview: the exact name passes', Pv.checkName('Edens Edge Landscaping is local. Edens Edge Landscaping can help.', 'Edens Edge Landscaping').level === 'pass', '', 'pass');
+  chk('preview: two towns from the list warn', levelOf(clean + ' Also Dagenham.', 'town').level === 'warn', '', 'warn');
+  chk('preview: no town warns', levelOf(clean.replace('Hornchurch', 'the area'), 'town').level === 'warn', '', 'warn');
+  chk('preview: a town off the short list is still caught', Pv.checkSample(clean + ' Also Basildon.', boilerP, { ...pvRec.intake, allAreas: [...pvRec.intake.areas, 'Basildon'] }).checks.find(c => c.id === 'town').level === 'warn', '', 'warn');
+  chk('preview: a second service of a group warns', levelOf(clean + ' We also do boiler installation.', 'group').level === 'warn', '', 'warn');
+  chk('preview: the other services prompt warns on a second service', levelOf(clean.replace('A boiler repair starts', 'Bathroom fitting starts') + ' Drain unblocking too.', 'group', otherP).level === 'warn', '', 'warn');
+  chk('preview: one service from other services passes', levelOf(clean.replace('A boiler repair starts', 'Bathroom fitting starts'), 'group', otherP).level === 'pass', '', 'pass');
+  chk('preview: three facts warn, two pass', levelOf(clean + ' Gas Safe registered, same day visits available, fixed prices agreed before work starts.', 'facts').level === 'warn' && levelOf(clean + ' Gas Safe registered, with fixed prices agreed before work starts.', 'facts').level === 'pass', JSON.stringify(levelOf(clean + ' Gas Safe registered, with fixed prices agreed before work starts.', 'facts')), '');
+  chk('preview: the offer and a free quotes USP count as one fact', Pv.factsUsed('Our free no-obligation quote, a free quote for all.', { usps: ['free quotes'], offer: 'free, no-obligation quote' }).length === 1, '', 1);
+  for (const [phrase, what] of [['It costs £80.', 'price'], ['We have 300 happy customers.', 'number'], ['A 10 year guarantee.', 'guarantee']]) chk(`preview: an invented ${what} warns`, Pv.checkSample(clean + ' ' + phrase, boilerP, { ...pvRec.intake, usps: [] }).checks.find(c => c.id === 'claims').level === 'warn', '', 'warn');
+  chk('preview: a number in the facts passes', levelOf(clean + ' Over 15 years trading.', 'claims').level === 'pass', JSON.stringify(levelOf(clean + ' Over 15 years trading.', 'claims')), 'pass');
+  for (const w of ['this winter', 'in December', 'heavy rain', 'by Christmas', 'in 2027']) chk(`preview: "${w}" warns`, levelOf(clean + ' ' + w, 'dated').level === 'warn', '', 'warn');
+  chk('preview: a year that is a fact passes', Pv.checkSample(clean + ' Trading since 2015.', boilerP, { ...pvRec.intake, usps: ['trading since 2015'] }).checks.find(c => c.id === 'dated').level === 'pass', '', 'pass');
+  chk('preview: starting with If warns, in any case', levelOf('If your boiler stops.', 'if').level === 'warn' && levelOf('"if your boiler stops', 'if').level === 'warn', '', 'warn');
+  chk('preview: "Iffy" and If later on pass', levelOf('Iffy boilers. If yours stops.', 'if').level === 'pass', '', 'pass');
+  const sameOpen = Pv.sameness(['A boiler that stops working is a worry', 'A boiler that stops working needs a look', 'Something else entirely here now']);
+  chk('sameness: two opening with the same 5 words warn', sameOpen.length === 1 && sameOpen[0].type === 'opening' && sameOpen[0].samples.join() === '1,2', JSON.stringify(sameOpen), '');
+  const sharedRun = 'we always check the pressure before anything else happens here';
+  const samePhrase = Pv.sameness([`First off ${sharedRun} today`, `Quite simply ${sharedRun} anyway`]);
+  chk('sameness: a long identical phrase warns, and quotes it', samePhrase.length === 1 && samePhrase[0].type === 'phrase' && samePhrase[0].text === sharedRun, JSON.stringify(samePhrase), '');
+  chk('sameness: punctuation and case do not hide it', Pv.sameness(['One two three four five six seven eight nine.', 'one, two; three four FIVE six seven eight nine']).length >= 1, '', '');
+  chk('sameness: different samples are clean, and 7 shared words are not "long"', !Pv.sameness(['aa bb cc dd ee ff gg hh ii', 'zz aa bb cc dd ee ff gg yy']).length, JSON.stringify(Pv.sameness(['aa bb cc dd ee ff gg hh ii', 'zz aa bb cc dd ee ff gg yy'])), '');
+  const fourSame = Pv.sameness(['one two three four five aa', 'one two three four five bb', 'one two three four five cc', 'different words at the start here']);
+  chk('sameness: one line for an opening, however many samples share it', fourSame.length === 1 && fourSame[0].samples.join() === '1,2,3' && /Samples 1, 2 and 3 start/.test(fourSame[0].message), JSON.stringify(fourSame), '');
+  const run = 'we always check the pressure before anything else happens here';
+  const nested = Pv.sameness([`aa ${run} bb`, `cc ${run} dd`, `ee ${run} extra words now ff`, `gg ${run} extra words now hh`]);
+  chk('sameness: a phrase inside a longer one is not repeated', nested.filter(x => x.type === 'phrase').length === 1 && nested[0].text.endsWith('extra words now'), JSON.stringify(nested.map(x => x.text)), '');
+  const est = Pv.estimate(pvRec.output.prompts);
+  chk('the estimate: 4 samples per prompt, in pence, before anything runs', est.samples === 24 && est.per_prompt === 4 && est.pence >= 8 && est.pence <= 14, JSON.stringify(est), '8 to 14p');
+  const pvCalls = [];
+  const pv = await Pv.runPreview({ record: pvRec, callModel: async a => { pvCalls.push(a); if (pvCalls.length === 3) throw new Error('overloaded'); return { text: clean, usage: { input_tokens: 500, output_tokens: 450 } }; } });
+  chk('run: each prompt goes 4 times, the prompt text alone as the message', pvCalls.length === 24 && pvCalls.filter(c => c.message === boilerP.text).length === 4 && pv.prompts.every(p => p.samples.length === 4), pvCalls.length, 24);
+  chk('run: a failed call is one failed sample, and the rest stand', pv.summary.failed === 1 && pv.summary.samples === 24 && pv.prompts.flatMap(p => p.samples).find(s => s.error).error === 'overloaded', JSON.stringify(pv.summary), '');
+  chk('run: identical samples get the sameness warning', pv.prompts[1].sameness.length >= 1, JSON.stringify(pv.prompts[1].sameness), '');
+  chk('run: the cost is worked out from what was really used, 23 calls', pv.usage.calls === 23 && pv.usd > 0.1 && pv.pence >= 10, JSON.stringify([pv.usage, pv.usd, pv.pence]), '');
+  chk('run: it remembers which config it tested', pv.config_at === pvRec.generated_at, pv.config_at, pvRec.generated_at);
+
   // Retry and failure
   const calls = [];
   rec = await G.runAutopost({ intake: plumber, callModel: async a => { calls.push(a); return { text: calls.length === 1 ? 'nonsense' : good, usage: {} }; } });
@@ -267,6 +335,7 @@ const canned = text => async () => ({ text, usage: { input_tokens: 10, output_to
   const app = express();
   app.use(express.json());
   let model = canned(good), modelCalls = 0;
+  const sheetFor2 = () => { const i = buildIntake({ I: plumberI, trade: 'Plumbing & Heating', answers: { tone: 'Friendly, plain-spoken' }, hand: { counts: { ...plumberCounts, 'bathroom-fitting': 4 }, brand: 5 } }); return goodSheet(i, decide(i)); };
   const quiet = { log() {}, error() {} };
   let routeI = plumberI;
   const mounted = mountLeadSnapApi(app, { pool, log: quiet, callModel: (...a) => { modelCalls++; return model(...a); }, loadInputs: async id => { if (id === noMap.id) throw Object.assign(new Error('GBP output needs a v3 page map'), { status: 400 }); return { I: routeI, trade: 'Plumbing & Heating', answers: { tone: 'Friendly, plain-spoken' } }; } });
@@ -302,6 +371,28 @@ const canned = text => async () => ({ text, usage: { input_tokens: 10, output_to
   model = canned('nonsense');
   v = (await req('POST', `${api}/generate`)).json();
   chk('a failed run over the route keeps the good config and shows the failure', v.record.failure && v.record.sheet && v.files['autopost-config.txt'], JSON.stringify(v.record.failure && v.record.failure.error), '');
+  // ── Preview posts, over the routes ──
+  v = (await req('GET', api)).json();
+  chk('the cost shows before running, and nothing has run', v.preview.estimate.samples === v.record.output.prompts.length * 4 && v.preview.estimate.pence > 0 && v.preview.saved === null, JSON.stringify(v.preview), '');
+  chk('no preview yet: previews.json is a 404', (await req('GET', '/clients/hartley-plumbing/lead-snap/previews.json')).status === 404, '', 404);
+  const beforePv = modelCalls;
+  const sampleText = `Hartley Plumbing & Heating helps in Hornchurch. ${Array.from({ length: 180 }, () => 'word').join(' ')}`;
+  model = async () => ({ text: sampleText, usage: { input_tokens: 500, output_tokens: 450 } });
+  const configBefore = (await mounted.store.latest(c.id)).sheet;
+  v = (await req('POST', `${api}/preview`)).json();
+  chk('POST preview: 4 model calls per prompt, samples saved', modelCalls === beforePv + v.record.output.prompts.length * 4 && v.preview.saved.prompts[0].samples.length === 4 && !v.preview.stale, modelCalls - beforePv, '');
+  chk('the preview leaves the config alone', (await mounted.store.latest(c.id)).sheet === configBefore, '', '');
+  const pvFile = await req('GET', v.files['previews.json']);
+  const goodSamples = (await mounted.store.previews(c.id)).at;
+  model = async () => { throw new Error('the API is down'); };
+  const allFailed = await req('POST', `${api}/preview`);
+  chk('every call failing keeps the last good samples and says why', allFailed.status === 502 && /the API is down/.test(allFailed.json().error) && (await mounted.store.previews(c.id)).at === goodSamples, allFailed.status, 502);
+  chk('a failed preview does not leave the button stuck', (await req('GET', api)).json().preview.running === false, '', false);
+  chk('previews.json is served with the samples', pvFile.status === 200 && JSON.parse(pvFile.text).prompts[0].samples[0].text === sampleText, pvFile.status, 200);
+  model = async () => ({ text: sheetFor2(), usage: {} });
+  v = (await req('POST', `${api}/generate`)).json();
+  chk('a new config marks the old samples as stale', !v.record.failure && v.preview.stale === true, JSON.stringify(v.record.failure), '');
+
   // ── The lock, over the routes ──
   const handNow = async () => mounted.store.hand(c.id);
   const sheetFor = (I0, hand0) => { const i = buildIntake({ I: I0, trade: 'Plumbing & Heating', answers: { tone: 'Friendly, plain-spoken' }, hand: hand0 }); return goodSheet(i, decide(i)); };

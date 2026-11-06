@@ -128,6 +128,8 @@ process.env.CITATIONS_SKIP_DA = '1'; // the demo's pg-mem is fresh each start: n
     const lsParsed = JSON.parse(lsRec);
     await pool.query(`INSERT INTO client_assets (client_id, asset_type, filename, content) VALUES ($1, 'leadsnap_autopost', 'leadsnap_autopost.json', $2)`, [auditId, lsRec]);
     await pool.query(`INSERT INTO client_assets (client_id, asset_type, filename, content) VALUES ($1, 'leadsnap_autopost_hand', 'leadsnap_autopost_hand.json', $2)`, [auditId, JSON.stringify({ counts: Object.fromEntries(lsParsed.intake.groups.map(g => [g.key, g.photos])), brand: lsParsed.intake.brand })]);
+    const lsPv = path.join(lsDir, lsRuns[lsRuns.length - 1], 'previews.json');
+    if (fs.existsSync(lsPv)) await pool.query(`INSERT INTO client_assets (client_id, asset_type, filename, content) VALUES ($1, 'leadsnap_previews', 'previews.json', $2)`, [auditId, fs.readFileSync(lsPv, 'utf8')]);
   }
   // Its redirects go to the fake site, marked staging. The fake site answers only the pages it has.
   const { encrypt } = require(path.join(root, 'wp/secrets.js'));
