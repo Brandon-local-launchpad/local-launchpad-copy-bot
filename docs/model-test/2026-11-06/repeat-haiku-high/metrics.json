@@ -1,0 +1,879 @@
+[
+  {
+    "page": "service",
+    "setup": "E",
+    "setup_label": "haiku-5-5, high",
+    "tokens": {
+      "input": 315611,
+      "output": 314240,
+      "thinking": 302121,
+      "thinking_reported": true,
+      "cache_read": 1803254,
+      "cache_write": 14649
+    },
+    "calls": {
+      "total": 71,
+      "writer": 1,
+      "retry": 63,
+      "claims": 4,
+      "sonnet_rewrites": 0
+    },
+    "retry_rounds": 9,
+    "retries_kept": 36,
+    "block_before": 19,
+    "block_after": 1,
+    "flag_before": 47,
+    "flag_after": 3,
+    "block_codes": [
+      "PRACTICE"
+    ],
+    "model_flags": [
+      "F-REVIEWS",
+      "F-ALLOC",
+      "MODEL"
+    ],
+    "claims_open_writer": 2,
+    "claims_status": "needs acceptance",
+    "claims_open_audit": 5,
+    "judge_score": 6.75,
+    "judge_readings": [
+      6.6,
+      6.9
+    ],
+    "judge_failed": [
+      11,
+      12
+    ],
+    "verdict": "Has a BLOCK",
+    "edit_list": 10,
+    "judge_failed_ids": [
+      "C1",
+      "C9",
+      "P5",
+      "F1",
+      "V2",
+      "S10",
+      "C3j",
+      "P6",
+      "F5",
+      "Y6",
+      "Y5"
+    ],
+    "wall_s": 953.103,
+    "rate_limit_waits": 0,
+    "effort_lowered": 3,
+    "writer_lowered": true,
+    "writer_effort": "low",
+    "ran_out": [
+      {
+        "role": "writer ran out",
+        "effort": "high",
+        "output_tokens": 48000,
+        "usd": 0.027048425
+      },
+      {
+        "role": "retry ran out",
+        "effort": "high",
+        "output_tokens": 16000,
+        "usd": 0.00862357
+      },
+      {
+        "role": "retry ran out",
+        "effort": "high",
+        "output_tokens": 16000,
+        "usd": 0.00862457
+      }
+    ],
+    "served_models": [
+      "claude-haiku-5-5"
+    ],
+    "truncated": 1,
+    "usd_billed": 0.20854476500000005,
+    "usd": 0.20854476500000005,
+    "gbp": 0.16266491670000005,
+    "usd_judge_and_audit": 0.2193,
+    "max_prompt_tokens": 31175,
+    "caching": {
+      "writer_input": 12173,
+      "writer_read": 14649,
+      "writer_write": 0,
+      "retry_read": 1733571,
+      "retry_write": 0,
+      "retry_input": 199073,
+      "prefix_sha": "450f0cbdb119075e",
+      "message_sha": "1e3701a106a8f2a7"
+    }
+  },
+  {
+    "page": "service",
+    "setup": "E2",
+    "setup_label": "haiku-5-5, high, repeat 1",
+    "tokens": {
+      "input": 280976,
+      "output": 324706,
+      "thinking": 313389,
+      "thinking_reported": true,
+      "cache_read": 1555601,
+      "cache_write": 14649
+    },
+    "calls": {
+      "total": 62,
+      "writer": 1,
+      "retry": 53,
+      "claims": 4,
+      "sonnet_rewrites": 0
+    },
+    "retry_rounds": 9,
+    "retries_kept": 33,
+    "block_before": 19,
+    "block_after": 1,
+    "flag_before": 32,
+    "flag_after": 6,
+    "block_codes": [
+      "PRACTICE"
+    ],
+    "model_flags": [
+      "F-REVIEWS",
+      "F-ALLOC",
+      "MODEL"
+    ],
+    "claims_open_writer": 1,
+    "claims_status": "needs acceptance",
+    "claims_open_audit": 0,
+    "judge_score": 6.75,
+    "judge_readings": [
+      7,
+      6.5
+    ],
+    "judge_failed": [
+      9,
+      11
+    ],
+    "verdict": "Has a BLOCK",
+    "edit_list": 9,
+    "judge_failed_ids": [
+      "C1",
+      "C9",
+      "P5",
+      "Y2",
+      "Y11",
+      "S10",
+      "P6",
+      "Y6",
+      "Y5"
+    ],
+    "wall_s": 1006.359,
+    "rate_limit_waits": 0,
+    "effort_lowered": 4,
+    "writer_lowered": true,
+    "writer_effort": "low",
+    "ran_out": [
+      {
+        "role": "writer ran out",
+        "effort": "high",
+        "output_tokens": 48000,
+        "usd": 0.027048425
+      },
+      {
+        "role": "retry ran out",
+        "effort": "high",
+        "output_tokens": 16000,
+        "usd": 0.00860777
+      },
+      {
+        "role": "retry ran out",
+        "effort": "high",
+        "output_tokens": 16000,
+        "usd": 0.008643969999999999
+      },
+      {
+        "role": "retry ran out",
+        "effort": "high",
+        "output_tokens": 16000,
+        "usd": 0.00865097
+      }
+    ],
+    "served_models": [
+      "claude-haiku-5-5"
+    ],
+    "truncated": 1,
+    "usd_billed": 0.20783773500000005,
+    "usd": 0.20783773500000005,
+    "gbp": 0.16211343330000005,
+    "usd_judge_and_audit": 0.224252,
+    "max_prompt_tokens": 31275,
+    "caching": {
+      "writer_input": 12173,
+      "writer_read": 14649,
+      "writer_write": 0,
+      "retry_read": 1458401,
+      "retry_write": 0,
+      "retry_input": 160862,
+      "prefix_sha": "450f0cbdb119075e",
+      "message_sha": "1e3701a106a8f2a7"
+    }
+  },
+  {
+    "page": "service",
+    "setup": "E3",
+    "setup_label": "haiku-5-5, high, repeat 2",
+    "tokens": {
+      "input": 336597,
+      "output": 336804,
+      "thinking": 323183,
+      "thinking_reported": true,
+      "cache_read": 1999435,
+      "cache_write": 66121
+    },
+    "calls": {
+      "total": 80,
+      "writer": 1,
+      "retry": 71,
+      "claims": 4,
+      "sonnet_rewrites": 0
+    },
+    "retry_rounds": 9,
+    "retries_kept": 39,
+    "block_before": 26,
+    "block_after": 1,
+    "flag_before": 39,
+    "flag_after": 2,
+    "block_codes": [
+      "PRACTICE"
+    ],
+    "model_flags": [
+      "F-REVIEWS",
+      "F-ALLOC"
+    ],
+    "claims_open_writer": 2,
+    "claims_status": "needs acceptance",
+    "claims_open_audit": 5,
+    "judge_score": 6.699999999999999,
+    "judge_readings": [
+      6.6,
+      6.8
+    ],
+    "judge_failed": [
+      9,
+      10
+    ],
+    "verdict": "Has a BLOCK",
+    "edit_list": 8,
+    "judge_failed_ids": [
+      "C1",
+      "C9",
+      "P4",
+      "P5",
+      "S10",
+      "P6",
+      "F5",
+      "Y6",
+      "Y5"
+    ],
+    "wall_s": 980.945,
+    "rate_limit_waits": 0,
+    "effort_lowered": 4,
+    "writer_lowered": true,
+    "writer_effort": "low",
+    "ran_out": [
+      {
+        "role": "writer ran out",
+        "effort": "high",
+        "output_tokens": 48000,
+        "usd": 0.027048425
+      },
+      {
+        "role": "retry ran out",
+        "effort": "high",
+        "output_tokens": 16000,
+        "usd": 0.008641870000000001
+      },
+      {
+        "role": "retry ran out",
+        "effort": "high",
+        "output_tokens": 16000,
+        "usd": 0.00864647
+      },
+      {
+        "role": "retry ran out",
+        "effort": "high",
+        "output_tokens": 16000,
+        "usd": 0.008650370000000001
+      }
+    ],
+    "served_models": [
+      "claude-haiku-5-5"
+    ],
+    "truncated": 0,
+    "usd_billed": 0.23032117500000002,
+    "usd": 0.23032117500000002,
+    "gbp": 0.17965051650000002,
+    "usd_judge_and_audit": 0.21046600000000001,
+    "max_prompt_tokens": 31269,
+    "caching": {
+      "writer_input": 12173,
+      "writer_read": 14649,
+      "writer_write": 0,
+      "retry_read": 1902235,
+      "retry_write": 51472,
+      "retry_input": 215944,
+      "prefix_sha": "450f0cbdb119075e",
+      "message_sha": "1e3701a106a8f2a7"
+    }
+  },
+  {
+    "page": "category",
+    "setup": "E",
+    "setup_label": "haiku-5-5, high",
+    "tokens": {
+      "input": 343838,
+      "output": 270479,
+      "thinking": 259506,
+      "thinking_reported": true,
+      "cache_read": 2324187,
+      "cache_write": 36927
+    },
+    "calls": {
+      "total": 51,
+      "writer": 1,
+      "retry": 45,
+      "claims": 4,
+      "sonnet_rewrites": 0
+    },
+    "retry_rounds": 9,
+    "retries_kept": 24,
+    "block_before": 7,
+    "block_after": 0,
+    "flag_before": 26,
+    "flag_after": 6,
+    "block_codes": [],
+    "model_flags": [
+      "F-REVIEWS",
+      "F-ALLOC"
+    ],
+    "claims_open_writer": 2,
+    "claims_status": "needs acceptance",
+    "claims_open_audit": 6,
+    "judge_score": 7.25,
+    "judge_readings": [
+      7.3,
+      7.2
+    ],
+    "judge_failed": [
+      7,
+      7
+    ],
+    "verdict": "Needs another run",
+    "edit_list": 7,
+    "judge_failed_ids": [
+      "C9",
+      "P5",
+      "Y2",
+      "P6",
+      "F5",
+      "Y6",
+      "Y5"
+    ],
+    "wall_s": 865.455,
+    "rate_limit_waits": 0,
+    "effort_lowered": 1,
+    "writer_lowered": true,
+    "writer_effort": "low",
+    "ran_out": [
+      {
+        "role": "writer ran out",
+        "effort": "high",
+        "output_tokens": 48000,
+        "usd": 0.029936474999999997
+      }
+    ],
+    "served_models": [
+      "claude-haiku-5-5"
+    ],
+    "truncated": 0,
+    "usd_billed": 0.19748104500000005,
+    "usd": 0.19748104500000005,
+    "gbp": 0.15403521510000004,
+    "usd_judge_and_audit": 0.361518,
+    "max_prompt_tokens": 54157,
+    "caching": {
+      "writer_input": 13206,
+      "writer_read": 36927,
+      "writer_write": 0,
+      "retry_read": 2287260,
+      "retry_write": 0,
+      "retry_input": 140969,
+      "prefix_sha": "2609012649595836",
+      "message_sha": "0869062be7ef0b79"
+    }
+  },
+  {
+    "page": "category",
+    "setup": "E2",
+    "setup_label": "haiku-5-5, high, repeat 1",
+    "tokens": {
+      "input": 337344,
+      "output": 295213,
+      "thinking": 283279,
+      "thinking_reported": true,
+      "cache_read": 2222531,
+      "cache_write": 36927
+    },
+    "calls": {
+      "total": 49,
+      "writer": 1,
+      "retry": 43,
+      "claims": 4,
+      "sonnet_rewrites": 0
+    },
+    "retry_rounds": 9,
+    "retries_kept": 23,
+    "block_before": 6,
+    "block_after": 1,
+    "flag_before": 25,
+    "flag_after": 5,
+    "block_codes": [
+      "PRACTICE"
+    ],
+    "model_flags": [
+      "F-REVIEWS",
+      "F-ALLOC"
+    ],
+    "claims_open_writer": 2,
+    "claims_status": "needs acceptance",
+    "claims_open_audit": 4,
+    "judge_score": 6.15,
+    "judge_readings": [
+      6.3,
+      6
+    ],
+    "judge_failed": [
+      12,
+      12
+    ],
+    "verdict": "Has a BLOCK",
+    "edit_list": 12,
+    "judge_failed_ids": [
+      "C1",
+      "C9",
+      "P5",
+      "Y2",
+      "B7",
+      "B1j",
+      "S10",
+      "P6",
+      "F5",
+      "Y6",
+      "Y5",
+      "L1"
+    ],
+    "wall_s": 952.135,
+    "rate_limit_waits": 0,
+    "effort_lowered": 1,
+    "writer_lowered": true,
+    "writer_effort": "low",
+    "ran_out": [
+      {
+        "role": "writer ran out",
+        "effort": "high",
+        "output_tokens": 48000,
+        "usd": 0.029936474999999997
+      }
+    ],
+    "served_models": [
+      "claude-haiku-5-5"
+    ],
+    "truncated": 0,
+    "usd_billed": 0.20818208500000002,
+    "usd": 0.20818208500000002,
+    "gbp": 0.1623820263,
+    "usd_judge_and_audit": 0.354958,
+    "max_prompt_tokens": 54287,
+    "caching": {
+      "writer_input": 13206,
+      "writer_read": 36927,
+      "writer_write": 0,
+      "retry_read": 2185604,
+      "retry_write": 0,
+      "retry_input": 134427,
+      "prefix_sha": "2609012649595836",
+      "message_sha": "0869062be7ef0b79"
+    }
+  },
+  {
+    "page": "category",
+    "setup": "E3",
+    "setup_label": "haiku-5-5, high, repeat 2",
+    "tokens": {
+      "input": 300249,
+      "output": 250166,
+      "thinking": 237746,
+      "thinking_reported": true,
+      "cache_read": 2217755,
+      "cache_write": 92531
+    },
+    "calls": {
+      "total": 49,
+      "writer": 1,
+      "retry": 44,
+      "claims": 3,
+      "sonnet_rewrites": 0
+    },
+    "retry_rounds": 9,
+    "retries_kept": 29,
+    "block_before": 11,
+    "block_after": 0,
+    "flag_before": 25,
+    "flag_after": 4,
+    "block_codes": [],
+    "model_flags": [
+      "F-REVIEWS",
+      "F-ALLOC"
+    ],
+    "claims_open_writer": 2,
+    "claims_status": "needs acceptance",
+    "claims_open_audit": 8,
+    "judge_score": 7.4,
+    "judge_readings": [
+      7.6,
+      7.2
+    ],
+    "judge_failed": [
+      6,
+      7
+    ],
+    "verdict": "Needs another run",
+    "edit_list": 6,
+    "judge_failed_ids": [
+      "C9",
+      "Y2",
+      "C3j",
+      "P6",
+      "Y6",
+      "Y5"
+    ],
+    "wall_s": 790.309,
+    "rate_limit_waits": 0,
+    "effort_lowered": 1,
+    "writer_lowered": true,
+    "writer_effort": "low",
+    "ran_out": [
+      {
+        "role": "writer ran out",
+        "effort": "high",
+        "output_tokens": 48000,
+        "usd": 0.029936474999999997
+      }
+    ],
+    "served_models": [
+      "claude-haiku-5-5"
+    ],
+    "truncated": 0,
+    "usd_billed": 0.18885182499999997,
+    "usd": 0.18885182499999997,
+    "gbp": 0.14730442349999998,
+    "usd_judge_and_audit": 0.356462,
+    "max_prompt_tokens": 54352,
+    "caching": {
+      "writer_input": 13206,
+      "writer_read": 36927,
+      "writer_write": 0,
+      "retry_read": 2180828,
+      "retry_write": 55604,
+      "retry_input": 141323,
+      "prefix_sha": "2609012649595836",
+      "message_sha": "0869062be7ef0b79"
+    }
+  },
+  {
+    "page": "homepage",
+    "setup": "E",
+    "setup_label": "haiku-5-5, high",
+    "tokens": {
+      "input": 154035,
+      "output": 229506,
+      "thinking": 220784,
+      "thinking_reported": true,
+      "cache_read": 697680,
+      "cache_write": 41384
+    },
+    "calls": {
+      "total": 38,
+      "writer": 1,
+      "retry": 30,
+      "claims": 4,
+      "sonnet_rewrites": 0
+    },
+    "retry_rounds": 9,
+    "retries_kept": 19,
+    "block_before": 5,
+    "block_after": 0,
+    "flag_before": 13,
+    "flag_after": 1,
+    "block_codes": [],
+    "model_flags": [
+      "F-MAP-TEST",
+      "F-LOGOS",
+      "F-REVIEWS",
+      "F-OWNER",
+      "F-THIN",
+      "MODEL"
+    ],
+    "claims_open_writer": 2,
+    "claims_status": "needs acceptance",
+    "claims_open_audit": 4,
+    "judge_score": 7.2,
+    "judge_readings": [
+      7.2,
+      7.2
+    ],
+    "judge_failed": [
+      7,
+      5
+    ],
+    "verdict": "Ready to edit",
+    "edit_list": 6,
+    "judge_failed_ids": [
+      "C9",
+      "S10",
+      "C3j",
+      "P6",
+      "T2",
+      "Y6",
+      "Y5"
+    ],
+    "wall_s": 804.636,
+    "rate_limit_waits": 0,
+    "effort_lowered": 3,
+    "writer_lowered": true,
+    "writer_effort": "low",
+    "ran_out": [
+      {
+        "role": "writer ran out",
+        "effort": "high",
+        "output_tokens": 32768,
+        "usd": 0.0189182
+      },
+      {
+        "role": "retry ran out",
+        "effort": "high",
+        "output_tokens": 16000,
+        "usd": 0.00851635
+      },
+      {
+        "role": "retry ran out",
+        "effort": "high",
+        "output_tokens": 16000,
+        "usd": 0.00847935
+      }
+    ],
+    "served_models": [
+      "claude-haiku-5-5"
+    ],
+    "truncated": 0,
+    "usd_billed": 0.1423063,
+    "usd": 0.1423063,
+    "gbp": 0.110998914,
+    "usd_judge_and_audit": 0.179058,
+    "max_prompt_tokens": 25116,
+    "caching": {
+      "writer_input": 5727,
+      "writer_read": 15692,
+      "writer_write": 0,
+      "retry_read": 637758,
+      "retry_write": 25692,
+      "retry_input": 79147,
+      "prefix_sha": "2a35f2276fad2ad1",
+      "message_sha": "cef1dbf0e7071958"
+    }
+  },
+  {
+    "page": "homepage",
+    "setup": "E2",
+    "setup_label": "haiku-5-5, high, repeat 1",
+    "tokens": {
+      "input": 121096,
+      "output": 141758,
+      "thinking": 136354,
+      "thinking_reported": true,
+      "cache_read": 564990,
+      "cache_write": 41384
+    },
+    "calls": {
+      "total": 31,
+      "writer": 1,
+      "retry": 26,
+      "claims": 3,
+      "sonnet_rewrites": 0
+    },
+    "retry_rounds": 6,
+    "retries_kept": 20,
+    "block_before": 5,
+    "block_after": 0,
+    "flag_before": 19,
+    "flag_after": 0,
+    "block_codes": [],
+    "model_flags": [
+      "F-MAP-TEST",
+      "F-LOGOS",
+      "F-REVIEWS",
+      "F-OWNER",
+      "F-THIN"
+    ],
+    "claims_open_writer": 0,
+    "claims_status": "clear",
+    "claims_open_audit": 5,
+    "judge_score": 6.65,
+    "judge_readings": [
+      6.8,
+      6.5
+    ],
+    "judge_failed": [
+      3,
+      4
+    ],
+    "verdict": "Ready to edit",
+    "edit_list": 3,
+    "judge_failed_ids": [
+      "S10",
+      "Y6",
+      "Y5"
+    ],
+    "wall_s": 472.022,
+    "rate_limit_waits": 0,
+    "effort_lowered": 1,
+    "writer_lowered": true,
+    "writer_effort": "low",
+    "ran_out": [
+      {
+        "role": "writer ran out",
+        "effort": "high",
+        "output_tokens": 32768,
+        "usd": 0.0189182
+      }
+    ],
+    "served_models": [
+      "claude-haiku-5-5"
+    ],
+    "truncated": 1,
+    "usd_billed": 0.09381149999999998,
+    "usd": 0.09381149999999998,
+    "gbp": 0.07317296999999999,
+    "usd_judge_and_audit": 0.203176,
+    "max_prompt_tokens": 24839,
+    "caching": {
+      "writer_input": 5727,
+      "writer_read": 15692,
+      "writer_write": 0,
+      "retry_read": 549298,
+      "retry_write": 25692,
+      "retry_input": 66255,
+      "prefix_sha": "2a35f2276fad2ad1",
+      "message_sha": "cef1dbf0e7071958"
+    }
+  },
+  {
+    "page": "homepage",
+    "setup": "E3",
+    "setup_label": "haiku-5-5, high, repeat 2",
+    "tokens": {
+      "input": 165970,
+      "output": 198768,
+      "thinking": 191673,
+      "thinking_reported": true,
+      "cache_read": 1029405,
+      "cache_write": 41384
+    },
+    "calls": {
+      "total": 52,
+      "writer": 1,
+      "retry": 47,
+      "claims": 3,
+      "sonnet_rewrites": 0
+    },
+    "retry_rounds": 9,
+    "retries_kept": 33,
+    "block_before": 18,
+    "block_after": 1,
+    "flag_before": 6,
+    "flag_after": 1,
+    "block_codes": [
+      "N6"
+    ],
+    "model_flags": [
+      "F-MAP-TEST",
+      "F-LOGOS",
+      "F-REVIEWS",
+      "F-OWNER",
+      "F-THIN",
+      "P-MISSING",
+      "P-MISSING",
+      "P-MISSING",
+      "P-TITLE",
+      "P-FORMAT",
+      "P-EMPTY",
+      "P-MISSING",
+      "P-COUNT",
+      "P-MISSING",
+      "P-COUNT",
+      "P-MISSING"
+    ],
+    "claims_open_writer": 1,
+    "claims_status": "needs acceptance",
+    "claims_open_audit": 2,
+    "judge_score": 6.8,
+    "judge_readings": [
+      7.3,
+      6.3
+    ],
+    "judge_failed": [
+      9,
+      11
+    ],
+    "verdict": "Has a BLOCK",
+    "edit_list": 8,
+    "judge_failed_ids": [
+      "C9",
+      "P5",
+      "Y1",
+      "S10",
+      "C3j",
+      "P6",
+      "Y6",
+      "Y5",
+      "L1"
+    ],
+    "wall_s": 579.747,
+    "rate_limit_waits": 0,
+    "effort_lowered": 1,
+    "writer_lowered": true,
+    "writer_effort": "low",
+    "ran_out": [
+      {
+        "role": "writer ran out",
+        "effort": "high",
+        "output_tokens": 32768,
+        "usd": 0.0189182
+      }
+    ],
+    "served_models": [
+      "claude-haiku-5-5"
+    ],
+    "truncated": 1,
+    "usd_billed": 0.13144805,
+    "usd": 0.13144805,
+    "gbp": 0.102529479,
+    "usd_judge_and_audit": 0.179854,
+    "max_prompt_tokens": 25101,
+    "caching": {
+      "writer_input": 5727,
+      "writer_read": 15692,
+      "writer_write": 0,
+      "retry_read": 1013713,
+      "retry_write": 25692,
+      "retry_input": 110787,
+      "prefix_sha": "2a35f2276fad2ad1",
+      "message_sha": "cef1dbf0e7071958"
+    }
+  }
+]

@@ -11,6 +11,7 @@
 //     --max-usd 40                             stop starting pages past this total
 //   node tools/model-test.js --judge           the judge (two readings) and the claims audit on every run (resumes)
 //   node tools/model-test.js --report          the report, the blind reader views and the key
+//   node tools/model-test.js --repeats         Haiku high twice more per page, judged, with its own report (resumes)
 //
 // Raw records: tests/quality-runs/model-test/<date>/ (not committed; they name the setups).
 // Outputs: docs/model-test/<date>/.
@@ -63,6 +64,9 @@ const SETUPS = {
   E: { label: 'haiku-5-5, high', model: HAIKU, effort: 'high', block_rewrite: null },
   F: { label: 'hybrid: haiku-5-5 medium, BLOCKs sonnet-5-5 medium', model: HAIKU, effort: 'medium', block_rewrite: { model: SONNET, effort: 'medium' } },
 };
+// Repeats of one setup on the same frozen inputs: how much a single run can be trusted
+const REPEATS = { E2: { ...SETUPS.E, label: 'haiku-5-5, high, repeat 1' }, E3: { ...SETUPS.E, label: 'haiku-5-5, high, repeat 2' } };
+const ALL_SETUPS = { ...SETUPS, ...REPEATS };
 const JUDGE = { model: SONNET, effort: 'high' };
 const PAGES = {
   service: { label: 'Service page: Lawn Mowing Southampton', file: 'service-lawn-mowing', slug: '/services/lawn-mowing', type: 'service' },
@@ -239,7 +243,7 @@ function meteredCall(defaults, sink, roleOf) {
 const roleFor = args => (typeof args.system === 'string' ? 'claims' : (args.maxTokens || 0) <= 2048 ? 'retry' : 'writer');
 
 async function writeOne(page, setupKey, prep) {
-  const s = SETUPS[setupKey];
+  const s = ALL_SETUPS[setupKey];
   const { shared } = prep;
   const P0 = prep.pages[page];
   const calls = [];
@@ -329,9 +333,9 @@ async function metricsFor(page, setupKey) {
   const reading = judge ? judge.readings[0] : null;
   const failedCounts = judge ? judge.readings.map(r => r.failed.length) : [];
   return {
-    page, setup: setupKey, setup_label: SETUPS[setupKey].label,
+    page, setup: setupKey, setup_label: ALL_SETUPS[setupKey].label,
     tokens: { input: sum(calls, 'input_tokens'), output: sum(calls, 'output_tokens'), thinking: think.some(t => t.thinking == null) ? null : think.reduce((s, t) => s + t.thinking, 0), thinking_reported: think.every(t => t.reported), cache_read: sum(calls, 'cache_read_input_tokens'), cache_write: sum(calls, 'cache_creation_input_tokens') },
-    calls: { total: calls.length, writer: calls.filter(c => c.role === 'writer').length, retry: calls.filter(c => c.role === 'retry').length, claims: calls.filter(c => c.role === 'claims').length, sonnet_rewrites: calls.filter(c => c.role === 'retry' && c.requested_model === SONNET && SETUPS[setupKey].model !== SONNET).length },
+    calls: { total: calls.length, writer: calls.filter(c => c.role === 'writer').length, retry: calls.filter(c => c.role === 'retry').length, claims: calls.filter(c => c.role === 'claims').length, sonnet_rewrites: calls.filter(c => c.role === 'retry' && c.requested_model === SONNET && ALL_SETUPS[setupKey].model !== SONNET).length },
     retry_rounds: rounds.size, retries_kept: (V.retries || []).filter(x => x.kept).length,
     block_before: record.meta.first_draft_validation ? record.meta.first_draft_validation.block : null, block_after: V.block, flag_before: record.meta.first_draft_validation ? record.meta.first_draft_validation.flag : null, flag_after: V.flag,
     block_codes: (V.issues || []).filter(i => i.type === 'BLOCK').map(i => i.check),
@@ -427,6 +431,35 @@ function buildReport(all, tokenCounts) {
   return L.join('\n') + '\n';
 }
 
+function repeatReport(all) {
+  const L = [];
+  const failFile = path.join(RAW, 'repeat-failures.json');
+  const failures = fs.existsSync(failFile) ? readJson(failFile) : [];
+  const mean = a => a.reduce((s, x) => s + x, 0) / a.length;
+  const spend = all.filter(m => m.setup !== 'E' && m.setup !== 'A').reduce((s, m) => s + m.usd_billed + m.usd_judge_and_audit, 0);
+  L.push(`# Repeat of Haiku 5.5 high: Edens Edge, ${DATE}`, '');
+  L.push(`The same frozen inputs as the main test, written twice more by claude-haiku-5-5 at high and judged the same way (${JUDGE.model}, effort ${JUDGE.effort}, two readings, averaged). Run 1 is setup E from the main test. A is the one Sonnet 5.5 high run, for comparison. The two new runs on each page ran side by side, where the main test ran six setups at once, so compare time with care. The new runs and their judging cost ${money(spend)} (${gbp(spend * USD_TO_GBP)}).`, '');
+  for (const [page, p] of Object.entries(PAGES)) {
+    const rows = all.filter(m => m.page === page);
+    const a = rows.find(m => m.setup === 'A');
+    const runs = ['E', 'E2', 'E3'].map(k => rows.find(m => m.setup === k)).filter(Boolean);
+    L.push(`## ${p.label}`, '');
+    L.push('| Run | Cost | £ | Time | Retry calls | BLOCKs before → after | Flags before → after | Judge score (readings) | Verdict | Claims left, fixed audit | First draft effort |', '|---|---|---|---|---|---|---|---|---|---|---|');
+    const row = (name, m) => L.push(`| ${name} | ${money(m.usd)} | ${gbp(m.gbp)} | ${Math.round(m.wall_s)}s | ${m.calls.retry} | ${m.block_before} → ${m.block_after} | ${m.flag_before} → ${m.flag_after} | ${score(m)} (${m.judge_readings.map(x => x.toFixed(1)).join(', ')}) | ${m.verdict} | ${m.claims_open_audit} | ${m.writer_effort} |`);
+    runs.forEach((m, i) => row(`Haiku high, run ${i + 1}`, m));
+    row('A: Sonnet high', a);
+    const scores = runs.map(m => m.judge_score);
+    L.push('', `Haiku high over ${runs.length} finished runs: average cost ${money(mean(runs.map(m => m.usd)))}, average score ${mean(scores).toFixed(2)}, scores from ${Math.min(...scores).toFixed(2)} to ${Math.max(...scores).toFixed(2)}, ${runs.filter(m => m.block_after <= a.block_after && m.judge_score >= a.judge_score - 0.25).length} of ${runs.length} runs match A (BLOCKs no higher, score no more than 0.25 below), ${runs.filter(m => m.verdict === 'Ready to edit').length} of ${runs.length} Ready to edit.`, '');
+    const failed = failures.filter(x => x.page === page);
+    if (failed.length) L.push(`**${failed.length} further attempt${failed.length === 1 ? '' : 's'} failed outright and wrote no page:** "${failed[0].error}" The first draft ran out at high, then ran out again at low, so the run stopped there. Failed attempts are not in the table or any figure here (about $0.04 each for two full calls). So Haiku high produced a page on ${runs.length} of ${runs.length + failed.length} attempts on this page, and the averages cover only the attempts that finished.`, '');
+    const out = runs.filter(m => m.ran_out.length);
+    if (out.length) L.push(`Calls that thought until they ran out and were repeated at low: ${runs.map((m, i) => `run ${i + 1}: ${m.ran_out.length}${m.writer_lowered ? ' (the first draft included)' : ''}`).join('; ')}. The wasted tokens are in the cost.`, '');
+    const left = runs.filter(m => m.block_after > 0);
+    if (left.length) L.push(`BLOCKs left: ${left.map(m => `run ${runs.indexOf(m) + 1}: ${m.block_codes.join(', ')}`).join('; ')}.`, '');
+  }
+  return L.join('\n') + '\n';
+}
+
 async function main() {
   fs.mkdirSync(RAW, { recursive: true });
   if (flag('--smoke')) {
@@ -443,6 +476,37 @@ async function main() {
     return;
   }
   const prep = readJson(path.join(RAW, 'prep.json'));
+  if (flag('--repeats')) {
+    for (const page of Object.keys(PAGES)) {
+      const todo = Object.keys(REPEATS).filter(k => !fs.existsSync(path.join(runDir(page, k), 'run.json')));
+      if (!todo.length) continue;
+      console.log(`${new Date().toISOString().slice(11, 19)} ${page}: ${todo.join(', ')} starting together`);
+      await Promise.all(todo.map(async k => {
+        try { const { wall_ms, calls } = await writeOne(page, k, prep); console.log(`${new Date().toISOString().slice(11, 19)} ${page} ${k}: done in ${Math.round(wall_ms / 1000)}s, ${calls.length} calls`); }
+        catch (e) {
+          console.log(`${page} ${k}: FAILED ${e.status || ''} ${e.message}`);
+          const f = path.join(RAW, 'repeat-failures.json');
+          writeJson(f, [...(fs.existsSync(f) ? readJson(f) : []), { page, setup: k, error: e.message, at: new Date().toISOString() }]);
+        }
+      }));
+    }
+    const done = [];
+    for (const page of Object.keys(PAGES)) for (const k of Object.keys(REPEATS)) if (fs.existsSync(path.join(runDir(page, k), 'run.json'))) done.push([page, k]);
+    await mapLimit(done, 6, async ([page, k]) => {
+      try { await judgeOne(page, k, prep); console.log(`judged ${page} ${k}`); }
+      catch (e) { console.log(`judge ${page} ${k}: FAILED ${e.status || ''} ${e.message}`); }
+    });
+    if (done.length !== Object.keys(PAGES).length * Object.keys(REPEATS).length || done.some(([page, k]) => !fs.existsSync(path.join(runDir(page, k), 'judge.json')))) { console.log('Not all repeats are written and judged: run again to resume.'); if (!flag('--allow-missing')) return; }
+    const all = [];
+    for (const page of Object.keys(PAGES)) for (const k of ['A', 'E', ...Object.keys(REPEATS)]) if (fs.existsSync(path.join(runDir(page, k), 'judge.json'))) all.push(await metricsFor(page, k));
+    const dir = path.join(OUT, 'repeat-haiku-high');
+    fs.mkdirSync(dir, { recursive: true });
+    writeJson(path.join(dir, 'metrics.json'), all.filter(m => m.setup !== 'A'));
+    fs.writeFileSync(path.join(dir, `REPORT_repeat_haiku_high_${DATE}.md`), repeatReport(all));
+    for (const page of Object.keys(PAGES)) Object.keys(REPEATS).forEach((k, i) => fs.existsSync(path.join(runDir(page, k), 'judge.json')) && fs.writeFileSync(path.join(dir, `${PAGES[page].file}_repeat${i + 1}.md`), blindView(page, k, prep)));
+    console.log(`Written to ${path.relative(root, dir)}.`);
+    return;
+  }
   if (flag('--run')) {
     const only = arg('--only') ? arg('--only').split(',') : null;
     const maxUsd = parseFloat(arg('--max-usd') || '40');
