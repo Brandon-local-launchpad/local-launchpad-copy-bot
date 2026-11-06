@@ -1,8 +1,6 @@
 # Model and effort test: Edens Edge, 2026-11-06
 
-Live record "ednes edge testing", read only; nothing pushed to WordPress and no live page record written. One run per page and setup, so read small gaps as noise. Judge: claude-sonnet-5-5, effort high, two readings per run, averaged. Total spent on the 18 runs and their judging: $16.121 (£12.574).
-
-**Not finished: the judge has not read homepage.** The Anthropic account ran out of credit after the writers finished, so those pages have no score, verdict or audit, and no winner is called for them. Top up, then run `node tools/model-test.js --judge` and `--report`: it picks up where it stopped and keeps the blind labels.
+Live record "ednes edge testing", read only; nothing pushed to WordPress and no live page record written. One run per page and setup, so read small gaps as noise. Judge: claude-sonnet-5-5, effort high, two readings per run, averaged. Total spent on the 18 runs and their judging: $17.240 (£13.447).
 
 Cost is the writer, the retries and the claims review, with a writer that read another setup's cache priced as a cold start; the judge and the audit are not in it. £ at 0.78 to the dollar. Time is the page's wall clock with six setups running at once, without the judge.
 
@@ -60,21 +58,21 @@ BLOCKs left: F: CB-LINKS.
 
 | Setup | Cost | £ | Time | Retry rounds (calls) | BLOCKs before → after | Flags before → after | Judge score (readings) | Verdict |
 |---|---|---|---|---|---|---|---|---|
-| A: sonnet-5-5, high | $0.710 | £0.554 | 272s | 5 (17) | 3 → 0 | 10 → 0 | ? () | ? |
-| B: sonnet-5-5, medium | $0.747 | £0.582 | 178s | 9 (42) | 4 → 0 | 14 → 1 | ? () | ? |
-| C: sonnet-5-5, low | $0.731 | £0.570 | 124s | 9 (47) | 2 → 0 | 14 → 6 | ? () | ? |
-| D: haiku-5-5, medium | $0.106 | £0.083 | 553s | 9 (38) | 2 → 0 | 13 → 3 | ? () | ? |
-| E: haiku-5-5, high | $0.142 | £0.111 | 805s | 9 (30) | 5 → 0 | 13 → 1 | ? () | ? |
-| F: hybrid: haiku-5-5 medium, BLOCKs sonnet-5-5 medium | $0.346 | £0.270 | 597s | 9 (78, 37 by Sonnet) | 37 → 1 | 10 → 4 | ? () | ? |
+| A: sonnet-5-5, high | $0.710 | £0.554 | 272s | 5 (17) | 3 → 0 | 10 → 0 | 7.80 (7.8, 7.8) | Ready to edit |
+| B: sonnet-5-5, medium | $0.747 | £0.582 | 178s | 9 (42) | 4 → 0 | 14 → 1 | 7.00 (7.0, 7.0) | Needs another run |
+| C: sonnet-5-5, low | $0.731 | £0.570 | 124s | 9 (47) | 2 → 0 | 14 → 6 | 7.10 (7.0, 7.2) | Needs another run |
+| D: haiku-5-5, medium | $0.106 | £0.083 | 553s | 9 (38) | 2 → 0 | 13 → 3 | 7.30 (7.3, 7.3) | Needs another run |
+| E: haiku-5-5, high | $0.142 | £0.111 | 805s | 9 (30) | 5 → 0 | 13 → 1 | 7.20 (7.2, 7.2) | Ready to edit |
+| F: hybrid: haiku-5-5 medium, BLOCKs sonnet-5-5 medium | $0.346 | £0.270 | 597s | 9 (78, 37 by Sonnet) | 37 → 1 | 10 → 4 | 5.25 (5.5, 5.0) | Has a BLOCK |
 
 | Setup | Input | Output | Thinking | Cache read | Cache write | Largest prompt | Claims left (own review / fixed audit) | Billed |
 |---|---|---|---|---|---|---|---|---|
-| A | 94,129 | 44,473 | 39,748 | 375,955 | 15,692 | 24,841 | 0 / ? | $0.710 |
-| B | 182,349 | 24,979 | 12,577 | 928,830 | 15,692 | 25,271 | 6 / ? | $0.747 |
-| C | 174,853 | 17,666 | 6,424 | 1,013,713 | 41,384 | 24,967 | 3 / ? | $0.731 |
-| D | 170,039 | 157,654 | 147,402 | 856,062 | 15,692 | 25,126 | 3 / ? | $0.106 |
-| E | 154,035 | 229,506 | 220,784 | 697,680 | 41,384 | 25,116 | 2 / ? | $0.142 |
-| F | 229,161 | 179,901 | 169,646 | 1,740,662 | 15,692 | 25,158 | 4 / ? | $0.346 |
+| A | 94,129 | 44,473 | 39,748 | 375,955 | 15,692 | 24,841 | 0 / 1 | $0.710 |
+| B | 182,349 | 24,979 | 12,577 | 928,830 | 15,692 | 25,271 | 6 / 4 | $0.747 |
+| C | 174,853 | 17,666 | 6,424 | 1,013,713 | 41,384 | 24,967 | 3 / 7 | $0.731 |
+| D | 170,039 | 157,654 | 147,402 | 856,062 | 15,692 | 25,126 | 3 / 8 | $0.106 |
+| E | 154,035 | 229,506 | 220,784 | 697,680 | 41,384 | 25,116 | 2 / 4 | $0.142 |
+| F | 229,161 | 179,901 | 169,646 | 1,740,662 | 15,692 | 25,158 | 4 / 7 | $0.346 |
 
 D: a writer call at medium thought through all 32,768 tokens and wrote nothing ($0.019, in the cost). anthropic-call.js then repeats that call at low, so the first draft on this page was written at low, not at the setup's effort.
 
@@ -86,13 +84,13 @@ BLOCKs left: F: N6.
 
 ## Cheapest setup that matches A
 
-A match is BLOCKs after retries no higher than A's and a judge score no more than 0.25 below A's. That margin is fixed in code as the larger of 0.25 and the median gap between the two readings of one page (0.25 here).
+A match is BLOCKs after retries no higher than A's and a judge score no more than 0.25 below A's. That margin is fixed in code as the larger of 0.25 and the median gap between the two readings of one page (0.15 here).
 
 | Page type | A: cost, BLOCKs, score, verdict | Cheapest match | Its cost, BLOCKs, score, verdict | Saving on A | Also at or above A with no margin |
 |---|---|---|---|---|---|
 | service | $1.064, 1, 7.65, Has a BLOCK | A: sonnet-5-5, high | $1.064, 1, 7.65, Has a BLOCK | 0% | A |
 | category | $1.585, 0, 7.50, Ready to edit | E: haiku-5-5, high | $0.197, 0, 7.25, Needs another run | 88% | B, A |
-| homepage | $0.710, 0, not judged | not decided: the judge has not read this page | | | |
+| homepage | $0.710, 0, 7.80, Ready to edit | A: sonnet-5-5, high | $0.710, 0, 7.80, Ready to edit | 0% | A |
 
 ## Caching
 
