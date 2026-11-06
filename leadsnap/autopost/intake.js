@@ -15,6 +15,7 @@ const CTA_NICHES = require('./cta-niches.json');
 
 const AREA_OTHERS = 7;                // main town + 7, as the spec's worked example
 const MIN_NEARBY = 6;
+const MIN_USPS = 4;
 const FREE_QUOTE_OFFER = 'free, no-obligation quote';
 const NOT_A_TOWN = /\b(district|council|borough|county)\b/i;
 
@@ -209,8 +210,7 @@ function buildIntake({ I, trade = '', answers = {}, hand = {}, locked = null }) 
 
   const warnings = [];
   if (areas.nearby.length < MIN_NEARBY) warnings.push(`Only ${areas.nearby.length} nearby areas beside ${areas.main || 'the main town'}; the spec asks for 6 to 10. Approve more on the Locations tab if the client covers them.`);
-  if (!usps.length) warnings.push('No confirmed USPs on the client record, so the prompts have no facts to lean on and the trust prompt will be thin. Confirm them on Client Values before generating.');
-  else if (usps.length < 3) warnings.push(`Only ${usps.length} confirmed USP${usps.length === 1 ? '' : 's'} on the client record; the trust prompt will be thin.`);
+  if (usps.length < MIN_USPS) warnings.push('Few USPs. Posts will repeat the same facts; confirm more with the client.');
   if (cta.type === 'Call Now' && !str(nap.phone)) warnings.push('Call Now uses the GBP phone number, and no phone is saved on Client Values.');
   if (cta.type === 'Book' && !cta.url) warnings.push('Book needs a booking URL: type it in below.');
   if (cta.type === 'Learn More' && !cta.url) warnings.push('No live domain is saved, so Learn More has nowhere to go. Save it on Client Values.');

@@ -21,14 +21,23 @@ export async function render(el, ctx) {
   const previewBar = () => {
     const P = S.preview || {}, E = P.estimate, L = P.saved;
     if (!E) return '';
-    const last = L ? `Last preview ${h(fmtDate(L.at, true))}: ${L.summary.clean} of ${L.summary.samples} samples clean, ${L.summary.warned} with warnings${L.summary.failed ? `, ${L.summary.failed} failed` : ''}${L.summary.alike ? `. ${L.summary.alike} of ${L.summary.prompts} prompts read alike across their samples` : ''}. It cost ${L.pence}p.` : '';
+    const last = L ? `Last preview ${h(fmtDate(L.at, true))}: ${L.summary.clean} of ${L.summary.samples} samples clean, ${L.summary.warned} with warnings${L.summary.failed ? `, ${L.summary.failed} failed` : ''}${L.summary.opening_pairs ? `. ${L.summary.opening_pairs} pairs of posts from different prompts share an opening` : ''}. It cost ${L.pence}p.` : '';
     return `<div class="notice" data-preview-bar style="margin-bottom:10px"><div class="btn-row"><button class="btn btn-ghost" data-act="preview" ${P.running ? 'disabled' : ''}>${L ? 'Preview posts again' : 'Preview posts'}</button><span class="small">${E.samples} sample posts (${E.per_prompt} per prompt), about ${E.pence}p. Nothing goes to Lead Snap.</span></div>${P.running ? `<div style="margin-top:8px">${running({ now: 'Writing the sample posts', next: 'Then each one is checked' })}</div>` : ''}${last ? `<div class="small" style="margin-top:6px">${last}</div>` : ''}${P.stale ? '<div class="small" style="margin-top:4px;color:#b45309">These samples are from an earlier config. Preview again to test this one.</div>' : ''}</div>`;
   };
   const samplesFor = n => {
     const L = S.preview && S.preview.saved; const p = L && L.prompts.find(x => x.n === n);
     if (!p || S.preview.stale) return '';
     const one = s => s.error ? `<div class="notice bad small" style="margin-bottom:6px">Sample ${s.n} failed: ${h(s.error)}</div>` : `<details style="margin-bottom:6px" data-sample><summary>Sample ${s.n} · ${s.words} words ${pill(s.warnings ? 'wait' : 'ok', s.warnings ? `${s.warnings} to check` : 'pass')}</summary><div style="white-space:pre-wrap;margin:6px 0">${h(s.text)}</div><div style="display:flex;gap:6px;justify-content:flex-end">${copyBtn(s.text)}</div><ul class="small" style="margin:6px 0 0;padding:0;list-style:none">${s.checks.map(c => `<li>${pill(c.level === 'warn' ? 'wait' : 'ok', c.level)} ${h(c.label)}${c.detail ? `: <span class="muted">${h(c.detail)}</span>` : ''}</li>`).join('')}</ul></details>`;
-    return `<div class="sec-title">Sample posts</div>${p.sameness.length ? `<div class="notice warn" style="margin-bottom:8px"><strong>These samples read alike.</strong><ul style="margin:4px 0 0 18px">${p.sameness.map(w => `<li>${h(w.message)}</li>`).join('')}</ul></div>` : ''}${p.samples.map(one).join('')}`;
+    return `<div class="sec-title">Sample posts</div>${p.samples.map(one).join('')}`;
+  };
+
+  const folderAlike = folder => {
+    const L = S.preview && S.preview.saved;
+    const f = L && !S.preview.stale && (L.folders || []).find(x => x.folder === folder);
+    if (!f) return '';
+    const open = f.warnings.length ? `<div class="notice warn" data-folder-alike style="margin-bottom:10px"><strong>Prompts in this folder open the same way.</strong> P3.1 means prompt 3, sample 1.<ul style="margin:4px 0 0 18px">${f.warnings.map(w => `<li>${h(w.message)}</li>`).join('')}</ul></div>` : '';
+    const info = f.phrase_pairs ? `<div class="muted small" data-folder-phrases style="margin-bottom:10px">For information: leaving out facts and calls to action, ${f.phrase_pairs} of ${f.compared} pairs share 8 or more words in a row, the longest ${f.longest}.</div>` : '';
+    return open + info;
   };
 
   const generateCard = () => {
@@ -41,7 +50,7 @@ export async function render(el, ctx) {
     if (notes.length) b += `<div class="notice warn" style="margin-bottom:10px"><ul style="margin:0 0 0 18px">${notes.map(n => `<li>${h(n)}</li>`).join('')}</ul></div>`;
     if (R && R.failure) b += `<div class="notice bad" style="margin-bottom:10px"><strong>${h(R.failure.error)}</strong><ul style="margin:6px 0 0 18px">${R.failure.fails.map(f => `<li>${h(f.message)}</li>`).join('')}</ul></div>`;
     b += `<div class="notice" style="margin-bottom:10px"><div><strong>${h(I.business)}</strong> · ${h(I.niche)} · ${h(I.phone || 'no phone saved')}</div><div class="small" style="margin-top:4px">Areas: ${h(I.areas.join(', '))}</div><div class="small muted">${h(I.areasWhy)}</div><div class="small" style="margin-top:4px">USPs: ${h(I.usps.join('; ') || 'none confirmed')}</div><div class="small" style="margin-top:4px">Offer: ${h(I.offer || 'none')}${I.offerSource === 'free_quotes' ? ' <span class="muted">(the client has confirmed free quotes)</span>' : ''}</div><div class="small" style="margin-top:4px">Call to action: ${h(I.cta.line)} <span class="muted">(${h(I.cta.why)})</span></div></div>`;
-    b += `<div class="sec-title">Photos per service</div><div class="muted small" style="margin-bottom:6px">Copybot can't read these yet, so type how many photos each folder holds. Each folder is GBP Photos – Posts / [the service name below]. ${I.groups.length} whole services from the page map, highest value first. 3 or more earns a prompt of its own (the top 4 at most).${I.labelsLocked ? ' These names are locked to the saved config: they only change when you press Generate again.' : ''}</div>
+    b += `<div class="sec-title">Photos per service</div><div class="muted small" style="margin-bottom:6px">Copybot can't read these yet, so type how many photos each folder holds. Each folder is GBP Photos – Posts / [the service name below]. ${I.groups.length} whole services from the page map, highest value first. 3 or more earns prompts of its own.${I.labelsLocked ? ' These names are locked to the saved config: they only change when you press Generate again.' : ''}</div>
       <div class="tbl-wrap"><table class="tbl"><thead><tr><th>Service</th><th>Photos</th></tr></thead><tbody>
       ${I.groups.map(g => `<tr><td>${h(g.label)}${g.services.length > 1 || g.services[0] !== g.label ? `<div class="muted small">${h(g.services.join(', '))}</div>` : ''}</td><td><input class="input" type="number" min="0" style="width:72px" data-count="${attr(g.key)}" value="${I.photosEntered ? attr(g.photos) : ''}"></td></tr>`).join('')}
       <tr><td>Brand: team, van, premises, logo</td><td><input class="input" type="number" min="0" style="width:72px" data-f="brand" value="${I.photosEntered ? attr(I.brand) : ''}"></td></tr></tbody></table></div>
@@ -68,7 +77,13 @@ export async function render(el, ctx) {
     const flags = (R.flags || []).length ? `<div class="notice warn" style="margin-bottom:10px"><ul style="margin:0 0 0 18px">${R.flags.map(f => `<li>${h(f.message)}</li>`).join('')}</ul></div>` : '';
     const moved = (R.renames || []).length ? `<div class="notice warn" style="margin-bottom:10px"><strong>Folders renamed in this config.</strong> Rename them in Drive and reselect their photos in Lead Snap.<ul style="margin:6px 0 0 18px">${R.renames.map(r => `<li>${h(r.from)} to ${h(r.to)}</li>`).join('')}</ul></div>` : '';
     const out = [card({ title: 'Settings', sub: 'Set these first', actions: copyBtn(R.sheet, 'Copy whole config'), body: tooFew() + moved + previewBar() + flags + row('Frequency', O.settings.frequency) + row('Call to action', O.settings.cta) })];
-    for (const p of O.prompts) out.push(card({ title: `Prompt ${p.n}: ${p.label}`, sub: p.why, body: row('Tone', p.tone) + row('Images: select from folder', p.folder, `${p.photos} photos`) + row('Prompt', p.text, `${p.chars} characters`) + samplesFor(p.n) }));
+    // One card per photo folder: the VA selects its photos once and reuses them for every prompt in it
+    const folders = [...new Set(O.prompts.map(p => p.folder))];
+    for (const folder of folders) {
+      const list = O.prompts.filter(p => p.folder === folder);
+      const body = `<div class="notice" style="margin-bottom:10px;display:flex;justify-content:space-between;gap:8px;align-items:baseline"><span>Select these ${list[0].photos} photos once and reuse them for ${list.length === 1 ? 'this prompt' : `these ${list.length} prompts`}. Tone: ${h(list[0].tone)}</span>${copyBtn(folder, 'Copy folder')}</div>${folderAlike(folder)}` + list.map(p => row(`Prompt ${p.n}: ${p.label}`, p.text, `${p.chars} characters`) + samplesFor(p.n)).join('<hr style="border:0;border-top:1px solid var(--border);margin:12px 0">');
+      out.push(card({ title: folder, sub: `${list.length} prompt${list.length === 1 ? '' : 's'}`, cls: 'ls-folder', body }));
+    }
     out.push(card({ title: 'Photo gaps', sub: 'Send these to the client', body: O.gaps.length ? `<div class="btn-row" style="margin-bottom:8px">${copyBtn(O.gaps.map(g => g.line).join('\n'), 'Copy all')}</div><ul style="margin:0 0 0 18px">${O.gaps.map(g => `<li>${h(g.line)}</li>`).join('')}</ul>` : pill('ok', 'No gaps') }));
     out.push(card({ title: 'VA checklist', sub: 'Lead Snap writes the first post as soon as you save, so read that one before leaving it running', body: `<ul style="margin:0;list-style:none;padding:0">${O.checklist.map(c => `<li><label><input type="checkbox"> ${h(c)}</label></li>`).join('')}</ul>` }));
     return out.join('');

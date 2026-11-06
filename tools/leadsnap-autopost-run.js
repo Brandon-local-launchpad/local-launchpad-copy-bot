@@ -7,7 +7,7 @@
 //   node tools/leadsnap-autopost-run.js edens-edge     the Edens Edge page map (31 service pages)
 //   node tools/leadsnap-autopost-run.js dog-walker     Book, with a booking URL
 //   node tools/leadsnap-autopost-run.js kestrel-thin   no USPs, no brand photos, few photos
-//   add --preview to run Preview posts on the result: about 13p more, saved as previews.json
+//   add --preview to run Preview posts on the result: up to about 40p more, saved as previews.json
 //
 // Needs ANTHROPIC_API_KEY in the environment or .env. A run costs a few pence.
 
@@ -86,11 +86,16 @@ function client(name) {
     console.log(`\nPreview: ${estimate(rec.output.prompts).samples} samples, about ${estimate(rec.output.prompts).pence}p`);
     const pv = await runPreview({ record: rec, callModel: args => callModel(args), log: m => console.log(m) });
     fs.writeFileSync(path.join(dir, 'previews.json'), JSON.stringify(pv, null, 2));
-    console.log(`PREVIEW ${pv.summary.clean} of ${pv.summary.samples} clean, ${pv.summary.warned} warned, ${pv.summary.failed} failed, ${pv.summary.alike} of ${pv.summary.prompts} prompts read alike, cost ${pv.pence}p (${pv.usage.input_tokens} in, ${pv.usage.output_tokens} out)`);
+    console.log(`PREVIEW ${pv.summary.clean} of ${pv.summary.samples} clean, ${pv.summary.warned} warned, ${pv.summary.failed} failed, ${pv.summary.opening_pairs} of ${pv.summary.compared} cross prompt pairs share an opening, cost ${pv.pence}p (${pv.usage.input_tokens} in, ${pv.usage.output_tokens} out)`);
     for (const p of pv.prompts) {
       console.log(`\n## ${p.n}. ${p.label}`);
       for (const s of p.samples) console.log(`  sample ${s.n}: ${s.words} words | ${s.error || s.checks.filter(c => c.level === 'warn').map(c => `${c.id}: ${c.detail}`).join(' | ') || 'clean'} | opens: ${s.text.split(/\s+/).slice(0, 9).join(' ')}`);
-      for (const w of p.sameness) console.log(`  SAME: ${w.message}`);
+    }
+    console.log('\nACROSS PROMPTS SHARING A FOLDER');
+    for (const f of pv.folders) {
+      console.log(`\n${f.folder}: prompts ${f.prompts.join(', ')}. ${f.compared} sample pairs compared: ${f.opening_pairs} share an opening, ${f.phrase_pairs} share 8+ words in a row, longest ${f.longest}`);
+      for (const w of f.warnings) console.log(`  WARN ${w.message}`.slice(0, 260));
+      for (const x of f.phrases) console.log(`  info ${x.refs.join(' and ')} share ${x.words} words: ${x.text}`.slice(0, 240));
     }
   }
 })().catch(e => { console.error(e); process.exit(1); });

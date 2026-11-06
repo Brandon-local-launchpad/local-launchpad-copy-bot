@@ -12,8 +12,8 @@ const path = require('path');
 const { decide } = require('./decide');
 
 const MODEL = 'claude-sonnet-5-5';
-const MAX_TOKENS = 8000;
-const CHECKLIST = ['Settings set', 'All prompts pasted', 'Photos selected for every prompt (none mixed between services)', 'Saved and started; first post checked on All Posts page'];
+const MAX_TOKENS = 12000;
+const CHECKLIST = ['Settings set', 'All prompts pasted', "Each folder's photos selected once and reused for its prompts (none mixed between services)", 'Saved and started; first post checked on All Posts page'];
 const FREQUENCY = 'Custom - twice per week';
 
 const readPrompt = f => fs.readFileSync(path.join(__dirname, '../../prompts', f), 'utf8').trim();
@@ -43,7 +43,7 @@ function buildMessage(intake, D) {
     `CTA sentence for the end of every prompt: ${intake.cta.sentence}`,
     `Area list for every prompt: ${intake.areas.join(', ')}`,
     `Write exactly ${D.prompts.length} prompts, in this order:`,
-    ...D.prompts.map(p => `PROMPT ${p.n} - ${p.label} | type: ${p.kind}${p.kind === 'service' ? ` | covers: ${p.services.join(', ')}` : ''}${p.kind === 'other' ? ` | one of these per post, chosen at random: ${p.covers.map(withPages).join('; ')}` : ''} | Images folder: ${p.folder}`),
+    ...D.prompts.map(p => `PROMPT ${p.n} - ${p.label} | type: ${p.kind}${p.service ? ` | the one service, in lower case as in running text: ${p.service.toLowerCase()}` : ''} | the one angle: ${p.angle} | Images folder: ${p.folder}`),
     '',
     D.gaps.length ? `PHOTO GAPS to write, one line each, in this order: ${D.gaps.map(g => `${g.label} (${g.photos} photos)`).join('; ')}` : 'PHOTO GAPS: none.',
   ].join('\n');
@@ -71,7 +71,7 @@ const has = (t, s) => String(t).toLowerCase().includes(String(s).toLowerCase());
 const RULES = [
   [/Pick ONE area from the list\. Use it once or twice and mention no other towns/i, '"Pick ONE area from the list. Use it once or twice and mention no other towns."'],
   [/no more than two, chosen to fit the angle/i, '"Facts you may use (no more than two, chosen to fit the angle):"'],
-  [/Choose ONE (angle|tip) and build the whole post around it/i, '"Choose ONE angle and build the whole post around it:" (for tips, "Choose ONE tip ...")'],
+  [/Build the whole post around this (angle|tip):/i, '"Build the whole post around this angle:" (for tips, "... this tip:")'],
   [/Write 150-250 words in plain UK English, no headings, no hashtags, no emoji/i, '"Write 150-250 words in plain UK English, no headings, no hashtags, no emoji."'],
   [/Don['\u2019]t start with ["\u201c]If["\u201d]/i, '"Don\'t start with \"If\"."'],
   [/naturally once or twice/i, 'the service name "naturally once or twice"'],
@@ -80,7 +80,6 @@ const RULES = [
   [/No generic filler/i, '"No generic filler."'],
   [/End with one sentence that leads into the button:/i, '"End with one sentence that leads into the button: [CTA sentence]."'],
 ];
-const CHOOSE_ONE = 'Choose ONE of these services and write the whole post about it. Do not mention the others';
 const AIM_CHARS = 1500;
 // A claim a prompt may only make when the facts make it (CLAUDE.md, the claims rule)
 const CLAIMS = [
@@ -99,6 +98,7 @@ function validateSheet(parsed, intake, D) {
   const flag = (n, message) => flags.push({ field: `Prompt ${n}`, message: `Prompt ${n}: ${message}` });
   if (parsed.prompts.length !== D.prompts.length) fail(null, `The sheet has ${parsed.prompts.length} prompts; write exactly ${D.prompts.length}, as DECISIONS lists them.`);
   const factsText = [...intake.usps, intake.offer].join(' ; ');
+  const seenAngles = new Map();
   const avoid = String(intake.avoid || '').split(/[;,\n]/).map(s => s.trim()).filter(s => s.length > 1);
   for (const d of D.prompts) {
     const p = parsed.prompts.find(x => x.n === d.n);
@@ -108,24 +108,20 @@ function validateSheet(parsed, intake, D) {
     for (const a of intake.areas) if (!has(t, a)) fail(d.n, `the area list is missing ${a}.`);
     for (const [re, want] of RULES) if (!re.test(t)) fail(d.n, `is missing the rule ${want}`);
     if (!has(t, intake.cta.sentence)) fail(d.n, `must end the rules with the CTA sentence: "${intake.cta.sentence}".`);
-    const grouped = d.kind === 'other' || (d.kind === 'service' && d.services.length > 1);
-    if (grouped && !t.includes(CHOOSE_ONE)) fail(d.n, `covers several services, so it needs: "${CHOOSE_ONE}".`);
-    const bullets = t.split('\n').filter(l => /^\s*-\s+\S/.test(l)).length;
-    // The spec lists three offer angles; the prompt asks for 4 to 5 elsewhere and a sixth is let through
-    const minBullets = d.kind === 'offer' ? 3 : 4;
-    if (bullets < minBullets || bullets > 6) fail(d.n, `has ${bullets} angles; write ${minBullets} to 6, one per line starting "- ".`);
-    // The "serving a local area" angle is gone (Brandon, 6 Nov): posts read the same with it
-    const areaAngle = t.split('\n').find(l => /^\s*-\s/.test(l) && /\bserving\b|\blocal area\b|\bchosen area\b/i.test(l));
-    if (areaAngle) fail(d.n, `drop the local area angle: "${areaAngle.replace(/^\s*-\s*/, '')}".`);
-    // No full list of services outside a prompt that chooses from them
-    if (!grouped) {
-      const own = new Set((d.services || []).map(s => s.toLowerCase()));
-      const others = intake.groups.flatMap(g => g.services).filter(s => !own.has(s.toLowerCase()) && has(t, s));
-      if (others.length >= 3) fail(d.n, `lists other services (${others.join(', ')}); write about this one only.`);
-    }
+    // One fixed angle, no lists (Brandon, 6 Nov): the model does not rotate through a list
+    if (t.split('\n').some(l => /^\s*[-*\u2022]\s+\S/.test(l))) fail(d.n, 'has a list; a prompt has ONE fixed angle and no bullet points.');
+    if (/\bChoose ONE\b|\bat random\b/i.test(t)) fail(d.n, 'asks the AI to choose; a prompt has its one service and one angle fixed.');
+    const angleLine = (t.match(/around this (?:angle|tip):\s*([^\n]+)/i) || [])[1] || '';
+    if (/\bserving\b|\blocal area\b|\bchosen area\b/i.test(angleLine)) fail(d.n, `drop the local area angle: "${angleLine}".`);
+    const angleKey = `${d.service}|${angleLine.toLowerCase()}`;
+    if (angleLine && seenAngles.has(angleKey)) fail(d.n, `has the same angle as prompt ${seenAngles.get(angleKey)}: "${angleLine}".`);
+    seenAngles.set(angleKey, d.n);
+    // A prompt covers its one service: no list of the others
+    const own = new Set((d.services || []).map(s => s.toLowerCase()));
+    const others = intake.groups.flatMap(g => g.services).filter(s => !own.has(s.toLowerCase()) && has(t, s));
+    if (others.length >= 3) fail(d.n, `lists other services (${others.join(', ')}); write about this one only.`);
     for (const u of intake.usps) if (!has(t, u)) fail(d.n, `is missing the fact "${u}"; list every fact as given.`);
-    if (d.kind === 'service' && !d.services.some(s => has(t, s))) fail(d.n, `does not name the service (${d.services.join(', ')}).`);
-    if (d.kind === 'other') for (const c of d.covers) if (![c.label, ...c.services].some(s => has(t, s))) fail(d.n, `does not list "${c.label}".`);
+    if (d.service && !has(t, d.service)) fail(d.n, `does not name its service, ${d.service}.`);
     if (d.kind === 'offer' && !has(t, intake.offer)) fail(d.n, `does not state the offer, "${intake.offer}".`);
     if (/[–—]/.test(t)) fail(d.n, 'has an em or en dash; use commas or full stops.');
     const body = strip(t);
@@ -151,8 +147,7 @@ function gapLine(gap, reply) {
 function assemble(parsed, intake, D) {
   const prompts = D.prompts.map(d => {
     const text = parsed.prompts.find(p => p.n === d.n).text;
-    const label = d.kind === 'other' ? `Other services: ${d.services.map(s => s.toLowerCase()).join(', ')}` : d.label;
-    return { n: d.n, kind: d.kind, label, tone: intake.tone, services: d.services, covers: d.covers || null, folder: d.folder, photos: d.photos, why: d.why, images: imagesLine(d.folder), text, chars: [...text].length };
+    return { n: d.n, kind: d.kind, label: d.label, tone: intake.tone, service: d.service, services: d.services, group: d.group, angle: d.angle, folder: d.folder, photos: d.photos, why: d.why, images: imagesLine(d.folder), text, chars: [...text].length };
   });
   const gaps = D.gaps.map(g => ({ ...g, line: gapLine(g, parsed.gaps) }));
   const settings = { frequency: FREQUENCY, cta: intake.cta.line, cta_type: intake.cta.type, cta_url: intake.cta.url, tone: intake.tone };
