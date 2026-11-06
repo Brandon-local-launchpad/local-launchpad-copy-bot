@@ -7,7 +7,7 @@
 //   node tools/leadsnap-autopost-run.js edens-edge     the Edens Edge page map (31 service pages)
 //   node tools/leadsnap-autopost-run.js dog-walker     Book, with a booking URL
 //   node tools/leadsnap-autopost-run.js kestrel-thin   no USPs, no brand photos, few photos
-//   add --preview to run Preview posts on the result: about 13p more, saved as previews.json
+//   add --preview to run Preview posts on the result: up to about 40p more, saved as previews.json
 //
 // Needs ANTHROPIC_API_KEY in the environment or .env. A run costs a few pence.
 
@@ -91,6 +91,11 @@ function client(name) {
       console.log(`\n## ${p.n}. ${p.label}`);
       for (const s of p.samples) console.log(`  sample ${s.n}: ${s.words} words | ${s.error || s.checks.filter(c => c.level === 'warn').map(c => `${c.id}: ${c.detail}`).join(' | ') || 'clean'} | opens: ${s.text.split(/\s+/).slice(0, 9).join(' ')}`);
       for (const w of p.sameness) console.log(`  SAME: ${w.message}`);
+    }
+    console.log('\nACROSS PROMPTS SHARING A FOLDER');
+    for (const f of pv.folders) {
+      console.log(`\n${f.folder}: prompts ${f.prompts.join(', ')}. ${f.compared} sample pairs compared: ${f.opening_pairs} share an opening, ${f.phrase_pairs} share 8+ words in a row, longest ${f.longest}`);
+      for (const w of f.warnings) console.log(`  ${w.message}`.slice(0, 260));
     }
   }
 })().catch(e => { console.error(e); process.exit(1); });

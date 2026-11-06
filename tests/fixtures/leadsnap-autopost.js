@@ -54,10 +54,18 @@ chk('the system prompt is the spec\'s, word for word, then the format', G.loadSy
 const P = decide(plumber);
 const row = D => D.prompts.map(p => `${p.label} | ${p.folder} (${p.photos})`).join('\n');
 chk('plumber: short names, and each folder is its name', plumber.groups.map(g => g.label).join('|') === 'Boilers|Leak repair|Bathroom fitting|Drain unblocking' && plumber.groups.every(g => g.folder === g.label), plumber.groups.map(g => g.label).join('|'), '');
-chk('plumber: the six prompts of the worked example, in order, with their folders', row(P) === [
-  'Boilers | GBP Photos – Posts / Boilers (6)', 'Leak repair | GBP Photos – Posts / Leak repair (4)', 'Other services | GBP Photos – Posts / Brand (5)', 'Trust / why us | GBP Photos – Posts / Brand (5)', 'Free boiler quote | GBP Photos – Posts / Boilers (6)', 'Evergreen tips | All job photos (12)',
-].join('\n'), row(P), 'the spec table');
-chk('plumber: other services covers the two under 3 photos', P.prompts[2].services.join(',') === 'Bathroom fitting,Drain unblocking', P.prompts[2].services, '');
+const kinds = D => Object.fromEntries(['service', 'other', 'trust', 'offer', 'tips'].map(k => [k, D.prompts.filter(p => p.kind === k).length]));
+chk('plumber: 20 prompts, spread as the spec says', P.prompts.length === 20 && JSON.stringify(kinds(P)) === JSON.stringify({ service: 12, other: 2, trust: 2, offer: 1, tips: 3 }), JSON.stringify(kinds(P)), '');
+chk('plumber: few services fill the 20 with more angles each, rather than running short', P.prompts.filter(p => p.folder.endsWith('/ Boilers') && p.kind === 'service').length === 6 && P.prompts.filter(p => p.folder.endsWith('/ Leak repair')).length === 6, row(P), '');
+chk('every prompt has one angle, and no service repeats one', P.prompts.every(p => p.angle) && new Set(P.prompts.map(p => p.service + '|' + p.angle)).size === 20, row(P), '');
+chk('a grouped label: its prompts take turns over the group', P.prompts.filter(p => p.folder.endsWith('/ Boilers') && p.kind === 'service').map(p => p.service).join() === 'Boiler repair,Boiler installation,Boiler repair,Boiler installation,Boiler repair,Boiler installation', P.prompts.filter(p => p.kind === 'service').map(p => p.service).join(), '');
+chk('a label with 6 services and 3 prompts covers 3 different ones', (() => { const tr = decide(buildIntake({ I: inputs({ name: 'X', primary: 'Tree Surgeon', town: 'Bath', areas: [], services: ['Tree planting', 'Tree felling', 'Tree pruning', 'Tree bracing', 'Tree removal', 'Tree grinding'].map(n => [n]) }), trade: 'Tree Surgeons', hand: { counts: { trees: 9 } } })); return new Set(tr.prompts.filter(p => p.kind === 'service').slice(0, 3).map(p => p.service)).size === 3; })(), '', '');
+chk('prompts sharing a folder sit together, numbered in order', (() => { const seen = []; for (const p of P.prompts) if (seen[seen.length - 1] !== p.folder) seen.push(p.folder); return new Set(seen).size === seen.length && seen.length === 4 && P.prompts.every((p, i) => p.n === i + 1); })(), row(P), '');
+chk('the offer uses the best job photos, beside that folder', P.prompts.find(p => p.kind === 'offer').folder === 'GBP Photos \u2013 Posts / Boilers', '', '');
+chk('tips are one each, on all job photos', P.prompts.filter(p => p.kind === 'tips').every(p => p.folder === 'All job photos' && p.photos === 12), '', '');
+chk('trust angles stand on the facts it has', P.prompts.filter(p => p.kind === 'trust').map(p => p.angle).join('|') === 'experience and how long the business has been local|the standards the business holds to, from the facts', P.prompts.filter(p => p.kind === 'trust').map(p => p.angle).join('|'), '');
+chk('no facts: trust does not lean on experience or accreditations', decide(buildIntake({ I: { ...plumberI, proofPoints: [], accreditations: 'none', validatorCtx: { cv: { company_name: 'X' } } }, trade: 'Plumbing & Heating', hand: { counts: plumberCounts, brand: 5 } })).prompts.filter(p => p.kind === 'trust').map(p => p.angle).join('|') === 'how we work with customers|why choose a local business', '', '');
+chk('plumber: each other services prompt covers one service under 3 photos', P.prompts.filter(p => p.kind === 'other').map(p => p.service).join() === 'Bathroom fitting,Drain unblocking', row(P), '');
 chk('plumber: bathrooms (0) and drains (2) are the photo gaps', P.gaps.map(g => `${g.label} ${g.photos}`).join(',') === 'Bathroom fitting 0,Drain unblocking 2', JSON.stringify(P.gaps), '');
 chk('plumber: Call Now, no URL, uses the GBP phone', plumber.cta.type === 'Call Now' && plumber.cta.line === 'Call Now (uses GBP phone number)' && plumber.cta.sentence === 'invite them to give us a call', plumber.cta.line, '');
 chk('plumber: main town and 7 areas', plumber.areas.length === 8 && plumber.areas[0] === 'Romford', plumber.areas, '');
@@ -71,7 +79,7 @@ const NB = decide(noBrand);
 chk('no brand photos: no other services prompt', !NB.prompts.some(p => p.kind === 'other'), row(NB), '');
 chk('no brand photos: trust uses the best job photos', NB.prompts.find(p => p.kind === 'trust').folder === 'GBP Photos – Posts / Boilers', NB.prompts.find(p => p.kind === 'trust').folder, 'GBP Photos – Posts / Boilers');
 chk('no brand photos: services under 3 get no post and stay on the gap list', NB.gaps.length === 2 && !NB.prompts.some(p => /bathroom|drain/i.test(p.label)), JSON.stringify(NB.gaps), '');
-chk('no brand photos: says why, and that it is under 5 prompts', NB.notes.some(n => /no post at all/.test(n)) && NB.notes.some(n => /Only 4 prompts/.test(n)), NB.notes, '');
+chk('no brand photos: says why, still fills the 20, and warns on 3 folders', NB.notes.some(n => /no post at all/.test(n)) && NB.prompts.length === 20 && NB.folders === 3 && NB.tooFew, JSON.stringify([NB.notes, NB.folders]), '');
 chk('no offer typed: no offer prompt, never invented', !NB.prompts.some(p => p.kind === 'offer'), row(NB), '');
 const brandOfTwo = decide(buildIntake({ I: plumberI, trade: 'Plumbing & Heating', hand: { counts: plumberCounts, brand: 2 } }));
 chk('2 brand photos is under the threshold: treated as none', !brandOfTwo.prompts.some(p => p.kind === 'other') && brandOfTwo.prompts.find(p => p.kind === 'trust').folder === 'GBP Photos – Posts / Boilers', row(brandOfTwo), '');
@@ -114,12 +122,14 @@ chk('Edens Edge: group keys are unique, so typed counts cannot collide', new Set
 const eKeys = Object.fromEntries(eGroups.map(g => [g.key, 5]));
 const eIntake = buildIntake({ I: eI, trade: 'Landscapers/Gardeners', hand: { counts: eKeys, brand: 6, offer: 'Free garden design visit' } });
 const eD = decide(eIntake);
-chk('Edens Edge: never more than 7 prompts, with every service holding photos', eD.prompts.length === 7, eD.prompts.length, 7);
-chk('Edens Edge: at the cap the offer stays and service prompts give way', eD.prompts.filter(p => p.kind === 'service').length === 3 && eD.prompts.some(p => p.kind === 'offer') && eD.prompts.some(p => p.kind === 'other') && eD.prompts.some(p => p.kind === 'trust') && eD.prompts.some(p => p.kind === 'tips'), row(eD), '');
-chk('Edens Edge: services with photos but no slot fold into other services, and are not gaps', eD.prompts.find(p => p.kind === 'other').services.length === eGroups.length - 3 && eD.gaps.length === 0, eD.prompts.find(p => p.kind === 'other').services.length, eGroups.length - 3);
+chk('Edens Edge: never more than 20 prompts, with every service holding photos', eD.prompts.length === 20, eD.prompts.length, 20);
+chk('Edens Edge: at the cap, trust, tips, the offer and other services keep their places', JSON.stringify(kinds(eD)) === JSON.stringify({ service: 12, other: 2, trust: 2, offer: 1, tips: 3 }), JSON.stringify(kinds(eD)), '');
+chk('Edens Edge: services with photos but no slot fold into other services, are not gaps, and the rest are named', eD.prompts.filter(p => p.kind === 'other').length === 2 && eD.gaps.length === 0 && eD.notes.some(n => /no post until/.test(n)), JSON.stringify(eD.notes), '');
+chk('many services: every folder does not get the same angle', new Set(eD.prompts.filter(p => p.kind === 'service').map(p => p.angle)).size === 8, eD.prompts.filter(p => p.kind === 'service').map(p => p.angle).join('|'), '8 angles');
 const eNoFree = { ...eI, validatorCtx: { ...eI.validatorCtx, cv: { ...eI.validatorCtx.cv, free_quotes: 'no' } } };
 const eFour = decide(buildIntake({ I: eNoFree, trade: 'Landscapers/Gardeners', hand: { counts: eKeys, brand: 6 } }));
-chk('Edens Edge: 4 service prompts when there is no offer (never more)', eFour.prompts.filter(p => p.kind === 'service').length === 4 && eFour.prompts.length === 7, row(eFour), '');
+chk('Edens Edge: no offer gives its place to one more service prompt', eFour.prompts.filter(p => p.kind === 'service').length === 13 && eFour.prompts.length === 20, row(eFour), '');
+chk('a client who runs out of angles says so rather than repeating one', (() => { const one = decide(buildIntake({ I: inputs({ name: 'X', primary: 'Roofer', town: 'Lymington', areas: [], services: [['Roof repair']] }), trade: 'Roofers', hand: { counts: { 'roof-repair': 5 } } })); return one.prompts.length === 13 && one.notes.some(n => /13 of 20 prompts/.test(n)); })(), '', '');
 chk('Edens Edge: areas are the main town and 7, and a council area is left out and explained', eIntake.areas.length === 8 && eIntake.areas[0] === 'Southampton' && /nearest first/.test(eIntake.areasWhy), eIntake.areas, '');
 const withCouncil = buildIntake({ I: inputs({ name: 'X', primary: 'Roofer', town: 'Lymington', areas: ['New Forest District', 'Brockenhurst'], services: [['Roof repair']] }), trade: 'Roofers', hand: { counts: {} } });
 chk('a council area is never offered as a place, and is explained', !withCouncil.areas.includes('New Forest District') && /New Forest District/.test(withCouncil.areasWhy), withCouncil.areasWhy, '');
@@ -142,21 +152,23 @@ for (const v of ['no', '', 'maybe']) chk(`free_quotes "${v}" and nothing typed: 
 // ── Too few prompts (Brandon, 6 Nov) ──
 const twoServices = { counts: { boilers: 4, 'leak-repair': 1, 'bathroom-fitting': 0, 'drain-unblocking': 2 }, brand: 1 };
 const few = decide(buildIntake({ I: plumberI, trade: 'Plumbing & Heating', hand: twoServices }));
-chk('3 prompts: the warning, word for word', few.prompts.length === 3 && few.tooFew && few.tooFew.message === "Too few prompts. Don't start autopost until the client sends more photos.", JSON.stringify(few.tooFew), '');
-chk('it lists which photos unlock more, highest value first, with what each needs', few.tooFew.unlock[0] === 'Leak repair: 2 more photos gives it its own prompt (GBP Photos – Posts / Leak repair)' && few.tooFew.unlock[1] === 'Bathroom fitting: 3 more photos gives it its own prompt (GBP Photos – Posts / Bathroom fitting)' && few.tooFew.unlock[2] === 'Drain unblocking: 1 more photo gives it its own prompt (GBP Photos – Posts / Drain unblocking)', few.tooFew.unlock.join(' | '), '');
-chk('it lists the brand photos that open up other services', few.tooFew.unlock.some(u => /^Brand .*2 more photos adds an "Other services" prompt/.test(u)), few.tooFew.unlock.join(' | '), '');
-chk('exactly 4 prompts: no warning', decide(noBrand).prompts.length === 4 && !decide(noBrand).tooFew, decide(noBrand).prompts.length, 4);
-chk('6 prompts: no warning', !P.tooFew, JSON.stringify(P.tooFew), 'null');
+chk('2 folders: the warning, word for word', few.folders === 2 && few.tooFew && few.tooFew.message === "Too few prompts. Don't start autopost until the client sends more photos.", JSON.stringify(few.tooFew), '');
+chk('the warning goes by folders, not prompts: 13 prompts on 2 folders still warns', few.prompts.length === 13 && few.tooFew, few.prompts.length, 13);
+chk('it lists which photos unlock more, highest value first, with what each needs', few.tooFew.unlock[0] === 'Leak repair: 2 more photos gives it a folder and prompts of its own (GBP Photos \u2013 Posts / Leak repair)' && few.tooFew.unlock[1].startsWith('Bathroom fitting: 3 more photos') && few.tooFew.unlock[2].startsWith('Drain unblocking: 1 more photo gives'), few.tooFew.unlock.join(' | '), '');
+chk('it lists the brand photos that add a folder', few.tooFew.unlock.some(u => /^Brand .*2 more photos adds a folder/.test(u)), few.tooFew.unlock.join(' | '), '');
+chk('exactly 3 folders warns', decide(noBrand).folders === 3 && decide(noBrand).tooFew, decide(noBrand).folders, 3);
+chk('4 folders, counting all job photos as one: no warning', P.folders === 4 && !P.tooFew, JSON.stringify(P.tooFew), 'null');
+chk('no photos at all: none yet is not a folder', decide(none).folders === 0 && decide(none).tooFew, decide(none).folders, 0);
 const manyUnder = decide(buildIntake({ I: eI, trade: 'Landscapers/Gardeners', hand: { counts: {}, brand: 0 } }));
-chk('it never lists more services than there are prompt slots', manyUnder.tooFew === null || manyUnder.tooFew.unlock.filter(u => /own prompt/.test(u)).length <= 4, manyUnder.tooFew && manyUnder.tooFew.unlock.length, '4 or fewer');
-const oneService = decide(buildIntake({ I: inputs({ name: 'X', primary: 'Roofer', town: 'Lymington', areas: [], services: [['Roof repair']] }), trade: 'Roofers', hand: { counts: { 'roof-repair': 5 } } }));
-chk('a one service client with photos: says photos will not help, and an offer would', oneService.prompts.length === 3 && /will not add a prompt/.test(oneService.tooFew.unlock[0]), oneService.tooFew && oneService.tooFew.unlock[0], '');
+chk('it does not list every service: 4 at most, then brand', manyUnder.tooFew.unlock.filter(u => /prompts of its own/.test(u)).length === 4 && /^Brand/.test(manyUnder.tooFew.unlock[4]), manyUnder.tooFew.unlock.join(' | '), '');
+const oneService = decide(buildIntake({ I: inputs({ name: 'X', primary: 'Roofer', town: 'Lymington', areas: [], services: [['Roof repair']] }), trade: 'Roofers', hand: { counts: { 'roof-repair': 5 }, brand: 5 } }));
+chk('a one service client with photos and brand: says more photos will not add a folder', oneService.folders === 3 && /will not add a folder/.test(oneService.tooFew.unlock[0]), oneService.tooFew && oneService.tooFew.unlock[0], '');
 const renamed = buildIntake({ I: plumberI, trade: 'Plumbing & Heating', hand: { counts: { leaks: 4 } } });
 chk('counts saved under an old name warn instead of silently reading 0', renamed.warnings.some(w => /no longer match a service \(leaks\)/.test(w)), renamed.warnings, '');
 
 // ── The folder path ──
-chk('the path is the one the photo sort skill creates, en dash included', P.prompts[0].folder === 'GBP Photos \u2013 Posts / Boilers' && P.prompts[2].folder === 'GBP Photos \u2013 Posts / Brand', P.prompts[0].folder, '');
-chk('all job photos and none yet are not folder paths', P.prompts[5].folder === 'All job photos' && decide(none).prompts[0].folder === 'None yet', P.prompts[5].folder, '');
+chk('the path is the one the photo sort skill creates, en dash included', P.prompts[0].folder === 'GBP Photos \u2013 Posts / Boilers' && P.prompts.find(p => p.kind === 'trust').folder === 'GBP Photos \u2013 Posts / Brand', P.prompts[0].folder, '');
+chk('all job photos and none yet are not folder paths', P.prompts[19].folder === 'All job photos' && decide(none).prompts[0].folder === 'None yet', P.prompts[19].folder, '');
 chk('the format the model is given names the same path, and no old one', G.loadSystem().includes('[GBP Photos \u2013 Posts / folder]') && !G.loadSystem().includes('GBP Posts /'), '', '');
 
 // ── The lock ──
@@ -186,14 +198,14 @@ chk('unchanged page map: locked, and nothing to warn about', (() => { const k = 
 chk('no saved config, or a failed first run: nothing is locked', lockedFrom(null) === null && lockedFrom({ failure: {} }) === null && lockedFrom({ sheet: 'x', intake: { groups: [] } }) === null, '', '');
 
 // ── The canned model ──
-const angles = kind => (kind === 'tips' ? ['Check your stopcock', 'Bleed a radiator', 'Spot a hidden leak', 'What not to put down a sink'] : ['The problem customers notice', 'How the job is done', 'A common question answered', 'What to expect when booking']);
+const ANGLE = 'Build the whole post around this angle:';
 function goodSheet(intake, D) {
   const L = [`LEAD SNAP AUTOPOST CONFIG - ${intake.business}`, '', 'SETTINGS', 'Frequency: Custom - twice per week', `Call to action: ${intake.cta.line}`, ''];
   for (const p of D.prompts) {
     L.push(`PROMPT ${p.n} - ${p.label}`, `Tone: ${intake.tone}`, `Images: Choose specific images from GBP or upload -> select from folder: ${p.folder}`, 'Prompt:');
-    const about = p.kind === 'service' ? p.label : p.kind === 'other' ? 'one other service' : p.kind === 'offer' ? intake.offer : p.label;
-    const grouped = p.kind === 'other' || (p.kind === 'service' && p.services.length > 1);
-    L.push(`Write a Google Business Profile post for ${intake.business} (write the name exactly like that), a ${intake.niche} based in ${intake.mainTown}, about ${about}.`, '', ...(grouped ? [`Choose ONE of these services and write the whole post about it. Do not mention the others: ${p.services.join(', ')}.`, ''] : []), `Facts you may use (no more than two, chosen to fit the angle): ${intake.usps.join(', ')}. Do not use any other facts.`, '', `Areas: ${intake.areas.join(', ')}. Pick ONE area from the list. Use it once or twice and mention no other towns.`, '', `Choose ONE ${p.kind === 'tips' ? 'tip' : 'angle'} and build the whole post around it:`, ...angles(p.kind).map(a => `- ${a}`), '', `Write 150-250 words in plain UK English, no headings, no hashtags, no emoji. Don't start with "If". Use the service name naturally once or twice. Never invent specific jobs, customers, reviews, prices, timescales, discounts or accreditations; use only the facts given here. Do not mention seasons, weather, holidays or dates. No generic filler. Tone: ${intake.tone}. End with one sentence that leads into the button: ${intake.cta.sentence}.`, '');
+    const about = p.service || (p.kind === 'offer' ? intake.offer : p.label);
+
+    L.push(`Write a Google Business Profile post for ${intake.business} (write the name exactly like that), a ${intake.niche} based in ${intake.mainTown}, about ${about}.`, '', `Facts you may use (no more than two, chosen to fit the angle): ${intake.usps.join(', ')}. Do not use any other facts.`, '', `Areas: ${intake.areas.join(', ')}. Pick ONE area from the list. Use it once or twice and mention no other towns.`, '', `Build the whole post around this ${p.kind === 'tips' ? 'tip' : 'angle'}: ${p.angle}.`, '', `Write 150-250 words in plain UK English, no headings, no hashtags, no emoji. Don't start with "If". Use the service name naturally once or twice. Never invent specific jobs, customers, reviews, prices, timescales, discounts or accreditations; use only the facts given here. Do not mention seasons, weather, holidays or dates. No generic filler. Tone: ${intake.tone}. End with one sentence that leads into the button: ${intake.cta.sentence}.`, '');
   }
   L.push('PHOTO GAPS', ...D.gaps.map(g => `- ${g.label}: ${g.photos} photos. Ask the client for 3-4 photos of finished ${g.label.toLowerCase()} from the customer's side.`), '', 'VA CHECKLIST', '[ ] Settings set');
   return L.join('\n');
@@ -203,35 +215,37 @@ const canned = text => async () => ({ text, usage: { input_tokens: 10, output_to
 (async () => {
   // ── Generate, the checks, the sheet ──
   let rec = await G.runAutopost({ intake: plumber, callModel: canned(goodSheet(plumber, P)) });
-  chk('a good reply passes first time', !rec.failure && rec.attempts === 1 && rec.output.prompts.length === 6, JSON.stringify(rec.failure), '');
+  chk('a good reply passes first time', !rec.failure && rec.attempts === 1 && rec.output.prompts.length === 20, JSON.stringify(rec.failure), '');
   const S = rec.sheet;
-  const order = ['LEAD SNAP AUTOPOST CONFIG - Hartley Plumbing & Heating', 'SETTINGS', 'Frequency: Custom - twice per week', 'Call to action: Call Now (uses GBP phone number)', 'PROMPT 1 - Boilers', 'Tone: friendly, plain-spoken', 'Images: Choose specific images from GBP or upload -> select from folder: GBP Photos – Posts / Boilers', 'PROMPT 3 - Other services: bathroom fitting, drain unblocking', 'PROMPT 6 - Evergreen tips', 'PHOTO GAPS', '- Bathroom fitting: 0 photos. Ask the client for', 'VA CHECKLIST', '[ ] Saved and started; first post checked on All Posts page'];
+  const order = ['LEAD SNAP AUTOPOST CONFIG - Hartley Plumbing & Heating', 'SETTINGS', 'Frequency: Custom - twice per week', 'Call to action: Call Now (uses GBP phone number)', 'PROMPT 1 - Boilers: boiler repair, the problem customers notice', 'Tone: friendly, plain-spoken', 'Images: Choose specific images from GBP or upload -> select from folder: GBP Photos – Posts / Boilers', 'Other services: bathroom fitting', 'PROMPT 18 - Evergreen tip 1', 'PHOTO GAPS', '- Bathroom fitting: 0 photos. Ask the client for', 'VA CHECKLIST', '[ ] Saved and started; first post checked on All Posts page'];
   chk('the sheet follows the spec\'s format and Lead Snap\'s screen order', order.every((s, i) => S.includes(s) && (i === 0 || S.indexOf(s) > S.indexOf(order[i - 1]))), S.slice(0, 400), '');
-  chk('settings, labels and folders are code\'s even when the model writes others', (await G.runAutopost({ intake: plumber, callModel: canned(goodSheet(plumber, P).replace('PROMPT 1 - Boilers', 'PROMPT 1 - Something else').replace('Frequency: Custom - twice per week', 'Frequency: Daily').replace('folder: GBP Photos – Posts / Boilers', 'folder: Wrong')) })).sheet.includes('PROMPT 1 - Boilers\nTone: friendly, plain-spoken\nImages: Choose specific images from GBP or upload -> select from folder: GBP Photos – Posts / Boilers'), '', '');
+  chk('settings, labels and folders are code\'s even when the model writes others', (await G.runAutopost({ intake: plumber, callModel: canned(goodSheet(plumber, P).replace(/PROMPT 1 - [^\n]*/, 'PROMPT 1 - Something else').replace('Frequency: Custom - twice per week', 'Frequency: Daily').replace('folder: GBP Photos – Posts / Boilers', 'folder: Wrong')) })).sheet.includes('PROMPT 1 - Boilers: boiler repair, the problem customers notice\nTone: friendly, plain-spoken\nImages: Choose specific images from GBP or upload -> select from folder: GBP Photos – Posts / Boilers'), '', '');
   chk('a fenced reply still parses', !(await G.runAutopost({ intake: plumber, callModel: canned('```text\n' + goodSheet(plumber, P) + '\n```') })).failure, '', '');
   chk('a gap with no line from the model still gets one', (await G.runAutopost({ intake: plumber, callModel: canned(goodSheet(plumber, P).replace(/^- Drain unblocking.*$/m, '')) })).output.gaps[1].line === 'Drain unblocking: 2 photos. Ask the client for 3-4 photos of finished drain unblocking jobs.', '', '');
 
   const failsFor = text => G.validateSheet(G.parseSheet(text), plumber, P).fails.map(f => f.message).join(' | ');
   const good = goodSheet(plumber, P);
-  chk('check: a missing prompt', /has 5 prompts/.test(failsFor(good.replace(/PROMPT 6 - [\s\S]*?(?=PHOTO GAPS)/, ''))), failsFor(good.replace(/PROMPT 6 - [\s\S]*?(?=PHOTO GAPS)/, '')), '');
+  chk('check: a missing prompt', /has 19 prompts/.test(failsFor(good.replace(/PROMPT 20 - [\s\S]*?(?=PHOTO GAPS)/, ''))), failsFor(good.replace(/PROMPT 20 - [\s\S]*?(?=PHOTO GAPS)/, '')), '');
   chk('check: a missing area', /missing Dagenham/.test(failsFor(good.replace(/Dagenham, /g, ''))), '', '');
   chk('check: a rule dropped', /Do not mention seasons/.test(failsFor(good.replace(/Do not mention seasons, weather, holidays or dates\. /g, ''))), '', '');
   chk('check: a fact dropped', /missing the fact "Gas Safe registered"/.test(failsFor(good.replace(/Gas Safe registered, /g, ''))), '', '');
-  chk('check: too few angles', /has 3 angles/.test(failsFor(good.replace(/- What to expect when booking\n/g, ''))), '', '');
-  chk('check: a season', /mentions "winter"/.test(failsFor(good.replace('- How the job is done', '- Getting ready for winter'))), '', '');
-  chk('check: an em dash', /em or en dash/.test(failsFor(good.replace('- How the job is done', '- How the job is done — step by step'))), '', '');
+  chk('check: an angle list is refused', /has a list/.test(failsFor(good.replace(ANGLE, ANGLE + '\n- One angle\n- Another angle'))), '', '');
+  chk('check: asking the AI to choose is refused', /asks the AI to choose/.test(failsFor(good.replace(ANGLE, 'Choose ONE of these. ' + ANGLE))), '', '');
+  chk('check: two prompts for one service with the same angle', (() => { const lines = good.split('\n'); const angleAt = lines.map((l, i) => (l.startsWith(ANGLE) ? i : -1)).filter(i => i >= 0); const leak = angleAt[8]; lines[angleAt[7]] = lines[leak]; return /has the same angle as prompt/.test(failsFor(lines.join('\n'))); })(), '', '');
+  chk('check: a season', /mentions "winter"/.test(failsFor(good.replace(ANGLE, ANGLE + ' Getting ready for winter'))), '', '');
+  chk('check: an em dash', /em or en dash/.test(failsFor(good.replace(ANGLE, ANGLE + ' How the job is done — step by step'))), '', '');
   chk('check: the wrong CTA sentence', /CTA sentence/.test(failsFor(good.replace(/invite them to give us a call/g, 'ask them to visit us'))), '', '');
   const noFacts = buildIntake({ I: { ...plumberI, proofPoints: [], accreditations: 'none', validatorCtx: { cv: { ...plumberI.validatorCtx.cv, years_trading: '' } } }, trade: 'Plumbing & Heating', hand: { counts: plumberCounts, brand: 5 } });
   const dN = decide(noFacts);
   const inventions = [['£80', 'a price'], ['a 10 year guarantee', 'a guarantee'], ['same day callouts', 'same day work'], ['Gas Safe engineers', 'an accreditation'], ['24/7 cover', '24/7 cover'], ['free quotes', 'something free'], ['fully insured', 'insurance']];
   for (const [phrase, what] of inventions) {
-    const f = G.validateSheet(G.parseSheet(goodSheet(noFacts, dN).replace('- How the job is done', `- ${phrase}`)), noFacts, dN).fails.map(x => x.message).join(' | ');
+    const f = G.validateSheet(G.parseSheet(goodSheet(noFacts, dN).replace(ANGLE, `${ANGLE} ${phrase}`)), noFacts, dN).fails.map(x => x.message).join(' | ');
     chk(`check: an invented claim is blocked (${phrase})`, f.includes(`claims ${what}`), f, what);
   }
-  chk('check: a claim that IS in the facts passes', !failsFor(good.replace('- How the job is done', '- Same day callouts and why a Gas Safe engineer matters')), failsFor(good.replace('- How the job is done', '- Same day callouts and why a Gas Safe engineer matters')), '');
+  chk('check: a claim that IS in the facts passes', !failsFor(good.replace(ANGLE, ANGLE + ' Same day callouts and why a Gas Safe engineer matters')), failsFor(good.replace(ANGLE, ANGLE + ' Same day callouts and why a Gas Safe engineer matters')), '');
   const avoiding = buildIntake({ I: plumberI, trade: 'Plumbing & Heating', answers: { words_to_avoid: 'cheap' }, hand: plumberHand });
-  chk('check: the client\'s words to avoid', G.validateSheet(G.parseSheet(goodSheet(avoiding, P).replace('- How the job is done', '- Why cheap work costs more')), avoiding, P).fails.some(f => /"cheap"/.test(f.message)), '', '');
-  chk('flag, not a fail: a weather word', (() => { const v = G.validateSheet(G.parseSheet(good.replace('- How the job is done', '- After a storm')), plumber, P); return v.ok && v.flags.some(f => /storm/.test(f.message)); })(), '', '');
+  chk('check: the client\'s words to avoid', G.validateSheet(G.parseSheet(goodSheet(avoiding, P).replace(ANGLE, ANGLE + ' Why cheap work costs more')), avoiding, P).fails.some(f => /"cheap"/.test(f.message)), '', '');
+  chk('flag, not a fail: a weather word', (() => { const v = G.validateSheet(G.parseSheet(good.replace(ANGLE, ANGLE + ' After a storm')), plumber, P); return v.ok && v.flags.some(f => /storm/.test(f.message)); })(), '', '');
 
   const fewIntake = buildIntake({ I: plumberI, trade: 'Plumbing & Heating', hand: twoServices });
   const fewRec = await G.runAutopost({ intake: fewIntake, callModel: canned(goodSheet(fewIntake, few)) });
@@ -247,23 +261,23 @@ const canned = text => async () => ({ text, usage: { input_tokens: 10, output_to
 
   // ── The new prompt rules (Brandon, 6 Nov) ──
   chk('check: the name without its instruction', /write the name exactly like that/.test(failsFor(good.replace(/ \(write the name exactly like that\)/g, ''))), '', '');
-  chk('check: a grouped label without "Choose ONE of these services"', /Prompt 1: covers several services/.test(failsFor(good.replace(/Choose ONE of these services and write the whole post about it\. Do not mention the others: Boiler repair, Boiler installation\.\n\n/, ''))), '', '');
-  chk('check: other services without it', /Prompt 3: covers several services/.test(failsFor(good.replace(/Choose ONE of these services and write the whole post about it\. Do not mention the others: Bathroom fitting, Drain unblocking\.\n\n/, ''))), '', '');
-  chk('a single service prompt does not need it', !/Prompt 2: covers several/.test(failsFor(good)), failsFor(good), '');
+  chk('check: a prompt must name its one service', /does not name its service, Boiler repair/.test(failsFor(good.replace(/about Boiler repair\./, 'about boilers.'))), '', '');
+
+
   chk('check: facts without "no more than two"', /no more than two/.test(failsFor(good.replace(/ \(no more than two, chosen to fit the angle\)/g, ''))), '', '');
-  chk('check: "Pick one angle at random" is the old rule', /Choose ONE angle/.test(failsFor(good.replace(/Choose ONE angle and build the whole post around it:/, 'Pick one angle at random for this post:'))), '', '');
-  chk('check: the local area angle is dropped', /drop the local area angle/.test(failsFor(good.replace('- How the job is done', '- Serving homes in the chosen area'))), '', '');
+  chk('check: "Choose ONE angle" is the old rule', /Build the whole post around this angle/.test(failsFor(good.replace(ANGLE, 'Choose ONE angle and build the whole post around it:'))), '', '');
+  chk('check: the local area angle is dropped', /drop the local area angle/.test(failsFor(good.replace(ANGLE, ANGLE + ' Serving homes in the chosen area'))), '', '');
   chk('check: the old 150-300 words', /150-250 words/.test(failsFor(good.replace(/150-250 words/, '150-300 words'))), '', '');
   chk('check: no "Don\'t start with If"', /start with/.test(failsFor(good.replace(/Don't start with "If"\. /, ''))), '', '');
   chk('check: the old area rule', /mention no other towns/.test(failsFor(good.replace(/Use it once or twice and mention no other towns\./, 'Mention it naturally once.'))), '', '');
-  chk('check: a full service list outside a choosing prompt', /Prompt 4: lists other services/.test(failsFor(good.replace(/(about Trust \/ why us\.)/, '$1 We do Leak repair, Bathroom fitting and Drain unblocking.'))), failsFor(good.replace(/(about Trust \/ why us\.)/, '$1 We do Leak repair, Bathroom fitting and Drain unblocking.')), '');
-  const longP = G.validateSheet(G.parseSheet(good.replace('- How the job is done', '- How the job is done ' + 'x'.repeat(1400))), plumber, P);
+  { const listed = good.replace(ANGLE, ANGLE + ' We do Leak repair, Bathroom fitting and Drain unblocking.'); chk('check: a list of other services', /Prompt 1: lists other services/.test(failsFor(listed)), failsFor(listed), ''); }
+  const longP = G.validateSheet(G.parseSheet(good.replace(ANGLE, ANGLE + ' ' + 'x'.repeat(1400))), plumber, P);
   chk('over 1,500 characters is a flag to check, not a failure', longP.ok && longP.flags.some(f => /aim for under 1,500/.test(f.message)), JSON.stringify(longP.flags), '');
 
   // ── Preview posts ──
   const Pv = require(path.join(root, 'leadsnap/autopost/preview.js'));
   const pvRec = await G.runAutopost({ intake: plumber, callModel: canned(good) });
-  const boilerP = pvRec.output.prompts[0], otherP = pvRec.output.prompts[2];
+  const boilerP = pvRec.output.prompts[0], otherP = pvRec.output.prompts.find(p => p.kind === 'other');
   const words = n => Array.from({ length: n }, (_, i) => `word${'abcdefghij'[i % 10]}`).join(' ');
   const clean = `Hartley Plumbing & Heating looks after homes in Hornchurch. A boiler repair starts with a proper look at what went wrong. ${words(170)} Give us a call.`;
   const levelOf = (text, id, p = boilerP) => Pv.checkSample(text, p, pvRec.intake).checks.find(c => c.id === id);
@@ -287,6 +301,7 @@ const canned = text => async () => ({ text, usage: { input_tokens: 10, output_to
   for (const [phrase, what] of [['It costs £80.', 'price'], ['We have 300 happy customers.', 'number'], ['A 10 year guarantee.', 'guarantee']]) chk(`preview: an invented ${what} warns`, Pv.checkSample(clean + ' ' + phrase, boilerP, { ...pvRec.intake, usps: [] }).checks.find(c => c.id === 'claims').level === 'warn', '', 'warn');
   chk('preview: a number in the facts passes', levelOf(clean + ' Over 15 years trading.', 'claims').level === 'pass', JSON.stringify(levelOf(clean + ' Over 15 years trading.', 'claims')), 'pass');
   for (const w of ['this winter', 'in December', 'heavy rain', 'by Christmas', 'in 2027']) chk(`preview: "${w}" warns`, levelOf(clean + ' ' + w, 'dated').level === 'warn', '', 'warn');
+  for (const w of ['a blocked drain', 'garden drainage', 'the drains', 'grain', 'we train staff', 'a rainwater butt']) chk(`preview: "${w}" is not the word rain`, levelOf(clean + ' ' + w, 'dated').level === 'pass', levelOf(clean + ' ' + w, 'dated').detail, 'pass');
   chk('preview: a year that is a fact passes', Pv.checkSample(clean + ' Trading since 2015.', boilerP, { ...pvRec.intake, usps: ['trading since 2015'] }).checks.find(c => c.id === 'dated').level === 'pass', '', 'pass');
   chk('preview: starting with If warns, in any case', levelOf('If your boiler stops.', 'if').level === 'warn' && levelOf('"if your boiler stops', 'if').level === 'warn', '', 'warn');
   chk('preview: "Iffy" and If later on pass', levelOf('Iffy boilers. If yours stops.', 'if').level === 'pass', '', 'pass');
@@ -303,20 +318,35 @@ const canned = text => async () => ({ text, usage: { input_tokens: 10, output_to
   const nested = Pv.sameness([`aa ${run} bb`, `cc ${run} dd`, `ee ${run} extra words now ff`, `gg ${run} extra words now hh`]);
   chk('sameness: a phrase inside a longer one is not repeated', nested.filter(x => x.type === 'phrase').length === 1 && nested[0].text.endsWith('extra words now'), JSON.stringify(nested.map(x => x.text)), '');
   const est = Pv.estimate(pvRec.output.prompts);
-  chk('the estimate: 4 samples per prompt, in pence, before anything runs', est.samples === 24 && est.per_prompt === 4 && est.pence >= 8 && est.pence <= 14, JSON.stringify(est), '8 to 14p');
+  chk('the estimate: 4 samples per prompt, in pence, before anything runs', est.samples === 80 && est.per_prompt === 4 && est.pence >= 25 && est.pence <= 45, JSON.stringify(est), '25 to 45p');
   const pvCalls = [];
   const pv = await Pv.runPreview({ record: pvRec, callModel: async a => { pvCalls.push(a); if (pvCalls.length === 3) throw new Error('overloaded'); return { text: clean, usage: { input_tokens: 500, output_tokens: 450 } }; } });
-  chk('run: each prompt goes 4 times, the prompt text alone as the message', pvCalls.length === 24 && pvCalls.filter(c => c.message === boilerP.text).length === 4 && pv.prompts.every(p => p.samples.length === 4), pvCalls.length, 24);
-  chk('run: a failed call is one failed sample, and the rest stand', pv.summary.failed === 1 && pv.summary.samples === 24 && pv.prompts.flatMap(p => p.samples).find(s => s.error).error === 'overloaded', JSON.stringify(pv.summary), '');
+  chk('run: each prompt goes 4 times, the prompt text alone as the message', pvCalls.length === 80 && pvCalls.filter(c => c.message === boilerP.text).length === 4 && pv.prompts.every(p => p.samples.length === 4), pvCalls.length, 80);
+  chk('run: a failed call is one failed sample, and the rest stand', pv.summary.failed === 1 && pv.summary.samples === 80 && pv.prompts.flatMap(p => p.samples).find(s => s.error).error === 'overloaded', JSON.stringify(pv.summary), '');
   chk('run: identical samples get the sameness warning', pv.prompts[1].sameness.length >= 1, JSON.stringify(pv.prompts[1].sameness), '');
-  chk('run: the cost is worked out from what was really used, 23 calls', pv.usage.calls === 23 && pv.usd > 0.1 && pv.pence >= 10, JSON.stringify([pv.usage, pv.usd, pv.pence]), '');
+  chk('run: the cost is worked out from what was really used, 79 calls', pv.usage.calls === 79 && pv.usd > 0.3 && pv.pence >= 30, JSON.stringify([pv.usage, pv.usd, pv.pence]), '');
+  const boilersFolder = pv.folders.find(f => f.folder.endsWith('/ Boilers'));
+  chk('across prompts: every folder with 2 or more prompts is compared, and only those', pv.folders.map(f => f.folder.split('/').pop().trim()).join() === 'Boilers,Leak repair,Brand,All job photos' && boilersFolder.prompts.length === 7, pv.folders.map(f => f.folder).join(), '');
+  chk('across prompts: only pairs from different prompts are counted', pv.folders.find(f => f.folder === 'All job photos').compared === 48, pv.folders.find(f => f.folder === 'All job photos').compared, '48: 3 prompts of 4 samples, cross pairs only');
+  chk('across prompts: identical posts show as shared openings and phrases, with where they are', boilersFolder.opening_pairs > 0 && boilersFolder.phrase_pairs > 0 && boilersFolder.warnings.some(w => w.type === 'opening' && /^P1\.1, /.test(w.message)), JSON.stringify(boilersFolder.warnings[0]), '');
+  const twoP = { output: { prompts: [{ n: 1, folder: 'F' }, { n: 2, folder: 'F' }, { n: 3, folder: 'G' }] } };
+  const shared = 'we always check the pressure before anything else happens here';
+  const cross = Pv.folderSameness([
+    { n: 1, samples: [{ n: 1, text: `one two ${shared}` }, { n: 2, text: `three four ${shared}` }] },
+    { n: 2, samples: [{ n: 1, text: 'entirely different words in this one' }, { n: 2, text: 'and these are different again too' }] },
+    { n: 3, samples: [{ n: 1, text: `five six ${shared}` }] },
+  ], twoP);
+  chk('across prompts: samples alike within one prompt are not counted here, nor another folder', cross.length === 1 && cross[0].folder === 'F' && cross[0].phrase_pairs === 0 && cross[0].opening_pairs === 0 && !cross[0].warnings.length && cross[0].compared === 4, JSON.stringify(cross), '');
+  const cross2 = Pv.folderSameness([{ n: 1, samples: [{ n: 1, text: `one two ${shared}` }] }, { n: 2, samples: [{ n: 3, text: `three four ${shared}` }] }], { output: { prompts: [{ n: 1, folder: 'F' }, { n: 2, folder: 'F' }] } });
+  chk('across prompts: a phrase shared by two prompts is caught and placed', cross2[0].phrase_pairs === 1 && cross2[0].longest === 10 && /^P1\.1 and P2\.3 share 10 words/.test(cross2[0].warnings[0].message), JSON.stringify(cross2[0]), '');
+  chk('across prompts: a lone prompt in a folder has nothing to compare', Pv.folderSameness([{ n: 1, samples: [{ n: 1, text: 'x' }] }], { output: { prompts: [{ n: 1, folder: 'F' }] } }).length === 0, '', '');
   chk('run: it remembers which config it tested', pv.config_at === pvRec.generated_at, pv.config_at, pvRec.generated_at);
 
   // Retry and failure
   const calls = [];
   rec = await G.runAutopost({ intake: plumber, callModel: async a => { calls.push(a); return { text: calls.length === 1 ? 'nonsense' : good, usage: {} }; } });
   chk('a failing reply runs once more, with its failures in the message', !rec.failure && rec.attempts === 2 && /FAILED THESE CHECKS/.test(calls[1].message) && /has 0 prompts/.test(calls[1].message), calls.length, 2);
-  chk('the message carries the intake and decisions', /CTA sentence for the end of every prompt: invite them to give us a call/.test(calls[0].message) && /PROMPT 3 - Other services .*Bathroom fitting; Drain unblocking.*GBP Photos – Posts \/ Brand/.test(calls[0].message), calls[0].message.slice(0, 300), '');
+  chk('the message carries the intake and decisions', /CTA sentence for the end of every prompt: invite them to give us a call/.test(calls[0].message) && /PROMPT \d+ - Other services: bathroom fitting .*the one service, in lower case as in running text: bathroom fitting .*the one angle: .*GBP Photos – Posts \/ Brand/.test(calls[0].message), calls[0].message.slice(0, 300), '');
   const goodRec = rec;
   rec = await G.runAutopost({ intake: plumber, previous: goodRec, callModel: canned('still nonsense') });
   chk('failing twice keeps the last good config and says so', rec.failure && rec.sheet === goodRec.sheet && /last good config is kept/.test(rec.failure.error), rec.failure && rec.failure.error, '');
@@ -353,9 +383,9 @@ const canned = text => async () => ({ text, usage: { input_tokens: 10, output_to
   chk('a bad count is refused', (await req('PUT', `${api}/intake`, { counts: { boilers: -1 } })).status === 400, '', 400);
   chk('a bad booking URL is refused', (await req('PUT', `${api}/intake`, { booking_url: 'nope' })).status === 400, '', 400);
   v = (await req('PUT', `${api}/intake`, { counts: plumberCounts, brand: '5', offer: 'Free boiler quote' })).json();
-  chk('PUT saves the typed fields; the plan follows, still nothing spent', v.intake.ok && v.plan.prompts.length === 6 && v.hand.counts.boilers === 6 && modelCalls === 0, JSON.stringify(v.plan && v.plan.prompts.length), 6);
+  chk('PUT saves the typed fields; the plan follows, still nothing spent', v.intake.ok && v.plan.prompts.length === 20 && v.hand.counts.boilers === 6 && modelCalls === 0, JSON.stringify(v.plan && v.plan.prompts.length), 6);
   v = (await req('POST', `${api}/generate`)).json();
-  chk('POST generate saves the config and the file links', v.record.output.prompts.length === 6 && v.files['autopost-config.txt'] === '/clients/hartley-plumbing/lead-snap/autopost-config.txt', JSON.stringify(v.files), '');
+  chk('POST generate saves the config and the file links', v.record.output.prompts.length === 20 && v.files['autopost-config.txt'] === '/clients/hartley-plumbing/lead-snap/autopost-config.txt', JSON.stringify(v.files), '');
   const f = await req('GET', v.files['autopost-config.txt']);
   chk('autopost-config.txt is served', f.status === 200 && f.text.startsWith('LEAD SNAP AUTOPOST CONFIG - Hartley Plumbing & Heating'), f.status, 200);
   chk('validation.json is served', (await req('GET', v.files['validation.json'])).status === 200, '', 200);
@@ -363,11 +393,11 @@ const canned = text => async () => ({ text, usage: { input_tokens: 10, output_to
   chk('no config for that slug is a 404', (await req('GET', '/clients/no-map/lead-snap/autopost-config.txt')).status === 404, '', 404);
   const before = (await pool.query(`SELECT count(*)::int AS n FROM client_assets WHERE asset_type='leadsnap_autopost'`)).rows[0].n;
   v = (await req('PUT', `${api}/intake`, { counts: { ...plumberCounts, 'bathroom-fitting': 4 }, brand: 5 })).json();
-  chk('new photos change the plan before generating again: bathrooms earn a prompt', v.plan.prompts.some(p => p.label === 'Bathroom fitting'), JSON.stringify(v.plan.prompts.map(p => p.label)), '');
+  chk('new photos change the plan before generating again: bathrooms earn a prompt', v.plan.prompts.some(p => p.label.startsWith('Bathroom fitting:')), JSON.stringify(v.plan.prompts.map(p => p.label)), '');
   model = async () => ({ text: goodSheet(buildIntake({ I: plumberI, trade: 'Plumbing & Heating', answers: { tone: 'Friendly, plain-spoken' }, hand: { counts: { ...plumberCounts, 'bathroom-fitting': 4 }, brand: 5 } }), v.plan), usage: {} });
   v = (await req('POST', `${api}/generate`)).json();
   const after = (await pool.query(`SELECT count(*)::int AS n FROM client_assets WHERE asset_type='leadsnap_autopost'`)).rows[0].n;
-  chk('Generate again replaces the config in place', after === before && v.record.sheet.includes('PROMPT 3 - Bathroom fitting'), `${before} ${after}`, '');
+  chk('Generate again replaces the config in place', after === before && /PROMPT \d+ - Bathroom fitting:/.test(v.record.sheet), `${before} ${after}`, '');
   model = canned('nonsense');
   v = (await req('POST', `${api}/generate`)).json();
   chk('a failed run over the route keeps the good config and shows the failure', v.record.failure && v.record.sheet && v.files['autopost-config.txt'], JSON.stringify(v.record.failure && v.record.failure.error), '');

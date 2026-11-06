@@ -11,7 +11,7 @@ const { MODEL, CLAIMS } = require('./generate');
 const { USD_TO_GBP } = require('../../ui/model-log');
 
 const SAMPLES = 4;
-const CONCURRENCY = 5;
+const CONCURRENCY = 8;
 const EFFORT = 'low';
 const MIN_WORDS = 150;
 const MAX_WORDS = 250;
@@ -75,20 +75,13 @@ function checkTown(text, intake) {
   return warn('town', label, towns.length ? `names ${towns.length}: ${towns.join(', ')}` : 'names none');
 }
 
-// A grouped prompt's choices: each is a name, or a group of names that count as one service
-function choicesOf(prompt) {
-  if (prompt.kind === 'other' && Array.isArray(prompt.covers)) return prompt.covers.map(c => [c.label, ...c.services]);
-  if (prompt.kind === 'service' && Array.isArray(prompt.services) && prompt.services.length > 1) return prompt.services.map(s => [s]);
-  return null;
-}
-
+// Each prompt has its one service. Naming another from its group is what this catches: Trees'
+// tree planting prompt going on to tree felling, or other services wandering across them.
 function checkGroup(text, prompt) {
   const label = 'No service from the group but the chosen one';
-  const choices = choicesOf(prompt);
-  if (!choices) return pass('group', label, 'not a grouped prompt');
-  const named = choices.filter(names => mentioned(text, names).length);
-  if (named.length <= 1) return pass('group', label, named.length ? named[0][0] : 'none named');
-  return warn('group', label, `names ${named.length}: ${named.map(n => n[0]).join(', ')}`);
+  if (!Array.isArray(prompt.group)) return pass('group', label, 'not a grouped prompt');
+  const others = prompt.group.filter(names => !names.includes(prompt.service)).filter(names => mentioned(text, names).length);
+  return others.length ? warn('group', label, `also names ${others.map(n => n[0]).join(', ')}`) : pass('group', label, prompt.service);
 }
 
 // The facts the sample seems to use. Approximate: it reads the words of each fact, so a passing
@@ -143,20 +136,17 @@ function checkSample(text, prompt, intake) {
 // longest phrases only, with none repeated inside a longer one.
 const nList = a => (a.length > 1 ? `${a.slice(0, -1).join(', ')} and ${a[a.length - 1]}` : String(a[0]));
 const MAX_PHRASES = 3;
-function condense(pairs) {
-  const openings = new Map();
-  for (const p of pairs.filter(x => x.type === 'opening')) { if (!openings.has(p.text)) openings.set(p.text, new Set()); p.samples.forEach(n => openings.get(p.text).add(n)); }
-  const out = [...openings].map(([text, set]) => { const samples = [...set].sort((a, b) => a - b); return { type: 'opening', samples, text, message: `Samples ${nList(samples)} start with the same 5 words: "${text}"` }; });
-  const kept = [];
-  for (const p of pairs.filter(x => x.type === 'phrase').sort((a, b) => b.text.length - a.text.length)) if (!kept.some(k => k.text.includes(p.text))) kept.push(p);
-  return [...out, ...kept.slice(0, MAX_PHRASES)];
-}
-function sameness(texts) {
+
+// items: [{ ref, group, text }]. crossOnly: only pairs from different groups are compared.
+function comparePairs(items, { crossOnly = false } = {}) {
+  const list = items.map(x => ({ ...x, t: tokens(x.text) })).filter(x => x.t.length);
   const out = [];
-  const list = texts.map((t, i) => ({ n: i + 1, t: tokens(t) })).filter(x => x.t.length);
+  let compared = 0;
   for (let a = 0; a < list.length; a++) for (let b = a + 1; b < list.length; b++) {
     const A = list[a], B = list[b];
-    if (A.t.length >= 5 && A.t.slice(0, 5).join(' ') === B.t.slice(0, 5).join(' ')) out.push({ type: 'opening', samples: [A.n, B.n], text: A.t.slice(0, 5).join(' '), message: `Samples ${A.n} and ${B.n} start with the same 5 words: "${A.t.slice(0, 5).join(' ')}"` });
+    if (crossOnly && A.group === B.group) continue;
+    compared++;
+    if (A.t.length >= 5 && A.t.slice(0, 5).join(' ') === B.t.slice(0, 5).join(' ')) out.push({ type: 'opening', refs: [A.ref, B.ref], text: A.t.slice(0, 5).join(' ') });
     // The longest run of words the two share
     let best = 0, at = 0;
     const prev = new Array(B.t.length + 1).fill(0);
@@ -168,9 +158,42 @@ function sameness(texts) {
         if (here > best) { best = here; at = i; }
       }
     }
-    if (best >= LONG_PHRASE) { const text = A.t.slice(at - best, at).join(' '); out.push({ type: 'phrase', samples: [A.n, B.n], text, message: `Samples ${A.n} and ${B.n} share ${best} words in a row: "${text}"` }); }
+    if (best >= LONG_PHRASE) out.push({ type: 'phrase', refs: [A.ref, B.ref], words: best, text: A.t.slice(at - best, at).join(' ') });
   }
-  return condense(out);
+  return { pairs: out, compared };
+}
+
+function condense(pairs, name) {
+  const openings = new Map();
+  for (const p of pairs.filter(x => x.type === 'opening')) { if (!openings.has(p.text)) openings.set(p.text, new Set()); p.refs.forEach(r => openings.get(p.text).add(r)); }
+  const out = [...openings].map(([text, set]) => { const refs = [...set]; return { type: 'opening', refs, text, message: `${name(refs)} start with the same 5 words: "${text}"` }; });
+  const kept = [];
+  for (const p of pairs.filter(x => x.type === 'phrase').sort((a, b) => b.text.length - a.text.length)) if (!kept.some(k => k.text.includes(p.text))) kept.push(p);
+  return [...out, ...kept.slice(0, MAX_PHRASES).map(p => ({ ...p, message: `${name(p.refs)} share ${p.words} words in a row: "${p.text}"` }))];
+}
+
+// Within one prompt
+function sameness(texts) {
+  const { pairs } = comparePairs(texts.map((text, i) => ({ ref: i + 1, group: 0, text })));
+  return condense(pairs, refs => `Samples ${nList([...refs].sort((a, b) => a - b))}`).map(w => ({ ...w, samples: w.refs }));
+}
+
+// Across the prompts that share a photo folder: posts that sit side by side on one set of photos
+function folderSameness(prompts, record) {
+  const folderOf = new Map(record.output.prompts.map(p => [p.n, p.folder]));
+  const byFolder = new Map();
+  for (const p of prompts) { const f = folderOf.get(p.n); if (!byFolder.has(f)) byFolder.set(f, []); byFolder.get(f).push(p); }
+  const out = [];
+  for (const [folder, list] of byFolder) {
+    if (list.length < 2 || folder === 'None yet') continue;
+    const items = list.flatMap(p => p.samples.filter(s => !s.error).map(s => ({ ref: `P${p.n}.${s.n}`, group: p.n, text: s.text })));
+    const { pairs, compared } = comparePairs(items, { crossOnly: true });
+    const openings = pairs.filter(x => x.type === 'opening');
+    const phrases = pairs.filter(x => x.type === 'phrase');
+    const warnings = condense(pairs, refs => nList(refs));
+    out.push({ folder, prompts: list.map(p => p.n), compared, opening_pairs: openings.length, phrase_pairs: phrases.length, longest: phrases.reduce((n, x) => Math.max(n, x.words), 0), warnings });
+  }
+  return out;
 }
 
 // record: the saved config. A call that fails is one failed sample; the rest stand.
@@ -200,12 +223,14 @@ async function runPreview({ record, callModel, samples = SAMPLES, log = null }) 
     return { n: p.n, label: p.label, samples: list, sameness: sameness(list.filter(s => !s.error).map(s => s.text)) };
   });
   const all = outPrompts.flatMap(p => p.samples);
+  const folders = folderSameness(outPrompts, record);
   const usd = costUsd(usage);
   return {
     version: 1, at: new Date().toISOString(), config_at: record.generated_at, model: MODEL, effort: EFFORT, per_prompt: samples, usage, usd: Math.round(usd * 1000) / 1000, pence: usage.calls ? pence(usd) : 0,
-    summary: { samples: all.length, clean: all.filter(s => !s.error && !s.warnings).length, warned: all.filter(s => s.warnings).length, failed: all.filter(s => s.error).length, alike: outPrompts.filter(p => p.sameness.length).length, prompts: outPrompts.length },
+    summary: { samples: all.length, clean: all.filter(s => !s.error && !s.warnings).length, warned: all.filter(s => s.warnings).length, failed: all.filter(s => s.error).length, alike: outPrompts.filter(p => p.sameness.length).length, prompts: outPrompts.length, folders_alike: folders.filter(f => f.warnings.length).length, folders: folders.length },
     prompts: outPrompts,
+    folders,
   };
 }
 
-module.exports = { SAMPLES, MIN_WORDS, MAX_WORDS, LONG_PHRASE, estimate, checkSample, checkName, factsUsed, sameness, runPreview };
+module.exports = { folderSameness, SAMPLES, MIN_WORDS, MAX_WORDS, LONG_PHRASE, estimate, checkSample, checkName, factsUsed, sameness, runPreview };
