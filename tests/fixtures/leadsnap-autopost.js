@@ -11,7 +11,7 @@ const crypto = require('crypto');
 const express = require('express');
 const root = path.join(__dirname, '../..');
 const { newDb, DataType } = require('pg-mem');
-const { buildIntake, groupServices, shortName: S_ } = require(path.join(root, 'leadsnap/autopost/intake.js'));
+const { buildIntake, groupServices, lockedFrom, labelChanges, carryCounts, shortName: S_ } = require(path.join(root, 'leadsnap/autopost/intake.js'));
 const { decide } = require(path.join(root, 'leadsnap/autopost/decide.js'));
 const G = require(path.join(root, 'leadsnap/autopost/generate.js'));
 const { mountLeadSnapApi } = require(path.join(root, 'leadsnap/autopost/routes.js'));
@@ -55,7 +55,7 @@ const P = decide(plumber);
 const row = D => D.prompts.map(p => `${p.label} | ${p.folder} (${p.photos})`).join('\n');
 chk('plumber: short names, and each folder is its name', plumber.groups.map(g => g.label).join('|') === 'Boilers|Leak repair|Bathroom fitting|Drain unblocking' && plumber.groups.every(g => g.folder === g.label), plumber.groups.map(g => g.label).join('|'), '');
 chk('plumber: the six prompts of the worked example, in order, with their folders', row(P) === [
-  'Boilers | GBP Posts / Boilers (6)', 'Leak repair | GBP Posts / Leak repair (4)', 'Other services | GBP Posts / Brand (5)', 'Trust / why us | GBP Posts / Brand (5)', 'Free boiler quote | GBP Posts / Boilers (6)', 'Evergreen tips | All job photos (12)',
+  'Boilers | GBP Photos – Posts / Boilers (6)', 'Leak repair | GBP Photos – Posts / Leak repair (4)', 'Other services | GBP Photos – Posts / Brand (5)', 'Trust / why us | GBP Photos – Posts / Brand (5)', 'Free boiler quote | GBP Photos – Posts / Boilers (6)', 'Evergreen tips | All job photos (12)',
 ].join('\n'), row(P), 'the spec table');
 chk('plumber: other services covers the two under 3 photos', P.prompts[2].services.join(',') === 'Bathroom fitting,Drain unblocking', P.prompts[2].services, '');
 chk('plumber: bathrooms (0) and drains (2) are the photo gaps', P.gaps.map(g => `${g.label} ${g.photos}`).join(',') === 'Bathroom fitting 0,Drain unblocking 2', JSON.stringify(P.gaps), '');
@@ -69,12 +69,12 @@ chk('plumber: ready, nothing missing', plumber.ok && !plumber.missing.length, pl
 const noBrand = buildIntake({ I: plumberI, trade: 'Plumbing & Heating', hand: { counts: plumberCounts, brand: 0 } });
 const NB = decide(noBrand);
 chk('no brand photos: no other services prompt', !NB.prompts.some(p => p.kind === 'other'), row(NB), '');
-chk('no brand photos: trust uses the best job photos', NB.prompts.find(p => p.kind === 'trust').folder === 'GBP Posts / Boilers', NB.prompts.find(p => p.kind === 'trust').folder, 'GBP Posts / Boilers');
+chk('no brand photos: trust uses the best job photos', NB.prompts.find(p => p.kind === 'trust').folder === 'GBP Photos – Posts / Boilers', NB.prompts.find(p => p.kind === 'trust').folder, 'GBP Photos – Posts / Boilers');
 chk('no brand photos: services under 3 get no post and stay on the gap list', NB.gaps.length === 2 && !NB.prompts.some(p => /bathroom|drain/i.test(p.label)), JSON.stringify(NB.gaps), '');
 chk('no brand photos: says why, and that it is under 5 prompts', NB.notes.some(n => /no post at all/.test(n)) && NB.notes.some(n => /Only 4 prompts/.test(n)), NB.notes, '');
 chk('no offer typed: no offer prompt, never invented', !NB.prompts.some(p => p.kind === 'offer'), row(NB), '');
 const brandOfTwo = decide(buildIntake({ I: plumberI, trade: 'Plumbing & Heating', hand: { counts: plumberCounts, brand: 2 } }));
-chk('2 brand photos is under the threshold: treated as none', !brandOfTwo.prompts.some(p => p.kind === 'other') && brandOfTwo.prompts.find(p => p.kind === 'trust').folder === 'GBP Posts / Boilers', row(brandOfTwo), '');
+chk('2 brand photos is under the threshold: treated as none', !brandOfTwo.prompts.some(p => p.kind === 'other') && brandOfTwo.prompts.find(p => p.kind === 'trust').folder === 'GBP Photos – Posts / Boilers', row(brandOfTwo), '');
 const none = buildIntake({ I: plumberI, trade: 'Plumbing & Heating', hand: { counts: {}, brand: 0 } });
 chk('all counts 0: warned, and the folder says none yet', none.warnings.some(w => /Every photo count is 0/.test(w)) && decide(none).prompts.find(p => p.kind === 'trust').folder === 'None yet' && decide(none).prompts.find(p => p.kind === 'tips').folder === 'None yet', none.warnings, '');
 const noCounts = buildIntake({ I: plumberI, trade: 'Plumbing & Heating', hand: {} });
@@ -143,7 +143,7 @@ for (const v of ['no', '', 'maybe']) chk(`free_quotes "${v}" and nothing typed: 
 const twoServices = { counts: { boilers: 4, 'leak-repair': 1, 'bathroom-fitting': 0, 'drain-unblocking': 2 }, brand: 1 };
 const few = decide(buildIntake({ I: plumberI, trade: 'Plumbing & Heating', hand: twoServices }));
 chk('3 prompts: the warning, word for word', few.prompts.length === 3 && few.tooFew && few.tooFew.message === "Too few prompts. Don't start autopost until the client sends more photos.", JSON.stringify(few.tooFew), '');
-chk('it lists which photos unlock more, highest value first, with what each needs', few.tooFew.unlock[0] === 'Leak repair: 2 more photos gives it its own prompt (GBP Posts / Leak repair)' && few.tooFew.unlock[1] === 'Bathroom fitting: 3 more photos gives it its own prompt (GBP Posts / Bathroom fitting)' && few.tooFew.unlock[2] === 'Drain unblocking: 1 more photo gives it its own prompt (GBP Posts / Drain unblocking)', few.tooFew.unlock.join(' | '), '');
+chk('it lists which photos unlock more, highest value first, with what each needs', few.tooFew.unlock[0] === 'Leak repair: 2 more photos gives it its own prompt (GBP Photos – Posts / Leak repair)' && few.tooFew.unlock[1] === 'Bathroom fitting: 3 more photos gives it its own prompt (GBP Photos – Posts / Bathroom fitting)' && few.tooFew.unlock[2] === 'Drain unblocking: 1 more photo gives it its own prompt (GBP Photos – Posts / Drain unblocking)', few.tooFew.unlock.join(' | '), '');
 chk('it lists the brand photos that open up other services', few.tooFew.unlock.some(u => /^Brand .*2 more photos adds an "Other services" prompt/.test(u)), few.tooFew.unlock.join(' | '), '');
 chk('exactly 4 prompts: no warning', decide(noBrand).prompts.length === 4 && !decide(noBrand).tooFew, decide(noBrand).prompts.length, 4);
 chk('6 prompts: no warning', !P.tooFew, JSON.stringify(P.tooFew), 'null');
@@ -153,6 +153,37 @@ const oneService = decide(buildIntake({ I: inputs({ name: 'X', primary: 'Roofer'
 chk('a one service client with photos: says photos will not help, and an offer would', oneService.prompts.length === 3 && /will not add a prompt/.test(oneService.tooFew.unlock[0]), oneService.tooFew && oneService.tooFew.unlock[0], '');
 const renamed = buildIntake({ I: plumberI, trade: 'Plumbing & Heating', hand: { counts: { leaks: 4 } } });
 chk('counts saved under an old name warn instead of silently reading 0', renamed.warnings.some(w => /no longer match a service \(leaks\)/.test(w)), renamed.warnings, '');
+
+// ── The folder path ──
+chk('the path is the one the photo sort skill creates, en dash included', P.prompts[0].folder === 'GBP Photos \u2013 Posts / Boilers' && P.prompts[2].folder === 'GBP Photos \u2013 Posts / Brand', P.prompts[0].folder, '');
+chk('all job photos and none yet are not folder paths', P.prompts[5].folder === 'All job photos' && decide(none).prompts[0].folder === 'None yet', P.prompts[5].folder, '');
+chk('the format the model is given names the same path, and no old one', G.loadSystem().includes('[GBP Photos \u2013 Posts / folder]') && !G.loadSystem().includes('GBP Posts /'), '', '');
+
+// ── The lock ──
+const grp = (label, services, photos = 0) => ({ key: label.toLowerCase().replace(/ /g, '-'), label, folder: label, services, volume: 0, wanted: false, photos });
+const fresh = names => groupServices(names.map(s => ({ service: s })));
+const oldGroups = [grp('Leak repair', ['Leak repair'], 4), grp('Boilers', ['Boiler repair', 'Boiler installation'], 6), grp('Drain unblocking', ['Drain unblocking'], 2)];
+chk('no page map change: nothing to report', labelChanges(oldGroups, fresh(['Leak repair', 'Boiler repair', 'Boiler installation', 'Drain unblocking'])).changed === false, '', '');
+const added = labelChanges(oldGroups, fresh(['Leak repair', 'Leak detection', 'Boiler repair', 'Boiler installation', 'Drain unblocking']));
+chk('a second leak page renames the folder: the case that started this', added.renames.length === 1 && added.renames[0].from === 'Leak repair' && added.renames[0].to === 'Leaks' && added.addedPages.join() === 'Leak detection', JSON.stringify(added), '');
+const boilerAdded = labelChanges(oldGroups, fresh(['Leak repair', 'Boiler repair', 'Boiler installation', 'Boiler servicing', 'Drain unblocking']));
+chk('a page joining an existing group renames nothing', !boilerAdded.renames.length && boilerAdded.changed && boilerAdded.addedPages.join() === 'Boiler servicing', JSON.stringify(boilerAdded), '');
+const brandNew = labelChanges(oldGroups, fresh(['Leak repair', 'Boiler repair', 'Boiler installation', 'Drain unblocking', 'Bathroom fitting']));
+chk('a new service is an addition, not a rename', !brandNew.renames.length && brandNew.added.join() === 'Bathroom fitting', JSON.stringify(brandNew), '');
+const gone = labelChanges(oldGroups, fresh(['Leak repair', 'Boiler repair', 'Boiler installation']));
+chk('a service dropped from the page map is a removal, not a rename', !gone.renames.length && gone.removed.join() === 'Drain unblocking', JSON.stringify(gone), '');
+const oldLabel = [{ ...grp('Boiler repair and installation', ['Boiler repair', 'Boiler installation']), key: 'boilers', folder: 'Boilers' }];
+chk('a label changing with the same folder is not a rename: no photos move', !labelChanges(oldLabel, fresh(['Boiler repair', 'Boiler installation'])).renames.length, '', '');
+const merged = fresh(['Leak repair', 'Leak detection']);
+const carried = carryCounts({ counts: { 'leak-repair': 4, 'old-thing': 9 }, brand: 3, offer: 'x' }, [grp('Leak repair', ['Leak repair'], 4), grp('Old thing', ['Old thing'], 9)], merged);
+chk('counts follow their pages to the new name, and the other fields stay', carried.counts.leaks === 4 && carried.brand === 3 && carried.offer === 'x' && !('leak-repair' in carried.counts) && !('old-thing' in carried.counts), JSON.stringify(carried), '');
+const mergedCounts = carryCounts({ counts: { a: 2, b: 3 } }, [{ ...grp('A', ['Leak repair']), key: 'a' }, { ...grp('B', ['Leak detection']), key: 'b' }], merged);
+chk('groups that merge add their counts together', mergedCounts.counts.leaks === 5, JSON.stringify(mergedCounts), '');
+const keepsLocked = buildIntake({ I: { ...plumberI, locked: [...plumberI.locked, { service: 'Leak detection', copyPriority: 0 }] }, trade: 'Plumbing & Heating', hand: plumberHand, locked: plumber.groups });
+chk('locked: the tab keeps the saved names and counts when the page map moves', keepsLocked.groups.map(g => g.label).join('|') === 'Boilers|Leak repair|Bathroom fitting|Drain unblocking' && keepsLocked.groups[1].photos === 4 && keepsLocked.labelsLocked, keepsLocked.groups.map(g => g.label).join('|'), '');
+chk('locked: it warns what changed and what Generate again would rename', keepsLocked.warnings.some(w => /new pages: Leak detection/.test(w) && /stay as they are until you press Generate again/.test(w)) && keepsLocked.warnings.some(w => /would rename a folder: Leak repair to Leaks/.test(w)), keepsLocked.warnings, '');
+chk('unchanged page map: locked, and nothing to warn about', (() => { const k = buildIntake({ I: plumberI, trade: 'Plumbing & Heating', hand: plumberHand, locked: plumber.groups }); return k.labelsLocked && !k.pending.changed && !k.warnings.some(w => /page map has changed|rename/.test(w)); })(), '', '');
+chk('no saved config, or a failed first run: nothing is locked', lockedFrom(null) === null && lockedFrom({ failure: {} }) === null && lockedFrom({ sheet: 'x', intake: { groups: [] } }) === null, '', '');
 
 // ── The canned model ──
 const angles = kind => (kind === 'tips' ? ['Check your stopcock', 'Bleed a radiator', 'Spot a hidden leak', 'What not to put down a sink'] : ['The problem customers notice', 'How the job is done', 'A common question answered', 'What to expect when booking']);
@@ -173,9 +204,9 @@ const canned = text => async () => ({ text, usage: { input_tokens: 10, output_to
   let rec = await G.runAutopost({ intake: plumber, callModel: canned(goodSheet(plumber, P)) });
   chk('a good reply passes first time', !rec.failure && rec.attempts === 1 && rec.output.prompts.length === 6, JSON.stringify(rec.failure), '');
   const S = rec.sheet;
-  const order = ['LEAD SNAP AUTOPOST CONFIG - Hartley Plumbing & Heating', 'SETTINGS', 'Frequency: Custom - twice per week', 'Call to action: Call Now (uses GBP phone number)', 'PROMPT 1 - Boilers', 'Tone: friendly, plain-spoken', 'Images: Choose specific images from GBP or upload -> select from folder: GBP Posts / Boilers', 'PROMPT 3 - Other services: bathroom fitting, drain unblocking', 'PROMPT 6 - Evergreen tips', 'PHOTO GAPS', '- Bathroom fitting: 0 photos. Ask the client for', 'VA CHECKLIST', '[ ] Saved and started; first post checked on All Posts page'];
+  const order = ['LEAD SNAP AUTOPOST CONFIG - Hartley Plumbing & Heating', 'SETTINGS', 'Frequency: Custom - twice per week', 'Call to action: Call Now (uses GBP phone number)', 'PROMPT 1 - Boilers', 'Tone: friendly, plain-spoken', 'Images: Choose specific images from GBP or upload -> select from folder: GBP Photos – Posts / Boilers', 'PROMPT 3 - Other services: bathroom fitting, drain unblocking', 'PROMPT 6 - Evergreen tips', 'PHOTO GAPS', '- Bathroom fitting: 0 photos. Ask the client for', 'VA CHECKLIST', '[ ] Saved and started; first post checked on All Posts page'];
   chk('the sheet follows the spec\'s format and Lead Snap\'s screen order', order.every((s, i) => S.includes(s) && (i === 0 || S.indexOf(s) > S.indexOf(order[i - 1]))), S.slice(0, 400), '');
-  chk('settings, labels and folders are code\'s even when the model writes others', (await G.runAutopost({ intake: plumber, callModel: canned(goodSheet(plumber, P).replace('PROMPT 1 - Boilers', 'PROMPT 1 - Something else').replace('Frequency: Custom - twice per week', 'Frequency: Daily').replace('folder: GBP Posts / Boilers', 'folder: Wrong')) })).sheet.includes('PROMPT 1 - Boilers\nTone: friendly, plain-spoken\nImages: Choose specific images from GBP or upload -> select from folder: GBP Posts / Boilers'), '', '');
+  chk('settings, labels and folders are code\'s even when the model writes others', (await G.runAutopost({ intake: plumber, callModel: canned(goodSheet(plumber, P).replace('PROMPT 1 - Boilers', 'PROMPT 1 - Something else').replace('Frequency: Custom - twice per week', 'Frequency: Daily').replace('folder: GBP Photos – Posts / Boilers', 'folder: Wrong')) })).sheet.includes('PROMPT 1 - Boilers\nTone: friendly, plain-spoken\nImages: Choose specific images from GBP or upload -> select from folder: GBP Photos – Posts / Boilers'), '', '');
   chk('a fenced reply still parses', !(await G.runAutopost({ intake: plumber, callModel: canned('```text\n' + goodSheet(plumber, P) + '\n```') })).failure, '', '');
   chk('a gap with no line from the model still gets one', (await G.runAutopost({ intake: plumber, callModel: canned(goodSheet(plumber, P).replace(/^- Drain unblocking.*$/m, '')) })).output.gaps[1].line === 'Drain unblocking: 2 photos. Ask the client for 3-4 photos of finished drain unblocking jobs.', '', '');
 
@@ -217,7 +248,7 @@ const canned = text => async () => ({ text, usage: { input_tokens: 10, output_to
   const calls = [];
   rec = await G.runAutopost({ intake: plumber, callModel: async a => { calls.push(a); return { text: calls.length === 1 ? 'nonsense' : good, usage: {} }; } });
   chk('a failing reply runs once more, with its failures in the message', !rec.failure && rec.attempts === 2 && /FAILED THESE CHECKS/.test(calls[1].message) && /has 0 prompts/.test(calls[1].message), calls.length, 2);
-  chk('the message carries the intake and decisions', /CTA sentence for the end of every prompt: invite them to give us a call/.test(calls[0].message) && /PROMPT 3 - Other services .*Bathroom fitting; Drain unblocking.*GBP Posts \/ Brand/.test(calls[0].message), calls[0].message.slice(0, 300), '');
+  chk('the message carries the intake and decisions', /CTA sentence for the end of every prompt: invite them to give us a call/.test(calls[0].message) && /PROMPT 3 - Other services .*Bathroom fitting; Drain unblocking.*GBP Photos – Posts \/ Brand/.test(calls[0].message), calls[0].message.slice(0, 300), '');
   const goodRec = rec;
   rec = await G.runAutopost({ intake: plumber, previous: goodRec, callModel: canned('still nonsense') });
   chk('failing twice keeps the last good config and says so', rec.failure && rec.sheet === goodRec.sheet && /last good config is kept/.test(rec.failure.error), rec.failure && rec.failure.error, '');
@@ -237,7 +268,8 @@ const canned = text => async () => ({ text, usage: { input_tokens: 10, output_to
   app.use(express.json());
   let model = canned(good), modelCalls = 0;
   const quiet = { log() {}, error() {} };
-  mountLeadSnapApi(app, { pool, log: quiet, callModel: (...a) => { modelCalls++; return model(...a); }, loadInputs: async id => { if (id === noMap.id) throw Object.assign(new Error('GBP output needs a v3 page map'), { status: 400 }); return { I: plumberI, trade: 'Plumbing & Heating', answers: { tone: 'Friendly, plain-spoken' } }; } });
+  let routeI = plumberI;
+  const mounted = mountLeadSnapApi(app, { pool, log: quiet, callModel: (...a) => { modelCalls++; return model(...a); }, loadInputs: async id => { if (id === noMap.id) throw Object.assign(new Error('GBP output needs a v3 page map'), { status: 400 }); return { I: routeI, trade: 'Plumbing & Heating', answers: { tone: 'Friendly, plain-spoken' } }; } });
   const srv = http.createServer(app);
   await new Promise(r => srv.listen(0, '127.0.0.1', r));
   const req = (method, p, body) => new Promise((resolve, reject) => {
@@ -270,6 +302,41 @@ const canned = text => async () => ({ text, usage: { input_tokens: 10, output_to
   model = canned('nonsense');
   v = (await req('POST', `${api}/generate`)).json();
   chk('a failed run over the route keeps the good config and shows the failure', v.record.failure && v.record.sheet && v.files['autopost-config.txt'], JSON.stringify(v.record.failure && v.record.failure.error), '');
+  // ── The lock, over the routes ──
+  const handNow = async () => mounted.store.hand(c.id);
+  const sheetFor = (I0, hand0) => { const i = buildIntake({ I: I0, trade: 'Plumbing & Heating', answers: { tone: 'Friendly, plain-spoken' }, hand: hand0 }); return goodSheet(i, decide(i)); };
+  const counted = await handNow();
+  const savedSheet = (await mounted.store.latest(c.id)).sheet;
+  routeI = { ...plumberI, locked: [...plumberI.locked, { service: 'Leak detection', copyPriority: 0 }] };
+  v = (await req('GET', api)).json();
+  chk('page map moved: the tab keeps its names, the config is untouched, nothing is spent', v.intake.groups.some(g => g.label === 'Leak repair') && !v.intake.groups.some(g => g.label === 'Leaks') && v.record.sheet === savedSheet && v.intake.pending.renames[0].to === 'Leaks', JSON.stringify(v.intake.pending), '');
+  chk('page map moved: the plan still uses the saved folders', v.plan.prompts.some(p => p.folder === 'GBP Photos \u2013 Posts / Leak repair'), JSON.stringify(v.plan.prompts.map(p => p.folder)), '');
+  v = (await req('PUT', `${api}/intake`, { counts: counted.counts, brand: 5 })).json();
+  chk('saving counts while locked keeps the saved names', 'leak-repair' in v.hand.counts && !('leaks' in v.hand.counts), JSON.stringify(v.hand.counts), '');
+  const spent = modelCalls;
+  const refused = await req('POST', `${api}/generate`);
+  chk('Generate again that would rename a folder is refused without the confirm, nothing spent', refused.status === 409 && refused.json().renames[0].from === 'Leak repair' && modelCalls === spent && (await mounted.store.latest(c.id)).sheet === savedSheet, refused.status, 409);
+  chk('accept_renames must be true, not just present', (await req('POST', `${api}/generate`, { accept_renames: 'yes' })).status === 409, '', 409);
+  model = canned('nonsense');
+  v = (await req('POST', `${api}/generate`, { accept_renames: true })).json();
+  chk('a confirmed rename whose run fails changes nothing: old names, old counts', v.record.failure && v.record.sheet === savedSheet && 'leak-repair' in (await handNow()).counts && v.intake.groups.some(g => g.label === 'Leak repair'), JSON.stringify(v.record.failure && v.record.failure.error), '');
+  const carriedHand = carryCounts(await handNow(), lockedFrom(await mounted.store.latest(c.id)), groupServices(routeI.locked));
+  model = async () => ({ text: sheetFor(routeI, carriedHand), usage: {} });
+  v = (await req('POST', `${api}/generate`, { accept_renames: true })).json();
+  chk('a confirmed rename takes up the new name, and the record says what moved', !v.record.failure && v.record.sheet.includes('GBP Photos \u2013 Posts / Leaks') && v.record.renames[0].to === 'Leaks' && JSON.parse((await req('GET', v.files['validation.json'])).text).folders_renamed[0].from === 'Leak repair', JSON.stringify(v.record.renames), '');
+  chk('the photo counts move with it, and the new name is what is locked now', (await handNow()).counts.leaks === counted.counts['leak-repair'] && !('leak-repair' in (await handNow()).counts) && v.intake.groups.some(g => g.label === 'Leaks') && !v.intake.pending.changed, JSON.stringify(await handNow()), '');
+  routeI = { ...routeI, locked: [...routeI.locked, { service: 'Boiler servicing', copyPriority: 0 }] };
+  model = async () => ({ text: sheetFor(routeI, await handNow()), usage: {} });
+  const noRename = await req('POST', `${api}/generate`);
+  chk('Generate again with no rename needs no confirm, and clears the last rename notice', noRename.status === 200 && noRename.json().record.renames.length === 0, noRename.status, 200);
+  const rec0 = await mounted.store.latest(c.id);
+  await mounted.store.save(c.id, { ...rec0, sheet: rec0.sheet.split('GBP Photos \u2013 Posts /').join('GBP Posts /') });
+  v = (await req('GET', api)).json();
+  chk('a config saved with the old path says so', v.intake.warnings.some(w => /old folder path, GBP Posts/.test(w)), v.intake.warnings, '');
+  await mounted.store.save(c.id, rec0);
+  v = (await req('GET', api)).json();
+  chk('the new path raises no such warning', !v.intake.warnings.some(w => /old folder path/.test(w)), v.intake.warnings, '');
+
   v = (await req('GET', `/api/clients/${noMap.id}/lead-snap`)).json();
   chk('a client with no v3 page map: the error is shown, not a crash', v.intake === null && /v3 page map/.test(v.error), JSON.stringify(v), '');
   srv.close();

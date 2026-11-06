@@ -3,7 +3,7 @@
 // order, each prompt with its Copy button and photo folder. Set once per client; Generate again
 // when a client adds a service or sends new photos.
 
-import { h, attr, api, card, copyBtn, toast, running, empty, fmtDate, pill, wire, qa } from '../ui.js';
+import { h, attr, api, card, copyBtn, toast, confirm, running, empty, fmtDate, pill, wire, qa } from '../ui.js';
 
 export async function render(el, ctx) {
   const { clientId } = ctx;
@@ -27,7 +27,7 @@ export async function render(el, ctx) {
     if (notes.length) b += `<div class="notice warn" style="margin-bottom:10px"><ul style="margin:0 0 0 18px">${notes.map(n => `<li>${h(n)}</li>`).join('')}</ul></div>`;
     if (R && R.failure) b += `<div class="notice bad" style="margin-bottom:10px"><strong>${h(R.failure.error)}</strong><ul style="margin:6px 0 0 18px">${R.failure.fails.map(f => `<li>${h(f.message)}</li>`).join('')}</ul></div>`;
     b += `<div class="notice" style="margin-bottom:10px"><div><strong>${h(I.business)}</strong> · ${h(I.niche)} · ${h(I.phone || 'no phone saved')}</div><div class="small" style="margin-top:4px">Areas: ${h(I.areas.join(', '))}</div><div class="small muted">${h(I.areasWhy)}</div><div class="small" style="margin-top:4px">USPs: ${h(I.usps.join('; ') || 'none confirmed')}</div><div class="small" style="margin-top:4px">Offer: ${h(I.offer || 'none')}${I.offerSource === 'free_quotes' ? ' <span class="muted">(the client has confirmed free quotes)</span>' : ''}</div><div class="small" style="margin-top:4px">Call to action: ${h(I.cta.line)} <span class="muted">(${h(I.cta.why)})</span></div></div>`;
-    b += `<div class="sec-title">Photos per service</div><div class="muted small" style="margin-bottom:6px">Copybot can't read these yet, so type how many photos each folder holds. Each folder is GBP Posts / [the service name below]. ${I.groups.length} whole services from the page map, highest value first. 3 or more earns a prompt of its own (the top 4 at most).</div>
+    b += `<div class="sec-title">Photos per service</div><div class="muted small" style="margin-bottom:6px">Copybot can't read these yet, so type how many photos each folder holds. Each folder is GBP Photos – Posts / [the service name below]. ${I.groups.length} whole services from the page map, highest value first. 3 or more earns a prompt of its own (the top 4 at most).${I.labelsLocked ? ' These names are locked to the saved config: they only change when you press Generate again.' : ''}</div>
       <div class="tbl-wrap"><table class="tbl"><thead><tr><th>Service</th><th>Photos</th></tr></thead><tbody>
       ${I.groups.map(g => `<tr><td>${h(g.label)}${g.services.length > 1 || g.services[0] !== g.label ? `<div class="muted small">${h(g.services.join(', '))}</div>` : ''}</td><td><input class="input" type="number" min="0" style="width:72px" data-count="${attr(g.key)}" value="${I.photosEntered ? attr(g.photos) : ''}"></td></tr>`).join('')}
       <tr><td>Brand: team, van, premises, logo</td><td><input class="input" type="number" min="0" style="width:72px" data-f="brand" value="${I.photosEntered ? attr(I.brand) : ''}"></td></tr></tbody></table></div>
@@ -52,7 +52,8 @@ export async function render(el, ctx) {
     const R = S.record, O = R && R.output;
     if (!O) return card({ title: 'Autopost config', body: empty({ title: 'No config yet', text: 'Type the photo counts, then generate. The config comes out here in Lead Snap\'s screen order.' }) });
     const flags = (R.flags || []).length ? `<div class="notice warn" style="margin-bottom:10px"><ul style="margin:0 0 0 18px">${R.flags.map(f => `<li>${h(f.message)}</li>`).join('')}</ul></div>` : '';
-    const out = [card({ title: 'Settings', sub: 'Set these first', actions: copyBtn(R.sheet, 'Copy whole config'), body: tooFew() + flags + row('Frequency', O.settings.frequency) + row('Call to action', O.settings.cta) })];
+    const moved = (R.renames || []).length ? `<div class="notice warn" style="margin-bottom:10px"><strong>Folders renamed in this config.</strong> Rename them in Drive and reselect their photos in Lead Snap.<ul style="margin:6px 0 0 18px">${R.renames.map(r => `<li>${h(r.from)} to ${h(r.to)}</li>`).join('')}</ul></div>` : '';
+    const out = [card({ title: 'Settings', sub: 'Set these first', actions: copyBtn(R.sheet, 'Copy whole config'), body: tooFew() + moved + flags + row('Frequency', O.settings.frequency) + row('Call to action', O.settings.cta) })];
     for (const p of O.prompts) out.push(card({ title: `Prompt ${p.n}: ${p.label}`, sub: p.why, body: row('Tone', p.tone) + row('Images: select from folder', p.folder, `${p.photos} photos`) + row('Prompt', p.text, `${p.chars} characters`) }));
     out.push(card({ title: 'Photo gaps', sub: 'Send these to the client', body: O.gaps.length ? `<div class="btn-row" style="margin-bottom:8px">${copyBtn(O.gaps.map(g => g.line).join('\n'), 'Copy all')}</div><ul style="margin:0 0 0 18px">${O.gaps.map(g => `<li>${h(g.line)}</li>`).join('')}</ul>` : pill('ok', 'No gaps') }));
     out.push(card({ title: 'VA checklist', sub: 'Lead Snap writes the first post as soon as you save, so read that one before leaving it running', body: `<ul style="margin:0;list-style:none;padding:0">${O.checklist.map(c => `<li><label><input type="checkbox"> ${h(c)}</label></li>`).join('')}</ul>` }));
@@ -78,8 +79,11 @@ export async function render(el, ctx) {
       if (b.dataset.act === 'reload') return load();
       if (b.dataset.act === 'save') { await save(); draw(); toast('Saved'); return; }
       if (b.dataset.act === 'generate') {
-        await save(); S.running = true; draw();
-        S = await api(`${url}/generate`, { method: 'POST' }); draw();
+        await save();
+        const renames = (S.intake && S.intake.pending && S.intake.pending.renames) || [];
+        if (renames.length && !(await confirm({ title: renames.length === 1 ? 'This renames a folder' : `This renames ${renames.length} folders`, text: `${renames.map(r => `${r.from} becomes ${r.to}`).join('. ')}. The page map has changed, so the config will use the new names. Rename the folders in Drive and reselect their photos in Lead Snap. The photo counts carry over.`, ok: 'Rename and generate', danger: true }))) { draw(); return; }
+        S.running = true; draw();
+        S = await api(`${url}/generate`, { method: 'POST', body: { accept_renames: renames.length > 0 } }); draw();
         if (S.record && S.record.failure) toast('The config failed its checks', 'bad');
       }
     } catch (err) { toast(err.message, 'bad'); load(); }

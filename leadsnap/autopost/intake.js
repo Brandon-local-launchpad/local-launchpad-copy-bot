@@ -37,7 +37,7 @@ const MASS = new Set(['turf', 'grass', 'gravel', 'concrete', 'tarmac', 'resin', 
 const plural = w => (/(ing|s)$/.test(w) || MASS.has(w) ? w : `${w}s`);
 const keyOf = s => norm(s).replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
 
-// One or two words (Brandon, 6 Nov), and the name is also the folder: GBP Posts / [name], which
+// One or two words (Brandon, 6 Nov), and the name is also the folder: GBP Photos – Posts / [name], which
 // the photo sort skill creates. Pages sharing a thing are that thing ("Boilers"); a lone page keeps
 // its own name, cut down: "Artificial grass installation" is "Artificial grass", "Ponds and water
 // features" is "Ponds".
@@ -80,6 +80,47 @@ function groupServices(locked = [], jobsWanted = []) {
   const seen = new Set();
   for (const g of out) { let k = g.key, n = 2; while (seen.has(k)) k = `${g.key}-${n++}`; seen.add(k); g.key = k; }
   return out.map(({ order, rank, ...g }) => g);
+}
+
+// ── The lock (Brandon, 6 Nov) ──
+// Once a config is saved its names are what the Drive folders are called, so the tab keeps them
+// (lockedFrom) however the page map moves. Only Generate again takes up the page map's names, and
+// labelChanges says what that would do first. A rename is a folder name that changes: a label
+// alone changing is not one, because no photos have to move.
+const lockedFrom = rec => (rec && rec.sheet && rec.intake && Array.isArray(rec.intake.groups) && rec.intake.groups.length ? rec.intake.groups : null);
+
+// The new group most of an old group's pages went to (the first on a tie), else one of the same name
+function successor(old, fresh) {
+  const pages = new Set(old.services.map(norm));
+  let best = null, most = 0;
+  for (const g of fresh) { const n = g.services.filter(s => pages.has(norm(s))).length; if (n > most) { best = g; most = n; } }
+  return best || fresh.find(g => g.key === old.key) || null;
+}
+
+function labelChanges(locked, fresh) {
+  const renames = [], removed = [];
+  const reached = new Set();
+  for (const old of locked) {
+    const next = successor(old, fresh);
+    if (!next) { removed.push(old.folder); continue; }
+    reached.add(next.key);
+    if (next.folder !== old.folder) renames.push({ from: old.folder, to: next.folder });
+  }
+  const oldPages = new Set(locked.flatMap(g => g.services).map(norm));
+  const newPages = new Set(fresh.flatMap(g => g.services).map(norm));
+  const addedPages = fresh.flatMap(g => g.services).filter(s => !oldPages.has(norm(s)));
+  const removedPages = locked.flatMap(g => g.services).filter(s => !newPages.has(norm(s)));
+  const added = fresh.filter(g => !reached.has(g.key)).map(g => g.folder);
+  return { renames, added, removed, addedPages, removedPages, changed: !!(renames.length || added.length || removed.length || addedPages.length || removedPages.length) };
+}
+
+// The typed counts moved to the new names: an old group's count follows its pages, and groups that
+// merge add up. A group that is new has no photos yet.
+function carryCounts(hand, locked, fresh) {
+  const was = (hand && hand.counts) || {};
+  const counts = Object.fromEntries(fresh.map(g => [g.key, 0]));
+  for (const old of locked) { const next = successor(old, fresh); if (next) counts[next.key] += Number(was[old.key]) || 0; }
+  return { ...hand, counts };
 }
 
 // ── The areas: the main town and the first seven others ──
@@ -128,14 +169,17 @@ function pickCta({ nicheKey, hand, learnUrl }) {
 }
 
 // The full intake and what is missing. warnings show in the yellow box; missing stops the run.
-function buildIntake({ I, trade = '', answers = {}, hand = {} }) {
+// locked: the saved config's groups (lockedFrom), which then stand in for the page map's
+function buildIntake({ I, trade = '', answers = {}, hand = {}, locked = null }) {
   const cv = (I.validatorCtx && I.validatorCtx.cv) || {};
   const nap = buildNap({ cv, areas: [] });
   const fromTrade = nicheKeyFor(trade);
   const nicheKey = fromTrade && fromTrade !== 'other' ? fromTrade : (nicheKeyFor(I.primary) || 'other');
   const niche = str(I.primary) || str(trade);
   const counts = hand.counts && typeof hand.counts === 'object' ? hand.counts : null;
-  const groups = groupServices(I.locked || [], cv.jobs_wanted).map(g => ({ ...g, photos: counts && Number.isFinite(Number(counts[g.key])) ? Number(counts[g.key]) : 0 }));
+  const fresh = groupServices(I.locked || [], cv.jobs_wanted);
+  const pending = locked ? labelChanges(locked, fresh) : null;
+  const groups = (locked || fresh).map(g => ({ ...g, photos: counts && Number.isFinite(Number(counts[g.key])) ? Number(counts[g.key]) : 0 }));
   const brand = Number.isFinite(Number(hand.brand)) ? Number(hand.brand) : 0;
   const photosEntered = !!counts;
   const areas = pickAreas(I);
@@ -171,6 +215,13 @@ function buildIntake({ I, trade = '', answers = {}, hand = {} }) {
   if (cta.type === 'Book' && !cta.url) warnings.push('Book needs a booking URL: type it in below.');
   if (cta.type === 'Learn More' && !cta.url) warnings.push('No live domain is saved, so Learn More has nowhere to go. Save it on Client Values.');
   if (cta.type === 'Learn More' && CTA_NICHES.book.includes(nicheKey) && !str(hand.cta_type)) warnings.push('This niche normally uses Book, but no booking URL is saved, so the call to action falls back to Learn More. Type the booking URL below if the client has one.');
+  if (pending && pending.changed) {
+    const bits = [];
+    if (pending.addedPages.length) bits.push(`new pages: ${pending.addedPages.join(', ')}`);
+    if (pending.removedPages.length) bits.push(`removed pages: ${pending.removedPages.join(', ')}`);
+    warnings.push(`The page map has changed since this config was saved${bits.length ? ` (${bits.join('; ')})` : ''}. The labels and folders below stay as they are until you press Generate again.`);
+  }
+  if (pending && pending.renames.length) warnings.push(`Generate again would rename ${pending.renames.length === 1 ? 'a folder' : `${pending.renames.length} folders`}: ${pending.renames.map(r => `${r.from} to ${r.to}`).join(', ')}. You will be asked to confirm.`);
   // Counts saved under a name the services no longer have would quietly read as 0
   const stale = counts ? Object.keys(counts).filter(k => Number(counts[k]) > 0 && !groups.some(g => g.key === k)) : [];
   if (stale.length) warnings.push(`Saved photo counts no longer match a service (${stale.join(', ')}). Check the counts below and save again.`);
@@ -179,9 +230,9 @@ function buildIntake({ I, trade = '', answers = {}, hand = {} }) {
   return {
     business: str(cv.company_name) || str(I.name), phone: str(nap.phone), niche, nicheKey,
     mainTown: areas.main, areas: areas.all, nearby: areas.nearby, areasWhy: areas.why,
-    groups, brand, photosEntered, usps, offer, offerSource, tone, avoid, cta,
+    groups, labelsLocked: !!locked, pending, brand, photosEntered, usps, offer, offerSource, tone, avoid, cta,
     missing, warnings, ok: missing.length === 0,
   };
 }
 
-module.exports = { buildIntake, groupServices, shortName, pickAreas, pickUsps, pickCta, AREA_OTHERS, FREE_QUOTE_OFFER };
+module.exports = { buildIntake, groupServices, lockedFrom, labelChanges, carryCounts, shortName, pickAreas, pickUsps, pickCta, AREA_OTHERS, FREE_QUOTE_OFFER };

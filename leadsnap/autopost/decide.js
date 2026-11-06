@@ -11,7 +11,9 @@ const MIN_PROMPTS = 4;
 const TOO_FEW = "Too few prompts. Don't start autopost until the client sends more photos.";
 const ALL_JOBS = 'All job photos';
 const more = n => `${n} more photo${n === 1 ? '' : 's'}`;
-const folderOf = f => `GBP Posts / ${f}`;
+// The folder the photo sort skill creates (Brandon, 6 Nov), en dash and all
+const POSTS_ROOT = 'GBP Photos – Posts';
+const folderOf = f => `${POSTS_ROOT} / ${f}`;
 
 function decide(intake) {
   const { groups, brand, offer } = intake;
@@ -56,12 +58,12 @@ function decide(intake) {
   // free, then the brand photos that open up "Other services".
   let tooFew = null;
   if (prompts.length < MIN_PROMPTS) {
-    const unlock = under.slice(0, MAX_SERVICE - own.length).map(g => `${g.label}: ${more(THRESHOLD - g.photos)} gives it its own prompt (GBP Posts / ${g.folder})`);
-    if (!hasBrand && under.length) unlock.push(`Brand (team, van, premises, logo): ${more(THRESHOLD - brand)} adds an "Other services" prompt (GBP Posts / Brand)`);
+    const unlock = under.slice(0, MAX_SERVICE - own.length).map(g => `${g.label}: ${more(THRESHOLD - g.photos)} gives it its own prompt (${folderOf(g.folder)})`);
+    if (!hasBrand && under.length) unlock.push(`Brand (team, van, premises, logo): ${more(THRESHOLD - brand)} adds an "Other services" prompt (${brandPool.folder})`);
     if (!unlock.length) unlock.push('More photos will not add a prompt: every service already has its own. A standing offer typed below would add one.');
     tooFew = { message: TOO_FEW, unlock };
   }
   return { prompts, gaps, notes, jobPhotos, tooFew };
 }
 
-module.exports = { decide, THRESHOLD, MAX_PROMPTS, MIN_PROMPTS, MAX_SERVICE, ALL_JOBS, TOO_FEW };
+module.exports = { decide, POSTS_ROOT, THRESHOLD, MAX_PROMPTS, MIN_PROMPTS, MAX_SERVICE, ALL_JOBS, TOO_FEW };

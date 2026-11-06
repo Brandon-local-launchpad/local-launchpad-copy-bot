@@ -3,15 +3,16 @@
 // ── Lead Snap tab routes ─────────────────────────────────────────────────────
 //   GET  /api/clients/:id/lead-snap            the intake, the prompt mix, the saved config
 //   PUT  /api/clients/:id/lead-snap/intake     the typed fields: photo counts, offer, booking URL
-//   POST /api/clients/:id/lead-snap/generate   write the config (spends one or two model calls)
+//   POST /api/clients/:id/lead-snap/generate   write the config (spends one or two model calls); takes up
+//                                              the page map's names, so a folder rename needs { accept_renames: true }
 //   GET  /clients/:slug/lead-snap/:file        autopost-config.txt, validation.json
 //
 // loadInputs(clientId) → { I, trade, answers }: the GBP inputs and the Fillout answers.
 
 const { slugify } = require('../../page-map/slugs');
 const { createAutopostStore } = require('./store');
-const { buildIntake } = require('./intake');
-const { decide } = require('./decide');
+const { buildIntake, lockedFrom, labelChanges, carryCounts } = require('./intake');
+const { decide, POSTS_ROOT } = require('./decide');
 const { runAutopost, filesFor } = require('./generate');
 
 const CONTENT_TYPES = { 'autopost-config.txt': 'text/plain; charset=utf-8', 'validation.json': 'application/json; charset=utf-8' };
@@ -39,8 +40,8 @@ function mountLeadSnapApi(app, { pool, loadInputs, callModel, log = console }) {
   };
   const intakeFor = async clientId => {
     const { I, trade, answers } = await loadInputs(clientId);
-    const hand = await store.hand(clientId);
-    return { intake: buildIntake({ I, trade, answers, hand }), hand };
+    const [hand, record] = await Promise.all([store.hand(clientId), store.latest(clientId)]);
+    return { intake: buildIntake({ I, trade, answers, hand, locked: lockedFrom(record) }), hand };
   };
   const view = async clientId => {
     const { rows } = await pool.query(`SELECT name FROM clients WHERE id=$1`, [clientId]);
@@ -49,7 +50,11 @@ function mountLeadSnapApi(app, { pool, loadInputs, callModel, log = console }) {
     const record = await store.latest(clientId);
     const files = Object.fromEntries(Object.keys(filesFor(record)).map(f => [f, `/clients/${slug}/lead-snap/${f}`]));
     let intake = null, hand = {}, plan = null, error = null;
-    try { ({ intake, hand } = await intakeFor(clientId)); plan = decide(intake); } catch (e) { if (!e.status) log.error('[lead snap]', e); error = e.message; }
+    try {
+      ({ intake, hand } = await intakeFor(clientId)); plan = decide(intake);
+      // A config saved before the path changed still names the old folders
+      if (record && record.sheet && /select from folder: GBP Posts \//.test(record.sheet)) intake.warnings.push(`This config still uses the old folder path, GBP Posts. Generate again to change it to ${POSTS_ROOT}.`);
+    } catch (e) { if (!e.status) log.error('[lead snap]', e); error = e.message; }
     return { slug, record, files, intake, hand, plan, error, running: running.has(clientId) };
   };
 
@@ -67,9 +72,24 @@ function mountLeadSnapApi(app, { pool, loadInputs, callModel, log = console }) {
     if (running.has(clientId)) throw Object.assign(new Error('A Lead Snap run is already in progress for this client.'), { status: 409 });
     running.add(clientId);
     try {
-      const { intake } = await intakeFor(clientId);
+      const { I, trade, answers } = await loadInputs(clientId);
+      const [hand, previous] = await Promise.all([store.hand(clientId), store.latest(clientId)]);
+      const locked = lockedFrom(previous);
+      // Pressing this is the one thing that takes up the page map's names
+      const fresh = buildIntake({ I, trade, answers, hand });
+      const changes = locked ? labelChanges(locked, fresh.groups) : null;
+      if (changes && changes.renames.length && !(req.body && req.body.accept_renames === true)) {
+        return res.status(409).json({ error: `This would rename ${changes.renames.map(r => `${r.from} to ${r.to}`).join(', ')}. Confirm the rename to go ahead.`, renames: changes.renames });
+      }
+      const nextHand = locked ? carryCounts(hand, locked, fresh.groups) : hand;
+      const intake = buildIntake({ I, trade, answers, hand: nextHand });
       if (!intake.ok) throw Object.assign(new Error(`Fill these in first: ${intake.missing.join('; ')}.`), { status: 400 });
-      const record = await runAutopost({ intake, callModel, previous: await store.latest(clientId), log: m => log.log(m) });
+      const record = await runAutopost({ intake, callModel, previous, log: m => log.log(m) });
+      // A failed run keeps the old config, so the old names and counts stand with it
+      if (!record.failure) {
+        record.renames = changes ? changes.renames : [];
+        if (locked) await store.saveHand(clientId, nextHand);
+      }
       await store.save(clientId, record);
       log.log(`[lead snap] ${clientId}: ${record.failure ? 'failed the checks' : `${record.output.prompts.length} prompts`}`);
     } finally { running.delete(clientId); }
