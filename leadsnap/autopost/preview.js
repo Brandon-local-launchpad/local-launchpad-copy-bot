@@ -8,7 +8,7 @@
 
 const { wordsDetect } = require('../../gbp/inputs');
 const { MODEL, CLAIMS } = require('./generate');
-const { USD_TO_GBP } = require('../../ui/model-log');
+const { USD_TO_GBP, priceFor } = require('../../ui/model-log');
 
 const SAMPLES = 4;
 const CONCURRENCY = 5;
@@ -16,7 +16,7 @@ const EFFORT = 'low';
 const MIN_WORDS = 150;
 const MAX_WORDS = 250;
 const LONG_PHRASE = 8;            // words in a row shared by two samples
-const USD_PER_M = { input: 2, output: 10 };   // claude-sonnet-5-5
+const [USD_IN_PER_M, USD_OUT_PER_M] = priceFor(MODEL);
 // Measured on real samples (6 Nov 2026): about 460 tokens out, thinking included, and a token
 // for every 2.7 characters of prompt
 const OUTPUT_TOKENS_EACH = 460;
@@ -28,7 +28,7 @@ const DATED = /\b(spring|summer|autumn|winter|christmas|easter|new year|bank hol
 const esc = s => String(s).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 const wordsOf = t => String(t).trim().split(/\s+/).filter(Boolean);
 const tokens = t => String(t).toLowerCase().replace(/[^a-z0-9'\s]/g, ' ').split(/\s+/).filter(Boolean);
-const costUsd = u => ((u.input_tokens || 0) * USD_PER_M.input + (u.output_tokens || 0) * USD_PER_M.output) / 1e6;
+const costUsd = u => ((u.input_tokens || 0) * USD_IN_PER_M + (u.output_tokens || 0) * USD_OUT_PER_M) / 1e6;
 const pence = usd => Math.max(1, Math.round(usd * USD_TO_GBP * 100));
 const pass = (id, label, detail = '') => ({ id, label, level: 'pass', detail });
 const warn = (id, label, detail) => ({ id, label, level: 'warn', detail });
