@@ -4029,6 +4029,23 @@ if (filloutService && citationStore) {
 }
 // Location Determiner (locations/routes.js): which towns get location pages; the dry run first
 if (filloutService) require('./locations/routes').mountLocationsApi(app, { pool, filloutService });
+// Legal pages (legal/): the filled pages and the hold, F-LEGAL. Nothing here pushes.
+if (filloutService) {
+  require('./legal/routes').mountLegalApi(app, require('./legal/service').createLegalService({
+    pool, filloutService,
+    loadValues: async id => {
+      const { rows } = await pool.query(`SELECT content FROM client_assets WHERE client_id = $1 AND asset_type = 'client_values' ORDER BY uploaded_at DESC LIMIT 1`, [id]);
+      return rows.length ? JSON.parse(rows[0].content) : {};
+    },
+    tradeLowerFor: names => {
+      for (const name of names) {
+        const { niche } = name ? loadNiche(name) : {};
+        if (niche && niche.trade_lower) return niche.trade_lower;
+      }
+      return '';
+    },
+  }));
+}
 
 // GBP output (gbp/routes.js, 23 Oct): the Google Business Profile description, services and
 // products, from the client values, the v3 page map and the generated service page copy

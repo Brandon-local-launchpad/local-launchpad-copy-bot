@@ -156,4 +156,8 @@ function resolveValues({ cv = {}, form = {}, answers = {}, tradeLower = '', last
   return { values, unclear, defaulted };
 }
 
-module.exports = { resolveValues, fullPounds, guaranteeMonths, paymentList, tradeWord };
+// Every key a template may use: an adjusted wording naming any other is refused, because a
+// typo in an {IF} would silently drop its section
+const knownKeys = () => Object.keys(resolveValues({ cv: { legal_entity: 'limited' }, form: { vat_registered: 'No', deposit: 'No' } }).values);
+
+module.exports = { resolveValues, knownKeys, fullPounds, guaranteeMonths, paymentList, tradeWord };

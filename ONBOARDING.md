@@ -131,7 +131,7 @@ Four questions at the end of "Quotes Process and Response" (7 Nov 2026): `uses_s
 
 - Every answer to the tick box is a row in `client_terms_confirmations`: ticked or not, when the client submitted, the exceptions text at that moment, and form or by hand. Rows are only added. This is the written record if a client disputes the terms. The Quotes & Process panel lists them.
 - A Reprocess adds no row and keeps the date. Reprocessing an older submission leaves the four answers on the record alone.
-- A hand tick is recorded as by hand. It counts as the newest answer but is not the client's own.
+- A hand tick is recorded as by hand and doesn't count as the sign-off: only the client's own tick on the form releases the legal pages. Blanking the exceptions field by hand doesn't remove the text either, because the text on the newest form answer still holds them.
 - `legal/onboarding.js legalAnswers` is what the legal pages read. A client who hasn't answered counts as yes on subcontractors and late interest; nothing is written for that. The sign-off never defaults. An answer that isn't plainly yes or no is unclear, never guessed.
 - The other legal details are typed in on the Record tab, under Legal details.
 

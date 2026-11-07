@@ -116,6 +116,12 @@ const payload = (submissionId, submissionTime, a) => {
   chk('Unticking by hand adds a row marked manual', rec.termsConfirmations.length === 4 && rec.termsConfirmations[0].source === 'manual' && rec.termsConfirmations[0].confirmed === false, rec.termsConfirmations[0], 'manual');
   chk('The newest answer is by hand, so the sign-off is no longer yes', rec.legalAnswers.standard_terms_confirmed.value === '' && rec.legalAnswers.standard_terms_confirmed.source === 'manual', rec.legalAnswers.standard_terms_confirmed, 'blank');
   chk('The form rows are untouched', rec.termsConfirmations.filter(t => t.source === 'form').length === 3, rec.termsConfirmations, '3 form rows');
+  await svc.setField(clientId, 'standard_terms_confirmed', true);
+  rec = await svc.record(clientId);
+  chk('A tick by hand goes on the history but is not the sign-off', rec.termsConfirmations[0].source === 'manual' && rec.termsConfirmations[0].confirmed === true && rec.legalAnswers.standard_terms_confirmed.value === '' && rec.legalAnswers.standard_terms_confirmed.by_hand === true, rec.legalAnswers.standard_terms_confirmed, 'not yes');
+  await svc.setField(clientId, 'standard_terms_exceptions', '');
+  rec = await svc.record(clientId);
+  chk('Blanking the exceptions by hand keeps the text from the form', rec.legalAnswers.standard_terms_exceptions === 'Newer exceptions', rec.legalAnswers.standard_terms_exceptions, 'Newer exceptions');
   chk('legalAnswers on the service matches the record', JSON.stringify(await svc.legalAnswers(clientId)) === JSON.stringify(rec.legalAnswers), await svc.legalAnswers(clientId), rec.legalAnswers);
 
   // ── Pure rules ──

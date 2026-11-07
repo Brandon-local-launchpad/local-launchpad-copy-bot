@@ -8,9 +8,11 @@
 //   uses_subcontractors, late_payment_interest: yes or no. A client who hasn't
 //     answered counts as yes (Brandon, 7 Nov 2026), marked defaulted. Anything that
 //     isn't plainly yes or no is unclear, never guessed.
-//   standard_terms_confirmed: yes only when the newest answer in the history is a
-//     tick. It is never defaulted.
-//   standard_terms_exceptions: the text as it stands on the record.
+//   standard_terms_confirmed: yes only when the newest answer in the history is the
+//     client's own tick on the form. A tick by hand stays on the history but doesn't
+//     count: the app has one shared login, so it can't release the hold. Never defaulted.
+//   standard_terms_exceptions: the text on the record, else the text on the client's newest
+//     form answer, so blanking the field by hand can't release the hold either.
 
 const FORM_KEYS = ['uses_subcontractors', 'late_payment_interest', 'standard_terms_confirmed', 'standard_terms_exceptions'];
 const DEFAULT_YES = ['uses_subcontractors', 'late_payment_interest'];
@@ -35,12 +37,15 @@ function legalAnswers(values = {}, history = []) {
   const latest = newestFirst(history)[0] || null;
   const out = {};
   for (const k of DEFAULT_YES) out[k] = yesNo(values[k]);
+  const ticked = !!latest && !!latest.confirmed && latest.source === 'form';
   out.standard_terms_confirmed = {
-    value: latest && latest.confirmed ? 'yes' : '',
-    at: latest && latest.confirmed ? latest.answered_at : null,
+    value: ticked ? 'yes' : '',
+    at: ticked ? latest.answered_at : null,
     source: latest ? latest.source : null,
+    by_hand: !!latest && !!latest.confirmed && latest.source !== 'form',
   };
-  out.standard_terms_exceptions = text(values.standard_terms_exceptions);
+  const newestForm = newestFirst(history).find(h => h.source === 'form');
+  out.standard_terms_exceptions = text(values.standard_terms_exceptions) || text(newestForm && newestForm.exceptions);
   return out;
 }
 

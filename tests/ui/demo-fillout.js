@@ -75,6 +75,7 @@ process.env.PORT = String(PORT);
 process.env.DATABASE_URL = 'postgres://pg-mem/demo';
 process.env.FILLOUT_WEBHOOK_SECRET = SECRET;
 process.env.APP_PASSWORD = '';
+process.env.LEGAL_CLEAR_KEY = 'demo-clear-key'; // a throwaway for the Legal pages tab, like the secret above
 
 (async () => {
   // Fillout's audio host: a tiny mp3-shaped file (not playable audio, but the download path is real)

@@ -136,12 +136,13 @@ const KEY_FIELDS = { phone: 'phone', quote_method: 'free_quotes', primary_catego
 
 export async function render(el, ctx) {
   const { clientId, row, summary } = ctx;
-  const sub = ctx.query.view === 'form' ? 'form' : 'values';
+  const sub = ['form', 'legal'].includes(ctx.query.view) ? ctx.query.view : 'values';
   el.innerHTML = `
     ${cantSayBox(row, summary)}
-    <div class="tabs" id="subtabs"><a class="tab${sub === 'values' ? ' active' : ''}" href="/clients/${clientId}/record" data-link>Client values</a><a class="tab${sub === 'form' ? ' active' : ''}" href="/clients/${clientId}/record?view=form" data-link>Onboarding form${ctx.client.source === 'fillout' ? '' : ' and set-up'}</a></div>
+    <div class="tabs" id="subtabs"><a class="tab${sub === 'values' ? ' active' : ''}" href="/clients/${clientId}/record" data-link>Client values</a><a class="tab${sub === 'form' ? ' active' : ''}" href="/clients/${clientId}/record?view=form" data-link>Onboarding form${ctx.client.source === 'fillout' ? '' : ' and set-up'}</a><a class="tab${sub === 'legal' ? ' active' : ''}" href="/clients/${clientId}/record?view=legal" data-link>Legal pages</a></div>
     <div id="recBody"></div>`;
   const body = el.querySelector('#recBody');
+  if (sub === 'legal') return renderLegal(body, clientId);
   if (sub === 'form') {
     body.innerHTML = `<section class="card">${recordContainer({ menu: true })}</section>`;
     const RP = await loadRecordPanels();
@@ -149,6 +150,35 @@ export async function render(el, ctx) {
     return;
   }
   return renderValues(body, ctx);
+}
+
+// Legal pages: the hold and why, Brandon's clear and adjusted wording, each filled page. Nothing here pushes.
+async function renderLegal(body, clientId) {
+  const url = `/api/clients/${clientId}/legal`;
+  const act = async (path, method, payload) => {
+    try { paint(await api(path, { method, body: payload })); toast('Saved'); } catch (e) { toast(e.message, 'bad'); }
+  };
+  const keyOf = () => (body.querySelector('#legalKey') || {}).value || '';
+  function paint(s) {
+    const exc = s.reasons.find(r => r.code === 'exceptions');
+    const head = s.held
+      ? `<div class="notice bad"><strong>${h(s.code)}: held, these pages will not be pushed</strong><ul style="margin:6px 0 0 18px">${s.reasons.map(r => `<li>${h(r.message)}</li>`).join('')}</ul></div>`
+      : '<div class="notice good"><strong>Not held.</strong> Nothing is stopping these pages.</div>';
+    const key = `<label for="legalKey">Brandon's key</label><input class="input" id="legalKey" type="password" autocomplete="off"${s.keySet ? '' : ' disabled placeholder="LEGAL_CLEAR_KEY is not set"'}>`;
+    const clearBox = exc ? card({ title: 'Clear the exception', body: `<p>Adjust the wording below first if it needs it. Clearing covers this exact text; if the client changes it, the pages are held again.</p><pre class="block">${h(s.exceptions.text)}</pre><label for="legalNote">Note (optional)</label><input class="input" id="legalNote"><div style="margin-top:10px"><button class="btn btn-primary" id="legalClear">I have read this. Clear it</button></div>` }) : '';
+    body.innerHTML = `${head}
+      ${s.defaulted.includes('uses_subcontractors') || s.defaulted.includes('late_payment_interest') ? '<div class="notice warn" style="margin-top:12px">The client has not answered on subcontractors or late payment interest, so these count as yes.</div>' : ''}
+      <div style="margin-top:16px">${card({ title: 'Adjusting needs a key', body: key })}</div>
+      ${clearBox}
+      ${s.pages.map(p => card({ title: p.title, sub: `${p.slug}${p.custom ? ' · adjusted wording for this client' : ' · master wording'}`, body: `<pre class="block" style="white-space:pre-wrap">${h(p.text)}</pre>
+        <details style="margin-top:10px"><summary>Adjust the wording for this client</summary><textarea class="input" rows="16" data-page="${attr(p.key)}">${h(p.template)}</textarea>
+        <div style="margin-top:10px"><button class="btn" data-save="${attr(p.key)}">Save wording</button>${p.custom ? ` <button class="btn" data-reset="${attr(p.key)}">Back to the master</button>` : ''}</div></details>` })).join('')}`;
+    const clearBtn = body.querySelector('#legalClear');
+    if (clearBtn) clearBtn.onclick = () => act(`${url}/clear`, 'POST', { key: keyOf(), exceptions: s.exceptions.text, note: body.querySelector('#legalNote').value });
+    body.querySelectorAll('[data-save]').forEach(b => { b.onclick = () => act(`${url}/wording/${b.dataset.save}`, 'PUT', { key: keyOf(), template: body.querySelector(`textarea[data-page="${b.dataset.save}"]`).value }); });
+    body.querySelectorAll('[data-reset]').forEach(b => { b.onclick = () => act(`${url}/wording/${b.dataset.reset}`, 'DELETE', { key: keyOf() }); });
+  }
+  paint(await api(url));
 }
 
 function cantSayBox(row, summary) {

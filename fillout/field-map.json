@@ -1247,7 +1247,7 @@
       "type": "Checkbox",
       "niche": "all",
       "panel": "quotes_process",
-      "help": "The client's sign-off on the standard terms. The legal pages are held until it is ticked. Every answer is kept with its date and time.",
+      "help": "The client's sign-off on the standard terms. The legal pages are held until the client ticks it on the form; a tick here doesn't release them. Every answer is kept with its date and time.",
       "tier": "chase"
     },
     {
