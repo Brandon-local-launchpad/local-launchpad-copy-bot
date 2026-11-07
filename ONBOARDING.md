@@ -60,13 +60,16 @@ The form asks no separate question about working practices. `confirmed_practices
   anchors and never types an id. Each block gives `<niche_key>.cat.<slug>` for
   every checkbox group (all in group `services`, so they count once), 
   `<niche_key>.most_wanted_1/2/3`, `<niche_key>.prices_voice`, and optional
-  `<niche_key>.other_services` and `<niche_key>.jobs_not_wanted` (Guttering has
-  no jobs-not-wanted; Tiling's other-services question is "Additional Services").
+  `<niche_key>.other_services` and `<niche_key>.jobs_not_wanted` (Tiling's
+  other-services question is "Additional Services"; Guttering's jobs-not-wanted
+  question arrived after the sample, id `iDad`, 7 Nov 2026).
   Plumbing & Heating keeps its original un-prefixed keys so existing records
   still work. The niche is matched by exact string equality with the dropdown
   label; anything else gets the "No field map for this niche" banner and the
   universal fields. After a form change, re-run the script with `--write`, read
-  its table, then run the fixture.
+  its table, then run the fixture. `--write` drops the checkbox `options` from the
+  niche entries, so run `node tools/fetch-fillout-options.js --write` straight after
+  it, or add a single new question to the map by hand as `iDad` was.
 - Questions are keyed by id only. Names repeat and carry suffixes like "(5)";
   the suffix is stripped for display.
 - Values are kept exactly as submitted. Blank = null, "", whitespace, [] (and a
