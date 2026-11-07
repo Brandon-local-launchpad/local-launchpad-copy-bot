@@ -11,6 +11,10 @@
 //   client_audio         our copy of each voice answer: the Fillout link and
 //                        transcript, plus where the bytes are (audio-store.js)
 //   clients              gains source, reviewed_at, archived_at
+//   client_terms_confirmations  every answer to the standard terms tick box, with
+//                        when it was given and the exceptions text at that moment.
+//                        Rows are only ever added: the written record if a client
+//                        later disputes the terms.
 //
 // receive() saves the raw body and returns at once; process() runs afterwards
 // (setImmediate in the route) and can be re-run from the inbox.
@@ -21,6 +25,7 @@ const P = require('./prices');
 const A = require('./attention');
 const R = require('./services/resolver');
 const { createAdditionalServices } = require('./additional-services');
+const L = require('../legal/onboarding');
 
 async function ensureFilloutTables(pool) {
   await pool.query(`
@@ -76,6 +81,17 @@ async function ensureFilloutTables(pool) {
     ALTER TABLE clients ADD COLUMN IF NOT EXISTS source TEXT;
     ALTER TABLE clients ADD COLUMN IF NOT EXISTS reviewed_at TIMESTAMPTZ;
     ALTER TABLE clients ADD COLUMN IF NOT EXISTS archived_at TIMESTAMPTZ;
+    CREATE TABLE IF NOT EXISTS client_terms_confirmations (
+      id             UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+      client_id      UUID NOT NULL REFERENCES clients(id) ON DELETE CASCADE,
+      confirmed      BOOLEAN NOT NULL,
+      answered_at    TIMESTAMPTZ NOT NULL,
+      source         TEXT NOT NULL,
+      submission_id  TEXT,
+      exceptions     TEXT,
+      recorded_at    TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      UNIQUE (client_id, submission_id)
+    );
   `);
 }
 
@@ -179,7 +195,8 @@ function createFilloutService({ pool, audioStore, fetchAudio = defaultFetchAudio
       await pool.query(`UPDATE fillout_submissions SET client_id = $2, niche = $3, business_name = $4, business_name_norm = $5, business_email_norm = $6, duplicate_of = $7 WHERE id = $1`,
         [sub.id, clientId, rec.niche, rec.businessName || null, nameNorm || null, emailNorm || null, duplicateOf]);
 
-      const written = await upsertFields(clientId, rec);
+      const legalFields = await recordTermsAnswer(clientId, rec, sub);
+      const written = await upsertFields(clientId, legalFields);
       const audio = await storeAudio(clientId, rec, written.skippedKeys);
 
       await pool.query(
@@ -230,6 +247,33 @@ function createFilloutService({ pool, audioStore, fetchAudio = defaultFetchAudio
       if (hit) duplicateOf = hit.id;
     }
     return { clientId: null, duplicateOf };
+  }
+
+  const termsHistory = async clientId => (await pool.query(
+    `SELECT confirmed, answered_at, source, submission_id, exceptions, recorded_at FROM client_terms_confirmations WHERE client_id = $1`, [clientId])).rows;
+
+  // Adds this submission's answer to the sign-off history, once: the time is when the client
+  // submitted, so a Reprocess neither adds a row nor moves the date. Returns the record to store.
+  // Reprocessing an older submission leaves the four answers on the record alone: an old blank
+  // must not wipe a newer tick or a newer exceptions text.
+  async function recordTermsAnswer(clientId, rec, sub) {
+    const answeredAt = new Date(rec.submissionTime || sub.received_at);
+    const history = await termsHistory(clientId);
+    const tick = rec.fields.find(f => f.key === 'standard_terms_confirmed');
+    if (tick && tick.present && !history.some(h => h.submission_id === rec.submissionId)) {
+      const notes = rec.fields.find(f => f.key === 'standard_terms_exceptions');
+      await pool.query(
+        `INSERT INTO client_terms_confirmations (client_id, confirmed, answered_at, source, submission_id, exceptions) VALUES ($1, $2, $3, 'form', $4, $5)`,
+        [clientId, tick.status === 'filled', answeredAt.toISOString(), rec.submissionId, notes && notes.value != null ? String(notes.value) : null]);
+    }
+    const older = history.some(h => h.submission_id !== rec.submissionId && new Date(h.answered_at) > answeredAt);
+    return older ? { ...rec, fields: rec.fields.filter(f => !L.FORM_KEYS.includes(f.key)) } : rec;
+  }
+
+  // What the legal pages go by: the answers, with their defaults, and the newest sign-off
+  async function legalAnswers(clientId) {
+    const { rows } = await pool.query(`SELECT field_key, value FROM client_fields WHERE client_id = $1 AND field_key = ANY($2)`, [clientId, L.FORM_KEYS]);
+    return L.legalAnswers(Object.fromEntries(rows.map(r => [r.field_key, r.value])), await termsHistory(clientId));
   }
 
   // Form values go in unless the row was edited by hand
@@ -427,6 +471,7 @@ function createFilloutService({ pool, audioStore, fetchAudio = defaultFetchAudio
          FROM fillout_submissions s LEFT JOIN clients d ON d.id = s.duplicate_of WHERE s.client_id = $1 ORDER BY s.received_at DESC`, [clientId]);
     const dupSub = subs.find(s => s.duplicate_of);
     const prices = await priceView(clientId, fields);
+    const terms = await termsHistory(clientId);
     const out = {
       client: { id: client.id, name: client.name, trade: client.trade, createdAt: client.created_at, source: client.source, reviewedAt: client.reviewed_at, archivedAt: client.archived_at },
       niche, nicheKnown: !!(niche && map.niches[niche]), completeness: I.completeness([...fields, pricesUnit(prices)]), sections, prices,
@@ -437,6 +482,9 @@ function createFilloutService({ pool, audioStore, fetchAudio = defaultFetchAudio
       // The record page's panels (fillout/field-map.json "panels"): counts by the same unit
       // rules as the headline, so the panels add up to it. The prices unit sits on Prices.
       panels: panelSummary(fields, prices),
+      // The standard terms sign-off, newest first, and what the legal pages go by (legal/onboarding.js)
+      termsConfirmations: L.newestFirst(terms).map(t => ({ confirmed: t.confirmed, answeredAt: t.answered_at, source: t.source, submissionId: t.submission_id, exceptions: t.exceptions })),
+      legalAnswers: L.legalAnswers(Object.fromEntries(fields.filter(f => L.FORM_KEYS.includes(f.key)).map(f => [f.key, f.value])), terms),
     };
     // Whether the niche has a services file (fillout/services/); without one there are no category tabs or page map
     out.servicesConfigured = !!(niche && R.configFor(niche));
@@ -640,6 +688,13 @@ function createFilloutService({ pool, audioStore, fetchAudio = defaultFetchAudio
       await pool.query(`INSERT INTO client_fields (client_id, field_key, question_id, value, status, source) VALUES ($1, $2, $3, $4, $5, 'manual')`,
         [clientId, key, f.questionId, jsonb(stored), blank ? 'blank' : 'filled']);
     }
+    // A tick typed in by hand goes on the history too, marked as by hand: it isn't the client's own answer
+    if (key === 'standard_terms_confirmed') {
+      const { rows: notes } = await pool.query(`SELECT value FROM client_fields WHERE client_id = $1 AND field_key = 'standard_terms_exceptions'`, [clientId]);
+      const note = notes.length && notes[0].value != null ? String(notes[0].value) : null;
+      await pool.query(`INSERT INTO client_terms_confirmations (client_id, confirmed, answered_at, source, exceptions) VALUES ($1, $2, $3, 'manual', $4)`,
+        [clientId, !blank, new Date().toISOString(), note]);
+    }
     return { key, value: stored, status: blank ? 'blank' : 'filled', source: 'manual' };
   }
 
@@ -709,7 +764,7 @@ function createFilloutService({ pool, audioStore, fetchAudio = defaultFetchAudio
     return servicesView(clientId);
   }
 
-  return { map, receive, saveRejected, process, recoverPending, transcribeMissing, listSubmissions, record, setField, audio, setClientFlags,
+  return { map, receive, saveRejected, process, recoverPending, transcribeMissing, listSubmissions, record, setField, legalAnswers, audio, setClientFlags,
     servicesView, setPrimaryCategory, proposeAdditional, decideAdditional,
     extractPrices, priceView: clientId => record(clientId).then(r => r && r.prices), setPriceRow, addPriceRow, deletePriceRow, setPricesNotApplicable };
 }

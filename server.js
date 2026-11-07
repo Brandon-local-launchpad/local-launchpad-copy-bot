@@ -3054,6 +3054,13 @@ const CLIENT_VALUES_TEMPLATE = {
   scan_settings: null, scan_area: '', scan_keyword_2: '',
   // The folder holding the client's sorted GBP photos: read by the Lead Snap tab (drive/), read only
   drive_photo_folder: '',
+  // The legal pages (7 Nov 2026), typed in on the Record tab. legal_entity is limited or sole_trader:
+  // business_type above is the niche type letter and is a different thing.
+  legal_entity: '', legal_name: '', company_number: '', jurisdiction: '', registered_office: '',
+  vat_number: '', ico_number: '', regulatory_body: '', regulatory_number: '', trade_body: '',
+  guarantee_months: '', quote_valid_days: '', callout_fee: '', callout_fee_amount: '',
+  deposit_threshold: '', deposit_percent: '', waste_removal: '',
+  adr_member: '', adr_body: '', adr_url: '', google_ads: '', meta_pixel: '', sms_tool: '',
 };
 
 app.get('/api/clients/:clientId/gbp-categories', async (req, res) => {
