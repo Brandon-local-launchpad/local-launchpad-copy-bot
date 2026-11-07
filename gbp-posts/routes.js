@@ -33,7 +33,7 @@ const [IN_PER_M, OUT_PER_M] = priceFor(MODEL);
 const usdFor = (input, output) => (input * IN_PER_M + output * OUT_PER_M) / 1e6;
 const estimatePence = size => pence(usdFor(INPUT_TOKENS_EACH * size * RETRY_SHARE, OUTPUT_TOKENS_EACH * size * RETRY_SHARE));
 
-function mountGbpPostsApi(app, { pool, callModel, loadInputs = null, log = console, getDrive = (() => { let d = null; return () => (d = d || createDrive()); })(), today = () => P.ukDate() }) {
+function mountGbpPostsApi(app, { pool, callModel, loadInputs = null, beforeUnapprove = null, log = console, getDrive = (() => { let d = null; return () => (d = d || createDrive()); })(), today = () => P.ukDate() }) {
   const store = createPostStore(pool);
   const autopost = createAutopostStore(pool);
   const driveStore = createDriveStore(pool);
@@ -216,6 +216,7 @@ function mountGbpPostsApi(app, { pool, callModel, loadInputs = null, log = conso
   app.post('/api/clients/:clientId/gbp-posts/batches/:batchId/unapprove', wrap(async (req, res) => {
     const { clientId, batchId } = req.params;
     await draftBatch(clientId, batchId);
+    if (beforeUnapprove) await beforeUnapprove(clientId, batchId);
     await store.unapprove(batchId);
     res.json(await view(clientId));
   }));

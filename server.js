@@ -4094,7 +4094,26 @@ if (pool && pageMapStore) {
     const answer = key => { const f = fields.find(x => x.key === key); return f && f.value != null ? f.value : ''; };
     return { I, trade: (rec && rec.niche) || (rows[0] && rows[0].trade) || '', answers: { tone: answer('tone'), words_to_avoid: answer('words_to_avoid') } };
   };
-  require('./gbp-posts/routes').mountGbpPostsApi(app, { pool, callModel: gbpPostsCallModel, loadInputs: leadSnapInputs });
+  // Publishing through bundle.social (Stage 3): nothing calls out unless BUNDLE_SOCIAL_API_KEY and
+  // GBP_PUBLISHING_ENABLED=1 are set on Railway, and then only for a client with publishing switched on
+  const PUB = require('./publisher');
+  let publishingService = null;
+  const gbpPosts = require('./gbp-posts/routes').mountGbpPostsApi(app, { pool, callModel: gbpPostsCallModel, loadInputs: leadSnapInputs, beforeUnapprove: (c, b) => publishingService.beforeUnapprove(c, b) });
+  const publishStore = require('./publisher/store').createPublishStore(pool);
+  let publisherOnce = null, driveOnce = null;
+  publishingService = require('./publisher/service').createPublishing({
+    store: publishStore, postStore: gbpPosts.store, driveStore: require('./drive/store').createDriveStore(pool),
+    getDrive: () => (driveOnce = driveOnce || require('./drive/client').createDrive()), getPublisher: () => (publisherOnce = publisherOnce || PUB.createPublisher()),
+    clientName: async id => { const { rows } = await pool.query(`SELECT name FROM clients WHERE id=$1`, [id]); return rows.length ? rows[0].name : ''; },
+    limit: () => PUB.dailyLimit(),
+  });
+  require('./publisher/routes').mountPublishingApi(app, { pool, publishing: publishingService, store: publishStore, postStore: gbpPosts.store });
+  if (PUB.enabled()) {
+    const publishTick = () => { if (Number(new Intl.DateTimeFormat('en-GB', { timeZone: 'Europe/London', hour: '2-digit', hour12: false }).format(new Date())) >= 6) publishingService.runDaily().then(r => { if (r.ran) console.log(`[publisher] daily run for ${r.summary.clients.length} client(s)`); }).catch(err => console.error('[publisher] daily run failed:', err.message)); };
+    setTimeout(publishTick, 60000);
+    setInterval(publishTick, 3600000);
+    console.log('[publisher] publishing is enabled: the daily job runs from 6am UK');
+  } else console.log('[publisher] publishing is off (BUNDLE_SOCIAL_API_KEY, GBP_PUBLISHING_ENABLED)');
   const leadSnapCallModel = args => makeCallModel(new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY }), require('./leadsnap/autopost/generate').MODEL, { onUsage: modelLog.tagged('Lead Snap autopost') })(args);
   const leadSnapPreviewCallModel = args => makeCallModel(new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY }), require('./leadsnap/autopost/generate').MODEL, { onUsage: modelLog.tagged('Lead Snap preview') })(args);
   require('./leadsnap/autopost/routes').mountLeadSnapApi(app, { pool, saveClientValue, callModel: leadSnapCallModel, previewCallModel: leadSnapPreviewCallModel, loadInputs: leadSnapInputs });
