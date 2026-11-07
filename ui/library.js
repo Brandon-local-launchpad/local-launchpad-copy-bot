@@ -105,12 +105,12 @@ function modelRouting() {
   const PM = require('../page-models');
   const read = (file, re) => { try { const m = fs.readFileSync(path.join(ROOT, file), 'utf8').match(re); return m ? m[1] : null; } catch (_) { return null; } };
   return [
-    { call: 'Homepage (CORE 20)', model: PM.forPage('homepage').model, where: 'page-models.json' },
-    { call: 'Category pages (CORE 16)', model: PM.forPage('category').model, where: 'page-models.json' },
-    { call: 'Service pages (CORE 17)', model: PM.forPage('service').model, where: 'page-models.json' },
-    { call: 'Location pages (CORE 18)', model: PM.forPage('location').model, where: 'page-models.json' },
+    { call: 'Homepage (CORE 20)', model: PM.forPage('homepage').model, where: `page-models.json, effort ${PM.forPage('homepage').effort}` },
+    { call: 'Category pages (CORE 16)', model: PM.forPage('category').model, where: `page-models.json, effort ${PM.forPage('category').effort}` },
+    { call: 'Service pages (CORE 17)', model: PM.forPage('service').model, where: `page-models.json, effort ${PM.forPage('service').effort}` },
+    { call: 'Location pages (CORE 18)', model: PM.forPage('location').model, where: `page-models.json, effort ${PM.forPage('location').effort}` },
     { call: 'Field retries', model: 'the page type\'s writer', where: 'page-models.json (block_rewrite for a field with a BLOCK)' },
-    { call: 'Quality review (the rubric judge)', model: PM.judge().model, where: 'page-models.json' },
+    { call: 'Quality review (the rubric judge)', model: PM.judge().model, where: `page-models.json, effort ${PM.judge().effort}` },
     { call: 'Claims review', model: 'the page type\'s writer', where: 'wp/claims-review.js' },
     { call: 'Allocation pass', model: read('allocation.js', /ALLOCATION_MODEL\s*=\s*'([^']+)'/), where: 'allocation.js' },
     { call: 'FAQ sorting', model: read('faq-sort.js', /FAQ_SORT_MODEL\s*=\s*'([^']+)'/), where: 'faq-sort.js' },
