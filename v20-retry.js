@@ -17,7 +17,7 @@ const validateV20 = (record, V) => pageTypeOf(record).validate(record, V);
 const rangesFor = (record, V = null) => effectiveRanges(record, V) || {};
 
 // 3 since 16 Oct (copy quality loop: flags were left after 2)
-const MAX_RETRIES = 3;
+const MAX_RETRIES = 2; // the blog rule (Brandon, 7 Nov 2026)
 let CONCURRENCY = 4;
 // tools/site-batch-build.js only: a retry round goes up as one batch, not four at a time
 const setRetryConcurrency = n => { CONCURRENCY = n; };
@@ -130,9 +130,9 @@ async function runRetries({ record, V, callRetry, maxRetries = MAX_RETRIES, conc
         const r = await callRetry({ message: buildRetryMessage(f, problems, base, V.D, earlier, V), hasBlock: g.issues.some(i => i.type === 'BLOCK') });
         usage.calls++;
         for (const k of ['input_tokens', 'output_tokens', 'cache_read_input_tokens']) usage[k] += (r.usage && r.usage[k]) || 0;
-        return { label, f, problems, before: f.text, after: parseRetryReply(r.text, f.ref), raw: r.text || '' };
+        return { label, f, problems, checks: [...new Set(g.issues.map(i => i.check))], before: f.text, after: parseRetryReply(r.text, f.ref), raw: r.text || '' };
       } catch (e) {
-        return { label, f, problems, before: f.text, after: null, error: e.message };
+        return { label, f, problems, checks: [...new Set(g.issues.map(i => i.check))], before: f.text, after: null, error: e.message };
       }
     });
 
@@ -385,4 +385,63 @@ function validationSummary(issues, log, usage) {
   };
 }
 
-module.exports = { setRetryConcurrency, runRetries, runClaimRetries, runFlagPass, runTargetedPass, runQualityRetries, buildRetryMessage, parseRetryReply, loadRetryPrompt, validationSummary, MAX_RETRIES, FLAG_PASS };
+// ── The one style pass (Brandon, 7 Nov 2026) ─────────────────────────────────
+// After the BLOCKs and claims: one call that rewrites every field still carrying a flag, with all its flags,
+// then a recheck. A rewrite is kept only when its field has fewer flags, the page's flags don't rise and no
+// BLOCK appears. No second round: what is left goes to "Edit before publishing".
+function parseStyleReply(text, count) {
+  const out = new Map();
+  const re = /^\s*\**FIELD (\d+)\**:\s*/gm;
+  const marks = [...String(text || '').matchAll(re)];
+  marks.forEach((m, i) => {
+    const n = parseInt(m[1], 10);
+    if (n < 1 || n > count) return;
+    const end = i + 1 < marks.length ? marks[i + 1].index : text.length;
+    const body = text.slice(m.index + m[0].length, end).trim().replace(/\\n/g, '\n').replace(/\n{3,}/g, '\n\n');
+    if (body) out.set(n, body);
+  });
+  return out;
+}
+async function runStylePass({ record, V, callStyle, validate = null }) {
+  const check = validate || (rec => validateV20(rec, V));
+  const flagsOf = rec => check(rec).filter(i => i.type === 'FLAG');
+  const blocksOn = rec => check(rec).filter(i => i.type === 'BLOCK').length;
+  const log = [];
+  const issues = flagsOf(record);
+  const before = issues.length;
+  const byField = new Map();
+  for (const i of issues) {
+    if (!i.ref) continue;
+    if (!byField.has(i.field)) byField.set(i.field, []);
+    byField.get(i.field).push(i);
+  }
+  if (!byField.size) return { log, before, after: before, kept: 0, rejected: 0, fields: 0, reason: 'nothing to do' };
+  const all = modelFields(record);
+  const targets = [...byField.entries()].map(([label, list]) => ({ f: all.find(x => x.label === label), list })).filter(t => t.f);
+  const message = [
+    'STYLE PASS. This call rewrites several fields at once, and the one line reply format above does not apply. Fix the problems listed for each field. Keep every fact, link, [CV: x] token and the field\'s word range. Change as little as you can.',
+    '',
+    ...targets.flatMap((t, i) => [`FIELD ${i + 1}: ${t.f.label}${rangeText(t.f, V.D, record, V) ? ` (${rangeText(t.f, V.D, record, V)})` : ''}`, 'CURRENT TEXT:', t.f.text.replace(/\n\n/g, '\\n\\n'), 'PROBLEMS:', ...[...new Set(t.list.map(i => i.message))].map(p => `- ${p}`), '']),
+    'FIELDS THAT STAY AS THEY ARE (never reuse their wording):',
+    ...all.filter(o => !byField.has(o.label)).map(o => `${o.label}: ${o.text.replace(/\n\n/g, '\\n\\n')}`),
+    '',
+    `Reply with one entry per field, numbered as above and nothing else: "FIELD 1: <the new text>" on its own line, through FIELD ${targets.length}. Never write a label or field name inside the text.`,
+  ].join('\n');
+  const r = await callStyle({ message });
+  const replies = parseStyleReply(r.text, targets.length);
+  let kept = 0, rejected = 0;
+  targets.forEach((t, i) => {
+    const after = replies.get(i + 1);
+    const entry = { round: 'style', source: 'style', field: t.f.label, checks: [...new Set(t.list.map(x => x.check))], problems: [...new Set(t.list.map(x => x.message))], before: t.f.text, after: after || null, kept: false };
+    if (!after) { entry.error = 'no reply for this field'; rejected++; log.push(entry); return; }
+    const cand = clone(record);
+    setField(cand, t.f.ref, after);
+    const inField = rec => flagsOf(rec).filter(x => x.field === t.f.label).length;
+    if (inField(cand) < inField(record) && flagsOf(cand).length <= flagsOf(record).length && blocksOn(cand) <= blocksOn(record)) { setField(record, t.f.ref, after); entry.kept = true; kept++; }
+    else { entry.error = 'the rewrite did not clear flags, or added one elsewhere'; rejected++; }
+    log.push(entry);
+  });
+  return { log, before, after: flagsOf(record).length, kept, rejected, fields: targets.length };
+}
+
+module.exports = { runStylePass, parseStyleReply, setRetryConcurrency, runRetries, runClaimRetries, runFlagPass, runTargetedPass, runQualityRetries, buildRetryMessage, parseRetryReply, loadRetryPrompt, validationSummary, MAX_RETRIES, FLAG_PASS };

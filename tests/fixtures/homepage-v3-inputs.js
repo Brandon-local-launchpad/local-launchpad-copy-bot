@@ -12,7 +12,8 @@ const { buildValidationContext } = require(path.join(root, 'validate-v20.js'));
 const V20 = require(path.join(root, 'v20-generate.js'));
 const E = require(path.join(__dirname, 'data/edens-edge-acceptance.js'));
 const landscaper = require(path.join(root, 'niche-library/landscaper.json'));
-const { rows } = require(path.join(__dirname, 'data/edens-edge-v3-page-map.json'));
+// The location pages count as built here; page-models.js covers the unbuilt ones
+const rows = require(path.join(__dirname, 'data/edens-edge-v3-page-map.json')).rows.map(r => (r.type === 'location' ? { ...r, status: 'Live' } : r));
 
 let pass = 0, fail = 0;
 const chk = (label, ok, got, want) => {
@@ -50,7 +51,7 @@ const P = ctx.pages;
 const byType = t => P.filter(p => p.pageType === t);
 same('pages by type (no town service pages; retired rows left out)', ['homepage', 'category', 'service', 'location', 'location-category'].map(t => `${t}:${byType(t).length}`), ['homepage:1', 'category:6', 'service:31', 'location:13', 'location-category:78']);
 chk('a phase 2 location is "Not built" (plain text, never linkable)', byType('location').find(p => p.pageTitle === 'Ampfield').status === 'Not built', byType('location').find(p => p.pageTitle === 'Ampfield').status, 'Not built');
-chk('a phase 1 location keeps its v3 status', byType('location').find(p => p.pageTitle === 'Romsey').status === 'H1 Added', byType('location').find(p => p.pageTitle === 'Romsey').status, 'H1 Added');
+chk('a phase 1 location that is built keeps its v3 status', byType('location').find(p => p.pageTitle === 'Romsey').status === 'Live', byType('location').find(p => p.pageTitle === 'Romsey').status, 'H1 Added');
 chk('the homepage row carries the v3 H1', byType('homepage')[0].h1 === 'Landscaper Southampton', byType('homepage')[0].h1, 'Landscaper Southampton');
 chk('location category rows carry town and category', byType('location-category')[0].locationName && byType('location-category')[0].locationCategoryName, JSON.stringify(byType('location-category')[0]), 'town + category');
 

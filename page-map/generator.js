@@ -34,6 +34,9 @@ const { slugify, pageKey, cleanTowns } = require('./slugs');
 const TYPES = ['homepage', 'category', 'service', 'location', 'location_category', 'town_service'];
 const TYPE_LABEL = { homepage: 'Homepage', category: 'Category', service: 'Service', location: 'Location', location_category: 'Location Category', town_service: 'Town Service' };
 const STATUSES = ['Not Started', 'H1 Added', 'Copy Generated', 'Pushed to WordPress', 'Live'];
+// A location page is linkable once it exists on the site: pushed (built) or live (published) (Brandon, 7 Nov 2026)
+const BUILT_STATUSES = new Set(['Pushed to WordPress', 'Live']);
+const isBuiltLocation = r => !!r && r.type === 'location' && BUILT_STATUSES.has(r.status);
 // The old PAGE MAP tab's columns, in its order, then the v3 link sections copy generation reads
 const CSV_COLUMNS = ['Page Type', 'Page Title', 'URL Slug', 'H1 (Ahrefs)', 'Meta Title', 'Meta Description', 'Links TO', 'Links FROM', 'Status', 'Breadcrumb', 'Cards', 'Areas Block', 'More Services', 'Body Links', 'Mentioned Services', 'Launch Phase', 'WordPress Status'];
 const WP_STATUS = { 1: 'publish', 2: 'draft + noindex' };
@@ -273,4 +276,4 @@ function identityOf(row) {
   return null;
 }
 
-module.exports = { TYPES, TYPE_LABEL, STATUSES, CSV_COLUMNS, WP_STATUS, slugify, pageKey, cleanTowns, contextFor, keywordsFor, buildPageMap, diffPlan, toCsv, identityOf };
+module.exports = { BUILT_STATUSES, isBuiltLocation, TYPES, TYPE_LABEL, STATUSES, CSV_COLUMNS, WP_STATUS, slugify, pageKey, cleanTowns, contextFor, keywordsFor, buildPageMap, diffPlan, toCsv, identityOf };

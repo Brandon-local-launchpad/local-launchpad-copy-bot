@@ -72,6 +72,7 @@ const NEEDS_A_PLACE = new Set(['in', 'across', 'around', 'throughout', 'near', '
 function hardChecks(record, V, { issue, fields }) {
   const cv = (V && V.cv) || {};
   const pageMap = V && V.D && Array.isArray(V.D.pageMapUrls) && V.D.pageMapUrls.length ? new Set(V.D.pageMapUrls.map(norm)) : null;
+  const unbuilt = new Set(((V && V.D && V.D.unbuiltLocationUrls) || []).map(norm));
   const headings = headingsOf(record);
   const flagsOf = record.FLAGS || [];
 
@@ -100,10 +101,9 @@ function hardChecks(record, V, { issue, fields }) {
         break;
       }
     }
-    if (pageMap) {
-      for (const m of t.matchAll(/\]\((\/[^)\s]*)\)/g)) {
-        if (!pageMap.has(norm(m[1]))) block('LINK-MAP', `Links to ${m[1]}, which is not on the page map.`);
-      }
+    for (const m of t.matchAll(/\]\((\/[^)\s]*)\)/g)) {
+      if (unbuilt.has(norm(m[1]))) block('LINK-MAP', `Links to ${m[1]}, a location page that isn't built yet. Name the town in plain words.`);
+      else if (pageMap && !pageMap.has(norm(m[1]))) block('LINK-MAP', `Links to ${m[1]}, which is not on the page map.`);
     }
   }
 
@@ -114,7 +114,7 @@ function hardChecks(record, V, { issue, fields }) {
       if (/_links$/.test(k) && Array.isArray(v)) for (const x of v) if (x && x.url) placed.push(x.url);
       if (k === 'more_cards' && Array.isArray(v)) for (const x of v) if (x && x.url) placed.push(x.url);
     }
-    for (const u of new Set(placed)) if (/^\//.test(u) && !pageMap.has(norm(u))) issue('BLOCK', 'LINK-MAP', 'code placed links', `Code placed a link to ${u}, which is not on the page map.`);
+    for (const u of new Set(placed)) if (/^\//.test(u) && (!pageMap.has(norm(u)) || unbuilt.has(norm(u)))) issue('BLOCK', 'LINK-MAP', 'code placed links', `Code placed a link to ${u}, which is ${unbuilt.has(norm(u)) ? 'a location page that isn\'t built yet' : 'not on the page map'}.`);
   }
 
   // What the parser found missing: nothing was written for a section the page shows

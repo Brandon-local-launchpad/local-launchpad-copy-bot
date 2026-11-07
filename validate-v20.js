@@ -32,10 +32,11 @@ const { practiceClaims } = require('./practices');
 const { isAdminArea } = require('./client-files');
 const { confirmedServiceList } = require('./service-words');
 
-const RETRY_FLAGS = new Set(['N7', 'N13', 'N14', 'N15', 'N17', 'N18', 'N19', 'N21', 'N22', 'N23', 'N24',
-  '1b', 'HERO', 'SERVICE', 'TRUST-REPEAT', 'PROOF-REPEAT', 'RAW-GBP', 'CARD-COUNT', 'COAST', 'HUB-LINK', 'RESEARCH-LANG', 'REPEAT-IN',
-  'FINAL-CTA', 'CARD-FILLER', 'MORE-REPEAT', 'CB-SERVICES', 'PRACTICE-REPEAT', 'FAQ-PAD', 'INTRO-PAD', 'PAD-OPENER', 'SCENERY',
-  'CARD-LOCAL', 'LINK-TEXT', 'CARD-PICK', 'REPEAT-PAGE', 'CARD-PATTERN', 'OUTCOME', 'AREA-ADMIN', 'PRICE-FIRST']);
+// Flags that send a field back to the model (Brandon, 7 Nov 2026): facts and claims, the copy rules code must
+// hold to, the word ranges, the page's structure and keyword. Every other flag waits for the one style pass.
+// A sentence over the soft cap is N7 but style: see isRetryIssue.
+const RETRY_FLAGS = new Set(['N7', 'N15', 'N19', 'N22', 'OUTCOME', 'SERVICE', 'RAW-GBP', 'COAST', 'AREA-ADMIN', 'CARD-COUNT', 'CARD-PICK', 'HERO']);
+const isRetryIssue = (type, check, message) => type === 'BLOCK' || (RETRY_FLAGS.has(check) && !(check === 'N7' && /soft cap/.test(message || '')));
 //   INSURANCE     BLOCK  insurance mentioned with no insurance_cover on file
 //   RIVALS        BLOCK  (15 Oct) the copy tells the reader to get other quotes, compare firms or shop around
 //   (15 Oct, second Edens Edge review)
@@ -390,7 +391,7 @@ function buildValidationContext({ cv, niche, decisions, keyValueMap = {}, servic
 function validateCommon(record, V) {
   const issues = [];
   const issue = (type, check, field, message, ref = null) => issues.push({
-    type, check, field, ref, message, retry: !!ref && (type === 'BLOCK' || RETRY_FLAGS.has(check)),
+    type, check, field, ref, message, retry: !!ref && isRetryIssue(type, check, message),
   });
   if (record.blocked) return { issues, issue, fields: [] };
   const { cv, niche, D } = V;

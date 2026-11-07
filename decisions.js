@@ -568,6 +568,12 @@ function buildD14Town(pages, keyValueMap) {
     const page = getPage(area);
     if (page && isLinkable(page)) return { name: stripAdmin(area), url: page.urlSlug || '' };
   }
+  // A launch location not built yet keeps the hero, without a link (Brandon, 7 Nov 2026)
+  for (const area of gbpAreas) {
+    if (!eligible(area)) continue;
+    const page = getPage(area);
+    if (page && page.v3 && page.v3.phase === 1) return { name: stripAdmin(area), url: '' };
+  }
   // Second pass: any eligible area with a location page (even not yet linkable)
   for (const area of gbpAreas) {
     if (!eligible(area)) continue;
@@ -947,6 +953,7 @@ function computeDecisions({ cv, niche, pages, keyValueMap, serviceParentMap, v20
 
   const decisions = {
     pageMapUrls: pages.map(p => p.urlSlug).filter(Boolean),
+    unbuiltLocationUrls: pages.filter(p => p.pageType === 'location' && getLinkStatus(p) === 'Not built').map(p => p.urlSlug).filter(Boolean),
     d1_years_trading:    yearsTrading,
     // The page map's target keyword; a typed H1 override is the keyword itself
     target_keyword: require('./h1-research/research').targetKeyword({ h1: d2_h1, keyword: h1Override ? '' : (homepage && homepage.h1Keyword) || '' }),

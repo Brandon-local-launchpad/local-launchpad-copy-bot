@@ -13,6 +13,8 @@ const { sentences } = helpers;
 
 // The code items the targeted round rewrites, on top of every BLOCK
 const TARGET_ITEMS = ['Y2', 'P3', 'P4', 'P5', 'F1', 'Y11', 'Y12', 'K1', 'I1', 'S7', 'B3'];
+// Style items: they go to "Edit before publishing" and never gate the verdict (Brandon, 7 Nov 2026)
+const STYLE_ITEMS = new Set(['Y2', 'P3', 'P4', 'P5', 'F1', 'Y11', 'Y12']);
 const LABEL = { ready: 'Ready to edit', block: 'Has a BLOCK', run: 'Needs another run' };
 
 // How many claims a person still has to accept: a count, or 1 when the review failed or only the mark sheet is known
@@ -28,7 +30,7 @@ function openClaims(claims, failures) {
 function verdictFor({ block = 0, failures = [], claims = null } = {}) {
   const failed = (failures || []).filter(i => i && i.pass !== true);
   const open = openClaims(claims, failed);
-  const code = failed.filter(i => i.by === 'code' && i.id !== 'C9');
+  const code = failed.filter(i => i.by === 'code' && i.id !== 'C9' && !STYLE_ITEMS.has(i.id));
   const judge = failed.filter(i => i.by !== 'code');
   const state = block > 0 ? 'block' : code.length ? 'run' : 'ready';
   const reasons = [];
@@ -103,7 +105,8 @@ function editList({ record, issues = [], judge = [], codeFailed = [] }) {
   };
   const named = new Set();
   for (const c of codeFailed) for (const i of c.issues || []) { named.add(i); codeEntry(c.id, i); }
-  for (const i of issues) if (i.type === 'BLOCK' && !named.has(i)) codeEntry(i.check, i);
+  // A BLOCK, and any flag the style pass left, under its own check
+  for (const i of issues) if ((i.type === 'BLOCK' || i.type === 'FLAG') && !named.has(i)) codeEntry(i.check, i);
   const edited = !!(record.meta && record.meta.edited_at);
   for (const j of judge) {
     for (const r of j.reasons || []) {
@@ -142,4 +145,4 @@ function verdictOfRecord(record) {
   return verdictFor({ block: (record.VALIDATION && record.VALIDATION.block) || 0, failures: Q.failures || [], claims: record.CLAIMS || null });
 }
 
-module.exports = { verdictFor, verdictLine, verdictOfRecord, liveVerdict, editList, editListLines, locate, TARGET_ITEMS, LABEL };
+module.exports = { verdictFor, verdictLine, verdictOfRecord, liveVerdict, editList, editListLines, locate, TARGET_ITEMS, STYLE_ITEMS, LABEL };

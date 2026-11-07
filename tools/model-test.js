@@ -244,7 +244,7 @@ function meteredCall(defaults, sink, roleOf, apiClient = anthropic) {
     return r;
   };
 }
-const roleFor = args => (typeof args.system === 'string' ? 'claims' : (args.maxTokens || 0) <= 2048 ? 'retry' : 'writer');
+const roleFor = args => args.role || (typeof args.system === 'string' ? 'claims' : (args.maxTokens || 0) <= 2048 ? 'retry' : 'writer');
 
 async function writeOne(page, setupKey, prep) {
   const s = ALL_SETUPS[setupKey];

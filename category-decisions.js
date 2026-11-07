@@ -289,7 +289,7 @@ function computeCategoryDecisions({ cv, niche, keyValueMap = {}, rows = [], page
   // ── Links ──
   const homepage = applies.find(r => r.type === 'homepage');
   const siblingsBase = applies.filter(r => r.type === 'category' && live(r) && r.info && r.info.category_key !== catKey);
-  const locPage = scope === 'town' ? applies.find(r => r.type === 'location' && live(r) && normArea(r.title) === normArea(townName)) : null;
+  const locPage = scope === 'town' ? applies.find(r => r.type === 'location' && live(r) && require('./page-map/generator').isBuiltLocation(r) && normArea(r.title) === normArea(townName)) : null;
   const siblingsTown = scope === 'town' ? applies.filter(r => r.type === 'location_category' && live(r) && lc(r.info && r.info.town) === lc(townName) && r.info.category_key !== catKey) : [];
   const myLocCats = locCats.filter(live);
   const linkable = [];
@@ -333,7 +333,7 @@ function computeCategoryDecisions({ cv, niche, keyValueMap = {}, rows = [], page
     niche_steps: steps,
     areas, faq: faqs,
     allocated, thin: !allocated.neighbourhoods.length, overrideUsed: !!blocks.overrideUsed, ideasUsed: Array.isArray(ideasUsed) ? ideasUsed : [],
-    contentLinks, locationLinks, linkablePages, pageMapUrls: (rows || []).map(r => r.slug).filter(Boolean),
+    contentLinks, locationLinks, linkablePages, pageMapUrls: (rows || []).map(r => r.slug).filter(Boolean), unbuiltLocationUrls: (rows || []).filter(r => r.type === 'location' && !require('./page-map/generator').isBuiltLocation(r)).map(r => r.slug).filter(Boolean),
     quoteFree, emergencyOn, emergencyWhy, coastal: cv.coastal_city === 'yes',
     seasonal: seasonal.swapped,
     trade_facts: tradeFacts ? { file: tradeFacts.file || null, verified: !!tradeFacts.verified, missing: tradeFacts.missing || [], included: !!tradeFacts.verified } : null,

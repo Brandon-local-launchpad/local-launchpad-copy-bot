@@ -203,7 +203,7 @@ function validationContextFor({ cv, niche, decisions, keyValueMap, serviceParent
 
 // Generate the homepage record. `callModel({ system, message, maxTokens })` returns
 // { text, usage }. With a failed gate there is no call: the record holds the gates.
-async function generateV20Homepage({ modelConfig = PM.forPage('homepage'), cv, niche, keyValueMap, serviceParentMap = {}, decisionsResult, calibrationPack, calibrationPackName, callModel, extraFlags = [], allocationSource = null, retries = true, claimsReview = true, qualityReview = false, flagPass = true }) {
+async function generateV20Homepage({ modelConfig = PM.forPage('homepage'), cv, niche, keyValueMap, serviceParentMap = {}, decisionsResult, calibrationPack, calibrationPackName, callModel, extraFlags = [], allocationSource = null, retries = true, claimsReview = true, qualityReview = false }) {
   const { buildPageRecord, expectedFromDecisions } = require('./v20-record');
   const { parseV20Output } = require('./v20-parse');
   const { validateV20 } = require('./validate-v20');
@@ -239,89 +239,14 @@ async function generateV20Homepage({ modelConfig = PM.forPage('homepage'), cv, n
 
   // Stage 7: validate, then rewrite failing fields one at a time (brief §6b)
   const V = validationContextFor({ cv, niche, decisions: D, keyValueMap, serviceParentMap, calibrationPack });
+  record.meta.hyphens_fixed = require('./fix-hyphens').fixHyphens(record, V);
   record.meta.first_draft_validation = (() => { const i = validateV20(record, V); return { block: i.filter(x => x.type === 'BLOCK').length, flag: i.filter(x => x.type === 'FLAG').length }; })();
   if (retries) {
     const retrySystem = [
       req.system[0], req.system[1],
       { type: 'text', text: `${loadRetryPrompt()}\n\nTHE PAGE'S MESSAGE (PAGE, DECISIONS, LINKABLE PAGES, ALLOCATED ITEMS, MODEL FIELDS):\n\n${decisionsResult.decisionsBlock}`, cache_control: { type: 'ephemeral' } },
     ];
-    const callRetry = PM.retryCaller(callModel, retrySystem, modelConfig);
-    const { log, usage: retryUsage, finalIssues } = await runRetries({ record, V, callRetry });
-    record.VALIDATION = validationSummary(finalIssues, log, retryUsage);
-
-    // Claims review: findings go back through the per-field retries, the page is
-    // reviewed again, and only what's left needs a person to accept it
-    if (claimsReview) {
-      const { runClaimRetries } = require('./v20-retry');
-      const { runClaimsReview, factsFromRecord } = require('./wp/claims-review');
-      const review = rec => runClaimsReview(rec, factsFromRecord(rec), callModel);
-      try {
-        const { claims, rounds, first } = await runClaimRetries({ record, V, callRetry, review });
-        record.CLAIMS = {
-          for: meta.generated_at, at: claims.at,
-          status: claims.findings.length ? 'needs acceptance' : 'clear',
-          first_review: first, findings: claims.findings, rounds,
-        };
-        // The claim rewrites changed fields: one more round of field retries on what they
-        // broke (16 Oct, copy quality loop), then validate the page as it now stands
-        const after = rounds.some(r => r.retries.some(x => x.kept)) ? await runRetries({ record, V, callRetry, maxRetries: 1 }) : { log: [] };
-        record.VALIDATION = validationSummary(validateV20(record, V), [...log, ...rounds.flatMap(r => r.retries.map(x => ({ ...x, problems: x.claims, source: 'claims' }))), ...after.log.map(x => ({ ...x, round: `after claims ${x.round}` }))], retryUsage);
-      } catch (e) {
-        // A failed review never loses the page: it's saved, and the push asks for the review again
-        record.CLAIMS = { for: meta.generated_at, status: 'failed', error: e.message, findings: [] };
-      }
-    }
-
-    // Quality review (16 Oct, docs/seo/COPY_QUALITY_RUBRIC.md): the rubric reviewer reads the
-    // page, the fields it quotes are rewritten and the page is reviewed again; then the
-    // claims check runs once more on what the rewrites changed
-    // Flag pass (4 Nov 2026, copy quality 2): the fields still carrying FLAGs after the BLOCKs and the
-    // claims are dealt with get one targeted rewrite each, with their flag messages; kept only when the
-    // field's flags drop and the page gains no BLOCK
-    if (flagPass) {
-      const { runFlagPass } = require('./v20-retry');
-      try {
-        const fp = await runFlagPass({ record, V, callRetry, validate: rec => validateV20(rec, V) });
-        record.meta.flag_pass = { before: fp.before, after: fp.after, kept: fp.kept, calls: fp.usage.calls };
-        record.VALIDATION = validationSummary(validateV20(record, V), [...((record.VALIDATION && record.VALIDATION.retries) || []), ...fp.log.map(x => ({ ...x, round: `flag pass ${x.round}` }))], retryUsage);
-      } catch (e) { record.meta.flag_pass = { error: e.message }; }
-      // The targeted round (copy quality 5), then the claims review reads the text as it now stands
-      const { runTargetedPass } = require('./v20-retry');
-      try {
-        const tp = await runTargetedPass({ record, V, callRetry, validate: rec => validateV20(rec, V) });
-        record.meta.targeted_pass = { before: tp.before, after: tp.after, kept: tp.kept, calls: tp.usage.calls, left: tp.left };
-        record.VALIDATION = validationSummary(validateV20(record, V), [...((record.VALIDATION && record.VALIDATION.retries) || []), ...tp.log.map(x => ({ ...x, round: 'targeted' }))], retryUsage);
-        if (claimsReview && (tp.kept || (record.meta.flag_pass && record.meta.flag_pass.kept))) {
-          const { runClaimsReview, factsFromRecord } = require('./wp/claims-review');
-          const claims = await runClaimsReview(record, factsFromRecord(record), callModel);
-          record.CLAIMS = { ...(record.CLAIMS || {}), at: claims.at, status: claims.findings.length ? 'needs acceptance' : 'clear', findings: claims.findings };
-        }
-      } catch (e) { record.meta.targeted_pass = { error: e.message }; }
-    }
-    if (qualityReview) {
-      const { runQualityRetries, runClaimRetries } = require('./v20-retry');
-      const Q = require('./quality-review');
-      try {
-        const { review: rv, rounds: qRounds } = await runQualityRetries({ record, V, callRetry, review: rec => Q.reviewPage({ record: rec, V, D, cv, niche, callModel }) });
-        record.QUALITY = {
-          at: rv.at, verdict: rv.verdict, edit_list: rv.edit_list, score_writing: rv.score_writing, model: rv.model, score: rv.score, done: rv.done, failed: rv.failed,
-          failures: rv.items.filter(i => !i.pass), other_problems: rv.other_problems, missing_facts: rv.missing_facts, rounds: qRounds,
-        };
-        if (claimsReview && qRounds.some(r => r.retries.some(x => x.kept))) {
-          const { runClaimsReview, factsFromRecord } = require('./wp/claims-review');
-          const { claims, rounds } = await runClaimRetries({ record, V, callRetry, review: rec => runClaimsReview(rec, factsFromRecord(rec), callModel), maxRounds: 1 });
-          record.CLAIMS = {
-            ...(record.CLAIMS || {}), at: claims.at,
-            status: claims.findings.length ? 'needs acceptance' : 'clear',
-            findings: claims.findings, rounds: [...((record.CLAIMS || {}).rounds || []), ...rounds.map(r => ({ ...r, round: `after quality ${r.round}` }))],
-          };
-        }
-        const earlier = (record.VALIDATION && record.VALIDATION.retries) || [];
-        record.VALIDATION = validationSummary(validateV20(record, V), [...earlier, ...qRounds.flatMap(r => r.retries.map(x => ({ ...x, round: `quality ${x.round}`, source: 'quality' })))], retryUsage);
-      } catch (e) {
-        record.QUALITY = { status: 'failed', error: e.message };
-      }
-    }
+    await require('./page-passes').runPagePasses({ record, V, retrySystem, callModel, modelConfig, validate: rec => validateV20(rec, V), claimsReview, qualityReview, D, cv, niche, generatedAt: meta.generated_at });
   } else {
     record.VALIDATION = validationSummary(validateV20(record, V), [], null);
   }

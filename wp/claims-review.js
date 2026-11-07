@@ -24,8 +24,7 @@ function loadClaimsPrompt() {
 
 // facts: { clientBlock?: string, research?: string } — the client block the page was
 // written with (record.meta.client_block) holds the values, practices and services
-function buildClaimsMessage(record, facts) {
-  const fields = modelFields(record);
+function buildClaimsFacts(facts) {
   return [
     'FACTS ON FILE:',
     facts.clientBlock || '(no client block on file)',
@@ -35,10 +34,13 @@ function buildClaimsMessage(record, facts) {
     '',
     'DECISIONS MADE BY CODE (given):',
     facts.decisions || '(none)',
-    '',
-    'PAGE COPY:',
-    ...fields.map(f => `${f.label}: ${f.text.replace(/\n\n/g, ' ')}`),
   ].join('\n');
+}
+function buildClaimsPage(record) {
+  return ['PAGE COPY:', ...modelFields(record).map(f => `${f.label}: ${f.text.replace(/\n\n/g, ' ')}`)].join('\n');
+}
+function buildClaimsMessage(record, facts) {
+  return `${buildClaimsFacts(facts)}\n\n${buildClaimsPage(record)}`;
 }
 
 const norm = s => String(s || '').replace(/[‘’]/g, "'").replace(/[“”]/g, '"').replace(/\s+/g, ' ').trim().toLowerCase();
@@ -124,7 +126,9 @@ function parseFindings(text, record) {
 
 // callModel({ system, message, maxTokens }) → { text, usage }
 async function runClaimsReview(record, facts, callModel) {
-  const r = await callModel({ system: loadClaimsPrompt(), message: buildClaimsMessage(record, facts), maxTokens: 2048 });
+  // Cached (7 Nov 2026): the prompt and the facts stay the same for every review of a page; only the copy changes
+  const system = [{ type: 'text', text: loadClaimsPrompt() }, { type: 'text', text: buildClaimsFacts(facts), cache_control: { type: 'ephemeral' } }];
+  const r = await callModel({ system, message: buildClaimsPage(record), maxTokens: 2048, role: 'claims' });
   const { findings, dropped } = parseFindings(r.text, record);
   // `for` ties the review to this version of the page; the push refuses a review of another version
   return { for: versionOf(record), at: new Date().toISOString(), model: CLAIMS_MODEL, findings, dropped: dropped.length, usage: r.usage || null };

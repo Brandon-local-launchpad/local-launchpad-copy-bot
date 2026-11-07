@@ -29,7 +29,7 @@
 //   H1 and area list checks on the code fields (report only)
 
 const { validateCommon, sharedCrossChecks, helpers, RETRY_FLAGS } = require('./validate-v20');
-for (const c of ['HERO-SVC', 'KEYWORD', 'CB-LINKS', 'CB-PARA3', 'ITEM-REPEAT', 'TIMING']) RETRY_FLAGS.add(c);
+for (const c of ['HERO-SVC', 'KEYWORD', 'CB-LINKS', 'CB-PARA3']) RETRY_FLAGS.add(c);
 const { LABELS } = require('./page-types/service');
 const { matchIdea, contentWords } = require('./ideas');
 const { isAdminArea } = require('./client-files');

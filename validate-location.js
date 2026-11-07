@@ -36,7 +36,7 @@
 //   H1 checks on the code fields (report only)
 
 const { validateCommon, sharedCrossChecks, helpers, RETRY_FLAGS } = require('./validate-v20');
-for (const c of ['HERO-LOC', 'KEYWORD', 'CB-LINKS', 'INTRO-SENTENCES', 'TOWN-COUNT', 'HOW-DONE', 'FAQ-TOWN-LINK', 'CAUSE-HOME']) RETRY_FLAGS.add(c);
+for (const c of ['HERO-LOC', 'KEYWORD', 'CB-LINKS', 'TOWN-COUNT', 'HOW-DONE']) RETRY_FLAGS.add(c);
 const { LABELS } = require('./page-types/location');
 const { matchIdea, contentWords } = require('./ideas');
 const { isAdminArea } = require('./client-files');

@@ -42,6 +42,48 @@ const chk = (name, ok, got = '') => { if (ok) pass++; else { fail++; console.log
   chk('A reply that copies the RETURN line keeps only the copy', parseRetryReply('RETURN: faq_answer: It depends on the lawn.', { key: 'faq_items', index: 0, sub: 'faq_answer' }) === 'It depends on the lawn.');
   chk('A plain labelled reply still parses', parseRetryReply('svc_hero_intro: Lawn mowing.', { key: 'svc_hero_intro' }) === 'Lawn mowing.');
 
+  // Hyphens in code
+  const { fixText } = require('../../fix-hyphens');
+  const keep = w => w === 'lee-on-the-solent' || w === 'family-run';
+  chk('A hyphen goes in code', fixText('A well-drained lawn', keep) === 'A well drained lawn');
+  chk('A prefix joins from the list, otherwise waits', fixText('We re-seed it, then re-lay it', keep) === 'We reseed it, then re-lay it', fixText('We re-seed it, then re-lay it', keep));
+  chk('Links, tokens, places and client values are left', fixText('[Lee-on-the-Solent](/a-b) and [CV: x-y], a family-run firm in Stoke-on-Trent', keep) === '[Lee-on-the-Solent](/a-b) and [CV: x-y], a family-run firm in Stoke-on-Trent', fixText('[Lee-on-the-Solent](/a-b) and [CV: x-y], a family-run firm in Stoke-on-Trent', keep));
+
+  // The hard blocks
+  const { hardChecks } = require('../../validate-hard');
+  const hard = (text, extra = {}) => { const out = []; hardChecks({ FLAGS: [], ...(extra.record || {}) }, { cv: { start_time: 'same week' }, D: extra.D || {} }, { issue: (type, check) => out.push(check), fields: [{ label: 'f', ref: { key: 'f' }, text, rangeKey: extra.rangeKey || 'f' }] }); return out; };
+  chk('LABEL-LEAK: RETURN, card, block4', ['RETURN: faq_answer: Yes.', 'card: It shifts.', 'block4 card_body: It shifts.'].every(t => hard(t).includes('LABEL-LEAK')));
+  chk('LABEL-LEAK: a business card is fine', !hard('We hand over a card with the date on it.').includes('LABEL-LEAK'));
+  chk('TRUNCATED: a field that stops', hard('We can start and we').includes('TRUNCATED') && !hard('We can start.').includes('TRUNCATED'));
+  chk('TRUNCATED: a tick item has no full stop', !hard('Lawn edges cut', { rangeKey: 'item_text' }).includes('TRUNCATED'));
+  chk('RAW-VALUE: going by', hard('We book the first visit, going by [CV: start_time].').includes('RAW-VALUE'));
+  chk('RAW-VALUE: "the" before the value passes', !hard('We can usually start the [CV: start_time].').includes('RAW-VALUE'));
+  chk('SECTION-REF: internal words', hard('The sibling pages cover those jobs.').includes('SECTION-REF'));
+  chk('SECTION-REF: a heading quoted', hard('What Affects the Cost of Gardening explains it.', { record: { x_h2: 'What Affects the Cost of Gardening' } }).includes('SECTION-REF'));
+  chk('ANCHOR-FORCED: after "in", down a list', hard('We work in [lawn mowing in Hedge End](/a), [lawn mowing in Romsey](/b) too.').includes('ANCHOR-FORCED'));
+  chk('ANCHOR-FORCED: town alone, and a sentence that reads, pass', !hard('We work in [Romsey](/a) and do [lawn mowing in Hedge End](/b) too.').includes('ANCHOR-FORCED'));
+  chk('LINK-MAP: off the map', hard('See [it](/nope).', { D: { pageMapUrls: ['/yes'] } }).includes('LINK-MAP') && !hard('See [it](/yes).', { D: { pageMapUrls: ['/yes'] } }).includes('LINK-MAP'));
+  chk('LINK-MAP: an unbuilt location page', hard('We work in [Fareham](/locations/fareham).', { D: { pageMapUrls: ['/locations/fareham'], unbuiltLocationUrls: ['/locations/fareham'] } }).includes('LINK-MAP'));
+  chk('EMPTY-SECTION: a list that came back empty', hard('Fine.', { record: { FLAGS: [{ code: 'P-COUNT', msg: 'x: expected 3 item(s), got 0.' }] } }).includes('EMPTY-SECTION'));
+
+  // Only a built location page links
+  const { isBuiltLocation } = require('../../page-map/generator');
+  chk('A location page counts as built once pushed or live', isBuiltLocation({ type: 'location', status: 'Pushed to WordPress' }) && isBuiltLocation({ type: 'location', status: 'Live' }) && !isBuiltLocation({ type: 'location', status: 'H1 Added' }) && !isBuiltLocation({ type: 'location', status: 'Not Started' }));
+
+  // The retry rule
+  const { RETRY_FLAGS } = require('../../validate-v20');
+  chk('Style flags and hyphens are off the retry list', ['1b', 'N18', 'N21', 'REPEAT-PAGE', 'PAD-OPENER', 'CARD-PATTERN'].every(c => !RETRY_FLAGS.has(c)) && ['N15', 'N7', 'OUTCOME'].every(c => RETRY_FLAGS.has(c)));
+  const { MAX_RETRIES, parseStyleReply } = require('../../v20-retry');
+  chk('Two retry rounds at most', MAX_RETRIES === 2);
+  const reply = parseStyleReply('FIELD 1: First text.\nFIELD 2: Second\\n\\nthird.', 2);
+  chk('The style reply splits by field', reply.get(1) === 'First text.' && reply.get(2) === 'Second\n\nthird.', JSON.stringify([...reply]));
+
+  // The claims review is cached
+  const { runClaimsReview } = require('../../wp/claims-review');
+  let sentSystem = null, sentMessage = '';
+  await runClaimsReview({ home_final_cta_body: 'x', page: 'homepage' }, { clientBlock: 'FACTS' }, async ({ system, message }) => { sentSystem = system; sentMessage = message; return { text: '{"findings":[]}' }; }).catch(() => {});
+  chk('The claims prompt and facts are cached, the copy is not', Array.isArray(sentSystem) && !!sentSystem[1].cache_control && sentSystem[1].text.includes('FACTS') && sentMessage.startsWith('PAGE COPY'), JSON.stringify(sentSystem && sentSystem[1]).slice(0, 80));
+
   console.log(`page-models: ${pass} passed, ${fail} failed`);
   if (fail) process.exit(1);
 })();

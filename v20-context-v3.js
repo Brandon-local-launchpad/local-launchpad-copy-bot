@@ -40,7 +40,9 @@ function contextFromPageMap({ rows, hand, cv = {}, niche = {} }) {
   const cats = byType('category');
   const catName = new Map(cats.map(c => [c.info.category_key, c.title]));
   const phase = r => (r.info && r.info.phase) || 1;
-  const status = r => (phase(r) === 2 ? 'Not built' : (r.status || 'Not Started'));
+  // A location page is linkable only once it is built (Brandon, 7 Nov 2026)
+  const { isBuiltLocation } = require('./page-map/generator');
+  const status = r => (phase(r) === 2 || (r.type === 'location' && !isBuiltLocation(r)) ? 'Not built' : (r.status || 'Not Started'));
 
   const pages = [];
   for (const r of live) {

@@ -394,7 +394,7 @@ function computeServiceDecisions({ cv, niche, keyValueMap = {}, rows = [], page,
 
   // ── Links ──
   const homepage = applies.find(r => r.type === 'homepage');
-  const locPage = scope === 'town' ? applies.find(r => r.type === 'location' && live(r) && normArea(r.title) === normArea(townName)) : null;
+  const locPage = scope === 'town' ? applies.find(r => r.type === 'location' && live(r) && require('./page-map/generator').isBuiltLocation(r) && normArea(r.title) === normArea(townName)) : null;
   const locCatHere = scope === 'town' ? locCatFor(townName) : null;
   const linkable = [];
   const addL = (type, r) => { const url = slugOf(r); if (url && !linkable.some(p => p.url === url)) linkable.push({ type, url, h1: r.h1 || r.title || '', say: r.say || (r.info && r.info.prose_name) || null }); };
@@ -440,7 +440,7 @@ function computeServiceDecisions({ cv, niche, keyValueMap = {}, rows = [], page,
     niche_steps: steps,
     areas, faq: faqs,
     allocated, thin: !allocated.neighbourhoods.length, overrideUsed: !!blocks.overrideUsed, ideasUsed: Array.isArray(ideasUsed) ? ideasUsed : [], mechanismsUsed,
-    locationLinks, baseLink, linkablePages, pageMapUrls: (rows || []).map(r => r.slug).filter(Boolean),
+    locationLinks, baseLink, linkablePages, pageMapUrls: (rows || []).map(r => r.slug).filter(Boolean), unbuiltLocationUrls: (rows || []).filter(r => r.type === 'location' && !require('./page-map/generator').isBuiltLocation(r)).map(r => r.slug).filter(Boolean),
     quoteFree, emergencyOn, emergencyWhy, coastal: cv.coastal_city === 'yes',
     seasonal: seasonal.swapped,
     trade_facts: { file: tradeFacts.file || null, verified: true, included: true, rows: tradeFacts.rows.length, counts: tradeFacts.counts || {}, missing: tradeFacts.missing || [], has_rule: !!tradeFacts.hasRule, thin: !!tradeFacts.thin },

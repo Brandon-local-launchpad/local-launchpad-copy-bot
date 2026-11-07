@@ -24,7 +24,7 @@
 
 const { validateCommon, sharedCrossChecks, helpers, RETRY_FLAGS } = require('./validate-v20');
 // The category page's own FLAGs are rewritten by the retries like the shared ones
-for (const c of ['HERO-CAT', 'KEYWORD', 'CB-LINKS', 'INTRO-SENTENCES']) RETRY_FLAGS.add(c);
+for (const c of ['HERO-CAT', 'KEYWORD', 'CB-LINKS']) RETRY_FLAGS.add(c);
 const { LABELS } = require('./page-types/category');
 const { matchIdea } = require('./ideas');
 const { isAdminArea } = require('./client-files');
