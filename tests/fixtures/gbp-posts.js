@@ -133,8 +133,8 @@ chk('Lead Snap\'s claims check still fails a post', W.checkPost(`${good} We offe
 chk('Lead Snap\'s warnings still warn', W.checkPost(`${good} Book before winter.`, prompt, withOffer.intake).checks.find(c => c.id === 'dated').level === 'warn', '', '');
 chk('a visit the facts do not confirm warns', lvl('We come and look at the garden, then price it.', 'visit') === 'warn', lvl('We come and look at the garden, then price it.', 'visit'), 'warn');
 chk('it does not stop the batch', W.checkPost('We come and look at the garden.', prompt, withOffer.intake).checks.find(c => c.id === 'visit').level !== 'fail', '', '');
-const visitIntake = { ...withOffer.intake, usps: [...withOffer.intake.usps, 'we visit before quoting'] };
-chk('a visit the facts confirm passes', W.checkPost('We come and look at the garden.', prompt, visitIntake).checks.find(c => c.id === 'visit').level === 'pass', '', '');
+const visitIntake = { ...withOffer.intake, practices: ['site_visit_before_quote'] };
+chk('a visit confirmed in the practices passes', W.checkPost('We come and look at the garden.', prompt, visitIntake).checks.find(c => c.id === 'visit').level === 'pass', '', '');
 chk('fixing a boiler is not a visit', lvl('We repair boilers and look after the heating.', 'visit') === 'pass', lvl('We repair boilers and look after the heating.', 'visit'), 'pass');
 chk('an opening already used warns', lvl(good, 'opening', ['hartley plumbing heating looks after']) === 'warn', lvl(good, 'opening', ['hartley plumbing heating looks after']), 'warn');
 
@@ -229,6 +229,15 @@ chk('an opening already used warns', lvl(good, 'opening', ['hartley plumbing hea
   edited = v.batches[0].posts.find(p => p.id === firstStd.id);
   chk('a fix clears it; photo and date change', edited.fails === 0 && edited.drive_file_id === 'leak1' && edited.photo_name === 'leak1.jpeg' && edited.post_date === '2027-01-15', JSON.stringify([edited.fails, edited.drive_file_id, edited.post_date]), '');
   chk('an edit on an Offer post moves its dates', await (async () => { const o = v.batches[0].posts[0]; const w = (await req('PUT', `${api}/posts/${o.id}`, { post_date: '2026-12-01' })).json().batches[0].posts[0]; return w.offer_start === '2026-12-01' && w.offer_end === '2026-12-29'; })(), '', '');
+
+  // A visit: the warning follows the client record
+  const visitText = `${firstStd.body} We come and look at the job first.`;
+  let vis = (await req('PUT', `${api}/posts/${firstStd.id}`, { body: visitText })).json().batches[0].posts.find(p => p.id === firstStd.id);
+  chk('no visit on the record: the post warns', vis.checks.find(k => k.id === 'visit').level === 'warn' && vis.fails === 0, JSON.stringify(vis.checks.find(k => k.id === 'visit')), 'warn');
+  await pool.query(`UPDATE client_assets SET content=$2 WHERE client_id=$1 AND asset_type='client_values'`, [c.id, JSON.stringify({ drive_photo_folder: 'https://drive.google.com/drive/folders/hartleyFolder1', live_domain: 'hartley.example', confirmed_practices: ['site_visit_before_quote'] })]);
+  vis = (await req('PUT', `${api}/posts/${firstStd.id}`, { body: visitText })).json().batches[0].posts.find(p => p.id === firstStd.id);
+  chk('ticked on the record: the warning goes', vis.checks.find(k => k.id === 'visit').level === 'pass', JSON.stringify(vis.checks.find(k => k.id === 'visit')), 'pass');
+  await req('PUT', `${api}/posts/${firstStd.id}`, { body: firstStd.body });
 
   // Move the whole batch
   chk('moving to a past start is refused', (await req('PUT', `${api}/batches/${b.id}/start`, { start: '2020-01-01' })).status === 400, '', 400);

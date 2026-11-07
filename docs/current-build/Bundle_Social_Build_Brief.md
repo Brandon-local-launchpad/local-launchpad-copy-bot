@@ -34,13 +34,22 @@ Publish GBP posts, Photo Drip photos and review replies through bundle.social's 
 
 The rate limits page says daily counts are "keyed to the platform account". If every client's copy of the agency login shares one quota, Pro's 20 posts a day is about 70 clients and Business's 40 about 140. Also asked: whether photos count towards it, whether each copy has its own token, whether Offer posts need `eventTitle`, and how long uploads are kept.
 
+## Brandon's decisions (7 Nov 2026)
+
+- Each Offer post runs 28 days, so one ends as the next begins.
+- When Photo Drip runs out: stop and tell the VA. A photo is never reused.
+- Review replies: new reviews, plus unreplied ones from the last 90 days.
+- Source teams: there are two, "Local Launchpad" (brandon@) and "Agency – team" (team@). Connect checks both.
+- Edens Edge does visit before quoting. A visit in a post is checked against `site_visit_before_quote` in the client's confirmed practices.
+
 ## Open for Brandon
 
-1. Which location the "Local Launchpad" team points at, because a real test post goes public there.
-2. Offer post dates (recommended: 28 days each).
-3. Photo Drip category, because the folder is flat (recommended: `AT_WORK`).
-4. When Photo Drip runs out (recommended: stop and tell the VA).
-5. How far back review replies go (recommended: new reviews, plus unreplied ones from the last 90 days).
+1. Which location the test team points at, because a real test post goes public there.
+2. Photo Drip category, because the folder is flat (recommended: `AT_WORK`).
+
+## Connect, with two source teams
+
+A team holds one Google Business account, so a client's team cannot hold both logins. Connect reads the locations from each source team without creating anything: refresh channels on each, then one list with the source beside each location, and a location reachable through both shown once. Only when the VA picks one does it create the client's team, copy from the source that holds that location, set the channel and read it back. A location in neither list means that login has not been given access on Google yet.
 
 ## Added by the build, not in the brief
 

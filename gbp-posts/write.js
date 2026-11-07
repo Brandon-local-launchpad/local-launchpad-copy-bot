@@ -29,8 +29,9 @@ const VISIT = /\b(?:we(?:'ll| will)?|the team|our team)\s+(?:can\s+|will\s+)?(?:
 function checkVisit(body, intake) {
   const label = 'A visit the facts confirm';
   const m = String(body).match(VISIT);
+  if ((intake.practices || []).includes('site_visit_before_quote')) return { id: 'visit', level: 'pass', label };
   const facts = [...(intake.usps || []), intake.offer || ''].join(' ');
-  return m && !/\b(visit|come out|come to you|at your home|on site)\b/i.test(facts) ? { id: 'visit', level: 'warn', label, detail: `"${m[0]}": check the client does this` } : { id: 'visit', level: 'pass', label };
+  return m && !/\b(visit|come out|come to you|at your home|on site)\b/i.test(facts) ? { id: 'visit', level: 'warn', label, detail: `"${m[0]}": if the client does visit, tick it under Practices on the record` } : { id: 'visit', level: 'pass', label };
 }
 
 function checkPost(text, prompt, intake, earlierOpenings = []) {

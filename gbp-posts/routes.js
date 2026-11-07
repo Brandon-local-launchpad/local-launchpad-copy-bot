@@ -48,6 +48,8 @@ function mountGbpPostsApi(app, { pool, callModel, log = console, getDrive = (() 
     if (!rows.length) return {};
     return (typeof rows[0].content === 'string' ? JSON.parse(rows[0].content) : rows[0].content) || {};
   };
+  // The config's intake, with what the record confirms today
+  const intakeFor = async (clientId, batch) => ({ ...batch.config.intake, practices: (await valuesFor(clientId)).confirmed_practices || [] });
   const folderFor = async clientId => String((await valuesFor(clientId)).drive_photo_folder || '').trim();
   // The photos Drive last showed for this client's current folder, or null when it has not been read
   const photosFor = async clientId => {
@@ -88,7 +90,7 @@ function mountGbpPostsApi(app, { pool, callModel, log = console, getDrive = (() 
     writing.add(batchId);
     try {
       const batch = await store.batch(clientId, batchId);
-      const intake = batch.config.intake;
+      const intake = await intakeFor(clientId, batch);
       const promptOf = n => batch.config.output.prompts.find(p => p.n === n);
       const history = await store.history(clientId);
       const openings = history.map(h => h.opening).filter(Boolean);
@@ -213,7 +215,7 @@ function mountGbpPostsApi(app, { pool, callModel, log = console, getDrive = (() 
       fileId = photo.file_id; name = photo.name;
     }
     const prompt = batch.config.output.prompts.find(p => p.n === post.prompt_n) || {};
-    const r = checkPost(body, prompt, batch.config.intake, await earlierThan(clientId, post));
+    const r = checkPost(body, prompt, await intakeFor(clientId, batch), await earlierThan(clientId, post));
     await store.editPost(postId, { ...r, body, edited: post.edited || body !== post.body, drive_file_id: fileId, photo_name: name, post_date: date, offer_start: post.topic === 'OFFER' ? date : '', offer_end: post.topic === 'OFFER' ? P.addDays(date, P.OFFER_DAYS) : '' });
     res.json(await view(clientId));
   }));
@@ -223,7 +225,7 @@ function mountGbpPostsApi(app, { pool, callModel, log = console, getDrive = (() 
     const { post, batch } = await editablePost(clientId, postId);
     const prompt = batch.config.output.prompts.find(p => p.n === post.prompt_n);
     if (!prompt) throw bad('This post\'s prompt is no longer in its batch.');
-    const r = await writePost({ prompt, intake: batch.config.intake, earlierOpenings: await earlierThan(clientId, post), callModel });
+    const r = await writePost({ prompt, intake: await intakeFor(clientId, batch), earlierOpenings: await earlierThan(clientId, post), callModel });
     await store.saveWritten(postId, r);
     await store.addUsage(batch.id, r.usage);
     res.json(await view(clientId));
