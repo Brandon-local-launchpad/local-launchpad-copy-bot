@@ -176,6 +176,11 @@ const chk = (name, ok, got = '') => { if (ok) pass++; else { fail++; console.log
   const reply = parseStyleReply('FIELD 1: First text.\nFIELD 2: Second\\n\\nthird.', 2);
   chk('The style reply splits by field', reply.get(1) === 'First text.' && reply.get(2) === 'Second\n\nthird.', JSON.stringify([...reply]));
 
+  {
+    const { factsFromRecord } = require('../../wp/claims-review');
+    chk('The claims review is told methods are not claims', factsFromRecord({ meta: { client_block: 'X' } }).clientBlock.includes('swept after mowing'));
+  }
+
   // The claims review is cached
   const { runClaimsReview } = require('../../wp/claims-review');
   let sentSystem = null, sentMessage = '';

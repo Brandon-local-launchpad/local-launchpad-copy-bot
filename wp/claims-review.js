@@ -176,7 +176,10 @@ function factsFromRecord(record) {
   // The generation block no longer lists every service (16 Oct): the review gets them all
   const withServices = meta.services_on_file ? `${meta.client_block || ''}\n\nCONFIRMED SERVICES (by category):\n${meta.services_on_file}` : meta.client_block;
   // The client's areas (7 Nov 2026): naming a town or village on this list is not a claim
-  const clientBlock = (meta.area_list || []).length ? `${withServices || ''}\n\nCONFIRMED AREAS THE BUSINESS COVERS (naming any of these is not a claim):\n${meta.area_list.join(', ')}` : withServices;
+  const withAreas = (meta.area_list || []).length ? `${withServices || ''}\n\nCONFIRMED AREAS THE BUSINESS COVERS (naming any of these is not a claim):\n${meta.area_list.join(', ')}` : withServices;
+  // How the job is done needs no confirmation (7 Nov 2026): describing these is not a claim
+  const methods = require('../niche-library/practices.json').practices.filter(p => p.kind === 'method').map(p => p.label);
+  const clientBlock = `${withAreas || ''}\n\nHOW THE JOB IS DONE (allowed without confirmation; describing these is not a claim):\n${methods.join('; ')}`;
   return { clientBlock, research: researchFromRecord(record), decisions: decisionsFromRecord(record) };
 }
 
