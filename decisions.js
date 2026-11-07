@@ -558,7 +558,9 @@ function buildD14Town(pages, keyValueMap) {
     const n = normArea(area);
     const s = normArea(stripAdmin(area));
     if (n === primaryCity || s === primaryCity) return false;
-    if (plainSet.has(n) || plainSet.has(s)) return false;
+    // A launch location only waiting to be built is plain text in the areas list, but it can still take the hero
+    const page = getPage(area);
+    if ((plainSet.has(n) || plainSet.has(s)) && !(page && page.v3 && page.v3.phase === 1)) return false;
     return true;
   }
 

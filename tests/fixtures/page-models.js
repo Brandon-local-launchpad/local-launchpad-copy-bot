@@ -70,6 +70,23 @@ const chk = (name, ok, got = '') => { if (ok) pass++; else { fail++; console.log
   const { isBuiltLocation } = require('../../page-map/generator');
   chk('A location page counts as built once pushed or live', isBuiltLocation({ type: 'location', status: 'Pushed to WordPress' }) && isBuiltLocation({ type: 'location', status: 'Live' }) && !isBuiltLocation({ type: 'location', status: 'H1 Added' }) && !isBuiltLocation({ type: 'location', status: 'Not Started' }));
 
+  // An unbuilt launch location: no link, plain in the areas list, and the hero keeps it
+  {
+    const { computeDecisions } = require('../../decisions');
+    const { contextFromPageMap } = require('../../v20-context-v3');
+    const E = require('./data/edens-edge-acceptance.js');
+    const { rows } = require('./data/edens-edge-v3-page-map.json');
+    const niche = { ...require('../../niche-library/landscaper.json'), service_words: [] };
+    const cv = { ...E.ethanValues(), h1_override: 'Landscaper Southampton', coastal_city: 'yes' };
+    const hand = { baseTown: 'Southampton', otherTowns: ['Romsey', 'Winchester', 'Eastleigh', 'Chandlers Ford', 'Hedge End'] };
+    const unbuilt = rows.map(r => (r.type === 'location' ? { ...r, status: 'H1 Added' } : r));
+    const ctx = contextFromPageMap({ rows: unbuilt, hand, cv, niche });
+    const D = computeDecisions({ cv, niche, pages: ctx.pages, keyValueMap: ctx.keyValueMap, serviceParentMap: ctx.serviceParentMap, v20TestMode: true, allocationData: null, faqResearch: [], cardServices: ctx.cardServices }).decisions;
+    chk('Unbuilt: no location page is linkable', !D.linkablePages.some(p => p.type === 'location') && !D.d12_areas.linked.length, JSON.stringify(D.d12_areas.linked));
+    chk('Unbuilt: the hero keeps a launch town, without a link', D.d14_town && D.d14_town.name === 'Romsey' && !D.d14_town.url, JSON.stringify(D.d14_town));
+    chk('Unbuilt: its address is known to the check', D.unbuiltLocationUrls.includes('/locations/romsey'));
+  }
+
   // The retry rule
   const { RETRY_FLAGS } = require('../../validate-v20');
   chk('Style flags and hyphens are off the retry list', ['1b', 'N18', 'N21', 'REPEAT-PAGE', 'PAD-OPENER', 'CARD-PATTERN'].every(c => !RETRY_FLAGS.has(c)) && ['N15', 'N7', 'OUTCOME'].every(c => RETRY_FLAGS.has(c)));
