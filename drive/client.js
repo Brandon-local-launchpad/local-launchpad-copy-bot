@@ -7,6 +7,7 @@
 // Drive. The client's folders are on a shared drive, hence supportsAllDrives on every call.
 //   folder(id)    the folder's name, or an error saying who to share it with
 //   list(id)      everything directly inside a folder, every page of it
+//   download(id)  a photo's bytes
 // The key and the tokens never go into an error message or a log.
 
 const crypto = require('crypto');
@@ -97,7 +98,14 @@ function createDrive({ env = process.env, fetchImpl = (...a) => fetch(...a), now
     return out;
   }
 
-  return { folder, list, accessToken };
+  // A photo's bytes. Downloading needs the same read only scope; nothing is made public.
+  async function download(id) {
+    const res = await fetchImpl(`${API}/${encodeURIComponent(id)}?alt=media&supportsAllDrives=true`, { headers: { Authorization: `Bearer ${await accessToken()}` } });
+    if (!res.ok) throw Object.assign(new Error(`Drive could not give this photo (${res.status}).`), { status: 502 });
+    return Buffer.from(await res.arrayBuffer());
+  }
+
+  return { folder, list, download, accessToken };
 }
 
 module.exports = { createDrive, configured, credentials, parseFolderId, FOLDER_MIME, SCOPE };

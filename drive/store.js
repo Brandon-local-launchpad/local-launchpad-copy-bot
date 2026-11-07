@@ -44,9 +44,13 @@ async function ensureDriveTables(pool) {
     )`);
 }
 
+// Once per database, however many stores share it: the Lead Snap and GBP Posts tabs each have one
+const readyByPool = new WeakMap();
 function createDriveStore(pool) {
-  let ready = null;
-  const ensure = () => { if (!ready) ready = ensureDriveTables(pool).catch(e => { ready = null; throw e; }); return ready; };
+  const ensure = () => {
+    if (!readyByPool.has(pool)) readyByPool.set(pool, ensureDriveTables(pool).catch(e => { readyByPool.delete(pool); throw e; }));
+    return readyByPool.get(pool);
+  };
 
   async function saveRead(clientId, r) {
     await ensure();

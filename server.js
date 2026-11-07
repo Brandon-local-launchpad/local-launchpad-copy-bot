@@ -4055,6 +4055,8 @@ if (pool && pageMapStore) {
   const leadsnap = process.env.LEADSNAP_API_TOKEN ? require('./leadsnap/client').createLeadsnapClient() : null;
   require('./gbp/routes').mountGbpApi(app, { pool, loadInputs: gbpInputsFor, callModel: gbpCallModel, saveClientValue, leadsnap, directoryDomains: citationStore ? () => citationStore.domains() : null });
   // The Lead Snap tab (5 Nov): the autopost config, from the GBP inputs and the Fillout voice answers
+  const gbpPostsCallModel = args => makeCallModel(new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY }), require('./gbp-posts/write').MODEL, { onUsage: modelLog.tagged('GBP Posts') })(args);
+  require('./gbp-posts/routes').mountGbpPostsApi(app, { pool, callModel: gbpPostsCallModel });
   const leadSnapCallModel = args => makeCallModel(new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY }), require('./leadsnap/autopost/generate').MODEL, { onUsage: modelLog.tagged('Lead Snap autopost') })(args);
   const leadSnapPreviewCallModel = args => makeCallModel(new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY }), require('./leadsnap/autopost/generate').MODEL, { onUsage: modelLog.tagged('Lead Snap preview') })(args);
   require('./leadsnap/autopost/routes').mountLeadSnapApi(app, { pool, saveClientValue, callModel: leadSnapCallModel, previewCallModel: leadSnapPreviewCallModel, loadInputs: async clientId => {

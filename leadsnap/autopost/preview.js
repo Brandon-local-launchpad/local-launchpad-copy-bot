@@ -282,4 +282,4 @@ async function runPreview({ record, callModel, samples = SAMPLES, log = null }) 
   };
 }
 
-module.exports = { areaSpread, folderSameness, withoutFactsAndCta, SAMPLES, MAX_WORDS, LONG_PHRASE, estimate, checkSample, checkName, factsUsed, runPreview };
+module.exports = { areaSpread, folderSameness, withoutFactsAndCta, comparePairs, SAMPLES, MAX_WORDS, EFFORT, LONG_PHRASE, estimate, checkSample, checkName, factsUsed, runPreview };
