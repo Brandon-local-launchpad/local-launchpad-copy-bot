@@ -131,6 +131,11 @@ chk('exactly 1,500 characters passes', lvl('x'.repeat(1500), 'chars') === 'pass'
 chk('1,501 characters fails', lvl('x'.repeat(1501), 'chars') === 'fail', '', '');
 chk('Lead Snap\'s claims check still fails a post', W.checkPost(`${good} We offer a lifetime guarantee on everything.`, prompt, withOffer.intake).fails > 0, '', '');
 chk('Lead Snap\'s warnings still warn', W.checkPost(`${good} Book before winter.`, prompt, withOffer.intake).checks.find(c => c.id === 'dated').level === 'warn', '', '');
+chk('a visit the facts do not confirm warns', lvl('We come and look at the garden, then price it.', 'visit') === 'warn', lvl('We come and look at the garden, then price it.', 'visit'), 'warn');
+chk('it does not stop the batch', W.checkPost('We come and look at the garden.', prompt, withOffer.intake).checks.find(c => c.id === 'visit').level !== 'fail', '', '');
+const visitIntake = { ...withOffer.intake, usps: [...withOffer.intake.usps, 'we visit before quoting'] };
+chk('a visit the facts confirm passes', W.checkPost('We come and look at the garden.', prompt, visitIntake).checks.find(c => c.id === 'visit').level === 'pass', '', '');
+chk('fixing a boiler is not a visit', lvl('We repair boilers and look after the heating.', 'visit') === 'pass', lvl('We repair boilers and look after the heating.', 'visit'), 'pass');
 chk('an opening already used warns', lvl(good, 'opening', ['hartley plumbing heating looks after']) === 'warn', lvl(good, 'opening', ['hartley plumbing heating looks after']), 'warn');
 
 (async () => {

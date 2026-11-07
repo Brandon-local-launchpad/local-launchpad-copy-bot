@@ -23,6 +23,16 @@ function phoneIn(text, phone = '') {
   return found;
 }
 
+// A visit is a claim about how the client works, and the real offer post wrote "We come and look at
+// the garden" with no such fact (7 Nov 2026). The job itself can involve a visit, so this asks a person to read it.
+const VISIT = /\b(?:we(?:'ll| will)?|the team|our team)\s+(?:can\s+|will\s+)?(?:come|pop|call|drop|visit|head)\s+(?:and\s+|out|round|over|by|to\s+(?:see|look|your))|\bsite visit\b|\bhome visit\b/i;
+function checkVisit(body, intake) {
+  const label = 'A visit the facts confirm';
+  const m = String(body).match(VISIT);
+  const facts = [...(intake.usps || []), intake.offer || ''].join(' ');
+  return m && !/\b(visit|come out|come to you|at your home|on site)\b/i.test(facts) ? { id: 'visit', level: 'warn', label, detail: `"${m[0]}": check the client does this` } : { id: 'visit', level: 'pass', label };
+}
+
 function checkPost(text, prompt, intake, earlierOpenings = []) {
   const base = checkSample(text, prompt, intake);
   const body = String(text);
@@ -34,6 +44,7 @@ function checkPost(text, prompt, intake, earlierOpenings = []) {
   const opening = openingOf(body);
   const repeated = opening && earlierOpenings.includes(opening);
   add.push(repeated ? { id: 'opening', level: 'warn', label: 'An opening this client has not used', detail: `"${opening}"` } : { id: 'opening', level: 'pass', label: 'An opening this client has not used' });
+  add.push(checkVisit(body, intake));
   const checks = [...base.checks, ...add];
   return { words: base.words, chars, opening, checks, warnings: checks.filter(c => c.level === 'warn').length, fails: checks.filter(c => c.level === 'fail').length, repeated: !!repeated };
 }
