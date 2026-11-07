@@ -3060,6 +3060,8 @@ const CLIENT_VALUES_TEMPLATE = {
   // GBP batch 3 (23 Oct): the rank scan settings, built by code and locked after the baseline (hard rule 8);
   // scan_area sets the grid spacing (city 1500 m, market town 2000 m, rural 2500 m); scan_keyword_2 is optional
   scan_settings: null, scan_area: '', scan_keyword_2: '',
+  // The folder holding the client's sorted GBP photos: read by the Lead Snap tab (drive/), read only
+  drive_photo_folder: '',
 };
 
 app.get('/api/clients/:clientId/gbp-categories', async (req, res) => {
@@ -4055,7 +4057,7 @@ if (pool && pageMapStore) {
   // The Lead Snap tab (5 Nov): the autopost config, from the GBP inputs and the Fillout voice answers
   const leadSnapCallModel = args => makeCallModel(new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY }), require('./leadsnap/autopost/generate').MODEL, { onUsage: modelLog.tagged('Lead Snap autopost') })(args);
   const leadSnapPreviewCallModel = args => makeCallModel(new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY }), require('./leadsnap/autopost/generate').MODEL, { onUsage: modelLog.tagged('Lead Snap preview') })(args);
-  require('./leadsnap/autopost/routes').mountLeadSnapApi(app, { pool, callModel: leadSnapCallModel, previewCallModel: leadSnapPreviewCallModel, loadInputs: async clientId => {
+  require('./leadsnap/autopost/routes').mountLeadSnapApi(app, { pool, saveClientValue, callModel: leadSnapCallModel, previewCallModel: leadSnapPreviewCallModel, loadInputs: async clientId => {
     const I = await gbpInputsFor(clientId);
     const { rows } = await pool.query(`SELECT trade FROM clients WHERE id=$1`, [clientId]);
     const rec = filloutService ? await filloutService.record(clientId).catch(() => null) : null;

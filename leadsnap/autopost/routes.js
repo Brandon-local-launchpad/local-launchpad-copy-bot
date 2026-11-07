@@ -7,15 +7,23 @@
 //                                              the page map's names, so a folder rename needs { accept_renames: true }
 //   POST /api/clients/:id/lead-snap/preview    Preview posts: each prompt 4 times, nothing goes to Lead Snap
 //   GET  /clients/:slug/lead-snap/:file        autopost-config.txt, validation.json, previews.json
+//   PUT  /api/clients/:id/lead-snap/drive-folder   save the Drive photo folder and read it
+//   POST /api/clients/:id/lead-snap/drive-read     read the folder again (no cost, read only)
+// Drive (7 Nov 2026): when the client's folder has been read, its counts stand in for the typed ones;
+// the typed ones stay saved underneath, as the fallback.
 //
 // loadInputs(clientId) → { I, trade, answers }: the GBP inputs and the Fillout answers.
 
 const { slugify } = require('../../page-map/slugs');
 const { createAutopostStore } = require('./store');
-const { buildIntake, lockedFrom, labelChanges, carryCounts } = require('./intake');
+const { buildIntake, groupServices, lockedFrom, labelChanges, carryCounts } = require('./intake');
 const { decide, POSTS_ROOT } = require('./decide');
 const { runAutopost, filesFor } = require('./generate');
 const { estimate, runPreview } = require('./preview');
+const { parseFolderId, createDrive } = require('../../drive/client');
+const { countsFrom, driveActive } = require('../../drive/photos');
+const { createDriveStore } = require('../../drive/store');
+const { createDrivePhotos, viewFor } = require('../../drive/service');
 
 const CONTENT_TYPES = { 'autopost-config.txt': 'text/plain; charset=utf-8', 'validation.json': 'application/json; charset=utf-8', 'previews.json': 'application/json; charset=utf-8' };
 const CTA_TYPES = ['', 'Call Now', 'Book', 'Learn More'];
@@ -34,18 +42,39 @@ function cleanHand(body = {}, groups = []) {
 }
 
 // previewCallModel: the same model, logged under its own name; callModel when not given
-function mountLeadSnapApi(app, { pool, loadInputs, callModel, previewCallModel = null, log = console }) {
+// saveClientValue(clientId, key, value), and getDrive for a fixture's fake Drive
+function mountLeadSnapApi(app, { pool, loadInputs, callModel, previewCallModel = null, log = console, saveClientValue = null, getDrive = (() => { let d = null; return () => (d = d || createDrive()); })() }) {
   const store = createAutopostStore(pool);
+  const driveStore = createDriveStore(pool);
+  const drivePhotos = createDrivePhotos({ store: driveStore, getDrive, log });
   const running = new Set();
   const previewing = new Set();
   const wrap = fn => async (req, res) => {
     try { await fn(req, res); }
     catch (err) { if (!err.status || err.status >= 500) log.error('[lead snap]', err); res.status(err.status || 500).json({ error: err.message }); }
   };
+  const cvOf = I => (I.validatorCtx && I.validatorCtx.cv) || {};
+  // From the client record itself, so the Drive card works for a client with no page map yet
+  const folderFor = async clientId => {
+    const { rows } = await pool.query(`SELECT content FROM client_assets WHERE client_id=$1 AND asset_type='client_values' ORDER BY uploaded_at DESC LIMIT 1`, [clientId]);
+    if (!rows.length) return '';
+    const cv = typeof rows[0].content === 'string' ? JSON.parse(rows[0].content) : rows[0].content;
+    return String((cv && cv.drive_photo_folder) || '').trim();
+  };
+  // The hand row with Drive's counts in place of the typed ones, when Drive has been read. A failing
+  // read of the table leaves the typed counts working: the error shows on the Drive card.
+  const lastRead = async clientId => {
+    try { return { read: await driveStore.read(clientId), error: null }; }
+    catch (e) { log.error('[lead snap] drive', e); return { read: null, error: e.message }; }
+  };
   const intakeFor = async clientId => {
     const { I, trade, answers } = await loadInputs(clientId);
-    const [hand, record] = await Promise.all([store.hand(clientId), store.latest(clientId)]);
-    return { intake: buildIntake({ I, trade, answers, hand, locked: lockedFrom(record) }), hand };
+    const [hand, record, last, folder] = await Promise.all([store.hand(clientId), store.latest(clientId), lastRead(clientId), folderFor(clientId)]);
+    const locked = lockedFrom(record);
+    const groups = locked || groupServices(I.locked || [], cvOf(I).jobs_wanted);
+    const active = driveActive(last.read, parseFolderId(folder));
+    const used = active ? { ...hand, ...countsFrom(groups, last.read) } : hand;
+    return { intake: buildIntake({ I, trade, answers, hand: used, locked }), hand, active, groups };
   };
   const view = async clientId => {
     const { rows } = await pool.query(`SELECT name FROM clients WHERE id=$1`, [clientId]);
@@ -55,23 +84,51 @@ function mountLeadSnapApi(app, { pool, loadInputs, callModel, previewCallModel =
     const previews = await store.previews(clientId);
     const files = Object.fromEntries(Object.keys(filesFor(record)).map(f => [f, `/clients/${slug}/lead-snap/${f}`]));
     if (previews) files['previews.json'] = `/clients/${slug}/lead-snap/previews.json`;
-    let intake = null, hand = {}, plan = null, error = null;
+    let intake = null, hand = {}, plan = null, error = null, groups = null;
     try {
-      ({ intake, hand } = await intakeFor(clientId)); plan = decide(intake);
+      const got = await intakeFor(clientId);
+      ({ intake, hand, groups } = got); plan = decide(intake);
       // A config saved before the path changed still names the old folders
       if (record && record.sheet && /select from folder: GBP Posts \//.test(record.sheet)) intake.warnings.push(`This config still uses the old folder path, GBP Posts. Generate again to change it to ${POSTS_ROOT}.`);
     } catch (e) { if (!e.status) log.error('[lead snap]', e); error = e.message; }
+    // The Drive card loads on its own: no page map, or a failed read, leaves the rest of the tab alone
+    let drive = null;
+    try {
+      const last = await lastRead(clientId);
+      drive = { ...viewFor({ read: last.read, folderText: await folderFor(clientId), groups }), ...(last.error ? { error: last.error } : {}) };
+    } catch (e) { log.error('[lead snap] drive', e); drive = { error: e.message, folder: '', folders: [], drip: { found: false, files: [] }, problems: [], notes: [], total: 0, active: false, configured: false }; }
     // The samples belong to the config they were written from
     const preview = { saved: previews, stale: !!(previews && record && previews.config_at !== record.generated_at), running: previewing.has(clientId), estimate: record && record.output ? estimate(record.output.prompts) : null };
-    return { slug, record, files, intake, hand, plan, error, preview, running: running.has(clientId) };
+    return { slug, record, files, intake, hand, plan, error, preview, drive, running: running.has(clientId) };
   };
 
   app.get('/api/clients/:clientId/lead-snap', wrap(async (req, res) => res.json(await view(req.params.clientId))));
 
   app.put('/api/clients/:clientId/lead-snap/intake', wrap(async (req, res) => {
     const { clientId } = req.params;
-    const { intake } = await intakeFor(clientId);
-    await store.saveHand(clientId, cleanHand(req.body, intake.groups));
+    const { intake, hand, active } = await intakeFor(clientId);
+    // With Drive read the tab sends no counts: the typed ones stay as they were, as the fallback
+    const clean = cleanHand(req.body, intake.groups);
+    if (active) { delete clean.counts; delete clean.brand; for (const k of ['counts', 'brand']) if (hand[k] !== undefined) clean[k] = hand[k]; }
+    await store.saveHand(clientId, clean);
+    res.json(await view(clientId));
+  }));
+
+  app.put('/api/clients/:clientId/lead-snap/drive-folder', wrap(async (req, res) => {
+    const { clientId } = req.params;
+    if (!saveClientValue) throw Object.assign(new Error('Saving the Drive folder is not available on this server.'), { status: 503 });
+    const text = String((req.body && req.body.folder) || '').trim();
+    if (text && !parseFolderId(text)) throw Object.assign(new Error('That is not a Drive folder link. Open the folder in Drive and copy the address.'), { status: 400 });
+    await saveClientValue(clientId, 'drive_photo_folder', text);
+    if (text) await drivePhotos.refresh(clientId, text);
+    res.json(await view(clientId));
+  }));
+
+  app.post('/api/clients/:clientId/lead-snap/drive-read', wrap(async (req, res) => {
+    const { clientId } = req.params;
+    const text = await folderFor(clientId);
+    if (!text) throw Object.assign(new Error('No Drive photo folder is saved for this client.'), { status: 400 });
+    await drivePhotos.refresh(clientId, text);
     res.json(await view(clientId));
   }));
 
@@ -81,7 +138,8 @@ function mountLeadSnapApi(app, { pool, loadInputs, callModel, previewCallModel =
     running.add(clientId);
     try {
       const { I, trade, answers } = await loadInputs(clientId);
-      const [hand, previous] = await Promise.all([store.hand(clientId), store.latest(clientId)]);
+      const [hand, previous, last] = await Promise.all([store.hand(clientId), store.latest(clientId), lastRead(clientId)]);
+      const driveOn = driveActive(last.read, parseFolderId(await folderFor(clientId)));
       const locked = lockedFrom(previous);
       // Pressing this is the one thing that takes up the page map's names
       const fresh = buildIntake({ I, trade, answers, hand });
@@ -90,7 +148,14 @@ function mountLeadSnapApi(app, { pool, loadInputs, callModel, previewCallModel =
         return res.status(409).json({ error: `This would rename ${changes.renames.map(r => `${r.from} to ${r.to}`).join(', ')}. Confirm the rename to go ahead.`, renames: changes.renames });
       }
       const nextHand = locked ? carryCounts(hand, locked, fresh.groups) : hand;
-      const intake = buildIntake({ I, trade, answers, hand: nextHand });
+      // Drive's counts for the names this run takes up. A folder not yet renamed in Drive keeps its
+      // old folder's count, so the prompts are not lost before the VA gets to rename it.
+      let usedHand = nextHand;
+      if (driveOn) {
+        const carried = locked ? carryCounts({ ...hand, ...countsFrom(locked, last.read) }, locked, fresh.groups).counts : {};
+        usedHand = { ...nextHand, ...countsFrom(fresh.groups, last.read, carried) };
+      }
+      const intake = buildIntake({ I, trade, answers, hand: usedHand });
       if (!intake.ok) throw Object.assign(new Error(`Fill these in first: ${intake.missing.join('; ')}.`), { status: 400 });
       const record = await runAutopost({ intake, callModel, previous, log: m => log.log(m) });
       // A failed run keeps the old config, so the old names and counts stand with it

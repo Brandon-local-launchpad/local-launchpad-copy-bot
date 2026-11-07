@@ -1,7 +1,8 @@
 // Lead Snap tab (5 Nov 2026): the ready to paste autopost config. Left: Generate, what is
 // missing, the photo counts and the other typed fields. Right: the config in Lead Snap's screen
 // order, each prompt with its Copy button and photo folder. Set once per client; Generate again
-// when a client adds a service or sends new photos.
+// when a client adds a service or sends new photos. Drive (7 Nov 2026): with the Drive photo folder
+// read, the counts and file lists are real; the typed counts stay as the fallback.
 
 import { h, attr, api, card, copyBtn, toast, confirm, running, empty, fmtDate, pill, wire, qa } from '../ui.js';
 
@@ -13,6 +14,37 @@ export async function render(el, ctx) {
 
   const row = (name, text, meta = '') => `<div class="field" style="margin-bottom:12px"><div style="display:flex;justify-content:space-between;gap:8px;align-items:baseline"><span style="font-weight:500">${h(name)}</span><span class="btn-row"><span class="muted small">${h(meta)}</span>${copyBtn(text)}</span></div><div style="white-space:pre-wrap;margin-top:4px">${h(text)}</div></div>`;
   const input = (key, label, value, placeholder = '') => `<label class="field" style="display:block;margin-bottom:10px"><span class="small" style="font-weight:500">${h(label)}</span><input class="input" style="width:100%" data-f="${attr(key)}" value="${attr(value || '')}" placeholder="${attr(placeholder)}"></label>`;
+
+  const mb = n => `${(n / 1024 / 1024).toFixed(1)} MB`;
+  const fileRow = f => `<tr data-drive-file><td>${f.web_link ? `<a href="${attr(f.web_link)}" target="_blank" rel="noopener">${h(f.name)}</a>` : h(f.name)}</td><td class="muted small">${f.width && f.height ? `${f.width} x ${f.height}` : ''}</td><td class="muted small">${mb(f.size_bytes)}</td><td>${f.problem ? `<span class="small" style="color:#991b1b">${h(f.problem)}</span>` : ''}</td></tr>`;
+  const fileList = (label, files) => `<details data-drive-folder style="margin-bottom:6px"><summary>${h(label)} <span class="muted small">${files.length} photo${files.length === 1 ? '' : 's'}${files.some(f => f.problem) ? `, ${files.filter(f => f.problem).length} with a problem` : ''}</span></summary>${files.length ? `<div class="tbl-wrap" style="margin-top:6px"><table class="tbl"><thead><tr><th>File</th><th>Dimensions</th><th>Size</th><th></th></tr></thead><tbody>${files.map(fileRow).join('')}</tbody></table></div>` : '<div class="muted small" style="margin:6px 0">Empty.</div>'}</details>`;
+
+  // The Drive card: its own errors show here, and the typed counts carry on working underneath
+  const driveCard = () => {
+    const D = S.drive; if (!D) return '';
+    const says = [...(D.problems || []), ...(D.notes || [])];
+    let b = `<label class="field" style="display:block;margin-bottom:10px"><span class="small" style="font-weight:500">Drive photo folder</span><input class="input" style="width:100%" data-drive-input value="${attr(D.folder)}" placeholder="The Drive link of the folder holding GBP Photos – Posts"></label><div class="btn-row" style="margin-bottom:10px"><button class="btn btn-ghost" data-act="drive-save" ${busyDrive ? 'disabled' : ''}>Save folder</button>${D.folder ? `<button class="btn btn-ghost" data-act="drive-read" ${busyDrive || !D.configured ? 'disabled' : ''}>Read Drive</button>` : ''}<span class="muted small" data-drive-status>${busyDrive ? 'Reading Drive…' : D.folder && D.last_ok_at && !D.stale_folder ? `Read ${h(fmtDate(D.last_ok_at, true))}: ${D.total} photos` : D.folder ? 'Not read yet' : 'Typed counts are in use'}</span></div>`;
+    if (!D.configured) b += '<div class="notice warn small" style="margin-bottom:10px">Copybot cannot read Drive on this server yet (GOOGLE_DRIVE_SERVICE_ACCOUNT_JSON is not set), so the typed counts are in use.</div>';
+    if (D.error) b += `<div class="notice bad small" data-drive-error style="margin-bottom:10px"><strong>The last read failed.</strong> ${h(D.error)}${D.active ? ' The list below is from the last good read.' : ' The typed counts are in use.'}</div>`;
+    if (says.length) b += `<div class="notice warn small" data-drive-notes style="margin-bottom:10px"><ul style="margin:0 0 0 18px">${says.map(n => `<li>${h(n)}</li>`).join('')}</ul></div>`;
+    if (D.folders.length || D.drip.found) b += D.folders.map(f => fileList(f.label, f.files)).join('') + (D.drip.found ? fileList(D.drip.label, D.drip.files) : '');
+    return card({ title: 'Photos in Drive', sub: 'Read only. Copybot never changes Drive.', body: b });
+  };
+  let busyDrive = false, autoRead = false;
+  const driveCall = async (path, opts) => {
+    busyDrive = true; draw();
+    try { S = await api(`${url}/${path}`, opts); }
+    catch (err) { toast(err.message, 'bad'); }
+    busyDrive = false; draw();
+  };
+  // A read is free, so opening the tab reads the folder when the last read is over an hour old
+  const maybeAutoRead = () => {
+    const D = S && S.drive;
+    if (autoRead || !D || !D.configured || !D.folder_valid) return;
+    autoRead = true;
+    const age = D.last_try_at ? Date.now() - new Date(D.last_try_at).getTime() : Infinity;
+    if (age > 3600000 || D.stale_folder) driveCall('drive-read', { method: 'POST' });
+  };
 
   // Too few prompts: the plan as it stands now, so it clears as soon as new photo counts are saved
   const tooFew = () => { const F = S.plan && S.intake && S.intake.photosEntered && S.plan.tooFew; return F ? `<div class="notice bad" data-too-few style="margin-bottom:10px"><strong>${h(F.message)}</strong><ul style="margin:6px 0 0 18px">${F.unlock.map(u => `<li>${h(u)}</li>`).join('')}</ul></div>` : ''; };
@@ -56,10 +88,10 @@ export async function render(el, ctx) {
     if (notes.length) b += `<div class="notice warn" style="margin-bottom:10px"><ul style="margin:0 0 0 18px">${notes.map(n => `<li>${h(n)}</li>`).join('')}</ul></div>`;
     if (R && R.failure) b += `<div class="notice bad" style="margin-bottom:10px"><strong>${h(R.failure.error)}</strong><ul style="margin:6px 0 0 18px">${R.failure.fails.map(f => `<li>${h(f.message)}</li>`).join('')}</ul></div>`;
     b += `<div class="notice" style="margin-bottom:10px"><div><strong>${h(I.business)}</strong> · ${h(I.niche)} · ${h(I.phone || 'no phone saved')}</div><div class="small" style="margin-top:4px">Areas: ${h(I.areas.join(', '))}</div><div class="small muted">${h(I.areasWhy)}</div><div class="small" style="margin-top:4px">USPs: ${h(I.usps.join('; ') || 'none confirmed')}</div><div class="small" style="margin-top:4px">Offer: ${h(I.offer || 'none')}${I.offerSource === 'free_quotes' ? ' <span class="muted">(the client has confirmed free quotes)</span>' : ''}</div><div class="small" style="margin-top:4px">Call to action: ${h(I.cta.line)} <span class="muted">(${h(I.cta.why)})</span></div></div>`;
-    b += `<div style="display:flex;justify-content:space-between;gap:8px;align-items:baseline"><div class="sec-title">Photos per service</div><span data-photo-sort>${copyBtn(photoSortText(I), 'Copy for photo sort')}</span></div><div class="muted small" style="margin-bottom:6px">Copybot can't read these yet, so type how many photos each folder holds. Each folder is GBP Photos – Posts / [the service name below]. ${I.groups.length} whole services from the page map, highest value first. 3 or more earns prompts of its own.${I.labelsLocked ? ' These names are locked to the saved config: they only change when you press Generate again.' : ''}</div>
+    b += `<div style="display:flex;justify-content:space-between;gap:8px;align-items:baseline"><div class="sec-title">Photos per service</div><span data-photo-sort>${copyBtn(photoSortText(I), 'Copy for photo sort')}</span></div><div class="muted small" style="margin-bottom:6px">${S.drive && S.drive.active ? 'Counted from Drive.' : 'Type how many photos each folder holds, or save the Drive photo folder and Copybot counts them.'} Each folder is GBP Photos – Posts / [the service name below]. ${I.groups.length} whole services from the page map, highest value first. 3 or more earns prompts of its own.${I.labelsLocked ? ' These names are locked to the saved config: they only change when you press Generate again.' : ''}</div>
       <div class="tbl-wrap"><table class="tbl"><thead><tr><th>Service</th><th>Photos</th></tr></thead><tbody>
-      ${I.groups.map(g => `<tr><td>${h(g.label)}${g.services.length > 1 || g.services[0] !== g.label ? `<div class="muted small">${h(g.services.join(', '))}</div>` : ''}</td><td><input class="input" type="number" min="0" style="width:72px" data-count="${attr(g.key)}" value="${I.photosEntered ? attr(g.photos) : ''}"></td></tr>`).join('')}
-      <tr><td>Brand: team, van, premises, logo</td><td><input class="input" type="number" min="0" style="width:72px" data-f="brand" value="${I.photosEntered ? attr(I.brand) : ''}"></td></tr></tbody></table></div>
+      ${I.groups.map(g => `<tr><td>${h(g.label)}${g.services.length > 1 || g.services[0] !== g.label ? `<div class="muted small">${h(g.services.join(', '))}</div>` : ''}</td><td>${S.drive && S.drive.active ? `<span data-drive-count="${attr(g.key)}">${h(g.photos)}</span>` : `<input class="input" type="number" min="0" style="width:72px" data-count="${attr(g.key)}" value="${I.photosEntered ? attr(g.photos) : ''}">`}</td></tr>`).join('')}
+      <tr><td>Brand: team, van, premises, logo</td><td>${S.drive && S.drive.active ? `<span data-drive-count="brand">${h(I.brand)}</span>` : `<input class="input" type="number" min="0" style="width:72px" data-f="brand" value="${I.photosEntered ? attr(I.brand) : ''}">`}</td></tr></tbody></table></div>
       <div class="sec-title">Only if they apply</div>
       ${input('offer', 'Standing offer the client has confirmed', S.hand.offer, I.offerSource === 'free_quotes' ? 'Blank uses the free, no-obligation quote' : 'Leave blank for no offer prompt')}
       ${input('booking_url', 'Booking page', S.hand.booking_url, 'https://')}
@@ -98,7 +130,7 @@ export async function render(el, ctx) {
   const draw = () => {
     if (!S) return;
     if (S.fatal) { el.innerHTML = `<div class="card">${empty({ title: 'The Lead Snap tab could not load', text: S.error, action: '<button class="btn btn-ghost" data-act="reload">Retry</button>' })}</div>`; return; }
-    el.innerHTML = `<div class="grid grid-2" style="align-items:start"><div class="stack">${card({ title: 'Generate', sub: 'The autopost config, set once per client', body: generateCard() })}${planCard()}</div><div class="stack">${outputCards()}</div></div>`;
+    el.innerHTML = `<div class="grid grid-2" style="align-items:start"><div class="stack">${card({ title: 'Generate', sub: 'The autopost config, set once per client', body: generateCard() })}${driveCard()}${planCard()}</div><div class="stack">${outputCards()}</div></div>`;
   };
 
   const collect = () => {
@@ -112,6 +144,8 @@ export async function render(el, ctx) {
     const b = e.target.closest('[data-act]'); if (!b) return;
     try {
       if (b.dataset.act === 'reload') return load();
+      if (b.dataset.act === 'drive-read') return driveCall('drive-read', { method: 'POST' });
+      if (b.dataset.act === 'drive-save') return driveCall('drive-folder', { method: 'PUT', body: { folder: el.querySelector('[data-drive-input]').value } });
       if (b.dataset.act === 'save') { await save(); draw(); toast('Saved'); return; }
       if (b.dataset.act === 'preview') {
         S.preview.running = true; draw();
@@ -131,4 +165,5 @@ export async function render(el, ctx) {
   });
   wire(el);
   await load();
+  maybeAutoRead();
 }

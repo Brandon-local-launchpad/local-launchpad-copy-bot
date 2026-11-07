@@ -97,6 +97,7 @@ const GROUPS = [
     { key: 'hand_reviews', label: 'Hand picked reviews', type: 'review-rows', hint: 'Category pages show these once the client has 3 reviews.' },
   ] },
   { key: 'gbp', title: 'Google Business Profile settings', fields: [
+    { key: 'drive_photo_folder', label: 'Drive photo folder', placeholder: 'The Drive link of the folder holding GBP Photos – Posts', hint: 'Copybot reads the sorted photos from here, read only. The Lead Snap tab shows the counts and files.' },
     { key: 'competitor_service_count', label: 'Competitor service count (top 5 average)', placeholder: 'Whole number; blank means the services target is 20' },
     { key: 'show_prices', label: 'Show prices in GBP products', type: 'select', options: ['', 'yes', 'no'] },
     { key: 'landing_page_fails', label: 'Landing page fails', type: 'textarea', placeholder: 'Filled by "Check landing page" on the GBP tab' },
