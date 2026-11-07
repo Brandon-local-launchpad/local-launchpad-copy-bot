@@ -11,88 +11,88 @@
 
 *100+ Jobs Completed*
 
-Edens Edge Landscaping offers lawn mowing in Southampton and the towns around it, inland and along the coast. Our prices are fixed with no hidden costs, however big the lawn.
+Edens Edge Landscaping provides lawn mowing in Southampton and the towns and villages around it, inland and along the coast. Every lawn gets a fixed price with no hidden costs.
 
 [ Get My Free Quote ]  [ Call 07580 412717 ]
 
 ## What's Included in a Lawn Mowing Visit
 
-Lawn mowing means cutting the whole lawn, edges included, for homeowners who'd rather not spend the weekend behind a mower. Each visit leaves the grass even, the edges trimmed and the paths clear of clippings.
+A mowing visit cuts the grass to an even height and leaves the edges and paths tidy afterwards. It's for homeowners who'd rather have the lawn looked after than give up their weekends to it.
 
-- **Inspect lawn and remove debris**: Check the lawn and clear debris
-- **Set cutting height**: Cutting height set to suit the grass
-- **Mow**: Lawn cut with a rotary or cylinder mower
-- **Edge or strim**: Lawn edges strimmed along paths and beds
-- **Collect or disperse clippings**: Clippings collected or mulched into the lawn
-- **Clear paths**: Cuttings swept off the paths
+- **Inspect lawn and remove debris**: Walk the lawn and pick up debris
+- **Set cutting height**: Set the blades to the right cutting height
+- **Mow**: Mow the whole lawn in even passes
+- **Edge or strim**: Cut back the lawn edges and strim along paths
+- **Collect or disperse clippings**: Collect the clippings or mulch them in
+- **Clear paths**: Sweep the paths clear
 
 ## Local Lawn Mowing for Southampton Homeowners
 
-Lawn mowing in Southampton covers very different lawns. On the Uplands Estate in Highfield, open plan front gardens run into grass verges, so the cut has to stop where your own lawn does. Lordswood is mostly detached family housing, and Lordswood Close is unmade and private, so getting the mower in and the clippings out is part of the job there. We're family run and independent, with a team of 4.
+Lawn mowing in Southampton changes from one street to the next. In Uplands Estate in Highfield, many front gardens are open plan, so one lawn runs straight into the next and a clean, even edge shows from the road. Along St Anne's Road in Woolston, some of the large Victorian villas have front gardens that are partly paved over, which leaves smaller strips of grass beside hard surfaces that need trimming and sweeping. We're family run and independent, and we look after lawns of every size.
 
-A visit starts with a walk over the lawn to pick up sticks, stones and anything else the blades could catch. The blades are then raised or lowered to suit how much growth there is, and the mower goes over the whole lawn. A strimmer takes the corners and tight spots the mower can't reach, and the clippings either get collected or stay on the grass as a thin mulch. The paths are left clear, and how long all of it takes varies from lawn to lawn, so there's no standard time for a visit.
+A visit follows a set order. The lawn is looked over and cleared of stones and sticks first, since anything hard left in the grass can damage the mower. The cut is kept to about a third of the grass height at most, using a rotary or cylinder mower. The edges and corners the mower can't reach are then trimmed, the cuttings are bagged up or spread back over the grass, and the paths are left clear.
 
-A mow goes wrong when the mower takes too much off in one pass. The blades tear the grass instead of slicing it, and the torn tips go pale and ragged. How quickly it recovers depends on the weather and how fast the grass is growing. That's why the height setting matters as much as the mowing, and why it's set before the first pass rather than adjusted halfway across the lawn.
+Cut too much in one go and the grass tears instead of slicing cleanly, leaving pale, ragged tips right across the lawn. That's a setting problem rather than a mower problem. It's easy to miss while the mower's running and plain to see once the cut grass settles.
 
-We cut lawns across Southampton and out to places like Chilworth, Kings Worthy and Lyndhurst, from small front lawns to larger back gardens. The stages are the same wherever the lawn is.
+We're based in Southampton, and we also mow lawns in Lyndhurst, Chilworth and Kings Worthy, as well as across the city. Short front lawns and long back ones get the same order of work.
 
-Whenever the lawn starts to outrun you, ask for a quote and we'll get it sorted.
+Whenever you're ready, ask for a price and we'll take it from there.
 
 ## Signs It's Time for a Lawn Mowing Visit
 
 ### Growth has got ahead of you
 
-Long grass and thick clumps of cuttings are what a missed visit leaves behind in the growing season. How soon it shows depends on the weather. Cut hard in one go, long grass gets scalped. Clumps block the light from the grass beneath, so a visit takes off no more than about a third at a time.
+Long, uneven grass with heavy cuttings on top usually means a visit was missed while the lawn was growing. Between spring and midsummer, that shows quickly. Left alone, long growth gets harder to cut evenly, and the clumps keep light off the grass beneath. A visit cuts it back and deals with the clippings, bringing the lawn level.
 
 ### It looks untidy from the house
 
-Grass over the edge of the path, a ragged line against the bed and clumps on the lawn are what you notice from the window. Between cuts the edges creep outwards, fastest in late spring when the lawn is growing hardest. A visit cuts the edge back to its line and either collects the clippings or spreads them.
+From the window or the door, the edges give it away. Grass laps over the path, the line against the bed is ragged, and clumps of cuttings are left behind. Edge growth creeps out between cuts, fastest in late spring. A visit cuts the edge back to its line and clears the clippings, though it'll creep out again.
 
 ### It keeps coming back
 
-A flush of growth after warm rain is normal, just grass doing what it does. What isn't normal is thick clumps or scalped patches after every cut, which come from the height and clippings, not the grass. Cutting only what shows leaves the cause in place, so a visit sets the height first and collects or spreads the clippings.
+Fresh growth after warm rain is normal, because a cut lawn always grows back. What isn't normal is a lawn that looks scalped and patchy after every visit. That points to a cutting height set too low. The visit sets it to suit the grass, and does it while the grass is growing.
 
 ### What the season is about to throw at it
 
-When the soil warms in spring, the grass puts on growth all at once, and that's the season doing what it does, not a fault. Staying on top of it starts with clearing the winter's debris, setting the height to suit the new growth and mowing the whole lawn.
+Spring growth arriving all at once isn't a fault, it's the season doing what it does as the soil warms. Getting ahead of it means the first mow goes in before the grass is long. The height is set to take only a little off, and the edges, clippings and paths are done in the same visit.
 
 ## Your Free Quote in 3 Simple Steps
 
 ### 1. Tell Us What Needs Keeping On Top Of
 
-Tell us roughly how big the lawn is and what needs doing, and send photos if you have them. You can call or message, whichever's easier.
+Call or message us with the size of the lawn and what needs doing, and send a few photos if you have them.
 
 ### 2. We Price Your Job
 
-Once we have the details of your lawn, a price is agreed with you before any work begins. Then we move on to fixing a date.
+We put a price on the job, and nothing gets started until you've agreed it. You can ask us anything about it before saying yes.
 
 ### 3. We Start on a Date That Suits You
 
-Your first visit goes into the diary on a day that works for you. Afterwards the grass is cut level, the lawn edge cut back and the paths clear.
+Your first visit goes in the diary on a day that suits you. On that day the lawn is cut, edged and tidied up.
 
 ## How We Price Lawn Mowing Visits in Southampton
 
-Size moves the price of a visit most, since a bigger lawn means more to cut, edge and clear. Whether it's the first mow of spring or one in midsummer, the price is settled with you before the first cut.
+How big the lawn is and how long the grass has grown move the price more than anything else, because a larger or longer lawn takes more time to cut. The price is agreed with you before any work starts.
 
 ### What a visit has to get through
 
-A bigger lawn takes longer to get over. Grass that has grown long or is wet slows things too, because the mower has to go slower and there are more clippings to clear.
+A bigger lawn means more ground to cover, and grass that's wet or has grown long takes the mower longer. The more there is to cut and clear, the more time the visit takes.
 
 ### How much is in the way
 
-Trees, play equipment, beds to cut round, slopes and a narrow way through to the back all slow the mower. They also leave more to trim by hand, so a lawn with plenty in the way takes longer.
+Trees, beds to work round and slopes all hold the mower up, and tight access to the back garden adds to that. Every obstacle means more time on the visit, so a clear, open lawn costs less than a crowded one.
 
 ### The first visit
 
-A lawn that's been left for a season needs a bigger first visit. There's more growth to cut down and clear before it's back to a normal cut. After that, each visit is priced as a visit.
+A lawn that's been left for a season makes the first visit a bigger job. The long grass has to be cut back before anything else. After that, each visit is priced as a visit in its own right.
 
 ### Extras you add to the visit
 
-Hedge trimming, weed control or mulching can be added to a visit, and each one adds to the price because it's extra work on top of the cut. Lawn seeding can go alongside, as its own piece of work.
+Collecting the clippings costs more than leaving them to mulch in, and edging along every path and bed takes extra time. Any other job you add to the same visit puts the price up too.
 
 ## Where We Provide Lawn Mowing Across Southampton and Nearby Towns
 
-We're based in Southampton and travel inland and along the coast to reach gardens up to 20 miles away. The lawn might be a compact one in the city or a long garden out in a village. Lawn mowing is available right across the area we cover.
+We're based in Southampton and travel up to 20 miles from here, inland and along the coast. A mowing visit goes to every garden within that reach, from the biggest back lawn to the smallest front one, and the work is the same wherever you are.
 
 We also cover Ampfield, Awbridge, Chandlers Ford, Chilworth, Eastleigh, Hedge End, Kings Worthy, Lockerley, Lyndhurst, Romsey, Stockbridge and Winchester.
 
@@ -100,35 +100,35 @@ We also cover Ampfield, Awbridge, Chandlers Ford, Chilworth, Eastleigh, Hedge En
 
 ### How often should lawn mowing be done?
 
-It depends on how fast the grass grows, and the schedule is agreed with you. Growth is quickest in the warmer months, from spring into autumn, and the type of grass makes a difference too. Mowing is usually left off in a long dry spell, when the grass has more or less stopped growing.
+There's no set number, because the pattern is agreed with you for your lawn. In a long dry spell the grass slows right down, so cutting is usually held back. On very wet or frozen ground a mower does more harm than good, because it ruts the soil and tears the turf. The gaps between visits stretch and shorten with the weather.
 
 ### How much does a lawn mowing visit cost in Southampton?
 
-It depends mostly on the amount of grass to get through. A small front lawn and a large back one are priced differently, because more grass means a longer visit. Asking for a quote is free, and a few photos of the garden help us give you a figure.
+Mostly it comes down to the area of lawn to be cut. A small, tidy lawn costs less than a large or overgrown one, because there's less to cut and clear. To get a figure, ask for a free quote and send a few photos if you have them.
 
 ### Are you insured for lawn mowing?
 
-Yes, we're insured up to £5m. That cover goes with the work we do in your garden, from the mowing and edging to the clearing up.
+Yes, we're insured up to £5m. It applies to the cutting, edging and clearing done on a lawn during a visit.
 
 ### Do I need to be home for a lawn mowing visit?
 
-Getting in is worked out ahead of the first visit. That covers whether you'll be in, how the mower reaches the back garden and what happens with gates or keys. If there's a dog in the garden or a gate that sticks, say so when you book.
+Getting in is arranged with you ahead of the first visit. Tell us about any side gates or keys when you first make contact, and we'll sort out how to get in then.
 
 ### What does a lawn mowing visit include?
 
-A visit begins with picking up debris, then the height is set, the lawn cut and the edges strimmed, and the clippings are collected or left as mulch before the paths are swept. We also do [hedge trimming](/services/hedge-trimming), [weed control](/services/weed-control) and [lawn seeding](/services/lawn-seeding).
+A visit starts by checking the lawn for debris, then setting the cutting height, mowing and cutting the edges, before the clippings are collected or left to mulch in and the paths are swept. We also do [hedge trimming](/services/hedge-trimming), [weed control](/services/weed-control) and [lawn seeding](/services/lawn-seeding).
 
 ### Are there rules or standards for lawn mowing?
 
-Nothing you need to apply for or arrange yourself. Garden maintenance work is usually guided by a set of industry standards, with different parts covering lawns, planting, paths and water areas. They describe how the work is usually done, and none of them sets a single visit pattern that suits every lawn.
+No, there's nothing you need to apply for or follow. Grounds maintenance has a recognised standard. In most cases it's treated as a guide to how the work is done, with separate parts for lawns, hard surfaces and planting. It doesn't set a single visit schedule for every lawn, so each one is judged on its own growth.
 
 ### When should lawn mowing start for the year?
 
-The first cut of the year goes in once the grass has started growing again. That's usually in spring, after the winter lull, because cutting before then leaves little to take off. If the ground is still very wet or frozen, the first visit usually waits until it has dried out or thawed.
+The first mow of the year goes in once the grass has started growing again. Cutting before then does little, because there's very little to take off and a dormant lawn gains nothing from it. The first visit of the year simply follows the first real growth. A mild spell in late winter can bring that earlier than you'd expect, so it moves from year to year.
 
 ## Our Other Gardening Services
 
-A lawn is only part of a garden, and the rest of it needs looking after too. These are some of the other jobs we take on around the garden.
+Mowing is only one part of keeping a garden in shape, and these are the other jobs people often have done alongside it.
 
 - [Fencing](/services/fencing)
 - [Lawn seeding](/services/lawn-seeding)
@@ -138,7 +138,7 @@ A lawn is only part of a garden, and the rest of it needs looking after too. The
 
 ## Get a Free Lawn Mowing Quote in Southampton
 
-Once you've asked about a lawn visit, you'll have a price from us first, and we can usually start the same week.
+Request your quote and we can usually start the same week you ask, with the cut, edges and paths all done in one visit.
 
 [ Get My Free Quote ]  [ Call 07580 412717 ]
 

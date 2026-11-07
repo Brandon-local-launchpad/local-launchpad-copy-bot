@@ -20,6 +20,7 @@ The GLOBAL COPY RULES block every page prompt shares, kept as one file. Code rea
 - Anything about how quotes work comes only from `[CV: quote_method]`. "Fixed price" only if confirmed. Prices only from `[CV: price_list]`.
 - **Materials, products and methods:** name one only if it appears in `[CV: materials_methods]` or in the trade facts rows for this category as a standard method of the trade (a compacted sub base, a French drain). A named manufacturer needs `[CV: materials_methods]`. When unsure, describe the result the customer gets instead of the product.
 - Claim words need proof on file: "best", "#1", "leading", "trusted", "expert", "specialist", "reliable", "fully insured". Use "local" instead. "Insured up to £[CV: insurance_cover]" is allowed when the figure is set.
+- A working practice that is how the job is done (strimming the edges, sweeping the paths, checking a hedge for nests) may be described. A promise about how the business runs (written or itemised quotes, no subcontractors, the owner on every job, a visit before quoting, waste taken away) is stated only if CONFIRMED PRACTICES lists it. If it isn't listed, leave it out and write around it: code deletes any such sentence.
 - Never assert a working practice, visit frequency, crew size, product or timescale the client has not confirmed. Never write [CLIENT TO CONFIRM] or any bracketed note into the copy.
 
 **Review themes**

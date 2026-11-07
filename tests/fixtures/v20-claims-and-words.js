@@ -66,7 +66,7 @@ const base = JSON.parse(fs.readFileSync(path.join(__dirname, 'v20-outputs/edens-
 const run = mutate => { const r = JSON.parse(JSON.stringify(base)); mutate(r); return validateV20(r, V); };
 
 const p = run(r => { r.faq_items[0].faq_answer = 'Costs depend on size, ground and materials. We put the full cost in writing before anything starts, and for regular visits we set a schedule that suits you.'; });
-chk('PRACTICE: "in writing" and "schedule" unconfirmed → BLOCK', p.some(i => i.check === 'PRACTICE' && /in writing/.test(i.message) && i.type === 'BLOCK') && p.some(i => i.check === 'PRACTICE' && /schedule/.test(i.message)), p.filter(i => i.check === 'PRACTICE').map(i => i.message).join(' | '), 'both');
+chk('PRACTICE: "in writing" and "schedule" unconfirmed → FLAG', p.some(i => i.check === 'PRACTICE' && /in writing/.test(i.message) && i.type === 'FLAG') && p.some(i => i.check === 'PRACTICE' && /schedule/.test(i.message)), p.filter(i => i.check === 'PRACTICE').map(i => i.message).join(' | '), 'both');
 const V2 = buildValidationContext({ cv: { ...cv, confirmed_practices: ['written_quote', 'maintenance_schedule'] }, niche: landscaper, decisions: D, keyValueMap, serviceParentMap, populatedCvKeys: keys });
 const r2 = JSON.parse(JSON.stringify(base)); r2.faq_items[0].faq_answer = 'Costs depend on size, ground and materials. We put the full cost in writing before anything starts, and for regular visits we set a schedule that suits you.';
 chk('PRACTICE: the same claims pass once confirmed', !validateV20(r2, V2).some(i => i.check === 'PRACTICE' && /How much/.test(i.field)), '', 'no PRACTICE');

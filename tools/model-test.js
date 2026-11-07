@@ -134,6 +134,11 @@ async function liveInputs(ro, clientId = CLIENT_ID) {
     const v = rows.length ? rows[0].value : null;
     if (v != null) cv.emergency_callouts = typeof v === 'string' ? v : Array.isArray(v) ? v.join(', ') : (v.value || v.text || v.label || JSON.stringify(v));
   }
+  {
+    const PF = require('../practice-filter');
+    const { rows } = await q(`SELECT field_key, value FROM client_fields WHERE client_id=$1 AND status='filled'`, [clientId]);
+    cv = PF.withFormPractices(cv, Object.fromEntries(rows.map(r => [r.field_key, r.value])));
+  }
   const silent = { log() {}, info() {}, warn() {}, error() {} };
   const svc = createFilloutService({ pool: ro, audioStore: { put() { throw new Error('not used'); }, get() { return null; } }, log: silent });
   const store = createPageMapStore({ pool: ro, filloutService: svc });

@@ -116,7 +116,9 @@ async function runRetries({ record, V, callRetry, maxRetries = MAX_RETRIES, conc
       if (!byField.has(i.field)) byField.set(i.field, { ref: i.ref, issues: [] });
       byField.get(i.field).issues.push(i);
     }
-    const targets = [...byField.entries()].filter(([label]) => (attempts[label] || 0) < maxRetries);
+    // A field that is only an unconfirmed promise gets one rewrite, then goes to the edit list (Brandon, 7 Nov 2026)
+    const capFor = g => (g.issues.every(i => i.check === 'PRACTICE' || i.check === 'PROMISE') ? 1 : maxRetries);
+    const targets = [...byField.entries()].filter(([label, g]) => (attempts[label] || 0) < capFor(g));
     if (!targets.length) break;
 
     const base = clone(record);

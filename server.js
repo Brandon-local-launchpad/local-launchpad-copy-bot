@@ -95,14 +95,6 @@ app.post('/auth/logout', (req, res) => {
   res.redirect('/login.html');
 });
 
-// The practice tick list: a client's signed link, no login (practices-step.js)
-require('./practices-step').mountPracticesStep(app, {
-  express,
-  secret: () => process.env.PRACTICES_LINK_SECRET || APP_PASSWORD || 'local',
-  loadClient: async id => { const ctx = await loadV20Context(id, null); const { niche } = nicheFor(ctx); return { cv: ctx.cv, niche }; },
-  saveValues: async (id, values) => { for (const [k, v] of Object.entries(values)) await saveClientValue(id, k, v); },
-});
-
 // Protect all routes below this point
 app.use((req, res, next) => {
   // Static files and login page are already served above — only API and page routes hit this
@@ -3097,7 +3089,7 @@ app.get('/api/clients/:clientId/client-values', async (req, res) => {
     if (!rows.length) return res.json({ found: false, values: { ...CLIENT_VALUES_TEMPLATE }, derived });
     const saved = JSON.parse(rows[0].content);
     // Merge with template so new keys added later are always present
-    res.json({ found: true, values: { ...CLIENT_VALUES_TEMPLATE, ...saved }, derived });
+    res.json({ found: true, values: await cvWithFormPractices(req.params.clientId, { ...CLIENT_VALUES_TEMPLATE, ...saved }), derived });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -3257,6 +3249,17 @@ async function loadV3Context(clientId, cv, niche) {
 // titles are the names), so every consumer must take it from here, not loadNiche(trade)
 function nicheFor(ctx) { return ctx.nicheError ? { niche: null, error: ctx.nicheError } : { niche: ctx.niche, error: null }; }
 
+async function cvWithFormPractices(clientId, cv) {
+  const PF = require('./practice-filter');
+  try {
+    const { rows } = await pool.query(`SELECT field_key, value FROM client_fields WHERE client_id = $1 AND status = 'filled' AND field_key = ANY($2)`, [clientId, PF.FORM_FIELD_KEYS]);
+    return PF.withFormPractices(cv, Object.fromEntries(rows.map(r => [r.field_key, r.value])));
+  } catch (err) {
+    console.error('[practices] Failed to read the form answers for', clientId, err.message);
+    return cv;
+  }
+}
+
 async function loadV20Context(clientId, sessionId) {
   let cv = { ...CLIENT_VALUES_TEMPLATE };
   let cvLoadError = null;
@@ -3278,6 +3281,8 @@ async function loadV20Context(clientId, sessionId) {
     } catch (err) {
       console.error('[v20] Failed to load v20 settings for', clientId, err);
     }
+    // The practices the onboarding form already answers (7 Nov 2026)
+    cv = await cvWithFormPractices(clientId, cv);
     // The onboarding answer "Do you take emergency call-outs?" (3 Nov 2026): read for the emergency
     // switch (category-blocks.js clientEmergency); the hand set emergency_primary wins when it says no
     if (!cv.emergency_callouts) {
@@ -4017,11 +4022,6 @@ if (filloutService && citationStore) {
 }
 // Location Determiner (locations/routes.js): which towns get location pages; the dry run first
 if (filloutService) require('./locations/routes').mountLocationsApi(app, { pool, filloutService });
-// The staff side of the practice tick list: the client's link
-app.get('/api/clients/:clientId/practices-link', (req, res) => {
-  const token = require('./practices-step').tokenFor(req.params.clientId, process.env.PRACTICES_LINK_SECRET || APP_PASSWORD || 'local');
-  res.json({ path: `/practices/${token}` });
-});
 
 // GBP output (gbp/routes.js, 23 Oct): the Google Business Profile description, services and
 // products, from the client values, the v3 page map and the generated service page copy

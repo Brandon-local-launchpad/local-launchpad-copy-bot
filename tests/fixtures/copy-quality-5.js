@@ -41,7 +41,7 @@ for (const t of ['A fair number of gardens here sit on clay.', 'The base is a go
 }
 chk('TRADE-VOICE: the message asks for the job itself', voice('A fair landscaper agrees the plan.')[0].message.includes('describe the job itself'), '', 'the job itself');
 const nests = practice('A good landscaper will check for nests before any cutting.');
-chk('PRACTICE: the third person form of an unconfirmed practice no longer passes, and the message offers the job itself', nests.length === 1 && nests[0].message.includes('describe the job itself') && !nests[0].message.includes('third person'), JSON.stringify(nests.map(i => i.message)), 'one BLOCK');
+chk('PRACTICE: a method passes in the third person', nests.length === 0, JSON.stringify(nests.map(i => i.message)), 'none');
 const rules = fs.readFileSync(path.join(root, 'prompts/_shared_copy_rules.md'), 'utf8');
 chk('Shared copy rules: the third person line is out, the job itself is in', !rules.includes('third person') && !rules.includes('a fair roofer') && !rules.includes('a good fitter') && rules.includes('describe the job itself'), '', 'rule changed');
 const claimsPrompt = fs.readFileSync(path.join(root, 'prompts/Claims_Review_CORE.md'), 'utf8');

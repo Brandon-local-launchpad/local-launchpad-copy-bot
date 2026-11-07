@@ -35,7 +35,7 @@ const { confirmedServiceList } = require('./service-words');
 // Flags that send a field back to the model (Brandon, 7 Nov 2026): facts and claims, the copy rules code must
 // hold to, the word ranges, the page's structure and keyword. Every other flag waits for the one style pass.
 // A sentence over the soft cap is N7 but style: see isRetryIssue.
-const RETRY_FLAGS = new Set(['N7', 'N15', 'N19', 'N22', 'OUTCOME', 'SERVICE', 'RAW-GBP', 'COAST', 'AREA-ADMIN', 'CARD-COUNT', 'CARD-PICK', 'HERO']);
+const RETRY_FLAGS = new Set(['PRACTICE', 'PROMISE', 'N7', 'N15', 'N19', 'N22', 'OUTCOME', 'SERVICE', 'RAW-GBP', 'COAST', 'AREA-ADMIN', 'CARD-COUNT', 'CARD-PICK', 'HERO']);
 // The stages the page's trade facts name, as word stems: the "Stages:" rows, Table A's stages column, What's Included
 function tradeStageWords(V) {
   if (V._tradeStages) return V._tradeStages;
@@ -144,6 +144,8 @@ const SELF_REF_RE = /\b(?:see|listed|shown|set out|find|found|included|detailed)
 const META_TALK_RE = /\b(?:the\s+)?(?:cards?|sections?|points?|answers?|questions?|services?|factors?|steps?|list)\s+(?:that\s+|which\s+)?(?:follows?|below|above|here)\b|\bset out (?:here|below|above)\b|\bno (?:figure|price|number) (?:is|can be) (?:given|quoted|shown|listed|stated|put)\b|\b(?:below|above|here),? we (?:explain|set out|cover|list|look at|go through)\b|\bwe (?:explain|set out|cover|list) (?:below|above|here)\b|\bas (?:set out|explained|described|covered|listed)\b(?: (?:above|below|here|earlier))?|\b(?:are|is) (?:explained|set out|listed|covered|laid out) (?:under|here|below|above)\b|\b(?:are|is) under (?:What|How|Common|Signs)\b|\bunder (?:What Affects|How We Price)\b|\bwhat follows\b|\bread on\b/i;
 // A phrase that names a symptom the customer has ("a handle that won't lift", "if the lock won't turn"), not a
 // promise about the work. A clause that says what the firm builds or gives stays a promise ("a patio that won't crack")
+// How a job or visit is run: these shapes are never on file (loop round 1)
+const PROMISE_SHAPE_RE = /\bnothing (?:gets |is |will be )?added\b[^.]{0,30}\bwithout\b|\bwithout you (?:saying|asking|agreeing)\b|\bwe (?:always )?stick to\b|\b(?:price|figure|cost|quote)s?\b[^.]{0,20}\b(?:doesn't|does not|won't|will not|never) (?:creep|change|move|go up|rise)\b|\beach (?:garden|job|visit|customer) gets (?:its|their) own\b|\b(?:its|their) own plan\b|\bwe (?:fit|fits|fitted|fitting|shape|plan|build) (?:the|each|every|a) (?:visit|round|job)s? (?:to|around) (?:a time|your|the time|when)\b|\bat a time that (?:works|suits)\b|\b(?:we )?arrive ready\b|\bready to start on\b/i;
 const PROMISE_VERB_RE = /\b(?:we|our|you'll get|you get|gives? you|leaves? you|built|build|builds|laid|lay|lays|fitted|fits|fit|install\w*|finish\w*|so (?:it|they|the|your))\b/i;
 function isSymptomPhrase(text, index) {
   const before = String(text).slice(0, index);
@@ -656,10 +658,11 @@ function validateCommon(record, V) {
     if (!String(cv.visit_frequency_options || '').trim() && /\b(?:weekly|fortnightly|monthly|every (?:week|fortnight|month|two weeks|other week))\b/i.test(s)) {
       flag('BLOCK', 'FREQUENCY', `"${s.match(/\b(?:weekly|fortnightly|monthly|every (?:week|fortnight|month|two weeks|other week))\b/i)[0]}" names a visit frequency, but visit_frequency_options is blank. Say the schedule is agreed with the customer and nothing more.`);
     }
-    // PROMISE: how a job or visit is run is a practice; these shapes are never on file (loop round 1)
+    // PROMISE: how a job or visit is run. Code deletes the sentence (practice-filter.js), so one still here is a field
+    // that is only that sentence, or a hand edit: never a BLOCK, one rewrite, then the edit list (Brandon, 7 Nov 2026)
     {
-      const m = s.match(/\bnothing (?:gets |is |will be )?added\b[^.]{0,30}\bwithout\b|\bwithout you (?:saying|asking|agreeing)\b|\bwe (?:always )?stick to\b|\b(?:price|figure|cost|quote)s?\b[^.]{0,20}\b(?:doesn't|does not|won't|will not|never) (?:creep|change|move|go up|rise)\b|\beach (?:garden|job|visit|customer) gets (?:its|their) own\b|\b(?:its|their) own plan\b|\bwe (?:fit|fits|fitted|fitting|shape|plan|build) (?:the|each|every|a) (?:visit|round|job)s? (?:to|around) (?:a time|your|the time|when)\b|\bat a time that (?:works|suits)\b|\b(?:we )?arrive ready\b|\bready to start on\b/i);
-      if (m) flag('BLOCK', 'PROMISE', `"${m[0]}" promises how the business runs the job, which only CONFIRMED PRACTICES may say. Leave it out, or say what the work involves instead.`);
+      const m = s.match(PROMISE_SHAPE_RE);
+      if (m) flag('FLAG', 'PROMISE', `"${m[0]}" promises how the business runs the job, which only CONFIRMED PRACTICES may say. Leave it out and write around it: say what the work involves.`);
     }
     // CONTRADICT: the fixed price is the proof, so the price is never "not fixed" (loop round 1)
     if (fixedConfirmed && /\bnot (?:a |one )?fixed\b|\bisn't fixed\b|\bis not fixed\b|\bno (?:single |one )?fixed (?:price|sum|figure|cost|fee)\b|\bno set (?:price|figure|fee)\b/i.test(s)) {
@@ -669,12 +672,13 @@ function validateCommon(record, V) {
     const confirmedKeys = new Set(cv.confirmed_practices || []);
     // A trade facts stage may be described as how the job is done (Brandon, 7 Nov 2026): never a "we" promise, and
     // only where the page's own trade facts name that stage
-    const judged = sentences(t).map(x => scanText(x)).filter(sen => {
-      const claims = practiceClaims(sen, niche).filter(c => !confirmedKeys.has(c.practice.key));
-      return !(claims.length && claims.every(c => isTradeStage(c.match, sen, V)));
-    });
-    for (const c of practiceClaims(judged.join(' '), niche)) {
-      if (!confirmedKeys.has(c.practice.key)) flag('BLOCK', 'PRACTICE', `"${c.match}" states a practice ("${c.practice.label}") that the client hasn't confirmed. Delete it, or describe the job itself: what the work involves, with no "we", no "a fair [trade]" and no claim about how any business behaves.`);
+    // A method needs no confirmation. A promise the client hasn't confirmed is deleted by code (practice-filter.js); one
+    // still here is a field that is only that sentence, or a hand edit: never a BLOCK, one rewrite, then the edit list
+    for (const sen of sentences(t).map(x => scanText(x))) {
+      for (const c of practiceClaims(sen, niche)) {
+        if (confirmedKeys.has(c.practice.key) || c.practice.kind === 'method' || isTradeStage(c.match, sen, V)) continue;
+        flag('FLAG', 'PRACTICE', `"${c.match}" states a promise ("${c.practice.label}") the client hasn't confirmed. Leave it out and write around it: say what the work involves, with no claim about how the business behaves.`);
+      }
     }
     // TRADE-VOICE (copy quality 5, 4 Nov 2026): "a fair roofer shows you photographs", "a locksmith won't ...": how
     // a business in the trade behaves reads as a promise about this one
@@ -1179,7 +1183,7 @@ function summarise(issues) {
 }
 
 module.exports = {
-  effectiveRanges, thinRange,
+  effectiveRanges, thinRange, isTradeStage, PROMISE_SHAPE_RE,
   validateV20, validateCommon, sharedCrossChecks, buildValidationContext, modelFields, getField, setField, summarise, wordCount, RANGES, RETRY_FLAGS, BANNED, STOCK, HOMEPAGE_KEYS,
   // Text helpers for a page type's own checks
   helpers: { serviceTermsToCheck, isSymptomPhrase, META_TALK_RE, requiredWording, cutRequired, esc, stripLinks, linkUrls, normUrl, scanText, words, sentences, lc, stem, STOPWORDS, contentWords, packIndex, packCopy },

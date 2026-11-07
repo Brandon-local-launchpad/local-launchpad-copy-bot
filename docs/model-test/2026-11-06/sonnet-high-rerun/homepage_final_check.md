@@ -9,81 +9,81 @@
 
 *100+ Jobs Completed*
 
-Edens Edge Landscaping is a landscaper in Southampton covering Romsey and the surrounding areas. Our prices are fixed, with no hidden costs added once the job is under way.
+Edens Edge Landscaping is a landscaper in Southampton, covering Romsey and the surrounding areas. We're a family run, independent business, so you'll be dealing with a local firm from the first call.
 
 [ Get My Free Quote ]  [ Call 07580 412717 ]
 
 ## Local Landscaping in Southampton and Nearby Towns
 
-We're a family run, independent landscaper in Southampton, and the gardens we're asked about change a lot from one street to the next. Where Bassett's large family houses sit on long, narrow plots, the layout and the roots of mature trees decide what can go where. In the Portswood conservation area, changes to front garden paving, paths and boundaries face extra controls. That makes planning the front garden worth doing before any digging starts.
+A landscaper in Southampton meets very different gardens within a mile of each other. Bassett Heath has large detached houses on long plots with mature trees, which makes the layout of the garden and the protection of tree roots part of the job. The Residents' Gardens estate in Portswood is a conservation area. Work on front paths, paving and fences faces extra controls there, and the front garden has to be planned first.
 
-If you want a garden planned and laid out, our [landscape designer](/landscape-designer/) work is where that starts. Our [landscape gardener](/landscape-gardener/) work turns the plan into a finished garden, and our [gardener](/gardener/) work looks after it through the seasons. A [tree service](/tree-service/) visit deals with trees that have outgrown their spot.
+Our [landscape gardener](/landscape-gardener) work builds and repairs the garden itself, while [landscape designer](/landscape-designer) work plans a new layout from scratch. For upkeep, our [gardener](/gardener) work keeps the garden under control, and a [tree service](/tree-service) visit deals with trees that have outgrown their place.
 
-How well a patio or driveway holds up is decided by the part you can't see once the job is finished. That means the ground it sits on, the base laid under it, and the fixings behind a fence or deck. Surfaces that sink and fences that lean usually trace back to the groundwork, not the finish on top.
+What goes under a patio, drive or fence decides how it ages. A base that moves leaves slabs rocking or sinking, and a post set badly ends in a lean. Once the finish goes on, that groundwork can't be seen, so it's the first thing to ask about.
 
-We also work in Chandlers Ford, Eastleigh and Winchester, and in the villages in between, inland and along the coast.
+We're a team of 4 and work across Southampton, Eastleigh and Winchester, as well as the villages nearby.
 
-Ring 07580 412717 and we'll talk through what you have in mind for the garden.
+Call 07580 412717 to talk through your garden and what you'd like done.
 
 ## Our Landscaping Services in Southampton
 
-We look after homeowners' gardens, from the first design through to the building and the upkeep. Southampton's gardens run from long family plots to small terraced backs, so the jobs run from trimming a hedge to rebuilding a garden.
+Homeowners across Southampton can book us for everyday garden care or a bigger project. Southampton gardens run from long, tree filled plots to front gardens with conservation area rules, so each job starts with what's already there.
 
 ### [Gardener](/gardener)
 
-A hedge that's swallowed the path, weeds in the borders and a tired fence line can make a whole garden feel out of hand. Our [gardener](/gardener/) work covers fencing, hedge trimming and weed control, all from the one firm.
+Hedges creep over the path, weeds come back in the borders and a fence panel starts to lean. That adds up to a lost weekend. Our [gardener](/gardener) work covers hedge trimming, weed control and fencing, so those jobs stop waiting for you.
 
 ### [Landscape Gardener](/landscape-gardener)
 
-Who do you call for the lawn and that sloping bank? A [landscape gardener](/landscape-gardener/) visit can cover garden maintenance and lawn care. We build retaining walls where the garden changes level and the ground needs holding back.
+Who keeps the lawn in shape and holds back a sloping bank at the bottom of the garden? A [landscape gardener](/landscape-gardener) visit covers garden maintenance, lawn care and retaining walls, from the regular jobs to the building work that holds soil in place.
 
 ### [Landscape Designer](/landscape-designer)
 
-Patios and lawn seeding are the heart of the [landscape designer](/landscape-designer/) work from us. A patio gives you somewhere firm to sit outside, and a seeded lawn around it ties the new area into the rest of the garden.
+Patios and lawn seeding sit at the heart of the [landscape designer](/landscape-designer) work from us: a seating area laid out around the shape of the garden, and a new lawn sown from seed where the old one has given up.
 
 ### [Tree Service](/tree-service)
 
-Late autumn, once the leaves are down, is when many people look hard at the trees they've been unsure about all year. That's when it helps to know what a [tree service](/tree-service/) does. It takes in tree stump removal, tree planting, and tree cabling and bracing for trees that need support.
+Winter, once the leaves are down, is when many people look at what a [tree service](/tree-service) does. Our work includes tree stump removal, tree planting, and tree cabling and bracing, which supports a weak limb instead of cutting it off.
 
 ### [Paving Contractor](/paving-contractor)
 
-Badly done paving shows in uneven blocks, gaps that open up between them and puddles by the back door. If you're booking a [paving contractor](/paving-contractor/), we do block paving, plus concrete bases and paths for the garden.
+Block paving that dips and paths that hold puddles are what badly laid work shows after a few winters. Booking a [paving contractor](/paving-contractor) with us means block paving, concrete bases and paths for a front drive, a side passage or the back garden.
 
 ### [Deck Builder](/deck-builder)
 
-A place to sit out on a summer evening is the result people want from decking. The [deck builder](/deck-builder/) side of what we do gets there with composite decking for the surface and pergolas overhead. Decking restoration is for an old deck that's lost its colour.
+A dry, level place to sit out on summer evenings is what people want from decking. The [deck builder](/deck-builder) side of what we do gets them there with pergolas, composite decking and decking restoration for boards that have gone grey.
 
 ## Why Southampton Homeowners Choose Edens Edge Landscaping
 
 ### Our Track Record
 
-A team of 4 and over 100 finished jobs mean you're hiring people who've done this work before, not learning it on your garden.
+More than 100 jobs are behind us, from garden upkeep to patios and driveways. That's a record you can ask us about, rather than take on trust.
 
 ### Insured up to £5m
 
-We're insured up to £5m, which matters when you're choosing who works in your garden, because with an uninsured trader the risk stays with you.
+A trader with no insurance leaves the risk of a job going wrong with the homeowner. That's why it's worth asking any firm before you book. We're insured up to £5m.
 
 ### Fixed Prices With No Hidden Costs
 
-Once we've given you a figure for the work, the invoice matches it. Nothing gets added halfway through, so a job doesn't turn into a bigger bill than you planned for.
+We give one price for the whole job and stick to it. Nothing gets added once the digging starts and the garden is half finished.
 
 ### Family Run and Independent
 
-We're a family business and nobody else's franchise, so how your garden turns out reflects on our own name, not a company's.
+We answer to ourselves rather than a head office, so how your garden is treated is down to us and nobody else.
 
 ## Your Free Quote in 3 Simple Steps
 
 ### 1. Tell Us About Your Garden
 
-Call us or send a message with the rough size of the garden, what you'd like done and a few photos if you have them.
+Ring us or send a message with the rough size of the garden, what you'd like done and a few photos if you have them.
 
 ### 2. We Price Your Job
 
-Your price is worked out for the job you've described, whether that's a new patio, a seeded lawn or a hedge cut back to size.
+We work out what the job involves, then agree the price with you before any work starts. Nothing goes ahead until you're happy with it.
 
 ### 3. We Start on a Date That Suits You
 
-Together we pick a start date that fits around your week, so you know when we're arriving and can plan around it.
+We agree the start date with you in advance and fit it around your week, so the day suits your household.
 
 ## Ready to talk to a local landscaper?
 
@@ -93,7 +93,7 @@ Tell us about your garden and we'll get back to you.
 
 ## Where Our Landscapers Work Around Southampton
 
-We're based in Southampton and work up to 20 miles from the city, inland and along the coast. That reaches towns such as Romsey, Stockbridge and Lyndhurst, and villages like Ampfield, Awbridge, Lockerley and Kings Worthy.
+We're based in Southampton and travel up to 20 miles for a job, inland and along the coast. That takes in towns and villages such as Romsey, Winchester, Eastleigh, Chandlers Ford and Lyndhurst.
 
 - Southampton
 - Ampfield
@@ -113,39 +113,39 @@ We're based in Southampton and work up to 20 miles from the city, inland and alo
 
 ### How much does landscaping cost in Southampton?
 
-The biggest factor is how much old surface or soil has to come out. Taking up an old driveway costs far more than marking out a small border, because the digging and clearing take longer. Ask for a quote once you know roughly what you want done, so the figure covers your actual job.
+It depends mostly on the size of the area being worked on. A small patio and a full back garden are very different jobs, and the price follows that. We can't give a fair figure without knowing the job, so ask us for a quote and we'll price it for your garden.
 
 ### Are you insured?
 
-Yes, we carry cover of up to £5m. It's for accidental damage to your property and injury to other people while work is going on, such as a branch coming down during tree work. What applies in any particular case depends on the policy terms and what the insurer decides.
+Yes, our cover goes up to £5m. It's there for accidental damage to your home or garden, and for injury to other people, while the work is going on. An example is a branch dropping during tree work. How it applies in any one case depends on the policy's terms and who is liable.
 
 ### What happens if something isn't right after the job?
 
-Tell us what isn't right and we'll look at it. All work has to be done with reasonable care and skill, and that's the standard ours is held to. The more detail you can give about what you're seeing, and a few pictures of it, the quicker we can see what's behind it.
+Tell us what isn't right and we'll look at it with you. Any trader's work is held to the standard of reasonable care and skill, and that's the standard we measure the job against. The sooner you tell us, the easier it is to see what caused the problem.
 
 ### How soon can you start?
 
-We can usually start the same week. You can reach us on 07580 412717, Monday to Saturday, 7am to 6pm, and we'll confirm the day with you.
+We can usually start the same week you contact us. Our working hours are Monday to Saturday, 7am to 6pm, so call us then to talk about dates.
 
 ### Is the quote free and no obligation?
 
-Yes, our quotes are free, and asking for one doesn't commit you to anything. Once you've seen the figure, the decision to go ahead is yours, and if you'd rather not, we'll leave it there.
+Yes, our quotes are free. Asking for one doesn't commit you to anything, and the job only goes ahead once you're happy with the price.
 
 ### Which areas do you cover?
 
-Southampton and the places around it, inland and along the coast. That takes in Eastleigh, Hedge End, Chilworth and Winchester. If your address is near the edge, call 07580 412717 and we'll tell you whether we can get to you.
+We cover Southampton and towns nearby, including Romsey, Winchester, Eastleigh and Chandlers Ford. Our travel is up to 20 miles, inland and along the coast. If you're unsure whether you're in range, ring 07580 412717.
 
 ### How do I know if a landscaping quote is reasonable?
 
-A reasonable quote spells out exactly what the work includes. For a patio, that means saying whether taking up and removing the old surface is part of the figure. A single total with no breakdown is hard to judge either way, so ask what it covers.
+A reasonable quote says clearly what the job includes. For a patio, it should name the area covered and the type of paving, not just give one total. If anything is vague, ask for it to be spelled out.
 
 ### Why does water sit on my patio or lawn after rain?
 
-It's usually one of three causes, and they're easy to mix up. The ground may drain slowly, the surface may fall the wrong way, or there may be no drain or soakaway. Near the rivers and coast, Southampton's ground can stay wet through winter. Finding which applies comes first, and a [paving contractor](/paving-contractor/) can often tell from how the water moves.
+Usually it's slow draining ground, a surface falling the wrong way, or no drain. Southampton's ground varies, with clay in places and wetter, low lying land near the Test and Itchen, so no single cause fits every garden. The fix follows the cause: reshaping the fall or adding a drain, which a [landscape gardener](/landscape-gardener) can advise on.
 
 ## Get a Free Quote From a Local Landscaper in Southampton
 
-Once you've contacted us about your garden, we'll listen to what you're after and agree the next step together.
+We'll go over the job with you and suggest a sensible next step for your garden.
 
 [ Get My Free Quote ]  [ Call 07580 412717 ]
 

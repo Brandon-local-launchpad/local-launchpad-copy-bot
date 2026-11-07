@@ -3,6 +3,7 @@
   "practices": [
     {
       "key": "written_quote",
+      "kind": "promise",
       "trades": [
         "all"
       ],
@@ -16,6 +17,7 @@
     },
     {
       "key": "itemised_quote",
+      "kind": "promise",
       "trades": [
         "all"
       ],
@@ -30,6 +32,7 @@
     },
     {
       "key": "quote_covers_all",
+      "kind": "promise",
       "trades": [
         "all"
       ],
@@ -43,6 +46,7 @@
     },
     {
       "key": "start_date_at_quote",
+      "kind": "promise",
       "trades": [
         "all"
       ],
@@ -56,6 +60,7 @@
     },
     {
       "key": "site_visit_before_quote",
+      "kind": "promise",
       "trades": [
         "all"
       ],
@@ -74,6 +79,7 @@
     },
     {
       "key": "bigger_projects_booked_ahead",
+      "kind": "promise",
       "trades": [
         "all"
       ],
@@ -88,6 +94,7 @@
     },
     {
       "key": "maintenance_schedule",
+      "kind": "promise",
       "trades": [
         "all"
       ],
@@ -108,6 +115,7 @@
     },
     {
       "key": "no_subcontractors",
+      "kind": "promise",
       "trades": [
         "all"
       ],
@@ -127,6 +135,7 @@
     },
     {
       "key": "owner_on_every_job",
+      "kind": "promise",
       "trades": [
         "all"
       ],
@@ -147,6 +156,7 @@
     },
     {
       "key": "same_team_throughout",
+      "kind": "promise",
       "trades": [
         "all"
       ],
@@ -163,6 +173,7 @@
     },
     {
       "key": "tidy_each_day",
+      "kind": "promise",
       "trades": [
         "all"
       ],
@@ -177,6 +188,7 @@
     },
     {
       "key": "waste_removal",
+      "kind": "promise",
       "trades": [
         "all"
       ],
@@ -190,6 +202,7 @@
     },
     {
       "key": "stage_updates",
+      "kind": "promise",
       "trades": [
         "all"
       ],
@@ -204,6 +217,7 @@
     },
     {
       "key": "aftercare_advice",
+      "kind": "promise",
       "trades": [
         "all"
       ],
@@ -216,6 +230,7 @@
     },
     {
       "key": "return_visit",
+      "kind": "promise",
       "trades": [
         "all"
       ],
@@ -229,6 +244,7 @@
     },
     {
       "key": "photos_of_faults",
+      "kind": "promise",
       "trades": [
         "roofer"
       ],
@@ -241,6 +257,7 @@
     },
     {
       "key": "watertight_each_night",
+      "kind": "promise",
       "trades": [
         "roofer"
       ],
@@ -253,6 +270,7 @@
     },
     {
       "key": "scaffolding_in_quote",
+      "kind": "promise",
       "trades": [
         "roofer"
       ],
@@ -265,6 +283,7 @@
     },
     {
       "key": "extra_work_agreed_first",
+      "kind": "promise",
       "trades": [
         "all"
       ],
@@ -280,6 +299,7 @@
     },
     {
       "key": "weather_delays_rebooked",
+      "kind": "promise",
       "trades": [
         "all"
       ],
@@ -293,6 +313,7 @@
     },
     {
       "key": "property_protected",
+      "kind": "promise",
       "trades": [
         "all"
       ],
@@ -306,6 +327,7 @@
     },
     {
       "key": "price_agreed_before_work",
+      "kind": "promise",
       "trades": [
         "all"
       ],
@@ -320,6 +342,7 @@
     },
     {
       "key": "weed_roots_out",
+      "kind": "method",
       "trades": [
         "landscaper"
       ],
@@ -334,6 +357,7 @@
     },
     {
       "key": "soil_covered_after_clearance",
+      "kind": "method",
       "trades": [
         "landscaper"
       ],
@@ -348,6 +372,7 @@
     },
     {
       "key": "nesting_bird_check",
+      "kind": "method",
       "trades": [
         "landscaper"
       ],
@@ -363,6 +388,7 @@
     },
     {
       "key": "autumn_leaf_clearance",
+      "kind": "method",
       "trades": [
         "landscaper"
       ],
@@ -379,6 +405,7 @@
     },
     {
       "key": "green_waste_choice",
+      "kind": "promise",
       "trades": [
         "landscaper"
       ],
@@ -395,6 +422,7 @@
     },
     {
       "key": "pre_season_clearing",
+      "kind": "method",
       "trades": [
         "landscaper"
       ],
@@ -409,6 +437,7 @@
     },
     {
       "key": "strimmer_edges",
+      "kind": "method",
       "trades": [
         "landscaper"
       ],
@@ -423,6 +452,7 @@
     },
     {
       "key": "paths_swept_after_mowing",
+      "kind": "method",
       "trades": [
         "landscaper"
       ],
@@ -437,6 +467,7 @@
     },
     {
       "key": "customer_need_not_be_home",
+      "kind": "promise",
       "trades": [
         "landscaper"
       ],

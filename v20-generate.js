@@ -240,7 +240,7 @@ async function generateV20Homepage({ modelConfig = PM.forPage('homepage'), cv, n
 
   // Stage 7: validate, then rewrite failing fields one at a time (brief §6b)
   const V = validationContextFor({ cv, niche, decisions: D, keyValueMap, serviceParentMap, calibrationPack });
-  record.meta.hyphens_fixed = require('./fix-hyphens').fixHyphens(record, V);
+  record.meta.hyphens_fixed = require('./page-passes').cleanPage(record, V);
   record.meta.first_draft_validation = (() => { const i = validateV20(record, V); return { block: i.filter(x => x.type === 'BLOCK').length, flag: i.filter(x => x.type === 'FLAG').length }; })();
   if (retries) {
     const retrySystem = [
