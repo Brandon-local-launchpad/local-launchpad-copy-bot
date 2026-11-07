@@ -17,7 +17,7 @@ const { resolveValues, knownKeys } = require('./values');
 const { legalHold, pushRefusals, sameText } = require('./hold');
 const { secretMatches } = require('../fillout/intake');
 
-const FORM_KEYS = ['business_name', 'business_phone', 'business_email', 'full_name', 'business_address', 'vat_registered', 'deposit', 'payment_methods'];
+const FORM_KEYS = ['business_name', 'business_phone', 'business_email', 'full_name', 'business_address', 'vat_registered', 'deposit', 'payment_methods', 'primary_town'];
 
 const fail = (status, message) => Object.assign(new Error(message), { status });
 const today = () => new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'Europe/London' });

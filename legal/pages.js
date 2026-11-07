@@ -2,7 +2,6 @@
 
 // ── The legal pages ─────────────────────────────────────────────────────────
 // One entry per page; the file in legal-templates/ is the only copy of its wording.
-// Stage 4 adds the Privacy Policy and the Website Terms of Use.
 
 const fs = require('fs');
 const path = require('path');
@@ -12,6 +11,8 @@ const DIR = path.join(__dirname, '..', 'legal-templates');
 
 const PAGES = [
   { key: 'service-terms', title: 'Service Terms', slug: '/service-terms', file: 'service-terms.md' },
+  { key: 'privacy-policy', title: 'Privacy Policy', slug: '/privacy-policy', file: 'privacy-policy.md' },
+  { key: 'website-terms', title: 'Website Terms of Use', slug: '/terms', file: 'website-terms.md' },
 ];
 
 const pageFor = key => PAGES.find(p => p.key === key) || null;

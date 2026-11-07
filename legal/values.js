@@ -11,6 +11,8 @@
 // Claims never get a default: insurance and a guarantee are shown only when given, and
 // what identifies the business or sets a price is held for rather than assumed.
 
+const { liveDomain } = require('../gbp/profile');
+
 const text = v => (v === undefined || v === null ? '' : String(v).trim());
 
 // Fixed defaults from the token list (Legal Templates doc, 22 Oct 2026). None states a
@@ -23,8 +25,12 @@ const DEFAULTS = {
   callout_fee: 'no',
   waste_removal: 'no',
   adr_member: 'no',
+  ico_number: 'none',
 };
-const FIXED = { cancel_notice_hours: '24', parking_required: 'no' };
+// ga_consent_text: Google Analytics stays behind the banner, one decision for all sites (the Site options sheet)
+const FIXED = { cancel_notice_hours: '24', parking_required: 'no', ga_consent_text: 'Yes' };
+// What the site runs: nothing says so but a person, and leaving one out of the policy would be false
+const BUILD_ANSWERS = { google_ads: 'Google Ads tag on the site', meta_pixel: 'Meta Pixel on the site', sms_tool: 'Text messaging provider in use' };
 
 // A cover figure as a full £ amount: "5m" → "£5,000,000". Only forms that can't mean
 // anything else; anything else, and a figure under £1,000, is null (unclear).
@@ -75,6 +81,8 @@ function paymentList(raw) {
 
 // "electrical work" in a niche entry would read "all electrical work work" in the Service Terms
 const tradeWord = raw => text(raw).replace(/\s+work$/i, '');
+// "an air conditioning business", "a roofing business": the Privacy Policy's first line
+const withArticle = word => (word ? `${/^[aeiou]/i.test(word) ? 'an' : 'a'} ${word}` : '');
 
 function resolveValues({ cv = {}, form = {}, answers = {}, tradeLower = '', lastUpdated = '' } = {}) {
   const values = { ...FIXED };
@@ -89,6 +97,10 @@ function resolveValues({ cv = {}, form = {}, answers = {}, tradeLower = '', last
   values.full_name = text(form.full_name);
   values.business_address = text(form.business_address);
   values.trade_type = tradeWord(tradeLower);
+  values.trade_with_article = withArticle(values.trade_type);
+  values.town = text(form.primary_town);
+  values.website_url = liveDomain(cv);
+  values.vat_number = text(cv.vat_number);
   values.legal_last_updated = text(lastUpdated);
 
   const entity = text(cv.legal_entity).toLowerCase();
@@ -115,6 +127,12 @@ function resolveValues({ cv = {}, form = {}, answers = {}, tradeLower = '', last
     else values[key] = yn;
   }
   if (!wholeNumber(values.quote_valid_days)) hold('quote_valid_days', `Days a quote stays valid is "${values.quote_valid_days}", not a whole number.`);
+
+  for (const [key, label] of Object.entries(BUILD_ANSWERS)) {
+    const yn = yesNoOf(cv[key]);
+    values[key] = yn || '';
+    if (!yn) hold(key, yn === null ? `${label} is "${cv[key]}", not yes or no.` : `${label} has no answer.`);
+  }
 
   // Insurance: shown only when given, as a full figure
   const cover = text(cv.insurance_cover);
@@ -160,4 +178,4 @@ function resolveValues({ cv = {}, form = {}, answers = {}, tradeLower = '', last
 // typo in an {IF} would silently drop its section
 const knownKeys = () => Object.keys(resolveValues({ cv: { legal_entity: 'limited' }, form: { vat_registered: 'No', deposit: 'No' } }).values);
 
-module.exports = { resolveValues, knownKeys, fullPounds, guaranteeMonths, paymentList, tradeWord };
+module.exports = { resolveValues, knownKeys, fullPounds, guaranteeMonths, paymentList, tradeWord, withArticle };

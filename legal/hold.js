@@ -9,6 +9,7 @@
 const CODE = 'F-LEGAL';
 
 const LABELS = {
+  website_url: 'Live domain', town: 'Base town on the form', vat_number: 'VAT number', trade_with_article: 'Trade word from the niche library',
   company_name: 'Company name', phone: 'Phone', email: 'Email', full_name: 'Full name on the form',
   business_address: 'Business address on the form', trade_type: 'Trade word from the niche library',
   legal_last_updated: 'Last updated date', legal_name: 'Registered company name', company_number: 'Company number',
@@ -40,11 +41,15 @@ function legalHold({ answers = {}, unclear = [], pages = [], clearedText = null 
   for (const p of pages) {
     if (p.fault) add('template', `${p.title}: ${p.fault}`, { page: p.key });
     if (p.stale) add('wording_stale', `${p.title}: this client's adjusted wording was made from an older master. Check it against the new master and save it again, or go back to the master.`, { page: p.key });
-    for (const key of p.missing || []) add('missing', `${p.title}: ${labelOf(key)} is missing.`, { page: p.key, key });
     // A token still in the text is already listed as missing; anything else left is a fault in the template
     const otherResidue = (p.residue || []).filter(r => !(r === '[CV:' && (p.missing || []).length));
     for (const r of otherResidue) add('residue', `${p.title}: "${r}" is left in the filled page.`, { page: p.key });
   }
+
+  // One line per missing value, naming the pages it stops: most values are on more than one
+  const missing = new Map();
+  for (const p of pages) for (const key of p.missing || []) missing.set(key, [...(missing.get(key) || []), p.title]);
+  for (const [key, titles] of missing) add('missing', `${labelOf(key)} is missing (${titles.join(', ')}).`, { key, pages: titles });
 
   return { code: reasons.length ? CODE : null, held: reasons.length > 0, reasons };
 }

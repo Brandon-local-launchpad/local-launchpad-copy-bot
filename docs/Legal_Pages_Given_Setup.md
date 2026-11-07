@@ -32,7 +32,9 @@ The field group has to be attached to the three pages, or ACF drops the text wit
 5. **Footer links on every page** to all three.
 6. **A "Manage cookies" link in the footer** that reopens the cookie banner. Privacy Policy section 7 tells visitors this link exists, so it has to work.
 7. **The cookie banner:** Accept and Reject equally easy, nothing needing consent set before a choice, and Google Analytics behind the banner (Consent Mode). Privacy Policy section 7 says all of this.
+8. **The map and the reviews widget:** Privacy Policy section 7 says the Google map loads only after a "Show map" click on the contact page, and that the reviews widget needs consent. Build them that way, or tell Brandon, because the page would then be wrong.
+9. **Google Analytics data retention: 14 months** in each property's settings. Privacy Policy section 8 says "Up to 14 months".
 
 ## What to tell Copybot per site
 
-Each site's Google Ads tag, Meta Pixel and text messaging tool (yes or no). They change what the Privacy Policy says, and they're typed in on the client's Record tab under Legal details. Tell Brandon if one is added later, because the policy has to change with it.
+Each site's Google Ads tag, Meta Pixel and text messaging tool (yes or no). They change what the Privacy Policy says, and they're typed in on the client's Record tab under Legal details. The legal pages are held until all three are answered. Tell Brandon if one is added later, because the policy has to change with it.

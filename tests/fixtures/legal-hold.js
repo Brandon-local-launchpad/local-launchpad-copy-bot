@@ -51,14 +51,14 @@ const QIDS = { business_name: 'bwUuvaZTmChegZekppzNNv', business_email: '5EHeuZ2
     const qs = p.submission.questions;
     const set = (q, value) => { const x = qs.find(y => y.id === q); if (x) x.value = value; };
     const map = fillout.map.fields;
-    const answers = { full_name: 'Jane Smith', business_address: '1 High Street, Southampton', vat_registered: 'No', deposit: 'No', payment_methods: ['Bank transfer'], ...extra };
+    const answers = { full_name: 'Jane Smith', business_address: '1 High Street, Southampton', vat_registered: 'No', deposit: 'No', payment_methods: ['Bank transfer'], primary_town: 'Southampton', ...extra };
     for (const [k, v] of Object.entries(answers)) set(map.find(f => f.key === k).id, v);
     qs.push({ id: 'uses_subcontractors', type: 'MultipleChoice', value: subs }, { id: 'late_payment_interest', type: 'MultipleChoice', value: late },
       { id: 'standard_terms_confirmed', type: 'Checkbox', value: tick }, { id: 'standard_terms_exceptions', type: 'LongAnswer', value: notes });
     const r = await fillout.receive(p);
     return (await fillout.process(r.id)).clientId;
   };
-  const GOOD_CV = { company_name: 'Good Plumbing', phone: '01234 567890', email: 'a@example.com', legal_entity: 'sole_trader' };
+  const GOOD_CV = { company_name: 'Good Plumbing', phone: '01234 567890', email: 'a@example.com', legal_entity: 'sole_trader', live_domain: 'goodplumbing.example', google_ads: 'no', meta_pixel: 'no', sms_tool: 'no' };
 
   // ── Clean ──
   const id = await deliver({ id: 'hold-1', time: '2026-01-01T10:00:00.000Z' });
@@ -93,6 +93,7 @@ const QIDS = { business_name: 'bwUuvaZTmChegZekppzNNv', business_email: '5EHeuZ2
   // ── Reason: missing ──
   cvs[id] = { ...GOOD_CV, legal_entity: 'limited' };
   s = await legal.status(id);
+  chk('A value on more than one page is one reason, naming the pages', s.reasons.filter(r => r.key === 'company_number').length === 1 && /Service Terms, Privacy Policy, Website Terms of Use/.test(s.reasons.find(r => r.key === 'company_number').message), s.reasons.find(r => r.key === 'company_number'), 'three pages');
   chk('Limited with no details: held, in plain words', s.held && ['Registered company name', 'Company number', 'Registered office'].every(w => s.reasons.some(r => r.code === 'missing' && r.message.includes(w))), s.reasons, 'three');
   chk('A token left because it is missing is reported once, not again as residue', !s.reasons.some(r => r.code === 'residue'), s.reasons, 'no residue');
   cvs[id] = { ...GOOD_CV, adr_member: 'yes' };
@@ -105,6 +106,13 @@ const QIDS = { business_name: 'bwUuvaZTmChegZekppzNNv', business_email: '5EHeuZ2
   chk('Leftover template text: held', pure.held && pure.reasons[0].code === 'residue', pure.reasons, 'residue');
   const pureToken = legalHold({ answers: { standard_terms_confirmed: { value: 'yes' } }, pages: [{ key: 'x', title: 'X', missing: [], residue: ['[CV:'] }] });
   chk('A token with no missing key behind it: held as residue', pureToken.held && pureToken.reasons[0].code === 'residue', pureToken.reasons, 'residue');
+
+  // ── Every page is held and shown together ──
+  chk('All three pages are in the status', (await legal.status(id)).pages.map(p => p.slug).join() === '/service-terms,/privacy-policy,/terms', (await legal.status(id)).pages.map(p => p.slug), 'three');
+  cvs[id] = { ...GOOD_CV, sms_tool: '' };
+  s = await legal.status(id);
+  chk('No answer on the text messaging tool: held', s.held && s.reasons.some(r => r.key === 'sms_tool'), s.reasons, 'sms_tool');
+  cvs[id] = { ...GOOD_CV };
 
   // ── Reason: exceptions, and clearing ──
   const TEXT = 'We take stage payments only';

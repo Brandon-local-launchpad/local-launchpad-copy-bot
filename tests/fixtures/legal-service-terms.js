@@ -18,13 +18,13 @@ console.log('\n=== FIXTURE: legal pages, Stage 2: the Service Terms ===\n');
 const template = fs.readFileSync(path.join(root, 'legal-templates/service-terms.md'), 'utf8');
 
 const SOLE = {
-  cv: { company_name: 'Edens Edge Landscaping', phone: '07580 412717', email: 'hello@example.com', legal_entity: 'sole_trader', insurance_cover: '5m', guarantee_months: '24', adr_member: 'no' },
+  cv: { company_name: 'Edens Edge Landscaping', phone: '07580 412717', email: 'hello@example.com', legal_entity: 'sole_trader', insurance_cover: '5m', guarantee_months: '24', adr_member: 'no', google_ads: 'no', meta_pixel: 'no', sms_tool: 'no' },
   form: { full_name: 'Jane Smith', business_address: '1 High Street, Southampton', vat_registered: 'No', deposit: 'No', payment_methods: ['Bank transfer', 'Card', 'Cash'] },
   answers: legalAnswers({ uses_subcontractors: 'Yes', late_payment_interest: 'Yes' }),
   tradeLower: 'landscaping', lastUpdated: '7 November 2026',
 };
 const LIMITED = {
-  cv: { company_name: 'Kestrel Ridge Roofing', phone: '01234 567890', email: 'office@example.com', legal_entity: 'limited', legal_name: 'Kestrel Ridge Holdings Ltd', company_number: '12345678', registered_office: '2 Mill Lane, Reading' },
+  cv: { company_name: 'Kestrel Ridge Roofing', phone: '01234 567890', email: 'office@example.com', legal_entity: 'limited', legal_name: 'Kestrel Ridge Holdings Ltd', company_number: '12345678', registered_office: '2 Mill Lane, Reading', google_ads: 'no', meta_pixel: 'no', sms_tool: 'no' },
   form: { full_name: 'Sam Hill', business_address: '3 Yard Road, Reading', vat_registered: 'Yes', deposit: 'No', payment_methods: 'Bank transfer' },
   answers: legalAnswers({ uses_subcontractors: 'No', late_payment_interest: 'No' }),
   tradeLower: 'roofing', lastUpdated: '7 November 2026',
