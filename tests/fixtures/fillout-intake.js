@@ -115,7 +115,7 @@ const quiet = { info() {}, warn() {}, error() {} };
     chk('Right secret (query) → 200 with the row id', r.status === 200 && body1.ok && body1.id && body1.duplicate === false, JSON.stringify(body1), '200 ok');
     const rawRow = (await pool.query(`SELECT raw_payload, status FROM fillout_submissions WHERE id = $1`, [body1.id])).rows[0];
     const rawObj = typeof rawRow.raw_payload === 'string' ? JSON.parse(rawRow.raw_payload) : rawRow.raw_payload;
-    chk('Raw payload saved untouched (same question count and ids)', rawObj.submission.questions.length === 372 && rawObj.submission.submissionId === sample.submission.submissionId, rawObj.submission.questions.length, 372);
+    chk('Raw payload saved untouched (same question count and ids)', rawObj.submission.questions.length === 373 && rawObj.submission.submissionId === sample.submission.submissionId, rawObj.submission.questions.length, 373);
     chk('Processing ran in the background after the 200', await waitProcessed(1), processed.length, 1);
     // The secret is accepted wherever it arrives: a header the sender adds on its own must not shadow a right ?token=
     r = await post(`/api/webhooks/fillout?token=${SECRET}`, payload, { Authorization: 'Bearer something-else' });
@@ -416,17 +416,17 @@ const quiet = { info() {}, warn() {}, error() {} };
       const other = fs.find(f => f.key === pre + 'other_services');
       const jnw = fs.find(f => f.key === pre + 'jobs_not_wanted');
       const ok = cats.length >= 1 && cats.every(f => f.type === 'Checkboxes' && !f.optional) && mw.every(f => f && f.type === 'ShortAnswer' && !f.optional && !f.group)
-        && voice.length === 1 && voice[0].key === pre + 'prices_voice' && !voice[0].optional && other && other.optional && (label === 'Guttering & Fascias' ? !jnw : (jnw && jnw.optional))
+        && voice.length === 1 && voice[0].key === pre + 'prices_voice' && !voice[0].optional && other && other.optional && jnw && jnw.optional
         && fs.every(f => label === 'Plumbing & Heating' || f.key.startsWith(pre)) && fs.every(f => f.section === 'Services & Locations');
       return { label, ok, cats: cats.length, voice: voice.length, mw: mw.filter(Boolean).length };
     });
-    chk('Every block: services group, most_wanted_1-3, one prices_voice, optional other_services, optional jobs_not_wanted (none for Guttering), keys namespaced', shape.every(x => x.ok), JSON.stringify(shape.filter(x => !x.ok)), '[]');
+    chk('Every block: services group, most_wanted_1-3, one prices_voice, optional other_services, optional jobs_not_wanted, keys namespaced', shape.every(x => x.ok), JSON.stringify(shape.filter(x => !x.ok)), '[]');
     chk('Every block has exactly 3 most-wanted and 1 voice field', shape.every(x => x.mw === 3 && x.voice === 1), '', '');
     const allIds = map.fields.filter(f => f.id).map(f => f.id);
     chk('No question id is mapped twice across the 28 blocks', new Set(allIds).size === allIds.length, allIds.length - new Set(allIds).size, 0);
     chk('Plumbing & Heating keys unchanged (existing records keep working)', ['cat_central_heating_service', 'cat_plumber', 'cat_gas_engineer', 'additional_heating_services', 'additional_plumbing_services', 'most_wanted_job_1', 'most_wanted_job_2', 'most_wanted_job_3', 'prices_voice', 'other_services', 'jobs_not_wanted'].every(k => map.fields.some(f => f.niche === 'Plumbing & Heating' && f.key === k)), '', '');
     chk('Tiling: other services is the "Additional Services" question', (map.fields.find(f => f.key === 'tiling.other_services') || {}).id === 'g4wB2wwLUzLNm1PzYysDyT', (map.fields.find(f => f.key === 'tiling.other_services') || {}).id, 'g4wB2wwLUzLNm1PzYysDyT');
-    chk('Guttering: other services is the long "Additional Services..." question, labelled short, and no jobs_not_wanted', (map.fields.find(f => f.key === 'guttering.other_services') || {}).id === 'xxcMTQhLyeiHJXGt8KzJMF' && (map.fields.find(f => f.key === 'guttering.other_services') || {}).label.length < 60 && !map.fields.some(f => f.key === 'guttering.jobs_not_wanted'), '', '');
+    chk('Guttering: other services is the long "Additional Services..." question, labelled short, and its jobs not wanted question is mapped by id', (map.fields.find(f => f.key === 'guttering.other_services') || {}).id === 'xxcMTQhLyeiHJXGt8KzJMF' && (map.fields.find(f => f.key === 'guttering.other_services') || {}).label.length < 60 && (map.fields.find(f => f.key === 'guttering.jobs_not_wanted') || {}).id === 'iDad', '', '');
     chk('Category labels have no numeric suffix', map.fields.filter(f => f.group === 'services').every(f => !/\(\d+\)\s*$/.test(f.label)), map.fields.filter(f => f.group === 'services' && /\(\d+\)\s*$/.test(f.label)).map(f => f.label).join(','), 'none');
 
     // A synthetic submission for one niche: the sample with the niche switched and that block's questions answered by id
@@ -475,9 +475,9 @@ const quiet = { info() {}, warn() {}, error() {} };
     chk('(3) Window Cleaning: nothing from the Cleaning or Pressure Washing blocks, no WRONG BLOCK value anywhere', !keysOf(wc.rec).some(k => k.startsWith('cleaning.') || k.startsWith('pressure_washing.')) && !JSON.stringify(wc.rec).includes('WRONG BLOCK') && !(await pool.query(`SELECT field_key, value FROM client_fields WHERE client_id = $1`, [wc.sub.client_id])).rows.some(r => JSON.stringify(r.value).includes('WRONG BLOCK')), '', '');
 
     // (4) Guttering and Tiling exceptions
-    const gut = await deliver(forNiche('Guttering & Fascias', 'niche-gut-0001', 'Gutter Guys', 'gutter@example.com', { 'guttering.other_services': 'Soffit repairs' }));
+    const gut = await deliver(forNiche('Guttering & Fascias', 'niche-gut-0001', 'Gutter Guys', 'gutter@example.com', { 'guttering.other_services': 'Soffit repairs', 'guttering.jobs_not_wanted': 'No thatched roofs' }));
     const gutF = gut.rec.sections.flatMap(s => s.fields);
-    chk('(4) Guttering: processed, other services from the long question, no jobs_not_wanted field', gut.sub.status === 'processed' && gutF.find(f => f.key === 'guttering.other_services').value === 'Soffit repairs' && !gutF.some(f => f.key === 'guttering.jobs_not_wanted') && gutF.filter(f => f.niche === 'Guttering & Fascias').length === 6, gutF.filter(f => f.niche === 'Guttering & Fascias').map(f => f.key).join(','), '6 guttering keys');
+    chk('(4) Guttering: processed, other services from the long question, jobs not wanted reaches the record', gut.sub.status === 'processed' && gutF.find(f => f.key === 'guttering.other_services').value === 'Soffit repairs' && gutF.find(f => f.key === 'guttering.jobs_not_wanted').value === 'No thatched roofs' && gutF.filter(f => f.niche === 'Guttering & Fascias').length === 7, gutF.filter(f => f.niche === 'Guttering & Fascias').map(f => f.key).join(','), '6 guttering keys');
     const til = await deliver(forNiche('Tiling', 'niche-til-0001', 'Top Tiles', 'tiles@example.com', { 'tiling.other_services': 'Mosaic work' }));
     const tilF = til.rec.sections.flatMap(s => s.fields);
     chk('(4) Tiling: "Additional Services" is the other-services field, jobs_not_wanted present', til.sub.status === 'processed' && tilF.find(f => f.key === 'tiling.other_services').value === 'Mosaic work' && tilF.some(f => f.key === 'tiling.jobs_not_wanted') && tilF.filter(f => f.niche === 'Tiling').length === 7, tilF.filter(f => f.niche === 'Tiling').map(f => f.key).join(','), '7 tiling keys');
