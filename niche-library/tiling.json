@@ -674,5 +674,19 @@
         "location"
       ]
     }
-  ]
+  ],
+  "related_services": {
+    "tile removal": ["Floor tiling","Bathroom and shower tiling","Tile repairs and replacement"],
+    "regrouting and grout repair": ["Tile repairs and replacement","Bathroom and shower tiling","Floor tiling"],
+    "bathroom and shower tiling": ["Wet room tiling and tanking","Tile removal","Floor tiling"],
+    "kitchen tiling and splashbacks": ["Floor tiling","Feature wall and hearth tiling","Tile removal"],
+    "tile repairs and replacement": ["Regrouting and grout repair","Tile removal","Floor tiling"],
+    "wet room tiling and tanking": ["Bathroom and shower tiling","Tile removal","Floor tiling"],
+    "natural stone tiling": ["Floor tiling","Victorian and period floor tiling","Feature wall and hearth tiling"],
+    "victorian and period floor tiling": ["Floor tiling","Natural stone tiling","Tile repairs and replacement"],
+    "outdoor and porcelain paving tiling": ["Floor tiling","Natural stone tiling","Swimming pool tiling"],
+    "swimming pool tiling": ["Outdoor and porcelain paving tiling","Natural stone tiling","Regrouting and grout repair"],
+    "feature wall and hearth tiling": ["Natural stone tiling","Kitchen tiling and splashbacks","Bathroom and shower tiling"],
+    "floor tiling": ["Tile removal","Natural stone tiling","Bathroom and shower tiling"]
+  }
 }

@@ -754,5 +754,28 @@
         "service"
       ]
     }
-  ]
+  ],
+  "related_services": {
+    "metal fencing and railings": ["Security fencing","Automatic gates","Garden gates"],
+    "automatic gates": ["Metal fencing and railings","Security fencing","Garden gates"],
+    "chain link fencing": ["Security fencing","Metal fencing and railings","Temporary fencing"],
+    "fence repairs": ["Concrete posts and gravel boards","Fence staining and treatment","Timber fencing"],
+    "security fencing": ["Metal fencing and railings","Chain link fencing","Automatic gates"],
+    "timber fencing": ["Closeboard fencing","Panel fencing","Fence staining and treatment"],
+    "acoustic fencing": ["Closeboard fencing","Composite fencing","Panel fencing"],
+    "agricultural and stock fencing": ["Post and rail fencing","Electric fencing","Equestrian fencing"],
+    "equestrian fencing": ["Post and rail fencing","Electric fencing","Agricultural and stock fencing"],
+    "closeboard fencing": ["Concrete posts and gravel boards","Panel fencing","Timber fencing"],
+    "picket fencing": ["Garden gates","Timber fencing","Fence staining and treatment"],
+    "post and rail fencing": ["Equestrian fencing","Agricultural and stock fencing","Timber fencing"],
+    "hit and miss fencing": ["Closeboard fencing","Timber fencing","Concrete posts and gravel boards"],
+    "panel fencing": ["Concrete posts and gravel boards","Closeboard fencing","Timber fencing"],
+    "electric fencing": ["Agricultural and stock fencing","Equestrian fencing","Post and rail fencing"],
+    "temporary fencing": ["Security fencing","Chain link fencing","Metal fencing and railings"],
+    "fence staining and treatment": ["Timber fencing","Fence repairs","Closeboard fencing"],
+    "bin and log stores": ["Timber fencing","Garden gates","Fence staining and treatment"],
+    "garden gates": ["Timber fencing","Picket fencing","Metal fencing and railings"],
+    "composite fencing": ["Acoustic fencing","Panel fencing","Concrete posts and gravel boards"],
+    "concrete posts and gravel boards": ["Panel fencing","Closeboard fencing","Fence repairs"]
+  }
 }

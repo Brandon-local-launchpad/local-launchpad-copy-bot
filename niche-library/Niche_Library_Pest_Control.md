@@ -558,3 +558,32 @@ An element is dropped, and the next eligible one used, when the client has confi
 - **someone in the house who reacts badly to stings makes it urgent** (category): home is the 'A wasp nest beside a door you use' block 4 card. Elsewhere: the 'Call Us' step asks the question in a few words without explaining why; the 'Is this an emergency, or can it wait?' FAQ does not restate it.
 - **eggs, pupae or egg cases that outlive a treatment and emerge afterwards** (service): home is the 'It came back after a shop treatment' block 4 card. Elsewhere: the 'how long does it take, and how many visits' FAQ names the stages only as a reason for more visits, and the 'what happens if the pests come back' FAQ gives the way in left open rather than explaining the life cycle again.
 - **the colony abandons a wasp nest in autumn, so a winter nest is usually empty** (category): home is the 'Do you still deal with wasp nests in the autumn and winter?' FAQ. Elsewhere: the 'Rodents moving indoors as the nights turn cold' card and the 'wasps or rodents back after a call out' FAQ do not explain the abandoned nest.
+
+## Related services
+
+The closest other services for each service page, closest first (`related_services`).
+
+| Service | Related |
+|---|---|
+| ant control | Insect control, Cockroach control, Pest surveys and inspections |
+| bed bug treatment | Fumigation and heat treatment, Flea treatment, Insect control |
+| bee removal and relocation | Wasp nest removal, Insect control, Pest surveys and inspections |
+| cockroach control | Insect control, Ant control, Commercial pest control |
+| flea treatment | Bed bug treatment, Insect control, Fumigation and heat treatment |
+| wasp nest removal | Bee removal and relocation, Insect control, Ant control |
+| pest surveys and inspections | Pest proofing, Commercial pest control, Rat and mouse control |
+| rat and mouse control | Pest proofing, Dead animal removal, Pest surveys and inspections |
+| bird control and proofing | Solar panel bird proofing, Pest proofing, Dead animal removal |
+| solar panel bird proofing | Bird control and proofing, Pest proofing, Loft clearance and decontamination |
+| mole control | Rabbit control, Fox and wildlife control, Squirrel control |
+| rabbit control | Mole control, Fox and wildlife control, Squirrel control |
+| fox and wildlife control | Squirrel control, Rabbit control, Pest proofing |
+| squirrel control | Pest proofing, Loft clearance and decontamination, Fox and wildlife control |
+| moth and textile pest control | Insect control, Fumigation and heat treatment, Woodworm treatment |
+| woodworm treatment | Insect control, Pest surveys and inspections, Moth and textile pest control |
+| fumigation and heat treatment | Bed bug treatment, Moth and textile pest control, Flea treatment |
+| pest proofing | Rat and mouse control, Bird control and proofing, Squirrel control |
+| dead animal removal | Loft clearance and decontamination, Rat and mouse control, Fox and wildlife control |
+| loft clearance and decontamination | Dead animal removal, Squirrel control, Rat and mouse control |
+| commercial pest control | Pest surveys and inspections, Rat and mouse control, Cockroach control |
+| insect control | Ant control, Cockroach control, Flea treatment |

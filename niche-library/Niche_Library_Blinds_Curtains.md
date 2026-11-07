@@ -398,3 +398,28 @@ An element is dropped, and the next eligible one used, when the client has confi
 
 - **the made-to-order gap between measuring and fitting, with no number unless start_time gives one** (homepage): home is the 'How long does it take from measuring to fitting?' FAQ. Elsewhere: the 'We Fit on a Date That Suits You' step only says the date is agreed once the order is made; the 'How soon can you fit them?' FAQ gives only the start_time figure and does not explain the making stage.
 - **recess depth against handles, tiles and sill deciding whether the blind sits in the recess or on the wall** (homepage): home is the 'Will my blind sit in the recess or on the wall?' FAQ. Elsewhere: the 'We Measure and Price the Job' step lists the recess and handles as things measured without explaining the choice; the blackout light FAQ names the side gap without re-explaining recess versus wall.
+
+## Related services
+
+The closest other services for each service page, closest first (`related_services`).
+
+| Service | Related |
+|---|---|
+| blind repairs | Curtain alterations and repairs, Made to measure blinds, Motorised and smart blinds |
+| motorised and smart blinds | Roller blinds, Roman blinds, Made to measure blinds |
+| conservatory blinds | Roof window and skylight blinds, Perfect fit and intu blinds, Awnings |
+| roof window and skylight blinds | Conservatory blinds, Perfect fit and intu blinds, Motorised and smart blinds |
+| commercial blinds | Vertical blinds, Roller blinds, Made to measure blinds |
+| curtain alterations and repairs | Made to measure curtains, Curtain tracks and poles, Blind repairs |
+| curtain tracks and poles | Made to measure curtains, Bay window curtains and blinds, Curtain alterations and repairs |
+| bay window curtains and blinds | Curtain tracks and poles, Plantation shutters, Made to measure curtains |
+| made to measure curtains | Curtain tracks and poles, Curtain alterations and repairs, Made to measure blinds |
+| plantation shutters | Venetian and wooden blinds, Bay window curtains and blinds, Made to measure blinds |
+| made to measure blinds | Roller blinds, Roman blinds, Made to measure curtains |
+| roller blinds | Roman blinds, Made to measure blinds, Vertical blinds |
+| roman blinds | Roller blinds, Made to measure blinds, Made to measure curtains |
+| venetian and wooden blinds | Plantation shutters, Roller blinds, Made to measure blinds |
+| vertical blinds | Roller blinds, Commercial blinds, Made to measure blinds |
+| perfect fit and intu blinds | Conservatory blinds, Made to measure blinds, Roller blinds |
+| child safe blinds | Roller blinds, Motorised and smart blinds, Made to measure blinds |
+| awnings | Conservatory blinds, Motorised and smart blinds, Commercial blinds |

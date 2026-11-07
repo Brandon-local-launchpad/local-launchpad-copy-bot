@@ -385,3 +385,19 @@ An element is dropped, and the next eligible one used, when the client has confi
 - **how the price is reached (visit, photos, call)** (homepage): home is the 'How do your quotes work?' FAQ. Elsewhere: the pricing step says only that a price is agreed before work starts; the 'free and no obligation' FAQ answers only the free question.
 - **how the quote is given and that the business looks before it prices** (category): home is the 'What happens when I ask for a quote?' FAQ. Elsewhere: the 'How much has built up' cost card and the cost FAQ do not describe the quoting method.
 - **wash water kept out of drains that run to the local stream, then collected and taken away** (location): home is the 'Where the wash water has to go' cost card. Elsewhere: the 'Drains that run straight to the stream' card names the drain and the stream but does not describe collecting the water; the cost FAQ names the water only as one price factor in a few words.
+
+## Related services
+
+The closest other services for each service page, closest first (`related_services`).
+
+| Service | Related |
+|---|---|
+| decking cleaning | Brick and stone cleaning, Block paving and concrete sealing, Solar panel cleaning |
+| brick and stone cleaning | Block paving and concrete sealing, Graffiti removal, Decking cleaning |
+| solar panel cleaning | Decking cleaning, Brick and stone cleaning, Block paving and concrete sealing |
+| graffiti removal | Brick and stone cleaning, Oil and rust stain removal, Car park cleaning |
+| oil and rust stain removal | Car park cleaning, Industrial and warehouse cleaning, Block paving and concrete sealing |
+| car park cleaning | Oil and rust stain removal, Industrial and warehouse cleaning, Graffiti removal |
+| tennis court and sports surface cleaning | Car park cleaning, Block paving and concrete sealing, Brick and stone cleaning |
+| industrial and warehouse cleaning | Car park cleaning, Oil and rust stain removal, Graffiti removal |
+| block paving and concrete sealing | Brick and stone cleaning, Oil and rust stain removal, Decking cleaning |

@@ -252,7 +252,7 @@ function computeCategoryDecisions({ cv, niche, keyValueMap = {}, rows = [], page
   // ── Areas ──
   const towns = [];
   for (let i = 2; keyValueMap[`biz_area_${i}`]; i++) towns.push(keyValueMap[`biz_area_${i}`].trim());
-  const locCats = applies.filter(r => r.type === 'location_category' && r.info && r.info.category_key === catKey);
+  const locCats = applies.filter(r => r.type === 'location_category' && require('./page-map/generator').isBuiltLocation(r) && r.info && r.info.category_key === catKey);
   const locCatFor = t => locCats.find(r => normArea(r.info.town) === normArea(t) || normArea(r.info.town) === normArea(stripAdmin(t)));
   let areas;
   if (scope === 'base') {
@@ -290,7 +290,7 @@ function computeCategoryDecisions({ cv, niche, keyValueMap = {}, rows = [], page
   const homepage = applies.find(r => r.type === 'homepage');
   const siblingsBase = applies.filter(r => r.type === 'category' && live(r) && r.info && r.info.category_key !== catKey);
   const locPage = scope === 'town' ? applies.find(r => r.type === 'location' && live(r) && require('./page-map/generator').isBuiltLocation(r) && normArea(r.title) === normArea(townName)) : null;
-  const siblingsTown = scope === 'town' ? applies.filter(r => r.type === 'location_category' && live(r) && lc(r.info && r.info.town) === lc(townName) && r.info.category_key !== catKey) : [];
+  const siblingsTown = scope === 'town' ? applies.filter(r => r.type === 'location_category' && live(r) && require('./page-map/generator').isBuiltLocation(r) && lc(r.info && r.info.town) === lc(townName) && r.info.category_key !== catKey) : [];
   const myLocCats = locCats.filter(live);
   const linkable = [];
   const addL = (type, r) => { const url = slugOf(r); if (url && !linkable.some(p => p.url === url)) linkable.push({ type, url, h1: r.h1 || r.title || '', say: r.say || (r.info && r.info.prose_name) || null }); };
@@ -333,7 +333,7 @@ function computeCategoryDecisions({ cv, niche, keyValueMap = {}, rows = [], page
     niche_steps: steps,
     areas, faq: faqs,
     allocated, thin: !allocated.neighbourhoods.length, overrideUsed: !!blocks.overrideUsed, ideasUsed: Array.isArray(ideasUsed) ? ideasUsed : [],
-    contentLinks, locationLinks, linkablePages, pageMapUrls: (rows || []).map(r => r.slug).filter(Boolean), unbuiltLocationUrls: (rows || []).filter(r => r.type === 'location' && !require('./page-map/generator').isBuiltLocation(r)).map(r => r.slug).filter(Boolean),
+    contentLinks, locationLinks, linkablePages, pageMapUrls: (rows || []).map(r => r.slug).filter(Boolean), unbuiltLocationUrls: (rows || []).filter(r => (r.type === 'location' || r.type === 'location_category') && !require('./page-map/generator').isBuiltLocation(r)).map(r => r.slug).filter(Boolean),
     quoteFree, emergencyOn, emergencyWhy, coastal: cv.coastal_city === 'yes',
     seasonal: seasonal.swapped,
     trade_facts: tradeFacts ? { file: tradeFacts.file || null, verified: !!tradeFacts.verified, missing: tradeFacts.missing || [], included: !!tradeFacts.verified } : null,

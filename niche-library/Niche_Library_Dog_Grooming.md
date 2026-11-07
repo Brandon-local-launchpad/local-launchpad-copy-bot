@@ -363,3 +363,19 @@ An element is dropped, and the next eligible one used, when the client has confi
 - **undercoat shedding as the weather warms and cools** (category): home is the 'Does the time of year change what my dog needs?' FAQ. Elsewhere: the 'Hair on everything' card gives the cause without the spring and autumn timing, and the seasonal card covers seeds and mud only.
 - **seeds and grit caught in paws, toes and ears** (location): home is the 'Seeds and grit in paws and ears' block 4 card. Elsewhere: the local walks card keeps to mud and salt in the coat, and the all-year FAQ names the seasons without grit between the pads.
 - **grooming at home from a van** (location): home is the 'Dogs that don't travel well to a salon' block 4 card. Elsewhere: the other cards and FAQs only say where the groom happens, without making the case for a visit at home again.
+
+## Related services
+
+The closest other services for each service page, closest first (`related_services`).
+
+| Service | Related |
+|---|---|
+| cat grooming | Nail clipping, Deshedding, Teeth cleaning |
+| dog bath and blow dry | Full groom, Deshedding, Nail clipping |
+| full groom | Dog bath and blow dry, Nail clipping, Teeth cleaning |
+| nail clipping | Full groom, Dog bath and blow dry, Teeth cleaning |
+| puppy grooming | Dog bath and blow dry, Nail clipping, Full groom |
+| hand stripping | Full groom, Deshedding, Dog bath and blow dry |
+| deshedding | Dog bath and blow dry, Hand stripping, Full groom |
+| mobile dog grooming | Full groom, Dog bath and blow dry, Nail clipping |
+| teeth cleaning | Nail clipping, Full groom, Dog bath and blow dry |

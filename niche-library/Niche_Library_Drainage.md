@@ -650,3 +650,35 @@ An element is dropped, and the next eligible one used, when the client has confi
 - **what decides how long the job takes** (service): home is the 'how long does it take' FAQ. Elsewhere: the seasonal FAQs cover the weather and the ground only.
 - **wet-season limits: soakaway ground test, sodden ground, leaves on grates** (category): home is the seasonal 'can the work be done in winter' FAQ. Elsewhere: the seasonal card describes symptoms only; the base time-of-year FAQ is not used alongside it.
 - **one fixture points at its own trap, several outlets point at the shared run** (homepage): home is the 'why does my toilet gurgle' FAQ. Elsewhere: the steps only ask whether it is one fixture or several, without explaining what that means.
+
+## Related services
+
+The closest other services for each service page, closest first (`related_services`).
+
+| Service | Related |
+|---|---|
+| drain unblocking | Drain jetting, Blocked toilets, Blocked sinks and showers |
+| cctv drain surveys | Drain repairs, Drain relining, Home buyer drain surveys |
+| drain repairs | CCTV drain surveys, Drain relining, Drain excavation and replacement |
+| drain relining | CCTV drain surveys, Drain repairs, Pitch fibre drain repairs |
+| drain jetting | Drain unblocking, Drain descaling, Gully cleaning |
+| tree root removal from drains | CCTV drain surveys, Drain relining, Drain repairs |
+| soakaways | Drain excavation and replacement, Septic tank and treatment plant installation, Flood water pumping |
+| gully cleaning | Drain jetting, Drain unblocking, Drain maintenance contracts |
+| manhole repairs | Drain repairs, CCTV drain surveys, Drain excavation and replacement |
+| emergency drainage | Drain unblocking, Flood water pumping, Blocked toilets |
+| septic tank emptying | Septic tank repairs, Septic tank and treatment plant installation, Sewage pumps |
+| septic tank repairs | Septic tank emptying, Septic tank and treatment plant installation, Sewage pumps |
+| sewage pumps | Septic tank emptying, Septic tank repairs, Flood water pumping |
+| septic tank and treatment plant installation | Septic tank repairs, Septic tank emptying, Soakaways |
+| leak detection | CCTV drain surveys, Drain repairs, Drain odour investigations |
+| drain excavation and replacement | Drain repairs, Drain relining, CCTV drain surveys |
+| pitch fibre drain repairs | Drain relining, Drain repairs, Drain excavation and replacement |
+| drain descaling | Drain jetting, Drain unblocking, CCTV drain surveys |
+| drain maintenance contracts | Drain jetting, Gully cleaning, CCTV drain surveys |
+| home buyer drain surveys | CCTV drain surveys, Drain repairs, Leak detection |
+| grease trap and interceptor cleaning | Drain jetting, Drain maintenance contracts, Drain unblocking |
+| drain odour investigations | CCTV drain surveys, Leak detection, Gully cleaning |
+| blocked toilets | Drain unblocking, Blocked sinks and showers, Emergency drainage |
+| blocked sinks and showers | Drain unblocking, Blocked toilets, Drain jetting |
+| flood water pumping | Emergency drainage, Sewage pumps, Soakaways |

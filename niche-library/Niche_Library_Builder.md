@@ -440,3 +440,62 @@ An element is dropped, and the next eligible one used, when the client has confi
 - **whether the job needs planning permission** (homepage): home is the 'Planning permission or building regulations: which does my job need?' FAQ. Elsewhere: the extension/loft planning FAQ lists only which jobs usually fall within the allowance without re-explaining the two approvals; the visit step says the planning position is looked at, nothing more.
 - **building control inspecting the foundations before concrete goes in** (category): home is the 'How long does [WORK_LOWER] usually take?' FAQ. Elsewhere: the 'What is already there' and 'Steel, services and sign offs' cost cards name the inspection as a cost only, without describing it.
 - **conservation areas and removed allowances changing the approval** (location): home is the 'Streets where the council has a say' block 4 card. Elsewhere: the conservation cost card covers only the added time and matching materials; the quote and timing FAQs mention the planning position in one clause without explaining it.
+
+## Related services
+
+The closest other services for each service page, closest first (`related_services`).
+
+| Service | Related |
+|---|---|
+| property repairs and maintenance | Insurance repair work, Property refurbishment, Painting and decorating |
+| demolition and strip out | Structural alterations and steel beams, Property refurbishment, Shop and office fit outs |
+| foundations and underpinning | Structural alterations and steel beams, Basement conversions, House extensions |
+| property refurbishment | Plastering and drylining, Painting and decorating, Property repairs and maintenance |
+| plastering and drylining | Painting and decorating, Skirting boards and architrave, Property refurbishment |
+| painting and decorating | Plastering and drylining, Skirting boards and architrave, Property refurbishment |
+| patios | Decking installation, Pergolas, Garden rooms and outbuildings |
+| roofing | Property repairs and maintenance, Loft conversions, House extensions |
+| basement conversions | Foundations and underpinning, Structural alterations and steel beams, Loft conversions |
+| design and build | House extensions, Property refurbishment, Commercial building work |
+| commercial building work | Shop and office fit outs, Design and build, Demolition and strip out |
+| brickwork and masonry | House extensions, Garage construction, Porch extensions |
+| kitchen door replacement and refacing | Kitchen worktops, Kitchen fitting, Kitchen design |
+| kitchen fitting | Kitchen worktops, Kitchen design, Kitchen door replacement and refacing |
+| kitchen worktops | Kitchen fitting, Kitchen door replacement and refacing, Kitchen design |
+| kitchen design | Kitchen fitting, Kitchen worktops, Kitchen door replacement and refacing |
+| fitted wardrobes | Fitted shelving and storage, Bespoke carpentry and joinery, Second fix carpentry |
+| bespoke carpentry and joinery | Fitted shelving and storage, Fitted wardrobes, Staircases |
+| second fix carpentry | First fix carpentry, Skirting boards and architrave, Staircases |
+| first fix carpentry | Second fix carpentry, Staircases, Structural alterations and steel beams |
+| fitted shelving and storage | Fitted wardrobes, Bespoke carpentry and joinery, Second fix carpentry |
+| staircases | Bespoke carpentry and joinery, Second fix carpentry, Skirting boards and architrave |
+| skirting boards and architrave | Second fix carpentry, Painting and decorating, Plastering and drylining |
+| carpet fitting | Laminate and LVT flooring, Wood flooring, Floor repairs |
+| wall and floor tiling | Bathroom fitting, Wet rooms, Kitchen fitting |
+| polished concrete floors | Resin flooring, Floor repairs, Floor sanding and restoration |
+| resin flooring | Polished concrete floors, Floor repairs, Shop and office fit outs |
+| floor repairs | Floor sanding and restoration, Wood flooring, Laminate and LVT flooring |
+| laminate and lvt flooring | Wood flooring, Carpet fitting, Floor repairs |
+| wood flooring | Floor sanding and restoration, Laminate and LVT flooring, Floor repairs |
+| floor sanding and restoration | Wood flooring, Floor repairs, Laminate and LVT flooring |
+| bath installation and replacement | Bathroom fitting, Bath and shower resurfacing, Wall and floor tiling |
+| bath and shower resurfacing | Bath installation and replacement, Bathroom fitting, Wall and floor tiling |
+| composite decking | Decking installation, Decking repairs, Patios |
+| decking installation | Composite decking, Decking repairs, Pergolas |
+| decking repairs | Decking installation, Composite decking, Patios |
+| pergolas | Decking installation, Patios, Garden rooms and outbuildings |
+| porch extensions | House extensions, Brickwork and masonry, Roofing |
+| garage construction | Garage conversions, Brickwork and masonry, Garden rooms and outbuildings |
+| house extensions | Structural alterations and steel beams, Foundations and underpinning, Design and build |
+| loft conversions | Structural alterations and steel beams, Roofing, Staircases |
+| garage conversions | House extensions, Plastering and drylining, Garage construction |
+| garden rooms and outbuildings | Garage construction, Conservatories and orangeries, Patios |
+| conservatories and orangeries | House extensions, Garden rooms and outbuildings, Porch extensions |
+| structural alterations and steel beams | House extensions, Foundations and underpinning, Loft conversions |
+| bathroom fitting | Wet rooms, Wall and floor tiling, Bath installation and replacement |
+| wet rooms | Bathroom fitting, Wall and floor tiling, Bath installation and replacement |
+| shop and office fit outs | Commercial building work, Plastering and drylining, Painting and decorating |
+| listed building and heritage work | Brickwork and masonry, Property refurbishment, Bespoke carpentry and joinery |
+| insurance repair work | Property repairs and maintenance, Property refurbishment, Plastering and drylining |
+| disability adaptations | Wet rooms, Bathroom fitting, Staircases |
+| barn conversions | Listed building and heritage work, Design and build, Structural alterations and steel beams |

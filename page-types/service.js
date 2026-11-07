@@ -46,6 +46,7 @@ const RANGES = {
   svc_areas_intro:    { min: 40, max: 60, label: '40 to 60' },
   faq_answer:         { min: 30, max: 70, label: '30 to 70' },
   faq_tailored:       { max: 20, label: '20 words or fewer' },
+  faq_includes:       { max: 35, label: '35 words or fewer' },
   svc_more_intro:     { min: 20, max: 40, label: '20 to 40' },
   svc_final_cta_body: { min: 15, max: 25, label: '15 to 25' },
 };
@@ -64,8 +65,8 @@ function modelFields(record) {
   (record.block5 || []).forEach((p, i) => add(`block5 card_body (${p.card_title})`, { key: 'block5', index: i, sub: 'card_body' }, p.card_body, 'block5_body'));
   add(LABELS.areasIntro, { key: LABELS.areasIntro }, record[LABELS.areasIntro], LABELS.areasIntro);
   // A fixed answer: code wrote the rest from the client record, so only the model's sentence is checked and rewritten
-  (record.faq_items || []).forEach((f, i) => (f.fixed
-    ? add(`faq_answer (${f.faq_question})`, { key: 'faq_items', index: i, sub: 'tailored' }, f.tailored, 'faq_tailored')
+  (record.faq_items || []).forEach((f, i) => (f.fixed != null
+    ? add(`faq_answer (${f.faq_question})`, { key: 'faq_items', index: i, sub: 'tailored' }, f.tailored, f.fixed_after ? 'faq_includes' : 'faq_tailored')
     : add(`faq_answer (${f.faq_question})`, { key: 'faq_items', index: i, sub: 'faq_answer' }, f.faq_answer, 'faq_answer')));
   if (record[LABELS.moreIntro] !== 'HIDDEN') add(LABELS.moreIntro, { key: LABELS.moreIntro }, record[LABELS.moreIntro], LABELS.moreIntro);
   add(LABELS.finalCta, { key: LABELS.finalCta }, record[LABELS.finalCta], LABELS.finalCta);

@@ -625,5 +625,18 @@
         "category"
       ]
     }
-  ]
+  ],
+  "related_services": {
+    "furniture dismantling and reassembly": ["Local house removals","Long distance removals","Packing services"],
+    "storage": ["Local house removals","Packing services","International removals"],
+    "international removals": ["Packing services","Storage","Long distance removals"],
+    "local house removals": ["Packing services","Furniture dismantling and reassembly","Long distance removals"],
+    "office and commercial removals": ["Furniture dismantling and reassembly","Packing services","Storage"],
+    "long distance removals": ["Local house removals","Packing services","Furniture dismantling and reassembly"],
+    "packing services": ["Local house removals","Long distance removals","Antique and fine art removals"],
+    "single item and small moves": ["Local house removals","Piano removals","Furniture dismantling and reassembly"],
+    "piano removals": ["Antique and fine art removals","Single item and small moves","Local house removals"],
+    "antique and fine art removals": ["Packing services","Piano removals","Storage"],
+    "house clearance": ["Local house removals","Storage","Single item and small moves"]
+  }
 }

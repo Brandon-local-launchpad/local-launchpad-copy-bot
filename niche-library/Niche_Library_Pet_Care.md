@@ -382,3 +382,23 @@ An element is dropped, and the next eligible one used, when the client has confi
 ## Idea homes
 
 - **the town's seasonal lead and access rules on its walking ground (nesting heath, lambing fields, a beach's dog months)** (location): home is the 'Do you walk dogs in [TOWN] all year round?' FAQ. Elsewhere: the farmland, parks and heathland cards name the place and why dogs are kept on a lead or walked differently there, but give no season, nesting months, lambing time or beach months.
+
+## Related services
+
+The closest other services for each service page, closest first (`related_services`).
+
+| Service | Related |
+|---|---|
+| cat boarding | Cat sitting, Small animal care, Drop in visits |
+| cat sitting | Cat boarding, Drop in visits, Small animal care |
+| dog home boarding | Dog sitting, Dog day care, Pet taxi |
+| dog day care | Dog home boarding, Group dog walks, Dog sitting |
+| dog sitting | Dog home boarding, Drop in visits, Dog day care |
+| solo dog walks | Group dog walks, Secure field walks, Drop in visits |
+| group dog walks | Solo dog walks, Secure field walks, Dog day care |
+| secure field walks | Solo dog walks, Group dog walks, Dog day care |
+| pet taxi | Dog home boarding, Dog day care, Cat boarding |
+| wedding dog chaperone | Pet taxi, Dog sitting, Dog day care |
+| puppy visits | Drop in visits, Dog sitting, Solo dog walks |
+| drop in visits | Cat sitting, Puppy visits, Dog sitting |
+| small animal care | Cat sitting, Drop in visits, Cat boarding |

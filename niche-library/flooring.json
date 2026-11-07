@@ -705,5 +705,18 @@
         "location"
       ]
     }
-  ]
+  ],
+  "related_services": {
+    "lvt flooring": ["Vinyl flooring","Screeding and floor levelling","Floor removal and uplift"],
+    "vinyl flooring": ["LVT flooring","Safety flooring","Screeding and floor levelling"],
+    "safety flooring": ["Vinyl flooring","Commercial flooring","Floor removal and uplift"],
+    "parquet and herringbone flooring": ["Floor removal and uplift","Screeding and floor levelling","Floor surveys and moisture testing"],
+    "carpet tiles": ["Commercial flooring","Floor removal and uplift","Acoustic flooring"],
+    "carpet repairs and re stretching": ["Carpet tiles","Floor removal and uplift","Floor surveys and moisture testing"],
+    "screeding and floor levelling": ["Floor surveys and moisture testing","Floor removal and uplift","LVT flooring"],
+    "acoustic flooring": ["Commercial flooring","Screeding and floor levelling","Carpet tiles"],
+    "floor removal and uplift": ["Screeding and floor levelling","Floor surveys and moisture testing","LVT flooring"],
+    "floor surveys and moisture testing": ["Screeding and floor levelling","Floor removal and uplift","Acoustic flooring"],
+    "commercial flooring": ["Safety flooring","Carpet tiles","Vinyl flooring"]
+  }
 }

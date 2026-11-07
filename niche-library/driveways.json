@@ -676,5 +676,19 @@
         "location"
       ]
     }
-  ]
+  ],
+  "related_services": {
+    "concrete repairs and resurfacing": ["Concrete driveways","Imprinted concrete","Tar and chip surfacing"],
+    "concrete driveways": ["Imprinted concrete","Concrete repairs and resurfacing","Dropped kerbs"],
+    "imprinted concrete": ["Concrete driveways","Concrete repairs and resurfacing","Kerbs and edging"],
+    "car park line marking": ["Bollards","Tar and chip surfacing","Concrete repairs and resurfacing"],
+    "resin bound driveways": ["Permeable paving","Kerbs and edging","Gravel driveways"],
+    "gravel driveways": ["Kerbs and edging","Resin bound driveways","Permeable paving"],
+    "tar and chip surfacing": ["Gravel driveways","Kerbs and edging","Concrete repairs and resurfacing"],
+    "kerbs and edging": ["Dropped kerbs","Permeable paving","Gravel driveways"],
+    "dropped kerbs": ["Concrete driveways","Kerbs and edging","Resin bound driveways"],
+    "permeable paving": ["Resin bound driveways","Gravel driveways","Kerbs and edging"],
+    "play area and sports surfacing": ["Resin bound driveways","Tar and chip surfacing","Kerbs and edging"],
+    "bollards": ["Car park line marking","Kerbs and edging","Concrete repairs and resurfacing"]
+  }
 }

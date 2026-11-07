@@ -36,6 +36,31 @@ const { confirmedServiceList } = require('./service-words');
 // hold to, the word ranges, the page's structure and keyword. Every other flag waits for the one style pass.
 // A sentence over the soft cap is N7 but style: see isRetryIssue.
 const RETRY_FLAGS = new Set(['N7', 'N15', 'N19', 'N22', 'OUTCOME', 'SERVICE', 'RAW-GBP', 'COAST', 'AREA-ADMIN', 'CARD-COUNT', 'CARD-PICK', 'HERO']);
+// The stages the page's trade facts name, as word stems: the "Stages:" rows, Table A's stages column, What's Included
+function tradeStageWords(V) {
+  if (V._tradeStages) return V._tradeStages;
+  const text = V.tradeFactsText || '';
+  const parts = [...text.matchAll(/stages:\s*([^\n]+?)(?:\.\s|\n|$)/g)].map(m => m[1]);
+  const tableA = text.indexOf('table a');
+  if (tableA >= 0) {
+    const end = text.indexOf('## table', tableA + 8);
+    for (const line of text.slice(tableA, end < 0 ? undefined : end).split('\n')) {
+      const cells = line.split('|');
+      if (cells.length > 3 && !/^[\s:-]*$/.test(cells[2]) && !/^\s*stages\b/.test(cells[2])) parts.push(cells[2]);
+    }
+  }
+  for (const it of (V.D && V.D.included) || []) if (it.source === 'trade facts') parts.push(lc(it.title));
+  const stems = new Set((parts.join(' ').match(/[a-z]{4,}/g) || []).map(w => w.slice(0, 5)));
+  Object.defineProperty(V, '_tradeStages', { value: stems, enumerable: false });
+  return stems;
+}
+const GENERIC_STAGE_WORDS = new Set(['clear', 'clean', 'check', 'agree', 'visit', 'price', 'quote', 'where', 'there', 'their', 'every', 'after', 'before', 'them', 'with', 'from', 'that', 'this', 'your', 'then']);
+function isTradeStage(match, sentence, V) {
+  if (/\b(?:we|we're|we'll|we've|we'd|our|us)\b/i.test(sentence)) return false;
+  const stems = tradeStageWords(V);
+  if (!stems.size) return false;
+  return (lc(match).match(/[a-z]{4,}/g) || []).filter(w => !GENERIC_STAGE_WORDS.has(w)).some(w => stems.has(w.slice(0, 5)));
+}
 const isRetryIssue = (type, check, message) => type === 'BLOCK' || (RETRY_FLAGS.has(check) && !(check === 'N7' && /soft cap/.test(message || '')));
 //   INSURANCE     BLOCK  insurance mentioned with no insurance_cover on file
 //   RIVALS        BLOCK  (15 Oct) the copy tells the reader to get other quotes, compare firms or shop around
@@ -244,7 +269,7 @@ function setField(record, ref, text) {
     const it = record[ref.key][ref.index];
     it[ref.sub] = text;
     // A fixed FAQ answer: code's sentence, then the model's
-    if (ref.sub === 'tailored') it.faq_answer = [it.fixed, text].filter(Boolean).join(' ');
+    if (ref.sub === 'tailored') it.faq_answer = (it.fixed_after ? [text, it.fixed] : [it.fixed, text]).filter(Boolean).join(' ');
   }
 }
 
@@ -509,7 +534,7 @@ function validateCommon(record, V) {
     if (f.rangeKey === K.finalCta && sentences(t).length > 1) flag('FLAG', 'N7', 'Must be one sentence.');
     for (const sen of sentences(t)) {
       const n = wordCount(sen);
-      if (n > 25) flag('FLAG', 'N7', `A sentence of ${n} words (soft cap 25): "${sen.slice(0, 60)}…". Split it.`);
+      if (n > 25 && f.rangeKey !== 'faq_includes') flag('FLAG', 'N7', `A sentence of ${n} words (soft cap 25): "${sen.slice(0, 60)}…". Split it.`);
     }
 
     // N8 do_not_reuse
@@ -642,7 +667,13 @@ function validateCommon(record, V) {
     }
     // PRACTICE: working practices only from confirmed_practices
     const confirmedKeys = new Set(cv.confirmed_practices || []);
-    for (const c of practiceClaims(sentences(t).map(x => scanText(x)).join(' '), niche)) {
+    // A trade facts stage may be described as how the job is done (Brandon, 7 Nov 2026): never a "we" promise, and
+    // only where the page's own trade facts name that stage
+    const judged = sentences(t).map(x => scanText(x)).filter(sen => {
+      const claims = practiceClaims(sen, niche).filter(c => !confirmedKeys.has(c.practice.key));
+      return !(claims.length && claims.every(c => isTradeStage(c.match, sen, V)));
+    });
+    for (const c of practiceClaims(judged.join(' '), niche)) {
       if (!confirmedKeys.has(c.practice.key)) flag('BLOCK', 'PRACTICE', `"${c.match}" states a practice ("${c.practice.label}") that the client hasn't confirmed. Delete it, or describe the job itself: what the work involves, with no "we", no "a fair [trade]" and no claim about how any business behaves.`);
     }
     // TRADE-VOICE (copy quality 5, 4 Nov 2026): "a fair roofer shows you photographs", "a locksmith won't ...": how

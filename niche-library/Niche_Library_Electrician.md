@@ -577,3 +577,35 @@ An element is dropped, and the next eligible one used, when the client has confi
 - **what to do before the electrician arrives (circuit off, unplug, keep away)** (service): home is the 'What should I do before you arrive?' FAQ. Elsewhere: the Call Us step covers only what to say on the call, and the problem cards do not list the safe basics.
 - **making safe on the call-out and the permanent repair being separate pieces of work** (category): home is the 'We Fix It, or Book the Repair' step. Elsewhere: the cost cards and the 'What if the fault comes back after an emergency visit?' FAQ do not re-explain the two-visit split.
 - **what to do before the electrician arrives (circuit off, unplug, keep away)** (category): home is the 'What should I do before you arrive?' FAQ. Elsewhere: the Call Us step covers only what to say on the call, and the problem cards do not list the safe basics.
+
+## Related services
+
+The closest other services for each service page, closest first (`related_services`).
+
+| Service | Related |
+|---|---|
+| ev charger installation | Consumer unit upgrades, Solar PV and battery storage, Garden and outdoor lighting |
+| rewiring | Consumer unit upgrades, Sockets and switches, Lighting installation |
+| electrical fault finding and repairs | Emergency electrician, Sockets and switches, EICR and electrical testing |
+| extractor fan installation | Lighting installation, Electric shower installation, Sockets and switches |
+| lighting installation | Sockets and switches, Garden and outdoor lighting, Rewiring |
+| garden and outdoor lighting | Lighting installation, CCTV installation, EV charger installation |
+| sockets and switches | Lighting installation, Rewiring, Electrical fault finding and repairs |
+| emergency electrician | Electrical fault finding and repairs, Consumer unit upgrades, Sockets and switches |
+| consumer unit upgrades | EICR and electrical testing, Rewiring, Electrical fault finding and repairs |
+| eicr and electrical testing | Landlord electrical certificates, Consumer unit upgrades, Electrical fault finding and repairs |
+| landlord electrical certificates | EICR and electrical testing, Smoke and heat alarms, PAT testing |
+| pat testing | EICR and electrical testing, Commercial electrical work, Landlord electrical certificates |
+| smoke and heat alarms | Fire alarm systems, Landlord electrical certificates, Emergency lighting |
+| emergency lighting | Fire alarm systems, Commercial electrical work, Smoke and heat alarms |
+| fire alarm systems | Emergency lighting, Smoke and heat alarms, Commercial electrical work |
+| cctv installation | Intruder alarms, Access control and door entry, Data and network cabling |
+| access control and door entry | Intruder alarms, CCTV installation, Data and network cabling |
+| intruder alarms | CCTV installation, Access control and door entry, Fire alarm systems |
+| smart home installation | Home cinema and audio visual, Data and network cabling, Lighting installation |
+| home cinema and audio visual | Smart home installation, Data and network cabling, Sockets and switches |
+| data and network cabling | Smart home installation, CCTV installation, Home cinema and audio visual |
+| commercial electrical work | Emergency lighting, Fire alarm systems, PAT testing |
+| electric shower installation | Consumer unit upgrades, Extractor fan installation, Cooker and hob installation |
+| cooker and hob installation | Electric shower installation, Consumer unit upgrades, Sockets and switches |
+| solar pv and battery storage | EV charger installation, Consumer unit upgrades, Smart home installation |

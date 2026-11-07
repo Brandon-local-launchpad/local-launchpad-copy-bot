@@ -483,3 +483,36 @@ An element is dropped, and the next eligible one used, when the client has confi
 - **agreeing the scope first so nothing is left out** (service): home is the 'What is included and what is extra' cost card. Elsewhere: the 'The day it's checked' card says who checks and what they compare against, not the scope argument; step 2 and the 'What does your [SERVICE_LOWER] include?' FAQ list the cover without the why.
 - **the check in inventory the checkout is judged against** (service): home is the 'The day it's checked and who checks it' block 4 card. Elsewhere: the rules FAQ gives the landlord's entitlement without the walk round; the scope cost card and the oven checkout card do not name the inventory.
 - **lets in the town turning over together** (location): home is the 'Homes that change hands every summer' block 4 card. Elsewhere: the best time FAQ gives the timing without restating the turnover; the 'left a while' cost card speaks of the gap, not lets changing hands.
+
+## Related services
+
+The closest other services for each service page, closest first (`related_services`).
+
+| Service | Related |
+|---|---|
+| rug cleaning | Curtain cleaning, Leather cleaning, Mattress cleaning |
+| curtain cleaning | Rug cleaning, Leather cleaning, Mattress cleaning |
+| leather cleaning | Rug cleaning, Curtain cleaning, Mattress cleaning |
+| mattress cleaning | Pet stain and odour removal, Rug cleaning, Curtain cleaning |
+| pet stain and odour removal | Rug cleaning, Mattress cleaning, Deep cleaning |
+| deep cleaning | Regular domestic cleaning, Oven cleaning, End of tenancy cleaning |
+| office cleaning | Specialist commercial cleaning, Communal area cleaning, School cleaning |
+| regular domestic cleaning | Deep cleaning, Oven cleaning, End of tenancy cleaning |
+| gym and leisure centre cleaning | Specialist commercial cleaning, Office cleaning, School cleaning |
+| medical and clinic cleaning | Specialist commercial cleaning, Office cleaning, School cleaning |
+| communal area cleaning | Office cleaning, Specialist commercial cleaning, School cleaning |
+| after builders cleaning | Deep cleaning, Tile and grout cleaning, Specialist commercial cleaning |
+| school cleaning | Office cleaning, Specialist commercial cleaning, Gym and leisure centre cleaning |
+| roof cleaning | Soft washing, Fascia and soffit cleaning, Cladding cleaning |
+| soft washing | Render cleaning, Roof cleaning, Cladding cleaning |
+| end of tenancy cleaning | Deep cleaning, Oven cleaning, Rug cleaning |
+| holiday let and airbnb cleaning | Regular domestic cleaning, Deep cleaning, Oven cleaning |
+| oven cleaning | Deep cleaning, Regular domestic cleaning, End of tenancy cleaning |
+| tile and grout cleaning | Stone floor cleaning and restoration, Deep cleaning, After builders cleaning |
+| stone floor cleaning and restoration | Tile and grout cleaning, Driveway and patio cleaning, Deep cleaning |
+| specialist commercial cleaning | Office cleaning, Medical and clinic cleaning, Gym and leisure centre cleaning |
+| conservatory cleaning | Roof cleaning, Fascia and soffit cleaning, Soft washing |
+| fascia and soffit cleaning | Roof cleaning, Conservatory cleaning, Soft washing |
+| cladding cleaning | Render cleaning, Soft washing, Fascia and soffit cleaning |
+| render cleaning | Soft washing, Cladding cleaning, Roof cleaning |
+| driveway and patio cleaning | Soft washing, Stone floor cleaning and restoration, Render cleaning |

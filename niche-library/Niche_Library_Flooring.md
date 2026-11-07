@@ -443,3 +443,21 @@ An element is dropped, and the next eligible one used, when the client has confi
 - **damp in a solid floor or new screed tested for before a floor goes down** (category): home is the 'A floor spoiled from underneath by damp' card. Elsewhere: the 'What is under the floor now' cost card names damp only as a price item; the how long FAQ gives the wait only, not the cause.
 - **the town's housing eras: timber boards over a void against a slab** (location): home is the 'Floors built the way the houses were' card. Elsewhere: the 'What the house was built on' cost card gives only the work it adds; the cost FAQ names it in a phrase; the how long FAQ gives only the effect on time.
 - **old floors layered on top of each other** (location): home is the 'Old floors with more than one layer' card. Elsewhere: the 'What the last owner left on the floor' cost card gives only what it adds to the work; the cost FAQ names it in a phrase.
+
+## Related services
+
+The closest other services for each service page, closest first (`related_services`).
+
+| Service | Related |
+|---|---|
+| lvt flooring | Vinyl flooring, Screeding and floor levelling, Floor removal and uplift |
+| vinyl flooring | LVT flooring, Safety flooring, Screeding and floor levelling |
+| safety flooring | Vinyl flooring, Commercial flooring, Floor removal and uplift |
+| parquet and herringbone flooring | Floor removal and uplift, Screeding and floor levelling, Floor surveys and moisture testing |
+| carpet tiles | Commercial flooring, Floor removal and uplift, Acoustic flooring |
+| carpet repairs and re stretching | Carpet tiles, Floor removal and uplift, Floor surveys and moisture testing |
+| screeding and floor levelling | Floor surveys and moisture testing, Floor removal and uplift, LVT flooring |
+| acoustic flooring | Commercial flooring, Screeding and floor levelling, Carpet tiles |
+| floor removal and uplift | Screeding and floor levelling, Floor surveys and moisture testing, LVT flooring |
+| floor surveys and moisture testing | Screeding and floor levelling, Floor removal and uplift, Acoustic flooring |
+| commercial flooring | Safety flooring, Carpet tiles, Vinyl flooring |

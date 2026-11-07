@@ -457,3 +457,31 @@ An element is dropped, and the next eligible one used, when the client has confi
 - **how the quote is reached and whether it is given in writing** (homepage): home is the 'How do your quotes work?' FAQ. Elsewhere: step 2 (either version) describes the visit or says a price is agreed before work starts, without explaining the quote method again; the 'Is the quote free' FAQ says only free and no obligation.
 - **what decides how long the job takes (length of run, what comes out, ground, access, weather) with no number** (service): home is the 'How long does [SERVICE_LOWER] take?' FAQ. Elsewhere: the seasonal 'When is the best time of year' FAQ covers only what the season changes and does not list the duration factors again.
 - **what the season changes: concrete setting slowly in the cold, staining waiting for dry timber, nests checked in a hedge** (service): home is the seasonal 'When is the best time of year for [SERVICE_LOWER]' FAQ. Elsewhere: the 'Getting it up in the right weather' card names the customer's wish to be closed in before summer and does not list the weather conditions.
+
+## Related services
+
+The closest other services for each service page, closest first (`related_services`).
+
+| Service | Related |
+|---|---|
+| metal fencing and railings | Security fencing, Automatic gates, Garden gates |
+| automatic gates | Metal fencing and railings, Security fencing, Garden gates |
+| chain link fencing | Security fencing, Metal fencing and railings, Temporary fencing |
+| fence repairs | Concrete posts and gravel boards, Fence staining and treatment, Timber fencing |
+| security fencing | Metal fencing and railings, Chain link fencing, Automatic gates |
+| timber fencing | Closeboard fencing, Panel fencing, Fence staining and treatment |
+| acoustic fencing | Closeboard fencing, Composite fencing, Panel fencing |
+| agricultural and stock fencing | Post and rail fencing, Electric fencing, Equestrian fencing |
+| equestrian fencing | Post and rail fencing, Electric fencing, Agricultural and stock fencing |
+| closeboard fencing | Concrete posts and gravel boards, Panel fencing, Timber fencing |
+| picket fencing | Garden gates, Timber fencing, Fence staining and treatment |
+| post and rail fencing | Equestrian fencing, Agricultural and stock fencing, Timber fencing |
+| hit and miss fencing | Closeboard fencing, Timber fencing, Concrete posts and gravel boards |
+| panel fencing | Concrete posts and gravel boards, Closeboard fencing, Timber fencing |
+| electric fencing | Agricultural and stock fencing, Equestrian fencing, Post and rail fencing |
+| temporary fencing | Security fencing, Chain link fencing, Metal fencing and railings |
+| fence staining and treatment | Timber fencing, Fence repairs, Closeboard fencing |
+| bin and log stores | Timber fencing, Garden gates, Fence staining and treatment |
+| garden gates | Timber fencing, Picket fencing, Metal fencing and railings |
+| composite fencing | Acoustic fencing, Panel fencing, Concrete posts and gravel boards |
+| concrete posts and gravel boards | Panel fencing, Closeboard fencing, Fence repairs |

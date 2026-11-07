@@ -355,3 +355,21 @@ An element is dropped, and the next eligible one used, when the client has confi
 - **whether dismantling and reassembly are in the job** (service): home is the 'What does your service include?' FAQ. Elsewhere: the lifting and placing cards and step 3 mention pieces coming apart or beds rebuilt only as a stage, never restating whether it is in or out of scope.
 - **the survey and what it settles before the day** (category): home is the 'The survey that sets up the day' block 4 card. Elsewhere: step 2 names the survey in one line and moves on to the price; the cost FAQ and the 'What happens when I ask for a quote?' FAQ say what comes back, not the survey's checklist.
 - **whether dismantling and reassembly are in the job** (category): home is the 'What does your service cover?' FAQ. Elsewhere: the 'Unloading and getting furniture in' card and step 3 mention reassembly only as a stage, never restating whether it is in or out of scope.
+
+## Related services
+
+The closest other services for each service page, closest first (`related_services`).
+
+| Service | Related |
+|---|---|
+| furniture dismantling and reassembly | Local house removals, Long distance removals, Packing services |
+| storage | Local house removals, Packing services, International removals |
+| international removals | Packing services, Storage, Long distance removals |
+| local house removals | Packing services, Furniture dismantling and reassembly, Long distance removals |
+| office and commercial removals | Furniture dismantling and reassembly, Packing services, Storage |
+| long distance removals | Local house removals, Packing services, Furniture dismantling and reassembly |
+| packing services | Local house removals, Long distance removals, Antique and fine art removals |
+| single item and small moves | Local house removals, Piano removals, Furniture dismantling and reassembly |
+| piano removals | Antique and fine art removals, Single item and small moves, Local house removals |
+| antique and fine art removals | Packing services, Piano removals, Storage |
+| house clearance | Local house removals, Storage, Single item and small moves |

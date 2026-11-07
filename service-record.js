@@ -94,7 +94,7 @@ function buildServiceRecord({ cv, decisionsResult, parsed, meta, extraFlags = []
     svc_faq_h2:             D.h2.faq,
     faq_items: D.faq.map((q, i) => {
       const written = item(LABELS.faq, i, 'faq_answer');
-      if (q.fixed) return { faq_question: q.question, faq_answer: [q.fixed, written].filter(Boolean).join(' '), fixed: q.fixed, tailored: written || '', doubt: q.doubt };
+      if (q.fixed != null) return { faq_question: q.question, faq_answer: (q.fixed_after ? [written, q.fixed] : [q.fixed, written]).filter(Boolean).join(' '), fixed: q.fixed, ...(q.fixed_after ? { fixed_after: true } : {}), tailored: written || '', doubt: q.doubt };
       return { faq_question: q.question, faq_answer: written, doubt: q.doubt };
     }),
     svc_more_h2:            D.more.length ? D.h2.more : 'HIDDEN',

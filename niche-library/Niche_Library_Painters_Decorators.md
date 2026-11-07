@@ -374,3 +374,23 @@ An element is dropped, and the next eligible one used, when the client has confi
 
 - **the exposed elevation and painting it in a dry, settled spell** (location): home is the 'Outside walls and timber facing the weather' card. Elsewhere: the 'weather side of the house' cost card says only that exposure adds time, and the 'best time of year' FAQ gives the season without describing the town's exposure.
 - **old paint layers and older surfaces in the town's housing** (location): home is the 'Older houses with paint laid on paint' card. Elsewhere: the 'age of the surfaces' cost card says only that this adds time, and the cost FAQ names it in a phrase without explaining the layers.
+
+## Related services
+
+The closest other services for each service page, closest first (`related_services`).
+
+| Service | Related |
+|---|---|
+| exterior painting | Woodwork and timber finishing, Sash window and timber restoration, Spray painting |
+| furniture and kitchen painting | Spray painting, Woodwork and timber finishing, Interior painting and decorating |
+| interior painting and decorating | Wallpapering, Plaster repairs and skimming, Woodwork and timber finishing |
+| spray painting | Furniture and kitchen painting, Commercial decorating, Exterior painting |
+| wallpapering | Interior painting and decorating, Plaster repairs and skimming, Decorative finishes and murals |
+| woodwork and timber finishing | Sash window and timber restoration, Interior painting and decorating, Furniture and kitchen painting |
+| decorative finishes and murals | Wallpapering, Interior painting and decorating, Coving and cornice |
+| coving and cornice | Plaster repairs and skimming, Interior painting and decorating, Artex removal |
+| plaster repairs and skimming | Artex removal, Interior painting and decorating, Coving and cornice |
+| artex removal | Plaster repairs and skimming, Coving and cornice, Interior painting and decorating |
+| sash window and timber restoration | Woodwork and timber finishing, Exterior painting, Interior painting and decorating |
+| commercial decorating | Interior painting and decorating, Intumescent and fire protection coatings, Spray painting |
+| intumescent and fire protection coatings | Commercial decorating, Spray painting, Woodwork and timber finishing |

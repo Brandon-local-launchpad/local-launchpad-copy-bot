@@ -408,3 +408,15 @@ An element is dropped, and the next eligible one used, when the client has confi
 ## Idea homes
 
 - **visits timed before opening or out of hours for shops and offices** (location): home is the 'Shopfronts that have to look right by nine' block 4 card. Elsewhere: the 'Working round the town's hours and pavements' cost card says only that a fixed time slot adds to the visit, and the 'How do regular visits work in [TOWN]?' FAQ does not explain why visits are timed round opening hours.
+
+## Related services
+
+The closest other services for each service page, closest first (`related_services`).
+
+| Service | Related |
+|---|---|
+| sign and canopy cleaning | Commercial window cleaning, High level window cleaning, Bin store cleaning |
+| bin store cleaning | Commercial window cleaning, Sign and canopy cleaning, Residential window cleaning |
+| high level window cleaning | Commercial window cleaning, Sign and canopy cleaning, Residential window cleaning |
+| commercial window cleaning | High level window cleaning, Sign and canopy cleaning, Bin store cleaning |
+| residential window cleaning | High level window cleaning, Commercial window cleaning, Bin store cleaning |

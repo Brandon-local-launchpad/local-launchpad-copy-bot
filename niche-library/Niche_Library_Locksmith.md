@@ -584,3 +584,23 @@ An element is dropped, and the next eligible one used, when the client has confi
 - **the way in that leaves the least mark, with drilling last** (service): home is paragraph 2 of the content block. Elsewhere: the FAQ on damage answers the question in a line and leaves the reasoning out; no card, step or cost card says gentlest first or drilling last.
 - **the right to be there checked at the door (proof of address)** (category): home is the 'What should I have ready before you arrive?' FAQ. Elsewhere: the Call Us step, the arrival step and the 'Getting you in' cost card do not list documents or explain the check.
 - **the way in that leaves the least mark, with drilling last** (category): home is paragraph 2 of the content block. Elsewhere: the FAQ on damage answers the question in a line and leaves the reasoning out; no card, step or cost card says gentlest first or drilling last.
+
+## Related services
+
+The closest other services for each service page, closest first (`related_services`).
+
+| Service | Related |
+|---|---|
+| lockouts and gaining entry | Emergency locksmith, Lock repairs, Lock fitting and replacement |
+| auto locksmith | Key cutting, Emergency locksmith, Lockouts and gaining entry |
+| key cutting | Master key systems, Lock fitting and replacement, Auto locksmith |
+| lock repairs | Lock fitting and replacement, uPVC door and window lock repairs, Lockouts and gaining entry |
+| lock fitting and replacement | British Standard and insurance approved locks, Lock repairs, Smart locks |
+| safes | British Standard and insurance approved locks, Lock fitting and replacement, Master key systems |
+| british standard and insurance approved locks | Lock fitting and replacement, Window locks, Burglary repairs and boarding up |
+| window locks | uPVC door and window lock repairs, British Standard and insurance approved locks, Lock fitting and replacement |
+| emergency locksmith | Lockouts and gaining entry, Burglary repairs and boarding up, Lock repairs |
+| upvc door and window lock repairs | Window locks, Lock repairs, Lock fitting and replacement |
+| smart locks | Lock fitting and replacement, British Standard and insurance approved locks, Master key systems |
+| master key systems | Key cutting, Lock fitting and replacement, Smart locks |
+| burglary repairs and boarding up | Emergency locksmith, Lock fitting and replacement, Window locks |

@@ -646,3 +646,37 @@ An element is dropped, and the next eligible one used, when the client has confi
 - **frost freezing condensate and exposed pipes, with protection added when they are repaired** (category): home is the seasonal block 4 card 'The first cold snap finds the weak spot'. Elsewhere: the 'good time of year' and 'done in winter' FAQs do not explain freezing pipes again.
 - **gas work done by an engineer on the Gas Safe Register** (service): home is the 'Does [SERVICE_LOWER] need anything signed off or notified?' FAQ. Elsewhere: the servicing and installation steps do not restate the register.
 - **the room by room heat loss survey** (service): home is step 2, 'We Look at the ... and Price the Job'. Elsewhere: the desire cards say what decides the job without describing the survey.
+
+## Related services
+
+The closest other services for each service page, closest first (`related_services`).
+
+| Service | Related |
+|---|---|
+| heating controls and thermostats | Central heating installation, Radiators, Central heating repairs |
+| leak detection and repair | Burst and leaking pipes, Emergency plumber and heating engineer, Taps and basins |
+| taps and basins | Bathroom installation, Toilet installation and repair, Shower installation and repair |
+| shower installation and repair | Bathroom installation, Taps and basins, Toilet installation and repair |
+| toilet installation and repair | Bathroom installation, Taps and basins, Shower installation and repair |
+| outside taps and garden plumbing | Leak detection and repair, Burst and leaking pipes, Taps and basins |
+| burst and leaking pipes | Leak detection and repair, Emergency plumber and heating engineer, Central heating repairs |
+| blocked drains and sinks | Emergency plumber and heating engineer, Toilet installation and repair, Taps and basins |
+| cold water tanks | Hot water cylinders, Water softeners, Leak detection and repair |
+| boiler installation | Boiler servicing, Gas safety certificates, Central heating installation |
+| boiler servicing | Boiler repairs, Gas safety certificates, Central heating servicing |
+| boiler repairs | Boiler servicing, Emergency plumber and heating engineer, Central heating repairs |
+| emergency plumber and heating engineer | Boiler repairs, Burst and leaking pipes, Central heating repairs |
+| central heating installation | Boiler installation, Radiators, Heating controls and thermostats |
+| central heating repairs | Boiler repairs, Central heating servicing, Radiators |
+| central heating servicing | Boiler servicing, Central heating repairs, Power flushing |
+| radiators | Central heating installation, Power flushing, Central heating repairs |
+| power flushing | Central heating servicing, Radiators, Central heating repairs |
+| gas safety certificates | Boiler servicing, Gas appliance installation, Boiler installation |
+| gas appliance installation | Gas safety certificates, Boiler installation, Boiler servicing |
+| air source heat pumps | Ground source heat pumps, Underfloor heating, Hot water cylinders |
+| ground source heat pumps | Air source heat pumps, Underfloor heating, Hot water cylinders |
+| underfloor heating | Air source heat pumps, Ground source heat pumps, Heating controls and thermostats |
+| hot water cylinders | Cold water tanks, Boiler installation, Air source heat pumps |
+| bathroom installation | Shower installation and repair, Toilet installation and repair, Taps and basins |
+| oil boilers | Boiler installation, Boiler servicing, Boiler repairs |
+| water softeners | Cold water tanks, Hot water cylinders, Taps and basins |

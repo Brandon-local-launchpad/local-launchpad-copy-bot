@@ -351,7 +351,7 @@ function computeServiceDecisions({ cv, niche, keyValueMap = {}, rows = [], page,
   // town page: the villages, unlinked ──
   const towns = [];
   for (let i = 2; keyValueMap[`biz_area_${i}`]; i++) towns.push(keyValueMap[`biz_area_${i}`].trim());
-  const locCats = applies.filter(r => r.type === 'location_category' && live(r) && r.info && r.info.category_key === catKey);
+  const locCats = applies.filter(r => r.type === 'location_category' && live(r) && require('./page-map/generator').isBuiltLocation(r) && r.info && r.info.category_key === catKey);
   const locCatFor = t => locCats.find(r => normArea(r.info.town) === normArea(t) || normArea(r.info.town) === normArea(stripAdmin(t)));
   const allTownServices = applies.filter(r => r.type === 'town_service' && live(r) && (sameName(r.info && r.info.service_name, serviceName) || (r.info && baseRow.info && r.info.service_id && r.info.service_id === baseRow.info.service_id)));
   const townServiceIn = t => allTownServices.find(r => normArea(r.info.town) === normArea(t) || normArea(r.info.town) === normArea(stripAdmin(t)));
@@ -434,11 +434,14 @@ function computeServiceDecisions({ cv, niche, keyValueMap = {}, rows = [], page,
         q.answer_brief = `CODE WRITES: "${q.fixed}" You write only one more sentence of 20 words or fewer, tailored to ${baseRow.title.toLowerCase()}: the kind of work the cover goes with. Describe it, never promise it. No figure, no practice.`;
       }
       if (q.slot === 'scope' && included.length) {
-        const stages = list(included.map((it, i) => (i === 0 ? it.title.charAt(0).toLowerCase() + it.title.slice(1) : it.title.toLowerCase())));
-        const siblings = (more || []).slice(0, 3).map(m => `[${(m.say || m.name).toLowerCase()}](${m.url})`);
-        const subject = (q.question.match(/^what does (.+?) (?:include|cover)/i) || [])[1] || `a ${baseRow.title.toLowerCase()} job`;
-        q.fixed = `${subject.charAt(0).toUpperCase()}${subject.slice(1)} covers these stages: ${stages}.${siblings.length ? ` We also do ${list(siblings)}.` : ''}`;
-        q.answer_brief = `CODE WRITES: "${q.fixed}" You write only one more sentence of 20 words or fewer, tailored to ${baseRow.title.toLowerCase()}: what the customer is left with. Don't repeat the stages, name no other service, state no practice.`;
+        // The closest other services: the niche entry's related_services, then the page's other siblings
+        const wanted = (niche.related_services || {})[baseRow.title.toLowerCase()] || [];
+        const named = wanted.map(n => (more || []).find(m => lc(m.name) === lc(n)) || (() => { const r = applies.find(x => x.type === 'service' && live(x) && lc(x.title) === lc(n)); return r ? { name: r.title, say: r.info && r.info.prose_name, url: slugOf(r) } : null; })()).filter(Boolean);
+        const fill = (more || []).filter(m => !named.some(x => x.url === m.url));
+        const siblings = [...named, ...fill].slice(0, 3).map(m => `[${(m.say || m.name).toLowerCase()}](${m.url})`);
+        q.fixed = siblings.length ? `We also do ${list(siblings)}.` : '';
+        q.fixed_after = true;
+        q.answer_brief = `Write one natural sentence of 35 words or fewer that walks through the job in order, from the stages in your What's Included items, as a person would say it: not a list of stage labels, and never "we" (for example "A visit starts with a check for debris, then the height is set, the lawn mown and the edges trimmed, with clippings collected or mulched in and the paths cleared", in your own words for this service). No promise, no price.${q.fixed ? ` Code adds this after it: "${q.fixed}" Name no other service.` : ''}`;
       }
     }
   }
@@ -459,7 +462,7 @@ function computeServiceDecisions({ cv, niche, keyValueMap = {}, rows = [], page,
     niche_steps: steps,
     areas, faq: faqs,
     allocated, thin: !allocated.neighbourhoods.length, overrideUsed: !!blocks.overrideUsed, ideasUsed: Array.isArray(ideasUsed) ? ideasUsed : [], mechanismsUsed,
-    locationLinks, baseLink, linkablePages, pageMapUrls: (rows || []).map(r => r.slug).filter(Boolean), unbuiltLocationUrls: (rows || []).filter(r => r.type === 'location' && !require('./page-map/generator').isBuiltLocation(r)).map(r => r.slug).filter(Boolean),
+    locationLinks, baseLink, linkablePages, pageMapUrls: (rows || []).map(r => r.slug).filter(Boolean), unbuiltLocationUrls: (rows || []).filter(r => (r.type === 'location' || r.type === 'location_category') && !require('./page-map/generator').isBuiltLocation(r)).map(r => r.slug).filter(Boolean),
     quoteFree, emergencyOn, emergencyWhy, coastal: cv.coastal_city === 'yes',
     seasonal: seasonal.swapped,
     trade_facts: { file: tradeFacts.file || null, verified: true, included: true, rows: tradeFacts.rows.length, counts: tradeFacts.counts || {}, missing: tradeFacts.missing || [], has_rule: !!tradeFacts.hasRule, thin: !!tradeFacts.thin },
@@ -630,7 +633,7 @@ function formatServiceBlock(D, cv, niche, ctx) {
   for (const p of D.cost) push(`    - ${PT.LIST_KEYS[PT.LABELS.block5][0]}: ${p.title} | ${PT.LIST_KEYS[PT.LABELS.block5][1]}`);
   push(`  ${PT.LABELS.areasIntro}`);
   push(`  ${PT.LABELS.faq}`);
-  for (const q of D.faq) { const role = IH.faqRole(q.question); push(`    - faq_question: ${q.question} | faq_answer${q.fixed ? ' (one sentence, 20 words or fewer; code writes the rest of this answer)' : role ? ` (${IH.ideaNote(role, 'service')})` : ''}`); }
+  for (const q of D.faq) { const role = IH.faqRole(q.question); push(`    - faq_question: ${q.question} | faq_answer${q.fixed_after ? ' (one natural sentence, 35 words or fewer, walking through the job; code adds the rest)' : q.fixed ? ' (one sentence, 20 words or fewer; code writes the rest of this answer)' : role ? ` (${IH.ideaNote(role, 'service')})` : ''}`); }
   push(`  ${PT.LABELS.moreIntro}${D.more.length ? '' : ' (HIDDEN)'}`);
   push(`  ${PT.LABELS.finalCta}`);
   push('  MODEL_FLAGS');

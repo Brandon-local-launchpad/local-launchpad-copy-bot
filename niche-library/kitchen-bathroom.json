@@ -685,5 +685,13 @@
         "location"
       ]
     }
-  ]
+  ],
+  "related_services": {
+    "walk in showers": ["Accessible and mobility bathrooms","Bathroom design","Cloakrooms and en suites"],
+    "accessible and mobility bathrooms": ["Walk in showers","Bathroom design","Cloakrooms and en suites"],
+    "cloakrooms and en suites": ["Bathroom design","Walk in showers","Utility rooms"],
+    "utility rooms": ["Cloakrooms and en suites","Media walls","Bathroom design"],
+    "media walls": ["Utility rooms","Bathroom design","Cloakrooms and en suites"],
+    "bathroom design": ["Walk in showers","Cloakrooms and en suites","Accessible and mobility bathrooms"]
+  }
 }

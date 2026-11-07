@@ -360,3 +360,26 @@ An element is dropped, and the next eligible one used, when the client has confi
 
 - **progress comes from short practice at home between sessions** (homepage, service): home is the 'We Start on a Date That Suits You' step. Elsewhere: the 'how many sessions' and 'how long does it take' FAQs name home practice only as one decider in a few words; the 'isn't working for my dog' FAQ does not explain it again.
 - **a vet check first when behaviour changes suddenly or an older dog stops coping** (service): home is the 'When to see the vet first' block 4 card. Elsewhere: the 'We Get to Know Your Dog' step says only that the first meeting checks whether a vet should come first, with no reasons; the 'isn't working for my dog' FAQ gives no list of warning signs.
+
+## Related services
+
+The closest other services for each service page, closest first (`related_services`).
+
+| Service | Related |
+|---|---|
+| dog boarding | Dog day care, Residential dog training, Puppy training |
+| residential dog training | Obedience training, Dog boarding, Behaviour modification |
+| dog day care | Dog boarding, Puppy training, Obedience training |
+| puppy training | Obedience training, Recall training, Loose lead walking |
+| obedience training | Recall training, Loose lead walking, Puppy training |
+| recall training | Loose lead walking, Obedience training, Gundog training |
+| loose lead walking | Recall training, Obedience training, Reactive dog training |
+| behaviour modification | Reactive dog training, Nervous and anxious dog training, Aggressive dog rehabilitation |
+| reactive dog training | Behaviour modification, Loose lead walking, Nervous and anxious dog training |
+| nervous and anxious dog training | Behaviour modification, Reactive dog training, Aggressive dog rehabilitation |
+| aggressive dog rehabilitation | Behaviour modification, Reactive dog training, Nervous and anxious dog training |
+| assistance dog training | Obedience training, Scent detection training, Puppy training |
+| scent detection training | Gundog training, Assistance dog training, Obedience training |
+| gundog training | Recall training, Scent detection training, Obedience training |
+| protection dog training | Family protection dogs, Obedience training, Aggressive dog rehabilitation |
+| family protection dogs | Protection dog training, Obedience training, Residential dog training |

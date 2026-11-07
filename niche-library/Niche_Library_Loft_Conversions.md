@@ -432,3 +432,20 @@ An element is dropped, and the next eligible one used, when the client has confi
 - **scaffold licence and skip permit on a terraced street** (location): home is the 'Scaffold and a skip on a terraced street' block 5 card. Elsewhere: the cost FAQ and the quote FAQ do not explain licences, permits or street access.
 - **the council's say on the street (conservation areas, listed homes, removed allowances)** (location): home is the 'Streets where the council has a say' block 4 card. Elsewhere: the conservation cost card covers only the added time and matching materials; the quote FAQ only names the planning position as something checked.
 - **clay, trees and ground under the foundations** (location): home is the 'Clay and trees under the foundations' block 5 card. Elsewhere: the cost FAQ and the timing FAQ do not explain the ground or the inspection before concrete.
+
+## Related services
+
+The closest other services for each service page, closest first (`related_services`).
+
+| Service | Related |
+|---|---|
+| dormer loft conversions | Hip to gable loft conversions, Mansard loft conversions, Velux loft conversions |
+| hip to gable loft conversions | Dormer loft conversions, Mansard loft conversions, Velux loft conversions |
+| mansard loft conversions | Dormer loft conversions, Hip to gable loft conversions, Velux loft conversions |
+| velux loft conversions | Dormer loft conversions, Loft boarding and insulation, Hip to gable loft conversions |
+| double storey extensions | Single storey extensions, Wraparound extensions, Side return extensions |
+| single storey extensions | Side return extensions, Double storey extensions, Wraparound extensions |
+| side return extensions | Wraparound extensions, Single storey extensions, Double storey extensions |
+| wraparound extensions | Side return extensions, Single storey extensions, Double storey extensions |
+| annexes and granny flats | Single storey extensions, Double storey extensions, Side return extensions |
+| loft boarding and insulation | Velux loft conversions, Dormer loft conversions, Hip to gable loft conversions |

@@ -519,3 +519,29 @@ An element is dropped, and the next eligible one used, when the client has confi
 - **the town's pavement-fronted streets and the council's permit** (location): home is the block 4 card 'Front doors that open onto the pavement'. Elsewhere: the 'A scaffold on the pavement' cost card gives it only as a cost, and the soon FAQ and the quote FAQ name the permit in one clause.
 - **wind on an exposed town and the sheeted scaffold** (location): home is the block 4 card 'Wind where the town stands open'. Elsewhere: the wind cost card gives it only as a cost, the cost FAQ names exposure in a word, and the all-year FAQ does not repeat the design and ties point.
 - **the town's three-storey houses** (location): home is the block 4 card 'Three storeys against two'. Elsewhere: the 'Tall houses and tight alleys' cost card gives height only as a cost and the cost FAQ names it in a word.
+
+## Related services
+
+The closest other services for each service page, closest first (`related_services`).
+
+| Service | Related |
+|---|---|
+| debris netting and sheeting | Temporary roofs, Commercial scaffolding, Edge protection |
+| hoists and loading bays | Commercial scaffolding, Stair towers and temporary stairs, Debris netting and sheeting |
+| scaffold hire | Access towers, Domestic scaffolding, Commercial scaffolding |
+| domestic scaffolding | Chimney scaffolding, Scaffold hire, Temporary roofs |
+| commercial scaffolding | Hoists and loading bays, Edge protection, Scaffold design |
+| temporary roofs | Debris netting and sheeting, Heritage and listed building scaffolding, Commercial scaffolding |
+| chimney scaffolding | Domestic scaffolding, Temporary roofs, Edge protection |
+| access towers | Scaffold hire, Stair towers and temporary stairs, Suspended access |
+| cantilever and truss out scaffolding | Scaffold design, Commercial scaffolding, Pavement and road scaffolding |
+| birdcage scaffolding | Scaffold design, Commercial scaffolding, Temporary roofs |
+| stair towers and temporary stairs | Access towers, Hoists and loading bays, Edge protection |
+| edge protection | Commercial scaffolding, Debris netting and sheeting, Stair towers and temporary stairs |
+| scaffold design | Scaffold inspections, Cantilever and truss out scaffolding, Birdcage scaffolding |
+| scaffold inspections | Scaffold design, Emergency scaffolding, Commercial scaffolding |
+| emergency scaffolding | Scaffold inspections, Domestic scaffolding, Temporary roofs |
+| event scaffolding | Scaffold hire, Stair towers and temporary stairs, Scaffold design |
+| heritage and listed building scaffolding | Temporary roofs, Scaffold design, Debris netting and sheeting |
+| pavement and road scaffolding | Debris netting and sheeting, Commercial scaffolding, Cantilever and truss out scaffolding |
+| suspended access | Access towers, Commercial scaffolding, Scaffold design |

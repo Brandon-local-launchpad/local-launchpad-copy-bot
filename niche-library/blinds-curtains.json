@@ -625,5 +625,25 @@
         "homepage"
       ]
     }
-  ]
+  ],
+  "related_services": {
+    "blind repairs": ["Curtain alterations and repairs","Made to measure blinds","Motorised and smart blinds"],
+    "motorised and smart blinds": ["Roller blinds","Roman blinds","Made to measure blinds"],
+    "conservatory blinds": ["Roof window and skylight blinds","Perfect fit and intu blinds","Awnings"],
+    "roof window and skylight blinds": ["Conservatory blinds","Perfect fit and intu blinds","Motorised and smart blinds"],
+    "commercial blinds": ["Vertical blinds","Roller blinds","Made to measure blinds"],
+    "curtain alterations and repairs": ["Made to measure curtains","Curtain tracks and poles","Blind repairs"],
+    "curtain tracks and poles": ["Made to measure curtains","Bay window curtains and blinds","Curtain alterations and repairs"],
+    "bay window curtains and blinds": ["Curtain tracks and poles","Plantation shutters","Made to measure curtains"],
+    "made to measure curtains": ["Curtain tracks and poles","Curtain alterations and repairs","Made to measure blinds"],
+    "plantation shutters": ["Venetian and wooden blinds","Bay window curtains and blinds","Made to measure blinds"],
+    "made to measure blinds": ["Roller blinds","Roman blinds","Made to measure curtains"],
+    "roller blinds": ["Roman blinds","Made to measure blinds","Vertical blinds"],
+    "roman blinds": ["Roller blinds","Made to measure blinds","Made to measure curtains"],
+    "venetian and wooden blinds": ["Plantation shutters","Roller blinds","Made to measure blinds"],
+    "vertical blinds": ["Roller blinds","Commercial blinds","Made to measure blinds"],
+    "perfect fit and intu blinds": ["Conservatory blinds","Made to measure blinds","Roller blinds"],
+    "child safe blinds": ["Roller blinds","Motorised and smart blinds","Made to measure blinds"],
+    "awnings": ["Conservatory blinds","Motorised and smart blinds","Commercial blinds"]
+  }
 }

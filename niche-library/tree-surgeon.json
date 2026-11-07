@@ -1080,5 +1080,18 @@
         "homepage"
       ]
     }
-  ]
+  ],
+  "related_services": {
+    "emergency tree work": ["Tree surveys and reports","Wood chipping","Site and vegetation clearance"],
+    "hedge reduction and removal": ["Site and vegetation clearance","Wood chipping","Ivy removal"],
+    "pollarding and coppicing": ["Woodland management","Wood chipping","Firewood and logs"],
+    "tree surveys and reports": ["Ash dieback management","Root barriers","Emergency tree work"],
+    "ash dieback management": ["Tree surveys and reports","Woodland management","Emergency tree work"],
+    "ivy removal": ["Hedge reduction and removal","Site and vegetation clearance","Tree surveys and reports"],
+    "site and vegetation clearance": ["Hedge reduction and removal","Wood chipping","Woodland management"],
+    "woodland management": ["Pollarding and coppicing","Firewood and logs","Ash dieback management"],
+    "firewood and logs": ["Wood chipping","Woodland management","Pollarding and coppicing"],
+    "wood chipping": ["Firewood and logs","Site and vegetation clearance","Hedge reduction and removal"],
+    "root barriers": ["Tree surveys and reports","Site and vegetation clearance","Emergency tree work"]
+  }
 }

@@ -557,3 +557,21 @@ An element is dropped, and the next eligible one used, when the client has confi
 - **protected trees and conservation areas needing the council first** (location): home is the 'Streets where the council has a say first' card. Elsewhere: the paperwork cost card and the quote FAQ do not restate the rule.
 - **orders and conservation areas checked and the council told** (homepage): home is the 'Will I need permission before work on my tree?' FAQ. Elsewhere: no step explains the permission rules.
 - **nesting birds and wildlife deciding when work can be done** (homepage): home is the 'What time of year is best for tree work?' FAQ. Elsewhere: the visit step and the 'How soon can you start?' FAQ do not mention nests.
+
+## Related services
+
+The closest other services for each service page, closest first (`related_services`).
+
+| Service | Related |
+|---|---|
+| emergency tree work | Tree surveys and reports, Wood chipping, Site and vegetation clearance |
+| hedge reduction and removal | Site and vegetation clearance, Wood chipping, Ivy removal |
+| pollarding and coppicing | Woodland management, Wood chipping, Firewood and logs |
+| tree surveys and reports | Ash dieback management, Root barriers, Emergency tree work |
+| ash dieback management | Tree surveys and reports, Woodland management, Emergency tree work |
+| ivy removal | Hedge reduction and removal, Site and vegetation clearance, Tree surveys and reports |
+| site and vegetation clearance | Hedge reduction and removal, Wood chipping, Woodland management |
+| woodland management | Pollarding and coppicing, Firewood and logs, Ash dieback management |
+| firewood and logs | Wood chipping, Woodland management, Pollarding and coppicing |
+| wood chipping | Firewood and logs, Site and vegetation clearance, Hedge reduction and removal |
+| root barriers | Tree surveys and reports, Site and vegetation clearance, Emergency tree work |

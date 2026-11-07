@@ -424,3 +424,16 @@ An element is dropped, and the next eligible one used, when the client has confi
 
 - **the work runs all year and only wind, ice and heavy rain stop it for the day** (service): home is the 'How long does [SERVICE_LOWER] take?' FAQ. Elsewhere: the seasonal block 4 card and the seasonal FAQ talk about the season and do not list again what stops work at height.
 - **clear after the leaves are down and before the winter rain, because wet leaves break down to silt that packs the outlet** (category): home is the 'When is the best time of year to have the gutters cleared?' FAQ. Elsewhere: the winter FAQ says only that the weather stops work for the day; the seasonal card names the silt cause but gives no timing advice.
+
+## Related services
+
+The closest other services for each service page, closest first (`related_services`).
+
+| Service | Related |
+|---|---|
+| bargeboards | Downpipes, Aluminium guttering, Cast iron guttering |
+| downpipes | Aluminium guttering, Cast iron guttering, Gutter guards and leaf protection |
+| commercial guttering | Aluminium guttering, Downpipes, Gutter guards and leaf protection |
+| aluminium guttering | Downpipes, Cast iron guttering, Commercial guttering |
+| cast iron guttering | Downpipes, Aluminium guttering, Bargeboards |
+| gutter guards and leaf protection | Aluminium guttering, Downpipes, Commercial guttering |

@@ -1007,5 +1007,29 @@
         "category"
       ]
     }
-  ]
+  ],
+  "related_services": {
+    "ant control": ["Insect control","Cockroach control","Pest surveys and inspections"],
+    "bed bug treatment": ["Fumigation and heat treatment","Flea treatment","Insect control"],
+    "bee removal and relocation": ["Wasp nest removal","Insect control","Pest surveys and inspections"],
+    "cockroach control": ["Insect control","Ant control","Commercial pest control"],
+    "flea treatment": ["Bed bug treatment","Insect control","Fumigation and heat treatment"],
+    "wasp nest removal": ["Bee removal and relocation","Insect control","Ant control"],
+    "pest surveys and inspections": ["Pest proofing","Commercial pest control","Rat and mouse control"],
+    "rat and mouse control": ["Pest proofing","Dead animal removal","Pest surveys and inspections"],
+    "bird control and proofing": ["Solar panel bird proofing","Pest proofing","Dead animal removal"],
+    "solar panel bird proofing": ["Bird control and proofing","Pest proofing","Loft clearance and decontamination"],
+    "mole control": ["Rabbit control","Fox and wildlife control","Squirrel control"],
+    "rabbit control": ["Mole control","Fox and wildlife control","Squirrel control"],
+    "fox and wildlife control": ["Squirrel control","Rabbit control","Pest proofing"],
+    "squirrel control": ["Pest proofing","Loft clearance and decontamination","Fox and wildlife control"],
+    "moth and textile pest control": ["Insect control","Fumigation and heat treatment","Woodworm treatment"],
+    "woodworm treatment": ["Insect control","Pest surveys and inspections","Moth and textile pest control"],
+    "fumigation and heat treatment": ["Bed bug treatment","Moth and textile pest control","Flea treatment"],
+    "pest proofing": ["Rat and mouse control","Bird control and proofing","Squirrel control"],
+    "dead animal removal": ["Loft clearance and decontamination","Rat and mouse control","Fox and wildlife control"],
+    "loft clearance and decontamination": ["Dead animal removal","Squirrel control","Rat and mouse control"],
+    "commercial pest control": ["Pest surveys and inspections","Rat and mouse control","Cockroach control"],
+    "insect control": ["Ant control","Cockroach control","Flea treatment"]
+  }
 }

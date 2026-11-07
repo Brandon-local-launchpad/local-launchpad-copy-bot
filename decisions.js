@@ -955,7 +955,7 @@ function computeDecisions({ cv, niche, pages, keyValueMap, serviceParentMap, v20
 
   const decisions = {
     pageMapUrls: pages.map(p => p.urlSlug).filter(Boolean),
-    unbuiltLocationUrls: pages.filter(p => p.pageType === 'location' && getLinkStatus(p) === 'Not built').map(p => p.urlSlug).filter(Boolean),
+    unbuiltLocationUrls: pages.filter(p => (p.pageType === 'location' || p.pageType === 'location-category') && getLinkStatus(p) === 'Not built').map(p => p.urlSlug).filter(Boolean),
     d1_years_trading:    yearsTrading,
     // The page map's target keyword; a typed H1 override is the keyword itself
     target_keyword: require('./h1-research/research').targetKeyword({ h1: d2_h1, keyword: h1Override ? '' : (homepage && homepage.h1Keyword) || '' }),

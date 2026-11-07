@@ -117,6 +117,45 @@ const chk = (name, ok, got = '') => { if (ok) pass++; else { fail++; console.log
     chk('PRACTICE: covering the drive still fires', hits('We protect the drive with boards.').includes(protect));
   }
 
+  // The practice tick list
+  {
+    const S = require('../../practices-step');
+    const niche = require('../../niche-library/landscaper.json');
+    const list = S.orderedPractices(niche);
+    chk('Tick list: every practice, the common ones first', list.length === 28 && list.slice(0, 6).map(p => p.key).join() === S.COMMON_FIRST.join(), list.slice(0, 6).map(p => p.key).join());
+    const t = S.tokenFor('abc', 'secret');
+    chk('Tick list: the link opens only with its signature', S.clientIdOf(t, 'secret') === 'abc' && S.clientIdOf('abc.000000000000000000000000', 'secret') === null && S.clientIdOf(t, 'other') === null);
+    const next = S.applyAnswers({ confirmed_practices: ['strimmer_edges', 'written_quote'] }, list, { strimmer_edges: 'no', paths_swept_after_mowing: 'yes', not_a_key: 'yes' }, 'now');
+    chk('Tick list: yes adds, no removes, blank leaves, unknown keys ignored', next.confirmed_practices.sort().join() === 'paths_swept_after_mowing,written_quote' && next.practices_answers.strimmer_edges === 'no' && !('not_a_key' in next.practices_answers), next.confirmed_practices.join());
+    const html = S.formPage({ company: 'A <b>', practices: list, cv: {}, token: t });
+    chk('Tick list: the page escapes and posts back to its link', html.includes('A &lt;b&gt;') && html.includes('action="/practices/' + t + '"') && (html.match(/type="radio"/g) || []).length === 56);
+  }
+
+  // Trade facts stages and the PRACTICE patterns
+  {
+    const { practiceClaims } = require('../../practices');
+    const niche = require('../../niche-library/landscaper.json');
+    const keys = t => practiceClaims(t, niche).map(c => c.practice.key);
+    chk('PRACTICE: a visit schedule or a fixed schedule is not regular visits', !keys('None of them sets one visit schedule.').includes('maintenance_schedule') && !keys('There is no fixed schedule.').includes('maintenance_schedule') && keys('You get a regular schedule.').includes('maintenance_schedule'));
+    chk('PRACTICE: clearing debris is not taking waste away', !keys('It starts with clearing debris.').includes('waste_removal') && keys('We take all the waste with us.').includes('waste_removal'));
+  }
+
+  // Figures with no source
+  {
+    const { unsourcedFigures } = require('../../wp/claims-review');
+    const figs = (text, facts) => { const R = { page: 'service', meta: { page_type: 'service' }, svc_hero_intro: text, included: [], block4: [], steps: [], block5: [], faq_items: [] }; return unsourcedFigures(R, facts).map(f => f.quote); };
+    chk('Figures: a range with no source is found', figs('It germinates in 7 to 10 days.', { clientBlock: 'Nothing here.' }).join() === '7 to 10 days', figs('It germinates in 7 to 10 days.', { clientBlock: 'Nothing here.' }).join());
+    chk('Figures: the same range in the trade facts passes, in any form', figs('It germinates in 7 to 10 days.', { clientBlock: 'RHS gives about 7–10 days.' }).length === 0);
+    chk('Figures: two stray numbers are not a source', figs('It takes 7 to 10 days.', { clientBlock: 'Team of 7. 10 jobs.' }).length === 1);
+    chk('Figures: words and digits are the same figure', figs('About two weeks.', { clientBlock: 'within 2 weeks' }).length === 0);
+  }
+
+  // Related services
+  {
+    const n = require('../../niche-library/landscaper.json');
+    if (n.related_services) chk('Related: lawn mowing gets your three', n.related_services['lawn mowing'].join() === 'Hedge trimming,Weed control,Lawn seeding', JSON.stringify(n.related_services['lawn mowing']));
+  }
+
   // The retry rule
   const { RETRY_FLAGS } = require('../../validate-v20');
   chk('Style flags and hyphens are off the retry list', ['1b', 'N18', 'N21', 'REPEAT-PAGE', 'PAD-OPENER', 'CARD-PATTERN'].every(c => !RETRY_FLAGS.has(c)) && ['N15', 'N7', 'OUTCOME'].every(c => RETRY_FLAGS.has(c)));

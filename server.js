@@ -95,6 +95,14 @@ app.post('/auth/logout', (req, res) => {
   res.redirect('/login.html');
 });
 
+// The practice tick list: a client's signed link, no login (practices-step.js)
+require('./practices-step').mountPracticesStep(app, {
+  express,
+  secret: () => process.env.PRACTICES_LINK_SECRET || APP_PASSWORD || 'local',
+  loadClient: async id => { const ctx = await loadV20Context(id, null); const { niche } = nicheFor(ctx); return { cv: ctx.cv, niche }; },
+  saveValues: async (id, values) => { for (const [k, v] of Object.entries(values)) await saveClientValue(id, k, v); },
+});
+
 // Protect all routes below this point
 app.use((req, res, next) => {
   // Static files and login page are already served above — only API and page routes hit this
@@ -4007,6 +4015,11 @@ if (filloutService && citationStore) {
 }
 // Location Determiner (locations/routes.js): which towns get location pages; the dry run first
 if (filloutService) require('./locations/routes').mountLocationsApi(app, { pool, filloutService });
+// The staff side of the practice tick list: the client's link
+app.get('/api/clients/:clientId/practices-link', (req, res) => {
+  const token = require('./practices-step').tokenFor(req.params.clientId, process.env.PRACTICES_LINK_SECRET || APP_PASSWORD || 'local');
+  res.json({ path: `/practices/${token}` });
+});
 
 // GBP output (gbp/routes.js, 23 Oct): the Google Business Profile description, services and
 // products, from the client values, the v3 page map and the generated service page copy

@@ -627,5 +627,12 @@
         "location"
       ]
     }
-  ]
+  ],
+  "related_services": {
+    "sign and canopy cleaning": ["Commercial window cleaning","High level window cleaning","Bin store cleaning"],
+    "bin store cleaning": ["Commercial window cleaning","Sign and canopy cleaning","Residential window cleaning"],
+    "high level window cleaning": ["Commercial window cleaning","Sign and canopy cleaning","Residential window cleaning"],
+    "commercial window cleaning": ["High level window cleaning","Sign and canopy cleaning","Bin store cleaning"],
+    "residential window cleaning": ["High level window cleaning","Commercial window cleaning","Bin store cleaning"]
+  }
 }

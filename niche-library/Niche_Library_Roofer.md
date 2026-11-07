@@ -536,3 +536,39 @@ An element is dropped, and the next eligible one used, when the client has confi
 - **made safe and weathertight now, permanent repair on the visit if weather and parts allow, otherwise on an agreed date** (service, category): home is the third emergency step ('We Agree the Repair and Do It Once It's Safe' on service pages, 'We Fix It, or Book the Permanent Work' on category pages). Elsewhere: the 'Making it safe first' cost card covers only how the make-safe work moves the price, and the second emergency step stops at making safe and showing what was found, with no mention of the later permanent repair.
 - **no one goes on the roof until the wind has dropped and it is safe; until then the work is done from inside and from the ground** (service, category): home is the 'Will you come out while it's still raining?' FAQ (category: 'Will you come out while the storm is still going?'). Elsewhere: the 'Getting to the roof' cost card and the 'How quickly can you get here/to me?' FAQ do not restate the wait for safe conditions.
 - **what to do from inside before the roofer arrives: catch the water, move what is underneath, stay off the roof** (category): home is the 'What should I do before you arrive?' FAQ. Elsewhere: the Call Us step covers only what to say on the call, and 'The first hour, before anyone arrives' card keeps to the electrics safety point (switching off the circuit near wet fittings).
+
+## Related services
+
+The closest other services for each service page, closest first (`related_services`).
+
+| Service | Related |
+|---|---|
+| loft ventilation | Warm roof and cold roof conversion, Roof inspections, Fascias and soffits |
+| gutter cleaning | Gutter repairs, Roof cleaning and moss removal, Guttering installation |
+| guttering installation | Fascias and soffits, Gutter repairs, Gutter cleaning |
+| gutter repairs | Guttering installation, Gutter cleaning, Fascias and soffits |
+| roof inspections | Roof repairs, Storm damage repairs, Roof replacement |
+| roof replacement | Roof repairs, Fascias and soffits, Dry ridge and dry verge |
+| roof repairs | Storm damage repairs, Roof inspections, Leadwork |
+| roof window installation (velux) | Roof window repairs, Leadwork, Roof replacement |
+| roof window repairs | Roof window installation (Velux), Leadwork, Roof repairs |
+| storm damage repairs | Roof repairs, Roof inspections, Chimney repairs and repointing |
+| flat roof replacement | EPDM rubber roofing, GRP fibreglass roofing, Felt roofing |
+| epdm rubber roofing | GRP fibreglass roofing, Felt roofing, Flat roof replacement |
+| grp fibreglass roofing | EPDM rubber roofing, Felt roofing, Flat roof replacement |
+| felt roofing | EPDM rubber roofing, GRP fibreglass roofing, Flat roof replacement |
+| slate roofing | Tile roofing, Roof replacement, Dry ridge and dry verge |
+| tile roofing | Slate roofing, Dry ridge and dry verge, Roof replacement |
+| warm roof and cold roof conversion | Flat roof replacement, Loft ventilation, Felt roofing |
+| fascias and soffits | Guttering installation, Cladding, Gutter repairs |
+| cladding | Fascias and soffits, Dry ridge and dry verge, Guttering installation |
+| dry ridge and dry verge | Tile roofing, Roof repairs, Roof replacement |
+| leadwork | Chimney repairs and repointing, Roof repairs, Roof window installation (Velux) |
+| chimney repairs and repointing | Chimney removal, Leadwork, Roof repairs |
+| chimney removal | Chimney repairs and repointing, Leadwork, Roof repairs |
+| roof cleaning and moss removal | Roof coatings, Gutter cleaning, Solar panel bird proofing |
+| solar panel bird proofing | Roof cleaning and moss removal, Gutter cleaning, Roof inspections |
+| commercial roofing | Flat roof replacement, Roof inspections, Roof coatings |
+| garage roof replacement | Flat roof replacement, Felt roofing, Fascias and soffits |
+| conservatory roof replacement | Roof window installation (Velux), GRP fibreglass roofing, Guttering installation |
+| roof coatings | Roof cleaning and moss removal, Flat roof replacement, Commercial roofing |

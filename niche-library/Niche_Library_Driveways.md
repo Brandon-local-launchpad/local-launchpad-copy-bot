@@ -426,3 +426,22 @@ An element is dropped, and the next eligible one used, when the client has confi
 
 - **the council has to agree before the kerb is lowered for a drive** (category): home is the 'Nowhere to park off the street' block 4 card. Elsewhere: the 'The surface and the edges' cost card names the dropped kerb only as a council charge, with no consent explanation; the 'What happens when I ask for a quote?' FAQ says only that any rule is settled before the design; the 'What does your work include?' FAQ says only whether the business builds the crossing.
 - **a planning application needed for a classified road or a conservation area front garden** (location): home is the 'Conservation areas and classified roads' cost card. Elsewhere: the 'Kerbs the council has to agree to' card covers only the council's agreement to lower the kerb, with no planning application; the 'What happens when I ask for a quote in [TOWN]?' FAQ says only that a rule is settled before the design, without naming the roads or controls again.
+
+## Related services
+
+The closest other services for each service page, closest first (`related_services`).
+
+| Service | Related |
+|---|---|
+| concrete repairs and resurfacing | Concrete driveways, Imprinted concrete, Tar and chip surfacing |
+| concrete driveways | Imprinted concrete, Concrete repairs and resurfacing, Dropped kerbs |
+| imprinted concrete | Concrete driveways, Concrete repairs and resurfacing, Kerbs and edging |
+| car park line marking | Bollards, Tar and chip surfacing, Concrete repairs and resurfacing |
+| resin bound driveways | Permeable paving, Kerbs and edging, Gravel driveways |
+| gravel driveways | Kerbs and edging, Resin bound driveways, Permeable paving |
+| tar and chip surfacing | Gravel driveways, Kerbs and edging, Concrete repairs and resurfacing |
+| kerbs and edging | Dropped kerbs, Permeable paving, Gravel driveways |
+| dropped kerbs | Concrete driveways, Kerbs and edging, Resin bound driveways |
+| permeable paving | Resin bound driveways, Gravel driveways, Kerbs and edging |
+| play area and sports surfacing | Resin bound driveways, Tar and chip surfacing, Kerbs and edging |
+| bollards | Car park line marking, Kerbs and edging, Concrete repairs and resurfacing |

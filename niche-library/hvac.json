@@ -776,5 +776,20 @@
         "location"
       ]
     }
-  ]
+  ],
+  "related_services": {
+    "air conditioning servicing": ["Air conditioning repairs","Air conditioning installation","Split system air conditioning"],
+    "duct cleaning": ["Indoor air quality testing","Ductwork and ventilation installation","Air conditioning servicing"],
+    "air conditioning installation": ["Split system air conditioning","Air conditioning servicing","Ductwork and ventilation installation"],
+    "ductwork and ventilation installation": ["MVHR heat recovery ventilation","Duct cleaning","Air conditioning installation"],
+    "air conditioning repairs": ["Air conditioning servicing","Split system air conditioning","Air conditioning installation"],
+    "air conditioning removal and decommissioning": ["Air conditioning installation","Air conditioning repairs","Split system air conditioning"],
+    "mvhr heat recovery ventilation": ["Ductwork and ventilation installation","Indoor air quality testing","Duct cleaning"],
+    "commercial hvac": ["Air conditioning installation","Air conditioning servicing","Ductwork and ventilation installation"],
+    "commercial refrigeration": ["Cold rooms","Commercial HVAC","Air conditioning repairs"],
+    "cold rooms": ["Commercial refrigeration","Server room cooling","Commercial HVAC"],
+    "indoor air quality testing": ["Duct cleaning","MVHR heat recovery ventilation","Ductwork and ventilation installation"],
+    "split system air conditioning": ["Air conditioning installation","Air conditioning servicing","Air conditioning repairs"],
+    "server room cooling": ["Commercial HVAC","Air conditioning installation","Air conditioning servicing"]
+  }
 }

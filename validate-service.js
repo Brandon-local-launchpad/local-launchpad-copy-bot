@@ -29,7 +29,7 @@
 //   H1 and area list checks on the code fields (report only)
 
 const { validateCommon, sharedCrossChecks, helpers, RETRY_FLAGS } = require('./validate-v20');
-for (const c of ['HERO-SVC', 'KEYWORD', 'CB-LINKS', 'CB-PARA3']) RETRY_FLAGS.add(c);
+for (const c of ['HERO-SVC', 'KEYWORD', 'CB-LINKS', 'CB-PARA3', 'INCLUDES-COVER']) RETRY_FLAGS.add(c);
 const { LABELS } = require('./page-types/service');
 const { matchIdea, contentWords } = require('./ideas');
 const { isAdminArea } = require('./client-files');
@@ -59,6 +59,16 @@ function validateService(record, V) {
   if (record.blocked) return issues;
   const { cv, D } = V;
   const scope = D.scope || record.scope || 'base';
+  // INCLUDES-COVER (7 Nov 2026): the includes answer walks through the job, so it names most of the stages
+  {
+    const inc = (record.faq_items || []).findIndex(f => f.fixed_after);
+    const stages = (D.included || []).map(it => (String(it.title).toLowerCase().match(/[a-z]{4,}/g) || []).map(w => w.slice(0, 4)));
+    if (inc >= 0 && stages.length && record.faq_items[inc].tailored) {
+      const said = String(record.faq_items[inc].tailored).toLowerCase();
+      const named = stages.filter(ws => ws.some(w => said.includes(w))).length;
+      if (named * 2 < stages.length) issue('FLAG', 'INCLUDES-COVER', `faq_answer (${record.faq_items[inc].faq_question})`, `This names ${named} of the ${stages.length} stages in What's Included. Walk through most of them in one natural sentence.`, { key: 'faq_items', index: inc, sub: 'tailored' });
+    }
+  }
   const town = D.town || record.town || '';
   const svc = lc(D.svc_lower || '');
   const kwRe = svc && town ? new RegExp(`\\b${esc(svc)}\\s+(?:in|around|across|near)\\s+${esc(lc(town))}\\b|\\b${esc(svc)}\\s+${esc(lc(town))}\\b`, 'gi') : null;

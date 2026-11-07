@@ -653,5 +653,16 @@
         "location"
       ]
     }
-  ]
+  ],
+  "related_services": {
+    "decking cleaning": ["Brick and stone cleaning","Block paving and concrete sealing","Solar panel cleaning"],
+    "brick and stone cleaning": ["Block paving and concrete sealing","Graffiti removal","Decking cleaning"],
+    "solar panel cleaning": ["Decking cleaning","Brick and stone cleaning","Block paving and concrete sealing"],
+    "graffiti removal": ["Brick and stone cleaning","Oil and rust stain removal","Car park cleaning"],
+    "oil and rust stain removal": ["Car park cleaning","Industrial and warehouse cleaning","Block paving and concrete sealing"],
+    "car park cleaning": ["Oil and rust stain removal","Industrial and warehouse cleaning","Graffiti removal"],
+    "tennis court and sports surface cleaning": ["Car park cleaning","Block paving and concrete sealing","Brick and stone cleaning"],
+    "industrial and warehouse cleaning": ["Car park cleaning","Oil and rust stain removal","Graffiti removal"],
+    "block paving and concrete sealing": ["Brick and stone cleaning","Oil and rust stain removal","Decking cleaning"]
+  }
 }

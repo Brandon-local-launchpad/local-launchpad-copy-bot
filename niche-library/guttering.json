@@ -662,5 +662,13 @@
         "category"
       ]
     }
-  ]
+  ],
+  "related_services": {
+    "bargeboards": ["Downpipes","Aluminium guttering","Cast iron guttering"],
+    "downpipes": ["Aluminium guttering","Cast iron guttering","Gutter guards and leaf protection"],
+    "commercial guttering": ["Aluminium guttering","Downpipes","Gutter guards and leaf protection"],
+    "aluminium guttering": ["Downpipes","Cast iron guttering","Commercial guttering"],
+    "cast iron guttering": ["Downpipes","Aluminium guttering","Bargeboards"],
+    "gutter guards and leaf protection": ["Aluminium guttering","Downpipes","Commercial guttering"]
+  }
 }

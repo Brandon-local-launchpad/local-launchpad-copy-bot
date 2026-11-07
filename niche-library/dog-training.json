@@ -572,5 +572,23 @@
         "service"
       ]
     }
-  ]
+  ],
+  "related_services": {
+    "dog boarding": ["Dog day care","Residential dog training","Puppy training"],
+    "residential dog training": ["Obedience training","Dog boarding","Behaviour modification"],
+    "dog day care": ["Dog boarding","Puppy training","Obedience training"],
+    "puppy training": ["Obedience training","Recall training","Loose lead walking"],
+    "obedience training": ["Recall training","Loose lead walking","Puppy training"],
+    "recall training": ["Loose lead walking","Obedience training","Gundog training"],
+    "loose lead walking": ["Recall training","Obedience training","Reactive dog training"],
+    "behaviour modification": ["Reactive dog training","Nervous and anxious dog training","Aggressive dog rehabilitation"],
+    "reactive dog training": ["Behaviour modification","Loose lead walking","Nervous and anxious dog training"],
+    "nervous and anxious dog training": ["Behaviour modification","Reactive dog training","Aggressive dog rehabilitation"],
+    "aggressive dog rehabilitation": ["Behaviour modification","Reactive dog training","Nervous and anxious dog training"],
+    "assistance dog training": ["Obedience training","Scent detection training","Puppy training"],
+    "scent detection training": ["Gundog training","Assistance dog training","Obedience training"],
+    "gundog training": ["Recall training","Scent detection training","Obedience training"],
+    "protection dog training": ["Family protection dogs","Obedience training","Aggressive dog rehabilitation"],
+    "family protection dogs": ["Protection dog training","Obedience training","Residential dog training"]
+  }
 }

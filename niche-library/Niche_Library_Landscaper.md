@@ -781,3 +781,40 @@ An element is dropped, and the next eligible one used, when the client has confi
 - **whether a support is enough or a reduction or removal is the honest answer** (service): home is the 'Support, or something more' card. Elsewhere: The assessment cost card says only that the tree is looked at before pricing. The 'Fitted once' card stays on missed checks..
 - **growth surging in spring as the soil warms** (service): home is the 'What the season is about to throw at it' card. Elsewhere: Problem cards name their signs and their own cause without the soil-warming explanation. The start-of-year FAQ says only when the first visit goes in..
 - **how often the regular round visits** (category): home is the 'How do regular visits work?' FAQ. Elsewhere: The frequency cost card says only that a regular round makes each visit shorter. The start step says only that a round follows the first visit..
+
+## Related services
+
+The closest other services for each service page, closest first (`related_services`).
+
+| Service | Related |
+|---|---|
+| lawn mowing | Hedge trimming, Weed control, Lawn seeding |
+| fencing | Garden walls and stonework, Hedge trimming, Concrete bases and paths |
+| lawn seeding | Lawn care, Garden levelling, Weed control |
+| hedge trimming | Tree pruning and crown reduction, Lawn mowing, Weed control |
+| mulching | Weed control, Tree planting, Lawn care |
+| weed control | Lawn care, Mulching, Lawn mowing |
+| artificial grass installation | Garden levelling, Lawn care, Garden drainage |
+| lawn care | Lawn mowing, Weed control, Lawn seeding |
+| garden steps | Garden paths, Retaining walls, Garden walls and stonework |
+| retaining walls | Garden walls and stonework, Garden steps, Garden drainage |
+| garden walls and stonework | Retaining walls, Garden paths, Garden steps |
+| garden paths | Garden steps, Patios, Concrete bases and paths |
+| garden drainage | Garden levelling, Retaining walls, Garden irrigation |
+| garden levelling | Garden drainage, Lawn seeding, Artificial grass installation |
+| garden irrigation | Garden drainage, Lawn care, Lawn seeding |
+| tree cabling and bracing | Tree pruning and crown reduction, Tree removal and felling, Tree planting |
+| tree stump removal | Tree removal and felling, Tree pruning and crown reduction, Tree planting |
+| tree planting | Tree transplanting, Mulching, Tree stump removal |
+| tree removal and felling | Tree stump removal, Tree pruning and crown reduction, Tree cabling and bracing |
+| tree transplanting | Tree planting, Tree pruning and crown reduction, Mulching |
+| tree pruning and crown reduction | Tree removal and felling, Tree cabling and bracing, Hedge trimming |
+| concrete bases and paths | Garden paths, Patios, Driveway repairs |
+| driveway repairs | Driveway sealing, Car park surfacing, Concrete bases and paths |
+| driveway sealing | Driveway repairs, Car park surfacing, Concrete bases and paths |
+| car park surfacing | Driveway repairs, Driveway sealing, Concrete bases and paths |
+| patios | Garden paths, Decking installation, Garden walls and stonework |
+| composite decking | Decking installation, Decking repairs, Pergolas |
+| decking installation | Composite decking, Decking repairs, Pergolas |
+| decking repairs | Decking installation, Composite decking, Pergolas |
+| pergolas | Decking installation, Patios, Composite decking |

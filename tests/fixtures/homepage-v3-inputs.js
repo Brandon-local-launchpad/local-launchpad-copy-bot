@@ -13,7 +13,7 @@ const V20 = require(path.join(root, 'v20-generate.js'));
 const E = require(path.join(__dirname, 'data/edens-edge-acceptance.js'));
 const landscaper = require(path.join(root, 'niche-library/landscaper.json'));
 // The location pages count as built here; page-models.js covers the unbuilt ones
-const rows = require(path.join(__dirname, 'data/edens-edge-v3-page-map.json')).rows.map(r => (r.type === 'location' ? { ...r, status: 'Live' } : r));
+const rows = require(path.join(__dirname, 'data/edens-edge-v3-page-map.json')).rows.map(r => (r.type === 'location' || r.type === 'location_category' ? { ...r, status: 'Live' } : r));
 
 let pass = 0, fail = 0;
 const chk = (label, ok, got, want) => {

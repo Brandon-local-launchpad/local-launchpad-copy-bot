@@ -518,3 +518,23 @@ An element is dropped, and the next eligible one used, when the client has confi
 - **the springs carry the door, and a motor only moves a balanced door and never lifts a heavy one** (service): home is the 'Lifting the door by hand has had its day' card. Elsewhere: the snapped spring and humming motor cards name the failed part without explaining spring balance.
 - **a garage with a door through to the house left exposed** (service): home is the 'What should I do before you arrive?' FAQ. Elsewhere: the Call Us step only asks whether there is such a door, and the door won't shut card doesn't dwell on the house.
 - **a garage with a door through to the house left exposed** (category): home is the 'What should I do before you arrive?' FAQ. Elsewhere: the Call Us step only asks whether there is such a door, and the door won't shut card doesn't dwell on the house.
+
+## Related services
+
+The closest other services for each service page, closest first (`related_services`).
+
+| Service | Related |
+|---|---|
+| garage door repairs | Electric garage doors, Up and over garage doors, Roller garage doors |
+| sectional garage doors | Insulated garage doors, Electric garage doors, Made to measure garage doors |
+| up and over garage doors | Garage door repairs, Electric garage doors, Made to measure garage doors |
+| roller garage doors | Electric garage doors, Insulated garage doors, Roller shutters |
+| side hinged garage doors | Timber garage doors, Made to measure garage doors, Personnel and side doors |
+| timber garage doors | Side hinged garage doors, Made to measure garage doors, Up and over garage doors |
+| insulated garage doors | Sectional garage doors, Roller garage doors, Electric garage doors |
+| electric garage doors | Sectional garage doors, Roller garage doors, Garage door repairs |
+| personnel and side doors | Front and entrance doors, Side hinged garage doors, Industrial and commercial doors |
+| front and entrance doors | Personnel and side doors, Timber garage doors, Made to measure garage doors |
+| industrial and commercial doors | Roller shutters, Roller garage doors, Personnel and side doors |
+| roller shutters | Industrial and commercial doors, Roller garage doors, Electric garage doors |
+| made to measure garage doors | Timber garage doors, Sectional garage doors, Up and over garage doors |

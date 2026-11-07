@@ -95,8 +95,8 @@
       "claim": "regular visits run to an agreed schedule",
       "question": "Do regular maintenance customers get an agreed visit schedule?",
       "detect": [
-        "\\b(?:visit|visiting|maintenance|regular|agreed|set|fixed|seasonal|weekly|fortnightly|monthly) schedules?\\b",
-        "\\bon an? (?:regular |agreed |set |fixed )?schedule\\b",
+        "\\b(?:visiting|maintenance|regular|agreed|set|seasonal|weekly|fortnightly|monthly) schedules?\\b",
+        "\\bon an? (?:regular |agreed |set )?schedule\\b",
         "\\b(?:set|sets|agree|agrees|plan|plans|arrange|arranges|work out|keep to|stick to) (?:a|an|the|your) (?:\\w+ )?schedule\\b",
         "\\bscheduled visits?\\b",
         "\\bvisits? (every|each) (week|fortnight|month)\\b",
@@ -184,7 +184,7 @@
       "claim": "all waste is taken away",
       "question": "Do you take all the waste away at the end of the job?",
       "detect": [
-        "\\b(take|takes|taking|remove|removes|removing|clear|clears|clearing) (all )?(of )?(the )?(waste|rubbish|debris|spoil)\\b",
+        "\\b(take|takes|taking|remove|removes|removing|clear|clears|clearing) (all )?(of )?(the )?(waste|rubbish|spoil)\\b","\\b(take|takes|taking) (all )?(of )?(the )?debris away\\b",
         "\\bwaste (removal|is removed|taken away)\\b"
       ]
     },

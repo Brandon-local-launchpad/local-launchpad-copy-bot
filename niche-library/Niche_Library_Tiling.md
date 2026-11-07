@@ -445,3 +445,22 @@ An element is dropped, and the next eligible one used, when the client has confi
 - **floorboards that flex under rigid tiles** (category): home is the 'Cracks that run from one tile to the next' block 4 card. Elsewhere: 'A bathroom, kitchen or floor you're redoing' card names what is underneath without explaining flex. The 'Boards, waterproofing and levelling' cost card lists stiffening only as a stage that adds time..
 - **lime plaster and timber floors in the town's older streets** (location): home is the 'Floors that flex in the older streets' block 4 card. Elsewhere: the 'What the houses were built with' cost card says only that it means more preparation. The cost FAQ names it in a phrase with no explanation..
 - **flats, carrying up by hand and a lease asking for a sound deadening layer under hard floors** (location): home is the 'Flats, stairs and the lease' block 5 card. Elsewhere: the hard water card's fallback does not restate the sound deadening layer. The cost FAQ names flats and access in a phrase only..
+
+## Related services
+
+The closest other services for each service page, closest first (`related_services`).
+
+| Service | Related |
+|---|---|
+| tile removal | Floor tiling, Bathroom and shower tiling, Tile repairs and replacement |
+| regrouting and grout repair | Tile repairs and replacement, Bathroom and shower tiling, Floor tiling |
+| bathroom and shower tiling | Wet room tiling and tanking, Tile removal, Floor tiling |
+| kitchen tiling and splashbacks | Floor tiling, Feature wall and hearth tiling, Tile removal |
+| tile repairs and replacement | Regrouting and grout repair, Tile removal, Floor tiling |
+| wet room tiling and tanking | Bathroom and shower tiling, Tile removal, Floor tiling |
+| natural stone tiling | Floor tiling, Victorian and period floor tiling, Feature wall and hearth tiling |
+| victorian and period floor tiling | Floor tiling, Natural stone tiling, Tile repairs and replacement |
+| outdoor and porcelain paving tiling | Floor tiling, Natural stone tiling, Swimming pool tiling |
+| swimming pool tiling | Outdoor and porcelain paving tiling, Natural stone tiling, Regrouting and grout repair |
+| feature wall and hearth tiling | Natural stone tiling, Kitchen tiling and splashbacks, Bathroom and shower tiling |
+| floor tiling | Tile removal, Natural stone tiling, Bathroom and shower tiling |

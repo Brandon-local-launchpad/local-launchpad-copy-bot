@@ -920,5 +920,20 @@
         "category"
       ]
     }
-  ]
+  ],
+  "related_services": {
+    "garage door repairs": ["Electric garage doors","Up and over garage doors","Roller garage doors"],
+    "sectional garage doors": ["Insulated garage doors","Electric garage doors","Made to measure garage doors"],
+    "up and over garage doors": ["Garage door repairs","Electric garage doors","Made to measure garage doors"],
+    "roller garage doors": ["Electric garage doors","Insulated garage doors","Roller shutters"],
+    "side hinged garage doors": ["Timber garage doors","Made to measure garage doors","Personnel and side doors"],
+    "timber garage doors": ["Side hinged garage doors","Made to measure garage doors","Up and over garage doors"],
+    "insulated garage doors": ["Sectional garage doors","Roller garage doors","Electric garage doors"],
+    "electric garage doors": ["Sectional garage doors","Roller garage doors","Garage door repairs"],
+    "personnel and side doors": ["Front and entrance doors","Side hinged garage doors","Industrial and commercial doors"],
+    "front and entrance doors": ["Personnel and side doors","Timber garage doors","Made to measure garage doors"],
+    "industrial and commercial doors": ["Roller shutters","Roller garage doors","Personnel and side doors"],
+    "roller shutters": ["Industrial and commercial doors","Roller garage doors","Electric garage doors"],
+    "made to measure garage doors": ["Timber garage doors","Sectional garage doors","Up and over garage doors"]
+  }
 }

@@ -112,7 +112,7 @@ function parseFindings(text, record) {
   const kept = [], dropped = [];
   // A finding the model cleared itself ("no issue", "supported") isn't a finding
   // (also "Withdrawing this finding." and "not an unsupported claim", seen live 15 Oct)
-  const selfCleared = w => /\bacceptable\b|\bno unsupported\b|\bno issue\b|\bnot a finding\b|\bnot a claim about (the|this) business\b|\bis supported\b|\bfine as is\b|\bnothing to flag\b|\bwithdraw(?:ing|n)?\s+(?:this|the)\s+finding\b|\bnot an unsupported (?:factual )?claim\b|\brather than an unsupported (?:factual )?claim\b/i.test(w || '');
+  const selfCleared = w => /\bacceptable\b|\bno unsupported\b|\bgeneral trade facts?\b|\bgeneral (?:fact|knowledge)\b|\bis a trade fact\b|\bnot a business claim\b|\bno issue\b|\bnot a finding\b|\bnot a claim about (the|this) business\b|\bis supported\b|\bfine as is\b|\bnothing to flag\b|\bwithdraw(?:ing|n)?\s+(?:this|the)\s+finding\b|\bnot an unsupported (?:factual )?claim\b|\brather than an unsupported (?:factual )?claim\b/i.test(w || '');
   // Wording the rules require is approved, whatever the reviewer says about it (15 Oct)
   const required = requiredWording(record);
   const isRequired = f => required.some(r => norm(f.quote).includes(r.phrase) && r.topic.test(`${f.quote} ${f.why || ''}`));
@@ -124,12 +124,33 @@ function parseFindings(text, record) {
   return { findings: kept, dropped };
 }
 
+// A specific number or timing with no source (7 Nov 2026): "7 to 10 days" must be in the client values, the
+// local research or the trade facts as that figure, not just as two stray numbers. Code finds these, so they
+// count whatever the reviewer read.
+const NUM_WORD = { one: 1, two: 2, three: 3, four: 4, five: 5, six: 6, seven: 7, eight: 8, nine: 9, ten: 10, eleven: 11, twelve: 12 };
+const FIG_N = '(?:\\d+(?:\\.\\d+)?|one|two|three|four|five|six|seven|eight|nine|ten|eleven|twelve)';
+const FIGURE_RE = new RegExp('£\\s?\\d[\\d,.]*(?:k|m)?\\b|\\b' + FIG_N + '(?:\\s*(?:to|or|-|–)\\s*' + FIG_N + ')?\\s*(?:minutes?|mins?|hours?|hrs?|days?|weeks?|months?|years?|mm|cm|metres?|meters?|inch(?:es)?|feet|per cent|percent|%)(?!\\w)', 'gi');
+const figureKey = s => String(s).toLowerCase().replace(/\b(one|two|three|four|five|six|seven|eight|nine|ten|eleven|twelve)\b/g, w => NUM_WORD[w]).replace(/\s*(?:to|or|–|-)\s*/g, '-').replace(/\s+/g, '').replace(/(minute|min|hour|hr|day|week|month|year|metre|meter)s\b/g, '$1');
+function unsourcedFigures(record, facts) {
+  const known = new Set(String([facts.clientBlock, facts.research, facts.decisions].join('\n')).match(FIGURE_RE) || []);
+  const keys = new Set([...known].map(figureKey));
+  const out = [];
+  for (const f of modelFields(record)) {
+    for (const m of String(f.text || '').replace(/\]\([^)]*\)/g, ']').match(FIGURE_RE) || []) {
+      if (!keys.has(figureKey(m))) out.push({ field: f.label, quote: m, why: 'A specific number or timing with no source in the client values, the local research or the trade facts.', code: true });
+    }
+  }
+  return out;
+}
+
 // callModel({ system, message, maxTokens }) → { text, usage }
 async function runClaimsReview(record, facts, callModel) {
   // Cached (7 Nov 2026): the prompt and the facts stay the same for every review of a page; only the copy changes
   const system = [{ type: 'text', text: loadClaimsPrompt() }, { type: 'text', text: buildClaimsFacts(facts), cache_control: { type: 'ephemeral' } }];
   const r = await callModel({ system, message: buildClaimsPage(record), maxTokens: 2048, role: 'claims' });
-  const { findings, dropped } = parseFindings(r.text, record);
+  const { findings: read, dropped } = parseFindings(r.text, record);
+  const figures = unsourcedFigures(record, facts).filter(x => !read.some(y => y.field === x.field && String(y.quote).includes(x.quote)));
+  const findings = [...read, ...figures];
   // `for` ties the review to this version of the page; the push refuses a review of another version
   return { for: versionOf(record), at: new Date().toISOString(), model: CLAIMS_MODEL, findings, dropped: dropped.length, usage: r.usage || null };
 }
@@ -159,4 +180,4 @@ function factsFromRecord(record) {
   return { clientBlock, research: researchFromRecord(record), decisions: decisionsFromRecord(record) };
 }
 
-module.exports = { runClaimsReview, buildClaimsMessage, parseFindings, isOnFileFigure, isTradeFactsMethod, researchFromRecord, decisionsFromRecord, factsFromRecord, loadClaimsPrompt, CLAIMS_MODEL };
+module.exports = { unsourcedFigures, runClaimsReview, buildClaimsMessage, parseFindings, isOnFileFigure, isTradeFactsMethod, researchFromRecord, decisionsFromRecord, factsFromRecord, loadClaimsPrompt, CLAIMS_MODEL };

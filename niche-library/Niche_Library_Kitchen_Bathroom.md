@@ -442,3 +442,16 @@ An element is dropped, and the next eligible one used, when the client has confi
 - **the toilet kept close to the shared soil stack, with a new connection or pumped unit if it moves** (location): home is the 'Moving the room away from the stack' cost card. Elsewhere: the 'Flats, stairs and the shared stack' card names the stack as the cause without the pumped unit or the cost; the price FAQ only names it as one thing that pushes the price up.
 - **what an older house's strip out meets (floors out of level, walls out of plumb, old materials checked before they are disturbed)** (location): home is the 'What the old room was built on' cost card. Elsewhere: the 'Older homes and what the strip out meets' card keeps to the listed home consent and the cause, without re-listing floors, walls and materials; the price FAQ only names it.
 - **getting units, a bath and a worktop in: stairs, no lift, no parking** (location): home is the 'Carrying it up and getting it in' cost card. Elsewhere: the 'Flats, stairs and the shared stack' card keeps to the stack and the neighbour below, not the carrying or the parking; the quote FAQ says only that access is looked at.
+
+## Related services
+
+The closest other services for each service page, closest first (`related_services`).
+
+| Service | Related |
+|---|---|
+| walk in showers | Accessible and mobility bathrooms, Bathroom design, Cloakrooms and en suites |
+| accessible and mobility bathrooms | Walk in showers, Bathroom design, Cloakrooms and en suites |
+| cloakrooms and en suites | Bathroom design, Walk in showers, Utility rooms |
+| utility rooms | Cloakrooms and en suites, Media walls, Bathroom design |
+| media walls | Utility rooms, Bathroom design, Cloakrooms and en suites |
+| bathroom design | Walk in showers, Cloakrooms and en suites, Accessible and mobility bathrooms |

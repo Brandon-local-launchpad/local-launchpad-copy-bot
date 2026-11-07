@@ -585,5 +585,20 @@
         "location"
       ]
     }
-  ]
+  ],
+  "related_services": {
+    "cat boarding": ["Cat sitting","Small animal care","Drop in visits"],
+    "cat sitting": ["Cat boarding","Drop in visits","Small animal care"],
+    "dog home boarding": ["Dog sitting","Dog day care","Pet taxi"],
+    "dog day care": ["Dog home boarding","Group dog walks","Dog sitting"],
+    "dog sitting": ["Dog home boarding","Drop in visits","Dog day care"],
+    "solo dog walks": ["Group dog walks","Secure field walks","Drop in visits"],
+    "group dog walks": ["Solo dog walks","Secure field walks","Dog day care"],
+    "secure field walks": ["Solo dog walks","Group dog walks","Dog day care"],
+    "pet taxi": ["Dog home boarding","Dog day care","Cat boarding"],
+    "wedding dog chaperone": ["Pet taxi","Dog sitting","Dog day care"],
+    "puppy visits": ["Drop in visits","Dog sitting","Solo dog walks"],
+    "drop in visits": ["Cat sitting","Puppy visits","Dog sitting"],
+    "small animal care": ["Cat sitting","Drop in visits","Cat boarding"]
+  }
 }

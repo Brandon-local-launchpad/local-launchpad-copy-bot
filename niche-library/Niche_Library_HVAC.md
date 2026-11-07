@@ -477,3 +477,23 @@ An element is dropped, and the next eligible one used, when the client has confi
 - **timing set by when the building can spare the system or a shutdown window** (service): home is the 'Getting it in before it's needed' card. Elsewhere: the FAQs do not repeat shutdown windows or when the room can do without it.
 - **a service before the hot weather, because the first hot week finds every weak spot** (category): home is the 'When is the best time of year to have [WORK_LOWER] work done?' FAQ. Elsewhere: the 'first hot week' card gives the symptoms only; the winter FAQ says what the cold months suit without the hot-weather reasoning.
 - **where the outdoor unit can sit on the town's buildings** (location): home is the 'Nowhere obvious for the outdoor unit' card. Elsewhere: the cost card and the cost FAQ name it only as a price factor, without describing the buildings again.
+
+## Related services
+
+The closest other services for each service page, closest first (`related_services`).
+
+| Service | Related |
+|---|---|
+| air conditioning servicing | Air conditioning repairs, Air conditioning installation, Split system air conditioning |
+| duct cleaning | Indoor air quality testing, Ductwork and ventilation installation, Air conditioning servicing |
+| air conditioning installation | Split system air conditioning, Air conditioning servicing, Ductwork and ventilation installation |
+| ductwork and ventilation installation | MVHR heat recovery ventilation, Duct cleaning, Air conditioning installation |
+| air conditioning repairs | Air conditioning servicing, Split system air conditioning, Air conditioning installation |
+| air conditioning removal and decommissioning | Air conditioning installation, Air conditioning repairs, Split system air conditioning |
+| mvhr heat recovery ventilation | Ductwork and ventilation installation, Indoor air quality testing, Duct cleaning |
+| commercial hvac | Air conditioning installation, Air conditioning servicing, Ductwork and ventilation installation |
+| commercial refrigeration | Cold rooms, Commercial HVAC, Air conditioning repairs |
+| cold rooms | Commercial refrigeration, Server room cooling, Commercial HVAC |
+| indoor air quality testing | Duct cleaning, MVHR heat recovery ventilation, Ductwork and ventilation installation |
+| split system air conditioning | Air conditioning installation, Air conditioning servicing, Air conditioning repairs |
+| server room cooling | Commercial HVAC, Air conditioning installation, Air conditioning servicing |

@@ -5,6 +5,10 @@ submission to Copybot, which keeps the raw answers, builds a client record from 
 questions we use, and shows it in the Submissions inbox. Stage 1 (17 Oct 2026) stops
 there: no extraction, no page generation from these records yet.
 
+## The practice tick list
+
+The form doesn't ask about working practices one by one. After it, send the client their tick list: on the client's Record tab, under Practices, press "Copy the client's tick list link". The page needs no login. It lists every practice in the client's niche (`niche-library/practices.json`), the most common first, as yes or no, and saves straight into `confirmed_practices`, the list the copy may state. Code: `practices-step.js`. The link is signed with `PRACTICES_LINK_SECRET` (else the app password, so a new password means new links). For a client who would rather have a document: `node tools/practice-list-file.js "<company>" <niche stem> <file.docx>`.
+
 ## Setting it up
 
 1. In Railway, set `FILLOUT_WEBHOOK_SECRET` to a long random string (the webhook
