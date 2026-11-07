@@ -92,7 +92,11 @@ function buildServiceRecord({ cv, decisionsResult, parsed, meta, extraFlags = []
       : D.areas.plain.map(n => ({ name: n, url: null })),
     svc_areas_also_cover: D.scope === 'base' && D.areas.plain.length ? D.areas.plain.slice() : [],
     svc_faq_h2:             D.h2.faq,
-    faq_items: D.faq.map((q, i) => ({ faq_question: q.question, faq_answer: item(LABELS.faq, i, 'faq_answer'), doubt: q.doubt })),
+    faq_items: D.faq.map((q, i) => {
+      const written = item(LABELS.faq, i, 'faq_answer');
+      if (q.fixed) return { faq_question: q.question, faq_answer: [q.fixed, written].filter(Boolean).join(' '), fixed: q.fixed, tailored: written || '', doubt: q.doubt };
+      return { faq_question: q.question, faq_answer: written, doubt: q.doubt };
+    }),
     svc_more_h2:            D.more.length ? D.h2.more : 'HIDDEN',
     [LABELS.moreIntro]:     D.more.length ? F[LABELS.moreIntro] : 'HIDDEN',
     more_cards:             D.more.map(c => ({ card_name: c.name, card_url: c.url, card_target: c.target })),

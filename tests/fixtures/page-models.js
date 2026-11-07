@@ -87,6 +87,36 @@ const chk = (name, ok, got = '') => { if (ok) pass++; else { fail++; console.log
     chk('Unbuilt: its address is known to the check', D.unbuiltLocationUrls.includes('/locations/romsey'));
   }
 
+  // Batch mode is full site builds only: nothing in the live app reaches it
+  {
+    const fs = require('fs'), path = require('path');
+    const root = path.join(__dirname, '..', '..');
+    chk('Batch mode: not wired into the live app', ['server.js', 'category-run.js', 'service-run.js', 'location-run.js', 'v20-generate.js', 'page-passes.js'].every(f => !fs.readFileSync(path.join(root, f), 'utf8').includes('batch-call')));
+  }
+
+  // The style pass's claims go back a sentence at a time
+  {
+    const { revertSentence } = require('../../page-passes');
+    const before = 'The grass is cut. The edges are tidied. It looks neat.';
+    chk('Revert: the changed sentence goes back, the rest stays', revertSentence(before, 'The grass is cut. We guarantee perfect edges. It looks neat.', 'guarantee perfect edges') === before, revertSentence(before, 'The grass is cut. We guarantee perfect edges. It looks neat.', 'guarantee perfect edges'));
+    chk('Revert: only that stretch changes', revertSentence(before, 'The grass is trimmed. The edges are tidied. We guarantee it.', 'guarantee it') === 'The grass is trimmed. The edges are tidied. It looks neat.', revertSentence(before, 'The grass is trimmed. The edges are tidied. We guarantee it.', 'guarantee it'));
+    chk('Revert: a sentence the pass did not change is left', revertSentence(before, 'The grass is trimmed. The edges are tidied. It looks neat.', 'edges are tidied') === null);
+  }
+
+  // A fixed FAQ answer
+  {
+    const { setField } = require('../../validate-v20');
+    const rec = { faq_items: [{ faq_question: 'Q', fixed: 'Yes, we are insured.', tailored: 'Old.', faq_answer: 'Yes, we are insured. Old.' }] };
+    setField(rec, { key: 'faq_items', index: 0, sub: 'tailored' }, 'New.');
+    chk('A fixed answer: a rewrite changes only the model sentence', rec.faq_items[0].faq_answer === 'Yes, we are insured. New.', rec.faq_items[0].faq_answer);
+    const { practiceClaims } = require('../../practices');
+    const niche = require('../../niche-library/landscaper.json');
+    const hits = t => practiceClaims(t, niche).map(c => c.practice.key);
+    const protect = require('../../niche-library/practices.json').practices.find(p => /protected during/.test(p.label)).key;
+    chk('PRACTICE: insurance cover is not protecting the house', !hits('The cover is there for accidental damage to your home.').includes(protect) && !hits('A visit can cover the lawn.').includes(protect));
+    chk('PRACTICE: covering the drive still fires', hits('We protect the drive with boards.').includes(protect));
+  }
+
   // The retry rule
   const { RETRY_FLAGS } = require('../../validate-v20');
   chk('Style flags and hyphens are off the retry list', ['1b', 'N18', 'N21', 'REPEAT-PAGE', 'PAD-OPENER', 'CARD-PATTERN'].every(c => !RETRY_FLAGS.has(c)) && ['N15', 'N7', 'OUTCOME'].every(c => RETRY_FLAGS.has(c)));

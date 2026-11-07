@@ -112,7 +112,7 @@ function parseFindings(text, record) {
   const kept = [], dropped = [];
   // A finding the model cleared itself ("no issue", "supported") isn't a finding
   // (also "Withdrawing this finding." and "not an unsupported claim", seen live 15 Oct)
-  const selfCleared = w => /\bno issue\b|\bnot a finding\b|\bnot a claim about (the|this) business\b|\bis supported\b|\bfine as is\b|\bnothing to flag\b|\bwithdraw(?:ing|n)?\s+(?:this|the)\s+finding\b|\bnot an unsupported (?:factual )?claim\b|\brather than an unsupported (?:factual )?claim\b/i.test(w || '');
+  const selfCleared = w => /\bacceptable\b|\bno unsupported\b|\bno issue\b|\bnot a finding\b|\bnot a claim about (the|this) business\b|\bis supported\b|\bfine as is\b|\bnothing to flag\b|\bwithdraw(?:ing|n)?\s+(?:this|the)\s+finding\b|\bnot an unsupported (?:factual )?claim\b|\brather than an unsupported (?:factual )?claim\b/i.test(w || '');
   // Wording the rules require is approved, whatever the reviewer says about it (15 Oct)
   const required = requiredWording(record);
   const isRequired = f => required.some(r => norm(f.quote).includes(r.phrase) && r.topic.test(`${f.quote} ${f.why || ''}`));
@@ -153,7 +153,9 @@ function decisionsFromRecord(record) {
 function factsFromRecord(record) {
   const meta = record.meta || {};
   // The generation block no longer lists every service (16 Oct): the review gets them all
-  const clientBlock = meta.services_on_file ? `${meta.client_block || ''}\n\nCONFIRMED SERVICES (by category):\n${meta.services_on_file}` : meta.client_block;
+  const withServices = meta.services_on_file ? `${meta.client_block || ''}\n\nCONFIRMED SERVICES (by category):\n${meta.services_on_file}` : meta.client_block;
+  // The client's areas (7 Nov 2026): naming a town or village on this list is not a claim
+  const clientBlock = (meta.area_list || []).length ? `${withServices || ''}\n\nCONFIRMED AREAS THE BUSINESS COVERS (naming any of these is not a claim):\n${meta.area_list.join(', ')}` : withServices;
   return { clientBlock, research: researchFromRecord(record), decisions: decisionsFromRecord(record) };
 }
 

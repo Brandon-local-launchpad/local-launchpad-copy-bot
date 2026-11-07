@@ -240,7 +240,12 @@ function getField(record, ref) {
 }
 function setField(record, ref, text) {
   if (ref.index === undefined) record[ref.key] = text;
-  else record[ref.key][ref.index][ref.sub] = text;
+  else {
+    const it = record[ref.key][ref.index];
+    it[ref.sub] = text;
+    // A fixed FAQ answer: code's sentence, then the model's
+    if (ref.sub === 'tailored') it.faq_answer = [it.fixed, text].filter(Boolean).join(' ');
+  }
 }
 
 // What the validator needs besides the record

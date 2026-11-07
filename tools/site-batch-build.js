@@ -6,7 +6,7 @@
 // tier takes as many batches as it has rounds. Live single page generation does not use this.
 //
 //   node tools/site-batch-build.js --dry                       the pages it would write, spends nothing
-//   node tools/site-batch-build.js --pages homepage,/gardener  just these pages (a slug, or "homepage")
+//   node tools/site-batch-build.js --test-subset --pages homepage,/gardener   a test on just these pages, never a real build
 //   node tools/site-batch-build.js --client <id>               another client (default Edens Edge)
 //   node tools/site-batch-build.js --save                      also store the records on the live client; without it, files only
 //   node tools/site-batch-build.js --label BT                  the folder name for the run's files
@@ -85,6 +85,8 @@ const label = arg('--label') || 'batch';
   const locRunner = createLocationRunner({ ...base, loadInputs: async () => inputs, generate: args => LG.generateLocationPage({ ...args, callModel: metered('location', args.decisionsResult.decisions.slug) }) });
 
   const homepageWanted = true;
+  if (arg('--pages') && !flag('--test-subset')) throw new Error('Batch mode is for a full site build. --pages is for a test, with --test-subset.');
+  if (flag('--save') && arg('--pages')) throw new Error('A test subset is never saved to the client.');
   const want = arg('--pages') ? new Set(arg('--pages').split(',').map(s => s.trim())) : null;
   const pick = rows => rows.filter(r => !want || want.has(r.slug));
   const tiers = [

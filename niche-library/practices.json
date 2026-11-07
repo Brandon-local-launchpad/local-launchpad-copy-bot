@@ -66,7 +66,7 @@
         "\\bsite visits?\\b",
         "\\b(come|comes|coming|pop|head) (out|round|over)\\b[^.]{0,40}\\b(look|see|price|quote|measure|assess|check)",
         "\\bvisit (the|your) (garden|property|home|house|roof|site|job)\\b",
-        "\\bwe('ll| will)? visit\\b",
+        "\\bwe('ll| will)? visit\\b[^.]{0,40}\\b(before|quote|price|look|measure)\\b",
         "\\b(look at|see|check|inspect|assess) (the|your) (garden|roof|job|property) in person\\b",
         "\\bon site\\b[^.]{0,30}\\b(before|to) (we )?(price|quote|pricing|quoting)\\b",
         "\\binspect(ion)? (of )?(the|your) roof\\b[^.]{0,40}\\b(before|then|and) (we )?(price|quote)"
@@ -300,7 +300,7 @@
       "claim": "the house, drive and paths are protected and access is kept clear during the work",
       "question": "How do you get materials and machinery to the job, and how do you protect the house, drive, paths and neighbours' access while you work?",
       "detect": [
-        "\\b(protect|protected|protecting|cover|covered|covering|sheet|sheeted|board|boarded)\\b[^.]{0,40}\\b(house|home|drive|driveway|paths?|floors?|lawn|neighbours?)\\b",
+        "\\b(protect|protected|protecting|cover(?:ed|ing|s)? (?:up|over)|sheet|sheeted|board|boarded)\\b[^.]{0,40}\\b(house|home|drive|driveway|paths?|floors?|lawn|neighbours?)\\b",
         "\\b(keep|kept|keeping) (the )?(access|drive|driveway|paths?) clear\\b"
       ]
     },

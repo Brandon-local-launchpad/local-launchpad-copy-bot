@@ -101,6 +101,8 @@ One `card_body` per card title in DECISIONS → block 5, in order. 30 to 45 word
 ### svc_faq_items
 One `faq_answer` per question given, in order. 50 to 70 words, or 30 to 70 when the answer rests on one confirmed fact. Answer first: the first sentence answers directly in 15 words or fewer. Each question arrives with its doubt and, where the niche entry has one, an answer brief. Prices only from `[CV: price_list]`. Guarantee and insurance: the figure and what it covers, described never promised. A planning or rules question: from the trade facts rule rows only, stated as what usually applies ("front drives over five square metres usually need a permeable surface or drainage to a border"), never as legal advice, never with a standard's number. How-long questions: from the trade facts timing rows only. At least one answer links to a page on LINKABLE PAGES; a town page links only within its town or to base pages.
 
+A question whose brief starts CODE WRITES has its answer written by code. For that question, `faq_answer` is only the one sentence the brief asks for, 20 words or fewer; never repeat what code writes.
+
 ### svc_more_intro
 20 to 40 words, one or two sentences, introducing the other services in this category. No links, no town names, no service names (the cards carry them).
 

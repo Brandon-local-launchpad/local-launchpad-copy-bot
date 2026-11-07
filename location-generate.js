@@ -100,6 +100,7 @@ async function generateLocationPage({ modelConfig = PM.forPage('location'), cv, 
   meta.usage = usage || null;
   if (usage && usage.model) meta.model = usage.model;
   meta.client_block = req.clientBlock;
+  meta.area_list = Object.entries(keyValueMap).filter(([k, v]) => /^biz_area_\d+$/.test(k) && v).map(([, v]) => String(v).trim());
   meta.services_on_file = G.servicesOnFile(keyValueMap, serviceParentMap, niche, D);
   meta.client_values = G.clientValueMap(cv, D.d1_years_trading);
   meta.ideas_context = {

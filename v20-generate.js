@@ -232,6 +232,7 @@ async function generateV20Homepage({ modelConfig = PM.forPage('homepage'), cv, n
   meta.raw_output = text;
   meta.usage = usage || null;
   meta.client_block = req.clientBlock;
+  meta.area_list = Object.entries(keyValueMap).filter(([k, v]) => /^biz_area_\d+$/.test(k) && v).map(([, v]) => String(v).trim());
   meta.services_on_file = servicesOnFile(keyValueMap, serviceParentMap, niche, D);
   // The values the tokens stood for when this page was written (the reader view uses these)
   meta.client_values = clientValueMap(cv, D.d1_years_trading);

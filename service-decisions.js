@@ -424,6 +424,25 @@ function computeServiceDecisions({ cv, niche, keyValueMap = {}, rows = [], page,
     ? [{ name: 'Home', url: '/' }, { name: category, url: slugOf(catRow) || null }, { name: baseRow.title, url: null }]
     : [{ name: 'Home', url: '/' }, { name: townName, url: locPage ? slugOf(locPage) : null }, { name: baseRow.title, url: null }];
 
+  // The insurance and "what's included" answers are built from the client record (Brandon, 7 Nov 2026): a fixed
+  // sentence from code, and one short sentence from the model. The insurance answer needs a figure on file.
+  {
+    const list = xs => (xs.length > 1 ? `${xs.slice(0, -1).join(', ')} and ${xs[xs.length - 1]}` : xs[0] || '');
+    for (const q of faqs) {
+      if (q.slot === 'cover' && cv.insurance_cover) {
+        q.fixed = "Yes, we're insured up to £[CV: insurance_cover].";
+        q.answer_brief = `CODE WRITES: "${q.fixed}" You write only one more sentence of 20 words or fewer, tailored to ${baseRow.title.toLowerCase()}: the kind of work the cover goes with. Describe it, never promise it. No figure, no practice.`;
+      }
+      if (q.slot === 'scope' && included.length) {
+        const stages = list(included.map((it, i) => (i === 0 ? it.title.charAt(0).toLowerCase() + it.title.slice(1) : it.title.toLowerCase())));
+        const siblings = (more || []).slice(0, 3).map(m => `[${(m.say || m.name).toLowerCase()}](${m.url})`);
+        const subject = (q.question.match(/^what does (.+?) (?:include|cover)/i) || [])[1] || `a ${baseRow.title.toLowerCase()} job`;
+        q.fixed = `${subject.charAt(0).toUpperCase()}${subject.slice(1)} covers these stages: ${stages}.${siblings.length ? ` We also do ${list(siblings)}.` : ''}`;
+        q.answer_brief = `CODE WRITES: "${q.fixed}" You write only one more sentence of 20 words or fewer, tailored to ${baseRow.title.toLowerCase()}: what the customer is left with. Don't repeat the stages, name no other service, state no practice.`;
+      }
+    }
+  }
+
   const decisions = {
     page_type: 'service', scope, service: serviceName, service_names: namesOf(baseRow), category, category_key: catKey, town: townName, city, slug: selfUrl,
     type: { letter: blocks.letter, key: blocks.key, a2: blocks.a2, emergency: blocks.emergencyUsed, desire: !!blocks.desireUsed, desire_page: desirePage, source: blocks.source },
@@ -611,7 +630,7 @@ function formatServiceBlock(D, cv, niche, ctx) {
   for (const p of D.cost) push(`    - ${PT.LIST_KEYS[PT.LABELS.block5][0]}: ${p.title} | ${PT.LIST_KEYS[PT.LABELS.block5][1]}`);
   push(`  ${PT.LABELS.areasIntro}`);
   push(`  ${PT.LABELS.faq}`);
-  for (const q of D.faq) { const role = IH.faqRole(q.question); push(`    - faq_question: ${q.question} | faq_answer${role ? ` (${IH.ideaNote(role, 'service')})` : ''}`); }
+  for (const q of D.faq) { const role = IH.faqRole(q.question); push(`    - faq_question: ${q.question} | faq_answer${q.fixed ? ' (one sentence, 20 words or fewer; code writes the rest of this answer)' : role ? ` (${IH.ideaNote(role, 'service')})` : ''}`); }
   push(`  ${PT.LABELS.moreIntro}${D.more.length ? '' : ' (HIDDEN)'}`);
   push(`  ${PT.LABELS.finalCta}`);
   push('  MODEL_FLAGS');

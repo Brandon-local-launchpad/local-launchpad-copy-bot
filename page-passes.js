@@ -9,6 +9,34 @@
 const PM = require('./page-models');
 const { fixHyphens } = require('./fix-hyphens');
 
+// Sentences with the white space after each, so a field can be put back together exactly
+const sentencesOf = t => (String(t || '').match(/[^.!?]+(?:[.!?]+["'’”)\]]*)?(?:\s+|$)/g) || []);
+const plainWords = s => String(s || '').replace(/\[([^\]]+)\]\([^)]*\)/g, '$1').toLowerCase().replace(/[^a-z0-9£' ]+/g, ' ').replace(/\s+/g, ' ').trim();
+
+// The field with the style pass's change to the quoted sentence undone. Sentences both versions share stay;
+// the stretch that changed around the quote goes back to what it was. Null when the quote isn't in a changed sentence
+function revertSentence(before, after, quote) {
+  const a = sentencesOf(before), b = sentencesOf(after);
+  const same = (x, y) => plainWords(x) === plainWords(y);
+  // Longest common run of sentences
+  const L = Array.from({ length: a.length + 1 }, () => new Array(b.length + 1).fill(0));
+  for (let i = a.length - 1; i >= 0; i--) for (let j = b.length - 1; j >= 0; j--) L[i][j] = same(a[i], b[j]) ? L[i + 1][j + 1] + 1 : Math.max(L[i + 1][j], L[i][j + 1]);
+  const hunks = [];
+  let i = 0, j = 0, cur = null;
+  while (i < a.length || j < b.length) {
+    if (i < a.length && j < b.length && same(a[i], b[j])) { if (cur) { hunks.push(cur); cur = null; } i++; j++; continue; }
+    cur = cur || { aFrom: i, aTo: i, bFrom: j, bTo: j };
+    if (j < b.length && (i >= a.length || L[i][j + 1] >= L[i + 1][j])) { j++; cur.bTo = j; } else { i++; cur.aTo = i; }
+  }
+  if (cur) hunks.push(cur);
+  const q = plainWords(quote);
+  const at = b.findIndex(s => plainWords(s).includes(q));
+  if (at < 0) return plainWords(before).includes(q) ? null : before; // the quote spans sentences: the whole field goes back
+  const hunk = hunks.find(h => at >= h.bFrom && at < h.bTo);
+  if (!hunk) return null; // the sentence is the same as it was: the style pass didn't add this
+  return [...b.slice(0, hunk.bFrom), ...a.slice(hunk.aFrom, hunk.aTo), ...b.slice(hunk.bTo)].join('').trim();
+}
+
 async function runPagePasses({ record, V, retrySystem, callModel, modelConfig, validate, claimsReview = true, qualityReview = false, qualityRounds = 3, D, cv, niche, generatedAt }) {
   const R = require('./v20-retry');
   const { runRetries, runClaimRetries, runQualityRetries, runStylePass, validationSummary } = R;
@@ -43,8 +71,28 @@ async function runPagePasses({ record, V, retrySystem, callModel, modelConfig, v
     record.meta.style_pass = { fields: sp.fields, flags_before: sp.before, flags_after: sp.after, cleared: sp.before - sp.after, kept: sp.kept, rejected: sp.rejected, reason: sp.reason };
     record.VALIDATION = validationSummary(check(record), [...((record.VALIDATION && record.VALIDATION.retries) || []), ...sp.log], retryUsage);
     if (claimsReview && sp.kept) {
+      // The full claims check on what the pass changed. A sentence where the pass added a claim goes back to its
+      // version from before the pass; a finding on a sentence it didn't change stays for a person to accept
       const claims = await claimsOf()(record);
-      record.CLAIMS = { ...(record.CLAIMS || {}), at: claims.at, status: claims.findings.length ? 'needs acceptance' : 'clear', findings: claims.findings };
+      const { modelFields, setField } = require('./validate-v20');
+      const changed = new Map(sp.log.filter(e => e.kept).map(e => [e.field, e]));
+      const reverted = [];
+      const remaining = [];
+      for (const f of claims.findings) {
+        const e = changed.get(f.field);
+        const field = e && modelFields(record).find(x => x.label === f.field);
+        const back = field ? revertSentence(e.before, field.text, f.quote) : null;
+        if (back == null) { remaining.push(f); continue; }
+        const blocksBefore = check(record).filter(i => i.type === 'BLOCK').length;
+        const was = field.text;
+        setField(record, field.ref, back);
+        if (check(record).filter(i => i.type === 'BLOCK').length > blocksBefore) { setField(record, field.ref, was); remaining.push(f); continue; }
+        reverted.push({ field: f.field, quote: f.quote, why: f.why });
+      }
+      record.meta.style_pass.claims_found = claims.findings.length;
+      record.meta.style_pass.claims_reverted = reverted;
+      record.CLAIMS = { ...(record.CLAIMS || {}), at: claims.at, status: remaining.length ? 'needs acceptance' : 'clear', findings: remaining };
+      record.VALIDATION = validationSummary(check(record), record.VALIDATION.retries, retryUsage);
     }
   } catch (e) { record.meta.style_pass = { error: e.message }; }
 
@@ -65,4 +113,4 @@ async function runPagePasses({ record, V, retrySystem, callModel, modelConfig, v
   }
 }
 
-module.exports = { runPagePasses };
+module.exports = { runPagePasses, revertSentence };
