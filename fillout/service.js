@@ -7,7 +7,8 @@
 //                        bodies the parser refused). One row per submissionId.
 //   client_fields        the fields we keep per client, from fillout/field-map.json:
 //                        value as submitted, status filled|blank, source form|
-//                        transcript|manual. A manual row is never overwritten.
+//                        transcript|manual. A manual row is never overwritten, and
+//                        a blank answer doesn't wipe a filled one (upsertFields).
 //   client_audio         our copy of each voice answer: the Fillout link and
 //                        transcript, plus where the bytes are (audio-store.js)
 //   clients              gains source, reviewed_at, archived_at
@@ -232,15 +233,24 @@ function createFilloutService({ pool, audioStore, fetchAudio = defaultFetchAudio
     return { clientId: null, duplicateOf };
   }
 
-  // Form values go in unless the row was edited by hand
+  // Form values go in unless the row was edited by hand. A blank answer doesn't wipe a filled one
+  // (Brandon, 7 Nov 2026: a short resubmission must not lose the earlier form), with two exceptions:
+  //   - a group answered in this submission replaces as a whole (ticks taken off a service list,
+  //     a typed answer replacing a voice one)
+  //   - a field marked blank_clears, when the question is in this submission
   async function upsertFields(clientId, rec) {
-    const { rows } = await pool.query(`SELECT field_key, source FROM client_fields WHERE client_id = $1`, [clientId]);
+    const { rows } = await pool.query(`SELECT field_key, source, status FROM client_fields WHERE client_id = $1`, [clientId]);
     const manual = new Set(rows.filter(r => r.source === 'manual').map(r => r.field_key));
     const existing = new Set(rows.map(r => r.field_key));
+    const filled = new Set(rows.filter(r => r.status === 'filled').map(r => r.field_key));
+    const groupsAnswered = new Set(rec.fields.filter(f => f.group && f.status === 'filled').map(f => f.group));
     let inserted = 0, updated = 0;
     const skippedKeys = [];
+    const keptKeys = [];
     for (const f of rec.fields) {
       if (manual.has(f.key)) { skippedKeys.push(f.key); continue; }
+      const clears = (f.blankClears && f.present) || (f.group && groupsAnswered.has(f.group));
+      if (f.status === 'blank' && filled.has(f.key) && !clears) { keptKeys.push(f.key); continue; }
       if (existing.has(f.key)) {
         await pool.query(`UPDATE client_fields SET value = $3, status = $4, source = 'form', question_id = $5, updated_at = NOW() WHERE client_id = $1 AND field_key = $2`,
           [clientId, f.key, jsonb(f.value), f.status, f.id]);
@@ -251,7 +261,7 @@ function createFilloutService({ pool, audioStore, fetchAudio = defaultFetchAudio
         inserted++;
       }
     }
-    return { inserted, updated, skippedKeys };
+    return { inserted, updated, skippedKeys, keptKeys };
   }
 
   // Our own copy of every filled voice answer. A failed download keeps the Fillout

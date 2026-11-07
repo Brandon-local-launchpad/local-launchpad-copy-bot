@@ -170,7 +170,7 @@ function buildRecord(payload, map) {
     const blank = isBlank(value);
     return {
       key: f.key, id: q ? q.id : f.id, label: f.label || stripSuffix(q && q.name), section: f.section, type: f.type, niche: f.niche,
-      group: f.group || null, optional: !!f.optional, tier: f.tier, expectedWhen: f.expectedWhen || null,
+      group: f.group || null, optional: !!f.optional, tier: f.tier, expectedWhen: f.expectedWhen || null, blankClears: !!f.blank_clears,
       value: blank ? null : value, status: blank ? 'blank' : 'filled', present: !!q,
     };
   });
