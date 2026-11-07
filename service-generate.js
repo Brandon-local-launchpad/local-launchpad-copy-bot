@@ -118,7 +118,7 @@ async function generateServicePage({ modelConfig = PM.forPage('service'), cv, ni
 
   const V = serviceValidationContext(G.validationContextFor({ cv, niche, decisions: D, keyValueMap, serviceParentMap, calibrationPack, tradeFactsText: tradeFacts ? tradeFacts.markdown || '' : '' }), D, { tradeFactsRows: (tradeFacts && tradeFacts.rows) || [] });
   const validate = rec => PT.validate(rec, V);
-  record.meta.hyphens_fixed = require('./fix-hyphens').fixHyphens(record, V);
+  record.meta.hyphens_fixed = require('./page-passes').cleanPage(record, V);
   record.meta.first_draft_validation = (() => { const i = validate(record); return { block: i.filter(x => x.type === 'BLOCK').length, flag: i.filter(x => x.type === 'FLAG').length }; })();
   if (retries) {
     const retrySystem = [

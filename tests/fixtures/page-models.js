@@ -117,18 +117,30 @@ const chk = (name, ok, got = '') => { if (ok) pass++; else { fail++; console.log
     chk('PRACTICE: covering the drive still fires', hits('We protect the drive with boards.').includes(protect));
   }
 
-  // The practice tick list
+  // Practices: the form, methods, promises
   {
-    const S = require('../../practices-step');
+    const PF = require('../../practice-filter');
     const niche = require('../../niche-library/landscaper.json');
-    const list = S.orderedPractices(niche);
-    chk('Tick list: every practice, the common ones first', list.length === 28 && list.slice(0, 6).map(p => p.key).join() === S.COMMON_FIRST.join(), list.slice(0, 6).map(p => p.key).join());
-    const t = S.tokenFor('abc', 'secret');
-    chk('Tick list: the link opens only with its signature', S.clientIdOf(t, 'secret') === 'abc' && S.clientIdOf('abc.000000000000000000000000', 'secret') === null && S.clientIdOf(t, 'other') === null);
-    const next = S.applyAnswers({ confirmed_practices: ['strimmer_edges', 'written_quote'] }, list, { strimmer_edges: 'no', paths_swept_after_mowing: 'yes', not_a_key: 'yes' }, 'now');
-    chk('Tick list: yes adds, no removes, blank leaves, unknown keys ignored', next.confirmed_practices.sort().join() === 'paths_swept_after_mowing,written_quote' && next.practices_answers.strimmer_edges === 'no' && !('not_a_key' in next.practices_answers), next.confirmed_practices.join());
-    const html = S.formPage({ company: 'A <b>', practices: list, cv: {}, token: t });
-    chk('Tick list: the page escapes and posts back to its link', html.includes('A &lt;b&gt;') && html.includes('action="/practices/' + t + '"') && (html.match(/type="radio"/g) || []).length === 56);
+    const V = { cv: { confirmed_practices: [] }, niche, tradeFactsText: '', D: {} };
+    const rec = t => ({ page: 'service', meta: { page_type: 'service' }, svc_hero_intro: t, included: [], block4: [], steps: [], block5: [], faq_items: [] });
+    const r1 = rec('We mow the lawn. We never use subcontractors on a job. The edges are tidied.');
+    const gone = PF.stripPromises(r1, V);
+    chk('A promise the form does not cover: the sentence goes, the rest stays', r1.svc_hero_intro === 'We mow the lawn. The edges are tidied.' && gone.length === 1, r1.svc_hero_intro);
+    const r2 = rec('We strim the edges. We sweep the paths after mowing.');
+    chk('A method stays without confirmation, even with "we"', !PF.stripPromises(r2, V).length && r2.svc_hero_intro.includes('strim'), r2.svc_hero_intro);
+    const r3 = rec('We never use subcontractors on a job.');
+    chk('A field that is only the promise is left for the writer', !PF.stripPromises(r3, V).length && r3.svc_hero_intro.includes('subcontractors'));
+    const r4 = rec('We give every quote in writing. It is clear.');
+    const confirmed = { ...V, cv: { confirmed_practices: ['written_quote'] } };
+    chk('A confirmed practice stays', !PF.stripPromises(r4, confirmed).length);
+    const form = PF.formPractices({ stand_out: ['Family-run business, fixed pricing and no hidden costs'], written_quotes: 'no just in person' });
+    chk('Form: fixed pricing confirms the price agreed first; "no" confirms nothing', form.map(p => p.key).join() === 'price_agreed_before_work', JSON.stringify(form));
+    chk('Form: yes to written quotes confirms them', PF.formPractices({ written_quotes: 'Yes, valid 30 days' }).map(p => p.key).join() === 'written_quote');
+    chk('Form: ticks saved by hand stand', PF.withFormPractices({ confirmed_practices: [], _sources: { confirmed_practices: 'hand' } }, { stand_out: ['fixed pricing'] }).confirmed_practices.length === 0);
+    chk('Form: added to what is there', PF.withFormPractices({ confirmed_practices: ['strimmer_edges'] }, { stand_out: ['fixed pricing'] }).confirmed_practices.join() === 'strimmer_edges,price_agreed_before_work');
+    const kinds = require('../../niche-library/practices.json').practices;
+    chk('Every practice has a kind', kinds.every(p => p.kind === 'method' || p.kind === 'promise'), kinds.filter(p => !p.kind).map(p => p.key).join());
+    chk('The named promises are promises', ['itemised_quote', 'written_quote', 'no_subcontractors', 'owner_on_every_job', 'site_visit_before_quote'].every(k => kinds.find(p => p.key === k).kind === 'promise'));
   }
 
   // Trade facts stages and the PRACTICE patterns

@@ -8,9 +8,16 @@
 
 const PM = require('./page-models');
 const { fixHyphens } = require('./fix-hyphens');
+const { stripPromises, sentencesOf } = require('./practice-filter');
 
-// Sentences with the white space after each, so a field can be put back together exactly
-const sentencesOf = t => (String(t || '').match(/[^.!?]+(?:[.!?]+["'’”)\]]*)?(?:\s+|$)/g) || []);
+// What code puts right before any check: hyphens, and promises the client hasn't confirmed
+function cleanPage(record, V) {
+  const hyphens = fixHyphens(record, V);
+  const removed = stripPromises(record, V);
+  if (removed.length && record.meta) record.meta.promises_removed = [...(record.meta.promises_removed || []), ...removed];
+  return hyphens;
+}
+
 const plainWords = s => String(s || '').replace(/\[([^\]]+)\]\([^)]*\)/g, '$1').toLowerCase().replace(/[^a-z0-9£' ]+/g, ' ').replace(/\s+/g, ' ').trim();
 
 // The field with the style pass's change to the quoted sentence undone. Sentences both versions share stay;
@@ -41,7 +48,7 @@ async function runPagePasses({ record, V, retrySystem, callModel, modelConfig, v
   const R = require('./v20-retry');
   const { runRetries, runClaimRetries, runQualityRetries, runStylePass, validationSummary } = R;
   // A rewrite can bring a hyphen back: every check reads the page with hyphens fixed
-  const check = rec => { fixHyphens(rec, V); return validate(rec); };
+  const check = rec => { cleanPage(rec, V); return validate(rec); };
   const callRetry = PM.retryCaller(callModel, retrySystem, modelConfig);
   const claimsOf = () => {
     const { runClaimsReview, factsFromRecord } = require('./wp/claims-review');
@@ -113,4 +120,4 @@ async function runPagePasses({ record, V, retrySystem, callModel, modelConfig, v
   }
 }
 
-module.exports = { runPagePasses, revertSentence };
+module.exports = { runPagePasses, revertSentence, cleanPage };

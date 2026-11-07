@@ -35,7 +35,7 @@ const { confirmedServiceList } = require('./service-words');
 // Flags that send a field back to the model (Brandon, 7 Nov 2026): facts and claims, the copy rules code must
 // hold to, the word ranges, the page's structure and keyword. Every other flag waits for the one style pass.
 // A sentence over the soft cap is N7 but style: see isRetryIssue.
-const RETRY_FLAGS = new Set(['N7', 'N15', 'N19', 'N22', 'OUTCOME', 'SERVICE', 'RAW-GBP', 'COAST', 'AREA-ADMIN', 'CARD-COUNT', 'CARD-PICK', 'HERO']);
+const RETRY_FLAGS = new Set(['PRACTICE', 'N7', 'N15', 'N19', 'N22', 'OUTCOME', 'SERVICE', 'RAW-GBP', 'COAST', 'AREA-ADMIN', 'CARD-COUNT', 'CARD-PICK', 'HERO']);
 // The stages the page's trade facts name, as word stems: the "Stages:" rows, Table A's stages column, What's Included
 function tradeStageWords(V) {
   if (V._tradeStages) return V._tradeStages;
@@ -669,12 +669,13 @@ function validateCommon(record, V) {
     const confirmedKeys = new Set(cv.confirmed_practices || []);
     // A trade facts stage may be described as how the job is done (Brandon, 7 Nov 2026): never a "we" promise, and
     // only where the page's own trade facts name that stage
-    const judged = sentences(t).map(x => scanText(x)).filter(sen => {
-      const claims = practiceClaims(sen, niche).filter(c => !confirmedKeys.has(c.practice.key));
-      return !(claims.length && claims.every(c => isTradeStage(c.match, sen, V)));
-    });
-    for (const c of practiceClaims(judged.join(' '), niche)) {
-      if (!confirmedKeys.has(c.practice.key)) flag('BLOCK', 'PRACTICE', `"${c.match}" states a practice ("${c.practice.label}") that the client hasn't confirmed. Delete it, or describe the job itself: what the work involves, with no "we", no "a fair [trade]" and no claim about how any business behaves.`);
+    // A method needs no confirmation. A promise the client hasn't confirmed is deleted by code (practice-filter.js); one
+    // still here is a field that is only that sentence, or a hand edit: never a BLOCK, one rewrite, then the edit list
+    for (const sen of sentences(t).map(x => scanText(x))) {
+      for (const c of practiceClaims(sen, niche)) {
+        if (confirmedKeys.has(c.practice.key) || c.practice.kind === 'method' || isTradeStage(c.match, sen, V)) continue;
+        flag('FLAG', 'PRACTICE', `"${c.match}" states a promise ("${c.practice.label}") the client hasn't confirmed. Leave it out and write around it: say what the work involves, with no claim about how the business behaves.`);
+      }
     }
     // TRADE-VOICE (copy quality 5, 4 Nov 2026): "a fair roofer shows you photographs", "a locksmith won't ...": how
     // a business in the trade behaves reads as a promise about this one
@@ -1179,7 +1180,7 @@ function summarise(issues) {
 }
 
 module.exports = {
-  effectiveRanges, thinRange,
+  effectiveRanges, thinRange, isTradeStage,
   validateV20, validateCommon, sharedCrossChecks, buildValidationContext, modelFields, getField, setField, summarise, wordCount, RANGES, RETRY_FLAGS, BANNED, STOCK, HOMEPAGE_KEYS,
   // Text helpers for a page type's own checks
   helpers: { serviceTermsToCheck, isSymptomPhrase, META_TALK_RE, requiredWording, cutRequired, esc, stripLinks, linkUrls, normUrl, scanText, words, sentences, lc, stem, STOPWORDS, contentWords, packIndex, packCopy },

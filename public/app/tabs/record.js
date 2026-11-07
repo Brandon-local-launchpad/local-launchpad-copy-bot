@@ -184,7 +184,6 @@ async function renderValues(body, ctx) {
       const list = showAll ? all : [...mine, ...all.filter(p => set.has(p.key) && !mine.some(m => m.key === p.key))];
       if (!list.length) return '<div class="help">No practices list for this niche yet (set the primary category and save).</div>';
       return `<div data-multi="${h(f.key)}" class="stack" style="--gap:4px">${list.map(p => `<label class="check" title="${attr(p.question || '')}" style="display:flex;margin:3px 0"><input type="checkbox" value="${attr(p.key)}"${set.has(p.key) ? ' checked' : ''}> <span>${h(p.label)}<span class="muted small"> · ${h(p.question || '')}</span></span></label>`).join('')}
-        <button class="btn btn-ghost btn-xs" data-practices-link style="margin-top:6px;align-self:flex-start">Copy the client's tick list link</button>
         ${all.length > mine.length ? `<button class="btn btn-ghost btn-xs" data-show-all="${h(f.key)}" style="margin-top:6px;align-self:flex-start">${showAll ? `Show this niche's only (${mine.length})` : `Show all practices (${all.length})`}</button>` : ''}</div>`;
     }
     if (t === 'job-rows') { const rows = Array.isArray(v) ? v : []; return rowsEditor(f.key, [['name', 'Job name', 2], ['price', 'From £', 1], ['duration', 'Duration', 1]], rows, 3); }
@@ -216,14 +215,6 @@ async function renderValues(body, ctx) {
     const add = e.target.closest('[data-add]'); if (add) { const t = add.parentElement.querySelector('template'); add.insertAdjacentHTML('beforebegin', t.innerHTML); return; }
     const addOwn = e.target.closest('[data-own-add]');
     if (addOwn) { const box = addOwn.closest('[data-multi]'); const inp = box.querySelector('[data-own-input]'); const val = inp.value.trim(); if (!val) return; if ([...box.querySelectorAll('input[type=checkbox]')].some(i => i.value.toLowerCase() === val.toLowerCase())) { toast('Already in the list', 'bad'); return; } box.querySelector('[data-own]').insertAdjacentHTML('beforeend', `<label class="chip active"><input type="checkbox" value="${attr(val)}" checked style="display:none"> ${h(val)}</label>`); inp.value = ''; return; }
-    if (e.target.closest('[data-practices-link]')) {
-      e.preventDefault();
-      const button = e.target.closest('[data-practices-link]');
-      const r = await fetch(`/api/clients/${clientId}/practices-link`).then(x => x.json());
-      const url = `${location.origin}${r.path}`;
-      try { await navigator.clipboard.writeText(url); button.textContent = 'Link copied'; } catch (_) { button.textContent = url; }
-      return;
-    }
     const showAll = e.target.closest('[data-show-all]');
     if (showAll) { const f = GROUPS.flatMap(g => g.fields).find(x => x.key === showAll.dataset.showAll); values[f.key] = collectOne(body, f) ?? values[f.key]; f._showAll = !f._showAll; body.querySelector(`#f-${f.key}`).outerHTML = field(f); return; }
     const conf = e.target.closest('[data-confirm]'); if (conf) { confirmed[conf.dataset.confirm] = true; const f = conf.closest('.field'); f.style.borderLeft = ''; f.style.paddingLeft = ''; f.style.marginLeft = ''; conf.replaceWith(Object.assign(document.createElement('span'), { className: 'tag ok', textContent: 'confirmed' })); return; }
