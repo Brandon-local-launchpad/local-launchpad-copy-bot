@@ -46,9 +46,10 @@ async function verify(site, pageId, payload, clientValues, fields) {
 
 async function push({ record, recordId = null, site, store, reviewed = false, seo = 'rankmath', clientValues = null, claims = null, acceptClaims = false }) {
   const type = pageTypeOf(record);
+  const fixedText = !!type.wp.fixedText; // no claims review and no Client Values (page-types/legal.js)
   claims = claims || record.CLAIMS || null;
   const dry = await dryRun({ record, site, reviewed, seo, clientValues });
-  const refusals = [...dry.refusals, ...claimsRefusals(record, claims, acceptClaims)];
+  const refusals = [...dry.refusals, ...(fixedText ? [] : claimsRefusals(record, claims, acceptClaims))];
   const base = { action: 'push', pageType: type.id, site: site.url, page: dry.page && dry.page.id, recordId, generatedAt: record.meta && record.meta.generated_at };
   if (refusals.length) {
     await store.appendLog({ ...base, result: 'refused', refusals });
@@ -62,14 +63,14 @@ async function push({ record, recordId = null, site, store, reviewed = false, se
     site: site.url, pageId: page.id, pageType: type.id, seo,
     acf: Object.fromEntries(type.wp.fields.map(([name, kind]) => [name, page.acf && page.acf[name] != null ? page.acf[name] : EMPTY[kind]])),
     meta: Object.fromEntries(metaKeys.map(k => [k, (page.meta || {})[k] || ''])),
-    clientValues: await wpGet(site, '/llp-copybot/v1/client-values'),
+    clientValues: fixedText ? null : await wpGet(site, '/llp-copybot/v1/client-values'),
   };
   const snapshotId = await store.saveSnapshot(before);
 
   // 2. Write
   try {
     await wpPost(site, `/wp/v2/pages/${page.id}`, { acf: dry.payload.acf, meta: dry.payload.meta });
-    await wpPost(site, '/llp-copybot/v1/client-values', dry.clientValues);
+    if (!fixedText) await wpPost(site, '/llp-copybot/v1/client-values', dry.clientValues);
   } catch (e) {
     await store.appendLog({ ...base, result: 'failed', error: e.message, snapshotId });
     return { ok: false, error: e.message, snapshotId, refusals: [] };
@@ -78,7 +79,7 @@ async function push({ record, recordId = null, site, store, reviewed = false, se
   // 3. Verify, 4. log
   const mismatches = await verify(site, page.id, dry.payload, dry.clientValues, type.wp.fields);
   const result = mismatches.length ? 'written, read-back differs' : 'pushed';
-  await store.appendLog({ ...base, result, snapshotId, summary: dry.summary, mismatches, claims: claims.findings.length, acceptedClaims: !!acceptClaims });
+  await store.appendLog({ ...base, result, snapshotId, summary: dry.summary, mismatches, ...(fixedText ? {} : { claims: claims.findings.length, acceptedClaims: !!acceptClaims }) });
   return { ok: !mismatches.length, result, snapshotId, mismatches, dry };
 }
 
@@ -87,10 +88,13 @@ async function rollback({ snapshotId, site, store }) {
   if (!snap) return { ok: false, error: `No snapshot ${snapshotId}.` };
   if (snap.site !== site.url) return { ok: false, error: `Snapshot ${snapshotId} is for ${snap.site}, not ${site.url}.` };
   await wpPost(site, `/wp/v2/pages/${snap.pageId}`, { acf: snap.acf, meta: snap.meta });
-  // Values the site didn't have before are cleared
-  const now = await wpGet(site, '/llp-copybot/v1/client-values');
-  const restore = { ...Object.fromEntries(Object.keys(now).map(k => [k, ''])), ...snap.clientValues };
-  await wpPost(site, '/llp-copybot/v1/client-values', restore);
+  // Values the site didn't have before are cleared. A fixed text push never touched them.
+  let restore = null;
+  if (snap.clientValues) {
+    const now = await wpGet(site, '/llp-copybot/v1/client-values');
+    restore = { ...Object.fromEntries(Object.keys(now).map(k => [k, ''])), ...snap.clientValues };
+    await wpPost(site, '/llp-copybot/v1/client-values', restore);
+  }
   const mismatches = await verify(site, snap.pageId, { acf: snap.acf, meta: snap.meta }, restore, getPageType(snap.pageType || 'homepage').wp.fields);
   await store.appendLog({ action: 'rollback', pageType: snap.pageType || 'homepage', site: site.url, page: snap.pageId, snapshotId, result: mismatches.length ? 'restored, read-back differs' : 'restored', mismatches });
   return { ok: !mismatches.length, mismatches };

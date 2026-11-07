@@ -1,0 +1,37 @@
+{
+  "key": "group_llp_legal",
+  "title": "Legal page",
+  "fields": [
+    {
+      "key": "field_llp_legal_body",
+      "label": "Legal page text",
+      "name": "legal_body",
+      "type": "wysiwyg",
+      "instructions": "Written by Copybot. Edits here are overwritten by the next push.",
+      "required": 0,
+      "conditional_logic": 0,
+      "show_in_rest": 1,
+      "tabs": "all",
+      "toolbar": "basic",
+      "media_upload": 0
+    }
+  ],
+  "location": [
+    [
+      {
+        "param": "page_template",
+        "operator": "==",
+        "value": "templates/legal-page.php"
+      }
+    ]
+  ],
+  "menu_order": 12,
+  "position": "normal",
+  "style": "default",
+  "label_placement": "top",
+  "instruction_placement": "label",
+  "hide_on_screen": "",
+  "active": true,
+  "description": "Local Launchpad legal page: fixed wording filled by Copybot.",
+  "show_in_rest": 1
+}

@@ -1218,6 +1218,55 @@
       "tier": "chase"
     },
     {
+      "id": "uses_subcontractors",
+      "key": "uses_subcontractors",
+      "blank_clears": true,
+      "label": "Do you ever use subcontractors on your jobs?",
+      "section": "Quotes Process and Response",
+      "type": "MultipleChoice",
+      "niche": "all",
+      "panel": "quotes_process",
+      "help": "Service Terms section 6 and the subcontractors line in the Privacy Policy. A client who hasn't answered counts as yes.",
+      "tier": "chase"
+    },
+    {
+      "id": "late_payment_interest",
+      "key": "late_payment_interest",
+      "blank_clears": true,
+      "label": "Do you charge interest if a customer pays late?",
+      "section": "Quotes Process and Response",
+      "type": "MultipleChoice",
+      "niche": "all",
+      "panel": "quotes_process",
+      "help": "Service Terms section 5. A client who hasn't answered counts as yes.",
+      "tier": "chase"
+    },
+    {
+      "id": "standard_terms_confirmed",
+      "key": "standard_terms_confirmed",
+      "blank_clears": true,
+      "label": "These match how I work, or I've told you what's different below",
+      "section": "Quotes Process and Response",
+      "type": "Checkbox",
+      "niche": "all",
+      "panel": "quotes_process",
+      "help": "The client's sign-off on the standard terms. The legal pages are held until the client ticks it on the form; a tick here doesn't release them. Every answer is kept with its date and time.",
+      "tier": "chase"
+    },
+    {
+      "id": "standard_terms_exceptions",
+      "key": "standard_terms_exceptions",
+      "blank_clears": true,
+      "label": "Anything that doesn't match how you work?",
+      "section": "Quotes Process and Response",
+      "type": "LongAnswer",
+      "niche": "all",
+      "panel": "quotes_process",
+      "help": "Anything here holds the legal pages until Brandon has read it and adjusted the wording.",
+      "tier": "optional",
+      "optional": true
+    },
+    {
       "id": "1dB2GMJJmVj1bmW1NV3sU2",
       "key": "hero_image",
       "label": "Hero image: a real photo of your work, or an illustration?",

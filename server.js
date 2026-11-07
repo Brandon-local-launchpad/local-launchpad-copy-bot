@@ -3054,6 +3054,13 @@ const CLIENT_VALUES_TEMPLATE = {
   scan_settings: null, scan_area: '', scan_keyword_2: '',
   // The folder holding the client's sorted GBP photos: read by the Lead Snap tab (drive/), read only
   drive_photo_folder: '',
+  // The legal pages (7 Nov 2026), typed in on the Record tab. legal_entity is limited or sole_trader:
+  // business_type above is the niche type letter and is a different thing.
+  legal_entity: '', legal_name: '', company_number: '', jurisdiction: '', registered_office: '',
+  vat_number: '', ico_number: '', regulatory_body: '', regulatory_number: '', trade_body: '',
+  guarantee_months: '', quote_valid_days: '', callout_fee: '', callout_fee_amount: '',
+  deposit_threshold: '', deposit_percent: '', waste_removal: '',
+  adr_member: '', adr_body: '', adr_url: '', google_ads: '', meta_pixel: '', sms_tool: '',
 };
 
 app.get('/api/clients/:clientId/gbp-categories', async (req, res) => {
@@ -4022,6 +4029,29 @@ if (filloutService && citationStore) {
 }
 // Location Determiner (locations/routes.js): which towns get location pages; the dry run first
 if (filloutService) require('./locations/routes').mountLocationsApi(app, { pool, filloutService });
+// Legal pages (legal/): the filled pages and the hold, F-LEGAL. Nothing here pushes.
+if (filloutService) {
+  require('./legal/routes').mountLegalApi(app, require('./legal/service').createLegalService({
+    pool, filloutService,
+    getSite: async id => {
+      const row = await require('./wp/db-store').getConnectionRow(pool, id);
+      if (!row || !row.app_password_enc) return null;
+      return { url: row.url, user: row.wp_user, appPassword: require('./wp/secrets').decrypt(row.app_password_enc, process.env.COPYBOT_SECRET_KEY), staging: !!row.staging, seo: row.seo };
+    },
+    createStore: id => require('./wp/db-store').createDbStore(pool, id),
+    loadValues: async id => {
+      const { rows } = await pool.query(`SELECT content FROM client_assets WHERE client_id = $1 AND asset_type = 'client_values' ORDER BY uploaded_at DESC LIMIT 1`, [id]);
+      return rows.length ? JSON.parse(rows[0].content) : {};
+    },
+    tradeLowerFor: names => {
+      for (const name of names) {
+        const { niche } = name ? loadNiche(name) : {};
+        if (niche && niche.trade_lower) return niche.trade_lower;
+      }
+      return '';
+    },
+  }));
+}
 
 // GBP output (gbp/routes.js, 23 Oct): the Google Business Profile description, services and
 // products, from the client values, the v3 page map and the generated service page copy

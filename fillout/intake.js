@@ -64,6 +64,9 @@ function isBlank(value) {
 
 const norm = s => String(s == null ? '' : s).trim().toLowerCase();
 
+// A single tick box from the form: ticked or not. An unticked box is a blank answer, not a filled "false".
+const checkboxOn = v => v === true || /^(true|yes|on|checked)$/i.test(String(v == null ? '' : v).trim());
+
 // Shared secret check: hash both sides so the comparison is constant time whatever the lengths
 function secretMatches(given, expected) {
   if (!expected || typeof given !== 'string' || !given) return false;
@@ -166,7 +169,8 @@ function buildRecord(payload, map) {
   // Manual-only fields (no Fillout question) are never read from a submission
   const fields = fieldsForNiche(map, niche).filter(f => !f.manual).map(f => {
     const q = resolveQuestion(payload, f);
-    const value = q ? q.value : null;
+    const isTick = f.type === 'Checkbox';
+    const value = q ? (isTick ? (checkboxOn(q.value) || null) : q.value) : null;
     const blank = isBlank(value);
     return {
       key: f.key, id: q ? q.id : f.id, label: f.label || stripSuffix(q && q.name), section: f.section, type: f.type, niche: f.niche,
@@ -243,6 +247,6 @@ function status(c) {
 }
 
 module.exports = {
-  MAP_PATH, loadFieldMap, stripSuffix, isBlank, norm, secretMatches, secretFromRequest, secretsFromRequest, requestHasSecret, secretSources,
+  MAP_PATH, loadFieldMap, stripSuffix, isBlank, norm, checkboxOn, secretMatches, secretFromRequest, secretsFromRequest, requestHasSecret, secretSources,
   questionsById, resolveQuestion, applies, markApplicable, submissionId, detectNiche, fieldsForNiche, buildRecord, isAudioField, completeness, status, tierOf, TIERS,
 };

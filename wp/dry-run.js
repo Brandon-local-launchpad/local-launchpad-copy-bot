@@ -84,9 +84,10 @@ function fieldsAttached(page, wp, status) {
 // (records made before 14 Oct; the server passes the client's current values).
 async function dryRun({ record, site, reviewed = false, seo = 'rankmath', clientValues: fallbackValues = null }) {
   const wp = pageTypeOf(record).wp;
-  const refusals = checkRecord(record, { reviewed });
+  // Fixed text pages have their own checks, and no Client Values to send (page-types/legal.js)
+  const refusals = wp.fixedText ? wp.preflight(record, site) : checkRecord(record, { reviewed });
   const recordValues = record.meta && record.meta.client_values;
-  if (!recordValues && !fallbackValues && !record.blocked) {
+  if (!wp.fixedText && !recordValues && !fallbackValues && !record.blocked) {
     refusals.push('The record does not carry its client values (made before 14 Oct). Regenerate it, or push with the client\'s current values.');
   }
   const siteCheck = await checkSite(site, seo, wp);
@@ -103,7 +104,7 @@ async function dryRun({ record, site, reviewed = false, seo = 'rankmath', client
     }),
   ] : [];
   // Client Values the site would hold after the push
-  const clientValues = payload ? buildClientValuesPayload(recordValues ? record : { ...record, meta: { ...record.meta, client_values: fallbackValues || {} } }) : null;
+  const clientValues = payload && !wp.fixedText ? buildClientValuesPayload(recordValues ? record : { ...record, meta: { ...record.meta, client_values: fallbackValues || {} } }) : null;
   if (clientValues && siteCheck.status) {
     const current = await wpGet(site, '/llp-copybot/v1/client-values');
     for (const [k, v] of Object.entries(clientValues)) {

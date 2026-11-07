@@ -96,6 +96,32 @@ const GROUPS = [
     { key: 'reviews_per_month', label: 'Reviews a month (target)', placeholder: 'Whole number' },
     { key: 'hand_reviews', label: 'Hand picked reviews', type: 'review-rows', hint: 'Category pages show these once the client has 3 reviews.' },
   ] },
+  // The legal pages (7 Nov 2026): typed in here until the form asks. google_ads, meta_pixel and sms_tool stay here for good.
+  { key: 'legal', title: 'Legal details', fields: [
+    { key: 'legal_entity', label: 'Limited company or sole trader', type: 'select', options: ['', 'limited', 'sole_trader'] },
+    { key: 'legal_name', label: 'Registered company name', placeholder: 'As on Companies House (limited companies only)' },
+    { key: 'company_number', label: 'Company number', placeholder: 'Limited companies only' },
+    { key: 'jurisdiction', label: 'Registered in', type: 'select', options: ['', 'England and Wales', 'Scotland', 'Northern Ireland'] },
+    { key: 'registered_office', label: 'Registered office', type: 'textarea', placeholder: 'Limited companies only' },
+    { key: 'vat_number', label: 'VAT number', placeholder: 'Only if VAT registered' },
+    { key: 'ico_number', label: 'ICO registration number', placeholder: 'e.g. ZA123456; blank if none' },
+    { key: 'regulatory_body', label: 'Regulatory body', placeholder: 'e.g. Gas Safe, NICEIC, NAPIT, FENSA; blank if none' },
+    { key: 'regulatory_number', label: 'Regulatory registration number' },
+    { key: 'trade_body', label: 'Trade body', placeholder: 'e.g. Checkatrade, BALI; blank if none' },
+    { key: 'guarantee_months', label: 'Guarantee length in months', placeholder: 'Number only; blank: none on the Service Terms unless Guarantee years is filled' },
+    { key: 'quote_valid_days', label: 'Days a quote stays valid', placeholder: 'Number only' },
+    { key: 'callout_fee', label: 'Emergency or out of hours charge', type: 'select', options: ['', 'yes', 'no'] },
+    { key: 'callout_fee_amount', label: 'Emergency or out of hours charge amount', placeholder: 'e.g. £80' },
+    { key: 'deposit_threshold', label: 'Deposit taken on jobs over', placeholder: 'e.g. £1,000' },
+    { key: 'deposit_percent', label: 'Deposit percentage', placeholder: 'Number only, e.g. 25' },
+    { key: 'waste_removal', label: 'Waste removal included', type: 'select', options: ['', 'yes', 'no'] },
+    { key: 'adr_member', label: 'Member of a dispute resolution scheme', type: 'select', options: ['', 'yes', 'no'] },
+    { key: 'adr_body', label: 'Dispute resolution provider', placeholder: 'Only if a member' },
+    { key: 'adr_url', label: 'Dispute resolution provider link', placeholder: 'Only if a member' },
+    { key: 'google_ads', label: 'Google Ads tag on the site', type: 'select', options: ['', 'yes', 'no'] },
+    { key: 'meta_pixel', label: 'Meta Pixel on the site', type: 'select', options: ['', 'yes', 'no'] },
+    { key: 'sms_tool', label: 'Text messaging provider in use', type: 'select', options: ['', 'yes', 'no'] },
+  ] },
   { key: 'gbp', title: 'Google Business Profile settings', fields: [
     { key: 'drive_photo_folder', label: 'Drive photo folder', placeholder: 'The Drive link of the folder holding GBP Photos – Posts', hint: 'Copybot reads the sorted photos from here, read only. The Lead Snap tab shows the counts and files.' },
     { key: 'competitor_service_count', label: 'Competitor service count (top 5 average)', placeholder: 'Whole number; blank means the services target is 20' },
@@ -110,12 +136,13 @@ const KEY_FIELDS = { phone: 'phone', quote_method: 'free_quotes', primary_catego
 
 export async function render(el, ctx) {
   const { clientId, row, summary } = ctx;
-  const sub = ctx.query.view === 'form' ? 'form' : 'values';
+  const sub = ['form', 'legal'].includes(ctx.query.view) ? ctx.query.view : 'values';
   el.innerHTML = `
     ${cantSayBox(row, summary)}
-    <div class="tabs" id="subtabs"><a class="tab${sub === 'values' ? ' active' : ''}" href="/clients/${clientId}/record" data-link>Client values</a><a class="tab${sub === 'form' ? ' active' : ''}" href="/clients/${clientId}/record?view=form" data-link>Onboarding form${ctx.client.source === 'fillout' ? '' : ' and set-up'}</a></div>
+    <div class="tabs" id="subtabs"><a class="tab${sub === 'values' ? ' active' : ''}" href="/clients/${clientId}/record" data-link>Client values</a><a class="tab${sub === 'form' ? ' active' : ''}" href="/clients/${clientId}/record?view=form" data-link>Onboarding form${ctx.client.source === 'fillout' ? '' : ' and set-up'}</a><a class="tab${sub === 'legal' ? ' active' : ''}" href="/clients/${clientId}/record?view=legal" data-link>Legal pages</a></div>
     <div id="recBody"></div>`;
   const body = el.querySelector('#recBody');
+  if (sub === 'legal') return renderLegal(body, clientId);
   if (sub === 'form') {
     body.innerHTML = `<section class="card">${recordContainer({ menu: true })}</section>`;
     const RP = await loadRecordPanels();
@@ -123,6 +150,64 @@ export async function render(el, ctx) {
     return;
   }
   return renderValues(body, ctx);
+}
+
+// Legal pages: the hold and why, the push to staging, Brandon's clear and adjusted wording, each filled page.
+async function renderLegal(body, clientId) {
+  const url = `/api/clients/${clientId}/legal`;
+  const act = async (path, method, payload) => {
+    try { paint(await api(path, { method, body: payload })); toast('Saved'); } catch (e) { toast(e.message, 'bad'); }
+  };
+  const keyOf = () => (body.querySelector('#legalKey') || {}).value || '';
+  let lastSnapshots = [];
+  function paint(s) {
+    const exc = s.reasons.find(r => r.code === 'exceptions');
+    const head = s.held
+      ? `<div class="notice bad"><strong>${h(s.code)}: held, these pages will not be pushed</strong><ul style="margin:6px 0 0 18px">${s.reasons.map(r => `<li>${h(r.message)}</li>`).join('')}</ul></div>`
+      : '<div class="notice good"><strong>Not held.</strong> Nothing is stopping these pages.</div>';
+    const key = `<label for="legalKey">Brandon's key</label><input class="input" id="legalKey" type="password" autocomplete="off"${s.keySet ? '' : ' disabled placeholder="LEGAL_CLEAR_KEY is not set"'}>`;
+    const clearBox = exc ? card({ title: 'Clear the exception', body: `<p>Adjust the wording below first if it needs it. Clearing covers this exact text; if the client changes it, the pages are held again.</p><pre class="block">${h(s.exceptions.text)}</pre><label for="legalNote">Note (optional)</label><input class="input" id="legalNote"><div style="margin-top:10px"><button class="btn btn-primary" id="legalClear">I have read this. Clear it</button></div>` }) : '';
+    const pushBox = card({ title: 'Push to the staging site', body: `<p>All three pages or none. Staging sites only, and the pages stay drafts if they are drafts.</p><div class="btn-row"><button class="btn btn-ghost" id="legalDry">Dry run</button><button class="btn btn-primary" id="legalPush"${s.held ? ' disabled' : ''}>Push the three pages</button>${lastSnapshots.length ? '<button class="btn btn-ghost" id="legalBack">Undo the last push</button>' : ''}</div><div id="legalResult" style="margin-top:10px"></div>` });
+    body.innerHTML = `${head}
+      ${s.defaulted.includes('uses_subcontractors') || s.defaulted.includes('late_payment_interest') ? '<div class="notice warn" style="margin-top:12px">The client has not answered on subcontractors or late payment interest, so these count as yes.</div>' : ''}
+      <div style="margin-top:16px">${card({ title: 'Adjusting needs a key', body: key })}</div>
+      ${pushBox}
+      ${clearBox}
+      ${s.pages.map(p => card({ title: p.title, sub: `${p.slug}${p.custom ? ' · adjusted wording for this client' : ' · master wording'}`, body: `<pre class="block" style="white-space:pre-wrap">${h(p.text)}</pre>
+        <details style="margin-top:10px"><summary>Adjust the wording for this client</summary><textarea class="input" rows="16" data-page="${attr(p.key)}">${h(p.template)}</textarea>
+        <div style="margin-top:10px"><button class="btn" data-save="${attr(p.key)}">Save wording</button>${p.custom ? ` <button class="btn" data-reset="${attr(p.key)}">Back to the master</button>` : ''}</div></details>` })).join('')}`;
+    const result = html => { body.querySelector('#legalResult').innerHTML = html; };
+    const listOf = items => `<ul style="margin:6px 0 0 18px">${items.map(i => `<li>${h(i)}</li>`).join('')}</ul>`;
+    body.querySelector('#legalDry').onclick = async () => {
+      try {
+        const d = await api(`${url}/dry-run`);
+        result(`<div class="notice ${d.pushable ? 'good' : 'bad'}"><strong>${d.pushable ? 'A push would be allowed.' : 'A push would be refused.'}</strong> Nothing was written.${listOf(d.pages.map(p => `${p.title}: ${p.page ? `page ${p.page.id}, ${p.page.status}` : 'not found'}, ${p.summary.added + p.summary.changed} to change${p.refusals.length ? `. ${p.refusals.join(' ')}` : ''}`))}</div>`);
+      } catch (e) { result(`<div class="notice bad">${h(e.message)}</div>`); }
+    };
+    body.querySelector('#legalPush').onclick = async () => {
+      if (!window.confirm(`Push the three legal pages to the connected staging site?`)) return;
+      try {
+        const r = await api(`${url}/push`, { method: 'POST', body: { confirm: true } });
+        if (r.ok) { lastSnapshots = r.written.map(w => w.snapshotId); paint(await api(url)); result('<div class="notice good">All three pages pushed, and each read back as sent.</div>'); }
+        else result(`<div class="notice bad"><strong>Not pushed.</strong>${r.error ? ` ${h(r.error)}` : ''}${listOf(r.refusals || [])}</div>`);
+      } catch (e) { result(`<div class="notice bad">${h(e.message)}</div>`); }
+    };
+    const backBtn = body.querySelector('#legalBack');
+    if (backBtn) backBtn.onclick = async () => {
+      if (!window.confirm('Put the three pages back as they were before the last push?')) return;
+      try {
+        const r = await api(`${url}/rollback`, { method: 'POST', body: { confirm: true, snapshotIds: lastSnapshots } });
+        if (r.ok) lastSnapshots = [];
+        paint(await api(url));
+        result(`<div class="notice ${r.ok ? 'good' : 'bad'}">${r.ok ? 'Put back.' : 'The read back after the undo differs. Check the pages.'}</div>`);
+      } catch (e) { result(`<div class="notice bad">${h(e.message)}</div>`); }
+    };
+    const clearBtn = body.querySelector('#legalClear');
+    if (clearBtn) clearBtn.onclick = () => act(`${url}/clear`, 'POST', { key: keyOf(), exceptions: s.exceptions.text, note: body.querySelector('#legalNote').value });
+    body.querySelectorAll('[data-save]').forEach(b => { b.onclick = () => act(`${url}/wording/${b.dataset.save}`, 'PUT', { key: keyOf(), template: body.querySelector(`textarea[data-page="${b.dataset.save}"]`).value }); });
+    body.querySelectorAll('[data-reset]').forEach(b => { b.onclick = () => act(`${url}/wording/${b.dataset.reset}`, 'DELETE', { key: keyOf() }); });
+  }
+  paint(await api(url));
 }
 
 function cantSayBox(row, summary) {

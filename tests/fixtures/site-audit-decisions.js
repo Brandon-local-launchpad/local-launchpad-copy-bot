@@ -55,7 +55,7 @@ const one = (u, opts) => suggest([u], opts).get(u.url);
   chk('Keep: a page already at its Page Map address, even if it does not matter', s.decision === 'Keep' && s.new_url === '/services/patios' && /Page Map page/.test(s.reason), s, '');
   s = one(row('/contact'));
   chk('Keep: a page every site ships, at its own address', s.decision === 'Keep' && s.new_url === '/contact', s, '');
-  for (const p of ['/about', '/privacy-policy', '/terms', '/blog']) chk(`Keep: ${p} is on the site pages list`, one(row(p)).decision === 'Keep');
+  for (const p of ['/about', '/privacy-policy', '/service-terms', '/terms', '/blog']) chk(`Keep: ${p} is on the site pages list`, one(row(p)).decision === 'Keep');
   s = one(row('/garden-design-ideas', { matters: true, est_traffic: 4 }));
   chk('Keep: it matters, its URL can be kept, and it has a Page Map page elsewhere: propose moving the page', s.decision === 'Keep' && s.new_url === '/garden-design-ideas' && s.proposal && s.proposal.from === '/services/garden-design' && s.proposal.to === '/garden-design-ideas', s, '');
   s = one(row('/our-awards-2019', { matters: true, real_rd: 2 }));

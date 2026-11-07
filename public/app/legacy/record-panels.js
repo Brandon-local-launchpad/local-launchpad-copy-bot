@@ -129,7 +129,14 @@
     if (p.key === 'services') body += renderServices(services);
     if (p.key === 'areas') body += renderLaunchTowns();
     body += `<div class="fields">${renderFieldList(p.key, fields)}</div>`;
+    if (p.key === 'quotes_process') body += renderTermsHistory(rec.termsConfirmations || []);
     return `<div class="panel">${head}${body}</div>`;
+  }
+
+  // The standard terms sign-off: every answer, newest first. Nothing here can be edited.
+  function renderTermsHistory(rows) {
+    const line = t => `<li>${esc(fmt(t.answeredAt))}: ${t.confirmed ? 'ticked' : 'not ticked'}${t.source === 'manual' ? ' (by hand, not the client)' : ' (on the form)'}${t.exceptions ? `. Exceptions: ${esc(t.exceptions)}` : ''}</li>`;
+    return `<div class="att"><h3>Standard terms sign-off</h3>${rows.length ? `<ul>${rows.map(line).join('')}</ul>` : '<p>No answer yet. The legal pages are held until the client ticks it.</p>'}</div>`;
   }
 
   // Fields of a panel: units (pairs, the accreditations) rendered once; optional blanks collapsed
