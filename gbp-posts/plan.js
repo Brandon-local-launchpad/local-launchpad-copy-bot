@@ -134,6 +134,7 @@ function redate(posts, clientId, start) {
 // What stops a batch being approved
 function blockers(posts, { today = ukDate(), fileIds = null } = {}) {
   const out = [];
+  const noClaim = [], noLink = [];
   for (const p of posts) {
     const at = `Post ${p.seq}`;
     if (p.status !== 'written') { out.push(`${at} is not written yet.`); continue; }
@@ -141,10 +142,14 @@ function blockers(posts, { today = ukDate(), fileIds = null } = {}) {
     if (!p.drive_file_id) out.push(`${at} has no photo.`);
     else if (fileIds && !fileIds.has(p.drive_file_id)) out.push(`${at}'s photo is no longer in Drive: choose another.`);
     if (p.post_date < today) out.push(`${at}'s date has passed: move the start date.`);
-    if (p.topic === 'OFFER' && !p.offer_redeem_url) out.push(`${at} is an Offer post with nowhere to claim it: save the live domain or a booking page, then write the batch again.`);
+    if (p.topic === 'OFFER' && !p.offer_redeem_url) noClaim.push(p.seq);
     if (p.topic !== 'OFFER' && !p.cta_type) out.push(`${at} has no button.`);
-    if (p.topic !== 'OFFER' && p.cta_type !== 'CALL' && !p.cta_url) out.push(`${at}'s button has no link: save the live domain or a booking page, then write the batch again.`);
+    if (p.topic !== 'OFFER' && p.cta_type && p.cta_type !== 'CALL' && !p.cta_url) noLink.push(p.seq);
   }
+  const posts_ = list => (list.length === 1 ? `Post ${list[0]}` : `Posts ${list.join(', ')}`);
+  const fill = 'Save the live domain on the Record tab, or a booking page on the Lead Snap tab, and the links fill in by themselves: nothing needs writing again.';
+  if (noLink.length) out.push(`${posts_(noLink)}: the button has no link. ${fill}`);
+  if (noClaim.length) out.push(`${posts_(noClaim)}: an Offer post with nowhere to claim it. ${noLink.length ? 'The same link fixes this.' : fill}`);
   return out;
 }
 

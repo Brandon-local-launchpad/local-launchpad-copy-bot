@@ -306,6 +306,55 @@ chk('an opening already used warns', lvl(good, 'opening', ['hartley plumbing hea
   chk('an Offer post with no claim link blocks', P.blockers([{ seq: 1, status: 'written', fails: 0, topic: 'OFFER', drive_file_id: 'a', post_date: '2099-01-01', offer_redeem_url: '' }], { today: TODAY }).some(m => /nowhere to claim it/.test(m)), '', '');
   chk('a button with no link blocks', P.blockers([{ seq: 1, status: 'written', fails: 0, topic: 'STANDARD', drive_file_id: 'a', post_date: '2099-01-01', cta_type: 'LEARN_MORE', cta_url: '' }], { today: TODAY }).some(m => /no link/.test(m)), '', '');
 
+  // ── No link yet: found on the live Edens Edge batch, 7 Nov 2026 ──
+  const { rows: [d] } = await pool.query(`INSERT INTO clients (name, trade) VALUES ('No Domain Yet', 'Roofers') RETURNING id`);
+  const noDomainCv = { company_name: 'Hartley Plumbing & Heating', phone: '', live_domain: '', jobs_wanted: [], years_trading: '15' };
+  const noDomainI = { ...I, siteUrl: '', validatorCtx: { cv: noDomainCv } };
+  const noDomainHand = { ...hand2, cta_type: 'Learn More' };
+  const ndIntake = buildIntake({ I: noDomainI, trade: 'Plumbing & Heating', answers: {}, hand: { ...noDomainHand, offer: 'Free boiler quote' } });
+  const ndD = decide(ndIntake);
+  const ndRecord = { generated_at: 'x', sheet: 'the sheet', intake: ndIntake, output: { prompts: ndD.prompts.map(p => { const text = G.promptText(p, ndIntake, p.angle); return { ...p, text, chars: text.length }; }), tooFew: null } };
+  await autopost.save(d.id, ndRecord);
+  await autopost.saveHand(d.id, { ...noDomainHand, offer: 'Free boiler quote' });
+  const writeNdValues = domain => pool.query(`DELETE FROM client_assets WHERE client_id=$1 AND asset_type='client_values'`, [d.id]).then(() => pool.query(`INSERT INTO client_assets (client_id, asset_type, filename, content) VALUES ($1, 'client_values', 'v.json', $2)`, [d.id, JSON.stringify({ drive_photo_folder: 'https://drive.google.com/drive/folders/noDomainFolder', live_domain: domain })]));
+  await writeNdValues('');
+  await driveStore.saveRead(d.id, { folder_id: 'noDomainFolder', folder_name: 'Images', posts_found: true, drip_found: false, folders: [{ label: 'Boilers', id: 'f-Boilers' }, { label: 'Leak repair', id: 'f-Leak repair' }, { label: 'Brand', id: 'f-Brand' }], problems: [], notes: [], files: PHOTOS.filter(p => p.kind === 'post') });
+  const app2 = express();
+  app2.use(express.json());
+  const m2 = mountGbpPostsApi(app2, { pool, log: quiet, callModel: model, getDrive: () => drive, today: () => TODAY, loadInputs: async () => ({ I: noDomainI, trade: 'Plumbing & Heating', answers: {} }) });
+  const srv2 = http.createServer(app2);
+  await new Promise(r2 => srv2.listen(0, '127.0.0.1', r2));
+  const req2 = (method, p2, b2) => new Promise((resolve, reject) => {
+    const data = b2 ? JSON.stringify(b2) : null;
+    const q = http.request({ host: '127.0.0.1', port: srv2.address().port, method, path: p2, agent: false, headers: data ? { 'Content-Type': 'application/json', 'Content-Length': Buffer.byteLength(data) } : {} }, r3 => { let t = ''; r3.on('data', x => { t += x; }); r3.on('end', () => resolve({ status: r3.statusCode, json: () => JSON.parse(t) })); });
+    q.on('error', reject); if (data) q.write(data); q.end();
+  });
+  const api2 = `/api/clients/${d.id}/gbp-posts`;
+  let nd = (await req2('GET', api2)).json();
+  chk('no link: it says so before anything is spent', nd.no_link === true && nd.ok === true, nd.no_link, true);
+  await req2('POST', `${api2}/batches`, { size: 13 });
+  while (m2.writing.size) await new Promise(r2 => setTimeout(r2, 10));
+  nd = (await req2('GET', api2)).json();
+  let ndB = nd.batches[0];
+  chk('no link: the posts are written, and it stops approval', ndB.done === 13 && ndB.posts.every(p => p.topic === 'OFFER' ? !p.offer_redeem_url : !p.cta_url) && (await req2('POST', `${api2}/batches/${ndB.id}/approve`, {})).status === 409, ndB.done, 13);
+  chk('one line per problem, not one per post', ndB.blockers.length === 2 && /^Posts \d/.test(ndB.blockers[0]) && /nothing needs writing again/.test(ndB.blockers[0]) && !/write the batch again/.test(ndB.blockers.join(' ')), ndB.blockers.join(' | '), '');
+  const callsThen = calls;
+  noDomainCv.live_domain = 'https://nodomain.example';
+  await writeNdValues('nodomain.example');
+  nd = (await req2('GET', api2)).json();
+  ndB = nd.batches[0];
+  chk('once the domain is saved the links fill in', nd.no_link === false && ndB.posts.filter(p => p.topic !== 'OFFER').every(p => p.cta_url === 'https://nodomain.example/plumber') && ndB.posts.filter(p => p.topic === 'OFFER').every(p => p.offer_redeem_url === 'https://nodomain.example/plumber'), JSON.stringify(ndB.posts[1].cta_url), '');
+  chk('with nothing rewritten', calls === callsThen, calls - callsThen, 0);
+  chk('and it can be approved', ndB.blockers.length === 0 && (await req2('POST', `${api2}/batches/${ndB.id}/approve`, {})).status === 200, ndB.blockers.join(), '');
+  noDomainCv.live_domain = 'https://moved.example';
+  await writeNdValues('moved.example');
+  nd = (await req2('GET', api2)).json();
+  chk('an approved batch never changes by itself', nd.batches[0].posts.filter(p => p.topic !== 'OFFER').every(p => p.cta_url === 'https://nodomain.example/plumber'), nd.batches[0].posts[1].cta_url, '');
+  await req2('POST', `${api2}/batches/${ndB.id}/unapprove`);
+  nd = (await req2('GET', api2)).json();
+  chk('a link already there is never overwritten', nd.batches[0].posts.filter(p => p.topic !== 'OFFER').every(p => p.cta_url === 'https://nodomain.example/plumber'), nd.batches[0].posts[1].cta_url, '');
+  await new Promise(r2 => srv2.close(r2));
+
   // ── Nothing else moves ──
   const src = ['gbp-posts/routes.js', 'gbp-posts/plan.js', 'gbp-posts/write.js', 'gbp-posts/store.js'].map(f => fs.readFileSync(path.join(root, f), 'utf8')).join('\n');
   chk('this stage never calls bundle.social or Lead Snap', !/bundle\.social|api\.bundle|leadsnap\/client/i.test(src.replace(/\/\/.*$/gm, '')), '', '');

@@ -29,9 +29,10 @@ export async function render(el, ctx) {
 
   const newCard = () => {
     const needs = S.needs.length ? `<div class="notice warn" data-needs style="margin-bottom:10px"><ul style="margin:0 0 0 18px">${S.needs.map(n => `<li>${h(n)}</li>`).join('')}</ul></div>` : '';
+    const link = S.no_link ? `<div class="notice warn small" data-no-link style="margin-bottom:10px">The button has no link yet, because this client has no live domain or booking page saved. You can still write the batch, but it can't be approved until there is one. Links fill in by themselves once it's saved.</div>` : '';
     const few = S.too_few ? `<div class="notice warn small" style="margin-bottom:10px">${h(S.too_few.message)}</div>` : '';
     const opts = S.sizes.map(z => `<option value="${z.size}">${z.size} posts, ${z.weeks} weeks, about ${z.pence}p</option>`).join('');
-    const body = `${needs}${few}
+    const body = `${needs}${link}${few}
       <label class="field" style="display:block;margin-bottom:10px"><span class="small" style="font-weight:500">Batch</span><select class="input" style="width:100%" data-new-size>${opts}</select></label>
       <label class="field" style="display:block;margin-bottom:10px"><span class="small" style="font-weight:500">First post</span><input class="input" type="date" style="width:100%" data-new-start min="${attr(S.today)}" value="${attr(S.default_start || '')}"></label>
       <div class="muted small" style="margin-bottom:10px">Two posts a week, on ${h(S.days.map(d => WEEKDAY[d]).join(' and '))}, at 10am. ${S.offer ? `One Offer post every ${S.offer_days} days: ${h(S.offer)}.` : 'No confirmed offer, so no Offer posts.'}${S.cta ? ` Button: ${h(S.cta)}.` : ''}</div>

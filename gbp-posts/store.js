@@ -61,9 +61,12 @@ const POST_COLS = ['seq', 'post_date', 'post_time', 'topic', 'prompt_n', 'prompt
 const toBatch = r => ({ ...r, config: parseJson(r.config), notes: parseJson(r.notes) || [] });
 const toPost = r => ({ ...r, checks: parseJson(r.checks) || [], fails: Number(r.fails) || 0, warnings: Number(r.warnings) || 0 });
 
+const readyByPool = new WeakMap();
 function createPostStore(pool) {
-  let ready = null;
-  const ensure = () => { if (!ready) ready = ensurePostTables(pool).catch(e => { ready = null; throw e; }); return ready; };
+  const ensure = () => {
+    if (!readyByPool.has(pool)) readyByPool.set(pool, ensurePostTables(pool).catch(e => { readyByPool.delete(pool); throw e; }));
+    return readyByPool.get(pool);
+  };
   const one = async (sql, args) => { await ensure(); return (await pool.query(sql, args)).rows; };
 
   return {
@@ -113,6 +116,10 @@ function createPostStore(pool) {
     async setPostDate(postId, u) {
       await ensure();
       await pool.query(`UPDATE gbp_posts SET post_date=$2, offer_start=$3, offer_end=$4 WHERE id=$1`, [postId, u.post_date, u.offer_start || '', u.offer_end || '']);
+    },
+    async setLinks(postId, l) {
+      await ensure();
+      await pool.query(`UPDATE gbp_posts SET cta_url=$2, offer_redeem_url=$3 WHERE id=$1`, [postId, l.cta_url, l.offer_redeem_url]);
     },
     async addUsage(batchId, usage) {
       await ensure();

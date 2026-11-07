@@ -15,6 +15,7 @@
 // nothing: the batch shows as stopped and Continue writes what is left. Nothing here publishes.
 
 const { createAutopostStore } = require('../leadsnap/autopost/store');
+const { buildIntake, lockedFrom } = require('../leadsnap/autopost/intake');
 const { createDriveStore } = require('../drive/store');
 const { createDrive, parseFolderId } = require('../drive/client');
 const { driveActive } = require('../drive/photos');
@@ -32,7 +33,7 @@ const [IN_PER_M, OUT_PER_M] = priceFor(MODEL);
 const usdFor = (input, output) => (input * IN_PER_M + output * OUT_PER_M) / 1e6;
 const estimatePence = size => pence(usdFor(INPUT_TOKENS_EACH * size * RETRY_SHARE, OUTPUT_TOKENS_EACH * size * RETRY_SHARE));
 
-function mountGbpPostsApi(app, { pool, callModel, log = console, getDrive = (() => { let d = null; return () => (d = d || createDrive()); })(), today = () => P.ukDate() }) {
+function mountGbpPostsApi(app, { pool, callModel, loadInputs = null, log = console, getDrive = (() => { let d = null; return () => (d = d || createDrive()); })(), today = () => P.ukDate() }) {
   const store = createPostStore(pool);
   const autopost = createAutopostStore(pool);
   const driveStore = createDriveStore(pool);
@@ -57,6 +58,34 @@ function mountGbpPostsApi(app, { pool, callModel, log = console, getDrive = (() 
     return driveActive(read, parseFolderId(await folderFor(clientId))) ? read.files : null;
   };
 
+  // The button's link and the claim link as the client's record gives them today. A client with no
+  // page map still gets its live domain as the claim link.
+  async function currentLinks(clientId) {
+    const site = liveDomain(await valuesFor(clientId));
+    if (!loadInputs) return { url: site, claim: site, type: '' };
+    try {
+      const { I, trade, answers } = await loadInputs(clientId);
+      const [hand, record] = await Promise.all([autopost.hand(clientId), autopost.latest(clientId)]);
+      const { cta } = buildIntake({ I, trade, answers, hand, locked: lockedFrom(record) });
+      return { url: cta.url || '', claim: cta.url || site, type: cta.type || '' };
+    } catch (e) {
+      if (!e.status) log.error('[gbp posts] links', e);
+      return { url: '', claim: site, type: '' };
+    }
+  }
+  // A missing link needs no rewriting, so it fills in as soon as the record has one. Only a link that
+  // is empty, and only on a batch not approved: an approved batch never changes by itself.
+  async function fillLinks(clientId, batch, posts, links) {
+    if (batch.status === 'approved') return posts;
+    let changed = false;
+    for (const p of posts) {
+      const cta = p.topic !== 'OFFER' && p.cta_type && p.cta_type !== 'CALL' && !p.cta_url ? links.url : '';
+      const claim = p.topic === 'OFFER' && !p.offer_redeem_url ? links.claim : '';
+      if (cta || claim) { await store.setLinks(p.id, { cta_url: cta || p.cta_url || '', offer_redeem_url: claim || p.offer_redeem_url || '' }); changed = true; }
+    }
+    return changed ? store.posts(batch.id) : posts;
+  }
+
   async function view(clientId) {
     const { rows } = await pool.query(`SELECT id FROM clients WHERE id=$1`, [clientId]);
     if (!rows.length) throw bad('Client not found.', 404);
@@ -68,15 +97,18 @@ function mountGbpPostsApi(app, { pool, callModel, log = console, getDrive = (() 
     const batches = await store.batches(clientId);
     const fileIds = photos ? new Set(photos.map(f => f.file_id)) : null;
     const list = [];
+    const links = await currentLinks(clientId);
     for (const b of batches) {
-      const posts = await store.posts(b.id);
+      const posts = await fillLinks(clientId, b, await store.posts(b.id), links);
       const running = writing.has(b.id);
       const done = posts.filter(p => p.status === 'written').length;
       list.push({ id: b.id, size: b.size, status: b.status, start_date: b.start_date, created_at: b.created_at, approved_at: b.approved_at, approved_by: b.approved_by, notes: b.notes, running, stopped: b.status === 'writing' && !running, done, pence: pence(usdFor(b.input_tokens, b.output_tokens)), blockers: b.status === 'writing' ? [] : P.blockers(posts, { today: today(), fileIds }), posts });
     }
     const usable = (photos || []).filter(f => f.kind === 'post' && !f.problem);
+    const buttonType = links.type || (record && record.intake && record.intake.cta ? record.intake.cta.type : '');
+    const noLink = !!record && !!record.sheet && buttonType !== 'Call Now' && !links.url && !(record.intake && record.intake.cta && record.intake.cta.url);
     return {
-      needs, ok: !needs.length, today: today(), sizes: P.SIZES.map(size => ({ size, pence: estimatePence(size), weeks: size / 2 })), offer_days: P.OFFER_DAYS,
+      needs, ok: !needs.length, no_link: noLink, today: today(), sizes: P.SIZES.map(size => ({ size, pence: estimatePence(size), weeks: size / 2 })), offer_days: P.OFFER_DAYS,
       offer: record && record.intake ? record.intake.offer || '' : '', cta: record && record.intake && record.intake.cta ? record.intake.cta.line : '', too_few: record && record.output ? record.output.tooFew || null : null,
       photos: usable.map(f => ({ file_id: f.file_id, name: f.name, label: f.label })),
       default_start: record && record.sheet ? P.firstDay(clientId, await store.history(clientId), today()) : null,
@@ -173,7 +205,7 @@ function mountGbpPostsApi(app, { pool, callModel, log = console, getDrive = (() 
     const b = await draftBatch(clientId, batchId);
     if (b.status !== 'draft') throw bad(b.status === 'approved' ? 'This batch is already approved.' : 'This batch is still being written.', 409);
     const photos = await photosFor(clientId);
-    const stops = P.blockers(await store.posts(batchId), { today: today(), fileIds: photos ? new Set(photos.map(f => f.file_id)) : null });
+    const stops = P.blockers(await fillLinks(clientId, b, await store.posts(batchId), await currentLinks(clientId)), { today: today(), fileIds: photos ? new Set(photos.map(f => f.file_id)) : null });
     if (!photos) stops.push('Drive has not been read for this client\'s folder, so the photos cannot be checked.');
     if (stops.length) return res.status(409).json({ error: `Fix these first: ${stops.join(' ')}`, blockers: stops });
     await store.approve(batchId, String((req.body && req.body.by) || '').slice(0, 80));
