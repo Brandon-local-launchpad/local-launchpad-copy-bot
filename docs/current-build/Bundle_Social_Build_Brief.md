@@ -46,7 +46,7 @@ The rate limits page says daily counts are "keyed to the platform account". If e
 
 - Test location: our own Local Launchpad profile, the location in the "Local Launchpad" team. Ask Brandon before each test post goes public.
 - Photo Drip category: `AT_WORK` for all, for now.
-- **Stage 3 is on hold until Brandon passes on bundle.social support's answer on the daily quota**, including whether the 20 a day is counted per Google login.
+- Stage 3 is built against a fake server only (Brandon, 7 Nov). Merging and any real call wait for bundle.social support's answer on the daily quota, including whether the 20 a day is counted per Google login.
 
 ## Connect, with two source teams
 

@@ -1,16 +1,23 @@
 // GBP Posts tab (7 Nov 2026, Stage 2 of the bundle.social build): finished posts in batches, from the
-// Lead Snap config's prompts. A VA reads, edits and approves a batch here. Nothing publishes from this
-// tab: approval is what the publishing job (Stage 3) will look for.
+// Lead Snap config's prompts. A VA reads, edits and approves a batch here. Approval is what the daily
+// publishing job looks for; the Publishing part above the posts is gbp-publishing.js.
 
 import { h, attr, api, card, toast, confirm, running, empty, fmtDate, pill, wire } from '../ui.js';
+import { renderPublishing } from './gbp-publishing.js';
 
 const WEEKDAY = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 const dayOf = d => WEEKDAY[new Date(`${d}T12:00:00Z`).getUTCDay()];
 const nice = d => { const x = new Date(`${d}T12:00:00Z`); return `${dayOf(d)} ${x.getUTCDate()} ${x.toLocaleString('en-GB', { month: 'short', timeZone: 'UTC' })} ${x.getUTCFullYear()}`; };
 const CTA = { CALL: 'Call', BOOK: 'Book', LEARN_MORE: 'Learn more', ORDER: 'Order', SHOP: 'Shop', SIGN_UP: 'Sign up' };
 
-export async function render(el, ctx) {
+export async function render(host, ctx) {
   const { clientId } = ctx;
+  host.innerHTML = '<div data-publishing-host></div><div data-posts-host></div>';
+  const el = host.querySelector('[data-posts-host]');
+  const publishingEl = host.querySelector('[data-publishing-host]');
+  let publishing = null;
+  renderPublishing(publishingEl, ctx).then(p => { publishing = p; }).catch(e => { publishingEl.innerHTML = `<div class="notice bad" style="margin-bottom:16px">Publishing could not load: ${h(e.message)}</div>`; });
+  const refreshQueue = () => { if (publishing) publishing.refresh(); };
   const url = `/api/clients/${clientId}/gbp-posts`;
   let S = null, open = null, timer = null, filter = 'all', alive = true;
   const stopTimer = () => { if (timer) { clearTimeout(timer); timer = null; } };
@@ -81,7 +88,7 @@ export async function render(el, ctx) {
     const actions = b.status === 'approved'
       ? `<button class="btn btn-ghost" data-act="unapprove">Take approval back</button>`
       : `<button class="btn btn-primary" data-act="approve" ${b.status === 'draft' && !b.blockers.length ? '' : 'disabled'}>Approve batch</button>`;
-    const head = card({ title: `${b.size} posts`, sub: `${nice(b.start_date)} onward · written for ${b.pence}p`, actions, body: `${b.status === 'approved' ? `<div class="notice" data-approved style="margin-bottom:10px">Approved ${h(fmtDate(b.approved_at, true))}. Nothing has gone out: publishing arrives in the next stage of this build.</div>` : ''}${prog}${stops}${notes}
+    const head = card({ title: `${b.size} posts`, sub: `${nice(b.start_date)} onward · written for ${b.pence}p`, actions, body: `${b.status === 'approved' ? `<div class="notice" data-approved style="margin-bottom:10px">Approved ${h(fmtDate(b.approved_at, true))}. Each post goes out on its date once publishing is switched on above. See the Queue for where each one has got to.</div>` : ''}${prog}${stops}${notes}
       <div class="btn-row" style="margin-bottom:6px;align-items:center;flex-wrap:wrap"><span class="small" data-counts>${fix} to fix, ${read} to read, ${posts.length - fix - read - notYet} clean${notYet ? `, ${notYet} waiting` : ''}</span>
       <select class="input" style="width:auto" data-filter>${[['all', 'Show all'], ['fix', 'To fix'], ['read', 'To read']].map(([v, t]) => `<option value="${v}" ${filter === v ? 'selected' : ''}>${t}</option>`).join('')}</select>
       ${b.status === 'approved' || b.running ? '' : `<label class="small">Move start <input class="input" type="date" data-move min="${attr(S.today)}" value="${attr(b.start_date)}"></label><button class="btn btn-ghost btn-sm" data-act="move">Move dates</button><button class="btn btn-ghost btn-sm" data-act="delete" style="color:#991b1b">Delete batch</button>`}</div>` });
@@ -126,10 +133,11 @@ export async function render(el, ctx) {
     }
     if (act === 'continue') return call(`/batches/${open}/continue`, { method: 'POST' });
     if (act === 'approve') {
-      if (!(await confirm({ title: 'Approve this batch?', text: 'Approving means these posts are ready to go out on their dates once publishing is switched on. You can take the approval back.', ok: 'Approve' }))) return;
-      return call(`/batches/${open}/approve`, { method: 'POST', body: {} }, 'Approved');
+      if (!(await confirm({ title: 'Approve this batch?', text: 'Approving means these posts go out on their dates once publishing is switched on. You can take the approval back until they have gone to bundle.social.', ok: 'Approve' }))) return;
+      await call(`/batches/${open}/approve`, { method: 'POST', body: {} }, 'Approved');
+      return refreshQueue();
     }
-    if (act === 'unapprove') return call(`/batches/${open}/unapprove`, { method: 'POST' }, 'Back to draft');
+    if (act === 'unapprove') { await call(`/batches/${open}/unapprove`, { method: 'POST' }, 'Back to draft'); return refreshQueue(); }
     if (act === 'delete') {
       if (!(await confirm({ title: 'Delete this batch?', text: 'Every post in it goes, with any edits, and this cannot be undone. Writing a new batch costs again.', ok: 'Delete', danger: true }))) return;
       return call(`/batches/${open}`, { method: 'DELETE' }, 'Deleted');
