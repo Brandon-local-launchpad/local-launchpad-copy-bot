@@ -66,6 +66,13 @@ const GROUPS = [
   ] },
 ];
 
+// The legal pages: one rich text field, attached by page template. Given makes the template; the
+// value below goes in the group's location rule, so it must match (docs/Legal_Pages_Given_Setup.md).
+const LEGAL_TEMPLATE = 'templates/legal-page.php';
+const LEGAL_GROUPS = [
+  { name: 'legal', title: 'Legal page', template: LEGAL_TEMPLATE, description: 'Local Launchpad legal page: fixed wording filled by Copybot.', fields: [html('legal_body', 'Legal page text')] },
+];
+
 // The ACF field types the push payload's kinds map to
 const KIND_TO_TYPE = { text: 'text', html: 'wysiwyg', bool: 'true_false', repeater: 'repeater' };
 
@@ -90,12 +97,12 @@ function acfGroupJson(g, index) {
     key: `group_${PREFIX}_${g.name}`,
     title: g.title,
     fields: g.fields.map(f => acfField(f)),
-    location: [[{ param: 'page_type', operator: '==', value: 'front_page' }]],
+    location: [[g.template ? { param: 'page_template', operator: '==', value: g.template } : { param: 'page_type', operator: '==', value: 'front_page' }]],
     menu_order: index,
     position: 'normal', style: 'default', label_placement: 'top', instruction_placement: 'label',
-    hide_on_screen: '', active: true, description: 'Local Launchpad homepage (master copy in the Copybot repo).',
+    hide_on_screen: '', active: true, description: g.description || 'Local Launchpad homepage (master copy in the Copybot repo).',
     show_in_rest: 1,
   };
 }
 
-module.exports = { GROUPS, KIND_TO_TYPE, acfGroupJson };
+module.exports = { GROUPS, LEGAL_GROUPS, LEGAL_TEMPLATE, KIND_TO_TYPE, acfGroupJson };

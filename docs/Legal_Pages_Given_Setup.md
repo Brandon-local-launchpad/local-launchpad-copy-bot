@@ -4,7 +4,7 @@ Copybot fills three fixed legal pages from the client's details and pushes the f
 
 ## The field
 
-Copybot ships this in the plugin, so **you don't create or import it**. Install the new plugin version when Copybot gives you the zip (it isn't built yet, this is the shape it will have).
+Copybot ships this in the plugin, so **you don't create or import it**. Install plugin version 0.4.0 or later on the staging site (`npm run wp:plugin-zip` makes the file). Copybot refuses a push to an older plugin.
 
 | Thing | Value |
 |---|---|
@@ -17,7 +17,7 @@ The field group has to be attached to the three pages, or ACF drops the text wit
 
 ## What to set up
 
-1. **One page template for legal pages.** Suggested file `templates/legal-page.php`. Copybot's field group attaches with the rule "page template equals this file". **Tell me the exact value if yours differs, or if Elementor means this rule won't work**, because that value goes into the plugin before it is built.
+1. **One page template for legal pages.** Suggested file `templates/legal-page.php`. The plugin's field group attaches with the rule "page template equals `templates/legal-page.php`". **Tell Brandon the exact value if yours differs, or if Elementor means this rule won't work.** Until that's confirmed, this is the one part only tested on the fake server. A different value means a small plugin update.
 2. **What the template shows:** the header and footer, the page title as the H1, then `legal_body`. No hero, CTA, reviews or map, and no other copy.
 3. **Styling inside `legal_body`:** the text arrives as HTML with `h2`, `p`, `ul`, `strong` and `table` (with a header row). Privacy Policy has three tables, one of them five columns wide, so tables must scroll sideways on a phone rather than break the page.
 4. **Three pages, as drafts, using that template:**

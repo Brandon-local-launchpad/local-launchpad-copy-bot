@@ -8,14 +8,14 @@
 
 const fs = require('fs');
 const path = require('path');
-const { GROUPS, acfGroupJson } = require('./acf-schema');
+const { GROUPS, LEGAL_GROUPS, acfGroupJson } = require('./acf-schema');
 const { ALL_KEYS } = require('./client-values');
 
 const PLUGIN = path.join(__dirname, '..', 'wp-plugin', 'llp-copybot');
 
 function generatedFiles() {
   const files = {};
-  GROUPS.forEach((g, i) => {
+  [...GROUPS, ...LEGAL_GROUPS].forEach((g, i) => {
     files[`acf-json/group_llp_${g.name}.json`] = JSON.stringify(acfGroupJson(g, i), null, 2) + '\n';
   });
   files['client-value-keys.json'] = JSON.stringify(ALL_KEYS, null, 2) + '\n';

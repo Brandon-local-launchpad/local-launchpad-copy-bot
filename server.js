@@ -4033,6 +4033,12 @@ if (filloutService) require('./locations/routes').mountLocationsApi(app, { pool,
 if (filloutService) {
   require('./legal/routes').mountLegalApi(app, require('./legal/service').createLegalService({
     pool, filloutService,
+    getSite: async id => {
+      const row = await require('./wp/db-store').getConnectionRow(pool, id);
+      if (!row || !row.app_password_enc) return null;
+      return { url: row.url, user: row.wp_user, appPassword: require('./wp/secrets').decrypt(row.app_password_enc, process.env.COPYBOT_SECRET_KEY), staging: !!row.staging, seo: row.seo };
+    },
+    createStore: id => require('./wp/db-store').createDbStore(pool, id),
     loadValues: async id => {
       const { rows } = await pool.query(`SELECT content FROM client_assets WHERE client_id = $1 AND asset_type = 'client_values' ORDER BY uploaded_at DESC LIMIT 1`, [id]);
       return rows.length ? JSON.parse(rows[0].content) : {};

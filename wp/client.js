@@ -53,9 +53,15 @@ async function findHomepage(site) {
   return readPage(site, settings.page_on_front);
 }
 
+// A page by its slug, whatever its status ("/service-terms" or "service-terms")
+async function findPageBySlug(site, slug) {
+  const pages = await wpGet(site, `/wp/v2/pages?slug=${encodeURIComponent(String(slug).replace(/^\/+/, ''))}&status=any&${pageQuery}`);
+  return pages[0] || null;
+}
+
 // One page by id, the same fields (the read-back after a push or a rollback)
 async function readPage(site, id) {
   return wpGet(site, `/wp/v2/pages/${id}?${pageQuery}`);
 }
 
-module.exports = { findHomepage, readPage, wpGet, wpPost, authHeader, PAGE_FIELDS };
+module.exports = { findHomepage, findPageBySlug, readPage, wpGet, wpPost, authHeader, PAGE_FIELDS };

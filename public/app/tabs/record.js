@@ -152,13 +152,14 @@ export async function render(el, ctx) {
   return renderValues(body, ctx);
 }
 
-// Legal pages: the hold and why, Brandon's clear and adjusted wording, each filled page. Nothing here pushes.
+// Legal pages: the hold and why, the push to staging, Brandon's clear and adjusted wording, each filled page.
 async function renderLegal(body, clientId) {
   const url = `/api/clients/${clientId}/legal`;
   const act = async (path, method, payload) => {
     try { paint(await api(path, { method, body: payload })); toast('Saved'); } catch (e) { toast(e.message, 'bad'); }
   };
   const keyOf = () => (body.querySelector('#legalKey') || {}).value || '';
+  let lastSnapshots = [];
   function paint(s) {
     const exc = s.reasons.find(r => r.code === 'exceptions');
     const head = s.held
@@ -166,13 +167,41 @@ async function renderLegal(body, clientId) {
       : '<div class="notice good"><strong>Not held.</strong> Nothing is stopping these pages.</div>';
     const key = `<label for="legalKey">Brandon's key</label><input class="input" id="legalKey" type="password" autocomplete="off"${s.keySet ? '' : ' disabled placeholder="LEGAL_CLEAR_KEY is not set"'}>`;
     const clearBox = exc ? card({ title: 'Clear the exception', body: `<p>Adjust the wording below first if it needs it. Clearing covers this exact text; if the client changes it, the pages are held again.</p><pre class="block">${h(s.exceptions.text)}</pre><label for="legalNote">Note (optional)</label><input class="input" id="legalNote"><div style="margin-top:10px"><button class="btn btn-primary" id="legalClear">I have read this. Clear it</button></div>` }) : '';
+    const pushBox = card({ title: 'Push to the staging site', body: `<p>All three pages or none. Staging sites only, and the pages stay drafts if they are drafts.</p><div class="btn-row"><button class="btn btn-ghost" id="legalDry">Dry run</button><button class="btn btn-primary" id="legalPush"${s.held ? ' disabled' : ''}>Push the three pages</button>${lastSnapshots.length ? '<button class="btn btn-ghost" id="legalBack">Undo the last push</button>' : ''}</div><div id="legalResult" style="margin-top:10px"></div>` });
     body.innerHTML = `${head}
       ${s.defaulted.includes('uses_subcontractors') || s.defaulted.includes('late_payment_interest') ? '<div class="notice warn" style="margin-top:12px">The client has not answered on subcontractors or late payment interest, so these count as yes.</div>' : ''}
       <div style="margin-top:16px">${card({ title: 'Adjusting needs a key', body: key })}</div>
+      ${pushBox}
       ${clearBox}
       ${s.pages.map(p => card({ title: p.title, sub: `${p.slug}${p.custom ? ' · adjusted wording for this client' : ' · master wording'}`, body: `<pre class="block" style="white-space:pre-wrap">${h(p.text)}</pre>
         <details style="margin-top:10px"><summary>Adjust the wording for this client</summary><textarea class="input" rows="16" data-page="${attr(p.key)}">${h(p.template)}</textarea>
         <div style="margin-top:10px"><button class="btn" data-save="${attr(p.key)}">Save wording</button>${p.custom ? ` <button class="btn" data-reset="${attr(p.key)}">Back to the master</button>` : ''}</div></details>` })).join('')}`;
+    const result = html => { body.querySelector('#legalResult').innerHTML = html; };
+    const listOf = items => `<ul style="margin:6px 0 0 18px">${items.map(i => `<li>${h(i)}</li>`).join('')}</ul>`;
+    body.querySelector('#legalDry').onclick = async () => {
+      try {
+        const d = await api(`${url}/dry-run`);
+        result(`<div class="notice ${d.pushable ? 'good' : 'bad'}"><strong>${d.pushable ? 'A push would be allowed.' : 'A push would be refused.'}</strong> Nothing was written.${listOf(d.pages.map(p => `${p.title}: ${p.page ? `page ${p.page.id}, ${p.page.status}` : 'not found'}, ${p.summary.added + p.summary.changed} to change${p.refusals.length ? `. ${p.refusals.join(' ')}` : ''}`))}</div>`);
+      } catch (e) { result(`<div class="notice bad">${h(e.message)}</div>`); }
+    };
+    body.querySelector('#legalPush').onclick = async () => {
+      if (!window.confirm(`Push the three legal pages to the connected staging site?`)) return;
+      try {
+        const r = await api(`${url}/push`, { method: 'POST', body: { confirm: true } });
+        if (r.ok) { lastSnapshots = r.written.map(w => w.snapshotId); paint(await api(url)); result('<div class="notice good">All three pages pushed, and each read back as sent.</div>'); }
+        else result(`<div class="notice bad"><strong>Not pushed.</strong>${r.error ? ` ${h(r.error)}` : ''}${listOf(r.refusals || [])}</div>`);
+      } catch (e) { result(`<div class="notice bad">${h(e.message)}</div>`); }
+    };
+    const backBtn = body.querySelector('#legalBack');
+    if (backBtn) backBtn.onclick = async () => {
+      if (!window.confirm('Put the three pages back as they were before the last push?')) return;
+      try {
+        const r = await api(`${url}/rollback`, { method: 'POST', body: { confirm: true, snapshotIds: lastSnapshots } });
+        if (r.ok) lastSnapshots = [];
+        paint(await api(url));
+        result(`<div class="notice ${r.ok ? 'good' : 'bad'}">${r.ok ? 'Put back.' : 'The read back after the undo differs. Check the pages.'}</div>`);
+      } catch (e) { result(`<div class="notice bad">${h(e.message)}</div>`); }
+    };
     const clearBtn = body.querySelector('#legalClear');
     if (clearBtn) clearBtn.onclick = () => act(`${url}/clear`, 'POST', { key: keyOf(), exceptions: s.exceptions.text, note: body.querySelector('#legalNote').value });
     body.querySelectorAll('[data-save]').forEach(b => { b.onclick = () => act(`${url}/wording/${b.dataset.save}`, 'PUT', { key: keyOf(), template: body.querySelector(`textarea[data-page="${b.dataset.save}"]`).value }); });

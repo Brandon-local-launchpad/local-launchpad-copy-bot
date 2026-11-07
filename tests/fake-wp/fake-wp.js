@@ -5,7 +5,9 @@
 // would return them. Counts writes, so tests can prove a dry run writes nothing.
 const express = require('express');
 
-const ALL_GROUPS = require('../../wp/acf-schema').GROUPS.map(g => `group_llp_${g.name}`);
+const { LEGAL_GROUPS, LEGAL_TEMPLATE } = require('../../wp/acf-schema');
+const ALL_GROUPS = [...require('../../wp/acf-schema').GROUPS, ...LEGAL_GROUPS].map(g => `group_llp_${g.name}`);
+const LEGAL_FIELDS = LEGAL_GROUPS.flatMap(g => g.fields.map(f => f.name));
 // The homepage groups' top-level field names (their ACF location is the front page)
 const HOME_FIELDS = require('../../wp/acf-schema').GROUPS.flatMap(g => g.fields.map(f => f.name));
 
@@ -37,11 +39,14 @@ function createFakeWp({ user = 'copybot', appPassword = 'test-app-password-not-r
   // left out, writes to them are dropped without an error, and with no fields at all
   // `acf` is an empty array. Other pages keep their own fields.
   const onFront = p => p.id === state.frontId;
-  const own = (p, acf) => Object.fromEntries(Object.entries(acf || {}).filter(([k]) => onFront(p) || !HOME_FIELDS.includes(k)));
+  // The legal field attaches only to a page on the legal template
+  const onLegal = p => p.template === LEGAL_TEMPLATE;
+  const own = (p, acf) => Object.fromEntries(Object.entries(acf || {}).filter(([k]) => (onFront(p) || !HOME_FIELDS.includes(k)) && (onLegal(p) || !LEGAL_FIELDS.includes(k))));
   const view = (p, req = null) => {
     const fields = req && req.query._fields ? String(req.query._fields).split(',').map(s => s.trim()).filter(Boolean) : null;
     const withContent = !fields || fields.includes('content');
     let acf = onFront(p) ? { ...Object.fromEntries(HOME_FIELDS.map(n => [n, null])), ...p.acf } : own(p, p.acf);
+    if (onLegal(p)) acf = { ...Object.fromEntries(LEGAL_FIELDS.map(n => [n, null])), ...acf };
     if (elementorFront && onFront(p) && withContent) acf = {};
     const full = { ...p, content: { raw: p.content || '', rendered: `<p>${p.content || ''}</p>` }, acf: Object.keys(acf).length ? acf : [] };
     return fields ? Object.fromEntries(Object.entries(full).filter(([k]) => fields.includes(k))) : full;
