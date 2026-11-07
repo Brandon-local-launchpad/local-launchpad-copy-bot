@@ -3,16 +3,22 @@
 // ── The model log (27 Oct 2026): one row per model call, for Settings' spend this month ──
 // Written from anthropic-call.js's onUsage (every v20 call) and the few direct callers.
 // Prices per million tokens in US dollars, kept in code; cost is stored in pence at the
-// rate below so the Settings page adds it up without a lookup. The table is created at
-// start-up (CREATE TABLE IF NOT EXISTS), add only.
+// rate below so the Settings page adds it up without a lookup. A row keeps the rate it was
+// written at: a price change here does not touch cost_pence on old rows, though each row's
+// tokens are there to work it out again. The table is created at start-up (CREATE TABLE IF
+// NOT EXISTS), add only.
 
 const USD_TO_GBP = 0.78;
-// [input, output, cache read, cache write] per million tokens, USD
+// [input, output, cache read, cache write] per million tokens, USD. Settings Spend, the
+// page costs and the Lead Snap preview all read these. Checked against platform.claude.com/docs/en/about-claude/pricing
+// on 6 Nov 2026. Cache write is the 5 minute rate: no call sets a longer ttl. Haiku 5.5 is the
+// rate for prompts up to 100,000 tokens: its one caller, the citations classifier, is far under.
 const PRICES = {
   'claude-opus-5-5': [4, 20, 0.2, 5], 'claude-sonnet-5-5': [2, 10, 0.1, 2.5], 'claude-haiku-5-5': [0.1, 0.5, 0.01, 0.125],
-  'claude-sonnet-4-6': [3, 15, 0.3, 3.75], 'claude-opus-4-6': [15, 75, 1.5, 18.75], 'claude-haiku-4-5': [0.8, 4, 0.08, 1],
+  'claude-sonnet-4-6': [3, 15, 0.3, 3.75], 'claude-opus-4-6': [5, 25, 0.5, 6.25], 'claude-haiku-4-5': [1, 5, 0.1, 1.25],
 };
-const priceFor = model => { const m = String(model || ''); const k = Object.keys(PRICES).find(p => m.startsWith(p)); return k ? PRICES[k] : [3, 15, 0.3, 3.75]; };
+// A model not in the table is priced as Sonnet 5.5, the model most of the app uses
+const priceFor = model => { const m = String(model || ''); const k = Object.keys(PRICES).find(p => m.startsWith(p)); return k ? PRICES[k] : PRICES['claude-sonnet-5-5']; };
 
 function costPence(model, usage = {}) {
   const [i, o, cr, cw] = priceFor(model);
@@ -62,4 +68,4 @@ function createModelLog(pool, { log = console } = {}) {
   return { record, onUsage, tagged, spend, context, costPence };
 }
 
-module.exports = { ensureModelLogTable, createModelLog, costPence, PRICES, USD_TO_GBP };
+module.exports = { ensureModelLogTable, createModelLog, costPence, priceFor, PRICES, USD_TO_GBP };

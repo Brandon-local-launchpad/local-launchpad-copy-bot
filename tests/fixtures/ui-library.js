@@ -59,6 +59,12 @@ console.log('\n=== FIXTURE: the UI library, settings, model log and intake ===\n
   const usage = { input_tokens: 10000, output_tokens: 2000, cache_read_input_tokens: 50000, cache_creation_input_tokens: 0 };
   const pence = M.costPence('claude-sonnet-5-5', usage);
   chk('Cost: Sonnet 5.5, 10k in, 2k out, 50k cached read = (0.02 + 0.02 + 0.005) USD = 3.51p', pence === 3.51, pence, 3.51);
+  const million = { input_tokens: 1e6, output_tokens: 1e6, cache_read_input_tokens: 1e6, cache_creation_input_tokens: 1e6 };
+  const atRate = rates => Math.round(rates.reduce((n, r) => n + r, 0) * M.USD_TO_GBP * 100 * 100) / 100;
+  chk('Cost: a million of each token at the Opus 5.5 rates (4, 20, 0.20, 5)', M.costPence('claude-opus-5-5', million) === atRate([4, 20, 0.2, 5]), M.costPence('claude-opus-5-5', million), atRate([4, 20, 0.2, 5]));
+  chk('Cost: a million of each token at the Sonnet 5.5 rates (2, 10, 0.10, 2.50)', M.costPence('claude-sonnet-5-5', million) === atRate([2, 10, 0.1, 2.5]), M.costPence('claude-sonnet-5-5', million), atRate([2, 10, 0.1, 2.5]));
+  chk('Cost: a million of each token at the Haiku 5.5 rates (0.10, 0.50, 0.01, 0.125)', M.costPence('claude-haiku-5-5', million) === atRate([0.1, 0.5, 0.01, 0.125]), M.costPence('claude-haiku-5-5', million), atRate([0.1, 0.5, 0.01, 0.125]));
+  chk('Cost: a model not in the table is priced as Sonnet 5.5', M.costPence('claude-not-a-model', million) === M.costPence('claude-sonnet-5-5', million), M.costPence('claude-not-a-model', million), M.costPence('claude-sonnet-5-5', million));
   await log.record({ model: 'claude-sonnet-5-5', usage, call_type: 'category pages', page_type: 'category', page_key: '/landscaper' });
   log.tagged('homepage', { page_type: 'homepage' })('claude-opus-5-5', { input_tokens: 1000, output_tokens: 500 });
   await new Promise(r => setTimeout(r, 50));

@@ -58,21 +58,30 @@ Maximum 20 prompts, around Lead Snap's limit. If a client has fewer services, th
 
 Under 4 distinct photo folders, the tab warns: "Too few prompts. Don't start autopost until the client sends more photos." and lists the photos that would unlock more.
 
+Copybot writes the fixed text of every prompt itself, word for word (the name, facts, areas and rules), and keeps only the one angle sentence from the model's reply, so a required sentence cannot go missing.
+
+Prompts sharing a folder should not open alike. Copybot writes one test post per prompt when it generates, and gives each prompt a "Don't start with" line listing the opening phrases of the other prompts in its folder.
+
+Under 4 confirmed USPs, the tab warns: "Few USPs. Posts will repeat the same facts; confirm more with the client."
+
 Lead Snap splits posts evenly across prompts. With 20 prompts at 2 posts a week, each prompt runs about once every 10 weeks.
 
 ### Rules every prompt must carry
 
-1. Business name, followed by "(write the name exactly like that)", the service, main town and the area list.
+1. Business name, the service, main town and the area list. "Use the business name once, written exactly like this: [name]."
 2. The one service the prompt covers. No list of services in the post.
-3. Pick ONE area from the list. Use it once or twice and mention no other towns.
+3. One fixed area per prompt, rotating so every area is used: "Mention [area] once or twice and no other towns."
 4. Facts: no more than two, chosen to fit the angle.
 5. One fixed angle: "Build the whole post around this angle:". There is no "serving a local area" angle.
 6. 150–250 words, plain UK English, no headings, no hashtags. Don't start with "If". Aim for under 1,500 characters per prompt.
 7. Use the service name naturally once or twice.
 8. **Never invent** specific jobs, customers, reviews, prices, timescales, discounts or accreditations. Only use facts given in the prompt.
-9. No seasonal or date references, so the post stays accurate any month.
-10. No generic filler ("Happy Monday", "We're here for you").
-11. End with one sentence leading into the CTA (e.g. "Give us a call" for Call Now, "Book online" for Book).
+9. Do not describe customers, what they say, how many there are or how often you work for them.
+9a. Do not mention warranties, guarantees or accreditations unless they are in the facts.
+9b. Do not give measurements, sizes or figures unless they are in the facts.
+10. No seasonal, date or time references ("today", "this week", "right now", "at the moment"), so the post stays accurate any month.
+11. No generic filler ("Happy Monday", "We're here for you").
+12. End with one sentence leading into the CTA (e.g. "Give us a call" for Call Now, "Book online" for Book).
 
 ## Copybot system prompt
 
@@ -91,7 +100,7 @@ STEP 1 - SETTINGS
 - Tone: from intake, else "friendly and professional".
 
 STEP 2 - CHOOSE THE PROMPTS (max 20)
-Each prompt has ONE fixed angle. No angle lists. Variety comes from having more prompts.
+Each prompt has ONE fixed angle and ONE fixed area. No angle lists. Variety comes from having more prompts. Areas rotate through the list across the prompts, so every area is used.
 - Service prompts: up to 3 angles per service, for services with 3 or more matching photos, highest-value first. If the client has few services, use more angles per service to fill the 20. Keep each at whole-service level, never a sub-niche. Where a label groups several services, give each prompt a different service from the group where possible.
 - Other services: up to 2, one service each, for services with fewer than 3 photos when there are 3+ brand photos.
 - Trust / why us: up to 2.
@@ -101,16 +110,17 @@ Each prompt has ONE fixed angle. No angle lists. Variety comes from having more 
 
 STEP 3 - WRITE EACH PROMPT
 Each prompt is an instruction to Lead Snap's AI and must be fully self-contained. Aim for under 1,500 characters per prompt. Include:
-- The business name followed by "(write the name exactly like that)", the niche, the main town and the full area list.
+- The business name, the niche and the one area the prompt is given.
+
 - What the post is about: the one service, or the prompt type. Never list other services.
 - The facts it may use: the USPs, plus the offer on the offer prompt. Nothing else. Introduce them as: "Facts you may use (no more than two, chosen to fit the angle):"
 - The one angle, written to fit this niche, after the instruction: "Build the whole post around this angle:"
-  Service angles: the problem customers notice; how the job is done; a common question answered; why doing it properly matters; what to expect when booking; what a good finished job looks like; the mistakes to avoid; how to choose who does the work.
+  Service angles: the problem customers notice; how the job is done; one practical question answered directly, without saying who asks it or how often ("Open with the answer or the question itself. Never say how often it is asked or who asks it."); why doing it properly matters; what to expect when booking; what a good finished job looks like; the mistakes to avoid; how to choose who does the work.
   Trust angles: experience and how long local; accreditations and guarantees from the USPs; how we work with customers; why choose a local business.
   Tips: one practical, year-round tip specific to this niche, a different one on each prompt, after the instruction: "Build the whole post around this tip:"
   Offer angle: what the offer includes, who it suits and how to claim it.
 - These rules, word for word:
-  "Pick ONE area from the list. Use it once or twice and mention no other towns. Write 150-250 words in plain UK English, no headings, no hashtags, no emoji. Don't start with "If". Use the service name naturally once or twice. Never invent specific jobs, customers, reviews, prices, timescales, discounts or accreditations; use only the facts given here. Do not mention seasons, weather, holidays or dates. No generic filler. End with one sentence that leads into the button: [CTA sentence]."
+  "Mention [area] once or twice and no other towns. Write 150-250 words in plain UK English, no headings, no hashtags, no emoji. Don't start with "If". Use the business name once, written exactly like this: [name]. Use the service name naturally once or twice. Never invent specific jobs, customers, reviews, prices, timescales, discounts or accreditations; use only the facts given here. Do not describe customers, what they say, how many there are or how often you work for them. Do not mention warranties, guarantees or accreditations unless they are in the facts. Do not give measurements, sizes or figures unless they are in the facts. Do not mention seasons, weather, holidays, dates or time words such as "today", "this week", "right now" or "at the moment". No generic filler. End with one sentence that leads into the button: [CTA sentence]."
 
 STEP 4 - OUTPUT
 Return the config sheet in the format below, then the gap list. Do not add commentary.
@@ -169,29 +179,29 @@ Using the intake example above, plus 5 brand photos. The result is 20 prompts ac
 ### One service prompt in full
 
 ```text
-Write a Google Business Profile post for Hartley Plumbing & Heating (write the name exactly like that), a plumber based in Romford, about boiler repair.
+Write a Google Business Profile post for Hartley Plumbing & Heating, a plumber, about boiler repair.
 
 Facts you may use (no more than two, chosen to fit the angle): Gas Safe registered, 15 years working locally, same-day callouts, fixed prices agreed before work starts. Do not use any other facts.
 
-Areas: Romford, Hornchurch, Upminster, Gidea Park, Harold Wood, Collier Row, Dagenham, Brentwood. Pick ONE area from the list. Use it once or twice and mention no other towns.
+Mention Hornchurch once or twice and no other towns.
 
 Build the whole post around this angle: the signs customers notice that a boiler needs repair, such as no hot water, dropping pressure or strange noises.
 
-Write 150-250 words in plain UK English, no headings, no hashtags, no emoji. Don't start with "If". Use "boiler repair" naturally once or twice. Never invent specific jobs, customers, reviews, prices, timescales, discounts or accreditations; use only the facts given here. Do not mention seasons, weather, holidays or dates. No generic filler. Tone: friendly, plain-spoken. End with one sentence that leads into the button: invite them to give us a call.
+Write 150-250 words in plain UK English, no headings, no hashtags, no emoji. Don't start with "If". Use the business name once, written exactly like this: Hartley Plumbing & Heating. Use "boiler repair" naturally once or twice. Never invent specific jobs, customers, reviews, prices, timescales, discounts or accreditations; use only the facts given here. Do not describe customers, what they say, how many there are or how often you work for them. Do not mention warranties, guarantees or accreditations unless they are in the facts. Do not give measurements, sizes or figures unless they are in the facts. Do not mention seasons, weather, holidays, dates or time words such as "today", "this week", "right now" or "at the moment". No generic filler. Tone: friendly, plain-spoken. End with one sentence that leads into the button: invite them to give us a call.
 ```
 
 ### One tip prompt in full
 
 ```text
-Write a Google Business Profile post for Hartley Plumbing & Heating (write the name exactly like that), a plumber based in Romford, giving homeowners one practical plumbing tip.
+Write a Google Business Profile post for Hartley Plumbing & Heating, a plumber, giving homeowners one practical plumbing tip.
 
 Facts you may use (no more than two, chosen to fit the angle): Gas Safe registered, 15 years working locally, same-day callouts, fixed prices agreed before work starts. Do not use any other facts.
 
-Areas: Romford, Hornchurch, Upminster, Gidea Park, Harold Wood, Collier Row, Dagenham, Brentwood. Pick ONE area from the list. Use it once or twice and mention no other towns.
+Mention Hornchurch once or twice and no other towns.
 
 Build the whole post around this tip: how to find and turn off your stopcock, and why to check it before you need it.
 
-Explain the tip clearly, then say when it's time to call a plumber. Write 150-250 words in plain UK English, no headings, no hashtags, no emoji. Don't start with "If". Use "plumber" naturally once or twice. Never invent specific jobs, customers, reviews, prices, timescales, discounts or accreditations; use only the facts given here. Do not mention seasons, weather, holidays or dates. No generic filler. Tone: friendly, plain-spoken. End with one sentence that leads into the button: invite them to give us a call.
+Explain the tip clearly, then say when it's time to call a plumber. Write 150-250 words in plain UK English, no headings, no hashtags, no emoji. Don't start with "If". Use the business name once, written exactly like this: Hartley Plumbing & Heating. Use "plumber" naturally once or twice. Never invent specific jobs, customers, reviews, prices, timescales, discounts or accreditations; use only the facts given here. Do not describe customers, what they say, how many there are or how often you work for them. Do not mention warranties, guarantees or accreditations unless they are in the facts. Do not give measurements, sizes or figures unless they are in the facts. Do not mention seasons, weather, holidays, dates or time words such as "today", "this week", "right now" or "at the moment". No generic filler. Tone: friendly, plain-spoken. End with one sentence that leads into the button: invite them to give us a call.
 ```
 
 ## One-time tests and open questions

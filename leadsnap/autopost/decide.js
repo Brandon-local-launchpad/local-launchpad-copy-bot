@@ -20,11 +20,17 @@ const more = n => `${n} more photo${n === 1 ? '' : 's'}`;
 const POSTS_ROOT = 'GBP Photos – Posts';
 const folderOf = f => `${POSTS_ROOT} / ${f}`;
 
+// The model still wrote "the question we hear most" with this angle, so generate.js adds
+// QUESTION_RULE to every prompt that has it, word for word (Brandon, 6 Nov)
+const QUESTION_ANGLE = 'one practical question answered directly, without saying who asks it or how often';
+const QUESTION_RULE = 'Open with the answer or the question itself. Never say how often it is asked or who asks it.';
+
 // In the order a service takes them. A client with few services runs further down the list.
 const SERVICE_ANGLES = [
   'the problem customers notice',
   'how the job is done',
-  'a common question answered',
+  // Not "a common question": that wording had the model write "one of the questions we hear most"
+  QUESTION_ANGLE,
   'why doing it properly matters',
   'what to expect when booking',
   'what a good finished job looks like',
@@ -98,7 +104,10 @@ function decide(intake) {
   const firstAt = new Map();
   prompts.forEach((p, i) => { if (!firstAt.has(p.folder)) firstAt.set(p.folder, i); });
   const ordered = prompts.map((p, i) => ({ p, i })).sort((a, b) => (firstAt.get(a.p.folder) - firstAt.get(b.p.folder)) || (a.i - b.i)).map(x => x.p);
-  ordered.forEach((p, i) => { p.n = i + 1; });
+  // One fixed area per prompt, rotating through the list so every area is used (Brandon, 6 Nov):
+  // left to choose, the model picks the same town every time
+  const areas = intake.areas || [];
+  ordered.forEach((p, i) => { p.n = i + 1; p.area = areas.length ? areas[i % areas.length] : ''; });
 
   // A service under the threshold is a gap whether or not it is folded in: with photos it can
   // get prompts of its own. One with enough photos that only lost out on a slot is not a gap.
@@ -125,4 +134,4 @@ function decide(intake) {
   return { prompts: ordered, gaps, notes, jobPhotos, folders: folders.size, tooFew };
 }
 
-module.exports = { decide, POSTS_ROOT, THRESHOLD, MAX_PROMPTS, MIN_FOLDERS, TIPS, TRUST, MAX_OTHER, SERVICE_ANGLES, ALL_JOBS, NONE_YET, TOO_FEW };
+module.exports = { decide, QUESTION_ANGLE, QUESTION_RULE, POSTS_ROOT, THRESHOLD, MAX_PROMPTS, MIN_FOLDERS, TIPS, TRUST, MAX_OTHER, SERVICE_ANGLES, ALL_JOBS, NONE_YET, TOO_FEW };

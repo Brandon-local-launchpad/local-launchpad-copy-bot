@@ -10,7 +10,7 @@ STEP 1 - SETTINGS
 - Tone: from intake, else "friendly and professional".
 
 STEP 2 - CHOOSE THE PROMPTS (max 20)
-Each prompt has ONE fixed angle. No angle lists. Variety comes from having more prompts.
+Each prompt has ONE fixed angle and ONE fixed area. No angle lists. Variety comes from having more prompts. Areas rotate through the list across the prompts, so every area is used.
 - Service prompts: up to 3 angles per service, for services with 3 or more matching photos, highest-value first. If the client has few services, use more angles per service to fill the 20. Keep each at whole-service level, never a sub-niche. Where a label groups several services, give each prompt a different service from the group where possible.
 - Other services: up to 2, one service each, for services with fewer than 3 photos when there are 3+ brand photos.
 - Trust / why us: up to 2.
@@ -20,16 +20,17 @@ Each prompt has ONE fixed angle. No angle lists. Variety comes from having more 
 
 STEP 3 - WRITE EACH PROMPT
 Each prompt is an instruction to Lead Snap's AI and must be fully self-contained. Aim for under 1,500 characters per prompt. Include:
-- The business name followed by "(write the name exactly like that)", the niche, the main town and the full area list.
+- The business name, the niche and the one area the prompt is given.
+
 - What the post is about: the one service, or the prompt type. Never list other services.
 - The facts it may use: the USPs, plus the offer on the offer prompt. Nothing else. Introduce them as: "Facts you may use (no more than two, chosen to fit the angle):"
 - The one angle, written to fit this niche, after the instruction: "Build the whole post around this angle:"
-  Service angles: the problem customers notice; how the job is done; a common question answered; why doing it properly matters; what to expect when booking; what a good finished job looks like; the mistakes to avoid; how to choose who does the work.
+  Service angles: the problem customers notice; how the job is done; one practical question answered directly, without saying who asks it or how often ("Open with the answer or the question itself. Never say how often it is asked or who asks it."); why doing it properly matters; what to expect when booking; what a good finished job looks like; the mistakes to avoid; how to choose who does the work.
   Trust angles: experience and how long local; accreditations and guarantees from the USPs; how we work with customers; why choose a local business.
   Tips: one practical, year-round tip specific to this niche, a different one on each prompt, after the instruction: "Build the whole post around this tip:"
   Offer angle: what the offer includes, who it suits and how to claim it.
 - These rules, word for word:
-  "Pick ONE area from the list. Use it once or twice and mention no other towns. Write 150-250 words in plain UK English, no headings, no hashtags, no emoji. Don't start with "If". Use the service name naturally once or twice. Never invent specific jobs, customers, reviews, prices, timescales, discounts or accreditations; use only the facts given here. Do not mention seasons, weather, holidays or dates. No generic filler. End with one sentence that leads into the button: [CTA sentence]."
+  "Mention [area] once or twice and no other towns. Write 150-250 words in plain UK English, no headings, no hashtags, no emoji. Don't start with "If". Use the business name once, written exactly like this: [name]. Use the service name naturally once or twice. Never invent specific jobs, customers, reviews, prices, timescales, discounts or accreditations; use only the facts given here. Do not describe customers, what they say, how many there are or how often you work for them. Do not mention warranties, guarantees or accreditations unless they are in the facts. Do not give measurements, sizes or figures unless they are in the facts. Do not mention seasons, weather, holidays, dates or time words such as "today", "this week", "right now" or "at the moment". No generic filler. End with one sentence that leads into the button: [CTA sentence]."
 
 STEP 4 - OUTPUT
 Return the config sheet in the format below, then the gap list. Do not add commentary.
