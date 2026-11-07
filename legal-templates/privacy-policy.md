@@ -67,7 +67,7 @@ We do not sell your information. We share it only with the people and services w
 
 - Our website provider, Local Launchpad, which builds and maintains this website and the enquiry forms on it, and processes enquiries on our behalf.
 - Our website hosting provider.
-- Google, for Google Business Profile, Maps, Analytics{IF google_ads = yes} and Google Ads{END IF}.
+- Google, for our Google Business Profile, Maps and Analytics{IF google_ads = yes}, and Google Ads{END IF}.
 - The service that displays our Google reviews on this website.
 - Our Google Business Profile management service, which helps us reply to reviews and keep our profile up to date.
 - {IF sms_tool = yes} Our text messaging provider, which sends booking confirmations and reminders on our behalf. {END IF}
@@ -89,7 +89,7 @@ Cookies are small files placed on your device by websites you visit. This websit
 | Cookie consent | Remembers your cookie choice | Essential | 12 months | No |
 | Enquiry form | Protects the form from spam and remembers what you typed if the page reloads | Essential | Until you close the browser | No |
 | Google Analytics | Counts visits and shows us which pages are used | Statistics | Up to 2 years | [CV: ga_consent_text] |
-| Google Maps | Shows the map on our contact page once you click "Show map" | Functional | Set by Google when the map loads | Yes, by clicking to load the map |
+| Google Maps | Shows our location map once you choose to load it | Functional | Set by Google when the map loads | Yes, by accepting cookies or clicking to load the map |
 | Google reviews widget | Displays our Google reviews | Functional | Set by the widget provider | Yes |
 {IF google_ads = yes}| Google Ads | Measures whether our adverts led to an enquiry | Advertising | Up to 90 days | Yes |{END IF}
 {IF meta_pixel = yes}| Meta Pixel | Measures whether our Facebook or Instagram adverts led to an enquiry | Advertising | Up to 90 days | Yes |{END IF}

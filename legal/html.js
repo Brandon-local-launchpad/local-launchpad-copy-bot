@@ -14,7 +14,9 @@ function table(lines) {
   const body = lines.filter(l => !isRule(l));
   const [head, ...rows] = body;
   const tr = (row, tag) => `<tr>${cells(row).map(c => `<${tag}>${c}</${tag}>`).join('')}</tr>`;
-  return `<table>\n<thead>${tr(head, 'th')}</thead>\n<tbody>\n${rows.map(r => tr(r, 'td')).join('\n')}\n</tbody>\n</table>`;
+  // Its own scroll box: the five column cookie table is wider than a phone, and with no theme
+  // help it pushed the whole page sideways (7 Nov 2026, seen at 375px)
+  return `<div class="llp-table-scroll" style="overflow:auto">\n<table>\n<thead>${tr(head, 'th')}</thead>\n<tbody>\n${rows.map(r => tr(r, 'td')).join('\n')}\n</tbody>\n</table>\n</div>`;
 }
 
 function paragraph(text) {

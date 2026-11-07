@@ -61,13 +61,15 @@ const table7 = text => text.match(/\| Cookie or tool[\s\S]*?\n\n/)[0].trim().spl
 chk('Section 7: the table has no gap in it, with the rows or without', table7(pS.text).every(l => l.startsWith('|')) && table7(pS.text).length === 9 && table7(pL.text).every(l => l.startsWith('|')) && table7(pL.text).length === 7, [table7(pS.text).length, table7(pL.text).length], '9 and 7');
 chk('Section 7: no IF inside a table cell', !privacy.split('\n').some(l => /^\|/.test(l) && /\{IF|\{END IF/.test(l)), '', '');
 chk('Section 7: Google Analytics needs consent', /^\| Google Analytics \|.*\| Yes \|$/m.test(pS.text), rowOf(pS.text, 'Google Analytics'), 'Yes');
+chk('Section 7: the Google Maps row (Brandon, 7 Nov: the map is in the footer, blocked until consent)', rowOf(pS.text, 'Google Maps') === '| Google Maps | Shows our location map once you choose to load it | Functional | Set by Google when the map loads | Yes, by accepting cookies or clicking to load the map |', rowOf(pS.text, 'Google Maps'), 'the new row');
+chk('Section 7: nothing still says the contact page or Show map', !/contact page|Show map/.test(privacy), '', '');
 chk('Section 8: analytics retention is 14 months', rowOf(pS.text, 'Website analytics') === '| Website analytics | Up to 14 months |', rowOf(pS.text, 'Website analytics'), '14 months');
 
 // ── Brandon's decisions ──
 chk('Section 6: the subcontractors bullet shows on yes', /Subcontractors who help with your job/.test(pS.text), '', '');
 chk('Section 6: the subcontractors bullet goes on no', !/ubcontractors/.test(pL.text), '', '');
-chk('Section 6: Google Ads named on yes', /Google, for Google Business Profile, Maps, Analytics and Google Ads\./.test(pS.text), '', '');
-chk('Section 6: no Google Ads on no, and the sentence still ends cleanly', /Google, for Google Business Profile, Maps, Analytics\./.test(pL.text), '', '');
+chk('Section 6: Google Ads named on yes', /Google, for our Google Business Profile, Maps and Analytics, and Google Ads\./.test(pS.text), '', '');
+chk('Section 6: no Google Ads on no, and the sentence still ends cleanly', /Google, for our Google Business Profile, Maps and Analytics\./.test(pL.text), '', '');
 chk('Section 6: the text messaging bullet follows sms_tool', /Our text messaging provider/.test(pS.text) && !/text messaging provider/.test(pL.text), '', '');
 chk('Privacy: sole trader runs under the form\'s full name and address', /The business is run by Jane Smith as a sole trader, at 1 High Street, Southampton\./.test(pS.text), '', '');
 chk('Privacy: limited line names the registered company', /We are Kestrel Ridge Holdings Ltd, a limited company, company number 12345678, registered office 2 Mill Lane, Reading\./.test(pL.text), '', '');

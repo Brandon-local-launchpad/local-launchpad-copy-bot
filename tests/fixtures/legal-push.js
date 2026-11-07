@@ -103,6 +103,9 @@ const seedPages = (over = {}) => [
   chk('Client 1: the page is HTML with no title, no Markdown left', b1.startsWith('<p>Last updated:') && b1.includes('<h2>1. Who we are</h2>') && b1.includes('<ul>') && !/^#|\*\*|^- /m.test(b1), b1.slice(0, 80), 'html');
   const pp1 = bodyOf(f1, 22);
   chk('Client 1: the Privacy Policy tables are real tables', (pp1.match(/<table>/g) || []).length === 3 && pp1.includes('<th>Cookie or tool</th>') && pp1.includes('<td>Google Ads</td>') && !pp1.includes('<td>Meta Pixel</td>') && !/\|/.test(pp1), '', 'tables');
+  const tablesOf = html => (html.match(/<table>[\s\S]*?<\/table>/g) || []).map(t => ({ th: (t.match(/<th>/g) || []).length, rows: (t.match(/<tr>[\s\S]*?<\/tr>/g) || []).slice(1).map(r => (r.match(/<td>/g) || []).length) }));
+  chk('Client 1: every table has one header row, and every row has as many cells as the header', tablesOf(pp1).map(t => t.th).join() === '3,5,2' && tablesOf(pp1).every(t => t.rows.length > 0 && t.rows.every(n => n === t.th)), tablesOf(pp1), '3, 5 and 2 columns');
+  chk('Client 1: every table sits in its own scroll box, so a phone page never scrolls sideways', (pp1.match(/<div class="llp-table-scroll" style="overflow:auto">\n<table>/g) || []).length === 3, '', 'three');
   chk('Client 1: the log has a row per page, with snapshots', (await stores[c1].listLog()).filter(l => l.pageType === 'legal' && l.result === 'pushed' && l.snapshotId).length === 3, await stores[c1].listLog(), 3);
   outputs.push({ label: 'Client 1: sole trader, both questions yes, ticked, no exceptions', result: 'All three pages pushed', bodies: held(f1) });
 
@@ -220,7 +223,7 @@ const seedPages = (over = {}) => [
   // ── The filled pages, to read ──
   const at = process.argv.indexOf('--write');
   if (at > 0) {
-    const toText = html => html.replace(/<h2>(.*?)<\/h2>/g, '\n### $1\n').replace(/<\/?(ul|table|thead|tbody|tr)>/g, '').replace(/<li>(.*?)<\/li>/g, '- $1').replace(/<t[hd]>(.*?)<\/t[hd]>/g, '| $1 ').replace(/<strong>(.*?)<\/strong>/g, '**$1**').replace(/<\/?p>/g, '\n').replace(/&quot;/g, '"').replace(/&amp;/g, '&').replace(/\n{3,}/g, '\n\n').trim();
+    const toText = html => html.replace(/<h2>(.*?)<\/h2>/g, '\n### $1\n').replace(/<thead><tr>(.*?)<\/tr><\/thead>/g, (m, cells) => `<tr>${cells}</tr>\n${'| --- '.repeat((cells.match(/<th>/g) || []).length)}|`).replace(/<\/tr>/g, '|').replace(/<\/?(ul|table|tbody|tr|div[^>]*)>/g, '').replace(/<li>(.*?)<\/li>/g, '- $1').replace(/<t[hd]>(.*?)<\/t[hd]>/g, '| $1 ').replace(/<strong>(.*?)<\/strong>/g, '**$1**').replace(/<\/?p>/g, '\n').replace(/&quot;/g, '"').replace(/&amp;/g, '&').replace(/\n{3,}/g, '\n\n').trim();
     const L = ['# Legal pages: the three test clients on the fake server', '', 'Made-up clients. This is what each fake WordPress page held after the push, turned back into plain text to read.', ''];
     for (const o of outputs) {
       L.push(`## ${o.label}`, '', `**Result:** ${o.result}`, '');

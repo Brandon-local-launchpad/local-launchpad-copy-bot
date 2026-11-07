@@ -168,16 +168,17 @@ This information is linked to a random identifier set by a cookie, not to your n
 
 ### 4. Why we use it, and our legal basis
 
-| What we do | Why | Legal basis 
+| What we do | Why | Legal basis |
+| --- | --- | --- |
 
-| Reply to your enquiry and give you a quote | So we can tell you whether we can help and what it will cost | Taking steps at your request before a contract 
-| Book, confirm and carry out the work, send reminders about visits, invoice you and take payment | To do the job you have asked for | Performing our contract with you 
-| Keep records of the work we have done for you | To honour our guarantee, deal with any complaint, and meet accounting and tax rules | Legal obligation and legitimate interests 
-| Ask you for a review after a job, and reply to reviews | So other customers can see genuine feedback about our work. You can ignore the request. | Legitimate interests 
-| Show photos of completed work | To show the quality of our work | Your consent, which you can withdraw at any time 
-| Send you offers or news about our services by email or text | Marketing | Your consent, given by opting in. You can opt out at any time. 
-| Measure how the website is used | To understand which pages work and fix problems | Your consent, given through the cookie banner. 
-| Deal with a complaint, claim or dispute | To protect our business and meet our obligations | Legitimate interests and legal obligation 
+| Reply to your enquiry and give you a quote | So we can tell you whether we can help and what it will cost | Taking steps at your request before a contract |
+| Book, confirm and carry out the work, send reminders about visits, invoice you and take payment | To do the job you have asked for | Performing our contract with you |
+| Keep records of the work we have done for you | To honour our guarantee, deal with any complaint, and meet accounting and tax rules | Legal obligation and legitimate interests |
+| Ask you for a review after a job, and reply to reviews | So other customers can see genuine feedback about our work. You can ignore the request. | Legitimate interests |
+| Show photos of completed work | To show the quality of our work | Your consent, which you can withdraw at any time |
+| Send you offers or news about our services by email or text | Marketing | Your consent, given by opting in. You can opt out at any time. |
+| Measure how the website is used | To understand which pages work and fix problems | Your consent, given through the cookie banner. |
+| Deal with a complaint, claim or dispute | To protect our business and meet our obligations | Legitimate interests and legal obligation |
 
 Where we rely on legitimate interests, we have checked that our use of your information is fair and does not override your rights. You can object at any time (see section 9).
 
@@ -193,7 +194,7 @@ We do not sell your information. We share it only with the people and services w
 
 - Our website provider, Local Launchpad, which builds and maintains this website and the enquiry forms on it, and processes enquiries on our behalf.
 - Our website hosting provider.
-- Google, for Google Business Profile, Maps, Analytics and Google Ads.
+- Google, for our Google Business Profile, Maps and Analytics, and Google Ads.
 - The service that displays our Google reviews on this website.
 - Our Google Business Profile management service, which helps us reply to reviews and keep our profile up to date.
 - Our accountant, bank and payment provider.
@@ -209,26 +210,28 @@ Services that handle your information on our behalf may only use it for the purp
 
 Cookies are small files placed on your device by websites you visit. This website uses the following:
 
-| Cookie or tool | Purpose | Type | How long | Needs your consent? 
+| Cookie or tool | Purpose | Type | How long | Needs your consent? |
+| --- | --- | --- | --- | --- |
 
-| Cookie consent | Remembers your cookie choice | Essential | 12 months | No 
-| Enquiry form | Protects the form from spam and remembers what you typed if the page reloads | Essential | Until you close the browser | No 
-| Google Analytics | Counts visits and shows us which pages are used | Statistics | Up to 2 years | Yes 
-| Google Maps | Shows the map on our contact page once you click "Show map" | Functional | Set by Google when the map loads | Yes, by clicking to load the map 
-| Google reviews widget | Displays our Google reviews | Functional | Set by the widget provider | Yes 
-| Google Ads | Measures whether our adverts led to an enquiry | Advertising | Up to 90 days | Yes 
+| Cookie consent | Remembers your cookie choice | Essential | 12 months | No |
+| Enquiry form | Protects the form from spam and remembers what you typed if the page reloads | Essential | Until you close the browser | No |
+| Google Analytics | Counts visits and shows us which pages are used | Statistics | Up to 2 years | Yes |
+| Google Maps | Shows our location map once you choose to load it | Functional | Set by Google when the map loads | Yes, by accepting cookies or clicking to load the map |
+| Google reviews widget | Displays our Google reviews | Functional | Set by the widget provider | Yes |
+| Google Ads | Measures whether our adverts led to an enquiry | Advertising | Up to 90 days | Yes |
 
 When you first visit, a banner lets you accept or reject the cookies that need consent. Both choices are equally easy. Nothing that needs consent is set until you choose. You can change your choice at any time using the "Manage cookies" link in the footer.
 
 ### 8. How long we keep it
 
-| Information | How long 
+| Information | How long |
+| --- | --- |
 
-| Enquiries that do not become a job | 12 months from your last contact, then deleted 
-| Quotes, job records, invoices and photos of the work | 6 years from the end of the tax year of the job, for tax and guarantee purposes 
-| Photos used on our website or social media | Until you withdraw consent 
-| Marketing opt-in | Until you opt out 
-| Website analytics | Up to 14 months 
+| Enquiries that do not become a job | 12 months from your last contact, then deleted |
+| Quotes, job records, invoices and photos of the work | 6 years from the end of the tax year of the job, for tax and guarantee purposes |
+| Photos used on our website or social media | Until you withdraw consent |
+| Marketing opt-in | Until you opt out |
+| Website analytics | Up to 14 months |
 
 After these periods, information is deleted or made anonymous.
 
@@ -484,16 +487,17 @@ This information is linked to a random identifier set by a cookie, not to your n
 
 ### 4. Why we use it, and our legal basis
 
-| What we do | Why | Legal basis 
+| What we do | Why | Legal basis |
+| --- | --- | --- |
 
-| Reply to your enquiry and give you a quote | So we can tell you whether we can help and what it will cost | Taking steps at your request before a contract 
-| Book, confirm and carry out the work, send reminders about visits, invoice you and take payment | To do the job you have asked for | Performing our contract with you 
-| Keep records of the work we have done for you | To honour our guarantee, deal with any complaint, and meet accounting and tax rules | Legal obligation and legitimate interests 
-| Ask you for a review after a job, and reply to reviews | So other customers can see genuine feedback about our work. You can ignore the request. | Legitimate interests 
-| Show photos of completed work | To show the quality of our work | Your consent, which you can withdraw at any time 
-| Send you offers or news about our services by email or text | Marketing | Your consent, given by opting in. You can opt out at any time. 
-| Measure how the website is used | To understand which pages work and fix problems | Your consent, given through the cookie banner. 
-| Deal with a complaint, claim or dispute | To protect our business and meet our obligations | Legitimate interests and legal obligation 
+| Reply to your enquiry and give you a quote | So we can tell you whether we can help and what it will cost | Taking steps at your request before a contract |
+| Book, confirm and carry out the work, send reminders about visits, invoice you and take payment | To do the job you have asked for | Performing our contract with you |
+| Keep records of the work we have done for you | To honour our guarantee, deal with any complaint, and meet accounting and tax rules | Legal obligation and legitimate interests |
+| Ask you for a review after a job, and reply to reviews | So other customers can see genuine feedback about our work. You can ignore the request. | Legitimate interests |
+| Show photos of completed work | To show the quality of our work | Your consent, which you can withdraw at any time |
+| Send you offers or news about our services by email or text | Marketing | Your consent, given by opting in. You can opt out at any time. |
+| Measure how the website is used | To understand which pages work and fix problems | Your consent, given through the cookie banner. |
+| Deal with a complaint, claim or dispute | To protect our business and meet our obligations | Legitimate interests and legal obligation |
 
 Where we rely on legitimate interests, we have checked that our use of your information is fair and does not override your rights. You can object at any time (see section 9).
 
@@ -509,7 +513,7 @@ We do not sell your information. We share it only with the people and services w
 
 - Our website provider, Local Launchpad, which builds and maintains this website and the enquiry forms on it, and processes enquiries on our behalf.
 - Our website hosting provider.
-- Google, for Google Business Profile, Maps, Analytics.
+- Google, for our Google Business Profile, Maps and Analytics.
 - The service that displays our Google reviews on this website.
 - Our Google Business Profile management service, which helps us reply to reviews and keep our profile up to date.
 - Our accountant, bank and payment provider.
@@ -524,25 +528,27 @@ Services that handle your information on our behalf may only use it for the purp
 
 Cookies are small files placed on your device by websites you visit. This website uses the following:
 
-| Cookie or tool | Purpose | Type | How long | Needs your consent? 
+| Cookie or tool | Purpose | Type | How long | Needs your consent? |
+| --- | --- | --- | --- | --- |
 
-| Cookie consent | Remembers your cookie choice | Essential | 12 months | No 
-| Enquiry form | Protects the form from spam and remembers what you typed if the page reloads | Essential | Until you close the browser | No 
-| Google Analytics | Counts visits and shows us which pages are used | Statistics | Up to 2 years | Yes 
-| Google Maps | Shows the map on our contact page once you click "Show map" | Functional | Set by Google when the map loads | Yes, by clicking to load the map 
-| Google reviews widget | Displays our Google reviews | Functional | Set by the widget provider | Yes 
+| Cookie consent | Remembers your cookie choice | Essential | 12 months | No |
+| Enquiry form | Protects the form from spam and remembers what you typed if the page reloads | Essential | Until you close the browser | No |
+| Google Analytics | Counts visits and shows us which pages are used | Statistics | Up to 2 years | Yes |
+| Google Maps | Shows our location map once you choose to load it | Functional | Set by Google when the map loads | Yes, by accepting cookies or clicking to load the map |
+| Google reviews widget | Displays our Google reviews | Functional | Set by the widget provider | Yes |
 
 When you first visit, a banner lets you accept or reject the cookies that need consent. Both choices are equally easy. Nothing that needs consent is set until you choose. You can change your choice at any time using the "Manage cookies" link in the footer.
 
 ### 8. How long we keep it
 
-| Information | How long 
+| Information | How long |
+| --- | --- |
 
-| Enquiries that do not become a job | 12 months from your last contact, then deleted 
-| Quotes, job records, invoices and photos of the work | 6 years from the end of the tax year of the job, for tax and guarantee purposes 
-| Photos used on our website or social media | Until you withdraw consent 
-| Marketing opt-in | Until you opt out 
-| Website analytics | Up to 14 months 
+| Enquiries that do not become a job | 12 months from your last contact, then deleted |
+| Quotes, job records, invoices and photos of the work | 6 years from the end of the tax year of the job, for tax and guarantee purposes |
+| Photos used on our website or social media | Until you withdraw consent |
+| Marketing opt-in | Until you opt out |
+| Website analytics | Up to 14 months |
 
 After these periods, information is deleted or made anonymous.
 
