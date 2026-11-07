@@ -77,6 +77,12 @@ The form asks no separate question about working practices. `confirmed_practices
 - Each field has a value, a status (`filled` / `blank`) and a source (`form` /
   `transcript` / `manual`). A field typed in on the record page becomes `manual`
   and is never overwritten by a later submission or a re-run.
+- A later submission fills in and changes answers, but a blank answer doesn't wipe a
+  filled one, so a client can resubmit a short form without losing the first
+  (7 Nov 2026). Two exceptions: a group with an answer in this submission replaces as
+  a whole (ticks taken off a service list go, a typed answer replaces a voice one),
+  and a field marked `blank_clears` in the map is cleared when its question is in the
+  submission. To remove any other answer, edit the record by hand.
 - Every field has a **tier** (`tier` in the map, mirrored by `optional: true`):
   `needed` (CopyBot can't build a correct page without it: business name, phone,
   email, business address, owner, hours, visit/travel, niche, service ticks,

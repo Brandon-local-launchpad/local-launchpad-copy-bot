@@ -4079,16 +4079,19 @@ if (pool && pageMapStore) {
   const leadsnap = process.env.LEADSNAP_API_TOKEN ? require('./leadsnap/client').createLeadsnapClient() : null;
   require('./gbp/routes').mountGbpApi(app, { pool, loadInputs: gbpInputsFor, callModel: gbpCallModel, saveClientValue, leadsnap, directoryDomains: citationStore ? () => citationStore.domains() : null });
   // The Lead Snap tab (5 Nov): the autopost config, from the GBP inputs and the Fillout voice answers
-  const leadSnapCallModel = args => makeCallModel(new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY }), require('./leadsnap/autopost/generate').MODEL, { onUsage: modelLog.tagged('Lead Snap autopost') })(args);
-  const leadSnapPreviewCallModel = args => makeCallModel(new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY }), require('./leadsnap/autopost/generate').MODEL, { onUsage: modelLog.tagged('Lead Snap preview') })(args);
-  require('./leadsnap/autopost/routes').mountLeadSnapApi(app, { pool, saveClientValue, callModel: leadSnapCallModel, previewCallModel: leadSnapPreviewCallModel, loadInputs: async clientId => {
+  const gbpPostsCallModel = args => makeCallModel(new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY }), require('./gbp-posts/write').MODEL, { onUsage: modelLog.tagged('GBP Posts') })(args);
+  const leadSnapInputs = async clientId => {
     const I = await gbpInputsFor(clientId);
     const { rows } = await pool.query(`SELECT trade FROM clients WHERE id=$1`, [clientId]);
     const rec = filloutService ? await filloutService.record(clientId).catch(() => null) : null;
     const fields = rec ? rec.sections.flatMap(s => s.fields) : [];
     const answer = key => { const f = fields.find(x => x.key === key); return f && f.value != null ? f.value : ''; };
     return { I, trade: (rec && rec.niche) || (rows[0] && rows[0].trade) || '', answers: { tone: answer('tone'), words_to_avoid: answer('words_to_avoid') } };
-  } });
+  };
+  require('./gbp-posts/routes').mountGbpPostsApi(app, { pool, callModel: gbpPostsCallModel, loadInputs: leadSnapInputs });
+  const leadSnapCallModel = args => makeCallModel(new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY }), require('./leadsnap/autopost/generate').MODEL, { onUsage: modelLog.tagged('Lead Snap autopost') })(args);
+  const leadSnapPreviewCallModel = args => makeCallModel(new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY }), require('./leadsnap/autopost/generate').MODEL, { onUsage: modelLog.tagged('Lead Snap preview') })(args);
+  require('./leadsnap/autopost/routes').mountLeadSnapApi(app, { pool, saveClientValue, callModel: leadSnapCallModel, previewCallModel: leadSnapPreviewCallModel, loadInputs: leadSnapInputs });
 }
 
 // Category pages (CORE (16), 23 Oct): every category page and location category page from

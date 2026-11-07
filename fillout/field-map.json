@@ -1220,6 +1220,7 @@
     {
       "id": "uses_subcontractors",
       "key": "uses_subcontractors",
+      "blank_clears": true,
       "label": "Do you ever use subcontractors on your jobs?",
       "section": "Quotes Process and Response",
       "type": "MultipleChoice",
@@ -1231,6 +1232,7 @@
     {
       "id": "late_payment_interest",
       "key": "late_payment_interest",
+      "blank_clears": true,
       "label": "Do you charge interest if a customer pays late?",
       "section": "Quotes Process and Response",
       "type": "MultipleChoice",
@@ -1242,6 +1244,7 @@
     {
       "id": "standard_terms_confirmed",
       "key": "standard_terms_confirmed",
+      "blank_clears": true,
       "label": "These match how I work, or I've told you what's different below",
       "section": "Quotes Process and Response",
       "type": "Checkbox",
@@ -1253,6 +1256,7 @@
     {
       "id": "standard_terms_exceptions",
       "key": "standard_terms_exceptions",
+      "blank_clears": true,
       "label": "Anything that doesn't match how you work?",
       "section": "Quotes Process and Response",
       "type": "LongAnswer",

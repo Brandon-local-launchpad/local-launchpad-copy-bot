@@ -140,6 +140,24 @@ const QIDS = { business_name: 'bwUuvaZTmChegZekppzNNv', business_email: '5EHeuZ2
   chk('Clearing the exception doesn\'t clear anything else', s.held && code(s.reasons).join() === 'not_confirmed', s.reasons, 'not_confirmed');
   await deliver({ id: 'hold-9', time: '2026-01-09T10:00:00.000Z' });
 
+  // ── A later form: a short one keeps the answers, one that asks the question can clear them ──
+  const before = await fillout.legalAnswers(id);
+  const short = JSON.parse(JSON.stringify(sample));
+  short.submission.submissionId = 'hold-short';
+  short.submission.submissionTime = '2026-01-09T12:00:00.000Z';
+  short.submission.questions = short.submission.questions.filter(q => [fillout.map.business_name_question_id, fillout.map.business_email_question_id, fillout.map.niche_question_id].includes(q.id));
+  const shortRow = await fillout.receive(short);
+  await fillout.process(shortRow.id);
+  s = await legal.status(id);
+  chk('A short form without the questions keeps the sign-off', JSON.stringify(await fillout.legalAnswers(id)) === JSON.stringify(before) && !s.held, s.reasons, []);
+  await deliver({ id: 'hold-asks-1', notes: 'An exception', time: '2026-01-09T13:00:00.000Z' });
+  chk('A form with an exception holds', (await legal.status(id)).reasons.some(r => r.code === 'exceptions'), '', 'held');
+  await deliver({ id: 'hold-asks-2', notes: '', time: '2026-01-09T14:00:00.000Z' });
+  chk('A form that asks and is left blank removes the exception', !(await legal.status(id)).held, (await legal.status(id)).reasons, []);
+  await deliver({ id: 'hold-asks-3', tick: false, time: '2026-01-09T15:00:00.000Z' });
+  chk('A form that asks and is left unticked takes the sign-off back', (await legal.status(id)).reasons.some(r => r.code === 'not_confirmed'), '', 'held');
+  await deliver({ id: 'hold-asks-4', time: '2026-01-09T16:00:00.000Z' });
+
   // ── The shared login can't release the hold ──
   await fillout.setField(id, 'standard_terms_confirmed', true);
   chk('A tick by hand as the newest answer does not count as the sign-off', (await legal.status(id)).reasons.some(r => /ticked by hand/.test(r.message)), (await legal.status(id)).reasons, 'by hand');
