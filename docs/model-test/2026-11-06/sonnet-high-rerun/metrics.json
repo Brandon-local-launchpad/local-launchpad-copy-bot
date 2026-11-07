@@ -33,7 +33,7 @@
     ],
     "claims_open_writer": 0,
     "claims_status": "clear",
-    "claims_open_audit": 3,
+    "claims_open_audit": 4,
     "judge_score": 7.65,
     "judge_readings": [
       7.6,
@@ -65,7 +65,7 @@
     "usd_billed": 1.0638161,
     "usd": 1.0638161,
     "gbp": 0.8297765579999999,
-    "usd_judge_and_audit": 0.212368,
+    "usd_judge_and_audit": 0.269159,
     "max_prompt_tokens": 30863,
     "caching": {
       "writer_input": 12173,
@@ -110,7 +110,7 @@
     ],
     "claims_open_writer": 1,
     "claims_status": "needs acceptance",
-    "claims_open_audit": 3,
+    "claims_open_audit": 4,
     "judge_score": 7.3,
     "judge_readings": [
       7.3,
@@ -148,7 +148,7 @@
     "usd_billed": 1.1102368000000002,
     "usd": 1.1102368000000002,
     "gbp": 0.8659847040000003,
-    "usd_judge_and_audit": 0.234579,
+    "usd_judge_and_audit": 0.292285,
     "max_prompt_tokens": 32425,
     "caching": {
       "writer_input": 12242,
@@ -196,7 +196,7 @@
     ],
     "claims_open_writer": 0,
     "claims_status": "clear",
-    "claims_open_audit": 3,
+    "claims_open_audit": 5,
     "judge_score": 7.3,
     "judge_readings": [
       7.3,
@@ -232,7 +232,7 @@
     "usd_billed": 0.9534442999999999,
     "usd": 0.9534442999999999,
     "gbp": 0.7436865539999999,
-    "usd_judge_and_audit": 0.19313139999999998,
+    "usd_judge_and_audit": 0.2513854,
     "max_prompt_tokens": 32525,
     "caching": {
       "writer_input": 12242,
@@ -277,7 +277,7 @@
     ],
     "claims_open_writer": 1,
     "claims_status": "needs acceptance",
-    "claims_open_audit": 6,
+    "claims_open_audit": 9,
     "judge_score": 7.300000000000001,
     "judge_readings": [
       7.4,
@@ -313,7 +313,7 @@
     "usd_billed": 0.510663,
     "usd": 0.510663,
     "gbp": 0.39831714,
-    "usd_judge_and_audit": 0.2172265,
+    "usd_judge_and_audit": 0.276254,
     "max_prompt_tokens": 32075,
     "caching": {
       "writer_input": 12209,
@@ -324,6 +324,165 @@
       "retry_input": 45404,
       "prefix_sha": 45416,
       "message_sha": 35466
+    }
+  },
+  {
+    "page": "service",
+    "setup": "R3",
+    "setup_label": "sonnet-5-5 high, rerun 3",
+    "tokens": {
+      "input": 48482,
+      "output": 57525,
+      "thinking": 51881,
+      "thinking_reported": true,
+      "cache_read": 322742,
+      "cache_write": 15299
+    },
+    "calls": {
+      "total": 13,
+      "writer": 1,
+      "retry": 9,
+      "claims": 2,
+      "sonnet_rewrites": 0
+    },
+    "retry_rounds": 3,
+    "retries_kept": 16,
+    "block_before": 11,
+    "block_after": 1,
+    "flag_before": 18,
+    "flag_after": 8,
+    "block_codes": [
+      "PRACTICE"
+    ],
+    "model_flags": [
+      "F-REVIEWS",
+      "F-ALLOC"
+    ],
+    "claims_open_writer": 0,
+    "claims_status": "clear",
+    "claims_open_audit": 2,
+    "judge_score": 7.699999999999999,
+    "judge_readings": [
+      7.6,
+      7.8
+    ],
+    "judge_failed": [
+      6,
+      6
+    ],
+    "verdict": "Has a BLOCK",
+    "edit_list": 12,
+    "judge_failed_ids": [
+      "C1",
+      "P5",
+      "Y11",
+      "P6",
+      "Y6",
+      "Y5"
+    ],
+    "wall_s": 351.313,
+    "rate_limit_waits": 0,
+    "effort_lowered": 0,
+    "writer_lowered": false,
+    "writer_effort": "high",
+    "ran_out": [],
+    "served_models": [
+      "claude-sonnet-5-5"
+    ],
+    "truncated": 0,
+    "usd_billed": 0.7427357000000001,
+    "usd": 0.7427357000000001,
+    "gbp": 0.5793338460000002,
+    "usd_judge_and_audit": 0.1977962,
+    "max_prompt_tokens": 32815,
+    "caching": {
+      "writer_input": 12474,
+      "writer_read": 0,
+      "writer_write": 15299,
+      "retry_read": 256572,
+      "retry_write": 0,
+      "retry_input": 26296,
+      "prefix_sha": "bb456ec9dabfb601",
+      "message_sha": "0af23957b116f3b6"
+    }
+  },
+  {
+    "page": "service",
+    "setup": "R4",
+    "setup_label": "sonnet-5-5 high, rerun 4",
+    "tokens": {
+      "input": 65404,
+      "output": 58722,
+      "thinking": 52594,
+      "thinking_reported": true,
+      "cache_read": 402769,
+      "cache_write": 86966
+    },
+    "calls": {
+      "total": 19,
+      "writer": 1,
+      "retry": 13,
+      "claims": 4,
+      "sonnet_rewrites": 0
+    },
+    "retry_rounds": 5,
+    "retries_kept": 19,
+    "block_before": 12,
+    "block_after": 0,
+    "flag_before": 21,
+    "flag_after": 8,
+    "block_codes": [],
+    "model_flags": [
+      "F-REVIEWS",
+      "F-ALLOC"
+    ],
+    "claims_open_writer": 1,
+    "claims_status": "needs acceptance",
+    "claims_open_audit": 6,
+    "judge_score": 7.5,
+    "judge_readings": [
+      7.3,
+      7.7
+    ],
+    "judge_failed": [
+      7,
+      7
+    ],
+    "verdict": "Ready to edit",
+    "edit_list": 11,
+    "judge_failed_ids": [
+      "C9",
+      "P5",
+      "Y2",
+      "V2",
+      "P6",
+      "Y6",
+      "Y5"
+    ],
+    "wall_s": 359.69,
+    "rate_limit_waits": 0,
+    "effort_lowered": 0,
+    "writer_lowered": false,
+    "writer_effort": "high",
+    "ran_out": [],
+    "served_models": [
+      "claude-sonnet-5-5"
+    ],
+    "truncated": 0,
+    "usd_billed": 0.9757199000000003,
+    "usd": 0.9757199000000003,
+    "gbp": 0.7610615220000002,
+    "usd_judge_and_audit": 0.2040342,
+    "max_prompt_tokens": 32587,
+    "caching": {
+      "writer_input": 12474,
+      "writer_read": 0,
+      "writer_write": 15299,
+      "retry_read": 317768,
+      "retry_write": 52836,
+      "retry_input": 37973,
+      "prefix_sha": "bb456ec9dabfb601",
+      "message_sha": "0af23957b116f3b6"
     }
   },
   {
@@ -358,7 +517,7 @@
     ],
     "claims_open_writer": 0,
     "claims_status": "clear",
-    "claims_open_audit": 3,
+    "claims_open_audit": 6,
     "judge_score": 7.5,
     "judge_readings": [
       7.4,
@@ -389,7 +548,7 @@
     "usd_billed": 1.5845887000000003,
     "usd": 1.5845887000000003,
     "gbp": 1.2359791860000002,
-    "usd_judge_and_audit": 0.36047399999999996,
+    "usd_judge_and_audit": 0.47914399999999996,
     "max_prompt_tokens": 54223,
     "caching": {
       "writer_input": 13206,
@@ -434,7 +593,7 @@
     ],
     "claims_open_writer": 0,
     "claims_status": "clear",
-    "claims_open_audit": 0,
+    "claims_open_audit": 2,
     "judge_score": 7.8,
     "judge_readings": [
       7.8,
@@ -467,7 +626,7 @@
     "usd_billed": 0.8657474000000002,
     "usd": 0.8657474000000002,
     "gbp": 0.6752829720000002,
-    "usd_judge_and_audit": 0.369391,
+    "usd_judge_and_audit": 0.483367,
     "max_prompt_tokens": 56191,
     "caching": {
       "writer_input": 13226,
@@ -512,7 +671,7 @@
     ],
     "claims_open_writer": 0,
     "claims_status": "clear",
-    "claims_open_audit": 1,
+    "claims_open_audit": 0,
     "judge_score": 7.5,
     "judge_readings": [
       7.4,
@@ -547,7 +706,7 @@
     "usd_billed": 1.0897491,
     "usd": 1.0897491,
     "gbp": 0.850004298,
-    "usd_judge_and_audit": 0.366983,
+    "usd_judge_and_audit": 0.480479,
     "max_prompt_tokens": 56540,
     "caching": {
       "writer_input": 13226,
@@ -628,7 +787,7 @@
     "usd_billed": 0.47817875,
     "usd": 0.47817875,
     "gbp": 0.372979425,
-    "usd_judge_and_audit": 0.36883900000000003,
+    "usd_judge_and_audit": 0.483271,
     "max_prompt_tokens": 56192,
     "caching": {
       "writer_input": 12934,
@@ -676,7 +835,7 @@
     ],
     "claims_open_writer": 0,
     "claims_status": "clear",
-    "claims_open_audit": 1,
+    "claims_open_audit": 5,
     "judge_score": 7.8,
     "judge_readings": [
       7.8,
@@ -706,7 +865,7 @@
     "usd_billed": 0.7098134999999999,
     "usd": 0.7098134999999999,
     "gbp": 0.5536545299999999,
-    "usd_judge_and_audit": 0.185054,
+    "usd_judge_and_audit": 0.1957342,
     "max_prompt_tokens": 24841,
     "caching": {
       "writer_input": 5727,
@@ -754,7 +913,7 @@
     ],
     "claims_open_writer": 1,
     "claims_status": "needs acceptance",
-    "claims_open_audit": 7,
+    "claims_open_audit": 5,
     "judge_score": 7.5,
     "judge_readings": [
       7.4,
@@ -788,7 +947,7 @@
     "usd_billed": 0.5180551,
     "usd": 0.5180551,
     "gbp": 0.404082978,
-    "usd_judge_and_audit": 0.1714716,
+    "usd_judge_and_audit": 0.1824618,
     "max_prompt_tokens": 25975,
     "caching": {
       "writer_input": 5479,
@@ -836,7 +995,7 @@
     ],
     "claims_open_writer": 0,
     "claims_status": "clear",
-    "claims_open_audit": 6,
+    "claims_open_audit": 5,
     "judge_score": 7.75,
     "judge_readings": [
       7.9,
@@ -867,7 +1026,7 @@
     "usd_billed": 0.4803009,
     "usd": 0.4803009,
     "gbp": 0.374634702,
-    "usd_judge_and_audit": 0.19138999999999998,
+    "usd_judge_and_audit": 0.20176419999999998,
     "max_prompt_tokens": 25843,
     "caching": {
       "writer_input": 5479,
@@ -915,7 +1074,7 @@
     ],
     "claims_open_writer": 0,
     "claims_status": "clear",
-    "claims_open_audit": 5,
+    "claims_open_audit": 6,
     "judge_score": 7.300000000000001,
     "judge_readings": [
       7.2,
@@ -948,7 +1107,7 @@
     "usd_billed": 0.28043515,
     "usd": 0.28043515,
     "gbp": 0.21873941700000002,
-    "usd_judge_and_audit": 0.18919600000000003,
+    "usd_judge_and_audit": 0.20070020000000002,
     "max_prompt_tokens": 25636,
     "caching": {
       "writer_input": 5479,
@@ -959,6 +1118,167 @@
       "retry_input": 10628,
       "prefix_sha": 49442,
       "message_sha": 14877
+    }
+  },
+  {
+    "page": "homepage",
+    "setup": "R3",
+    "setup_label": "sonnet-5-5 high, rerun 3",
+    "tokens": {
+      "input": 34422,
+      "output": 38579,
+      "thinking": 34217,
+      "thinking_reported": true,
+      "cache_read": 206407,
+      "cache_write": 16322
+    },
+    "calls": {
+      "total": 12,
+      "writer": 1,
+      "retry": 6,
+      "claims": 4,
+      "sonnet_rewrites": 0
+    },
+    "retry_rounds": 4,
+    "retries_kept": 13,
+    "block_before": 1,
+    "block_after": 0,
+    "flag_before": 13,
+    "flag_after": 2,
+    "block_codes": [],
+    "model_flags": [
+      "F-MAP-TEST",
+      "F-LOGOS",
+      "F-REVIEWS",
+      "F-OWNER",
+      "F-THIN"
+    ],
+    "claims_open_writer": 0,
+    "claims_status": "clear",
+    "claims_open_audit": 2,
+    "judge_score": 7.699999999999999,
+    "judge_readings": [
+      7.8,
+      7.6
+    ],
+    "judge_failed": [
+      5,
+      6
+    ],
+    "verdict": "Needs another run",
+    "edit_list": 5,
+    "judge_failed_ids": [
+      "F3",
+      "Y12",
+      "C3j",
+      "Y6",
+      "Y5"
+    ],
+    "wall_s": 267.217,
+    "rate_limit_waits": 0,
+    "effort_lowered": 0,
+    "writer_lowered": false,
+    "writer_effort": "high",
+    "ran_out": [],
+    "served_models": [
+      "claude-sonnet-5-5"
+    ],
+    "truncated": 0,
+    "usd_billed": 0.5160797,
+    "usd": 0.5160797,
+    "gbp": 0.40254216600000003,
+    "usd_judge_and_audit": 0.1785164,
+    "max_prompt_tokens": 25805,
+    "caching": {
+      "writer_input": 5479,
+      "writer_read": 0,
+      "writer_write": 16322,
+      "retry_read": 135222,
+      "retry_write": 0,
+      "retry_input": 15820,
+      "prefix_sha": "5f47ffcbf947aa83",
+      "message_sha": "43af08cb4e6e8c56"
+    }
+  },
+  {
+    "page": "homepage",
+    "setup": "R4",
+    "setup_label": "sonnet-5-5 high, rerun 4",
+    "tokens": {
+      "input": 13506,
+      "output": 28175,
+      "thinking": 24630,
+      "thinking_reported": true,
+      "cache_read": 28484,
+      "cache_write": 34699
+    },
+    "calls": {
+      "total": 4,
+      "writer": 1,
+      "retry": 0,
+      "claims": 2,
+      "sonnet_rewrites": 0
+    },
+    "retry_rounds": 1,
+    "retries_kept": 6,
+    "block_before": 0,
+    "block_after": 0,
+    "flag_before": 14,
+    "flag_after": 5,
+    "block_codes": [],
+    "model_flags": [
+      "F-MAP-TEST",
+      "F-LOGOS",
+      "F-REVIEWS",
+      "F-OWNER",
+      "F-THIN"
+    ],
+    "claims_open_writer": 0,
+    "claims_status": "clear",
+    "claims_open_audit": 5,
+    "judge_score": 7.65,
+    "judge_readings": [
+      7.5,
+      7.8
+    ],
+    "judge_failed": [
+      6,
+      5
+    ],
+    "verdict": "Ready to edit",
+    "edit_list": 10,
+    "judge_failed_ids": [
+      "P5",
+      "E2",
+      "S10",
+      "P6",
+      "Y6",
+      "Y5"
+    ],
+    "wall_s": 199.213,
+    "rate_limit_waits": 0,
+    "effort_lowered": 0,
+    "writer_lowered": false,
+    "writer_effort": "high",
+    "ran_out": [],
+    "served_models": [
+      "claude-sonnet-5-5"
+    ],
+    "truncated": 0,
+    "usd_billed": 0.3983579,
+    "usd": 0.3983579,
+    "gbp": 0.310719162,
+    "usd_judge_and_audit": 0.1687384,
+    "max_prompt_tokens": 25856,
+    "caching": {
+      "writer_input": 5479,
+      "writer_read": 0,
+      "writer_write": 16322,
+      "retry_read": 0,
+      "retry_write": 0,
+      "retry_input": 0,
+      "prefix_sha": "5f47ffcbf947aa83",
+      "message_sha": "43af08cb4e6e8c56"
     }
   }
 ]

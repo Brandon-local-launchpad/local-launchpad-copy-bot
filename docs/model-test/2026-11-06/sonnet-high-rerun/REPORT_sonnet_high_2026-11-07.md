@@ -1,6 +1,6 @@
 # Sonnet 5.5 high, optimised: Edens Edge, 2026-11-07
 
-Every page type on claude-sonnet-5-5 high with the hard BLOCKs, two retry rounds on BLOCKs and the named flags, hyphens fixed in code, one combined style pass, and the claims review cached. Judge: claude-sonnet-5-5, effort high, two readings averaged, as in the main test. Spent on these runs and their judging: $8.589 (£6.699).
+Every page type on claude-sonnet-5-5 high with the hard BLOCKs, two retry rounds on BLOCKs and the named flags, hyphens fixed in code, one combined style pass, and the claims review cached. Judge: claude-sonnet-5-5, effort high, two readings averaged, as in the main test. Spent on these runs and their judging: $12.521 (£9.766).
 
 Cost is the writer, retries, style pass and claims review, not the judge or audit. "Batch" on a normal run is half its cost, the discount it would get through the Batch API. The batch run's own cost is what it was billed, and its normal figure is twice that. Verdicts are read under today's rule. Claims come from the audit with the area list, without findings it marks acceptable, re-run on every row. A ran on the old pipeline and old inputs, with location pages linked before they were built, so it isn't a like for like input. R1 and R2 came before the style pass claims check and the fixed FAQ answers.
 
@@ -8,36 +8,40 @@ Cost is the writer, retries, style pass and claims review, not the judge or audi
 
 | Run | Cost | Batch | Time | Retry calls | BLOCKs before → after | Flags after | Style flags cleared | Style sentences put back | Claims left, fixed audit | Judge score (readings) | Verdict |
 |---|---|---|---|---|---|---|---|---|---|---|---|
-| A: original | $1.064 | $0.532 | 386s | 28 | 10 → 1 | 1 | not run | - | 3 | 7.65 (7.6, 7.7) | Has a BLOCK |
-| Rerun 1 | $1.110 | $0.555 | 424s | 15 | 16 → 0 | 8 | 9 of 17 | - | 3 | 7.30 (7.3, 7.3) | Ready to edit |
-| Rerun 2 | $0.953 | $0.477 | 423s | 14 | 17 → 2 | 7 | 13 of 20 | - | 3 | 7.30 (7.3, 7.3) | Has a BLOCK |
-| Batch run | $1.021 | $0.511 | 4798s | 15 | 8 → 0 | 3 | 11 of 14 | - | 6 | 7.30 (7.4, 7.2) | Ready to edit |
+| A: original | $1.064 | $0.532 | 386s | 28 | 10 → 1 | 1 | not run | - | 4 | 7.65 (7.6, 7.7) | Has a BLOCK |
+| Rerun 1 | $1.110 | $0.555 | 424s | 15 | 16 → 0 | 8 | 9 of 17 | - | 4 | 7.30 (7.3, 7.3) | Ready to edit |
+| Rerun 2 | $0.953 | $0.477 | 423s | 14 | 17 → 2 | 7 | 13 of 20 | - | 5 | 7.30 (7.3, 7.3) | Has a BLOCK |
+| Rerun 3 (latest rules) | $0.743 | $0.371 | 351s | 9 | 11 → 1 | 8 | 14 of 22 | 0 | 2 | 7.70 (7.6, 7.8) | Has a BLOCK |
+| Rerun 4 (latest rules) | $0.976 | $0.488 | 360s | 13 | 12 → 0 | 8 | 11 of 19 | 0 | 6 | 7.50 (7.3, 7.7) | Ready to edit |
+| Batch run | $1.021 | $0.511 | 4798s | 15 | 8 → 0 | 3 | 11 of 14 | - | 9 | 7.30 (7.4, 7.2) | Ready to edit |
 
-Average of R1 and R2: $1.032, 15 retry calls, BLOCKs left 1.0, claims 3.0, score 7.30.
+Average of R3 and R4: $0.859, 11 retry calls, BLOCKs left 0.5, claims 4.0, score 7.60.
 
-BLOCKs left: A: original: PRACTICE; Rerun 2: PRACTICE, PRACTICE.
+BLOCKs left: A: original: PRACTICE; Rerun 2: PRACTICE, PRACTICE; Rerun 3 (latest rules): PRACTICE.
 
 ## Category page: Gardener Southampton
 
 | Run | Cost | Batch | Time | Retry calls | BLOCKs before → after | Flags after | Style flags cleared | Style sentences put back | Claims left, fixed audit | Judge score (readings) | Verdict |
 |---|---|---|---|---|---|---|---|---|---|---|---|
-| A: original | $1.585 | $0.792 | 423s | 34 | 8 → 0 | 0 | not run | - | 3 | 7.50 (7.4, 7.6) | Ready to edit |
-| Rerun 1 | $0.866 | $0.433 | 392s | 7 | 10 → 0 | 3 | 17 of 20 | - | 0 | 7.80 (7.8, 7.8) | Ready to edit |
-| Rerun 2 | $1.090 | $0.545 | 384s | 6 | 9 → 0 | 7 | 22 of 29 | - | 1 | 7.50 (7.4, 7.6) | Ready to edit |
+| A: original | $1.585 | $0.792 | 423s | 34 | 8 → 0 | 0 | not run | - | 6 | 7.50 (7.4, 7.6) | Ready to edit |
+| Rerun 1 | $0.866 | $0.433 | 392s | 7 | 10 → 0 | 3 | 17 of 20 | - | 2 | 7.80 (7.8, 7.8) | Ready to edit |
+| Rerun 2 | $1.090 | $0.545 | 384s | 6 | 9 → 0 | 7 | 22 of 29 | - | 0 | 7.50 (7.4, 7.6) | Ready to edit |
 | Batch run | $0.956 | $0.478 | 4798s | 6 | 7 → 0 | 5 | 20 of 25 | - | 4 | 7.30 (7.3, 7.3) | Ready to edit |
 
-Average of R1 and R2: $0.978, 7 retry calls, BLOCKs left 0.0, claims 0.5, score 7.65.
+Average of R1 and R2: $0.978, 7 retry calls, BLOCKs left 0.0, claims 1.0, score 7.65.
 
 ## Homepage
 
 | Run | Cost | Batch | Time | Retry calls | BLOCKs before → after | Flags after | Style flags cleared | Style sentences put back | Claims left, fixed audit | Judge score (readings) | Verdict |
 |---|---|---|---|---|---|---|---|---|---|---|---|
-| A: original | $0.710 | $0.355 | 272s | 17 | 3 → 0 | 0 | not run | - | 1 | 7.80 (7.8, 7.8) | Ready to edit |
-| Rerun 1 | $0.518 | $0.259 | 235s | 4 | 4 → 0 | 2 | 11 of 13 | - | 7 | 7.50 (7.4, 7.6) | Ready to edit |
-| Rerun 2 | $0.480 | $0.240 | 275s | 2 | 0 → 0 | 0 | 12 of 12 | - | 6 | 7.75 (7.9, 7.6) | Ready to edit |
-| Batch run | $0.561 | $0.280 | 4798s | 4 | 1 → 0 | 3 | 4 of 7 | - | 5 | 7.30 (7.2, 7.4) | Ready to edit |
+| A: original | $0.710 | $0.355 | 272s | 17 | 3 → 0 | 0 | not run | - | 5 | 7.80 (7.8, 7.8) | Ready to edit |
+| Rerun 1 | $0.518 | $0.259 | 235s | 4 | 4 → 0 | 2 | 11 of 13 | - | 5 | 7.50 (7.4, 7.6) | Ready to edit |
+| Rerun 2 | $0.480 | $0.240 | 275s | 2 | 0 → 0 | 0 | 12 of 12 | - | 5 | 7.75 (7.9, 7.6) | Ready to edit |
+| Rerun 3 (latest rules) | $0.516 | $0.258 | 267s | 6 | 1 → 0 | 2 | 9 of 11 | 0 | 2 | 7.70 (7.8, 7.6) | Needs another run |
+| Rerun 4 (latest rules) | $0.398 | $0.199 | 199s | 0 | 0 → 0 | 5 | 9 of 14 | 0 | 5 | 7.65 (7.5, 7.8) | Ready to edit |
+| Batch run | $0.561 | $0.280 | 4798s | 4 | 1 → 0 | 3 | 4 of 7 | - | 6 | 7.30 (7.2, 7.4) | Ready to edit |
 
-Average of R1 and R2: $0.499, 3 retry calls, BLOCKs left 0.0, claims 6.5, score 7.63.
+Average of R3 and R4: $0.457, 3 retry calls, BLOCKs left 0.0, claims 3.5, score 7.67.
 
 ## Where the service page cost goes
 
@@ -48,6 +52,8 @@ Thinking is inside output. No run's draft came near 64,000 tokens, so raising th
 | A | $0.449 | 38,804 | 35,804 | $0.558 | $0.000 | $0.057 | $1.064 |
 | R1 | $0.460 | 39,700 | 36,671 | $0.446 | $0.056 | $0.149 | $1.110 |
 | R2 | $0.532 | 46,912 | 43,854 | $0.285 | $0.092 | $0.045 | $0.953 |
+| R3 | $0.456 | 39,320 | 36,373 | $0.158 | $0.086 | $0.042 | $0.743 |
+| R4 | $0.410 | 34,691 | 31,774 | $0.361 | $0.073 | $0.131 | $0.976 |
 
 ## Caching
 
@@ -58,6 +64,8 @@ Share of prompt tokens read from cache. The core prompt, rules and niche entry s
 | service | A | 85.3% | 0 + 14649 | 28 of 28 | 90.1% | 0.0% | none |
 | service | R1 | 74.1% | 0 + 15232 | 15 of 15 | 79.1% | 65.0% | 87.0% |
 | service | R2 | 85.2% | 0 + 15232 | 14 of 14 | 90.2% | 86.7% | 86.7% |
+| service | R3 | 83.5% | 0 + 15299 | 9 of 9 | 90.7% | 87.4% | 86.9% |
+| service | R4 | 72.6% | 0 + 15299 | 13 of 13 | 77.8% | 65.5% | 87.5% |
 | service | BT | 80.5% | 0 + 15232 | 15 of 15 | 87.5% | 65.0% | 87.8% |
 | category | A | 85.5% | 0 + 36927 | 34 of 34 | 93.9% | 0.0% | none |
 | category | R1 | 85.3% | 0 + 37510 | 7 of 7 | 93.9% | 92.8% | 91.6% |
@@ -66,6 +74,8 @@ Share of prompt tokens read from cache. The core prompt, rules and niche entry s
 | homepage | A | 77.4% | 0 + 15692 | 17 of 17 | 89.3% | 0.0% | none |
 | homepage | R1 | 59.7% | 0 + 16322 | 4 of 4 | 70.8% | 41.4% | 86.8% |
 | homepage | R2 | 73.2% | 0 + 16322 | 2 of 2 | 89.3% | 82.8% | 87.2% |
+| homepage | R3 | 80.3% | 0 + 16322 | 6 of 6 | 89.5% | 83.2% | 87.3% |
+| homepage | R4 | 37.1% | 0 + 16322 | 0 of 0 | 0.0% | 41.9% | 63.1% |
 | homepage | BT | 69.1% | 0 + 16322 | 4 of 4 | 83.3% | 62.2% | 87.9% |
 
 ## Batch timing
