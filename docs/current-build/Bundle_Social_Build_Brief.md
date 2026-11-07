@@ -42,10 +42,11 @@ The rate limits page says daily counts are "keyed to the platform account". If e
 - Source teams: there are two, "Local Launchpad" (brandon@) and "Agency – team" (team@). Connect checks both.
 - Edens Edge does visit before quoting. A visit in a post is checked against `site_visit_before_quote` in the client's confirmed practices.
 
-## Open for Brandon
+## Stage 3 answers (Brandon, 7 Nov 2026)
 
-1. Which location the test team points at, because a real test post goes public there.
-2. Photo Drip category, because the folder is flat (recommended: `AT_WORK`).
+- Test location: our own Local Launchpad profile, the location in the "Local Launchpad" team. Ask Brandon before each test post goes public.
+- Photo Drip category: `AT_WORK` for all, for now.
+- **Stage 3 is on hold until Brandon passes on bundle.social support's answer on the daily quota**, including whether the 20 a day is counted per Google login.
 
 ## Connect, with two source teams
 
