@@ -40,6 +40,12 @@ export async function render(el, ctx) {
     return open + info;
   };
 
+  // Copy for photo sort (7 Nov 2026): the labels, each with its full services, to paste into
+  // Claude after /gbp-photo-sort [Drive link], so the skill names each folder exactly as here
+  const photoSortText = I => [`Lead Snap labels for ${I.business} (folder names, exact):`,
+    ...I.groups.map(g => g.services.length > 1 || g.services[0] !== g.label ? `${g.label}: ${g.services.join(', ')}` : g.label),
+    'Brand: team, van, premises, logo'].join('\n');
+
   const generateCard = () => {
     const I = S.intake, R = S.record, P = S.plan, done = R && R.sheet;
     if (!I) return empty({ title: 'Nothing to build from yet', text: S.error || '' });
@@ -50,7 +56,7 @@ export async function render(el, ctx) {
     if (notes.length) b += `<div class="notice warn" style="margin-bottom:10px"><ul style="margin:0 0 0 18px">${notes.map(n => `<li>${h(n)}</li>`).join('')}</ul></div>`;
     if (R && R.failure) b += `<div class="notice bad" style="margin-bottom:10px"><strong>${h(R.failure.error)}</strong><ul style="margin:6px 0 0 18px">${R.failure.fails.map(f => `<li>${h(f.message)}</li>`).join('')}</ul></div>`;
     b += `<div class="notice" style="margin-bottom:10px"><div><strong>${h(I.business)}</strong> · ${h(I.niche)} · ${h(I.phone || 'no phone saved')}</div><div class="small" style="margin-top:4px">Areas: ${h(I.areas.join(', '))}</div><div class="small muted">${h(I.areasWhy)}</div><div class="small" style="margin-top:4px">USPs: ${h(I.usps.join('; ') || 'none confirmed')}</div><div class="small" style="margin-top:4px">Offer: ${h(I.offer || 'none')}${I.offerSource === 'free_quotes' ? ' <span class="muted">(the client has confirmed free quotes)</span>' : ''}</div><div class="small" style="margin-top:4px">Call to action: ${h(I.cta.line)} <span class="muted">(${h(I.cta.why)})</span></div></div>`;
-    b += `<div class="sec-title">Photos per service</div><div class="muted small" style="margin-bottom:6px">Copybot can't read these yet, so type how many photos each folder holds. Each folder is GBP Photos – Posts / [the service name below]. ${I.groups.length} whole services from the page map, highest value first. 3 or more earns prompts of its own.${I.labelsLocked ? ' These names are locked to the saved config: they only change when you press Generate again.' : ''}</div>
+    b += `<div style="display:flex;justify-content:space-between;gap:8px;align-items:baseline"><div class="sec-title">Photos per service</div><span data-photo-sort>${copyBtn(photoSortText(I), 'Copy for photo sort')}</span></div><div class="muted small" style="margin-bottom:6px">Copybot can't read these yet, so type how many photos each folder holds. Each folder is GBP Photos – Posts / [the service name below]. ${I.groups.length} whole services from the page map, highest value first. 3 or more earns prompts of its own.${I.labelsLocked ? ' These names are locked to the saved config: they only change when you press Generate again.' : ''}</div>
       <div class="tbl-wrap"><table class="tbl"><thead><tr><th>Service</th><th>Photos</th></tr></thead><tbody>
       ${I.groups.map(g => `<tr><td>${h(g.label)}${g.services.length > 1 || g.services[0] !== g.label ? `<div class="muted small">${h(g.services.join(', '))}</div>` : ''}</td><td><input class="input" type="number" min="0" style="width:72px" data-count="${attr(g.key)}" value="${I.photosEntered ? attr(g.photos) : ''}"></td></tr>`).join('')}
       <tr><td>Brand: team, van, premises, logo</td><td><input class="input" type="number" min="0" style="width:72px" data-f="brand" value="${I.photosEntered ? attr(I.brand) : ''}"></td></tr></tbody></table></div>
