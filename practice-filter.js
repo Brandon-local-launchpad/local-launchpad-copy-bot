@@ -8,6 +8,7 @@
 //                  draft and retry. No BLOCK, no retry. A field that is only that sentence can't lose it, so it
 //                  gets one FLAG to write around it (validate-v20.js); if that fails it goes to the edit list.
 // A trade facts stage may also be described as the job, never as a "we" promise (validate-v20.js isTradeStage).
+// The PROMISE shapes in validate-v20.js ("the price won't creep") are handled the same way as a promise.
 
 const { practiceClaims } = require('./practices');
 
@@ -16,10 +17,14 @@ const sentencesOf = t => (String(t || '').match(/[^.!?]+(?:[.!?]+["'’”)\]]*)
 
 // The practices to leave out of this sentence
 function promisesIn(sentence, V) {
-  const { helpers: { scanText }, isTradeStage } = require('./validate-v20');
+  const { helpers: { scanText }, isTradeStage, PROMISE_SHAPE_RE } = require('./validate-v20');
   const confirmed = new Set((V.cv && V.cv.confirmed_practices) || []);
   const plain = scanText(sentence);
-  return practiceClaims(plain, V.niche).filter(c => !confirmed.has(c.practice.key) && c.practice.kind !== 'method' && !isTradeStage(c.match, plain, V));
+  const out = practiceClaims(plain, V.niche).filter(c => !confirmed.has(c.practice.key) && c.practice.kind !== 'method' && !isTradeStage(c.match, plain, V));
+  // The PROMISE shapes are the same kind of thing, and no client value confirms them
+  const shape = plain.match(PROMISE_SHAPE_RE);
+  if (shape) out.push({ match: shape[0], practice: { label: 'A promise about how the job is run' } });
+  return out;
 }
 
 // Returns what it removed: [{ field, sentence, practice }]

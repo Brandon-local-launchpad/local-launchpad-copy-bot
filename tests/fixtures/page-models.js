@@ -138,6 +138,12 @@ const chk = (name, ok, got = '') => { if (ok) pass++; else { fail++; console.log
     chk('Form: yes to written quotes confirms them', PF.formPractices({ written_quotes: 'Yes, valid 30 days' }).map(p => p.key).join() === 'written_quote');
     chk('Form: ticks saved by hand stand', PF.withFormPractices({ confirmed_practices: [], _sources: { confirmed_practices: 'hand' } }, { stand_out: ['fixed pricing'] }).confirmed_practices.length === 0);
     chk('Form: added to what is there', PF.withFormPractices({ confirmed_practices: ['strimmer_edges'] }, { stand_out: ['fixed pricing'] }).confirmed_practices.join() === 'strimmer_edges,price_agreed_before_work');
+    const r5 = rec("We cut the lawn. The price won't change once we start. The edges are tidied.");
+    const gone5 = PF.stripPromises(r5, V);
+    chk('PROMISE: the sentence goes, the rest stays', r5.svc_hero_intro === 'We cut the lawn. The edges are tidied.' && gone5.length === 1, r5.svc_hero_intro);
+    const r6 = rec("The price won't change once we start.");
+    chk('PROMISE: a field that is only that sentence is left for the writer', !PF.stripPromises(r6, V).length && r6.svc_hero_intro.includes('change'));
+    chk('PROMISE: it gets the one rewrite', require('../../validate-v20').RETRY_FLAGS.has('PROMISE'));
     const kinds = require('../../niche-library/practices.json').practices;
     chk('Every practice has a kind', kinds.every(p => p.kind === 'method' || p.kind === 'promise'), kinds.filter(p => !p.kind).map(p => p.key).join());
     chk('The named promises are promises', ['itemised_quote', 'written_quote', 'no_subcontractors', 'owner_on_every_job', 'site_visit_before_quote'].every(k => kinds.find(p => p.key === k).kind === 'promise'));
@@ -166,6 +172,21 @@ const chk = (name, ok, got = '') => { if (ok) pass++; else { fail++; console.log
   {
     const n = require('../../niche-library/landscaper.json');
     if (n.related_services) chk('Related: lawn mowing gets your three', n.related_services['lawn mowing'].join() === 'Hedge trimming,Weed control,Lawn seeding', JSON.stringify(n.related_services['lawn mowing']));
+  }
+
+  // A field that is only a promise gets one rewrite
+  {
+    const { runRetries } = require('../../v20-retry');
+    const ref = { key: 'svc_hero_intro' };
+    const rec = { page: 'service', meta: { page_type: 'service' }, svc_hero_intro: "The price won't change.", included: [], block4: [], steps: [], block5: [], faq_items: [] };
+    let calls = 0;
+    const issue = { type: 'FLAG', check: 'PROMISE', field: 'svc_hero_intro', ref, message: 'promise', retry: true };
+    await runRetries({ record: rec, V: { D: {} }, validate: () => [issue], callRetry: async () => { calls++; return { text: "svc_hero_intro: The price won't move." }; } });
+    chk('Only a promise: one rewrite, however many rounds', calls === 1, calls);
+    calls = 0;
+    const range = { ...issue, check: 'N7', message: '5 words' };
+    await runRetries({ record: rec, V: { D: {} }, validate: () => [range], callRetry: async () => { calls++; return { text: 'svc_hero_intro: Longer now.' }; } });
+    chk('Other retried issues still get two rounds', calls === 2, calls);
   }
 
   // The retry rule
