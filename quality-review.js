@@ -24,6 +24,13 @@ const PASS_SCORE = 8.5;
 
 // Rubric items scored by code: the validator checks behind each
 const CODE_ITEMS = {
+  X1: { title: 'No prompt label in the copy', checks: ['LABEL-LEAK'] },
+  X2: { title: 'Nothing cut off', checks: ['TRUNCATED'] },
+  X3: { title: 'No empty section', checks: ['EMPTY-SECTION', 'N6'] },
+  X4: { title: 'Every internal link on the page map', checks: ['LINK-MAP', 'N2'] },
+  X5: { title: 'Client values read as English', checks: ['RAW-VALUE'] },
+  X6: { title: 'No reference to another section, no internal words', checks: ['SECTION-REF'] },
+  X7: { title: 'Link words read as English', checks: ['ANCHOR-FORCED'] },
   H1: { title: 'H1 is the keyword', checks: ['4a', '4b', '4c', '4d'] },
   H2: { title: 'Final CTA heading names the client\'s category or trade', decisions: 'finalCta' },
   H3: { title: 'Meta description natural, 155 characters or fewer', checks: ['8'], decisions: 'meta' },

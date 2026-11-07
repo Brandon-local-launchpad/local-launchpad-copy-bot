@@ -440,7 +440,7 @@ function computeServiceDecisions({ cv, niche, keyValueMap = {}, rows = [], page,
     niche_steps: steps,
     areas, faq: faqs,
     allocated, thin: !allocated.neighbourhoods.length, overrideUsed: !!blocks.overrideUsed, ideasUsed: Array.isArray(ideasUsed) ? ideasUsed : [], mechanismsUsed,
-    locationLinks, baseLink, linkablePages,
+    locationLinks, baseLink, linkablePages, pageMapUrls: (rows || []).map(r => r.slug).filter(Boolean),
     quoteFree, emergencyOn, emergencyWhy, coastal: cv.coastal_city === 'yes',
     seasonal: seasonal.swapped,
     trade_facts: { file: tradeFacts.file || null, verified: true, included: true, rows: tradeFacts.rows.length, counts: tradeFacts.counts || {}, missing: tradeFacts.missing || [], has_rule: !!tradeFacts.hasRule, thin: !!tradeFacts.thin },
@@ -506,7 +506,7 @@ function formatServiceBlock(D, cv, niche, ctx) {
   for (const q of D.faq) { push(`  ${q.slot}: ${q.question} [${q.doubt}${q.symptom ? ', symptom' : ''}]`); if (q.answer_brief) push(`    → ${q.answer_brief}`); }
   push('');
   if (D.scope === 'base') {
-    push('--- AREA PAGES FOR PARAGRAPH 4 (link exactly these, code picked them so this page and its neighbours link different towns; written as the town name or "[service_lower] in [town]", never the bare H1) ---');
+    push('--- AREA PAGES FOR PARAGRAPH 4 (link exactly these, code picked them so this page and its neighbours link different towns; the town name alone after "in" or "across"; "[service_lower] in [town]" only where the sentence reads with it; never the bare H1) ---');
     for (const l of D.locationLinks) push(`  ${l.name} → ${l.url}`);
     if (!D.locationLinks.length) push('  none (no town has a page for this service or its category yet: paragraph 4 names the wider area without links)');
   } else {

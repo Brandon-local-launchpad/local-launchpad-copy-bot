@@ -181,6 +181,22 @@ The same rubric scores a location page (one per town, the town's hub, always tow
 | L8 | A block 4 cause (its briefed mechanism) has one home on the page, two at most: never made in all three of the content block, block 4 and the FAQ. | code: CAUSE-HOME; judge P6 | Romsey runs, 27 Oct (Brandon: wet ground in three places) |
 | V7 | Each block 4 card makes a different mechanism, none from MECHANISMS USED (the town's category and service pages' causes). | code: MECHANISM; judge P6 | CORE (18) rule |
 
+## X. Hard blocks (Brandon, 7 Nov 2026)
+
+| ID | Test (pass when…) | Scored by | Found |
+|---|---|---|---|
+| X1 | No prompt or output label in the copy ("RETURN:", "card:", "block4", "card_body:"). | code: LABEL-LEAK | model test, 6 Nov |
+| X2 | No field stops mid sentence or mid word, and no first draft was cut at the output limit. | code: TRUNCATED | model test, 6 Nov |
+| X3 | No section the page shows came back empty. | code: EMPTY-SECTION, N6 | model test, 6 Nov |
+| X4 | Every internal link is a page on the page map. | code: LINK-MAP, N2 | Brandon, 7 Nov |
+| X5 | A client value reads as English in its sentence ("going by same week" fails). | code: RAW-VALUE, known shapes; judge for the rest | Brandon, 7 Nov |
+| X6 | No copy names another section by its heading or uses an internal word ("sibling pages", "What Affects the Cost explains the rest"). | code: SECTION-REF | Brandon, 7 Nov |
+| X7 | A link's words read as normal English in the sentence ("We work in [landscaping in Romsey]" fails). | code: ANCHOR-FORCED, known shapes | Brandon, 7 Nov |
+
+Not yet scored: a card or FAQ stays on the page's own service, even when its brief names more (weeds and moss on a lawn mowing page). It is a writer rule for now; scoring it would change what the judge reads, and the judge is held still for the model comparison.
+
+---
+
 ## How the review step uses this
 
 - Code items: an item fails when the validator reports any issue for its checks on the final page (BLOCK or FLAG), or when the decisions break it. Y2 fails only on sentences over 30 words or a field outside its range (the validator's 25 word soft cap is advice, not a fail).

@@ -11,6 +11,7 @@
 //     --max-usd 40                             stop starting pages past this total
 //   node tools/model-test.js --judge           the judge (two readings) and the claims audit on every run (resumes)
 //   node tools/model-test.js --report          the report, the blind reader views and the key
+//   node tools/model-test.js --sweep           the hard BLOCKs over the 18 main pages and the 6 repeats
 //   node tools/model-test.js --repeats         Haiku high twice more per page, judged, with its own report (resumes)
 //
 // Raw records: tests/quality-runs/model-test/<date>/ (not committed; they name the setups).
@@ -92,7 +93,7 @@ function ratesFor(model, u) {
 }
 function costOf(model, u) {
   const [i, o, cr, cw] = ratesFor(model, u);
-  return ((u.input_tokens || 0) * i + (u.output_tokens || 0) * o + (u.cache_read_input_tokens || 0) * cr + (u.cache_creation_input_tokens || 0) * cw) / 1e6;
+  return (u.batch ? 0.5 : 1) * ((u.input_tokens || 0) * i + (u.output_tokens || 0) * o + (u.cache_read_input_tokens || 0) * cr + (u.cache_creation_input_tokens || 0) * cw) / 1e6;
 }
 
 const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
@@ -122,31 +123,32 @@ function clientValuesTemplate() {
 }
 const normLoc = s => String(s || '').toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim();
 
-async function liveInputs(ro) {
+async function liveInputs(ro, clientId = CLIENT_ID) {
   const q = (sql, p) => ro.query(sql, p);
-  const client = (await q('SELECT id, name, trade, niche_key, v20_test_mode FROM clients WHERE id = $1', [CLIENT_ID])).rows[0];
+  const client = (await q('SELECT id, name, trade, niche_key, v20_test_mode FROM clients WHERE id = $1', [clientId])).rows[0];
   if (!client) throw new Error('The Edens Edge client is not on the live database.');
-  const cvRow = (await q(`SELECT content FROM client_assets WHERE client_id=$1 AND asset_type='client_values' ORDER BY uploaded_at DESC LIMIT 1`, [CLIENT_ID])).rows[0];
+  const cvRow = (await q(`SELECT content FROM client_assets WHERE client_id=$1 AND asset_type='client_values' ORDER BY uploaded_at DESC LIMIT 1`, [clientId])).rows[0];
   let cv = { ...clientValuesTemplate(), ...JSON.parse(cvRow.content) };
   if (!cv.emergency_callouts) {
-    const { rows } = await q(`SELECT value FROM client_fields WHERE client_id=$1 AND field_key='emergency_callouts' AND status='filled'`, [CLIENT_ID]);
+    const { rows } = await q(`SELECT value FROM client_fields WHERE client_id=$1 AND field_key='emergency_callouts' AND status='filled'`, [clientId]);
     const v = rows.length ? rows[0].value : null;
     if (v != null) cv.emergency_callouts = typeof v === 'string' ? v : Array.isArray(v) ? v.join(', ') : (v.value || v.text || v.label || JSON.stringify(v));
   }
   const silent = { log() {}, info() {}, warn() {}, error() {} };
   const svc = createFilloutService({ pool: ro, audioStore: { put() { throw new Error('not used'); }, get() { return null; } }, log: silent });
   const store = createPageMapStore({ pool: ro, filloutService: svc });
-  const rows = (await store.saved(CLIENT_ID)).filter(r => r.applies !== false);
-  const st = await store.state(CLIENT_ID);
-  const hand = await inputsFor(svc, CLIENT_ID, { categoryTabRule: (st && st.category_tab_rule) || 'ticked_only' });
-  const niche = { ...readJson(path.join(root, 'niche-library/landscaper.json')), service_words: [] };
+  const rows = (await store.saved(clientId)).filter(r => r.applies !== false);
+  const st = await store.state(clientId);
+  const hand = await inputsFor(svc, clientId, { categoryTabRule: (st && st.category_tab_rule) || 'ticked_only' });
+  const stem = require('../ui/library').stemFor(client.niche_key) || 'landscaper';
+  const niche = { ...readJson(path.join(root, `niche-library/${stem}.json`)), service_words: [] };
   const v3 = contextFromPageMap({ rows, hand: { baseTown: hand.baseTown, otherTowns: hand.otherTowns }, cv, niche });
-  const dRows = (await q(`SELECT id, content, metadata FROM client_assets WHERE client_id = $1 AND asset_type = 'geo_dossier' AND (metadata IS NULL OR NOT (metadata->>'superseded')::boolean) ORDER BY uploaded_at DESC`, [CLIENT_ID])).rows;
+  const dRows = (await q(`SELECT id, content, metadata FROM client_assets WHERE client_id = $1 AND asset_type = 'geo_dossier' AND (metadata IS NULL OR NOT (metadata->>'superseded')::boolean) ORDER BY uploaded_at DESC`, [clientId])).rows;
   const seen = new Set(), dossiers = [];
   for (const r of dRows) { const loc = (r.metadata && r.metadata.location_name) || ''; const k = normLoc(loc); if (!loc || seen.has(k)) continue; seen.add(k); dossiers.push({ id: r.id, text: r.content, locationName: loc }); }
   const primary = dossiers.find(d => normLoc(d.locationName) === normLoc(v3.keyValueMap.biz_area_1));
   if (primary && !cv.coastal_city) { const { coastal } = parseDossier(primary.text); if (coastal) cv = { ...cv, coastal_city: coastal }; }
-  const allocRow = (await q(`SELECT content FROM client_assets WHERE client_id=$1 AND asset_type='allocation' ORDER BY uploaded_at DESC LIMIT 1`, [CLIENT_ID])).rows[0];
+  const allocRow = (await q(`SELECT content FROM client_assets WHERE client_id=$1 AND asset_type='allocation' ORDER BY uploaded_at DESC LIMIT 1`, [clientId])).rows[0];
   const allocationRecord = allocRow ? JSON.parse(allocRow.content) : { version: 1, pages: {} };
   const packs = calibrationPacks.loadAll({ log() {} });
   const tradeName = calibrationPacks.tradeNameFor(client.trade) || 'Landscaper Gardener';
@@ -171,31 +173,33 @@ const allocate = args => A.runAllocation({ ...args, callModel: async (system, me
   return r.content.map(c => c.text || '').join('');
 } });
 
-async function prepareAll(ro) {
+// The homepage's decisions as the live route makes them (server.js v20HomepageInputs)
+async function prepareHomepage(ro, I, clientId = I.client.id) {
+  const parsed = I.primary ? parseDossier(I.primary.text) : null;
+  const saved = I.allocationRecord.pages && I.allocationRecord.pages.homepage;
+  const flags = [];
+  if (!I.primary) flags.push({ code: 'F-ALLOC', msg: 'No saved dossier for the primary city.' });
+  if (I.primary && I.allocationRecord.dossier_asset_id !== I.primary.id) flags.push({ code: 'F-ALLOC', msg: 'The allocation was made from an older dossier for the primary city. Re-run the allocation pass.' });
+  const homepageRow = I.ctx.pages.find(p => p.pageType === 'homepage');
+  let picks = saved || null;
+  if (parsed && homepageRow && ((homepageRow.assignedNeighbourhoods || []).length || Object.keys(homepageRow.assignedSymptoms || {}).length)) {
+    const applied = A.applyAssigned(saved, homepageRow, parsed);
+    picks = applied.allocation; flags.push(...applied.flags);
+  }
+  const allocationData = picks && parsed ? A.resolveAllocatedItems(picks, parsed) : null;
+  const faq = createFaqService({ pool: ro, loadContext: async () => ({ ...I.ctx, trade: I.client.trade }), loadNiche: () => ({ niche: I.niche, error: null }), perplexity: {}, jobs: {}, callSortModel: async () => { throw new Error('not used'); } });
+  const { faqResearch } = await faq.homepageFaq(clientId, { ...I.ctx, trade: I.client.trade }, I.niche);
+  const decisionsResult = computeDecisions({ cv: I.cv, niche: I.niche, pages: I.ctx.pages, keyValueMap: I.ctx.keyValueMap, serviceParentMap: I.ctx.serviceParentMap, v20TestMode: I.ctx.v20TestMode, allocationData, faqResearch, cardServices: I.ctx.cardServices || null });
+  return { decisionsResult, extraFlags: flags.map(f => ({ ...f, source: 'allocation' })), allocationSource: picks ? picks.source || 'model' : null };
+}
+
+async function prepareAll(ro, file = 'prep.json') {
   const I = await liveInputs(ro);
   const v20Store = createV20Store(ro);
   const base = { pool: ro, v20Store, generate: async () => { throw new Error('not used'); }, allocate };
   const out = {};
 
-  // Homepage: the live route's decisions (server.js v20HomepageInputs)
-  {
-    const parsed = I.primary ? parseDossier(I.primary.text) : null;
-    const saved = I.allocationRecord.pages && I.allocationRecord.pages.homepage;
-    const flags = [];
-    if (!I.primary) flags.push({ code: 'F-ALLOC', msg: 'No saved dossier for the primary city.' });
-    if (I.primary && I.allocationRecord.dossier_asset_id !== I.primary.id) flags.push({ code: 'F-ALLOC', msg: 'The allocation was made from an older dossier for the primary city. Re-run the allocation pass.' });
-    const homepageRow = I.ctx.pages.find(p => p.pageType === 'homepage');
-    let picks = saved || null;
-    if (parsed && homepageRow && ((homepageRow.assignedNeighbourhoods || []).length || Object.keys(homepageRow.assignedSymptoms || {}).length)) {
-      const applied = A.applyAssigned(saved, homepageRow, parsed);
-      picks = applied.allocation; flags.push(...applied.flags);
-    }
-    const allocationData = picks && parsed ? A.resolveAllocatedItems(picks, parsed) : null;
-    const faq = createFaqService({ pool: ro, loadContext: async () => ({ ...I.ctx, trade: I.client.trade }), loadNiche: () => ({ niche: I.niche, error: null }), perplexity: {}, jobs: {}, callSortModel: async () => { throw new Error('not used'); } });
-    const { faqResearch } = await faq.homepageFaq(CLIENT_ID, { ...I.ctx, trade: I.client.trade }, I.niche);
-    const decisionsResult = computeDecisions({ cv: I.cv, niche: I.niche, pages: I.ctx.pages, keyValueMap: I.ctx.keyValueMap, serviceParentMap: I.ctx.serviceParentMap, v20TestMode: I.ctx.v20TestMode, allocationData, faqResearch, cardServices: I.ctx.cardServices || null });
-    out.homepage = { decisionsResult, extraFlags: flags.map(f => ({ ...f, source: 'allocation' })), allocationSource: picks ? picks.source || 'model' : null };
-  }
+  out.homepage = await prepareHomepage(ro, I, CLIENT_ID);
 
   // Category and service: the runners' own prepare, with the live written pages as prior ideas
   const inputs = { ctx: I.ctx, niche: I.niche, rows: I.rows, dossiers: I.dossiers, allocationRecord: I.allocationRecord, calibrationPack: I.calibrationPack, reviews: I.reviews, saveAllocation: I.saveAllocation };
@@ -221,7 +225,7 @@ async function prepareAll(ro) {
   out.service = { decisionsResult: svcPrep.decisionsResult, extraFlags: svcPrep.extraFlags, tradeFacts: svcPrep.tradeFacts };
 
   const shared = { cv: I.cv, niche: I.niche, keyValueMap: I.ctx.keyValueMap, serviceParentMap: I.ctx.serviceParentMap, calibrationPack: I.calibrationPack };
-  writeJson(path.join(RAW, 'prep.json'), { taken: new Date().toISOString(), client: I.client, shared, pages: out });
+  writeJson(path.join(RAW, file), { taken: new Date().toISOString(), client: I.client, shared, pages: out });
   for (const [k, p] of Object.entries(out)) {
     const D = p.decisionsResult;
     console.log(`${k}: gates ${JSON.stringify(D.gates || [])}; H1 ${D.decisions && (D.decisions.d2_h1 || D.decisions.h1)}; decisions ${D.decisionsBlock ? D.decisionsBlock.length : 0} chars; flags ${[...(D.flags || []), ...p.extraFlags].map(f => f.code).join(', ') || 'none'}; trade facts ${p.tradeFacts ? `verified ${p.tradeFacts.verified}, ${(p.tradeFacts.markdown || '').length} chars` : 'none'}`);
@@ -229,8 +233,8 @@ async function prepareAll(ro) {
 }
 
 // ── One run ──────────────────────────────────────────────────────────────────
-function meteredCall(defaults, sink, roleOf) {
-  const base = makeCallModel(anthropic, defaults.model, { defaultEffort: defaults.effort });
+function meteredCall(defaults, sink, roleOf, apiClient = anthropic) {
+  const base = makeCallModel(apiClient, defaults.model, { defaultEffort: defaults.effort });
   return async args => {
     const t0 = Date.now();
     const r = await base(args);
@@ -476,6 +480,41 @@ async function main() {
     return;
   }
   const prep = readJson(path.join(RAW, 'prep.json'));
+  if (flag('--sweep')) {
+    const { hardChecks } = require('../validate-hard');
+    const rows = readJson(path.join(RAW, 'rows.json'));
+    const urls = rows.map(r => r.slug).filter(Boolean);
+    const CODES = ['LABEL-LEAK', 'TRUNCATED', 'EMPTY-SECTION', 'LINK-MAP', 'RAW-VALUE', 'SECTION-REF', 'ANCHOR-FORCED'];
+    const out = [];
+    for (const page of Object.keys(PAGES)) for (const k of [...Object.keys(SETUPS), ...Object.keys(REPEATS)]) {
+      const dir = runDir(page, k);
+      const record = readJson(path.join(dir, 'record.json'));
+      const calls = readJson(path.join(dir, 'calls.json'));
+      const { V } = validationFor(page, record, prep);
+      V.D = { ...V.D, pageMapUrls: urls };
+      const issues = [];
+      const issue = (type, check, field, message) => issues.push({ type, check, field, message });
+      hardChecks(record, V, { issue, fields: pageTypeOf(record).modelFields(record) });
+      const cut = calls.filter(c => c.stop_reason === 'max_tokens' && !/ ran out$/.test(c.role)).length;
+      out.push({ page, setup: k, label: ALL_SETUPS[k].label, issues, truncated_calls: cut });
+    }
+    writeJson(path.join(RAW, 'sweep.json'), out);
+    const L = ['# Hard BLOCK sweep over the old pages', '', 'The new checks run over the 18 main test pages and the 6 Haiku high repeats, as they were written. Nothing was rewritten. A cell is the number of fields that fail; a blank passes.', ''];
+    for (const page of Object.keys(PAGES)) {
+      L.push(`## ${PAGES[page].label}`, '', `| Setup | ${CODES.join(' | ')} | Cut calls in the log | Result |`, `|---|${CODES.map(() => '---').join('|')}|---|---|`);
+      for (const r of out.filter(x => x.page === page)) {
+        const n = c => { const x = r.issues.filter(i => i.check === c).length; return x || ''; };
+        const fail = r.issues.length || r.truncated_calls;
+        L.push(`| ${r.setup}: ${r.label} | ${CODES.map(n).join(' | ')} | ${r.truncated_calls || ''} | ${fail ? 'FAIL' : 'pass'} |`);
+      }
+      L.push('');
+    }
+    L.push('## Every failure', '');
+    for (const r of out) if (r.issues.length) { L.push(`**${PAGES[r.page].file}, ${r.setup}**`, ''); for (const i of r.issues) L.push(`- ${i.check} · ${i.field}: ${i.message}`); L.push(''); }
+    fs.writeFileSync(path.join(OUT, 'hard-block-sweep.md'), L.join('\n'));
+    for (const r of out) console.log(PAGES[r.page].file.padEnd(22), r.setup.padEnd(3), r.issues.length ? CODES.map(c => { const x = r.issues.filter(i => i.check === c).length; return x ? `${c}:${x}` : ''; }).filter(Boolean).join(' ') : 'pass', r.truncated_calls ? `cut calls:${r.truncated_calls}` : '');
+    return;
+  }
   if (flag('--repeats')) {
     for (const page of Object.keys(PAGES)) {
       const todo = Object.keys(REPEATS).filter(k => !fs.existsSync(path.join(runDir(page, k), 'run.json')));
@@ -580,4 +619,5 @@ async function main() {
   console.log('Pass --smoke, --prep, --run, --judge or --report.');
 }
 
-main().catch(e => { console.error(e); process.exit(1); });
+module.exports = { RAW, OUT, CLIENT_ID, SONNET, HAIKU, PAGES, SETUPS, ALL_SETUPS, JUDGE, USD_TO_GBP, readJson, writeJson, runDir, costOf, mapLimit, money, gbp, score, meteredCall, roleFor, writeOne, judgeOne, metricsFor, blindView, readOnlyPool, liveInputs, allocate, prepareAll, prepareHomepage };
+if (require.main === module) main().catch(e => { console.error(e); process.exit(1); });

@@ -946,6 +946,7 @@ function computeDecisions({ cv, niche, pages, keyValueMap, serviceParentMap, v20
     .map(p => ({ type: p.pageType, url: p.urlSlug, h1: p.h1 || '', say: p.proseName || null }));
 
   const decisions = {
+    pageMapUrls: pages.map(p => p.urlSlug).filter(Boolean),
     d1_years_trading:    yearsTrading,
     // The page map's target keyword; a typed H1 override is the keyword itself
     target_keyword: require('./h1-research/research').targetKeyword({ h1: d2_h1, keyword: h1Override ? '' : (homepage && homepage.h1Keyword) || '' }),

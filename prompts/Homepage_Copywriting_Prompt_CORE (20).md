@@ -53,7 +53,7 @@ Two sentences, under 50 words in total.
 1. **Who and where.** The keyword in the first sentence, without opening on the company name (the hero already does). Openers that work (landscaping examples; match the trade): "Gardens in Southampton range from...", "Most of our work as a landscaper in Southampton is...", "We're a family run landscaper in Southampton...". Both allocated neighbourhoods, each with one concrete detail taken from its profile (a size, a street, a type of home or garden), and what that detail means for the work, not just the geography. One confirmed differentiator that is not already in the hero intro. Jobs completed or years trading in passing, never tied to a place, and left out entirely when that figure is already the hero trust line (it then lives in Why choose us point 1). Optionally one sentence of confirmed community involvement.
 2. **What they do.** One or two sentences carrying an inline link to every page in DECISIONS → section 3 link set, never more than two links in one sentence, each link with a reason (what that kind of work does for the customer). Name the categories only: never list individual services here. The cards below describe the services, so the page says what is offered once, not three times. Only say what most of their work is if the client values say so.
 3. **Optional: the worries.** One or two of the niche fears and how this business handles them, using confirmed practices only.
-4. **Where they work.** Inline links to 2 or 3 Location pages from LINKABLE PAGES, written as the town name or "[trade_lower] in [town]" (e.g. "landscaping in Romsey"), never the bare H1. Close with something other than "and the surrounding areas", which the hero already uses ("and the villages in between", "and everywhere in between"). If fewer than 2 Location pages are linkable, name the towns as plain text.
+4. **Where they work.** Inline links to 2 or 3 Location pages from LINKABLE PAGES, written as the town name or "[trade_lower] in [town]" where the sentence reads as normal English with it (after "in" or "across", the town name alone: "we also work in [Romsey](/url)"), never the bare H1. Close with something other than "and the surrounding areas", which the hero already uses ("and the villages in between", "and everywhere in between"). If fewer than 2 Location pages are linkable, name the towns as plain text.
 5. **Closing line.** A soft push to the primary action or a call to `[CV: phone]`. Never open it with the same words as the final CTA body or the CTA band ("Tell us...").
 
 Never state the guarantee length or the insurance figure here. Section 5 owns them.
@@ -127,6 +127,15 @@ Never write source names, URLs, reference codes such as SOU-N07, or the words "d
 ---
 
 ## GLOBAL COPY RULES
+
+**Copy a reader can see** (these stop the page if they are broken)
+- Write only the words a customer reads. Never a label, a field name or a note from these instructions ("RETURN:", "card:", "block4", "card_body:") anywhere in the copy.
+- End every field on a complete sentence. Never stop mid sentence or mid word. A tick list item is the one thing written without a full stop.
+- A client value has to read as English once the token is replaced. A value that is a fragment needs a whole phrase built round it: `[CV: start_time]` holding "same week" is written "we can usually start the [CV: start_time]", never "going by [CV: start_time]" or "start [CV: start_time]".
+- Say the point itself. Never name another section by its heading or point at another part of the page ("What Affects the Cost explains the rest", "see the areas section"), and never use a word from these instructions ("sibling pages", "this section", "trade facts", "dossier", "page map").
+- A link's words have to read as normal English in the sentence. After "in", "across", "around" or "to", link the town name alone: "we also work in [Romsey](/url) and [Winchester](/url)". Use "[service] in [town]" as link text only where the sentence still reads with it: "we do [lawn mowing in Hedge End](/url) too". Never "we work in [lawn mowing in Hedge End](/url)".
+- Link only to pages on LINKABLE PAGES, and only with the URL given there.
+- Every card, FAQ and paragraph stays on this page's own service or category, even when its brief names more. Leave out what this service doesn't deal with: a lawn mowing page talks about grass and the cut, not weeds or moss treatment.
 
 **Claims**
 - "Free" only if `[QUOTE_FREE]` is filled. "Same Day" only if `[CV: same_day_available]` is yes. "24/7" only if `[CV: out_of_hours_available]` is "24/7".

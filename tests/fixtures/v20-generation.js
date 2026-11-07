@@ -129,7 +129,7 @@ chk('Fenced and multi-line output still parses',
     'home_process_h2', 'steps', 'cta_band', 'home_owner_show', 'home_owner_h2', 'home_owner_body', 'home_areas_h2', 'home_areas_intro',
     'home_areas_links', 'home_faq_h2', 'faq_items', 'home_final_cta_h2', 'home_final_cta_body', 'home_final_cta_trust_lines'];
   chk('Record fields in page order (brief §5), stand-in watermark on top', order.join(',') === want.join(','), order.join(','), want.join(','));
-  chk('Model called with max tokens 8192 and the cached system blocks', sent && sent.maxTokens === 8192 && sent.system.length === 2, sent && sent.maxTokens, 8192);
+  chk('Model called with max tokens 16000 and the cached system blocks', sent && sent.maxTokens === 16000 && sent.system.length === 2, sent && sent.maxTokens, 16000);
   chk('Hidden sections marked: logos HIDDEN, reviews false/HIDDEN', rec.home_trusted_logos === 'HIDDEN' && rec.home_reviews_show === false && rec.home_reviews_h2 === 'HIDDEN',
     `${rec.home_trusted_logos} ${rec.home_reviews_show} ${rec.home_reviews_h2}`, 'HIDDEN false HIDDEN');
   chk('Buttons use the phone token', JSON.stringify(rec.buttons) === '["Get My Free Quote","Call [CV: phone]"]', JSON.stringify(rec.buttons), '["Get My Free Quote","Call [CV: phone]"]');

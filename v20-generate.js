@@ -16,7 +16,7 @@ const { ph } = require('./decisions');
 const V20_MODEL       = 'claude-sonnet-5-5'; // the non page calls that share it (price extraction); page types read page-models.json
 const PM = require('./page-models');
 const V20_PROMPT_FILE = 'Homepage_Copywriting_Prompt_CORE (20).md';
-const V20_MAX_TOKENS  = 8192;
+const V20_MAX_TOKENS  = 16000; // 64,000 after anthropic-call.js, as the category page
 
 function loadCore20() {
   return fs.readFileSync(path.join(__dirname, 'prompts', V20_PROMPT_FILE), 'utf8').trim();

@@ -333,7 +333,7 @@ function computeCategoryDecisions({ cv, niche, keyValueMap = {}, rows = [], page
     niche_steps: steps,
     areas, faq: faqs,
     allocated, thin: !allocated.neighbourhoods.length, overrideUsed: !!blocks.overrideUsed, ideasUsed: Array.isArray(ideasUsed) ? ideasUsed : [],
-    contentLinks, locationLinks, linkablePages,
+    contentLinks, locationLinks, linkablePages, pageMapUrls: (rows || []).map(r => r.slug).filter(Boolean),
     quoteFree, emergencyOn, emergencyWhy, coastal: cv.coastal_city === 'yes',
     seasonal: seasonal.swapped,
     trade_facts: tradeFacts ? { file: tradeFacts.file || null, verified: !!tradeFacts.verified, missing: tradeFacts.missing || [], included: !!tradeFacts.verified } : null,
@@ -390,7 +390,7 @@ function formatCategoryBlock(D, cv, niche, ctx) {
   push('--- SECTION 3 LINK SET (content block, paragraph 2: link 3 of these at most, each in its own clause with its own reason; the cards link the rest) ---');
   for (const l of D.contentLinks) push(`  ${l.name} → ${l.url}`);
   push('');
-  push(`--- ${D.scope === 'base' ? 'LOCATION CATEGORY PAGES FOR PARAGRAPH 4 (link 2 or 3, as the town name or "[category_lower] in [town]")' : 'SIBLING PAGES IN THIS TOWN (paragraph 4 may link one)'} ---`);
+  push(`--- ${D.scope === 'base' ? 'LOCATION CATEGORY PAGES FOR PARAGRAPH 4 (link 2 or 3: the town name alone after "in" or "across"; "[category_lower] in [town]" only where the sentence reads with it)' : 'SIBLING PAGES IN THIS TOWN (paragraph 4 may link one)'} ---`);
   for (const l of D.locationLinks) push(`  ${l.name} → ${l.url}`);
   if (!D.locationLinks.length) push('  none');
   push('');

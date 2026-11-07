@@ -23,4 +23,4 @@ You already wrote this homepage. Code checked it and found problems in one field
 - The OTHER FIELDS are already on the page. Never reuse their wording or repeat a point they already make.
 - Count the words before you answer.
 
-Return exactly one line: the field label given under RETURN, a colon, then the new text. In the content block, write paragraph breaks as \n\n. Nothing before or after it.
+Return exactly one line: the field label given under RETURN, a colon, then the new text. Start with that label itself: never the word RETURN, never a shorter or longer label ("card:", "block4 card_body:"). In the content block, write paragraph breaks as \n\n. Nothing before or after it.

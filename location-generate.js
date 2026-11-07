@@ -20,7 +20,7 @@ const { extractIdeas } = require('./ideas');
 
 const PM = require('./page-models');
 const LOCATION_MODEL = PM.forPage('location').model;
-const LOCATION_MAX_TOKENS = 12000;
+const LOCATION_MAX_TOKENS = 16000; // 64,000 after anthropic-call.js, as the category page
 // The master copy; the unbracketed name is how the file was first saved (Brandon, 25 Oct)
 const PROMPT_NAMES = ['Location_Page_Copywriting_Prompt_CORE (18).md', 'Location_Page_Copywriting_Prompt_CORE 18.md', 'Location_Page_Copywriting_Prompt_CORE (18) (1).md'];
 const SHARED_RULES = '_shared_copy_rules.md';

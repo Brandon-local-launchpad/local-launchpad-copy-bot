@@ -20,7 +20,7 @@ const { extractIdeas } = require('./ideas');
 
 const PM = require('./page-models');
 const CATEGORY_MODEL = PM.forPage('category').model;
-const CATEGORY_MAX_TOKENS = 12000;
+const CATEGORY_MAX_TOKENS = 16000; // 64,000 after anthropic-call.js: Sonnet high spent 47,257 of 48,000 thinking on one page (7 Nov)
 // The prompt file: the master copy of CORE (16) in prompts/. A download copy with a
 // " (1)" suffix is read when the plain name is missing (Brandon pastes it in by hand).
 const PROMPT_NAMES = ['Category_Page_Copywriting_Prompt_CORE (16).md', 'Category_Page_Copywriting_Prompt_CORE (16) (1).md'];

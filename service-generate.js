@@ -21,7 +21,7 @@ const { extractIdeas } = require('./ideas');
 
 const PM = require('./page-models');
 const SERVICE_MODEL = PM.forPage('service').model;
-const SERVICE_MAX_TOKENS = 12000;
+const SERVICE_MAX_TOKENS = 16000; // 64,000 after anthropic-call.js, as the category page
 const PROMPT_NAMES = ['Service_Page_Copywriting_Prompt_CORE (17).md', 'Service_Page_Copywriting_Prompt_CORE (17) (1).md'];
 const SHARED_RULES = '_shared_copy_rules.md';
 function promptFile() {

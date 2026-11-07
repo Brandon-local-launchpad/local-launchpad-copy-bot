@@ -6,6 +6,15 @@ The GLOBAL COPY RULES block every page prompt shares, kept as one file. Code rea
 
 ## GLOBAL COPY RULES
 
+**Copy a reader can see** (these stop the page if they are broken)
+- Write only the words a customer reads. Never a label, a field name or a note from these instructions ("RETURN:", "card:", "block4", "card_body:") anywhere in the copy.
+- End every field on a complete sentence. Never stop mid sentence or mid word. A tick list item is the one thing written without a full stop.
+- A client value has to read as English once the token is replaced. A value that is a fragment needs a whole phrase built round it: `[CV: start_time]` holding "same week" is written "we can usually start the [CV: start_time]", never "going by [CV: start_time]" or "start [CV: start_time]".
+- Say the point itself. Never name another section by its heading or point at another part of the page ("What Affects the Cost explains the rest", "see the areas section"), and never use a word from these instructions ("sibling pages", "this section", "trade facts", "dossier", "page map").
+- A link's words have to read as normal English in the sentence. After "in", "across", "around" or "to", link the town name alone: "we also work in [Romsey](/url) and [Winchester](/url)". Use "[service] in [town]" as link text only where the sentence still reads with it: "we do [lawn mowing in Hedge End](/url) too". Never "we work in [lawn mowing in Hedge End](/url)".
+- Link only to pages on LINKABLE PAGES, and only with the URL given there.
+- Every card, FAQ and paragraph stays on this page's own service or category, even when its brief names more. Leave out what this service doesn't deal with: a lawn mowing page talks about grass and the cut, not weeds or moss treatment.
+
 **Claims**
 - "Free" only if `[QUOTE_FREE]` is filled. "Same Day" only if `[CV: same_day_available]` is yes. "24/7" only if `[CV: out_of_hours_available]` is "24/7".
 - Anything about how quotes work comes only from `[CV: quote_method]`. "Fixed price" only if confirmed. Prices only from `[CV: price_list]`.

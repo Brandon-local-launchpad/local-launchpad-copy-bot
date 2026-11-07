@@ -19,7 +19,7 @@ function makeCallModel(client, defaultModel, { onUsage = null, defaultEffort = '
       try {
         const params = { model, max_tokens: is55(model) ? Math.max(maxTokens * 4, 16000) : maxTokens, system, messages: [{ role: 'user', content: message }], ...(temperature != null && !is55(model) ? { temperature } : {}) };
         const r = is55(model)
-          ? await client.beta.messages.create({ ...params, output_config: { effort }, betas: ['server-side-fallback-2026-07-01'], fallbacks: 'default' })
+          ? await client.beta.messages.create({ ...params, output_config: { effort }, betas: ['server-side-fallback-2026-07-01'], fallbacks: 'default' }, { timeout: 20 * 60 * 1000 })
           : await client.messages.create(params, { headers: { 'anthropic-beta': 'prompt-caching-2024-07-31' } });
         if (r.stop_reason === 'refusal') throw new Error(`${model} declined the request (${(r.stop_details || {}).category || 'no category'}).`);
         const text = r.content.map(c => (c.type === 'text' ? c.text : '')).join('');

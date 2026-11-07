@@ -18,7 +18,9 @@ const rangesFor = (record, V = null) => effectiveRanges(record, V) || {};
 
 // 3 since 16 Oct (copy quality loop: flags were left after 2)
 const MAX_RETRIES = 3;
-const CONCURRENCY = 4;
+let CONCURRENCY = 4;
+// tools/site-batch-build.js only: a retry round goes up as one batch, not four at a time
+const setRetryConcurrency = n => { CONCURRENCY = n; };
 
 function loadRetryPrompt() {
   const text = fs.readFileSync(path.join(__dirname, 'prompts', 'Field_Retry_CORE.md'), 'utf8');
@@ -66,10 +68,13 @@ function parseRetryReply(text, ref) {
   // "card_text (Lawn Care Service): …" too: the label can carry the field's name (16 Oct). The text
   // after the LAST label: a reply that corrects itself ("…Wait, that opens with 'Tell'. Corrected
   // version: cat_final_cta_body: …") carries the label twice, and only the last is the copy (25 Oct)
-  const re = new RegExp(`(?:^|\\n)\\s*\\**${label}\\**\\s*(?:\\([^)\\n]*\\))?\\s*:\\s*`, 'g');
+  // "RETURN: faq_answer: …" too: Haiku copies the prompt's RETURN line, and the words went onto the page (7 Nov)
+  const re = new RegExp(`(?:^|\\n)\\s*\\**(?:RETURN:\\s*)?${label}\\**\\s*(?:\\([^)\\n]*\\))?\\s*:\\s*`, 'g');
   let last = null;
   for (const mm of t.matchAll(re)) last = mm;
   if (last) t = t.slice(last.index + last[0].length).trim();
+  // A label of the model's own making, shorter or longer than the one asked for ("card: …", "block4 card_body: …", 7 Nov)
+  t = t.replace(/^(?:RETURN:\s*)?(?:(?:block ?[45]|card|[a-z]+_[a-z0-9_]+)\s+)*(?:card|[a-z]+_[a-z0-9_]+):\s+/i, '');
   return t.replace(/\\n/g, '\n').replace(/\n{3,}/g, '\n\n').trim();
 }
 
@@ -380,4 +385,4 @@ function validationSummary(issues, log, usage) {
   };
 }
 
-module.exports = { runRetries, runClaimRetries, runFlagPass, runTargetedPass, runQualityRetries, buildRetryMessage, parseRetryReply, loadRetryPrompt, validationSummary, MAX_RETRIES, FLAG_PASS };
+module.exports = { setRetryConcurrency, runRetries, runClaimRetries, runFlagPass, runTargetedPass, runQualityRetries, buildRetryMessage, parseRetryReply, loadRetryPrompt, validationSummary, MAX_RETRIES, FLAG_PASS };

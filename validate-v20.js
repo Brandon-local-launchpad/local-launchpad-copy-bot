@@ -397,6 +397,7 @@ function validateCommon(record, V) {
   const K = V.keys || HOMEPAGE_KEYS;
   const ranges = effectiveRanges(record, V);
   const fields = modelFields(record);
+  require('./validate-hard').hardChecks(record, V, { issue, fields });
 
   // ── Per field ──
   for (const f of fields) {

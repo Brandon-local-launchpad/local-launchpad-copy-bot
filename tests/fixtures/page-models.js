@@ -38,6 +38,10 @@ const chk = (name, ok, got = '') => { if (ok) pass++; else { fail++; console.log
   chk('The spent attempt travels on the answer', r.usage.spent_attempt && r.usage.spent_attempt.output_tokens === 48000 && r.usage.lowered_from === 'high', JSON.stringify(r.usage));
   chk('Both attempts are logged as spend', logged.length === 2 && logged[0].output_tokens === 48000, JSON.stringify(logged));
 
+  const { parseRetryReply } = require('../../v20-retry');
+  chk('A reply that copies the RETURN line keeps only the copy', parseRetryReply('RETURN: faq_answer: It depends on the lawn.', { key: 'faq_items', index: 0, sub: 'faq_answer' }) === 'It depends on the lawn.');
+  chk('A plain labelled reply still parses', parseRetryReply('svc_hero_intro: Lawn mowing.', { key: 'svc_hero_intro' }) === 'Lawn mowing.');
+
   console.log(`page-models: ${pass} passed, ${fail} failed`);
   if (fail) process.exit(1);
 })();
