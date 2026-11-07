@@ -295,6 +295,28 @@ chk('Photo Drip uses other days than the posts', ['a', 'bb', 'ccc', 'dddd'].ever
   await svc.runClient(c.id);
   chk('with room it goes', (await store.item(c.id, capRow.id)).status === 'scheduled', (await store.item(c.id, capRow.id)).status, 'scheduled');
 
+  // The limit is per location (bundle.social support, 7 Nov 2026), and photos never count
+  const mineBefore = await store.postsOnDay(c.id, '2026-11-17');
+  await store.addItem({ client_id: c2.id, kind: 'post', file_name: 'x.jpeg', due_date: '2026-11-17', due_time: '10:00', status: 'scheduled' });
+  await store.addItem({ client_id: c.id, kind: 'photo', drive_file_id: 'zz', file_name: 'zz.jpeg', category: 'AT_WORK', due_date: '2026-11-17', due_time: '14:00', status: 'posted' });
+  const mineOnDay = await store.postsOnDay(c.id, '2026-11-17');
+  chk('another client posts and this client photos leave its limit alone', mineBefore >= 1 && mineOnDay === mineBefore && await store.postsOnDay(c2.id, '2026-11-17') === 1, mineOnDay, mineBefore);
+  for (const r of [...await store.items(c2.id), ...(await store.items(c.id)).filter(i => i.drive_file_id === 'zz')]) await store.removeItem(r.id);
+
+  // A failure older than 13 days: bundle.social has removed its photo, so Retry sends it again in full
+  const oldId = (await store.item(c.id, capRow.id)).external_id;
+  const oldUpload = fake.state.posts.find(p => p.id === oldId).data.GOOGLE_BUSINESS.uploadIds[0];
+  clock = new Date('2026-12-02T09:00:00Z');
+  fake.fail(oldId, 'Google was down');
+  await svc.refreshStatuses(c.id);
+  fake.state.uploads = fake.state.uploads.filter(u => u.id !== oldUpload);
+  const postsBeforeResend = fake.state.posts.length;
+  await req('POST', `${api}/items/${capRow.id}/send`);
+  const resent = await store.item(c.id, capRow.id);
+  const resentRemote = fake.state.posts.find(p => p.id === resent.external_id);
+  chk('an old failure is sent again with a new photo upload, and the old post cancelled', resent.status === 'scheduled' && resent.external_id !== oldId && fake.state.posts.find(p => p.id === oldId).status === 'DELETED' && resentRemote && resentRemote.data.GOOGLE_BUSINESS.uploadIds[0] !== oldUpload && fake.state.posts.length === postsBeforeResend + 1 && resent.due_date === '2026-12-02', JSON.stringify({ s: resent.status, e: resent.error, d: resent.due_date }), '');
+  clock = new Date('2026-11-14T08:00:00Z');
+
   // ── Approval taken back ──
   const undoBatch = await seedBatch(c.id, [basePost(11, '2027-02-01', { drive_file_id: 'p3', photo_name: 'p3.jpeg' })]);
   await svc.syncPosts(c.id);

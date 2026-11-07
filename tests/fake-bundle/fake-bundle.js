@@ -115,6 +115,8 @@ function createFakeBundle({ apiKey = 'fake-key' } = {}) {
   app.post('/api/v1/post/:id/retry', (req, res) => {
     const p = findPost(req.params.id);
     if (!p) return refuse(res, 404, 'Not found');
+    const gone = (p.data && p.data.GOOGLE_BUSINESS && p.data.GOOGLE_BUSINESS.uploadIds || []).find(u => !state.uploads.some(x => x.id === u));
+    if (gone) { p.status = 'ERROR'; p.errors = { GOOGLE_BUSINESS: 'Upload not found' }; return res.json(p); }
     p.status = 'RETRYING'; p.errors = null; p.errorsVerbose = null;
     res.json(p);
   });

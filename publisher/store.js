@@ -101,9 +101,10 @@ function createPublishStore(pool) {
       await q(`UPDATE gbp_publish_items SET ${keys.map((k, i) => `${k}=$${i + 2}`).join(', ')}${keys.length ? ', ' : ''}updated_at=NOW() WHERE id=$1`, [id, ...keys.map(k => fields[k])]);
     },
     async removeItem(id) { await q(`DELETE FROM gbp_publish_items WHERE id=$1`, [id]); },
-    // How many posts already sit on this UK day, across every client
-    async postsOnDay(day) {
-      const { rows } = await q(`SELECT count(*)::int AS n FROM gbp_publish_items WHERE kind='post' AND due_date=$1 AND status IN ('sending','scheduled','posted')`, [day]);
+    // How many posts already sit on this UK day for this client. bundle.social support (7 Nov 2026):
+    // the limit is per location, each client's team being its own; photos never count.
+    async postsOnDay(clientId, day) {
+      const { rows } = await q(`SELECT count(*)::int AS n FROM gbp_publish_items WHERE client_id=$1 AND kind='post' AND due_date=$2 AND status IN ('sending','scheduled','posted')`, [clientId, day]);
       return rows[0].n;
     },
     async lastRun() {

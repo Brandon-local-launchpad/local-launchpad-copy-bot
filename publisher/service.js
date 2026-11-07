@@ -17,6 +17,9 @@ const DRIP_MAX_PLAN = 52;
 const RAN_OUT_DAYS = 28;            // the VA is told this long before the last new photo goes up
 const LATE_MINUTES = 10;             // a post sent after its time goes out this far ahead
 const MAX_BYTES = 5 * 1024 * 1024;
+// bundle.social support (7 Nov 2026): an upload is removed 14 days after the last post using it is
+// published, fails or is deleted. A failure older than this is sent again in full, with a new upload.
+const UPLOAD_KEEP_DAYS = 13;
 
 const norm = s => String(s == null ? '' : s).toLowerCase().replace(/[^a-z0-9 ]+/g, ' ').trim();
 const words = s => new Set(norm(s).split(/\s+/).filter(w => w.length > 2 && !['ltd', 'limited', 'the', 'and'].includes(w)));
@@ -152,7 +155,9 @@ function createPublishing({ store, postStore, driveStore, getDrive, getPublisher
         if (used.length) throw Object.assign(bad(`${item.file_name} has already gone up, and a photo is never reused.`), { permanent: true });
       }
       const { bytes, mime } = await downloadChecked(item);
-      const uploadId = item.upload_id || await pub.uploadPhoto({ teamId: conn.team_id, bytes, filename: item.file_name, mime });
+      // A photo uses no post, so its upload is never relied on later: a fresh one each time
+      const fresh = item.kind === 'photo' || !!item.external_id;
+      const uploadId = (!fresh && item.upload_id) || await pub.uploadPhoto({ teamId: conn.team_id, bytes, filename: item.file_name, mime });
       await store.updateItem(item.id, { upload_id: uploadId });
       if (item.kind === 'photo') {
         const added = await pub.addPhoto({ teamId: conn.team_id, uploadId, category: item.category || DRIP_CATEGORY });
@@ -164,7 +169,7 @@ function createPublishing({ store, postStore, driveStore, getDrive, getPublisher
       const earliest = new Date(now().getTime() + LATE_MINUTES * 60000).toISOString();
       const due = ukToUtc(item.due_date, item.due_time);
       const when = { postAt: due > earliest ? due : earliest, offerStart: post.offer_start ? ukToUtc(post.offer_start) : null, offerEnd: post.offer_end ? ukToUtc(post.offer_end) : null };
-      const made = await pub.schedulePost({ teamId: conn.team_id, post, uploadId, referenceKey: `gbp-post-${post.id}`, when });
+      const made = await pub.schedulePost({ teamId: conn.team_id, post, uploadId, referenceKey: item.external_id ? `gbp-post-${post.id}-after-${item.external_id}` : `gbp-post-${post.id}`, when });
       await store.updateItem(item.id, { status: made.status === 'failed' ? 'failed' : made.status === 'posted' ? 'posted' : 'scheduled', external_id: made.id });
       return 'scheduled';
     } catch (e) {
@@ -223,8 +228,8 @@ function createPublishing({ store, postStore, driveStore, getDrive, getPublisher
       }
       const due = item.kind === 'photo' ? item.due_date === day : item.due_date <= ahead;
       if (!due) continue;
-      if (item.kind === 'post' && await store.postsOnDay(item.due_date) >= limit()) {
-        await store.updateItem(item.id, { error: `${limit()} posts are already set for that day, the daily limit. It tries again on the next run.` });
+      if (item.kind === 'post' && await store.postsOnDay(clientId, item.due_date) >= limit()) {
+        await store.updateItem(item.id, { error: `${limit()} posts are already set for that day on this location, the daily limit. It tries again on the next run.` });
         out.waiting++;
         continue;
       }
@@ -258,6 +263,16 @@ function createPublishing({ store, postStore, driveStore, getDrive, getPublisher
     if (!item) throw bad('No such item.', 404);
     if (!['queued', 'failed'].includes(item.status)) throw bad(`This item is ${item.status}, so there is nothing to send.`, 409);
     if (!(await checkOrStop(clientId, conn))) throw bad((await store.connection(clientId)).problem, 409);
+    // A post fails on or after its date, so its date is the earliest the 14 days can have started
+    if (item.status === 'failed' && item.external_id && item.kind === 'post' && P.addDays(item.due_date, UPLOAD_KEEP_DAYS) < today()) {
+      // Its photo is gone from bundle.social: cancel the old post and send it again. The old id stays
+      // on the row until the new post is made, so a run that stops halfway never makes two.
+      try { await getPublisher().cancelPost(item.external_id); } catch (e) { if (e.status !== 404) throw e; }
+      const fix = item.due_date < today() ? { due_date: today() } : {};
+      await store.updateItem(item.id, { status: 'queued', ...fix });
+      await sendItem({ ...item, ...fix, status: 'queued' }, conn);
+      return store.item(clientId, itemId);
+    }
     if (item.status === 'failed' && item.external_id && item.kind === 'post') {
       await getPublisher().retryPost(item.external_id);
       await store.updateItem(item.id, { status: 'scheduled', error: null, attempts: (item.attempts || 0) + 1 });
@@ -329,4 +344,4 @@ function createPublishing({ store, postStore, driveStore, getDrive, getPublisher
   return { locations, connect, setPublishing, syncPosts, beforeUnapprove, sendItem, runClient, runDaily, refreshStatuses, sendNow, deleteItem, dripState, planDrip, approveDrip };
 }
 
-module.exports = { createPublishing, ukToUtc, closeness, dripDays, LOOKAHEAD_DAYS, DRIP_CATEGORY, DRIP_TIME };
+module.exports = { UPLOAD_KEEP_DAYS, createPublishing, ukToUtc, closeness, dripDays, LOOKAHEAD_DAYS, DRIP_CATEGORY, DRIP_TIME };

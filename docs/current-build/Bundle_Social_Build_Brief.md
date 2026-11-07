@@ -30,9 +30,13 @@ Publish GBP posts, Photo Drip photos and review replies through bundle.social's 
 - There is no webhook for reviews, so the daily job runs the import.
 - Limits for a post image: 1 image, 5 MB, 250 x 250 minimum, JPG, PNG or GIF. Text 1,500 characters.
 
-## Open with bundle.social support
+## bundle.social support's answers (7 Nov 2026)
 
-The rate limits page says daily counts are "keyed to the platform account". If every client's copy of the agency login shares one quota, Pro's 20 posts a day is about 70 clients and Business's 40 about 140. Also asked: whether photos count towards it, whether each copy has its own token, whether Offer posts need `eventTitle`, and how long uploads are kept.
+1. The daily limit is per location: each team with its own location gets its own 20 posts a day. Copybot counts it per client.
+2. A photo added to the profile is not a post and does not count towards the limit.
+3. Each copy has its own token, so disconnecting the source team does not affect the copies. They do share the Google authorisation of the login they came from: if that Google login loses access, every client copied from it stops. The location check before each run catches it and stops that client with the reason; reconnect it in the source team.
+4. Offer posts: send `eventTitle`. Copybot already does.
+5. An upload is kept while a draft or scheduled post uses it, and removed 14 days after the last post using it is published, fails or is deleted. So a Retry more than 13 days after a post's date cancels the old post and sends it again with a new upload, and a Photo Drip photo always gets a fresh upload.
 
 ## Brandon's decisions (7 Nov 2026)
 
@@ -46,7 +50,7 @@ The rate limits page says daily counts are "keyed to the platform account". If e
 
 - Test location: our own Local Launchpad profile, the location in the "Local Launchpad" team. Ask Brandon before each test post goes public.
 - Photo Drip category: `AT_WORK` for all, for now.
-- Stage 3 is built against a fake server only and merged with publishing off (Brandon, 7 Nov). Any real call waits for bundle.social support's answer on the daily quota, including whether the 20 a day is counted per Google login.
+- Stage 3 is built against a fake server only and merged with publishing off (Brandon, 7 Nov). Support's answers are in. Next is the first real test on the Local Launchpad profile, with Brandon's yes before each post goes public, and then `GBP_PUBLISHING_ENABLED=1` with Brandon.
 
 ## Connect, with two source teams
 

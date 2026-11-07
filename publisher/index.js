@@ -17,7 +17,7 @@
 const { createBundlePublisher, BASE } = require('./bundle-social');
 
 const SOURCE_TEAMS = require('./source-teams.json').teams;
-const DEFAULT_DAILY_LIMIT = 20;   // bundle.social Pro; whether it is per location or per login is with their support
+const DEFAULT_DAILY_LIMIT = 20;   // bundle.social Pro, per location (their support, 7 Nov 2026); photos do not count
 
 const configured = (env = process.env) => !!env.BUNDLE_SOCIAL_API_KEY;
 const enabled = (env = process.env) => configured(env) && env.GBP_PUBLISHING_ENABLED === '1';
