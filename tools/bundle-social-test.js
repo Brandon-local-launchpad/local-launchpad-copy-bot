@@ -134,7 +134,47 @@ async function scheduleCancel() {
   show('Reference key after cancel', { id: refAfter.id, status: refAfter.status });
 }
 
+// ── Public steps: Copybot's own publisher code, each only with --yes-public after Brandon's yes ──
+const { createBundlePublisher } = require('../publisher/bundle-social');
+const pub = () => createBundlePublisher({ apiKey: KEY, log: { error: m => console.error(hide(m)), log: () => {} } });
+const needYes = () => {
+  if (!process.argv.includes('--yes-public')) throw new Error('This step goes public: add --yes-public, only after Brandon says yes');
+  if (!state.team_id) throw new Error('Run connect first');
+};
+
+async function postPublic() {
+  needYes();
+  const p = pub();
+  const check = await p.checkAccount({ teamId: state.team_id, channelId: state.channel_id });
+  if (!check.ok) throw new Error(check.reason);
+  const photo = fs.readFileSync(path.join(ROOT, 'public/logo.png'));
+  const uploadId = await p.uploadPhoto({ teamId: state.team_id, bytes: photo, filename: 'local-launchpad.png', mime: 'image/png' });
+  const when = { postAt: new Date(Date.now() + 15 * 60000).toISOString() };
+  const post = {
+    seq: 1, prompt_label: 'Copybot test post', topic: 'STANDARD', cta_type: 'LEARN_MORE', cta_url: 'https://locallaunchpad.co.uk',
+    body: 'Local Launchpad builds websites and Google Business Profiles for UK tradespeople, so the people searching for your trade in your area can find you and get in touch. If you run a trade business and want more of your local work to come from Google, have a look at what we do.',
+  };
+  const made = await p.schedulePost({ teamId: state.team_id, post, uploadId, referenceKey: `copybot-test-public-${Date.now()}`, when });
+  state.public_post = { id: made.id, at: when.postAt };
+  saveState();
+  show('Scheduled to go public', { id: made.id, status: made.status, at: when.postAt });
+}
+
+async function status() {
+  if (!state.public_post) throw new Error('No public post yet');
+  show('Status', await pub().postStatus(state.public_post.id));
+  const raw = await call('GET', `/post/${state.public_post.id}`);
+  show('Raw', { status: raw.status, postedDate: raw.postedDate, externalData: raw.externalData, errors: raw.errors, errorsVerbose: raw.errorsVerbose });
+}
+
+async function removePost() {
+  needYes();
+  if (!state.public_post) throw new Error('No public post yet');
+  show('Removed from Google', await pub().removeLivePost(state.team_id, state.public_post.id));
+  show('Status after', await pub().postStatus(state.public_post.id));
+}
+
 const [step, arg] = process.argv.slice(2);
-const steps = { list, connect: () => connect(arg), 'schedule-cancel': scheduleCancel };
-if (!steps[step]) { console.log('Steps: list | connect "<location>" | schedule-cancel'); process.exit(1); }
+const steps = { list, connect: () => connect(arg), 'schedule-cancel': scheduleCancel, 'post-public': postPublic, status, 'remove-post': removePost };
+if (!steps[step]) { console.log('Steps: list | connect "<location>" | schedule-cancel | post-public --yes-public | status | remove-post --yes-public'); process.exit(1); }
 steps[step]().then(() => console.log(`\nReplies saved in ${OUT}`)).catch(e => { console.error(`\nSTOPPED: ${hide(e.message)}`); process.exit(1); });
