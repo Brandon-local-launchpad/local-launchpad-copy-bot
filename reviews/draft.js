@@ -30,12 +30,17 @@ const otherNames = displayName => str(displayName).split(/\s+/).slice(1).map(w =
 function userMessage({ stars, reviewerName, comment }) {
   const name = firstName(reviewerName);
   const text = str(comment);
-  return [
+  const lines = [
     `Star rating: ${F.starsOf(stars)} out of 5`,
     `Reviewer's first name: ${name || 'not shown'}`,
     `Review text: ${text ? `"""${text}"""` : '(no review text)'}`,
-  ].join('\n');
+  ];
+  // A price complaint on a 1 to 3 star review (Brandon, 8 Nov 2026): acknowledge it the way a person
+  // would, "sorry to hear that", and never name the price, the cost or value
+  if (F.starsOf(stars) <= 3 && PRICE.test(text) && !PRICE_PRAISE.test(text)) lines.push('', PRICE_NOTE);
+  return lines.join('\n');
 }
+const PRICE_NOTE = 'Note: the review mentions price. Do not mention price, cost, value or money in the reply. Acknowledge that point simply, for example "I\'m sorry to hear that".';
 
 // ── The checks ──
 const BANNED = /\b(refund\w*|compensat\w*|discount\w*|insur\w*|legal\w*|solicitor\w*|liabl\w*|liabilit\w*)\b/i;
@@ -106,7 +111,7 @@ function validate(text, { stars, fields = {}, comment = '', reviewerName = '', r
   const banned = t.match(BANNED);
   if (banned) add('BANNED', `The reply says "${banned[0]}": no refunds, compensation, discounts, insurance, legal matters or liability.`);
   if (n <= 2 && PRICE.test(t)) add('PRICE', `A ${n} star reply never mentions prices ("${t.match(PRICE)[0]}").`);
-  if (n === 3 && PRICE.test(t) && !PRICE_PRAISE.test(str(comment))) add('PRICE', `This reply mentions price ("${t.match(PRICE)[0]}"), and the review did not praise the price.`);
+  if (n === 3 && PRICE.test(t) && !PRICE_PRAISE.test(str(comment))) add('PRICE', `This reply mentions price ("${t.match(PRICE)[0]}"), and the review did not praise the price. Acknowledge it with "I'm sorry to hear that" instead.`);
   const surname = otherNames(reviewerName).find(w => new RegExp(`\\b${w.replace(/[-'’]/g, '.')}\\b`, 'i').test(t) && !norm(fields.business_name).includes(w.toLowerCase()));
   if (surname) add('SURNAME', `The reply uses "${surname}" from the reviewer's name; the first name only.`);
   if (n >= 4) {

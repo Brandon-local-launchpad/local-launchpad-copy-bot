@@ -1,6 +1,6 @@
 # The listings inbox: Google Cloud OAuth set-up (3 Nov 2026)
 
-Copybot reads listings@locallaunchpad.co.uk through the Gmail API. It needs an OAuth client (a client id and secret) and one refresh token for that one user. Three values go on Railway: `GMAIL_CLIENT_ID`, `GMAIL_CLIENT_SECRET`, `GMAIL_REFRESH_TOKEN`. Nothing else is stored. Scope: `gmail.modify` (read the messages, mark them read; Copybot never sends, forwards or deletes).
+Copybot reads listings@locallaunchpad.co.uk through the Gmail API. It needs an OAuth client (a client id and secret) and one refresh token for that one user. Three values go on Railway: `GMAIL_CLIENT_ID`, `GMAIL_CLIENT_SECRET`, `GMAIL_REFRESH_TOKEN`. Nothing else is stored. Scope: `gmail.modify` (read the messages, mark them read, and send; the only email Copybot sends is the review replies notice to a client's approver, `reviews/notify.js`, since 8 Nov 2026; nothing is forwarded or deleted). The same three variables on the `reviews-sync` cron service turn those emails on.
 
 ## Steps for Brandon
 
@@ -36,7 +36,7 @@ Only an email whose sender passed SPF or DKIM for its own domain (Gmail's Authen
 - Client: the address in To, X-Gm-Original-To or Delivered-To that ends in `@listings.locallaunchpad.co.uk`, matched to the client by slug.
 - Directory: the sender's domain against the row's "Email sender domains" first, then the directory's own domain.
 - Known client and directory: a plain confirmation link (confirm, verify, activate, validate; not a login page) is opened once with a GET and the row moves from awaiting email verification to awaiting approval; a code is shown on the row; a link that needs a browser is shown on the row; anything else is recorded on the row.
-- Every message is recorded with what was done, then marked read. Nothing is sent, forwarded or deleted.
+- Every message is recorded with what was done, then marked read. Nothing is forwarded or deleted; the poller sends nothing.
 
 ## If the token stops working
 
