@@ -44,7 +44,7 @@ function createFakeBundle({ apiKey = 'fake-key' } = {}) {
   const accountIn = teamId => state.accounts.find(a => a.teamId === teamId && a.type === TYPE && !a.deletedAt);
   app.get('/api/v1/social-account/by-type', (req, res) => {
     const a = accountIn(req.query.teamId);
-    return a ? res.json(a) : refuse(res, 404, 'Not found');   // ASSUMED: the reference does not say when it answers 404
+    return a ? res.json(a) : refuse(res, 400, 'Team does not have a Google Business account');   // as the real service answered, 8 Nov 2026
   });
   // The reference: resetChannel covers only Facebook, Instagram, LinkedIn and YouTube, so a Google
   // Business copy keeps the source team's selected location.
@@ -66,7 +66,16 @@ function createFakeBundle({ apiKey = 'fake-key' } = {}) {
     const a = accountIn(req.body && req.body.teamId);
     if (!a) return refuse(res, 404, 'Not found');
     if (!(a.channels || []).some(c => c.id === req.body.channelId)) return refuse(res, 400, 'That channel is not on this account.');
-    if (!state.setChannelIgnored) a.externalId = req.body.channelId;   // ASSUMED: externalId holds the selected location
+    if (state.setChannelIgnored) return res.json(a);   // a test: the location never moves
+    // As the real service answered, 8 Nov 2026: a selected location must be unset first
+    if (a.externalId) return refuse(res, 400, 'This team already has a Google Business location selected. Please disconnect it first.');
+    if (!state.setChannelIgnored) a.externalId = req.body.channelId;   // proven 8 Nov 2026: externalId holds the selected location
+    res.json(a);
+  });
+  app.post('/api/v1/social-account/unset-channel', (req, res) => {
+    const a = accountIn(req.body && req.body.teamId);
+    if (!a) return refuse(res, 404, 'Not found');
+    if (!state.setChannelIgnored) a.externalId = null;
     res.json(a);
   });
 

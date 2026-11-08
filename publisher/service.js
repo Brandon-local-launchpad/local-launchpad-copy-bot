@@ -94,8 +94,13 @@ function createPublishing({ store, postStore, driveStore, getDrive, getPublisher
       teamId = await pub.createTeam(await clientName(clientId));
       await store.saveConnection(clientId, { team_id: teamId, status: 'partial', source_team_id: sourceTeamId, source_name: chosen.source_name });
     }
-    if (!(await pub.accountFor(teamId))) await pub.copyAccount(sourceTeamId, teamId);
-    await pub.setChannel(teamId, channelId);
+    let account = await pub.accountFor(teamId);
+    if (!account) { await pub.copyAccount(sourceTeamId, teamId); account = await pub.accountFor(teamId); }
+    // A copy arrives on the source team's own location, and a set location must be unset before another
+    if (!account || account.externalId !== channelId) {
+      if (account && account.externalId) await pub.unsetChannel(teamId);
+      await pub.setChannel(teamId, channelId);
+    }
     // Read back: a copy can arrive pointing at the source team's own location
     const check = await pub.checkAccount({ teamId, channelId });
     if (!check.ok) {

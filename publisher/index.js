@@ -4,7 +4,7 @@
 // Nothing outside this folder knows who publishes. Google's own API would be a new file with these
 // same functions, chosen here.
 //   locations(sourceNames)             where each source login can post
-//   createTeam, accountFor, copyAccount, setChannel, checkAccount({ teamId, channelId })
+//   createTeam, accountFor, copyAccount, setChannel, unsetChannel, checkAccount({ teamId, channelId })
 //   uploadPhoto({ teamId, bytes, filename, mime }) → an upload id
 //   schedulePost({ teamId, post, uploadId, referenceKey, when }) → { id, status }
 //   postStatus(id) → { status: scheduled | posted | failed | deleted, error, link, posted_at }

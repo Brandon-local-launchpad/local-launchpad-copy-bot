@@ -38,6 +38,15 @@ Publish GBP posts, Photo Drip photos and review replies through bundle.social's 
 4. Offer posts: send `eventTitle`. Copybot already does.
 5. An upload is kept while a draft or scheduled post uses it, and removed 14 days after the last post using it is published, fails or is deleted. So a Retry more than 13 days after a post's date cancels the old post and sends it again with a new upload, and a Photo Drip photo always gets a fresh upload.
 
+## First real test (8 Nov 2026, `tools/bundle-social-test.js`, a "Copybot test" team on the Local Launchpad location)
+
+- Both source teams found. Each login sees its own locations; the same Google location shows under each login with a different `accounts/<id>/` prefix, so a channel id belongs to one login.
+- `externalId` on the Google account holds the selected location, `accounts/<id>/locations/<id>`: proven, and what `checkAccount` reads.
+- A team with no Google account answers 400 "Team does not have a Google Business account", not 404. Fixed in `accountFor`; Connect would have stopped there.
+- A copy arrives on the source team's own selected location, and set-channel refuses while a location is selected ("Please disconnect it first"). Connect now unsets the channel first (`/social-account/unset-channel`, which keeps the authorisation) and sets the chosen one; proven both ways on the test team. Without this every real Connect would have failed.
+- A scheduled post is found by its reference key, cancels to DELETED, and its reference key then answers 404.
+- Not yet tested, each needing Brandon's yes as it goes public: a real post, an Offer post, an AT_WORK photo, and Delete taking each off Google.
+
 ## Brandon's decisions (7 Nov 2026)
 
 - Each Offer post runs 28 days, so one ends as the next begins.

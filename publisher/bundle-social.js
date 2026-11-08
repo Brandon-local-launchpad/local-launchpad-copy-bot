@@ -5,8 +5,8 @@
 // Google's own API can replace it. The endpoints are bundle.social's API reference, read 7 Nov 2026.
 // Photos go up as file uploads: never a public Drive link. The key never goes in a message.
 //
-// Not yet proven against the real service: the docs do not name the field holding the chosen location.
-// They say externalId is empty until a channel is set, so checkAccount reads it as the channel id.
+// Proven against the real service (8 Nov 2026): externalId holds the selected location, in the form
+// accounts/<id>/locations/<id>; a team with no Google account answers 400, not 404.
 
 const FormDataCtor = globalThis.FormData;
 const BlobCtor = globalThis.Blob;
@@ -19,7 +19,7 @@ const STATUS = { DRAFT: 'scheduled', SCHEDULED: 'scheduled', PROCESSING: 'schedu
 function createBundlePublisher({ apiKey, baseUrl = BASE, fetchImpl = (...a) => fetch(...a), log = console }) {
   const scrub = m => { let s = String(m == null ? '' : m); if (apiKey) s = s.split(apiKey).join('[hidden]'); return s.slice(0, 400); };
 
-  async function call(method, path, { body, form, allow404 = false } = {}) {
+  async function call(method, path, { body, form, allow404 = false, noAccount = false } = {}) {
     const headers = { 'x-api-key': apiKey };
     if (body) headers['Content-Type'] = 'application/json';
     let res;
@@ -28,6 +28,8 @@ function createBundlePublisher({ apiKey, baseUrl = BASE, fetchImpl = (...a) => f
     if (allow404 && res.status === 404) return null;
     const data = await res.json().catch(() => ({}));
     if (res.ok) return data;
+    // The real service (8 Nov 2026) answers 400 "Team does not have a Google Business account", not 404
+    if (noAccount && res.status === 400 && /does not have/i.test(String(data.message || ''))) return null;
     const detail = Array.isArray(data.issues) && data.issues.length ? `: ${data.issues.map(i => `${(i.path || []).join('.')} ${i.message}`).join('; ')}` : '';
     throw Object.assign(new Error(`bundle.social said ${res.status}: ${scrub(data.message || 'no reason given')}${scrub(detail)}`), { status: res.status, transient: res.status === 429 || res.status >= 500 });
   }
@@ -60,9 +62,12 @@ function createBundlePublisher({ apiKey, baseUrl = BASE, fetchImpl = (...a) => f
   }
 
   const createTeam = async name => (await call('POST', '/team/', { body: { name: String(name).slice(0, 80).padEnd(3, ' ') } })).id;
-  const accountFor = teamId => call('GET', `/social-account/by-type?type=${TYPE}&teamId=${encodeURIComponent(teamId)}`, { allow404: true });
+  const accountFor = teamId => call('GET', `/social-account/by-type?type=${TYPE}&teamId=${encodeURIComponent(teamId)}`, { allow404: true, noAccount: true });
   const copyAccount = (fromTeamId, toTeamId) => call('POST', '/social-account/copy', { body: { fromTeamId, toTeamId, socialAccountTypes: [TYPE] } });
   const setChannel = (teamId, channelId) => call('POST', '/social-account/set-channel', { body: { type: TYPE, teamId, channelId } });
+  // The real service refuses set-channel while a location is selected, and a copy arrives with the
+  // source team's own location selected (proven 8 Nov 2026), so it is unset first
+  const unsetChannel = teamId => call('POST', '/social-account/unset-channel', { body: { type: TYPE, teamId } });
 
   // Is this team still on this location? Read fresh every time.
   async function checkAccount({ teamId, channelId }) {
@@ -117,7 +122,7 @@ function createBundlePublisher({ apiKey, baseUrl = BASE, fetchImpl = (...a) => f
   }
   const removePhoto = (teamId, mediaName) => call('DELETE', '/misc/google-business/media', { body: { teamId, mediaName } });
 
-  return { name: 'bundle.social', locations, createTeam, accountFor, copyAccount, setChannel, checkAccount, uploadPhoto, schedulePost, postStatus, retryPost, cancelPost, removeLivePost, addPhoto, removePhoto };
+  return { name: 'bundle.social', locations, createTeam, accountFor, copyAccount, setChannel, unsetChannel, checkAccount, uploadPhoto, schedulePost, postStatus, retryPost, cancelPost, removeLivePost, addPhoto, removePhoto };
 }
 
 module.exports = { createBundlePublisher, BASE };

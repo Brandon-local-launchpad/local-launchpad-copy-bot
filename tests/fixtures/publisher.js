@@ -141,6 +141,7 @@ chk('Photo Drip uses other days than the posts', ['a', 'bb', 'ccc', 'dddd'].ever
   const clientTeam = fake.teamNamed('Edens Edge Landscaping');
   chk('Connect makes a team named after the client', !!clientTeam && conn.team_id === clientTeam.id, conn.team_id, '');
   chk('it holds the chosen location, not the source team\'s', fake.accountIn(clientTeam.id).externalId === 'loc_edens' && fake.accountIn(LL.id).externalId === 'loc_ll', fake.accountIn(clientTeam.id).externalId, 'loc_edens');
+  chk('the copy arrives on the source location, so it is unset before the new one is set', apiCalls.some(x => /unset-channel/.test(x)), apiCalls.filter(x => /channel/.test(x)).join(), 'unset-channel');
   chk('the connection is saved', conn.status === 'connected' && conn.channel_id === 'loc_edens' && conn.location_name === 'Edens Edge Landscaping LTD' && conn.source_name === 'Local Launchpad', JSON.stringify(conn), '');
   chk('connecting does not switch publishing on', conn.publishing_on === false, conn.publishing_on, false);
   const teamsAfter = fake.state.teams.length;
