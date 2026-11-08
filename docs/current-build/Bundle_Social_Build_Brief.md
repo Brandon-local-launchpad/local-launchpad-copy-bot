@@ -69,3 +69,9 @@ A team holds one Google Business account, so a client's team cannot hold both lo
 
 - A per client publisher setting (Lead Snap or bundle.social) in Stage 3, so a client can't post through both.
 - The location read back after it is set, with publishing blocked until it matches, because `resetChannel` doesn't cover Google Business.
+
+### Edens Edge Offer draft (8 Nov 2026, later)
+
+- **bundle.social allows 3 teams ("social sets") on the current plan.** Creating a fourth answered 403 "Social sets limit reached. Limit is 3 sets." The account has Local Launchpad, Agency – team and Copybot test, so the one team per client design needs a higher plan (or the limit raised) before any client is connected. Ask bundle.social what the limit is per plan.
+- **An Offer post needs a coupon code, a redeem link or terms** (400 "OFFER requires at least one offer field"). Copybot already holds an Offer post back from approval without a redeem link (gbp-posts/plan.js), so real posts are covered.
+- An Offer post for Edens Edge (a free, no-obligation quote, from his confirmed values) was created as a bundle.social DRAFT on his location, read back with every Offer field kept as sent, and deleted (status DELETED). Drafts never publish: nothing reached his Google profile. The test team was then switched back to Local Launchpad's location, where the step 4 post stays up (Brandon, 8 Nov). Tool: `node tools/bundle-social-test.js offer-draft <file>`.

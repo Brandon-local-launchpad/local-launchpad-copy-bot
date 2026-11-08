@@ -16,8 +16,11 @@ const { SOURCE_TEAMS } = require('../publisher/index');
 
 const ROOT = path.resolve(__dirname, '..');
 const OUT = path.join(ROOT, 'tests/quality-runs/bundle-social-test');
-const STATE = path.join(OUT, 'state.json');
-const TEST_TEAM = 'Copybot test';
+// --team <name>: a separate test team and state file ("--team Edens Edge" → team "Copybot test Edens Edge"),
+// so one test never touches another's team or posts
+const TEAM_ARG = process.argv.includes('--team') ? process.argv[process.argv.indexOf('--team') + 1] : '';
+const STATE = path.join(OUT, TEAM_ARG ? `state-${TEAM_ARG.toLowerCase().replace(/[^a-z0-9]+/g, '-')}.json` : 'state.json');
+const TEST_TEAM = TEAM_ARG ? `Copybot test ${TEAM_ARG}` : 'Copybot test';
 const TYPE = 'GOOGLE_BUSINESS';
 
 function loadKey() {
@@ -182,6 +185,41 @@ async function offerPublic(file) {
   show('Offer scheduled to go public', { id: made.id, status: made.status, at: when.postAt, start: when.offerStart, end: when.offerEnd });
 }
 
+// An Offer post as a bundle.social DRAFT: never published. Built with Copybot's own builder (postData), read
+// back to see what bundle.social kept, then deleted. Proves the Offer fields without going near Google.
+async function offerDraft(file) {
+  if (!state.team_id) throw new Error('Run connect first');
+  if (!file) throw new Error('Give the offer file: offer-draft <file>');
+  const o = JSON.parse(fs.readFileSync(path.resolve(file), 'utf8'));
+  for (const k of ['title', 'body', 'start', 'end']) if (!String(o[k] || '').trim()) throw new Error(`The offer file has no ${k}`);
+  const { postData } = require('../publisher/bundle-social');
+  const { ukToUtc } = require('../publisher/service');
+  const photo = fs.readFileSync(path.join(ROOT, 'public/logo.png'));
+  const form = new FormData();
+  form.append('teamId', state.team_id);
+  form.append('file', new Blob([photo], { type: 'image/png' }), 'copybot-offer-test.png');
+  const up = await call('POST', '/upload/', { form });
+  const when = { offerStart: ukToUtc(o.start), offerEnd: ukToUtc(o.end) };
+  const data = postData({ topic: 'OFFER', offer_title: o.title, offer_redeem_url: o.redeem_url || undefined, body: o.body }, up.id, when);
+  const later = new Date(Date.now() + 30 * 86400000); later.setUTCHours(10, 0, 0, 0);
+  const ref = `copybot-offer-draft-${Date.now()}`;
+  const made = await call('POST', '/post/', { body: { teamId: state.team_id, title: 'Copybot offer test, a draft, deleted straight away', postDate: later.toISOString(), status: 'DRAFT', socialAccountTypes: [TYPE], referenceKey: ref, data: { [TYPE]: data } } });
+  show('Created as a draft', { id: made.id, status: made.status, postDate: made.postDate });
+  try {
+    if (made.status !== 'DRAFT') throw new Error(`bundle.social made it ${made.status}, not DRAFT`);
+    const read = await call('GET', `/post/${made.id}`);
+    const kept = (read.data && read.data[TYPE]) || {};
+    show('What bundle.social kept', { status: read.status, topicType: kept.topicType, eventTitle: kept.eventTitle, eventStartDate: kept.eventStartDate, eventEndDate: kept.eventEndDate, text: kept.text, uploadIds: kept.uploadIds, errors: read.errors });
+    const sent = { topicType: data.topicType, eventTitle: data.eventTitle, eventStartDate: data.eventStartDate, eventEndDate: data.eventEndDate, text: data.text };
+    console.log(`
+Every Offer field kept as sent: ${Object.entries(sent).every(([k, v]) => String(kept[k] || '') === String(v || '') || (k.endsWith('Date') && Date.parse(kept[k]) === Date.parse(v))) ? 'YES' : 'NO, see above'}`);
+  } finally {
+    await call('DELETE', `/post/${made.id}`);
+    const after = await call('GET', `/post/${made.id}`).catch(e => ({ status: `HTTP ${e.status}` }));
+    show('After delete', { status: after.status });
+  }
+}
+
 // Which post: step 4's by default, the Offer post with "offer"
 const pick = which => {
   const p = which === 'offer' ? state.offer_post : state.public_post;
@@ -203,6 +241,6 @@ async function removePost(which) {
 }
 
 const [step, arg] = process.argv.slice(2);
-const steps = { list, connect: () => connect(arg), 'schedule-cancel': scheduleCancel, 'post-public': postPublic, 'offer-public': () => offerPublic(arg), status: () => status(arg), 'remove-post': () => removePost(arg) };
-if (!steps[step]) { console.log('Steps: list | connect "<location>" | schedule-cancel | post-public --yes-public | offer-public <file> --yes-public | status [offer] | remove-post [offer] --yes-public'); process.exit(1); }
+const steps = { list, connect: () => connect(arg), 'schedule-cancel': scheduleCancel, 'post-public': postPublic, 'offer-public': () => offerPublic(arg), 'offer-draft': () => offerDraft(arg), status: () => status(arg), 'remove-post': () => removePost(arg) };
+if (!steps[step]) { console.log('Steps: list | connect "<location>" | schedule-cancel | post-public --yes-public | offer-public <file> --yes-public | offer-draft <file> | status [offer] | remove-post [offer] --yes-public'); process.exit(1); }
 steps[step]().then(() => console.log(`\nReplies saved in ${OUT}`)).catch(e => { console.error(`\nSTOPPED: ${hide(e.message)}`); process.exit(1); });

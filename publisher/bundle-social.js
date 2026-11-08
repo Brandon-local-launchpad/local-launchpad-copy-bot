@@ -16,6 +16,15 @@ const MAX_TEAM_PAGES = 50;
 
 const STATUS = { DRAFT: 'scheduled', SCHEDULED: 'scheduled', PROCESSING: 'scheduled', REVIEW: 'scheduled', RETRYING: 'scheduled', POSTED: 'posted', ERROR: 'failed', DELETED: 'deleted' };
 
+// The post body bundle.social takes for one Google post (exported for the real-test tool)
+function postData(post, uploadId, when) {
+  const data = { text: post.body, uploadIds: [uploadId], languageCode: 'en-GB' };
+  if (post.topic === 'OFFER') {
+    return { ...data, topicType: 'OFFER', eventTitle: post.offer_title, eventStartDate: when.offerStart, eventEndDate: when.offerEnd, offerRedeemOnlineUrl: post.offer_redeem_url };
+  }
+  return { ...data, topicType: 'STANDARD', callToActionType: post.cta_type, ...(post.cta_type === 'CALL' ? {} : { callToActionUrl: post.cta_url }) };
+}
+
 function createBundlePublisher({ apiKey, baseUrl = BASE, fetchImpl = (...a) => fetch(...a), log = console }) {
   const scrub = m => { let s = String(m == null ? '' : m); if (apiKey) s = s.split(apiKey).join('[hidden]'); return s.slice(0, 400); };
 
@@ -87,13 +96,6 @@ function createBundlePublisher({ apiKey, baseUrl = BASE, fetchImpl = (...a) => f
     return (await call('POST', '/upload/', { form })).id;
   }
 
-  function postData(post, uploadId, when) {
-    const data = { text: post.body, uploadIds: [uploadId], languageCode: 'en-GB' };
-    if (post.topic === 'OFFER') {
-      return { ...data, topicType: 'OFFER', eventTitle: post.offer_title, eventStartDate: when.offerStart, eventEndDate: when.offerEnd, offerRedeemOnlineUrl: post.offer_redeem_url };
-    }
-    return { ...data, topicType: 'STANDARD', callToActionType: post.cta_type, ...(post.cta_type === 'CALL' ? {} : { callToActionUrl: post.cta_url }) };
-  }
 
   async function schedulePost({ teamId, post, uploadId, referenceKey, when }) {
     // A run that stopped after creating this post must not create it again
@@ -141,4 +143,4 @@ function createBundlePublisher({ apiKey, baseUrl = BASE, fetchImpl = (...a) => f
   return { name: 'bundle.social', locations, createTeam, accountFor, copyAccount, setChannel, unsetChannel, checkAccount, uploadPhoto, schedulePost, postStatus, retryPost, cancelPost, removeLivePost, addPhoto, removePhoto, startReviewImport, reviewImport, listReviews, getReview, putReviewReply };
 }
 
-module.exports = { createBundlePublisher, BASE };
+module.exports = { createBundlePublisher, postData, BASE };
