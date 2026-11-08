@@ -20,7 +20,7 @@ Publish GBP posts, Photo Drip photos and review replies through bundle.social's 
 
 **Connect to bundle.social button.** Create a team, copy the agency Google Business connection from the "Local Launchpad" team, refresh channels, and the VA picks the location from a list. Never connect clients one by one in the dashboard, and never ask clients to log in. Not run for a real client in testing.
 
-**Stage 4, Review replies.** Import reviews per client. Draft each reply: short, in the client's tone, the reviewer's first name only, thanks, the service if the review names it. No invented facts, offers or promises. 3 stars or below: a calm, non defensive draft inviting them to get in touch, always flagged for a person. Nothing is posted without a VA approving it.
+**Stage 4, Review replies.** Replaced by Brandon's own brief, `docs/current-build/Review_Replies_Bundle_Social_Build_Brief.md` (8 Nov 2026), which wins where the two differ: 4 and 5 star replies may post automatically once a client is switched on, and reviews from before the go-live date are backlog rather than the last 90 days. The text below is the original plan, kept for the record. Import reviews per client. Draft each reply: short, in the client's tone, the reviewer's first name only, thanks, the service if the review names it. No invented facts, offers or promises. 3 stars or below: a calm, non defensive draft inviting them to get in touch, always flagged for a person. Nothing is posted without a VA approving it.
 
 ## What the docs changed (Stage 0)
 

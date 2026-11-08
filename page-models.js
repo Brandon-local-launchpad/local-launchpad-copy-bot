@@ -13,10 +13,12 @@ function forPage(type) {
   return { block_rewrite: null, ...config[type] };
 }
 const judge = () => ({ ...config.judge });
+// The Google review reply drafts (reviews/draft.js)
+const reviews = () => ({ ...config.reviews });
 
 function retryCaller(callModel, system, modelConfig, maxTokens = 2048) {
   const rewrite = modelConfig && modelConfig.block_rewrite;
   return ({ message, hasBlock = false }) => callModel({ system, message, maxTokens, ...(hasBlock && rewrite ? { model: rewrite.model, effort: rewrite.effort } : {}) });
 }
 
-module.exports = { forPage, judge, retryCaller, PAGE_TYPES };
+module.exports = { forPage, judge, reviews, retryCaller, PAGE_TYPES };

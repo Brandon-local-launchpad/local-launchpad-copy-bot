@@ -4108,6 +4108,43 @@ if (pool && pageMapStore) {
     limit: () => PUB.dailyLimit(),
   });
   require('./publisher/routes').mountPublishingApi(app, { pool, publishing: publishingService, store: publishStore, postStore: gbpPosts.store });
+  // Google review replies through bundle.social (8 Nov 2026, docs/current-build/Review_Replies_Bundle_Social_Build_Brief.md).
+  // The sync is its own Railway cron service (jobs/reviews-sync.js); here are the queue, the settings and
+  // the buttons. Nothing posts unless BUNDLE_SOCIAL_API_KEY and REVIEW_REPLIES_POSTING=1 are set.
+  {
+    const reviewModel = require('./page-models').reviews();
+    const reviewCallModel = args => makeCallModel(new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY }), reviewModel.model, { defaultEffort: reviewModel.effort, onUsage: modelLog.tagged('review replies') })(args);
+    const reviewStore = require('./reviews/store').createReviewStore(pool);
+    const gmail = require('./citations/inbox/gmail');
+    let mailOnce = null;
+    const reviewSync = require('./reviews/sync').createReviewSync({
+      store: reviewStore, publishStore, getBundle: () => (publisherOnce = publisherOnce || PUB.createPublisher()),
+      callModel: reviewCallModel, model: reviewModel.model, effort: reviewModel.effort,
+      notify: gmail.configured() ? m => (mailOnce = mailOnce || gmail.createGmail()).send(m) : null,
+    });
+    // What Copybot already holds, offered for the fields still blank: the Lead Snap intake (services, areas,
+    // the business name and phone), the niche's trade word, the owner's name, and the role from Fillout
+    const reviewSuggestions = async clientId => {
+      const { rows } = await pool.query(`SELECT content FROM client_assets WHERE client_id=$1 AND asset_type='client_values' ORDER BY uploaded_at DESC LIMIT 1`, [clientId]);
+      let cv = rows.length ? JSON.parse(rows[0].content) : {};
+      let intake = null, trade = '';
+      try {
+        const L = await leadSnapInputs(clientId);
+        cv = { ...cv, ...((L.I.validatorCtx && L.I.validatorCtx.cv) || {}) };
+        trade = L.trade;
+        intake = require('./leadsnap/autopost/intake').buildIntake({ I: L.I, trade: L.trade, answers: L.answers });
+      } catch (_) { /* no v3 page map yet: the client values alone */ }
+      if (!trade) { const { rows: t } = await pool.query(`SELECT trade FROM clients WHERE id=$1`, [clientId]); trade = (t[0] && t[0].trade) || ''; }
+      const rec = filloutService ? await filloutService.record(clientId).catch(() => null) : null;
+      const owner = rec ? rec.sections.flatMap(s => s.fields).find(f => f.key === 'owner_name_title') : null;
+      return require('./reviews/fields').suggest({ intake, cv, niche: loadNiche((rec && rec.niche) || trade).niche, ownerAnswer: owner && owner.value != null ? String(owner.value) : '' });
+    };
+    require('./reviews/routes').mountReviewsApi(app, {
+      pool, store: reviewStore, sync: reviewSync, getBundle: () => (publisherOnce = publisherOnce || PUB.createPublisher()),
+      suggestFor: reviewSuggestions, connectionFor: id => publishStore.connection(id), bundleConfigured: () => PUB.configured(),
+    });
+    console.log(`[reviews] review replies: posting ${require('./reviews/post').postingEnabled() ? 'on' : 'off (REVIEW_REPLIES_POSTING)'}; the sync runs as the reviews-sync cron service`);
+  }
   if (PUB.enabled()) {
     const publishTick = () => { if (Number(new Intl.DateTimeFormat('en-GB', { timeZone: 'Europe/London', hour: '2-digit', hour12: false }).format(new Date())) >= 6) publishingService.runDaily().then(r => { if (r.ran) console.log(`[publisher] daily run for ${r.summary.clients.length} client(s)`); }).catch(err => console.error('[publisher] daily run failed:', err.message)); };
     setTimeout(publishTick, 60000);
