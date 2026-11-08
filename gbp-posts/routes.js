@@ -10,7 +10,7 @@
 //   DELETE /api/clients/:id/gbp-posts/batches/:b            a batch not approved
 //   PUT    /api/clients/:id/gbp-posts/posts/:p              { body, post_date, drive_file_id } a person's edit
 //   POST   /api/clients/:id/gbp-posts/posts/:p/rewrite      write one post again (spends)
-//   GET    /api/clients/:id/gbp-posts/photo/:fileId         the photo, for review, through the service account
+//   GET    /api/clients/:id/gbp-posts/photo/:fileId         the photo, for review, through the service account (?size=thumb: a thumbnail)
 // Writing runs in the background, a few posts at a time, saved post by post, so a restart loses
 // nothing: the batch shows as stopped and Continue writes what is left. Nothing here publishes.
 
@@ -92,8 +92,8 @@ function mountGbpPostsApi(app, { pool, callModel, loadInputs = null, beforeUnapp
     const record = await autopost.latest(clientId);
     const photos = await photosFor(clientId);
     const needs = [];
-    if (!record || !record.sheet) needs.push('Write the prompts (Prompts, above): posts are written from them.');
-    if (!photos) needs.push('Save and read the Drive photo folder (Photos, above): every post needs a photo from it.');
+    if (!record || !record.sheet) needs.push('Write the prompts (under Photos & prompts): posts are written from them.');
+    if (!photos) needs.push('Save and read the Drive photo folder (under Photos & prompts): every post needs a photo from it.');
     const batches = await store.batches(clientId);
     const fileIds = photos ? new Set(photos.map(f => f.file_id)) : null;
     const list = [];
@@ -270,7 +270,13 @@ function mountGbpPostsApi(app, { pool, callModel, loadInputs = null, beforeUnapp
     const read = await driveStore.read(clientId);
     const photo = read && read.files.find(f => f.file_id === fileId);
     if (!photo) throw bad('That photo is not in this client\'s Drive folders.', 404);
-    const got = await getDrive().download(fileId);
+    // ?size=thumb: Drive's own thumbnail, for the photo picker and the post cards; the full file otherwise
+    const drive = getDrive();
+    if (req.query.size === 'thumb' && drive.thumbnail) {
+      const t = await drive.thumbnail(fileId, 480).catch(() => null);
+      if (t) { res.set('Content-Type', t.type); res.set('Cache-Control', 'private, max-age=86400'); return res.send(t.bytes); }
+    }
+    const got = await drive.download(fileId);
     res.set('Content-Type', photo.mime_type || 'image/jpeg');
     res.set('Cache-Control', 'private, max-age=3600');
     res.send(got);

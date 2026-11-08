@@ -55,6 +55,13 @@ process.env.DEMO_BUNDLE_PORT = process.env.DEMO_BUNDLE_PORT || String(Number(POR
 process.env.BUNDLE_SOCIAL_API_KEY = 'demo-fake-key';
 process.env.BUNDLE_SOCIAL_BASE_URL = `http://127.0.0.1:${process.env.DEMO_BUNDLE_PORT}/api/v1`;
 process.env.REVIEW_REPLIES_POSTING = '1';
+// A stand-in Drive for the GBP Posts & Photos tab: every photo is a generated picture (8 Nov 2026)
+{
+  const DC = require(path.join(root, 'drive/client.js'));
+  const hues = [140, 95, 30, 200, 260, 10, 170, 60];
+  const pic = id => { const n = [...String(id)].reduce((a, c) => a + c.charCodeAt(0), 0); const hue = hues[n % hues.length]; return Buffer.from(`<svg xmlns="http://www.w3.org/2000/svg" width="800" height="600"><defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="hsl(${hue},45%,62%)"/><stop offset="1" stop-color="hsl(${(hue + 40) % 360},40%,32%)"/></linearGradient></defs><rect width="800" height="600" fill="url(#g)"/><text x="40" y="560" font-family="sans-serif" font-size="44" fill="#fff" opacity=".85">${String(id).replace(/[^a-z0-9-]/gi, '')}</text></svg>`); };
+  DC.createDrive = () => ({ folder: async () => ({}), list: async () => [], download: async id => pic(id), thumbnail: async id => ({ bytes: pic(id), type: 'image/svg+xml' }), accessToken: async () => 'demo' });
+}
 delete process.env.GBP_PUBLISHING_ENABLED;
 
 (async () => {
@@ -154,6 +161,34 @@ delete process.env.GBP_PUBLISHING_ENABLED;
   const standIn = JSON.parse(fs.readFileSync(path.join(root, 'tests/fixtures/data/edens-edge-v3-page-map.json'), 'utf8')).rows.filter(r => r.applies !== false);
   for (const [i, r] of standIn.entries()) await pool.query(`INSERT INTO client_page_map (client_id, page_key, type, title, slug, h1, h1_source, status, applies, info, sort_order) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, TRUE, $9, $10)`, [auditId, `${r.type}:${r.slug}`, r.type, r.title, r.slug, r.h1 || '', r.h1_source || 'needed', r.status || 'Not Started', JSON.stringify(r.info || {}), i]);
   await pool.query(`INSERT INTO client_page_map_state (client_id, generated_at, inputs) VALUES ($1, NOW(), $2)`, [auditId, JSON.stringify({ baseTown: 'Southampton' })]);
+  // GBP Posts & Photos (8 Nov 2026): a Drive read and a written batch to review, on the stand-in Drive above
+  {
+    const folderLink = 'https://drive.google.com/drive/folders/demoPhotos123';
+    await pool.query(`UPDATE client_assets SET content=$2 WHERE client_id=$1 AND asset_type='client_values'`, [auditId, JSON.stringify({ company_name: 'Southampton Homes Ltd', live_domain: liveDomain, drive_photo_folder: folderLink, free_quotes: 'yes' })]);
+    const file = (label, i, kind = 'post') => ({ file_id: `${label.toLowerCase().replace(/\W+/g, '-')}-${i}`, kind, label, folder_id: `f-${label}`, name: `${label.toLowerCase().replace(/\W+/g, '-')}-${i}.jpeg`, mime_type: 'image/svg+xml', size_bytes: 900000 + i * 1000, width: 1600, height: 1200, md5: `m-${label}-${i}`, modified_at: null, web_link: '', problem: '' });
+    const sets = { Fencing: 6, Trees: 5, Pergolas: 4, Patios: 3, Brand: 3 };
+    const files = [...Object.entries(sets).flatMap(([l, n]) => Array.from({ length: n }, (_, i) => file(l, i + 1))), ...Array.from({ length: 8 }, (_, i) => ({ ...file('GBP Photos – Photo Drip', i + 1, 'drip') }))];
+    await require(path.join(root, 'drive/store.js')).createDriveStore(pool).saveRead(auditId, { folder_id: 'demoPhotos123', folder_name: 'Images from Southampton Homes', posts_found: true, drip_found: true, folders: Object.keys(sets).map(l => ({ label: l, id: `f-${l}` })), problems: [], notes: [], files });
+    const ps = require(path.join(root, 'gbp-posts/store.js')).createPostStore(pool);
+    const day = n => { const d = new Date(Date.now() + n * 86400000); return d.toISOString().slice(0, 10); };
+    const body = [
+      'Thinking about getting your garden sorted but not sure where to begin? Southampton Homes is offering a free, no-obligation quote for garden work in Romsey, so you can have things looked at and priced without any pressure to go ahead.\n\nWe come and look at the space you have, talk through what you would like done, and then give you a clear price. There is no charge for the visit or the quote.',
+      'A fence that leans is hard to ignore. One panel starts to tilt, a gap opens up where there used to be a tight join, and before long the whole boundary looks tired.\n\nThese problems rarely come out of nowhere. Usually they trace back to how the fencing was put up in the first place: posts that weren\'t set firmly enough, or panels that weren\'t fixed properly.\n\nAt Southampton Homes we put the posts in properly, check every one with a level and let them settle before the panels go on. That way the fence stays straight for years, not months.',
+      'Does a pergola have to be fixed to the house? No. A pergola can stand entirely on its own, and for many gardens that is the better choice.\n\nA freestanding pergola sits on its own posts, so you can place it wherever suits the garden, whether that\'s over a seating area in the middle of the lawn or at the far end for a quiet spot away from the house.',
+      'Tree cabling and bracing is a way of supporting a tree that has a weak limb or a split union, rather than taking the whole tree down. We check how the trunk and main limbs are shaped, where branches join together, and whether any unions are tight or showing signs of splitting.',
+    ];
+    const posts = [
+      { seq: 1, post_date: day(3), post_time: '10:00', topic: 'OFFER', prompt_n: 1, prompt_label: 'Free, no-obligation quote', folder: 'GBP Photos – Posts / Fencing', drive_file_id: 'fencing-1', photo_name: 'fencing-1.jpeg', cta_type: '', cta_url: '', offer_title: 'Free, no-obligation quote', offer_start: day(3), offer_end: day(31), offer_redeem_url: '' },
+      { seq: 2, post_date: day(6), post_time: '10:00', topic: 'STANDARD', prompt_n: 2, prompt_label: 'Fencing: the problem customers notice', folder: 'GBP Photos – Posts / Fencing', drive_file_id: 'fencing-2', photo_name: 'fencing-2.jpeg', cta_type: 'LEARN_MORE', cta_url: `${liveDomain}/fencing`, offer_title: '', offer_start: '', offer_end: '', offer_redeem_url: '' },
+      { seq: 3, post_date: day(10), post_time: '10:00', topic: 'STANDARD', prompt_n: 3, prompt_label: 'Pergolas: one practical question answered', folder: 'GBP Photos – Posts / Pergolas', drive_file_id: 'pergolas-1', photo_name: 'pergolas-1.jpeg', cta_type: 'LEARN_MORE', cta_url: `${liveDomain}/pergolas`, offer_title: '', offer_start: '', offer_end: '', offer_redeem_url: '' },
+      { seq: 4, post_date: day(13), post_time: '10:00', topic: 'STANDARD', prompt_n: 4, prompt_label: 'Trees: how the job is done', folder: 'GBP Photos – Posts / Trees', drive_file_id: 'trees-1', photo_name: 'trees-1.jpeg', cta_type: 'CALL', cta_url: '', offer_title: '', offer_start: '', offer_end: '', offer_redeem_url: '' },
+    ];
+    const config = { generated_at: new Date().toISOString(), output: { prompts: posts.map(p => ({ n: p.prompt_n, label: p.prompt_label, folder: p.folder, text: 'demo', area: 'Romsey' })) } };
+    const bid = await ps.createBatch(auditId, { size: 13, start: day(3), config, notes: [], posts });
+    const checks = [[{ level: 'pass', label: 'No phone number' }], [{ level: 'warn', label: 'Names a town beyond its area', detail: 'Totton' }], [{ level: 'pass', label: 'No phone number' }], [{ level: 'fail', label: 'An unconfirmed claim', detail: '"fully insured"' }]];
+    for (const [i, p] of (await ps.posts(bid)).entries()) await ps.saveWritten(p.id, { body: body[i], opening: body[i].split(' ').slice(0, 4).join(' '), checks: checks[i], fails: checks[i].filter(c => c.level === 'fail').length, warnings: checks[i].filter(c => c.level === 'warn').length });
+    await ps.setStatus(bid, 'draft');
+  }
   // The Lead Snap tab: the newest local real run (node tools/leadsnap-autopost-run.js edens-edge) when there is
   // one, so the config can be seen with real prompts. Generate here gets the demo's canned model, so it shows the failed state.
   const lsDir = path.join(root, 'tests/quality-runs/leadsnap/edens-edge');

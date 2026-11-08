@@ -8,11 +8,18 @@
 
 import { h, attr, api, card, copyBtn, toast, confirm, running, empty, fmtDate, pill, wire, qa } from '../ui.js';
 
-export async function renderSetup(el, ctx, { onChange = () => {} } = {}) {
+export async function renderSetup(el, ctx, { onChange = () => {}, onData = () => {} } = {}) {
   const { clientId } = ctx;
   const url = `/api/clients/${clientId}/lead-snap`;
   let S = null;
-  const load = async () => { try { S = await api(url); } catch (e) { S = { error: e.message, fatal: true }; } draw(); };
+  let pollTimer = null, mine = false;
+  const load = async () => {
+    try { S = await api(url); } catch (e) { S = { error: e.message, fatal: true }; }
+    draw();
+    // A run started elsewhere, or before this page opened: check back until it ends
+    clearTimeout(pollTimer);
+    if (S && S.running && !mine) pollTimer = setTimeout(() => { if (el.isConnected) load().then(() => { if (S && !S.running) onChange(); }); }, 5000);
+  };
 
   const input = (key, label, value, placeholder = '') => `<label class="field" style="display:block;margin-bottom:10px"><span class="small" style="font-weight:500">${h(label)}</span><input class="input" style="width:100%" data-f="${attr(key)}" value="${attr(value || '')}" placeholder="${attr(placeholder)}"></label>`;
   const mb = n => `${(n / 1024 / 1024).toFixed(1)} MB`;
@@ -43,33 +50,45 @@ export async function renderSetup(el, ctx, { onChange = () => {} } = {}) {
   const tooFew = () => { const F = S.plan && S.intake && S.intake.photosEntered && S.plan.tooFew; return F ? `<div class="notice bad" data-too-few style="margin-bottom:10px"><strong>${h(F.message)}</strong><ul style="margin:6px 0 0 18px">${F.unlock.map(u => `<li>${h(u)}</li>`).join('')}</ul></div>` : ''; };
 
   // ── 1. Photos ──
+  // One row per service: its count, coloured (0 red, 1 to 2 amber, 3 or more green), opening to its files.
+  // The photo gaps fold into one line. Typed counts show only when Drive hasn't been read.
+  const countPill = n => pill(n >= 3 ? 'ok' : n >= 1 ? 'wait' : 'block', String(n));
   const photosCard = () => {
     const I = S.intake, D = S.drive, O = S.record && S.record.output;
     let b = '';
     if (D) {
       const says = [...(D.problems || []), ...(D.notes || [])];
-      b += `<label class="field" style="display:block;margin-bottom:10px"><span class="small" style="font-weight:500">The client's Drive photo folder</span><input class="input" style="width:100%" data-drive-input value="${attr(D.folder)}" placeholder="The Drive link of the folder holding GBP Photos – Posts"></label><div class="btn-row" style="margin-bottom:10px"><button class="btn btn-ghost" data-act="drive-save" ${busyDrive ? 'disabled' : ''}>Save folder</button>${D.folder ? `<button class="btn btn-ghost" data-act="drive-read" ${busyDrive || !D.configured ? 'disabled' : ''}>Read Drive</button>` : ''}<span class="muted small" data-drive-status>${busyDrive ? 'Reading Drive…' : D.folder && D.last_ok_at && !D.stale_folder ? `Read ${h(fmtDate(D.last_ok_at, true))}: ${D.total} photos` : D.folder ? 'Not read yet' : 'Typed counts are in use'}</span></div>`;
+      const status = busyDrive ? 'Reading Drive…' : D.folder && D.last_ok_at && !D.stale_folder ? `${D.total} photos, read ${h(fmtDate(D.last_ok_at, true))}` : D.folder ? 'Not read yet' : 'No folder saved';
+      b += `<label class="field" style="display:block;margin-bottom:8px"><span class="small" style="font-weight:500">The client's Drive photo folder</span><input class="input" style="width:100%" data-drive-input value="${attr(D.folder)}" placeholder="The Drive link of the folder holding GBP Photos – Posts"></label>`;
+      b += `<div class="btn-row" style="margin-bottom:10px;align-items:center"><button class="btn btn-ghost btn-sm" data-act="drive-save" ${busyDrive ? 'disabled' : ''}>Save folder</button>${D.folder ? `<button class="btn btn-ghost btn-sm" data-act="drive-read" ${busyDrive || !D.configured ? 'disabled' : ''}>Read Drive</button>` : ''}<span class="muted small" data-drive-status>${status}</span></div>`;
       if (!D.configured) b += '<div class="notice warn small" style="margin-bottom:10px">Copybot cannot read Drive on this server yet (GOOGLE_DRIVE_SERVICE_ACCOUNT_JSON is not set), so the typed counts are in use.</div>';
-      if (D.error) b += `<div class="notice bad small" data-drive-error style="margin-bottom:10px"><strong>The last read failed.</strong> ${h(D.error)}${D.active ? ' The list below is from the last good read.' : ' The typed counts are in use.'}</div>`;
+      if (D.error) b += `<div class="notice bad small" data-drive-error style="margin-bottom:10px"><strong>The last read failed.</strong> ${h(D.error)}${D.active ? ' The counts below are from the last good read.' : ''}</div>`;
       if (says.length) b += `<div class="notice warn small" data-drive-notes style="margin-bottom:10px"><ul style="margin:0 0 0 18px">${says.map(n => `<li>${h(n)}</li>`).join('')}</ul></div>`;
     }
     if (I) {
       const counted = D && D.active;
-      b += `<div style="display:flex;justify-content:space-between;gap:8px;align-items:baseline"><div class="sec-title">Photos per service</div><span data-photo-sort>${copyBtn(photoSortText(I), 'Copy for photo sort')}</span></div><div class="muted small" style="margin-bottom:6px">${counted ? 'Counted from Drive.' : 'Save the Drive photo folder above and Copybot counts them, or type the counts.'} Each folder is GBP Photos – Posts / [the service name below]. 3 or more photos earns prompts of its own.${I.labelsLocked ? ' These names are locked to the saved prompts: they only change when you write the prompts again.' : ''}</div>
-      <div class="tbl-wrap"><table class="tbl"><thead><tr><th>Service</th><th>Photos</th></tr></thead><tbody>
-      ${I.groups.map(g => `<tr><td>${h(g.label)}${g.services.length > 1 || g.services[0] !== g.label ? `<div class="muted small">${h(g.services.join(', '))}</div>` : ''}</td><td>${counted ? `<span data-drive-count="${attr(g.key)}">${h(g.photos)}</span>` : `<input class="input" type="number" min="0" style="width:72px" data-count="${attr(g.key)}" value="${I.photosEntered ? attr(g.photos) : ''}">`}</td></tr>`).join('')}
-      <tr><td>Brand: team, van, premises, logo</td><td>${counted ? `<span data-drive-count="brand">${h(I.brand)}</span>` : `<input class="input" type="number" min="0" style="width:72px" data-f="brand" value="${I.photosEntered ? attr(I.brand) : ''}">`}</td></tr></tbody></table></div>
-      ${counted ? '' : '<div class="btn-row" style="margin-top:8px"><button class="btn btn-ghost" data-act="save">Save counts</button></div>'}`;
+      const filesFor = label => ((D && D.folders) || []).find(x => String(x.label).toLowerCase() === String(label).toLowerCase());
+      const svcRow = (key, label, sub, n) => {
+        const folder = counted && filesFor(label);
+        const head = `<span style="flex:1;min-width:0"><span style="font-weight:500">${h(label)}</span>${sub ? `<span class="muted small" style="display:block">${h(sub)}</span>` : ''}</span>`;
+        if (!counted) return `<div class="gp-row">${head}<input class="input" type="number" min="0" style="width:72px" ${key === 'brand' ? 'data-f="brand"' : `data-count="${attr(key)}"`} value="${I.photosEntered ? attr(n) : ''}"></div>`;
+        if (!folder || !folder.files.length) return `<div class="gp-row" data-drive-count="${attr(key)}">${head}${countPill(n)}</div>`;
+        return `<details class="gp-row-d" data-drive-folder><summary class="gp-row" data-drive-count="${attr(key)}">${head}${countPill(n)}</summary><div class="tbl-wrap" style="margin:0 0 8px"><table class="tbl"><tbody>${folder.files.map(fileRow).join('')}</tbody></table></div></details>`;
+      };
+      b += `<div style="display:flex;justify-content:space-between;gap:8px;align-items:center;margin-bottom:4px"><div class="sec-title" style="margin:0">Photos per service</div><span data-photo-sort>${copyBtn(photoSortText(I), 'Copy for photo sort')}</span></div>`;
+      b += `<div class="muted small" style="margin-bottom:6px">${counted ? 'From Drive. Open a service to see its photos.' : 'Save the Drive folder above and Copybot counts them, or type the counts.'} A service needs 3 photos for posts of its own.</div>`;
+      b += `<div class="gp-rows">${I.groups.map(g => svcRow(g.key, g.label, g.services.length > 1 || g.services[0] !== g.label ? g.services.join(', ') : '', g.photos)).join('')}${svcRow('brand', 'Brand', 'team, van, premises, logo', I.brand)}</div>`;
+      if (counted && D.drip && D.drip.found) b += `<details class="gp-row-d" data-drive-folder style="margin-top:8px"><summary class="gp-row"><span style="flex:1"><span style="font-weight:500">Photo Drip folder</span><span class="muted small" style="display:block">${h(D.drip.label)}</span></span>${pill(D.drip.files.length ? 'ok' : 'none', String(D.drip.files.length))}</summary><div class="tbl-wrap"><table class="tbl"><tbody>${D.drip.files.map(fileRow).join('')}</tbody></table></div></details>`;
+      if (!counted) b += '<div class="btn-row" style="margin-top:8px"><button class="btn btn-ghost btn-sm" data-act="save">Save counts</button></div>';
     }
-    if (D && (D.folders.length || D.drip.found)) b += `<div class="sec-title" style="margin-top:12px">What Drive holds</div>${D.folders.map(f => fileList(f.label, f.files)).join('')}${D.drip.found ? fileList(D.drip.label, D.drip.files) : ''}`;
-    if (O && O.gaps) b += `<div class="sec-title" style="margin-top:12px">Photo gaps: send these to the client</div>${O.gaps.length ? `<div class="btn-row" style="margin-bottom:8px">${copyBtn(O.gaps.map(g => g.line).join('\n'), 'Copy all')}</div><ul style="margin:0 0 0 18px">${O.gaps.map(g => `<li>${h(g.line)}</li>`).join('')}</ul>` : pill('ok', 'No gaps')}`;
-    return card({ title: '1. Photos', sub: 'Read from Drive. Copybot never changes Drive.', body: b || empty({ title: 'Nothing to show yet', text: S.error || '' }) });
+    if (O && O.gaps && O.gaps.length) b += `<details style="margin-top:12px" data-gaps><summary class="small" style="cursor:pointer"><strong>${O.gaps.length} photo gap${O.gaps.length === 1 ? '' : 's'}</strong> to send the client</summary><div style="margin-top:8px">${copyBtn(O.gaps.map(g => g.line).join('\n'), 'Copy all')}<ul class="small" style="margin:8px 0 0 18px">${O.gaps.map(g => `<li>${h(g.line)}</li>`).join('')}</ul></div></details>`;
+    return card({ title: 'Photos', sub: 'Read from Drive. Copybot never changes Drive.', body: b || empty({ title: 'Nothing to show yet', text: S.error || '' }) });
   };
 
   // ── 2. Post settings ──
   const settingsCard = () => {
     const I = S.intake;
-    if (!I) return card({ title: '2. Post settings', body: empty({ title: 'Nothing to build from yet', text: S.error || '' }) });
+    if (!I) return card({ title: 'Post settings', body: empty({ title: 'Nothing to build from yet', text: S.error || '' }) });
     const b = `<div class="notice" style="margin-bottom:10px"><div><strong>${h(I.business)}</strong> · ${h(I.niche)} · ${h(I.phone || 'no phone saved')}</div><div class="small" style="margin-top:4px">Areas: ${h(I.areas.join(', '))}</div><div class="small muted">${h(I.areasWhy)}</div><div class="small" style="margin-top:4px">USPs: ${h(I.usps.join('; ') || 'none confirmed')}</div><div class="small" style="margin-top:4px">Offer: ${h(I.offer || 'none')}${I.offerSource === 'free_quotes' ? ' <span class="muted">(the client has confirmed free quotes)</span>' : ''}</div><div class="small" style="margin-top:4px">Button: ${h(I.cta.line)} <span class="muted">(${h(I.cta.why)})</span></div></div>
       ${input('offer', 'Standing offer the client has confirmed', S.hand.offer, I.offerSource === 'free_quotes' ? 'Blank uses the free, no-obligation quote' : 'Leave blank for no Offer posts')}
       ${input('booking_url', 'Booking page', S.hand.booking_url, 'https://')}
@@ -77,14 +96,14 @@ export async function renderSetup(el, ctx, { onChange = () => {} } = {}) {
       ${input('tone', `Tone (now: ${I.tone})`, S.hand.tone, 'Leave blank to keep it')}
       ${input('avoid', 'Other things to avoid', S.hand.avoid, 'e.g. no prices')}
       <div class="btn-row"><button class="btn btn-ghost" data-act="save">Save</button></div>`;
-    return card({ title: '2. Post settings', sub: 'Only change these if they apply', body: b });
+    return card({ title: 'Post settings', sub: 'Only change these if they apply', body: b });
   };
 
   // ── 3. Prompts ──
   const promptsCard = () => {
     const I = S.intake, R = S.record, P = S.plan, O = R && R.output;
     if (!I) return '';
-    const notes = [...I.missing.map(m => `Needed: ${m}`), ...I.warnings.filter(w => !/Lead Snap/i.test(w)), ...(P && I.photosEntered ? P.notes : [])];
+    const notes = [...I.missing.map(m => `Needed: ${m}`), ...I.warnings.filter(w => !/Lead Snap|nowhere to go|live domain/i.test(w)), ...(P && I.photosEntered ? P.notes : [])];
     let b = `<div class="btn-row" style="margin-bottom:10px"><button class="btn btn-primary" data-act="generate" ${S.running ? 'disabled' : ''}>${O ? 'Write the prompts again' : 'Write the prompts'}</button>${R && R.generated_at ? `<span class="muted small">Last written ${h(fmtDate(R.generated_at, true))}</span>` : ''}</div>`;
     if (S.running) b += running({ now: 'Writing the prompts', next: 'Then the checks run, then one test post from each prompt' });
     b += tooFew();
@@ -101,11 +120,12 @@ export async function renderSetup(el, ctx, { onChange = () => {} } = {}) {
     } else if (P && I.photosEntered) {
       b += `<div class="sec-title">The prompts this will write</div><div class="tbl-wrap"><table class="tbl"><thead><tr><th>#</th><th>Prompt</th><th>Photo folder</th><th>Why</th></tr></thead><tbody>${P.prompts.map(p => `<tr><td>${p.n}</td><td>${h(p.label)}</td><td>${h(p.folder)} (${p.photos})</td><td class="muted small">${h(p.why)}</td></tr>`).join('')}</tbody></table></div>`;
     } else b += '<div class="muted small">Read the client\'s Drive folder (or type the counts) first. The prompts are worked out from the photos.</div>';
-    return card({ title: '3. Prompts', sub: 'Written once per client. Every batch of posts below is written from these. Write them again when the client adds a service or sends new photos.', body: b });
+    return card({ title: 'Prompts', sub: 'Written once per client. Every batch of posts below is written from these. Write them again when the client adds a service or sends new photos.', body: b });
   };
 
   const draw = () => {
     if (!S) return;
+    onData(S);
     if (S.fatal) { el.innerHTML = `<div class="card" style="margin-bottom:16px">${empty({ title: 'Photos and prompts could not load', text: S.error, action: '<button class="btn btn-ghost" data-act="reload">Retry</button>' })}</div>`; return; }
     el.innerHTML = `<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:16px;align-items:start;margin-bottom:16px"><div class="stack">${photosCard()}</div><div class="stack">${settingsCard()}${promptsCard()}</div></div>`;
   };
@@ -128,8 +148,9 @@ export async function renderSetup(el, ctx, { onChange = () => {} } = {}) {
         await save();
         const renames = (S.intake && S.intake.pending && S.intake.pending.renames) || [];
         if (renames.length && !(await confirm({ title: renames.length === 1 ? 'This renames a photo folder' : `This renames ${renames.length} photo folders`, text: `${renames.map(r => `${r.from} becomes ${r.to}`).join('. ')}. The page map has changed, so the prompts will use the new names. Rename the folders in Drive to match, then press Read Drive.`, ok: 'Rename and write', danger: true }))) { draw(); return; }
-        S.running = true; draw();
-        S = await api(`${url}/generate`, { method: 'POST', body: { accept_renames: renames.length > 0 } }); draw(); onChange();
+        S.running = true; mine = true; draw();
+        try { S = await api(`${url}/generate`, { method: 'POST', body: { accept_renames: renames.length > 0 } }); } finally { mine = false; }
+        draw(); onChange();
         if (S.record && S.record.failure) toast('The prompts failed their checks', 'bad');
       }
     } catch (err) { toast(err.message, 'bad'); load(); }
@@ -138,5 +159,5 @@ export async function renderSetup(el, ctx, { onChange = () => {} } = {}) {
   wire(el);
   await load();
   maybeAutoRead();
-  return { refresh: load };
+  return { refresh: load, data: () => S };
 }

@@ -8,10 +8,13 @@ const WEEKDAY = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 const nice = d => { const x = new Date(`${d}T12:00:00Z`); return `${WEEKDAY[x.getUTCDay()]} ${x.getUTCDate()} ${x.toLocaleString('en-GB', { month: 'short', timeZone: 'UTC' })} ${x.getUTCFullYear()}`; };
 const PILL = { planned: ['none', 'Planned'], queued: ['none', 'Queued'], sending: ['run', 'Sending'], scheduled: ['run', 'Scheduled'], posted: ['ok', 'Posted'], failed: ['block', 'Failed'], deleted: ['none', 'Deleted'] };
 
-export async function renderPublishing(el, ctx) {
+// queueEl (8 Nov 2026): where the Queue card goes, so it can sit under the posts; onData(S) tells the tab
+// the connection and Photo Drip state for its status strip
+export async function renderPublishing(el, ctx, { queueEl = null, onData = () => {} } = {}) {
   const url = `/api/clients/${ctx.clientId}/publishing`;
   let S = null, show = 'open';
   const load = async () => { try { S = await api(url); } catch (e) { S = { fatal: e.message }; } draw(); };
+  const roots = [el, queueEl].filter(Boolean);
 
   const connectCard = () => {
     const C = S.connection;
@@ -26,8 +29,8 @@ export async function renderPublishing(el, ctx) {
 
   const dripCard = () => {
     const D = S.drip;
-    if (!D.found) return card({ title: 'Photo Drip', sub: 'Photos for the GBP Photos section, 2 a week', body: `<div class="muted small">No ${h(D.folder)} folder has been read. Save and read the Drive photo folder under Photos, above.</div>` });
-    const out = D.ran_out ? `<div class="notice warn" data-drip-out style="margin-bottom:10px"><strong>Photo Drip has run out of new photos.</strong> ${D.last_date ? `The last one is set for ${h(nice(D.last_date))}, and then it stops.` : 'It has stopped.'} A photo is never used twice, so ask the client for more, sort them, then press Read Drive under Photos, above.</div>` : '';
+    if (!D.found) return card({ title: 'Photo Drip', sub: 'Photos for the GBP Photos section, 2 a week', body: `<div class="muted small">No ${h(D.folder)} folder has been read. Save and read the Drive photo folder under Photos & prompts.</div>` });
+    const out = D.ran_out ? `<div class="notice warn" data-drip-out style="margin-bottom:10px"><strong>Photo Drip has run out of new photos.</strong> ${D.last_date ? `The last one is set for ${h(nice(D.last_date))}, and then it stops.` : 'It has stopped.'} A photo is never used twice, so ask the client for more, sort them, then press Read Drive under Photos & prompts.</div>` : '';
     const plan = D.planned ? `<button class="btn btn-primary" data-pub="drip-approve">Approve ${D.planned} planned</button>` : '';
     return card({ title: 'Photo Drip', sub: `2 a week on ${h(D.days.map(d => WEEKDAY[d]).join(' and '))}, category ${h(D.category)}`, body: `${out}<div class="small" data-drip-counts style="margin-bottom:10px">${D.left} new, ${D.planned} planned, ${D.queued} queued, ${D.posted} posted${D.problems ? `, ${D.problems} can't be used` : ''}${!D.left && !D.ran_out && D.last_date ? `. Planned through ${h(nice(D.last_date))}` : ''}</div><div class="btn-row">${D.left ? `<button class="btn ${D.planned ? 'btn-ghost' : 'btn-primary'}" data-pub="drip-plan">Plan ${D.left > 52 ? '52 of ' : ''}${D.left} new photo${D.left === 1 ? '' : 's'}</button>` : ''}${plan}</div>` });
   };
@@ -52,8 +55,11 @@ export async function renderPublishing(el, ctx) {
 
   const draw = () => {
     if (!S) return;
-    if (S.fatal) { el.innerHTML = `<div class="card" data-publishing-failed>${empty({ title: 'Publishing could not load', text: S.fatal, action: '<button class="btn btn-ghost" data-pub="reload">Retry</button>' })}</div>`; return; }
-    el.innerHTML = `<div class="stack" style="margin-bottom:16px"><div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:16px;align-items:start">${connectCard()}${dripCard()}</div>${queueCard()}</div>`;
+    onData(S);
+    if (S.fatal) { el.innerHTML = `<div class="card" data-publishing-failed>${empty({ title: 'Publishing could not load', text: S.fatal, action: '<button class="btn btn-ghost" data-pub="reload">Retry</button>' })}</div>`; if (queueEl) queueEl.innerHTML = ''; return; }
+    const top = `<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:16px;align-items:start">${connectCard()}${dripCard()}</div>`;
+    if (queueEl) { el.innerHTML = top; queueEl.innerHTML = queueCard(); }
+    else el.innerHTML = `<div class="stack" style="margin-bottom:16px">${top}${queueCard()}</div>`;
   };
   const call = async (path, opts, done) => {
     try { S = await api(`${url}${path}`, opts); if (done) toast(done); draw(); }
@@ -77,8 +83,8 @@ export async function renderPublishing(el, ctx) {
     });
   }
 
-  el.addEventListener('change', e => { const s = e.target.closest('[data-pub-show]'); if (s) { show = s.value; draw(); } });
-  el.addEventListener('click', async e => {
+  for (const root of roots) root.addEventListener('change', e => { const s = e.target.closest('[data-pub-show]'); if (s) { show = s.value; draw(); } });
+  for (const root of roots) root.addEventListener('click', async e => {
     const b = e.target.closest('[data-pub]');
     if (b) {
       const act = b.dataset.pub;

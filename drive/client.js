@@ -8,6 +8,7 @@
 //   folder(id)    the folder's name, or an error saying who to share it with
 //   list(id)      everything directly inside a folder, every page of it
 //   download(id)  a photo's bytes
+//   thumbnail(id, size)  Google's thumbnail of it, or null
 // The key and the tokens never go into an error message or a log.
 
 const crypto = require('crypto');
@@ -105,7 +106,19 @@ function createDrive({ env = process.env, fetchImpl = (...a) => fetch(...a), now
     return Buffer.from(await res.arrayBuffer());
   }
 
-  return { folder, list, download, accessToken };
+  // Google's own thumbnail of a photo (8 Nov 2026), so a grid of them doesn't pull every full size file.
+  // Null when Drive has none yet; the caller falls back to download().
+  async function thumbnail(id, size = 400) {
+    const q = new URLSearchParams({ fields: 'thumbnailLink', supportsAllDrives: 'true' });
+    const meta = await get(`${API}/${encodeURIComponent(id)}?${q}`, 'this photo');
+    if (!meta.thumbnailLink) return null;
+    const link = meta.thumbnailLink.replace(/=sd+(-[a-z0-9-]+)?$/i, '') + `=s${Math.max(64, Math.min(1600, Number(size) || 400))}`;
+    const res = await fetchImpl(link, { headers: { Authorization: `Bearer ${await accessToken()}` } });
+    if (!res.ok) return null;
+    return { bytes: Buffer.from(await res.arrayBuffer()), type: res.headers.get('content-type') || 'image/jpeg' };
+  }
+
+  return { folder, list, download, thumbnail, accessToken };
 }
 
 module.exports = { createDrive, configured, credentials, parseFolderId, FOLDER_MIME, SCOPE };
