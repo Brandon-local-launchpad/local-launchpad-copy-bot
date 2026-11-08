@@ -1,9 +1,11 @@
-// GBP Posts tab (7 Nov 2026, Stage 2 of the bundle.social build): finished posts in batches, from the
-// Lead Snap config's prompts. A VA reads, edits and approves a batch here. Approval is what the daily
-// publishing job looks for; the Publishing part above the posts is gbp-publishing.js.
+// GBP Posts & Photos tab (7 Nov 2026, Stage 2 of the bundle.social build; 8 Nov the Lead Snap tab joined
+// it, Brandon). Top to bottom in the order the VA works: Photos, Post settings and Prompts (gbp-setup.js),
+// Publishing with Photo Drip and the queue (gbp-publishing.js), then the batches of finished posts written
+// from the prompts. A VA reads, edits and approves a batch here; approval is what the daily job looks for.
 
 import { h, attr, api, card, toast, confirm, running, empty, fmtDate, pill, wire } from '../ui.js';
 import { renderPublishing } from './gbp-publishing.js';
+import { renderSetup } from './gbp-setup.js';
 
 const WEEKDAY = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 const dayOf = d => WEEKDAY[new Date(`${d}T12:00:00Z`).getUTCDay()];
@@ -12,12 +14,16 @@ const CTA = { CALL: 'Call', BOOK: 'Book', LEARN_MORE: 'Learn more', ORDER: 'Orde
 
 export async function render(host, ctx) {
   const { clientId } = ctx;
-  host.innerHTML = '<div data-publishing-host></div><div data-posts-host></div>';
+  host.innerHTML = '<div data-setup-host></div><div data-publishing-host></div><div data-posts-host></div>';
   const el = host.querySelector('[data-posts-host]');
   const publishingEl = host.querySelector('[data-publishing-host]');
   let publishing = null;
   renderPublishing(publishingEl, ctx).then(p => { publishing = p; }).catch(e => { publishingEl.innerHTML = `<div class="notice bad" style="margin-bottom:16px">Publishing could not load: ${h(e.message)}</div>`; });
   const refreshQueue = () => { if (publishing) publishing.refresh(); };
+  // The photos and prompts feed both the batches (what can be written) and Photo Drip (what is left)
+  let reloadPosts = null;
+  const setupEl = host.querySelector('[data-setup-host]');
+  renderSetup(setupEl, ctx, { onChange: () => { refreshQueue(); if (typeof reloadPosts === 'function') reloadPosts(); } }).catch(e => { setupEl.innerHTML = `<div class="notice bad" style="margin-bottom:16px">Photos and prompts could not load: ${h(e.message)}</div>`; });
   const url = `/api/clients/${clientId}/gbp-posts`;
   let S = null, open = null, timer = null, filter = 'all', alive = true;
   const stopTimer = () => { if (timer) { clearTimeout(timer); timer = null; } };
@@ -27,6 +33,7 @@ export async function render(host, ctx) {
     if (S.batches && !S.batches.some(b => b.id === open)) open = S.batches.length ? S.batches[0].id : null;
     draw();
   };
+  reloadPosts = load;
   // While a batch is being written the page checks back; a person's unsaved typing is never redrawn over
   const schedule = () => {
     stopTimer();
@@ -44,7 +51,7 @@ export async function render(host, ctx) {
       <label class="field" style="display:block;margin-bottom:10px"><span class="small" style="font-weight:500">First post</span><input class="input" type="date" style="width:100%" data-new-start min="${attr(S.today)}" value="${attr(S.default_start || '')}"></label>
       <div class="muted small" style="margin-bottom:10px">Two posts a week, on ${h(S.days.map(d => WEEKDAY[d]).join(' and '))}, at 10am. ${S.offer ? `One Offer post every ${S.offer_days} days: ${h(S.offer)}.` : 'No confirmed offer, so no Offer posts.'}${S.cta ? ` Button: ${h(S.cta)}.` : ''}</div>
       <button class="btn btn-primary" data-act="new" ${S.ok && !S.batches.some(b => b.running) ? '' : 'disabled'}>Write the batch</button>`;
-    return card({ title: 'New batch', sub: 'Written from the Lead Snap prompts, checked by the same rules', body });
+    return card({ title: 'New batch', sub: 'Finished posts, written from the prompts above', body });
   };
 
   const listCard = () => {

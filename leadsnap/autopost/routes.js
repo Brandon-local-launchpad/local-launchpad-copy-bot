@@ -134,7 +134,7 @@ function mountLeadSnapApi(app, { pool, loadInputs, callModel, previewCallModel =
 
   app.post('/api/clients/:clientId/lead-snap/generate', wrap(async (req, res) => {
     const { clientId } = req.params;
-    if (running.has(clientId)) throw Object.assign(new Error('A Lead Snap run is already in progress for this client.'), { status: 409 });
+    if (running.has(clientId)) throw Object.assign(new Error('The prompts are already being written for this client.'), { status: 409 });
     running.add(clientId);
     try {
       const { I, trade, answers } = await loadInputs(clientId);
@@ -197,7 +197,7 @@ function mountLeadSnapApi(app, { pool, loadInputs, callModel, previewCallModel =
     const files = filesFor(await store.latest(client.id));
     const previews = await store.previews(client.id);
     if (previews) files['previews.json'] = JSON.stringify(previews, null, 2);
-    if (!(file in files)) throw Object.assign(new Error(file === 'previews.json' ? 'No preview has been run for this client.' : 'No Lead Snap config has been generated for this client.'), { status: 404 });
+    if (!(file in files)) throw Object.assign(new Error(file === 'previews.json' ? 'No preview has been run for this client.' : 'No prompts have been written for this client yet.'), { status: 404 });
     res.set('Content-Type', CONTENT_TYPES[file]);
     res.set('Content-Disposition', `inline; filename="${file}"`);
     res.send(files[file]);

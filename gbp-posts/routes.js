@@ -92,8 +92,8 @@ function mountGbpPostsApi(app, { pool, callModel, loadInputs = null, beforeUnapp
     const record = await autopost.latest(clientId);
     const photos = await photosFor(clientId);
     const needs = [];
-    if (!record || !record.sheet) needs.push('Generate the config on the Lead Snap tab: posts are written from its prompts.');
-    if (!photos) needs.push('Save and read the Drive photo folder on the Lead Snap tab: every post needs a photo from it.');
+    if (!record || !record.sheet) needs.push('Write the prompts (Prompts, above): posts are written from them.');
+    if (!photos) needs.push('Save and read the Drive photo folder (Photos, above): every post needs a photo from it.');
     const batches = await store.batches(clientId);
     const fileIds = photos ? new Set(photos.map(f => f.file_id)) : null;
     const list = [];
@@ -170,7 +170,7 @@ function mountGbpPostsApi(app, { pool, callModel, loadInputs = null, beforeUnapp
     if ((await store.batches(clientId)).some(b => writing.has(b.id))) throw bad('A batch is already being written for this client.', 409);
     const record = await autopost.latest(clientId);
     const photos = await photosFor(clientId);
-    if (!photos) throw bad('Save and read the Drive photo folder on the Lead Snap tab first.');
+    if (!photos) throw bad('Save and read the Drive photo folder (Photos, on the GBP Posts & Photos tab) first.');
     const plan = P.planBatch({ size: Number(req.body && req.body.size), record, photos, history: await store.history(clientId), clientId, start: (req.body && req.body.start) || null, today: today(), site: liveDomain(await valuesFor(clientId)) });
     const config = { generated_at: record.generated_at, intake: record.intake, output: { prompts: record.output.prompts } };
     const id = await store.createBatch(clientId, { size: plan.posts.length, start: plan.start, config, notes: plan.notes, posts: plan.posts });

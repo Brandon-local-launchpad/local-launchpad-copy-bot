@@ -26,8 +26,8 @@ export async function renderPublishing(el, ctx) {
 
   const dripCard = () => {
     const D = S.drip;
-    if (!D.found) return card({ title: 'Photo Drip', sub: 'Photos for the GBP Photos section, 2 a week', body: `<div class="muted small">No ${h(D.folder)} folder has been read. Save and read the Drive photo folder on the Lead Snap tab.</div>` });
-    const out = D.ran_out ? `<div class="notice warn" data-drip-out style="margin-bottom:10px"><strong>Photo Drip has run out of new photos.</strong> ${D.last_date ? `The last one is set for ${h(nice(D.last_date))}, and then it stops.` : 'It has stopped.'} A photo is never used twice, so ask the client for more, sort them, then press Read Drive on the Lead Snap tab.</div>` : '';
+    if (!D.found) return card({ title: 'Photo Drip', sub: 'Photos for the GBP Photos section, 2 a week', body: `<div class="muted small">No ${h(D.folder)} folder has been read. Save and read the Drive photo folder under Photos, above.</div>` });
+    const out = D.ran_out ? `<div class="notice warn" data-drip-out style="margin-bottom:10px"><strong>Photo Drip has run out of new photos.</strong> ${D.last_date ? `The last one is set for ${h(nice(D.last_date))}, and then it stops.` : 'It has stopped.'} A photo is never used twice, so ask the client for more, sort them, then press Read Drive under Photos, above.</div>` : '';
     const plan = D.planned ? `<button class="btn btn-primary" data-pub="drip-approve">Approve ${D.planned} planned</button>` : '';
     return card({ title: 'Photo Drip', sub: `2 a week on ${h(D.days.map(d => WEEKDAY[d]).join(' and '))}, category ${h(D.category)}`, body: `${out}<div class="small" data-drip-counts style="margin-bottom:10px">${D.left} new, ${D.planned} planned, ${D.queued} queued, ${D.posted} posted${D.problems ? `, ${D.problems} can't be used` : ''}${!D.left && !D.ran_out && D.last_date ? `. Planned through ${h(nice(D.last_date))}` : ''}</div><div class="btn-row">${D.left ? `<button class="btn ${D.planned ? 'btn-ghost' : 'btn-primary'}" data-pub="drip-plan">Plan ${D.left > 52 ? '52 of ' : ''}${D.left} new photo${D.left === 1 ? '' : 's'}</button>` : ''}${plan}</div>` });
   };

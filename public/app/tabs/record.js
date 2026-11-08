@@ -123,7 +123,7 @@ const GROUPS = [
     { key: 'sms_tool', label: 'Text messaging provider in use', type: 'select', options: ['', 'yes', 'no'] },
   ] },
   { key: 'gbp', title: 'Google Business Profile settings', fields: [
-    { key: 'drive_photo_folder', label: 'Drive photo folder', placeholder: 'The Drive link of the folder holding GBP Photos – Posts', hint: 'Copybot reads the sorted photos from here, read only. The Lead Snap tab shows the counts and files.' },
+    { key: 'drive_photo_folder', label: 'Drive photo folder', placeholder: 'The Drive link of the folder holding GBP Photos – Posts', hint: 'Copybot reads the sorted photos from here, read only. The GBP Posts & Photos tab shows the counts and files.' },
     { key: 'competitor_service_count', label: 'Competitor service count (top 5 average)', placeholder: 'Whole number; blank means the services target is 20' },
     { key: 'show_prices', label: 'Show prices in GBP products', type: 'select', options: ['', 'yes', 'no'] },
     { key: 'landing_page_fails', label: 'Landing page fails', type: 'textarea', placeholder: 'Filled by "Check landing page" on the GBP tab' },

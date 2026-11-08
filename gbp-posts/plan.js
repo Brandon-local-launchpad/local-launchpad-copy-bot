@@ -81,14 +81,14 @@ function pickLeastUsed(items, usedCount, lastUsed, keyOf, prefer = () => 0) {
 function planBatch({ size, record, photos = [], history = [], clientId, start = null, today = ukDate(), site = '' }) {
   const refuse = m => Object.assign(new Error(m), { status: 400 });
   if (!SIZES.includes(Number(size))) throw refuse(`A batch is ${SIZES.join(', ')} posts.`);
-  if (!record || !record.output || !Array.isArray(record.output.prompts) || !record.sheet) throw refuse('Generate the config on the Lead Snap tab first: posts are written from its prompts.');
+  if (!record || !record.output || !Array.isArray(record.output.prompts) || !record.sheet) throw refuse('Write the prompts first (Prompts, on the GBP Posts & Photos tab): posts are written from them.');
   const intake = record.intake || {};
   const pools = new Map(record.output.prompts.map(p => [p.n, poolFor(p, photos)]));
   const live = record.output.prompts.filter(p => pools.get(p.n).length);
   const skipped = record.output.prompts.filter(p => !pools.get(p.n).length);
   const standard = live.filter(p => p.kind !== 'offer');
   const offerPrompt = live.find(p => p.kind === 'offer') || null;
-  if (!standard.length) throw refuse('None of the prompts has a usable photo in Drive. Read Drive on the Lead Snap tab, or get photos from the client.');
+  if (!standard.length) throw refuse('None of the prompts has a usable photo in Drive. Press Read Drive under Photos, or get photos from the client.');
 
   if (start && !isDate(start)) throw refuse('The start date must be a date.');
   if (start && start < today) throw refuse('The start date is in the past.');
@@ -147,7 +147,7 @@ function blockers(posts, { today = ukDate(), fileIds = null } = {}) {
     if (p.topic !== 'OFFER' && p.cta_type && p.cta_type !== 'CALL' && !p.cta_url) noLink.push(p.seq);
   }
   const posts_ = list => (list.length === 1 ? `Post ${list[0]}` : `Posts ${list.join(', ')}`);
-  const fill = 'Save the live domain on the Record tab, or a booking page on the Lead Snap tab, and the links fill in by themselves: nothing needs writing again.';
+  const fill = 'Save the live domain on the Record tab, or a booking page under Post settings, and the links fill in by themselves: nothing needs writing again.';
   if (noLink.length) out.push(`${posts_(noLink)}: the button has no link. ${fill}`);
   if (noClaim.length) out.push(`${posts_(noClaim)}: an Offer post with nowhere to claim it. ${noLink.length ? 'The same link fixes this.' : fill}`);
   return out;

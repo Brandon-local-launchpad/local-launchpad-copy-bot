@@ -106,7 +106,7 @@ chk('All job photos leaves out Brand and Photo Drip', tipPrompt.folder === 'All 
 const noBrand = plan({ size: 26, photos: PHOTOS.filter(p => p.label !== 'Brand') });
 chk('a prompt with no photos is left out, and named', noBrand.notes.some(n => /no usable photo/.test(n)) && noBrand.posts.every(p => !p.folder.endsWith('/ Brand')), noBrand.notes.join(), '');
 chk('no photos at all is refused', /usable photo/.test((throwsOn(() => plan({ photos: [] })) || {}).message), '', '');
-chk('no config is refused', /Lead Snap tab/.test((throwsOn(() => plan({ record: null })) || {}).message), '', '');
+chk('no config is refused', /Write the prompts first/.test((throwsOn(() => plan({ record: null })) || {}).message), '', '');
 chk('photos repeating is noted', plan({ size: 52 }).notes.some(n => /share \d+ photos/.test(n)), plan({ size: 52 }).notes.join(), '');
 chk('a standard post gets the button from the config', big.find(p => p.topic === 'STANDARD').cta_type === 'CALL', JSON.stringify(big[1]), 'CALL');
 chk('with a Call Now button the offer still has a claim link', offers[0].cta_url === '' && offers[0].offer_redeem_url === 'https://hartley.example', offers[0].offer_redeem_url, '');
@@ -359,7 +359,7 @@ chk('an opening already used warns', lvl(good, 'opening', ['hartley plumbing hea
   const src = ['gbp-posts/routes.js', 'gbp-posts/plan.js', 'gbp-posts/write.js', 'gbp-posts/store.js'].map(f => fs.readFileSync(path.join(root, f), 'utf8')).join('\n');
   chk('this stage never calls bundle.social or Lead Snap', !/bundle\.social|api\.bundle|leadsnap\/client/i.test(src.replace(/\/\/.*$/gm, '')), '', '');
   const shell = fs.readFileSync(path.join(root, 'public/app/screens/client.js'), 'utf8');
-  chk('the tab sits after Lead Snap, and Lead Snap stays', /\['lead-snap', 'Lead Snap'\], \['gbp-posts', 'GBP Posts'\]/.test(shell) && /'gbp-posts': \(\) => import\('\.\.\/tabs\/gbp-posts\.js'\)/.test(shell) && /'lead-snap': \(\) => import/.test(shell), '', '');
+  chk('one GBP Posts & Photos tab right after GBP (the Lead Snap tab joined it, 8 Nov)', /\['gbp', 'GBP'\], \['gbp-posts', 'GBP Posts & Photos'\]/.test(shell) && /'gbp-posts': \(\) => import\('\.\.\/tabs\/gbp-posts\.js'\)/.test(shell), '', '');
 
   await new Promise(res2 => srv.close(res2));
   console.log(`\n${pass} passed, ${fail} failed\n`);

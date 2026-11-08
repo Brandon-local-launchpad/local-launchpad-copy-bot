@@ -6,11 +6,11 @@ import { h, attr, api, status, pill, dot, timeEl, toast, confirm, tag } from '..
 
 const TABS = [
   ['record', 'Record'], ['locations', 'Locations'], ['research', 'Research'], ['page-map', 'Page map'], ['pages', 'Pages'],
-  ['gbp', 'GBP'], ['lead-snap', 'Lead Snap'], ['gbp-posts', 'GBP Posts'], ['reviews', 'Reviews'], ['citations', 'Citations'], ['rankings', 'Rankings'], ['images', 'Images'], ['site-audit', 'Site audit'],
+  ['gbp', 'GBP'], ['gbp-posts', 'GBP Posts & Photos'], ['reviews', 'Reviews'], ['citations', 'Citations'], ['rankings', 'Rankings'], ['images', 'Images'], ['site-audit', 'Site audit'],
 ];
 const MODULES = {
   record: () => import('../tabs/record.js'), research: () => import('../tabs/research.js'), locations: () => import('../tabs/locations.js'), 'page-map': () => import('../tabs/pagemap.js'),
-  pages: () => import('../tabs/pages.js'), gbp: () => import('../tabs/gbp.js'), 'lead-snap': () => import('../tabs/leadsnap.js'), 'gbp-posts': () => import('../tabs/gbp-posts.js'), reviews: () => import('../tabs/reviews.js'), citations: () => import('../tabs/citations.js'), rankings: () => import('../tabs/rankings.js'),
+  pages: () => import('../tabs/pages.js'), gbp: () => import('../tabs/gbp.js'), 'gbp-posts': () => import('../tabs/gbp-posts.js'), reviews: () => import('../tabs/reviews.js'), citations: () => import('../tabs/citations.js'), rankings: () => import('../tabs/rankings.js'),
   images: () => import('../tabs/images.js'), 'site-audit': () => import('../tabs/audit.js'),
 };
 const STAGE_KIND = { Onboarding: 'none', Research: 'none', 'Page map': 'none', Pages: 'run', GBP: 'run', Live: 'ok' };
@@ -29,8 +29,8 @@ export function tabDots(row, summary) {
     'page-map': row.stage_index >= 3 ? 'ok' : 'none',
     pages: row.running ? 'run' : kinds.has('claims') || kinds.has('blocked') || kinds.has('pack') ? 'wait' : allGood ? 'ok' : anyRec ? 'run' : 'none',
     gbp: row.gbp_done ? 'ok' : row.stage === 'GBP' ? 'run' : 'none',
-    'lead-snap': row.lead_snap_done ? 'ok' : 'none',
-    'gbp-posts': 'none',
+    // GBP Posts & Photos (8 Nov 2026): the Lead Snap tab joined it; the prompts written is its dot
+    'gbp-posts': row.lead_snap_done ? 'ok' : 'none',
     citations: 'none',
     rankings: row.has_scans ? 'ok' : 'none',
     images: 'none', 'site-audit': row.site_audit || 'none',
@@ -39,6 +39,8 @@ export function tabDots(row, summary) {
 
 export async function render(root, params, ctx) {
   const { clientId, tab } = params;
+  // The Lead Snap tab joined GBP Posts & Photos (8 Nov 2026): old links land there
+  if (tab === 'lead-snap') return ctx.navigate(`/clients/${clientId}/gbp-posts`, { replace: true });
   let client, summary;
   try { [client, summary] = await Promise.all([api(`/api/clients/${clientId}`), api(`/api/clients/${clientId}/summary`)]); }
   catch (e) { root.innerHTML = `<div class="card"><div class="state failed"><h3>Client not found</h3><p>${h(e.message)}</p><a class="btn btn-ghost" href="/clients" data-link>Clients</a></div></div>`; return; }

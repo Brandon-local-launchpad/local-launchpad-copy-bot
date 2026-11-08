@@ -194,7 +194,7 @@ const mergedCounts = carryCounts({ counts: { a: 2, b: 3 } }, [{ ...grp('A', ['Le
 chk('groups that merge add their counts together', mergedCounts.counts.leaks === 5, JSON.stringify(mergedCounts), '');
 const keepsLocked = buildIntake({ I: { ...plumberI, locked: [...plumberI.locked, { service: 'Leak detection', copyPriority: 0 }] }, trade: 'Plumbing & Heating', hand: plumberHand, locked: plumber.groups });
 chk('locked: the tab keeps the saved names and counts when the page map moves', keepsLocked.groups.map(g => g.label).join('|') === 'Boilers|Leak repair|Bathroom fitting|Drain unblocking' && keepsLocked.groups[1].photos === 4 && keepsLocked.labelsLocked, keepsLocked.groups.map(g => g.label).join('|'), '');
-chk('locked: it warns what changed and what Generate again would rename', keepsLocked.warnings.some(w => /new pages: Leak detection/.test(w) && /stay as they are until you press Generate again/.test(w)) && keepsLocked.warnings.some(w => /would rename a folder: Leak repair to Leaks/.test(w)), keepsLocked.warnings, '');
+chk('locked: it warns what changed and what Generate again would rename', keepsLocked.warnings.some(w => /new pages: Leak detection/.test(w) && /stay as they are until you write the prompts again/.test(w)) && keepsLocked.warnings.some(w => /would rename a folder: Leak repair to Leaks/.test(w)), keepsLocked.warnings, '');
 chk('unchanged page map: locked, and nothing to warn about', (() => { const k = buildIntake({ I: plumberI, trade: 'Plumbing & Heating', hand: plumberHand, locked: plumber.groups }); return k.labelsLocked && !k.pending.changed && !k.warnings.some(w => /page map has changed|rename/.test(w)); })(), '', '');
 chk('no saved config, or a failed first run: nothing is locked', lockedFrom(null) === null && lockedFrom({ failure: {} }) === null && lockedFrom({ sheet: 'x', intake: { groups: [] } }) === null, '', '');
 
@@ -553,9 +553,10 @@ const canned = text => async () => ({ text, usage: { input_tokens: 10, output_to
   chk('a client with no v3 page map: the error is shown, not a crash', v.intake === null && /v3 page map/.test(v.error), JSON.stringify(v), '');
   srv.close();
 
-  // ── The tab: placed after GBP ──
+  // ── The screen (8 Nov 2026, Brandon): the Lead Snap tab joined GBP Posts & Photos ──
   const shell = fs.readFileSync(path.join(root, 'public/app/screens/client.js'), 'utf8');
-  chk('the tab sits right after GBP', /\['gbp', 'GBP'\], \['lead-snap', 'Lead Snap'\]/.test(shell) && /'lead-snap': \(\) => import\('\.\.\/tabs\/leadsnap\.js'\)/.test(shell), '', '');
+  const posts = fs.readFileSync(path.join(root, 'public/app/tabs/gbp-posts.js'), 'utf8');
+  chk('no Lead Snap tab: old links open GBP Posts & Photos, which holds the photos and prompts', !/\['lead-snap'/.test(shell) && shell.includes("if (tab === 'lead-snap') return ctx.navigate(`/clients/${clientId}/gbp-posts`") && /renderSetup/.test(posts) && !fs.existsSync(path.join(root, 'public/app/tabs/leadsnap.js')), '', '');
 
   console.log(`\n${pass} passed, ${fail} failed\n`);
   if (fail) process.exit(1);

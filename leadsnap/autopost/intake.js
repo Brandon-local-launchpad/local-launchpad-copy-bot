@@ -206,26 +206,26 @@ function buildIntake({ I, trade = '', answers = {}, hand = {}, locked = null }) 
   if (!niche) missing.push('Niche (the primary category on the client record)');
   if (!areas.main) missing.push('Main town (the set-up on the client record)');
   if (!groups.length) missing.push('Services (generate the page map first)');
-  if (!photosEntered) missing.push('Photo counts: type them in below and save');
+  if (!photosEntered) missing.push('Photo counts: read the Drive folder under Photos, or type the counts and save');
 
   const warnings = [];
   if (areas.nearby.length < MIN_NEARBY) warnings.push(`Only ${areas.nearby.length} nearby areas beside ${areas.main || 'the main town'}; the spec asks for 6 to 10. Approve more on the Locations tab if the client covers them.`);
   if (usps.length < MIN_USPS) warnings.push('Few USPs. Posts will repeat the same facts; confirm more with the client.');
   if (cta.type === 'Call Now' && !str(nap.phone)) warnings.push('Call Now uses the GBP phone number, and no phone is saved on Client Values.');
-  if (cta.type === 'Book' && !cta.url) warnings.push('Book needs a booking URL: type it in below.');
+  if (cta.type === 'Book' && !cta.url) warnings.push('Book needs a booking URL: type it in under Post settings.');
   if (cta.type === 'Learn More' && !cta.url) warnings.push('No live domain is saved, so Learn More has nowhere to go. Save it on Client Values.');
-  if (cta.type === 'Learn More' && CTA_NICHES.book.includes(nicheKey) && !str(hand.cta_type)) warnings.push('This niche normally uses Book, but no booking URL is saved, so the call to action falls back to Learn More. Type the booking URL below if the client has one.');
+  if (cta.type === 'Learn More' && CTA_NICHES.book.includes(nicheKey) && !str(hand.cta_type)) warnings.push('This niche normally uses Book, but no booking URL is saved, so the call to action falls back to Learn More. Type the booking URL under Post settings if the client has one.');
   if (pending && pending.changed) {
     const bits = [];
     if (pending.addedPages.length) bits.push(`new pages: ${pending.addedPages.join(', ')}`);
     if (pending.removedPages.length) bits.push(`removed pages: ${pending.removedPages.join(', ')}`);
-    warnings.push(`The page map has changed since this config was saved${bits.length ? ` (${bits.join('; ')})` : ''}. The labels and folders below stay as they are until you press Generate again.`);
+    warnings.push(`The page map has changed since this config was saved${bits.length ? ` (${bits.join('; ')})` : ''}. The labels and folders stay as they are until you write the prompts again.`);
   }
   if (pending && pending.renames.length) warnings.push(`Generate again would rename ${pending.renames.length === 1 ? 'a folder' : `${pending.renames.length} folders`}: ${pending.renames.map(r => `${r.from} to ${r.to}`).join(', ')}. You will be asked to confirm.`);
   // Counts saved under a name the services no longer have would quietly read as 0
   const stale = counts ? Object.keys(counts).filter(k => Number(counts[k]) > 0 && !groups.some(g => g.key === k)) : [];
-  if (stale.length) warnings.push(`Saved photo counts no longer match a service (${stale.join(', ')}). Check the counts below and save again.`);
-  if (photosEntered && !groups.some(g => g.photos > 0) && brand === 0) warnings.push('Every photo count is 0, so no prompt has any photos yet. Get photos from the client before pasting this in.');
+  if (stale.length) warnings.push(`Saved photo counts no longer match a service (${stale.join(', ')}). Check the counts under Photos and save again.`);
+  if (photosEntered && !groups.some(g => g.photos > 0) && brand === 0) warnings.push('Every photo count is 0, so no prompt has any photos yet. Get photos from the client before writing posts.');
 
   return {
     business: str(cv.company_name) || str(I.name), phone: str(nap.phone), niche, nicheKey,
