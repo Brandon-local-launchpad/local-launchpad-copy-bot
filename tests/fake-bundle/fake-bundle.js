@@ -166,8 +166,74 @@ function createFakeBundle({ apiKey = 'fake-key' } = {}) {
     res.json({ success: true });
   });
 
+  // ── Google reviews (the reference, 8 Nov 2026) ──
+  // An import steps through state.importSteps (one status per check, the last one stays); its reviews
+  // become visible as it completes. One running import per team answers 409. The list's `limit` is the
+  // monthly cap, as the reference says, not the page size.
+  state.reviews = []; state.imports = []; state.replyPuts = []; state.importSteps = ['PENDING', 'COMPLETED']; state.capacity = 200;
+  const R = '/api/v1/misc/google-business/reviews';
+  const running = i => !['COMPLETED', 'FAILED'].includes(i.status);
+  const view = r => { const { hidden, ...rest } = r; return rest; };
+  app.post(`${R}/import`, (req, res) => {
+    const { teamId, count } = req.body || {};
+    if (!teamId || !Number.isInteger(count) || count < 1 || count > 250) return refuse(res, 400, 'Validation failed', [{ path: ['count'], message: 'must be 1 to 250' }]);
+    if (!accountIn(teamId)) return refuse(res, 400, 'Team does not have a Google Business account');
+    if (state.imports.some(i => i.teamId === teamId && running(i))) return refuse(res, 409, 'An import is already running for this social account');
+    const steps = state.importSteps.slice();
+    const i = { id: id('imp'), teamId, socialAccountId: accountIn(teamId).id, requestedCount: count, status: steps.shift(), steps, reviewsImported: 0, error: null, rateLimitResetAt: null, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() };
+    if (i.status === 'RATE_LIMITED') i.rateLimitResetAt = new Date(Date.now() + 2000).toISOString();
+    state.imports.push(i);
+    res.status(201).json(i);
+  });
+  app.get(`${R}/import/:importId`, (req, res) => {
+    const i = state.imports.find(x => x.id === req.params.importId);
+    if (!i) return refuse(res, 404, 'Not found');
+    if (i.steps.length) i.status = i.steps.shift();
+    i.rateLimitResetAt = i.status === 'RATE_LIMITED' ? new Date(Date.now() + 2000).toISOString() : null;
+    if (i.status === 'COMPLETED' && !i.done) { i.done = true; for (const r of state.reviews) if (r.teamId === i.teamId && r.hidden) { r.hidden = false; i.reviewsImported++; } }
+    if (i.status === 'FAILED') i.error = i.error || 'Google did not answer';
+    const { steps, done, ...out } = i;
+    res.json(out);
+  });
+  app.get(R, (req, res) => {
+    const teamId = req.query.teamId;
+    const limit = Number(req.query.limit || 50), offset = Number(req.query.offset || 0);
+    if (!teamId || !(limit >= 1 && limit <= 100) || offset < 0) return refuse(res, 400, 'Validation failed');
+    const all = state.reviews.filter(r => r.teamId === teamId && !r.hidden);
+    const page = all.slice(offset, offset + limit).map(view);
+    res.json({ reviews: page, total: page.length, limit: 200, remainingCapacity: state.capacity });
+  });
+  app.get(`${R}/:reviewId`, (req, res) => {
+    const r = state.reviews.find(x => x.id === req.params.reviewId && x.teamId === req.query.teamId && !x.hidden);
+    return r ? res.json(view(r)) : refuse(res, 404, 'Not found');
+  });
+  app.put(`${R}/:reviewId/reply`, (req, res) => {
+    const { teamId, comment } = req.body || {};
+    const r = state.reviews.find(x => x.id === req.params.reviewId && x.teamId === teamId && !x.hidden);
+    if (!r) return refuse(res, 404, 'Not found');
+    if (typeof comment !== 'string' || comment.length < 1 || comment.length > 4096) return refuse(res, 400, 'Validation failed', [{ path: ['comment'], message: 'must be 1 to 4096 characters' }]);
+    state.replyPuts.push({ reviewId: r.id, comment });
+    r.reviewReplyComment = comment; r.reviewReplyUpdatedAt = new Date().toISOString(); r.reviewReplyState = 'APPROVED';
+    res.json(view(r));
+  });
+  app.delete(`${R}/:reviewId/reply`, (req, res) => {
+    const r = state.reviews.find(x => x.id === req.params.reviewId && x.teamId === (req.body && req.body.teamId));
+    if (!r) return refuse(res, 404, 'Not found');
+    state.calls.push('REPLY DELETED');
+    r.reviewReplyComment = null; r.reviewReplyUpdatedAt = null;
+    res.json(view(r));
+  });
+
   return {
     app, state,
+    // A review on a team. hidden: not imported yet (it shows once an import completes)
+    addReview(teamId, r = {}) {
+      const stars = ['ONE', 'TWO', 'THREE', 'FOUR', 'FIVE'];
+      const made = { id: r.id || id('rev'), socialAccountId: (accountIn(teamId) || {}).id || null, teamId, externalReviewId: r.externalReviewId || id('ext'), reviewerDisplayName: r.name ?? 'Sarah Jones', reviewerProfilePhotoUrl: null, starRating: typeof r.stars === 'number' ? stars[r.stars - 1] : r.stars || 'FIVE', comment: r.comment ?? null, reviewReplyComment: r.reply ?? null, reviewReplyUpdatedAt: r.reply ? new Date().toISOString() : null, reviewReplyState: r.reply ? 'APPROVED' : null, reviewReplyPolicyViolation: null, reviewReplyUrl: null, createTime: r.createTime || new Date().toISOString(), updateTime: r.updateTime || r.createTime || new Date().toISOString(), importedAt: new Date().toISOString(), createdAt: new Date().toISOString(), updatedAt: new Date().toISOString(), deletedAt: null, hidden: !!r.hidden };
+      state.reviews.push(made);
+      return made;
+    },
+    reviewById: rid => state.reviews.find(r => r.id === rid),
     teamNamed: name => state.teams.find(t => t.name === name),
     // A team holding a connected Google login with these locations, its selection on the first
     addSource(name, locations) {

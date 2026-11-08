@@ -26,6 +26,7 @@ export async function render(root, params, ctx) {
     root.innerHTML = `
       <div class="ph"><div class="ph-title"><h1>Dashboard</h1><div class="ph-meta">${h(plural(data.clients.filter(c => !c.archived).length, 'client'))} · ${h(new Date(data.generated_at).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' }))}</div></div>
         <div class="ph-actions"><a class="btn btn-primary" href="/add-client" data-link>Add client</a></div></div>
+      <div id="reviewsWaiting"></div>
       <div class="grid grid-4" id="tiles">
         ${tile({ label: 'New clients today', value: t.new_today, tip: TIPS.new_today, href: '/clients?new=today' })}
         ${tile({ label: 'New clients this week', value: t.new_week, tip: TIPS.new_week, href: '/clients?new=week' })}
@@ -37,6 +38,12 @@ export async function render(root, params, ctx) {
         ${card({ flat: true, title: '', body: '<div id="clientsTable"></div>' })}
       </div>`;
     drawChart();
+    // Review replies waiting for a person (8 Nov 2026): a line above the tiles, only when there are some
+    api('/api/reviews/count').then(n => {
+      const box = root.querySelector('#reviewsWaiting');
+      if (!box || !n || !n.queued) return;
+      box.innerHTML = `<a class="notice ${n.over48 ? 'bad' : n.over24 ? 'warn' : ''}" href="/reviews" data-link style="display:block;margin-bottom:16px;text-decoration:none"><strong>${h(plural(n.queued, 'Google review reply', 'Google review replies'))} waiting for approval</strong>${n.over24 ? ` · ${n.over24} over 24 hours` : ''}${n.over48 ? ` · ${n.over48} over 48 hours` : ''}</a>`;
+    }).catch(() => {});
     clientsTable(root.querySelector('#clientsTable'), data, ctx, { title: 'Clients', filters: { needs: ctx.query.needs === '1' } });
     root.querySelector('#exportPng').addEventListener('click', () => { const svg = root.querySelector('#chart svg'); if (svg) exportSvgPng(svg, 'rankings.png'); });
   };

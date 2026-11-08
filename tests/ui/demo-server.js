@@ -50,6 +50,12 @@ process.env.DATABASE_URL = 'postgres://pg-mem/demo';
 process.env.COPYBOT_SECRET_KEY = process.env.COPYBOT_SECRET_KEY || crypto.randomBytes(32).toString('hex');
 process.env.APP_PASSWORD = '';
 process.env.CITATIONS_SKIP_DA = '1'; // the demo's pg-mem is fresh each start: never buy DataForSEO ranks for it
+// Review replies talk to a fake bundle.social started below, never the real one
+process.env.DEMO_BUNDLE_PORT = process.env.DEMO_BUNDLE_PORT || String(Number(PORT) + 100);
+process.env.BUNDLE_SOCIAL_API_KEY = 'demo-fake-key';
+process.env.BUNDLE_SOCIAL_BASE_URL = `http://127.0.0.1:${process.env.DEMO_BUNDLE_PORT}/api/v1`;
+process.env.REVIEW_REPLIES_POSTING = '1';
+delete process.env.GBP_PUBLISHING_ENABLED;
 
 (async () => {
   const { createFakeWp, seedHomepage, listen } = require(path.join(root, 'tests/fake-wp/fake-wp.js'));
@@ -113,6 +119,35 @@ process.env.CITATIONS_SKIP_DA = '1'; // the demo's pg-mem is fresh each start: n
   // The Site audit tab on the real test site (5 Nov): the recording of the real scan played back
   // into the database, so nothing is fetched or bought. Scan again needs real credentials in the environment.
   const liveDomain = 'https://southamptonhomes.co.uk';
+  // Review replies (8 Nov 2026): the demo client on a fake bundle.social, with a queue to approve from
+  {
+    const { createFakeBundle } = require(path.join(root, 'tests/fake-bundle/fake-bundle.js'));
+    const fb = createFakeBundle({ apiKey: process.env.BUNDLE_SOCIAL_API_KEY });
+    const team = fb.addSource('Local Launchpad', [{ id: 'loc_demo', name: 'Edens Edge Landscaping', address: 'Southampton' }]);
+    await new Promise(r => { const s = require('http').createServer(fb.app).listen(Number(process.env.DEMO_BUNDLE_PORT), '127.0.0.1', r); });
+    await require(path.join(root, 'publisher/store.js')).createPublishStore(pool).saveConnection(clientId, { team_id: team.id, channel_id: 'loc_demo', status: 'connected', location_name: 'Edens Edge Landscaping', source_name: 'Local Launchpad' });
+    const rs = require(path.join(root, 'reviews/store.js')).createReviewStore(pool);
+    const { fromBundle } = require(path.join(root, 'reviews/sync.js'));
+    const D = require(path.join(root, 'reviews/draft.js'));
+    const fields = { business_name: 'Edens Edge Landscaping', trade: 'landscaping', main_services: 'patios, decking, turf, fencing', service_area: 'Southampton, Eastleigh and Romsey', contact_name: 'Tom', contact_role: 'Owner', direct_phone: '07580 412717', direct_email: 'tom@edensedge.example', phone_confirmed: true, email_confirmed: false };
+    await rs.saveSettings(clientId, { ...fields, live_from: '2026-11-01', approver_name: 'Ray', approver_email: 'ray@example.com', leadsnap_checked: true, leadsnap_checked_by: 'Brandon', leadsnap_checked_at: new Date().toISOString() }, { by: 'demo', at: new Date().toISOString() });
+    const hoursAgo = n => new Date(Date.now() - n * 3600000).toISOString();
+    const seed = [
+      { stars: 1, name: 'Dave Brown', comment: "Your crew showed up an hour late and didn't call ahead.", queued: 50, draft: "I'm sorry we didn't meet your expectations on timing and communication. I understand how frustrating it is when you've planned your day around us. I'd like to personally understand what happened and put it right. Please call me on 07580 412717 or email tom@edensedge.example. Tom, Owner, Edens Edge Landscaping" },
+      { stars: 3, name: 'A Google User', comment: 'Good job on the garden overall, a bit pricey though.', queued: 30, draft: "Thank you for the review and for your kind words about the garden. I'm sorry the price felt high, and I have shared your feedback with the team. Tom, Edens Edge Landscaping" },
+      { stars: 5, name: 'Mark Lee', comment: 'Tom and the team transformed our back garden. New patio and planting, tidy every day.', queued: 2, draft: 'Mark, thank you, and thanks from Tom and the team too. It was a pleasure transforming your back garden with the new patio and planting. The Edens Edge Landscaping team' },
+    ];
+    for (const s of seed) {
+      const b = fb.addReview(team.id, { stars: s.stars, name: s.name, comment: s.comment, createTime: hoursAgo(s.queued + 3) });
+      await rs.insertReview(clientId, { ...fromBundle(b), status: 'queued', source: 'sync', queued_at: hoursAgo(s.queued), notified_at: hoursAgo(s.queued) }, new Date().toISOString());
+      const problems = D.validate(s.draft, { stars: s.stars, fields, comment: s.comment, reviewerName: s.name });
+      const id = await rs.addDraft({ review_id: b.id, client_id: clientId, source: 'model', template: `star${s.stars}`, model: 'demo', attempt: 1, text: s.draft, ok: !problems.length, problems, at: new Date().toISOString() });
+      await rs.updateReview(b.id, { draft_id: id, ...(problems.length ? { flag: 'draft_failed', last_error: `The draft failed its checks twice: ${problems.map(p => p.msg).join(' ')}` } : {}) }, new Date().toISOString());
+    }
+    const old = fb.addReview(team.id, { stars: 2, comment: 'From before go-live.', createTime: '2026-10-01T10:00:00Z' });
+    await rs.insertReview(clientId, { ...fromBundle(old), status: 'backlog' }, new Date().toISOString());
+    console.log(`  Review queue: http://localhost:${PORT}/reviews   (fake bundle.social on ${process.env.DEMO_BUNDLE_PORT})`);
+  }
   const auditId = (await pool.query(`INSERT INTO clients (name, trade) VALUES ('Southampton Homes (site audit test)', 'Landscaper Gardener') RETURNING id`)).rows[0].id;
   await pool.query(`INSERT INTO client_assets (client_id, asset_type, filename, content) VALUES ($1, 'client_values', 'client-values.json', $2)`, [auditId, JSON.stringify({ company_name: 'Southampton Homes Ltd', live_domain: liveDomain })]);
   // It isn't a client, so it has no Page Map of its own: Edens Edge's stands in (a landscaper in Southampton too)
@@ -142,6 +177,7 @@ process.env.CITATIONS_SKIP_DA = '1'; // the demo's pg-mem is fresh each start: n
   });
   await replayed.start(auditId);
   await replayed.wait(auditId);
+
 
   console.log('\nDEMO READY');
   console.log(`  Site audit:   http://localhost:${PORT}/clients/${auditId}/site-audit`);
