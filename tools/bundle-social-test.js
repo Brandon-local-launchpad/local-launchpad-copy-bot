@@ -160,21 +160,49 @@ async function postPublic() {
   show('Scheduled to go public', { id: made.id, status: made.status, at: when.postAt });
 }
 
-async function status() {
-  if (!state.public_post) throw new Error('No public post yet');
-  show('Status', await pub().postStatus(state.public_post.id));
-  const raw = await call('GET', `/post/${state.public_post.id}`);
+// Step 5: an Offer post, its words read from a JSON file Brandon approved word for word:
+//   { "title", "body", "start": "YYYY-MM-DD", "end": "YYYY-MM-DD", "redeem_url" (optional) }
+// Kept apart from step 4's post (state.offer_post), so removing one never touches the other.
+async function offerPublic(file) {
+  needYes();
+  if (!file) throw new Error('Give the approved offer file: offer-public <file> --yes-public');
+  const o = JSON.parse(fs.readFileSync(path.resolve(file), 'utf8'));
+  for (const k of ['title', 'body', 'start', 'end']) if (!String(o[k] || '').trim()) throw new Error(`The offer file has no ${k}`);
+  const p = pub();
+  const check = await p.checkAccount({ teamId: state.team_id, channelId: state.channel_id });
+  if (!check.ok) throw new Error(check.reason);
+  const photo = fs.readFileSync(path.join(ROOT, 'public/logo.png'));
+  const uploadId = await p.uploadPhoto({ teamId: state.team_id, bytes: photo, filename: 'local-launchpad.png', mime: 'image/png' });
+  const { ukToUtc } = require('../publisher/service');
+  const when = { postAt: new Date(Date.now() + 15 * 60000).toISOString(), offerStart: ukToUtc(o.start), offerEnd: ukToUtc(o.end) };
+  const post = { seq: 2, prompt_label: 'Copybot test offer', topic: 'OFFER', offer_title: o.title, offer_redeem_url: o.redeem_url || undefined, body: o.body };
+  const made = await p.schedulePost({ teamId: state.team_id, post, uploadId, referenceKey: `copybot-test-offer-${Date.now()}`, when });
+  state.offer_post = { id: made.id, at: when.postAt };
+  saveState();
+  show('Offer scheduled to go public', { id: made.id, status: made.status, at: when.postAt, start: when.offerStart, end: when.offerEnd });
+}
+
+// Which post: step 4's by default, the Offer post with "offer"
+const pick = which => {
+  const p = which === 'offer' ? state.offer_post : state.public_post;
+  if (!p) throw new Error(which === 'offer' ? 'No offer post yet' : 'No public post yet');
+  return p;
+};
+async function status(which) {
+  const p = pick(which);
+  show('Status', await pub().postStatus(p.id));
+  const raw = await call('GET', `/post/${p.id}`);
   show('Raw', { status: raw.status, postedDate: raw.postedDate, externalData: raw.externalData, errors: raw.errors, errorsVerbose: raw.errorsVerbose });
 }
 
-async function removePost() {
+async function removePost(which) {
   needYes();
-  if (!state.public_post) throw new Error('No public post yet');
-  show('Removed from Google', await pub().removeLivePost(state.team_id, state.public_post.id));
-  show('Status after', await pub().postStatus(state.public_post.id));
+  const p = pick(which);
+  show('Removed from Google', await pub().removeLivePost(state.team_id, p.id));
+  show('Status after', await pub().postStatus(p.id));
 }
 
 const [step, arg] = process.argv.slice(2);
-const steps = { list, connect: () => connect(arg), 'schedule-cancel': scheduleCancel, 'post-public': postPublic, status, 'remove-post': removePost };
-if (!steps[step]) { console.log('Steps: list | connect "<location>" | schedule-cancel | post-public --yes-public | status | remove-post --yes-public'); process.exit(1); }
+const steps = { list, connect: () => connect(arg), 'schedule-cancel': scheduleCancel, 'post-public': postPublic, 'offer-public': () => offerPublic(arg), status: () => status(arg), 'remove-post': () => removePost(arg) };
+if (!steps[step]) { console.log('Steps: list | connect "<location>" | schedule-cancel | post-public --yes-public | offer-public <file> --yes-public | status [offer] | remove-post [offer] --yes-public'); process.exit(1); }
 steps[step]().then(() => console.log(`\nReplies saved in ${OUT}`)).catch(e => { console.error(`\nSTOPPED: ${hide(e.message)}`); process.exit(1); });
