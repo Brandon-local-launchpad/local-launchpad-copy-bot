@@ -122,7 +122,23 @@ function createBundlePublisher({ apiKey, baseUrl = BASE, fetchImpl = (...a) => f
   }
   const removePhoto = (teamId, mediaName) => call('DELETE', '/misc/google-business/media', { body: { teamId, mediaName } });
 
-  return { name: 'bundle.social', locations, createTeam, accountFor, copyAccount, setChannel, unsetChannel, checkAccount, uploadPhoto, schedulePost, postStatus, retryPost, cancelPost, removeLivePost, addPhoto, removePhoto };
+  // ── Google reviews (the review replies build, 8 Nov 2026; the reference read that day) ──
+  // An import is asynchronous: PENDING, FETCHING_REVIEWS, then COMPLETED or FAILED; RATE_LIMITED resumes
+  // by itself at rateLimitResetAt. One import at a time per location: a second answers 409, returned
+  // here as { conflict: true }. The list's own `limit` is the monthly import cap, not the page size.
+  // There is no reply delete here on purpose: Copybot never removes a reply (the brief, section 7).
+  const R = '/misc/google-business/reviews';
+  async function startReviewImport(teamId, count) {
+    try { return await call('POST', `${R}/import`, { body: { teamId, count } }); }
+    catch (e) { if (e.status === 409) return { conflict: true, message: e.message }; throw e; }
+  }
+  const reviewImport = importId => call('GET', `${R}/import/${encodeURIComponent(importId)}`);
+  const listReviews = (teamId, { limit = 100, offset = 0 } = {}) => call('GET', `${R}?teamId=${encodeURIComponent(teamId)}&limit=${limit}&offset=${offset}`);
+  const getReview = (teamId, reviewId) => call('GET', `${R}/${encodeURIComponent(reviewId)}?teamId=${encodeURIComponent(teamId)}`, { allow404: true });
+  // PUT overwrites: only reviews/post.js calls this, after reading the review fresh
+  const putReviewReply = (teamId, reviewId, comment) => call('PUT', `${R}/${encodeURIComponent(reviewId)}/reply`, { body: { teamId, comment } });
+
+  return { name: 'bundle.social', locations, createTeam, accountFor, copyAccount, setChannel, unsetChannel, checkAccount, uploadPhoto, schedulePost, postStatus, retryPost, cancelPost, removeLivePost, addPhoto, removePhoto, startReviewImport, reviewImport, listReviews, getReview, putReviewReply };
 }
 
 module.exports = { createBundlePublisher, BASE };

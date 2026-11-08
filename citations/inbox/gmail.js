@@ -4,12 +4,14 @@
 // One mailbox, listings@locallaunchpad.co.uk, read through the Gmail API with an OAuth
 // refresh token kept in the environment (GMAIL_CLIENT_ID, GMAIL_CLIENT_SECRET,
 // GMAIL_REFRESH_TOKEN; the set-up steps are docs/citations/Gmail_OAuth_Setup.md and
-// tools/gmail-auth.js). Scope gmail.modify: read the messages, mark them read. Nothing is
-// sent, deleted or forwarded from here.
+// tools/gmail-auth.js). Scope gmail.modify: read the messages, mark them read, and send. The
+// only email sent is the review replies approver's notice (reviews/notify.js, 8 Nov 2026), to the
+// approver saved on the client. Nothing is deleted or forwarded from here.
 //   accessToken()                       a fresh token, cached until a minute before it expires
 //   list({ label, query, max })         message ids in INBOX or SPAM, newest first
 //   get(id)                             the message with its headers, text and html decoded
 //   markRead(id)                        removes the UNREAD label
+//   send({ to, subject, text })         one plain text email from the mailbox
 // The secrets never go into an error message or a log.
 
 const TOKEN_URL = 'https://oauth2.googleapis.com/token';
@@ -75,8 +77,15 @@ function createGmail({ env = process.env, fetchImpl = fetch, now = () => Date.no
     return { id: m.id, threadId: m.threadId, labels: m.labelIds || [], snippet: m.snippet || '', received_at: m.internalDate ? new Date(Number(m.internalDate)).toISOString() : null, headers, text, html };
   }
   async function markRead(id) { return api(`messages/${encodeURIComponent(id)}/modify`, { method: 'POST', body: { removeLabelIds: ['UNREAD'] } }); }
+  async function send({ to, subject, text }) {
+    const clean = s => String(s || '').replace(/[\r\n]+/g, ' ').trim();
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(clean(to))) throw Object.assign(new Error('No valid address to send to.'), { status: 400 });
+    const subj = `=?UTF-8?B?${Buffer.from(clean(subject), 'utf8').toString('base64')}?=`;
+    const mime = [`To: ${clean(to)}`, `Subject: ${subj}`, 'MIME-Version: 1.0', 'Content-Type: text/plain; charset=UTF-8', 'Content-Transfer-Encoding: base64', '', Buffer.from(String(text || ''), 'utf8').toString('base64')].join('\r\n');
+    return api('messages/send', { method: 'POST', body: { raw: Buffer.from(mime, 'utf8').toString('base64').replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '') } });
+  }
 
-  return { accessToken, list, get, markRead, configured: () => configured(env) };
+  return { accessToken, list, get, markRead, send, configured: () => configured(env) };
 }
 
 module.exports = { createGmail, configured, bodies, scrub, SCOPE, TOKEN_URL, API };

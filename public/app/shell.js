@@ -12,6 +12,7 @@ const NAV = [
   { path: '/niches', label: 'Niche library', ico: '▤', match: /^\/niches(\/|$)/ },
   { path: '/trade-facts', label: 'Trade facts', ico: '✓' },
   { path: '/directories', label: 'Directories', ico: '◫' },
+  { path: '/reviews', label: 'Review replies', ico: '★' },
   { path: '/prompts', label: 'Prompts', ico: '¶' },
   { path: '/settings', label: 'Settings', ico: '⚙' },
 ];
@@ -26,6 +27,7 @@ const ROUTES = [
   { re: /^\/niches\/([a-z0-9-]+)\/?$/, load: () => import('./screens/niches.js'), params: m => ({ niche: m[1] }) },
   { re: /^\/trade-facts\/?$/, load: () => import('./screens/trade-facts.js') },
   { re: /^\/directories\/?$/, load: () => import('./screens/directories.js') },
+  { re: /^\/reviews\/?$/, load: () => import('./screens/reviews.js') },
   { re: /^\/prompts\/?$/, load: () => import('./screens/prompts.js') },
   { re: /^\/settings\/?$/, load: () => import('./screens/settings.js') },
 ];
