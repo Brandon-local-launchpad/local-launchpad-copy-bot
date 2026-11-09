@@ -12,6 +12,13 @@
   - **Tests:** fixture `tests/fixtures/place-id-step.js`.
   - **Edens Edge (9 Nov, live):** the name search "Edens Edge Landscaping Southampton" finds no listing on Google. Looking up `ChIJgWXnIJqkwkIRcIOFpwakKXA` gives "Edens edge landscaping LTD", phone 07580 412717 (matches), no address (service area business), Google type general contractor. Brandon confirmed it in chat, and it is saved with service_area.
   - **Edens Edge preview, nothing run:** Starter plan, API allowed, 7,674 credits. Centred on the main town, Southampton. dense_city 1000 m, 6 km radius, 20 towns, none excluded. 169 points paid, 169 kept: the towns reach 24 km, so the hull covers the whole grid. 169 credits a run (one keyword). Not saved on Local Falcon yet: the baseline saves it first. Waiting on Brandon's OK before any scan.
+  - **Edens Edge baseline (9 Nov, 22:16, Brandon's go):**
+    - Settings: scan_area set to city (1,500 m, 9 km), no warnings. Local Falcon report `3e8e96f7310c8e8`, 169 credits, 169 paid and 169 kept, done in about 3 minutes. Public report https://localrankingtracker.com/scan-report/3e8e96f7310c8e8/b98addd3bd36e0c/
+    - Client: not in the top 20 at any pin (Top 3% 0, average 21).
+    - Leader: E. Williams Landscapes, Top 3% 20.1, under 40: "the map is too large".
+    - Top 5 by market share: E. Williams, Zakscapes, MTM Landscaping & Design, Down to Earth Winchester, Gary and sons.
+    - Against LeadSnap's 23 Oct city scan (heatmap 1499157, 122 kept pins): the client was absent there too (LeadSnap stores not found as 20). Its leader was Zakscapes at 17.2, and it shared 3 of the top 5 (Zakscapes, E. Williams, Down to Earth Winchester). LeadSnap's market share is relative to its leader (the leader = 100), so the share figures are not comparable.
+    - Kept the same: LeadSnap schedule 13471, untouched (Brandon).
 - Rank scans move to Local Falcon (9 Nov 2026, Brandon's brief and decisions; branch `local-falcon`). The plan report is in the side session notes (rank-scans-local-falcon-report.md). Built:
   - **Client and switch.** `localfalcon/client.js`: form encoded, key `LOCALFALCON_API_KEY` only, never retried. `RANK_SCAN_PROVIDER` is local_falcon unless set to leadsnap. LeadSnap's scan routes stay but are switched off by that config, and the profile check stays on LeadSnap.
   - **The rules,** in `gbp/rank-scans.js`:
