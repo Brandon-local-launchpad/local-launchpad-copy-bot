@@ -233,6 +233,23 @@ function localFalconRow(report, pending, settings) {
   };
 }
 
+// The average rank, one rule for every source (Brandon, 9 Nov): the mean over the kept pins, a pin
+// where the client is not in the top 20 counted as 21. LeadSnap stored a pin it did not find as 20
+// ("20+"), so a LeadSnap pin at 20 or more counts as not found. With no pins stored, the row's own figure.
+const AVERAGE_RULE = 'Average rank: the mean over the kept pins, a pin where the client is not in the top 20 counted as 21.';
+const foundRank = (row, r) => { const n = rankOf(r); if (n === null) return null; return sourceOf(row) === 'leadsnap' && n >= 20 ? null : n; };
+function averageOf(row) {
+  const pts = row && Array.isArray(row.points) ? row.points : null;
+  if (!pts || !pts.length) return row ? row.average : null;
+  return round1(pts.reduce((t, p) => t + (foundRank(row, p.rank) === null ? NOT_FOUND_RANK : foundRank(row, p.rank)), 0) / pts.length);
+}
+// Not in the top 20 at any kept pin: the reports say that instead of an average
+function notInTop20(row) {
+  const pts = row && Array.isArray(row.points) ? row.points : null;
+  return !!(pts && pts.length && pts.every(p => foundRank(row, p.rank) === null));
+}
+const foundCount = row => (row && Array.isArray(row.points) ? row.points.filter(p => foundRank(row, p.rank) !== null).length : null);
+
 // The rows that count for a provider: not superseded and from that provider. The rest are history.
 function splitBySource(scans, provider) {
   const live = [], history = [];
@@ -292,7 +309,8 @@ function monthlyTable(scans) {
     for (const s of mine) byMonth.set(s.month, s);   // the latest in a month wins
     const months = [...byMonth.values()].sort((a, b) => a.month.localeCompare(b.month));
     row.months = months.map((s, i) => ({
-      month: s.month, scan_id: scanIdOf(s), heatmap_id: scanIdOf(s), source: sourceOf(s), run_type: s.run_type, top_3_percentage: s.top_3_percentage, average: s.average,
+      month: s.month, scan_id: scanIdOf(s), heatmap_id: scanIdOf(s), source: sourceOf(s), run_type: s.run_type, top_3_percentage: s.top_3_percentage, average: averageOf(s),
+      not_in_top_20: notInTop20(s), found_points: foundCount(s), total_points: Array.isArray(s.points) ? s.points.length : s.total_points,
       change: i > 0 ? round1(s.top_3_percentage - months[i - 1].top_3_percentage) : null,
       vs_baseline: row.baseline ? round1(s.top_3_percentage - row.baseline.top_3_percentage) : null,
       is_baseline: row.baseline ? scanIdOf(s) === scanIdOf(row.baseline) : false,
@@ -336,4 +354,4 @@ function scheduleBody(settings, keywords, points, { clientName, baselineAt, loca
   };
 }
 
-module.exports = { SOURCES, sourceOf, scanIdOf, radiusKm, NOT_FOUND_RANK, rankOf, clipToPolygon, scorePoints, leaderVerdict, localFalconRow, splitBySource, currentRows, isPending, scanKeywords, spacingFor, servicePolygon, convexHull, pointInPolygon, gridPoints, toLocal, fromLocal, buildScanSettings, creditCost, heatmapBody, leaderLine, scanRow, topCompetitors, monthlyTable, dropAlerts, scheduleBody, live, kmBetween, monthOf, GRID_MAX, SPACING_M, HULL_BUFFER_KM, DROP_POINTS };
+module.exports = { AVERAGE_RULE, averageOf, notInTop20, foundCount, SOURCES, sourceOf, scanIdOf, radiusKm, NOT_FOUND_RANK, rankOf, clipToPolygon, scorePoints, leaderVerdict, localFalconRow, splitBySource, currentRows, isPending, scanKeywords, spacingFor, servicePolygon, convexHull, pointInPolygon, gridPoints, toLocal, fromLocal, buildScanSettings, creditCost, heatmapBody, leaderLine, scanRow, topCompetitors, monthlyTable, dropAlerts, scheduleBody, live, kmBetween, monthOf, GRID_MAX, SPACING_M, HULL_BUFFER_KM, DROP_POINTS };

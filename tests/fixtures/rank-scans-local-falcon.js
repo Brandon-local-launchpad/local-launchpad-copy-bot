@@ -257,6 +257,15 @@ const townPositions = { Southampton: [50.9097, -1.4044], Romsey: [50.989, -1.496
     r = await req('POST', `/api/clients/${c.id}/gbp/schedules/pause-previous`);
     chk('the LeadSnap profile and schedule tools still need the LeadSnap token, not the scan switch', r.status === 503, r.status, 503);
 
+    // ── The average rule and "not in the top 20" ──
+    const lsAll20 = { source: 'leadsnap', points: [{ rank: 20 }, { rank: 20 }, { rank: null }] };
+    const lfNone = { source: 'local_falcon', points: [{ rank: null }, { rank: null }] };
+    const lfMixed = { source: 'local_falcon', points: [{ rank: 1 }, { rank: 5 }, { rank: null }, { rank: 12 }] };
+    chk('LeadSnap pins at 20 ("20+") and Local Falcon pins with no rank are both not in the top 20', SC.notInTop20(lsAll20) && SC.notInTop20(lfNone) && !SC.notInTop20(lfMixed), '', '');
+    chk('one average rule for both sources: not found counts 21 ((1 + 5 + 21 + 12) / 4 = 9.8; LeadSnap all 20s = 21)', SC.averageOf(lfMixed) === 9.8 && SC.averageOf(lsAll20) === 21 && SC.foundCount(lfMixed) === 3, JSON.stringify([SC.averageOf(lfMixed), SC.averageOf(lsAll20)]), '9.8, 21');
+    chk('the view carries the rule and the flag on rows and history', /counted as 21/.test(v.scans.average_rule) && v.scans.history.some(x => x.source === 'leadsnap' && 'not_in_top_20' in x), v.scans.average_rule, 'rule');
+    chk('the Rankings tab says "not in the top 20" and states the rule', /not in the top 20/.test(require('fs').readFileSync(path.join(root, 'public/app/tabs/rankings.js'), 'utf8')) && /average_rule/.test(require('fs').readFileSync(path.join(root, 'public/app/tabs/rankings.js'), 'utf8')), '', '');
+
     // ── The Rankings tab's colours (static) ──
     const tab = require('fs').readFileSync(path.join(root, 'public/app/tabs/rankings.js'), 'utf8');
     chk('rank 11 to 20 red, grey only for not found, on the map and the PNG legend', /r > 20 \? 'x'/.test(tab) && /11 to 20 red · grey: not found in the top 20/.test(tab) && !/11 to 19 red/.test(tab), '', '');

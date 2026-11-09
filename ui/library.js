@@ -100,7 +100,7 @@ function promptText(name) {
 }
 
 // ── Settings ──
-const KEYS = [['ANTHROPIC_API_KEY', 'Anthropic (the writer, the reviewer, the claims check)'], ['PERPLEXITY_API_KEY', 'Perplexity (area research, FAQ research, trade facts)'], ['DATAFORSEO_LOGIN', 'DataForSEO login (H1 search volumes)'], ['DATAFORSEO_PASSWORD', 'DataForSEO password'], ['GOOGLE_PLACES_API_KEY', 'Google Places (the GBP competitor check, the wizard)'], ['LEADSNAP_API_TOKEN', 'LeadSnap (rank scans)'], ['FILLOUT_WEBHOOK_SECRET', 'Fillout webhook secret'], ['FILLOUT_API_KEY', 'Fillout API key (the form options tool)'], ['FILLOUT_FORM_URL', 'Fillout form link (the wizard shows it)'], ['APP_PASSWORD', 'App password'], ['DATABASE_URL', 'Database']];
+const KEYS = [['ANTHROPIC_API_KEY', 'Anthropic (the writer, the reviewer, the claims check)'], ['PERPLEXITY_API_KEY', 'Perplexity (area research, FAQ research, trade facts)'], ['DATAFORSEO_LOGIN', 'DataForSEO login (H1 search volumes)'], ['DATAFORSEO_PASSWORD', 'DataForSEO password'], ['GOOGLE_PLACES_API_KEY', 'Google Places (the GBP competitor check, the wizard)'], ['LOCALFALCON_API_KEY', 'Local Falcon (rank scans)'], ['LEADSNAP_API_TOKEN', 'LeadSnap (the profile check; the old rank scans, switched off)'], ['FILLOUT_WEBHOOK_SECRET', 'Fillout webhook secret'], ['FILLOUT_API_KEY', 'Fillout API key (the form options tool)'], ['FILLOUT_FORM_URL', 'Fillout form link (the wizard shows it)'], ['APP_PASSWORD', 'App password'], ['DATABASE_URL', 'Database']];
 function modelRouting() {
   const PM = require('../page-models');
   const read = (file, re) => { try { const m = fs.readFileSync(path.join(ROOT, file), 'utf8').match(re); return m ? m[1] : null; } catch (_) { return null; } };

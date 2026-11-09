@@ -13,6 +13,9 @@ const rankClass = r => (r === null || r === undefined || r > 20 ? 'x' : r <= 3 ?
 const rankColour = r => ({ g: '#16a34a', a: '#d97706', r: '#dc2626', x: '#9ca3af' })[rankClass(r)];
 const rankLabel = r => (r === null || r === undefined ? '–' : r > 20 ? '20+' : String(r));
 const LEGEND = '1 to 3 green · 4 to 10 amber · 11 to 20 red · grey: not found in the top 20';
+// "not in the top 20" when the client is not found at any kept pin; else the average (the rule is on the tab)
+const avgText = x => (x && x.not_in_top_20 ? 'not in the top 20' : x && x.average !== null && x.average !== undefined ? `average ${x.average}${x.found_points !== null && x.found_points !== undefined && x.total_points && x.found_points < x.total_points ? ` (found at ${x.found_points} of ${x.total_points} pins)` : ''}` : 'average not reported');
+const DEFAULT_RULE = 'Average rank: the mean over the kept pins, a pin where the client is not in the top 20 counted as 21.';
 const idOf = s => (s ? (s.scan_id !== undefined && s.scan_id !== null ? s.scan_id : s.heatmap_id) : null);
 const SOURCE = { local_falcon: 'Local Falcon', leadsnap: 'LeadSnap' };
 let leafletLoading = null;
@@ -78,19 +81,19 @@ export async function render(el, ctx) {
         const shown = sel.baseline && t.baseline ? t.months.find(m => m.is_baseline) || current : current;
         const scan = findScan(idOf(shown));
         const link = scan && (scan.report_url || scan.share_url);
-        mapsHtml += card({ title: h(t.keyword), sub: `${shown.is_baseline ? 'baseline' : h(shown.month)} · Top 3% ${shown.top_3_percentage}% · average ${shown.average}${scan && scan.points_kept ? ` · ${scan.points_kept} of ${scan.points_paid} points kept` : ''}`, actions: `
+        mapsHtml += card({ title: h(t.keyword), sub: `${shown.is_baseline ? 'baseline' : h(shown.month)} · Top 3% ${shown.top_3_percentage}% · ${h(avgText(shown))}${scan && scan.points_kept ? ` · ${scan.points_kept} of ${scan.points_paid} points kept` : ''}`, actions: `
             <select class="input" style="width:auto;padding:4px 8px" data-month="${key}">${t.months.map(m => `<option value="${h(m.month)}" ${m.month === sel.month ? 'selected' : ''}>${h(m.month)}${m.is_baseline ? ' (baseline)' : ''}</option>`).join('')}</select>
             ${t.baseline && !current.is_baseline ? `<button class="btn btn-ghost btn-sm" data-toggle="${key}">${sel.baseline ? `Show ${h(current.month)}` : 'Show baseline'}</button>` : ''}
             <button class="btn btn-ghost btn-sm" data-export="${key}" data-keyword="${attr(t.keyword)}" data-label="${attr(shown.is_baseline ? 'baseline' : shown.month)}">Export PNG</button>
             ${link ? `<a class="btn btn-ghost btn-sm" href="${attr(link)}" target="_blank" rel="noopener">${scan.report_url ? 'Open report' : 'Open on LeadSnap'}</a>` : ''}`,
-          body: `<div id="${key}" class="scanmap" data-scan="${attr(idOf(shown))}" style="height:420px;border-radius:8px;border:1px solid var(--border);background:#eef0f3"></div><div class="muted small" style="margin-top:6px">${LEGEND}</div>` });
+          body: `<div id="${key}" class="scanmap" data-scan="${attr(idOf(shown))}" style="height:420px;border-radius:8px;border:1px solid var(--border);background:#eef0f3"></div><div class="muted small" style="margin-top:6px">${LEGEND}. ${h(S.average_rule || DEFAULT_RULE)}</div>` });
       }
     }
     let tableHtml = '';
     if (S.table && S.table.length) {
       const months = [...new Set(S.table.flatMap(r => r.months.map(m => m.month)))].sort();
       tableHtml = `<div class="tbl-wrap"><table class="tbl"><thead><tr><th>Keyword</th>${months.map(m => `<th>${h(m)}</th>`).join('')}</tr></thead><tbody>
-        ${S.table.map(r => `<tr><td>${h(r.keyword)}</td>${months.map(m => { const x = r.months.find(y => y.month === m); if (!x) return '<td></td>'; return `<td><strong>${x.top_3_percentage}%</strong>${x.average !== null ? ` <span class="muted small">(${x.average})</span>` : ''} ${x.is_baseline ? pill('accent', 'baseline') : x.change !== null ? `<span class="small" style="color:${x.change < 0 ? '#b91c1c' : 'var(--muted)'}">${x.change > 0 ? '+' : ''}${x.change}</span>` : ''}</td>`; }).join('')}</tr>`).join('')}</tbody></table></div>`;
+        ${S.table.map(r => `<tr><td>${h(r.keyword)}</td>${months.map(m => { const x = r.months.find(y => y.month === m); if (!x) return '<td></td>'; return `<td><strong>${x.top_3_percentage}%</strong> <span class="muted small">(${x.not_in_top_20 ? 'not in the top 20' : x.average !== null ? x.average : '–'})</span> ${x.is_baseline ? pill('accent', 'baseline') : x.change !== null ? `<span class="small" style="color:${x.change < 0 ? '#b91c1c' : 'var(--muted)'}">${x.change > 0 ? '+' : ''}${x.change}</span>` : ''}</td>`; }).join('')}</tr>`).join('')}</tbody></table></div>`;
     }
     // The monthly scans: Copybot's own log (Local Falcon), or the LeadSnap schedules
     const claims = S.claims || [];
@@ -101,7 +104,7 @@ export async function render(el, ctx) {
     const oldActive = lf && S.schedules ? [...(S.schedules.items || []), ...(S.schedules.previous || []).flatMap(p => p.items || [])].filter(i => i.status !== 'paused') : [];
     const oldSched = oldActive.length ? `<div class="notice warn" style="margin-top:10px">${oldActive.length} LeadSnap schedule${oldActive.length > 1 ? 's are' : ' is'} still active from before the move: ${oldActive.map(i => `${h(i.name)} <button class="btn btn-ghost btn-xs" data-schedule="${attr(i.schedule_id)}" data-sched-act="pause">Pause</button>`).join(' ')}</div>` : '';
     const history = (S.history || []).filter(x => x.status === 'completed');
-    const historyHtml = history.length ? card({ title: 'Earlier scans (history)', sub: 'Superseded or from another source: kept, never compared with the scans above', body: `<div class="tbl-wrap"><table class="tbl"><thead><tr><th>Source</th><th>Keyword</th><th>Month</th><th>Run</th><th>Top 3%</th><th>Average</th></tr></thead><tbody>${history.map(x => `<tr><td>${h(SOURCE[x.source] || x.source)}</td><td>${h(x.keyword)}</td><td>${h(x.month)}</td><td>${h(x.run_type)}</td><td>${x.top_3_percentage ?? ''}%</td><td>${x.average ?? ''}</td></tr>`).join('')}</tbody></table></div>` }) : '';
+    const historyHtml = history.length ? card({ title: 'Earlier scans (history)', sub: 'Superseded or from another source: kept, never compared with the scans above', body: `<div class="tbl-wrap"><table class="tbl"><thead><tr><th>Source</th><th>Keyword</th><th>Month</th><th>Run</th><th>Top 3%</th><th>Average</th></tr></thead><tbody>${history.map(x => `<tr><td>${h(SOURCE[x.source] || x.source)}</td><td>${h(x.keyword)}</td><td>${h(x.month)}</td><td>${h(x.run_type)}</td><td>${x.top_3_percentage ?? ''}%</td><td>${h(x.not_in_top_20 ? 'not in the top 20' : x.average ?? '')}</td></tr>`).join('')}</tbody></table></div>` }) : '';
     const rankAlerts = S.rank_alerts || [];
 
     el.innerHTML = `
@@ -110,7 +113,7 @@ export async function render(el, ctx) {
       ${S.pending ? `<div style="margin-bottom:14px">${running({ now: `${S.pending} scan${S.pending > 1 ? 's are' : ' is'} still running on ${src}`, next: 'This tab checks again every 20 seconds; then the Top 3% is worked out and the map drawn' })}</div>` : ''}
       <div class="grid grid-2">
         ${card({ title: 'Scan settings', sub: `SOP 1.7 baseline and 5.2 monthly, through ${src}; locked after the baseline; every run spends credits`, actions, body: settingsBody })}
-        ${card({ title: 'Top 3% by month against the baseline', sub: `Average rank in brackets (not found counts as 21); change from the month before. ${src} scans only`, body: tableHtml || empty({ title: 'No scans yet' }) })}
+        ${card({ title: 'Top 3% by month against the baseline', sub: `Average rank in brackets, or "not in the top 20" when the client is not found at any kept pin; change from the month before. ${src} scans only. ${(S.average_rule || DEFAULT_RULE)}`, body: tableHtml || empty({ title: 'No scans yet' }) })}
       </div>
       <div class="stack" style="margin-top:16px">${mapsHtml}</div>
       <div style="margin-top:16px">${card({ title: lf ? 'Monthly scans' : 'Monthly schedules', sub: lf ? 'Run by Copybot once a month per keyword, claimed before each scan so it never runs twice' : 'schedules.json', body: monthly + oldSched })}</div>
@@ -162,7 +165,7 @@ export async function render(el, ctx) {
     }
     c.fillStyle = 'rgba(255,255,255,.85)'; c.fillRect(0, Hh - 48, W, 48);
     c.fillStyle = '#111827'; c.font = '600 16px Inter, system-ui, sans-serif'; c.textAlign = 'left'; c.textBaseline = 'middle';
-    c.fillText(`${keyword} · ${label} · Top 3% ${scan.top_3_percentage}% · average ${scan.average}`, 14, Hh - 30);
+    c.fillText(`${keyword} · ${label} · Top 3% ${scan.top_3_percentage}% · ${avgText(scan)}`, 14, Hh - 30);
     c.font = '12px Inter, system-ui, sans-serif'; c.fillStyle = '#374151';
     c.fillText(`${LEGEND} · map © OpenStreetMap contributors`, 14, Hh - 12);
     try { canvas.toBlob(blob => { const a2 = document.createElement('a'); a2.href = URL.createObjectURL(blob); a2.download = `${keyword.replace(/[^a-z0-9]+/gi, '-').toLowerCase()}-${label}.png`; a2.click(); setTimeout(() => URL.revokeObjectURL(a2.href), 2000); }); }

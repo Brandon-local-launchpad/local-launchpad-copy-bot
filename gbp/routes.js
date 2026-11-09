@@ -53,14 +53,17 @@ function mountGbpApi(app, { pool, loadInputs, callModel, log = console, search =
   // monthly table against the baseline, the drop alerts, what is still pending
   const scansView = async (clientId, cv = null) => {
     const all = await store.scans(clientId);
-    const { live: scans, history } = SC.splitBySource(all, provider);
+    const split = SC.splitBySource(all, provider);
+    const history = split.history;
+    // Every row carries the one average rule and whether the client was found at any kept pin
+    const scans = split.live.map(s => ({ ...s, average: SC.averageOf(s), not_in_top_20: SC.notInTop20(s), found_points: SC.foundCount(s) }));
     const saved = cv && cv.scan_settings && typeof cv.scan_settings === 'object' ? cv.scan_settings : null;
     // Settings of the other provider are history too: a Local Falcon client shows no LeadSnap lock
     const settings = saved && (saved.provider || 'leadsnap') === provider ? saved : null;
     const schedules = await store.schedules(clientId);
     if (!lfOn) await repairScheduleIds(clientId, schedules);
     const rankExtra = lfOn ? { claims: (await rank.claimsFor(clientId).catch(() => [])).slice(0, 36), rank_alerts: await rank.alerts(clientId).catch(() => []) } : {};
-    return { provider, source_label: SC.SOURCES[provider], settings, previous_settings: saved && !settings ? { provider: saved.provider || 'leadsnap', locked_at: saved.locked_at || null } : null, scans, history: history.map(h => ({ ...h, source: SC.sourceOf(h) })), superseded: history.length, table: SC.monthlyTable(scans), alerts: SC.dropAlerts(scans), pending: scans.filter(SC.isPending).length, schedules, count: scans.length, ...rankExtra };
+    return { provider, source_label: SC.SOURCES[provider], settings, previous_settings: saved && !settings ? { provider: saved.provider || 'leadsnap', locked_at: saved.locked_at || null } : null, scans, history: history.map(h => ({ ...h, source: SC.sourceOf(h), average: SC.averageOf(h), not_in_top_20: SC.notInTop20(h), found_points: SC.foundCount(h) })), average_rule: SC.AVERAGE_RULE, superseded: history.length, table: SC.monthlyTable(scans), alerts: SC.dropAlerts(scans), pending: scans.filter(SC.isPending).length, schedules, count: scans.length, ...rankExtra };
   };
 
   // The client's listing on LeadSnap: by the saved Google place id, else by name and phone
