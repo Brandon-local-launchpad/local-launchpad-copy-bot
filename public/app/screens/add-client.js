@@ -11,7 +11,9 @@ const TYPES = [['A', 'A: one-off projects, quotes and site visits'], ['B', 'B: m
 
 export async function render(root, params, ctx) {
   ctx.setTitle('Add client');
-  const S = { step: 0, url: '', noSite: false, multi: false, website: null, place: null, places: [], placeQuery: '', merged: null, identity: {}, sources: {}, niche_key: '', business_type: 'A', existing_site: true, result: null, email: '', phone: '' };
+  // The place ID step (9 Nov): exactly one listing with the phone given is pre-selected; "Use this listing" is still the person's confirm
+const digitsOf = p => { let d = String(p || '').replace(/D/g, ''); if (d.startsWith('44')) d = '0' + d.slice(2); return d; };
+const S = { step: 0, url: '', noSite: false, multi: false, website: null, place: null, places: [], placeQuery: '', merged: null, identity: {}, sources: {}, niche_key: '', business_type: 'A', existing_site: true, result: null, email: '', phone: '' };
 
   const draw = () => {
     const pct = Math.round(((S.step + 1) / STEPS.length) * 100);
@@ -44,7 +46,7 @@ export async function render(root, params, ctx) {
       case 2: return `
         <div class="q">Find the Google Business Profile</div><div class="q-help">Searched on Places with the name and town. Pick the listing, paste a Maps link, or continue without one.</div>
         <div class="btn-row" style="margin-bottom:12px"><input class="input" id="pq" style="flex:1" placeholder="Business name and town" value="${attr(S.placeQuery)}"><button class="btn btn-ghost" data-search>Search</button></div>
-        <div id="placeList">${S.placesError ? `<div class="notice warn">${h(S.placesError)}</div>` : S.places.length ? S.places.map((p, i) => `<label class="choice${S.place && S.place.place_id === p.place_id ? ' selected' : ''}" data-pick="${i}"><strong>${h(p.name)}</strong> ${p.rating ? `<span class="muted small">${p.rating} ★ (${p.review_count})</span>` : ''}<span class="sub">${h(p.address || '')}${p.primary_type ? ` · ${h(p.primary_type)}` : ''}${p.website ? ` · ${h(p.website.replace(/^https?:\/\/(www\.)?/, ''))}` : ''}</span></label>`).join('') : S.searched ? empty({ title: 'No listing found', text: 'Try another spelling or the town, or paste a Maps link.' }) : ''}</div>
+        <div id="placeList">${S.placesError ? `<div class="notice warn">${h(S.placesError)}</div>` : S.places.length ? S.places.map((p, i) => `<label class="choice${S.place && S.place.place_id === p.place_id ? ' selected' : ''}" data-pick="${i}"><strong>${h(p.name)}</strong> ${p.rating ? `<span class="muted small">${p.rating} ★ (${p.review_count})</span>` : ''}<span class="sub">${h(p.address || '')}${p.phone ? ` · ${h(p.phone)}` : ''}${p.primary_type ? ` · ${h(p.primary_type)}` : ''}${p.website ? ` · ${h(p.website.replace(/^https?:\/\/(www\.)?/, ''))}` : ''}</span></label>`).join('') : S.searched ? empty({ title: 'No listing found', text: 'Try another spelling or the town, or paste a Maps link.' }) : ''}</div>
         <div class="btn-row" style="margin:12px 0"><input class="input" id="mapsLink" style="flex:1" placeholder="Or paste a Google Maps link"><button class="btn btn-ghost" data-link-search>Use link</button></div>
         <div class="nav"><button class="btn btn-ghost" data-back>Back</button><span class="btn-row"><button class="btn btn-ghost" data-no-place>Continue without</button><button class="btn btn-primary" data-next ${S.place ? '' : 'disabled'}>Use this listing</button></span></div>`;
       case 3: return `
@@ -91,9 +93,15 @@ export async function render(root, params, ctx) {
     catch (e) { S.readError = e.message; }
     draw();
   }
+  function preselectByPhone() {
+    const own = digitsOf(S.phone || (S.website && S.website.phone));
+    if (own.length < 10) return;
+    const m = S.places.filter(p => digitsOf(p.phone) === own);
+    if (m.length === 1) S.place = m[0];
+  }
   async function searchPlaces() {
     S.placesError = null;
-    try { const r = await api(`/api/intake/places?q=${encodeURIComponent(S.placeQuery)}`); S.places = r.places; S.searched = true; }
+    try { const r = await api(`/api/intake/places?q=${encodeURIComponent(S.placeQuery)}`); S.places = r.places; S.searched = true; preselectByPhone(); }
     catch (e) { S.placesError = e.message; S.searched = true; }
     draw();
   }

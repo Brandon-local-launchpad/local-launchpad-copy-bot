@@ -150,6 +150,9 @@ async function createClient({ pool, identity, sources = {}, nicheKey, businessTy
   const set = (k, v, s) => { if (str(v) && !str(cv[k])) { cv[k] = str(v); srcMap[k] = s || sources[k] || 'hand'; } };
   set('company_name', identity.name, sources.name); set('phone', identity.phone, sources.phone); set('email', identity.email, sources.email); set('address', identity.address, sources.address);
   set('primary_category', identity.primary_category, sources.primary_category); set('gbp_place_id', identity.gbp_place_id, 'gbp'); set('gbp_address_type', identity.gbp_address_type, 'gbp');
+  // The wizard's "Use this listing" is the person's confirm of the place ID step (9 Nov). The address type comes from Google's
+  // service area flag; the Record tab's Google listing card shows it and can change it
+  if (str(identity.gbp_place_id) && cv.gbp_place_id === str(identity.gbp_place_id) && !cv.gbp_place_confirmed) cv.gbp_place_confirmed = { at: new Date().toISOString(), by: null, how: 'the new client wizard (Use this listing)', place_id: cv.gbp_place_id, name: str(identity.name), address: str(identity.address), phone: str(identity.phone), address_type: cv.gbp_address_type || '', suggested: cv.gbp_address_type || '' };
   set('rating', identity.rating, 'gbp'); set('review_count', identity.review_count, 'gbp'); set('hours', identity.hours, 'gbp'); set('owner_name', identity.owner, 'website'); set('year_founded', /^\d{4}$/.test(str(identity.years)) ? identity.years : '', 'website');
   set('area_wide', identity.area, 'website');
   // An existing site the wizard read is the live domain until a new one goes live (3 Nov)

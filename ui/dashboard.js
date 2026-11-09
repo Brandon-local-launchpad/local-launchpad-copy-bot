@@ -65,6 +65,8 @@ function blockersOf(s) {
   if (blocked) out.push({ kind: 'blocked', text: `${blocked} page${blocked === 1 ? '' : 's'} blocked`, count: blocked });
   const failed = s.pages.filter(p => p.record && p.error).length;
   if (failed) out.push({ kind: 'failed', text: `${failed} page${failed === 1 ? '' : 's'} failed`, count: failed });
+  // The place ID step (9 Nov): a to-do on every client until the Google listing is confirmed on the Record tab
+  if (s.placeIdMissing) out.push({ kind: 'place_id', text: 'place ID missing', count: 1 });
   return out;
 }
 
@@ -197,7 +199,7 @@ async function loadDashboard({ pool, tradeFacts = null, runners = {}, homepageRu
     const packUnverified = !!(pack && !pack.verified);
     const summary = {
       nicheKnown, reviewed: !!c.reviewed_at, hasValues: !!cv, dossiers: ds, mapRows: rs, pages, pushed: pushedByClient.get(c.id) || [],
-      missing: nicheKnown ? missingFields(cv || {}, fields, c) : [], packUnverified, townsWithoutDossier,
+      missing: nicheKnown ? missingFields(cv || {}, fields, c) : [], placeIdMissing: nicheKnown && !str((cv || {}).gbp_place_id), packUnverified, townsWithoutDossier,
     };
     const stage = stageOf(summary);
     const blockers = blockersOf(summary);

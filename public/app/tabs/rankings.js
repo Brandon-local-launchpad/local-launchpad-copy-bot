@@ -40,6 +40,7 @@ export async function render(el, ctx) {
     const lf = (S.provider || rd.rank_provider) !== 'leadsnap';
     const src = SOURCE[S.provider || (lf ? 'local_falcon' : 'leadsnap')];
     const off = rd.scans_on === false;
+    const noPlace = rd.ok !== false && rd.ownPlaceId === '';
     const offMsg = lf ? 'Local Falcon is not configured on the server (LOCALFALCON_API_KEY).' : 'LeadSnap is not configured on the server (LEADSNAP_API_TOKEN).';
     const hasBaseline = S.scans && S.scans.some(s => s.run_type === 'baseline');
     const st = S.settings;
@@ -47,7 +48,7 @@ export async function render(el, ctx) {
     for (const k of Object.keys(maps)) { try { maps[k].remove(); } catch (_) {} delete maps[k]; }
 
     const actions = `<div class="btn-row">
-      ${hasBaseline ? `<button class="btn btn-ghost" data-act="fetch" ${off ? 'disabled' : ''}>Fetch latest scans</button><button class="btn btn-ghost btn-sm" data-act="reset" ${off ? 'disabled' : ''}>Reset baseline</button>` : `<button class="btn btn-primary" data-act="baseline" ${rd.ok === false || off ? 'disabled' : ''}>Run baseline scan</button>${off ? `<span class="small" style="color:#b45309">${h(offMsg)}</span>` : rd.ok === false ? `<span class="small" style="color:#b45309">${h(rd.error || 'The client is not ready: see the GBP tab')}</span>` : ''}`}
+      ${hasBaseline ? `<button class="btn btn-ghost" data-act="fetch" ${off ? 'disabled' : ''}>Fetch latest scans</button><button class="btn btn-ghost btn-sm" data-act="reset" ${off ? 'disabled' : ''}>Reset baseline</button>` : `<button class="btn btn-primary" data-act="baseline" ${rd.ok === false || off || noPlace ? 'disabled' : ''}>Run baseline scan</button>${noPlace ? `<span class="small" style="color:#b45309">Place ID missing: confirm the Google listing on the <a href="/clients/${clientId}/record" data-link>Record tab</a> first</span>` : off ? `<span class="small" style="color:#b45309">${h(offMsg)}</span>` : rd.ok === false ? `<span class="small" style="color:#b45309">${h(rd.error || 'The client is not ready: see the GBP tab')}</span>` : ''}`}
       ${S.pending ? `<button class="btn btn-ghost btn-sm" data-act="refresh">Check ${S.pending} pending</button>` : ''}
     </div>`;
     const paid = st ? (st.points_paid || st.point_count || 169) : 0, kept = st ? (st.points_kept || st.point_count) : 0;

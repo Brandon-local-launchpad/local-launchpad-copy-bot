@@ -9,8 +9,11 @@ const ENDPOINT = 'https://places.googleapis.com/v1/places:searchText';
 const FIELD_MASK = [
   'places.id', 'places.displayName', 'places.primaryType', 'places.types', 'places.rating', 'places.userRatingCount',
   'places.websiteUri', 'places.googleMapsUri', 'places.formattedAddress', 'places.nationalPhoneNumber',
-  'places.internationalPhoneNumber', 'places.businessStatus', 'places.location',
+  'places.internationalPhoneNumber', 'places.businessStatus', 'places.location', 'places.pureServiceAreaBusiness',
 ].join(',');
+// One place in full for the place ID step (a pasted ID): the phone makes it a Place Details
+// Enterprise call (1,000 free a month on the shared key, then about $0.02 each)
+const DETAILS_MASK = 'id,displayName,formattedAddress,nationalPhoneNumber,internationalPhoneNumber,location,googleMapsUri,pureServiceAreaBusiness,businessStatus,primaryType';
 
 // A place as the rest of the GBP code reads it
 function normalisePlace(p) {
@@ -27,14 +30,16 @@ function normalisePlace(p) {
     phone: p.nationalPhoneNumber || p.internationalPhoneNumber || '',
     business_status: p.businessStatus || '',
     location: p.location && typeof p.location.latitude === 'number' ? { lat: p.location.latitude, lng: p.location.longitude } : null,
+    // Google's own flag for a business with no shop front (its address hidden)
+    service_area: p.pureServiceAreaBusiness === true,
   };
 }
 
 // Place Details for one place id: its location (and name), for the landing page map check
-async function getPlace(placeId, { apiKey = process.env.GOOGLE_PLACES_API_KEY, fetchFn = global.fetch } = {}) {
+async function getPlace(placeId, { apiKey = process.env.GOOGLE_PLACES_API_KEY, fetchFn = global.fetch, full = false } = {}) {
   if (!apiKey) throw Object.assign(new Error('GOOGLE_PLACES_API_KEY is not set on the server.'), { status: 503 });
   const res = await fetchFn(`https://places.googleapis.com/v1/places/${encodeURIComponent(placeId)}`, {
-    headers: { 'X-Goog-Api-Key': apiKey, 'X-Goog-FieldMask': 'id,displayName,location,formattedAddress' },
+    headers: { 'X-Goog-Api-Key': apiKey, 'X-Goog-FieldMask': full ? DETAILS_MASK : 'id,displayName,location,formattedAddress' },
   });
   const body = await res.json().catch(() => ({}));
   if (!res.ok) throw Object.assign(new Error(`Place lookup failed: ${(body.error && body.error.message) || `HTTP ${res.status}`}`), { status: 502 });

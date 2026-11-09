@@ -1,6 +1,15 @@
 # Homepage v20 build: where things stand (14 Oct 2026)
 
 ## Done
+- The place ID step (9 Nov 2026, Brandon). A Google listing card at the top of the Record tab's Client values (`gbp/place-id.js`, routes `/api/clients/:id/place-id`, `/search`, `/check`, `/confirm` in `gbp/routes.js`):
+  - **The search:** by business name and main town, the top 5 matches with name, address and phone. Exactly one match with the record's phone is pre-selected.
+  - **Otherwise:** the candidates, plus a place ID pasted and looked up.
+  - **The confirm:** the same confirm sets the GBP address type, suggested from the listing (Google's `pureServiceAreaBusiness` flag, now in the Places field mask, or no street address: service_area; a street address: storefront). Nothing saves without the Confirm click, and the server refuses a place ID the step never showed.
+  - **The form:** the place ID and address type are no longer typed on the form. The competitor check no longer saves a place ID by itself.
+  - **The new client wizard:** pre-selects the one phone match, and its "Use this listing" is recorded as the confirm (`gbp_place_confirmed`); the wizard used to call every client a storefront because the service area flag was never read.
+  - **The to-do:** "place ID missing" is the last blocker on the client and the dashboard, and a flag on the GBP readiness panel. The Rankings baseline button is disabled with a link to the Record tab.
+  - **Cost:** no Local Falcon credits. A search is one Google Places Text Search (Enterprise fields: phone, rating); a pasted ID is one Place Details (Enterprise). Each has 1,000 free a month on the shared key, then about $0.035 and $0.02 each.
+  - **Tests:** fixture `tests/fixtures/place-id-step.js`.
 - Rank scans move to Local Falcon (9 Nov 2026, Brandon's brief and decisions; branch `local-falcon`). The plan report is in the side session notes (rank-scans-local-falcon-report.md). Built:
   - **Client and switch.** `localfalcon/client.js`: form encoded, key `LOCALFALCON_API_KEY` only, never retried. `RANK_SCAN_PROVIDER` is local_falcon unless set to leadsnap. LeadSnap's scan routes stay but are switched off by that config, and the profile check stays on LeadSnap.
   - **The rules,** in `gbp/rank-scans.js`:

@@ -3052,6 +3052,8 @@ const CLIENT_VALUES_TEMPLATE = {
   // GBP batch 3 (23 Oct): the rank scan settings, built by code and locked after the baseline (hard rule 8);
   // scan_area sets the grid spacing (city 1500 m, market town 2000 m, rural 2500 m); scan_keyword_2 is optional
   scan_settings: null, scan_area: '', scan_keyword_2: '',
+  // The place ID step (9 Nov): who confirmed the listing and what it showed (gbp/place-id.js)
+  gbp_place_confirmed: null,
   // The folder holding the client's sorted GBP photos: read by the Lead Snap tab (drive/), read only
   drive_photo_folder: '',
   // The legal pages (7 Nov 2026), typed in on the Record tab. legal_entity is limited or sole_trader:
@@ -4087,7 +4089,7 @@ if (pool && pageMapStore) {
   // RANK_SCAN_PROVIDER=leadsnap switches the old LeadSnap scans back on; anything else is Local Falcon.
   const localFalcon = process.env.LOCALFALCON_API_KEY ? require('./localfalcon/client').createLocalFalconClient() : null;
   const rankProvider = String(process.env.RANK_SCAN_PROVIDER || 'local_falcon').toLowerCase() === 'leadsnap' ? 'leadsnap' : 'local_falcon';
-  const gbpApi = require('./gbp/routes').mountGbpApi(app, { pool, loadInputs: gbpInputsFor, callModel: gbpCallModel, saveClientValue, leadsnap, localFalcon, rankProvider, directoryDomains: citationStore ? () => citationStore.domains() : null });
+  const gbpApi = require('./gbp/routes').mountGbpApi(app, { pool, loadInputs: gbpInputsFor, callModel: gbpCallModel, saveClientValue, leadsnap, localFalcon, rankProvider, placeDetails: process.env.GOOGLE_PLACES_API_KEY ? id => require('./gbp/places').getPlace(id, { full: true }) : null, directoryDomains: citationStore ? () => citationStore.domains() : null });
   // The monthly rank scans and the daily read back: once a day from 6am UK (rank_scan_runs is the lock).
   // Each client's month is claimed before its scan starts, so a restart never runs it twice.
   if (localFalcon && rankProvider === 'local_falcon') {

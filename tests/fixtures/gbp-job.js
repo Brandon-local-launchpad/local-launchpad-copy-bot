@@ -412,7 +412,7 @@ function fakeModel(opts = {}) {
     placesRun = 1;
     v = await (await req('POST', `/api/clients/${c.id}/gbp/competitors`)).json();
     chk('POST competitors: five competitors with the keyword, the reading, no comparison on the first run', v.competitors.latest && v.competitors.latest.competitors.length === 5 && v.competitors.latest.keyword === 'Landscaper Southampton' && v.competitors.reading.escalate === false && /no majority type/.test(v.competitors.reading.line) && v.competitors.comparison === null && v.competitors.runs.length === 1, JSON.stringify(v.competitors.reading), '');
-    chk('the client\'s own place id is saved on the record from the first run', savedValues.some(([k, val]) => k === 'gbp_place_id' && val === 'ChIJ_edens_edge_own'), JSON.stringify(savedValues), '');
+    chk("the competitor check no longer saves the client's own place id: only the place ID step's confirm does (9 Nov)", !savedValues.some(([k]) => k === 'gbp_place_id'), JSON.stringify(savedValues), 'no gbp_place_id');
     chk('the duplicate finder ran as the second step: two possible duplicates, no marks yet', v.duplicates.duplicates.length === 2 && Object.keys(v.duplicates.marks).length === 0 && v.files['competitors.json'] && v.files['duplicates.json'], JSON.stringify(Object.keys(v.files)), '');
     chk('the note reads the competitor run: the reading line, the keyword and the date', /primary = Landscaper, no majority type among the five \(2 use it\); search "Landscaper Southampton" on \d+ \w+ \d{4}/.test(v.profile.note), v.profile.note.split('\n')[0], '');
     const compIds = v.competitors.latest.competitors.map(c => c.place_id);

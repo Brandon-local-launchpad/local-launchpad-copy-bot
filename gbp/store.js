@@ -54,6 +54,9 @@ function createGbpStore(pool) {
     // The Top 5 by market share and the leader, worked out by Copybot from the baseline's kept points (any source)
     async rankCompetitors(clientId) { return one('gbp_rank_competitors', clientId); },
     async saveRankCompetitors(clientId, data) { return put('gbp_rank_competitors', 'rank_competitors.json', clientId, data); },
+    // The place ID step: the last search's candidates and any pasted ID looked up (gbp/place-id.js)
+    async placeLookup(clientId) { return one('gbp_place_lookup', clientId); },
+    async savePlaceLookup(clientId, data) { return put('gbp_place_lookup', 'place_lookup.json', clientId, data); },
     async profileCheck(clientId) { return one('gbp_profile_check', clientId); },
     async saveProfileCheck(clientId, data) { return put('gbp_profile_check', 'profile_check.json', clientId, data); },
     async duplicates(clientId) { return one('gbp_duplicates', clientId); },

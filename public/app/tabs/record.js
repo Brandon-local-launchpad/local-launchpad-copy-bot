@@ -8,7 +8,8 @@
 // Sources and confirmations live inside the same client values JSON (_sources, _confirmed):
 // no migration; a value with no source shows as Hand.
 
-import { h, attr, api, card, toast, tag, info, busy } from '../ui.js';
+import { h, attr, api, card, toast, tag, info, busy, pill, fmtDate } from '../ui.js';
+import { userName } from '../shell.js';
 import { loadRecordPanels, recordContainer } from './legacy.js';
 
 const GROUPS = [
@@ -18,7 +19,6 @@ const GROUPS = [
     { key: 'business_type', label: 'Business type', type: 'select', options: ['A', 'B', 'C', 'D', 'split'] },
     { key: 'year_founded', label: 'Year founded', placeholder: '4 digits only' },
     { key: 'team_size', label: 'Team size', placeholder: 'Number only' },
-    { key: 'gbp_address_type', label: 'GBP address type', type: 'select', options: ['', 'storefront', 'service_area'] },
     { key: 'live_domain', label: 'Live domain', placeholder: 'https://example.co.uk (the site the public sees; the listings and the NAP use it)' },
     { key: 'hours', label: 'Hours', placeholder: 'e.g. Mon to Sat, 8am to 6pm' },
     { key: 'emergency_primary', label: 'Emergency primary', type: 'select', options: ['', 'yes', 'no'] },
@@ -34,7 +34,6 @@ const GROUPS = [
     { key: 'phone', label: 'Phone' },
     { key: 'email', label: 'Email' },
     { key: 'address', label: 'Address', type: 'textarea' },
-    { key: 'gbp_place_id', label: 'Google place id', placeholder: 'Filled by the first competitor check; correct it here if it picked the wrong listing' },
   ] },
   { key: 'quotes', title: 'Quotes and timing', fields: [
     { key: 'free_quotes', label: 'Free quotes', type: 'select', options: ['', 'yes', 'no'] },
@@ -291,8 +290,11 @@ async function renderValues(body, ctx) {
   };
 
   body.innerHTML = `
+    <div id="placeCard" style="margin-bottom:16px"></div>
     <div class="btn-row" style="margin-bottom:14px"><button class="btn btn-primary" id="saveCv">Save</button><button class="btn btn-ghost" id="prefill" title="Read the uploaded custom values and onboarding files into the blanks">Prefill from files</button><span class="muted small">Source tags: Form (Fillout), Website, GBP, Dossier (research), Hand. Amber values were inferred and need confirming.</span></div>
     <div class="grid grid-2" id="cvGroups">${GROUPS.map(groupCard).join('')}</div>`;
+
+  renderPlaceCard(body.querySelector('#placeCard'), ctx);
 
   // Chips toggle
   body.addEventListener('click', async e => {
@@ -361,3 +363,57 @@ async function renderValues(body, ctx) {
 }
 
 const hasValue = v => !(v === '' || v === null || v === undefined || (Array.isArray(v) && !v.length) || v === false);
+
+// ── The Google listing (the place ID step, 9 Nov 2026) ───────────────────────
+// Search by business name and main town, the top matches with name, address and phone; the one
+// match with the record's phone pre-selected; a pasted place ID looked up; the GBP address type
+// suggested from the listing. Nothing saves until the Confirm click. The place ID and address
+// type are set here only, not on the form below.
+async function renderPlaceCard(el, ctx) {
+  const { clientId } = ctx;
+  let v = null, pick = null, type = '', busyNow = false;
+  const typeLabel = t => (t === 'service_area' ? 'service area (address hidden)' : t === 'storefront' ? 'storefront (address shown)' : 'not set');
+  const all = () => [...((v.lookup && v.lookup.candidates) || []), ...(v.lookup && v.lookup.checked && !((v.lookup.candidates || []).some(c => c.place_id === v.lookup.checked.place_id)) ? [v.lookup.checked] : [])];
+  const choose = id => { pick = id; const c = all().find(x => x.place_id === id); if (c && c.suggested_address_type && c.suggested_address_type.value) type = c.suggested_address_type.value; };
+  const load = async () => {
+    try { v = await api(`/api/clients/${clientId}/place-id`); } catch (e) { el.innerHTML = card({ title: 'Google listing', body: `<div class="notice warn">${h(e.message)}</div>` }); return; }
+    pick = null; type = v.address_type || '';
+    if (v.lookup && v.lookup.preselect && !v.place_id) choose(v.lookup.preselect);
+    draw();
+  };
+  const draw = () => {
+    const C = v.confirmed;
+    const status = v.place_id
+      ? `<div class="notice good" style="margin-bottom:10px"><strong>Confirmed</strong> ${h(v.place_id)}${C ? ` · ${h(C.name || '')}${C.address ? ', ' + h(C.address) : ''}${C.phone ? ' · ' + h(C.phone) : ''} · ${h(typeLabel(v.address_type))} · ${h(fmtDate(C.at, true))}${C.by ? ' by ' + h(C.by) : ''}` : ` · ${h(typeLabel(v.address_type))} (set before the confirm step existed)`}</div>`
+      : `<div class="notice bad" style="margin-bottom:10px"><strong>Place ID missing.</strong> Find the client's Google listing and confirm it. Rank scans match by place ID only and are blocked until it is set.</div>`;
+    const L = v.lookup || {};
+    const list = all();
+    const rows = list.length ? list.map(c => `<label class="choice${pick === c.place_id ? ' selected' : ''}" style="display:block;cursor:pointer"><input type="radio" name="pidPick" value="${attr(c.place_id)}" ${pick === c.place_id ? 'checked' : ''} style="margin-right:6px"><strong>${h(c.name)}</strong> ${c.phone_match ? pill('ok', 'phone matches the record') : c.phone ? pill('wait', 'phone differs') : pill('none', 'no phone')}${v.place_id === c.place_id ? ' ' + pill('accent', 'saved') : ''}<span class="sub">${h(c.address || 'no address shown')} · ${h(c.phone || 'no phone')}${c.business_status && c.business_status !== 'OPERATIONAL' ? ' · ' + h(c.business_status) : ''} · <span class="mono">${h(c.place_id)}</span> ${c.maps_url ? `<a href="${attr(c.maps_url)}" target="_blank" rel="noopener">Maps</a>` : ''}</span></label>`).join('')
+      : L.at ? '<div class="muted">No listing found. Try another spelling, or paste the place ID below.</div>' : '';
+    const sel = list.find(c => c.place_id === pick);
+    const hint = L.at && !L.preselect && list.length ? `<div class="muted small" style="margin:6px 0">${L.phone_matches > 1 ? `${L.phone_matches} listings carry the record's phone: pick the right one.` : `None of these carries the record's phone (${h(v.phone || 'no phone on the record')}). Pick one only if you are sure, or paste the place ID.`}</div>` : L.preselect ? '<div class="muted small" style="margin:6px 0">Pre-selected: the one listing with the record\'s phone. Check it and confirm.</div>' : '';
+    el.innerHTML = card({ title: 'Google listing', sub: 'The place ID and GBP address type, confirmed by a person. A search is one Google Places call (no Local Falcon credits)', body: `
+      ${status}
+      <div class="btn-row" style="margin-bottom:10px"><input class="input" id="pidQ" style="flex:1" value="${attr((L.q) || v.query)}" placeholder="Business name and main town"><button class="btn btn-ghost" id="pidSearch" ${v.places_on ? '' : 'disabled'}>${L.at ? 'Search again' : 'Find the listing'}</button></div>
+      ${L.at ? `<div class="muted small" style="margin-bottom:6px">Searched "${h(L.q)}" ${h(fmtDate(L.at, true))} · record phone ${h(v.phone || 'none')}</div>` : ''}
+      ${hint}<div id="pidList">${rows}</div>
+      <div class="btn-row" style="margin-top:10px"><input class="input mono" id="pidPaste" style="flex:1" placeholder="Or paste a place ID (ChIJ…)"><button class="btn btn-ghost" id="pidCheck" ${v.details_on ? '' : 'disabled'}>Look it up</button></div>
+      ${sel ? `<div style="margin-top:12px;padding-top:10px;border-top:1px solid var(--border)">
+        <div style="margin-bottom:6px"><strong>GBP address type</strong> <span class="muted small">suggested: ${h(typeLabel(sel.suggested_address_type.value))}, because ${h(sel.suggested_address_type.why)}</span></div>
+        <label class="small" style="margin-right:14px"><input type="radio" name="pidType" value="service_area" ${type === 'service_area' ? 'checked' : ''}> Service area: the address is hidden (rank maps centre on the main town)</label><br>
+        <label class="small"><input type="radio" name="pidType" value="storefront" ${type === 'storefront' ? 'checked' : ''}> Storefront: the address is shown (rank maps centre on the pin)</label>
+        <div class="btn-row" style="margin-top:10px"><button class="btn btn-primary" id="pidConfirm" ${type ? '' : 'disabled'}>Confirm ${h(sel.name)} as this client's listing</button></div></div>` : ''}` });
+  };
+  const act = async (btn, label, fn) => { if (busyNow) return; busyNow = true; const t = btn.textContent; btn.disabled = true; btn.textContent = label; try { await fn(); } catch (e) { toast(e.message, 'bad'); } finally { busyNow = false; if (btn.isConnected) { btn.disabled = false; btn.textContent = t; } } };
+  el.addEventListener('change', e => {
+    if (e.target.name === 'pidPick') { choose(e.target.value); draw(); }
+    if (e.target.name === 'pidType') { type = e.target.value; draw(); }
+  });
+  el.addEventListener('click', e => {
+    const b = e.target.closest('button'); if (!b) return;
+    if (b.id === 'pidSearch') return act(b, 'Searching…', async () => { v = await api(`/api/clients/${clientId}/place-id/search`, { method: 'POST', body: { q: el.querySelector('#pidQ').value.trim() } }); pick = null; type = v.address_type || ''; if (v.lookup && v.lookup.preselect) choose(v.lookup.preselect); draw(); });
+    if (b.id === 'pidCheck') return act(b, 'Looking up…', async () => { const id = el.querySelector('#pidPaste').value.trim(); if (!id) throw new Error('Paste a place ID first'); v = await api(`/api/clients/${clientId}/place-id/check`, { method: 'POST', body: { place_id: id } }); if (v.lookup && v.lookup.checked) choose(v.lookup.checked.place_id); draw(); });
+    if (b.id === 'pidConfirm') return act(b, 'Saving…', async () => { v = await api(`/api/clients/${clientId}/place-id/confirm`, { method: 'POST', body: { place_id: pick, address_type: type, confirm: true, by: userName() || '' } }); toast('Listing confirmed'); ctx.refresh(); });
+  });
+  await load();
+}

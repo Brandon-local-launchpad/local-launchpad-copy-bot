@@ -20,6 +20,7 @@ const SC = require('./scans');
 const { checkProfile } = require('./profile-check');
 const { namesMatch, phoneDigits } = require('./competitors');
 const { createRankScans } = require('./rank-scans');
+const PID = require('./place-id');
 
 const CONTENT_TYPES = { 'description.txt': 'text/plain; charset=utf-8', 'services.csv': 'text/csv; charset=utf-8', 'products.csv': 'text/csv; charset=utf-8', 'validation.json': 'application/json; charset=utf-8', 'nap.json': 'application/json; charset=utf-8', 'note.txt': 'text/plain; charset=utf-8', 'competitors.json': 'application/json; charset=utf-8', 'duplicates.json': 'application/json; charset=utf-8', 'landing_page.json': 'application/json; charset=utf-8', 'scans.json': 'application/json; charset=utf-8', 'schedules.json': 'application/json; charset=utf-8', 'competitors_leadsnap.json': 'application/json; charset=utf-8', 'profile_check.json': 'application/json; charset=utf-8', 'rank_competitors.json': 'application/json; charset=utf-8' };
 
@@ -40,7 +41,7 @@ function profileFiles(I, record, competitors, scanAlerts = []) {
 // RANK_SCAN_PROVIDER, local_falcon unless set to leadsnap. The LeadSnap scan routes stay, switched
 // off by that config, and LeadSnap's old scans show as superseded history labelled with their
 // source. The profile check stays on LeadSnap whatever the provider.
-function mountGbpApi(app, { pool, loadInputs, callModel, log = console, search = q => searchPlaces(q), fetchPage = fetchHtml, saveClientValue = null, locate = null, leadsnap = null, directoryDomains = null, localFalcon = null, rankProvider = 'local_falcon' }) {
+function mountGbpApi(app, { pool, loadInputs, callModel, log = console, search = q => searchPlaces(q), fetchPage = fetchHtml, saveClientValue = null, locate = null, leadsnap = null, directoryDomains = null, localFalcon = null, rankProvider = 'local_falcon', placeDetails = null }) {
   const locateFn = locate || (args => locateClient({ ...args, search }));
   const provider = rankProvider === 'leadsnap' ? 'leadsnap' : 'local_falcon';
   const lfOn = provider === 'local_falcon';
@@ -276,6 +277,7 @@ function mountGbpApi(app, { pool, loadInputs, callModel, log = console, search =
       const cv = I.validatorCtx.cv || {};
       readiness = { ok: I.locked.length > 0, locked: I.locked.length, minServices: I.minServices, competitorCount: I.competitorCount, showPrices: I.showPrices, siteUrl: I.siteUrl, withCopy: Object.keys(I.included).length, flags: I.flags, town: I.town, name: I.name, ownPlaceId: cv.gbp_place_id || '', leadsnap: !!leadsnap, rank_provider: provider, local_falcon: !!localFalcon, scans_on: lfOn ? !!localFalcon : !!leadsnap };
       if (!I.locked.length) readiness.flags = [...I.flags, { code: 'GBP-NO-SERVICES', msg: 'The page map has no service pages.' }];
+      if (!cv.gbp_place_id) readiness.flags = [...(readiness.flags || []), { code: 'GBP-NO-PLACE-ID', msg: 'Place ID missing: find and confirm the Google listing on the Record tab (Google listing). Rank scans match by place ID only.' }];
       scans = await scansView(clientId, cv);
       if (scans.count || scans.superseded) { files['scans.json'] = `/clients/${slug}/gbp/scans.json`; }
       if (scans.schedules.items.length) files['schedules.json'] = `/clients/${slug}/gbp/schedules.json`;
@@ -321,8 +323,7 @@ function mountGbpApi(app, { pool, loadInputs, callModel, log = console, search =
     const dirs = directoryDomains ? await directoryDomains().catch(() => null) : null;
     const run = await runCompetitorCheck({ primary: I.primary, town: I.town, clientName: cv.company_name, clientPhone: cv.phone, ownPlaceId: cv.gbp_place_id || '', search, directoryDomains: dirs });
     await store.addCompetitorRun(clientId, run);
-    // The client's own listing, found by phone or name on the first run, is remembered
-    if (run.own && run.own.place_id && !cv.gbp_place_id && saveClientValue) await saveClientValue(clientId, 'gbp_place_id', run.own.place_id);
+    // The client's own listing found here is not saved (9 Nov): only the place ID step's confirm on the Record tab sets gbp_place_id
     const dup = await findDuplicates({ clientName: cv.company_name, clientPhone: cv.phone, town: I.town, ownPlaceId: cv.gbp_place_id || (run.own && run.own.place_id) || '', search });
     const before = (await store.duplicates(clientId)) || { marks: {} };
     await store.saveDuplicates(clientId, { ...dup, marks: before.marks || {} });
@@ -513,6 +514,68 @@ function mountGbpApi(app, { pool, loadInputs, callModel, log = console, search =
     if (item) { item.status = (result && result.status) || (action === 'pause' ? 'paused' : 'active'); item.updated_at = new Date().toISOString(); }
     await store.saveSchedules(clientId, data);
     res.json(await view(clientId));
+  }));
+
+  // ── The place ID step (gbp/place-id.js): find, check, confirm. Only the confirm writes. ──
+  // placeDetails(placeId) → a place with its phone, for a pasted ID
+  const clientValuesOf = async clientId => {
+    const { rows } = await pool.query(`SELECT content FROM client_assets WHERE client_id=$1 AND asset_type='client_values' ORDER BY uploaded_at DESC LIMIT 1`, [clientId]);
+    if (!rows.length) return {};
+    try { return typeof rows[0].content === 'string' ? JSON.parse(rows[0].content) : rows[0].content || {}; } catch (_) { return {}; }
+  };
+  const placeView = async clientId => {
+    const cv = await clientValuesOf(clientId);
+    const { rows } = await pool.query(`SELECT name FROM clients WHERE id=$1`, [clientId]);
+    if (!rows.length) throw Object.assign(new Error('Client not found.'), { status: 404 });
+    let town = '';
+    try { town = (await loadInputs(clientId)).town || ''; } catch (_) { town = ''; }
+    const lookup = (await store.placeLookup(clientId)) || null;
+    const name = cv.company_name || rows[0].name;
+    return { place_id: cv.gbp_place_id || '', address_type: cv.gbp_address_type || '', confirmed: cv.gbp_place_confirmed || null, phone: cv.phone || '', name, town, query: [name, town].filter(Boolean).join(' '), lookup, places_on: !!search, details_on: !!placeDetails };
+  };
+  app.get('/api/clients/:clientId/place-id', wrap(async (req, res) => res.json(await placeView(req.params.clientId))));
+  // One Places text search (no Local Falcon credits): the top matches, the phone match pre-selected
+  app.post('/api/clients/:clientId/place-id/search', wrap(async (req, res) => {
+    const { clientId } = req.params;
+    const v = await placeView(clientId);
+    const q = String((req.body || {}).q || v.query || '').trim().slice(0, 120);
+    if (!q) throw Object.assign(new Error('No business name to search for: type one.'), { status: 400 });
+    const found = PID.rankCandidates(await search(q), { phone: v.phone });
+    const prev = (await store.placeLookup(clientId)) || {};
+    await store.savePlaceLookup(clientId, { ...prev, at: new Date().toISOString(), q, ...found });
+    log.log(`[gbp] place ID search for ${clientId}: "${q}", ${found.candidates.length} matches, ${found.phone_matches} with the record's phone`);
+    res.json(await placeView(clientId));
+  }));
+  // A pasted place ID looked up (one Place Details call), so the person sees what they confirm
+  app.post('/api/clients/:clientId/place-id/check', wrap(async (req, res) => {
+    const { clientId } = req.params;
+    const pid = String((req.body || {}).place_id || '').trim();
+    if (!/^[A-Za-z0-9_-]{10,}$/.test(pid)) throw Object.assign(new Error('That does not look like a Google place ID (it usually starts ChIJ).'), { status: 400 });
+    if (!placeDetails) throw Object.assign(new Error('Google Places is not configured on the server (GOOGLE_PLACES_API_KEY).'), { status: 503 });
+    const v = await placeView(clientId);
+    const p = await placeDetails(pid);
+    const found = PID.rankCandidates([p], { phone: v.phone }).candidates[0] || null;
+    const prev = (await store.placeLookup(clientId)) || {};
+    await store.savePlaceLookup(clientId, { ...prev, checked: found ? { ...found, at: new Date().toISOString() } : null });
+    res.json(await placeView(clientId));
+  }));
+  // The confirm: a person's click. Saves gbp_place_id and gbp_address_type, only for a place this step showed
+  app.post('/api/clients/:clientId/place-id/confirm', wrap(async (req, res) => {
+    const { clientId } = req.params;
+    const b = req.body || {};
+    if (b.confirm !== true) throw Object.assign(new Error('The place ID needs a person to confirm it (confirm: true).'), { status: 400 });
+    if (!['service_area', 'storefront'].includes(b.address_type)) throw Object.assign(new Error('Choose the GBP address type: service_area (address hidden) or storefront.'), { status: 400 });
+    if (!saveClientValue) throw Object.assign(new Error('Saving client values is not available here.'), { status: 503 });
+    const lookup = (await store.placeLookup(clientId)) || {};
+    const saved = await clientValuesOf(clientId);
+    const current = saved.gbp_place_id && saved.gbp_place_confirmed && saved.gbp_place_confirmed.place_id === saved.gbp_place_id ? { ...saved.gbp_place_confirmed, place_id: saved.gbp_place_id, suggested_address_type: { value: saved.gbp_place_confirmed.suggested || '' } } : null;
+    const shown = [...(lookup.candidates || []), ...(lookup.checked ? [lookup.checked] : []), ...(current ? [current] : [])].find(c => c.place_id === b.place_id);
+    if (!shown) throw Object.assign(new Error('That place ID was not shown by the search or the check: search or check it first, then confirm.'), { status: 400 });
+    await saveClientValue(clientId, 'gbp_place_id', shown.place_id);
+    await saveClientValue(clientId, 'gbp_address_type', b.address_type);
+    await saveClientValue(clientId, 'gbp_place_confirmed', { at: new Date().toISOString(), by: String(b.by || '').slice(0, 80) || null, place_id: shown.place_id, name: shown.name, address: shown.address, phone: shown.phone, phone_match: shown.phone_match, address_type: b.address_type, suggested: shown.suggested_address_type && shown.suggested_address_type.value });
+    log.log(`[gbp] place ID confirmed for ${clientId}: ${shown.place_id} (${shown.name}), ${b.address_type}`);
+    res.json(await placeView(clientId));
   }));
 
   // A rank scan alert cleared by hand (low credits, a skipped monthly scan)
