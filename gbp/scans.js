@@ -147,6 +147,106 @@ function leaderLine(competitors) {
 
 const monthOf = iso => (iso ? String(iso).slice(0, 7) : '');
 
+// ── Provider neutral (Local Falcon, 9 Nov 2026) ──
+// A stored scan row says where it came from (source) and is scored here from its own grid
+// points, never from the provider's summary numbers, so the provider can change and the
+// reports stay the same. Rows from before the field are LeadSnap's.
+const SOURCES = { local_falcon: 'Local Falcon', leadsnap: 'LeadSnap' };
+const sourceOf = row => (row && row.source) || 'leadsnap';
+const scanIdOf = row => (row ? (row.scan_id !== undefined && row.scan_id !== null ? row.scan_id : row.heatmap_id) : null);
+// The grid's half width: 6 steps of the spacing from the centre to the edge (13 x 13)
+const radiusKm = spacingM => Math.round(((spacingM * (GRID_MAX - 1)) / 2 / 1000) * 1000) / 1000;
+// A point where the business is not in the top 20 counts as 21 in every average
+const NOT_FOUND_RANK = 21;
+const rankOf = v => { const n = Number(v); return v !== false && v !== null && v !== undefined && v !== '' && Number.isInteger(n) && n >= 1 && n <= 20 ? n : null; };
+
+// The points inside the service polygon (lat/lng list), with the centre the polygon was built round
+function clipToPolygon(centre, points, polygon) {
+  const local = (polygon || []).map(p => toLocal(centre, p));
+  if (local.length < 3) return { kept: [...points], dropped: [] };
+  const kept = [], dropped = [];
+  for (const p of points) (pointInPolygon(toLocal(centre, p), local) ? kept : dropped).push(p);
+  return { kept, dropped };
+}
+
+// Every score from the kept points only. points: [{ rank, results: [{ rank, place_id, name }] }].
+// Top 3% = kept points ranking 1 to 3 over kept points; average = the mean rank, not found as 21;
+// each business's Top 3% and average the same way from the results at each point; market share
+// = a business's share of all the top 3 places across the kept points; the leader = the most
+// top 3 places (ties: the better average), the client included.
+function scorePoints(points, ownPlaceId = '') {
+  const total = points.length;
+  if (!total) return { total_points: 0, top_3_points: 0, top_3_percentage: null, average: null, leader: null, competitors: [] };
+  const own = { top3: 0, sum: 0 };
+  const biz = new Map();
+  for (const p of points) {
+    const r = rankOf(p.rank);
+    if (r !== null && r <= 3) own.top3++;
+    own.sum += r === null ? NOT_FOUND_RANK : r;
+    const seen = new Set();
+    for (const x of Array.isArray(p.results) ? p.results : []) {
+      const xr = rankOf(x.rank), id = str(x.place_id);
+      if (xr === null || !id || seen.has(id)) continue;
+      seen.add(id);
+      if (!biz.has(id)) biz.set(id, { place_id: id, name: str(x.name), top3: 0, sum: 0, found: 0 });
+      const b = biz.get(id);
+      b.found++; b.sum += xr; if (xr <= 3) b.top3++;
+    }
+  }
+  const pct = n => Math.round((n / total) * 1000) / 10;
+  const all = [...biz.values()].map(b => ({ ...b, average: round1((b.sum + (total - b.found) * NOT_FOUND_RANK) / total) }));
+  if (ownPlaceId && !biz.has(ownPlaceId)) all.push({ place_id: ownPlaceId, name: '', top3: own.top3, found: 0, average: round1(own.sum / total) });
+  const top3Places = all.reduce((s, b) => s + b.top3, 0) || 1;
+  const rows = all.map(b => ({ name: b.name, google_place_id: b.place_id, is_client: !!ownPlaceId && b.place_id === ownPlaceId, top_3_points: b.top3, top_3_percentage: pct(b.top3), average: b.average, found_points: b.found, total_points: total, market_share: Math.round((b.top3 / top3Places) * 1000) / 10 }));
+  const lead = [...rows].sort((a, b) => b.top_3_points - a.top_3_points || a.average - b.average)[0] || null;
+  return {
+    total_points: total, top_3_points: own.top3, top_3_percentage: pct(own.top3), average: round1(own.sum / total),
+    leader: lead ? leaderVerdict(lead.name || (lead.is_client ? 'the client' : lead.google_place_id), lead.top_3_percentage, { place_id: lead.google_place_id, is_client: lead.is_client }) : null,
+    competitors: rows.filter(b => !b.is_client).sort((a, b) => b.market_share - a.market_share || a.average - b.average).slice(0, 10),
+  };
+}
+
+// The leader advice line (the SOP wording, kept as it was)
+function leaderVerdict(name, top3, extra = {}) {
+  const verdict = top3 > 90 ? 'over 90: the map is too small, consider the next wider setting' : top3 < 40 ? 'under 40: the map is too large, consider the next tighter setting' : 'between 40 and 90: the map fits';
+  return { name, top3, ...extra, line: `Leader ${name} at Top 3% ${top3}; ${verdict} (over 90: the map is too small, consider the next wider setting; under 40: the map is too large, consider the next tighter setting).` };
+}
+
+// A stored row from a Local Falcon report: the full grid paid for, the kept points stored and scored.
+// pending: the row as created when the scan started (scan_id, keyword, kind, run_type, created_at, month)
+function localFalconRow(report, pending, settings) {
+  const R = report || {};
+  const all = (Array.isArray(R.data_points) ? R.data_points : []).map(p => ({ lat: num(p.lat), lng: num(p.lng), rank: rankOf(p.rank), results: Array.isArray(p.results) ? p.results : [] })).filter(p => p.lat !== null && p.lng !== null);
+  const { kept } = clipToPolygon(settings.centre, all, settings.polygon);
+  const own = (settings.place && settings.place.google_place_id) || str(R.place_id);
+  const s = scorePoints(kept, own);
+  if (s.leader && s.leader.is_client && !s.leader.name) s.leader = leaderVerdict(str(settings.client) || 'the client', s.leader.top3, { place_id: own, is_client: true });
+  return {
+    ...pending, source: 'local_falcon', status: all.length ? 'completed' : 'failed', ...(all.length ? {} : { error: 'the report has no grid points' }),
+    grid_size: num(R.grid_size) || settings.grid_size, spacing_m: settings.spacing_m, radius_km: settings.radius_km,
+    points_paid: all.length, points_kept: kept.length,
+    report_url: str(R.public_url) || null,
+    top_3_percentage: s.top_3_percentage, average: s.average, total_points: s.total_points, top_3_points: s.top_3_points,
+    points: kept.map(p => ({ lat: p.lat, lng: p.lng, rank: p.rank })),
+    competitors: s.competitors, leader: s.leader,
+    settled_at: new Date().toISOString(),
+  };
+}
+
+// The rows that count for a provider: not superseded and from that provider. The rest are history.
+function splitBySource(scans, provider) {
+  const live = [], history = [];
+  for (const s of scans || []) (!s.superseded && sourceOf(s) === provider ? live : history).push(s);
+  return { live, history };
+}
+// For a list with no provider to hand (the dashboard): the live rows of the newest row's source
+function currentRows(scans) {
+  const rows = (scans || []).filter(Boolean);
+  const newest = [...rows].sort((a, b) => String(b.created_at || '').localeCompare(String(a.created_at || '')))[0];
+  return newest ? splitBySource(rows, sourceOf(newest)).live : [];
+}
+const isPending = s => !!s && !s.superseded && s.status !== 'completed' && s.status !== 'failed';
+
 // A stored scan row from a LeadSnap heatmap (pending when it has not completed)
 function scanRow(heatmap, { keyword, kind, run_type, created_from = 'baseline' }) {
   const h = heatmap || {};
@@ -182,19 +282,20 @@ function topCompetitors(list, limit = 5) {
 const live = scans => (scans || []).filter(s => !s.superseded);
 function monthlyTable(scans) {
   const done = live(scans).filter(s => s.status === 'completed' && s.top_3_percentage !== null);
+  // One source per table: LeadSnap and Local Falcon scans are never compared
   const byKeyword = new Map();
-  for (const s of done) { const k = norm(s.keyword); if (!byKeyword.has(k)) byKeyword.set(k, { keyword: s.keyword, kind: s.kind, baseline: null, months: [] }); }
+  for (const s of done) { const k = sourceOf(s) + '|' + norm(s.keyword); if (!byKeyword.has(k)) byKeyword.set(k, { keyword: s.keyword, kind: s.kind, source: sourceOf(s), baseline: null, months: [] }); }
   for (const [k, row] of byKeyword) {
-    const mine = done.filter(s => norm(s.keyword) === k).sort((a, b) => String(a.created_at).localeCompare(String(b.created_at)));
+    const mine = done.filter(s => sourceOf(s) + '|' + norm(s.keyword) === k).sort((a, b) => String(a.created_at).localeCompare(String(b.created_at)));
     row.baseline = mine.find(s => s.run_type === 'baseline') || mine[0] || null;
     const byMonth = new Map();
     for (const s of mine) byMonth.set(s.month, s);   // the latest in a month wins
     const months = [...byMonth.values()].sort((a, b) => a.month.localeCompare(b.month));
     row.months = months.map((s, i) => ({
-      month: s.month, heatmap_id: s.heatmap_id, run_type: s.run_type, top_3_percentage: s.top_3_percentage, average: s.average,
+      month: s.month, scan_id: scanIdOf(s), heatmap_id: scanIdOf(s), source: sourceOf(s), run_type: s.run_type, top_3_percentage: s.top_3_percentage, average: s.average,
       change: i > 0 ? round1(s.top_3_percentage - months[i - 1].top_3_percentage) : null,
       vs_baseline: row.baseline ? round1(s.top_3_percentage - row.baseline.top_3_percentage) : null,
-      is_baseline: row.baseline ? s.heatmap_id === row.baseline.heatmap_id : false,
+      is_baseline: row.baseline ? scanIdOf(s) === scanIdOf(row.baseline) : false,
     }));
   }
   return [...byKeyword.values()];
@@ -235,4 +336,4 @@ function scheduleBody(settings, keywords, points, { clientName, baselineAt, loca
   };
 }
 
-module.exports = { scanKeywords, spacingFor, servicePolygon, convexHull, pointInPolygon, gridPoints, toLocal, fromLocal, buildScanSettings, creditCost, heatmapBody, leaderLine, scanRow, topCompetitors, monthlyTable, dropAlerts, scheduleBody, live, kmBetween, monthOf, GRID_MAX, SPACING_M, HULL_BUFFER_KM, DROP_POINTS };
+module.exports = { SOURCES, sourceOf, scanIdOf, radiusKm, NOT_FOUND_RANK, rankOf, clipToPolygon, scorePoints, leaderVerdict, localFalconRow, splitBySource, currentRows, isPending, scanKeywords, spacingFor, servicePolygon, convexHull, pointInPolygon, gridPoints, toLocal, fromLocal, buildScanSettings, creditCost, heatmapBody, leaderLine, scanRow, topCompetitors, monthlyTable, dropAlerts, scheduleBody, live, kmBetween, monthOf, GRID_MAX, SPACING_M, HULL_BUFFER_KM, DROP_POINTS };

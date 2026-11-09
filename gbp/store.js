@@ -38,7 +38,7 @@ function createGbpStore(pool) {
     async saveCompetitorHand(clientId, data) { return put('gbp_competitor_hand', 'competitor_hand.json', clientId, data); },
     // ── Batch 3: rank scans (one row per heatmap), schedules, LeadSnap competitors, the profile check ──
     async addScan(clientId, row) {
-      await pool.query(`INSERT INTO client_assets (client_id, asset_type, filename, content, metadata) VALUES ($1, 'gbp_scan', 'scan.json', $2, $3)`, [clientId, JSON.stringify(row), JSON.stringify({ heatmap_id: row.heatmap_id })]);
+      await pool.query(`INSERT INTO client_assets (client_id, asset_type, filename, content, metadata) VALUES ($1, 'gbp_scan', 'scan.json', $2, $3)`, [clientId, JSON.stringify(row), JSON.stringify({ heatmap_id: String(row.scan_id !== undefined && row.scan_id !== null ? row.scan_id : row.heatmap_id), source: row.source || 'leadsnap' })]);
     },
     async updateScan(clientId, heatmapId, row) {
       await pool.query(`UPDATE client_assets SET content=$1 WHERE client_id=$2 AND asset_type='gbp_scan' AND metadata->>'heatmap_id'=$3`, [JSON.stringify(row), clientId, String(heatmapId)]);
@@ -51,6 +51,9 @@ function createGbpStore(pool) {
     async saveSchedules(clientId, data) { return put('gbp_schedules', 'schedules.json', clientId, data); },
     async leadsnapCompetitors(clientId) { return one('gbp_competitors_leadsnap', clientId); },
     async saveLeadsnapCompetitors(clientId, data) { return put('gbp_competitors_leadsnap', 'competitors_leadsnap.json', clientId, data); },
+    // The Top 5 by market share and the leader, worked out by Copybot from the baseline's kept points (any source)
+    async rankCompetitors(clientId) { return one('gbp_rank_competitors', clientId); },
+    async saveRankCompetitors(clientId, data) { return put('gbp_rank_competitors', 'rank_competitors.json', clientId, data); },
     async profileCheck(clientId) { return one('gbp_profile_check', clientId); },
     async saveProfileCheck(clientId, data) { return put('gbp_profile_check', 'profile_check.json', clientId, data); },
     async duplicates(clientId) { return one('gbp_duplicates', clientId); },

@@ -4,7 +4,7 @@
 // person, what is running, and the Top 3% series ────────────────────────────────
 // Read only. A handful of queries across all clients (no per client loop over the
 // stores), then pure rules: stageOf, blockersOf. Nothing here calls a model or
-// LeadSnap. The rules in words:
+// Local Falcon or LeadSnap. The rules in words:
 //   Stage (first that applies): Live (a page pushed to WordPress) · GBP (every page
 //   in the map written clean, no GBP output yet, or GBP output and nothing pushed) ·
 //   Pages (a page map exists and a page is unwritten or not clean) · Page map (a
@@ -226,8 +226,9 @@ async function loadDashboard({ pool, tradeFacts = null, runners = {}, homepageRu
     for (const j of h1Jobs.filter(j => j.client_id === c.id)) runs.push({ kind: 'H1 research', now: j.stage || 'Looking up search volume', next: j.kind === 'generate' ? 'Then the page map is built from the volumes' : 'Then the H1s are proposed', done: null, total: null });
     const g = gbp.get(c.id);
     if (g && g.running) runs.push({ kind: 'GBP', now: 'Writing the GBP description, services and products', next: 'Then the validator checks them', done: null, total: null });
-    const pendingScans = (scansByClient.get(c.id) || []).filter(s => s && s.status === 'pending').length;
-    if (pendingScans) runs.push({ kind: 'rank scan', now: `${pendingScans} scan${pendingScans === 1 ? '' : 's'} running on LeadSnap`, next: 'Then the Top 3% is read back', done: null, total: null });
+    // Running = not completed, not failed, not superseded (stored statuses are queue, in_progress, processing)
+    const pendingRows = SC.currentRows(scansByClient.get(c.id) || []).filter(SC.isPending);
+    if (pendingRows.length) runs.push({ kind: 'rank scan', now: `${pendingRows.length} scan${pendingRows.length === 1 ? '' : 's'} running on ${SC.SOURCES[SC.sourceOf(pendingRows[0])]}`, next: 'Then the Top 3% is worked out', done: null, total: null });
     for (const r of runs) runningNow.push({ client_id: c.id, client: c.name, ...r });
 
     const firstAt = c.source === 'fillout' ? firstSubmission.get(c.id) || c.created_at : null;
@@ -272,11 +273,12 @@ async function loadRankings({ pool, months = 6, now = new Date() }) {
   for (let i = months - 1; i >= 0; i--) { const d = new Date(now.getFullYear(), now.getMonth() - i, 1); xs.push(`${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`); }
   const series = [];
   for (const [client_id, { name, scans }] of byClient) {
-    const table = SC.monthlyTable(scans.filter(Boolean));
+    // One source per client: the newest scan's, so LeadSnap and Local Falcon are never joined in a line
+    const table = SC.monthlyTable(SC.currentRows(scans));
     const primary = table[0];
     if (!primary) continue;
     const points = primary.months.filter(m => xs.includes(m.month)).map(m => ({ x: m.month, y: m.top_3_percentage }));
-    if (points.length) series.push({ client_id, name, keyword: primary.keyword, points, latest: points[points.length - 1].y });
+    if (points.length) series.push({ client_id, name, keyword: primary.keyword, source: primary.source, points, latest: points[points.length - 1].y });
   }
   series.sort((a, b) => (b.latest || 0) - (a.latest || 0));
   return { months: xs, series };

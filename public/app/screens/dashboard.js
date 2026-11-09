@@ -34,7 +34,7 @@ export async function render(root, params, ctx) {
         <div class="tile" id="runningTile"><div class="label">Running now${info(TIPS.running)}</div>${runningBody(runs)}</div>
       </div>
       <div class="stack" style="margin-top:16px">
-        ${card({ title: 'Rankings', sub: 'Top 3% per client, the primary keyword, last 6 months, from the stored LeadSnap scans', actions: '<button class="btn btn-ghost btn-sm" id="exportPng">Export PNG</button>', body: '<div id="chart"></div>' })}
+        ${card({ title: 'Rankings', sub: 'Top 3% per client, the primary keyword, last 6 months, from the stored rank scans (one source per client)', actions: '<button class="btn btn-ghost btn-sm" id="exportPng">Export PNG</button>', body: '<div id="chart"></div>' })}
         ${card({ flat: true, title: '', body: '<div id="clientsTable"></div>' })}
       </div>`;
     drawChart();

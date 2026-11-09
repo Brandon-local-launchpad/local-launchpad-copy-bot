@@ -123,10 +123,10 @@ async function settings({ pool, modelLog = null }) {
   const keys = KEYS.map(([k, label]) => ({ key: k, label, set: !!process.env[k] }));
   const users = pool ? (await pool.query(`SELECT DISTINCT assigned_to AS name FROM clients WHERE assigned_to IS NOT NULL AND assigned_to <> '' ORDER BY 1`)).rows.map(r => r.name) : [];
   const spend = modelLog && pool ? await modelLog.spend().catch(e => ({ error: e.message })) : null;
-  return { keys, routing: modelRouting(), leadsnap: { token: !!process.env.LEADSNAP_API_TOKEN, base: process.env.LEADSNAP_BASE_URL || null }, spend, users, fillout_form_url: process.env.FILLOUT_FORM_URL || '' };
+  return { keys, routing: modelRouting(), leadsnap: { token: !!process.env.LEADSNAP_API_TOKEN, base: process.env.LEADSNAP_BASE_URL || null }, localfalcon: { key: !!process.env.LOCALFALCON_API_KEY, provider: String(process.env.RANK_SCAN_PROVIDER || 'local_falcon').toLowerCase() === 'leadsnap' ? 'leadsnap' : 'local_falcon' }, spend, users, fillout_form_url: process.env.FILLOUT_FORM_URL || '' };
 }
 
-function mountLibraryApi(app, { pool, modelLog = null, leadsnap = null }) {
+function mountLibraryApi(app, { pool, modelLog = null, leadsnap = null, localFalcon = null, rankAlerts = null }) {
   const wrap = fn => async (req, res) => { try { res.json(await fn(req)); } catch (err) { res.status(err.status || 500).json({ error: err.message }); } };
   app.get('/api/niche-library', wrap(() => nicheList({ pool }).then(niches => ({ niches }))));
   app.get('/api/niche-library/:key', wrap(req => nicheDetail({ pool, key: req.params.key })));
@@ -138,6 +138,14 @@ function mountLibraryApi(app, { pool, modelLog = null, leadsnap = null }) {
     if (!leadsnap) throw Object.assign(new Error('LeadSnap is not configured (LEADSNAP_API_TOKEN).'), { status: 503 });
     const companies = await leadsnap.listCompanies({ per_page: 50 });
     return { companies: (Array.isArray(companies) ? companies : []).map(c => ({ id: c.id, name: c.name, client_type: c.client_type, activated: c.activated })) };
+  }));
+  // The Local Falcon account: the plan, API access and the credit balance. Free, on request only
+  app.get('/api/settings/localfalcon', wrap(async () => {
+    if (!localFalcon) throw Object.assign(new Error('Local Falcon is not configured (LOCALFALCON_API_KEY).'), { status: 503 });
+    const a = await localFalcon.account();
+    const c = a.credits || {}, p = a.permissions || {};
+    const pkg = a.package && typeof a.package === 'object' ? (a.package.name || a.package.title || a.package.plan || JSON.stringify(a.package).slice(0, 80)) : (a.package || null);
+    return { package: pkg, api_access: !!p.api_access, credits: { total_usable: c.total_usable_credits ?? null, package_total: c.credit_package_total ?? null, package_remaining: c.credit_package_remaining ?? null }, alerts: rankAlerts ? await rankAlerts().catch(() => []) : [] };
   }));
 }
 

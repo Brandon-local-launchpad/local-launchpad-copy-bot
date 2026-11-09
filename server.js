@@ -4083,7 +4083,23 @@ if (pool && pageMapStore) {
   const gbpCallModel = args => makeCallModel(new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY }), GBP_MODEL, { onUsage: modelLog.tagged('GBP output') })(args);
   // LeadSnap rank scans (batch 3): the client exists only when the token is set on Railway
   const leadsnap = process.env.LEADSNAP_API_TOKEN ? require('./leadsnap/client').createLeadsnapClient() : null;
-  require('./gbp/routes').mountGbpApi(app, { pool, loadInputs: gbpInputsFor, callModel: gbpCallModel, saveClientValue, leadsnap, directoryDomains: citationStore ? () => citationStore.domains() : null });
+  // Rank scans through Local Falcon (9 Nov 2026): the client exists only when LOCALFALCON_API_KEY is set.
+  // RANK_SCAN_PROVIDER=leadsnap switches the old LeadSnap scans back on; anything else is Local Falcon.
+  const localFalcon = process.env.LOCALFALCON_API_KEY ? require('./localfalcon/client').createLocalFalconClient() : null;
+  const rankProvider = String(process.env.RANK_SCAN_PROVIDER || 'local_falcon').toLowerCase() === 'leadsnap' ? 'leadsnap' : 'local_falcon';
+  const gbpApi = require('./gbp/routes').mountGbpApi(app, { pool, loadInputs: gbpInputsFor, callModel: gbpCallModel, saveClientValue, leadsnap, localFalcon, rankProvider, directoryDomains: citationStore ? () => citationStore.domains() : null });
+  // The monthly rank scans and the daily read back: once a day from 6am UK (rank_scan_runs is the lock).
+  // Each client's month is claimed before its scan starts, so a restart never runs it twice.
+  if (localFalcon && rankProvider === 'local_falcon') {
+    const rankClients = async () => {
+      const { rows } = await pool.query(`SELECT DISTINCT ON (a.client_id) a.client_id, c.name, a.content FROM client_assets a JOIN clients c ON c.id = a.client_id WHERE a.asset_type = 'client_values' AND c.archived_at IS NULL ORDER BY a.client_id, a.uploaded_at DESC`);
+      return rows.map(r => { let cv = {}; try { cv = typeof r.content === 'string' ? JSON.parse(r.content) : (r.content || {}); } catch (_) {} return { client_id: r.client_id, name: r.name, cv }; });
+    };
+    const rankTick = () => gbpApi.rank.dailyTick({ clients: rankClients }).catch(e => console.error('[rank] daily job:', e.message));
+    setTimeout(rankTick, 60000);
+    setInterval(rankTick, 3600000);
+    console.log('[rank] rank scans run through Local Falcon: the monthly scans and the read back run once a day from 6am UK');
+  } else console.log(`[rank] rank scans: ${rankProvider === 'leadsnap' ? 'LeadSnap (RANK_SCAN_PROVIDER=leadsnap)' : 'Local Falcon, but LOCALFALCON_API_KEY is not set: nothing runs'}`);
   // The Lead Snap tab (5 Nov): the autopost config, from the GBP inputs and the Fillout voice answers
   const gbpPostsCallModel = args => makeCallModel(new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY }), require('./gbp-posts/write').MODEL, { onUsage: modelLog.tagged('GBP Posts') })(args);
   const leadSnapInputs = async clientId => {
@@ -4355,7 +4371,7 @@ uiRoutes.mountAppShell(app, path.join(__dirname, 'public'));
   const places = require('./gbp/places');
   const intakeCallModel = process.env.ANTHROPIC_API_KEY ? makeCallModel(new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY }), 'claude-sonnet-4-6', { onUsage: modelLog.tagged('website read') }) : null;
   const placesOn = !!process.env.GOOGLE_PLACES_API_KEY;
-  require('./ui/library').mountLibraryApi(app, { pool, modelLog, leadsnap: process.env.LEADSNAP_API_TOKEN ? require('./leadsnap/client').createLeadsnapClient() : null });
+  require('./ui/library').mountLibraryApi(app, { pool, modelLog, leadsnap: process.env.LEADSNAP_API_TOKEN ? require('./leadsnap/client').createLeadsnapClient() : null, localFalcon: process.env.LOCALFALCON_API_KEY ? require('./localfalcon/client').createLocalFalconClient() : null, rankAlerts: pool ? () => require('./gbp/rank-scans').createRankScans({ pool, store: null, lf: null }).alerts() : null });
   require('./ui/intake').mountIntakeApi(app, {
     pool, callModel: intakeCallModel,
     placesSearch: placesOn ? q => places.searchPlaces(q) : null,

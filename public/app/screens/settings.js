@@ -1,5 +1,5 @@
 // Settings (27 Oct 2026): API keys status (set or not, never the value), model routing per
-// call type (read only: the brief changes no pipeline), LeadSnap, spend this month from the
+// call type (read only: the brief changes no pipeline), Local Falcon (rank scans) and LeadSnap, spend this month from the
 // model log, users (the names used for "assigned to"), and who you are in this browser.
 import { h, attr, api, card, table, pill, status, toast, tile, info, fmtDate, wire } from '../ui.js';
 import { setUserName, userName } from '../shell.js';
@@ -12,9 +12,10 @@ export async function render(root, params, ctx) {
   root.innerHTML = `
     <div class="ph"><div class="ph-title"><h1>Settings</h1><div class="ph-meta">What is configured on the server, where each call goes, and what it cost this month</div></div></div>
     <div class="grid grid-4" style="margin-bottom:16px">
+      ${tile({ label: 'Local Falcon', value: s.localfalcon.key ? (s.localfalcon.provider === 'local_falcon' ? 'on' : 'off') : 'off', small: true, tip: 'Rank scans run through Local Falcon: one credit per grid point, 169 a keyword a month. Checking the account is free; nothing here spends any.', foot: s.localfalcon.key ? `${s.localfalcon.provider === 'leadsnap' ? '<span class="small">RANK_SCAN_PROVIDER=leadsnap: scans on LeadSnap</span> ' : ''}<button class="btn btn-ghost btn-xs" id="lfCheck">Check the account</button>` : 'LOCALFALCON_API_KEY not set' })}
       ${tile({ label: 'Spend this month', value: sp.error ? '–' : pounds(sp.total_pence), tip: 'From the model log: every model call since the start of the month, priced per model and converted at 0.78 USD to GBP. Perplexity calls are not in it.', foot: sp.calls ? `${sp.calls} calls · ${h(sp.month)}` : sp.error ? h(sp.error) : 'no calls logged yet' })}
       ${tile({ label: 'API keys set', value: `${s.keys.filter(k => k.set).length}<span class="muted" style="font-size:18px"> / ${s.keys.length}</span>`, tip: 'Keys live in the environment (Railway variables or .env); this page only says whether each is set.' })}
-      ${tile({ label: 'LeadSnap', value: s.leadsnap.token ? 'on' : 'off', small: true, tip: 'Rank scans run through LeadSnap. Every heatmap create or run spends credits; nothing here spends any.', foot: s.leadsnap.token ? '<button class="btn btn-ghost btn-xs" id="lsCheck">Check the account</button>' : 'LEADSNAP_API_TOKEN not set' })}
+      ${tile({ label: 'LeadSnap', value: s.leadsnap.token ? 'on' : 'off', small: true, tip: 'LeadSnap now only holds the profile check (and the old rank scans, kept as history). Nothing here spends any.', foot: s.leadsnap.token ? '<button class="btn btn-ghost btn-xs" id="lsCheck">Check the account</button>' : 'LEADSNAP_API_TOKEN not set' })}
       ${tile({ label: 'Users', value: s.users.length, tip: 'The names used for "assigned to" on clients. Free text: type a name on any client.', foot: h(s.users.join(', ') || 'nobody assigned yet') })}
     </div>
     <div class="grid grid-2">
@@ -28,5 +29,7 @@ export async function render(root, params, ctx) {
   root.querySelector('#saveMe').addEventListener('click', () => { setUserName(root.querySelector('#me').value.trim()); toast('Saved in this browser'); });
   const ls = root.querySelector('#lsCheck');
   if (ls) ls.addEventListener('click', async () => { ls.disabled = true; ls.textContent = 'Checking…'; try { const r = await api('/api/settings/leadsnap'); ls.replaceWith(Object.assign(document.createElement('span'), { className: 'small', textContent: `${r.companies.length} compan${r.companies.length === 1 ? 'y' : 'ies'} on the account` })); } catch (e) { ls.disabled = false; ls.textContent = 'Check the account'; toast(e.message, 'bad'); } });
+  const lf = root.querySelector('#lfCheck');
+  if (lf) lf.addEventListener('click', async () => { lf.disabled = true; lf.textContent = 'Checking…'; try { const r = await api('/api/settings/localfalcon'); const al = (r.alerts || []).length; lf.replaceWith(Object.assign(document.createElement('span'), { className: 'small', textContent: `${r.package ? r.package + ' · ' : ''}API ${r.api_access ? 'allowed' : 'NOT allowed'} · ${r.credits.total_usable ?? '?'} credits${al ? ` · ${al} alert${al === 1 ? '' : 's'}: ${r.alerts[0].message}` : ''}` })); } catch (e) { lf.disabled = false; lf.textContent = 'Check the account'; toast(e.message, 'bad'); } });
   wire(root);
 }

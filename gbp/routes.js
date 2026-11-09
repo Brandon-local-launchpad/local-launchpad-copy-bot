@@ -19,8 +19,9 @@ const { searchPlaces, locateClient } = require('./places');
 const SC = require('./scans');
 const { checkProfile } = require('./profile-check');
 const { namesMatch, phoneDigits } = require('./competitors');
+const { createRankScans } = require('./rank-scans');
 
-const CONTENT_TYPES = { 'description.txt': 'text/plain; charset=utf-8', 'services.csv': 'text/csv; charset=utf-8', 'products.csv': 'text/csv; charset=utf-8', 'validation.json': 'application/json; charset=utf-8', 'nap.json': 'application/json; charset=utf-8', 'note.txt': 'text/plain; charset=utf-8', 'competitors.json': 'application/json; charset=utf-8', 'duplicates.json': 'application/json; charset=utf-8', 'landing_page.json': 'application/json; charset=utf-8', 'scans.json': 'application/json; charset=utf-8', 'schedules.json': 'application/json; charset=utf-8', 'competitors_leadsnap.json': 'application/json; charset=utf-8', 'profile_check.json': 'application/json; charset=utf-8' };
+const CONTENT_TYPES = { 'description.txt': 'text/plain; charset=utf-8', 'services.csv': 'text/csv; charset=utf-8', 'products.csv': 'text/csv; charset=utf-8', 'validation.json': 'application/json; charset=utf-8', 'nap.json': 'application/json; charset=utf-8', 'note.txt': 'text/plain; charset=utf-8', 'competitors.json': 'application/json; charset=utf-8', 'duplicates.json': 'application/json; charset=utf-8', 'landing_page.json': 'application/json; charset=utf-8', 'scans.json': 'application/json; charset=utf-8', 'schedules.json': 'application/json; charset=utf-8', 'competitors_leadsnap.json': 'application/json; charset=utf-8', 'profile_check.json': 'application/json; charset=utf-8', 'rank_competitors.json': 'application/json; charset=utf-8' };
 
 // nap.json and note.txt are built live from the inputs, the saved record, the competitor runs and the scan alerts (gbp/profile.js)
 function profileFiles(I, record, competitors, scanAlerts = []) {
@@ -35,19 +36,30 @@ function profileFiles(I, record, competitors, scanAlerts = []) {
 // is called on page load, only from the buttons
 // directoryDomains(): the citation directory database's domains, so the competitor check skips every
 // directory Copybot knows (citations/store.js domains(), 3 Nov 2026); without it the built-in list
-function mountGbpApi(app, { pool, loadInputs, callModel, log = console, search = q => searchPlaces(q), fetchPage = fetchHtml, saveClientValue = null, locate = null, leadsnap = null, directoryDomains = null }) {
+// Rank scans (9 Nov 2026): localFalcon (localfalcon/client.js) runs them; rankProvider is
+// RANK_SCAN_PROVIDER, local_falcon unless set to leadsnap. The LeadSnap scan routes stay, switched
+// off by that config, and LeadSnap's old scans show as superseded history labelled with their
+// source. The profile check stays on LeadSnap whatever the provider.
+function mountGbpApi(app, { pool, loadInputs, callModel, log = console, search = q => searchPlaces(q), fetchPage = fetchHtml, saveClientValue = null, locate = null, leadsnap = null, directoryDomains = null, localFalcon = null, rankProvider = 'local_falcon' }) {
   const locateFn = locate || (args => locateClient({ ...args, search }));
+  const provider = rankProvider === 'leadsnap' ? 'leadsnap' : 'local_falcon';
+  const lfOn = provider === 'local_falcon';
   const needLeadsnap = () => { if (!leadsnap) throw Object.assign(new Error('LeadSnap is not configured on this server (LEADSNAP_API_TOKEN).'), { status: 503 }); return leadsnap; };
+  // The LeadSnap scan routes, only while RANK_SCAN_PROVIDER=leadsnap
+  const needLeadsnapScans = () => { if (lfOn) throw Object.assign(new Error('LeadSnap rank scans are switched off: scans run through Local Falcon (RANK_SCAN_PROVIDER). The old LeadSnap scans are kept as history.'), { status: 409 }); return needLeadsnap(); };
 
   // The scans as the panel, the note and scans.json read them: the settings, the rows, the
   // monthly table against the baseline, the drop alerts, what is still pending
   const scansView = async (clientId, cv = null) => {
     const all = await store.scans(clientId);
-    const scans = SC.live(all);
-    const settings = cv && cv.scan_settings && typeof cv.scan_settings === 'object' ? cv.scan_settings : null;
+    const { live: scans, history } = SC.splitBySource(all, provider);
+    const saved = cv && cv.scan_settings && typeof cv.scan_settings === 'object' ? cv.scan_settings : null;
+    // Settings of the other provider are history too: a Local Falcon client shows no LeadSnap lock
+    const settings = saved && (saved.provider || 'leadsnap') === provider ? saved : null;
     const schedules = await store.schedules(clientId);
-    await repairScheduleIds(clientId, schedules);
-    return { settings, scans, superseded: all.length - scans.length, table: SC.monthlyTable(scans), alerts: SC.dropAlerts(scans), pending: scans.filter(s => s.status !== 'completed' && s.status !== 'failed').length, schedules, count: scans.length };
+    if (!lfOn) await repairScheduleIds(clientId, schedules);
+    const rankExtra = lfOn ? { claims: (await rank.claimsFor(clientId).catch(() => [])).slice(0, 36), rank_alerts: await rank.alerts(clientId).catch(() => []) } : {};
+    return { provider, source_label: SC.SOURCES[provider], settings, previous_settings: saved && !settings ? { provider: saved.provider || 'leadsnap', locked_at: saved.locked_at || null } : null, scans, history: history.map(h => ({ ...h, source: SC.sourceOf(h) })), superseded: history.length, table: SC.monthlyTable(scans), alerts: SC.dropAlerts(scans), pending: scans.filter(SC.isPending).length, schedules, count: scans.length, ...rankExtra };
   };
 
   // The client's listing on LeadSnap: by the saved Google place id, else by name and phone
@@ -222,6 +234,7 @@ function mountGbpApi(app, { pool, loadInputs, callModel, log = console, search =
     return data;
   }
   const store = createGbpStore(pool);
+  const rank = createRankScans({ pool, store, lf: localFalcon, locate: locateFn, search, saveClientValue: saveClientValue || (async () => {}), log });
   // The competitor runs as the panel, the note and competitors.json read them
   const competitorView = async clientId => {
     const runs = await store.competitorRuns(clientId);
@@ -250,19 +263,21 @@ function mountGbpApi(app, { pool, loadInputs, callModel, log = console, search =
     const duplicates = (await store.duplicates(clientId)) || { at: null, queries: [], duplicates: [], marks: {} };
     const landing = await store.landingPage(clientId);
     const leadsnapCompetitors = await store.leadsnapCompetitors(clientId);
+    const rankCompetitors = await store.rankCompetitors(clientId);
     const profileCheck = await store.profileCheck(clientId);
     if (competitors.latest) files['competitors.json'] = `/clients/${slug}/gbp/competitors.json`;
     if (duplicates.at) files['duplicates.json'] = `/clients/${slug}/gbp/duplicates.json`;
     if (landing) files['landing_page.json'] = `/clients/${slug}/gbp/landing_page.json`;
     if (leadsnapCompetitors) files['competitors_leadsnap.json'] = `/clients/${slug}/gbp/competitors_leadsnap.json`;
+    if (rankCompetitors) files['rank_competitors.json'] = `/clients/${slug}/gbp/rank_competitors.json`;
     if (profileCheck) files['profile_check.json'] = `/clients/${slug}/gbp/profile_check.json`;
     try {
       const I = await loadInputs(clientId);
       const cv = I.validatorCtx.cv || {};
-      readiness = { ok: I.locked.length > 0, locked: I.locked.length, minServices: I.minServices, competitorCount: I.competitorCount, showPrices: I.showPrices, siteUrl: I.siteUrl, withCopy: Object.keys(I.included).length, flags: I.flags, town: I.town, name: I.name, ownPlaceId: cv.gbp_place_id || '', leadsnap: !!leadsnap };
+      readiness = { ok: I.locked.length > 0, locked: I.locked.length, minServices: I.minServices, competitorCount: I.competitorCount, showPrices: I.showPrices, siteUrl: I.siteUrl, withCopy: Object.keys(I.included).length, flags: I.flags, town: I.town, name: I.name, ownPlaceId: cv.gbp_place_id || '', leadsnap: !!leadsnap, rank_provider: provider, local_falcon: !!localFalcon, scans_on: lfOn ? !!localFalcon : !!leadsnap };
       if (!I.locked.length) readiness.flags = [...I.flags, { code: 'GBP-NO-SERVICES', msg: 'The page map has no service pages.' }];
       scans = await scansView(clientId, cv);
-      if (scans.count) { files['scans.json'] = `/clients/${slug}/gbp/scans.json`; }
+      if (scans.count || scans.superseded) { files['scans.json'] = `/clients/${slug}/gbp/scans.json`; }
       if (scans.schedules.items.length) files['schedules.json'] = `/clients/${slug}/gbp/schedules.json`;
       // The profile fields, NAP, note and templates: live, so a changed value shows at once
       profile = buildProfile({ inputs: I, record, competitors, scanAlerts: scans.alerts });
@@ -270,7 +285,7 @@ function mountGbpApi(app, { pool, loadInputs, callModel, log = console, search =
       files['note.txt'] = `/clients/${slug}/gbp/note.txt`;
     } catch (e) { readiness = { ok: false, error: e.message, flags: [] }; }
     // rules: the validator round the live app runs (3: the description's category cap and openings, 23 Oct)
-    return { slug, record, files, readiness, profile, competitors, duplicates, landing, scans, leadsnapCompetitors, profileCheck, running: running.has(clientId), rules: 3, ...extra };
+    return { slug, record, files, readiness, profile, competitors, duplicates, landing, scans, leadsnapCompetitors, rankCompetitors, profileCheck, running: running.has(clientId), rules: 3, ...extra };
   };
 
   app.get('/api/clients/:clientId/gbp', wrap(async (req, res) => res.json(await view(req.params.clientId))));
@@ -341,8 +356,11 @@ function mountGbpApi(app, { pool, loadInputs, callModel, log = console, search =
     const { clientId } = req.params;
     const I = await loadInputs(clientId);
     // ?fresh=1: the settings a reset would lock, ignoring the current lock
-    const { settings, saved } = await scanSettingsFor(clientId, I, { fresh: String(req.query.fresh || '') === '1' });
-    res.json({ settings, saved, credits: SC.creditCost(settings) });
+    const fresh = String(req.query.fresh || '') === '1';
+    if (lfOn) return res.json({ provider, ...(await rank.preview(clientId, I, { fresh })) });
+    needLeadsnapScans();
+    const { settings, saved } = await scanSettingsFor(clientId, I, { fresh });
+    res.json({ provider, settings, saved, credits: SC.creditCost(settings) });
   }));
 
   // The baseline: one heatmap per keyword, settings saved and locked, rows pending until refresh
@@ -364,8 +382,9 @@ function mountGbpApi(app, { pool, loadInputs, callModel, log = console, search =
   app.post('/api/clients/:clientId/gbp/scans/baseline', wrap(async (req, res) => {
     const { clientId } = req.params;
     if (!(req.body || {}).confirm) throw Object.assign(new Error('The baseline needs confirm: true (the confirm step shows the settings and the credit cost).'), { status: 400 });
-    needLeadsnap();
     const I = await loadInputs(clientId);
+    if (lfOn) { if (!localFalcon) throw Object.assign(new Error('Local Falcon is not configured on this server (LOCALFALCON_API_KEY).'), { status: 503 }); const created = await rank.baseline(clientId, I); log.log(`[gbp] Local Falcon baseline for ${clientId}: ${created.length} scans started`); return res.json(await view(clientId, { created })); }
+    needLeadsnapScans();
     const existing = SC.live(await store.scans(clientId));
     if (existing.some(s => s.run_type === 'baseline')) throw Object.assign(new Error('A baseline exists for this client. Hard rule 8: the settings are locked; monthly scans come from the schedules. Use Reset baseline to start again.'), { status: 409 });
     const { settings } = await scanSettingsFor(clientId, I);
@@ -378,7 +397,13 @@ function mountGbpApi(app, { pool, loadInputs, callModel, log = console, search =
   app.post('/api/clients/:clientId/gbp/scans/reset', wrap(async (req, res) => {
     const { clientId } = req.params;
     if (!(req.body || {}).confirm) throw Object.assign(new Error('The reset needs confirm: true (the confirm step shows the new settings and the credit cost).'), { status: 400 });
-    const ls = needLeadsnap();
+    if (lfOn) {
+      if (!localFalcon) throw Object.assign(new Error('Local Falcon is not configured on this server (LOCALFALCON_API_KEY).'), { status: 503 });
+      const r = await rank.reset(clientId, await loadInputs(clientId));
+      log.log(`[gbp] Local Falcon baseline reset for ${clientId}: ${r.superseded} scans superseded, ${r.created.length} scans started`);
+      return res.json(await view(clientId, { created: r.created, superseded: r.superseded, paused: [] }));
+    }
+    const ls = needLeadsnapScans();
     const I = await loadInputs(clientId);
     const cv = I.validatorCtx.cv || {};
     const at = new Date().toISOString();
@@ -412,6 +437,7 @@ function mountGbpApi(app, { pool, loadInputs, callModel, log = console, search =
     const I = await loadInputs(clientId);
     const cv = I.validatorCtx.cv || {};
     const settings = cv.scan_settings || null;
+    if (lfOn) { const settled = localFalcon ? await rank.settle(clientId, settings) : []; return res.json(await view(clientId, { settled })); }
     const scans = SC.live(await store.scans(clientId));
     const settled = [];
     for (const row of scans.filter(s => s.status !== 'completed' && s.status !== 'failed')) {
@@ -425,7 +451,14 @@ function mountGbpApi(app, { pool, loadInputs, callModel, log = console, search =
   // The monthly results: heatmaps for the client's place since the last fetch, each completed one stored
   app.post('/api/clients/:clientId/gbp/scans/fetch', wrap(async (req, res) => {
     const { clientId } = req.params;
-    const ls = needLeadsnap();
+    if (lfOn) {
+      // The manual Fetch: every pending report read back (free); the daily job does the same
+      if (!localFalcon) throw Object.assign(new Error('Local Falcon is not configured on this server (LOCALFALCON_API_KEY).'), { status: 503 });
+      const I = await loadInputs(clientId);
+      const settled = await rank.settle(clientId, (I.validatorCtx.cv || {}).scan_settings);
+      return res.json(await view(clientId, { settled, added: settled.filter(x => x.status === 'completed') }));
+    }
+    const ls = needLeadsnapScans();
     const I = await loadInputs(clientId);
     const cv = I.validatorCtx.cv || {};
     const settings = cv.scan_settings;
@@ -454,7 +487,7 @@ function mountGbpApi(app, { pool, loadInputs, callModel, log = console, search =
   // Pause every schedule from before a reset that is still active on LeadSnap (ids looked up by name)
   app.post('/api/clients/:clientId/gbp/schedules/pause-previous', wrap(async (req, res) => {
     const { clientId } = req.params;
-    const ls = needLeadsnap();
+    const ls = needLeadsnap();   // allowed with Local Falcon on: it only pauses old LeadSnap schedules
     const data = await store.schedules(clientId);
     const result = [];
     for (const set of data.previous || []) {
@@ -481,6 +514,9 @@ function mountGbpApi(app, { pool, loadInputs, callModel, log = console, search =
     await store.saveSchedules(clientId, data);
     res.json(await view(clientId));
   }));
+
+  // A rank scan alert cleared by hand (low credits, a skipped monthly scan)
+  app.post('/api/rank-scans/alerts/:id/clear', wrap(async (req, res) => { await rank.clearAlert(req.params.id); res.json({ ok: true }); }));
 
   // Profile verification (SOP 3.10): the LeadSnap location against what Copybot built
   app.post('/api/clients/:clientId/gbp/verify-profile', wrap(async (req, res) => {
@@ -539,9 +575,10 @@ function mountGbpApi(app, { pool, loadInputs, callModel, log = console, search =
     let files = found ? filesFor(found.record) : {};
     if (file === 'nap.json' || file === 'note.txt') { const I = await loadInputs(client.id); files = profileFiles(I, found ? found.record : null, await competitorView(client.id), (await scansView(client.id, I.validatorCtx.cv)).alerts); }
     if (file === 'competitors.json') { const c = await competitorView(client.id); if (c.latest) files = { 'competitors.json': JSON.stringify(c, null, 2) }; }
-    if (file === 'scans.json') { const I = await loadInputs(client.id); const s = await scansView(client.id, I.validatorCtx.cv); const all = await store.scans(client.id); if (all.length) files = { 'scans.json': JSON.stringify({ settings: s.settings, table: s.table, alerts: s.alerts, scans: s.scans, superseded: all.filter(x => x.superseded) }, null, 2) }; }
+    if (file === 'scans.json') { const I = await loadInputs(client.id); const s = await scansView(client.id, I.validatorCtx.cv); const all = await store.scans(client.id); if (all.length) files = { 'scans.json': JSON.stringify({ provider: s.provider, settings: s.settings, table: s.table, alerts: s.alerts, scans: s.scans, superseded: s.history, claims: s.claims || [] }, null, 2) }; }
     if (file === 'schedules.json') { const s = await store.schedules(client.id); if (s.items.length) files = { 'schedules.json': JSON.stringify(s, null, 2) }; }
     if (file === 'competitors_leadsnap.json') { const c = await store.leadsnapCompetitors(client.id); if (c) files = { 'competitors_leadsnap.json': JSON.stringify(c, null, 2) }; }
+    if (file === 'rank_competitors.json') { const c = await store.rankCompetitors(client.id); if (c) files = { 'rank_competitors.json': JSON.stringify(c, null, 2) }; }
     if (file === 'profile_check.json') { const p = await store.profileCheck(client.id); if (p) files = { 'profile_check.json': JSON.stringify(p, null, 2) }; }
     if (file === 'duplicates.json') { const d = await store.duplicates(client.id); if (d) files = { 'duplicates.json': JSON.stringify(d, null, 2) }; }
     if (file === 'landing_page.json') { const l = await store.landingPage(client.id); if (l) files = { 'landing_page.json': JSON.stringify(l, null, 2) }; }
@@ -551,7 +588,7 @@ function mountGbpApi(app, { pool, loadInputs, callModel, log = console, search =
     res.send(files[file]);
   }));
 
-  return { store, running, STEPS };
+  return { store, running, STEPS, rank };
 }
 
 module.exports = { mountGbpApi, CONTENT_TYPES };
