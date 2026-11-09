@@ -10,6 +10,8 @@
   - **The to-do:** "place ID missing" is the last blocker on the client and the dashboard, and a flag on the GBP readiness panel. The Rankings baseline button is disabled with a link to the Record tab.
   - **Cost:** no Local Falcon credits. A search is one Google Places Text Search (Enterprise fields: phone, rating); a pasted ID is one Place Details (Enterprise). Each has 1,000 free a month on the shared key, then about $0.035 and $0.02 each.
   - **Tests:** fixture `tests/fixtures/place-id-step.js`.
+  - **Edens Edge (9 Nov, live):** the name search "Edens Edge Landscaping Southampton" finds no listing on Google. Looking up `ChIJgWXnIJqkwkIRcIOFpwakKXA` gives "Edens edge landscaping LTD", phone 07580 412717 (matches), no address (service area business), Google type general contractor. Brandon confirmed it in chat, and it is saved with service_area.
+  - **Edens Edge preview, nothing run:** Starter plan, API allowed, 7,674 credits. Centred on the main town, Southampton. dense_city 1000 m, 6 km radius, 20 towns, none excluded. 169 points paid, 169 kept: the towns reach 24 km, so the hull covers the whole grid. 169 credits a run (one keyword). Not saved on Local Falcon yet: the baseline saves it first. Waiting on Brandon's OK before any scan.
 - Rank scans move to Local Falcon (9 Nov 2026, Brandon's brief and decisions; branch `local-falcon`). The plan report is in the side session notes (rank-scans-local-falcon-report.md). Built:
   - **Client and switch.** `localfalcon/client.js`: form encoded, key `LOCALFALCON_API_KEY` only, never retried. `RANK_SCAN_PROVIDER` is local_falcon unless set to leadsnap. LeadSnap's scan routes stay but are switched off by that config, and the profile check stays on LeadSnap.
   - **The rules,** in `gbp/rank-scans.js`:
