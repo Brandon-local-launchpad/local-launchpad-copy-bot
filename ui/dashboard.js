@@ -175,6 +175,12 @@ async function loadDashboard({ pool, tradeFacts = null, runners = {}, homepageRu
   const citeBy = group(citeRows, () => ({ rows: 0, scanned: 0, listed: 0, to_submit: 0, waiting: 0 }));
   for (const r of citeRows) { const x = citeBy.get(r.client_id), n = Number(r.n); x.rows += n; x.scanned += Number(r.scanned); if (r.listed === 'yes') x.listed += n; if (r.listed === 'no' && r.status === 'not_started') x.to_submit += n; if (r.status === 'awaiting_email' || r.status === 'awaiting_approval') x.waiting += n; }
 
+  // The automation chain (automation/runner.js): the switch and the latest steps per client
+  const autoState = new Map((await soft(`SELECT client_id, enabled, enabled_at, waiting FROM automation_state`)).map(r => [r.client_id, r]));
+  const autoSteps = new Map();
+  for (const r of await soft(`SELECT client_id, step, label, tab, status, detail, error, started_at, finished_at FROM automation_steps WHERE status <> 'cleared' ORDER BY started_at DESC`)) { if (!autoSteps.has(r.client_id)) autoSteps.set(r.client_id, []); if (autoSteps.get(r.client_id).length < 30) autoSteps.get(r.client_id).push(r); }
+  const automationOf = id => { const s = autoState.get(id); return { enabled: !!(s && s.enabled), enabled_at: s ? s.enabled_at : null, waiting: s ? s.waiting : null, steps: autoSteps.get(id) || [] }; };
+
   // Last activity: the newest of the client's assets, record fields, page map edits, pushes, and its creation
   const act = new Map();
   const bump = (id, d) => { const m = maxDate(act.get(id), d); if (m) act.set(id, m); };
@@ -260,7 +266,9 @@ async function loadDashboard({ pool, tradeFacts = null, runners = {}, homepageRu
     const gbpDone = !!(g && g.steps && ['description', 'services', 'products'].every(k => g.steps[k] && g.steps[k].status === 'done'));
     const promptsDone = !!(leadSnap.get(c.id) && leadSnap.get(c.id).sheet);
     const hasScans = (scansByClient.get(c.id) || []).length > 0;
+    const automation = automationOf(c.id);
     const tracker = trackerOf({
+      automation,
       niche_known: nicheKnown, from_form: c.source === 'fillout', reviewed: !!c.reviewed_at, form_at: c.source === 'fillout' ? firstSubmission.get(c.id) || null : null,
       audio: audioBy.get(c.id) || null, prices: priceBy.get(c.id) || null, missing: summary.missing.map(m => m.text), place_id: !summary.placeIdMissing,
       locations_run: locRuns.has(c.id), locations_run_at: locRunAt.get(c.id) || null, locations_approved: locApproved.has(c.id), locations_changed: locChanged(c.id),
@@ -287,7 +295,7 @@ async function loadDashboard({ pool, tradeFacts = null, runners = {}, homepageRu
       locations_run: locRuns.has(c.id), locations_approved: locApproved.has(c.id), locations_approved_at: locApproved.has(c.id) ? locApproved.get(c.id).approved_at : null, locations_run_at: locRunAt.get(c.id) || null, locations_changed: locChanged(c.id),
       missing_fields: summary.missing, pack_unverified: packUnverified,
       // The live tracker: what Copybot has done, what waits on a person now (ui/tracker.js)
-      tracker,
+      tracker, automation,
       // The page list (type, key, title, good, block, claims, score, at) only for one client's summary
       page_list: clientId ? pages : undefined,
     });

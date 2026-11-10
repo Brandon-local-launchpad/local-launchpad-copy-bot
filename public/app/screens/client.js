@@ -114,6 +114,17 @@ export async function render(root, params, ctx) {
   const drawTracker = () => { if (tracker) trkEl.innerHTML = trackerStrip(clientId, tracker, { open: trkOpen }); };
   trkEl.addEventListener('click', e => { if (!e.target.closest('#trkToggle')) return; trkOpen = !trkOpen; try { localStorage.setItem('trackerOpen', trkOpen ? '1' : '0'); } catch (_) { /* private window */ } drawTracker(); });
   drawTracker();
+  const reloadTracker = async () => { const s = await api(`/api/clients/${clientId}/summary`); tracker = s.row.tracker; drawTracker(); };
+  trkEl.addEventListener('change', async e => {
+    if (e.target.id !== 'trkAuto') return;
+    const on = e.target.checked;
+    if (on && !(await confirm({ title: `Switch automation on for ${client.name}?`, text: 'Copybot will start each step itself: the locations run (it buys search data, up to $2), the research, the page map, every page, the GBP output and the post prompts. It stops at every approval and never pushes or publishes.', ok: 'Switch on' }))) { e.target.checked = false; return; }
+    try { await api(`/api/clients/${clientId}/automation`, { method: 'PUT', body: { enabled: on, by: row.assigned_to || '' } }); toast(on ? 'Automation on: the first step starts within a minute' : 'Automation off'); await reloadTracker(); } catch (err) { toast(err.message, 'bad'); e.target.checked = !on; }
+  });
+  trkEl.addEventListener('click', async e => {
+    if (!e.target.closest('#trkRetry')) return;
+    try { await api(`/api/clients/${clientId}/automation/retry`, { method: 'POST' }); toast('Trying again within a minute'); await reloadTracker(); } catch (err) { toast(err.message, 'bad'); }
+  });
   const trkTimer = setInterval(async () => {
     if (!trkEl.isConnected) return clearInterval(trkTimer);
     if (document.hidden) return;

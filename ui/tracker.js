@@ -19,6 +19,13 @@ function trackerOf(f) {
   // ready false: the step exists but something before it is unfinished
   const need = (key, text, tab, why = '', ready = true) => { if (ready) needs.push({ key, text, tab, why }); else later++; };
 
+  // ── The automation chain: a step that stopped or was refused comes first ──
+  const auto = f.automation || { enabled: false, steps: [] };
+  for (const s of auto.steps) {
+    if (s.status === 'failed') need('auto_' + s.step, `Automation stopped at "${s.label}"`, s.tab || 'pages', `${s.error || ''} Press Try again once it is sorted.`.trim());
+    else if (s.status === 'blocked' && s.error && !/already/i.test(s.error)) need('auto_' + s.step, `"${s.label}" is waiting: ${s.error}`, s.tab || 'pages', 'Automation tries again every 30 minutes.');
+  }
+
   // ── Intake ──
   if (f.form_at) did('form', 'Onboarding form received and the record built', 'record', f.form_at);
   if (f.audio && f.audio.transcribed) did('transcripts', `${plural(f.audio.transcribed, 'voice answer')} transcribed`, 'record');
@@ -87,7 +94,16 @@ function trackerOf(f) {
     else if (f.existing_site === true && f.site_audit !== 'run') need('audit_scan', 'Scan the old site', 'site-audit', '', recordReady);
   }
 
-  return { done, needs, later, running: f.running || [], next: needs[0] || null };
+  // A line Copybot did through the chain says so, with when (and the cost where the step knows it)
+  const BY_STEP = { locations: 'locations', research: 'research', page_map: 'page_map', homepage: 'pages', category: 'pages', service: 'pages', location: 'pages', gbp: 'gbp', prompts: 'prompts' };
+  for (const s of auto.steps) {
+    if (s.status !== 'done') continue;
+    const line = done.find(d => d.key === BY_STEP[s.step]);
+    if (line && !line.auto) { line.auto = true; line.at = s.finished_at || line.at; if (s.detail) line.detail = s.detail; }
+    else if (!BY_STEP[s.step]) done.push({ key: 'auto_' + s.step, text: s.label, tab: s.tab || 'pages', at: s.finished_at, auto: true, detail: s.detail || undefined });
+  }
+
+  return { done, needs, later, running: f.running || [], next: needs[0] || null, automation: { enabled: !!auto.enabled, waiting: auto.waiting || null, stopped: auto.steps.some(s => s.status === 'failed') } };
 }
 
 module.exports = { trackerOf };

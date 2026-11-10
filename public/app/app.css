@@ -387,3 +387,4 @@ pre.block { background: #fafbfc; border: 1px solid var(--border); border-radius:
 .queue-row:first-child { border-top: 0; padding-top: 0; }
 .queue-who .sub { display: block; color: var(--muted); font-size: 12.5px; }
 @media (max-width: 700px) { .trk-cols, .queue-row { grid-template-columns: 1fr; } }
+.trk-auto { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; padding: 10px 20px; border-top: 1px solid var(--border); background: var(--accent-soft); }

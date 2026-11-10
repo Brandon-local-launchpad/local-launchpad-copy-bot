@@ -4368,6 +4368,33 @@ if (pool && pageMapStore && v20Store) {
 const uiRoutes = require('./ui/routes');
 uiRoutes.mountUiApi(app, { pool, tradeFacts, runners: () => ({ category: categoryRunner, service: serviceRunner, location: locationRunner }), homepageRunning: () => homepageRunning });
 uiRoutes.mountAppShell(app, path.join(__dirname, 'public'));
+// ── The automation chain (automation/runner.js, 10 Nov): for a client with Automation on, the next
+// step starts when the last has finished, through the app's own run routes, and stops at every approval.
+// The calls go to this server with the login cookie, so each step is exactly what its button does.
+let automation = null;
+if (pool) {
+  const AU = require('./automation/runner');
+  const loopback = (method, urlPath, body) => new Promise((resolve, reject) => {
+    const data = body === undefined ? null : JSON.stringify(body);
+    const headers = { Accept: 'application/json' };
+    if (data) { headers['Content-Type'] = 'application/json'; headers['Content-Length'] = Buffer.byteLength(data); }
+    if (APP_PASSWORD) headers.Cookie = `ll_auth=${signToken(APP_PASSWORD)}`;
+    const req = require('http').request({ host: '127.0.0.1', port: process.env.PORT || 3000, method, path: urlPath, headers, timeout: 45 * 60000 }, res => {
+      let text = '';
+      res.on('data', c => { text += c; });
+      res.on('end', () => { let parsed = null; try { parsed = JSON.parse(text); } catch (_) { /* not JSON */ } resolve({ status: res.statusCode, body: parsed || {} }); });
+    });
+    req.on('timeout', () => req.destroy(new Error('No answer after 45 minutes.')));
+    req.on('error', reject);
+    if (data) req.write(data);
+    req.end();
+  });
+  automation = AU.createAutomation({
+    pool, call: loopback, log: text => console.log(text), background: true,
+    loadRows: async () => (await require('./ui/dashboard').loadDashboard({ pool, tradeFacts, runners: { category: categoryRunner, service: serviceRunner, location: locationRunner }, homepageRunning })).clients,
+  });
+  AU.mountAutomationApi(app, { automation });
+}
 // The Add client wizard (ui/intake.js): the website read (one fetch, one model call), Places, the merge, the create
 {
   const places = require('./gbp/places');
@@ -4654,6 +4681,12 @@ initDb().then(async () => {
   // A preview environment's demo client (tools/seed-demo-client.js): only when SEED_DEMO_CLIENT=1, never on production
   if (pool && process.env.SEED_DEMO_CLIENT === '1') await require('./tools/seed-demo-client').seedDemoClient(pool, { v20HomepageInputs, filloutService }).catch(err => console.error('[seed-demo] failed:', err));
   app.listen(PORT, () => console.log(`Copy bot running at http://localhost:${PORT}`));
+  // The automation chain: every minute, only for clients switched on; AUTOMATION_DISABLED=1 stops it for everyone
+  if (automation) {
+    await require('./automation/runner').ensureAutomationTables(pool).catch(err => console.error('[automation] tables failed:', err.message));
+    if (process.env.AUTOMATION_DISABLED === '1') console.log('[automation] off for every client (AUTOMATION_DISABLED=1)');
+    else setInterval(() => automation.tick().catch(err => console.error('[automation] tick failed:', err.message)), 60000);
+  }
   // The places table (the Location Determiner's towns, suburbs and admin areas): created, then
   // seeded from locations/data/places.csv.gz after the server is up, only when the file changed
   if (pool) {

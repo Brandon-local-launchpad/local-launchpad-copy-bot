@@ -12,7 +12,7 @@ export function trackerStrip(clientId, t, { open = true } = {}) {
     ? `<ol class="trk-list">${t.needs.map((n, i) => `<li class="${i === 0 ? 'first' : ''}"><a href="${stepHref(clientId, n.tab)}" data-link>${h(n.text)}</a>${n.why ? `<span class="sub">${h(n.why)}</span>` : ''}</li>`).join('')}</ol>`
     : `<p class="muted small">${t.running.length ? 'Nothing to do while this runs.' : 'Nothing is waiting on a person.'}</p>`;
   const done = t.done.length
-    ? `<ul class="trk-list done">${t.done.map(d => `<li><a href="${stepHref(clientId, d.tab)}" data-link>${h(d.text)}</a>${d.at ? ` <span class="muted small">${timeEl(d.at)}</span>` : ''}</li>`).join('')}</ul>`
+    ? `<ul class="trk-list done">${t.done.map(d => `<li><a href="${stepHref(clientId, d.tab)}" data-link>${h(d.text)}</a>${d.auto ? ' <span class="tag accent">automatic</span>' : ''}${d.detail ? ` <span class="muted small">${h(d.detail)}</span>` : ''}${d.at ? ` <span class="muted small">${timeEl(d.at)}</span>` : ''}</li>`).join('')}</ul>`
     : '<p class="muted small">Nothing yet.</p>';
   const runs = t.running.length ? `<div class="trk-run">${t.running.map(r => `<div><span class="small muted">${h(r.kind)}</span>${running({ now: r.now, next: r.next, done: r.done, total: r.total })}</div>`).join('')}</div>` : '';
   const head = `<button class="trk-head" id="trkToggle" aria-expanded="${open}"><strong>Tracker</strong>
@@ -21,7 +21,11 @@ export function trackerStrip(clientId, t, { open = true } = {}) {
       <span class="pill">${t.done.length} done by Copybot</span>
       ${!open && t.next ? `<span class="small trk-next">Next: ${h(t.next.text)}</span>` : ''}
       <span class="spacer"></span><span class="small muted">${open ? 'Hide' : 'Show'}</span></button>`;
-  return `<div class="card trk">${head}${open ? `${runs}<div class="trk-cols">
+  const a = t.automation || { enabled: false };
+  const autoBar = `<div class="trk-auto"><label class="check"><input type="checkbox" id="trkAuto"${a.enabled ? ' checked' : ''}> <strong>Automation ${a.enabled ? 'on' : 'off'}</strong></label>
+      <span class="small muted">${a.enabled ? h(a.stopped ? 'Stopped. Sort the step below, then press Try again.' : a.waiting ? `Waiting on: ${a.waiting}` : t.running.length ? 'Working.' : 'Looking for the next step (checked every minute).') : 'Off: every step waits for someone to press its button. On: Copybot starts each step itself and stops at every approval.'}</span>
+      ${a.enabled && (a.stopped || t.needs.some(n => n.key.startsWith('auto_'))) ? '<button class="btn btn-ghost btn-sm" id="trkRetry">Try again</button>' : ''}</div>`;
+  return `<div class="card trk">${head}${open ? `${autoBar}${runs}<div class="trk-cols">
       <div><h3>Needs a person</h3>${needs}${t.later ? `<p class="muted small" style="margin-top:8px">${t.later} more step${t.later === 1 ? ' opens' : 's open'} up once these are done.</p>` : ''}</div>
       <div><h3>Done by Copybot</h3>${done}</div></div>` : ''}</div>`;
 }
