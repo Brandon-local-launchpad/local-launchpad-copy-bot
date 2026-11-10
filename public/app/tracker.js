@@ -9,7 +9,7 @@ export const stepHref = (clientId, tab) => tab === 'clients' ? '/clients' : tab 
 
 export function trackerStrip(clientId, t, { open = true } = {}) {
   const needs = t.needs.length
-    ? `<ol class="trk-list">${t.needs.map((n, i) => `<li class="${i === 0 ? 'first' : ''}"><a href="${stepHref(clientId, n.tab)}" data-link>${h(n.text)}</a>${n.why ? `<span class="sub">${h(n.why)}</span>` : ''}</li>`).join('')}</ol>`
+    ? `<ol class="trk-list">${t.needs.map((n, i) => `<li class="${i === 0 ? 'first' : ''}"><a href="${stepHref(clientId, n.tab)}" data-link>${h(n.text)}</a>${n.key === 'chase' ? ' <button class="btn btn-ghost btn-xs" data-chase>Open the message</button>' : ''}${n.why ? `<span class="sub">${h(n.why)}</span>` : ''}</li>`).join('')}</ol>`
     : `<p class="muted small">${t.running.length ? 'Nothing to do while this runs.' : 'Nothing is waiting on a person.'}</p>`;
   const done = t.done.length
     ? `<ul class="trk-list done">${t.done.map(d => `<li><a href="${stepHref(clientId, d.tab)}" data-link>${h(d.text)}</a>${d.auto ? ' <span class="tag accent">automatic</span>' : ''}${d.detail ? ` <span class="muted small">${h(d.detail)}</span>` : ''}${d.at ? ` <span class="muted small">${timeEl(d.at)}</span>` : ''}</li>`).join('')}</ul>`

@@ -2,7 +2,7 @@
 // blocker, Run next step, assigned to) and the tabs, each with a status dot. Each tab
 // is a module under /app/tabs/ exporting render(el, ctx) and may return a cleanup.
 
-import { h, attr, api, status, pill, dot, timeEl, toast, confirm, tag } from '../ui.js';
+import { h, attr, api, status, pill, dot, timeEl, toast, confirm, tag, dialog } from '../ui.js';
 import { trackerStrip } from '../tracker.js';
 
 const TABS = [
@@ -120,6 +120,22 @@ export async function render(root, params, ctx) {
     const on = e.target.checked;
     if (on && !(await confirm({ title: `Switch automation on for ${client.name}?`, text: 'Copybot will start each step itself: the locations run (it buys search data, up to $2), the research, the page map, every page, the GBP output and the post prompts. It stops at every approval and never pushes or publishes.', ok: 'Switch on' }))) { e.target.checked = false; return; }
     try { await api(`/api/clients/${clientId}/automation`, { method: 'PUT', body: { enabled: on, by: row.assigned_to || '' } }); toast(on ? 'Automation on: the first step starts within a minute' : 'Automation off'); await reloadTracker(); } catch (err) { toast(err.message, 'bad'); e.target.checked = !on; }
+  });
+  // The chase message: the draft in a box to edit, Copy records that it was taken (the tracker then goes quiet for 3 days)
+  trkEl.addEventListener('click', async e => {
+    if (!e.target.closest('[data-chase]')) return;
+    try {
+      const c = await api(`/api/clients/${clientId}/chase`);
+      const d = dialog({ title: `Chase message for ${client.name}`, wide: true, body: `<p class="small muted" style="margin-bottom:8px">${c.needed.length} needed, ${c.worth.length} worth chasing${c.last ? ` · last copied ${c.last.days_ago === 0 ? 'today' : `${c.last.days_ago} day${c.last.days_ago === 1 ? '' : 's'} ago`}${c.last.copied_by ? ` by ${h(c.last.copied_by)}` : ''}` : ''}. Copybot does not send this: copy it, change what you like, and send it yourself.</p>
+        <textarea class="input" id="chaseText" rows="16" style="width:100%;font-family:inherit">${h(c.message)}</textarea>
+        <div class="btn-row" style="margin-top:10px"><button class="btn btn-primary" id="chaseCopy">Copy</button></div>` });
+      d.el.querySelector('#chaseCopy').addEventListener('click', async () => {
+        const text = d.el.querySelector('#chaseText').value;
+        try { await navigator.clipboard.writeText(text); } catch (_) { d.el.querySelector('#chaseText').select(); document.execCommand('copy'); }
+        await api(`/api/clients/${clientId}/chase/copied`, { method: 'POST', body: { by: row.assigned_to || '' } }).catch(() => {});
+        toast('Copied. The tracker will ask again in 3 days if the answers have not come.'); d.close(); reloadTracker().catch(() => {});
+      });
+    } catch (err) { toast(err.message, 'bad'); }
   });
   trkEl.addEventListener('click', async e => {
     if (!e.target.closest('#trkRetry')) return;

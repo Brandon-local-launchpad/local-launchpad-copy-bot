@@ -18,18 +18,18 @@ async function ensureUiColumns(pool) {
   await pool.query(`ALTER TABLE clients ADD COLUMN IF NOT EXISTS assigned_to TEXT`);
 }
 
-function mountUiApi(app, { pool, tradeFacts = null, runners = () => ({}), homepageRunning = () => null }) {
+function mountUiApi(app, { pool, tradeFacts = null, runners = () => ({}), homepageRunning = () => null, formGaps = null }) {
   const wrap = fn => async (req, res) => {
     if (!pool) return res.status(503).json({ error: 'Database not configured.' });
     try { res.json(await fn(req)); }
     catch (err) { res.status(err.status || 500).json({ error: err.message }); }
   };
-  app.get('/api/dashboard', wrap(() => D.loadDashboard({ pool, tradeFacts, runners: runners(), homepageRunning: homepageRunning() })));
-  app.get('/api/dashboard/running', wrap(async () => { const d = await D.loadDashboard({ pool, tradeFacts, runners: runners(), homepageRunning: homepageRunning() }); return { running: d.running, generated_at: d.generated_at }; }));
+  app.get('/api/dashboard', wrap(() => D.loadDashboard({ pool, tradeFacts, runners: runners(), homepageRunning: homepageRunning(), formGaps })));
+  app.get('/api/dashboard/running', wrap(async () => { const d = await D.loadDashboard({ pool, tradeFacts, runners: runners(), homepageRunning: homepageRunning(), formGaps }); return { running: d.running, generated_at: d.generated_at }; }));
   app.get('/api/dashboard/rankings', wrap(req => D.loadRankings({ pool, months: Math.min(24, Math.max(1, parseInt(req.query.months, 10) || 6)) })));
   // One client's dashboard row plus the facts the pages are missing (the client page header and Record tab)
   app.get('/api/clients/:id/summary', wrap(async req => {
-    const d = await D.loadDashboard({ pool, tradeFacts, runners: runners(), homepageRunning: homepageRunning(), clientId: req.params.id });
+    const d = await D.loadDashboard({ pool, tradeFacts, runners: runners(), homepageRunning: homepageRunning(), formGaps, clientId: req.params.id });
     if (!d.clients.length) throw Object.assign(new Error('Client not found.'), { status: 404 });
     return { row: d.clients[0], running: d.running, missing_facts: await D.loadMissingFacts({ pool, clientId: req.params.id }), stages: d.stages };
   }));

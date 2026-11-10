@@ -91,7 +91,7 @@ const NEEDS_PERSON = new Set(['fields', 'pack', 'claims', 'blocked']);
 // ── Loading ───────────────────────────────────────────────────────────────────
 // deps: { pool, tradeFacts (status(niche)), runners: { category, service, location } each with a
 // `running` Map (clientId → { startedAt, current }), homepageRunning: Set of clientIds }
-async function loadDashboard({ pool, tradeFacts = null, runners = {}, homepageRunning = null, now = new Date(), clientId = null } = {}) {
+async function loadDashboard({ pool, tradeFacts = null, runners = {}, homepageRunning = null, now = new Date(), clientId = null, formGaps = null } = {}) {
   const all = await listClients(pool, { archived: true });
   const { tabs, niches } = all;
   const clients = clientId ? all.clients.filter(c => c.id === clientId) : all.clients;
@@ -190,6 +190,10 @@ async function loadDashboard({ pool, tradeFacts = null, runners = {}, homepageRu
   const citeBy = group(citeRows, () => ({ rows: 0, scanned: 0, listed: 0, to_submit: 0, waiting: 0 }));
   for (const r of citeRows) { const x = citeBy.get(r.client_id), n = Number(r.n); x.rows += n; x.scanned += Number(r.scanned); if (r.listed === 'yes') x.listed += n; if (r.listed === 'no' && r.status === 'not_started') x.to_submit += n; if (r.status === 'awaiting_email' || r.status === 'awaiting_approval') x.waiting += n; }
 
+  // The chase message (fillout/chase.js): what each form is missing, and when the client was last chased
+  const gaps = formGaps ? await Promise.resolve(formGaps()).catch(() => new Map()) : new Map();
+  const chasedAt = new Map((await soft(`SELECT client_id, MAX(copied_at) AS at FROM client_chases GROUP BY client_id`)).map(r => [r.client_id, r.at]));
+
   // The automation chain (automation/runner.js): the switch and the latest steps per client
   const autoState = new Map((await soft(`SELECT client_id, enabled, enabled_at, waiting FROM automation_state`)).map(r => [r.client_id, r]));
   const autoSteps = new Map();
@@ -283,7 +287,7 @@ async function loadDashboard({ pool, tradeFacts = null, runners = {}, homepageRu
     const hasScans = (scansByClient.get(c.id) || []).length > 0;
     const automation = automationOf(c.id);
     const tracker = trackerOf({
-      automation, form_fill: formFill(cv),
+      automation, form_fill: formFill(cv), form_gaps: gaps.get(c.id) || null, chased_at: chasedAt.get(c.id) || null, now,
       niche_known: nicheKnown, from_form: c.source === 'fillout', reviewed: !!c.reviewed_at, form_at: c.source === 'fillout' ? firstSubmission.get(c.id) || null : null,
       audio: audioBy.get(c.id) || null, prices: priceBy.get(c.id) || null, missing: summary.missing.map(m => m.text), place_id: !summary.placeIdMissing,
       locations_run: locRuns.has(c.id), locations_run_at: locRunAt.get(c.id) || null, locations_approved: locApproved.has(c.id), locations_changed: locChanged(c.id),
@@ -310,7 +314,7 @@ async function loadDashboard({ pool, tradeFacts = null, runners = {}, homepageRu
       locations_run: locRuns.has(c.id), locations_approved: locApproved.has(c.id), locations_approved_at: locApproved.has(c.id) ? locApproved.get(c.id).approved_at : null, locations_run_at: locRunAt.get(c.id) || null, locations_changed: locChanged(c.id),
       missing_fields: summary.missing, pack_unverified: packUnverified,
       // The live tracker: what Copybot has done, what waits on a person now (ui/tracker.js)
-      tracker, automation,
+      tracker, automation, form_needed: (gaps.get(c.id) || { needed: 0 }).needed,
       // The page list (type, key, title, good, block, claims, score, at) only for one client's summary
       page_list: clientId ? pages : undefined,
     });

@@ -33,6 +33,14 @@ function trackerOf(f) {
   const ff = f.form_fill || { filled: 0, to_confirm: 0 };
   if (ff.filled) did('form_values', `${plural(ff.filled, 'record value')} filled from the form`, 'record');
   if (ff.to_confirm) need('form_confirm', `Confirm ${plural(ff.to_confirm, 'value')} read from the form's answers`, 'record', 'They are amber on the Record tab: Copybot read them out of a sentence.');
+  // The form is missing answers the build needs: the drafted chase message, then quiet for 3 days once it is copied
+  const g = f.form_gaps || { needed: 0, worth: 0 };
+  if (g.needed) {
+    const days = f.chased_at ? Math.floor(((f.now ? new Date(f.now) : new Date()) - new Date(f.chased_at)) / 86400000) : null;
+    if (days === null) need('chase', `Send the client the chase message: ${plural(g.needed, 'needed answer')} missing`, 'record', 'Copybot has drafted it. Copy it and send it yourself.');
+    else if (days >= 3) need('chase', `Chase the client again: ${plural(g.needed, 'needed answer')} still missing after ${plural(days, 'day')}`, 'record', 'The drafted message lists what is still missing.');
+    else did('chased', `Chase message drafted and copied; waiting on the client for ${plural(g.needed, 'answer')}`, 'record', f.chased_at);
+  }
   if (!f.niche_known) need('niche', 'Confirm the niche', 'clients', 'Nothing can be built until the client is in a niche.');
   if (f.audio && f.audio.failed) need('audio', `Retry ${plural(f.audio.failed, 'voice answer')} that failed to copy or transcribe`, 'record', 'Reprocess on the Fillout inbox row retries them.');
   if (f.prices === 'extraction_failed') need('prices', 'Retry the price extraction', 'record', 'The prices recording could not be read.');

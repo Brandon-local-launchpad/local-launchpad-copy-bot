@@ -8,6 +8,7 @@
 // through `call` (server.js: a request to this server; the fixture: a fake).
 //
 // The order (nextStep, pure):
+//   [person: the niche, the record's key fields, a form with needed answers missing] →
 //   locations run (a dry run first; over the cap it stops for a person) → [person approves,
 //   which builds the page map] → research for the towns with no dossier → FAQ research →
 //   H1 research → homepage → category pages → service pages (pack verified) → location
@@ -68,6 +69,8 @@ function nextStep(row, once = () => false) {
   if (row.archived) return person('The client is archived.');
   if (row.niche_key === 'other') return person('Confirm the niche');
   if (row.missing_fields.length) return person(`Fill in the record: ${row.missing_fields.map(m => m.text).join(', ')}`);
+  // The form still lacks answers the build needs (towns, services, travel): nothing is bought or written on a half filled record
+  if (row.form_needed) return person(`Chase the client: the form is missing ${plural(row.form_needed, 'needed answer')}`);
   if (!row.locations_run) return step('locations', 'first', 'Work out the locations', 'locations', '/locations/run', { confirm: true }, { precheck: 'locations' });
   if (!row.locations_approved) return person('Check the towns and approve the locations list');
   if (row.locations_changed) return person('Approve the locations list again');

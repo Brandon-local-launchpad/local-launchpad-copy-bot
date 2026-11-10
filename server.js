@@ -4374,7 +4374,16 @@ if (pool && pageMapStore && v20Store) {
 
 // ── The redesigned UI (27 Oct): the dashboard, assigned to, the app shell (ui/routes.js) ──
 const uiRoutes = require('./ui/routes');
-uiRoutes.mountUiApi(app, { pool, tradeFacts, runners: () => ({ category: categoryRunner, service: serviceRunner, location: locationRunner }), homepageRunning: () => homepageRunning });
+// How many needed and worth chasing answers each client's form is missing (the inbox's own count), for the tracker
+const formGaps = async () => {
+  const m = new Map();
+  if (!filloutService) return m;
+  for (const s of await filloutService.listSubmissions()) { if (s.clientId && s.completeness && !m.has(s.clientId)) m.set(s.clientId, { needed: s.completeness.needed.total - s.completeness.needed.filled, worth: s.completeness.chase.total - s.completeness.chase.filled }); }
+  return m;
+};
+uiRoutes.mountUiApi(app, { pool, tradeFacts, runners: () => ({ category: categoryRunner, service: serviceRunner, location: locationRunner }), homepageRunning: () => homepageRunning, formGaps });
+// The chase message (fillout/chase.js): a draft for a person to send; Copybot never sends it
+if (pool && filloutService) require('./fillout/chase').mountChaseApi(app, { chase: require('./fillout/chase').createChase({ pool, filloutService }) });
 uiRoutes.mountAppShell(app, path.join(__dirname, 'public'));
 // ── The automation chain (automation/runner.js, 10 Nov): for a client with Automation on, the next
 // step starts when the last has finished, through the app's own run routes, and stops at every approval.
@@ -4399,7 +4408,7 @@ if (pool) {
   });
   automation = AU.createAutomation({
     pool, call: loopback, log: text => console.log(text), background: true,
-    loadRows: async () => (await require('./ui/dashboard').loadDashboard({ pool, tradeFacts, runners: { category: categoryRunner, service: serviceRunner, location: locationRunner }, homepageRunning })).clients,
+    loadRows: async () => (await require('./ui/dashboard').loadDashboard({ pool, tradeFacts, runners: { category: categoryRunner, service: serviceRunner, location: locationRunner }, homepageRunning, formGaps })).clients,
   });
   AU.mountAutomationApi(app, { automation });
 }
@@ -4692,6 +4701,7 @@ initDb().then(async () => {
   // The automation chain: every minute, only for clients switched on; AUTOMATION_DISABLED=1 stops it for everyone
   if (automation) {
     await require('./automation/runner').ensureAutomationTables(pool).catch(err => console.error('[automation] tables failed:', err.message));
+    await require('./fillout/chase').ensureChaseTables(pool).catch(err => console.error('[chase] table failed:', err.message));
     if (process.env.AUTOMATION_DISABLED === '1') console.log('[automation] off for every client (AUTOMATION_DISABLED=1)');
     else setInterval(() => automation.tick().catch(err => console.error('[automation] tick failed:', err.message)), 60000);
   }

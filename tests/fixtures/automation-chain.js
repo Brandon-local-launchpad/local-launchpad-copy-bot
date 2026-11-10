@@ -26,6 +26,7 @@ const base = () => ({ id: ID, name: 'Edens Edge', archived: false, running: fals
 const N = (over, once) => AU.nextStep({ ...base(), ...over }, once);
 chk('No niche: a person confirms it', N({ niche_key: 'other' }).person === 'Confirm the niche');
 chk('Missing fields: a person fills the record, named', N({ missing_fields: [{ text: 'no phone' }] }).person === 'Fill in the record: no phone');
+chk('A form with needed answers missing: nothing starts, a person chases the client', N({ form_needed: 3 }).person === 'Chase the client: the form is missing 3 needed answers');
 const loc = N({});
 chk('Record ready: the locations run, confirmed, with the cost check first', loc.step === 'locations' && loc.path === `/api/clients/${ID}/locations/run` && loc.body.confirm === true && loc.precheck === 'locations', JSON.stringify(loc));
 chk('Locations run, not approved: a person approves', /approve the locations list/.test(N({ locations_run: true }).person));
