@@ -1,7 +1,7 @@
 // Locations tab (30 Oct 2026): the Location Determiner review. The latest run on a map (the
 // base as a star, the reach ring solid, the outer limit dashed, towns coloured by tier), the
 // counts, the towns by tier with move buttons, a place added by name, the GBP service areas,
-// the client confirmation message and the client's reply, Approve. The tiers are the launch
+// Approve (the client confirmation message and reply were removed 10 Nov 2026, Brandon: we decide the towns). The tiers are the launch
 // phases: Tier 1 launches first, Tier 2 in phase 2, area only is named but gets no page.
 // Reads and writes /api/clients/:id/locations/* (locations/routes.js); nothing here touches
 // the page map or GBP (Stage 6 reads the approved list when the page map is generated).
@@ -108,7 +108,7 @@ export async function render(el, ctx) {
               ${tile({ label: 'Tier 1', value: v.counts.tier1, foot: 'phase 1 pages' })}
               ${tile({ label: 'Tier 2', value: v.counts.tier2, foot: 'phase 2 pages' })}
               ${tile({ label: 'Area only', value: v.counts.area_only, foot: 'no page' })}
-              ${tile({ label: 'By hand', value: v.counts.moved + v.counts.manual, foot: `${v.counts.declined} declined by the client` })}
+              ${tile({ label: 'By hand', value: v.counts.moved + v.counts.manual, foot: v.counts.declined ? `${v.counts.declined} declined by the client (recorded before 10 Nov)` : 'moved or added on this tab' })}
             </div>
             ${card({ title: 'Add a place by hand', sub: 'Matched in the places table nearest the base. A place the run already judged is moved instead.', body: `
               <div class="btn-row" style="position:relative">
@@ -125,16 +125,6 @@ export async function render(el, ctx) {
         ${sectionTable('tier2', 'Tier 2: phase 2 location pages', '')}
         ${sectionTable('area_only', 'Area only: service areas text and GBP, no page', '')}
         ${showExcluded ? sectionTable('excluded', 'Excluded', 'shared names, across water, council areas, typed places that failed') : ''}
-        <div class="grid grid-2">
-          ${card({ title: 'Client confirmation message', actions: copyBtn(v.message.text, 'Copy'), body: `<textarea class="input" readonly style="min-height:220px;font-size:13px">${h(v.message.text)}</textarea>` })}
-          ${card({ title: 'The client\'s reply', sub: 'Untick the towns the client said they do not work in. They become area only, and the reply is kept as presence evidence.', body: `
-            <div class="stack" style="--gap:4px" id="reply">
-              ${v.message.towns.map(t => `<label class="check"><input type="checkbox" data-id="${attr(t.place_id)}" ${(v.state.client_reply && v.state.client_reply.declined.includes(t.place_id)) ? '' : 'checked'}> ${h(t.name)} ${pill(t.tier === 1 ? 'accent' : 'run', `Tier ${t.tier}`)}</label>`).join('')}
-              ${v.list.filter(t => t.client_declined && !t.tier).map(t => `<label class="check"><input type="checkbox" data-id="${attr(t.place_id)}"> ${h(t.name)} ${pill('', 'declined, area only')}</label>`).join('')}
-            </div>
-            <div class="btn-row" style="margin-top:10px"><input class="input" id="replyNote" placeholder="Note (how the client replied)" style="flex:1" value="${attr(v.state.client_reply ? v.state.client_reply.note : '')}"><button class="btn btn-ghost btn-sm" id="replyBtn">Save reply</button></div>
-            ${v.state.client_reply ? `<div class="small muted" style="margin-top:6px">Reply recorded ${h(fmt(v.state.client_reply.at))}: ${v.state.client_reply.declined.length} declined.</div>` : ''}` })}
-        </div>
         ${card({ title: 'Location category pages', sub: 'Per page town, each on its own demand; the primary category on the location page\'s.', body: catsHtml() })}
       </div>`;
     wireRun();
@@ -176,10 +166,6 @@ export async function render(el, ctx) {
     el.querySelector('#addBtn').addEventListener('click', async e => {
       const name = addName.value.trim(); if (!name) return;
       await busy(e.target, 'Adding…', async () => { try { view = await post('/review/add', picked ? { place_id: picked, to: el.querySelector('#addTo').value } : { name, to: el.querySelector('#addTo').value }); toast(`${name} added`); draw(); } catch (err) { toast(err.message, 'bad'); } });
-    });
-    el.querySelector('#replyBtn').addEventListener('click', async e => {
-      const declined = [...el.querySelectorAll('#reply input[type=checkbox]')].filter(c => !c.checked).map(c => c.dataset.id);
-      await busy(e.target, 'Saving…', async () => { try { view = await post('/review/client-reply', { declined, note: el.querySelector('#replyNote').value }); toast('Reply saved'); draw(); } catch (err) { toast(err.message, 'bad'); } });
     });
     // Approve = Stage 6 (30 Oct): the confirm shows what the approval does to the page map; on
     // confirm the approval is saved and the page map regenerated in one action

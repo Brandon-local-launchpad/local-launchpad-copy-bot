@@ -54,7 +54,7 @@ function trackerOf(f) {
   // ── Locations, research, page map ──
   if (f.locations_run) did('locations', 'Locations worked out: candidates, demand and tiers', 'locations', f.locations_run_at);
   if (!f.locations_run) need('locations_run', 'Run the locations', 'locations', 'Which towns get a page.', recordReady);
-  else if (!f.locations_approved) need('locations_approve', 'Check the towns and approve the locations list', 'locations', 'Approving also builds the page map.');
+  else if (!f.locations_approved) need('locations_approve', 'Check the towns and approve the locations list', 'locations', 'We decide the towns: the client is not asked. Approving also builds the page map.');
   else if (f.locations_changed) need('locations_approve', 'Approve the locations list again', 'locations', 'A newer run exists than the one approved.');
   if (f.towns_researched) did('research', `${plural(f.towns_researched, 'town')} researched`, 'research');
   if (f.towns_without_dossier && f.towns_without_dossier.length) need('research', `Research ${plural(f.towns_without_dossier.length, 'town')}: ${f.towns_without_dossier.join(', ')}`, 'research', '', f.locations_approved);
