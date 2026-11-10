@@ -157,12 +157,46 @@ chk('No step is an approval, a push, a publish or a rank scan', !everyPath.some(
   chk('Finished: nothing more is called', calls.length === m);
   chk('No call in the whole run was an approval, a push, a publish or a scan', !calls.some(c => /approve|push|publish|scan|rank|verify/.test(c.p)));
 
+  // ── Monthly upkeep (Stage 5) ──
+  const at = new Date('2026-11-10T09:00:00Z');
+  const U = (upkeep, once, over = {}) => AU.upkeepStep({ ...base(), gbp_done: true, ...over, upkeep }, once, at);
+  const fresh = { place_id: true, competitors_at: '2026-11-01T00:00:00Z', scan_at: '2026-11-01T00:00:00Z', scan_cost_usd: 0.4, publishing_on: true, draft_batches: 0, last_post_date: '2026-12-20' };
+  chk('Upkeep: everything recent and posts for weeks: nothing due', U(fresh) === null);
+  chk('Upkeep: the competitor check 30 days on, once for the month', U({ ...fresh, competitors_at: '2026-10-05T00:00:00Z' }).path.endsWith('/gbp/competitors') && U({ ...fresh, competitors_at: '2026-10-05T00:00:00Z' }).sig === '2026-11' && U({ ...fresh, competitors_at: '2026-10-05T00:00:00Z' }, () => true) === null);
+  chk('Upkeep: a first competitor check once the listing is confirmed and the GBP output is written, not before', U({ ...fresh, competitors_at: null }).step === 'competitors' && U({ ...fresh, competitors_at: null }, undefined, { gbp_done: false }) === null && U({ ...fresh, competitors_at: null, place_id: false }) === null);
+  chk('Upkeep: the citations re-scan 30 days after a full scan a person started', U({ ...fresh, scan_at: '2026-10-01T00:00:00Z' }).path.endsWith('/citations/scan') && U({ ...fresh, scan_at: null }) === null);
+  chk('Upkeep: no re-scan when the last one cost more than $2', U({ ...fresh, scan_at: '2026-10-01T00:00:00Z', scan_cost_usd: 2.6 }) === null);
+  const low = { ...fresh, last_post_date: '2026-11-20' };
+  chk('Upkeep: posts run out within 14 days: the next 13 as a draft', U(low).step === 'posts' && U(low).body.size === 13 && U(low).path.endsWith('/gbp-posts/batches'));
+  chk('Upkeep: no new batch while a draft waits, with publishing off, or with no approved posts yet', U({ ...low, draft_batches: 1 }) === null && U({ ...low, publishing_on: false }) === null && U({ ...low, last_post_date: null }) === null);
+  chk('Upkeep: one a tick, in order: competitors, then citations, then posts', U({ ...low, competitors_at: '2026-10-01T00:00:00Z', scan_at: '2026-10-01T00:00:00Z' }).step === 'competitors' && U({ ...low, competitors_at: '2026-10-01T00:00:00Z', scan_at: '2026-10-01T00:00:00Z' }, k => k === 'competitors').step === 'citations');
+
+  // In the chain: runs while the chain waits on a person, a refusal is skipped not retried, and the waiting line stays
+  row = { ...row, pages: { total: 6, written: 5 }, tracker: { next: { text: 'Fix 1 blocked page' } }, upkeep: { ...fresh, competitors_at: null, scan_at: '2026-09-01T00:00:00Z' } };
+  answer = (mth, p) => p.endsWith('/gbp/competitors') ? { status: 400, body: { error: 'GBP output needs a v3 page map.' } } : { status: 200, body: {} };
+  const u0 = calls.length;
+  await tick();
+  s = await steps();
+  chk('Waiting on a person, the competitor check is tried; refused, it is skipped with the reason', calls.length === u0 + 1 && calls[u0].p.endsWith('/gbp/competitors') && s[0].status === 'skipped' && s[0].error === 'GBP output needs a v3 page map.', JSON.stringify(s[0]));
+  await tick();
+  chk('It is not retried: the next tick moves on to the citations re-scan, and the waiting line still names the person\'s step', calls.length === u0 + 2 && calls[u0 + 1].p.endsWith('/citations/scan') && (await A.view(ID)).waiting === 'Fix 1 blocked page', (await A.view(ID)).waiting);
+  await tick(); await tick(600);
+  chk('Each upkeep step runs once in the month', calls.length === u0 + 2, calls.length - u0);
+  const tk = trackerOf({ niche_known: true, missing: [], now: clock, automation: { enabled: true, steps: await steps() } });
+  chk('The tracker: the skipped check is a person\'s, the re-scan is Copybot\'s', tk.needs.some(n => n.key === 'auto_competitors' && /did not run this month/.test(n.text)) && tk.done.some(d => d.text === 'Directories scanned again' && d.auto), JSON.stringify(tk.needs.map(n => n.key)));
+  clock = new Date('2026-12-02T09:00:00Z');
+  await tick();
+  chk('A new month: the competitor check comes round again by itself', calls[calls.length - 1].p.endsWith('/gbp/competitors') && calls.length === u0 + 3, calls[calls.length - 1].p);
+  chk('Upkeep never approves, pushes, publishes or scans ranks', !calls.slice(u0).some(c => /approve|push|publish|rank|baseline|verify/.test(c.p)));
+  row = { ...row, upkeep: null, pages: { total: 6, written: 6 } };
+  const m3 = calls.length;
+
   // Off, and archived
   await A.setEnabled(ID, false);
   row = base(); await tick();
-  chk('Switched off: a client that needs a step gets none', calls.length === m);
+  chk('Switched off: a client that needs a step gets none', calls.length === m3);
   await A.setEnabled(ID, true); row = { ...base(), archived: true }; await tick();
-  chk('An archived client is skipped', calls.length === m);
+  chk('An archived client is skipped', calls.length === m3);
 
   console.log(`\n${pass} passed, ${fail} failed`);
   process.exit(fail ? 1 : 0);

@@ -23,6 +23,8 @@ function trackerOf(f) {
   const auto = f.automation || { enabled: false, steps: [] };
   for (const s of auto.steps) {
     if (s.status === 'failed') need('auto_' + s.step, `Automation stopped at "${s.label}"`, s.tab || 'pages', `${s.error || ''} Press Try again once it is sorted.`.trim());
+    // A monthly upkeep step that did not run: said once, for a month, and it comes round again by itself
+    else if (s.status === 'skipped' && (!f.now || (new Date(f.now) - new Date(s.started_at)) / 86400000 < 31)) need('auto_' + s.step, `"${s.label}" did not run this month`, s.tab || 'pages', `${s.error || ''} Run it from the tab, or it is tried again next month.`.trim());
     else if (s.status === 'blocked' && s.error && !/already/i.test(s.error)) need('auto_' + s.step, `"${s.label}" is waiting: ${s.error}`, s.tab || 'pages', 'Automation tries again every 30 minutes.');
   }
 
@@ -106,12 +108,13 @@ function trackerOf(f) {
   }
 
   // A line Copybot did through the chain says so, with when (and the cost where the step knows it)
+  const UPKEEP_DONE = { competitors: 'Google competitors checked again', citations: 'Directories scanned again', posts: 'Next post batch drafted' };
   const BY_STEP = { locations: 'locations', research: 'research', page_map: 'page_map', homepage: 'pages', category: 'pages', service: 'pages', location: 'pages', gbp: 'gbp', prompts: 'prompts' };
   for (const s of auto.steps) {
     if (s.status !== 'done') continue;
     const line = done.find(d => d.key === BY_STEP[s.step]);
     if (line && !line.auto) { line.auto = true; line.at = s.finished_at || line.at; if (s.detail) line.detail = s.detail; }
-    else if (!BY_STEP[s.step]) done.push({ key: 'auto_' + s.step, text: s.label, tab: s.tab || 'pages', at: s.finished_at, auto: true, detail: s.detail || undefined });
+    else if (!BY_STEP[s.step]) done.push({ key: 'auto_' + s.step, text: UPKEEP_DONE[s.step] || s.label, tab: s.tab || 'pages', at: s.finished_at, auto: true, detail: s.detail || undefined });
   }
 
   return { done, needs, later, running: f.running || [], next: needs[0] || null, automation: { enabled: !!auto.enabled, waiting: auto.waiting || null, stopped: auto.steps.some(s => s.status === 'failed') } };

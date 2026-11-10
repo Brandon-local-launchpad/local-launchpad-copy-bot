@@ -25,10 +25,23 @@
 // Spending without a click is approved (Brandon, 10 Nov): the locations run up to CAP_USD.
 // Nothing here approves, pushes, publishes or scans ranks.
 //
+// Monthly upkeep (Stage 5, upkeepStep): once the chain has nothing to start (it is waiting on a person, or
+// finished), the same switch keeps three things fresh, each at most once a calendar month:
+//   the competitor check   30 days after the last one (or the first, once the listing is confirmed and the
+//                          GBP output is written). Google Places, read only.
+//   the citations re-scan  30 days after the last full scan a person started, and only when that scan cost
+//                          no more than UPKEEP_SCAN_CAP_USD: a scan has no estimate, so the last one is the guide.
+//   the next post batch    when publishing is on, no draft batch is waiting, and the approved posts run out
+//                          within POSTS_LOW_DAYS: 13 more as a draft. A person still reads and approves it.
+// An upkeep step that the app refuses or that fails is not retried: it is marked skipped with the reason,
+// shown under Needs a person, and comes round again next month. It never stops the chain.
+//
 // Tables: automation_state (the switch, what it is waiting on), automation_steps (the log).
 
 const CAP_USD = Number(process.env.AUTOMATION_LOCATIONS_CAP_USD) || 2;
 const BATCH_SIZE = 13;
+const UPKEEP_DAYS = 30, POSTS_LOW_DAYS = 14;
+const UPKEEP_SCAN_CAP_USD = Number(process.env.AUTOMATION_SCAN_CAP_USD) || 2;
 const BUSY_RETRY_MIN = 2, BLOCKED_RETRY_MIN = 30, MAX_ATTEMPTS = 2;
 const plural = (n, one, many) => `${n} ${n === 1 ? one : many || one + 's'}`;
 
@@ -96,6 +109,20 @@ function nextStep(row, once = () => false) {
   return { finished: true };
 }
 
+// ── Monthly upkeep: the next thing to refresh, or null. u = row.upkeep (ui/dashboard.js) ──
+function upkeepStep(row, once = () => false, now = new Date()) {
+  const u = row.upkeep;
+  if (!u || row.archived) return null;
+  const month = now.toISOString().slice(0, 7);
+  const days = at => (at ? (now - new Date(at)) / 86400000 : Infinity);
+  const step = (key, label, tab, p, body = {}) => ({ step: key, sig: month, label, tab, method: 'POST', path: `/api/clients/${row.id}${p}`, body, upkeep: true });
+  const due = [];
+  if (u.place_id && (u.competitors_at ? days(u.competitors_at) >= UPKEEP_DAYS : row.gbp_done)) due.push(step('competitors', 'Check the Google competitors again', 'gbp', '/gbp/competitors'));
+  if (u.scan_at && days(u.scan_at) >= UPKEEP_DAYS && Number(u.scan_cost_usd) <= UPKEEP_SCAN_CAP_USD) due.push(step('citations', 'Scan the directories again', 'citations', '/citations/scan'));
+  if (u.publishing_on && !u.draft_batches && u.last_post_date && days(`${u.last_post_date}T00:00:00Z`) >= -POSTS_LOW_DAYS) due.push(step('posts', `Write the next ${BATCH_SIZE} posts as a draft batch`, 'gbp-posts', '/gbp-posts/batches', { size: BATCH_SIZE }));
+  return due.find(s => !once(s.step, s.sig)) || null;
+}
+
 // deps: pool, loadRows() → the dashboard rows for every client, call(method, path, body) → { status, body },
 // now() → Date, log(text)
 function createAutomation({ pool, loadRows, call, now = () => new Date(), log = () => {}, capUsd = CAP_USD, background = false }) {
@@ -140,8 +167,14 @@ function createAutomation({ pool, loadRows, call, now = () => new Date(), log = 
     const clientId = row.id;
     if (inflight.has(clientId) || row.running) return 'busy';
     const steps = await stepsOf(clientId, 200);
-    const once = (key, sig) => steps.some(s => s.step === key && s.sig === String(sig) && (s.status === 'started' || s.status === 'done'));
-    const next = nextStep(row, once);
+    const once = (key, sig) => steps.some(s => s.step === key && s.sig === String(sig) && (s.status === 'started' || s.status === 'done' || s.status === 'skipped'));
+    let next = nextStep(row, once);
+    // Nothing to build right now: the monthly upkeep may have something due. What the chain waits on stays on show.
+    let waitingText = null;
+    if (next.person || next.finished) {
+      const up = upkeepStep(row, once, now());
+      if (up) { waitingText = next.person || 'Everything Copybot can do by itself is done.'; next = up; }
+    }
     const open = steps.find(s => s.status === 'started') || null;
     const same = s => s && next.step && s.step === next.step && s.sig === next.sig;
     let attempts = 1;
@@ -166,11 +199,13 @@ function createAutomation({ pool, loadRows, call, now = () => new Date(), log = 
     try {
       const pre = await precheck(row, next).catch(err => ({ status: 500, error: err.message }));
       const id = (await q(`INSERT INTO automation_steps (client_id, step, sig, label, tab, status, attempts, detail, started_at) VALUES ($1, $2, $3, $4, $5, 'started', $6, $7, $8) RETURNING id`, [clientId, next.step, next.sig, next.label, next.tab, attempts, pre && pre.detail ? pre.detail : null, now()]))[0].id;
-      await setWaiting(clientId, null);
+      await setWaiting(clientId, waitingText);
       let r = pre && pre.error ? { status: pre.status, body: { error: pre.error } } : null;
       if (!r) { try { r = await call(next.method, next.path, next.body); } catch (err) { r = { status: 599, body: { error: err.message } }; } }
       const message = (r.body && r.body.error) || `The app answered ${r.status}.`;
       if (r.status < 300) { log(`[automation] ${row.name}: ${next.label}`); return 'started'; }
+      // Upkeep is never retried and never stops the chain: skipped with the reason, round again next month
+      if (next.upkeep && r.status !== 409) { await finish(id, 'skipped', { error: message }); return 'skipped'; }
       if (r.status === 409) { await finish(id, 'blocked', { error: message, retry_after: after(BUSY_RETRY_MIN) }); return 'blocked'; }
       if (r.status < 500) { await finish(id, 'blocked', { error: message, retry_after: after(BLOCKED_RETRY_MIN) }); await setWaiting(clientId, message); return 'blocked'; }
       if (attempts >= MAX_ATTEMPTS) { await finish(id, 'failed', { error: message }); await setWaiting(clientId, `Stopped at: ${next.label}`); log(`[automation] ${row.name}: stopped at "${next.label}": ${message}`); return 'failed'; }
@@ -206,4 +241,4 @@ function mountAutomationApi(app, { automation }) {
   app.post('/api/clients/:clientId/automation/retry', wrap(req => automation.retry(req.params.clientId)));
 }
 
-module.exports = { ensureAutomationTables, createAutomation, mountAutomationApi, nextStep, CAP_USD, BATCH_SIZE };
+module.exports = { ensureAutomationTables, createAutomation, mountAutomationApi, nextStep, upkeepStep, CAP_USD, BATCH_SIZE, UPKEEP_DAYS, POSTS_LOW_DAYS, UPKEEP_SCAN_CAP_USD };

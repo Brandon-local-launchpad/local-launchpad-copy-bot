@@ -190,6 +190,12 @@ async function loadDashboard({ pool, tradeFacts = null, runners = {}, homepageRu
   const citeBy = group(citeRows, () => ({ rows: 0, scanned: 0, listed: 0, to_submit: 0, waiting: 0 }));
   for (const r of citeRows) { const x = citeBy.get(r.client_id), n = Number(r.n); x.rows += n; x.scanned += Number(r.scanned); if (r.listed === 'yes') x.listed += n; if (r.listed === 'no' && r.status === 'not_started') x.to_submit += n; if (r.status === 'awaiting_email' || r.status === 'awaiting_approval') x.waiting += n; }
 
+  // Monthly upkeep (automation/runner.js upkeepStep): the last competitor check, the last full citations scan and its cost, the last approved post
+  const compAt = new Map((await soft(`SELECT client_id, MAX(uploaded_at) AS at FROM client_assets WHERE asset_type = 'gbp_competitor_run' GROUP BY client_id`)).map(r => [r.client_id, r.at]));
+  const lastScan = new Map();
+  for (const r of await soft(`SELECT client_id, finished_at, cost_usd FROM citation_scans WHERE scope = 'all' AND status = 'done' ORDER BY started_at DESC`)) if (!lastScan.has(r.client_id)) lastScan.set(r.client_id, r);
+  const lastPost = new Map((await soft(`SELECT p.client_id, MAX(p.post_date) AS last FROM gbp_posts p JOIN gbp_post_batches b ON b.id = p.batch_id WHERE b.status = 'approved' GROUP BY p.client_id`)).map(r => [r.client_id, r.last]));
+
   // The chase message (fillout/chase.js): what each form is missing, and when the client was last chased
   const gaps = formGaps ? await Promise.resolve(formGaps()).catch(() => new Map()) : new Map();
   const chasedAt = new Map((await soft(`SELECT client_id, MAX(copied_at) AS at FROM client_chases GROUP BY client_id`)).map(r => [r.client_id, r.at]));
@@ -314,6 +320,8 @@ async function loadDashboard({ pool, tradeFacts = null, runners = {}, homepageRu
       locations_run: locRuns.has(c.id), locations_approved: locApproved.has(c.id), locations_approved_at: locApproved.has(c.id) ? locApproved.get(c.id).approved_at : null, locations_run_at: locRunAt.get(c.id) || null, locations_changed: locChanged(c.id),
       missing_fields: summary.missing, pack_unverified: packUnverified,
       // The live tracker: what Copybot has done, what waits on a person now (ui/tracker.js)
+      upkeep: { place_id: !!str((cv || {}).gbp_place_id), competitors_at: compAt.get(c.id) || null, scan_at: lastScan.has(c.id) ? lastScan.get(c.id).finished_at : null, scan_cost_usd: lastScan.has(c.id) ? Number(lastScan.get(c.id).cost_usd) : null,
+        publishing_on: !!(connBy.get(c.id) && connBy.get(c.id).status === 'connected' && connBy.get(c.id).publishing_on), draft_batches: (batchBy.get(c.id) || { draft: 0 }).draft, last_post_date: lastPost.get(c.id) || null },
       tracker, automation, form_needed: (gaps.get(c.id) || { needed: 0 }).needed,
       // The page list (type, key, title, good, block, claims, score, at) only for one client's summary
       page_list: clientId ? pages : undefined,
