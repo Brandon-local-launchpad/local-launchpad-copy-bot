@@ -43,6 +43,21 @@ function missingFields(cv, fields, client) {
   return out;
 }
 
+// Client values that hold nothing but what the form filled in (fillout/to-values.js) are not a person's work yet:
+// the client stays at Onboarding until the record is reviewed, as before the fill existed
+const hasVal = v => (Array.isArray(v) ? v.length > 0 : v != null && String(v).trim() !== '');
+function onlyFormFilled(cv) {
+  const ours = cv._form_filled || null;
+  if (!ours || !Object.keys(ours).length) return false;
+  return !Object.keys(cv).some(k => !k.startsWith('_') && hasVal(cv[k]) && !ours[k]);
+}
+// What the form filled, and how many of those still wait for a person's Confirm
+function formFill(cv) {
+  const ours = (cv && cv._form_filled) || {}, src = (cv && cv._sources) || {}, conf = (cv && cv._confirmed) || {};
+  const keys = Object.keys(ours).filter(k => src[k] === 'form' || src[k] === 'form_inferred');
+  return { filled: keys.length, to_confirm: keys.filter(k => src[k] === 'form_inferred' && !conf[k]).length };
+}
+
 // ── One client's summary → stage ─────────────────────────────────────────────
 function stageOf(s) {
   if (s.pushed.length) return 'Live';
@@ -226,7 +241,7 @@ async function loadDashboard({ pool, tradeFacts = null, runners = {}, homepageRu
     const pack = hasServicePages ? await packStatus(c.niche_key) : null;
     const packUnverified = !!(pack && !pack.verified);
     const summary = {
-      nicheKnown, reviewed: !!c.reviewed_at, hasValues: !!cv, dossiers: ds, mapRows: rs, pages, pushed: pushedByClient.get(c.id) || [],
+      nicheKnown, reviewed: !!c.reviewed_at, hasValues: !!cv && !onlyFormFilled(cv), dossiers: ds, mapRows: rs, pages, pushed: pushedByClient.get(c.id) || [],
       missing: nicheKnown ? missingFields(cv || {}, fields, c) : [], placeIdMissing: nicheKnown && !str((cv || {}).gbp_place_id), packUnverified, townsWithoutDossier,
     };
     const stage = stageOf(summary);
@@ -268,7 +283,7 @@ async function loadDashboard({ pool, tradeFacts = null, runners = {}, homepageRu
     const hasScans = (scansByClient.get(c.id) || []).length > 0;
     const automation = automationOf(c.id);
     const tracker = trackerOf({
-      automation,
+      automation, form_fill: formFill(cv),
       niche_known: nicheKnown, from_form: c.source === 'fillout', reviewed: !!c.reviewed_at, form_at: c.source === 'fillout' ? firstSubmission.get(c.id) || null : null,
       audio: audioBy.get(c.id) || null, prices: priceBy.get(c.id) || null, missing: summary.missing.map(m => m.text), place_id: !summary.placeIdMissing,
       locations_run: locRuns.has(c.id), locations_run_at: locRunAt.get(c.id) || null, locations_approved: locApproved.has(c.id), locations_changed: locChanged(c.id),

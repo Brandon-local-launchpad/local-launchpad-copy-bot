@@ -3132,6 +3132,13 @@ app.put('/api/clients/:clientId/client-values', async (req, res) => {
   }
 });
 
+// Form answers into Client Values (fillout/to-values.js): blanks only, each value with its source
+app.post('/api/clients/:clientId/client-values/from-form', async (req, res) => {
+  if (!pool) return res.status(503).json({ error: 'Database not configured.' });
+  try { res.json(await require('./fillout/to-values').fillClientValues(pool, req.params.clientId)); }
+  catch (err) { console.error('[client-values] from-form failed for', req.params.clientId, err); res.status(500).json({ error: err.message }); }
+});
+
 app.post('/api/clients/:clientId/prefill-client-values', async (req, res) => {
   if (!pool) return res.status(503).json({ error: 'Database not configured.' });
   try {
@@ -3279,7 +3286,8 @@ async function loadV20Context(clientId, sessionId) {
       const { rows } = await pool.query(
         `SELECT content FROM client_assets WHERE client_id=$1 AND asset_type='client_values' ORDER BY uploaded_at DESC LIMIT 1`, [clientId]
       );
-      if (rows.length) cv = { ...CLIENT_VALUES_TEMPLATE, ...JSON.parse(rows[0].content) };
+      // A value read out of a free text form answer is blank to the pages until a person confirms it (fillout/to-values.js)
+      if (rows.length) cv = { ...CLIENT_VALUES_TEMPLATE, ...require('./fillout/to-values').withoutUnconfirmed(JSON.parse(rows[0].content)) };
     } catch (err) {
       cvLoadError = err.message;
       console.error('[v20] Failed to load client values for', clientId, err);
@@ -4043,7 +4051,7 @@ if (filloutService) {
     createStore: id => require('./wp/db-store').createDbStore(pool, id),
     loadValues: async id => {
       const { rows } = await pool.query(`SELECT content FROM client_assets WHERE client_id = $1 AND asset_type = 'client_values' ORDER BY uploaded_at DESC LIMIT 1`, [id]);
-      return rows.length ? JSON.parse(rows[0].content) : {};
+      return rows.length ? require('./fillout/to-values').withoutUnconfirmed(JSON.parse(rows[0].content)) : {};
     },
     tradeLowerFor: names => {
       for (const name of names) {

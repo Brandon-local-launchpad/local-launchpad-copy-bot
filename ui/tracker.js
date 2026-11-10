@@ -30,6 +30,9 @@ function trackerOf(f) {
   if (f.form_at) did('form', 'Onboarding form received and the record built', 'record', f.form_at);
   if (f.audio && f.audio.transcribed) did('transcripts', `${plural(f.audio.transcribed, 'voice answer')} transcribed`, 'record');
   if (f.prices === 'done') did('prices', 'Prices pulled from the prices recording', 'record');
+  const ff = f.form_fill || { filled: 0, to_confirm: 0 };
+  if (ff.filled) did('form_values', `${plural(ff.filled, 'record value')} filled from the form`, 'record');
+  if (ff.to_confirm) need('form_confirm', `Confirm ${plural(ff.to_confirm, 'value')} read from the form's answers`, 'record', 'They are amber on the Record tab: Copybot read them out of a sentence.');
   if (!f.niche_known) need('niche', 'Confirm the niche', 'clients', 'Nothing can be built until the client is in a niche.');
   if (f.audio && f.audio.failed) need('audio', `Retry ${plural(f.audio.failed, 'voice answer')} that failed to copy or transcribe`, 'record', 'Reprocess on the Fillout inbox row retries them.');
   if (f.prices === 'extraction_failed') need('prices', 'Retry the price extraction', 'record', 'The prices recording could not be read.');

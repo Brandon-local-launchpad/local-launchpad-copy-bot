@@ -129,8 +129,9 @@ const GROUPS = [
   ] },
 ];
 const SOURCES = ['form', 'website', 'gbp', 'dossier', 'hand'];
-const SOURCE_LABEL = { form: 'Form', website: 'Website', gbp: 'GBP', dossier: 'Dossier', hand: 'Hand' };
-const INFERRED = new Set(['website', 'gbp', 'dossier']);
+const SOURCE_LABEL = { form: 'Form', form_inferred: 'Form, read from the answer', website: 'Website', gbp: 'GBP', dossier: 'Dossier', hand: 'Hand' };
+// form_inferred (10 Nov): a value read out of a free text form answer (fillout/to-values.js), amber until confirmed
+const INFERRED = new Set(['website', 'gbp', 'dossier', 'form_inferred']);
 const KEY_FIELDS = { phone: 'phone', quote_method: 'free_quotes', primary_category: 'primary_category', practices: 'confirmed_practices' };
 
 export async function render(el, ctx) {
@@ -291,7 +292,7 @@ async function renderValues(body, ctx) {
 
   body.innerHTML = `
     <div id="placeCard" style="margin-bottom:16px"></div>
-    <div class="btn-row" style="margin-bottom:14px"><button class="btn btn-primary" id="saveCv">Save</button><button class="btn btn-ghost" id="prefill" title="Read the uploaded custom values and onboarding files into the blanks">Prefill from files</button><span class="muted small">Source tags: Form (Fillout), Website, GBP, Dossier (research), Hand. Amber values were inferred and need confirming.</span></div>
+    <div class="btn-row" style="margin-bottom:14px"><button class="btn btn-primary" id="saveCv">Save</button><button class="btn btn-ghost" id="fromForm" title="Copy the onboarding form's answers into the blank fields. Nothing already filled is changed.">Fill from the form</button><button class="btn btn-ghost" id="prefill" title="Read the uploaded custom values and onboarding files into the blanks">Prefill from files</button><span class="muted small">Source tags: Form (Fillout), Website, GBP, Dossier (research), Hand. Amber values were inferred and need confirming.</span></div>
     <div class="grid grid-2" id="cvGroups">${GROUPS.map(groupCard).join('')}</div>`;
 
   renderPlaceCard(body.querySelector('#placeCard'), ctx);
@@ -348,6 +349,13 @@ async function renderValues(body, ctx) {
     const changed = Object.keys(out).filter(k => !k.startsWith('_') && JSON.stringify(out[k]) !== JSON.stringify(loaded[k])).length;
     try { await api(`/api/clients/${clientId}/client-values`, { method: 'PUT', body: out }); toast(`saved: ${changed} field${changed === 1 ? '' : 's'} changed`); ctx.refresh(); }
     catch (err) { toast(`Not saved: ${err.message}`, 'bad'); }
+  }));
+  body.querySelector('#fromForm').addEventListener('click', e => busy(e.target, 'Reading the form…', async () => {
+    try {
+      const r = await api(`/api/clients/${clientId}/client-values/from-form`, { method: 'POST' });
+      toast(r.filled.length ? `${r.filled.length} field${r.filled.length === 1 ? '' : 's'} filled from the form${r.to_confirm.length ? `; ${r.to_confirm.length} to confirm (amber)` : ''}` : 'Nothing new on the form for the blank fields');
+      if (r.filled.length) ctx.refresh();
+    } catch (err) { toast(err.message, 'bad'); }
   }));
   body.querySelector('#prefill').addEventListener('click', e => busy(e.target, 'Reading the files…', async () => {
     try {

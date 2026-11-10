@@ -209,6 +209,9 @@ function createFilloutService({ pool, audioStore, fetchAudio = defaultFetchAudio
       // voice answer: in the background, never holding up intake
       setImmediate(() => transcribeMissing(clientId).catch(err => log.error('[fillout] transcription failed to start:', err))
         .then(() => extractPrices(clientId, { submissionId: sub.submission_id })).catch(err => log.error('[fillout] price extraction failed to start:', err)));
+      // The answers the Record tab would otherwise have typed again go into the Client Values (fillout/to-values.js):
+      // blanks only, each with its source; a value read out of free text waits for a person's Confirm
+      setImmediate(() => require('./to-values').fillClientValues(pool, clientId).catch(err => log.error('[fillout] filling the client values from the form failed:', err)));
       // Parent categories for the additional services (ticked or typed): also in the background, hash-gated
       setImmediate(() => proposeAdditional(clientId).catch(err => log.error('[fillout] additional services proposal failed to start:', err)));
       return { clientId, niche: rec.niche, nicheKnown: rec.nicheKnown, fields: written, audio, duplicateOf };
