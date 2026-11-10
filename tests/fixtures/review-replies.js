@@ -89,7 +89,7 @@ chk('a preamble fails', codes(`Here is the reply: ${FIVE}`, { stars: 5 }).includ
 chk('the go-live rule is a UK date', isLive('2026-11-10T00:00:00Z', '2026-11-10') && !isLive('2026-11-09T23:59:00Z', '2026-11-10') && isLive('2026-07-09T23:30:00Z', '2026-07-10') && !isLive('2026-11-10T09:00:00Z', ''), '', '');
 
 (async () => {
-  const fake = createFakeBundle({ apiKey: 'test-key' });
+  const fake = createFakeBundle({ apiKey: 'test-key', now: () => clock.getTime() });
   const LL = fake.addSource('Local Launchpad', [{ id: 'loc_edens', name: 'Edens Edge Landscaping', address: 'Southampton' }]);
   const OTHER = fake.addSource('Second', [{ id: 'loc_two', name: 'Second Roofing', address: 'Leeds' }]);
   const fakeSrv = http.createServer(fake.app);

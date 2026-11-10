@@ -14,7 +14,8 @@ const CATEGORIES = ['CATEGORY_UNSPECIFIED', 'COVER', 'PROFILE', 'LOGO', 'EXTERIO
 const IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/gif'];
 const id = p => `${p}_${crypto.randomBytes(6).toString('hex')}`;
 
-function createFakeBundle({ apiKey = 'fake-key' } = {}) {
+// now: the clock the review imports' "try again at" times are read from, so a fixture on its own clock agrees with it
+function createFakeBundle({ apiKey = 'fake-key', now = () => Date.now() } = {}) {
   const state = { teams: [], accounts: [], uploads: [], posts: [], media: [], calls: [], nextFailure: [] };
   const app = express();
   app.use(express.json());
@@ -181,7 +182,7 @@ function createFakeBundle({ apiKey = 'fake-key' } = {}) {
     if (state.imports.some(i => i.teamId === teamId && running(i))) return refuse(res, 409, 'An import is already running for this social account');
     const steps = state.importSteps.slice();
     const i = { id: id('imp'), teamId, socialAccountId: accountIn(teamId).id, requestedCount: count, status: steps.shift(), steps, reviewsImported: 0, error: null, rateLimitResetAt: null, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() };
-    if (i.status === 'RATE_LIMITED') i.rateLimitResetAt = new Date(Date.now() + 2000).toISOString();
+    if (i.status === 'RATE_LIMITED') i.rateLimitResetAt = new Date(now() + 2000).toISOString();
     state.imports.push(i);
     res.status(201).json(i);
   });
@@ -189,7 +190,7 @@ function createFakeBundle({ apiKey = 'fake-key' } = {}) {
     const i = state.imports.find(x => x.id === req.params.importId);
     if (!i) return refuse(res, 404, 'Not found');
     if (i.steps.length) i.status = i.steps.shift();
-    i.rateLimitResetAt = i.status === 'RATE_LIMITED' ? new Date(Date.now() + 2000).toISOString() : null;
+    i.rateLimitResetAt = i.status === 'RATE_LIMITED' ? new Date(now() + 2000).toISOString() : null;
     if (i.status === 'COMPLETED' && !i.done) { i.done = true; for (const r of state.reviews) if (r.teamId === i.teamId && r.hidden) { r.hidden = false; i.reviewsImported++; } }
     if (i.status === 'FAILED') i.error = i.error || 'Google did not answer';
     const { steps, done, ...out } = i;
