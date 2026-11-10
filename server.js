@@ -4388,7 +4388,7 @@ uiRoutes.mountAppShell(app, path.join(__dirname, 'public'));
 // ── The automation chain (automation/runner.js, 10 Nov): for a client with Automation on, the next
 // step starts when the last has finished, through the app's own run routes, and stops at every approval.
 // The calls go to this server with the login cookie, so each step is exactly what its button does.
-let automation = null;
+let automation = null, automationNotifier = null;
 if (pool) {
   const AU = require('./automation/runner');
   const loopback = (method, urlPath, body) => new Promise((resolve, reject) => {
@@ -4406,7 +4406,14 @@ if (pool) {
     if (data) req.write(data);
     req.end();
   });
+  // Emails to the operator when a client stops for a person, and the morning digest (automation/notify.js):
+  // only when the Gmail connection is set up; to the client's review approver, else AUTOMATION_NOTIFY_EMAIL
+  const autoRows = async () => (await require('./ui/dashboard').loadDashboard({ pool, tradeFacts, runners: { category: categoryRunner, service: serviceRunner, location: locationRunner }, homepageRunning, formGaps })).clients;
+  const gmailForAuto = require('./citations/inbox/gmail');
+  let autoMail = null;
+  automationNotifier = require('./automation/notify').createNotifier({ pool, loadRows: autoRows, log: text => console.log(text), send: gmailForAuto.configured() ? m => (autoMail = autoMail || gmailForAuto.createGmail()).send(m) : null });
   automation = AU.createAutomation({
+    notify: automationNotifier.stopped,
     pool, call: loopback, log: text => console.log(text), background: true,
     loadRows: async () => (await require('./ui/dashboard').loadDashboard({ pool, tradeFacts, runners: { category: categoryRunner, service: serviceRunner, location: locationRunner }, homepageRunning, formGaps })).clients,
   });
@@ -4703,7 +4710,13 @@ initDb().then(async () => {
     await require('./automation/runner').ensureAutomationTables(pool).catch(err => console.error('[automation] tables failed:', err.message));
     await require('./fillout/chase').ensureChaseTables(pool).catch(err => console.error('[chase] table failed:', err.message));
     if (process.env.AUTOMATION_DISABLED === '1') console.log('[automation] off for every client (AUTOMATION_DISABLED=1)');
-    else setInterval(() => automation.tick().catch(err => console.error('[automation] tick failed:', err.message)), 60000);
+    else {
+      await require('./automation/notify').ensureNotifyTables(pool).catch(err => console.error('[automation] digest table failed:', err.message));
+      setInterval(() => {
+        automation.tick().catch(err => console.error('[automation] tick failed:', err.message));
+        automationNotifier.digest().then(r => { if (r.sent) console.log(`[automation] morning digest: ${r.sent} email(s), ${r.clients} client(s)`); }).catch(err => console.error('[automation] digest failed:', err.message));
+      }, 60000);
+    }
   }
   // The places table (the Location Determiner's towns, suburbs and admin areas): created, then
   // seeded from locations/data/places.csv.gz after the server is up, only when the file changed

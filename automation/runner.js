@@ -52,9 +52,11 @@ async function ensureAutomationTables(pool) {
       enabled     BOOLEAN NOT NULL DEFAULT FALSE,
       enabled_at  TIMESTAMPTZ,
       enabled_by  TEXT,
+      notified    TEXT,
       waiting     TEXT,
       updated_at  TIMESTAMPTZ NOT NULL DEFAULT NOW()
     )`);
+  await pool.query(`ALTER TABLE automation_state ADD COLUMN IF NOT EXISTS notified TEXT`);
   await pool.query(`
     CREATE TABLE IF NOT EXISTS automation_steps (
       id           UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -76,17 +78,18 @@ async function ensureAutomationTables(pool) {
 // ── The next thing for this client: a step to start, a person to wait for, or nothing ──
 // row: the dashboard row (ui/dashboard.js). once(step, sig): has this one-off step been started for this signature?
 function nextStep(row, once = () => false) {
-  const person = text => ({ person: text });
+  // stop: the kind of stop, which decides whether the operator is emailed again (automation/notify.js)
+  const person = (text, stop) => ({ person: text, stop });
   const api = p => `/api/clients/${row.id}${p}`;
   const step = (key, sig, label, tab, path, body = {}, extra = {}) => ({ step: key, sig: String(sig), label, tab, method: 'POST', path: api(path), body, ...extra });
-  if (row.archived) return person('The client is archived.');
-  if (row.niche_key === 'other') return person('Confirm the niche');
-  if (row.missing_fields.length) return person(`Fill in the record: ${row.missing_fields.map(m => m.text).join(', ')}`);
+  if (row.archived) return person('The client is archived.', null);
+  if (row.niche_key === 'other') return person('Confirm the niche', 'niche');
+  if (row.missing_fields.length) return person(`Fill in the record: ${row.missing_fields.map(m => m.text).join(', ')}`, 'fields');
   // The form still lacks answers the build needs (towns, services, travel): nothing is bought or written on a half filled record
-  if (row.form_needed) return person(`Chase the client: the form is missing ${plural(row.form_needed, 'needed answer')}`);
+  if (row.form_needed) return person(`Chase the client: the form is missing ${plural(row.form_needed, 'needed answer')}`, 'form');
   if (!row.locations_run) return step('locations', 'first', 'Work out the locations', 'locations', '/locations/run', { confirm: true }, { precheck: 'locations' });
-  if (!row.locations_approved) return person('Check the towns and approve the locations list');
-  if (row.locations_changed) return person('Approve the locations list again');
+  if (!row.locations_approved) return person('Check the towns and approve the locations list', 'locations_approve');
+  if (row.locations_changed) return person('Approve the locations list again', 'locations_approve');
   const sig = row.locations_approved_at ? new Date(row.locations_approved_at).toISOString() : 'approved';
   const pt = row.page_types;
   if (!row.pages.total) return step('page_map', sig, 'Build the page map', 'page-map', '/page-map/generate');
@@ -98,11 +101,11 @@ function nextStep(row, once = () => false) {
   const left = t => pt[t].total - pt[t].records;
   if (left('category') > 0) return step('category', pt.category.total, `Write ${plural(left('category'), 'category page')}`, 'pages', '/category-pages/run', { resume: true });
   if (left('service') > 0) {
-    if (row.pack_unverified) return person('Verify the trade facts pack');
+    if (row.pack_unverified) return person('Verify the trade facts pack', 'pack');
     return step('service', pt.service.total, `Write ${plural(left('service'), 'service page')}`, 'pages', '/service-pages/run', { resume: true });
   }
   if (left('location') > 0) return step('location', pt.location.total, `Write ${plural(left('location'), 'location page')}`, 'pages', '/location-pages/run', { resume: true });
-  if (row.pages.written < row.pages.total) return person(row.tracker && row.tracker.next ? row.tracker.next.text : 'Fix the pages that are not clean');
+  if (row.pages.written < row.pages.total) return person(row.tracker && row.tracker.next ? row.tracker.next.text : 'Fix the pages that are not clean', 'pages');
   if (!row.gbp_done) return step('gbp', 'gbp', 'Write the GBP description, services and products', 'gbp', '/gbp/generate');
   if (!row.lead_snap_done) return step('prompts', 'prompts', 'Write the post prompts', 'gbp-posts', '/lead-snap/generate');
   if (!once('batch', 'first')) return step('batch', 'first', `Write the first ${BATCH_SIZE} posts as a draft batch`, 'gbp-posts', '/gbp-posts/batches', { size: BATCH_SIZE });
@@ -125,7 +128,7 @@ function upkeepStep(row, once = () => false, now = new Date()) {
 
 // deps: pool, loadRows() → the dashboard rows for every client, call(method, path, body) → { status, body },
 // now() → Date, log(text)
-function createAutomation({ pool, loadRows, call, now = () => new Date(), log = () => {}, capUsd = CAP_USD, background = false }) {
+function createAutomation({ pool, loadRows, call, now = () => new Date(), log = () => {}, capUsd = CAP_USD, background = false, notify = null }) {
   const q = async (sql, params = []) => (await pool.query(sql, params)).rows;
   const inflight = new Set();
   let ticking = false;
@@ -163,6 +166,16 @@ function createAutomation({ pool, loadRows, call, now = () => new Date(), log = 
     return { detail: `estimated $${usd.toFixed(2)}` };
   }
 
+  // The operator is told once per stop (notify: automation/notify.js stopped). The same kind of stop is not
+  // told twice in a row; a build step starting clears it, so the next stop of that kind is told again.
+  async function tell(row, stop, text) {
+    if (!notify || !stop) return;
+    const st = await stateOf(row.id);
+    if (st.notified === stop) return;
+    try { if (await notify({ row, stop, text })) await pool.query(`UPDATE automation_state SET notified = $2 WHERE client_id = $1`, [row.id, stop]); }
+    catch (err) { log(`[automation] ${row.name}: the email for "${stop}" failed: ${err.message}`); }
+  }
+
   async function tickClient(row) {
     const clientId = row.id;
     if (inflight.has(clientId) || row.running) return 'busy';
@@ -181,12 +194,12 @@ function createAutomation({ pool, loadRows, call, now = () => new Date(), log = 
     if (open) {
       if (same(open)) {
         // It ran and the client still needs it
-        if (open.attempts >= MAX_ATTEMPTS) { await finish(open.id, 'failed', { error: `"${open.label}" ran ${plural(open.attempts, 'time')} and did not finish. Open the tab to see why.` }); await setWaiting(clientId, `Stopped at: ${open.label}`); return 'failed'; }
+        if (open.attempts >= MAX_ATTEMPTS) { await finish(open.id, 'failed', { error: `"${open.label}" ran ${plural(open.attempts, 'time')} and did not finish. Open the tab to see why.` }); await setWaiting(clientId, `Stopped at: ${open.label}`); await tell(row, `failed:${open.step}`, `"${open.label}" ran twice and did not finish.`); return 'failed'; }
         await finish(open.id, 'cleared'); attempts = open.attempts + 1;
       } else await finish(open.id, 'done');
     }
-    if (next.person) { await setWaiting(clientId, next.person); return 'person'; }
-    if (next.finished) { await setWaiting(clientId, 'Everything Copybot can do by itself is done.'); return 'finished'; }
+    if (next.person) { await setWaiting(clientId, next.person); await tell(row, next.stop, next.person); return 'person'; }
+    if (next.finished) { await setWaiting(clientId, 'Everything Copybot can do by itself is done.'); await tell(row, 'finished', ''); return 'finished'; }
     const last = steps.find(s => same(s) && s.status !== 'cleared' && s.status !== 'done' && s.status !== 'started') || null;
     if (last && last.status === 'failed') { await setWaiting(clientId, `Stopped at: ${last.label}`); return 'failed'; }
     if (last && last.status === 'blocked') {
@@ -203,12 +216,12 @@ function createAutomation({ pool, loadRows, call, now = () => new Date(), log = 
       let r = pre && pre.error ? { status: pre.status, body: { error: pre.error } } : null;
       if (!r) { try { r = await call(next.method, next.path, next.body); } catch (err) { r = { status: 599, body: { error: err.message } }; } }
       const message = (r.body && r.body.error) || `The app answered ${r.status}.`;
-      if (r.status < 300) { log(`[automation] ${row.name}: ${next.label}`); return 'started'; }
+      if (r.status < 300) { log(`[automation] ${row.name}: ${next.label}`); if (!next.upkeep) await pool.query(`UPDATE automation_state SET notified = NULL WHERE client_id = $1`, [clientId]); return 'started'; }
       // Upkeep is never retried and never stops the chain: skipped with the reason, round again next month
       if (next.upkeep && r.status !== 409) { await finish(id, 'skipped', { error: message }); return 'skipped'; }
       if (r.status === 409) { await finish(id, 'blocked', { error: message, retry_after: after(BUSY_RETRY_MIN) }); return 'blocked'; }
-      if (r.status < 500) { await finish(id, 'blocked', { error: message, retry_after: after(BLOCKED_RETRY_MIN) }); await setWaiting(clientId, message); return 'blocked'; }
-      if (attempts >= MAX_ATTEMPTS) { await finish(id, 'failed', { error: message }); await setWaiting(clientId, `Stopped at: ${next.label}`); log(`[automation] ${row.name}: stopped at "${next.label}": ${message}`); return 'failed'; }
+      if (r.status < 500) { await finish(id, 'blocked', { error: message, retry_after: after(BLOCKED_RETRY_MIN) }); await setWaiting(clientId, message); await tell(row, `blocked:${next.step}`, `"${next.label}" is waiting: ${message}`); return 'blocked'; }
+      if (attempts >= MAX_ATTEMPTS) { await finish(id, 'failed', { error: message }); await setWaiting(clientId, `Stopped at: ${next.label}`); log(`[automation] ${row.name}: stopped at "${next.label}": ${message}`); await tell(row, `failed:${next.step}`, `"${next.label}" failed: ${message}`); return 'failed'; }
       await finish(id, 'error', { error: message });
       return 'error';
     } finally { inflight.delete(clientId); }
