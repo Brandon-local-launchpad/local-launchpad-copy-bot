@@ -367,3 +367,23 @@ pre.block { background: #fafbfc; border: 1px solid var(--border); border-radius:
   .gpost-body { grid-template-columns: 1fr; }
   .gp-step { border-right: 0; border-bottom: 1px solid var(--border); }
 }
+
+/* The live tracker (10 Nov 2026): the strip on the client page and the queue on the dashboard */
+.trk { padding: 0; margin-bottom: 16px; }
+.trk-head { display: flex; align-items: center; gap: 10px; width: 100%; padding: 12px 20px; background: none; border: 0; font: inherit; color: inherit; cursor: pointer; text-align: left; flex-wrap: wrap; }
+.trk-head .spacer { flex: 1; }
+.trk-next { color: var(--text-2); min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 46ch; }
+.trk-run { padding: 0 20px 12px; display: grid; gap: 8px; }
+.trk-cols { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 24px; padding: 14px 20px 18px; border-top: 1px solid var(--border); }
+.trk-cols h3 { font-size: 12px; font-weight: 600; letter-spacing: .04em; text-transform: uppercase; color: var(--label); margin-bottom: 8px; }
+.trk-list { list-style: none; display: grid; gap: 7px; font-size: 13.5px; max-height: 260px; overflow: auto; }
+.trk-list li { position: relative; padding-left: 20px; }
+.trk-list li::before { content: ''; position: absolute; left: 3px; top: 7px; width: 8px; height: 8px; border-radius: 50%; border: 2px solid var(--wait); }
+.trk-list li.first::before { background: var(--wait); }
+.trk-list.done li::before { border-color: var(--ok); background: var(--ok); }
+.trk-list li.muted::before { display: none; }
+.trk-list .sub { display: block; color: var(--muted); font-size: 12.5px; }
+.queue-row { display: grid; grid-template-columns: minmax(160px, 240px) minmax(0, 1fr); gap: 16px; padding: 12px 0; border-top: 1px solid var(--border); }
+.queue-row:first-child { border-top: 0; padding-top: 0; }
+.queue-who .sub { display: block; color: var(--muted); font-size: 12.5px; }
+@media (max-width: 700px) { .trk-cols, .queue-row { grid-template-columns: 1fr; } }

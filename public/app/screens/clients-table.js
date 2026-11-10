@@ -26,6 +26,7 @@ export function clientsTable(el, data, ctx, { title = 'Clients', filters = {}, n
     { key: 'niche', label: 'Niche', sortable: true, render: c => h(c.niche) },
     { key: 'stage_index', label: 'Stage', sortable: true, render: c => status(c.running ? 'run' : c.needs_person ? 'wait' : STAGE_KIND[c.stage] || 'none', c.stage) },
     { key: 'blocker', label: 'Blocker', sortable: true, render: c => c.blocker ? `<span class="tip" data-tip="${attr(c.blockers.map(b => b.text).join('\n'))}">${h(c.blocker)}</span>` : '<span class="muted">none</span>' },
+    { key: 'next', label: 'Next for a person', render: c => c.tracker && c.tracker.next ? `<span class="tip" data-tip="${attr(c.tracker.needs.map(n => n.text).join('\n'))}">${h(c.tracker.next.text)}${c.tracker.needs.length > 1 ? ` <span class="muted">+${c.tracker.needs.length - 1}</span>` : ''}</span>` : c.running ? '<span class="muted">running</span>' : '<span class="muted">nothing</span>' },
     { key: 'last_activity', label: 'Last activity', sortable: true, render: c => timeEl(c.last_activity) },
     { key: 'assigned_to', label: 'Assigned to', sortable: true, render: c => c.assigned_to ? h(c.assigned_to) : '<span class="muted">–</span>' },
   ];

@@ -1,0 +1,27 @@
+// The live tracker (10 Nov 2026): what Copybot has done for a client and what waits on a
+// person now. The rules are ui/tracker.js on the server (row.tracker on the summary and the
+// dashboard); this only draws them. Used by the client page strip and the dashboard queue.
+
+import { h, timeEl, running } from './ui.js';
+
+// Where a step is done: a client tab, or one of the app's own screens
+export const stepHref = (clientId, tab) => tab === 'clients' ? '/clients' : tab === 'trade-facts' ? '/trade-facts' : `/clients/${clientId}/${tab}`;
+
+export function trackerStrip(clientId, t, { open = true } = {}) {
+  const needs = t.needs.length
+    ? `<ol class="trk-list">${t.needs.map((n, i) => `<li class="${i === 0 ? 'first' : ''}"><a href="${stepHref(clientId, n.tab)}" data-link>${h(n.text)}</a>${n.why ? `<span class="sub">${h(n.why)}</span>` : ''}</li>`).join('')}</ol>`
+    : `<p class="muted small">${t.running.length ? 'Nothing to do while this runs.' : 'Nothing is waiting on a person.'}</p>`;
+  const done = t.done.length
+    ? `<ul class="trk-list done">${t.done.map(d => `<li><a href="${stepHref(clientId, d.tab)}" data-link>${h(d.text)}</a>${d.at ? ` <span class="muted small">${timeEl(d.at)}</span>` : ''}</li>`).join('')}</ul>`
+    : '<p class="muted small">Nothing yet.</p>';
+  const runs = t.running.length ? `<div class="trk-run">${t.running.map(r => `<div><span class="small muted">${h(r.kind)}</span>${running({ now: r.now, next: r.next, done: r.done, total: r.total })}</div>`).join('')}</div>` : '';
+  const head = `<button class="trk-head" id="trkToggle" aria-expanded="${open}"><strong>Tracker</strong>
+      <span class="pill ${t.needs.length ? 'wait' : 'ok'}">${t.needs.length ? `${t.needs.length} for a person` : 'nothing for a person'}</span>
+      ${t.running.length ? '<span class="pill run">running</span>' : ''}
+      <span class="pill">${t.done.length} done by Copybot</span>
+      ${!open && t.next ? `<span class="small trk-next">Next: ${h(t.next.text)}</span>` : ''}
+      <span class="spacer"></span><span class="small muted">${open ? 'Hide' : 'Show'}</span></button>`;
+  return `<div class="card trk">${head}${open ? `${runs}<div class="trk-cols">
+      <div><h3>Needs a person</h3>${needs}${t.later ? `<p class="muted small" style="margin-top:8px">${t.later} more step${t.later === 1 ? ' opens' : 's open'} up once these are done.</p>` : ''}</div>
+      <div><h3>Done by Copybot</h3>${done}</div></div>` : ''}</div>`;
+}

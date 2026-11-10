@@ -3,6 +3,7 @@
 // is a module under /app/tabs/ exporting render(el, ctx) and may return a cleanup.
 
 import { h, attr, api, status, pill, dot, timeEl, toast, confirm, tag } from '../ui.js';
+import { trackerStrip } from '../tracker.js';
 
 const TABS = [
   ['record', 'Record'], ['locations', 'Locations'], ['research', 'Research'], ['page-map', 'Page map'], ['pages', 'Pages'],
@@ -74,6 +75,7 @@ export async function render(root, params, ctx) {
           </div></div>
       </div>
     </div>
+    <div id="tracker"></div>
     <div class="tabs" id="tabs">${TABS.filter(([k]) => k !== 'site-audit' || row.existing_site !== false).map(([k, l]) => `<a class="tab${k === tab ? ' active' : ''}" href="/clients/${clientId}/${k}" data-link>${dot(dots[k])}${h(l)}</a>`).join('')}</div>
     <div id="tabBody"></div>`;
 
@@ -104,6 +106,19 @@ export async function render(root, params, ctx) {
     } catch (err) { toast(err.message, 'bad'); }
   });
   root.querySelector('#runNext').addEventListener('click', () => runNext(row, clientId, ctx));
+
+  // The live tracker above the tabs: redrawn from the summary every 15 seconds, open or shut remembered
+  const trkEl = root.querySelector('#tracker');
+  const remembered = () => { try { return localStorage.getItem('trackerOpen') !== '0'; } catch (_) { return true; } };
+  let trkOpen = remembered(), tracker = row.tracker;
+  const drawTracker = () => { if (tracker) trkEl.innerHTML = trackerStrip(clientId, tracker, { open: trkOpen }); };
+  trkEl.addEventListener('click', e => { if (!e.target.closest('#trkToggle')) return; trkOpen = !trkOpen; try { localStorage.setItem('trackerOpen', trkOpen ? '1' : '0'); } catch (_) { /* private window */ } drawTracker(); });
+  drawTracker();
+  const trkTimer = setInterval(async () => {
+    if (!trkEl.isConnected) return clearInterval(trkTimer);
+    if (document.hidden) return;
+    try { const s = await api(`/api/clients/${clientId}/summary`); tracker = s.row.tracker; drawTracker(); } catch (_) { /* the next tick tries again */ }
+  }, 15000);
 
   // The tab
   const body = root.querySelector('#tabBody');

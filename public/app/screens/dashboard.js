@@ -4,6 +4,7 @@
 
 import { h, attr, api, card, tile, table, sortRows, status, pill, timeEl, running, empty, failed, lineChart, exportSvgPng, wire, info, plural } from '../ui.js';
 import { clientsTable, STAGE_KIND } from './clients-table.js';
+import { stepHref } from '../tracker.js';
 
 const TIPS = {
   new_today: 'Fillout submissions that arrived today and created a client.',
@@ -35,6 +36,7 @@ export async function render(root, params, ctx) {
       </div>
       <div class="stack" style="margin-top:16px">
         ${card({ title: 'Rankings', sub: 'Top 3% per client, the primary keyword, last 6 months, from the stored rank scans (one source per client)', actions: '<button class="btn btn-ghost btn-sm" id="exportPng">Export PNG</button>', body: '<div id="chart"></div>' })}
+        ${card({ title: 'Needs a person', sub: 'Every client with something to do now, the longest quiet first. Each line opens the place to do it.', body: queueBody(data.clients) })}
         ${card({ flat: true, title: '', body: '<div id="clientsTable"></div>' })}
       </div>`;
     drawChart();
@@ -46,6 +48,14 @@ export async function render(root, params, ctx) {
     }).catch(() => {});
     clientsTable(root.querySelector('#clientsTable'), data, ctx, { title: 'Clients', filters: { needs: ctx.query.needs === '1' } });
     root.querySelector('#exportPng').addEventListener('click', () => { const svg = root.querySelector('#chart svg'); if (svg) exportSvgPng(svg, 'rankings.png'); });
+  };
+
+  // The queue: one block per client with its steps for a person, in the order to do them
+  const queueBody = clients => {
+    const list = clients.filter(c => !c.archived && c.tracker && c.tracker.needs.length).sort((a, b) => new Date(a.last_activity) - new Date(b.last_activity));
+    if (!list.length) return empty({ title: 'Nothing is waiting on a person', text: 'Copybot has nothing it needs from anyone right now.' });
+    return `<div class="queue">${list.map(c => `<div class="queue-row"><div class="queue-who"><a href="/clients/${c.id}" data-link><strong>${h(c.name)}</strong></a><span class="sub">${h(c.stage)}${c.assigned_to ? ` · ${h(c.assigned_to)}` : ''} · ${timeEl(c.last_activity)}</span></div>
+      <ol class="trk-list">${c.tracker.needs.slice(0, 4).map((n, i) => `<li class="${i === 0 ? 'first' : ''}"><a href="${stepHref(c.id, n.tab)}" data-link>${h(n.text)}</a></li>`).join('')}${c.tracker.needs.length > 4 ? `<li class="muted">and ${c.tracker.needs.length - 4} more</li>` : ''}</ol></div>`).join('')}</div>`;
   };
 
   const runningBody = runs => {

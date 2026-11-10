@@ -19,6 +19,7 @@
 const { listClients } = require('../fillout/client-routes');
 const SC = require('../gbp/scans');
 const { costPence } = require('./model-log');
+const { trackerOf } = require('./tracker');
 // What a page costs to write when nothing has been logged yet, in pence (the real Edens Edge runs, Oct 2026)
 const DEFAULT_COST = { homepage: 65, category: 60, service: 60, location: 60 };
 
@@ -153,6 +154,27 @@ async function loadDashboard({ pool, tradeFacts = null, runners = {}, homepageRu
   const scansByClient = new Map();
   for (const s of scanRows) { if (!scansByClient.has(s.client_id)) scansByClient.set(s.client_id, []); scansByClient.get(s.client_id).push(parse(s.content)); }
 
+  // The live tracker's extra counts (ui/tracker.js), a grouped query each; a table a fixture has not made counts as nothing
+  const soft = sql => q(sql).catch(() => []);
+  const group = (list, fn) => { const m = new Map(); for (const r of list) { if (!m.has(r.client_id)) m.set(r.client_id, fn()); } return m; };
+  const audioRows = await soft(`SELECT client_id, download_status, transcription_status, (transcription IS NOT NULL AND transcription <> '') AS has_text FROM client_audio`);
+  const audioBy = group(audioRows, () => ({ total: 0, transcribed: 0, failed: 0 }));
+  for (const r of audioRows) { const a = audioBy.get(r.client_id); a.total++; if (r.has_text) a.transcribed++; else if (r.download_status === 'failed' || r.transcription_status === 'failed') a.failed++; }
+  const priceBy = new Map((await soft(`SELECT client_id, status FROM client_price_state`)).map(r => [r.client_id, r.status]));
+  const batchRows = await soft(`SELECT client_id, status FROM gbp_post_batches`);
+  const batchBy = group(batchRows, () => ({ draft: 0, approved: 0 }));
+  for (const r of batchRows) { const b = batchBy.get(r.client_id); if (r.status === 'approved') b.approved++; else if (r.status === 'draft') b.draft++; }
+  const connBy = new Map((await soft(`SELECT client_id, status, publishing_on FROM bundle_connections`)).map(r => [r.client_id, { status: r.status, publishing_on: !!r.publishing_on }]));
+  const pubRows = await soft(`SELECT client_id, status, count(*)::int AS n FROM gbp_publish_items GROUP BY client_id, status`);
+  const pubBy = group(pubRows, () => ({ posted: 0, failed: 0 }));
+  for (const r of pubRows) { const x = pubBy.get(r.client_id); if (r.status === 'posted') x.posted += Number(r.n); else if (r.status === 'failed') x.failed += Number(r.n); }
+  const reviewRows = await soft(`SELECT client_id, status, count(*)::int AS n FROM gbp_reviews GROUP BY client_id, status`);
+  const reviewBy = group(reviewRows, () => ({ queued: 0, posted: 0 }));
+  for (const r of reviewRows) { const x = reviewBy.get(r.client_id); if (r.status === 'queued') x.queued += Number(r.n); else if (r.status === 'posted') x.posted += Number(r.n); }
+  const citeRows = await soft(`SELECT client_id, listed, status, count(*)::int AS n, count(last_scanned_at)::int AS scanned FROM client_citations GROUP BY client_id, listed, status`);
+  const citeBy = group(citeRows, () => ({ rows: 0, scanned: 0, listed: 0, to_submit: 0, waiting: 0 }));
+  for (const r of citeRows) { const x = citeBy.get(r.client_id), n = Number(r.n); x.rows += n; x.scanned += Number(r.scanned); if (r.listed === 'yes') x.listed += n; if (r.listed === 'no' && r.status === 'not_started') x.to_submit += n; if (r.status === 'awaiting_email' || r.status === 'awaiting_approval') x.waiting += n; }
+
   // Last activity: the newest of the client's assets, record fields, page map edits, pushes, and its creation
   const act = new Map();
   const bump = (id, d) => { const m = maxDate(act.get(id), d); if (m) act.set(id, m); };
@@ -188,7 +210,7 @@ async function loadDashboard({ pool, tradeFacts = null, runners = {}, homepageRu
       const type = ROW_TYPE[r.type];
       const key = type === 'homepage' ? 'homepage' : r.slug;
       const rec = recs.get(`${type}:${key}`) || null;
-      return { type, key, title: r.title, record: !!rec, good: !!(rec && rec.good), blocked: !!(rec && rec.blocked), block: rec ? rec.block : null, error: rec ? rec.error : null, claims: rec ? rec.claims : 0, score: rec ? rec.score : null, at: rec ? rec.at : null, cost_pence: rec ? rec.cost_pence : null };
+      return { type, key, title: r.title, record: !!rec, good: !!(rec && rec.good), blocked: !!(rec && rec.blocked), block: rec ? rec.block : null, error: rec ? rec.error : null, claims: rec ? rec.claims : 0, score: rec ? rec.score : null, at: rec ? rec.at : null, cost_pence: rec ? rec.cost_pence : null, approved: !!(rec && rec.approved_at) };
     });
     const ds = dossiersByClient.get(c.id) || [];
     const norm = s => str(s).toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim();
@@ -233,6 +255,21 @@ async function loadDashboard({ pool, tradeFacts = null, runners = {}, homepageRu
     if (pendingRows.length) runs.push({ kind: 'rank scan', now: `${pendingRows.length} scan${pendingRows.length === 1 ? '' : 's'} running on ${SC.SOURCES[SC.sourceOf(pendingRows[0])]}`, next: 'Then the Top 3% is worked out', done: null, total: null });
     for (const r of runs) runningNow.push({ client_id: c.id, client: c.name, ...r });
 
+    const siteAudit = siteAudits.get(c.id) || 'none';
+    const existingSite = cv && cv._intake ? cv._intake.existing_site !== false : null;
+    const gbpDone = !!(g && g.steps && ['description', 'services', 'products'].every(k => g.steps[k] && g.steps[k].status === 'done'));
+    const promptsDone = !!(leadSnap.get(c.id) && leadSnap.get(c.id).sheet);
+    const hasScans = (scansByClient.get(c.id) || []).length > 0;
+    const tracker = trackerOf({
+      niche_known: nicheKnown, from_form: c.source === 'fillout', reviewed: !!c.reviewed_at, form_at: c.source === 'fillout' ? firstSubmission.get(c.id) || null : null,
+      audio: audioBy.get(c.id) || null, prices: priceBy.get(c.id) || null, missing: summary.missing.map(m => m.text), place_id: !summary.placeIdMissing,
+      locations_run: locRuns.has(c.id), locations_run_at: locRunAt.get(c.id) || null, locations_approved: locApproved.has(c.id), locations_changed: locChanged(c.id),
+      towns_researched: launchTowns.length - townsWithoutDossier.length, towns_without_dossier: townsWithoutDossier, map_pages: pages.length, pack_unverified: packUnverified,
+      pages: { total: pages.length, written: pages.filter(p => p.good).length, records: pages.filter(p => p.record).length, claims: pages.reduce((n, p) => n + (p.claims || 0), 0), blocked: pages.filter(p => p.record && (p.blocked || p.block > 0)).length, failed: pages.filter(p => p.record && p.error).length, approved: pages.filter(p => p.good && p.approved).length },
+      pages_at: maxDate(...pages.map(p => p.at)), homepage_good: pages.some(p => p.type === 'homepage' && p.good), pushed: (pushedByClient.get(c.id) || []).length,
+      gbp_done: gbpDone, prompts_done: promptsDone, batches: batchBy.get(c.id) || null, connection: connBy.get(c.id) || null, published: pubBy.get(c.id) || null, reviews: reviewBy.get(c.id) || null,
+      citations: citeBy.get(c.id) || null, has_scans: hasScans, existing_site: existingSite, site_audit: siteAudit, running: runs,
+    });
     const firstAt = c.source === 'fillout' ? firstSubmission.get(c.id) || c.created_at : null;
     rows.push({
       id: c.id, name: c.name, niche_key: c.niche_key || 'other', niche: c.niche_label || c.trade || '', business_type: cv && cv.business_type ? cv.business_type : null,
@@ -249,6 +286,8 @@ async function loadDashboard({ pool, tradeFacts = null, runners = {}, homepageRu
       gbp_done: !!(g && g.steps && ['description', 'services', 'products'].every(k => g.steps[k] && g.steps[k].status === 'done')), lead_snap_done: !!(leadSnap.get(c.id) && leadSnap.get(c.id).sheet), has_scans: (scansByClient.get(c.id) || []).length > 0,
       locations_run: locRuns.has(c.id), locations_approved: locApproved.has(c.id), locations_approved_at: locApproved.has(c.id) ? locApproved.get(c.id).approved_at : null, locations_run_at: locRunAt.get(c.id) || null, locations_changed: locChanged(c.id),
       missing_fields: summary.missing, pack_unverified: packUnverified,
+      // The live tracker: what Copybot has done, what waits on a person now (ui/tracker.js)
+      tracker,
       // The page list (type, key, title, good, block, claims, score, at) only for one client's summary
       page_list: clientId ? pages : undefined,
     });
