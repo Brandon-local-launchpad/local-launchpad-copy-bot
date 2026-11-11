@@ -49,6 +49,7 @@ process.env.PORT = String(PORT);
 process.env.DATABASE_URL = 'postgres://pg-mem/demo';
 process.env.COPYBOT_SECRET_KEY = process.env.COPYBOT_SECRET_KEY || crypto.randomBytes(32).toString('hex');
 process.env.APP_PASSWORD = '';
+process.env.GHL_ONBOARDING_SECRET = process.env.GHL_ONBOARDING_SECRET || 'demo-ghl-secret'; // the demo only: tools/ghl-onboarding-post.js posts with it
 process.env.CITATIONS_SKIP_DA = '1'; // the demo's pg-mem is fresh each start: never buy DataForSEO ranks for it
 // Review replies talk to a fake bundle.social started below, never the real one
 process.env.DEMO_BUNDLE_PORT = process.env.DEMO_BUNDLE_PORT || String(Number(PORT) + 100);

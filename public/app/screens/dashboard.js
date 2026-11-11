@@ -28,6 +28,7 @@ export async function render(root, params, ctx) {
       <div class="ph"><div class="ph-title"><h1>Dashboard</h1><div class="ph-meta">${h(plural(data.clients.filter(c => !c.archived).length, 'client'))} · ${h(new Date(data.generated_at).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' }))}</div></div>
         <div class="ph-actions"><a class="btn btn-primary" href="/add-client" data-link>Add client</a></div></div>
       <div id="reviewsWaiting"></div>
+      <div id="onbUnmatched"></div>
       <div class="grid grid-4" id="tiles">
         ${tile({ label: 'New clients today', value: t.new_today, tip: TIPS.new_today, href: '/clients?new=today' })}
         ${tile({ label: 'New clients this week', value: t.new_week, tip: TIPS.new_week, href: '/clients?new=week' })}
@@ -46,8 +47,29 @@ export async function render(root, params, ctx) {
       if (!box || !n || !n.queued) return;
       box.innerHTML = `<a class="notice ${n.over48 ? 'bad' : n.over24 ? 'warn' : ''}" href="/reviews" data-link style="display:block;margin-bottom:16px;text-decoration:none"><strong>${h(plural(n.queued, 'Google review reply', 'Google review replies'))} waiting for approval</strong>${n.over24 ? ` · ${n.over24} over 24 hours` : ''}${n.over48 ? ` · ${n.over48} over 48 hours` : ''}</a>`;
     }).catch(() => {});
+    drawUnmatched();
     clientsTable(root.querySelector('#clientsTable'), data, ctx, { title: 'Clients', filters: { needs: ctx.query.needs === '1' } });
     root.querySelector('#exportPng').addEventListener('click', () => { const svg = root.querySelector('#chart svg'); if (svg) exportSvgPng(svg, 'rankings.png'); });
+  };
+
+  // Unmatched onboarding (ghl-onboarding/, 11 Nov 2026): GHL sends that found no client after 24 hours, or a
+  // completed onboarding with no client. Pick the client and the send is processed as normal. Nothing shows when there are none.
+  const drawUnmatched = () => {
+    api('/api/onboarding/unmatched').then(r => {
+      const box = root.querySelector('#onbUnmatched');
+      if (!box || !r || !r.events.length) return;
+      const options = data.clients.filter(c => !c.archived).sort((a, b) => a.name.localeCompare(b.name)).map(c => `<option value="${attr(c.id)}">${h(c.name)}</option>`).join('');
+      box.innerHTML = `<div style="margin-bottom:16px">${card({ title: 'Unmatched onboarding', sub: 'Onboarding answers from GHL that match no client by GHL contact id or email. Attach each to its client; Copybot never creates a client from these.', body: r.events.map(e => `<div class="queue-row" data-event="${attr(e.id)}"><div class="queue-who"><strong>${h(e.company_name || e.name || 'No company name')}</strong><span class="sub">${h(e.email || 'no email')} · ${h(e.stage || 'no stage')} · ${timeEl(e.received_at)}</span></div>
+        <div><div class="small">${h(e.summary || 'No summary in the send')}</div><div class="btn-row" style="margin-top:6px"><select class="input" style="width:auto;max-width:260px"><option value="">Pick the client…</option>${options}</select><button class="btn btn-ghost btn-sm" data-attach>Attach</button></div></div></div>`).join('') })}</div>`;
+      box.onclick = async ev => {
+        const b = ev.target.closest('[data-attach]'); if (!b) return;
+        const line = b.closest('[data-event]'), clientId = line.querySelector('select').value;
+        if (!clientId) return;
+        b.disabled = true;
+        try { await api(`/api/onboarding/events/${line.dataset.event}/attach`, { method: 'POST', body: { client_id: clientId } }); load(); }
+        catch (err) { b.disabled = false; window.alert(err.message); }
+      };
+    }).catch(() => {});
   };
 
   // The queue: one block per client with its steps for a person, in the order to do them

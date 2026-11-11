@@ -137,6 +137,11 @@ export async function render(root, params, ctx) {
       });
     } catch (err) { toast(err.message, 'bad'); }
   });
+  // A GHL onboarding step (an invite accepted, an access request sent): Copybot cannot see it done, so a person ticks it
+  trkEl.addEventListener('click', async e => {
+    const b = e.target.closest('[data-onb-done]'); if (!b) return;
+    try { await api(`/api/clients/${clientId}/onboarding/steps/${b.dataset.onbDone}/done`, { method: 'POST', body: { done: true, by: row.assigned_to || '' } }); toast('Ticked done'); await reloadTracker(); } catch (err) { toast(err.message, 'bad'); }
+  });
   trkEl.addEventListener('click', async e => {
     if (!e.target.closest('#trkRetry')) return;
     try { await api(`/api/clients/${clientId}/automation/retry`, { method: 'POST' }); toast('Trying again within a minute'); await reloadTracker(); } catch (err) { toast(err.message, 'bad'); }

@@ -10,6 +10,7 @@
 // what can be done today, not everything left. `later` counts the steps not reachable yet.
 // `next` is the first need, the one line the clients table shows.
 
+const { stepsOf: onboardingSteps } = require('../ghl-onboarding/rules');
 const plural = (n, one, many) => `${n} ${n === 1 ? one : many || one + 's'}`;
 
 function trackerOf(f) {
@@ -105,6 +106,14 @@ function trackerOf(f) {
     if (f.site_audit === 'ok') did('audit', 'Old site scanned and every URL decision approved', 'site-audit');
     else if (f.site_audit === 'wait') { did('audit_scan', 'Old site scanned and a decision suggested for every URL', 'site-audit'); need('audit', 'Approve the old site URL decisions', 'site-audit', 'The redirects are built from them.'); }
     else if (f.existing_site === true && f.site_audit !== 'run') need('audit_scan', 'Scan the old site', 'site-audit', '', recordReady);
+  }
+
+  // ── Onboarding answers from GHL (ghl-onboarding/rules.js stepsOf): nothing for a client with none ──
+  // The step's Done button ticks it (`tick`); an access request the client is waiting for goes first.
+  if (f.onboarding) {
+    const ob = onboardingSteps(f.onboarding);
+    for (const d of ob.done) did(d.key, d.text, 'record', d.at);
+    for (const n of ob.needs) { const step = { key: n.key, text: n.text, tab: 'record', why: n.why, tick: n.kind, urgent: n.urgent || undefined }; if (n.urgent) needs.unshift(step); else needs.push(step); }
   }
 
   // A line Copybot did through the chain says so, with when (and the cost where the step knows it)
