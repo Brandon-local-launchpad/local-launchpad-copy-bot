@@ -129,7 +129,7 @@ const GROUPS = [
   ] },
 ];
 const SOURCES = ['form', 'website', 'gbp', 'dossier', 'hand'];
-const SOURCE_LABEL = { form: 'Form', form_inferred: 'Form, read from the answer', website: 'Website', gbp: 'GBP', dossier: 'Dossier', hand: 'Hand' };
+const SOURCE_LABEL = { ghl: 'Onboarding (GHL)', form: 'Form', form_inferred: 'Form, read from the answer', website: 'Website', gbp: 'GBP', dossier: 'Dossier', hand: 'Hand' };
 // form_inferred (10 Nov): a value read out of a free text form answer (fillout/to-values.js), amber until confirmed
 const INFERRED = new Set(['website', 'gbp', 'dossier', 'form_inferred']);
 const KEY_FIELDS = { phone: 'phone', quote_method: 'free_quotes', primary_category: 'primary_category', practices: 'confirmed_practices' };
@@ -139,9 +139,11 @@ export async function render(el, ctx) {
   const sub = ['form', 'legal'].includes(ctx.query.view) ? ctx.query.view : 'values';
   el.innerHTML = `
     ${cantSayBox(row, summary)}
+    <div id="onbCard"></div>
     <div class="tabs" id="subtabs"><a class="tab${sub === 'values' ? ' active' : ''}" href="/clients/${clientId}/record" data-link>Client values</a><a class="tab${sub === 'form' ? ' active' : ''}" href="/clients/${clientId}/record?view=form" data-link>Onboarding form${ctx.client.source === 'fillout' ? '' : ' and set-up'}</a><a class="tab${sub === 'legal' ? ' active' : ''}" href="/clients/${clientId}/record?view=legal" data-link>Legal pages</a></div>
     <div id="recBody"></div>`;
   const body = el.querySelector('#recBody');
+  renderOnboarding(el.querySelector('#onbCard'), clientId).catch(() => {});
   if (sub === 'legal') return renderLegal(body, clientId);
   if (sub === 'form') {
     body.innerHTML = `<section class="card">${recordContainer({ menu: true })}</section>`;
@@ -208,6 +210,38 @@ async function renderLegal(body, clientId) {
     body.querySelectorAll('[data-reset]').forEach(b => { b.onclick = () => act(`${url}/wording/${b.dataset.reset}`, 'DELETE', { key: keyOf() }); });
   }
   paint(await api(url));
+}
+
+// ── Onboarding answers from GHL (ghl-onboarding/, 11 Nov 2026) ──────────────────────────────
+// What the client answered in the GHL onboarding funnel: the stage reached and when each step last
+// sent, the answers with their source, a domain that differs from Live domain. Read only until
+// Correct is pressed; a value typed here is Hand and a later send never replaces it. Nothing shows
+// for a client GHL has sent nothing about.
+async function renderOnboarding(el, clientId) {
+  const url = `/api/clients/${clientId}/onboarding`;
+  let v = await api(url), editing = false;
+  const STAGE = { started: 'Started', gbp: 'Google Business Profile', 'domain-access-request': 'Domain access request', domain: 'Domain', citations: 'Citations', complete: 'Complete' };
+  const draw = () => {
+    if (!v.has) { el.innerHTML = ''; return; }
+    const head = v.completed_at ? `${pill('ok', 'onboarding complete')} <span class="muted small">${h(fmtDate(v.completed_at, true))}</span>` : `${pill('wait', `reached: ${STAGE[v.stage] || v.stage || 'nothing yet'}`)}`;
+    const times = v.stages.map(s => `${h(STAGE[s.stage] || s.stage)} ${h(fmtDate(s.at, true))}`).join(' · ');
+    const diff = v.domain_difference ? `<div class="notice warn" style="margin:10px 0">The client gave the domain <strong>${h(v.domain_difference.given)}</strong> but Live domain is <strong>${h(v.domain_difference.live)}</strong>. Live domain was not changed: check which is right.</div>` : '';
+    const rows = v.answers.map(a => editing
+      ? `<div class="field"><label>${h(a.label)}</label><input class="input" data-onb="${attr(a.key)}" value="${attr(a.value)}"></div>`
+      : `<div class="field" style="margin-bottom:8px"><label>${h(a.label)}${a.source ? ` ${tag(a.source, SOURCE_LABEL[a.source])}` : ''}</label><div>${a.value ? h(a.value) : '<span class="muted">not answered</span>'}</div>${a.key === 'gbp_category' && a.value ? `<div class="help">Primary category is ${v.primary_category ? h(v.primary_category) : 'not set'}. Copybot never sets it from this answer.</div>` : ''}</div>`).join('');
+    el.innerHTML = `<div style="margin-bottom:16px">${card({ title: 'Onboarding answers from GHL', sub: `${head}${times ? ` <span class="muted small">· last sent: ${times}</span>` : ''}`, actions: editing ? '<button class="btn btn-primary btn-sm" id="onbSave">Save</button><button class="btn btn-ghost btn-sm" id="onbCancel">Cancel</button>' : '<button class="btn btn-ghost btn-sm" id="onbEdit" title="Type the right answer over one the client got wrong. A typed value is never replaced by a later send.">Correct</button>', body: `${diff}<div class="grid grid-2">${rows}</div>` })}</div>`;
+  };
+  el.addEventListener('click', async e => {
+    if (e.target.closest('#onbEdit')) { editing = true; return draw(); }
+    if (e.target.closest('#onbCancel')) { editing = false; return draw(); }
+    if (e.target.closest('#onbSave')) {
+      try {
+        for (const inp of el.querySelectorAll('[data-onb]')) { const a = v.answers.find(x => x.key === inp.dataset.onb); if (a && inp.value.trim() !== a.value) v = await api(`${url}/${a.key}`, { method: 'PUT', body: { value: inp.value } }); }
+        editing = false; draw(); toast('Saved');
+      } catch (err) { toast(err.message, 'bad'); }
+    }
+  });
+  draw();
 }
 
 function cantSayBox(row, summary) {

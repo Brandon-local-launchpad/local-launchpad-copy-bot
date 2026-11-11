@@ -47,6 +47,16 @@ const filloutService = pool ? createFilloutService({ pool, audioStore: createPgA
 if (filloutService) filloutRoutes.mountWebhook(app, filloutService, { secret: process.env.FILLOUT_WEBHOOK_SECRET || '' });
 else app.post('/api/webhooks/fillout', (_req, res) => res.status(503).json({ error: 'Database not configured.' }));
 
+// ── GHL onboarding webhook (ghl-onboarding/, 11 Nov 2026) ────────────────────
+// The GHL workflow "Onboarding: Sync answers" posts the client's funnel answers here. Mounted
+// before the login middleware like Fillout's: the shared secret in X-LL-Secret is the auth
+// (GHL_ONBOARDING_SECRET; everything is refused until it is set).
+const ghlOnboardingRoutes = require('./ghl-onboarding/routes');
+let ghlOnboardingNotify = null;   // set once the operator's emails are wired, further down
+const ghlOnboarding = pool ? require('./ghl-onboarding/service').createOnboarding({ pool, notify: m => (ghlOnboardingNotify ? ghlOnboardingNotify(m) : null) }) : null;
+if (ghlOnboarding) ghlOnboardingRoutes.mountWebhook(app, ghlOnboarding, { secret: process.env.GHL_ONBOARDING_SECRET || '' });
+else app.post(ghlOnboardingRoutes.PATH, (_req, res) => res.status(503).json({ error: 'Database not configured.' }));
+
 app.use(express.json({ limit: '4mb' }));
 
 // ── Auth middleware ───────────────────────────────────────────────────────────
@@ -4384,6 +4394,8 @@ const formGaps = async () => {
 uiRoutes.mountUiApi(app, { pool, tradeFacts, runners: () => ({ category: categoryRunner, service: serviceRunner, location: locationRunner }), homepageRunning: () => homepageRunning, formGaps });
 // The chase message (fillout/chase.js): a draft for a person to send; Copybot never sends it
 if (pool && filloutService) require('./fillout/chase').mountChaseApi(app, { chase: require('./fillout/chase').createChase({ pool, filloutService }) });
+// Onboarding answers from GHL (ghl-onboarding/): the Record tab's card, the Done ticks, the Dashboard's unmatched list
+if (ghlOnboarding) ghlOnboardingRoutes.mountApi(app, ghlOnboarding);
 uiRoutes.mountAppShell(app, path.join(__dirname, 'public'));
 // ── The automation chain (automation/runner.js, 10 Nov): for a client with Automation on, the next
 // step starts when the last has finished, through the app's own run routes, and stops at every approval.
@@ -4418,6 +4430,15 @@ if (pool) {
     loadRows: async () => (await require('./ui/dashboard').loadDashboard({ pool, tradeFacts, runners: { category: categoryRunner, service: serviceRunner, location: locationRunner }, homepageRunning, formGaps })).clients,
   });
   AU.mountAutomationApi(app, { automation });
+  // A GHL domain access request or a completed onboarding: one email to the same person, through the same mailbox
+  ghlOnboardingNotify = async ({ client, stage, state }) => {
+    if (!gmailForAuto.configured()) return;
+    const who = (await automationNotifier.recipients())(client.id);
+    if (!who) return;
+    const base = String(process.env.COPYBOT_URL || '').trim().replace(/\/+$/, '');
+    await (autoMail = autoMail || gmailForAuto.createGmail()).send(require('./ghl-onboarding/service').operatorEmail({ ...who, client, stage, state, link: base ? `${base}/clients/${client.id}` : '' }));
+    console.log(`[ghl-onboarding] emailed ${who.to}: ${client.name}, ${stage}`);
+  };
 }
 // The Add client wizard (ui/intake.js): the website read (one fetch, one model call), Places, the merge, the create
 {
@@ -4705,6 +4726,14 @@ initDb().then(async () => {
   // A preview environment's demo client (tools/seed-demo-client.js): only when SEED_DEMO_CLIENT=1, never on production
   if (pool && process.env.SEED_DEMO_CLIENT === '1') await require('./tools/seed-demo-client').seedDemoClient(pool, { v20HomepageInputs, filloutService }).catch(err => console.error('[seed-demo] failed:', err));
   app.listen(PORT, () => console.log(`Copy bot running at http://localhost:${PORT}`));
+  // GHL onboarding sends with no client yet (the "started" send arrives before the Fillout form makes the client):
+  // tried again every minute, oldest first, and once at start for anything a restart left waiting
+  if (ghlOnboarding) {
+    await require('./ghl-onboarding/service').ensureOnboardingTables(pool).catch(err => console.error('[ghl-onboarding] tables failed:', err.message));
+    const rematch = () => ghlOnboarding.rematch().then(r => { if (r.matched) console.log(`[ghl-onboarding] ${r.matched} waiting send(s) matched to a client`); }).catch(err => console.error('[ghl-onboarding] rematch failed:', err.message));
+    rematch();
+    setInterval(rematch, 60000);
+  }
   // The automation chain: every minute, only for clients switched on; AUTOMATION_DISABLED=1 stops it for everyone
   if (automation) {
     await require('./automation/runner').ensureAutomationTables(pool).catch(err => console.error('[automation] tables failed:', err.message));

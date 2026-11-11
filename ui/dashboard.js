@@ -47,7 +47,8 @@ function missingFields(cv, fields, client) {
 // the client stays at Onboarding until the record is reviewed, as before the fill existed
 const hasVal = v => (Array.isArray(v) ? v.length > 0 : v != null && String(v).trim() !== '');
 function onlyFormFilled(cv) {
-  const ours = cv._form_filled || null;
+  // A field GHL's onboarding filled (ghl-onboarding/rules.js mirror) is no more a person's work than one the form filled
+  const ours = cv._form_filled || cv._ghl_filled ? { ...(cv._form_filled || {}), ...(cv._ghl_filled || {}) } : null;
   if (!ours || !Object.keys(ours).length) return false;
   return !Object.keys(cv).some(k => !k.startsWith('_') && hasVal(cv[k]) && !ours[k]);
 }
@@ -200,6 +201,9 @@ async function loadDashboard({ pool, tradeFacts = null, runners = {}, homepageRu
   const gaps = formGaps ? await Promise.resolve(formGaps()).catch(() => new Map()) : new Map();
   const chasedAt = new Map((await soft(`SELECT client_id, MAX(copied_at) AS at FROM client_chases GROUP BY client_id`)).map(r => [r.client_id, r.at]));
 
+  // Onboarding answers from GHL (ghl-onboarding/): the saved answers and the steps a person ticked Done
+  const onboardingBy = await require('../ghl-onboarding/service').loadOnboardingFacts(pool).catch(() => new Map());
+
   // The automation chain (automation/runner.js): the switch and the latest steps per client
   const autoState = new Map((await soft(`SELECT client_id, enabled, enabled_at, waiting FROM automation_state`)).map(r => [r.client_id, r]));
   const autoSteps = new Map();
@@ -302,6 +306,7 @@ async function loadDashboard({ pool, tradeFacts = null, runners = {}, homepageRu
       pages_at: maxDate(...pages.map(p => p.at)), homepage_good: pages.some(p => p.type === 'homepage' && p.good), pushed: (pushedByClient.get(c.id) || []).length,
       gbp_done: gbpDone, prompts_done: promptsDone, batches: batchBy.get(c.id) || null, connection: connBy.get(c.id) || null, published: pubBy.get(c.id) || null, reviews: reviewBy.get(c.id) || null,
       citations: citeBy.get(c.id) || null, has_scans: hasScans, existing_site: existingSite, site_audit: siteAudit, running: runs,
+      onboarding: onboardingBy.get(c.id) || null,
     });
     const firstAt = c.source === 'fillout' ? firstSubmission.get(c.id) || c.created_at : null;
     rows.push({
