@@ -1,6 +1,6 @@
 # SOP: Replacing a client's existing website
 
-For Ray (the audit and the redirects), Given (the WordPress build and the domain) and Brandon (sign-off). Written 12 Nov 2026 from what Copybot does today. Steps marked **By hand for now** are the ones Copybot doesn't do yet; they move into Copybot as it's built.
+For Ray (the audit and the redirects), Given (the WordPress build and the domain) and Brandon (sign-off). Written 12 Nov 2026 from what Copybot does today, including the launch and after launch checks built the same day.
 
 ## Why this exists
 
@@ -28,7 +28,8 @@ Some clients come to us with a website that has been live for years. It may rank
 | 8. Pre launch check and staging test | Ray |
 | 9. Go / no go | Brandon |
 | 10. Launch day | Given, then Ray |
-| 11. After launch: day 1, day 7, 90 days | Ray |
+| 11. After launch: day 7 and 90 days | Copybot by itself; Brandon gets any red flag |
+| Search Console, when the client has it | Ray |
 
 ## 1. Set the live domain
 
@@ -42,7 +43,7 @@ On the client's **Record** tab, check **Live domain** holds the client's current
 Client page, **Site audit** tab, **Scan old site**.
 
 - It reads the homepage, robots.txt and the sitemaps, then every page about one a second (up to 2,000), then asks DataForSEO for the rankings and backlinks. A small site takes about a minute and costs a few cents; the cap is $2 a scan (in **Settings** on the tab).
-- **Search Console (optional).** If the client can give us their Search Console data, export the Pages and Queries report (Google's zip or a CSV) and press **Upload Search Console file**. It makes the results much more reliable. Most clients won't have it, and the scan works without it; the tab says "Estimated, no Search Console" when it doesn't have it.
+- **Search Console (optional).** Most clients won't have it, and the scan works without it; the tab says "Estimated, no Search Console". When a client does have it, follow **When the client has Search Console** at the end of this SOP: it makes the results much more reliable.
 - If the scan stops (a restart, a timeout), press **Resume**. It doesn't pay for anything twice.
 
 **First 3 real migrations only:** run the free Screaming Frog on the old site and check its page count against Copybot's **Total URLs**. Tell Brandon if they're far apart.
@@ -111,6 +112,7 @@ Change a decision later? Approve it, then dry run and push again.
 Same card, **Pre launch check**:
 
 1. **Run the check.** BLOCK stops a launch; WARN is for you to read.
+   - It also checks each Top 20 page's top searches are in its new page's title, H1 or text (**Top searches on the new pages** under the result). A missing one is a WARN: work the words into the page, or tell Brandon if they don't belong there.
    - BLOCKs before the build is finished are normal (destination pages not on staging yet). Run it again when Given says the site is built.
    - The live domain's versions (http, https, www) only warn before launch, because the live domain is still the old site.
 2. **Test on staging.** It switches the redirects on for a moment, requests each one, and switches them all off again, even if it fails part way. Every row should answer as the map says, and it should end with "All switched back off". If a redirect doesn't fire, purge the LiteSpeed cache on staging and test again.
@@ -123,28 +125,54 @@ Brandon signs off before launch. Send him:
 
 - The check result (no BLOCK) and the staging test result.
 - The Top 20 list with where each one goes.
-- The DNS snapshot from step 10.1.
+- The DNS snapshot (Site audit tab, **Launch and after**, **Take the DNS snapshot**). Take it now, before anything changes at the DNS host. Check it shows the client's email records (MX, and SPF if they have one).
 - Anything you marked by hand or weren't sure about.
 
 **Brandon also signs off the domain itself:** Copybot can't tell if a client is quietly moving to a new domain while their record still holds the old one. Check the domain on the record is the one the new site will launch on.
 
 ## 10. Launch day
 
-1. **Snapshot the DNS. By hand for now.** Before anything changes, record every DNS record for the domain from the registrar or DNS host: A, CNAME, **MX, SPF, DKIM, DMARC** and any other TXT. A screenshot or export into the client folder. The client's email depends on the MX and TXT records: losing them breaks their email.
+1. **The DNS snapshot is taken** (step 9). If the DKIM line says none were found but the client uses a business email provider, ask the provider for its DKIM key name and note it in the client folder: Copybot only finds keys under the common names.
 2. **Given switches the domain** to the new site and sets WordPress to the live domain, keeping every MX and TXT record.
 3. **Turn the redirects on.** In the new site's WordPress admin, **Settings → Copybot redirects → Turn on Copybot redirects**. The screen shows the last check's BLOCK count; don't turn on with a BLOCK. The destinations are rebuilt for the live domain as they turn on.
-4. **Check the live domain.** Site audit tab, **Check the live domain after launch**. Every version of the domain (http, https, www and non-www) must reach the final address in one hop. A BLOCK here is fixed the same day (Given: the hosting or Rank Math settings).
-5. **Check the email. By hand for now.** Compare the DNS against the snapshot: MX, SPF, DKIM and DMARC unchanged. Ask the client to send and receive one email.
-6. **Check the old URLs. By hand for now.** Open each Top 20 URL, and a handful of the others, on the live domain in a private window. Each should land on the page the map says, in one hop, with no 404.
+4. **Run the launch day check.** Site audit tab, **Launch and after**, **Run the launch day check**. It checks, read only:
+   - every version of the domain (http, https, www and non-www) reaches the final address in one hop;
+   - every old URL in the map on the live site: a Keep answers where it was, a 301 lands on its new page, a 410 is gone;
+   - the DNS against the snapshot: a lost MX, SPF, DMARC or DKIM record is a BLOCK, because the client's email stops or goes to spam.
+   The first run marks the site launched today. Pressed by mistake before launch? **Not launched after all?** undoes it (until day 7).
+5. **Fix every BLOCK the same day.** A wrong redirect: Given fixes it in Rank Math. A lost email record: Given puts it back at the DNS host from the snapshot. Then run the check again. Any BLOCK left is sent to Brandon by itself.
+6. **Ask the client to send and receive one email.**
 
 If something is badly wrong (the homepage is down, email has stopped): Given points the domain back to the old site, and you tell Brandon. The redirects are only on the new site, so the old site is untouched.
 
-## 11. After launch
+## 11. After launch (Copybot, by itself)
 
-- **Day 7. By hand for now.** Repeat step 10.6 for every URL in the map. If the client has Search Console, check the Pages report for new "Not found (404)" errors and add a redirect for any old URL that shows up there.
-- **Content check. By hand for now.** For each Top 20 page, its top searches (on the Site audit tab) should appear in the new page's title, H1 or text. If one doesn't, tell Brandon: the page may lose that search.
-- **90 days. By hand for now.** Watch the monthly rank scan (Rankings, Local Falcon) and ask the client about enquiries at each check in. Tell Brandon at once if: a Top 20 page's searches drop out of sight, enquiries fall noticeably, or Search Console shows a jump in errors.
+The **Launch and after** card shows what's next and when.
 
-## What Copybot doesn't do yet
+- **Day 7:** the launch day check runs again by itself. Anything broken since launch day goes to Brandon.
+- **Days 30, 60 and 90:** Copybot reads the domain's rankings from DataForSEO (a few cents each, logged with the other DataForSEO spend) and compares each Top 20 page with the old site. **A red flag** is either of these, and goes to Brandon at once:
+  - a Top 20 page's estimated visits fall by more than half at its new page;
+  - its main search (the best of its top searches that was in the top 20) drops out of the top 20.
+- A failed rankings check is shown on the card and not retried. It isn't worth chasing: the next one runs a month later.
+- Ask the client about enquiries at each check in. If they've dropped noticeably, tell Brandon.
+- A redirect needed after launch (an old URL turns up in Search Console, or the client mentions one): add it in **Rank Math → Redirections** on the live site as a 301, and change its row in the Site audit map so the record matches. Copybot's push only writes to staging.
 
-These are the **By hand for now** steps above. They're planned for the next build: checking every old URL against the live site on launch day and at day 7, the DNS snapshot and comparison, the content check on staging, the 90 day monitoring with red flags, the Search Console connection (instead of a file), and screenshots of the old pages.
+## When the client has Search Console
+
+Most clients won't. Ask once, at onboarding or when you start the scan: "Do you have Google Search Console set up for your website?" If they don't know what it is, they don't have it: carry on without it.
+
+If they do:
+
+1. **Get access.** Ask the client to add our Google account as a user: in Search Console, **Settings → Users and permissions → Add user**, our email, permission **Restricted** (read only). Use the Local Launchpad Google account Brandon names for this. If they'd rather not, ask them to do step 2 themselves and send you the file.
+2. **Export the data.** In Search Console, open the property for the domain, then **Performance → Search results**. Set the date range to **Last 12 months**. Press **Export → Download CSV**. Google gives a zip.
+3. **Upload it.** Site audit tab, **Upload Search Console file**, and choose the zip as it is (Copybot reads its Pages and Queries files). Before or after the scan is fine: the list is reworked either way, and the tab then says the benchmark is from Search Console.
+4. **After launch, if we have access:**
+   - **Launch day:** in Search Console, **Indexing → Sitemaps**, submit the new site's sitemap (`sitemap_index.xml` on a Rank Math site).
+   - **Day 7 and day 30:** **Indexing → Pages**, look at **Not found (404)**. Any old URL listed there that isn't in the map needs a redirect (step 11, last point).
+   - **Day 90:** compare clicks for the 3 months after launch with the same months a year earlier (**Performance**, **Compare**). Tell Brandon if they've fallen by more than half.
+
+## Not covered
+
+- **A change of domain.** Copybot stops the scan and the push. Tell Brandon.
+- **Screenshots of the old pages.** Not taken (Brandon, 12 Nov): the old page text is saved and shown in the page view.
+- **A Search Console connection.** Copybot reads the uploaded file only (Brandon, 12 Nov).

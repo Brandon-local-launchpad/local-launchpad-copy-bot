@@ -18,7 +18,11 @@
 //   POST /api/clients/:id/site-audit/redirects/rollback  { snapshot_id, confirm: true }
 //   POST /api/clients/:id/site-audit/redirects/validate  the pre launch check: the map, staging, the domain's forms
 //   POST /api/clients/:id/site-audit/redirects/test      { confirm: true }: on at staging, request each, always off
-//   POST /api/clients/:id/site-audit/redirects/after-launch  every version of the live domain in one hop. Read only
+//   POST /api/clients/:id/site-audit/redirects/after-launch  the launch day check: every version of the live domain in one
+//                                                        hop, every old URL on the live site, the DNS against the snapshot.
+//                                                        Read only. The first one marks the site launched (launch.js)
+//   POST /api/clients/:id/site-audit/launch/dns-snapshot  the DNS before launch. Read only
+//   POST /api/clients/:id/site-audit/launch/undo          { confirm: true }: not launched after all (before day 7 only)
 //   POST /api/clients/:id/site-audit/search-console      { csv, filename } or { zip_base64, filename }
 //   PUT  /api/clients/:id/site-audit/settings            the numbers on the Settings card
 function mountSiteAuditApi(app, { pool, siteAudit, log = console }) {
@@ -57,6 +61,8 @@ function mountSiteAuditApi(app, { pool, siteAudit, log = console }) {
   app.post('/api/clients/:id/site-audit/redirects/rollback', wrap(req => siteAudit.redirectsRollback(req.params.id, { snapshotId: (req.body || {}).snapshot_id, confirm: (req.body || {}).confirm === true, who: who(req) })));
   app.post('/api/clients/:id/site-audit/redirects/validate', wrap(req => siteAudit.validate(req.params.id)));
   app.post('/api/clients/:id/site-audit/redirects/after-launch', wrap(req => siteAudit.checkAfterLaunch(req.params.id)));
+  app.post('/api/clients/:id/site-audit/launch/dns-snapshot', wrap(req => siteAudit.snapshotDns(req.params.id)));
+  app.post('/api/clients/:id/site-audit/launch/undo', wrap(req => { if ((req.body || {}).confirm !== true) throw Object.assign(new Error('Undoing the launch needs confirming.'), { status: 400 }); return siteAudit.undoLaunch(req.params.id); }));
   app.post('/api/clients/:id/site-audit/redirects/test', wrap(req => siteAudit.testOnStaging(req.params.id, { confirm: (req.body || {}).confirm === true, who: who(req) })));
   app.post('/api/clients/:id/site-audit/search-console', wrap(async req => { const r = await siteAudit.uploadSearchConsole(req.params.id, req.body || {}); return { ...(await siteAudit.view(req.params.id)), uploaded: r.saved }; }));
   app.put('/api/clients/:id/site-audit/settings', wrap(req => siteAudit.saveSettings(req.params.id, req.body || {})));

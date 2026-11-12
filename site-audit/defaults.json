@@ -16,5 +16,8 @@
   "mass_page_minimum": 10,
   "site_pages": ["/", "/contact", "/about", "/privacy-policy", "/terms", "/service-terms", "/blog"],
   "gallery_page": "",
+  "monitor_drop": 0.5,
+  "monitor_top": 20,
+  "monitor_max_usd": 0.5,
   "never_destination_words": ["thank-you", "thankyou", "thank_you", "thanks"]
 }
