@@ -187,6 +187,11 @@ async function loadDashboard({ pool, tradeFacts = null, runners = {}, homepageRu
   const reviewRows = await soft(`SELECT client_id, status, count(*)::int AS n FROM gbp_reviews GROUP BY client_id, status`);
   const reviewBy = group(reviewRows, () => ({ queued: 0, posted: 0 }));
   for (const r of reviewRows) { const x = reviewBy.get(r.client_id); if (r.status === 'queued') x.queued += Number(r.n); else if (r.status === 'posted') x.posted += Number(r.n); }
+  // The Review Us page (review-funnel/): is the site connected, were its settings sent, and feedback nobody has had
+  const wpSites = new Set((await soft(`SELECT client_id FROM wp_connections`)).map(r => r.client_id));
+  const funnelSent = new Map((await soft(`SELECT client_id, sent_at FROM review_funnel_sites`)).map(r => [r.client_id, r.sent_at]));
+  const feedbackBy = group(await soft(`SELECT client_id FROM review_feedback`), () => ({ received: 0, unsent: 0 }));
+  for (const r of await soft(`SELECT client_id, client_emailed_at, handled_at FROM review_feedback`)) { const x = feedbackBy.get(r.client_id); x.received++; if (!r.client_emailed_at && !r.handled_at) x.unsent++; }
   const citeRows = await soft(`SELECT client_id, listed, status, count(*)::int AS n, count(last_scanned_at)::int AS scanned FROM client_citations GROUP BY client_id, listed, status`);
   const citeBy = group(citeRows, () => ({ rows: 0, scanned: 0, listed: 0, to_submit: 0, waiting: 0 }));
   for (const r of citeRows) { const x = citeBy.get(r.client_id), n = Number(r.n); x.rows += n; x.scanned += Number(r.scanned); if (r.listed === 'yes') x.listed += n; if (r.listed === 'no' && r.status === 'not_started') x.to_submit += n; if (r.status === 'awaiting_email' || r.status === 'awaiting_approval') x.waiting += n; }
@@ -308,6 +313,7 @@ async function loadDashboard({ pool, tradeFacts = null, runners = {}, homepageRu
       pages: { total: pages.length, written: pages.filter(p => p.good).length, records: pages.filter(p => p.record).length, claims: pages.reduce((n, p) => n + (p.claims || 0), 0), blocked: pages.filter(p => p.record && (p.blocked || p.block > 0)).length, failed: pages.filter(p => p.record && p.error).length, approved: pages.filter(p => p.good && p.approved).length },
       pages_at: maxDate(...pages.map(p => p.at)), homepage_good: pages.some(p => p.type === 'homepage' && p.good), pushed: (pushedByClient.get(c.id) || []).length,
       gbp_done: gbpDone, prompts_done: promptsDone, batches: batchBy.get(c.id) || null, connection: connBy.get(c.id) || null, published: pubBy.get(c.id) || null, reviews: reviewBy.get(c.id) || null,
+      review_funnel: { site: wpSites.has(c.id), link: !!require('../review-funnel/rules').reviewLink(cv || {}).url, sent_at: funnelSent.get(c.id) || null, ...(feedbackBy.get(c.id) || { received: 0, unsent: 0 }) },
       citations: citeBy.get(c.id) || null, has_scans: hasScans, existing_site: existingSite, site_audit: siteAudit, running: runs,
       onboarding: onboardingBy.get(c.id) || null,
     });

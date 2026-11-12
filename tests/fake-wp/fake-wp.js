@@ -14,14 +14,36 @@ const HOME_FIELDS = require('../../wp/acf-schema').GROUPS.flatMap(g => g.fields.
 // plugin: false → the companion plugin isn't installed (its routes 404)
 function createFakeWp({ user = 'copybot', appPassword = 'test-app-password-not-real', frontId = 7, pages = [],
   plugin = true, acfPro = true, seo = 'rankmath', fieldGroups = ALL_GROUPS, clientValues = {}, pluginVersion = null,
-  failWrites = false, ignoreAcf = [], elementorFront = true, rankMath = true, redirectionsModule = true, failRedirectWrites = false, mangleSource = null, otherRedirects = [], publicPaths = ['/'], publicRedirects = {}, trailingFront = null } = {}) {
+  failWrites = false, ignoreAcf = [], elementorFront = true, rankMath = true, redirectionsModule = true, failRedirectWrites = false, mangleSource = null, otherRedirects = [], publicPaths = ['/'], publicRedirects = {}, trailingFront = null, reviewFunnel = true, dropEndpoint = false } = {}) {
   // failWrites: page writes return 500; ignoreAcf: fields the site doesn't save (e.g. a field group that isn't there);
   // elementorFront: as the Edens Edge test copy does (3 Nov), a read of the front page that includes `content`
   // (no _fields, or _fields with content) comes back with `acf: []`; a read that names its fields gets the ACF
-  const state = { writes: 0, pages: new Map(pages.map(p => [p.id, JSON.parse(JSON.stringify(p))])), frontId, clientValues: { ...clientValues }, redirects: otherRedirects.map((r, i) => ({ id: 9000 + i, mine: false, status: 'active', code: 301, url_to: '/x', ...r })), nextRedirectId: 1, statusCalls: [], failStatus: {}, redirectCheck: null, publicPaths: new Set(publicPaths), requests: [] };
+  const state = { writes: 0, pages: new Map(pages.map(p => [p.id, JSON.parse(JSON.stringify(p))])), frontId, clientValues: { ...clientValues }, reviewEndpoint: '', feedbackPosts: [], redirects: otherRedirects.map((r, i) => ({ id: 9000 + i, mine: false, status: 'active', code: 301, url_to: '/x', ...r })), nextRedirectId: 1, statusCalls: [], failStatus: {}, redirectCheck: null, publicPaths: new Set(publicPaths), requests: [] };
   const redirectsReady = () => ({ rank_math: !!rankMath, module: !!(rankMath && redirectionsModule), ready: !!(rankMath && redirectionsModule) });
   const app = express();
   app.use(express.json({ limit: '2mb' }));
+
+  // The Review Us page as a visitor sees it (no login): the page is the plugin's own PHP, drawn by
+  // tests/php/review-box.js; the form's send is passed on to the address Copybot set, as the plugin does
+  // (the plugin's real send, with its checks and its email fallback, is tested in wp-plugin-php.js)
+  if (plugin && reviewFunnel) {
+    app.get('/review-us/', async (req, res) => {
+      try { res.type('html').send(await require('../php/review-box').render({ values: state.clientValues, siteUrl: `http://${req.headers.host}` })); }
+      catch (e) { console.error('[fake-wp] /review-us/', e); res.status(500).type('text').send(e.message); }
+    });
+    app.post('/wp-json/llp-copybot/v1/review-feedback', async (req, res) => {
+      const { website, ...value } = req.body || {};
+      state.feedbackPosts.push(req.body);
+      if (website) return res.json({ ok: true });
+      if (!state.reviewEndpoint) return res.status(502).json({ code: 'llp_not_sent', message: 'Sorry, that did not send.' });
+      try {
+        const r = await fetch(state.reviewEndpoint, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(value) });
+        const j = await r.json().catch(() => ({}));
+        if (r.ok) return res.json({ ok: true, by: 'copybot' });
+        res.status(r.status === 400 ? 400 : 502).json({ code: r.status === 400 ? 'llp_bad_feedback' : 'llp_not_sent', message: j.error || 'Sorry, that did not send.' });
+      } catch (e) { console.error('[fake-wp] review-feedback', e); res.status(502).json({ code: 'llp_not_sent', message: 'Sorry, that did not send.' }); }
+    });
+  }
 
   app.use('/wp-json', (req, res, next) => {
     const want = 'Basic ' + Buffer.from(`${user}:${appPassword}`).toString('base64');
@@ -33,6 +55,12 @@ function createFakeWp({ user = 'copybot', appPassword = 'test-app-password-not-r
     app.get('/wp-json/llp-copybot/v1/status', (req, res) => res.json({ plugin: pluginVersion || require('../../wp/plugin-version').VERSION, redirects: redirectsReady(), acf_pro: acfPro, seo, front_page: state.frontId, field_groups: fieldGroups }));
     app.get('/wp-json/llp-copybot/v1/client-values', (req, res) => res.json(state.clientValues));
     app.post('/wp-json/llp-copybot/v1/client-values', (req, res) => { state.writes++; Object.assign(state.clientValues, req.body); res.json(state.clientValues); });
+    // The Review Us page's settings (plugin 0.5.0, review-funnel.php): where feedback is sent. A site whose
+    // plugin is older answers 404 (reviewFunnel: false); dropEndpoint: the site answers but keeps nothing
+    if (reviewFunnel) {
+      app.get('/wp-json/llp-copybot/v1/review-funnel', (req, res) => res.json({ endpoint: state.reviewEndpoint }));
+      app.post('/wp-json/llp-copybot/v1/review-funnel', (req, res) => { state.writes++; if (!dropEndpoint) state.reviewEndpoint = String((req.body || {}).endpoint || ''); res.json({ endpoint: state.reviewEndpoint }); });
+    }
   }
   // As real ACF does: the homepage groups attach to the front page only. There every
   // homepage field comes back (null when unset); on any other page homepage fields are

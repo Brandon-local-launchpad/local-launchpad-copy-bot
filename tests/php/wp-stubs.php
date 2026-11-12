@@ -53,3 +53,21 @@ function wp_nonce_field( $a ) { echo '<input type="hidden" name="_wpnonce" value
 function check_admin_referer( $a ) { return true; }
 function wp_safe_redirect( $u ) { return true; }
 function wp_die( $m ) { throw new Exception( $m ); }
+
+// For review-funnel.php: the outside calls are recorded, and answer as the test sets them
+function __return_true() { return true; }
+function is_email( $e ) { return (bool) preg_match( '/^[^\s@]+@[^\s@]+\.[^\s@]+$/', (string) $e ); }
+function esc_url( $u ) { return preg_match( '#^https?://#i', (string) $u ) ? htmlspecialchars( (string) $u, ENT_QUOTES, 'UTF-8', false ) : ''; }
+function rest_url( $path = '' ) { return home_url( '/wp-json/' . ltrim( $path, '/' ) ); }
+function get_privacy_policy_url() { return $GLOBALS['llp_test']['privacy_url'] ?? ''; }
+function wp_json_encode( $d ) { return json_encode( $d ); }
+function get_transient( $k ) { return $GLOBALS['llp_test']['transients'][ $k ] ?? false; }
+function set_transient( $k, $v, $ttl = 0 ) { $GLOBALS['llp_test']['transients'][ $k ] = $v; return true; }
+function wp_remote_post( $url, $args ) {
+	$GLOBALS['llp_test']['remote_calls'][] = array( 'url' => $url, 'body' => json_decode( $args['body'], true ) );
+	$code = $GLOBALS['llp_test']['remote_code'] ?? 200;
+	return 0 === $code ? new WP_Error( 'http_request_failed', 'timed out' ) : array( 'response' => array( 'code' => $code ) );
+}
+function is_wp_error( $x ) { return $x instanceof WP_Error; }
+function wp_remote_retrieve_response_code( $r ) { return is_array( $r ) ? $r['response']['code'] : ''; }
+function wp_mail( $to, $subject, $body ) { $GLOBALS['llp_test']['mails'][] = array( 'to' => $to, 'subject' => $subject, 'body' => $body ); return $GLOBALS['llp_test']['mail_ok'] ?? true; }

@@ -62,6 +62,87 @@ llp_copybot_settings_page();
 $out['settings_page_inputs'] = substr_count( ob_get_clean(), '<input type="text"' );
 $out['key_count']            = count( llp_copybot_keys() );
 
+// ── The Review Us page (review-funnel.php) ───────────────────────────────────
+$F  = array();
+$T0 = &$GLOBALS['llp_test'];
+$T0['options'][ LLP_COPYBOT_OPTION ] = array( 'company_name' => 'Edens Edge <b>Landscaping</b>', 'owner_name' => 'Ethan', 'phone' => '07580 412717', 'email' => 'ethan@edensedge.test', 'review_url' => 'https://search.google.com/local/writereview?placeid=ChIJ_edens' );
+$T0['transients'] = array(); $T0['remote_calls'] = array(); $T0['mails'] = array(); $T0['privacy_url'] = 'https://site.test/privacy-policy/';
+$fb = function ( $body ) use ( $routes ) { return ( $routes['llp-copybot/v1/review-feedback']['callback'] )( new WP_REST_Request( $body ) ); };
+$fn = $routes['llp-copybot/v1/review-funnel'];
+$good = array( 'stars' => 2, 'name' => ' Sam <i>Carter</i> ', 'phone' => '07700 900123', 'email' => '', 'feedback' => "The patio was left <b>uneven</b>.\nNobody called back.", 'page_url' => 'https://site.test/review-us/', 'website' => '' );
+
+// Tokens in Elementor text and ordinary page text
+$F['elementor_text'] = apply_filters_test( 'elementor/frontend/the_content', '<p>Thanks for choosing [CV: company_name].</p><p>[CV: owner_name]</p><p>[CV: not_set]</p>' );
+$F['page_text']      = apply_filters_test( 'the_content', 'Call [CV: phone]' );
+$T0['is_admin'] = true;
+$F['text_admin']     = apply_filters_test( 'elementor/frontend/the_content', 'Call [CV: phone]' );
+$T0['is_admin'] = false;
+
+// The shortcode
+$sc = $GLOBALS['llp_test']['shortcodes']['llp_review_funnel'];
+$F['html']        = $sc( array() );
+$F['html_second'] = $sc( array() );
+$T0['options'][ LLP_COPYBOT_OPTION ]['review_url'] = '';
+$F['html_no_link'] = $sc( array() );
+$T0['options'][ LLP_COPYBOT_OPTION ]['review_url'] = 'https://search.google.com/local/writereview?placeid=ChIJ_edens';
+
+// Where feedback goes: Copybot sets it, admins only, https only
+$F['perm_public'] = ( $routes['llp-copybot/v1/review-feedback']['permission_callback'] )();
+$T0['caps']['manage_options'] = false;
+$F['perm_config'] = array( ( $fn[0]['permission_callback'] )(), ( $fn[1]['permission_callback'] )() );
+$T0['caps']['manage_options'] = true;
+$F['endpoint_before'] = ( $fn[0]['callback'] )();
+$F['endpoint_http']   = ( $fn[1]['callback'] )( new WP_REST_Request( array( 'endpoint' => 'http://copybot.example.test/api/public/review-feedback/abc' ) ) );
+$F['endpoint_bad']    = ( $fn[1]['callback'] )( new WP_REST_Request( array( 'nope' => 1 ) ) );
+
+// No endpoint yet: the site emails the client and the team itself
+$F['mail_fallback']      = $fb( $good );
+$F['mail_fallback_sent'] = $T0['mails'];
+$F['remote_before']      = count( $T0['remote_calls'] );
+
+$F['endpoint_set']   = ( $fn[1]['callback'] )( new WP_REST_Request( array( 'endpoint' => 'https://copybot.example.test/api/public/review-feedback/abc' ) ) );
+$F['endpoint_after'] = ( $fn[0]['callback'] )();
+$F['status']         = ( $routes['llp-copybot/v1/status']['callback'] )();
+
+// Passed to Copybot: tidied, and no email from the site
+$T0['mails'] = array();
+$F['forwarded']      = $fb( $good );
+$F['forwarded_call'] = $T0['remote_calls'];
+$F['forwarded_mail'] = count( $T0['mails'] );
+
+// What a send must hold
+$F['bad_stars']       = $fb( array_merge( $good, array( 'stars' => 5 ) ) );
+$F['bad_feedback']    = $fb( array_merge( $good, array( 'feedback' => '  ' ) ) );
+$F['bad_name']        = $fb( array_merge( $good, array( 'name' => '' ) ) );
+$F['bad_contact']     = $fb( array_merge( $good, array( 'phone' => '', 'email' => '' ) ) );
+$F['bad_email']       = $fb( array_merge( $good, array( 'email' => 'not an email' ) ) );
+$F['calls_after_bad'] = count( $T0['remote_calls'] );
+
+// A bot that fills the trap field: told it worked, nothing sent
+$F['trap']             = $fb( array_merge( $good, array( 'website' => 'http://spam.test' ) ) );
+$F['calls_after_trap'] = count( $T0['remote_calls'] );
+
+// Copybot down: the site's own email. Both down: the customer is told
+$T0['mails']       = array();
+$T0['remote_code'] = 500;
+$F['copybot_down']       = $fb( $good );
+$F['copybot_down_mails'] = count( $T0['mails'] );
+$T0['remote_code'] = 0;
+$T0['mail_ok']     = false;
+$F['both_down']    = $fb( $good );
+$T0['remote_code'] = 200;
+$T0['mail_ok']     = true;
+
+// Five sends an hour from one address
+$T0['transients'] = array();
+$F['limit']       = array();
+for ( $i = 0; $i < 6; $i++ ) {
+	$x            = $fb( $good );
+	$F['limit'][] = $x instanceof WP_Error ? $x->data['status'] : 200;
+}
+$T0['transients'] = array();
+$out['funnel']    = $F;
+
 // ── Redirects into Rank Math ─────────────────────────────────────────────────
 $T = &$GLOBALS['llp_test'];
 $r = $routes;

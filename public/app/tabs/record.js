@@ -90,7 +90,7 @@ const GROUPS = [
     { key: 'owner_photo', label: 'Owner photo', type: 'select', options: ['no', 'yes'] },
   ] },
   { key: 'reviews', title: 'Reviews', fields: [
-    { key: 'review_url', label: 'Google review link', placeholder: 'https://g.page/r/…/review (also pushed to the site)' },
+    { key: 'review_url', label: 'Google review link', placeholder: 'Leave blank: built from the confirmed Google listing. Type one only to use a different link' },
     { key: 'rating', label: 'Rating', placeholder: 'e.g. 4.9' },
     { key: 'review_count', label: 'Review count', placeholder: 'Number only' },
     { key: 'reviews_per_month', label: 'Reviews a month (target)', placeholder: 'Whole number' },

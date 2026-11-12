@@ -27,6 +27,7 @@ console.log('\n=== FIXTURE: companion plugin PHP (php-wasm) ===\n');
   put('/tests/plugin-tests.php', path.join(root, 'tests/php/plugin-tests.php'));
   put('/tests/rankmath-stubs.php', path.join(root, 'tests/php/rankmath-stubs.php'));
   put('/plugin/redirects.php', path.join(PLUGIN, 'redirects.php'));
+  put('/plugin/review-funnel.php', path.join(PLUGIN, 'review-funnel.php'));
 
   const res = await php.run({ scriptPath: '/tests/plugin-tests.php' });
   php.exit();
@@ -58,6 +59,30 @@ console.log('\n=== FIXTURE: companion plugin PHP (php-wasm) ===\n');
   chk('Status: plugin version, front page, SEO "none" without Rank Math/Yoast', o.status.plugin === require(path.join(root, 'wp/plugin-version.js')).VERSION && o.status.front_page === 7 && o.status.seo === 'none' && o.status.acf_pro === false, JSON.stringify(o.status), 'ok');
   chk('years_trading worked out from year_founded', o.years_trading === '17', o.years_trading, '17');
   chk('Settings page shows an input for every key', o.settings_page_inputs === o.key_count && o.key_count > 40, `${o.settings_page_inputs} inputs, ${o.key_count} keys`, 'equal');
+
+  // ── The Review Us page (review-funnel.php, 12 Nov 2026) ──
+  const F = o.funnel;
+  const JF = JSON.stringify;
+  const SAM = { stars: 2, name: 'Sam Carter', phone: '07700 900123', email: '', feedback: 'The patio was left uneven.\nNobody called back.', page_url: 'https://site.test/review-us/' };
+  chk('Review Us: [CV: key] in Elementor text is filled and escaped; a key with no value shows nothing', F.elementor_text === '<p>Thanks for choosing Edens Edge &lt;b&gt;Landscaping&lt;/b&gt;.</p><p>Ethan</p><p></p>', F.elementor_text, '');
+  chk('Review Us: ordinary page text is filled too, and tokens stay raw in the admin', F.page_text === 'Call 07580 412717' && F.text_admin === 'Call [CV: phone]', `${F.page_text} / ${F.text_admin}`, '');
+  chk('Review Us: the box has five stars, the form\'s four fields and the trap field', (F.html.match(/class="llp-rf-star"/g) || []).length === 5 && ['name="feedback"', 'name="name"', 'name="phone"', 'name="email"', 'name="website"'].every(s => F.html.includes(s)), F.html.slice(0, 300), '');
+  chk('Review Us: the box carries the client\'s Google link, where the form posts, and the phone', F.html.includes('data-review="https://search.google.com/local/writereview?placeid=ChIJ_edens"') && F.html.includes('data-send="https://site.test/wp-json/llp-copybot/v1/review-feedback"') && F.html.includes('data-phone="07580 412717"') && F.html.includes('href="https://search.google.com/local/writereview?placeid=ChIJ_edens"'), F.html.slice(0, 300), '');
+  chk('Review Us: the form links the Privacy Policy', F.html.includes('<a href="https://site.test/privacy-policy/">Privacy Policy</a>'), '', '');
+  chk('Review Us: the styles and the script are printed once a page', F.html.includes('<script id="llp-rf-js">') && F.html.includes('<style id="llp-rf-css">') && !F.html_second.includes('<script') && !F.html_second.includes('<style'), '', '');
+  chk('Review Us: no Google link, no Google button: a thank you only', F.html_no_link.includes('data-review=""') && !F.html_no_link.includes('Leave a Google Review') && F.html_no_link.includes('glad you were happy'), '', '');
+  chk('Review Us: the form is open to anyone; where feedback goes needs manage_options', F.perm_public === true && F.perm_config[0] === false && F.perm_config[1] === false, JF([F.perm_public, F.perm_config]), '');
+  chk('Review Us: an address that is not https is refused, and so is a body with none', F.endpoint_before.endpoint === '' && F.endpoint_http.code === 'llp_bad_endpoint' && F.endpoint_bad.code === 'llp_bad_body', JF([F.endpoint_http, F.endpoint_bad]), '');
+  chk('Review Us: Copybot sets the address, and status reports it', F.endpoint_set.endpoint === 'https://copybot.example.test/api/public/review-feedback/abc' && F.endpoint_after.endpoint === F.endpoint_set.endpoint && F.status.review_funnel === true, JF([F.endpoint_set, F.status.review_funnel]), '');
+  const m = F.mail_fallback_sent[0] || {};
+  chk('Review Us: with no Copybot address the site emails the client and the team itself', F.mail_fallback.ok === true && F.mail_fallback.by === 'mail' && F.remote_before === 0 && F.mail_fallback_sent.length === 1 && JF(m.to) === JF(['ethan@edensedge.test', 'team@locallaunchpad.co.uk']) && m.subject === 'A customer left private feedback (2 stars)' && m.body.includes('Name: Sam Carter') && m.body.includes('Email: not given') && m.body.includes('Nobody called back.'), JF(m), '');
+  const call = F.forwarded_call[0] || {};
+  chk('Review Us: feedback is passed to Copybot tidied (tags stripped, lines kept), with no email from the site', F.forwarded.ok === true && F.forwarded.by === 'copybot' && F.forwarded_call.length === 1 && call.url === 'https://copybot.example.test/api/public/review-feedback/abc' && JF(call.body) === JF(SAM) && F.forwarded_mail === 0, JF(call), JF(SAM));
+  chk('Review Us: 4 or 5 stars, no feedback, no name, no phone or email, a bad email: each refused with a 400 and nothing sent',
+    [F.bad_stars, F.bad_feedback, F.bad_name, F.bad_contact, F.bad_email].every(x => x.code === 'llp_bad_feedback' && x.data.status === 400) && F.calls_after_bad === 1 && /phone number or an email/.test(F.bad_contact.message), JF([F.bad_stars, F.bad_contact]), '');
+  chk('Review Us: a bot that fills the trap field is told it worked and nothing is sent', F.trap.ok === true && !F.trap.by && F.calls_after_trap === 1, JF(F.trap), '');
+  chk('Review Us: Copybot down, the site\'s own email goes; both down, the customer is told it did not send', F.copybot_down.by === 'mail' && F.copybot_down_mails === 1 && F.both_down.code === 'llp_not_sent' && F.both_down.data.status === 502, JF([F.copybot_down, F.both_down]), '');
+  chk('Review Us: five sends an hour from one address, the sixth is refused', JF(F.limit) === JF([200, 200, 200, 200, 200, 429]), JF(F.limit), '');
 
   // ── Redirects into Rank Math (against a stand-in for its classes, tests/php/rankmath-stubs.php) ──
   const R = o.redirects;
