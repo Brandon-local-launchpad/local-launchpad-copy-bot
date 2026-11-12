@@ -1,6 +1,6 @@
 // The Reviews tab (8 Nov 2026): one client's review replies set-up. Brandon's brief, sections 4, 5 and 7:
 // the eight template fields (red while blank; the direct phone and email need confirming), the go-live
-// date, the Lead Snap check, automatic posting for 4 and 5 stars, the approver, the backlog, and the
+// date, automatic posting for 4 and 5 stars, the approver, the backlog, and the
 // reviews as last synced. The queue across clients is the Review replies screen.
 
 import { h, attr, api, card, toast, confirm, empty, failed, pill, fmtDate } from '../ui.js';
@@ -61,7 +61,6 @@ export async function render(el, ctx) {
           <label style="display:block;margin-bottom:10px"><span class="small"><strong>Approver name</strong></span><input class="input" name="approver_name" value="${attr(s.approver_name || '')}" style="width:100%"></label>
           <label style="display:block;margin-bottom:10px"><span class="small"><strong>Approver email</strong> <span class="muted">Told when replies wait, and at 48 hours</span></span><input class="input" type="email" name="approver_email" value="${attr(s.approver_email || '')}" style="width:100%"></label>
         </div>
-        <label class="small" style="display:block;margin:6px 0 10px"><input type="checkbox" name="leadsnap_checked" ${s.leadsnap_checked ? 'checked' : ''}> <strong>Required:</strong> if this client is live on Lead Snap, its automated review replies are off for all five star ratings. Lead Snap's default has 1 star on Fully Automated, and two systems would overwrite each other.${s.leadsnap_checked && s.leadsnap_checked_by ? ` <span class="muted">Ticked by ${h(s.leadsnap_checked_by)}${s.leadsnap_checked_at ? `, ${h(fmtDate(s.leadsnap_checked_at, true))}` : ''}</span>` : ''}</label>
         <label class="small" style="display:block;margin:0 0 12px"><input type="checkbox" name="auto_post" ${s.auto_post ? 'checked' : ''}> Post 4 and 5 star replies automatically when the draft passes its checks. ${s.auto_post ? pill('ok', 'Automatic') : pill('none', 'Off: everything waits in the queue')} <span class="muted">1 to 3 stars always wait for a person.</span></label>
         <div class="btn-row"><button class="btn btn-primary" type="submit">Save</button></div></form>`,
     });
@@ -82,7 +81,7 @@ export async function render(el, ctx) {
     const body = { by: by() };
     for (const f of S.fields) body[f.key] = form.elements[f.key].value;
     for (const k of ['live_from', 'approver_name', 'approver_email']) body[k] = form.elements[k].value;
-    for (const k of ['phone_confirmed', 'email_confirmed', 'leadsnap_checked', 'auto_post']) body[k] = form.elements[k].checked;
+    for (const k of ['phone_confirmed', 'email_confirmed', 'auto_post']) body[k] = form.elements[k].checked;
     if (body.auto_post && !S.settings.auto_post && !(await confirm({ title: 'Post 4 and 5 star replies automatically?', text: 'Replies that pass their checks will go on Google without a person seeing them first. Check the first batch in the queue before switching this on.', ok: 'Switch on' }))) return;
     try { S = await api(`${url}/settings`, { method: 'PUT', body }); toast('Saved'); draw(); }
     catch (err) { toast(err.message, 'bad'); }

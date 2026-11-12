@@ -201,7 +201,8 @@ function createReviewSync({ store, publishStore, getBundle, callModel, model = n
       const all = await store.allSettings();
       for (const s of all.filter(x => !clientId || x.client_id === clientId)) {
         const entry = { client_id: s.client_id };
-        if (!str(s.live_from) || !s.leadsnap_checked) { summary.clients.push({ ...entry, skipped: true, notes: ['Not switched on: the live from date and the Lead Snap tick are both needed.'] }); continue; }
+        // The live from date alone switches a client on. The Lead Snap tick went on 12 Nov (Brandon): no client is on Lead Snap
+        if (!str(s.live_from)) { summary.clients.push({ ...entry, skipped: true, notes: ['Not switched on: the live from date is needed.'] }); continue; }
         const conn = publishStore ? await publishStore.connection(s.client_id) : null;
         if (!conn || conn.status !== 'connected' || !conn.team_id) { summary.clients.push({ ...entry, skipped: true, notes: ['Not connected to bundle.social (the GBP Posts tab, Publishing).'] }); continue; }
         try { summary.clients.push(await syncClient(s.client_id, s, conn)); }

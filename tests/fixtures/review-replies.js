@@ -331,13 +331,20 @@ chk('the go-live rule is a UK date', isLive('2026-11-10T00:00:00Z', '2026-11-10'
   a = await req('PUT', `/api/clients/${c.id}/reviews/settings`, { direct_phone: '07580 412717', phone_confirmed: true, by: 'Ray' });
   chk('confirming it clears the stop', a.status === 200 && a.json.missing.length === 0, JSON.stringify(a.json.missing), '[]');
   a = await req('PUT', `/api/clients/${c2.id}/reviews/settings`, { auto_post: true, by: 'Ray' });
-  chk('automatic posting needs the live from date and the Lead Snap tick first', a.status === 400 && /Lead Snap/.test(a.json.error), `${a.status} ${a.json.error}`, '400');
+  chk('automatic posting needs the live from date first', a.status === 400 && /live from date/.test(a.json.error), `${a.status} ${a.json.error}`, '400');
   a = await req('PUT', `/api/clients/${c2.id}/reviews/settings`, { live_from: '10/11/2026' });
   chk('the live from date must be a date', a.status === 400, a.status, 400);
   a = await req('PUT', `/api/clients/${c2.id}/reviews/settings`, { leadsnap_checked: true, by: 'Ray' });
   chk('the Lead Snap tick records who and when', a.status === 200 && a.json.settings.leadsnap_checked && a.json.settings.leadsnap_checked_by === 'Ray' && !!a.json.settings.leadsnap_checked_at, JSON.stringify(a.json.settings).slice(0, 80), '');
   run = await sync.runSync();
   chk('a client without a live from date is skipped by the sync', run.summary.clients.find(x => x.client_id === c2.id).skipped === true, '', '');
+  // The Lead Snap tick went on 12 Nov (Brandon): no client is on Lead Snap, so the live from date alone switches a client on
+  a = await req('PUT', `/api/clients/${c2.id}/reviews/settings`, { leadsnap_checked: false, live_from: '2026-11-10', by: 'Ray' });
+  run = await sync.runSync();
+  { const e = run.summary.clients.find(x => x.client_id === c2.id); chk('with a live from date and no Lead Snap tick the sync no longer says not switched on', a.status === 200 && !(e.notes || []).some(n => /Not switched on/.test(n)), JSON.stringify(e), ''); }
+  a = await req('PUT', `/api/clients/${c2.id}/reviews/settings`, { auto_post: true, by: 'Ray' });
+  chk('automatic posting with a live from date and no Lead Snap tick is allowed', a.status === 200 && a.json.settings.auto_post === true, `${a.status} ${a.json.error || ''}`, '200');
+  a = await req('PUT', `/api/clients/${c2.id}/reviews/settings`, { auto_post: false, live_from: '', by: 'Ray' });
 
   // [T7] RATE_LIMITED, FAILED and 409
   fake.state.importSteps = ['PENDING', 'RATE_LIMITED', 'RATE_LIMITED', 'COMPLETED'];

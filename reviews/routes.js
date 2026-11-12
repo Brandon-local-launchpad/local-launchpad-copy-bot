@@ -153,7 +153,7 @@ function mountReviewsApi(app, { pool, store, sync, getBundle, suggestFor = async
     if ('direct_phone' in f && f.direct_phone !== str(old.direct_phone) && !('phone_confirmed' in b)) f.phone_confirmed = false;
     if ('direct_email' in f && f.direct_email !== str(old.direct_email) && !('email_confirmed' in b)) f.email_confirmed = false;
     if ('leadsnap_checked' in b) Object.assign(f, b.leadsnap_checked ? { leadsnap_checked: true, leadsnap_checked_at: old.leadsnap_checked ? old.leadsnap_checked_at : at(), leadsnap_checked_by: old.leadsnap_checked ? old.leadsnap_checked_by : str(b.by).slice(0, 80) || null } : { leadsnap_checked: false, leadsnap_checked_at: null, leadsnap_checked_by: null });
-    if (f.auto_post && !(str(f.live_from || old.live_from) && (f.leadsnap_checked ?? old.leadsnap_checked))) throw bad('Set the live from date and tick the Lead Snap check before switching on automatic posting.');
+    if (f.auto_post && !str(f.live_from || old.live_from)) throw bad('Set the live from date before switching on automatic posting.');
     await store.saveSettings(id, f, { by: str(b.by).slice(0, 80), at: at() });
     res.json(await clientView(id));
   }));
