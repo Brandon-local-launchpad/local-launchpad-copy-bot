@@ -203,6 +203,9 @@ async function loadDashboard({ pool, tradeFacts = null, runners = {}, homepageRu
 
   // Onboarding answers from GHL (ghl-onboarding/): the saved answers and the steps a person ticked Done
   const onboardingBy = await require('../ghl-onboarding/service').loadOnboardingFacts(pool).catch(() => new Map());
+  // Tell Brandon (brandon/service.js): what people have sent him that he has not marked done
+  const brandonBy = new Map();
+  for (const r of await soft(`SELECT id, client_id, reason, note, asked_by, created_at, emailed FROM brandon_asks WHERE done_at IS NULL ORDER BY created_at`)) { if (!brandonBy.has(r.client_id)) brandonBy.set(r.client_id, []); brandonBy.get(r.client_id).push({ id: r.id, reason: r.reason, note: r.note || '', by: r.asked_by || '', at: r.created_at, emailed: !!r.emailed }); }
 
   // The automation chain (automation/runner.js): the switch and the latest steps per client
   const autoState = new Map((await soft(`SELECT client_id, enabled, enabled_at, waiting FROM automation_state`)).map(r => [r.client_id, r]));
@@ -328,6 +331,7 @@ async function loadDashboard({ pool, tradeFacts = null, runners = {}, homepageRu
       upkeep: { place_id: !!str((cv || {}).gbp_place_id), competitors_at: compAt.get(c.id) || null, scan_at: lastScan.has(c.id) ? lastScan.get(c.id).finished_at : null, scan_cost_usd: lastScan.has(c.id) ? Number(lastScan.get(c.id).cost_usd) : null,
         publishing_on: !!(connBy.get(c.id) && connBy.get(c.id).status === 'connected' && connBy.get(c.id).publishing_on), draft_batches: (batchBy.get(c.id) || { draft: 0 }).draft, last_post_date: lastPost.get(c.id) || null },
       tracker, automation, form_needed: (gaps.get(c.id) || { needed: 0 }).needed,
+      brandon: brandonBy.get(c.id) || [],
       // The page list (type, key, title, good, block, claims, score, at) only for one client's summary
       page_list: clientId ? pages : undefined,
     });
@@ -341,6 +345,7 @@ async function loadDashboard({ pool, tradeFacts = null, runners = {}, homepageRu
     new_week: fresh.filter(r => new Date(r.first_submission_at) >= weekStart).length,
     needs_person: { count: rows.filter(r => !r.archived && r.needs_person).length, by_kind: needs },
     running: runningNow.length,
+    brandon: rows.filter(r => !r.archived).reduce((n, r) => n + r.brandon.length, 0),
   };
   return { tiles, clients: rows, running: runningNow, tabs, niches, stages: STAGES, generated_at: now.toISOString() };
 }

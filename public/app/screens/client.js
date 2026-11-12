@@ -4,6 +4,7 @@
 
 import { h, attr, api, status, pill, dot, timeEl, toast, confirm, tag, dialog } from '../ui.js';
 import { trackerStrip } from '../tracker.js';
+import { tellBrandon, markDone } from '../tell-brandon.js';
 
 const TABS = [
   ['record', 'Record'], ['locations', 'Locations'], ['research', 'Research'], ['page-map', 'Page map'], ['pages', 'Pages'],
@@ -110,11 +111,18 @@ export async function render(root, params, ctx) {
   // The live tracker above the tabs: redrawn from the summary every 15 seconds, open or shut remembered
   const trkEl = root.querySelector('#tracker');
   const remembered = () => { try { return localStorage.getItem('trackerOpen') !== '0'; } catch (_) { return true; } };
-  let trkOpen = remembered(), tracker = row.tracker;
-  const drawTracker = () => { if (tracker) trkEl.innerHTML = trackerStrip(clientId, tracker, { open: trkOpen }); };
+  let trkOpen = remembered(), tracker = row.tracker, brandon = row.brandon || [];
+  const drawTracker = () => { if (tracker) trkEl.innerHTML = trackerStrip(clientId, tracker, { open: trkOpen, brandon }); };
   trkEl.addEventListener('click', e => { if (!e.target.closest('#trkToggle')) return; trkOpen = !trkOpen; try { localStorage.setItem('trackerOpen', trkOpen ? '1' : '0'); } catch (_) { /* private window */ } drawTracker(); });
   drawTracker();
-  const reloadTracker = async () => { const s = await api(`/api/clients/${clientId}/summary`); tracker = s.row.tracker; drawTracker(); };
+  const reloadTracker = async () => { const s = await api(`/api/clients/${clientId}/summary`); tracker = s.row.tracker; brandon = s.row.brandon || []; drawTracker(); };
+  // Tell Brandon (public/app/tell-brandon.js): the button on the strip, and Done on what is waiting on him
+  trkEl.addEventListener('click', async e => {
+    if (e.target.closest('#trkTell')) return tellBrandon({ clientId, clientName: client.name, place: 'client', tab: location.pathname.split('/')[3] || '', by: row.assigned_to || '', onSent: () => reloadTracker().catch(() => {}) });
+    const d = e.target.closest('[data-tb-done]');
+    if (d) { try { await markDone(d.dataset.tbDone, row.assigned_to || ''); await reloadTracker(); } catch (err) { toast(err.message, 'bad'); } }
+    return undefined;
+  });
   trkEl.addEventListener('change', async e => {
     if (e.target.id !== 'trkAuto') return;
     const on = e.target.checked;
@@ -149,7 +157,7 @@ export async function render(root, params, ctx) {
   const trkTimer = setInterval(async () => {
     if (!trkEl.isConnected) return clearInterval(trkTimer);
     if (document.hidden) return;
-    try { const s = await api(`/api/clients/${clientId}/summary`); tracker = s.row.tracker; drawTracker(); } catch (_) { /* the next tick tries again */ }
+    try { const s = await api(`/api/clients/${clientId}/summary`); tracker = s.row.tracker; brandon = s.row.brandon || []; drawTracker(); } catch (_) { /* the next tick tries again */ }
   }, 15000);
 
   // The tab

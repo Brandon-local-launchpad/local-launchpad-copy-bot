@@ -7,6 +7,7 @@
 // the page map or GBP (Stage 6 reads the approved list when the page map is generated).
 
 import { h, attr, api, card, table, status, pill, tag, toast, confirm, busy, info, copyBtn, wire, tile } from '../ui.js';
+import { tellBrandon } from '../tell-brandon.js';
 
 const LABEL = { tier1: 'Tier 1', tier2: 'Tier 2', area_only: 'Area only', excluded: 'Excluded' };
 const KIND = { tier1: 'accent', tier2: 'run', area_only: '', excluded: 'block' };
@@ -46,7 +47,7 @@ export async function render(el, ctx) {
     const c = dry.counts, e = dry.estimate;
     return `<div class="notice">Dry run: ${c.candidates} candidates in the volume run (${c.inside_reach} inside reach, ${c.districts_of_base} districts of the base town), ${c.area_only} area only, ${c.excluded} excluded (${c.across_water} across water). ${dry.plan.keyword_count} keywords (${dry.plan.keywords_to_buy} to buy), up to ${dry.plan.serp_to_buy} SERPs to buy. <strong>Estimate up to $${Number(e.total_usd).toFixed(2)}.</strong> Run buys that and saves a new run.</div>`;
   };
-  const runBar = () => `<div class="btn-row"><button class="btn btn-ghost btn-sm" id="dryBtn">Dry run (free)</button><button class="btn btn-primary btn-sm" id="runBtn" ${dry && dry.ok ? '' : 'disabled'}>Run (buys)</button>${info('The dry run spends nothing and shows the cost. Run buys the DataForSEO volumes and SERPs the dry run planned and saves a new run; the caches make a rerun cheap.')}</div>`;
+  const runBar = () => `<div class="btn-row"><button class="btn btn-ghost btn-sm" id="tellBtn" title="Not sure about the address or the base town: ask Brandon">Tell Brandon</button><button class="btn btn-ghost btn-sm" id="dryBtn">Dry run (free)</button><button class="btn btn-primary btn-sm" id="runBtn" ${dry && dry.ok ? '' : 'disabled'}>Run (buys)</button>${info('The dry run spends nothing and shows the cost. Run buys the DataForSEO volumes and SERPs the dry run planned and saves a new run; the caches make a rerun cheap.')}</div>`;
 
   const rowHtml = t => {
     const tags = [t.client_asked ? tag('wait', 'typed by client') : '', t.source === 'manual' ? tag('hand', 'by hand') : '', t.ambiguous ? `<span class="tip" data-tip="${attr((t.namesake_examples || []).join(', ') || 'shared name')}">${tag('wait', `shared name (${t.namesakes})`)}</span>` : '', t.client_declined ? tag('block', 'client declined') : '', t.moved ? tag('ok', 'moved') : '', t.population_rule && !t.moved ? tag('run', 'population') : ''].join(' ');
@@ -133,7 +134,8 @@ export async function render(el, ctx) {
   };
 
   const wireRun = () => {
-    const dryBtn = el.querySelector('#dryBtn'), runBtn = el.querySelector('#runBtn');
+    const dryBtn = el.querySelector('#dryBtn'), runBtn = el.querySelector('#runBtn'), tellBtn = el.querySelector('#tellBtn');
+    if (tellBtn) tellBtn.addEventListener('click', () => tellBrandon({ clientId: ctx.clientId, clientName: (ctx.client && ctx.client.name) || '', place: 'locations', tab: 'locations', context: [{ label: 'Base town', value: (ctx.summary && ctx.summary.baseTown) || '' }] }));
     if (dryBtn) dryBtn.addEventListener('click', () => busy(dryBtn, 'Running the dry run…', async () => { try { dry = await api(`${base}/dry-run`); } catch (e) { toast(e.message, 'bad'); } draw(); }));
     if (runBtn) runBtn.addEventListener('click', async () => {
       if (!dry || !dry.ok) return;

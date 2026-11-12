@@ -3,6 +3,7 @@
 // leaves the posts below working.
 
 import { h, attr, api, card, toast, confirm, dialog, empty, fmtDate, pill } from '../ui.js';
+import { tellBrandon } from '../tell-brandon.js';
 
 const WEEKDAY = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 const nice = d => { const x = new Date(`${d}T12:00:00Z`); return `${WEEKDAY[x.getUTCDay()]} ${x.getUTCDate()} ${x.toLocaleString('en-GB', { month: 'short', timeZone: 'UTC' })} ${x.getUTCFullYear()}`; };
@@ -24,7 +25,7 @@ export async function renderPublishing(el, ctx, { queueEl = null, onData = () =>
     const where = C && C.location_name ? `<div style="margin-bottom:10px" data-location><strong>${h(C.location_name)}</strong>${C.location_address ? `<div class="small muted">${h(C.location_address)}</div>` : ''}<div class="small muted">Through the ${h(C.source_name || '')} login${C.checked_at ? `, last checked ${h(fmtDate(C.checked_at, true))}` : ''}</div></div>` : '<div class="muted small" style="margin-bottom:10px">Not connected. The client never logs in: Copybot uses the agency\'s Google connection.</div>';
     const on = connected && C.publishing_on;
     const sw = connected ? `<button class="btn ${on ? 'btn-ghost' : 'btn-primary'}" data-pub="${on ? 'off' : 'on'}">${on ? 'Switch publishing off' : 'Switch publishing on'}</button> ${on ? pill('ok', 'On') : pill('none', 'Off')}` : '';
-    return card({ title: 'Publishing', sub: 'Where this client\'s posts and photos go', body: `${problem}${where}<div class="btn-row"><button class="btn ${connected ? 'btn-ghost' : 'btn-primary'}" data-pub="connect">${C && C.channel_id ? 'Change location' : 'Connect to bundle.social'}</button>${sw}</div>${S.last_run ? `<div class="small muted" style="margin-top:8px">Last daily run ${h(fmtDate(S.last_run.started_at, true))}</div>` : ''}` });
+    return card({ title: 'Publishing', sub: 'Where this client\'s posts and photos go', body: `${problem}${where}<div class="btn-row"><button class="btn ${connected ? 'btn-ghost' : 'btn-primary'}" data-pub="connect">${C && C.channel_id ? 'Change location' : 'Connect to bundle.social'}</button>${sw}<button class="btn btn-ghost" data-pub="tell" title="The client is not in the list, or the connection has a problem: ask Brandon">Tell Brandon</button></div>${S.last_run ? `<div class="small muted" style="margin-top:8px">Last daily run ${h(fmtDate(S.last_run.started_at, true))}</div>` : ''}` });
   };
 
   const dripCard = () => {
@@ -90,8 +91,9 @@ export async function renderPublishing(el, ctx, { queueEl = null, onData = () =>
       const act = b.dataset.pub;
       if (act === 'reload') return load();
       if (act === 'connect') return chooseLocation();
+      if (act === 'tell') { const C = S.connection || {}; return tellBrandon({ clientId: ctx.clientId, clientName: (ctx.client && ctx.client.name) || '', place: 'connect', tab: 'gbp-posts?s=publishing', context: [{ label: 'Connection', value: C.status || 'not connected' }, { label: 'Location', value: [C.location_name, C.location_address].filter(Boolean).join(', ') }, { label: 'Problem', value: C.problem || '' }] }); }
       if (act === 'on') {
-        if (!(await confirm({ title: 'Switch publishing on?', text: 'Approved posts and photos will start going out on their dates, to the location above. Stop autopost in Lead Snap for this client first, or it will post through both.', ok: 'Switch on' }))) return;
+        if (!(await confirm({ title: 'Switch publishing on?', text: 'Approved posts and photos will start going out on their dates, to the location above.', ok: 'Switch on' }))) return;
         return call('/switch', { method: 'POST', body: { on: true } }, 'Publishing is on');
       }
       if (act === 'off') return call('/switch', { method: 'POST', body: { on: false } }, 'Publishing is off');

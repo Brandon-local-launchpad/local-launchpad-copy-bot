@@ -2,6 +2,7 @@
 // section 5. Every rule that matters is on the server (reviews/post.js); this screen only asks for it.
 
 import { h, attr, api, card, toast, confirm, dialog, empty, failed, pill, fmtDate, debounce } from '../ui.js';
+import { tellBrandon } from '../tell-brandon.js';
 
 const STARS = n => `<span title="${n} star${n === 1 ? '' : 's'}" style="color:${n <= 3 ? '#b45309' : '#15803d'};letter-spacing:1px">${'★'.repeat(n || 0)}<span style="color:#d1d5db">${'★'.repeat(5 - (n || 0))}</span></span>`;
 const FLAG = { review_changed: ['wait', 'Review changed'], reply_rejected: ['block', 'Google rejected the reply'], draft_failed: ['wait', 'Draft failed its checks'], post_failed: ['block', 'Post failed'] };
@@ -53,6 +54,7 @@ export async function render(root, params, ctx) {
         ${neutral ? '' : '<button class="btn btn-ghost" data-do="neutral">Use neutral reply</button>'}
         <button class="btn btn-ghost" data-do="regenerate" ${posting || i.missing.length ? 'disabled' : ''}>Regenerate</button>
         <button class="btn btn-ghost" data-do="no-reply" ${posting ? 'disabled' : ''}>No reply</button>
+        <button class="btn btn-ghost" data-do="tell" title="Ask Brandon about this review: he gets the stars, the name and the text">Tell Brandon</button>
       </div>
     </div>`;
   };
@@ -78,6 +80,7 @@ export async function render(root, params, ctx) {
     const item = S.items.find(x => x.id === id);
     const tick = k => { const x = el.querySelector(`[data-tick="${k}"]`); return !!(x && x.checked); };
     const act = b.dataset.do;
+    if (act === 'tell') return tellBrandon({ clientId: item.client_id, clientName: item.client_name, place: 'review', tab: 'reviews', by: by(), context: [{ label: 'Stars', value: String(item.stars || '') }, { label: 'Reviewer', value: item.reviewer_name || 'No name' }, { label: 'Review', value: item.comment || '(no text)' }, { label: 'Posted', value: item.create_time ? fmtDate(item.create_time, true) : '' }] });
     b.disabled = true;
     try {
       if (act === 'approve') {

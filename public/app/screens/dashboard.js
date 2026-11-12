@@ -5,6 +5,7 @@
 import { h, attr, api, card, tile, table, sortRows, status, pill, timeEl, running, empty, failed, lineChart, exportSvgPng, wire, info, plural } from '../ui.js';
 import { clientsTable, STAGE_KIND } from './clients-table.js';
 import { stepHref } from '../tracker.js';
+import { waitingList, markDone } from '../tell-brandon.js';
 
 const TIPS = {
   new_today: 'Fillout submissions that arrived today and created a client.',
@@ -29,6 +30,7 @@ export async function render(root, params, ctx) {
         <div class="ph-actions"><a class="btn btn-primary" href="/add-client" data-link>Add client</a></div></div>
       <div id="reviewsWaiting"></div>
       <div id="onbUnmatched"></div>
+      <div id="brandonWaiting">${brandonCard(data.clients)}</div>
       <div class="grid grid-4" id="tiles">
         ${tile({ label: 'New clients today', value: t.new_today, tip: TIPS.new_today, href: '/clients?new=today' })}
         ${tile({ label: 'New clients this week', value: t.new_week, tip: TIPS.new_week, href: '/clients?new=week' })}
@@ -71,6 +73,18 @@ export async function render(root, params, ctx) {
       };
     }).catch(() => {});
   };
+
+  // Waiting on Brandon (brandon/, 12 Nov 2026): what people sent with the Tell Brandon button, oldest first, each with Done
+  const brandonCard = clients => {
+    const asks = clients.filter(c => !c.archived).flatMap(c => (c.brandon || []).map(a => ({ ...a, client: c.name, client_id: c.id }))).sort((a, b) => new Date(a.at) - new Date(b.at));
+    if (!asks.length) return '';
+    return `<div style="margin-bottom:16px">${card({ title: `Waiting on Brandon (${asks.length})`, sub: 'Questions sent with the Tell Brandon button, oldest first. Press Done once each is sorted.', body: waitingList(asks) })}</div>`;
+  };
+  root.addEventListener('click', async e => {
+    const d = e.target.closest('[data-tb-done]'); if (!d) return;
+    d.disabled = true;
+    try { await markDone(d.dataset.tbDone); load(); } catch (err) { d.disabled = false; window.alert(err.message); }
+  });
 
   // The queue: one block per client with its steps for a person, in the order to do them
   const queueBody = clients => {

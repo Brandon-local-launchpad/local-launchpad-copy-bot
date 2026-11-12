@@ -53,6 +53,7 @@ else app.post('/api/webhooks/fillout', (_req, res) => res.status(503).json({ err
 // (GHL_ONBOARDING_SECRET; everything is refused until it is set).
 const ghlOnboardingRoutes = require('./ghl-onboarding/routes');
 let ghlOnboardingNotify = null;   // set once the operator's emails are wired, further down
+let dripStateForBrandon = null;   // the Photo Drip state, set once publishing is wired, for brandon/ alerts
 const ghlOnboarding = pool ? require('./ghl-onboarding/service').createOnboarding({ pool, notify: m => (ghlOnboardingNotify ? ghlOnboardingNotify(m) : null) }) : null;
 if (ghlOnboarding) ghlOnboardingRoutes.mountWebhook(app, ghlOnboarding, { secret: process.env.GHL_ONBOARDING_SECRET || '' });
 else app.post(ghlOnboardingRoutes.PATH, (_req, res) => res.status(503).json({ error: 'Database not configured.' }));
@@ -4153,6 +4154,7 @@ if (pool && pageMapStore) {
     limit: () => PUB.dailyLimit(),
   });
   require('./publisher/routes').mountPublishingApi(app, { pool, publishing: publishingService, store: publishStore, postStore: gbpPosts.store });
+  dripStateForBrandon = id => publishingService.dripState(id);
   // Google review replies through bundle.social (8 Nov 2026, docs/current-build/Review_Replies_Bundle_Social_Build_Brief.md).
   // The sync is its own Railway cron service (jobs/reviews-sync.js); here are the queue, the settings and
   // the buttons. Nothing posts unless BUNDLE_SOCIAL_API_KEY and REVIEW_REPLIES_POSTING=1 are set.
@@ -4409,7 +4411,7 @@ uiRoutes.mountAppShell(app, path.join(__dirname, 'public'));
 // ── The automation chain (automation/runner.js, 10 Nov): for a client with Automation on, the next
 // step starts when the last has finished, through the app's own run routes, and stops at every approval.
 // The calls go to this server with the login cookie, so each step is exactly what its button does.
-let automation = null, automationNotifier = null;
+let automation = null, automationNotifier = null, tellBrandon = null;
 if (pool) {
   const AU = require('./automation/runner');
   const loopback = (method, urlPath, body) => new Promise((resolve, reject) => {
@@ -4448,6 +4450,10 @@ if (pool) {
     await (autoMail = autoMail || gmailForAuto.createGmail()).send(require('./ghl-onboarding/service').operatorEmail({ ...who, client, stage, state, link: base ? `${base}/clients/${client.id}` : '' }));
     console.log(`[ghl-onboarding] emailed ${who.to}: ${client.name}, ${stage}`);
   };
+  // Tell Brandon (brandon/, 12 Nov 2026): Copybot's own alerts and the button's asks, to TELL_BRANDON_EMAIL
+  // (else team@locallaunchpad.co.uk) through the same mailbox; WhatsApp from TELL_BRANDON_WHATSAPP
+  tellBrandon = require('./brandon/service').createBrandon({ pool, log: text => console.log(text), dripState: id => (dripStateForBrandon ? dripStateForBrandon(id) : Promise.reject(new Error('publishing not wired'))), send: gmailForAuto.configured() ? m => (autoMail = autoMail || gmailForAuto.createGmail()).send(m) : null });
+  require('./brandon/service').mountBrandonApi(app, { brandon: tellBrandon });
 }
 // The Add client wizard (ui/intake.js): the website read (one fetch, one model call), Places, the merge, the create
 {
@@ -4755,6 +4761,14 @@ initDb().then(async () => {
         automationNotifier.digest().then(r => { if (r.sent) console.log(`[automation] morning digest: ${r.sent} email(s), ${r.clients} client(s)`); }).catch(err => console.error('[automation] digest failed:', err.message));
       }, 60000);
     }
+  }
+  // Tell Brandon: the alerts every 15 minutes (the first two minutes after start), the morning email checked every minute
+  if (tellBrandon) {
+    await require('./brandon/service').ensureBrandonTables(pool).catch(err => console.error('[brandon] tables failed:', err.message));
+    const alertTick = () => tellBrandon.tick().then(r => { if (r.fresh || r.cleared) console.log(`[brandon] alerts: ${r.fresh} new, ${r.cleared} cleared, ${r.emailed} emailed`); }).catch(err => console.error('[brandon] alerts failed:', err.message));
+    setTimeout(alertTick, 120000);
+    setInterval(alertTick, 15 * 60000);
+    setInterval(() => tellBrandon.digest().then(r => { if (r.sent) console.log(`[brandon] morning email: ${r.alerts} alert(s), ${r.asks} waiting`); }).catch(err => console.error('[brandon] morning email failed:', err.message)), 60000);
   }
   // The places table (the Location Determiner's towns, suburbs and admin areas): created, then
   // seeded from locations/data/places.csv.gz after the server is up, only when the file changed

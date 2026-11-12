@@ -1,0 +1,40 @@
+{
+  "_note": "The reasons the Tell Brandon button offers, by the screen it is on (Brandon, 12 Nov 2026). A new reason is a line here, not code. Each is a judgement call a person has to make: anything Copybot can see for itself is an alert in brandon/alerts.js instead.",
+  "client": [
+    "The client's details don't match the GBP",
+    "The client already owns a domain or has an old website",
+    "Need the client to send something",
+    "Not sure what to do next",
+    "Something else"
+  ],
+  "review": [
+    "Does the client recognise this reviewer?",
+    "Abusive, threatening or personal review",
+    "A 1 to 3 star review: the client should know",
+    "Something else about this review"
+  ],
+  "connect": [
+    "The client isn't in the bundle.social list",
+    "The connection shows a problem",
+    "Something else about publishing"
+  ],
+  "citations": [
+    "The NAP doesn't match the GBP",
+    "Facebook or Instagram link is missing",
+    "Not sure a directory is worth it",
+    "A directory is asking for something I'm not sure about",
+    "LinkedIn: whose profile to use",
+    "Paid sites list for the client",
+    "Something else about citations"
+  ],
+  "locations": [
+    "Not sure which address scenario applies",
+    "No base town on the record",
+    "Something else about the towns"
+  ],
+  "photos": [
+    "The client needs to send more photos",
+    "Not sure about some photos",
+    "Something else about photos"
+  ]
+}
