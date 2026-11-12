@@ -152,7 +152,7 @@ function createRankScans({ pool, store, lf, locate, search, saveClientValue, log
     const cur = cv.scan_settings;
     if (!fresh && cur && cur.locked && cur.provider === PROVIDER) return { settings: cur, saved: true };
     const placeId = str(cv.gbp_place_id);
-    if (!placeId) throw bad('No Google place ID for this client: save gbp_place_id on Client Values (the competitor check on the GBP tab fills it). Scans match the client by place ID only, so none can run without it.');
+    if (!placeId) throw bad('No Google place ID for this client: confirm the Google listing on the Record tab (the place ID step). Scans match the client by place ID only, so none can run without it.');
     const town = str(I.town);
     const addressType = str(cv.gbp_address_type).toLowerCase();
     const warnings = [], notes = [];
