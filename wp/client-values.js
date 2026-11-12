@@ -40,6 +40,9 @@ function buildClientValuesPayload(record, extra = {}) {
   });
   // A record with no map embed says nothing about the site's: a push must not clear it
   if (!out.map_embed) delete out.map_embed;
+  // The same for the Google review link (12 Nov): a page written before the link was built from the
+  // Google listing carries none, and its push must not clear the one the Review Us page uses
+  if (!out.review_url) delete out.review_url;
   return out;
 }
 

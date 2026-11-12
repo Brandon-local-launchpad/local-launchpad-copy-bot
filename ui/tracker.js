@@ -49,7 +49,7 @@ function trackerOf(f) {
   if (f.prices === 'extraction_failed') need('prices', 'Retry the price extraction', 'record', 'The prices recording could not be read.');
   if (f.missing && f.missing.length) need('fields', `Fill in the record: ${f.missing.join(', ')}`, 'record', 'The pages cannot be written without these.', f.niche_known);
   if (f.from_form && !f.reviewed) need('reviewed', 'Read the record and mark it reviewed', 'record', '', f.niche_known);
-  if (!f.place_id) need('place_id', 'Confirm the Google listing', 'record', 'The rank scans and the GBP checks need the place ID.', f.niche_known);
+  if (!f.place_id) need('place_id', 'Confirm the Google listing', 'record', 'The rank scans, the GBP checks and the Google link on the Review Us page need the place ID.', f.niche_known);
   const recordReady = f.niche_known && !(f.missing && f.missing.length);
 
   // ── Locations, research, page map ──
@@ -93,6 +93,16 @@ function trackerOf(f) {
   const r = f.reviews || { queued: 0, posted: 0 };
   if (r.posted) did('reviews', `${plural(r.posted, 'review reply', 'review replies')} posted`, 'reviews');
   if (r.queued) need('reviews', `Approve ${plural(r.queued, 'review reply', 'review replies')}`, 'reviews', 'A 1 to 3 star reply never posts without a person.');
+
+  // The Review Us page (review-funnel/): its settings go to the site once it is connected and there is a Google
+  // link to send; feedback that did not reach the client waits for a person to pass it on
+  const rf = f.review_funnel || null;
+  if (rf) {
+    if (rf.sent_at) did('review_page', 'Review Us page set up on the site', 'reviews', rf.sent_at);
+    else need('review_page', 'Set up the Review Us page on the site', 'reviews', 'It sends 4 and 5 star customers to Google, and 1 to 3 star feedback to the client in private.', !!rf.site && !!rf.link);
+    if (rf.received > rf.unsent) did('feedback', `${plural(rf.received - rf.unsent, 'private feedback message')} passed to the client`, 'reviews');
+    if (rf.unsent) need('feedback_unsent', `Pass on ${plural(rf.unsent, 'private feedback message')} the client has not had`, 'reviews', 'The email to the client did not send, or there is no email on their record.');
+  }
 
   // ── Citations, rankings, the old site ──
   const ci = f.citations || { rows: 0, scanned: 0, listed: 0, to_submit: 0, waiting: 0 };

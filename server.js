@@ -58,6 +58,27 @@ const ghlOnboarding = pool ? require('./ghl-onboarding/service').createOnboardin
 if (ghlOnboarding) ghlOnboardingRoutes.mountWebhook(app, ghlOnboarding, { secret: process.env.GHL_ONBOARDING_SECRET || '' });
 else app.post(ghlOnboardingRoutes.PATH, (_req, res) => res.status(503).json({ error: 'Database not configured.' }));
 
+// ── The Review Us page's private feedback (review-funnel/, 12 Nov 2026) ───────
+// A client's site posts 1 to 3 star feedback here. Mounted before the login middleware like the
+// webhooks: the long random token in the address is the auth and says which client. Copybot
+// emails the client, with a copy to the team (the Gmail connection the citations inbox has).
+const reviewFunnelRoutes = require('./review-funnel/routes');
+let reviewFunnelMail = null;
+const reviewFunnel = pool ? require('./review-funnel/service').createReviewFunnel({
+  pool,
+  loadValues: async id => {
+    const { rows } = await pool.query(`SELECT content FROM client_assets WHERE client_id = $1 AND asset_type = 'client_values' ORDER BY uploaded_at DESC LIMIT 1`, [id]);
+    return rows.length ? require('./fillout/to-values').withoutUnconfirmed(JSON.parse(rows[0].content)) : {};
+  },
+  siteFor: async id => {
+    const row = await require('./wp/db-store').getConnectionRow(pool, id);
+    if (!row || !row.app_password_enc) return null;
+    return { url: row.url, user: row.wp_user, appPassword: require('./wp/secrets').decrypt(row.app_password_enc, process.env.COPYBOT_SECRET_KEY), staging: !!row.staging };
+  },
+  send: require('./citations/inbox/gmail').configured() ? m => (reviewFunnelMail = reviewFunnelMail || require('./citations/inbox/gmail').createGmail()).send(m) : null,
+}) : null;
+if (reviewFunnel) reviewFunnelRoutes.mountPublic(app, reviewFunnel);
+
 app.use(express.json({ limit: '4mb' }));
 
 // ── Auth middleware ───────────────────────────────────────────────────────────
@@ -111,6 +132,9 @@ app.use((req, res, next) => {
   // Static files and login page are already served above — only API and page routes hit this
   requireAuth(req, res, next);
 });
+
+// The Review Us page's card on the Reviews tab (behind the login; the public route is above)
+if (reviewFunnel) reviewFunnelRoutes.mountApi(app, reviewFunnel);
 
 const sleep = ms => new Promise(r => setTimeout(r, ms));
 

@@ -4,6 +4,7 @@
 // reviews as last synced. The queue across clients is the Review replies screen.
 
 import { h, attr, api, card, toast, confirm, empty, failed, pill, fmtDate } from '../ui.js';
+import { mountFunnel } from './review-funnel.js';
 
 const STATUS = { new: ['none', 'Waiting to be drafted'], drafting: ['run', 'Drafting'], queued: ['wait', 'In the queue'], posting: ['run', 'Posting'], posted: ['ok', 'Replied'], backlog: ['none', 'Backlog'], already_replied: ['none', 'Already replied'], no_reply: ['none', 'No reply'] };
 const stars = n => `<span style="color:${n <= 3 ? '#b45309' : '#15803d'}">${'★'.repeat(n || 0)}</span>`;
@@ -12,9 +13,13 @@ export async function render(el, ctx) {
   const url = `/api/clients/${ctx.clientId}/reviews`;
   const by = () => (() => { try { return localStorage.getItem('ll_user') || ''; } catch (_) { return ''; } })();   // the name the shell keeps (shell.js userName)
   let S = null;
+  // Two parts that load on their own: the review replies, and the Review Us page card (review-funnel.js)
+  el.innerHTML = '<div class="stack"><div data-part="replies"></div><div data-part="funnel"></div></div>';
+  const funnelHost = el.querySelector('[data-part="funnel"]');
+  el = el.querySelector('[data-part="replies"]');
   const load = async () => {
     try { S = await api(url); }
-    catch (e) { el.innerHTML = failed({ title: 'Reviews could not load', reason: e.message, retry: '<button class="btn btn-ghost" data-rv="reload">Retry</button>' }); return; }
+    catch (e) { console.error('[reviews]', e); el.innerHTML = failed({ title: 'Reviews could not load', reason: e.message, retry: '<button class="btn btn-ghost" data-rv="reload">Retry</button>' }); return; }
     draw();
   };
 
@@ -103,5 +108,5 @@ export async function render(el, ctx) {
     } catch (err) { toast(err.message, 'bad'); }
     finally { if (b.isConnected) { b.disabled = false; } }
   });
-  await load();
+  await Promise.all([load(), mountFunnel(funnelHost, ctx, by)]);
 }

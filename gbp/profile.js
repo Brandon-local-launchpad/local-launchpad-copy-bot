@@ -15,6 +15,7 @@ const GBP_AREA_LIMIT = 20;
 const UTM = 'utm_source=google&utm_medium=organic&utm_campaign=gbp';
 
 const str = v => (v == null ? '' : String(v)).trim();
+const { reviewLink } = require('../review-funnel/rules');
 
 // UK phone to one format: 0xxxx xxxxxx. +44 and spacing in any style; a number that
 // is not 11 digits is left as typed and flagged.
@@ -144,7 +145,7 @@ function buildNote({ I, cv, site, competitors = null, scanAlerts = [] }) {
   else if (!pack.verified) blockers.push('trade facts pack unverified');
   if (competitor === null) blockers.push('no competitor count');
   if (!site) blockers.push('no site URL');
-  if (!str(cv.review_url)) blockers.push('no review link');
+  if (!reviewLink(cv).url) blockers.push('no review link');
   const l4 = `Blockers: ${blockers.length ? blockers.join('; ') : 'none'}.`;
   // A rank drop (10 points or more of Top 3% month on month) adds a line per keyword
   return [l1, l2, l3, l4, ...(scanAlerts || []).map(a => a.line)].join('\n');
@@ -154,10 +155,11 @@ function buildNote({ I, cv, site, competitors = null, scanAlerts = [] }) {
 function buildTemplates({ cv, flags }) {
   const business = str(cv.company_name) || '[business name]';
   const owner = str(cv.owner_name) || '[owner name]';
-  const link = str(cv.review_url) || '[review link]';
+  // The link typed on the Record tab, else the one built from the confirmed Google listing (12 Nov)
+  const link = reviewLink(cv).url || '[review link]';
   const email = str(cv.email) || '[email]';
   if (!str(cv.owner_name)) flags.push({ code: 'GBP-NO-OWNER-NAME', msg: 'No owner name is saved; the templates keep [owner name].' });
-  if (!str(cv.review_url)) flags.push({ code: 'GBP-NO-REVIEW-LINK', msg: 'No Google review link is saved (Client Values, Google Business Profile); the review request keeps [review link].' });
+  if (!reviewLink(cv).url) flags.push({ code: 'GBP-NO-REVIEW-LINK', msg: 'No Google review link: confirm the Google listing on the Record tab (the link is built from it), or type one under Reviews. The review request keeps [review link].' });
   if (!str(cv.email)) flags.push({ code: 'GBP-NO-EMAIL', msg: 'No email is saved; the review reply keeps [email].' });
   return {
     c1: `Hi [first name], thanks for choosing ${business}. If you have a minute, we'd really appreciate a Google review: ${link}. Thank you! – ${owner}`,

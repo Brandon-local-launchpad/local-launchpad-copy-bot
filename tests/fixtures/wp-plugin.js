@@ -77,8 +77,9 @@ const E = require(path.join(__dirname, 'data/edens-edge-acceptance.js'));
 const oldRec = require(path.join(__dirname, 'v20-outputs/edens-edge-2026-10-14-stage7b-record.json'));
 const rec = { ...oldRec, meta: { ...oldRec.meta, client_values: G.clientValueMap({ ...E.ethanValues(), phone: '023 0000 0000' }, null) } };
 const cv = buildClientValuesPayload(rec);
-// The map embed only when the record has one: a push never clears the site's (5 Nov 2026)
-chk('Client Values payload covers every key but an empty map embed', ALL_KEYS.every(k => k.key in cv || k.key === 'map_embed'), ALL_KEYS.filter(k => !(k.key in cv)).map(k => k.key).join(','), 'all keys');
+// The map embed only when the record has one: a push never clears the site's (5 Nov 2026). The same for the
+// Google review link (12 Nov 2026): the Review Us page uses the site's
+chk('Client Values payload covers every key but an empty map embed and an empty review link', ALL_KEYS.every(k => k.key in cv || k.key === 'map_embed' || k.key === 'review_url'), ALL_KEYS.filter(k => !(k.key in cv)).map(k => k.key).join(','), 'all keys');
 chk('Client Values: company, travel distance, button label, no rating line', cv.company_name === 'Edens Edge Landscaping' && cv.travel_distance === '20 miles' && cv.primary_action === 'Get My Free Quote' && cv.rating_line === '', JSON.stringify({ c: cv.company_name, t: cv.travel_distance, p: cv.primary_action, r: cv.rating_line }), 'ok');
 
 // ── Dry run: site checks ──

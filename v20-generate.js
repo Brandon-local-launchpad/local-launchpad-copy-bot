@@ -63,8 +63,10 @@ function clientValueMap(cv, yearsTrading) {
   const out = {};
   for (const k of CV_KEYS) { const v = cvValue(k, cv, yearsTrading); if (v) out[k] = v; }
   // The Google review link (Client Values, Google Business Profile, 23 Oct): the WordPress
-  // site's review_url and the GBP review request read it; no [CV:] token names it
-  if (cv.review_url && String(cv.review_url).trim()) out.review_url = String(cv.review_url).trim();
+  // site's review_url and the GBP review request read it; no [CV:] token names it. With none
+  // typed it is built from the confirmed Google listing (12 Nov, review-funnel/rules.js reviewLink)
+  const review = require('./review-funnel/rules').reviewLink(cv).url;
+  if (review) out.review_url = review;
   // The map embed goes to the site's Client Values the same way (5 Nov 2026: no record carried it, so a push cleared it)
   if (cv.map_embed && String(cv.map_embed).trim()) out.map_embed = String(cv.map_embed).trim();
   return out;

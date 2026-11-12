@@ -1,8 +1,8 @@
 <?php
 /**
  * Plugin Name: Local Launchpad Copybot
- * Description: Client Values, [CV: key] token replacement, the homepage ACF field groups (master copy), REST access for Copybot pushes, and old site redirects into Rank Math.
- * Version:     0.4.0
+ * Description: Client Values, [CV: key] token replacement, the homepage ACF field groups (master copy), REST access for Copybot pushes, old site redirects into Rank Math, and the Review Us page (the star box and its private feedback form).
+ * Version:     0.5.0
  * Requires at least: 6.2
  * Requires PHP: 7.4
  * Author:      Local Launchpad
@@ -17,9 +17,10 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'LLP_COPYBOT_VERSION', '0.4.0' );
+define( 'LLP_COPYBOT_VERSION', '0.5.0' );
 define( 'LLP_COPYBOT_OPTION', 'llp_client_values' );
 require_once __DIR__ . '/redirects.php';
+require_once __DIR__ . '/review-funnel.php';
 
 // ── Client Values ────────────────────────────────────────────────────────────
 
@@ -264,6 +265,7 @@ add_action(
 							'seo'          => defined( 'RANK_MATH_VERSION' ) ? 'rankmath' : ( defined( 'WPSEO_VERSION' ) ? 'yoast' : 'none' ),
 							'front_page'   => (int) get_option( 'page_on_front' ),
 							'redirects'    => llp_redirects_ready(),
+							'review_funnel' => '' !== llp_review_funnel_endpoint(),
 							'field_groups' => $groups,
 						)
 					);
